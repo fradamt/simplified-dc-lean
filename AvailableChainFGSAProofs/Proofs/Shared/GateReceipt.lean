@@ -9,7 +9,8 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- P3 erratum 13; blueprint 21 H.22:3100–3120, 02:531–541, 03:293–312.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 erratum 13; blueprint 21 H.22:3100–3120, 02:531–541, 03:293–312.
 DC: Goldfish/Confirmation.lean:434–441, HonestSupport.vote.
 INTENTIONAL: the consumer supplies two prefixes of each honest awake HEAD,
 including the FG-SA active floor. Shared does not derive lane geometry. -/
@@ -17,13 +18,13 @@ structure GateReceiptGeometry (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (pre : State p.n) (s : Slot) (B : Block) : Prop where
   target_floor : ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
     E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true →
-    ∀ K, V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
-      (ofHead p ⟨.seat (.head s) q, K⟩) (SA.voteTime p.toParams s) →
+    ∀ K, HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
       Block.Preceq (eraseFG pre.fg.F) K
   covered_prefix : ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
     E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true →
-    ∀ K, V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
-      (ofHead p ⟨.seat (.head s) q, K⟩) (SA.voteTime p.toParams s) →
+    ∀ K, HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
       Block.Preceq B K
 
 private theorem gateReceipt_find_kept {α : Type} [BEq α] [LawfulBEq α]
@@ -42,14 +43,15 @@ private theorem gateReceipt_find_kept {α : Type} [BEq α] [LawfulBEq α]
     exact (hn trivial).elim
   | some row => rfl
 
-/-- Blueprint 02:537–539, original early stamps remain.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 02:537–539, original early stamps remain.
 DC: Handlers/GoldfishVotePool.lean:810, admittedBefore_ancestor_mem_and_stamp_at.
 INTENTIONAL: FG-SA keeps first-receipt lists through clockPre and actView;
 this equality needs only NoRestart, not a Clean foundation or honest reader. -/
 theorem fgsa_gateReceipt_stamps
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hN : V2.D.NoRestart rho)
     {j i : Nat} (hji : j ≤ i) (x : V) (s : Slot)
-    (o : GridCO.Wire p.n) (K : Block)
+    (o : GridCO.Wire p.n .root) (K : Block)
     (ho : o ∈ (storeAt p c E rho j x).base.votes)
     (hK : K ∈ (storeAt p c E rho j x).base.blocks) :
     let v := actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))
@@ -94,7 +96,8 @@ theorem fgsa_gateReceipt_stamps
       contradiction
     | some row => rfl
 
-/-- Blueprint 02:537–539, strict early block stamps.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 02:537–539, strict early block stamps.
 DC: Handlers/GoldfishVotePool.lean:810, admittedBefore_ancestor_mem_and_stamp_at.
 INTENTIONAL: an FG-SA stamp is the original local pre-process clock;
 the strict tick read bounds it, including genesis at positive times. -/
@@ -147,24 +150,22 @@ private theorem gateReceipt_idx_mono (rho : V2.D.Run V (fgsa p c)) :
   exact List.countP_mono_left (fun e _ he => decide_eq_true
     (lt_of_lt_of_le (of_decide_eq_true he) hab))
 
-private theorem gateReceipt_block_decode {o : Obj p} {K : Block}
-    (h : blockOf? p o = some K) :
-    ∃ s raw sup rows, o = ofWire p ⟨.proposer s, .proposal K raw sup rows⟩ := by
-  have hd : ∃ s raw sup rows, (toWire p o).decode = some (.block s K raw sup rows) := by
-    dsimp only [blockOf?] at h
-    cases he : (toWire p o).decode with
-    | none => simp only [he, reduceCtorEq] at h
-    | some input =>
-      cases input <;> simp only [he, reduceCtorEq, Option.some.injEq] at h
-      subst K
-      exact ⟨_, _, _, _, rfl⟩
-  obtain ⟨s, raw, sup, rows, hd⟩ := hd
-  refine ⟨s, raw, sup, rows, ?_⟩
-  apply toWire_injective
-  rw [toWire_ofWire]
-  exact decode_eq_block.mp hd
+private theorem gateReceipt_block_decode {o : Obj p} {b : Block}
+    (h : blockOf? p o = some b) :
+    ∃ s N, o = ofWire p ⟨.proposer s, .proposal N⟩ ∧ N.erase = b := by
+  unfold blockOf? at h
+  cases hd : (toWire p o).decode with
+  | none => simp only [hd, reduceCtorEq] at h
+  | some m =>
+    cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
+    rename_i s N
+    refine ⟨s, N, ?_, h⟩
+    apply toWire_injective
+    rw [toWire_ofWire]
+    exact decode_eq_block.mp hd
 
-/-- ROOT-DIGEST W2b. Blueprint 02:537–539 and 03:293–304, compatible receipt before a read.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 02:537–539 and 03:293–304, compatible receipt before a read.
 DC: Handlers/GoldfishVotePool.lean:810, retained resolved block membership.
 INTENTIONAL: the receiving FG-SA floor bounds earlier admission floors.
 Only the opaque proposal row list is passed to the receipt interface.
@@ -193,18 +194,19 @@ theorem fgsa_gateReceipt_block_to_tick
     ← fgsa_preTick_eq_timeRead E rho hsch hN hj] at hfloor
   have hcompat := Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K)
     (Gen.Pure.block_preceq_trans hfloor hF)
-  obtain ⟨s, raw, sup, rows, rfl⟩ := gateReceipt_block_decode ho
+  obtain ⟨s, N, rfl, heN⟩ := gateReceipt_block_decode ho
   obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut
-    s K raw sup rows t x hD hT hx hc hlt hcompat
+    s N t x hD hT hx hc hlt (by simpa only [heN] using hcompat)
   have hkeep := (fgsa_store_cumulative p c E rho hN hidx x).1
   change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl t)) x).st.fg.TF ⊆
     (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho u) x).st.fg.TF at hkeep
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hsch,
     Gen.V2.Duty.stateBefore_idxBefore E rho u hsch,
     ← fgsa_preTick_eq_timeRead E rho hsch hN hj] at hkeep
-  exact ((cstoreInv_stateBefore E rho j x).baseTree K).mpr ⟨Y, hkeep hY, he⟩
+  exact ((cstoreInv_stateBefore E rho j x).baseTree K).mpr ⟨Y, hkeep hY, he.trans heN⟩
 
-/-- ROOT-DIGEST W2b. P3 erratum 13; blueprint 02:531–541 and 21 H.22:3100–3120.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 erratum 13; blueprint 02:531–541 and 21 H.22:3100–3120.
 DC: Goldfish/Confirmation.lean:434–441, HonestSupport.vote.
 INTENTIONAL: produce resolved honest HEAD receipts in the F-anchored gate view,
 with strict original early stamps and two consumer-supplied prefix bounds.
@@ -226,15 +228,15 @@ theorem fgsa_gateReceipt
       ∃ K t,
         rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
         V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
-          (ofHead p ⟨.seat (.head s) q, K⟩) t ∧
-        baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n) ∈
+          (ofHead p ⟨.seat (.head s) q, K.root⟩) t ∧
+        baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
           (storeAt p c E rho i x).base.votes ∧
         K ∈ (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams s))).blocks ∧
         K.slot ≤ s ∧
         GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams s)))
-          (baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n)) <
+          (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) <
             GridCO.earlyTime p.toParams.engine s ∧
         GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
@@ -278,12 +280,17 @@ theorem fgsa_gateReceipt
       (SA.voteTime p.toParams s)).cstore s
     change K ∈ (clock p (storeAt p c E rho k y) _).base.blocks at hm
     rwa [(clock_cumulative p _ _).2.1] at hm
-  have hem : V2.D.Run.emits E rho y (ofHead p ⟨.seat (.head s) q, K⟩)
+  have hem : V2.D.Run.emits E rho y (ofHead p ⟨.seat (.head s) q, K.root⟩)
       (SA.voteTime p.toParams s) := by
     refine ⟨k, hk, ?_⟩
     rw [(V2.D.Run.step_tick_eq E rho hk).2]
-    exact (fgsa_emits_head E rho _ y _ s q K).mpr ⟨hawake, rfl, rfl, rfl⟩
-  have hF := hgeom.target_floor q hy hawake K hem
+    exact (fgsa_emits_head E rho _ y _ s q K.root).mpr ⟨hawake, rfl, rfl, rfl⟩
+  have hTarget : HeadTargetAtEmission p c E rho y
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K := by
+    refine ⟨k, s, q, hk, ?_, rfl, rfl⟩
+    rw [(V2.D.Run.step_tick_eq E rho hk).2]
+    exact (fgsa_emits_head E rho _ y _ s q K.root).mpr ⟨hawake, rfl, rfl, rfl⟩
+  have hF := hgeom.target_floor q hy hawake K hTarget
   have hFpre : Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) K := by
     simpa only [clockPre_fg] using hF
   have hFearly := Gen.Pure.block_preceq_trans
@@ -332,7 +339,7 @@ theorem fgsa_gateReceipt
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hb
     exact ((Internal.slotOf_mono (p := p) (hn.trans hb)).trans_eq
       (slotOf_offset p s (2 * p.Δ) (by omega) (by omega))).trans (Nat.le_succ _)
-  have hr := fgsa_honest_head_receipt E rho hDelta hE hN hC dl cut s q K
+  have hr := fgsa_honest_head_receipt E rho hDelta hE hN hC dl cut s q K.root
     (SA.voteTime p.toParams s) y x hD hy hem hx (hdl.trans (hearly.le.trans hcut))
     (hlt _) hwindow
   have hid : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams s)) ≤ j := by
@@ -342,7 +349,7 @@ theorem fgsa_gateReceipt
   have hvoteMem := hr.1
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch] at hvoteMem
   have hvkeep := fgsa_gateReceipt_stamps E rho hN (hid.trans hji) x s
-    (baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n)) .genesis hvoteMem
+    (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) .genesis hvoteMem
     (((cstoreInv_stateBefore E rho _ x).baseTree _).mpr
       ⟨.genesis, (cstoreInv_stateBefore E rho _ x).fg.gen, rfl⟩)
   have hKg : K ∈ (actView (clockPre p (storeAt p c E rho i x)
@@ -359,7 +366,7 @@ theorem fgsa_gateReceipt
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq
       (slotOf_offset p s p.Δ hd.le (by omega)))
   refine ⟨K, SA.voteTime p.toParams s, hy, hem, hvkeep.1, hKg, hslot, ?_, ?_, hF,
-    hgeom.covered_prefix q hy hawake K hem⟩
+    hgeom.covered_prefix q hy hawake K hTarget⟩
   · rw [hvkeep.2.1]
     change GridCO.stampVote (V2.D.Run.stateBefore E rho
       (V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams s))) x).st.base _ < _

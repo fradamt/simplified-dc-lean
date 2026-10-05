@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 
@@ -7,7 +9,8 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
-/-- Blueprint 21:2646–2649 (H.12); B13, B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:2646–2649 (H.12); B13, B17.
 DC: SAME the action of label u−1 follows both slot-u duty reads. -/
 theorem healing_source_label_bound (p : Params) {s u : Slot}
     (hread : SA.gateTime p.toParams s ≤ SA.voteTime p.toParams u) :
@@ -18,7 +21,8 @@ theorem healing_source_label_bound (p : Params) {s u : Slot}
   have hsu' : (s : Int) + 2 ≤ (u : Int) := by omega
   exact_mod_cast hsu'
 
-/-- Blueprint 21:2646–2649 (H.12); B17, B26.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:2646–2649 (H.12); B17, B26.
 DC: SAME the source early deadline is before the required freeze. -/
 theorem healing_source_relay_deadline (p : Params) {s u : Slot} (hsu : s + 2 ≤ u) :
     SA.earlyTime p.toParams s ≤ SA.proposalTime p.toParams u - 6 * p.Δ ∧
@@ -33,7 +37,8 @@ theorem healing_source_relay_deadline (p : Params) {s u : Slot} (hsu : s + 2 ≤
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21:2646–2649 (H.12); B13, B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:2646–2649 (H.12); B13, B17.
 DC: SAME event order bounds every earlier honest row, including controlling rows. -/
 theorem healing_source_row_label (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x y : V} {r : Nat}
@@ -58,7 +63,8 @@ theorem healing_source_row_label (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
       linarith [p.deltaPos])
   · exact hb
 
-/-- Blueprint 21:563–567 (IF.5), 2649–2652 (H.12); B13, B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:563–567 (IF.5), 2649–2652 (H.12); B13, B17.
 DC: INTENTIONAL FG-SA TF is cumulative; finality changes the live window only.
 `fgsa_store_cumulative` uses `clock_cumulative` and `process_cumulative`, including
 the WindowStore admission and finalization steps. Thus the retention arm suffices. -/
@@ -78,7 +84,8 @@ private theorem source_idx_mono (rho : V2.D.Run V (fgsa p c)) :
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true ((of_decide_eq_true he).trans_le hab))
 
-/-- Blueprint 21:563–567, 2649–2652; B17, B26.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:563–567, 2649–2652; B17, B26.
 DC: SAME retention at the strict-before read, including a changed receiver F. -/
 theorem healing_source_path_retained (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
@@ -93,7 +100,8 @@ theorem healing_source_path_retained (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   intro B hBK
   exact (fgsa_store_cumulative p c E rho hnr (source_idx_mono rho hab) x).1 (hpath B hBK)
 
-/-- ROOT-DIGEST W2b. Blueprint 21:620–631 (IF.6), 2649–2651 (H.12); B13, B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:620–631 (IF.6), 2649–2651 (H.12); B13, B17.
 DC: SAME a fast source has an honest supporting HEAD at its source vote.
 Assembly supplies `sourceDiscipline_tSrc` as `source`; no Foundations import. -/
 theorem healing_source_supporter_head [Fintype V] (E : Generic.Env V)
@@ -117,12 +125,14 @@ theorem healing_source_supporter_head [Fintype V] (E : Generic.Env V)
     subst st
     obtain ⟨k, o, hh, ho, hk, hsup⟩ := healing_support_honest_seat rho
       hrec.base.cstar hrec.fault _ (r * p.R) (eraseFG K) hτ
-    obtain ⟨H, hH, _, _, _, hm, hl⟩ := healing_support_clean_target E rho o ho
+    obtain ⟨H, hH, hHm, _, _, hm, hl⟩ := healing_support_clean_target E rho o ho
     obtain ⟨j, hj, hhead⟩ := healing_support_honest_head E rho hrec.base.valid hm hl hk hh
     let z : V := rho.seatOf (.base (.head (r * p.R))) k
     have heq : H = headVote p (clock p (storeAt p c E rho j z)
         (SA.voteTime p.toParams (r * p.R))) (r * p.R) :=
-      Option.some.inj (hH.symm.trans hhead)
+      stored_eq_headVote E rho hrec.base.idealization i y hHm j z
+        (SA.voteTime p.toParams (r * p.R)) (r * p.R)
+        (Option.some.inj ((resolvedHead_root _ o hH).symm.trans hhead))
     have hstored := headVote_stored p _ (storeBundle_postClock E rho j z
       (SA.voteTime p.toParams (r * p.R))).cstore
       (r * p.R)
@@ -136,14 +146,17 @@ theorem healing_source_supporter_head [Fintype V] (E : Generic.Env V)
     obtain ⟨W, hW, hWH⟩ :=
       ((storeBundle_stateBefore E rho j z).cstore.baseTree H).mp hstored
     have hKW : Block.Preceq (eraseFG K) (eraseFG W) := by
-      unfold Gen.AC.voteSupports at hsup
-      rw [hH] at hsup
+      change Gen.AC.Root.voteSupports
+        (GridCO.resolutionTree (actView (clockPre p (storeAt p c E rho i y)
+          (SA.gateTime p.toParams (r * p.R))))) (eraseFG K) o = true at hsup
+      rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hH] at hsup
       have hb := (Bool.and_eq_true_iff.mp hsup).2
       simpa only [hWH, decide_eq_true_eq, Block.Preceq] using hb
     refine ⟨j, z, W, hh, hj, hW, ?_⟩
     exact eraseFG_preceq_iff.mp hKW
 
-/-- ROOT-DIGEST W2b. Blueprint 21:2649–2652 (H.12), 563–567 (IF.5); B13, B17, B26.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:2649–2652 (H.12), 563–567 (IF.5); B13, B17, B26.
 DC: SAME relay before e_s and retain the full source path at the target freeze.
 Assembly supplies `sourceDiscipline_tSrc` and `fgsa_rMono` as the named inputs.
 Finality is compared at the target read, so it can change during transport. -/
@@ -217,7 +230,8 @@ private theorem source_stamp_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
       rw [hstamp]
       exact hc.trans_lt ht
 
-/-- Blueprint 21:2649–2652 (H.12); B13, B17, B26.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:2649–2652 (H.12); B13, B17, B26.
 DC: SAME the strict read excludes receipts at the freeze itself.
 The named source and monotonicity inputs are `sourceDiscipline_tSrc` and `fgsa_rMono`. -/
 theorem healing_source_body_stamps [Fintype V] (E : Generic.Env V)
@@ -244,17 +258,17 @@ theorem healing_source_body_stamps [Fintype V] (E : Generic.Env V)
     positivity
   exact hpos.trans_le heD
 
-/-- ROOT-DIGEST W2b. Blueprint 21:2651–2652 (H.12 old bodies), 563–567 (IF.5); B13, B17, B26.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:2651–2652 (H.12 old bodies), 563–567 (IF.5); B13, B17, B26.
 DC: SAME honest acceptance before GST relays by GST+Δ.
 Assembly supplies `fgsa_rMono` as `mono`. The acceptance is an actual proposal
 handler call, as supplied by `fgsa_block_stamp_source`, not an assumed receipt. -/
 theorem healing_source_old_body [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
-    {j : Nat} {y x : V} {t D : Time} {s : Slot} {b : Block}
-    {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)} {K : FGBlock (Fin p.n)}
+    {j : Nat} {y x : V} {t D : Time} {s : Slot} {N : NamedProposal p.n} {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
-    (ha : V2.D.Run.acceptsAt E rho j y (ofWire p ⟨.proposer s, .proposal b raw sup rows⟩) t)
-    (ht : t < E.t_GST) (hKb : eraseFG K = b)
+    (ha : V2.D.Run.acceptsAt E rho j y (ofWire p ⟨.proposer s, .proposal N⟩) t)
+    (ht : t < E.t_GST) (hKb : eraseFG K = N.erase)
     (hd : E.t_GST + p.Δ ≤ D) (hhor : D ≤ rho.horizon)
     (hF : FGBlock.Preceq (V2.D.Run.stateBeforeTime E rho D x).st.fg.F K) :
     Gen.V2.Duty.HoldsBefore E rho
@@ -270,7 +284,7 @@ theorem healing_source_old_body [Fintype V] (E : Generic.Env V) (rho : V2.D.Run 
     (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) x).st.fg.F at hFd
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hs,
     Gen.V2.Duty.stateBefore_idxBefore E rho D hs] at hFd
-  have hcompat : Block.Compatible b
+  have hcompat : Block.Compatible N.erase
       (eraseFG (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.F) := by
     rw [← hKb]
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl _)
@@ -280,7 +294,7 @@ theorem healing_source_old_body [Fintype V] (E : Generic.Env V) (rho : V2.D.Run 
       (fgsaDelay_nonrow E.Δ ΔF o ho).trans hrec.base.delta)
   obtain ⟨Y, hY, hYb⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
     hrec.base.delta hrec.base.valid
-    hrec.base.noRestart dl rho.horizon s b raw sup rows t x hD
+    hrec.base.noRestart dl rho.horizon s N t x hD
     (Or.inr ⟨y, hy, j, ha⟩) hx ((hdl ▸ hd).trans hhor)
     ((le_max_left t E.t_GST).trans_lt (lt_add_of_pos_right _ p.deltaPos)) hcompat
   have hYK : Y = K := eraseFG_injective (hYb.trans hKb.symm)

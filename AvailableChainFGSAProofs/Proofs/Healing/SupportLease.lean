@@ -20,10 +20,10 @@ private def lease_source (st : State p.n) (t : Time) (row : Block × Nat × Time
   ∃ s B, t = SA.gateTime p.toParams s ∧
     let pre := clockPre p st t
     GridCO.savedGenuine pre.base s = none ∧
-    SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s = some B ∧
+    SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s = some B ∧
     (actView pre).obligations.any (fun r => !Block.compatible r.1 B) = false ∧
     Block.Preceq row.1 B ∧
-    (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+    (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
       (actView pre) s B ∧ row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams
 
 private theorem lease_rows_admitRows (rows : List (RowWire p.n)) (st : State p.n) :
@@ -39,7 +39,7 @@ private theorem lease_rows_process (st : State p.n) (o : Wire p.n) :
   change (match o.decode with
     | some (.vote s i b) => admitHead p st s i b
     | some (.row _ body) => admitRow p st ⟨o.auth, body⟩
-    | some (.block s b raw sup rows) => admitBlock p st s b raw sup rows
+    | some (.block s N) => admitBlock p st s N
     | none => st).base.obligations ⊆ st.base.obligations
   cases o.decode with
   | none => exact List.Subset.refl _
@@ -48,25 +48,29 @@ private theorem lease_rows_process (st : State p.n) (o : Wire p.n) :
     case vote s i b => rw [admitHead_obligations]
     case row i body =>
       rcases admitRow_eq p st ⟨o.auth, body⟩ with h | h <;> rw [h]
-    case block s b raw sup rows =>
-      cases hp : parentFG st b with
-      | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]
-      | some P =>
-        cases ha : blockAccepted p st s b raw sup P rows with
-        | false =>
-          rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
-        | true =>
-          unfold admitBlock
-          rw [hp]
-          dsimp only
-          rw [ha, ite_eq_left rfl, lease_rows_admitRows]
-          split
-          · dsimp only
-            rw [admitProposal_obligations_slow]
-          · rw [reconcile_obligations]
-            intro row hr
-            have hm := (List.mem_filter.mp hr).1
-            rwa [admitProposal_obligations_slow] at hm
+    case block s N =>
+      cases hn : namedParentHeld st N with
+      | false => rw [admitBlock_refused p st s N (Or.inl hn)]
+      | true =>
+        cases hp : parentFG st N.erase with
+        | none => rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))]
+        | some P =>
+          cases ha : blockAccepted p st s N P with
+          | false =>
+            rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
+          | true =>
+            unfold admitBlock
+            simp only [hn, Bool.not_true, Bool.false_eq_true, ite_false]
+            rw [hp]
+            dsimp only
+            rw [ha, ite_eq_left rfl, lease_rows_admitRows]
+            split
+            · dsimp only
+              rw [admitProposal_obligations_slow]
+            · rw [reconcile_obligations]
+              intro row hr
+              have hm := (List.mem_filter.mp hr).1
+              rwa [admitProposal_obligations_slow] at hm
 
 private theorem lease_rows_clock (st : State p.n) (t : Time) (row : Block × Nat × Time)
     (hm : row ∈ (clock p st t).base.obligations) :
@@ -86,22 +90,22 @@ private theorem lease_rows_clock (st : State p.n) (t : Time) (row : Block × Nat
       exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
     | none =>
       have he : (gateStep p pre s).base.obligations =
-          (SA.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s).obligations := by
+          (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s).obligations := by
         unfold gateStep
         rw [normalizeS_fields]
         simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false]
         rfl
       rw [he] at hm
-      cases hc : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s with
+      cases hc : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s with
       | none =>
-        unfold SA.gateFrom GridCO.gateFrom at hm
+        unfold SA.Root.gateFrom GridCO.gateFrom at hm
         rw [show GridCO.confirmationFrom p.toParams.engine
           (eraseFG pre.fg.F) (actView pre) s = none from hc] at hm
         exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
       | some B =>
         cases hg : (actView pre).obligations.any (fun r => !Block.compatible r.1 B) with
         | true =>
-          unfold SA.gateFrom GridCO.gateFrom at hm
+          unfold SA.Root.gateFrom GridCO.gateFrom at hm
           rw [show GridCO.confirmationFrom p.toParams.engine
             (eraseFG pre.fg.F) (actView pre) s = some B from hc] at hm
           dsimp only at hm
@@ -110,7 +114,7 @@ private theorem lease_rows_clock (st : State p.n) (t : Time) (row : Block × Nat
         | false =>
           have he := @gateFrom_eq_writeKeys_fgsa p.toParams p.n
             (eraseFG pre.fg.F) (actView pre) s B hc hg
-          change SA.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s = _ at he
+          change SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s = _ at he
           rw [he] at hm
           rcases writeKeys_row_cases _ _ _ row hm with hold | ⟨hk, hd⟩
           · exact Or.inl ((clockPre_obligations_sublist p st t).subset hold)
@@ -134,7 +138,7 @@ private theorem lease_gate_label (s : Slot) :
 private theorem lease_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {j : Nat} {x : V} {s : Slot} {B : Block}
     (ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
-    (hc : SA.confirmationFrom p.toParams
+    (hc : SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (V2.D.Run.stateBefore E rho j x).st (SA.gateTime p.toParams s)).fg.F)
       (actView (clockPre p (V2.D.Run.stateBefore E rho j x).st
         (SA.gateTime p.toParams s))) s = some B) :
@@ -146,7 +150,8 @@ private theorem lease_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   rw [htest, ite_eq_left rfl]
   rw [lease_gate_label s, hc]
 
-/-- Blueprint 21:689–699; plan H-SUPPORT §3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:689–699; plan H-SUPPORT §3.
 DC: SAME a clock step at a time that is not a gate time writes no lease row. -/
 theorem healing_lease_clock_nongate (st : State p.n) (t : Time)
     (ht : ∀ w : Slot, t ≠ SA.gateTime p.toParams w) (row : Block × Nat × Time)
@@ -155,12 +160,14 @@ theorem healing_lease_clock_nongate (st : State p.n) (t : Time)
   · exact h
   · exact absurd htime (ht w)
 
-/-- Two grid times with integer coefficients agree only for equal coefficients. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Two grid times with integer coefficients agree only for equal coefficients. -/
 private theorem lease_time_cancel {a b : Int} (h : a * p.Δ = b * p.Δ) : a = b :=
   Int.eq_of_mul_eq_mul_right (ne_of_gt p.deltaPos) h
 
 omit [DecidableEq V] in
-/-- Two ticks of one node are in time order exactly when they are in index order. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Two ticks of one node are in time order exactly when they are in index order. -/
 private theorem lease_idx_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {a b : Nat} {y : V} {ta tb : Time}
     (ha : rho.events[a]? = some (.tick y ta)) (hb : rho.events[b]? = some (.tick y tb))
@@ -173,7 +180,8 @@ private theorem lease_idx_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact absurd hlt (lt_irrefl _)
   · exact absurd (fgsa_tick_time_strict E rho hs hb ha h) (not_lt.mpr hlt.le)
 
-/-- Blueprint 21:689–699 (lease survival), IF.1; plan H-SUPPORT §3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:689–699 (lease survival), IF.1; plan H-SUPPORT §3.
 DC: SAME a lease row whose deadline names gate w, and whose gate tick is before index a,
 is present at every index between a and a later index that holds it. No later step can
 write the same row again. -/
@@ -217,7 +225,8 @@ theorem healing_lease_persist (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       rw [htime, hw] at hlt
       exact lt_irrefl _ hlt
 
-/-- Blueprint 21:620–650 (H.4 fast body); plan H-SUPPORT §4 step 1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:620–650 (H.4 fast body); plan H-SUPPORT §4 step 1.
 DC: INTENTIONAL the decoded fast body. The source gate has a raw confirmation h ⪰ B, and
 B passes the fast threshold in the source gate view. -/
 theorem healing_fast_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -226,7 +235,7 @@ theorem healing_fast_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hB : B ∈ (fastWriteAt nd.st s).getD []) :
     ∃ ix h, rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) ∧
       gateResult p c E rho x s = some (some h) ∧ Block.Preceq B h ∧
-      SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+      SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
         (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s B := by
   rw [postClock_def, preTick_def] at hnd
   cases hix' : V2.D.Run.tickIdx? rho x (SA.gateTime p.toParams s) with
@@ -239,7 +248,8 @@ theorem healing_fast_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [healing_support_fastWrite p c E rho hs hix] at hB
   let src := actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))
   unfold fastSet at hB
-  cases hconf : SA.confirmationFrom p.toParams (eraseFG (storeAt p c E rho ix x).fg.F) src s with
+  cases hconf : SA.Root.confirmationFrom p.toParams (eraseFG (storeAt p c E rho ix x).fg.F) src
+      s with
   | none => rw [hconf] at hB; exact absurd hB List.not_mem_nil
   | some h =>
   rw [hconf] at hB
@@ -255,7 +265,8 @@ theorem healing_fast_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [clockPre_fg]
   exact hconf
 
-/-- ROOT-DIGEST W2b. Blueprint 21:689–715 (H.1 release, H.2 S1), IF.1, IF.6; plan H-SUPPORT §4 steps
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:689–715 (H.1 release, H.2 S1), IF.1, IF.6; plan H-SUPPORT §4 steps
 5–8,
 G5, G7, G8. DC: INTENTIONAL the lease invariant for a fast body. A row at an honest read
 after the q_(s+1) tick has its last write at a gate w before the read. If w < s, the row
@@ -269,16 +280,17 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {s : Slot} {B : Block} (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
     (hgs : SA.gateTime p.toParams s ≤ rho.horizon)
@@ -341,7 +353,8 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
     obtain ⟨ix, h, _, hxh, hBh, _⟩ := healing_fast_source (c := c) E rho hS hnd hB
     have hyC : gateResult p c E rho y w = some (some C) :=
       (gateResultAt_eq_gateResult p c E rho hS ht).symm.trans hres
-    have hhC := fgsa_sameLabel p c E rho hE hN hDelta w hSync x y h C hx hy hxh hyC
+    have hhC := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hE hN hDelta w hSync
+        x y h C hx hy hxh hyC
     refine hcompat hrowC ?_
     rcases Bool.or_eq_true_iff.mp hhC with hh | hh
     · exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_preceq_trans hBh hh))
@@ -369,7 +382,8 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
     subst hCC
     exact hcompat hrowC (Bool.or_eq_true_iff.mpr (Or.inr hBC'))
 
-/-- Blueprint 21:689–715 (H.1 release, H.2 S1); plan H-SUPPORT §4 steps 5–7, G5, G8.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:689–715 (H.1 release, H.2 S1); plan H-SUPPORT §4 steps 5–7, G5, G8.
 DC: INTENTIONAL the lease premise of the H.2 step for a fast body, at the q_(i+1) read:
 `healing_fast_lease_at` with the bound q_(i+1); the clock at q_(i+1) writes no row. -/
 theorem healing_fast_lease [Fintype V] (E : Generic.Env V)
@@ -379,16 +393,17 @@ theorem healing_fast_lease [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {s : Slot} {B : Block} (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
     {x : V} (hx : x ∈ rho.honest) {nd : Node p}
@@ -441,7 +456,8 @@ theorem healing_fast_lease [Fintype V] (E : Generic.Env V)
   push_cast at h2
   exact_mod_cast (show (w : Int) ≤ i by omega)
 
-/-- Blueprint 21:620–715 (H.1 + H.2 S1, fast arm); plan H-SUPPORT §4 steps 1–7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:620–715 (H.1 + H.2 S1, fast arm); plan H-SUPPORT §4 steps 1–7.
 DC: INTENTIONAL the S1 HEAD clause of Transfers for a fast PhaseBody arm. The lease
 premise of each H.2 step comes from `healing_fast_lease` and the earlier labels. -/
 theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
@@ -451,16 +467,17 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)

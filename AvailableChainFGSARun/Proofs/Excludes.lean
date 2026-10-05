@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainFGSA.Proofs.Reconcile
 public import AvailableChainFGSA.Proofs.Metadata
+public import AvailableChainFGSA.Proofs.NamedStore
 public import AvailableChainFGSARun.Statements.Excludes
 public import AvailableChainFGSARun.Proofs.Protocol
 public import AvailableChainEngineV2.Conditions.Duty.Schedule
@@ -55,8 +56,9 @@ theorem eraseDups_nodup' {α : Type} [BEq α] [LawfulBEq α] (xs : List α) :
 termination_by xs.length
 decreasing_by exact Nat.lt_succ_of_le (List.length_filter_le _ _)
 
-/-- Equivocation is kept when the vote list grows. -/
-theorem grid_equivocates_mono (xs ys : List (GridCO.Wire n)) (i : Fin n) (hsub : xs ⊆ ys)
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] Equivocation is kept when the vote list grows.
+-/
+theorem grid_equivocates_mono (xs ys : List (GridCO.Wire n .root)) (i : Fin n) (hsub : xs ⊆ ys)
     (he : GridCO.equivocates xs i = true) : GridCO.equivocates ys i = true := by
   have hlen : (GridCO.seatVotes xs i).eraseDups.length ≤
       (GridCO.seatVotes ys i).eraseDups.length := by
@@ -69,26 +71,28 @@ theorem grid_equivocates_mono (xs ys : List (GridCO.Wire n)) (i : Fin n) (hsub :
   simp only [GridCO.equivocates, decide_eq_true_eq] at he ⊢
   omega
 
-theorem grid_votesAt_subset (a b : GridCO.State n) (r : Slot) (hsub : a.votes ⊆ b.votes) :
+theorem grid_votesAt_subset (a b : GridCO.State n .root) (r : Slot) (hsub : a.votes ⊆ b.votes) :
     GridCO.votesAt a r ⊆ GridCO.votesAt b r := by
   intro o ho
   obtain ⟨hm, hl⟩ := List.mem_filter.mp ho
   exact List.mem_filter.mpr ⟨hsub hm, hl⟩
 
-/-- (i) The old-label tests of `GridCO.excludes` and `GridCO.admitVote` agree:
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] (i) The old-label tests of `GridCO.excludes`
+and `GridCO.admitVote` agree:
 `r < cur − 1 ↔ r + 1 < cur` on `Nat`. -/
 theorem lt_sub_one_iff_add_one_lt (r cur : Nat) : r < cur - 1 ↔ r + 1 < cur := by omega
 
-theorem grid_excludes_head_iff (st : GridCO.State n) (r : Slot) (i : Fin n) (x : Block) :
+theorem grid_excludes_head_iff (st : GridCO.State n .root) (r : Slot) (i : Fin n) (x : BlockId) :
     GridCO.excludes q st ⟨.seat r i, .head x⟩ = true ↔
-      (⟨.seat r i, .head x⟩ : GridCO.Wire n) ∉ st.votes ∧
+      (⟨.seat r i, .head x⟩ : GridCO.Wire n .root) ∉ st.votes ∧
         (r + 1 < (st.now / (4 * q.Δ)).toNat ∨
           GridCO.equivocates (GridCO.votesAt st r) i = true) := by
   simp [GridCO.excludes]
 
-/-- Only a HEAD can be excluded by Grid CO. -/
-theorem grid_excludes_head (st : GridCO.State n) (o : GridCO.Wire n)
-    (h : GridCO.excludes q st o = true) : ∃ r i x, o = (⟨.seat r i, .head x⟩ : GridCO.Wire n) := by
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] Only a HEAD can be excluded by Grid CO. -/
+theorem grid_excludes_head (st : GridCO.State n .root) (o : GridCO.Wire n .root)
+    (h : GridCO.excludes q st o = true) : ∃ r i x,
+      o = (⟨.seat r i, .head x⟩ : GridCO.Wire n .root) := by
   obtain ⟨auth, payload⟩ := o
   cases auth with
   | seat r i =>
@@ -98,20 +102,21 @@ theorem grid_excludes_head (st : GridCO.State n) (o : GridCO.Wire n)
   | proposer s => cases payload <;> simp [GridCO.excludes] at h
   | none => cases payload <;> simp [GridCO.excludes] at h
 
-/-- `GridCO.excludes` reads only the stored votes and the clock. -/
-theorem grid_excludes_congr {st st' : GridCO.State n} (hv : st'.votes = st.votes)
-    (hn : st'.now = st.now) (o : GridCO.Wire n) :
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] `GridCO.excludes` reads only the stored votes
+and the clock. -/
+theorem grid_excludes_congr {st st' : GridCO.State n .root} (hv : st'.votes = st.votes)
+    (hn : st'.now = st.now) (o : GridCO.Wire n .root) :
     GridCO.excludes q st' o = GridCO.excludes q st o := by
   unfold GridCO.excludes GridCO.votesAt
   rw [hv, hn]
 
-theorem grid_admitVote_now (st : GridCO.State n) (o : GridCO.Wire n) :
+theorem grid_admitVote_now (st : GridCO.State n .root) (o : GridCO.Wire n .root) :
     (GridCO.admitVote q st o).now = st.now := by
   obtain ⟨auth, payload⟩ := o
   cases auth <;> cases payload <;> simp only [GridCO.admitVote]
   split <;> rfl
 
-theorem grid_admitVote_votes_subset (st : GridCO.State n) (o : GridCO.Wire n) :
+theorem grid_admitVote_votes_subset (st : GridCO.State n .root) (o : GridCO.Wire n .root) :
     st.votes ⊆ (GridCO.admitVote q st o).votes := by
   obtain ⟨auth, payload⟩ := o
   cases auth <;> cases payload <;> simp only [GridCO.admitVote] <;>
@@ -121,8 +126,9 @@ theorem grid_admitVote_votes_subset (st : GridCO.State n) (o : GridCO.Wire n) :
       · exact List.Subset.refl _
       · exact List.subset_append_left _ _
 
-/-- An excluded HEAD is refused: `admitVote` returns the state. -/
-theorem grid_admitVote_of_excludes (st : GridCO.State n) (o : GridCO.Wire n)
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] An excluded HEAD is refused: `admitVote`
+returns the state. -/
+theorem grid_admitVote_of_excludes (st : GridCO.State n .root) (o : GridCO.Wire n .root)
     (h : GridCO.excludes q st o = true) : GridCO.admitVote q st o = st := by
   obtain ⟨r, i, x, rfl⟩ := grid_excludes_head st o h
   obtain ⟨hm, hc⟩ := (grid_excludes_head_iff st r i x).mp h
@@ -133,9 +139,10 @@ theorem grid_admitVote_of_excludes (st : GridCO.State n) (o : GridCO.Wire n)
   · simp [(lt_sub_one_iff_add_one_lt r _).mpr hc]
   · simp [hc]
 
-/-- An exclusion survives a state change that keeps the clock, keeps the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] An exclusion survives a state change that keeps
+the clock, keeps the
 stored votes, and does not store the excluded HEAD. -/
-theorem grid_excludes_of_votes (st st' : GridCO.State n) (o : GridCO.Wire n)
+theorem grid_excludes_of_votes (st st' : GridCO.State n .root) (o : GridCO.Wire n .root)
     (hnow : st'.now = st.now) (hsub : st.votes ⊆ st'.votes) (hm : o ∉ st'.votes)
     (h : GridCO.excludes q st o = true) : GridCO.excludes q st' o = true := by
   obtain ⟨r, i, x, rfl⟩ := grid_excludes_head st o h
@@ -144,8 +151,8 @@ theorem grid_excludes_of_votes (st st' : GridCO.State n) (o : GridCO.Wire n)
   rw [hnow]
   exact h.2.imp id (grid_equivocates_mono _ _ i (grid_votesAt_subset _ _ r hsub))
 
-/-- One vote call keeps an exclusion. -/
-theorem grid_admitVote_keeps (st : GridCO.State n) (o o' : GridCO.Wire n)
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] One vote call keeps an exclusion. -/
+theorem grid_admitVote_keeps (st : GridCO.State n .root) (o o' : GridCO.Wire n .root)
     (h : GridCO.excludes q st o = true) :
     GridCO.excludes q (GridCO.admitVote q st o') o = true := by
   by_cases ho : o' = o
@@ -163,7 +170,8 @@ theorem grid_admitVote_keeps (st : GridCO.State n) (o o' : GridCO.Wire n)
       · simp only [List.mem_append, List.mem_singleton, not_or]
         exact ⟨hm, fun e => ho e.symm⟩
 
-theorem grid_fold_keeps (raw : List (GridCO.HeadWire n)) (st : GridCO.State n) (o : GridCO.Wire n)
+theorem grid_fold_keeps (raw : List (GridCO.HeadWire n .root)) (st : GridCO.State n .root) (o :
+    GridCO.Wire n .root)
     (h : GridCO.excludes q st o = true) :
     GridCO.excludes q (raw.foldl (fun acc row => GridCO.admitVote q acc (GridCO.fromHead row)) st) o
       = true := by
@@ -171,29 +179,31 @@ theorem grid_fold_keeps (raw : List (GridCO.HeadWire n)) (st : GridCO.State n) (
   | nil => exact h
   | cons row raw ih => exact ih _ (grid_admitVote_keeps st o _ h)
 
-theorem grid_fold_now (raw : List (GridCO.HeadWire n)) (st : GridCO.State n) :
+theorem grid_fold_now (raw : List (GridCO.HeadWire n .root)) (st : GridCO.State n .root) :
     (raw.foldl (fun acc row => GridCO.admitVote q acc (GridCO.fromHead row)) st).now = st.now := by
   induction raw generalizing st with
   | nil => rfl
   | cons row raw ih => rw [List.foldl_cons, ih, grid_admitVote_now]
 
-theorem grid_fold_votes_subset (raw : List (GridCO.HeadWire n)) (st : GridCO.State n) :
+theorem grid_fold_votes_subset (raw : List (GridCO.HeadWire n .root)) (st : GridCO.State n .root) :
     st.votes ⊆
       (raw.foldl (fun acc row => GridCO.admitVote q acc (GridCO.fromHead row)) st).votes := by
   induction raw generalizing st with
   | nil => exact List.Subset.refl _
   | cons row raw ih => exact List.Subset.trans (grid_admitVote_votes_subset st _) (ih _)
 
-theorem grid_admitProposal_now (st : GridCO.State n) (o : GridCO.Wire n) (b : Block)
-    (raw : List (GridCO.HeadWire n)) : (GridCO.admitProposal q st o b raw).now = st.now := by
+theorem grid_admitProposal_now (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block)
+    (raw : List (GridCO.HeadWire n .root)) : (GridCO.admitProposal q st o b raw).now = st.now := by
   unfold GridCO.admitProposal
   dsimp only
   split_ifs
   · rfl
   · exact grid_fold_now raw _
 
-theorem grid_admitProposal_votes_subset (st : GridCO.State n) (o : GridCO.Wire n) (b : Block)
-    (raw : List (GridCO.HeadWire n)) : st.votes ⊆ (GridCO.admitProposal q st o b raw).votes := by
+theorem grid_admitProposal_votes_subset (st : GridCO.State n .root) (o : GridCO.Wire n .root)
+    (b : Block)
+    (raw : List (GridCO.HeadWire n .root)) : st.votes ⊆ (GridCO.admitProposal q st o b
+        raw).votes := by
   unfold GridCO.admitProposal
   dsimp only
   split_ifs
@@ -201,8 +211,9 @@ theorem grid_admitProposal_votes_subset (st : GridCO.State n) (o : GridCO.Wire n
   · refine List.Subset.trans ?_ (grid_fold_votes_subset raw _)
     exact List.Subset.refl _
 
-theorem grid_admitProposal_keeps (st : GridCO.State n) (o : GridCO.Wire n) (b : Block)
-    (raw : List (GridCO.HeadWire n)) (o' : GridCO.Wire n) (h : GridCO.excludes q st o' = true) :
+theorem grid_admitProposal_keeps (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block)
+    (raw : List (GridCO.HeadWire n .root)) (o' : GridCO.Wire n .root) (h : GridCO.excludes q st
+        o' = true) :
     GridCO.excludes q (GridCO.admitProposal q st o b raw) o' = true := by
   unfold GridCO.admitProposal
   dsimp only
@@ -222,7 +233,7 @@ variable {p : Params}
 
 /-! ### The hooks at a decoded object -/
 
-theorem excludesS_of_vote (st : State p.n) {o : Obj p} {s : Slot} {i : Fin p.n} {b : Block}
+theorem excludesS_of_vote (st : State p.n) {o : Obj p} {s : Slot} {i : Fin p.n} {b : BlockId}
     (hd : (toWire p o).decode = some (.vote s i b)) :
     excludesS p st o = GridCO.excludes p.toParams.engine st.base ⟨.seat s i, .head b⟩ := by
   unfold excludesS; rw [hd]; rfl
@@ -232,10 +243,9 @@ theorem excludesS_of_row (st : State p.n) {o : Obj p} {i : Fin p.n} {body : RowP
     excludesS p st o = false := by
   unfold excludesS; rw [hd]
 
-theorem excludesS_of_block (st : State p.n) {o : Obj p} {s : Slot} {b : Block}
-    {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
-    (hd : (toWire p o).decode = some (.block s b raw sup rows)) :
-    excludesS p st o = (blockExcluded st b || invalidForParent p st b rows) := by
+theorem excludesS_of_block (st : State p.n) {o : Obj p} {s : Slot} {N : NamedProposal p.n}
+    (hd : (toWire p o).decode = some (.block s N)) :
+    excludesS p st o = (blockExcluded st N.erase || invalidForParent p st N) := by
   unfold excludesS; rw [hd]
 
 theorem excludesS_of_none (st : State p.n) {o : Obj p} (hd : (toWire p o).decode = none) :
@@ -244,97 +254,108 @@ theorem excludesS_of_none (st : State p.n) {o : Obj p} (hd : (toWire p o).decode
 
 /-! ### One state: an excluded delivery is a no-op -/
 
-/-- (ii) The decode round trip of a row: the row wire that `excludesS` rebuilds
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] (ii) The decode round trip of a row: the row
+wire that `excludesS` rebuilds
 from the decode is the row wire that `FGSA.process` gives to `admitRow`. -/
 theorem row_wire_roundtrip {o : Obj p} {i : Fin p.n} {body : RowPayload}
     (hd : (toWire p o).decode = some (.row i body)) :
     (⟨(toWire p o).auth, body⟩ : RowWire p.n) = ⟨.seat .fg i, body⟩ := by
   rw [decode_eq_row.mp hd]
 
-/-- (iii) A proposal whose block is not compatible with F is refused:
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] (iii) A proposal whose block is not compatible
+with F is refused:
 `admitBlock` returns the state. If the FG parent is not stored, `admitBlock`
 refuses at once; else the FG acceptance test `F ⪯ fgBlock P b rows` fails,
 because under the other tests the erasure of `fgBlock P b rows` is `b`
 (`eraseFG_fgBlock`), so F would be compatible with `b`. -/
-theorem admitBlock_of_blockExcluded (st : State p.n) (s : Slot) (b : Block)
-    (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (h : blockExcluded st b = true) : admitBlock p st s b raw sup rows = st := by
+theorem admitBlock_of_blockExcluded (st : State p.n) (s : Slot) (N : NamedProposal p.n)
+    (h : blockExcluded st N.erase = true) : admitBlock p st s N = st := by
   unfold admitBlock
   split
   · rfl
-  · rename_i P hP
-    rw [ite_eq_right]
-    intro hacc
-    simp only [blockAccepted, Bool.and_eq_true] at hacc
-    obtain ⟨⟨⟨⟨⟨⟨⟨hgen, -⟩, -⟩, hF⟩, -⟩, -⟩, -⟩, hrows⟩ := hacc
-    have hb : b ≠ .genesis := by simpa using hgen
-    have hpar : eraseFG P = b.parent := by simpa using (pickPair_some_spec _ _ hP).2
-    have he := eraseFG_fgBlock hb hpar rows (contentOk_rowsOk hrows)
-    have hpre : Block.Preceq (eraseFG st.fg.F) b := he ▸ eraseFG_preceq hF
-    have hc : Block.compatible b (eraseFG st.fg.F) = true := by
-      rw [block_compatible_comm]; exact block_compatible_of_preceq hpre
-    simp [blockExcluded, activeCompatible, hc] at h
+  · split
+    · rfl
+    · rename_i P hP
+      rw [ite_eq_right]
+      intro hacc
+      have hc := blockAccepted_contentOk hacc
+      simp only [blockAccepted, Bool.and_eq_true] at hacc
+      obtain ⟨⟨⟨⟨⟨⟨⟨hgen, -⟩, -⟩, hF⟩, -⟩, -⟩, -⟩, _⟩ := hacc
+      have hb : N.erase ≠ .genesis := by simpa using hgen
+      have hpar : eraseFG P = N.erase.parent := by
+        simpa using (pickPair_some_spec _ _ hP).2
+      have he := eraseFG_fgBlock hb hpar N.rows (contentOk_rowsOk hc)
+      have hpre : Block.Preceq (eraseFG st.fg.F) N.erase := he ▸ eraseFG_preceq hF
+      have hcompat : Block.compatible N.erase (eraseFG st.fg.F) = true := by
+        rw [block_compatible_comm]
+        exact block_compatible_of_preceq hpre
+      simp [blockExcluded, activeCompatible, hcompat] at h
 
-/-- [R6] Invalidity is permanent when the store keeps the exact parent. -/
+/-- [ROOT-DIGEST-2 W2; DC NamedStore] Invalidity persists when both parent stores grow. -/
 theorem invalidForParent_mono (st st' : State p.n) (hsub : st.fg.TF ⊆ st'.fg.TF)
-    (b : Block) (rows : List (RowWire p.n)) (h : invalidForParent p st b rows = true) :
-    invalidForParent p st' b rows = true := by
-  cases hP : parentFG st b with
-  | none =>
-      change (match parentFG st b with
-        | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
-      simp only [hP, Bool.false_eq_true] at h
+    (hn : st.namedBodies ⊆ st'.namedBodies) (N : NamedProposal p.n)
+    (h : invalidForParent p st N = true) : invalidForParent p st' N = true := by
+  have hp : namedParentHeld st N = true := by
+    unfold invalidForParent at h
+    split at h
+    · cases h
+    · simpa using ‹¬ (!namedParentHeld st N) = true›
+  have hp' : namedParentHeld st' N = true := by
+    exact decide_eq_true (hn (of_decide_eq_true hp))
+  unfold invalidForParent at h ⊢
+  simp only [hp, hp', Bool.not_true, Bool.false_eq_true, ite_false] at h ⊢
+  cases hP : parentFG st N.erase with
+  | none => simp only [hP, Bool.false_eq_true] at h
   | some P =>
-      obtain ⟨hm, he⟩ := (parentFG_spec st b P).mp hP
-      have hP' := (parentFG_spec st' b P).mpr ⟨hsub hm, he⟩
-      change (match parentFG st b with
-        | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
-      change (match parentFG st' b with
-        | none => false | some P => !rowsValidForParent p P b.slot rows) = true
-      simpa only [hP, hP'] using h
+    obtain ⟨hm, he⟩ := (parentFG_spec st N.erase P).mp hP
+    have hP' := (parentFG_spec st' N.erase P).mpr ⟨hsub hm, he⟩
+    simpa only [hP, hP'] using h
 
-/-- [R6] A clock cannot change the parent lookup or its derived state. -/
-theorem invalidForParent_clock (st : State p.n) (t : Time) (b : Block)
-    (rows : List (RowWire p.n)) :
-    invalidForParent p (FGSA.clock p st t) b rows = invalidForParent p st b rows := by
-  have hP : parentFG (FGSA.clock p st t) b = parentFG st b := by
+/-- [ROOT-DIGEST-2 W2; DC NamedStore] A clock keeps both parent lookup domains. -/
+theorem invalidForParent_clock (st : State p.n) (t : Time) (N : NamedProposal p.n) :
+    invalidForParent p (FGSA.clock p st t) N = invalidForParent p st N := by
+  have hP : parentFG (FGSA.clock p st t) N.erase = parentFG st N.erase := by
     change pickPair (FGSA.clock p st t).fg.TF _ = pickPair st.fg.TF _
     rw [clock_fg]
-  change (match parentFG (FGSA.clock p st t) b with
-    | none => false | some P => !rowsValidForParent p P b.slot rows) =
-    (match parentFG st b with
-    | none => false | some P => !rowsValidForParent p P b.slot rows)
-  rw [hP]
+  simp only [invalidForParent, namedParentHeld, clock_namedBodies, hP]
+  rfl
 
-/-- [R6] Invalidity causes refusal without writes. -/
-theorem admitBlock_of_invalidForParent (st : State p.n) (s : Slot) (b : Block)
-    (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (h : invalidForParent p st b rows = true) :
-    admitBlock p st s b raw sup rows = st := by
-  cases hP : parentFG st b with
-  | none =>
-      change (match parentFG st b with
-        | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
-      simp only [hP, Bool.false_eq_true] at h
-  | some P =>
-      have hv : rowsValidForParent p P b.slot rows = false := by
-        change (match parentFG st b with
-          | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
+/-- [ROOT-DIGEST-2 W2; DC NamedStore] Invalidity causes refusal without writes. -/
+theorem admitBlock_of_invalidForParent (st : State p.n) (s : Slot) (N : NamedProposal p.n)
+    (h : invalidForParent p st N = true) : admitBlock p st s N = st := by
+  unfold invalidForParent at h
+  split at h
+  · cases h
+  · cases hP : parentFG st N.erase with
+    | none => simp only [hP, Bool.false_eq_true] at h
+    | some P =>
+      have hv : rowsValidForParent p P N.slot N.rows = false := by
         simpa only [hP, Bool.not_eq_true'] using h
-      exact admitBlock_invalid_rows p st s b raw sup rows P hP hv
+      exact admitBlock_invalid_rows p st s N P hP hv
 
-/-- [R6] A refused invalid proposal cannot call a carried object's handler. -/
-theorem invalidForParent_no_carried (st : State p.n) (s : Slot) (b : Block)
-    (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (h : invalidForParent p st b rows = true) :
-    ¬ ∃ P, parentFG st b = some P ∧ blockAccepted p st s b raw sup P rows = true := by
+/-- [ROOT-DIGEST-2 W2; DC NamedReceiptCalls] Invalid proposals cannot call carried handlers. -/
+theorem invalidForParent_no_carried (st : State p.n) (s : Slot) (N : NamedProposal p.n)
+    (h : invalidForParent p st N = true) :
+    ¬ ∃ P, parentFG st N.erase = some P ∧ blockAccepted p st s N P = true := by
   rintro ⟨P, hP, ha⟩
   have hv := blockAccepted_rowsValid ha
-  change (match parentFG st b with
-    | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
-  simp only [hP, hv, Bool.not_true, Bool.false_eq_true] at h
+  rw [named_erase_slot] at hv
+  unfold invalidForParent at h
+  split at h
+  · cases h
+  · simp only [hP, hv, Bool.not_true, Bool.false_eq_true] at h
 
-/-- The delivery of an excluded object does not change the store, at every
+/-- [ROOT-DIGEST-2 W2; DC NamedStore] Delivery retains all exact named bodies. -/
+theorem process_namedBodies_subset (st : State p.n) (w : Wire p.n) :
+    st.namedBodies ⊆ (FGSA.process p st w).namedBodies := by
+  intro N hN
+  rcases (mem_namedBodies _ N).mp hN with rfl | ⟨s, hs⟩
+  · exact (mem_namedBodies _ _).mpr (Or.inl rfl)
+  · exact (mem_namedBodies _ N).mpr (Or.inr
+      ⟨s, (process_cumulative p st w).2.2.2.2.1.subset hs⟩)
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] The delivery of an excluded object does not
+change the store, at every
 store state. -/
 theorem excludesS_inert (st : State p.n) (o : Obj p) (h : excludesS p st o = true) :
     FGSA.process p st (toWire p o) = st := by
@@ -346,15 +367,16 @@ theorem excludesS_inert (st : State p.n) (o : Obj p) (h : excludesS p st o = tru
     rw [grid_admitVote_of_excludes _ _ h]
   · rename_i i body hd
     simp only [excludesS_of_row st hd, Bool.false_eq_true] at h
-  · rename_i s b raw sup rows hd
+  · rename_i s N hd
     rw [excludesS_of_block st hd] at h
     simp only [Bool.or_eq_true] at h
     rcases h with h | h
-    · exact admitBlock_of_blockExcluded st s b raw sup rows h
-    · exact admitBlock_of_invalidForParent st s b raw sup rows h
+    · exact admitBlock_of_blockExcluded st s N h
+    · exact admitBlock_of_invalidForParent st s N h
   · rfl
 
-/-- [HooksSound `excludes_inert`] The one-state field of `V2.D.HooksSound` for
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] [HooksSound `excludes_inert`] The one-state
+field of `V2.D.HooksSound` for
 `fgsa p c`: at EVERY state, the delivery of an excluded object does not change
 the state. No run, schedule or restart premise. -/
 theorem excludes_inert {In : Type} (c : AppCodec In) :
@@ -380,7 +402,8 @@ theorem foldl_admitRow_base (rows : List (RowWire p.n)) (st : State p.n) :
   | nil => rfl
   | cons a rows ih => rw [List.foldl_cons, ih, admitRow_base]
 
-/-- The state after the block admission of `admitBlock`, with `reconcile` if F
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] The state after the block admission of
+`admitBlock`, with `reconcile` if F
 moved, has the votes, the clock and the row pool of the state before
 `reconcile`. -/
 theorem ite_reconcile (st1 st : State p.n) :
@@ -394,7 +417,7 @@ theorem ite_reconcile (st1 st : State p.n) :
 
 end Internal
 
-/-- A delivery keeps the store clock. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A delivery keeps the store clock. -/
 theorem process_base_now (st : State p.n) (w : Wire p.n) :
     (FGSA.process p st w).base.now = st.base.now := by
   unfold FGSA.process
@@ -404,14 +427,17 @@ theorem process_base_now (st : State p.n) (w : Wire p.n) :
   · unfold admitBlock
     split
     · rfl
-    · split_ifs
-      · rw [foldl_admitRow_base, (ite_reconcile _ _).2.1]
-        exact grid_admitProposal_now _ _ _ _
+    · split
       · rfl
+      · split_ifs
+        · rw [foldl_admitRow_base, (ite_reconcile _ _).2.1]
+          exact grid_admitProposal_now _ _ _ _
+        · rfl
   · rfl
 
-/-- A delivery keeps a Grid CO HEAD exclusion of the base. -/
-theorem process_keeps_grid (st : State p.n) (w : Wire p.n) (v : GridCO.Wire p.n)
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A delivery keeps a Grid CO HEAD exclusion of
+the base. -/
+theorem process_keeps_grid (st : State p.n) (w : Wire p.n) (v : GridCO.Wire p.n .root)
     (h : GridCO.excludes p.toParams.engine st.base v = true) :
     GridCO.excludes p.toParams.engine (FGSA.process p st w).base v = true := by
   unfold FGSA.process
@@ -421,19 +447,22 @@ theorem process_keeps_grid (st : State p.n) (w : Wire p.n) (v : GridCO.Wire p.n)
   · unfold admitBlock
     split
     · exact h
-    · split_ifs
-      · rw [foldl_admitRow_base, grid_excludes_congr (ite_reconcile _ _).1
-          (ite_reconcile _ _).2.1]
-        exact grid_admitProposal_keeps _ _ _ _ _ h
+    · split
       · exact h
+      · split_ifs
+        · rw [foldl_admitRow_base, grid_excludes_congr (ite_reconcile _ _).1
+            (ite_reconcile _ _).2.1]
+          exact grid_admitProposal_keeps _ _ _ _ _ h
+        · exact h
   · exact h
 
-/-- A delivery keeps a block exclusion: F moves only to a descendant. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A delivery keeps a block exclusion: F moves
+only to a descendant. -/
 theorem process_keeps_block (st : State p.n) (w : Wire p.n) (b : Block)
     (h : blockExcluded st b = true) : blockExcluded (FGSA.process p st w) b = true :=
   blockExcluded_stable st (process_F_mono p st w) b h
 
-/-- A delivery keeps every exclusion. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A delivery keeps every exclusion. -/
 theorem excludesS_process (st : State p.n) (w : Wire p.n) (o : Obj p)
     (h : excludesS p st o = true) : excludesS p (FGSA.process p st w) o = true := by
   cases hd : (toWire p o).decode with
@@ -444,15 +473,16 @@ theorem excludesS_process (st : State p.n) (w : Wire p.n) (o : Obj p)
           rw [excludesS_of_vote _ hd] at h ⊢; exact process_keeps_grid st w _ h
       | row i body =>
           simp only [excludesS_of_row _ hd, Bool.false_eq_true] at h
-      | block s b raw sup rows =>
+      | block s N =>
           rw [excludesS_of_block _ hd, Bool.or_eq_true] at h ⊢
-          exact h.imp (process_keeps_block st w b)
-            (invalidForParent_mono st _ (process_cumulative p st w).1 b rows)
+          exact h.imp (process_keeps_block st w N.erase)
+            (invalidForParent_mono st _ (process_cumulative p st w).1
+              (process_namedBodies_subset st w) N)
 
 namespace Internal
 
-theorem foldl_vn {n : Nat} {α : Type} (f : GridCO.State n → α → GridCO.State n)
-    (xs : List α) (st : GridCO.State n)
+theorem foldl_vn {n : Nat} {α : Type} (f : GridCO.State n .root → α → GridCO.State n .root)
+    (xs : List α) (st : GridCO.State n .root)
     (hf : ∀ acc x, (f acc x).votes = acc.votes ∧ (f acc x).now = acc.now) :
     (xs.foldl f st).votes = st.votes ∧ (xs.foldl f st).now = st.now := by
   induction xs generalizing st with
@@ -462,10 +492,11 @@ theorem foldl_vn {n : Nat} {α : Type} (f : GridCO.State n → α → GridCO.Sta
       obtain ⟨h1, h2⟩ := ih (f st x)
       exact ⟨h1.trans (hf st x).1, h2.trans (hf st x).2⟩
 
-/-- The SA gate (Grid CO gate at the slow policy) keeps the votes and the clock. -/
-theorem saGateFrom_vn {n : Nat} (q : SA.Params) (a : Block) (v : GridCO.State n) (r : Slot) :
-    (SA.gateFrom q a v r).votes = v.votes ∧ (SA.gateFrom q a v r).now = v.now := by
-  unfold SA.gateFrom GridCO.gateFrom
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] The SA gate (Grid CO gate at the slow policy)
+keeps the votes and the clock. -/
+theorem saGateFrom_vn {n : Nat} (q : SA.Params) (a : Block) (v : GridCO.State n .root) (r : Slot) :
+    (SA.Root.gateFrom q a v r).votes = v.votes ∧ (SA.Root.gateFrom q a v r).now = v.now := by
+  unfold SA.Root.gateFrom GridCO.gateFrom
   split
   · exact ⟨rfl, rfl⟩
   · dsimp only
@@ -489,7 +520,8 @@ theorem gateStep_vn (st : State p.n) (s : Slot) :
 
 end Internal
 
-/-- A tick keeps the stored votes and sets the store clock to its time. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A tick keeps the stored votes and sets the
+store clock to its time. -/
 theorem clock_vn (st : State p.n) (t : Time) :
     (FGSA.clock p st t).base.votes = st.base.votes ∧ (FGSA.clock p st t).base.now = t := by
   unfold FGSA.clock
@@ -499,7 +531,7 @@ theorem clock_vn (st : State p.n) (t : Time) :
     exact ⟨h1.trans (clockPre_vn st t).1, h2.trans (clockPre_vn st t).2⟩
   · exact clockPre_vn st t
 
-/-- A delivery never removes a stored vote. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A delivery never removes a stored vote. -/
 theorem process_votes_subset (st : State p.n) (w : Wire p.n) :
     st.base.votes ⊆ (FGSA.process p st w).base.votes := by
   unfold FGSA.process
@@ -509,22 +541,26 @@ theorem process_votes_subset (st : State p.n) (w : Wire p.n) :
   · unfold admitBlock
     split
     · exact List.Subset.refl _
-    · split_ifs
-      · rw [foldl_admitRow_base, (ite_reconcile _ _).1]
-        exact grid_admitProposal_votes_subset _ _ _ _
+    · split
       · exact List.Subset.refl _
+      · split_ifs
+        · rw [foldl_admitRow_base, (ite_reconcile _ _).1]
+          exact grid_admitProposal_votes_subset _ _ _ _
+        · exact List.Subset.refl _
   · exact List.Subset.refl _
 
 namespace Internal
 
-/-- The slot of the store clock does not decrease when the clock goes forward. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] The slot of the store clock does not decrease
+when the clock goes forward. -/
 theorem slotOf_mono {t t' : Time} (ht : t ≤ t') : p.slotOf t ≤ p.slotOf t' := by
   have hd : (0 : Int) < 4 * p.Δ := by have : (0 : Int) < p.Δ := p.deltaPos; omega
   exact Int.toNat_le_toNat (Int.ediv_le_ediv hd ht)
 
 end Internal
 
-/-- A tick that does not move the store clock back keeps every exclusion. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A tick that does not move the store clock back
+keeps every exclusion. -/
 theorem excludesS_clock (st : State p.n) (t : Time) (ht : st.base.now ≤ t) (o : Obj p)
     (h : excludesS p st o = true) : excludesS p (FGSA.clock p st t) o = true := by
   obtain ⟨hv, hn⟩ := clock_vn st t
@@ -541,15 +577,16 @@ theorem excludesS_clock (st : State p.n) (t : Time) (ht : st.base.now ≤ t) (o 
           refine ⟨h.1, h.2.imp (fun hl => lt_of_lt_of_le hl ?_) id⟩
           exact slotOf_mono (p := p) ht
       | row i body => simp only [excludesS_of_row _ hd, Bool.false_eq_true] at h
-      | block s b raw sup rows =>
+      | block s N =>
           rw [excludesS_of_block _ hd] at h ⊢
           simpa only [blockExcluded, activeCompatible, clock_F_eq, invalidForParent_clock] using h
 
 /-! ### Clock-free exclusions -/
 
-theorem excludesFixed_of_vote (st : State p.n) {o : Obj p} {s : Slot} {i : Fin p.n} {b : Block}
+theorem excludesFixed_of_vote (st : State p.n) {o : Obj p} {s : Slot} {i : Fin p.n} {b : BlockId}
     (hd : (toWire p o).decode = some (.vote s i b)) :
-    excludesFixed p st o = (!decide ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n) ∈ st.base.votes) &&
+    excludesFixed p st o = (!decide ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∈
+        st.base.votes) &&
       GridCO.equivocates (GridCO.votesAt st.base s) i) := by
   dsimp only [excludesFixed]; rw [hd]; rfl
 
@@ -558,17 +595,16 @@ theorem excludesFixed_of_row (st : State p.n) {o : Obj p} {i : Fin p.n}
     excludesFixed p st o = false := by
   dsimp only [excludesFixed]; rw [hd]
 
-theorem excludesFixed_of_block (st : State p.n) {o : Obj p} {s : Slot} {b : Block}
-    {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
-    (hd : (toWire p o).decode = some (.block s b raw sup rows)) :
-    excludesFixed p st o = (blockExcluded st b || invalidForParent p st b rows) := by
+theorem excludesFixed_of_block (st : State p.n) {o : Obj p} {s : Slot} {N : NamedProposal p.n}
+    (hd : (toWire p o).decode = some (.block s N)) :
+    excludesFixed p st o = (blockExcluded st N.erase || invalidForParent p st N) := by
   dsimp only [excludesFixed]; rw [hd]
 
 theorem excludesFixed_of_none (st : State p.n) {o : Obj p} (hd : (toWire p o).decode = none) :
     excludesFixed p st o = false := by
   dsimp only [excludesFixed]; rw [hd]
 
-/-- A clock-free exclusion is an exclusion. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A clock-free exclusion is an exclusion. -/
 theorem excludesFixed_excludesS (st : State p.n) (o : Obj p) (h : excludesFixed p st o = true) :
     excludesS p st o = true := by
   cases hd : (toWire p o).decode with
@@ -580,10 +616,10 @@ theorem excludesFixed_excludesS (st : State p.n) (o : Obj p) (h : excludesFixed 
           simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not] at h
           exact (grid_excludes_head_iff st.base s i b).mpr ⟨h.1, Or.inr h.2⟩
       | row i body => simp only [excludesFixed_of_row _ hd, Bool.false_eq_true] at h
-      | block s b raw sup rows =>
+      | block s N =>
           rw [excludesFixed_of_block _ hd] at h; rw [excludesS_of_block _ hd]; exact h
 
-/-- A delivery keeps a clock-free exclusion. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A delivery keeps a clock-free exclusion. -/
 theorem excludesFixed_process (st : State p.n) (w : Wire p.n) (o : Obj p)
     (h : excludesFixed p st o = true) : excludesFixed p (FGSA.process p st w) o = true := by
   have hx := excludesS_process st w o (excludesFixed_excludesS st o h)
@@ -598,12 +634,14 @@ theorem excludesFixed_process (st : State p.n) (w : Wire p.n) (o : Obj p)
           exact ⟨hx.1, grid_equivocates_mono _ _ i
             (grid_votesAt_subset _ _ s (process_votes_subset st w)) h.2⟩
       | row i body => simp only [excludesFixed_of_row _ hd, Bool.false_eq_true] at h
-      | block s b raw sup rows =>
+      | block s N =>
           rw [excludesFixed_of_block _ hd, Bool.or_eq_true] at h ⊢
-          exact h.imp (process_keeps_block st w b)
-            (invalidForParent_mono st _ (process_cumulative p st w).1 b rows)
+          exact h.imp (process_keeps_block st w N.erase)
+            (invalidForParent_mono st _ (process_cumulative p st w).1
+              (process_namedBodies_subset st w) N)
 
-/-- A tick, at any time, keeps a clock-free exclusion: it keeps the votes, the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] A tick, at any time, keeps a clock-free
+exclusion: it keeps the votes, the
 row pool and F. -/
 theorem excludesFixed_clock (st : State p.n) (t : Time) (o : Obj p) :
     excludesFixed p (FGSA.clock p st t) o = excludesFixed p st o := by
@@ -613,7 +651,8 @@ theorem excludesFixed_clock (st : State p.n) (t : Time) (o : Obj p) :
 
 /-! ### One epoch -/
 
-/-- [`excludes_inert`, epoch form] Inside one restart epoch of the store, with a
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] [`excludes_inert`, epoch form] Inside one
+restart epoch of the store, with a
 store clock that does not go back, an exclusion holds at every later state,
 and the delivery of the excluded object is a no-op there. No run and no
 `restartFree` premise: the epoch is the sequence of store steps. -/
@@ -629,7 +668,8 @@ theorem excludes_inert_epoch {st st' : State p.n} (hE : Epoch p true st st') {o 
         | clock t ht => exact excludesS_clock _ t (ht rfl) o ih
   exact ⟨hx, excludesS_inert st' o hx⟩
 
-/-- [`excludes_inert`, clock-free form] The clock-free exclusions (a proposal
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] [`excludes_inert`, clock-free form] The
+clock-free exclusions (a proposal
 that conflicts with F or fails R6, or an equivocating HEAD) hold, and their
 delivery is a no-op, at every later state of the epoch, with any ticks: only
 the old-label exclusions need a clock that does not go back. -/
@@ -646,7 +686,8 @@ theorem excludesFixed_inert_epoch {mono : Bool} {st st' : State p.n} (hE : Epoch
         | clock t _ => rw [excludesFixed_clock]; exact ih
   exact ⟨hx, excludesS_inert st' o (excludesFixed_excludesS st' o hx)⟩
 
-/-- An epoch with a monotone clock is an epoch: `Epoch p false` asks nothing of
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] An epoch with a monotone clock is an epoch:
+`Epoch p false` asks nothing of
 the ticks. -/
 theorem Epoch.weaken {mono : Bool} {st st' : State p.n} (hE : Epoch p mono st st') :
     Epoch p false st st' :=
@@ -661,7 +702,8 @@ section RunLevel
 
 variable {In : Type} {c : AppCodec In} {V : Type} [DecidableEq V]
 
-/-- The store of `v` from `stateBefore i` to `stateBefore j` is an epoch when
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] The store of `v` from `stateBefore i` to
+`stateBefore j` is an epoch when
 `v` does not restart in `[i, j)`; with `mono = true`, the ticks of `v` in that
 interval must not move its store clock back. A tick changes the store by
 `FGSA.clock` (`tick_st`), a delivery by `FGSA.process`, and an event of another
@@ -706,7 +748,8 @@ theorem epoch_of_restartFree (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (
                 exact ih'.tail (EpochStep.deliver _ (toWire p o))
               · simp only [V2.D.World.step, Function.update_of_ne (Ne.symm hw)]; exact ih'
 
-/-- [HooksSound `excludes_stable`, with the clock premise explicit] On a
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] [HooksSound `excludes_stable`, with the clock
+premise explicit] On a
 restart-free interval of a run whose ticks of `v` do not move the store clock of
 `v` back, an exclusion is kept, and the delivery of the excluded object is a
 no-op, at the end of the interval. -/
@@ -720,7 +763,8 @@ theorem excludes_stable_epoch (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) 
   have h' := excludes_inert_epoch (epoch_of_restartFree E rho v true hij hrf (fun _ => hmono)) h
   exact ⟨h'.1, excludes_inert c _ o h'.1⟩
 
-/-- The clock-free exclusions are kept on every restart-free interval of every
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces] The clock-free exclusions are kept on every
+restart-free interval of every
 run, with no clock premise. -/
 theorem excludesFixed_stable_epoch (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (v : V)
     (o : (fgsa p c).Object) {i j : Nat} (hij : i ≤ j) (hrf : V2.D.restartFree rho v i j)

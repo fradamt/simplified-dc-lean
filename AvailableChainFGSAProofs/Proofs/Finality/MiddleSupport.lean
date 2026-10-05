@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
+public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
@@ -19,12 +21,14 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 
 /-! ### Step group A: the round clock -/
 
-/-- FINAL 22:217–220. The action clock in slot units.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:217–220. The action clock in slot units.
 DC: INTENTIONAL: FG-SA action times use its fixed round grid. -/
 theorem kmid_actionTime_eq (p : Params) (r : Nat) :
     p.actionTime r = 4 * p.Δ * ((r * p.R : Nat) : Time) + 6 * p.Δ := rfl
 
-/-- FINAL 22:217–220,923–944. Positive delay and round length order the actions.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:217–220,923–944. Positive delay and round length order the actions.
 DC: INTENTIONAL: FG-SA action times use its fixed round grid. -/
 theorem kmid_action_strictMono (p : Params) : StrictMono p.actionTime := by
   intro m n hmn
@@ -37,7 +41,8 @@ theorem kmid_action_strictMono (p : Params) : StrictMono p.actionTime := by
     mul_lt_mul_of_pos_left (Int.ofNat_lt.mpr hmul) hΔ
   exact Int.add_lt_add_right hprod _
 
-/-- FINAL 22:217–220. Slot times are monotone in the slot.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:217–220. Slot times are monotone in the slot.
 DC: INTENTIONAL: FG-SA slot times use the 4Δ grid. -/
 theorem kmid_slot_scale_le (p : Params) {a b : Nat} (h : a ≤ b) :
     4 * p.Δ * (a : Time) ≤ 4 * p.Δ * (b : Time) := by
@@ -45,7 +50,8 @@ theorem kmid_slot_scale_le (p : Params) {a b : Nat} (h : a ≤ b) :
   have hab : (a : Time) ≤ b := by exact_mod_cast h
   nlinarith
 
-/-- FINAL 22:217–220. Slot times are strictly monotone in the slot.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:217–220. Slot times are strictly monotone in the slot.
 DC: INTENTIONAL: FG-SA slot times use the 4Δ grid. -/
 theorem kmid_slot_scale_lt (p : Params) {a b : Nat} (h : a < b) :
     4 * p.Δ * (a : Time) < 4 * p.Δ * (b : Time) := by
@@ -53,7 +59,8 @@ theorem kmid_slot_scale_lt (p : Params) {a b : Nat} (h : a < b) :
   have hab : (a : Time) < b := by exact_mod_cast h
   nlinarith
 
-/-- FINAL 22:217–220. The row delay fits in κ slots.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:217–220. The row delay fits in κ slots.
 DC: INTENTIONAL: the row delay fixes κ. -/
 theorem kmid_kappa_cover (p : Params) (ΔF : Time) (hF : 0 ≤ ΔF) :
     6 * p.Δ + ΔF ≤ 4 * p.Δ * (kappaF p ΔF : Time) := by
@@ -65,7 +72,8 @@ theorem kmid_kappa_cover (p : Params) (ΔF : Time) (hF : 0 ≤ ΔF) :
 variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- ROOT-DIGEST W2b. FINAL 22:1171–1180. An awake honest proposer at a positive slot emits its
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:1171–1180. An awake honest proposer at a positive slot emits its
 block.
 DC: INTENTIONAL: the FG-SA proposer duty always builds a block at a positive slot. -/
 theorem kmid_honest_proposal_exists (hs : V2.D.ScheduleWellFormed E rho) (hΔ : E.Δ = p.Δ)
@@ -74,127 +82,32 @@ theorem kmid_honest_proposal_exists (hs : V2.D.ScheduleWellFormed E rho) (hΔ : 
       (SA.proposalTime p.toParams s) = true)
     (hh : SA.proposalTime p.toParams s ≤ rho.horizon) :
     ∃ b, HonestProposal E rho (fgsaInterface p c) s b := by
-  have hmul : SA.proposalTime p.toParams s = ((4 * s : Nat) : Time) * p.Δ := by
-    change 4 * p.Δ * (s : Int) = _
-    push_cast
-    ring
-  obtain ⟨i, hi, -⟩ := fgsa_tick_total E rho hs hΔ (V2.D.proposerOf rho (fgsaInterface p c) s)
-    hslot.2 (4 * s) (hmul ▸ hh)
-  rw [← hmul] at hi
-  let v := V2.D.proposerOf rho (fgsaInterface p c) s
-  let nd := V2.D.Run.stateBefore E rho i v
-  let st := FGSA.clock p nd.st (SA.proposalTime p.toParams s)
-  have hs0 : s ≠ 0 := Nat.ne_of_gt hslot.1
-  obtain ⟨m, hm⟩ : ∃ m, (propose p st s).map
-      (withApp p (c.app (rho.input v (SA.proposalTime p.toParams s)))) = some m := by
-    rw [propose_head p st s hs0]
-    exact ⟨_, rfl⟩
-  obtain ⟨H, raw, sup, rows, rfl, -, -⟩ := rowsOk_withApp st s _ hm
-  refine ⟨proposalBlock p H s (c.app (rho.input v (SA.proposalTime p.toParams s))) raw sup rows,
-    hslot, ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal (proposalBlock p H s (c.app (rho.input v
-      (SA.proposalTime p.toParams s))) raw sup rows) raw sup rows⟩,
-    ⟨i, hi, ?_⟩, rfl⟩
-  rw [(V2.D.Run.step_tick_eq E rho hi).2]
-  exact (fgsa_emits_proposal E rho nd v _ s _).mpr ⟨hawake, rfl, rfl, hm⟩
+  obtain ⟨B, hB, _⟩ := fgsa_honestProposal_exists_of_awake_slot E rho hs hΔ hslot hawake hh
+  exact ⟨B, hB⟩
 
-/-- ROOT-DIGEST W2b. FINAL 22:1171–1180. The emitted proposal object and its post-clock proposer
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:1171–1180. The emitted proposal object and its post-clock proposer
 read.
 DC: INTENTIONAL: FG-SA reads the proposal tick of the actual signed wire. -/
 theorem kmid_proposal_read (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) s b) :
-    ∃ j raw sup rows, rho.events[j]? = some (.tick (V2.D.proposerOf rho (fgsaInterface p c) s)
+    ∃ j N, N.erase = b ∧ rho.events[j]? = some (.tick (V2.D.proposerOf rho (fgsaInterface p c) s)
         (SA.proposalTime p.toParams s)) ∧
-      (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
         V2.D.Run.emitsAt E rho j ∧
       let st := ((fgsa p c).clock
         (V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho (fgsaInterface p c) s))
         (SA.proposalTime p.toParams s)).st
       proposalStateAt p c E rho s = some st ∧ st.slot p = s ∧
         b = proposalBlock p (proposerHead p st s) s (c.app (rho.input
-          (V2.D.proposerOf rho (fgsaInterface p c) s) (SA.proposalTime p.toParams s))) raw sup
+          (V2.D.proposerOf rho (fgsaInterface p c) s) (SA.proposalTime p.toParams s))) N.raw
+              N.support
             (proposalRows p st (proposerHead p st s)) ∧
-        rows = proposalRows p st (proposerHead p st s) := by
-  obtain ⟨hslot, o, ⟨j, hj, hem⟩, hpay⟩ := hp
-  have hs0 : 0 < s := hslot.1
-  change rho.events[j]? = some (.tick _ (SA.proposalTime p.toParams s)) at hj
-  have hem0 := hem
-  rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-  obtain ⟨auth, m⟩ := o
-  cases m with
-  | head B => cases hpay
-  | row body => cases hpay
-  | proposal b' raw sup rows =>
-  cases hpay
-  cases auth with
-  | none =>
-    change (⟨.none, _⟩ : Obj p) ∈ (if E.awake _ _ then
-      (duties p _).flatMap (fun d => (rho.ownSeats (RunDuty.signLabel d) _).filterMap
-        (fun i => ((fgsa p c).act ((fgsa p c).clock _ _) d (rho.input _ _)).map
-          (fun m => ⟨.seat (RunDuty.signLabel d) i, m⟩))) ++ [] else []) at hem
-    split at hem
-    · rw [List.append_nil] at hem
-      obtain ⟨d, _, hm⟩ := List.mem_flatMap.mp hem
-      obtain ⟨i, _, hm⟩ := List.mem_filterMap.mp hm
-      obtain ⟨m, _, he⟩ := Option.map_eq_some_iff.mp hm
-      cases he
-    · exact (List.not_mem_nil hem).elim
-  | seat l seat =>
-    obtain ⟨_, _, d, hl, ht, hm⟩ :=
-      (V2.D.Engine.mem_tick_seat_iff E rho _ _ _ l seat _).mp hem
-    cases d with
-    | headAction v => cases hm
-    | fgAction r =>
-      change (attest p _ _ _).1.map Msg.row = some (.proposal b raw sup rows) at hm
-      obtain ⟨body, _, he⟩ := Option.map_eq_some_iff.mp hm
-      cases he
-    | propAction s' =>
-      have hss : s' = s := by
-        change 4 * p.Δ * (s' : Int) = 4 * p.Δ * (s : Int) at ht
-        have hΔ : (0 : Int) < p.Δ := p.deltaPos
-        have he : (s' : Int) = s := by nlinarith
-        exact_mod_cast he
-      subst s'
-      change RunLabel.prop s = l at hl
-      subst l
-      have hseat : seat = ⟨0, Nat.one_pos⟩ := by
-        have h1 : (fgsa p c).seats (RunLabel.prop s) = 1 := rfl
-        have hlt : seat.val < 1 := h1 ▸ seat.isLt
-        exact Fin.ext (by change seat.val = 0; omega)
-      subst seat
-      let nd := V2.D.Run.stateBefore E rho j
-        (V2.D.proposerOf rho (fgsaInterface p c) s)
-      let st := ((fgsa p c).clock nd (SA.proposalTime p.toParams s)).st
-      have htick : V2.D.Run.tickIdx? rho (V2.D.proposerOf rho (fgsaInterface p c) s)
-          (SA.proposalTime p.toParams s) = some j := by
-        obtain ⟨k, hk⟩ : ∃ k, V2.D.Run.tickIdx? rho
-            (V2.D.proposerOf rho (fgsaInterface p c) s)
-            (SA.proposalTime p.toParams s) = some k := by
-          rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome,
-            List.any_eq_true]
-          exact ⟨_, List.mem_of_getElem? hj, by simp⟩
-        exact (fgsa_tick_unique E rho hs (V2.D.Run.tickIdx?_spec hk) hj) ▸ hk
-      change (propose p st s).map (withApp p _) = some (.proposal b raw sup rows) at hm
-      rw [propose_head p st s (Nat.ne_of_gt hs0)] at hm
-      have he : Msg.proposal
-          (proposalBlock p (proposerHead p st s) s (c.app (rho.input _ _)) ((proposerVotes st
-            s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?) (proposalRows p
-            st (proposerHead p st s)))
-          ((proposerVotes st s).filterMap liftHead?)
-          ((proposerSupport st s).filterMap liftHead?)
-          (proposalRows p st (proposerHead p st s)) = .proposal b raw sup rows :=
-        Option.some.inj hm
-      cases he
-      refine ⟨j, _, _, _, hj, hem0, ?_, fgsa_proposal_slot nd s, rfl, rfl⟩
-      change (postClock E rho _ _).map (·.st) = some st
-      rw [proposalTime_fgsa p c s, postClock_def, preTick_def]
-      change (((V2.D.Run.tickIdx? rho _ (SA.proposalTime p.toParams s)).map
-        (fun k => V2.D.Run.stateBefore E rho k _)).map
-        (fun nd : Node p => (fgsa p c).clock nd (SA.proposalTime p.toParams s))).map
-        (fun nd : Node p => nd.st) = some st
-      rw [htick]
-      rfl
+        N.rows = proposalRows p st (proposerHead p st s) :=
+  proposal_read_named p c E rho hs hp
 
-/-- ROOT-DIGEST W2b. FINAL 22:1171–1180,585–598. The FG block of an honest proposal, with its stored
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:1171–1180,585–598. The FG block of an honest proposal, with its stored
 parent.
 DC: INTENTIONAL: the emitted wire, proposer read, parent and decoded rows give one block. -/
 theorem kmid_opening_carrier (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b : Block}
@@ -204,7 +117,7 @@ theorem kmid_opening_carrier (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b 
       (∃ rows, HonestCarrier p c E rho s b rows ∧ Bfg.rows = rows.filterMap RowWire.toRow?) ∧
       ∃ st, proposalStateAt p c E rho s = some st ∧
         FGSA.fgBlockOf st b.parent = some Bfg.parent ∧ Bfg.parent ∈ st.fg.TF := by
-  obtain ⟨j, raw, sup, rows, hj, hem, hst, _hslot, hb, _hrows⟩ := kmid_proposal_read p c E rho hs hp
+  obtain ⟨j, N, heN, hj, hem, hst, _hslot, hb, _hrows⟩ := kmid_proposal_read p c E rho hs hp
   let v := V2.D.proposerOf rho (fgsaInterface p c) s
   let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho j v) (SA.proposalTime p.toParams s)).st
   have hinv : CStoreInv p st := (storeBundle_postClock E rho j v _).cstore
@@ -213,46 +126,50 @@ theorem kmid_opening_carrier (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b 
     exact getHead_stored p st hinv _ _
   obtain ⟨P, hP, hPe⟩ := (hinv.baseTree _).mp hhead
   have hpar : b.parent = proposerHead p st s := by rw [hb]; rfl
-  have hok : rowsOk b rows = true := by
+  have hok : rowsOk b N.rows = true := by
     rw [hb, _hrows]
     exact rowsOk_node_packBody _ _ _ _ _
   have hne : b ≠ .genesis := by rw [hb]; intro h; cases h
   have hlook : FGSA.fgBlockOf st b.parent = some P :=
     (fgBlockOf_spec p st hinv _ P).mpr ⟨hP, hPe.trans hpar.symm⟩
-  let o : Obj p := ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩
+  let o : Obj p := ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩
   have hemit : V2.D.Run.emits E rho v o (V2.D.proposalTime (fgsaInterface p c) s) :=
     ⟨j, hj, hem⟩
-  refine ⟨fgBlock P b rows, eraseFG_fgBlock hne (hPe.trans hpar.symm) rows hok,
+  refine ⟨fgBlock P b N.rows, eraseFG_fgBlock hne (hPe.trans hpar.symm) N.rows hok,
     (OpeningCarrier_W_def p c E rho s b _).mpr
-      ⟨o, raw, sup, rows, st, P, hemit, rfl, hst, hlook, rfl⟩, ?_,
-    ⟨rows, ⟨hp, o, raw, sup, hemit, rfl⟩, rfl⟩, st, hst, hlook, hP⟩
+      ⟨o, N, st, P, hemit, heN, rfl, hst, hlook, rfl⟩, ?_,
+    ⟨N.rows, ⟨hp, o, N, hemit, rfl, heN, rfl⟩, rfl⟩, st, hst, hlook, hP⟩
   rw [fgBlock_slot, hb]
   rfl
 
 /-! ### Step group A: erased identity and ancestry -/
 
 omit [DecidableEq V] in
-/-- ROOT-DIGEST W2b. FINAL 22:1188–1197. FG roots are content hashes; erasure is injective.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:1188–1197. FG roots are content hashes; erasure is injective.
 DC: INTENTIONAL: the flat FG wire keeps one erasure. -/
 theorem kmid_eraseFG_inj {A B : FGBlock (Fin p.n)} (h : eraseFG A = eraseFG B) : A = B :=
   eraseFG_injective h
 
 omit [DecidableEq V] in
-/-- ROOT-DIGEST W2b. FINAL 22:1188–1197. Erased ancestry lifts to FG ancestry.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:1188–1197. Erased ancestry lifts to FG ancestry.
 DC: INTENTIONAL: the flat FG wire keeps one erasure. -/
 theorem kmid_lift_preceq {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
 omit [DecidableEq V] in
-/-- ROOT-DIGEST W2b. FINAL 22:1188–1197. A block's parent precedes it, also at genesis.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:1188–1197. A block's parent precedes it, also at genesis.
 DC: SAME chain order. -/
 theorem kmid_parent_preceq (B : FGBlock (Fin p.n)) : FGBlock.Preceq B.parent B := by
   cases B with
   | genesis => exact preceq_refl _
   | node P s root x rs => exact preceq_parent_node P s root x rs
 
-/-- FINAL 22:1188–1197. H3 at an action slot fixes the FG action source.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1188–1197. H3 at an action slot fixes the FG action source.
 DC: INTENTIONAL: the erased H3 source lifts by root identity. -/
 theorem kmid_source_of_exact {v : Slot} {X : FGBlock (Fin p.n)}
     (hex : ExactService p c E rho v (eraseFG X))
@@ -267,7 +184,8 @@ theorem kmid_source_of_exact {v : Slot} {X : FGBlock (Fin p.n)}
 
 /-! ### Step group B: raw row heights -/
 
-/-- FINAL 22:946–956. The empty pair has no height; a height names an entry.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:946–956. The empty pair has no height; a height names an entry.
 DC: INTENTIONAL: the wire height is optional for an empty pair. -/
 theorem kmid_rowHeight_entry (a : RowWire p.n) (h : Nat) (hh : rowHeight a = some h) :
     ∃ e, namedEntry a.payload.height_pair = some (h, e) := by
@@ -282,7 +200,8 @@ theorem kmid_rowHeight_entry (a : RowWire p.n) (h : Nat) (hh : rowHeight a = som
     subst k
     exact ⟨e, by rw [namedEntry_def]⟩
 
-/-- FINAL 22:946–956. An honest row height is its action source height.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:946–956. An honest row height is its action source height.
 DC: INTENTIONAL: the source-discipline name channel is an explicit input. -/
 theorem kmid_row_source_height
     (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
@@ -296,7 +215,8 @@ theorem kmid_row_source_height
   obtain ⟨C, hC, hCe⟩ := hnames j x r a _ ha he
   exact ⟨C, hC, congrArg Prod.fst hCe⟩
 
-/-- FINAL 22:923–947. Rows before the opening action stay at or below its height.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:923–947. Rows before the opening action stay at or below its height.
 DC: INTENTIONAL: H2 transfers every high earlier source below the opening parent. -/
 theorem kmid_rows_below_opening (w : HealingWitness) (h2 : TCarrier p c E rho w)
     (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
@@ -324,7 +244,8 @@ theorem kmid_rows_below_opening (w : HealingWitness) (h2 : TCarrier p c E rho w)
       ((fgCertificateLaws p).height.h_mono (kmid_parent_preceq p A₀))
   · omega
 
-/-- FINAL 22:946–956. Rows at an action with a fixed source have that source height.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:946–956. Rows at an action with a fixed source have that source height.
 DC: INTENTIONAL: the source-discipline name channel is an explicit input. -/
 theorem kmid_rows_at_source
     (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
@@ -341,7 +262,8 @@ theorem kmid_rows_at_source
   cases Option.some.inj (Option.some.inj hC)
   rfl
 
-/-- ROOT-DIGEST W2b. FINAL 22:946–956. An honest row is the client output of its action tick.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:946–956. An honest row is the client output of its action tick.
 DC: INTENTIONAL: the run uses event-indexed emission. -/
 theorem kmid_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
@@ -382,7 +304,8 @@ theorem kmid_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
       cases heq
   · exact (List.not_mem_nil hem).elim
 
-/-- FINAL 22:952–958. An honest row has a height, and its finality height is smaller.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:952–958. An honest row has a height, and its finality height is smaller.
 DC: SAME client filter of the finality pair below the height pair. -/
 theorem kmid_row_fin_lt {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
@@ -413,7 +336,8 @@ variable [Fintype V]
 /-! ### Step group E: held chains through the actual HEAD read -/
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:923–947. A tick at the cut time is before the read-phase cut.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:923–947. A tick at the cut time is before the read-phase cut.
 DC: INTENTIONAL: event phases order ticks before same-time deliveries. -/
 theorem kmid_tick_lt_afterTicks (hs : V2.D.ScheduleWellFormed E rho)
     {i : Nat} {v : V} {t' t : Time} (hi : rho.events[i]? = some (.tick v t')) (ht : t' ≤ t) :
@@ -427,7 +351,8 @@ theorem kmid_tick_lt_afterTicks (hs : V2.D.ScheduleWellFormed E rho)
   contradiction
 
 omit [Fintype V] in
-/-- FINAL 22:1226,954–956. The exact HEAD read holds its block at the tick index.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1226,954–956. The exact HEAD read holds its block at the tick index.
 DC: INTENTIONAL: the stored HEAD target is the admitted FG block. -/
 theorem kmid_head_held {v : Slot}
     {X : FGBlock (Fin p.n)} (hex : ExactService p c E rho v (eraseFG X))
@@ -454,7 +379,8 @@ theorem kmid_head_held {v : Slot}
     exact hB
 
 omit [Fintype V] in
-/-- FINAL 22:1265–1304. The FG action source is a stored block of the read state.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1265–1304. The FG action source is a stored block of the read state.
 DC: INTENTIONAL: the joint source picks from the filtered stored tree. -/
 theorem kmid_source_mem_TF {st : State p.n} {C : FGBlock (Fin p.n)}
     (h : FGSA.fgSource p st = some C) : C ∈ st.fg.TF := by
@@ -464,7 +390,8 @@ theorem kmid_source_mem_TF {st : State p.n} {C : FGBlock (Fin p.n)}
   exact hm.1
 
 omit [Fintype V] in
-/-- FINAL 22:1265–1304. An honest action source is held at its own action tick,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1265–1304. An honest action source is held at its own action tick,
 before the read-phase cut of that action. DC: INTENTIONAL: the run reads the source
 at the post-clock state of the action tick. -/
 theorem kmid_source_held_at_tick (hs : V2.D.ScheduleWellFormed E rho) {x : V} {r : Nat}
@@ -483,7 +410,8 @@ theorem kmid_source_held_at_tick (hs : V2.D.ScheduleWellFormed E rho) {x : V} {r
     rw [FGSA.clock_fg] at hm
     exact ⟨i, hj, kmid_tick_lt_afterTicks p c E rho hs hj le_rfl, hx, hm⟩
 
-/-- FINAL 22:954–956,1226. The exact HEAD read gives raw chain rows before a later cut.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:954–956,1226. The exact HEAD read gives raw chain rows before a later cut.
 DC: INTENTIONAL: an actual honest strict-before read holds every carrier. -/
 theorem kmid_chainRows_of_head (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
     {v : Slot} {X : FGBlock (Fin p.n)} (hex : ExactService p c E rho v (eraseFG X))
@@ -500,7 +428,8 @@ theorem kmid_chainRows_of_head (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.
   exact hanc
 
 omit [Fintype V] in
-/-- FINAL 22:1226,1265. The exact HEAD block stays held from its read to any later cut.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1226,1265. The exact HEAD block stays held from its read to any later cut.
 DC: INTENTIONAL: the cumulative store keeps every admitted block without restart. -/
 theorem kmid_head_held_from (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
     {v : Slot} {X : FGBlock (Fin p.n)} (hex : ExactService p c E rho v (eraseFG X))
@@ -511,7 +440,8 @@ theorem kmid_head_held_from (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoR
   have hik := (kmid_tick_lt_afterTicks p c E rho hs hi ht).le.trans hk
   exact (fgsa_store_cumulative p c E rho hnr hik x).1 hX
 
-/-- FINAL 22:948–958. Linked unit-weight seats bound the faulty weight.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:948–958. Linked unit-weight seats bound the faulty weight.
 DC: INTENTIONAL: FG-SA uses linked seats. -/
 theorem kmid_faulty_weight (base : BaseSet p c E rho)
     (hQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card) :
@@ -539,7 +469,8 @@ theorem kmid_faulty_weight (base : BaseSet p c E rho)
   exact hc.trans_lt hQ.lt
 
 omit [Fintype V] in
-/-- FINAL 22:948–958. A seat outside the faulty set is honest.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:948–958. A seat outside the faulty set is honest.
 DC: INTENTIONAL: FG-SA uses linked seats. -/
 theorem kmid_honest_seat (u : Row (Fin p.n))
     (hf : u.signer ∉ Finset.univ \ honestSeats p c rho) :
@@ -551,7 +482,8 @@ theorem kmid_honest_seat (u : Row (Fin p.n))
   exact (kmid_honestSeats_mem p c rho u.signer).mp hm
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:954–956. Decode the exact signed wire payload.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:954–956. Decode the exact signed wire payload.
 DC: INTENTIONAL: FG-SA uses seat-authenticated wires. -/
 theorem kmid_wire_decode {a : RowWire p.n} {u : Row (Fin p.n)}
     (ha : a.toRow? = some u) :
@@ -569,7 +501,8 @@ theorem kmid_wire_decode {a : RowWire p.n} {u : Row (Fin p.n)}
       rfl
 
 omit [Fintype V] in
-/-- FINAL 22:954–956. The emission tick gives its exact action time.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:954–956. The emission tick gives its exact action time.
 DC: INTENTIONAL: the run uses event-indexed emission. -/
 theorem kmid_event_time {j r : Nat} {z : V} {a : RowWire p.n}
     (hj : HonestRowAt p c E rho j z r a) :
@@ -579,7 +512,8 @@ theorem kmid_event_time {j r : Nat} {z : V} {a : RowWire p.n}
   rfl
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:954–956. A matching pair has the stated wire height.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:954–956. A matching pair has the stated wire height.
 DC: INTENTIONAL: the wire height is optional for an empty pair. -/
 theorem kmid_matching_height {u : Row (Fin p.n)} {a : RowWire p.n}
     {y : Nat} {T : BlockId} (ha : a.toRow? = some u)
@@ -599,7 +533,8 @@ theorem kmid_matching_height {u : Row (Fin p.n)} {a : RowWire p.n}
     rw [hh]
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:923–947. Deliveries before the read-phase cut are strictly earlier.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:923–947. Deliveries before the read-phase cut are strictly earlier.
 DC: INTENTIONAL: event phases order ticks before same-time deliveries. -/
 theorem kmid_delivery_before_afterTicks (hs : V2.D.ScheduleWellFormed E rho)
     {k : Nat} {t t' : Time} {x : V} {o : (fgsa p c).Object}
@@ -629,7 +564,8 @@ variable (horigin : ∀ (i : Nat) (x : V) (B : FGBlock (Fin p.n)),
             HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t)
 
 include horigin in
-/-- FINAL 22:923–938. A held chain has no crossing above its honest row bound.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:923–938. A held chain has no crossing above its honest row bound.
 DC: INTENTIONAL: timed raw origin replaces a selected-pool bound. -/
 theorem kmid_held_height_le (base : BaseSet p c E rho)
     (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card) (m : Nat) (cut : Time)
@@ -658,7 +594,8 @@ theorem kmid_held_height_le (base : BaseSet p c E rho)
   omega
 
 include horigin in
-/-- FINAL 22:923–947. The cap holds through the read phase of the cut, before deliveries.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:923–947. The cap holds through the read phase of the cut, before deliveries.
 DC: INTENTIONAL: event phases make same-time rows undeliverable before the read. -/
 theorem kmid_held_cap_afterTicks (base : BaseSet p c E rho)
     (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card) (m : Nat) (cut : Time)
@@ -672,7 +609,8 @@ theorem kmid_held_cap_afterTicks (base : BaseSet p c E rho)
       base.valid.toScheduleWellFormed (hki.trans_le hcut) hk)
 
 include horigin in
-/-- FINAL 22:952–958,1224–1226. No held finality certificate at or above y before the cut.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:952–958,1224–1226. No held finality certificate at or above y before the cut.
 DC: INTENTIONAL: the active W certificate supplies the exact finality height. -/
 theorem kmid_held_finality_afterTicks (base : BaseSet p c E rho)
     (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card) (y : Nat) (cut : Time)
@@ -711,13 +649,15 @@ theorem kmid_held_finality_afterTicks (base : BaseSet p c E rho)
 /-! ### Step group C: the height batch at a parent that stays -/
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:583–610. The parent fold state reads the parent's height entry.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:583–610. The parent fold state reads the parent's height entry.
 DC: INTENTIONAL: R6W reads the window parent state with the child slot. -/
 private theorem kmid_parentFold_eq (s : Slot) (H : FGBlock (Fin p.n)) :
     parentFoldState p s H = Window.parentState p p.K_W H s := rfl
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:583–610. The parent fold state has the height and entry of the height view.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:583–610. The parent fold state has the height and entry of the height view.
 DC: INTENTIONAL: R6W reads the window parent state with the child slot. -/
 theorem kmid_parentFold_height (s : Slot) (H : FGBlock (Fin p.n)) :
     (parentFoldState p s H).h = (heightView p H).h ∧
@@ -726,7 +666,8 @@ theorem kmid_parentFold_height (s : Slot) (H : FGBlock (Fin p.n)) :
   exact ⟨rfl, rfl⟩
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:583–610. The decoded row of a seat-authenticated wire.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:583–610. The decoded row of a seat-authenticated wire.
 DC: INTENTIONAL: FG-SA uses seat-authenticated wires. -/
 theorem kmid_wire_toRow {a : RowWire p.n} {i : Fin p.n} (ha : a.auth = .seat .fg i) :
     a.toRow? = some ⟨i, a.payload.height_pair, a.payload.finality_pair⟩ := by
@@ -736,7 +677,8 @@ theorem kmid_wire_toRow {a : RowWire p.n} {i : Fin p.n} (ha : a.auth = .seat .fg
   rfl
 
 omit [Fintype V] in
-/-- FINAL 22:583–603. A post-clock proposer read is reachable.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:583–603. A post-clock proposer read is reachable.
 DC: INTENTIONAL: the proposer read is an indexed post-clock state. -/
 theorem kmid_proposal_reachable {s : Slot} {st : State p.n}
     (hs : proposalStateAt p c E rho s = some st) : Reachable p st := by
@@ -750,7 +692,8 @@ theorem kmid_proposal_reachable {s : Slot} {st : State p.n}
       rw [← Option.some.inj hs]
       exact reachable_postClock E rho k _ _
 
-/-- ROOT-DIGEST W2b. FINAL 22:583–610. Rows on a stored chain that name an entry lie above that
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:583–610. Rows on a stored chain that name an entry lie above that
 entry,
 when the chain stays at the entry height. DC: INTENTIONAL: stored R6W validity. -/
 theorem kmid_rows_above_entry (st : State p.n) (hr : Reachable p st)
@@ -801,16 +744,17 @@ theorem kmid_rows_above_entry (st : State p.n) (hr : Reachable p st)
 /-! ### Step group D: slot chains of stored blocks -/
 
 omit [Fintype V] in
-/-- FINAL 22:43–54,1056–1059. A stored accepted block has a smaller parent slot.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:43–54,1056–1059. A stored accepted block has a smaller parent slot.
 DC: INTENTIONAL: accepted proposal validity supplies strict parent-slot growth. -/
 theorem kmid_stored_parent_slot (hE : V2.D.ExecutionValid E rho)
     (i : Nat) (v : V) (C : Block)
     (hm : C ∈ (V2.D.Run.stateBefore E rho i v).st.base.blocks) (hg : C ≠ .genesis) :
     C.parent.slot < C.slot := by
   obtain ⟨w, hw, hb, j, o, t, -, hd, ho, -⟩ := fgsa_stored_block_origin E rho i v C hm hg
-  obtain ⟨r, Q, raw, sup, rows, rfl, -⟩ := (metaInv_stateBefore E rho i v).wireTree w hw
-  have hQ : Q = C := Option.some.inj hb
-  subst Q
+  obtain ⟨r, N, rfl, -⟩ := (metaInv_stateBefore E rho i v).wireTree w hw
+  have hQ : N.erase = C := Option.some.inj hb
+  rw [← hQ]
   have hf := hE.wire j v o t hd
   change FGSA.wellFormed p (toWire p o) = true at hf
   rw [ho] at hf
@@ -819,7 +763,8 @@ theorem kmid_stored_parent_slot (hE : V2.D.ExecutionValid E rho)
       (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hf).1).1).1).1).2
 
 omit [Fintype V] in
-/-- FINAL 22:43–54,1056–1059. A stored FG block has increasing slots along its chain.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:43–54,1056–1059. A stored FG block has increasing slots along its chain.
 DC: INTENTIONAL: accepted proposal validity supplies strict parent-slot growth. -/
 theorem kmid_stored_slotChain (hE : V2.D.ExecutionValid E rho) (i : Nat) (v : V)
     (X : FGBlock (Fin p.n)) (hX : X ∈ (V2.D.Run.stateBefore E rho i v).st.fg.TF) :
@@ -834,7 +779,8 @@ theorem kmid_stored_slotChain (hE : V2.D.ExecutionValid E rho) (i : Nat) (v : V)
   rwa [eraseFG_parent, eraseFG_slot, eraseFG_slot] at hlt
 
 omit [DecidableEq V] [Fintype V] in
-/-- ROOT-DIGEST W2b. FINAL 22:43–54. Slots do not decrease along a slot chain.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:43–54. Slots do not decrease along a slot chain.
 DC: INTENTIONAL: FG-SA height coverage has explicit chain-history inputs. -/
 theorem kmid_slot_le_of_preceq {W X : FGBlock (Fin p.n)} (hX : SlotChain X)
     (hW : FGBlock.Preceq W X) : W.slot ≤ X.slot := by
@@ -852,7 +798,8 @@ theorem kmid_slot_le_of_preceq {W X : FGBlock (Fin p.n)} (hX : SlotChain X)
       exact (ih hP hWP).trans (le_of_lt hlt)
 
 omit [DecidableEq V] [Fintype V] in
-/-- ROOT-DIGEST W2b. FINAL 22:43–54. A strict ancestor has a strictly smaller slot.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:43–54. A strict ancestor has a strictly smaller slot.
 DC: INTENTIONAL: FG-SA height coverage has explicit chain-history inputs. -/
 theorem kmid_slot_lt_of_strict {W X : FGBlock (Fin p.n)} (hX : SlotChain X)
     (hW : FGBlock.Preceq W X) (hne : W ≠ X) : W.slot < X.slot := by
@@ -867,7 +814,8 @@ theorem kmid_slot_lt_of_strict {W X : FGBlock (Fin p.n)} (hX : SlotChain X)
 
 /-! ### Step group C: the honest batch of a stored parent -/
 
-/-- ROOT-DIGEST W2b. FINAL 22:583–610,886–915. Complete honest target rows at a stored parent form a
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. FINAL 22:583–610,886–915. Complete honest target rows at a stored parent form a
 batch.
 DC: SAME height coverage; INTENTIONAL: complete earlier-or-current send-once witnesses. -/
 theorem kmid_batchPrem (ΔF : Time) (base : BaseSet p c E rho)
@@ -921,7 +869,8 @@ theorem kmid_batchPrem (ΔF : Time) (base : BaseSet p c E rho)
 /-! ### Step group A: kernel clock bounds -/
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:217–220. A round count of periods is the slot clock of its first slot.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:217–220. A round count of periods is the slot clock of its first slot.
 DC: INTENTIONAL: FG-SA action times use its fixed round grid. -/
 theorem kmid_period_eq (r : Nat) :
     (r : Time) * P p = 4 * p.Δ * ((r * p.R : Nat) : Time) := by
@@ -930,7 +879,8 @@ theorem kmid_period_eq (r : Nat) :
   ring
 
 variable {p c E rho} in
-/-- FINAL 22:1173–1177,1199–1211. Kernel clock facts from the kernel premise.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1173–1177,1199–1211. Kernel clock facts from the kernel premise.
 DC: INTENTIONAL: the W kernel uses the row delay ΔF. -/
 theorem kmid_kernel_bounds {G ΔF : Time} {pt : KernelPt}
     (hK : KernelPrem_W p c G ΔF E rho pt) :
@@ -964,7 +914,8 @@ theorem kmid_kernel_bounds {G ΔF : Time} {pt : KernelPt}
     linarith
 
 variable {p c E rho} in
-/-- FINAL 22:1173–1177. Every slot read up to the window end is inside the run.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1173–1177. Every slot read up to the window end is inside the run.
 DC: INTENTIONAL: the W kernel horizon covers its window reads. -/
 theorem kmid_slot_horizon {G ΔF : Time} {pt : KernelPt}
     (hK : KernelPrem_W p c G ΔF E rho pt) {s : Slot} (hs : s ≤ (pt.r + 2) * p.R) :
@@ -979,7 +930,8 @@ theorem kmid_slot_horizon {G ΔF : Time} {pt : KernelPt}
   refine ⟨?_, ?_, ?_⟩ <;> linarith
 
 variable {p c E rho} in
-/-- FINAL 22:1173–1177. Every slot read from the opening on is after GST.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1173–1177. Every slot read from the opening on is after GST.
 DC: INTENTIONAL: the W kernel starts after GST. -/
 theorem kmid_slot_gst {G ΔF : Time} {pt : KernelPt}
     (hK : KernelPrem_W p c G ΔF E rho pt) {s : Slot} (hs : pt.r * p.R ≤ s) :
@@ -991,7 +943,8 @@ theorem kmid_slot_gst {G ΔF : Time} {pt : KernelPt}
   linarith
 
 variable {p c E rho} in
-/-- FINAL 22:1171–1180. An honest window slot has an actual honest proposal.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1171–1180. An honest window slot has an actual honest proposal.
 DC: INTENTIONAL: the FG-SA proposer duty always builds a block at a positive slot. -/
 theorem kmid_window_proposal {G ΔF : Time} {pt : KernelPt}
     (hK : KernelPrem_W p c G ΔF E rho pt) {s : Slot}
@@ -1004,7 +957,8 @@ theorem kmid_window_proposal {G ΔF : Time} {pt : KernelPt}
     (hK.set.awake _ hslot.2 _ (kmid_slot_gst hK hlo) hh) hh
 
 variable {p c E rho} in
-/-- FINAL 22:1188–1197. H3 serves every honest window proposal.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:1188–1197. H3 serves every honest window proposal.
 DC: INTENTIONAL: the healed AC service is an explicit input. -/
 theorem kmid_window_exact {G ΔF : Time} {pt : KernelPt}
     (hK : KernelPrem_W p c G ΔF E rho pt) {s : Slot} {b : Block}
@@ -1015,7 +969,8 @@ theorem kmid_window_exact {G ΔF : Time} {pt : KernelPt}
 /-! ### Step group B: raw cuts from round bounds -/
 
 omit [Fintype V] in
-/-- FINAL 22:923–947. A round-indexed row bound is a raw cut at the next action.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:923–947. A round-indexed row bound is a raw cut at the next action.
 DC: INTENTIONAL: an honest row has the exact time of its action tick. -/
 theorem kmid_rows_cut (m Q : Nat)
     (hrow : ∀ j x r a h, r ≤ Q → HonestRowAt p c E rho j x r a → rowHeight a = some h →
@@ -1039,7 +994,8 @@ theorem kmid_rows_cut (m Q : Nat)
     exact hrow j z r a h (key j z r a t ha ht hlt) ha hh
 
 omit [Fintype V] in
-/-- FINAL 22:952–958. A round-indexed row bound caps the finality heights below it.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:952–958. A round-indexed row bound caps the finality heights below it.
 DC: SAME client filter of the finality pair below the height pair. -/
 theorem kmid_fin_cut (m Q : Nat)
     (hrow : ∀ j x r a h, r ≤ Q → HonestRowAt p c E rho j x r a → rowHeight a = some h →
@@ -1061,7 +1017,8 @@ theorem kmid_fin_cut (m Q : Nat)
   omega
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:217–220. A HEAD read at or before a round's first slot precedes its action.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:217–220. A HEAD read at or before a round's first slot precedes its action.
 DC: INTENTIONAL: FG-SA action times use its fixed round grid. -/
 theorem kmid_vote_lt_action {s : Slot} {r : Nat} (h : s ≤ r * p.R) :
     SA.voteTime p.toParams s < p.actionTime r := by
@@ -1072,7 +1029,8 @@ theorem kmid_vote_lt_action {s : Slot} {r : Nat} (h : s ≤ r * p.R) :
   linarith
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:217–220. A proposal at or before a round's first slot precedes its action.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:217–220. A proposal at or before a round's first slot precedes its action.
 DC: INTENTIONAL: FG-SA action times use its fixed round grid. -/
 theorem kmid_proposal_le_action {s : Slot} {r : Nat} (h : s ≤ r * p.R) :
     SA.proposalTime p.toParams s ≤ p.actionTime r := by
@@ -1083,7 +1041,8 @@ theorem kmid_proposal_le_action {s : Slot} {r : Nat} (h : s ≤ r * p.R) :
   linarith
 
 variable {p c E rho} in
-/-- FINAL 22:886–915,1199–1211. Rows of an action are received before a proposal κ slots later.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FINAL 22:886–915,1199–1211. Rows of an action are received before a proposal κ slots later.
 DC: INTENTIONAL: the W kernel uses the row delay ΔF. -/
 theorem kmid_batch_horizon {G ΔF : Time} {pt : KernelPt}
     (hK : KernelPrem_W p c G ΔF E rho pt) {r : Nat} {s : Slot}

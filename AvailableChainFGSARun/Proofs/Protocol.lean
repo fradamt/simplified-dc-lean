@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Proofs.Carrier
+public import AvailableChainFGSA.Proofs.NamedProposal
 public import AvailableChainFGSARun.Model.Families
 public import AvailableChainKitFG.ClientOnceSafety
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
@@ -19,30 +20,37 @@ variable {p : Params} {In : Type} {c : AppCodec In}
 
 /-! ### The two parts of the node state -/
 
-/-- [plan §1a restart decision] A restart restarts the store from `initial`. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[plan §1a restart decision] A restart restarts the store from `initial`. -/
 theorem restore_st (d : RecordOnce) : ((fgsa p c).restore d).st = initial p.n := rfl
 
-/-- [plan §1a restart decision] A restart keeps Λ. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[plan §1a restart decision] A restart keeps Λ. -/
 theorem restore_rec (d : RecordOnce) : ((fgsa p c).restore d).record = d := rfl
 
-/-- The clock step keeps Λ. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The clock step keeps Λ. -/
 theorem clock_rec (nd : Node p) (t : Time) : ((fgsa p c).clock nd t).record = nd.record := rfl
 
-/-- The delivery step keeps Λ. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The delivery step keeps Λ. -/
 theorem process_rec (nd : Node p) (o : Obj p) :
     ((fgsa p c).process nd o).record = nd.record := rfl
 
-/-- The own-record step keeps the store. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The own-record step keeps the store. -/
 theorem recordOwn_st (nd : Node p) (o : Obj p) :
     ((fgsa p c).recordOwn nd o).st = nd.st := rfl
 
-/-- The own-record step is `recordRow?` on Λ. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The own-record step is `recordRow?` on Λ. -/
 theorem recordOwn_rec (nd : Node p) (o : Obj p) :
     ((fgsa p c).recordOwn nd o).record = recordRow? p nd.record o := rfl
 
 /-! ### The FG action -/
 
-/-- [spec 1304–1313; plan T7.2] The row body and the new record of `attest` do
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[spec 1304–1313; plan T7.2] The row body and the new record of `attest` do
 not depend on the identity: `createRowOnce` uses the signer only in `Row.signer`,
 `record_row_once` does not read it, and `RowBody.ofRow` drops it. -/
 theorem attest_signer_irrel (st : State p.n) (Λ : RecordOnce) (i j : Fin p.n) :
@@ -56,12 +64,14 @@ theorem attest_signer_irrel (st : State p.n) (Λ : RecordOnce) (i j : Fin p.n) :
     exact he
   · exact h.2
 
-/-- An FG duty releases zero or one row. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An FG duty releases zero or one row. -/
 theorem act_fg (nd : Node p) (r : Nat) (x : In) :
     (fgsa p c).act nd (.fgAction r) x =
       (attest p nd.st nd.record ⟨0, p.nPos⟩).1.map Msg.row := rfl
 
-/-- A successful client action writes its complete released content. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A successful client action writes its complete released content. -/
 theorem attest_some_record (st : State p.n) (Λ : RecordOnce) (i : Fin p.n)
     (payload : RowPayload) (h : (attest p st Λ i).1 = some payload) :
     (attest p st Λ i).2 = record_row_once Λ (payload.toRow i) := by
@@ -72,7 +82,8 @@ theorem attest_some_record (st : State p.n) (Λ : RecordOnce) (i : Fin p.n)
   rw [hr, ← hp]
   rfl
 
-/-- A successful client action has not sent this content before. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A successful client action has not sent this content before. -/
 theorem attest_some_fresh (st : State p.n) (Λ : RecordOnce) (i : Fin p.n)
     (payload : RowPayload) (h : (attest p st Λ i).1 = some payload) :
     (payload.height_pair, payload.finality_pair) ∉ Λ.sent := by
@@ -82,13 +93,15 @@ theorem attest_some_fresh (st : State p.n) (Λ : RecordOnce) (i : Fin p.n)
   rw [← hp]
   exact hf.1
 
-/-- A suppressed client action does not write the record. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A suppressed client action does not write the record. -/
 theorem attest_none_record (st : State p.n) (Λ : RecordOnce) (i : Fin p.n)
     (h : (attest p st Λ i).1 = none) : (attest p st Λ i).2 = Λ := by
   exact KitFG.createRowOnce_none p.E p.cfg Λ i (fgInputs p st).1 (fgInputs p st).2
     (Option.map_eq_none_iff.mp h)
 
-/-- The engine records a successful attest result before release. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The engine records a successful attest result before release. -/
 theorem recordOwn_attest (nd : Node p) (i : Fin p.n) (payload : RowPayload)
     (h : (attest p nd.st nd.record ⟨0, p.nPos⟩).1 = some payload) :
     ((fgsa p c).recordOwn nd ⟨.seat (.base .fg) i, .row payload⟩).record =
@@ -96,7 +109,8 @@ theorem recordOwn_attest (nd : Node p) (i : Fin p.n) (payload : RowPayload)
   rw [attest_some_record _ _ _ _ h]
   rfl
 
-/-- At one time, distinct due duties have distinct signing labels. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+At one time, distinct due duties have distinct signing labels. -/
 theorem fgsa_dutiesInjectiveAt (t : Time) : V2.D.DutiesInjectiveAt (fgsa p c) t := by
   have fg_eq (r : Nat) (hr : RunDuty.fgAction r ∈ duties p t) :
       r = (p.slotOf t - 1) / p.R := by
@@ -112,7 +126,8 @@ theorem fgsa_dutiesInjectiveAt (t : Time) : V2.D.DutiesInjectiveAt (fgsa p c) t 
   cases d <;> cases d' <;> dsimp only [RunDuty.signLabel] at hs <;> simp_all
   all_goals first | rfl | exact congrArg RunDuty.fgAction (hfg _ _ hd hd')
 
-/-- A HEAD label has exactly its scheduled HEAD duty. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A HEAD label has exactly its scheduled HEAD duty. -/
 theorem fgsa_head_singleDuty (s : Slot) :
     Gen.V2.Duty.SingleDuty (fgsa p c) (.base (.head s)) := by
   refine ⟨.headAction s, rfl, ?_⟩
@@ -121,7 +136,8 @@ theorem fgsa_head_singleDuty (s : Slot) :
   cases d <;> dsimp only [RunDuty.signLabel] at hd <;> simp_all
   all_goals rfl
 
-/-- A proposal label has exactly its scheduled proposal duty. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A proposal label has exactly its scheduled proposal duty. -/
 theorem fgsa_prop_singleDuty (s : Slot) :
     Gen.V2.Duty.SingleDuty (fgsa p c) (.prop s) := by
   refine ⟨.propAction s, rfl, ?_⟩
@@ -132,46 +148,62 @@ theorem fgsa_prop_singleDuty (s : Slot) :
 
 /-! ### The proposal -/
 
-/-- [plan T7.2] The payload of a proposal label is the store proposal with the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[plan T7.2] The payload of a proposal label is the store proposal with the
 application value of the input. -/
 theorem act_prop (nd : Node p) (s : Slot) (x : In) :
     (fgsa p c).act nd (.propAction s) x = (propose p nd.st s).map (withApp p (c.app x)) := rfl
 
-/-- [plan T7.2] There is no proposal at slot `0`. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[plan T7.2] There is no proposal at slot `0`. -/
 theorem act_prop_zero (nd : Node p) (x : In) : (fgsa p c).act nd (.propAction 0) x = none := rfl
 
-/-- ROOT-DIGEST W2. A zero-app update preserves the proposal digest and payload.
+/-- [ROOT-DIGEST-2 W2; DC NamedBlocks] A zero-app update preserves the named payload.
 Thus unitCodec preserves the local proposal output. -/
 theorem withApp_zero (st : State p.n) (s : Slot) :
     (propose p st s).map (withApp p 0) = propose p st s := by
   unfold propose
-  split <;> rfl
+  split
+  · rfl
+  · simp only [Option.map_map]
+    rfl
 
-/-- [ROOT-DIGEST W2; plan T7.2; I9 D9; Opus M2] The proposal with application value `a` is a
+/-- [ROOT-DIGEST-2 W2; DC NamedBlocks; plan T7.2] The proposal with app value `a` is a
 proposal whose block is a node of slot `s` with the packed body of `a` and its
 carried rows. The block passes the BODY check `rowsOk` with these rows,
 and its application value is `a`. -/
 theorem rowsOk_withApp (st : State p.n) (s : Slot) (a : Nat) {m : Msg p.n}
     (h : (propose p st s).map (withApp p a) = some m) :
-    ∃ H raw sup rows, m = .proposal (proposalBlock p H s a raw sup rows) raw sup rows ∧
-      rowsOk (proposalBlock p H s a raw sup rows) rows = true ∧
-      appOf (proposalBlock p H s a raw sup rows).body = a := by
+    ∃ H raw sup rows, m = .proposal (namedProposal p H s a raw sup rows) ∧
+      rowsOk (namedProposal p H s a raw sup rows).erase rows = true ∧
+      appOf (namedProposal p H s a raw sup rows).body = a := by
   unfold propose at h
   split at h
   · simp at h
-  · simp only [Option.map_some, Option.some.injEq] at h
-    subst h
-    refine ⟨_, _, _, _, rfl, ?_, appOf_packBody _ _⟩
-    exact contentOk_rowsOk (contentOk_proposalBlock p _ s a _ _ _)
+  · simp only [Option.map_map] at h
+    obtain ⟨H, _, rfl⟩ := Option.map_eq_some_iff.mp h
+    refine ⟨H, (proposerVotes st s).filterMap liftHead?,
+      (proposerSupport st s).filterMap liftHead?,
+      proposalRows p st (getHead p st (proposerVotes st s) (proposerSupport st s)),
+      rfl, ?_, ?_⟩
+    · rw [namedProposal_erase]
+      exact contentOk_rowsOk (contentOk_proposalBlock p H.erase s a
+        ((proposerVotes st s).filterMap liftHead?)
+        ((proposerSupport st s).filterMap liftHead?)
+        (proposalRows p st (getHead p st (proposerVotes st s) (proposerSupport st s))))
+    · exact appOf_packBody a
+        (proposalRows p st (getHead p st (proposerVotes st s) (proposerSupport st s)))
 
 /-! ### Label families and isolation -/
 
-/-- [plan T7.2; 2a Task 3 Step 5] A proposal label has one seat. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[plan T7.2; 2a Task 3 Step 5] A proposal label has one seat. -/
 theorem singleSeat_prop : V2.D.SingleSeat (fgsa p c) (fun ℓ => ∃ s, ℓ = .prop s) := by
   rintro _ ⟨s, rfl⟩
   rfl
 
-/-- [plan T7.2; FRAMEWORK dated E5 note :302–306] The linked family (the FG
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[plan T7.2; FRAMEWORK dated E5 note :302–306] The linked family (the FG
 labels) is self-visible. -/
 theorem linked_selfVisible (ℓ : RunLabel) (h : (fgsaFamilies p c).linked ℓ) :
     (fgsa p c).selfVisible ℓ = true := by
@@ -180,7 +212,8 @@ theorem linked_selfVisible (ℓ : RunLabel) (h : (fgsaFamilies p c).linked ℓ) 
   · rfl
   · exact h.elim
 
-/-- [plan T7.2; 2a `Isolation.base_tick`] The store after a tick is the store
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[plan T7.2; 2a `Isolation.base_tick`] The store after a tick is the store
 clock of the store before it: the released objects and the own record do not
 change the store. -/
 theorem tick_st {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -198,15 +231,18 @@ theorem tick_st {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V
 
 theorem toWire_injective : Function.Injective (toWire p) := (toWireEquiv p).injective
 
-/-- A carried HEAD reaches the store as its HEAD wire. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A carried HEAD reaches the store as its HEAD wire. -/
 @[simp] theorem toWire_ofHead (h : HeadWire p.n) :
     toWire p (ofHead p h) = ⟨h.auth, .head h.payload⟩ := toWire_ofWire _
 
-/-- A carried row reaches the store as its row wire. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A carried row reaches the store as its row wire. -/
 @[simp] theorem toWire_ofRow (a : RowWire p.n) :
     toWire p (ofRow p a) = ⟨a.auth, .row a.payload⟩ := toWire_ofWire _
 
-/-- [A0 M8] Two carried rows give the same v2 object only if they are equal. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[A0 M8] Two carried rows give the same v2 object only if they are equal. -/
 theorem ofRow_injective : Function.Injective (ofRow p) := by
   intro a a' h
   have h' := congrArg (toWire p) h
@@ -217,7 +253,8 @@ theorem ofRow_injective : Function.Injective (ofRow p) := by
   obtain ⟨rfl, rfl⟩ := h'
   rfl
 
-/-- [A0 M8] Two carried HEADs give the same v2 object only if they are equal. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[A0 M8] Two carried HEADs give the same v2 object only if they are equal. -/
 theorem ofHead_injective : Function.Injective (ofHead p) := by
   intro h h' e
   have e' := congrArg (toWire p) e
@@ -228,13 +265,14 @@ theorem ofHead_injective : Function.Injective (ofHead p) := by
   obtain ⟨rfl, rfl⟩ := e'
   rfl
 
-/-- [A0 M8] The v2 authentication of a carried row. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[A0 M8] The v2 authentication of a carried row. -/
 theorem ofRow_auth (a : RowWire p.n) : (ofRow p a).auth = ofAuth p a.auth := rfl
 
 /-! ### The decoder -/
 
-/-- The store decoder gives a vote only for a HEAD-seat HEAD wire. -/
-theorem decode_eq_vote {n : Nat} {w : Wire n} {s : Slot} {i : Fin n} {b : Block} :
+/-- [ROOT-DIGEST-2 W2; DC HEAD] The decoder retains the signed identifier. -/
+theorem decode_eq_vote {n : Nat} {w : Wire n} {s : Slot} {i : Fin n} {b : BlockId} :
     w.decode = some (.vote s i b) ↔ w = ⟨.seat (.head s) i, .head b⟩ := by
   obtain ⟨a, m⟩ := w
   constructor
@@ -242,7 +280,8 @@ theorem decode_eq_vote {n : Nat} {w : Wire n} {s : Slot} {i : Fin n} {b : Block}
     rcases a with ⟨(_ | _), _⟩ | _ | _ <;> cases m <;> simp_all [Wire.decode]
   · rintro ⟨⟩; rfl
 
-/-- The store decoder gives a row only for an FG-seat row wire. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The store decoder gives a row only for an FG-seat row wire. -/
 theorem decode_eq_row {n : Nat} {w : Wire n} {i : Fin n} {body : RowPayload} :
     w.decode = some (.row i body) ↔ w = ⟨.seat .fg i, .row body⟩ := by
   obtain ⟨a, m⟩ := w
@@ -251,17 +290,17 @@ theorem decode_eq_row {n : Nat} {w : Wire n} {i : Fin n} {body : RowPayload} :
     rcases a with ⟨(_ | _), _⟩ | _ | _ <;> cases m <;> simp_all [Wire.decode]
   · rintro ⟨⟩; rfl
 
-/-- The store decoder gives a block only for a proposer-key proposal wire. -/
-theorem decode_eq_block {n : Nat} {w : Wire n} {s : Slot} {b : Block}
-    {raw sup : List (HeadWire n)} {rows : List (RowWire n)} :
-    w.decode = some (.block s b raw sup rows) ↔ w = ⟨.proposer s, .proposal b raw sup rows⟩ := by
+/-- [ROOT-DIGEST-2 W2; DC NamedBlocks] The decoder retains the full named proposal. -/
+theorem decode_eq_block {n : Nat} {w : Wire n} {s : Slot} {N : NamedProposal n} :
+    w.decode = some (.block s N) ↔ w = ⟨.proposer s, .proposal N⟩ := by
   obtain ⟨a, m⟩ := w
   constructor
   · intro h
     rcases a with ⟨(_ | _), _⟩ | _ | _ <;> cases m <;> simp_all [Wire.decode]
   · rintro ⟨⟩; rfl
 
-/-- A row wire decodes as a row exactly when its auth is an FG seat. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A row wire decodes as a row exactly when its auth is an FG seat. -/
 theorem rowWire_decode {n : Nat} {a : RowWire n} {i : Fin n} {body : RowPayload} :
     a.decode? = some (i, body) ↔ a = ⟨.seat .fg i, body⟩ := by
   obtain ⟨x, y⟩ := a
@@ -270,35 +309,38 @@ theorem rowWire_decode {n : Nat} {a : RowWire n} {i : Fin n} {body : RowPayload}
     rcases x with ⟨(_ | _), _⟩ | _ | _ <;> simp_all [RowWire.decode?]
   · rintro ⟨⟩; rfl
 
-/-- [A0 M8] `processed` of a carried row is pool membership. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[A0 M8] `processed` of a carried row is pool membership. -/
 theorem processedS_ofRow (st : State p.n) {a : RowWire p.n} {i : Fin p.n}
     {body : RowPayload} (h : a.decode? = some (i, body)) :
     processedS p st (ofRow p a) = decide (a ∈ st.rowPool) := by
   obtain rfl := rowWire_decode.mp h
   rfl
 
-/-- [R5] A decoded carried row is never excluded. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[R5] A decoded carried row is never excluded. -/
 theorem excludesS_ofRow (st : State p.n) {a : RowWire p.n} {i : Fin p.n}
     {body : RowPayload} (h : a.decode? = some (i, body)) :
     excludesS p st (ofRow p a) = false := by
   obtain rfl := rowWire_decode.mp h
   rfl
 
-/-- [A0 M8] A carried row is handled at a delivery exactly when it is the
+/-- [ROOT-DIGEST-2 W2; DC NamedReceiptCalls; A0 M8] A carried row is handled when it is the
 delivered object, or it is one of the rows of a delivered proposal that the
 store accepts. -/
 theorem handlesS_ofRow_iff (st : State p.n) (o : Obj p) (a : RowWire p.n) :
     handlesS p st o (ofRow p a) ↔ o = ofRow p a ∨
-      ∃ s b raw sup rows P, (toWire p o).decode = some (.block s b raw sup rows) ∧
-        parentFG st b = some P ∧ blockAccepted p st s b raw sup P rows = true ∧ a ∈ rows := by
+      ∃ s N P, (toWire p o).decode = some (.block s N) ∧
+        namedParentHeld st N = true ∧ parentFG st N.erase = some P ∧
+        blockAccepted p st s N P = true ∧ a ∈ N.rows := by
   unfold handlesS
   refine or_congr Iff.rfl ?_
   constructor
   · intro h
     split at h
-    · rename_i s b raw sup rows hd
-      obtain ⟨⟨P, hP, hacc⟩, hmem⟩ := h
-      refine ⟨s, b, raw, sup, rows, P, hd, hP, hacc, ?_⟩
+    · rename_i s N hd
+      obtain ⟨⟨hn, P, hP, hacc⟩, hmem⟩ := h
+      refine ⟨s, N, P, hd, hn, hP, hacc, ?_⟩
       rcases hmem with hmem | hmem
       · obtain ⟨h', -, e⟩ := List.mem_map.mp hmem
         have e' := congrArg (toWire p) e
@@ -307,9 +349,9 @@ theorem handlesS_ofRow_iff (st : State p.n) (o : Obj p) (a : RowWire p.n) :
       · obtain ⟨a', ha', e⟩ := List.mem_map.mp hmem
         rwa [ofRow_injective e] at ha'
     · exact h.elim
-  · rintro ⟨s, b, raw, sup, rows, P, hd, hP, hacc, ha⟩
+  · rintro ⟨s, N, P, hd, hn, hP, hacc, ha⟩
     rw [hd]
-    exact ⟨⟨P, hP, hacc⟩, Or.inr (List.mem_map_of_mem ha)⟩
+    exact ⟨⟨hn, P, hP, hacc⟩, Or.inr (List.mem_map_of_mem ha)⟩
 
 end AvailableChain.FGSA.Run
 

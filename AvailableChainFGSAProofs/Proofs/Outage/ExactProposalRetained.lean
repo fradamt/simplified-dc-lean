@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
@@ -48,7 +49,8 @@ private theorem iexact_gate_label (p : Params) (r s : Slot)
   have h5 : (r : Int) + 2 ≤ (s : Int) := by omega
   exact_mod_cast h5
 
-/-- Blueprint 03:354–416; spec 683–694; plan I-EXACT, G1 step 3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; spec 683–694; plan I-EXACT, G1 step 3.
 Class (iii). DC: INTENTIONAL; off the gate times the tick is the pre-gate tick. -/
 theorem inclusion_clock_offGate (p : Params) (st : State p.n) (t : Time)
     (h : ∀ r : Slot, SA.gateTime p.toParams r ≠ t) : clock p st t = clockPre p st t := by
@@ -63,7 +65,8 @@ theorem inclusion_clock_offGate (p : Params) (st : State p.n) (t : Time)
 /-! ### Event cuts -/
 
 omit [DecidableEq V] in
-/-- Blueprint 03:354–416; plan I-EXACT, G1 step 3. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; plan I-EXACT, G1 step 3. Class (iii).
 DC: INTENTIONAL; events before a tick are not later than that tick. -/
 theorem inclusion_time_le_of_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {z : V} {u : Time}
@@ -75,7 +78,8 @@ theorem inclusion_time_le_of_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p 
   omega
 
 omit [DecidableEq V] in
-/-- Blueprint 03:354–416; plan I-EXACT, G1 step 3. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; plan I-EXACT, G1 step 3. Class (iii).
 DC: INTENTIONAL; a scheduled tick within the horizon is inside the Clean cut. -/
 theorem inclusion_tick_le_timeIdx {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {z : V} {u : Time}
@@ -84,7 +88,8 @@ theorem inclusion_tick_le_timeIdx {E : Generic.Env V} {rho : V2.D.Run V (fgsa p 
   ((V2.D.Engine.index_lt_read_length_iff hs rho.horizon hi).mpr hu).le
 
 omit [DecidableEq V] in
-/-- Blueprint 03:354–416; plan I-EXACT, G1 step 3. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; plan I-EXACT, G1 step 3. Class (iii).
 DC: INTENTIONAL; the strict cut before the vote is inside the Clean cut. -/
 theorem inclusion_idxBefore_le_timeIdx (rho : V2.D.Run V (fgsa p c)) {u : Time}
     (hu : u ≤ rho.horizon) : V2.D.Run.idxBefore rho u ≤ timeIdx rho rho.horizon := by
@@ -94,7 +99,8 @@ theorem inclusion_idxBefore_le_timeIdx (rho : V2.D.Run V (fgsa p c)) {u : Time}
   exact List.countP_mono_left (fun e _ he => decide_eq_true
     ((of_decide_eq_true he).le.trans hu))
 
-/-- Blueprint 03:354–416; plan I-EXACT, G1 steps 2–3. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; plan I-EXACT, G1 steps 2–3. Class (iii).
 DC: INTENTIONAL; a gate result read by v_s was computed strictly before v_s,
 so its label is at most s − 2 and it is in the strict comparison history. -/
 theorem inclusion_results_before {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -110,7 +116,8 @@ theorem inclusion_results_before {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c
   exact ⟨⟨j, (Gen.V2.Duty.index_lt_idxBefore_iff hs hgt' _).mpr hlt, x, hgt, hres⟩,
     iexact_gate_label p r s hlt⟩
 
-/-- Blueprint 03:354–416; plan I-EXACT, G1 steps 2–3. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; plan I-EXACT, G1 steps 2–3. Class (iii).
 DC: INTENTIONAL; labelled origins read by v_s move to the comparison history. -/
 theorem inclusion_belowLabel_before {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) (s : Slot) {i : Nat}
@@ -128,7 +135,8 @@ private theorem iexact_lift {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, G1 step 2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, G1 step 2.
 Class (iii). DC: INTENTIONAL; a genuine gate result is the erasure of a
 stored FG block of its gate node, so the comparison prefix has an FG lift. -/
 theorem inclusion_comparison_lift (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -148,7 +156,8 @@ theorem inclusion_comparison_lift (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     exact ⟨B, he⟩
   · cases hres
 
-/-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, G1 step 3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, G1 step 3.
 Class (iii). DC: INTENTIONAL; row origins and the comparison maximum put every
 honest named entry read by v_s below the FG lift D of the comparison prefix. -/
 theorem inclusion_entries_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -171,7 +180,8 @@ theorem inclusion_entries_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
   rw [← hD] at hCD
   exact ⟨X, KitFG.preceq_trans hXC (iexact_lift hCD), hXe⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551, 2557–2571; plan I-EXACT, G1 step 3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551, 2557–2571; plan I-EXACT, G1 step 3.
 Class (iii). DC: INTENTIONAL; cpPrefix_of_srcFrame at the FG lift D: F and Z
 are below D and the floor is at most the height of D. -/
 theorem inclusion_frame_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -197,7 +207,8 @@ theorem inclusion_frame_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (inclusion_entries_below E rho hs hrows s D0 D hD hmax hiT hi)
   exact ⟨hF, hZ, hlo⟩
 
-/-- Blueprint 21:783–795; spec 648–655; plan I-EXACT, G1 step 3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:783–795; spec 648–655; plan I-EXACT, G1 step 3.
 Class (iii). DC: INTENTIONAL; the live root is the FG root or a lease target,
 so a common upper bound of both bounds the live root. -/
 theorem inclusion_liveRoot_le (p : Params) (st : State p.n) (D : Block)
@@ -230,7 +241,8 @@ theorem inclusion_liveRoot_le (p : Params) (st : State p.n) (D : Block)
 
 /-! ### Honest HEADs above the comparison prefix -/
 
-/-- Blueprint 03:354–416, 02 §4.2; plan I-EXACT, G1 step 4. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416, 02 §4.2; plan I-EXACT, G1 step 4. Class (iii).
 DC: INTENTIONAL; htransfer at label q (vHead reads label q + 1), with hordered
 for an older comparison result. Every honest label-(q+1) HEAD extends D0. -/
 theorem inclusion_head_extends (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -300,7 +312,8 @@ private theorem iexact_not_prec_of_eq {A B : Block} (h : A = B) : ¬ Block.Prec 
   have hn := (Bool.and_eq_true_iff.mp hp).1
   simp only [h, decide_true, Bool.not_true, Bool.false_eq_true] at hn
 
-/-- ROOT-DIGEST W2b. Blueprint 03:341–416, 21 H.17:2958–3012; spec 1063–1114, 1276–1302;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:341–416, 21 H.17:2958–3012; spec 1063–1114, 1276–1302;
 plan I-EXACT, G1 steps 2–7. Class (iii). DC: INTENTIONAL; produce the
 retained read premises from the field-level Clean history, not from assumed
 geometry. D is the FG lift of the deepest genuine result read before v_s.
@@ -336,8 +349,8 @@ theorem inclusion_retained_reads [Fintype V]
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
     (hstrat : RStrat p c E rho) :
     ∃ D0 : Block, ∃ D : FGBlock (Fin p.n),
@@ -349,7 +362,7 @@ theorem inclusion_retained_reads [Fintype V]
         rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
         ∃ Kc, RetainedReadPremises p
           (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-          (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc := by
+          (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
   classical
   have hE := hset.pre.base.valid
   have hN := hset.pre.base.noRestart
@@ -410,7 +423,7 @@ theorem inclusion_retained_reads [Fintype V]
         change 4 * p.Δ * (s : Int) - p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + p.Δ
         linarith) hhor le_rfl
   apply fgsa_retainedReads_H17 (hroots := hset.pre.base.idealization)
-    E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem D
+    E rho hE hN hDelta s hSync hx hip hseat N hem D
   intro y hy ih hih
   let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
   have hihCut := inclusion_time_le_of_tick hs hih
@@ -510,8 +523,8 @@ theorem inclusion_retained_reads [Fintype V]
     (fun j hj e he => (inclusion_time_le_of_tick hs hjx j hj e he).trans hevs.le) hx
   have hjxip : jx < ip := V2.D.Engine.eventIndex_lt_of_time_lt hs hjx hip hev
   have hrecP : ∀ w ∈ H, ∃ K t, V2.D.Run.emits E rho (rho.seatOf (.base (.head (q + 2 - 1))) w)
-        (ofHead p ⟨.seat (.head (q + 2 - 1)) w, K⟩) t ∧
-      baseVote (⟨.seat (.head (q + 2 - 1)) w, K⟩ : HeadWire p.n) ∈ src.base.votes ∧
+        (ofHead p ⟨.seat (.head (q + 2 - 1)) w, K.root⟩) t ∧
+      baseVote (⟨.seat (.head (q + 2 - 1)) w, K.root⟩ : HeadWire p.n) ∈ src.base.votes ∧
       K ∈ (actView src).blocks ∧ K.slot ≤ q + 2 - 1 ∧ Block.Preceq D0 K := by
     intro w hw
     obtain ⟨hyw, haw⟩ := (hH w).mp hw
@@ -537,7 +550,16 @@ theorem inclusion_retained_reads [Fintype V]
         exact block_preceq_trans (hD ▸ eraseFG_preceq hFx) hDK
   have hPP := inclusion_proposer_prior E rho hE hC (q + 2) ip x src (by
       change (clock p (storeAt p c E rho ip x) _).base.votes = _
-      exact (clock_vn _ _).1) H hH hbatch D0 hrecP
+      exact (clock_vn _ _).1) H hH hbatch D0 (by
+        intro seat hseat
+        obtain ⟨K, t, he, hv, hK, hslot, hDK⟩ := hrecP seat hseat
+        have hInv : CStoreInv p src :=
+          cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
+        have hdomain : src.base.headDomain = none :=
+          base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho ip x))
+        exact ⟨K, t, he, hv, actView_resolve_target p src hInv hdomain _ hK rfl,
+          resolvedTarget_of_mem _ (baseBlocks_rootInj p src hInv) _
+            (List.mem_filter.mp hK).1 rfl, hslot, hDK⟩)
   have hDsrc : D ∈ src.fg.TF := by
     obtain ⟨w, hw⟩ := Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) hbatch.lt)
     obtain ⟨K, _, _, _, hK, _, hDK⟩ := hrecP w hw
@@ -560,8 +582,8 @@ theorem inclusion_retained_reads [Fintype V]
     (fun j hj e he => (inclusion_time_le_of_tick hs hjy j hj e he).trans hevs.le) hy
   have hjyih : jy < ih := V2.D.Engine.eventIndex_lt_of_time_lt hs hjy hih hevs
   have hrecR : ∀ w ∈ H, ∃ K t, V2.D.Run.emits E rho (rho.seatOf (.base (.head (q + 1))) w)
-        (ofHead p ⟨.seat (.head (q + 1)) w, K⟩) t ∧
-      baseVote (⟨.seat (.head (q + 1)) w, K⟩ : HeadWire p.n) ∈ headSupport p dst (q + 1 + 1) ∧
+        (ofHead p ⟨.seat (.head (q + 1)) w, K.root⟩) t ∧
+      baseVote (⟨.seat (.head (q + 1)) w, K.root⟩ : HeadWire p.n) ∈ headSupport p dst (q + 1 + 1) ∧
       K ∈ dst.base.blocks ∧ K.slot ≤ q + 1 ∧ Block.Preceq D0 K := by
     intro w hw
     obtain ⟨hyw, haw⟩ := (hH w).mp hw
@@ -572,7 +594,7 @@ theorem inclusion_retained_reads [Fintype V]
       hset.pre.base.idealization) E rho hE hN hDelta hC
       (q + 1) hSyncE hjy w hyw haw hkk K hK hFK
     have hkeep := inclusion_stamps_kept E rho hN hjyih.le y _ K hv hKb
-    let o := baseVote (⟨.seat (.head (q + 1)) w, K⟩ : HeadWire p.n)
+    let o := baseVote (⟨.seat (.head (q + 1)) w, K.root⟩ : HeadWire p.n)
     have hvd : o ∈ dst.base.votes := by
       change _ ∈ (clock p (storeAt p c E rho ih y) _).base.votes
       rw [(clock_vn _ _).1]
@@ -613,10 +635,16 @@ theorem inclusion_retained_reads [Fintype V]
     apply List.mem_append_left
     apply List.mem_filter.mpr
     refine ⟨List.mem_filter.mpr ⟨hvd, beq_self_eq_true _⟩, ?_⟩
-    change (GridCO.blockKnown (actView dst) K && decide (K.slot ≤ q + 1) &&
+    have hInv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+    have hres := actView_resolve_target p dst hInv
+      (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho ih y)))
+      o (of_decide_eq_true hKa) rfl
+    unfold GridCO.resolvedBefore
+    rw [hres]
+    change (decide (K.slot ≤ q + 1) &&
       decide (GridCO.stampVote (actView dst) o < SA.freezeTime p.toParams (q + 1)) &&
       decide (GridCO.stampBlock (actView dst) K < SA.freezeTime p.toParams (q + 1))) = true
-    simp only [hKa, hslot, hvsd, hbsd, decide_true, Bool.and_self]
+    simp only [hslot, hvsd, hbsd, decide_true, Bool.and_self]
   have hRS := inclusion_reader_scores E rho hE hN hC (q + 1) hih H hH hbatch D0 hrecR
   refine ⟨Or.inr (hRPS _ hap), Or.inr (Or.inl (hRPS _ hay)), Or.inr (hRPS _ hDD),
     hsfloor, htfloor, ?_⟩
@@ -627,63 +655,27 @@ theorem inclusion_retained_reads [Fintype V]
 
 /-! ### Exact proposal: receipt and HEAD -/
 
-/-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 step 1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 step 1.
 Class (iii). DC: INTENTIONAL; the honest proposal input: an honest proposer,
 its proposal tick and the emitted slot-s proposal object. -/
 theorem inclusion_proposal_emission (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (s : Slot) (P : Block)
     (hprop : HonestProposal E rho (fgsaInterface p c) s P) :
     rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ ∈ rho.honest ∧
-    ∃ ip raw sup rows, rho.events[ip]? = some (.tick (rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩)
+    ∃ ip N, N.erase = P ∧
+      rho.events[ip]? = some (.tick (rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩)
         (SA.proposalTime p.toParams s)) ∧
-      (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal P raw sup rows⟩ : Obj p) ∈
-        V2.D.Run.emitsAt E rho ip := by
-  obtain ⟨hslot, o, ⟨ip, hip, hem⟩, hb⟩ := hprop
-  have hx : V2.D.proposerOf rho (fgsaInterface p c) s ∈ rho.honest := hslot.2
-  have haw : E.awake (V2.D.proposerOf rho (fgsaInterface p c) s)
-      (SA.proposalTime p.toParams s) = true := by
-    cases he : E.awake (V2.D.proposerOf rho (fgsaInterface p c) s)
-        (SA.proposalTime p.toParams s) with
-    | true => rfl
-    | false =>
-      rw [(V2.D.Run.step_tick_eq E rho hip).2,
-        (fgsa_tick_asleep E rho (V2.D.Run.stateBefore E rho ip
-          (V2.D.proposerOf rho (fgsaInterface p c) s))
-          (V2.D.proposerOf rho (fgsaInterface p c) s)
-          (V2.D.proposalTime (fgsaInterface p c) s) he).1] at hem
-      exact (List.not_mem_nil hem).elim
-  have hw := honest_emit_wellFormed E rho hE.toDeliveryWellFormed
-    hE.toScheduleWellFormed ip _ _ hip hx haw o hem
-  rcases o with ⟨auth, payload⟩
-  cases payload with
-  | head b => cases hb
-  | row body => cases hb
-  | proposal b raw sup rows =>
-    have hbp : b = P := Option.some.inj hb
-    subst b
-    cases auth with
-    | none => cases hw
-    | seat l j =>
-      cases l with
-      | base l => cases l <;> cases hw
-      | prop s' =>
-        have hj : j = ⟨0, Nat.one_pos⟩ := Subsingleton.elim (α := Fin 1) _ _
-        subst j
-        have hm := hem
-        rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
-        have hp := (fgsa_emits_proposal E rho _ _ _ s' _).mp hm
-        have htime := hp.2.1
-        change (4 * p.Δ) * (s' : Int) = (4 * p.Δ) * (s : Int) at htime
-        have hss : s' = s := Int.natCast_inj.mp
-          (mul_left_cancel₀ (ne_of_gt (mul_pos (by decide) p.deltaPos)) htime)
-        subst s'
-        exact ⟨hx, ip, raw, sup, rows, hip, hem⟩
+      (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip := by
+  obtain ⟨ip, N, heN, hip, hem, _⟩ := proposal_read_named p c E rho hE.toScheduleWellFormed hprop
+  exact ⟨hprop.1.2, ip, N, heN, hip, hem⟩
 
 private theorem iexact_parent_preceq (b : Block) : Block.Preceq b.parent b := by
   cases b <;> first | exact block_preceq_refl _ |
     exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
 
-/-- ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (compatibility).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (compatibility).
 Class (iii). DC: INTENTIONAL; discharge the r1 reader-compatibility premise
 from the field-level Clean binders. The strict-before F of every honest
 reader is below the comparison prefix D, and the produced pivot puts D below
@@ -718,10 +710,11 @@ theorem inclusion_exact_compat [Fintype V]
       (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams pt.s) x).st.fg.F) := by
   have hE := hset.pre.base.valid
   have hs := hE.toScheduleWellFormed
-  obtain ⟨hx, ip, raw, sup, rows, hip, hem⟩ := inclusion_proposal_emission E rho hE pt.s pt.P hprop
+  obtain ⟨hx, ip, N, heN, hip, hem⟩ := inclusion_proposal_emission E rho hE pt.s pt.P hprop
+  rw [← heN]
   obtain ⟨D0, D, hBL, hmax, hD, hreads⟩ := inclusion_retained_reads (hstrat := hstrat) E rho ΔF
     hset hstore hframe
-    hsrc hordered hnonempty htransfer hleases hrows pt.s hhor hx hip rfl pt.P raw sup rows hem
+    hsrc hordered hnonempty htransfer hleases hrows pt.s hhor hx hip rfl N hem
   have hvt : ((4 * pt.s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams pt.s := by
     change ((4 * pt.s + 1 : Nat) : Int) * p.Δ = 4 * p.Δ * (pt.s : Int) + p.Δ
     push_cast
@@ -743,7 +736,8 @@ theorem inclusion_exact_compat [Fintype V]
     (block_preceq_trans (eraseFG_preceq hF)
       (block_preceq_trans hw.pivot_parent (iexact_parent_preceq _)))
 
-/-- ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1.
 Class (iii). DC: INTENTIONAL; non-row traffic uses Delta independently of
 the row delay. The block-stamp route gives an actual acceptance strictly
 before v_s, for asleep and awake readers. Clean history enters only as the
@@ -782,7 +776,8 @@ theorem inclusion_exact_receipt [Fintype V]
       htransfer
       hleases hrows pt hprop hhor)
 
-/-- ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X2.
 Class (iii). DC: INTENTIONAL; the produced retained read premises give the
 exact HEAD by exactService_head_of_retained_proposal_clean, and the strict
 clocked read gives it at v_s for every honest reader, asleep or awake.
@@ -817,14 +812,15 @@ theorem inclusion_exact_head [Fintype V]
       (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams pt.s) x)
       (SA.voteTime p.toParams pt.s)).st pt.s = pt.P := by
   have hE := hset.pre.base.valid
-  obtain ⟨hx, ip, raw, sup, rows, hip, hem⟩ := inclusion_proposal_emission E rho hE pt.s pt.P hprop
+  obtain ⟨hx, ip, N, heN, hip, hem⟩ := inclusion_proposal_emission E rho hE pt.s pt.P hprop
+  rw [← heN]
   obtain ⟨_, D, _, _, _, hreads⟩ := inclusion_retained_reads (hstrat := hstrat) E rho ΔF hset
     hstore hframe
-    hsrc hordered hnonempty htransfer hleases hrows pt.s hhor hx hip rfl pt.P raw sup rows hem
+    hsrc hordered hnonempty htransfer hleases hrows pt.s hhor hx hip rfl N hem
   have hhead := exactService_head_of_retained_proposal_clean E rho rho.horizon
-    hset.pre.toHealthyPrefix₂ pt.s hhor hx hip rfl pt.P raw sup rows hem D hreads hhor
+    hset.pre.toHealthyPrefix₂ pt.s hhor hx hip rfl N hem D hreads hhor
   intro y hy
-  exact inclusion_head_read E rho hE.toScheduleWellFormed hset.pre.base.noRestart y pt.s pt.P
+  exact inclusion_head_read E rho hE.toScheduleWellFormed hset.pre.base.noRestart y pt.s N.erase
     (hhead y hy)
 
 end AvailableChain.FGSA.Run

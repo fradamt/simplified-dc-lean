@@ -16,7 +16,8 @@ open AvailableChain.SimplexFG Gen.Pure
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 omit [DecidableEq V] in
-/-- Schedule. DC: SAME an honest node ticks at every opening inside the horizon. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Schedule. DC: SAME an honest node ticks at every opening inside the horizon. -/
 theorem opening_action_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ) {x : V} (hx : x ∈ rho.honest)
     (r : Nat) (hh : p.actionTime r ≤ rho.horizon) :
@@ -29,7 +30,8 @@ theorem opening_action_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [hktime] at hi
   exact ⟨i, hi⟩
 
-/-- Blueprint 21 H.9:1131–1144 (OpeningCovered), 22 SO-COV; plan H-GATE §3E.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9:1131–1144 (OpeningCovered), 22 SO-COV; plan H-GATE §3E.
 DC: INTENTIONAL every later opening of the phase is covered. At each honest opening read,
 H-GATE serves Q and the selector returns a source K above Qfg
 (`later_opening_source_extends`). K is in the full tree, its height is at least the floor
@@ -42,16 +44,17 @@ theorem later_opening_covered [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,
@@ -100,7 +103,8 @@ theorem later_opening_covered [Fintype V] (E : Generic.Env V)
   obtain ⟨j, rSent, a, hr, hrow, hentry⟩ := rowCoverage x hx r nd hnd K hK hfull hband hawake
   exact ⟨K, nd, j, rSent, a, hnd, hK, hfull, hQfg ▸ eraseFG_preceq hQK, hr, hrow, hentry⟩
 
-/-- Blueprint 21 H.9:1131–1144 (first opening); plan H-GATE §3F step 1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9:1131–1144 (first opening); plan H-GATE §3F step 1.
 DC: SAME arithmetic as the private `opening_time_bound` of Shared/OpeningSource, reproduced
 in the owning lane. For the first opening r with q ≤ rR, rR < q + R. -/
 theorem opening_first_time_bound (q r : Nat)
@@ -125,7 +129,8 @@ theorem opening_first_time_bound (q r : Nat)
   have := p.deltaPos
   constructor <;> nlinarith
 
-/-- Blueprint 21 H.9:1140–1144, H.10 at m = 1 (21:1467–1468); plan H-GATE §4 height-one
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9:1140–1144, H.10 at m = 1 (21:1467–1468); plan H-GATE §4 height-one
 handoff. DC: INTENTIONAL at frontier 1 every selected source of the opening has height 1
 (positive height and the phase cap H = 1), and the plateau with genesis fixes its entry. -/
 theorem opening_entry_one (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -160,7 +165,8 @@ theorem opening_entry_one (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         le_antisymm hg (hK1 ▸ hlaws.one_le_h _)
       exact ⟨hK1, by rw [hlaws.entry_plateau (KitFG.genesis_preceq K) hg1]⟩
 
-/-- Blueprint 21 H.9:1100–1144, H.10 at m = 1; plan H-GATE §4 height-one handoff (M5).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9:1100–1144, H.10 at m = 1; plan H-GATE §4 height-one handoff (M5).
 DC: INTENTIONAL the TCommon premises at frontier 1 give the time bounds of the first
 opening, OpeningCovered (H-GATE with SO-COV) and one common entry at height 1. It does not
 avoid fresh later service and retention: both come from H-GATE. It supplies no first rise,
@@ -172,16 +178,17 @@ theorem opening_height_one [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,

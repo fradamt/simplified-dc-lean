@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLoss
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
 
@@ -12,7 +14,7 @@ witness relay, and with the kept path from a domain witness of the HEAD view. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-open Gen.AC
+open Gen.AC.Root
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -26,30 +28,27 @@ private theorem next_idx_mono : Monotone (V2.D.Run.idxBefore rho) := by
     (lt_of_lt_of_le (of_decide_eq_true he) hab))
 
 omit [DecidableEq V] in
-private theorem next_decode {o : Obj p} {b : Block}
-    (h : blockOf? p o = some b) :
-    ∃ u raw sup rows, o = ofWire p ⟨.proposer u, .proposal b raw sup rows⟩ := by
-  have hd : ∃ u raw sup rows, (toWire p o).decode = some (.block u b raw sup rows) := by
-    change (match (toWire p o).decode with
-      | some (.block _ b _ _ _) => some b | _ => none) = _ at h
-    cases hd : (toWire p o).decode with
-    | none => rw [hd] at h; contradiction
-    | some m =>
-      cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
-      subst b
-      exact ⟨_, _, _, _, rfl⟩
-  obtain ⟨u, raw, sup, rows, hd⟩ := hd
-  refine ⟨u, raw, sup, rows, ?_⟩
-  apply toWire_injective
-  rw [toWire_ofWire]
-  exact decode_eq_block.mp hd
+private theorem next_decode {o : Obj p} {b : Block} (h : blockOf? p o = some b) :
+    ∃ u N, o = ofWire p ⟨.proposer u, .proposal N⟩ ∧ N.erase = b := by
+  unfold blockOf? at h
+  cases hd : (toWire p o).decode with
+  | none => simp only [hd, reduceCtorEq] at h
+  | some m =>
+    cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
+    rename_i u N
+    refine ⟨u, N, ?_, h⟩
+    apply toWire_injective (p := p)
+    rw [toWire_ofWire]
+    exact decode_eq_block.mp hd
+
 
 omit [DecidableEq V] in
 private theorem next_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Blueprint 21:673–689, 709–715 (H.2 relay of each honest HEAD); plan
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:673–689, 709–715 (H.2 relay of each honest HEAD); plan
 fgsa-s5-m5-d2d4 B `cause` (H.2 re-proved without PhaseInterval).
 DC: INTENTIONAL per-block relay with label-local synchrony on [v_s, v_(s+1)],
 not TDel. A block stamped before e_s in an honest store reaches each honest
@@ -101,7 +100,7 @@ theorem healing_block_receipt_sync (hE : V2.D.ExecutionValid E rho) (hN : V2.D.N
     positivity
   obtain ⟨j, _, t, o, ho, ha, ht⟩ :=
     fgsa_block_accepted_before E rho hsch ix x K _ hg hpub hz hK hstamp
-  obtain ⟨u, raw, sup, rows, rfl⟩ := next_decode p ho
+  obtain ⟨u, N, rfl, heN⟩ := next_decode p ho
   obtain ⟨dl, cut, hD, _, hlt, hb, _, hcut, _⟩ := hSync
   have hdz : dl t < D := by
     have hb := hb t
@@ -128,11 +127,11 @@ theorem healing_block_receipt_sync (hE : V2.D.ExecutionValid E rho) (hN : V2.D.N
     rw [Gen.V2.Duty.MonoAlong_def] at h
     exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho hidx y
       (hN.restartFree y _ iy) (KitFG.preceq_refl _)
-  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u K
-    raw sup rows t y
+  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u N t y
     hD (Or.inr ⟨x, hx, j, ha⟩) hy hdcut (hlt t)
-    (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
-  refine ⟨Y, hYK, ?_⟩
+    (by simpa only [heN] using
+      Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
+  refine ⟨Y, hYK.trans heN, ?_⟩
   have hc := (fgsa_store_cumulative p c E rho hN (next_idx_mono p c rho (le_of_lt hdz)) y).1
   change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl t)) y).st.fg.TF ⊆
     (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st.fg.TF at hc
@@ -140,7 +139,8 @@ theorem healing_block_receipt_sync (hE : V2.D.ExecutionValid E rho) (hN : V2.D.N
     Gen.V2.Duty.stateBefore_idxBefore E rho D hsch] at hc
   exact hc hY
 
-/-- ROOT-DIGEST W2b. Blueprint 21:673–689, 709–715 (H.2 relay of each honest HEAD); plan
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:673–689, 709–715 (H.2 relay of each honest HEAD); plan
 fgsa-s5-m5-d2d4 B `cause`. DC: INTENTIONAL per-block relay (not TDel). The
 relayed block of `healing_block_receipt_sync` has its whole FG path in the
 post-clock store of the v_(s+1) tick, with strict stamps before z_s. -/
@@ -167,7 +167,8 @@ theorem healing_block_path_sync (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRe
     K hK hstamp hF
   exact ⟨Y, hYK, healing_support_prefreeze_path E rho hE.toScheduleWellFormed hN hiy hYD⟩
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (relay input). DC: SAME stamps.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `cause` (relay input). DC: SAME stamps.
 A stored block has a stamp at most the local clock of its store. -/
 theorem healing_block_stamp_le_now (hs : V2.D.ScheduleWellFormed E rho)
     (hN : V2.D.NoRestart rho) {jz : Nat} {z : V}
@@ -209,7 +210,8 @@ theorem healing_block_stamp_le_now (hs : V2.D.ScheduleWellFormed E rho)
         fgsa_clock_now p c (V2.D.Run.stateBefore E rho jz z)] at h
       exact h
 
-/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S1), 673–689 (IF.5 relay); plan fgsa-s5-m5-d2d4 B
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S1), 673–689 (IF.5 relay); plan fgsa-s5-m5-d2d4 B
 `cause` (H.2 receipt re-proved without PhaseInterval). DC: INTENTIONAL moving
 frame. An honest label-i HEAD that covers B is, at the receiver's v_(i+1) read,
 a clean resolved frozen vote that supports B. The vote arrives by e_i, and the
@@ -222,7 +224,7 @@ theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest) :
-    Gen.AC.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
+    Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1))).base.blocks
       (FGSA.headSupport p (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1))) (i + 1)) k B = true ∧
@@ -313,9 +315,9 @@ theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
   have hcut : dl (SA.voteTime p.toParams i) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K
+  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K.root
     (SA.voteTime p.toParams i) z y hD hk hem hy hcut (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head i) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head i) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams i)) ≤ iy :=
     healing_support_idxBefore_le p c E rho hS hiy (hdle.trans hvi)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -340,7 +342,10 @@ theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
       (Gen.Pure.block_preceq_trans hFB hBK)
   have hol : GridCO.headLabel? o = some i := rfl
   have hok : GridCO.headSeat? o = some k := rfl
-  have hoK : GridCO.headTarget? o = some K := rfl
+  have hoK : GridCO.headTarget? o = some K.root := rfl
+  have hresolve := actView_resolve_target p dst hinv
+    (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho iy y)))
+    o ((actView_blocks dst K).mpr ⟨hKb, hFK'⟩) hoK
   -- The vote is in the frozen support arm and supports B.
   have hsupp : o ∈ FGSA.headSupport p dst (i + 1) := by
     change o ∈ List.eraseDups (_ ++ _)
@@ -350,21 +355,21 @@ theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
     refine ⟨List.mem_filter.mpr ⟨hod, ?_⟩, ?_⟩
     · simpa only [Nat.add_sub_cancel, hol] using beq_self_eq_true (some i)
     · unfold GridCO.resolvedBefore
-      rw [hoK]
-      simp only [Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown, Nat.add_sub_cancel,
+      rw [hresolve]
+      simp only [Bool.and_eq_true, decide_eq_true_eq, Nat.add_sub_cancel,
         hol, Option.getD_some]
-      exact ⟨⟨⟨(actView_blocks dst K).mpr ⟨hKb, hFK'⟩, hKslot⟩, hstampv⟩, hKst⟩
-  have hvs : Gen.AC.voteSupports dst.base.blocks B o = true := by
-    rw [Gen.AC.voteSupports_def, hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some]
-    exact ⟨⟨hKb, hKslot⟩, hBK⟩
-  refine ⟨(Gen.AC.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
+      exact ⟨⟨hKslot, hstampv⟩, hKst⟩
+  have hvs : Gen.AC.Root.voteSupports dst.base.blocks B o = true := by
+    exact (Gen.AC.Root.vote_support_body _ _ _).mpr
+      ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p _ hinv) o hKb hoK,
+        hKb, by simpa only [hol, Option.getD_some] using hKslot, hBK⟩
+  refine ⟨(Gen.AC.Root.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
   -- Every stored label-i vote of the honest seat is its emitted HEAD.
   have hall : ∀ w ∈ GridCO.votesAt (storeAt p c E rho iy y).base i,
       GridCO.headSeat? w = some k → w = o := by
     intro w hw hwk
     obtain ⟨hwm, hwl⟩ := List.mem_filter.mp hw
-    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K _ hk hem w hwm
+    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K.root _ hk hem w hwm
       (by simpa only [beq_iff_eq] using hwl) hwk
   have hnoeq : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k = false := by
     cases he : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k with
@@ -387,7 +392,8 @@ theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
         contradiction
     exact hne ((hone a ha hka).trans (hone b hb hkb).symm)
 
-/-- Blueprint 21:709–715 (H.2 S1), 748–783 (H.3); plan fgsa-s5-m5-d2d4 B `cause`
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:709–715 (H.2 S1), 748–783 (H.3); plan fgsa-s5-m5-d2d4 B `cause`
 (continuation scores, H.2 re-proved without PhaseInterval). DC: INTENTIONAL
 moving frame. If every honest label-i HEAD covers B, and B is in the domain of
 an ancestor-closed part X of the frozen HEAD view of an honest node y at

@@ -6,7 +6,8 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
-/-- ROOT-DIGEST W2b. DC `ReviewTheorem.lean:298` uses authentic stored rows for honestNeverSlashed.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. DC `ReviewTheorem.lean:298` uses authentic stored rows for honestNeverSlashed.
 Port of the d35bac1 read-chain route to W and fixed FG seats (F-H).
 Replay the inclusive time filter to find a delivery in the original run.
 Unforgeability then gives each honest signer's emission. No event order,
@@ -41,10 +42,10 @@ theorem readAt_chain_row_origin (p : Params) {In V : Type} [DecidableEq V]
           change FGBlock.node P s root body rows ∈ (V2.D.Run.stateBefore E rho' _ x).st.fg.TF
           rw [hr]
           exact hW
-        obtain ⟨slot, raw, sup, wires, heRows, j, o, td, _, hd, he⟩ :=
+        obtain ⟨slot, N, _, heRows, j, o, td, _, hd, he⟩ :=
           stored_block_wire_delivery p c E rho' rho'.events.length x _ held
             (by intro h; cases h)
-        change rows = wires.filterMap RowWire.toRow? at heRows
+        change rows = N.rows.filterMap RowWire.toRow? at heRows
         have hur : u ∈ rows := List.mem_toFinset.mp hu
         rw [heRows] at hur
         obtain ⟨a, ha, hau⟩ := List.mem_filterMap.mp hur

@@ -24,11 +24,12 @@ private theorem rows_clock_read (x : V) (t : Time) (nd : Node p)
       rw [hj] at hnd
       exact ⟨j, V2.D.Run.tickIdx?_spec hj, Option.some.inj hnd⟩
 
-/-- Paper 22:1228–1254: the full action walk covers D and keeps the pending fields.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1228–1254: the full action walk covers D and keeps the pending fields.
 DC: INTENTIONAL: height plateau and a separate finality-lag bound; no exact head body. -/
 private theorem rows_pending_action_head
     (k : Nat) (x : V) (q y : Nat) (D U : FGBlock (Fin p.n))
-    (nd : Node p) (raw support : List (GridCO.Wire p.n))
+    (nd : Node p) (raw support : List (GridCO.Wire p.n .root))
     (seats : Finset (Fin p.n)) (m : Nat)
     (hx : x ∈ rho.honest)
     (hnd : postClock E rho x (p.actionTime q) = some nd)
@@ -76,11 +77,12 @@ private theorem rows_pending_action_head
   exact ⟨H, hdecode, hDH, hHh, hplateau.1.trans hDJ, hplateau.2.trans hDj,
     hfin H hH, (hlaws.entry_plateau hDH (hDh.trans hHh.symm)).symm⟩
 
-/-- Paper 22:1228–1254: the full action walk covers D; held caps bound its head fields.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1228–1254: the full action walk covers D; held caps bound its head fields.
 DC: INTENTIONAL: public form of the capped walk step; the caller supplies both caps. -/
 theorem pending_action_head_capped
     (k : Nat) (x : V) (q y : Nat) (D U : FGBlock (Fin p.n))
-    (nd : Node p) (raw support : List (GridCO.Wire p.n))
+    (nd : Node p) (raw support : List (GridCO.Wire p.n .root))
     (seats : Finset (Fin p.n)) (m : Nat)
     (hx : x ∈ rho.honest)
     (hnd : postClock E rho x (p.actionTime q) = some nd)
@@ -108,7 +110,8 @@ theorem pending_action_head_capped
   rows_pending_action_head p c E rho k x q y D U nd raw support seats m hx hnd hread hwalk
     hhead hcount hD hcompat hbatch hDh hDJ hDj hcap hfin
 
-/-- Paper 22:1236–1239,1667–1687: translate the strict causal cap to a held domain.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1236–1239,1667–1687: translate the strict causal cap to a held domain.
 DC: INTENTIONAL: height-only cap through a TF inclusion at the actual read. -/
 theorem pending_action_domain_cap
     (before : Nat) (x : V) (q y : Nat) (nd : Node p)
@@ -129,11 +132,12 @@ theorem pending_action_domain_cap
   exact Nat.le_of_lt_succ
     (hcapBefore (p.actionTime q) y before x B hbefore ⟨hx, hfgread hB⟩ hrows)
 
-/-- Paper 22:1228–1254: the actual full action walk has the pending fields.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1228–1254: the actual full action walk has the pending fields.
 DC: INTENTIONAL: separate held-domain causal cap and finality lag, with read-index bridges. -/
 theorem pending_action_head
     (k before : Nat) (x : V) (q y : Nat) (D U : FGBlock (Fin p.n))
-    (nd : Node p) (raw support : List (GridCO.Wire p.n))
+    (nd : Node p) (raw support : List (GridCO.Wire p.n .root))
     (seats : Finset (Fin p.n)) (m : Nat)
     (hx : x ∈ rho.honest)
     (hnd : postClock E rho x (p.actionTime q) = some nd)
@@ -188,7 +192,8 @@ theorem pending_action_head
   exact rows_pending_action_head p c E rho k x q y D U nd raw support seats m
     hx hnd hread hwalk hhead hcount hD hcompat hbatch hDh hDJ hDj hcap hfin
 
-/-- ROOT-DIGEST W2b. Paper 22:1256–1263, 1667–1687: H3 supplies the exact source at c = z;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1256–1263, 1667–1687: H3 supplies the exact source at c = z;
 H2′ and H6 supply a covering source at c < z, with the full filter guards.
 DC: INTENTIONAL: deepest fresh FG-SA selector; height plateau fixes the same entry. -/
 theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
@@ -322,7 +327,8 @@ private theorem rows_honestSeats_eq : honestSeats p c rho = by
     classical
     exact Finset.univ.filter (fun i => rho.seatOf (.base .fg) i ∈ rho.honest) := rfl
 
-/-- Paper 22:1256–1263: awake actions release the same complete fresh rows and entry.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1256–1263: awake actions release the same complete fresh rows and entry.
 DC: INTENTIONAL: durable record and both send-once checks; source ancestry fixes the entry. -/
 theorem fresh_unanimous_rows
     (q y : Nat) (D U : FGBlock (Fin p.n))
@@ -414,7 +420,8 @@ theorem fresh_unanimous_rows
   · intro i hi; rfl
   · intro i hi; rfl
 
-/-- Paper 22:1265–1289: bound held blocks through the next action cut.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1265–1289: bound held blocks through the next action cut.
 DC: INTENTIONAL: held/read causal cap; Assembly supplies the causal-origin bound. -/
 theorem actual_anchor_cap
     (q y : Nat)
@@ -437,7 +444,8 @@ theorem actual_anchor_cap
       exact Nat.lt_succ_of_le (hrows j z r a u h T timeout ha hu hp ht))
   exact Nat.le_of_lt_succ (by simpa only [Nat.add_assoc, Nat.add_comm 1 2] using hbound)
 
-/-- Paper 22:1265–1289: keep the actual anchor key, or cover it by finality.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1265–1289: keep the actual anchor key, or cover it by finality.
 DC: INTENTIONAL: W retention with K_W ≥ 2; retention does not imply acceptance. -/
 theorem actual_anchor_retained_or_covered
     (y : Nat) (D U P : FGBlock (Fin p.n))

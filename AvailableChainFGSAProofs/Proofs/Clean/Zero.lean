@@ -72,11 +72,12 @@ private theorem zero_state (h : HealthyPrefix₂ p c E rho 0 ΔF)
       | deliver u o t =>
         change u = v at hv
         subst u
-        have href : ∀ s b raw support rows P,
-            (toWire p o).decode = some (.block s b raw support rows) →
-            parentFG (storeAt p c E rho k v) b = some P →
-            blockAccepted p (storeAt p c E rho k v) s b raw support P rows = false := by
-          intro s b raw support rows P _ _
+        have href : ∀ s N P,
+            (toWire p o).decode = some (.block s N) →
+            namedParentHeld (storeAt p c E rho k v) N = true →
+            parentFG (storeAt p c E rho k v) N.erase = some P →
+            blockAccepted p (storeAt p c E rho k v) s N P = false := by
+          intro s N P _ _ _
           apply Bool.eq_false_iff.mpr
           intro ha
           have hb := (blockAccepted_slot_pos ha).2
@@ -186,7 +187,8 @@ private theorem zero_history (h : HealthyPrefix₂ p c E rho 0 ΔF) :
       hb.2.2.2.1.trans ha.2.2.2.1.symm,
       hb.2.2.2.2.1.trans ha.2.2.2.2.1.symm⟩
 
-/-- P3 §8.5:5320–5346, bp02 initialization and §6, SYN L39.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §8.5:5320–5346, bp02 initialization and §6, SYN L39.
 DC Legacy/Definitions/SafetyRegimes:53–80 is the nearest counterpart.
 Three-class rule: INTENTIONAL divergence, since strict-before-cut
 participation permits false FaultQ at zero. Admission requires 4Δ ≤ now;

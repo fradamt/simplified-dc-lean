@@ -8,13 +8,14 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 open Gen.Pure
 
-/-- ROOT-DIGEST W2. P3 F1b.5; bp02 §7, ap.headReachesLo.v6 clauses 1–3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2. P3 F1b.5; bp02 §7, ap.headReachesLo.v6 clauses 1–3.
 Class (iii), store geometry. DC: Goldfish/Walk.lean:197 `ghost_step_none`
 and :433 `ghost_reaches` give the walk ingredients.
 INTENTIONAL: FJ's low-parent eligibility and filtered witness imply the
 height bound; DC has no FJ band (bp02 §7). No run premise is needed. -/
 theorem fgsa_headReachesLo (p : Params) (st : State p.n)
-    (X : Finset (FGBlock (Fin p.n))) (raw support : List (GridCO.Wire p.n))
+    (X : Finset (FGBlock (Fin p.n))) (raw support : List (GridCO.Wire p.n .root))
     (hst : Reachable p st) (hsub : X ⊆ st.fg.TF)
     (hclosed : ∀ B ∈ X, ∀ A, FGBlock.Preceq A B → A ∈ X) :
     let D := filteredFrom p.E p.cfg (controls p st) X

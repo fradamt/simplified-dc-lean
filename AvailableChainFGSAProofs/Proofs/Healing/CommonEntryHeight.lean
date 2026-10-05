@@ -20,21 +20,23 @@ variable [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
 
 include hrec mono crossing writes
 
-/-- Blueprint 21 H.9; plan §3F.3. DC: SAME each selected source extends Qfg and
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.3. DC: SAME each selected source extends Qfg and
 its own height is capped by the first-opening phase. -/
 theorem common_sources_extend_and_cap
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -54,7 +56,8 @@ theorem common_sources_extend_and_cap
   have he : L = K := Option.some.inj (hL.symm.trans hsrc)
   exact ⟨he ▸ hQL, common_source_height_le E rho hS hphase hx hK⟩
 
-/-- Blueprint 21 H.9; plan §3F.3. DC: SAME a high Qfg fixes the first-opening
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.3. DC: SAME a high Qfg fixes the first-opening
 height and T_h.root by the plateau. -/
 theorem common_entry_at_high
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -68,7 +71,8 @@ theorem common_entry_at_high
     (common_sources_extend_and_cap E rho hrec mono crossing writes hgst hQ hQfg hexact hu hqr
       hphase)
 
-/-- Blueprint 21 H.9; plan §3F.4. DC: INTENTIONAL with the new phase premise,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.4. DC: INTENTIONAL with the new phase premise,
 each source of the next opening extends the actual selected body K. Service for K
 comes from next_opening_body_service; K needs no HonestProposal. -/
 theorem common_next_sources_extend_and_cap
@@ -94,7 +98,8 @@ theorem common_next_sources_extend_and_cap
   have he : L' = L := Option.some.inj (hL'.symm.trans hsrc)
   exact ⟨he ▸ KitFG.preceq_trans hKD hDL', common_source_height_le E rho hS hphase hx hL⟩
 
-/-- Blueprint 21 H.9; plan §3F.4. DC: INTENTIONAL an actual high witness at r
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.4. DC: INTENTIONAL an actual high witness at r
 fixes the next opening's entry only under the phase through a_(r+1). -/
 theorem common_next_entry
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -110,7 +115,8 @@ theorem common_next_entry
     (common_next_sources_extend_and_cap E rho hrec mono crossing writes hgst hQ hQfg hexact
       hu hqr hphase hy hK)
 
-/-- Blueprint 21 H.9; plan §3F.3–4. DC: INTENTIONAL the low pivot gives either
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.3–4. DC: INTENTIONAL the low pivot gives either
 one low entry or an actual high source with the conditional second-opening entry. -/
 theorem common_entry_at_low
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}

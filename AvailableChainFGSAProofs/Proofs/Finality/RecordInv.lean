@@ -14,7 +14,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- ROOT-DIGEST W2b. Paper 22:841–879: high honest sources at one height have one entry.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:841–879: high honest sources at one height have one entry.
 DC: INTENTIONAL: H1 supplies compatibility; height plateau supplies the entry. -/
 theorem high_source_entry_eq (w : HealingWitness) (hhigh : THigh p c E rho w)
     (x z : V) (r s : Nat) (C D : FGBlock (Fin p.n))
@@ -63,7 +64,8 @@ private theorem recordInv_height_pair_some_def (Λ : Record) (y : Nat) (T : Bloc
           | some recorded => if recorded = T then .vote y T false else .vote y T true
           | none => .vote y T false := rfl
 
-/-- Paper 22:841–879: the three record guards give a target, including the own lock.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:841–879: the three record guards give a target, including the own lock.
 DC: Protocol/ValidatorClient.lean:216–229, height-pair branches. -/
 theorem high_record_target_choice (Λ : Record) (y : Nat) (T : BlockId)
     (fp : Option FinalityPair)
@@ -339,7 +341,7 @@ private theorem recordInv_all (w : HealingWitness)
           | fg =>
             cases msg with
             | head B => exact hg
-            | proposal B raw support rows => exact hg
+            | proposal N => exact hg
             | row body =>
               obtain ⟨r, hj, hem, ha⟩ := recordInv_own_row p c E rho i x seat body ho
               apply recordInv_write p _ _ Λ (body.toRow seat) hg
@@ -362,7 +364,8 @@ private theorem recordInv_all (w : HealingWitness)
           (preserve o (hls List.mem_cons_self) Λ hg)
     exact foldGood _ (List.Subset.refl _) _ ih
 
-/-- Paper 22:841–879 (FF2): all actual writes preserve the high-entry guards.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:841–879 (FF2): all actual writes preserve the high-entry guards.
 DC: INTENTIONAL: H1 and QC origin replace a fixed-root window premise.
 Old records rest on THigh .1 over all rounds, not on H0.
 The prefix starts at the initial durable record and includes pre-GST writes. -/
@@ -446,7 +449,8 @@ private theorem recordInv_rowHeight_def (a : RowWire p.n) : rowHeight a =
   rw [rowHeight_def]
   cases a.payload.height_pair <;> rfl
 
-/-- Paper 22:886–909,1228–1254: no earlier row at or above y leaves y fresh.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:886–909,1228–1254: no earlier row at or above y leaves y fresh.
 DC: INTENTIONAL: durable actual-write history, including restart and suppression. -/
 theorem high_record_fresh_at_cut (i : Nat) (x : V) (y : Nat) (hx : x ∈ rho.honest)
     (hbefore : ∀ j r a h, j < i → HonestRowAt p c E rho j x r a →
@@ -471,7 +475,7 @@ theorem high_record_fresh_at_cut (i : Nat) (x : V) (y : Nat) (hx : x ∈ rho.hon
         | fg =>
           cases msg with
           | head B => exact hg
-          | proposal B raw support rows => exact hg
+          | proposal N => exact hg
           | row body =>
             obtain ⟨j, r, hji, hj, hem, ha⟩ := recordInv_own_origin p c E rho i x seat body ho
             let st := FGSA.clock p (V2.D.Run.stateBefore E rho j x).st (p.actionTime r)
@@ -568,7 +572,7 @@ private theorem recordInv_sent_origin (ls : List (Obj p)) (Λ : RecordOnce)
           | fg =>
             cases msg with
             | head B => exact Or.inl hold
-            | proposal B raw support rows => exact Or.inl hold
+            | proposal N => exact Or.inl hold
             | row body =>
               rcases List.mem_cons.mp hold with he | hold
               · exact Or.inr ⟨seat, body, List.mem_cons_self, he.symm⟩
@@ -601,7 +605,8 @@ private theorem recordInv_complete (i : Nat) (x : V) (r : Nat)
   · rw [RowSigner_def]
     exact ⟨seat, rfl, hseat⟩
 
-/-- Paper 22:886–915 (SO-COV): an earlier or current complete target covers the action.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:886–915 (SO-COV): an earlier or current complete target covers the action.
 DC: INTENTIONAL: FF2 proves the target bit; both send-once checks use durable content. -/
 theorem high_target_row_covered (w : HealingWitness)
     (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
@@ -675,7 +680,8 @@ theorem high_target_row_covered (w : HealingWitness)
         recordInv_complete p c E rho j x rSent seat body hjs hem,
         (congrArg Prod.fst he).trans htarget⟩
 
-/-- Paper 22:841–879: the raw H0 cut has no high target, timeout, lock, or sent row.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:841–879: the raw H0 cut has no high target, timeout, lock, or sent row.
 DC: INTENTIONAL: the inclusive raw cut uses H0's emission cap, including old sends. -/
 theorem high_record_reset_fresh (w : HealingWitness) (h0 : H0Reset p c E rho w)
     (hs : V2.D.ScheduleWellFormed E rho) (x : V) (hx : x ∈ rho.honest)
@@ -712,7 +718,8 @@ theorem high_record_reset_fresh (w : HealingWitness) (h0 : H0Reset p c E rho w)
     simp only [Height] at *
     omega
 
-/-- Paper 22:841–879,1228–1254: the exact K-ROWS record premise at a prefix cut.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:841–879,1228–1254: the exact K-ROWS record premise at a prefix cut.
 DC: INTENTIONAL: FF2 at y and durable freshness at y+1 share the actual record. -/
 theorem high_record_guards_and_fresh (w : HealingWitness)
     (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
@@ -739,7 +746,8 @@ theorem high_record_guards_and_fresh (w : HealingWitness)
   rw [hentry] at ht hl
   exact ⟨ht, hn, hl, high_record_fresh_at_cut p c E rho i x (y + 1) hx hbefore⟩
 
-/-- Paper 22:886–909,1208–1211: the first high target cannot be suppressed.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:886–909,1208–1211: the first high target cannot be suppressed.
 DC: INTENTIONAL: an earlier covering send contradicts the strict raw height cap. -/
 theorem high_target_first_row (w : HealingWitness)
     (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
@@ -774,7 +782,8 @@ private theorem recordInv_honestSeats_mem (i : Fin p.n) :
     (@Finset.mem_filter (Fin p.n) (fun k => rho.seatOf (.base .fg) k ∈ rho.honest)
       (fun k => Classical.propDecidable (rho.seatOf (.base .fg) k ∈ rho.honest)) Finset.univ i)
 
-/-- Paper 22:886–915: the Recovery fault bound supplies an honest unit-weight quorum.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:886–915: the Recovery fault bound supplies an honest unit-weight quorum.
 DC: INTENTIONAL: linked fixed FG seats transport honest identity cardinality. -/
 theorem high_target_honest_quorum [Fintype V]
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
@@ -819,7 +828,8 @@ theorem high_target_honest_quorum [Fintype V]
   have := p.nPos
   omega
 
-/-- Paper 22:886–915: each honest quorum seat has a complete target and its exact receipt.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:886–915: each honest quorum seat has a complete target and its exact receipt.
 DC: INTENTIONAL: strict max(emission,GST)+ΔF receipt includes old suppressed sends. -/
 theorem high_target_quorum_covered [Fintype V] (G ΔF : Time)
     (hrec : Recovery₂ p c E rho G ΔF) (w : HealingWitness)
@@ -880,7 +890,8 @@ theorem high_target_quorum_covered [Fintype V] (G ΔF : Time)
   choose rows hrows using hseat
   exact ⟨rows, hrows⟩
 
-/-- Paper 22:841–879: FF2 selects a high target with the actual head's own lock.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:841–879: FF2 selects a high target with the actual head's own lock.
 DC: Protocol/ValidatorClient.lean:216–229; the head target QC fixes its lock. -/
 theorem high_action_target_choice (w : HealingWitness)
     (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
@@ -908,7 +919,8 @@ theorem high_action_target_choice (w : HealingWitness)
       (V2.D.Run.stateBefore E rho i x).record.toRecord fp hx hf (hfy ▸ hhigh)
     simpa only [hfy, hentry] using hr
 
-/-- Paper 22:841–879,1256–1263: the K-ROWS record guards at the actual action read.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:841–879,1256–1263: the K-ROWS record guards at the actual action read.
 DC: INTENTIONAL: the round cut becomes a prefix cut by strict tick time;
 clock_rec transports all seven fields to the postClock record. -/
 theorem high_record_guards_and_fresh_at_action (w : HealingWitness)
@@ -1073,7 +1085,8 @@ private theorem recordInv_honest_finality (w : HealingWitness)
       exact recordInv_released_finality p c E rho w hh hqc j x r seat body ha.1
         hsend fp hbody hy
 
-/-- Paper 22:876–879: every high target, progress, or finality QC in cumulative TF has one identity.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:876–879: every high target, progress, or finality QC in cumulative TF has one identity.
 DC: INTENTIONAL: honest row origins include delayed disclosures and pre-GST writes.
 There is no carrier-height guard; matchesEntry permits either timeout bit. -/
 theorem ff2_stored_high_qc_identity [Fintype V] (w : HealingWitness)
@@ -1142,7 +1155,8 @@ theorem ff2_stored_high_qc_identity [Fintype V] (w : HealingWitness)
     obtain ⟨j, _, hem⟩ := ho _ hsign hz
     exact recordInv_honest_finality p c E rho w hh hqc j _ r wire a hem hd fp hfp hy
 
-/-- Paper 22:876–879: selected high progress, target, and finality QCs have one identity.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:876–879: selected high progress, target, and finality QCs have one identity.
 DC: INTENTIONAL: the earlier target QC supplies the finality identity.
 All prefixes and all cumulative TF blocks are included; the record induction
 also makes the selected honest progress witness a target. -/
@@ -1250,7 +1264,8 @@ theorem ff2_high_qc_identity (w : HealingWitness)
     exact ⟨he, z, r, C, hz, hs, hc, hhC, ht⟩
 
 
-/-- ROOT-DIGEST W2b. Paper 22:876–879,917–921: a high contest is impossible at every honest prefix.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:876–879,917–921: a high contest is impossible at every honest prefix.
 DC: INTENTIONAL: QC identity covers every stored contest witness, including
 blocks disclosed late in cumulative TF. -/
 theorem ff2_no_high_contest (w : HealingWitness)
@@ -1308,20 +1323,23 @@ theorem ff2_no_high_contest (w : HealingWitness)
     exact he ▸ hXD
   exact hbad (allWitnesses W hW hw)
 
-/-- Paper 22:841–879: the three high record guards used by K-MID and K-ROWS.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:841–879: the three high record guards used by K-MID and K-ROWS.
 DC: INTENTIONAL: this predicate only names the proved record fields. -/
 abbrev HighRecordGuard_W {n : Nat} (Λ : RecordOnce) (y : Nat) (U : FGBlock (Fin n)) : Prop :=
   (Λ.target y = none ∨ Λ.target y = some U.root) ∧ Λ.timeout y = false ∧
     (Λ.lock y = none ∨ Λ.lock y = some U.root)
 
-/-- Paper 22:841–879: the equation for the high record guard.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:841–879: the equation for the high record guard.
 DC: INTENTIONAL: the three durable record fields. -/
 theorem HighRecordGuard_W_def {n : Nat} (Λ : RecordOnce) (y : Nat) (U : FGBlock (Fin n)) :
     HighRecordGuard_W Λ y U =
       ((Λ.target y = none ∨ Λ.target y = some U.root) ∧ Λ.timeout y = false ∧
         (Λ.lock y = none ∨ Λ.lock y = some U.root)) := rfl
 
-/-- Paper 22:841–879: FF2 through the K-ROWS plan's common telescope, without A or m.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:841–879: FF2 through the K-ROWS plan's common telescope, without A or m.
 DC: INTENTIONAL: the thin adapter uses H1 over all rounds and QC origin. -/
 theorem ff2_high_record_guards [Fintype V] (G ΔF : Time) (pt : KernelPt)
     (_hδ : p.δt = 2 * p.R) (hK : KernelPrem_W p c G ΔF E rho pt)

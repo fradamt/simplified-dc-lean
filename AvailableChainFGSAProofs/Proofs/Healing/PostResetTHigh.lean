@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
 
 public section
@@ -14,7 +16,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21 H.13:2718–2741; plan THIGH-C A; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13:2718–2741; plan THIGH-C A; B1/B13/B17/B18.
 DC: SAME actual honest supporting HEAD at the selected source's own label.
 TSrc (sourceDiscipline_tSrc) supplies fast support; Recovery₂ supplies an
 honest seat and its actual vote. No row or later reader guard is needed. -/
@@ -39,7 +42,7 @@ theorem postReset_selected_supporting_head [Fintype V] {G ΔF : Time}
     subst st
     obtain ⟨k, o, hh, ho, hk, hsup⟩ := healing_support_honest_seat rho
       hrec.base.cstar hrec.fault _ _ _ hτ
-    obtain ⟨-, -, -, -, -, hm, hl⟩ := healing_support_clean_target E rho o ho
+    obtain ⟨H, hH, hHm, -, -, hm, hl⟩ := healing_support_clean_target E rho o ho
     obtain ⟨j, hj, hhead⟩ := healing_support_honest_head E rho hrec.base.valid hm hl hk hh
     let z := rho.seatOf (RunLabel.base (Label.head (r * p.R))) k
     refine ⟨z, FGSA.headVote p
@@ -50,8 +53,14 @@ theorem postReset_selected_supporting_head [Fintype V] {G ΔF : Time}
       rw [postClock_def, preTick_def,
         fgsa_tickIdx_of_event p c E rho hrec.base.valid.toScheduleWellFormed hj]
       rfl
-    · rw [Gen.AC.voteSupports_def, hhead] at hsup
-      exact (Bool.and_eq_true_iff.mp hsup).2
+    · change Gen.AC.Root.voteSupports
+        (GridCO.resolutionTree (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams (r * p.R))))) (eraseFG C) o = true at hsup
+      rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hH] at hsup
+      have heq := stored_eq_headVote E rho hrec.base.idealization i x hHm j z
+        (SA.voteTime p.toParams (r * p.R)) (r * p.R)
+        (Option.some.inj ((resolvedHead_root _ o hH).symm.trans hhead))
+      exact heq ▸ (Bool.and_eq_true_iff.mp hsup).2
 
 section Sources
 variable [Fintype V] {G ΔF : Time}
@@ -98,7 +107,8 @@ private theorem thigh_label_sync {x : V} {r : Nat} {C : FGBlock (Fin p.n)}
   exact Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hGST hvd hhor
 
-/-- Blueprint 21 H.13:2677–2687, 2718–2741; H.14:2826–2846;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13:2677–2687, 2718–2741; H.14:2826–2846;
 plan THIGH-C B; B1/B13/B17/B18. DC: SAME pairwise high-source compatibility.
 Different rounds use H2A clause 1 and the later source's actual supporting
 HEAD. Equal rounds use IF.6 on both raw gate results, then prefix transfer.
@@ -134,7 +144,8 @@ theorem postReset_tHigh_pairwise (inv : ∀ i, PostResetInv p c E rho w i) :
       postReset_source_gate_result p c E rho hrec cap source rowCovered h0r hx hC hh
     obtain ⟨B', hB', hC'B', -⟩ :=
       postReset_source_gate_result p c E rho hrec cap source rowCovered h0r hy hC' hh'
-    have hc := fgsa_sameLabel p c E rho hrec.base.valid hrec.base.noRestart
+    have hc := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
+        hrec.base.noRestart
       hrec.base.delta (r * p.R) (thigh_label_sync p c E rho hrec h0r hC hj)
       x y B B' hx hy hB hB'
     change (Block.preceq B B' || Block.preceq B' B) = true at hc
@@ -167,16 +178,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
@@ -197,7 +209,8 @@ variable (cap : RCap p c E rho) (source : TSrc p c E rho)
 
 include cap source rowCovered
 
-/-- Blueprint 21 H.14:2826–2846, H.22 H1:3244–3250;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14:2826–2846, H.22 H1:3244–3250;
 plan THIGH-C C; B1/B13/B17/B18. DC: SAME frozen THigh, verbatim.
 B supplies the pairwise clause. THIGH B2 supplies compatibility with C*,
 and THIGH A supplies the label bound, including actions that send no row.

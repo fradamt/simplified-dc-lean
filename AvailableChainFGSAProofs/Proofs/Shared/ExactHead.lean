@@ -10,7 +10,8 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 open Gen.Pure
 
-/-- G11 store bridge; S1b E3–E5:126–132 and 21 H.17:2820–2824.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+G11 store bridge; S1b E3–E5:126–132 and 21 H.17:2820–2824.
 DC: Goldfish/ProposalWalkTransportCore.lean:189–198, source-step extraction.
 SAME extraction ingredient at the actual HEAD anchor. The domain is exactly
 G11's voter storeFrame. An emitted proposal supplies the nonzero slot.
@@ -36,7 +37,8 @@ theorem fgsa_headVote_best_ancestry_of_cover (p : Params) (st : State p.n)
   simpa only [domainR_eq_storeFrame] using
     walk_best_ancestry_of_cover _ _ _ _ _ hcover X hAX hXP
 
-/-- Terminal consumer obligations; S1b E6:133–134, 21 H.17:2824–2825.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Terminal consumer obligations; S1b E6:133–134, 21 H.17:2824–2825.
 DC: Goldfish/Walk.lean:433, final step and stop in `ghost_reaches`.
 INTENTIONAL: FG-SA's live voter domain can change after the proposal read.
 The consumer supplies the unique eligible proposal child and its leaf condition.
@@ -51,7 +53,8 @@ structure ExactHeadGeometry (p : Params) (st : State p.n) (s : Slot) (b : Block)
   stop : NoEligibleChild (erasedList st (domainR p st (voterBlocks p st s)))
     (eligible p st (headVotes p st s) (headSupport p st s)) b
 
-/-- ROOT-DIGEST W2. G33 at the HEAD read; S1b E1–E6:118–134, 21 H.17:2798–2825.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2. G33 at the HEAD read; S1b E1–E6:118–134, 21 H.17:2798–2825.
 DC: Goldfish/Walk.lean:433 and ProposalWalkTransportCore.lean:162–198.
 INTENTIONAL: compose actual HEAD coverage with the FJ pivot start disjunction
 and the explicit terminal obligations. Both start orders are permitted.
@@ -80,7 +83,8 @@ theorem fgsa_headVote_exact_of_covered_parent (p : Params) (st : State p.n)
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. G25/G11 followed by G33; 21 H.17:2794–2830, S1b E1–E6:118–134.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. G25/G11 followed by G33; 21 H.17:2794–2830, S1b E1–E6:118–134.
 DC: Goldfish/ProposalWalkTransportCore.lean:162 and Walk.lean:433.
 INTENTIONAL: FG-SA supplies actual tick reads, two LabelSync intervals and
 live-frame geometry. Admission and terminal geometry are consumer premises.
@@ -99,41 +103,42 @@ theorem exactHead_of_proposal_on_run
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
-    (hadm : b ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (hadm : N.erase ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (D : FGBlock (Fin p.n))
     (hgeom : WalkRunGeometry p
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D)
     (hterminal : ExactHeadGeometry p
-      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b)
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s N.erase)
     (hroots : NamedRootCollisionFree p c E rho) :
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
-    headVote p dst s = b := by
+    headVote p dst s = N.erase := by
   intro dst
   let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
   have hmem := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
-  have hparent := fgsa_walkRun_proposal_parent p src s _ b raw sup rows hp.2.2.2
-  have hDP : Block.Preceq (eraseFG D) b.parent := by
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2
+  have hDP : Block.Preceq (eraseFG D) N.erase.parent := by
     rw [hparent.2.2]
     exact walk_covers_of_dominated_suffix _ _ _ _ _
       (block_compatible_of_common hgeom.source_anchor (block_preceq_refl _))
       hgeom.source_prefix
   have hcover := fgsa_ghost_transfer_sfx_on_run (hroots := hroots)
     E rho hE hN hDelta s hScoreSync hSync
-    hx hy hip hih hseat b raw sup rows hem hadm D hgeom
+    hx hy hip hih hseat N hem hadm D hgeom
   exact fgsa_headVote_exact_of_covered_parent p dst s (Nat.ne_of_gt hparent.1)
-    (eraseFG D) b
+    (eraseFG D) N.erase
     (erasedList_rootInj p dst (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _) _)
     (Or.inl ⟨hgeom.target_anchor, by
       simpa only [domainR_eq_storeFrame] using hgeom.target_prefix⟩)
     hDP hcover hterminal
 
-/-- Per-reader obligations for the HEAD clause of J2; 21 H.22:3100–3120.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Per-reader obligations for the HEAD clause of J2; 21 H.22:3100–3120.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887, honest voter heads.
 INTENTIONAL: Shared names the FG-SA admission, E1–E5 walk geometry and E6
 terminal obligations. A consumer supplies them at each actual HEAD tick
@@ -154,7 +159,8 @@ structure ExactHeadRunGeometry
       ExactHeadGeometry p
         (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b
 
-/-- ROOT-DIGEST W2b. The HEAD clause of J2 ExactService, before freeze; 21 H.22:3109–3114.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. The HEAD clause of J2 ExactService, before freeze; 21 H.22:3109–3114.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887.
 INTENTIONAL: FG-SA uses the option-valued post-clock reader and the finite
 HEAD horizon. The schedule supplies every honest reader, including a reader
@@ -172,13 +178,13 @@ theorem exactService_head_of_proposal
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
-    (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D b)
+    (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D N.erase)
     (hroots : NamedRootCollisionFree p c E rho) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
+      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
   intro hhorizon y hy
   have hvt : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
     change ((4 * s + 1 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + p.Δ
@@ -188,13 +194,13 @@ theorem exactService_head_of_proposal
     (4 * s + 1) (hvt ▸ hhorizon)
   rw [hvt] at hih
   have he := exactHead_of_proposal_on_run (hroots := hroots) E rho hE hN hDelta s hScoreSync hSync
-    hx hy hip hih hseat b raw sup rows hem (hgeom.admitted y hy ih hih) D
+    hx hy hip hih hseat N hem (hgeom.admitted y hy ih hih) D
     (hgeom.walk y hy ih hih) (hgeom.terminal y hy ih hih)
   have ht := fgsa_tickIdx_of_event p c E rho hE.toScheduleWellFormed hih
-  change (postClock E rho y (SA.voteTime p.toParams s)).map _ = some b
+  change (postClock E rho y (SA.voteTime p.toParams s)).map _ = some N.erase
   rw [postClock_def, preTick_def, ht]
   change some (headVote p (clock p (V2.D.Run.stateBefore E rho ih y).st
-    (SA.voteTime p.toParams s)) s) = some b
+    (SA.voteTime p.toParams s)) s) = some N.erase
   exact congrArg some he
 
 end AvailableChain.FGSA.Run

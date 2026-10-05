@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
@@ -47,7 +49,8 @@ private theorem high_prefix {i : Nat} {x : V}
         ⟨hB, hFB, hZB, W, hW, KitFG.preceq_trans hBC hCW, hlo⟩))
   · exact Or.inr (Or.inr (KitFG.preceq_trans hBC hCF))
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.13:2785–2813, H.14:2815–2830; plan J3 D0;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.13:2785–2813, H.14:2815–2830; plan J3 D0;
 B1/B13/B15/B17/B18. DC: INTENTIONAL FJ single-source and pair causes.
 J3/H.14 uses this restricted descent in the duty's own covered view.
 The two compatibility inputs exclude both causes for a high source or a high copy of C*. -/
@@ -89,7 +92,8 @@ theorem postReset_descent_kept_of_compat (xing : RXing p c E rho) (origin : RQCO
     exact False.elim (healing_entry_pair_incompatible p hh hr
       (hhigh K K' s s' hK hK' hhK hhK'))
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J3 D0; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J3 D0; B1/B13/B17/B18.
 DC: SAME geometric keep for every compatible body with its support path.
 The high case excludes both descent causes. A lower body is a prefix of
 the held reset copy. No ProtectedBody guard is needed.
@@ -144,7 +148,8 @@ theorem postReset_general_kept_of_compat (xing : RXing p c E rho) (origin : RQCO
         exact hhC.trans ((fgCertificateLaws p).height.h_mono hCB))
     exact high_prefix p c E rho hB hBC' hkC
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2815–2884; plan J3 D0; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.14:2815–2884; plan J3 D0; B1/B13/B17/B18.
 DC: SAME RKeep body over the reset witness. The last clause is supplied
 by postReset_general_kept_of_compat, including bodies outside ProtectedBody.
 This internal projection has no full H0 or first-proposal input. -/
@@ -198,23 +203,25 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
 include hrec mono emittedNonempty emittedName writes xing origin h0r
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J3 D0; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J3 D0; B1/B13/B17/B18.
 DC: SAME RKeep body. J2 supplies both compatibility inputs at every cut.
 No lease, raw, service, full carrier or first-proposal input is used.
 Assembly supplies fgsa_rMono, emittedName_window,
@@ -399,7 +406,8 @@ private theorem high_selected_after_cut (hs : V2.D.ScheduleWellFormed E rho)
   omega
 
 omit [Fintype V] in
-/-- Blueprint 21 H.14:2837–2839; plan J3 THigh A1; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14:2837–2839; plan J3 THigh A1; B1/B13/B17/B18.
 DC: SAME crossing of M + 1. Assembly supplies fgsa_rCap_channel.
 The selected action need not emit a row or be awake. -/
 theorem postReset_selected_label_above (hs : V2.D.ScheduleWellFormed E rho)
@@ -410,7 +418,8 @@ theorem postReset_selected_label_above (hs : V2.D.ScheduleWellFormed E rho)
   high_label_above p c E rho hs cap h0r hx hsrc hh
 
 include rowCovered in
-/-- Blueprint 21 H.14:2837–2845; plan J3 THigh A; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14:2837–2845; plan J3 THigh A; B1/B13/B17/B18.
 DC: SAME crossing and SO-COV routes. Assembly supplies fgsa_rCap_channel
 and rowPermission_covered with its full type. The inclusive frontier
 excludes high selected actions before the cut; Recovery₂.awake then
@@ -452,7 +461,8 @@ theorem postReset_selected_label {G ΔF : Time} (hrec : Recovery₂ p c E rho G 
 
 end Label
 
-/-- Blueprint 21 H.13:2668–2813, H.14:2826–2845; plan J3 THigh B;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13:2668–2813, H.14:2826–2845; plan J3 THigh B;
 B1/B13/B17/B18. DC: SAME event-prefix order. Selected actions include
 send-once suppression; no emitted-row witness is part of this predicate. -/
 def SelectedBefore (i : Nat) (C : FGBlock (Fin p.n)) (s : Slot) : Prop :=
@@ -466,7 +476,8 @@ private theorem high_selected_unfold (i : Nat) (C : FGBlock (Fin p.n)) (s : Slot
         rho.events[j]? = some (V2.Event.tick y (p.actionTime r)) ∧
         actionSourceFG p c E rho y r = some (some C) ∧ s = r * p.R) := rfl
 
-/-- Blueprint 21 H.14:2826–2845; plan J3 THigh B; B1/B17/B18/B3a.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14:2826–2845; plan J3 THigh B; B1/B17/B18/B3a.
 DC: SAME event-prefix selected source. Equation export for this predicate. -/
 theorem SelectedBefore_def (i : Nat) (C : FGBlock (Fin p.n)) (s : Slot) :
     SelectedBefore p c E rho i C s =
@@ -475,7 +486,8 @@ theorem SelectedBefore_def (i : Nat) (C : FGBlock (Fin p.n)) (s : Slot) :
         actionSourceFG p c E rho y r = some (some C) ∧ s = r * p.R) :=
   high_selected_unfold p c E rho i C s
 
-/-- Blueprint 21 H.14:2826–2845; plan J3 THigh B; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14:2826–2845; plan J3 THigh B; B1/B17/B18.
 DC: SAME every emitted source is selected. Existing row-based fields
 keep their types; the projection discards only the emission witness. -/
 theorem selectedBefore_of_sourceBefore {i : Nat} {C : FGBlock (Fin p.n)} {s : Slot}
@@ -517,12 +529,19 @@ private theorem high_selected_supporter [Fintype V] {G ΔF : Time}
     subst st
     obtain ⟨k, o, hh, ho, hk, hsup⟩ := healing_support_honest_seat rho
       hrec.base.cstar hrec.fault _ _ _ hτ
-    obtain ⟨-, -, -, -, -, hm, hl⟩ := healing_support_clean_target E rho o ho
+    obtain ⟨H, hH, hHm, -, -, hm, hl⟩ := healing_support_clean_target E rho o ho
     obtain ⟨j, hj, hhead⟩ := healing_support_honest_head E rho hrec.base.valid hm hl hk hh
     refine ⟨j, _, hh, hj, ?_⟩
-    rw [Gen.AC.voteSupports_def, hhead] at hsup
+    change Gen.AC.Root.voteSupports
+      (GridCO.resolutionTree (actView (clockPre p (storeAt p c E rho i x)
+        (SA.gateTime p.toParams (r * p.R))))) (eraseFG C) o = true at hsup
+    rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hH] at hsup
+    have heq := stored_eq_headVote E rho hrec.base.idealization i x hHm j
+      (rho.seatOf (.base (.head (r * p.R))) k)
+      (SA.voteTime p.toParams (r * p.R)) (r * p.R)
+      (Option.some.inj ((resolvedHead_root _ o hH).symm.trans hhead))
     rw [healing_headAtIdx_tick p c E rho hj]
-    exact (Bool.and_eq_true_iff.mp hsup).2
+    exact heq ▸ (Bool.and_eq_true_iff.mp hsup).2
 
 
 section SelectedReset
@@ -540,16 +559,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
@@ -570,7 +590,8 @@ variable (cap : RCap p c E rho) (source : TSrc p c E rho)
 
 include cap source rowCovered
 
-/-- Blueprint 21 H.13:2730–2741, H.14:2826–2845; plan J3 THigh B2;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13:2730–2741, H.14:2826–2845; plan J3 THigh B2;
 B1/B13/B17/B18. DC: SAME reset-source HEAD retention. The selected
 source has a real honest supporter even if its action emits no row.
 Equal labels use IF.6; later labels use H.13 for the emitted reset source.
@@ -594,7 +615,8 @@ theorem postReset_selected_reset_compatible {x : V} {r : Nat}
     obtain ⟨B0, hB0, hC0B⟩ := high_selected_gate p c E rho source ha.1 hsrc0
     rw [← heq] at hB
     rw [← h0r.label] at hB0
-    have hc := fgsa_sameLabel p c E rho hrec.base.valid hrec.base.noRestart
+    have hc := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
+        hrec.base.noRestart
       hrec.base.delta w.sStar hSync x y B B0 hx ha.1 hB hB0
     change (Block.preceq B B0 || Block.preceq B0 B) = true at hc
     have hcompat : Block.Compatible (eraseFG C) (eraseFG C0) := by

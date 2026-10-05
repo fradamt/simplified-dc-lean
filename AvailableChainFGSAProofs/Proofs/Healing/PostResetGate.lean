@@ -14,7 +14,8 @@ open AvailableChain.SimplexFG Gen.Pure
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 omit [DecidableEq V] in
-/-- Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B17.
 DC: SAME a gate tick lies before the complete post-gate cut. -/
 theorem healing_postReset_tick_lt_cut
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -34,7 +35,8 @@ theorem healing_postReset_tick_lt_cut
   exact hji.trans_le hcut
 
 omit [DecidableEq V] in
-/-- Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B17.
 DC: SAME a strictly earlier inclusive read is before the current tick. -/
 theorem healing_postReset_time_cut_le_tick
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -47,7 +49,8 @@ theorem healing_postReset_time_cut_le_tick
   exact (not_le.mpr hlt) hb
 
 omit [DecidableEq V] in
-/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D4; DC: SAME HEAD cut before gate. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3040; plan RE-BIND D4; DC: SAME HEAD cut before gate. -/
 theorem healing_postReset_head_cut_le_tick
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {k : Nat} {x : V} {v : Slot}
@@ -58,7 +61,8 @@ theorem healing_postReset_head_cut_le_tick
   linarith [p.deltaPos]
 
 omit [DecidableEq V] in
-/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D4; DC: SAME HEAD cut before post-gate. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3040; plan RE-BIND D4; DC: SAME HEAD cut before post-gate. -/
 theorem healing_postReset_head_cut_le_afterTicks
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {n : Nat} {v : Slot}
@@ -87,7 +91,8 @@ private theorem postReset_clockPre_lease_live (st : State p.n) (t : Time)
     split_ifs <;> first | exact List.Sublist.refl _ | exact List.filter_sublist
   exact of_decide_eq_true (List.mem_filter.mp (hsub.subset hrow)).2
 
-/-- Blueprint 21 H.17:3021–3030; plan J6-3 O2; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3021–3030; plan J6-3 O2; B1/B17/B18.
 DC: SAME J6-2 guard with the exact source and release cuts.
 INLINE writes has producer fgsa_leaseOrigins_lastWrite at Assembly. -/
 theorem healing_postReset_gate_guard_at_cut [Fintype V]
@@ -99,16 +104,17 @@ theorem healing_postReset_gate_guard_at_cut [Fintype V]
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {s : Slot} (hs : w.sStar ≤ s)
     (hGateHorizon : SA.gateTime p.toParams s ≤ rho.horizon)
@@ -121,10 +127,10 @@ theorem healing_postReset_gate_guard_at_cut [Fintype V]
   have hv : { actView (clockPre p (storeAt p c E rho j x)
       (SA.gateTime p.toParams s)) with early := (storeAt p c E rho j x).base.early } =
       (fgsaAC E rho).gateView j x s := fgsa_clockPre_gateView p _ s
-  have hrawEq : (fgsaAC E rho).raw j s x = SA.confirmationFrom p.toParams
+  have hrawEq : (fgsaAC E rho).raw j s x = SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho j x).fg.F)
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s :=
-    (congrArg (fun v => SA.confirmationFrom p.toParams
+    (congrArg (fun v => SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho j x).fg.F) v s) hv).symm
   have hqd : SA.voteTime p.toParams (s + 1) < SA.gateTime p.toParams s := by
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
@@ -183,7 +189,8 @@ theorem healing_postReset_gate_guard_at_cut [Fintype V]
     hReleaseCut hnd lease hkeep hndlive
 
 
-/-- Blueprint 21 H.17:3021–3030; plan J6-2/J6-3 O2; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3021–3030; plan J6-2/J6-3 O2; B1/B17/B18.
 DC: SAME raw transfer at the source release read gives the whole-result
 compatibility guard at that source's gate. A lease in the gate view has an
 older write and survives through the release read. -/
@@ -196,16 +203,17 @@ theorem healing_postReset_gate_guard [Fintype V]
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {s : Slot} (hs : w.sStar ≤ s)
     (hGateHorizon : SA.gateTime p.toParams s ≤ rho.horizon)
@@ -220,7 +228,8 @@ theorem healing_postReset_gate_guard [Fintype V]
 
 
 
-/-- Blueprint 21 H.6:910–986; plan J6-2 S3; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:910–986; plan J6-2 S3; B1/B17/B18.
 DC: SAME H6 service from its HEAD coverage and gate-input floor.
 Raw transfer is a named field at the complete cut. The cone and an honest
 proposal are not needed. The covering batch gives the raw result, passed
@@ -234,16 +243,17 @@ theorem healing_postReset_h6GateService [Fintype V]
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     : H6GateService p c E rho w := by
   intro s D hs hgst hGateHorizon hne hheads hfloor x hx
@@ -274,10 +284,10 @@ theorem healing_postReset_h6GateService [Fintype V]
     hcov ht (by rw [clockPre_fg]; exact hFD)
   have hv : { actView pre with early := (storeAt p c E rho j x).base.early } =
       (fgsaAC E rho).gateView j x s := fgsa_clockPre_gateView p _ s
-  have hrawEq : (fgsaAC E rho).raw j s x = SA.confirmationFrom p.toParams
+  have hrawEq : (fgsaAC E rho).raw j s x = SA.Root.confirmationFrom p.toParams
       (eraseFG pre.fg.F) (actView pre) s := by
     rw [clockPre_fg]
-    exact (congrArg (fun v => SA.confirmationFrom p.toParams
+    exact (congrArg (fun v => SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho j x).fg.F) v s) hv).symm
   have hraw : (fgsaAC E rho).raw j s x = some C := hrawEq.trans hconf
   have hinv : CStoreInv p pre := cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho j x) _
@@ -291,15 +301,15 @@ theorem healing_postReset_h6GateService [Fintype V]
   have hmemw : D ∈ ((fgsaAC E rho).gateView j x s).blocks :=
     (congrArg GridCO.State.blocks hv) ▸ hmem
   have hsupport : SA.releaseThreshold p.toParams ≤
-      SA.prefixSupport p.toParams ((fgsaAC E rho).gateView j x s) s D := by
+      SA.Root.prefixSupport p.toParams ((fgsaAC E rho).gateView j x s) s D := by
     have h := opening_gate_support E rho hrec hgst hGateHorizon hcov ht hFD
-    exact (congrArg (fun v => SA.prefixSupport p.toParams v s D) hv) ▸ h
+    exact (congrArg (fun v => SA.Root.prefixSupport p.toParams v s D) hv) ▸ h
   have hservice := fgsa_gate_of_coveringBatch E rho hS j s x D ht ⟨C, hraw, hDC⟩
     (healing_postReset_gate_guard E rho hrec w i hcomplete hrawTransfer writes
       hs hGateHorizon hx ht) hne hmemw hsupport (opening_gate_level E rho j x s D hsupport)
   have hservice' := hservice
   obtain ⟨B, hB, hDB, hguard, _, d, hd, hlease⟩ := hservice'
-  have hconfB : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s =
+  have hconfB : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s =
       some B := hrawEq.symm.trans hB
   have hresult : gateResult p c E rho x s = some (some B) := by
     rw [gateResult_def, hgateIn]

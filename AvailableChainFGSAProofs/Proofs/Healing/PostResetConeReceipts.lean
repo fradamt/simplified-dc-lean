@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
 
@@ -19,7 +21,8 @@ private theorem cone_pool_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME held honest HEAD in the receiver store before its early deadline.
 The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_head_receipt_at_cut [Fintype V]
@@ -58,7 +61,8 @@ theorem postReset_head_receipt_at_cut [Fintype V]
     ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hreceipt
   exact ⟨Kfg, hKz, heK, hreceipt⟩
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME resolved non-equivocating honest seat in the proposer pool.
 The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
@@ -74,7 +78,7 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     (hFHeads : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K →
       Block.Preceq (eraseFG (storeAt p c E rho ip x).fg.F) K)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head r)) k ∈ rho.honest) :
-    Gen.AC.poolSupports (FGSA.clock p (storeAt p c E rho ip x)
+    Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (r + 1))).base.blocks
       (FGSA.proposerSupport (FGSA.clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (r + 1))) (r + 1)) k B = true ∧
@@ -148,9 +152,9 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
   have hcut : dl (SA.voteTime p.toParams r) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K
+  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K.root
     (SA.voteTime p.toParams r) z x hD hk hem hx hcut (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head r) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head r) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams r)) ≤ ip :=
     healing_support_idxBefore_le p c E rho hS hip (hdle.trans hvp)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -166,7 +170,10 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
       (hFHeads z hk K hhl)
   have hol : GridCO.headLabel? o = some r := rfl
   have hok : GridCO.headSeat? o = some k := rfl
-  have hoK : GridCO.headTarget? o = some K := rfl
+  have hoK : GridCO.headTarget? o = some K.root := rfl
+  have hresolve := actView_resolve_target p st hinv
+    (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho ip x)))
+    o ((actView_blocks st K).mpr ⟨hKb, hFK⟩) hoK
   have hvotes : o ∈ FGSA.proposerVotes st (r + 1) := by
     change o ∈ GridCO.votesAt st.base (r + 1 - 1)
     exact List.mem_filter.mpr ⟨hod, by
@@ -174,20 +181,21 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
   have hsupp : o ∈ FGSA.proposerSupport st (r + 1) := by
     apply List.mem_filter.mpr
     refine ⟨hvotes, ?_⟩
-    rw [hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown, Nat.add_sub_cancel]
-    exact ⟨(actView_blocks st K).mpr ⟨hKb, hFK⟩, hKslot⟩
-  have hvs : Gen.AC.voteSupports st.base.blocks B o = true := by
-    rw [Gen.AC.voteSupports_def, hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some]
-    exact ⟨⟨hKb, hKslot⟩, hBK⟩
-  refine ⟨(Gen.AC.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
+    change (match GridCO.resolvedHead? (actView st) o with
+      | some C => decide (C.slot ≤ r + 1 - 1) | none => false) = true
+    rw [hresolve]
+    exact decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)
+  have hvs : Gen.AC.Root.voteSupports st.base.blocks B o = true := by
+    exact (Gen.AC.Root.vote_support_body _ _ _).mpr
+      ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p _ hinv) o hKb hoK,
+        hKb, by simpa only [hol, Option.getD_some] using hKslot, hBK⟩
+  refine ⟨(Gen.AC.Root.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
   -- Every stored label-r vote of the honest seat is its emitted HEAD.
   have hall : ∀ w ∈ GridCO.votesAt (storeAt p c E rho ip x).base r,
       GridCO.headSeat? w = some k → w = o := by
     intro w hw hwk
     obtain ⟨hwm, hwl⟩ := List.mem_filter.mp hw
-    exact fgsa_honest_head_eq_of_stored E rho hE ip x r k K _ hk hem w hwm
+    exact fgsa_honest_head_eq_of_stored E rho hE ip x r k K.root _ hk hem w hwm
       (by simpa only [beq_iff_eq] using hwl) hwk
   have hvat : FGSA.proposerVotes st (r + 1) = GridCO.votesAt (storeAt p c E rho ip x).base r := by
     change GridCO.votesAt st.base (r + 1 - 1) = _
@@ -198,10 +206,11 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
   cases he : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho ip x).base r) k with
   | false => rfl
   | true =>
-    obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
+    obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (Gen.AC.Root.cap_pair _ k).mp he
     exact absurd ((hall a ha hka).trans (hall b hb hkb).symm) hne
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME resolved non-equivocating honest seat in the frozen HEAD pool.
 The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
@@ -217,7 +226,7 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     (hFHeads : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K →
       Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) K)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest) :
-    Gen.AC.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
+    Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1))).base.blocks
       (FGSA.headSupport p (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1))) (i + 1)) k B = true ∧
@@ -298,9 +307,9 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
   have hcutd : dl (SA.voteTime p.toParams i) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K
+  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K.root
     (SA.voteTime p.toParams i) z y hD hk hem hy hcutd (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head i) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head i) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams i)) ≤ iy :=
     healing_support_idxBefore_le p c E rho hS hiy (hdle.trans hvi)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -322,7 +331,10 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
       (hFHeads z hk K hhl)
   have hol : GridCO.headLabel? o = some i := rfl
   have hok : GridCO.headSeat? o = some k := rfl
-  have hoK : GridCO.headTarget? o = some K := rfl
+  have hoK : GridCO.headTarget? o = some K.root := rfl
+  have hresolve := actView_resolve_target p dst hinv
+    (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho iy y)))
+    o ((actView_blocks dst K).mpr ⟨hKb, hFK⟩) hoK
   -- The vote is in the frozen support arm and supports B.
   have hsupp : o ∈ FGSA.headSupport p dst (i + 1) := by
     change o ∈ List.eraseDups (_ ++ _)
@@ -332,33 +344,33 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     refine ⟨List.mem_filter.mpr ⟨hod, ?_⟩, ?_⟩
     · simpa only [Nat.add_sub_cancel, hol] using beq_self_eq_true (some i)
     · unfold GridCO.resolvedBefore
-      rw [hoK]
-      simp only [Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown, Nat.add_sub_cancel,
+      rw [hresolve]
+      simp only [Bool.and_eq_true, decide_eq_true_eq, Nat.add_sub_cancel,
         hol, Option.getD_some]
-      exact ⟨⟨⟨(actView_blocks dst K).mpr ⟨hKb, hFK⟩, hKslot⟩, hstampv⟩, hKst⟩
-  have hvs : Gen.AC.voteSupports dst.base.blocks B o = true := by
-    rw [Gen.AC.voteSupports_def, hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some]
-    exact ⟨⟨hKb, hKslot⟩, hBK⟩
-  refine ⟨(Gen.AC.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
+      exact ⟨⟨hKslot, hstampv⟩, hKst⟩
+  have hvs : Gen.AC.Root.voteSupports dst.base.blocks B o = true := by
+    exact (Gen.AC.Root.vote_support_body _ _ _).mpr
+      ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p _ hinv) o hKb hoK,
+        hKb, by simpa only [hol, Option.getD_some] using hKslot, hBK⟩
+  refine ⟨(Gen.AC.Root.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
   -- Every stored label-i vote of the honest seat is its emitted HEAD.
   have hall : ∀ w ∈ GridCO.votesAt (storeAt p c E rho iy y).base i,
       GridCO.headSeat? w = some k → w = o := by
     intro w hw hwk
     obtain ⟨hwm, hwl⟩ := List.mem_filter.mp hw
-    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K _ hk hem w hwm
+    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K.root _ hk hem w hwm
       (by simpa only [beq_iff_eq] using hwl) hwk
   have hnoeq : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k = false := by
     cases he : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k with
     | false => rfl
     | true =>
-      obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
+      obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (Gen.AC.Root.cap_pair _ k).mp he
       exact absurd ((hall a ha hka).trans (hall b hb hkb).symm) hne
   cases he : GridCO.equivocates (FGSA.headVotes p dst (i + 1)) k with
   | false => rfl
   | true =>
     exfalso
-    obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
+    obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (Gen.AC.Root.cap_pair _ k).mp he
     have hprov := fgsa_headVotes_provenance E rho hE hN iy y i hiy
     have hone : ∀ w ∈ FGSA.headVotes p dst (i + 1), GridCO.headSeat? w = some k → w = o := by
       intro w hw hwk

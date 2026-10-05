@@ -126,7 +126,7 @@ private theorem rowPermission_write_lock (Λ : RecordOnce) (o : Obj p)
       | fg =>
         cases msg with
         | head B => exact Or.inl hl
-        | proposal B raw sup rows => exact Or.inl hl
+        | proposal N => exact Or.inl hl
         | row body =>
           change (record_row Λ.toRecord (body.toRow seat)).lock h = some T at hl
           rw [KitFG.record_row_lock] at hl
@@ -234,7 +234,8 @@ private theorem rowPermission_record_carrier
   rw [FGSA.clock_fg] at hK
   exact ⟨K, (fgsa_store_cumulative p c E rho hnr hji.le x).1 hK, hk, ht⟩
 
-/-- IF.3(b), blueprint 21:1115–1137: the actual post-clock lock cannot name
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+IF.3(b), blueprint 21:1115–1137: the actual post-clock lock cannot name
 another entry of an in-band source. The current pair uses the W head fields.
 The Base₂ and fault premises are fields of HealingPrem. PhaseInterval supplies
 no extra record assumption; the result holds at every such post-clock read.
@@ -332,7 +333,8 @@ private theorem rowPermission_pair_of_lock (Λ : Record) (h : Height) (T : Block
       simp only [ite_true]
       rw [namedEntry_def]
 
-/-- The IF.3(b) permission conclusion for the selected action source.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The IF.3(b) permission conclusion for the selected action source.
 DC: INTENTIONAL W head fields and the actual post-clock record; SAME computed
 height-pair conclusion as fixedRootWindowRows_of_source (DC:879).
 Blueprint 21:1120–1137; spec client height_pair. This theorem makes no claim
@@ -535,14 +537,15 @@ private theorem rowPermission_sent_origin (ls : List (Obj p)) (Λ : RecordOnce)
           | fg =>
             cases msg with
             | head B => exact Or.inl hold
-            | proposal B raw sup rows => exact Or.inl hold
+            | proposal N => exact Or.inl hold
             | row body =>
               rcases List.mem_cons.mp hold with he | hm
               · exact Or.inr ⟨seat, body, List.mem_cons_self, he.symm⟩
               · exact Or.inl hm
     · exact Or.inr ⟨seat, body, List.mem_cons_of_mem _ hm, hb⟩
 
-/-- SO-COV at one awake action: the in-band source has a complete matching
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+SO-COV at one awake action: the in-band source has a complete matching
 emission at this action or an earlier one. The permission is derived from
 Base₂ and the recovery fault bound. Blueprint 21:1120–1137 and 22 SO-COV;
 spec client:1672–1679. DC: INTENTIONAL earlier-or-current coverage under the
@@ -594,7 +597,8 @@ theorem rowPermission_covered [Fintype V]
       refine ⟨j, rSent, ⟨.seat .fg seat, body⟩, hr, ⟨hx, hj, hem⟩, ?_⟩
       exact (congrArg (fun b => namedEntry b.1) he).trans hn
 
-/-- RowPermissionAt in heightView form under HealingPrem. No client permission
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+RowPermissionAt in heightView form under HealingPrem. No client permission
 premise is added. The phase is needed only for its horizon bound; the live
 in-band theorem gives the stronger local result. Blueprint 21 H.7 / H.9,
 IF.3(b), SO-COV. DC: INTENTIONAL live W execution and send-once coverage.

@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
@@ -15,7 +17,8 @@ open AvailableChain.SimplexFG Gen.Pure
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.18:3049–3103, H0 proof:3373–3374; plan J7 A.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.18:3049–3103, H0 proof:3373–3374; plan J7 A.
 DC: SAME source-to-parent transfer. Named TCarrier producer: J3 rest.
 The actual fresh source has height M+1; its parent prefix gives C* ⪯ Q*. -/
 theorem healing_sourcePrefix {w : HealingWitness}
@@ -33,7 +36,8 @@ theorem healing_sourcePrefix {w : HealingWitness}
     change (decide (P = Block.node P s root b) || Block.preceq P P) = true
     exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
 
-/-- Blueprint 21 H.18:3097–3100; plan J7 B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3097–3100; plan J7 B.
 DC: SAME t_(s*+1) < t_s implies s*+2 ≤ s on the 4Δ proposal grid. -/
 theorem healing_proposal_grid_lower (w : HealingWitness) {s : Slot}
     (hstrict : SA.proposalTime p.toParams (w.sStar + 1) <
@@ -45,7 +49,8 @@ theorem healing_proposal_grid_lower (w : HealingWitness) {s : Slot}
   have hnat : w.sStar + 1 < s := by exact_mod_cast hcast
   exact Nat.succ_le_of_lt hnat
 
-/-- Blueprint 21 H.18:3057–3059,3097–3100; plan J7 B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3057–3059,3097–3100; plan J7 B.
 DC: SAME d_s ≤ a_(r*)+Γ+4Δ, from the strict proposal-grid trigger. -/
 theorem healing_firstProposal_deadline {w : HealingWitness}
     (hreset : H0Reset p c E rho w) (G : Time) {s : Slot}
@@ -61,7 +66,8 @@ theorem healing_firstProposal_deadline {w : HealingWitness}
   push_cast at hupper
   linarith
 
-/-- Blueprint 21 H.18:3097–3100, H.22:3239–3241; plan J7 B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3097–3100, H.22:3239–3241; plan J7 B.
 DC: SAME first actual honest proposal, selected by Nat.find.
 The local horizon a_(r*)+Γ+4Δ ≤ horizon contains the full gap window and gate.
 Recovery₂ supplies the gap, awake proposer, valid schedule, and Γ=G. -/
@@ -124,7 +130,8 @@ theorem healing_firstProposal [Fintype V] {G ΔF : Time}
       proposal_first := hfirst
       after_gst := hgst }
 
-/-- Blueprint 21 H0 proof:3371–3374, H.22:3229–3241; plan J7 C.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H0 proof:3371–3374, H.22:3229–3241; plan J7 C.
 DC: SAME reset data; only u and QStar change. Named TCarrier producer: J3 rest. -/
 theorem healing_h0_of [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
@@ -137,7 +144,8 @@ theorem healing_h0_of [Fintype V] {G ΔF : Time}
   exact ⟨u, Q, PostResetStart.toH0 p c E rho start
     (healing_sourcePrefix p c E rho tCarrier start.toH0Reset start), htime⟩
 
-/-- Blueprint 21 H.18:3061, H.22 H4; plan J7 D, first clause.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3061, H.22 H4; plan J7 D, first clause.
 DC: SAME stable output at d_u. Named H3 producer: J6-3 PostResetService/opening_domain. -/
 theorem healing_h4_stable {w : HealingWitness} (start : PostResetStart p c E rho w)
     (h3 : H3 p c E rho w) (hhor : tstar p w ≤ rho.horizon) :
@@ -146,7 +154,8 @@ theorem healing_h4_stable {w : HealingWitness} (start : PostResetStart p c E rho
   intro x hx
   exact (h3 w.u w.QStar start.proposal start.proposal_lower).2 hhor x hx |>.2.2.2.1
 
-/-- Blueprint 21 H.18:3061, H.22 H4; plan J7 D, first clause via carrier.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3061, H.22 H4; plan J7 D, first clause via carrier.
 DC: SAME service cut. Named PostResetService producer: J6-3/opening_domain. -/
 theorem healing_h4_stable_of_service {w : HealingWitness}
     (start : PostResetStart p c E rho w)
@@ -158,7 +167,8 @@ theorem healing_h4_stable_of_service {w : HealingWitness}
     (healing_postReset_exactService E rho w rho.events.length le_rfl service) hhor
 
 omit [DecidableEq V] in
-/-- Blueprint 21 H.18:3079–3093; plan J7 D, event cut.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3079–3093; plan J7 D, event cut.
 DC: SAME a healing cut is before the strict cut at each later time. -/
 private theorem healed_cut_lt {a b : Time} (hab : a < b) :
     healStart p c rho a ≤ V2.D.Run.idxBefore rho b := by
@@ -176,7 +186,8 @@ private theorem healed_cut_lt {a b : Time} (hab : a < b) :
     exact decide_eq_true (hea.trans_lt hab)
   · exact decide_eq_true ((of_decide_eq_true he).trans_lt hab)
 
-/-- Blueprint 21 H.18:3076–3093; plan J7 D, cross-node finality clause.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3076–3093; plan J7 D, cross-node finality clause.
 DC: SAME coverage at every suffix event prefix, including old finalizations.
 Named H2A producer: J3 rest. Named PostResetInv producer: the joint induction
 PostResetInv ∧ ResetLeaseCompatible ∧ OpeningDomain. No standalone induction is used. -/
@@ -249,7 +260,8 @@ theorem healing_h4_crossBelow [Fintype V] {G ΔF : Time}
       exact block_preceq_trans hFC
         ((h2A z r C hrow.1 hsource hhigh).2 i y hy (hdeadline.le.trans htime) ⟨hcut, hi.2⟩)
 
-/-- Blueprint 21 H.18:3062–3067; plan J7 D, different raw labels.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3062–3067; plan J7 D, different raw labels.
 DC: SAME low-support results have an honest supporter.
 Named H5RawTransfer producer: J5-A. Its HEAD clause covers the earlier result. -/
 private theorem healed_raw_later [Fintype V] {G ΔF : Time}
@@ -271,7 +283,7 @@ private theorem healed_raw_later [Fintype V] {G ΔF : Time}
   have hmajority := healing_slow_majority E rho hs ht hD (block_preceq_refl D)
   obtain ⟨k, o, hk, ho, hseat, hsup⟩ :=
     healing_slow_honest_seat E rho hrec hgst hhor hy ht hmajority
-  obtain ⟨_, _, _, _, _, hvote, hlabel⟩ := healing_support_clean_target E rho o ho
+  obtain ⟨K, hK, hKm, _, _, hvote, hlabel⟩ := healing_support_clean_target E rho o ho
   obtain ⟨j, hj, htarget⟩ :=
     healing_support_honest_head E rho hrec.base.valid hvote hlabel hseat hk
   let H := headVote p (FGSA.clock p
@@ -282,11 +294,20 @@ private theorem healed_raw_later [Fintype V] {G ΔF : Time}
     rfl
   have hCH := (h5 x r C hx hr hC).2.1 _ s H hk (Nat.succ_le_of_lt hrs) hhead
   have hDH : Block.Preceq D H := by
-    rw [Gen.AC.voteSupports_def, htarget] at hsup
-    exact (Bool.and_eq_true_iff.mp hsup).2
+    have hlookup : Gen.AC.Root.resolvedTarget?
+        (actView (clockPre p (storeAt p c E rho i y)
+          (SA.gateTime p.toParams s))).blocks o = some K :=
+      actView_target_of_resolvedHead p _
+        (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho i y) _) o hK
+    rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup
+    have heq : K = H := stored_eq_headVote E rho hrec.base.idealization i y hKm j
+      (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) s
+      (Option.some.inj ((resolvedHead_root _ o hK).symm.trans htarget))
+    exact heq ▸ (Bool.and_eq_true_iff.mp hsup).2
   exact block_compatible_of_common hCH hDH
 
-/-- Blueprint 21 H.18:3062–3067; plan J7 D, raw-result chain.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3062–3067; plan J7 D, raw-result chain.
 DC: SAME all nonempty honest raw results at post-reset labels are compatible.
 Named H5RawTransfer producer: J5-A. Equal labels use IF.6; different labels use
 the earlier result's protected HEAD at the later result's honest supporter. -/
@@ -315,14 +336,16 @@ theorem healing_h4_rawCompatible [Fintype V] {G ΔF : Time}
       linarith [p.deltaPos]
     have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
       (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hgst hdeadline hhor
-    exact fgsa_sameLabel p c E rho hrec.base.valid hrec.base.noRestart hrec.base.delta
+    exact fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
+        hrec.base.noRestart hrec.base.delta
       r hsync x y C D hx hy hC hD
   · have h := healed_raw_later p c E rho hrec hreset h5 hy hx hs hgt hD hti hC
     change (Block.preceq C D || Block.preceq D C) = true
     change (Block.preceq D C || Block.preceq C D) = true at h
     rwa [Bool.or_comm]
 
-/-- Blueprint 21 H.18:3076–3093; plan J7 D, reset output coverage.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3076–3093; plan J7 D, reset output coverage.
 DC: SAME C* is in every suffix output. Named H2A producer: J3 rest. -/
 private theorem healed_reset_below [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
@@ -352,7 +375,8 @@ private theorem healed_reset_below [Fintype V] {G ΔF : Time}
     ((preIdx_le_afterTicksIdx E rho hrec.base.valid.toScheduleWellFormed (tstar p w)).1.trans
         (hstart ▸ hi.1)), hi.2⟩
 
-/-- Blueprint 21 H.18:3076–3095; plan J7 D, reconciliation case.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3076–3095; plan J7 D, reconciliation case.
 DC: SAME a delivered finalization is below the output before its delivery.
 Named H2A producer: J3 rest. Named PostResetInv producer: the joint induction
 PostResetInv ∧ ResetLeaseCompatible ∧ OpeningDomain. -/
@@ -422,7 +446,8 @@ private theorem healed_reconcile_below [Fintype V] {G ΔF : Time}
       exact block_preceq_trans hFC
         ((h2A z r C hrow.1 hsource hhigh).2 i x hx (hdeadline.le.trans htime) ⟨hcut, hi.2⟩)
 
-/-- Blueprint 21 H.18:3049–3095; plan J7 D, full H4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3049–3095; plan J7 D, full H4.
 DC: SAME cross-time chain, local monotonicity, and cross-node finality coverage.
 Named H2A producer: J3 rest; H3/PostResetService/opening_domain: J6-3;
 H5RawTransfer: J5-A; PostResetInv: the joint induction
@@ -486,12 +511,12 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G Δ
         | some C =>
           by_cases hguard : ∀ lease ∈ ((fgsaAC E rho).gateView i x s).obligations,
               Block.Compatible (Gen.AC.Lease.target lease) C
-          · have hrawEq : SA.confirmationFrom p.toParams
+          · have hrawEq : SA.Root.confirmationFrom p.toParams
                 (eraseFG (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)).fg.F)
                 (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s =
                 (fgsaAC E rho).raw i s x := by
               rw [clockPre_fg]
-              have heq := congrArg (fun v => SA.confirmationFrom p.toParams
+              have heq := congrArg (fun v => SA.Root.confirmationFrom p.toParams
                 (eraseFG (storeAt p c E rho i x).fg.F) v s)
                 (fgsa_clockPre_gateView p (storeAt p c E rho i x) s)
               exact heq
@@ -566,7 +591,8 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G Δ
           (step j hsuffix (allOrigin j hsuffix) x hx).1
     exact mono j hij hj.2
 
-/-- Blueprint 21 H.18:3097–3101; plan J7 E, grid step.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3097–3101; plan J7 E, grid step.
 DC: SAME d_u ≤ t_s gives u ≤ s, since t_s=4Δs and d_u=4Δu+6Δ. -/
 theorem healing_healed_proposal_lower (w : HealingWitness) {s : Slot}
     (hafter : tstar p w ≤ V2.D.proposalTime (fgsaInterface p c) s) : w.u ≤ s := by
@@ -575,7 +601,8 @@ theorem healing_healed_proposal_lower (w : HealingWitness) {s : Slot}
   have hcast : (w.u : Int) ≤ s := by nlinarith [p.deltaPos]
   exact_mod_cast hcast
 
-/-- Blueprint 21 H.18:3049–3103; plan J7 E.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3049–3103; plan J7 E.
 DC: SAME safety suffix and later honest proposal service.
 Named H3 producer: J6-3 PostResetService/opening_domain. H4 is the J7 D input.
 PostResetStart supplies the label lower bound for H3 at all later proposal times. -/
@@ -592,7 +619,8 @@ theorem healing_healed {w : HealingWitness} (start : PostResetStart p c E rho w)
     rw [(h3 s B hp hs).2 hgate x hx |>.2.2.2.1]
     exact block_preceq_refl B
 
-/-- Blueprint 21 H.11:1572–1595, H.22:3229–3241; plan J7 B (lead review nit 1).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.11:1572–1595, H.22:3229–3241; plan J7 B (lead review nit 1).
 DC: SAME first reset row: rG, u₀, M and r* are unique, so two reset witnesses agree on r*. -/
 theorem healing_reset_rStar_unique {w w' : HealingWitness}
     (h : H0Reset p c E rho w) (h' : H0Reset p c E rho w') : w.rStar = w'.rStar := by
@@ -604,7 +632,8 @@ theorem healing_reset_rStar_unique {w w' : HealingWitness}
   have hrow' : HeightRow p c E rho w.rStar (w'.M + 1) := by rw [← hM]; exact h.reset_row
   exact le_antisymm (h.reset_first _ hrow) (h'.reset_first _ hrow')
 
-/-- Blueprint 21 H.18:3097–3100; plan J7 B, ∀-w form (lead review nit 1).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3097–3100; plan J7 B, ∀-w form (lead review nit 1).
 DC: SAME deadline for every full witness: by proposal_first its slot u is at most
 the first proposal that healing_firstProposal builds from the same reset data. -/
 theorem healing_tstar_le_of_h0 [Fintype V] {G ΔF : Time}
@@ -619,7 +648,8 @@ theorem healing_tstar_le_of_h0 [Fintype V] {G ΔF : Time}
   change 4 * p.Δ * (u : Int) + 6 * p.Δ ≤ _ at htime
   nlinarith
 
-/-- Blueprint 21 H.11, H.18:3097–3100; plan J7 B; producer of J10's named `timeBound`
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.11, H.18:3097–3100; plan J7 B; producer of J10's named `timeBound`
 (the second conjunct of HealingInputOfH0Statement). Named input: ResetArrivalStatement
 (producer: J8 H-RESET). DC: SAME a_(r*) < GST + B'_reset^F for the unique reset row. -/
 theorem healing_timeBound_of_resetArrival (G ΔF : Time)

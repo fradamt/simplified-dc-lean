@@ -9,7 +9,8 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 open Gen.Pure
 
-/-- P3 F1b.8, G31; 21 H.13–H.14; GLY F-25. Class (iii), composition.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F1b.8, G31; 21 H.13–H.14; GLY F-25. Class (iii), composition.
 DC: FGRootWitness.lean:548 `fgRoot_compatible_of_bootstrap_and_recentActions_at_read`
 is a root-compatibility ingredient, not an FJ retention theorem.
 INTENTIONAL: FJ uses the duty's X and its witness W (F-25).
@@ -67,7 +68,8 @@ theorem kept_or_conflict (p : Params) {In V : Type} [DecidableEq V]
     · exact Or.inr (cause _ (by simp) hZ)
   · exact Or.inr (cause _ (by simp) hF)
 
-/-- P3 F1b.8, G31; 21 H.13–H.14; GLY F-25. Class (iii), composition.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F1b.8, G31; 21 H.13–H.14; GLY F-25. Class (iii), composition.
 DC: FGRootWitness.lean:548 `fgRoot_compatible_of_bootstrap_and_recentActions_at_read`
 is a root-compatibility ingredient, not an FJ retention theorem.
 INTENTIONAL: FJ uses the duty's X and its witness W (F-25).
@@ -92,7 +94,8 @@ theorem kept_or_cause (p : Params) {In V : Type} [DecidableEq V]
     simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
       using hc
 
-/-- F1b.5a closure at a later pivot in the same FG-SA duty domain.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+F1b.5a closure at a later pivot in the same FG-SA duty domain.
 DC: Goldfish/Walk.lean:433 `ghost_reaches` uses a path in its tree.
 INTENTIONAL: this local corollary moves FJ filtered closure from A to T
 for F1b.8 (21 H.17); it adds no generic walk declaration. -/
@@ -104,7 +107,8 @@ theorem fgsa_domain_anchorClosed_mono (p : Params) (st : State p.n)
   intro B hB hTB C hTC hCB
   exact hclosed B hB (block_preceq_trans hAT hTB) C (block_preceq_trans hAT hTC) hCB
 
-/-- ROOT-DIGEST W2. P3 F1b.8, G33; class (iii), conditional pivot composition.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2. P3 F1b.8, G33; class (iii), conditional pivot composition.
 DC: ProposalWalkTransportCore.lean:162 `ghost_transport_of_source` and
 Goldfish/Walk.lean:433 `ghost_reaches`. INTENTIONAL: FJ uses a common pivot,
 not equal live roots (21 H.17:2798–2825). This theorem applies to each target read.
@@ -128,7 +132,7 @@ apply `hstart` separately to each compared store. Closure is also not needed onc
 This local result does not produce ExactService or identify a scheduled HEAD read. -/
 theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
     (Y : Finset (FGBlock (Fin p.n)))
-    (raw support : List (GridCO.Wire p.n)) (T P Q : Block)
+    (raw support : List (GridCO.Wire p.n .root)) (T P Q : Block)
     (hroot : ∀ A ∈ erasedList st (domainR p st Y),
       ∀ B ∈ erasedList st (domainR p st Y), A.root = B.root → A = B)
     (hstart : (Block.Preceq (liveRoot p st) T ∧
@@ -189,14 +193,15 @@ theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
     intro D hD hpD helD hne
     exact (hne (honly D hD (hpD.trans hp) helD)).elim
 
-/-- ROOT-DIGEST W2. Lower-start corollary with target-tree root uniqueness.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2. Lower-start corollary with target-tree root uniqueness.
 DC: ProposalWalkTransportCore.lean:162 and Goldfish/Walk.lean:433.
 INTENTIONAL: S1b E1's lower branch and the original G11 suppliers derive the
 ancestry premise of `exactHead_of_pivot_ancestry` (21 H.17:2820–2825).
 `hclosed` is retained for source compatibility; the generalized proof does not need it. -/
 theorem exactHead_of_pivot (p : Params) (st st' : State p.n)
     (X Y : Finset (FGBlock (Fin p.n)))
-    (raw support raw' support' : List (GridCO.Wire p.n)) (T P Q : Block)
+    (raw support raw' support' : List (GridCO.Wire p.n .root)) (T P Q : Block)
     (hroot : ∀ A ∈ erasedList st' (domainR p st' Y),
       ∀ B ∈ erasedList st' (domainR p st' Y), A.root = B.root → A = B)
     (hAT : Block.Preceq (liveRoot p st) T) (hAT' : Block.Preceq (liveRoot p st') T)

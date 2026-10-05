@@ -32,7 +32,8 @@ variable [Fintype V]
 
 include hrec hreset cap rowCovered
 
-/-- Blueprint 21 H.17:3031–3040; plan RE-BIND D5 O1; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3031–3040; plan RE-BIND D5 O1; ruling R3.
 DC: SAME the opening-domain step, from the prior PostResetInv and opening cut.
 Producer: healing_postReset_openingDomain_step_at; cone from the successor cut. -/
 theorem healing_postReset_openingDomainStep₂
@@ -44,7 +45,8 @@ theorem healing_postReset_openingDomainStep₂
     xing origin i (fun v hv => postResetConeAt_of_cut p c E rho w hcone
       (hv.trans (Nat.le_succ i))) hinv.high_compatible hinv.fprov hinv.raw_transfer hod
 
-/-- Blueprint 21 H.17:3021–3040; plan RE-BIND D5 O2; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3021–3040; plan RE-BIND D5 O2; ruling R3.
 DC: SAME the service step, from the successor F provenance, raw transfer and
 opening cut. Producer: healing_postReset_service_step_at at i + 1; cone from that cut. -/
 theorem healing_postReset_serviceStep₂
@@ -53,16 +55,17 @@ theorem healing_postReset_serviceStep₂
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (i : Nat) :
     PostResetServiceStep₂ p c E rho w i := by

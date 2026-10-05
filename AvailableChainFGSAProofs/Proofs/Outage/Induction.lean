@@ -36,7 +36,8 @@ private theorem bounded_tCompat (hs : V2.D.ScheduleWellFormed E rho)
   obtain ⟨k, hk⟩ := ht
   exact hist.history k x r C ((Gen.V2.Duty.index_lt_idxBefore_iff hs hk _).mpr hr) hx hk hC
 
-/-- Blueprint 03 §8.1; O-INDUCT plan §2 handoff. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.1; O-INDUCT plan §2 handoff. Class (iii).
 DC: INTENTIONAL; all old sources, including the pending action at d,
 are compatible with B. The real ArmingCert fields give the two cases.
 INLINE htsrc: sourceDiscipline_tSrc. -/
@@ -66,7 +67,8 @@ theorem outage_arming_sources (hs : V2.D.ScheduleWellFormed E rho)
     rw [hGC] at hXG
     exact block_compatible_of_common (hXG X hXm) (block_preceq_trans hc.max_read hDCj)
 
-/-- Blueprint 03 §8.1; O-INDUCT plan §2 all-ticks cut. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.1; O-INDUCT plan §2 all-ticks cut. Class (iii).
 DC: INTENTIONAL; ticks at the pending gate emit no HEAD or proposal,
 so the post-pending duty history is empty at the seed. -/
 theorem outage_arming_duties (hvalid : V2.D.ExecutionValid E rho) (j : Slot) (B : Block) :
@@ -81,7 +83,7 @@ theorem outage_arming_duties (hvalid : V2.D.ExecutionValid E rho) (j : Slot) (B 
   · intro H hH
     obtain ⟨s, _, _, _, he, _, _⟩ := arming_emit_head hvalid hy ⟨k, htick, ho⟩ hH
     exact (arming_gate_ne_vote p j s (hte.symm.trans he)).elim
-  · intro X raw sup rows hX
+  · intro N hX
     obtain ⟨s, _, _, he, _, _⟩ := arming_emit_proposal hvalid hy ⟨k, htick, ho⟩ hX
     exact (arming_gate_ne_proposal p j s (hte.symm.trans he)).elim
 
@@ -104,7 +106,8 @@ variable (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
 set_option maxHeartbeats 1600000 in
 -- The joint event proof has several model-state reductions.
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamed in
-/-- ROOT-DIGEST W2b. Blueprint 03 §8.2–3; O-INDUCT plan §5. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §8.2–3; O-INDUCT plan §5. Class (iii).
 DC: INTENTIONAL; one joint induction on tick and delivery prefixes.
 The seeds have producers outage_arming_sources, outage_arming_duties,
 and pending_gate_lease_or_F. INLINE channels: Foundations active/frame,
@@ -117,7 +120,8 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
     (hseedLocal : ∀ y ∈ rho.honest,
       OutageProtection p B j (storeAt p c E rho (afterTicksIdx rho (SA.gateTime p.toParams j)) y))
     (hseedHeads : ∀ y o t (q : Fin p.n) H, y ∈ rho.honest → V2.D.Run.emits E rho y o t →
-      o.auth = .seat (.base (.head (j + 1))) q → o.payload = .head H → Block.Preceq B H)
+      o.auth = .seat (.base (.head (j + 1))) q → HeadTargetAtEmission p c E rho y o t H →
+          Block.Preceq B H)
     {i : Nat} (hI : afterTicksIdx rho (SA.gateTime p.toParams j) ≤ i)
     (hK : i ≤ V2.D.Run.idxBefore rho b₁)
     (hroots : NamedRootCollisionFree p c E rho)
@@ -186,7 +190,8 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
             SA.releaseThreshold p.toParams := by
         intro r hr
         have htick : rho.events[i]? = some (.tick x (SA.releaseTime p.toParams r)) := hr ▸ he
-        have hbound := outage_release_bound hvalid hnr hcstar hdelta htick (hr ▸ hdt)
+        have hbound := outage_release_bound (hroots := hroots) hvalid hnr hcstar hdelta htick
+            (hr ▸ hdt)
           hseedHeads (fun k y u a hk hy hdu htick ha =>
             (hduty.history k y u a hk hy hdu htick ha).1)
           (i + 1) x
@@ -249,8 +254,8 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
             · rw [hdom, hZ]
               exact hret
       have hduties : ∀ a ∈ V2.D.Run.emitsAt E rho i,
-          (∀ H, a.payload = .head H → Block.Preceq B H) ∧
-          (∀ C raw sup rows, a.payload = .proposal C raw sup rows → Block.Preceq B C.parent) := by
+          (∀ H, HeadTargetAtEmission p c E rho x a t H → Block.Preceq B H) ∧
+          (∀ N, a.payload = .proposal N → Block.Preceq B N.parent.erase) := by
         intro a ha
         constructor
         · intro H hH
@@ -270,7 +275,7 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
             linarith
           rw [hhead]
           exact outage_head_of_root p Q hroot hpos
-        · intro C raw sup rows hC
+        · intro N hC
           obtain ⟨s, k, _, _, hk, hparent⟩ := arming_emit_proposal hvalid hx ⟨i, he, ha⟩ hC
           have hki := fgsa_tick_unique E rho hs hk he
           subst k
@@ -296,6 +301,7 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
         rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hki | hki
         · exact hduty.history k y u a hki hy hdu htick ha
         · subst k
+          obtain ⟨rfl, rfl⟩ := V2.Event.tick.inj (Option.some.inj (htick.symm.trans he))
           exact hduties a ha
       refine ⟨hsource', hduty', outage_named_of_source_history (hroots := hroots) hβ hsource'
         hnamed, ?_⟩
@@ -330,7 +336,8 @@ variable (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
 
 omit [Fintype V] in
 include hvalid hnr hdelta hstore hframe hsrc hnamesFull in
-/-- ROOT-DIGEST W2b. Blueprint 03 §8.1; O-INDUCT plan §2. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §8.1; O-INDUCT plan §2. Class (iii).
 DC: INTENTIONAL; the selected-row adapter of the real O-ARM handoff.
 No field is added to ArmingData. INLINE names: Foundations emittedName. -/
 theorem outage_arming_local {fast : Bool} {T b₀ b₁ : Time} {B : Block} (hne : B ≠ .genesis)
@@ -351,7 +358,8 @@ theorem outage_arming_local {fast : Bool} {T b₀ b₁ : Time} {B : Block} (hne 
       (cstoreInv_stateBefore E rho _ y) hlease, hd⟩⟩
 
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamesFull in
-/-- ROOT-DIGEST W2b. Blueprint 03 §8.2–3; O-INDUCT plan §2, §5. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §8.2–3; O-INDUCT plan §2, §5. Class (iii).
 DC: INTENTIONAL; the joint induction is seeded by the landed ArmingCert.
 INLINE facts have the same producers as outage_event_induction. -/
 theorem outage_armed_induction {fast : Bool} {T b₀ b₁ : Time} {B : Block} (hne : B ≠ .genesis)
@@ -403,7 +411,8 @@ variable {fast : Bool} {T b₀ b₁ : Time} {B : Block} (hne : B ≠ .genesis)
     (hopen : SA.gateTime p.toParams (l + 1) < b₁) (hhor : b₁ ≤ rho.horizon)
 
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamesFull hne hc hopen hhor in
-/-- ROOT-DIGEST W2b. Blueprint 03 §8.3; O-INDUCT plan §3.4. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §8.3; O-INDUCT plan §3.4. Class (iii).
 DC: INTENTIONAL; the expanded finite source projection. Its type does
 not expose the private bounded compatibility predicate. -/
 theorem outage_source_history
@@ -421,7 +430,8 @@ theorem outage_source_history
   exact bounded_tCompat hvalid.toScheduleWellFormed (hhist _ hI le_rfl).1
 
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamesFull hne hc hopen hhor in
-/-- ROOT-DIGEST W2b. Blueprint 03 §8.2; O-INDUCT plan §9.1. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §8.2; O-INDUCT plan §9.1. Class (iii).
 DC: INTENTIONAL; the selected row survives every inclusive public read,
 including the delivery suffix at d. The strict deadline gives t < dl. -/
 theorem lease_or_F_persists
@@ -452,7 +462,8 @@ theorem lease_or_F_persists
         htb.trans_le (hc.end_lt_deadline.le.trans hd), hd, hret⟩
 
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamesFull hne hc hopen hhor in
-/-- ROOT-DIGEST W2b. Blueprint 03 §8.2–3; O-INDUCT plan §9.1. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §8.2–3; O-INDUCT plan §9.1. Class (iii).
 DC: INTENTIONAL; the exact expanded protected-read conclusion.
 Compatibility starts at zero; output and duties start at b₀; the selected
 lease starts at d. Every interval ends strictly before b₁. -/
@@ -462,8 +473,8 @@ theorem duties_and_outputs
     (∀ y t, y ∈ rho.honest → b₀ ≤ t → t < b₁ →
       Block.Preceq B (S_at p c E rho (timeIdx rho t) y)) ∧
     (∀ y t o, y ∈ rho.honest → b₀ ≤ t → t < b₁ → V2.D.Run.emits E rho y o t →
-      (∀ H, o.payload = .head H → Block.Preceq B H) ∧
-      (∀ X raw sup rows, o.payload = .proposal X raw sup rows → Block.Preceq B X.parent)) ∧
+      (∀ H, HeadTargetAtEmission p c E rho y o t H → Block.Preceq B H) ∧
+      (∀ N, o.payload = .proposal N → Block.Preceq B N.parent.erase)) ∧
     (∀ t y, 0 ≤ t → t < b₁ → y ∈ rho.honest →
       Block.Compatible B (F_at p c E rho (timeIdx rho t) y)) ∧
     (∀ t y, SA.gateTime p.toParams (l + 1) ≤ t → t < b₁ → y ∈ rho.honest →

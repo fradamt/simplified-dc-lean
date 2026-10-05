@@ -13,7 +13,8 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 
 variable (p : Params)
 
-/-- Paper 22:1993–1996, plan §6. A finality certificate at the latest justified height
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1993–1996, plan §6. A finality certificate at the latest justified height
 is that justification: both are entries of one height on one chain.
 DC: SAME entry geometry; INTENTIONAL: W certificate heights. -/
 theorem ktail_F_eq_J_of_heights (B : FGBlock (Fin p.n))
@@ -40,7 +41,8 @@ theorem ktail_F_eq_J_of_heights (B : FGBlock (Fin p.n))
     rw [hFe, hJe] at hplat
     exact hplat
 
-/-- Paper 22:1993–1996 (FT-Tail-W: "a common pending (h_K, K), K ⪰ U and h_K ≤ e, or an
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1993–1996 (FT-Tail-W: "a common pending (h_K, K), K ⪰ U and h_K ≤ e, or an
 already-finalized covering entry"), plan §1 step 3. The cover of the witness splits into
 the finalized arm and the pending arm. In the pending arm the latest key is above
 finality, is not at height zero, and is at least as high as U.
@@ -66,7 +68,8 @@ theorem ktail_witness_split (Q U : FGBlock (Fin p.n))
     rw [(fgJustificationLaws p).J_height Q hz] at hUh
     exact Or.inr ⟨hJ, hF, hlt, hUh⟩
 
-/-- Paper 22:2007–2009 (FT-Tail-W: "in the already-finalized case the chain retains and
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:2007–2009 (FT-Tail-W: "in the already-finalized case the chain retains and
 exposes the covering finalization"). The finalized arm propagates to every descendant.
 DC: SAME finality monotonicity. -/
 theorem ktail_finalized_propagates (Q X U : FGBlock (Fin p.n)) (hQX : FGBlock.Preceq Q X)
@@ -74,7 +77,8 @@ theorem ktail_finalized_propagates (Q X U : FGBlock (Fin p.n)) (hQX : FGBlock.Pr
     FGBlock.Preceq U (finalityView p X).F :=
   preceq_trans hU ((fgCertificateLaws p).finalized_mono hQX).2
 
-/-- Paper 22:1993–1996 and 1739–1754 (action head on the plateau), plan §1 step 4 and
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1993–1996 and 1739–1754 (action head on the plateau), plan §1 step 4 and
 §6 "mixed receiver states". A head on Q's height plateau keeps Q's latest key. Its own
 finality is either below that key (it names the key) or exactly at it, and then it has
 finalized the key itself. The two arms can differ between honest heads.
@@ -101,7 +105,8 @@ theorem ktail_head_dichotomy (Q H : FGBlock (Fin p.n)) (hQH : FGBlock.Preceq Q H
 variable {p} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
-/-- Paper 22:1997–2000, plan §2 "hrecord". At every honest action read of round r+1:
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1997–2000, plan §2 "hrecord". At every honest action read of round r+1:
 the FF2 guards at the witness key (h_j(Q), J(Q)) and freshness at e+1.
 DC: INTENTIONAL: H1 and QC origin; Assembly supplies RQCOrigin and the source names. -/
 theorem ktail_tail_record {G ΔF : Time} {pt : TailKernelPt p}
@@ -128,7 +133,8 @@ theorem ktail_tail_record {G ΔF : Time} {pt : TailKernelPt p}
     hx hW hhigh (ow.e + 1) (pt.r + 1) x hx (fun j r a h hr ha hh =>
       Nat.lt_succ_of_le (ow.rowsThroughOpening j x r a h (Nat.le_of_lt_succ hr) ha hh))
 
-/-- Paper 22:1993–1996, plan §1 step 4 and §6 (mixed receiver states). The actual action
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1993–1996, plan §1 step 4 and §6 (mixed receiver states). The actual action
 head of every honest node at round r+1 extends Q on its plateau and keeps Q's latest key.
 Its finality is below that key, or it has finalized the key itself. When the key is
 fresh (h_j(Q) = e) the second arm is impossible: held finality is below e.
@@ -138,7 +144,7 @@ theorem ktail_action_head_split {G ΔF : Time} {pt : TailKernelPt p}
     (hT : TailKernelPrem_W p c G ΔF E rho pt) (ow : TailOpeningWitness_W p c E rho ΔF pt)
     {x : V} (hx : x ∈ rho.honest) (nd : Node p)
     (hnd : postClock E rho x (p.actionTime (pt.r + 1)) = some nd)
-    (raw support : List (GridCO.Wire p.n)) (seats : Finset (Fin p.n)) (m : Nat)
+    (raw support : List (GridCO.Wire p.n .root)) (seats : Finset (Fin p.n)) (m : Nat)
     (hhead : FGSA.fgHead p nd.st = FGSA.getHead p nd.st raw support)
     (hcount : Gen.Pure.Batch seats.card m)
     (hbatch : WalkBatch p c rho nd.st ((pt.r + 1) * p.R + 1)
@@ -164,7 +170,8 @@ theorem ktail_action_head_split {G ΔF : Time} {pt : TailKernelPt p}
     ow.finalityThroughAction (k + 1) x H hcut1 ⟨hx, by rw [hread]; exact hH⟩
   exact ⟨H, hdec, hH, hQH, hHh, hT_h, hJ, hj, hfin, harm⟩
 
-/-- Paper 22:1997–2000, plan §2 "hfields". In the pending arm of the actual action head,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1997–2000, plan §2 "hfields". In the pending arm of the actual action head,
 the client head fields are the witness key with finality below it.
 DC: INTENTIONAL: the window head fields of the decoded head. -/
 theorem ktail_head_fields (st : State p.n) (H Q : FGBlock (Fin p.n))
@@ -178,7 +185,8 @@ theorem ktail_head_fields (st : State p.n) (H Q : FGBlock (Fin p.n))
   rw [FGSA.fgInputs_headFields p st H hdec, certificateHeadFields_def]
   exact ⟨hj, by rw [hJ], hlt⟩
 
-/-- Paper 22:1993–2000 (FT-Tail-W: "each honest identity sends the exact finality pair in
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1993–2000 (FT-Tail-W: "each honest identity sends the exact finality pair in
 its new higher-height row"), plan §1 steps 4–5 and §6. In the pending arm of the witness,
 either some honest action head of round r+1 has already finalized the witness key, or
 every honest seat releases a complete fresh row at height e+1 with Q's entry and the
@@ -261,7 +269,8 @@ theorem ktail_pending_rows {G ΔF : Time} {pt : TailKernelPt p}
       exact Nat.lt_succ_of_le
         (ow.rowsThroughOpening j _ r a h (Nat.le_of_lt_succ hr) ha hh)
 
-/-- Paper 22:2001–2005 (FT-Tail-W: "before the terminal z+κ carrier there is at most one
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:2001–2005 (FT-Tail-W: "before the terminal z+κ carrier there is at most one
 newer justification, at e+1 … K remains in two entries or is already covered"), plan §3.
 For an honest proposal X at the terminal slot, in the pending arm of the witness: Q is
 below X's parent, the parent height is e+1 or e+2, and the witness key is retained in the

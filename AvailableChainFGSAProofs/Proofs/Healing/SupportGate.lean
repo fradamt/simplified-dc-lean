@@ -9,27 +9,31 @@ covers B, the raw confirmation of each honest gate in the synchronous window cov
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-open Gen.AC
+open Gen.AC.Root
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21:709–715 (H.2 S1); plan H-SUPPORT §4 step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:709–715 (H.2 S1); plan H-SUPPORT §4 step 7.
 DC: SAME a HEAD that an honest seat emits is its HEAD read at that label. -/
 theorem healing_support_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (w : Slot) (q : Fin p.n) (K : Block) (t : Time)
-    (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head w)) q)
-      (ofHead p ⟨.seat (.head w) q, K⟩) t) :
+    (he : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head w)) q)
+      (ofHead p ⟨.seat (.head w) q, K.root⟩) t K) :
     headAtLabel p c E rho (rho.seatOf (.base (.head w)) q) w = some K := by
-  obtain ⟨j, hj, hem⟩ := he
+  have hObserver := he
+  obtain ⟨j, _, _, hj, hem, _, _⟩ := he
+  have hK := headTargetAtEmission_at_tick E rho hs hObserver hj rfl
   rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-  obtain ⟨_, ht, _, hK⟩ := (fgsa_emits_head E rho _ _ _ w q K).mp hem
+  obtain ⟨_, ht, _, _⟩ := (fgsa_emits_head E rho _ _ _ w q K.root).mp hem
   subst t
   change (postClock E rho _ (SA.voteTime p.toParams w)).map
     (fun nd => headVote p nd.st w) = some K
   rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hj]
   exact congrArg some hK.symm
 
-/-- ROOT-DIGEST W2b. Blueprint 21:709–733 (H.2 S1–S3), 02 §5.4:541; plan H-SUPPORT §4 steps 7–8.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:709–733 (H.2 S1–S3), 02 §5.4:541; plan H-SUPPORT §4 steps 7–8.
 DC: INTENTIONAL the covering-batch gate read. If every honest HEAD of label w covers B
 and the gate floor is at or below B, the raw confirmation of an honest gate at w covers
 B. The per-seat HEADs may differ (`fgsa_gate_batch_premises`); no exact HEAD is needed. -/
@@ -41,7 +45,7 @@ theorem healing_support_gate_cover [Fintype V] (E : Generic.Env V)
     {j : Nat} {y : V} (ht : IsGateTick p c rho j y w)
     (hFB : Block.Preceq (eraseFG (clockPre p (storeAt p c E rho j y)
       (SA.gateTime p.toParams w)).fg.F) B) :
-    ∃ C, SA.confirmationFrom p.toParams
+    ∃ C, SA.Root.confirmationFrom p.toParams
         (eraseFG (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w)).fg.F)
         (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))) w = some C ∧
       Block.Preceq B C := by
@@ -62,8 +66,8 @@ theorem healing_support_gate_cover [Fintype V] (E : Generic.Env V)
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgst hvd hhor
   have hcovK (q : Fin p.n) (hq : rho.seatOf (.base (.head w)) q ∈ rho.honest) (K : Block)
-      (t : Time) (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head w)) q)
-        (ofHead p ⟨.seat (.head w) q, K⟩) t) : Block.Preceq B K :=
+      (t : Time) (he : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head w)) q)
+        (ofHead p ⟨.seat (.head w) q, K.root⟩) t K) : Block.Preceq B K :=
     hcov _ hq K (healing_support_emitted_head (c := c) E rho hS w q K t he)
   have hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w)) w B :=

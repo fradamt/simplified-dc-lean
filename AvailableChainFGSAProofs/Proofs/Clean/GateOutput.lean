@@ -14,7 +14,8 @@ variable (p : Params) {In V : Type} (c : AppCodec In)
     [DecidableEq V] [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- P3 §§8.2, 8.7; bp02 §5.5 (567–592). Class B: this conditional
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §§8.2, 8.7; bp02 §5.5 (567–592). Class B: this conditional
 run theorem uses one fixed history and the actual FG-SA gate write.
 DC counterpart: Legacy/Definitions/SafetyRegimes.lean:61–75, confirmationFields
 and liveAtConfirmation. DIVERGES, INTENTIONAL: FG-SA has an optional raw
@@ -41,7 +42,7 @@ theorem clean_gateOutput_body (b₀ : Time) :
   rw [clockPre_fg] at hc
   have hview := fgsa_clockPre_gateView p (storeAt p c E rho j v) s
   have hraw : (fgsaAC E rho).raw j s v = some B := by
-    have hb := congrArg (fun w => SA.confirmationFrom p.toParams
+    have hb := congrArg (fun w => SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho j v).fg.F) w s) hview
     exact hb.symm.trans hc
   have hguard : ∀ lease ∈ ((fgsaAC E rho).gateView j v s).obligations,
@@ -90,7 +91,8 @@ theorem clean_gateOutput_body (b₀ : Time) :
     exact hresult
 
 
-/-- P3 §8.7 F2.7 S1; bp02 §5.5. The frozen conditional gate-output statement,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §8.7 F2.7 S1; bp02 §5.5. The frozen conditional gate-output statement,
 from `clean_gateOutput_body` through the first-unfold equation. DC counterpart:
 none for this FG-SA statement (the gate result is F-anchored and optional;
 spec/fgsa-protocol.tex:2500–2525); INTENTIONAL.

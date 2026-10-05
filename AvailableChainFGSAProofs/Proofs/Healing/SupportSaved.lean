@@ -14,7 +14,8 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 private theorem saved_proposal_genuine (q : GridCO.Params) {n : Nat}
-    (st : GridCO.State n) (o : GridCO.Wire n) (b : Block) (raw : List (GridCO.HeadWire n)) :
+    (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block) (raw : List
+        (GridCO.HeadWire n .root)) :
     (GridCO.admitProposal q st o b raw).genuine = st.genuine := by
   obtain ⟨auth, msg⟩ := o
   cases auth <;> unfold GridCO.admitProposal <;> dsimp only <;> split
@@ -31,29 +32,34 @@ private theorem saved_process (st : State p.n) (o : Wire p.n) (w : Slot) (C : Bl
     rwa [savedGenuine_congr (admitHead_genuine p st _ _ _)] at h
   · change GridCO.savedGenuine (admitRow p st _).base w = _ at h
     rcases admitRow_eq p st _ with he | he <;> rw [he] at h <;> exact h
-  · rename_i s b raw sup rows
-    change GridCO.savedGenuine (admitBlock p st s b raw sup rows).base w = _ at h
-    cases hp : parentFG st b with
-    | none =>
-      rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)] at h
+  · rename_i s N
+    change GridCO.savedGenuine (admitBlock p st s N).base w = _ at h
+    cases hn : namedParentHeld st N with
+    | false =>
+      rw [admitBlock_refused p st s N (Or.inl hn)] at h
       exact h
-    | some P =>
-      cases ha : blockAccepted p st s b raw sup P rows with
-      | false =>
-        rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)] at h
+    | true =>
+      cases hp : parentFG st N.erase with
+      | none =>
+        rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))] at h
         exact h
-      | true =>
-        obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s b raw sup P rows hp ha
-        rw [he] at h
-        dsimp only at h
-        split at h
-        · rwa [savedGenuine_congr (saved_proposal_genuine _ _ _ _ _)] at h
-        · rw [reconcile_savedGenuine] at h
-          obtain ⟨c', hc, hf⟩ := Option.map_eq_some_iff.mp h
-          have hc' : c' = some C := (Option.filter_eq_some_iff.mp hf).1
-          subst hc'
-          dsimp only at hc
-          rwa [savedGenuine_congr (saved_proposal_genuine _ _ _ _ _)] at hc
+      | some P =>
+        cases ha : blockAccepted p st s N P with
+        | false =>
+          rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))] at h
+          exact h
+        | true =>
+          obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s N P hn hp ha
+          rw [he] at h
+          dsimp only at h
+          split at h
+          · rwa [savedGenuine_congr (saved_proposal_genuine _ _ _ _ _)] at h
+          · rw [reconcile_savedGenuine] at h
+            obtain ⟨c', hc, hf⟩ := Option.map_eq_some_iff.mp h
+            have hc' : c' = some C := (Option.filter_eq_some_iff.mp hf).1
+            subst hc'
+            dsimp only at hc
+            rwa [savedGenuine_congr (saved_proposal_genuine _ _ _ _ _)] at hc
 
 private theorem saved_clock (st : State p.n) (t : Time) (w : Slot)
     (hne : t ≠ SA.gateTime p.toParams w) (C : Block)
@@ -80,7 +86,8 @@ private theorem saved_clock (st : State p.n) (t : Time) (w : Slot)
     · rwa [gateStep_saved p _ k (Option.isSome_iff_ne_none.mpr hk), normalizeS_fields] at h
   · exact hpre h
 
-/-- Blueprint 21:650–680 (H.4-S saved window); plan H-SUPPORT §5 step 1, G3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:650–680 (H.4-S saved window); plan H-SUPPORT §5 step 1, G3.
 DC: INTENTIONAL a non-empty saved result of label w at a later index is the raw result
 of the node's own gate at w. FG-SA saves the raw result once; a reconcile can only
 empty it (`reconcile_savedGenuine`). -/
@@ -130,7 +137,8 @@ theorem healing_saved_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       exact lt_irrefl _ (fgsa_tick_time_strict E rho hs hj he (by omega))
     exact hQk (saved_clock _ t w hne C h')
 
-/-- Blueprint 21:689–699; plan H-SUPPORT §3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:689–699; plan H-SUPPORT §3.
 DC: SAME a row that survives the clock before a tick is live at that tick. -/
 theorem healing_clockPre_live (st : State p.n) (t : Time) (row : Block × Nat × Time)
     (h : row ∈ (clockPre p st t).base.obligations) : t < row.2.2 := by

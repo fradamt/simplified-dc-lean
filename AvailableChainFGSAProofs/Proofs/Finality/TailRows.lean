@@ -23,14 +23,15 @@ private theorem ktail_clock_read (x : V) (t : Time) (nd : Node p)
 
 /-! ### Plateau action head with independent heights -/
 
-/-- Paper 22:1993–1996 (FT-Tail-W: "the cap and the action-head argument after Q0
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1993–1996 (FT-Tail-W: "the cap and the action-head argument after Q0
 give a common pending (h_K, K)"), plan §2 "Plateau head". The full action walk covers
 D. Under the source-height cap the head stays on D's plateau, so it keeps D's
 justification (hK, K) and entry. hK and K are free: no finality bound is imposed.
 DC: INTENTIONAL: height plateau; the finality split is separate (TailSplit). -/
 theorem ktail_plateau_action_head
     (k : Nat) (x : V) (q sourceH : Nat) (D : FGBlock (Fin p.n))
-    (nd : Node p) (raw support : List (GridCO.Wire p.n))
+    (nd : Node p) (raw support : List (GridCO.Wire p.n .root))
     (seats : Finset (Fin p.n)) (m : Nat)
     (hx : x ∈ rho.honest)
     (hnd : postClock E rho x (p.actionTime q) = some nd)
@@ -129,7 +130,8 @@ private theorem ktail_honestSeats_eq : honestSeats p c rho = by
     classical
     exact Finset.univ.filter (fun i => rho.seatOf (.base .fg) i ∈ rho.honest) := rfl
 
-/-- Paper 22:1997–2000 (FT-Tail-W: "fresh height e+1 ensures that send-once suppresses
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1997–2000 (FT-Tail-W: "fresh height e+1 ensures that send-once suppresses
 none. Each honest identity sends the exact finality pair in its new higher-height
 row"), plan §2 schema. Awake actions with a fresh source at sourceH and the pending head
 fields (hK, K) release complete rows: height sourceH with D's entry and finality pair
@@ -221,7 +223,8 @@ theorem ktail_fresh_rows
 
 /-! ### FF2 record guards with independent heights -/
 
-/-- Paper 22:1997–2000 (FT-Tail-W: "FF2 permits finality; fresh height e+1 ensures that
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1997–2000 (FT-Tail-W: "FF2 permits finality; fresh height e+1 ensures that
 send-once suppresses none"), plan §2 "hrecord". At the actual action read: the three FF2
 guards at the stored block's latest pair (hK, K), and freshness at sourceH. The key
 is bound to an honest source behind its justification QC, not to the Tail target.

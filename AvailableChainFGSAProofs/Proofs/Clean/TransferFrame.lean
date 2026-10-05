@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
@@ -22,19 +24,17 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In)
     [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-private theorem transfer_decode {o : Obj p} {b : Block}
-    (h : blockOf? p o = some b) :
-    ∃ u raw sup rows, (toWire p o).decode = some (.block u b raw sup rows) := by
-  change (match (toWire p o).decode with
-    | some (.block _ b _ _ _) => some b | _ => none) = _ at h
+private theorem transfer_decode {o : Obj p} {b : Block} (h : blockOf? p o = some b) :
+    ∃ u N, N.erase = b ∧ (toWire p o).decode = some (.block u N) := by
+  unfold blockOf? at h
   cases hd : (toWire p o).decode with
-  | none => rw [hd] at h; contradiction
+  | none => simp only [hd, reduceCtorEq] at h
   | some m =>
     cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
-    subst b
-    exact ⟨_, _, _, _, rfl⟩
+    exact ⟨_, _, h, rfl⟩
 
-/-- ROOT-DIGEST W2b. P3 F2.2, T7.8; bp02 §3.5 step 5 and §4.2. Class B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 F2.2, T7.8; bp02 §3.5 step 5 and §4.2. Class B.
 DC: Protocol/Schedule/AdoptionTransport.lean:509, acceptance-window boundary.
 INTENTIONAL: FG-SA uses each proposal's stored stamp and acceptance, not
 an honest supporting seat (spec/fgsa-protocol.tex:2506–2513).
@@ -48,8 +48,8 @@ theorem clean_transfer_source_acceptances
       SA.earlyTime p.toParams s)
     (hBK : Block.Preceq B K) :
     ∀ b, Block.Preceq b B → b ≠ .genesis →
-      ∃ l < i, ∃ t o u raw sup rows,
-        (toWire p o).decode = some (.block u b raw sup rows) ∧
+      ∃ l < i, ∃ t o u N, N.erase = b ∧
+        (toWire p o).decode = some (.block u N) ∧
         V2.D.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s := by
   intro b hb hne
   have hbK := block_preceq_trans hb hBK
@@ -69,7 +69,7 @@ theorem clean_transfer_source_acceptances
     positivity
   obtain ⟨j, hji, t, o, ho, ha, ht⟩ :=
     fgsa_block_accepted_before E rho hsch i x K _ hKg hpub hz hK hstamp
-  obtain ⟨u, raw, sup, rows, hdec⟩ := transfer_decode p ho
+  obtain ⟨u, N, heN, hdec⟩ := transfer_decode p ho
   have hpost := ha.2.2
   change processedS p (V2.D.Run.stateBefore E rho (j + 1) x).st o = true at hpost
   dsimp only [processedS] at hpost
@@ -79,7 +79,7 @@ theorem clean_transfer_source_acceptances
   have hx := hsch.honest_only _ (List.mem_of_getElem? hdelivery)
   have heK : eraseFG Kfg = K := rootBlockInRun_eq E rho hroots
     (rootScope_store hx hKfg) (rootBlockInRun_held E rho hx i hK)
-    ((eraseFG_root Kfg).trans hroot)
+    (by simpa only [← named_erase_root, heN] using (eraseFG_root Kfg).trans hroot)
   have hc := (storeBundle_stateBefore E rho (j + 1) x).cstore
   obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem hc.fg.closed hKfg (heK ▸ hbK)
   have hbm := (hc.baseTree b).mpr ⟨A, hA, heA⟩
@@ -89,10 +89,10 @@ theorem clean_transfer_source_acceptances
   subst b'
   rcases fgsa_block_stamp_source E rho (j + 1) x b stamp hmem with hg | ⟨l, hl, t', o', ho', ha', _⟩
   · exact (hne hg.1).elim
-  obtain ⟨u', raw', sup', rows', hd'⟩ := transfer_decode p ho'
+  obtain ⟨u', M, heM, hd'⟩ := transfer_decode p ho'
   obtain ⟨parent, hd, _⟩ := ha.1
   obtain ⟨parent', hd'', _⟩ := ha'.1
-  refine ⟨l, by omega, t', o', u', raw', sup', rows', hd', ha',
+  refine ⟨l, by omega, t', o', u', M, heM, hd', ha',
     (hsch.in_horizon _ (List.mem_of_getElem? hd'')).1, ?_⟩
   have htime : t' ≤ t := by
     by_cases heq : l = j
@@ -110,43 +110,16 @@ theorem clean_transfer_source_acceptances
       · exact le_of_eq heq
   exact htime.trans_lt ht
 
-private theorem transfer_early_support (v : GridCO.State p.n) (s : Slot) (a B : Block)
-    (h : SA.confirmationFrom p.toParams a v s = some B) :
+private theorem transfer_early_support (v : GridCO.State p.n .root) (s : Slot) (a B : Block)
+    (h : SA.Root.confirmationFrom p.toParams a v s = some B) :
     ∃ o K, o ∈ GridCO.cleanSupport p.toParams.engine v s ∧
-      GridCO.headTarget? o = some K ∧ K ∈ v.blocks ∧ Block.Preceq B K ∧
+      GridCO.resolvedHead? v o = some K ∧ K ∈ v.blocks ∧ Block.Preceq B K ∧
       GridCO.stampBlock v K < SA.earlyTime p.toParams s := by
-  have hscore : 0 < SA.prefixSupport p.toParams v s B := by
-    have hex : ∃ C, GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
-        2 * SA.prefixSupport p.toParams v s C ∧ some C = some B := by
-      change (if _ then some _ else none) = some B at h
-      split at h
-      · exact ⟨_, ‹_›, h⟩
-      · contradiction
-    obtain ⟨C, hc, he⟩ := hex
-    have := Option.some.inj he
-    subst C
-    omega
-  change 0 < GridCO.goldfishScore v.blocks (GridCO.cleanSupport p.toParams.engine v s)
-    (GridCO.cleanSupport p.toParams.engine v s) B at hscore
-  rw [Gen.AC.vote_pool_score_card] at hscore
-  simp only [fgsa_cleanSupport_no_equivocation p v s, Bool.false_or] at hscore
-  obtain ⟨seat, hseat⟩ := Finset.card_pos.mp hscore
-  obtain ⟨_, hs⟩ := Finset.mem_filter.mp hseat
-  obtain ⟨o, ho, _, hs⟩ := (Gen.AC.vote_pool_support_witness _ _ seat B).mp hs
-  rw [Gen.AC.voteSupports_def] at hs
-  cases he : GridCO.headTarget? o with
-  | none => simp only [he, Bool.false_eq_true] at hs
-  | some K =>
-    rw [he] at hs
-    have hb := Bool.and_eq_true_iff.mp hs
-    have hm := of_decide_eq_true (Bool.and_eq_true_iff.mp hb.1).1
-    have hres := (List.mem_filter.mp (List.mem_filter.mp ho).1).2
-    change GridCO.resolvedBefore v o _ = true at hres
-    dsimp only [GridCO.resolvedBefore] at hres
-    rw [he] at hres
-    exact ⟨o, K, ho, he, hm, hb.2, of_decide_eq_true (Bool.and_eq_true_iff.mp hres).2⟩
+  obtain ⟨o, K, ho, hr, hm, _, hp, ht⟩ := confirmation_support_body p v s a B h
+  exact ⟨o, K, ho, hr, hm, hp, ht⟩
 
-/-- ROOT-DIGEST W2b. P3 F2.2, T7.8; bp02 §3.5 step 5 and §4.2. Class B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 F2.2, T7.8; bp02 §3.5 step 5 and §4.2. Class B.
 DC: Protocol/Schedule/AdoptionTransport.lean:509, confirmation acceptance window.
 INTENTIONAL: the F-anchored raw result supplies an early resolved supporter;
 its seat and proposer need not be honest (spec/fgsa-protocol.tex:2506–2513). -/
@@ -157,8 +130,8 @@ theorem clean_transfer_gate_acceptances
     (hB : gateResultAt p c E rho i = some (some B))
     (hroots : NamedRootCollisionFree p c E rho) :
     ∀ b, Block.Preceq b B → b ≠ .genesis →
-      ∃ l < i, ∃ t o u raw sup rows,
-        (toWire p o).decode = some (.block u b raw sup rows) ∧
+      ∃ l < i, ∃ t o u N, N.erase = b ∧
+        (toWire p o).decode = some (.block u N) ∧
         V2.D.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s := by
   have hraw := Option.some.inj ((clean_gate_raw hsch ht).symm.trans hB)
   obtain ⟨o, K, _, _, hK, hBK, hstamp⟩ := transfer_early_support p _ s _ B hraw
@@ -277,8 +250,8 @@ private theorem transfer_coverage
     (hb₀ : b₀ ≤ rho.horizon) {i : Nat} {x y : V} {s : Slot} {B : Block}
     (hx : x ∈ rho.honest) (hcut : SA.freezeTime p.toParams s ≤ b₀)
     (hpath : ∀ b, Block.Preceq b B → b ≠ .genesis →
-      ∃ l < i, ∃ t o u raw sup rows,
-        (toWire p o).decode = some (.block u b raw sup rows) ∧
+      ∃ l < i, ∃ t o u N, N.erase = b ∧
+        (toWire p o).decode = some (.block u N) ∧
         V2.D.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s)
     (hF : ∀ j, j ≤ V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) →
       Block.Preceq (F_at p c E rho j y) B) :
@@ -299,7 +272,7 @@ private theorem transfer_coverage
       handles_wellFormed p c _ parent o hh (hE.wire l x parent t he), ?_⟩
     intro r a K hv
     have hn : blockOf? p o = none := by
-      change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
+      change (match (toWire p o).decode with | some (.block _ N) => some N.erase | _ => none) = _
       rw [hv]
     rw [hn] at hb
     contradiction
@@ -316,18 +289,19 @@ private theorem transfer_coverage
       subst K d
       refine ⟨block_preceq_refl B, le_rfl, ?_⟩
       intro b hb hne
-      obtain ⟨l, hl, t, o, u, raw, sup, rows, hd, ha, hz, ht⟩ := hpath b hb hne
+      obtain ⟨l, hl, t, o, u, N, heN, hd, ha, hz, ht⟩ := hpath b hb hne
       have ho : blockOf? p o = some b := by
-        change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
+        change (match (toWire p o).decode with | some (.block _ N) => some N.erase | _ => none) = _
         rw [hd]
-      refine ⟨o, t, u, raw, sup, rows, ⟨hz, ht, l, hl, ha, b, ho, hb⟩, hd, ?_⟩
+        exact congrArg some heN
+      refine ⟨o, t, u, N, heN, ⟨hz, ht, l, hl, ha, b, ho, hb⟩, hd, ?_⟩
       change t < 4 * p.Δ * (s : Int) + 2 * p.Δ at ht
       change t + p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
       linarith
-    · intro o t u b raw sup rows hr hd
+    · intro o t u N hr hd
       obtain ⟨_, _, l, hl, ha, b', hb', hBK⟩ := hr
-      have hb : blockOf? p o = some b := by
-        change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
+      have hb : blockOf? p o = some N.erase := by
+        change (match (toWire p o).decode with | some (.block _ N) => some N.erase | _ => none) = _
         rw [hd]
       have heq := Option.some.inj (hb'.symm.trans hb)
       subst b'
@@ -345,7 +319,8 @@ private theorem transfer_raw_lift (hsch : V2.D.ScheduleWellFormed E rho)
   obtain ⟨Bfg, _, he⟩ := (hc.baseTree B).mp hm
   exact ⟨Bfg, he⟩
 
-/-- ROOT-DIGEST W2b. P3 F2.2, T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 F2.2, T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
 DC: GSTZeroPreparedWalk.lean:546; AdoptionTransport.lean:442, receipt transport.
 INTENTIONAL: FG-SA uses the strict freeze read, per-proposal accepted relay,
 and the old-source F prefix (spec/fgsa-protocol.tex:2506–2513). The F-covered
@@ -406,7 +381,8 @@ theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch] at hh
   exact hh
 
-/-- ROOT-DIGEST W2b. P3 F2.2, T7.8/T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 F2.2, T7.8/T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
 DC: GSTZeroPreparedWalk.lean:546; AdoptionTransport.lean:442, receipt transport.
 INTENTIONAL: FG-SA transports the clean supporter's head K, not just B,
 using each proposal's acceptance and strict freeze read
@@ -416,7 +392,7 @@ non-row traffic keeps Δ. -/
 theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
     (h : CleanCut₂ p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
-    {i k : Nat} {x y : V} {s : Slot} {B K : Block} {o : GridCO.Wire p.n}
+    {i k : Nat} {x y : V} {s : Slot} {B K : Block} {o : GridCO.Wire p.n .root}
     (hi : i < timeIdx rho b₀) (hki : k < i)
     (ht : IsGateTick p c rho i x s)
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
@@ -425,7 +401,9 @@ theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
     (hord : ∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B)
     (ho : o ∈ GridCO.cleanSupport p.toParams.engine
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s)
-    (hK : GridCO.headTarget? o = some K) (hBK : Block.Preceq B K) :
+    (hK : GridCO.resolvedHead?
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) o = some K) (hBK
+          : Block.Preceq B K) :
     ∀ b, Block.Preceq b K →
       b ∈ (actView (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st).blocks := by
   have hsch := h.base.valid.toScheduleWellFormed
@@ -460,11 +438,7 @@ theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
   change GridCO.resolvedBefore _ o _ = true at hres
   dsimp only [GridCO.resolvedBefore] at hres
   rw [hK] at hres
-  have hknown := (Bool.and_eq_true_iff.mp
-    (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hres).1).1).1
-  change decide (K ∈ (actView (clockPre p (storeAt p c E rho i x)
-    (SA.gateTime p.toParams s))).blocks) = true at hknown
-  have hKm := of_decide_eq_true hknown
+  have hKm := resolvedHead_mem _ o hK
   have hstamp := of_decide_eq_true (Bool.and_eq_true_iff.mp hres).2
   have hmem := ((actView_blocks _ K).mp hKm).1
   rw [(clockPre_fields p _ _).2.1] at hmem
@@ -548,7 +522,8 @@ private theorem transfer_stamp_kept {α : Type} [BEq α] [LawfulBEq α]
     contradiction
   | some row => rfl
 
-/-- P3 F2.2, T7.8/T7.12a; bp02 §3.5 step 5 and §4.2. Class B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F2.2, T7.8/T7.12a; bp02 §3.5 step 5 and §4.2. Class B.
 DC: GSTZeroPreparedWalk.lean:546; WeakGenesisGSTZeroActionSources.lean:25.
 INTENTIONAL: this is the FG-SA stamped path at the actual next-slot clocked
 read, not a prepared SG walk (spec/fgsa-protocol.tex:2496–2525; design R4/R5).
@@ -624,7 +599,8 @@ theorem clean_transfer_prefreeze_path [Fintype V] (b₀ : Time) :
       contradiction
     | some row => simpa only [hfind, Option.map_some, Option.getD_some] using hAstamp
 
-/-- P3 F2.2, T7.8/T7.12a and C5; bp02 §3.5 step 5 and §4.2. Class B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F2.2, T7.8/T7.12a and C5; bp02 §3.5 step 5 and §4.2. Class B.
 DC: GSTZeroPreparedWalk.lean:546; WeakGenesisGSTZeroActionSources.lean:25.
 INTENTIONAL: FG-SA needs the supporter's whole stamped FG path at the
 actual next-slot clocked read, as the C5 relay hpath premise requires
@@ -635,7 +611,7 @@ non-row traffic keeps Δ. -/
 theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
   CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
-  ∀ i k x y s B K (o : GridCO.Wire p.n), i < timeIdx rho b₀ → k < i →
+  ∀ i k x y s B K (o : GridCO.Wire p.n .root), i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
     rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
     CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
@@ -643,7 +619,9 @@ theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
     (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
     o ∈ GridCO.cleanSupport p.toParams.engine
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s →
-    GridCO.headTarget? o = some K → Block.Preceq B K →
+    GridCO.resolvedHead?
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) o = some K →
+      Block.Preceq B K →
     let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y)
       (SA.voteTime p.toParams (s + 1))).st
     ∃ Kfg : FGBlock (Fin p.n), eraseFG Kfg = K ∧
@@ -748,7 +726,8 @@ private theorem transfer_live_bounds (st : State p.n) (B : Block)
       exact eraseFG_preceq hXZ
     · contradiction
 
-/-- ROOT-DIGEST W2b. P3 F2.2; bp02 §3.5 steps 5–6 and §4.2. Class B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 F2.2; bp02 §3.5 steps 5–6 and §4.2. Class B.
 DC: GSTZeroPreparedWalk.lean:513,546; WeakGenesisGSTZeroActionSources.lean:106.
 INTENTIONAL: the exact Q6 retrospective FG-SA frame includes the FJ band,
 contest, live lease root, and a witness in the actual voter set

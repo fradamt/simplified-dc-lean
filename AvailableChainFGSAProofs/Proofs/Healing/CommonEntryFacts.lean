@@ -13,7 +13,8 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 H.9; plan §3F.1. DC: SAME first-opening minimality bounds its label. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.1. DC: SAME first-opening minimality bounds its label. -/
 theorem common_first_opening_labels (q r : Nat)
     (hle : q ≤ r * p.R) (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r') :
     q ≤ r * p.R ∧ r * p.R < q + p.R := by
@@ -26,7 +27,8 @@ theorem common_first_opening_labels (q r : Nat)
       rw [← Nat.succ_mul]; congr 1; omega
     omega
 
-/-- Blueprint 21 H.9; plan §3F.1. DC: SAME the private OpeningSource time bound,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.1. DC: SAME the private OpeningSource time bound,
 proved here from the label interval and positive Δ. -/
 theorem common_first_time_bound (q r : Nat)
     (hle : q ≤ r * p.R) (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r') :
@@ -43,7 +45,8 @@ theorem common_first_time_bound (q r : Nat)
   have := p.deltaPos
   constructor <;> nlinarith
 
-/-- Read bridge. DC: SAME a selected action source has an actual opening tick. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Read bridge. DC: SAME a selected action source has an actual opening tick. -/
 theorem common_source_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {x : V} {r : Nat} {K : FGBlock (Fin p.n)}
     (hK : actionSourceFG p c E rho x r = some (some K)) :
@@ -53,7 +56,8 @@ theorem common_source_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   | none => simp only [hi, Option.map_none] at hK; contradiction
   | some i => exact ⟨i, V2.D.Run.tickIdx?_spec hi⟩
 
-/-- Blueprint 21 H.7, H.9; plan §3F.3. DC: SAME the selected source is stored at
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.7, H.9; plan §3F.3. DC: SAME the selected source is stored at
 its opening read, so the phase frontier caps its own height. -/
 theorem common_source_height_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho)
@@ -73,7 +77,8 @@ theorem common_source_height_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
   have hH := (hphase.2.2.2 i x hui hiv hx).1
   exact hH ▸ healing_phase_height_le p c E rho hKT
 
-/-- Blueprint 21 H.9; plan §3F.2. DC: SAME each selected source is below its
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.2. DC: SAME each selected source is below its
 actual raw result at rR, by its fresh fast-write membership. No INLINE sourceBodies
 premise is needed: H-GATE's opening_fastWrite_spec gives this fact directly. -/
 theorem common_source_below_raw (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -87,13 +92,14 @@ theorem common_source_below_raw (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
   obtain ⟨B, hraw, _, _, _, hKB, _⟩ := opening_fastWrite_spec E rho hs hgate hfw
   refine ⟨B, ?_, hKB⟩
   rw [gateResult_def, gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hgate]
-  change some (SA.confirmationFrom p.toParams
+  change some (SA.Root.confirmationFrom p.toParams
     (eraseFG (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams (r * p.R))).fg.F)
     (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams (r * p.R))))
     (r * p.R)) = some (some B)
   rw [clockPre_fg, hraw]
 
-/-- Blueprint 21 H.9; plan §3F.2. DC: INTENTIONAL compatible raw results at the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.2. DC: INTENTIONAL compatible raw results at the
 synchronized opening label imply compatibility of their selected prefixes. -/
 theorem common_sources_compatible [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -121,7 +127,8 @@ theorem common_sources_compatible [Fintype V] (E : Generic.Env V)
   intro x y K K' hx hy hK hK'
   obtain ⟨B, hB, hKB⟩ := common_source_below_raw E rho hS hK
   obtain ⟨C, hC, hKC⟩ := common_source_below_raw E rho hS hK'
-  have hBC := fgsa_sameLabel p c E rho hrec.base.valid hrec.base.noRestart hrec.base.delta
+  have hBC := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
+      hrec.base.noRestart hrec.base.delta
     (r * p.R) hsync x y B C hx hy hB hC
   have hCB : Block.Compatible C B := by
     change Block.compatible C B = true
@@ -134,7 +141,8 @@ theorem common_sources_compatible [Fintype V] (E : Generic.Env V)
     exact hK'B
   exact block_compatible_of_preceq_compatible hKB hBK'
 
-/-- Blueprint 21 H.9; plan §3F.3. DC: SAME sources above a pivot at equal height
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.3. DC: SAME sources above a pivot at equal height
 have the same T_h.root by entry_plateau. Empty universal source sets are allowed. -/
 theorem common_entry_of_plateau (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (r m : Nat) (Qfg : FGBlock (Fin p.n)) (hh : (heightView p Qfg).h = m)
@@ -148,7 +156,8 @@ theorem common_entry_of_plateau (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
   have he : (heightView p K).h = m := le_antisymm hcap (hh ▸ hlaws.h_mono hQK)
   exact ⟨he, by rw [hlaws.entry_plateau hQK (hh.trans he.symm)]⟩
 
-/-- Blueprint 21 H.9; plan §3F.3. DC: INTENTIONAL at a low pivot, either all
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9; plan §3F.3. DC: INTENTIONAL at a low pivot, either all
 sources are low with one entry, or an actual honest source has height m. -/
 theorem common_low_or_high (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (r m : Nat) (Qfg : FGBlock (Fin p.n)) (hh : (heightView p Qfg).h = m - 1)

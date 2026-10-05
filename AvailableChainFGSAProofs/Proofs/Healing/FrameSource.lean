@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 
@@ -9,9 +11,10 @@ open AvailableChain.SimplexFG
 
 variable (p : Params)
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME the vote handler does not write the block field. -/
-private theorem frame_vote_blocks (st : GridCO.State p.n) (o : GridCO.Wire p.n) :
+private theorem frame_vote_blocks (st : GridCO.State p.n .root) (o : GridCO.Wire p.n .root) :
     (GridCO.admitVote p.toParams.engine st o).blocks = st.blocks := by
   obtain ⟨auth, msg⟩ := o
   cases auth <;> cases msg <;> delta GridCO.admitVote <;> dsimp only
@@ -19,21 +22,23 @@ private theorem frame_vote_blocks (st : GridCO.State p.n) (o : GridCO.Wire p.n) 
     | rfl
     | split <;> rfl
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME carried HEAD admission does not change stored blocks. -/
-private theorem frame_vote_fold_blocks (xs : List (GridCO.HeadWire p.n))
-    (st : GridCO.State p.n) :
+private theorem frame_vote_fold_blocks (xs : List (GridCO.HeadWire p.n .root))
+    (st : GridCO.State p.n .root) :
     (xs.foldl (fun acc o => GridCO.admitVote p.toParams.engine acc (GridCO.fromHead o)) st).blocks =
       st.blocks := by
   induction xs generalizing st with
   | nil => rfl
   | cons o xs ih => rw [List.foldl_cons, ih, frame_vote_blocks]
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME the admitted parent has a smaller slot and all prefixes are slot-bounded.
 Only the permitted StoreFacts library is used for the carried vote fold. -/
-private theorem frame_admitProposal_slots (st : GridCO.State p.n)
-    (o : GridCO.Wire p.n) (target : Block) (raw : List (GridCO.HeadWire p.n))
+private theorem frame_admitProposal_slots (st : GridCO.State p.n .root)
+    (o : GridCO.Wire p.n .root) (target : Block) (raw : List (GridCO.HeadWire p.n .root))
     (ho : ∀ B ∈ st.blocks, ∀ A, Block.Preceq A B → A.slot ≤ B.slot) :
     ∀ B ∈ (GridCO.admitProposal p.toParams.engine st o target raw).blocks,
       ∀ A, Block.Preceq A B → A.slot ≤ B.slot := by
@@ -62,15 +67,16 @@ private theorem frame_admitProposal_slots (st : GridCO.State p.n)
           · exact (of_decide_eq_true he) ▸ le_rfl
           · exact (ho parent (of_decide_eq_true hparent) A hp).trans hslot.le
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME an early resolved vote is in the late pool. -/
-private theorem frame_clean_subset_late (v : GridCO.State p.n) (s : Slot) :
+private theorem frame_clean_subset_late (v : GridCO.State p.n .root) (s : Slot) :
     GridCO.cleanSupport p.toParams.engine v s ⊆ GridCO.lateVotes p.toParams.engine v s := by
   intro o ho
   obtain ⟨hv, hr⟩ := List.mem_filter.mp (List.mem_filter.mp ho).1
   apply List.mem_filter.mpr
   refine ⟨hv, decide_eq_true ?_⟩
-  cases ht : GridCO.headTarget? o with
+  cases ht : GridCO.resolvedHead? v o with
   | none =>
     delta GridCO.resolvedBefore at hr
     rw [ht] at hr
@@ -85,36 +91,17 @@ private theorem frame_clean_subset_late (v : GridCO.State p.n) (s : Slot) :
       linarith [p.deltaPos]
     exact ht'.trans htime
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME genuine support has a stored target whose slot is at most its vote label. -/
-private theorem frame_prefixSupport_target (v : GridCO.State p.n) (s : Slot) (B : Block)
-    (hpos : 0 < SA.prefixSupport p.toParams v s B) :
+private theorem frame_prefixSupport_target (v : GridCO.State p.n .root) (s : Slot) (B : Block)
+    (hpos : 0 < SA.Root.prefixSupport p.toParams v s B) :
     ∃ target ∈ v.blocks, target.slot ≤ s ∧ Block.Preceq B target := by
-  have hclean : ∀ k, GridCO.equivocates (GridCO.cleanSupport p.toParams.engine v s) k = false := by
-    intro k
-    apply Bool.eq_false_iff.mpr
-    intro he
-    obtain ⟨o, ho, _, _, _, hk, _⟩ := (Gen.AC.cap_pair _ k).mp he
-    have hl := fgsa_cleanSupport_seat_clean_late p v s o ho k hk
-    have hc := Gen.AC.vote_pool_clean_subset _ _ k (frame_clean_subset_late p v s) hl
-    rw [hc] at he
-    cases he
-  change 0 < GridCO.prefixSupport p.toParams.engine v s B at hpos
-  unfold GridCO.prefixSupport GridCO.goldfishScore at hpos
-  obtain ⟨k, hk⟩ := List.exists_mem_of_ne_nil _ (List.length_pos_iff.mp hpos)
-  have hscore := (List.mem_filter.mp hk).2
-  rw [hclean, Bool.false_or] at hscore
-  obtain ⟨o, ho, htarget⟩ := List.any_eq_true.mp hscore
-  have hearly := (List.mem_filter.mp ho).1
-  have hlabel : GridCO.headLabel? o = some s := by
-    simpa using (List.mem_filter.mp (List.mem_filter.mp (List.mem_filter.mp hearly).1).1).2
-  cases ht : GridCO.headTarget? o with
-  | none => simp [ht] at htarget
-  | some target =>
-    simp only [ht, hlabel, Option.getD_some, Bool.and_eq_true, decide_eq_true_eq] at htarget
-    exact ⟨target, htarget.1.1, htarget.1.2, htarget.2⟩
+  obtain ⟨_, K, _, _, hm, hs, hp, _⟩ := prefixSupport_body p v s B hpos
+  exact ⟨K, hm, hs, hp⟩
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME ordered stored slots and preserved write labels under reconciliation. -/
 private theorem frame_slots_reconcile (st : State p.n)
     (ho : ∀ B ∈ st.base.blocks, ∀ A, Block.Preceq A B → A.slot ≤ B.slot)
@@ -129,7 +116,8 @@ private theorem frame_slots_reconcile (st : State p.n)
     subst row
     exact hw old hold B (List.mem_filter.mp hb).1
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME row admission does not write blocks or fast-write labels. -/
 private theorem frame_slots_rows (rows : List (RowWire p.n)) (st : State p.n)
     (ho : ∀ B ∈ st.base.blocks, ∀ A, Block.Preceq A B → A.slot ≤ B.slot)
@@ -142,7 +130,8 @@ private theorem frame_slots_rows (rows : List (RowWire p.n)) (st : State p.n)
     rw [List.foldl_cons]
     rcases admitRow_eq p st a with he | he <;> rw [he] <;> exact ih _ ho hw
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME a block admission checks strict parent-slot order; reconcile only filters. -/
 private theorem frame_slots_process (st : State p.n) (o : Wire p.n)
     (ho : ∀ B ∈ st.base.blocks, ∀ A, Block.Preceq A B → A.slot ≤ B.slot)
@@ -158,44 +147,47 @@ private theorem frame_slots_process (st : State p.n) (o : Wire p.n)
     | row i body =>
       dsimp only
       rcases admitRow_eq p st ⟨o.auth, body⟩ with he | he <;> rw [he] <;> exact ⟨ho, hw⟩
-    | block s b raw sup rows =>
+    | block s N =>
       dsimp only
       unfold admitBlock
-      cases hp : parentFG st b with
-      | none => exact ⟨ho, hw⟩
-      | some P =>
-        dsimp only
-        split
-        · have hb := frame_admitProposal_slots p st.base
-            (baseProposal s b raw sup) b (raw.map baseHead) ho
-          apply frame_slots_rows
-          · split
-            · exact hb
-            · exact (frame_slots_reconcile p
-              { st with
-                base := GridCO.admitProposal p.toParams.engine st.base
-                  (baseProposal s b raw sup) b (raw.map baseHead)
-                fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
-                proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] }
-              hb hw).1
-          · split
-            · exact hw
-            · exact (frame_slots_reconcile p
-              { st with
-                base := GridCO.admitProposal p.toParams.engine st.base
-                  (baseProposal s b raw sup) b (raw.map baseHead)
-                fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
-                proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] }
-              hb hw).2
-        · exact ⟨ho, hw⟩
+      split
+      · exact ⟨ho, hw⟩
+      · cases hp : parentFG st N.erase with
+        | none => exact ⟨ho, hw⟩
+        | some P =>
+          dsimp only
+          split
+          · have hb := frame_admitProposal_slots p st.base
+              (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead) ho
+            apply frame_slots_rows
+            · split
+              · exact hb
+              · exact (frame_slots_reconcile p
+                { st with
+                  base := GridCO.admitProposal p.toParams.engine st.base
+                    (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)
+                  fg := Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
+                  proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
+                hb hw).1
+            · split
+              · exact hw
+              · exact (frame_slots_reconcile p
+                { st with
+                  base := GridCO.admitProposal p.toParams.engine st.base
+                    (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)
+                  fg := Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
+                  proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
+                hb hw).2
+          · exact ⟨ho, hw⟩
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME positive fast support supplies a slot-bounded target. -/
 private theorem frame_fastSet_slot (st : State p.n) (s : Slot)
     (ho : ∀ B ∈ st.base.blocks, ∀ A, Block.Preceq A B → A.slot ≤ B.slot) :
     ∀ B ∈ fastSet p (eraseFG st.fg.F) (actView st) s, B.slot ≤ s := by
   intro B hb
-  cases hc : SA.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s with
+  cases hc : SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s with
   | none =>
     delta fastSet at hb
     rw [hc] at hb
@@ -216,7 +208,8 @@ private theorem frame_fastSet_slot (st : State p.n) (s : Slot)
         (actView st) s B hpos
       exact (ho T ((actView_blocks st T).mp hT).1 B hBT).trans hslot
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME a new fast-write set retains its original gate label. -/
 private theorem frame_slots_clock (st : State p.n) (t : Time)
     (ho : ∀ B ∈ st.base.blocks, ∀ A, Block.Preceq A B → A.slot ≤ B.slot)
@@ -246,7 +239,8 @@ private theorem frame_slots_clock (st : State p.n) (t : Time)
       exact hp row hr B hb
   · exact hp
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME local induction preserves ordered slots and bounded fast-write labels. -/
 private theorem frame_slots_reachable (st : State p.n) (hr : Reachable p st) :
     (∀ B ∈ st.base.blocks, ∀ A, Block.Preceq A B → A.slot ≤ B.slot) ∧
@@ -269,7 +263,8 @@ private theorem frame_slots_reachable (st : State p.n) (hr : Reachable p st) :
 variable {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME a source's fast-write label bounds its block slot.
 The proof keeps the original gate label through local steps. It needs neither
 a fresh row emission nor TSrc as an additional public premise. -/

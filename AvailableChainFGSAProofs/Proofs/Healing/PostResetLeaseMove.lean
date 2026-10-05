@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep (J4A2-2 types)
 
@@ -21,23 +23,19 @@ private theorem leaseMove_lift {A B : FGBlock (Fin p.n)}
   eraseFG_preceq_iff.mp h
 
 omit [DecidableEq V] in
-private theorem leaseMove_decode {o : Obj p} {b : Block}
-    (h : blockOf? p o = some b) :
-    ∃ u raw sup rows, o = ofWire p ⟨.proposer u, .proposal b raw sup rows⟩ := by
-  have hd : ∃ u raw sup rows, (toWire p o).decode = some (.block u b raw sup rows) := by
-    change (match (toWire p o).decode with
-      | some (.block _ b _ _ _) => some b | _ => none) = _ at h
-    cases hd : (toWire p o).decode with
-    | none => rw [hd] at h; contradiction
-    | some m =>
-      cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
-      subst b
-      exact ⟨_, _, _, _, rfl⟩
-  obtain ⟨u, raw, sup, rows, hd⟩ := hd
-  refine ⟨u, raw, sup, rows, ?_⟩
-  apply toWire_injective
-  rw [toWire_ofWire]
-  exact decode_eq_block.mp hd
+private theorem leaseMove_decode {o : Obj p} {b : Block} (h : blockOf? p o = some b) :
+    ∃ u N, o = ofWire p ⟨.proposer u, .proposal N⟩ ∧ N.erase = b := by
+  unfold blockOf? at h
+  cases hd : (toWire p o).decode with
+  | none => simp only [hd, reduceCtorEq] at h
+  | some m =>
+    cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
+    rename_i u N
+    refine ⟨u, N, ?_, h⟩
+    apply toWire_injective (p := p)
+    rw [toWire_ofWire]
+    exact decode_eq_block.mp hd
+
 
 private theorem leaseMove_block_receipt (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho)
     (hDelta : E.Δ = p.Δ) (s : Slot) {t : Time} (hafter : SA.freezeTime p.toParams s < t)
@@ -79,7 +77,7 @@ private theorem leaseMove_block_receipt (hE : V2.D.ExecutionValid E rho) (hN : V
     positivity
   obtain ⟨j, _, tr, o, ho, ha, ht⟩ :=
     fgsa_block_accepted_before E rho hsch ix x K _ hg hpub hz hK hstamp
-  obtain ⟨u, raw, sup, rows, rfl⟩ := leaseMove_decode p ho
+  obtain ⟨u, N, rfl, heN⟩ := leaseMove_decode p ho
   obtain ⟨dl, cut, hD, _, hlt, hb, _, hcut, _⟩ := hSync
   have hdz : dl tr < D := by
     have hb := hb tr
@@ -103,11 +101,11 @@ private theorem leaseMove_block_receipt (hE : V2.D.ExecutionValid E rho) (hN : V
     rw [Gen.V2.Duty.MonoAlong_def] at h
     exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho hidx y
       (hN.restartFree y _ iy) (KitFG.preceq_refl _)
-  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u K
-    raw sup rows tr y
+  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u N tr y
     hD (Or.inr ⟨x, hx, j, ha⟩) hy hdcut (hlt tr)
-    (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
-  refine ⟨Y, hYK, ?_⟩
+    (by simpa only [heN] using
+      Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
+  refine ⟨Y, hYK.trans heN, ?_⟩
   have hc := (fgsa_store_cumulative p c E rho hN
     (healing_phase_idxBefore_mono p c rho (le_of_lt hdz)) y).1
   change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl tr)) y).st.fg.TF ⊆
@@ -115,7 +113,6 @@ private theorem leaseMove_block_receipt (hE : V2.D.ExecutionValid E rho) (hN : V
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho (dl tr) hsch,
     Gen.V2.Duty.stateBefore_idxBefore E rho D hsch] at hc
   exact hc hY
-
 
 private theorem leaseMove_source_receipt [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF)
@@ -153,7 +150,10 @@ private theorem leaseMove_source_receipt [Fintype V] {G ΔF : Time}
     healing_support_honest_seat rho hrec.base.cstar hrec.fault _ _ _ hτ
   obtain ⟨K', hK', hKm', hKst', -, -, -⟩ := healing_support_clean_target E rho o ho
   have hKK' : Block.Preceq (eraseFG K) K' := by
-    rw [Gen.AC.voteSupports_def, hK'] at hsup
+    change Gen.AC.Root.voteSupports
+      (GridCO.resolutionTree (actView (clockPre p (storeAt p c E rho ix y)
+        (SA.gateTime p.toParams (r * p.R))))) (eraseFG K) o = true at hsup
+    rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hK'] at hsup
     exact (Bool.and_eq_true_iff.mp hsup).2
   have hvh : t ≤ rho.horizon :=
     (hS.in_horizon _ (List.mem_of_getElem? hk)).2
@@ -184,9 +184,9 @@ private theorem leaseMove_source_receipt [Fintype V] {G ΔF : Time}
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
   exact (eraseFG_injective hAe) ▸ hA
 
-
 omit [DecidableEq V] in
-/-- Blueprint 21 H.15:2916–2923; plan J4A2-2 G1 cut guard;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2916–2923; plan J4A2-2 G1 cut guard;
 B1/B17/B18. DC: SAME inclusive HEAD cut before a reader after freeze.
 The event at iy is later than the label-l HEAD time. Thus the complete
 HEAD batch is before iy, including equal-time HEAD events. -/
@@ -216,16 +216,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
@@ -249,7 +250,8 @@ private theorem leaseMove_source_label {iy : Nat} {y : V} {l : Slot} {t : Time}
     nlinarith [p.deltaPos]
   exact_mod_cast hrs
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2916–2923, H.2:709–746; plan J4A2-2 G2;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.15:2916–2923, H.2:709–746; plan J4A2-2 G2;
 B1/B13/B17/B18. DC: INTENTIONAL domain at a moving reader after freeze.
 The label-l batch covers the target. The view contains the frozen store
 and is a subset of the reader's tree. Root and finality coverage are the

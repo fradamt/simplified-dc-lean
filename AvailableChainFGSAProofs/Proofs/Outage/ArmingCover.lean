@@ -17,14 +17,16 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; a strict ancestor
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; a strict ancestor
 relation is an order relation between distinct blocks. -/
 theorem arming_prec {A C : Block} (h : Block.Prec A C) : A ≠ C ∧ Block.Preceq A C := by
   change ((!decide (A = C)) && Block.preceq A C) = true at h
   simpa only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not,
     Block.Preceq] using h
 
-/-- Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; a strict descendant
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; a strict descendant
 of a block is not genesis. -/
 theorem arming_prec_ne_genesis {A C : Block} (h : Block.Prec A C) : C ≠ .genesis := by
   intro hC
@@ -32,7 +34,8 @@ theorem arming_prec_ne_genesis {A C : Block} (h : Block.Prec A C) : C ≠ .genes
   obtain ⟨hne, hle⟩ := arming_prec h
   exact hne (block_preceq_antisymm hle (block_genesis_preceq A))
 
-/-- Plan O-ARM §4 field 5, §6.2 step 6. Class (iii). DC: INTENTIONAL; the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §4 field 5, §6.2 step 6. Class (iii). DC: INTENTIONAL; the
 field 5 premise form, used by the duty proofs. -/
 abbrev ArmingPrefixState (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (l : Slot) (D : Block)
@@ -45,7 +48,8 @@ abbrev ArmingPrefixState (p : Params) {In V : Type} (c : AppCodec In) [Decidable
     (FGSA.controls p (storeAt p c E rho i y)).lo ≤ (heightView p Dh).h ∧
     ∀ row ∈ (storeAt p c E rho i y).base.obligations, Block.Preceq row.1 D
 
-/-- Plan O-ARM §4 field 6, §6.2 step 6. Class (iii). DC: INTENTIONAL; the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §4 field 6, §6.2 step 6. Class (iii). DC: INTENTIONAL; the
 field 6 premise form, used by the duty proofs. -/
 abbrev ArmingBatchState (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (l : Slot) (D : Block) : Prop :=
@@ -54,17 +58,18 @@ abbrev ArmingBatchState (p : Params) {In V : Type} (c : AppCodec In) [DecidableE
     E.awake (rho.seatOf (.base (.head (l + 1))) q) (SA.voteTime p.toParams (l + 1)) = true →
     ∃ K k, rho.events[k]? = some (.tick y (SA.earlyTime p.toParams (l + 1))) ∧
       V2.D.Run.emits E rho (rho.seatOf (.base (.head (l + 1))) q)
-        (ofHead p ⟨.seat (.head (l + 1)) q, K⟩) (SA.voteTime p.toParams (l + 1)) ∧
+        (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩) (SA.voteTime p.toParams (l + 1)) ∧
       Block.Preceq D K ∧ K.slot ≤ l + 1 ∧
-      baseVote (⟨.seat (.head (l + 1)) q, K⟩ : HeadWire p.n) ∈
+      baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n) ∈
         (storeAt p c E rho k y).base.votes ∧
       K ∈ (storeAt p c E rho k y).base.blocks ∧
       GridCO.stampVote (storeAt p c E rho k y).base
-        (baseVote (⟨.seat (.head (l + 1)) q, K⟩ : HeadWire p.n)) <
+        (baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n)) <
         SA.earlyTime p.toParams (l + 1) ∧
       GridCO.stampBlock (storeAt p c E rho k y).base K < SA.earlyTime p.toParams (l + 1)
 
-/-- Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; the batch at a later
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; the batch at a later
 read tick of `y` before the pending gate: each HEAD is still stored with its
 original stamps. -/
 theorem arming_batch_at {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -77,15 +82,15 @@ theorem arming_batch_at {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       true) :
     ∃ K k, rho.events[k]? = some (.tick y (SA.earlyTime p.toParams (l + 1))) ∧ k < i ∧
       V2.D.Run.emits E rho (rho.seatOf (.base (.head (l + 1))) q)
-        (ofHead p ⟨.seat (.head (l + 1)) q, K⟩) (SA.voteTime p.toParams (l + 1)) ∧
+        (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩) (SA.voteTime p.toParams (l + 1)) ∧
       Block.Preceq D K ∧ K.slot ≤ l + 1 ∧
-      baseVote (⟨.seat (.head (l + 1)) q, K⟩ : HeadWire p.n) ∈
+      baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n) ∈
         (storeAt p c E rho k y).base.votes ∧
-      baseVote (⟨.seat (.head (l + 1)) q, K⟩ : HeadWire p.n) ∈
+      baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n) ∈
         (storeAt p c E rho i y).base.votes ∧
       K ∈ (storeAt p c E rho i y).base.blocks ∧
       GridCO.stampVote (storeAt p c E rho i y).base
-        (baseVote (⟨.seat (.head (l + 1)) q, K⟩ : HeadWire p.n)) <
+        (baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n)) <
         SA.earlyTime p.toParams (l + 1) ∧
       GridCO.stampBlock (storeAt p c E rho i y).base K < SA.earlyTime p.toParams (l + 1) := by
   obtain ⟨K, k, hk, hem, hDK, hslot, hv, hKb, hvs, hbs⟩ := hbatchF y q hy hq haw
@@ -93,7 +98,8 @@ theorem arming_batch_at {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   obtain ⟨hv', hK', hvs', hbs'⟩ := inclusion_stamps_kept E rho hN hki.le y _ K hv hKb
   exact ⟨K, k, hk, hki, hem, hDK, hslot, hv, hv', hK', hvs' ▸ hvs, hbs' ▸ hbs⟩
 
-/-- Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; at a non-gate tick
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; at a non-gate tick
 strictly before the pending gate the clocked read has F, Z, floor and live
 root below `D`. -/
 theorem arming_read_bounds {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -119,7 +125,8 @@ theorem arming_read_bounds {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   · exact inclusion_liveRoot_le p _ D (by rw [hctrl]; exact hZ)
       (fun row hrow => hobl row (hsub.subset hrow))
 
-/-- ROOT-DIGEST W2b. Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; the label-`(l + 2)`
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; the label-`(l + 2)`
 HEAD of every honest node reads the batch and covers `D`. The frozen block
 arm holds every ancestor of `D` above the live root: each was stored before
 e(l + 1) < z(l + 1). -/
@@ -162,14 +169,14 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
       exact hX
     exact inclusion_stampBlock_of_prefix (by rw [(clock_cumulative p _ _).2.2.1]) hkey
   have hrecR : ∀ w ∈ H, ∃ K t, V2.D.Run.emits E rho (rho.seatOf (.base (.head (l + 1))) w)
-        (ofHead p ⟨.seat (.head (l + 1)) w, K⟩) t ∧
-      baseVote (⟨.seat (.head (l + 1)) w, K⟩ : HeadWire p.n) ∈ headSupport p dst (l + 1 + 1) ∧
+        (ofHead p ⟨.seat (.head (l + 1)) w, K.root⟩) t ∧
+      baseVote (⟨.seat (.head (l + 1)) w, K.root⟩ : HeadWire p.n) ∈ headSupport p dst (l + 1 + 1) ∧
       K ∈ dst.base.blocks ∧ K.slot ≤ l + 1 ∧ Block.Preceq D K := by
     intro w hw
     obtain ⟨hyw, haw⟩ := (hH w).mp hw
     obtain ⟨K, _, _, _, hem, hDK, hslot, _, hv, hKb, hvs, hbs⟩ :=
       arming_batch_at hs hN hbatchF hy hih (het.trans htv) w hyw haw
-    let o := baseVote (⟨.seat (.head (l + 1)) w, K⟩ : HeadWire p.n)
+    let o := baseVote (⟨.seat (.head (l + 1)) w, K.root⟩ : HeadWire p.n)
     have hvd : o ∈ dst.base.votes := by
       change _ ∈ (clock p (storeAt p c E rho ih y) _).base.votes
       rw [(clock_vn _ _).1]
@@ -202,16 +209,22 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
     apply List.mem_append_left
     apply List.mem_filter.mpr
     refine ⟨List.mem_filter.mpr ⟨hvd, beq_self_eq_true _⟩, ?_⟩
-    change (GridCO.blockKnown (actView dst) K && decide (K.slot ≤ l + 1) &&
+    have hres := actView_resolve_target p dst hinv
+      (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho ih y)))
+      o (of_decide_eq_true hKa) rfl
+    unfold GridCO.resolvedBefore
+    rw [hres]
+    change (decide (K.slot ≤ l + 1) &&
       decide (GridCO.stampVote (actView dst) o < SA.freezeTime p.toParams (l + 1)) &&
       decide (GridCO.stampBlock (actView dst) K < SA.freezeTime p.toParams (l + 1))) = true
-    simp only [hKa, hslot, hvsd, hbsd, decide_true, Bool.and_self]
+    simp only [hslot, hvsd, hbsd, decide_true, Bool.and_self]
   have hRS := inclusion_reader_scores E rho hE hN hC (l + 1) hih H hH hbatch D hrecR
   -- One batch HEAD fixes the reader e(l + 1) tick and an honest holder.
   obtain ⟨w0, hw0⟩ := Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) hbatch.lt)
   obtain ⟨hyw0, haw0⟩ := (hH w0).mp hw0
-  obtain ⟨K0, k0, hk0, hk0ih, hem0, hDK0, _, hv0, _, _, _, _⟩ :=
+  obtain ⟨K0, k0, hk0, hk0ih, hem0, hDK0, _, hv0, _, hK0, _, _⟩ :=
     arming_batch_at hs hN hbatchF hy hih (het.trans htv) w0 hyw0 haw0
+  have hObserver := headTargetAtEmission_of_stored E rho hroots hem0 rfl ih y hK0
   have hk0I := hk0ih.le.trans hihI
   have hF0 : Block.Preceq (F_at p c E rho k0 y) D :=
     (hprefix k0 y hk0I (hk0I.trans (arming_idxBefore_le_length rho _)) hy).1
@@ -226,7 +239,7 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
       ∃ Xh ∈ voterBlocks p dst (l + 1 + 1), eraseFG Xh = X := by
     intro X hne hXD hFX
     obtain ⟨hXm, hXs⟩ := arming_ancestor_stamp (hroots := hroots)
-      hE hN hDelta hSync hk0 hyw0 hem0 hDK0
+      hE hN hDelta hSync hk0 hyw0 hObserver hDK0
       hk0ih.le _ hv0 X hne hXD hFX
     have hXd : X ∈ dst.base.blocks := by
       change X ∈ (clock p (storeAt p c E rho ih y) _).base.blocks
@@ -269,7 +282,8 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
       change RetainedWalk.ts p dst (l + 1 + 1) X < RetainedWalk.ts p dst (l + 1 + 1) D
       omega)
 
-/-- Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; the label-`(l + 2)`
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; the label-`(l + 2)`
 proposer head of every honest proposer reads the full current previous-label
 pool, which holds the batch, and covers `D`. -/
 theorem arming_proposal_covers [Fintype V] {E : Generic.Env V}
@@ -298,8 +312,8 @@ theorem arming_proposal_covers [Fintype V] {E : Generic.Env V}
   change Block.Preceq (liveRoot p src) D at hlive
   obtain ⟨H, hH, hbatch⟩ := inclusion_head_seats E rho hC (l + 1) hpartv
   have hrecP : ∀ w ∈ H, ∃ K t, V2.D.Run.emits E rho (rho.seatOf (.base (.head (l + 2 - 1))) w)
-        (ofHead p ⟨.seat (.head (l + 2 - 1)) w, K⟩) t ∧
-      baseVote (⟨.seat (.head (l + 2 - 1)) w, K⟩ : HeadWire p.n) ∈ src.base.votes ∧
+        (ofHead p ⟨.seat (.head (l + 2 - 1)) w, K.root⟩) t ∧
+      baseVote (⟨.seat (.head (l + 2 - 1)) w, K.root⟩ : HeadWire p.n) ∈ src.base.votes ∧
       K ∈ (actView src).blocks ∧ K.slot ≤ l + 2 - 1 ∧ Block.Preceq D K := by
     intro w hw
     obtain ⟨hyw, haw⟩ := (hH w).mp hw
@@ -317,7 +331,16 @@ theorem arming_proposal_covers [Fintype V] {E : Generic.Env V}
       exact hKb
   have hPP := inclusion_proposer_prior E rho hE hC (l + 2) ip y src (by
       change (clock p (storeAt p c E rho ip y) _).base.votes = _
-      exact (clock_vn _ _).1) H hH hbatch D hrecP
+      exact (clock_vn _ _).1) H hH hbatch D (by
+        intro seat hseat
+        obtain ⟨K, t, he, hv, hK, hslot, hDK⟩ := hrecP seat hseat
+        have hInv : CStoreInv p src :=
+          cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip y) _
+        have hdomain : src.base.headDomain = none :=
+          base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho ip y))
+        exact ⟨K, t, he, hv, actView_resolve_target p src hInv hdomain _ hK rfl,
+          resolvedTarget_of_mem _ (baseBlocks_rootInj p src hInv) _
+            (List.mem_filter.mp hK).1 rfl, hslot, hDK⟩)
   have hDsrc : Dh ∈ src.fg.TF := by
     obtain ⟨w, hw⟩ := Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) hbatch.lt)
     obtain ⟨K, _, _, _, hK, _, hDK⟩ := hrecP w hw

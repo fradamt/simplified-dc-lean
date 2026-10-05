@@ -8,7 +8,8 @@ namespace AvailableChain.FGSA.Run
 
 open AvailableChain.SimplexFG
 
-/-- Blueprint 03 §8.2; O-INDUCT plan §5. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.2; O-INDUCT plan §5. Class (iii).
 DC: INTENTIONAL; normalization retains B when its new finalized anchor
 is compatible with B. It may discard a suffix strictly above B. -/
 theorem outage_normalize_covers {F S B : Block} (hBS : Block.Preceq B S)
@@ -21,7 +22,8 @@ theorem outage_normalize_covers {F S B : Block} (hBS : Block.Preceq B S)
     · exact (hn (block_preceq_trans h hBS)).elim
     · exact h
 
-/-- Blueprint 03 §8.2; O-INDUCT plan §5. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.2; O-INDUCT plan §5. Class (iii).
 DC: INTENTIONAL; an accepted compatible gate result retains B in S. -/
 theorem outage_advance_covers {S C B : Block} (hBS : Block.Preceq B S)
     (hCB : Block.Compatible C B) : Block.Preceq B (GridCO.advance S C) := by
@@ -33,14 +35,15 @@ theorem outage_advance_covers {S C B : Block} (hBS : Block.Preceq B S)
     · exact (hn (block_preceq_trans h hBS)).elim
     · exact h
 
-/-- Blueprint 03 §8.3; O-INDUCT plan §5 gate guard. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.3; O-INDUCT plan §5 gate guard. Class (iii).
 DC: INTENTIONAL; a passed gate result is compatible with B. The selected
 B row is still present in the active view when F does not cover B. -/
 theorem outage_passed_raw_compatible (p : Params) (st : State p.n) (hinv : CStoreInv p st)
     {B C : Block} {s : Slot}
     (hprotect : Block.Preceq B (eraseFG st.fg.F) ∨
       ∃ dl, (B, SA.releaseThreshold p.toParams, dl) ∈ st.base.obligations)
-    (hraw : SA.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s = some C)
+    (hraw : SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s = some C)
     (hguard : (FGSA.actView st).obligations.any (fun row => !Block.compatible row.1 C) = false) :
     Block.Compatible C B := by
   rcases hprotect with hBF | ⟨dl, hrow⟩
@@ -63,11 +66,12 @@ theorem outage_passed_raw_compatible (p : Params) (st : State p.n) (hinv : CStor
     rw [block_compatible_comm]
     exact hBC
 
-/-- Blueprint 03 §8.2; O-INDUCT plan §5 max renewal. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.2; O-INDUCT plan §5 max renewal. Class (iii).
 DC: INTENTIONAL; every write retains the lower deadline bound, whether
 the key is renewed or a different target is written. -/
 theorem outage_writeKeys_keep {n : Nat} (keys : List (Block × Nat)) (lim lower : Time)
-    (hlim : lower ≤ lim) (st : GridCO.State n) {B : Block} {g : Nat} {dl : Time}
+    (hlim : lower ≤ lim) (st : GridCO.State n .root) {B : Block} {g : Nat} {dl : Time}
     (hm : (B, g, dl) ∈ st.obligations) (hdl : lower ≤ dl) :
     ∃ dl', (B, g, dl') ∈ (GridCO.writeKeys st keys lim).obligations ∧ lower ≤ dl' := by
   induction keys generalizing st dl with
@@ -92,7 +96,8 @@ theorem outage_writeKeys_keep {n : Nat} (keys : List (Block × Nat)) (lim lower 
       ← @GridCO.writeKeys_def GridCO.slowLeasePolicy]
     exact ih _ hm' hd'
 
-/-- Blueprint 03 §8.2; O-INDUCT plan §5. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.2; O-INDUCT plan §5. Class (iii).
 DC: INTENTIONAL; normalization changes neither F nor the selected row. -/
 theorem outage_normalize_protection (p : Params) {B : Block} {j : Slot} (st : State p.n)
     (hp : OutageProtection p B j st) (hc : Block.Compatible (eraseFG st.fg.F) B) :
@@ -102,7 +107,8 @@ theorem outage_normalize_protection (p : Params) {B : Block} {j : Slot} (st : St
   refine ⟨?_, hp.2⟩
   exact outage_normalize_covers hp.1 hc
 
-/-- Blueprint 03 §8.2–3; O-INDUCT plan §5 gate. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.2–3; O-INDUCT plan §5 gate. Class (iii).
 DC: INTENTIONAL; the whole-result guard prevents a conflicting write.
 Max renewal retains the pending deadline, also on the slow arm. -/
 theorem outage_gateStep_protection (p : Params) {B : Block} {j s : Slot} (st : State p.n)
@@ -110,36 +116,36 @@ theorem outage_gateStep_protection (p : Params) {B : Block} {j s : Slot} (st : S
     (hc : Block.Compatible (eraseFG st.fg.F) B) (hjs : j ≤ s) :
     OutageProtection p B j (FGSA.gateStep p st s) := by
   let Q : State p.n := { FGSA.onView
-    (fun v => SA.gateFrom p.toParams (eraseFG st.fg.F) v s) st with
+    (fun v => SA.Root.gateFrom p.toParams (eraseFG st.fg.F) v s) st with
     fastWrite := st.fastWrite ++ [(s, FGSA.fastSet p (eraseFG st.fg.F) (FGSA.actView st) s)] }
   have hQ : OutageProtection p B j Q := by
     rw [OutageProtection_def]
-    cases hraw : SA.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s with
+    cases hraw : SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s with
     | none =>
-      have he : SA.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s =
+      have he : SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s =
           { FGSA.actView st with
-            genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy p.n
-              (FGSA.actView st) s none } := by
-        unfold SA.gateFrom GridCO.gateFrom
+            genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy p.n .root (FGSA.actView st)
+                s none } := by
+        unfold SA.Root.gateFrom GridCO.gateFrom
         rw [show GridCO.confirmationFrom p.toParams.engine (eraseFG st.fg.F)
           (FGSA.actView st) s = none from hraw]
       change Block.Preceq B
-        (SA.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).stableRecord ∧
+        (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).stableRecord ∧
         (Block.Preceq B (eraseFG st.fg.F) ∨ ∃ dl,
           (B, SA.releaseThreshold p.toParams, dl) ∈
-            (SA.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).obligations ∧
+            (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).obligations ∧
           SA.gateTime p.toParams j + L p ≤ dl)
       rw [he]
       exact ⟨hp.1, hp.2⟩
     | some C =>
       cases hg : (FGSA.actView st).obligations.any (fun row => !Block.compatible row.1 C) with
       | true =>
-        have he : SA.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s =
+        have he : SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s =
             { FGSA.actView st with
               goldfishRecord := GridCO.advance (FGSA.actView st).goldfishRecord C
-              genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy p.n
-                (FGSA.actView st) s (some C) } := by
-          unfold SA.gateFrom GridCO.gateFrom
+              genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy p.n .root (FGSA.actView
+                  st) s (some C) } := by
+          unfold SA.Root.gateFrom GridCO.gateFrom
           rw [show GridCO.confirmationFrom p.toParams.engine (eraseFG st.fg.F)
             (FGSA.actView st) s = some C from hraw]
           change (if _ then _ else _) = _
@@ -148,10 +154,10 @@ theorem outage_gateStep_protection (p : Params) {B : Block} {j s : Slot} (st : S
           rw [hg']
           rfl
         change Block.Preceq B
-          (SA.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).stableRecord ∧
+          (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).stableRecord ∧
           (Block.Preceq B (eraseFG st.fg.F) ∨ ∃ dl,
             (B, SA.releaseThreshold p.toParams, dl) ∈
-              (SA.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).obligations ∧
+              (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).obligations ∧
             SA.gateTime p.toParams j + L p ≤ dl)
         rw [he]
         exact ⟨hp.1, hp.2⟩
@@ -162,12 +168,12 @@ theorem outage_gateStep_protection (p : Params) {B : Block} {j s : Slot} (st : S
           (eraseFG st.fg.F) (FGSA.actView st) s C hraw hg
         constructor
         · change Block.Preceq B
-            (SA.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).stableRecord
+            (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).stableRecord
           rw [hw, arming_writeKeys_stable]
           exact outage_advance_covers hp.1 hCB
         · change Block.Preceq B (eraseFG st.fg.F) ∨ ∃ dl,
             (B, SA.releaseThreshold p.toParams, dl) ∈
-              (SA.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).obligations ∧
+              (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s).obligations ∧
             SA.gateTime p.toParams j + L p ≤ dl
           rcases hp.2 with hF | ⟨dl, hm, hd⟩
           · exact Or.inl hF
@@ -190,7 +196,8 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 set_option maxHeartbeats 800000 in
 -- Source and gate-read reductions need a larger elaboration limit.
-/-- Blueprint 03 §8.3; O-INDUCT plan §5 FG action. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.3; O-INDUCT plan §5 FG action. Class (iii).
 DC: INTENTIONAL; TSrc's passed gate is this action tick by tick uniqueness.
 The source compatibility proof uses pre-gate protection, not successor
 history. INLINE htsrc: sourceDiscipline_tSrc. -/
@@ -218,7 +225,8 @@ theorem outage_tick_source_compatible (hs : V2.D.ScheduleWellFormed E rho)
     (hp.2.imp id (fun ⟨dl, hm, _⟩ => ⟨dl, hm⟩)) hraw hguard
   exact block_compatible_of_preceq_compatible (hGC ▸ hCG C hXm) hCB
 
-/-- Blueprint 03 §8.2; O-INDUCT plan §5 duties. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.2; O-INDUCT plan §5 duties. Class (iii).
 DC: INTENTIONAL; every positive-slot HEAD extends its live root,
 including an empty walked view. -/
 theorem outage_head_of_root (p : Params) (st : State p.n) {B : Block} {s : Slot}
@@ -228,7 +236,8 @@ theorem outage_head_of_root (p : Params) (st : State p.n) {B : Block} {s : Slot}
   rw [ite_eq_right hs]
   exact block_preceq_trans hroot (liveRoot_preceq_headInTree p st _ _ _)
 
-/-- Blueprint 03 §8.2; O-INDUCT plan §6 step 7. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03 §8.2; O-INDUCT plan §6 step 7. Class (iii).
 DC: INTENTIONAL; after the causal frame proof, reconciliation retains
 the selected row or changes to the finalized-coverage branch. -/
 theorem outage_delivery_protection {i : Nat} {x : V} {o : Obj p} {t : Time}

@@ -39,7 +39,7 @@ private theorem t712_cumulative (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
       h.2.2.trans hc.2.2.2.1⟩
 
 private theorem t712_stamp_kept (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (x : V) (i j : Nat) (v : GridCO.Wire p.n)
+    (x : V) (i j : Nat) (v : GridCO.Wire p.n .root)
     (hm : v ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
     (hp : (V2.D.Run.stateBefore E rho i x).st.base.voteStamp <+:
       (V2.D.Run.stateBefore E rho j x).st.base.voteStamp) :
@@ -60,7 +60,8 @@ private theorem t712_stamp_kept (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
       contradiction
   | some row => rfl
 
-/-- K8 receipt coverage at the strict deadline read (bp00:700–713;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+K8 receipt coverage at the strict deadline read (bp00:700–713;
 bp01:858–930). Each path vertex and HEAD keeps its own receipt deadline. -/
 theorem fgsa_receiptCoverage : ReceiptCoverageStatement := by
   intro p In V inst c E rho dl cut D first x B required paths hRoots hDelta hExecution hNR hx h
@@ -109,33 +110,33 @@ theorem fgsa_receiptCoverage : ReceiptCoverageStatement := by
       rw [Gen.Pure.block_compatible_comm] at hlc
       exact Gen.Pure.block_compatible_of_preceq_compatible hBF hlc
     · right
-      have hproposal : ∀ o t s b raw sup rows, required o t →
-          (toWire p o).decode = some (.block s b raw sup rows) →
-          ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = b := by
-        intro o t s b raw sup rows hr hd
-        obtain ⟨K, d, hk, hbK⟩ := h.deadline.2.2.2.2.2.2 o t s b raw sup rows hr hd
+      have hproposal : ∀ o t s N, required o t →
+          (toWire p o).decode = some (.block s N) →
+          ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = N.erase := by
+        intro o t s N hr hd
+        obtain ⟨K, d, hk, hbK⟩ := h.deadline.2.2.2.2.2.2 o t s N hr hd
         have hBK := (h.deadline.2.2.2.2.2.1 K d hk).1
         have ht := h.deadline.2.2.2.2.1 o t hr
         have hFK := Gen.Pure.block_preceq_trans
           (Gen.Pure.block_preceq_trans (hf (dl t) ht.2.2.2) hFB) hBK
         have hbF := Gen.Pure.block_compatible_of_common hbK hFK
-        have ho : o = ofWire p ⟨.proposer s, .proposal b raw sup rows⟩ := by
+        have ho : o = ofWire p ⟨.proposer s, .proposal N⟩ := by
           apply toWire_injective
           rw [toWire_ofWire]
           exact decode_eq_block.mp hd
         have htrigger := (h.slotWindow o t hr).1
         rw [ho] at htrigger
-        exact fgsa_proposal_receipt E rho hRoots hDelta hExecution hNR dl cut s b raw sup rows t x
+        exact fgsa_proposal_receipt E rho hRoots hDelta hExecution hNR dl cut s N t x
           h.within htrigger hx (ht.2.2.2.trans h.deadline.2.1) ht.2.2.1 hbF
       refine ⟨hFB, hproposal, ?_⟩
       intro K d hk b hb
       by_cases hg : b = .genesis
       · subst b
         exact ⟨.genesis, (storeBundle_stateBeforeTime E rho d x).cstore.fg.gen, rfl⟩
-      · obtain ⟨o, t, s, raw, sup, rows, hr, hd, htd⟩ :=
+      · obtain ⟨o, t, s, N, heN, hr, hd, htd⟩ :=
           (h.deadline.2.2.2.2.2.1 K d hk).2.2 b hb hg
-        obtain ⟨Y, hY, he⟩ := hproposal o t s b raw sup rows hr hd
-        exact ⟨Y, (hc (dl t) d htd).1 hY, he⟩
+        obtain ⟨Y, hY, he⟩ := hproposal o t s N hr hd
+        exact ⟨Y, (hc (dl t) d htd).1 hY, he.trans heN⟩
   · intro o t s a K hr hd
     have ht := h.deadline.2.2.2.2.1 o t hr
     have hw := h.slotWindow o t hr
@@ -149,7 +150,7 @@ theorem fgsa_receiptCoverage : ReceiptCoverageStatement := by
       h.within htrigger hx (ht.2.2.2.trans h.deadline.2.1) ht.2.2.1
       (hw.2.2 s a K hd).1
     have hcum := hc (dl t) D ht.2.2.2
-    have hstamp (v : GridCO.Wire p.n)
+    have hstamp (v : GridCO.Wire p.n .root)
         (hm : v ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.base.votes) :
         GridCO.stampVote (V2.D.Run.stateBeforeTime E rho D x).st.base v =
           GridCO.stampVote (V2.D.Run.stateBeforeTime E rho (dl t) x).st.base v := by

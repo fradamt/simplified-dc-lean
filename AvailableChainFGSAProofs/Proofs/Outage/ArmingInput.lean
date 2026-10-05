@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPending
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 
@@ -15,7 +17,8 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Plan O-ARM §4 field 9, §6.2 step 8, §6.3. Class (iii). DC: INTENTIONAL;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan O-ARM §4 field 9, §6.2 step 8, §6.3. Class (iii). DC: INTENTIONAL;
 the stored batch at the pending gate tick gives strict majorities at the F
 anchor and at `D` (`fgsa_gate_batch_premises`), so the raw result covers `D`
 (`fgsa_confirmationFrom_covers_majority`). In fast mode the batch counts at
@@ -40,12 +43,12 @@ theorem arming_pending_input [Fintype V] {E : Generic.Env V}
     ∀ i y, IsGateTick p c rho i y (l + 1) → y ∈ rho.honest →
       let P := FGSA.clockPre p (storeAt p c E rho i y) (SA.gateTime p.toParams (l + 1))
       GridCO.savedGenuine P.base (l + 1) = none ∧
-      (∃ Cj, SA.confirmationFrom p.toParams (eraseFG P.fg.F) (FGSA.actView P) (l + 1) =
+      (∃ Cj, SA.Root.confirmationFrom p.toParams (eraseFG P.fg.F) (FGSA.actView P) (l + 1) =
         some Cj ∧ Block.Preceq D Cj) ∧
       (∀ row ∈ (FGSA.actView P).obligations, Block.Preceq row.1 D) ∧
       B ∈ (FGSA.actView P).blocks ∧ Block.Compatible (F_at p c E rho i y) B ∧
       (fast = true → SA.releaseThreshold p.toParams ≤
-        SA.prefixSupport p.toParams (FGSA.actView P) (l + 1) B) ∧
+        SA.Root.prefixSupport p.toParams (FGSA.actView P) (l + 1) B) ∧
       (fast = false → p.k ≤ l + 2 ∧ ∀ a < p.k - 1, ∃ Ca,
         GridCO.savedGenuine P.base (l + 1 - (a + 1)) = some (some Ca) ∧
         Block.Preceq B Ca) := by
@@ -72,11 +75,11 @@ theorem arming_pending_input [Fintype V] {E : Generic.Env V}
   have hheads : ∀ k ∈ H, ∃ K t,
       rho.seatOf (.base (.head (l + 1))) k ∈ rho.honest ∧
       V2.D.Run.emits E rho (rho.seatOf (.base (.head (l + 1))) k)
-        (ofHead p ⟨.seat (.head (l + 1)) k, K⟩) t ∧
-      baseVote (⟨.seat (.head (l + 1)) k, K⟩ : HeadWire p.n) ∈
+        (ofHead p ⟨.seat (.head (l + 1)) k, K.root⟩) t ∧
+      baseVote (⟨.seat (.head (l + 1)) k, K.root⟩ : HeadWire p.n) ∈
         (storeAt p c E rho i y).base.votes ∧
       K ∈ (actView P).blocks ∧ K.slot ≤ l + 1 ∧
-      GridCO.stampVote (actView P) (baseVote (⟨.seat (.head (l + 1)) k, K⟩ : HeadWire p.n)) <
+      GridCO.stampVote (actView P) (baseVote (⟨.seat (.head (l + 1)) k, K.root⟩ : HeadWire p.n)) <
         GridCO.earlyTime p.toParams.engine (l + 1) ∧
       GridCO.stampBlock (actView P) K < GridCO.earlyTime p.toParams.engine (l + 1) ∧
       Block.Preceq (eraseFG P.fg.F) K ∧ Block.Preceq D K := by
@@ -92,7 +95,7 @@ theorem arming_pending_input [Fintype V] {E : Generic.Env V}
       rw [(clockPre_fields p _ _).2.1]
       exact hKb
     · change GridCO.stampVote (clockPre p (storeAt p c E rho i y) _).base _ < _
-      have hkey : baseVote (⟨.seat (.head (l + 1)) w, K⟩ : HeadWire p.n) ∈
+      have hkey : baseVote (⟨.seat (.head (l + 1)) w, K.root⟩ : HeadWire p.n) ∈
           (storeAt p c E rho i y).base.voteStamp.map Prod.fst := by
         change _ ∈ (V2.D.Run.stateBefore E rho i y).st.base.voteStamp.map Prod.fst
         rw [fgsa_vote_stamp_keys E rho i y]
@@ -125,13 +128,13 @@ theorem arming_pending_input [Fintype V] {E : Generic.Env V}
     rw [hst] at hm
     exact hobl row hm
   · intro hf
-    have hsupp : ∀ k ∈ H, Gen.AC.poolSupports (actView P).blocks
+    have hsupp : ∀ k ∈ H, Gen.AC.Root.poolSupports (actView P).blocks
         (GridCO.cleanSupport p.toParams.engine (actView P) (l + 1)) k B = true := by
       intro k hk
       obtain ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, _, hDK⟩ := hheads k hk
       exact fgsa_active_support_of_receipt E rho hE i y (l + 1) k K B t hh he hv hK hslot hvs
         hbs (block_preceq_trans hBD hDK)
-    have hc := Gen.AC.batch_counts (actView P).blocks
+    have hc := Gen.AC.Root.batch_counts (actView P).blocks
       (GridCO.lateVotes p.toParams.engine (actView P) (l + 1))
       (GridCO.cleanSupport p.toParams.engine (actView P) (l + 1))
       (GridCO.cleanSupport p.toParams.engine (actView P) (l + 1))
@@ -140,6 +143,11 @@ theorem arming_pending_input [Fintype V] {E : Generic.Env V}
       (fun _ ho => ho) rfl (fun q _ => fgsa_cleanSupport_no_equivocation p _ _ q)
       hsupp (fgsa_late_rest_bound E rho hC hE i y (l + 1) H
         (fun q hq haw => (hH q).mpr ⟨hq, haw⟩)) hbatch
+    change _ ≤ GridCO.goldfishScoreOn (GridCO.resolutionTree (actView P)) (actView P).blocks
+      (GridCO.cleanSupport p.toParams.engine (actView P) (l + 1))
+      (GridCO.cleanSupport p.toParams.engine (actView P) (l + 1)) B
+    rw [actView_score p P hinvP
+      (by rw [clockPre_headDomain]; exact base_headDomain_none p (reachable_stateBefore E rho i y))]
     exact (hcard ▸ hfast hf).trans (hc.2.2.1 B (block_preceq_refl B)).1
 
 end AvailableChain.FGSA.Run

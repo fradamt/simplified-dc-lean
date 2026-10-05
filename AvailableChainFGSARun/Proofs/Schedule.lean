@@ -16,7 +16,8 @@ variable {p : Params} {In : Type} {c : AppCodec In}
 variable {V : Type} [DecidableEq V]
 
 omit [DecidableEq V] in
-/-- A node's tick times increase strictly with their indices. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A node's tick times increase strictly with their indices. -/
 theorem fgsa_tick_time_strict (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i j : Nat} {v : V} {t u : Time}
     (hi : rho.events[i]? = some (.tick v t))
@@ -35,7 +36,8 @@ theorem fgsa_tick_time_strict (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   exact lt_of_le_of_ne htu hne
 
 omit [DecidableEq V] in
-/-- There is one index for each local tick event. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+There is one index for each local tick event. -/
 theorem fgsa_tick_unique (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i j : Nat} {v : V} {t : Time}
     (hi : rho.events[i]? = some (.tick v t))
@@ -45,7 +47,8 @@ theorem fgsa_tick_unique (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   exact (List.Nodup.getElem_inj_iff hs.nodup).mp (hie.trans hje.symm)
 
 omit [DecidableEq V] in
-/-- An honest node ticks exactly once at each public time in the horizon. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An honest node ticks exactly once at each public time in the horizon. -/
 theorem fgsa_tick_total (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (hΔ : E.Δ = p.Δ) (v : V)
     (hv : v ∈ rho.honest) (k : Nat) (hh : (k : Time) * p.Δ ≤ rho.horizon) :
@@ -56,21 +59,24 @@ theorem fgsa_tick_total (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   exact ⟨i, hi, fun j hj => fgsa_tick_unique E rho hs hj hi⟩
 
 omit [DecidableEq V] in
-/-- The tick precedes every delivery at that time. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The tick precedes every delivery at that time. -/
 theorem fgsa_tick_before_delivery (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i j : Nat} {v w : V} {t : Time} {o : Obj p}
     (hi : rho.events[i]? = some (.tick v t))
     (hj : rho.events[j]? = some (.deliver w o t)) : i < j :=
   V2.D.Engine.tick_index_lt_delivery E rho hs hi hj le_rfl
 
-/-- The clock sets the duty slot, with no schedule or restart premise. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The clock sets the duty slot, with no schedule or restart premise. -/
 theorem fgsa_postClock_slot (nd : Node p) (t : Time) :
     ((fgsa p c).clock nd t).st.base.now = t ∧
       ((fgsa p c).clock nd t).st.slot p = p.slotOf t := by
   have hn := (clock_vn nd.st t).2
   exact ⟨hn, congrArg (p.slotOf) hn⟩
 
-/-- The proposal duty reads slot `s`. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The proposal duty reads slot `s`. -/
 theorem fgsa_proposal_slot (nd : Node p) (s : Slot) :
     ((fgsa p c).clock nd (SA.proposalTime p.toParams s)).st.slot p = s := by
   rw [(fgsa_postClock_slot nd _).2]
@@ -80,14 +86,16 @@ theorem fgsa_proposal_slot (nd : Node p) (s : Slot) :
   rw [ht]
   exact slotOf_offset p s 0 le_rfl (by have hDelta : (0 : Int) < p.Δ := p.deltaPos; omega)
 
-/-- The HEAD duty reads slot `s`. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The HEAD duty reads slot `s`. -/
 theorem fgsa_vote_slot (nd : Node p) (s : Slot) :
     ((fgsa p c).clock nd (SA.voteTime p.toParams s)).st.slot p = s := by
   rw [(fgsa_postClock_slot nd _).2]
   exact slotOf_offset p s p.Δ (le_of_lt p.deltaPos)
     (by have hDelta : (0 : Int) < p.Δ := p.deltaPos; omega)
 
-/-- The FG duty reads slot `rR + 1` and round `r`. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The FG duty reads slot `rR + 1` and round `r`. -/
 theorem fgsa_action_slot_round (nd : Node p) (r : Nat) :
     ((fgsa p c).clock nd (p.actionTime r)).st.slot p = r * p.R + 1 ∧
       p.round (((fgsa p c).clock nd (p.actionTime r)).st.slot p) = r := by
@@ -107,7 +115,8 @@ theorem fgsa_action_slot_round (nd : Node p) (r : Nat) :
     Nat.mul_add_div (by have := p.RLarge; omega),
     Nat.div_eq_of_lt (by have := p.RLarge; omega), Nat.add_zero]
 
-/-- The gate for label `s` reads slot `s + 1`. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The gate for label `s` reads slot `s + 1`. -/
 theorem fgsa_gate_slot (nd : Node p) (s : Slot) :
     ((fgsa p c).clock nd (SA.gateTime p.toParams s)).st.slot p = s + 1 := by
   have ht : SA.gateTime p.toParams s = 4 * p.Δ * ((s + 1 : Nat) : Int) + 2 * p.Δ := by
@@ -124,7 +133,8 @@ private theorem fgsa_reconcile_labels (st : State p.n) :
   rfl
 
 private theorem fgsa_grid_proposal_genuine (q : GridCO.Params) {n : Nat}
-    (st : GridCO.State n) (o : GridCO.Wire n) (b : Block) (raw : List (GridCO.HeadWire n)) :
+    (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block) (raw : List
+        (GridCO.HeadWire n .root)) :
     (GridCO.admitProposal q st o b raw).genuine = st.genuine := by
   obtain ⟨auth, msg⟩ := o
   cases auth <;> unfold GridCO.admitProposal <;> dsimp only <;> split
@@ -140,22 +150,26 @@ private theorem fgsa_process_labels (st : State p.n) (o : Wire p.n) :
     rw [admitHead_genuine]
   · change (admitRow p st _).base.genuine.map Prod.fst = _
     rcases admitRow_eq p st _ with he | he <;> rw [he]
-  · rename_i s b raw sup rows
-    change (admitBlock p st s b raw sup rows).base.genuine.map Prod.fst = _
-    cases hp : parentFG st b with
-    | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]
-    | some P =>
-      cases ha : blockAccepted p st s b raw sup P rows with
-      | false => rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
-      | true =>
-        obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s b raw sup P rows hp ha
-        rw [he]
-        dsimp only
-        split
-        · rw [fgsa_grid_proposal_genuine]
-        · rw [fgsa_reconcile_labels, fgsa_grid_proposal_genuine]
+  · rename_i s N
+    change (admitBlock p st s N).base.genuine.map Prod.fst = _
+    cases hn : namedParentHeld st N with
+    | false =>
+      rw [admitBlock_refused p st s N (Or.inl hn)]
+    | true =>
+      cases hp : parentFG st N.erase with
+      | none => rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))]
+      | some P =>
+        cases ha : blockAccepted p st s N P with
+        | false => rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
+        | true =>
+          obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s N P hn hp ha
+          rw [he]
+          dsimp only
+          split
+          · rw [fgsa_grid_proposal_genuine]
+          · rw [fgsa_reconcile_labels, fgsa_grid_proposal_genuine]
 
-private theorem fgsa_unsaved_iff (st : GridCO.State p.n) (s : Slot) :
+private theorem fgsa_unsaved_iff (st : GridCO.State p.n .root) (s : Slot) :
     GridCO.savedGenuine st s = none ↔ s ∉ st.genuine.map Prod.fst := by
   constructor
   · exact notMem_keys_of_unsaved
@@ -194,7 +208,8 @@ private theorem fgsa_clock_label_source (st : State p.n) (t : Time) (s : Slot)
   · rw [clockPre_genuine] at hm
     exact (hs hm).elim
 
-/-- A saved label comes from a prior local tick at its gate time.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A saved label comes from a prior local tick at its gate time.
 The origin statement needs no schedule premise and allows restarts. -/
 theorem fgsa_saved_label_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (v : V) (s : Slot)
@@ -209,7 +224,8 @@ theorem fgsa_saved_label_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     (fun nd t s h => fgsa_clock_label_source nd.st t s h) E rho i v s hm
   exact ⟨j, hj, ht ▸ he⟩
 
-/-- The label is unsaved before its unique scheduled gate tick. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The label is unsaved before its unique scheduled gate tick. -/
 theorem fgsa_gate_fresh (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s))) :
@@ -226,21 +242,23 @@ theorem fgsa_gate_fresh (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have := fgsa_tick_unique E rho hs ht hi
   omega
 
-/-- At the scheduled fresh gate the clock is the anchored SA clock,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+At the scheduled fresh gate the clock is the anchored SA clock,
 with the cumulative blocks and the fast-write row kept. -/
 theorem fgsa_gate_clock_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s))) :
     let st := (V2.D.Run.stateBefore E rho i v).st
     FGSA.clock p st (SA.gateTime p.toParams s) = normalizeS { st with
-      base := { SA.clockFrom p.toParams (eraseFG st.fg.F) (actView st)
-        (SA.gateTime p.toParams s) with blocks := st.base.blocks },
+      base := { SA.Root.clockFrom p.toParams (eraseFG st.fg.F) (actView st)
+        (SA.gateTime p.toParams s) with blocks := st.base.blocks, headDomain :=
+            st.base.headDomain },
       fastWrite := st.fastWrite ++ [(s, fastSet p (eraseFG st.fg.F)
         (actView (clockPre p st (SA.gateTime p.toParams s))) s)] } :=
   clock_eq_saClockFrom_gate' p _ _ s rfl (fgsa_gate_fresh E rho hs hi)
 
-private theorem fgsa_grid_stamp_le (q : GridCO.Params) {n : Nat} (st : GridCO.State n)
-    (o : GridCO.Wire n) (h : ∀ row ∈ st.voteStamp, row.2 ≤ st.now) :
+private theorem fgsa_grid_stamp_le (q : GridCO.Params) {n : Nat} (st : GridCO.State n .root)
+    (o : GridCO.Wire n .root) (h : ∀ row ∈ st.voteStamp, row.2 ≤ st.now) :
     ∀ row ∈ (GridCO.admitVote q st o).voteStamp,
       row.2 ≤ (GridCO.admitVote q st o).now := by
   obtain ⟨auth, msg⟩ := o
@@ -260,7 +278,7 @@ private theorem fgsa_grid_stamp_le (q : GridCO.Params) {n : Nat} (st : GridCO.St
       exact le_rfl
 
 private theorem fgsa_grid_fold_stamp_le (q : GridCO.Params) {n : Nat}
-    (raw : List (GridCO.HeadWire n)) (st : GridCO.State n)
+    (raw : List (GridCO.HeadWire n .root)) (st : GridCO.State n .root)
     (h : ∀ row ∈ st.voteStamp, row.2 ≤ st.now) :
     ∀ row ∈ (raw.foldl (fun acc row => GridCO.admitVote q acc (GridCO.fromHead row)) st).voteStamp,
       row.2 ≤ st.now := by
@@ -273,7 +291,8 @@ private theorem fgsa_grid_fold_stamp_le (q : GridCO.Params) {n : Nat}
     rwa [hn] at hh
 
 private theorem fgsa_grid_proposal_stamp_le (q : GridCO.Params) {n : Nat}
-    (st : GridCO.State n) (o : GridCO.Wire n) (b : Block) (raw : List (GridCO.HeadWire n))
+    (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block) (raw : List
+        (GridCO.HeadWire n .root))
     (h : ∀ row ∈ st.voteStamp, row.2 ≤ st.now) :
     ∀ row ∈ (GridCO.admitProposal q st o b raw).voteStamp, row.2 ≤ st.now := by
   obtain ⟨auth, msg⟩ := o
@@ -296,39 +315,44 @@ private theorem fgsa_process_bounds (st : State p.n) (o : Wire p.n)
     refine ⟨?_, ?_⟩
     · rwa [admitHead_base_blocks]
     · have hh := fgsa_grid_stamp_le p.toParams.engine st.base
-        (⟨.seat slot seat, .head target⟩ : GridCO.Wire p.n) hv
+        (⟨.seat slot seat, .head target⟩ : GridCO.Wire p.n .root) hv
       rw [Internal.grid_admitVote_now] at hh
       exact hh
   · change (∀ b ∈ (admitRow p st _).base.blocks, _) ∧
       (∀ row ∈ (admitRow p st _).base.voteStamp, _)
     rcases admitRow_eq p st _ with he | he <;> rw [he] <;> exact ⟨hb, hv⟩
-  · rename_i s b raw sup rows
-    change (∀ b' ∈ (admitBlock p st s b raw sup rows).base.blocks, _) ∧
-      (∀ row ∈ (admitBlock p st s b raw sup rows).base.voteStamp, _)
-    cases hp : parentFG st b with
-    | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]; exact ⟨hb, hv⟩
-    | some P =>
-      cases ha : blockAccepted p st s b raw sup P rows with
-      | false =>
-        rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
-        exact ⟨hb, hv⟩
-      | true =>
-        obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s b raw sup P rows hp ha
-        have hblocks := (accepted_st2 p st hc s b raw sup P rows hp ha).2.2.1
-        rw [he]
-        refine ⟨?_, ?_⟩
-        · dsimp only
-          rw [hblocks]
-          intro b' hm
-          rcases List.mem_append.mp hm with hm | hm
-          · exact hb b' hm
-          · obtain rfl := List.mem_singleton.mp hm
-            exact (blockAccepted_facts ha).2.1
-        · dsimp only
-          split
-          · exact fgsa_grid_proposal_stamp_le p.toParams.engine st.base _ b _ hv
-          · rw [(reconcile_frame _).2.2.2.2.2.2.1]
-            exact fgsa_grid_proposal_stamp_le p.toParams.engine st.base _ b _ hv
+  · rename_i s N
+    change (∀ b' ∈ (admitBlock p st s N).base.blocks, _) ∧
+      (∀ row ∈ (admitBlock p st s N).base.voteStamp, _)
+    cases hn : namedParentHeld st N with
+    | false =>
+      rw [admitBlock_refused p st s N (Or.inl hn)]
+      exact ⟨hb, hv⟩
+    | true =>
+      cases hp : parentFG st N.erase with
+      | none => rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))]; exact ⟨hb, hv⟩
+      | some P =>
+        cases ha : blockAccepted p st s N P with
+        | false =>
+          rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
+          exact ⟨hb, hv⟩
+        | true =>
+          obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s N P hn hp ha
+          have hblocks := (accepted_st2 p st hc s N P hp ha).2.2.1
+          rw [he]
+          refine ⟨?_, ?_⟩
+          · dsimp only
+            rw [hblocks]
+            intro b' hm
+            rcases List.mem_append.mp hm with hm | hm
+            · exact hb b' hm
+            · obtain rfl := List.mem_singleton.mp hm
+              exact (blockAccepted_facts ha).2.1
+          · dsimp only
+            split
+            · exact fgsa_grid_proposal_stamp_le p.toParams.engine st.base _ N.erase _ hv
+            · rw [(reconcile_frame _).2.2.2.2.2.2.1]
+              exact fgsa_grid_proposal_stamp_le p.toParams.engine st.base _ N.erase _ hv
 
 private theorem fgsa_clock_now_of_reachable (st : State p.n) (hr : Reachable p st)
     (record : RecordOnce) : (fgsaClock p c).now (⟨st, record⟩ : Node p) = st.base.now := by
@@ -352,7 +376,8 @@ private theorem fgsa_clock_now_stateBefore (E : Generic.Env V)
     (V2.D.Run.stateBefore E rho i v).record
   exact h
 
-/-- Scheduled stores keep blocks within the store slot and stamps within
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Scheduled stores keep blocks within the store slot and stamps within
 its clock. Restarts restore genesis and an empty vote-stamp list. -/
 theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (v : V) :
@@ -370,7 +395,7 @@ theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
       obtain rfl := List.mem_singleton.mp hb
       exact Nat.zero_le _
     · intro row hr
-      change row ∈ ([] : List (GridCO.Wire p.n × Time)) at hr
+      change row ∈ ([] : List (GridCO.Wire p.n .root × Time)) at hr
       exact (List.not_mem_nil hr).elim
   have h := V2.D.Engine.stateBefore_invariant (fgsaClock p c) (fgsa_hrestore_now p c)
     E rho hs Q hinit (fun nd t ht h => ?_) (fun nd o h => ?_)
@@ -403,7 +428,8 @@ theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     rw [process_base_now]
     exact hh
 
-/-- Before a positive-time local tick, the store clock is strictly earlier.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Before a positive-time local tick, the store clock is strictly earlier.
 NoRestart is not needed: restore sets the clock to zero. -/
 theorem fgsa_preTick_now_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {t : Time}
@@ -416,13 +442,14 @@ theorem fgsa_preTick_now_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   · rw [fgsa_clock_now_stateBefore E rho i v] at he
     exact fgsa_tick_time_strict E rho hs he hi hj
 
-/-- Every stored vote, including carried votes, has a stamp before release.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every stored vote, including carried votes, has a stamp before release.
 The active view keeps both the votes and their stamps. -/
 theorem fgsa_release_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r))) :
     let st := (V2.D.Run.stateBefore E rho i v).st
-    (∀ o : GridCO.Wire p.n, GridCO.stampVote st.base o < SA.releaseTime p.toParams r) ∧
+    (∀ o : GridCO.Wire p.n .root, GridCO.stampVote st.base o < SA.releaseTime p.toParams r) ∧
       (actView st).votes = st.base.votes ∧ (actView st).voteStamp = st.base.voteStamp := by
   intro st
   have ht : 0 < SA.releaseTime p.toParams r := by
@@ -442,7 +469,7 @@ theorem fgsa_release_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     exact lt_of_le_of_lt (hb row hm) hn
 
 private theorem fgsa_grid_vote_keys (q : GridCO.Params) {n : Nat}
-    (st : GridCO.State n) (o : GridCO.Wire n)
+    (st : GridCO.State n .root) (o : GridCO.Wire n .root)
     (h : st.voteStamp.map Prod.fst = st.votes) :
     (GridCO.admitVote q st o).voteStamp.map Prod.fst = (GridCO.admitVote q st o).votes := by
   obtain ⟨auth, msg⟩ := o
@@ -450,7 +477,7 @@ private theorem fgsa_grid_vote_keys (q : GridCO.Params) {n : Nat}
   rename_i r seat b
   change (let out := if (r < (st.now / (4 * q.Δ)).toNat - 1 ||
       (st.now / (4 * q.Δ)).toNat < r ||
-      decide ((⟨.seat r seat, .head b⟩ : GridCO.Wire n) ∈ st.votes) ||
+      decide ((⟨.seat r seat, .head b⟩ : GridCO.Wire n .root) ∈ st.votes) ||
       GridCO.equivocates (GridCO.votesAt st r) seat) then st else
       { st with
         votes := st.votes ++ [⟨.seat r seat, .head b⟩]
@@ -464,7 +491,7 @@ private theorem fgsa_grid_vote_keys (q : GridCO.Params) {n : Nat}
     rfl
 
 private theorem fgsa_grid_fold_vote_keys (q : GridCO.Params) {n : Nat}
-    (raw : List (GridCO.HeadWire n)) (st : GridCO.State n)
+    (raw : List (GridCO.HeadWire n .root)) (st : GridCO.State n .root)
     (h : st.voteStamp.map Prod.fst = st.votes) :
     let out := raw.foldl (fun acc row => GridCO.admitVote q acc (GridCO.fromHead row)) st
     out.voteStamp.map Prod.fst = out.votes := by
@@ -474,7 +501,8 @@ private theorem fgsa_grid_fold_vote_keys (q : GridCO.Params) {n : Nat}
     exact ih _ (fgsa_grid_vote_keys q st (GridCO.fromHead row) h)
 
 private theorem fgsa_grid_proposal_vote_keys (q : GridCO.Params) {n : Nat}
-    (st : GridCO.State n) (o : GridCO.Wire n) (b : Block) (raw : List (GridCO.HeadWire n))
+    (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block) (raw : List
+        (GridCO.HeadWire n .root))
     (h : st.voteStamp.map Prod.fst = st.votes) :
     (GridCO.admitProposal q st o b raw).voteStamp.map Prod.fst =
       (GridCO.admitProposal q st o b raw).votes := by
@@ -492,25 +520,31 @@ private theorem fgsa_process_vote_keys (st : State p.n) (o : Wire p.n)
   · exact fgsa_grid_vote_keys p.toParams.engine st.base _ h
   · change (admitRow p st _).base.voteStamp.map Prod.fst = (admitRow p st _).base.votes
     rcases admitRow_eq p st _ with he | he <;> rw [he] <;> exact h
-  · rename_i s b raw sup rows
-    change (admitBlock p st s b raw sup rows).base.voteStamp.map Prod.fst =
-      (admitBlock p st s b raw sup rows).base.votes
-    cases hp : parentFG st b with
-    | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]; exact h
-    | some P =>
-      cases ha : blockAccepted p st s b raw sup P rows with
-      | false =>
-        rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]; exact h
-      | true =>
-        obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s b raw sup P rows hp ha
-        rw [he]
-        dsimp only
-        split
-        · exact fgsa_grid_proposal_vote_keys p.toParams.engine st.base _ b _ h
-        · rw [(reconcile_frame _).2.2.2.2.2.2.1, (reconcile_frame _).2.2.2.2.2.1]
-          exact fgsa_grid_proposal_vote_keys p.toParams.engine st.base _ b _ h
+  · rename_i s N
+    change (admitBlock p st s N).base.voteStamp.map Prod.fst =
+      (admitBlock p st s N).base.votes
+    cases hn : namedParentHeld st N with
+    | false =>
+      rw [admitBlock_refused p st s N (Or.inl hn)]
+      exact h
+    | true =>
+      cases hp : parentFG st N.erase with
+      | none => rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))]; exact h
+      | some P =>
+        cases ha : blockAccepted p st s N P with
+        | false =>
+          rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]; exact h
+        | true =>
+          obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s N P hn hp ha
+          rw [he]
+          dsimp only
+          split
+          · exact fgsa_grid_proposal_vote_keys p.toParams.engine st.base _ N.erase _ h
+          · rw [(reconcile_frame _).2.2.2.2.2.2.1, (reconcile_frame _).2.2.2.2.2.1]
+            exact fgsa_grid_proposal_vote_keys p.toParams.engine st.base _ N.erase _ h
 
-/-- Stored votes and stamps have the same keys, including carried votes.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Stored votes and stamps have the same keys, including carried votes.
 No schedule or restart premise is needed. -/
 theorem fgsa_vote_stamp_keys (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (v : V) :
@@ -527,11 +561,12 @@ theorem fgsa_vote_stamp_keys (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   · intro nd o h
     exact fgsa_process_vote_keys nd.st (toWire p o) h
 
-/-- At `q_r`, freeze and early do not run. The release reads the active
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+At `q_r`, freeze and early do not run. The release reads the active
 view after the time write and expiry, before any same-time delivery. -/
 theorem fgsa_release_clockPre (st : State p.n) (r : Slot) :
     clockPre p st (SA.releaseTime p.toParams r) =
-      onView (fun view => SA.release p.toParams view r)
+      onView (fun view => SA.Root.release p.toParams view r)
         { st with
           base := GridCO.expire { st.base with now := SA.releaseTime p.toParams r }
             (SA.releaseTime p.toParams r) } := by
@@ -570,7 +605,8 @@ theorem fgsa_release_clockPre (st : State p.n) (r : Slot) :
   simp only [hfne, hene, Bool.and_false, Bool.false_eq_true, ite_false,
     hqn, decide_true, beq_self_eq_true, Bool.true_and, ite_true]
 
-/-- At the release input, after the time write and expiry, every stored
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+At the release input, after the time write and expiry, every stored
 vote still has its earlier stamp. This is the view that release reads. -/
 theorem fgsa_release_input_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
@@ -599,7 +635,8 @@ theorem fgsa_release_input_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (
   | some row =>
     exact lt_of_le_of_lt (hb row (List.mem_of_find?_eq_some hf)) hn
 
-/-- Stored blocks have smaller slots before the proposal tick and after
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Stored blocks have smaller slots before the proposal tick and after
 its clock, when `s > 0`. -/
 theorem fgsa_stored_block_slots (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
@@ -641,7 +678,8 @@ theorem fgsa_stored_block_slots (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     rw [clock_fg]
     exact hfg
 
-/-- The raw equivocation pool equals its cutoff-filtered pool at release.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The raw equivocation pool equals its cutoff-filtered pool at release.
 Thus the implementation count is the specification count on the active view. -/
 theorem fgsa_release_count_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
@@ -658,7 +696,8 @@ theorem fgsa_release_count_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
         ((GridCO.seats p.n resolved).filter (fun seat =>
           !GridCO.equivocates cut seat &&
           (GridCO.seatVotes resolved seat).any (fun o =>
-            (GridCO.headTarget? o).any (fun target => !Block.compatible target B)))).length := by
+            (GridCO.resolvedHead? view o).any (fun target => !Block.compatible target
+                B)))).length := by
   intro view raw cut
   have hh := fgsa_release_input_votes_stamped E rho hs hi
   have he : cut = raw := by
@@ -667,12 +706,12 @@ theorem fgsa_release_count_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     exact decide_eq_true (hh o (List.mem_filter.mp ho).1)
   refine ⟨he.symm, fun seat => congrArg (fun xs => GridCO.equivocates xs seat) he.symm, ?_⟩
   rw [he]
-  have hpred : (fun o : GridCO.Wire p.n => match GridCO.headTarget? o with
+  have hpred : (fun o : GridCO.Wire p.n .root => match GridCO.resolvedHead? view o with
       | some target => !Block.compatible target B
-      | none => false) = (fun o => (GridCO.headTarget? o).any
+      | none => false) = (fun o => (GridCO.resolvedHead? view o).any
         (fun target => !Block.compatible target B)) := by
     funext o
-    cases GridCO.headTarget? o <;> rfl
+    cases GridCO.resolvedHead? view o <;> rfl
   unfold GridCO.releaseCount
   dsimp only
   have hcut : GridCO.releaseTime p.toParams.engine r = SA.releaseTime p.toParams r := rfl
@@ -685,10 +724,12 @@ theorem fgsa_release_count_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   apply congrArg (fun f => (GridCO.seatVotes _ seat).any f)
   exact hpred
 
-/-- The action time is the gate time of label `rR`. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The action time is the gate time of label `rR`. -/
 theorem fgsa_action_gate_time (r : Nat) : p.actionTime r = SA.gateTime p.toParams (r * p.R) := rfl
 
-/-- An emitted FG action reads the clock state of its own tick.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An emitted FG action reads the clock state of its own tick.
 The same clock runs the gate at `d_{rR}` before that action. -/
 theorem fgsa_action_reads_gate (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (nd : Node p) (v : V) (r : Nat) (seat : Fin p.n) (body : RowPayload) :
@@ -720,14 +761,15 @@ private theorem fgsa_clock_gate_eq (st : State p.n) (s : Slot) :
   rw [hslot]
   simp only [hg, decide_true, beq_self_eq_true, Bool.true_and, ite_true]
 
-/-- The fresh scheduled gate saves the anchored confirmation of its
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The fresh scheduled gate saves the anchored confirmation of its
 pre-gate active view, including an empty confirmation. -/
 theorem fgsa_gate_saved_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s))) :
     let st := (V2.D.Run.stateBefore E rho i v).st
     GridCO.savedGenuine (FGSA.clock p st (SA.gateTime p.toParams s)).base s =
-      some (SA.confirmationFrom p.toParams (eraseFG st.fg.F)
+      some (SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F)
         (actView (clockPre p st (SA.gateTime p.toParams s))) s) := by
   intro st
   have hn := fgsa_gate_fresh E rho hs hi
@@ -740,7 +782,8 @@ theorem fgsa_gate_saved_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [clockPre_fg] at he
   exact he
 
-/-- Every stored non-genesis block has a proposal delivered at an earlier
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every stored non-genesis block has a proposal delivered at an earlier
 index in the current local restart epoch. No schedule premise is needed. -/
 theorem fgsa_stored_block_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (v : V) (b : Block)
@@ -758,7 +801,8 @@ theorem fgsa_stored_block_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   obtain ⟨j, o, t, hj, hd, ho, -, hr⟩ := stored_proposal_delivered E rho i v w hw
   exact ⟨w, hw, hwire, j, o, t, hj, hd, ho, hr⟩
 
-/-- The strict time reader equals the actual pre-tick store only when the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The strict time reader equals the actual pre-tick store only when the
 run has no restarts. All other results in this module allow restarts. -/
 theorem fgsa_preTick_eq_timeRead (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)

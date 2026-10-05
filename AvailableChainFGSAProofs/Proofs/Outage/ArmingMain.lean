@@ -16,7 +16,8 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Plan O-ARM §4, §6. Class (iii). DC: INTENTIONAL; the arming certificate at
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan O-ARM §4, §6. Class (iii). DC: INTENTIONAL; the arming certificate at
 an arbitrary label `l` with d(l) ≤ b₀ < d(l + 1). The mode label distance and
 the fast count are inputs; the slow window is proved here. -/
 theorem arming_cert [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -194,7 +195,7 @@ theorem arming_cert [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
         exact block_preceq_trans hBD (arming_head_covers (hroots := hroots) hvalid hnr hdelta
           hcstar hDh hDne
           hSync hpartv hprefix hbatchF hy hi)
-      · intro X raw sup rows hX
+      · intro N hX
         obtain ⟨r, i, _, rfl, hi, hpar⟩ := arming_emit_proposal hvalid hy hem hX
         obtain rfl := arming_proposal_window p l r hlt htd
         rw [hpar]
@@ -216,7 +217,8 @@ theorem arming_cert [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     pending_input := arming_pending_input hvalid hnr hcstar hBD hpartv hprefix hbatchF fast
       hfast hslowIn }
 
-/-- ROOT-DIGEST W2b. Blueprint 03 §§6–8; plan O-ARM §5 `fast_arming`. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §§6–8; plan O-ARM §5 `fast_arming`. Class (iii).
 DC: INTENTIONAL; the fast arming certificate of a protected stable read. The
 lag T + 4Δ ≤ b₀ puts the pending label at least two labels after the origin.
 High participation before b₀ gives the fast count at the pending gate. -/
@@ -312,7 +314,8 @@ theorem fast_arming [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     (fun _ => hfastPart _ (by rw [arming_vote_eq]; have := p.deltaPos; positivity)
       ((arming_vote_lt_early p _).1.trans_le ((arming_early_next p _).trans_le hl)))
 
-/-- ROOT-DIGEST W2b. Blueprint 03 §§6–8; plan O-ARM §5 `slow_arming`. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §§6–8; plan O-ARM §5 `slow_arming`. Class (iii).
 DC: INTENTIONAL; the slow arming certificate of a protected stable read. The
 lag T + (L − 3Δ) ≤ b₀ puts the pending label at least k labels after the
 origin. The saved Clean results give the slow window; no participation

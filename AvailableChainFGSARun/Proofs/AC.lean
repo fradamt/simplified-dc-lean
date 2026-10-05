@@ -18,10 +18,11 @@ private theorem ac_gate_ne_offset (p : Params) (s r : Slot) (k : Int)
     mul_right_cancel₀ (ne_of_gt p.deltaPos) hm
   rcases hk with rfl | rfl <;> omega
 
-/-- At a gate, expiry runs. Only the early cache can differ from the Gen view. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+At a gate, expiry runs. Only the early cache can differ from the Gen view. -/
 theorem fgsa_clockPre_gateView (p : Params) (st : State p.n) (s : Slot) :
     { actView (clockPre p st (SA.gateTime p.toParams s)) with early := st.base.early } =
-      SA.expire { actView st with now := SA.gateTime p.toParams s }
+      SA.Root.expire { actView st with now := SA.gateTime p.toParams s }
         (SA.gateTime p.toParams s) := by
   let t := SA.gateTime p.toParams s
   have hf : (decide (0 ≤ t - 3 * p.Δ) &&
@@ -46,20 +47,22 @@ theorem fgsa_clockPre_gateView (p : Params) (st : State p.n) (s : Slot) :
 
 variable {p : Params} {In : Type} {c : AppCodec In} {V : Type} [DecidableEq V]
 
-/-- The anchor is below the output at every event index. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The anchor is below the output at every event index. -/
 theorem fgsaAC_anchor_le_output (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) :
     Block.Preceq ((fgsaAC E rho).anchor i x) ((fgsaAC E rho).output i x) :=
   nestOK_stateBefore E rho i x
 
-/-- Every live lease of an honest node targets a prefix of its output. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every live lease of an honest node targets a prefix of its output. -/
 theorem fgsaAC_lease_le_output (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
     Gen.AC.Duty.LeaseBelowOutput (fgsaAC E rho) := by
   intro i x hx lease hl ht
   exact leaseBelowOutput_honest E rho i x hx lease hl ht
 
 private theorem ac_fold_stable {n : Nat} (bs : List Block) (levels : Block → List Nat)
-    (d : Time) (v : GridCO.State n) :
+    (d : Time) (v : GridCO.State n .root) :
     (bs.foldl (fun acc b => (levels b).foldl
       (fun acc g => GridCO.writeObligation acc b g d) acc) v).stableRecord = v.stableRecord := by
   induction bs generalizing v with
@@ -72,7 +75,7 @@ private theorem ac_fold_stable {n : Nat} (bs : List Block) (levels : Block → L
     | cons g gs ihg => rw [List.foldl_cons, ihg]; rfl
 
 private theorem ac_fold_leases {n : Nat} (bs : List Block) (levels : Block → List Nat)
-    (d : Time) (v w : GridCO.State n) (hv : v.obligations = w.obligations) :
+    (d : Time) (v w : GridCO.State n .root) (hv : v.obligations = w.obligations) :
     (bs.foldl (fun acc b => (levels b).foldl
       (fun acc g => GridCO.writeObligation acc b g d) acc) v).obligations =
     (bs.foldl (fun acc b => (levels b).foldl
@@ -113,32 +116,33 @@ private theorem ac_clock_gate (p : Params) (st : State p.n) (s : Slot) :
   simp only [hn, decide_true, BEq.rfl, Bool.and_self, ite_true]
 
 private theorem ac_gate_expand (p : SA.Params) {n : Nat} (a : Block)
-    (v : GridCO.State n) (s : Slot) :
-    SA.gateFrom p a v s =
-      match SA.confirmationFrom p a v s with
-      | none => { v with genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n v s none }
+    (v : GridCO.State n .root) (s : Slot) :
+    SA.Root.gateFrom p a v s =
+      match SA.Root.confirmationFrom p a v s with
+      | none => { v with genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s none }
       | some h =>
         if v.obligations.any (fun row => !Block.compatible row.1 h) then
           { v with
             goldfishRecord := GridCO.advance v.goldfishRecord h
-            genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n v s (some h) }
+            genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s (some h) }
         else
           (v.blocks.filter (fun b => b != .genesis && Block.preceq b h)).foldl
-            (fun acc b => (@GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n v s b).foldl
+            (fun acc b => (@GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n .root v s
+                b).foldl
               (fun acc g => GridCO.writeObligation acc b g (SA.gateTime p s + SA.lifetime p)) acc)
             { v with
               goldfishRecord := GridCO.advance v.goldfishRecord h
-              genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n v s (some h)
+              genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s (some h)
               stableRecord := GridCO.advance v.stableRecord h } := rfl
 
-private theorem ac_fast_expand (p : Params) (a : Block) (v : GridCO.State p.n) (s : Slot) :
-    fastSet p a v s = match SA.confirmationFrom p.toParams a v s with
+private theorem ac_fast_expand (p : Params) (a : Block) (v : GridCO.State p.n .root) (s : Slot) :
+    fastSet p a v s = match SA.Root.confirmationFrom p.toParams a v s with
       | none => []
       | some h => if v.obligations.any (fun row => !Block.compatible row.1 h) then [] else
           v.blocks.filter (fun b => b != .genesis && Block.preceq b h &&
-            decide (SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams v s b)) := rfl
+            decide (SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams v s b)) := rfl
 
-private theorem ac_veto_false {n : Nat} (v : GridCO.State n) (h : Block)
+private theorem ac_veto_false {n : Nat} (v : GridCO.State n .root) (h : Block)
     (hh : ∀ row ∈ v.obligations, Block.Compatible row.1 h) :
     v.obligations.any (fun row => !Block.compatible row.1 h) = false := by
   apply List.any_eq_false.mpr
@@ -147,7 +151,7 @@ private theorem ac_veto_false {n : Nat} (v : GridCO.State n) (h : Block)
   change Block.compatible row.1 _ = true at h
   simp only [h, Bool.not_true, Bool.false_eq_true, not_false_eq_true]
 
-private theorem ac_veto_true {n : Nat} (v : GridCO.State n) (h : Block)
+private theorem ac_veto_true {n : Nat} (v : GridCO.State n .root) (h : Block)
     (hh : ∃ row ∈ v.obligations, ¬ Block.Compatible row.1 h) :
     v.obligations.any (fun row => !Block.compatible row.1 h) = true := by
   obtain ⟨row, hr, hh⟩ := hh
@@ -158,7 +162,8 @@ private theorem ac_veto_true {n : Nat} (v : GridCO.State n) (h : Block)
 
 set_option maxHeartbeats 1600000 in
 -- The gate proof compares nested store updates and two lease folds.
-/-- Every gate tick satisfies the event-indexed gate law, including repeated ticks. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every gate tick satisfies the event-indexed gate law, including repeated ticks. -/
 theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i s : Nat) (x : V) : Gen.AC.Duty.GateWriteSpec (fgsaAC E rho) i s x := by
   intro ht
@@ -179,25 +184,25 @@ theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hO : pre.base.obligations = w.obligations := by
     have h := congrArg GridCO.State.obligations hv
     exact h
-  have hraw : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) v s =
+  have hraw : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) v s =
       (fgsaAC E rho).raw i s x := by
     rw [hfg]
-    have h := congrArg (fun v => SA.confirmationFrom p.toParams (eraseFG st.fg.F) v s) hv
+    have h := congrArg (fun v => SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) v s) hv
     exact h
-  have hlevels : @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n v s =
+  have hlevels : @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root v s =
       (fgsaAC E rho).gateLevels i x s := by
     have h := congrArg (fun v =>
-      @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n v s) hv
+      @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root v s) hv
     exact h
   have hblocks : v.blocks = w.blocks := by
     have h := congrArg GridCO.State.blocks hv
     exact h
   have hfast : ∀ h, v.blocks.filter (fun b => b != .genesis && Block.preceq b h &&
-      decide (SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams v s b)) =
+      decide (SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams v s b)) =
       (fgsaAC E rho).gateFast i x s h := by
     intro h
     exact congrArg (fun v => v.blocks.filter (fun b => b != .genesis && Block.preceq b h &&
-      decide (SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams v s b))) hv
+      decide (SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams v s b))) hv
   have hsav (r : Slot) : GridCO.savedGenuine pre.base r = (fgsaAC E rho).saved i x r := by
     change (pre.base.genuine.find? _).map _ = _
     rw [clockPre_genuine]
@@ -245,7 +250,7 @@ theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     | none =>
       right
       have hgate : gateStep p pre s = normalizeS
-          { onView (fun v => SA.gateFrom p.toParams (eraseFG pre.fg.F) v s) pre with
+          { onView (fun v => SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) v s) pre with
             fastWrite := pre.fastWrite ++ [(s, fastSet p (eraseFG pre.fg.F) v s)] } := by
         change normalizeS (if _ then _ else _) = _
         rw [hs]
@@ -256,13 +261,13 @@ theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         rfl
       have houtput : (fgsaAC E rho).output (i + 1) x =
           Gen.AC.normalizeOutput (eraseFG st.fg.F)
-            (SA.gateFrom p.toParams (eraseFG pre.fg.F) v s).stableRecord := by
+            (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) v s).stableRecord := by
         rw [hout, hgate, normalizeS_fields]
         change Gen.AC.normalizeOutput (eraseFG pre.fg.F)
-          (SA.gateFrom p.toParams (eraseFG pre.fg.F) v s).stableRecord = _
+          (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) v s).stableRecord = _
         rw [hfg]
       have hleases : (fgsaAC E rho).leases (i + 1) x =
-          (SA.gateFrom p.toParams (eraseFG pre.fg.F) v s).obligations := by
+          (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) v s).obligations := by
         rw [hlease, hgate, normalizeS_fields]
         rfl
       have hnormS : Gen.AC.normalizeOutput (eraseFG st.fg.F) v.stableRecord =
@@ -306,52 +311,57 @@ theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 
 private theorem ac_block_output (p : Params) (st : State p.n) (hst : NestOK st)
-    (s : Slot) (b : Block) (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n)) :
-    (admitBlock p st s b raw support rows).base.stableRecord = st.base.stableRecord ∨
-      (eraseFG (admitBlock p st s b raw support rows).fg.F ≠ eraseFG st.fg.F ∧
-        (admitBlock p st s b raw support rows).base.stableRecord =
-          Gen.AC.normalizeOutput (eraseFG (admitBlock p st s b raw support rows).fg.F)
+    (s : Slot) (N : NamedProposal p.n) :
+    (admitBlock p st s N).base.stableRecord = st.base.stableRecord ∨
+      (eraseFG (admitBlock p st s N).fg.F ≠ eraseFG st.fg.F ∧
+        (admitBlock p st s N).base.stableRecord =
+          Gen.AC.normalizeOutput (eraseFG (admitBlock p st s N).fg.F)
             st.base.stableRecord) := by
-  cases hp : parentFG st b with
-  | none =>
-    rw [admitBlock_refused p st s b raw support rows (Or.inl hp)]
+  cases hn : namedParentHeld st N with
+  | false =>
+    rw [admitBlock_refused p st s N (Or.inl hn)]
     exact Or.inl rfl
-  | some P =>
-    cases ha : blockAccepted p st s b raw support P rows with
-    | false =>
-      rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hp, ha⟩)]
+  | true =>
+    cases hp : parentFG st N.erase with
+    | none =>
+      rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))]
       exact Or.inl rfl
-    | true =>
-      obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s b raw support P rows hp ha
-      let st1 : State p.n := { st with
-        base := GridCO.admitProposal p.toParams.engine st.base
-          (baseProposal s b raw support) b (raw.map baseHead)
-        fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
-        proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
-      change admitBlock p st s b raw support rows =
-        { (if st1.fg.F = st.fg.F then st1 else reconcile st1) with rowPool := pool } at he
-      have hs1 : st1.base.stableRecord = st.base.stableRecord :=
-        admitProposal_stable p.toParams.engine st.base _ b _
-      rw [he]
-      by_cases hf : st1.fg.F = st.fg.F
-      · rw [ite_eq_left hf]
-        exact Or.inl hs1
-      · rw [ite_eq_right hf]
-        have ho : (reconcile st1).base.stableRecord =
-            Gen.AC.normalizeOutput (eraseFG st1.fg.F) st.base.stableRecord := by
-          change (normalizeS _).base.stableRecord = _
-          rw [normalizeS_fields]
-          change (if Block.preceq (eraseFG st1.fg.F) st1.base.stableRecord then _ else _) = _
-          rw [hs1]
-          rfl
-        change (reconcile st1).base.stableRecord = _ ∨
-          (eraseFG (reconcile st1).fg.F ≠ _ ∧ (reconcile st1).base.stableRecord = _)
-        rw [reconcile_fg]
-        by_cases heq : eraseFG st1.fg.F = eraseFG st.fg.F
-        · left
-          rw [ho, heq]
-          exact ite_eq_left hst
-        · exact Or.inr ⟨heq, ho⟩
+    | some P =>
+      cases ha : blockAccepted p st s N P with
+      | false =>
+        rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
+        exact Or.inl rfl
+      | true =>
+        obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s N P hn hp ha
+        let st1 : State p.n := { st with
+          base := GridCO.admitProposal p.toParams.engine st.base
+            (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)
+          fg := Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
+          proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
+        change admitBlock p st s N =
+          { (if st1.fg.F = st.fg.F then st1 else reconcile st1) with rowPool := pool } at he
+        have hs1 : st1.base.stableRecord = st.base.stableRecord :=
+          admitProposal_stable p.toParams.engine st.base _ N.erase _
+        rw [he]
+        by_cases hf : st1.fg.F = st.fg.F
+        · rw [ite_eq_left hf]
+          exact Or.inl hs1
+        · rw [ite_eq_right hf]
+          have ho : (reconcile st1).base.stableRecord =
+              Gen.AC.normalizeOutput (eraseFG st1.fg.F) st.base.stableRecord := by
+            change (normalizeS _).base.stableRecord = _
+            rw [normalizeS_fields]
+            change (if Block.preceq (eraseFG st1.fg.F) st1.base.stableRecord then _ else _) = _
+            rw [hs1]
+            rfl
+          change (reconcile st1).base.stableRecord = _ ∨
+            (eraseFG (reconcile st1).fg.F ≠ _ ∧ (reconcile st1).base.stableRecord = _)
+          rw [reconcile_fg]
+          by_cases heq : eraseFG st1.fg.F = eraseFG st.fg.F
+          · left
+            rw [ho, heq]
+            exact ite_eq_left hst
+          · exact Or.inr ⟨heq, ho⟩
 
 private theorem ac_process_output (p : Params) (st : State p.n) (hst : NestOK st)
     (o : Obj p) :
@@ -370,26 +380,27 @@ private theorem ac_process_output (p : Params) (st : State p.n) (hst : NestOK st
       cases msg with
       | head b => exact Or.inl rfl
       | row body => exact Or.inl rfl
-      | proposal b raw support rows =>
-        rcases ac_block_output p st hst s b raw support rows with he | he
+      | proposal N =>
+        rcases ac_block_output p st hst s N with he | he
         · exact Or.inl he
-        · exact Or.inr ⟨b, rfl, he⟩
+        · exact Or.inr ⟨N.erase, rfl, he⟩
     | base label =>
       cases label with
       | head s =>
         cases msg with
         | head b => exact Or.inl (admitHead_base_stable p st s seat b)
-        | proposal b raw support rows => exact Or.inl rfl
+        | proposal N => exact Or.inl rfl
         | row body => exact Or.inl rfl
       | fg =>
         cases msg with
         | head b => exact Or.inl rfl
-        | proposal b raw support rows => exact Or.inl rfl
+        | proposal N => exact Or.inl rfl
         | row body =>
           change (admitRow p st _).base.stableRecord = _ ∨ _
           rcases admitRow_eq p st _ with he | he <;> rw [he] <;> exact Or.inl rfl
 
-/-- An output change is a gate, reconciliation, or restart. No event order is needed. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An output change is a gate, reconciliation, or restart. No event order is needed. -/
 theorem fgsaAC_output_step (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) :
     (fgsaAC E rho).output (i + 1) x = (fgsaAC E rho).output i x ∨
@@ -462,7 +473,8 @@ theorem fgsaAC_output_step (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       rw [V2.D.Run.stateBefore_succ E rho he, V2.D.World.step_apply_of_node_ne E rho _ hx]
       rfl
 
-/-- FG-SA satisfies all AC laws on every run, including restarts. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+FG-SA satisfies all AC laws on every run, including restarts. -/
 theorem fgsaAC_laws (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
     Gen.AC.Duty.ACLaws (fgsaAC E rho) where
   anchor_le_output := fgsaAC_anchor_le_output E rho
@@ -473,12 +485,12 @@ theorem fgsaAC_laws (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
 
 
 private theorem ac_gate_reindex {In V : Type} {P : V2.ProtocolSpecD In}
-    {E : Generic.Env V} {rho : V2.D.Run V P} (A : Gen.AC.Duty.ACReads E rho)
+    {E : Generic.Env V} {rho : V2.D.Run V P} (A : Gen.AC.Duty.ACReads E rho .root)
     (raw : Slot → V → Option Block) (fast : Slot → V → List Block)
     (i s : Nat) (x : V) (hr : A.raw i s x = raw s x) (hf : A.fast i s x = fast s x)
     (h : Gen.AC.Duty.GateWriteAtSpec A i s x) :
     Gen.AC.Duty.GateWriteAtSpec
-      ({ A with raw := fun _ => raw, fast := fun _ => fast } : Gen.AC.Duty.ACReads E rho)
+      ({ A with raw := fun _ => raw, fast := fun _ => fast } : Gen.AC.Duty.ACReads E rho .root)
       i s x := by
   refine ⟨h.view_output, h.view_leases, h.view_now, h.anchor_eq, ?_, h.saved_other,
     h.saved, ?_, ?_⟩
@@ -500,7 +512,8 @@ private theorem ac_gate_reindex {In V : Type} {P : V2.ProtocolSpecD In}
         obtain ⟨ho, hl, hh⟩ := hrun.accept b (hr.trans hb) hv
         exact ⟨ho, hl, hf.symm.trans hh⟩
 
-/-- Under schedule uniqueness, the gate observations also have slot-only reads.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Under schedule uniqueness, the gate observations also have slot-only reads.
 This separate statement adds no schedule premise to `fgsaAC_laws`. -/
 theorem fgsaAC_slot_gate_reads (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) :
@@ -509,7 +522,7 @@ theorem fgsaAC_slot_gate_reads (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         (fgsaAC E rho).raw i s x = raw s x ∧ (fgsaAC E rho).fast i s x = fast s x ∧
           Gen.AC.Duty.GateWriteAtSpec
             ({ fgsaAC E rho with raw := fun _ => raw, fast := fun _ => fast } :
-              Gen.AC.Duty.ACReads E rho) i s x := by
+              Gen.AC.Duty.ACReads E rho .root) i s x := by
   let index := fun s x => rho.events.idxOf (.tick x (SA.gateTime p.toParams s))
   let raw := fun s x => (fgsaAC E rho).raw (index s x) s x
   let fast := fun s x => (fgsaAC E rho).fast (index s x) s x

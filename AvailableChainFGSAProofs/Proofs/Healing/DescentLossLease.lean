@@ -15,7 +15,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- A vote time is not a gate time: the clock at v_l is the pre-gate clock. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A vote time is not a gate time: the clock at v_l is the pre-gate clock. -/
 private theorem lease_vote_clock (st : State p.n) (l : Slot) :
     FGSA.clock p st (SA.voteTime p.toParams l) = clockPre p st (SA.voteTime p.toParams l) := by
   have hn : isGateTime p (SA.voteTime p.toParams l) ≠ true := by
@@ -31,7 +32,8 @@ private theorem lease_vote_clock (st : State p.n) (l : Slot) :
   change (if isGateTime p _ then _ else _) = _
   rw [ite_eq_right hn]
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (later live leases; bind T to the current
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `cause` (later live leases; bind T to the current
 read); blueprint 21:689–715 (H.1 release, H.2 S1). DC: INTENTIONAL global
 event-index measure. At a HEAD tick of label l ≥ sB + 2 of an honest node x,
 with no earlier loss and F of x below the high source B, every live lease of
@@ -51,16 +53,17 @@ theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {k : Nat} (noLoss : ∀ k' < k, ∀ B sB, ¬ Lost p c E rho B sB k')
     {B : FGBlock (Fin p.n)} {sB : Slot} {x : V} {l : Slot}

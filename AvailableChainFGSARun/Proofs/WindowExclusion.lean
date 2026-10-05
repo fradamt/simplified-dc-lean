@@ -24,7 +24,8 @@ private theorem decoded_r3W (wire : RowWire p.n) (a : Row (Fin p.n))
       rw [hd] at valid
       exact valid
 
-/-- ROOT-DIGEST W2b. Checked deliveries supply R3 for each decoded row of a stored block.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Checked deliveries supply R3 for each decoded row of a stored block.
 The existing execution validity includes this delivery check. -/
 theorem stored_rows_r3W (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (checked : V2.D.DeliveryWellFormed E rho) (i : Nat) (v : V)
@@ -32,16 +33,17 @@ theorem stored_rows_r3W (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (stored : FGBlock.node P s root x rs ∈ (V2.D.Run.stateBefore E rho i v).st.fg.TF)
     (a : Row (Fin p.n)) (ha : a ∈ rs) : (RowBody.ofRow a).valid = true := by
   have bundle := storeBundle_stateBefore E rho i v
-  obtain ⟨t, raw, sup, rows, wire, sameRows⟩ := stored_wire_of_block p _ bundle.cstore
+  obtain ⟨t, N, wire, _, sameRows⟩ := stored_wire_of_block p _ bundle.cstore
     bundle.«meta» stored (by intro eq; cases eq)
-  change rs = rows.filterMap RowWire.toRow? at sameRows
+  change rs = N.rows.filterMap RowWire.toRow? at sameRows
   rw [sameRows] at ha
   obtain ⟨w, hw, hd⟩ := List.mem_filterMap.mp ha
   have hr := (fgsa_emissionRowsValid E rho checked i v).2
-    _ wire t _ raw sup rows rfl w hw
+    _ wire t N rfl w hw
   exact decoded_r3W w a hd hr
 
-/-- ROOT-DIGEST W2b. The combined R3/R6W ancestor premise follows from the run's existing
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. The combined R3/R6W ancestor premise follows from the run's existing
 validity and local admission history. It is not a new caller obligation. -/
 theorem stored_chain_rowsValidW (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (checked : V2.D.DeliveryWellFormed E rho) (i : Nat) (v : V)
@@ -55,7 +57,8 @@ theorem stored_chain_rowsValidW (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
   exact ⟨stored_rows_r3W E rho checked i v P s root x rs (closed B stored _ ancestor) a ha,
     stored_chain_r6wW p reachable B stored P s root x rs ancestor a ha⟩
 
-/-- ROOT-DIGEST W2b. Exact-row exclusion at a stored block in a valid run. The signer is
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Exact-row exclusion at a stored block in a valid run. The signer is
 already in the retained entry's Q; the pure R3/R6W input is discharged here. -/
 theorem exact_row_exclusion_checkedW (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (checked : V2.D.DeliveryWellFormed E rho) (i : Nat) (v : V)
@@ -68,7 +71,8 @@ theorem exact_row_exclusion_checkedW (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   Window.window_exact_row_no_missing_effect p p.K_W p.kWLarge B y U d hd hj hX
     (stored_chain_rowsValidW E rho checked i v B stored) P s root x rs ancestor a ha matchRow
 
-/-- ROOT-DIGEST W2b. The public execution-validity form consumes its existing delivery field. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. The public execution-validity form consumes its existing delivery field. -/
 theorem exact_row_exclusionW (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (valid : V2.D.ExecutionValid E rho) (i : Nat) (v : V)
     (B : FGBlock (Fin p.n)) (stored : B ∈ (V2.D.Run.stateBefore E rho i v).st.fg.TF)

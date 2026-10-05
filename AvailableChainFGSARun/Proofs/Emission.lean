@@ -8,7 +8,8 @@ open AvailableChain.SimplexFG
 open AvailableChain.V2.D.Engine
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- The record fold includes all ticks before `i`, across restarts. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The record fold includes all ticks before `i`, across restarts. -/
 theorem ownRecord_fold_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (v : V) :
     (V2.D.Run.stateBefore E rho i v).record =
@@ -18,19 +19,20 @@ theorem ownRecord_fold_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (fun k _ _ _ _ => restore_rec (V2.D.Run.stateBefore E rho k v).record)
   exact h
 
-/-- Exact HEAD emission at any tick. -/
+/-- [ROOT-DIGEST-2 W2; DC HEAD] Exact identifier emission at a tick. -/
 theorem fgsa_emits_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (nd : Node p) (v : V) (t : Time) (s : Slot) (j : Fin p.n) (b : Block) :
+    (nd : Node p) (v : V) (t : Time) (s : Slot) (j : Fin p.n) (b : BlockId) :
     (⟨.seat (.base (.head s)) j, .head b⟩ : Obj p) ∈ (V2.D.tick E rho nd v t).2 ↔
       E.awake v t = true ∧ SA.voteTime p.toParams s = t ∧
-      rho.seatOf (.base (.head s)) j = v ∧ b = headVote p (FGSA.clock p nd.st t) s := by
+      rho.seatOf (.base (.head s)) j = v ∧ b = (headVote p (FGSA.clock p nd.st t) s).root := by
   refine (Gen.V2.Duty.mem_tick_singleDuty_iff (P := fgsa p c) E rho nd v t
     (.base (.head s)) (fgsa_head_singleDuty s) (.headAction s) rfl j (.head b)).trans ?_
   dsimp only [fgsa, act, actS]
   simp only [Option.some.injEq, Msg.head.injEq]
   exact and_congr_right fun _ => and_congr_right fun _ => and_congr_right fun _ => eq_comm
 
-/-- Exact FG emission includes the scheduled action that produced the row. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Exact FG emission includes the scheduled action that produced the row. -/
 theorem fgsa_emits_row (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (nd : Node p) (v : V) (t : Time) (j : Fin p.n) (body : RowPayload) :
     ofRow p ⟨.seat .fg j, body⟩ ∈ (V2.D.tick E rho nd v t).2 ↔
@@ -56,7 +58,8 @@ theorem fgsa_emits_row (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rw [ha]
     rfl
 
-/-- Exact row emission at a tick event, without a free row-round parameter. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Exact row emission at a tick event, without a free row-round parameter. -/
 theorem fgsa_emitsAt_row (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (k : Nat) (v : V) (t : Time) (hk : rho.events[k]? = some (.tick v t))
     (j : Fin p.n) (body : RowPayload) :
@@ -68,7 +71,8 @@ theorem fgsa_emitsAt_row (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [(V2.D.Run.step_tick_eq E rho hk).2]
   exact fgsa_emits_row E rho _ v t j body
 
-/-- Exact proposal emission uses the proposal label's unique duty. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Exact proposal emission uses the proposal label's unique duty. -/
 theorem fgsa_emits_proposal (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (nd : Node p) (v : V) (t : Time) (s : Slot) (m : Msg p.n) :
     (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, m⟩ : Obj p) ∈ (V2.D.tick E rho nd v t).2 ↔
@@ -78,14 +82,16 @@ theorem fgsa_emits_proposal (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   Gen.V2.Duty.mem_tick_singleDuty_iff E rho nd v t (.prop s)
     (fgsa_prop_singleDuty s) (.propAction s) rfl ⟨0, Nat.one_pos⟩ m
 
-/-- Sleep releases no object and keeps the record. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Sleep releases no object and keeps the record. -/
 theorem fgsa_tick_asleep (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (nd : Node p) (v : V) (t : Time) (h : E.awake v t = false) :
     (V2.D.tick E rho nd v t).2 = [] ∧ (V2.D.tick E rho nd v t).1.record = nd.record := by
   rw [V2.D.tick_asleep E rho nd h]
   exact ⟨rfl, rfl⟩
 
-/-- The wire decoder recovers the client row with the actual seat. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The wire decoder recovers the client row with the actual seat. -/
 theorem fgsa_attest_decode (st : State p.n) (Λ : RecordOnce) (j : Fin p.n)
     (payload : RowPayload) (h : (attest p st Λ ⟨0, p.nPos⟩).1 = some payload) :
     RowWire.toRow? (⟨.seat .fg j, payload⟩ : RowWire p.n) =
@@ -99,7 +105,8 @@ theorem fgsa_attest_decode (st : State p.n) (Λ : RecordOnce) (j : Fin p.n)
   rw [ha, ← hp, he]
   rfl
 
-/-- An own-record write retains every previous sent content. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An own-record write retains every previous sent content. -/
 theorem recordRow_sent_subset (Λ : RecordOnce) (o : Obj p) :
     Λ.sent ⊆ (recordRow? p Λ o).sent := by
   obtain ⟨auth, payload⟩ := o
@@ -108,14 +115,16 @@ theorem recordRow_sent_subset (Λ : RecordOnce) (o : Obj p) :
     | exact List.Subset.refl _
     | exact fun _ hk => List.mem_cons_of_mem _ hk
 
-/-- A sequence of own-record writes retains previous sent content. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A sequence of own-record writes retains previous sent content. -/
 theorem recordRow_fold_sent_subset (ls : List (Obj p)) (Λ : RecordOnce) :
     Λ.sent ⊆ (ls.foldl (recordRow? p) Λ).sent := by
   induction ls generalizing Λ with
   | nil => exact List.Subset.refl _
   | cons o ls ih => exact fun _ hk => ih _ (recordRow_sent_subset Λ o hk)
 
-/-- Every fixed-FG row in an own-record fold is in its final sent set. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every fixed-FG row in an own-record fold is in its final sent set. -/
 theorem recordRow_fold_contains (ls : List (Obj p)) (Λ : RecordOnce)
     (i : Fin p.n) (body : RowPayload) (ho : ofRow p ⟨.seat .fg i, body⟩ ∈ ls) :
     (body.height_pair, body.finality_pair) ∈ (ls.foldl (recordRow? p) Λ).sent := by
@@ -129,7 +138,8 @@ theorem recordRow_fold_contains (ls : List (Obj p)) (Λ : RecordOnce)
         exact List.mem_cons_self
       · exact ih _ ho
 
-/-- A released row is in the node's durable sent set at every later index,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A released row is in the node's durable sent set at every later index,
 including after restart. -/
 theorem fgsa_row_sent_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (v : V) (i : Fin p.n) (body : RowPayload) {j k : Nat} (hjk : j < k) (t : Time)
@@ -143,7 +153,8 @@ theorem fgsa_row_sent_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   simp only [ownReleasedAt_def, hj, Option.map_some, V2.Event.node, ↓reduceIte]
   exact List.mem_filter.mpr ⟨hem, rfl⟩
 
-/-- A payload signed at the fixed FG label is a row payload. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A payload signed at the fixed FG label is a row payload. -/
 theorem fgsa_tick_fg_row (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (nd : Node p) (v : V) (t : Time) (i : Fin p.n) (m : Msg p.n)
     (hem : (⟨.seat (.base .fg) i, m⟩ : Obj p) ∈ (V2.D.tick E rho nd v t).2) :
@@ -158,7 +169,8 @@ theorem fgsa_tick_fg_row (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       obtain ⟨body, _, hm⟩ := Option.map_eq_some_iff.mp ha
       exact ⟨body, hm.symm⟩
 
-/-- [R4] Each honest fixed seat emits each full content at most once. The
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[R4] Each honest fixed seat emits each full content at most once. The
 sent set is durable; restart cannot permit a second signature. -/
 theorem fgsa_emitOnceUnder (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (_valid : V2.D.ExecutionValid E rho) : Gen.V2.Duty.EmitOnceUnder E rho (.base .fg) := by
@@ -180,7 +192,8 @@ theorem fgsa_emitOnceUnder (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   · exact no_later j k t u h hj hk hjm hkm
   · exact no_later k j u t h hk hj hkm hjm
 
-/-- A carried honest row has an earlier emission by its holder. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A carried honest row has an earlier emission by its holder. -/
 theorem fgsa_carried_row (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (h : V2.D.UnforgeableSignatures E rho) (v u : V) (o : Obj p) (t : Time)
     (hp : V2.D.Run.processes rho v o t) (a : RowWire p.n)

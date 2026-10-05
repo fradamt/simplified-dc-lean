@@ -10,7 +10,8 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 open RetainedWalk
 
-/-- Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1286–1293.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; bridge the two FJ domain interfaces through
 heightView_bridge, without reducing the active height view. -/
 theorem fgsa_domainR_eq_storeFrameView (p : Params) (st : State p.n)
@@ -20,7 +21,8 @@ theorem fgsa_domainR_eq_storeFrameView (p : Params) (st : State p.n)
   rw [domainR_def, frameR_def, KitFG.storeFrameView_def]
   rfl
 
-/-- Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1286–1293.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; S3 with a witness inside the target view.
 The base premise is supplied by CStoreInv.baseTree. -/
 theorem fgsa_walk_domain_of_witness_view (p : Params) (st : State p.n)
@@ -35,7 +37,8 @@ theorem fgsa_walk_domain_of_witness_view (p : Params) (st : State p.n)
     (KitFG.mem_filteredFromView (heightView p) (controls p st) Vw C).mpr
       ⟨hC, hF, hZ, W, hW, hCW, hlo⟩, rfl⟩⟩
 
-/-- Blueprint 21 H.6:927–953, H.17:2971–2984 (design 783–809,2832–2845); spec 616–633, 1286–1293.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:927–953, H.17:2971–2984 (design 783–809,2832–2845); spec 616–633, 1286–1293.
 Class (iii). DC: INTENTIONAL; FG5b FJ supplies the source floor at Z. -/
 private theorem persist_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
     FGBlock.Preceq st.fg.F (controls p st).Z := by
@@ -44,7 +47,8 @@ private theorem persist_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
   · exact h.fg.FJ
   · exact KitFG.preceq_refl _
 
-/-- Blueprint 21 H.6:927–953, H.17:2986–3006 (design 783–809,2847–2867); spec 1286–1293, 1520–1523.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:927–953, H.17:2986–3006 (design 783–809,2847–2867); spec 1286–1293, 1520–1523.
 Class (iii). DC: INTENTIONAL; named hA supplier, review F3 route (ii).
 Source F/Z and target F/liveRoot extend through the retained cut to A. -/
 theorem fgsa_score_geometry_of_retained_cuts (p : Params) (src dst : State p.n)
@@ -56,14 +60,16 @@ theorem fgsa_score_geometry_of_retained_cuts (p : Params) (src dst : State p.n)
     block_preceq_trans (F_preceq_liveRoot p dst ht)
       (block_preceq_trans h.target_cut h.cut_parent)⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec
 1286–1293.
 Class (iii). DC: INTENTIONAL; immutable erased ancestry lifts to FG ancestry. -/
 private theorem persist_lift {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec
 1286–1293.
 Class (iii). DC: INTENTIONAL; every block extends its parent. -/
 private theorem persist_parent (b : Block) : Block.Preceq b.parent b := by
@@ -71,7 +77,8 @@ private theorem persist_parent (b : Block) : Block.Preceq b.parent b := by
   | genesis => exact block_preceq_refl _
   | node P s root r => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
 
-/-- Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121, H.17:3008–3011
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121, H.17:3008–3011
 (design 791–809,1385–1399,2107–2117,1937–1979,2869–2872);
 spec 1286–1293. Class (iii). DC: INTENTIONAL;
 D2-1 permits source A or admitted target b as the height witness. Receipt
@@ -111,7 +118,8 @@ theorem fgsa_retained_path_mem (p : Params) (src dst : State p.n)
     (persist_lift (heA ▸ block_preceq_trans hfloor hstart))
     (persist_lift (heA ▸ block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) hstart)) hAB hlo
 
-/-- Blueprint 21 H.6:935–953, H.17:3008–3011 (design 791–809,2869–2872); spec 1286–1293.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:935–953, H.17:3008–3011 (design 791–809,2869–2872); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; exact E.proposal_mem after receipt, with
 source A or admitted b as the witness. No source storage of new b is needed. -/
 theorem fgsa_retained_proposal_mem (p : Params) (src dst : State p.n)
@@ -126,7 +134,8 @@ theorem fgsa_retained_proposal_mem (p : Params) (src dst : State p.n)
   fgsa_retained_path_mem p src dst hbase hclosed hfloor s b b hadm hslot
     (block_preceq_trans hparent (persist_parent b)) (block_preceq_refl _) hw
 
-/-- Blueprint 21 H.6:942–958, H.17:2986–3006 (design 798–814,2847–2867); spec 1330–1360.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:942–958, H.17:2986–3006 (design 798–814,2847–2867); spec 1330–1360.
 Class (iii). DC: INTENTIONAL; store composition of S3 and full eligibility.
 Only selected children inside the retained interval are compared. -/
 theorem fgsa_retained_persists_of_path
@@ -180,7 +189,8 @@ theorem fgsa_retained_persists_of_path
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121,
 H.17:3008–3011
 (design 791–809,1385–1399,2107–2117,1937–1979,2869–2872);
 spec 1555–1581. Class (iii). DC: INTENTIONAL; S8
@@ -194,43 +204,44 @@ theorem fgsa_retained_proposal_mem_on_run
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (D : FGBlock (Fin p.n)) (Kc : Block)
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc)
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc)
     (hroots : NamedRootCollisionFree p c E rho) :
-    b ∈ (rho.stateBefore E ih y).st.base.blocks ∧
-      b ∈ T p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s := by
+    N.erase ∈ (rho.stateBefore E ih y).st.base.blocks ∧
+      N.erase ∈ T p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s := by
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
   have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
-  have hslot := (fgsa_scoreRun_proposal_pools p _ s _ b raw sup rows hp.2.2.2).1
+  have hslot := (fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2).1
   obtain ⟨dl, cut, hD, -, hlt, hb, -, hc, -⟩ := hSync
   have hd : dl (SA.proposalTime p.toParams s) ≤ SA.voteTime p.toParams s := by
     have hb := hb (SA.proposalTime p.toParams s)
     rw [max_eq_left (by linarith [p.deltaPos]), hDelta] at hb
     exact hb.trans (by unfold SA.proposalTime SA.voteTime; ring_nf; rfl)
-  have hF : Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) b := by
+  have hF : Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) N.erase := by
     have hf := block_preceq_trans (F_preceq_liveRoot p dst ht)
-      (block_preceq_trans h.target_parent (persist_parent b))
-    change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) b
+      (block_preceq_trans h.target_parent (persist_parent N.erase))
+    change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) N.erase
     simpa only [dst, clock_fg] using hf
   have hadm := fgsa_gateReceipt_block_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD
     (SA.proposalTime p.toParams s)
-    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) b rfl
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) N.erase rfl
     (Or.inl ⟨x, hx, ip, hip, hem⟩) (hlt _) (hd.trans hc) hy hih hd hF
-  have hadm' : b ∈ (rho.stateBefore E ih y).st.base.blocks := hadm
+  have hadm' : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks := hadm
   refine ⟨hadm', fgsa_retained_proposal_mem p src dst ht.baseTree ht.fg.closed
-    (F_preceq_liveRoot p dst ht) s b ?_ hslot h.target_parent h.parent_height⟩
+    (F_preceq_liveRoot p dst ht) s N.erase ?_ hslot h.target_parent h.parent_height⟩
   simpa only [dst, clock_base_blocks] using hadm'
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:2971–3006 (design 798–809,2832–2867); spec
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:2971–3006 (design 798–809,2832–2867); spec
 1286–1293,1330–1360.
 Class (iii). DC: INTENTIONAL; exact W.persists. Target receipt and its
 internal path witness give membership. Candidate-local G25 and the band
@@ -245,18 +256,18 @@ theorem fgsa_retained_path_persists_on_run
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
     (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
-    (hadm : b ∈ (rho.stateBefore E ih y).st.base.blocks)
+    (hadm : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks)
     (D : FGBlock (Fin p.n)) (Kc : Block)
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D b Kc)
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D N.erase Kc)
     (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
-    SuffixPersists Kc b.parent (S p src) (T p dst (s + 1))
+    SuffixPersists Kc N.erase.parent (S p src) (T p dst (s + 1))
       (ss src (s + 1)) (es p src (s + 1)) (et p dst (s + 1)) := by
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
@@ -265,11 +276,11 @@ theorem fgsa_retained_path_persists_on_run
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hm
-  have hbslot := (fgsa_scoreRun_proposal_pools p _ (s + 1) _ b raw sup rows hp.2.2.2).1
+  have hbslot := (fgsa_scoreRun_proposal_pools p _ (s + 1) _ N hp.2.2.2).1
   have scores := fgsa_score_eq_on_candidates_on_run (hroots := hroots) E rho hE hN hDelta (s + 1)
-    hScoreSync hx hy hip hih hseat b raw sup rows hem hadm
+    hScoreSync hx hy hip hih hseat N hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1))
-    (fgsa_score_geometry_of_retained_cuts p src dst hs ht (s + 1) D b Kc h)
+    (fgsa_score_geometry_of_retained_cuts p src dst hs ht (s + 1) D N.erase Kc h)
     (fun C hm => fgsa_score_geometry_of_domains p src dst src.fg.TF
       (voterBlocks p dst (s + 1)) C hm.1 hm.2)
   apply fgsa_retained_persists_of_path
@@ -282,10 +293,10 @@ theorem fgsa_retained_path_persists_on_run
         subst P
         exact persist_parent (.node X t root r)
     exact fgsa_retained_path_mem p src dst ht.baseTree ht.fg.closed
-      (F_preceq_liveRoot p dst ht) (s + 1) b C
+      (F_preceq_liveRoot p dst ht) (s + 1) N.erase C
       (by simpa only [dst, clock_base_blocks] using hadm) hbslot
       (block_preceq_trans h.target_cut (block_preceq_trans hK hXC))
-      (block_preceq_trans hCA (persist_parent b)) h.parent_height
+      (block_preceq_trans hCA (persist_parent N.erase)) h.parent_height
   · intro X C hK hX hp hm htC
     have hold := (fgsa_stored_block_slots E rho hE.toScheduleWellFormed hip
       (Nat.succ_pos s)).2.1 C (List.mem_filter.mp hm).1
@@ -297,7 +308,8 @@ theorem fgsa_retained_path_persists_on_run
       ((fgsa_proposal_slot (c := c) _ (s + 1)).trans
         (fgsa_vote_slot (c := c) _ (s + 1)).symm)
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.6:942–958, H.17:2986–3011 (design 798–814,2847–2872); spec
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.6:942–958, H.17:2986–3011 (design 798–814,2847–2872); spec
 1555–1581,1330–1360.
 Class (iii). DC: INTENTIONAL; job-5 strict-path assembly. The landed Gen
 API takes atomic fields, so this constructs RetainedWalkRunGeometry and
@@ -314,19 +326,19 @@ theorem fgsa_retainedWalk_geometry_on_run
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
     (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (D : FGBlock (Fin p.n)) (Kc : Block)
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D b Kc)
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D N.erase Kc)
     (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
-    RetainedWalkRunGeometry p src dst (s + 1) D b Kc ∧
-      b ∈ T p dst (s + 1) ∧
-      (∀ C ∈ T p dst (s + 1), C.parent? = some b.parent → C.slot < s + 1 →
+    RetainedWalkRunGeometry p src dst (s + 1) D N.erase Kc ∧
+      N.erase ∈ T p dst (s + 1) ∧
+      (∀ C ∈ T p dst (s + 1), C.parent? = some N.erase.parent → C.slot < s + 1 →
         et p dst (s + 1) C = true → C ∈ S p src ∧ es p src (s + 1) C = true) := by
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
@@ -334,12 +346,12 @@ theorem fgsa_retainedWalk_geometry_on_run
   have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
   obtain ⟨hadm, hmem⟩ := fgsa_retained_proposal_mem_on_run (hroots := hroots)
     E rho hE hN hDelta (s + 1)
-    hScoreSync hx hy hip hih b raw sup rows hem D Kc h
+    hScoreSync hx hy hip hih N hem D Kc h
   have hr := fgsa_retained_old_child_reflects_on_run (hroots := hroots) E rho hE hN hDelta s
-    hWalkSync hScoreSync hx hy hip hih hseat b raw sup rows hem hadm D Kc h
-  have hA := fgsa_score_geometry_of_retained_cuts p src dst hs ht (s + 1) D b Kc h
+    hWalkSync hScoreSync hx hy hip hih hseat N hem hadm D Kc h
+  have hA := fgsa_score_geometry_of_retained_cuts p src dst hs ht (s + 1) D N.erase Kc h
   have scores := fgsa_score_eq_on_candidates_on_run (hroots := hroots) E rho hE hN hDelta (s + 1)
-    hScoreSync hx hy hip hih hseat b raw sup rows hem hadm
+    hScoreSync hx hy hip hih hseat N hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1)) hA
     (fun C hm => fgsa_score_geometry_of_domains p src dst src.fg.TF
       (voterBlocks p dst (s + 1)) C hm.1 hm.2)
@@ -354,7 +366,7 @@ theorem fgsa_retainedWalk_geometry_on_run
     target_prefix := h.target_prefix
     persists := fgsa_retained_path_persists_on_run (hroots := hroots) E rho hE hN hDelta s
       hScoreSync
-      hx hy hip hih hseat b raw sup rows hem hadm D Kc h
+      hx hy hip hih hseat N hem hadm D Kc h
     reflects := hr.1
     scores := ?_ }, hmem, hr.2⟩
   apply fgsa_retained_scores_of_candidates
@@ -364,7 +376,7 @@ theorem fgsa_retainedWalk_geometry_on_run
     rcases hcase with hstrict | hold
     · exact (hr.1 X C hK hstrict hm hp he).1
     · exact fgsa_walkRun_reflected_old_child (hroots := hroots) E rho hE hN hDelta s hWalkSync
-        hx hy hip hih hseat b raw sup rows hem Kc X C h.source_cut hK hX hp hold hm
+        hx hy hip hih hseat N hem Kc X C h.source_cut hK hX hp hold hm
         (h.reflected_witness X C hK hX hm hp hold he)
   exact scores.2 C ⟨hsrc, hm⟩
 

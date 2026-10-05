@@ -18,7 +18,8 @@ open Gen.V2.Duty (faulty faulty_def awakeHonest awakeHonest_def SeedAt SeedAt_de
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V] [Fintype V]
 variable {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
-/-- ROOT-DIGEST W2b. The old prefix fields imply the per-object regime at ΔF = Δ.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. The old prefix fields imply the per-object regime at ΔF = Δ.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem HealthyPrefix₂.of_legacy {b₀ : Time} (base : Base₂ p c E rho)
@@ -31,7 +32,8 @@ theorem HealthyPrefix₂.of_legacy {b₀ : Time} (base : Base₂ p c E rho)
   rw [fgsaDelay_self]
   exact (Gen.V2.Duty.healthyPrefix_iff_by_const E rho b₀).1 healthy
 
-/-- ROOT-DIGEST W2b. Recover the old prefix delivery law at ΔF = Δ.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Recover the old prefix delivery law at ΔF = Δ.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem HealthyPrefix₂.legacy_delivery {b₀ : Time} (h : HealthyPrefix₂ p c E rho b₀ E.Δ) :
@@ -41,7 +43,8 @@ theorem HealthyPrefix₂.legacy_delivery {b₀ : Time} (h : HealthyPrefix₂ p c
   rw [fgsaDelay_self] at hh
   exact hh
 
-/-- ROOT-DIGEST W2b. The old recovery fields imply the per-object regime at ΔF = Δ.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. The old recovery fields imply the per-object regime at ΔF = Δ.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem Recovery₂.of_legacy {G : Time}
@@ -54,19 +57,22 @@ theorem Recovery₂.of_legacy {G : Time}
   rw [fgsaDelay_self]
   exact (Gen.V2.Duty.partialSynchrony_iff_by_const E rho).1 core.sync
 
-/-- ROOT-DIGEST W2b. GUP r2: alignment is internal proof data, not a recovery premise. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. GUP r2: alignment is internal proof data, not a recovery premise. -/
 structure Recovery₂Aligned (p : Params) {In V : Type} (c : AppCodec In)
     [DecidableEq V] [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (G : Time) (ΔF : Time := E.Δ)
     : Prop extends Recovery₂ p c E rho G ΔF where
   gapAligned : 4 * p.Δ ∣ G
 
-/-- GUP r2: the internal aligned regime keeps the original gap value. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+GUP r2: the internal aligned regime keeps the original gap value. -/
 theorem Recovery₂Aligned.gamma_eq {G ΔF : Time}
     (h : Recovery₂Aligned p c E rho G ΔF) : Γ p G = G :=
   fgsa_gamma_eq_of_dvd p h.gapAligned
 
-/-- GUP r2: a longer recurrence window preserves each original witness. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+GUP r2: a longer recurrence window preserves each original witness. -/
 theorem recovery₂_roundUp {G ΔF : Time} (h : Recovery₂ p c E rho G ΔF) :
     Recovery₂Aligned p c E rho (Γ p G) ΔF := by
   have hle := (fgsa_gamma_bounds p G).1
@@ -76,7 +82,8 @@ theorem recovery₂_roundUp {G ΔF : Time} (h : Recovery₂ p c E rho G ΔF) :
   obtain ⟨s, hlo, hhi, hs⟩ := h.gap t hgst (by linarith)
   exact ⟨s, hlo, by linarith, hs⟩
 
-/-- ROOT-DIGEST W2b. Recover the old recovery core at ΔF = Δ.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Recover the old recovery core at ΔF = Δ.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem Recovery₂.toRecoveryCore {G : Time} (h : Recovery₂ p c E rho G E.Δ) :
@@ -227,7 +234,8 @@ theorem Outage₂.faultQ {fast : Bool} {T b₀ b₁ ΔF : Time}
 
 open AvailableChain.SimplexFG
 
-/-- ROOT-DIGEST W2b. Blueprint 02:537–539; P3 erratum 13, Clean wrapper.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 02:537–539; P3 erratum 13, Clean wrapper.
 DC: Generic/Conditions.lean:134–156 and Goldfish/Confirmation.lean:434–441.
 INTENTIONAL: healthy-prefix delivery supplies the vote-to-gate LabelSync;
 geometry stays an explicit consumer obligation.
@@ -245,15 +253,15 @@ theorem fgsa_gateReceipt_clean
       ∃ K t,
         rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
         V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
-          (ofHead p ⟨.seat (.head s) q, K⟩) t ∧
-        baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n) ∈
+          (ofHead p ⟨.seat (.head s) q, K.root⟩) t ∧
+        baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
           (storeAt p c E rho i x).base.votes ∧
         K ∈ (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams s))).blocks ∧
         K.slot ≤ s ∧
         GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams s)))
-          (baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n)) <
+          (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) <
             GridCO.earlyTime p.toParams.engine s ∧
         GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
@@ -270,7 +278,8 @@ theorem fgsa_gateReceipt_clean
     E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
     s hsync ht B hgeom
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.22:3100–3120; P3 erratum 13, Recovery wrapper.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.22:3100–3120; P3 erratum 13, Recovery wrapper.
 DC: Generic/Conditions.lean:110–132 and Goldfish/Confirmation.lean:434–441.
 INTENTIONAL: post-GST delivery supplies the vote-to-gate LabelSync.
 GST ≤ voteTime s suffices; no earlier synchrony pair is used.
@@ -288,15 +297,15 @@ theorem fgsa_gateReceipt_recovery
       ∃ K t,
         rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
         V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
-          (ofHead p ⟨.seat (.head s) q, K⟩) t ∧
-        baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n) ∈
+          (ofHead p ⟨.seat (.head s) q, K.root⟩) t ∧
+        baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
           (storeAt p c E rho i x).base.votes ∧
         K ∈ (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams s))).blocks ∧
         K.slot ≤ s ∧
         GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams s)))
-          (baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n)) <
+          (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) <
             GridCO.earlyTime p.toParams.engine s ∧
         GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
@@ -314,7 +323,8 @@ theorem fgsa_gateReceipt_recovery
     E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
     s hsync ht B hgeom
 
-/-- ROOT-DIGEST W2b. P3 N1:2518–2525; blueprint 03:256–317.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 N1:2518–2525; blueprint 03:256–317.
 DC: Goldfish/ProposalSnapshotBridge.lean:210,225; Conditions.lean:134.
 INTENTIONAL: the Clean wrapper uses the healthy prefix through v_s and
 Gen LabelSync at (t_s - Δ, v_s); geometry remains a separate consumer input.
@@ -328,10 +338,10 @@ theorem fgsa_score_eq_on_clean
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
-    (hadm : b ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (hadm : N.erase ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (D : Block)
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
@@ -355,9 +365,10 @@ theorem fgsa_score_eq_on_clean
     (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
   exact fgsa_score_eq_on_run (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart h.base.delta s hsync
-    hx hy hip hih hseat b raw sup rows hem hadm D hgeom
+    hx hy hip hih hseat N hem hadm D hgeom
 
-/-- ROOT-DIGEST W2b. P3 N1:2518–2525 and O25 §7; blueprint 03:256–317.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 N1:2518–2525 and O25 §7; blueprint 03:256–317.
 DC: Goldfish/ProposalSnapshotBridge.lean:210,225; Conditions.lean:110.
 INTENTIONAL: Recovery requires GST ≤ t_s - Δ, not merely GST ≤ v_s.
 The actual HEAD tick supplies the horizon bound for Gen LabelSync.
@@ -371,10 +382,10 @@ theorem fgsa_score_eq_on_recovery
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
-    (hadm : b ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (hadm : N.erase ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (D : Block)
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
@@ -399,9 +410,10 @@ theorem fgsa_score_eq_on_recovery
     (fgsaDelay_nonrow E.Δ _) hGST hvd hhorizon
   exact fgsa_score_eq_on_run (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart h.base.delta s hsync
-    hx hy hip hih hseat b raw sup rows hem hadm D hgeom
+    hx hy hip hih hseat N hem hadm D hgeom
 
-/-- ROOT-DIGEST W2b. P3 F1b.4b N1 C14 and C9/C11–C13/C19; blueprint 03:350–379.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 F1b.4b N1 C14 and C9/C11–C13/C19; blueprint 03:350–379.
 DC: Goldfish/ProposalWalkTransportCore.lean:162–191; Conditions.lean:134.
 INTENTIONAL: the Clean healthy prefix ends no earlier than v_s. Both N1
 LabelSync records come from the same healthy prefix.
@@ -415,16 +427,16 @@ theorem fgsa_ghost_transfer_sfx_on_clean
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
-    (hadm : b ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (hadm : N.erase ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (D : FGBlock (Fin p.n))
     (hgeom : WalkRunGeometry p
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D) :
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
-    Block.Preceq b.parent (headVote p dst s) := by
+    Block.Preceq N.erase.parent (headVote p dst s) := by
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
     exact le_of_eq (sub_add_cancel _ _)
@@ -441,9 +453,10 @@ theorem fgsa_ghost_transfer_sfx_on_clean
     hpt (htv.trans hcut) h.cut.2
   exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart h.base.delta s
-    hscore hwalk hx hy hip hih hseat b raw sup rows hem hadm D hgeom
+    hscore hwalk hx hy hip hih hseat N hem hadm D hgeom
 
-/-- ROOT-DIGEST W2b. P3 F1b.4b N1 C14 and C9/C11–C13/C19; blueprint 03:350–379.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 F1b.4b N1 C14 and C9/C11–C13/C19; blueprint 03:350–379.
 DC: Goldfish/ProposalWalkTransportCore.lean:162–191; Conditions.lean:110.
 INTENTIONAL: Recovery requires GST ≤ t_s - Δ. The actual proposal and
 HEAD ticks supply the horizons for the two N1 LabelSync records.
@@ -457,16 +470,16 @@ theorem fgsa_ghost_transfer_sfx_on_recovery
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
-    (hadm : b ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (hadm : N.erase ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (D : FGBlock (Fin p.n))
     (hgeom : WalkRunGeometry p
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D) :
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
-    Block.Preceq b.parent (headVote p dst s) := by
+    Block.Preceq N.erase.parent (headVote p dst s) := by
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
     exact le_of_eq (sub_add_cancel _ _)
@@ -481,9 +494,10 @@ theorem fgsa_ghost_transfer_sfx_on_recovery
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hvh)
   exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart h.base.delta s
-    hscore hwalk hx hy hip hih hseat b raw sup rows hem hadm D hgeom
+    hscore hwalk hx hy hip hih hseat N hem hadm D hgeom
 
-/-- ROOT-DIGEST W2b. J2 HEAD clause on a Clean prefix; 21 H.22:3100–3120, S1b E1–E6.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. J2 HEAD clause on a Clean prefix; 21 H.22:3100–3120, S1b E1–E6.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:134.
 INTENTIONAL: the Clean record supplies both G25/G11 synchronization intervals.
 The consumer supplies the same per-reader geometry as the Shared producer.
@@ -496,12 +510,12 @@ theorem exactService_head_of_proposal_clean
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
-    (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D b) :
+    (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D N.erase) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
+      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
     exact le_of_eq (sub_add_cancel _ _)
@@ -518,9 +532,10 @@ theorem exactService_head_of_proposal_clean
     hpt (htv.trans hcut) h.cut.2
   exact exactService_head_of_proposal (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart h.base.delta s
-    hscore hwalk hx hip hseat b raw sup rows hem D hgeom
+    hscore hwalk hx hip hseat N hem D hgeom
 
-/-- ROOT-DIGEST W2b. J2 HEAD clause in Recovery; 21 H.22:3100–3120, S1b E1–E6.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. J2 HEAD clause in Recovery; 21 H.22:3100–3120, S1b E1–E6.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:110.
 INTENTIONAL: GST precedes t_s - Δ, and the HEAD horizon supplies both
 G25/G11 synchronization intervals. Geometry remains a consumer obligation.
@@ -533,12 +548,12 @@ theorem exactService_head_of_proposal_recovery
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
-    (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D b) :
+    (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D N.erase) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
+      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
   intro hhorizon
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
@@ -552,9 +567,10 @@ theorem exactService_head_of_proposal_recovery
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
   exact exactService_head_of_proposal (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart h.base.delta s
-    hscore hwalk hx hip hseat b raw sup rows hem D hgeom hhorizon
+    hscore hwalk hx hip hseat N hem D hgeom hhorizon
 
-/-- ROOT-DIGEST W2b. J2 HEAD clause on a Clean prefix; 21 H.22:3100–3120, S1b E1–E6.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. J2 HEAD clause on a Clean prefix; 21 H.22:3100–3120, S1b E1–E6.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:134.
 INTENTIONAL: the Clean record supplies both G25/G11 synchronization intervals.
 Class (iii). The Shared supplier constructs walk and endpoint geometry
@@ -568,17 +584,17 @@ theorem exactService_head_of_retained_proposal_clean
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
     (D : FGBlock (Fin p.n))
     (hreads : ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc) :
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
+      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
     exact le_of_eq (sub_add_cancel _ _)
@@ -595,11 +611,12 @@ theorem exactService_head_of_retained_proposal_clean
     hpt (htv.trans hcut) h.cut.2
   have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart
-    h.base.delta s hwalk hscore hx hip hseat b raw sup rows hem D hreads
+    h.base.delta s hwalk hscore hx hip hseat N hem D hreads
   exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
-    hip b raw sup rows hem D hgeom
+    hip N hem D hgeom
 
-/-- ROOT-DIGEST W2b. J2 HEAD clause in Recovery; 21 H.22:3100–3120, S1b E1–E6.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. J2 HEAD clause in Recovery; 21 H.22:3100–3120, S1b E1–E6.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:110.
 INTENTIONAL: GST precedes t_s - Δ, and the HEAD horizon supplies both
 G25/G11 synchronization intervals. Class (iii). The Shared supplier
@@ -613,17 +630,17 @@ theorem exactService_head_of_retained_proposal_recovery
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
     (D : FGBlock (Fin p.n))
     (hreads : ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc) :
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
+      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
   intro hhorizon
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
@@ -637,11 +654,12 @@ theorem exactService_head_of_retained_proposal_recovery
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
   have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart
-    h.base.delta s hwalk hscore hx hip hseat b raw sup rows hem D hreads
+    h.base.delta s hwalk hscore hx hip hseat N hem D hreads
   exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
-    hip b raw sup rows hem D hgeom hhorizon
+    hip N hem D hgeom hhorizon
 
-/-- ROOT-DIGEST W2b. P3 A.9 and blueprint 21 H.22 H3, conditional Clean exact service.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 A.9 and blueprint 21 H.22 H3, conditional Clean exact service.
 DC: Generic/Conditions.lean:134–156; UserConfirmationRecovery.lean:235.
 INTENTIONAL: healthy-prefix delivery supplies LabelSync. Clean participation
 alone need not reach the fast threshold, so that count stays explicit.
@@ -679,7 +697,8 @@ theorem exactService_of_head_clean
   exact exactService_participation_of_card E rho h.base.cstar v
     ⟨h.partBefore _ hvpos hvcut⟩ hfast
 
-/-- ROOT-DIGEST W2b. P3 A.9 and blueprint 21 H.22 H3, conditional Recovery exact service.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 A.9 and blueprint 21 H.22 H3, conditional Recovery exact service.
 DC: Generic/Conditions.lean:110–132; UserConfirmationRecovery.lean:235.
 INTENTIONAL: post-GST waking and the one-third fault bound supply the SA
 fast count. Cardinality uses only the fresh HEAD-seat bijection.

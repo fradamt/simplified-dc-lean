@@ -14,7 +14,8 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21:1722–1800; S5 F3, budget arithmetic.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1722–1800; S5 F3, budget arithmetic.
 DC: SAME each remaining phase sum fits its frozen total, with a nonnegative tail. -/
 theorem frontierSearch_task_bounds [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -53,7 +54,8 @@ theorem frontierSearch_task_bounds [Fintype V] (E : Generic.Env V)
     rw [← hcW]
     linarith [p.deltaPos]
 
-/-- Blueprint 21:1722–1800; S5 F3, first task.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1722–1800; S5 F3, first task.
 DC: SAME HG.3 reaches a saved seed or advances phase; HG.4 finishes the rise. -/
 theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -91,7 +93,8 @@ theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
         rowsReceipt progressCoverage hfold faultQ honestQuorum hf.le hserved
         ((htail.trans (hbudget)).trans hhor))
 
-/-- Blueprint 21:1722–1800; S5 F3, row provenance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1722–1800; S5 F3, row provenance.
 DC: SAME a rise past m supplies an earlier real height-m row through RCap. -/
 theorem frontierSearch_row_of_rise (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (cap : RCap p c E rho)
@@ -110,7 +113,8 @@ theorem frontierSearch_row_of_rise (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
   exact frontierSearch_first_row p c E rho ⟨l, z, a, e, ha, hn'⟩
     ((frontierSearch_event_time_le p c E rho hs ha.2.1 hcut).trans ht)
 
-/-- Blueprint 21:1722–1800; S5 F3, second task.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1722–1800; S5 F3, second task.
 DC: SAME HG.3 plus the HG.4 row tail keeps exact height m and the frozen row budget. -/
 theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -122,16 +126,17 @@ theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,
@@ -175,7 +180,8 @@ theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
     exact (firstHeightRowBy_iff p c E rho m _).mpr
       ⟨r, hr, hfirst, htime.trans (htail.trans (hbudget))⟩
 
-/-- Blueprint 21:1744–1800; S5 F3, inclusive cut.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1744–1800; S5 F3, inclusive cut.
 DC: SAME Recovery₂ gives an honest node and a cut event under the task's horizon. -/
 theorem frontierSearch_cut_start [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -234,7 +240,8 @@ theorem frontierSearch_cut_start [Fintype V] (E : Generic.Env V)
     exact hidx
 
 omit [DecidableEq V] in
-/-- Blueprint 21:1744–1800; S5 F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1744–1800; S5 F3.
 DC: SAME event order also permits equal timestamps. -/
 theorem frontierSearch_event_time_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i j : Nat} {ev ev' : V2.Event V (Obj p)}
@@ -250,7 +257,8 @@ theorem frontierSearch_event_time_mono (E : Generic.Env V) (rho : V2.D.Run V (fg
     rw [hie, hje] at hk
     exact V2.D.Engine.time_le_of_key_le _ _ hk
 
-/-- Blueprint 21:1744–1800; S5 F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1744–1800; S5 F3.
 DC: SAME classify a frontier by its accepted evidence. -/
 theorem frontierSearch_phase_exists (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i m : Nat) : ∃ kind, AttemptPhaseAt p c E rho i m kind := by

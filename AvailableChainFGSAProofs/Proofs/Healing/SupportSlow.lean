@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSaved
 
@@ -38,7 +40,7 @@ private theorem slow_gate_label (s : Slot) :
 private theorem slow_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {j : Nat} {x : V} {s : Slot} {B : Block}
     (ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
-    (hc : SA.confirmationFrom p.toParams
+    (hc : SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (V2.D.Run.stateBefore E rho j x).st (SA.gateTime p.toParams s)).fg.F)
       (actView (clockPre p (V2.D.Run.stateBefore E rho j x).st
         (SA.gateTime p.toParams s))) s = some B) :
@@ -50,7 +52,8 @@ private theorem slow_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   rw [htest, ite_eq_left rfl]
   rw [slow_gate_label s, hc]
 
-/-- Blueprint 21:689–699; plan H-SUPPORT §3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:689–699; plan H-SUPPORT §3.
 DC: SAME a clock step at a time that is not a gate time is the pre-gate clock. -/
 theorem healing_clock_nongate (st : State p.n) (t : Time)
     (ht : ∀ w : Slot, t ≠ SA.gateTime p.toParams w) : FGSA.clock p st t = clockPre p st t := by
@@ -71,7 +74,8 @@ private theorem slow_vote_nongate (i : Slot) (w : Slot) :
   have h2 := Int.eq_of_mul_eq_mul_right (ne_of_gt hd) h1
   omega
 
-/-- Blueprint 21:650–680 (H.4-S window); plan H-SUPPORT §5 step 1, G3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:650–680 (H.4-S window); plan H-SUPPORT §5 step 1, G3.
 DC: INTENTIONAL every window label w with s+1-k ≤ w < s has a raw result of the slow
 source node that covers B: slow eligibility reads the saved window results, and a
 saved non-empty result is the raw gate result (`healing_saved_origin`). -/
@@ -120,7 +124,8 @@ theorem healing_slow_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       obtain ⟨_, _, _, hres⟩ := healing_saved_origin E rho hs hN hsg
       exact ⟨C, hres, h⟩
 
-/-- Blueprint 21:650–680 (H.4-S); plan H-SUPPORT §5 step 2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:650–680 (H.4-S); plan H-SUPPORT §5 step 2.
 DC: SAME the slow source result is a strict late majority, and so is B ⪯ C. -/
 theorem healing_slow_majority (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {B C : Block} {j : Nat} {x : V}
@@ -140,14 +145,26 @@ theorem healing_slow_majority (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     split at hres
     · have he := Option.some.inj hres
       subst C
-      exact ‹_ < 2 * _›
+      have heq (D : Block) :
+          GridCO.goldfishScoreOn (GridCO.resolutionTree src) src.blocks
+            (GridCO.cleanSupport p.toParams.engine src s)
+            (GridCO.cleanSupport p.toParams.engine src s) D =
+          GridCO.goldfishScore src.blocks (GridCO.cleanSupport p.toParams.engine src s)
+            (GridCO.cleanSupport p.toParams.engine src s) D :=
+        actView_score p (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))
+          (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho j x) _)
+          (by rw [clockPre_headDomain];
+              exact base_headDomain_none p (reachable_stateBefore E rho j x)) _ _ D
+      rw [← heq _]
+      assumption
     · contradiction
-  have ha := Gen.AC.goldfishScore_antitone src.blocks
+  have ha := Gen.AC.Root.goldfishScore_antitone src.blocks
     (GridCO.cleanSupport p.toParams.engine src s)
     (GridCO.cleanSupport p.toParams.engine src s) B C hBC
   omega
 
-/-- Blueprint 21:673–689 (late receipt), 02 §2.1; plan H-SUPPORT §5 step 2, G3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:673–689 (late receipt), 02 §2.1; plan H-SUPPORT §5 step 2, G3.
 DC: SAME every honest label-s HEAD reaches an honest gate d_s in its late pool. -/
 theorem healing_support_honest_late [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -194,9 +211,9 @@ theorem healing_support_honest_late [Fintype V] (E : Generic.Env V)
   have hcut : dl (SA.voteTime p.toParams s) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut s k K
+  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut s k K.root
     (SA.voteTime p.toParams s) z x hD hk hem hx hcut (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head s) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head s) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams s)) ≤ j :=
     healing_support_idxBefore_le p c E rho hS ht (hdle.trans hvg)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -229,9 +246,10 @@ theorem healing_support_honest_late [Fintype V] (E : Generic.Env V)
       change GridCO.stampVote (V2.D.Run.stateBefore E rho _ x).st.base o < _
       rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
       exact lt_of_lt_of_le hos (hdle.trans hvg)
-  exact (Gen.AC.vote_pool_mem_seats _ k).mpr ⟨o, hlate, rfl⟩
+  exact (Gen.AC.Root.vote_pool_mem_seats _ k).mpr ⟨o, hlate, rfl⟩
 
-/-- Blueprint 21:650–680 (H.4-S); plan H-SUPPORT §5 step 2, G3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:650–680 (H.4-S); plan H-SUPPORT §5 step 2, G3.
 DC: INTENTIONAL a strict late majority for B at an honest gate in the synchronous
 window has an honest clean supporter: all honest seats are late voters there, and the
 other late voters are faulty seats, fewer than the honest ones. -/
@@ -248,7 +266,7 @@ theorem healing_slow_honest_seat [Fintype V] (E : Generic.Env V)
     let src := actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))
     ∃ k o, rho.seatOf (.base (.head s)) k ∈ rho.honest ∧
       o ∈ GridCO.cleanSupport p.toParams.engine src s ∧ GridCO.headSeat? o = some k ∧
-      Gen.AC.voteSupports src.blocks B o = true := by
+      Gen.AC.Root.voteSupports src.blocks B o = true := by
   classical
   intro src
   have hC := hrec.base.cstar
@@ -256,13 +274,13 @@ theorem healing_slow_honest_seat [Fintype V] (E : Generic.Env V)
   let P := GridCO.cleanSupport p.toParams.engine src s
   let L := (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine src s)).toFinset
   let T := (GridCO.seats p.n P).toFinset.filter
-    (fun i => Gen.AC.poolSupports src.blocks P i B = true)
+    (fun i => Gen.AC.Root.poolSupports src.blocks P i B = true)
   let Hon : Finset (Fin p.n) := Finset.univ.filter
     (fun k => rho.seatOf (.base (.head s)) k ∈ rho.honest)
   have hHmem (k : Fin p.n) : k ∈ Hon ↔ rho.seatOf (.base (.head s)) k ∈ rho.honest := by
     simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
   have hscore : GridCO.goldfishScore src.blocks P P B = T.card := by
-    rw [Gen.AC.vote_pool_score_card]
+    rw [Gen.AC.Root.vote_pool_score_card]
     apply congrArg Finset.card
     apply Finset.filter_congr
     intro i _
@@ -276,7 +294,7 @@ theorem healing_slow_honest_seat [Fintype V] (E : Generic.Env V)
     rw [Finset.disjoint_left]
     intro k hkT hkH
     obtain ⟨_, hs⟩ := Finset.mem_filter.mp hkT
-    obtain ⟨o, ho, hk', hsup⟩ := (Gen.AC.vote_pool_support_witness _ _ k B).mp hs
+    obtain ⟨o, ho, hk', hsup⟩ := (Gen.AC.Root.vote_pool_support_witness _ _ k B).mp hs
     exact hn ⟨k, o, (hHmem k).mp hkH, ho, hk', hsup⟩
   have hTL : T ⊆ L := fun k hk =>
     fgsa_cleanSupport_seats_subset_late p src s (Finset.mem_filter.mp hk).1
@@ -324,7 +342,8 @@ theorem healing_slow_honest_seat [Fintype V] (E : Generic.Env V)
   rw [hscore, hcount] at hm
   omega
 
-/-- Blueprint 21:650–699 (H.4-S lease window), IF.1, IF.6; plan H-SUPPORT §5 steps 3–5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:650–699 (H.4-S lease window), IF.1, IF.6; plan H-SUPPORT §5 steps 3–5.
 DC: INTENTIONAL a lease written by an honest gate at a window label w (s+1-k ≤ w ≤ s)
 is compatible with a slow-body B: the slow source result at w covers B, and two honest
 raw results of one synchronized label are compatible (`fgsa_sameLabel`). -/
@@ -370,7 +389,8 @@ theorem healing_slow_lease_window [Fintype V] (E : Generic.Env V)
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgww hvd hgsw
   have hyD : gateResult p c E rho y w = some (some D) :=
     (gateResultAt_eq_gateResult p c E rho hS ht).symm.trans hD
-  have hCD := fgsa_sameLabel p c E rho hE hN hDelta w hSync x y Cw D hx hy hxw hyD
+  have hCD := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hE hN hDelta w hSync x
+      y Cw D hx hy hxw hyD
   have hDB : Block.Compatible D B := by
     rcases Bool.or_eq_true_iff.mp hCD with hh | hh
     · exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_preceq_trans hBw hh))
@@ -379,7 +399,8 @@ theorem healing_slow_lease_window [Fintype V] (E : Generic.Env V)
   · exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_preceq_trans hAD h))
   · exact Gen.Pure.block_compatible_of_common hAD h
 
-/-- Blueprint 21:650–699 (H.4-S lease bound), IF.1, IF.6; plan H-SUPPORT §5 steps 3–5, G5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:650–699 (H.4-S lease bound), IF.1, IF.6; plan H-SUPPORT §5 steps 3–5, G5.
 DC: INTENTIONAL every lease row read at or after q_(s+1) is compatible with a slow-body B.
 A row with gate label w ≤ s-k expires at r_(w+k) ≤ q_(s+1) (G5); a window label uses
 `healing_slow_lease_window`; a later label uses the honest batch cover of that label. -/
@@ -390,16 +411,17 @@ theorem healing_slow_lease_at [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {s : Slot} {B : Block} (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
     (hgs : SA.gateTime p.toParams s ≤ rho.horizon)
@@ -491,7 +513,8 @@ theorem healing_slow_lease_at [Fintype V] (E : Generic.Env V)
   · exact healing_slow_lease_window E rho hrec hx hgw hgs hst hres hBC hel hy ht hres' hrowD
       hw1 hws
 
-/-- Blueprint 21:689–715 (H.2 lease premise, slow arm); plan H-SUPPORT §5 steps 3–5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:689–715 (H.2 lease premise, slow arm); plan H-SUPPORT §5 steps 3–5.
 DC: INTENTIONAL the lease premise of a HEAD at q_(i+1), i ≥ s, for a slow body:
 `healing_slow_lease_at` at the post-tick index with the bound q_(i+1). -/
 theorem healing_slow_lease [Fintype V] (E : Generic.Env V)
@@ -501,16 +524,17 @@ theorem healing_slow_lease [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {s : Slot} {B : Block} (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
     (hgs : SA.gateTime p.toParams s ≤ rho.horizon)
@@ -568,7 +592,8 @@ theorem healing_slow_lease [Fintype V] (E : Generic.Env V)
   · rw [hpost, clock_fg]
     exact hFB
 
-/-- ROOT-DIGEST W2b. Blueprint 21:650–699 (H.1 at s+1, slow arm); plan H-SUPPORT §5 steps 2–5, G3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:650–699 (H.1 at s+1, slow arm); plan H-SUPPORT §5 steps 2–5, G3.
 DC: INTENTIONAL the first HEAD transfer at s+1 for a synchronous-window slow body.
 The slow source result is a strict late majority with an honest clean supporter. -/
 theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
@@ -578,16 +603,17 @@ theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -619,14 +645,18 @@ theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
   have hiy := V2.D.Run.tickIdx?_spec hiy'
   have hHeq := Option.some.inj hH
   subst hHeq
+  obtain ⟨K, hK, _⟩ := healing_support_clean_target E rho o ho
+  have hsupD := actView_support_in_domain p _
+    (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho jx x) _) o hK hsup
   exact healing_first_transfer_core (hroots := hrec.base.idealization)
     E rho mono crossing hE hN hDelta hrec.sync hgst hphase
-    hhead hgate hx hjx hkh ho hko hsup hmaj hy hiy hv
+    hhead hgate hx hjx hkh ho hko hsupD hmaj hy hiy hv
     (healing_slow_lease E rho hrec mono writes (hgst.trans hhead) hhor hx hgw hst hres hBC
       hel le_rfl (hv.trans hphase.2.1)
       (fun w hw1 hw2 => absurd (hw1.trans hw2) (Nat.not_succ_le_self s)) hy hiy)
 
-/-- Blueprint 21:650–715 (H.1 + H.2 S1, slow arm); plan H-SUPPORT §5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:650–715 (H.1 + H.2 S1, slow arm); plan H-SUPPORT §5.
 DC: INTENTIONAL the S1 HEAD clause of Transfers for a synchronous-window slow body. -/
 theorem healing_slow_heads [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -635,16 +665,17 @@ theorem healing_slow_heads [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -702,7 +733,8 @@ theorem healing_slow_heads [Fintype V] (E : Generic.Env V)
       (healing_slow_lease E rho hrec mono writes (hgst.trans hhead) (hgate.trans hphase.2.1)
         hx hgw hst hres hBC hel ((Nat.le_succ s).trans hi) (hv.trans hphase.2.1) (ih hvi) hz hiz)
 
-/-- Blueprint 21:650–715 (H.1 + H.2 S2, slow arm); plan H-SUPPORT §5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:650–715 (H.1 + H.2 S2, slow arm); plan H-SUPPORT §5.
 DC: INTENTIONAL the S2 proposal clause of Transfers for a synchronous-window slow body. -/
 theorem healing_slow_proposals [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -711,16 +743,17 @@ theorem healing_slow_proposals [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -759,7 +792,8 @@ theorem healing_slow_proposals [Fintype V] (E : Generic.Env V)
   · intro j' t hj' ht'
     exact ((fgsa_tick_time_strict E rho hS ht' hip hj').le).trans hv
 
-/-- Blueprint 21:650–715 (H.1 + H.2 S3, slow arm); plan H-SUPPORT §5; ruling B31.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:650–715 (H.1 + H.2 S3, slow arm); plan H-SUPPORT §5; ruling B31.
 DC: INTENTIONAL the guarded S3 output clause of Transfers for a synchronous-window slow
 body. The guard d_s + 4Δ ≤ v is the B31 premise of the output clause. -/
 theorem healing_slow_output [Fintype V] (E : Generic.Env V)
@@ -769,16 +803,17 @@ theorem healing_slow_output [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)

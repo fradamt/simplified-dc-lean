@@ -16,7 +16,8 @@ private theorem frontierSearch_top_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME an accepted nonzero J has an
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME an accepted nonzero J has an
 actual earlier honest source; its slot is at least 6Δ before the start. -/
 theorem frontierSearch_initial_J_age [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
@@ -48,7 +49,8 @@ theorem frontierSearch_initial_J_age [Fintype V] (E : Generic.Env V)
   change 4 * p.Δ * ((r * p.R : Nat) : Time) + 6 * p.Δ ≤ ev.time at htime
   nlinarith [p.deltaPos]
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME a low proposal in this phase
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME a low proposal in this phase
 has the current top J as its height entry. This is a path-plateau proof. -/
 private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF u D : Time}
@@ -59,7 +61,7 @@ private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
     (huq : u ≤ SA.proposalTime p.toParams q) (hg : SA.gateTime p.toParams q ≤ D)
     (hlow : (heightView p Qfg).h = m - 1) : (heightView p Qfg).T_h = J := by
   have hs := hrec.base.valid.toScheduleWellFormed
-  obtain ⟨j, raw, sup, rows, hj, _, hst, _, _, _⟩ :=
+  obtain ⟨j, N, _, hj, _, hst, _, _, _⟩ :=
     healing_promotion_proposal_read p c E rho hs hQ
   let x := V2.D.proposerOf rho (fgsaInterface p c) q
   let st := ((fgsa p c).clock (rho.stateBefore E j x) (SA.proposalTime p.toParams q)).st
@@ -118,7 +120,8 @@ private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
     exact (fgJustificationLaws p).J_entry C
   exact ((fgCertificateLaws p).height.entry_plateau hJQ (hJheight.trans hlow.symm)).symm.trans hJe
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME the settled root is the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME the settled root is the
 accepted top carrier's J at the start. Its earlier row fixes the entry age. -/
 private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF D : Time}
@@ -138,7 +141,7 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
     (frontierSearchStart_iff p c E rho i ev m .topJ).mp hstart
   obtain ⟨x, C, ⟨hx, hC⟩, hh, hj, hJ⟩ := (healing_phaseWitness p c E rho hm hfront).top ht
   have hwin := healing_phase_window p c E rho hrec.base.noRestart hfront hquiet
-  obtain ⟨j, raw, sup, rows, hq, _, _, _, _, _⟩ :=
+  obtain ⟨j, N, _, hq, _, _, _, _, _⟩ :=
     healing_promotion_proposal_read p c E rho hs hQ
   let y := V2.D.proposerOf rho (fgsaInterface p c) q
   have hy := hQ.1.2
@@ -186,7 +189,8 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
   rw [heJ, hJJ]
   exact hage
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 gap. DC: SAME finish repair in a quiet settled phase.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ ROOT-DIGEST W2b. Blueprint 21 HG.3 gap. DC: SAME finish repair in a quiet settled phase.
 The entry-age input is local to this helper. The public producer must prove it
 from the actual start carrier and RQCOrigin. -/
 private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
@@ -372,7 +376,8 @@ private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
       exact (hKh ▸ hKP).trans hPXh
     exact finish hnew hat hsD hh
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 top J; run 2 R2-b.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ ROOT-DIGEST W2b. Blueprint 21 HG.3 top J; run 2 R2-b.
 DC: SAME keep both E_jF branches. The actual accepted J supplies its age;
 no ExactService-to-seed reconstruction or E_jF collapse is used. -/
 theorem frontier_hg3_topJ [Fintype V] (E : Generic.Env V)

@@ -12,14 +12,15 @@ variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 omit [Fintype V] in
-/-- Paper 22:1265–1289: a received wire remains held at the proposal read.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1265–1289: a received wire remains held at the proposal read.
 DC: SAME cumulative row storage, with the actual proposal tick. -/
 private theorem kernel_held_at_proposal (base : BaseSet p c E rho)
     (s : Slot) (b : Block) (hp : HonestProposal E rho (fgsaInterface p c) s b)
     (a : RowWire p.n) (d : Time)
     (hheld : HeldBefore p c E rho (V2.D.proposerOf rho (fgsaInterface p c) s) a d)
     (hd : d ≤ SA.proposalTime p.toParams s) : heldAtProposal p c E rho s a := by
-  obtain ⟨k, _, _, _, hk, _, hread, _⟩ :=
+  obtain ⟨k, _, _, hk, _, hread, _⟩ :=
     kmid_proposal_read p c E rho base.valid.toScheduleWellFormed hp
   let x := V2.D.proposerOf rho (fgsaInterface p c) s
   have hik : V2.D.Run.idxBefore rho d ≤ k := by
@@ -46,7 +47,8 @@ private theorem kernel_held_at_proposal (base : BaseSet p c E rho)
     exact List.mem_flatten.mpr ⟨xs,
       List.mem_filterMap.mpr ⟨w, hcumul.2.2.2.2.1.subset hw, hdec⟩, ha⟩
 
-/-- Paper 22:1265–1304: emitted names bound rows through the final action.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1265–1304: emitted names bound rows through the final action.
 DC: INTENTIONAL: each source is held at its own action tick. -/
 private theorem kernel_rows_before {G ΔF : Time} {pt : KernelPt} {A : Block}
     (hK : KernelPrem_W p c G ΔF E rho pt)
@@ -79,7 +81,8 @@ private theorem kernel_rows_before {G ΔF : Time} {pt : KernelPt} {A : Block}
     exact m.capThroughFinalAction i x C (hilt.le.trans (List.length_filter_le _ _))
       (hilt.le.trans hcut) hheld
 
-/-- Paper 22:1265–1289: the terminal proposal is after row delivery and before
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1265–1289: the terminal proposal is after row delivery and before
 the next action. DC: INTENTIONAL: the kernel deadline bounds the actual read. -/
 private theorem kernel_terminal_bounds {G ΔF : Time} {pt : KernelPt}
     (hK : KernelPrem_W p c G ΔF E rho pt) :
@@ -107,7 +110,8 @@ private theorem kernel_terminal_bounds {G ΔF : Time} {pt : KernelPt}
   rw [carrierTimeW_def] at hb ⊢
   exact ⟨hb, by linarith, by linarith⟩
 
-/-- Paper 22:1171–1305 (F1–F9): the forward W kernel gives a strict fresh
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1171–1305 (F1–F9): the forward W kernel gives a strict fresh
 extension accepted by every honest node before the kernel deadline.
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL: W retention, exact signed
 rows, the actual receipt and its guards replace the DC confirmation pin. -/
@@ -203,7 +207,7 @@ theorem finality_kernel_W_of (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt : Kernel
     rw [eraseFG_parent] at hp
     exact preceq_trans hDC (kmid_lift_preceq p hp)
   have hcap : (heightView p X.parent).h ≤ m.d + 3 := by
-    obtain ⟨j, _, _, _, hj, _, hread, _⟩ := kmid_proposal_read p c E rho hs hX
+    obtain ⟨j, _, _, hj, _, hread, _⟩ := kmid_proposal_read p c E rho hs hX
     have he : st = ((fgsa p c).clock
         (V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho (fgsaInterface p c) X.slot))
         (SA.proposalTime p.toParams X.slot)).st := Option.some.inj (hstX.symm.trans hread)

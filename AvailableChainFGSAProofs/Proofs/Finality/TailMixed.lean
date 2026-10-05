@@ -14,7 +14,8 @@ section Bits
 
 variable {α : Type} [DecidableEq α] [RowCodec α]
 
-/-- One row adds its signer to the entry with its exact finality pair. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+One row adds its signer to the entry with its exact finality pair. -/
 private def ktailAddBit (a : Row α) (e : Window.Entry α) : Window.Entry α :=
   if a.finality_pair = some ⟨e.j, e.X.root⟩ then { e with Q := insert a.signer e.Q } else e
 
@@ -145,7 +146,8 @@ end Bits
 
 variable {p : Params}
 
-/-- ROOT-DIGEST W2b. Paper 22:1990–2009 (FT-Tail-W, the bits of one retained key). Every bit of the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1990–2009 (FT-Tail-W, the bits of one retained key). Every bit of the
 key
 (hK, K) at a descendant P of Q was already set at Q, or comes from an exact finality row
 in a block strictly after Q and at or below P.
@@ -186,7 +188,8 @@ theorem ktail_entry_bits (Q : FGBlock (Fin p.n)) (hK : Nat) (K : FGBlock (Fin p.
       · rw [hempty] at hi
         exact absurd hi (Finset.notMem_empty i)
 
-/-- ROOT-DIGEST W2b. Paper 22:1990–2009 (FT-Tail-W, an already-finalized action head). If a
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1990–2009 (FT-Tail-W, an already-finalized action head). If a
 descendant H
 of Q finalizes the key (hK, K) that is pending at Q, then a quorum of identities have a
 bit for that key at Q or an exact finality row in a block strictly after Q and at or
@@ -253,7 +256,8 @@ theorem ktail_final_quorum (Q : FGBlock (Fin p.n)) (hK : Nat) (K : FGBlock (Fin 
           · refine Or.inr ⟨.node P s root x rs, ⟨hQH, hQB⟩, preceq_refl _, a, ha, hsig, ?_⟩
             rw [hfp, hj', hX']
 
-/-- Paper 22:1265–1289, 2007–2009. A row that is R6W-valid at a parent below the key
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1265–1289, 2007–2009. A row that is R6W-valid at a parent below the key
 height plus one stays R6W-valid at a later parent that retains the key: the stale arm
 once the later parent is higher, the height arm on the same height plateau.
 DC: INTENTIONAL: W stale R6W arm; DC has only the current entry. -/
@@ -313,7 +317,8 @@ private theorem ktail_idx_le_afterTicks {a b : Time} (hab : a ≤ b) :
   exact decide_eq_true (Prod.Lex.toLex_le_toLex.mpr
     (Or.inl ((of_decide_eq_true he).trans_le hab)))
 
-/-- ROOT-DIGEST W2b. Copy of Healing/FrameRelay.lean:29 (`healing_held_block_receipt`); the Finality
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Copy of Healing/FrameRelay.lean:29 (`healing_held_block_receipt`); the Finality
 lane
 does not import Healing. An FG block held at an honest post-GST tick is held by every
 honest node one Δ later, when that node's store finality is below it.
@@ -373,21 +378,21 @@ private theorem ktail_held_block_receipt (mono : RMono p c E rho)
   | none => simp only [hdec, reduceCtorEq] at ho
   | some msg =>
     cases msg <;> simp only [hdec, reduceCtorEq, Option.some.injEq] at ho
-    rename_i slot b raw sup rows
-    subst b
-    have he : o = ofWire p ⟨.proposer slot, .proposal (eraseFG W) raw sup rows⟩ := by
+    rename_i slot N
+    have he : o = ofWire p ⟨.proposer slot, .proposal N⟩ := by
       apply toWire_injective
       rw [toWire_ofWire]
       exact decode_eq_block.mp hdec
     obtain ⟨Y, hY, hYW⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr dl
       rho.horizon
-      slot (eraseFG W) raw sup rows u y hD (Or.inr ⟨x, hx, k, he ▸ ha⟩) hy
-      (hd.trans hhor) hu hcompat
-    have hYeq : Y = W := eraseFG_injective hYW
+      slot N u y hD (Or.inr ⟨x, hx, k, he ▸ ha⟩) hy
+      (hd.trans hhor) hu (by simpa only [ho] using hcompat)
+    have hYeq : Y = W := eraseFG_injective (hYW.trans ho)
     rw [hYeq, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
     exact (fgsa_store_cumulative p c E rho hnr hidx y).1 hY
 
-/-- ROOT-DIGEST W2b. Copy of the private carrier read of Foundations/RowService.lean:102: the exact
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Copy of the private carrier read of Foundations/RowService.lean:102: the exact
 rows of
 an honest carrier are the modeled proposer selection at its proposal read.
 Paper 01:83–86 (R7). DC: INTENTIONAL exact FG-SA row selector. -/
@@ -400,7 +405,8 @@ private theorem ktail_carrier_read {s : Slot} {Q : Block} {rows : List (RowWire 
         (SA.proposalTime p.toParams s)).st
       proposalStateAt p c E rho s = some st ∧ st.slot p = s ∧
         rows = proposalRows p st Q.parent := by
-  obtain ⟨hp, o, raw, sup, ⟨j, hj, hem⟩, hpay⟩ := hc
+  obtain ⟨hp, o, N, ⟨j, hj, hem⟩, hpay, heN, hrows⟩ := hc
+  subst Q rows
   have hs0 : 0 < s := hp.1.1
   change rho.events[j]? = some (.tick _ (SA.proposalTime p.toParams s)) at hj
   rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
@@ -426,7 +432,7 @@ private theorem ktail_carrier_read {s : Slot} {Q : Block} {rows : List (RowWire 
     cases d with
     | headAction v => cases hm
     | fgAction r =>
-      change (attest p _ _ _).1.map Msg.row = some (.proposal Q raw sup rows) at hm
+      change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
       obtain ⟨body, _, he⟩ := Option.map_eq_some_iff.mp hm
       cases he
     | propAction s' =>
@@ -456,20 +462,17 @@ private theorem ktail_carrier_read {s : Slot} {Q : Block} {rows : List (RowWire 
           (fun nd : Node p => nd.st) = some st
         rw [htick]
         rfl
-      · change (propose p st s).map (withApp p _) = some (.proposal Q raw sup rows) at hm
+      · change (propose p st s).map (withApp p _) = some (.proposal N) at hm
         rw [propose_head p st s (Nat.ne_of_gt hs0)] at hm
-        have he : Msg.proposal
-            (proposalBlock p (proposerHead p st s) s (c.app (rho.input _ _)) ((proposerVotes st
-              s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?) (proposalRows p
-              st (proposerHead p st s)))
-            ((proposerVotes st s).filterMap liftHead?)
-            ((proposerSupport st s).filterMap liftHead?)
-            (proposalRows p st (proposerHead p st s)) = .proposal Q raw sup rows :=
-          Option.some.inj hm
-        cases he
-        rfl
+        simp only [Option.map_map] at hm
+        obtain ⟨P, hP, he⟩ := Option.map_eq_some_iff.mp hm
+        cases Msg.proposal.inj he
+        have hparent := (namedByErase?_sound st (proposerHead p st s) P hP).2
+        change proposalRows p st (proposerHead p st s) = proposalRows p st P.erase
+        rw [hparent]
 
-/-- Paper 01:83–86, 145–149 (R7 over all valid full-content rows). The honest carrier
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 01:83–86, 145–149 (R7 over all valid full-content rows). The honest carrier
 selects every held R6W-valid row that is not on its parent chain, for any signer.
 DC: INTENTIONAL exact FG-SA row selector; no honest-signer filter. -/
 private theorem ktail_select_any (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {Q : Block}
@@ -508,9 +511,9 @@ private theorem ktail_chain_occurrence (st : State p.n) (hmeta : MetaInv p st)
     ∃ W, FGBlock.Preceq W H ∧ b ∈ W.rows := by
   obtain ⟨rows, hrs, ha⟩ := List.mem_flatten.mp ha
   obtain ⟨o, ho, hrows⟩ := List.mem_filterMap.mp hrs
-  obtain ⟨s, B, raw, sup, wires, rfl, _hok, _hdec, W, _hW, hWe, hWr⟩ :=
+  obtain ⟨s, N, rfl, _hok, _hparent, _hdec, W, _hW, hWe, hWr⟩ :=
     hmeta.wireTree o ho
-  change (if Block.preceq B (eraseFG H) then some wires else none) = some rows at hrows
+  change (if Block.preceq N.erase (eraseFG H) then some N.rows else none) = some rows at hrows
   split at hrows
   next hpath =>
     have he := Option.some.inj hrows
@@ -522,7 +525,8 @@ private theorem ktail_chain_occurrence (st : State p.n) (hmeta : MetaInv p st)
       exact List.mem_filterMap.mpr ⟨a, ha, hd⟩
   next hpath => cases hrows
 
-/-- ROOT-DIGEST W2b. Paper 22:715–728, 1265–1289, 2007–2009. A held finality row of any signer that
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:715–728, 1265–1289, 2007–2009. A held finality row of any signer that
 is
 R6W-valid at the carrier parent sets the retained bit or is carried by the carrier.
 This is `finalityRow_bit_or_carried_W` without the honest-origin input.
@@ -588,7 +592,8 @@ private theorem ktail_mixed_height (X : FGBlock (Fin p.n)) :
   rw [heightView_def, Window.projectHeight_def]
   exact ⟨rfl, rfl⟩
 
-/-- ROOT-DIGEST W2b. Paper 01:106–126 (acceptance relay), 22:2007–2009. The action head H of an
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 01:106–126 (acceptance relay), 22:2007–2009. The action head H of an
 honest node
 at action r+1 is held by the terminal proposer at its read. The block relay needs the
 receiver's store finality below H: its carrier has finality below e+1 = ht(H) before the
@@ -686,7 +691,8 @@ theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
     rw [clock_fg]
     exact hcum
 
-/-- ROOT-DIGEST W2b. Paper 22:1993–2009 (FT-Tail-W: "an already-finalized covering entry … the chain
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1993–2009 (FT-Tail-W: "an already-finalized covering entry … the chain
 retains and exposes the covering finalization"). The mixed arm: some honest action head H
 of round r+1 has finalized the witness key K = J(Q) at h_K = h_j(Q). The certificate of
 H's chain is replayed at the terminal carrier X: each quorum bit is already in X's parent
@@ -806,17 +812,18 @@ theorem ktail_mixed_final {G ΔF : Time} {pt : TailKernelPt p}
                 laws.entry_plateau hQXp (ow.heightQ.trans (hPh.symm.trans heq))]
           have hYst : FGBlock.node P s' root bx rs ∈ st.fg.TF :=
             KitFG.ancestor_closed_of_parent_closed _ bundle.cstore.fg.closed H' hHst _ hYH
-          obtain ⟨s0, raw0, sup0, rows0, hmem, hYrows⟩ :=
+          obtain ⟨s0, N, hmem, _, hYrows⟩ :=
             stored_wire_of_block p st bundle.cstore bundle.meta hYst (by intro h; cases h)
           obtain ⟨w, hw, hd⟩ := List.mem_filterMap.mp (hYrows ▸ ha)
           have hheld : rowHeld p st w :=
             Or.inr ((mem_allBlockRows_iff st w).mpr
-              ⟨_, hmem, s0, _, raw0, sup0, rows0, decode_eq_block.mpr rfl, hw⟩)
+              ⟨_, hmem, s0, N, decode_eq_block.mpr rfl, hw⟩)
           exact ktail_any_row_bit hT.set.base.valid X _ _ wireRows hc hrows st hst hlook
             eX heX heXj heXX w a hd hfp hheld hvalX
   exact (pendingFold_consume_W p _ _ X ⟨hXne, hcover⟩).1
 
-/-- Paper 22:1985–2009 (FT-Tail-W). The `hmixed` input of `tail_kernel_W_of`, proved.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1985–2009 (FT-Tail-W). The `hmixed` input of `tail_kernel_W_of`, proved.
 The finalized arm of the witness propagates F(Q); in the pending arm the witness key is
 retained or covered at the terminal parent, and the mixed certificate is replayed.
 DC: INTENTIONAL: DC has no mixed arm (one pinned action head). -/
@@ -864,7 +871,8 @@ theorem ktail_hmixed_of_relay {G ΔF : Time} {pt : TailKernelPt p}
     exact preceq_trans hUJ (ktail_mixed_final hT ow hnames hOrigin hmono hXing (hbatch ow) hF
       Xb hX hXslot (hXslot ▸ hcarrier) st (hXslot ▸ hst) hlook hrc hmix)
 
-/-- Paper 22:1985–2009 (FT-Tail-W). `tail_kernel_W_of` with the mixed arm proved: the only
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1985–2009 (FT-Tail-W). `tail_kernel_W_of` with the mixed arm proved: the only
 open input is `hbatch` (K-ROWS). New named inputs: RMono (Proofs/Foundations/Store
 fgsa_rMono) and RXing (Proofs/Foundations/Crossing fgsa_rXing); all other inputs are those of
 `tail_kernel_W_of`.

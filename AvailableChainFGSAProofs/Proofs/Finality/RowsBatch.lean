@@ -12,14 +12,15 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Paper 22:1228–1234,1251–1254: the action uses the full label-(z+1) HEAD pool.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1228–1234,1251–1254: the action uses the full label-(z+1) HEAD pool.
 DC: INTENTIONAL: this read identity supplies no vote admission or batch premise. -/
 theorem rowsPrem_action_pools (q : Nat) (x : V) (nd : Node p)
     (hnd : postClock E rho x (p.actionTime q) = some nd) :
     nd.st.slot p = q * p.R + 1 ∧
     (let raw := GridCO.votesAt nd.st.base (q * p.R + 1)
-     let support := raw.filter (fun o => match GridCO.headTarget? o with
-       | some H => GridCO.blockKnown (FGSA.actView nd.st) H && decide (H.slot ≤ q * p.R + 1)
+     let support := raw.filter (fun o => match GridCO.resolvedHead? (FGSA.actView nd.st) o with
+       | some H => decide (H.slot ≤ q * p.R + 1)
        | none => false)
      FGSA.fgHead p nd.st = FGSA.getHead p nd.st raw support) := by
   rw [postClock_def, preTick_def] at hnd
@@ -41,7 +42,8 @@ variable [Fintype V] {G ΔF : Time} {pt : KernelPt} {A : Block}
     (m : KernelMiddleWitness_W p c E rho ΔF pt A)
 
 include hK in
-/-- Paper 22:1228–1234,1251–1253,1719–1722: P3 gives the actual HEAD walk batch of the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1228–1234,1251–1253,1719–1722: P3 gives the actual HEAD walk batch of the
 raw and support pools at action pt.r + 2, with D below every honest label HEAD.
 DC: INTENTIONAL: H2′ at label (pt.r+2)R+1, honest admission at the action tick, P5's F ⪯ D. -/
 theorem rowsPrem_action_walk_batch (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
@@ -53,8 +55,8 @@ theorem rowsPrem_action_walk_batch (hQC : RQCOrigin p c E rho) (hXing : RXing p 
       postClock E rho x (p.actionTime (pt.r + 2)) = some nd →
       let s := (pt.r + 2) * p.R + 1
       let raw := GridCO.votesAt nd.st.base s
-      let support := raw.filter (fun o => match GridCO.headTarget? o with
-        | some H => GridCO.blockKnown (FGSA.actView nd.st) H && decide (H.slot ≤ s)
+      let support := raw.filter (fun o => match GridCO.resolvedHead? (FGSA.actView nd.st) o with
+        | some H => decide (H.slot ≤ s)
         | none => false)
       let seats : Finset (Fin p.n) := by
         classical

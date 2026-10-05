@@ -29,7 +29,8 @@ private theorem rise_one_honest_nonempty [Fintype V] (E : Generic.Env V)
   have hp := p.nPos
   exact Finset.card_pos.mp (by omega)
 
-/-- Plan A step 2. DC: SAME least mathematical proposal-grid label after u.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan A step 2. DC: SAME least mathematical proposal-grid label after u.
 This proves no emission and makes no read of a future proposal. -/
 theorem healing_rise_one_grid (p : Params) (u : Time) :
     ∃ β, u < SA.proposalTime p.toParams β ∧
@@ -46,7 +47,8 @@ theorem healing_rise_one_grid (p : Params) (u : Time) :
     nlinarith
   exact ⟨Nat.find hex, Nat.find_spec hex, fun b hb => Nat.find_min' hex hb⟩
 
-/-- Plan A step 2, rhoGamma arm. DC: SAME apply healing_tRepair with its
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan A step 2, rhoGamma arm. DC: SAME apply healing_tRepair with its
 own binders at (u,D,1,some genesis,false). Existence has its finite budget. -/
 theorem healing_rise_one_repair [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -55,16 +57,17 @@ theorem healing_rise_one_repair [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C) :
     ∀ {u D : Time}, E.t_GST ≤ u → u ≤ D → D ≤ rho.horizon →
     ¬ RiseOneBy p c E rho D →
@@ -85,7 +88,8 @@ theorem healing_rise_one_repair [Fintype V] (E : Generic.Env V)
   obtain ⟨ha, hw⟩ := hrepair.1 β hβ hmin
   exact ⟨hphase, β, hβ, hmin, ha, hw⟩
 
-/-- Plan A step 2, rhoOne arm. DC: SAME the shorter branch retains all
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan A step 2, rhoOne arm. DC: SAME the shorter branch retains all
 explicit slow-window premises, including k <= b+1. It is not inferred at s=1. -/
 theorem healing_rise_one_repair_synchronous [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -94,16 +98,17 @@ theorem healing_rise_one_repair_synchronous [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hstop : ¬ RiseOneBy p c E rho D) {b : Nat}
@@ -121,7 +126,8 @@ theorem healing_rise_one_repair_synchronous [Fintype V] (E : Generic.Env V)
   exact ((healing_tRepair E rho hrec mono crossing qc writes) G u D 1
     (some .genesis) false hrec.gap hrec.gapPos hgst hphase).2 b hb hmin hkb hwindow
 
-/-- Plan A step 4. DC: SAME choose the first opening and apply H-GATE.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan A step 4. DC: SAME choose the first opening and apply H-GATE.
 The stopped phase gives height one for the accepted Qfg. The opening budget
 is an arithmetic bound, not a recurrence or future-run premise. -/
 theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
@@ -131,16 +137,17 @@ theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,
@@ -186,7 +193,8 @@ theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
     hgst hQ hQfg hexact hu hqr hfirst hp
   exact ⟨hh, hentry, r, hqr, hfirst, hrD, h0, h1, hc, he⟩
 
-/-- Plan A step 4. DC: SAME apply later_opening_covered at each opening
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan A step 4. DC: SAME apply later_opening_covered at each opening
 inside the bounded stopped phase, and use the height-one entry theorem. -/
 theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -195,16 +203,17 @@ theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,
@@ -233,7 +242,8 @@ theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
   exact ⟨later_opening_covered E rho hrec mono crossing writes rowCoverage hgst hQ hQfg
     hexact hu hqr hp, opening_entry_one E rho hS hp hur⟩
 
-/-- Plan A steps 1--4. DC: INTENTIONAL a bounded first rise or a repaired
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan A steps 1--4. DC: INTENTIONAL a bounded first rise or a repaired
 height-one proposal with its first covered opening. The budget ends at D.
 This theorem makes no height-two production or acceptance claim. -/
 theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
@@ -243,16 +253,17 @@ theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,

@@ -14,7 +14,8 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1551–1569; plan §3.1 steps 6 and 8.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1551–1569; plan §3.1 steps 6 and 8.
 DC: INTENTIONAL the whole raw result passes the guard under the cap.
 H-GATE's fixed-phase transfers are replaced by the capped fast and slow transfers. -/
 theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
@@ -24,16 +25,17 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -79,10 +81,10 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
   have hv : { actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) with
       early := (storeAt p c E rho i x).base.early } = (fgsaAC E rho).gateView i x s :=
     fgsa_clockPre_gateView p (storeAt p c E rho i x) s
-  have hrawEq : (fgsaAC E rho).raw i s x = SA.confirmationFrom p.toParams
+  have hrawEq : (fgsaAC E rho).raw i s x = SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho i x).fg.F)
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s := by
-    have he := congrArg (fun u => SA.confirmationFrom p.toParams
+    have he := congrArg (fun u => SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho i x).fg.F) u s) hv
     exact he.symm
   intro C hC
@@ -275,7 +277,8 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
           (Or.inl (hcoverC lease.1 hcb (block_preceq_trans hFQ hQl)))
     · exact hbelowQ hlQ
 
-/-- Blueprint 21:1551–1583; plan §3.1 step 8.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1551–1583; plan §3.1 step 8.
 DC: INTENTIONAL H-GATE covering service under a capped frontier, at any later label. -/
 theorem frontier_opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -284,16 +287,17 @@ theorem frontier_opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -355,13 +359,13 @@ theorem frontier_opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     (by rw [clockPre_fg]; exact hFQ)
   rw [clockPre_fg] at hC
   have hraw : (fgsaAC E rho).raw i s x = some C := by
-    have he := congrArg (fun st => SA.confirmationFrom p.toParams
+    have he := congrArg (fun st => SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho i x).fg.F) st s) hv
     exact he.symm.trans hC
   have hτ := opening_gate_support E rho hrec hgsts hsh hcov ht hFQ
   have hsupport : SA.releaseThreshold p.toParams ≤
-      SA.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s Q := by
-    have he := congrArg (fun st => SA.prefixSupport p.toParams st s Q) hv
+      SA.Root.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s Q := by
+    have he := congrArg (fun st => SA.Root.prefixSupport p.toParams st s Q) hv
     exact he ▸ hτ
   have hmem : Q ∈ ((fgsaAC E rho).gateView i x s).blocks := by
     rw [← hv]

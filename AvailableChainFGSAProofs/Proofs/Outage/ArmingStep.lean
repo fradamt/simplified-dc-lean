@@ -16,10 +16,12 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan O-ARM §6.4. Class (iii). DC: INTENTIONAL; the SA proposal admission
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.4. Class (iii). DC: INTENTIONAL; the SA proposal admission
 writes no saved result. -/
 theorem arming_proposal_genuine (q : GridCO.Params) {n : Nat}
-    (st : GridCO.State n) (o : GridCO.Wire n) (b : Block) (raw : List (GridCO.HeadWire n)) :
+    (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block) (raw : List
+        (GridCO.HeadWire n .root)) :
     (GridCO.admitProposal q st o b raw).genuine = st.genuine := by
   obtain ⟨auth, msg⟩ := o
   cases auth <;> unfold GridCO.admitProposal <;> dsimp only <;> split
@@ -27,7 +29,8 @@ theorem arming_proposal_genuine (q : GridCO.Params) {n : Nat}
     | rfl
     | exact (foldVotes_fields q raw _).2.2.2.2.1
 
-/-- ROOT-DIGEST W2b. Plan O-ARM §6.2 step 5, §6.4. Class (iii). DC: INTENTIONAL; a delivery
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan O-ARM §6.2 step 5, §6.4. Class (iii). DC: INTENTIONAL; a delivery
 keeps the leases and the saved results, or filters both by the new F. -/
 theorem arming_process_lease (p : Params) (st : State p.n) (w : Wire p.n) :
     ((FGSA.process p st w).base.obligations = st.base.obligations ∧
@@ -46,38 +49,44 @@ theorem arming_process_lease (p : Params) (st : State p.n) (w : Wire p.n) :
     left
     change (admitRow p st _).base.obligations = _ ∧ (admitRow p st _).base.genuine = _
     rcases admitRow_eq p st ⟨.seat .fg i, body⟩ with he | he <;> rw [he] <;> exact ⟨rfl, rfl⟩
-  · rename_i s b raw sup rows
-    change ((admitBlock p st s b raw sup rows).base.obligations = _ ∧
-        (admitBlock p st s b raw sup rows).base.genuine = _) ∨
-      ((admitBlock p st s b raw sup rows).base.obligations = st.base.obligations.filter
-        (fun row => Block.compatible row.1 (eraseFG (admitBlock p st s b raw sup rows).fg.F)) ∧
-      (admitBlock p st s b raw sup rows).base.genuine = st.base.genuine.map (fun row =>
+  · rename_i s N
+    change ((admitBlock p st s N).base.obligations = _ ∧
+        (admitBlock p st s N).base.genuine = _) ∨
+      ((admitBlock p st s N).base.obligations = st.base.obligations.filter
+        (fun row => Block.compatible row.1 (eraseFG (admitBlock p st s N).fg.F)) ∧
+      (admitBlock p st s N).base.genuine = st.base.genuine.map (fun row =>
         (row.1, row.2.filter (fun b' =>
-          Block.compatible b' (eraseFG (admitBlock p st s b raw sup rows).fg.F)))))
-    cases hp : parentFG st b with
-    | none =>
-      left
-      rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]
-      exact ⟨rfl, rfl⟩
-    | some P =>
-      cases ha : blockAccepted p st s b raw sup P rows with
-      | false =>
+          Block.compatible b' (eraseFG (admitBlock p st s N).fg.F)))))
+    cases hn : namedParentHeld st N with
+    | false =>
+      rw [admitBlock_refused p st s N (Or.inl hn)]
+      exact Or.inl ⟨rfl, rfl⟩
+    | true =>
+      cases hp : parentFG st N.erase with
+      | none =>
         left
-        rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
+        rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))]
         exact ⟨rfl, rfl⟩
-      | true =>
-        obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s b raw sup P rows hp ha
-        rw [he]
-        dsimp only
-        split
-        · left
-          exact ⟨admitProposal_obligations_slow _ _ _ _ _, arming_proposal_genuine _ _ _ _ _⟩
-        · right
-          rw [reconcile_obligations, reconcile_genuine, reconcile_fg,
-            admitProposal_obligations_slow, arming_proposal_genuine]
+      | some P =>
+        cases ha : blockAccepted p st s N P with
+        | false =>
+          left
+          rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
           exact ⟨rfl, rfl⟩
+        | true =>
+          obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s N P hn hp ha
+          rw [he]
+          dsimp only
+          split
+          · left
+            exact ⟨admitProposal_obligations_slow _ _ _ _ _, arming_proposal_genuine _ _ _ _ _⟩
+          · right
+            rw [reconcile_obligations, reconcile_genuine, reconcile_fg,
+              admitProposal_obligations_slow, arming_proposal_genuine]
+            exact ⟨rfl, rfl⟩
 
-/-- Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; one event changes
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; one event changes
 the store of `y` by nothing, by its own clock, or by one delivery. A restart
 is excluded by NoRestart. -/
 theorem arming_store_succ {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -117,7 +126,8 @@ theorem arming_store_succ {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     rfl
 
 omit [DecidableEq V] in
-/-- Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; an event strictly
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; an event strictly
 between the cut and the pending gate has its time in that open interval. -/
 theorem arming_event_window {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) {b d : Time} {k : Nat}
@@ -129,7 +139,8 @@ theorem arming_event_window {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   have := (arming_lt_timeIdx_iff hs b he).mpr (le_of_not_gt hn)
   omega
 
-/-- Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; no gate time lies
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; no gate time lies
 strictly after the cut and strictly before the pending gate. -/
 theorem arming_offGate (p : Params) (l : Slot) {b₀ t : Time}
     (hl : SA.gateTime p.toParams l ≤ b₀) (hb : b₀ < t)
@@ -140,7 +151,8 @@ theorem arming_offGate (p : Params) (l : Slot) {b₀ t : Time}
   subst this
   exact absurd (hr ▸ hb) (not_lt.mpr hl)
 
-/-- Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; off the gate times
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; off the gate times
 the clock keeps F, S and the saved results, and keeps a sublist of leases. -/
 theorem arming_clock_offGate_fields (p : Params) (st : State p.n) (t : Time)
     (h : ∀ r : Slot, SA.gateTime p.toParams r ≠ t) :

@@ -17,7 +17,8 @@ open Gen.V2.Duty (faulty)
 variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Paper 22:1286–1305: the kernel supplies the execution, fault bound and horizon.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1286–1305: the kernel supplies the execution, fault bound and horizon.
 DC: INTENTIONAL local W deadline, with separate row delay and no GST healing bound. -/
 theorem receipt_kernel_fields (G ΔF : Time) (pt : KernelPt)
     (h : KernelPrem_W p c G ΔF E rho pt) :
@@ -25,7 +26,8 @@ theorem receipt_kernel_fields (G ΔF : Time) (pt : KernelPt)
       kernelDeadlineW p ΔF (pt.r + 2) ≤ rho.horizon :=
   ⟨h.set.base, h.set.fault, h.hhor⟩
 
-/-- Paper 22:1286–1289: carriage gives a finalized descendant in both branches.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1286–1289: carriage gives a finalized descendant in both branches.
 DC: INTENTIONAL greatest-ready W fold; prior coverage is a separate branch.
 The fold proves only carrier finality. It does not prove receipt or guards. -/
 theorem receipt_finalized_of_carriage (hsel : TRowsSelect p c E rho)
@@ -47,31 +49,32 @@ private theorem receipt_stored_block (i : Nat) (x : V) (C : FGBlock (Fin p.n))
     FinalityBlock p c E rho C := by
   obtain ⟨wire, ⟨hwire, hblock⟩, _hunique⟩ :=
     (storeBundle_stateBefore E rho i x).meta.treeWire C hC hne
-  obtain ⟨j, o, t, _hji, he, hto, ⟨s, b, raw, sup, rows, hp, ha⟩, _hr⟩ :=
+  obtain ⟨j, o, t, _hji, he, hto, ⟨s, N, hp, ha⟩, _hr⟩ :=
     stored_proposal_delivered E rho i x wire hwire
-  have hw : wire = ⟨.proposer s, .proposal b raw sup rows⟩ := by
+  have hw : wire = ⟨.proposer s, .proposal N⟩ := by
     rw [← hto]
     change (⟨toAuth p o.auth, o.payload⟩ : Wire p.n) = _
     rw [hp, ha]
     rfl
   rw [hw] at hblock
-  have hb : b = eraseFG C := Option.some.inj hblock
+  have hb : N.erase = eraseFG C := Option.some.inj hblock
   rw [FinalityBlock_def]
-  exact ⟨o, b, raw, sup, rows, hp, Or.inr ⟨x, t, List.mem_of_getElem? he⟩,
+  exact ⟨o, N, hp, Or.inr ⟨x, t, List.mem_of_getElem? he⟩,
     hb ▸ Gen.Pure.block_preceq_refl _⟩
 
 omit [Fintype V] in
 private theorem receipt_ready_block (i : Nat) (x : V) (X : FGBlock (Fin p.n))
     (t : Time) (hready : Ready_W p c E rho i x X t) : FinalityBlock p c E rho X := by
-  obtain ⟨o, s, raw, sup, rows, P, he, hd, _hp, _ha, _hX⟩ :=
+  obtain ⟨o, s, N, P, he, heN, hd, _hNamed, _hp, _ha, _hX⟩ :=
     (Ready_W_def p c E rho i x X t).mp hready
   have hp := congrArg Signed.payload (decode_eq_block.mp hd)
-  change o.payload = Msg.proposal (eraseFG X) raw sup rows at hp
+  change o.payload = Msg.proposal N at hp
   rw [FinalityBlock_def]
-  exact ⟨o, eraseFG X, raw, sup, rows, hp,
-    Or.inr ⟨x, t, List.mem_of_getElem? he⟩, Gen.Pure.block_preceq_refl _⟩
+  exact ⟨o, N, hp, Or.inr ⟨x, t, List.mem_of_getElem? he⟩,
+    by rw [heN]; exact Gen.Pure.block_preceq_refl _⟩
 
-/-- Paper 22:1145–1146, 1296: I3 compares F before carrier admission.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1145–1146, 1296: I3 compares F before carrier admission.
 DC: INTENTIONAL W certificate agreement. Assembly supplies I3 from Foundations;
 the honest emission supplies the carrier block before Ready exists. -/
 theorem receipt_finCmp_of_block (base : BaseSet p c E rho)
@@ -103,7 +106,8 @@ theorem receipt_finCmp_of_block (base : BaseSet p c E rho)
   · exact KitFG.preceq_total_of_common hbelow hfinal
   · exact Or.inr (KitFG.preceq_trans hfinal habove)
 
-/-- Paper 22:1145–1146, 1296: I3 compares F at this same Ready event.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1145–1146, 1296: I3 compares F at this same Ready event.
 DC: INTENTIONAL W certificate agreement. Assembly supplies I3 from Foundations;
 the Finality lane uses only its explicit safety-premise supplier. -/
 theorem receipt_finCmp (base : BaseSet p c E rho)
@@ -122,7 +126,8 @@ theorem receipt_finCmp (base : BaseSet p c E rho)
     (receipt_ready_block p c E rho i x X t hready)
 
 omit [Fintype V] in
-/-- Paper 22:1290–1302: the pre-next-action cap bounds the inserted h_max.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1290–1302: the pre-next-action cap bounds the inserted h_max.
 DC: INTENTIONAL W receipt insert, with height views and the shared causal cap.
 The receiver and carrier use the same selected event index. -/
 theorem receipt_cap (ΔF : Time) (q y i : Nat) (x : V) (X : FGBlock (Fin p.n))
@@ -163,7 +168,8 @@ theorem receipt_cap (ΔF : Time) (q y i : Nat) (x : V) (X : FGBlock (Fin p.n))
   exact max_le (hm.trans (Nat.add_le_add_right hheight 1)) (Nat.le_succ _)
 
 omit [Fintype V] in
-/-- Paper 22:1294–1296: the separate finality lag excludes a higher receiver certificate.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1294–1296: the separate finality lag excludes a higher receiver certificate.
 DC: INTENTIONAL W F carrier at the pre-handler read; Assembly supplies finality lag.
 This height bound does not produce delivery or cached-J source provenance. -/
 theorem receipt_receiver_finalityLag (ΔF : Time) (q y i : Nat) (x : V) (t : Time)
@@ -198,7 +204,8 @@ theorem receipt_receiver_finalityLag (ΔF : Time) (q y i : Nat) (x : V) (t : Tim
   exact (Nat.lt_irrefl _) (hrowsEarlier j z r a row (y + 1) T timeout ha hd hp hlt)
 
 omit [Fintype V] in
-/-- ROOT-DIGEST W2b. Paper 22:1297–1302: the h_j = y case has its cached anchor on the carrier path.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1297–1302: the h_j = y case has its cached anchor on the carrier path.
 DC: INTENTIONAL W cached-J guard. This does not produce source provenance;
 Per-height justification uniqueness must prove the cached equality in this case. -/
 theorem receipt_jPath_of_cached_anchor (i : Nat) (x : V) (X U : FGBlock (Fin p.n))
@@ -216,23 +223,23 @@ private theorem receipt_parent_path (X : FGBlock (Fin p.n)) : FGBlock.Preceq X.p
   | genesis => exact KitFG.preceq_refl _
   | node P s root body rows => exact KitFG.preceq_parent_node P s root body rows
 
-private theorem receipt_proposal_checks (s : Slot) (b : Block)
-    (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n)) :
-    FGSA.wellFormed p ⟨.proposer s, .proposal b raw support rows⟩ =
-      (b != .genesis && s == b.slot && decide (b.parent.slot < b.slot) &&
-        raw.all (fun v => match v.decode? with
-          | some (r, _, _) => r + 1 == b.slot
+private theorem receipt_proposal_checks (s : Slot) (N : NamedProposal p.n) :
+    FGSA.wellFormed p ⟨.proposer s, .proposal N⟩ =
+      (N.erase != .genesis && s == N.erase.slot && decide (N.erase.parent.slot < N.erase.slot) &&
+        N.raw.all (fun v => match v.decode? with
+          | some (r, _, _) => r + 1 == N.erase.slot
           | none => false) &&
-        support.all (fun v => decide (v ∈ raw)) && rows.all RowWire.valid &&
-        contentOk p b raw support rows) := rfl
+        N.support.all (fun v => decide (v ∈ N.raw)) && N.rows.all RowWire.valid &&
+        contentOk p N.erase N.raw N.support N.rows) := rfl
 
-/-- ROOT-DIGEST W2b. Paper 22:1294–1296, 995–1002: a checked delivery admits the actual carrier.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1294–1296, 995–1002: a checked delivery admits the actual carrier.
 DC: INTENTIONAL selected W handler; R6 checks every carried row against its parent. -/
 theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
     (i : Nat) (x : V) (X : FGBlock (Fin p.n)) (t : Time)
-    (o : Obj p) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (o : Obj p) (N : NamedProposal p.n) (heN : N.erase = eraseFG X)
     (he : rho.events[i]? = some (.deliver x o t))
-    (hd : (toWire p o).decode = some (.block X.slot (eraseFG X) raw sup rows))
+    (hd : (toWire p o).decode = some (.block X.slot N))
     (htrigger : Gen.V2.Duty.Trigger E rho o (SA.proposalTime p.toParams X.slot))
     (ht : SA.proposalTime p.toParams X.slot ≤ t)
     (hF : FGBlock.Preceq (storeAt p c E rho i x).fg.F X) :
@@ -243,15 +250,15 @@ theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G
   change FGSA.wellFormed p (toWire p o) = true at hwf
   have hw := decode_eq_block.mp hd
   have hwf' : FGSA.wellFormed p ⟨.proposer X.slot,
-      .proposal (eraseFG X) raw sup rows⟩ = true := hw ▸ hwf
+      .proposal N⟩ = true := hw ▸ hwf
   have hdeps := hD.deps i x o t he
   change depsS p (storeAt p c E rho i x) o = true at hdeps
   dsimp only [depsS] at hdeps
   rw [hd] at hdeps
-  obtain ⟨P, hP⟩ := Option.isSome_iff_exists.mp hdeps
+  obtain ⟨P, hP⟩ := Option.isSome_iff_exists.mp (Bool.and_eq_true_iff.mp hdeps).2
   have hPe := ((FGSA.parentFG_spec _ _ P).mp hP).2
   have hchecks := hwf'
-  rw [receipt_proposal_checks] at hchecks
+  rw [receipt_proposal_checks, heN] at hchecks
   simp only [Bool.and_eq_true] at hchecks
   obtain ⟨⟨⟨⟨⟨⟨hb, _hs⟩, _hps⟩, _hraw⟩, _hsup⟩, _hrvalid⟩, hok⟩ := hchecks
   have hbne : eraseFG X ≠ .genesis := by simpa using hb
@@ -259,11 +266,12 @@ theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G
     cases X with
     | genesis => rfl
     | node P s root body rs => rfl
+  rw [heN] at hPe
   have hPX : P = X.parent := FGSA.eraseFG_injective (hPe.trans hparent.symm)
   subst P
-  have hX : FGSA.fgBlock X.parent (eraseFG X) rows = X :=
-    FGSA.eraseFG_injective (FGSA.eraseFG_fgBlock hbne hparent rows (contentOk_rowsOk hok))
-  have hvalid := fgsa_trigger_rowsValid E rho o _ X.slot (eraseFG X) raw sup rows
+  have hX : FGSA.fgBlock X.parent (eraseFG X) N.rows = X :=
+    FGSA.eraseFG_injective (FGSA.eraseFG_fgBlock hbne hparent N.rows (contentOk_rowsOk hok))
+  have hvalid := fgsa_trigger_rowsValid E rho o _ X.slot N
     htrigger hd (storeAt p c E rho i x) X.parent hP
   have hfresh := hD.fresh i x o t he
   change processedS p (storeAt p c E rho i x) o = false at hfresh
@@ -282,7 +290,7 @@ theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G
   obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp (hS.tick_total x hx _ hpub htime
     (ht.trans (hS.in_horizon _ (List.mem_of_getElem? he)).2))
   have hij := V2.D.Engine.tick_index_lt_delivery E rho hS hj he ht
-  have ho : o = ofWire p ⟨.proposer X.slot, .proposal (eraseFG X) raw sup rows⟩ := by
+  have ho : o = ofWire p ⟨.proposer X.slot, .proposal N⟩ := by
     apply toWire_injective
     rw [toWire_ofWire]
     exact hw
@@ -297,12 +305,14 @@ theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G
     rw [FGSA.eraseFG_slot]
     exact (fgsa_slot_threshold_iff p _ (htime.trans htimely) X.slot).mpr htimely
   have hacc : FGSA.blockAccepted p (storeAt p c E rho i x) X.slot
-      (eraseFG X) raw sup X.parent rows = true := by
-    rw [FGSA.blockAccepted_of_wellFormed p _ _ _ raw sup rows _ hwf', hX]
+      N X.parent = true := by
+    rw [FGSA.blockAccepted_of_wellFormed p _ _ N X.parent hwf', heN, hX]
     simp only [Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true', decide_eq_false_iff_not]
-    exact ⟨⟨⟨hslot, of_decide_eq_false hfresh⟩, hF⟩, hvalid⟩
-  exact (Ready_W_def p c E rho i x X t).mpr ⟨o, X.slot, raw, sup, rows, X.parent,
-    he, hd, hP, hacc, hX⟩
+    exact ⟨⟨⟨hslot, by simpa only [← heN, named_erase_root] using
+      of_decide_eq_false hfresh⟩, hF⟩, by simpa only [heN] using hvalid⟩
+  exact (Ready_W_def p c E rho i x X t).mpr ⟨o, X.slot, N, X.parent, he, heN, hd,
+    (Bool.and_eq_true_iff.mp hdeps).1, by simpa only [heN] using hP, hacc,
+    by simpa only [heN] using hX⟩
 
 omit [Fintype V] in
 private theorem receipt_proposer_honest (s : Slot) (B : Block)
@@ -310,7 +320,8 @@ private theorem receipt_proposer_honest (s : Slot) (B : Block)
     V2.D.proposerOf rho (fgsaInterface p c) s ∈ rho.honest := by
   exact ((Gen.V2.Duty.HonestSlot_def rho (fgsaInterface p c) s).mp h.1).2
 
-/-- Paper 22:1294–1296: I3 and C1 give a selected covered-or-admitted event.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1294–1296: I3 and C1 give a selected covered-or-admitted event.
 DC: INTENTIONAL W delivery with strict broadcast time and dependency admission.
 The fold supplies only hfinal; it does not supply delivery or guards. -/
 theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
@@ -327,11 +338,11 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
     Nonempty (BlockDelivery_W p c E rho X U (SA.proposalTime p.toParams X.slot)
       (SA.proposalTime p.toParams X.slot + p.Δ)) := by
   classical
-  obtain ⟨hproposal, o, raw, sup, hem, hpayload⟩ :=
+  obtain ⟨hproposal, o, N, hem, hpayload, heN, hNrows⟩ :=
     (HonestCarrier_def p c E rho _ _ rows).mp hcarrier
   change Obj p at o
   have hhon := receipt_proposer_honest p c E rho _ _ hproposal
-  have hd : (toWire p o).decode = some (.block X.slot (eraseFG X) raw sup rows) := by
+  have hd : (toWire p o).decode = some (.block X.slot N) := by
     obtain ⟨j, hj, ho⟩ := hem
     change rho.events[j]? = some (.tick
       (V2.D.proposerOf rho (fgsaInterface p c) X.slot) (SA.proposalTime p.toParams X.slot)) at hj
@@ -352,8 +363,8 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
         cases label with
         | base label => cases label <;> cases hwf
         | prop s =>
-          change FGSA.wellFormed p ⟨.proposer s, .proposal (eraseFG X) raw sup rows⟩ = true at hwf
-          rw [receipt_proposal_checks] at hwf
+          change FGSA.wellFormed p ⟨.proposer s, .proposal N⟩ = true at hwf
+          rw [receipt_proposal_checks, heN] at hwf
           simp only [Bool.and_eq_true] at hwf
           have hs := beq_iff_eq.mp hwf.1.1.1.1.1.2
           rw [FGSA.eraseFG_slot] at hs
@@ -363,8 +374,8 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
     Or.inl ⟨_, hhon, hem⟩
   have hblock : FinalityBlock p c E rho X := by
     rw [FinalityBlock_def]
-    exact ⟨o, eraseFG X, raw, sup, rows, hpayload, Or.inl ⟨_, _, hem⟩,
-      Gen.Pure.block_preceq_refl _⟩
+    exact ⟨o, N, hpayload, Or.inl ⟨_, _, hem⟩,
+      by rw [heN]; exact Gen.Pure.block_preceq_refl _⟩
   let a := SA.proposalTime p.toParams X.slot
   let D := a + p.Δ
   have hdelay : max a E.t_GST + fgsaDelay E.Δ ΔF o = D := by
@@ -425,8 +436,8 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
           exact Bool.or_eq_true_iff.mpr (Or.inr (FGSA.eraseFG_preceq hFX))
         dsimp only [excludesS]
         rw [hd]
-        simp only [blockExcluded, activeCompatible, hc, Bool.not_true, Bool.false_or]
-        exact fgsa_trigger_invalid_false E rho o a X.slot (eraseFG X) raw sup rows
+        simp only [blockExcluded, activeCompatible, heN, hc, Bool.not_true, Bool.false_or]
+        exact fgsa_trigger_invalid_false E rho o a X.slot N
           htrigger hd _
       obtain ⟨t, hat, htD, i, envelope, he, hh⟩ := hrec.sync.broadcast_emitted _ hhon o a hem
         x hx (hdelay ▸ hhor) (hdelay ▸ hNX)
@@ -439,7 +450,7 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
             cases m with
             | vote => simp only [hd'] at h
             | row => simp only [hd'] at h
-            | block s b rs sp ws =>
+            | block s M =>
               rw [hd'] at h
               rcases h.2 with h | h
               · obtain ⟨wire, _, hw⟩ := List.mem_map.mp h
@@ -465,7 +476,7 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
       refine ⟨i, t, ?_, htD', Or.inr ⟨hat, ?_⟩⟩
       · rw [eventTime_def, he]
         rfl
-      · exact receipt_ready_of_delivery p c E rho G ΔF hrec i x X t o raw sup rows
+      · exact receipt_ready_of_delivery p c E rho G ΔF hrec i x X t o N heN
           he hd htrigger hat hFiX
   choose index time witness using hwitness
   exact ⟨{ selected := fun x hx => ⟨index x hx, time x hx⟩, witness := witness }⟩
@@ -491,7 +502,8 @@ private theorem receipt_actionTime_strictMono : StrictMono p.actionTime := by
   push_cast
   convert add_lt_add_right (mul_lt_mul_of_pos_left hab' hpos) (6 * p.Δ) using 1 <;> ring
 
-/-- ROOT-DIGEST W2b. Paper 22:1297–1302: a high cached J is on the terminal carrier path.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1297–1302: a high cached J is on the terminal carrier path.
 DC: INTENTIONAL W cached pair and action-source ancestry. Stratification and
 emitted-name provenance are explicit Foundations inputs; H2 supplies the path. -/
 theorem receipt_jPath (hroots : NamedRootCollisionFree p c E rho) (ΔF : Time) (q y i : Nat) (x :
@@ -574,7 +586,8 @@ theorem receipt_jPath (hroots : NamedRootCollisionFree p c E rho) (ΔF : Time) (
   exact Or.inl (hJ.trans hJeq ▸ KitFG.preceq_trans hJS
     (KitFG.preceq_trans hpath (receipt_parent_path p X)))
 
-/-- ROOT-DIGEST W2b. Paper 22:1286–1305: the terminal carrier gives every AcceptPrem_W field.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1286–1305: the terminal carrier gives every AcceptPrem_W field.
 DC: INTENTIONAL local W receipt and same-event guards. The final action is
 q = pt.r + 2; Assembly supplies the stated Foundations and K-MID inputs. -/
 theorem receipt_acceptPrem_W (G ΔF : Time) (pt : KernelPt)

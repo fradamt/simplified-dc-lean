@@ -9,13 +9,15 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 open RetainedWalk
 
-/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
 (design 747–758,798–814,2847–2867); spec 1350–1360.
 Class (iii). DC: INTENTIONAL; the FG-SA stored-parent band is a separate arm. -/
 def retainedBand (p : Params) (st : State p.n) (C : Block) : Prop :=
   ∃ P ∈ st.fg.TF, eraseFG P = C.parent ∧ (heightView p P).h < (controls p st).lo
 
-/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
 (design 747–758,798–814,2847–2867); spec 1290–1297, 1350–1360.
 Class (iii). DC: INTENTIONAL; D3-1 removes caller-supplied source F/Z bounds.
 The witness is stored at the source or strictly frozen at the target. -/
@@ -26,7 +28,8 @@ def ReflectedDomainWitness (p : Params) (src dst : State p.n)
     (W ∈ src.fg.TF ∨ (W ∈ dst.fg.TF ∧
       GridCO.stampBlock dst.base (eraseFG W) < SA.freezeTime p.toParams (s - 1)))
 
-/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
 (design 747–758,798–814,2847–2867); spec 1350–1360.
 Class (iii). DC: INTENTIONAL; equation for this module's band predicate. -/
 theorem retainedBand_def (p : Params) (st : State p.n) (C : Block) :
@@ -35,7 +38,8 @@ theorem retainedBand_def (p : Params) (st : State p.n) (C : Block) :
   apply propext
   constructor <;> exact fun h => h
 
-/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
 (design 747–758,798–814,2847–2867); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; equation for this module's witness predicate. -/
 theorem ReflectedDomainWitness_def (p : Params) (src dst : State p.n) (s : Slot) (C : Block) :
@@ -47,7 +51,8 @@ theorem ReflectedDomainWitness_def (p : Params) (src dst : State p.n) (s : Slot)
   apply propext
   constructor <;> exact fun h => h
 
-/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
 (design 747–758,798–814,2847–2867); spec 1290–1297, 1330–1360.
 Class (iii). DC: INTENTIONAL; actual starts, internal witnesses and band data.
 D2-1 permits the parent or the proposal as the target height witness. -/
@@ -70,7 +75,8 @@ structure RetainedReadPremises (p : Params) (src dst : State p.n)
     C ∈ S p src → C ∈ T p dst s → C.parent? = some X → C.slot < s →
     (retainedBand p src C ↔ retainedBand p dst C)
 
-/-- Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1290–1297.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; converse S3 gives a witness in the same view.
 No store invariant is needed. -/
 theorem fgsa_domain_witness_of_mem (p : Params) (st : State p.n)
@@ -84,7 +90,8 @@ theorem fgsa_domain_witness_of_mem (p : Params) (st : State p.n)
     (KitFG.mem_filteredFromView (heightView p) (controls p st) Vw B).mp hB
   exact ⟨B, hv, he, hf, hz, hw⟩
 
-/-- Blueprint 03:371–373; 21 H.6:942–958 (design 798–814); spec 1290–1297.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:371–373; 21 H.6:942–958 (design 798–814); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; view-form full-domain SR adapter. -/
 theorem fgsa_walkRun_full_domain_view (p : Params) (st : State p.n)
     (h : CStoreInv p st) (D : FGBlock (Fin p.n)) (C : Block)
@@ -97,7 +104,8 @@ theorem fgsa_walkRun_full_domain_view (p : Params) (st : State p.n)
     (by simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
         using hlo) hC hDC
 
-/-- Blueprint 03:350–354, 364–366; 21 H.6:942–953 (design 798–809); spec 1290–1297.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:350–354, 364–366; 21 H.6:942–953 (design 798–809); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; view-form path-domain SR adapter. -/
 theorem fgsa_walkRun_path_domain_view (p : Params) (st : State p.n)
     (h : CStoreInv p st) (s : Slot) (D : FGBlock (Fin p.n)) (C P : Block)
@@ -113,10 +121,11 @@ theorem fgsa_walkRun_path_domain_view (p : Params) (st : State p.n)
     (by simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
         using hlo) hP hs hDC hCP
 
-/-- Blueprint 03:356–360, 373; 21 H.5:891–902 (design 747–758); spec 1350–1360.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:356–360, 373; 21 H.5:891–902 (design 747–758); spec 1350–1360.
 Class (iii). DC: INTENTIONAL; view-form majority-only SR adapter. -/
 theorem fgsa_walkRun_eligible_iff_view (p : Params) (st : State p.n)
-    (raw sup : List (GridCO.Wire p.n)) (D : FGBlock (Fin p.n)) (C : Block)
+    (raw sup : List (GridCO.Wire p.n .root)) (D : FGBlock (Fin p.n)) (C : Block)
     (hlo : (controls p st).lo ≤ (heightView p D).h)
     (hparent : Block.Preceq (eraseFG D) C.parent) (hs : C.slot ≠ st.slot p) :
     eligible p st raw sup C = true ↔
@@ -125,12 +134,13 @@ theorem fgsa_walkRun_eligible_iff_view (p : Params) (st : State p.n)
     (by simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
         using hlo) hparent hs
 
-/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
 (design 747–758,798–814,2847–2867); spec 1350–1360.
 Class (iii). DC: INTENTIONAL; all three eligibility arms in view form. -/
 theorem fgsa_eligible_eq_of_retainedBand_score
     (p : Params) (src dst : State p.n)
-    (raw sup raw' sup' : List (GridCO.Wire p.n)) (C : Block)
+    (raw sup raw' sup' : List (GridCO.Wire p.n .root)) (C : Block)
     (hband : retainedBand p src C ↔ retainedBand p dst C)
     (hcount : GridCO.voterCount raw = GridCO.voterCount raw')
     (hscore : GridCO.goldfishScore src.base.blocks raw sup C =
@@ -143,7 +153,8 @@ theorem fgsa_eligible_eq_of_retainedBand_score
   dsimp only [retainedBand] at hb
   simp only [hb, hcount, hscore, hslot]
 
-/-- Blueprint 21 H.6:927–939, H.17:2986–3006 (design 783–795,2847–2867); spec 616–633, 1290–1297.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:927–939, H.17:2986–3006 (design 783–795,2847–2867); spec 616–633, 1290–1297.
 Class (iii). DC: INTENTIONAL; D3-1 derives the source admission floor from FJ. -/
 private theorem reflect_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
     FGBlock.Preceq st.fg.F (controls p st).Z := by
@@ -152,14 +163,16 @@ private theorem reflect_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
   · exact h.fg.FJ
   · exact KitFG.preceq_refl _
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
 (design 747–758,798–814,2847–2867); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; lift the immutable erased ancestry. -/
 private theorem reflect_lift {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.5:891–902, H.6:942–958 (design 747–758,798–814); spec 1290–1297.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.5:891–902, H.6:942–958 (design 747–758,798–814); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; parent ancestry for a retained FG-SA candidate. -/
 private theorem reflect_parent {C X : Block} (hp : C.parent? = some X) :
     Block.Preceq X C := by
@@ -172,7 +185,8 @@ private theorem reflect_parent {C X : Block} (hp : C.parent? = some X) :
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
 (design 747–758,798–814,2847–2867); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; the actual clock preserves stored receipt stamps. -/
 private theorem reflect_clock_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -193,7 +207,8 @@ private theorem reflect_clock_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     contradiction
   | some row => rfl
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
 spec 1290–1297, 1330–1360. Class (iii). DC: INTENTIONAL; inclusive S4.
 The witness itself reaches the source. Closure then gives the candidate,
 including candidates below lo. Neither source F/Z bound is a premise. -/
@@ -249,7 +264,8 @@ private theorem reflect_witness_on_run
     decide_eq_true ⟨B, (KitFG.mem_filteredFromView (heightView p) (controls p src)
       src.fg.TF B).mpr ⟨hBsrc, hFB, hZB, W, hWsrc, hBW, hlo⟩, rfl⟩⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
 spec 1290–1297, 1330–1360. Class (iii). DC: INTENTIONAL; S4 at X ≤ A.
 The old-slot guard includes X = A and excludes the current proposal.
 The stronger witness relay needs no strict-parent split. -/
@@ -262,13 +278,13 @@ theorem fgsa_walkRun_reflected_old_child
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (_hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
     (_hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (_hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (_hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (Kc X C : Block)
     (hcut : Block.Preceq (z p (clock p (rho.stateBefore E ip x).st
       (SA.proposalTime p.toParams (s + 1)))) Kc)
-    (hKX : Block.Preceq Kc X) (_hXA : Block.Preceq X b.parent)
+    (hKX : Block.Preceq Kc X) (_hXA : Block.Preceq X N.erase.parent)
     (hp : C.parent? = some X) (_hold : C.slot < s + 1)
     (hm : C ∈ T p (clock p (rho.stateBefore E ih y).st
       (SA.voteTime p.toParams (s + 1))) (s + 1))
@@ -280,10 +296,11 @@ theorem fgsa_walkRun_reflected_old_child
   reflect_witness_on_run (hroots := hroots)
     E rho hE hN hDelta s hSync hx hy hip Kc X C hcut hKX hp hm hw
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
 spec 1290–1297, 1330–1360. Class (iii). DC: INTENTIONAL; supplies exactly
 W.reflects and E.old_reflects. Strict-parent rivals are old by the landed
-raw reflection and proposal-slot bound. G25 then compares each common
+N.raw reflection and proposal-slot bound. G25 then compares each common
 candidate, and the band adapter transports all eligibility arms. -/
 theorem fgsa_retained_old_child_reflects_on_run
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -297,20 +314,20 @@ theorem fgsa_retained_old_child_reflects_on_run
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
     (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
-    (hadm : b ∈ (rho.stateBefore E ih y).st.base.blocks)
+    (hadm : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks)
     (D : FGBlock (Fin p.n)) (Kc : Block)
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D b Kc)
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D N.erase Kc)
     (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
-    SuffixReflects Kc b.parent (S p src) (T p dst (s + 1))
+    SuffixReflects Kc N.erase.parent (S p src) (T p dst (s + 1))
       (es p src (s + 1)) (et p dst (s + 1)) ∧
-    (∀ C ∈ T p dst (s + 1), C.parent? = some b.parent → C.slot < s + 1 →
+    (∀ C ∈ T p dst (s + 1), C.parent? = some N.erase.parent → C.slot < s + 1 →
       et p dst (s + 1) C = true → C ∈ S p src ∧ es p src (s + 1) C = true) := by
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
@@ -319,19 +336,19 @@ theorem fgsa_retained_old_child_reflects_on_run
   have hK : ScoreRunGeometry src dst Kc :=
     ⟨block_preceq_trans (eraseFG_preceq (reflect_F_Z p src hs)) h.source_cut,
       block_preceq_trans (F_preceq_liveRoot p dst ht) h.target_cut⟩
-  have hA : ScoreRunGeometry src dst b.parent :=
+  have hA : ScoreRunGeometry src dst N.erase.parent :=
     ⟨block_preceq_trans hK.source_floor h.cut_parent,
       block_preceq_trans hK.target_floor h.cut_parent⟩
   have scores := fgsa_score_eq_on_candidates_on_run (hroots := hroots) E rho hE hN hDelta (s + 1)
-    hScoreSync hx hy hip hih hseat b raw sup rows hem hadm
+    hScoreSync hx hy hip hih hseat N hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1)) hA
     (fun C hm => fgsa_score_geometry_of_domains p src dst src.fg.TF
       (voterBlocks p dst (s + 1)) C hm.1 hm.2)
-  have reflect (X C : Block) (hKX : Block.Preceq Kc X) (hXA : Block.Preceq X b.parent)
+  have reflect (X C : Block) (hKX : Block.Preceq Kc X) (hXA : Block.Preceq X N.erase.parent)
       (hm : C ∈ T p dst (s + 1)) (hp : C.parent? = some X) (hold : C.slot < s + 1)
       (he : et p dst (s + 1) C = true) : C ∈ S p src ∧ es p src (s + 1) C = true := by
     have hc := fgsa_walkRun_reflected_old_child (hroots := hroots) E rho hE hN hDelta s hWalkSync
-      hx hy hip hih hseat b raw sup rows hem Kc X C h.source_cut hKX hXA hp hold hm
+      hx hy hip hih hseat N hem Kc X C h.source_cut hKX hXA hp hold hm
       (h.reflected_witness X C hKX hXA hm hp hold he)
     refine ⟨hc, ?_⟩
     have hel := fgsa_eligible_eq_of_retainedBand_score p src dst
@@ -348,12 +365,12 @@ theorem fgsa_retained_old_child_reflects_on_run
     rw [← KitFG.storeFrame_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hmOld
     have hc := fgsa_walkRun_reflected_block (hroots := hroots)
       E rho hE hN hDelta s hWalkSync hx hy hip
-      hseat b raw sup rows hem Kc X C hK hKX hXA hp hmOld
+      hseat N hem Kc X C hK hKX hXA hp hmOld
     have hold := (fgsa_stored_block_slots E rho hE.toScheduleWellFormed hip
       (Nat.succ_pos s)).2.1 C hc
     exact reflect X C hKX (Bool.and_eq_true_iff.mp hXA).2 hm hp hold he
   · intro C hm hp hold he
-    exact reflect b.parent C h.cut_parent (block_preceq_refl _) hm hp hold he
+    exact reflect N.erase.parent C h.cut_parent (block_preceq_refl _) hm hp hold he
 
 end AvailableChain.FGSA.Run
 end

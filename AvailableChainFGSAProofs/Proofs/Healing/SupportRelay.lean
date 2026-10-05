@@ -9,11 +9,11 @@ helpers restate the private Shared/Relay.lean helpers that this lane may not edi
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-open Gen.AC
+open Gen.AC.Root
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-private theorem support_vote_shape {n : Nat} (o : GridCO.Wire n) (s : Slot) (k : Fin n)
+private theorem support_vote_shape {n : Nat} (o : GridCO.Wire n .root) (s : Slot) (k : Fin n)
     (hl : GridCO.headLabel? o = some s) (hk : GridCO.headSeat? o = some k) :
     ∃ B, o = ⟨.seat s k, .head B⟩ := by
   obtain ⟨auth, payload⟩ := o
@@ -47,7 +47,7 @@ private theorem support_votes_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     exact List.Subset.trans h (process_votes_subset nd.st (toWire p o))
 
 private theorem support_read_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (i : Nat) (x : V) (readTime : Time) (o : GridCO.Wire p.n)
+    (i : Nat) (x : V) (readTime : Time) (o : GridCO.Wire p.n .root)
     (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes) :
     GridCO.stampVote (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
       readTime)) o =
@@ -68,12 +68,13 @@ private theorem support_read_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     contradiction
   | some row => rfl
 
-/-- Blueprint 21:673–699 (H.1, reverse relay); plan H-SUPPORT §4 step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:673–699 (H.1, reverse relay); plan H-SUPPORT §4 step 4.
 DC: SAME a stored label-s vote at the source gate input is in its late pool. -/
 theorem healing_support_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
-    (o : GridCO.Wire p.n) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
+    (o : GridCO.Wire p.n .root) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
     (hl : GridCO.headLabel? o = some s) :
     o ∈ GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s))) s := by
@@ -119,7 +120,8 @@ private theorem support_read_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
       (fgsa_gate_slot (c := c) _ s)
   exact hs.trans_eq he
 
-/-- Blueprint 21:673–699 (H.1 reverse relay), 689–692 (release); plan H-SUPPORT
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:673–699 (H.1 reverse relay), 689–692 (release); plan H-SUPPORT
 §4 steps 4–5 (G5 input). DC: Handlers/GoldfishVotePool.lean:755,791.
 INTENTIONAL: every label-s vote stored at the receiver before its q_s tick, not only
 its frozen arm, reaches the source late pool, as itself or as cap-two evidence. -/
@@ -131,7 +133,8 @@ theorem healing_support_vote_backward (E : Generic.Env V) (rho : V2.D.Run V (fgs
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
-    (o : GridCO.Wire p.n) (ho : o ∈ GridCO.votesAt (V2.D.Run.stateBefore E rho iy y).st.base s)
+    (o : GridCO.Wire p.n .root) (ho : o ∈ GridCO.votesAt (V2.D.Run.stateBefore E rho iy
+        y).st.base s)
     (seat : Fin p.n) (hk : GridCO.headSeat? o = some seat) :
     let late := GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s
@@ -217,7 +220,8 @@ private theorem support_read_block_stamp (E : Generic.Env V) (rho : V2.D.Run V (
       rw [hs]
       exact hc.trans_lt ht
 
-/-- Blueprint 21:673–689 (H.1 forward relay), 748–783 (H.3 frozen path); plan
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:673–689 (H.1 forward relay), 748–783 (H.3 frozen path); plan
 H-SUPPORT §4 steps 3–4. DC: GSTZeroPreparedWalk.lean:546.
 INTENTIONAL: a block held before the freeze z_s keeps its whole ancestor path and its
 original strict stamps at the receiver's post-clock q_s read. -/
@@ -276,25 +280,21 @@ theorem healing_support_prefreeze_path (E : Generic.Env V) (rho : V2.D.Run V (fg
       contradiction
     | some row => simpa only [hfind, Option.map_some, Option.getD_some] using hAstamp
 
-private theorem support_decode {o : Obj p} {b : Block}
-    (h : blockOf? p o = some b) :
-    ∃ u raw sup rows, o = ofWire p ⟨.proposer u, .proposal b raw sup rows⟩ := by
-  have hd : ∃ u raw sup rows, (toWire p o).decode = some (.block u b raw sup rows) := by
-    change (match (toWire p o).decode with
-      | some (.block _ b _ _ _) => some b | _ => none) = _ at h
-    cases hd : (toWire p o).decode with
-    | none => rw [hd] at h; contradiction
-    | some m =>
-      cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
-      subst b
-      exact ⟨_, _, _, _, rfl⟩
-  obtain ⟨u, raw, sup, rows, hd⟩ := hd
-  refine ⟨u, raw, sup, rows, ?_⟩
-  apply toWire_injective
-  rw [toWire_ofWire]
-  exact decode_eq_block.mp hd
+private theorem support_decode {o : Obj p} {b : Block} (h : blockOf? p o = some b) :
+    ∃ u N, o = ofWire p ⟨.proposer u, .proposal N⟩ ∧ N.erase = b := by
+  unfold blockOf? at h
+  cases hd : (toWire p o).decode with
+  | none => simp only [hd, reduceCtorEq] at h
+  | some m =>
+    cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
+    rename_i u N
+    refine ⟨u, N, ?_, h⟩
+    apply toWire_injective (p := p)
+    rw [toWire_ofWire]
+    exact decode_eq_block.mp hd
 
-/-- ROOT-DIGEST W2b. Blueprint 21:673–689 (H.1, IF.5 relay of each supporter head); plan H-SUPPORT
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:673–689 (H.1, IF.5 relay of each supporter head); plan H-SUPPORT
 §4
 step 4 and gap G4. DC: Schedule/AdoptionTransport.lean:346.
 INTENTIONAL: per-vote relay, also for faulty seats, not TDel. A block resolved before
@@ -350,7 +350,7 @@ theorem healing_support_target_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     positivity
   obtain ⟨j, _, t, o, ho, ha, ht⟩ :=
     fgsa_block_accepted_before E rho hsch ix x K _ hg hpub hz hK hstamp
-  obtain ⟨u, raw, sup, rows, rfl⟩ := support_decode ho
+  obtain ⟨u, N, rfl, heN⟩ := support_decode ho
   obtain ⟨dl, cut, hD, hmono, hlt, hb, _, hcut, _⟩ := hSync
   have hdz : dl t < D := by
     have hb := hb t
@@ -376,11 +376,11 @@ theorem healing_support_target_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     rw [Gen.V2.Duty.MonoAlong_def] at h
     exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho hidx y
       (hN.restartFree y _ iy) (KitFG.preceq_refl _)
-  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u K
-    raw sup rows t y
+  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u N t y
     hD (Or.inr ⟨x, hx, j, ha⟩) hy hdcut (hlt t)
-    (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
-  refine ⟨Y, hYK, ?_⟩
+    (by simpa only [heN] using
+      Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
+  refine ⟨Y, hYK.trans heN, ?_⟩
   have hYD : Y ∈ (V2.D.Run.stateBeforeTime E rho D y).st.fg.TF := by
     have hc := (fgsa_store_cumulative p c E rho hN (support_idx_mono rho (le_of_lt hdz)) y).1
     change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl t)) y).st.fg.TF ⊆

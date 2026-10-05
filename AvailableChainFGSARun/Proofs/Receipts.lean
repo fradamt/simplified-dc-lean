@@ -18,7 +18,8 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- The clock of every run state is nonnegative, including after restore. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The clock of every run state is nonnegative, including after restore. -/
 theorem fgsa_clockOf_nonneg (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (k : Nat) (x : V) :
     0 ≤ (fgsaTimelyClock p c).clockOf (V2.D.Run.stateBefore E rho k x) := by
@@ -45,7 +46,8 @@ theorem fgsa_clockOf_nonneg (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     dsimp only [V2.D.World.init]
     simpa only [(fgsaClock p c).init] using (le_refl (0 : Time))
 
-/-- A processed object stays processed on each restart-free interval. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A processed object stays processed on each restart-free interval. -/
 theorem processed_stable (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (v : V) (o : Obj p) (i j : Nat)
     (hij : i ≤ j) (hrf : V2.D.restartFree rho v i j)
@@ -87,27 +89,33 @@ private theorem t78_row_process_origin (st : State p.n) (o : Obj p) (a : RowWire
           have ha := List.mem_singleton.mp hm
           apply toWire_injective
           rw [toWire_ofRow, ha, decode_eq_row.mp hd]
-    | block s b raw sup rows =>
+    | block s N =>
       dsimp only at hm
-      unfold admitBlock at hm
-      cases hp : parentFG st b with
-      | none => rw [hp] at hm; exact Or.inl hm
-      | some P =>
-        rw [hp] at hm
-        cases ha : blockAccepted p st s b raw sup P rows with
-        | false => simp only [ha, Bool.false_eq_true, ite_false] at hm; exact Or.inl hm
-        | true =>
-          simp only [ha, ite_true] at hm
-          rcases t78_row_fold_origin rows _ a hm with hm | hm
-          · left
-            split at hm
-            · exact hm
-            · rwa [(reconcile_frame _).2.2.1] at hm
-          · right; right
-            rw [hd]
-            exact ⟨⟨P, hp, ha⟩, Or.inr (List.mem_map.mpr ⟨a, hm, rfl⟩)⟩
-
-/-- Every pool row has an earlier handler call in the same local epoch. -/
+      cases hNamed : namedParentHeld st N with
+      | false =>
+        rw [admitBlock_refused p st s N (Or.inl hNamed)] at hm
+        exact Or.inl hm
+      | true =>
+        unfold admitBlock at hm
+        simp only [hNamed, Bool.not_true, Bool.false_eq_true, ite_false] at hm
+        cases hp : parentFG st N.erase with
+        | none => rw [hp] at hm; exact Or.inl hm
+        | some P =>
+          rw [hp] at hm
+          cases ha : blockAccepted p st s N P with
+          | false => simp only [ha, Bool.false_eq_true, ite_false] at hm; exact Or.inl hm
+          | true =>
+            simp only [ha, ite_true] at hm
+            rcases t78_row_fold_origin N.rows _ a hm with hm | hm
+            · left
+              split at hm
+              · exact hm
+              · rwa [(reconcile_frame _).2.2.1] at hm
+            · right; right
+              rw [hd]
+              exact ⟨⟨hNamed, P, hp, ha⟩, Or.inr (List.mem_map.mpr ⟨a, hm, rfl⟩)⟩
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every pool row has an earlier handler call in the same local epoch. -/
 theorem rowPool_provenance (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (k : Nat) (x : V) (a : RowWire p.n)
     (hm : a ∈ (V2.D.Run.stateBefore E rho k x).st.rowPool) :
@@ -154,8 +162,8 @@ theorem rowPool_provenance (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       · apply carry (by intro t ht; rw [he] at ht; cases ht; exact hx rfl)
         rwa [V2.D.World.step_apply_of_node_ne E rho _ hx] at hm
 
-private theorem t78_grid_stamp_origin (st : GridCO.State p.n)
-    (parent v : GridCO.Wire p.n) (stamp : Time)
+private theorem t78_grid_stamp_origin (st : GridCO.State p.n .root)
+    (parent v : GridCO.Wire p.n .root) (stamp : Time)
     (hm : (v, stamp) ∈ (GridCO.admitVote p.toParams.engine st parent).voteStamp) :
     (v, stamp) ∈ st.voteStamp ∨ stamp = st.now ∧ v ∉ st.votes ∧ v = parent := by
   obtain ⟨auth, payload⟩ := parent
@@ -167,13 +175,13 @@ private theorem t78_grid_stamp_origin (st : GridCO.State p.n)
   · rename_i hg
     rcases List.mem_append.mp hm with hm | hm
     · exact Or.inl hm
-    · have he : v = (⟨.seat r i, .head B⟩ : GridCO.Wire p.n) ∧ stamp = st.now := by
+    · have he : v = (⟨.seat r i, .head B⟩ : GridCO.Wire p.n .root) ∧ stamp = st.now := by
         simpa using hm
       obtain ⟨rfl, rfl⟩ := he
       exact Or.inr ⟨rfl, by intro h; simp [h] at hg, rfl⟩
 
 private theorem t78_fold_stamp_origin (raw : List (HeadWire p.n))
-    (st : GridCO.State p.n) (v : GridCO.Wire p.n) (stamp : Time)
+    (st : GridCO.State p.n .root) (v : GridCO.Wire p.n .root) (stamp : Time)
     (hm : (v, stamp) ∈ ((raw.map baseHead).foldl
       (fun st h => GridCO.admitVote p.toParams.engine st (GridCO.fromHead h)) st).voteStamp) :
     (v, stamp) ∈ st.voteStamp ∨
@@ -189,7 +197,7 @@ private theorem t78_fold_stamp_origin (raw : List (HeadWire p.n))
         fun h => hn (Internal.grid_admitVote_votes_subset st _ h),
         List.mem_cons_of_mem _ hh⟩
 
-private theorem t78_baseVote_eq (a : HeadWire p.n) (s : Slot) (i : Fin p.n) (b : Block)
+private theorem t78_baseVote_eq (a : HeadWire p.n) (s : Slot) (i : Fin p.n) (b : BlockId)
     (h : baseVote a = ⟨.seat s i, .head b⟩) : a = ⟨.seat (.head s) i, b⟩ := by
   obtain ⟨auth, payload⟩ := a
   rcases auth with ⟨(_ | _), _⟩ | _ | _ <;>
@@ -197,11 +205,11 @@ private theorem t78_baseVote_eq (a : HeadWire p.n) (s : Slot) (i : Fin p.n) (b :
   all_goals (cases h <;> rfl)
 
 private theorem t78_vote_process_origin (st : State p.n) (parent : Obj p)
-    (s : Slot) (i : Fin p.n) (b : Block) (stamp : Time)
-    (hm : ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n), stamp) ∈
+    (s : Slot) (i : Fin p.n) (b : BlockId) (stamp : Time)
+    (hm : ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root), stamp) ∈
       (FGSA.process p st (toWire p parent)).base.voteStamp) :
-    ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n), stamp) ∈ st.base.voteStamp ∨
-      stamp = st.base.now ∧ (⟨.seat s i, .head b⟩ : GridCO.Wire p.n) ∉ st.base.votes ∧
+    ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root), stamp) ∈ st.base.voteStamp ∨
+      stamp = st.base.now ∧ (⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∉ st.base.votes ∧
         handlesS p st parent (ofHead p ⟨.seat (.head s) i, b⟩) := by
   dsimp only [FGSA.process] at hm
   cases hd : (toWire p parent).decode with
@@ -225,52 +233,58 @@ private theorem t78_vote_process_origin (st : State p.n) (parent : Obj p)
       dsimp only at hm
       rw [Internal.admitRow_base] at hm
       exact Or.inl hm
-    | block r B raw sup rows =>
+    | block r N =>
       dsimp only at hm
-      cases hp : parentFG st B with
-      | none =>
-        rw [admitBlock_refused p st r B raw sup rows (Or.inl hp)] at hm
+      cases hNamed : namedParentHeld st N with
+      | false =>
+        rw [admitBlock_refused p st r N (Or.inl hNamed)] at hm
         exact Or.inl hm
-      | some P =>
-        cases ha : blockAccepted p st r B raw sup P rows with
-        | false =>
-          rw [admitBlock_refused p st r B raw sup rows (Or.inr ⟨P, hp, ha⟩)] at hm
+      | true =>
+        cases hp : parentFG st N.erase with
+        | none =>
+          rw [admitBlock_refused p st r N (Or.inr (Or.inl hp))] at hm
           exact Or.inl hm
-        | true =>
-          obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st r B raw sup P rows hp ha
-          rw [he] at hm
-          dsimp only at hm
-          have hbase : ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n), stamp) ∈
-              (GridCO.admitProposal p.toParams.engine st.base (baseProposal r B raw sup)
-                B (raw.map baseHead)).voteStamp := by
-            split at hm
-            · exact hm
-            · rwa [(reconcile_frame _).2.2.2.2.2.2.1] at hm
-          unfold GridCO.admitProposal at hbase
-          dsimp only [baseProposal] at hbase
-          split at hbase
-          · exact Or.inl hbase
-          · rcases t78_fold_stamp_origin raw _ _ stamp hbase with hm | ⟨ht, hn, hv⟩
-            · exact Or.inl hm
-            · refine Or.inr ⟨ht, hn, Or.inr ?_⟩
-              rw [hd]
-              obtain ⟨a, ham, hae⟩ := List.mem_map.mp hv
-              have hae' := t78_baseVote_eq a s i b hae
-              subst a
-              exact ⟨⟨P, hp, ha⟩, Or.inl (List.mem_map.mpr ⟨_, ham, rfl⟩)⟩
-
-/-- A HEAD stamp comes from an earlier acceptance at that store clock.
+        | some P =>
+          cases ha : blockAccepted p st r N P with
+          | false =>
+            rw [admitBlock_refused p st r N (Or.inr (Or.inr ⟨P, hp, ha⟩))] at hm
+            exact Or.inl hm
+          | true =>
+            obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st r N P hNamed hp ha
+            rw [he] at hm
+            dsimp only at hm
+            have hbase : ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root), stamp) ∈
+                (GridCO.admitProposal p.toParams.engine st.base (baseProposal r N.erase N.raw
+                    N.support)
+                  N.erase (N.raw.map baseHead)).voteStamp := by
+              split at hm
+              · exact hm
+              · rwa [(reconcile_frame _).2.2.2.2.2.2.1] at hm
+            unfold GridCO.admitProposal at hbase
+            dsimp only [baseProposal] at hbase
+            split at hbase
+            · exact Or.inl hbase
+            · rcases t78_fold_stamp_origin N.raw _ _ stamp hbase with hm | ⟨ht, hn, hv⟩
+              · exact Or.inl hm
+              · refine Or.inr ⟨ht, hn, Or.inr ?_⟩
+                rw [hd]
+                obtain ⟨a, ham, hae⟩ := List.mem_map.mp hv
+                have hae' := t78_baseVote_eq a s i b hae
+                subst a
+                exact ⟨⟨hNamed, P, hp, ha⟩, Or.inl (List.mem_map.mpr ⟨_, ham, rfl⟩)⟩
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A HEAD stamp comes from an earlier acceptance at that store clock.
 This includes HEADs carried by an accepted proposal and permits restarts. -/
 theorem fgsa_vote_stamp_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (k : Nat) (x : V) (s : Slot) (i : Fin p.n) (b : Block) (stamp : Time)
-    (hm : ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n), stamp) ∈
+    (k : Nat) (x : V) (s : Slot) (i : Fin p.n) (b : BlockId) (stamp : Time)
+    (hm : ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root), stamp) ∈
       (V2.D.Run.stateBefore E rho k x).st.base.voteStamp) :
     ∃ j < k, ∃ t, V2.D.Run.acceptsAt E rho j x (ofHead p ⟨.seat (.head s) i, b⟩) t ∧
       stamp = (V2.D.Run.stateBefore E rho j x).st.base.now := by
   induction k with
   | zero => exact (List.not_mem_nil hm).elim
   | succ k ih =>
-    have carry (hm : ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n), stamp) ∈
+    have carry (hm : ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root), stamp) ∈
         (V2.D.Run.stateBefore E rho k x).st.base.voteStamp) :
         ∃ j < k + 1, ∃ t, V2.D.Run.acceptsAt E rho j x (ofHead p ⟨.seat (.head s) i, b⟩) t ∧
           stamp = (V2.D.Run.stateBefore E rho j x).st.base.now := by
@@ -299,22 +313,22 @@ theorem fgsa_vote_stamp_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
           rcases t78_vote_process_origin _ parent s i b stamp hm with hm | ⟨ht, hn, hh⟩
           · exact carry hm
           · refine ⟨k, Nat.lt_succ_self k, t, ⟨⟨parent, he, hh⟩, ?_, ?_⟩, ht⟩
-            · change decide ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n) ∈
+            · change decide ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∈
                 (V2.D.Run.stateBefore E rho k x).st.base.votes) = false
               exact decide_eq_false_iff_not.mpr hn
-            · have hstored : (⟨.seat s i, .head b⟩ : GridCO.Wire p.n) ∈
+            · have hstored : (⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∈
                   (V2.D.Run.stateBefore E rho (k + 1) x).st.base.votes := by
                 rw [← fgsa_vote_stamp_keys E rho (k + 1) x]
                 exact List.mem_map.mpr ⟨(_, stamp),
                   by simpa only [hpost, V2.D.World.step, Function.update_self] using hm, rfl⟩
-              change decide ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n) ∈
+              change decide ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∈
                 (V2.D.Run.stateBefore E rho (k + 1) x).st.base.votes) = true
               exact decide_eq_true hstored
       · apply carry
         rwa [V2.D.World.step_apply_of_node_ne E rho _ hx] at hm
 
 private theorem t78_vote_stamp_mem (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (k : Nat) (x : V) (v : GridCO.Wire p.n)
+    (k : Nat) (x : V) (v : GridCO.Wire p.n .root)
     (hm : v ∈ (V2.D.Run.stateBefore E rho k x).st.base.votes) :
     (v, GridCO.stampVote (V2.D.Run.stateBefore E rho k x).st.base v) ∈
       (V2.D.Run.stateBefore E rho k x).st.base.voteStamp := by
@@ -331,12 +345,13 @@ private theorem t78_vote_stamp_mem (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     have hh := List.mem_of_find?_eq_some hf
     simpa only [Option.map_some, Option.getD_some, ← he] using hh
 
-/-- A HEAD stamp below a public cutoff gives acceptance strictly before it. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A HEAD stamp below a public cutoff gives acceptance strictly before it. -/
 theorem fgsa_vote_accepted_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (hNoRestart : V2.D.NoRestart rho)
-    (k : Nat) (x : V) (s : Slot) (i : Fin p.n) (b : Block) (X : Time)
+    (k : Nat) (x : V) (s : Slot) (i : Fin p.n) (b : BlockId) (X : Time)
     (hpub : V2.PublicTime E X) (hzero : 0 ≤ X)
-    (hm : (⟨.seat s i, .head b⟩ : GridCO.Wire p.n) ∈
+    (hm : (⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∈
       (V2.D.Run.stateBefore E rho k x).st.base.votes)
     (ht : GridCO.stampVote (V2.D.Run.stateBefore E rho k x).st.base
       ⟨.seat s i, .head b⟩ < X) :
@@ -356,8 +371,8 @@ private theorem t78_block_process_origin (st : State p.n) (hInv : CStoreInv p st
     (o : Obj p) (b : Block) (stamp : Time)
     (hm : (b, stamp) ∈ (FGSA.process p st (toWire p o)).base.blockStamp) :
     (b, stamp) ∈ st.base.blockStamp ∨ stamp = st.base.now ∧
-      ∃ s raw sup rows P, (toWire p o).decode = some (.block s b raw sup rows) ∧
-        blockAccepted p st s b raw sup P rows = true := by
+      ∃ s N P, N.erase = b ∧ (toWire p o).decode = some (.block s N) ∧
+        blockAccepted p st s N P = true := by
   dsimp only [FGSA.process] at hm
   cases hd : (toWire p o).decode with
   | none => rw [hd] at hm; exact Or.inl hm
@@ -373,41 +388,46 @@ private theorem t78_block_process_origin (st : State p.n) (hInv : CStoreInv p st
       dsimp only at hm
       rw [Internal.admitRow_base] at hm
       exact Or.inl hm
-    | block s B raw sup rows =>
+    | block s N =>
       dsimp only at hm
-      cases hp : parentFG st B with
-      | none =>
-        rw [admitBlock_refused p st s B raw sup rows (Or.inl hp)] at hm
+      cases hNamed : namedParentHeld st N with
+      | false =>
+        rw [admitBlock_refused p st s N (Or.inl hNamed)] at hm
         exact Or.inl hm
-      | some P =>
-        cases ha : blockAccepted p st s B raw sup P rows with
-        | false =>
-          rw [admitBlock_refused p st s B raw sup rows (Or.inr ⟨P, hp, ha⟩)] at hm
+      | true =>
+        cases hp : parentFG st N.erase with
+        | none =>
+          rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))] at hm
           exact Or.inl hm
-        | true =>
-          obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s B raw sup P rows hp ha
-          rw [he] at hm
-          dsimp only at hm
-          rw [(accepted_st2 p st hInv s B raw sup P rows hp ha).2.2.2.1] at hm
-          rcases List.mem_append.mp hm with hm | hm
-          · exact Or.inl hm
-          · have he : b = B ∧ stamp = st.base.now := by simpa using hm
-            obtain ⟨rfl, rfl⟩ := he
-            exact Or.inr ⟨rfl, s, raw, sup, rows, P, rfl, ha⟩
-
-/-- ROOT-DIGEST W2. Body membership gives processed-by-root without injectivity. -/
+        | some P =>
+          cases ha : blockAccepted p st s N P with
+          | false =>
+            rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))] at hm
+            exact Or.inl hm
+          | true =>
+            obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s N P hNamed hp ha
+            rw [he] at hm
+            dsimp only at hm
+            rw [(accepted_st2 p st hInv s N P hp ha).2.2.2.1] at hm
+            rcases List.mem_append.mp hm with hm | hm
+            · exact Or.inl hm
+            · have he : b = N.erase ∧ stamp = st.base.now := by simpa using hm
+              obtain ⟨rfl, rfl⟩ := he
+              exact Or.inr ⟨rfl, s, N, P, rfl, rfl, ha⟩
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2. Body membership gives processed-by-root without injectivity. -/
 private theorem t78_block_processed_of_mem (st : State p.n) (hInv : Inv0 p st)
-    (o : Obj p) (s : Slot) (b : Block) (raw sup : List (HeadWire p.n))
-    (rows : List (RowWire p.n))
-    (hd : (toWire p o).decode = some (.block s b raw sup rows))
-    (hb : b ∈ st.base.blocks) : processedS p st o = true := by
+    (o : Obj p) (s : Slot) (N : NamedProposal p.n)
+    (hd : (toWire p o).decode = some (.block s N))
+    (hb : N.erase ∈ st.base.blocks) : processedS p st o = true := by
   dsimp only [processedS]
   rw [hd]
   apply decide_eq_true
-  obtain ⟨Y, hY, he⟩ := (hInv.2.2 b).mp hb
-  exact ⟨Y, hY, (eraseFG_root Y).symm.trans (congrArg Block.root he)⟩
+  obtain ⟨Y, hY, he⟩ := (hInv.2.2 N.erase).mp hb
+  exact ⟨Y, hY, by simpa using (eraseFG_root Y).symm.trans (congrArg Block.root he)⟩
 
-/-- A block stamp is the initial genesis stamp or an earlier proposal acceptance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A block stamp is the initial genesis stamp or an earlier proposal acceptance.
 Restore has only the genesis stamp, so this statement permits restarts. -/
 theorem fgsa_block_stamp_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (k : Nat) (x : V) (b : Block) (stamp : Time)
@@ -451,22 +471,23 @@ theorem fgsa_block_stamp_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
           change v = x at hx; subst v
           simp only [V2.D.World.step, Function.update_self] at hm
           rcases t78_block_process_origin _ (cstoreInv_stateBefore E rho k x) o b stamp hm with
-            hm | ⟨ht, s, raw, sup, rows, P, hd, ha⟩
+            hm | ⟨ht, s, N, P, heN, hd, ha⟩
           · exact carry hm
           · refine Or.inr ⟨k, Nat.lt_succ_self k, t, o, ?_, ⟨⟨o, he, Or.inl rfl⟩, ?_, ?_⟩, ht⟩
             · dsimp only [blockOf?]
               rw [hd]
+              exact congrArg some heN
             · change processedS p (V2.D.Run.stateBefore E rho k x).st o = false
               dsimp only [processedS]
               rw [hd]
               simp only [decide_eq_false_iff_not]
-              exact (blockAccepted_facts ha).2.2.1
+              simpa only [named_erase_root] using (blockAccepted_facts ha).2.2.1
             · have hb : b ∈ (V2.D.Run.stateBefore E rho (k + 1) x).st.base.blocks := by
                 rw [← (metaInv_stateBefore E rho (k + 1) x).stampKeys]
                 exact List.mem_map.mpr ⟨(b, stamp),
                   by simpa only [hpost, V2.D.World.step, Function.update_self] using hm, rfl⟩
               exact (t78_block_processed_of_mem _ (inv0_stateBefore E rho (k + 1) x)
-                o s b raw sup rows hd) hb
+                o s N hd) (heN ▸ hb)
       · apply carry
         rwa [V2.D.World.step_apply_of_node_ne E rho _ hx] at hm
 
@@ -488,18 +509,18 @@ private theorem t78_block_stamp_mem (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     simpa only [Option.map_some, Option.getD_some, ← he] using hh
 
 private theorem t78_block_decode {o : Obj p} {b : Block} (h : blockOf? p o = some b) :
-    ∃ s raw sup rows, (toWire p o).decode = some (.block s b raw sup rows) := by
+    ∃ s N, (toWire p o).decode = some (.block s N) ∧ N.erase = b := by
   dsimp only [blockOf?] at h
   cases hd : (toWire p o).decode with
   | none => simp only [hd, reduceCtorEq] at h
   | some m =>
     cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
     subst b
-    exact ⟨_, _, _, _, rfl⟩
+    exact ⟨_, _, rfl, rfl⟩
 
 private theorem t78_proposal_direct (st : State p.n) (parent o : Obj p)
     (b : Block) (hb : blockOf? p o = some b) (hh : handlesS p st parent o) : parent = o := by
-  obtain ⟨s, raw, sup, rows, hd⟩ := t78_block_decode hb
+  obtain ⟨s, N, hd, heN⟩ := t78_block_decode hb
   rcases hh with h | h
   · exact h
   · -- A proposal is never a carried HEAD or row.
@@ -509,7 +530,7 @@ private theorem t78_proposal_direct (st : State p.n) (parent o : Obj p)
       cases m with
       | vote r i B => simp only [hp] at h
       | row i body => simp only [hp] at h
-      | block r B raw' sup' rows' =>
+      | block r N =>
         rw [hp] at h
         rcases h.2 with hm | hm
         · obtain ⟨a, _, rfl⟩ := List.mem_map.mp hm
@@ -519,16 +540,16 @@ private theorem t78_proposal_direct (st : State p.n) (parent o : Obj p)
           rw [toWire_ofRow] at hd
           rcases a with ⟨⟨(_ | _), _⟩ | _ | _, _⟩ <;> simp [Wire.decode] at hd
 
-/-- [R6] A newly accepted proposal passed the parent-state row check. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[R6] A newly accepted proposal passed the parent-state row check. -/
 theorem fgsa_accepted_rowsValid (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (j : Nat) (x : V) (o : Obj p) (t : Time) (s : Slot) (b : Block)
-    (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hd : (toWire p o).decode = some (.block s b raw sup rows))
+    (j : Nat) (x : V) (o : Obj p) (t : Time) (s : Slot) (N : NamedProposal p.n)
+    (hd : (toWire p o).decode = some (.block s N))
     (ha : V2.D.Run.acceptsAt E rho j x o t) :
-    ∃ P, parentFG (V2.D.Run.stateBefore E rho j x).st b = some P ∧
-      rowsValidForParent p P b.slot rows = true := by
+    ∃ P, parentFG (V2.D.Run.stateBefore E rho j x).st N.erase = some P ∧
+      rowsValidForParent p P N.erase.slot N.rows = true := by
   obtain ⟨parent, he, hh⟩ := ha.1
-  have hp := t78_proposal_direct _ parent o b (by dsimp only [blockOf?]; rw [hd]) hh
+  have hp := t78_proposal_direct _ parent o N.erase (by dsimp only [blockOf?]; rw [hd]) hh
   subst parent
   have hpost := ha.2.2
   rw [V2.D.Run.stateBefore_succ E rho he] at hpost
@@ -538,68 +559,76 @@ theorem fgsa_accepted_rowsValid (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
   dsimp only [FGSA.process] at hpost
   rw [hd] at hpost
   dsimp only at hpost
-  cases hP : parentFG (V2.D.Run.stateBefore E rho j x).st b with
-  | none =>
-      rw [admitBlock_refused p _ s b raw sup rows (Or.inl hP)] at hpost
-      cases ha.2.1.symm.trans hpost
-  | some P =>
-      cases hacc : blockAccepted p (V2.D.Run.stateBefore E rho j x).st s b raw sup P rows with
-      | false =>
-          rw [admitBlock_refused p _ s b raw sup rows (Or.inr ⟨P, hP, hacc⟩)] at hpost
-          cases ha.2.1.symm.trans hpost
-      | true => exact ⟨P, rfl, blockAccepted_rowsValid hacc⟩
+  cases hNamed : namedParentHeld (V2.D.Run.stateBefore E rho j x).st N with
+  | false =>
+    rw [admitBlock_refused p _ s N (Or.inl hNamed)] at hpost
+    cases ha.2.1.symm.trans hpost
+  | true =>
+    cases hP : parentFG (V2.D.Run.stateBefore E rho j x).st N.erase with
+    | none =>
+        rw [admitBlock_refused p _ s N (Or.inr (Or.inl hP))] at hpost
+        cases ha.2.1.symm.trans hpost
+    | some P =>
+        cases hacc : blockAccepted p (V2.D.Run.stateBefore E rho j x).st s N P with
+        | false =>
+            rw [admitBlock_refused p _ s N (Or.inr (Or.inr ⟨P, hP, hacc⟩))] at hpost
+            cases ha.2.1.symm.trans hpost
+        | true => exact ⟨P, rfl, blockAccepted_rowsValid hacc⟩
 
-/-- [R6] An emitted or accepted proposal has immutable parent validity.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[R6] An emitted or accepted proposal has immutable parent validity.
 Any store that holds its parent resolves the same exact parent content. -/
 theorem fgsa_trigger_rowsValid (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (o : Obj p) (t : Time) (s : Slot) (b : Block) (raw sup : List (HeadWire p.n))
-    (rows : List (RowWire p.n)) (hT : Gen.V2.Duty.Trigger E rho o t)
-    (hd : (toWire p o).decode = some (.block s b raw sup rows))
-    (st : State p.n) (P : FGBlock (Fin p.n)) (hP : parentFG st b = some P) :
-    rowsValidForParent p P b.slot rows = true := by
-  have hPe := ((parentFG_spec st b P).mp hP).2
+    (o : Obj p) (t : Time) (s : Slot) (N : NamedProposal p.n) (hT : Gen.V2.Duty.Trigger E rho o t)
+    (hd : (toWire p o).decode = some (.block s N))
+    (st : State p.n) (P : FGBlock (Fin p.n)) (hP : parentFG st N.erase = some P) :
+    rowsValidForParent p P N.erase.slot N.rows = true := by
+  have hPe := ((parentFG_spec st N.erase P).mp hP).2
   rcases hT with ⟨v, _, k, he, hem⟩ | ⟨v, _, k, ha⟩
-  · have ho : o = ofWire p ⟨.proposer s, .proposal b raw sup rows⟩ := by
+  · have ho : o = ofWire p ⟨.proposer s, .proposal N⟩ := by
       apply toWire_injective
       rw [toWire_ofWire]
       exact decode_eq_block.mp hd
     rw [ho, (V2.D.Run.step_tick_eq E rho he).2] at hem
-    have hemit := (fgsa_emits_proposal E rho _ v t s (.proposal b raw sup rows)).mp hem
+    have hemit := (fgsa_emits_proposal E rho _ v t s (.proposal N)).mp hem
     have hs : (FGSA.clock p (V2.D.Run.stateBefore E rho k v).st t).slot p = s := by
       rw [← hemit.2.1]
       exact fgsa_proposal_slot (c := c) _ s
     have hInv := (storeBundle_postClock E rho k v t).cstore
     obtain ⟨Q, hQ, hv⟩ := propose_rowsValid _ hInv s (c.app (rho.input v t)) hs
-      b raw sup rows hemit.2.2.2
-    have hQe := ((fgBlockOf_spec p _ hInv b.parent Q).mp hQ).2
+      N hemit.2.2.2
+    have hQe := ((fgBlockOf_spec p _ hInv N.erase.parent Q).mp hQ).2
     have hQP : Q = P := eraseFG_injective (hQe.trans hPe.symm)
     simpa only [hQP] using hv
-  · obtain ⟨Q, hQ, hv⟩ := fgsa_accepted_rowsValid E rho k v o t s b raw sup rows hd ha
-    have hQe := ((parentFG_spec _ b Q).mp hQ).2
+  · obtain ⟨Q, hQ, hv⟩ := fgsa_accepted_rowsValid E rho k v o t s N hd ha
+    have hQe := ((parentFG_spec _ N.erase Q).mp hQ).2
     have hQP : Q = P := eraseFG_injective (hQe.trans hPe.symm)
     simpa only [hQP] using hv
 
-/-- [R6] A triggered proposal cannot fail the permanent invalidity test. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[R6] A triggered proposal cannot fail the permanent invalidity test. -/
 theorem fgsa_trigger_invalid_false (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (o : Obj p) (t : Time) (s : Slot) (b : Block) (raw sup : List (HeadWire p.n))
-    (rows : List (RowWire p.n)) (hT : Gen.V2.Duty.Trigger E rho o t)
-    (hd : (toWire p o).decode = some (.block s b raw sup rows)) (st : State p.n) :
-    invalidForParent p st b rows = false := by
-  change (match parentFG st b with
-    | none => false | some P => !rowsValidForParent p P b.slot rows) = false
-  cases hP : parentFG st b with
-  | none => rfl
-  | some P =>
-      change (!rowsValidForParent p P b.slot rows) = false
-      rw [fgsa_trigger_rowsValid E rho o t s b raw sup rows hT hd st P hP, Bool.not_true]
+    (o : Obj p) (t : Time) (s : Slot) (N : NamedProposal p.n) (hT : Gen.V2.Duty.Trigger E rho o t)
+    (hd : (toWire p o).decode = some (.block s N)) (st : State p.n) :
+    invalidForParent p st N = false := by
+  unfold invalidForParent
+  split
+  · rfl
+  · rw [← named_erase_slot]
+    cases hP : parentFG st N.erase with
+    | none => rfl
+    | some P =>
+        change (!rowsValidForParent p P N.erase.slot N.rows) = false
+        rw [fgsa_trigger_rowsValid E rho o t s N hT hd st P hP, Bool.not_true]
 
 private theorem t78_block_accept_clock_pos (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (j : Nat) (x : V) (o : Obj p) (t : Time)
     (b : Block) (hb : blockOf? p o = some b) (ha : V2.D.Run.acceptsAt E rho j x o t) :
     0 < (V2.D.Run.stateBefore E rho j x).st.base.now := by
   obtain ⟨parent, he, hh⟩ := ha.1
-  obtain ⟨s, raw, sup, rows, hd⟩ := t78_block_decode hb
-  have hp := t78_proposal_direct _ parent o b hb hh
+  obtain ⟨s, N, hd, heN⟩ := t78_block_decode hb
+  subst b
+  have hp := t78_proposal_direct _ parent o N.erase hb hh
   subst parent
   have hpost := ha.2.2
   rw [V2.D.Run.stateBefore_succ E rho he] at hpost
@@ -609,26 +638,31 @@ private theorem t78_block_accept_clock_pos (E : Generic.Env V) (rho : V2.D.Run V
   dsimp only [FGSA.process] at hpost
   rw [hd] at hpost
   dsimp only at hpost
-  cases hP : parentFG (V2.D.Run.stateBefore E rho j x).st b with
-  | none =>
-    rw [admitBlock_refused p _ s b raw sup rows (Or.inl hP)] at hpost
+  cases hNamed : namedParentHeld (V2.D.Run.stateBefore E rho j x).st N with
+  | false =>
+    rw [admitBlock_refused p _ s N (Or.inl hNamed)] at hpost
     cases ha.2.1.symm.trans hpost
-  | some P =>
-    cases hacc : blockAccepted p (V2.D.Run.stateBefore E rho j x).st s b raw sup P rows with
-    | false =>
-      rw [admitBlock_refused p _ s b raw sup rows (Or.inr ⟨P, hP, hacc⟩)] at hpost
+  | true =>
+    cases hP : parentFG (V2.D.Run.stateBefore E rho j x).st N.erase with
+    | none =>
+      rw [admitBlock_refused p _ s N (Or.inr (Or.inl hP))] at hpost
       cases ha.2.1.symm.trans hpost
-    | true =>
-      have hf := blockAccepted_facts hacc
-      have hbs := hf.2.1
-      have hps := hf.2.2.2.2.1
-      have hslot : 1 ≤ (V2.D.Run.stateBefore E rho j x).st.slot p :=
-        (Nat.succ_le_of_lt (lt_of_le_of_lt (Nat.zero_le _) hps)).trans hbs
-      have hclock := (fgsa_slot_threshold_iff p _
-        (by rw [← fgsaTimelyClock_clockOf p c (V2.D.Run.stateBefore E rho j x)]
-            exact fgsa_clockOf_nonneg E rho hS j x) 1).1 hslot
-      simp only [Nat.cast_one, mul_one] at hclock
-      exact lt_of_lt_of_le (mul_pos (by decide) p.deltaPos) hclock
+    | some P =>
+      cases hacc : blockAccepted p (V2.D.Run.stateBefore E rho j x).st s N P with
+      | false =>
+        rw [admitBlock_refused p _ s N (Or.inr (Or.inr ⟨P, hP, hacc⟩))] at hpost
+        cases ha.2.1.symm.trans hpost
+      | true =>
+        have hf := blockAccepted_facts hacc
+        have hbs := hf.2.1
+        have hps := hf.2.2.2.2.1
+        have hslot : 1 ≤ (V2.D.Run.stateBefore E rho j x).st.slot p :=
+          (Nat.succ_le_of_lt (lt_of_le_of_lt (Nat.zero_le _) hps)).trans hbs
+        have hclock := (fgsa_slot_threshold_iff p _
+          (by rw [← fgsaTimelyClock_clockOf p c (V2.D.Run.stateBefore E rho j x)]
+              exact fgsa_clockOf_nonneg E rho hS j x) 1).1 hslot
+        simp only [Nat.cast_one, mul_one] at hclock
+        exact lt_of_lt_of_le (mul_pos (by decide) p.deltaPos) hclock
 
 private theorem t78_block_clock_cut (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) {j : Nat} {x : V} {o : Obj p} {t X : Time}
@@ -664,7 +698,8 @@ private theorem t78_block_clock_cut (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   · right
     rw [(V2.D.Run.step_tick_eq E rho hi).1, V2.D.Engine.ClockLaws.now_tick]
 
-/-- A non-genesis block stamp below a public cutoff gives an earlier acceptance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A non-genesis block stamp below a public cutoff gives an earlier acceptance.
 No restart premise is needed: block admission requires a positive store clock. -/
 theorem fgsa_block_accepted_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (k : Nat) (x : V) (b : Block) (X : Time)
@@ -688,8 +723,8 @@ theorem fgsa_block_accepted_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
 
 private theorem t78_vote_read_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (x : V) (D : Time)
-    (s : Slot) (i : Fin p.n) (b : Block)
-    (hm : (⟨.seat s i, .head b⟩ : GridCO.Wire p.n) ∈
+    (s : Slot) (i : Fin p.n) (b : BlockId)
+    (hm : (⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∈
       (V2.D.Run.stateBeforeTime E rho D x).st.base.votes) :
     GridCO.stampVote (V2.D.Run.stateBeforeTime E rho D x).st.base ⟨.seat s i, .head b⟩ < D := by
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho D hS] at hm ⊢
@@ -703,7 +738,7 @@ private theorem t78_vote_read_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   rw [hs]
   exact hc.trans_lt ht
 
-private theorem t78_head_keys (v : GridCO.Wire p.n) (s : Slot) (i : Fin p.n)
+private theorem t78_head_keys (v : GridCO.Wire p.n .root) (s : Slot) (i : Fin p.n)
     (hl : GridCO.headLabel? v = some s) (hi : GridCO.headSeat? v = some i) :
     ∃ b, v = ⟨.seat s i, .head b⟩ := by
   obtain ⟨auth, payload⟩ := v
@@ -719,7 +754,7 @@ private theorem t78_head_keys (v : GridCO.Wire p.n) (s : Slot) (i : Fin p.n)
   | proposer r => cases payload <;> cases hl
   | none => cases payload <;> cases hl
 
-private theorem t78_cap_pair (st : GridCO.State p.n) (s : Slot) (i : Fin p.n)
+private theorem t78_cap_pair (st : GridCO.State p.n .root) (s : Slot) (i : Fin p.n)
     (hx : GridCO.equivocates (GridCO.votesAt st s) i = true) :
     ∃ v₁ ∈ st.votes, ∃ v₂ ∈ st.votes, v₁ ≠ v₂ ∧
       GridCO.headLabel? v₁ = some s ∧ GridCO.headLabel? v₂ = some s ∧
@@ -746,10 +781,11 @@ private theorem t78_cap_pair (st : GridCO.State p.n) (s : Slot) (i : Fin p.n)
       exact fun he => (List.nodup_cons.mp hnodup).1
         (List.mem_cons.mpr (Or.inl he))
 
-/-- An in-window HEAD exclusion has two distinct witnesses with strict stamps. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An in-window HEAD exclusion has two distinct witnesses with strict stamps. -/
 theorem fgsa_head_excluded_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (x : V) (D : Time)
-    (s : Slot) (i : Fin p.n) (b : Block)
+    (s : Slot) (i : Fin p.n) (b : BlockId)
     (hwindow : (V2.D.Run.stateBeforeTime E rho D x).st.slot p ≤ s + 1)
     (hx : excludesS p (V2.D.Run.stateBeforeTime E rho D x).st
       (ofHead p ⟨.seat (.head s) i, b⟩) = true) :
@@ -773,14 +809,15 @@ theorem fgsa_head_excluded_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   · obtain ⟨B, rfl⟩ := t78_head_keys v₂ s i hl₂ hi₂
     exact t78_vote_read_stamp E rho hS x D s i B h₂
 
-/-- Both delivery forms retain an in-window HEAD or two strictly stamped cap witnesses.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Both delivery forms retain an in-window HEAD or two strictly stamped cap witnesses.
 The trigger can be an honest emission or acceptance, including a carried HEAD.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem fgsa_head_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
     (hNoRestart : V2.D.NoRestart rho) (dl : Time → Time) (cut : Time)
-    (s : Slot) (i : Fin p.n) (b : Block) (t : Time) (w : V)
+    (s : Slot) (i : Fin p.n) (b : BlockId) (t : Time) (w : V)
     (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
     (hT : Gen.V2.Duty.Trigger E rho (ofHead p ⟨.seat (.head s) i, b⟩) t)
     (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)
@@ -834,18 +871,19 @@ theorem fgsa_head_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     have hprocessed := Gen.V2.Duty.accepted_by_deadline_on E rho (fun o => ¬ isRowObject o)
       dl cut o t w hD (by change ¬ False; exact not_false) hT hw hcut hlt hS
       ((fgsaHooks p c).excludes_stable E rho hS) (processed_stable E rho hS)
-      (fgsa_hReady_of_not_block (by intro s' B raw sup rows h; cases h)
+      (fgsa_hReady_of_not_block (by intro s' N h; cases h)
         (fgsa_hWF_of_delivery hExecution.wire))
       (fgsaAcceptance p c) C (fun k => cstoreInv_stateBefore E rho k w) htime.2.2 j hj
       (hNoRestart.restartFree w j _) (Bool.eq_false_iff.mpr hx)
-    have hm : (⟨.seat s i, .head b⟩ : GridCO.Wire p.n) ∈
+    have hm : (⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∈
         (V2.D.Run.stateBeforeTime E rho (dl t) w).st.base.votes := of_decide_eq_true hprocessed
     exact ⟨hm, t78_vote_read_stamp E rho hS w (dl t) s i b hm⟩
 
-/-- Each source cap witness has its own earlier acceptance for the relay trigger. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Each source cap witness has its own earlier acceptance for the relay trigger. -/
 theorem fgsa_head_cap_sources (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (x : V) (D : Time)
-    (s : Slot) (i : Fin p.n) (b : Block)
+    (s : Slot) (i : Fin p.n) (b : BlockId)
     (hwindow : (V2.D.Run.stateBeforeTime E rho D x).st.slot p ≤ s + 1)
     (hx : excludesS p (V2.D.Run.stateBeforeTime E rho D x).st
       (ofHead p ⟨.seat (.head s) i, b⟩) = true) :
@@ -870,13 +908,15 @@ theorem fgsa_head_cap_sources (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   · obtain ⟨o, he, -⟩ := ha₂.1
     exact (Gen.V2.Duty.index_lt_idxBefore_iff hS he D).1 hj₂
 
-/-- Every decoded fixed-FG row has a false exclusion result. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every decoded fixed-FG row has a false exclusion result. -/
 theorem excludesS_honestRow_false (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (dl : Time → Time) (i : Fin p.n) (body : RowPayload) (t : Time) (w : V) :
     excludesS p (V2.D.Run.stateBeforeTime E rho (dl t) w).st
       (ofRow p ⟨.seat .fg i, body⟩) = false := rfl
 
-/-- ROOT-DIGEST W2. A required compatible proposal is stored at its own receipt deadline.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2. A required compatible proposal is stored at its own receipt deadline.
 This transports its block only; each carried HEAD uses its own trigger.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -884,23 +924,24 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hRoots : NamedRootCollisionFree p c E rho)
     (hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
     (hNoRestart : V2.D.NoRestart rho) (dl : Time → Time) (cut : Time)
-    (s : Slot) (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (s : Slot) (N : NamedProposal p.n)
     (t : Time) (w : V) (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
-    (hT : Gen.V2.Duty.Trigger E rho (ofWire p ⟨.proposer s, .proposal b raw sup rows⟩) t)
+    (hT : Gen.V2.Duty.Trigger E rho (ofWire p ⟨.proposer s, .proposal N⟩) t)
     (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)
-    (hCompat : Block.Compatible b (eraseFG (V2.D.Run.stateBeforeTime E rho (dl t) w).st.fg.F)) :
-    ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) w).st.fg.TF, eraseFG Y = b := by
-  let o := ofWire p (⟨.proposer s, .proposal b raw sup rows⟩ : Wire p.n)
+    (hCompat : Block.Compatible N.erase (eraseFG (V2.D.Run.stateBeforeTime E rho (dl t)
+        w).st.fg.F)) :
+    ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) w).st.fg.TF, eraseFG Y = N.erase := by
+  let o := ofWire p (⟨.proposer s, .proposal N⟩ : Wire p.n)
   let C := fgsaTimelyClock p c
   have hS := hExecution.toScheduleWellFormed
-  have hd : (toWire p o).decode = some (.block s b raw sup rows) := by
+  have hd : (toWire p o).decode = some (.block s N) := by
     rw [toWire_ofWire]
     rfl
   have htime : 0 ≤ t ∧ t ≤ rho.horizon ∧ C.actTime o ≤ Gen.V2.Duty.pubFloor E t := by
     rcases hT with ⟨v, _, k, he, hem⟩ | ⟨v, _, k, ha⟩
     · have ht := hS.in_horizon _ (List.mem_of_getElem? he)
       rw [(V2.D.Run.step_tick_eq E rho he).2] at hem
-      have hemit := (fgsa_emits_proposal E rho _ v t s (.proposal b raw sup rows)).1 hem
+      have hemit := (fgsa_emits_proposal E rho _ v t s (.proposal N)).1 hem
       have hthreshold : C.actTime o = 4 * p.Δ * (s : Int) := by
         rw [fgsaTimelyClock_actTime p c o]
         rfl
@@ -929,22 +970,24 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     ((Gen.V2.Duty.pubFloor_le E t).trans htime.2.1))
   have hParent : ∀ i t', i < V2.D.Run.idxBefore rho (dl t) →
       V2.D.Run.handlesAt E rho i w o t' →
-      (parentFG (V2.D.Run.stateBefore E rho i w).st b).isSome = true := by
+      namedParentHeld (V2.D.Run.stateBefore E rho i w).st N = true ∧
+        (parentFG (V2.D.Run.stateBefore E rho i w).st N.erase).isSome = true := by
     rintro i t' _ ⟨parent, he, hh⟩
-    have hp := t78_proposal_direct _ parent o b (by dsimp only [blockOf?]; rw [hd]) hh
+    have hp := t78_proposal_direct _ parent o N.erase (by dsimp only [blockOf?]; rw [hd]) hh
     subst parent
     have hdeps := hExecution.deps i w o t' he
     change depsS p (V2.D.Run.stateBefore E rho i w).st o = true at hdeps
     dsimp only [depsS] at hdeps
-    rwa [hd] at hdeps
+    rw [hd] at hdeps
+    exact Bool.and_eq_true_iff.mp hdeps
   have hNX : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho (dl t) w) o = false := by
     change excludesS p (V2.D.Run.stateBeforeTime E rho (dl t) w).st o = false
-    change b.compatible (eraseFG (V2.D.Run.stateBeforeTime E rho (dl t) w).st.fg.F) = true
+    change N.erase.compatible (eraseFG (V2.D.Run.stateBeforeTime E rho (dl t) w).st.fg.F) = true
       at hCompat
     dsimp only [excludesS]
     rw [hd]
     simp only [blockExcluded, activeCompatible, hCompat, Bool.not_true, Bool.false_or]
-    exact fgsa_trigger_invalid_false E rho o t s b raw sup rows hT hd _
+    exact fgsa_trigger_invalid_false E rho o t s N hT hd _
   have hp := Gen.V2.Duty.accepted_by_deadline_on E rho (fun o => ¬ isRowObject o)
       dl cut o t w hD (by change ¬ False; exact not_false) hT hw hcut hlt hS
     ((fgsaHooks p c).excludes_stable E rho hS) (processed_stable E rho hS)
@@ -956,7 +999,7 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [hd] at hp
   simp only [decide_eq_true_eq] at hp
   obtain ⟨Y, hY, hroot⟩ := hp
-  have hbScope := proposal_trigger_in_scope E rho o s b raw sup rows rfl
+  have hbScope := proposal_trigger_in_root_scope E rho o s N rfl
     dl cut t w hD hT hw hcut hNX
   have hYscope : RootBlockInRun p c E rho (eraseFG Y) := by
     have hm := (storeBundle_stateBeforeTime E rho (dl t) w).cstore.baseTree (eraseFG Y)
@@ -964,9 +1007,10 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hS] at hm
     exact rootBlockInRun_held E rho hw _ hm
   exact ⟨Y, hY, rootBlockInRun_eq E rho hRoots hYscope hbScope
-    ((eraseFG_root Y).trans hroot)⟩
+    (by simpa using (eraseFG_root Y).trans hroot)⟩
 
-/-- An honest HEAD in the receipt window is retained with a strict stamp.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An honest HEAD in the receipt window is retained with a strict stamp.
 The HEAD family can satisfy CStar independently of the linked FG family.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -974,7 +1018,7 @@ theorem fgsa_honest_head_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     (hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
     (hNoRestart : V2.D.NoRestart rho)
     (_hCStar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-    (dl : Time → Time) (cut : Time) (s : Slot) (i : Fin p.n) (b : Block)
+    (dl : Time → Time) (cut : Time) (s : Slot) (i : Fin p.n) (b : BlockId)
     (t : Time) (v w : V) (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
     (hv : v ∈ rho.honest)
     (hEmit : V2.D.Run.emits E rho v (ofHead p ⟨.seat (.head s) i, b⟩) t)
@@ -992,7 +1036,7 @@ theorem fgsa_honest_head_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   · obtain ⟨k, he, hem⟩ := hEmit
     rw [(V2.D.Run.step_tick_eq E rho he).2] at hem
     have hEm := (fgsa_emits_head E rho _ v t s i b).1 hem
-    have hstored (B : Block) (hm : (⟨.seat s i, .head B⟩ : GridCO.Wire p.n) ∈
+    have hstored (B : BlockId) (hm : (⟨.seat s i, .head B⟩ : GridCO.Wire p.n .root) ∈
         (V2.D.Run.stateBeforeTime E rho (dl t) w).st.base.votes) : B = b := by
       rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hS] at hm
       obtain ⟨j, _, u, ha, -⟩ := fgsa_vote_stamp_source E rho _ w s i B _

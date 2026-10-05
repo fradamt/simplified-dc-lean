@@ -10,17 +10,20 @@ open AvailableChain.SimplexFG
 
 variable (p : Params)
 
-/-- DC: INTENTIONAL window height projection, using the owner's equations. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+DC: INTENTIONAL window height projection, using the owner's equations. -/
 private theorem accept_height (W : FGBlock (Fin p.n)) :
     heightView p W = Window.projectHeight (Window.derive p p.K_W W) :=
   heightView_def p W
 
-/-- DC: INTENTIONAL window finality projection, using the owner's equations. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+DC: INTENTIONAL window finality projection, using the owner's equations. -/
 private theorem accept_finality (W : FGBlock (Fin p.n)) :
     (finalityView p W).F = (Window.derive p p.K_W W).F := by
   simp only [finalityView_def, Window.certificateFinality_def, Window.projectFinality_def]
 
-/-- DC: SAME entry comparison on one path; FG-SA uses the window height view. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+DC: SAME entry comparison on one path; FG-SA uses the window height view. -/
 private theorem accept_J_path (st : Store (Fin p.n))
     (hI : KitFG.FGStoreInvariant (heightView p) (finalityView p) st)
     (W : FGBlock (Fin p.n)) (hpath : FGBlock.Preceq st.J W) :
@@ -50,7 +53,8 @@ private theorem accept_J_path (st : Store (Fin p.n))
   rw [he, hp]
   exact KitFG.preceq_refl _
 
-/-- DC: INTENTIONAL selected handler guards accept the window finality. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+DC: INTENTIONAL selected handler guards accept the window finality. -/
 private theorem accept_update (st : Store (Fin p.n))
     (hI : KitFG.FGStoreInvariant (heightView p) (finalityView p) st)
     (W : FGBlock (Fin p.n))
@@ -132,7 +136,8 @@ private theorem accept_update (st : Store (Fin p.n))
 variable {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- ROOT-DIGEST W2b. DC: INTENTIONAL actual receipt and ancestor-closed inserted tree. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. DC: INTENTIONAL actual receipt and ancestor-closed inserted tree. -/
 private theorem accept_ready (i : Nat) (x : V) (W : FGBlock (Fin p.n)) (t : Time)
     (hr : Ready_W p c E rho i x W t) :
     (storeAt p c E rho (i + 1) x).fg =
@@ -141,7 +146,7 @@ private theorem accept_ready (i : Nat) (x : V) (W : FGBlock (Fin p.n)) (t : Time
     (Window.derive p p.K_W W).F ∈ insert W (storeAt p c E rho i x).fg.TF := by
   classical
   rw [Ready_W_def] at hr
-  obtain ⟨o, s, raw, support, rows, P, he, hd, hp, ha, hw⟩ := hr
+  obtain ⟨o, s, N, P, he, heN, hd, hNamed, hp, ha, hw⟩ := hr
   let st := storeAt p c E rho i x
   have hI : CStoreInv p st := cstoreInv_stateBefore E rho i x
   have hPT := ((parentFG_spec st (eraseFG W) P).mp hp).1
@@ -167,18 +172,19 @@ private theorem accept_ready (i : Nat) (x : V) (W : FGBlock (Fin p.n)) (t : Time
   change (match (toWire p o).decode with
     | some (.vote r j b) => admitHead p st r j b
     | some (.row _ body) => admitRow p st ⟨(toWire p o).auth, body⟩
-    | some (.block r b raw sup rows) => admitBlock p st r b raw sup rows
+    | some (.block r M) => admitBlock p st r M
     | none => st).fg = _
   rw [hd]
   dsimp only
-  obtain ⟨pool, hpool, _⟩ := admitBlock_accepted_eq p st s (eraseFG W) raw support P rows hp ha
+  obtain ⟨pool, hpool, _⟩ := admitBlock_accepted_eq p st s N P hNamed (heN ▸ hp) ha
   rw [hpool]
   dsimp only
   split_ifs
-  · rw [fg_on_block_accepts p st s (eraseFG W) P rows hp ha, hw]
-  · rw [reconcile_fg, fg_on_block_accepts p st s (eraseFG W) P rows hp ha, hw]
+  · rw [fg_on_block_accepts p st s N P (heN ▸ hp) ha, hw]
+  · rw [reconcile_fg, fg_on_block_accepts p st s N P (heN ▸ hp) ha, hw]
 
-/-- DC-CS/W4FKChainSecondCheckpoint.lean:43 (W4CommonFinalityAtConfirmationPin).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+DC-CS/W4FKChainSecondCheckpoint.lean:43 (W4CommonFinalityAtConfirmationPin).
 INTENTIONAL: FG-SA uses the selected W receipt and a strict supplied deadline. -/
 theorem fgsa_acceptBefore_W : AcceptBefore_W p := by
   rw [AcceptBefore_W_def]
@@ -231,7 +237,8 @@ theorem fgsa_acceptBefore_W : AcceptBefore_W p := by
     rw [hie, het] at ht
     exact ht
 
-/-- DC-CS/W4FKChainFinalityWrite.lean:177 followed by acceptance at :43.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+DC-CS/W4FKChainFinalityWrite.lean:177 followed by acceptance at :43.
 INTENTIONAL: the existing adapter uses the same selected receipt and strict deadline.
 Conditional on FinalizePrem_W.deliver; not a deadline result. -/
 theorem fgsa_finalizePending_W (ΔF : Time) : FinalizePending_W p ΔF :=

@@ -17,7 +17,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
 All event-prefix guards are empty at zero. An honest proposal supplies a
 tick at its proposal time, so its inclusive time cut is positive. -/
 theorem postReset_joint_zero (w : HealingWitness) :
@@ -63,14 +64,16 @@ theorem postReset_joint_zero (w : HealingWitness) :
     exact False.elim (Nat.not_lt_zero k hk)
 
 
-/-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetResetLeaseStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
     PostResetOpeningDomain p c E rho w i →
   PostResetResetLeaseCompatible p c E rho w (i + 1)
 
-/-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetLeaseStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
@@ -78,7 +81,8 @@ def PostResetLeaseStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1)
 
-/-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetRawStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
@@ -88,7 +92,8 @@ def PostResetRawStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1)
 
-/-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetOpeningDomainStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
@@ -99,7 +104,8 @@ def PostResetOpeningDomainStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetRawTransfer p c E rho w (i + 1) →
   PostResetOpeningDomain p c E rho w (i + 1)
 
-/-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetServiceStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
@@ -170,16 +176,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     (cap : RCap p c E rho) (source : TSrc p c E rho)
@@ -212,7 +219,8 @@ variable
 include hrec mono emittedNonempty emittedName writes xing origin cap source
     heldRows finalityCap hhead h0r stepRL stepLease stepRaw stepOD stepService
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
 Order: reset lease, lease safety, F provenance, raw transfer, opening domain,
 service. Each open step has a named full type. All other fields use producers.
 Foundations producers: fgsa_rMono, sourceDiscipline_emittedNonempty,
@@ -244,21 +252,24 @@ theorem postReset_joint_all :
     · exact postReset_reset_compatible_all p c E rho hrec mono emittedNonempty emittedName
         writes xing origin h0r (i + 1)
 
-/-- Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
 Projection of the joint induction with the same named steps and producer inputs. -/
 theorem postReset_inv_all : ∀ i, PostResetInv p c E rho w i :=
   fun i => (postReset_joint_all p c E rho hrec mono emittedNonempty emittedName writes
     xing origin cap source heldRows finalityCap hhead h0r
     stepRL stepLease stepRaw stepOD stepService i).1
 
-/-- Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
 Projection of the joint induction with the same named steps and producer inputs. -/
 theorem postReset_reset_lease_compatible_all : ∀ i, PostResetResetLeaseCompatible p c E rho w i :=
   fun i => (postReset_joint_all p c E rho hrec mono emittedNonempty emittedName writes
     xing origin cap source heldRows finalityCap hhead h0r
     stepRL stepLease stepRaw stepOD stepService i).2.1
 
-/-- Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
 Projection of the joint induction with the same named steps and producer inputs. -/
 theorem postReset_opening_domain_all : ∀ i, PostResetOpeningDomain p c E rho w i :=
   fun i => (postReset_joint_all p c E rho hrec mono emittedNonempty emittedName writes

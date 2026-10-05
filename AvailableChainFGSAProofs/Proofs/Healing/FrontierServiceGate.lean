@@ -13,7 +13,8 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Blueprint 21:965–970, 1551–1574.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:965–970, 1551–1574.
 DC: INTENTIONAL exact HEAD receipts release conflicting leases before the gate.
 This local lemma does not use a phase. Its receipt input is built by the capped proof. -/
 theorem frontier_gate_guard_of_receipts [Fintype V] (E : Generic.Env V)
@@ -23,16 +24,17 @@ theorem frontier_gate_guard_of_receipts [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {s : Slot} (hgsts : E.t_GST ≤ SA.voteTime p.toParams s)
     (hgh : SA.gateTime p.toParams s ≤ rho.horizon) {Q : Block}
@@ -93,7 +95,8 @@ theorem frontier_gate_guard_of_receipts [Fintype V] (E : Generic.Env V)
   exact healing_support_release_compat (hroots := hrec.base.idealization)
     E rho hE hN hDelta s hSync hx hx ht hiq hτ hFiq lease hkeep
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1520–1534, 1551–1574; plan §3.1 steps 6–7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1520–1534, 1551–1574; plan §3.1 steps 6–7.
 DC: INTENTIONAL gate geometry of a later exact-HEAD slot under the frontier cap.
 The honest HEAD is a height-m witness. It reaches the gate, where F and Z are below it.
 The release argument checks all live leases, including writes at the pending q gate. -/
@@ -104,16 +107,17 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q B : Block} {Qfg : FGBlock (Fin p.n)}
@@ -171,8 +175,8 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
   have hFB : Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) B :=
     hKeB ▸ eraseFG_preceq hFK
   have hK (a : Fin p.n) (ha : rho.seatOf (.base (.head s)) a ∈ rho.honest) (C : Block)
-      (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) a)
-        (ofHead p ⟨.seat (.head s) a, C⟩) (SA.voteTime p.toParams s)) : C = B := by
+      (he : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) a)
+        (ofHead p ⟨.seat (.head s) a, C.root⟩) (SA.voteTime p.toParams s) C) : C = B := by
     have h := healing_support_emitted_head E rho hS s a C _ he
     exact Option.some.inj (h.symm.trans (hhead _ ha))
   have hreceipt : GateReceiptGeometry E rho

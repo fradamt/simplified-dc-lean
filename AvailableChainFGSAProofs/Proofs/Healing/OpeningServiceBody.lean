@@ -16,7 +16,8 @@ open AvailableChain.SimplexFG Gen.Pure
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 omit [DecidableEq V] in
-/-- Read monotonicity. DC: SAME the completed-time cut grows with time. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Read monotonicity. DC: SAME the completed-time cut grows with time. -/
 theorem opening_timeIdx_mono (rho : V2.D.Run V (fgsa p c)) {t t' : Time} (h : t ≤ t') :
     timeIdx rho t ≤ timeIdx rho t' := by
   change (rho.events.filter (fun e => decide (e.time ≤ t))).length ≤
@@ -26,7 +27,8 @@ theorem opening_timeIdx_mono (rho : V2.D.Run V (fgsa p c)) {t t' : Time} (h : t 
   intro e he
   exact decide_eq_true ((of_decide_eq_true he).trans h)
 
-/-- Blueprint 21 H.7:1003–1012 (inclusive phase reads). DC: SAME a phase restricts to
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.7:1003–1012 (inclusive phase reads). DC: SAME a phase restricts to
 an earlier upper end that is still after its start. -/
 theorem opening_phase_restrict (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {u v v' : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -35,7 +37,8 @@ theorem opening_phase_restrict (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   ⟨huv, hvv.trans hphase.2.1, hphase.2.2.1, fun i x hui hiv hx =>
     hphase.2.2.2 i x hui (hiv.trans (opening_timeIdx_mono rho hvv)) hx⟩
 
-/-- Spec 1327–1338 (the selected source); blueprint 21 H.4:628–650; plan H-GATE §3F step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Spec 1327–1338 (the selected source); blueprint 21 H.4:628–650; plan H-GATE §3F step 4.
 DC: INTENTIONAL the selected source of an honest opening is a fresh fast write of label rR
 at the opening read, in the actual full domain and with a live lease. Its fast write is a
 PhaseBody of rR; no HonestProposal for K is needed. -/
@@ -64,7 +67,8 @@ theorem opening_source_body (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact List.mem_toFinset.mp hm
   exact ⟨hsrc, hmem.1, hcand, hfw⟩
 
-/-- Blueprint 21 H.9:1100–1144 (opening source), H.22:3207–3216; plan H-GATE §3E.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9:1100–1144 (opening source), H.22:3207–3216; plan H-GATE §3E.
 DC: INTENTIONAL the selected source of every honest opening at or after q extends Qfg:
 H-GATE serves Q there, and the deepest selector keeps a served retained block below its
 output (`openingSource_extends_served`). -/
@@ -75,16 +79,17 @@ theorem later_opening_source_extends [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -113,7 +118,8 @@ theorem later_opening_source_extends [Fintype V] (E : Generic.Env V)
     exact hdom
   exact openingSource_extends_served E rho j y r Qfg hdom' (hQfg ▸ hcand)
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.2 S1, H.3 (HEAD witness relay), H.9:1100–1144; plan H-GATE §2.3
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.2 S1, H.3 (HEAD witness relay), H.9:1100–1144; plan H-GATE §2.3
 last
 paragraph, §3F step 4, gap 4. DC: INTENTIONAL the H-GATE supplier at the next opening for an
 arbitrary selected body K of opening r, with D = K. K is a fast PhaseBody of rR
@@ -128,16 +134,17 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}

@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Shared.Compose
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
@@ -19,7 +21,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Plan fgsa-s5-m5-d2d4 B (definitions); blueprint 21:2718–2723.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B (definitions); blueprint 21:2718–2723.
 DC: INTENTIONAL finite-run source. A source whose row is an event of the run. -/
 def SrcN (B : FGBlock (Fin p.n)) (s : Slot) : Prop :=
   SourceBefore p c E rho rho.events.length B s
@@ -27,7 +30,8 @@ def SrcN (B : FGBlock (Fin p.n)) (s : Slot) : Prop :=
 theorem SrcN_def (B : FGBlock (Fin p.n)) (s : Slot) :
     SrcN p c E rho B s = SourceBefore p c E rho rho.events.length B s := by rfl
 
-/-- Plan fgsa-s5-m5-d2d4 B (definitions); blueprint 21:2718–2723.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B (definitions); blueprint 21:2718–2723.
 DC: INTENTIONAL high source at c₀ = μ + 1; the H0Reset bound gives M + 1 later. -/
 def HighSrcN (B : FGBlock (Fin p.n)) (s : Slot) : Prop :=
   SrcN p c E rho B s ∧ muOf p c E rho + 1 ≤ (heightView p B).h
@@ -36,7 +40,8 @@ theorem HighSrcN_def (B : FGBlock (Fin p.n)) (s : Slot) :
     HighSrcN p c E rho B s =
       (SrcN p c E rho B s ∧ muOf p c E rho + 1 ≤ (heightView p B).h) := by rfl
 
-/-- Plan fgsa-s5-m5-d2d4 B (definitions); blueprint 21:2718–2741 (fj.descent.v3).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B (definitions); blueprint 21:2718–2741 (fj.descent.v3).
 DC: INTENTIONAL global event-index measure. The high source B of label sB is
 lost at event k: k is an honest HEAD tick at v_l with sB + 1 ≤ l, and the HEAD
 on the post-clock state of exactly event k does not extend B. The row of B need
@@ -52,7 +57,8 @@ theorem Lost_def (B : FGBlock (Fin p.n)) (sB : Slot) (k : Nat) :
         rho.events[k]? = some (.tick x (SA.voteTime p.toParams l)) ∧
         ¬ Block.Preceq (eraseFG B) (headAtIdx p c E rho k l)) := by rfl
 
-/-- Plan fgsa-s5-m5-d2d4 B (definitions). DC: SAME finite run.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B (definitions). DC: SAME finite run.
 A source row before any index is an event of the run. -/
 theorem healing_srcN_of_source {i : Nat} {B : FGBlock (Fin p.n)} {s : Slot}
     (h : SourceBefore p c E rho i B s) : SrcN p c E rho B s := by
@@ -65,7 +71,8 @@ theorem healing_srcN_of_source {i : Nat} {B : FGBlock (Fin p.n)} {s : Slot}
     cases hj
   exact ⟨j, y, r, a, hj, ha, hB, hs⟩
 
-/-- The HEAD read at a tick index is the HEAD of that tick's post-clock state. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The HEAD read at a tick index is the HEAD of that tick's post-clock state. -/
 theorem healing_headAtIdx_tick {k : Nat} {z : V} {t : Time}
     (hk : rho.events[k]? = some (.tick z t)) (l : Slot) :
     headAtIdx p c E rho k l =
@@ -74,7 +81,8 @@ theorem healing_headAtIdx_tick {k : Nat} {z : V} {t : Time}
   rw [hk]
 
 omit [DecidableEq V] in
-/-- Blueprint 21:2640–2653; plan fgsa-s5-m5-d2d4 B (invalid shortcut: event
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:2640–2653; plan fgsa-s5-m5-d2d4 B (invalid shortcut: event
 order alone gives no strict time order). DC: SAME schedule order. An event of
 strictly smaller time has a strictly smaller index. -/
 theorem healing_idx_lt_of_time_lt (hs : V2.D.ScheduleWellFormed E rho)
@@ -93,7 +101,8 @@ theorem healing_idx_lt_of_time_lt (hs : V2.D.ScheduleWellFormed E rho)
     cases Option.some.inj hb
     exact lt_irrefl _ ht
 
-/-- Plan fgsa-s5-m5-d2d4 B `same` step 1. DC: SAME source discipline.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `same` step 1. DC: SAME source discipline.
 The inline Foundations facts decode a source row: its emitted name is the
 height of the source, and the source gate has a genuine result above it and
 passes the fast test at it. -/
@@ -119,7 +128,8 @@ theorem healing_source_decode
   refine ⟨e.2, G, ?_, hG, hCG, hfast⟩
   rw [he, ← he1]
 
-/-- Plan fgsa-s5-m5-d2d4 B `same` step 2; blueprint 21:1579–1582 (H.11 μ).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `same` step 2; blueprint 21:1579–1582 (H.11 μ).
 DC: INTENTIONAL μ excludes pre-GST sources. A source of height above μ votes
 at or after GST: otherwise its emitted name is an old row height, at most μ. -/
 theorem healing_high_source_sync
@@ -142,7 +152,8 @@ theorem healing_high_source_sync
   have hμ := (muOf_spec p c E rho).2.2.2.1 _ hold
   omega
 
-/-- Plan fgsa-s5-m5-d2d4 B `same` step 3. DC: SAME label-local synchrony.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `same` step 3. DC: SAME label-local synchrony.
 A source label of a high source is synchronized on [v_s, d_s]: its action
 event is in the run, so d_s is inside the horizon. -/
 theorem healing_high_source_labelSync [Fintype V] {G ΔF : Time}
@@ -172,7 +183,8 @@ theorem healing_high_source_labelSync [Fintype V] {G ΔF : Time}
   exact Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgst hvd hh
 
-/-- Plan fgsa-s5-m5-d2d4 B `same` (steps 1–3); blueprint 21:620–631 (IF.6),
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `same` (steps 1–3); blueprint 21:620–631 (IF.6),
 2730–2737. DC: INTENTIONAL synchronous same-label gate compatibility.
 Two high sources of one label are compatible: both are synchronous, and their
 genuine gate results are compatible by IF.6 (`fgsa_sameLabel`). This is the
@@ -200,14 +212,16 @@ theorem healing_loss_same [Fintype V] {G ΔF : Time}
     healing_source_decode p c E rho emittedNonempty emittedName ha' hKs'
   rw [← hs] at hG
   rw [← hs'] at hG'
-  have hGG := fgsa_sameLabel p c E rho hrec.base.valid hrec.base.noRestart hrec.base.delta s
+  have hGG := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
+      hrec.base.noRestart hrec.base.delta s
     hSync y y' G G' ha.1 ha'.1 hG hG'
   change (Block.preceq G G' || Block.preceq G' G) = true at hGG
   rcases Bool.or_eq_true_iff.mp hGG with h | h
   · exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_trans hKG h) hKG'
   · exact Gen.Pure.block_compatible_of_common hKG (Gen.Pure.block_preceq_trans hKG' h)
 
-/-- Plan fgsa-s5-m5-d2d4 B `support` steps 1–2; blueprint 21:620–631, 673–676.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `support` steps 1–2; blueprint 21:620–631, 673–676.
 DC: INTENTIONAL actual honest supporter. A source of label s with a row in the
 run has an honest supporter whose HEAD tick at v_s extends the source. The tick
 is strictly earlier than every event of time above v_s, in particular than the
@@ -240,16 +254,23 @@ theorem healing_source_supporter [Fintype V] {G ΔF : Time}
   subst hst'
   obtain ⟨k, o, hkh, ho, hko, hsup⟩ :=
     healing_support_honest_seat rho hrec.base.cstar hrec.fault _ _ _ hτ
-  obtain ⟨-, hK', -, -, -, hov, hol⟩ := healing_support_clean_target E rho o ho
+  obtain ⟨H, hK', hKm, _, _, hov, hol⟩ := healing_support_clean_target E rho o ho
   obtain ⟨k', hk', ht⟩ := healing_support_honest_head E rho hE hov hol hko hkh
   refine ⟨k', _, hkh, hk', ?_, fun k'' ev hev hlt =>
     healing_idx_lt_of_time_lt p c E rho hE.toScheduleWellFormed hk' hev hlt⟩
-  rw [Gen.AC.voteSupports_def, ht] at hsup
+  change Gen.AC.Root.voteSupports
+    (GridCO.resolutionTree (actView (clockPre p (storeAt p c E rho ix y)
+      (SA.gateTime p.toParams (r * p.R))))) (eraseFG K) o = true at hsup
+  rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hK'] at hsup
   have hH := (Bool.and_eq_true_iff.mp hsup).2
   rw [healing_headAtIdx_tick p c E rho hk']
-  exact hH
+  have he := stored_eq_headVote E rho hrec.base.idealization ix y hKm k'
+    (rho.seatOf (.base (.head (r * p.R))) k) (SA.voteTime p.toParams (r * p.R)) (r * p.R)
+    (Option.some.inj ((resolvedHead_root _ o hK').symm.trans ht))
+  exact he ▸ hH
 
-/-- Plan fgsa-s5-m5-d2d4 B `support` step 3; blueprint 21:2730–2737.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `support` step 3; blueprint 21:2730–2737.
 DC: INTENTIONAL global event-index measure. If a high source B of label sB is
 incompatible with a source K of a later label s, the HEAD of an honest
 supporter of K at v_s extends K and not B: this is a loss of B at that tick. -/
@@ -274,7 +295,8 @@ theorem healing_loss_of_supporter [Fintype V] {G ΔF : Time}
   refine ⟨k, ⟨hB, z, s, hz, hlt, hk, fun hBH => hn ?_⟩, hord⟩
   exact Gen.Pure.block_compatible_of_common hBH hKH
 
-/-- Plan fgsa-s5-m5-d2d4 B `support` (corrected signature, blocker B1);
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `support` (corrected signature, blocker B1);
 blueprint 21:2730–2737. DC: INTENTIONAL global event-index measure. This is
 the corrected `support` input of `healing_high_source_first_failure` at
 c₀ = μ + 1: B is a high source with a row before i. The loss is at the HEAD

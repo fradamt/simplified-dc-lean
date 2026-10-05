@@ -18,7 +18,8 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 omit [DecidableEq V] in
-/-- Blueprint 21 HG.3. DC: SAME inclusive-prefix monotonicity. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ Blueprint 21 HG.3. DC: SAME inclusive-prefix monotonicity. -/
 theorem frontierSearch_timeIdx_mono (rho : V2.D.Run V (fgsa p c))
     {u v : Time} (h : u ≤ v) : timeIdx rho u ≤ timeIdx rho v := by
   change (rho.events.filter (fun e => decide (e.time ≤ u))).length ≤
@@ -27,7 +28,8 @@ theorem frontierSearch_timeIdx_mono (rho : V2.D.Run V (fgsa p c))
   exact List.countP_mono_left (fun e _ he => decide_eq_true
     ((of_decide_eq_true he).trans h))
 
-/-- Blueprint 21 HG.3. DC: SAME a shorter phase keeps the lower read cut. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ Blueprint 21 HG.3. DC: SAME a shorter phase keeps the lower read cut. -/
 theorem frontierSearch_phase_cut (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {u v w : Time} {m : Nat}
     {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -37,7 +39,8 @@ theorem frontierSearch_phase_cut (E : Generic.Env V)
   intro i x hui hiw hx
   exact hp.2.2.2 i x hui (hiw.trans (frontierSearch_timeIdx_mono rho hwv)) hx
 
-/-- Blueprint 21 H.6/H.6-S and HG.3. DC: SAME full frozen seed adapters. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ Blueprint 21 H.6/H.6-S and HG.3. DC: SAME full frozen seed adapters. -/
 theorem frontierSearch_repair_seed (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (repair : TRepair p c E rho)
     {G u v ρbar : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -55,7 +58,8 @@ theorem frontierSearch_repair_seed (E : Generic.Env V)
       tfSeed_one_from_tRepair p c E rho repair hgap hG hgst hp after least window sync hbudget
     exact ⟨q, Q, hs, hg.le, hQ, he⟩
 
-/-- Blueprint 21 HG.3. DC: SAME a seed follows its phase start in both arms. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ Blueprint 21 HG.3. DC: SAME a seed follows its phase start in both arms. -/
 theorem frontierSearch_seed_after {V : Type} (E : Generic.Env V)
     {u : Time} {q : Slot} (hseed : FrontierSeedQualification p E u q) :
     u ≤ SA.proposalTime p.toParams q := by
@@ -78,7 +82,8 @@ theorem frontierSearch_seed_after {V : Type} (E : Generic.Env V)
     push_cast at hlt
     nlinarith
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.3. DC: SAME the proposer floor and exact-gate cap. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ ROOT-DIGEST W2b. Blueprint 21 HG.3. DC: SAME the proposer floor and exact-gate cap. -/
 theorem frontierSearch_proposal_heights [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
@@ -92,7 +97,7 @@ theorem frontierSearch_proposal_heights [Fintype V] (E : Generic.Env V)
     (if contested then m else m - 1) ≤ (heightView p Qfg).h ∧
       (heightView p Qfg).h ≤ m := by
   have hS := hrec.base.valid.toScheduleWellFormed
-  obtain ⟨j, raw, sup, rows, hj, _hem, hst, _hslot, _hb, _hrows⟩ :=
+  obtain ⟨j, N, _, hj, _hem, hst, _hslot, _hb, _hrows⟩ :=
     healing_promotion_proposal_read p c E rho hS hQ
   let x := V2.D.proposerOf rho (fgsaInterface p c) q
   let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho j x)
@@ -136,7 +141,8 @@ theorem frontierSearch_proposal_heights [Fintype V] (E : Generic.Env V)
   have hcap := (hp.2.2.2 i x hui' hiD hx).1
   exact hcap ▸ healing_phase_height_le p c E rho hK
 
-/-- Blueprint 21 HG.3. DC: SAME the saved seed keeps its repair threshold. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ Blueprint 21 HG.3. DC: SAME the saved seed keeps its repair threshold. -/
 theorem frontierSearch_seed_repair (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (repair : TRepair p c E rho)
     {G u : Time} {m q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -151,7 +157,8 @@ theorem frontierSearch_seed_repair (E : Generic.Env V)
   · exact ⟨_, hlt, fun v hp =>
       ((repair G u v m J contested hgap hG hgst hp).2 b hb hmin hkb hsync).1⟩
 
-/-- Blueprint 21 HG.3. DC: SAME save a complete seed at its actual gate. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ Blueprint 21 HG.3. DC: SAME save a complete seed at its actual gate. -/
 theorem frontierSearch_save_seed (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c))
     {u D : Time} {m q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -174,7 +181,8 @@ theorem frontierSearch_save_seed (E : Generic.Env V)
     ((healing_phase_idx_le_time p c rho le_rfl).trans hui)
     (hiq.trans (frontierSearch_timeIdx_mono rho hg)) hx).1.le
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 contest; plan R2-b.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ ROOT-DIGEST W2b. Blueprint 21 HG.3 contest; plan R2-b.
 DC: SAME stop at the finite first event, or save the repaired height-m seed.
 The horizon is closed. TRepair has producer healing_tRepair. -/
 theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)

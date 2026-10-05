@@ -17,7 +17,8 @@ open AvailableChain.SimplexFG Gen.Pure RetainedWalk
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21:1570–1574; plan §4 (q+1). DC: SAME grid arithmetic: a proposal at or after
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1570–1574; plan §4 (q+1). DC: SAME grid arithmetic: a proposal at or after
 d_q has slot at least q + 2. -/
 private theorem fread_gate_prop {q s : Nat}
     (h : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s) : q + 2 ≤ s := by
@@ -28,7 +29,8 @@ private theorem fread_gate_prop {q s : Nat}
   have h2 := Int.le_of_mul_le_mul_right h1 hd
   omega
 
-/-- Blueprint 21:924–944; plan §3.1 step 3. DC: SAME grid arithmetic: a gate before v_s has
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:924–944; plan §3.1 step 3. DC: SAME grid arithmetic: a gate before v_s has
 label at most s − 2. -/
 private theorem fread_gate_vote {w s : Nat}
     (h : SA.gateTime p.toParams w < SA.voteTime p.toParams s) : w + 2 ≤ s := by
@@ -39,7 +41,8 @@ private theorem fread_gate_vote {w s : Nat}
   have h2 := Int.lt_of_mul_lt_mul_right h1 hd.le
   omega
 
-/-- Blueprint 21:1570–1574; plan §4. DC: SAME grid arithmetic: a gate time is never a
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1570–1574; plan §4. DC: SAME grid arithmetic: a gate time is never a
 proposal time. -/
 private theorem fread_gate_ne_prop (q s : Nat) :
     SA.gateTime p.toParams q ≠ SA.proposalTime p.toParams s := by
@@ -51,7 +54,8 @@ private theorem fread_gate_ne_prop (q s : Nat) :
   have h2 := Int.eq_of_mul_eq_mul_right (ne_of_gt hd) h1
   omega
 
-/-- Blueprint 21:628–650; plan §3.1 step 3. DC: SAME the fast arm of
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:628–650; plan §3.1 step 3. DC: SAME the fast arm of
 `healing_support_phaseBody_of_write` without its window premise: a fast slow-policy key at
 a passed gate is in the gate's fast-write set. -/
 private theorem fread_fast_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -59,9 +63,9 @@ private theorem fread_fast_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     {j : Nat} {x : V} {w : Slot} {C B : Block} {g : Nat}
     (ht : IsGateTick p c rho j x w) (hpass : gatePassedAt p c E rho j)
     (hres : gateResultAt p c E rho j = some (some C))
-    (hkey : (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+    (hkey : (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams w))) w C)
-    (hfast : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+    (hfast : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams w))) w B) :
     ∃ nd, postClock E rho x (SA.gateTime p.toParams w) = some nd ∧
       B ∈ (fastWriteAt nd.st w).getD [] := by
@@ -70,7 +74,7 @@ private theorem fread_fast_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   obtain ⟨hin, hpost⟩ := healing_support_gate_reads p c E rho hs ht
   have hgr : gateResult p c E rho x w = some (some C) :=
     (gateResultAt_eq_gateResult p c E rho hs ht).symm.trans hres
-  have hconf : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C := by
+  have hconf : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C := by
     rw [gateResult_def, hin] at hgr
     exact Option.some.inj hgr
   refine ⟨_, hpost, ?_⟩
@@ -99,7 +103,8 @@ private theorem fread_fast_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   simp only [Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_true_eq]
   exact ⟨⟨hne, hBC⟩, hfast⟩
 
-/-- Blueprint 21 HG.1:1517–1521 (seed), Run/AC:56; plan §3.1 step 1 (G1). DC: INTENTIONAL
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 HG.1:1517–1521 (seed), Run/AC:56; plan §3.1 step 1 (G1). DC: INTENTIONAL
 after an honest node's own gate tick at d_q, ExactService fixes its stable output to Q and
 its time to d_q; every lease that is live at that state targets a prefix of Q
 (`fgsaAC_lease_le_output`). -/
@@ -135,7 +140,8 @@ theorem frontier_seed_leases (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   change Block.Preceq row.1 (S_at p c E rho (jq + 1) x) at h
   rwa [hout] at h
 
-/-- Blueprint 21 HG.1:1546–1556 (leases), H.6:928–944; plan §3.1 steps 1 and 3 (G1/G2).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 HG.1:1546–1556 (leases), H.6:928–944; plan §3.1 steps 1 and 3 (G1/G2).
 DC: INTENTIONAL every live lease at an honest read between t_s and v_s, for s with
 d_q ≤ t_s, targets a prefix of every honest label-(s−1) HEAD. Classify by the last write
 gate w (inline `lastWrite`): an old write (w < q) survives to the node's own q-gate and is
@@ -149,16 +155,17 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -252,7 +259,8 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
         have hCQ : C = Q := Option.some.inj (Option.some.inj (hC.symm.trans hgr))
         exact hbelowQ (hCQ ▸ hrC)
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1521–1534, L4-R:2245–2262; plan §3.1 steps 2 and 5. DC:
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 HG.1:1521–1534, L4-R:2245–2262; plan §3.1 steps 2 and 5. DC:
 INTENTIONAL
 at an honest read after v_r + Δ under the cap, for a label r whose honest HEADs cover the
 pivot, the node holds the pivot itself, and F and Z are below it with the floor at most
@@ -307,7 +315,8 @@ theorem frontier_pivot_held [Fintype V] (E : Generic.Env V)
   exact ⟨hA, hF, hZ, hlo⟩
 
 set_option linter.unusedVariables false in
-/-- Blueprint 21 HG.1:1500–1574, H.17:2958–3005; plan §2.2 (G3) and §3.1 step 5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 HG.1:1500–1574, H.17:2958–3005; plan §2.2 (G3) and §3.1 step 5.
 DC: INTENTIONAL the retained HG.1 cone input on the closed capped endpoint of TFrontier.
 For an honest proposal of slot s with d_q ≤ t_s and d_s ≤ v, every honest HEAD read of
 slot s gets all six cone fields at the actual reads: both live starts are the root or a
@@ -322,16 +331,17 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip : Nat} {x : V}
@@ -349,8 +359,8 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
     (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
     (hgate : SA.gateTime p.toParams s ≤ v) :
@@ -489,7 +499,8 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
       (hcovL hLQ) hy hih hvs
 
 set_option linter.unusedVariables false in
-/-- Blueprint 21 HG.1:1500–1574; plan §2.2 (G4) and §4 (first rise, endpoint regression).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 HG.1:1500–1574; plan §2.2 (G4) and §4 (first rise, endpoint regression).
 DC: INTENTIONAL the strict-stop adapter. The stop is an actual event jStop at which the
 honest frontier rises above m (index jStop + 1); the cap holds through jStop. With
 d_q < stop and d_s < stop the closed capped endpoint is d_s, inside the cap and the
@@ -502,16 +513,17 @@ theorem retainedHG1Input_before_first_rise [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u stop : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip : Nat} {x : V}
@@ -532,8 +544,8 @@ theorem retainedHG1Input_before_first_rise [Fintype V] (E : Generic.Env V)
     (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip) :
     ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -569,7 +581,7 @@ theorem retainedHG1Input_before_first_rise [Fintype V] (E : Generic.Env V)
       linarith
   exact retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight
     hService hu hPhase hqs (hsStop.le.trans hstoph)
-    (fun i z hi1 hi2 hz => hCapStop i z hi1 (hi2.trans hcut) hz) hx hip hseat b raw sup rows hem
+    (fun i z hi1 hi2 hz => hCapStop i z hi1 (hi2.trans hcut) hz) hx hip hseat N hem
     hafter le_rfl y hy ih hih
 
 end AvailableChain.FGSA.Run

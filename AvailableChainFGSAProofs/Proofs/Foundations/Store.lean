@@ -13,7 +13,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- F1.1 snapshot: T7.5 (via Gen E-10) and the FG-SA active-view library. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+F1.1 snapshot: T7.5 (via Gen E-10) and the FG-SA active-view library. -/
 theorem fgsa_rStore : RStore p c E rho := by
   intro i x _
   have h := cstoreInv_stateBefore E rho i x
@@ -22,13 +23,15 @@ theorem fgsa_rStore : RStore p c E rho := by
   exact ⟨h, actView_blocks _, hg.1, hg.2,
     fun _ hb _ ha => actView_ancestor_closed p _ h hb ha, hf.1, hf.2.2.1, hf.2.1⟩
 
-/-- D24 cumulative channel, separate from the FG bounds channel. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+D24 cumulative channel, separate from the FG bounds channel. -/
 theorem fgsa_rStoreCumul : RStoreCumul p c E rho := by
   intro hnr i j x _ hij _
   have h := fgsa_store_cumulative p c E rho hnr hij x
   exact ⟨h.1, h.2.1, h.2.2.1, h.2.2.2.1⟩
 
-/-- D24 FG bounds, from the FG-SA store library and the KitV2 stability core. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+D24 FG bounds, from the FG-SA store library and the KitV2 stability core. -/
 theorem fgsa_rMono : RMono p c E rho := by
   intro hnr i j x _ hij
   let a := storeAt p c E rho i x
@@ -49,7 +52,8 @@ theorem fgsa_rMono : RMono p c E rho := by
       le_trans h.2.1 (process_pair_mono p nd.st (toWire p o)),
       le_trans h.2.2 (process_hmax_mono p nd.st (toWire p o))⟩
 
-/-- The exact frame follows from T7.5 and FG store correspondence. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The exact frame follows from T7.5 and FG store correspondence. -/
 theorem fgsa_rFrameExact : RFrameExact p c E rho := by
   simp only [RFrameExact_def,
     ← KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
@@ -57,7 +61,8 @@ theorem fgsa_rFrameExact : RFrameExact p c E rho := by
   refine ⟨storeControls_eq p _ (cstoreInv_stateBefore E rho i x), ?_⟩
   rw [fullTree_eq, domainR_eq_storeFrame]
 
-/-- The active-view laws at every store, including conflict exclusion after F moves. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The active-view laws at every store, including conflict exclusion after F moves. -/
 theorem fgsa_rActive : RActive p c E rho := by
   constructor
   · intro i x _
@@ -70,11 +75,13 @@ theorem fgsa_rActive : RActive p c E rho := by
     exact Gen.Pure.block_incompatible_of_preceq hn (eraseFG_preceq hF)
       ((actView_blocks _ b).mp hb).2
 
-/-- Admitted-view injectivity from T7.5. The frozen root premise is retained. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Admitted-view injectivity from T7.5. The frozen root premise is retained. -/
 theorem fgsa_rCarrierView : RCarrierView p c E rho :=
   fun _ i x _ => viewRootInj_TF p _ (cstoreInv_stateBefore E rho i x)
 
-/-- L49 frame: the accepted FG step, stuttering steps, reconcile, and exact metadata reads.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+L49 frame: the accepted FG step, stuttering steps, reconcile, and exact metadata reads.
 T7.5 supplies MetaInv; cumulative metadata uses the same KitV2 lift as RStoreCumul. -/
 theorem fgsa_rFrame : RFrame p c E rho := by
   intro i x _
@@ -83,20 +90,20 @@ theorem fgsa_rFrame : RFrame p c E rho := by
     ⟨by rw [controls_eq, controls_eq]; exact storeControls_reconcile p st,
       fun X => domainR_congr_fg p _ _ X (reconcile_frame st).1⟩,
     metaInv_stateBefore E rho i x, ?_⟩
-  · intro s b raw support P rows hP ha
-    obtain ⟨pool, he, _⟩ := admitBlock_accepted_eq p st s b raw support P rows hP ha
+  · intro s N P hNamed hP ha
+    obtain ⟨pool, he, _⟩ := admitBlock_accepted_eq p st s N P hNamed hP ha
     rw [he]
     dsimp only
     split_ifs <;> first | rfl | exact reconcile_fg _
   · intro a
     rcases admitRow_eq p st a with h | h <;> rw [h]
-  · intro s b raw support rows hr
-    rw [admitBlock_refused p st s b raw support rows hr]
+  · intro s N hr
+    rw [admitBlock_refused p st s N hr]
   · intro o hn
     change (match o.decode with
       | some (.vote s k b) => admitHead p st s k b
       | some (.row _ body) => admitRow p st ⟨o.auth, body⟩
-      | some (.block s b raw sup rows) => admitBlock p st s b raw sup rows
+      | some (.block s N) => admitBlock p st s N
       | none => st).fg = st.fg
     rw [hn]
   · refine ⟨?_, ?_, ?_, fun _ => rfl,
@@ -124,7 +131,8 @@ theorem fgsa_rFrame : RFrame p c E rho := by
       have h := fgsa_store_cumulative p c E rho hnr hij x
       exact ⟨h.2.2.2.2.1, h.2.2.2.2.2, h.2.2.1, h.2.2.2.1⟩
 
-/-- P3 fixed stored-value seed: the predicate retains the same cut i and the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 fixed stored-value seed: the predicate retains the same cut i and the
 same stored data at every later cut. Gen.V2.Duty.kept_from_seed can consume it. -/
 theorem fgsa_seed_stored (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) :
     Gen.V2.Duty.SeedAt E rho j (fun x nd =>
@@ -135,7 +143,8 @@ theorem fgsa_seed_stored (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) 
   intro x
   exact fgsa_store_cumulative p c E rho hnr hij x
 
-/-- P3 fixed FG-bound seed, with the reference cut fixed in the predicate. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 fixed FG-bound seed, with the reference cut fixed in the predicate. -/
 theorem fgsa_seed_bounds (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) :
     Gen.V2.Duty.SeedAt E rho j (fun x nd => x ∈ rho.honest →
       let a := storeAt p c E rho i x

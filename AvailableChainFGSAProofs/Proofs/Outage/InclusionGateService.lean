@@ -15,7 +15,8 @@ private theorem igate_vote_lt_gate (p : Params) (s : Slot) :
   change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
   linarith [p.deltaPos]
 
-/-- Blueprint 03:438–441 (h_s honest supporters vs ≤ a others); plan I-GATE, G4. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:438–441 (h_s honest supporters vs ≤ a others); plan I-GATE, G4. Class (iii).
 DC: INTENTIONAL; the fresh HEAD seat bijection transfers the awake count.
 Strict-before participation gives Batch without a fast threshold. -/
 theorem inclusion_awake_seat_batch [Fintype V]
@@ -57,7 +58,8 @@ theorem inclusion_awake_seat_batch [Fintype V]
     ((igate_vote_lt_gate p s).trans_le hhor)⟩⟩
 
 
-/-- ROOT-DIGEST W2b. Blueprint 03:418–458; plan I-GATE, G5. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:418–458; plan I-GATE, G5. Class (iii).
 DC: INTENTIONAL; a strict majority gives the exact raw result. Compatible
 leases let the gate advance S to P. No lease admission test is needed. -/
 theorem inclusion_gate_exact [Fintype V]
@@ -121,11 +123,11 @@ theorem inclusion_gate_exact [Fintype V]
     hset.pre.base.delta hset.pre.base.cstar pt.s pt.P hhead hsync ht hgeom H hH hbatch
   have hv : { v with early := st.base.early } = (fgsaAC E rho).gateView i x pt.s :=
     fgsa_clockPre_gateView p st pt.s
-  have hrawEq : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) v pt.s =
+  have hrawEq : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) v pt.s =
       (fgsaAC E rho).raw i pt.s x := by
     rw [clockPre_fg]
     have he := congrArg (fun u =>
-      SA.confirmationFrom p.toParams (eraseFG st.fg.F) u pt.s) hv
+      SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) u pt.s) hv
     exact he
   have hraw := hrawEq.symm.trans hr
   have hguard : ∀ lease ∈ ((fgsaAC E rho).gateView i x pt.s).obligations,

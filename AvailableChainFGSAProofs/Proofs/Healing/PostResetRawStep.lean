@@ -32,7 +32,7 @@ private theorem rawStep_result_mem (hs : V2.D.ScheduleWellFormed E rho)
       (SA.gateTime p.toParams s))).blocks := by
   have hconf := (gateResultAt_eq_gateResult p c E rho hs hix).symm.trans hres
   rw [gateResult_def, (healing_support_gate_reads p c E rho hs hix).1] at hconf
-  have hc : SA.confirmationFrom p.toParams
+  have hc : SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s)).fg.F)
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s =
         some C := Option.some.inj hconf
@@ -124,23 +124,25 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (mono : RMono p c E rho) (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
 include hrec emittedNonempty emittedName writes mono xing origin h0r
 
-/-- Blueprint 21 H.16:2938–2944, H.1:673–700; plan J5-A-2 R1;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2938–2944, H.1:673–700; plan J5-A-2 R1;
 B1/B13/B17/B18. DC: SAME first HEAD above the reset block.
 No write key, fast threshold or passed-gate premise is required. -/
 theorem postReset_raw_first_head_above
@@ -235,7 +237,8 @@ private theorem rawStep_reset_first_head
   exact healing_first_transfer_written p c E rho hrec mono writes ha.1 hix hres hBC
     h0r.synchronous (Or.inl hτ) hy hiy hXv hXc hD
 
-/-- Blueprint 21 H.16:2930–2944, H.1:663–708; plan J5-A-2 R1;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2930–2944, H.1:663–708; plan J5-A-2 R1;
 B1/B13/B17/B18. DC: SAME first HEAD for every raw result.
 P1 excludes conflicts with CStar. Below CStar, use the reset's first
 HEAD or its prior raw-transfer clause. Above it, use the frozen domain. -/
@@ -294,7 +297,8 @@ theorem postReset_raw_first_head
           (Nat.succ_le_succ hlabel) hcut hread)
 
 
-/-- Blueprint 21 H.16:2938–2944, H.1:663–708; plan J5-A-2 R1 label;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2938–2944, H.1:663–708; plan J5-A-2 R1 label;
 B1/B13/B17/B18. DC: SAME first HEAD through its complete label read. -/
 theorem postReset_raw_first_head_label
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -319,7 +323,8 @@ theorem postReset_raw_first_head_label
     exact postReset_raw_first_head p c E rho hrec emittedNonempty emittedName writes mono
       xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hy hiy
 
-/-- Blueprint 21 H.16:2940–2944; plan J5-A-2 R3 new-source HEAD;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2940–2944; plan J5-A-2 R3 new-source HEAD;
 B1/B13/B17/B18. DC: SAME HEAD clause at the source event's successor cut.
 Only the first label can have an actual complete HEAD cut at i+1. -/
 theorem postReset_raw_heads_at_gate_cut
@@ -352,7 +357,8 @@ theorem postReset_raw_heads_at_gate_cut
           nlinarith [p.deltaPos])
       exact False.elim (Nat.not_lt_of_ge hcut (Nat.succ_le_of_lt hii |>.trans_lt hyi))
 
-/-- Blueprint 21 H.16:2924–2945; plan J5-A-2 R3 new-source package;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2924–2945; plan J5-A-2 R3 new-source package;
 B1/B13/B17/B18. DC: SAME all four raw clauses for the source at event i.
 Later proposals and output suffixes cannot be readers at this cut.
 This does not extend old raw results across their boundary readers. -/
@@ -403,7 +409,8 @@ variable
 include movingDomain
 
 omit emittedNonempty emittedName writes mono xing origin h0r in
-/-- Blueprint 21 H.2:723–726,736–746; plan J5-A-2 R2 domain;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.2:723–726,736–746; plan J5-A-2 R2 domain;
 B1/B13/B17/B18. DC: SAME moving reader's frozen-domain guard.
 This specializes J4A2-2 G2. The live-lease guard is proved in
 PostResetRaw.lean by postReset_raw_moving_lease_compat. -/
@@ -428,7 +435,8 @@ theorem postReset_raw_moving_domain
     hnZ hnF
 
 omit writes mono origin movingDomain in
-/-- Blueprint 21 H.16:2933–2938; plan J5-A-2 reset-lease adapter;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2938; plan J5-A-2 reset-lease adapter;
 B1/B13/B17/B18. DC: INTENTIONAL; DC has no leases.
 The existing C2 producer closes the joint step itself for every i. -/
 theorem postReset_resetLease_succ_all (cap : RCap p c E rho) (source : TSrc p c E rho) :
@@ -445,7 +453,8 @@ theorem postReset_resetLease_succ_all (cap : RCap p c E rho) (source : TSrc p c 
 
 
 omit movingDomain in
-/-- Blueprint 21 H.16:2940–2944, H.2:723–726; plan J5-A-3 R6 HEAD;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2940–2944, H.2:723–726; plan J5-A-3 R6 HEAD;
 B1/B13/B17/B18. DC: SAME complete successor HEAD cut above CStar. -/
 theorem postReset_raw_heads_succ_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -543,11 +552,11 @@ private theorem rawStep_proposal_read
   cases m with
   | head _ => cases hb
   | row _ => cases hb
-  | proposal b raw sup rows =>
-    have he : b = Q := Option.some.inj hb
-    subst b
+  | proposal N =>
+    have he : N.erase = Q := Option.some.inj hb
+    subst Q
     rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-    change (⟨auth, .proposal Q raw sup rows⟩ : Obj p) ∈
+    change (⟨auth, .proposal N⟩ : Obj p) ∈
       (if E.awake _ (SA.proposalTime p.toParams s) then
         (duties p (SA.proposalTime p.toParams s)).flatMap (fun d =>
           (rho.ownSeats (RunDuty.signLabel d) _).filterMap (fun i =>
@@ -559,12 +568,12 @@ private theorem rawStep_proposal_read
       obtain ⟨d, hd, hem⟩ := List.mem_flatMap.mp hem
       obtain ⟨i, _, hm⟩ := List.mem_filterMap.mp hem
       obtain ⟨m, hm, ho⟩ := Option.map_eq_some_iff.mp hm
-      have he : m = .proposal Q raw sup rows := congrArg V2.Signed.payload ho
+      have he : m = .proposal N := congrArg V2.Signed.payload ho
       subst m
       cases d with
       | headAction _ => cases hm
       | fgAction _ =>
-        change (attest p _ _ _).1.map Msg.row = some (.proposal Q raw sup rows) at hm
+        change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
         obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hm
         cases he
       | propAction s' =>
@@ -575,12 +584,13 @@ private theorem rawStep_proposal_read
           have he : (s' : Int) = s := by nlinarith
           exact_mod_cast he
         subst s'
-        exact (fgsa_walkRun_proposal_parent p _ s _ Q raw sup rows hm).2.2
+        exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
     · exact (List.not_mem_nil hem).elim
 
 
 omit movingDomain in
-/-- Blueprint 21 H.16:2940–2944, H.2:736–746; plan J5-A-3 R6 proposal;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2940–2944, H.2:736–746; plan J5-A-3 R6 proposal;
 B1/B13/B17/B18. DC: SAME successor proposal cut above CStar. -/
 theorem postReset_raw_proposals_succ_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -684,7 +694,8 @@ private theorem rawStep_head_label {a : Nat} {z : V} {j : Slot}
 
 
 omit movingDomain in
-/-- ROOT-DIGEST W2b. Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 finality;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 finality;
 B1/B13/B17/B18. DC: SAME provenance and crossing proof at every state cut. -/
 theorem postReset_raw_finality_compatible_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -774,7 +785,8 @@ theorem postReset_raw_finality_compatible_above
 
 
 omit movingDomain in
-/-- Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 gate;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 gate;
 B1/B13/B17/B18. DC: SAME stored leases at the first output gate.
 Each row persists from the preceding vote tick, where R5 applies. -/
 theorem postReset_raw_gate_lease_compat
@@ -835,7 +847,8 @@ theorem postReset_raw_gate_lease_compat
   exact hcompat row (hpost ▸ hkeep)
 
 omit movingDomain in
-/-- Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 output;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 output;
 B1/B13/B17/B18. DC: SAME output suffix through the terminal state. -/
 theorem postReset_raw_outputs_succ_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -884,7 +897,8 @@ private theorem rawStep_reset_result :
   exact ⟨k, x, C, ha.1, hk, hC, heB ▸ hBC⟩
 
 omit movingDomain in
-/-- Blueprint 21 H.16:2940–2944, H.2:723–726; plan J5-A-3 R6 HEAD;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2940–2944, H.2:723–726; plan J5-A-3 R6 HEAD;
 B1/B13/B17/B18. DC: SAME successor HEAD cut for every raw result. -/
 theorem postReset_raw_heads_succ
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -929,7 +943,8 @@ theorem postReset_raw_heads_succ
       ((Nat.succ_le_succ hlabel).trans hsl.le) hcut hhead
 
 omit movingDomain in
-/-- Blueprint 21 H.16:2940–2944, H.2:736–746; plan J5-A-3 R6 proposal;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2940–2944, H.2:736–746; plan J5-A-3 R6 proposal;
 B1/B13/B17/B18. DC: SAME successor proposal cut for every raw result. -/
 theorem postReset_raw_proposals_succ
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -964,7 +979,8 @@ theorem postReset_raw_proposals_succ
     ((Nat.succ_le_succ (Nat.succ_le_succ hlabel)).trans hsv) hcut hp
 
 omit movingDomain in
-/-- Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 output;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 output;
 B1/B13/B17/B18. DC: SAME successor output cut for every raw result. -/
 theorem postReset_raw_outputs_succ
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -1026,7 +1042,8 @@ theorem postReset_raw_outputs_succ
 
 
 omit movingDomain in
-/-- Blueprint 21 H.16:2924–2945, H.2:723–746; plan J5-A-3 R4;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2924–2945, H.2:723–746; plan J5-A-3 R4;
 B1/B13/B17/B18. DC: SAME raw-transfer successor for every event cut.
 The exact joint antecedents suffice. New sources reuse the gate-cut
 package; older sources use the three proved successor readers. -/
@@ -1056,7 +1073,8 @@ theorem postReset_rawTransfer_succ : ∀ i, PostResetRawStep p c E rho w i := by
       xing origin h0r hinv hresetNext hleaseNext hx hlabel hgate hres
 
 omit writes mono origin movingDomain in
-/-- Blueprint 21 H.16:2933–2938; plan J5-A-3 reset-lease adapter;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2938; plan J5-A-3 reset-lease adapter;
 B1/B13/B17/B18. DC: INTENTIONAL; DC has no leases.
 The existing all-cut adapter supplies the requested successor name. -/
 theorem postReset_resetLease_succ' (cap : RCap p c E rho) (source : TSrc p c E rho) :

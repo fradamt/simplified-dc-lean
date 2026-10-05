@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeReceipts
@@ -17,7 +19,8 @@ private theorem cone_pool_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME proposer majority and rivals from the preceding honest batch.
 C1/C2 supply target coverage, the root helper supplies root coverage,
 and C3 supplies the common pivot and its floor. -/
@@ -123,7 +126,7 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
       exact hn ((hHmem k).mpr hh)
     · intro k _ j _ he
       exact hbij.1 he
-  obtain ⟨_, _, hpath, hconflict, _⟩ := Gen.AC.batch_counts src.base.blocks
+  obtain ⟨_, _, hpath, hconflict, _⟩ := Gen.AC.Root.batch_counts src.base.blocks
     (proposerVotes src (r + 1)) (proposerVotes src (r + 1)) (proposerSupport src (r + 1))
     Hon Hon.card (Gen.V2.Duty.faulty rho).card L (fun _ h => h)
     (fun _ ho => (List.mem_filter.mp ho).1) rfl (fun k hk => (hseat k hk).2)
@@ -141,7 +144,8 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
         (proposerVotes src (r + 1)) (proposerSupport src (r + 1)) L
     omega
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME HEAD majority and rival bound from the preceding honest batch.
 The strict target arm has F below the live root and then below L. -/
 theorem postReset_targetScores_at_cut [Fintype V] (E : Generic.Env V)
@@ -208,13 +212,13 @@ theorem postReset_targetScores_at_cut [Fintype V] (E : Generic.Env V)
       exact hbij.1 he
   have hsub : FGSA.headSupport p dst (r + 1) ⊆ FGSA.headVotes p dst (r + 1) :=
     fgsa_headSupport_subset_headVotes E rho hE ih y r
-  obtain ⟨_, _, hpath, _, hrest⟩ := Gen.AC.batch_counts dst.base.blocks
+  obtain ⟨_, _, hpath, _, hrest⟩ := Gen.AC.Root.batch_counts dst.base.blocks
     (FGSA.headVotes p dst (r + 1)) (FGSA.headVotes p dst (r + 1))
     (FGSA.headSupport p dst (r + 1)) Hon Hon.card (Gen.V2.Duty.faulty rho).card L
     (fun _ h => h) hsub rfl (fun k hk => (hseat k hk).2) (fun k hk => (hseat k hk).1) hother hb
   refine ⟨(hpath L (Gen.Pure.block_preceq_refl L)).2, ?_⟩
   intro B hB
-  exact hrest B (fun k hk => Gen.AC.vote_pool_support_conflict dst.base.blocks
+  exact hrest B (fun k hk => Gen.AC.Root.vote_pool_support_conflict dst.base.blocks
     (FGSA.headVotes p dst (r + 1)) (FGSA.headSupport p dst (r + 1)) k hsub
     (hseat k hk).2 (hseat k hk).1 hB)
 

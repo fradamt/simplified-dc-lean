@@ -11,7 +11,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21:1236–1237, 1467–1468; S5 M5b B2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1236–1237, 1467–1468; S5 M5b B2.
 DC: SAME an effective event at or before D excludes the stopped genesis phase.
 The result retains M1's actual first rise and accepted carrier. -/
 theorem healing_rise_one_of_effective (hs : V2.D.ScheduleWellFormed E rho)
@@ -24,7 +25,8 @@ theorem healing_rise_one_of_effective (hs : V2.D.ScheduleWellFormed E rho)
   exact boot_not_effective_one p c E rho hnr
     (healing_rise_one_frontier p c E rho hs hnr hne hstop hcut) heff
 
-/-- Blueprint 21:1236–1237, 1467–1468; S5 M5b step 6.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1236–1237, 1467–1468; S5 M5b step 6.
 DC: SAME an actual accepted certificate supplies the frontier witness for M1.
 The strict receipt cut can be the finite horizon. -/
 theorem healing_rise_one_of_receipt (hs : V2.D.ScheduleWellFormed E rho)
@@ -39,7 +41,8 @@ theorem healing_rise_one_of_receipt (hs : V2.D.ScheduleWellFormed E rho)
       ((healing_phase_local_le_frontier p c E rho hx).trans
         (healing_frontier_mono p c E rho hnr (healing_phase_idx_le_time p c rho hd)))))
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1410–1419, 1467–1468; S5 M5b B2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1410–1419, 1467–1468; S5 M5b B2.
 DC: SAME r3 supplies the first honest receipt. In the genesis top-J phase,
 each honest receiver has an F path to genesis, so the same signed proposal
 is stored strictly before its deadline by every honest receiver. -/
@@ -60,7 +63,7 @@ theorem healing_rise_one_receipt_all [Fintype V] {G ΔF : Time}
   let t := SA.proposalTime p.toParams s
   let d := t + p.Δ
   have hs := hrec.base.valid.toScheduleWellFormed
-  obtain ⟨ip, raw, sup, rows, hip, hem, _⟩ :=
+  obtain ⟨ip, N, heN, hip, hem, _⟩ :=
     healing_promotion_proposal_read p c E rho hs hnew
   let jd := V2.D.Run.idxBefore rho d
   have hujd : V2.D.Run.idxBefore rho u ≤ jd :=
@@ -84,19 +87,20 @@ theorem healing_rise_one_receipt_all [Fintype V] {G ΔF : Time}
   have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
     (fun o => ¬ isRowObject o) p.Δ delay
   have hT : Gen.V2.Duty.Trigger E rho
-      (ofWire p ⟨.proposer s, .proposal (eraseFG X) raw sup rows⟩) t :=
+      (ofWire p ⟨.proposer s, .proposal N⟩) t :=
     Or.inl ⟨_, hnew.1.2, ip, hip, hem⟩
   have hdline : max t E.t_GST + p.Δ = d := by rw [max_eq_left (hgst.trans hu)]
   obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
     hrec.base.delta hrec.base.valid
-    hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s (eraseFG X)
-    raw sup rows t x hD hT hx (hdline ▸ hp.2.1)
-    (hdline ▸ lt_add_of_pos_right t p.deltaPos) (hdline ▸ hcompat)
-  have heq : Y = X := eraseFG_injective he
+    hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s N t x hD hT hx (hdline ▸
+        hp.2.1)
+    (hdline ▸ lt_add_of_pos_right t p.deltaPos) (by simpa only [heN, hdline] using hcompat)
+  have heq : Y = X := eraseFG_injective (he.trans heN)
   rw [hdline, heq] at hY
   exact hY
 
-/-- Blueprint 21:1410–1419, 1467–1468; S5 M5b B2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1410–1419, 1467–1468; S5 M5b B2.
 DC: SAME the inclusive r3 event split covers an event at the receipt deadline.
 An earlier rise also ends this item. Only the no-rise arm uses the genesis
 phase through the strict receipt cut; no phase is asserted after a rise. -/

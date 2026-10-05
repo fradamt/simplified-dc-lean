@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource
@@ -12,7 +14,8 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 H.22, H3: the emitted HEAD is the scheduled HEAD read.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.22, H3: the emitted HEAD is the scheduled HEAD read.
 DC: Handlers/GoldfishVotePool.lean:320, unique honest vote at a label.
 INTENTIONAL: FG-SA identifies its post-clock read with the actual signed
 HEAD. This uses the SA HEAD label and does not use an FG row round. -/
@@ -21,11 +24,13 @@ theorem exactService_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
     (q : Fin p.n) (hy : rho.seatOf (.base (.head s)) q ∈ rho.honest)
     (K : Block) (t : Time)
-    (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
-      (ofHead p ⟨.seat (.head s) q, K⟩) t) : K = Q := by
-  obtain ⟨j, hj, hem⟩ := he
+    (he : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) t K) : K = Q := by
+  have hObserver := he
+  obtain ⟨j, _, _, hj, hem, _, _⟩ := he
+  have hK := headTargetAtEmission_at_tick E rho hs hObserver hj rfl
   rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-  obtain ⟨_, ht, _, hK⟩ := (fgsa_emits_head E rho _ _ _ s q K).mp hem
+  obtain ⟨_, ht, _, _⟩ := (fgsa_emits_head E rho _ _ _ s q K.root).mp hem
   subst t
   have hr := hhead _ hy
   change (postClock E rho _ (SA.voteTime p.toParams s)).map
@@ -33,7 +38,8 @@ theorem exactService_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hj] at hr
   exact hK.trans (Option.some.inj hr)
 
-/-- ROOT-DIGEST W2b. P3 erratum 13 and blueprint 02:531–541, 21 H.22 H3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 erratum 13 and blueprint 02:531–541, 21 H.22 H3.
 DC: Goldfish/Confirmation.lean:434–441, HonestSupport.vote.
 INTENTIONAL: exact HEAD reads specialize the Shared active receipts to Q;
 the consumer supplies GateReceiptGeometry at the actual gate read.
@@ -54,13 +60,13 @@ theorem exactService_gate_receipts_of_head
     (hawake : E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
     (hroots : NamedRootCollisionFree p c E rho) :
     ∃ t, V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
-      (ofHead p ⟨.seat (.head s) q, Q⟩) t ∧
-      baseVote (⟨.seat (.head s) q, Q⟩ : HeadWire p.n) ∈
+      (ofHead p ⟨.seat (.head s) q, Q.root⟩) t ∧
+      baseVote (⟨.seat (.head s) q, Q.root⟩ : HeadWire p.n) ∈
         (storeAt p c E rho i x).base.votes ∧
       Q ∈ (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))).blocks ∧
       Q.slot ≤ s ∧
       GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
-        (SA.gateTime p.toParams s))) (baseVote (⟨.seat (.head s) q, Q⟩ : HeadWire p.n)) <
+        (SA.gateTime p.toParams s))) (baseVote (⟨.seat (.head s) q, Q.root⟩ : HeadWire p.n)) <
           GridCO.earlyTime p.toParams.engine s ∧
       GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
         (SA.gateTime p.toParams s))) Q < GridCO.earlyTime p.toParams.engine s ∧
@@ -68,11 +74,17 @@ theorem exactService_gate_receipts_of_head
         (SA.gateTime p.toParams s)).fg.F) Q := by
   obtain ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, hF, _⟩ :=
     fgsa_gateReceipt (hroots := hroots) E rho hE hN hDelta hC s hSync ht Q hgeom q hy hawake
-  have heq := exactService_emitted_head E rho hE.toScheduleWellFormed s Q hhead q hh K t he
+  have hKm : K ∈ (rho.stateBefore E i x).st.base.blocks := by
+    have hm := (List.mem_filter.mp hK).1
+    change K ∈ (clockPre p _ _).base.blocks at hm
+    rwa [(clockPre_fields p _ _).2.1] at hm
+  have hObserver := headTargetAtEmission_of_stored E rho hroots he rfl i x hKm
+  have heq := exactService_emitted_head E rho hE.toScheduleWellFormed s Q hhead q hh K t hObserver
   subst K
   exact ⟨t, he, hv, hK, hslot, hvs, hbs, hF⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 02:531–541 and 21 H.22 H3, exact raw result from honest HEADs.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 02:531–541 and 21 H.22 H3, exact raw result from honest HEADs.
 DC: Goldfish/Confirmation.lean:494,508,567, honest support and exclusion.
 INTENTIONAL: FG-SA uses the active F anchor and a late-vote denominator.
 The SA participation count and GateReceiptGeometry are explicit inputs.
@@ -97,8 +109,8 @@ theorem exactService_gate_raw_of_head [Fintype V]
     (hroots : NamedRootCollisionFree p c E rho) :
     let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)
     let v := actView pre
-    SA.confirmationFrom p.toParams (eraseFG pre.fg.F) v s = some Q ∧
-      H.card ≤ SA.prefixSupport p.toParams v s Q ∧
+    SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) v s = some Q ∧
+      H.card ≤ SA.Root.prefixSupport p.toParams v s Q ∧
       Q ∈ v.blocks ∧ Block.Preceq (eraseFG pre.fg.F) Q := by
   intro pre v
   have hrec (q : Fin p.n) (hq : q ∈ H) :=
@@ -113,11 +125,11 @@ theorem exactService_gate_raw_of_head [Fintype V]
       exact ⟨Q, t, ((hH q).mp hq).1, he, hv, hQ, hslot, hvs, hbs, hF,
         block_preceq_refl Q⟩)
   have hsupp (q : Fin p.n) (hq : q ∈ H) :
-      Gen.AC.poolSupports v.blocks (GridCO.cleanSupport p.toParams.engine v s) q Q = true := by
+      Gen.AC.Root.poolSupports v.blocks (GridCO.cleanSupport p.toParams.engine v s) q Q = true := by
     obtain ⟨t, he, hv, hQ, hslot, hvs, hbs, _⟩ := hrec q hq
     exact fgsa_active_support_of_receipt E rho hE i x s q Q Q t
       ((hH q).mp hq).1 he hv hQ hslot hvs hbs (block_preceq_refl Q)
-  have hc := Gen.AC.batch_counts v.blocks (GridCO.lateVotes p.toParams.engine v s)
+  have hc := Gen.AC.Root.batch_counts v.blocks (GridCO.lateVotes p.toParams.engine v s)
     (GridCO.cleanSupport p.toParams.engine v s) (GridCO.cleanSupport p.toParams.engine v s)
     H H.card (Gen.V2.Duty.faulty rho).card Q
     (fun _ ho => fgsa_early_subset_late p v s (List.mem_filter.mp ho).1)
@@ -130,10 +142,11 @@ theorem exactService_gate_raw_of_head [Fintype V]
   obtain ⟨C, hraw, hQC⟩ := fgsa_confirmationFrom_covers_majority p v (eraseFG pre.fg.F)
     Q s Q.root (Bool.or_eq_true_iff.mpr (Or.inl hF)) hcover.1 hcover.2.1 hcover.2.2
   have hno (D : Block) (hD : ¬ Block.Preceq D Q) (k : Fin p.n) (hk : k ∈ H) :
-      Gen.AC.poolSupports v.blocks (GridCO.cleanSupport p.toParams.engine v s) k D = false := by
+      Gen.AC.Root.poolSupports v.blocks (GridCO.cleanSupport p.toParams.engine v s) k D = false
+          := by
     apply Bool.eq_false_iff.mpr
     intro hs
-    obtain ⟨o, ho, hseat, hvote⟩ := (Gen.AC.vote_pool_support_witness _ _ k D).mp hs
+    obtain ⟨o, ho, hseat, hvote⟩ := (Gen.AC.Root.vote_pool_support_witness _ _ k D).mp hs
     have hearly := (List.mem_filter.mp ho).1
     have hlabel : GridCO.headLabel? o = some s :=
       beq_iff_eq.mp (List.mem_filter.mp (List.mem_filter.mp hearly).1).2
@@ -142,35 +155,52 @@ theorem exactService_gate_raw_of_head [Fintype V]
       change o ∈ (clockPre p (storeAt p c E rho i x) _).base.votes at hm
       rwa [(Internal.clockPre_vn _ _).1] at hm
     obtain ⟨t, he, _, _, _, _, _, _⟩ := hrec k hk
-    have heq := fgsa_honest_head_eq_of_stored E rho hE i x s k Q t
+    have heq := fgsa_honest_head_eq_of_stored E rho hE i x s k Q.root t
       ((hH k).mp hk).1 he o hm hlabel hseat
     rw [heq] at hvote
+    have hlookup := Block.findByRoot?_of_unique hQ (fun A hA B hB =>
+      baseBlocks_rootInj p pre
+        (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho i x) _) A
+        (List.mem_filter.mp hA).1 B (List.mem_filter.mp hB).1)
+    change (match Block.findByRoot? v.blocks Q.root with
+      | none => false
+      | some C => decide (C ∈ v.blocks) && decide (C.slot ≤ s) && Block.preceq D C) = true
+      at hvote
+    rw [hlookup] at hvote
     change (_ && _ && Block.preceq D Q) = true at hvote
     exact hD (Bool.and_eq_true_iff.mp hvote).2
   have helig : GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
-      2 * SA.prefixSupport p.toParams v s C := by
-    let W := GridCO.ghost (eraseFG pre.fg.F) v.blocks (SA.prefixSupport p.toParams v s)
+      2 * SA.Root.prefixSupport p.toParams v s C := by
+    let W := GridCO.ghost (eraseFG pre.fg.F) v.blocks (SA.Root.prefixSupport p.toParams v s)
       (fun D => decide (GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
-        2 * SA.prefixSupport p.toParams v s D))
+        2 * SA.Root.prefixSupport p.toParams v s D))
     change (if GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
-      2 * SA.prefixSupport p.toParams v s W then some W else none) = some C at hraw
+      2 * SA.Root.prefixSupport p.toParams v s W then some W else none) = some C at hraw
     by_cases hw : GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
-        2 * SA.prefixSupport p.toParams v s W
+        2 * SA.Root.prefixSupport p.toParams v s W
     · rw [ite_eq_left hw] at hraw
       exact (Option.some.inj hraw) ▸ hw
     · rw [ite_eq_right hw] at hraw
       cases hraw
+  have hscore (D : Block) : SA.Root.prefixSupport p.toParams v s D =
+      GridCO.goldfishScore v.blocks (GridCO.cleanSupport p.toParams.engine v s)
+        (GridCO.cleanSupport p.toParams.engine v s) D :=
+    actView_score p pre (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho i x) _)
+      (by rw [clockPre_headDomain]; exact base_headDomain_none p (reachable_stateBefore E rho i x))
+      _ _ D
   have hCQ : Block.Preceq C Q := by
     by_contra hn
     have hb := hc.2.2.2.2 C (hno C hn)
-    change 2 * SA.prefixSupport p.toParams v s C ≤
-      GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) at hb
+    rw [hscore] at helig
     omega
   have heq := block_preceq_antisymm hQC hCQ
   subst C
-  exact ⟨hraw, (hc.2.2.1 Q (block_preceq_refl Q)).1, hQ, hF⟩
+  refine ⟨hraw, ?_, hQ, hF⟩
+  rw [hscore]
+  exact (hc.2.2.1 Q (block_preceq_refl Q)).1
 
-/-- Blueprint 21 H.22 H3 and spec 297–298, 457–461: read the saved fast write.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.22 H3 and spec 297–298, 457–461: read the saved fast write.
 DC: Grades/RecoveryCapturedActionCarrier.lean:30, the action store after confirmation.
 INTENTIONAL: FG-SA saves a fast-write list at each SA gate label. This
 adapter exposes that saved list, including at labels with no action. -/
@@ -218,7 +248,8 @@ theorem exactService_fastWrite_of_gateService
   change Q ∈ (((st.fastWrite.find? (fun row => row.1 == s)).map Prod.snd).getD [])
   simpa only [hfind, Option.map_some, Option.getD_some] using hfast
 
-/-- P3 A.9 / F1b.7 and blueprint 21 H.17 / H.22 H3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 A.9 / F1b.7 and blueprint 21 H.17 / H.22 H3.
 DC: UserConfirmationRecovery.lean:235 and Goldfish/Confirmation.lean:434.
 INTENTIONAL: the FG-SA consumer supplies the active receipt floor, lease
 compatibility, the old-output bound, and a retained opening representative.
@@ -235,7 +266,8 @@ structure ExactServiceGateGeometry (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
     ∃ D, eraseFG D = Q ∧ D ∈ domainR p st (treeT p st)
 
-/-- Blueprint 21 H.17, H.22 H3: exact output bounds every live candidate.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17, H.22 H3: exact output bounds every live candidate.
 DC: Grades/RecoveryCapturedActionCarrier.lean:30, the shared action/gate store.
 INTENTIONAL: FG-SA selects the deepest retained fresh candidate. A retained
 representative and exact output suffice for its erased value; no separate
@@ -292,7 +324,8 @@ theorem exactService_opening_of_gateService
   rw [hC]
   exact congrArg (fun B => some (some B)) heq
 
-/-- ROOT-DIGEST W2b. P3 A.9 / F1b.7; blueprint 21 H.22 H3, all gate clauses at one tick.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 A.9 / F1b.7; blueprint 21 H.22 H3, all gate clauses at one tick.
 DC: Goldfish/Confirmation.lean:494,508,567; UserConfirmationRecovery.lean:235;
 RecoveryCapturedActionCarrier.lean:30. INTENTIONAL: FG-SA combines the
 optional raw result, whole-result guard, saved fast write, stable output,
@@ -331,21 +364,21 @@ theorem exactService_gate_at_of_head [Fintype V]
     E rho hE hN hDelta hC
     s Q hhead hSync ht hgeom.toGateReceiptGeometry H hH hbatch
   have hv : { v with early := st.base.early } = w := fgsa_clockPre_gateView p st s
-  have hrawEq : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) v s =
+  have hrawEq : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) v s =
       (fgsaAC E rho).raw i s x := by
     rw [clockPre_fg]
-    have he := congrArg (fun u => SA.confirmationFrom p.toParams (eraseFG st.fg.F) u s) hv
+    have he := congrArg (fun u => SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) u s) hv
     exact he
   have hraw : (fgsaAC E rho).raw i s x = some Q := hrawEq.symm.trans hr
-  have hsupport : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams w s Q := by
-    have he := congrArg (fun u => SA.prefixSupport p.toParams u s Q) hv
+  have hsupport : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams w s Q := by
+    have he := congrArg (fun u => SA.Root.prefixSupport p.toParams u s Q) hv
     exact he ▸ hfast.trans hcount
   have hmemw : Q ∈ w.blocks := (congrArg GridCO.State.blocks hv) ▸ hmem
   have hlevel : SA.releaseThreshold p.toParams ∈ (fgsaAC E rho).gateLevels i x s Q := by
     change SA.releaseThreshold p.toParams ∈
-      @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n w s Q
+      @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root w s Q
     change SA.releaseThreshold p.toParams ∈
-      (if decide (SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams w s Q) ||
+      (if decide (SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams w s Q) ||
         GridCO.slowEligible p.toParams.engine w s Q then [SA.releaseThreshold p.toParams] else [])
     simp only [hsupport, decide_true, Bool.true_or, ite_true, List.mem_singleton]
   have hservice := fgsa_gate_of_coveringBatch E rho hs i s x Q ht
@@ -386,7 +419,8 @@ theorem exactService_gate_at_of_head [Fintype V]
     exact exactService_opening_of_gateService E rho hs i x r Q ht hservice hout
       (hgeom.opening_domain r rfl)
 
-/-- ROOT-DIGEST W2b. P3 A.9; blueprint 21 H.22 H3: the gate clauses conditional on the HEAD clause.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 A.9; blueprint 21 H.22 H3: the gate clauses conditional on the HEAD clause.
 DC: UserConfirmationRecovery.lean:235 and Goldfish/Confirmation.lean:494,508,567.
 INTENTIONAL: J2 has separate finite HEAD and gate horizons. The caller supplies
 SA participation, gate geometry, and vote-to-gate synchrony only when the gate
@@ -434,7 +468,8 @@ theorem exactService_gate_of_head [Fintype V]
   exact exactService_gate_at_of_head (hroots := hroots) E rho hE hN hDelta hC v Q hne
     (hhead (hvg.trans hh)) (hSync hh) hx hi (hgeometry i x hx hi) H hH hbatch hfast
 
-/-- ROOT-DIGEST W2b. P3 A.9; blueprint 21 H.22 H3, composition with the supplied HEAD clause.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 A.9; blueprint 21 H.22 H3, composition with the supplied HEAD clause.
 DC: UserConfirmationRecovery.lean:235 and Goldfish/Confirmation.lean:434–441.
 INTENTIONAL: this is the complete J2 conjunction with its two horizons;
 the HEAD producer remains a separate input. The gate premises are unchanged.
@@ -463,7 +498,8 @@ theorem exactService_of_head_and_gate [Fintype V]
   ⟨hhead, exactService_gate_of_head (hroots := hroots) E rho hE hN hDelta hC v Q hne hhead hSync
     hparticipation hgeometry⟩
 
-/-- Blueprint 02:531–541: express SA participation with the actual HEAD seats.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 02:531–541: express SA participation with the actual HEAD seats.
 DC: Goldfish/Confirmation.lean:434–441, honest committee membership.
 INTENTIONAL: the FG-SA fresh HEAD seat map is a bijection. This transfers
 awake-honest cardinality without any linked FG seat or FG round. -/

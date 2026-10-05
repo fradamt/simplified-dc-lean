@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist
 
@@ -10,11 +12,12 @@ common batch and the full-tree path"). The private decoder restates the private
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-open Gen.AC
+open Gen.AC.Root
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- The honest proposal's parent is the proposer head at the proposer's post-clock read. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The honest proposal's parent is the proposer head at the proposer's post-clock read. -/
 private theorem proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {s : Slot} {Q : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) s Q) :
@@ -30,11 +33,11 @@ private theorem proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   cases m with
   | head _ => cases hb
   | row _ => cases hb
-  | proposal b raw sup rows =>
-    have he : b = Q := Option.some.inj hb
-    subst b
+  | proposal N =>
+    have he : N.erase = Q := Option.some.inj hb
+    subst Q
     rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-    change (⟨auth, .proposal Q raw sup rows⟩ : Obj p) ∈
+    change (⟨auth, .proposal N⟩ : Obj p) ∈
       (if E.awake _ (SA.proposalTime p.toParams s) then
         (duties p (SA.proposalTime p.toParams s)).flatMap (fun d =>
           (rho.ownSeats (RunDuty.signLabel d) _).filterMap (fun i =>
@@ -46,12 +49,12 @@ private theorem proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       obtain ⟨d, hd, hem⟩ := List.mem_flatMap.mp hem
       obtain ⟨i, _, hm⟩ := List.mem_filterMap.mp hem
       obtain ⟨m, hm, ho⟩ := Option.map_eq_some_iff.mp hm
-      have he : m = .proposal Q raw sup rows := congrArg V2.Signed.payload ho
+      have he : m = .proposal N := congrArg V2.Signed.payload ho
       subst m
       cases d with
       | headAction _ => cases hm
       | fgAction _ =>
-        change (attest p _ _ _).1.map Msg.row = some (.proposal Q raw sup rows) at hm
+        change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
         obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hm
         cases he
       | propAction s' =>
@@ -62,14 +65,15 @@ private theorem proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
           have he : (s' : Int) = s := by nlinarith
           exact_mod_cast he
         subst s'
-        exact (fgsa_walkRun_proposal_parent p _ s _ Q raw sup rows hm).2.2
+        exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
     · exact (List.not_mem_nil hem).elim
 
 private theorem proposal_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S2), 1240–1243 (proposer pools); plan H-SUPPORT §4
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S2), 1240–1243 (proposer pools); plan H-SUPPORT §4
 step 7.
 DC: INTENTIONAL an honest label-r HEAD that covers B is, at the proposer's slot-(r+1)
 read, a resolved non-equivocating proposer-support vote that supports B: the vote arrives
@@ -86,7 +90,7 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     (hv : SA.proposalTime p.toParams (r + 1) ≤ v)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho ip x).fg.F) B)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head r)) k ∈ rho.honest) :
-    Gen.AC.poolSupports (FGSA.clock p (storeAt p c E rho ip x)
+    Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (r + 1))).base.blocks
       (FGSA.proposerSupport (FGSA.clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (r + 1))) (r + 1)) k B = true ∧
@@ -172,9 +176,9 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   have hcut : dl (SA.voteTime p.toParams r) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K
+  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K.root
     (SA.voteTime p.toParams r) z x hD hk hem hx hcut (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head r) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head r) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams r)) ≤ ip :=
     healing_support_idxBefore_le p c E rho hS hip (hdle.trans hvp)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -191,7 +195,10 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
       (Gen.Pure.block_preceq_trans hFB hBK)
   have hol : GridCO.headLabel? o = some r := rfl
   have hok : GridCO.headSeat? o = some k := rfl
-  have hoK : GridCO.headTarget? o = some K := rfl
+  have hoK : GridCO.headTarget? o = some K.root := rfl
+  have hresolve := actView_resolve_target p st hinv
+    (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho ip x)))
+    o ((actView_blocks st K).mpr ⟨hKb, hFK⟩) hoK
   have hvotes : o ∈ FGSA.proposerVotes st (r + 1) := by
     change o ∈ GridCO.votesAt st.base (r + 1 - 1)
     exact List.mem_filter.mpr ⟨hod, by
@@ -199,20 +206,21 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   have hsupp : o ∈ FGSA.proposerSupport st (r + 1) := by
     apply List.mem_filter.mpr
     refine ⟨hvotes, ?_⟩
-    rw [hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown, Nat.add_sub_cancel]
-    exact ⟨(actView_blocks st K).mpr ⟨hKb, hFK⟩, hKslot⟩
-  have hvs : Gen.AC.voteSupports st.base.blocks B o = true := by
-    rw [Gen.AC.voteSupports_def, hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some]
-    exact ⟨⟨hKb, hKslot⟩, hBK⟩
-  refine ⟨(Gen.AC.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
+    change (match GridCO.resolvedHead? (actView st) o with
+      | some C => decide (C.slot ≤ r + 1 - 1) | none => false) = true
+    rw [hresolve]
+    exact decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)
+  have hvs : Gen.AC.Root.voteSupports st.base.blocks B o = true := by
+    exact (Gen.AC.Root.vote_support_body _ _ _).mpr
+      ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p _ hinv) o hKb hoK,
+        hKb, by simpa only [hol, Option.getD_some] using hKslot, hBK⟩
+  refine ⟨(Gen.AC.Root.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
   -- Every stored label-r vote of the honest seat is its emitted HEAD.
   have hall : ∀ w ∈ GridCO.votesAt (storeAt p c E rho ip x).base r,
       GridCO.headSeat? w = some k → w = o := by
     intro w hw hwk
     obtain ⟨hwm, hwl⟩ := List.mem_filter.mp hw
-    exact fgsa_honest_head_eq_of_stored E rho hE ip x r k K _ hk hem w hwm
+    exact fgsa_honest_head_eq_of_stored E rho hE ip x r k K.root _ hk hem w hwm
       (by simpa only [beq_iff_eq] using hwl) hwk
   have hvat : FGSA.proposerVotes st (r + 1) = GridCO.votesAt (storeAt p c E rho ip x).base r := by
     change GridCO.votesAt st.base (r + 1 - 1) = _
@@ -226,7 +234,8 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
     exact absurd ((hall a ha hka).trans (hall b hb hkb).symm) hne
 
-/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S2); plan H-SUPPORT §4 step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S2); plan H-SUPPORT §4 step 7.
 DC: INTENTIONAL one proposal step. If every honest label-r HEAD covers B, the honest
 proposer head at slot r+1 inside the phase covers B. The honest batch of label r gives
 majority and rival bounds (`batch_head_covers` on the full tree); a witness W of the
@@ -381,7 +390,8 @@ theorem healing_proposal_core [Fintype V] (E : Generic.Env V)
     (fun k hk => (hseat k hk).1)
     hother hb hanchor hkeep
 
-/-- Blueprint 21:709–715 (H.2 S2); plan H-SUPPORT §4 step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:709–715 (H.2 S2); plan H-SUPPORT §4 step 7.
 DC: INTENTIONAL the S1 proposal clause of Transfers from the HEAD clause and the lease
 invariant at the honest proposal reads. -/
 theorem healing_proposals_cover [Fintype V] (E : Generic.Env V)
@@ -419,7 +429,8 @@ theorem healing_proposals_cover [Fintype V] (E : Generic.Env V)
     (hheads r (by exact_mod_cast hrI) (hvr.trans hv)) hxh hip hv
     (hlease (r + 1) hi hv ip _ hxh hip)
 
-/-- Blueprint 21:620–715 (H.1 + H.2 S2, fast arm); plan H-SUPPORT §4 steps 1–7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:620–715 (H.1 + H.2 S2, fast arm); plan H-SUPPORT §4 steps 1–7.
 DC: INTENTIONAL the S1 proposal clause of Transfers for a fast PhaseBody arm. -/
 theorem healing_fast_proposals [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -428,16 +439,17 @@ theorem healing_fast_proposals [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)

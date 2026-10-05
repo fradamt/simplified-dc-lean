@@ -9,7 +9,7 @@ Centaur fgsa-s5-h2p-route; B1/B15/B17/B18.
 DC: SAME release count from unanimous honest HEADs before the gate. -/
 
 namespace AvailableChain.FGSA.Run
-open AvailableChain.SimplexFG Gen.AC
+open AvailableChain.SimplexFG Gen.AC.Root
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -40,24 +40,24 @@ private theorem unanimous_vote_clock (st : State p.n) (s : Slot) :
   rw [ite_eq_right hn]
 
 
-private def unanimousReleaseSeats {n : Nat} (q : GridCO.Params) (v : GridCO.State n)
+private def unanimousReleaseSeats {n : Nat} (q : GridCO.Params) (v : GridCO.State n .root)
     (s : Slot) (B : Block) : Finset (Fin n) :=
   ((GridCO.seats n ((GridCO.votesAt v s).filter (fun o =>
     GridCO.resolvedBefore v o (GridCO.releaseTime q s)))).filter (fun k =>
       !GridCO.equivocates (GridCO.votesAt v s) k &&
       (GridCO.seatVotes ((GridCO.votesAt v s).filter (fun o =>
         GridCO.resolvedBefore v o (GridCO.releaseTime q s))) k).any (fun o =>
-          (GridCO.headTarget? o).any (fun C => !Block.compatible C B)))).toFinset
+          (GridCO.resolvedHead? v o).any (fun C => !Block.compatible C B)))).toFinset
 
-private theorem unanimous_release_card {n : Nat} (q : GridCO.Params) (v : GridCO.State n)
+private theorem unanimous_release_card {n : Nat} (q : GridCO.Params) (v : GridCO.State n .root)
     (s : Slot) (B : Block) :
     GridCO.releaseCount q v s B = (unanimousReleaseSeats q v s B).card := by
-  have hp : (fun o : GridCO.Wire n => match GridCO.headTarget? o with
+  have hp : (fun o : GridCO.Wire n .root => match GridCO.resolvedHead? v o with
       | some C => !Block.compatible C B
-      | none => false) = (fun o => (GridCO.headTarget? o).any
+      | none => false) = (fun o => (GridCO.resolvedHead? v o).any
         (fun C => !Block.compatible C B)) := by
     funext o
-    cases GridCO.headTarget? o <;> rfl
+    cases GridCO.resolvedHead? v o <;> rfl
   unfold GridCO.releaseCount unanimousReleaseSeats
   dsimp only
   refine Eq.trans ?_ (List.toFinset_card_of_nodup
@@ -69,13 +69,13 @@ private theorem unanimous_release_card {n : Nat} (q : GridCO.Params) (v : GridCO
   apply congrArg (fun f => (GridCO.seatVotes _ k).any f)
   exact hp
 
-private theorem unanimous_release_mem {n : Nat} (q : GridCO.Params) (v : GridCO.State n)
+private theorem unanimous_release_mem {n : Nat} (q : GridCO.Params) (v : GridCO.State n .root)
     (s : Slot) (B : Block) (k : Fin n)
     (he : GridCO.equivocates (GridCO.votesAt v s) k = false)
-    (o : GridCO.Wire n) (ho : o ∈ GridCO.votesAt v s)
+    (o : GridCO.Wire n .root) (ho : o ∈ GridCO.votesAt v s)
     (hr : GridCO.resolvedBefore v o (GridCO.releaseTime q s) = true)
     (hk : GridCO.headSeat? o = some k)
-    (hc : (GridCO.headTarget? o).any (fun C => !Block.compatible C B) = true) :
+    (hc : (GridCO.resolvedHead? v o).any (fun C => !Block.compatible C B) = true) :
     k ∈ unanimousReleaseSeats q v s B := by
   dsimp only [unanimousReleaseSeats]
   simp only [List.mem_toFinset, List.mem_filter, Bool.and_eq_true,
@@ -182,9 +182,9 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
   have hcut : dl (SA.voteTime p.toParams i) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K
+  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K.root
     (SA.voteTime p.toParams i) z y hD hk hem hy hcut (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head i) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head i) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams i)) ≤ iy :=
     healing_support_idxBefore_le p c E rho hS hiy (hdle.trans hvi)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -209,12 +209,12 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
       (Gen.Pure.block_preceq_trans hFB hBK)
   have hol : GridCO.headLabel? o = some i := rfl
   have hok : GridCO.headSeat? o = some k := rfl
-  have hoK : GridCO.headTarget? o = some K := rfl
+  have hoK : GridCO.headTarget? o = some K.root := rfl
   have hall : ∀ w ∈ GridCO.votesAt (storeAt p c E rho iy y).base i,
       GridCO.headSeat? w = some k → w = o := by
     intro w hw hwk
     obtain ⟨hwm, hwl⟩ := List.mem_filter.mp hw
-    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K _ hk hem w hwm
+    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K.root _ hk hem w hwm
       (by simpa only [beq_iff_eq] using hwl) hwk
   have hnoeq : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k = false := by
     cases he : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k with
@@ -222,17 +222,19 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
     | true =>
       obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
       exact absurd ((hall a ha hka).trans (hall b hb hkb).symm) hne
+  have hresolve := actView_resolve_target p dst hinv
+    (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho iy y)))
+    o ((actView_blocks dst K).mpr ⟨hKb, hFK'⟩) hoK
   have hresolved : GridCO.resolvedBefore (actView dst) o
       (SA.freezeTime p.toParams i) = true := by
     unfold GridCO.resolvedBefore
-    rw [hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some,
-      GridCO.blockKnown]
-    exact ⟨⟨⟨(actView_blocks dst K).mpr ⟨hKb, hFK'⟩, hKslot⟩, hstampv⟩, hKst⟩
+    rw [hresolve]
+    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some]
+    exact ⟨⟨hKslot, hstampv⟩, hKst⟩
   have hmono : GridCO.resolvedBefore (actView dst) o
       (GridCO.releaseTime p.toParams.engine i) = true := by
     unfold GridCO.resolvedBefore at hresolved ⊢
-    rw [hoK] at hresolved ⊢
+    rw [hresolve] at hresolved ⊢
     simp only [Bool.and_eq_true, decide_eq_true_eq] at hresolved ⊢
     have htime : SA.freezeTime p.toParams i < GridCO.releaseTime p.toParams.engine i := by
       change 4 * p.Δ * (i : Int) + 3 * p.Δ < 4 * p.Δ * (i : Int) + 5 * p.Δ
@@ -252,7 +254,7 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
     exact List.mem_filter.mpr ⟨hod0, by simp only [hol, beq_iff_eq]⟩
   · exact hmono
   · exact hok
-  · rw [hoK, heQ]
+  · rw [hresolve, heQ]
     change (Bool.not (Block.compatible B row.1)) = true
     cases hc : Block.compatible B row.1 with
     | false => rfl
@@ -263,7 +265,8 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
       rw [Bool.or_comm]
       exact hc
 
-/-- Blueprint 21 H.1:689–692, H2′:3382–3391; Centaur gate-free count;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.1:689–692, H2′:3382–3391; Centaur gate-free count;
 B1/B15/B17/B18. DC: SAME honest opposition releases each conflicting lease.
 The next HEAD tick bounds synchrony. No gate tick or fast-support input is used. -/
 theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
@@ -283,7 +286,7 @@ theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
   let st1 : State p.n := { st0 with
     base := GridCO.expire { st0.base with now := SA.releaseTime p.toParams v }
       (SA.releaseTime p.toParams v) }
-  have hdst : dst = onView (fun view => SA.release p.toParams view v) st1 := by
+  have hdst : dst = onView (fun view => SA.Root.release p.toParams view v) st1 := by
     dsimp only [dst]
     rw [unanimous_vote_clock, unanimous_vote_release, fgsa_release_clockPre]
   have hcount := (healing_support_release_rows st0 v row hrow).2
@@ -341,7 +344,8 @@ theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
   dsimp only [dst, st1, st0] at hle hcount
   omega
 
-/-- Blueprint 21 H2′:3382–3391, H.2:709–715; Centaur proposed adapter;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H2′:3382–3391, H.2:709–715; Centaur proposed adapter;
 B1/B15/B17/B18. DC: SAME next transfer from the unanimous prior batch.
 Kept root cases use finality coverage; the domain case uses the gate-free count. -/
 theorem healing_unanimous_next_transfer_kept [Fintype V] {G ΔF : Time}

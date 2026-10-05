@@ -10,12 +10,13 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 open Gen.Pure
 
-/-- Blueprint 21 H.5:856–886 (design citation 728–758); spec 1350–1360.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:856–886 (design citation 728–758); spec 1350–1360.
 Class (iii). DC: INTENTIONAL; the stored-parent band needs the same
 immutable parent in both stores and equal floors at these two reads. -/
 theorem fgsa_eligible_eq_of_same_floor
     (p : Params) (src dst : State p.n)
-    (raw sup raw' sup' : List (GridCO.Wire p.n)) (C : Block) (P : FGBlock (Fin p.n))
+    (raw sup raw' sup' : List (GridCO.Wire p.n .root)) (C : Block) (P : FGBlock (Fin p.n))
     (hsrc : P ∈ src.fg.TF) (hdst : P ∈ dst.fg.TF) (hP : eraseFG P = C.parent)
     (hlo : (controls p src).lo = (controls p dst).lo)
     (hcount : GridCO.voterCount raw = GridCO.voterCount raw')
@@ -26,13 +27,14 @@ theorem fgsa_eligible_eq_of_same_floor
   fgsa_eligible_eq_of_band_score p src dst raw sup raw' sup' C
     (fgsa_band_eq_of_same_floor p src dst C P hsrc hdst hP hlo) hcount hscore hslot
 
-/-- Blueprint 21 HG.1:1558–1565, L2-W:2068–2088, L4-R:2250–2265,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 HG.1:1558–1565, L2-W:2068–2088, L4-R:2250–2265,
 H.17:2976–2985 (design 1422–1425,1937–1939,2112–2116,2836–2845);
 spec 1350–1360. Class (iii). DC: INTENTIONAL; parent height witnesses
 exclude the band arm separately at each read, without equal floors. -/
 theorem fgsa_eligible_eq_of_parent_height
     (p : Params) (src dst : State p.n)
-    (raw sup raw' sup' : List (GridCO.Wire p.n)) (C : Block)
+    (raw sup raw' sup' : List (GridCO.Wire p.n .root)) (C : Block)
     (hsrc : ∀ P ∈ src.fg.TF, eraseFG P = C.parent →
       (controls p src).lo ≤ (heightView p P).h)
     (hdst : ∀ P ∈ dst.fg.TF, eraseFG P = C.parent →
@@ -53,7 +55,8 @@ theorem fgsa_eligible_eq_of_parent_height
   unfold eligible
   simp only [hs, hd, hcount, hscore, hslot]
 
-/-- Blueprint 21 H.5:886–914, H.17:2987–3009; spec 1290–1297,1520–1523.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:886–914, H.17:2987–3009; spec 1290–1297,1520–1523.
 Class (iii). DC: INTENTIONAL; each common candidate supplies its own two
 F bounds. Membership can come from fgsa_walk_domain_of_witness; the height
 witness stays inside its duty view. No bound on a paper pivot is used. -/
@@ -75,7 +78,8 @@ theorem fgsa_score_geometry_of_domains
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Blueprint 03:293–331; 21 H.5:886–914, H.17:2987–3009;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:293–331; 21 H.5:886–914, H.17:2987–3009;
 spec 1530–1538,1554–1577. Class (iii). DC: INTENTIONAL;
 ProposalWalkTransportCore.lean:185 compares common candidates. The parent
 instance supplies the count even for an empty candidate set. Each candidate
@@ -90,14 +94,14 @@ theorem fgsa_score_eq_on_candidates_on_run
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
-    (hadm : b ∈ (rho.stateBefore E ih y).st.base.blocks)
+    (hadm : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks)
     (Candidates : Block → Prop)
     (hA : ScoreRunGeometry
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) b.parent)
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) N.erase.parent)
     (hCandidates : ∀ C, Candidates C → ScoreRunGeometry
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) C)
@@ -107,12 +111,13 @@ theorem fgsa_score_eq_on_candidates_on_run
     GridCO.voterCount (proposerVotes src s) = GridCO.voterCount (headVotes p dst s) ∧
       ∀ C, Candidates C → RetainedWalk.ss src s C = RetainedWalk.ts p dst s C := by
   refine ⟨(fgsa_score_eq_on_run (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hih hseat
-    b raw sup rows hem hadm b.parent hA).2.2.1, ?_⟩
+    N hem hadm N.erase.parent hA).2.2.1, ?_⟩
   intro C hC
   exact (fgsa_score_eq_on_run (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hih hseat
-    b raw sup rows hem hadm C (hCandidates C hC)).2.2.2 C (block_preceq_refl C)
+    N hem hadm C (hCandidates C hC)).2.2.2 C (block_preceq_refl C)
 
-/-- Blueprint 21 H.5:886–914, H.17:2987–3009; spec 1330–1360.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.5:886–914, H.17:2987–3009; spec 1330–1360.
 Class (iii). DC: INTENTIONAL; selected retained children and reflected
 eligible rivals use candidate-local G25. The inclusive candidate set also
 serves old-child endpoint reflection. This supplies exactly the scores field

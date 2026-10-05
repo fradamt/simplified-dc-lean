@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLoss
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 
@@ -20,7 +22,8 @@ private theorem first_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause` (first release l = sB + 1; H.1 re-proved
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause` (first release l = sB + 1; H.1 re-proved
 without PhaseInterval); blueprint 21:673–699, 2777–2798.
 DC: INTENTIONAL moving frame. Let B be a high source of label sB, and X an
 ancestor-closed part of the frozen HEAD view of an honest node x at v_(sB+1).
@@ -71,7 +74,7 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
   let src := actView (clockPre p (storeAt p c E rho ix xs) (SA.gateTime p.toParams s))
   let dst := FGSA.clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (s + 1))
   -- The genuine result Gr ⪰ B gives the majority for B.
-  have hconf : SA.confirmationFrom p.toParams
+  have hconf : SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (storeAt p c E rho ix xs) (SA.gateTime p.toParams s)).fg.F)
       src s = some Gr := by
     simp only [Option.map_some, Option.some.injEq] at hG
@@ -86,9 +89,20 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
       split at hconf
       · have he := Option.some.inj hconf
         subst Gr
-        exact ‹_ < 2 * _›
+        have heq (C : Block) :
+            GridCO.goldfishScoreOn (GridCO.resolutionTree src) src.blocks
+              (GridCO.cleanSupport p.toParams.engine src s)
+              (GridCO.cleanSupport p.toParams.engine src s) C =
+            GridCO.goldfishScore src.blocks (GridCO.cleanSupport p.toParams.engine src s)
+              (GridCO.cleanSupport p.toParams.engine src s) C :=
+          actView_score p (clockPre p (storeAt p c E rho ix xs) (SA.gateTime p.toParams s))
+            (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix xs) _)
+            (by rw [clockPre_headDomain];
+                exact base_headDomain_none p (reachable_stateBefore E rho ix xs)) _ _ C
+        rw [← heq _]
+        assumption
       · contradiction
-    have hanti := Gen.AC.goldfishScore_antitone src.blocks
+    have hanti := Gen.AC.Root.goldfishScore_antitone src.blocks
       (GridCO.cleanSupport p.toParams.engine src s)
       (GridCO.cleanSupport p.toParams.engine src s) (eraseFG B) Gr hBG
     omega
@@ -146,28 +160,31 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
       · contradiction
   -- Majority and rival dominance at the receiver (forward and reverse relay).
   have hforward : ∀ o ∈ GridCO.cleanSupport p.toParams.engine src s, ∀ seat,
-      GridCO.headSeat? o = some seat → Gen.AC.voteSupports src.blocks (eraseFG B) o = true →
+      GridCO.headSeat? o = some seat → Gen.AC.Root.voteSupports src.blocks (eraseFG B) o = true →
       (o ∈ FGSA.headSupport p dst (s + 1) ∧
-        Gen.AC.voteSupports dst.base.blocks (eraseFG B) o = true) ∨
+        Gen.AC.Root.voteSupports dst.base.blocks (eraseFG B) o = true) ∨
         GridCO.equivocates (FGSA.headVotes p dst (s + 1)) seat = true := by
     intro o' ho' seat hs' hsup'
     obtain ⟨K', hK', hKm', hKst', _, _, _⟩ := healing_support_clean_target E rho o' ho'
     have hBK' : Block.Preceq (eraseFG B) K' := by
-      rw [Gen.AC.voteSupports_def, hK'] at hsup'
+      have hlookup : Gen.AC.Root.resolvedTarget? src.blocks o' = some K' :=
+        actView_target_of_resolvedHead p _
+          (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix xs) _) o' hK'
+      rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
     obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hrec.base.idealization)
       E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB' hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
       seat hs' Kfg' (hKe' ▸ hK') (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
-  have htr := Gen.AC.transfer src.blocks dst.base.blocks
+  have htr := Gen.AC.Root.transfer src.blocks dst.base.blocks
     (GridCO.cleanSupport p.toParams.engine src s) (GridCO.lateVotes p.toParams.engine src s)
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) (eraseFG B)
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
     (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
-  rw [Gen.AC.TransferBounds_def] at htr
+  rw [Gen.AC.Root.TransferBounds_def] at htr
   rw [healing_headAtIdx_tick p c E rho hiy]
   exact fgsa_headVote_covers_of_transfer p dst s (eraseFG B) hanchor hpath
     htr.2.2.2.2.2.1 htr.2.2.2.2.2.2
