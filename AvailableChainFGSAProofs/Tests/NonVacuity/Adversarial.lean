@@ -156,17 +156,17 @@ theorem run_horizon : run.horizon = 290 := rfl
 
 theorem run_honest : run.honest = honestNodes := rfl
 
-theorem design_numbers :
+theorem adv_design_numbers :
     params.n = 4 ∧ params.Δ = 1 ∧ params.k = 2 ∧ params.R = 2 ∧
     params.K_W = 2 ∧ params.δt = 4 ∧ params.η = 0 := by decide
 
-theorem delta_ratio : params.δt = 2 * params.R := by decide
+theorem adv_delta_ratio : params.δt = 2 * params.R := by decide
 
 theorem env_delta : env.Δ = params.Δ := rfl
 
 theorem env_gst : env.t_GST = 7 := rfl
 
-theorem bounds : B_HF params 1 4 = 247 ∧ W_W params 1 1 = 33 ∧ kappaF params 1 = 2 := by
+theorem adv_bounds : B_HF params 1 4 = 247 ∧ W_W params 1 1 = 33 ∧ kappaF params 1 = 2 := by
   decide
 
 theorem nodes_honest (v : Validator) : v ∈ nodes ↔ v ∈ honestNodes := by
@@ -181,11 +181,11 @@ theorem faulty_card : (Gen.V2.Duty.faulty run).card = 1 := by
   rw [faulty_eq]
   rfl
 
-theorem fault_bound : (Gen.V2.Duty.faulty run).card ≤ (params.n - 1) / 3 := by
+theorem adv_fault_bound : (Gen.V2.Duty.faulty run).card ≤ (params.n - 1) / 3 := by
   rw [faulty_card]
   decide
 
-theorem cstar (h : Time) (es : List Event) :
+theorem adv_cstar (h : Time) (es : List Event) :
     V2.D.CStar (fgsaFamilies params unitCodec).fresh (runData h es) := by
   intro label hf
   cases label with
@@ -195,7 +195,7 @@ theorem cstar (h : Time) (es : List Event) :
       | fg => exact hf.elim
       | head s => exact Function.bijective_id
 
-theorem linked (h : Time) (es : List Event) :
+theorem adv_linked (h : Time) (es : List Event) :
     V2.D.Linked (fgsaFamilies params unitCodec).linked (runData h es) := by
   refine ⟨4, Equiv.refl _, ?_⟩
   intro label hf
@@ -206,7 +206,7 @@ theorem linked (h : Time) (es : List Event) :
       | head s => exact hf.elim
       | fg => exact ⟨rfl, fun _ => rfl⟩
 
-theorem gap_positive : 4 * params.Δ ≤ (4 : Time) := by decide
+theorem adv_gap_positive : 4 * params.Δ ≤ (4 : Time) := by decide
 
 /-- Node 0 is honest and proposes every slot, so every window of length 4 has an honest slot. -/
 theorem honest_slot (h : Time) (es : List Event) {s : Slot} (hs : 0 < s) :
@@ -231,7 +231,7 @@ theorem proposer_gap (h : Time) (es : List Event) (t : Time) (ht : env.t_GST ≤
 /-! ### Single ticks -/
 
 /-- Describe each release without evaluating the state or its codec data. -/
-theorem gen_tick_seat (st : Node params) (v : Validator) (t : Time) (o : Obj params)
+theorem adv_gen_tick_seat (st : Node params) (v : Validator) (t : Time) (o : Obj params)
     (ho : o ∈ (V2.D.tick env (runData 0 []) st v t).2) :
     ∃ l i m, o = ⟨.seat (RunDuty.signLabel l) i, m⟩ ∧ l ∈ duties params t ∧
       (fgsa params unitCodec).act ((fgsa params unitCodec).clock st t) l () = some m := by
@@ -249,7 +249,7 @@ theorem gen_tick_seat (st : Node params) (v : Validator) (t : Time) (o : Obj par
   · exact (List.not_mem_nil ho).elim
 
 /-- Every emitted object is signed with a seat of its emitter. -/
-theorem gen_tick_holder (st : Node params) (v : Validator) (t : Time) (o : Obj params)
+theorem adv_gen_tick_holder (st : Node params) (v : Validator) (t : Time) (o : Obj params)
     (ho : o ∈ (V2.D.tick env (runData 0 []) st v t).2) :
     V2.D.Run.holder (runData 0 []) o.auth = some v := by
   change o ∈ (if env.awake v t then
@@ -268,7 +268,7 @@ theorem gen_tick_holder (st : Node params) (v : Validator) (t : Time) (o : Obj p
   · exact (List.not_mem_nil ho).elim
 
 /-- Without gossip, a tick releases at most one object for each duty seat. -/
-theorem tick_nodup_without_gossip {In V : Type} [DecidableEq V]
+theorem adv_tick_nodup_without_gossip {In V : Type} [DecidableEq V]
     (P : V2.ProtocolSpecD In) (E : Generic.Env V) (rho : V2.D.Run V P)
     (st : P.State) (v : V) (t : Time) (hg : P.gossip (P.clock st t) t = [])
     (hD : V2.D.DutiesInjectiveAt P t) :
@@ -303,15 +303,15 @@ theorem tick_nodup_without_gossip {In V : Type} [DecidableEq V]
         ((P.duties_spec l' t).mp hl') (V2.Auth.seat.inj he).1)
   · exact List.nodup_nil
 
-theorem gen_tick_nodup (st : Node params) (v : Validator) (t : Time) :
+theorem adv_gen_tick_nodup (st : Node params) (v : Validator) (t : Time) :
     (V2.D.tick env (runData 0 []) st v t).2.Nodup :=
-  tick_nodup_without_gossip (fgsa params unitCodec) env (runData 0 []) st v t rfl
+  adv_tick_nodup_without_gossip (fgsa params unitCodec) env (runData 0 []) st v t rfl
     (fgsa_dutiesInjectiveAt t)
 
 /-! ### Batch structure -/
 
 /-- The delivery fold adds only deliveries at its own time. -/
-theorem delivery_fold_mem (t : Time) (xs : List (Validator × Obj params))
+theorem adv_delivery_fold_mem (t : Time) (xs : List (Validator × Obj params))
     (acc : World × List Event) (e : Event) :
     e ∈ (xs.foldl (deliverOne t) acc).2 ↔
       e ∈ acc.2 ∨ e ∈ (xs.foldl (deliverOne t) acc).2 ∧
@@ -335,7 +335,7 @@ theorem delivery_fold_mem (t : Time) (xs : List (Validator × Obj params))
           · exact he
 
 /-- Deliveries form a sublist of the offers. This keeps the offer order. -/
-theorem delivery_fold_sublist (t : Time) (xs : List (Validator × Obj params))
+theorem adv_delivery_fold_sublist (t : Time) (xs : List (Validator × Obj params))
     (acc : World × List Event) :
     ∃ ds, (xs.foldl (deliverOne t) acc).2 = acc.2 ++ ds ∧
       ds.Sublist (xs.map (fun vo => .deliver vo.1 vo.2 t)) := by
@@ -370,22 +370,22 @@ theorem mem_offers (n : Nat) (held released : List (Obj params)) (o : Obj params
 theorem offers_nodup (n : Nat) (held released : List (Obj params)) :
     (offers n held released).Nodup := List.nodup_dedup _
 
-theorem timeBatch_block (n : Nat) (w : World) (held : List (Obj params)) :
+theorem adv_timeBatch_block (n : Nat) (w : World) (held : List (Obj params)) :
     ∃ ds, (timeBatch n w held).2 = nodes.map (fun v => .tick v (n : Time)) ++ ds ∧
       ds.Sublist ((offers n held (tickBatch n w).2).flatMap
         (fun o => nodes.map (fun v => .deliver v o (n : Time)))) := by
-  obtain ⟨ds, he, hs⟩ := delivery_fold_sublist (n : Time)
+  obtain ⟨ds, he, hs⟩ := adv_delivery_fold_sublist (n : Time)
     ((offers n held (tickBatch n w).2).flatMap (fun o => nodes.map (fun v => (v, o))))
     ((tickBatch n w).1, nodes.map (fun v => .tick v (n : Time)))
   refine ⟨ds, he, ?_⟩
   simp only [List.map_flatMap, List.map_map, Function.comp_def] at hs
   exact hs
 
-theorem timeBatch_shape (n : Nat) (w : World) (held : List (Obj params)) (e : Event)
+theorem adv_timeBatch_shape (n : Nat) (w : World) (held : List (Obj params)) (e : Event)
     (he : e ∈ (timeBatch n w held).2) :
     (∃ v ∈ nodes, e = .tick v (n : Time)) ∨
       ∃ v ∈ nodes, ∃ o ∈ offers n held (tickBatch n w).2, e = .deliver v o (n : Time) := by
-  obtain ⟨ds, hb, hs⟩ := timeBatch_block n w held
+  obtain ⟨ds, hb, hs⟩ := adv_timeBatch_block n w held
   rw [hb] at he
   rcases List.mem_append.mp he with he | he
   · obtain ⟨v, hv, rfl⟩ := List.mem_map.mp he
@@ -394,26 +394,27 @@ theorem timeBatch_shape (n : Nat) (w : World) (held : List (Obj params)) (e : Ev
     obtain ⟨v, hv, hve⟩ := List.mem_map.mp hm
     exact Or.inr ⟨v, hv, o, ho, hve.symm⟩
 
-theorem timeBatch_time (n : Nat) (w : World) (held : List (Obj params)) (e : Event)
+theorem adv_timeBatch_time (n : Nat) (w : World) (held : List (Obj params)) (e : Event)
     (he : e ∈ (timeBatch n w held).2) : e.time = (n : Time) := by
-  rcases timeBatch_shape n w held e he with ⟨v, _, rfl⟩ | ⟨v, _, o, _, rfl⟩ <;> rfl
+  rcases adv_timeBatch_shape n w held e he with ⟨v, _, rfl⟩ | ⟨v, _, o, _, rfl⟩ <;> rfl
 
 theorem timeBatch_node (n : Nat) (w : World) (held : List (Obj params)) (e : Event)
     (he : e ∈ (timeBatch n w held).2) : e.node ∈ nodes := by
-  rcases timeBatch_shape n w held e he with ⟨v, hv, rfl⟩ | ⟨v, hv, o, _, rfl⟩ <;> exact hv
+  rcases adv_timeBatch_shape n w held e he with ⟨v, hv, rfl⟩ | ⟨v, hv, o, _, rfl⟩ <;>
+    exact hv
 
-theorem timeBatch_no_restart (n : Nat) (w : World) (held : List (Obj params))
+theorem adv_timeBatch_no_restart (n : Nat) (w : World) (held : List (Obj params))
     (v : Validator) (s : Time) : V2.Event.restart v s ∉ (timeBatch n w held).2 := by
   intro he
-  rcases timeBatch_shape n w held _ he with ⟨u, _, hu⟩ | ⟨u, _, o, _, hu⟩ <;> cases hu
+  rcases adv_timeBatch_shape n w held _ he with ⟨u, _, hu⟩ | ⟨u, _, o, _, hu⟩ <;> cases hu
 
-theorem timeBatch_tick (n : Nat) (w : World) (held : List (Obj params)) (v : Validator)
+theorem adv_timeBatch_tick (n : Nat) (w : World) (held : List (Obj params)) (v : Validator)
     (hv : v ∈ nodes) : V2.Event.tick v (n : Time) ∈ (timeBatch n w held).2 := by
-  obtain ⟨ds, hb, _⟩ := timeBatch_block n w held
+  obtain ⟨ds, hb, _⟩ := adv_timeBatch_block n w held
   rw [hb]
   exact List.mem_append_left _ (List.mem_map.mpr ⟨v, hv, rfl⟩)
 
-theorem prefix_times (steps : Nat) (e : Event) (he : e ∈ (buildPrefix steps).events) :
+theorem adv_prefix_times (steps : Nat) (e : Event) (he : e ∈ (buildPrefix steps).events) :
     0 ≤ e.time ∧ e.time < steps := by
   induction steps with
   | zero => simp [buildPrefix] at he
@@ -424,7 +425,7 @@ theorem prefix_times (steps : Nat) (e : Event) (he : e ∈ (buildPrefix steps).e
         simp only [Nat.cast_add, Nat.cast_one]
         simp only [Time] at *
         omega
-      · rw [timeBatch_time _ _ _ _ he]
+      · rw [adv_timeBatch_time _ _ _ _ he]
         exact ⟨Int.natCast_nonneg _, by simp⟩
 
 theorem prefix_nodes (steps : Nat) (e : Event) (he : e ∈ (buildPrefix steps).events) :
@@ -437,16 +438,16 @@ theorem prefix_nodes (steps : Nat) (e : Event) (he : e ∈ (buildPrefix steps).e
       · exact ih he
       · exact timeBatch_node _ _ _ _ he
 
-theorem prefix_no_restart (steps : Nat) (v : Validator) (t : Time) :
+theorem adv_prefix_no_restart (steps : Nat) (v : Validator) (t : Time) :
     V2.Event.restart v t ∉ (buildPrefix steps).events := by
   induction steps with
   | zero => simp [buildPrefix]
   | succ steps ih =>
       rw [bp_events]
       simp only [List.mem_append, not_or]
-      exact ⟨ih, timeBatch_no_restart _ _ _ v t⟩
+      exact ⟨ih, adv_timeBatch_no_restart _ _ _ v t⟩
 
-theorem prefix_tick (steps t : Nat) (ht : t < steps) (v : Validator) (hv : v ∈ nodes) :
+theorem adv_prefix_tick (steps t : Nat) (ht : t < steps) (v : Validator) (hv : v ∈ nodes) :
     V2.Event.tick v (t : Time) ∈ (buildPrefix steps).events := by
   induction steps with
   | zero => omega
@@ -454,7 +455,7 @@ theorem prefix_tick (steps t : Nat) (ht : t < steps) (v : Validator) (hv : v ∈
       rw [bp_events]
       by_cases he : t = steps
       · subst t
-        exact List.mem_append_right _ (timeBatch_tick _ _ _ v hv)
+        exact List.mem_append_right _ (adv_timeBatch_tick _ _ _ v hv)
       · exact List.mem_append_left _ (ih (by omega))
 
 /-- The generator's traces are literal event prefixes of each other. -/
@@ -471,7 +472,7 @@ theorem prefix_prefix (m n : Nat) (h : m ≤ n) :
     · rw [bp_events]
       exact (ih (by omega)).trans ⟨_, rfl⟩
 
-theorem prefix_blocks (steps : Nat) :
+theorem adv_prefix_blocks (steps : Nat) :
     (buildPrefix steps).events = (List.range steps).flatMap
       (fun (s : Nat) => (timeBatch s (buildPrefix s).world (buildPrefix s).held).2) := by
   induction steps with
@@ -480,13 +481,13 @@ theorem prefix_blocks (steps : Nat) :
       rw [bp_events]
       simp only [List.range_succ, List.flatMap_append, List.flatMap_singleton, ih]
 
-theorem phase_le_two (e : Event) : e.phase ≤ 2 := by cases e <;> simp [V2.Event.phase]
+theorem adv_phase_le_two (e : Event) : e.phase ≤ 2 := by cases e <;> simp [V2.Event.phase]
 
-theorem key_le_delivery (e : Event) (v : Validator) (o : Obj params) (t : Time)
+theorem adv_key_le_delivery (e : Event) (v : Validator) (o : Obj params) (t : Time)
     (ht : e.time ≤ t) : e.key ≤ (V2.Event.deliver v o t).key := by
-  exact Prod.Lex.toLex_le_toLex'.mpr ⟨ht, fun _ => phase_le_two e⟩
+  exact Prod.Lex.toLex_le_toLex'.mpr ⟨ht, fun _ => adv_phase_le_two e⟩
 
-theorem delivery_fold_sorted (t : Time) (xs : List (Validator × Obj params))
+theorem adv_delivery_fold_sorted (t : Time) (xs : List (Validator × Obj params))
     (acc : World × List Event) (hs : acc.2.Pairwise (fun e f => e.key ≤ f.key))
     (ht : ∀ e ∈ acc.2, e.time ≤ t) :
     (xs.foldl (deliverOne t) acc).2.Pairwise (fun e f => e.key ≤ f.key) := by
@@ -502,31 +503,31 @@ theorem delivery_fold_sorted (t : Time) (xs : List (Validator × Obj params))
           refine ⟨hs, List.pairwise_singleton _ _, ?_⟩
           intro e he f hf
           obtain rfl := List.mem_singleton.mp hf
-          exact key_le_delivery e _ _ _ (ht e he)
+          exact adv_key_le_delivery e _ _ _ (ht e he)
         · intro e he
           rcases List.mem_append.mp he with he | he
           · exact ht e he
           · obtain rfl := List.mem_singleton.mp he
             exact le_rfl
 
-theorem timeBatch_sorted (n : Nat) (w : World) (held : List (Obj params)) :
+theorem adv_timeBatch_sorted (n : Nat) (w : World) (held : List (Obj params)) :
     (timeBatch n w held).2.Pairwise (fun e f => e.key ≤ f.key) := by
-  apply delivery_fold_sorted
+  apply adv_delivery_fold_sorted
   · simp [nodes, V2.Event.key, V2.Event.time, V2.Event.phase]
   · intro e he
     obtain ⟨v, _, rfl⟩ := List.mem_map.mp he
     exact le_rfl
 
-theorem prefix_sorted (steps : Nat) :
+theorem adv_prefix_sorted (steps : Nat) :
     (buildPrefix steps).events.Pairwise (fun e f => e.key ≤ f.key) := by
   induction steps with
   | zero => exact List.Pairwise.nil
   | succ steps ih =>
       rw [bp_events, List.pairwise_append]
-      refine ⟨ih, timeBatch_sorted _ _ _, ?_⟩
+      refine ⟨ih, adv_timeBatch_sorted _ _ _, ?_⟩
       intro e he f hf
-      have he' := (prefix_times steps e he).2
-      have hf' := timeBatch_time _ _ _ f hf
+      have he' := (adv_prefix_times steps e he).2
+      have hf' := adv_timeBatch_time _ _ _ f hf
       apply Prod.Lex.toLex_le_toLex'.mpr
       dsimp only
       rw [hf']
@@ -547,11 +548,11 @@ def GenFresh : World → List Event → Prop
         | _ => True) ∧
       GenFresh (V2.D.World.step env (runData 0 []) w e) es
 
-theorem genFold_append (w : World) (es ds : List Event) :
+theorem adv_genFold_append (w : World) (es ds : List Event) :
     genFold w (es ++ ds) = genFold (genFold w es) ds :=
   List.foldl_append
 
-theorem genFresh_append (w : World) (es ds : List Event) :
+theorem adv_genFresh_append (w : World) (es ds : List Event) :
     GenFresh w (es ++ ds) ↔ GenFresh w es ∧ GenFresh (genFold w es) ds := by
   induction es generalizing w with
   | nil => simp [GenFresh, genFold]
@@ -559,7 +560,7 @@ theorem genFresh_append (w : World) (es ds : List Event) :
       simp only [List.cons_append, GenFresh, ih, genFold, List.foldl_cons]
       tauto
 
-theorem tick_fold_replay (t : Time) (vs : List Validator)
+theorem adv_tick_fold_replay (t : Time) (vs : List Validator)
     (w : World) (os : List (Obj params)) :
     (vs.foldl (fun acc v =>
       let result := V2.D.tick env (runData 0 []) (acc.1 v) v t
@@ -571,17 +572,17 @@ theorem tick_fold_replay (t : Time) (vs : List Validator)
       simp only [List.foldl_cons, List.map_cons, genFold, V2.D.World.step] at *
       exact ih _ _
 
-theorem tickBatch_replay (t : Time) (w : World) :
+theorem adv_tickBatch_replay (t : Time) (w : World) :
     (tickBatch t w).1 = genFold w (nodes.map (fun v => .tick v t)) :=
-  tick_fold_replay t nodes w []
+  adv_tick_fold_replay t nodes w []
 
-theorem tick_list_fresh (t : Time) (vs : List Validator) (w : World) :
+theorem adv_tick_list_fresh (t : Time) (vs : List Validator) (w : World) :
     GenFresh w (vs.map (fun v => .tick v t)) := by
   induction vs generalizing w with
   | nil => trivial
   | cons v vs ih => exact ⟨trivial, ih _⟩
 
-theorem delivery_fold_replay_fresh (t : Time) (xs : List (Validator × Obj params))
+theorem adv_delivery_fold_replay_fresh (t : Time) (xs : List (Validator × Obj params))
     (w : World) (acc : World × List Event)
     (hr : acc.1 = genFold w acc.2) (hf : GenFresh w acc.2) :
     (xs.foldl (deliverOne t) acc).1 = genFold w (xs.foldl (deliverOne t) acc).2 ∧
@@ -594,30 +595,30 @@ theorem delivery_fold_replay_fresh (t : Time) (xs : List (Validator × Obj param
       · simpa only [deliverOne, hp, ↓reduceIte] using ih acc hr hf
       · simp only [deliverOne, hp, Bool.false_eq_true, ↓reduceIte]
         apply ih
-        · rw [genFold_append, ← hr]
+        · rw [adv_genFold_append, ← hr]
           rfl
-        · rw [genFresh_append, ← hr]
+        · rw [adv_genFresh_append, ← hr]
           exact ⟨hf, Bool.eq_false_iff.mpr hp, trivial⟩
 
-theorem timeBatch_replay_fresh (n : Nat) (w : World) (held : List (Obj params)) :
+theorem adv_timeBatch_replay_fresh (n : Nat) (w : World) (held : List (Obj params)) :
     (timeBatch n w held).1 = genFold w (timeBatch n w held).2 ∧
       GenFresh w (timeBatch n w held).2 :=
-  delivery_fold_replay_fresh n _ w _ (tickBatch_replay n w) (tick_list_fresh n nodes w)
+  adv_delivery_fold_replay_fresh n _ w _ (adv_tickBatch_replay n w) (adv_tick_list_fresh n nodes w)
 
-theorem prefix_replay_fresh (steps : Nat) :
+theorem adv_prefix_replay_fresh (steps : Nat) :
     (buildPrefix steps).world = genFold V2.D.World.init (buildPrefix steps).events ∧
       GenFresh V2.D.World.init (buildPrefix steps).events := by
   induction steps with
   | zero => exact ⟨rfl, trivial⟩
   | succ steps ih =>
-      have hb := timeBatch_replay_fresh steps (buildPrefix steps).world (buildPrefix steps).held
+      have hb := adv_timeBatch_replay_fresh steps (buildPrefix steps).world (buildPrefix steps).held
       constructor
-      · rw [bp_world, bp_events, genFold_append, ← ih.1]
+      · rw [bp_world, bp_events, adv_genFold_append, ← ih.1]
         exact hb.1
-      · rw [bp_events, genFresh_append, ← ih.1]
+      · rw [bp_events, adv_genFresh_append, ← ih.1]
         exact ⟨ih.2, hb.2⟩
 
-theorem genFresh_get (w : World) (es : List Event) (hf : GenFresh w es)
+theorem adv_genFresh_get (w : World) (es : List Event) (hf : GenFresh w es)
     (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (he : es[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).processed (genFold w (es.take i) v) o = false := by
@@ -633,7 +634,7 @@ theorem genFresh_get (w : World) (es : List Event) (hf : GenFresh w es)
           exact ih _ hf.2 i (by simpa using he)
 
 /-- Indexed replay for any run made from the generator's static data. -/
-theorem runData_stateBefore (h : Time) (es : List Event) (i : Nat) :
+theorem adv_runData_stateBefore (h : Time) (es : List Event) (i : Nat) :
     V2.D.Run.stateBefore env (runData h es) i = genFold V2.D.World.init (es.take i) := rfl
 
 attribute [irreducible] GenFresh
@@ -641,7 +642,7 @@ attribute [irreducible] GenFresh
 theorem run_fresh (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (he : run.events[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).processed (V2.D.Run.stateBefore env run i v) o = false :=
-  genFresh_get V2.D.World.init _ (prefix_replay_fresh 291).2 i v o t he
+  adv_genFresh_get V2.D.World.init _ (adv_prefix_replay_fresh 291).2 i v o t he
 
 
 
@@ -661,27 +662,27 @@ def HeldOK (steps : Nat) : Prop :=
   ∀ o ∈ (buildPrefix steps).held, isProp o = false ∧
     ∃ u s, s < (steps : Time) ∧ GenEmits V2.D.World.init (buildPrefix steps).events u o s
 
-theorem genEmits_cons (w : World) (e : Event) (es : List Event)
+theorem adv_genEmits_cons (w : World) (e : Event) (es : List Event)
     (v : Validator) (o : Obj params) (t : Time)
     (h : GenEmits (V2.D.World.step env (runData 0 []) w e) es v o t) :
     GenEmits w (e :: es) v o t := by
   obtain ⟨pre, post, he, ho⟩ := h
   exact ⟨e :: pre, post, congrArg (e :: ·) he, ho⟩
 
-theorem genEmits_append_left (w : World) (es ds : List Event)
+theorem adv_genEmits_append_left (w : World) (es ds : List Event)
     (v : Validator) (o : Obj params) (t : Time) (h : GenEmits w es v o t) :
     GenEmits w (es ++ ds) v o t := by
   obtain ⟨pre, post, rfl, ho⟩ := h
   exact ⟨pre, post ++ ds, by simp only [List.append_assoc, List.cons_append], ho⟩
 
-theorem genEmits_append_right (w : World) (es ds : List Event)
+theorem adv_genEmits_append_right (w : World) (es ds : List Event)
     (v : Validator) (o : Obj params) (t : Time) (h : GenEmits (genFold w es) ds v o t) :
     GenEmits w (es ++ ds) v o t := by
   obtain ⟨pre, post, rfl, ho⟩ := h
   refine ⟨es ++ pre, post, (List.append_assoc ..).symm, ?_⟩
-  rwa [genFold_append]
+  rwa [adv_genFold_append]
 
-theorem tick_fold_origin (t : Time) (vs : List Validator)
+theorem adv_tick_fold_origin (t : Time) (vs : List Validator)
     (w : World) (os : List (Obj params)) (o : Obj params)
     (ho : o ∈ (vs.foldl (fun acc v =>
       let result := V2.D.tick env (runData 0 []) (acc.1 v) v t
@@ -694,12 +695,12 @@ theorem tick_fold_origin (t : Time) (vs : List Validator)
       · rcases List.mem_append.mp hm with hm | hm
         · exact Or.inl hm
         · exact Or.inr ⟨v, [], vs.map (fun u => .tick u t), rfl, hm⟩
-      · exact Or.inr ⟨u, genEmits_cons w (.tick v t) _ u o t hu⟩
+      · exact Or.inr ⟨u, adv_genEmits_cons w (.tick v t) _ u o t hu⟩
 
-theorem tickBatch_origin (t : Time) (w : World) (o : Obj params)
+theorem adv_tickBatch_origin (t : Time) (w : World) (o : Obj params)
     (ho : o ∈ (tickBatch t w).2) :
     ∃ v, GenEmits w (nodes.map (fun v => .tick v t)) v o t := by
-  rcases tick_fold_origin t nodes w [] o ho with h | h
+  rcases adv_tick_fold_origin t nodes w [] o ho with h | h
   · exact (List.not_mem_nil h).elim
   · exact h
 
@@ -707,16 +708,17 @@ theorem tickBatch_origin (t : Time) (w : World) (o : Obj params)
 theorem batch_release_emits (steps : Nat) (o : Obj params)
     (ho : o ∈ (tickBatch steps (buildPrefix steps).world).2) :
     ∃ v, GenEmits V2.D.World.init (buildPrefix (steps + 1)).events v o steps := by
-  obtain ⟨v, hv⟩ := tickBatch_origin steps (buildPrefix steps).world o ho
-  obtain ⟨ds, he, _⟩ := timeBatch_block steps (buildPrefix steps).world (buildPrefix steps).held
+  obtain ⟨v, hv⟩ := adv_tickBatch_origin steps (buildPrefix steps).world o ho
+  obtain ⟨ds, he, _⟩ :=
+    adv_timeBatch_block steps (buildPrefix steps).world (buildPrefix steps).held
   have hb : GenEmits (buildPrefix steps).world
       (timeBatch steps (buildPrefix steps).world (buildPrefix steps).held).2 v o steps := by
     rw [he]
-    exact genEmits_append_left _ _ ds v o steps hv
+    exact adv_genEmits_append_left _ _ ds v o steps hv
   refine ⟨v, ?_⟩
   rw [bp_events]
-  apply genEmits_append_right V2.D.World.init (buildPrefix steps).events _ v o steps
-  rwa [← (prefix_replay_fresh steps).1]
+  apply adv_genEmits_append_right V2.D.World.init (buildPrefix steps).events _ v o steps
+  rwa [← (adv_prefix_replay_fresh steps).1]
 
 theorem isProp_false {o : Obj params} (h : isProp o = false) (b : NamedProposal params.n) :
     o.payload ≠ .proposal b := by
@@ -738,13 +740,13 @@ theorem carries_nonprop {o o' : Obj params} (h : isProp o = false) :
 theorem timeBatch_delivered (n : Nat) (w : World) (held : List (Obj params)) (v : Validator)
     (o : Obj params) (s : Time) (hm : V2.Event.deliver v o s ∈ (timeBatch n w held).2) :
     s = n ∧ v ∈ nodes ∧ o ∈ offers n held (tickBatch n w).2 := by
-  rcases timeBatch_shape n w held _ hm with ⟨u, _, hu⟩ | ⟨u, hu, a, ha, he⟩
+  rcases adv_timeBatch_shape n w held _ hm with ⟨u, _, hu⟩ | ⟨u, hu, a, ha, he⟩
   · cases hu
   · cases he
     exact ⟨rfl, hu, ha⟩
 
 /-- I-ORIGIN: deliveries have earlier emissions, and the held objects do as well. -/
-theorem prefix_origin (steps : Nat) :
+theorem adv_prefix_origin (steps : Nat) :
     GenOrigin V2.D.World.init (buildPrefix steps).events ∧ HeldOK steps := by
   induction steps with
   | zero =>
@@ -755,7 +757,7 @@ theorem prefix_origin (steps : Nat) :
         (h : GenEmits V2.D.World.init (buildPrefix steps).events u o s) :
         GenEmits V2.D.World.init (buildPrefix (steps + 1)).events u o s := by
       rw [bp_events]
-      exact genEmits_append_left _ _ _ u o s h
+      exact adv_genEmits_append_left _ _ _ u o s h
     constructor
     · intro v o t hm
       rw [bp_events] at hm
@@ -789,10 +791,11 @@ theorem prefix_origin (steps : Nat) :
       · exact (List.not_mem_nil hm).elim
 
 theorem held_nonprop (steps : Nat) (o : Obj params) (ho : o ∈ (buildPrefix steps).held) :
-    isProp o = false := ((prefix_origin steps).2 o ho).1
+    isProp o = false := ((adv_prefix_origin steps).2 o ho).1
 
 /-- Relate the trace witness to the engine's indexed emission predicate. -/
-theorem genEmits_runData (h : Time) (es : List Event) (v : Validator) (o : Obj params) (t : Time)
+theorem adv_genEmits_runData (h : Time) (es : List Event) (v : Validator) (o : Obj params)
+    (t : Time)
     (he : GenEmits V2.D.World.init es v o t) : V2.D.Run.emits env (runData h es) v o t := by
   obtain ⟨pre, post, rfl, ho⟩ := he
   have hi : (runData h (pre ++ .tick v t :: post)).events[pre.length]? =
@@ -804,7 +807,7 @@ theorem genEmits_runData (h : Time) (es : List Event) (v : Validator) (o : Obj p
 
 /-! ### Duplicate freedom and the schedule -/
 
-theorem tick_fold_nodup (t : Time) (vs : List Validator) (hn : vs.Nodup)
+theorem adv_tick_fold_nodup (t : Time) (vs : List Validator) (hn : vs.Nodup)
     (w : World) (os : List (Obj params)) (ho : os.Nodup)
     (hh : ∀ o ∈ os, ∀ v ∈ vs, V2.D.Run.holder (runData 0 []) o.auth ≠ some v) :
     (vs.foldl (fun acc v =>
@@ -816,22 +819,22 @@ theorem tick_fold_nodup (t : Time) (vs : List Validator) (hn : vs.Nodup)
       rw [List.nodup_cons] at hn
       rw [List.foldl_cons]
       apply ih hn.2
-      · apply ho.append (gen_tick_nodup (w v) v t)
+      · apply ho.append (adv_gen_tick_nodup (w v) v t)
         intro o hos hot
-        exact hh o hos v (List.mem_cons_self ..) (gen_tick_holder (w v) v t o hot)
+        exact hh o hos v (List.mem_cons_self ..) (adv_gen_tick_holder (w v) v t o hot)
       · intro o hom u hum
         rcases List.mem_append.mp hom with hom | hom
         · exact hh o hom u (List.mem_cons_of_mem _ hum)
-        · rw [gen_tick_holder (w v) v t o hom]
+        · rw [adv_gen_tick_holder (w v) v t o hom]
           intro he
           exact hn.1 (Option.some.inj he ▸ hum)
 
-theorem tickBatch_nodup (t : Time) (w : World) : (tickBatch t w).2.Nodup :=
-  tick_fold_nodup t nodes (by decide) w [] List.nodup_nil (by simp)
+theorem adv_tickBatch_nodup (t : Time) (w : World) : (tickBatch t w).2.Nodup :=
+  adv_tick_fold_nodup t nodes (by decide) w [] List.nodup_nil (by simp)
 
-theorem timeBatch_nodup (n : Nat) (w : World) (held : List (Obj params)) :
+theorem adv_timeBatch_nodup (n : Nat) (w : World) (held : List (Obj params)) :
     (timeBatch n w held).2.Nodup := by
-  obtain ⟨ds, he, hs⟩ := timeBatch_block n w held
+  obtain ⟨ds, he, hs⟩ := adv_timeBatch_block n w held
   rw [he]
   apply List.Nodup.append
   · exact (show nodes.Nodup from by decide).map (by intro v u h; cases h; rfl)
@@ -853,32 +856,32 @@ theorem timeBatch_nodup (n : Nat) (w : World) (held : List (Obj params)) :
     obtain ⟨u, _, hu⟩ := List.mem_map.mp ho
     cases hu
 
-theorem prefix_nodup (steps : Nat) : (buildPrefix steps).events.Nodup := by
+theorem adv_prefix_nodup (steps : Nat) : (buildPrefix steps).events.Nodup := by
   induction steps with
   | zero => exact List.nodup_nil
   | succ steps ih =>
       rw [bp_events]
-      apply ih.append (timeBatch_nodup _ _ _)
+      apply ih.append (adv_timeBatch_nodup _ _ _)
       intro e he hb
-      have hlt := (prefix_times steps e he).2
-      rw [timeBatch_time _ _ _ _ hb] at hlt
+      have hlt := (adv_prefix_times steps e he).2
+      rw [adv_timeBatch_time _ _ _ _ hb] at hlt
       exact (lt_irrefl _ hlt)
 
 /-- Each finite nonempty generated prefix has the required schedule. -/
 theorem prefix_schedule (steps : Nat) :
     V2.D.ScheduleWellFormed env (runData steps (buildPrefix (steps + 1)).events) where
   horizon_nonneg := Int.natCast_nonneg _
-  sorted := prefix_sorted _
-  nodup := prefix_nodup _
+  sorted := adv_prefix_sorted _
+  nodup := adv_prefix_nodup _
   in_horizon e he := by
-    obtain ⟨h0, ht⟩ := prefix_times (steps + 1) e he
+    obtain ⟨h0, ht⟩ := adv_prefix_times (steps + 1) e he
     change 0 ≤ e.time ∧ e.time ≤ (steps : Int)
     refine ⟨h0, ?_⟩
     have ht' : e.time < (steps : Int) + 1 := by exact_mod_cast ht
     exact Int.le_of_lt_add_one ht'
   honest_only e he := (nodes_honest _).1 (prefix_nodes _ e he)
   tick_public v t he := ⟨t.toNat, by
-    have ht := (prefix_times (steps + 1) (.tick v t) he).1
+    have ht := (adv_prefix_times (steps + 1) (.tick v t) he).1
     change 0 ≤ t at ht
     change t = (t.toNat : Int) * 1
     rw [Int.toNat_of_nonneg ht, mul_one]⟩
@@ -890,17 +893,17 @@ theorem prefix_schedule (steps : Nat) :
       omega
     change V2.Event.tick v t ∈ (buildPrefix (steps + 1)).events
     simpa only [Int.toNat_of_nonneg ht] using
-      prefix_tick (steps + 1) t.toNat hn v ((nodes_honest v).2 hv)
+      adv_prefix_tick (steps + 1) t.toNat hn v ((nodes_honest v).2 hv)
 
 theorem run_schedule : V2.D.ScheduleWellFormed env run := prefix_schedule 290
 
 theorem noRestart : V2.D.NoRestart run := by
   intro i v t he
-  exact prefix_no_restart 291 v t (List.mem_of_getElem? he)
+  exact adv_prefix_no_restart 291 v t (List.mem_of_getElem? he)
 
 /-! ### Signatures -/
 
-theorem genOrigin_unforgeable (h : Time) (es : List Event)
+theorem adv_genOrigin_unforgeable (h : Time) (es : List Event)
     (horigin : GenOrigin V2.D.World.init es)
     (v : Validator) (o : Obj params) (t : Time)
     (hp : V2.D.Run.processes (runData h es) v o t) (u : Validator)
@@ -908,9 +911,9 @@ theorem genOrigin_unforgeable (h : Time) (es : List Event)
     ∃ t', t' ≤ t ∧ V2.D.Run.emits env (runData h es) u o t' := by
   obtain ⟨i, hi⟩ := hp
   obtain ⟨x, s, hs, hx⟩ := horigin v o t (List.mem_of_getElem? hi)
-  have hemit := genEmits_runData h es x o s hx
+  have hemit := adv_genEmits_runData h es x o s hx
   obtain ⟨pre, post, _, ho⟩ := hx
-  have hholder := gen_tick_holder (genFold V2.D.World.init pre x) x s o ho
+  have hholder := adv_gen_tick_holder (genFold V2.D.World.init pre x) x s o ho
   have hux : u = x := Option.some.inj (hu.symm.trans hholder)
   exact ⟨s, hs, hux.symm ▸ hemit⟩
 
@@ -918,8 +921,8 @@ theorem genOrigin_unforgeable (h : Time) (es : List Event)
 theorem run_delivery_origin (v : Validator) (o : Obj params) (t : Time)
     (hd : V2.Event.deliver v o t ∈ run.events) :
     ∃ u s, s ≤ t ∧ u ∈ nodes ∧ V2.D.Run.emits env run u o s := by
-  obtain ⟨u, s, hs, hu⟩ := (prefix_origin 291).1 v o t hd
-  refine ⟨u, s, hs, ?_, genEmits_runData _ _ u o s hu⟩
+  obtain ⟨u, s, hs, hu⟩ := (adv_prefix_origin 291).1 v o t hd
+  refine ⟨u, s, hs, ?_, adv_genEmits_runData _ _ u o s hu⟩
   obtain ⟨pre, post, he, _⟩ := hu
   have hm : V2.Event.tick u s ∈ (buildPrefix 291).events := by rw [he]; simp
   exact prefix_nodes 291 _ hm
@@ -927,14 +930,14 @@ theorem run_delivery_origin (v : Validator) (o : Obj params) (t : Time)
 /-! ### Store invariants (copied from W1) -/
 
 /-- A row that is already in the pool does not change the store. -/
-theorem i7_admitRow_duplicate (st : State params.n) (i : Fin params.n)
+theorem adv_admitRow_duplicate (st : State params.n) (i : Fin params.n)
     (body : RowPayload)
     (h : (⟨.seat .fg i, body⟩ : RowWire params.n) ∈ st.rowPool) :
     admitRow params st ⟨.seat .fg i, body⟩ = st := by
   simp [admitRow, RowWire.decode?, h]
 
 /-- The clock keeps both lists used by H. -/
-theorem i7_clock_fields (st : State params.n) (t : Time) :
+theorem adv_clock_fields (st : State params.n) (t : Time) :
     (FGSA.clock params st t).proposals = st.proposals ∧
       (FGSA.clock params st t).rowPool = st.rowPool := by
   have hn (st : State params.n) : (normalizeS st).proposals = st.proposals ∧
@@ -959,19 +962,19 @@ theorem i7_clock_fields (st : State params.n) (t : Time) :
     exact hc
   · exact hc
 
-theorem i7_clock_proposals (st : State params.n) (t : Time) :
-    (FGSA.clock params st t).proposals = st.proposals := (i7_clock_fields st t).1
+theorem adv_clock_proposals (st : State params.n) (t : Time) :
+    (FGSA.clock params st t).proposals = st.proposals := (adv_clock_fields st t).1
 
-theorem i7_clock_rowPool (st : State params.n) (t : Time) :
-    (FGSA.clock params st t).rowPool = st.rowPool := (i7_clock_fields st t).2
+theorem adv_clock_rowPool (st : State params.n) (t : Time) :
+    (FGSA.clock params st t).rowPool = st.rowPool := (adv_clock_fields st t).2
 
-theorem i7_reconcile_fields (st : State params.n) :
+theorem adv_reconcile_fields (st : State params.n) :
     (reconcile st).proposals = st.proposals ∧ (reconcile st).rowPool = st.rowPool := by
   unfold reconcile normalizeS
   dsimp only
   split <;> exact ⟨rfl, rfl⟩
 
-theorem i7_admitRow_eq (st : State params.n) (a : RowWire params.n) :
+theorem adv_admitRow_eq (st : State params.n) (a : RowWire params.n) :
     admitRow params st a = st ∨
       admitRow params st a = { st with rowPool := st.rowPool ++ [a] } := by
   unfold admitRow
@@ -981,20 +984,20 @@ theorem i7_admitRow_eq (st : State params.n) (a : RowWire params.n) :
     · exact Or.inr rfl
   · exact Or.inl rfl
 
-theorem i7_foldl_admitRow_eq (rows : List (RowWire params.n)) (st : State params.n) :
+theorem adv_foldl_admitRow_eq (rows : List (RowWire params.n)) (st : State params.n) :
     ∃ pool, rows.foldl (admitRow params) st = { st with rowPool := pool } ∧
       st.rowPool ⊆ pool := by
   induction rows generalizing st with
   | nil => exact ⟨st.rowPool, rfl, List.Subset.refl _⟩
   | cons a rows ih =>
     rw [List.foldl_cons]
-    rcases i7_admitRow_eq st a with he | he
+    rcases adv_admitRow_eq st a with he | he
     · rw [he]; exact ih st
     · rw [he]
       obtain ⟨pool, hp, hpre⟩ := ih { st with rowPool := st.rowPool ++ [a] }
       exact ⟨pool, hp, fun _ hm => hpre (List.mem_append_left _ hm)⟩
 
-theorem i7_tick_st (st : Node params) (v : Validator) (t : Time) :
+theorem adv_tick_st (st : Node params) (v : Validator) (t : Time) :
     (V2.D.tick env (runData 0 []) st v t).1.st = FGSA.clock params st.st t := by
   have hf (os : List (Obj params)) (nd : Node params) :
       (os.foldl (fgsa params unitCodec).recordOwn nd).st = nd.st := by
@@ -1009,7 +1012,7 @@ def GenStoredRows (P : RowWire params.n → Prop) (st : State params.n) : Prop :
     w.decode = some (.block s b) → ∀ a ∈ b.rows, P a
 
 /-- Selection keeps any property shared by pool rows and stored proposal rows. -/
-theorem gen_proposalRows_origin (P : RowWire params.n → Prop) (st : State params.n)
+theorem adv_gen_proposalRows_origin (P : RowWire params.n → Prop) (st : State params.n)
     (H : Block) (hp : ∀ a ∈ st.rowPool, P a) (hs : GenStoredRows P st) :
     ∀ a ∈ proposalRows params st H, P a := by
   intro a ha
@@ -1020,20 +1023,20 @@ theorem gen_proposalRows_origin (P : RowWire params.n → Prop) (st : State para
   · exact hs o ho s b hd a hm
 
 /-- The clock keeps the stored proposals. -/
-theorem gen_storedRows_clock (P : RowWire params.n → Prop) (st : State params.n)
+theorem adv_gen_storedRows_clock (P : RowWire params.n → Prop) (st : State params.n)
     (t : Time) (hs : GenStoredRows P st) : GenStoredRows P (FGSA.clock params st t) := by
-  simpa only [GenStoredRows, i7_clock_proposals] using hs
+  simpa only [GenStoredRows, adv_clock_proposals] using hs
 
 /-- A row fold keeps the stored proposals. -/
-theorem gen_storedRows_fold (P : RowWire params.n → Prop) (st : State params.n)
+theorem adv_gen_storedRows_fold (P : RowWire params.n → Prop) (st : State params.n)
     (rows : List (RowWire params.n)) (hs : GenStoredRows P st) :
     GenStoredRows P (rows.foldl (admitRow params) st) := by
-  obtain ⟨pool, he, _⟩ := i7_foldl_admitRow_eq rows st
+  obtain ⟨pool, he, _⟩ := adv_foldl_admitRow_eq rows st
   rw [he]
   exact hs
 
 /-- A delivery adds only its own proposal to the stored proposals. -/
-theorem gen_storedRows_process (P : RowWire params.n → Prop) (st : State params.n)
+theorem adv_gen_storedRows_process (P : RowWire params.n → Prop) (st : State params.n)
     (o : Obj params) (hs : GenStoredRows P st)
     (ho : ∀ b, o.payload = .proposal b → ∀ a ∈ b.rows, P a) :
     GenStoredRows P (FGSA.process params st (toWire params o)) := by
@@ -1045,7 +1048,7 @@ theorem gen_storedRows_process (P : RowWire params.n → Prop) (st : State param
     | vote s i b => exact hs
     | row i body =>
       dsimp only
-      rcases i7_admitRow_eq st ⟨(toWire params o).auth, body⟩ with he | he <;>
+      rcases adv_admitRow_eq st ⟨(toWire params o).auth, body⟩ with he | he <;>
         rw [he] <;> exact hs
     | block s b =>
       dsimp only
@@ -1065,7 +1068,7 @@ theorem gen_storedRows_process (P : RowWire params.n → Prop) (st : State param
         · exact hs
         · rename_i parent hparent
           split
-          · apply gen_storedRows_fold
+          · apply adv_gen_storedRows_fold
             have hs' : GenStoredRows P
                 { st with
                   base := GridCO.admitProposal params.toParams.engine st.base
@@ -1081,17 +1084,17 @@ theorem gen_storedRows_process (P : RowWire params.n → Prop) (st : State param
                 exact hr a ha
             split
             · exact hs'
-            · simpa only [GenStoredRows, (i7_reconcile_fields _).1] using hs'
+            · simpa only [GenStoredRows, (adv_reconcile_fields _).1] using hs'
           · exact hs
 
 /-- A delivery only adds to the row pool. -/
-theorem gen_process_pool_mono (st : State params.n) (o : Obj params) :
+theorem adv_gen_process_pool_mono (st : State params.n) (o : Obj params) :
     st.rowPool ⊆ (FGSA.process params st (toWire params o)).rowPool :=
 by
   unfold FGSA.process
   split
   · exact List.Subset.refl _
-  · rcases i7_admitRow_eq st _ with he | he
+  · rcases adv_admitRow_eq st _ with he | he
     · rw [he]
     · rw [he]; exact fun _ hm => List.mem_append_left _ hm
   · unfold admitBlock
@@ -1100,12 +1103,12 @@ by
     · split
       · exact List.Subset.refl _
       · split
-        · obtain ⟨pool, he, hp⟩ := i7_foldl_admitRow_eq _ _
+        · obtain ⟨pool, he, hp⟩ := adv_foldl_admitRow_eq _ _
           rw [he]
           dsimp only at hp ⊢
           split at hp
           · exact hp
-          · rwa [(i7_reconcile_fields _).2] at hp
+          · rwa [(adv_reconcile_fields _).2] at hp
         · exact List.Subset.refl _
   · exact List.Subset.refl _
 
@@ -1114,13 +1117,13 @@ def GenPoolWitness (w : World) : Prop :=
   GenStoredRows (fun a => a ∈ (w 0).st.rowPool) (w 0).st
 
 /-- Every generated proposal selects its rows at node zero. -/
-theorem gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
+theorem adv_gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
     (o : Obj params) (ho : o ∈ (V2.D.tick env (runData 0 []) st v t).2)
     (b : NamedProposal params.n)
     (he : o.payload = .proposal b) :
     v = 0 ∧ ∃ H, b.rows = proposalRows params (FGSA.clock params st.st t) H := by
-  have hh := gen_tick_holder st v t o ho
-  obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
+  have hh := adv_gen_tick_holder st v t o ho
+  obtain ⟨l, i, m, rfl, _, ha⟩ := adv_gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
     have hm : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
@@ -1145,7 +1148,7 @@ theorem gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
       exact ⟨hv, _, rfl⟩
 
 /-- Each tick keeps both fields used by the invariant. -/
-theorem gen_tick_pool_fields (w : World) (v : Validator) (t : Time) (u : Validator) :
+theorem adv_gen_tick_pool_fields (w : World) (v : Validator) (t : Time) (u : Validator) :
     let w' := Function.update w v (V2.D.tick env (runData 0 []) (w v) v t).1
     (w' u).st.rowPool = (w u).st.rowPool ∧
       (w' u).st.proposals = (w u).st.proposals := by
@@ -1153,14 +1156,14 @@ theorem gen_tick_pool_fields (w : World) (v : Validator) (t : Time) (u : Validat
   by_cases hu : u = v
   · subst u
     rw [Function.update_self]
-    have he := i7_tick_st (w v) v t
-    exact ⟨(congrArg State.rowPool he).trans (i7_clock_rowPool _ _),
-      (congrArg State.proposals he).trans (i7_clock_proposals _ _)⟩
+    have he := adv_tick_st (w v) v t
+    exact ⟨(congrArg State.rowPool he).trans (adv_clock_rowPool _ _),
+      (congrArg State.proposals he).trans (adv_clock_proposals _ _)⟩
   · rw [Function.update_of_ne hu]
     exact ⟨rfl, rfl⟩
 
 /-- The invariant holds throughout the tick fold, and covers every released proposal. -/
-theorem gen_tick_fold_pool (t : Time) (vs : List Validator) (w : World)
+theorem adv_gen_tick_fold_pool (t : Time) (vs : List Validator) (w : World)
     (os : List (Obj params)) (hw : GenPoolWitness w)
     (ho : ∀ o ∈ os, ∀ b, o.payload = .proposal b →
       ∀ a ∈ b.rows, a ∈ (w 0).st.rowPool) :
@@ -1174,7 +1177,7 @@ theorem gen_tick_fold_pool (t : Time) (vs : List Validator) (w : World)
   | nil => exact ⟨hw, ho⟩
   | cons v vs ih =>
     let w' := Function.update w v (V2.D.tick env (runData 0 []) (w v) v t).1
-    have hf := gen_tick_pool_fields w v t 0
+    have hf := adv_gen_tick_pool_fields w v t 0
     have hw' : GenPoolWitness w' := by
       simpa only [GenPoolWitness, GenStoredRows, w', hf.1, hf.2] using hw
     apply ih w' _ hw'
@@ -1182,15 +1185,15 @@ theorem gen_tick_fold_pool (t : Time) (vs : List Validator) (w : World)
     rw [hf.1]
     rcases List.mem_append.mp hm with hm | hm
     · exact ho o hm b he a ha
-    · obtain ⟨hv, H, hrows⟩ := gen_tick_proposal_rows (w v) v t o hm b he
+    · obtain ⟨hv, H, hrows⟩ := adv_gen_tick_proposal_rows (w v) v t o hm b he
       subst v
       rw [hrows] at ha
-      have hs := gen_storedRows_clock _ (w 0).st t hw
-      exact gen_proposalRows_origin _ _ H
-        (fun a ha => (i7_clock_rowPool (w 0).st t) ▸ ha) hs a ha
+      have hs := adv_gen_storedRows_clock _ (w 0).st t hw
+      exact adv_gen_proposalRows_origin _ _ H
+        (fun a ha => (adv_clock_rowPool (w 0).st t) ▸ ha) hs a ha
 
 /-- A delivery to the proposer preserves its stored-row invariant. -/
-theorem gen_deliver_pool (t : Time) (acc : World × List Event) (vo : Validator × Obj params)
+theorem adv_gen_deliver_pool (t : Time) (acc : World × List Event) (vo : Validator × Obj params)
     (hw : GenPoolWitness acc.1)
     (ho : ∀ b, vo.2.payload = .proposal b →
       ∀ a ∈ b.rows, a ∈ (acc.1 0).st.rowPool) :
@@ -1201,8 +1204,8 @@ theorem gen_deliver_pool (t : Time) (acc : World × List Event) (vo : Validator 
   · exact ⟨hw, List.Subset.refl _⟩
   · dsimp only
     by_cases hv : vo.1 = 0
-    · have hs := gen_storedRows_process _ (acc.1 0).st vo.2 hw ho
-      have hp := gen_process_pool_mono (acc.1 0).st vo.2
+    · have hs := adv_gen_storedRows_process _ (acc.1 0).st vo.2 hw ho
+      have hp := adv_gen_process_pool_mono (acc.1 0).st vo.2
       simp only [V2.D.World.step, hv, Function.update_self]
       refine ⟨?_, hp⟩
       intro w hm s b hd a ha
@@ -1212,7 +1215,7 @@ theorem gen_deliver_pool (t : Time) (acc : World × List Event) (vo : Validator 
           ⟨hw, List.Subset.refl _⟩)
 
 /-- All offers have rows already in the proposer's pool, which only grows. -/
-theorem gen_delivery_fold_pool (t : Time) (xs : List (Validator × Obj params))
+theorem adv_gen_delivery_fold_pool (t : Time) (xs : List (Validator × Obj params))
     (acc : World × List Event) (hw : GenPoolWitness acc.1)
     (ho : ∀ vo ∈ xs, ∀ b, vo.2.payload = .proposal b →
       ∀ a ∈ b.rows, a ∈ (acc.1 0).st.rowPool) :
@@ -1220,7 +1223,7 @@ theorem gen_delivery_fold_pool (t : Time) (xs : List (Validator × Obj params))
   induction xs generalizing acc with
   | nil => exact hw
   | cons vo xs ih =>
-    obtain ⟨hw', hp⟩ := gen_deliver_pool t acc vo hw (ho vo (List.mem_cons_self ..))
+    obtain ⟨hw', hp⟩ := adv_gen_deliver_pool t acc vo hw (ho vo (List.mem_cons_self ..))
     apply ih _ hw'
     intro vo' hv b he a ha
     exact hp (ho vo' (List.mem_cons_of_mem _ hv) b he a ha)
@@ -1235,34 +1238,34 @@ theorem offered_prop_released (n : Nat) (held released : List (Obj params))
   · exact (isProp_false (hheld o hr) b hp).elim
   · exact hr
 
-theorem gen_timeBatch_pool (n : Nat) (w : World) (held : List (Obj params))
+theorem adv_gen_timeBatch_pool (n : Nat) (w : World) (held : List (Obj params))
     (hw : GenPoolWitness w) (hheld : ∀ o ∈ held, isProp o = false) :
     GenPoolWitness (timeBatch n w held).1 := by
-  obtain ⟨ht, ho⟩ := gen_tick_fold_pool n nodes w [] hw (by simp)
-  apply gen_delivery_fold_pool (n : Time) _ _ ht
+  obtain ⟨ht, ho⟩ := adv_gen_tick_fold_pool n nodes w [] hw (by simp)
+  apply adv_gen_delivery_fold_pool (n : Time) _ _ ht
   intro vo hv b he a ha
   obtain ⟨o, hm, hv⟩ := List.mem_flatMap.mp hv
   obtain ⟨v, _, hv⟩ := List.mem_map.mp hv
   subst vo
   exact ho o (offered_prop_released n held _ hheld o hm b he) b he a ha
 
-theorem gen_prefix_pool (steps : Nat) : GenPoolWitness (buildPrefix steps).world := by
+theorem adv_gen_prefix_pool (steps : Nat) : GenPoolWitness (buildPrefix steps).world := by
   induction steps with
   | zero => intro w hw; exact (List.not_mem_nil hw).elim
   | succ steps ih =>
     rw [bp_world]
-    exact gen_timeBatch_pool steps _ _ ih (held_nonprop steps)
+    exact adv_gen_timeBatch_pool steps _ _ ih (held_nonprop steps)
 
 /-- H at every prefix batch: all selected rows are in the selecting node's pool. -/
-theorem i7_prefix_selected_rows (steps : Nat) (t : Time) (H : Block) (a : RowWire params.n)
+theorem adv_prefix_selected_rows (steps : Nat) (t : Time) (H : Block) (a : RowWire params.n)
     (ha : a ∈ proposalRows params (FGSA.clock params ((buildPrefix steps).world 0).st t) H) :
     a ∈ (FGSA.clock params ((buildPrefix steps).world 0).st t).rowPool := by
-  apply gen_proposalRows_origin _ _ H (fun _ hm => hm) _ a ha
-  rw [i7_clock_rowPool]
-  exact gen_storedRows_clock _ _ _ (gen_prefix_pool steps)
+  apply adv_gen_proposalRows_origin _ _ H (fun _ hm => hm) _ a ha
+  rw [adv_clock_rowPool]
+  exact adv_gen_storedRows_clock _ _ _ (adv_gen_prefix_pool steps)
 
 /-- The vote pool is also unchanged by the clock. -/
-theorem i7_clock_votes (st : State params.n) (t : Time) :
+theorem adv_clock_votes (st : State params.n) (t : Time) :
     (FGSA.clock params st t).base.votes = st.base.votes := by
   have hw (st : GridCO.State params.n .root) (b : Block) (g : Nat) (d : Time) :
       (GridCO.writeObligation st b g d).votes = st.votes := by
@@ -1320,21 +1323,21 @@ theorem gen_known_init (P : Obj params → Prop) (v : Validator) :
     by intro w hw; simp [V2.D.World.init, fgsa, initial] at hw,
     by simp [V2.D.World.init, fgsa, initial, GridCO.initial]⟩
 
-theorem gen_known_mono (P Q : Obj params → Prop) (st : State params.n)
+theorem adv_gen_known_mono (P Q : Obj params → Prop) (st : State params.n)
     (h : GenKnown P st) (hp : ∀ o, P o → Q o) : GenKnown Q st :=
   ⟨fun a ha => hp _ (h.1 a ha),
     fun w hw s b hd a ha => hp _ (h.2.1 w hw s b hd a ha),
     fun a ha => hp _ (h.2.2 a ha)⟩
 
-theorem gen_known_clock (P : Obj params → Prop) (st : State params.n) (t : Time)
+theorem adv_gen_known_clock (P : Obj params → Prop) (st : State params.n) (t : Time)
     (h : GenKnown P st) : GenKnown P (FGSA.clock params st t) := by
-  simpa only [GenKnown, GenStoredRows, i7_clock_proposals, i7_clock_rowPool,
-    i7_clock_votes] using h
+  simpa only [GenKnown, GenStoredRows, adv_clock_proposals, adv_clock_rowPool,
+    adv_clock_votes] using h
 
-theorem gen_known_row (P : Obj params → Prop) (st : State params.n)
+theorem adv_gen_known_row (P : Obj params → Prop) (st : State params.n)
     (a : RowWire params.n) (h : GenKnown P st) (ha : P (ofRow params a)) :
     GenKnown P (admitRow params st a) := by
-  rcases i7_admitRow_eq st a with he | he
+  rcases adv_admitRow_eq st a with he | he
   · rw [he]; exact h
   · rw [he]
     refine ⟨?_, h.2⟩
@@ -1343,16 +1346,16 @@ theorem gen_known_row (P : Obj params → Prop) (st : State params.n)
     · exact h.1 a' hm
     · exact List.mem_singleton.mp hm ▸ ha
 
-theorem gen_known_rows (P : Obj params → Prop) (rows : List (RowWire params.n))
+theorem adv_gen_known_rows (P : Obj params → Prop) (rows : List (RowWire params.n))
     (st : State params.n) (h : GenKnown P st) (hr : ∀ a ∈ rows, P (ofRow params a)) :
     GenKnown P (rows.foldl (admitRow params) st) := by
   induction rows generalizing st with
   | nil => exact h
   | cons a rows ih =>
-    exact ih _ (gen_known_row P st a h (hr a (List.mem_cons_self ..)))
+    exact ih _ (adv_gen_known_row P st a h (hr a (List.mem_cons_self ..)))
       (fun a ha => hr a (List.mem_cons_of_mem _ ha))
 
-theorem gen_known_vote (P : Obj params → Prop) (st : GridCO.State params.n .root)
+theorem adv_gen_known_vote (P : Obj params → Prop) (st : GridCO.State params.n .root)
     (o : GridCO.Wire params.n .root)
     (h : ∀ a ∈ st.votes.filterMap liftHead?, P (ofHead params a))
     (ho : ∀ a, liftHead? o = some a → P (ofHead params a)) :
@@ -1371,7 +1374,7 @@ theorem gen_known_vote (P : Obj params → Prop) (st : GridCO.State params.n .ro
   · exact h
 
 /-- Lifting an admitted base HEAD recovers its composite wire. -/
-theorem i7_lift_baseVote (a h : HeadWire params.n) (he : liftHead? (baseVote a) = some h) :
+theorem adv_lift_baseVote (a h : HeadWire params.n) (he : liftHead? (baseVote a) = some h) :
     a = h := by
   obtain ⟨auth, b⟩ := a
   rcases auth with ⟨(_ | _), _⟩ | _ | _ <;>
@@ -1379,7 +1382,7 @@ theorem i7_lift_baseVote (a h : HeadWire params.n) (he : liftHead? (baseVote a) 
       GridCO.headLabel?, GridCO.headSeat?, GridCO.headTarget?] at he
   exact he
 
-theorem gen_known_base_proposal (P : Obj params → Prop) (st : GridCO.State params.n .root)
+theorem adv_gen_known_base_proposal (P : Obj params → Prop) (st : GridCO.State params.n .root)
     (s : Slot) (b : Block) (raw sup : List (HeadWire params.n))
     (h : ∀ a ∈ st.votes.filterMap liftHead?, P (ofHead params a))
     (hr : ∀ a ∈ raw, P (ofHead params a)) :
@@ -1394,17 +1397,17 @@ theorem gen_known_base_proposal (P : Obj params → Prop) (st : GridCO.State par
     induction xs generalizing st with
     | nil => exact hs
     | cons a xs ih =>
-      apply ih _ (gen_known_vote P st (baseVote a) hs ?_)
+      apply ih _ (adv_gen_known_vote P st (baseVote a) hs ?_)
       · exact fun a ha => hx a (List.mem_cons_of_mem _ ha)
       · intro h he
-        exact i7_lift_baseVote a h he ▸ hx a (List.mem_cons_self ..)
+        exact adv_lift_baseVote a h he ▸ hx a (List.mem_cons_self ..)
   unfold GridCO.admitProposal baseProposal
   dsimp only
   split
   · exact h
   · exact hf raw _ h hr
 
-theorem i7_decode_vote (o : Obj params) (s : Slot) (i : Fin params.n) (b : BlockId)
+theorem adv_decode_vote (o : Obj params) (s : Slot) (i : Fin params.n) (b : BlockId)
     (h : (toWire params o).decode = some (.vote s i b)) :
     o = ⟨.seat (.base (.head s)) i, .head b⟩ := by
   obtain ⟨auth, payload⟩ := o
@@ -1415,7 +1418,7 @@ theorem i7_decode_vote (o : Obj params) (s : Slot) (i : Fin params.n) (b : Block
     | prop r => cases payload <;> cases h
     | base l => cases l <;> cases payload <;> cases h; rfl
 
-theorem i7_decode_row (o : Obj params) (i : Fin params.n) (body : RowPayload)
+theorem adv_decode_row (o : Obj params) (i : Fin params.n) (body : RowPayload)
     (h : (toWire params o).decode = some (.row i body)) :
     o = ⟨.seat (.base .fg) i, .row body⟩ := by
   obtain ⟨auth, payload⟩ := o
@@ -1426,7 +1429,7 @@ theorem i7_decode_row (o : Obj params) (i : Fin params.n) (body : RowPayload)
     | prop s => cases payload <;> cases h
     | base l => cases l <;> cases payload <;> cases h; rfl
 
-theorem i7_decode_proposal (o : Obj params) (s : Slot) (b : NamedProposal params.n)
+theorem adv_decode_proposal (o : Obj params) (s : Slot) (b : NamedProposal params.n)
     (h : (toWire params o).decode = some (.block s b)) :
     o.payload = .proposal b := by
   obtain ⟨auth, payload⟩ := o
@@ -1437,14 +1440,14 @@ theorem i7_decode_proposal (o : Obj params) (s : Slot) (b : NamedProposal params
     | base l => cases l <;> cases payload <;> cases h
     | prop r => cases payload <;> cases h; rfl
 
-theorem gen_known_reconcile (P : Obj params → Prop) (st : State params.n)
+theorem adv_gen_known_reconcile (P : Obj params → Prop) (st : State params.n)
     (h : GenKnown P st) : GenKnown P (reconcile st) := by
   unfold reconcile normalizeS
   dsimp only
   split <;> exact h
 
 /-- Processing preserves signature origin, including signatures inside a proposal. -/
-theorem gen_known_process (P : Obj params → Prop) (st : State params.n) (o : Obj params)
+theorem adv_gen_known_process (P : Obj params → Prop) (st : State params.n) (o : Obj params)
     (h : GenKnown P st) (ho : P o)
     (hc : ∀ o', carriesS params o o' → P o') :
     GenKnown P (FGSA.process params st (toWire params o)) := by
@@ -1455,19 +1458,19 @@ theorem gen_known_process (P : Obj params → Prop) (st : State params.n) (o : O
     cases m with
     | vote s i b =>
       dsimp only
-      obtain rfl := i7_decode_vote o s i b hd
+      obtain rfl := adv_decode_vote o s i b hd
       refine ⟨h.1, h.2.1, ?_⟩
-      apply gen_known_vote P st.base _ h.2.2
+      apply adv_gen_known_vote P st.base _ h.2.2
       intro a he
       have he' : (⟨.seat (.head s) i, b⟩ : HeadWire params.n) = a := Option.some.inj he
       exact he' ▸ ho
     | row i body =>
       dsimp only
-      obtain rfl := i7_decode_row o i body hd
-      exact gen_known_row P st _ h ho
+      obtain rfl := adv_decode_row o i body hd
+      exact adv_gen_known_row P st _ h ho
     | block s b =>
       dsimp only
-      have he := i7_decode_proposal o s b hd
+      have he := adv_decode_proposal o s b hd
       have hr : ∀ a ∈ b.rows, P (ofRow params a) := by
         intro a ha
         apply hc
@@ -1485,7 +1488,7 @@ theorem gen_known_process (P : Obj params → Prop) (st : State params.n) (o : O
         · exact h
         · rename_i parent hparent
           split
-          · apply gen_known_rows _ _ _ _ hr
+          · apply adv_gen_known_rows _ _ _ _ hr
             have hs : GenKnown P
                 { st with
                   base := GridCO.admitProposal params.toParams.engine st.base
@@ -1493,7 +1496,7 @@ theorem gen_known_process (P : Obj params → Prop) (st : State params.n) (o : O
                   fg := Window.on_block params params.K_W st.fg (fgBlock parent b.erase b.rows)
                   proposals := st.proposals ++ [⟨.proposer s, .proposal b⟩] } := by
               refine ⟨h.1, ?_,
-                gen_known_base_proposal P st.base s b.erase b.raw b.support h.2.2 hv⟩
+                adv_gen_known_base_proposal P st.base s b.erase b.raw b.support h.2.2 hv⟩
               intro w hw s' b' hd' a ha
               rcases List.mem_append.mp hw with hw | hw
               · exact h.2.1 w hw s' b' hd' a ha
@@ -1503,16 +1506,16 @@ theorem gen_known_process (P : Obj params → Prop) (st : State params.n) (o : O
                 exact hr a ha
             split
             · exact hs
-            · exact gen_known_reconcile P _ hs
+            · exact adv_gen_known_reconcile P _ hs
           · exact h
 
 /-- A proposal takes every carried signature from the stored state. -/
-theorem gen_tick_children_known (P : Obj params → Prop) (st : Node params)
+theorem adv_gen_tick_children_known (P : Obj params → Prop) (st : Node params)
     (v : Validator) (t : Time) (o : Obj params) (h : GenKnown P st.st)
     (ho : o ∈ (V2.D.tick env (runData 0 []) st v t).2) :
     ∀ o', carriesS params o o' → P o' := by
-  have hs := gen_known_clock P st.st t h
-  obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
+  have hs := adv_gen_known_clock P st.st t h
+  obtain ⟨l, i, m, rfl, _, ha⟩ := adv_gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
     have hm : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
@@ -1545,10 +1548,10 @@ theorem gen_tick_children_known (P : Obj params → Prop) (st : Node params)
         obtain ⟨w, hw, he⟩ := List.mem_filterMap.mp ha
         exact hv a (List.mem_filterMap.mpr ⟨w, (List.mem_filter.mp hw).1, he⟩)
       · obtain ⟨a, ha, rfl⟩ := List.mem_map.mp hm
-        exact gen_proposalRows_origin _ _ _ hs.1 hs.2.1 a ha
+        exact adv_gen_proposalRows_origin _ _ _ hs.1 hs.2.1 a ha
 
 /-- Ticks preserve known signatures and select only known children. -/
-theorem gen_tick_fold_known (P : Obj params → Prop) (t : Time) (vs : List Validator)
+theorem adv_gen_tick_fold_known (P : Obj params → Prop) (t : Time) (vs : List Validator)
     (w : World) (os : List (Obj params)) (hw : ∀ v, GenKnown P (w v).st)
     (ho : ∀ o ∈ os, ∀ o', carriesS params o o' → P o') :
     let result := vs.foldl (fun acc v =>
@@ -1564,15 +1567,15 @@ theorem gen_tick_fold_known (P : Obj params → Prop) (t : Time) (vs : List Vali
       by_cases he : u = v
       · subst u
         rw [Function.update_self]
-        exact (i7_tick_st (w v) v t).symm ▸ gen_known_clock P (w v).st t (hw v)
+        exact (adv_tick_st (w v) v t).symm ▸ adv_gen_known_clock P (w v).st t (hw v)
       · rw [Function.update_of_ne he]
         exact hw u
     · intro o hm o' hc
       rcases List.mem_append.mp hm with hm | hm
       · exact ho o hm o' hc
-      · exact gen_tick_children_known P (w v) v t o (hw v) hm o' hc
+      · exact adv_gen_tick_children_known P (w v) v t o (hw v) hm o' hc
 
-theorem gen_delivery_fold_known (P : Obj params → Prop) (t : Time)
+theorem adv_gen_delivery_fold_known (P : Obj params → Prop) (t : Time)
     (xs : List (Validator × Obj params)) (acc : World × List Event)
     (hw : ∀ v, GenKnown P (acc.1 v).st)
     (ho : ∀ vo ∈ xs, P vo.2 ∧ ∀ o', carriesS params vo.2 o' → P o') :
@@ -1589,18 +1592,18 @@ theorem gen_delivery_fold_known (P : Obj params → Prop) (t : Time)
         by_cases hv : v = vo.1
         · subst v
           simp only [V2.D.World.step, Function.update_self]
-          exact gen_known_process P _ vo.2 (hw vo.1)
+          exact adv_gen_known_process P _ vo.2 (hw vo.1)
             (ho vo (List.mem_cons_self ..)).1 (ho vo (List.mem_cons_self ..)).2
         · simpa only [V2.D.World.step, Function.update_of_ne hv] using hw v
     · exact fun vo hv => ho vo (List.mem_cons_of_mem _ hv)
 
 /-- A batch preserves known signatures when every offer and its children are known. -/
-theorem gen_timeBatch_known (P : Obj params → Prop) (n : Nat) (w : World)
+theorem adv_gen_timeBatch_known (P : Obj params → Prop) (n : Nat) (w : World)
     (held : List (Obj params)) (hheld : ∀ o ∈ held, isProp o = false)
     (hw : ∀ v, GenKnown P (w v).st) (ho : ∀ o ∈ offers n held (tickBatch n w).2, P o) :
     ∀ v, GenKnown P ((timeBatch n w held).1 v).st := by
-  obtain ⟨ht, hc⟩ := gen_tick_fold_known P n nodes w [] hw (by simp)
-  apply gen_delivery_fold_known P n _ _ ht
+  obtain ⟨ht, hc⟩ := adv_gen_tick_fold_known P n nodes w [] hw (by simp)
+  apply adv_gen_delivery_fold_known P n _ _ ht
   intro vo hv
   obtain ⟨o, hm, hv⟩ := List.mem_flatMap.mp hv
   obtain ⟨v, _, hv⟩ := List.mem_map.mp hv
@@ -1620,18 +1623,18 @@ def GenCarried (es : List Event) : Prop :=
   ∀ v o t, V2.Event.deliver v o t ∈ es →
     ∀ o', carriesS params o o' → GenPast es t o'
 
-theorem gen_past_append (es ds : List Event) (t : Time) (o : Obj params)
+theorem adv_gen_past_append (es ds : List Event) (t : Time) (o : Obj params)
     (h : GenPast es t o) : GenPast (es ++ ds) t o := by
   obtain ⟨v, s, ht, he⟩ := h
-  exact ⟨v, s, ht, genEmits_append_left _ es ds v o s he⟩
+  exact ⟨v, s, ht, adv_genEmits_append_left _ es ds v o s he⟩
 
-theorem gen_past_bound (es : List Event) (t u : Time) (o : Obj params)
+theorem adv_gen_past_bound (es : List Event) (t u : Time) (o : Obj params)
     (h : GenPast es t o) (htu : t ≤ u) : GenPast es u o := by
   obtain ⟨v, s, ht, he⟩ := h
   exact ⟨v, s, ht.trans htu, he⟩
 
 /-- Symbolic signature-origin induction for the entire generator. -/
-theorem gen_prefix_carried (steps : Nat) :
+theorem adv_gen_prefix_carried (steps : Nat) :
     (∀ v, GenKnown (GenPast (buildPrefix steps).events steps)
       ((buildPrefix steps).world v).st) ∧
       GenCarried (buildPrefix steps).events := by
@@ -1647,7 +1650,7 @@ theorem gen_prefix_carried (steps : Nat) :
     have hp (o : Obj params) (ho : GenPast es steps o) :
         GenPast (buildPrefix (steps + 1)).events ((steps + 1 : Nat) : Time) o := by
       rw [hevents]
-      apply gen_past_bound _ steps _ o (gen_past_append es _ steps o ho)
+      apply adv_gen_past_bound _ steps _ o (adv_gen_past_append es _ steps o ho)
       push_cast
       simp only [Time]
       omega
@@ -1660,28 +1663,28 @@ theorem gen_prefix_carried (steps : Nat) :
       omega
     constructor
     · rw [bp_world]
-      apply gen_timeBatch_known _ steps w held (held_nonprop steps)
-      · exact fun v => gen_known_mono _ _ _ (hw v) hp
+      apply adv_gen_timeBatch_known _ steps w held (held_nonprop steps)
+      · exact fun v => adv_gen_known_mono _ _ _ (hw v) hp
       · intro o ho
         rcases (mem_offers steps held _ o).1 ho with ⟨_, hr, _⟩ | ⟨_, hr | hr⟩
         · exact hrel o hr
-        · obtain ⟨_, u, s, hs, hu⟩ := (prefix_origin steps).2 o hr
+        · obtain ⟨_, u, s, hs, hu⟩ := (adv_prefix_origin steps).2 o hr
           exact hp o ⟨u, s, le_of_lt hs, hu⟩
         · exact hrel o hr
     · intro v o s hm o' hcarry
       rw [hevents] at hm
       rcases List.mem_append.mp hm with hm | hm
       · rw [hevents]
-        exact gen_past_append es _ s o' (hc v o s hm o' hcarry)
+        exact adv_gen_past_append es _ s o' (hc v o s hm o' hcarry)
       · obtain ⟨rfl, _, hoff⟩ := timeBatch_delivered steps w held v o s hm
-        have hk := (gen_tick_fold_known (GenPast es steps) steps nodes w [] hw (by simp)).2
+        have hk := (adv_gen_tick_fold_known (GenPast es steps) steps nodes w [] hw (by simp)).2
         rcases (mem_offers steps held _ o).1 hoff with ⟨_, hr, _⟩ | ⟨_, hr | hr⟩
-        · rw [hevents]; exact gen_past_append es _ _ o' (hk o hr o' hcarry)
+        · rw [hevents]; exact adv_gen_past_append es _ _ o' (hk o hr o' hcarry)
         · exact (carries_nonprop (held_nonprop steps o hr) hcarry).elim
-        · rw [hevents]; exact gen_past_append es _ _ o' (hk o hr o' hcarry)
+        · rw [hevents]; exact adv_gen_past_append es _ _ o' (hk o hr o' hcarry)
 
 /-- A carried-signature witness identifies the holder of its earlier emission. -/
-theorem genCarried_runData (h : Time) (es : List Event) (hc : GenCarried es)
+theorem adv_genCarried_runData (h : Time) (es : List Event) (hc : GenCarried es)
     (v : Validator) (o : Obj params) (t : Time)
     (hp : V2.D.Run.processes (runData h es) v o t)
     (o' : Obj params) (hcarry : (fgsa params unitCodec).carries o o') (u : Validator)
@@ -1689,17 +1692,17 @@ theorem genCarried_runData (h : Time) (es : List Event) (hc : GenCarried es)
     ∃ t', t' ≤ t ∧ V2.D.Run.emits env (runData h es) u o' t' := by
   obtain ⟨i, hi⟩ := hp
   obtain ⟨x, s, ht, he⟩ := hc v o t (List.mem_of_getElem? hi) o' hcarry
-  have hem := genEmits_runData h es x o' s he
+  have hem := adv_genEmits_runData h es x o' s he
   obtain ⟨pre, post, _, ho⟩ := he
-  have hh' := gen_tick_holder (genFold V2.D.World.init pre x) x s o' ho
+  have hh' := adv_gen_tick_holder (genFold V2.D.World.init pre x) x s o' ho
   have hu : u = x := Option.some.inj (hh.symm.trans hh')
   exact ⟨s, ht, hu.symm ▸ hem⟩
 
 theorem run_signatures : V2.D.UnforgeableSignatures env run where
   unforgeable v o t hp u _ hh :=
-    genOrigin_unforgeable horizon _ (prefix_origin 291).1 v o t hp u hh
+    adv_genOrigin_unforgeable horizon _ (adv_prefix_origin 291).1 v o t hp u hh
   carried v o t hp o' hc u _ hh :=
-    genCarried_runData horizon _ (gen_prefix_carried 291).2 v o t hp o' hc u hh
+    adv_genCarried_runData horizon _ (adv_gen_prefix_carried 291).2 v o t hp o' hc u hh
 
 
 
@@ -1708,7 +1711,7 @@ theorem run_signatures : V2.D.UnforgeableSignatures env run where
 section Wire
 variable {p : Params}
 
-theorem w1_proposal_rows (st : State p.n) (H : Block)
+theorem adv_proposal_rows (st : State p.n) (H : Block)
     (hv : EmissionRowsValid st) : ∀ a ∈ proposalRows p st H, a.valid = true := by
   intro a ha
   rw [proposalRows_eq_proposalRowsFor] at ha
@@ -1717,7 +1720,7 @@ theorem w1_proposal_rows (st : State p.n) (H : Block)
   · exact hv.1 a hm
   · exact hv.2 o ho s b hd a hm
 
-theorem w1_proposal_votes (st : State p.n) (s : Slot) :
+theorem adv_proposal_votes (st : State p.n) (s : Slot) :
     (∀ a ∈ (proposerVotes st s).filterMap liftHead?,
       ∃ j b, a.decode? = some (s - 1, j, b)) ∧
     (∀ a ∈ (proposerSupport st s).filterMap liftHead?,
@@ -1741,7 +1744,7 @@ theorem w1_proposal_votes (st : State p.n) (s : Slot) :
     obtain ⟨w, hw, he⟩ := List.mem_filterMap.mp ha
     exact List.mem_filterMap.mpr ⟨w, (List.mem_filter.mp hw).1, he⟩
 
-theorem w1_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
+theorem adv_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
     (hv : EmissionRowsValid st)
     (hp : (getHead p st (proposerVotes st s) (proposerSupport st s)).slot < s)
     {m : Msg p.n} (hm : (propose p st s).map (withApp p a) = some m) :
@@ -1765,9 +1768,9 @@ theorem w1_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
       | some (r, _, _) => r + 1 == s | none => false) &&
     sup.all (fun v => decide (v ∈ raw)) && rows.all RowWire.valid &&
     contentOk p (proposalBlock p H s a raw sup rows) raw sup rows) = true
-  obtain ⟨hraw, hsup⟩ := w1_proposal_votes st s
+  obtain ⟨hraw, hsup⟩ := adv_proposal_votes st s
   have hr : rows.all RowWire.valid = true :=
-    List.all_eq_true.mpr (w1_proposal_rows st H hv)
+    List.all_eq_true.mpr (adv_proposal_rows st H hv)
   have hvotes : ((proposerVotes st s).filterMap liftHead?).all (fun v => match v.decode? with
       | some (r, _, _) => r + 1 == s | none => false) = true := by
     apply List.all_eq_true.mpr
@@ -1785,7 +1788,7 @@ theorem w1_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
 
 end Wire
 
-theorem gen_nonproposal_deps (st : Node params) (o : Obj params)
+theorem adv_gen_nonproposal_deps (st : Node params) (o : Obj params)
     (hn : ∀ b, o.payload ≠ .proposal b) :
     (fgsa params unitCodec).depsPresent st o = true := by
   obtain ⟨auth, payload⟩ := o
@@ -1799,12 +1802,12 @@ theorem gen_nonproposal_deps (st : Node params) (o : Obj params)
         rfl
 
 /-- The active height view starts at a positive height. -/
-theorem gen_derive_positive (B : FGBlock (Fin params.n)) :
+theorem adv_gen_derive_positive (B : FGBlock (Fin params.n)) :
     1 ≤ (heightView params B).h :=
   (Window.windowHeightLaws params params.K_W params.kWLarge).one_le_h B
 
 /-- Every released row passes the row-body wire check. -/
-theorem gen_attest_valid (st : State params.n) (record : RecordOnce)
+theorem adv_gen_attest_valid (st : State params.n) (record : RecordOnce)
     (i : Fin params.n) (body : RowPayload)
     (hbody : (attest params st record i).1 = some body) : body.valid = true := by
   obtain ⟨a, ha, hp⟩ := Option.map_eq_some_iff.mp hbody
@@ -1816,7 +1819,7 @@ theorem gen_attest_valid (st : State params.n) (record : RecordOnce)
   have heh : (heightView params C).h = h := by
     rw [heightView_bridge]
     exact congrArg Prod.fst hc
-  have hpos : 1 ≤ h := heh ▸ gen_derive_positive C
+  have hpos : 1 ≤ h := heh ▸ adv_gen_derive_positive C
   rw [← hp, he]
   change (decide (1 ≤ h) &&
     ((finality_pair record.toRecord (fgInputs params st).2).filter
@@ -1828,11 +1831,11 @@ theorem gen_attest_valid (st : State params.n) (record : RecordOnce)
       by_cases hlt : fp.height < h <;> simp [hpos, Option.filter, hlt]
 
 /-- The wire check for non-proposal releases. -/
-theorem gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) (o : Obj params)
+theorem adv_gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) (o : Obj params)
     (ho : o ∈ (V2.D.tick env (runData 0 []) st v t).2)
     (hn : ∀ b, o.payload ≠ .proposal b) :
     (fgsa params unitCodec).wellFormed o = true := by
-  obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
+  obtain ⟨l, i, m, rfl, _, ha⟩ := adv_gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
       have he : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
@@ -1843,7 +1846,7 @@ theorem gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) 
         ⟨0, params.nPos⟩).1.map Msg.row = some m at ha
       obtain ⟨body, hb, hm⟩ := Option.map_eq_some_iff.mp ha
       subst m
-      exact gen_attest_valid _ _ _ _ hb
+      exact adv_gen_attest_valid _ _ _ _ hb
   | propAction s =>
       change (propose params (FGSA.clock params st.st t) s).map
         (withApp params 0) = some m at ha
@@ -1855,10 +1858,10 @@ theorem gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) 
         exact (hn _ rfl).elim
 
 /-- A row with a generated emission passes the row wire check. -/
-theorem gen_past_row_valid (es : List Event) (t : Time) (a : RowWire params.n)
+theorem adv_gen_past_row_valid (es : List Event) (t : Time) (a : RowWire params.n)
     (h : GenPast es t (ofRow params a)) : a.valid = true := by
   obtain ⟨v, s, _, pre, post, _, ho⟩ := h
-  have hw := gen_tick_nonproposal_wire (genFold V2.D.World.init pre v) v s (ofRow params a) ho
+  have hw := adv_gen_tick_nonproposal_wire (genFold V2.D.World.init pre v) v s (ofRow params a) ho
     (by intro b; cases a with | mk auth body => cases auth <;> simp [ofRow,
       ofWire])
   obtain ⟨auth, body⟩ := a
@@ -1868,7 +1871,7 @@ theorem gen_past_row_valid (es : List Event) (t : Time) (a : RowWire params.n)
   exact hw
 
 /-- A list fold preserves knowledge when each delivery and its children have it. -/
-theorem w1_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
+theorem adv_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
     (hw : ∀ v, GenKnown P (w v).st)
     (he : ∀ v o t, V2.Event.deliver v o t ∈ es →
       P o ∧ ∀ o', carriesS params o o' → P o') :
@@ -1890,13 +1893,13 @@ theorem w1_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
         by_cases hu : u = v
         · subst u
           simp only [V2.D.World.step, Function.update_self]
-          exact (i7_tick_st (w v) v t).symm ▸ gen_known_clock P _ t (hw v)
+          exact (adv_tick_st (w v) v t).symm ▸ adv_gen_known_clock P _ t (hw v)
         · simpa only [V2.D.World.step, Function.update_of_ne hu] using hw u
       | deliver v o t =>
         by_cases hu : u = v
         · subst u
           simp only [V2.D.World.step, Function.update_self]
-          exact gen_known_process P _ o (hw v)
+          exact adv_gen_known_process P _ o (hw v)
             (he v o t (List.mem_cons_self ..)).1
             (he v o t (List.mem_cons_self ..)).2
         · simpa only [V2.D.World.step, Function.update_of_ne hu] using hw u
@@ -1904,28 +1907,28 @@ theorem w1_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
       exact he v o t (List.mem_cons_of_mem _ hm)
 
 /-- Row validity at every event prefix, without delivery validity. -/
-theorem w1_rows_at_index (h : Time) (es : List Event)
+theorem adv_rows_at_index (h : Time) (es : List Event)
     (ho : GenOrigin V2.D.World.init es) (hc : GenCarried es) (i : Nat) (v : Validator) :
     EmissionRowsValid (V2.D.Run.stateBefore env (runData h es) i v).st := by
   let P := fun o => ∃ t, GenPast es t o
   have hk : GenKnown P (genFold V2.D.World.init (es.take i) v).st := by
-    apply w1_known_fold
+    apply adv_known_fold
     · intro u
       exact gen_known_init P u
     · intro u o t hm
       have hm' := List.mem_of_mem_take hm
       obtain ⟨x, s, hs, hx⟩ := ho u o t hm'
       exact ⟨⟨t, x, s, hs, hx⟩, fun o' hcarry => ⟨t, hc u o t hm' o' hcarry⟩⟩
-  rw [runData_stateBefore]
+  rw [adv_runData_stateBefore]
   exact ⟨fun a ha => by
       obtain ⟨t, ht⟩ := hk.1 a ha
-      exact gen_past_row_valid es t a ht,
+      exact adv_gen_past_row_valid es t a ht,
     fun w hw s b hd a ha => by
       obtain ⟨t, ht⟩ := hk.2.1 w hw s b hd a ha
-      exact gen_past_row_valid es t a ht⟩
+      exact adv_gen_past_row_valid es t a ht⟩
 
 /-- Every release passes the wire check, using the symbolic row invariant. -/
-theorem w1_emit_wire (h : Time) (es : List Event)
+theorem adv_emit_wire (h : Time) (es : List Event)
     (hs : V2.D.ScheduleWellFormed env (runData h es))
     (horigin : GenOrigin V2.D.World.init es) (hcarried : GenCarried es)
     (v : Validator) (o : Obj params) (t : Time)
@@ -1933,7 +1936,7 @@ theorem w1_emit_wire (h : Time) (es : List Event)
     (fgsa params unitCodec).wellFormed o = true := by
   obtain ⟨i, hi, ho⟩ := hem
   rw [(V2.D.Run.step_tick_eq env (runData h es) hi).2] at ho
-  obtain ⟨l, j, m, rfl, hl, ha⟩ := gen_tick_seat
+  obtain ⟨l, j, m, rfl, hl, ha⟩ := adv_gen_tick_seat
     (V2.D.Run.stateBefore env (runData h es) i v) v t o ho
   cases l with
   | headAction s =>
@@ -1948,7 +1951,7 @@ theorem w1_emit_wire (h : Time) (es : List Event)
         = some m at ha
     obtain ⟨body, hb, hm⟩ := Option.map_eq_some_iff.mp ha
     subst m
-    exact gen_attest_valid _ _ _ _ hb
+    exact adv_gen_attest_valid _ _ _ _ hb
   | propAction s =>
     have ht : SA.proposalTime params.toParams s = t :=
       ((fgsa params unitCodec).duties_spec (.propAction s) t).1 hl
@@ -1962,26 +1965,26 @@ theorem w1_emit_wire (h : Time) (es : List Event)
       subst s
       change none = some m at hm
       cases hm
-    have hv := w1_rows_at_index h es horigin hcarried i v
+    have hv := adv_rows_at_index h es horigin hcarried i v
     have hv' : EmissionRowsValid
         (FGSA.clock params (V2.D.Run.stateBefore env (runData h es) i v).st
           (SA.proposalTime params.toParams s)) := by
-      simpa only [EmissionRowsValid, i7_clock_rowPool, i7_clock_proposals] using hv
-    exact w1_proposal_wf _ s 0 hv'
+      simpa only [EmissionRowsValid, adv_clock_rowPool, adv_clock_proposals] using hv
+    exact adv_proposal_wf _ s 0 hv'
       (fgsa_propose_parent_lt env (runData h es) hs hi hs0) hm
 
 /-- Every delivery of the run passes the wire check. -/
 theorem run_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (hi : run.events[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).wellFormed o = true := by
-  obtain ⟨u, s, _, hu⟩ := (prefix_origin 291).1 v o t (List.mem_of_getElem? hi)
-  exact w1_emit_wire 290 _ (prefix_schedule 290) (prefix_origin 291).1
-    (gen_prefix_carried 291).2 u o s (genEmits_runData 290 _ u o s hu)
+  obtain ⟨u, s, _, hu⟩ := (adv_prefix_origin 291).1 v o t (List.mem_of_getElem? hi)
+  exact adv_emit_wire 290 _ (prefix_schedule 290) (adv_prefix_origin 291).1
+    (adv_gen_prefix_carried 291).2 u o s (adv_genEmits_runData 290 _ u o s hu)
 
 /-! ### Dependencies -/
 
 /-- A skipped offer has exactly the store effect of the real handler. -/
-theorem w1_process_inert (st : State params.n) (o : Obj params)
+theorem adv_process_inert (st : State params.n) (o : Obj params)
     (hp : processedS params st o = true) :
     FGSA.process params st (toWire params o) = st := by
   unfold processedS at hp
@@ -1997,8 +2000,8 @@ theorem w1_process_inert (st : State params.n) (o : Obj params)
       simp [admitHead, GridCO.admitVote, hm]
     | row i body =>
       have hm := of_decide_eq_true hp
-      obtain rfl := i7_decode_row o i body hd
-      exact i7_admitRow_duplicate st i body hm
+      obtain rfl := adv_decode_row o i body hd
+      exact adv_admitRow_duplicate st i body hm
     | block s b =>
       have hm := of_decide_eq_true hp
       apply admitBlock_refused
@@ -2007,7 +2010,7 @@ theorem w1_process_inert (st : State params.n) (o : Obj params)
       | some P => exact Or.inr (Or.inr ⟨P, rfl, by simp [blockAccepted, hm]⟩)
 
 /-- The store update does not depend on whether the offer was skipped. -/
-theorem w1_deliver_st (t : Time) (acc : World × List Event)
+theorem adv_deliver_st (t : Time) (acc : World × List Event)
     (vo : Validator × Obj params) (u : Validator) :
     ((deliverOne t acc vo).1 u).st =
       if u = vo.1 then FGSA.process params (acc.1 u).st (toWire params vo.2)
@@ -2017,7 +2020,7 @@ theorem w1_deliver_st (t : Time) (acc : World × List Event)
   · rename_i hp
     by_cases hu : u = vo.1
     · subst u
-      rw [ite_eq_left rfl, w1_process_inert _ _ hp]
+      rw [ite_eq_left rfl, adv_process_inert _ _ hp]
     · rw [ite_eq_right hu]
   · dsimp only
     by_cases hu : u = vo.1
@@ -2027,7 +2030,7 @@ theorem w1_deliver_st (t : Time) (acc : World × List Event)
     · simp only [V2.D.World.step, Function.update_of_ne hu, ite_eq_right hu]
 
 /-- Each node receives one store update for one offered object. -/
-theorem w1_offer_st (t : Time) (acc : World × List Event) (o : Obj params)
+theorem adv_offer_st (t : Time) (acc : World × List Event) (o : Obj params)
     (vs : List Validator) (hn : vs.Nodup) (u : Validator) :
     (((vs.map (fun v => (v, o))).foldl (deliverOne t) acc).1 u).st =
       if u ∈ vs then FGSA.process params (acc.1 u).st (toWire params o)
@@ -2035,7 +2038,7 @@ theorem w1_offer_st (t : Time) (acc : World × List Event) (o : Obj params)
   induction vs generalizing acc with
   | nil => simp
   | cons v vs ih =>
-    rw [List.map_cons, List.foldl_cons, ih _ hn.of_cons, w1_deliver_st]
+    rw [List.map_cons, List.foldl_cons, ih _ hn.of_cons, adv_deliver_st]
     by_cases huv : u = v
     · subst u
       simp only [List.mem_cons, true_or, ↓reduceIte, hn.notMem]
@@ -2056,7 +2059,7 @@ theorem tick_fold_st (t : Time) (vs : List Validator) (hn : vs.Nodup)
     by_cases huv : u = v
     · subst u
       simp only [List.mem_cons, true_or, ↓reduceIte, hn.notMem, Function.update_self]
-      exact i7_tick_st (w v) v t
+      exact adv_tick_st (w v) v t
     · simp only [Function.update_of_ne huv, List.mem_cons, huv, false_or]
 
 /-- The tick fold releases exactly the objects of its independent ticks. -/
@@ -2105,15 +2108,15 @@ theorem tickBatch_emits (t : Time) (w : World) (o : Obj params) :
 def GenUniformStores (w : World) : Prop := ∀ u ∈ nodes, ∀ v ∈ nodes, (w u).st = (w v).st
 
 /-- One object preserves store agreement after its complete recipient list. -/
-theorem w1_offer_uniform (t : Time) (acc : World × List Event) (o : Obj params)
+theorem adv_offer_uniform (t : Time) (acc : World × List Event) (o : Obj params)
     (hw : GenUniformStores acc.1) :
     GenUniformStores ((nodes.map (fun v => (v, o))).foldl (deliverOne t) acc).1 := by
   intro u hu v hv
-  rw [w1_offer_st t acc o nodes (by decide), w1_offer_st t acc o nodes (by decide),
+  rw [adv_offer_st t acc o nodes (by decide), adv_offer_st t acc o nodes (by decide),
     ite_eq_left hu, ite_eq_left hv, hw u hu v hv]
 
 /-- The object fold preserves store agreement without an acceptance premise. -/
-theorem w1_objects_uniform (t : Time) (os : List (Obj params))
+theorem adv_objects_uniform (t : Time) (os : List (Obj params))
     (acc : World × List Event) (hw : GenUniformStores acc.1) :
     GenUniformStores ((os.flatMap (fun o => nodes.map (fun v => (v, o)))).foldl
       (deliverOne t) acc).1 := by
@@ -2121,37 +2124,37 @@ theorem w1_objects_uniform (t : Time) (os : List (Obj params))
   | nil => exact hw
   | cons o os ih =>
     rw [List.flatMap_cons, List.foldl_append]
-    exact ih _ (w1_offer_uniform t acc o hw)
+    exact ih _ (adv_offer_uniform t acc o hw)
 
 /-- Each generated time block preserves store agreement. -/
-theorem w1_batch_uniform (n : Nat) (w : World) (held : List (Obj params))
+theorem adv_batch_uniform (n : Nat) (w : World) (held : List (Obj params))
     (hw : GenUniformStores w) : GenUniformStores (timeBatch n w held).1 := by
-  apply w1_objects_uniform
+  apply adv_objects_uniform
   intro u hu v hv
   rw [tickBatch_st, tickBatch_st, ite_eq_left hu, ite_eq_left hv, hw u hu v hv]
 
 theorem prefix_uniform (steps : Nat) : GenUniformStores (buildPrefix steps).world := by
   induction steps with
   | zero => exact fun _ _ _ _ => rfl
-  | succ steps ih => rw [bp_world]; exact w1_batch_uniform _ _ _ ih
+  | succ steps ih => rw [bp_world]; exact adv_batch_uniform _ _ _ ih
 
 /-- Every replayed generator store is reachable. -/
-theorem w1_reachable (es : List Event) (u : Validator) :
+theorem adv_reachable (es : List Event) (u : Validator) :
     Reachable params (genFold V2.D.World.init es u).st := by
   have h := reachable_stateBefore env (runData 0 es) es.length u
-  rwa [runData_stateBefore, List.take_length] at h
+  rwa [adv_runData_stateBefore, List.take_length] at h
 
 theorem prefix_reachable (steps : Nat) (u : Validator) :
     Reachable params ((buildPrefix steps).world u).st := by
-  rw [(prefix_replay_fresh steps).1]
-  exact w1_reachable _ u
+  rw [(adv_prefix_replay_fresh steps).1]
+  exact adv_reachable _ u
 
 /-- An emitted proposal has a parent in the emitting store. -/
-theorem w1_tick_deps (st : Node params) (v : Validator) (t : Time)
+theorem adv_tick_deps (st : Node params) (v : Validator) (t : Time)
     (hr : Reachable params st.st) (o : Obj params)
     (ho : o ∈ (V2.D.tick env (runData 0 []) st v t).2) :
     depsS params (FGSA.clock params st.st t) o = true := by
-  obtain ⟨l, j, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
+  obtain ⟨l, j, m, rfl, _, ha⟩ := adv_gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
     have he : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
@@ -2182,16 +2185,16 @@ theorem w1_tick_deps (st : Node params) (v : Validator) (t : Time)
       exact hnamed.1
 
 /-- Store agreement supplies proposal dependencies at every receiver after the ticks. -/
-theorem w1_batch_deps_start (t : Time) (w : World) (hw : GenUniformStores w)
+theorem adv_batch_deps_start (t : Time) (w : World) (hw : GenUniformStores w)
     (hr : ∀ v, Reachable params (w v).st) (o : Obj params)
     (ho : o ∈ (tickBatch t w).2) (u : Validator) (hu : u ∈ nodes) :
     depsS params ((tickBatch t w).1 u).st o = true := by
   obtain ⟨v, hv, hm⟩ := (tickBatch_emits t w o).1 ho
   rw [tickBatch_st, ite_eq_left hu, hw u hu v hv]
-  exact w1_tick_deps _ v t (hr v) o hm
+  exact adv_tick_deps _ v t (hr v) o hm
 
 /-- Dependencies persist when the FG store grows. -/
-theorem w1_deps_mono {st st' : State params.n} (hT : st.fg.TF ⊆ st'.fg.TF)
+theorem adv_deps_mono {st st' : State params.n} (hT : st.fg.TF ⊆ st'.fg.TF)
     (hN : st.namedBodies ⊆ st'.namedBodies) (o : Obj params) (h : depsS params st o = true) :
     depsS params st' o = true := by
   unfold depsS at h ⊢
@@ -2213,13 +2216,13 @@ theorem w1_deps_mono {st st' : State params.n} (hT : st.fg.TF ⊆ st'.fg.TF)
             ((parentFG_spec st b.erase P).1 hP).2⟩⟩
 
 /-- Any offered delivery preserves dependencies of every object. -/
-theorem w1_deliver_deps (t : Time) (acc : World × List Event)
+theorem adv_deliver_deps (t : Time) (acc : World × List Event)
     (vo : Validator × Obj params) (u : Validator) (o : Obj params)
     (h : depsS params (acc.1 u).st o = true) :
     depsS params ((deliverOne t acc vo).1 u).st o = true := by
-  rw [w1_deliver_st]
+  rw [adv_deliver_st]
   split
-  · exact w1_deps_mono (process_cumulative params _ _).1
+  · exact adv_deps_mono (process_cumulative params _ _).1
       (process_namedBodies_subset _ _) o h
   · exact h
 
@@ -2232,7 +2235,7 @@ def GenDeps : World → List Event → Prop
         | _ => True) ∧
       GenDeps (V2.D.World.step env (runData 0 []) w e) es
 
-theorem w1_deps_append (w : World) (es ds : List Event) :
+theorem adv_deps_append (w : World) (es ds : List Event) :
     GenDeps w (es ++ ds) ↔ GenDeps w es ∧ GenDeps (genFold w es) ds := by
   induction es generalizing w with
   | nil => simp [GenDeps, genFold]
@@ -2241,7 +2244,7 @@ theorem w1_deps_append (w : World) (es ds : List Event) :
     tauto
 
 /-- The delivery fold keeps the dependency checks in its accumulated trace. -/
-theorem w1_delivery_fold_deps (t : Time) (xs : List (Validator × Obj params))
+theorem adv_delivery_fold_deps (t : Time) (xs : List (Validator × Obj params))
     (w : World) (acc : World × List Event) (hr : genFold w acc.2 = acc.1)
     (hd : GenDeps w acc.2)
     (hx : ∀ vo ∈ xs, depsS params (acc.1 vo.1).st vo.2 = true) :
@@ -2254,50 +2257,50 @@ theorem w1_delivery_fold_deps (t : Time) (xs : List (Validator × Obj params))
     · unfold deliverOne
       split
       · exact hr
-      · simp only [genFold_append, hr]
+      · simp only [adv_genFold_append, hr]
         rfl
     · unfold deliverOne
       split
       · exact hd
-      · apply (w1_deps_append w acc.2 _).2
+      · apply (adv_deps_append w acc.2 _).2
         exact ⟨hd, by simpa only [GenDeps, hr, and_true] using hx vo (List.mem_cons_self ..)⟩
     · intro vo' hm
-      exact w1_deliver_deps t acc vo vo'.1 vo'.2 (hx vo' (List.mem_cons_of_mem _ hm))
+      exact adv_deliver_deps t acc vo vo'.1 vo'.2 (hx vo' (List.mem_cons_of_mem _ hm))
 
-theorem w1_ticks_deps (w : World) (t : Time) (vs : List Validator) :
+theorem adv_ticks_deps (w : World) (t : Time) (vs : List Validator) :
     GenDeps w (vs.map (fun v => .tick v t)) := by
   induction vs generalizing w with
   | nil => trivial
   | cons v vs ih => exact ⟨trivial, ih _⟩
 
 /-- Dependencies hold throughout a complete generated time block. -/
-theorem w1_batch_deps (n : Nat) (w : World) (held : List (Obj params))
+theorem adv_batch_deps (n : Nat) (w : World) (held : List (Obj params))
     (hheld : ∀ o ∈ held, isProp o = false) (hw : GenUniformStores w)
     (hr : ∀ v, Reachable params (w v).st) : GenDeps w (timeBatch n w held).2 := by
-  apply w1_delivery_fold_deps
-  · exact (tickBatch_replay n w).symm
-  · exact w1_ticks_deps w n nodes
+  apply adv_delivery_fold_deps
+  · exact (adv_tickBatch_replay n w).symm
+  · exact adv_ticks_deps w n nodes
   · intro vo hm
     obtain ⟨o, ho, hm⟩ := List.mem_flatMap.mp hm
     obtain ⟨v, hv, rfl⟩ := List.mem_map.mp hm
     rcases (mem_offers n held _ o).1 ho with ⟨_, hr', _⟩ | ⟨_, hr' | hr'⟩
-    · exact w1_batch_deps_start n w hw hr o hr' v hv
-    · exact gen_nonproposal_deps _ o (isProp_false (hheld o hr'))
-    · exact w1_batch_deps_start n w hw hr o hr' v hv
+    · exact adv_batch_deps_start n w hw hr o hr' v hv
+    · exact adv_gen_nonproposal_deps _ o (isProp_false (hheld o hr'))
+    · exact adv_batch_deps_start n w hw hr o hr' v hv
 
 theorem prefix_deps (steps : Nat) : GenDeps V2.D.World.init (buildPrefix steps).events := by
   induction steps with
   | zero => trivial
   | succ steps ih =>
     rw [bp_events]
-    apply (w1_deps_append _ _ _).2
+    apply (adv_deps_append _ _ _).2
     refine ⟨ih, ?_⟩
-    rw [← (prefix_replay_fresh steps).1]
-    exact w1_batch_deps _ _ _ (held_nonprop steps) (prefix_uniform steps)
+    rw [← (adv_prefix_replay_fresh steps).1]
+    exact adv_batch_deps _ _ _ (held_nonprop steps) (prefix_uniform steps)
       (prefix_reachable steps)
 
 /-- Read a dependency check at an indexed delivery. -/
-theorem w1_deps_get (w : World) (es : List Event) (hd : GenDeps w es)
+theorem adv_deps_get (w : World) (es : List Event) (hd : GenDeps w es)
     (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (he : es[i]? = some (.deliver v o t)) :
     depsS params (genFold w (es.take i) v).st o = true := by
@@ -2317,7 +2320,7 @@ theorem run_deps (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (hi : run.events[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).depsPresent (V2.D.Run.stateBefore env run i v) o = true := by
   change depsS params (genFold V2.D.World.init (run.events.take i) v).st o = true
-  exact w1_deps_get V2.D.World.init _ (prefix_deps 291) i v o t hi
+  exact adv_deps_get V2.D.World.init _ (prefix_deps 291) i v o t hi
 
 /-- I-EXEC: every execution-validity field holds for the adversarial run. -/
 theorem nvExecution : V2.D.ExecutionValid env run where
@@ -2344,13 +2347,13 @@ theorem emits_unique (es : List Event) (hn : es.Nodup) :
       (he : GenEmits V2.D.World.init es x a u) (ha : a.auth = .seat l j) :
       x = seatOf l j := by
     obtain ⟨pre, post, _, hm⟩ := he
-    have hh := gen_tick_holder (genFold V2.D.World.init pre x) x u a hm
+    have hh := adv_gen_tick_holder (genFold V2.D.World.init pre x) x u a hm
     rw [ha] at hh
     exact (Option.some.inj hh).symm
   have hv := holder v t o he ha
   have hv' := holder v' t' o' he' ha'
-  obtain ⟨i, hi, ho⟩ := genEmits_runData 0 es v o t he
-  obtain ⟨i', hi', ho'⟩ := genEmits_runData 0 es v' o' t' he'
+  obtain ⟨i, hi, ho⟩ := adv_genEmits_runData 0 es v o t he
+  obtain ⟨i', hi', ho'⟩ := adv_genEmits_runData 0 es v' o' t' he'
   rw [hv] at hi
   rw [hv'] at hi'
   exact (Gen.V2.Duty.emitted_unique_of_singleDuty env (runData 0 es) hn
@@ -2367,7 +2370,7 @@ theorem head_accept (P : Obj params → Prop) (hu : GenSingleDutyUnique P)
   let a : HeadWire params.n := ⟨.seat (.head s) i, b⟩
   by_cases hm : baseVote a ∈ st.base.votes
   · have hp : processedS params st (ofHead params a) = true := decide_eq_true hm
-    rw [w1_process_inert st _ hp]
+    rw [adv_process_inert st _ hp]
     exact hp
   · have hempty : GridCO.seatVotes (GridCO.votesAt st.base s) i = [] := by
       apply List.filter_eq_nil_iff.mpr
@@ -2421,7 +2424,7 @@ theorem nonproposal_accept (P : Obj params → Prop) (hu : GenSingleDutyUnique P
     (hP : P o) (hnot : ∀ b, o.payload ≠ .proposal b) (hwin : t ≤ td ∧ (td = t ∨ td ≤ 7))
     (st : State params.n) (hk : GenKnown P st) (hn : st.base.now = td) :
     processedS params (FGSA.process params st (toWire params o)) o = true := by
-  obtain ⟨l, j, m, rfl, hl, ha⟩ := gen_tick_seat nd v t o ho
+  obtain ⟨l, j, m, rfl, hl, ha⟩ := adv_gen_tick_seat nd v t o ho
   have ht := ((fgsa params unitCodec).duties_spec l t).1 hl
   cases l with
   | headAction s =>
@@ -2449,7 +2452,7 @@ theorem nonproposal_accept (P : Obj params → Prop) (hu : GenSingleDutyUnique P
       exact (hnot _ rfl).elim
 
 /-- Processed objects stay processed when their pools and tree grow. -/
-theorem processed_mono {st st' : State params.n}
+theorem adv_processed_mono {st st' : State params.n}
     (hv : st.base.votes ⊆ st'.base.votes) (hr : st.rowPool ⊆ st'.rowPool)
     (hT : st.fg.TF ⊆ st'.fg.TF) (o : Obj params) :
     processedS params st o = true → processedS params st' o = true := by
@@ -2470,14 +2473,14 @@ theorem process_processed (st : State params.n) (a o : Obj params)
     (h : processedS params st o = true) :
     processedS params (FGSA.process params st (toWire params a)) o = true := by
   have hc := process_cumulative params st (toWire params a)
-  exact processed_mono (process_votes_subset st (toWire params a))
+  exact adv_processed_mono (process_votes_subset st (toWire params a))
     hc.2.2.2.2.2.subset hc.1 o h
 
 theorem deliver_processed (t : Time) (acc : World × List Event)
     (vo : Validator × Obj params) (u : Validator) (o : Obj params)
     (h : processedS params (acc.1 u).st o = true) :
     processedS params ((deliverOne t acc vo).1 u).st o = true := by
-  rw [w1_deliver_st]
+  rw [adv_deliver_st]
   split
   · exact process_processed _ _ _ h
   · exact h
@@ -2494,7 +2497,7 @@ theorem fold_processed (t : Time) (xs : List (Validator × Obj params))
 theorem deliver_now (t : Time) (acc : World × List Event)
     (vo : Validator × Obj params) (u : Validator) :
     ((deliverOne t acc vo).1 u).st.base.now = (acc.1 u).st.base.now := by
-  rw [w1_deliver_st]
+  rw [adv_deliver_st]
   split
   · exact process_base_now _ _
   · rfl
@@ -2513,9 +2516,9 @@ theorem fold_complete (P : Obj params → Prop) (t : Time)
   | cons vo xs ih =>
     have hk' : ∀ u, GenKnown P ((deliverOne t acc vo).1 u).st := by
       intro u
-      rw [w1_deliver_st]
+      rw [adv_deliver_st]
       split
-      · exact gen_known_process P _ vo.2 (hk u)
+      · exact adv_gen_known_process P _ vo.2 (hk u)
           (hc vo (List.mem_cons_self ..)).1 (hc vo (List.mem_cons_self ..)).2
       · exact hk u
     have hn' : ∀ u ∈ nodes, ((deliverOne t acc vo).1 u).st.base.now = t :=
@@ -2524,7 +2527,7 @@ theorem fold_complete (P : Obj params → Prop) (t : Time)
     rcases List.mem_cons.mp hm with he | hm
     · subst vo'
       apply fold_processed t xs (deliverOne t acc vo) vo.1 vo.2
-      rw [w1_deliver_st, ite_eq_left rfl]
+      rw [adv_deliver_st, ite_eq_left rfl]
       exact ha vo (List.mem_cons_self ..) _ (hk vo.1) (hn vo.1 (hx vo (List.mem_cons_self ..)))
     · exact ih _ hk' hn' (fun vo hm => hx vo (List.mem_cons_of_mem _ hm))
         (fun vo hm => hc vo (List.mem_cons_of_mem _ hm))
@@ -2540,7 +2543,7 @@ theorem batch_nonproposal_complete (P : Obj params → Prop) (n : Nat) (w : Worl
     (v : Validator) (hv : v ∈ nodes) (o : Obj params)
     (ho : o ∈ offers n held (tickBatch n w).2) :
     processedS params ((timeBatch n w held).1 v).st o = true := by
-  obtain ⟨hk', hc⟩ := gen_tick_fold_known P n nodes w [] hk (by simp)
+  obtain ⟨hk', hc⟩ := adv_gen_tick_fold_known P n nodes w [] hk (by simp)
   apply fold_complete P n _ _ hk'
     (fun u hu => by rw [tickBatch_st, ite_eq_left hu]; exact (clock_vn (w u).st n).2)
     (fun vo hm => ?_) (fun vo hm => ?_) (fun vo hm st hst hn => ?_) (v, o)
@@ -2566,15 +2569,15 @@ theorem proposal_only (t : Time) (w : World) (v : Validator) (s : Slot)
       (V2.D.tick env (runData 0 []) (w v) v t).2)
     (o' : Obj params) (ho' : o' ∈ (tickBatch t w).2) :
     o' = ⟨.seat (.prop s) j, m⟩ := by
-  have hv := gen_tick_holder (w v) v t _ ho
+  have hv := adv_gen_tick_holder (w v) v t _ ho
   have hv0 : v = 0 := (Option.some.inj hv).symm
   subst v
   have ha := (Gen.V2.Duty.mem_tick_singleDuty_iff env (runData 0 []) (w 0) 0 t
     (.prop s) (fgsa_prop_singleDuty s) (.propAction s) rfl j m).1 ho
   have ht : (4 : Int) * s = t := ha.2.1
   obtain ⟨v', _, hv'⟩ := (tickBatch_emits t w o').1 ho'
-  have holder := gen_tick_holder (w v') v' t o' hv'
-  obtain ⟨l', j', m', rfl, hl', ha'⟩ := gen_tick_seat (w v') v' t o' hv'
+  have holder := adv_gen_tick_holder (w v') v' t o' hv'
+  obtain ⟨l', j', m', rfl, hl', ha'⟩ := adv_gen_tick_seat (w v') v' t o' hv'
   have ht' := ((fgsa params unitCodec).duties_spec l' t).1 hl'
   cases l' with
   | headAction r =>
@@ -2604,7 +2607,7 @@ theorem proposal_singleton (t : Time) (w : World) (o : Obj params)
     (tickBatch t w).2 = [o] := by
   have hall : ∀ o' ∈ (tickBatch t w).2, o' = o := by
     obtain ⟨v, _, hv⟩ := (tickBatch_emits t w o).1 ho
-    obtain ⟨l, j, m, rfl, _, ha⟩ := gen_tick_seat (w v) v t o hv
+    obtain ⟨l, j, m, rfl, _, ha⟩ := adv_gen_tick_seat (w v) v t o hv
     cases l with
     | headAction s =>
       have he : .head (headVote params (FGSA.clock params (w v).st t) s).root = m :=
@@ -2618,7 +2621,7 @@ theorem proposal_singleton (t : Time) (w : World) (o : Obj params)
       subst m
       cases hp
     | propAction s => exact fun o' ho' => proposal_only t w v s j m hv o' ho'
-  have hn := tickBatch_nodup t w
+  have hn := adv_tickBatch_nodup t w
   generalize (tickBatch t w).2 = os at ho hall hn ⊢
   cases os with
   | nil => exact (List.not_mem_nil ho).elim
@@ -2640,7 +2643,7 @@ theorem proposal_admit (nd : Node params) (v : Validator) (t : Time) (o : Obj pa
     (hp : o.payload = .proposal b) :
     processedS params
       (FGSA.process params (FGSA.clock params nd.st t) (toWire params o)) o = true := by
-  obtain ⟨l, j, m, rfl, hl, ha⟩ := gen_tick_seat nd v t o ho
+  obtain ⟨l, j, m, rfl, hl, ha⟩ := adv_gen_tick_seat nd v t o ho
   cases l with
   | headAction s =>
     have he : .head (headVote params (FGSA.clock params nd.st t) s).root = m :=
@@ -2725,7 +2728,7 @@ theorem batch_proposal_complete (n : Nat) (w : World) (held : List (Obj params))
   obtain ⟨u, hu', he⟩ := (tickBatch_emits n w o).1 ho
   have ha := proposal_admit (w u) u n o (hr u) he hw b hp
   simp only [timeBatch, deliverAll]
-  rw [hoff, List.flatMap_singleton, w1_offer_st n _ o nodes (by decide), ite_eq_left hv,
+  rw [hoff, List.flatMap_singleton, adv_offer_st n _ o nodes (by decide), ite_eq_left hv,
     tickBatch_st, ite_eq_left hv, hu v hv u hu']
   exact ha
 
@@ -2756,7 +2759,7 @@ theorem release_seven (w : World) : (tickBatch ((7 : Nat) : Time) w).2 = [] := b
   apply List.eq_nil_iff_forall_not_mem.mpr
   intro o ho
   obtain ⟨v, _, hv⟩ := (tickBatch_emits _ w o).1 ho
-  obtain ⟨l, j, m, rfl, hl, _⟩ := gen_tick_seat (w v) v _ o hv
+  obtain ⟨l, j, m, rfl, hl, _⟩ := adv_gen_tick_seat (w v) v _ o hv
   have ht := ((fgsa params unitCodec).duties_spec l _).1 hl
   cases l with
   | headAction r => change (4 : Int) * r + 1 = ((7 : Nat) : Time) at ht; omega
@@ -2834,7 +2837,7 @@ theorem early_known (n : Nat) (hn : n ≤ 7) (v : Validator) :
   | zero => exact gen_known_init _ v
   | succ n ih =>
     rw [bp_world]
-    refine gen_timeBatch_known _ n _ _ (held_nonprop n) (fun u => ih (by omega) u) ?_ v
+    refine adv_gen_timeBatch_known _ n _ _ (held_nonprop n) (fun u => ih (by omega) u) ?_ v
     intro o ho
     rcases (mem_offers n _ _ o).1 ho with ⟨_, _, hp⟩ | ⟨h7, _⟩
     · exact hp
@@ -2848,25 +2851,25 @@ theorem prefix_complete (n : Nat) (v : Validator) (hv : v ∈ nodes) (o : Obj pa
   rw [bp_world]
   let P := fun a => ∃ u t, GenEmits V2.D.World.init (buildPrefix (n + 1)).events u a t
   have lift : ∀ u a s, GenEmits V2.D.World.init (buildPrefix n).events u a s → P a :=
-    fun u a s h => ⟨u, s, by rw [bp_events]; exact genEmits_append_left _ _ _ u a s h⟩
+    fun u a s h => ⟨u, s, by rw [bp_events]; exact adv_genEmits_append_left _ _ _ u a s h⟩
   have hk : ∀ u, GenKnown P ((buildPrefix n).world u).st := by
     intro u
-    apply gen_known_mono _ P _ ((gen_prefix_carried n).1 u)
+    apply adv_gen_known_mono _ P _ ((adv_gen_prefix_carried n).1 u)
     rintro a ⟨x, s, _, he⟩
     exact lift x a s he
   have hrel : ∀ a ∈ (tickBatch n (buildPrefix n).world).2, P a := by
     intro a ha
     obtain ⟨u, hu⟩ := batch_release_emits n a ha
     exact ⟨u, n, hu⟩
-  have hunique : GenSingleDutyUnique P := emits_unique _ (prefix_nodup (n + 1))
+  have hunique : GenSingleDutyUnique P := emits_unique _ (adv_prefix_nodup (n + 1))
   by_cases hp : ∃ b, o.payload = .proposal b
   · obtain ⟨b, hp⟩ := hp
     obtain ⟨hr, hoff⟩ := offers_prop n o ho b hp
     have hmem : o ∈ (tickBatch n (buildPrefix n).world).2 := by
       rw [hr]; exact List.mem_singleton_self o
     obtain ⟨u, hu⟩ := batch_release_emits n o hmem
-    have hw := w1_emit_wire n _ (prefix_schedule n) (prefix_origin (n + 1)).1
-      (gen_prefix_carried (n + 1)).2 u o n (genEmits_runData n _ u o n hu)
+    have hw := adv_emit_wire n _ (prefix_schedule n) (adv_prefix_origin (n + 1)).1
+      (adv_gen_prefix_carried (n + 1)).2 u o n (adv_genEmits_runData n _ u o n hu)
     exact batch_proposal_complete n _ _ (prefix_uniform n) (prefix_reachable n) o hmem hoff
       hw b hp v hv
   · have hnp : ∀ a ∈ offers n (buildPrefix n).held (tickBatch n (buildPrefix n).world).2,
@@ -2879,7 +2882,7 @@ theorem prefix_complete (n : Nat) (v : Validator) (hv : v ∈ nodes) (o : Obj pa
     · intro a ha
       rcases (mem_offers n _ _ a).1 ha with ⟨_, hr, _⟩ | ⟨_, hr | hr⟩
       · exact hrel a hr
-      · obtain ⟨_, u, s, _, hu⟩ := (prefix_origin n).2 a hr
+      · obtain ⟨_, u, s, _, hu⟩ := (adv_prefix_origin n).2 a hr
         exact lift u a s hu
       · exact hrel a hr
     · intro a ha st hst hnow
@@ -2891,7 +2894,7 @@ theorem prefix_complete (n : Nat) (v : Validator) (hv : v ∈ nodes) (o : Obj pa
           by_contra hne
           rw [held_late n (by omega)] at hr
           exact List.not_mem_nil hr
-        obtain ⟨_, u, s, hs, pre, post, hes, hu⟩ := (prefix_origin n).2 a hr
+        obtain ⟨_, u, s, hs, pre, post, hes, hu⟩ := (adv_prefix_origin n).2 a hr
         exact nonproposal_accept P hunique _ u s n a hu (lift u a s ⟨pre, post, hes, hu⟩)
           (hnp a ha) ⟨le_of_lt hs, Or.inr (by subst hn7; decide)⟩ st hst hnow
       · obtain ⟨u, _, hu⟩ := (tickBatch_emits n _ a).1 hr
@@ -2918,15 +2921,15 @@ For FG rows, the durable sent set supplies this fact. -/
 theorem not_past (steps : Nat) (v : Validator) (o : Obj params)
     (ho : o ∈ (V2.D.tick env (runData 0 []) ((buildPrefix steps).world v) v steps).2) :
     ¬ GenPast (buildPrefix steps).events steps o := by
-  have hh := gen_tick_holder ((buildPrefix steps).world v) v steps o ho
-  obtain ⟨d, j, m, rfl, hd, ha⟩ := gen_tick_seat ((buildPrefix steps).world v) v steps o ho
+  have hh := adv_gen_tick_holder ((buildPrefix steps).world v) v steps o ho
+  obtain ⟨d, j, m, rfl, hd, ha⟩ := adv_gen_tick_seat ((buildPrefix steps).world v) v steps o ho
   have ht := ((fgsa params unitCodec).duties_spec d steps).1 hd
   rintro ⟨u, t, _, he⟩
   have no_single (hD : Gen.V2.Duty.SingleDuty (fgsa params unitCodec) d.signLabel) : False := by
     have heTime := emission_time _ u _ t he d hD j rfl
     obtain ⟨pre, post, hes, _⟩ := he
     have hm : V2.Event.tick u t ∈ (buildPrefix steps).events := by rw [hes]; simp
-    have hlt := (prefix_times steps (.tick u t) hm).2
+    have hlt := (adv_prefix_times steps (.tick u t) hm).2
     change t < (steps : Int) at hlt
     exact (lt_irrefl (steps : Int)) ((ht.symm.trans heTime) ▸ hlt)
   cases d with
@@ -2939,24 +2942,24 @@ theorem not_past (steps : Nat) (v : Validator) (o : Obj params)
     subst m
     have hu : u = v := by
       obtain ⟨pre, post, _, hem⟩ := he
-      have hhu := gen_tick_holder (genFold V2.D.World.init pre u) u t _ hem
+      have hhu := adv_gen_tick_holder (genFold V2.D.World.init pre u) u t _ hem
       exact Option.some.inj (hhu.symm.trans hh)
     subst u
-    obtain ⟨i, hi, hem⟩ := genEmits_runData 0 (buildPrefix steps).events v _ t he
+    obtain ⟨i, hi, hem⟩ := adv_genEmits_runData 0 (buildPrefix steps).events v _ t he
     have hsent := fgsa_row_sent_before env (runData 0 (buildPrefix steps).events)
       v j body (List.getElem?_eq_some_iff.mp hi).1 t hi hem
     change (body.height_pair, body.finality_pair) ∈
       (genFold V2.D.World.init ((buildPrefix steps).events.take
         (buildPrefix steps).events.length) v).record.sent
       at hsent
-    rw [List.take_length, ← (prefix_replay_fresh steps).1] at hsent
+    rw [List.take_length, ← (adv_prefix_replay_fresh steps).1] at hsent
     exact (attest_some_fresh _ _ _ _ hb) hsent
 
 /-- The clock preserves the processed predicate exactly. -/
 theorem clock_processed (st : State params.n) (t : Time) (o : Obj params) :
     processedS params (FGSA.clock params st t) o = processedS params st o := by
   unfold processedS
-  rw [i7_clock_votes, i7_clock_rowPool, clock_fg]
+  rw [adv_clock_votes, adv_clock_rowPool, clock_fg]
 
 /-- Knowledge can be tracked separately for each receiver. -/
 theorem known_fold_local (P : Validator → Obj params → Prop) (w : World)
@@ -2981,13 +2984,13 @@ theorem known_fold_local (P : Validator → Obj params → Prop) (w : World)
         by_cases hu : u = v
         · subst u
           simp only [V2.D.World.step, Function.update_self]
-          exact (i7_tick_st (w v) v t).symm ▸ gen_known_clock (P v) _ t (hk v)
+          exact (adv_tick_st (w v) v t).symm ▸ adv_gen_known_clock (P v) _ t (hk v)
         · simpa only [V2.D.World.step, Function.update_of_ne hu] using hk u
       | deliver v o t =>
         by_cases hu : u = v
         · subst u
           simp only [V2.D.World.step, Function.update_self]
-          exact gen_known_process (P v) _ o (hk v)
+          exact adv_gen_known_process (P v) _ o (hk v)
             (he v o t (List.mem_cons_self ..)).1 (he v o t (List.mem_cons_self ..)).2
         · simpa only [V2.D.World.step, Function.update_of_ne hu] using hk u
     · intro v o t hm
@@ -2999,25 +3002,25 @@ theorem batch_known_receipt (n : Nat) (K : Obj params → Prop)
     GenKnown (fun o => K o ∨ V2.Event.deliver v o n ∈
         (timeBatch n (buildPrefix n).world (buildPrefix n).held).2)
       ((timeBatch n (buildPrefix n).world (buildPrefix n).held).1 v).st := by
-  rw [(timeBatch_replay_fresh _ _ _).1]
+  rw [(adv_timeBatch_replay_fresh _ _ _).1]
   apply known_fold_local (fun u o => K o ∨ V2.Event.deliver u o n ∈
     (timeBatch n (buildPrefix n).world (buildPrefix n).held).2)
   · intro u
-    exact gen_known_mono _ _ _ (hK u) (fun _ h => Or.inl h)
+    exact adv_gen_known_mono _ _ _ (hK u) (fun _ h => Or.inl h)
   · intro u o t hm
     obtain ⟨rfl, _, ho⟩ := timeBatch_delivered n _ _ u o t hm
     refine ⟨Or.inr hm, fun a hc => Or.inl ?_⟩
     rcases (mem_offers n _ _ o).1 ho with ⟨_, hr, _⟩ | ⟨_, hr | hr⟩
-    · exact (gen_tick_fold_known K n nodes _ [] hK (by simp)).2 o hr a hc
+    · exact (adv_gen_tick_fold_known K n nodes _ [] hK (by simp)).2 o hr a hc
     · exact (carries_nonprop (held_nonprop n o hr) hc).elim
-    · exact (gen_tick_fold_known K n nodes _ [] hK (by simp)).2 o hr a hc
+    · exact (adv_gen_tick_fold_known K n nodes _ [] hK (by simp)).2 o hr a hc
 
 /-- A processed HEAD vote or FG row is in a pool, so the pool knowledge covers it. -/
 theorem processed_known (K : Obj params → Prop) (st : State params.n) (hk : GenKnown K st)
     (nd : Node params) (u : Validator) (t : Time) (o : Obj params)
     (ho : o ∈ (V2.D.tick env (runData 0 []) nd u t).2) (hnot : ∀ b, o.payload ≠ .proposal b)
     (hp : processedS params st o = true) : K o := by
-  obtain ⟨l, j, m, rfl, _, ha⟩ := gen_tick_seat nd u t o ho
+  obtain ⟨l, j, m, rfl, _, ha⟩ := adv_gen_tick_seat nd u t o ho
   cases l with
   | headAction s =>
     have he : .head (headVote params (FGSA.clock params nd.st t) s).root = m :=
@@ -3062,7 +3065,7 @@ theorem fold_no_local (w : World) (es : List Event) (v : Validator) (o : Obj par
       by_cases he : v = u
       · subst u
         simp only [V2.D.World.step, Function.update_self]
-        exact (i7_tick_st (w v) v t).symm ▸ clock_processed (w v).st t o
+        exact (adv_tick_st (w v) v t).symm ▸ clock_processed (w v).st t o
       · simp only [V2.D.World.step, Function.update_of_ne he]
 
 /-- Node zero's proposal tick is the first event of its time block. -/
@@ -3072,13 +3075,14 @@ theorem prefix_tick_zero (steps : Nat) :
       genFold V2.D.World.init
         ((buildPrefix (steps + 1)).events.take (buildPrefix steps).events.length) =
           (buildPrefix steps).world := by
-  obtain ⟨ds, he, _⟩ := timeBatch_block steps (buildPrefix steps).world (buildPrefix steps).held
+  obtain ⟨ds, he, _⟩ :=
+    adv_timeBatch_block steps (buildPrefix steps).world (buildPrefix steps).held
   rw [bp_events]
   constructor
   · rw [he]
     simp [nodes]
   · rw [List.take_append_length]
-    exact (prefix_replay_fresh steps).1.symm
+    exact (adv_prefix_replay_fresh steps).1.symm
 
 /-- ROOT-DIGEST W3d. A stored non-genesis root has the fixture slot digest. -/
 theorem stored_digest (st : State params.n) (hr : Reachable params st)
@@ -3105,9 +3109,9 @@ theorem proposal_fresh_start (steps : Nat) (v : Validator) (hv : v ∈ nodes) (o
     (hp : o.payload = .proposal b) :
     processedS params ((buildPrefix steps).world v).st o = false := by
   obtain ⟨u, _, hu⟩ := (tickBatch_emits steps (buildPrefix steps).world o).1 ho
-  have hu0 := (gen_tick_proposal_rows ((buildPrefix steps).world u) u steps o hu b hp).1
+  have hu0 := (adv_gen_tick_proposal_rows ((buildPrefix steps).world u) u steps o hu b hp).1
   subst u
-  obtain ⟨l, j, m, rfl, hl, ha⟩ := gen_tick_seat ((buildPrefix steps).world 0) 0 steps o hu
+  obtain ⟨l, j, m, rfl, hl, ha⟩ := adv_gen_tick_seat ((buildPrefix steps).world 0) 0 steps o hu
   cases l with
   | headAction s =>
     have he : .head (headVote params
@@ -3175,10 +3179,10 @@ theorem proposal_receipt (n : Nat) (v : Validator) (hv : v ∈ nodes) (o : Obj p
     exact hn (he ▸ hm)
   have he := fold_no_local (buildPrefix n).world
     (timeBatch n (buildPrefix n).world (buildPrefix n).held).2 v o hd
-    (timeBatch_no_restart n _ _ v)
+    (adv_timeBatch_no_restart n _ _ v)
   have hmem : o ∈ (tickBatch n (buildPrefix n).world).2 := by
     rw [hrel]; exact List.mem_singleton_self o
-  rw [← (timeBatch_replay_fresh _ _ _).1, proposal_fresh_start n v hv o hmem b hp] at he
+  rw [← (adv_timeBatch_replay_fresh _ _ _).1, proposal_fresh_start n v hv o hmem b hp] at he
   have ht := prefix_complete n v hv o ho
   rw [bp_world] at ht
   exact Bool.noConfusion (ht.symm.trans he)
@@ -3201,30 +3205,30 @@ theorem batch_receipt (n : Nat) (v : Validator) (hv : v ∈ nodes) (o : Obj para
         rw [held_late n (by omega)] at hr
         exact List.not_mem_nil hr
       subst hn7
-      obtain ⟨_, u, s, _, pre, post, _, hm⟩ := (prefix_origin 7).2 o hr
+      obtain ⟨_, u, s, _, pre, post, _, hm⟩ := (adv_prefix_origin 7).2 o hr
       have hk := batch_known_receipt 7 (fun o => isProp o = true) (early_known 7 le_rfl) v
       refine (processed_known _ _ hk _ u s o hm hnot hc).resolve_left ?_
       rw [held_nonprop 7 o hr]
       decide
     · obtain ⟨u, _, hm⟩ := (tickBatch_emits n _ o).1 hr
       have hk := batch_known_receipt n (GenPast (buildPrefix n).events n)
-        (gen_prefix_carried n).1 v
+        (adv_gen_prefix_carried n).1 v
       exact (processed_known _ _ hk _ u n o hm hnot hc).resolve_left (not_past n u o hm)
 
 /-- A tick in a time block reads its own unchanged input node. -/
 theorem batch_tick_state (n : Nat) (w : World) (held : List (Obj params)) (i : Nat)
     (v : Validator) (u : Time) (he : (timeBatch n w held).2[i]? = some (.tick v u)) :
     u = n ∧ v ∈ nodes ∧ genFold w ((timeBatch n w held).2.take i) v = w v := by
-  have hut : u = n := timeBatch_time n w held (.tick v u) (List.mem_of_getElem? he)
+  have hut : u = n := adv_timeBatch_time n w held (.tick v u) (List.mem_of_getElem? he)
   subst u
   have hvn : v ∈ nodes := timeBatch_node n w held (.tick v n) (List.mem_of_getElem? he)
   have hv3 : v ≠ 3 := by rintro rfl; simp [nodes] at hvn
-  obtain ⟨ds, hes, _⟩ := timeBatch_block n w held
+  obtain ⟨ds, hes, _⟩ := adv_timeBatch_block n w held
   have hv : (timeBatch n w held).2[v.val]? = some (.tick v n) := by
     rw [hes]
     fin_cases v <;> simp [nodes] at hv3 ⊢
   have hi : i = v.val :=
-    (List.Nodup.getElem?_inj (List.getElem?_eq_some_iff.mp he).1 (timeBatch_nodup n w held)).1
+    (List.Nodup.getElem?_inj (List.getElem?_eq_some_iff.mp he).1 (adv_timeBatch_nodup n w held)).1
       (he.trans hv.symm)
   subst i
   refine ⟨rfl, hvn, ?_⟩
@@ -3248,14 +3252,14 @@ theorem locate_emission (steps : Nat) (i : Nat) (v : Validator) (t : Time)
       exact ⟨n, Nat.lt_succ_of_lt hn, ht, hm⟩
     · have hil' := Nat.le_of_not_lt hil
       rw [List.getElem?_append_right hil'] at hi
-      rw [List.take_append, List.take_of_length_le hil', genFold_append,
-        ← (prefix_replay_fresh steps).1] at ho
+      rw [List.take_append, List.take_of_length_le hil', adv_genFold_append,
+        ← (adv_prefix_replay_fresh steps).1] at ho
       obtain ⟨rfl, hvn, hs⟩ := batch_tick_state steps _ _ _ v t hi
       rw [hs] at ho
       exact ⟨steps, Nat.lt_succ_self _, rfl, (tickBatch_emits _ _ o).2 ⟨v, hvn, ho⟩⟩
 
 /-- Replay without restarts preserves every processed object. -/
-theorem fold_stable (w : World) (es : List Event) (v : Validator) (o : Obj params)
+theorem adv_fold_stable (w : World) (es : List Event) (v : Validator) (o : Obj params)
     (hr : ∀ u t, V2.Event.restart u t ∉ es)
     (hp : processedS params (w v).st o = true) :
     processedS params (genFold w es v).st o = true := by
@@ -3272,7 +3276,7 @@ theorem fold_stable (w : World) (es : List Event) (v : Validator) (o : Obj param
         have he : processedS params (FGSA.clock params (w v).st t) o = true := by
           rw [clock_processed]
           exact hp
-        exact (i7_tick_st (w v) v t).symm ▸ he
+        exact (adv_tick_st (w v) v t).symm ▸ he
       · simpa only [V2.D.World.step, Function.update_of_ne hv] using hp
     | deliver u a t =>
       by_cases hv : v = u
@@ -3286,10 +3290,10 @@ theorem prefix_stable (m n : Nat) (hmn : m ≤ n) (v : Validator) (o : Obj param
     (hp : processedS params ((buildPrefix m).world v).st o = true) :
     processedS params ((buildPrefix n).world v).st o = true := by
   obtain ⟨ds, he⟩ := prefix_prefix m n hmn
-  rw [(prefix_replay_fresh n).1, ← he, genFold_append, ← (prefix_replay_fresh m).1]
-  apply fold_stable _ ds v o _ hp
+  rw [(adv_prefix_replay_fresh n).1, ← he, adv_genFold_append, ← (adv_prefix_replay_fresh m).1]
+  apply adv_fold_stable _ ds v o _ hp
   intro u t hm
-  apply prefix_no_restart n u t
+  apply adv_prefix_no_restart n u t
   rw [← he]
   exact List.mem_append_right _ hm
 
@@ -3298,7 +3302,7 @@ theorem past_complete (steps : Nat) (h8 : 8 ≤ steps) (o : Obj params) (t : Tim
     (he : GenPast (buildPrefix steps).events t o) (v : Validator) (hv : v ∈ nodes) :
     processedS params ((buildPrefix steps).world v).st o = true := by
   obtain ⟨u, s, _, he⟩ := he
-  obtain ⟨i, hi, ho⟩ := genEmits_runData 0 _ u o s he
+  obtain ⟨i, hi, ho⟩ := adv_genEmits_runData 0 _ u o s he
   rw [(V2.D.Run.step_tick_eq env _ hi).2] at ho
   obtain ⟨n, hn, _, hm⟩ := locate_emission steps i u s o hi ho
   rcases released_offered n o hm with ⟨_, hoff⟩ | ⟨⟨_, _⟩, hoff⟩
@@ -3313,7 +3317,7 @@ theorem index_after (steps m i : Nat) (hm : m ≤ steps) (e : Event)
   by_contra hn
   have hl : i < (buildPrefix m).events.length := Nat.lt_of_not_ge hn
   rw [← he, List.getElem?_append_left hl] at hi
-  exact (not_lt.mpr ht) (prefix_times m e (List.mem_of_getElem? hi)).2
+  exact (not_lt.mpr ht) (adv_prefix_times m e (List.mem_of_getElem? hi)).2
 
 /-- Boundary completeness persists through any later event prefix. -/
 theorem index_stable (steps m i : Nat) (hm : m ≤ steps)
@@ -3322,16 +3326,16 @@ theorem index_stable (steps m i : Nat) (hm : m ≤ steps)
     processedS params
       (genFold V2.D.World.init ((buildPrefix steps).events.take i) v).st o = true := by
   obtain ⟨ds, he⟩ := prefix_prefix m steps hm
-  rw [← he, List.take_append, List.take_of_length_le hi, genFold_append,
-    ← (prefix_replay_fresh m).1]
-  apply fold_stable _ _ v o _ hp
+  rw [← he, List.take_append, List.take_of_length_le hi, adv_genFold_append,
+    ← (adv_prefix_replay_fresh m).1]
+  apply adv_fold_stable _ _ v o _ hp
   intro u t hmem
-  apply prefix_no_restart steps u t
+  apply adv_prefix_no_restart steps u t
   rw [← he]
   exact List.mem_append_right _ (List.mem_of_mem_take hmem)
 
 /-- A handled object is the envelope or one of its carried objects. -/
-theorem handles_carries (st : State params.n) (a o : Obj params)
+theorem adv_handles_carries (st : State params.n) (a o : Obj params)
     (hh : handlesS params st a o) : a = o ∨ carriesS params a o := by
   rcases hh with he | hh
   · exact Or.inl he
@@ -3343,7 +3347,7 @@ theorem handles_carries (st : State params.n) (a o : Obj params)
       | vote s i b => exact hh.elim
       | row i body => exact hh.elim
       | block s b =>
-        have he := i7_decode_proposal a s b hd
+        have he := adv_decode_proposal a s b hd
         right
         simp only [carriesS, he]
         exact hh.2.elim Or.inl (fun hm => Or.inr (Or.inr hm))
@@ -3358,7 +3362,7 @@ theorem direct_handle (h : Time) (es : List Event)
 theorem run_mem_batch (n : Nat) (hn : n < 291) (e : Event)
     (he : e ∈ (timeBatch n (buildPrefix n).world (buildPrefix n).held).2) :
     e ∈ run.events := by
-  rw [run_events, prefix_blocks]
+  rw [run_events, adv_prefix_blocks]
   exact List.mem_flatMap.mpr ⟨n, List.mem_range.mpr hn, he⟩
 
 /-- Broadcast in the run: at the emission time, or at GST for a held object. -/
@@ -3383,7 +3387,7 @@ theorem run_relay (v : Validator) (i : Nat) (a o : Obj params) (t : Time)
       (genFold V2.D.World.init ((buildPrefix 291).events.take (i + 1)) w) o = false) :
     V2.Event.deliver w o t ∈ run.events := by
   have hm := List.mem_of_getElem? hi
-  rw [prefix_blocks] at hm
+  rw [adv_prefix_blocks] at hm
   obtain ⟨n, hn, hm⟩ := List.mem_flatMap.mp hm
   have hn' := List.mem_range.mp hn
   obtain ⟨rfl, _, ha⟩ := timeBatch_delivered n _ _ v a t hm
@@ -3396,13 +3400,13 @@ theorem run_relay (v : Validator) (i : Nat) (a o : Obj params) (t : Time)
       · exact (carries_nonprop (held_nonprop n a hr) hc).elim
       · exact hr
     by_cases h8 : 8 ≤ n
-    · have hpast := (gen_tick_fold_known (GenPast (buildPrefix n).events n) n nodes _ []
-        (gen_prefix_carried n).1 (by simp)).2 a hr o hc
+    · have hpast := (adv_gen_tick_fold_known (GenPast (buildPrefix n).events n) n nodes _ []
+        (adv_gen_prefix_carried n).1 (by simp)).2 a hr o hc
       have hpc := past_complete n h8 o n hpast w hw
       have hidx := index_after 291 n i (by omega) _ hi le_rfl
       have ht := index_stable 291 n (i + 1) (by omega) (by omega) w o hpc
       exact Bool.noConfusion (hp.symm.trans ht)
-    · have hk := (gen_tick_fold_known (fun o => isProp o = true) n nodes _ []
+    · have hk := (adv_gen_tick_fold_known (fun o => isProp o = true) n nodes _ []
         (early_known n (by omega)) (by simp)).2 a hr o hc
       rw [carried_nonprop hc] at hk
       exact Bool.noConfusion hk
@@ -3414,9 +3418,9 @@ theorem run_sync : V2.D.PartialSynchrony env run where
     exact ⟨t', h1, h2, direct_handle horizon _ w o t' hm⟩
   relay_accepted v _ i o t ha w hw hp _ _ := by
     obtain ⟨⟨a, hi, hh⟩, _, _⟩ := ha
-    have hc := handles_carries _ a o hh
+    have hc := adv_handles_carries _ a o hh
     rw [show run = runData horizon (buildPrefix 291).events from rfl] at hi hp
-    rw [runData_stateBefore] at hp
+    rw [adv_runData_stateBefore] at hp
     exact ⟨t, le_rfl, Int.lt_add_one_iff.mpr (le_max_left _ _), direct_handle horizon _ w o t
       (run_relay v i a o t hi hc w ((nodes_honest w).2 hw) hp)⟩
 
@@ -3448,11 +3452,11 @@ theorem delivered_proposal {x : Validator} {o : Obj params} {t : Time}
     (hd : V2.Event.deliver x o t ∈ run.events) (hp : o.payload = .proposal N) :
     ∃ i t', run.events[i]? = some (.tick 0 t') ∧ o ∈ V2.D.Run.emitsAt env run i ∧
       o = ofWire params ⟨.proposer N.slot, .proposal N⟩ := by
-  obtain ⟨u, s, _, he⟩ := (prefix_origin 291).1 x o t hd
-  obtain ⟨i, hi, hem⟩ := genEmits_runData horizon _ u o s he
+  obtain ⟨u, s, _, he⟩ := (adv_prefix_origin 291).1 x o t hd
+  obtain ⟨i, hi, hem⟩ := adv_genEmits_runData horizon _ u o s he
   obtain ⟨pre, post, _, ho⟩ := he
-  have hh := gen_tick_holder _ u s o ho
-  obtain ⟨l, j, m, rfl, _, ha⟩ := gen_tick_seat _ u s _ ho
+  have hh := adv_gen_tick_holder _ u s o ho
+  obtain ⟨l, j, m, rfl, _, ha⟩ := adv_gen_tick_seat _ u s _ ho
   cases l with
   | headAction r =>
     have he : .head (headVote params (FGSA.clock params (genFold V2.D.World.init pre u).st s)
@@ -3505,7 +3509,7 @@ theorem nv_delivery_unique {x y : Validator} {o o' : Obj params} {t u : Time}
     (hs : N.slot = M.slot) : N = M := by
   obtain ⟨i, t', hi, hem, he⟩ := delivered_proposal hd hp
   obtain ⟨i', u', hi', hem', he'⟩ := delivered_proposal hd' hp'
-  have hn : run.events.Nodup := prefix_nodup 291
+  have hn : run.events.Nodup := adv_prefix_nodup 291
   have heq := (Gen.V2.Duty.emitted_unique_of_singleDuty env run hn (.prop N.slot)
     (fgsa_prop_singleDuty N.slot) ⟨0, Nat.one_pos⟩ 0 i i' t' u' o o' hi hi' hem hem'
     (by rw [he]; rfl) (by rw [he', ← hs]; rfl)).2
@@ -3552,8 +3556,8 @@ open Gen.Pure
 /-- I-BASE: the adversarial run inhabits Base₂. -/
 theorem base : Base₂ params unitCodec env run where
   valid := nvExecution
-  linked := linked horizon _
-  cstar := cstar horizon _
+  linked := adv_linked horizon _
+  cstar := adv_cstar horizon _
   noRestart := noRestart
   delta := env_delta
   idealization := nvRoots
@@ -3574,9 +3578,9 @@ theorem nvRecovery : Recovery₂ params unitCodec env run 4 1 where
   deltaF := by decide
   gap := by intro t ht _; exact proposer_gap horizon _ t ht
   base := base
-  fault := fault_bound
+  fault := adv_fault_bound
   awake := by intros; rfl
-  gapPos := gap_positive
+  gapPos := adv_gap_positive
 
 theorem livenessBound : LivenessBoundW params 1 := ⟨by decide⟩
 
@@ -3625,17 +3629,17 @@ theorem tick_zero_emits (n : Nat) (hn : n < 291) (o : Obj params)
     (ho : o ∈ (V2.D.tick env (runData 0 []) ((buildPrefix n).world 0) 0 n).2) :
     V2.D.Run.emits env run 0 o n := by
   obtain ⟨ds, hds⟩ := prefix_prefix (n + 1) 291 (by omega)
-  obtain ⟨ds', hb, _⟩ := timeBatch_block n (buildPrefix n).world (buildPrefix n).held
-  apply genEmits_runData horizon _ 0 o n
+  obtain ⟨ds', hb, _⟩ := adv_timeBatch_block n (buildPrefix n).world (buildPrefix n).held
+  apply adv_genEmits_runData horizon _ 0 o n
   refine ⟨(buildPrefix n).events,
     (([1, 2] : List Validator).map (fun v => V2.Event.tick v (n : Time)) ++ ds') ++ ds, ?_, ?_⟩
   · rw [← hds, bp_events n, hb]
     simp [nodes]
-  · rw [← (prefix_replay_fresh n).1]
+  · rw [← (adv_prefix_replay_fresh n).1]
     exact ho
 
 /-- Node 0 proposes at every positive slot of the run. -/
-theorem honest_proposal_exists (s : Slot) (hs : 0 < s) (hn : 4 * s < 291) :
+theorem adv_honest_proposal_exists (s : Slot) (hs : 0 < s) (hn : 4 * s < 291) :
     ∃ B, HonestProposal env run (fgsaInterface params unitCodec) s B := by
   have hr : Reachable params
       (FGSA.clock params ((buildPrefix (4 * s)).world 0).st ((4 * s : Nat) : Time)) :=
@@ -3658,12 +3662,12 @@ theorem honest_proposal_exists (s : Slot) (hs : 0 < s) (hn : 4 * s < 291) :
 theorem nvAvailableGST : ∃ w, HealingInput params unitCodec env run w 1 ∧
     tstar params w < env.t_GST + B_HF params 1 4 ∧
     AvailableFromConcl params unitCodec env run (env.t_GST + B_HF params 1 4) :=
-  (fgsaClaims params).availableGST 4 1 delta_ratio unitCodec env run healingTimePrem
+  (fgsaClaims params).availableGST 4 1 adv_delta_ratio unitCodec env run healingTimePrem
 
 /-- C-AVAIL: the slot-70 proposal (time 280, gate 286) is served to every honest reader. -/
 theorem nvAvailableService : ∃ B, HonestProposal env run (fgsaInterface params unitCodec) 70 B ∧
     InclusionAt params unitCodec env run ⟨70, B⟩ := by
-  obtain ⟨B, hB⟩ := honest_proposal_exists 70 (by decide) (by decide)
+  obtain ⟨B, hB⟩ := adv_honest_proposal_exists 70 (by decide) (by decide)
   obtain ⟨_, _, _, h⟩ := nvAvailableGST
   refine ⟨B, hB, h.2 ⟨70, B⟩ ?_ hB ?_⟩
   · change (7 : Time) + B_HF params 1 4 ≤ V2.D.proposalTime (fgsaInterface params unitCodec) 70
@@ -3675,12 +3679,12 @@ theorem nvAvailableService : ∃ B, HonestProposal env run (fgsaInterface params
 /-- C-FIN: FF5 from the aggregate GST claim, with deadline 287. -/
 theorem nvFF5 : FinalityLivenessConcl_W params unitCodec env run 254 287 := by
   obtain ⟨_, _, _, h, _⟩ := (fgsaClaims params).finalityLivenessGSTRecFE 4 1 1
-    delta_ratio unitCodec env run ⟨254⟩ nvGSTPrem
+    adv_delta_ratio unitCodec env run ⟨254⟩ nvGSTPrem
   exact h
 
 /-- C-FIN: FirstFinality from the aggregate claim, with deadline 7 + 247 + 33 = 287. -/
 theorem nvFirstFinality : FirstFinalityConcl_W params unitCodec env run 1 4 287 :=
-  (fgsaClaims params).firstFinalityRecFE 4 1 1 delta_ratio unitCodec env run ()
+  (fgsaClaims params).firstFinalityRecFE 4 1 1 adv_delta_ratio unitCodec env run ()
     nvFirstFinalityPrem
 
 theorem nvProposalGSTPrem (B : Block)
@@ -3696,8 +3700,8 @@ theorem nvProposalGSTPrem (B : Block)
 /-- C-FIN: the slot-64 proposal (time 256) is final at every honest node by time 289. -/
 theorem nvProposalFinal : ∃ B, HonestProposal env run (fgsaInterface params unitCodec) 64 B ∧
     ProposalFinalConcl_W params unitCodec env run B 289 := by
-  obtain ⟨B, hB⟩ := honest_proposal_exists 64 (by decide) (by decide)
-  obtain ⟨_, _, _, h⟩ := (fgsaClaims params).proposalFinalGSTRecFE 4 1 1 delta_ratio
+  obtain ⟨B, hB⟩ := adv_honest_proposal_exists 64 (by decide) (by decide)
+  obtain ⟨_, _, _, h⟩ := (fgsaClaims params).proposalFinalGSTRecFE 4 1 1 adv_delta_ratio
     unitCodec env run ⟨64, B⟩ (nvProposalGSTPrem B hB)
   exact ⟨B, hB, h⟩
 
@@ -3706,14 +3710,14 @@ theorem nvProposalFinal : ∃ B, HonestProposal env run (fgsaInterface params un
 /-- Node 0's slot-0 HEAD vote is released at time 1 and held until GST: every honest node
 receives it at time 7 and no node receives it earlier. With Δ = 1, 7 > 1 + Δ. -/
 theorem held_vote_delay : ∃ o : Obj params,
-    V2.D.Run.emits env run 0 o ((1 : Nat) : Time) ∧ isProp o = false ∧
+    V2.D.Run.emits env run 0 o ((1 : Nat) : Time) ∧ (∃ b, o.payload = Msg.head b) ∧
       (∀ w ∈ nodes, V2.Event.deliver w o ((7 : Nat) : Time) ∈ run.events) ∧
       ∀ w t, V2.Event.deliver w o t ∈ run.events → ((7 : Nat) : Time) ≤ t := by
   have ho := (Gen.V2.Duty.mem_tick_singleDuty_iff env (runData 0 []) ((buildPrefix 1).world 0) 0
     ((1 : Nat) : Time) (.base (.head 0)) (fgsa_head_singleDuty 0) (.headAction 0) rfl
     ⟨0, by decide⟩ _).2
     ⟨rfl, by decide, rfl, rfl⟩
-  refine ⟨_, tick_zero_emits 1 (by decide) _ ho, rfl, ?_, ?_⟩
+  refine ⟨_, tick_zero_emits 1 (by decide) _ ho, ⟨_, rfl⟩, ?_, ?_⟩
   · intro w hw
     have hr := (tickBatch_emits ((1 : Nat) : Time) (buildPrefix 1).world _).2 ⟨0, by decide, ho⟩
     rcases released_offered 1 _ hr with ⟨hp, _⟩ | ⟨_, hoff⟩
@@ -3722,7 +3726,7 @@ theorem held_vote_delay : ∃ o : Obj params,
       · omega
     · exact run_mem_batch 7 (by decide) _ (batch_receipt 7 w hw _ hoff)
   · intro w t hm
-    rw [run_events, prefix_blocks] at hm
+    rw [run_events, adv_prefix_blocks] at hm
     obtain ⟨m, _, hm⟩ := List.mem_flatMap.mp hm
     obtain ⟨rfl, _, hoff⟩ := timeBatch_delivered m _ _ w _ t hm
     rcases (mem_offers m _ _ _).1 hoff with ⟨_, _, hp⟩ | ⟨h7, _⟩
@@ -3743,7 +3747,7 @@ theorem nvParameters : params.n = 4 ∧ (Gen.V2.Duty.faulty run).card = 1 ∧ en
 #print axioms nvFinalitySet
 #print axioms nvGSTPrem
 #print axioms nvFirstFinalityPrem
-#print axioms honest_proposal_exists
+#print axioms adv_honest_proposal_exists
 #print axioms nvAvailableGST
 #print axioms nvAvailableService
 #print axioms nvFF5
