@@ -455,10 +455,22 @@ row enters the sender's store through a delivery event (the T7.10 divergence
 above). The specification text (`fgsa-protocol.tex`, paragraph "Lean model of the
 own FG row") states that a node that processes its own row in the tick
 has the store trajectory of the Lean run with the row's self-delivery placed
-at the action time, first among that time's deliveries. The four results
-below record the transfer argument in Lean: a spec-like run is a valid Lean
-run under every regime, so every claim (they quantify over all valid runs)
-covers it. No Statements, Claims, manifest or fixture changed.
+at the action time, first among that time's deliveries. The results below
+record the transfer argument in Lean. No Statements, Claims, manifest or
+fixture changed.
+
+Scope. The append laws (`ExecutionValid.snoc_selfDelivery` and the `snoc`
+results) need every event of the run at or before key `(t, 2)`, so with
+`tick_total` they apply only to a run whose horizon is the action time `t`.
+The cut results remove this restriction: a valid run cut after the ticks at
+`t` (the first `n` events, `n` from `exists_cut`, horizon `t`) keeps every
+premise, and the `ownRow_run` results compose cut and append. So for every
+FG row released at a tick of an arbitrary run under a regime, the spec-like
+run (the prefix up to the action time with the own row processed at once) is
+a Lean run under the same regime. Every claim quantifies over all valid runs,
+so it covers these runs. The results are not a full run embedding (Option 2
+of the analysis): a claim read at a time after `t` is read on the original
+run, where the own row arrives by delivery within the regime's bound.
 
 - `fgsa_emitOk_row` (`AvailableChainFGSARun/Proofs/SelfDelivery.lean`):
   `EmitOk` for every FG row released at a tick of a valid run. The `fresh`
@@ -469,20 +481,25 @@ covers it. No Statements, Claims, manifest or fixture changed.
 - `executionValid_snoc_selfDelivery` (same file) and `Base₂.snoc_ownRow`
   (`AvailableChainFGSAProofs/Proofs/Shared/SelfDelivery.lean`): the run with
   the same-time self-delivery of the own row appended after the last event
-  of the sender is `ExecutionValid` (engine law
-  `ExecutionValid.snoc_selfDelivery`) and keeps `Base₂`
+  of the sender is `ExecutionValid` and keeps `Base₂`
   (`namedRootCollisionFree_snoc_row`: a row delivery adds no named body).
-- `partialSynchronyBy_snoc_selfDelivery` and
+  `partialSynchronyBy_snoc_selfDelivery` and
   `healthyPrefixDeliveryBy_snoc_selfDelivery` (run file): the per-object
   delivery premises survive the append for any released object that carries
-  nothing. Old obligations keep their witnesses; the relay obligations of
-  the new acceptance are the broadcast obligations of the emission, with
-  the same deadline; exclusions transfer by `excludesS_process`.
-- `HealthyPrefix₂.snoc_ownRow` and `Recovery₂.snoc_ownRow`
-  (`AvailableChainFGSAProofs/Proofs/Shared/Regimes.lean`): the regime
-  records survive the append; the cut, participation, recurrence, fault,
-  awake and gap fields read no event.
+  nothing; the relay obligations of the new acceptance are the broadcast
+  obligations of the emission, with the same deadline.
+- The cut (run file, generic in the protocol): `exists_cut`,
+  `executionValid_cut`, `cut_key_le` and `cut_lastEvent` (the `hkey` and
+  `hlast` premises of the append laws hold by construction),
+  `stateBeforeTime_cut`, and for FG-SA `namedRootCollisionFree_cut`,
+  `partialSynchronyBy_cut` and `healthyPrefixDeliveryBy_cut` (the latter for
+  a prefix cut at most `t`). `executionValid_ownRow_run` composes cut and
+  append.
+- The regime records: `Base₂.cutAt`, `Base₂.ownRow_run` and
+  `Base₂.ownRow_run_exists` (Shared/SelfDelivery); `HealthyPrefix₂.cutAt`
+  (for `b₀ ≤ t`), `HealthyPrefix₂.ownRow_run`, `Recovery₂.cutAt`,
+  `Recovery₂.ownRow_run`, with the `snoc_ownRow` forms
+  (`AvailableChainFGSAProofs/Proofs/Shared/Regimes.lean`).
 
-All theorems use only `propext`, `Classical.choice` and `Quot.sound`. The
-results are not a full run embedding (Option 2 of the analysis); they close
-the own-row audit item as a recorded transfer argument.
+All theorems use only `propext`, `Classical.choice` and `Quot.sound`. They
+close the own-row audit item as a recorded transfer argument.

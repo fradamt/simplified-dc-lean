@@ -20,16 +20,16 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-! ### Append laws of the duty engine (generic in the protocol) -/
+/-! ### Append laws of the duty engine (generic in the protocol)
+
+TODO (review m2): these laws and the cut laws below are generic in `P`; their home is
+`AvailableChainEngineV2/Laws/Duty/SelfDelivery.lean` under `V2.D.Run` (where
+`getElem?_snoc_cases` is the local `hcases` of `ExecutionValid.snoc_selfDelivery`). The
+move is deferred: an edit of that L1 module invalidates the whole downstream build. -/
 
 section Snoc
 variable {In' : Type} {P : V2.ProtocolSpecD In'} {E : Generic.Env V} {rho : V2.D.Run V P}
   {e : V2.Event V P.Object}
-
-/-- [own-row Option 1; DC N3] The world step reads no event: an append keeps it. -/
-theorem step_snoc :
-    V2.D.World.step E ({ rho with events := rho.events ++ [e] } : V2.D.Run V P) =
-      V2.D.World.step E rho := rfl
 
 omit [DecidableEq V] in
 /-- [own-row Option 1; DC N3] An index of the appended run is an old index or the new one. -/
@@ -147,6 +147,307 @@ theorem noRestart_snoc_deliver {v : V} {o : P.Object} {t : Time} (h : V2.D.NoRes
 
 end Snoc
 
+/-! ### The cut at the action time (generic in the protocol)
+
+The run `rho` cut at `n` with horizon `t` has the first `n` events, where `n` is the number
+of events with key at most `(t, 1)` (`hcut`; `exists_cut` supplies it for a sorted run). In a
+sorted run these are the events before the deliveries at `t`. The cut run keeps the engine
+premises, and the same-time self-delivery of a row released at `t` appends to it: `hkey`
+and `hlast` of the append laws hold by construction (`cut_key_le`, `cut_lastEvent`). -/
+
+section Cut
+variable {In' : Type} {P : V2.ProtocolSpecD In'} {E : Generic.Env V} {rho : V2.D.Run V P}
+  {n : Nat} {t : Time}
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] A sorted event list has a cut index for every key bound. -/
+theorem exists_cut (hs : rho.events.Pairwise (fun e f => V2.Event.key e ≤ V2.Event.key f))
+    (b : Lex (Time × Nat)) :
+    ∃ n, ∀ (k : Nat) (e : V2.Event V P.Object), rho.events[k]? = some e →
+      (k < n ↔ e.key ≤ b) := by
+  suffices h : ∀ l : List (V2.Event V P.Object),
+      l.Pairwise (fun e f => V2.Event.key e ≤ V2.Event.key f) →
+      ∃ n, ∀ k e, l[k]? = some e → (k < n ↔ V2.Event.key e ≤ b) from h _ hs
+  intro l hl
+  induction l with
+  | nil => exact ⟨0, fun k e hk => by simp at hk⟩
+  | cons a l ih =>
+    obtain ⟨hal, hl'⟩ := List.pairwise_cons.mp hl
+    obtain ⟨n, hn⟩ := ih hl'
+    by_cases ha : a.key ≤ b
+    · refine ⟨n + 1, fun k e hk => ?_⟩
+      cases k with
+      | zero =>
+        simp only [List.getElem?_cons_zero, Option.some.injEq] at hk
+        subst hk
+        exact ⟨fun _ => ha, fun _ => Nat.succ_pos n⟩
+      | succ k =>
+        simp only [List.getElem?_cons_succ] at hk
+        exact Nat.succ_lt_succ_iff.trans (hn k e hk)
+    · refine ⟨0, fun k e hk => ⟨fun h => absurd h (Nat.not_lt_zero _), fun he => ?_⟩⟩
+      exfalso
+      cases k with
+      | zero =>
+        simp only [List.getElem?_cons_zero, Option.some.injEq] at hk
+        subst hk
+        exact ha he
+      | succ k =>
+        simp only [List.getElem?_cons_succ] at hk
+        exact ha (le_trans (hal e (List.mem_of_getElem? hk)) he)
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] A tick key is below the cut bound iff its time is at most `t`. -/
+theorem tick_key_le {u : V} {s : Time} :
+    (V2.Event.tick u s : V2.Event V P.Object).key ≤ toLex (t, 1) ↔ s ≤ t := by
+  unfold V2.Event.key
+  rw [Prod.Lex.toLex_le_toLex]
+  change s < t ∨ s = t ∧ 1 ≤ 1 ↔ s ≤ t
+  constructor
+  · rintro (h | ⟨rfl, -⟩)
+    · exact le_of_lt h
+    · exact le_rfl
+  · intro h
+    rcases lt_or_eq_of_le h with h | h
+    · exact Or.inl h
+    · exact Or.inr ⟨h, le_rfl⟩
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] A delivery key is below the cut bound iff its time is below
+`t`. -/
+theorem deliver_key_le {u : V} {o : P.Object} {s : Time} :
+    (V2.Event.deliver u o s : V2.Event V P.Object).key ≤ toLex (t, 1) ↔ s < t := by
+  unfold V2.Event.key
+  rw [Prod.Lex.toLex_le_toLex]
+  change s < t ∨ s = t ∧ 2 ≤ 1 ↔ s < t
+  constructor
+  · rintro (h | ⟨-, h⟩)
+    · exact h
+    · exact absurd h (by decide)
+  · exact Or.inl
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] An event below the cut bound is at time at most `t`. -/
+theorem cut_time_le_of_key_le {e : V2.Event V P.Object} (h : e.key ≤ toLex (t, 1)) :
+    e.time ≤ t := by
+  unfold V2.Event.key at h
+  rcases Prod.Lex.toLex_le_toLex.mp h with h | ⟨h, -⟩
+  · exact le_of_lt h
+  · exact le_of_eq h
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] An event above the cut bound is at time at least `t`. -/
+theorem le_time_of_not_key_le {e : V2.Event V P.Object} (h : ¬ e.key ≤ toLex (t, 1)) :
+    t ≤ e.time := by
+  by_contra hlt
+  exact h (by unfold V2.Event.key; exact Prod.Lex.toLex_le_toLex.mpr (Or.inl (lt_of_not_ge hlt)))
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] The events of the cut run are the old events below `n`. -/
+theorem getElem?_cut_iff {k : Nat} {e : V2.Event V P.Object} :
+    (rho.events.take n)[k]? = some e ↔ k < n ∧ rho.events[k]? = some e := by
+  rw [List.getElem?_take]
+  by_cases h : k < n <;> simp [h]
+
+/-- [own-row Option 1; DC N3] States at or before the cut are the old states. -/
+theorem stateBefore_cut_of_le {k : Nat} (hk : k ≤ n) :
+    V2.D.Run.stateBefore E ({ rho with events := rho.events.take n, horizon := t } :
+      V2.D.Run V P) k = V2.D.Run.stateBefore E rho k := by
+  change ((rho.events.take n).take k).foldl (V2.D.World.step E rho) V2.D.World.init = _
+  rw [List.take_take, Nat.min_eq_left hk]
+  rfl
+
+/-- [own-row Option 1; DC N3] States after the cut are the old state at the cut. -/
+theorem stateBefore_cut_of_ge {k : Nat} (hk : n ≤ k) :
+    V2.D.Run.stateBefore E ({ rho with events := rho.events.take n, horizon := t } :
+      V2.D.Run V P) k = V2.D.Run.stateBefore E rho n := by
+  change ((rho.events.take n).take k).foldl (V2.D.World.step E rho) V2.D.World.init = _
+  rw [List.take_take, Nat.min_eq_right hk]
+  rfl
+
+/-- [own-row Option 1; DC N3] Ticks before the cut release the same objects. -/
+theorem emitsAt_cut_of_lt {k : Nat} (hk : k < n) :
+    V2.D.Run.emitsAt E ({ rho with events := rho.events.take n, horizon := t } :
+      V2.D.Run V P) k = V2.D.Run.emitsAt E rho k := by
+  simp only [V2.D.Run.emitsAt, List.getElem?_take_of_lt hk, stateBefore_cut_of_le (Nat.le_of_lt hk)]
+  rfl
+
+/-- [own-row Option 1; DC N3] The emissions of the cut run are the old emissions at times at
+most `t`. -/
+theorem emits_cut_iff
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    {u : V} {o : P.Object} {s : Time} :
+    V2.D.Run.emits E ({ rho with events := rho.events.take n, horizon := t } : V2.D.Run V P)
+      u o s ↔ s ≤ t ∧ V2.D.Run.emits E rho u o s := by
+  constructor
+  · rintro ⟨k, hk, ho⟩
+    obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
+    refine ⟨tick_key_le.mp ((hcut k _ hk').mp hkn), k, hk', ?_⟩
+    rw [emitsAt_cut_of_lt hkn] at ho
+    exact ho
+  · rintro ⟨hs, k, hk, ho⟩
+    have hkn : k < n := (hcut k _ hk).mpr (tick_key_le.mpr hs)
+    exact ⟨k, getElem?_cut_iff.mpr ⟨hkn, hk⟩, by rw [emitsAt_cut_of_lt hkn]; exact ho⟩
+
+/-- [own-row Option 1; DC N3] The time-indexed state of the cut run at a time at most `t` is
+the old one: every event before that time is below the cut. -/
+theorem stateBeforeTime_cut
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    {D : Time} (hD : D ≤ t) :
+    V2.D.Run.stateBeforeTime E ({ rho with events := rho.events.take n, horizon := t } :
+      V2.D.Run V P) D = V2.D.Run.stateBeforeTime E rho D := by
+  change ((rho.events.take n).filter (fun e => decide (e.time < D))).foldl
+    (V2.D.World.step E rho) V2.D.World.init =
+    (rho.events.filter (fun e => decide (e.time < D))).foldl (V2.D.World.step E rho)
+      V2.D.World.init
+  conv_rhs => rw [← List.take_append_drop n rho.events]
+  rw [List.filter_append, List.foldl_append]
+  have hnil : (rho.events.drop n).filter (fun e => decide (e.time < D)) = [] := by
+    rw [List.filter_eq_nil_iff]
+    intro e he
+    obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp he
+    rw [List.getElem?_drop] at hj
+    have hkey : ¬ e.key ≤ toLex (t, 1) := fun h => by
+      have := (hcut _ _ hj).mpr h
+      omega
+    simp only [decide_eq_true_eq]
+    exact not_lt.mpr (le_trans hD (le_time_of_not_key_le hkey))
+  rw [hnil, List.foldl_nil]
+
+/-- [own-row Option 1; DC N3] Handler calls before the cut survive it. -/
+theorem handlesAt_cut_of_lt {k : Nat} (hk : k < n) {w : V} {o : P.Object} {s : Time}
+    (h : V2.D.Run.handlesAt E rho k w o s) :
+    V2.D.Run.handlesAt E ({ rho with events := rho.events.take n, horizon := t } :
+      V2.D.Run V P) k w o s := by
+  obtain ⟨o', hk', hh⟩ := h
+  exact ⟨o', getElem?_cut_iff.mpr ⟨hk, hk'⟩,
+    by rw [stateBefore_cut_of_le (Nat.le_of_lt hk)]; exact hh⟩
+
+/-- [own-row Option 1; DC N3] A handler call of the cut run is an old call below the cut. -/
+theorem handlesAt_cut {k : Nat} {w : V} {o : P.Object} {s : Time}
+    (h : V2.D.Run.handlesAt E ({ rho with events := rho.events.take n, horizon := t } :
+      V2.D.Run V P) k w o s) :
+    k < n ∧ V2.D.Run.handlesAt E rho k w o s := by
+  obtain ⟨o', hk, hh⟩ := h
+  obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
+  exact ⟨hkn, o', hk', by rw [stateBefore_cut_of_le (Nat.le_of_lt hkn)] at hh; exact hh⟩
+
+/-- [own-row Option 1; DC N3] An acceptance of the cut run is an old acceptance below the
+cut. -/
+theorem acceptsAt_cut {k : Nat} {w : V} {o : P.Object} {s : Time}
+    (h : V2.D.Run.acceptsAt E ({ rho with events := rho.events.take n, horizon := t } :
+      V2.D.Run V P) k w o s) :
+    k < n ∧ V2.D.Run.acceptsAt E rho k w o s := by
+  obtain ⟨hh, hb, ha⟩ := h
+  obtain ⟨hkn, hh'⟩ := handlesAt_cut hh
+  refine ⟨hkn, hh', ?_, ?_⟩
+  · rw [stateBefore_cut_of_le (Nat.le_of_lt hkn)] at hb; exact hb
+  · rw [stateBefore_cut_of_le hkn] at ha; exact ha
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] The cut keeps `NoRestart`. -/
+theorem noRestart_cut (h : V2.D.NoRestart rho) :
+    V2.D.NoRestart ({ rho with events := rho.events.take n, horizon := t } : V2.D.Run V P) :=
+  fun k u s hk => h k u s (getElem?_cut_iff.mp hk).2
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] Every event of the cut run has key at most `(t, 2)`: the
+`hkey` premise of the append laws. -/
+theorem cut_key_le
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1))) :
+    ∀ e ∈ ({ rho with events := rho.events.take n, horizon := t } : V2.D.Run V P).events,
+      e.key ≤ toLex (t, 2) := by
+  intro e he
+  obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp he
+  obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
+  exact le_trans ((hcut k e hk').mp hkn)
+    (Prod.Lex.toLex_le_toLex.mpr (Or.inr ⟨rfl, Nat.le_succ 1⟩))
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] After the tick of `v` at `t`, the cut run has no event of `v`:
+the `hlast` premise of the append laws. The later events have key `(t, 1)`, so they are
+ticks at `t`; a second tick of `v` at `t` contradicts `nodup`. -/
+theorem cut_lastEvent (hS : V2.D.ScheduleWellFormed E rho)
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    {i : Nat} {v : V} (hi : rho.events[i]? = some (.tick v t)) :
+    ∀ k e, i < k →
+      ({ rho with events := rho.events.take n, horizon := t } : V2.D.Run V P).events[k]? =
+        some e → e.node ≠ v := by
+  intro k e hik hk hnode
+  obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
+  have hkey : e.key ≤ toLex (t, 1) := (hcut k e hk').mp hkn
+  have hilen : i < rho.events.length := (List.getElem?_eq_some_iff.mp hi).1
+  obtain ⟨hkl, hkv⟩ := List.getElem?_eq_some_iff.mp hk'
+  have hs := List.pairwise_iff_getElem.mp hS.sorted i k hilen hkl hik
+  rw [hkv, (List.getElem?_eq_some_iff.mp hi).2] at hs
+  have heq : e.key = toLex (t, 1) := le_antisymm hkey hs
+  unfold V2.Event.key at heq
+  have h2 := congrArg ofLex heq
+  simp only [ofLex_toLex, Prod.mk.injEq] at h2
+  cases e with
+  | restart u s => simp [V2.Event.phase] at h2
+  | deliver u o s => simp [V2.Event.phase] at h2
+  | tick u s =>
+    change u = v at hnode
+    subst hnode
+    have hst : s = t := by
+      have := h2.1
+      exact this
+    have hki : k = i := (hS.nodup.getElem_inj_iff (hi := hkl) (hj := hilen)).mp
+      (by rw [hkv, (List.getElem?_eq_some_iff.mp hi).2, hst])
+    omega
+
+/-- [own-row Option 1; DC N3] The cut run of a valid run is valid: the schedule fields by
+sublist and the key bound, the delivery fields by the old indices, the signature fields by
+`emits_cut_iff` (an emission before a cut delivery is before `t`). -/
+theorem executionValid_cut (hvalid : V2.D.ExecutionValid E rho)
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (ht0 : 0 ≤ t) (hth : t ≤ rho.horizon) :
+    V2.D.ExecutionValid E ({ rho with events := rho.events.take n, horizon := t } :
+      V2.D.Run V P) := by
+  have hsub : (rho.events.take n).Sublist rho.events := List.take_sublist n _
+  have hmem : ∀ e ∈ rho.events.take n, e.key ≤ toLex (t, 1) := fun e he => by
+    obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp he
+    obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
+    exact (hcut k e hk').mp hkn
+  refine { toScheduleWellFormed := ?_, toDeliveryWellFormed := ?_,
+           toUnforgeableSignatures := ?_ }
+  · refine ⟨ht0, hvalid.sorted.sublist hsub, hvalid.nodup.sublist hsub, ?_, ?_, ?_, ?_⟩
+    · intro e he
+      exact ⟨(hvalid.in_horizon e (hsub.subset he)).1, cut_time_le_of_key_le (hmem e he)⟩
+    · intro e he
+      exact hvalid.honest_only e (hsub.subset he)
+    · intro u s he
+      exact hvalid.tick_public u s (hsub.subset he)
+    · intro u hu s hs h0 hh
+      obtain ⟨k, hk⟩ :=
+        List.mem_iff_getElem?.mp (hvalid.tick_total u hu s hs h0 (le_trans hh hth))
+      have hkn : k < n := (hcut k _ hk).mpr (tick_key_le.mpr hh)
+      exact List.mem_iff_getElem?.mpr ⟨k, getElem?_cut_iff.mpr ⟨hkn, hk⟩⟩
+  · refine ⟨?_, ?_, ?_⟩
+    · intro k u o s hk
+      exact hvalid.wire k u o s (getElem?_cut_iff.mp hk).2
+    · intro k u o s hk
+      obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
+      rw [stateBefore_cut_of_le (Nat.le_of_lt hkn)]
+      exact hvalid.deps k u o s hk'
+    · intro k u o s hk
+      obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
+      rw [stateBefore_cut_of_le (Nat.le_of_lt hkn)]
+      exact hvalid.fresh k u o s hk'
+  · refine ⟨?_, ?_⟩
+    · rintro u o s ⟨k, hk⟩ w hw hhold
+      obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
+      obtain ⟨t', ht', he⟩ := hvalid.unforgeable u o s ⟨k, hk'⟩ w hw hhold
+      have hst : s < t := deliver_key_le.mp ((hcut k _ hk').mp hkn)
+      exact ⟨t', ht', (emits_cut_iff hcut).mpr ⟨le_trans ht' (le_of_lt hst), he⟩⟩
+    · rintro u o s ⟨k, hk⟩ o' hc w hw hhold
+      obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
+      obtain ⟨t', ht', he⟩ := hvalid.carried u o s ⟨k, hk'⟩ o' hc w hw hhold
+      have hst : s < t := deliver_key_le.mp ((hcut k _ hk').mp hkn)
+      exact ⟨t', ht', (emits_cut_iff hcut).mpr ⟨le_trans ht' (le_of_lt hst), he⟩⟩
+
+end Cut
+
 /-! ### FG-SA facts about the own row -/
 
 variable {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -237,7 +538,9 @@ theorem excludes_stateBeforeTime_snoc_false {v w : V} {o₀ o : Obj p} {t₀ T :
     (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho T w) o = false := by
   cases hb : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho T w) o with
   | false => rfl
-  | true => rw [excludes_stateBeforeTime_snoc (v := v) (o₀ := o₀) (t₀ := t₀) hb] at h; cases h
+  | true =>
+    rw [excludes_stateBeforeTime_snoc (v := v) (o₀ := o₀) (t₀ := t₀) hb] at h
+    cases h
 
 /-- [own-row Option 1; spec `attest`, `on_attestation`; DC N4] The own row is fresh: a row
 released by the FG action tick of `v` at index `i` is not in the row pool of `v` before
@@ -318,7 +621,9 @@ theorem fgsa_emitOk_fg (hvalid : V2.D.ExecutionValid E rho) {i : Nat} {v : V} {t
   exact fgsa_emitOk_row hvalid hi ho
 
 /-- [own-row Option 1; DC N3] The same-time self-delivery of a released FG row, appended
-after the last event of the sender, keeps `ExecutionValid`. -/
+after the last event of the sender, keeps `ExecutionValid`. Scope: `hkey` restricts the run
+to events at or before `(t, 2)`, so with `tick_total` the run ends at the action time `t`;
+`executionValid_ownRow_run` removes the restriction through the cut. -/
 theorem executionValid_snoc_selfDelivery (hvalid : V2.D.ExecutionValid E rho) {i : Nat}
     {v : V} {t : Time} (hkey : ∀ e ∈ rho.events, e.key ≤ toLex (t, 2))
     (hi : rho.events[i]? = some (.tick v t))
@@ -334,7 +639,8 @@ theorem executionValid_snoc_selfDelivery (hvalid : V2.D.ExecutionValid E rho) {i
 /-- [own-row Option 1; DC Generic/Conditions.lean:110] `PartialSynchronyBy` survives the
 same-time self-delivery of a released object that carries nothing. Old obligations keep
 their witnesses; the obligations of the new acceptance are the broadcast obligations of the
-emission, with the same deadline. -/
+emission, with the same deadline. Scope: the lemma itself has no run-end premise, but its
+use in the append laws (`hkey`) is for a run whose events are all at or before `(t, 2)`. -/
 theorem partialSynchronyBy_snoc_selfDelivery {delayOf : Obj p → Time}
     (h : Gen.V2.Duty.PartialSynchronyBy E rho delayOf) {i : Nat} {v : V} {t : Time} {o : Obj p}
     (hi : rho.events[i]? = some (.tick v t)) (ho : o ∈ V2.D.Run.emitsAt E rho i)
@@ -342,8 +648,8 @@ theorem partialSynchronyBy_snoc_selfDelivery {delayOf : Obj p → Time}
     Gen.V2.Duty.PartialSynchronyBy E
       ({ rho with events := rho.events ++ [.deliver v o t] }) delayOf where
   broadcast_emitted u hu o' t' he w hw hdl hx := by
-    obtain ⟨t'', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o' t' (emits_snoc_deliver_iff.mp he)
-      w hw hdl (excludes_stateBeforeTime_snoc_false hx)
+    obtain ⟨t'', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o' t'
+      (emits_snoc_deliver_iff.mp he) w hw hdl (excludes_stateBeforeTime_snoc_false hx)
     exact ⟨t'', ht1, ht2, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
   relay_accepted u hu k o' t' hacc w hw hp hdl hx := by
     rcases acceptsAt_snoc_cases hacc with ⟨hlt, hacc'⟩ | ⟨rfl, o'', heq, hh⟩
@@ -360,7 +666,8 @@ theorem partialSynchronyBy_snoc_selfDelivery {delayOf : Obj p → Time}
       · exact (hnc _ hc).elim
 
 /-- [own-row Option 1; DC Generic/Conditions.lean:134] `HealthyPrefixDeliveryBy` survives
-the same-time self-delivery of a released object that carries nothing. -/
+the same-time self-delivery of a released object that carries nothing. Scope: as for
+`partialSynchronyBy_snoc_selfDelivery`. -/
 theorem healthyPrefixDeliveryBy_snoc_selfDelivery {delayOf : Obj p → Time} {cut : Time}
     (h : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho delayOf cut) {i : Nat} {v : V} {t : Time}
     {o : Obj p} (hi : rho.events[i]? = some (.tick v t)) (ho : o ∈ V2.D.Run.emitsAt E rho i)
@@ -368,8 +675,8 @@ theorem healthyPrefixDeliveryBy_snoc_selfDelivery {delayOf : Obj p → Time} {cu
     Gen.V2.Duty.HealthyPrefixDeliveryBy E
       ({ rho with events := rho.events ++ [.deliver v o t] }) delayOf cut where
   broadcast_emitted u hu o' t' he w hw hdl hx := by
-    obtain ⟨t'', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o' t' (emits_snoc_deliver_iff.mp he)
-      w hw hdl (excludes_stateBeforeTime_snoc_false hx)
+    obtain ⟨t'', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o' t'
+      (emits_snoc_deliver_iff.mp he) w hw hdl (excludes_stateBeforeTime_snoc_false hx)
     exact ⟨t'', ht1, ht2, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
   relay_accepted u hu k o' t' hacc w hw hp hdl hx := by
     rcases acceptsAt_snoc_cases hacc with ⟨hlt, hacc'⟩ | ⟨rfl, o'', heq, hh⟩
@@ -384,6 +691,97 @@ theorem healthyPrefixDeliveryBy_snoc_selfDelivery {delayOf : Obj p → Time} {cu
           (excludes_stateBeforeTime_snoc_false hx)
         exact ⟨t'', ht1, ht2, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
       · exact (hnc _ hc).elim
+
+/-! ### The cut for FG-SA: scope and delivery regimes, and the spec-like run -/
+
+/-- [own-row Option 1; DC NamedRootCollisionFree] The named scope of the cut run is in the
+named scope of the run. -/
+theorem namedProposalInRun_cut {n : Nat} {t : Time} {A : NamedProposal p.n}
+    (h : NamedProposalInRun p c E ({ rho with events := rho.events.take n, horizon := t }) A) :
+    NamedProposalInRun p c E rho A := by
+  obtain ⟨B, hB, hAB⟩ := h
+  refine ⟨B, ?_, hAB⟩
+  rcases hB with ⟨x, o, s, hmem, hpay⟩ | ⟨x, hx, k, hk⟩
+  · exact Or.inl ⟨x, o, s, (List.take_sublist n _).subset hmem, hpay⟩
+  · refine Or.inr ⟨x, hx, ?_⟩
+    by_cases hk' : k ≤ n
+    · exact ⟨k, by rw [stateBefore_cut_of_le hk'] at hk; exact hk⟩
+    · exact ⟨n, by rw [stateBefore_cut_of_ge (by omega)] at hk; exact hk⟩
+
+/-- [own-row Option 1; DC NamedRootCollisionFree] `NamedRootCollisionFree` survives the cut. -/
+theorem namedRootCollisionFree_cut {n : Nat} {t : Time} (h : NamedRootCollisionFree p c E rho) :
+    NamedRootCollisionFree p c E ({ rho with events := rho.events.take n, horizon := t }) where
+  root_injective B C hB hC :=
+    h.root_injective B C (namedProposalInRun_cut hB) (namedProposalInRun_cut hC)
+
+/-- [own-row Option 1; DC Generic/Conditions.lean:110] `PartialSynchronyBy` survives the cut:
+a deadline within the cut horizon `t` is within the old horizon, the state at that deadline
+is the old one, and the old witness delivery is before `t`, so below the cut. -/
+theorem partialSynchronyBy_cut {n : Nat} {t : Time} {delayOf : Obj p → Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hth : t ≤ rho.horizon) (h : Gen.V2.Duty.PartialSynchronyBy E rho delayOf) :
+    Gen.V2.Duty.PartialSynchronyBy E
+      ({ rho with events := rho.events.take n, horizon := t }) delayOf where
+  broadcast_emitted u hu o s he w hw hdl hx := by
+    obtain ⟨-, he'⟩ := (emits_cut_iff hcut).mp he
+    rw [stateBeforeTime_cut hcut hdl] at hx
+    obtain ⟨t', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o s he' w hw (le_trans hdl hth) hx
+    have hjn : j < n := by
+      obtain ⟨o', hj', -⟩ := hj
+      exact (hcut j _ hj').mpr (deliver_key_le.mpr (lt_of_lt_of_le ht2 hdl))
+    exact ⟨t', ht1, ht2, j, handlesAt_cut_of_lt hjn hj⟩
+  relay_accepted u hu k o s hacc w hw hp hdl hx := by
+    obtain ⟨hkn, hacc'⟩ := acceptsAt_cut hacc
+    rw [stateBefore_cut_of_le hkn] at hp
+    rw [stateBeforeTime_cut hcut hdl] at hx
+    obtain ⟨t', ht1, ht2, j, hj⟩ :=
+      h.relay_accepted u hu k o s hacc' w hw hp (le_trans hdl hth) hx
+    have hjn : j < n := by
+      obtain ⟨o', hj', -⟩ := hj
+      exact (hcut j _ hj').mpr (deliver_key_le.mpr (lt_of_lt_of_le ht2 hdl))
+    exact ⟨t', ht1, ht2, j, handlesAt_cut_of_lt hjn hj⟩
+
+/-- [own-row Option 1; DC Generic/Conditions.lean:134] `HealthyPrefixDeliveryBy` survives
+the cut when the prefix cut is at most `t`. -/
+theorem healthyPrefixDeliveryBy_cut {n : Nat} {t : Time} {delayOf : Obj p → Time} {b₀ : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hb : b₀ ≤ t) (h : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho delayOf b₀) :
+    Gen.V2.Duty.HealthyPrefixDeliveryBy E
+      ({ rho with events := rho.events.take n, horizon := t }) delayOf b₀ where
+  broadcast_emitted u hu o s he w hw hdl hx := by
+    obtain ⟨-, he'⟩ := (emits_cut_iff hcut).mp he
+    rw [stateBeforeTime_cut hcut (le_trans hdl hb)] at hx
+    obtain ⟨t', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o s he' w hw hdl hx
+    have hjn : j < n := by
+      obtain ⟨o', hj', -⟩ := hj
+      exact (hcut j _ hj').mpr (deliver_key_le.mpr (lt_of_lt_of_le ht2 (le_trans hdl hb)))
+    exact ⟨t', ht1, ht2, j, handlesAt_cut_of_lt hjn hj⟩
+  relay_accepted u hu k o s hacc w hw hp hdl hx := by
+    obtain ⟨hkn, hacc'⟩ := acceptsAt_cut hacc
+    rw [stateBefore_cut_of_le hkn] at hp
+    rw [stateBeforeTime_cut hcut (le_trans hdl hb)] at hx
+    obtain ⟨t', ht1, ht2, j, hj⟩ := h.relay_accepted u hu k o s hacc' w hw hp hdl hx
+    have hjn : j < n := by
+      obtain ⟨o', hj', -⟩ := hj
+      exact (hcut j _ hj').mpr (deliver_key_le.mpr (lt_of_lt_of_le ht2 (le_trans hdl hb)))
+    exact ⟨t', ht1, ht2, j, handlesAt_cut_of_lt hjn hj⟩
+
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary valid run: cut after the
+ticks at the action time `t` (horizon `t`), then the same-time self-delivery of the row
+that the tick of `v` at `t` released. It is `ExecutionValid`. `exists_cut` supplies `n`. -/
+theorem executionValid_ownRow_run (hvalid : V2.D.ExecutionValid E rho) {n i : Nat} {v : V}
+    {t : Time} (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    V2.D.ExecutionValid E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) := by
+  obtain ⟨ht0, hth⟩ := hvalid.in_horizon _ (List.mem_of_getElem? hi)
+  have hin : i < n := (hcut i _ hi).mpr (tick_key_le.mpr le_rfl)
+  exact executionValid_snoc_selfDelivery (executionValid_cut hvalid hcut ht0 hth)
+    (cut_key_le hcut) (getElem?_cut_iff.mpr ⟨hin, hi⟩)
+    (cut_lastEvent hvalid.toScheduleWellFormed hcut hi)
+    (by rw [emitsAt_cut_of_lt hin]; exact ho)
 
 /-- [own-row Option 1; DC N4] A released FG row carries nothing. -/
 theorem fgsa_row_noCarried (a : RowWire p.n) (o' : Obj p)
