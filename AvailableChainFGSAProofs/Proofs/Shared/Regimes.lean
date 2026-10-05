@@ -939,5 +939,23 @@ theorem Outage₂.ownRow_run {fast : Bool} {T b₀ b₁ : Time}
   budget := h.budget
   fastPart := h.fastPart
 
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `Outage₂` run, for an action
+time in the outage window; the window end is lowered to `t`. -/
+theorem Outage₂.ownRow_run_mid {fast : Bool} {T b₀ b₁ : Time}
+    (h : Outage₂ p c fast E rho T b₀ b₁ ΔF) {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) (hb0 : b₀ ≤ t) (hb1 : t ≤ b₁)
+    {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    Outage₂ p c fast E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) T b₀ t ΔF where
+  pre := h.pre.ownRow_run hcut hi hb0 ho
+  sleepy := h.sleepy
+  order := ⟨h.order.1, h.order.2.1, hb0, le_rfl⟩
+  lag := h.lag
+  budget := le_trans (by linarith) h.budget
+  fastPart := h.fastPart
+
 end AvailableChain.FGSA.Run
 end

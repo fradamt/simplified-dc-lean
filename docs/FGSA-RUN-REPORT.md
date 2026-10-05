@@ -466,9 +466,11 @@ schedule), the spec-like run of `rho` at `t` is the run with events
 prefix through the ticks at `t` (all restarts, ticks and deliveries before
 `t`, then the restarts and ticks at `t`), and `ds` lists one self-delivery
 `.deliver u (row) t` for each sender `u` with an FG action tick at `t`, in
-any order. The results below prove the one-sender case (`ds = [the own row
-of v]`); `Base₂.snoc_ownRow_other` with `hkey_snoc_deliver` and
-`hlast_snoc_of_ne` appends the row of every further sender at `t`.
+any order. The table is for the one-sender case (`ds = [the own row of v]`).
+For more than one sender: `Base₂.snoc_ownRow_other` for Base₂, and repeated
+`HealthyPrefix₂.snoc_ownRow` / `Recovery₂.snoc_ownRow` (with
+`hkey_snoc_deliver`, `hlast_snoc_of_ne`, `V2.D.Run.getElem?_snoc_of_lt`,
+`V2.D.Run.emitsAt_snoc_of_lt`). Not proved for `CleanPrefix₂`, `Clean₂` and `Outage₂`.
 
 Coverage. The append laws alone (`ExecutionValid.snoc_selfDelivery` and the
 `snoc_ownRow` forms) need every event at or before key `(t, 2)`, so with
@@ -488,12 +490,12 @@ Coverage. The append laws alone (`ExecutionValid.snoc_selfDelivery` and the
 │ Clean₂ ΔF                 │ any              │ Clean₂ ΔF                      │
 │ Recovery₂ G ΔF            │ any              │ Recovery₂ G ΔF                 │
 │ Outage₂ fast T b₀ b₁ ΔF   │ b₁ ≤ t           │ Outage₂ fast T b₀ b₁ ΔF        │
+│ Outage₂ fast T b₀ b₁ ΔF   │ b₀ ≤ t ≤ b₁      │ Outage₂ fast T b₀ t ΔF         │
 └───────────────────────────┴──────────────────┴────────────────────────────────┘
 ```
 
-Not covered: `Outage₂` for `t < b₁` (the window fields `lag` and `budget`
-tie `b₀` and `b₁` to `T`, so lowering the window to `t` is not a field
-restriction). Every claim quantifies over all valid runs, so it covers the
+Not covered: `Outage₂` for `t < b₀`: lowering the prefix cut to `t` breaks
+`lag` (`T + lag ≤ b₀`). Every claim quantifies over all valid runs, so it covers the
 spec-like runs. The results are not a full run embedding (Option 2 of the
 analysis): a claim read at a time after `t` is read on the original run,
 where the own row arrives by delivery within the regime's bound.

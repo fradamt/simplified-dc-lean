@@ -80,7 +80,8 @@ theorem Base₂.ownRow_run_exists (h : Base₂ p c E rho) {i : Nat} {v : V} {t :
 
 /-- [own-row Option 1; DC N3] A further self-delivery at `t`: after the self-delivery of
 `v`, the row of another sender `u` released at `t` appends in the same way. Iterate with
-`hkey_snoc_deliver` and `hlast_snoc_of_ne` for every sender with an FG action at `t`. -/
+`hkey_snoc_deliver`, `hlast_snoc_of_ne`, `V2.D.Run.getElem?_snoc_of_lt` and
+`V2.D.Run.emitsAt_snoc_of_lt` for every sender with an FG action at `t`. -/
 theorem Base₂.snoc_ownRow_other {v : V} {o : Obj p} {t : Time}
     (h : Base₂ p c E ({ rho with events := rho.events ++ [.deliver v o t] }))
     (hkey : ∀ e ∈ rho.events, e.key ≤ toLex (t, 2)) {i : Nat} {u : V}
