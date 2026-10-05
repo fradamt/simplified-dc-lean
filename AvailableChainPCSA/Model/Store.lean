@@ -18,8 +18,9 @@ authoritative store of exact admitted named proposal wires. `rowPool` is
 `Σ.attestations`. `ackPool` is `Σ.acks` (one copy of each accepted exact
 ack, at most two per seat and slot). `pcs` is `Σ.pcs`: the accepted usable
 F-compatible PCs, assembled from the pool, never revoked by acks; `Σ.pc` is
-`latestPC`. `pcSnapshot[s]` is `Σ.pc` frozen at `z_s`. There is no
-`fastWrite` (R8′: the FG source is a frozen PC). -/
+`latestPC`. `pcSnapshot[s]` is `Σ.pcs` frozen at `z_s` (the PCs with
+timestamp `< z_s`, r4 3.3 sources). There is no `fastWrite` (R8′: the FG
+source is a frozen PC). -/
 structure State (n : Nat) where
   base : GridCO.State n .root := GridCO.initial n .root
   fg : Store (Fin n) := Store.init
@@ -27,7 +28,7 @@ structure State (n : Nat) where
   rowPool : List (RowWire n) := []
   ackPool : List (AckWire n) := []
   pcs : List (PC n) := []
-  pcSnapshot : List (Slot × Option (PC n)) := []
+  pcSnapshot : List (Slot × List (PC n)) := []
 
 variable {n : Nat}
 
@@ -77,10 +78,11 @@ compatible with `Σ.pc.target` (or there is no PC). -/
 def effectiveLease (st : State n) (b : Block) : Bool :=
   (latestPC st).all (fun c => Block.compatible b c.target)
 
-/-- [PC-SA M1; pcsa-decisions R-f] The PC frozen at `z_s`: `none` if no PC
-was held, or the freeze did not run. -/
-def pcSnapshotAt (st : State n) (s : Slot) : Option (PC n) :=
-  ((st.pcSnapshot.find? (fun row => row.1 == s)).map Prod.snd).getD none
+/-- [PC-SA M1; pcsa-decisions R-f; pcsa34-r4 3.3] The PCs frozen at `z_s`
+(held before the tick `z_s`, in stored order); `[]` if none was held, or the
+freeze did not run. -/
+def pcSnapshotAt (st : State n) (s : Slot) : List (PC n) :=
+  ((st.pcSnapshot.find? (fun row => row.1 == s)).map Prod.snd).getD []
 
 /-- [PC-SA M1] The target of the latest held PC. -/
 def pcTarget? (st : State n) : Option Block := (latestPC st).map PC.target

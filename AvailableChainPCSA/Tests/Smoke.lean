@@ -126,7 +126,7 @@ theorem n_equivocator : nCount pT (actView st6equiv) 1 b1 = 2 ∧
 /-- (A2, reachable) The frozen view of slot 2 is `PC(1, b1')`, frame-active:
 the N target `X2` on `b1` fails the view filter (no ack); `Y2` on `b1'`
 passes (ack). -/
-theorem view_filter : pcSnapshotAt stPC' 1 = some ⟨1, b1', [ak' 2, ak' 3]⟩ ∧
+theorem view_filter : pcSnapshotAt stPC' 1 = [⟨1, b1', [ak' 2, ak' 3]⟩] ∧
     frameActive pT st10x ⟨1, b1', [ak' 2, ak' 3]⟩ = true ∧
     nTarget? pT st10x 2 = some X2.erase ∧ viewOK pT st10x 2 X2.erase = false ∧
     ackFor pT st10x 2 = none ∧
@@ -155,7 +155,7 @@ theorem silent_proposer : nCount pT (actView st10s) 2 b1 = 3 ∧ nTarget? pT st1
   decide +kernel
 
 /-- (review fix 4) A repeated freeze tick writes the snapshot once. -/
-theorem snapshot_once : (clock pT (clock pT stA 7) 7).pcSnapshot = [(1, some pc1)] := by
+theorem snapshot_once : (clock pT (clock pT stA 7) 7).pcSnapshot = [(1, [pc1])] := by
   decide +kernel
 
 /-- (review fix 5) A block carrying a malformed PC is refused. -/
@@ -202,7 +202,7 @@ theorem reconcile_drops :
 `z_1 = 7` holds `pc1`; the output stays `b1`. -/
 theorem gate_saves : GridCO.savedGenuine st10.base 1 = some (some b1) ∧
     st10.base.stableRecord = b1 ∧ st10.base.obligations = [] ∧
-    pcSnapshotAt st10 1 = some pc1 ∧ voterPC st10 2 = some pc1 ∧
+    pcSnapshotAt st10 1 = [pc1] ∧ voterPC pT st10 2 = some pc1 ∧
     confirmed st10 = b1 := by decide +kernel
 
 /-- (f) The slot-2 proposal at `t_2 = 8` walks from the PC target and carries
@@ -217,7 +217,7 @@ theorem proposal_carries : liveRoot pT (atTime stA 8) (some pc1) = b1 ∧
     prop2.pc = some pc1 ∧ prop2.parent = N1 ∧ prop2.slot = 2 ∧
     wellFormed pT ⟨.proposer 2, .proposal prop2⟩ = true ∧
     st8.base.blocks = [.genesis, b1, prop2.erase] ∧
-    carriedPCs st8 2 = [pc1] ∧ voterPC st8 2 = some pc1 := by decide +kernel
+    carriedPCs st8 2 = [pc1] ∧ voterPC pT st8 2 = some pc1 := by decide +kernel
 
 /-- The slot-2 proposal with NO PC (acks never delivered), delivered at 8. -/
 def prop2n : NamedProposal 4 :=
@@ -250,7 +250,7 @@ def st14h : State pT.n :=
 
 /-- (R8′) The gate writes no fast set and no lease at `d_1`; the FG source
 of round 0 at `d_1 = 10` is `none` (no PC frozen at `z_0`). -/
-theorem gate_no_fast : st10.base.obligations = [] ∧ pcSnapshotAt st10 0 = none ∧
+theorem gate_no_fast : st10.base.obligations = [] ∧ pcSnapshotAt st10 0 = [] ∧
     fgSource pT st10 = none := by decide +kernel
 
 /-- (R8′) At `a_1 = 14`: an honest opening freezes `PC(2)` at `z_2` and the
@@ -258,19 +258,52 @@ source is its target `prop2`; a faulty opening with no `PC(2)` freezes `PC(1)`,
 in the window `(0, 2]`, and the source is `b1`; with no PC in the window the
 source is `none`. -/
 theorem source_from_pc :
-    st14h.pcs = [pc1, pc2] ∧ pcSnapshotAt st14h 2 = some pc2 ∧
+    st14h.pcs = [pc1, pc2] ∧ pcSnapshotAt st14h 2 = [pc1, pc2] ∧
     (fgSource pT st14h).map eraseFG = some prop2.erase ∧
-    st14.pcs = [pc1] ∧ pcSnapshotAt st14 2 = some pc1 ∧
+    st14.pcs = [pc1] ∧ pcSnapshotAt st14 2 = [pc1] ∧
     (fgSource pT st14).map eraseFG = some b1 ∧
-    st14n.pcs = [] ∧ pcSnapshotAt st14n 2 = none ∧ fgSource pT st14n = none := by
+    st14n.pcs = [] ∧ pcSnapshotAt st14n 2 = [] ∧ fgSource pT st14n = none := by
+  decide +kernel
+
+/-- A slot-2 exact ack of seat `i` on `Y2` (the slot-2 block on `b1'`). -/
+def akWireY (i : Fin 4) : Wire 4 := ⟨.seat (.ack 2) i, .ack Y2.erase.root⟩
+def akY (i : Fin 4) : AckWire 4 := ⟨.seat (.ack 2) i, Y2.erase.root⟩
+def pcY : PC 4 := ⟨2, Y2.erase, [akY 0, akY 1]⟩
+/-- (D7, C2) Both slot-1 blocks held, `PC(1, b1)` at 6, the freeze at 7, `Y2`
+on `b1'` at 8, `PC(2, Y2)` from acks at 10, the ticks to 14; then the FG
+store justifies `B1` by hand (`J := B1`, `h_j := 1`, `h_max := 2`: every
+fixture block has FG height 1, so there is no contest, `Z = B1` and the band
+floor is 1): the tree holds `b1` and not `Y2`. The max-rank frozen PC
+`PC(2, Y2)` is stranded; the older window PC `PC(1, b1)` is frame-active. -/
+def st14d : State pT.n :=
+  [(11 : Time), 12, 13, 14].foldl (clock pT)
+    ([akWireY 0, akWireY 1].foldl (process pT)
+      ([(9 : Time), 10].foldl (clock pT)
+        (process pT
+          (atTime (clock pT (clock pT ([akWire 0, akWire 1].foldl (process pT) st6both) 7) 8) 8)
+          ⟨.proposer 2, .proposal Y2⟩)))
+def stD7 : State pT.n :=
+  { st14d with fg := { st14d.fg with J := B1, h_j := 1, h_max := 2 } }
+
+/-- (D7) The source and the view filter first, then take the maximum: the
+source at `a_1` is `b1` (`PC(1, b1)`), not the stranded `PC(2, Y2)`; the
+view of slot 3 is `PC(1, b1)`; the proposer's view is the same; `Σ.pc` (the
+output floor) stays `PC(2, Y2)`. -/
+theorem source_filter_first :
+    st14d.pcs = [pc1, pcY] ∧ pcSnapshotAt stD7 2 = [pc1, pcY] ∧
+    latestPC stD7 = some pcY ∧ frameActive pT stD7 pcY = false ∧
+    frameActive pT stD7 pc1 = true ∧
+    (fgSource pT stD7).map eraseFG = some b1 ∧
+    voterPC pT stD7 3 = some pc1 ∧ proposerPC pT stD7 = some pc1 ∧
+    strong stD7 = Y2.erase := by
   decide +kernel
 
 /-- (D5) The snapshot of `z_1 = 7` is taken at the tick, before the deliveries
 of time 7: a PC assembled from acks delivered at `z_1` itself is held but is
 not in the snapshot; acks delivered before `z_1` are. -/
 theorem snapshot_boundary :
-    pcSnapshotAt (clock pT stA 7) 1 = some pc1 ∧
-    pcSnapshotAt ([akWire 0, akWire 1].foldl (process pT) (clock pT st6 7)) 1 = none ∧
+    pcSnapshotAt (clock pT stA 7) 1 = [pc1] ∧
+    pcSnapshotAt ([akWire 0, akWire 1].foldl (process pT) (clock pT st6 7)) 1 = [] ∧
     ([akWire 0, akWire 1].foldl (process pT) (clock pT st6 7)).pcs = [pc1] := by
   decide +kernel
 
@@ -299,6 +332,7 @@ theorem encLabel_injective : Function.Injective encLabel := by
 #print axioms gate_saves
 #print axioms proposal_carries
 #print axioms source_from_pc
+#print axioms source_filter_first
 #print axioms encLabel_injective
 
 end AvailableChain.PCSA.Tests

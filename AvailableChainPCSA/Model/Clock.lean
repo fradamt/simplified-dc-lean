@@ -63,7 +63,7 @@ def clockPre (p : Params) (st : State p.n) (t : Time) : State p.n :=
   let st := if 0 ≤ t - 3 * p.Δ && t == SA.freezeTime q fSlot then
     { onView (fun v => GridCO.freeze q.engine v fSlot) st with
       pcSnapshot := if (st.pcSnapshot.find? (fun row => row.1 == fSlot)).isSome then
-        st.pcSnapshot else st.pcSnapshot ++ [(fSlot, latestPC st)] } else st
+        st.pcSnapshot else st.pcSnapshot ++ [(fSlot, st.pcs)] } else st
   let eSlot := ((t - 2 * p.Δ) / (4 * p.Δ)).toNat
   let st := if 0 ≤ t - 2 * p.Δ && t == SA.earlyTime q eSlot then
     onView (fun v =>
