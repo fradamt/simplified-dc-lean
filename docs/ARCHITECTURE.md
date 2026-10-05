@@ -178,6 +178,9 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 │ Statements/Pure/Schedule │ Patterns, recurrence and window definitions  │
 │ Statements/Pure/Walk     │ Suffix premises and E-4 walk statements      │
 │ Statements/Pure/Props    │ CompatOn/At, MonoOn, BelowOn, ServedOn       │
+│ Statements/Pure/PCQuorum │ qN = ⌈3n/4⌉, qA = ⌈n/2⌉; PC count contracts  │
+│ Statements/Pure/PCRank   │ PC record, Formed, rank, pickPC, preferPC    │
+│ Statements/Pure/PCFloor  │ pcFloor output floor and its contracts       │
 │ Statements/V2/Reads      │ Run indices, pubFloor, HonestSlot, Pending   │
 │                          │ E-9 time/index statement PROVED              │
 │ Statements/V2/Counts     │ faulty and awakeHonest                       │
@@ -189,6 +192,10 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 │ Proofs/Pure/FirstBad     │ Strong induction for the FirstBad rules      │
 │ Proofs/Pure/Schedule     │ Pattern, window and recurrence facts         │
 │ Proofs/Pure/BlockOrder   │ Block order, compatibility and path facts    │
+│ Proofs/Pure/PCQuorum     │ qN/qA intersection, honest seat, uniqueness  │
+│ Proofs/Pure/PCRank       │ Rank preorder; preferPC total, monotone,     │
+│                          │ idempotent; folds; same-slot PC target       │
+│ Proofs/Pure/PCFloor      │ pcFloor cases, target bound, nest, monotone  │
 │ Proofs/V2/Fields         │ ownRecord_fold_restart                       │
 │ Proofs/V2/Reads          │ E-9 time/index bridge                        │
 │ Proofs/V2/Induction      │ Invariant and interval lifts; kept_from_seed │
@@ -201,6 +208,16 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 └──────────────────────────┴──────────────────────────────────────────────┘
 ```
 
+- PC-SA PC layer (2026-10-05; `pcsa-decisions.md`, 3n/4 version and R-g):
+  `PCQuorum` (thresholds `qN`, `qA`; two `qN` sets share `qA` seats; honest
+  seat in a `qA` set; one block per slot with a `qN` exact-HEAD set),
+  `PCRank` (abstract PC record with acker seats; rank by slot, then a tie
+  key; `preferPC` keeps the rank-maximal PC; two formed PCs of one slot
+  have one target) and `PCFloor` (available output = `S` if the PC target
+  is `⪯ S`, else the target; target bound, nesting below the output,
+  monotonicity). Import constraint: Pure layer, closure Mathlib +
+  `AvailableChainModel.Objects.*` + Generic Pure only (GLY F-4, F-12); no
+  V2, AC, GridCO or FG-SA import. Consumer: the PCSA family.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.

@@ -79,7 +79,11 @@ theorem OptRankLE_def (key : PC n Target → K) (before after : Option (PC n Tar
 /-- Two formed PCs of one slot have the same target. `sent v b`: seat `v`
 sent an exact HEAD on `b` at that slot; `acked v b`: seat `v` sent an ack on
 `b` at that slot. A seat outside `F` sends at most one exact HEAD per slot and
-acks `b` only if some `q_N` seat set sent exact HEADs on `b`. -/
+acks `b` only if some `q_N` seat set sent exact HEADs on `b`.
+The caller must specialize `sent` and `acked` to one fixed slot. The caller
+must also connect both PC records to those ack occurrences through
+certificate validity: each acker of `c` and of `d` sent an ack on the record's
+target at that slot. Equal `slot` fields alone do not give this. -/
 def PCSameSlotTargetStatement : Prop :=
   ∀ {n : Nat} {B : Type} (sent acked : Fin n → B → Prop) (F : Finset (Fin n))
     (c d : PC n B),

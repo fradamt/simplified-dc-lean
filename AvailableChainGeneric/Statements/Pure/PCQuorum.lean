@@ -45,7 +45,9 @@ theorem QAHonestStatement_def : QAHonestStatement =
       F.card < qA n → qA n ≤ A.card → ∃ v ∈ A, v ∉ F) := by rfl
 
 /-- Two `q_N` seat sets share a seat outside a set of fewer than `q_A`
-seats. `F.card < q_A n` is `2 F.card < n`, that is `a < n/2`. -/
+seats. `F.card < q_A n` is `2 F.card < n`, that is `a < n/2`. This bound is
+sufficient for safety only. Liveness (honest seats alone reach `q_N`) needs
+`a ≤ n/4`. -/
 def QNInterHonestStatement : Prop :=
   ∀ {n : Nat} {Q Q' F : Finset (Fin n)},
     F.card < qA n → qN n ≤ Q.card → qN n ≤ Q'.card → ∃ v ∈ Q ∩ Q', v ∉ F
