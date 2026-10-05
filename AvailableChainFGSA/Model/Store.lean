@@ -36,6 +36,10 @@ def State.namedBodies (st : State n) : List (NamedProposal n) :=
 def namedParentHeld (st : State n) (N : NamedProposal n) : Bool :=
   decide (N.parent ∈ st.namedBodies)
 
+-- ROOT-DIGEST-2: generate the equation in its home module (BUILD B3a).
+private theorem namedParentHeld_eq_1_export :
+    type_of% (@namedParentHeld.eq_1) := @namedParentHeld.eq_1
+
 /-- [ROOT-DIGEST-2 W1; DC NamedBlocks] Resolve one distinct named parent by geometry. -/
 def namedByErase? (st : State n) (H : Block) : Option (NamedProposal n) :=
   match (st.namedBodies.filter (fun N => N.erase == H)).eraseDups with

@@ -588,7 +588,7 @@ def leaseNegGateFrom (p : GridCO.Params) (a : Block) (st : GridCO.State 1) (r : 
 /-- The anchored GridCO tick at `gridLeasePolicy`. -/
 def leaseNegClockFrom (p : GridCO.Params) (a : Block) (st : GridCO.State 1) (t : Int) :
     GridCO.State 1 :=
-  @GridCO.clockFrom GridCO.gridLeasePolicy p 1 a st t
+  @GridCO.clockFrom GridCO.gridLeasePolicy p 1 .block a st t
 end AvailableChain.FGSA
 namespace AvailableChain.LeaseAuditAlias
 def gate (_policy : GridCO.LeasePolicy) (p : GridCO.Params)
