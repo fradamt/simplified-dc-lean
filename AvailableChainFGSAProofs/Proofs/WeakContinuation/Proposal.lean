@@ -1105,7 +1105,7 @@ theorem wc_proposalPivot (ΔF : Time) (w : HealingWitness) (iStar : Nat)
         (hcountsS D (block_preceq_refl D)).2
       have hsne : pt.s ≠ 0 := by simp only [Slot] at hs2 ⊢; omega
       have hread : headVote p st pt.s = H := hH
-      rw [headVote, if_neg hsne] at hread
+      rw [headVote, ite_eq_right hsne] at hread
       exact hread ▸ hw
   obtain ⟨ip, N, hN, hip, hem, _⟩ := proposal_read_named p c E rho hs hprop
   let src := clock p (storeAt p c E rho ip
@@ -1118,7 +1118,8 @@ theorem wc_proposalPivot (ΔF : Time) (w : HealingWitness) (iStar : Nat)
   have hInv := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip
     (V2.D.proposerOf rho (fgsaInterface p c) pt.s)) (SA.proposalTime p.toParams pt.s)
   have hcounts := wc_proposalCounts hvalid hnr hdelta hcstar hroots hmono ΔF hsync q D
-    hGST hpartPrev hhor hprevQ hprop.1.2 (hsq ▸ hip) (hsq ▸ hfs)
+    hGST hpartPrev hhor hprevQ hprop.1.2
+    (by simpa only [← hsq] using hip) (by simpa only [← hsq] using hfs)
   have hcountsS : ∀ L, Block.Preceq L D →
       GridCO.voterCount (proposerVotes src pt.s) < 2 * RetainedWalk.ss src pt.s L ∧
       ∀ B, Block.compatible L B = false →
