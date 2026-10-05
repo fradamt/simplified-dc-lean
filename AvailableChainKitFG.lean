@@ -60,6 +60,7 @@ public import AvailableChainKitFG.FrameBridge
 public import AvailableChainKitFG.JustificationLawsDef
 public import AvailableChainKitFG.FrameGeometry
 public import AvailableChainKitFG.CausalCapCore
+public import AvailableChainKitFG.FinalizedOccurrence
 
 @[expose] public section
 end
