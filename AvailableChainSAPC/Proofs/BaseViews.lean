@@ -9,12 +9,12 @@ open AvailableChain.Generic AvailableChain.Statements.Generic
 
 /-- Ordinary saved views retain their original base keys and declared
 support. This invariant does not identify them with the live view. -/
-def FrozenViewsStored {n : Nat} (st : GridCO.State n) : Prop :=
+def FrozenViewsStored {n : Nat} (st : GridCO.State n .block) : Prop :=
   ∀ r raw support tree, (r, raw, support, tree) ∈ st.frozen →
     raw ⊆ st.votes ∧ support ⊆ raw ∧
       ∀ o ∈ raw, GridCO.headLabel? o = some r
 
-private theorem freeze_stored (p : Params) {n : Nat} (st : GridCO.State n)
+private theorem freeze_stored (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (h : FrozenViewsStored st) : FrozenViewsStored (GridCO.freeze p.engine st r) := by
   intro label raw support tree hm
   rcases List.mem_append.mp hm with hold | hnew
@@ -25,7 +25,7 @@ private theorem freeze_stored (p : Params) {n : Nat} (st : GridCO.State n)
       obtain ⟨hm, ht⟩ := List.mem_filter.mp ho
       apply List.mem_filter.mpr
       refine ⟨hm, ?_⟩
-      cases he : GridCO.headTarget? o with
+      cases he : GridCO.resolvedHead? st o with
       | none => simp [GridCO.resolvedBefore, he] at ht
       | some b =>
           simp only [GridCO.resolvedBefore, he, Bool.and_eq_true, decide_eq_true_eq] at ht
@@ -33,14 +33,14 @@ private theorem freeze_stored (p : Params) {n : Nat} (st : GridCO.State n)
     · intro o ho
       simpa using (List.mem_filter.mp (List.mem_filter.mp ho).1).2
 
-private theorem stored_mono {n : Nat} (a b : GridCO.State n)
+private theorem stored_mono {n : Nat} (a b : GridCO.State n .block)
     (hf : b.frozen = a.frozen) (hv : a.votes ⊆ b.votes)
     (h : FrozenViewsStored a) : FrozenViewsStored b := by
   intro r raw support tree hm
   obtain ⟨hr, hs, hl⟩ := h r raw support tree (hf ▸ hm)
   exact ⟨List.Subset.trans hr hv, hs, hl⟩
 
-theorem gateWithPC_frozen (p : Params) {n : Nat} (st : GridCO.State n)
+theorem gateWithPC_frozen (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (c : Option (PC n)) : (gateWithPC p st r c).frozen = st.frozen := by
   cases c with
   | none => exact @GridCO.gate_frozen GridCO.slowLeasePolicy p.engine n st r
@@ -56,7 +56,7 @@ theorem gateWithPC_frozen (p : Params) {n : Nat} (st : GridCO.State n)
             exact fold_field GridCO.State.frozen _ (by intros; rfl) _ _)]
           split <;> rfl
 
-private theorem admitVote_frozen (p : Params) {n : Nat} (st : GridCO.State n)
+private theorem admitVote_frozen (p : Params) {n : Nat} (st : GridCO.State n .block)
     (o : GridCO.Wire n) : (GridCO.admitVote p.engine st o).frozen = st.frozen := by
   unfold GridCO.admitVote
   split
@@ -106,7 +106,7 @@ theorem frozenViewsStored_at_fold {V : Type} [DecidableEq V] (p : Params)
   · exact clock_frozenViewsStored p
   · exact process_frozenViewsStored p
 
-theorem frozenAt_stored {n : Nat} (st : GridCO.State n) (h : FrozenViewsStored st)
+theorem frozenAt_stored {n : Nat} (st : GridCO.State n .block) (h : FrozenViewsStored st)
     (r : Slot) (raw support : List (GridCO.Wire n)) (tree : List Block)
     (hf : GridCO.frozenAt st r = some (raw, support, tree)) :
     raw ⊆ st.votes ∧ support ⊆ raw ∧ ∀ o ∈ raw, GridCO.headLabel? o = some r := by
@@ -145,7 +145,7 @@ theorem receiveHeads_base_proposals (p : Params) {n : Nat} (st : State n)
     (xs.foldl (receiveHead p) st).base.proposals = st.base.proposals :=
   fold_field (fun st => st.base.proposals) _ (receiveHead_base_proposals p) xs st
 
-theorem gateWithPC_proposals (p : Params) {n : Nat} (st : GridCO.State n)
+theorem gateWithPC_proposals (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (c : Option (PC n)) : (gateWithPC p st r c).proposals = st.proposals := by
   cases c with
   | none =>

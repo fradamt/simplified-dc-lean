@@ -13,10 +13,10 @@ private theorem fold_field {α β γ : Type} (f : α → γ) (step : α → β �
   | cons x xs ih => exact (ih _).trans (h st x)
 
 /-- Saving raw history is independent of both guards. -/
-theorem gateWithPC_genuine (p : Params) {n : Nat} (st : GridCO.State n)
+theorem gateWithPC_genuine (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (c : Option (PC n)) :
     (gateWithPC p st r c).genuine =
-      @GridCO.recordGenuine GridCO.slowLeasePolicy n st r (SA.confirmation p st r) := by
+      @GridCO.recordGenuine GridCO.slowLeasePolicy n .block st r (SA.confirmation p st r) := by
   cases c with
   | none => exact @GridCO.gate_genuine GridCO.slowLeasePolicy p.engine n st r
   | some cert =>
@@ -26,7 +26,7 @@ theorem gateWithPC_genuine (p : Params) {n : Nat} (st : GridCO.State n)
           simp only [gateWithPC, hc]
           split
           · rfl
-          · have hf (base : GridCO.State n) (prefixes : List Block)
+          · have hf (base : GridCO.State n .block) (prefixes : List Block)
                 (levels : Block → List Nat) :
                 (prefixes.foldl (fun acc b => (levels b).foldl (fun acc g =>
                   GridCO.writeObligation acc b g (gateTime p r + lifetime p)) acc) base).genuine =
@@ -39,12 +39,12 @@ theorem gateWithPC_genuine (p : Params) {n : Nat} (st : GridCO.State n)
 
 theorem gate_genuine (p : Params) {n : Nat} (st : State n) (r : Slot) :
     (gate p st r).base.genuine =
-      @GridCO.recordGenuine GridCO.slowLeasePolicy n st.base r
+      @GridCO.recordGenuine GridCO.slowLeasePolicy n .block st.base r
         (SA.confirmation p st.base r) :=
   gateWithPC_genuine p st.base r _
 
 /-- PC-vetoed raw tips do not write S, even when their prefix loop writes leases. -/
-theorem gateWithPC_stable_of_veto (p : Params) {n : Nat} (st : GridCO.State n)
+theorem gateWithPC_stable_of_veto (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (cert : PC n) (h : Block)
     (hc : SA.confirmation p st r = some h) (hv : pcOK (some cert) h = false) :
     (gateWithPC p st r (some cert)).stableRecord = st.stableRecord := by
@@ -57,7 +57,7 @@ theorem gateWithPC_stable_of_veto (p : Params) {n : Nat} (st : GridCO.State n)
     exact fold_field GridCO.State.stableRecord _ (by intros; rfl) _ _
 
 /-- Whole-tip finite veto still blocks all finite writes. -/
-theorem gateWithPC_finite_veto (p : Params) {n : Nat} (st : GridCO.State n)
+theorem gateWithPC_finite_veto (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (c : Option (PC n)) (h : Block)
     (hc : SA.confirmation p st r = some h)
     (hg : st.obligations.any (fun (b, _, _) => !Block.compatible b h) = true) :
@@ -66,12 +66,12 @@ theorem gateWithPC_finite_veto (p : Params) {n : Nat} (st : GridCO.State n)
 
 /-- Every new row has a raw genuine source, its own SA admission test,
 its own PC guard, and the exact public deadline. No S premise is used. -/
-theorem gateWithPC_row_origin (p : Params) {n : Nat} (st : GridCO.State n)
+theorem gateWithPC_row_origin (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (c : Option (PC n)) (B : Block) (g : Nat) (d : Time)
     (hm : (B, g, d) ∈ (gateWithPC p st r c).obligations) :
     (B, g, d) ∈ st.obligations ∨ ∃ X,
       SA.confirmation p st r = some X ∧ Block.Preceq B X ∧
-      g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n st r B ∧
+      g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n .block st r B ∧
       pcOK c B = true ∧ d = gateTime p r + lifetime p := by
   cases c with
   | none =>
@@ -88,19 +88,22 @@ theorem gateWithPC_row_origin (p : Params) {n : Nat} (st : GridCO.State n)
           · exact Or.inl hm
           · let base := { st with
                 goldfishRecord := GridCO.advance st.goldfishRecord X
-                genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n st r (some X)
+                genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .block st r (some X)
                 stableRecord := if pcOK (some cert) X then
                   GridCO.advance st.stableRecord X else st.stableRecord }
             let prefixes := st.blocks.filter (fun b =>
               b != .genesis && Block.preceq b X && pcOK (some cert) b)
-            let levels := @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n st r
+            let levels :=
+              @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n .block st r
             have hbase : (if pcOK (some cert) X then
                 { st with goldfishRecord := GridCO.advance st.goldfishRecord X
-                          genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n st r (some X)
+                          genuine :=
+                            @GridCO.recordGenuine GridCO.slowLeasePolicy n .block st r (some X)
                           stableRecord := GridCO.advance st.stableRecord X }
                 else { st with
                   goldfishRecord := GridCO.advance st.goldfishRecord X
-                  genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n st r (some X) }) =
+                  genuine :=
+                    @GridCO.recordGenuine GridCO.slowLeasePolicy n .block st r (some X) }) =
                   base := by dsimp [base]; split <;> rfl
             rw [hbase] at hm
             have hw : (B, g, d) ∈ (GridCO.writeKeys base
@@ -122,7 +125,7 @@ theorem gate_new_row_source (p : Params) {n : Nat} (st : State n) (r : Slot)
     (hm : (B, g, d) ∈ (gate p st r).base.obligations)
     (hnew : (B, g, d) ∉ st.base.obligations) :
     ∃ X, SA.confirmation p st.base r = some X ∧ Block.Preceq B X ∧
-      g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n st.base r B ∧
+      g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n .block st.base r B ∧
       pcOK (if capBroken p st then none else st.bestPC) B = true ∧
       st.base.obligations.any (fun (K, _, _) => !Block.compatible K X) = false ∧
       d = gateTime p r + lifetime p := by

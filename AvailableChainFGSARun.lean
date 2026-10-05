@@ -12,6 +12,8 @@ public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.ClockLaws
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.Content
+public import AvailableChainFGSARun.Proofs.NamedOrigins
+public import AvailableChainFGSARun.Proofs.NamedScope
 public import AvailableChainFGSARun.Statements.Acceptance
 public import AvailableChainFGSARun.Proofs.Hooks
 public import AvailableChainFGSARun.Proofs.Readiness
