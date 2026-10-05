@@ -1,6 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep (J4A2-2 types)
 

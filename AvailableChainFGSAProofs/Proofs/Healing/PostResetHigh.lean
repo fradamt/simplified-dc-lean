@@ -1,6 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep

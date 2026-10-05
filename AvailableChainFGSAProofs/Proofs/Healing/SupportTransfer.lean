@@ -1,7 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
-public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSA.Proofs.Head.Transfer
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportFrame

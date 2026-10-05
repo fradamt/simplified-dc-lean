@@ -5,6 +5,30 @@ public import AvailableChainFGSARun.Proofs.AncestorDeadlines
 public import AvailableChainGeneric.Proofs.V2.Duty.BaseTransport
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 
+-- ROOT-DIGEST-2: private matcher copy; equality is checked by the kernel (BUILD B3).
+namespace AvailableChain.FGSA
+open AvailableChain.Generic AvailableChain.SimplexFG
+
+private def hygiene_admitBlock (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) : State p.n :=
+  if !namedParentHeld st N then st else
+  match parentFG st N.erase with
+  | none => st
+  | some P =>
+      if blockAccepted p st s N P then
+        let st1 : State p.n := { st with
+          base := GridCO.admitProposal p.toParams.engine st.base
+            (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)
+          fg := Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
+          proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
+        let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
+        N.rows.foldl (admitRow p) st2
+      else st
+
+private theorem hygiene_admitBlock_eq : @admitBlock = @hygiene_admitBlock := rfl
+
+end AvailableChain.FGSA
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -76,7 +100,8 @@ private theorem leaseRows_process (st : State p.n) (o : Wire p.n) :
           | false =>
             rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
           | true =>
-            unfold admitBlock
+            rw [hygiene_admitBlock_eq]
+            unfold hygiene_admitBlock
             simp only [hn, Bool.not_true, Bool.false_eq_true, ite_false]
             rw [hp]
             dsimp only
@@ -191,7 +216,8 @@ private theorem fastPairs_process (st : State p.n) (o : Wire p.n) :
           cases ha : blockAccepted p st s N P with
           | false => rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
           | true =>
-            unfold admitBlock
+            rw [hygiene_admitBlock_eq]
+            unfold hygiene_admitBlock
             simp only [hn, Bool.not_true, Bool.false_eq_true, ite_false]
             rw [hp]
             dsimp only

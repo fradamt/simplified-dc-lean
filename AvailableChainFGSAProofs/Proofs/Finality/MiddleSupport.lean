@@ -7,7 +7,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAClaims.Statements.Phases
-public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant

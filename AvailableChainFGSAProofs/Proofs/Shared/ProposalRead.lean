@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSARun.Proofs.Interface
-public import AvailableChainFGSARun.Proofs.Emission
 
 public section
 namespace AvailableChain.FGSA.Run

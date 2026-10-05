@@ -584,7 +584,7 @@ def leaseNegControl (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO
 /-- The anchored GridCO gate at `gridLeasePolicy`. -/
 def leaseNegGateFrom (p : GridCO.Params) (a : Block) (st : GridCO.State 1) (r : Nat) :
     GridCO.State 1 :=
-  @GridCO.gateFrom GridCO.gridLeasePolicy p 1 a st r
+  @GridCO.gateFrom GridCO.gridLeasePolicy p 1 .block a st r
 /-- The anchored GridCO tick at `gridLeasePolicy`. -/
 def leaseNegClockFrom (p : GridCO.Params) (a : Block) (st : GridCO.State 1) (t : Int) :
     GridCO.State 1 :=
@@ -593,7 +593,7 @@ end AvailableChain.FGSA
 namespace AvailableChain.LeaseAuditAlias
 def gate (_policy : GridCO.LeasePolicy) (p : GridCO.Params)
     (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
-  @GridCO.gate GridCO.gridLeasePolicy p 1 st r
+  @GridCO.gate GridCO.gridLeasePolicy p 1 .block st r
 end AvailableChain.LeaseAuditAlias
 namespace AvailableChain.FGSA
 def badGate (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
@@ -602,7 +602,7 @@ end AvailableChain.FGSA
 namespace AvailableChain.GridCO
 abbrev PolicyAlias : Type := LeasePolicy
 def sneakyGate [PolicyAlias] (p : Params) (st : State 1) (r : Nat) : State 1 :=
-  @gate gridLeasePolicy p 1 st r
+  @gate gridLeasePolicy p 1 .block st r
 end AvailableChain.GridCO
 namespace AvailableChain.FGSA
 def badGate2 (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
@@ -614,13 +614,13 @@ import AvailableChainFGSA
 namespace AvailableChain.GridCO
 /-- An imported wrapper with no policy parameter that fixes the default. -/
 def fixedGate (p : Params) (st : State 1) (r : Nat) : State 1 :=
-  @gate gridLeasePolicy p 1 st r
+  @gate gridLeasePolicy p 1 .block st r
 end AvailableChain.GridCO
 namespace LeaseMk
 /-- Outside `AvailableChain`: a new policy value built with the constructor. -/
 def mkGate (p : AvailableChain.GridCO.Params) (st : AvailableChain.GridCO.State 1) (r : Nat) :
     AvailableChain.GridCO.State 1 :=
-  @AvailableChain.GridCO.gate ⟨false⟩ p 1 st r
+  @AvailableChain.GridCO.gate ⟨false⟩ p 1 .block st r
 end LeaseMk
 LEAN
 cat > "$neg/FGSALeaseUse.lean" <<'LEAN'
@@ -683,11 +683,11 @@ import AvailableChainFGSA
 namespace AvailableChain.GridCO
 /-- An imported definition with no policy parameter that fixes the default. -/
 def ownerFixedGate (p : Params) (st : State 1) (r : Nat) : State 1 :=
-  @gate gridLeasePolicy p 1 st r
+  @gate gridLeasePolicy p 1 .block st r
 /-- A policy-generic imported definition that passes its own policy through a
 beta-redex: at `gate` the policy is a bound variable, not an own parameter. -/
 def ownerBetaGen [L : LeasePolicy] (p : Params) (st : State 1) (r : Nat) : State 1 :=
-  (fun (pol : LeasePolicy) => @gate pol p 1 st r) L
+  (fun (pol : LeasePolicy) => @gate pol p 1 .block st r) L
 end AvailableChain.GridCO
 LEAN
 cat > "$neg/LeaseOwnOnly.lean" <<'LEAN'

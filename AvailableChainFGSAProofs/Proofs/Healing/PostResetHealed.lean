@@ -1,6 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow

@@ -1137,6 +1137,25 @@ when these land (after I9 and 2a).
   `StrongInstance` and `StrongInstance.{mk, sface, strong, toInstance}`;
   `V1Ctx` and `V1Ctx.{E, mk, rho}`; `ClaimDomain.{ofV1, strong, v1}`;
   `DomainMap.{ofV1, strongV1}`.
+- 2026-10-05, ROOT-DIGEST-2 option 3: source base `c24711d`, integration base
+  `f106ff8`, and W3b input `54e6aa4`. The result is an uncommitted working tree;
+  the owner makes the commit. The measured catalog set has 0 CHANGED, 0 REMOVED,
+  and 0 ADDED names. All 252 hashes and the lock bytes remain unchanged.
+  The prior 77-name prediction came from 78 internal declarations that the old
+  type snapshot omitted. That prediction treated absent names as changes.
+  The exact root-to-cause map clears all 77 false positives. No lock write is needed.
+  FG-SA has 919 CHANGED and 46 ADDED frozen entries; Gen has 125 CHANGED and
+  37 ADDED entries; v2 has no delta from the source base. The option-3 exception,
+  the 64-entry Gen mode extension, and the prior named exceptions remain recorded.
+  The compact [ROOT-DIGEST-2 record](lock-log/root-digest-2/README.md) contains the
+  exact names, hashes, causes, public-type comparison, axiom sets, and final checks.
+  Large type records and command logs are held for owner transfer to
+  `TS/codex/reports/rdigest2/w3c/`. The owner must check the committed-tree self-test
+  after the commit if the working-tree run reports a HEAD snapshot failure.
+  Current results: all 31 old equation keys are hidden; all 133 E1 public types stay.
+  The full build and Claims shake pass. Full acceptance remains open on the new
+  Hooks equation export, stale HeadMode arguments in two gate fixtures, and the
+  committed-HEAD EOF whitespace. The (j) self-tests pass; the working EOF fix is ready.
 - 2026-10-04, ROOT-DIGEST W3b/W3c (user option 3; plan §2 and r2.1–r2.3):
   93 CHANGED lock lines, no REMOVED or ADDED line. Cost/source base: `98a62cd`.
   W3b input: `027f2f1`; W3c input: `b4bf03f`. W3c changes are not committed.

@@ -7,6 +7,25 @@ public import AvailableChainFGSARun.Statements.Excludes
 public import AvailableChainFGSARun.Proofs.Protocol
 public import AvailableChainEngineV2.Conditions.Duty.Schedule
 
+-- ROOT-DIGEST-2: private matcher copy; equality is checked by the kernel (BUILD B3).
+namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG
+
+private def hygiene_invalidForParent (p : Params) (st : State p.n)
+    (N : NamedProposal p.n) : Bool :=
+  if !namedParentHeld st N then false else
+  match parentFG st N.erase with
+  | none => false
+  | some P => !rowsValidForParent p P N.slot N.rows
+
+private theorem hygiene_invalidForParent_eq :
+    @invalidForParent = @hygiene_invalidForParent := rfl
+
+private theorem hygiene_namedParentHeld_eq {n : Nat} (st : State n)
+    (N : NamedProposal n) : namedParentHeld st N = decide (N.parent ∈ st.namedBodies) := rfl
+
+end AvailableChain.FGSA.Run
+
 public section
 
 /-! `excludes_inert` for FG-SA on engine v2 (plan
@@ -296,13 +315,15 @@ theorem invalidForParent_mono (st st' : State p.n) (hsub : st.fg.TF ⊆ st'.fg.T
     (hn : st.namedBodies ⊆ st'.namedBodies) (N : NamedProposal p.n)
     (h : invalidForParent p st N = true) : invalidForParent p st' N = true := by
   have hp : namedParentHeld st N = true := by
-    unfold invalidForParent at h
+    rw [hygiene_invalidForParent_eq] at h
+    unfold hygiene_invalidForParent at h
     split at h
     · cases h
     · simpa using ‹¬ (!namedParentHeld st N) = true›
   have hp' : namedParentHeld st' N = true := by
     exact decide_eq_true (hn (of_decide_eq_true hp))
-  unfold invalidForParent at h ⊢
+  rw [hygiene_invalidForParent_eq] at h ⊢
+  unfold hygiene_invalidForParent at h ⊢
   simp only [hp, hp', Bool.not_true, Bool.false_eq_true, ite_false] at h ⊢
   cases hP : parentFG st N.erase with
   | none => simp only [hP, Bool.false_eq_true] at h
@@ -317,13 +338,16 @@ theorem invalidForParent_clock (st : State p.n) (t : Time) (N : NamedProposal p.
   have hP : parentFG (FGSA.clock p st t) N.erase = parentFG st N.erase := by
     change pickPair (FGSA.clock p st t).fg.TF _ = pickPair st.fg.TF _
     rw [clock_fg]
-  simp only [invalidForParent, namedParentHeld, clock_namedBodies, hP]
+  rw [hygiene_invalidForParent_eq]
+  dsimp only [hygiene_invalidForParent]
+  simp only [hygiene_namedParentHeld_eq, clock_namedBodies, hP]
   rfl
 
 /-- [ROOT-DIGEST-2 W2; DC NamedStore] Invalidity causes refusal without writes. -/
 theorem admitBlock_of_invalidForParent (st : State p.n) (s : Slot) (N : NamedProposal p.n)
     (h : invalidForParent p st N = true) : admitBlock p st s N = st := by
-  unfold invalidForParent at h
+  rw [hygiene_invalidForParent_eq] at h
+  unfold hygiene_invalidForParent at h
   split at h
   · cases h
   · cases hP : parentFG st N.erase with
@@ -340,7 +364,8 @@ theorem invalidForParent_no_carried (st : State p.n) (s : Slot) (N : NamedPropos
   rintro ⟨P, hP, ha⟩
   have hv := blockAccepted_rowsValid ha
   rw [named_erase_slot] at hv
-  unfold invalidForParent at h
+  rw [hygiene_invalidForParent_eq] at h
+  unfold hygiene_invalidForParent at h
   split at h
   · cases h
   · simp only [hP, hv, Bool.not_true, Bool.false_eq_true] at h

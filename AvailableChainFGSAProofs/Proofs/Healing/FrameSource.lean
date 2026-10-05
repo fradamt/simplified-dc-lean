@@ -1,8 +1,6 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
+public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSAClaims.Statements.Reads
-public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 
 public section
 

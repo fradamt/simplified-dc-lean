@@ -2,6 +2,17 @@ module
 public import AvailableChainSAPC.Proofs.BaseArchive
 public import AvailableChainGridCO.Proofs.Frozen
 
+-- ROOT-DIGEST-2: a private unfolding fact avoids a public equation export (BUILD B3).
+namespace AvailableChain.SAPC
+private theorem hygiene_resolvedBefore_eq {n : Nat} {mode : GridCO.HeadMode}
+    (st : GridCO.State n mode) (o : GridCO.Wire n mode) (cutoff : Time) :
+    GridCO.resolvedBefore st o cutoff = (match GridCO.resolvedHead? st o with
+      | none => false
+      | some B => decide (B.slot ≤ (GridCO.headLabel? o).getD 0) &&
+          decide (GridCO.stampVote st o < cutoff) &&
+          decide (GridCO.stampBlock st B < cutoff)) := rfl
+end AvailableChain.SAPC
+
 @[expose] public section
 namespace AvailableChain.SAPC
 
@@ -26,9 +37,9 @@ private theorem freeze_stored (p : Params) {n : Nat} (st : GridCO.State n .block
       apply List.mem_filter.mpr
       refine ⟨hm, ?_⟩
       cases he : GridCO.resolvedHead? st o with
-      | none => simp [GridCO.resolvedBefore, he] at ht
+      | none => simp [hygiene_resolvedBefore_eq, he] at ht
       | some b =>
-          simp only [GridCO.resolvedBefore, he, Bool.and_eq_true, decide_eq_true_eq] at ht
+          simp only [hygiene_resolvedBefore_eq, he, Bool.and_eq_true, decide_eq_true_eq] at ht
           exact decide_eq_true ht.1.2
     · intro o ho
       simpa using (List.mem_filter.mp (List.mem_filter.mp ho).1).2

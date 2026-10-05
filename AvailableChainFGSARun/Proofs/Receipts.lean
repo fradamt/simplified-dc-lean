@@ -10,6 +10,30 @@ public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
 public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
 
+-- ROOT-DIGEST-2: private matcher copy; equality is checked by the kernel (BUILD B3).
+namespace AvailableChain.FGSA
+open AvailableChain.Generic AvailableChain.SimplexFG
+
+private def hygiene_admitBlock (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) : State p.n :=
+  if !namedParentHeld st N then st else
+  match parentFG st N.erase with
+  | none => st
+  | some P =>
+      if blockAccepted p st s N P then
+        let st1 : State p.n := { st with
+          base := GridCO.admitProposal p.toParams.engine st.base
+            (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)
+          fg := Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
+          proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
+        let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
+        N.rows.foldl (admitRow p) st2
+      else st
+
+private theorem receipt_admitBlock_hygiene_eq : @admitBlock = @hygiene_admitBlock := rfl
+
+end AvailableChain.FGSA
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -96,7 +120,8 @@ private theorem t78_row_process_origin (st : State p.n) (o : Obj p) (a : RowWire
         rw [admitBlock_refused p st s N (Or.inl hNamed)] at hm
         exact Or.inl hm
       | true =>
-        unfold admitBlock at hm
+        rw [receipt_admitBlock_hygiene_eq] at hm
+        unfold hygiene_admitBlock at hm
         simp only [hNamed, Bool.not_true, Bool.false_eq_true, ite_false] at hm
         cases hp : parentFG st N.erase with
         | none => rw [hp] at hm; exact Or.inl hm

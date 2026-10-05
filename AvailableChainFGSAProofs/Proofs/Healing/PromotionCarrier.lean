@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic
-public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 
 public section
 

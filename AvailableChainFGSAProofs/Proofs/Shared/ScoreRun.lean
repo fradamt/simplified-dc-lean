@@ -1,6 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSA.Proofs.Head.Score
 public import AvailableChainFGSA.Proofs.Head.Walk

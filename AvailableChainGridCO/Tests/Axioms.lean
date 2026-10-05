@@ -196,4 +196,3 @@ end AvailableChain.GridCO.State
 namespace AvailableChain.GridCO.instReprHeadMode
 #print axioms repr
 end AvailableChain.GridCO.instReprHeadMode
-

@@ -1,6 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
 

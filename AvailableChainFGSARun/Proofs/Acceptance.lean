@@ -3,6 +3,22 @@ public import AvailableChainFGSARun.Statements.Acceptance
 public import AvailableChainFGSARun.Proofs.Hooks
 public import AvailableChainFGSA.Proofs.CrossNode
 
+-- ROOT-DIGEST-2: private matcher copy; equality is checked by the kernel (BUILD B3).
+namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG
+
+private def hygiene_invalidForParent (p : Params) (st : State p.n)
+    (N : NamedProposal p.n) : Bool :=
+  if !namedParentHeld st N then false else
+  match parentFG st N.erase with
+  | none => false
+  | some P => !rowsValidForParent p P N.slot N.rows
+
+private theorem hygiene_invalidForParent_eq :
+    @invalidForParent = @hygiene_invalidForParent := rfl
+
+end AvailableChain.FGSA.Run
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -247,7 +263,8 @@ private theorem t77_self_accepts (nd : Node p) (o : Obj p) (hInv : CStoreInv p n
         rw [excludesS_of_block nd.st he]
         rw [Bool.or_eq_true]
         right
-        unfold invalidForParent
+        rw [hygiene_invalidForParent_eq]
+        unfold hygiene_invalidForParent
         simp only [hdeps.1, Bool.not_true, Bool.false_eq_true, ite_false]
         rw [← named_erase_slot]
         simp only [hP, Bool.not_eq_true', Bool.eq_false_iff]

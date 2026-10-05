@@ -1,8 +1,13 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.RootResolution
+
+-- ROOT-DIGEST-2: a private unfolding fact avoids a public equation export (BUILD B3).
+namespace AvailableChain.FGSA.Run
+private theorem hygiene_resolvedTarget_eq {n : Nat} (tree : List Block)
+    (o : GridCO.Wire n .root) : Gen.AC.Root.resolvedTarget? tree o =
+      (GridCO.headTarget? o).bind (Block.findByRoot? tree) := rfl
+end AvailableChain.FGSA.Run
 
 public section
 
@@ -842,7 +847,7 @@ theorem fgsa_voteSupports_of_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   have hslot := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hr).1).1
   have hTarget := resolvedHead_root _ o hK
   have hlookup := Block.findByRoot?_of_unique hstored (baseBlocks_rootInj p dst hInv)
-  rw [Gen.AC.Root.voteSupports_def, Gen.AC.Root.resolvedTarget?, hTarget]
+  rw [Gen.AC.Root.voteSupports_def, hygiene_resolvedTarget_eq, hTarget]
   change (match Block.findByRoot? dst.base.blocks (eraseFG K).root with
     | none => false
     | some C => decide (C ∈ dst.base.blocks) &&
@@ -901,7 +906,7 @@ theorem fgsa_cleanSupport_forward_relay (E : Generic.Env V) (rho : V2.D.Run V (f
       ⟨K, (hpath K (KitFG.preceq_refl K)).1, rfl⟩
     have hTarget := resolvedHead_root _ o hK
     have hlookup := Block.findByRoot?_of_unique hstored (baseBlocks_rootInj p dst hInv)
-    rw [Gen.AC.Root.voteSupports_def, Gen.AC.Root.resolvedTarget?, hTarget] at hparts
+    rw [Gen.AC.Root.voteSupports_def, hygiene_resolvedTarget_eq, hTarget] at hparts
     change (match Block.findByRoot? dst.base.blocks (eraseFG K).root with
       | none => false
       | some C => decide (C ∈ dst.base.blocks) &&

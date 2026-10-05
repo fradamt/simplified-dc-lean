@@ -6,6 +6,73 @@ public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainKitFG.ClientOnceSafety
 public import AvailableChainFGSA.Proofs.RowSelection
 
+-- Find matcher bodies in the two definitions; do not depend on generated names.
+local elab "hygieneEq% " lhs:term:max rhs:term:max : term => do
+  let left ← Lean.Elab.Term.elabTerm lhs none
+  let right ← Lean.Elab.Term.elabTerm rhs none
+  let a ← Lean.getConstInfo left.getAppFn.constName!
+  let b ← Lean.getConstInfo right.getAppFn.constName!
+  for x in a.value!.getUsedConstants do
+    unless (← Lean.Meta.getMatcherInfo? x).isSome do continue
+    let ex ← Lean.Meta.mkConstWithFreshMVarLevels x
+    for y in b.value!.getUsedConstants do
+      unless (← Lean.Meta.getMatcherInfo? y).isSome do continue
+      let ey ← Lean.Meta.mkConstWithFreshMVarLevels y
+      if ← Lean.Meta.isDefEq (← Lean.Meta.inferType ex) (← Lean.Meta.inferType ey) then
+        if ← Lean.Meta.isDefEq ex ey then
+          return ← Lean.Meta.mkEq ex ey
+  throwError "No equal matcher bodies in the supplied definitions"
+
+-- ROOT-DIGEST-2: private unfolding facts and matcher copies (BUILD B3).
+namespace AvailableChain.FGSA
+open AvailableChain.Generic AvailableChain.SimplexFG
+
+private def hygiene_wellFormed (p : Params) (o : Wire p.n) : Bool :=
+  match o.decode with
+  | some (.vote _ _ _) => true
+  | some (.row _ body) => body.valid
+  | some (.block s N) =>
+      let b := N.erase
+      let raw := N.raw
+      let support := N.support
+      let rows := N.rows
+      b != .genesis && s == b.slot && decide (b.parent.slot < b.slot) &&
+        raw.all (fun v => match v.decode? with
+          | some (r, _, _) => r + 1 == b.slot
+          | none => false) &&
+        support.all (fun v => decide (v ∈ raw)) &&
+        rows.all RowWire.valid &&
+        contentOk p b raw support rows
+  | none => false
+
+private theorem hygiene_wellFormed_eq : @wellFormed = @hygiene_wellFormed := rfl
+
+private theorem hygiene_raw_eq {n : Nat} (N : NamedProposal n) :
+    N.raw = (match N with
+      | .genesis => []
+      | .node _ _ _ _ xs _ _ => xs : List (HeadWire n)) := rfl
+
+private theorem hygiene_support_eq {n : Nat} (N : NamedProposal n) :
+    N.support = (match N with
+      | .genesis => []
+      | .node _ _ _ _ _ xs _ => xs : List (HeadWire n)) := rfl
+
+private theorem hygiene_rows_eq {n : Nat} (N : NamedProposal n) :
+    N.rows = (match N with
+      | .genesis => []
+      | .node _ _ _ _ _ _ xs => xs : List (RowWire n)) := rfl
+
+private def hygiene_root {n : Nat} : NamedProposal n → BlockId
+  | .genesis => genesisRoot
+  | .node _ _ r _ _ _ _ => r
+
+private theorem hygiene_root_match_eq :
+    hygieneEq% (@NamedProposal.root) (@hygiene_root) := rfl
+
+end AvailableChain.FGSA
+
+attribute [local simp↓] AvailableChain.FGSA.hygiene_root_match_eq
+
 public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
@@ -210,9 +277,10 @@ private theorem emission_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
   obtain ⟨P, hP, rfl⟩ := Option.map_eq_some_iff.mp hm
   have heP : P.erase = H := (namedByErase?_sound st H P hP).2
   change FGSA.wellFormed p ⟨.proposer s, .proposal (namedProposal p P s a raw sup rows)⟩ = true
-  simp only [FGSA.wellFormed, Wire.decode]
+  rw [hygiene_wellFormed_eq]
+  dsimp only [hygiene_wellFormed, Wire.decode]
   rw [namedProposal_erase, heP]
-  simp only [namedProposal, NamedProposal.raw, NamedProposal.support, NamedProposal.rows]
+  simp only [namedProposal, hygiene_raw_eq, hygiene_support_eq, hygiene_rows_eq]
   change (true && (s == s) && decide (H.slot < s) &&
     raw.all (fun v => match v.decode? with
       | some (r, _, _) => r + 1 == s | none => false) &&

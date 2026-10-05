@@ -1,6 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay

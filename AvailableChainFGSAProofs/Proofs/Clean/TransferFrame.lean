@@ -1,7 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
-public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads

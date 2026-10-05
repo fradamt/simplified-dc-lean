@@ -1,7 +1,5 @@
 module
 public import AvailableChainFGSARun.Proofs.RootResolution
-public import AvailableChainGeneric.Proofs.AC.RootBatch
-public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSA.Proofs.Head.Walk
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads

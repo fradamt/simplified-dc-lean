@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Assembly.Healing -- shake: keep (H-EXPORT-1 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime -- shake: keep (H2P axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal -- shake: keep (F-PROP audit)
