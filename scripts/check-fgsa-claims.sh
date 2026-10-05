@@ -3156,6 +3156,22 @@ run('proof-eqns', ['lake', 'env', 'lean', '--run', 'scripts/CheckProofEqns.lean'
                    '--baseline', 'scripts/baselines/check-proof-eqns.txt'])
 run('unused-imports', ['bash', 'scripts/shake-report.sh', '--fail-on-new', *roots])
 
+# W1 applies the aggregate field across Proofs and Inhabit in both gate tiers.
+w1_output = run('weak-continuation-w1', ['lake', 'env', 'lean', '-DwarningAsError=true',
+                                      'scripts/CheckWeakContinuationW1.lean'])
+w1_reports = re.findall(
+    r"'([^']+)' (?:depends on axioms:\s*\[([^\]]*)\]|does not depend on any axioms)",
+    w1_output)
+w1_name = 'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.w1_weakContinuationLive'
+if not any(name == w1_name for name, _ in w1_reports):
+    raise SystemExit('STOP: W1 axiom report missing')
+w1_axioms = {name.strip() for _, axioms in w1_reports for name in axioms.split(',')
+             if name.strip()}
+w1_bad = w1_axioms - {'propext', 'Classical.choice', 'Quot.sound'}
+if w1_bad:
+    raise SystemExit(f'BAD W1 AXIOMS: {sorted(w1_bad)}')
+print('weak-continuation-w1 axioms: rc 0 (standard axioms only)', flush=True)
+
 # The gate's merge tier sets NEG=0: it skips the compiled negative controls
 # below (about 135 s on the NUC), as the other check scripts do.
 if os.environ.get('NEG', '1') == '0':
