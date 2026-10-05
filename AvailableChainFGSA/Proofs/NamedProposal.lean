@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSA.Model.Objects
 
-@[expose] public section
+public section
 
 namespace AvailableChain.FGSA
 

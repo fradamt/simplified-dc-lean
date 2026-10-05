@@ -21,6 +21,10 @@ public import AvailableChainFGSA.Proofs.Admission
 public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainFGSA.Proofs.Metadata
 public import AvailableChainFGSA.Proofs.NamedReachable
+public import AvailableChainFGSA.Proofs.NamedProposal
+public import AvailableChainFGSA.Proofs.NamedStore
+public import AvailableChainFGSA.Proofs.HeadDomain
+public import AvailableChainFGSA.Proofs.HeadResolution
 public import AvailableChainFGSA.Proofs.CrossNode
 public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainFGSA.Proofs.LeaseOutput

@@ -27,7 +27,7 @@ theorem early_head_at_early {V : Type} [DecidableEq V] (p : Params)
     nlinarith [p.deltaPos, Int.natCast_nonneg r]
   obtain ⟨hm, hres⟩ := List.mem_filter.mp ho
   have hv := (List.mem_filter.mp hm).1
-  simp only [GridCO.resolvedBefore, ht, Bool.and_eq_true_iff,
+  simp only [GridCO.resolvedBefore_block, ht, Bool.and_eq_true_iff,
     decide_eq_true_eq, GridCO.blockKnown] at hres
   rw [time_input_eq_event_prefix p E rho hs] at hv hres
   have h := base_early_receipts_at_input p E rho hs _ hpub hz
@@ -78,12 +78,12 @@ theorem early_head_at_freeze {V : Type} [DecidableEq V] (p : Params)
       simp [baseWire, baseHead, GridCO.fromHead, ht]
     rw [hkey] at hk
     have hres := (List.mem_filter.mp ho).2
-    simp only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?,
+    simp only [GridCO.resolvedBefore_block, GridCO.headTarget?, GridCO.headLabel?,
       Option.getD_some, Bool.and_eq_true_iff, decide_eq_true_eq] at hres
     apply List.mem_filter.mpr
     refine ⟨hk, ?_⟩
     have stamps := time_input_stamps_lt p E rho hs _ hz w
-    simp only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?,
+    simp only [GridCO.resolvedBefore_block, GridCO.headTarget?, GridCO.headLabel?,
       Option.getD_some, Bool.and_eq_true_iff, decide_eq_true_eq, GridCO.blockKnown]
     exact ⟨⟨⟨hb', hres.1.1.2⟩, stamps.1 _⟩, stamps.2 _⟩
   · right

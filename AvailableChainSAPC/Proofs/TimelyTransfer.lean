@@ -133,7 +133,7 @@ theorem timely_quorum_score_at_head {V : Type} [DecidableEq V] (p : Params)
       simp [baseWire, baseHead, GridCO.fromHead, ht]
     rw [hkey] at hk
     refine ⟨List.mem_filter.mpr ⟨hk, ?_⟩, ?_⟩
-    · simp only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?,
+    · simp only [GridCO.resolvedBefore_block, GridCO.headTarget?, GridCO.headLabel?,
         Option.getD_some, GridCO.blockKnown]
       simpa only [hslot, le_refl, decide_true, stamps.1, stamps.2,
         Bool.and_true] using (show decide (b ∈ frozen.base.blocks) = true from decide_eq_true hb)

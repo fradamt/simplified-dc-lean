@@ -120,7 +120,7 @@ theorem cleanSupport_resolved_at_release {V : Type} [DecidableEq V] (p : Params)
     exact raw)
   refine ⟨atRelease, ?_⟩
   have slot := (List.mem_filter.mp early).2
-  simp only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?, Option.getD_some,
+  simp only [GridCO.resolvedBefore_block, GridCO.headTarget?, GridCO.headLabel?, Option.getD_some,
     Bool.and_eq_true_iff, decide_eq_true_eq] at slot
   have positive : 0 < voteTime p (r + 1) := by
     change 0 < 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ
@@ -130,7 +130,7 @@ theorem cleanSupport_resolved_at_release {V : Type} [DecidableEq V] (p : Params)
     change 4 * p.Δ * (r : Time) + 5 * p.Δ =
       4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ
     push_cast; ring
-  simp only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?, Option.getD_some,
+  simp only [GridCO.resolvedBefore_block, GridCO.headTarget?, GridCO.headLabel?, Option.getD_some,
     Bool.and_eq_true_iff, decide_eq_true_eq, GridCO.blockKnown, releaseEq]
   exact ⟨⟨⟨receipts.blocks.subset block, slot.1.1.2⟩, stamps.1 _⟩, stamps.2 _⟩
 

@@ -8,12 +8,12 @@ namespace AvailableChain.SAPC
 /-- The prefix loop writes every admitted compatible prefix. Its PC
 condition concerns B only; the raw descendant C may fail that condition.
 The deadline bound is the shared map premise for an exact new deadline. -/
-theorem gateWithPC_writes_admitted_prefix (p : Params) {n : Nat} (st : GridCO.State n)
+theorem gateWithPC_writes_admitted_prefix (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (cert : Option (PC n)) (B C : Block) (g : Nat)
     (raw : SA.confirmation p st r = some C)
     (finite : st.obligations.any (fun (a, _, _) => !Block.compatible a C) = false)
     (stored : B ∈ st.blocks) (nonzero : B ≠ .genesis) (below : Block.Preceq B C)
-    (admitted : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n st r B)
+    (admitted : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n .block st r B)
     (compatible : pcOK cert B = true)
     (bound : GridCO.DeadlinesAtMost st (gateTime p r + lifetime p)) :
     (B, g, gateTime p r + lifetime p) ∈ (gateWithPC p st r cert).obligations := by
@@ -25,7 +25,7 @@ theorem gateWithPC_writes_admitted_prefix (p : Params) {n : Nat} (st : GridCO.St
     apply GridCO.writeKeys_mem_of_key
       { st with stableRecord := GridCO.advance st.stableRecord C
                 goldfishRecord := GridCO.advance st.goldfishRecord C
-                genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n st r (some C) }
+                genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .block st r (some C) }
       _ B g _ bound
     apply List.mem_flatMap.mpr
     refine ⟨B, List.mem_filter.mpr ⟨stored, ?_⟩, List.mem_map.mpr ⟨g, admitted, rfl⟩⟩
@@ -33,12 +33,12 @@ theorem gateWithPC_writes_admitted_prefix (p : Params) {n : Nat} (st : GridCO.St
   | some cert =>
     let base := { st with
       goldfishRecord := GridCO.advance st.goldfishRecord C
-      genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n st r (some C)
+      genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .block st r (some C)
       stableRecord := if pcOK (some cert) C then
         GridCO.advance st.stableRecord C else st.stableRecord }
     let prefixes := st.blocks.filter (fun b =>
       b != .genesis && Block.preceq b C && pcOK (some cert) b)
-    let levels := @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n st r
+    let levels := @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n .block st r
     have form : gateWithPC p st r (some cert) = GridCO.writeKeys base
         (prefixes.flatMap (fun b => (levels b).map (fun level => (b, level))))
         (gateTime p r + lifetime p) := by
@@ -53,12 +53,12 @@ theorem gateWithPC_writes_admitted_prefix (p : Params) {n : Nat} (st : GridCO.St
 
 /-- A vetoed descendant can create the first lease for its protection
 prefix. S remains fixed. No earlier lease for B is required. -/
-theorem gateWithPC_arms_vetoed_prefix (p : Params) {n : Nat} (st : GridCO.State n)
+theorem gateWithPC_arms_vetoed_prefix (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (cert : PC n) (B C : Block) (g : Nat)
     (raw : SA.confirmation p st r = some C)
     (finite : st.obligations.any (fun (a, _, _) => !Block.compatible a C) = false)
     (stored : B ∈ st.blocks) (nonzero : B ≠ .genesis) (below : Block.Preceq B C)
-    (admitted : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n st r B)
+    (admitted : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n .block st r B)
     (compatible : pcOK (some cert) B = true) (veto : pcOK (some cert) C = false)
     (bound : GridCO.DeadlinesAtMost st (gateTime p r + lifetime p)) :
     (gateWithPC p st r (some cert)).stableRecord = st.stableRecord ∧
@@ -69,7 +69,7 @@ theorem gateWithPC_arms_vetoed_prefix (p : Params) {n : Nat} (st : GridCO.State 
 
 /-- An existing finite row protects an already stored prefix through any
 gate. A PC veto can retain S, but cannot defeat the whole-tip finite guard. -/
-theorem gateWithPC_preserves_protected_prefix (p : Params) {n : Nat} (st : GridCO.State n)
+theorem gateWithPC_preserves_protected_prefix (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (cert : Option (PC n)) (B : Block) (g : Nat) (d : Time)
     (protection : GridCO.ProtectsUntil st B g d) (old : Block.Preceq B st.stableRecord) :
     Block.Preceq B (gateWithPC p st r cert).stableRecord := by
@@ -82,7 +82,8 @@ theorem gateWithPC_preserves_protected_prefix (p : Params) {n : Nat} (st : GridC
     cases raw : SA.confirmation p st r with
     | none => simpa only [gateWithPC, raw] using old
     | some C =>
-      have writes (base : GridCO.State n) (prefixes : List Block) (levels : Block → List Nat) :
+      have writes (base : GridCO.State n .block) (prefixes : List Block)
+          (levels : Block → List Nat) :
           (prefixes.foldl (fun acc b => (levels b).foldl (fun acc g =>
             GridCO.writeObligation acc b g (gateTime p r + lifetime p)) acc) base).stableRecord =
               base.stableRecord := by

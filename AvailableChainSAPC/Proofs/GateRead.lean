@@ -72,7 +72,7 @@ theorem read_gate_arms_prefix {V : Type} [DecidableEq V]
       (fun (a, _, _) => !Block.compatible a C) = false)
     (stored : B ∈ (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base.blocks)
     (nonzero : B ≠ .genesis) (below : Block.Preceq B C)
-    (admitted : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+    (admitted : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
       (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r B)
     (compatible : pcOK
       (if capBroken p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v) then none
@@ -113,7 +113,7 @@ theorem read_gate_arms_prefix {V : Type} [DecidableEq V]
       rw [clockPreGate_base]
       exact congrArg Prod.fst (GridCO.clockPreGate_receiptData p.engine st.base (gateTime p r))
     rwa [blocks]
-  have admittedPre : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+  have admittedPre : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
       pre.base r B := by
     simpa only [pre, clockPreGate_base,
       @GridCO.admissionLevels_preGate GridCO.slowLeasePolicy p.engine p.n st.base

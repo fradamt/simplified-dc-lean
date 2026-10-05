@@ -40,7 +40,7 @@ theorem pending_prefix_protection {V : Type} [DecidableEq V] [Fintype V]
     (old : ∀ v ∈ rho.honest, Block.Preceq B
       (stable (Run.stateBeforeTime (sapc p) rho (gateTime p r) v)))
     (admitted : ∀ v ∈ rho.honest, releaseThreshold p ∈
-      @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+      @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
         (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r B)
     (finite : ∀ v ∈ rho.honest, ∀ C,
       SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r = some C →

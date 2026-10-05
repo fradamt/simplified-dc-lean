@@ -13,7 +13,7 @@ theorem clock_row_source (p : Params) {n : Nat} (st : State n) (t : Time)
     (row : (B, g, d) ∈ (clock p st t).base.obligations) :
     (B, g, d) ∈ st.base.obligations ∨ ∃ r C,
       t = gateTime p r ∧ SA.confirmation p (clockPreGate p st t).base r = some C ∧
-      Block.Preceq B C ∧ g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n
+      Block.Preceq B C ∧ g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n .block
         (clockPreGate p st t).base r B ∧ d = gateTime p r + lifetime p := by
   rw [clock_eq_gate_prestate] at row
   dsimp only at row
@@ -35,7 +35,7 @@ theorem run_row_admitted_source {V : Type} [DecidableEq V] (p : Params)
     (row : (B, g, d) ∈ (Run.stateBefore (sapc p) rho index v).base.obligations) :
     ∃ j < index, ∃ r C, rho.events[j]? = some (.tick v (gateTime p r)) ∧
       SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r = some C ∧
-      Block.Preceq B C ∧ g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+      Block.Preceq B C ∧ g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
         (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r B ∧
       d = gateTime p r + lifetime p := by
   set_option backward.isDefEq.respectTransparency false in
@@ -44,7 +44,7 @@ theorem run_row_admitted_source {V : Type} [DecidableEq V] (p : Params)
       (fun st t row => ∃ r C, t = gateTime p r ∧
         SA.confirmation p (clockPreGate p st t).base r = some C ∧
         Block.Preceq row.1 C ∧ row.2.1 ∈
-          @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+          @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
             (clockPreGate p st t).base r row.1 ∧ row.2.2 = gateTime p r + lifetime p)
       (fun st t row hm => clock_row_source p st t row.1 row.2.1 row.2.2 hm)
       rho index v (B, g, d) row
@@ -66,7 +66,7 @@ theorem time_input_row_admitted_source {V : Type} [DecidableEq V] (p : Params)
     (row : (B, g, d) ∈ (Run.stateBeforeTime (sapc p) rho cut v).base.obligations) :
     ∃ r C, gateTime p r < cut ∧
       SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r = some C ∧
-      Block.Preceq B C ∧ g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+      Block.Preceq B C ∧ g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
         (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r B ∧
       d = gateTime p r + lifetime p := by
   rw [time_input_eq_event_prefix p E rho hs] at row
@@ -86,8 +86,9 @@ theorem head_row_survives_release {V : Type} [DecidableEq V] (p : Params)
   have time : voteTime p (r + 1) = GridCO.releaseTime p.engine r := by
     change 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ = 4 * p.Δ * (r : Time) + 5 * p.Δ
     push_cast; ring
-  have eqClock (st : GridCO.State p.n) : GridCO.clockPreGate p.engine st (voteTime p (r + 1)) =
-      @GridCO.clock GridCO.slowLeasePolicy p.engine p.n st (voteTime p (r + 1)) := by
+  have eqClock (st : GridCO.State p.n .block) :
+      GridCO.clockPreGate p.engine st (voteTime p (r + 1)) =
+        @GridCO.clock GridCO.slowLeasePolicy p.engine p.n .block st (voteTime p (r + 1)) := by
     rw [@GridCO.clock_eq_gate_prestate GridCO.slowLeasePolicy]
     dsimp only
     have noGate := voteTime_ne_gateTime p (r + 1)
@@ -205,7 +206,7 @@ theorem head_row_source_since {V : Type} [DecidableEq V] (p : Params)
       (fun st u row => ∃ s C, u = gateTime p s ∧
         SA.confirmation p (clockPreGate p st u).base s = some C ∧
         Block.Preceq row.1 C ∧ row.2.1 ∈
-          @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+          @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
             (clockPreGate p st u).base s row.1 ∧ row.2.2 = gateTime p s + lifetime p)
       (fun st u row hm => clock_row_source p st u row.1 row.2.1 row.2.2 hm)
       rho (i + 1) _ (by omega) v (B, g, d) old with

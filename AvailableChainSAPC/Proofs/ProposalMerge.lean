@@ -105,14 +105,15 @@ theorem frozen_support_at_proposer {V : Type} [DecidableEq V]
     apply List.mem_filter.mpr
     refine ⟨hk, ?_⟩
     cases ht : GridCO.headTarget? o with
-    | none => simp [GridCO.resolvedBefore, ht] at hresolved
+    | none => simp [GridCO.resolvedBefore_block, ht] at hresolved
     | some target =>
       have hl : GridCO.headLabel? o = some r := by simpa using (List.mem_filter.mp hraw).2
-      simp only [GridCO.resolvedBefore, ht, hl, Option.getD_some, Bool.and_eq_true,
+      simp only [GridCO.resolvedBefore_block, ht, hl, Option.getD_some, Bool.and_eq_true,
         decide_eq_true_eq, GridCO.blockKnown] at hresolved
       have hb := frozen_blocks_at_proposer p E rho hs r hrelay source hsource hprop
         target hresolved.1.1.1
-      simp [GridCO.blockKnown, hb, hresolved.1.1.2]
+      simp [GridCO.resolvedHead?, ht, GridCO.resolveTarget, GridCO.resolutionTree,
+        hb, hresolved.1.1.2]
   · exact Or.inr he
 
 private theorem head_roundtrip_mem {n : Nat} (xs : List (GridCO.Wire n)) (o : GridCO.Wire n)
@@ -212,9 +213,13 @@ theorem honest_proposal_counts {V : Type} [DecidableEq V]
       honest_proposal_support_back p E rho hx hΔ hrelay r hsync hh b hb reader hr o i hi ho)
   intro o ho target htgt
   have hres := (List.mem_filter.mp ho).2
-  simp only [htgt, GridCO.blockKnown, Bool.and_eq_true, decide_eq_true_eq] at hres
-  exact iff_of_true hres.1 (proposal_blocks_at_head p E rho hx.toScheduleWellFormed hΔ hrelay
-    (r + 1) ht hh hb.1 reader hr target hres.1)
+  have hknown : target ∈ (proposalState p rho (r + 1)).base.blocks := by
+    by_cases hm : target ∈ (proposalState p rho (r + 1)).base.blocks
+    · exact hm
+    · simp [GridCO.resolvedHead?, htgt, GridCO.resolveTarget, GridCO.resolutionTree,
+        hm] at hres
+  exact iff_of_true hknown (proposal_blocks_at_head p E rho hx.toScheduleWellFormed hΔ hrelay
+    (r + 1) ht hh hb.1 reader hr target hknown)
 
 end AvailableChain.SAPC
 end

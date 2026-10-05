@@ -27,13 +27,13 @@ theorem local_early_at_freeze {V : Type} [DecidableEq V] (p : Params)
   · apply List.mem_filter.mpr
     exact ⟨receipts.votes.subset key, by simp [GridCO.headLabel?]⟩
   · have resolved := (List.mem_filter.mp early).2
-    simp only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?,
+    simp only [GridCO.resolvedBefore_block, GridCO.headTarget?, GridCO.headLabel?,
       Option.getD_some, Bool.and_eq_true_iff, decide_eq_true_eq] at resolved
     have positive : 0 < freezeTime p r := by
       change 0 < 4 * p.Δ * (r : Time) + 3 * p.Δ
       nlinarith [p.deltaPos, Int.natCast_nonneg r]
     have stamps := time_input_stamps_lt p E rho hs _ positive v
-    simp only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?,
+    simp only [GridCO.resolvedBefore_block, GridCO.headTarget?, GridCO.headLabel?,
       Option.getD_some, Bool.and_eq_true_iff, decide_eq_true_eq, GridCO.blockKnown]
     exact ⟨⟨⟨stored, resolved.1.1.2⟩, stamps.1 _⟩, stamps.2 _⟩
 

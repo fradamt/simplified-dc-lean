@@ -79,7 +79,7 @@ theorem healthy_fast_admission {V : Type} [DecidableEq V]
     (high : SA.releaseThreshold p ≤ (awakeAt E rho.honest (voteTime p r)).card)
     (B : Block) (cover : ∀ u ∈ rho.honest, Block.Preceq B (headData p rho r u).target)
     (v : V) (hv : v ∈ rho.honest) :
-    SA.releaseThreshold p ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+    SA.releaseThreshold p ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
       (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r B := by
   apply (SA.admissionLevels_iff p _ r B (SA.releaseThreshold p)).mpr
   exact ⟨rfl, Or.inl (high.trans

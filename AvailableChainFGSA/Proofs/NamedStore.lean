@@ -49,7 +49,7 @@ local macro "hygiene_split" "at" h:ident : tactic =>
     try rw [AvailableChain.FGSA.hygiene_namedByErase_match_1_eq] at *;
     all_goals split at $h:ident))
 
-@[expose] public section
+public section
 
 namespace AvailableChain.FGSA
 open AvailableChain.SimplexFG
