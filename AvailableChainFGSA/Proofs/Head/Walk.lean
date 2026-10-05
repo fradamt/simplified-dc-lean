@@ -201,7 +201,7 @@ theorem fgsa_headInTree_covers_of_transfer
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] ROOT-DIGEST W1b: structural erasure lifts the parent path with
 the explicit root. -/
-private theorem geometry_lift_prefix {n : Nat} (B : FGBlock (Fin n)) (a : Block)
+theorem geometry_lift_prefix {n : Nat} (B : FGBlock (Fin n)) (a : Block)
     (ha : Block.Preceq a (eraseFG B)) :
     ∃ A, FGBlock.Preceq A B ∧ eraseFG A = a := by
   induction B with

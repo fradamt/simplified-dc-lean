@@ -3,7 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.TailOpening
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
+public import AvailableChainGeneric.Proofs.Pure.BlockOrder -- shake: keep (block order)
 public import AvailableChainKitFG.ProvenanceCore
 
 public section

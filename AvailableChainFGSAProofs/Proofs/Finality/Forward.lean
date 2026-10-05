@@ -49,9 +49,7 @@ theorem ForwardWitness_W_def (p : Params) {In V : Type} [DecidableEq V] [Fintype
     SA.gateTime p.toParams (r * p.R) ≤ rho.horizon ∧
     (∀ x ∈ rho.honest,
       Block.Preceq (V2.D.Run.readAt E rho t x).st.base.stableRecord A) ∧
-    ∀ x ∈ rho.honest, AcceptsFinalBefore p c E rho x U D) := by
-  apply propext
-  exact Iff.rfl
+    ∀ x ∈ rho.honest, AcceptsFinalBefore p c E rho x U D) := by rfl
 
 variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

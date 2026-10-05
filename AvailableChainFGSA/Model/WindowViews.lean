@@ -26,6 +26,11 @@ def parentState (p : Params) (K : Nat) (P : FGBlock (Fin p.n)) (s : Slot) :
 theorem parentState_def (p : Params) (K : Nat) (P : FGBlock (Fin p.n)) (s : Slot) :
     parentState p K P s = { derive p K P with s := s } := rfl
 
+/-- The parent state keeps the parent's height and entry. -/
+theorem parentState_height_entry (p : Params) (K : Nat) (P : FGBlock (Fin p.n))
+    (s : Slot) : (parentState p K P s).h = (projectHeight (derive p K P)).h ∧
+      (parentState p K P s).T_h = (projectHeight (derive p K P)).T_h := ⟨rfl, rfl⟩
+
 /-- [spec 1603–1604] The head fields read directly from the window state. -/
 def headFields (p : Params) (K : Nat) (Hd : FGBlock (Fin p.n)) : HeadFields :=
   ⟨(derive p K Hd).h_j, (derive p K Hd).J.root, (derive p K Hd).h_F⟩

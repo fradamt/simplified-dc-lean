@@ -1034,7 +1034,8 @@ T-FRONTIER (21 HG.1:1333–1350), P3 A.8. Consumers: HG.1–HG.5.
 The initial proposal is served in its phase. Subsequent service stops at frontier rise.
 SO-COV. DC: INTENTIONAL earlier-or-current source coverage.
 Re-freeze 2026-10-03 (user decision): the seed q carries DC's HG.1 qualification, "H.6 or
-H.6-S service through its gate" (21:925–944, 1004–1025). q follows the H.6 threshold β + 2k − 1
+H.6-S service through its gate" (21 H.6:915–917, H.6-S:991–997).
+q follows the H.6 threshold β + 2k − 1
 of the first label β after u, or the H.6-S threshold b + k of the first HEAD label b after u,
 with the synchronous window. These are TRepair's branch conditions. -/
 def TFrontier : Prop := ∀ u v m J contested q Q Qfg,

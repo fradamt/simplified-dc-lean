@@ -27,19 +27,6 @@ private theorem above_accepts_read {x : V} {U : FGBlock (Fin p.n)} {D : Time}
   exact V2.D.Engine.stateBefore_stable _ hm.1 hm.2.1 hm.2.2 E rho hi x
     (hnr.restartFree x i (timeIdx rho D)) hU
 
-omit [Fintype V] in
-private theorem above_accepts_deadline {x : V} {U : FGBlock (Fin p.n)} {D d : Time}
-    (hnr : V2.D.NoRestart rho) (hs : V2.D.ScheduleWellFormed E rho)
-    (hDd : D ≤ d) (h : AcceptsFinalBefore p c E rho x U D) :
-    AcceptsFinalBefore p c E rho x U d := by
-  obtain ⟨i, hi, hbefore, hU⟩ :=
-    (Gen.V2.Duty.holdsBefore_iff_exists_idx hnr hs (fgsa_monoAlong_preceq_F p c U)).mp h
-  apply acceptsFinalBefore_of_idx p c E rho hnr hs
-  refine ⟨i, hi, ?_, hU⟩
-  intro k hk
-  obtain ⟨e, he, ht⟩ := hbefore k hk
-  exact ⟨e, he, ht.trans_le hDd⟩
-
 /-- Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 The same healing input and first kernel deadline select the second window.
@@ -149,7 +136,7 @@ theorem above_frontier_FE_W_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
         exact Nat.lt_succ_of_le hheight
   · have hdeadline : D₂ < pt.t + 2 * W_W p ΔF g := by linarith
     intro y hy
-    exact above_accepts_deadline p c E rho hnr hs hdeadline.le (hacc₂ y hy)
+    exact acceptsFinalBefore_mono_deadline p c E rho hnr hs hdeadline.le (hacc₂ y hy)
 
 /-- Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.

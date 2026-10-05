@@ -323,10 +323,6 @@ private theorem rows_release (y : Nat) (U C : FGBlock (Fin p.n))
   simp only [hsame, Bool.false_eq_true, ↓reduceIte,
     Option.filter_some, Nat.lt_succ_self, decide_true, hkey, Option.map_some]
 
-private theorem rows_honestSeats_eq : honestSeats p c rho = by
-    classical
-    exact Finset.univ.filter (fun i => rho.seatOf (.base .fg) i ∈ rho.honest) := rfl
-
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1256–1263: awake actions release the same complete fresh rows and entry.
 DC: INTENTIONAL: durable record and both send-once checks; source ancestry fixes the entry. -/
@@ -399,7 +395,7 @@ theorem fresh_unanimous_rows
       exact hem
     have hhonest : rho.seatOf (.base .fg) i ∈ rho.honest := by
       have hmem := hS hi
-      rw [rows_honestSeats_eq] at hmem
+      rw [honestSeats_def] at hmem
       exact (Finset.mem_filter.mp hmem).2
     refine ⟨j, C, ?_, ?_, rfl, rfl, ?_, ?_, hCh, hearlier i hi⟩
     · rw [HonestRowAt_def]
@@ -411,9 +407,7 @@ theorem fresh_unanimous_rows
       exact ⟨i, rfl, rfl⟩
     · rw [FinalityNames_def]
       rfl
-    · rw [actionSourceFG_def, hnd]
-      change some (FGSA.fgSource p nd.st) = some (some C)
-      rw [hsource]
+    · simpa only [actionSourceFG_def, hnd, Option.map_some] using congrArg some hsource
   refine ⟨rows, ?_, ?_, ?_⟩
   · rw [FreshFinalityRows_W_def]
     exact ⟨hS, hQ, hseat⟩

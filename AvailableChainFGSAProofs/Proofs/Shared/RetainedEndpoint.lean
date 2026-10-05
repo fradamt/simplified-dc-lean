@@ -54,10 +54,7 @@ theorem fgsa_headRead_child_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
       (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hf).1).1).1).1).2
   rw [hQ] at hlt
-  have hpar : C.parent = B := by
-    cases C with
-    | genesis => cases hp
-    | node P t root r => exact Option.some.inj hp
+  have hpar := fgsa_parent_eq_of_some hp
   simpa only [hpar] using hlt
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

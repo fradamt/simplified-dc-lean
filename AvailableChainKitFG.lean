@@ -58,7 +58,9 @@ public import AvailableChainKitFG.StoreSafetySimplex
 public import AvailableChainKitFG.FrameBridgeDef
 public import AvailableChainKitFG.FrameBridge
 public import AvailableChainKitFG.JustificationLawsDef
+public import AvailableChainKitFG.FrameSelection
 public import AvailableChainKitFG.FrameGeometry
+public import AvailableChainKitFG.StoreBounds
 public import AvailableChainKitFG.CausalCapCore
 public import AvailableChainKitFG.FinalizedOccurrence
 

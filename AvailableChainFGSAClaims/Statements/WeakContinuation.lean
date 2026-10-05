@@ -15,7 +15,8 @@ namespace AvailableChain.FGSA.Run
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V] [Fintype V]
 
-/-- DC StrongRecoveryPrefix (Legacy/Assumptions/Regimes:32-48).
+/-- DC StrongRecoveryPrefix
+(DecoupledConsensusStatements/Assumptions/Regimes.lean:22-35).
 Finite Recovery₂ fields, with horizon exactly GST+B_HF. Thus no strong duty
 is imposed on a continuation. INTENTIONAL: FG-SA uses its own bound, gap,
 and family delays (blueprint 23:34-100); LivenessBoundW supplies κ≤R.
@@ -26,7 +27,8 @@ structure StrongRecoverySearchPrefix₂ (E : Generic.Env V)
   liveness : LivenessBoundW p ΔF
   endpoint : source.horizon = E.t_GST + B_HF p ΔF G
 
-/-- DC AgreesUntil (Legacy/Assumptions/PrefixAgreement:19-23).
+/-- DC AgreesUntil
+(DecoupledConsensusStatements/Assumptions/PrefixAgreement.lean:18-22).
 INTENTIONAL: an exact global event prefix replaces per-node agreement.
 FG-SA's replay reads
 seatOf/input/awake (EngineV2/Engine/Duty/Run:28-55), so preserve those too.
@@ -49,7 +51,8 @@ structure AgreesThrough₂ (E : Generic.Env V) (source : V2.D.Run V (fgsa p c))
   events : rho.events.take source.events.length = source.events
   suffixTime : ∀ e ∈ rho.events.drop source.events.length, source.horizon < e.time
 
-/-- DC WeakContinuation (Legacy/Assumptions/Regimes:55-64).
+/-- DC WeakContinuation
+(DecoupledConsensusStatements/Assumptions/Regimes.lean:44-53).
 The weak rule is Clean's a<h at every later time (blueprint 23:69-83),
 not SG windows (INTENTIONAL). Family-indexed synchrony CONTINUES; it includes broadcast
 and acceptance relay, including obligations triggered before the cut.

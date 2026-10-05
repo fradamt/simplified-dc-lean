@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.WindowHeightBridge
+public import AvailableChainFGSA.Proofs.WindowSteps
 
 public section
 
@@ -9,67 +9,6 @@ open AvailableChain.SimplexFG hiding process_row process_height_events transitio
 open AvailableChain.KitFG
 
 variable {V : Type} [DecidableEq V] [RowCodec V]
-
-/-- [bp §3.1] One row changes only the bits of its exact entry. -/
-private def addBit (a : Row V) (e : Entry V) : Entry V :=
-  if a.finality_pair = some ⟨e.j, e.X.root⟩ then { e with Q := insert a.signer e.Q } else e
-
-private theorem addBit_key (a : Row V) (e : Entry V) :
-    (addBit a e).j = e.j ∧ (addBit a e).X = e.X := by
-  unfold addBit
-  split_ifs <;> exact ⟨rfl, rfl⟩
-
-private theorem addBit_bits (a : Row V) (e : Entry V) (i : V) :
-    i ∈ (addBit a e).Q ↔ i ∈ e.Q ∨
-      (a.signer = i ∧ a.finality_pair = some ⟨e.j, e.X.root⟩) := by
-  unfold addBit
-  split_ifs with h <;> simp [h, eq_comm, or_comm]
-
-private theorem row_fields (w : State V) (a : Row V) :
-    (process_row w a).W = w.W.map (addBit a) ∧
-    (process_row w a).h = w.h ∧ (process_row w a).T_h = w.T_h ∧
-    (process_row w a).h_j = w.h_j ∧ (process_row w a).J = w.J ∧
-    (process_row w a).h_F = w.h_F ∧ (process_row w a).F = w.F := by
-  obtain ⟨i, pair, fp⟩ := a
-  cases pair with
-  | empty =>
-      simp only [process_row_def, NamedHeightPair.matchesEntry]
-      exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
-  | vote h X t =>
-      cases t <;> simp only [process_row_def] <;> split_ifs <;>
-        exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
-
-private theorem fold_fields (rs : List (Row V)) (w : State V) :
-    (rs.foldl process_row w).W = w.W.map (fun e => rs.foldl (fun e a => addBit a e) e) ∧
-    (rs.foldl process_row w).h = w.h ∧ (rs.foldl process_row w).T_h = w.T_h ∧
-    (rs.foldl process_row w).h_j = w.h_j ∧ (rs.foldl process_row w).J = w.J ∧
-    (rs.foldl process_row w).h_F = w.h_F ∧ (rs.foldl process_row w).F = w.F := by
-  induction rs generalizing w with
-  | nil => simp
-  | cons a rs ih =>
-      have h := row_fields w a
-      have t := ih (process_row w a)
-      simpa only [List.foldl_cons, t.1, h.1, List.map_map, Function.comp_def,
-        t.2.1, t.2.2.1, t.2.2.2.1, t.2.2.2.2.1, t.2.2.2.2.2.1,
-        t.2.2.2.2.2.2, h.2.1, h.2.2.1, h.2.2.2.1, h.2.2.2.2.1,
-        h.2.2.2.2.2.1, h.2.2.2.2.2.2] using
-        (show True ∧ True ∧ True ∧ True ∧ True ∧ True ∧ True from by trivial)
-
-private theorem fold_entry (rs : List (Row V)) (e : Entry V) :
-    let d := rs.foldl (fun e a => addBit a e) e
-    d.j = e.j ∧ d.X = e.X ∧
-      ∀ i, i ∈ d.Q ↔ i ∈ e.Q ∨ ∃ a ∈ rs,
-        a.signer = i ∧ a.finality_pair = some ⟨e.j, e.X.root⟩ := by
-  induction rs generalizing e with
-  | nil => simp
-  | cons a rs ih =>
-      have h := ih (addBit a e)
-      have k := addBit_key a e
-      simp only [List.foldl_cons]
-      refine ⟨h.1.trans k.1, h.2.1.trans k.2, ?_⟩
-      intro i
-      rw [h.2.2, addBit_bits, k.1, k.2]
-      simp only [List.mem_cons, exists_eq_or_imp, or_assoc]
 
 /-- [bp §3.1] Structural invariant before or after the row fold.
 Height geometry is supplied separately by `windowHeightLaws`. -/
@@ -84,88 +23,23 @@ private structure Inv (K : Nat) (w : State V) : Prop where
 
 private theorem inv_fold (K : Nat) (w : State V) (rs : List (Row V))
     (hw : Inv K w) : Inv K (rs.foldl process_row w) := by
-  have f := fold_fields rs w
+  have f := window_fold_fields rs w
   constructor
   · rw [f.1, List.pairwise_map]
     exact hw.ordered.imp (fun {a b} h => by
-      simpa only [(fold_entry rs a).1, (fold_entry rs a).2.1,
-        (fold_entry rs b).1, (fold_entry rs b).2.1] using h)
+      simpa only [(window_fold_entry rs a).1, (window_fold_entry rs a).2.1,
+        (window_fold_entry rs b).1, (window_fold_entry rs b).2.1] using h)
   · intro d hd
     rw [f.1, List.mem_map] at hd
     obtain ⟨e, he, rfl⟩ := hd
     simpa only [f.2.2.2.2.2.1, f.2.2.2.1, f.2.2.2.2.2.2,
-      f.2.2.2.2.1, (fold_entry rs e).1, (fold_entry rs e).2.1] using hw.bounds e he
+      f.2.2.2.2.1, (window_fold_entry rs e).1, (window_fold_entry rs e).2.1] using hw.bounds e he
   · simpa only [f.1, List.length_map] using hw.capacity
   · simpa only [f.2.2.2.2.2.2, f.2.2.2.2.1] using hw.finality
   · simpa only [f.2.2.2.2.2.1, f.2.2.2.1] using hw.heights
   · simpa only [f.2.2.2.2.2.1, f.2.2.2.2.2.2] using hw.zero
 
 variable [Fintype V]
-
-omit [DecidableEq V] [RowCodec V] in
-/-- The fold selects a ready member and dominates every ready height. -/
-private theorem greatest_spec (E : Electorate V) (w : State V) :
-    (∀ e, greatestReady E w = some e →
-      e ∈ w.W ∧ w.h_F < e.j ∧ E.IsQuorum e.Q) ∧
-    (∀ d ∈ w.W, w.h_F < d.j → E.IsQuorum d.Q →
-      ∃ e, greatestReady E w = some e ∧ d.j ≤ e.j) := by
-  let step := fun (best : Option (Entry V)) e =>
-    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
-      best.elim (some e) (fun old => if old.j < e.j then some e else best)
-    else best
-  have go (xs : List (Entry V)) (best : Option (Entry V)) :
-      (∀ e, xs.foldl step best = some e →
-        best = some e ∨ (e ∈ xs ∧ w.h_F < e.j ∧ E.IsQuorum e.Q)) ∧
-      (∀ d, (best = some d ∨ (d ∈ xs ∧ w.h_F < d.j ∧ E.IsQuorum d.Q)) →
-        ∃ e, xs.foldl step best = some e ∧ d.j ≤ e.j) := by
-    induction xs generalizing best with
-    | nil =>
-        simp only [List.foldl_nil, List.not_mem_nil, false_and, or_false]
-        exact ⟨fun _ h => h, fun d h => ⟨d, h, le_rfl⟩⟩
-    | cons a xs ih =>
-        have h := ih (step best a)
-        simp only [List.foldl_cons]
-        constructor
-        · intro e he
-          rcases h.1 e he with he | he
-          · unfold step at he
-            dsimp only [Electorate.IsQuorum] at *
-            split_ifs at he with ha <;> cases best <;> simp_all
-            all_goals aesop
-          · exact Or.inr ⟨List.mem_cons_of_mem _ he.1, he.2⟩
-        · intro d hd
-          have next : ∃ b, (step best a = some b ∨
-              (b ∈ xs ∧ w.h_F < b.j ∧ E.IsQuorum b.Q)) ∧ d.j ≤ b.j := by
-            rcases hd with hd | ⟨hd, hf, hq⟩
-            · subst best
-              by_cases ha : w.h_F < a.j ∧ E.q ≤ E.weightOf a.Q
-              · by_cases hj : d.j < a.j
-                · exact ⟨a, Or.inl (by simp [step, ha, hj]), Nat.le_of_lt hj⟩
-                · exact ⟨d, Or.inl (by simp [step, ha, hj]), le_rfl⟩
-              · exact ⟨d, Or.inl (by simp [step, ha]), le_rfl⟩
-            · rcases List.mem_cons.mp hd with hd | hd
-              · subst d
-                have ha : w.h_F < a.j ∧ E.q ≤ E.weightOf a.Q := ⟨hf, hq⟩
-                cases best with
-                | none => exact ⟨a, Or.inl (by simp [step, ha]), le_rfl⟩
-                | some old =>
-                    by_cases hj : old.j < a.j
-                    · exact ⟨a, Or.inl (by simp [step, ha, hj]), le_rfl⟩
-                    · exact ⟨old, Or.inl (by simp [step, ha, hj]), Nat.le_of_not_gt hj⟩
-              · exact ⟨d, Or.inr ⟨hd, hf, hq⟩, le_rfl⟩
-          obtain ⟨b, hb, hdb⟩ := next
-          obtain ⟨e, he, hbe⟩ := h.2 b hb
-          exact ⟨e, he, hdb.trans hbe⟩
-  have heq : greatestReady E w = w.W.foldl step none := by
-    rw [greatestReady_def]
-    congr 1
-    funext best e
-    dsimp [step]
-    split_ifs <;> cases best <;> rfl
-  rw [heq]
-  have h := go w.W none
-  exact ⟨fun e he => (h.1 e he).resolve_left (by simp),
-    fun d hd hf hq => h.2 d (Or.inr ⟨hd, hf, hq⟩)⟩
 
 omit [RowCodec V] [Fintype V] in
 private theorem ordered_compare {xs : List (Entry V)}
@@ -211,7 +85,7 @@ private theorem inv_final (E : Electorate V) (K : Nat) (w : State V) (hw : Inv K
     Inv K (finalizeWindow E w) ∧
     (∀ e ∈ (finalizeWindow E w).W, ¬ E.IsQuorum e.Q) ∧
     w.h_F ≤ (finalizeWindow E w).h_F ∧ FGBlock.Preceq w.F (finalizeWindow E w).F := by
-  have g := greatest_spec E w
+  have g := window_greatest_spec E w
   rw [finalizeWindow_def]
   cases hg : greatestReady E w with
   | none =>
@@ -250,8 +124,8 @@ omit [RowCodec V] in
 private theorem final_cover (E : Electorate V) (K : Nat) (w : State V)
     (hw : Inv K w) (e : Entry V) (he : e ∈ w.W) (hq : E.IsQuorum e.Q) :
     FGBlock.Preceq e.X (finalizeWindow E w).F ∧ e.j ≤ (finalizeWindow E w).h_F := by
-  obtain ⟨d, hd, hle⟩ := (greatest_spec E w).2 e he (hw.bounds e he).1 hq
-  have hm := ((greatest_spec E w).1 d hd).1
+  obtain ⟨d, hd, hle⟩ := (window_greatest_spec E w).2 e he (hw.bounds e he).1 hq
+  have hm := ((window_greatest_spec E w).1 d hd).1
   rw [finalizeWindow_def, hd]
   exact ⟨ordered_le hw.ordered he hm hle, hle⟩
 
@@ -344,7 +218,7 @@ private theorem derived_inv (p : Params) (K : Nat) (hK : 2 ≤ K)
       have hw : Inv K { derive p K P with s := (FGBlock.node P s r_s x rs).slot } :=
         ⟨ih.1.ordered, ih.1.bounds, ih.1.capacity, ih.1.finality, ih.1.heights, ih.1.zero⟩
       have hi := inv_fold K _ rs hw
-      have ff := fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
+      have ff := window_fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
       have hg := windowHeightLaws p K hK
       have hj : (derive p K P).h_j < (derive p K P).h := hg.justified_below_height P
       have hJT : FGBlock.Preceq (derive p K P).J (derive p K P).T_h :=
@@ -398,7 +272,7 @@ private theorem node_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
   have hs : Inv K { derive p K P with s := (FGBlock.node P s r_s x rs).slot } :=
     ⟨hw.ordered, hw.bounds, hw.capacity, hw.finality, hw.heights, hw.zero⟩
   have hi := inv_fold K _ rs hs
-  have ff := fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
+  have ff := window_fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
   have hm := (inv_final p.E K
     { rs.foldl process_row { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
       with L := .node P s r_s x rs }
@@ -457,13 +331,13 @@ private theorem node_old (p : Params) (K : Nat)
     (d : Entry (Fin p.n)) (hd : d ∈ (derive p K (.node P s r_s x rs)).W)
     (hj : d.j < (derive p K P).h) :
     ∃ e ∈ (derive p K P).W, e.j = d.j ∧ e.X = d.X ∧ e.Q ⊆ d.Q := by
-  have ff := fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
+  have ff := window_fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
   simp only [derive_def p K (.node P s r_s x rs), transition_def] at hd
   have hm := events_old p.E p.cfg K _ d hd (by simpa only [ff.2.1] using hj)
   change d ∈ (rs.foldl process_row _).W at hm
   rw [ff.1, List.mem_map] at hm
   obtain ⟨e, he, rfl⟩ := hm
-  have fe := fold_entry rs e
+  have fe := window_fold_entry rs e
   exact ⟨e, he, fe.1.symm, fe.2.1.symm, fun i hi => (fe.2.2 i).mpr (Or.inl hi)⟩
 
 /-- An entry below an ancestor's height must have survived from that ancestor. -/
@@ -530,7 +404,7 @@ theorem window_finality_of_cover (p : Params) (K : Nat) (hK : 2 ≤ K)
       e.j ≤ (derive p K (.node P s r_s x rs)).h_F := by
   let w := { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
   let u := { rs.foldl process_row w with L := FGBlock.node P s r_s x rs }
-  let d := rs.foldl (fun e a => addBit a e) e
+  let d := rs.foldl (fun e a => window_addBit a e) e
   have hw := (derived_inv p K hK P).1
   have hw' : Inv K w :=
     ⟨hw.ordered, hw.bounds, hw.capacity, hw.finality, hw.heights, hw.zero⟩
@@ -539,13 +413,13 @@ theorem window_finality_of_cover (p : Params) (K : Nat) (hK : 2 ≤ K)
     ⟨hi.ordered, hi.bounds, hi.capacity, hi.finality, hi.heights, hi.zero⟩
   have hd : d ∈ u.W := by
     change d ∈ (rs.foldl process_row w).W
-    rw [(fold_fields rs w).1]
+    rw [(window_fold_fields rs w).1]
     exact List.mem_map.mpr ⟨e, he, rfl⟩
-  have hsub : Q ⊆ d.Q := fun i hi => ((fold_entry rs e).2.2 i).mpr (hcover i hi)
+  have hsub : Q ⊆ d.Q := fun i hi => ((window_fold_entry rs e).2.2 i).mpr (hcover i hi)
   have hc := final_cover p.E K u hu d hd (isQuorum_of_subset p.E hQ hsub)
   simp only [derive_def p K (.node P s r_s x rs), transition_def]
   rw [(events_finality p.E p.cfg K _).1, (events_finality p.E p.cfg K _).2]
-  simpa only [d, (fold_entry rs e).1, (fold_entry rs e).2.1] using hc
+  simpa only [d, (window_fold_entry rs e).1, (window_fold_entry rs e).2.1] using hc
 
 end AvailableChain.FGSA.Window
 end

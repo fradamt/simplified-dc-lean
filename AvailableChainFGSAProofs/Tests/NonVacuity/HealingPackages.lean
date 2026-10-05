@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.HealingFixture -- shake: keep (fixture)
 public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 -- shake: keep (own-library route)
 
@@ -7,18 +8,19 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 set_option maxSynthPendingDepth 100
 set_option maxRecDepth 10000
 
--- Each test is complete on its own. The layer rules forbid test-to-test imports.
+-- The non-test fixture supplies common data. Each test checks its own conclusions.
 namespace AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages
 
-/-- ROOT-DIGEST W3b. S5 fixture: one honest node, positive horizon, and unchanged SA clocks. -/
-def params : Params :=
-  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩,
-    3, 6, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
+/-- ROOT-DIGEST W3b. S5 fixture: common parameters with unchanged SA clocks. -/
+def params : Params := HealingFixture.params
 
-def env : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
-def deltaF : Time := 3
-def gap : Time := 4
-def horizon : Time := 304
+def env : Generic.Env (Fin 1) := HealingFixture.env
+def deltaF : Time := HealingFixture.deltaF
+def gap : Time := HealingFixture.gap
+def horizon : Time := HealingFixture.horizon
+
+-- The aliases must reduce when Lean checks dependent fixture types.
+attribute [reducible] params env deltaF gap horizon
 
 theorem params_delta : params.Δ = 1 := rfl
 theorem params_n : params.n = 1 := rfl
@@ -342,29 +344,26 @@ abbrev Object := (fgsa params unitCodec).Object
 abbrev Event := V2.Event (Fin 1) Object
 abbrev FixtureNode := (fgsa params unitCodec).State
 
-def mkRun (es : List Event) : V2.D.Run (Fin 1) (fgsa params unitCodec) where
-  honest := Finset.univ
-  horizon := horizon
-  events := es
-  seatOf := fun _ _ => 0
-  input := fun _ _ => ()
+def mkRun (es : List Event) : V2.D.Run (Fin 1) (fgsa params unitCodec) :=
+  HealingFixture.mkRun es
 
 /-- One tick, then one delivery of each released object, in release order. -/
 def batch (acc : List Event × FixtureNode) (n : Nat) : List Event × FixtureNode :=
-  let out := V2.D.tick env (mkRun []) acc.2 0 (n : Time)
-  (acc.1 ++ [.tick 0 (n : Time)] ++ out.2.map (fun o => .deliver 0 o (n : Time)),
-    out.2.foldl (fgsa params unitCodec).process out.1)
+  HealingFixture.batch acc n
 
 /-- The cached node avoids a repeated fold of all preceding events. -/
-def runPrefix (n : Nat) : List Event × FixtureNode :=
-  (List.range n).foldl batch ([], (fgsa params unitCodec).init)
+def runPrefix (n : Nat) : List Event × FixtureNode := HealingFixture.runPrefix n
+
+-- Reduce these aliases when the test unfolds the generator.
+attribute [reducible] mkRun batch runPrefix
 
 def run := mkRun (runPrefix 305).1
 
 theorem runPrefix_zero : runPrefix 0 = ([], (fgsa params unitCodec).init) := rfl
 
 theorem runPrefix_succ (n : Nat) : runPrefix (n + 1) = batch (runPrefix n) n := by
-  simp [runPrefix, List.range_succ, List.foldl_append]
+  simp [runPrefix, HealingFixture.runPrefix, List.range_succ, List.foldl_append,
+    batch, HealingFixture.batch]
 
 theorem duties_length (t : Time) : (duties params t).length ≤ 1 := by
   have hp : SA.proposalTime params.toParams (params.slotOf t) = 4 * (params.slotOf t : Time) := rfl
@@ -413,7 +412,7 @@ theorem prefix_events_time (n : Nat) :
   | succ n ih =>
     rw [runPrefix_succ]
     intro e he
-    simp only [batch, List.mem_append, List.mem_singleton, List.mem_map] at he
+    simp only [batch, HealingFixture.batch, List.mem_append, List.mem_singleton, List.mem_map] at he
     rcases he with (he | he) | ⟨o, _, he⟩
     · obtain ⟨m, hm, ht, he⟩ := ih e he
       exact ⟨m, by omega, ht, he⟩
@@ -442,7 +441,7 @@ theorem prefix_mono {n m : Nat} (h : n ≤ m) :
     by_cases hn : n ≤ m
     · apply (ih hn).trans
       rw [runPrefix_succ]
-      dsimp only [batch]
+      dsimp only [batch, HealingFixture.batch]
       rw [List.append_assoc]
       exact List.prefix_append _ _
     · have : n = m + 1 := by omega
@@ -480,7 +479,7 @@ theorem prefix_cached (n : Nat) :
   | zero => rfl
   | succ n ih =>
     rw [runPrefix_succ]
-    simp only [batch, List.foldl_append, ih]
+    simp only [batch, HealingFixture.batch, List.foldl_append, ih]
     rw [List.foldl_cons, List.foldl_nil, step_constant, fold_deliveries]
 
 def batchEvents (n : Nat) : List Event :=
@@ -493,7 +492,7 @@ theorem prefix_flat (n : Nat) :
   induction n with
   | zero => rfl
   | succ n ih =>
-    simp only [runPrefix_succ, batch, List.range_succ, List.flatMap_append,
+    simp only [runPrefix_succ, batch, HealingFixture.batch, List.range_succ, List.flatMap_append,
       List.flatMap_cons, List.flatMap_nil, List.append_nil, batchEvents]
     rw [← ih, List.append_assoc]
 
@@ -502,7 +501,7 @@ theorem tick_at (n : Nat) (hn : n < 305) :
   obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 305 by omega)
   change (runPrefix 305).1[(runPrefix n).1.length]? = _
   rw [← he, runPrefix_succ]
-  simp [batch, List.append_assoc]
+  simp [batch, HealingFixture.batch, List.append_assoc]
 
 theorem state_before_tick (n : Nat) (hn : n < 305) :
     V2.D.Run.stateBefore env run (runPrefix n).1.length = fun _ => (runPrefix n).2 := by
@@ -536,7 +535,7 @@ theorem immediate_delivery (n : Nat) (hn : n < 305) (o : Object)
   obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 305 by omega)
   change (runPrefix 305).1[(runPrefix n).1.length + 1]? = _
   rw [← he, runPrefix_succ]
-  simp [batch, hos, List.append_assoc]
+  simp [batch, HealingFixture.batch, hos, List.append_assoc]
 
 theorem prefix_strict (n : Nat) :
     (runPrefix n).1.Pairwise (fun e f => e.key < f.key) := by
@@ -544,7 +543,7 @@ theorem prefix_strict (n : Nat) :
   | zero => simp [runPrefix_zero]
   | succ n ih =>
     rw [runPrefix_succ]
-    dsimp only [batch]
+    dsimp only [batch, HealingFixture.batch]
     rw [List.append_assoc, List.pairwise_append]
     refine ⟨ih, ?_, ?_⟩
     · have hl := released_length (runPrefix n).2 (n : Time)
@@ -582,7 +581,7 @@ theorem nvSchedule : V2.D.ScheduleWellFormed env run where
   tick_public := by
     intro v t he
     obtain ⟨m, _, ht, _⟩ := prefix_events_time 305 (.tick v t) he
-    exact ⟨m, by simpa only [V2.Event.time, env, Int.mul_one] using ht⟩
+    exact ⟨m, by simpa only [V2.Event.time, env, HealingFixture.env, Int.mul_one] using ht⟩
   tick_total := by
     intro v _ t _ ht hh
     have hv : v = 0 := Subsingleton.elim _ _
@@ -721,7 +720,7 @@ theorem prefix_rows (n : Nat) (hn : n ≤ 305) : EmissionRowsValid (runPrefix n)
     have hr := ih (by omega)
     have hw := emitted_wire n hn' hr
     rw [runPrefix_succ]
-    dsimp only [batch]
+    dsimp only [batch, HealingFixture.batch]
     have hclock : EmissionRowsValid
         (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).1.st := by
       exact (tick_st (c := unitCodec) env (mkRun []) (runPrefix n).2 0 (n : Time)).symm ▸
@@ -1040,7 +1039,8 @@ theorem prefix_length_strict {m n : Nat} (h : m < n) :
     (runPrefix m).1.length < (runPrefix n).1.length := by
   have hs : (runPrefix m).1.length < (runPrefix (m + 1)).1.length := by
     rw [runPrefix_succ]
-    simp only [batch, List.length_append, List.length_singleton, List.length_map]
+    simp only [batch, HealingFixture.batch, List.length_append, List.length_singleton,
+      List.length_map]
     omega
   exact hs.trans_le (prefix_mono (show m + 1 ≤ n by omega)).length_le
 

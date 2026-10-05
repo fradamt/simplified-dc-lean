@@ -30,6 +30,48 @@ private theorem fheads_idxBefore_le_timeIdx (rho : V2.D.Run V (fgsa p c)) {t v :
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true ((of_decide_eq_true he).le.trans htv))
 
+private theorem fheads_kept_anchor (p : Params) (dst : State p.n)
+    (hinv : CStoreInv p dst) (B : Block) (W : FGBlock (Fin p.n))
+    (hW : W ∈ dst.fg.TF) (hBW : Block.Preceq B (eraseFG W))
+    (X : Finset (FGBlock (Fin p.n)))
+    (hfrozen : ∀ A, FGBlock.Preceq A W → A ∈ X)
+    (hlo : (controls p dst).lo ≤ (heightView p W).h)
+    (hZW : FGBlock.Preceq (controls p dst).Z W)
+    (hrows : ∀ row ∈ dst.base.obligations, Block.Compatible row.1 B) :
+    (∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C B →
+      C ∈ erasedList dst (domainR p dst X)) ∧ Block.Compatible (liveRoot p dst) B := by
+  constructor
+  · intro C hr hCB
+    have hr' : liveRoot p dst ≠ C ∧ Block.Preceq (liveRoot p dst) C := by
+      change ((!decide (liveRoot p dst = C)) && Block.preceq (liveRoot p dst) C) = true at hr
+      simpa only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not,
+        Block.Preceq] using hr
+    obtain ⟨A, hA, heA, hAW⟩ :=
+      eraseFG_ancestor_preceq hinv.fg.closed hW (Gen.Pure.block_preceq_trans hCB hBW)
+    have hFA : FGBlock.Preceq dst.fg.F A := eraseFG_preceq_iff.mp
+      (Gen.Pure.block_preceq_trans (F_preceq_liveRoot p dst hinv) (heA ▸ hr'.2))
+    have hZA : FGBlock.Preceq (controls p dst).Z A := eraseFG_preceq_iff.mp
+      (Gen.Pure.block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) (heA ▸ hr'.2))
+    apply List.mem_filter.mpr
+    refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
+    rw [domainR_def, frameR_def]
+    exact (KitFG.mem_filteredFromView (heightView p) (controls p dst) _ A).mpr
+      ⟨hfrozen A hAW, hFA, hZA, W, hfrozen W (KitFG.preceq_refl W), hAW, hlo⟩
+  · have hselect := Gen.Pure.foldl_select_mem (fun (best b : Block) =>
+      best.depth < b.depth || (best.depth == b.depth && best.root < b.root))
+      (dst.base.obligations.filterMap (fun row =>
+        if dst.base.now < row.2.2 && decide (∃ X ∈ fullTree p dst, eraseFG X = row.1)
+        then some row.1 else none)) (eraseFG (controls p dst).Z)
+    change liveRoot p dst = _ ∨ liveRoot p dst ∈ _ at hselect
+    rcases hselect with he | hm
+    · rw [he]
+      exact Gen.Pure.block_compatible_of_common (eraseFG_preceq hZW) hBW
+    · obtain ⟨row, hr, hrow⟩ := List.mem_filterMap.mp hm
+      split at hrow
+      · rw [← Option.some.inj hrow]
+        exact hrows row hr
+      · contradiction
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 HG.1:1529–1534, H.2 S1:709–715; plan §3.1 step 4 (restates
 `healing_support_honest_batch_seat`). DC: INTENTIONAL under the cap, an honest label-i
@@ -316,41 +358,10 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     linarith
   have hfrozen := healing_frozen_path p c E rho hS hN hdpos hvi hdfreeze hWd hread
   let X := voterBlocks p dst (i + 1)
-  have hkeep : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C B →
-      C ∈ erasedList dst (domainR p dst X) := by
-    intro C hr hCB
-    have hr' : liveRoot p dst ≠ C ∧ Block.Preceq (liveRoot p dst) C := by
-      change ((!decide (liveRoot p dst = C)) && Block.preceq (liveRoot p dst) C) = true at hr
-      simpa only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not,
-        Block.Preceq] using hr
-    obtain ⟨A, hA, heA, hAW⟩ :=
-      eraseFG_ancestor_preceq hinv.fg.closed hWdst (Gen.Pure.block_preceq_trans hCB hBW)
-    have hFA : FGBlock.Preceq dst.fg.F A := fheads_lift
-      (Gen.Pure.block_preceq_trans (F_preceq_liveRoot p dst hinv) (heA ▸ hr'.2))
-    have hZA : FGBlock.Preceq (FGSA.controls p dst).Z A := fheads_lift
-      (Gen.Pure.block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) (heA ▸ hr'.2))
-    apply List.mem_filter.mpr
-    refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
-    rw [domainR_def, frameR_def]
-    exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p dst) _ A).mpr
-      ⟨hfrozen A hAW, hFA, hZA, W, hfrozen W (KitFG.preceq_refl W), hAW, hRd ▸ hloy⟩
-  -- The live root is compatible with B.
-  have hrows := hlease hFB0
-  have hanchor : Block.Compatible (liveRoot p dst) B := by
-    have hselect := Gen.Pure.foldl_select_mem (fun (best b : Block) =>
-      best.depth < b.depth || (best.depth == b.depth && best.root < b.root))
-      (dst.base.obligations.filterMap (fun row =>
-        if dst.base.now < row.2.2 && decide (∃ X ∈ FGSA.fullTree p dst, eraseFG X = row.1)
-        then some row.1 else none)) (eraseFG (FGSA.controls p dst).Z)
-    change FGSA.liveRoot p dst = _ ∨ FGSA.liveRoot p dst ∈ _ at hselect
-    rcases hselect with he | hm
-    · rw [he]
-      exact Gen.Pure.block_compatible_of_common (eraseFG_preceq (hRd ▸ hZW)) hBW
-    · obtain ⟨row, hr, hrow⟩ := List.mem_filterMap.mp hm
-      split at hrow
-      · rw [← Option.some.inj hrow]
-        exact hrows row hr
-      · contradiction
+  have kept := fheads_kept_anchor p dst hinv B W hWdst hBW X hfrozen
+    (hRd ▸ hloy) (hRd ▸ hZW) (hlease hFB0)
+  have hkeep := kept.1
+  have hanchor := kept.2
   -- The honest batch of label i.
   let Hon : Finset (Fin p.n) := Finset.univ.filter
     (fun k => rho.seatOf (.base (.head i)) k ∈ rho.honest)
@@ -529,41 +540,12 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
     linarith
   have hfrozen := healing_frozen_path p c E rho hS hN hdpos hes hdfreeze hWd hread
+  have kept := fheads_kept_anchor p dst hinv B W hWdst hBW
+    (voterBlocks p dst (s + 1)) hfrozen (hRd ▸ hloy) (hRd ▸ hZFy.1) (hlease hFB0)
   have hpath : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C B →
       C ∈ erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst (s + 1))) := by
-    intro C hr hCB
-    have hr' : liveRoot p dst ≠ C ∧ Block.Preceq (liveRoot p dst) C := by
-      change ((!decide (liveRoot p dst = C)) && Block.preceq (liveRoot p dst) C) = true at hr
-      simpa only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not,
-        Block.Preceq] using hr
-    obtain ⟨A, hA, heA, hAW⟩ :=
-      eraseFG_ancestor_preceq hinv.fg.closed hWdst (Gen.Pure.block_preceq_trans hCB hBW)
-    have hFA : FGBlock.Preceq dst.fg.F A := fheads_lift
-      (Gen.Pure.block_preceq_trans (F_preceq_liveRoot p dst hinv) (heA ▸ hr'.2))
-    have hZA : FGBlock.Preceq (FGSA.controls p dst).Z A := fheads_lift
-      (Gen.Pure.block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) (heA ▸ hr'.2))
-    apply List.mem_filter.mpr
-    refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
-    rw [← domainR_eq_storeFrame, domainR_def, frameR_def]
-    exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p dst) _ A).mpr
-      ⟨hfrozen A hAW, hFA, hZA, W, hfrozen W (KitFG.preceq_refl W), hAW, hRd ▸ hloy⟩
-  -- The live root is compatible with B (lease premise of H.1).
-  have hrows := hlease hFB0
-  have hanchor : Block.Compatible (liveRoot p dst) B := by
-    have hselect := Gen.Pure.foldl_select_mem (fun (best b : Block) =>
-      best.depth < b.depth || (best.depth == b.depth && best.root < b.root))
-      (dst.base.obligations.filterMap (fun row =>
-        if dst.base.now < row.2.2 && decide (∃ X ∈ FGSA.fullTree p dst, eraseFG X = row.1)
-        then some row.1 else none)) (eraseFG (FGSA.controls p dst).Z)
-    change FGSA.liveRoot p dst = _ ∨ FGSA.liveRoot p dst ∈ _ at hselect
-    rcases hselect with he | hm
-    · rw [he]
-      exact Gen.Pure.block_compatible_of_common (eraseFG_preceq (hRd ▸ hZFy.1)) hBW
-    · obtain ⟨row, hr, hrow⟩ := List.mem_filterMap.mp hm
-      split at hrow
-      · rw [← Option.some.inj hrow]
-        exact hrows row hr
-      · contradiction
+    simpa only [domainR_eq_storeFrame] using kept.1
+  have hanchor := kept.2
   -- Majority and rival dominance at the receiver (forward and reverse relay).
   have hforward : ∀ o ∈ GridCO.cleanSupport p.toParams.engine src s, ∀ seat,
       GridCO.headSeat? o = some seat → Gen.AC.Root.voteSupports src.blocks B o = true →

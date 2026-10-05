@@ -5,7 +5,7 @@ public section
 
 namespace AvailableChain.Gen.Pure
 
-/-- DC: DecoupledConsensusProofs/Protocol/ForkChoice/Views/WeakConfirmationSupport.lean:111;
+/-- DC: DecoupledConsensusProofs/Protocol/ForkChoice/Views/WeakConfirmationSupport.lean:114;
 INTENTIONAL: Extract the finite-set count core and use the exact honest-over-faulty bound;
 record blueprint/02-clean.md:67. -/
 theorem honest_origin_of_count_statement : HonestOriginOfCountStatement := by
@@ -29,7 +29,7 @@ theorem honest_origin_of_count_statement : HonestOriginOfCountStatement := by
 
 -- Keep the DecidableEq binder in the exact requested public contract.
 set_option linter.unusedDecidableInType false in
-/-- DC: DecoupledConsensusProofs/Protocol/ForkChoice/Views/WeakConfirmationSupport.lean:111;
+/-- DC: DecoupledConsensusProofs/Protocol/ForkChoice/Views/WeakConfirmationSupport.lean:114;
 INTENTIONAL: Expose the protocol-free honest-origin count with no global-size premise;
 record blueprint/02-clean.md:67. -/
 theorem honest_origin_of_count {Seat : Type} [DecidableEq Seat] (H F P D : Finset Seat)

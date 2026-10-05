@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
@@ -38,10 +39,6 @@ theorem receipt_finalized_of_carriage (hsel : TRowsSelect p c E rho)
       hcovered | ⟨_hvalid, hcover⟩
   · exact ((Window.CoveredW_def p X y U).mp (covered_parent_W p y U X hcovered)).2
   · exact (pendingFold_consume_W p y U X ⟨hne, hcover⟩).1
-
-private theorem receipt_finality (X : FGBlock (Fin p.n)) :
-    (finalityView p X).F = (Window.derive p p.K_W X).F := by
-  simp only [finalityView_def, Window.certificateFinality_def, Window.projectFinality_def]
 
 omit [Fintype V] in
 private theorem receipt_stored_block (i : Nat) (x : V) (C : FGBlock (Fin p.n))
@@ -217,11 +214,6 @@ theorem receipt_jPath_of_cached_anchor (i : Nat) (x : V) (X U : FGBlock (Fin p.n
     | genesis => exact KitFG.preceq_refl _
     | node P s root body rows => exact KitFG.preceq_parent_node P s root body rows
   exact Or.inl (hcached ▸ KitFG.preceq_trans hpath hp)
-
-private theorem receipt_parent_path (X : FGBlock (Fin p.n)) : FGBlock.Preceq X.parent X := by
-  cases X with
-  | genesis => exact KitFG.preceq_refl _
-  | node P s root body rows => exact KitFG.preceq_parent_node P s root body rows
 
 private theorem receipt_proposal_checks (s : Slot) (N : NamedProposal p.n) :
     FGSA.wellFormed p ⟨.proposer s, .proposal N⟩ =
@@ -480,27 +472,6 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
           he hd htrigger hat hFiX
   choose index time witness using hwitness
   exact ⟨{ selected := fun x hx => ⟨index x hx, time x hx⟩, witness := witness }⟩
-
-omit [DecidableEq V] [Fintype V] in
-private theorem receipt_height_hj (X : FGBlock (Fin p.n)) :
-    (heightView p X).h_j = (Window.derive p p.K_W X).h_j := by
-  simp only [heightView_def, Window.projectHeight_def]
-
-private theorem receipt_height_genesis :
-    (heightView p (.genesis : FGBlock (Fin p.n))).h = 1 := by
-  rw [heightView_def, Window.derive_def, Window.projectHeight_def, Window.initial_def]
-
-omit [DecidableEq V] [Fintype V] in
-private theorem receipt_actionTime_strictMono : StrictMono p.actionTime := by
-  intro a b hab
-  have hab' : (a : Int) < b := by exact_mod_cast hab
-  have hR : (0 : Int) < p.R := by exact_mod_cast (show 0 < p.R by have := p.RLarge; omega)
-  have hpos : (0 : Int) < 4 * p.Δ * (p.R : Int) :=
-    mul_pos (mul_pos (by decide) p.deltaPos) hR
-  change 4 * p.Δ * ((a * p.R : Nat) : Int) + 6 * p.Δ <
-    4 * p.Δ * ((b * p.R : Nat) : Int) + 6 * p.Δ
-  push_cast
-  convert add_lt_add_right (mul_lt_mul_of_pos_left hab' hpos) (6 * p.Δ) using 1 <;> ring
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Paper 22:1297–1302: a high cached J is on the terminal carrier path.

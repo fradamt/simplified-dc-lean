@@ -6,8 +6,8 @@ public section
 namespace AvailableChain.Gen.Pure
 
 /-- chain_search proves finite fixed-offset search.
-DC: INTENTIONAL. No recurrence search contract in DC. See the design stage search:
-Generic statements, Legacy/Definitions, Bridge, and all Lean stage/finRange searches;
+DC: INTENTIONAL additive recurrence search contract. It extends the stage searches in
+Generic statements, Legacy/Definitions, Bridge, and Lean stage/finRange searches;
 nearest fold: DecoupledConsensusProofs/Bridge/FinalizedLive.lean:298–306.
 Consumers: F4.QF4 (22:1731–1743, k = 2, s = 3),
 F5.H.9-Q/H.10-Q (21:2336–2344, k ≤ 3, s = 2).
@@ -67,8 +67,8 @@ theorem chain_search : ChainSearchStatement := by
         omega
 
 /-- chain_search_of_antitone_guard needs only the final reachable-start guard.
-DC: INTENTIONAL. No recurrence search contract in DC. See the design stage search:
-Generic statements, Legacy/Definitions, Bridge, and all Lean stage/finRange searches;
+DC: INTENTIONAL additive recurrence search contract. It extends the stage searches in
+Generic statements, Legacy/Definitions, Bridge, and Lean stage/finRange searches;
 nearest fold: DecoupledConsensusProofs/Bridge/FinalizedLive.lean:298–306.
 Consumers: F4.QF4 (22:1731–1743, k = 2, s = 3),
 F5.H.9-Q/H.10-Q (21:2336–2344, k ≤ 3, s = 2).
@@ -83,8 +83,8 @@ theorem chain_search_of_antitone_guard : AntitoneChainSearchStatement := by
     (Nat.mul_le_mul_right (s + g - 1) (by omega : j ≤ k - 1)) q)
 
 /-- chain_search_qf4 specializes to two searches; shift 3 gives q + 2g + 1.
-DC: INTENTIONAL. No recurrence search contract in DC. See the design stage search:
-Generic statements, Legacy/Definitions, Bridge, and all Lean stage/finRange searches;
+DC: INTENTIONAL additive recurrence search contract. It extends the stage searches in
+Generic statements, Legacy/Definitions, Bridge, and Lean stage/finRange searches;
 nearest fold: DecoupledConsensusProofs/Bridge/FinalizedLive.lean:298–306.
 Consumers: F4.QF4 (22:1731–1743, k = 2, s = 3),
 F5.H.9-Q/H.10-Q (21:2336–2344, k ≤ 3, s = 2).

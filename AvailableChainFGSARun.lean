@@ -3,6 +3,7 @@ public import AvailableChainFGSARun.Statements.Roots
 public import AvailableChainFGSARun.Statements.Slashing
 public import AvailableChainFGSARun.Proofs.Slashing
 public import AvailableChainFGSARun.Model.Protocol
+public import AvailableChainFGSARun.Model.HealingFixture
 public import AvailableChainFGSARun.Model.Families
 public import AvailableChainFGSARun.Statements.Excludes
 public import AvailableChainFGSARun.Proofs.Protocol
@@ -11,6 +12,7 @@ public import AvailableChainFGSARun.Statements.Interface
 public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.ClockLaws
 public import AvailableChainFGSARun.Proofs.Reachable
+public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSARun.Proofs.Content
 public import AvailableChainFGSARun.Proofs.NamedOrigins
 public import AvailableChainFGSARun.Proofs.NamedScope

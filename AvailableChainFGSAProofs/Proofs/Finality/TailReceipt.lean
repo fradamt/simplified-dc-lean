@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
 
 public section
@@ -97,49 +98,6 @@ theorem ktail_acceptPrem_W (G ΔF : Time) (q : Nat) (w : HealingWitness)
       (delivery.selected x hx).time hx hbound hw.1 hw.2.1 hrec.base.valid
       hheight hcapBefore hrows
 
-omit [DecidableEq V] [Fintype V] in
-private theorem ktail_receipt_hj (X : FGBlock (Fin p.n)) :
-    (heightView p X).h_j = (Window.derive p p.K_W X).h_j := by
-  simp only [heightView_def, Window.projectHeight_def]
-
-private theorem ktail_receipt_F (X : FGBlock (Fin p.n)) :
-    (finalityView p X).F = (Window.derive p p.K_W X).F := by
-  simp only [finalityView_def, Window.certificateFinality_def, Window.projectFinality_def]
-
-private theorem ktail_receipt_genesis :
-    (heightView p (.genesis : FGBlock (Fin p.n))).h = 1 := by
-  rw [heightView_def, Window.derive_def, Window.projectHeight_def, Window.initial_def]
-
-omit [Fintype V] in
-private theorem ktail_receipt_mu : muOf p c E rho = max 1 (sSup (oldRowHeights p c E rho)) :=
-  rfl
-
-omit [Fintype V] in
-private theorem ktail_receipt_carrier (s : Slot) (B : Block) (rows : List (RowWire p.n)) :
-    HonestCarrier p c E rho s B rows =
-      (HonestProposal E rho (fgsaInterface p c) s B ∧
-        ∃ o N, V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
-          (V2.D.proposalTime (fgsaInterface p c) s) ∧ o.payload = .proposal N ∧ N.erase = B ∧
-              N.rows = rows) :=
-  rfl
-
-private theorem ktail_receipt_parent (X : FGBlock (Fin p.n)) : FGBlock.Preceq X.parent X := by
-  cases X with
-  | genesis => exact KitFG.preceq_refl _
-  | node P s root body rows => exact KitFG.preceq_parent_node P s root body rows
-
-omit [DecidableEq V] [Fintype V] in
-private theorem ktail_receipt_strictMono : StrictMono p.actionTime := by
-  intro a b hab
-  have hab' : (a : Int) < b := by exact_mod_cast hab
-  have hR : (0 : Int) < p.R := by exact_mod_cast (show 0 < p.R by have := p.RLarge; omega)
-  have hpos : (0 : Int) < 4 * p.Δ * (p.R : Int) :=
-    mul_pos (mul_pos (by decide) p.deltaPos) hR
-  change 4 * p.Δ * ((a * p.R : Nat) : Int) + 6 * p.Δ <
-    4 * p.Δ * ((b * p.R : Nat) : Int) + 6 * p.Δ
-  push_cast
-  convert add_lt_add_right (mul_lt_mul_of_pos_left hab' hpos) (6 * p.Δ) using 1 <;> ring
-
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Paper 22:1297–1302, plan §4 (cached-J helper). A cached J of an honest receiver
 is on
@@ -171,7 +129,7 @@ theorem ktail_jPath (hroots : NamedRootCollisionFree p c E rho) (G ΔF : Time) (
   · exact Or.inr hstrict
   have hM : 1 ≤ w.M := by
     have hmu := hinput.wit.mu_le
-    rw [ktail_receipt_mu] at hmu
+    rw [muOf_def] at hmu
     exact (le_max_left 1 _).trans hmu
   obtain ⟨C, hC, _hFC, hCJ, hJ⟩ := (storeBundle_stateBefore E rho i x).cstore.fg.pair.1
   change (storeAt p c E rho i x).fg.h_j = (heightView p C).h_j at hCJ
@@ -183,7 +141,7 @@ theorem ktail_jPath (hroots : NamedRootCollisionFree p c E rho) (G ΔF : Time) (
     intro hg
     rw [hg] at hJheight
     have hz : (heightView p C).h_j = 1 :=
-      hJheight.symm.trans (ktail_receipt_genesis p)
+      hJheight.symm.trans (receipt_height_genesis p)
     simp only [Height] at hCJ hJfloor hstrict hz ⊢
     omega
   have hcert : (heightView p C).J ∈ certified p C := by
@@ -210,9 +168,9 @@ theorem ktail_jPath (hroots : NamedRootCollisionFree p c E rho) (G ΔF : Time) (
   have hrtime := (Gen.V2.Duty.index_lt_idxBefore_iff hrec.base.valid.toScheduleWellFormed
     hrow.2.1 _).mp (hji.trans hi)
   have hrq : r ≤ q :=
-    Nat.le_of_lt_succ ((ktail_receipt_strictMono p).lt_iff_lt.mp hrtime)
+    Nat.le_of_lt_succ ((receipt_actionTime_strictMono p).lt_iff_lt.mp hrtime)
   obtain ⟨rows, hcar⟩ := hcarrier
-  have hproposal := ((ktail_receipt_carrier p c E rho _ _ rows).mp hcar).1
+  have hproposal := ((HonestCarrier_def p c E rho _ _ rows).mp hcar).1
   have hFpos := E.Δ_pos.trans_le hrec.deltaF
   have hk := kappaF_ge_two p ΔF (le_of_lt hFpos)
   have hlabel : r * p.R + 2 ≤ X.slot := by
@@ -223,7 +181,7 @@ theorem ktail_jPath (hroots : NamedRootCollisionFree p c E rho) (G ΔF : Time) (
   have hpath : FGBlock.Preceq S X.parent :=
     eraseFG_preceq_iff.mp hbasepath
   exact Or.inl (hJ.trans hJeq ▸ KitFG.preceq_trans hJS
-    (KitFG.preceq_trans hpath (ktail_receipt_parent p X)))
+    (KitFG.preceq_trans hpath (receipt_parent_path p X)))
 
 omit [Fintype V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -236,17 +194,17 @@ theorem ktail_hj_floor (w : HealingWitness) (ΔF : Time)
     w.M + 1 ≤ (Window.derive p p.K_W X).h_j := by
   have hM : 1 ≤ w.M := by
     have hmu := hinput.wit.mu_le
-    rw [ktail_receipt_mu] at hmu
+    rw [muOf_def] at hmu
     exact (le_max_left 1 _).trans hmu
   have hK : w.M + 1 ≤ (heightView p K).h := hhigh
   have hFJ := (fgCertificateLaws p).finalized_preceq_justified X
-  rw [ktail_receipt_F] at hFJ
+  rw [receipt_finality] at hFJ
   have hKJ := KitFG.preceq_trans hfinal hFJ
-  rw [← ktail_receipt_hj]
+  rw [← receipt_height_hj]
   by_cases hz : (heightView p X).h_j = 0
   · exfalso
     rw [(fgCertificateLaws p).justified_zero X hz] at hKJ
-    rw [KitFG.preceq_genesis.mp hKJ, ktail_receipt_genesis] at hK
+    rw [KitFG.preceq_genesis.mp hKJ, receipt_height_genesis] at hK
     omega
   · have hh := (fgCertificateLaws p).height.h_mono hKJ
     rw [(fgJustificationLaws p).J_height X hz] at hh

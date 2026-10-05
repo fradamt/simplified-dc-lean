@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Suppliers
 public import AvailableChainFGSAClaims.Claims.Finality
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 public import AvailableChainFGSAProofs.Proofs.Finality.Kernel
@@ -155,16 +156,8 @@ theorem fgsa_finalityKernelJoined_W_of (p : Params)
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     FinalityKernelJoinedClaim_W p := by
   intro G ΔF hδ V _ _ In c E rho pt h
-  obtain ⟨w, input, start⟩ := h.start
+  obtain ⟨w, hK⟩ := finality_kernel_prem_W_of_joined p c E rho G ΔF pt h
   let kpt : KernelPt := ⟨w, pt.r⟩
-  have hK : KernelPrem_W p c G ΔF E rho kpt := {
-    set := h.set
-    bound := h.bound
-    window := h.window
-    start := start
-    hhor := h.hhor
-    input := input
-    services := fgsa_coreServices E rho h.set.base w }
   exact finality_kernel_joined_W_of p c E rho G ΔF hδ pt h
     (hsel c E rho h.set.base.valid) (horigin c E rho h.set.base.valid)
     (hBatch ΔF) (hQC c E rho G ΔF kpt hK) (hXing c E rho G ΔF kpt hK)
@@ -312,11 +305,14 @@ theorem fgsa_finalityLivenessRecFE_W_of (p : Params)
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     FinalityLivenessRecFEClaim_W p := by
   intro G ΔF g w hδ V _ _ In c E rho pt h
+  obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
+    finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
+      hcapBefore c E rho G ΔF h.set.core
   exact finality_liveness_FE_W_of p c E rho G ΔF g w hδ pt h
-    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
-    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
-    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
-    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+    sel origin
+    batch qc crossing
+    safety strat
+    emitted cap
 
 /-- Paper 22:1371–1400; firstfin plan §5 C. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL local W liveness. Recovery₂ supplies the inherited kernel suppliers;
@@ -376,11 +372,10 @@ theorem fgsa_finalityLivenessRecF4_W_of (p : Params)
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     FinalityLivenessRecF4Claim_W p := by
   intro G ΔF g w hδ V _ _ In c E rho pt h
-  exact finality_liveness_F4_W_of p c E rho G ΔF g w hδ pt h
-    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
-    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
-    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
-    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+  apply fgsa_finalityLivenessRecFE_W_of p hsel horigin hBatch hQC hXing hI3 hStrat
+    hEmittedSource hcapBefore G ΔF g w hδ c E rho pt
+  exact ⟨⟨h.set.core, h.set.bound, F4_W_implies_FE_W h.set.recur⟩,
+    h.input, h.start, h.hhor⟩
 
 /-- Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL specified proposal coverage before its local W deadline.
@@ -440,11 +435,14 @@ theorem fgsa_proposalFinalRecFE_W_of (p : Params)
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     ProposalFinalRecFEClaim_W p := by
   intro G ΔF g w hδ V _ _ In c E rho pt h
+  obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
+    finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
+      hcapBefore c E rho G ΔF h.set.core
   exact proposal_final_FE_W_of p c E rho G ΔF g w hδ pt h
-    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
-    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
-    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
-    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+    sel origin
+    batch qc crossing
+    safety strat
+    emitted cap
 
 /-- Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL specified proposal coverage before its local W deadline.
@@ -504,11 +502,14 @@ theorem fgsa_proposalFinalRecF4_W_of (p : Params)
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     ProposalFinalRecF4Claim_W p := by
   intro G ΔF g w hδ V _ _ In c E rho pt h
+  obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
+    finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
+      hcapBefore c E rho G ΔF h.set.core
   exact proposal_final_F4_W_of p c E rho G ΔF g w hδ pt h
-    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
-    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
-    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
-    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+    sel origin
+    batch qc crossing
+    safety strat
+    emitted cap
 
 end AvailableChain.FGSA.Run
 end
@@ -590,11 +591,14 @@ theorem fgsa_aboveFrontierRecFE_W_of (p : Params)
               HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t) :
     AboveFrontierRecFEClaim_W p := by
   intro G ΔF g w hδ V _ _ In c E rho pt h
+  obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
+    finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
+      hcapBefore c E rho G ΔF h.set.core
   exact above_frontier_FE_W_of p c E rho G ΔF g w hδ pt h
-    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
-    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
-    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
-    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+    sel origin
+    batch qc crossing
+    safety strat
+    emitted cap
     (hNames c E rho h.set.core.base) (hOrigin c E rho h.set.core.base.valid)
 
 /-- Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
@@ -670,11 +674,14 @@ theorem fgsa_aboveFrontierRecF4_W_of (p : Params)
               HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t) :
     AboveFrontierRecF4Claim_W p := by
   intro G ΔF g w hδ V _ _ In c E rho pt h
+  obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
+    finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
+      hcapBefore c E rho G ΔF h.set.core
   exact above_frontier_F4_W_of p c E rho G ΔF g w hδ pt h
-    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
-    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
-    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
-    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+    sel origin
+    batch qc crossing
+    safety strat
+    emitted cap
     (hNames c E rho h.set.core.base) (hOrigin c E rho h.set.core.base.valid)
 
 end AvailableChain.FGSA.Run

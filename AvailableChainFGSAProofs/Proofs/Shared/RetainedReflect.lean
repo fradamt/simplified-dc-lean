@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedScores
 
 public section
@@ -153,59 +154,7 @@ theorem fgsa_eligible_eq_of_retainedBand_score
   dsimp only [retainedBand] at hb
   simp only [hb, hcount, hscore, hslot]
 
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 21 H.6:927–939, H.17:2986–3006 (design 783–795,2847–2867); spec 616–633, 1290–1297.
-Class (iii). DC: INTENTIONAL; D3-1 derives the source admission floor from FJ. -/
-private theorem reflect_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
-    FGBlock.Preceq st.fg.F (controls p st).Z := by
-  unfold Controls.Z
-  split
-  · exact h.fg.FJ
-  · exact KitFG.preceq_refl _
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
-(design 747–758,798–814,2847–2867); spec 1290–1297.
-Class (iii). DC: INTENTIONAL; lift the immutable erased ancestry. -/
-private theorem reflect_lift {n : Nat} {A B : FGBlock (Fin n)}
-    (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  eraseFG_preceq_iff.mp h
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Blueprint 21 H.5:891–902, H.6:942–958 (design 747–758,798–814); spec 1290–1297.
-Class (iii). DC: INTENTIONAL; parent ancestry for a retained FG-SA candidate. -/
-private theorem reflect_parent {C X : Block} (hp : C.parent? = some X) :
-    Block.Preceq X C := by
-  cases C with
-  | genesis => cases hp
-  | node P s root r =>
-    have he : P = X := Option.some.inj hp
-    subst P
-    exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
-
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
-(design 747–758,798–814,2847–2867); spec 1290–1297.
-Class (iii). DC: INTENTIONAL; the actual clock preserves stored receipt stamps. -/
-private theorem reflect_clock_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (k : Nat) (y : V) (t : Time) (B : Block)
-    (hm : B ∈ (rho.stateBefore E k y).st.base.blocks) :
-    GridCO.stampBlock (clock p (rho.stateBefore E k y).st t).base B =
-      GridCO.stampBlock (rho.stateBefore E k y).st.base B := by
-  rw [← (metaInv_stateBefore E rho k y).stampKeys] at hm
-  obtain ⟨⟨b, u⟩, hv, he⟩ := List.mem_map.mp hm
-  dsimp only at he
-  subst b
-  unfold GridCO.stampBlock
-  rw [(clock_cumulative p _ _).2.2.1]
-  cases hf : (rho.stateBefore E k y).st.base.blockStamp.find? (fun row => row.1 == B) with
-  | none =>
-    have hn := List.find?_eq_none.mp hf (B, u) hv
-    simp only [beq_self_eq_true] at hn
-    contradiction
-  | some row => rfl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
@@ -236,8 +185,9 @@ private theorem reflect_witness_on_run
   have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
   obtain ⟨B, W, -, heB, hBW, hlo, hW⟩ := hw
   have hZB : FGBlock.Preceq (controls p src).Z B :=
-    reflect_lift (heB ▸ block_preceq_trans hcut (block_preceq_trans hKX (reflect_parent hp)))
-  have hFB := KitFG.preceq_trans (reflect_F_Z p src hs) hZB
+    eraseFG_preceq_iff.mp
+      (heB ▸ block_preceq_trans hcut (block_preceq_trans hKX (fgsa_parent_preceq_of_some hp)))
+  have hFB := KitFG.preceq_trans (fgsa_F_preceq_Z p src hs) hZB
   have hWsrc : W ∈ src.fg.TF := by
     rcases hW with hW | ⟨hW, hstamp⟩
     · exact hW
@@ -249,7 +199,7 @@ private theorem reflect_witness_on_run
         have hb := (ht.baseTree _).mpr ⟨W, hW, rfl⟩
         change eraseFG W ∈ (clock p _ _).base.blocks at hb
         rwa [clock_base_blocks] at hb
-      rw [reflect_clock_stamp E rho ih y _ (eraseFG W) hmW] at hstamp
+      rw [fgsa_clock_block_stamp E rho ih y _ (eraseFG W) hmW] at hstamp
       have hgeom : ScoreRunGeometry src dst (eraseFG B) := ⟨eraseFG_preceq hFB, hFdst⟩
       have hr := fgsa_walkRun_frozen_block (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip
         (eraseFG B) (eraseFG W) hgeom (eraseFG_preceq hBW) hmW
@@ -334,7 +284,7 @@ theorem fgsa_retained_old_child_reflects_on_run
   have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
   have hK : ScoreRunGeometry src dst Kc :=
-    ⟨block_preceq_trans (eraseFG_preceq (reflect_F_Z p src hs)) h.source_cut,
+    ⟨block_preceq_trans (eraseFG_preceq (fgsa_F_preceq_Z p src hs)) h.source_cut,
       block_preceq_trans (F_preceq_liveRoot p dst ht) h.target_cut⟩
   have hA : ScoreRunGeometry src dst N.erase.parent :=
     ⟨block_preceq_trans hK.source_floor h.cut_parent,

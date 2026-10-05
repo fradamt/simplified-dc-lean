@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep J6 port
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentTimingRFProv

@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeFrame -- shake: keep
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeFrame -- shake: keep frame port
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep J6
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConePool
 
 public section

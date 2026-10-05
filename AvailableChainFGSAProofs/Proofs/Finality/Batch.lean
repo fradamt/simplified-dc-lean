@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RowReads
 public import AvailableChainFGSARun.Proofs.WindowExclusion
 public import AvailableChainFGSAClaims.Statements.Fold
 
@@ -11,42 +12,9 @@ open Window (CoveredW)
 variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-private theorem batch_proposal_read (s : Slot) (st : State p.n)
-    (hs : proposalStateAt p c E rho s = some st) :
-    ∃ k, st = ((fgsa p c).clock
-      (V2.D.Run.stateBefore E rho k (V2.D.proposerOf rho (fgsaInterface p c) s))
-      (V2.D.proposalTime (fgsaInterface p c) s)).st := by
-  change (postClock E rho _ _).map (·.st) = some st at hs
-  rw [postClock_def, preTick_def] at hs
-  cases hk : V2.D.Run.tickIdx? rho (V2.D.proposerOf rho (fgsaInterface p c) s)
-      (V2.D.proposalTime (fgsaInterface p c) s) with
-  | none => rw [hk] at hs; cases hs
-  | some k =>
-      rw [hk] at hs
-      exact ⟨k, (Option.some.inj hs).symm⟩
-
-private theorem batch_chain_occurrence (st : State p.n) (hmeta : MetaInv p st)
-    (H : FGBlock (Fin p.n)) (a : RowWire p.n) (b : Row (Fin p.n))
-    (hd : a.toRow? = some b) (ha : a ∈ chainWireRows st (eraseFG H)) :
-    ∃ W, FGBlock.Preceq W H ∧ b ∈ W.rows := by
-  obtain ⟨rows, hrs, ha⟩ := List.mem_flatten.mp ha
-  obtain ⟨o, ho, hrows⟩ := List.mem_filterMap.mp hrs
-  obtain ⟨s, N, rfl, _hok, _hparent, _hdec, W, _hW, hWe, hWr⟩ :=
-    hmeta.wireTree o ho
-  change (if Block.preceq N.erase (eraseFG H) then some N.rows else none) = some rows at hrows
-  split at hrows
-  next hpath =>
-    have he := Option.some.inj hrows
-    subst rows
-    refine ⟨W, ?_, ?_⟩
-    · apply eraseFG_preceq_iff.mp
-      rwa [hWe]
-    · rw [hWr]
-      exact List.mem_filterMap.mpr ⟨a, ha, hd⟩
-  next hpath => cases hrows
-
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Paper 22:715–728, 1265–1289: a finality row sets the retained bit or is
+ROOT-DIGEST W2b. Paper 22 I6/R7:697–703, 715–728, 1265–1289:
+a finality row sets the retained bit or is
 carried.
 DC: INTENTIONAL exact signed row selection and checked W history; the caller
 supplies T-ROWS selection so this Finality proof does not depend on Foundations. -/
@@ -94,7 +62,7 @@ theorem finalityRow_bit_or_carried_W
     change X.parent ∈ (clock p _ _).fg.TF at hstored
     rw [clock_fg] at hstored
     rw [eraseFG_parent] at hchain
-    obtain ⟨W, hWP, hbW⟩ := batch_chain_occurrence p _ bundle.meta X.parent a b hdecode hchain
+    obtain ⟨W, hWP, hbW⟩ := rowService_chain_occurrence p _ bundle.meta X.parent a b hdecode hchain
     left
     cases W with
     | genesis => exact (List.not_mem_nil hbW).elim
@@ -105,7 +73,7 @@ theorem finalityRow_bit_or_carried_W
 variable [Fintype V]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Paper 22:715–728, 1265–1289: a finality batch gives prior parent coverage
+Paper 22 I6/R7:697–703, 715–728, 1265–1289: a finality batch gives prior parent coverage
 or quorum coverage of the same retained entry by the child.
 DC: INTENTIONAL W coverage separates the covered and retained cases; T-ROWS
 selection is an explicit input for later discharge in Assembly. -/

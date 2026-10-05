@@ -38,16 +38,8 @@ theorem healing_phase_entries_eq {C D W : FGBlock (Fin p.n)}
     (hC : FGBlock.Preceq (heightView p C).J W)
     (hD : FGBlock.Preceq (heightView p D).J W) :
     (heightView p C).J = (heightView p D).J := by
-  have hc := fgJustificationLaws p
-  by_cases hn : (heightView p C).h_j = 0
-  · rw [hc.J_zero C hn, hc.J_zero D (hh ▸ hn)]
-  have he : (heightView p (heightView p C).J).h = (heightView p (heightView p D).J).h := by
-    rw [hc.J_height C hn, hc.J_height D (hh ▸ hn), hh]
-  rcases KitFG.preceq_total_of_common hC hD with h | h
-  · have hp := (fgCertificateLaws p).height.entry_plateau h he
-    simpa only [hc.J_entry] using hp
-  · have hp := (fgCertificateLaws p).height.entry_plateau h he.symm
-    simpa only [hc.J_entry] using hp.symm
+  exact KitFG.store_entries_eq p.E (heightView p) (finalityView p)
+    (fgCertificateLaws p) (fgJustificationLaws p) hh hC hD
 
 /-- Blueprint 21:1105–1113, 1193–1209; plan S20, H-PHASE/P1.
 DC: INTENTIONAL a contest uses cumulative live evidence.

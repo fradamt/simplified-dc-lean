@@ -5,7 +5,7 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates
 public import AvailableChainFGSAProofs.Proofs.Foundations.Reconcile -- shake: keep (L42 run reconcile export)
 
-public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
+public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier -- shake: keep (carrier API)
 
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client
 

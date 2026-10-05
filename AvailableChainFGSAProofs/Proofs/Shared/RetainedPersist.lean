@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
 
@@ -38,16 +39,6 @@ theorem fgsa_walk_domain_of_witness_view (p : Params) (st : State p.n)
       ⟨hC, hF, hZ, W, hW, hCW, hlo⟩, rfl⟩⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 21 H.6:927–953, H.17:2971–2984 (design 783–809,2832–2845); spec 616–633, 1286–1293.
-Class (iii). DC: INTENTIONAL; FG5b FJ supplies the source floor at Z. -/
-private theorem persist_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
-    FGBlock.Preceq st.fg.F (controls p st).Z := by
-  unfold Controls.Z
-  split
-  · exact h.fg.FJ
-  · exact KitFG.preceq_refl _
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:927–953, H.17:2986–3006 (design 783–809,2847–2867); spec 1286–1293, 1520–1523.
 Class (iii). DC: INTENTIONAL; named hA supplier, review F3 route (ii).
 Source F/Z and target F/liveRoot extend through the retained cut to A. -/
@@ -55,27 +46,10 @@ theorem fgsa_score_geometry_of_retained_cuts (p : Params) (src dst : State p.n)
     (hs : CStoreInv p src) (ht : CStoreInv p dst) (s : Slot)
     (D : FGBlock (Fin p.n)) (b Kc : Block)
     (h : RetainedReadPremises p src dst s D b Kc) : ScoreRunGeometry src dst b.parent :=
-  ⟨block_preceq_trans (eraseFG_preceq (persist_F_Z p src hs))
+  ⟨block_preceq_trans (eraseFG_preceq (fgsa_F_preceq_Z p src hs))
       (block_preceq_trans h.source_cut h.cut_parent),
     block_preceq_trans (F_preceq_liveRoot p dst ht)
       (block_preceq_trans h.target_cut h.cut_parent)⟩
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec
-1286–1293.
-Class (iii). DC: INTENTIONAL; immutable erased ancestry lifts to FG ancestry. -/
-private theorem persist_lift {n : Nat} {A B : FGBlock (Fin n)}
-    (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  eraseFG_preceq_iff.mp h
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec
-1286–1293.
-Class (iii). DC: INTENTIONAL; every block extends its parent. -/
-private theorem persist_parent (b : Block) : Block.Preceq b.parent b := by
-  cases b with
-  | genesis => exact block_preceq_refl _
-  | node P s root r => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121, H.17:3008–3011
@@ -94,7 +68,7 @@ theorem fgsa_retained_path_mem (p : Params) (src dst : State p.n)
       (controls p dst).lo ≤ (heightView p W).h) : C ∈ T p dst s := by
   obtain ⟨B, hB, heB⟩ := (hbase b).mp hadm
   obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem hclosed hB (heB ▸ hCb)
-  have hAB : FGBlock.Preceq A B := persist_lift (heA ▸ heB ▸ hCb)
+  have hAB : FGBlock.Preceq A B := eraseFG_preceq_iff.mp (heA ▸ heB ▸ hCb)
   have hbslot : B.slot = s := by rw [← eraseFG_slot, heB, hslot]
   have inView (Q : FGBlock (Fin p.n)) (hQ : Q ∈ dst.fg.TF)
       (hQB : FGBlock.Preceq Q B) : Q ∈ voterBlocks p dst s :=
@@ -104,8 +78,8 @@ theorem fgsa_retained_path_mem (p : Params) (src dst : State p.n)
     obtain ⟨W, hw, hlo⟩ := hw
     have hWB : FGBlock.Preceq W B := by
       rcases hw with ⟨-, he⟩ | ⟨-, he⟩
-      · exact persist_lift (he ▸ heB ▸ persist_parent b)
-      · exact persist_lift (he ▸ heB ▸ block_preceq_refl b)
+      · exact eraseFG_preceq_iff.mp (he ▸ heB ▸ fgsa_parent_preceq b)
+      · exact eraseFG_preceq_iff.mp (he ▸ heB ▸ block_preceq_refl b)
     apply hlo.trans
     rw [(KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) W).1,
       (KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) B).1]
@@ -115,8 +89,8 @@ theorem fgsa_retained_path_mem (p : Params) (src dst : State p.n)
     (fun Q hm => (hbase _).mpr ⟨Q, hm, rfl⟩)
     (fun _ hm => (Finset.mem_filter.mp hm).1) (inView A hA hAB)
     (inView B hB (KitFG.preceq_refl _))
-    (persist_lift (heA ▸ block_preceq_trans hfloor hstart))
-    (persist_lift (heA ▸ block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) hstart)) hAB hlo
+    (eraseFG_preceq_iff.mp (heA ▸ block_preceq_trans hfloor hstart))
+    (eraseFG_preceq_iff.mp (heA ▸ block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) hstart)) hAB hlo
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:935–953, H.17:3008–3011 (design 791–809,2869–2872); spec 1286–1293.
@@ -132,7 +106,7 @@ theorem fgsa_retained_proposal_mem (p : Params) (src dst : State p.n)
       ((W ∈ src.fg.TF ∧ eraseFG W = b.parent) ∨ (W ∈ dst.fg.TF ∧ eraseFG W = b)) ∧
       (controls p dst).lo ≤ (heightView p W).h) : b ∈ T p dst s :=
   fgsa_retained_path_mem p src dst hbase hclosed hfloor s b b hadm hslot
-    (block_preceq_trans hparent (persist_parent b)) (block_preceq_refl _) hw
+    (block_preceq_trans hparent (fgsa_parent_preceq b)) (block_preceq_refl _) hw
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:942–958, H.17:2986–3006 (design 798–814,2847–2867); spec 1330–1360.
@@ -228,7 +202,7 @@ theorem fgsa_retained_proposal_mem_on_run
     exact hb.trans (by unfold SA.proposalTime SA.voteTime; ring_nf; rfl)
   have hF : Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) N.erase := by
     have hf := block_preceq_trans (F_preceq_liveRoot p dst ht)
-      (block_preceq_trans h.target_parent (persist_parent N.erase))
+      (block_preceq_trans h.target_parent (fgsa_parent_preceq N.erase))
     change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) N.erase
     simpa only [dst, clock_fg] using hf
   have hadm := fgsa_gateReceipt_block_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD
@@ -291,12 +265,12 @@ theorem fgsa_retained_path_persists_on_run
       | node P t root r =>
         have heq : P = X := Option.some.inj hp
         subst P
-        exact persist_parent (.node X t root r)
+        exact fgsa_parent_preceq (.node X t root r)
     exact fgsa_retained_path_mem p src dst ht.baseTree ht.fg.closed
       (F_preceq_liveRoot p dst ht) (s + 1) N.erase C
       (by simpa only [dst, clock_base_blocks] using hadm) hbslot
       (block_preceq_trans h.target_cut (block_preceq_trans hK hXC))
-      (block_preceq_trans hCA (persist_parent N.erase)) h.parent_height
+      (block_preceq_trans hCA (fgsa_parent_preceq N.erase)) h.parent_height
   · intro X C hK hX hp hm htC
     have hold := (fgsa_stored_block_slots E rho hE.toScheduleWellFormed hip
       (Nat.succ_pos s)).2.1 C (List.mem_filter.mp hm).1

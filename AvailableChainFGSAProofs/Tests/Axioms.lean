@@ -175,7 +175,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (CUT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: keep (J7 axiom audit)
-public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep axiom audit
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep -- shake: keep (J5-A-2 audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove -- shake: keep (J4A2-2 audit)

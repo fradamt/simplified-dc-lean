@@ -404,6 +404,8 @@ Engine v2 decisions (design §2), one line each:
   `lake env lean --run scripts/V2Manifest.lean --scope gen --check` checks it.
   Before G-F0a, a Statements edit updates the manifest in the same commit;
   from G-F0a it is append-only (D15).
+- Before a branch-to-branch merge without a gate, run `bash scripts/check-gly-rules.sh`
+  and `SKIP_CONE=0 bash scripts/check-build.sh` on the merge result after a full build.
 - `bash scripts/check-build.sh` runs all checks below after a full build.
   `docs/LEAN-ARCHITECTURE.md` gives the module and import rules.
 

@@ -1,9 +1,10 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSA.Proofs.Head.Score
-public import AvailableChainFGSA.Proofs.Head.Walk
+public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (prefix lift)
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.RootResolution
+public import AvailableChainFGSARun.Proofs.ReadFacts
 
 public section
 
@@ -233,15 +234,6 @@ theorem fgsa_scoreRun_proposalsAt_eq
     exact (Option.some.inj hd).symm
   · cases hd
 
-omit [DecidableEq V] in
-private theorem scoreRun_idx_mono (rho : V2.D.Run V (fgsa p c)) :
-    Monotone (V2.D.Run.idxBefore rho) := by
-  intro a b hab
-  rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def]
-  rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
-  exact List.countP_mono_left (fun e _ he => decide_eq_true
-    (lt_of_lt_of_le (of_decide_eq_true he) hab))
-
 private theorem scoreRun_votes_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hN : V2.D.NoRestart rho) (x : V) {i j : Nat} (hij : i ≤ j) :
     (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆
@@ -262,7 +254,7 @@ private theorem scoreRun_proposal_window (E : Generic.Env V) (rho : V2.D.Run V (
     (d : Time) (hd : d ≤ SA.proposalTime p.toParams s) :
     (V2.D.Run.stateBeforeTime E rho d x).st.slot p ≤ s := by
   have hm := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hS hN
-    (scoreRun_idx_mono rho hd) x
+    (fgsa_idxBefore_mono rho hd) x
   rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho d) x),
     fgsa_clock_now p c (V2.D.Run.stateBefore E rho
       (V2.D.Run.idxBefore rho (SA.proposalTime p.toParams s)) x)] at hm
@@ -335,7 +327,7 @@ theorem fgsa_scoreRun_frozen_vote_relay
     rw [fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hip,
       ← Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
       ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
-    exact scoreRun_votes_mono E rho hN x (scoreRun_idx_mono rho hd)
+    exact scoreRun_votes_mono E rho hN x (fgsa_idxBefore_mono rho hd)
   have hin (o : GridCO.Wire p.n .root)
       (ho : o ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.base.votes)
       (hl : GridCO.headLabel? o = some s) : o ∈ U := by
@@ -465,7 +457,7 @@ private theorem scoreRun_block_receipt_to_tick
     B ∈ (clock p (V2.D.Run.stateBefore E rho ih y).st u).base.blocks := by
   let a := V2.D.Run.idxBefore rho (dl t)
   let z := V2.D.Run.idxBefore rho u
-  have haz : a ≤ z := scoreRun_idx_mono rho hd
+  have haz : a ≤ z := fgsa_idxBefore_mono rho hd
   have hFmono : FGBlock.Preceq (V2.D.Run.stateBefore E rho a y).st.fg.F
       (V2.D.Run.stateBefore E rho z y).st.fg.F := by
     have h := fgsa_monoAlong_preceq_F p c (V2.D.Run.stateBefore E rho a y).st.fg.F
@@ -556,25 +548,6 @@ theorem fgsa_scoreRun_block_forward
   exact scoreRun_block_receipt_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD t o B ho
     (Or.inr ⟨x, hx, j, ha⟩) (hlt t) (hd.trans hc) hy hih hd
     (Gen.Pure.block_preceq_trans hgeom.target_floor hDB)
-
-private theorem scoreRun_clock_block_stamp
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (k : Nat) (y : V)
-    (t : Time) (B : Block) (hm : B ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks) :
-    GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho k y).st t).base B =
-      GridCO.stampBlock (V2.D.Run.stateBefore E rho k y).st.base B := by
-  rw [← (metaInv_stateBefore E rho k y).stampKeys] at hm
-  obtain ⟨⟨b, u⟩, hv, he⟩ := List.mem_map.mp hm
-  dsimp only at he
-  subst b
-  unfold GridCO.stampBlock
-  rw [(clock_cumulative p _ _).2.2.1]
-  cases hf : (V2.D.Run.stateBefore E rho k y).st.base.blockStamp.find?
-      (fun row => row.1 == B) with
-  | none =>
-    have hn := List.find?_eq_none.mp hf (B, u) hv
-    simp only [beq_self_eq_true] at hn
-    contradiction
-  | some row => rfl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. P3 F1b.4b G25 N1; blueprint 03:305–312.
@@ -805,7 +778,7 @@ theorem fgsa_scoreRun_support_backward
       change K ∈ (clock p _ _).base.blocks at hm
       rwa [clock_base_blocks] at hm
     change GridCO.stampBlock (clock p _ _).base K < _ at hbstamp
-    rw [scoreRun_clock_block_stamp E rho ih y _ K hKpre] at hbstamp
+    rw [fgsa_clock_block_stamp E rho ih y _ K hKpre] at hbstamp
     have hKsrc := fgsa_scoreRun_block_backward (hroots := hroots)
       E rho hE hN hDelta s hSync hx hy hip D K hgeom hDK hKpre hbstamp
     change GridCO.stampVote (clock p _ _).base o < _ at hvstamp
@@ -1199,7 +1172,7 @@ theorem fgsa_walkRun_reflected_block
   · have hf := of_decide_eq_true hf
     rw [heA] at hf
     change GridCO.stampBlock (clock p _ _).base C < _ at hf
-    rw [scoreRun_clock_block_stamp E rho ih y _ C hCpre] at hf
+    rw [fgsa_clock_block_stamp E rho ih y _ C hCpre] at hf
     have hf' : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base C <
         SA.freezeTime p.toParams s := by simpa only [Nat.add_sub_cancel] using hf
     have hb := fgsa_walkRun_frozen_block (hroots := hroots)

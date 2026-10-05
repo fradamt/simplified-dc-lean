@@ -272,6 +272,19 @@ theorem acceptsFinalBefore_mono_deadline (hnr : V2.D.NoRestart rho)
   obtain ⟨e, he, ht⟩ := hbefore k hk
   exact ⟨e, he, ht.trans_le hdd⟩
 
+/-- Acceptance of a descendant before a deadline also accepts each ancestor. -/
+theorem acceptsFinalBefore_mono_ancestor (hnr : V2.D.NoRestart rho)
+    (hs : V2.D.ScheduleWellFormed E rho) {x : V} {X U : FGBlock (Fin p.n)}
+    {d d' : Time} (hXU : FGBlock.Preceq X U) (hdd : d ≤ d')
+    (h : AcceptsFinalBefore p c E rho x U d) : AcceptsFinalBefore p c E rho x X d' := by
+  obtain ⟨i, hi, hbefore, hU⟩ :=
+    (Gen.V2.Duty.holdsBefore_iff_exists_idx hnr hs (fgsa_monoAlong_preceq_F p c U)).mp h
+  apply acceptsFinalBefore_of_idx p c E rho hnr hs
+  refine ⟨i, hi, ?_, KitFG.preceq_trans hXU hU⟩
+  intro k hk
+  obtain ⟨e, he, ht⟩ := hbefore k hk
+  exact ⟨e, he, ht.trans_le hdd⟩
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The stable read at the post-gate cut is the post-clock stable read. -/
 theorem stable_afterTicks (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)

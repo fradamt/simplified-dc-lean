@@ -25,4 +25,56 @@ example {p : Params} (hH : HTimeClaim p) (hL : FinalityLivenessRecF4Claim_W p)
   ⟨fgsa_firstFinality_recF4 hH hL,
     fgsa_finalityLivenessGST_recF4 hH hL hP (healing_liveDCFromWindows p)⟩
 
+-- The firstfinality proof accepts exact equality at the total horizon.
+example {p : Params} (hH : HTimeClaim p) (hL : FinalityLivenessRecFEClaim_W p)
+    (G ΔF : Time) (g : Nat) (hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hset : FinalitySet_W p c E rho G ΔF .recFE g)
+    (hhor : E.t_GST + B_HF p ΔF G + W_W p ΔF g = rho.horizon) :
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G := by
+  obtain ⟨w, input, hstar, _⟩ := fgsa_firstFinality_recFE hH hL G ΔF g hδ c E rho ()
+    ⟨hset, hhor.le⟩
+  exact ⟨w, input, hstar⟩
+
+-- The GST trigger can equal the healing bound; its local witness stays strictly earlier.
+example {p : Params} (hH : HTimeClaim p) (hL : FinalityLivenessRecFEClaim_W p)
+    (hP : ProposalFinalRecFEClaim_W p)
+    (G ΔF : Time) (g : Nat) (hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hset : FinalitySet_W p c E rho G ΔF .recFE g)
+    (hhor : E.t_GST + B_HF p ΔF G + W_W p ΔF g ≤ rho.horizon) :
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G := by
+  obtain ⟨w, input, hstar, _, _⟩ := fgsa_finalityLivenessGST_recFE hH hL hP
+    (healing_liveDCFromWindows p) G ΔF g hδ c E rho ⟨E.t_GST + B_HF p ΔF G⟩
+    ⟨hset, le_rfl, hhor⟩
+  exact ⟨w, input, hstar⟩
+
+-- The firstfinality proof accepts exact equality at the total horizon.
+example {p : Params} (hH : HTimeClaim p) (hL : FinalityLivenessRecF4Claim_W p)
+    (G ΔF : Time) (g : Nat) (hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hset : FinalitySet_W p c E rho G ΔF .recF4 g)
+    (hhor : E.t_GST + B_HF p ΔF G + W_W p ΔF g = rho.horizon) :
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G := by
+  obtain ⟨w, input, hstar, _⟩ := fgsa_firstFinality_recF4 hH hL G ΔF g hδ c E rho ()
+    ⟨hset, hhor.le⟩
+  exact ⟨w, input, hstar⟩
+
+-- The GST trigger can equal the healing bound; its local witness stays strictly earlier.
+example {p : Params} (hH : HTimeClaim p) (hL : FinalityLivenessRecF4Claim_W p)
+    (hP : ProposalFinalRecF4Claim_W p)
+    (G ΔF : Time) (g : Nat) (hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hset : FinalitySet_W p c E rho G ΔF .recF4 g)
+    (hhor : E.t_GST + B_HF p ΔF G + W_W p ΔF g ≤ rho.horizon) :
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G := by
+  obtain ⟨w, input, hstar, _, _⟩ := fgsa_finalityLivenessGST_recF4 hH hL hP
+    (healing_liveDCFromWindows p) G ΔF g hδ c E rho ⟨E.t_GST + B_HF p ΔF G⟩
+    ⟨hset, le_rfl, hhor⟩
+  exact ⟨w, input, hstar⟩
+
 end AvailableChain.FGSA.Run

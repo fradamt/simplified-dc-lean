@@ -20,19 +20,6 @@ private theorem local_certificate_le (K : FGBlock (Fin p.n)) :
     rw [birth.2.2.1, birth.2.1] at he
     exact he.ge
 
-omit [Fintype V] in
-private theorem local_accepts_deadline {x : V} {U : FGBlock (Fin p.n)} {D d : Time}
-    (hnr : V2.D.NoRestart rho) (hs : V2.D.ScheduleWellFormed E rho)
-    (hDd : D ≤ d) (h : AcceptsFinalBefore p c E rho x U D) :
-    AcceptsFinalBefore p c E rho x U d := by
-  obtain ⟨i, hi, hbefore, hU⟩ :=
-    (Gen.V2.Duty.holdsBefore_iff_exists_idx hnr hs (fgsa_monoAlong_preceq_F p c U)).mp h
-  apply acceptsFinalBefore_of_idx p c E rho hnr hs
-  refine ⟨i, hi, ?_, hU⟩
-  intro k hk
-  obtain ⟨e, he, ht⟩ := hbefore k hk
-  exact ⟨e, he, ht.trans_le hDd⟩
-
 /-- Paper 22:1371–1380; firstfin plan §5 B. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL strict extension and certificate height, including genesis 0/1.
 The comparisons use each node's inclusive state; acceptance stays strict-before. -/
@@ -83,7 +70,7 @@ theorem finality_liveness_of_forward_W {G ΔF : Time} {g : Nat} {w : HealingWitn
     rw [hU, ← hd]
     exact Nat.lt_succ_of_le (hcert.trans hheight)
   · intro x hx
-    exact local_accepts_deadline p c E rho hnr hs hD.le (hacc x hx)
+    exact acceptsFinalBefore_mono_deadline p c E rho hnr hs hD.le (hacc x hx)
 
 /-- Paper 22:1371–1400; firstfin plan §5 B. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL local W liveness; the inherited kernel inputs remain inline. -/

@@ -67,27 +67,15 @@ theorem proposal_final_of_forward_W {G ΔF : Time} {g : Nat} {w : HealingWitness
   change S_at p c E rho (afterTicksIdx rho (SA.gateTime p.toParams pt.s)) y = pt.X at hX
   change S_at p c E rho (afterTicksIdx rho (SA.gateTime p.toParams (r * p.R))) y = A at hAA
   have hXA : Block.Preceq pt.X A := by
-    by_cases heq : pt.s = r * p.R
-    · rw [heq] at hX
-      have he : pt.X = A := hX.symm.trans hAA
-      rw [he]
-      exact block_preceq_refl A
-    · have hmono := h.input.ac.h4.2.2.1 _ _ y hsX hsA
-        (afterTicksIdx_mono rho hgate) hy
-      rwa [hX, hAA] at hmono
+    have hmono := h.input.ac.h4.2.2.1 _ _ y hsX hsA
+      (afterTicksIdx_mono rho hgate) hy
+    rwa [hX, hAA] at hmono
   obtain ⟨Xfg, heX, _, _, _, _⟩ := kmid_opening_carrier p c E rho hs h.prop
   have hXU : FGBlock.Preceq Xfg U := KitFG.preceq_trans
     (kmid_lift_preceq p (by simpa only [heX, heA] using hXA)) hAU
   refine ⟨Xfg, heX, ?_⟩
   intro x hx
-  obtain ⟨i, hi, hbefore, hU⟩ :=
-    (Gen.V2.Duty.holdsBefore_iff_exists_idx hnr hs (fgsa_monoAlong_preceq_F p c U)).mp
-      (hacc x hx)
-  apply acceptsFinalBefore_of_idx p c E rho hnr hs
-  refine ⟨i, hi, ?_, KitFG.preceq_trans hXU hU⟩
-  intro k hk
-  obtain ⟨e, he, ht⟩ := hbefore k hk
-  exact ⟨e, he, ht.trans_le hD.le⟩
+  exact acceptsFinalBefore_mono_ancestor p c E rho hnr hs hXU hD.le (hacc x hx)
 
 /-- Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL proposal-relative W deadline. The frozen forward producer is called

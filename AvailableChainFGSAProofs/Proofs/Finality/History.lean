@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSA.Proofs.StoreLaws
 public import AvailableChainFGSA.Proofs.WindowRetention
@@ -266,6 +267,9 @@ private theorem khistory_retained_cross (y : Nat) (U C : FGBlock (Fin p.n))
         (Window.derive p p.K_W (.node P s root x rs)).J =
         (Window.finalizeWindow p.E
           (Window.certificateFolded p p.K_W (.node P s root x rs))).T_h := by
+      rw [Window.derive_def p p.K_W (.node P s root x rs)]
+      dsimp only
+      rw [Window.transition_def]
       change (Window.process_height_events p.E p.cfg p.K_W
           (Window.certificateFolded p p.K_W (.node P s root x rs))).h_j = _ ∧
         (Window.process_height_events p.E p.cfg p.K_W
@@ -395,16 +399,7 @@ theorem raw_causal_cap_at_tick (base : BaseSet p c E rho)
 /-- FINAL 22:217–220,923–944. Positive delay and round length order the actions.
 DC: INTENTIONAL: FG-SA action times use its fixed round grid. -/
 private theorem khistory_action_strictMono : StrictMono p.actionTime := by
-  intro m n hmn
-  change 4 * p.Δ * ((m * p.R : Nat) : Int) + 6 * p.Δ <
-    4 * p.Δ * ((n * p.R : Nat) : Int) + 6 * p.Δ
-  have hR : 0 < p.R := by have h := p.RLarge; omega
-  have hΔ : 0 < 4 * p.Δ := mul_pos (by decide) p.deltaPos
-  have hmul : m * p.R < n * p.R := Nat.mul_lt_mul_of_pos_right hmn hR
-  have hprod : 4 * p.Δ * ((m * p.R : Nat) : Int) <
-      4 * p.Δ * ((n * p.R : Nat) : Int) :=
-    mul_lt_mul_of_pos_left (Int.ofNat_lt.mpr hmul) hΔ
-  exact Int.add_lt_add_right hprod _
+  exact receipt_actionTime_strictMono p
 
 include horigin in
 /-- FINAL 22:923–944,1188–1208. Include action q rows up to the strict next-action cut.

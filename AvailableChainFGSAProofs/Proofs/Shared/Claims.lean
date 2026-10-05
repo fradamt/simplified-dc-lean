@@ -63,11 +63,18 @@ private theorem fgsa_gst_window_nonneg (p : Params) (ΔF : Time) (g : Nat) :
     4 * (kappaF p ΔF : Time) * p.Δ + p.Δ
   positivity
 
-/-- Blueprint 22:1382–1384; FirstFinality plan §8. DC: INTENTIONAL GST form;
-DC finalized (Generic/Claims.lean:39–44). H-time supplies one witness;
-local liveness at tstar keeps its comparisons and uses the later GST deadline. -/
-theorem fgsa_firstFinality_recFE (hH : HTimeClaim p)
-    (hL : FinalityLivenessRecFEClaim_W p) : FirstFinalityRecFEClaim_W p := by
+private theorem fgsa_firstFinality_form (form : FinFormW) (hH : HTimeClaim p)
+    (hL : ∀ (G ΔF : Time) (g : Nat) (w : HealingWitness) (_hδ : p.δt = 2 * p.R)
+      {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtT),
+      FinalityLivenessPrem_W p c G ΔF form g w E rho pt →
+      FinalityLivenessConcl_W p c E rho pt.t (pt.t + W_W p ΔF g)) :
+    ∀ (G ΔF : Time) (g : Nat) (_hδ : p.δt = 2 * p.R)
+      {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
+      FirstFinalityPrem_W p c G ΔF form g E rho pt →
+      FirstFinalityConcl_W p c E rho ΔF G
+        (E.t_GST + B_HF p ΔF G + W_W p ΔF g) := by
   intro G ΔF g hδ V _ _ In c E rho pt h
   have hW := fgsa_gst_window_nonneg p ΔF g
   have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
@@ -75,8 +82,8 @@ theorem fgsa_firstFinality_recFE (hH : HTimeClaim p)
   obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
     ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
   have hstar := start.trans_lt bound
-  have hdeadline : tstar p w + W_W p ΔF g ≤ E.t_GST + B_HF p ΔF G + W_W p ΔF g := by
-    exact Int.add_le_add_right hstar.le _
+  have hdeadline : tstar p w + W_W p ΔF g ≤ E.t_GST + B_HF p ΔF G + W_W p ΔF g :=
+    Int.add_le_add_right hstar.le _
   obtain ⟨U, hS, hF, haccept⟩ := hL G ΔF g w hδ c E rho ⟨tstar p w⟩
     ⟨h.set, input, le_rfl, hdeadline.trans h.hhor⟩
   refine ⟨w, input, hstar, U, hS, hF, ?_⟩
@@ -87,23 +94,16 @@ theorem fgsa_firstFinality_recFE (hH : HTimeClaim p)
 /-- Blueprint 22:1382–1384; FirstFinality plan §8. DC: INTENTIONAL GST form;
 DC finalized (Generic/Claims.lean:39–44). H-time supplies one witness;
 local liveness at tstar keeps its comparisons and uses the later GST deadline. -/
+theorem fgsa_firstFinality_recFE (hH : HTimeClaim p)
+    (hL : FinalityLivenessRecFEClaim_W p) : FirstFinalityRecFEClaim_W p := by
+  exact fgsa_firstFinality_form .recFE hH hL
+
+/-- Blueprint 22:1382–1384; FirstFinality plan §8. DC: INTENTIONAL GST form;
+DC finalized (Generic/Claims.lean:39–44). H-time supplies one witness;
+local liveness at tstar keeps its comparisons and uses the later GST deadline. -/
 theorem fgsa_firstFinality_recF4 (hH : HTimeClaim p)
     (hL : FinalityLivenessRecF4Claim_W p) : FirstFinalityRecF4Claim_W p := by
-  intro G ΔF g hδ V _ _ In c E rho pt h
-  have hW := fgsa_gst_window_nonneg p ΔF g
-  have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
-    (le_add_of_nonneg_right hW).trans h.hhor
-  obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
-    ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
-  have hstar := start.trans_lt bound
-  have hdeadline : tstar p w + W_W p ΔF g ≤ E.t_GST + B_HF p ΔF G + W_W p ΔF g := by
-    exact Int.add_le_add_right hstar.le _
-  obtain ⟨U, hS, hF, haccept⟩ := hL G ΔF g w hδ c E rho ⟨tstar p w⟩
-    ⟨h.set, input, le_rfl, hdeadline.trans h.hhor⟩
-  refine ⟨w, input, hstar, U, hS, hF, ?_⟩
-  intro x hx
-  exact acceptsFinalBefore_mono_deadline p c E rho h.set.core.base.noRestart
-    h.set.core.base.valid.toScheduleWellFormed hdeadline (haccept x hx)
+  exact fgsa_firstFinality_form .recF4 hH hL
 
 /-- Blueprint 22:1371–1380. DC: INTENTIONAL GST form; no healing output as premise;
 DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/

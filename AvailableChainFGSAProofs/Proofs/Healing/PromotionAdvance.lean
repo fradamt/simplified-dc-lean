@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionSource
 
 public section
 
@@ -59,57 +58,19 @@ theorem healing_promotion_advance (E : Generic.Env V)
   have hhor : SA.proposalTime p.toParams s ≤ rho.horizon := hphase.2.1
   obtain ⟨U, hU, hUslot, hUP, hrows⟩ := healing_promotion_same_rows E rho hrec perm
     hentry hcovered hgst hphase hu hgate hafter hnew hslot
-  have hmature : U.slot + p.δt ≤ X.slot := by
-    rw [hslot]
-    exact healing_promotion_maturity_of_action p hδ hUslot hs
-  have hX : X ≠ .genesis := by
-    intro he
-    have ht := hnew.1.1
-    rw [← hslot, he] at ht
-    cases ht
-  apply (hfold height U X hX hU hUP ?_ (fun _ => hmature)).1
-  intro hpar
-  obtain ⟨Y, he, _, hcarrier, st, hst, hlookup⟩ := healing_promotion_carrier E rho hrec hnew
-  have hYX : Y = X := eraseFG_injective he
-  subst Y
-  have hinv := (storeBundle_of_reachable p st
-    (healing_promotion_proposal_reachable p c E rho hst)).cstore
-  have hparent : X.parent ∈ st.fg.TF := ((fgBlockOf_spec p st hinv _ _).mp hlookup).1
-  have hb : BatchPrem p c E rho ΔF .progress r height U X := by
-    refine ⟨hrec.base, faultQ, hrec.deltaF, rowsReceipt, ?_, ?_, ?_, ?_, hU, hUP, ?_⟩
-    · rw [hslot]
-      exact ⟨hdeadline, hhor⟩
-    · rw [hslot]
-      exact hcarrier
-    · rw [hslot]
-      exact hafter
-    · refine ⟨honestSeats p c rho, subset_rfl, honestQuorum, ?_⟩
-      intro i hi
-      have hx : rho.seatOf (.base .fg) i ∈ rho.honest := by
-        rw [honestSeats_def] at hi
-        exact (Finset.mem_filter.mp hi).2
-      obtain ⟨K, nd, j, rSent, a, _, _, _, _, _, _, _, _, hr, hrow, hn, hvalid⟩ :=
-        hrows _ hx
-      obtain ⟨i', hauth⟩ := honestRow_auth p c rho E hrec.base.valid hrow
-      have hseat : rho.seatOf (.base .fg) i' = rho.seatOf (.base .fg) i := by
-        have hem := hrow.2.2
-        cases a with
-        | mk auth body =>
-          change auth = .seat .fg i' at hauth
-          subst auth
-          exact ((fgsa_emitsAt_row E rho j _ _ hrow.2.1 i' body).mp hem).2.1
-      have hii : i' = i := (hrec.base.linked.toCStar (.base .fg) trivial).1 hseat
-      subst i'
-      refine ⟨j, rSent, a, p.actionTime rSent, hr, hrow, hauth, hn, ?_, rfl,
-        (hvalid hpar).1, (hvalid hpar).2⟩
-      change rho.events[j]?.map V2.Event.time = some (p.actionTime rSent)
-      rw [hrow.2.1]
-      rfl
-    · intro i _ W hW hn
-      exact healing_rows_above_entry_at_height p st
-        (healing_promotion_proposal_reachable p c E rho hst) .progress height U X.parent
-        hparent hpar hUP i W hW hn
-  exact progressCoverage r height U X hb hpar
+  apply promotion_age_advance_of_source E rho hrec (r := r) (s := s) (U := U)
+    ?_ hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum
+  refine ⟨hU, hUP, hnew, hslot, hstart, hc, ?_, hhor, ?_⟩
+  · have hscale : SA.proposalTime p.toParams U.slot ≤ (r : Time) * P p := by
+      have hi : (U.slot : Time) ≤ ((r * p.R : Nat) : Time) := by exact_mod_cast hUslot
+      change 4 * p.Δ * (U.slot : Time) ≤ (r : Time) * (4 * (p.R : Time) * p.Δ)
+      have h := mul_le_mul_of_nonneg_left hi (by linarith [p.deltaPos] : 0 ≤ 4 * p.Δ)
+      push_cast at h
+      nlinarith
+    linarith
+  · intro x hx
+    obtain ⟨K, nd, j, rSent, a, _, _, _, _, _, _, _, _, hr, ha, hn, _⟩ := hrows x hx
+    exact ⟨j, rSent, a, hr, ha, hn⟩
 
 end AvailableChain.FGSA.Run
 end

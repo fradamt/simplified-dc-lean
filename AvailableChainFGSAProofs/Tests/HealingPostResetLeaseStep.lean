@@ -17,7 +17,7 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
--- conditional package, anti-vacuity: A1 covers an actual written prefix
+-- Conditional package (composition): A1 covers an actual written prefix
 -- that has no emitted source. Its synchrony comes from the reset cut.
 example [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)

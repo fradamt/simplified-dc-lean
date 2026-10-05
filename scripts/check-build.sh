@@ -9,6 +9,8 @@
 #   (i) check-gly-rules.sh       (includes compiled CheckGenFirst.lean)
 #   (j) self-tests of the checkers: check-layers-selftest.sh and
 #       shake-report-selftest.sh (no Lean; fixtures in temporary directories)
+# B1 import review: retain public exports and explicit tactic/test environments.
+# The count 224 is historical; use the current report for the live inventory.
 # (d) and (e) run when their script exists; else "SKIPPED: not yet present".
 # SKIP_CONE=1 skips (c) (it needs a built tree and a Lean build).
 # Every check runs; the summary lists each result. Exit 0: every check that

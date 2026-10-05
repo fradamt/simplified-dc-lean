@@ -24,6 +24,7 @@ variable (p : Params)
 
 /-- Blueprint 21:1356–1425. The suppliers keep the renewed promotion ports.
 The claim supplies recovery, the liveness bound, and the gate horizon.
+Assembly must discharge every supplier port of these composition wrappers.
 DC: SAME fixed action, effective-event alternative, and three deadlines. -/
 theorem healing_renewedPromotionClaim_of
     (hmono : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)

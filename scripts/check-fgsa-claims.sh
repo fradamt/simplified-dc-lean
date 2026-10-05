@@ -1381,6 +1381,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.covered_parent_W',
     'AvailableChain.FGSA.Run.finalityBatch_covered_W',
     'AvailableChain.FGSA.Run.finalizePending_of_acceptBefore_W',
+    # WC: strong prefix, agreement, continuation, and bounded safety recovery.
     'AvailableChain.FGSA.Run.StrongRecoverySearchPrefix₂',
     'AvailableChain.FGSA.Run.AgreesThrough₂',
     'AvailableChain.FGSA.Run.CleanContinuation₂',
@@ -2406,11 +2407,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_h4_crossBelow',
     'AvailableChain.FGSA.Run.healing_healed_proposal_lower',
     'AvailableChain.FGSA.Run.healing_healed',
+    'AvailableChain.FGSA.Run.healing_h4_rawCompatible',
+    'AvailableChain.FGSA.Run.healing_h4',
     'AvailableChain.FGSA.Run.healing_reset_rStar_unique',
     'AvailableChain.FGSA.Run.healing_tstar_le_of_h0',
     'AvailableChain.FGSA.Run.healing_timeBound_of_resetArrival',
-    'AvailableChain.FGSA.Run.healing_h4_rawCompatible',
-    'AvailableChain.FGSA.Run.healing_h4',
     # J10 HealingInput export: --expect DATA additions only.
     'AvailableChain.FGSA.Run.healing_postResetStart_of_h0',
     'AvailableChain.FGSA.Run.healing_healingInputOfH0',

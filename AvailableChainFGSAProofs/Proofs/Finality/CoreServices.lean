@@ -1,6 +1,7 @@
 module
+public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSARun.Proofs.RootResolution
-public import AvailableChainFGSA.Proofs.Head.Walk
+public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (prefix lift)
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.Receipts
@@ -13,7 +14,7 @@ open AvailableChain.SimplexFG Gen.Pure
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 01:137–140,166–182; 22 I5:538–581. Class (iii).
+Blueprint 01 A.7 T-START:222–225,251–267; 22 I5:538–581. Class (iii).
 DC b241081: INTENTIONAL: the FG-SA live root selects a live lease in the
 FJ filtered tree, or the active root Z. The reachable lease bound supplies output. -/
 theorem fgsa_tStart (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
@@ -39,20 +40,6 @@ theorem fgsa_tStart (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
         exact leaseBelowOutput_stateBefore E rho i x row hr ht
       · cases hrow
 
-private theorem core_lift_prefix {n : Nat} (B : FGBlock (Fin n)) (a : Block)
-    (ha : Block.Preceq a (eraseFG B)) :
-    ∃ A, FGBlock.Preceq A B ∧ eraseFG A = a := by
-  induction B with
-  | genesis =>
-      have he : a = .genesis := by simpa [eraseFG, Block.Preceq, Block.preceq] using ha
-      exact ⟨.genesis, KitFG.preceq_refl _, he.symm⟩
-  | node P s root r rs ih =>
-      change (decide (a = eraseFG (.node P s root r rs)) || Block.preceq a (eraseFG P)) = true at ha
-      rcases Bool.or_eq_true_iff.mp ha with he | hp
-      · exact ⟨.node P s root r rs, KitFG.preceq_refl _, (of_decide_eq_true he).symm⟩
-      · obtain ⟨A, hA, he⟩ := ih hp
-        exact ⟨A, KitFG.preceq_trans hA (KitFG.preceq_parent_node _ _ _ _ _), he⟩
-
 private theorem core_full_mem (st : State p.n) (B : FGBlock (Fin p.n)) :
     B ∈ fullTree p st ↔ B ∈ st.fg.TF ∧ FGBlock.Preceq (controls p st).F B ∧
       FGBlock.Preceq (controls p st).Z B ∧
@@ -60,7 +47,7 @@ private theorem core_full_mem (st : State p.n) (B : FGBlock (Fin p.n)) :
   KitFG.mem_filteredFromView (heightView p) (controls p st) st.fg.TF B
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Blueprint 01:158–164,184–199; 22 I8:637. Class (iii).
+ROOT-DIGEST W2b. Blueprint 01 A.7 T-WALK:243–249,269–278; 22 I8:637. Class (iii).
 DC b241081: Protocol/ForkChoice/Goldfish/Adoption.lean:415 and
 Protocol/ForkChoice/Goldfish/Walk.lean:184,197,433.
 INTENTIONAL: the FJ tree and live root supply the path; Batch supplies the
@@ -89,17 +76,14 @@ theorem fgsa_tWalk (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
   have hkeep : ∀ C, Block.Prec (liveRoot p st) C → Block.Preceq C (eraseFG Q) →
       C ∈ erasedList st (fullTree p st) := by
     intro C hac hcQ
-    obtain ⟨A, hAQ, rfl⟩ := core_lift_prefix Q C hcQ
+    obtain ⟨A, hAQ, rfl⟩ := geometry_lift_prefix Q C hcQ
     have hAT := KitFG.ancestor_closed_of_parent_closed _ hi.fg.closed Q hQT A hAQ
     obtain ⟨_, hFQ, hZQ, W, hWT, hQW, hlo⟩ := (core_full_mem st Q).mp hQ
     have hZA : FGBlock.Preceq (controls p st).Z A :=
       preceq_of_eraseFG_preceq hinj ⟨Q, hQT, hZQ⟩ ⟨Q, hQT, hAQ⟩
         (block_preceq_trans (fgsa_Z_preceq_liveRoot p st) (Bool.and_eq_true_iff.mp hac).2)
-    have hFZ : FGBlock.Preceq (controls p st).F (controls p st).Z := by
-      unfold Controls.Z
-      split
-      · exact hi.fg.FJ
-      · exact KitFG.preceq_refl _
+    have hFZ : FGBlock.Preceq (controls p st).F (controls p st).Z :=
+      fgsa_F_preceq_Z p st hi
     have hA := (core_full_mem st A).mpr
       ⟨hAT, KitFG.preceq_trans hFZ hZA, hZA, W, hWT, KitFG.preceq_trans hAQ hQW, hlo⟩
     exact List.mem_filter.mpr ⟨(hi.baseTree _).mpr ⟨A, hAT, rfl⟩,
@@ -192,7 +176,7 @@ theorem fgsa_tWalk (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
     exact hel.elim Or.inr Or.inl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 01:150–157; 22:1233–1234.
+Blueprint 01 A.7 T-VOTE:235–242; 22:1233–1234.
 DC: Protocol/Handlers/GoldfishVotePool.lean:320, scheduled honest HEAD. -/
 private theorem core_head_form (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (y : V) (s : Slot) (a : HeadWire p.n)
@@ -224,7 +208,7 @@ private theorem core_head_form (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   all_goals cases hw
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 01:150–157; 22:1233–1234.
+Blueprint 01 A.7 T-VOTE:235–242; 22:1233–1234.
 DC: Generic/Conditions.lean:110,134, delivery within the label window. -/
 private theorem core_vote_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
@@ -256,7 +240,7 @@ private theorem core_vote_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   exact hm.trans (Nat.le_succ s)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 01:150–157; 22:1233–1234.
+Blueprint 01 A.7 T-VOTE:235–242; 22:1233–1234.
 DC: Protocol/Handlers/GoldfishVotePool.lean:320.
 INTENTIONAL: non-row receipts persist to the FG-SA post-clock read. -/
 private theorem core_full_vote
@@ -316,7 +300,7 @@ private theorem core_full_vote
     exact decide_eq_true hslot
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 01:150–157; 22:1233–1234 (S14). Class (ii).
+Blueprint 01 A.7 T-VOTE:235–242; 22:1233–1234 (S14). Class (ii).
 DC: Generic/Conditions.lean:110,134 and
 Protocol/Handlers/GoldfishVotePool.lean:320.
 INTENTIONAL: FG-SA uses non-row delivery and the post-clock active view. -/

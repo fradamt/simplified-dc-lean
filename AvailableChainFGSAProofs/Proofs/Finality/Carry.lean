@@ -10,13 +10,11 @@ open Window (RetainedW CoveredW)
 
 private theorem carry_parent_height (p : Params) (s : Slot) (P : FGBlock (Fin p.n)) :
     (parentFoldState p s P).h = (heightView p P).h := by
-  rw [heightView_def, Window.projectHeight_def]
-  rfl
+  exact (Window.parentState_height_entry p p.K_W P s).1
 
 private theorem carry_parent_entry (p : Params) (s : Slot) (P : FGBlock (Fin p.n)) :
     (parentFoldState p s P).T_h = (heightView p P).T_h := by
-  rw [heightView_def, Window.projectHeight_def]
-  rfl
+  exact (Window.parentState_height_entry p p.K_W P s).2
 
 private theorem carry_decode (p : Params) (a : RowWire p.n) (i : Fin p.n)
     (hauth : a.auth = .seat .fg i) : a.toRow? = some (a.payload.toRow i) := by

@@ -628,7 +628,8 @@ theorem nvResetFirst : ∀ r, HeightRow params unitCodec env run r 3 → 3 ≤ r
   have h := nvEarlyRowCap ha he (by omega)
   omega
 
--- Keep the concrete witness terms closed during the final structure assembly.
+-- Close these terms only for the final structure assembly. Earlier proofs need
+-- their defining equations to check the concrete row and source reads.
 attribute [irreducible] resetSource resetRow
 
 theorem nvFresh : ∃ j y, ∃ (a : RowWire params.n) (C : FGBlock (Fin params.n)),

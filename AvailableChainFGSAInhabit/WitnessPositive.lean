@@ -14,7 +14,6 @@ The acceptance prefix ends after the first proposal receipt (37 events).
 namespace AvailableChain.FGSA.Run.Tests.WitnessPositive
 open WeakContinuationWitness
 
-
 /-- Take an event prefix of the same generator, with its original parameters. -/
 def positivePrefix (steps count : Nat) : V2.D.Run Validator (fgsa params unitCodec) :=
   runData (steps : Time) ((buildPrefix steps).2.take count)
@@ -93,6 +92,10 @@ theorem positive_proposal_accepted :
       (V2.D.Run.stateBefore weakEnv (positivePrefix 5 37) 37 0).st.proposals := by
   decide +kernel
 
+/-- P2: node one stores the same proposal after its delivery. -/
+example : toWire params firstProposal ∈
+    (V2.D.Run.stateBefore weakEnv (positivePrefix 5 38) 38 1).st.proposals := by
+  decide +kernel
 
 /-- The first row is a height-one target for genesis, signed by node zero. -/
 def firstRow : RowWire params.n :=
@@ -121,6 +124,11 @@ theorem positive_row_admitted :
     firstRow ∈ (V2.D.Run.stateBefore weakEnv (positivePrefix 15 137) 137 0).st.rowPool := by
   decide +kernel
 
+/-- P3: node one's pool contains node zero's row after the next delivery. -/
+example : firstRow ∈
+    (V2.D.Run.stateBefore weakEnv (positivePrefix 15 138) 138 1).st.rowPool := by
+  decide +kernel
+
 /-- The only earlier FG duty emits nothing at node zero. -/
 theorem positive_six_zero :
     (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 0) 0 6).2 = [] := by
@@ -140,7 +148,6 @@ theorem positive_six_two :
 theorem positive_six_three :
     (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 3) 3 6).2 = [] := by
   decide +kernel
-
 
 /-- The HEAD prefix ends at its last named receipt. -/
 theorem positive_head_length : (positivePrefix 2 12).events.length = 12 := by decide +kernel
@@ -298,7 +305,6 @@ theorem positive_signer_honest : (0 : Validator) ∈ source.honest ∧
   rw [honest_sets.1, honest_sets.2]
   exact ⟨Finset.mem_univ _, Finset.mem_univ _⟩
 
-
 /-- A row before time 14 can only come from the FG duty at time 6. -/
 theorem positive_early_row_time (st : Node params) (v : Validator) (t : Time)
     (o : Obj params) (body : RowPayload) (ht : t < 14)
@@ -360,6 +366,17 @@ theorem positive_source_first_row (v : Validator) (o : Obj params) (t : Time)
   have hn' : n < 14 := by exact_mod_cast (lt_of_not_ge ht)
   exact positive_no_earlier_row n hn' o body hp hn
 
+/-- The continuation also has no row emission before time 14. -/
+example (v : Validator) (o : Obj params) (t : Time) (body : RowPayload)
+    (hp : o.payload = .row body) (he : V2.D.Run.emits weakEnv continuation v o t) :
+    14 ≤ t := by
+  obtain ⟨i, hi, ho⟩ := he
+  rw [(V2.D.Run.step_tick_eq weakEnv continuation hi).2] at ho
+  rw [w1_continuation_eq] at hi ho
+  obtain ⟨n, _, rfl, hn⟩ := w1_locate_emission 264 i v t o hi ho
+  by_contra ht
+  have hn' : n < 14 := by exact_mod_cast (lt_of_not_ge ht)
+  exact positive_no_earlier_row n hn' o body hp hn
 
 /-- P1 receipts of node zero's HEAD in the source, indexed by receiver. -/
 theorem positive_source_head_receipts (v : Validator) :

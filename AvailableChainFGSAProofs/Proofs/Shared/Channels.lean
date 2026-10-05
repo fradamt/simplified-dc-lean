@@ -421,7 +421,7 @@ theorem finalityBatch_covered_W (p : Params) (ΔF : Time)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan item 5. DC: INTENTIONAL strict β+Δ acceptance with the same receipt.
-AcceptBefore_W is the stage-5 contract, not a proved acceptance LAW. -/
+AcceptBefore_W is supplied by fgsa_acceptBefore_W in Clean/AcceptBefore. -/
 theorem finalizePending_of_acceptBefore_W (p : Params) (ΔF : Time)
     (haccept : AcceptBefore_W p) : FinalizePending_W p ΔF := by
   intro V _ _ In c E rho q y U X _slot h

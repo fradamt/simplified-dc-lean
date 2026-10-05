@@ -10,6 +10,12 @@ namespace AvailableChain.FGSA.Run
 
 variable (p : Params)
 
+private theorem clean_history_supplier (hcut : CleanCutClaim p)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀)
+    (h : CleanCutPrem p c E rho pt ΔF) : CleanHistoryAt p c E rho pt.b₀ :=
+  (hcut c E rho pt h).1
+
 /-- ROOT-DIGEST W2b. Blueprint 03 §4. The Clean claims supply the history projections.
 Foundation Exports supply store, frame, and source discipline. -/
 theorem fgsa_exactProposalClaim_of_clean
@@ -21,19 +27,19 @@ theorem fgsa_exactProposalClaim_of_clean
     (hstrat := fun c E rho pt hb => (fgsa_fgFoundationClaim p c E rho pt hb).strat)
     (hordered := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).1)
     (hnonempty := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.1)
     (htransfer := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.1)
     (hleases := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.1)
     (hrows := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.2.2.1)
 
 /-- ROOT-DIGEST W2b. Blueprint 03 §5. The Clean claims supply history and monotonicity.
 The E1 Export proves the frozen post-gate inclusion claim. -/
@@ -47,19 +53,19 @@ theorem fgsa_cleanInclusionPostGateClaim_of_clean
     (hstrat := fun c E rho pt hb => (fgsa_fgFoundationClaim p c E rho pt hb).strat)
     (hordered := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).1)
     (hnonempty := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.1)
     (htransfer := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.1)
     (hleases := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.1)
     (hrows := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.2.2.1)
     (hmono := by
       intro V _ _ In c E rho ΔF pt hc
       exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)
@@ -75,19 +81,19 @@ theorem fgsa_cleanInclusionClaim_of_clean
     (hstrat := fun c E rho pt hb => (fgsa_fgFoundationClaim p c E rho pt hb).strat)
     (hordered := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).1)
     (hnonempty := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.1)
     (htransfer := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.1)
     (hleases := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.1)
     (hrows := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.2.2.1)
     (hmono := by
       intro V _ _ In c E rho ΔF pt hc
       exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)
@@ -103,19 +109,19 @@ theorem fgsa_cleanGrowthClaim_of_clean
     (hstrat := fun c E rho pt hb => (fgsa_fgFoundationClaim p c E rho pt hb).strat)
     (hordered := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).1)
     (hnonempty := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.1)
     (htransfer := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.1)
     (hleases := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.1)
     (hrows := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.2.2.1)
+      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.2.2.1)
     (hmono := by
       intro V _ _ In c E rho ΔF pt hc
       exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)

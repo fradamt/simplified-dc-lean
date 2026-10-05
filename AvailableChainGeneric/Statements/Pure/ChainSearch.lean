@@ -6,8 +6,8 @@ public import AvailableChainGeneric.Statements.Pure.Stages
 namespace AvailableChain.Gen.Pure
 
 /-- ChainSearchStatement searches at fixed offsets with a free reachable-range guard.
-DC: INTENTIONAL. No recurrence search contract in DC. See the design stage search:
-Generic statements, Legacy/Definitions, Bridge, and all Lean stage/finRange searches;
+DC: INTENTIONAL additive recurrence search contract. It extends the stage searches in
+Generic statements, Legacy/Definitions, Bridge, and Lean stage/finRange searches;
 nearest fold: DecoupledConsensusProofs/Bridge/FinalizedLive.lean:298–306.
 Consumers: F4.QF4 (22:1731–1743, k = 2, s = 3),
 F5.H.9-Q/H.10-Q (21:2336–2344, k ≤ 3, s = 2).
@@ -22,8 +22,8 @@ def ChainSearchStatement : Prop :=
       p (k - 1) ≤ q + k * (g - 1) + (k - 1) * s
 
 /-- ChainSearchStatement_def gives the first-unfold equation.
-DC: INTENTIONAL. No recurrence search contract in DC. See the design stage search:
-Generic statements, Legacy/Definitions, Bridge, and all Lean stage/finRange searches;
+DC: INTENTIONAL additive recurrence search contract. It extends the stage searches in
+Generic statements, Legacy/Definitions, Bridge, and Lean stage/finRange searches;
 nearest fold: DecoupledConsensusProofs/Bridge/FinalizedLive.lean:298–306.
 Consumers: F4.QF4 (22:1731–1743, k = 2, s = 3),
 F5.H.9-Q/H.10-Q (21:2336–2344, k ≤ 3, s = 2).
@@ -38,8 +38,8 @@ theorem ChainSearchStatement_def : ChainSearchStatement =
       p (k - 1) ≤ q + k * (g - 1) + (k - 1) * s) := by rfl
 
 /-- AntitoneChainSearchStatement uses the guard at the greatest reachable start.
-DC: INTENTIONAL. No recurrence search contract in DC. See the design stage search:
-Generic statements, Legacy/Definitions, Bridge, and all Lean stage/finRange searches;
+DC: INTENTIONAL additive recurrence search contract. It extends the stage searches in
+Generic statements, Legacy/Definitions, Bridge, and Lean stage/finRange searches;
 nearest fold: DecoupledConsensusProofs/Bridge/FinalizedLive.lean:298–306.
 Consumers: F4.QF4 (22:1731–1743, k = 2, s = 3),
 F5.H.9-Q/H.10-Q (21:2336–2344, k ≤ 3, s = 2).
@@ -55,8 +55,8 @@ def AntitoneChainSearchStatement : Prop :=
       p (k - 1) ≤ q + k * (g - 1) + (k - 1) * s
 
 /-- AntitoneChainSearchStatement_def gives the first-unfold equation.
-DC: INTENTIONAL. No recurrence search contract in DC. See the design stage search:
-Generic statements, Legacy/Definitions, Bridge, and all Lean stage/finRange searches;
+DC: INTENTIONAL additive recurrence search contract. It extends the stage searches in
+Generic statements, Legacy/Definitions, Bridge, and Lean stage/finRange searches;
 nearest fold: DecoupledConsensusProofs/Bridge/FinalizedLive.lean:298–306.
 Consumers: F4.QF4 (22:1731–1743, k = 2, s = 3),
 F5.H.9-Q/H.10-Q (21:2336–2344, k ≤ 3, s = 2).
@@ -72,8 +72,8 @@ theorem AntitoneChainSearchStatement_def : AntitoneChainSearchStatement =
       p (k - 1) ≤ q + k * (g - 1) + (k - 1) * s) := by rfl
 
 /-- TwoStepChainSearchStatement gives the QF4 two-search contract for any shift.
-DC: INTENTIONAL. No recurrence search contract in DC. See the design stage search:
-Generic statements, Legacy/Definitions, Bridge, and all Lean stage/finRange searches;
+DC: INTENTIONAL additive recurrence search contract. It extends the stage searches in
+Generic statements, Legacy/Definitions, Bridge, and Lean stage/finRange searches;
 nearest fold: DecoupledConsensusProofs/Bridge/FinalizedLive.lean:298–306.
 Consumers: F4.QF4 (22:1731–1743, k = 2, s = 3),
 F5.H.9-Q/H.10-Q (21:2336–2344, k ≤ 3, s = 2).
@@ -87,8 +87,8 @@ def TwoStepChainSearchStatement : Prop :=
       (s = 3 → p' ≤ q + 2 * g + 1)
 
 /-- TwoStepChainSearchStatement_def gives the first-unfold equation.
-DC: INTENTIONAL. No recurrence search contract in DC. See the design stage search:
-Generic statements, Legacy/Definitions, Bridge, and all Lean stage/finRange searches;
+DC: INTENTIONAL additive recurrence search contract. It extends the stage searches in
+Generic statements, Legacy/Definitions, Bridge, and Lean stage/finRange searches;
 nearest fold: DecoupledConsensusProofs/Bridge/FinalizedLive.lean:298–306.
 Consumers: F4.QF4 (22:1731–1743, k = 2, s = 3),
 F5.H.9-Q/H.10-Q (21:2336–2344, k ≤ 3, s = 2).

@@ -2,6 +2,7 @@ module
 public import AvailableChainSimplexFG
 public import AvailableChainKitFG.Accountable
 public import AvailableChainKitFG.StoreInvDef
+public import AvailableChainKitFG.FrameSelection
 
 @[expose] public section
 
@@ -19,18 +20,6 @@ omit [Fintype V] in
 theorem viewRootInj_mono {Vw Vw' : View V} (hinj : ViewRootInj Vw') (h : Vw ⊆ Vw') :
     ViewRootInj Vw := fun X Y ⟨W, hW, hXW⟩ ⟨W', hW', hYW'⟩ hr =>
   hinj X Y ⟨W, h hW, hXW⟩ ⟨W', h hW', hYW'⟩ hr
-
--- port: DC/DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:53-64
-omit [Fintype V] in
-/-- [helper] `pickPair` returns the unique member that satisfies the test. -/
-theorem pickPair_eq_of_unique {α : Type} [DecidableEq α] (T : Finset α) (p : α → Bool)
-    (a : α) (ha : a ∈ T) (hpa : p a = true) (hu : ∀ b ∈ T, p b = true → b = a) :
-    pickPair T p = some a := by
-  have hex : ∃! x, x ∈ T ∧ p x = true := ⟨a, ⟨ha, hpa⟩, fun b hb => hu b hb.1 hb.2⟩
-  unfold pickPair
-  rw [dite_eq_left hex]
-  have hch := Finset.choose_spec (fun x => p x = true) T hex
-  exact congrArg some (hu _ hch.1 hch.2)
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:66-75
 omit [Fintype V] in
@@ -134,16 +123,6 @@ theorem lexKey_fallback_le (p : Height × FGBlock V) :
   have h0 : lexKey ((0, .genesis) : Height × FGBlock V) = ⊥ := rfl
   rw [h0]
   exact bot_le
-
-omit [DecidableEq V] [Fintype V] in
-/-- [helper] A lex key that is at most another has a height that is at most the
-other height. -/
-theorem fst_le_of_lexKey_le {p q : Height × FGBlock V} (h : lexKey p ≤ lexKey q) :
-    p.1 ≤ q.1 := by
-  unfold lexKey at h
-  rcases Prod.Lex.toLex_le_toLex.1 h with h | ⟨h, -⟩
-  · exact le_of_lt h
-  · exact le_of_eq h
 
 /-- [helper] Inserting a block B: the pair of B enters exactly when its J extends
 F and its key is greater (the J step of `update_finality`). -/
@@ -516,18 +495,6 @@ theorem mem_filteredFrom (c : Controls V) (blocks : Finset (FGBlock V)) (B : FGB
       FGBlock.Preceq c.Z B ∧ ∃ W ∈ blocks, FGBlock.Preceq B W ∧ c.lo ≤ hOf E cfg W := by
   simp only [filteredFrom, Finset.mem_filter, Bool.and_eq_true, decide_eq_true_eq]
   simp only [FGBlock.Preceq, and_assoc]
-
-omit [DecidableEq V] [Fintype V] [RowCodec V] in
-/-- [helper] The band floor is at most the frontier. -/
-theorem Controls.lo_le_H (c : Controls V) : c.lo ≤ c.H := by
-  unfold Controls.lo
-  split_ifs <;> simp only [Height] at * <;> omega
-
-omit [DecidableEq V] [Fintype V] [RowCodec V] in
-/-- [helper] The band floor is at least `H − 1`. -/
-theorem Controls.H_sub_one_le_lo (c : Controls V) : c.H - 1 ≤ c.lo := by
-  unfold Controls.lo
-  split_ifs <;> simp only [Height] at * <;> omega
 
 /-- [helper] In the uncontested phase of `fjControls`, every block of the set at
 the frontier height extends J. -/

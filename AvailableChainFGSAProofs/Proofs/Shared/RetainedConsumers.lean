@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
 
@@ -21,13 +22,6 @@ structure RetainedPriorSupport (p : Params) (src : State p.n) (s : Slot)
   rivals : ∀ B, Block.compatible L B = false → ss src s B < ss src s L
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Blueprint 21 H.3:761–775; H.6:947–958. Class (iii).
-DC: INTENTIONAL; lift a stored witness path without evaluating heightView. -/
-private theorem consumer_lift {n : Nat} {A B : FGBlock (Fin n)}
-    (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  eraseFG_preceq_iff.mp h
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:932–944. Class (iii).
 DC: INTENTIONAL; a stored height witness supplies the supported source path. -/
 private theorem consumer_source_path (p : Params) (src : State p.n)
@@ -35,11 +29,7 @@ private theorem consumer_source_path (p : Params) (src : State p.n)
     (hLW : FGBlock.Preceq L W) (hZL : FGBlock.Preceq (controls p src).Z L)
     (hlo : (controls p src).lo ≤ (heightView p W).h) : eraseFG L ∈ S p src := by
   have hFL : FGBlock.Preceq src.fg.F L := by
-    have hFZ : FGBlock.Preceq src.fg.F (controls p src).Z := by
-      unfold Controls.Z
-      split
-      · exact hs.fg.FJ
-      · exact KitFG.preceq_refl _
+    have hFZ := fgsa_F_preceq_Z p src hs
     exact KitFG.preceq_trans hFZ hZL
   obtain ⟨Q, hQ, heQ⟩ := eraseFG_ancestor_mem hs.fg.closed hW (eraseFG_preceq hLW)
   have hL : L ∈ src.fg.TF := (eraseFG_injective heQ) ▸ hQ
@@ -64,8 +54,8 @@ private theorem consumer_supported_cover (p : Params) (src : State p.n)
       (block_preceq_trans hCL hLW)
     rw [← heB]
     apply consumer_source_path p src hs B W hW
-    · exact consumer_lift (heB ▸ block_preceq_trans hCL hLW)
-    · apply consumer_lift
+    · exact eraseFG_preceq_iff.mp (heB ▸ block_preceq_trans hCL hLW)
+    · apply eraseFG_preceq_iff.mp
       rw [heB]
       exact (Bool.and_eq_true_iff.mp hZC).2
     · exact hlo
@@ -112,21 +102,13 @@ private theorem consumer_parent_height (p : Params) (src : State p.n)
   obtain ⟨W, hW, haW, hlo⟩ := hw
   obtain ⟨B, hB, heB⟩ := eraseFG_ancestor_mem hs.fg.closed hW haW
   have hm := consumer_source_path p src hs B W hW
-    (consumer_lift (heB ▸ haW))
-    (consumer_lift (heB ▸ fgsa_Z_preceq_liveRoot p src)) hlo
+    (eraseFG_preceq_iff.mp (heB ▸ haW))
+    (eraseFG_preceq_iff.mp (heB ▸ fgsa_Z_preceq_liveRoot p src)) hlo
   obtain ⟨Q, hQ, heQ⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
   obtain ⟨H, hH, heH, hh⟩ := hreach (Or.inl ⟨Q, hQ, heQ.trans heB⟩)
   refine ⟨H, ((KitFG.mem_filteredFromView (heightView p) (controls p src)
     src.fg.TF H).mp hH).1, heH.trans hp, ?_⟩
   simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] using hh
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Blueprint 21 H.5:877–886; H.6:953–956. Class (iii).
-DC: INTENTIONAL; equality of erased stored parents. -/
-private theorem consumer_parent_eq {C X : Block} (h : C.parent? = some X) : C.parent = X := by
-  cases C with
-  | genesis => cases h
-  | node P s root r => exact Option.some.inj h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 H.5:877–886; H.6:953–956. Class (iii).
@@ -159,11 +141,11 @@ private theorem consumer_trunk_prefix (p : Params) (src dst : State p.n) (s : Sl
   · obtain ⟨B, hB, heB, _, _, _⟩ := fgsa_domain_witness_of_mem p dst _ C hm
     have hP := ht.fg.closed B (Finset.mem_filter.mp hB).1
     have heP : eraseFG B.parent = X := by
-      rw [← eraseFG_parent, heB, consumer_parent_eq hp]
+      rw [← eraseFG_parent, heB, fgsa_parent_eq_of_some hp]
     have hh := hlow B.parent hP (heP ▸ hXZ)
     have hb : ∃ P ∈ dst.fg.TF, eraseFG P = C.parent ∧
         (heightView p P).h < (controls p dst).lo := ⟨B.parent, hP,
-      heP.trans (consumer_parent_eq hp).symm, hh⟩
+      heP.trans (fgsa_parent_eq_of_some hp).symm, hh⟩
     unfold et eligible
     simp only [hb, decide_true, Bool.true_or]
   · intro B hB hpB
@@ -219,7 +201,7 @@ private theorem consumer_reflected_witness (p : Params) (src dst : State p.n)
           exact (Nat.lt_irrefl _ (hslot ▸ hbad)).elim
         · exact hp
     obtain ⟨A, hA, heA, hh⟩ := hparent
-    exact ⟨B, A, hBd, heB, consumer_lift (by rwa [heB, heA]), hh, Or.inl hA⟩
+    exact ⟨B, A, hBd, heB, eraseFG_preceq_iff.mp (by rwa [heB, heA]), hh, Or.inl hA⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.5:884–907; H.6:955–956. Class (iii).
@@ -400,9 +382,7 @@ theorem fgsa_retainedReads_H6
     rw [max_eq_left (by linarith [p.deltaPos]), hDelta] at hbound
     exact hbound.trans (by unfold SA.proposalTime SA.voteTime; ring_nf; rfl)
   have hF : Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) N.erase := by
-    have hbpar : Block.Preceq N.erase.parent N.erase := by
-      cases N.erase <;> first | exact block_preceq_refl _ |
-        exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
+    have hbpar := fgsa_parent_preceq N.erase
     have hh := block_preceq_trans (F_preceq_liveRoot p dst ht) (block_preceq_trans hay hbpar)
     change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) N.erase
     simpa only [dst, clock_fg] using hh
@@ -456,7 +436,7 @@ private theorem consumer_height_mono (p : Params) {D B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG D) (eraseFG B)) : (heightView p D).h ≤ (heightView p B).h := by
   rw [(KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) D).1,
     (KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) B).1]
-  exact KitFG.h_mono p.E p.cfg (consumer_lift h)
+  exact KitFG.h_mono p.E p.cfg (eraseFG_preceq_iff.mp h)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.17:2968–2985; HG.1:1557–1565; L4-R:2280–2290;
@@ -505,7 +485,7 @@ private theorem consumer_no_band (p : Params) (st : State p.n) (D : FGBlock (Fin
     ¬ retainedBand p st C := by
   rw [retainedBand_def]
   rintro ⟨P, _, heP, hh⟩
-  have he : eraseFG P = X := heP.trans (consumer_parent_eq hp)
+  have he : eraseFG P = X := heP.trans (fgsa_parent_eq_of_some hp)
   exact Nat.not_lt_of_ge (hlo.trans (consumer_height_mono p (he.symm ▸ hDX))) hh
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -550,25 +530,7 @@ private theorem consumer_cone_reflection (p : Params) (src dst : State p.n)
           exact (Nat.lt_irrefl _ (hslot ▸ hbad)).elim
         · exact hp
     obtain ⟨A, hA, heA, hh⟩ := hparent
-    exact ⟨B, A, hBd, heB, consumer_lift (by rwa [heB, heA]), hh, Or.inl hA⟩
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 21 H.17:2992–3001. Class (iii).
-DC: INTENTIONAL; check all three arms for a high-F conflicting old child.
-The cone floor excludes the band, prior support excludes a majority,
-and the old-slot bound excludes the current-slot arm. -/
-private theorem consumer_highF_ineligible (p : Params) (dst : State p.n) (s : Slot)
-    (D : FGBlock (Fin p.n)) (L X C : Block)
-    (hlo : (controls p dst).lo ≤ (heightView p D).h)
-    (hDX : Block.Preceq (eraseFG D) X) (hp : C.parent? = some X)
-    (hscore : RetainedTargetScores p dst s L) (hconflict : Block.compatible L C = false)
-    (hold : C.slot < s) (hslot : dst.slot p = s) : et p dst s C = false := by
-  have hb := consumer_no_band p dst D hlo X C hDX hp
-  rw [retainedBand_def] at hb
-  have hm := Nat.not_lt.mpr (hscore.rivals C hconflict)
-  have hc : C.slot ≠ dst.slot p := hslot.symm ▸ Nat.ne_of_lt hold
-  unfold et eligible
-  simp only [hb, hm, decide_false, Bool.false_or, beq_eq_false_iff_ne.mpr hc]
+    exact ⟨B, A, hBd, heB, eraseFG_preceq_iff.mp (by rwa [heB, heA]), hh, Or.inl hA⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.17:2968–3007; HG.1:1557–1565; L4-R:2280–2292;

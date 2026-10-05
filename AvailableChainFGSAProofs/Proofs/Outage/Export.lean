@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Outage.Suppliers
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth
@@ -92,12 +93,9 @@ theorem outage_exactProposalClaim_of : ExactProposalClaim p := by
     have hd := p.deltaPos
     positivity
   have hq := h.set.pre.toCleanCut.faultQ_of_pos (hv.trans_le h.hhor)
-  have hs := hsrc c E rho () ⟨h.set.pre.base, hq⟩
-  have ho := hordered c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have hn := hnonempty c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have ht := htransfer c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have hl := hleases c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have hr := hrows c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
+  obtain ⟨hs, ho, hn, ht, hl, hr⟩ :=
+    outage_supplier_history p hsrc hordered hnonempty htransfer hleases hrows
+      c E rho h.set (hv.trans_le h.hhor)
   have hbelow : ∀ i v, i ≤ timeIdx rho rho.horizon → v ∈ rho.honest →
       ∀ row ∈ (storeAt p c E rho i v).base.obligations,
         BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
@@ -128,12 +126,9 @@ theorem outage_cleanInclusionPostGateClaim_of : CleanInclusionPostGateClaim p :=
     have hd := p.deltaPos
     positivity
   have hq := h.set.pre.toCleanCut.faultQ_of_pos (hg.trans_le h.hhor)
-  have hs := hsrc c E rho () ⟨h.set.pre.base, hq⟩
-  have ho := hordered c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have hn := hnonempty c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have ht := htransfer c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have hl := hleases c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have hr := hrows c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
+  obtain ⟨hs, ho, hn, ht, hl, hr⟩ :=
+    outage_supplier_history p hsrc hordered hnonempty htransfer hleases hrows
+      c E rho h.set (hg.trans_le h.hhor)
   have hbelow : ∀ i v, i ≤ timeIdx rho rho.horizon → v ∈ rho.honest →
       ∀ row ∈ (storeAt p c E rho i v).base.obligations,
         BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
@@ -152,12 +147,9 @@ theorem outage_cleanInclusionClaim_of : CleanInclusionClaim p := by
     have hd := p.deltaPos
     positivity
   have hq := h.set.pre.toCleanCut.faultQ_of_pos (hg.trans_le h.hhor)
-  have hs := hsrc c E rho () ⟨h.set.pre.base, hq⟩
-  have ho := hordered c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have hn := hnonempty c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have ht := htransfer c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have hl := hleases c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
-  have hr := hrows c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩
+  obtain ⟨hs, ho, hn, ht, hl, hr⟩ :=
+    outage_supplier_history p hsrc hordered hnonempty htransfer hleases hrows
+      c E rho h.set (hg.trans_le h.hhor)
   have hbelow : ∀ i v, i ≤ timeIdx rho rho.horizon → v ∈ rho.honest →
       ∀ row ∈ (storeAt p c E rho i v).base.obligations,
         BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=

@@ -167,7 +167,7 @@ include emittedName
 /-- Blueprint 21 H.11:1744–1800, H.22:3229–3241; S5 J8 R1 field support.
 DC: INTENTIONAL reset-only fields, with no Q* service at this horizon.
 The first-row contract is a frozen field input for this support lemma.
-healing_resetWitness derives the first-row contract from HG.5 (HG4-RISE F3).
+healing_resetWitness derives the first-row contract from healing_frontierSearch (HG2A-RECEIPT F3).
 INLINE producer: the frozen SourceDisciplineBaseAt (Assembly/ResetArrival.lean). -/
 theorem healing_reset_fields [Fintype V] {G ΔF deadline : Time}
     (hset : HealingSet p c E rho G ΔF)

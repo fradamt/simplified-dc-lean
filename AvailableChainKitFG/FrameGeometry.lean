@@ -1,7 +1,7 @@
 module
 public import AvailableChainKitFG.FrameBridge
 public import AvailableChainKitFG.StoreSafetyDef
-public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.FrameSelection
 public import AvailableChainKitFG.JustificationLawsDef
 
 public section

@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay
+public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (relay API)
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 
 public section

@@ -55,7 +55,7 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-T-START (01:137–140,166–182; 22 I5:538–581), P3 A.7.
+T-START (01 A.7 T-START:222–225,251–267; 22 I5:538–581), P3 A.7.
 Consumers: FF1, F6, F8, FL-T7. Both clauses hold at every event index. -/
 def TStart : Prop := Gen.AC.Duty.LeaseBelowOutput (fgsaAC E rho) ∧
   ∀ i x, x ∈ rho.honest →
@@ -66,7 +66,7 @@ def TStart : Prop := Gen.AC.Duty.LeaseBelowOutput (fgsaAC E rho) ∧
         (∃ B ∈ FGSA.fullTree p st, eraseFG B = row.1) ∧ Block.Preceq row.1 (outputS p st)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-Full-batch read (01:150–157), P3 A.7. Consumer: TVote.
+Full-batch read (01 A.7 T-VOTE:235–242), P3 A.7. Consumer: TVote.
 Admission resolves a held vote; finality coverage is the alternate case. -/
 def FullVoteService (st : State p.n) (s : Slot) : Prop :=
   ∀ y (a : HeadWire p.n), y ∈ rho.honest →
@@ -79,7 +79,7 @@ def FullVoteService (st : State p.n) (s : Slot) : Prop :=
         | some h => decide (h.slot ≤ s)
         | none => false))
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-T-VOTE (01:150–157), P3 A.7 OD18, D67.
+T-VOTE (01 A.7 T-VOTE:235–242), P3 A.7 OD18, D67.
 Consumers: FF1, F6, F8, FL-T7. Sync begins at the batch's vote time,
 not at the later proposal/action. This is a composition service.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -100,7 +100,7 @@ def TVote : Prop :=
       H ∈ nd.st.base.blocks ∧ H.root = a.payload)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-Honest resolving seats of a read (01:158–164,184–199), P3 A.7.
+Honest resolving seats of a read (01 A.7 T-WALK:243–249,269–278), P3 A.7.
 Consumer: TWalk. The other seats have total size at most m. -/
 def WalkBatch (st : State p.n) (s : Slot) (raw support : List (GridCO.Wire p.n .root))
     (Q : Block) (seats : Finset (Fin p.n)) (m : Nat) : Prop :=
@@ -112,7 +112,7 @@ def WalkBatch (st : State p.n) (s : Slot) (raw support : List (GridCO.Wire p.n .
   (∀ a ∈ seats, GridCO.equivocates raw a = false)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-T-WALK (01:158–164,184–199; 22 I8:637), P3 A.7.
+T-WALK (01 A.7 T-WALK:243–249,269–278; 22 I8:637), P3 A.7.
 Consumers: FF1, F6, F8, FF3–FF4, FL-*. Batch h m is the local count premise. -/
 def TWalk : Prop := ∀ i x s raw support Q seats m,
   x ∈ rho.honest → Batch seats.card m →

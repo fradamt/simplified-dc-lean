@@ -1,6 +1,8 @@
 module
+public import AvailableChainKitFG.StoreBounds
+public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
-public import AvailableChainFGSARun.Proofs.Reachable
+public import AvailableChainFGSARun.Proofs.Reachable -- shake: keep (reach API)
 
 public section
 
@@ -14,19 +16,15 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 theorem healing_phase_height_le {i : Nat} {x : V} {W : FGBlock (Fin p.n)}
     (hW : W ∈ (storeAt p c E rho i x).fg.TF) :
     (heightView p W).h ≤ (storeAt p c E rho i x).fg.h_max := by
-  have hs : KitFG.FGStoreInvariant (heightView p) (finalityView p)
-      (storeAt p c E rho i x).fg := (storeBundle_stateBefore E rho i x).cstore.fg
-  rw [hs.hmax]
-  exact (Finset.le_sup (f := fun B => (heightView p B).h) hW).trans (Nat.le_max_left _ _)
+  exact KitFG.store_height_le (heightView p) (finalityView p)
+    (storeAt p c E rho i x).fg (storeBundle_stateBefore E rho i x).cstore.fg hW
 
 /-- Blueprint 21:1193–1209; plan S20, H-PHASE/P4. DC: SAME strict cache bound. -/
 theorem healing_phase_justified_lt (i : Nat) (x : V) :
     (storeAt p c E rho i x).fg.h_j < (storeAt p c E rho i x).fg.h_max := by
-  obtain ⟨K, hK, _, hj, _⟩ := (storeBundle_stateBefore E rho i x).cstore.fg.pair.1
-  change (storeAt p c E rho i x).fg.h_j = _ at hj
-  rw [hj]
-  exact ((fgCertificateLaws p).height.justified_below_height K).trans_le
-    (healing_phase_height_le p c E rho hK)
+  exact KitFG.store_justified_lt p.E (heightView p) (finalityView p)
+    (fgCertificateLaws p) (storeAt p c E rho i x).fg
+    (storeBundle_stateBefore E rho i x).cstore.fg
 
 /-- Blueprint 21:1222–1235; plan S20, H-PHASE/P4.
 DC: INTENTIONAL the bound reads the accepted W certificate, not the block F. -/
@@ -34,21 +32,18 @@ theorem healing_phase_finality_le {i : Nat} {x : V} {K : FGBlock (Fin p.n)}
     (hK : K ∈ (storeAt p c E rho i x).fg.TF)
     (hF : (finalityView p K).F = (storeAt p c E rho i x).fg.F) :
     (finalityView p K).h_F ≤ (storeAt p c E rho i x).fg.h_j := by
-  have hpair := (storeBundle_stateBefore E rho i x).cstore.fg.pair.2 K hK
-    (hF ▸ (fgCertificateLaws p).finalized_preceq_justified K)
-  exact ((fgCertificateLaws p).heights_ordered K).trans (KitFG.fst_le_of_lexKey_le hpair)
+  exact KitFG.store_finality_le p.E (heightView p) (finalityView p)
+    (fgCertificateLaws p) (storeAt p c E rho i x).fg
+    (storeBundle_stateBefore E rho i x).cstore.fg hK hF
 
 /-- Blueprint 21:1193–1209; plan S20, H-PHASE/P4.
 DC: SAME a nonempty cumulative store attains its frontier, including height one. -/
 theorem healing_phase_frontier_witness (i : Nat) (x : V) :
     ∃ W ∈ (storeAt p c E rho i x).fg.TF,
       (heightView p W).h = (storeAt p c E rho i x).fg.h_max := by
-  have hs : KitFG.FGStoreInvariant (heightView p) (finalityView p)
-      (storeAt p c E rho i x).fg := (storeBundle_stateBefore E rho i x).cstore.fg
-  obtain ⟨W, hW, hw⟩ := Finset.exists_mem_eq_sup _ ⟨_, hs.gen⟩
-    (fun W => (heightView p W).h)
-  refine ⟨W, hW, ?_⟩
-  rw [hs.hmax, hw, max_eq_left ((fgCertificateLaws p).height.one_le_h W)]
+  exact KitFG.store_frontier_witness p.E (heightView p) (finalityView p)
+    (fgCertificateLaws p) (storeAt p c E rho i x).fg
+    (storeBundle_stateBefore E rho i x).cstore.fg
 
 /-- Blueprint 21:1153–1171, 1200–1209; plan S20, H-PHASE/P5.
 DC: INTENTIONAL live controls and accepted W finality carrier.
@@ -183,10 +178,7 @@ theorem healing_settled_frame (crossing : RXing p c E rho)
     (i : Nat) (x : V) (hui : timeIdx rho u ≤ i) (hiv : i ≤ timeIdx rho v)
     (hx : x ∈ rho.honest) :
     SettledPhaseFrame p (storeAt p c E rho i x) m J contested := by
-  have hui' : V2.D.Run.idxBefore rho u ≤ i := le_trans (by
-    rw [V2.D.Run.idxBefore_def]
-    exact (List.monotone_filter_right _
-      (fun e h => decide_eq_true (le_of_lt (of_decide_eq_true h)))).length_le) hui
+  have hui' : V2.D.Run.idxBefore rho u ≤ i := (idxBefore_le_timeIdx rho u).trans hui
   obtain ⟨hH, hc, hr⟩ := hp.2.2.2 i x hui' hiv hx
   exact healing_phase_frame p c E rho crossing hx hp.2.2.1 hH hc hr
 

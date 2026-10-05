@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBounds
 
 public section
@@ -9,11 +10,6 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
-
-private theorem igate_vote_lt_gate (p : Params) (s : Slot) :
-    SA.voteTime p.toParams s < SA.gateTime p.toParams s := by
-  change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
-  linarith [p.deltaPos]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 03:438–441 (h_s honest supporters vs ≤ a others); plan I-GATE, G4. Class (iii).
@@ -55,7 +51,7 @@ theorem inclusion_awake_seat_batch [Fintype V]
     have hd := p.deltaPos
     positivity
   exact ⟨H, hH, hc, ⟨hc ▸ hset.pre.partBefore _ hnonneg
-    ((igate_vote_lt_gate p s).trans_le hhor)⟩⟩
+    ((fgsa_vote_lt_gate p s).trans_le hhor)⟩⟩
 
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

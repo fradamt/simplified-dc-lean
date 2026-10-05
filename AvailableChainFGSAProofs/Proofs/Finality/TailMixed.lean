@@ -1,6 +1,8 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
+public import AvailableChainFGSAProofs.Proofs.Shared.RowReads
 public import AvailableChainFGSAProofs.Proofs.Finality.TailKernel
-public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSARun.Proofs.Receipts -- shake: keep (receipt API)
 
 public section
 
@@ -299,14 +301,6 @@ variable {In V : Type} [DecidableEq V] {c : AppCodec In} {E : Generic.Env V}
     {rho : V2.D.Run V (fgsa p c)}
 
 omit [DecidableEq V] in
-private theorem ktail_idx_mono {a b : Time} (hab : a ≤ b) :
-    V2.D.Run.idxBefore rho a ≤ V2.D.Run.idxBefore rho b := by
-  rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def,
-    ← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
-  exact List.countP_mono_left (fun e _ he =>
-    decide_eq_true ((of_decide_eq_true he).trans_le hab))
-
-omit [DecidableEq V] in
 private theorem ktail_idx_le_afterTicks {a b : Time} (hab : a ≤ b) :
     V2.D.Run.idxBefore rho a ≤ afterTicksIdx rho b := by
   change (rho.events.filter (fun e => decide (e.time < a))).length ≤
@@ -318,160 +312,6 @@ private theorem ktail_idx_le_afterTicks {a b : Time} (hab : a ≤ b) :
     (Or.inl ((of_decide_eq_true he).trans_le hab)))
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Copy of Healing/FrameRelay.lean:29 (`healing_held_block_receipt`); the Finality
-lane
-does not import Healing. An FG block held at an honest post-GST tick is held by every
-honest node one Δ later, when that node's store finality is below it.
-Paper 01:106–126 (acceptance relay). DC: INTENTIONAL strict relay of a held FG block. -/
-private theorem ktail_held_block_receipt (mono : RMono p c E rho)
-    (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
-    (hdelta : E.Δ = p.Δ) {ΔF : Time}
-    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    {i : Nat} {x y : V} {t : Time} {W : FGBlock (Fin p.n)}
-    (hi : rho.events[i]? = some (.tick x t))
-    (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
-    (hW : W ∈ (storeAt p c E rho i x).fg.TF)
-    (hgst : E.t_GST ≤ t) (hhor : t + p.Δ ≤ rho.horizon)
-    (hF : FGBlock.Preceq
-      (storeAt p c E rho (V2.D.Run.idxBefore rho (t + p.Δ)) y).fg.F W)
-    (hroots : NamedRootCollisionFree p c E rho) :
-    Gen.V2.Duty.HoldsBefore E rho (fun nd => W ∈ nd.st.fg.TF) (t + p.Δ) y := by
-  have hs := hvalid.toScheduleWellFormed
-  change W ∈ (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st.fg.TF
-  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
-  by_cases hg : W = .genesis
-  · exact hg ▸ (storeBundle_stateBefore E rho _ y).cstore.fg.gen
-  have hb : eraseFG W ∈ (storeAt p c E rho i x).base.blocks :=
-    (storeBundle_stateBefore E rho i x).cstore.baseTree _ |>.mpr ⟨W, hW, rfl⟩
-  change eraseFG W ∈ (V2.D.Run.stateBefore E rho i x).st.base.blocks at hb
-  rw [← (storeBundle_stateBefore E rho i x).«meta».stampKeys] at hb
-  obtain ⟨⟨b, stamp⟩, hb, he⟩ := List.mem_map.mp hb
-  dsimp only at he
-  subst b
-  rcases fgsa_block_stamp_source E rho i x (eraseFG W) stamp hb with
-      hgen | ⟨k, hki, u, o, ho, ha, _⟩
-  · exact (hg (eraseFG_eq_genesis.mp hgen.1)).elim
-  obtain ⟨parent, hk, _⟩ := ha.1
-  obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
-  obtain ⟨hkl, hke⟩ := List.getElem?_eq_some_iff.mp hk
-  have htime := (List.pairwise_iff_getElem.mp hs.sorted) k i hkl hil hki
-  rw [hie, hke] at htime
-  have hut : u ≤ t := V2.D.Engine.time_le_of_key_le _ _ htime
-  let dl := fun u => max u E.t_GST + p.Δ
-  have hd : dl u ≤ t + p.Δ := Int.add_le_add_right (max_le hut hgst) p.Δ
-  have hidx := ktail_idx_mono (rho := rho) hd
-  have hF' := (mono hnr _ _ y hy hidx).1
-  have hcompat : Block.Compatible (eraseFG W)
-      (eraseFG (V2.D.Run.stateBeforeTime E rho (dl u) y).st.fg.F) := by
-    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
-    exact Bool.or_eq_true_iff.mpr (Or.inr
-      (eraseFG_preceq (KitFG.preceq_trans hF' hF)))
-  have delay (o : Obj p) (hn : ¬ isRowObject o) : fgsaDelay E.Δ ΔF o = p.Δ := by
-    cases he : o.payload <;> simp only [fgsaDelay_def, he, hdelta]
-    exact (hn (by change (match o.payload with | .row _ => True | _ => False)
-                  rw [he]; trivial)).elim
-  have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hsync
-    (fun o => ¬ isRowObject o) p.Δ delay
-  have hu : u < dl u := (le_max_left u E.t_GST).trans_lt (lt_add_of_pos_right _ p.deltaPos)
-  dsimp only [blockOf?] at ho
-  cases hdec : (toWire p o).decode with
-  | none => simp only [hdec, reduceCtorEq] at ho
-  | some msg =>
-    cases msg <;> simp only [hdec, reduceCtorEq, Option.some.injEq] at ho
-    rename_i slot N
-    have he : o = ofWire p ⟨.proposer slot, .proposal N⟩ := by
-      apply toWire_injective
-      rw [toWire_ofWire]
-      exact decode_eq_block.mp hdec
-    obtain ⟨Y, hY, hYW⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr dl
-      rho.horizon
-      slot N u y hD (Or.inr ⟨x, hx, k, he ▸ ha⟩) hy
-      (hd.trans hhor) hu (by simpa only [ho] using hcompat)
-    have hYeq : Y = W := eraseFG_injective (hYW.trans ho)
-    rw [hYeq, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
-    exact (fgsa_store_cumulative p c E rho hnr hidx y).1 hY
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Copy of the private carrier read of Foundations/RowService.lean:102: the exact
-rows of
-an honest carrier are the modeled proposer selection at its proposal read.
-Paper 01:83–86 (R7). DC: INTENTIONAL exact FG-SA row selector. -/
-private theorem ktail_carrier_read {s : Slot} {Q : Block} {rows : List (RowWire p.n)}
-    (hs : V2.D.ScheduleWellFormed E rho) (hc : HonestCarrier p c E rho s Q rows) :
-    ∃ j, rho.events[j]? = some (.tick (V2.D.proposerOf rho (fgsaInterface p c) s)
-        (SA.proposalTime p.toParams s)) ∧
-      let st := ((fgsa p c).clock
-        (V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho (fgsaInterface p c) s))
-        (SA.proposalTime p.toParams s)).st
-      proposalStateAt p c E rho s = some st ∧ st.slot p = s ∧
-        rows = proposalRows p st Q.parent := by
-  obtain ⟨hp, o, N, ⟨j, hj, hem⟩, hpay, heN, hrows⟩ := hc
-  subst Q rows
-  have hs0 : 0 < s := hp.1.1
-  change rho.events[j]? = some (.tick _ (SA.proposalTime p.toParams s)) at hj
-  rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-  obtain ⟨auth, m⟩ := o
-  change m = _ at hpay
-  subst m
-  cases auth with
-  | none =>
-    change (⟨.none, _⟩ : Obj p) ∈ (if E.awake _ _ then
-      (duties p _).flatMap (fun d => (rho.ownSeats (RunDuty.signLabel d) _).filterMap
-        (fun i => ((fgsa p c).act ((fgsa p c).clock _ _) d (rho.input _ _)).map
-          (fun m => ⟨.seat (RunDuty.signLabel d) i, m⟩))) ++ [] else []) at hem
-    split at hem
-    · rw [List.append_nil] at hem
-      obtain ⟨d, _, hm⟩ := List.mem_flatMap.mp hem
-      obtain ⟨i, _, hm⟩ := List.mem_filterMap.mp hm
-      obtain ⟨m, _, he⟩ := Option.map_eq_some_iff.mp hm
-      cases he
-    · exact (List.not_mem_nil hem).elim
-  | seat l seat =>
-    obtain ⟨_, _, d, _, ht, hm⟩ :=
-      (V2.D.Engine.mem_tick_seat_iff E rho _ _ _ l seat _).mp hem
-    cases d with
-    | headAction v => cases hm
-    | fgAction r =>
-      change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
-      obtain ⟨body, _, he⟩ := Option.map_eq_some_iff.mp hm
-      cases he
-    | propAction s' =>
-      have hss : s' = s := by
-        change 4 * p.Δ * (s' : Int) = 4 * p.Δ * (s : Int) at ht
-        have hΔ : (0 : Int) < p.Δ := p.deltaPos
-        have he : (s' : Int) = s := by nlinarith
-        exact_mod_cast he
-      subst s'
-      let nd := V2.D.Run.stateBefore E rho j
-        (V2.D.proposerOf rho (fgsaInterface p c) s)
-      let st := ((fgsa p c).clock nd (SA.proposalTime p.toParams s)).st
-      have htick : V2.D.Run.tickIdx? rho (V2.D.proposerOf rho (fgsaInterface p c) s)
-          (SA.proposalTime p.toParams s) = some j := by
-        obtain ⟨k, hk⟩ : ∃ k, V2.D.Run.tickIdx? rho
-            (V2.D.proposerOf rho (fgsaInterface p c) s)
-            (SA.proposalTime p.toParams s) = some k := by
-          rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
-          exact ⟨_, List.mem_of_getElem? hj, by simp⟩
-        exact (fgsa_tick_unique E rho hs (V2.D.Run.tickIdx?_spec hk) hj) ▸ hk
-      refine ⟨j, hj, ?_, fgsa_proposal_slot nd s, ?_⟩
-      · change (postClock E rho _ _).map (·.st) = some st
-        rw [proposalTime_fgsa p c s, postClock_def, preTick_def]
-        change (((V2.D.Run.tickIdx? rho _ (SA.proposalTime p.toParams s)).map
-          (fun k => V2.D.Run.stateBefore E rho k _)).map
-          (fun nd : Node p => (fgsa p c).clock nd (SA.proposalTime p.toParams s))).map
-          (fun nd : Node p => nd.st) = some st
-        rw [htick]
-        rfl
-      · change (propose p st s).map (withApp p _) = some (.proposal N) at hm
-        rw [propose_head p st s (Nat.ne_of_gt hs0)] at hm
-        simp only [Option.map_map] at hm
-        obtain ⟨P, hP, he⟩ := Option.map_eq_some_iff.mp hm
-        cases Msg.proposal.inj he
-        have hparent := (namedByErase?_sound st (proposerHead p st s) P hP).2
-        change proposalRows p st (proposerHead p st s) = proposalRows p st P.erase
-        rw [hparent]
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 01:83–86, 145–149 (R7 over all valid full-content rows). The honest carrier
 selects every held R6W-valid row that is not on its parent chain, for any signer.
 DC: INTENTIONAL exact FG-SA row selector; no honest-signer filter. -/
@@ -481,7 +321,7 @@ private theorem ktail_select_any (hs : V2.D.ScheduleWellFormed E rho) {s : Slot}
     (hP : FGSA.fgBlockOf st Q.parent = some P) {w : RowWire p.n} (hheld : rowHeld p st w)
     (hvalid : Window.rowValidW (parentFoldState p s P) w = true) :
     w ∈ rows ∨ w ∈ chainWireRows st Q.parent := by
-  obtain ⟨k, -, hread, hslot, hrows⟩ := ktail_carrier_read hs hc
+  obtain ⟨k, -, hread, hslot, hrows⟩ := rowService_carrier_read p c E rho hs hc
   by_cases hon : w ∈ chainWireRows st Q.parent
   · exact Or.inr hon
   · left
@@ -490,20 +330,6 @@ private theorem ktail_select_any (hs : V2.D.ScheduleWellFormed E rho) {s : Slot}
     rw [hrows]
     change w ∈ proposalRowsFor p _ _ Q.parent
     exact (mem_proposalRowsFor_iff p _ _ _ _).mpr ⟨P, hP, hheld, hslot.symm ▸ hvalid, hon⟩
-
-private theorem ktail_proposal_read (s : Slot) (st : State p.n)
-    (hs : proposalStateAt p c E rho s = some st) :
-    ∃ k, st = ((fgsa p c).clock
-      (V2.D.Run.stateBefore E rho k (V2.D.proposerOf rho (fgsaInterface p c) s))
-      (V2.D.proposalTime (fgsaInterface p c) s)).st := by
-  change (postClock E rho _ _).map (·.st) = some st at hs
-  rw [postClock_def, preTick_def] at hs
-  cases hk : V2.D.Run.tickIdx? rho (V2.D.proposerOf rho (fgsaInterface p c) s)
-      (V2.D.proposalTime (fgsaInterface p c) s) with
-  | none => rw [hk] at hs; cases hs
-  | some k =>
-      rw [hk] at hs
-      exact ⟨k, (Option.some.inj hs).symm⟩
 
 private theorem ktail_chain_occurrence (st : State p.n) (hmeta : MetaInv p st)
     (H : FGBlock (Fin p.n)) (a : RowWire p.n) (b : Row (Fin p.n))
@@ -553,7 +379,7 @@ private theorem ktail_any_row_bit (hv : V2.D.ExecutionValid E rho)
       exact List.mem_filterMap.mpr ⟨w, hcarry, hd⟩
     · rw [FinRowNames_def]
       exact ⟨rfl, hpair⟩
-  · obtain ⟨k, rfl⟩ := ktail_proposal_read X.slot st hst
+  · obtain ⟨k, rfl⟩ := batch_proposal_read p c E rho X.slot st hst
     have bundle := storeBundle_postClock E rho k
       (V2.D.proposerOf rho (fgsaInterface p c) X.slot)
       (V2.D.proposalTime (fgsaInterface p c) X.slot)
@@ -664,7 +490,7 @@ theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
   have hHj : HeldAt p c E rho (V2.D.Run.idxBefore rho (p.actionTime (pt.r + 1) + p.Δ)) x H :=
     ⟨hx, (fgsa_store_cumulative p c E rho hnr hkj.le x).1 hHk⟩
   have hguard := hXing _ _ _ x D H hprop le_rfl hD hDF hHj (hHh ▸ hDh)
-  have hrec := ktail_held_block_receipt (hroots := hT.set.base.idealization)
+  have hrec := healing_held_block_receipt p c E rho (hroots := hT.set.base.idealization)
     hmono hT.set.base.valid hnr hT.set.base.delta
     hT.set.sync hk hx hprop hHk hGSTq hhor hguard
   change (postClock E rho (V2.D.proposerOf rho (fgsaInterface p c) s)
@@ -767,7 +593,7 @@ theorem ktail_mixed_final {G ΔF : Time} {pt : TailKernelPt p}
     ((ktail_mixed_F H').1 ▸ hFF) ((ktail_mixed_F H').2 ▸ hFh)
   have hQXp : FGBlock.Preceq ow.Q X.parent := ktail_terminal_path hT ow X hX
   have hXh : ow.e + 1 ≤ (heightView p X.parent).h := ow.heightQ ▸ laws.h_mono hQXp
-  obtain ⟨k', hk'⟩ := ktail_proposal_read X.slot st hst
+  obtain ⟨k', hk'⟩ := batch_proposal_read p c E rho X.slot st hst
   have bundle := storeBundle_postClock E rho k'
     (V2.D.proposerOf rho (fgsaInterface p c) X.slot)
     (V2.D.proposalTime (fgsaInterface p c) X.slot)

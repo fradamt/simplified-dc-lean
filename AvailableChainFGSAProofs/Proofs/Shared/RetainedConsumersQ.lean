@@ -9,6 +9,10 @@ open AvailableChain.SimplexFG Gen.Pure RetainedWalk
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+private theorem retained_vote_before_stop (p : Params) (s : Slot) (stop : Time)
+    (hstop : SA.gateTime p.toParams s < stop) : SA.voteTime p.toParams s < stop :=
+  (fgsa_vote_lt_gate p s).trans hstop
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 L4-R:2200–2222,2280–2292. Class (iii).
 DC: INTENTIONAL; use the Q cone only in d_q ≤ e < min(w_a,w_b).
@@ -43,11 +47,7 @@ theorem fgsa_retainedReads_L4R
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q N.erase Kc := by
-  have hhead : SA.voteTime p.toParams s < min w_a w_b := by
-    have hd := p.deltaPos
-    change GridCO.proposalTime p.engine s + p.Δ < _
-    change GridCO.proposalTime p.engine s + 6 * p.Δ < _ at hstop
-    linarith
+  have hhead := retained_vote_before_stop p s _ hstop
   exact fgsa_retainedReads_H17 (hroots := hroots)
     E rho hE hN hDelta s hSync hx hip hseat N hem Q
     (fun y hy ih hih => hinput y hy ih hih ⟨hafter, hhead⟩)
@@ -86,11 +86,7 @@ theorem fgsa_retainedReads_HG1
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q N.erase Kc := by
-  have hhead : SA.voteTime p.toParams s < stop := by
-    have hd := p.deltaPos
-    change GridCO.proposalTime p.engine s + p.Δ < _
-    change GridCO.proposalTime p.engine s + 6 * p.Δ < _ at hstop
-    linarith
+  have hhead := retained_vote_before_stop p s _ hstop
   exact fgsa_retainedReads_H17 (hroots := hroots)
     E rho hE hN hDelta s hSync hx hip hseat N hem Q
     (fun y hy ih hih => hinput y hy ih hih ⟨hafter, hhead⟩)

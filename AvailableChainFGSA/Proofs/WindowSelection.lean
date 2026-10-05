@@ -11,35 +11,17 @@ open AvailableChain.KitFG
 
 variable {V : Type} [DecidableEq V] [RowCodec V]
 
-/-- Rows change bits, but preserve the list of keys and the finality pair. -/
-private theorem row_keys (w : State V) (a : Row V) :
-    (process_row w a).W.map (fun e => (e.j, e.X)) = w.W.map (fun e => (e.j, e.X)) ∧
-    projectFinality (process_row w a) = projectFinality w := by
-  have hm : (w.W.map (fun e =>
-      if a.finality_pair = some ⟨e.j, e.X.root⟩ then
-        { e with Q := insert a.signer e.Q } else e)).map (fun e => (e.j, e.X)) =
-      w.W.map (fun e => (e.j, e.X)) := by
-    rw [List.map_map]
-    apply List.map_congr_left
-    intro e _
-    dsimp only [Function.comp_def]
-    split_ifs <;> rfl
-  obtain ⟨i, pair, fp⟩ := a
-  cases pair with
-  | empty =>
-      simp only [process_row_def, NamedHeightPair.matchesEntry]
-      exact ⟨hm, rfl⟩
-  | vote h X t =>
-      cases t <;> simp only [process_row_def] <;> split_ifs <;> exact ⟨hm, rfl⟩
-
 private theorem fold_keys (rs : List (Row V)) (w : State V) :
     (rs.foldl process_row w).W.map (fun e => (e.j, e.X)) =
       w.W.map (fun e => (e.j, e.X)) ∧
     projectFinality (rs.foldl process_row w) = projectFinality w := by
-  induction rs generalizing w with
-  | nil => exact ⟨rfl, rfl⟩
-  | cons a rs ih =>
-      exact ⟨(ih _).1.trans (row_keys w a).1, (ih _).2.trans (row_keys w a).2⟩
+  have h := window_fold_fields rs w
+  constructor
+  · rw [h.1, List.map_map]
+    apply List.map_congr_left
+    intro e _
+    exact Prod.ext (window_fold_entry rs e).1 (window_fold_entry rs e).2.1
+  · simp only [projectFinality_def, h.2.2.2.2.2.1, h.2.2.2.2.2.2]
 
 private theorem folded_keys (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
     (certificateFolded p K B).W.map (fun e => (e.j, e.X)) =
@@ -79,71 +61,6 @@ private theorem before_bounds (p : Params) (K : Nat) (hK : 2 ≤ K)
 variable [Fintype V]
 
 omit [DecidableEq V] [RowCodec V] in
-/-- The fold selects a ready member and dominates every ready height. -/
-private theorem greatest_spec (E : Electorate V) (w : State V) :
-    (∀ e, greatestReady E w = some e →
-      e ∈ w.W ∧ w.h_F < e.j ∧ E.IsQuorum e.Q) ∧
-    (∀ d ∈ w.W, w.h_F < d.j → E.IsQuorum d.Q →
-      ∃ e, greatestReady E w = some e ∧ d.j ≤ e.j) := by
-  let step := fun (best : Option (Entry V)) e =>
-    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
-      best.elim (some e) (fun old => if old.j < e.j then some e else best)
-    else best
-  have go (xs : List (Entry V)) (best : Option (Entry V)) :
-      (∀ e, xs.foldl step best = some e →
-        best = some e ∨ (e ∈ xs ∧ w.h_F < e.j ∧ E.IsQuorum e.Q)) ∧
-      (∀ d, (best = some d ∨ (d ∈ xs ∧ w.h_F < d.j ∧ E.IsQuorum d.Q)) →
-        ∃ e, xs.foldl step best = some e ∧ d.j ≤ e.j) := by
-    induction xs generalizing best with
-    | nil =>
-        simp only [List.foldl_nil, List.not_mem_nil, false_and, or_false]
-        exact ⟨fun _ h => h, fun d h => ⟨d, h, le_rfl⟩⟩
-    | cons a xs ih =>
-        have h := ih (step best a)
-        simp only [List.foldl_cons]
-        constructor
-        · intro e he
-          rcases h.1 e he with he | he
-          · unfold step at he
-            dsimp only [Electorate.IsQuorum] at *
-            split_ifs at he with ha <;> cases best <;> simp_all
-            all_goals aesop
-          · exact Or.inr ⟨List.mem_cons_of_mem _ he.1, he.2⟩
-        · intro d hd
-          have next : ∃ b, (step best a = some b ∨
-              (b ∈ xs ∧ w.h_F < b.j ∧ E.IsQuorum b.Q)) ∧ d.j ≤ b.j := by
-            rcases hd with hd | ⟨hd, hf, hq⟩
-            · subst best
-              by_cases ha : w.h_F < a.j ∧ E.q ≤ E.weightOf a.Q
-              · by_cases hj : d.j < a.j
-                · exact ⟨a, Or.inl (by simp [step, ha, hj]), Nat.le_of_lt hj⟩
-                · exact ⟨d, Or.inl (by simp [step, ha, hj]), le_rfl⟩
-              · exact ⟨d, Or.inl (by simp [step, ha]), le_rfl⟩
-            · rcases List.mem_cons.mp hd with hd | hd
-              · subst d
-                have ha : w.h_F < a.j ∧ E.q ≤ E.weightOf a.Q := ⟨hf, hq⟩
-                cases best with
-                | none => exact ⟨a, Or.inl (by simp [step, ha]), le_rfl⟩
-                | some old =>
-                    by_cases hj : old.j < a.j
-                    · exact ⟨a, Or.inl (by simp [step, ha, hj]), le_rfl⟩
-                    · exact ⟨old, Or.inl (by simp [step, ha, hj]), Nat.le_of_not_gt hj⟩
-              · exact ⟨d, Or.inr ⟨hd, hf, hq⟩, le_rfl⟩
-          obtain ⟨b, hb, hdb⟩ := next
-          obtain ⟨e, he, hbe⟩ := h.2 b hb
-          exact ⟨e, he, hdb.trans hbe⟩
-  have heq : greatestReady E w = w.W.foldl step none := by
-    rw [greatestReady_def]
-    congr 1
-    funext best e
-    dsimp [step]
-    split_ifs <;> cases best <;> rfl
-  rw [heq]
-  have h := go w.W none
-  exact ⟨fun e he => (h.1 e he).resolve_left (by simp),
-    fun d hd hf hq => h.2 d (Or.inr ⟨hd, hf, hq⟩)⟩
-
-omit [DecidableEq V] [RowCodec V] in
 private theorem events_finality (E : Electorate V) (cfg : FGConfig) (K : Nat)
     (w : State V) :
     projectFinality (process_height_events E cfg K w) =
@@ -178,18 +95,18 @@ theorem windowSelectionLaws (p : Params) (K : Nat) (hK : 2 ≤ K) :
       have hb := (before_bounds p K hK B _ (List.mem_map.mpr ⟨d, hd, rfl⟩)).1
       have hf : (certificateFolded p K B).h_F < d.j := by
         simpa only [← (folded_keys p K B).2, projectFinality_def, projectCertEntry_def] using hb
-      obtain ⟨c, hc, _⟩ := (greatest_spec p.E _).2 d hd hf hq
+      obtain ⟨c, hc, _⟩ := (window_greatest_spec p.E _).2 d hd hf hq
       rw [hn] at hc
       cases hc
     · intro hn
       cases hc : greatestReady p.E (certificateFolded p K B) with
       | none => rfl
       | some e =>
-          have he := (greatest_spec p.E _).1 e hc
+          have he := (window_greatest_spec p.E _).1 e hc
           exact (hn _ (List.mem_map.mpr ⟨e, he.1, rfl⟩) he.2.2).elim
   · intro B e he
     obtain ⟨c, hc, rfl⟩ := Option.map_eq_some_iff.mp he
-    have hs := greatest_spec p.E (certificateFolded p K B)
+    have hs := window_greatest_spec p.E (certificateFolded p K B)
     have hm := hs.1 c hc
     refine ⟨List.mem_map.mpr ⟨c, hm.1, rfl⟩, hm.2.2, ?_⟩
     intro d hd hq

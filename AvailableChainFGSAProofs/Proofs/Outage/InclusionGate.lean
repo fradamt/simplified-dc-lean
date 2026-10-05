@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 
 public section
@@ -9,11 +10,6 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
-
-private theorem igate_vote_lt_gate (p : Params) (s : Slot) :
-    SA.voteTime p.toParams s < SA.gateTime p.toParams s := by
-  change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
-  linarith [p.deltaPos]
 
 /-- ROOT-DIGEST W2b. Blueprint 03:350–417 (§4 exact adoption), 03:418–458 (§5); plan I-GATE, G1.
 Class (iii).
@@ -47,7 +43,7 @@ theorem inclusion_headAtLabel [Fintype V]
     (hstrat : RStrat p c E rho) :
     ∀ y ∈ rho.honest, headAtLabel p c E rho y pt.s = some pt.P := by
   have hs := hset.pre.base.valid.toScheduleWellFormed
-  have hv := (igate_vote_lt_gate p pt.s).le.trans hhor
+  have hv := (fgsa_vote_lt_gate p pt.s).le.trans hhor
   have hhead := inclusion_exact_head (hstrat := hstrat) E rho ΔF hset hstore hframe hsrc hordered
     hnonempty
     htransfer hleases hrows pt hprop hv

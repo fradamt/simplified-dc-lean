@@ -24,6 +24,8 @@
 #   --write-baseline  write the removals to the baseline
 # Exit 0: report written (findings do not fail); 1: --fail-on-new and a NEW
 # removal; 2: usage error, --fix, or lake shake failed.
+# B1 review decisions: .lake/clb1-import-review.md (2026-10-05).
+# Keep public exports and explicit tactic/test environments; counts are live data.
 # The full report: .lake/shake-report.txt (override with SHAKE_REPORT).
 # SHAKE_RAW=<file>: parse this saved `lake shake` output and do not run lake
 # (self-test: scripts/shake-report-selftest.sh).

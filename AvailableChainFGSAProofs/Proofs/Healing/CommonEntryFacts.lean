@@ -46,7 +46,8 @@ theorem common_first_time_bound (q r : Nat)
   constructor <;> nlinarith
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Read bridge. DC: SAME a selected action source has an actual opening tick. -/
+Read bridge. DC: SAME a selected action source has an actual opening tick.
+See opening_action_tick in Healing/OpeningServiceOne for the postClock route. -/
 theorem common_source_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {x : V} {r : Nat} {K : FGBlock (Fin p.n)}
     (hK : actionSourceFG p c E rho x r = some (some K)) :

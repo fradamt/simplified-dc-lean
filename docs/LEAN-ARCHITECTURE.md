@@ -161,9 +161,9 @@ Authority: **S3 §2** (and §3 for the machine inventory). Summary:
   (TStart, TVote, TWalk with `Batch h m`); one output-property kernel
   (GLY r3.8: `CompatOn`, `CompatAt`, `MonoOn`, `BelowOn`, `ServedOn` in Gen
   S/Pure/Props; no separate `SafeOn`) under CleanSafetyClaim, Healed, the inclusion and
-  P1 conclusions, TSMono and TExact (O09); `KernelFromContract` for the
-  kernel claim and F6 only, with QF2/QF4 proved from the F4 phase lemmas
-  over `KernelP`; `tstarOf` + `H0.tstar_eq` and the joined kernel form in
+  P1 conclusions, TSMono and TExact (O09); `KernelPrem_W` and
+  `KernelConclusion_W` for the W kernel claim and F6, with QF2/QF4 proved
+  from the F4 phase lemmas; `tstarOf` + `H0.tstar_eq` and the joined kernel form in
   F0.8b (O14); `ResetArrivalStatement` and `ProgressAttemptStatement`
   frozen at G-F0b (O12).
 - **Healing time (L21, replaces the premise part of L6).** The blueprint
