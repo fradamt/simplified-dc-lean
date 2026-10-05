@@ -494,8 +494,8 @@ Coverage. The append laws alone (`ExecutionValid.snoc_selfDelivery` and the
 └───────────────────────────┴──────────────────┴────────────────────────────────┘
 ```
 
-Not covered: `Outage₂` for `t < b₀`: lowering the prefix cut to `t` breaks
-`lag` (`T + lag ≤ b₀`). Every claim quantifies over all valid runs, so it covers the
+Not covered by these theorems: `Outage₂` for `t < b₀`. Lowering the prefix cut to `t` requires
+`T + (if fast then 4 * p.Δ else L p - 3 * p.Δ) ≤ t`. The original `lag` field does not imply this stronger bound. Every claim quantifies over all valid runs, so it covers the
 spec-like runs. The results are not a full run embedding (Option 2 of the
 analysis): a claim read at a time after `t` is read on the original run,
 where the own row arrives by delivery within the regime's bound.
