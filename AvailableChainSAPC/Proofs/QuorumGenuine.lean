@@ -8,7 +8,7 @@ open AvailableChain.Generic AvailableChain.Statements.Generic AvailableChain.Eng
 
 /-- The shared genuine-support comparison also applies to a state's
 own late pool. Equivocators cannot be surviving genuine supporters. -/
-theorem self_late_transfer (p : Params) {n : Nat} (st : GridCO.State n)
+theorem self_late_transfer (p : Params) {n : Nat} (st : GridCO.State n .block)
     (r : Slot) (b : Block) :
     GridCO.TransferReceipts p.engine st r st.blocks
       (GridCO.lateVotes p.engine st r) (GridCO.lateVotes p.engine st r) b := by
@@ -17,7 +17,7 @@ theorem self_late_transfer (p : Params) {n : Nat} (st : GridCO.State n)
   obtain ⟨target, ht, _⟩ := htarget
   have hearly := (List.mem_filter.mp ho).1
   have hres := (List.mem_filter.mp hearly).2
-  simp only [GridCO.resolvedBefore, ht, Bool.and_eq_true_iff,
+  simp only [GridCO.resolvedBefore_block, ht, Bool.and_eq_true_iff,
     decide_eq_true_eq, GridCO.blockKnown] at hres
   exact ⟨GridCO.earlyVotes_subset_lateVotes p.engine st r o hearly,
     target, ht, hres.1.1.1⟩
@@ -25,7 +25,7 @@ theorem self_late_transfer (p : Params) {n : Nat} (st : GridCO.State n)
 /-- A raw exact-target quorum and a genuine result at the same label
 are compatible once the quorum reaches the late pool. The q bound is
 absolute; this proof has no fault-cap or active-mode premise. -/
-theorem raw_quorum_compatible_confirmation (p : Params) (st : GridCO.State p.n)
+theorem raw_quorum_compatible_confirmation (p : Params) (st : GridCO.State p.n .block)
     (r : Slot) (b c : Block) (hb : b ∈ st.blocks) (hslot : b.slot ≤ r)
     (seats : Finset (Fin p.n)) (hq : pcQuorum p ≤ seats.card)
     (hrec : ∀ i ∈ seats, (⟨.seat r i, .head b⟩ : GridCO.Wire p.n) ∈

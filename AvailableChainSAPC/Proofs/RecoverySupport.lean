@@ -222,7 +222,7 @@ def RecoverySourcesSupported {V : Type} [DecidableEq V] (p : Params)
   ∀ s, gateTime p s ≤ rho.horizon → ∀ source ∈ rho.honest, ∀ B C g,
     voteTime p boundary < gateTime p s + lifetime p →
     SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p s) source).base s = some C →
-    Block.Preceq B C → g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+    Block.Preceq B C → g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
       (Run.stateBeforeTime (sapc p) rho (gateTime p s) source).base s B →
     ∀ t, s ≤ t → gateTime p t ≤ rho.horizon →
       RecoveryRowsCompatible p rho t B ∧ RecoveryHeadCovers p rho t B

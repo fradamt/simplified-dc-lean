@@ -179,11 +179,13 @@ theorem proposer_support_subset_head_view {V : Type} [DecidableEq V]
   intro key hk
   have hres := (List.mem_filter.mp hk).2
   cases ht : GridCO.headTarget? key with
-  | none => simp [ht] at hres
+  | none => simp [GridCO.resolvedHead?, ht] at hres
   | some target =>
       have hknown : target ∈ (proposalState p rho s).base.blocks := by
-        simp only [ht, Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown] at hres
-        exact hres.1
+        by_cases hm : target ∈ (proposalState p rho s).base.blocks
+        · exact hm
+        · simp [GridCO.resolvedHead?, ht, GridCO.resolveTarget, GridCO.resolutionTree,
+            hm] at hres
       exact GridCO.proposal_support_mem_voterSupportView p.engine _ _ s _ b _
         (honest_proposal_base_stored_at_head p E rho hx hΔ hnet s b hb hsync hh reader hr)
         rfl (honest_proposal_slot p E rho hx.toScheduleWellFormed s b hb).2.2 key target hk ht

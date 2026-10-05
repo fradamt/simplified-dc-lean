@@ -134,10 +134,14 @@ theorem honest_proposal_active_score_path {V : Type} [DecidableEq V]
     have := GridCO.equivocates_mono _ _ i hsub h
     simp [he] at this)
   have hresolved := (List.mem_filter.mp hs).2
-  simp only [ht, GridCO.blockKnown, Bool.and_eq_true, decide_eq_true_eq] at hresolved
+  have hknown : target ∈ (proposalState p rho (r + 1)).base.blocks := by
+    by_cases hm : target ∈ (proposalState p rho (r + 1)).base.blocks
+    · exact hm
+    · simp [GridCO.resolvedHead?, ht, GridCO.resolveTarget, GridCO.resolutionTree,
+        hm] at hresolved
   by_cases hg : c = .genesis
   · simpa only [hg] using (proposalState_paths p rho (r + 1)).2
-  · exact (proposalState_paths p rho (r + 1)).1 target hresolved.1 c hg hct
+  · exact (proposalState_paths p rho (r + 1)).1 target hknown c hg hct
 
 end AvailableChain.SAPC
 end

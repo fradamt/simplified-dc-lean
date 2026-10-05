@@ -18,7 +18,7 @@ theorem resilient_of_pending_admission {V : Type} [DecidableEq V] [Fintype V]
       ∀ source ∈ rho.honest, ∀ B, B ≠ .genesis →
         Block.Preceq B (stable (Run.readAt (sapc p) rho T source)) →
         ∀ v ∈ rho.honest, releaseThreshold p ∈
-          @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
+          @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n .block
             (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r B) :
     PersistsThrough (sapc p) rho (sapcInterface p).stable T b₀ b₁ := by
   intro source hs B below t ht0 ht1

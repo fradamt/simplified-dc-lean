@@ -68,9 +68,10 @@ theorem honest_proposal_transfer_receipts {V : Type} [DecidableEq V]
     have sourceSupport := reflected.resolve_right (by simp [sourceUnique])
     refine ⟨sourceSupport, target, rfl, ?_⟩
     have resolved := (List.mem_filter.mp sourceSupport).2
-    simp only [GridCO.headTarget?, GridCO.blockKnown, Bool.and_eq_true,
-      decide_eq_true_eq] at resolved
-    exact resolved.1
+    by_cases hm : target ∈ (proposalState p rho (r + 1)).base.blocks
+    · exact hm
+    · simp [GridCO.resolvedHead?, GridCO.headTarget?, GridCO.resolveTarget,
+        GridCO.resolutionTree, hm] at resolved
   · intro o ho i hi
     exact receipts.backward o (subset ho) i hi
   · intro o ho

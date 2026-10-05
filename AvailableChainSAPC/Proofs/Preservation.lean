@@ -107,7 +107,7 @@ theorem head_in_earlyVotes_of_delivery {V : Type} [DecidableEq V]
     exact bound
   apply List.mem_filter.mpr
   refine ⟨List.mem_filter.mpr ⟨key, by simp [GridCO.headLabel?]⟩, ?_⟩
-  simpa only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?,
+  simpa only [GridCO.resolvedBefore_block, GridCO.headTarget?, GridCO.headLabel?,
     Option.getD_some, GridCO.blockKnown, Bool.and_eq_true, decide_eq_true_eq] using!
     And.intro (And.intro (And.intro (receipts.blocks.subset target)
       (headData_target_slot p E rho hx.toScheduleWellFormed r u)) stamp) blockstamp
@@ -164,7 +164,7 @@ theorem prefixSupport_ge_honest_batch {V : Type} [DecidableEq V]
       (List.mem_filterMap.mpr ⟨_, clean, rfl⟩)), List.any_eq_true.mpr ⟨_,
       List.mem_filter.mpr ⟨clean, by simp [GridCO.headSeat?]⟩, ?_⟩⟩
     have resolved := (List.mem_filter.mp early).2
-    simp only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?,
+    simp only [GridCO.resolvedBefore_block, GridCO.headTarget?, GridCO.headLabel?,
       Option.getD_some, Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown] at resolved
     simpa only [GridCO.headTarget?, GridCO.headLabel?, Option.getD_some, Bool.and_eq_true,
       decide_eq_true_eq] using! And.intro (And.intro resolved.1.1.1 resolved.1.1.2)
