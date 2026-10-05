@@ -117,7 +117,7 @@ def AwakeMajority [Fintype V] (E : Generic.Env V) (rho : D.Run V P) (t : Time) :
 theorem AwakeMajority_def [Fintype V] (E : Generic.Env V) (rho : D.Run V P) (t : Time) :
     AwakeMajority E rho t = ((faulty rho).card < (awakeHonest E rho t).card) := by rfl
 
--- DC: DecoupledConsensusStatements/Generic/Conditions.lean:174 (b241081, 2026-09-28);
+-- DC: DecoupledConsensusStatements/Generic/Conditions.lean:175 (b241081, 2026-09-28);
 -- INTENTIONAL: the AC v1 form (AvailableChainStatements/Generic/Conditions.lean:206,
 -- b15feea) starts at `start`, not at GST.
 /-- Honest validators remain awake from `start` to the horizon. -/
@@ -141,8 +141,10 @@ structure PCInterface (P : ProtocolSpecD In) extends D.Interface P where
 `3Δ`, the safety fault cap `a < q_A n`, Duty delivery `delayOf`, and no
 restart.
 
-Seat counts. `Fam` is the label family of the PC-relevant signatures (HEAD and
-ack labels at least). `cstar` makes each `Fam` label's seat map a bijection
+Seat counts. `Fam` must be exactly the labels with `n` seats that carry
+PC-relevant signatures (HEAD and ack), never the single-seat proposal label.
+An over-large `Fam` makes `seats` false for every run, so the claims become
+vacuous. `cstar` makes each `Fam` label's seat map a bijection
 onto the validators and `seats` gives each such label `n` seats, so a faulty
 validator holds exactly one seat of each `Fam` label and the validator count
 `(faulty rho).card` is the faulty seat count. This restores the v1 identity
