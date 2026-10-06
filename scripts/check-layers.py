@@ -495,6 +495,12 @@ def run(ctx: Context, m: Module, dep: str) -> bool:
 
 def claims(ctx: Context, m: Module, dep: str) -> bool:
     allowed = foundation(dep) or dep in ctx.definitions or P.matches("layersClaims", dep)
+    if under(m.name, PC_CLAIMS):
+        allowed = allowed or any_under(dep, (PC_CLAIMS, "AvailableChainPCSA.Model",
+            "AvailableChainPCSA.Statements", "AvailableChainPCSARun.Model",
+            "AvailableChainPCSARun.Statements", "AvailableChainEngineV2.Conditions"))
+        allowed = allowed or dep == "AvailableChainSimplexFG.Evidence"
+        return not m.facade and not is_test(m.name) and (not allowed or is_proof(ctx, dep))
     return under(m.name, CLAIMS) and not m.facade and not is_test(m.name) and (not allowed or is_proof(ctx, dep))
 
 
@@ -672,7 +678,12 @@ def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
         "AvailableChainFGSA.Proofs", "AvailableChainFGSARun", PROOFS + ".Proofs"))
         or dep == STORE_FACTS)
     if parts[0] == "Assembly":
-        allowed = upstream or (target and (target[0] in {"Assembly", "Shared"} or target_export))
+        allowed = upstream or (target and (target[0] == "Shared" or target_export))
+        if m.name == PC_PROOFS + ".Proofs.Assembly.Root":
+            allowed = foundation(dep) or dep in {
+                PC_PROOFS + ".Proofs.Assembly." + name for name in
+                ("Foundations", "Shared", "PC", "Small", "AcFrame", "Clean", "Outage",
+                 "Finality", "ResetArrival", "WeakContinuation")}
         allowed = allowed or (m.name == PC_PROOFS + ".Proofs.Assembly.Root" and
                               dep == PC_CLAIMS + ".PCSAClaims")
         rule = "ASSEMBLY"
@@ -684,8 +695,9 @@ def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
         allowed = upstream or own_claim or (target and target[0] in {
             parts[0], "Foundations", "Shared"} and not target_export)
         rule = "LANE"
-        if not export and reaches_claims(ctx, dep):
-            yield ("LANE-CLAIMS", m.name, dep)
+    if (parts[0] != "Assembly" and m.name != shared_claims
+            and not own_claim and reaches_claims(ctx, dep)):
+        yield ("LANE-CLAIMS", m.name, dep)
     if not allowed:
         yield (rule, m.name, dep)
 
