@@ -57,12 +57,14 @@ theorem pcsa_certificateFolded_def (p : Params) (K : Nat) (B : FGBlock (Fin p.n)
 def pcsa_certificateSelection (p : Params) (K : Nat) : FGSelectionView (Fin p.n) where
   before := fun B => (pcsa_certificateFolded p K B).W.map pcsa_projectCertEntry
   chosen := fun B => (greatestReady p.E (pcsa_certificateFolded p K B)).map pcsa_projectCertEntry
-  afterPrune := fun B => (finalizeWindow p.E (pcsa_certificateFolded p K B)).W.map pcsa_projectCertEntry
+  afterPrune := fun B =>
+    (finalizeWindow p.E (pcsa_certificateFolded p K B)).W.map pcsa_projectCertEntry
 
 theorem pcsa_certificateSelection_def (p : Params) (K : Nat) :
     pcsa_certificateSelection p K =
       { before := fun B => (pcsa_certificateFolded p K B).W.map pcsa_projectCertEntry
-        chosen := fun B => (greatestReady p.E (pcsa_certificateFolded p K B)).map pcsa_projectCertEntry
+        chosen := fun B =>
+          (greatestReady p.E (pcsa_certificateFolded p K B)).map pcsa_projectCertEntry
         afterPrune := fun B =>
           (finalizeWindow p.E (pcsa_certificateFolded p K B)).W.map pcsa_projectCertEntry } := rfl
 
