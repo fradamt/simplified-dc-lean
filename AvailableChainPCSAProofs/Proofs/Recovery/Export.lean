@@ -1,6 +1,7 @@
 module
 public import AvailableChainPCSAClaims.Claims.Recovery
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
+public import AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved
 
 public section
 
