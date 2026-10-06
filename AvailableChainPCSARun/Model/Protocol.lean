@@ -337,14 +337,15 @@ def depsS (p : Params) (st : State p.n) (o : Obj p) : Bool :=
 a proposal by root (a stored FG block has the root of its block, the
 duplicate test of `blockAccepted`); a HEAD if its base vote is in the vote
 pool; a row if it is in the row pool; an ack if it is in the ack pool; a PC
-if every ack of it is in the ack pool (the pools only grow). -/
+if a PC of its slot and target is installed (the test of `installPC`; the
+pools and the installed PCs only grow). -/
 def processedS (p : Params) (st : State p.n) (o : Obj p) : Bool :=
   match (toWire p o).decode with
   | some (.vote s i b) => decide (baseVote (⟨.seat (.head s) i, b⟩ : HeadWire p.n) ∈ st.base.votes)
   | some (.row i body) => decide ((⟨.seat .fg i, body⟩ : RowWire p.n) ∈ st.rowPool)
   | some (.block _ N) => decide (∃ Y ∈ st.fg.TF, Y.root = N.root)
   | some (.ack s i b) => decide ((⟨.seat (.ack s) i, b⟩ : AckWire p.n) ∈ st.ackPool)
-  | some (.pc c) => c.acks.all (fun a => decide (a ∈ st.ackPool))
+  | some (.pc c) => st.pcs.any (fun d => d.slot == c.slot && d.target == c.target)
   | none => false
 
 /-- [PC-SA M1] [R6] Permanent invalidity once the immutable parent is held. An absent
@@ -368,31 +369,44 @@ def excludesS (p : Params) (st : State p.n) (o : Obj p) : Bool :=
   | some (.pc _) => false
   | none => false
 
+/-- [PC-SA M1; pcsa-decisions R-e; pcsa34-r4.3 §5.2.3 PC relay] Structural
+containment: a proposal payload carries its raw HEADs, its support HEADs, its
+rows and the acks of its PC; a PC payload carries its acks. A PC object (no
+signer) is carried by the objects whose call can install it: an ack by the
+PCs that contain it, a proposal by the PCs on its block and on the slot and
+target of its PC, a PC by the PCs of its slot and target. -/
+def carriesS (p : Params) (o o' : Obj p) : Prop :=
+  (match o.payload with
+  | .proposal N =>
+      o' ∈ N.raw.map (ofHead p) ∨ o' ∈ N.support.map (ofHead p) ∨ o' ∈ N.rows.map (ofRow p) ∨
+        o' ∈ N.pcAcks.map (ofAck p)
+  | .pc c => o' ∈ c.acks.map (ofAck p)
+  | _ => False) ∨
+  ∃ C : PC p.n, o' = ofWire p ⟨.none, .pc C⟩ ∧ match o.payload with
+    | .ack _ => o ∈ C.acks.map (ofAck p)
+    | .proposal N => C.target = N.erase ∨
+        ∃ d ∈ N.pc, d.slot = C.slot ∧ d.target = C.target
+    | .pc c => c.slot = C.slot ∧ c.target = C.target
+    | _ => False
+
 /-- [PC-SA M1; pcsa-decisions R-e] [spec 804–829; plan T7.2] Handler calls:
 the delivered object itself; for a proposal that the store accepts
 (`parentFG` and `blockAccepted`, the tests of `admitBlock`), also its carried
 HEADs (the raw votes), its carried rows and the acks of its carried PC; for a
-PC, its acks; as v2 objects (`ofHead`, `ofRow`, `ofAck`). -/
+PC, its acks; as v2 objects (`ofHead`, `ofRow`, `ofAck`). [pcsa34-r4.3 §5.2.3
+PC relay] Also every carried PC object whose certificate the call installs, so
+the engine relays an installed PC as a whole certificate. -/
 def handlesS (p : Params) (st : State p.n) (o o' : Obj p) : Prop :=
-  o = o' ∨ match (toWire p o).decode with
+  o = o' ∨ (match (toWire p o).decode with
     | some (.block s N) =>
         (namedParentHeld st N = true ∧ ∃ P, parentFG st N.erase = some P ∧
           blockAccepted p st s N P = true) ∧
           (o' ∈ N.raw.map (ofHead p) ∨ o' ∈ N.rows.map (ofRow p) ∨
             o' ∈ N.pcAcks.map (ofAck p))
     | some (.pc c) => o' ∈ c.acks.map (ofAck p)
-    | _ => False
-
-/-- [PC-SA M1; pcsa-decisions R-e] [spec 248–255; plan T7.2] Structural
-containment: a proposal payload carries its raw HEADs, its support HEADs, its
-rows and the acks of its PC; a PC payload carries its acks. -/
-def carriesS (p : Params) (o o' : Obj p) : Prop :=
-  match o.payload with
-  | .proposal N =>
-      o' ∈ N.raw.map (ofHead p) ∨ o' ∈ N.support.map (ofHead p) ∨ o' ∈ N.rows.map (ofRow p) ∨
-        o' ∈ N.pcAcks.map (ofAck p)
-  | .pc c => o' ∈ c.acks.map (ofAck p)
-  | _ => False
+    | _ => False) ∨
+  carriesS p o o' ∧ ∃ C : PC p.n, o' = ofWire p ⟨.none, .pc C⟩ ∧
+    C ∈ (PCSA.process p st (toWire p o)).pcs ∧ C ∉ st.pcs
 
 /-! ### The protocol -/
 

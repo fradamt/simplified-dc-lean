@@ -47,15 +47,16 @@ theorem pcsa_pc_handles_ack (nd : Node p) (C : PC p.n) (a : AckWire p.n)
     (pcsaWith m p c).handles nd (⟨.none, .pc C⟩ : Obj p) (ofAck p a) := by
   change handlesS p nd.st _ _
   right
+  left
   exact List.mem_map.mpr ⟨a, ha, rfl⟩
 
 /-- A proposal carries the acks of its carried PC, with their signatures. -/
 theorem pcsa_proposal_carries_ack (N : NamedProposal p.n) (auth :
     V2.Auth RunLabel (RunLabel.seats p)) (a : AckWire p.n) (ha : a ∈ N.pcAcks) :
     (pcsaWith m p c).carries (⟨auth, .proposal N⟩ : Obj p) (ofAck p a) := by
-  change ofAck p a ∈ N.raw.map (ofHead p) ∨ ofAck p a ∈ N.support.map (ofHead p) ∨
-    ofAck p a ∈ N.rows.map (ofRow p) ∨ ofAck p a ∈ N.pcAcks.map (ofAck p)
-  exact Or.inr (Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩)))
+  change (ofAck p a ∈ N.raw.map (ofHead p) ∨ ofAck p a ∈ N.support.map (ofHead p) ∨
+    ofAck p a ∈ N.rows.map (ofRow p) ∨ ofAck p a ∈ N.pcAcks.map (ofAck p)) ∨ _
+  exact Or.inl (Or.inr (Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩))))
 
 /-- An accepted proposal calls the handlers of the acks of its carried PC. -/
 theorem pcsa_proposal_handles_ack (nd : Node p) (s : Slot) (N : NamedProposal p.n)
@@ -65,6 +66,7 @@ theorem pcsa_proposal_handles_ack (nd : Node p) (s : Slot) (N : NamedProposal p.
     (pcsaWith m p c).handles nd (ofWire p ⟨.proposer s, .proposal N⟩) (ofAck p a) := by
   change handlesS p nd.st _ _
   right
+  left
   exact ⟨⟨hn, hp⟩, Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩))⟩
 
 /-- Broadcast receipt has a strict deadline, also at an asleep receiver. -/

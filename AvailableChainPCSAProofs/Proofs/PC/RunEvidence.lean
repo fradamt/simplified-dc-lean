@@ -149,7 +149,7 @@ theorem evidence_stateBefore (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p
         change carriesS p o (ofHead p a)
         unfold carriesS
         rw [ho]
-        exact Or.inl (List.mem_map.mpr ⟨a, ha, rfl⟩)
+        exact Or.inl (Or.inl (List.mem_map.mpr ⟨a, ha, rfl⟩))
       rw [baseHead_shape a s' i r hshape] at hcar
       obtain ⟨t', _, ht⟩ := hv.carried v o t ⟨k, he⟩ _ hcar _ hh' rfl
       exact ⟨t', ht⟩

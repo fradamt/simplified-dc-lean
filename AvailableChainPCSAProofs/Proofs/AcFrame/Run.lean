@@ -51,7 +51,7 @@ theorem pcsa_ac_block_rows_faulty (E : Generic.Env V) (rho : V2.D.Run V (pcsaAC 
   change carriesS p o _
   delta carriesS
   rw [decoded_block_payload o s N hd]
-  exact Or.inr (Or.inr (Or.inl (List.mem_map.mpr ⟨_, ha, rfl⟩)))
+  exact Or.inl (Or.inr (Or.inr (Or.inl (List.mem_map.mpr ⟨_, ha, rfl⟩))))
 
 /-- The initial store satisfies the AC frame invariant for any faulty seat set. -/
 theorem pcsa_initial_acSafe (F : Finset (Fin p.n)) : AcStoreSafe F (initial p.n) := by

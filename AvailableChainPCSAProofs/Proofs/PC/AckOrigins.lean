@@ -88,12 +88,12 @@ theorem certSafe_stateBefore (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p
       refine ⟨v, o, t, ⟨k, he⟩, Or.inr ?_⟩
       unfold carriesS
       rw [(decoded_payloads o).1 s N hd]
-      exact Or.inr (Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩)))
+      exact Or.inl (Or.inr (Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩))))
     · intro d hd a ha
       refine ⟨v, o, t, ⟨k, he⟩, Or.inr ?_⟩
       unfold carriesS
       rw [(decoded_payloads o).2 d hd]
-      exact List.mem_map.mpr ⟨a, ha, rfl⟩
+      exact Or.inl (List.mem_map.mpr ⟨a, ha, rfl⟩)
 
 /-- The inclusive reader has the same certificate evidence as its event prefix. -/
 theorem certSafe_storeAt (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
