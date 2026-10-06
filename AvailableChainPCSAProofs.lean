@@ -29,3 +29,4 @@ public import AvailableChainPCSAProofs.Proofs.Shared.CleanGate
 public import AvailableChainPCSAProofs.Proofs.Shared.Dissemination
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainPCSAProofs.Proofs.Shared.RetainedWalk
+public import AvailableChainPCSAProofs.Proofs.Shared.FGCompose

@@ -36,6 +36,7 @@ the scan completed (findings are consumed by Python); 2 means input error.
 -/
 
 def inScope (library : String) : Bool :=
+  library == "AvailableChainFGCompose" ||
   library.startsWith "AvailableChainFGSA" ||
     ["AvailableChainShared", "AvailableChainClaims", "Shared", "Claims",
       "AvailableChainKitFG"].contains library

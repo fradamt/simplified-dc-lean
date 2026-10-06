@@ -100,6 +100,7 @@ import check_common as C  # noqa: E402
 GEN = {'AvailableChainGeneric'}
 FGSA_ALL = {'AvailableChainFGSA', 'AvailableChainFGSARun', 'AvailableChainFGSAClaims',
             'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit', 'AvailableChainPCSAProofs'}
+COMPOSE = {'AvailableChainFGCompose'}
 KITFG = {'AvailableChainKitFG'}
 BASE = os.environ.get('GLY_BASE', '7ac5b0c')
 ALLOW = os.path.join(C.SCRIPTS, 'gly-rules-allow.txt')
@@ -259,7 +260,7 @@ ROOT_PREMISES = tok(['RootInjectiveBelow', 'ViewRootInj', 'RootInjectiveOn', 'Co
 
 def rule_f3(x):
     out = []
-    for lf, d in x.all_decls(GEN | KITFG | FGSA_ALL):
+    for lf, d in x.all_decls(GEN | KITFG | FGSA_ALL | COMPOSE):
         if d.kind not in THM or ('F-3', d.full) in x.allow:
             continue
         prem, _ = d.premises_and_conclusion()
@@ -530,7 +531,7 @@ def regime_premises_groups(text):
 def f23_findings(lf, decls, new=None):
     out = []
     shared = lf.lib in {'AvailableChainFGSAProofs', 'AvailableChainPCSAProofs'} and '.Shared.' in lf.module + '.'
-    if not (lf.lib in GEN | KITFG or shared):
+    if not (lf.lib in GEN | KITFG | COMPOSE or shared):
         return out
     for d in decls:
         if d.kind not in THM:

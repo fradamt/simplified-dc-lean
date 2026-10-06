@@ -25,6 +25,7 @@ defaultTargets = [
   "AvailableChainPCSA",
   "AvailableChainPCSARun",
   "AvailableChainPCSAClaims",
+  "AvailableChainFGCompose",
   "AvailableChainPCSAProofs",
 ]
 
@@ -185,6 +186,11 @@ globs = ["AvailableChainPCSARun.*"]
 [[lean_lib]]
 name = "AvailableChainPCSAClaims"
 globs = ["AvailableChainPCSAClaims.*"]
+
+# FG composition contracts and proofs (L5).
+[[lean_lib]]
+name = "AvailableChainFGCompose"
+globs = ["AvailableChainFGCompose.*"]
 
 # PC-SA proof lanes and their separate audit target.
 [[lean_lib]]

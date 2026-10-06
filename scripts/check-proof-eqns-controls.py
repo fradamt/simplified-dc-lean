@@ -155,3 +155,48 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
         complete_check('inventory omission', 1, "AUDIT INVENTORY MISSING name=Special.B'_resetF ")
     finally:
         link.unlink()
+
+    # Compose has its own proof leak and audit-owner controls.
+    compose_owner = 'AvailableChainFGCompose.Statements.Control'
+    compose_audit = 'AvailableChainFGCompose.Tests.Control'
+    compose_proof = 'AvailableChainFGCompose.Proofs.Control'
+    compile_module(compose_owner,
+                   'module\npublic import Init\n@[expose] public section\n'
+                   'namespace ComposeControl\ndef P : Prop := True\nend ComposeControl\n')
+    compile_module(compose_audit, f'module\npublic import {compose_owner}\n'
+                   '#print axioms ComposeControl.P\n')
+    compile_module(compose_proof,
+                   'module\npublic import Init\n@[expose] public section\n'
+                   'namespace ComposeLeak\ndef f (n : Nat) : Nat := n + 1\n'
+                   'theorem test (n : Nat) : f n = n + 1 := f.eq_def n\nend ComposeLeak\n')
+    (source / 'scripts/baselines').mkdir(parents=True, exist_ok=True)
+    for name in ('kitfg-def-modules.txt', 'check-proof-eqns.txt'):
+        (source / 'scripts/baselines' / name).write_bytes((REPO / 'scripts/baselines' / name).read_bytes())
+    compile_module('AvailableChainCoverageControlRoot', 'module\n')
+    (source / 'lakefile.toml').write_text(
+        'name = "compose-proof-control"\n'
+        'defaultTargets = ["AvailableChainCoverageControlRoot"]\n'
+        '[[lean_lib]]\nname = "AvailableChainCoverageControlRoot"\n'
+        '[[lean_lib]]\nname = "AvailableChainFGCompose"\n'
+        'globs = ["AvailableChainFGCompose.*"]\n')
+    args = lean + ['--run', str(REPO / 'scripts/CheckProofEqns.lean'), '--baseline',
+                   str(REPO / 'scripts/baselines/check-proof-eqns.txt')]
+    result = command(args + [compose_proof], cwd=source)
+    assert result.returncode == 1 and f'EQ EXPORT {compose_proof}' in result.stdout, (result.returncode, result.stdout, result.stderr)
+    print('CONTROL Compose proof equation leak: PASS', flush=True)
+    data = root / 'compose-coverage.txt'
+    row = f'{compose_owner} ComposeControl.P {compose_audit}\n'
+    data.write_text(row)
+    args += [compose_audit, '--coverage', str(data), '--complete-coverage']
+    for label, body, owner, rc, reason in (
+        ('positive', '#print axioms ComposeControl.P\n', compose_owner, 0, '0 unaccepted'),
+        ('missing', '', compose_owner, 1, 'AUDIT LINE MISSING'),
+        ('commented', '-- #print axioms ComposeControl.P\n', compose_owner, 1, 'AUDIT LINE MISSING'),
+        ('wrong owner', '#print axioms ComposeControl.P\n', compose_proof, 1, 'AUDIT DECLARATION MISSING'),
+    ):
+        (source / (compose_audit.replace('.', '/') + '.lean')).write_text(
+            f'module\npublic import {compose_owner}\n' + body)
+        data.write_text(f'{owner} ComposeControl.P {compose_audit}\n')
+        result = command(args, cwd=source)
+        assert result.returncode == rc and reason in result.stdout, (label, result.stdout, result.stderr)
+        print(f'CONTROL Compose audit {label}: PASS', flush=True)

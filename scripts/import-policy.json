@@ -61,7 +61,10 @@
       "AvailableChainKitFG.*",
       "AvailableChainFGSA.Proofs.*",
       "AvailableChainFGSARun.Proofs.*",
-      "AvailableChainGeneric.Proofs.*"
+      "AvailableChainGeneric.Proofs.*",
+      "AvailableChainFGCompose.Statements.EventReads",
+      "AvailableChainFGCompose.Statements.CoreReads",
+      "AvailableChainFGCompose.Proofs.SourceHead"
     ],
     "layersRun": [
       "AvailableChainFGSARun.**",
@@ -86,7 +89,10 @@
       "AvailableChainEngineV2.**",
       "AvailableChainKitV2.**",
       "AvailableChainFGSA.**",
-      "AvailableChainFGSARun.**"
+      "AvailableChainFGSARun.**",
+      "AvailableChainFGCompose.Statements.EventReads",
+      "AvailableChainFGCompose.Statements.CoreReads",
+      "AvailableChainFGCompose.Proofs.SourceHead"
     ]
   },
   "profiles": {

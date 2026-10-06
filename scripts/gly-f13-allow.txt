@@ -6,3 +6,7 @@ F-13 dup genuine_history_induction AvailableChainGeneric AvailableChainGridCO # 
 F-13 dup fold_field AvailableChainGeneric AvailableChainGridCO AvailableChainSAPC # retire: GridCO copy deleted after F2 (GLY r3.16 E-16 deletion row); SAPC copy deleted at the SA step (lead ruling DC 2026-09-30).
 F-13 dup quorum_intersection AvailableChainGeneric AvailableChainKitFG # KitFG copy is a wrapper of Gen.Pure.quorum_intersection through WeightsBridge (AvailableChainKitFG/Ancestry.lean:28).
 F-13 dup processed_stable AvailableChainFGSARun AvailableChainGridCO AvailableChainLStar AvailableChainSAPC # per-protocol instance, not a copy; T7 r17 and F0.3 SeedAt fix the name; a Gen lift is possible if SA needs it (lead ruling DC 2026-09-30).
+
+# Generic equation plus immutable frozen equation.
+F-13 dup preTick_def AvailableChainFGCompose AvailableChainFGSAClaims # generic equation plus immutable frozen equation.
+F-13 dup postClock_def AvailableChainFGCompose AvailableChainFGSAClaims # generic equation plus immutable frozen equation.

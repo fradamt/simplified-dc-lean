@@ -208,6 +208,27 @@ if SOURCE_ONLY:
 else:
     run('layers', ['python3', 'scripts/check-layers.py'])
 
+def compose_source_controls():
+    dep = L.COMPOSE + '.Statements.EventReads'
+    for importer in (CLAIMS + '.Statements.Control', INHABIT + '.Control',
+                     PROOFS + '.Proofs.Shared.Claims', PROOFS + '.Proofs.Finality.Control',
+                     PROOFS + '.Proofs.Shared.FGCompose.Extra'):
+        expected = f'UPSTREAM-COMPOSE: {importer} imports {dep}'
+        assert expected in source_findings(importer, f'module\npublic import {dep}\n'), expected
+    for importer, dep in sorted(L.COMPOSE_EDGES):
+        if owned(importer):
+            found = source_findings(importer, f'module\npublic import {dep}\n')
+            assert not found, (importer, dep, found)
+    importer = PROOFS + '.Proofs.Shared.FGCompose'
+    dep = L.COMPOSE + '.Statements.EventReads.Extra'
+    expected = f'UPSTREAM-COMPOSE: {importer} imports {dep}'
+    assert expected in source_findings(importer, f'module\npublic import {dep}\n'), expected
+    print('CONTROL Compose claims exact edges: PASS', flush=True)
+
+if not SOURCE_ONLY and os.environ.get('NEG', '1') == '1':
+    compose_source_controls()
+
+
 def check_source_coverage(imports, roots):
     imports = {**{m.name: m.imports for m in ctx.modules.values()
                   if L.under(m.name, "AvailableChainPCSAProofs")}, **imports}

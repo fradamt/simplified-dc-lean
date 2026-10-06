@@ -23,6 +23,7 @@ selected = sys.argv[2:]
 if len(selected) > 1 or (selected and selected[0] not in rule_ids):
     raise SystemExit("usage: check-layers-selftest.sh [RULE-ID]")
 
+CO = "AvailableChainFGCompose"
 G = "AvailableChainGeneric"
 K = "AvailableChainKitFG"
 F = "AvailableChainFGSA"
@@ -42,6 +43,9 @@ PA = G + ".Proofs.AC"
 # Each control adds precisely one finding, with the named rule ID. Targets
 # need not exist: this is a text check, not an elaboration check.
 controls = {
+    "COMPOSE-S": (CO + ".Statements.Control", "AvailableChainSA.Model.Protocol"),
+    "COMPOSE-P": (CO + ".Proofs.Control", "AvailableChainSA.Model.Protocol"),
+    "UPSTREAM-COMPOSE": (X + ".Control", CO + ".Statements.EventReads"),
     "B4": (F + ".Model.Control", F + ".Proofs.Helper"),
     "B6-FACADE": (X + ".Control", "AvailableChainFramework"),
     "B6-MATHLIB": (X + ".Proofs.Control", "Mathlib"),
@@ -162,6 +166,48 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
         print(f"PASS {rule}: python3 scripts/check-layers.py --root <temp> -> exit 1; one exact finding")
 
     if not selected:
+        for index, (importer, dep, rule) in enumerate([
+            (CO + ".Statements.Control", CO + ".Proofs.SourceHead", "COMPOSE-S"),
+            (CO + ".Helper", F + ".Model.Store", "COMPOSE-S"),
+            (CO + ".Model.Orphan", SV + ".Duty.Reads", "COMPOSE-S"),
+            (CO, SV + ".Duty.Reads", "COMPOSE-S"),
+            (CO + ".Statements.Control", "AvailableChainKitV2.DutyStable", "COMPOSE-S"),
+            (CO + ".Statements.Control", K + ".Correspondence", "COMPOSE-S"),
+            ("AvailableChainPCSARun.Model.Protocol", CO + ".Statements.EventReads", "UPSTREAM-COMPOSE"),
+            ("AvailableChainPCSAClaims.Statements.Reads", CO + ".Statements.CoreReads", "UPSTREAM-COMPOSE"),
+            *[(CO + ".Proofs.Control", dep, "COMPOSE-P") for dep in
+              [F + ".Model.Store", "AvailableChainPCSA.Model.Store",
+               "AvailableChainGridCO.Model.Protocol", "AvailableChainSA.Model.Protocol",
+               "AvailableChainFramework.Hooks", SA + ".Reads", SP + ".Walk",
+               "AvailableChainKitV2.DutyStable.Extra", K + ".HeightLawsDef.Extra"]],
+            *[(importer, CO + ".Statements.EventReads", "UPSTREAM-COMPOSE") for importer in
+              [G + ".Statements.Pure.Control", K + ".Control",
+               "AvailableChainEngineV2.Engine.Control", "AvailableChainFramework.Hooks",
+               F + ".Model.Store", C + ".Statements.Control", R + ".Model.Control",
+               I + ".Control", P + ".Proofs.Shared.Claims", P + ".Proofs.Finality.Control",
+               P + ".Proofs.Shared.FGCompose.Extra"]],
+            (P + ".Proofs.Shared.FGCompose", CO + ".Statements.EventReads.Extra", "UPSTREAM-COMPOSE"),
+        ]):
+            root = temp / f"compose-boundary-{index}"
+            setup(root)
+            module(root, importer, dep)
+            found = run(root, 1)
+            assert (rule, importer, dep) in found, (rule, found)
+        print("PASS Compose closed boundaries and exact edge neighbors")
+        for index, (importer, dep) in enumerate([
+            (CO + ".Statements.EventReads", SV + ".Duty.Reads"),
+            (CO + ".Statements.CoreReads", "AvailableChainSimplexFG.Store"),
+            (CO + ".Statements.CoreReads", K + ".HeightLawsDef"),
+            (CO + ".Proofs.SourceHead", "AvailableChainKitV2.DutyStable"),
+            (CO + ".Proofs.SourceHead", K + ".Correspondence"),
+            *sorted(api["COMPOSE_EDGES"]),
+        ]):
+            root = temp / f"compose-positive-{index}"
+            setup(root)
+            module(root, importer, dep)
+            run(root, 0, set())
+        print("PASS Compose positive exact edges")
+
         # Real-file header controls. Each spelling must produce the same
         # edge, including newlines, nested comments and quoted identifiers.
         forms = ["import", "public import", "meta import", "public meta import",

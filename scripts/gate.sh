@@ -242,6 +242,9 @@ else
     stop_if_failed
   done
 fi
+step check-fg-compose gate_with_slot bash scripts/check-fg-compose.sh
+summary check-fg-compose
+stop_if_failed
 audit() {
   local path=$1 out=$2 rc=0 count
   gate_with_slot lake env lean "$path" > "$out" 2>&1 || rc=$?
@@ -259,5 +262,14 @@ for lib in Generic FGSA FGSARun; do
   summary "$lib-axioms"
   stop_if_failed
 done
+step FGCompose-axioms audit AvailableChainFGCompose/Tests/Axioms.lean "$logs/FGCompose.axioms"
+summary FGCompose-axioms
+stop_if_failed
+step FGSACompose-axioms audit AvailableChainFGSAProofs/Tests/FGCompose.lean "$logs/FGSACompose.axioms"
+summary FGSACompose-axioms
+stop_if_failed
+step PCSACompose-axioms audit AvailableChainPCSAProofs/Tests/FGCompose.lean "$logs/PCSACompose.axioms"
+summary PCSACompose-axioms
+stop_if_failed
 finish
 exit "$failed"

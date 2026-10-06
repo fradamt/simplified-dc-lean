@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
+public import AvailableChainFGCompose.Proofs.SourceHead
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSA.Proofs.EmissionFields
@@ -218,61 +220,67 @@ theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
     ∃ nd C, postClock E rho hx (p.actionTime q) = some nd ∧
       FGSA.fgSource p nd.st = some C ∧ FGBlock.Preceq D C ∧
       (heightView p C).h = y + 1 ∧ (heightView p C).T_h = (heightView p D).T_h := by
-  by_cases heq : opening = q * p.R
-  · have hexact := ((h3 opening (eraseFG D) hproposal hstart).2
-      (by simpa only [heq, Params.actionTime] using hhor) hx hhonest).2.2.2.2
-      q heq
-    change (actionSourceFG p c E rho hx q).map (Option.map eraseFG) =
-      some (some (eraseFG D)) at hexact
-    obtain ⟨source, hs, he⟩ := Option.map_eq_some_iff.mp hexact
-    obtain ⟨C, hC, hCe⟩ := Option.map_eq_some_iff.mp he
-    have hCD : C = D := eraseFG_injective hCe
-    subst C
-    rw [hC] at hs
-    rw [actionSourceFG_def] at hs
-    obtain ⟨nd, hnd, hsource⟩ := Option.map_eq_some_iff.mp hs
-    exact ⟨nd, D, hnd, hsource, KitFG.preceq_refl D, hDh, rfl⟩
-  · have hlt : opening < q * p.R := Nat.lt_of_le_of_ne hbefore heq
-    have hcover : ∀ x ∈ rho.honest, ∃ H,
-        headAtLabel p c E rho x (q * p.R) = some H ∧ Block.Preceq (eraseFG D) H := by
-      intro x hx
-      obtain ⟨H, hH⟩ := hheads x hx
-      exact ⟨H, hH, h2 opening (eraseFG D) hproposal hstart x (q * p.R) H hx
-        (Nat.succ_le_of_lt hlt) hH⟩
-    obtain ⟨_hresult, _hpassed, nd, d, hnd, hwrite, hlease, _hdeadline, hlive⟩ :=
-      h6 (q * p.R) (eraseFG D) ((Nat.le_add_right w.sStar 2).trans
-        (hstart.trans hbefore)) hGST hhor hne hcover hFgate hx hhonest
-    obtain ⟨j, _hj, hclock⟩ := rows_clock_read p c E rho hx (p.actionTime q) nd hnd
-    have hf := hframe nd hnd
-    have hkept : D ∈ domainR p nd.st (treeT p nd.st) := by
-      rw [domainR_def, treeT_def, frameR_def]
-      exact (KitFG.mem_filteredFromView (heightView p) _ _ D).mpr
-        ⟨hf.1, hf.2.1, hf.2.2.1, D, hf.1, KitFG.preceq_refl D, hf.2.2.2⟩
-    have hround : p.round (nd.st.slot p) = q := by
-      rw [← hclock]
-      exact (fgsa_action_slot_round (c := c) _ q).2
-    have hnow : nd.st.base.now = p.actionTime q := by
-      rw [← hclock]
-      exact (fgsa_postClock_slot (c := c) _ _).1
-    have hserved : eraseFG D ∈ sourceCandidates p nd.st := by
-      rw [sourceCandidates_def, hround]
-      exact Finset.mem_filter.mpr ⟨List.mem_toFinset.mpr hwrite,
-        by rw [hlease]; exact decide_eq_true (hnow ▸ hlive)⟩
-    have hkept' := hkept
-    have hserved' := hserved
-    rw [← hclock] at hkept' hserved'
-    obtain ⟨C, hsource, hDC⟩ := openingSource_extends_served E rho j hx q D hkept' hserved'
-    change FGSA.fgSource p (((fgsa p c).clock _ _).st) = some C at hsource
-    rw [hclock] at hsource
-    have hmem : C ∈ nd.st.fg.TF := by
-      rw [fgSource_eq_jointSource, jointSource_def] at hsource
-      have hd := (Finset.mem_filter.mp (FGSA.pickPair_some_spec _ _ hsource).1).1
-      rw [domainR_def, treeT_def] at hd
-      exact (KitFG.mem_filteredFromView (heightView p) _ _ C).mp hd |>.1
-    have hCh : (heightView p C).h = y + 1 := Nat.le_antisymm
-      (hcap nd hnd C hmem) (hDh ▸ (fgCertificateLaws p).height.h_mono hDC)
-    exact ⟨nd, C, hnd, hsource, hDC, hCh,
-      ((fgCertificateLaws p).height.entry_plateau hDC (hDh.trans hCh.symm)).symm⟩
+  have service : FGCompose.FGSourceService (fgsaCoreReads p c) E rho hx (p.actionTime q)
+      opening (q * p.R) D := by
+    constructor
+    · intro heq
+      have hexact := ((h3 opening (eraseFG D) hproposal hstart).2
+        (by simpa only [heq, Params.actionTime] using hhor) hx hhonest).2.2.2.2
+        q heq
+      change (actionSourceFG p c E rho hx q).map (Option.map eraseFG) =
+        some (some (eraseFG D)) at hexact
+      obtain ⟨source, hs, he⟩ := Option.map_eq_some_iff.mp hexact
+      obtain ⟨C, hC, hCe⟩ := Option.map_eq_some_iff.mp he
+      have hCD : C = D := eraseFG_injective hCe
+      subst C
+      rw [hC] at hs
+      rw [actionSourceFG_def] at hs
+      obtain ⟨nd, hnd, hsource⟩ := Option.map_eq_some_iff.mp hs
+      rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
+      exact ⟨nd, hnd, hsource⟩
+    · intro hlt
+      have hcover : ∀ x ∈ rho.honest, ∃ H,
+          headAtLabel p c E rho x (q * p.R) = some H ∧ Block.Preceq (eraseFG D) H := by
+        intro x hx
+        obtain ⟨H, hH⟩ := hheads x hx
+        exact ⟨H, hH, h2 opening (eraseFG D) hproposal hstart x (q * p.R) H hx
+          (Nat.succ_le_of_lt hlt) hH⟩
+      obtain ⟨_hresult, _hpassed, nd, d, hnd, hwrite, hlease, _hdeadline, hlive⟩ :=
+        h6 (q * p.R) (eraseFG D) ((Nat.le_add_right w.sStar 2).trans
+          (hstart.trans hbefore)) hGST hhor hne hcover hFgate hx hhonest
+      obtain ⟨j, _hj, hclock⟩ := rows_clock_read p c E rho hx (p.actionTime q) nd hnd
+      have hf := hframe nd hnd
+      have hkept : D ∈ domainR p nd.st (treeT p nd.st) := by
+        rw [domainR_def, treeT_def, frameR_def]
+        exact (KitFG.mem_filteredFromView (heightView p) _ _ D).mpr
+          ⟨hf.1, hf.2.1, hf.2.2.1, D, hf.1, KitFG.preceq_refl D, hf.2.2.2⟩
+      have hround : p.round (nd.st.slot p) = q := by
+        rw [← hclock]
+        exact (fgsa_action_slot_round (c := c) _ q).2
+      have hnow : nd.st.base.now = p.actionTime q := by
+        rw [← hclock]
+        exact (fgsa_postClock_slot (c := c) _ _).1
+      have hserved : eraseFG D ∈ sourceCandidates p nd.st := by
+        rw [sourceCandidates_def, hround]
+        exact Finset.mem_filter.mpr ⟨List.mem_toFinset.mpr hwrite,
+          by rw [hlease]; exact decide_eq_true (hnow ▸ hlive)⟩
+      have hkept' := hkept
+      have hserved' := hserved
+      rw [← hclock] at hkept' hserved'
+      obtain ⟨C, hsource, hDC⟩ := openingSource_extends_served E rho j hx q D hkept' hserved'
+      change FGSA.fgSource p (((fgsa p c).clock _ _).st) = some C at hsource
+      rw [hclock] at hsource
+      rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
+      exact ⟨nd, C, hnd, hsource, hDC⟩
+  have hcap' : ∀ nd, FGCompose.postClock E rho hx (p.actionTime q) = some nd →
+      ∀ B ∈ ((fgsaCoreReads p c).core nd).fg.TF, (heightView p B).h ≤ y + 1 := by
+    rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
+    exact hcap
+  have h := FGCompose.action_source_capped (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
+    p.E (heightView p) (fgCertificateLaws p).height hx (p.actionTime q) opening (q * p.R) y D
+    service hbefore hDh hcap'
+  rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1] at h
+  exact h
 
 private theorem rows_release (y : Nat) (U C : FGBlock (Fin p.n))
     (st : State p.n) (Λ : RecordOnce)

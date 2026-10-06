@@ -196,6 +196,15 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
             lambda: full.sign(repo, head, head, logs, key, receipt))
     for step in full.STEPS:
         (logs / (step + '.result')).write_text('0 1\n')
+    for step in full.STEPS:
+        result = logs / (step + '.result')
+        result.unlink()
+        refused('missing FULL step ' + step, 'FAILED OR MISSING STEP SET',
+                lambda: full.sign(repo, head, head, logs, key, receipt))
+        result.write_text('1 1\n')
+        refused('failed FULL step ' + step, 'FAILED OR MISSING STEP: ' + step,
+                lambda: full.sign(repo, head, head, logs, key, receipt))
+        result.write_text('0 1\n')
     (logs / 'build.result').write_text('1 1\n')
     refused('failed FULL step', 'FAILED OR MISSING STEP',
             lambda: full.sign(repo, head, head, logs, key, receipt))
@@ -239,5 +248,41 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     call(['ssh-keygen', '-Y', 'sign', '-f', str(other_key), '-n', full.NAMESPACE,
           str(receipt)])
     refused('untrusted issuer', 'SIGNATURE REFUSED', lambda: full.verify(repo, repo, receipt))
+
+with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
+    tree = Path(tmp)
+    scripts = tree / 'scripts'
+    scripts.mkdir()
+    (tree / '.lake').mkdir()
+    for name in ('gate.sh', 'gate-common.sh'):
+        shutil.copy2(REPO / 'scripts' / name, scripts / name)
+    # Keep the real tier dispatch. The unrelated steps have local stub commands.
+    with (scripts / 'gate-common.sh').open('a') as out:
+        out.write('\ngate_precheck() { return 0; }\n')
+    for name in ('check-build.sh', 'check-fgsa.sh', 'check-fgsa-run.sh',
+                 'check-fgsa-manifest.sh', 'check-fgsa-claims.sh'):
+        (scripts / name).write_text('#!/bin/bash\nexit 0\n')
+    (scripts / 'check-proof-coverage.py').write_text('print("coverage stub")\n')
+    (scripts / 'check-fg-compose.sh').write_text(
+        '#!/bin/bash\necho "compose NEG=$NEG" >> calls\n')
+    bindir = tree / 'bin'
+    bindir.mkdir()
+    fake = bindir / 'lake'
+    fake.write_text('#!/bin/bash\necho "lake $*" >> calls\n'
+                    'case "$*" in *--libraries*) echo AvailableChainFGCompose ;; esac\n')
+    fake.chmod(0o755)
+    env = dict(os.environ, PATH=str(bindir) + os.pathsep + os.environ['PATH'])
+    for tier, neg in [('merge', '0'), ('full', '1')]:
+        result = subprocess.run(['bash', 'scripts/gate.sh', '--tier', tier], cwd=tree,
+                                env=env, text=True, capture_output=True)
+        assert result.returncode == 0, (tier, result.stdout, result.stderr)
+        calls = (tree / 'calls').read_text()
+        assert 'build --wfail @ AvailableChainCheckSupport AvailableChainFGCompose' in calls, calls
+        assert 'compose NEG=' + neg in calls, calls
+        assert 'FGCompose-axioms rc=0' in result.stdout, result.stdout
+        assert 'FGSACompose-axioms rc=0' in result.stdout, result.stdout
+        assert 'PCSACompose-axioms rc=0' in result.stdout, result.stdout
+        (tree / 'calls').write_text('')
+        print(f'CONTROL Compose gate {tier}: build, scan and NEG={neg}: PASS')
 
 print('policy-controls: PASS')

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Statements.EventReads
 public import AvailableChainGeneric.Statements.V2.Duty.Reads -- shake: keep (Claims import policy)
 public import AvailableChainPCSARun.Model.Protocol
 
@@ -13,34 +14,32 @@ variable {V : Type} {In : Type} {P : V2.ProtocolSpecD In}
 
 /-- Include earlier events and the restarts and ticks at `t`, before deliveries. -/
 def cutPred (t : Time) (e : V2.Event V P.Object) : Bool :=
-  decide (e.key ≤ toLex (t, 1))
+  FGCompose.cutPred (P := P) t e
 
 /-- The event index after all ticks at `t`. -/
 def afterTicksIdx (rho : V2.D.Run V P) (t : Time) : Nat :=
-  (rho.events.filter (cutPred t)).length
+  FGCompose.afterTicksIdx (P := P) rho t
 
 variable [DecidableEq V]
 
 /-- The world after all ticks at `t`, before its deliveries. -/
 def afterTicks (E : Generic.Env V) (rho : V2.D.Run V P) (t : Time) : V2.D.World V P :=
-  (rho.events.filter (cutPred t)).foldl (V2.D.World.step E rho) V2.D.World.init
+  FGCompose.afterTicks (P := P) E rho t
 
 /-- The local state before the node's tick, if that tick exists. -/
 def pcsa_preTick (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) : Option P.State :=
-  (V2.D.Run.tickIdx? rho v t).map (fun i => V2.D.Run.stateBefore E rho i v)
+  FGCompose.preTick (P := P) E rho v t
 
 theorem pcsa_preTick_def (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) :
     pcsa_preTick E rho v t =
-      (V2.D.Run.tickIdx? rho v t).map (fun i => V2.D.Run.stateBefore E rho i v) := by
-  rw [pcsa_preTick]
+      (V2.D.Run.tickIdx? rho v t).map (fun i => V2.D.Run.stateBefore E rho i v) := rfl
 
 /-- The local state after the clock, before the own record. -/
 def pcsa_postClock (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) : Option P.State :=
-  (pcsa_preTick E rho v t).map (fun nd => P.clock nd t)
+  FGCompose.postClock (P := P) E rho v t
 
 theorem pcsa_postClock_def (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) :
-    pcsa_postClock E rho v t = (pcsa_preTick E rho v t).map (fun nd => P.clock nd t) := by
-  rw [pcsa_postClock]
+    pcsa_postClock E rho v t = (pcsa_preTick E rho v t).map (fun nd => P.clock nd t) := rfl
 
 variable (p : Params) {In : Type} (c : AppCodec In) {m : FGMode}
 

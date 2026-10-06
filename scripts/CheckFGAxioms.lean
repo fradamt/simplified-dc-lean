@@ -1,5 +1,4 @@
-import AvailableChainSimplexFG
-import AvailableChainKitFG
+import Lean.CoreM
 import Lean.Util.CollectAxioms
 open Lean
 
@@ -54,7 +53,7 @@ def closureRoots : List Name :=
     `Plausible, `LeanSearchClient, `ProofWidgets, `AvailableChainModel,
     `AvailableChainSimplexFG, `AvailableChainKitFG, `AvailableChainGeneric]
 
-def main (args : List String) : IO UInt32 := do
+def pureMain (args : List String) (useAxiomData := false) : IO UInt32 := do
   let usage := "USAGE: lake env lean --run scripts/CheckFGAxioms.lean [--root M] [--expect N …]"
   let (extra, args) := match args with
     | "--root" :: m :: r => (#[m.toName], r)
@@ -65,8 +64,10 @@ def main (args : List String) : IO UInt32 := do
     return 2
   let expected := args.drop 1
   initSearchPath (← findSysroot)
+  if useAxiomData then unsafe enableInitializersExecution
   let env ← importModules
     ((#[`AvailableChainSimplexFG, `AvailableChainKitFG] ++ extra).map ({ module := · })) {}
+    (loadExts := useAxiomData)
   let mut badClosure := false
   for m in env.header.moduleNames do
     if extra.contains m then continue
@@ -96,3 +97,115 @@ def main (args : List String) : IO UInt32 := do
     IO.println s!"{missing} expected names not checked"
     return 2
   return if badAxioms || badClosure then 1 else 0
+
+-- Keep the pure audit in its own environment. Compose has a separate closure.
+def composeStatements (m : Name) : Bool :=
+  (`AvailableChainFGCompose.Statements).isPrefixOf m
+
+def composeImportAllowed (m dep : Name) : Bool :=
+  let under (p : Name) := p.isPrefixOf dep
+  let foundation := [`Init, `Lean, `Std, `Mathlib].any under
+  let ownStatements := under `AvailableChainFGCompose.Statements
+  let ownProofs := under `AvailableChainFGCompose.Proofs
+  let base := foundation || under `AvailableChainModel.Objects ||
+    [`AvailableChainEngineV2.Engine, `AvailableChainEngineV2.Conditions,
+     `AvailableChainEngineV2.Laws.Duty, `AvailableChainGeneric.Statements.V2.Duty].any under ||
+    (under `AvailableChainGeneric.Statements.Pure &&
+      !under `AvailableChainGeneric.Statements.Pure.Walk) ||
+    [`AvailableChainSimplexFG.Store, `AvailableChainKitFG.HeightLawsDef].contains dep
+  if dep == `Init then true
+  else if m == `AvailableChainFGCompose then
+    [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
+     `AvailableChainFGCompose.Proofs.SourceHead].contains dep
+  else if composeStatements m then base || ownStatements
+  else if (`AvailableChainFGCompose.Tests).isPrefixOf m then
+    foundation || ownStatements || ownProofs
+  else if (`AvailableChainFGCompose.Proofs).isPrefixOf m then
+    base || ownStatements || ownProofs ||
+      [`AvailableChainKitV2.DutyStable, `AvailableChainKitFG.Correspondence].contains dep
+  else false
+
+partial def composeSources (path : System.FilePath) : IO (Array Name) := do
+  let mut names := #[]
+  for entry in ← path.readDir do
+    if entry.fileName.startsWith "." then continue
+    if ← entry.path.isDir then
+      names := names ++ (← composeSources entry.path)
+    else if entry.path.extension == some "lean" then
+      names := names.push ((entry.path.toString.dropEnd 5).toString.replace "/" ".").toName
+  return names
+
+def composeMain (args : List String) : IO UInt32 := do
+  let (extra, rest) := match args with
+    | "--root" :: m :: r => (#[m.toName], r)
+    | _ => (#[], args)
+  unless rest.isEmpty || (rest.head? == some "--expect" && rest.length ≥ 2) do
+    IO.eprintln "USAGE: CheckFGAxioms --compose [--root M] [--expect N …]"
+    return 2
+  let expected := rest.drop 1
+  unless ← System.FilePath.pathExists "AvailableChainFGCompose.lean" do
+    IO.eprintln "MISSING COMPOSE ROOT"
+    return 2
+  unless ← System.FilePath.isDir "AvailableChainFGCompose" do
+    IO.eprintln "MISSING COMPOSE DIRECTORY"
+    return 2
+  let sources := #[`AvailableChainFGCompose] ++ (← composeSources "AvailableChainFGCompose")
+  if sources.size ≤ 1 then
+    IO.eprintln "EMPTY COMPOSE SOURCE SCOPE"
+    return 2
+  initSearchPath (← findSysroot)
+  unsafe enableInitializersExecution
+  let env ← importModules ((sources ++ extra).map ({ module := · })) {}
+    (loadExts := true) (level := .private)
+  let mut bad := false
+  for h : i in [0:env.header.moduleNames.size] do
+    let m := env.header.moduleNames[i]
+    if !extra.contains m && !(closureRoots ++
+        [`AvailableChainEngineV2, `AvailableChainKitV2, `AvailableChainFGCompose]).contains m.getRoot then
+      IO.println s!"FORBIDDEN LIBRARY IN THE COMPOSE IMPORT CLOSURE: {m}"
+      bad := true
+    if (`AvailableChainFGCompose).isPrefixOf m then
+      for imp in env.header.moduleData[i]!.imports do
+        unless composeImportAllowed m imp.module do
+          IO.println s!"COMPILED IMPORT NOT ALLOWED: {m} imports {imp.module}"
+          bad := true
+  for m in sources do
+    unless env.header.moduleNames.contains m do
+      IO.eprintln s!"MISSING COMPILED SOURCE: {m}"
+      return 2
+  let cs := env.constants.toList.filter fun (n, _) =>
+    match env.getModuleIdxFor? n with
+    | some idx => (`AvailableChainFGCompose).isPrefixOf env.header.moduleNames[idx.toNat]!
+    | none => false
+  if cs.isEmpty then
+    IO.eprintln "NO CONSTANTS FOUND"
+    return 2
+  for (n, _) in cs do
+    let axs ← axiomsOf env n
+    let forbidden := axs.filter (fun a => !allowed.contains a)
+    unless forbidden.isEmpty do
+      IO.println s!"BAD AXIOMS {n}: {forbidden}"
+      bad := true
+  let mut missing := 0
+  for s in expected do
+    unless cs.any (fun (n, _) => s.toName.isSuffixOf n) do
+      IO.println s!"NOT CHECKED: {s}"
+      missing := missing + 1
+  IO.println s!"Compose checked {cs.length} constants in {sources.size} source modules"
+  if missing > 0 then return 2
+  return if bad then 1 else 0
+
+def main (args : List String) : IO UInt32 := do
+  match args with
+  | "--compose" :: rest =>
+      let pureArgs := match rest with
+        | "--root" :: m :: _ =>
+            if (`AvailableChainKitFG).isPrefixOf m.toName ||
+                (`AvailableChainSimplexFG).isPrefixOf m.toName then ["--root", m] else []
+        | _ => []
+      let rc ← pureMain pureArgs true
+      if rc != 0 then return rc
+      try composeMain rest catch e =>
+        IO.eprintln s!"COMPOSE INPUT ERROR: {e}"
+        return 2
+  | _ => pureMain args

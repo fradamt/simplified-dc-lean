@@ -1,9 +1,9 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
+public import AvailableChainFGCompose.Proofs.SourceHead
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
-public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
-public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAClaims.Statements.Phases
@@ -341,13 +341,9 @@ DC: INTENTIONAL: event phases order ticks before same-time deliveries. -/
 theorem kmid_tick_lt_afterTicks (hs : V2.D.ScheduleWellFormed E rho)
     {i : Nat} {v : V} {t' t : Time} (hi : rho.events[i]? = some (.tick v t')) (ht : t' ≤ t) :
     i < afterTicksIdx rho t := by
-  have hcut : cutPred t (V2.Event.tick v t' : V2.Event V (fgsa p c).Object) = true :=
-    decide_eq_true (Prod.Lex.toLex_le_toLex.mpr (ht.lt_or_eq.imp id (fun h => ⟨h, le_rfl⟩)))
-  by_contra hn
-  have hfalse := V2.D.Engine.filter_false_of_index_ge hs (cutPred t)
-    (fun e f hk hf => decide_eq_true (hk.trans (of_decide_eq_true hf))) (Nat.le_of_not_gt hn) hi
-  rw [hcut] at hfalse
-  contradiction
+  have heq : afterTicksIdx rho t = FGCompose.afterTicksIdx rho t := rfl
+  rw [heq]
+  exact FGCompose.tick_lt_afterTicks E rho hs hi ht
 
 omit [Fintype V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -361,21 +357,14 @@ theorem kmid_head_held {v : Slot}
   have hhead := hex.1 hh x hx
   change (postClock E rho x (SA.voteTime p.toParams v)).map
     (fun nd => FGSA.headVote p nd.st v) = some (eraseFG X) at hhead
-  rw [postClock_def, preTick_def] at hhead
-  cases hi : V2.D.Run.tickIdx? rho x (SA.voteTime p.toParams v) with
-  | none => simp only [hi, Option.map_none] at hhead; contradiction
-  | some i =>
-    simp only [hi, Option.map_some, Option.some.injEq] at hhead
-    refine ⟨i, V2.D.Run.tickIdx?_spec hi, ?_⟩
-    have hinv := (storeBundle_postClock E rho i x (SA.voteTime p.toParams v)).cstore
-    have hm := headVote_stored p _ hinv v
-    rw [hhead] at hm
-    obtain ⟨B, hB, hBe⟩ := (hinv.baseTree _).mp hm
-    have hBX := kmid_eraseFG_inj p hBe
-    subst B
-    change X ∈ (FGSA.clock p _ _).fg.TF at hB
-    rw [FGSA.clock_fg] at hB
-    exact hB
+  have hhead' : (FGCompose.postClock E rho x (SA.voteTime p.toParams v)).map
+      (fun nd => (fgsaCoreReads p c).headVote nd v) = some ((fgsaCoreReads p c).erase X) := by
+    rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho x _).2.2.2.2.2.1]
+    exact hhead
+  have h := FGCompose.head_held (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
+    (fgsaHeadLaws p c E rho) hhead'
+  rw [fgsaCoreReads_def] at h
+  exact h
 
 omit [Fintype V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -383,10 +372,12 @@ FINAL 22:1265–1304. The FG action source is a stored block of the read state.
 DC: INTENTIONAL: the joint source picks from the filtered stored tree. -/
 theorem kmid_source_mem_TF {st : State p.n} {C : FGBlock (Fin p.n)}
     (h : FGSA.fgSource p st = some C) : C ∈ st.fg.TF := by
-  rw [fgSource_eq_jointSource, jointSource_def] at h
-  have hm := (Finset.mem_filter.mp (FGSA.pickPair_some_spec _ _ h).1).1
-  rw [domainR_def, KitFG.mem_filteredFromView, treeT_def] at hm
-  exact hm.1
+  have hsrc : (fgsaCoreReads p unitCodec).source ⟨st, RecordOnce.initial⟩ = some C := by
+    rw [fgsaCoreReads_def]
+    exact h
+  have hm := FGCompose.source_mem_TF (fgsaCoreReads p unitCodec) (fgsaCoreLaws p unitCodec) hsrc
+  rw [fgsaCoreReads_def] at hm
+  exact hm
 
 omit [Fintype V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -417,14 +408,16 @@ theorem kmid_chainRows_of_head (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.
     (hh : SA.voteTime p.toParams v ≤ rho.horizon) (x : V) (hx : x ∈ rho.honest)
     (cut : Time) (hcut : SA.voteTime p.toParams v < cut) :
     ChainRowsBefore p c E rho X cut := by
-  obtain ⟨i, hi, hX⟩ := kmid_head_held p c E rho hex hh x hx
-  intro W hW _row _hrow
-  refine ⟨x, SA.voteTime p.toParams v, hx, hcut, ?_⟩
-  have hanc := ancestor_closed_of_parent_closed _
-    (cstoreInv_stateBefore E rho i x).fg.closed X hX W hW
-  change W ∈ (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams v) x).st.fg.TF
-  rw [← V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hs hnr hi]
-  exact hanc
+  have hhead := hex.1 hh x hx
+  change (postClock E rho x (SA.voteTime p.toParams v)).map
+    (fun nd => FGSA.headVote p nd.st v) = some (eraseFG X) at hhead
+  have hhead' : (FGCompose.postClock E rho x (SA.voteTime p.toParams v)).map
+      (fun nd => (fgsaCoreReads p c).headVote nd v) = some ((fgsaCoreReads p c).erase X) := by
+    rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho x _).2.2.2.2.2.1]
+    exact hhead
+  rw [fgsa_chainRows_eq_compose p c E rho X cut]
+  exact FGCompose.chainRows_of_head (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
+    (fgsaHeadLaws p c E rho) hs hnr hx hhead' cut hcut
 
 omit [Fintype V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -435,9 +428,20 @@ theorem kmid_head_held_from (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoR
     (hh : SA.voteTime p.toParams v ≤ rho.horizon) (x : V) (hx : x ∈ rho.honest)
     (k : Nat) (t : Time) (ht : SA.voteTime p.toParams v ≤ t) (hk : afterTicksIdx rho t ≤ k) :
     X ∈ (storeAt p c E rho k x).fg.TF := by
-  obtain ⟨i, hi, hX⟩ := kmid_head_held p c E rho hex hh x hx
-  have hik := (kmid_tick_lt_afterTicks p c E rho hs hi ht).le.trans hk
-  exact (fgsa_store_cumulative p c E rho hnr hik x).1 hX
+  have hhead := hex.1 hh x hx
+  change (postClock E rho x (SA.voteTime p.toParams v)).map
+    (fun nd => FGSA.headVote p nd.st v) = some (eraseFG X) at hhead
+  have hhead' : (FGCompose.postClock E rho x (SA.voteTime p.toParams v)).map
+      (fun nd => (fgsaCoreReads p c).headVote nd v) = some ((fgsaCoreReads p c).erase X) := by
+    rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho x _).2.2.2.2.2.1]
+    exact hhead
+  have hk' : FGCompose.afterTicksIdx rho t ≤ k :=
+    (fgsa_eventReads_eq_compose E rho x t).2.1 ▸ hk
+  have h := FGCompose.head_held_from (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
+    (fgsaHeadLaws p c E rho) hs hnr hhead' k t ht hk'
+  change X ∈ (V2.D.Run.stateBefore E rho k x).st.fg.TF
+  rw [fgsaCoreReads_def] at h
+  exact h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 FINAL 22:948–958. Linked unit-weight seats bound the faulty weight.

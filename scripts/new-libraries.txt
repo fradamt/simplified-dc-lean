@@ -30,3 +30,4 @@ legacy AvailableChainKitFG.InBandLock
 legacy AvailableChainKitFG.Pins
 legacy AvailableChainKitFG.Provenance
 legacy AvailableChainKitFG.TwoChanges
+lib AvailableChainFGCompose
