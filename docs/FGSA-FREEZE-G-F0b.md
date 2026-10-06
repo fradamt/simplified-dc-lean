@@ -94,9 +94,15 @@ before its horizon bound, because Time = Int and a negative trigger gives a dead
 
 - TF-REFREEZE (cf15513, user decision 2026-10-03): `TFrontier` carries DC's H.6 / H.6-S seed
   qualification after `ExactService`. Allow line: `TFrontier` expect=a6e2203cd67de153.
-- GAPALIGNED (bca83df, user decision 2026-10-03, "Require 4Δ divides G"): `Recovery₂` gains the
+- HISTORICAL: GAPALIGNED (bca83df, user decision 2026-10-03, "Require 4Δ divides G"):
+  `Recovery₂` gains the
   last field `gapAligned : 4 * p.Δ ∣ G`; no bound changes. Basis: the TERM gap (H-ATTEMPT-3 P1;
   Centaur fgsa-s5-term-check.md): for G mod 4Δ > Δ the gap window ends after the raise terminal
   deadline. Allow line: `Recovery₂.mk` expect=18d9154d2012f72f. `StrongRecoverySearchPrefix₂` and
   every `HealingSet` consumer gain the premise with unchanged hashes, because the manifest hashes
   reference names; this is intended. Review: Opus LAND-WITH-NITS (docstring corrected after landing).
+
+Later freeze changes include LIVE-DC (958106c) and GUP (ad66f0e). GUP removes
+`gapAligned` and rounds Γ up to a multiple of 4Δ. Later exceptions are ROOT-DIGEST,
+ROOT-DIGEST-2 (be214b3), and WC plan r2.1 (7b1fe01). Their records are in
+[the API manifest](FGSA-API.md) and the [ROOT-DIGEST-2 record](lock-log/root-digest-2/README.md).

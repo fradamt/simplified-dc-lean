@@ -15,8 +15,7 @@ def WeakContinuationClaim (p : Params) (G : Time) : Prop :=
     BoundedSafetyRecovery₂ p (V := V) c G ΔF
 
 /-- bp.weakContinuationAvailable.v2 = safety + inclusion (blueprint 23:103–192);
-growth: B33 §K(1) / plan §1.1; no blueprint statement yet; paper proof pending (B33
-§K(5) producer items).
+growth: paper proof in 23 §17 (bp.weakContinuationGrowth.v2).
 DC Legacy/Definitions/NamedVoteConsumers.lean:56–61 BoundedSafetyRecovery: SAME
 safety role; DC Legacy/Liveness.lean:29–71: SAME inclusion and growth roles.
 INTENTIONAL: one joint gate gives safety, actual-proposal service, and
