@@ -166,9 +166,16 @@ hypotheses of the statement.
 - `cap`: `H ≤ y + 1` at every honest event state through `a_r`.
 - `muBound`: `μ ≤ M`, and every honest source whose PC label votes before
   `t_GST` has height `≤ μ`.
-- `ff2`: every height `h ≥ M + 1` has one entry `E_h`: every held block of
-  height `h` has entry `E_h`, and every held justification at height `h`
-  names `E_h` (honest event states through `a_r`).
+- `ff2` (blueprint 22 FF2, entry and certificate identity only): at a height
+  `h ≥ M + 1` with an honest source `C` (action through `a_r`), every honest
+  source of height `h` has the entry `E_h = T_h(C)`, and every justification
+  of height `h` held at an honest event state through `a_r` names `E_h`.
+  Other held blocks of height `h` are not constrained: two carriers can reuse
+  one lower-height quorum and both stay in the tree. `HeldJustification` is
+  the justification part of FF2 only; FF2's honest-record clause (target,
+  timeout, lock) and its target, progress and finality QCs are not stated
+  (step (1c) uses the justification part, `transfer` and the equal-height
+  entry fact I2).
 - `ff2C`: a contested frame has `H ≤ M + 1` (honest event states through `a_r`).
 - `transfer`: every justification `J` at height `y` held at an honest event
   state through `a_r` has an honest row source `S ⪰ J` of height `y`, sent
@@ -198,10 +205,15 @@ structure Q0PCPackage (tStar : Time) (M μ r : Nat) (cD : Slot) (D : Block)
   muBound : μ ≤ M ∧ ∀ x ∈ rho.honest, ∀ (r' : Nat) (C : FGBlock (Fin p.n)),
     actionSourceAt p c E rho x r' = some (some C) →
     SA.voteTime p.toParams (eraseFG C).slot < E.t_GST → (FGSA.heightView p C).h ≤ μ
-  ff2 : ∀ h : Nat, M + 1 ≤ h → ∃ Eh : FGBlock (Fin p.n),
+  ff2 : ∀ x ∈ rho.honest, ∀ (r₁ : Nat) (C : FGBlock (Fin p.n)), r₁ ≤ r →
+    actionSourceAt p c E rho x r₁ = some (some C) → M + 1 ≤ (FGSA.heightView p C).h →
+    (∀ x' ∈ rho.honest, ∀ (r₂ : Nat) (C' : FGBlock (Fin p.n)), r₂ ≤ r →
+      actionSourceAt p c E rho x' r₂ = some (some C') →
+      (FGSA.heightView p C').h = (FGSA.heightView p C).h →
+      (FGSA.heightView p C').T_h = (FGSA.heightView p C).T_h) ∧
     HonestStatesThrough p c E rho (p.actionTime r) (fun st =>
-      (∀ B ∈ st.fg.TF, (FGSA.heightView p B).h = h → (FGSA.heightView p B).T_h = Eh) ∧
-      ∀ X, HeldJustification p st h X → X = Eh)
+      ∀ X, HeldJustification p st (FGSA.heightView p C).h X →
+        X = (FGSA.heightView p C).T_h)
   ff2C : HonestStatesThrough p c E rho (p.actionTime r)
     (fun st => (controls p st).contest = true → st.fg.h_max ≤ M + 1)
   transfer : HonestStatesThrough p c E rho (p.actionTime r) (fun st =>
@@ -210,6 +222,52 @@ structure Q0PCPackage (tStar : Time) (M μ r : Nat) (cD : Slot) (D : Block)
         actionSourceAt p c E rho x r' = some (some S) ∧
         (FGSA.heightView p S).h = (FGSA.heightView p Dfg).h ∧
         FGBlock.Preceq J S ∧ Block.Compatible (eraseFG S) D)
+
+omit [Fintype V] in
+/-- [PC-SA claims; pcsa34-r4 5.7 Claim (honest opening), healed suffix; 5.3
+(F1)–(F7)] The premises of source transfer at the opening `rR = r·R` after
+the healing time, with every frame item explicit (no `StageOneFrame`).
+- `recovery`: RECOVERY (`Recovery₂`: delivery within `Δ` after `t_GST`,
+  every honest node awake, `a ≤ ⌊n/4⌋`); `proposal`: the honest awake proposer
+  of `rR` sends `N` (`P = N.erase`); `horizon`: `a_r ≤` horizon.
+- `afterGST` (timing): `t_GST + Δ ≤ t_{rR}`, so `z_{rR−1} ≥ t_GST` and (F1)
+  follows from `recovery`.
+- `participation` (F2): `h_{rR} ≥ q_N`.
+- `commonView` (F3) and `locks` (F4): the formation premises at `rR`, as in
+  `FormationPrem`. After `t*` their producers are the HEALING_INPUT items
+  H2/H3 of [FG-HEAL] (OPEN).
+- `equalFrames` (F6): every honest voter awake at `v_{rR}` reads the
+  proposer's frame (`Z`, `lo`) at `t_{rR}`.
+- `fCompat` (F7): at every honest node at `e_{rR}`, `F` is compatible with `P`.
+- `frameActive` (5.7): `PC(rR, P)` is frame-active at every honest node at
+  `a_r`. -/
+structure HealedSourcePrem (G ΔF : Time) (r : Nat) (N : NamedProposal p.n) : Prop where
+  recovery : Recovery₂ p c E rho G ΔF
+  proposal : HonestNamedProposal p c E rho (r * p.R) N
+  horizon : p.actionTime r ≤ rho.horizon
+  afterGST : E.t_GST + E.Δ ≤
+    V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface (r * p.R)
+  participation : nQuorum p.n ≤ (awakeHonestLabel p c E rho (r * p.R)).card
+  commonView : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams (r * p.R)) = true →
+    (viewAt p c E rho y (r * p.R)).map (Option.map PC.target) = some (N.pc.map PC.target)
+  locks : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams (r * p.R)) = true →
+    ∀ nd, pcsa_postClock E rho y (SA.voteTime p.toParams (r * p.R)) = some nd →
+    ∀ B, LiveLease nd.st B →
+      Block.Compatible B ((N.pc.map PC.target).getD (eraseFG (controls p nd.st).Z)) →
+      ((N.pc.map PC.target).getD (eraseFG (controls p nd.st).Z)).depth < B.depth →
+      Block.Preceq B N.erase.parent
+  equalFrames : ∀ nd₀, pcsa_postClock E rho
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface (r * p.R))
+      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface (r * p.R)) = some nd₀ →
+    ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams (r * p.R)) = true →
+    ∀ nd, pcsa_postClock E rho y (SA.voteTime p.toParams (r * p.R)) = some nd →
+      (controls p nd.st).Z = (controls p nd₀.st).Z ∧
+        (controls p nd.st).lo = (controls p nd₀.st).lo
+  fCompat : ∀ y ∈ rho.honest,
+    ∀ nd, pcsa_postClock E rho y (SA.earlyTime p.toParams (r * p.R)) = some nd →
+      Block.Compatible (eraseFG nd.st.fg.F) N.erase
+  frameActive : ∀ y ∈ rho.honest, ∀ nd, pcsa_postClock E rho y (p.actionTime r) = some nd →
+    ∃ B ∈ fullTree p nd.st, eraseFG B = N.erase
 
 end AvailableChain.PCSA.Run
 

@@ -6,8 +6,8 @@ public import AvailableChainPCSAClaims.Statements.Premises
 /-! [PC-SA claims, W0; pcsa-proof-plan §1 C11] The Recovery lane statements:
 stage-1 healing after a short break, `t* ≤ t_GST + G + 7Δ` (pcsa34-r4 5.6.1),
 and the long-break bound `2L + G + 8Δ` (5.6.3). The long-break bound is
-PROVED-sketch under L*′ (3.7). The model now has the L*′ lock rule; the claim
-stays in `PCSAPendingClaims` until the lead moves it into `PCSAClaims`.
+PROVED-sketch under L*′ (3.7), which the model has; both claims are in
+`PCSAClaims`.
 Healing uses an honest-proposer recurrence (`Recovery₂.gap`), as FG-SA does;
 there is no run recovery regime. -/
 
@@ -127,9 +127,11 @@ healing ρ (D′ ≥ k); App. B recoveryBound] Stage-1 healing after a general
 break: under RECOVERY, the stage-1 frame and `L = (4k − 1)Δ` (`pcsaL`), with
 no anchor and no bound on the stale-PC stock, some honest slot `s` with
 `d_s ≤ t_GST + 2L + G + 8Δ` has a proposal `P` and the run is healed from
-`s` with `P` (5.6.1 steps 2–4). PENDING: r4.3 proves the sketch for the L*′
-lock rule, which the model now has. Collected in `PCSAPendingClaims` until
-the lead moves it. -/
+`s` with `P` (5.6.1 steps 2–4). The model has the L*′ lock rule (3.7) and
+the lock lifetime `GridCO.lifetime = (4k − 1)Δ = L`, so r4.3's premises are
+RECOVERY, L*′, `L = (4k − 1)Δ` and (for Lemma K) common frames and locks
+compatible with every honest `F`, which `StageOneFrame` gives. No premise
+is missing. The paper status is PROVED-sketch. -/
 def LongBreakRecoveredClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (G ΔF : Time),

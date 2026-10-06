@@ -54,9 +54,7 @@ honest awake proposer of `N` at the opening slot `rR` and `a_r = d_{rR} ≤ b₀
 `h_{rR} ≥ q_N`, `a ≤ ⌊n/4⌋`, the stage-1 frame (5.3 (F6)/(F7)), and the frame
 premise of 5.7: `PC(rR, P_{rR})` is frame-active at every honest node at
 `a_r`. Then every honest source at `a_r` is `P_{rR}`. The healed-suffix form
-("after t*") is not stated: its (F3)/(F4) producers are the HEALING_INPUT
-items H2/H3 ([FG-HEAL], OPEN); `FormationSourceClaim` covers it once they
-are supplied. -/
+is `HealedSourceTransferClaim`. -/
 def CleanSourceTransferClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time) (r : Nat)
@@ -83,6 +81,33 @@ theorem CleanSourceTransferClaim_def (p : Params) : CleanSourceTransferClaim p =
       ∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
         actionSourceAt p c E rho x r = some (some C) ∧ eraseFG C = N.erase) := by
   rw [CleanSourceTransferClaim]
+
+/-- [PC-SA claims; pcsa34-r4 5.7 Claim (honest opening), healed-suffix form,
+PROVED-paper; plan C12] Source transfer after the healing time: under
+`HealedSourcePrem` (RECOVERY, `t_{rR} ≥ t_GST + Δ`, `h_{rR} ≥ q_N`, the
+honest awake proposer of `N` at `rR`, the formation premises (F3) common
+view and (F4) locks, the explicit frame premises (F6) equal frames and (F7)
+`F`-compatibility, and `PC(rR, P_{rR})` frame-active at `a_r`), every honest
+source at `a_r` is `P_{rR}`. There is no `StageOneFrame` premise. The
+producers of (F3)/(F4) after `t*` are the HEALING_INPUT items H2/H3
+([FG-HEAL], OPEN); the frame premises are discharged by `StageOneFrame` in
+stage 1 and by the stage-2 frame lemmas otherwise. -/
+def HealedSourceTransferClaim (p : Params) : Prop :=
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    (G ΔF : Time) (r : Nat) (N : NamedProposal p.n),
+    HealedSourcePrem p c E rho G ΔF r N →
+    ∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
+      actionSourceAt p c E rho x r = some (some C) ∧ eraseFG C = N.erase
+
+theorem HealedSourceTransferClaim_def (p : Params) : HealedSourceTransferClaim p =
+    (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (G ΔF : Time) (r : Nat) (N : NamedProposal p.n),
+      HealedSourcePrem p c E rho G ΔF r N →
+      ∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
+        actionSourceAt p c E rho x r = some (some C) ∧ eraseFG C = N.erase) := by
+  rw [HealedSourceTransferClaim]
 
 /-- [PC-SA claims, W0; pcsa34-r4 5.8.3; q0-pc.md §2 steps 2–4, PROVED-paper;
 plan C13] Q0-PC selection helper: the selection steps of Q0-PC after step 1

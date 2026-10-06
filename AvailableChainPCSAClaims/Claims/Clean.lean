@@ -60,8 +60,9 @@ frame) is stage 2 and is not a field. Results are the raw gate results
   result (CL4).
 - (iv) `leaseBelowResult`: every lease target is `⪯` an honest result;
   `leaseCompatible`: every live lease is compatible with every PC held at its
-  node. r4.3's "L*′ skips or deletes none" has no field yet (the model
-  has the L*′ lock rule now; adding the field is open).
+  node; `lockWriteAll`, `lockKeep`: L*′ skips or deletes none (no honest
+  gate of a label `≤ j` skips a lock write on a block below its result, and
+  no event before `v_{j+1}` removes a live lock at an honest node).
 - (v) `recordOrigin`: every honest `S` is `F` or an own result of a label
   `≤ j`; `recordMono`, `recordCompatible`: `S` is monotone at a node and
   honest `S` values are pairwise compatible.
@@ -97,6 +98,13 @@ structure CleanInvariantAt (j : Slot) : Prop where
   leaseCompatible : ∀ x ∈ rho.honest, ∀ (t : Time) (B : Block) (pc : PC p.n),
     t < SA.voteTime p.toParams (j + 1) → LiveLease (storeAt p c E rho x t) B →
     pc ∈ (storeAt p c E rho x t).pcs → Block.Compatible B pc.target
+  lockWriteAll : ∀ x ∈ rho.honest, ∀ (i : Slot) (st : State p.n) (X b : Block), i ≤ j →
+    gateInAt p c E rho x i = some st → gateResultAt p c E rho x i = some (some X) →
+    Block.Preceq b X → leaseWriteOK st.pcs (gateRank p st i) b = true
+  lockKeep : ∀ x ∈ rho.honest, ∀ (i : Nat) e, rho.events[i]? = some e →
+    e.time < SA.voteTime p.toParams (j + 1) →
+    ∀ row ∈ (storeBefore p c E rho i x).base.obligations, e.time < row.2.2 →
+      ∃ row' ∈ (storeBefore p c E rho (i + 1) x).base.obligations, row'.1 = row.1
   recordOrigin : ∀ x ∈ rho.honest, ∀ t : Time, t < SA.voteTime p.toParams (j + 1) →
     (storeAt p c E rho x t).base.stableRecord = eraseFG (storeAt p c E rho x t).fg.F ∨
       ∃ (i : Slot) (X : Block), i ≤ j ∧ gateResultAt p c E rho x i = some (some X) ∧

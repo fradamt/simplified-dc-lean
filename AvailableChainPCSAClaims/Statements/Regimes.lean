@@ -130,13 +130,13 @@ omit [Fintype V] in
 5.3 (F6)/(F7), 5.4.1] The stage-1 frame premise: at every honest node and
 every event state the frame is vacuous. r4.3 states the stage-1 claims for a
 protocol whose frame items are vacuous.
-PLACEHOLDER until the AC-only model instance lands (lead ruling 2026-10-06:
-a frame-mode parameter on the model with the FG filter off, `frameActive :=
-true`, `Z := genesis`, `lo := 0`, no `F` filter). Then this premise becomes "the
-run is of the AC-only instance". With the FG on, the current definition makes
-the stage-1 claims cover only runs before the first FG height change (a
-justification or a timeout-progress advance). Every stage-1 claim reads the
-frame only through this definition. -/
+The AC-only instance is `pcsaAC p c = pcsaWith .idle p c`: the honest FG duty
+sends no row, and nothing else changes. `AcOnlyFrameClaim` states that its
+runs satisfy this premise (with `Base₂` and `a < ⌈n/2⌉`: no honest row, so no
+FG quorum and no height, justification or finality event). The stage-1
+claims hold for every FG mode with this premise; with the FG duty on (`.on`)
+it holds only before the first FG height change. Every stage-1 claim reads
+the frame only through this definition. -/
 def StageOneFrame (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) : Prop :=
   ∀ x ∈ rho.honest, ∀ i : Nat, FrameVacuous p (V2.D.Run.stateBefore E rho i x).st
 

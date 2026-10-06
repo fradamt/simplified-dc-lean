@@ -13,11 +13,10 @@ public import AvailableChainPCSAClaims.Claims.AcFrame
 records. `PCSAClaims` is the stage-1 milestone: the PC path (C1–C5,
 `PCSAPCClaims`) and the Clean, Outage, Recovery and Finality lanes (C6–C14).
 `PCSAStageTwoClaims` holds the stage-2 shapes (C15); it is never mixed into
-the stage-1 record. `PCSAPendingClaims` holds the long-break healing bound
-(r4.3 proves it under the L*′ lock rule). This module imports Claims
-modules only (FG-SA FGSAClaims.lean shape).
+the stage-1 record. This module imports Claims modules only (FG-SA
+FGSAClaims.lean shape).
 
-Protocol instances: the stage-1 and pending claims quantify over the FG mode
+Protocol instances: the stage-1 claims quantify over the FG mode
 `m` (`pcsaWith m p c`) and take `StageOneFrame` as their only frame premise.
 The AC-only instance is `m = .idle` (`pcsaAC`), where `AcOnlyFrameClaim`
 discharges `StageOneFrame`. The stage-2 claims are over `pcsa p c`
@@ -42,11 +41,13 @@ structure PCSAClaims (p : Params) : Prop extends PCSAPCClaims p where
   armPersistence : ArmPersistenceClaim p
   armHealthy : ArmHealthyClaim p
   slowP1 : PCSASlowP1Claim p
-  -- Recovery lane (C11; r4.3 5.6.1)
+  -- Recovery lane (C11; r4.3 5.6.1, 5.6.3 under the L*′ lock rule of the model)
   fastRecovered : FastRecoveredClaim p
+  longBreakRecovered : LongBreakRecoveredClaim p
   -- Finality lane (C12, C13; r4.3 5.7, 5.8)
   formationSource : FormationSourceClaim p
   cleanSourceTransfer : CleanSourceTransferClaim p
+  healedSourceTransfer : HealedSourceTransferClaim p
   q0PCSelection : Q0PCSelectionClaim p
   q0PC : Q0PCClaim p
   finality : PCSAFinalitySafetyClaims p
@@ -56,11 +57,6 @@ structure PCSAStageTwoClaims (p : Params) : Prop where
   armPersistence : ArmPersistenceJStableClaim p
   armHealthy : ArmHealthyStageTwoClaim p
   strongIncluded : StrongIncludedStageTwoClaim p
-
-/-- [PC-SA claims, W0; pcsa34-r4 5.6.3] Claims held back from `PCSAClaims`:
-the long-break healing bound, PROVED-sketch under the L*′ lock rule (3.7). -/
-structure PCSAPendingClaims (p : Params) : Prop where
-  longBreakRecovered : LongBreakRecoveredClaim p
 
 end AvailableChain.PCSA.Run
 

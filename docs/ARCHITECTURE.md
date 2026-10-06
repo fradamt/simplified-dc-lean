@@ -231,7 +231,14 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `CStar` and `n` seats per label (validator count = seat count, as `cstar` in
   FG-SA `Base₂`) and `delayPos` (the instance pins `delayOf`). Import constraint: S/V2 rule
   (GLY-SV2): Generic Pure and V2 statements, EngineV2 Engine/Conditions/Laws.
-  The PCSA instance proves it; the recovery form (ARM-same-slot) is later.
+  PC-SA does not instantiate this companion: `PCArmedRegime` and
+  `PCIncludedRegime` do not bound the faulty FG seats, so an unrestricted
+  instance is false. The PC-SA-native forms replace it: stage 1
+  `ArmHealthyClaim`, `StrongIncludedClaim` (over every FG mode with
+  `StageOneFrame`; the AC-only instance `pcsaAC` discharges it by
+  `AcOnlyFrameClaim`), stage 2 `ArmHealthyStageTwoClaim`,
+  `StrongIncludedStageTwoClaim` (`Clean₂`, `a ≤ f`, no frame premise) in
+  `AvailableChainPCSAClaims`.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.
