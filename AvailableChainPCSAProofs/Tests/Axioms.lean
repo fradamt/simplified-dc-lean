@@ -205,3 +205,11 @@ public section
 #print axioms AvailableChain.PCSA.Run.held_pc_target_unique
 
 end
+
+#print axioms AvailableChain.PCSA.pcsa_firstPerSeat_seats
+#print axioms AvailableChain.PCSA.pcsa_assemblePC_quorum
+#print axioms AvailableChain.PCSA.pcsa_collectPCs_quorum
+#print axioms AvailableChain.PCSA.pcsa_collectPCs_saturated
+#print axioms AvailableChain.PCSA.pcsa_collectPCs_eq_of_saturated
+#print axioms AvailableChain.PCSA.Run.pcsa_saturated_stateBefore
+#print axioms AvailableChain.PCSA.Run.pcsa_collectPCs_after_freeze

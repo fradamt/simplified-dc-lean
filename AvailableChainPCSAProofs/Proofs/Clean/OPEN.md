@@ -42,6 +42,12 @@ Other slot statements were checked. No further statement change is needed:
 
 Proved support:
 
+- `Collect`: seat selection preserves all input seats without repeats; a pooled
+  quorum assembles and collects the exact resolved target. Collection leaves
+  a saturated store; collection of a saturated store changes nothing.
+  `Saturation` proves this at every event state and discharges hFreezeKeep.
+  Run-level target receipt still needs a proof.
+
 - `AckStore`: decoded ack admission under the slot, root, and seat-cap checks;
   ack-pool preservation through every delivery and clock step.
 - `AckRun`: ack-pool preservation between event indices without restarts;
@@ -71,12 +77,11 @@ These are exported by `Clean/Export`. They are not proofs of the open claims.
 - C3 (`PCDisseminationClaim`), now restricted to positive slots: prove that each honest handled ack before the
   freeze passes the receiver's slot and resolved-root checks and cannot hit
   the two-root seat cap. Include the carried-object handler cases. Prove that
-  the target body is held and resolves to the same slot-s block, that
-  first-per-seat selection keeps a quorum, and that a receipt has already
-  assembled and installed the PC before the freeze. The freeze clock does
-  not call `collectPCs`. Thus the old Shared `hKeep` premise also needs a
-  reachable-store saturation fact: every collectable target is already held
-  in the strict pre-freeze store. Preservation of an already-held PC is done.
+  the target body is held and resolves to the same slot-s block.
+  `Collect` proves first-per-seat quorum preservation and exact assembly.
+  `Saturation` proves every collectable target is already held in each
+  reachable store. `pcsa_collectPCs_after_freeze` closes the Shared hKeep
+  and Formation hFreezeKeep interfaces.
 - C5 (`AvailableMonotoneClaim`): prove S monotonicity, preservation of held
   PCs in stage 1, and prefix order of selected PC targets over time. Supply
   compatibility of the later target with the later S to Generic PCFloorMono.
@@ -102,9 +107,11 @@ conditional theorem as an unconditional claim.
   carried receipt, under the slot, resolved-root, and seat-cap checks.
 - `hPCCollect`: open. Need resolution to the exact `N.erase` and preservation
   of the seat quorum by `firstPerSeat`, then assembly from that pool.
-- `hFreezeKeep`: open. `pcsa_pcs_after_freeze` proves preservation of held
-  PCs. The exact interface also needs saturation before the tick:
-  `(collectPCs st).pcs ⊆ st.pcs` for the reachable pre-freeze store.
+- `hFreezeKeep`: discharged by `pcsa_collectPCs_after_freeze`, using
+  `FormationPrem.base.valid.toScheduleWellFormed`, `base.noRestart`,
+  `base.delta`, and `freezeTime s < gateTime s ≤ horizon`.
+- `hPCCollect` store part: `pcsa_collectPCs_quorum` proves the exact-target
+  interface once `N.erase.slot = s` and exact root resolution are supplied.
 
 No open claim was exported as an unconditional theorem. AckStore now uses
 constructor cases to avoid all 19 foreign match equation exports introduced
