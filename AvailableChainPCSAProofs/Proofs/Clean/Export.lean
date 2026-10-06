@@ -2,6 +2,8 @@ module
 public import AvailableChainPCSAClaims.Claims.Clean
 public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
 public import AvailableChainPCSAProofs.Proofs.Clean.AckAdmit
+public import AvailableChainPCSAProofs.Proofs.Clean.CommonResolution
+public import AvailableChainPCSAProofs.Proofs.Clean.HeadPersistence
 public import AvailableChainPCSAProofs.Proofs.Clean.HonestBody
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyPersistence

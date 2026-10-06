@@ -266,3 +266,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_emitted_body_rows
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_body_before_freeze
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_collect
+
+#print axioms AvailableChain.PCSA.Run.pcsa_run_common_head_resolution
+#print axioms AvailableChain.PCSA.pcsa_clock_heads
+#print axioms AvailableChain.PCSA.pcsa_process_heads_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_heads_stateBefore_mono

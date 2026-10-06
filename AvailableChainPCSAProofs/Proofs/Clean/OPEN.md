@@ -72,7 +72,12 @@ These do not yet provide the joint CI record or the composing induction.
 - C6 (`CleanInvariantClaim`): CL1–CL4 still need run-level count inputs.
   For each gate and next-label walk, prove forward and backward receipt
   membership, unchanged resolution of each common seat, and retained path
-  membership. Then prove equal proposal/voter views and walk inputs at an
+  membership. `CommonResolution` now proves equality for one signed HEAD
+  resolved at two indexed honest post-clock reads. `HeadPersistence` proves
+  exact pooled HEAD preservation through each step and between indices.
+  Forward/backward receipt membership and timestamp transport are still
+  needed to put common support seats into both late denominators.
+  Then prove equal proposal/voter views and walk inputs at an
   honest slot. The label-zero case and the Vote/Ack/PC record steps are open.
   `StepGate` has only the store consequences of chain compatibility; it does
   not establish that compatibility from the previous `CleanInvariantAt`.
