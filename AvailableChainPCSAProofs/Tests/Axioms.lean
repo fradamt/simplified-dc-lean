@@ -271,3 +271,8 @@ end
 #print axioms AvailableChain.PCSA.pcsa_clock_heads
 #print axioms AvailableChain.PCSA.pcsa_process_heads_mono
 #print axioms AvailableChain.PCSA.Run.pcsa_heads_stateBefore_mono
+
+#print axioms AvailableChain.PCSA.pcsa_clock_headStamps
+#print axioms AvailableChain.PCSA.pcsa_process_headStamps_prefix
+#print axioms AvailableChain.PCSA.pcsa_stampVote_eq_of_prefix
+#print axioms AvailableChain.PCSA.Run.pcsa_headStamps_stateBefore_prefix

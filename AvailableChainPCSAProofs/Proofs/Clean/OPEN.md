@@ -75,7 +75,9 @@ These do not yet provide the joint CI record or the composing induction.
   membership. `CommonResolution` now proves equality for one signed HEAD
   resolved at two indexed honest post-clock reads. `HeadPersistence` proves
   exact pooled HEAD preservation through each step and between indices.
-  Forward/backward receipt membership and timestamp transport are still
+  `HeadStamps` keeps the full receipt-stamp prefix between indices and
+  keeps an existing first stamp lookup unchanged.
+  Forward/backward receipt membership and timestamp origin are still
   needed to put common support seats into both late denominators.
   Then prove equal proposal/voter views and walk inputs at an
   honest slot. The label-zero case and the Vote/Ack/PC record steps are open.
@@ -139,3 +141,46 @@ conditional theorem as an unconditional claim.
 No open claim was exported as an unconditional theorem. AckStore now uses
 constructor cases to avoid all 19 foreign match equation exports introduced
 by the previous partial commit. The base W1 modules are unchanged.
+
+## Continuation 4 plan (2026-10-06)
+
+Validated and committed `bd73be1`. Main is `88c616d`; keep this branch base.
+No rebase. C3 and the four Formation store interfaces are complete.
+
+C6 receipt steps, with a commit after each completed module:
+1. Preserve the exact HEAD receipt stamps through clocks and deliveries.
+   Prove that stored HEADs have stamp entries. Use these facts to keep the
+   first receipt time when the pool grows.
+2. Prove HEAD stamp origin at a direct or accepted proposal-carried handler.
+   Convert a stamp below a public cutoff into acceptance before that cutoff.
+3. Relay each early HEAD before the late deadline. A receiver retains the
+   exact HEAD or two distinct HEADs of its seat. Transport both cap witnesses
+   back to the source denominator. Prove exact body receipt and stamp bounds
+   for the resolved support HEADs with `BodyReceipt`.
+4. Apply CL1–CL4 to these actual counts and `CommonResolution`. Then prove
+   the Vote/Ack/Gate/PC record steps and compose the label induction.
+
+### Pending-label targets after C6 (M1–M4)
+
+The outage writer owns the claim statements on `pcsa-w3-outage`.
+Do not prove these targets now. The following supply map is planned; a
+module or lemma marked planned is not yet available.
+
+- M1, results non-empty for `earlyTime j ≤ b₀`: the planned gate result
+  existence lemma in StepGate uses the honest early HEAD batch,
+  `Clean₂.labels`, receipt transport, and the majority walk from genesis.
+  Apply it to the pending label with delivery only through `b₀`.
+- M2, CI HEAD/result chain at pending labels: StepVote's
+  `pcsa_honestHead_extends_root` and the planned CL2 run transport supply
+  HEAD extension. The planned StepGate batch lemma supplies result extension
+  and compatibility. These facts need `earlyTime j ≤ b₀`, even if the gate
+  is after the cut; `CleanInvariantClaim` alone has the stronger gate bound.
+- M3, `CleanDisseminationPendingClaim`: StepPC's `pcsa_clean_N_root`,
+  `CommonResolution`, `HeadPersistence`, and the planned N-score receipt
+  transport supply next-label HEAD coverage. The planned StepGate batch
+  lemma supplies result coverage. Keep the pending delivery boundary.
+- M4, store items through `b₀`: the planned event induction for CI supplies
+  PC chain/result compatibility, lock origin/keep/write, and S origin/order
+  through the cut. `BodyPersistence` and `HeadPersistence` supply exact
+  pool preservation. Do not derive the whole cut from a CI bound
+  `t < voteTime (j + 1)` without a separate pending-store argument.
