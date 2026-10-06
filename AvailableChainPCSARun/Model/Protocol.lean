@@ -254,6 +254,12 @@ theorem pcsa_duties_nodup (p : Params) (t : Time) : (duties p t).Nodup := by
 
 /-! ### Duty payloads -/
 
+/-- [PC-SA AC-only; pcsa34-r4.3 §5 stage 1] The honest FG duty mode. -/
+inductive FGMode where
+  | on
+  | idle
+  deriving DecidableEq, Repr
+
 /-- [PC-SA M1] Replace the app and recompute the full digest. The BODY codec,
 signed rows, raw list, support list and carried PC keep their roles. -/
 def withApp (p : Params) (a : Nat) : Msg p.n → Msg p.n
@@ -281,6 +287,28 @@ def act (p : Params) {In : Type} (c : AppCodec In) (nd : Node p) :
     RunDuty → In → Option (Msg p.n)
   | .fgAction _, _ => (attest p nd.st nd.record ⟨0, p.nPos⟩).1.map Msg.row
   | ℓ, x => actS p c nd.st ℓ x
+
+/-- [PC-SA AC-only; pcsa34-r4.3 §5 stage 1] Mode `.on` uses `act`.
+Mode `.idle` sends no FG row and uses `actS` for every other duty. -/
+def actWith (m : FGMode) (p : Params) {In : Type} (c : AppCodec In) (nd : Node p) :
+    RunDuty → In → Option (Msg p.n) :=
+  match m with
+  | .on => act p c nd
+  | .idle => fun
+      | .fgAction _, _ => none
+      | ℓ, x => actS p c nd.st ℓ x
+
+theorem actWith_def (m : FGMode) (p : Params) {In : Type} (c : AppCodec In)
+    (nd : Node p) (d : RunDuty) (x : In) :
+    actWith m p c nd d x = (match d with
+      | .fgAction _ => match m with
+          | .on => (attest p nd.st nd.record ⟨0, p.nPos⟩).1.map Msg.row
+          | .idle => none
+      | ℓ => actS p c nd.st ℓ x) := by
+  cases m <;> cases d <;> rfl
+
+theorem act_def (p : Params) {In : Type} (c : AppCodec In) (nd : Node p) :
+    act p c nd = actWith .on p c nd := rfl
 
 /-- [PC-SA M1] [spec 681, 1391–1399; Opus m11] The own-record step: an FG row signed with
 seat `i` records the row `⟨i, height pair, finality pair⟩` in Λ
@@ -369,7 +397,7 @@ def carriesS (p : Params) (o o' : Obj p) : Prop :=
 /-! ### The protocol -/
 
 /-- [PC-SA M1] [plan T7.2; FRAMEWORK E1, E2, E5, E6] PC-SA on engine v2, with the
-application codec `c`.
+application codec `c` and honest FG duty mode `m`.
 
 * State: the store and Λ (`Node`). A restart keeps Λ (`Durable := RecordOnce`, the
   slashing-protection database; user decision, plan §1a) and restarts the
@@ -377,10 +405,11 @@ application codec `c`.
   kept data (E5 restore law).
 * `clock` and `process` run the store functions and keep Λ; `recordOwn`
   writes only Λ (`recordRow?`).
-* `act`: HEAD, proposal and ack from the store (`actS`), FG row from `attest`.
+* `act`: HEAD, proposal and ack from the store (`actS`); in mode `.on`,
+  FG row from `attest`; in mode `.idle`, no FG payload.
 * The hooks are the store hooks (`depsS`, `processedS`, `excludesS`,
   `handlesS`) at `nd.st`. -/
-def pcsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
+def pcsaWith (m : FGMode) (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
   State := Node p
   Label := RunLabel
   Duty := RunDuty
@@ -394,7 +423,7 @@ def pcsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
   duties := duties p
   duties_spec := pcsa_duties_spec p
   duties_nodup := pcsa_duties_nodup p
-  act := act p c
+  act := actWith m p c
   gossip _ _ := []
   process nd o := { nd with st := PCSA.process p nd.st (toWire p o) }
   selfVisible := RunLabel.selfVisible
@@ -407,6 +436,33 @@ def pcsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
   excludes nd o := excludesS p nd.st o
   handles nd o o' := handlesS p nd.st o o'
   carries := carriesS p
+
+/-- [PC-SA M1] PC-SA with the honest FG duty enabled. -/
+def pcsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In :=
+  pcsaWith .on p c
+
+theorem pcsa_def (p : Params) {In : Type} (c : AppCodec In) :
+    pcsa p c = pcsaWith .on p c := rfl
+
+/-- [PC-SA AC-only; pcsa34-r4.3 §5 stage 1] PC-SA with no honest FG rows.
+Only the FG duty payload changes. Faulty rows can still enter the store.
+
+The later `AcOnlyFrameClaim` proof will use a valid run with linked FG
+seats and `a < p.E.q`, where `a` is the number of faulty seats. Unit weights
+give `p.E.q = (2 * p.n + 2) / 3`. Since `p.n > 0`, `2 * p.E.q > p.n`;
+thus `a < (p.n + 1) / 2` (that is, `a < ⌈n/2⌉`) is sufficient.
+No honest FG row is signed, so each target, progress or finality set has
+weight at most `a`, even if faulty seats send multiple rows. No set reaches
+the FG quorum. Thus no justification, progress or finality event occurs.
+At every honest node, `F = J = genesis`, derived `h = 1`, cached `h_max = 1`,
+and `h_j = h_F = 0`, their initial values. (The model starts `h` at `1`,
+not `0`.) Hence there is no contest, `lo = 0` and `Z = genesis`, the
+`StageOneFrame` premise. This is a proof argument, not a proved claim. -/
+def pcsaAC (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In :=
+  pcsaWith .idle p c
+
+theorem pcsaAC_def (p : Params) {In : Type} (c : AppCodec In) :
+    pcsaAC p c = pcsaWith .idle p c := rfl
 
 /-- [PC-SA M1] Labels of `pcsa` have decidable equality (the instance of `RunLabel`; the
 projection does not unfold at instance transparency). -/

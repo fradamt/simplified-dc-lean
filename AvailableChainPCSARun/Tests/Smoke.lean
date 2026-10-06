@@ -44,6 +44,8 @@ def st6 : State pT.n := clock pT st5 6
 def st6late : State pT.n :=
   clock pT ([hv 0, hv 1, hv 2].foldl (process pT) (atTime (process pT (atTime {} 4) w1) 6)) 6
 def stA : State pT.n := [akWire 0, akWire 1].foldl (process pT) st6
+/-- At `a_1 = 14`, the first PC is frozen at `z_2` and supplies the FG source. -/
+def st14 : State pT.n := clock pT (clock pT stA 11) 14
 
 /-- (i) At `e_1 = 6 = a_0` the duties are the FG action of round 0 and the ack
 of slot 1 (`R = 2`: the action of round `r` is at `e_{rR+1}`); at `e_2 = 10`
@@ -76,6 +78,30 @@ theorem ack_roundtrip :
     (toWire pT (ofAck pT (ak 0))).decode = some (.ack 1 0 b1.root) ∧
     processedS pT stA (ofAck pT (ak 0)) = true ∧
     processedS pT st6 (ofAck pT (ak 0)) = false := by
+  decide +kernel
+
+set_option maxRecDepth 2048 in
+/-- At `e_3 = a_1`, AC-only mode sends no FG row. The enabled mode keeps
+the `attest` payload and sends a row on the same state. -/
+theorem pcsa_fg_mode :
+    (pcsaAC pT unitCodec).act ⟨st14, RecordOnce.initial⟩ (.fgAction 1) () = none ∧
+    (pcsa pT unitCodec).act ⟨st14, RecordOnce.initial⟩ (.fgAction 1) () =
+      (attest pT st14 RecordOnce.initial ⟨0, pT.nPos⟩).1.map Msg.row ∧
+    ((pcsa pT unitCodec).act ⟨st14, RecordOnce.initial⟩ (.fgAction 1) ()).isSome = true := by
+  refine ⟨rfl, ?_, ?_⟩
+  · exact actWith_def .on pT unitCodec ⟨st14, RecordOnce.initial⟩ (.fgAction 1) ()
+  · decide +kernel
+
+/-- The row-free tree contains genesis and `B1`. Its heights keep their
+initial values: `h = h_max = 1` and `h_j = h_F = 0`. The FG filter keeps
+the full tree when `F = Z = genesis` and `lo = 0`. -/
+theorem pcsa_ac_fullTree :
+    st6.fg.TF = {.genesis, B1} ∧ st6.fg.F = .genesis ∧ st6.fg.J = .genesis ∧
+    st6.fg.h_max = 1 ∧ st6.fg.h_j = 0 ∧
+    (∀ B ∈ st6.fg.TF, (FGSA.heightView pT B).h = 1 ∧
+      (FGSA.heightView pT B).h_j = 0 ∧ (FGSA.Window.derive pT pT.K_W B).h_F = 0) ∧
+    (controls pT st6).lo = 0 ∧ (controls pT st6).Z = .genesis ∧
+    fullTree pT st6 = st6.fg.TF := by
   decide +kernel
 
 #print axioms ack_sent
