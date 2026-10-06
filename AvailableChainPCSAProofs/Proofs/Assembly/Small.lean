@@ -14,4 +14,38 @@ theorem pcsa_smallClaims (p : Params) :
   ⟨pcsa_oneAckPerSlot p, pcsa_outputNesting p, pcsa_snapshotStamp p⟩
 
 end AvailableChain.PCSA.Run
+namespace AvailableChain.PCSA.Run
+
+/-- C3: positive-slot honest ack quorums disseminate an exact PC before the freeze. -/
+theorem pcsa_pcDissemination (p : Params) : PCDisseminationClaim p := by
+  rw [PCDisseminationClaim_def]
+  intro V _ _ In c m E rho cut ΔF h _ hF s r hs hz hQ
+  obtain ⟨Q, hcard, hacks⟩ := hQ
+  have hpos : 0 < pcQuorum p.n := by
+    change 0 < (p.n + 1) / 2
+    have hn := p.nPos
+    omega
+  obtain ⟨i, hi⟩ := Finset.card_pos.mp (lt_of_lt_of_le hpos hcard)
+  obtain ⟨B, hslot, hroot, hbody⟩ := pcsa_ack_target_body_before_freeze E rho h.base hF h.healthy
+    s i r hs (hacks i hi).1 (hacks i hi).2 hz
+  apply pcsa_dissemination_of_store_facts E rho h.healthy h.base.valid.toScheduleWellFormed
+    h.base.delta s r Q hcard hacks hz
+  · intro y hy i hi j t het _ hh
+    exact pcsa_honest_ack_admitted E rho h.base y hy s i r j t (hacks i hi).1 het hh
+  · intro y _ j k hjk
+    exact pcsa_ackPool_stateBefore_mono E rho h.base.noRestart y hjk
+  · intro y hy
+    dsimp only
+    intro hp hc
+    have hj := Gen.V2.Duty.stateBefore_idxBefore E rho (SA.freezeTime p.toParams s)
+      h.base.valid.toScheduleWellFormed
+    have hb := hbody y hy
+    rw [← hj] at hp hb ⊢
+    obtain ⟨C, hC, hCs, hCB⟩ := pcsa_collect_held_target E rho h.base hF _ y hy s B hs hslot hb
+      Q hc (by simpa only [hroot] using hp)
+    exact ⟨C, hC, hCs, hCB ▸ hroot⟩
+  · intro y hy
+    exact pcsa_collectPCs_after_freeze E rho h.base.valid.toScheduleWellFormed h.base.noRestart
+      h.base.delta y hy s (hz.trans h.cut.2)
+end AvailableChain.PCSA.Run
 end

@@ -81,14 +81,13 @@ These do not yet provide the joint CI record or the composing induction.
   in r4.3a step (d). The run induction must still prove: the selected PC
   has slot ≤ i; earlier PCs are below the N target; same-slot PCs target
   it; live locks are below it. This helper is exported by `Clean/Export`.
-- C3 (`PCDisseminationClaim`), restricted to positive slots: admission of
-  each handled honest ack is proved by `pcsa_honest_ack_admitted`, including
-  the carried-object handler cases. Still prove that the target body is held
-  before the freeze. `TargetCollect` proves exact lookup once it is held.
-  `Collect` proves first-per-seat quorum preservation and exact assembly.
-  `Saturation` proves every collectable target is already held in each
-  reachable store. `pcsa_collectPCs_after_freeze` closes the Shared hKeep
-  and Formation hFreezeKeep interfaces.
+- C3 (`PCDisseminationClaim`): proved for positive slots and exported as
+  `pcsa_pcDissemination`. `BodyReceipt` proves an earlier accepting body
+  origin, immutable-parent row validity, exact relay before its deadline,
+  and exact body membership at every honest node before the freeze.
+  Ack admission, pool transport, exact lookup, quorum assembly, and freeze
+  preservation discharge all C3 store premises. The claim needs no extra
+  premise. Its only axioms are `propext`, `Classical.choice`, and `Quot.sound`.
 - C5 (`AvailableMonotoneClaim`): prove S monotonicity, preservation of held
   PCs in stage 1, and prefix order of selected PC targets over time. Supply
   compatibility of the later target with the later S to Generic PCFloorMono.

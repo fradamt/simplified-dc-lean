@@ -247,3 +247,17 @@ end
 
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_emitted_slot
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_collect_of_held_body
+
+#print axioms AvailableChain.PCSA.pcsa_tree_correspondence
+#print axioms AvailableChain.PCSA.pcsa_fullTree_of_frame
+#print axioms AvailableChain.PCSA.pcsa_body_clock_fg
+#print axioms AvailableChain.PCSA.pcsa_body_process_fg_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_body_stateBefore_mono
+#print axioms AvailableChain.PCSA.pcsa_body_insert_data
+#print axioms AvailableChain.PCSA.pcsa_admitBlock_body_mem
+#print axioms AvailableChain.PCSA.pcsa_process_new_body
+#print axioms AvailableChain.PCSA.Run.pcsa_body_receipt_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_body_handles_direct
+#print axioms AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_target_body_before_freeze
+#print axioms AvailableChain.PCSA.Run.pcsa_pcDissemination

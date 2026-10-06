@@ -119,7 +119,8 @@ theorem pcsa_body_process_fg_mono (p : Params) (st : State p.n) (o : Wire p.n) :
             cases N.pc <;> dsimp only
             all_goals split_ifs <;> first
               | exact FGSA.Window.window_on_block_TF_subset p p.K_W st.fg _
-              | (rw [pcsa_body_reconcile_fg]; exact FGSA.Window.window_on_block_TF_subset p p.K_W st.fg _)
+              | (rw [pcsa_body_reconcile_fg]
+                 exact FGSA.Window.window_on_block_TF_subset p p.K_W st.fg _)
           · exact Finset.Subset.refl _
 
 /-- A reachable clock keeps every stored base body. -/
