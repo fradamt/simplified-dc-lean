@@ -153,36 +153,48 @@ theorem pcsa_cleanSupport_subset_headSupport (p : Params) (st : State p.n) (s : 
     simp only [decide_eq_true_eq]
     exact hr.1.1
 
-/-- CL3 for the executable finality head at the same label. All same-label
-votes must be in the late multiset. Root compatibility and retained path
-membership are supplied by the clean induction. -/
-theorem pcsa_cl3_result_below_fgHead (p : Params) (st : State p.n) (s : Slot) (X : Block)
+/-- CL3 for an explicit same-label head over the gate's late votes.
+Root compatibility and retained path membership come from the clean induction.
+The current slot need not equal the gate label. -/
+theorem pcsa_cl3_result_below_getHead (p : Params) (st : State p.n) (s : Slot) (X : Block)
     (hF : st.fg.F = SimplexFG.FGBlock.genesis) (hd : st.base.headDomain = none)
-    (hslot : st.slot p = s)
-    (hraw : GridCO.votesAt st.base s =
-      GridCO.lateVotes p.toParams.engine (actView st) s)
     (hresult : SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F)
       (actView st) s = some X)
     (hanchor : Block.Compatible (liveRoot p st (proposerPC p st)) X)
     (hpath : ∀ C, Block.Prec (liveRoot p st (proposerPC p st)) C → Block.Preceq C X →
       C ∈ erasedList st (fullTree p st)) :
-    Block.Preceq X (fgHead p st) := by
-  unfold fgHead getHead
-  dsimp only
-  rw [hslot, hraw]
+    Block.Preceq X (getHead p st (proposerPC p st)
+      (GridCO.lateVotes p.toParams.engine (actView st) s)
+      ((GridCO.lateVotes p.toParams.engine (actView st) s).filter (fun o =>
+        match GridCO.resolvedHead? (actView st) o with
+        | some B => decide (B.slot ≤ s)
+        | none => false))) := by
+  unfold getHead
   refine pcsa_cl3_result_below_head p st (proposerPC p st) s X _ _ hF hd hresult
     ?_ ?_ hanchor hpath
   · intro o ho
     exact (List.mem_filter.mp ho).1
   · intro o ho
     have hsub := pcsa_cleanSupport_subset_headSupport p st s ho
-    rw [hraw] at hsub
-    obtain ⟨hm, hr⟩ := List.mem_filter.mp hsub
+    have hr := (List.mem_filter.mp hsub).2
     apply List.mem_filter.mpr
-    refine ⟨hm, ?_⟩
+    refine ⟨FGSA.fgsa_early_subset_late p (actView st) s (List.mem_filter.mp ho).1, ?_⟩
     cases hh : GridCO.resolvedHead? (actView st) o with
     | none => simpa only [hh] using hr
     | some B => simpa only [hh] using hr
+
+/-- At the gate for label `s`, the executable finality head reads label `s + 1`.
+CL3 above uses label `s`; it gives no prefix bound for this different vote pool. -/
+theorem pcsa_fgHead_eq_getHead_at_gate (p : Params) (st : State p.n) (s : Slot)
+    (hslot : st.slot p = s + 1) :
+    fgHead p st = getHead p st (proposerPC p st) (GridCO.votesAt st.base (s + 1))
+      ((GridCO.votesAt st.base (s + 1)).filter (fun o =>
+        match GridCO.resolvedHead? (actView st) o with
+        | some B => decide (B.slot ≤ s + 1)
+        | none => false)) := by
+  unfold fgHead
+  rw [hslot]
+  rfl
 
 end AvailableChain.PCSA
 end
