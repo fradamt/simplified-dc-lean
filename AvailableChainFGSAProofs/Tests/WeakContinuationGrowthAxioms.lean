@@ -57,7 +57,16 @@ open AvailableChain.FGSA.Run
 #print axioms wcg_step
 #print axioms wcg_finalBelow
 #print axioms wcg_seededInduction
+#print axioms wcg_proposalPivot
+#print axioms wcg_exactProposal
+#print axioms wcg_proposalAdmission
+#print axioms wcg_inclusion6
+#print axioms wcg_inclusion6_proved
+#print axioms wcg_seededLiveAt
 #print axioms wcg_finiteSeed
 #print axioms wcg_heightSeed
 #print axioms wcg_sourceWitness
+#print axioms wcg_scopedRowOrigins
+#print axioms wcg_dischargeL
+#print axioms wcg_liveOfSeed
 end
