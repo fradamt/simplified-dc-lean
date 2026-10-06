@@ -298,3 +298,12 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_head_acceptance_after_slot_start
 #print axioms AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap
 #print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late
+
+#print axioms AvailableChain.PCSA.pcsa_clock_blocks
+#print axioms AvailableChain.PCSA.pcsa_clock_bodyStamps
+#print axioms AvailableChain.PCSA.pcsa_process_bodyStamps_prefix
+#print axioms AvailableChain.PCSA.pcsa_stampBlock_eq_of_prefix
+#print axioms AvailableChain.PCSA.Run.pcsa_bodyStamps_stateBefore_prefix
+#print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_keys
+#print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_lookup
+#print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_stateBefore_eq

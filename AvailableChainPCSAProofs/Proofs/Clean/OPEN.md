@@ -252,3 +252,18 @@ Next: prove body first-stamp origin and preservation, then exact body
 resolution at the receiving post-clock read. Apply the public-cutoff
 receipt interface to the concrete frozen and carried walk inputs.
 The joint CI record and its corollaries remain unproved.
+
+### Body receipt data (2026-10-07)
+
+`BodyStamps` supplies exact clock preservation of the cumulative body
+list and stamp list, delivery/indexed stamp-prefix preservation, stamp
+keys including genesis, first lookup, and unchanged first body receipt
+time. All eight facts are exported. The insertion-origin and earlier
+passed-admission facts compile in scratch. Check and commit them next.
+Then connect the earlier admission to the exact `BodyReceipt` relay and
+prove receiver stamp bounds and resolution for the counted HEAD body.
+
+For pending M3, `HeadRelay.pcsa_head_before_public_cut_relay_late` will
+supply the HEAD/cap receipt part of the N-score transport. `BodyStamps`
+and the next body-origin module will supply its exact body/timestamp part.
+These are support facts. Pending-label claims are still deferred.
