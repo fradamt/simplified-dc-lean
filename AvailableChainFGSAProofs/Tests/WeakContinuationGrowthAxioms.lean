@@ -66,6 +66,8 @@ open AvailableChain.FGSA.Run
 #print axioms wcg_finiteSeed
 #print axioms wcg_heightSeed
 #print axioms wcg_sourceWitness
+#print axioms wcg_outputReplay
+#print axioms wcg_empty_outputs
 #print axioms wcg_scopedRowOrigins
 #print axioms wcg_dischargeL
 #print axioms wcg_liveOfSeed

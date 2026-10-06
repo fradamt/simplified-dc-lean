@@ -40,5 +40,46 @@ theorem wcg_tickEventReplay (ha : RetainedAgreesThrough₂ p c E source E' rho)
     V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hs hns hj]
   exact wcg_beforeReplay ha x hx ht
 
+/-- Every public getter replays through the inclusive source endpoint. -/
+theorem wcg_outputReplay (ha : RetainedAgreesThrough₂ p c E source E' rho)
+    (g : V2.D.Output (fgsa p c)) (x : V) (hx : x ∈ rho.honest)
+    {t : Time} (ht : t ≤ source.horizon) :
+    V2.D.outputAt E' rho g x t = V2.D.outputAt E source g x t :=
+  congrArg g (wcg_readReplay ha x hx ht)
+
+/-- Empty-suffix public output safety needs no participation or half cap.
+This transfers compatibility and monotonicity at all covered public reads.
+The event-index safety fields require a separate occurrence-index argument. -/
+theorem wcg_empty_outputs
+    (ha : RetainedAgreesThrough₂ p c E source E' rho)
+    (hsch : V2.D.ScheduleWellFormed E source)
+    (hend : rho.horizon = source.horizon)
+    {u : Slot} {Q : Block} {iSource : Nat} {ΔF : Time}
+    (hcut : iSource = afterTicksIdx source (SA.gateTime p.toParams u))
+    (hsafe : SSafeFromCut₂ p c E source iSource Q ΔF) :
+    ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
+      Gen.Pure.CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E' rho g x t)
+        (fun t => SA.gateTime p.toParams u ≤ t ∧ t ≤ rho.horizon) ∧
+      Gen.Pure.MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E' rho g x t)
+        (fun t => SA.gateTime p.toParams u ≤ t ∧ t ≤ rho.horizon) := by
+  have hidx : ∀ t, SA.gateTime p.toParams u ≤ t → iSource ≤ timeIdx source t := by
+    intro t ht
+    rw [hcut]
+    exact (preIdx_le_afterTicksIdx E source hsch _).2.trans
+      (V2.D.Engine.read_length_mono (rho := source) _ t ht)
+  intro g hg
+  obtain ⟨hc, hm⟩ := hsafe.outputs g hg
+  constructor
+  · intro t r x y ht hr hx hy
+    change Block.Compatible (V2.D.outputAt E' rho g x t) (V2.D.outputAt E' rho g y r)
+    rw [wcg_outputReplay ha g x hx (ht.2.trans_eq hend),
+      wcg_outputReplay ha g y hy (hr.2.trans_eq hend)]
+    exact hc t r x y (hidx t ht.1) (hidx r hr.1) (ha.honest hx) (ha.honest hy)
+  · intro t r x ht hr htr hx
+    change Block.Preceq (V2.D.outputAt E' rho g x t) (V2.D.outputAt E' rho g x r)
+    rw [wcg_outputReplay ha g x hx (ht.2.trans_eq hend),
+      wcg_outputReplay ha g x hx (hr.2.trans_eq hend)]
+    exact hm t r x (hidx t ht.1) (hidx r hr.1) htr (ha.honest hx)
+
 end AvailableChain.FGSA.Run
 end
