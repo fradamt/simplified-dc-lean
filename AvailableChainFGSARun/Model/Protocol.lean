@@ -437,6 +437,29 @@ private theorem toAuth_eq_3_export :
 private theorem toWire_eq_1_export :
     type_of% (@toWire.eq_1) := @toWire.eq_1
 
+
+/-! Raw payload and row reads for the provisional safety adapter. -/
+def safetyProposalErase (p : Params) (o : Obj p) : Option Block :=
+  match o.payload with
+  | .proposal N => some N.erase
+  | _ => none
+
+theorem fgsa_safetyProposalErase_def (p : Params) (o : Obj p) :
+    safetyProposalErase p o = (match o.payload with
+      | .proposal N => some N.erase
+      | _ => none) := rfl
+
+def safetyProposalRows (p : Params) (o : Obj p) : List (RowWire p.n) :=
+  match o.payload with
+  | .proposal N => N.rows
+  | _ => []
+
+theorem fgsa_safetyProposalRows_def (p : Params) (o : Obj p) :
+    safetyProposalRows p o = (match o.payload with
+      | .proposal N => N.rows
+      | _ => []) := rfl
+
+
 end AvailableChain.FGSA.Run
 
 end

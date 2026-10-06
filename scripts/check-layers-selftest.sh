@@ -220,6 +220,32 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
                     found = run(root, 1)
                     assert ("COMPOSE-S", neighbor, target) in found, found
         print("PASS Safety exact external edges and neighbors")
+        for index, (importer, dep) in enumerate(sorted(api["COMPOSE_EDGES"])):
+            if "FGSafetyClient" not in importer:
+                continue
+            for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
+                root = temp / f"safety-adapter-{index}-{neighbor}-{target}"
+                setup(root)
+                module(root, neighbor, target)
+                found = run(root, 1)
+                assert ("UPSTREAM-COMPOSE", neighbor, target) in found, found
+        for index, (importer, dep) in enumerate([
+            ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient",
+             R + ".Proofs.Protocol"),
+            ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore",
+             R + ".Proofs.Reachable"),
+            ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore",
+             "AvailableChainPCSAProofs.Proofs.AcFrame.Store"),
+            ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore",
+             F + ".Proofs.StoreLaws.Extra"),
+        ]):
+            root = temp / f"safety-forbidden-{index}"
+            setup(root)
+            module(root, importer, dep)
+            found = run(root, 1)
+            assert ("LANE", importer, dep) in found, found
+        print("PASS Safety adapters, run exclusion, and AcFrame lane STOP")
+
 
 
         # Real-file header controls. Each spelling must produce the same

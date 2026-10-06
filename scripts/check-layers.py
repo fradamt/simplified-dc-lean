@@ -648,6 +648,13 @@ COMPOSE_EDGES = frozenset(
     + [("AvailableChainPCSAProofs.Proofs.Shared.FGCompose", COMPOSE + ".Statements.CoreReads")]
     + [("AvailableChainPCSAClaims.Statements.Reads", COMPOSE + ".Statements.EventReads")])
 
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyClient'),
+    ('AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyStore'),
+    ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyClient'),
+    ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyStore'),
+})
+
 
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
@@ -736,6 +743,13 @@ def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
         "AvailableChainSimplexFG", "AvailableChainFGSA.Model", "AvailableChainFGSA.Statements",
         "AvailableChainFGSA.Proofs", "AvailableChainFGSARun", PROOFS + ".Proofs"))
         or dep == STORE_FACTS or (m.name, dep) in COMPOSE_EDGES)
+    # New safety adapters use named FG-SA model producers, never its run claims.
+    if m.name in {
+            PC_PROOFS + ".Proofs.Foundations.FGSafetyClient",
+            PC_PROOFS + ".Proofs.Foundations.FGSafetyStore"} and any_under(dep, (
+                "AvailableChainFGSA", "AvailableChainFGSARun", PROOFS, CLAIMS)):
+        upstream = dep in {"AvailableChainFGSA.Proofs.Carrier",
+                           "AvailableChainFGSA.Proofs.StoreLaws"}
     if parts[0] == "Assembly":
         allowed = upstream or (target and (target[0] == "Shared" or target_export))
         if m.name == PC_PROOFS + ".Proofs.Assembly.Root":
