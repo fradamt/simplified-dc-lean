@@ -20,11 +20,11 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.StampRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.Stamps
 public import AvailableChainPCSAProofs.Proofs.Foundations.Store
 public import AvailableChainPCSAProofs.Proofs.PC.AckOrigins
-public import AvailableChainPCSAProofs.Proofs.PC.Certificates
-public import AvailableChainPCSAProofs.Proofs.PC.HeadSupport
-public import AvailableChainPCSAProofs.Proofs.PC.RunEvidence
-public import AvailableChainPCSAProofs.Proofs.PC.StoreEvidence
 public import AvailableChainPCSAProofs.Proofs.PC.Uniqueness
+public import AvailableChainPCSAProofs.Proofs.Shared.Certificates
+public import AvailableChainPCSAProofs.Proofs.Shared.HeadSupport
+public import AvailableChainPCSAProofs.Proofs.Shared.RunEvidence
+public import AvailableChainPCSAProofs.Proofs.Shared.StoreEvidence
 
 public section
 
