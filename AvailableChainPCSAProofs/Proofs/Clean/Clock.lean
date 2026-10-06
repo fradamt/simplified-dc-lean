@@ -121,5 +121,11 @@ def pcsaClock : V2.D.Engine.ClockLaws (pcsaWith m p c) where
   clock nd t := pcsa_clock_now p nd.st t
   process nd o := pcsa_process_now p nd.st (toWire p o)
   recordOwn_now _ _ := rfl
+/-- The clock interface reads the base store clock. -/
+theorem pcsa_clock_read (nd : Node p) :
+    (pcsaClock p c (m := m)).now nd = nd.st.base.now := by
+  change nd.st.base.now = nd.st.base.now
+  rfl
+
 end AvailableChain.PCSA.Run
 end

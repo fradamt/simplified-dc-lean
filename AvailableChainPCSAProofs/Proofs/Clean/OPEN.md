@@ -74,10 +74,10 @@ These are exported by `Clean/Export`. They are not proofs of the open claims.
   in r4.3a step (d). The run induction must still prove: the selected PC
   has slot ≤ i; earlier PCs are below the N target; same-slot PCs target
   it; live locks are below it. This helper is exported by `Clean/Export`.
-- C3 (`PCDisseminationClaim`), now restricted to positive slots: prove that each honest handled ack before the
-  freeze passes the receiver's slot and resolved-root checks and cannot hit
-  the two-root seat cap. Include the carried-object handler cases. Prove that
-  the target body is held and resolves to the same slot-s block.
+- C3 (`PCDisseminationClaim`), restricted to positive slots: admission of
+  each handled honest ack is proved by `pcsa_honest_ack_admitted`, including
+  the carried-object handler cases. Still prove that the target body is held
+  before the freeze and resolves to the same slot-s block.
   `Collect` proves first-per-seat quorum preservation and exact assembly.
   `Saturation` proves every collectable target is already held in each
   reachable store. `pcsa_collectPCs_after_freeze` closes the Shared hKeep
@@ -103,11 +103,14 @@ conditional theorem as an unconditional claim.
 
 - `hAckPoolMono`: discharged by `pcsa_ackPool_stateBefore_mono`, with
   `FormationPrem.base.noRestart`; the honest-node binder is unused.
-- `hAckAdmit`: open. Need admission of every handled honest ack, including
-  carried receipt, under the slot, resolved-root, and seat-cap checks.
-- `hPCCollect`: open. Need resolution to the exact `N.erase` and preservation
-  of the seat quorum by `firstPerSeat`, then assembly from that pool.
-- `hFreezeKeep`: discharged by `pcsa_collectPCs_after_freeze`, using
+- `hAckAdmit`: the exact interface is `pcsa_formation_ack_admit`; its
+  base theorem is `pcsa_honest_ack_admitted`. Use
+  `FormationPrem.base` and the lower receipt-time bound. The theorem proves
+  admission of direct and carried honest acks. The upper bound is unused.
+- `hPCCollect`: open. Need the exact `N.erase` held in the pre-freeze
+  store and its root lookup. Quorum preservation and assembly are proved.
+- `hFreezeKeep`: the exact interface is `pcsa_formation_freeze_keep`; its
+  base theorem is `pcsa_collectPCs_after_freeze`, using
   `FormationPrem.base.valid.toScheduleWellFormed`, `base.noRestart`,
   `base.delta`, and `freezeTime s < gateTime s ≤ horizon`.
 - `hPCCollect` store part: `pcsa_collectPCs_quorum` proves the exact-target

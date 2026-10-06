@@ -216,3 +216,21 @@ end
 
 #print axioms AvailableChain.PCSA.pcsa_clock_now
 #print axioms AvailableChain.PCSA.pcsa_process_now
+
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_ack_admitted
+
+#print axioms AvailableChain.PCSA.Run.pcsa_clock_read
+#print axioms AvailableChain.PCSA.pcsa_process_pool_pred
+#print axioms AvailableChain.PCSA.Run.pcsa_pool_honest_emits
+#print axioms AvailableChain.PCSA.pcsa_clean_clock_body_scope
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_body_scope
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_scoped_root_eq
+#print axioms AvailableChain.PCSA.Run.pcsa_seat_roots
+#print axioms AvailableChain.PCSA.pcsa_poolAck_one_root
+#print axioms AvailableChain.PCSA.Run.pcsa_handled_ack_pool
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_emission_nTarget
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_root_slotOK
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_receiver_slot
+
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_ack_admit
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_freeze_keep

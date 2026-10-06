@@ -1,7 +1,7 @@
 module
 public import AvailableChainPCSAClaims.Claims.Clean
 public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
-public import AvailableChainPCSAProofs.Proofs.Clean.Clock
+public import AvailableChainPCSAProofs.Proofs.Clean.AckAdmit
 public import AvailableChainPCSAProofs.Proofs.Clean.AckRun
 public import AvailableChainPCSAProofs.Proofs.Clean.StepGate
 public import AvailableChainPCSAProofs.Proofs.Clean.StepPC
