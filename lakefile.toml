@@ -22,6 +22,9 @@ defaultTargets = [
   "AvailableChainFGSAClaims",
   "AvailableChainFGSAProofs",
   "AvailableChainFGSAInhabit",
+  "AvailableChainPCSA",
+  "AvailableChainPCSARun",
+  "AvailableChainPCSAClaims",
 ]
 
 [leanOptions]
@@ -164,3 +167,20 @@ globs = ["AvailableChainFGSAInhabit.*"]
 name = "AvailableChainFGSAInhabitTests"
 roots = []
 globs = ["AvailableChainFGSAInhabit.Tests.+"]
+
+# PC-SA composite model (3n/4 version, pcsa-decisions.md): the FG-SA family
+# with exact acks, PCs and the PC-first root. One glob, `.*` (B7-GLOBS): the
+# root and every module, `Tests/` included, as AvailableChainFGSA.
+[[lean_lib]]
+name = "AvailableChainPCSA"
+globs = ["AvailableChainPCSA.*"]
+
+# PC-SA run layer on engine v2: protocol, label families (Model only in M1).
+[[lean_lib]]
+name = "AvailableChainPCSARun"
+globs = ["AvailableChainPCSARun.*"]
+
+# PC-SA claims: run regimes, reads and the Statements-layer claim Props.
+[[lean_lib]]
+name = "AvailableChainPCSAClaims"
+globs = ["AvailableChainPCSAClaims.*"]
