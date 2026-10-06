@@ -123,6 +123,8 @@ conditional theorem as an unconditional claim.
   base theorem is `pcsa_collectPCs_after_freeze`, using
   `FormationPrem.base.valid.toScheduleWellFormed`, `base.noRestart`,
   `base.delta`, and `freezeTime s < gateTime s ≤ horizon`.
+- `TreeReceipt`: reachable stores have identical base and erased FG body domains.
+  The stage-1 full tree retains every stored FG block. These facts are exported.
 - `BodyAdmission`: a body with valid rows for its immutable parent cannot
   be excluded in stage 1. A fresh, dependency-ready, well-formed body
   passes admission once the receiver slot is large enough. The run receipt
