@@ -26,6 +26,7 @@ public import AvailableChainPCSAProofs.Proofs.PC.RunEvidence
 public import AvailableChainPCSAProofs.Proofs.PC.StoreEvidence
 public import AvailableChainPCSAProofs.Proofs.PC.Uniqueness
 public import AvailableChainPCSAProofs.Proofs.Shared.Certificates
+public import AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
 public import AvailableChainPCSAProofs.Proofs.Shared.CleanGate
 public import AvailableChainPCSAProofs.Proofs.Shared.Dissemination
