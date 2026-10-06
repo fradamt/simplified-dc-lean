@@ -2,3 +2,7 @@ module
 public import AvailableChainFGCompose.Statements.EventReads
 public import AvailableChainFGCompose.Statements.CoreReads
 public import AvailableChainFGCompose.Proofs.SourceHead
+public import AvailableChainFGCompose.Statements.SafetyReads
+public import AvailableChainFGCompose.Statements.SafetyStore
+public import AvailableChainFGCompose.Statements.SafetyClient
+public import AvailableChainFGCompose.Statements.SafetyClaims

@@ -201,12 +201,26 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (CO + ".Proofs.SourceHead", "AvailableChainKitV2.DutyStable"),
             (CO + ".Proofs.SourceHead", K + ".Correspondence"),
             *sorted(api["COMPOSE_EDGES"]),
+            *sorted(api["COMPOSE_SAFETY_IMPORTS"]),
         ]):
             root = temp / f"compose-positive-{index}"
             setup(root)
             module(root, importer, dep)
             run(root, 0, set())
         print("PASS Compose positive exact edges")
+        for index, (importer, dep) in enumerate(sorted(api["COMPOSE_SAFETY_IMPORTS"])):
+            for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
+                root = temp / f"safety-boundary-{index}-{neighbor}-{target}"
+                setup(root)
+                module(root, neighbor, target)
+                # Some imports were already allowed by the step-1 base policy.
+                if api["compose_base"](target):
+                    run(root, 0, set())
+                else:
+                    found = run(root, 1)
+                    assert ("COMPOSE-S", neighbor, target) in found, found
+        print("PASS Safety exact external edges and neighbors")
+
 
         # Real-file header controls. Each spelling must produce the same
         # edge, including newlines, nested comments and quoted identifiers.

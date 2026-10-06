@@ -630,8 +630,19 @@ def check_support(ctx: Context, m: Module, dep: str) -> bool:
 # Exact external edges. Both source guards use this table.
 COMPOSE_MODULES = (COMPOSE + ".Statements.EventReads", COMPOSE + ".Statements.CoreReads",
                    COMPOSE + ".Proofs.SourceHead")
+COMPOSE_SAFETY_MODULES = tuple(COMPOSE + ".Statements." + name for name in
+                               ("SafetyReads", "SafetyStore", "SafetyClient", "SafetyClaims"))
+COMPOSE_MODULES += COMPOSE_SAFETY_MODULES
+COMPOSE_SAFETY_IMPORTS = frozenset({
+    (COMPOSE + ".Statements.SafetyReads", KITFG + ".ClientOnce"),
+    (COMPOSE + ".Statements.SafetyReads", "AvailableChainSimplexFG.Evidence"),
+    (COMPOSE + ".Statements.SafetyReads", KITFG + ".CertificateCoreDef"),
+    (COMPOSE + ".Statements.SafetyReads", SV + ".Duty.Slashing"),
+    (COMPOSE + ".Statements.SafetyStore", KITFG + ".StoreSafetyDef"),
+    (COMPOSE + ".Statements.SafetyClient", SP + ".Quorum"),
+})
 COMPOSE_EDGES = frozenset(
-    [(PROOFS + ".Proofs.Shared.FGCompose", dep) for dep in COMPOSE_MODULES]
+    [(PROOFS + ".Proofs.Shared.FGCompose", dep) for dep in COMPOSE_MODULES[:3]]
     + [(PROOFS + ".Proofs.Finality." + name, COMPOSE + ".Proofs.SourceHead")
        for name in ("MiddleSupport", "Rows")]
     + [("AvailableChainPCSAProofs.Proofs.Shared.FGCompose", COMPOSE + ".Statements.CoreReads")]
@@ -653,7 +664,8 @@ def compose_s(ctx: Context, m: Module, dep: str) -> bool:
     if m.facade:
         return dep not in COMPOSE_MODULES
     if under(m.name, COMPOSE + ".Statements"):
-        return not (compose_base(dep) or under(dep, COMPOSE + ".Statements"))
+        return not (compose_base(dep) or under(dep, COMPOSE + ".Statements")
+                    or (m.name, dep) in COMPOSE_SAFETY_IMPORTS)
     return not any_under(m.name, (COMPOSE + ".Proofs", COMPOSE + ".Tests"))
 
 
