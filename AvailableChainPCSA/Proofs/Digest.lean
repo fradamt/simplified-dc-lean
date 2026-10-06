@@ -12,7 +12,9 @@ namespace AvailableChain.PCSA
 
 theorem Label.toFGSA_injective : Function.Injective Label.toFGSA := by
   intro a b h
-  rcases a with s | _ | s <;> rcases b with s' | _ | s' <;> simp only [Label.toFGSA] at h
+  rcases a with s | _ | s <;> rcases b with s' | _ | s'
+  all_goals delta Label.toFGSA at h
+  all_goals dsimp only at h
   all_goals first | rfl | (cases h) | skip
   all_goals injection h with h
   -- `Slot` is an abbreviation of `Nat`; `omega` needs the `Nat`-typed forms.
@@ -26,33 +28,37 @@ theorem Label.toFGSA_injective : Function.Injective Label.toFGSA := by
 
 theorem authToFGSA_injective {n : Nat} : Function.Injective (authToFGSA (n := n)) := by
   intro a b h
-  cases a <;> cases b <;>
-    simp only [authToFGSA, Auth.seat.injEq, Auth.proposer.injEq, reduceCtorEq] at h ⊢
+  cases a <;> cases b <;> delta authToFGSA at h
+  all_goals simp only [Auth.seat.injEq, Auth.proposer.injEq, reduceCtorEq] at h ⊢
   · exact ⟨Label.toFGSA_injective h.1, h.2⟩
   · exact h
 
 theorem HeadWire.toFGSA_injective {n : Nat} : Function.Injective (HeadWire.toFGSA (n := n)) := by
   intro a b h
   cases a; cases b
-  simp only [HeadWire.toFGSA, Signed.mk.injEq] at h ⊢
+  delta HeadWire.toFGSA at h
+  simp only [Signed.mk.injEq] at h ⊢
   exact ⟨authToFGSA_injective h.1, h.2⟩
 
 theorem RowBody.toFGSA_injective : Function.Injective RowBody.toFGSA := by
   intro a b h
   cases a; cases b
-  simp only [RowBody.toFGSA, FGSA.RowBody.mk.injEq, RowBody.mk.injEq] at h ⊢
+  delta RowBody.toFGSA at h
+  simp only [FGSA.RowBody.mk.injEq, RowBody.mk.injEq] at h ⊢
   exact h
 
 theorem RowPayload.toFGSA_injective : Function.Injective RowPayload.toFGSA := by
   intro a b h
   cases a; cases b
-  simp only [RowPayload.toFGSA, FGSA.RowPayload.vote.injEq, RowPayload.vote.injEq] at h ⊢
+  delta RowPayload.toFGSA at h
+  simp only [FGSA.RowPayload.vote.injEq, RowPayload.vote.injEq] at h ⊢
   exact RowBody.toFGSA_injective h
 
 theorem RowWire.toFGSA_injective {n : Nat} : Function.Injective (RowWire.toFGSA (n := n)) := by
   intro a b h
   cases a; cases b
-  simp only [RowWire.toFGSA, Signed.mk.injEq] at h ⊢
+  delta RowWire.toFGSA at h
+  simp only [Signed.mk.injEq] at h ⊢
   exact ⟨authToFGSA_injective h.1, RowPayload.toFGSA_injective h.2⟩
 
 theorem encLabel_injective : Function.Injective encLabel := by
@@ -120,7 +126,8 @@ theorem DigestInput.toFGSA_injective {n : Nat} :
     Function.Injective (DigestInput.toFGSA (n := n)) := by
   intro a b h
   cases a; cases b
-  simp only [DigestInput.toFGSA, FGSA.DigestInput.mk.injEq] at h
+  delta DigestInput.toFGSA at h
+  simp only [FGSA.DigestInput.mk.injEq] at h
   obtain ⟨hp, hs, ha, hrows, hraw, hsup⟩ := h
   have ha' := epair_inj ha
   simp only [DigestInput.mk.injEq]

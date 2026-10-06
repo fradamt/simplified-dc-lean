@@ -268,7 +268,8 @@ theorem stateBefore_cut_of_ge {k : Nat} (hk : n ≤ k) :
 theorem emitsAt_cut_of_lt {k : Nat} (hk : k < n) :
     V2.D.Run.emitsAt E ({ rho with events := rho.events.take n, horizon := t } :
       V2.D.Run V P) k = V2.D.Run.emitsAt E rho k := by
-  simp only [V2.D.Run.emitsAt, List.getElem?_take_of_lt hk, stateBefore_cut_of_le (Nat.le_of_lt hk)]
+  delta V2.D.Run.emitsAt
+  rw [List.getElem?_take_of_lt hk, stateBefore_cut_of_le (Nat.le_of_lt hk)]
   rfl
 
 /-- [own-row Option 1; DC N3] The emissions of the cut run are the old emissions at times at
