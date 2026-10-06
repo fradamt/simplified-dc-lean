@@ -4,7 +4,7 @@ public import AvailableChainPCSAProofs
 public section
 
 /-! C3 counterexample: the label-zero ack is allowed, but a label-zero PC
-is not. This finite run satisfies every premise of PCDisseminationClaim.
+is not. This finite run satisfies the old C3 premises, but not `0 < s`.
 All computations use the Lean kernel. See Proofs/Clean/OPEN.md. -/
 open AvailableChain AvailableChain.PCSA AvailableChain.PCSA.Run
 namespace AvailableChain.PCSA.Run.Tests.ZeroSlot
@@ -191,8 +191,21 @@ theorem clean : Clean₂ p unitCodec env run 3 1 := by
 
 theorem stageOne : StageOneFrame p unitCodec env run := pcsa_ac_frame env run zeroSlot_base faults
 
-/-- The full C3 statement is false at slot zero, with all premises proved. -/
-theorem refutes_C3 : ¬ PCDisseminationClaim p := by
+/-- The former C3 statement, retained only for this regression test. -/
+def UnrestrictedPCDisseminationClaim (p : Params) : Prop :=
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+    ∀ (s : Slot) (r : BlockId), SA.freezeTime p.toParams s ≤ b₀ →
+      (∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧ ∀ i ∈ Q,
+        rho.seatOf (.base (.ack s)) i ∈ rho.honest ∧
+        V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i) (ackObj p s i r)
+          (SA.earlyTime p.toParams s)) →
+      ∀ y ∈ rho.honest, ∃ c' ∈ (storeAfterTicks p c E rho y (SA.freezeTime p.toParams s)).pcs,
+        c'.slot = s ∧ c'.target.root = r
+
+/-- The former C3 statement is false at slot zero, with all premises proved. -/
+theorem refutes_unrestricted_C3 : ¬ UnrestrictedPCDisseminationClaim p := by
   intro h
   have hQ : ∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧ ∀ i ∈ Q,
       run.seatOf (.base (.ack 0)) i ∈ run.honest ∧
@@ -208,7 +221,11 @@ theorem refutes_C3 : ¬ PCDisseminationClaim p := by
   change C ∈ (storeAfterTicks p unitCodec env run 0 3).pcs at hC
   rw [hempty] at hC
   exact List.not_mem_nil hC
-#print axioms refutes_C3
+/-- The new premise excludes the counterexample slot. -/
+theorem positive_slot_excludes : ¬ (0 < (0 : Slot)) := Nat.lt_irrefl 0
+
+#print axioms refutes_unrestricted_C3
+#print axioms positive_slot_excludes
 
 end AvailableChain.PCSA.Run.Tests.ZeroSlot
 end

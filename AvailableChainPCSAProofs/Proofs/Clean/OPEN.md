@@ -1,13 +1,14 @@
 # Clean lane W2a
 
 Base: `92a4673`, on `31fa4d7`. Stage 1 only.
-The only claim change is the approved r4.3a correction to `CleanInvariantAt.roots`.
+Claim changes: the approved r4.3a correction to `CleanInvariantAt.roots`
+and the approved `0 < s` premise of `PCDisseminationClaim`.
 It now requires compatibility with honest results, not arbitrary honest HEADs.
 
-## Concrete blocker: C3 is false at slot zero
+## Resolved statement defect: C3 at slot zero
 
-`AvailableChainPCSAProofs/Tests/ZeroSlot.lean` proves `refutes_C3`:
-`¬ PCDisseminationClaim p`. This is a full run counterexample. It proves
+`AvailableChainPCSAProofs/Tests/ZeroSlot.lean` proves `refutes_unrestricted_C3`:
+`¬ UnrestrictedPCDisseminationClaim p` (the former statement). This is a full run counterexample. It proves
 `Clean₂`, `FaultsBelowQA`, and `StageOneFrame`, not only store behavior.
 The theorem uses only `propext`, `Classical.choice`, and `Quot.sound`.
 
@@ -27,13 +28,17 @@ The emitted ack quorum has size 1 = q_A. Delivery is strict: 1 < 2 and
 The proof checks schedule, delivery, signatures, committees, and frame.
 
 `ackFor` permits this N target. `PC.wellFormed` requires `0 < slot` and a
-non-genesis target. Thus the C3 conclusion cannot hold. A decision is
-needed: restrict C3 to positive slots, or change the model's zero-slot
-behavior. Neither change is authorized here. No such change was made.
-Work stopped at this concrete blocker, as the continuation rule permits.
+non-genesis target. The lead approved `0 < s` for C3. The test now preserves
+the former statement and proves `positive_slot_excludes` for this witness.
+Positive-slot C3 is still open; this test does not refute it.
 
-Formation has `slotPos`, so this counterexample does not refute its C3
-store interfaces or Formation itself.
+Other slot statements were checked. No further statement change is needed:
+- Formation already requires `FormationPrem.slotPos`.
+- CleanDissemination requires prefix coverage, not a PC at slot zero.
+  The genesis target is below every block.
+- StrongIncluded requires an emitted honest proposal. The slot-zero
+  proposal duty emits nothing.
+- PCSnapshotStamp is equality of sets, including empty sets at slot zero.
 
 Proved support:
 
@@ -63,8 +68,7 @@ These are exported by `Clean/Export`. They are not proofs of the open claims.
   in r4.3a step (d). The run induction must still prove: the selected PC
   has slot ≤ i; earlier PCs are below the N target; same-slot PCs target
   it; live locks are below it. This helper is exported by `Clean/Export`.
-- C3 (`PCDisseminationClaim`): **false**, as proved above. For the positive-slot
-  repair, still prove that each honest handled ack before the
+- C3 (`PCDisseminationClaim`), now restricted to positive slots: prove that each honest handled ack before the
   freeze passes the receiver's slot and resolved-root checks and cannot hit
   the two-root seat cap. Include the carried-object handler cases. Prove that
   the target body is held and resolves to the same slot-s block, that
