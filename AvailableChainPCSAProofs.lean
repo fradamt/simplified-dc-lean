@@ -1,2 +1,4 @@
 module
 public import AvailableChainPCSAProofs.Proofs.Foundations.Store
+public import AvailableChainPCSAProofs.Proofs.Shared.CleanGate
+public import AvailableChainPCSAProofs.Proofs.Shared.RetainedWalk
