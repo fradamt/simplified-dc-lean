@@ -136,17 +136,14 @@ theorem AvailableMonotoneClaim_def (p : Params) : AvailableMonotoneClaim p =
           (confirmed (storeAt p c E rho x t'))) := by
   rw [AvailableMonotoneClaim]
 
-/-- [GLY E-11, §C.3; D14; review fix 3 (second review)] Live leases below the
-record on a healthy prefix: at an honest node within the prefix, every live
-lease target is below `S` (`stableRecord`), not `confirmed`, and is effective.
-This is the inductive hypothesis of spec CI(iv).
-Scope t ≤ b₀; the outage lane needs its own lease fact after b₀.
-This is a lane claim, not a store invariant: at
-the store level a lease can turn non-effective (a conflicting PC), `S` can
-advance past it, and a later PC can make it effective again while it is
-still live. The premises are the healthy-prefix lane with the PC fault
-premise and the FG safety bound (so every held PC target is `F`-compatible
-and every live lease is effective); the proof phase settles the minimal set. -/
+/-- [GLY E-11, §C.3; D14; pcsa34-r4.3 §5.2.2 CI(iv)] On a healthy
+prefix, every live lock at an honest node has a target below `S`
+(`stableRecord`) and compatible with every held PC target.
+The scope is `t ≤ b₀`; the outage lane needs its own lock fact after `b₀`.
+This lane claim keeps the PC fault premise and the FG safety bound.
+Outside this lane, a conflicting PC below the stored rank can leave a
+live lock in the store. The `effectiveLease` alias states only that the
+lock is live; it does not state this compatibility. -/
 def LeaseBelowRecordClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
@@ -155,7 +152,7 @@ def LeaseBelowRecordClaim (p : Params) : Prop :=
       ∀ ℓ ∈ (storeAt p c E rho x t).base.obligations,
         (storeAt p c E rho x t).base.now < ℓ.2.2 →
         Block.Preceq ℓ.1 (storeAt p c E rho x t).base.stableRecord ∧
-        effectiveLease (storeAt p c E rho x t) ℓ.1 = true
+        ∀ P ∈ (storeAt p c E rho x t).pcs, Block.compatible ℓ.1 P.target = true
 
 theorem LeaseBelowRecordClaim_def (p : Params) : LeaseBelowRecordClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
@@ -165,7 +162,7 @@ theorem LeaseBelowRecordClaim_def (p : Params) : LeaseBelowRecordClaim p =
         ∀ ℓ ∈ (storeAt p c E rho x t).base.obligations,
           (storeAt p c E rho x t).base.now < ℓ.2.2 →
           Block.Preceq ℓ.1 (storeAt p c E rho x t).base.stableRecord ∧
-          effectiveLease (storeAt p c E rho x t) ℓ.1 = true) := by
+          ∀ P ∈ (storeAt p c E rho x t).pcs, Block.compatible ℓ.1 P.target = true) := by
   rw [LeaseBelowRecordClaim]
 
 /-- [PC-SA claims, M1] The six claims of the PC path, as one record. -/

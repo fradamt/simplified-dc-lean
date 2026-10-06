@@ -64,13 +64,16 @@ def blockAccepted (p : Params) (st : State p.n) (s : Slot) (N : NamedProposal p.
     namedContentOk p N
 
 /-- [PC-SA M1; FG-SA Handlers.lean admitBlock; pcsa-decisions R-e]
-[spec 804–829; M6] `on_block`. On refusal the state does not change. On
-acceptance: the SA block admission and the carried votes (SA code on the
-cumulative base, with the erased block); the FG admission (`on_block` of the FG
-module: insert, then `update_finality`); the proposal wire is stored; if F
-moved, `reconcile`; the acks of the carried PC are pooled and the PCs
-re-assembled (the block may complete a path); then the carried rows pass
-`admitRow`. -/
+[pcsa34-r4.3 §3.6 on_block; M6] On refusal the state does not change.
+Lines 587–588 (`add B to Σ.T`, `for vote ∈ B.votes`) use SA admission on
+the cumulative base. Line 589 (`if B.pc ≠ ⊥: on_pc`) deletes conflicting
+locks with `deleteConflictingLeases`, under lines 576–578's admission
+tests with the old F (deletion: lines 580–581).
+FG has no separate insert handler: `FGSA.Window.on_block` inserts the FG
+block and implements line 590 (`update_finality`). Store the proposal wire
+and, if F moved, implement lines 595–600 with `reconcile`. Keep PC
+assembly from the carried acks after this step (the block may complete a
+path). Line 591 (`for a ∈ B.atts`) uses `admitRow`. -/
 def admitBlock (p : Params) (st : State p.n) (s : Slot)
     (N : NamedProposal p.n) : State p.n :=
   if !namedParentHeld st N then st else
@@ -80,8 +83,15 @@ def admitBlock (p : Params) (st : State p.n) (s : Slot)
       if blockAccepted p st s N P then
         let st1 : State p.n := { st with
           base := GridCO.admitProposal p.toParams.engine st.base
-            (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)
-          fg := FGSA.Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
+            (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead) }
+        let st1 := match N.pc with
+          | none => st1
+          | some c =>
+              if pcValid st1 c &&
+                  !st1.pcs.any (fun o => o.slot == c.slot && o.target == c.target)
+              then deleteConflictingLeases st1 c else st1
+        let st1 := { st1 with
+          fg := FGSA.Window.on_block p p.K_W st1.fg (fgBlock P N.erase N.rows)
           proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
         let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
         let st3 := collectPCs (N.pcAcks.foldl poolAckRaw st2)

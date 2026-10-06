@@ -378,6 +378,108 @@ theorem lease_rank_boundaries :
       ⟨1, b1', [ak' 2, ak' 3]⟩) b1 = some 40 := by
   decide +kernel
 
+/-- [pcsa34-r4.3 §3.7 (iii)] A live lock with a nonempty stored rank. -/
+def stRankedLock : State pT.n := writeLease st6both b1 2 40 (some pc1.rank)
+
+/-- [pcsa34-r4.3 §3.7 (iii)] A strictly higher PC rank deletes the lock. -/
+theorem lock_delete_above_stored_rank :
+    liveLease stRankedLock b1 = true ∧ leaseRank stRankedLock b1 = some pc1.rank ∧
+    pcBelow pc1 ⟨1, b1', [ak' 2, ak' 3]⟩ = true ∧
+    Block.compatible b1 b1' = false ∧
+    (admitPC stRankedLock ⟨1, b1', [ak' 2, ak' 3]⟩).pcs =
+      [⟨1, b1', [ak' 2, ak' 3]⟩] ∧
+    (admitPC stRankedLock ⟨1, b1', [ak' 2, ak' 3]⟩).base.obligations = [] := by
+  decide +kernel
+
+/-- [pcsa34-r4.3 §3.7 (i)] Renewal to a lower rank keeps the larger deadline. -/
+theorem lock_renew_lower_rank :
+    let before := writeLease stLease18 b1 2 40 (some pcY.rank)
+    let after := writeLease before b1 2 20 (some pc1.rank)
+    liveLease before b1 = true ∧ leaseOf before b1 = some 40 ∧
+    leaseRank before b1 = some pcY.rank ∧ pcBelow pc1 pcY = true ∧
+    leaseOf after b1 = some 40 ∧ leaseRank after b1 = some pc1.rank := by
+  decide +kernel
+
+/-- [pcsa34-r4.3 §3.6 on_pc] The frame excludes `pcY`, but the old F
+permits it. Its acks and PC are not held before delivery. -/
+def stInactivePC : State pT.n :=
+  writeLease { stD7 with pcs := [pc1], ackPool := [ak 0, ak 1] }
+    b1 2 40 (some pc1.rank)
+
+/-- [pcsa34-r4.3 §3.6 on_pc, §3.7 (iii)] There is no frame test in
+`on_pc`. A frame-inactive PC enters the store and deletes a conflicting lock. -/
+theorem inactive_pc_deletes_lock :
+    stInactivePC.pcs = [pc1] ∧ liveLease stInactivePC b1 = true ∧
+    leaseRank stInactivePC b1 = some pc1.rank ∧ pcBelow pc1 pcY = true ∧
+    frameActive pT stInactivePC pcY = false ∧ pcValid stInactivePC pcY = true ∧
+    (admitPC stInactivePC pcY).pcs = [pc1, pcY] ∧
+    (admitPC stInactivePC pcY).base.obligations = [] := by
+  decide +kernel
+
+namespace FinalityOrder
+
+/-- Three signed rows with the same height and finality pairs. -/
+def rows (h : Height) (r : BlockId) (fp : Option FinalityPair) : List (RowWire 4) :=
+  ([0, 1, 2] : List (Fin 4)).map (fun i =>
+    ⟨.seat .fg i, .vote ⟨.vote h r false, fp⟩⟩)
+
+/-- The first block advances height. Its sibling is the carried PC target. -/
+def first : NamedProposal 4 :=
+  .node .genesis 1 ⟨101⟩ (packBody 0 (rows 1 genesisRoot none))
+    [] [] (rows 1 genesisRoot none) none
+def sibling : NamedProposal 4 :=
+  .node .genesis 1 ⟨102⟩ (packBody 1 ([] : List (RowWire 4))) [] [] [] none
+def lowPC : PC 4 := ⟨1, first.erase,
+  [⟨.seat (.ack 1) 0, first.root⟩, ⟨.seat (.ack 1) 1, first.root⟩]⟩
+def carriedPC : PC 4 := ⟨1, sibling.erase,
+  [⟨.seat (.ack 1) 2, sibling.root⟩, ⟨.seat (.ack 1) 3, sibling.root⟩]⟩
+/-- The second block justifies the first. The third finalizes the first. -/
+def second : NamedProposal 4 :=
+  .node first 2 ⟨103⟩ (packBody 0 (rows 2 first.root none))
+    [] [] (rows 2 first.root none) none
+def third : NamedProposal 4 :=
+  .node second 3 ⟨104⟩ (packBody 0 (rows 3 second.root (some ⟨2, first.root⟩)))
+    [] [] (rows 3 second.root (some ⟨2, first.root⟩)) (some carriedPC)
+
+/-- A finite digest table for the four full proposal inputs. -/
+abbrev params : Params :=
+  { pT with digest := fun d =>
+      (([first, sibling, second, third].find?
+        (fun N => N.digestInput.toFGSA == d)).map NamedProposal.root).getD ⟨4095⟩ }
+
+def firstFG : FGBlock (Fin 4) := fgBlock .genesis first.erase first.rows
+def secondFG : FGBlock (Fin 4) := fgBlock firstFG second.erase second.rows
+def thirdFG : FGBlock (Fin 4) := fgBlock secondFG third.erase third.rows
+
+/-- Deliver three blocks, then write a live lock with a nonempty rank. -/
+def before : State params.n :=
+  writeLease ([first, sibling, second].foldl (fun st N =>
+    process params st ⟨.proposer N.slot, .proposal N⟩) (atTime {} 12))
+    first.erase 2 40 (some lowPC.rank)
+def after : State params.n := process params before ⟨.proposer 3, .proposal third⟩
+
+/-- [pcsa34-r4.3 §3.6 on_block] The carried PC passes admission with the
+old F. Finality alone keeps the lock and makes the PC invalid. The handler
+deletes the lock before F moves, although it cannot hold the PC afterwards. -/
+theorem carried_pc_deletes_before_finality :
+    before.fg.F = .genesis ∧ before.fg.J = firstFG ∧
+    before.pcs = [] ∧ pcValid before carriedPC = true ∧
+    liveLease before first.erase = true ∧ leaseRank before first.erase = some lowPC.rank ∧
+    pcBelow lowPC carriedPC = true ∧
+    Block.compatible carriedPC.target first.erase = false ∧
+    blockAccepted params before 3 third secondFG = true ∧
+    (FGSA.Window.on_block params params.K_W before.fg thirdFG).F = firstFG ∧
+    (reconcile { before with
+      fg := FGSA.Window.on_block params params.K_W before.fg thirdFG }).base.obligations =
+        before.base.obligations ∧
+    after.fg.F = firstFG ∧ activeCompatible after first.erase = true ∧
+    pcValid after carriedPC = false ∧ after.pcs = [] ∧
+    after.base.blocks = [.genesis, first.erase, sibling.erase, second.erase, third.erase] ∧
+    after.ackPool = carriedPC.acks ∧ after.base.obligations = [] := by
+  decide +kernel
+
+end FinalityOrder
+
 /-- (h) The label code separates the three constructors (small slots); the
 ack-slot hook reads the ack label only. -/
 theorem encLabel_small : ∀ s < 6, ∀ s' < 6,
