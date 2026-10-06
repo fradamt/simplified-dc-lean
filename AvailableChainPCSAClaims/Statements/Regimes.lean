@@ -46,7 +46,10 @@ theorem pcsaDelay_def (Δ ΔF : Time) (o : Obj p) :
 
 /-- [PC-SA claims; FG-SA HealthyPrefix₂] Healthy delivery before the cut `b₀`
 (rows within `ΔF`, other objects within `Δ`), with an honest awake majority
-before the cut. -/
+at every time before the cut. This is the regime of the M1 claims
+(`Claims/PC.lean`). The pointwise majority is not the CLEAN participation
+condition of pcsa34-r4 5.0 (`a < h_j` per label, `Clean₂`), and neither
+implies the other; the W0 lane claims use `Clean₂`. -/
 structure HealthyPrefix₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
     (b₀ : Time) (ΔF : Time := E.Δ) : Prop where
   base : Base₂ p c E rho
@@ -76,6 +79,36 @@ def FGSafetyBound (rho : V2.D.Run V (pcsa p c)) : Prop :=
 theorem FGSafetyBound_def (rho : V2.D.Run V (pcsa p c)) :
     FGSafetyBound p c rho = ((faulty rho).card ≤ (p.n - 1) / 3) := by
   rw [FGSafetyBound]
+
+omit [Fintype V] in
+/-- [PC-SA claims, W0; pcsa34-r4 5.0 h_j] `h_j`: the honest nodes awake at
+`v_j` and at `e_j`. -/
+def awakeHonestLabel (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (s : Slot) :
+    Finset V :=
+  awakeHonest E rho (SA.voteTime p.toParams s) ∩ awakeHonest E rho (SA.earlyTime p.toParams s)
+
+omit [Fintype V] in
+theorem pcsa_awakeHonestLabel_def (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    (s : Slot) :
+    awakeHonestLabel p c E rho s =
+      awakeHonest E rho (SA.voteTime p.toParams s) ∩
+        awakeHonest E rho (SA.earlyTime p.toParams s) := rfl
+
+/-- [PC-SA claims, W0; pcsa34-r4 5.0 CLEAN(b₀), stage 1] Strict delivery
+before the cut `b₀` (rows within `ΔF`, other objects within `Δ`), a valid
+execution (`Base₂`), and `a < h_j` for every label `j` with `e_j ≤ b₀`. The
+labels are those whose HEAD and early duties are in the prefix: slow P1
+(5.5 step 2) reads `a < h_{p*}` at the last label with `e_{p*} ≤ b₀`, whose
+gate is after `b₀`. There is no participation condition at other times.
+Stage 2 adds `a ≤ f` (`FGSafetyBound`) as a separate premise. -/
+structure Clean₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    (b₀ : Time) (ΔF : Time := E.Δ) : Prop where
+  base : Base₂ p c E rho
+  cut : 0 ≤ b₀ ∧ b₀ ≤ rho.horizon
+  healthy : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) b₀
+  deltaF : E.Δ ≤ ΔF
+  labels : ∀ j : Slot, SA.earlyTime p.toParams j ≤ b₀ →
+    (faulty rho).card < (awakeHonestLabel p c E rho j).card
 
 /-! ### Lane regimes (W0; pcsa34-r4 5.0, 1.1)
 
@@ -132,25 +165,15 @@ def pcsaL (p : Params) : Time := (4 * (p.k : Time) - 1) * p.Δ
 
 theorem pcsaL_def (p : Params) : pcsaL p = (4 * (p.k : Time) - 1) * p.Δ := rfl
 
-omit [Fintype V] in
-/-- [PC-SA claims, W0; FG-SA awakeHonestIn] The honest nodes awake at some
-time in the closed interval `[a, b]`. -/
-noncomputable def pcsa_awakeHonestIn (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
-    (a b : Time) : Finset V := by
-  classical
-  exact rho.honest.filter (fun v => ∃ t, a ≤ t ∧ t ≤ b ∧ E.awake v t = true)
-
 /-- [PC-SA claims, W0; pcsa34-r4 5.0 OUTAGE(T, b₀, b₁); FG-SA Outage₂ with
-`fast = false`] CLEAN(b₀) (`HealthyPrefix₂`), the η sleepiness condition
-before the cut (FG-SA `Outage₂.sleepy`, the meaning of η), the slow arming lag
+`fast = false`] CLEAN(b₀) (`Clean₂`), the slow arming lag
 `T + 4(k − 1)Δ ≤ b₀`, and the budget `b₁ − b₀ ≤ min(η, L)`. Delivery in
-`[b₀, b₁)` is arbitrary. There is no fast route. -/
+`[b₀, b₁)` is arbitrary. There is no fast route. FG-SA's η sleepiness field
+is not a premise: pcsa34-r4 5.0 does not state it and no PC-SA claim (5.4,
+5.5) uses it. -/
 structure Outage₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
     (T b₀ b₁ : Time) (ΔF : Time := E.Δ) : Prop where
-  pre : HealthyPrefix₂ p c E rho b₀ ΔF
-  sleepy : ∀ t, 0 ≤ t → t < b₀ →
-    (pcsa_awakeHonestIn p c E rho (t - p.η) t ∪ faulty rho).card <
-      2 * (awakeHonest E rho t).card
+  pre : Clean₂ p c E rho b₀ ΔF
   order : 0 ≤ T ∧ T ≤ b₀ ∧ b₀ ≤ b₁ ∧ b₁ ≤ rho.horizon
   lag : T + 4 * ((p.k : Time) - 1) * p.Δ ≤ b₀
   budget : b₁ - b₀ ≤ min p.η (pcsaL p)

@@ -143,20 +143,21 @@ theorem FormationConcl_def (s : Slot) (N : NamedProposal p.n) :
 end Invariant
 
 /-- [PC-SA claims, W0; pcsa34-r4 5.2.2 (CI), stage 1; plan C6] The joint clean
-induction: in a run with a healthy prefix up to `b₀` (CLEAN(b₀): strict
-delivery within `Δ`, rows `Δ_F`, `a < h_t`), `a < ⌈n/2⌉` (CL4 and
+induction: in a run with a healthy prefix up to `b₀` (CLEAN(b₀), `Clean₂`:
+strict delivery within `Δ`, rows `Δ_F`, `a < h_j` at every label with
+`e_j ≤ b₀`), `a < ⌈n/2⌉` (CL4 and
 [pc-trumps §2] need `2q_N > n + a`) and the stage-1 frame, CI(j) holds for
 every label `j` whose gate `d_j` is in the prefix. -/
 def CleanInvariantClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-    HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ j : Slot, SA.gateTime p.toParams j ≤ b₀ → CleanInvariantAt p c E rho j
 
 theorem CleanInvariantClaim_def (p : Params) : CleanInvariantClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-      HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ j : Slot, SA.gateTime p.toParams j ≤ b₀ → CleanInvariantAt p c E rho j) := by
   rw [CleanInvariantClaim]
 
@@ -185,7 +186,7 @@ up to `d_{s+1}`, `a < ⌈n/2⌉` ([pc-trumps §2]), stage-1 frame. -/
 def CleanDisseminationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-    HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ (s : Slot) (y : V) (B : Block), SA.gateTime p.toParams (s + 1) ≤ b₀ →
       HonestAckAt p c E rho y s B →
       (∀ x H, HonestHeadAt p c E rho x (s + 1) H → Block.Preceq B H) ∧
@@ -195,7 +196,7 @@ def CleanDisseminationClaim (p : Params) : Prop :=
 theorem CleanDisseminationClaim_def (p : Params) : CleanDisseminationClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-      HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ (s : Slot) (y : V) (B : Block), SA.gateTime p.toParams (s + 1) ≤ b₀ →
         HonestAckAt p c E rho y s B →
         (∀ x H, HonestHeadAt p c E rho x (s + 1) H → Block.Preceq B H) ∧
@@ -212,7 +213,7 @@ stage 1 has no (vi)"). -/
 def PCSACleanSafetyClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-    HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ t t' : Time, 0 ≤ t → t ≤ b₀ → 0 ≤ t' → t' ≤ b₀ →
       Block.Compatible (confirmed (storeAt p c E rho x t)) (confirmed (storeAt p c E rho y t')) ∧
       Block.Compatible (strong (storeAt p c E rho x t)) (strong (storeAt p c E rho y t')) ∧
@@ -223,7 +224,7 @@ def PCSACleanSafetyClaim (p : Params) : Prop :=
 theorem PCSACleanSafetyClaim_def (p : Params) : PCSACleanSafetyClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-      HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ t t' : Time,
         0 ≤ t → t ≤ b₀ → 0 ≤ t' → t' ≤ b₀ →
         Block.Compatible (confirmed (storeAt p c E rho x t))
@@ -243,7 +244,7 @@ frame. No `q_N` premise: inclusion in `S` needs `a < h_u` only. -/
 def PCSACleanInclusionClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-    HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ (u : Slot) (P : Block),
       Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
       ∀ x ∈ rho.honest, ∀ t : Time, SA.gateTime p.toParams u ≤ t → t ≤ b₀ →
@@ -252,7 +253,7 @@ def PCSACleanInclusionClaim (p : Params) : Prop :=
 theorem PCSACleanInclusionClaim_def (p : Params) : PCSACleanInclusionClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-      HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ (u : Slot) (P : Block),
         Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
         ∀ x ∈ rho.honest, ∀ t : Time, SA.gateTime p.toParams u ≤ t → t ≤ b₀ →
@@ -260,31 +261,33 @@ theorem PCSACleanInclusionClaim_def (p : Params) : PCSACleanInclusionClaim p =
   rw [PCSACleanInclusionClaim]
 
 /-- [PC-SA claims, W0; pcsa34-r4 5.2.3 Strong inclusion (3Δ), stage 1;
-App. B strongIncluded; plan C9] The stage-1 form of the generic
-`PCIncludedStatement` (`PCIncludedRegime` fields over `pcsa`): synchrony from
-time 0 (`t_GST = 0`), an awake honest majority, full participation, the PC
-fault cap `a ≤ ⌊n/4⌋`, and the stage-1 frame. Then every honest awake
-proposal is in every honest strong read `3Δ` after its proposal time. The
-generic instance without the frame premise is a stage-2 field. -/
+App. B strongIncluded; plan C9] In a CLEAN(b₀) run (`Clean₂`) with the PC
+fault cap `a ≤ ⌊n/4⌋` and the stage-1 frame, the honest proposal `P` of a
+slot `u` with `h_u ≥ q_N` (5.3 at `u`) is below every honest strong read from
+`z_u = t_u + 3Δ` to the cut. Later PCs extend `P` (CI (iii), rank = prefix).
+The participation premise is only `h_u ≥ q_N` at the slot (5.2.3). The
+generic `PCIncludedStatement` form (`IncludedFrom` over the whole run) needs
+this premise at every honest slot; the stage-2 form is
+`StrongIncludedStageTwoClaim`. -/
 def StrongIncludedClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (ΔF : Time),
-    Base₂ p c E rho → Gen.V2.Duty.PartialSynchronyBy E rho (pcsaDelay p E.Δ ΔF) →
-    E.Δ ≤ ΔF → E.t_GST = 0 →
-    (∀ t, 0 ≤ t → t ≤ rho.horizon → Gen.V2.Duty.AwakeMajority E rho t) →
-    Gen.V2.Duty.FullParticipation E rho 0 → QuarterCap p c rho → StageOneFrame p c E rho →
-    Gen.V2.Duty.IncludedFrom E (pcsaInterface p c).toInterface rho (pcsaInterface p c).strong 0
-      (3 * E.Δ)
+    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+    Clean₂ p c E rho b₀ ΔF → QuarterCap p c rho → StageOneFrame p c E rho →
+    ∀ (u : Slot) (P : Block),
+      Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
+      nQuorum p.n ≤ (awakeHonestLabel p c E rho u).card →
+      ∀ x ∈ rho.honest, ∀ t : Time, SA.freezeTime p.toParams u ≤ t → t ≤ b₀ →
+        Block.Preceq P (strong (storeAt p c E rho x t))
 
 theorem StrongIncludedClaim_def (p : Params) : StrongIncludedClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (ΔF : Time),
-      Base₂ p c E rho → Gen.V2.Duty.PartialSynchronyBy E rho (pcsaDelay p E.Δ ΔF) →
-      E.Δ ≤ ΔF → E.t_GST = 0 →
-      (∀ t, 0 ≤ t → t ≤ rho.horizon → Gen.V2.Duty.AwakeMajority E rho t) →
-      Gen.V2.Duty.FullParticipation E rho 0 → QuarterCap p c rho → StageOneFrame p c E rho →
-      Gen.V2.Duty.IncludedFrom E (pcsaInterface p c).toInterface rho
-        (pcsaInterface p c).strong 0 (3 * E.Δ)) := by
+      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → QuarterCap p c rho → StageOneFrame p c E rho →
+      ∀ (u : Slot) (P : Block),
+        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
+        nQuorum p.n ≤ (awakeHonestLabel p c E rho u).card →
+        ∀ x ∈ rho.honest, ∀ t : Time, SA.freezeTime p.toParams u ≤ t → t ≤ b₀ →
+          Block.Preceq P (strong (storeAt p c E rho x t))) := by
   rw [StrongIncludedClaim]
 
 end AvailableChain.PCSA.Run

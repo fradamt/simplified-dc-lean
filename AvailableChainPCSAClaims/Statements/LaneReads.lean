@@ -14,7 +14,6 @@ lift replaces them there). -/
 namespace AvailableChain.PCSA.Run
 
 open AvailableChain.SimplexFG
-open Gen.V2.Duty (awakeHonest)
 
 variable (p : Params) {In : Type} (c : AppCodec In) {V : Type} [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
@@ -144,15 +143,57 @@ theorem pcsa_actionSourceAt_def (x : V) (r : Nat) :
     actionSourceAt p c E rho x r =
       (pcsa_postClock E rho x (p.actionTime r)).map (fun nd => fgSource p nd.st) := rfl
 
-/-- [PC-SA claims, W0; pcsa34-r4 5.0 h_j] The honest nodes awake at `v_s` and
-at `e_s`. -/
-def awakeHonestLabel (s : Slot) : Finset V :=
-  awakeHonest E rho (SA.voteTime p.toParams s) ∩ awakeHonest E rho (SA.earlyTime p.toParams s)
+/-- [PC-SA claims, W0; pcsa34-r4 5.4.1] Every honest event state from time
+`t`: the store of each honest node after every event `i` whose time is at
+least `t` (also the intermediate states inside one time). -/
+def HonestStatesFrom (t : Time) (P : State p.n → Prop) : Prop :=
+  ∀ x ∈ rho.honest, ∀ (i : Nat) e, rho.events[i]? = some e → t ≤ e.time →
+    P (storeBefore p c E rho (i + 1) x)
 
-theorem pcsa_awakeHonestLabel_def (s : Slot) :
-    awakeHonestLabel p c E rho s =
-      awakeHonest E rho (SA.voteTime p.toParams s) ∩
-        awakeHonest E rho (SA.earlyTime p.toParams s) := rfl
+theorem pcsa_HonestStatesFrom_def (t : Time) (P : State p.n → Prop) :
+    HonestStatesFrom p c E rho t P =
+      (∀ x ∈ rho.honest, ∀ (i : Nat) e, rho.events[i]? = some e → t ≤ e.time →
+        P (storeBefore p c E rho (i + 1) x)) := rfl
+
+/-- [PC-SA claims, W0; q0-pc.md §2 "through a_r"] Every honest event state up
+to time `t`: the initial store and the store of each honest node after every
+event whose time is at most `t`. -/
+def HonestStatesThrough (t : Time) (P : State p.n → Prop) : Prop :=
+  ∀ x ∈ rho.honest, ∀ i : Nat,
+    (i = 0 ∨ ∃ e, rho.events[i - 1]? = some e ∧ e.time ≤ t) →
+    P (storeBefore p c E rho i x)
+
+theorem pcsa_HonestStatesThrough_def (t : Time) (P : State p.n → Prop) :
+    HonestStatesThrough p c E rho t P =
+      (∀ x ∈ rho.honest, ∀ i : Nat,
+        (i = 0 ∨ ∃ e, rho.events[i - 1]? = some e ∧ e.time ≤ t) →
+        P (storeBefore p c E rho i x)) := rfl
+
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+
+open AvailableChain.SimplexFG
+
+/-- [PC-SA claims, W0; pcsa34-r4 5.4.1 "justified at an honest node";
+FG-SA Window.Entry "a retained justification"] The justification evidence of
+a store: `X` is justified at height `h` when it is the stored pair
+`(h_j, J)`, or the justification pair or a retained window entry of the
+window state of a held FG block. -/
+def HeldJustification (p : Params) (st : State p.n) (h : Nat) (X : FGBlock (Fin p.n)) :
+    Prop :=
+  (st.fg.h_j = h ∧ st.fg.J = X) ∨
+    ∃ B ∈ st.fg.TF,
+      ((FGSA.Window.derive p p.K_W B).h_j = h ∧ (FGSA.Window.derive p p.K_W B).J = X) ∨
+        ∃ en ∈ (FGSA.Window.derive p p.K_W B).W, en.j = h ∧ en.X = X
+
+theorem pcsa_HeldJustification_def (p : Params) (st : State p.n) (h : Nat)
+    (X : FGBlock (Fin p.n)) :
+    HeldJustification p st h X =
+      ((st.fg.h_j = h ∧ st.fg.J = X) ∨
+        ∃ B ∈ st.fg.TF,
+          ((FGSA.Window.derive p p.K_W B).h_j = h ∧ (FGSA.Window.derive p p.K_W B).J = X) ∨
+            ∃ en ∈ (FGSA.Window.derive p p.K_W B).W, en.j = h ∧ en.X = X) := rfl
 
 end AvailableChain.PCSA.Run
 

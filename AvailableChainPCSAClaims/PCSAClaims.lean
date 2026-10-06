@@ -35,14 +35,17 @@ structure PCSAClaims (p : Params) : Prop extends PCSAPCClaims p where
   -- Recovery lane (C11; r4.3 5.6.1)
   fastRecovered : FastRecoveredClaim p
   -- Finality lane (C12, C13; r4.3 5.7, 5.8)
-  sourceTransfer : SourceTransferClaim p
+  formationSource : FormationSourceClaim p
+  cleanSourceTransfer : CleanSourceTransferClaim p
+  q0PCSelection : Q0PCSelectionClaim p
   q0PC : Q0PCClaim p
   finality : PCSAFinalitySafetyClaims p
 
 /-- [PC-SA claims, W0; plan C15] The stage-2 shapes (no proof in M1). -/
 structure PCSAStageTwoClaims (p : Params) : Prop where
   armPersistence : ArmPersistenceJStableClaim p
-  companion : PCCompanionClaim p
+  armHealthy : ArmHealthyStageTwoClaim p
+  strongIncluded : StrongIncludedStageTwoClaim p
 
 /-- [PC-SA claims, W0; pcsa34-r4 5.6.3] Claims that wait for a model change:
 the long-break healing bound needs the L*′ lease rule (3.7). -/

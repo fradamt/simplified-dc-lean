@@ -7,7 +7,8 @@ public import AvailableChainPCSAClaims.Statements.Regimes
 /-! [PC-SA claims, W0] Premise packages that more than one lane reads: the
 formation premises (F1)–(F7) of pcsa34-r4 5.3 (Clean formation and Finality
 source transfer) and the arming premise ARM(s, B, j₀) of 5.0/5.4 with its
-conclusion (Outage persistence and the stage-2 stub). Statements only. -/
+conclusion (Outage persistence and the stage-2 stub), and the Q0-PC premise
+package of q0-pc.md §2 with its conclusion (Finality). Statements only. -/
 
 namespace AvailableChain.PCSA.Run
 
@@ -111,6 +112,104 @@ theorem pcsa_ArmConcl_def (s : Slot) (B : Block) (j₀ : Slot) :
         (∃ pc ∈ (storeAt p c E rho w t).pcs, pc.slot = s ∧ pc.target = B) →
         Block.Preceq B (strong (storeAt p c E rho w t')) ∧
           Block.Preceq B (confirmed (storeAt p c E rho w t')))) := rfl
+
+omit [Fintype V] in
+/-- [PC-SA claims, W0; pcsa34-r4 5.8.3; q0-pc.md §2 Statement] The Q0-PC
+conclusion at the action `a_r` of round `r`, for the honest proposal `D` of
+slot `cD` with FG block `Dfg`: every honest node has a source `T ⪰ D` with
+`slot(T) ∈ [cD, rR]`; if also the causal cap is `H ≤ y` (`y = ht(D)`) through
+`a_r`, every honest source has height `y` and the entry of `D`. -/
+def Q0PCConcl (r : Nat) (cD : Slot) (D : Block) (Dfg : FGBlock (Fin p.n)) : Prop :=
+  (∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
+    actionSourceAt p c E rho x r = some (some C) ∧ Block.Preceq D (eraseFG C) ∧
+      cD ≤ (eraseFG C).slot ∧ (eraseFG C).slot ≤ r * p.R) ∧
+  (HonestStatesThrough p c E rho (p.actionTime r)
+      (fun st => st.fg.h_max ≤ (FGSA.heightView p Dfg).h) →
+    ∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
+      actionSourceAt p c E rho x r = some (some C) ∧
+        (FGSA.heightView p C).h = (FGSA.heightView p Dfg).h ∧
+        (FGSA.heightView p C).T_h = (FGSA.heightView p Dfg).T_h)
+
+omit [Fintype V] in
+theorem pcsa_Q0PCConcl_def (r : Nat) (cD : Slot) (D : Block) (Dfg : FGBlock (Fin p.n)) :
+    Q0PCConcl p c E rho r cD D Dfg =
+      ((∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
+        actionSourceAt p c E rho x r = some (some C) ∧ Block.Preceq D (eraseFG C) ∧
+          cD ≤ (eraseFG C).slot ∧ (eraseFG C).slot ≤ r * p.R) ∧
+      (HonestStatesThrough p c E rho (p.actionTime r)
+          (fun st => st.fg.h_max ≤ (FGSA.heightView p Dfg).h) →
+        ∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
+          actionSourceAt p c E rho x r = some (some C) ∧
+            (FGSA.heightView p C).h = (FGSA.heightView p Dfg).h ∧
+            (FGSA.heightView p C).T_h = (FGSA.heightView p Dfg).T_h)) := rfl
+
+omit [Fintype V] in
+/-- [PC-SA claims, W0; pcsa34-r4 5.8.3; q0-pc.md §2 Statement and "Exact
+premise list"; fg-port-r8-gaps.md §6] The Q0-PC premise package at round `r`
+for the honest proposal `D` (FG block `Dfg`, height `y = ht(D)`) of slot `cD`,
+with the reset time `t*` and the heights `M` and `μ`. The PC-SA producers of
+the package are OPEN (q0-pc.md §2: "the full PC-SA package is OPEN"):
+`healing` is HEALING_INPUT(t*) (H3 and L-PC1; [FG-HEAL] 21 H.22),
+`h2'` is H2′, `muBound` is H.11/H0, `ff2` is FF2, `ff2C` is FF2-C, and
+`transfer` is the source-transfer premise with the retained-side choice of
+(1c) (H.13-PC′, OPEN). The causal cap `H ≤ y + 1` and `F ⪯ D` are
+hypotheses of the statement.
+- `proposal`, `afterReset`: `D` is the honest proposal of slot `cD`, after `t*`.
+- `lift`, `high`, `liftHeld`: `Dfg` erases to `D`, `ht(D) ≥ M + 1`, and every
+  honest node holds `Dfg` at `a_r`.
+- `window`: `cD ≤ rR < cD + R`; `horizon`: `a_r` is in the run.
+- `healing`: at every honest proposal `P` of a slot `u` with `t_u ≥ t*`, every
+  honest HEAD at `v_u` is `P` (H3) and `PC(u, P)` is stamped before `z_u` at
+  every honest node (L-PC1).
+- `h2'`: every honest HEAD of a label in `(cD, rR]` covers `D`.
+- `fCover`: `F ⪯ D` at every honest event state through `a_r` (1b).
+- `cap`: `H ≤ y + 1` at every honest event state through `a_r`.
+- `muBound`: `μ ≤ M`, and every honest source whose PC label votes before
+  `t_GST` has height `≤ μ`.
+- `ff2`: every height `h ≥ M + 1` has one entry `E_h`: every held block of
+  height `h` has entry `E_h`, and every held justification at height `h`
+  names `E_h` (honest event states through `a_r`).
+- `ff2C`: a contested frame has `H ≤ M + 1` (honest event states through `a_r`).
+- `transfer`: every justification `J` at height `y` held at an honest event
+  state through `a_r` has an honest row source `S ⪰ J` of height `y`, sent
+  at an action through `a_r`, that is compatible with `D` (the retained-side
+  source of (1c)). -/
+structure Q0PCPackage (tStar : Time) (M μ r : Nat) (cD : Slot) (D : Block)
+    (Dfg : FGBlock (Fin p.n)) : Prop where
+  proposal : Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho cD D
+  afterReset : tStar ≤ V2.D.proposalTime (pcsaInterface p c).toInterface cD
+  lift : eraseFG Dfg = D
+  high : M + 1 ≤ (FGSA.heightView p Dfg).h
+  liftHeld : ∀ y ∈ rho.honest, ∀ nd, pcsa_postClock E rho y (p.actionTime r) = some nd →
+    Dfg ∈ nd.st.fg.TF
+  window : cD ≤ r * p.R ∧ r * p.R < cD + p.R
+  horizon : p.actionTime r ≤ rho.horizon
+  healing : ∀ (u : Slot) (P : Block),
+    tStar ≤ V2.D.proposalTime (pcsaInterface p c).toInterface u →
+    Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
+    (∀ x H, HonestHeadAt p c E rho x u H → H = P) ∧
+      ∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams u) u P
+  h2' : ∀ (s' : Slot) (x : V) (H : Block), cD < s' → s' ≤ r * p.R →
+    HonestHeadAt p c E rho x s' H → Block.Preceq D H
+  fCover : HonestStatesThrough p c E rho (p.actionTime r)
+    (fun st => Block.Preceq (eraseFG st.fg.F) D)
+  cap : HonestStatesThrough p c E rho (p.actionTime r)
+    (fun st => st.fg.h_max ≤ (FGSA.heightView p Dfg).h + 1)
+  muBound : μ ≤ M ∧ ∀ x ∈ rho.honest, ∀ (r' : Nat) (C : FGBlock (Fin p.n)),
+    actionSourceAt p c E rho x r' = some (some C) →
+    SA.voteTime p.toParams (eraseFG C).slot < E.t_GST → (FGSA.heightView p C).h ≤ μ
+  ff2 : ∀ h : Nat, M + 1 ≤ h → ∃ Eh : FGBlock (Fin p.n),
+    HonestStatesThrough p c E rho (p.actionTime r) (fun st =>
+      (∀ B ∈ st.fg.TF, (FGSA.heightView p B).h = h → (FGSA.heightView p B).T_h = Eh) ∧
+      ∀ X, HeldJustification p st h X → X = Eh)
+  ff2C : HonestStatesThrough p c E rho (p.actionTime r)
+    (fun st => (controls p st).contest = true → st.fg.h_max ≤ M + 1)
+  transfer : HonestStatesThrough p c E rho (p.actionTime r) (fun st =>
+    ∀ J, HeldJustification p st (FGSA.heightView p Dfg).h J →
+      ∃ x ∈ rho.honest, ∃ (r' : Nat) (S : FGBlock (Fin p.n)), r' ≤ r ∧
+        actionSourceAt p c E rho x r' = some (some S) ∧
+        (FGSA.heightView p S).h = (FGSA.heightView p Dfg).h ∧
+        FGBlock.Preceq J S ∧ Block.Compatible (eraseFG S) D)
 
 end AvailableChain.PCSA.Run
 

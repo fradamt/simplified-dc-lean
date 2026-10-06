@@ -89,7 +89,7 @@ structure ShortBreakPrem (G ΔF : Time) (cA s₁ : Slot) : Prop where
   recovery : Recovery₂ p c E rho G ΔF
   frame : StageOneFrame p c E rho
   anchorProposer : Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c).toInterface rho cA
-  anchorClean : HealthyPrefix₂ p c E rho (SA.freezeTime p.toParams cA) ΔF
+  anchorClean : Clean₂ p c E rho (SA.freezeTime p.toParams cA) ΔF
   anchorPart : nQuorum p.n ≤ (awakeHonestLabel p c E rho cA).card
   firstProposer : Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c).toInterface rho s₁
   firstAfterGST : E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s₁

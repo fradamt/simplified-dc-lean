@@ -4,6 +4,7 @@ public import AvailableChainPCSAClaims.Statements.Regimes
 public import AvailableChainPCSAClaims.Statements.LaneReads
 public import AvailableChainPCSAClaims.Statements.Premises
 public import AvailableChainPCSAClaims.Statements.FinalityApi
+public import AvailableChainPCSAClaims.Statements.Slashing
 public import AvailableChainPCSAClaims.Claims.PC
 public import AvailableChainPCSAClaims.Claims.Clean
 public import AvailableChainPCSAClaims.Claims.Outage
