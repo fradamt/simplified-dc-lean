@@ -1,7 +1,7 @@
 module
 public import AvailableChainPCSAClaims.Claims.Clean
 public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
-public import AvailableChainPCSAProofs.Proofs.Clean.Saturation
+public import AvailableChainPCSAProofs.Proofs.Clean.Clock
 public import AvailableChainPCSAProofs.Proofs.Clean.AckRun
 public import AvailableChainPCSAProofs.Proofs.Clean.StepGate
 public import AvailableChainPCSAProofs.Proofs.Clean.StepPC
@@ -9,7 +9,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.CleanPC
 
 public section
 
-/-! The snapshot claim export (pcsa34-r4.3 §3.3; proof plan §5). -/
+/-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
 
 namespace AvailableChain.PCSA.Run
 

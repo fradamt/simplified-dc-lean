@@ -213,3 +213,6 @@ end
 #print axioms AvailableChain.PCSA.pcsa_collectPCs_eq_of_saturated
 #print axioms AvailableChain.PCSA.Run.pcsa_saturated_stateBefore
 #print axioms AvailableChain.PCSA.Run.pcsa_collectPCs_after_freeze
+
+#print axioms AvailableChain.PCSA.pcsa_clock_now
+#print axioms AvailableChain.PCSA.pcsa_process_now
