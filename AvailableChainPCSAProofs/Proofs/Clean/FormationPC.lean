@@ -10,7 +10,8 @@ public section
 F1 uses a max deadline, so HealthyPrefixDeliveryBy cannot be used directly.
 The C3 hypotheses are hAckAdmit, hAckPoolMono, hPCCollect, and hFreezeKeep.
 hPCCollect must assemble the full proposal target, not only a block with
-the same root. FormationAck supplies the emitted quorum from honest acks. -/
+the same root. FormationAck supplies the emitted quorum from honest acks.
+The participating-ack variant avoids the refuted all-awake-early ack clause. -/
 
 namespace AvailableChain.PCSA.Run
 
@@ -68,6 +69,48 @@ theorem pcsa_formation_pc_of_store_facts (E : Generic.Env V)
         (storeAfterTicks p c E rho y (SA.freezeTime p.toParams s)).pcs) :
     ∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams s) s N.erase := by
   obtain ⟨Q, hQ, hAckEmits⟩ := pcsa_formation_ack_quorum E rho s N ΔF h hAck
+  intro y hy
+  have hp : ∀ i ∈ Q, (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
+      (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st.ackPool := by
+    intro i hi
+    obtain ⟨t, het, htz, j, hh⟩ := pcsa_formation_ack_receipt E rho s N ΔF h i y
+      (hAckEmits i hi).1 hy (hAckEmits i hi).2
+    have ha := hAckAdmit y hy i j t (hAckEmits i hi).1 het htz hh
+    obtain ⟨parent, hj, _⟩ := hh
+    have hjz : j < V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) :=
+      (Gen.V2.Duty.index_lt_idxBefore_iff h.base.valid.toScheduleWellFormed hj _).mpr htz
+    have hm := hAckPoolMono y hy (j + 1) _ (Nat.succ_le_of_lt hjz) ha
+    rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ h.base.valid.toScheduleWellFormed] at hm
+    exact hm
+  obtain ⟨C, hC, hs, ht⟩ := hPCCollect y hy Q hp hQ
+  exact ⟨C, hFreezeKeep y hy hC, hs, ht⟩
+
+/-- F1 and the four C3 facts stamp the PC from participating acks.
+A node that wakes only at e_s need not ack for this PC conclusion. -/
+theorem pcsa_formation_pc_of_participating_acks (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPrem p c E rho s N ΔF)
+    (hAck : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s) = true →
+      E.awake y (SA.earlyTime p.toParams s) = true → HonestAckAt p c E rho y s N.erase)
+    (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
+      rho.seatOf (.base (.ack s)) i ∈ rho.honest →
+      SA.earlyTime p.toParams s ≤ t → t < SA.freezeTime p.toParams s →
+      V2.D.Run.handlesAt E rho j y (ackObj p s i N.erase.root) t →
+      (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
+        (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool)
+    (hAckPoolMono : ∀ y ∈ rho.honest, ∀ j k, j ≤ k →
+      (V2.D.Run.stateBefore E rho j y).st.ackPool ⊆
+        (V2.D.Run.stateBefore E rho k y).st.ackPool)
+    (hPCCollect : ∀ y ∈ rho.honest, ∀ Q : Finset (Fin p.n),
+      let st := (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st
+      (∀ i ∈ Q, (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈ st.ackPool) →
+      pcQuorum p.n ≤ Q.card →
+      ∃ C ∈ (collectPCs st).pcs, C.slot = s ∧ C.target = N.erase)
+    (hFreezeKeep : ∀ y ∈ rho.honest,
+      (collectPCs (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st).pcs ⊆
+        (storeAfterTicks p c E rho y (SA.freezeTime p.toParams s)).pcs) :
+    ∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams s) s N.erase := by
+  obtain ⟨Q, hQ, hAckEmits⟩ := pcsa_formation_participating_ack_quorum E rho s N ΔF h hAck
   intro y hy
   have hp : ∀ i ∈ Q, (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
       (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st.ackPool := by

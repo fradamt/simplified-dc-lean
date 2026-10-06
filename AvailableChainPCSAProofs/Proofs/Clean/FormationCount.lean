@@ -7,7 +7,9 @@ public section
 /-! Formation step 2 and the local ack rule (pcsa34-r4.3 §5.3).
 OPEN: F1 and equal honest HEADs must supply timely, non-equivocating,
 resolved seat witnesses at the post-clock early read. N-target uniqueness
-uses QNHeadUnique through Shared.Count and local equivocation exclusion. -/
+uses QNHeadUnique through Shared.Count and local equivocation exclusion.
+All-awake-early A2 is not a consequence of the current premises:
+FormationAckCounterexample has a conflicting view at an ack-only node. -/
 
 namespace AvailableChain.PCSA
 

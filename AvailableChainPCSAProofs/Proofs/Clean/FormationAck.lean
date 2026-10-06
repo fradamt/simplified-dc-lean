@@ -7,7 +7,8 @@ public section
 /-! Formation step 3 emission and fresh-seat count (pcsa34-r4.3 §5.3).
 An honest ack decision is turned into its scheduled wire emission.
 F2 then gives a PC quorum; no additional ack emission hypothesis is needed.
-OPEN: produce the early N target and A2 from F1–F7. -/
+OPEN: produce the early N target and A2 for participating nodes from F1–F7.
+The all-awake-early ack conclusion is refuted by FormationAckCounterexample. -/
 
 namespace AvailableChain.PCSA.Run
 
@@ -82,6 +83,46 @@ theorem pcsa_formation_ack_quorum (E : Generic.Env V)
   rw [Gen.V2.Duty.awakeHonest_def] at he
   obtain ⟨hy, haw⟩ := Finset.mem_filter.mp he
   exact ⟨hy, pcsa_formation_ack_emits E rho s N ΔF h _ i (hAck _ hy haw) rfl⟩
+
+/-- Only the nodes awake at both reads are needed for the emitted PC quorum. -/
+theorem pcsa_formation_participating_ack_quorum (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPrem p c E rho s N ΔF)
+    (hAck : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s) = true →
+      E.awake y (SA.earlyTime p.toParams s) = true → HonestAckAt p c E rho y s N.erase) :
+    ∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧
+      ∀ i ∈ Q, rho.seatOf (.base (.ack s)) i ∈ rho.honest ∧
+        V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i)
+          (ackObj p s i N.erase.root) (SA.earlyTime p.toParams s) := by
+  classical
+  let H : Finset V := awakeHonestLabel p c E rho s
+  let holder : Fin p.n → V := rho.seatOf (.base (.ack s))
+  let Q : Finset (Fin p.n) := Finset.univ.filter (fun i => holder i ∈ H)
+  have hbij : Function.Bijective holder := h.base.cstar (.base (.ack s)) trivial
+  have hcard : Q.card = H.card := by
+    apply Finset.card_bij (fun i _ => holder i)
+    · intro i hi
+      exact (Finset.mem_filter.mp hi).2
+    · intro i _ j _ he
+      exact hbij.injective he
+    · intro y hy
+      obtain ⟨i, hi⟩ := hbij.surjective y
+      exact ⟨i, Finset.mem_filter.mpr ⟨Finset.mem_univ _, hi ▸ hy⟩, hi⟩
+  have hn : nQuorum p.n ≤ Q.card := hcard ▸ h.participation
+  have hq : pcQuorum p.n ≤ Q.card := by
+    have hi := pcsa_n_inter_card hn hn
+    rwa [Finset.inter_self] at hi
+  refine ⟨Q, hq, ?_⟩
+  intro i hi
+  have hm : rho.seatOf (.base (.ack s)) i ∈ awakeHonestLabel p c E rho s :=
+    (Finset.mem_filter.mp hi).2
+  rw [pcsa_awakeHonestLabel_def] at hm
+  have hv := (Finset.mem_inter.mp hm).1
+  have he := (Finset.mem_inter.mp hm).2
+  rw [Gen.V2.Duty.awakeHonest_def] at hv he
+  obtain ⟨hy, hawV⟩ := Finset.mem_filter.mp hv
+  obtain ⟨_, hawE⟩ := Finset.mem_filter.mp he
+  exact ⟨hy, pcsa_formation_ack_emits E rho s N ΔF h _ i (hAck _ hy hawV hawE) rfl⟩
 
 end AvailableChain.PCSA.Run
 end

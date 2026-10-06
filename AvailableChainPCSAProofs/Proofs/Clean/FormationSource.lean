@@ -1,19 +1,106 @@
 module
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationPC
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationStore
 public import AvailableChainPCSAProofs.Proofs.Foundations.Rank
+public import AvailableChainPCSAProofs.Proofs.Foundations.Locks
+public import AvailableChainPCSAProofs.Proofs.Shared.Roots
 public import AvailableChainKitFG.FrameSelection
 
 public section
 
-/-! Formation-to-source selector (pcsa34-r4.3a §5.7).
-BLOCKED: Tests.FormationCounterexample checks FormationPrem at opening
-rR = 4, with no ack or PC and fgSource = none at a_2 = 22.
-Thus FormationSourceClaim fails on the same run as FormationClaim.
-The selector below remains valid with explicit snapshot membership,
-own-slot target identity, opening read, and unique active FG lift.
+/-! Formation-to-source selector (pcsa34-r4.3b §5.7).
+The old release run fails the corrected proposer-root reachability clause.
+The selector needs an active own-slot snapshot PC, own-slot target identity,
+and the opening read. Structural erasure gives the unique FG lift.
 The source window uses snapshot label rR, not rR+1. -/
 
 namespace AvailableChain.PCSA
+
+private theorem formation_normalize_now {n : Nat} (st : State n) :
+    (normalizeS st).base.now = st.base.now := by
+  delta normalizeS
+  split <;> rfl
+
+private theorem formation_clockPre_now (p : Params) (st : State p.n) (t : Time) :
+    (clockPre p st t).base.now = t := by
+  delta clockPre
+  dsimp only
+  split <;> split <;> split <;> rfl
+
+private abbrev formationGateAccepted (p : Params) {n : Nat} (st : State n)
+    (cs : List (PC n)) (rank : Option PCRank) (s : Slot) (result : Block) : State n :=
+  let v := actView st
+  let q := p.toParams.engine
+  let st1 : State n := { st with base := { st.base with
+    goldfishRecord := GridCO.advance v.goldfishRecord result
+    genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s (some result) } }
+  if st1.base.obligations.any (fun row => st1.base.now < row.2.2 &&
+      !Block.compatible row.1 result) then st1 else
+    let st2 := { st1 with base := { st1.base with
+      stableRecord := GridCO.advance st1.base.stableRecord result } }
+    let prefixes := v.blocks.filter (fun b => b != .genesis && Block.preceq b result &&
+      leaseWriteOK cs rank b)
+    prefixes.foldl (fun acc b => (slowLevels p (actView acc) s b).foldl
+      (fun acc g => writeLease acc b g (GridCO.gateTime q s + GridCO.lifetime q) rank) acc) st2
+
+private theorem formation_gateFrom_now (p : Params) {n : Nat} (st : State n)
+    (a : Block) (cs : List (PC n)) (rank : Option PCRank) (s : Slot) :
+    (gateFrom p a cs rank st s).base.now = st.base.now := by
+  cases hg : SA.Root.confirmationFrom p.toParams a (actView st) s with
+  | none =>
+    rw [gateFrom_def]
+    dsimp only
+    rw [hg]
+  | some result =>
+    rw [gateFrom_def]
+    dsimp only
+    rw [hg]
+    change (formationGateAccepted p st cs rank s result).base.now = st.base.now
+    delta formationGateAccepted
+    dsimp only
+    split
+    · rfl
+    · apply List.foldlRecOn (motive := fun acc : State n => acc.base.now = st.base.now)
+      · rfl
+      · intro acc ha b _
+        apply List.foldlRecOn (motive := fun acc' : State n => acc'.base.now = st.base.now)
+        · exact ha
+        · intro acc' ha' g _
+          exact (writeLease_frame acc' b g _ rank).2.2.2.1.trans ha'
+
+/-- Every Formation duty reads its actual tick time after the clock. -/
+theorem pcsa_formation_clock_now (p : Params) (st : State p.n) (t : Time) :
+    (clock p st t).base.now = t := by
+  delta clock
+  dsimp only
+  split
+  · rw [gateStep_def]
+    dsimp only
+    rw [formation_normalize_now]
+    split
+    · exact formation_clockPre_now p st t
+    · rw [formation_gateFrom_now]
+      exact formation_clockPre_now p st t
+  · exact formation_clockPre_now p st t
+
+/-- The action read of round r is in slot rR+1 and uses opening rR. -/
+theorem pcsa_formation_source_opening (p : Params) (st : State p.n) (r : Nat) :
+    p.round ((clock p st (p.actionTime r)).slot p) * p.R = r * p.R := by
+  have ht : p.actionTime r = 4 * p.Δ * ((r * p.R + 1 : Nat) : Int) + 2 * p.Δ := by
+    change 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ = _
+    push_cast
+    ring
+  have hs : (clock p st (p.actionTime r)).slot p = r * p.R + 1 := by
+    change p.slotOf (clock p st (p.actionTime r)).base.now = _
+    rw [pcsa_formation_clock_now, ht]
+    exact Run.pcsa_slotOf_offset p _ (2 * p.Δ)
+      (by have hd : (0 : Int) < p.Δ := p.deltaPos; omega)
+      (by have hd : (0 : Int) < p.Δ := p.deltaPos; omega)
+  rw [hs]
+  change ((r * p.R + 1) / p.R) * p.R = _
+  rw [Nat.mul_comm r p.R, Nat.mul_add_div (by have := p.RLarge; omega),
+    Nat.div_eq_of_lt (by have := p.RLarge; omega), Nat.add_zero]
+  exact Nat.mul_comm _ _
 
 private theorem formation_preferPC_slot {n : Nat} (old : Option (PC n)) (a C : PC n)
     (h : preferPC old a = some C) :
@@ -116,6 +203,46 @@ theorem pcsa_formation_fgSource (p : Params) (st : State p.n) (r : Nat) (P : Blo
   rw [ht]
   exact KitFG.pickPair_eq_of_unique _ _ B hB (decide_eq_true hErase)
     (fun A hA he => hUnique A hA (of_decide_eq_true he))
+
+/-- Structural erasure supplies the unique FG lift for the own-slot selector. -/
+theorem pcsa_formation_fgSource_of_active_snapshot (p : Params) (st : State p.n)
+    (r : Nat) (P : Block)
+    (hOpening : p.round (st.slot p) * p.R = r * p.R)
+    (hPC : ∃ C ∈ pcSnapshotAt st (r * p.R), C.slot = r * p.R ∧ frameActive p st C = true)
+    (hTarget : ∀ C ∈ pcSnapshotAt st (r * p.R), C.slot = r * p.R → C.target = P) :
+    ∃ B : SimplexFG.FGBlock (Fin p.n), fgSource p st = some B ∧ eraseFG B = P := by
+  obtain ⟨C, hC, hs, ha⟩ := hPC
+  rw [frameActive_def] at ha
+  obtain ⟨B, hB, he⟩ := of_decide_eq_true ha
+  have hP := hTarget C hC hs
+  have hb : eraseFG B = P := he.trans hP
+  refine ⟨B, pcsa_formation_fgSource p st r P B hOpening ⟨C, hC, hs, ?_⟩
+    hTarget hB hb ?_, hb⟩
+  · rw [frameActive_def]
+    exact decide_eq_true ⟨B, hB, he⟩
+  · intro A _ hA
+    apply FGSA.eraseFG_injective
+    rw [← pcsa_eraseFG_eq, ← pcsa_eraseFG_eq]
+    exact hA.trans hb.symm
+
+/-- An own-slot snapshot PC supplies the source when its target remains held.
+Stage 1 supplies frame activity; the clock supplies the opening read. -/
+theorem pcsa_formation_fgSource_of_snapshot (p : Params) (st : State p.n) (r : Nat)
+    (P : Block) (hReach : Reachable p st)
+    (hFrame : Run.FrameVacuous p (clock p st (p.actionTime r)))
+    (hHeld : P ∈ (clock p st (p.actionTime r)).base.blocks)
+    (hPC : ∃ C ∈ pcSnapshotAt (clock p st (p.actionTime r)) (r * p.R), C.slot = r * p.R)
+    (hTarget : ∀ C ∈ pcSnapshotAt (clock p st (p.actionTime r)) (r * p.R),
+      C.slot = r * p.R → C.target = P) :
+    ∃ B : SimplexFG.FGBlock (Fin p.n),
+      fgSource p (clock p st (p.actionTime r)) = some B ∧ eraseFG B = P := by
+  obtain ⟨C, hC, hs⟩ := hPC
+  apply pcsa_formation_fgSource_of_active_snapshot p _ r P
+    (pcsa_formation_source_opening p st r) ?_ hTarget
+  refine ⟨C, hC, hs, pcsa_formation_frame_active_of_target p _ C
+    (Reachable.tick _ hReach) hFrame ?_⟩
+  rw [hTarget C hC hs]
+  exact hHeld
 
 end AvailableChain.PCSA
 end
