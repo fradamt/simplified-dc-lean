@@ -267,3 +267,17 @@ For pending M3, `HeadRelay.pcsa_head_before_public_cut_relay_late` will
 supply the HEAD/cap receipt part of the N-score transport. `BodyStamps`
 and the next body-origin module will supply its exact body/timestamp part.
 These are support facts. Pending-label claims are still deferred.
+
+### Body cutoff relay (2026-10-07)
+
+`BodyRelayTime` identifies the first non-genesis body-stamp insertion,
+its indexed passed admission, and its actual fresh acceptance.
+`pcsa_body_before_public_cut_relay` gives exact body membership and a
+strict first-stamp bound at every later honest receiving read. It uses
+the existing unconditional `BodyReceipt` admission and relay facts.
+All seven facts are exported. No new premise was added to a claim.
+
+The exact receiver root-domain and held-body resolution facts also
+compile in scratch (`ResolutionLookup.lean`). Check and commit those
+next. Then put concrete early, frozen, and carried walk inputs into the
+CL1–CL4 count interfaces and prove the four joint CI record steps.

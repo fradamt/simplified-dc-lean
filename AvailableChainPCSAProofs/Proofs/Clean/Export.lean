@@ -9,6 +9,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.HeadReceipt
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadTransport
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadRelay
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyStamps
+public import AvailableChainPCSAProofs.Proofs.Clean.BodyRelayTime
 public import AvailableChainPCSAProofs.Proofs.Clean.HonestBody
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyPersistence

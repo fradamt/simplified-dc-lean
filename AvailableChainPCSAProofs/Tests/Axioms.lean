@@ -307,3 +307,11 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_keys
 #print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_lookup
 #print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_stateBefore_eq
+
+#print axioms AvailableChain.PCSA.Run.pcsa_process_body_stamp_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_source
+#print axioms AvailableChain.PCSA.Run.pcsa_body_admitted_before
+#print axioms AvailableChain.PCSA.Run.pcsa_passed_body_accepts
+#print axioms AvailableChain.PCSA.Run.pcsa_body_accepted_before
+#print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_lt_of_index_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay
