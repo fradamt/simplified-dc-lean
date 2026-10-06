@@ -56,13 +56,13 @@ theorem duties_early : duties pT (SA.earlyTime pT.toParams 1) = [.fgAction 0, .a
   decide +kernel
 
 /-- The ack of slot `s` is due at `e_s` for every `p` and `s`, and at no other
-time (A6: one ack action per slot; `duties_nodup` gives one per tick). -/
+time (A6: one ack action per slot; `pcsa_duties_nodup` gives one per tick). -/
 theorem ack_due (p : Params) (s : Slot) :
     RunDuty.ackAction s ∈ duties p (SA.earlyTime p.toParams s) :=
-  (duties_spec p _ _).mpr rfl
+  (pcsa_duties_spec p _ _).mpr rfl
 theorem ack_once (p : Params) (s : Slot) (t : Time) :
     RunDuty.ackAction s ∈ duties p t ↔ SA.earlyTime p.toParams s = t :=
-  duties_spec p _ t
+  pcsa_duties_spec p _ t
 
 /-- At `e_1` the ack duty sends the exact ack on the root of `b1`; with late
 HEADs it sends nothing. -/

@@ -31,11 +31,11 @@ structure StoreBundle (p : Params) (st : State p.n) : Prop where
   nest : NestOK st
 
 /-- [PC-SA M1] [GLY E-11; D14] Every reachable state satisfies the store bundle. -/
-def StoreBundleInvariant (p : Params) : Prop := ∀ st, Reachable p st → StoreBundle p st
+def pcsa_StoreBundleInvariant (p : Params) : Prop := ∀ st, Reachable p st → StoreBundle p st
 
-theorem StoreBundleInvariant_def (p : Params) :
-    StoreBundleInvariant p = (∀ st, Reachable p st → StoreBundle p st) := by
-  rw [StoreBundleInvariant]
+theorem pcsa_StoreBundleInvariant_def (p : Params) :
+    pcsa_StoreBundleInvariant p = (∀ st, Reachable p st → StoreBundle p st) := by
+  rw [pcsa_StoreBundleInvariant]
 
 /-- [PC-SA M1] [bp bp.store.v1] Local F moves only to a descendant, at every step. -/
 def FMonotone (p : Params) : Prop :=

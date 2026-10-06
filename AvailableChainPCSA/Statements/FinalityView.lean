@@ -9,11 +9,11 @@ namespace AvailableChain.PCSA
 
 /-- [PC-SA M1; FG-SA Statements/FinalityView.lean] The active finality view
 reads the window certificate. -/
-def finalityView (p : Params) : KitFG.FGFinalityView (Fin p.n) :=
-  Window.certificateFinality p p.K_W
+def pcsa_finalityView (p : Params) : KitFG.FGFinalityView (Fin p.n) :=
+  Window.pcsa_certificateFinality p p.K_W
 
-theorem finalityView_def (p : Params) :
-    finalityView p = Window.certificateFinality p p.K_W := rfl
+theorem pcsa_finalityView_def (p : Params) :
+    pcsa_finalityView p = Window.pcsa_certificateFinality p p.K_W := rfl
 
 end AvailableChain.PCSA
 end

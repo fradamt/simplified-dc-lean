@@ -41,7 +41,7 @@ def namedParentHeld (st : State n) (N : NamedProposal n) : Bool :=
   decide (N.parent ∈ st.namedBodies)
 
 -- ROOT-DIGEST-2: generate the equation in its home module (BUILD B3a).
-private theorem namedParentHeld_eq_1_export :
+private theorem pcsa_namedParentHeld_eq_1_export :
     type_of% (@namedParentHeld.eq_1) := @namedParentHeld.eq_1
 
 /-- [PC-SA M1; DC NamedBlocks] Resolve one distinct named parent by geometry. -/
@@ -151,15 +151,15 @@ that conflicts with F. A stored finalized ancestor is not excluded. -/
 def blockExcluded (st : State n) (b : Block) : Bool := !activeCompatible st b
 
 -- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
-private theorem State_namedBodies_eq_1_export :
+private theorem pcsa_State_namedBodies_eq_1_export :
     type_of% (@State.namedBodies.eq_1) := @State.namedBodies.eq_1
-private theorem actView_eq_1_export :
+private theorem pcsa_actView_eq_1_export :
     type_of% (@actView.eq_1) := @actView.eq_1
-private theorem namedByErase_eq_1_export :
+private theorem pcsa_namedByErase_eq_1_export :
     type_of% (@namedByErase?.eq_1) := @namedByErase?.eq_1
-private theorem normalizeS_eq_1_export :
+private theorem pcsa_normalizeS_eq_1_export :
     type_of% (@normalizeS.eq_1) := @normalizeS.eq_1
-private theorem onView_eq_1_export :
+private theorem pcsa_onView_eq_1_export :
     type_of% (@onView.eq_1) := @onView.eq_1
 
 end AvailableChain.PCSA

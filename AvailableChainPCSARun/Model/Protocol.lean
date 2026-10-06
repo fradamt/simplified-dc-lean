@@ -69,7 +69,7 @@ end RunLabel
 
 /-- [PC-SA M1; pcsa-decisions 3n/4] Scheduled actions. FG actions share one
 signing label. The ack action of slot `s` runs at `e_s` and only there
-(`duties_spec`), and the engine signs one object per label and seat per tick,
+(`pcsa_duties_spec`), and the engine signs one object per label and seat per tick,
 so a seat sends at most one ack per slot (r3 A6) without a store field. -/
 inductive RunDuty where
   | headAction (s : Slot)
@@ -175,14 +175,14 @@ def duties (p : Params) (t : Time) : List RunDuty :=
     (if SA.earlyTime p.toParams s = t then [.ackAction s] else [])
 
 /-- [PC-SA M1] The slot of a time in slot `s` at offset `k`, `0 ≤ k < 4Δ`, is `s`. -/
-theorem slotOf_offset (p : Params) (s : Slot) (k : Int) (hk0 : 0 ≤ k)
+theorem pcsa_slotOf_offset (p : Params) (s : Slot) (k : Int) (hk0 : 0 ≤ k)
     (hk : k < 4 * p.Δ) : p.slotOf (4 * p.Δ * s + k) = s := by
   have hΔ : (4 * p.Δ : Int) ≠ 0 := by have : (0 : Int) < p.Δ := p.deltaPos; omega
   unfold FGSA.Params.slotOf
   rw [add_comm, Int.add_mul_ediv_left _ _ hΔ, Int.ediv_eq_zero_of_lt hk0 hk, zero_add,
     Int.toNat_natCast]
 
-theorem duties_spec (p : Params) (ℓ : RunDuty) (t : Time) :
+theorem pcsa_duties_spec (p : Params) (ℓ : RunDuty) (t : Time) :
     ℓ ∈ duties p t ↔ RunDuty.actTime p ℓ = t := by
   have hΔ : (0 : Int) < p.Δ := p.deltaPos
   have hR : 0 < p.R := by have := p.RLarge; omega
@@ -208,7 +208,7 @@ theorem duties_spec (p : Params) (ℓ : RunDuty) (t : Time) :
         have h' : SA.proposalTime p.toParams s = t := h
         have ht : t = 4 * p.Δ * s + 0 := by
           rw [← h']; simp [SA.proposalTime, GridCO.proposalTime, SA.Params.engine]
-        have hs : p.slotOf t = s := by rw [ht]; exact slotOf_offset p s 0 le_rfl (by omega)
+        have hs : p.slotOf t = s := by rw [ht]; exact pcsa_slotOf_offset p s 0 le_rfl (by omega)
         left; left; left
         rw [hs, ite_eq_left h']
         exact List.mem_singleton_self _
@@ -218,7 +218,7 @@ theorem duties_spec (p : Params) (ℓ : RunDuty) (t : Time) :
           rw [← h']; simp [SA.voteTime, GridCO.voteTime, GridCO.proposalTime,
             SA.Params.engine]
         have hs : p.slotOf t = s := by
-          rw [ht]; exact slotOf_offset p s p.Δ (by omega) (by omega)
+          rw [ht]; exact pcsa_slotOf_offset p s p.Δ (by omega) (by omega)
         left; left; right
         rw [hs, ite_eq_left h']
         exact List.mem_singleton_self _
@@ -231,7 +231,7 @@ theorem duties_spec (p : Params) (ℓ : RunDuty) (t : Time) :
           push_cast
           ring
         have hs : p.slotOf t = r * p.R + 1 := by
-          rw [ht]; exact slotOf_offset p _ (2 * p.Δ) (by omega) (by omega)
+          rw [ht]; exact pcsa_slotOf_offset p _ (2 * p.Δ) (by omega) (by omega)
         have hr : (p.slotOf t - 1) / p.R = r := by
           rw [hs, Nat.add_sub_cancel, Nat.mul_div_cancel _ hR]
         left; right
@@ -243,12 +243,12 @@ theorem duties_spec (p : Params) (ℓ : RunDuty) (t : Time) :
           rw [← h']; simp [SA.earlyTime, GridCO.earlyTime, GridCO.proposalTime,
             SA.Params.engine]
         have hs : p.slotOf t = s := by
-          rw [ht]; exact slotOf_offset p s (2 * p.Δ) (by omega) (by omega)
+          rw [ht]; exact pcsa_slotOf_offset p s (2 * p.Δ) (by omega) (by omega)
         right
         rw [hs, ite_eq_left h']
         exact List.mem_singleton_self _
 
-theorem duties_nodup (p : Params) (t : Time) : (duties p t).Nodup := by
+theorem pcsa_duties_nodup (p : Params) (t : Time) : (duties p t).Nodup := by
   simp only [duties]
   split_ifs <;> simp
 
@@ -392,8 +392,8 @@ def pcsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
   clock nd t := { nd with st := PCSA.clock p nd.st t }
   actTime := RunDuty.actTime p
   duties := duties p
-  duties_spec := duties_spec p
-  duties_nodup := duties_nodup p
+  duties_spec := pcsa_duties_spec p
+  duties_nodup := pcsa_duties_nodup p
   act := act p c
   gossip _ _ := []
   process nd o := { nd with st := PCSA.process p nd.st (toWire p o) }
@@ -422,27 +422,27 @@ instance (p : Params) {In : Type} (c : AppCodec In) : DecidableEq (pcsa p c).Pay
   inferInstanceAs (DecidableEq (Msg p.n))
 
 -- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
-private theorem ofAuth_eq_1_export :
+private theorem pcsa_ofAuth_eq_1_export :
     type_of% (@ofAuth.eq_1) := @ofAuth.eq_1
-private theorem ofAuth_eq_2_export :
+private theorem pcsa_ofAuth_eq_2_export :
     type_of% (@ofAuth.eq_2) := @ofAuth.eq_2
-private theorem ofAuth_eq_3_export :
+private theorem pcsa_ofAuth_eq_3_export :
     type_of% (@ofAuth.eq_3) := @ofAuth.eq_3
-private theorem ofHead_eq_1_export :
+private theorem pcsa_ofHead_eq_1_export :
     type_of% (@ofHead.eq_1) := @ofHead.eq_1
-private theorem ofRow_eq_1_export :
+private theorem pcsa_ofRow_eq_1_export :
     type_of% (@ofRow.eq_1) := @ofRow.eq_1
 private theorem ofAck_eq_1_export :
     type_of% (@ofAck.eq_1) := @ofAck.eq_1
-private theorem ofWire_eq_1_export :
+private theorem pcsa_ofWire_eq_1_export :
     type_of% (@ofWire.eq_1) := @ofWire.eq_1
-private theorem toAuth_eq_1_export :
+private theorem pcsa_toAuth_eq_1_export :
     type_of% (@toAuth.eq_1) := @toAuth.eq_1
-private theorem toAuth_eq_2_export :
+private theorem pcsa_toAuth_eq_2_export :
     type_of% (@toAuth.eq_2) := @toAuth.eq_2
-private theorem toAuth_eq_3_export :
+private theorem pcsa_toAuth_eq_3_export :
     type_of% (@toAuth.eq_3) := @toAuth.eq_3
-private theorem toWire_eq_1_export :
+private theorem pcsa_toWire_eq_1_export :
     type_of% (@toWire.eq_1) := @toWire.eq_1
 
 end AvailableChain.PCSA.Run

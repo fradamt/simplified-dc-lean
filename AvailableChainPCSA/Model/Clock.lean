@@ -81,11 +81,11 @@ def clock (p : Params) (st : State p.n) (t : Time) : State p.n :=
   if 0 ≤ t - 6 * p.Δ && t == SA.gateTime p.toParams dSlot then gateStep p st dSlot else st
 
 -- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
-private theorem clock_eq_1_export :
+private theorem pcsa_clock_eq_1_export :
     type_of% (@clock.eq_1) := @clock.eq_1
-private theorem clockPre_eq_1_export :
+private theorem pcsa_clockPre_eq_1_export :
     type_of% (@clockPre.eq_1) := @clockPre.eq_1
-private theorem gateStep_eq_1_export :
+private theorem pcsa_gateStep_eq_1_export :
     type_of% (@gateStep.eq_1) := @gateStep.eq_1
 
 end AvailableChain.PCSA

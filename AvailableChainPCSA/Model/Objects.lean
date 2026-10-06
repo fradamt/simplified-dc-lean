@@ -177,17 +177,17 @@ def baseProposal {n : Nat} (s : Slot) (b : Block) (raw support : List (HeadWire 
   ⟨.proposer s, .proposal b (raw.map baseHead) (support.map baseHead)⟩
 
 -- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
-private theorem Wire_block_eq_1_export :
+private theorem pcsa_Wire_block_eq_1_export :
     type_of% (@Wire.block?.eq_1) := @Wire.block?.eq_1
-private theorem Wire_decode_eq_1_export :
+private theorem pcsa_Wire_decode_eq_1_export :
     type_of% (@Wire.decode.eq_1) := @Wire.decode.eq_1
-private theorem Wire_proposal_eq_1_export :
+private theorem pcsa_Wire_proposal_eq_1_export :
     type_of% (@Wire.proposal?.eq_1) := @Wire.proposal?.eq_1
-private theorem namedContentOk_eq_1_export :
+private theorem pcsa_namedContentOk_eq_1_export :
     type_of% (@namedContentOk.eq_1) := @namedContentOk.eq_1
-private theorem namedProposal_eq_1_export :
+private theorem pcsa_namedProposal_eq_1_export :
     type_of% (@namedProposal.eq_1) := @namedProposal.eq_1
-private theorem proposalBlock_eq_1_export :
+private theorem pcsa_proposalBlock_eq_1_export :
     type_of% (@proposalBlock.eq_1) := @proposalBlock.eq_1
 
 end AvailableChain.PCSA

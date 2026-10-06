@@ -51,7 +51,7 @@ base list is Σ.T erased. `Smem`: S is stored. `pcDom`: the PC domain (in place
 of the fast-write origins). `genuineKeys`, `leaseKeys`: one saved result per
 label and one lease row per target, at the SA level. -/
 structure CStoreInv (p : Params) (st : State p.n) : Prop where
-  fg : KitFG.FGStoreInvariant (FGSA.heightView p) (finalityView p) st.fg
+  fg : KitFG.FGStoreInvariant (FGSA.heightView p) (pcsa_finalityView p) st.fg
   rootInj : ∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y
   baseTree : ∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b
   saCompat : SACompat st
@@ -64,7 +64,7 @@ structure CStoreInv (p : Params) (st : State p.n) : Prop where
 /-- [PC-SA M1] [helper] The first three fields of `CStoreInv`: the FG invariant, root
 injectivity of Σ.T, and the base list as Σ.T erased. -/
 def Inv0 (p : Params) (st : State p.n) : Prop :=
-  KitFG.FGStoreInvariant (FGSA.heightView p) (finalityView p) st.fg ∧
+  KitFG.FGStoreInvariant (FGSA.heightView p) (pcsa_finalityView p) st.fg ∧
     (∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y) ∧
     (∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
 

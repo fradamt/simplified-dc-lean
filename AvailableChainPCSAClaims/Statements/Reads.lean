@@ -26,21 +26,21 @@ def afterTicks (E : Generic.Env V) (rho : V2.D.Run V P) (t : Time) : V2.D.World 
   (rho.events.filter (cutPred t)).foldl (V2.D.World.step E rho) V2.D.World.init
 
 /-- The local state before the node's tick, if that tick exists. -/
-def preTick (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) : Option P.State :=
+def pcsa_preTick (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) : Option P.State :=
   (V2.D.Run.tickIdx? rho v t).map (fun i => V2.D.Run.stateBefore E rho i v)
 
-theorem preTick_def (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) :
-    preTick E rho v t =
+theorem pcsa_preTick_def (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) :
+    pcsa_preTick E rho v t =
       (V2.D.Run.tickIdx? rho v t).map (fun i => V2.D.Run.stateBefore E rho i v) := by
-  rw [preTick]
+  rw [pcsa_preTick]
 
 /-- The local state after the clock, before the own record. -/
-def postClock (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) : Option P.State :=
-  (preTick E rho v t).map (fun nd => P.clock nd t)
+def pcsa_postClock (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) : Option P.State :=
+  (pcsa_preTick E rho v t).map (fun nd => P.clock nd t)
 
-theorem postClock_def (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) :
-    postClock E rho v t = (preTick E rho v t).map (fun nd => P.clock nd t) := by
-  rw [postClock]
+theorem pcsa_postClock_def (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) :
+    pcsa_postClock E rho v t = (pcsa_preTick E rho v t).map (fun nd => P.clock nd t) := by
+  rw [pcsa_postClock]
 
 variable (p : Params) {In : Type} (c : AppCodec In)
 
