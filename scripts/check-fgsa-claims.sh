@@ -239,6 +239,15 @@ def check_source_coverage(imports, roots):
         if unreached:
             raise SystemExit('NOT REACHED FROM F4: ' + ', '.join(unreached))
 
+# The PC-SA root must reach every production module, as the FG-SA roots do.
+pcsa_orphan = "AvailableChainPCSAProofs.Proofs.Foundations.CoverageNegative"
+try:
+    check_source_coverage({}, [pcsa_orphan])
+except SystemExit as exc:
+    assert str(exc) == "NOT IMPORTED BY ROOT: " + pcsa_orphan, exc
+else:
+    raise SystemExit("PC-SA ROOT COVERAGE CONTROL FAILED")
+
 if SOURCE_ONLY:
     source_edges = {module(p): L.read_header(p.read_text())[0] for p in files}
     check_source_coverage(source_edges, list(source_edges))

@@ -1,4 +1,10 @@
 module
+public import AvailableChainPCSAProofs.Proofs.AcFrame.Height
+public import AvailableChainPCSAProofs.Proofs.AcFrame.Rows
+public import AvailableChainPCSAProofs.Proofs.AcFrame.Run
+public import AvailableChainPCSAProofs.Proofs.AcFrame.Store
+public import AvailableChainPCSAProofs.Proofs.Assembly.AcFrame
+public import AvailableChainPCSAProofs.Proofs.Assembly.Small
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install

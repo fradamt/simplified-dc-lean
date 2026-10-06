@@ -1,4 +1,10 @@
 module
+public import AvailableChainPCSAProofs.Proofs.AcFrame.Height
+public import AvailableChainPCSAProofs.Proofs.AcFrame.Rows
+public import AvailableChainPCSAProofs.Proofs.AcFrame.Run
+public import AvailableChainPCSAProofs.Proofs.AcFrame.Store
+public import AvailableChainPCSAProofs.Proofs.Assembly.AcFrame
+public import AvailableChainPCSAProofs.Proofs.Assembly.Small
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
@@ -16,6 +22,30 @@ public section
 
 /-! PC-SA proof axiom audit (proof plan §3). -/
 
+#print axioms AvailableChain.PCSA.Run.pcsa_acOnlyFrame
+#print axioms AvailableChain.PCSA.pcsa_faults_lt_fg_quorum
+#print axioms AvailableChain.PCSA.pcsa_window_no_quorum
+#print axioms AvailableChain.PCSA.Run.pcsa_ac_no_row_emission
+#print axioms AvailableChain.PCSA.Run.pcsa_ac_carried_row_faulty
+#print axioms AvailableChain.PCSA.Run.pcsa_ac_delivered_row_faulty
+#print axioms AvailableChain.PCSA.Run.pcsa_ac_block_rows_faulty
+#print axioms AvailableChain.PCSA.Run.pcsa_initial_acSafe
+#print axioms AvailableChain.PCSA.Run.pcsa_ac_storeSafe
+#print axioms AvailableChain.PCSA.Run.pcsa_ac_frame
+#print axioms AvailableChain.PCSA.AcStoreSafe_def
+#print axioms AvailableChain.PCSA.pcsa_normalizeS_fg
+#print axioms AvailableChain.PCSA.pcsa_reconcile_fg
+#print axioms AvailableChain.PCSA.pcsa_clock_fg
+#print axioms AvailableChain.PCSA.pcsa_fold_admitRow_fg
+#print axioms AvailableChain.PCSA.pcsa_fold_poolAckRaw_fg
+#print axioms AvailableChain.PCSA.pcsa_admitBlock_fg_cases
+#print axioms AvailableChain.PCSA.pcsa_on_block_acSafe
+#print axioms AvailableChain.PCSA.pcsa_child_rows
+#print axioms AvailableChain.PCSA.pcsa_process_acSafe
+#print axioms AvailableChain.PCSA.pcsa_acSafe_frame
+#print axioms AvailableChain.PCSA.Run.pcsa_acFrameClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_smallClaims
+#print axioms AvailableChain.PCSA.Run.pcsa_snapshotStamp
 #print axioms AvailableChain.PCSA.poolAckRaw_mono
 #print axioms AvailableChain.PCSA.mem_poolAckRaw
 #print axioms AvailableChain.PCSA.poolAckRaw_mem
@@ -106,5 +136,7 @@ public section
 #print axioms AvailableChain.PCSA.Run.snapshot_absent_before_tick
 #print axioms AvailableChain.PCSA.Run.snapshot_afterTicks
 #print axioms AvailableChain.PCSA.initial_pcs
+#print axioms AvailableChain.PCSA.Run.pcsa_oneAckPerSlot
+#print axioms AvailableChain.PCSA.Run.pcsa_outputNesting
 
 end
