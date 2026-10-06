@@ -307,6 +307,77 @@ theorem snapshot_boundary :
     ([akWire 0, akWire 1].foldl (process pT) (clock pT st6 7)).pcs = [pc1] := by
   decide +kernel
 
+/-- [pcsa34-r4.3 §3.7] Three HEADs on `b1` at the vote time of slot `s`. -/
+def leaseHeads (st : State pT.n) (s : Slot) : State pT.n :=
+  ([0, 1, 2] : List (Fin 4)).foldl (fun acc i =>
+    process pT acc ⟨.seat (.head s) i, .head b1.root⟩)
+      (atTime st (4 * (s : Time) + 1))
+
+/-- [pcsa34-r4.3 §3.7] An execution with both sibling blocks held.
+Slots 1, 2 and 3 save `b1`. The gate at `d_3 = 18` writes its lease.
+The PC for `b1'` arrives at `e_4 = 18` and deletes that lease. The gate at
+`d_4 = 22` saves `b1` but skips its lease write. -/
+def stLease18 : State pT.n :=
+  [(18 : Time)].foldl (clock pT)
+    (leaseHeads ([(14 : Time), 15, 16, 17].foldl (clock pT)
+      (leaseHeads ([(10 : Time), 11, 12, 13].foldl (clock pT)
+        (leaseHeads ([(7 : Time), 8, 9].foldl (clock pT) st6both) 2)) 3)) 4)
+
+def stLeaseDeleted : State pT.n :=
+  [akWire' 2, akWire' 3].foldl (process pT) stLease18
+
+def stLease22 : State pT.n :=
+  [(19 : Time), 20, 21, 22].foldl (clock pT) stLeaseDeleted
+
+/-- [pcsa34-r4.3 §3.7 (i)–(iv)] The execution writes a live lease, then
+PC acceptance deletes it. A stamp equal to `e_4` is excluded from `ρ_4`.
+The held conflicting PC causes a write skip after the guard passes. -/
+theorem lease_write_skip_and_delete :
+    leaseOf stLease18 b1 = some 29 ∧ liveLease stLease18 b1 = true ∧
+    stLease18.leaseRanks = [(b1, none)] ∧
+    stLeaseDeleted.pcs = [⟨1, b1', [ak' 2, ak' 3]⟩] ∧
+    pcStamp? stLeaseDeleted ⟨1, b1', [ak' 2, ak' 3]⟩ = some 18 ∧
+    stLeaseDeleted.base.obligations = [] ∧
+    gateRank pT stLeaseDeleted 4 = none ∧
+    leaseWriteOK stLeaseDeleted.pcs none b1 = false ∧
+    GridCO.savedGenuine stLease22.base 4 = some (some b1) ∧
+    stLease22.base.stableRecord = b1 ∧ stLease22.base.obligations = [] := by
+  decide +kernel
+
+/-- [pcsa34-r4.3 §3.7 (iv)] A guard fixture with live sibling leases.
+The held PC conflicts with `b1'` but is below its stored rank. Set S to
+genesis to check the veto on an advance. -/
+def stLiveGuard : State pT.n :=
+  let st := admitPC (writeLease stLease18 b1' 2 40 (some pcY.rank)) pc1
+  { st with base := { st.base with stableRecord := .genesis } }
+
+/-- [pcsa34-r4.3 §3.7 (iv)] Live leases keep their guard and walk roles
+when a conflicting held PC is below the stored rank. -/
+theorem lease_live_guard :
+    liveLease stLiveGuard b1' = true ∧
+    liveRoot pT stLiveGuard none = b1' ∧ liveRoot pT stLiveGuard (some pc1) = b1 ∧
+    (gateFrom pT .genesis stLiveGuard.pcs (some pc1.rank) stLiveGuard 4).base.stableRecord =
+      .genesis := by
+  decide +kernel
+
+/-- [pcsa34-r4.3 §3.7; MINOR-1, MINOR-4] The gate excludes PCs
+stamped at `e_s` and PCs outside the frame. A renewal replaces the rank
+and keeps the maximum deadline. A PC below the stored rank cannot delete
+or block the lease, even when its target conflicts with the lease. -/
+theorem lease_rank_boundaries :
+    gateRank pT stA 1 = none ∧ gateRank pT stA 2 = some pc1.rank ∧
+    gateRank pT stD7 4 = some pc1.rank ∧
+    pcStamp? (admitPC (atTime stA 20) pc1) pc1 = some 6 ∧
+    leaseOf (writeLease stLease18 b1 2 20 (some pc1.rank)) b1 = some 29 ∧
+    leaseRank (writeLease stLease18 b1 2 20 (some pc1.rank)) b1 = some pc1.rank ∧
+    rankAtLeast pc1 (some pc1.rank) = true ∧
+    rankAtLeast ⟨1, b1', [ak' 2, ak' 3]⟩ (some pc1.rank) = true ∧
+    rankAtLeast pc1 (some (⟨1, b1', [ak' 2, ak' 3]⟩ : PC 4).rank) = false ∧
+    leaseWriteOK [⟨1, b1', [ak' 2, ak' 3]⟩] (some pcY.rank) b1 = true ∧
+    leaseOf (admitPC (writeLease st6both b1 2 40 (some pcY.rank))
+      ⟨1, b1', [ak' 2, ak' 3]⟩) b1 = some 40 := by
+  decide +kernel
+
 /-- (h) The label code separates the three constructors (small slots); the
 ack-slot hook reads the ack label only. -/
 theorem encLabel_small : ∀ s < 6, ∀ s' < 6,
@@ -319,6 +390,9 @@ theorem encLabel_small : ∀ s < 6, ∀ s' < 6,
 theorem ackSlot_cases (s : Slot) : Label.ackSlot? (.ack s) = some s ∧
     Label.ackSlot? (.head s) = none ∧ Label.ackSlot? .fg = none := ⟨rfl, rfl, rfl⟩
 
+#print axioms lease_live_guard
+#print axioms lease_rank_boundaries
+#print axioms lease_write_skip_and_delete
 #print axioms gate_saves
 #print axioms proposal_carries
 #print axioms source_from_pc
