@@ -261,3 +261,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_target_body_before_freeze
 #print axioms AvailableChain.PCSA.Run.pcsa_pcDissemination
+
+#print axioms AvailableChain.PCSA.pcsa_generated_body_rows
+#print axioms AvailableChain.PCSA.Run.pcsa_emitted_body_rows
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_body_before_freeze
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_collect

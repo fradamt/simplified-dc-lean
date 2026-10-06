@@ -46,7 +46,7 @@ Proved support:
   quorum assembles and collects the exact resolved target. Collection leaves
   a saturated store; collection of a saturated store changes nothing.
   `Saturation` proves this at every event state and discharges hFreezeKeep.
-  Run-level target receipt still needs a proof.
+  Exact run-level receipt is proved by `BodyReceipt`.
 
 - `AckStore`: decoded ack admission under the slot, root, and seat-cap checks;
   ack-pool preservation through every delivery and clock step.
@@ -113,11 +113,11 @@ conditional theorem as an unconditional claim.
   base theorem is `pcsa_honest_ack_admitted`. Use
   `FormationPrem.base` and the lower receipt-time bound. The theorem proves
   admission of direct and carried honest acks. The upper bound is unused.
-- `hPCCollect`: `pcsa_formation_collect_of_held_body` proves the exact
-  interface from one remaining fact:
-  `∀ y ∈ rho.honest, N.erase ∈ (stateBeforeTime E rho (freezeTime s) y).st.base.blocks`.
-  Proposal slot equality, exact root lookup, quorum preservation, and
-  assembly are proved. The target-body receipt fact is still open.
+- `hPCCollect`: discharged by `pcsa_formation_collect`. `HonestBody`
+  proves immutable-parent row validity at the emitted proposal, then exact
+  admission and preservation at every honest receiver before the freeze.
+  `pcsa_formation_body_before_freeze` supplies the full named proposal body.
+  No extra hypothesis remains in this interface.
 - `hFreezeKeep`: the exact interface is `pcsa_formation_freeze_keep`; its
   base theorem is `pcsa_collectPCs_after_freeze`, using
   `FormationPrem.base.valid.toScheduleWellFormed`, `base.noRestart`,
