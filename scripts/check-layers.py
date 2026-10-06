@@ -115,12 +115,14 @@ RUN = "AvailableChainFGSARun"
 CLAIMS = "AvailableChainFGSAClaims"
 PROOFS = "AvailableChainFGSAProofs"
 INHABIT = "AvailableChainFGSAInhabit"
+PC_PROOFS = "AvailableChainPCSAProofs"
+PC_CLAIMS = "AvailableChainPCSAClaims"
 CLOCK = "AvailableChainKitV2.ClockLaws"
 DUTY_CLOCK = "AvailableChainKitV2.DutyClockLaws"  # no-round migration 02: same shape as CLOCK
 CLOCKS = (CLOCK, DUTY_CLOCK)
 WALK = "AvailableChainGridCO.Model.Walk"
 STORE_FACTS = "AvailableChainGridCO.Proofs.StoreFacts"
-FUTURE_LIBS = {GEN, RUN, CLAIMS, PROOFS, INHABIT, "AvailableChainCheckSupport"}
+FUTURE_LIBS = {GEN, RUN, CLAIMS, PROOFS, INHABIT, PC_PROOFS, "AvailableChainCheckSupport"}
 BASELINE = Path("scripts/baselines/check-layers.txt")
 # L42 (SYN P10 amendment): the only modules outside a lane Export that may
 # import Claims/*. Exact module names, not prefixes. Statement-only assembly
@@ -409,7 +411,7 @@ def b7_globs(ctx: Context) -> Iterator[Finding]:
     for lib in ctx.libraries:
         name = lib["name"]
         # The three F0 Tests targets build submodules of the owning library.
-        if name in {x + "Tests" for x in (CLAIMS, PROOFS, INHABIT)}:
+        if name in {x + "Tests" for x in (CLAIMS, PROOFS, INHABIT, PC_PROOFS)}:
             owner = name.removesuffix("Tests")
             if lib.get("roots") != [] or lib.get("globs") != [owner + ".Tests.+"]:
                 yield ("B7-GLOBS", name, f"<globs:{owner}.Tests.+>")
@@ -564,7 +566,9 @@ def claim_use(ctx: Context, m: Module, dep: str) -> bool:
 
 
 def claims_target(dep: str) -> bool:
-    return bool(claim_path(dep)) or dep in {CLAIMS + ".Claims", SHARED_CLAIMS}
+    return (bool(claim_path(dep)) or under(dep, PC_CLAIMS + ".Claims")
+            or dep in {CLAIMS + ".Claims", SHARED_CLAIMS,
+                       PC_PROOFS + ".Proofs.Shared.Claims"})
 
 
 def reaches_claims(ctx: Context, dep: str) -> bool:
@@ -633,6 +637,59 @@ EDGE_RULES: dict[str, Callable[[Context, Module, str], bool]] = {
 RULE_IDS = set(EDGE_RULES) | {"B7-BODY", "B7-GLOBS"}
 
 
+
+def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
+    """PC-SA proof-plan §3: keep this policy separate from the FG-SA lanes."""
+    def path(name: str) -> tuple[str, ...]:
+        if not under(name, PC_PROOFS) or name == PC_PROOFS:
+            return ()
+        parts = tuple(name.split(".")[1:])
+        return parts[1:] if parts[0] == "Proofs" else parts
+
+    parts, target = path(m.name), path(dep)
+    claim = under(dep, PC_CLAIMS + ".Claims")
+    export = len(parts) == 2 and parts[1] == "Export"
+    target_export = len(target) == 2 and target[1] == "Export"
+    shared_claims = PC_PROOFS + ".Proofs.Shared.Claims"
+    own_claim = export and dep == PC_CLAIMS + ".Claims." + parts[0]
+    if claim and not (own_claim or m.name in {
+            PC_CLAIMS, PC_CLAIMS + ".PCSAClaims", PC_CLAIMS + ".Tests.Axioms",
+            shared_claims}):
+        yield ("CLAIM-USE", m.name, dep)
+    if target_export and not (parts and parts[0] == "Assembly"):
+        yield ("EXPORT-USE", m.name, dep)
+    if under(m.name, GEN) and under(dep, PC_PROOFS):
+        yield ("GLY-FG", m.name, dep)
+    if not parts or parts[0] == "Tests":
+        return
+    if dep in ctx.facades:
+        yield ("B6-FACADE", m.name, dep)
+    upstream = (foundation(dep) or any_under(dep, (
+        "AvailableChainPCSA.Model", "AvailableChainPCSA.Statements", "AvailableChainPCSA.Proofs",
+        "AvailableChainPCSARun.Model", "AvailableChainPCSARun.Statements",
+        PC_CLAIMS + ".Statements", GEN, "AvailableChainKitV2", "AvailableChainKitFG",
+        "AvailableChainSimplexFG", "AvailableChainFGSA.Model", "AvailableChainFGSA.Statements",
+        "AvailableChainFGSA.Proofs", "AvailableChainFGSARun", PROOFS + ".Proofs"))
+        or dep == STORE_FACTS)
+    if parts[0] == "Assembly":
+        allowed = upstream or (target and (target[0] in {"Assembly", "Shared"} or target_export))
+        allowed = allowed or (m.name == PC_PROOFS + ".Proofs.Assembly.Root" and
+                              dep == PC_CLAIMS + ".PCSAClaims")
+        rule = "ASSEMBLY"
+    elif parts[0] == "Shared":
+        allowed = upstream or (target and target[0] in {"Shared", "Foundations"} and not target_export)
+        allowed = allowed or (m.name == shared_claims and claim) or own_claim
+        rule = "SHARED"
+    else:
+        allowed = upstream or own_claim or (target and target[0] in {
+            parts[0], "Foundations", "Shared"} and not target_export)
+        rule = "LANE"
+        if not export and reaches_claims(ctx, dep):
+            yield ("LANE-CLAIMS", m.name, dep)
+    if not allowed:
+        yield (rule, m.name, dep)
+
+
 def findings(ctx: Context) -> set[Finding]:
     found = set(b7_globs(ctx))
     for module in ctx.modules.values():
@@ -641,6 +698,8 @@ def findings(ctx: Context) -> set[Finding]:
             found.add(body_finding)
         rules = EDGE_RULES if library_file else {"CHECK-SUPPORT": check_support}
         for dep in module.imports:
+            if library_file:
+                found.update(pcsa_findings(ctx, module, dep))
             for rule_id, predicate in rules.items():
                 if predicate(ctx, module, dep):
                     found.add((rule_id, module.name, dep))

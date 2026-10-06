@@ -81,7 +81,7 @@ assert controls.keys() == rule_ids, (controls.keys() ^ rule_ids)
 
 config = tomllib.loads((repo / "lakefile.toml").read_text())
 lib_names = sorted({lib["name"] for lib in config["lean_lib"]} | api["FUTURE_LIBS"])
-tests_libs = {x + "Tests" for x in (C, P, I)}
+tests_libs = {x + "Tests" for x in (C, P, I, api["PC_PROOFS"])}
 
 
 def put(root, relative, text):
@@ -328,6 +328,42 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             result = run(root, 1)
             assert (rule, importer, dep) in result, (rule, result)
         print(f"PASS rule boundaries: {len(boundaries)} cases -> exit 1")
+
+        # PC-SA uses the same boundaries, with Foundations as a common lane.
+        pc, cc = api["PC_PROOFS"], api["PC_CLAIMS"]
+        pc_positives = [
+            (pc + ".Proofs.PC.Store", pc + ".Proofs.Foundations.Store"),
+            (pc + ".Proofs.PC.Store", pc + ".Proofs.Shared.Reads"),
+            (pc + ".Proofs.PC.Export", cc + ".Claims.PC"),
+            (pc + ".Proofs.Shared.Claims", cc + ".Claims.PC"),
+            (pc + ".Proofs.Assembly.PC", pc + ".Proofs.PC.Export"),
+        ]
+        for index, (importer, dep) in enumerate(pc_positives):
+            root = temp / f"pcsa-positive-{index}"
+            setup(root)
+            module(root, importer, dep)
+            run(root, 0, set())
+        pc_negatives = [
+            (pc + ".Proofs.PC.Store", pc + ".Proofs.Clean.Store", "LANE"),
+            (pc + ".Proofs.Shared.Reads", pc + ".Proofs.Clean.Store", "SHARED"),
+            (pc + ".Proofs.Assembly.PC", pc + ".Proofs.PC.Store", "ASSEMBLY"),
+            (pc + ".Proofs.PC.Export", cc + ".Claims.Clean", "CLAIM-USE"),
+            (cc + ".Claims.PC", cc + ".Claims.Clean", "CLAIM-USE"),
+            (pc + ".Proofs.PC.Store", pc + ".Proofs.Shared.Claims", "LANE-CLAIMS"),
+            (pc + ".Proofs.Clean.Store", pc + ".Proofs.PC.Export", "EXPORT-USE"),
+        ]
+        for index, (importer, dep, rule) in enumerate(pc_negatives):
+            root = temp / f"pcsa-negative-{index}"
+            setup(root)
+            module(root, importer, dep)
+            assert (rule, importer, dep) in run(root, 1)
+        root = temp / "pcsa-transitive"
+        setup(root)
+        module(root, pc + ".Proofs.Shared.Mid", pc + ".Proofs.Shared.Claims")
+        module(root, pc + ".Proofs.PC.Store", pc + ".Proofs.Shared.Mid")
+        assert ("LANE-CLAIMS", pc + ".Proofs.PC.Store",
+                pc + ".Proofs.Shared.Mid") in run(root, 1)
+        print("PASS PC-SA lanes: positive, negative and transitive controls")
 
         # R-F1 D6 is transitive: a lane helper that imports Shared.Claims
         # taints every lane module that imports the helper.

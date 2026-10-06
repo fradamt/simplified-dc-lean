@@ -99,7 +99,7 @@ import check_common as C  # noqa: E402
 
 GEN = {'AvailableChainGeneric'}
 FGSA_ALL = {'AvailableChainFGSA', 'AvailableChainFGSARun', 'AvailableChainFGSAClaims',
-            'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit'}
+            'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit', 'AvailableChainPCSAProofs'}
 KITFG = {'AvailableChainKitFG'}
 BASE = os.environ.get('GLY_BASE', '7ac5b0c')
 ALLOW = os.path.join(C.SCRIPTS, 'gly-rules-allow.txt')
@@ -529,7 +529,7 @@ def regime_premises_groups(text):
 
 def f23_findings(lf, decls, new=None):
     out = []
-    shared = lf.lib == 'AvailableChainFGSAProofs' and '.Shared.' in lf.module + '.'
+    shared = lf.lib in {'AvailableChainFGSAProofs', 'AvailableChainPCSAProofs'} and '.Shared.' in lf.module + '.'
     if not (lf.lib in GEN | KITFG or shared):
         return out
     for d in decls:

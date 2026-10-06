@@ -68,7 +68,7 @@ def is_proof_module(lf, kitfg_defs):
         return False
     if lf.lib in KIT_LIBS:
         return lf.module not in kitfg_defs
-    return lf.lib == 'AvailableChainFGSAProofs'
+    return lf.lib in {'AvailableChainFGSAProofs', 'AvailableChainPCSAProofs'}
 
 
 def main():

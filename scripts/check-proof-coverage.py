@@ -8,7 +8,8 @@ import subprocess
 import tempfile
 
 AUDITS = tuple('AvailableChain' + lib + '.Tests.Axioms' for lib in
-               ('Generic', 'FGSA', 'FGSARun', 'FGSAClaims', 'FGSAProofs', 'FGSAInhabit'))
+               ('Generic', 'FGSA', 'FGSARun', 'FGSAClaims', 'FGSAProofs', 'FGSAInhabit',
+                'PCSAProofs'))
 
 
 def read_coverage(path):

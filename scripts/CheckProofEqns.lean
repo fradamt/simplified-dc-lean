@@ -71,7 +71,7 @@ def isProofModule (definitions : Std.HashSet Name) (m : Name) : Bool :=
     (!parts.contains `Tests && !definitions.contains m && m != `AvailableChainKitV2.ClockLaws &&
       parts.length > 1 &&
         [`AvailableChainKit, `AvailableChainKitV2, `AvailableChainKitFG,
-          `AvailableChainFGSAProofs].contains parts.head!)
+          `AvailableChainFGSAProofs, `AvailableChainPCSAProofs].contains parts.head!)
 
 def tomlString (v : Lake.Toml.Value) : IO String :=
   match v with

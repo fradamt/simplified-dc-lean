@@ -25,6 +25,7 @@ defaultTargets = [
   "AvailableChainPCSA",
   "AvailableChainPCSARun",
   "AvailableChainPCSAClaims",
+  "AvailableChainPCSAProofs",
 ]
 
 [leanOptions]
@@ -184,3 +185,13 @@ globs = ["AvailableChainPCSARun.*"]
 [[lean_lib]]
 name = "AvailableChainPCSAClaims"
 globs = ["AvailableChainPCSAClaims.*"]
+
+# PC-SA proof lanes and their separate audit target.
+[[lean_lib]]
+name = "AvailableChainPCSAProofs"
+globs = ["AvailableChainPCSAProofs.*"]
+
+[[lean_lib]]
+name = "AvailableChainPCSAProofsTests"
+roots = []
+globs = ["AvailableChainPCSAProofs.Tests.+"]

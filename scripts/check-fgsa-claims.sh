@@ -28,6 +28,7 @@ ROOT = Path.cwd()
 SOURCE_ONLY = os.environ.get('SOURCE_ONLY', '0') == '1'
 LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit')
 CLAIMS, PROOFS, INHABIT = LIBS
+ROOT_LIBS = (*LIBS, "AvailableChainPCSAProofs")
 # Keep this minimum scope independent of the data file. The _def rows are
 # required even when their declarations do not yet exist.
 REQUIRED_MODEL_SCOPE = {
@@ -208,6 +209,9 @@ else:
     run('layers', ['python3', 'scripts/check-layers.py'])
 
 def check_source_coverage(imports, roots):
+    imports = {**{m.name: m.imports for m in ctx.modules.values()
+                  if L.under(m.name, "AvailableChainPCSAProofs")}, **imports}
+    roots = list(dict.fromkeys([*roots, *imports]))
     # Every production module must be in its root facade's transitive closure.
     def closure(starts):
         seen = set()
@@ -222,7 +226,7 @@ def check_source_coverage(imports, roots):
 
     # PhasesInternal is restricted to F4/Finality. The facade cannot import it.
     f4_only = {CLAIMS + '.Statements.PhasesInternal'}
-    for lib in LIBS:
+    for lib in ROOT_LIBS:
         seen = closure([lib])
         missing = [m for m in roots if L.under(m, lib) and not L.is_test(m) and m not in seen
                    and m not in f4_only]

@@ -5433,4 +5433,9 @@
             'AvailableChain.Gen.V2.HonestNeverSlashed_def',
         ),
     },
+    'AvailableChainPCSAProofs.Tests.Axioms': {
+        'AvailableChainPCSAProofs.Proofs.Foundations.Store': (
+            'AvailableChain.PCSA.initial_pcs',
+        ),
+    },
 }
