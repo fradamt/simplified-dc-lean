@@ -290,3 +290,4 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Live
 public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth
+public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed

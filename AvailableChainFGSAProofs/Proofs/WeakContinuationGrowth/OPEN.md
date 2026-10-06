@@ -131,3 +131,20 @@ The remaining checker failure is the Statements ORDER registration.
 - Axioms: propext, Classical.choice, Quot.sound only.
 - Logs: `.lake/wcg-resume-*.log`. Statement commit: `7d6a94f`.
 - The same validated Lean tree is used for the component commit.
+
+### Seed construction after the first commits
+
+- `Assembly/WeakContinuationGrowthSeed.lean` proves `wcg_certifiedOrigin`:
+  Base₂ and FaultQ rebuild WCTargetOrigin at every continuation index.
+  `wcg_seedCertified` supplies the certified field at the continuation cut.
+  This removes the lost-source-signer blocker for nonempty suffixes.
+- `wcg_seedCarrier` obtains carrier scope from a retained store.
+  `wcg_retained_nonempty` supplies that store witness for a strict suffix.
+- `wcg_participation` gives faulty < awakeHonest at every covered time
+  after GST, including source-prefix times, for a nonempty suffix.
+- Exact remaining seed facts: map gate and HEAD event indices below the
+  continuation cut; transfer nextHeads and highSources; construct the
+  remaining WCFiniteFacts fields. Receipts and lease writes need their
+  local occurrence indices, not the source's global indices.
+- The source witness producer `wc_heightSeed` is in Assembly. A sibling
+  Assembly import is forbidden. No such import or new exception is added.

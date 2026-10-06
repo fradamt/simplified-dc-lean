@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth -- shake: keep (axiom audit)
 
+public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed -- shake: keep (seed axiom audit)
+
 public section
 
 open AvailableChain.FGSA.Run
@@ -26,4 +28,9 @@ open AvailableChain.FGSA.Run
 #print axioms wcg_seededFramePath
 #print axioms wcg_finalityTargetEarlier
 #print axioms wcg_live_of_invariant_inclusion
+#print axioms wcg_certifiedOrigin
+#print axioms wcg_seedCertified
+#print axioms wcg_retained_nonempty
+#print axioms wcg_seedCarrier
+#print axioms wcg_participation
 end
