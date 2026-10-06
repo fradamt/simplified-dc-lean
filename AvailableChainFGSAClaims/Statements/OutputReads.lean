@@ -30,7 +30,7 @@ theorem ServedFromGateAt_def (pt : PtSP) :
   rw [ServedFromGateAt]
 
 /-- Growth: paper proof in 23 §17 (bp.weakContinuationGrowth.v2).
-Blueprint 23:242–245 for "both accessors expose S".
+Blueprint 23 §17.2, step 5 for "both accessors expose S".
 DC Generic/Properties.lean:104–110 LiveFrom: SAME joint strict-prefix growth body
 as AvailableGrowthConcl.
 INTENTIONAL: one actual proposal extends both outputs at t and is in both
