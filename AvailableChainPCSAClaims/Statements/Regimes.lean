@@ -5,6 +5,7 @@ public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 public import AvailableChainPCSARun.Model.Families
 public import AvailableChainPCSARun.Statements.Roots
+public import AvailableChainPCSARun.Statements.Interface
 
 @[expose] public section
 
@@ -75,6 +76,96 @@ def FGSafetyBound (rho : V2.D.Run V (pcsa p c)) : Prop :=
 theorem FGSafetyBound_def (rho : V2.D.Run V (pcsa p c)) :
     FGSafetyBound p c rho = ((faulty rho).card ≤ (p.n - 1) / 3) := by
   rw [FGSafetyBound]
+
+/-! ### Lane regimes (W0; pcsa34-r4 5.0, 1.1)
+
+The stage-1 claims read `StageOneFrame`; the stage-2 claims drop it and add
+their frame premises (pcsa-proof-plan §1, C15). The fault bounds are separate
+premises, as r4.3 §1.1 states them per claim: `FaultsBelowQA` is
+`a < ⌈n/2⌉`, `QuarterCap` is `a ≤ ⌊n/4⌋`, `FGSafetyBound` is `a ≤ f`. -/
+
+/-- [PC-SA claims, W0; pcsa34-r4 1.1] The PC fault bound of formation,
+inclusion into strong and PC healing: `a ≤ ⌊n/4⌋`, so `n − a ≥ q_N`
+(`4a ≤ n`, as `PCIncludedRegime.quarterCap`). -/
+def QuarterCap (rho : V2.D.Run V (pcsa p c)) : Prop :=
+  4 * (faulty rho).card ≤ p.n
+
+theorem QuarterCap_def (rho : V2.D.Run V (pcsa p c)) :
+    QuarterCap p c rho = (4 * (faulty rho).card ≤ p.n) := by
+  rw [QuarterCap]
+
+/-- [PC-SA claims, W0; pcsa34-r4 5.2.2 (vi), 5.3 (F6)/(F7)] The frame of a
+store is vacuous: `F` and the FG root `Z` are genesis and the band floor `lo`
+is `0`. Then the full filtered tree is the whole tree `Σ.T`, every usable PC
+is frame-active, no block is below `lo`, and every block is `F`-compatible. -/
+def FrameVacuous (st : State p.n) : Prop :=
+  st.fg.F = .genesis ∧ (controls p st).Z = .genesis ∧ (controls p st).lo = 0
+
+theorem FrameVacuous_def (st : State p.n) :
+    FrameVacuous p st =
+      (st.fg.F = .genesis ∧ (controls p st).Z = .genesis ∧ (controls p st).lo = 0) := by
+  rw [FrameVacuous]
+
+omit [Fintype V] in
+/-- [PC-SA claims, W0; pcsa-proof-plan §1 (stage 1); pcsa34-r4 5.2.2 (vi),
+5.3 (F6)/(F7), 5.4.1] The stage-1 frame premise: at every honest node and
+every event state the frame is vacuous. r4.3 states the stage-1 claims for a
+protocol whose frame items are vacuous; the Lean model computes the frame from
+the FG store, so the stage-1 claims take this run premise. -/
+def StageOneFrame (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) : Prop :=
+  ∀ x ∈ rho.honest, ∀ i : Nat, FrameVacuous p (V2.D.Run.stateBefore E rho i x).st
+
+omit [Fintype V] in
+theorem StageOneFrame_def (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) :
+    StageOneFrame p c E rho =
+      (∀ x ∈ rho.honest, ∀ i : Nat, FrameVacuous p (V2.D.Run.stateBefore E rho i x).st) := by
+  rw [StageOneFrame]
+
+/-- [PC-SA claims, W0; pcsa34-r4 1.3] The slow lease lifetime `L = (4k − 1)Δ`. -/
+def pcsaL (p : Params) : Time := (4 * (p.k : Time) - 1) * p.Δ
+
+theorem pcsaL_def (p : Params) : pcsaL p = (4 * (p.k : Time) - 1) * p.Δ := rfl
+
+omit [Fintype V] in
+/-- [PC-SA claims, W0; FG-SA awakeHonestIn] The honest nodes awake at some
+time in the closed interval `[a, b]`. -/
+noncomputable def pcsa_awakeHonestIn (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    (a b : Time) : Finset V := by
+  classical
+  exact rho.honest.filter (fun v => ∃ t, a ≤ t ∧ t ≤ b ∧ E.awake v t = true)
+
+/-- [PC-SA claims, W0; pcsa34-r4 5.0 OUTAGE(T, b₀, b₁); FG-SA Outage₂ with
+`fast = false`] CLEAN(b₀) (`HealthyPrefix₂`), the η sleepiness condition
+before the cut (FG-SA `Outage₂.sleepy`, the meaning of η), the slow arming lag
+`T + 4(k − 1)Δ ≤ b₀`, and the budget `b₁ − b₀ ≤ min(η, L)`. Delivery in
+`[b₀, b₁)` is arbitrary. There is no fast route. -/
+structure Outage₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    (T b₀ b₁ : Time) (ΔF : Time := E.Δ) : Prop where
+  pre : HealthyPrefix₂ p c E rho b₀ ΔF
+  sleepy : ∀ t, 0 ≤ t → t < b₀ →
+    (pcsa_awakeHonestIn p c E rho (t - p.η) t ∪ faulty rho).card <
+      2 * (awakeHonest E rho t).card
+  order : 0 ≤ T ∧ T ≤ b₀ ∧ b₀ ≤ b₁ ∧ b₁ ≤ rho.horizon
+  lag : T + 4 * ((p.k : Time) - 1) * p.Δ ≤ b₀
+  budget : b₁ - b₀ ≤ min p.η (pcsaL p)
+
+/-- [PC-SA claims, W0; pcsa34-r4 5.0 RECOVERY; FG-SA Recovery₂] Arbitrary
+delivery before `t_GST`; after it strict delivery within `Δ` (rows `Δ_F`),
+every honest node awake, an honest proposer in every window `(t, t + G]`
+(`t ≥ t_GST`, awake by `awake`), `G ≥ 4Δ`, and the PC fault cap
+`a ≤ ⌊n/4⌋` (stage 2 adds `a ≤ f`). -/
+structure Recovery₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (G : Time)
+    (ΔF : Time := E.Δ) : Prop where
+  base : Base₂ p c E rho
+  sync : Gen.V2.Duty.PartialSynchronyBy E rho (pcsaDelay p E.Δ ΔF)
+  deltaF : E.Δ ≤ ΔF
+  awake : Gen.V2.Duty.FullParticipation E rho E.t_GST
+  gap : ∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon →
+    ∃ s, t < V2.D.proposalTime (pcsaInterface p c).toInterface s ∧
+      V2.D.proposalTime (pcsaInterface p c).toInterface s ≤ t + G ∧
+      Gen.V2.Duty.HonestSlot rho (pcsaInterface p c).toInterface s
+  quarterCap : QuarterCap p c rho
+  gapPos : 4 * p.Δ ≤ G
 
 end AvailableChain.PCSA.Run
 end
