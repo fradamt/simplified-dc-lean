@@ -6,6 +6,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.CommonResolution
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadPersistence
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadStamps
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadReceipt
+public import AvailableChainPCSAProofs.Proofs.Clean.HeadTransport
 public import AvailableChainPCSAProofs.Proofs.Clean.HonestBody
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyPersistence

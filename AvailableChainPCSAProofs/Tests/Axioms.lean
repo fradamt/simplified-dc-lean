@@ -283,3 +283,12 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_process_head_stamp_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_head_stamp_source
 #print axioms AvailableChain.PCSA.Run.pcsa_head_accepted_before
+
+#print axioms AvailableChain.PCSA.Run.pcsa_handled_head_mem_or_cap
+#print axioms AvailableChain.PCSA.Run.pcsa_head_receipt_window
+#print axioms AvailableChain.PCSA.Run.pcsa_handled_head_stateBefore_mem_or_cap
+#print axioms AvailableChain.PCSA.Run.pcsa_head_stamp_lt_of_index_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_head_stamp_lt_at_clocked_read
+#print axioms AvailableChain.PCSA.Run.pcsa_head_before_cut_mem_late
+#print axioms AvailableChain.PCSA.Run.pcsa_cap_before_cut_mem_late
+#print axioms AvailableChain.PCSA.Run.pcsa_handled_head_late_or_cap

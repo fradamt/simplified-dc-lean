@@ -79,8 +79,10 @@ These do not yet provide the joint CI record or the composing induction.
   keeps an existing first stamp lookup unchanged.
   `HeadReceipt` proves stamp keys, first lookup, exact receipt-time
   preservation, direct/carried stamp origin, and acceptance before a public
-  cutoff. Forward/backward receipt membership and body stamp transport are
-  still needed to put common support seats into both late denominators.
+  cutoff. `HeadTransport` proves actual handler admission as an exact HEAD
+  or a capped seat, and transports both outcomes into later late
+  denominators with strict stamps. Cross-node relay membership and body
+  stamp transport are still needed for both denominators.
   Then prove equal proposal/voter views and walk inputs at an
   honest slot. The label-zero case and the Vote/Ack/PC record steps are open.
   `StepGate` has only the store consequences of chain compatibility; it does
@@ -212,3 +214,22 @@ foreign `admitBlock` matcher exports. Use explicit Boolean constructor
 cases for the key invariant and a native parent-match hypothesis for stamp
 origin. This removes all six exports. The explicit equation check passes with
 zero unaccepted exports. Owner modules and the baseline are unchanged.
+
+### Local denominator transport (2026-10-07)
+
+`HeadTransport` supplies `pcsa_handled_head_late_or_cap`: a direct or
+accepted proposal-carried HEAD handled within its receipt window enters
+the later late denominator, or both copies of its capped seat do.
+`pcsa_head_before_cut_mem_late` and `pcsa_cap_before_cut_mem_late` retain
+the exact copies with their first stamps. `pcsa_head_receipt_window`
+derives the admissible store slots from the actual delivery event.
+All eight facts are exported. They do not establish cross-node delivery.
+
+Next for C6: derive the slot-start lower bound for an actual accepting
+HEAD handler, including faulty HEADs accepted before the vote duty.
+Use `pcsa_head_accepted_before`, strict relay, and the local denominator
+transport to prove forward and backward count membership. Prove the
+corresponding body stamp bound and exact resolution after body relay.
+Then supply retained paths, proposal/voter view equality, CL1–CL4 run
+inputs, and the four record steps. No run-level claim is closed by these
+local transport facts alone.
