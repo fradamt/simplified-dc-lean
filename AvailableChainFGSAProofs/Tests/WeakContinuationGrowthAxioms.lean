@@ -71,4 +71,14 @@ open AvailableChain.FGSA.Run
 #print axioms wcg_scopedRowOrigins
 #print axioms wcg_dischargeL
 #print axioms wcg_liveOfSeed
+#print axioms wcg_tick_retained
+#print axioms wcg_tick_before_cut
+#print axioms wcg_time_before_cut
+#print axioms wcg_tickSourceReplay
+#print axioms wcg_preTickReplay
+#print axioms wcg_tickReads
+#print axioms wcg_tickPassed
+#print axioms wcg_rowSourceReplay
+#print axioms wcg_actionReads
+#print axioms wcg_retainedSeed
 end

@@ -68,7 +68,7 @@ private theorem fold_filter_local (events : List (V2.Event V (fgsa p c).Object))
       rw [localStep_other x st e h]
       exact ih _
 
-private theorem tick_retained (ha : RetainedAgreesThrough₂ p c E source E' rho)
+theorem wcg_tick_retained (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (x : V) (hx : x ∈ rho.honest) (st : (fgsa p c).State)
     (t : Time) (ht : t ≤ source.horizon) :
     V2.D.tick E' rho st x t = V2.D.tick E source st x t := by
@@ -125,7 +125,7 @@ theorem wcg_filtered_replay (ha : RetainedAgreesThrough₂ p c E source E' rho)
     subst v
     change (if x = x then (V2.D.tick E' rho st x t).1 else st) =
       (if x = x then (V2.D.tick E source st x t).1 else st)
-    rw [ite_eq_left rfl, ite_eq_left rfl, tick_retained ha x hx st t ht]
+    rw [ite_eq_left rfl, ite_eq_left rfl, wcg_tick_retained ha x hx st t ht]
 
 /-- Inclusive public reads agree at each retained validator through T. -/
 theorem wcg_readReplay (ha : RetainedAgreesThrough₂ p c E source E' rho)

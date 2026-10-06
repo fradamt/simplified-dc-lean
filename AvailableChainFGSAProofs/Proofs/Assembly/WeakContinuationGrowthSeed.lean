@@ -123,44 +123,6 @@ theorem wcg_finiteSeed (hb : Base₂ p c E rho)
     (fgsa_leaseOrigins_fastWrites p c E rho hsch)
     (fgsa_leaseOrigins_ancestorDeadlines p c E rho) i
 
-omit [DecidableEq V] [Fintype V] in
-/-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
-private theorem wcg_cut_downward (t : Time) :
-    ∀ e f : V2.Event V (fgsa p c).Object, e.key ≤ f.key →
-      cutPred t f = true → cutPred t e = true := by
-  intro e f hef hf
-  exact decide_eq_true (hef.trans (of_decide_eq_true hf))
-
-omit [DecidableEq V] [Fintype V] in
-/-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
-private theorem wcg_tick_before_cut (hs : V2.D.ScheduleWellFormed E rho)
-    {i : Nat} {x : V} {t d : Time} (he : rho.events[i]? = some (.tick x t))
-    (ht : t ≤ d) : i < afterTicksIdx rho d := by
-  by_contra h
-  have hf := V2.D.Engine.filter_false_of_index_ge hs (cutPred d)
-    (wcg_cut_downward d) (Nat.le_of_not_gt h) he
-  have hc : cutPred d (.tick x t : V2.Event V (fgsa p c).Object) = true := by
-    apply decide_eq_true
-    exact Prod.Lex.toLex_le_toLex.mpr (ht.lt_or_eq.imp id (fun h => ⟨h, le_rfl⟩))
-  rw [hc] at hf
-  cases hf
-
-omit [DecidableEq V] [Fintype V] in
-/-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
-private theorem wcg_time_before_cut (hs : V2.D.ScheduleWellFormed E rho)
-    {i : Nat} {e : V2.Event V (fgsa p c).Object} {d : Time}
-    (he : rho.events[i]? = some e) (hi : i < afterTicksIdx rho d) : e.time ≤ d := by
-  have hm : e ∈ rho.events.filter (cutPred d) := by
-    rw [V2.D.Engine.filter_eq_take hs (cutPred d) (wcg_cut_downward d)]
-    apply List.mem_of_getElem? (i := i)
-    change (rho.events.take (afterTicksIdx rho d))[i]? = some e
-    rw [List.getElem?_take_of_lt hi]
-    exact he
-  have hkey := of_decide_eq_true (List.mem_filter.mp hm).2
-  rcases Prod.Lex.toLex_le_toLex.mp hkey with h | ⟨h, _⟩
-  · exact le_of_lt h
-  · exact le_of_eq h
-
 private def seed_headAtIdx (p : Params) {In : Type} (c : AppCodec In)
     {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (k : Nat) (s : Slot) : Block :=
@@ -316,6 +278,58 @@ theorem wcg_sourceWitness (hH : HTimeClaim p) {G ΔF : Time}
     rw [hS.endpoint]
     exact start.trans_lt bound
   exact ⟨w, wcg_heightSeed hS input hend⟩
+
+/-- Replay all seed fields for a continuation with a nonempty suffix. -/
+theorem wcg_retainedSeed {E₀ : Generic.Env V}
+    {source : V2.D.Run V (fgsa p c)} {G ΔF : Time} {w : HealingWitness} {iSource : Nat}
+    (hS : StrongRecoverySearchPrefix₂ p c E₀ source G ΔF)
+    (hc : CleanGrowthContinuation₂ p c E₀ source E rho ΔF)
+    (hne : source.horizon < rho.horizon)
+    (hs : WCSeed p c E₀ source w iSource)
+    (hend : SA.gateTime p.toParams w.u ≤ source.horizon) :
+    WCSeed p c E rho w (afterTicksIdx rho (SA.gateTime p.toParams w.u)) := by
+  have hss := hS.base.valid.toScheduleWellFormed
+  have hrs := hc.base.valid.toScheduleWellFormed
+  have hq := wcg_suffix_faultQ hc hne
+  have states := wcg_seed_state hc.agrees hss hrs hs hend
+  have hg : E.t_GST = E₀.t_GST := hc.agrees.gst
+  refine ⟨rfl, List.length_filter_le _ _, hg ▸ hs.afterGST,
+    hg ▸ hs.firstVoteAfterGST,
+    wcg_seedCarrier hc.agrees hss hrs hs hend (wcg_retained_nonempty hc hne),
+    hs.sourcePrefix, ?_, (fun x hx => (states x hx).1), ?_, ?_,
+    (fun x hx => (states x hx).2.1), (fun x hx => (states x hx).2.2.1),
+    (fun x hx => (states x hx).2.2.2), wcg_finiteSeed hc.base hq _⟩
+  · intro x hx
+    obtain ⟨j, _, hj, hv, hp⟩ := hs.gates x (hc.agrees.honest hx)
+    obtain ⟨k, hk, he⟩ := wcg_tickEventReplay hc.agrees hss hrs
+      hS.base.noRestart hc.base.noRestart hx hend hj
+    exact ⟨k, wcg_tick_before_cut hrs hk le_rfl, hk,
+      (wcg_tickReads hj hk he).1.trans hv, wcg_tickPassed hj hk he hp⟩
+  · intro x hx
+    obtain ⟨j, hjcut, hhead⟩ := hs.nextHeads x (hc.agrees.honest hx)
+    have ht := wcg_time_before_cut hss hhead.event (hs.cut ▸ hjcut)
+    obtain ⟨k, hk, he⟩ := wcg_tickEventReplay hc.agrees hss hrs
+      hS.base.noRestart hc.base.noRestart hx (ht.trans hend) hhead.event
+    have hstore : storeAt p c E rho k x = storeAt p c E₀ source j x :=
+      congrArg (fun st => st.st) he
+    refine ⟨k, wcg_tick_before_cut hrs hk ht, hk, ?_, ?_, ?_⟩
+    · rw [(wcg_tickReads hhead.event hk he).2]
+      exact hhead.covers
+    · rw [hstore]
+      exact hhead.path
+    · have hr := (wcg_finiteSeed hc.base hq k).receipts x hx
+      constructor
+      · simpa only [(clock_cumulative p _ _).2.2.1] using hr.blocks
+      · simpa only [(clock_cumulative p _ _).2.2.2.1] using hr.votes
+  · intro k x r a e hk hrow hentry hhigh
+    have ht := wcg_time_before_cut hrs hrow.2.1 hk
+    obtain ⟨j, hj⟩ := wcg_rowSourceReplay hc.agrees hss hrs
+      hS.base.noRestart hc.base.noRestart hrow (ht.trans hend)
+    have hjcut : j < iSource := hs.cut ▸ wcg_tick_before_cut hss hj.2.1 ht
+    obtain ⟨K, B, hK, he, hT, hB, hKB, hQ⟩ := hs.highSources j x r a e hjcut hj hentry hhigh
+    have reads := wcg_actionReads hc.agrees hss hrs
+      hS.base.noRestart hc.base.noRestart x hrow.1 (ht.trans hend)
+    exact ⟨K, B, reads.1.trans hK, he, hT, reads.2.trans hB, hKB, hQ⟩
 
 end AvailableChain.FGSA.Run
 end
