@@ -44,9 +44,8 @@ theorem pcsa_fold_poolAckRaw_mono (st : State n) (as : List (AckWire n)) :
 private theorem row_pool (p : Params) (st : State p.n) (a : RowWire p.n) :
     (admitRow p st a).ackPool = st.ackPool := by
   delta admitRow
-  split
-  · split <;> rfl
-  · rfl
+  cases a.decode? <;> dsimp only
+  split <;> rfl
 
 private theorem normalize_pool (st : State n) : (normalizeS st).ackPool = st.ackPool := by
   delta normalizeS
@@ -61,36 +60,44 @@ and frame reconciliation. -/
 theorem pcsa_process_ackPool_mono (p : Params) (st : State p.n) (o : Wire p.n) :
     st.ackPool ⊆ (process p st o).ackPool := by
   delta process
-  split
-  · exact List.Subset.refl _
-  · rw [row_pool]
-  · delta admitBlock
-    split
-    · exact List.Subset.refl _
-    · split
+  cases hd : o.decode with
+  | none => exact List.Subset.refl _
+  | some msg => cases msg with
+    | vote s i r => exact List.Subset.refl _
+    | row i body => exact (row_pool p st ⟨o.auth, body⟩) ▸ List.Subset.refl _
+    | block s N =>
+      dsimp only
+      delta admitBlock
+      split
       · exact List.Subset.refl _
-      · split
-        · dsimp only
-          apply List.foldlRecOn (motive := fun acc : State p.n => st.ackPool ⊆ acc.ackPool)
-          · rw [(collectPCs_frame _).2.2.1]
-            refine List.Subset.trans ?_ (pcsa_fold_poolAckRaw_mono _ _)
-            repeat first
-            | exact List.Subset.refl _
-            | rw [reconcile_pool]
-            | split
-          · intro acc h a _
-            rw [row_pool]
-            exact h
-        · exact List.Subset.refl _
-  · change st.ackPool ⊆ (collectPCs (poolAck p st _)).ackPool
-    rw [(collectPCs_frame _).2.2.1]
-    exact poolAck_mono p st _
-  · delta admitPC
-    split
-    · rw [(collectPCs_frame _).2.2.1]
-      exact pcsa_fold_poolAckRaw_mono st _
-    · exact List.Subset.refl _
-  · exact List.Subset.refl _
+      · cases parentFG st N.erase with
+        | none => exact List.Subset.refl _
+        | some P =>
+          dsimp only
+          split
+          · apply List.foldlRecOn (motive := fun acc : State p.n => st.ackPool ⊆ acc.ackPool)
+            · rw [(collectPCs_frame _).2.2.1]
+              refine List.Subset.trans ?_ (pcsa_fold_poolAckRaw_mono _ _)
+              cases N.pc <;> dsimp only
+              all_goals repeat first
+              | exact List.Subset.refl _
+              | rw [reconcile_pool]
+              | split
+            · intro acc h a _
+              rw [row_pool]
+              exact h
+          · exact List.Subset.refl _
+    | ack s i r =>
+      change st.ackPool ⊆ (collectPCs (poolAck p st _)).ackPool
+      rw [(collectPCs_frame _).2.2.1]
+      exact poolAck_mono p st _
+    | pc C =>
+      dsimp only
+      delta admitPC
+      split
+      · rw [(collectPCs_frame _).2.2.1]
+        exact pcsa_fold_poolAckRaw_mono st _
+      · exact List.Subset.refl _
 
 /-- Gates preserve the ack pool, including every lock write. -/
 theorem pcsa_gateFrom_ackPool (p : Params) (a : Block) (cs : List (PC n))
@@ -98,17 +105,16 @@ theorem pcsa_gateFrom_ackPool (p : Params) (a : Block) (cs : List (PC n))
     (gateFrom p a cs rank st s).ackPool = st.ackPool := by
   rw [gateFrom_def]
   dsimp only
+  cases SA.Root.confirmationFrom p.toParams a (actView st) s <;> dsimp only
   split
   · rfl
-  · split
+  · apply List.foldlRecOn (motive := fun acc : State n => acc.ackPool = st.ackPool)
     · rfl
-    · apply List.foldlRecOn (motive := fun acc : State n => acc.ackPool = st.ackPool)
-      · rfl
-      · intro acc h b _
-        apply List.foldlRecOn (motive := fun acc : State n => acc.ackPool = st.ackPool)
-        · exact h
-        · intro acc' h' g _
-          exact h'
+    · intro acc h b _
+      apply List.foldlRecOn (motive := fun acc : State n => acc.ackPool = st.ackPool)
+      · exact h
+      · intro acc' h' g _
+        exact h'
 
 /-- Clock operations preserve the ack pool. -/
 theorem pcsa_clock_ackPool (p : Params) (st : State p.n) (t : Time) :
