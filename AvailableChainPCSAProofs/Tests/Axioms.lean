@@ -19,6 +19,12 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.StampRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.Stamps
 public import AvailableChainPCSAProofs.Proofs.Foundations.Store
+public import AvailableChainPCSAProofs.Proofs.PC.AckOrigins
+public import AvailableChainPCSAProofs.Proofs.PC.Certificates
+public import AvailableChainPCSAProofs.Proofs.PC.HeadSupport
+public import AvailableChainPCSAProofs.Proofs.PC.RunEvidence
+public import AvailableChainPCSAProofs.Proofs.PC.StoreEvidence
+public import AvailableChainPCSAProofs.Proofs.PC.Uniqueness
 
 public section
 
@@ -150,7 +156,52 @@ public section
 #print axioms AvailableChain.PCSA.gateFrom_stampBound
 #print axioms AvailableChain.PCSA.clock_stampBound
 #print axioms AvailableChain.PCSA.initial_pcs
+#print axioms AvailableChain.PCSA.Run.AckOrigin_def
+#print axioms AvailableChain.PCSA.Run.certSafe_stateBefore
+#print axioms AvailableChain.PCSA.Run.certSafe_storeAt
+#print axioms AvailableChain.PCSA.Run.ackOrigin_emits
+#print axioms AvailableChain.PCSA.Run.fresh_faulty_card
+#print axioms AvailableChain.PCSA.Run.held_pc_honest_ack
+#print axioms AvailableChain.PCSA.pcsa_firstPerSeat_subset
+#print axioms AvailableChain.PCSA.assemblePC_acks
+#print axioms AvailableChain.PCSA.CertSafe_def
+#print axioms AvailableChain.PCSA.collectPCs_certSafe
+#print axioms AvailableChain.PCSA.poolAckRaw_certSafe
+#print axioms AvailableChain.PCSA.normalizeS_certSafe
+#print axioms AvailableChain.PCSA.reconcile_certSafe
+#print axioms AvailableChain.PCSA.admitRow_certSafe
+#print axioms AvailableChain.PCSA.process_certSafe
+#print axioms AvailableChain.PCSA.gateFrom_certSafe
+#print axioms AvailableChain.PCSA.clock_certSafe
+#print axioms AvailableChain.PCSA.Run.pcsa_pcUniqueness
 #print axioms AvailableChain.PCSA.Run.pcsa_oneAckPerSlot
 #print axioms AvailableChain.PCSA.Run.pcsa_outputNesting
+#print axioms AvailableChain.PCSA.Run.signLabel_head_iff
+#print axioms AvailableChain.PCSA.Run.head_emission_duty
+#print axioms AvailableChain.PCSA.Run.head_emission_unique
+#print axioms AvailableChain.PCSA.Run.ack_emission_nTarget
+#print axioms AvailableChain.PCSA.Run.nTarget_support
+#print axioms AvailableChain.PCSA.Run.HeadAuthentic_def
+#print axioms AvailableChain.PCSA.Run.pcsa_named_preceq_refl
+#print axioms AvailableChain.PCSA.Run.pcsa_named_erase_root
+#print axioms AvailableChain.PCSA.Run.pcsa_rootBlock_delivered
+#print axioms AvailableChain.PCSA.Run.pcsa_rootBlock_eq
+#print axioms AvailableChain.PCSA.Run.evidence_stateBefore
+#print axioms AvailableChain.PCSA.Run.evidence_storeAt
+#print axioms AvailableChain.PCSA.StoreEvidence_def
+#print axioms AvailableChain.PCSA.grid_admitVote_evidence
+#print axioms AvailableChain.PCSA.grid_admitProposal_evidence
+#print axioms AvailableChain.PCSA.normalizeS_evidence
+#print axioms AvailableChain.PCSA.reconcile_evidence
+#print axioms AvailableChain.PCSA.installPC_evidence
+#print axioms AvailableChain.PCSA.collectPCs_evidence
+#print axioms AvailableChain.PCSA.poolAckRaw_evidence
+#print axioms AvailableChain.PCSA.admitRow_evidence
+#print axioms AvailableChain.PCSA.process_evidence
+#print axioms AvailableChain.PCSA.gateFrom_evidence
+#print axioms AvailableChain.PCSA.clock_evidence
+#print axioms AvailableChain.PCSA.Run.held_pc_head_support
+#print axioms AvailableChain.PCSA.Run.held_pc_root_unique
+#print axioms AvailableChain.PCSA.Run.held_pc_target_unique
 
 end
