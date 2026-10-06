@@ -21,7 +21,9 @@ DC Generic/Claims.lean:67,73 Consensus.available/stableIncludedFast:
 INTENTIONAL: this local adoption
 contract gives admitted proposals and exact HEADs, used to prove inclusion.
 The deterministic read clocks the strict-before state and also covers an
-asleep reader; it does not require a tick or an emitted HEAD. -/
+asleep reader; it does not require a tick or an emitted HEAD.
+Clause 3 restates inclusion_sleep_silence, proved from fgsa_tick_asleep
+and V2.D.tick_asleep. -/
 def ExactProposalAt (pt : PtSP) : Prop :=
   (∀ x ∈ rho.honest, ∃ o i t,
     (fgsaInterface p c).block o.payload = some pt.P ∧

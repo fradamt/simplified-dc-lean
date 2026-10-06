@@ -24,7 +24,7 @@ def SameLabelClaim (p : Params) : Prop :=
     SameLabelPrem p c E rho pt → SameLabelAt p c E rho pt.s
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-ap.headReachesLo.v6, pure clauses 1–3 (02 §7).
+ap.headReachesLo.v7, pure clauses 1–3 only (21 H.3; 02 §7).
 The controls and anchor are those of the full store, also for a smaller X. -/
 def HeadReachesLoAt (p : Params) (st : State p.n)
     (X : Finset (FGBlock (Fin p.n))) (raw support : List (GridCO.Wire p.n .root)) : Prop :=
@@ -69,6 +69,7 @@ def ReleaseStoreClaim (p : Params) : Prop := ∀ st, ReleaseStoreAt p st
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 bp.release.v1(a–c): the store laws and the run fault bound.
+The final fault-bound conjunct restates the premise ReleasePrem.lt.
 The local vote premise refers to actual emissions and keeps the HEAD label. -/
 def ReleaseAt (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop :=

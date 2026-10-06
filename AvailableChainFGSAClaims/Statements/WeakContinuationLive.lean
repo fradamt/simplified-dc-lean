@@ -9,8 +9,7 @@ namespace AvailableChain.FGSA.Run
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V] [Fintype V]
 
 /-- bp.weakContinuationAvailable.v2 = safety + inclusion (blueprint 23:126–192);
-the PROVED-paper status covers safety and inclusion only. Growth: B33 §K(1) / plan
-§1.1; no blueprint statement yet; paper proof pending (B33 §K(5) producer items).
+growth: paper proof in 23 §17 (bp.weakContinuationGrowth.v2).
 DC Legacy/Definitions/NamedVoteConsumers.lean:56–61 BoundedSafetyRecovery: SAME
 safety role; DC Legacy/Liveness.lean:29–71: SAME inclusion and growth roles.
 INTENTIONAL: all three results use one completed gate, and each field has
@@ -36,8 +35,7 @@ structure WeakContinuationLiveAt₂
       HonestProposal E rho (fgsaInterface p c) pt.s pt.P →
       SA.gateTime p.toParams pt.s ≤ rho.horizon →
       ServedFromGateAt p c E rho pt
-  /-- B33 §K(1) / plan §1.1; no blueprint statement yet; paper proof pending (B33
-  §K(5) producer items).
+  /-- Growth: paper proof in 23 §17 (bp.weakContinuationGrowth.v2).
   DC AvailableChainGrowth.afterGST:46–51:
   SAME universal continuation-gap order (B33); SingleProposerRecurrence
   is Generic/Conditions.lean:207–211.
@@ -52,8 +50,8 @@ structure WeakContinuationLiveAt₂
       t + G' + 6 * p.Δ ≤ rho.horizon →
       JointGrowthAt p c E rho t (t + G' + 6 * p.Δ)
 
-/-- Blueprint 23:103–192 (safety + inclusion); growth: B33 §K(1) / plan §1.1; no
-blueprint statement yet; paper proof pending (B33 §K(5) producer items).
+/-- Blueprint 23:103–192 (safety + inclusion);
+growth: paper proof in 23 §17 (bp.weakContinuationGrowth.v2).
 DC NamedVoteConsumers:56–61:
 SAME source-witness-before-continuation order.
 INTENTIONAL: choose one joint cut for safety, inclusion, and growth; DC

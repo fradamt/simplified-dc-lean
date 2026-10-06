@@ -30,7 +30,7 @@ def ClientSafetyBaseClaim (p : Params) : Prop :=
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     BasePrem p c E rho pt → ClientSafeAll p c E rho
 
-/- bp.receiptCoverage.v1 cites AvailableChain.FGSA.Run.ReceiptCoverageStatement
+/- bp.receiptCoverage.v2 cites AvailableChain.FGSA.Run.ReceiptCoverageStatement
 in AvailableChainFGSARun/Statements/ReceiptCoverage.lean (FROZEN 364d837e),
 proved by fgsa_receiptCoverage. Its within, slotWindow, compat and deadline
 premises remain unchanged. There is no second K8 statement here. -/
@@ -76,7 +76,7 @@ def CarrierAt : Prop :=
     (eraseFG X).slot = X.slot ∧ (eraseFG X).root = X.root) ∧ RCarrierView p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.store.v1: snapshot invariants and the two temporal channels.
+bp.store.v2: snapshot invariants and the two temporal channels.
 Each temporal channel retains its NoRestart premise. -/
 def StoreAt : Prop :=
   (∀ i x, i ≤ rho.events.length → x ∈ rho.honest →
@@ -84,11 +84,11 @@ def StoreAt : Prop :=
   (V2.D.ScheduleWellFormed E rho → RStoreCumul p c E rho ∧ RMono p c E rho)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.activeView.v1: the active tree and its unchanged vote/stamp data. -/
+bp.activeView.v2: the active tree and its unchanged vote/stamp data. -/
 def ActiveViewAt : Prop := RStore p c E rho ∧ RActive p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.leaseOrigins.v1: all obligation rows have a passed gate origin.
+bp.leaseOrigins.v2: all obligation rows have a passed gate origin.
 The statement includes due rows, target order, ancestor deadlines and fast writes. -/
 def LeaseOriginsAt : Prop := ∀ i x, i ≤ rho.events.length → x ∈ rho.honest →
   let st := storeAt p c E rho i x
@@ -105,7 +105,7 @@ def LeaseOriginsAt : Prop := ∀ i x, i ≤ rho.events.length → x ∈ rho.hone
         Block.Preceq X B ∧ fastAt p c E rho x s X)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.sourceDiscipline.v1(a,d): actual sources, emitted names and label bounds.
+bp.sourceDiscipline.v2(a,d): actual sources, emitted names and label bounds.
 DC: INTENTIONAL optional sends; every emitted row has a nonempty source pair. -/
 def SourceDisciplineBaseAt : Prop :=
   TSrc p c E rho ∧ LabelBound p c E rho ∧
@@ -143,28 +143,28 @@ def ChainCertificatesClaim : Prop :=
     ChainCertificatesAt p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.store.v1; all runs, with local temporal premises. -/
+bp.store.v2; all runs, with local temporal premises. -/
 def StoreClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     StoreAt p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.activeView.v1; all runs. -/
+bp.activeView.v2; all runs. -/
 def ActiveViewClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     ActiveViewAt p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.leaseOrigins.v1; scheduled runs. -/
+bp.leaseOrigins.v2; scheduled runs. -/
 def LeaseOriginsClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     V2.D.ScheduleWellFormed E rho → LeaseOriginsAt p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.reconcile.v1: exact edits, fixed-F idempotence and K1.
+bp.reconcile.v2: exact edits, fixed-F idempotence and K1.
 The K1 lease premise includes due rows and has no fastWrite premise. -/
 def ReconcileAt (st : State p.n) : Prop :=
   FGSA.reconcile st = { st with
@@ -187,7 +187,7 @@ def ReconcileAt (st : State p.n) : Prop :=
     Block.Preceq st.base.stableRecord (FGSA.reconcile st).base.stableRecord)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.reconcile.v1: the store claim at each reachable store. -/
+bp.reconcile.v2: the store claim at each reachable store. -/
 def ReconcileClaim : Prop := ∀ st, Reachable p st → ReconcileAt p st
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
@@ -213,7 +213,7 @@ def FrameClaim : Prop :=
     FrameAt p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-bp.sourceDiscipline.v1(a,d); no FaultQ premise. -/
+bp.sourceDiscipline.v2(a,d); no FaultQ premise. -/
 def SourceDisciplineBaseClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
