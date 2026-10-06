@@ -237,3 +237,7 @@ end
 
 #print axioms AvailableChain.PCSA.pcsa_body_not_excluded
 #print axioms AvailableChain.PCSA.pcsa_body_accepted
+#print axioms AvailableChain.PCSA.Run.pcsa_lookup_held_target
+#print axioms AvailableChain.PCSA.Run.pcsa_collect_held_target
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_emitted_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_collect_of_held_body
