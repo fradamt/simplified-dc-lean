@@ -1,6 +1,6 @@
-# WC corruption growth: proved components and exact open facts
+# WC corruption growth: completed proofs and remaining integration
 
-Base: `88c616d`. Branch: `wc-growth`. Date: 2026-10-07.
+Branch: `wc-growth`. Continuation 3. Date: 2026-10-07.
 
 ## Public statement
 
@@ -21,116 +21,103 @@ and its original deadline. There is no handover half-cap premise.
 The result is WeakContinuationLiveAt₂ at rho's own
 `afterTicksIdx rho (gateTime u)`: compatibility, monotonicity, seed,
 finalBelow, both outputs, inclusion, and conditional available growth.
-There is no finality-liveness conclusion. The claim is not yet closed.
+There is no finality-liveness conclusion. The closed theorem passes against the installed proof modules.
+The public theorem is not yet installed in Assembly.Root.
 
-## Proved
+## Completed proof facts
 
-- Replay/EventReplay: retained local state and event replay, strict reads,
-  matched ticks, inclusive reads, and independent completed-gate indices.
-- Seed: refreshed S, height, finalBelow, and live targets transfer locally.
-- Counts/Origins/StepInit/Frame: half-cap FaultQ, scoped no-evidence low
-  finality, initialization, and all three frame interfaces.
-- Assembly/WeakContinuationGrowthSeed: certificate origins are rebuilt
-  with continuation FaultQ. The signer is honest in rho. Carrier scope is
-  rebuilt from a retained store. A nonempty suffix supplies a retained
-  validator and participation at every covered time after GST.
-- Dynamics: WCFiniteFacts at any index from local producers; finite event
-  facts; delivery, gate tick, non-gate tick, and restart preservation;
-  WCGStepStatement and WCGSeededInductionStatement; HEAD batches, receipts,
-  retrospective transfer, output service, and WCGFinalBelowStatement.
-  Causal consumers take WCFinalityTargetEarlierStatement as a producer.
-  Assembly supplies the unchanged wc_finalityTargetEarlier through Export.
-- Assembly/WeakContinuationGrowth: proposal pivot, named admission, exact
-  HEAD, and WCGInclusion6Statement. The companion frame discharges its
-  producer. wcg_seededLiveAt combines induction, finalBelow, and inclusion.
-  wcg_liveOfSeed discharges every internal producer from Base₂, synchrony,
-  Δ ≤ ΔF, FaultQ, accountability, vote participation, and WCSeed.
-  It reuses the original safety and growth theorems. No public regime
-  acquired an internal seed, invariant, service, or inclusion premise.
-- Assembly/WeakContinuationGrowthSeed: wcg_finiteSeed constructs all
-  finite fields from Base₂ and FaultQ. wcg_heightSeed constructs the source
-  seed from HealingInput. wcg_sourceWitness selects the uniform source
-  witness from the existing HTimeClaim interface. No sibling Assembly
-  import or layer exception is needed for these producers.
-- EventReplay: every public getter replays through the endpoint.
-  wcg_empty_outputs transfers both public outputs' compatibility and
-  monotonicity for an empty suffix, with no FaultQ or participation premise.
+- `wcg_retainedSeed` constructs the complete continuation WCSeed. Gates,
+  nextHeads, and highSources use separate source and continuation indices.
+  Signed rows and deterministic reads replay. HEAD receipts, certificate
+  origins, and finite facts are rebuilt in rho.
+- `wcg_empty_outputDomain` covers the exact public output domain, including
+  reads after the horizon. It does not restrict reads to covered times.
+- `wcg_empty_stateSafety` proves event-index S compatibility, monotonicity,
+  and seed preservation. It maps each retained local prefix to a source
+  prefix and preserves local index order.
+- `wcg_empty_finalBelow` proves the cross-validator finality bound. Choose
+  the least matching source prefix above the cut. Its earlier finality row
+  is no later than a retained event already in the continuation prefix.
+  The strict target/finality gap puts the service4 deadline before that
+  event. Map the other reader from this deadline cut and apply source service4.
+  No equality of global indices, empty-suffix FaultQ, or majority is assumed.
+- `wcg_empty_inclusion` transfers actual retained proposals and all covered
+  output reads. `wcg_growthOfOutputs` proves conditional available growth.
+- `wcg_sourceLive` supplies the selected source's full live result.
+  `wcg_nonemptyLive` supplies the vote-participation interval and the live
+  continuation result. `wcg_emptyLive` discharges all source invariant,
+  causality, service, and finalBelow producers for the empty branch.
+- The exact public theorem `fgsa_weakContinuationGrowthClaim` passes in
+  `.lake/wcg-c3-work/PublicClaimCheck.lean`, against the installed modules.
+  It selects one witness with the closed `healing_hTimeClaim`, then joins
+  the two continuation branches. It takes only p and G. There is no extra
+  seed, invariant, service, inclusion, or H-time premise in the claim.
+  Its axiom set is propext, Classical.choice, and Quot.sound.
 
-## Exact missing facts, in work order
+## Exact remaining items
 
-1. Complete retained seed replay. Given hS, hc, a nonempty suffix, and the
-   selected source WCSeed, construct
-   `WCSeed p c E' rho w (afterTicksIdx rho (gateTime w.u))`.
-   The unresolved fields are `gates`, `nextHeads`, and `highSources`.
-   - Gates: map the retained source gate to rho's index below its cut;
-     transfer gateResultAt and gatePassedAt at that mapped index.
-   - HEADs: map each source nextHeads tick below rho's cut and transfer
-     its deterministic head/path. Rebuild its receipts at rho's index.
-   - High sources: map a pre-cut rho HonestRowAt to the corresponding
-     source occurrence. Transfer the source and gate reads, then apply
-     the source seed's highSources bound. Preserve signed objects and
-     local order. Do not assume equal global indices.
-   All finite fields can now be rebuilt by wcg_finiteSeed. Certified
-   origins and removed source signers are no longer a missing fact.
-2. Induction, HEAD/output service, finalBelow, and inclusion are proved
-   at the weaker interfaces. No missing event-preservation fact remains.
-3. Public assembly: supply the retained seed from item 1, derive the vote
-   participation telescope from wcg_participation and firstVoteAfterGST,
-   and apply wcg_liveOfSeed. Join this with the empty branch below and
-   the one source witness to close WeakContinuationGrowthClaim.
-   Source selection through wcg_sourceWitness still takes HTimeClaim as
-   its producer; the closed existing H-time proof is not yet joined here.
-4. Empty suffix: wcg_empty_outputs handles public getter compatibility
-   and monotonicity. Still prove all event-index SSafeFromCut₂ fields,
-   proposal inclusion, and conditional growth by retained prefix replay.
-   Extend the covered-time output transfer to the full outputs read domain.
-   Local event agreement does not equate the two global event indices.
-   Do not infer FaultQ when rho.horizon = source.horizon.
-5. Full non-vacuity: the corrected five-validator candidate has source
-   faults 0 and continuation faults 2. It proves 5 < 3*2 and 2 < 3.
-   Delta is 2. The source horizon is 0. The continuation horizon is 1,
-   before the next public tick. There are 5 source ticks and 3 retained
-   ticks. The final timed execution passed in 3.20 seconds.
-   The test checks sorted keys, no duplicate events, horizon bounds,
-   honest-only events, all public ticks, real duty-engine transitions,
-   empty emissions, genesis-only named scope, local replay, and majority.
-   This source is not StrongRecoverySearchPrefix₂. Still construct and
-   prove a bounded strong source and its complete growth continuation:
-   Base₂, authentication (including carried objects), linked/CStar data,
-   collision freedom, synchrony, pending duties, and FinalitySlashableBound.
-   The long seven-validator candidate and its unverified endpoint fixture
-   are replaced. There is no compile-time #eval or long default runner.
+1. Public integration awaits the lead's import decision below. No
+   mathematical fact remains missing for the companion claim. The checked
+   theorem and exact unapplied patch are in PUBLIC_JOIN.md and PUBLIC_JOIN.patch.
+2. Full bounded-source non-vacuity above one-third remains unproved.
+   The short five-validator candidate has source faults 0 and continuation
+   faults 2, with 5 < 3*2 and 2 < 3. Delta is 2; horizons are 0 and 1.
+   For DeltaF 2 and gap 8, B_HF is 494, as checked in scratch. A bounded
+   strong source therefore needs 248 public tick rounds and their deliveries.
+   Exact missing facts: a complete 494-endpoint five-validator execution,
+   Base₂, authentication including carried objects, linked/CStar data,
+   collision freedom, synchrony, proposer recurrence, pending source duties,
+   and FinalitySlashableBound for the retained continuation.
+   The existing full four-validator witness does not prove these facts
+   for five validators. This is more than an endpoint or count adjustment.
+   Keep the cheap candidate. No unverified long trace replaces these proofs.
 
-## Checks and commits
+## Pending lead decision: two named root imports
 
-- Lead approved WeakContinuationGrowth after WeakContinuationLive in
-  the fixed ORDER. This is the only checker change. No allow-list,
-  frozen baseline, or layer exception changed.
-- Frozen Statements/Claims, FGSAClaims, and original WC proof files
-  have no changes. The API manifest adds only the companion entries.
-- `7d6a94f`: companion statement, claim, API manifest, and approved ORDER.
-- `e29b2af`: initial proved components.
-- `07c1822`: retained certificate origins, carrier scope, and participation.
-- These checkpoints passed the complete pre-commit list, including
-  check-build/checker-self-tests, precheck, NEG=0 claims, and axiom audits.
-  Logs: `.lake/wcg-resume-*.log` and `.lake/wcg-seed-*.log`.
-- The later modules passed the final checks below. Their separate
-  module commits are in the branch history. No push is authorized or attempted.
+The job rule says: "no new allow-list lines or layer exceptions without
+recording them for the lead first (STOP that item)".
 
-### Final validation, 2026-10-07
+The requested change is exactly two additions to `ASSEMBLY_ROOT_IMPORTS`
+in `scripts/check-layers.py`:
 
-- Full `lake build`: PASS (4363 jobs).
-- `bash scripts/check-build.sh`: PASS, including checker-self-tests.
-- Separate layers, GLY, and `bash scripts/precheck.sh .`: PASS.
-- `NEG=0 bash scripts/check-fgsa-claims.sh`: PASS, including warning-free
-  builds, compiled axiom/coverage/constant-use audit, leases and imports.
-- CheckProofEqns: 751 proof modules, 1033 exports, zero unaccepted.
-- `NEG=0 bash scripts/check-fgsa-manifest.sh`: PASS. All 1200 entries in
-  52 modules are complete and have matching hashes.
-- Component audit: 64 theorems. Only propext, Classical.choice, Quot.sound.
-- The corrected five-validator candidate: PASS in 3.20 seconds. This is
-  the finite short-regime check described above, not full non-vacuity.
-- `git diff --check`: PASS. Logs: `.lake/wcg-complete-*.log`.
-- The same unchanged Lean source tree was validated before the separate
-  completed-module commits. Each commit stages only its own module files
-  and the matching entries in the axiom audit.
+- `AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth`
+- `AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed`
+
+Assembly.Root would import these modules and add the checked public theorem.
+The patch also adds its axiom audit. The request was sent to the lead. There
+has been no reply and no rule change. The patch passes `git apply --check
+--unidiff-zero`. Do not apply it without the required decision.
+
+## Validation and commit plan
+
+- Full warning-free build: PASS (4366 jobs).
+- All 91 component theorem audits: standard axioms only.
+- Public theorem against installed modules: PASS; standard axioms only.
+- Scoped import check: PASS (483 modules, zero new findings).
+- Layers and `bash scripts/precheck.sh .`: PASS.
+- Final check-build, separate GLY, and NEG=0 claims gate: PASS.
+- CheckProofEqns: zero unaccepted exports. The API manifest has 1200
+  complete entries in 52 modules, with matching hashes.
+- Short candidate: PASS. Wall time 43.27 s includes the Lean slot wait;
+  user CPU time was 2.03 s. It is not the full non-vacuity proof.
+- Frozen Statements/Claims, FGSAClaims, original WC proofs, and the API
+  manifest are unchanged. No new allow-list line or layer exception was applied.
+- Source hashes: `.lake/wcg-c3-final-source-hashes.tsv`. Keep the Lean tree
+  unchanged for the separate seed, empty-proof, and assembly commits.
+  Each module has its own axiom audit. Use the full completed-tree validation
+  for these separate commits, as at the prior checkpoint. Do not push.
+- Logs: `.lake/wcg-c3-final-*.log`. Earlier failed checks found two private
+  equation exports, an orphan next-module file, and one redundant import.
+  All three causes were corrected before this final gate run.
+
+## Proof plan used in continuation 3
+
+1. Map retained ticks in both directions. Transfer the gate guard and HEAD
+   path. Replay signed action rows and source/gate getters. Rebuild receipts.
+2. Use complete local-list agreement for the empty branch. Map arbitrary
+   local prefixes above each cut. Use the least source prefix to preserve
+   the strict finality-service timing bound across different global indices.
+3. Derive source slashing control and vote participation. Join the closed
+   H-time witness with the nonempty and empty branches at the public root.
+4. Check the full five-validator source requirement against build time.
+   Keep the short candidate and list the full missing regime facts.

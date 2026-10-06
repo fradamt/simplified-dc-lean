@@ -882,4 +882,125 @@ theorem wcg_liveOfSeed {ΔF : Time} {w : HealingWitness} {iStar : Nat}
     hscopeRows hfinalHead hs
 
 end AvailableChain.FGSA.Run
+
+namespace AvailableChain.FGSA.Run
+variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V] [Fintype V]
+    {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+
+omit [DecidableEq V] [Fintype V] in
+/-- Vote times after the seed's first vote stay after GST. -/
+private theorem vote_after_first {w : HealingWitness} {s : Slot}
+    (hfirst : E.t_GST ≤ SA.voteTime p.toParams (w.u + 1)) (hs : w.u + 1 ≤ s) :
+    E.t_GST ≤ SA.voteTime p.toParams s := by
+  have hcast : ((w.u + 1 : Nat) : Time) ≤ (s : Time) := Int.ofNat_le.mpr hs
+  change E.t_GST ≤ 4 * p.Δ * ((w.u + 1 : Nat) : Time) + p.Δ at hfirst
+  change E.t_GST ≤ 4 * p.Δ * (s : Time) + p.Δ
+  nlinarith [p.deltaPos]
+
+/-- The source's one-third bound supplies the public slashing premise. -/
+private theorem source_accountable {G ΔF : Time}
+    (hS : StrongRecoverySearchPrefix₂ p c E rho G ΔF) :
+    FinalitySlashableBound p c E rho := by
+  have h := fgsa_slashableBound_of_base p c E rho hS.base hS.fault
+  rw [FinalitySlashableBound_def]
+  rw [FGSASlashableBound_def] at h
+  intro K W hK hW
+  rw [FinalityBlock_def] at hK hW
+  exact h K W (by rwa [FinalityRunBlock_def]) (by rwa [FinalityRunBlock_def])
+
+/-- Strong-source full participation supplies every covered vote majority. -/
+private theorem source_votePart {G ΔF : Time} {w : HealingWitness}
+    (hS : StrongRecoverySearchPrefix₂ p c E rho G ΔF)
+    (hfirst : E.t_GST ≤ SA.voteTime p.toParams (w.u + 1)) :
+    ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+      (Gen.V2.Duty.faulty rho).card <
+        (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card := by
+  intro s hs hhor
+  have hg := vote_after_first hfirst hs
+  have hall : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s) = rho.honest := by
+    rw [Gen.V2.Duty.awakeHonest_def]
+    exact Finset.filter_eq_self.mpr (fun x hx => hS.awake x hx _ hg hhor)
+  rw [hall]
+  have hn := card_eq_n_of_linked hS.base.linked
+  have hcard : (Gen.V2.Duty.faulty rho).card + rho.honest.card = p.n := by
+    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
+      Finset.card_univ]
+    have hh := Finset.card_le_univ rho.honest
+    omega
+  have hf := hS.fault
+  have hp := p.nPos
+  omega
+
+
+/-- The selected strong source has the live result for its own seed. -/
+theorem wcg_sourceLive {G ΔF : Time} {w : HealingWitness} {iSource : Nat}
+    (hS : StrongRecoverySearchPrefix₂ p c E rho G ΔF)
+    (hseed : WCSeed p c E rho w iSource) :
+    WeakContinuationLiveAt₂ p c E rho w.u w.QStar iSource ΔF :=
+  wcg_liveOfSeed hS.base hS.sync hS.deltaF (fgsa_faultQ_of_count p hS.fault)
+    (source_accountable hS) (source_votePart hS hseed.firstVoteAfterGST) hseed
+
+/-- A nonempty growth continuation supplies the entire vote participation
+interval from the source seed's first vote onward. -/
+theorem wcg_nonemptyLive {E₀ : Generic.Env V}
+    {source : V2.D.Run V (fgsa p c)} {G ΔF : Time} {w : HealingWitness} {i : Nat}
+    (hS : StrongRecoverySearchPrefix₂ p c E₀ source G ΔF)
+    (hc : CleanGrowthContinuation₂ p c E₀ source E rho ΔF)
+    (hne : source.horizon < rho.horizon) (hseed : WCSeed p c E rho w i) :
+    WeakContinuationLiveAt₂ p c E rho w.u w.QStar i ΔF := by
+  apply wcg_liveOfSeed hc.base hc.sync hc.deltaF (wcg_suffix_faultQ hc hne)
+    hc.accountable _ hseed
+  intro s hs hhor
+  have hg := vote_after_first hseed.firstVoteAfterGST hs
+  by_cases ht : source.horizon < SA.voteTime p.toParams s
+  · exact hc.participation _ ht hhor
+  have ht' := le_of_not_gt ht
+  have hall : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s) = rho.honest := by
+    rw [Gen.V2.Duty.awakeHonest_def]
+    apply Finset.filter_eq_self.mpr
+    intro x hx
+    rw [hc.agrees.awake x hx _ ht']
+    exact hS.awake x (hc.agrees.honest hx) _ (hc.agrees.gst ▸ hg) ht'
+  rw [hall]
+  have hp := hc.participation rho.horizon hne le_rfl
+  have hcard : (Gen.V2.Duty.awakeHonest E rho rho.horizon).card ≤ rho.honest.card := by
+    rw [Gen.V2.Duty.awakeHonest_def]
+    exact Finset.card_filter_le _ _
+  exact hp.trans_le hcard
+end AvailableChain.FGSA.Run
+
+
+namespace AvailableChain.FGSA.Run
+variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V] [Fintype V]
+    {E E' : Generic.Env V} {source rho : V2.D.Run V (fgsa p c)}
+
+/-- Empty-suffix safety, inclusion, and growth use only the strong source
+and retained local agreement. No continuation participation bound is needed. -/
+theorem wcg_emptyLive {G ΔF : Time} {w : HealingWitness} {iSource : Nat}
+    (hS : StrongRecoverySearchPrefix₂ p c E source G ΔF)
+    (hc : CleanGrowthContinuation₂ p c E source E' rho ΔF)
+    (hend : rho.horizon = source.horizon) (hseed : WCSeed p c E source w iSource)
+    (hgate : SA.gateTime p.toParams w.u ≤ source.horizon) :
+    WeakContinuationLiveAt₂ p c E' rho w.u w.QStar
+      (afterTicksIdx rho (SA.gateTime p.toParams w.u)) ΔF := by
+  apply wcg_empty_live_of_finalBelow hc.agrees hc.base hS.base.valid.toScheduleWellFormed
+    hS.base.noRestart hend hseed hgate (wcg_sourceLive hS hseed)
+  apply wcg_dischargeL hS.base hS.sync hS.deltaF (fgsa_faultQ_of_count p hS.fault)
+    (source_accountable hS) (source_votePart hS hseed.firstVoteAfterGST)
+  intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
+    hfaultQ haccountable hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
+    hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
+    hscopeRows hfinalHead
+  have hinv := (wcg_seededInduction wcg_finalityTargetEarlier) hvalid hlinked hcstar hnr hdelta
+    hroots hsync hdeltaF hfaultQ haccountable hpart hstore hcumul hmono hactive hframe hmeta
+    hrec hgeo hcert hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines
+    hheldRows hscopeRows hfinalHead hseed
+  exact wcg_empty_finalBelow hc.agrees hvalid.toScheduleWellFormed
+    hc.base.valid.toScheduleWellFormed hend hseed hinv
+    (wcg_finalityTargetEarlier hvalid hlinked hfaultQ hroots hheldRows hfinalHead hqc hemitted)
+    (wcg_service4 hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF hfaultQ haccountable
+      hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert hsrc hlabel hqc hstrat
+      hnoslash hemitted htargets hlease hfast hdeadlines hheldRows hscopeRows hfinalHead hseed hinv)
+end AvailableChain.FGSA.Run
+
 end
