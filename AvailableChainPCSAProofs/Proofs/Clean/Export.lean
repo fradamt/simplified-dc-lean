@@ -2,6 +2,7 @@ module
 public import AvailableChainPCSAClaims.Claims.Clean
 public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
 public import AvailableChainPCSAProofs.Proofs.Clean.AckAdmit
+public import AvailableChainPCSAProofs.Proofs.Clean.BodyPersistence
 public import AvailableChainPCSAProofs.Proofs.Clean.TreeReceipt
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Clean.TargetCollect
