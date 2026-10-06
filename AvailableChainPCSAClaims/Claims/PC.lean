@@ -60,34 +60,43 @@ theorem OneAckPerSlotClaim_def (p : Params) : OneAckPerSlotClaim p =
 healthy up to `z_s`, every honest node holds a PC of slot `s` on that root
 after the ticks at `z_s` (so it is in every frozen view of slot `s + 1`).
 
-Premise `FGSafetyBound` (review C2): `reconcile` drops a held PC whose target
-conflicts with the new `F`, and `admitBlock` and `admitPC` only install a PC
-whose target resolves in the node's tree, so the claim needs the PC target to
-stay `F`-compatible on every honest node up to `z_s` (r4.2 §5.0 (CLEAN) and §5.2.3 state
-this as a premise). The bound `a ≤ (n − 1)/3` gives it through CI(vi).
-Proof-phase task: derive it from `HealthyPrefix₂` and drop the bound if the
-derivation holds. -/
+Premise (plan C3; pcsa34-r4 5.3 (F7)): `F`-compatibility of the target
+through `z_s`. `reconcile` drops a held PC whose target conflicts with the
+new `F`, and `assemblePC` (`pcValid`) installs a PC only when its target is
+`F`-compatible; so every block on the root `r` at an honest node is
+`F`-compatible at every honest event state up to `z_s`. Under `StageOneFrame`
+(`F` = genesis) the premise holds; in a CLEAN run it is CI (vi) (stage 2,
+[FGSA.cleanFrame] HAND). The composed CLEAN result is
+`CleanDisseminationClaim`. -/
 def PCDisseminationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-    HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → FGSafetyBound p c rho →
+    HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho →
     ∀ (s : Slot) (r : BlockId), SA.freezeTime p.toParams s ≤ b₀ →
       (∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧ ∀ i ∈ Q,
         rho.seatOf (.base (.ack s)) i ∈ rho.honest ∧
         V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i) (ackObj p s i r)
           (SA.earlyTime p.toParams s)) →
+      (∀ y ∈ rho.honest, ∀ (i : Nat) e, rho.events[i]? = some e →
+        e.time ≤ SA.freezeTime p.toParams s →
+        ∀ B ∈ (V2.D.Run.stateBefore E rho (i + 1) y).st.base.blocks, B.root = r →
+          Block.Compatible B (eraseFG (V2.D.Run.stateBefore E rho (i + 1) y).st.fg.F)) →
       ∀ y ∈ rho.honest, ∃ c' ∈ (storeAfterTicks p c E rho y (SA.freezeTime p.toParams s)).pcs,
         c'.slot = s ∧ c'.target.root = r
 
 theorem PCDisseminationClaim_def (p : Params) : PCDisseminationClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-      HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → FGSafetyBound p c rho →
+      HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho →
       ∀ (s : Slot) (r : BlockId), SA.freezeTime p.toParams s ≤ b₀ →
         (∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧ ∀ i ∈ Q,
           rho.seatOf (.base (.ack s)) i ∈ rho.honest ∧
           V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i) (ackObj p s i r)
             (SA.earlyTime p.toParams s)) →
+        (∀ y ∈ rho.honest, ∀ (i : Nat) e, rho.events[i]? = some e →
+          e.time ≤ SA.freezeTime p.toParams s →
+          ∀ B ∈ (V2.D.Run.stateBefore E rho (i + 1) y).st.base.blocks, B.root = r →
+            Block.Compatible B (eraseFG (V2.D.Run.stateBefore E rho (i + 1) y).st.fg.F)) →
         ∀ y ∈ rho.honest,
           ∃ c' ∈ (storeAfterTicks p c E rho y (SA.freezeTime p.toParams s)).pcs,
             c'.slot = s ∧ c'.target.root = r) := by
