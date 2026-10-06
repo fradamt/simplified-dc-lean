@@ -24,7 +24,7 @@ claim fixes the r4.3 stamp convention against the model's `pcSnapshotAt`.
 No fault premise. -/
 def PCSnapshotStampClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
     Base₂ p c E rho →
     ∀ y ∈ rho.honest, ∀ s : Slot, SA.freezeTime p.toParams s ≤ rho.horizon →
       pcSnapshotAt (storeAfterTicks p c E rho y (SA.freezeTime p.toParams s)) s =
@@ -32,7 +32,7 @@ def PCSnapshotStampClaim (p : Params) : Prop :=
 
 theorem PCSnapshotStampClaim_def (p : Params) : PCSnapshotStampClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
       Base₂ p c E rho →
       ∀ y ∈ rho.honest, ∀ s : Slot, SA.freezeTime p.toParams s ≤ rho.horizon →
         pcSnapshotAt (storeAfterTicks p c E rho y (SA.freezeTime p.toParams s)) s =
@@ -42,7 +42,7 @@ theorem PCSnapshotStampClaim_def (p : Params) : PCSnapshotStampClaim p =
 section Invariant
 
 variable (p : Params) {In : Type} (c : AppCodec In) {V : Type} [DecidableEq V] [Fintype V]
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    {m : FGMode} (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
 
 /-- [PC-SA claims, W0; pcsa34-r4 5.2.2 CI(j), stage 1] The clean invariant at
 label `j`, at every honest node and every time `t < v_{j+1}`. Item (vi) (the
@@ -60,8 +60,8 @@ frame) is stage 2 and is not a field. Results are the raw gate results
   result (CL4).
 - (iv) `leaseBelowResult`: every lease target is `⪯` an honest result;
   `leaseCompatible`: every live lease is compatible with every PC held at its
-  node. The model has the effective-lease rule, not L*′, so r4.3's
-  "L*′ skips or deletes none" has no field.
+  node. r4.3's "L*′ skips or deletes none" has no field yet (the model
+  has the L*′ lock rule now; adding the field is open).
 - (v) `recordOrigin`: every honest `S` is `F` or an own result of a label
   `≤ j`; `recordMono`, `recordCompatible`: `S` is monotone at a node and
   honest `S` values are pairwise compatible.
@@ -78,7 +78,7 @@ structure CleanInvariantAt (j : Slot) : Prop where
     HonestHeadAt p c E rho x i H → y ∈ rho.honest →
     gateResultAt p c E rho y (i - 1) = some (some X) → Block.Preceq X H
   headsEqual : ∀ (i : Slot) (P : Block) (x : V) (H : Block), i ≤ j →
-    Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho i P →
+    Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho i P →
     HonestHeadAt p c E rho x i H → H = P
   pcAck : ∀ x ∈ rho.honest, ∀ (t : Time) (pc : PC p.n),
     t < SA.voteTime p.toParams (j + 1) → pc ∈ (storeAt p c E rho x t).pcs →
@@ -150,13 +150,13 @@ strict delivery within `Δ`, rows `Δ_F`, `a < h_j` at every label with
 every label `j` whose gate `d_j` is in the prefix. -/
 def CleanInvariantClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
     Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ j : Slot, SA.gateTime p.toParams j ≤ b₀ → CleanInvariantAt p c E rho j
 
 theorem CleanInvariantClaim_def (p : Params) : CleanInvariantClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
       Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ j : Slot, SA.gateTime p.toParams j ≤ b₀ → CleanInvariantAt p c E rho j) := by
   rw [CleanInvariantClaim]
@@ -168,13 +168,15 @@ No CI premise: r4.3 discharges (F3), (F4) from CI in a clean run and from 5.6
 in recovery. -/
 def FormationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (s : Slot) (N : NamedProposal p.n)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    (s : Slot) (N : NamedProposal p.n)
     (ΔF : Time),
     FormationPrem p c E rho s N ΔF → FormationConcl p c E rho s N
 
 theorem FormationClaim_def (p : Params) : FormationClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (s : Slot) (N : NamedProposal p.n)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (s : Slot) (N : NamedProposal p.n)
       (ΔF : Time),
       FormationPrem p c E rho s N ΔF → FormationConcl p c E rho s N) := by
   rw [FormationClaim]
@@ -185,7 +187,7 @@ honest ack `(s, B)` at `e_s` in a clean prefix gives every honest HEAD at
 up to `d_{s+1}`, `a < ⌈n/2⌉` ([pc-trumps §2]), stage-1 frame. -/
 def CleanDisseminationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
     Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ (s : Slot) (y : V) (B : Block), SA.gateTime p.toParams (s + 1) ≤ b₀ →
       HonestAckAt p c E rho y s B →
@@ -195,7 +197,7 @@ def CleanDisseminationClaim (p : Params) : Prop :=
 
 theorem CleanDisseminationClaim_def (p : Params) : CleanDisseminationClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
       Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ (s : Slot) (y : V) (B : Block), SA.gateTime p.toParams (s + 1) ≤ b₀ →
         HonestAckAt p c E rho y s B →
@@ -212,7 +214,7 @@ stableSafe, monotone; nesting is `OutputNestingClaim`). Premises: CLEAN(b₀),
 stage 1 has no (vi)"). -/
 def PCSACleanSafetyClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
     Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ t t' : Time, 0 ≤ t → t ≤ b₀ → 0 ≤ t' → t' ≤ b₀ →
       Block.Compatible (confirmed (storeAt p c E rho x t)) (confirmed (storeAt p c E rho y t')) ∧
@@ -223,7 +225,7 @@ def PCSACleanSafetyClaim (p : Params) : Prop :=
 
 theorem PCSACleanSafetyClaim_def (p : Params) : PCSACleanSafetyClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
       Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ t t' : Time,
         0 ≤ t → t ≤ b₀ → 0 ≤ t' → t' ≤ b₀ →
@@ -243,19 +245,19 @@ clean prefix. Premises: CLEAN(b₀) with `d_u ≤ b₀`, `a < ⌈n/2⌉`, stage-
 frame. No `q_N` premise: inclusion in `S` needs `a < h_u` only. -/
 def PCSACleanInclusionClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
     Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ (u : Slot) (P : Block),
-      Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
+      Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho u P →
       ∀ x ∈ rho.honest, ∀ t : Time, SA.gateTime p.toParams u ≤ t → t ≤ b₀ →
         Block.Preceq P (confirmed (storeAt p c E rho x t))
 
 theorem PCSACleanInclusionClaim_def (p : Params) : PCSACleanInclusionClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
       Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ (u : Slot) (P : Block),
-        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
+        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho u P →
         ∀ x ∈ rho.honest, ∀ t : Time, SA.gateTime p.toParams u ≤ t → t ≤ b₀ →
           Block.Preceq P (confirmed (storeAt p c E rho x t))) := by
   rw [PCSACleanInclusionClaim]
@@ -271,20 +273,20 @@ this premise at every honest slot; the stage-2 form is
 `StrongIncludedStageTwoClaim`. -/
 def StrongIncludedClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
     Clean₂ p c E rho b₀ ΔF → QuarterCap p c rho → StageOneFrame p c E rho →
     ∀ (u : Slot) (P : Block),
-      Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
+      Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho u P →
       nQuorum p.n ≤ (awakeHonestLabel p c E rho u).card →
       ∀ x ∈ rho.honest, ∀ t : Time, SA.freezeTime p.toParams u ≤ t → t ≤ b₀ →
         Block.Preceq P (strong (storeAt p c E rho x t))
 
 theorem StrongIncludedClaim_def (p : Params) : StrongIncludedClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
       Clean₂ p c E rho b₀ ΔF → QuarterCap p c rho → StageOneFrame p c E rho →
       ∀ (u : Slot) (P : Block),
-        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
+        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho u P →
         nQuorum p.n ≤ (awakeHonestLabel p c E rho u).card →
         ∀ x ∈ rho.honest, ∀ t : Time, SA.freezeTime p.toParams u ≤ t → t ≤ b₀ →
           Block.Preceq P (strong (storeAt p c E rho x t))) := by

@@ -22,9 +22,10 @@ store_attestations] The slashing interface of PC-SA. Validators are the
 fixed FG seats (`V = Fin p.n`); the evidence of a read is the row set of its
 stored FG chains (`pcFinalityRows`); `v` is slashed when two honest or faulty
 reads hold rows of one FG seat held by `v` that are slashable between them. -/
-def pcsaSlashing (p : Params) {In : Type} (c : AppCodec In) (E : Generic.Env (Fin p.n)) :
-    Gen.V2.Duty.SlashingInterface (V := Fin p.n) (pcsa p c) where
-  toInterface := (pcsaInterface p c).toInterface
+def pcsaSlashing (p : Params) {In : Type} (c : AppCodec In) {m : FGMode}
+    (E : Generic.Env (Fin p.n)) :
+    Gen.V2.Duty.SlashingInterface (V := Fin p.n) (pcsaWith m p c) where
+  toInterface := (pcsaInterface p c (m := m)).toInterface
   finalized := pcsaFinalizedOut
   slashes rho v := ∃ (u u' : Fin p.n) (t t' : Time) (i : Fin p.n),
     SlashableBetween
@@ -33,7 +34,8 @@ def pcsaSlashing (p : Params) {In : Type} (c : AppCodec In) (E : Generic.Env (Fi
     rho.seatOf (.base .fg) i = v
 
 theorem pcsa_pcsaSlashing_slashes_def (p : Params) {In : Type} (c : AppCodec In)
-    (E : Generic.Env (Fin p.n)) (rho : V2.D.Run (Fin p.n) (pcsa p c)) (v : Fin p.n) :
+    {m : FGMode} (E : Generic.Env (Fin p.n)) (rho : V2.D.Run (Fin p.n) (pcsaWith m p c))
+    (v : Fin p.n) :
     (pcsaSlashing p c E).slashes rho v =
       (∃ (u u' : Fin p.n) (t t' : Time) (i : Fin p.n),
         SlashableBetween
@@ -42,7 +44,7 @@ theorem pcsa_pcsaSlashing_slashes_def (p : Params) {In : Type} (c : AppCodec In)
         rho.seatOf (.base .fg) i = v) := rfl
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    {m : FGMode} (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
 
 /-- [PC-SA claims, W0; FG-SA EmitsRow] Node `x` releases the signed row `a`
 at a tick event. -/

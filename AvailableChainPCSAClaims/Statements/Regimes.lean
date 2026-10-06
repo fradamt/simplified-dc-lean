@@ -18,12 +18,12 @@ namespace AvailableChain.PCSA.Run
 
 open Gen.V2.Duty (faulty awakeHonest)
 
-variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V] [Fintype V]
+variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V] [Fintype V] {m : FGMode}
 
 /-- [PC-SA claims; FG-SA Base₂] A valid execution with linked FG seats, fresh
 HEAD and ack committees, no restart, the model delay, and root collision
 freedom. -/
-structure Base₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) : Prop where
+structure Base₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) : Prop where
   valid : V2.D.ExecutionValid E rho
   linked : V2.D.Linked (pcsaFamilies p c).linked rho
   cstar : V2.D.CStar (pcsaFamilies p c).fresh rho
@@ -44,27 +44,13 @@ def pcsaDelay (Δ ΔF : Time) (o : Obj p) : Time :=
 theorem pcsaDelay_def (Δ ΔF : Time) (o : Obj p) :
     pcsaDelay p Δ ΔF o = (match o.payload with | .row _ => ΔF | _ => Δ) := rfl
 
-/-- [PC-SA claims; FG-SA HealthyPrefix₂] Healthy delivery before the cut `b₀`
-(rows within `ΔF`, other objects within `Δ`), with an honest awake majority
-at every time before the cut. This is the regime of the M1 claims
-(`Claims/PC.lean`). The pointwise majority is not the CLEAN participation
-condition of pcsa34-r4 5.0 (`a < h_j` per label, `Clean₂`), and neither
-implies the other; the W0 lane claims use `Clean₂`. -/
-structure HealthyPrefix₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
-    (b₀ : Time) (ΔF : Time := E.Δ) : Prop where
-  base : Base₂ p c E rho
-  cut : 0 ≤ b₀ ∧ b₀ ≤ rho.horizon
-  healthy : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) b₀
-  deltaF : E.Δ ≤ ΔF
-  partBefore : ∀ t : Time, 0 ≤ t → t < b₀ → (faulty rho).card < (awakeHonest E rho t).card
-
 /-- [PC-SA claims; pcsa34-r3 5.1] The PC fault premise: fewer than `q_A`
 faulty seats, so every PC has an honest acker.
 Implied by `FGSafetyBound` for n ≥ 1; kept for when the proof phase drops `FGSafetyBound`. -/
-def FaultsBelowQA (rho : V2.D.Run V (pcsa p c)) : Prop :=
+def FaultsBelowQA (rho : V2.D.Run V (pcsaWith m p c)) : Prop :=
   (faulty rho).card < pcQuorum p.n
 
-theorem FaultsBelowQA_def (rho : V2.D.Run V (pcsa p c)) :
+theorem FaultsBelowQA_def (rho : V2.D.Run V (pcsaWith m p c)) :
     FaultsBelowQA p c rho = ((faulty rho).card < pcQuorum p.n) := by
   rw [FaultsBelowQA]
 
@@ -73,22 +59,22 @@ fault bound `a ≤ f = (n − 1)/3`.
 a ≤ f is the stage-2 CLEAN premise of r4.2 §5.0; with it,
 CI(vi) (reconcile drops no PC) gives F-compatibility of PC targets.
 The proof phase may remove it (FG-SA's clean claims have no a ≤ f). -/
-def FGSafetyBound (rho : V2.D.Run V (pcsa p c)) : Prop :=
+def FGSafetyBound (rho : V2.D.Run V (pcsaWith m p c)) : Prop :=
   (faulty rho).card ≤ (p.n - 1) / 3
 
-theorem FGSafetyBound_def (rho : V2.D.Run V (pcsa p c)) :
+theorem FGSafetyBound_def (rho : V2.D.Run V (pcsaWith m p c)) :
     FGSafetyBound p c rho = ((faulty rho).card ≤ (p.n - 1) / 3) := by
   rw [FGSafetyBound]
 
 omit [Fintype V] in
 /-- [PC-SA claims, W0; pcsa34-r4 5.0 h_j] `h_j`: the honest nodes awake at
 `v_j` and at `e_j`. -/
-def awakeHonestLabel (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (s : Slot) :
+def awakeHonestLabel (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) :
     Finset V :=
   awakeHonest E rho (SA.voteTime p.toParams s) ∩ awakeHonest E rho (SA.earlyTime p.toParams s)
 
 omit [Fintype V] in
-theorem pcsa_awakeHonestLabel_def (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+theorem pcsa_awakeHonestLabel_def (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
     (s : Slot) :
     awakeHonestLabel p c E rho s =
       awakeHonest E rho (SA.voteTime p.toParams s) ∩
@@ -101,7 +87,7 @@ labels are those whose HEAD and early duties are in the prefix: slow P1
 (5.5 step 2) reads `a < h_{p*}` at the last label with `e_{p*} ≤ b₀`, whose
 gate is after `b₀`. There is no participation condition at other times.
 Stage 2 adds `a ≤ f` (`FGSafetyBound`) as a separate premise. -/
-structure Clean₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+structure Clean₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
     (b₀ : Time) (ΔF : Time := E.Δ) : Prop where
   base : Base₂ p c E rho
   cut : 0 ≤ b₀ ∧ b₀ ≤ rho.horizon
@@ -120,10 +106,10 @@ premises, as r4.3 §1.1 states them per claim: `FaultsBelowQA` is
 /-- [PC-SA claims, W0; pcsa34-r4 1.1] The PC fault bound of formation,
 inclusion into strong and PC healing: `a ≤ ⌊n/4⌋`, so `n − a ≥ q_N`
 (`4a ≤ n`, as `PCIncludedRegime.quarterCap`). -/
-def QuarterCap (rho : V2.D.Run V (pcsa p c)) : Prop :=
+def QuarterCap (rho : V2.D.Run V (pcsaWith m p c)) : Prop :=
   4 * (faulty rho).card ≤ p.n
 
-theorem QuarterCap_def (rho : V2.D.Run V (pcsa p c)) :
+theorem QuarterCap_def (rho : V2.D.Run V (pcsaWith m p c)) :
     QuarterCap p c rho = (4 * (faulty rho).card ≤ p.n) := by
   rw [QuarterCap]
 
@@ -151,11 +137,11 @@ run is of the AC-only instance". With the FG on, the current definition makes
 the stage-1 claims cover only runs before the first FG height change (a
 justification or a timeout-progress advance). Every stage-1 claim reads the
 frame only through this definition. -/
-def StageOneFrame (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) : Prop :=
+def StageOneFrame (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) : Prop :=
   ∀ x ∈ rho.honest, ∀ i : Nat, FrameVacuous p (V2.D.Run.stateBefore E rho i x).st
 
 omit [Fintype V] in
-theorem StageOneFrame_def (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) :
+theorem StageOneFrame_def (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) :
     StageOneFrame p c E rho =
       (∀ x ∈ rho.honest, ∀ i : Nat, FrameVacuous p (V2.D.Run.stateBefore E rho i x).st) := by
   rw [StageOneFrame]
@@ -171,7 +157,7 @@ theorem pcsaL_def (p : Params) : pcsaL p = (4 * (p.k : Time) - 1) * p.Δ := rfl
 `[b₀, b₁)` is arbitrary. There is no fast route. FG-SA's η sleepiness field
 is not a premise: pcsa34-r4 5.0 does not state it and no PC-SA claim (5.4,
 5.5) uses it. -/
-structure Outage₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+structure Outage₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
     (T b₀ b₁ : Time) (ΔF : Time := E.Δ) : Prop where
   pre : Clean₂ p c E rho b₀ ΔF
   order : 0 ≤ T ∧ T ≤ b₀ ∧ b₀ ≤ b₁ ∧ b₁ ≤ rho.horizon
@@ -183,16 +169,16 @@ delivery before `t_GST`; after it strict delivery within `Δ` (rows `Δ_F`),
 every honest node awake, an honest proposer in every window `(t, t + G]`
 (`t ≥ t_GST`, awake by `awake`), `G ≥ 4Δ`, and the PC fault cap
 `a ≤ ⌊n/4⌋` (stage 2 adds `a ≤ f`). -/
-structure Recovery₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (G : Time)
+structure Recovery₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (G : Time)
     (ΔF : Time := E.Δ) : Prop where
   base : Base₂ p c E rho
   sync : Gen.V2.Duty.PartialSynchronyBy E rho (pcsaDelay p E.Δ ΔF)
   deltaF : E.Δ ≤ ΔF
   awake : Gen.V2.Duty.FullParticipation E rho E.t_GST
   gap : ∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon →
-    ∃ s, t < V2.D.proposalTime (pcsaInterface p c).toInterface s ∧
-      V2.D.proposalTime (pcsaInterface p c).toInterface s ≤ t + G ∧
-      Gen.V2.Duty.HonestSlot rho (pcsaInterface p c).toInterface s
+    ∃ s, t < V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s ∧
+      V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s ≤ t + G ∧
+      Gen.V2.Duty.HonestSlot rho (pcsaInterface p c (m := m)).toInterface s
   quarterCap : QuarterCap p c rho
   gapPos : 4 * p.Δ ≤ G
 

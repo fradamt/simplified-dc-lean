@@ -19,7 +19,7 @@ open AvailableChain.SimplexFG
 PCs of one slot held by honest nodes at any times have one target. -/
 def PCUniquenessClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
     Base₂ p c E rho → FaultsBelowQA p c rho →
     ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ (t t' : Time),
       ∀ c₁ ∈ (storeAt p c E rho x t).pcs, ∀ c₂ ∈ (storeAt p c E rho y t').pcs,
@@ -27,7 +27,7 @@ def PCUniquenessClaim (p : Params) : Prop :=
 
 theorem PCUniquenessClaim_def (p : Params) : PCUniquenessClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
       Base₂ p c E rho → FaultsBelowQA p c rho →
       ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ (t t' : Time),
         ∀ c₁ ∈ (storeAt p c E rho x t).pcs, ∀ c₂ ∈ (storeAt p c E rho y t').pcs,
@@ -39,7 +39,7 @@ emits at most one ack object per slot and seat (one `ackAction s`, at `e_s`
 only, one object per label and seat per tick). -/
 def OneAckPerSlotClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
     V2.D.ExecutionValid E rho →
     ∀ x ∈ rho.honest, ∀ (s : Slot) (i : Fin p.n) (r r' : BlockId) (t t' : Time),
       V2.D.Run.emits E rho x (ackObj p s i r) t → V2.D.Run.emits E rho x (ackObj p s i r') t' →
@@ -47,7 +47,7 @@ def OneAckPerSlotClaim (p : Params) : Prop :=
 
 theorem OneAckPerSlotClaim_def (p : Params) : OneAckPerSlotClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
       V2.D.ExecutionValid E rho →
       ∀ x ∈ rho.honest, ∀ (s : Slot) (i : Fin p.n) (r r' : BlockId) (t t' : Time),
         V2.D.Run.emits E rho x (ackObj p s i r) t →
@@ -57,7 +57,7 @@ theorem OneAckPerSlotClaim_def (p : Params) : OneAckPerSlotClaim p =
 
 /-- [pcsa34-r3 5.2, R4] PC dissemination before `z_s` under synchrony: when
 `q_A` honest seats of slot `s` emit acks on one root at `e_s` and delivery is
-healthy up to `z_s`, every honest node holds a PC of slot `s` on that root
+healthy up to `z_s` (CLEAN, `Clean₂`), every honest node holds a PC of slot `s` on that root
 after the ticks at `z_s` (so it is in every frozen view of slot `s + 1`).
 
 Premise (plan C3; pcsa34-r4 5.3 (F7)): `F`-compatibility of the target
@@ -70,8 +70,8 @@ new `F`, and `assemblePC` (`pcValid`) installs a PC only when its target is
 `CleanDisseminationClaim`. -/
 def PCDisseminationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-    HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho →
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho →
     ∀ (s : Slot) (r : BlockId), SA.freezeTime p.toParams s ≤ b₀ →
       (∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧ ∀ i ∈ Q,
         rho.seatOf (.base (.ack s)) i ∈ rho.honest ∧
@@ -86,8 +86,8 @@ def PCDisseminationClaim (p : Params) : Prop :=
 
 theorem PCDisseminationClaim_def (p : Params) : PCDisseminationClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-      HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho →
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho →
       ∀ (s : Slot) (r : BlockId), SA.freezeTime p.toParams s ≤ b₀ →
         (∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧ ∀ i ∈ Q,
           rho.seatOf (.base (.ack s)) i ∈ rho.honest ∧
@@ -106,7 +106,7 @@ theorem PCDisseminationClaim_def (p : Params) : PCDisseminationClaim p =
 `strong ⪯ available` and `F ⪯ available` (erased). No fault premise. -/
 def OutputNestingClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
     V2.D.ExecutionValid E rho →
     ∀ x ∈ rho.honest, ∀ t : Time,
       Block.Preceq (strong (storeAt p c E rho x t)) (confirmed (storeAt p c E rho x t)) ∧
@@ -114,7 +114,7 @@ def OutputNestingClaim (p : Params) : Prop :=
 
 theorem OutputNestingClaim_def (p : Params) : OutputNestingClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
       V2.D.ExecutionValid E rho →
       ∀ x ∈ rho.honest, ∀ t : Time,
         Block.Preceq (strong (storeAt p c E rho x t)) (confirmed (storeAt p c E rho x t)) ∧
@@ -124,22 +124,22 @@ theorem OutputNestingClaim_def (p : Params) : OutputNestingClaim p =
 
 /-- [r4.2 §5.0 (CLEAN) and §5.2.3; SA clean safety] Available monotonicity on a healthy
 prefix: at an honest node, the available output at `t ≤ t'` within the
-prefix is below the available output at `t'`. Premise `FGSafetyBound`
-(review C2): if `F` moved so that it conflicts with a held PC target,
-`reconcile` would drop the PC and the output would fall from the target to
-`S`; the bound keeps the target `F`-compatible (proof-phase task: derive it
-from `HealthyPrefix₂`). -/
+prefix is below the available output at `t'`. Regime: CLEAN(b₀)
+(`Clean₂`). Premise `StageOneFrame` (stage 1): if `F` moved so that it
+conflicts with a held PC target, `reconcile` would drop the PC and the
+output would fall from the target to `S`; with the stage-1 frame `F` stays
+genesis. The stage-2 form needs CI (vi) ([FGSA.cleanFrame] HAND). -/
 def AvailableMonotoneClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-    HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → FGSafetyBound p c rho →
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ x ∈ rho.honest, ∀ (t t' : Time), 0 ≤ t → t ≤ t' → t' ≤ b₀ →
       Block.Preceq (confirmed (storeAt p c E rho x t)) (confirmed (storeAt p c E rho x t'))
 
 theorem AvailableMonotoneClaim_def (p : Params) : AvailableMonotoneClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-      HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → FGSafetyBound p c rho →
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ x ∈ rho.honest, ∀ (t t' : Time), 0 ≤ t → t ≤ t' → t' ≤ b₀ →
         Block.Preceq (confirmed (storeAt p c E rho x t))
           (confirmed (storeAt p c E rho x t'))) := by
@@ -149,14 +149,15 @@ theorem AvailableMonotoneClaim_def (p : Params) : AvailableMonotoneClaim p =
 prefix, every live lock at an honest node has a target below `S`
 (`stableRecord`) and compatible with every held PC target.
 The scope is `t ≤ b₀`; the outage lane needs its own lock fact after `b₀`.
-This lane claim keeps the PC fault premise and the FG safety bound.
+Regime: CLEAN(b₀) (`Clean₂`), the PC fault premise and the stage-1 frame
+(`StageOneFrame`: `F` stays genesis, so `reconcile` removes no lock).
 Outside this lane, a conflicting PC below the stored rank can leave a
 live lock in the store. The `effectiveLease` alias states only that the
 lock is live; it does not state this compatibility. -/
 def LeaseBelowRecordClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-    HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → FGSafetyBound p c rho →
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
     ∀ x ∈ rho.honest, ∀ t : Time, 0 ≤ t → t ≤ b₀ →
       ∀ ℓ ∈ (storeAt p c E rho x t).base.obligations,
         (storeAt p c E rho x t).base.now < ℓ.2.2 →
@@ -165,8 +166,8 @@ def LeaseBelowRecordClaim (p : Params) : Prop :=
 
 theorem LeaseBelowRecordClaim_def (p : Params) : LeaseBelowRecordClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),
-      HealthyPrefix₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → FGSafetyBound p c rho →
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
       ∀ x ∈ rho.honest, ∀ t : Time, 0 ≤ t → t ≤ b₀ →
         ∀ ℓ ∈ (storeAt p c E rho x t).base.obligations,
           (storeAt p c E rho x t).base.now < ℓ.2.2 →

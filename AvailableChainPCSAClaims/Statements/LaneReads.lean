@@ -16,7 +16,7 @@ namespace AvailableChain.PCSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In : Type} (c : AppCodec In) {V : Type} [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    {m : FGMode} (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
 
 /-- [PC-SA claims, W0] The store of node `x` before event `i` (every event
 state, also inside one time). -/
@@ -179,7 +179,12 @@ open AvailableChain.SimplexFG
 FG-SA Window.Entry "a retained justification"] The justification evidence of
 a store: `X` is justified at height `h` when it is the stored pair
 `(h_j, J)`, or the justification pair or a retained window entry of the
-window state of a held FG block. -/
+window state of a held FG block.
+QC set read (also by `Q0PCPackage.ff2` for FF2's "QCs name E_h"): a QC at
+height `h` on `X` is a justification `(h, X)` that the store holds in one of
+these three places. Window entries are justifications by construction
+(FG-SA `Window.Entry`: "a retained justification"); a row set below the
+quorum is not a QC and is not read. -/
 def HeldJustification (p : Params) (st : State p.n) (h : Nat) (X : FGBlock (Fin p.n)) :
     Prop :=
   (st.fg.h_j = h ∧ st.fg.J = X) ∨

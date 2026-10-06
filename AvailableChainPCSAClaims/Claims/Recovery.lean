@@ -6,8 +6,8 @@ public import AvailableChainPCSAClaims.Statements.Premises
 /-! [PC-SA claims, W0; pcsa-proof-plan §1 C11] The Recovery lane statements:
 stage-1 healing after a short break, `t* ≤ t_GST + G + 7Δ` (pcsa34-r4 5.6.1),
 and the long-break bound `2L + G + 8Δ` (5.6.3). The long-break bound is
-PROVED-sketch under L*′ (3.7) only; the model has the effective-lease rule,
-so that claim is collected in `PCSAPendingClaims`, not in `PCSAClaims`.
+PROVED-sketch under L*′ (3.7). The model now has the L*′ lock rule; the claim
+stays in `PCSAPendingClaims` until the lead moves it into `PCSAClaims`.
 Healing uses an honest-proposer recurrence (`Recovery₂.gap`), as FG-SA does;
 there is no run recovery regime. -/
 
@@ -16,7 +16,7 @@ namespace AvailableChain.PCSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In : Type} (c : AppCodec In) {V : Type} [DecidableEq V] [Fintype V]
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    {m : FGMode} (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
 
 omit [Fintype V] in
 /-- [PC-SA claims, W0; pcsa34-r4 5.6.1 Theorem conclusion] Healed from slot
@@ -44,7 +44,7 @@ def HealedFrom (s₁ : Slot) (P : Block) : Prop :=
     Block.Preceq (confirmed (storeAt p c E rho x t)) (confirmed (storeAt p c E rho x t')) ∧
     Block.Preceq (strong (storeAt p c E rho x t)) (strong (storeAt p c E rho x t'))) ∧
   (∀ (u : Slot) (B : Block), s₁ + 1 ≤ u →
-    Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u B →
+    Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho u B →
     (∀ x ∈ rho.honest, ∀ t : Time, SA.gateTime p.toParams u ≤ t → t ≤ rho.horizon →
       Block.Preceq B (confirmed (storeAt p c E rho x t))) ∧
     (∀ x ∈ rho.honest, ∀ t : Time, SA.freezeTime p.toParams u ≤ t → t ≤ rho.horizon →
@@ -70,7 +70,7 @@ theorem HealedFrom_def (s₁ : Slot) (P : Block) :
         Block.Preceq (confirmed (storeAt p c E rho x t)) (confirmed (storeAt p c E rho x t')) ∧
         Block.Preceq (strong (storeAt p c E rho x t)) (strong (storeAt p c E rho x t'))) ∧
       (∀ (u : Slot) (B : Block), s₁ + 1 ≤ u →
-        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u B →
+        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho u B →
         (∀ x ∈ rho.honest, ∀ t : Time, SA.gateTime p.toParams u ≤ t → t ≤ rho.horizon →
           Block.Preceq B (confirmed (storeAt p c E rho x t))) ∧
         (∀ x ∈ rho.honest, ∀ t : Time, SA.freezeTime p.toParams u ≤ t → t ≤ rho.horizon →
@@ -88,13 +88,13 @@ with the anchor `cA` and the first post-GST honest slot `s₁`:
 structure ShortBreakPrem (G ΔF : Time) (cA s₁ : Slot) : Prop where
   recovery : Recovery₂ p c E rho G ΔF
   frame : StageOneFrame p c E rho
-  anchorProposer : Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c).toInterface rho cA
+  anchorProposer : Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c (m := m)).toInterface rho cA
   anchorClean : Clean₂ p c E rho (SA.freezeTime p.toParams cA) ΔF
   anchorPart : nQuorum p.n ≤ (awakeHonestLabel p c E rho cA).card
-  firstProposer : Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c).toInterface rho s₁
+  firstProposer : Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c (m := m)).toInterface rho s₁
   firstAfterGST : E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s₁
   firstMin : ∀ s : Slot, E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s → s < s₁ →
-    ¬ Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c).toInterface rho s
+    ¬ Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c (m := m)).toInterface rho s
   order : cA < s₁
   window : s₁ - 1 - cA ≤ p.k - 1
   horizon : SA.gateTime p.toParams s₁ ≤ rho.horizon
@@ -105,16 +105,20 @@ under the short-break premises, the honest proposal `P` of `s₁` exists,
 `t* = d_{s₁} ≤ t_GST + G + 7Δ`, and the run is healed from `s₁` with `P`. -/
 def FastRecoveredClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (G ΔF : Time) (cA s₁ : Slot),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    (G ΔF : Time) (cA s₁ : Slot),
     ShortBreakPrem p c E rho G ΔF cA s₁ →
-    ∃ P : Block, Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho s₁ P ∧
+    ∃ P : Block,
+      Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho s₁ P ∧
       SA.gateTime p.toParams s₁ ≤ E.t_GST + G + 7 * p.Δ ∧ HealedFrom p c E rho s₁ P
 
 theorem FastRecoveredClaim_def (p : Params) : FastRecoveredClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (G ΔF : Time) (cA s₁ : Slot),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (G ΔF : Time) (cA s₁ : Slot),
       ShortBreakPrem p c E rho G ΔF cA s₁ →
-      ∃ P : Block, Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho s₁ P ∧
+      ∃ P : Block,
+        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho s₁ P ∧
         SA.gateTime p.toParams s₁ ≤ E.t_GST + G + 7 * p.Δ ∧ HealedFrom p c E rho s₁ P) := by
   rw [FastRecoveredClaim]
 
@@ -124,25 +128,25 @@ break: under RECOVERY, the stage-1 frame and `L = (4k − 1)Δ` (`pcsaL`), with
 no anchor and no bound on the stale-PC stock, some honest slot `s` with
 `d_s ≤ t_GST + 2L + G + 8Δ` has a proposal `P` and the run is healed from
 `s` with `P` (5.6.1 steps 2–4). PENDING: r4.3 proves the sketch for the L*′
-lease rule; the model has the effective-lease rule, for which the bound is the
-OPEN Lemma J route. Collected in `PCSAPendingClaims`. -/
+lock rule, which the model now has. Collected in `PCSAPendingClaims` until
+the lead moves it. -/
 def LongBreakRecoveredClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (G ΔF : Time),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (G ΔF : Time),
     Recovery₂ p c E rho G ΔF → StageOneFrame p c E rho →
     E.t_GST + 2 * pcsaL p + G + 8 * p.Δ ≤ rho.horizon →
     ∃ (s : Slot) (P : Block),
-      Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho s P ∧
+      Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho s P ∧
       SA.gateTime p.toParams s ≤ E.t_GST + 2 * pcsaL p + G + 8 * p.Δ ∧
       HealedFrom p c E rho s P
 
 theorem LongBreakRecoveredClaim_def (p : Params) : LongBreakRecoveredClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (G ΔF : Time),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (G ΔF : Time),
       Recovery₂ p c E rho G ΔF → StageOneFrame p c E rho →
       E.t_GST + 2 * pcsaL p + G + 8 * p.Δ ≤ rho.horizon →
       ∃ (s : Slot) (P : Block),
-        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho s P ∧
+        Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho s P ∧
         SA.gateTime p.toParams s ≤ E.t_GST + 2 * pcsaL p + G + 8 * p.Δ ∧
         HealedFrom p c E rho s P) := by
   rw [LongBreakRecoveredClaim]

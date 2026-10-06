@@ -16,7 +16,7 @@ open AvailableChain.SimplexFG
 open Gen.V2.Duty (faulty awakeHonest)
 
 variable (p : Params) {In : Type} (c : AppCodec In) {V : Type} [DecidableEq V] [Fintype V]
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    {m : FGMode} (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
 
 /-- [PC-SA claims, W0; pcsa34-r4 1.4] A wire object that is not an FG row
 (HEAD, proposal, ack, PC). These objects have delay `Δ`; rows have `Δ_F`. -/
@@ -33,20 +33,20 @@ omit [Fintype V] in
 is the named proposal `N`: the proposer of `s` is honest and emits `N` at
 `t_s` (so it is awake then). `N.erase` is `P`, `N.pc` the carried PC. -/
 def HonestNamedProposal (s : Slot) (N : NamedProposal p.n) : Prop :=
-  V2.D.proposerOf rho (pcsaInterface p c).toInterface s ∈ rho.honest ∧
-    V2.D.Run.emits E rho (V2.D.proposerOf rho (pcsaInterface p c).toInterface s)
-      ⟨.seat ((pcsaInterface p c).propLabel s)
-        (V2.D.propSeat (pcsaInterface p c).toInterface s), .proposal N⟩
-      (V2.D.proposalTime (pcsaInterface p c).toInterface s)
+  V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s ∈ rho.honest ∧
+    V2.D.Run.emits E rho (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+      ⟨.seat ((pcsaInterface p c (m := m)).propLabel s)
+        (V2.D.propSeat (pcsaInterface p c (m := m)).toInterface s), .proposal N⟩
+      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s)
 
 omit [Fintype V] in
 theorem pcsa_HonestNamedProposal_def (s : Slot) (N : NamedProposal p.n) :
     HonestNamedProposal p c E rho s N =
-      (V2.D.proposerOf rho (pcsaInterface p c).toInterface s ∈ rho.honest ∧
-        V2.D.Run.emits E rho (V2.D.proposerOf rho (pcsaInterface p c).toInterface s)
-          ⟨.seat ((pcsaInterface p c).propLabel s)
-            (V2.D.propSeat (pcsaInterface p c).toInterface s), .proposal N⟩
-          (V2.D.proposalTime (pcsaInterface p c).toInterface s)) := rfl
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s ∈ rho.honest ∧
+        V2.D.Run.emits E rho (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+          ⟨.seat ((pcsaInterface p c (m := m)).propLabel s)
+            (V2.D.propSeat (pcsaInterface p c (m := m)).toInterface s), .proposal N⟩
+          (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s)) := rfl
 
 /-- [PC-SA claims, W0; pcsa34-r4 5.3 premises (F1)–(F7)] The formation
 premises at slot `s` with the honest proposal `N` (`P = N.erase`), stage 1.
@@ -176,8 +176,8 @@ hypotheses of the statement.
   source of (1c)). -/
 structure Q0PCPackage (tStar : Time) (M μ r : Nat) (cD : Slot) (D : Block)
     (Dfg : FGBlock (Fin p.n)) : Prop where
-  proposal : Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho cD D
-  afterReset : tStar ≤ V2.D.proposalTime (pcsaInterface p c).toInterface cD
+  proposal : Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho cD D
+  afterReset : tStar ≤ V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface cD
   lift : eraseFG Dfg = D
   high : M + 1 ≤ (FGSA.heightView p Dfg).h
   liftHeld : ∀ y ∈ rho.honest, ∀ nd, pcsa_postClock E rho y (p.actionTime r) = some nd →
@@ -185,8 +185,8 @@ structure Q0PCPackage (tStar : Time) (M μ r : Nat) (cD : Slot) (D : Block)
   window : cD ≤ r * p.R ∧ r * p.R < cD + p.R
   horizon : p.actionTime r ≤ rho.horizon
   healing : ∀ (u : Slot) (P : Block),
-    tStar ≤ V2.D.proposalTime (pcsaInterface p c).toInterface u →
-    Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c).toInterface rho u P →
+    tStar ≤ V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface u →
+    Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho u P →
     (∀ x H, HonestHeadAt p c E rho x u H → H = P) ∧
       ∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams u) u P
   h2' : ∀ (s' : Slot) (x : V) (H : Block), cD < s' → s' ≤ r * p.R →

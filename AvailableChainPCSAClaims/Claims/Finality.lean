@@ -30,7 +30,8 @@ lock condition (F4) are premises here; the paper's source-transfer claim
 gets them from CI (`CleanSourceTransferClaim`) or from healing. -/
 def FormationSourceClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (r : Nat) (N : NamedProposal p.n)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    (r : Nat) (N : NamedProposal p.n)
     (ΔF : Time),
     FormationPrem p c E rho (r * p.R) N ΔF →
     ∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
@@ -38,7 +39,8 @@ def FormationSourceClaim (p : Params) : Prop :=
 
 theorem FormationSourceClaim_def (p : Params) : FormationSourceClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (r : Nat) (N : NamedProposal p.n)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (r : Nat) (N : NamedProposal p.n)
       (ΔF : Time),
       FormationPrem p c E rho (r * p.R) N ΔF →
       ∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
@@ -57,7 +59,7 @@ items H2/H3 ([FG-HEAL], OPEN); `FormationSourceClaim` covers it once they
 are supplied. -/
 def CleanSourceTransferClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time) (r : Nat)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time) (r : Nat)
     (N : NamedProposal p.n),
     Clean₂ p c E rho b₀ ΔF → QuarterCap p c rho → StageOneFrame p c E rho →
     HonestNamedProposal p c E rho (r * p.R) N →
@@ -70,7 +72,7 @@ def CleanSourceTransferClaim (p : Params) : Prop :=
 
 theorem CleanSourceTransferClaim_def (p : Params) : CleanSourceTransferClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time) (r : Nat)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time) (r : Nat)
       (N : NamedProposal p.n),
       Clean₂ p c E rho b₀ ΔF → QuarterCap p c rho → StageOneFrame p c E rho →
       HonestNamedProposal p c E rho (r * p.R) N →
@@ -95,7 +97,8 @@ every honest source has the height and the entry of `D`. The full Q0-PC
 statement is `Q0PCClaim`. -/
 def Q0PCSelectionClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (r : Nat) (cD : Slot) (D : Block),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    (r : Nat) (cD : Slot) (D : Block),
     Base₂ p c E rho → FaultsBelowQA p c rho →
     cD ≤ r * p.R → r * p.R < cD + p.R → p.actionTime r ≤ rho.horizon →
     (∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams cD) cD D) →
@@ -118,7 +121,8 @@ def Q0PCSelectionClaim (p : Params) : Prop :=
 
 theorem Q0PCSelectionClaim_def (p : Params) : Q0PCSelectionClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (r : Nat) (cD : Slot) (D : Block),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (r : Nat) (cD : Slot) (D : Block),
       Base₂ p c E rho → FaultsBelowQA p c rho →
       cD ≤ r * p.R → r * p.R < cD + p.R → p.actionTime r ≤ rho.horizon →
       (∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams cD) cD D) →
@@ -153,14 +157,16 @@ honest source has height `y` and the entry of `D`. The PC-SA producers of the
 package are OPEN (q0-pc.md §2, H.13-PC′). -/
 def Q0PCClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (tStar : Time) (M μ r : Nat)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    (tStar : Time) (M μ r : Nat)
     (cD : Slot) (D : Block) (Dfg : FGBlock (Fin p.n)),
     Base₂ p c E rho → FaultsBelowQA p c rho → FGSafetyBound p c rho →
     Q0PCPackage p c E rho tStar M μ r cD D Dfg → Q0PCConcl p c E rho r cD D Dfg
 
 theorem Q0PCClaim_def (p : Params) : Q0PCClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (tStar : Time) (M μ r : Nat)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (tStar : Time) (M μ r : Nat)
       (cD : Slot) (D : Block) (Dfg : FGBlock (Fin p.n)),
       Base₂ p c E rho → FaultsBelowQA p c rho → FGSafetyBound p c rho →
       Q0PCPackage p c E rho tStar M μ r cD D Dfg → Q0PCConcl p c E rho r cD D Dfg) := by
@@ -208,13 +214,13 @@ Whole-run accountability over a PC-SA run with root collision freedom and
 sorted events. -/
 def PCSAWholeRunAccountableClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
     NamedRootCollisionFree p c E rho → PCFinalityExecution p c rho →
     PCWholeRunAccountable p c E rho
 
 theorem PCSAWholeRunAccountableClaim_def (p : Params) : PCSAWholeRunAccountableClaim p =
     (∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
       NamedRootCollisionFree p c E rho → PCFinalityExecution p c rho →
       PCWholeRunAccountable p c E rho) := by
   rw [PCSAWholeRunAccountableClaim]
@@ -223,13 +229,13 @@ theorem PCSAWholeRunAccountableClaim_def (p : Params) : PCSAWholeRunAccountableC
 Whole-run agreement under the slashable bound. -/
 def PCSAWholeRunAgreementClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
     NamedRootCollisionFree p c E rho → PCFinalityExecution p c rho →
     PCFinalitySlashableBound p c E rho → PCWholeRunAgreement p c E rho
 
 theorem PCSAWholeRunAgreementClaim_def (p : Params) : PCSAWholeRunAgreementClaim p =
     (∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
       NamedRootCollisionFree p c E rho → PCFinalityExecution p c rho →
       PCFinalitySlashableBound p c E rho → PCWholeRunAgreement p c E rho) := by
   rw [PCSAWholeRunAgreementClaim]
@@ -238,7 +244,7 @@ theorem PCSAWholeRunAgreementClaim_def (p : Params) : PCSAWholeRunAgreementClaim
 bound, the finalized blocks of any two honest event states are compatible. -/
 def PCSAEventPrefixAgreementClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
     NamedRootCollisionFree p c E rho → PCFinalityExecution p c rho →
     PCFinalitySlashableBound p c E rho →
     ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ i j : Nat,
@@ -246,7 +252,7 @@ def PCSAEventPrefixAgreementClaim (p : Params) : Prop :=
 
 theorem PCSAEventPrefixAgreementClaim_def (p : Params) : PCSAEventPrefixAgreementClaim p =
     (∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
       NamedRootCollisionFree p c E rho → PCFinalityExecution p c rho →
       PCFinalitySlashableBound p c E rho →
       ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ i j : Nat,
@@ -259,7 +265,7 @@ The finalized output of an honest node is monotone in time. A restart resets
 `F`, so `NoRestart` is a premise. No fault bound. -/
 def PCSAFinalizedMonotoneClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
     PCFinalityExecution p c rho → V2.D.NoRestart rho →
     ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →
       Block.Preceq (pcsaFinalizedOut (V2.D.Run.readAt E rho t x))
@@ -267,7 +273,7 @@ def PCSAFinalizedMonotoneClaim (p : Params) : Prop :=
 
 theorem PCSAFinalizedMonotoneClaim_def (p : Params) : PCSAFinalizedMonotoneClaim p =
     (∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
       PCFinalityExecution p c rho → V2.D.NoRestart rho →
       ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →
         Block.Preceq (pcsaFinalizedOut (V2.D.Run.readAt E rho t x))
@@ -281,7 +287,7 @@ every finality block, honest nodes that emit no slashable row pair, and
 the whole-run claims). -/
 def PCSAFaultCountSlashableBoundClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
     V2.D.Linked (pcsaFamilies p c).linked rho →
     (∀ K, PCFinalityBlock p c E rho K → PCFinalityRowCarriage p c E rho (chainRows K)) →
     (∀ x ∈ rho.honest, PCEmittedRowsNoSlash p c E rho x) →
@@ -291,7 +297,7 @@ def PCSAFaultCountSlashableBoundClaim (p : Params) : Prop :=
 theorem PCSAFaultCountSlashableBoundClaim_def (p : Params) :
     PCSAFaultCountSlashableBoundClaim p =
       (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-        (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)),
+        (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)),
         V2.D.Linked (pcsaFamilies p c).linked rho →
         (∀ K, PCFinalityBlock p c E rho K → PCFinalityRowCarriage p c E rho (chainRows K)) →
         (∀ x ∈ rho.honest, PCEmittedRowsNoSlash p c E rho x) →
@@ -304,15 +310,15 @@ honestNeverSlashed] Under unforgeable signatures and linked FG seats, no
 honest validator is slashed (`pcsaSlashing`). Validators are the fixed FG
 seats (`V = Fin p.n`), as in FG-SA. No fault bound. -/
 def PCSAHonestNeverSlashedClaim (p : Params) : Prop :=
-  ∀ {In : Type} (c : AppCodec In) (E : Generic.Env (Fin p.n))
-    (rho : V2.D.Run (Fin p.n) (pcsa p c)),
+  ∀ {In : Type} (c : AppCodec In) (m : FGMode) (E : Generic.Env (Fin p.n))
+    (rho : V2.D.Run (Fin p.n) (pcsaWith m p c)),
     V2.D.UnforgeableSignatures E rho →
     V2.D.Linked (pcsaFamilies p c).linked rho →
     Gen.V2.Duty.HonestNeverSlashed (pcsaSlashing p c E) rho
 
 theorem PCSAHonestNeverSlashedClaim_def (p : Params) : PCSAHonestNeverSlashedClaim p =
-    (∀ {In : Type} (c : AppCodec In) (E : Generic.Env (Fin p.n))
-      (rho : V2.D.Run (Fin p.n) (pcsa p c)),
+    (∀ {In : Type} (c : AppCodec In) (m : FGMode) (E : Generic.Env (Fin p.n))
+      (rho : V2.D.Run (Fin p.n) (pcsaWith m p c)),
       V2.D.UnforgeableSignatures E rho →
       V2.D.Linked (pcsaFamilies p c).linked rho →
       Gen.V2.Duty.HonestNeverSlashed (pcsaSlashing p c E) rho) := by

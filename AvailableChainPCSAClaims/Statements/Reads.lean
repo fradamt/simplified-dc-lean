@@ -42,24 +42,24 @@ theorem pcsa_postClock_def (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t :
     pcsa_postClock E rho v t = (pcsa_preTick E rho v t).map (fun nd => P.clock nd t) := by
   rw [pcsa_postClock]
 
-variable (p : Params) {In : Type} (c : AppCodec In)
+variable (p : Params) {In : Type} (c : AppCodec In) {m : FGMode}
 
 /-- [PC-SA claims] The store of node `x` after the events up to `t` inclusive. -/
-def storeAt (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (x : V) (t : Time) :
+def storeAt (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (x : V) (t : Time) :
     State p.n :=
   (V2.D.Run.readAt E rho t x).st
 
-theorem storeAt_def (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (x : V) (t : Time) :
+theorem storeAt_def (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (x : V) (t : Time) :
     storeAt p c E rho x t = (V2.D.Run.readAt E rho t x).st := by
   rw [storeAt]
 
 /-- [PC-SA claims] The store of node `x` after the ticks at `t`, before the
 deliveries of `t` (the state the snapshot and the duties at `t` read). -/
-def storeAfterTicks (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (x : V) (t : Time) :
+def storeAfterTicks (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (x : V) (t : Time) :
     State p.n :=
   (afterTicks E rho t x).st
 
-theorem storeAfterTicks_def (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (x : V)
+theorem storeAfterTicks_def (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (x : V)
     (t : Time) : storeAfterTicks p c E rho x t = (afterTicks E rho t x).st := by
   rw [storeAfterTicks]
 

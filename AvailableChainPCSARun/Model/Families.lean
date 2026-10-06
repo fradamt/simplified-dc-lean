@@ -18,8 +18,9 @@ families (pcsa34-v2-delta (1)): the AP labels are the HEAD, the ack and the
 proposal labels; the fresh family is the HEAD and the ack labels (one
 committee of `n` seats per slot); the linked family is exactly the fixed FG
 label. A proposal label has one seat, so it is not fresh (`CStar` needs
-`seats ℓ = |V|`); it is `SingleSeat`. -/
-def pcsaFamilies : V2.D.LabelFamilies (pcsa p c) where
+`seats ℓ = |V|`); it is `SingleSeat`. One definition for every FG mode
+(`pcsaWith m p c`): the modes have the same labels and seats. -/
+def pcsaFamilies {m : FGMode} : V2.D.LabelFamilies (pcsaWith m p c) where
   ap
     | .base (.head _) => True
     | .base .fg => False

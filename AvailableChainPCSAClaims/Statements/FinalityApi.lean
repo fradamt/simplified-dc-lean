@@ -17,7 +17,7 @@ namespace AvailableChain.PCSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    {m : FGMode} (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
 
 /-- [PC-SA claims, W0; FG-SA FinalityFinalizedAt] The window carrier
 certificate of `K` finalizes `T` at height `h`. -/

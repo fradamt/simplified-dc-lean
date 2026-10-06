@@ -5,6 +5,7 @@ public import AvailableChainPCSAClaims.Claims.Outage
 public import AvailableChainPCSAClaims.Claims.Recovery
 public import AvailableChainPCSAClaims.Claims.Finality
 public import AvailableChainPCSAClaims.Claims.StageTwo
+public import AvailableChainPCSAClaims.Claims.AcFrame
 
 @[expose] public section
 
@@ -12,14 +13,23 @@ public import AvailableChainPCSAClaims.Claims.StageTwo
 records. `PCSAClaims` is the stage-1 milestone: the PC path (C1–C5,
 `PCSAPCClaims`) and the Clean, Outage, Recovery and Finality lanes (C6–C14).
 `PCSAStageTwoClaims` holds the stage-2 shapes (C15); it is never mixed into
-the stage-1 record. `PCSAPendingClaims` holds the long-break healing bound,
-which needs the L*′ lease rule in the model first. This module imports
-Claims modules only (FG-SA FGSAClaims.lean shape). -/
+the stage-1 record. `PCSAPendingClaims` holds the long-break healing bound
+(r4.3 proves it under the L*′ lock rule). This module imports Claims
+modules only (FG-SA FGSAClaims.lean shape).
+
+Protocol instances: the stage-1 and pending claims quantify over the FG mode
+`m` (`pcsaWith m p c`) and take `StageOneFrame` as their only frame premise.
+The AC-only instance is `m = .idle` (`pcsaAC`), where `AcOnlyFrameClaim`
+discharges `StageOneFrame`. The stage-2 claims are over `pcsa p c`
+(`m = .on`). -/
 
 namespace AvailableChain.PCSA.Run
 
-/-- [PC-SA claims, W0; plan §1 record] The stage-1 claims of PC-SA. -/
+/-- [PC-SA claims, W0; plan §1 record] The stage-1 claims of PC-SA, for every
+FG mode, and the frame claim of the AC-only instance. -/
 structure PCSAClaims (p : Params) : Prop extends PCSAPCClaims p where
+  -- AC-only frame (r4.3 5.0 stage 1; the `StageOneFrame` producer for `pcsaAC`)
+  acOnlyFrame : AcOnlyFrameClaim p
   -- Clean lane (C6, C7, C9, C14; r4.3 5.2, 5.3)
   snapshotStamp : PCSnapshotStampClaim p
   cleanInvariant : CleanInvariantClaim p
@@ -47,8 +57,8 @@ structure PCSAStageTwoClaims (p : Params) : Prop where
   armHealthy : ArmHealthyStageTwoClaim p
   strongIncluded : StrongIncludedStageTwoClaim p
 
-/-- [PC-SA claims, W0; pcsa34-r4 5.6.3] Claims that wait for a model change:
-the long-break healing bound needs the L*′ lease rule (3.7). -/
+/-- [PC-SA claims, W0; pcsa34-r4 5.6.3] Claims held back from `PCSAClaims`:
+the long-break healing bound, PROVED-sketch under the L*′ lock rule (3.7). -/
 structure PCSAPendingClaims (p : Params) : Prop where
   longBreakRecovered : LongBreakRecoveredClaim p
 

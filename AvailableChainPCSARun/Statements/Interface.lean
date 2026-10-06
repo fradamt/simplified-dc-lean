@@ -14,15 +14,17 @@ namespace AvailableChain.PCSA.Run
 
 /-- [PC-SA claims, W0; pcsa34-r4 3.2, R7; FG-SA fgsaInterface] The output
 interface of PC-SA: `confirmed` and `stable` read `get_confirmed` (the floor),
-`strong` reads `get_strong`. All slots open, as in SA.
+`strong` reads `get_strong`. All slots open, as in SA. One definition for
+every FG mode `m` (`pcsaWith m p c`): the modes differ only in the FG duty
+payload, which the interface does not read.
 Exception to the `_def`-only rule for Statements modules: the three
 structural interface laws `propDuty_label`, `propLabel_single` and
 `propLabel_injective` are proof terms (`rfl`, `RunLabel.prop.inj`), as in
 FG-SA's `fgsaInterface` (`AvailableChainFGSARun/Statements/Interface.lean`,
 same three laws, same terms). They are fields of the interface structure,
 not theorems. -/
-def pcsaInterface (p : Params) {In : Type} (c : AppCodec In) :
-    Gen.V2.Duty.PCInterface (pcsa p c) where
+def pcsaInterface (p : Params) {In : Type} (c : AppCodec In) {m : FGMode} :
+    Gen.V2.Duty.PCInterface (pcsaWith m p c) where
   confirmed nd := confirmed nd.st
   stable nd := stable nd.st
   block m := match m with

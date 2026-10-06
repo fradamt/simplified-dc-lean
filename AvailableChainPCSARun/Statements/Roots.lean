@@ -11,7 +11,7 @@ mechanical port over the PC-SA named proposals. -/
 namespace AvailableChain.PCSA.Run
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
+    {m : FGMode} (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
 
 /-- [PC-SA M1; DC NamedRun.directBlockInRun] Exact delivered or held bodies. -/
 def DirectNamedProposalInRun (N : NamedProposal p.n) : Prop :=

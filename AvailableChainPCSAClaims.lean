@@ -11,4 +11,5 @@ public import AvailableChainPCSAClaims.Claims.Outage
 public import AvailableChainPCSAClaims.Claims.Recovery
 public import AvailableChainPCSAClaims.Claims.Finality
 public import AvailableChainPCSAClaims.Claims.StageTwo
+public import AvailableChainPCSAClaims.Claims.AcFrame
 public import AvailableChainPCSAClaims.PCSAClaims
