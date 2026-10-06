@@ -16,4 +16,6 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.Run
 public import AvailableChainPCSAProofs.Proofs.Foundations.Snapshot
 public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotKeys
 public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
+public import AvailableChainPCSAProofs.Proofs.Foundations.StampRun
+public import AvailableChainPCSAProofs.Proofs.Foundations.Stamps
 public import AvailableChainPCSAProofs.Proofs.Foundations.Store

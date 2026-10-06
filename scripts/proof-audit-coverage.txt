@@ -5585,6 +5585,22 @@
             'AvailableChain.PCSA.Run.snapshot_absent_before_tick',
             'AvailableChain.PCSA.Run.snapshot_afterTicks',
         ),
+        'AvailableChainPCSAProofs.Proofs.Foundations.StampRun': (
+            'AvailableChain.PCSA.Run.stampBound_before_tick',
+            'AvailableChain.PCSA.Run.pcStamp_before_freeze_iff',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Foundations.Stamps': (
+            'AvailableChain.PCSA.StampBound_def',
+            'AvailableChain.PCSA.held_pcStamp',
+            'AvailableChain.PCSA.installPC_stampBound',
+            'AvailableChain.PCSA.normalizeS_stampBound',
+            'AvailableChain.PCSA.reconcile_stampBound',
+            'AvailableChain.PCSA.poolAckRaw_stampBound',
+            'AvailableChain.PCSA.admitRow_stampBound',
+            'AvailableChain.PCSA.process_stampBound',
+            'AvailableChain.PCSA.gateFrom_stampBound',
+            'AvailableChain.PCSA.clock_stampBound',
+        ),
         'AvailableChainPCSAProofs.Proofs.Foundations.Store': (
             'AvailableChain.PCSA.initial_pcs',
         ),

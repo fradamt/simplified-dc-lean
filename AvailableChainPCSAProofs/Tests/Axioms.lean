@@ -16,6 +16,8 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.Run
 public import AvailableChainPCSAProofs.Proofs.Foundations.Snapshot
 public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotKeys
 public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
+public import AvailableChainPCSAProofs.Proofs.Foundations.StampRun
+public import AvailableChainPCSAProofs.Proofs.Foundations.Stamps
 public import AvailableChainPCSAProofs.Proofs.Foundations.Store
 
 public section
@@ -135,6 +137,18 @@ public section
 #print axioms AvailableChain.PCSA.Run.snapshot_key_origin
 #print axioms AvailableChain.PCSA.Run.snapshot_absent_before_tick
 #print axioms AvailableChain.PCSA.Run.snapshot_afterTicks
+#print axioms AvailableChain.PCSA.Run.stampBound_before_tick
+#print axioms AvailableChain.PCSA.Run.pcStamp_before_freeze_iff
+#print axioms AvailableChain.PCSA.StampBound_def
+#print axioms AvailableChain.PCSA.held_pcStamp
+#print axioms AvailableChain.PCSA.installPC_stampBound
+#print axioms AvailableChain.PCSA.normalizeS_stampBound
+#print axioms AvailableChain.PCSA.reconcile_stampBound
+#print axioms AvailableChain.PCSA.poolAckRaw_stampBound
+#print axioms AvailableChain.PCSA.admitRow_stampBound
+#print axioms AvailableChain.PCSA.process_stampBound
+#print axioms AvailableChain.PCSA.gateFrom_stampBound
+#print axioms AvailableChain.PCSA.clock_stampBound
 #print axioms AvailableChain.PCSA.initial_pcs
 #print axioms AvailableChain.PCSA.Run.pcsa_oneAckPerSlot
 #print axioms AvailableChain.PCSA.Run.pcsa_outputNesting
