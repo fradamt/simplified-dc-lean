@@ -93,16 +93,18 @@ theorem pcsa_assemblePC_valid (st : State n) (s : Slot) (b : Block) (c : PC n)
 theorem collectPCs_preserves {α : Type} (f : State n → α)
     (hi : ∀ st c, f (installPC st c) = f st) (st : State n) :
     f (collectPCs st) = f st := by
-  unfold collectPCs
+  delta collectPCs
   generalize (st.ackPool.filterMap (fun a =>
     a.decode?.map (fun x => (x.1, x.2.2)))).eraseDups = cs
   induction cs generalizing st with
   | nil => rfl
   | cons sr cs ih =>
-    simp only [List.foldl_cons]
-    split
-    · exact ih st
-    · split
+    rw [List.foldl_cons]
+    cases hb : st.base.blocks.find? (fun b => b.root == sr.2) with
+    | none => exact ih st
+    | some b =>
+      dsimp only
+      cases hc : assemblePC st sr.1 b <;> dsimp only
       · exact ih st
       · exact (ih _).trans (hi _ _)
 
@@ -110,15 +112,17 @@ theorem collectPCs_preserves {α : Type} (f : State n → α)
 theorem collectPCs_invariant (P : State n → Prop)
     (hi : ∀ st c, P st → pcValid st c = true → P (installPC st c))
     (st : State n) (h : P st) : P (collectPCs st) := by
-  unfold collectPCs
+  delta collectPCs
   apply List.foldlRecOn
   · exact h
   · intro acc ha sr _
-    split
-    · exact ha
-    · split
+    cases hb : acc.base.blocks.find? (fun b => b.root == sr.2) with
+    | none => exact ha
+    | some b =>
+      dsimp only
+      cases hc : assemblePC acc sr.1 b <;> dsimp only
       · exact ha
-      · rename_i c hc
+      · rename_i c
         exact hi acc c ha (pcsa_assemblePC_valid acc sr.1 _ c hc)
 
 /-- PC collection keeps every previously held PC. -/

@@ -18,8 +18,9 @@ private def rankKey (c : Gen.Pure.PC n (PC n)) : Nat ×ₗ BlockId :=
 /-- The concrete comparison is the Generic strict rank comparison. -/
 private theorem pcBelow_rankLT (a b : PC n) :
     pcBelow a b = true ↔ Gen.Pure.RankLT rankKey (rankView a) (rankView b) := by
-  simp only [pcBelow, Gen.Pure.RankLT_def, rankView, rankKey,
-    Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq,
+  rw [Gen.Pure.RankLT_def]
+  dsimp only [pcBelow, rankView, rankKey]
+  simp only [Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq,
     Prod.Lex.toLex_lt_toLex]
 
 /-- PC choice commutes with the Generic rank adapter. -/
@@ -65,7 +66,9 @@ theorem pcsa_preferPC_idem (old : Option (PC n)) (c : PC n) :
   have h := Gen.Pure.preferPC_idem (key := rankKey) (old.map rankView) (rankView c)
   rw [← preferPC_rankView, ← preferPC_rankView] at h
   have he := congrArg (Option.map Gen.Pure.PC.target) h
-  simpa [Option.map_map, Function.comp_def, rankView] using he
+  simp only [Option.map_map, Function.comp_def] at he
+  dsimp only [rankView] at he
+  simpa using he
 
 /-- Every result of the PC fold is in its input or its initial choice. -/
 theorem foldl_preferPC_mem (cs : List (PC n)) (old : Option (PC n)) (c : PC n)

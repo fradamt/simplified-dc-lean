@@ -12,8 +12,9 @@ variable {n : Nat}
 /-- Raw pooling keeps the old acks. -/
 theorem poolAckRaw_mono (st : State n) (a : AckWire n) :
     st.ackPool ⊆ (poolAckRaw st a).ackPool := by
-  unfold poolAckRaw
-  split
+  delta poolAckRaw
+  cases hdecode : a.decode? <;> dsimp only
+  rotate_left
   · split
     · exact List.Subset.refl _
     · exact List.subset_append_left _ _
@@ -22,8 +23,9 @@ theorem poolAckRaw_mono (st : State n) (a : AckWire n) :
 /-- Raw pooling adds only the supplied ack. -/
 theorem mem_poolAckRaw (st : State n) (a b : AckWire n)
     (h : b ∈ (poolAckRaw st a).ackPool) : b ∈ st.ackPool ∨ b = a := by
-  unfold poolAckRaw at h
-  split at h
+  delta poolAckRaw at h
+  cases hdecode : a.decode? <;> rw [hdecode] at h <;> dsimp only at h
+  rotate_left
   · split at h
     · exact Or.inl h
     · simpa only [List.mem_append, List.mem_singleton] using h
@@ -32,7 +34,9 @@ theorem mem_poolAckRaw (st : State n) (a b : AckWire n)
 /-- A decoded raw ack is present after pooling. -/
 theorem poolAckRaw_mem (st : State n) (a : AckWire n) (s : Slot) (i : Fin n) (r : BlockId)
     (h : a.decode? = some (s, i, r)) : a ∈ (poolAckRaw st a).ackPool := by
-  simp only [poolAckRaw, h]
+  delta poolAckRaw
+  rw [h]
+  dsimp only
   split
   · assumption
   · simp
@@ -41,17 +45,21 @@ theorem poolAckRaw_mem (st : State n) (a : AckWire n) (s : Slot) (i : Fin n) (r 
 theorem poolAckRaw_frame (st : State n) (a : AckWire n) :
     (poolAckRaw st a).pcs = st.pcs ∧ (poolAckRaw st a).pcStamps = st.pcStamps ∧
     (poolAckRaw st a).base = st.base ∧ (poolAckRaw st a).fg = st.fg := by
-  unfold poolAckRaw
-  split
+  delta poolAckRaw
+  cases hdecode : a.decode? <;> dsimp only
+  rotate_left
   · split <;> exact ⟨rfl, rfl, rfl, rfl⟩
   · exact ⟨rfl, rfl, rfl, rfl⟩
 
 /-- Checked pooling keeps the old acks. -/
 theorem poolAck_mono (p : Params) (st : State p.n) (a : AckWire p.n) :
     st.ackPool ⊆ (poolAck p st a).ackPool := by
-  unfold poolAck
-  split
-  · split
+  delta poolAck
+  cases hdecode : a.decode? <;> dsimp only
+  rotate_left
+  · rename_i v
+    rcases v with ⟨_, _, _⟩
+    split
     · exact List.Subset.refl _
     · split
       · exact List.Subset.refl _
@@ -61,9 +69,12 @@ theorem poolAck_mono (p : Params) (st : State p.n) (a : AckWire p.n) :
 /-- Checked pooling adds only the supplied ack. -/
 theorem mem_poolAck (p : Params) (st : State p.n) (a b : AckWire p.n)
     (h : b ∈ (poolAck p st a).ackPool) : b ∈ st.ackPool ∨ b = a := by
-  unfold poolAck at h
-  split at h
-  · split at h
+  delta poolAck at h
+  cases hdecode : a.decode? <;> rw [hdecode] at h <;> dsimp only at h
+  rotate_left
+  · rename_i v
+    rcases v with ⟨_, _, _⟩
+    split at h
     · exact Or.inl h
     · split at h
       · exact Or.inl h

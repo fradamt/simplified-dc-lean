@@ -26,12 +26,12 @@ private theorem row_wire_shape (a : RowWire p.n) (r : Row (Fin p.n))
     (h : a.toRow? = some r) : ∃ body, a = ⟨.seat .fg r.signer, body⟩ := by
   rcases a with ⟨auth, body⟩
   cases auth with
-  | none => simp [RowWire.toRow?, RowWire.decode?] at h
-  | proposer s => simp [RowWire.toRow?, RowWire.decode?] at h
+  | none => dsimp only [RowWire.toRow?, RowWire.decode?] at h; contradiction
+  | proposer s => dsimp only [RowWire.toRow?, RowWire.decode?] at h; contradiction
   | seat l i =>
     cases l with
-    | head s => simp [RowWire.toRow?, RowWire.decode?] at h
-    | ack s => simp [RowWire.toRow?, RowWire.decode?] at h
+    | head s => dsimp only [RowWire.toRow?, RowWire.decode?] at h; contradiction
+    | ack s => dsimp only [RowWire.toRow?, RowWire.decode?] at h; contradiction
     | fg =>
       have hr : body.toRow i = r := Option.some.inj h
       subst r
@@ -49,7 +49,8 @@ theorem pcsa_ac_block_rows_faulty (E : Generic.Env V) (rho : V2.D.Run V (pcsaAC 
   subst a
   apply pcsa_ac_carried_row_faulty E rho hv x o t hp r.signer body
   change carriesS p o _
-  rw [carriesS, decoded_block_payload o s N hd]
+  delta carriesS
+  rw [decoded_block_payload o s N hd]
   exact Or.inr (Or.inr (Or.inl (List.mem_map.mpr ⟨_, ha, rfl⟩)))
 
 /-- The initial store satisfies the AC frame invariant for any faulty seat set. -/

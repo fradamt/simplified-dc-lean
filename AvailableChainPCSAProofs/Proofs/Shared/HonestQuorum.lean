@@ -117,8 +117,9 @@ theorem pcsa_n_score_bound (rho : V2.D.Run V (pcsaWith m p c))
 /-- A well-formed PC has at least a PC quorum of distinct ack seats. -/
 theorem pcsa_pc_ack_card (C : PC p.n) (hw : C.wellFormed = true) :
     pcQuorum p.n ≤ (C.acks.filterMap AckWire.seat?).toFinset.card := by
-  unfold PC.wellFormed at hw
-  simp only [Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq, bne_iff_ne] at hw
+  dsimp only [PC.wellFormed] at hw
+  simp (config := { iota := false }) only
+    [Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq, bne_iff_ne] at hw
   rw [← pcsa_pc_seats_card]
   omega
 
@@ -131,7 +132,7 @@ theorem pcsa_pc_honest_ack (rho : V2.D.Run V (pcsaWith m p c))
   obtain ⟨i, hi, hh⟩ := pcsa_ack_quorum_honest rho hC hf C.slot _
     (pcsa_pc_ack_card C hw)
   obtain ⟨a, ha, hs⟩ := (pcsa_ack_count_witness C.acks i).mp hi
-  unfold PC.wellFormed at hw
+  dsimp only [PC.wellFormed] at hw
   have hall := (Bool.and_eq_true_iff.mp hw).2
   have hd := List.all_eq_true.mp hall a ha
   unfold AckWire.seat? at hs
@@ -140,7 +141,9 @@ theorem pcsa_pc_honest_ack (rho : V2.D.Run V (pcsaWith m p c))
   | some v =>
     rcases v with ⟨s, j, r⟩
     simp only [he, Option.map_some, Option.some.injEq] at hs
-    simp only [he, Bool.and_eq_true, beq_iff_eq] at hd
+    rw [he] at hd
+    dsimp only at hd
+    simp only [Bool.and_eq_true, beq_iff_eq] at hd
     rcases hd with ⟨rfl, rfl⟩
     subst j
     exact ⟨i, hh, a, ha, he⟩

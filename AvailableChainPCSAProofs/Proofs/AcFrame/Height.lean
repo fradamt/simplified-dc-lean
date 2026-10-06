@@ -19,8 +19,12 @@ theorem pcsa_faults_lt_fg_quorum (p : Params) (F : Finset (Fin p.n))
   have htwo := (Gen.Pure.lt_qA_iff_two_mul_lt p.n F.card).mp hF
   have hclean := Gen.Pure.count_clean (n := p.n) (a := F.card) (h := p.n - F.card)
     (by omega) le_rfl
-  have hw : p.E.weightOf F = F.card := by simp [FGSA.Params.E, Electorate.weightOf]
-  rw [hw, ← KitFG.toWeights_q, FGSA.Params.E, KitFG.unit_toWeights_q]
+  have hw : p.E.weightOf F = F.card := by
+    dsimp only [FGSA.Params.E, Electorate.weightOf]
+    simp
+  rw [hw, ← KitFG.toWeights_q]
+  dsimp only [FGSA.Params.E]
+  rw [KitFG.unit_toWeights_q]
   exact hclean.lt
 
 /-- Without a quorum of row signers, each block keeps the initial FG height and frame. -/

@@ -54,10 +54,9 @@ theorem pcsa_fold_admitRow_fg (p : Params) (st : State p.n) (as : List (RowWire 
   | nil => rfl
   | cons a as ih =>
     rw [List.foldl_cons, ih]
-    unfold admitRow
-    split
-    · split <;> rfl
-    · rfl
+    delta admitRow
+    cases hdecode : a.decode? <;> dsimp only
+    split <;> rfl
 
 /-- A raw ack batch changes no FG field. -/
 theorem pcsa_fold_poolAckRaw_fg (st : State n) (as : List (AckWire n)) :
@@ -73,17 +72,18 @@ theorem pcsa_admitBlock_fg_cases (p : Params) (st : State p.n) (s : Slot)
       ∃ P, parentFG st N.erase = some P ∧
         (admitBlock p st s N).fg =
           FGSA.Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows) := by
-  unfold admitBlock
+  delta admitBlock
   split
   · exact Or.inl rfl
-  · split
+  · cases hP : parentFG st N.erase
     · exact Or.inl rfl
-    · rename_i P hP
+    · rename_i P
+      dsimp only
       split
       · right
-        refine ⟨P, hP, ?_⟩
+        refine ⟨P, rfl, ?_⟩
         rw [pcsa_fold_admitRow_fg, (collectPCs_frame _).2.2.2.2, pcsa_fold_poolAckRaw_fg]
-        split <;> split_ifs <;> simp only [pcsa_reconcile_fg] <;> rfl
+        cases N.pc <;> dsimp only <;> split_ifs <;> simp only [pcsa_reconcile_fg] <;> rfl
       · exact Or.inl rfl
 
 /-- A window update on a block with only faulty rows keeps the cached frame initial. -/
@@ -128,37 +128,47 @@ theorem pcsa_process_acSafe (p : Params) (F : Finset (Fin p.n))
       ∀ a ∈ N.rows.filterMap RowWire.toRow?, a.signer ∈ F) :
     AcStoreSafe F (process p st o) := by
   have keep (st' : State p.n) (he : st'.fg = st.fg) : AcStoreSafe F st' := by
-    simpa only [AcStoreSafe, he] using h
-  unfold process
-  split
-  · exact h
-  · apply keep
-    unfold admitRow
-    split
-    · split <;> rfl
-    · rfl
-  · rename_i s N hd
-    rcases pcsa_admitBlock_fg_cases p st s N with he | ⟨P, hp, he⟩
-    · exact keep _ he
-    · have hP : P ∈ st.fg.TF := (FGSA.pickPair_some_spec _ _ hp).1
-      have hb := pcsa_child_rows P N.erase N.rows F (h.2.2.2.2 P hP) (hr s N hd)
-      have hk := pcsa_on_block_acSafe p F hF st h _ hb
-      simpa only [AcStoreSafe, he] using hk
-  · apply keep
-    unfold admitAck
-    rw [(collectPCs_frame _).2.2.2.2]
-    unfold poolAck
-    split
-    · split
+    simpa only [AcStoreSafe_def, he] using h
+  delta process
+  cases hd : o.decode with
+  | some msg => cases msg with
+    | vote s i r =>
+      dsimp only
+      exact h
+    | row i body =>
+      dsimp only
+      apply keep
+      delta admitRow
+      cases hdecode : RowWire.decode? ⟨o.auth, body⟩ <;> dsimp only
+      split <;> rfl
+    | block s N =>
+      dsimp only
+      rcases pcsa_admitBlock_fg_cases p st s N with he | ⟨P, hp, he⟩
+      · exact keep _ he
+      · have hP : P ∈ st.fg.TF := (FGSA.pickPair_some_spec _ _ hp).1
+        have hb := pcsa_child_rows P N.erase N.rows F (h.2.2.2.2 P hP) (hr s N hd)
+        have hk := pcsa_on_block_acSafe p F hF st h _ hb
+        simpa only [AcStoreSafe_def, he] using hk
+    | ack s i r =>
+      dsimp only
+      apply keep
+      unfold admitAck
+      rw [(collectPCs_frame _).2.2.2.2]
+      delta poolAck
+      cases hdecode : AckWire.decode? (⟨o.auth, r⟩ : AckWire p.n) <;> dsimp only
+      rename_i v
+      rcases v with ⟨_, _, _⟩
+      dsimp only
+      split_ifs <;> rfl
+    | pc d =>
+      dsimp only
+      apply keep
+      unfold admitPC
+      split
+      · rw [(collectPCs_frame _).2.2.2.2, pcsa_fold_poolAckRaw_fg]
       · rfl
-      · split <;> rfl
-    · rfl
-  · apply keep
-    unfold admitPC
-    split
-    · rw [(collectPCs_frame _).2.2.2.2, pcsa_fold_poolAckRaw_fg]
-    · rfl
-  · exact h
+  | none =>
+    exact h
 
 /-- An initial cached frame has a genesis root and band floor zero. -/
 theorem pcsa_acSafe_frame (p : Params) (F : Finset (Fin p.n)) (st : State p.n)
@@ -169,7 +179,8 @@ theorem pcsa_acSafe_frame (p : Params) (F : Finset (Fin p.n)) (st : State p.n)
     rintro ⟨W, _, _, hW⟩
     exact hW (KitFG.genesis_preceq W)
   simp only [controls_def, KitFG.storeControlsView_def, h.1, h.2.1, h.2.2.1,
-    h.2.2.2.1, hn, decide_false, Bool.and_false, Controls.Z, Controls.lo]
+    h.2.2.2.1, hn, decide_false, Bool.and_false]
+  dsimp only [Controls.Z, Controls.lo]
   exact ⟨trivial, by split <;> rfl, rfl⟩
 
 end AvailableChain.PCSA

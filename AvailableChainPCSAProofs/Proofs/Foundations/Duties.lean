@@ -14,7 +14,7 @@ namespace AvailableChain.PCSA.Run
 /-- Only the ack duty uses a slot's ack signing label. -/
 theorem signLabel_ack_iff (d : RunDuty) (s : Slot) :
     d.signLabel = .base (.ack s) ↔ d = .ackAction s := by
-  cases d <;> simp [RunDuty.signLabel]
+  cases d <;> dsimp only [RunDuty.signLabel] <;> simp
 
 /-- At the early time, the FG duty, if due, precedes the ack duty. -/
 theorem pcsa_duties_early (p : Params) (s : Slot) :

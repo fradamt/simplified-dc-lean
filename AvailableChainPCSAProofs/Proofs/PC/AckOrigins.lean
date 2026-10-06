@@ -36,7 +36,7 @@ private theorem decoded_ack (o : Obj p) (s : Slot) (i : Fin p.n) (r : BlockId)
     | prop k => cases payload <;> simp [toWire, toAuth, Wire.decode] at h
     | base l =>
       cases l <;> cases payload <;>
-        simp [toWire, toAuth, Wire.decode, Label.ackSlot?] at h
+        dsimp only [toWire, toAuth, Wire.decode, Label.ackSlot?] at h <;> simp at h
       obtain ⟨rfl, rfl, rfl⟩ := h
       rfl
 
@@ -50,12 +50,14 @@ private theorem decoded_payloads (o : Obj p) :
     cases l with
     | prop k => cases payload <;> simp [toWire, toAuth, Wire.decode]
     | base l => cases l <;> cases payload <;>
-        simp [toWire, toAuth, Wire.decode, Label.ackSlot?]
+        dsimp only [toWire, toAuth, Wire.decode, Label.ackSlot?] <;> simp
 
 /-- Every indexed store has well-formed PCs with authentic ack origins. -/
 theorem certSafe_stateBefore (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
     (j : Nat) (v : V) : CertSafe (AckOrigin E rho) (V2.D.Run.stateBefore E rho j v).st := by
-  have hz : CertSafe (AckOrigin E rho) (initial p.n) := by simp [CertSafe_def, initial]
+  have hz : CertSafe (AckOrigin E rho) (initial p.n) := by
+    dsimp only [initial]
+    simp [CertSafe_def]
   refine V2.D.Engine.stateBefore_step_induction E rho
     (fun nd : Node p => CertSafe (AckOrigin E rho) nd.st) (Nat.zero_le j) v ?_ hz
   intro k e _ _ he hn h
@@ -109,10 +111,10 @@ theorem ackOrigin_emits (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
   have heq : ofAck p a = ackObj p s i r := by
     rcases a with ⟨auth, payload⟩
     cases auth with
-    | none => simp [AckWire.decode?] at hd
-    | proposer k => simp [AckWire.decode?] at hd
+    | none => dsimp only [AckWire.decode?] at hd; contradiction
+    | proposer k => dsimp only [AckWire.decode?] at hd; contradiction
     | seat l j =>
-      cases l <;> simp [AckWire.decode?, Label.ackSlot?] at hd
+      cases l <;> dsimp only [AckWire.decode?, Label.ackSlot?] at hd <;> simp at hd
       obtain ⟨rfl, rfl, rfl⟩ := hd
       rfl
   obtain ⟨x, o, t, hp, ho⟩ := ha
@@ -151,7 +153,8 @@ theorem held_pc_honest_ack [Fintype V] (E : Generic.Env V)
   rw [CertSafe_def] at hs
   obtain ⟨hw, ho⟩ := hs.2 d hd
   have hw' := hw
-  simp only [PC.wellFormed, Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq] at hw'
+  dsimp only [PC.wellFormed] at hw'
+  simp (config := { iota := false }) only [ Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq] at hw'
   let F : Finset (Fin p.n) := Finset.univ.filter
     (fun i => rho.seatOf (.base (.ack d.slot)) i ∉ rho.honest)
   have hbound := fresh_faulty_card rho h.cstar (.ack d.slot) trivial F
@@ -164,15 +167,21 @@ theorem held_pc_honest_ack [Fintype V] (E : Generic.Env V)
   have hh : rho.seatOf (.base (.ack d.slot)) i ∈ rho.honest := by
     simpa [F] using hn
   have hi' : i ∈ d.acks.filterMap AckWire.seat? := by
-    simpa [PC.seats] using hi
+    dsimp only [PC.seats] at hi
+    simpa using hi
   obtain ⟨a, ha, hai⟩ := List.mem_filterMap.mp hi'
   have had := List.all_eq_true.mp hw'.2 a ha
   cases he : a.decode? with
-  | none => simp [he] at had
+  | none => rw [he] at had; contradiction
   | some v =>
     rcases v with ⟨s, j, r⟩
-    have hij : j = i := by simpa [AckWire.seat?, he] using hai
-    have hsr : s = d.slot ∧ r = d.target.root := by simpa [he] using had
+    have hij : j = i := by
+      dsimp only [AckWire.seat?] at hai
+      simpa [he] using hai
+    have hsr : s = d.slot ∧ r = d.target.root := by
+      rw [he] at had
+      dsimp only at had
+      simpa using had
     rcases hsr with ⟨rfl, rfl⟩
     subst j
     exact ⟨i, hh, ackOrigin_emits E rho h.valid.toUnforgeableSignatures a _ i _

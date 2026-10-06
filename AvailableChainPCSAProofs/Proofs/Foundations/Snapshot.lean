@@ -12,18 +12,21 @@ variable {n : Nat}
 theorem pcSnapshotAt_absent (st : State n) (s : Slot)
     (h : st.pcSnapshot.find? (fun row => row.1 == s) = none) :
     pcSnapshotAt st s = [] := by
-  simp only [pcSnapshotAt, h, Option.map_none, Option.getD_none]
+  dsimp only [pcSnapshotAt]
+  simp only [h, Option.map_none, Option.getD_none]
 
 /-- Appending a new freeze label records the full PC list. -/
 theorem pcSnapshotAt_append (st : State n) (s : Slot) (cs : List (PC n))
     (h : st.pcSnapshot.find? (fun row => row.1 == s) = none) :
     pcSnapshotAt { st with pcSnapshot := st.pcSnapshot ++ [(s, cs)] } s = cs := by
-  simp [pcSnapshotAt, List.find?_append, h]
+  dsimp only [pcSnapshotAt]
+  simp [List.find?_append, h]
 
 /-- Changing fields outside the frozen list does not change the snapshot. -/
 theorem pcSnapshotAt_eq_of_list_eq (st st' : State n) (s : Slot)
     (h : st.pcSnapshot = st'.pcSnapshot) : pcSnapshotAt st s = pcSnapshotAt st' s := by
-  simp only [pcSnapshotAt, h]
+  dsimp only [pcSnapshotAt]
+  simp only [h]
 
 /-- The pre-gate clock preserves the held PC set. -/
 theorem clockPre_pcs (p : Params) (st : State p.n) (t : Time) :
@@ -51,11 +54,12 @@ theorem clockPre_output_fields (p : Params) (st : State p.n) (t : Time) :
 theorem gateFrom_pc_frame (p : Params) (a : Block) (cs : List (PC n)) (ρ : Option PCRank)
     (st : State n) (s : Slot) :
     (gateFrom p a cs ρ st s).pcs = st.pcs ∧ (gateFrom p a cs ρ st s).fg = st.fg := by
-  unfold gateFrom
+  rw [gateFrom_def]
   dsimp only
-  split
+  cases hc : SA.Root.confirmationFrom p.toParams a (actView st) s
   · exact ⟨rfl, rfl⟩
-  · split
+  · dsimp only
+    split
     · exact ⟨rfl, rfl⟩
     · apply List.foldlRecOn (motive := fun a : State n => a.pcs = st.pcs ∧ a.fg = st.fg)
       · exact ⟨rfl, rfl⟩
@@ -80,7 +84,7 @@ theorem clockPre_freeze_snapshot (p : Params) (st : State p.n) (s : Slot)
   unfold clockPre
   simp only [hf, hz, decide_true, BEq.rfl, Bool.and_self, ite_true,
     onView, h, Option.isSome_none, Bool.false_eq_true, ite_false]
-  split <;> split <;> simp [pcSnapshotAt, List.find?_append, h]
+  split <;> split <;> dsimp only [pcSnapshotAt] <;> simp [List.find?_append, h]
 
 /-- A freeze time is not a gate time. -/
 theorem freezeTime_ne_gateTime (p : Params) (s d : Slot) :
@@ -125,7 +129,8 @@ theorem gateRank_candidate_iff (p : Params) (st : State p.n) (s : Slot) (c : PC 
 /-- A store without held PCs has no gate rank. -/
 theorem gateRank_empty (p : Params) (st : State p.n) (s : Slot) (h : st.pcs = []) :
     gateRank p st s = none := by
-  simp [gateRank_def, h, bestPC]
+  simp only [gateRank_def, h]
+  rfl
 
 /-- Gate rank depends only on held PCs, stamps, and the full filtered tree. -/
 theorem gateRank_eq (p : Params) (st st' : State p.n) (s : Slot)

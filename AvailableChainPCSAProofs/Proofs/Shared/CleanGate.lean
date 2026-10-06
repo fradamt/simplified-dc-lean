@@ -61,7 +61,8 @@ cumulative, as required by the root wire model. -/
 theorem pcsa_actView_blocks_of_genesis (st : State n)
     (hF : st.fg.F = SimplexFG.FGBlock.genesis) : (actView st).blocks = st.base.blocks := by
   unfold actView activeCompatible
-  simp only [hF, eraseFG]
+  rw [hF]
+  dsimp only [eraseFG]
   apply List.filter_eq_self.mpr
   intro B _
   rw [block_compatible_comm]
@@ -116,7 +117,9 @@ theorem pcsa_cl3_result_below_head
         cases u with | mk au pu =>
           cases o with | mk ao po =>
             cases au <;> cases pu <;> cases ao <;> cases po <;>
-              simp_all [GridCO.headLabel?, GridCO.headSeat?, GridCO.sameSeat]
+              dsimp only [GridCO.headLabel?, GridCO.headSeat?, GridCO.sameSeat]
+                at hui hi hu' ho' ⊢ <;>
+              simp_all
       have hnot := (List.mem_filter.mp ho).2
       have hfalse : L.any (fun u => GridCO.sameSeat u o && u != o) = false := by
         simpa only [Bool.not_eq_true'] using hnot
@@ -146,9 +149,15 @@ theorem pcsa_cleanSupport_subset_headSupport (p : Params) (st : State p.n) (s : 
   refine List.mem_filter.mpr ⟨hm, ?_⟩
   cases hh : GridCO.resolvedHead? (actView st) o with
   | none =>
-    simp only [GridCO.resolvedBefore, hh, Bool.false_eq_true] at hr
+    dsimp only [GridCO.resolvedBefore] at hr
+    rw [hh] at hr
+    dsimp only at hr
+    simp only [Bool.false_eq_true] at hr
   | some B =>
-    simp only [GridCO.resolvedBefore, hh, Bool.and_eq_true, decide_eq_true_eq,
+    dsimp only [GridCO.resolvedBefore] at hr
+    rw [hh] at hr
+    dsimp only at hr
+    simp only [Bool.and_eq_true, decide_eq_true_eq,
       hlabel, Option.getD_some] at hr
     simp only [decide_eq_true_eq]
     exact hr.1.1

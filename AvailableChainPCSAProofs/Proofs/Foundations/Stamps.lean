@@ -30,7 +30,8 @@ theorem held_pcStamp (t : Time) (st : State n) (h : StampBound t st)
   | none =>
     have hn := List.find?_eq_none.mp he row hr
     simp [hs, hb] at hn
-  | some row => exact ⟨row.2.2, h.2.2 row (List.mem_of_find?_eq_some he), by simp [pcStamp?, he]⟩
+  | some row =>
+    exact ⟨row.2.2, h.2.2 row (List.mem_of_find?_eq_some he), by simp [pcStamp?_def, he]⟩
 
 /-- Installation keeps the stamp bound, also when it replaces a stamp key. -/
 theorem installPC_stampBound (t : Time) (st : State n) (c : PC n) (h : StampBound t st) :
@@ -77,16 +78,18 @@ theorem reconcile_stampBound (t : Time) (st : State n) (h : StampBound t st) :
 /-- Raw ack pooling keeps stamp bounds. -/
 theorem poolAckRaw_stampBound (t : Time) (st : State n) (a : AckWire n)
     (h : StampBound t st) : StampBound t (poolAckRaw st a) := by
-  unfold poolAckRaw
-  split
+  delta poolAckRaw
+  cases hdecode : a.decode? <;> dsimp only
+  rotate_left
   · split <;> exact h
   · exact h
 
 /-- Row admission keeps stamp bounds. -/
 theorem admitRow_stampBound (p : Params) (t : Time) (st : State p.n) (a : RowWire p.n)
     (h : StampBound t st) : StampBound t (admitRow p st a) := by
-  unfold admitRow
-  split
+  delta admitRow
+  cases hdecode : a.decode? <;> dsimp only
+  rotate_left
   · split <;> exact h
   · exact h
 
@@ -101,49 +104,67 @@ theorem process_stampBound (p : Params) (t : Time) (st : State p.n) (o : Wire p.
   have hr (st : State p.n) (as : List (RowWire p.n)) (h : StampBound t st) :
       StampBound t (as.foldl (admitRow p) st) :=
     List.foldlRecOn as (admitRow p) h (fun acc ha a _ => admitRow_stampBound p t acc a ha)
-  unfold process
-  split
-  · simpa only [StampBound, admitHead, FGSA.Run.Internal.grid_admitVote_now] using h
-  · exact admitRow_stampBound p t st _ h
-  · unfold admitBlock
-    split
-    · exact h
-    · split
+  delta process
+  cases hd : o.decode with
+  | some msg => cases msg with
+    | vote s i r =>
+      dsimp only
+      dsimp only [admitHead]
+      simpa only [StampBound_def, FGSA.Run.Internal.grid_admitVote_now] using h
+    | row i body =>
+      dsimp only
+      exact admitRow_stampBound p t st _ h
+    | block s N =>
+      dsimp only
+      delta admitBlock
+      split
       · exact h
-      · split
-        · apply hr
-          apply hc
-          apply ha
-          split <;> split_ifs <;>
-            first
-            | (apply reconcile_stampBound; simpa only [StampBound,
-                deleteConflictingLeases_def, FGSA.Run.Internal.grid_admitProposal_now] using h)
-            | simpa only [StampBound, deleteConflictingLeases_def,
-                FGSA.Run.Internal.grid_admitProposal_now] using h
+      · cases hP : parentFG st N.erase
         · exact h
-  · unfold admitAck
-    apply hc
-    unfold poolAck
-    split
-    · split
+        · dsimp only
+          split
+          · apply hr
+            apply hc
+            apply ha
+            cases N.pc <;> dsimp only <;> split_ifs <;>
+              first
+              | (apply reconcile_stampBound; simpa only [StampBound_def,
+                  deleteConflictingLeases_def, FGSA.Run.Internal.grid_admitProposal_now] using h)
+              | simpa only [StampBound_def, deleteConflictingLeases_def,
+                  FGSA.Run.Internal.grid_admitProposal_now] using h
+          · exact h
+    | ack s i r =>
+      dsimp only
+      unfold admitAck
+      apply hc
+      delta poolAck
+      cases hdecode : AckWire.decode? (⟨o.auth, r⟩ : AckWire p.n) <;> dsimp only
+      rotate_left
+      · rename_i v
+        rcases v with ⟨_, _, _⟩
+        split
+        · exact h
+        · split <;> exact h
       · exact h
-      · split <;> exact h
-    · exact h
-  · unfold admitPC
-    split
-    · exact hc _ (ha _ _ h)
-    · exact h
-  · exact h
+    | pc d =>
+      dsimp only
+      unfold admitPC
+      split
+      · exact hc _ (ha _ _ h)
+      · exact h
+  | none =>
+    exact h
 
 /-- Gate steps keep stamp bounds. -/
 theorem gateFrom_stampBound (p : Params) (t : Time) (a : Block) (cs : List (PC n))
     (ρ : Option PCRank) (st : State n) (s : Slot) (h : StampBound t st) :
     StampBound t (gateFrom p a cs ρ st s) := by
-  unfold gateFrom
+  rw [gateFrom_def]
   dsimp only
-  split
+  cases hc : SA.Root.confirmationFrom p.toParams a (actView st) s
   · exact h
-  · split
+  · dsimp only
+    split
     · exact h
     · apply List.foldlRecOn
       · exact h

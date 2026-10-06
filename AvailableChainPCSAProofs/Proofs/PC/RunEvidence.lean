@@ -64,7 +64,7 @@ private theorem decoded_head (o : Obj p) (s : Slot) (i : Fin p.n) (r : BlockId)
     | prop k => cases payload <;> simp [toWire, toAuth, Wire.decode] at h
     | base l =>
       cases l <;> cases payload <;>
-        simp [toWire, toAuth, Wire.decode, Label.ackSlot?] at h
+        dsimp only [toWire, toAuth, Wire.decode, Label.ackSlot?] at h <;> simp at h
       obtain ⟨rfl, rfl, rfl⟩ := h
       rfl
 
@@ -80,17 +80,17 @@ private theorem decoded_proposal (o : Obj p) (s : Slot) (N : NamedProposal p.n)
       obtain ⟨rfl, rfl⟩ := h
       rfl
     | base l => cases l <;> cases payload <;>
-        simp [toWire, toAuth, Wire.decode, Label.ackSlot?] at h
+        dsimp only [toWire, toAuth, Wire.decode, Label.ackSlot?] at h <;> simp at h
 
 private theorem baseHead_shape (a : HeadWire p.n) (s : Slot) (i : Fin p.n) (r : BlockId)
     (h : GridCO.fromHead (baseHead a) = (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root)) :
     ofHead p a = ⟨.seat (.base (.head s)) i, .head r⟩ := by
   rcases a with ⟨auth, payload⟩
   cases auth with
-  | none => simp [baseHead, HeadWire.decode?, GridCO.fromHead] at h
-  | proposer k => simp [baseHead, HeadWire.decode?, GridCO.fromHead] at h
+  | none => dsimp only [baseHead, HeadWire.decode?, GridCO.fromHead] at h; simp at h
+  | proposer k => dsimp only [baseHead, HeadWire.decode?, GridCO.fromHead] at h; simp at h
   | seat l j =>
-    cases l <;> simp [baseHead, HeadWire.decode?, GridCO.fromHead] at h
+    cases l <;> dsimp only [baseHead, HeadWire.decode?, GridCO.fromHead] at h <;> simp at h
     obtain ⟨⟨rfl, rfl⟩, rfl⟩ := h
     rfl
 
@@ -101,12 +101,14 @@ theorem evidence_stateBefore (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p
       (V2.D.Run.stateBefore E rho j v).st := by
   have hg : RootBlockInRun p c E rho .genesis := by
     refine ⟨.genesis, ⟨.genesis, Or.inr ⟨v, hh, 0, ?_⟩, ?_⟩, rfl⟩
-    · simp [V2.D.Run.stateBefore, initial, State.namedBodies, pcsaWith]
+    · dsimp only [V2.D.Run.stateBefore, pcsaWith]
+      dsimp only [initial]
+      simp [State.namedBodies]
     · exact pcsa_named_preceq_refl _
   have hz : StoreEvidence (RootBlockInRun p c E rho) (HeadAuthentic E rho) (initial p.n) := by
     rw [StoreEvidence_def]
-    exact ⟨by simpa [initial, GridCO.initial] using hg,
-      by simp [initial], by simp [initial, GridCO.initial]⟩
+    dsimp only [initial]
+    exact ⟨by simpa [GridCO.initial] using hg, by simp, by simp [GridCO.initial]⟩
   refine V2.D.Engine.stateBefore_step_induction E rho
     (fun nd : Node p => StoreEvidence (RootBlockInRun p c E rho) (HeadAuthentic E rho) nd.st)
     (Nat.zero_le j) v ?_ hz

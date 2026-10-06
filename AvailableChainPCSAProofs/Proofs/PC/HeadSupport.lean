@@ -11,7 +11,7 @@ namespace AvailableChain.PCSA.Run
 /-- Only the HEAD duty uses the HEAD signing label of a slot. -/
 theorem signLabel_head_iff (d : RunDuty) (s : Slot) :
     d.signLabel = .base (.head s) ↔ d = .headAction s := by
-  cases d <;> simp [RunDuty.signLabel]
+  cases d <;> dsimp only [RunDuty.signLabel] <;> simp
 
 /-- The HEAD label fixes both its duty and its emission time. -/
 theorem head_emission_duty (p : Params) {In V : Type} [DecidableEq V]
@@ -100,7 +100,9 @@ theorem nTarget_support (p : Params) (st : State p.n) (s : Slot) (b : Block)
     have hmem : o ∈ st.base.votes := (List.mem_filter.mp hv).1
     have hshape : ∃ r, o = ⟨.seat s i, .head r⟩ := by
       rcases o with ⟨auth, payload⟩
-      cases auth <;> cases payload <;> simp [GridCO.headSeat?, GridCO.headLabel?] at hseat hlabel
+      cases auth <;> cases payload <;>
+        dsimp only [GridCO.headSeat?, GridCO.headLabel?] at hseat hlabel <;>
+        simp at hseat hlabel
       obtain rfl := hseat
       obtain rfl := hlabel
       exact ⟨_, rfl⟩

@@ -44,15 +44,18 @@ theorem CertSafe_def (Q : AckWire n → Prop) (st : State n) : CertSafe Q st =
 /-- Collection uses valid certificates and takes their acks from its pool. -/
 theorem collectPCs_certSafe (Q : AckWire n → Prop) (st : State n) (h : CertSafe Q st) :
     CertSafe Q (collectPCs st) := by
-  unfold collectPCs
+  delta collectPCs
   apply List.foldlRecOn
   · exact h
   · intro acc ha sr _
-    split
-    · exact ha
-    · split
+    cases hb : acc.base.blocks.find? (fun b => b.root == sr.2) with
+    | none => exact ha
+    | some b =>
+      dsimp only
+      cases hc : assemblePC acc sr.1 b <;> dsimp only
       · exact ha
-      · rename_i d hd
+      · rename_i d
+        have hd := hc
         have hv := pcsa_assemblePC_valid acc sr.1 _ d hd
         refine ⟨?_, ?_⟩
         · simpa only [(installPC_frame acc d).2.2.1] using ha.1
@@ -87,8 +90,9 @@ theorem reconcile_certSafe (Q : AckWire n → Prop) (st : State n) (h : CertSafe
 /-- Row admission changes neither the ack pool nor held certificates. -/
 theorem admitRow_certSafe (p : Params) (Q : AckWire p.n → Prop) (st : State p.n)
     (a : RowWire p.n) (h : CertSafe Q st) : CertSafe Q (admitRow p st a) := by
-  unfold admitRow
-  split
+  delta admitRow
+  cases hdecode : a.decode? <;> dsimp only
+  rotate_left
   · split <;> exact h
   · exact h
 
@@ -102,54 +106,69 @@ theorem process_certSafe (p : Params) (Q : AckWire p.n → Prop) (st : State p.n
   have foldA (st : State p.n) (as : List (AckWire p.n)) (h : CertSafe Q st)
       (hs : ∀ a ∈ as, Q a) : CertSafe Q (as.foldl poolAckRaw st) :=
     List.foldlRecOn as poolAckRaw h (fun acc h a hm => poolAckRaw_certSafe Q acc a h (hs a hm))
-  unfold process
-  split
-  · exact h
-  · exact admitRow_certSafe p Q st _ h
-  · rename_i s N hd
-    unfold admitBlock
-    split
-    · exact h
-    · split
-      · exact h
-      · split
-        · apply List.foldlRecOn
-          · apply collectPCs_certSafe
-            apply foldA _ _ _ (hb s N hd)
-            split <;> split_ifs <;> first | apply reconcile_certSafe; exact h | exact h
-          · intro acc h a _
-            exact admitRow_certSafe p Q acc a h
-        · exact h
-  · rename_i s i r hd
-    unfold admitAck
-    apply collectPCs_certSafe
-    refine ⟨?_, ?_⟩
-    · intro b hb'
-      rcases mem_poolAck p st _ b hb' with hb' | rfl
-      · exact h.1 b hb'
-      · exact ha s i r hd
-    · unfold poolAck
+  delta process
+  cases hd : o.decode with
+  | some msg => cases msg with
+    | vote s i r =>
+      dsimp only
+      exact h
+    | row i body =>
+      dsimp only
+      exact admitRow_certSafe p Q st _ h
+    | block s N =>
+      dsimp only
+      delta admitBlock
       split
-      · split
+      · exact h
+      · cases hP : parentFG st N.erase
+        · exact h
+        · dsimp only
+          split
+          · apply List.foldlRecOn
+            · apply collectPCs_certSafe
+              apply foldA _ _ _ (hb s N hd)
+              cases N.pc <;> dsimp only <;> split_ifs <;>
+                first | apply reconcile_certSafe; exact h | exact h
+            · intro acc h a _
+              exact admitRow_certSafe p Q acc a h
+          · exact h
+    | ack s i r =>
+      dsimp only
+      unfold admitAck
+      apply collectPCs_certSafe
+      refine ⟨?_, ?_⟩
+      · intro b hb'
+        rcases mem_poolAck p st _ b hb' with hb' | rfl
+        · exact h.1 b hb'
+        · exact ha s i r hd
+      · delta poolAck
+        cases hdecode : AckWire.decode? (⟨o.auth, r⟩ : AckWire p.n) <;> dsimp only
+        rotate_left
+        · rename_i v
+          rcases v with ⟨_, _, _⟩
+          split
+          · exact h.2
+          · split <;> exact h.2
         · exact h.2
-        · split <;> exact h.2
-      · exact h.2
-  · rename_i d hd
-    unfold admitPC
-    split
-    · exact collectPCs_certSafe Q _ (foldA st d.acks h (hp d hd))
-    · exact h
-  · exact h
+    | pc d =>
+      dsimp only
+      unfold admitPC
+      split
+      · exact collectPCs_certSafe Q _ (foldA st d.acks h (hp d hd))
+      · exact h
+  | none =>
+    exact h
 
 /-- Gate steps change no certificate evidence. -/
 theorem gateFrom_certSafe (p : Params) (Q : AckWire n → Prop) (a : Block)
     (cs : List (PC n)) (ρ : Option PCRank) (st : State n) (s : Slot) (h : CertSafe Q st) :
     CertSafe Q (gateFrom p a cs ρ st s) := by
-  unfold gateFrom
+  rw [gateFrom_def]
   dsimp only
-  split
+  cases hc : SA.Root.confirmationFrom p.toParams a (actView st) s
   · exact h
-  · split
+  · dsimp only
+    split
     · exact h
     · apply List.foldlRecOn
       · exact h

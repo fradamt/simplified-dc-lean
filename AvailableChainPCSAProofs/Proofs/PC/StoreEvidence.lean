@@ -25,9 +25,9 @@ theorem grid_admitVote_evidence (q : GridCO.Params) (B : Block → Prop)
     (hb : ∀ b ∈ st.blocks, B b) (hh : ∀ a ∈ st.votes, H a) (ho : H o) :
     (∀ b ∈ (GridCO.admitVote q st o).blocks, B b) ∧
       ∀ a ∈ (GridCO.admitVote q st o).votes, H a := by
-  unfold GridCO.admitVote
-  split
-  · dsimp only
+  cases o with | mk auth payload =>
+    cases auth <;> cases payload <;> dsimp only [GridCO.admitVote]
+    all_goals first | exact ⟨hb, hh⟩ | skip
     split
     · exact ⟨hb, hh⟩
     · refine ⟨hb, ?_⟩
@@ -35,7 +35,6 @@ theorem grid_admitVote_evidence (q : GridCO.Params) (B : Block → Prop)
       rcases List.mem_append.mp ha with ha | ha
       · exact hh a ha
       · simpa only [List.mem_singleton.mp ha] using ho
-  · exact ⟨hb, hh⟩
 
 /-- Proposal admission uses only its new body and carried HEADs. -/
 theorem grid_admitProposal_evidence (q : GridCO.Params) (B : Block → Prop)
@@ -45,9 +44,8 @@ theorem grid_admitProposal_evidence (q : GridCO.Params) (B : Block → Prop)
     (hraw : ∀ a ∈ raw, H (GridCO.fromHead a)) :
     (∀ k ∈ (GridCO.admitProposal q st o b raw).blocks, B k) ∧
       ∀ a ∈ (GridCO.admitProposal q st o b raw).votes, H a := by
-  unfold GridCO.admitProposal
-  dsimp only
-  split <;> split
+  delta GridCO.admitProposal
+  cases o.auth <;> dsimp only <;> split
   all_goals first
   | exact ⟨hb, hh⟩
   | apply List.foldlRecOn (motive := fun acc : GridCO.State n .root =>
@@ -97,8 +95,9 @@ theorem collectPCs_evidence (B : Block → Prop) (H : GridCO.Wire n .root → Pr
 theorem poolAckRaw_evidence (B : Block → Prop) (H : GridCO.Wire n .root → Prop)
     (st : State n) (a : AckWire n) (h : StoreEvidence B H st) :
     StoreEvidence B H (poolAckRaw st a) := by
-  unfold poolAckRaw
-  split
+  delta poolAckRaw
+  cases hdecode : a.decode? <;> dsimp only
+  rotate_left
   · split <;> exact h
   · exact h
 
@@ -106,8 +105,9 @@ theorem poolAckRaw_evidence (B : Block → Prop) (H : GridCO.Wire n .root → Pr
 theorem admitRow_evidence (p : Params) (B : Block → Prop) (H : GridCO.Wire p.n .root → Prop)
     (st : State p.n) (a : RowWire p.n) (h : StoreEvidence B H st) :
     StoreEvidence B H (admitRow p st a) := by
-  unfold admitRow
-  split
+  delta admitRow
+  cases hdecode : a.decode? <;> dsimp only
+  rotate_left
   · split <;> exact h
   · exact h
 
@@ -121,60 +121,75 @@ theorem process_evidence (p : Params) (B : Block → Prop) (H : GridCO.Wire p.n 
   have ha (st : State p.n) (as : List (AckWire p.n)) (h : StoreEvidence B H st) :
       StoreEvidence B H (as.foldl poolAckRaw st) :=
     List.foldlRecOn as poolAckRaw h (fun acc h a _ => poolAckRaw_evidence B H acc a h)
-  unfold process
-  split
-  · rename_i s i r hd
-    obtain ⟨hB, hH⟩ := grid_admitVote_evidence p.toParams.engine B H st.base _
-      h.1 h.2.2 (hv s i r hd)
-    exact ⟨hB, h.2.1, hH⟩
-  · exact admitRow_evidence p B H st _ h
-  · rename_i s N hd
-    have hn := hb s N hd
-    have hbase := grid_admitProposal_evidence p.toParams.engine B H st.base
-      (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead) h.1 h.2.2 hn.1
-      (by
-        intro a ham
-        obtain ⟨a', ha', heq⟩ := List.mem_map.mp ham
-        subst a
-        exact hn.2 a' ha')
-    unfold admitBlock
-    split
-    · exact h
-    · split
+  delta process
+  cases hd : o.decode with
+  | some msg => cases msg with
+    | vote s i r =>
+      dsimp only
+      obtain ⟨hB, hH⟩ := grid_admitVote_evidence p.toParams.engine B H st.base _
+        h.1 h.2.2 (hv s i r hd)
+      exact ⟨hB, h.2.1, hH⟩
+    | row i body =>
+      dsimp only
+      exact admitRow_evidence p B H st _ h
+    | block s N =>
+      dsimp only
+      have hn := hb s N hd
+      have hbase := grid_admitProposal_evidence p.toParams.engine B H st.base
+        (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead) h.1 h.2.2 hn.1
+        (by
+          intro a ham
+          obtain ⟨a', ha', heq⟩ := List.mem_map.mp ham
+          subst a
+          exact hn.2 a' ha')
+      delta admitBlock
+      split
       · exact h
-      · split
-        · apply List.foldlRecOn
-          · apply collectPCs_evidence
-            apply ha
-            split <;> split_ifs <;> first
-              | (apply reconcile_evidence; exact ⟨hbase.1, h.2.1, hbase.2⟩)
-              | exact ⟨hbase.1, h.2.1, hbase.2⟩
-          · intro acc h a _
-            exact admitRow_evidence p B H acc a h
+      · cases hP : parentFG st N.erase
         · exact h
-  · unfold admitAck
-    apply collectPCs_evidence
-    unfold poolAck
-    split
-    · split
+        · dsimp only
+          split
+          · apply List.foldlRecOn
+            · apply collectPCs_evidence
+              apply ha
+              cases N.pc <;> dsimp only <;> split_ifs <;> first
+                | (apply reconcile_evidence; exact ⟨hbase.1, h.2.1, hbase.2⟩)
+                | exact ⟨hbase.1, h.2.1, hbase.2⟩
+            · intro acc h a _
+              exact admitRow_evidence p B H acc a h
+          · exact h
+    | ack s i r =>
+      dsimp only
+      unfold admitAck
+      apply collectPCs_evidence
+      delta poolAck
+      cases hdecode : AckWire.decode? (⟨o.auth, r⟩ : AckWire p.n) <;> dsimp only
+      rotate_left
+      · rename_i v
+        rcases v with ⟨_, _, _⟩
+        split
+        · exact h
+        · split <;> exact h
       · exact h
-      · split <;> exact h
-    · exact h
-  · unfold admitPC
-    split
-    · exact collectPCs_evidence B H _ (ha st _ h)
-    · exact h
-  · exact h
+    | pc d =>
+      dsimp only
+      unfold admitPC
+      split
+      · exact collectPCs_evidence B H _ (ha st _ h)
+      · exact h
+  | none =>
+    exact h
 
 /-- Gates change none of the three evidence domains. -/
 theorem gateFrom_evidence (p : Params) (B : Block → Prop) (H : GridCO.Wire n .root → Prop)
     (a : Block) (cs : List (PC n)) (ρ : Option PCRank) (st : State n) (s : Slot)
     (h : StoreEvidence B H st) : StoreEvidence B H (gateFrom p a cs ρ st s) := by
-  unfold gateFrom
+  rw [gateFrom_def]
   dsimp only
-  split
+  cases hc : SA.Root.confirmationFrom p.toParams a (actView st) s
   · exact h
-  · split
+  · dsimp only
+    split
     · exact h
     · apply List.foldlRecOn
       · exact h

@@ -18,7 +18,10 @@ theorem pcsa_eraseFG_eq {V : Type} [RowCodec V] (B : FGBlock V) :
     eraseFG B = FGSA.eraseFG B := by
   induction B with
   | genesis => rfl
-  | node P s r x rs ih => simp only [eraseFG, FGSA.eraseFG, ih]
+  | node P s r x rs ih =>
+    change Block.node (eraseFG P) s r (encFGBody x rs) =
+      Block.node (FGSA.eraseFG P) s r (encFGBody x rs)
+    rw [ih]
 
 /-- The walk starts at the active view target, or at Z. -/
 abbrev walkBase (p : Params) (st : State p.n) (c : Option (PC p.n)) : Block :=
@@ -71,7 +74,8 @@ theorem pcsa_liveRoot_origin (p : Params) (st : State p.n) (c : Option (PC p.n))
 
 private theorem pcsa_deeper_depth (a b : Block) (h : deeper a b = false) :
     b.depth ≤ a.depth := by
-  simp only [deeper, Bool.or_eq_false_iff, decide_eq_false_iff_not] at h
+  dsimp only [deeper] at h
+  simp only [Bool.or_eq_false_iff, decide_eq_false_iff_not] at h
   exact Nat.le_of_not_gt h.1
 
 private theorem pcsa_fold_depth (xs : List Block) (a : Block) :
@@ -85,7 +89,8 @@ private theorem pcsa_fold_depth (xs : List Block) (a : Block) :
     split
     · rename_i hab
       have hd : a.depth ≤ b.depth := by
-        simp only [deeper, Bool.or_eq_true, Bool.and_eq_true, beq_iff_eq,
+        dsimp only [deeper] at hab
+        simp only [Bool.or_eq_true, Bool.and_eq_true, beq_iff_eq,
           decide_eq_true_eq] at hab
         rcases hab with h | ⟨h, _⟩ <;> omega
       exact ⟨hd.trans (ih b).1, fun d hm => by

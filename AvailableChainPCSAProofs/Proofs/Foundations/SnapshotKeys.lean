@@ -23,10 +23,10 @@ theorem reconcile_snapshot_keys (st : State n) :
 /-- Raw ack pooling changes no snapshot. -/
 theorem poolAckRaw_snapshot (st : State n) (a : AckWire n) :
     (poolAckRaw st a).pcSnapshot = st.pcSnapshot := by
-  unfold poolAckRaw
-  split
-  · split <;> rfl
-  · rfl
+  delta poolAckRaw
+  cases hdecode : a.decode? <;> dsimp only
+  split <;> rfl
+
 
 /-- A batch of raw acks changes no snapshot. -/
 theorem fold_poolAckRaw_snapshot (st : State n) (as : List (AckWire n)) :
@@ -38,10 +38,10 @@ theorem fold_poolAckRaw_snapshot (st : State n) (as : List (AckWire n)) :
 /-- Row admission changes no snapshot. -/
 theorem admitRow_snapshot (p : Params) (st : State p.n) (a : RowWire p.n) :
     (admitRow p st a).pcSnapshot = st.pcSnapshot := by
-  unfold admitRow
-  split
-  · split <;> rfl
-  · rfl
+  delta admitRow
+  cases hdecode : a.decode? <;> dsimp only
+  split <;> rfl
+
 
 /-- A row batch changes no snapshot. -/
 theorem fold_admitRow_snapshot (p : Params) (st : State p.n) (as : List (RowWire p.n)) :
@@ -53,41 +53,55 @@ theorem fold_admitRow_snapshot (p : Params) (st : State p.n) (as : List (RowWire
 /-- Deliveries never add or remove freeze labels. -/
 theorem process_snapshot_keys (p : Params) (st : State p.n) (o : Wire p.n) :
     (process p st o).pcSnapshot.map Prod.fst = st.pcSnapshot.map Prod.fst := by
-  unfold process
-  split
-  · rfl
-  · rw [admitRow_snapshot]
-  · unfold admitBlock
-    split
-    · rfl
-    · split
+  delta process
+  cases hd : o.decode with
+  | some msg => cases msg with
+    | vote s i r =>
+      dsimp only
+      rfl
+    | row i body =>
+      dsimp only
+      rw [admitRow_snapshot]
+    | block s N =>
+      dsimp only
+      delta admitBlock
+      split
       · rfl
-      · split
-        · rw [fold_admitRow_snapshot, (collectPCs_frame _).2.2.2.1, fold_poolAckRaw_snapshot]
-          split <;> split_ifs <;> simp only [reconcile_snapshot_keys] <;> rfl
+      · cases hP : parentFG st N.erase
         · rfl
-  · unfold admitAck
-    rw [(collectPCs_frame _).2.2.2.1]
-    unfold poolAck
-    split
-    · split
+        · dsimp only
+          split
+          · rw [fold_admitRow_snapshot, (collectPCs_frame _).2.2.2.1, fold_poolAckRaw_snapshot]
+            cases N.pc <;> dsimp only <;> split_ifs <;> simp only [reconcile_snapshot_keys] <;> rfl
+          · rfl
+    | ack s i r =>
+      dsimp only
+      unfold admitAck
+      rw [(collectPCs_frame _).2.2.2.1]
+      delta poolAck
+      cases hdecode : AckWire.decode? (⟨o.auth, r⟩ : AckWire p.n) <;> dsimp only
+      rename_i v
+      rcases v with ⟨_, _, _⟩
+      dsimp only
+      split_ifs <;> rfl
+    | pc d =>
+      dsimp only
+      unfold admitPC
+      split
+      · rw [(collectPCs_frame _).2.2.2.1, fold_poolAckRaw_snapshot]
       · rfl
-      · split <;> rfl
-    · rfl
-  · unfold admitPC
-    split
-    · rw [(collectPCs_frame _).2.2.2.1, fold_poolAckRaw_snapshot]
-    · rfl
-  · rfl
+  | none =>
+    rfl
 
 /-- A gate changes no snapshot. -/
 theorem gateFrom_snapshot (p : Params) (a : Block) (cs : List (PC n)) (ρ : Option PCRank)
     (st : State n) (s : Slot) : (gateFrom p a cs ρ st s).pcSnapshot = st.pcSnapshot := by
-  unfold gateFrom
+  rw [gateFrom_def]
   dsimp only
-  split
+  cases hc : SA.Root.confirmationFrom p.toParams a (actView st) s
   · rfl
-  · split
+  · dsimp only
+    split
     · rfl
     · apply List.foldlRecOn (motive := fun a : State n => a.pcSnapshot = st.pcSnapshot)
       · rfl

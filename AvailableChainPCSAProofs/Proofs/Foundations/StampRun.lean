@@ -16,7 +16,8 @@ theorem stampBound_before_tick (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m
     StampBound t (V2.D.Run.stateBefore E rho i v).st := by
   have hz : StampBound t (initial p.n) := by
     rw [StampBound_def]
-    exact ⟨ht, by simp [initial], by simp [initial]⟩
+    dsimp only [initial]
+    exact ⟨ht, by simp, by simp⟩
   refine V2.D.Engine.stateBefore_step_induction E rho
     (fun nd : Node p => StampBound t nd.st) (Nat.zero_le i) v ?_ hz
   intro k e _ hki he hn h
