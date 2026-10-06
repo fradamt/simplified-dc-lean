@@ -6,7 +6,8 @@ public meta import AvailableChainPCSAProofs -- shake: keep (closed run evaluatio
 
 /-! A finite run check for the Formation premises at slot 4.
 The proposer has a local lock that is released at the vote tick.
-The common view is empty. F4 is true, but the proposal path is ineligible.
+The common view is empty. The old F4 upper bound is true.
+The run fails the r4.3b proposer-root reachability clause.
 The check uses the actual engine and model hooks. It does not assert a claim proof. -/
 
 open AvailableChain AvailableChain.PCSA AvailableChain.PCSA.Run AvailableChain.SimplexFG
@@ -269,6 +270,16 @@ def audit : IO Unit := do
     st.base.obligations.all (fun row =>
       if st.base.now < row.2.2 && Block.compatible row.1 .genesis && 0 < row.1.depth then
         Block.preceq row.1 N.erase.parent else true)))
+  require "new F4 proposerRootReachable fails" (
+    let st := readTick tr 0 16
+    let pc := proposerPC p st
+    let root := (pc.map PC.target).getD (eraseFG (controls p st).Z)
+    let raw := proposerVotes st 4
+    let support := proposerSupport st 4
+    !Block.preceq (liveRoot p st pc)
+      (GridCO.ghost root (erasedList st (fullTree p st))
+        (GridCO.goldfishScore st.base.blocks raw support)
+        (eligible p st raw support)))
   require "other Formation premises" (decide (0 < 4 ∧ SA.gateTime p.toParams 4 ≤ 22 ∧ E.Δ ≤ 1) &&
     E.Δ == p.Δ)
   require "no ack or PC in the run" (states.all (fun i => hs.all (fun x =>
