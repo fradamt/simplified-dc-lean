@@ -20,6 +20,12 @@ theorem recovery_healed_of_inputs (E : Generic.Env V)
       HealedFrom p c E rho s₁ P := by
   obtain ⟨N, hN, hroot⟩ := inputs.firstSlot
   have hs := inputs.formation N hN hroot
+  have stampRead (x : V) (hx : x ∈ rho.honest) (B : Block)
+      (hPC : PCStampedBefore p c E rho x (SA.freezeTime p.toParams s₁) s₁ B) :
+      ∃ pc ∈ (storeAt p c E rho x (SA.freezeTime p.toParams s₁)).pcs,
+        pc.slot = s₁ ∧ pc.target = B :=
+    recovery_stampRead E rho hN.base.valid.toScheduleWellFormed hN.base.noRestart hN.frame
+      x hx _ s₁ B hPC
   have ha := arm_next_of_common_stamp E rho s₁ N.erase hs
   have hp := inputs.persistence N.erase ha
   have hi := inputs.ciRestart N hN hroot hp
@@ -31,9 +37,9 @@ theorem recovery_healed_of_inputs (E : Generic.Env V)
       change 4 * p.Δ * (s₁ : Int) + 3 * p.Δ ≤ 4 * p.Δ * (s₁ : Int) + 6 * p.Δ
       have hd : (0 : Int) < p.Δ := p.deltaPos
       linarith
-    exact (hp.2.2 x hx _ t (hfg.trans ht) (inputs.stampRead x hx _ (hs x hx))).2
+    exact (hp.2.2 x hx _ t (hfg.trans ht) (stampRead x hx _ (hs x hx))).2
   · intro x hx t ht _
-    exact (hp.2.2 x hx _ t ht (inputs.stampRead x hx _ (hs x hx))).1
+    exact (hp.2.2 x hx _ t ht (stampRead x hx _ (hs x hx))).1
 
 /-- The unchanged C11 statement follows when the named recovery producers are supplied. -/
 theorem pcsa_fastRecoveredClaim (p : Params)
@@ -46,6 +52,26 @@ theorem pcsa_fastRecoveredClaim (p : Params)
   obtain ⟨P, hp, hh⟩ := recovery_healed_of_inputs E rho s₁ ΔF
     (recoveryInputs c m E rho G ΔF cA s₁ h)
   exact ⟨P, hp, recovery_first_gate_bound E rho h.recovery s₁ h.firstMin h.horizon, hh⟩
+
+/-- The long-break claim follows when the named producers hold after the mix time. -/
+theorem pcsa_longBreakRecoveredClaim (p : Params)
+    (recoveryInputs : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (m : FGMode) (E : Generic.Env V)
+      (rho : V2.D.Run V (pcsaWith m p c)) (G ΔF : Time),
+      Recovery₂ p c E rho G ΔF → StageOneFrame p c E rho →
+      ∀ g s : Slot,
+      E.t_GST ≤ SA.voteTime p.toParams g →
+      (∀ j : Slot, j < g → SA.voteTime p.toParams j < E.t_GST) →
+      SA.voteTime p.toParams (g + 2 * p.k - 1) ≤ SA.proposalTime p.toParams s →
+      E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s →
+      Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c (m := m)).toInterface rho s →
+      SA.gateTime p.toParams s ≤ rho.horizon → RecoverySuffixInputs p c E rho s ΔF) :
+    LongBreakRecoveredClaim p := by
+  intro V _ _ In c m E rho G ΔF h hf hh
+  obtain ⟨g, s, hg, hm, hs, ha, hp, hb⟩ := long_recovery_slot E rho h hh
+  obtain ⟨P, hP, heal⟩ := recovery_healed_of_inputs E rho s ΔF
+    (recoveryInputs c m E rho G ΔF h hf g s hg hm hs.le ha hp (hb.trans hh))
+  exact ⟨s, P, hP, hb, heal⟩
 
 end AvailableChain.PCSA.Run
 end

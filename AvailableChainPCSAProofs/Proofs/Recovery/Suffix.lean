@@ -2,6 +2,7 @@ module
 public import AvailableChainPCSAProofs.Proofs.Recovery.Anchor
 public import AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
+public import AvailableChainPCSAProofs.Proofs.Recovery.RunInputs
 
 public section
 
@@ -44,6 +45,16 @@ theorem recovery_root_reachable (s : Slot) (P : Block)
   rw [← he]
   exact root_reachable_of_locks_below p nd.st (proposerPC p nd.st) P hb hl _ _ _
 
+/-- The corrected proposer-root clause holds with the genesis anchor. -/
+theorem recovery_genesis_root_reachable (hs : V2.D.ScheduleWellFormed E rho)
+    (s : Slot) (hpos : 0 < s) (hwindow : s - 1 ≤ p.k - 1)
+    (hp : V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s ∈ rho.honest) :
+    RecoveryRootReachable p c E rho s := by
+  apply recovery_root_reachable p c E rho s .genesis
+  intro nd hn
+  refine ⟨recovery_proposer_base p nd.st, Gen.Pure.block_genesis_preceq _, ?_⟩
+  exact recovery_genesis_anchor_locks E rho hs s hpos hwindow _ hp _ (Or.inl rfl) nd hn
+
 /-- The output parts of the restarted CI, with the later inclusion producer. -/
 structure RecoveryChainRestart (s₁ : Slot) : Prop where
   chain : ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ t t' : Time,
@@ -67,8 +78,8 @@ variable [Fintype V]
 
 /-- Missing producers needed by the conditional C11 export.
 `formation` takes the corrected F4 clause as a separate argument until the
-statement branch adds it to FormationPrem. `stampRead` is the boundary
-between after-ticks stamps and the inclusive output reader. -/
+statement branch adds it to FormationPrem. The stamp-to-reader boundary
+is proved in RunInputs and is no longer an input. -/
 structure RecoverySuffixInputs (s₁ : Slot) (ΔF : Time) : Prop where
   firstSlot : ∃ N : NamedProposal p.n,
     FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁
@@ -77,10 +88,6 @@ structure RecoverySuffixInputs (s₁ : Slot) (ΔF : Time) : Prop where
     ∀ y ∈ rho.honest,
       PCStampedBefore p c E rho y (SA.freezeTime p.toParams s₁) s₁ N.erase
   persistence : ∀ B, Arm p c E rho s₁ B (s₁ + 1) → ArmConcl p c E rho s₁ B (s₁ + 1)
-  stampRead : ∀ y ∈ rho.honest, ∀ B,
-    PCStampedBefore p c E rho y (SA.freezeTime p.toParams s₁) s₁ B →
-    ∃ pc ∈ (storeAt p c E rho y (SA.freezeTime p.toParams s₁)).pcs,
-      pc.slot = s₁ ∧ pc.target = B
   ciRestart : ∀ N : NamedProposal p.n,
     FormationPrem p c E rho s₁ N ΔF → RecoveryRootReachable p c E rho s₁ →
     ArmConcl p c E rho s₁ N.erase (s₁ + 1) → RecoveryChainRestart p c E rho s₁
