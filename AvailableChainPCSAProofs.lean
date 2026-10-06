@@ -1,2 +1,13 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
+public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
+public import AvailableChainPCSAProofs.Proofs.Foundations.Install
+public import AvailableChainPCSAProofs.Proofs.Foundations.Locks
+public import AvailableChainPCSAProofs.Proofs.Foundations.Output
+public import AvailableChainPCSAProofs.Proofs.Foundations.OutputState
+public import AvailableChainPCSAProofs.Proofs.Foundations.Rank
+public import AvailableChainPCSAProofs.Proofs.Foundations.Run
+public import AvailableChainPCSAProofs.Proofs.Foundations.Snapshot
+public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotKeys
+public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.Store
