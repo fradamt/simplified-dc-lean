@@ -11,7 +11,7 @@ F1 uses a max deadline, so HealthyPrefixDeliveryBy cannot be used directly.
 The C3 hypotheses are hAckAdmit, hAckPoolMono, hPCCollect, and hFreezeKeep.
 hPCCollect must assemble the full proposal target, not only a block with
 the same root. FormationAck supplies the emitted quorum from honest acks.
-The participating-ack variant avoids the refuted all-awake-early ack clause. -/
+The participating-ack variant uses only the nodes counted by F2. -/
 
 namespace AvailableChain.PCSA.Run
 

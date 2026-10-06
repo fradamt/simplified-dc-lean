@@ -20,11 +20,11 @@ FormationWalk transfers the path under retained input hypotheses.
 FormationStore proves the base/FG domain and stage-1 frame filter facts.
 FormationTime proves the local clock bounds. FormationSource proves the
 opening, frame activity of held targets, and the unique structural FG lift.
-FormationClaim is still false: Tests.FormationAckCounterexample passes
-corrected F1–F7 and the four current-slot C3 checks, but a node that wakes
-only at e_s refuses the ack because its frozen view conflicts with P.
-F3 constrains only nodes awake at v_s. The old release witness fails new F4.
-FormationSourceClaim is not refuted by the new run: its source is present.
+Tests.FormationAckCounterexample labels the old missing-PC run as a relay
+regression. The old split fails current F1. The repaired run gives the old
+PC to every honest node before the proposal and all seven nodes ack its child.
+F3 constrains only nodes awake at v_s. C7 still needs the relay-derived
+view bound at every honest early reader. The old release witness fails F4.
 No whole claim is exported. Source selection still needs an own-slot PC
 in the action snapshot, its target identity, and retained target membership.
 The C3 inputs remain hAckAdmit, hAckPoolMono, hPCCollect, and hFreezeKeep.

@@ -8,8 +8,8 @@ public section
 OPEN: F1 and equal honest HEADs must supply timely, non-equivocating,
 resolved seat witnesses at the post-clock early read. N-target uniqueness
 uses QNHeadUnique through Shared.Count and local equivocation exclusion.
-All-awake-early A2 is not a consequence of the current premises:
-FormationAckCounterexample has a conflicting view at an ack-only node. -/
+OPEN: derive all-awake-early A2 with whole-PC relay. The old ack-only
+split in FormationAckCounterexample fails current F1. -/
 
 namespace AvailableChain.PCSA
 
