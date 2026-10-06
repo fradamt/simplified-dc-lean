@@ -5,6 +5,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.AckAdmit
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Clean.TargetCollect
 public import AvailableChainPCSAProofs.Proofs.Clean.StepVote
+public import AvailableChainPCSAProofs.Proofs.Clean.StepAck
 public import AvailableChainPCSAProofs.Proofs.Clean.AckRun
 public import AvailableChainPCSAProofs.Proofs.Clean.StepGate
 public import AvailableChainPCSAProofs.Proofs.Clean.StepPC

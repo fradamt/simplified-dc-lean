@@ -239,8 +239,11 @@ end
 #print axioms AvailableChain.PCSA.pcsa_body_accepted
 #print axioms AvailableChain.PCSA.Run.pcsa_lookup_held_target
 #print axioms AvailableChain.PCSA.Run.pcsa_collect_held_target
-#print axioms AvailableChain.PCSA.Run.pcsa_proposal_emitted_slot
-#print axioms AvailableChain.PCSA.Run.pcsa_formation_collect_of_held_body
 #print axioms AvailableChain.PCSA.Run.pcsa_honestHead_extends_root
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_head_above_root_bound
 #print axioms AvailableChain.PCSA.Run.pcsa_honestHead_zero
+#print axioms AvailableChain.PCSA.Run.pcsa_honestAck_N_source
+#print axioms AvailableChain.PCSA.Run.pcsa_honestAck_body_scope
+
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_emitted_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_collect_of_held_body

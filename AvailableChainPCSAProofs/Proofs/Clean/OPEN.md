@@ -60,6 +60,13 @@ Proved support:
 
 These are exported by `Clean/Export`. They are not proofs of the open claims.
 
+CI read-step support is exported:
+- `StepVote`: an honest positive-slot HEAD extends its duty root; a block
+  below that root is below the HEAD. A slot-zero honest HEAD is genesis.
+- `StepAck`: an honest ack's full target is held, has the exact slot, and
+  passes holdsN in the duty state. Its block is in the collision scope.
+These do not yet provide the joint CI record or the composing induction.
+
 ## OPEN facts
 
 - C6 (`CleanInvariantClaim`): CL1–CL4 still need run-level count inputs.
@@ -77,7 +84,7 @@ These are exported by `Clean/Export`. They are not proofs of the open claims.
 - C3 (`PCDisseminationClaim`), restricted to positive slots: admission of
   each handled honest ack is proved by `pcsa_honest_ack_admitted`, including
   the carried-object handler cases. Still prove that the target body is held
-  before the freeze and resolves to the same slot-s block.
+  before the freeze. `TargetCollect` proves exact lookup once it is held.
   `Collect` proves first-per-seat quorum preservation and exact assembly.
   `Saturation` proves every collectable target is already held in each
   reachable store. `pcsa_collectPCs_after_freeze` closes the Shared hKeep
@@ -107,14 +114,19 @@ conditional theorem as an unconditional claim.
   base theorem is `pcsa_honest_ack_admitted`. Use
   `FormationPrem.base` and the lower receipt-time bound. The theorem proves
   admission of direct and carried honest acks. The upper bound is unused.
-- `hPCCollect`: open. Need the exact `N.erase` held in the pre-freeze
-  store and its root lookup. Quorum preservation and assembly are proved.
+- `hPCCollect`: `pcsa_formation_collect_of_held_body` proves the exact
+  interface from one remaining fact:
+  `∀ y ∈ rho.honest, N.erase ∈ (stateBeforeTime E rho (freezeTime s) y).st.base.blocks`.
+  Proposal slot equality, exact root lookup, quorum preservation, and
+  assembly are proved. The target-body receipt fact is still open.
 - `hFreezeKeep`: the exact interface is `pcsa_formation_freeze_keep`; its
   base theorem is `pcsa_collectPCs_after_freeze`, using
   `FormationPrem.base.valid.toScheduleWellFormed`, `base.noRestart`,
   `base.delta`, and `freezeTime s < gateTime s ≤ horizon`.
-- `hPCCollect` store part: `pcsa_collectPCs_quorum` proves the exact-target
-  interface once `N.erase.slot = s` and exact root resolution are supplied.
+- `BodyAdmission`: a body with valid rows for its immutable parent cannot
+  be excluded in stage 1. A fresh, dependency-ready, well-formed body
+  passes admission once the receiver slot is large enough. The run receipt
+  proof must establish that these conditions hold on the actual delivery.
 
 No open claim was exported as an unconditional theorem. AckStore now uses
 constructor cases to avoid all 19 foreign match equation exports introduced
