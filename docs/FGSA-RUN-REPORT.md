@@ -447,3 +447,92 @@ Mac, `pgrep -x lean.orig` below 3 before each build):
 │                                              │ sorryAx                      │
 └──────────────────────────────────────────────┴──────────────────────────────┘
 ```
+
+## Own-row self-delivery (own-row audit item, Option 1)
+
+The FG action tick records the released row in Λ only (`recordOwn_st`); the
+row enters the sender's store through a delivery event (the T7.10 divergence
+above). The specification text (`fgsa-protocol.tex`, paragraph "Lean model of the
+own FG row") states that a node that processes its own row in the tick
+has the store trajectory of the Lean run with the row's self-delivery placed
+at the action time, first among that time's deliveries. The results below
+record the transfer argument in Lean. No Statements, Claims, manifest or
+fixture changed.
+
+Definition. For a run `rho`, an action time `t` and the cut index `n` (the
+number of events with key at most `(t, 1)`, from `exists_cut` on the sorted
+schedule), the spec-like run of `rho` at `t` is the run with events
+`rho.events.take n ++ ds` and horizon `t`, where `rho.events.take n` is the
+prefix through the ticks at `t` (all restarts, ticks and deliveries before
+`t`, then the restarts and ticks at `t`), and `ds` lists one self-delivery
+`.deliver u (row) t` for each sender `u` with an FG action tick at `t`, in
+any order. The table is for the one-sender case (`ds = [the own row of v]`).
+For more than one sender: `Base₂.snoc_ownRow_other` for Base₂, and repeated
+`HealthyPrefix₂.snoc_ownRow` / `Recovery₂.snoc_ownRow` (with
+`hkey_snoc_deliver`, `hlast_snoc_of_ne`, `V2.D.Run.getElem?_snoc_of_lt`,
+`V2.D.Run.emitsAt_snoc_of_lt`). Not proved for `CleanPrefix₂`, `Clean₂` and `Outage₂`.
+
+Coverage. The append laws alone (`ExecutionValid.snoc_selfDelivery` and the
+`snoc_ownRow` forms) need every event at or before key `(t, 2)`, so with
+`tick_total` they apply only to a run whose horizon is `t`. The cut and the
+`ownRow_run` forms cover an arbitrary valid run `rho` with a tick of `v` at
+`t` that releases the row, for exactly these regimes and action times:
+
+```text
+┌───────────────────────────┬──────────────────┬────────────────────────────────┐
+│ Regime of rho             │ Action time t    │ Regime of the spec-like run    │
+├───────────────────────────┼──────────────────┼────────────────────────────────┤
+│ Base₂                     │ any              │ Base₂                          │
+│ HealthyPrefix₂ b₀ ΔF      │ b₀ ≤ t           │ HealthyPrefix₂ b₀ ΔF           │
+│ HealthyPrefix₂ b₀ ΔF      │ t ≤ b₀           │ HealthyPrefix₂ t ΔF            │
+│ CleanPrefix₂ b₀ ΔF        │ b₀ ≤ t           │ CleanPrefix₂ b₀ ΔF             │
+│ CleanPrefix₂ b₀ ΔF        │ t ≤ b₀           │ CleanPrefix₂ t ΔF              │
+│ Clean₂ ΔF                 │ any              │ Clean₂ ΔF                      │
+│ Recovery₂ G ΔF            │ any              │ Recovery₂ G ΔF                 │
+│ Outage₂ fast T b₀ b₁ ΔF   │ b₁ ≤ t           │ Outage₂ fast T b₀ b₁ ΔF        │
+│ Outage₂ fast T b₀ b₁ ΔF   │ b₀ ≤ t ≤ b₁      │ Outage₂ fast T b₀ t ΔF         │
+└───────────────────────────┴──────────────────┴────────────────────────────────┘
+```
+
+Not covered by these theorems: `Outage₂` for `t < b₀`. Lowering the prefix cut to `t` requires
+`T + (if fast then 4 * p.Δ else L p - 3 * p.Δ) ≤ t`. The original `lag` field does not imply this stronger bound. Every claim quantifies over all valid runs, so it covers the
+spec-like runs. The results are not a full run embedding (Option 2 of the
+analysis): a claim read at a time after `t` is read on the original run,
+where the own row arrives by delivery within the regime's bound.
+
+- `fgsa_emitOk_row` (`AvailableChainFGSARun/Proofs/SelfDelivery.lean`):
+  `EmitOk` for every FG row released at a tick of a valid run. The `fresh`
+  field is `fgsa_emitted_row_fresh`: the own row is not in `rowPool` before
+  the tick, from `rowPool_provenance`, `UnforgeableSignatures`,
+  `fgsa_emitOnceUnder` and the schedule order. `fgsa_emitOk_fg` covers every
+  object released at an FG seat.
+- `executionValid_snoc_selfDelivery` (same file) and `Base₂.snoc_ownRow`
+  (`AvailableChainFGSAProofs/Proofs/Shared/SelfDelivery.lean`): the run with
+  the same-time self-delivery of the own row appended after the last event
+  of the sender is `ExecutionValid` and keeps `Base₂`
+  (`namedRootCollisionFree_snoc_row`: a row delivery adds no named body).
+  `partialSynchronyBy_snoc_selfDelivery` and
+  `healthyPrefixDeliveryBy_snoc_selfDelivery` (run file): the per-object
+  delivery premises survive the append for any released object that carries
+  nothing; the relay obligations of the new acceptance are the broadcast
+  obligations of the emission, with the same deadline.
+- The cut (run file, generic in the protocol): `exists_cut`,
+  `executionValid_cut`, `cut_key_le` and `cut_lastEvent` (the `hkey` and
+  `hlast` premises of the append laws hold by construction),
+  `stateBeforeTime_cut`, and for FG-SA `namedRootCollisionFree_cut`,
+  `partialSynchronyBy_cut` and `healthyPrefixDeliveryBy_cut` (the latter for
+  a prefix cut at most `t`). `executionValid_ownRow_run` composes cut and
+  append.
+- The regime records: `Base₂.cutAt`, `Base₂.ownRow_run`,
+  `Base₂.ownRow_run_exists` and `Base₂.snoc_ownRow_other`
+  (Shared/SelfDelivery); `HealthyPrefix₂.cutAt` and `.ownRow_run` (for
+  `b₀ ≤ t`), `HealthyPrefix₂.cutAt_le` and `.ownRow_run_le` (for `t ≤ b₀`,
+  prefix cut lowered to `t` through `healthyPrefixDeliveryBy_of_le`),
+  `CleanPrefix₂.ownRow_run` and `.ownRow_run_le` (participation at `t` from
+  `partBefore` when `t < b₀`, from `partAt` when `t = b₀`),
+  `Clean₂.ownRow_run`, `Recovery₂.cutAt` and `.ownRow_run`,
+  `Outage₂.ownRow_run` (for `b₁ ≤ t`), with the `snoc_ownRow` forms
+  (`AvailableChainFGSAProofs/Proofs/Shared/Regimes.lean`).
+
+All theorems use only `propext`, `Classical.choice` and `Quot.sound`. They
+close the own-row audit item as a recorded transfer argument.

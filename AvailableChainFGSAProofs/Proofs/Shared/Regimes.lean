@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
 public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery
 
 /-! F-23 exception (L47): each theorem here takes at most one regime record, Set or Contract
 premise and concludes a field-level fact or another regime record. -/
@@ -744,6 +745,217 @@ theorem exactService_of_head_recovery
   · rw [hawake]
     change (p.n + 1) / 2 ≤ rho.honest.card
     omega
+
+/-- [own-row Option 1; DC N3] `HealthyPrefix₂` survives the same-time self-delivery of a
+released FG row: the base through `Base₂.snoc_ownRow`, the delivery premise through
+`healthyPrefixDeliveryBy_snoc_selfDelivery`; the cut and participation fields read no event.
+Scope: `hkey` restricts the run to events at or before `(t, 2)`, so the run ends at the
+action time `t`; `HealthyPrefix₂.ownRow_run` removes the restriction through the cut. -/
+theorem HealthyPrefix₂.snoc_ownRow {b₀ : Time} (h : HealthyPrefix₂ p c E rho b₀ ΔF)
+    {i : Nat} {v : V} {t : Time} (hkey : ∀ e ∈ rho.events, e.key ≤ toLex (t, 2))
+    (hi : rho.events[i]? = some (.tick v t))
+    (hlast : ∀ k e, i < k → rho.events[k]? = some e → e.node ≠ v)
+    {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    HealthyPrefix₂ p c E
+      ({ rho with events := rho.events ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t] })
+      b₀ ΔF where
+  base := h.base.snoc_ownRow hkey hi hlast ho
+  cut := h.cut
+  healthy := healthyPrefixDeliveryBy_snoc_selfDelivery h.healthy hi ho (fgsa_row_noCarried _)
+  deltaF := h.deltaF
+  partBefore := h.partBefore
+
+/-- [own-row Option 1; DC N3] `Recovery₂` survives the same-time self-delivery of a released
+FG row: the delivery premise through `partialSynchronyBy_snoc_selfDelivery`, the base through
+`Base₂.snoc_ownRow`; the recurrence, fault, awake and gap fields read no event. Scope: as for
+`HealthyPrefix₂.snoc_ownRow`; `Recovery₂.ownRow_run` removes the restriction. -/
+theorem Recovery₂.snoc_ownRow {G : Time} (h : Recovery₂ p c E rho G ΔF)
+    {i : Nat} {v : V} {t : Time} (hkey : ∀ e ∈ rho.events, e.key ≤ toLex (t, 2))
+    (hi : rho.events[i]? = some (.tick v t))
+    (hlast : ∀ k e, i < k → rho.events[k]? = some e → e.node ≠ v)
+    {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    Recovery₂ p c E
+      ({ rho with events := rho.events ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t] })
+      G ΔF where
+  sync := partialSynchronyBy_snoc_selfDelivery h.sync hi ho (fgsa_row_noCarried _)
+  deltaF := h.deltaF
+  gap := h.gap
+  base := h.base.snoc_ownRow hkey hi hlast ho
+  fault := h.fault
+  awake := h.awake
+  gapPos := h.gapPos
+
+/-- [own-row Option 1; DC N3] `HealthyPrefix₂` survives the cut after the ticks at `t` when
+the prefix cut `b₀` is at most `t`: `Base₂.cut` and `healthyPrefixDeliveryBy_cut`. -/
+theorem HealthyPrefix₂.cutAt {b₀ : Time} (h : HealthyPrefix₂ p c E rho b₀ ΔF)
+    {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) (hb : b₀ ≤ t) :
+    HealthyPrefix₂ p c E ({ rho with events := rho.events.take n, horizon := t }) b₀ ΔF where
+  base := h.base.cutAt hcut hi
+  cut := ⟨h.cut.1, hb⟩
+  healthy := healthyPrefixDeliveryBy_cut hcut hb h.healthy
+  deltaF := h.deltaF
+  partBefore := h.partBefore
+
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `HealthyPrefix₂` run, for an
+action time at or after the prefix cut. -/
+theorem HealthyPrefix₂.ownRow_run {b₀ : Time} (h : HealthyPrefix₂ p c E rho b₀ ΔF)
+    {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) (hb : b₀ ≤ t) {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    HealthyPrefix₂ p c E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) b₀ ΔF := by
+  have hin : i < n := (hcut i _ hi).mpr (tick_key_le.mpr le_rfl)
+  exact (h.cutAt hcut hi hb).snoc_ownRow (cut_key_le hcut) (getElem?_cut_iff.mpr ⟨hin, hi⟩)
+    (cut_lastEvent h.base.valid.toScheduleWellFormed hcut hi)
+    (by rw [emitsAt_cut_of_lt hin]; exact ho)
+
+/-- [own-row Option 1; DC N3] `Recovery₂` survives the cut after the ticks at `t`:
+`partialSynchronyBy_cut` and `Base₂.cut`; the recurrence and awake fields on the shorter
+horizon follow from the old ones. -/
+theorem Recovery₂.cutAt {G : Time} (h : Recovery₂ p c E rho G ΔF) {n i : Nat} {v : V}
+    {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) :
+    Recovery₂ p c E ({ rho with events := rho.events.take n, horizon := t }) G ΔF := by
+  obtain ⟨-, hth⟩ := h.base.valid.in_horizon _ (List.mem_of_getElem? hi)
+  exact
+    { sync := partialSynchronyBy_cut hcut hth h.sync
+      deltaF := h.deltaF
+      gap := fun t' hG hle => h.gap t' hG (le_trans hle hth)
+      base := h.base.cutAt hcut hi
+      fault := h.fault
+      awake := fun u hu t' hG hle => h.awake u hu t' hG (le_trans hle hth)
+      gapPos := h.gapPos }
+
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `Recovery₂` run. -/
+theorem Recovery₂.ownRow_run {G : Time} (h : Recovery₂ p c E rho G ΔF) {n i : Nat} {v : V}
+    {t : Time} (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    Recovery₂ p c E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) G ΔF := by
+  have hin : i < n := (hcut i _ hi).mpr (tick_key_le.mpr le_rfl)
+  exact (h.cutAt hcut hi).snoc_ownRow (cut_key_le hcut) (getElem?_cut_iff.mpr ⟨hin, hi⟩)
+    (cut_lastEvent h.base.valid.toScheduleWellFormed hcut hi)
+    (by rw [emitsAt_cut_of_lt hin]; exact ho)
+
+/-- [own-row Option 1; DC N3] `HealthyPrefix₂` survives the cut after the ticks at `t` with the
+prefix cut lowered to `t`, for an action time at most the prefix cut: the old delivery
+obligations have deadlines at most `t` (`healthyPrefixDeliveryBy_of_le`), and participation
+before `t` is participation before `b₀`. -/
+theorem HealthyPrefix₂.cutAt_le {b₀ : Time} (h : HealthyPrefix₂ p c E rho b₀ ΔF)
+    {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) (hb : t ≤ b₀) :
+    HealthyPrefix₂ p c E ({ rho with events := rho.events.take n, horizon := t }) t ΔF where
+  base := h.base.cutAt hcut hi
+  cut := ⟨(h.base.valid.in_horizon _ (List.mem_of_getElem? hi)).1, le_rfl⟩
+  healthy := healthyPrefixDeliveryBy_cut hcut le_rfl (healthyPrefixDeliveryBy_of_le hb h.healthy)
+  deltaF := h.deltaF
+  partBefore := fun t' h0 hlt => h.partBefore t' h0 (lt_of_lt_of_le hlt hb)
+
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `HealthyPrefix₂` run, for an
+action time at most the prefix cut; the prefix cut is lowered to `t`. -/
+theorem HealthyPrefix₂.ownRow_run_le {b₀ : Time} (h : HealthyPrefix₂ p c E rho b₀ ΔF)
+    {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) (hb : t ≤ b₀) {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    HealthyPrefix₂ p c E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) t ΔF := by
+  have hin : i < n := (hcut i _ hi).mpr (tick_key_le.mpr le_rfl)
+  exact (h.cutAt_le hcut hi hb).snoc_ownRow (cut_key_le hcut) (getElem?_cut_iff.mpr ⟨hin, hi⟩)
+    (cut_lastEvent h.base.valid.toScheduleWellFormed hcut hi)
+    (by rw [emitsAt_cut_of_lt hin]; exact ho)
+
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `CleanPrefix₂` run, for an
+action time at or after the prefix cut. -/
+theorem CleanPrefix₂.ownRow_run {b₀ : Time} (h : CleanPrefix₂ p c E rho b₀ ΔF)
+    {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) (hb : b₀ ≤ t) {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    CleanPrefix₂ p c E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) b₀ ΔF where
+  toHealthyPrefix₂ := h.toHealthyPrefix₂.ownRow_run hcut hi hb ho
+  partAt := h.partAt
+
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `CleanPrefix₂` run, for an
+action time at most the prefix cut; the prefix cut is lowered to `t`. Participation at `t`
+is participation before `b₀` when `t < b₀`, and the old participation at the cut when
+`t = b₀`. -/
+theorem CleanPrefix₂.ownRow_run_le {b₀ : Time} (h : CleanPrefix₂ p c E rho b₀ ΔF)
+    {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) (hb : t ≤ b₀) {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    CleanPrefix₂ p c E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) t ΔF where
+  toHealthyPrefix₂ := h.toHealthyPrefix₂.ownRow_run_le hcut hi hb ho
+  partAt := by
+    rcases lt_or_eq_of_le hb with hlt | heq
+    · exact h.partBefore t (h.base.valid.in_horizon _ (List.mem_of_getElem? hi)).1 hlt
+    · obtain rfl := heq
+      exact h.partAt
+
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `Clean₂` run: the clean prefix
+runs to the horizon, so every action time is at most the prefix cut. -/
+theorem Clean₂.ownRow_run (h : Clean₂ p c E rho ΔF) {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    Clean₂ p c E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) ΔF where
+  pre := h.pre.ownRow_run_le hcut hi
+    (h.pre.base.valid.in_horizon _ (List.mem_of_getElem? hi)).2 ho
+  gst := h.gst
+
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `Outage₂` run, for an action
+time at or after the end of the outage window: the prefix through `HealthyPrefix₂.ownRow_run`,
+the window fields read no event, and the horizon `t` is at or after `b₁`. -/
+theorem Outage₂.ownRow_run {fast : Bool} {T b₀ b₁ : Time}
+    (h : Outage₂ p c fast E rho T b₀ b₁ ΔF) {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) (hb : b₁ ≤ t) {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    Outage₂ p c fast E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) T b₀ b₁ ΔF where
+  pre := h.pre.ownRow_run hcut hi (le_trans h.order.2.2.1 hb) ho
+  sleepy := h.sleepy
+  order := ⟨h.order.1, h.order.2.1, h.order.2.2.1, hb⟩
+  lag := h.lag
+  budget := h.budget
+  fastPart := h.fastPart
+
+/-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `Outage₂` run, for an action
+time in the outage window; the window end is lowered to `t`. -/
+theorem Outage₂.ownRow_run_mid {fast : Bool} {T b₀ b₁ : Time}
+    (h : Outage₂ p c fast E rho T b₀ b₁ ΔF) {n i : Nat} {v : V} {t : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (hi : rho.events[i]? = some (.tick v t)) (hb0 : b₀ ≤ t) (hb1 : t ≤ b₁)
+    {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    Outage₂ p c fast E
+      ({ rho with events := rho.events.take n ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t],
+                  horizon := t }) T b₀ t ΔF where
+  pre := h.pre.ownRow_run hcut hi hb0 ho
+  sleepy := h.sleepy
+  order := ⟨h.order.1, h.order.2.1, hb0, le_rfl⟩
+  lag := h.lag
+  budget := le_trans (by linarith) h.budget
+  fastPart := h.fastPart
 
 end AvailableChain.FGSA.Run
 end
