@@ -178,6 +178,9 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 │ Statements/Pure/Schedule │ Patterns, recurrence and window definitions  │
 │ Statements/Pure/Walk     │ Suffix premises and E-4 walk statements      │
 │ Statements/Pure/Props    │ CompatOn/At, MonoOn, BelowOn, ServedOn       │
+│ Statements/Pure/PCQuorum │ qN = ⌈3n/4⌉, qA = ⌈n/2⌉; PC count contracts  │
+│ Statements/Pure/PCRank   │ PC record, Formed, rank, pickPC, preferPC    │
+│ Statements/Pure/PCFloor  │ pcFloor output floor and its contracts       │
 │ Statements/V2/Reads      │ Run indices, pubFloor, HonestSlot, Pending   │
 │                          │ E-9 time/index statement PROVED              │
 │ Statements/V2/Counts     │ faulty and awakeHonest                       │
@@ -185,10 +188,18 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 │ Statements/V2/Interface  │ FinalityInterface extends the v2 interface   │
 │ Statements/V2/Receipt    │ DeliveryWithin; E-9 statements PROVED        │
 │ Statements/V2/Regimes    │ Regime cores, LabelSync, LabelFacts, SeedAt  │
+│ Statements/V2/Duty/      │ PC companion over Duty runs: DC mirrors      │
+│   PCCompanion            │ (InBy, PersistsFrom, IncludedFrom, …),       │
+│                          │ PCInterface, PCArmedRegime, PCIncluded,      │
+│                          │ PCCompanion (statements only)                │
 │ Statements/AC/Reads      │ ACReads, ACLaws, gate and reconcile reads    │
 │ Proofs/Pure/FirstBad     │ Strong induction for the FirstBad rules      │
 │ Proofs/Pure/Schedule     │ Pattern, window and recurrence facts         │
 │ Proofs/Pure/BlockOrder   │ Block order, compatibility and path facts    │
+│ Proofs/Pure/PCQuorum     │ qN/qA intersection, honest seat, uniqueness  │
+│ Proofs/Pure/PCRank       │ Rank preorder; preferPC total, monotone,     │
+│                          │ idempotent; folds; same-slot PC target       │
+│ Proofs/Pure/PCFloor      │ pcFloor cases, target bound, nest, monotone  │
 │ Proofs/V2/Fields         │ ownRecord_fold_restart                       │
 │ Proofs/V2/Reads          │ E-9 time/index bridge                        │
 │ Proofs/V2/Induction      │ Invariant and interval lifts; kept_from_seed │
@@ -201,6 +212,26 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 └──────────────────────────┴──────────────────────────────────────────────┘
 ```
 
+- PC-SA PC layer (2026-10-05; `pcsa-decisions.md`, 3n/4 version and R-g):
+  `PCQuorum` (thresholds `qN`, `qA`; two `qN` sets share `qA` seats; honest
+  seat in a `qA` set; one block per slot with a `qN` exact-HEAD set),
+  `PCRank` (abstract PC record with acker seats; rank by slot, then a tie
+  key; `preferPC` keeps the rank-maximal PC; two formed PCs of one slot
+  have one target) and `PCFloor` (available output = `S` if the PC target
+  is `⪯ S`, else the target; target bound, nesting below the output,
+  monotonicity). Import constraint: Pure layer, closure Mathlib +
+  `AvailableChainModel.Objects.*` + Generic Pure only (GLY F-4, F-12); no
+  V2, AC, GridCO or FG-SA import. Consumer: the PCSA family.
+- PC persistence companion (2026-10-05; `pcsa34-r3.md` §5.4, App. B):
+  `Statements/V2/Duty/PCCompanion` over Duty runs, modelled on the frozen v1
+  `StrongClaims` (`AvailableChainStatements/Strong`, unchanged). `PCArmedRegime`
+  is `StrongArmedRegime` with lag 3Δ, `a < q_A n`, `HealthyPrefixDeliveryBy`
+  from the run start to `b₀` (ARM-healthy) and no restart; `PCIncludedRegime`
+  has full participation and `4a ≤ n`. Both take a label family `Fam` with
+  `CStar` and `n` seats per label (validator count = seat count, as `cstar` in
+  FG-SA `Base₂`) and `delayPos` (the instance pins `delayOf`). Import constraint: S/V2 rule
+  (GLY-SV2): Generic Pure and V2 statements, EngineV2 Engine/Conditions/Laws.
+  The PCSA instance proves it; the recovery form (ARM-same-slot) is later.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.
