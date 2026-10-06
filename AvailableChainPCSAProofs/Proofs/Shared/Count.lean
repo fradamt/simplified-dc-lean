@@ -68,13 +68,15 @@ theorem pcsa_majority_count_inter {n : Nat} {P Q D D' : Finset (Fin n)}
     (P ∩ Q).Nonempty :=
   Gen.Pure.two_majorities_intersect hD hD' hP hQ
 
-/-- CL1: a shared clean seat gives compatibility of two majority results. -/
+/-- CL1: common resolved heads lock compatibility of two majority results. -/
 theorem pcsa_majority_count_compatible {n : Nat} {P Q D D' : Finset (Fin n)}
-    (B C : Block) (hD : P ∪ Q ⊆ D) (hD' : P ∪ Q ⊆ D')
+    (B C : Block) (heads : Fin n → Block) (hD : P ∪ Q ⊆ D) (hD' : P ∪ Q ⊆ D')
     (hP : D.card < 2 * P.card) (hQ : D'.card < 2 * Q.card)
-    (hclean : ∀ i ∈ P ∩ Q, Block.Compatible B C) : Block.Compatible B C := by
+    (hheadsB : ∀ i ∈ P, Block.Preceq B (heads i))
+    (hheadsC : ∀ i ∈ Q, Block.Preceq C (heads i)) : Block.Compatible B C := by
   obtain ⟨i, hi⟩ := pcsa_majority_count_inter hD hD' hP hQ
-  exact hclean i hi
+  obtain ⟨hPi, hQi⟩ := Finset.mem_inter.mp hi
+  exact Gen.Pure.block_compatible_of_common (hheadsB i hPi) (hheadsC i hQi)
 
 /-- CL2/CL3 count boundary: forward and backward relay preserve a majority
 and give strict score dominance over every conflicting block.
