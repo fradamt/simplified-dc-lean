@@ -5,11 +5,13 @@ public import AvailableChainKitFG.FrameSelection
 
 public section
 
-/-! Formation-to-source selector (pcsa34-r4.3 §5.7).
-OPEN: carry the Formation PC in the z_rR snapshot to the action read,
-prove that all slot-rR PCs in that snapshot target P, and supply its unique
-active FG lift there. Snapshot membership at z_rR alone does not prove
-FormationSourceClaim. The source window uses snapshot label rR, not rR+1. -/
+/-! Formation-to-source selector (pcsa34-r4.3a §5.7).
+BLOCKED: Tests.FormationCounterexample checks FormationPrem at opening
+rR = 4, with no ack or PC and fgSource = none at a_2 = 22.
+Thus FormationSourceClaim fails on the same run as FormationClaim.
+The selector below remains valid with explicit snapshot membership,
+own-slot target identity, opening read, and unique active FG lift.
+The source window uses snapshot label rR, not rR+1. -/
 
 namespace AvailableChain.PCSA
 

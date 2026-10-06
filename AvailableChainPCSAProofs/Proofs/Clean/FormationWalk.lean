@@ -4,10 +4,14 @@ public import AvailableChainPCSAProofs.Proofs.Shared.RetainedWalk
 
 public section
 
-/-! Formation step 1 boundaries (pcsa34-r4.3 §5.3).
-OPEN: derive retained geometry, the unique slot-s child, and the terminal
-path from F1–F7 on the PC-SA run. FG-SA Clean.Transfer uses another protocol
-and cannot supply these run facts by direct instantiation. -/
+/-! Formation step 1 boundaries (pcsa34-r4.3a §5.3).
+BLOCKED: F4 does not imply the retained target_prefix (BestAncestry).
+Tests.FormationCounterexample checks a valid finite slot-4 run with F1–F7:
+a proposer lock selects parent(P), then release at v_s removes that lock.
+The parent path is ineligible at every voter, so HEAD is a rival of P.
+F3 gives equal PC targets, not eligibility on the path to the proposer root.
+The missing fact is BestAncestry from the voter root to the retained cut.
+FG-SA Clean.Transfer cannot supply that fact for arbitrary prehistory. -/
 
 namespace AvailableChain.PCSA
 
