@@ -276,3 +276,10 @@ end
 #print axioms AvailableChain.PCSA.pcsa_process_headStamps_prefix
 #print axioms AvailableChain.PCSA.pcsa_stampVote_eq_of_prefix
 #print axioms AvailableChain.PCSA.Run.pcsa_headStamps_stateBefore_prefix
+
+#print axioms AvailableChain.PCSA.Run.pcsa_head_stamp_keys
+#print axioms AvailableChain.PCSA.Run.pcsa_head_stamp_lookup
+#print axioms AvailableChain.PCSA.Run.pcsa_head_stamp_stateBefore_eq
+#print axioms AvailableChain.PCSA.Run.pcsa_process_head_stamp_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_head_stamp_source
+#print axioms AvailableChain.PCSA.Run.pcsa_head_accepted_before

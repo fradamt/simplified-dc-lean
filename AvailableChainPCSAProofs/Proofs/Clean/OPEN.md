@@ -30,7 +30,7 @@ The proof checks schedule, delivery, signatures, committees, and frame.
 `ackFor` permits this N target. `PC.wellFormed` requires `0 < slot` and a
 non-genesis target. The lead approved `0 < s` for C3. The test now preserves
 the former statement and proves `positive_slot_excludes` for this witness.
-Positive-slot C3 is still open; this test does not refute it.
+Positive-slot C3 is now proved; this test does not refute it.
 
 Other slot statements were checked. No further statement change is needed:
 - Formation already requires `FormationPrem.slotPos`.
@@ -77,8 +77,10 @@ These do not yet provide the joint CI record or the composing induction.
   exact pooled HEAD preservation through each step and between indices.
   `HeadStamps` keeps the full receipt-stamp prefix between indices and
   keeps an existing first stamp lookup unchanged.
-  Forward/backward receipt membership and timestamp origin are still
-  needed to put common support seats into both late denominators.
+  `HeadReceipt` proves stamp keys, first lookup, exact receipt-time
+  preservation, direct/carried stamp origin, and acceptance before a public
+  cutoff. Forward/backward receipt membership and body stamp transport are
+  still needed to put common support seats into both late denominators.
   Then prove equal proposal/voter views and walk inputs at an
   honest slot. The label-zero case and the Vote/Ack/PC record steps are open.
   `StepGate` has only the store consequences of chain compatibility; it does
@@ -184,3 +186,29 @@ module or lemma marked planned is not yet available.
   through the cut. `BodyPersistence` and `HeadPersistence` supply exact
   pool preservation. Do not derive the whole cut from a CI bound
   `t < voteTime (j + 1)` without a separate pending-store argument.
+
+### Receipt continuation after `a3f0e4f`
+
+`HeadReceipt` closes step 2 for HEAD timestamps. The six public facts are
+`pcsa_head_stamp_keys`, `pcsa_head_stamp_lookup`,
+`pcsa_head_stamp_stateBefore_eq`, `pcsa_process_head_stamp_origin`,
+`pcsa_head_stamp_source`, and `pcsa_head_accepted_before`.
+The last fact uses a public cutoff and the existing schedule/clock laws.
+
+The next admission step is checked in scratch: a direct or proposal-carried
+HEAD handled from the slot start to its gate leaves either the exact HEAD
+or equivocation evidence. Lift this outcome to the later indexed state,
+and retain both cap witnesses with their strict late stamps. For a faulty
+HEAD accepted before the vote duty, derive that its acceptance is at or
+after its slot start from the actual admission guard. Do not assume that
+all early support HEADs were emitted honestly at the vote duty.
+
+Then prove the body stamp bound for early resolved HEADs. `BodyReceipt`
+already provides exact body relay and preservation; its earlier body
+origin alone does not identify the first receipt stamp's time.
+
+Ownership check for HeadReceipt: the first compiled version generated six
+foreign `admitBlock` matcher exports. Use explicit Boolean constructor
+cases for the key invariant and a native parent-match hypothesis for stamp
+origin. This removes all six exports. The explicit equation check passes with
+zero unaccepted exports. Owner modules and the baseline are unchanged.
