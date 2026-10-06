@@ -81,8 +81,10 @@ These do not yet provide the joint CI record or the composing induction.
   preservation, direct/carried stamp origin, and acceptance before a public
   cutoff. `HeadTransport` proves actual handler admission as an exact HEAD
   or a capped seat, and transports both outcomes into later late
-  denominators with strict stamps. Cross-node relay membership and body
-  stamp transport are still needed for both denominators.
+  denominators with strict stamps. `HeadRelay` now proves cross-node
+  exact HEAD or cap transport before any public cutoff whose relay
+  deadline precedes the gate. Body stamp and resolution transport, and
+  connection of these receipts to the actual walk input lists, remain.
   Then prove equal proposal/voter views and walk inputs at an
   honest slot. The label-zero case and the Vote/Ack/PC record steps are open.
   `StepGate` has only the store consequences of chain compatibility; it does
@@ -233,3 +235,20 @@ corresponding body stamp bound and exact resolution after body relay.
 Then supply retained paths, proposal/voter view equality, CL1–CL4 run
 inputs, and the four record steps. No run-level claim is closed by these
 local transport facts alone.
+
+### Cross-node HEAD relay (2026-10-07)
+
+`HeadRelay` closes the missing slot-start lower bound.
+`pcsa_head_acceptance_after_slot_start` applies to direct and carried
+HEADs, including faulty HEADs accepted before the vote duty.
+`pcsa_head_relay_late_or_cap` handles old receipt, permanent cap evidence,
+and strict relay. `pcsa_head_before_public_cut_relay_late` takes an actual
+pooled HEAD with a first stamp before a public cutoff. Its relay deadline
+must precede the healthy cut and the label's gate. This is the common
+receipt interface for early support and for frozen or proposer read sets.
+All five facts are exported, without changing a claim statement.
+
+Next: prove body first-stamp origin and preservation, then exact body
+resolution at the receiving post-clock read. Apply the public-cutoff
+receipt interface to the concrete frozen and carried walk inputs.
+The joint CI record and its corollaries remain unproved.

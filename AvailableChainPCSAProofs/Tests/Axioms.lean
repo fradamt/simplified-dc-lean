@@ -292,3 +292,9 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_head_before_cut_mem_late
 #print axioms AvailableChain.PCSA.Run.pcsa_cap_before_cut_mem_late
 #print axioms AvailableChain.PCSA.Run.pcsa_handled_head_late_or_cap
+
+#print axioms AvailableChain.PCSA.pcsa_blockAccepted_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_head_accepting_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_head_acceptance_after_slot_start
+#print axioms AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap
+#print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late
