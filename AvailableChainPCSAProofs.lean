@@ -30,6 +30,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.Certificates
 public import AvailableChainPCSAProofs.Proofs.Recovery.Anchor
 public import AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockWindow
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
 public import AvailableChainPCSAProofs.Proofs.Shared.CleanGate
