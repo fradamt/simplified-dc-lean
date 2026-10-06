@@ -30,6 +30,7 @@ with tempfile.TemporaryDirectory(prefix='audit-pool-control-') as temp:
         ('signal', 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)', 'CONTROL'),
         ('failure', 'exit(7)', None),
     ):
+        previous_twins = set(pool.work.glob('*-passing-twin.rc'))
         try:
             pool.run_pool([(label, command(body), {'expect': expect}),
                            ('passing-twin', command('print("PASS")'), {})])
@@ -37,8 +38,9 @@ with tempfile.TemporaryDirectory(prefix='audit-pool-control-') as temp:
             expected = 7 if expect is None else (
                 f"STOP: negative control {label} did not fail with {expect!r}")
             assert exc.code == expected, exc
-            assert all(path.read_text().strip() == '0'
-                       for path in pool.work.glob('*-passing-twin.rc'))
+            new_twins = set(pool.work.glob('*-passing-twin.rc')) - previous_twins
+            assert len(new_twins) == 1, (label, new_twins)
+            assert next(iter(new_twins)).read_text().strip() == '0', label
             print(f'CONTROL pool {label}: PASS')
         else:
             raise AssertionError(f'pool accepted {label}')
@@ -50,6 +52,7 @@ with tempfile.TemporaryDirectory(prefix='audit-pool-control-') as temp:
     else:
         raise AssertionError('pool accepted timeout')
     assert (timeout_pool.work / '01-timeout.rc').read_text().strip() == '124'
+    assert 'CONTROL' in (timeout_pool.work / '01-timeout.log').read_text()
     print('CONTROL pool timeout: PASS')
     pidfile = Path(temp) / 'child.pid'
     child_body = ('import os, signal, time; from pathlib import Path; '
