@@ -234,3 +234,6 @@ end
 
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_ack_admit
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_freeze_keep
+
+#print axioms AvailableChain.PCSA.pcsa_body_not_excluded
+#print axioms AvailableChain.PCSA.pcsa_body_accepted
