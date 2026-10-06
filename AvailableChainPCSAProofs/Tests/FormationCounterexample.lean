@@ -125,6 +125,8 @@ def beforeTick (tr : Array (Array (Node p))) (x : Fin 4) (t : Time) : Node p :=
 def readTick (tr : Array (Array (Node p))) (x : Fin 4) (t : Time) : State 4 :=
   clock p (beforeTick tr x t).st t
 
+/-- The signed objects that an object carries. A carried PC object has no
+signer. -/
 def carriedObjects (o : Obj p) : List (Obj p) :=
   match o.payload with
   | .proposal N => N.raw.map (ofHead p) ++ N.support.map (ofHead p) ++
@@ -132,13 +134,19 @@ def carriedObjects (o : Obj p) : List (Obj p) :=
   | .pc C => C.acks.map (ofAck p)
   | _ => []
 
-/-- The signature check enumerates every object in the carries relation. -/
-theorem carriedObjects_exact (o u : Obj p) :
-    (pcsaWith .idle p unitCodec).carries o u ↔ u ∈ carriedObjects o := by
-  change carriesS p o u ↔ _
+/-- The signature check enumerates every signed object in the carries
+relation; the other carried objects are PC objects, with no holder. -/
+theorem carriedObjects_signed (o u : Obj p) :
+    (pcsaWith .idle p unitCodec).carries o u → u ∈ carriedObjects o ∨ u.auth = .none := by
+  change carriesS p o u → _
   delta carriesS carriedObjects
-  cases o.payload <;> simp only [List.mem_append, List.not_mem_nil]
-  all_goals tauto
+  rintro (h | ⟨C, rfl, -⟩)
+  · left
+    revert h
+    cases o.payload <;> simp only [List.mem_append, List.not_mem_nil, imp_self]
+    all_goals tauto
+  · right
+    rfl
 
 abbrev FixtureEvent := V2.Event (Fin 4) (Obj p)
 instance : DecidableEq (pcsaWith .idle p unitCodec).Object :=
@@ -147,38 +155,87 @@ instance : DecidableEq FixtureEvent :=
   inferInstanceAs (DecidableEq (V2.Event (Fin 4) (Obj p)))
 instance : BEq FixtureEvent := ⟨fun x y => decide (x = y)⟩
 
+def pcObj (C : PC 4) : Obj p := ⟨.none, .pc C⟩
+
+/-- The carried PC test of `carriesS`. -/
+def carriesPC (o : Obj p) (C : PC 4) : Bool :=
+  match o.payload with
+  | .ack _ => (C.acks.map (ofAck p)).contains o
+  | .proposal N => C.target == N.erase ||
+      N.pc.any (fun d => d.slot == C.slot && d.target == C.target)
+  | .pc c => c.slot == C.slot && c.target == C.target
+  | _ => false
+
+/-- The PCs that the call of `o` installs. -/
+def installedBy (st : State 4) (o : Obj p) : List (PC 4) :=
+  (PCSA.process p st (toWire p o)).pcs.filter (fun C => !st.pcs.contains C)
+
 def handlesTest (st : State 4) (o u : Obj p) : Bool :=
-  decide (o = u) || match (toWire p o).decode with
+  decide (o = u) || (match (toWire p o).decode with
   | some (.block s N) => namedParentHeld st N &&
       (match parentFG st N.erase with
       | some P => blockAccepted p st s N P &&
           (N.raw.map (ofHead p) ++ N.rows.map (ofRow p) ++ N.pcAcks.map (ofAck p)).contains u
       | none => false)
   | some (.pc C) => (C.acks.map (ofAck p)).contains u
-  | _ => false
+  | _ => false) || (installedBy st o).any (fun C => decide (u = pcObj C) && carriesPC o C)
+
+/-- A PC object is carried exactly when the carried PC test passes. -/
+theorem carriesS_pcObj (o : Obj p) (C : PC 4) :
+    carriesS p o (pcObj C) ↔ carriesPC o C = true := by
+  delta carriesS carriesPC
+  constructor
+  · rintro (h | ⟨C', hC, h⟩)
+    · exfalso
+      revert h
+      cases o.payload <;> simp only [List.mem_map, imp_self]
+      all_goals first
+        | (rintro (⟨a, -, ha⟩ | ⟨a, -, ha⟩ | ⟨a, -, ha⟩ | ⟨a, -, ha⟩) <;>
+            cases congrArg (fun x : Obj p => x.payload) ha)
+        | (rintro ⟨a, -, ha⟩; cases congrArg (fun x : Obj p => x.payload) ha)
+    · cases hC
+      revert h
+      cases o.payload <;> simp [Option.any_eq_true]
+  · intro h
+    right
+    refine ⟨C, rfl, ?_⟩
+    revert h
+    cases o.payload <;> simp [Option.any_eq_true]
 
 /-- The finite handles test is the model's complete handles relation. -/
 theorem handlesTest_exact (st : State 4) (o u : Obj p) :
     handlesS p st o u ↔ handlesTest st o u = true := by
   delta handlesS handlesTest
-  simp only [Bool.or_eq_true, decide_eq_true_eq]
-  cases h : (toWire p o).decode with
-  | none => simp only [Bool.false_eq_true]
-  | some d =>
-    cases d <;> simp only [Bool.false_eq_true]
-    · rename_i s N
-      cases hp : parentFG st N.erase with
-      | none => simp only [Bool.and_false, Bool.false_eq_true, reduceCtorEq, false_and,
-          exists_false, and_false]
-      | some P =>
-        simp only [Option.some.injEq, exists_eq_left', Bool.and_eq_true,
-          List.contains_iff_mem, List.mem_append]
-        tauto
-    · simp only [List.contains_iff_mem]
+  simp only [Bool.or_eq_true, decide_eq_true_eq, or_assoc]
+  refine or_congr Iff.rfl (or_congr ?_ ?_)
+  · cases h : (toWire p o).decode with
+    | none => simp only [Bool.false_eq_true]
+    | some d =>
+      cases d <;> simp only [Bool.false_eq_true]
+      · rename_i s N
+        cases hp : parentFG st N.erase with
+        | none => simp only [Bool.and_false, Bool.false_eq_true, reduceCtorEq, false_and,
+            exists_false, and_false]
+        | some P =>
+          simp only [Option.some.injEq, exists_eq_left', Bool.and_eq_true,
+            List.contains_iff_mem, List.mem_append]
+          tauto
+      · simp only [List.contains_iff_mem]
+  · constructor
+    · rintro ⟨hc, C, rfl, h1, h2⟩
+      refine List.any_eq_true.mpr ⟨C, List.mem_filter.mpr ⟨h1, by simpa using h2⟩, ?_⟩
+      rw [Bool.and_eq_true, decide_eq_true_eq]
+      exact ⟨rfl, (carriesS_pcObj o C).mp hc⟩
+    · intro h
+      obtain ⟨C, hC, h'⟩ := List.any_eq_true.mp h
+      rw [Bool.and_eq_true, decide_eq_true_eq] at h'
+      obtain ⟨rfl, hc⟩ := h'
+      obtain ⟨h1, h2⟩ := List.mem_filter.mp hC
+      exact ⟨(carriesS_pcObj o C).mpr hc, C, rfl, h1, by simpa using h2⟩
 
--- All acceptance handles are the parent itself or one of its carried objects.
+-- All acceptance handles are the parent, a carried object or an installed PC.
 def handledObjects (st : State 4) (o : Obj p) : List (Obj p) :=
-  (o :: carriedObjects o).filter (fun u => handlesTest st o u)
+  (o :: carriedObjects o ++ (installedBy st o).map pcObj).filter (fun u => handlesTest st o u)
 
 def emitted (tr : Array (Array (Node p))) (i : Nat) : List (Obj p) :=
   match rho.events[i]? with
@@ -302,7 +359,7 @@ def audit : IO Unit := do
 
 #eval audit
 #print axioms cachedStep_exact
-#print axioms carriedObjects_exact
+#print axioms carriedObjects_signed
 #print axioms handlesTest_exact
 #print axioms cachedFold_exact
 #print axioms fresh_committees

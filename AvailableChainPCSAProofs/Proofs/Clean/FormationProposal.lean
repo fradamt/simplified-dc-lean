@@ -57,8 +57,8 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMod
 /-- Only the proposal duty uses the proposal signing label of a slot. -/
 theorem pcsa_formation_signLabel_prop (d : RunDuty) (s : Slot) :
     d.signLabel = .prop s ↔ d = .propAction s := by
-  cases d <;>
-    simp only [RunDuty.signLabel, RunLabel.prop.injEq, RunDuty.propAction.injEq, reduceCtorEq]
+  cases d <;> delta RunDuty.signLabel <;>
+    simp only [RunLabel.prop.injEq, RunDuty.propAction.injEq, reduceCtorEq]
 
 /-- An honest emitted proposal has the exact parent selected by its duty. -/
 theorem pcsa_formation_emitted_parent (E : Generic.Env V)

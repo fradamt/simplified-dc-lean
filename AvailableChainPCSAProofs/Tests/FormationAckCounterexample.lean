@@ -4,11 +4,11 @@ public meta import AvailableChainPCSAProofs -- shake: keep (closed run evaluatio
 
 @[expose] public section
 
-/-! Formation with corrected F4 can still fail the all-awake-early ack clause.
+/-! Negative control for Formation whole-PC relay. This is an old-model fixture.
 Six honest nodes vote and ack in slot 4. A seventh wakes only at e_4.
 That node has a conflicting frozen PC. The other nodes reject its faulty
 ack's third distinct root, so the old PC is not assembled there.
-The Lean F1 wire premise does not require relay of a locally assembled PC.
+The old schedule fails the new F1 relay premise for its locally assembled PC.
 A control that supplies the complete old PC repairs the split.
 The check uses the actual engine and the corrected proposer-root condition.
 Paper §3.6 adds assembled and received PCs to the store, and R4 relays them.
@@ -135,6 +135,8 @@ def beforeTick (tr : Array (Array (Node p))) (x : Fin 8) (t : Time) : Node p :=
 def readTick (tr : Array (Array (Node p))) (x : Fin 8) (t : Time) : State 8 :=
   clock p (beforeTick tr x t).st t
 
+/-- The signed objects that an object carries. A carried PC object has no
+signer. -/
 def carriedObjects (o : Obj p) : List (Obj p) :=
   match o.payload with
   | .proposal N => N.raw.map (ofHead p) ++ N.support.map (ofHead p) ++
@@ -142,13 +144,19 @@ def carriedObjects (o : Obj p) : List (Obj p) :=
   | .pc C => C.acks.map (ofAck p)
   | _ => []
 
-/-- The signature check enumerates every object in the carries relation. -/
-theorem carriedObjects_exact (o u : Obj p) :
-    (pcsaWith .idle p unitCodec).carries o u ↔ u ∈ carriedObjects o := by
-  change carriesS p o u ↔ _
+/-- The signature check enumerates every signed object in the carries
+relation; the other carried objects are PC objects, with no holder. -/
+theorem carriedObjects_signed (o u : Obj p) :
+    (pcsaWith .idle p unitCodec).carries o u → u ∈ carriedObjects o ∨ u.auth = .none := by
+  change carriesS p o u → _
   delta carriesS carriedObjects
-  cases o.payload <;> simp only [List.mem_append, List.not_mem_nil]
-  all_goals tauto
+  rintro (h | ⟨C, rfl, -⟩)
+  · left
+    revert h
+    cases o.payload <;> simp only [List.mem_append, List.not_mem_nil, imp_self]
+    all_goals tauto
+  · right
+    rfl
 
 abbrev FixtureEvent := V2.Event (Fin 8) (Obj p)
 instance : DecidableEq (pcsaWith .idle p unitCodec).Object :=
@@ -157,38 +165,87 @@ instance : DecidableEq FixtureEvent :=
   inferInstanceAs (DecidableEq (V2.Event (Fin 8) (Obj p)))
 instance : BEq FixtureEvent := ⟨fun x y => decide (x = y)⟩
 
+def pcObj (C : PC 8) : Obj p := ⟨.none, .pc C⟩
+
+/-- The carried PC test of `carriesS`. -/
+def carriesPC (o : Obj p) (C : PC 8) : Bool :=
+  match o.payload with
+  | .ack _ => (C.acks.map (ofAck p)).contains o
+  | .proposal N => C.target == N.erase ||
+      N.pc.any (fun d => d.slot == C.slot && d.target == C.target)
+  | .pc c => c.slot == C.slot && c.target == C.target
+  | _ => false
+
+/-- The PCs that the call of `o` installs. -/
+def installedBy (st : State 8) (o : Obj p) : List (PC 8) :=
+  (PCSA.process p st (toWire p o)).pcs.filter (fun C => !st.pcs.contains C)
+
 def handlesTest (st : State 8) (o u : Obj p) : Bool :=
-  decide (o = u) || match (toWire p o).decode with
+  decide (o = u) || (match (toWire p o).decode with
   | some (.block s N) => namedParentHeld st N &&
       (match parentFG st N.erase with
       | some P => blockAccepted p st s N P &&
           (N.raw.map (ofHead p) ++ N.rows.map (ofRow p) ++ N.pcAcks.map (ofAck p)).contains u
       | none => false)
   | some (.pc C) => (C.acks.map (ofAck p)).contains u
-  | _ => false
+  | _ => false) || (installedBy st o).any (fun C => decide (u = pcObj C) && carriesPC o C)
+
+/-- A PC object is carried exactly when the carried PC test passes. -/
+theorem carriesS_pcObj (o : Obj p) (C : PC 8) :
+    carriesS p o (pcObj C) ↔ carriesPC o C = true := by
+  delta carriesS carriesPC
+  constructor
+  · rintro (h | ⟨C', hC, h⟩)
+    · exfalso
+      revert h
+      cases o.payload <;> simp only [List.mem_map, imp_self]
+      all_goals first
+        | (rintro (⟨a, -, ha⟩ | ⟨a, -, ha⟩ | ⟨a, -, ha⟩ | ⟨a, -, ha⟩) <;>
+            cases congrArg (fun x : Obj p => x.payload) ha)
+        | (rintro ⟨a, -, ha⟩; cases congrArg (fun x : Obj p => x.payload) ha)
+    · cases hC
+      revert h
+      cases o.payload <;> simp [Option.any_eq_true]
+  · intro h
+    right
+    refine ⟨C, rfl, ?_⟩
+    revert h
+    cases o.payload <;> simp [Option.any_eq_true]
 
 /-- The finite handles test is the model's complete handles relation. -/
 theorem handlesTest_exact (st : State 8) (o u : Obj p) :
     handlesS p st o u ↔ handlesTest st o u = true := by
   delta handlesS handlesTest
-  simp only [Bool.or_eq_true, decide_eq_true_eq]
-  cases h : (toWire p o).decode with
-  | none => simp only [Bool.false_eq_true]
-  | some d =>
-    cases d <;> simp only [Bool.false_eq_true]
-    · rename_i s N
-      cases hp : parentFG st N.erase with
-      | none => simp only [Bool.and_false, Bool.false_eq_true, reduceCtorEq, false_and,
-          exists_false, and_false]
-      | some P =>
-        simp only [Option.some.injEq, exists_eq_left', Bool.and_eq_true,
-          List.contains_iff_mem, List.mem_append]
-        tauto
-    · simp only [List.contains_iff_mem]
+  simp only [Bool.or_eq_true, decide_eq_true_eq, or_assoc]
+  refine or_congr Iff.rfl (or_congr ?_ ?_)
+  · cases h : (toWire p o).decode with
+    | none => simp only [Bool.false_eq_true]
+    | some d =>
+      cases d <;> simp only [Bool.false_eq_true]
+      · rename_i s N
+        cases hp : parentFG st N.erase with
+        | none => simp only [Bool.and_false, Bool.false_eq_true, reduceCtorEq, false_and,
+            exists_false, and_false]
+        | some P =>
+          simp only [Option.some.injEq, exists_eq_left', Bool.and_eq_true,
+            List.contains_iff_mem, List.mem_append]
+          tauto
+      · simp only [List.contains_iff_mem]
+  · constructor
+    · rintro ⟨hc, C, rfl, h1, h2⟩
+      refine List.any_eq_true.mpr ⟨C, List.mem_filter.mpr ⟨h1, by simpa using h2⟩, ?_⟩
+      rw [Bool.and_eq_true, decide_eq_true_eq]
+      exact ⟨rfl, (carriesS_pcObj o C).mp hc⟩
+    · intro h
+      obtain ⟨C, hC, h'⟩ := List.any_eq_true.mp h
+      rw [Bool.and_eq_true, decide_eq_true_eq] at h'
+      obtain ⟨rfl, hc⟩ := h'
+      obtain ⟨h1, h2⟩ := List.mem_filter.mp hC
+      exact ⟨(carriesS_pcObj o C).mpr hc, C, rfl, h1, by simpa using h2⟩
 
--- All acceptance handles are the parent itself or one of its carried objects.
+-- All acceptance handles are the parent, a carried object or an installed PC.
 def handledObjects (st : State 8) (o : Obj p) : List (Obj p) :=
-  (o :: carriedObjects o).filter (fun u => handlesTest st o u)
+  (o :: carriedObjects o ++ (installedBy st o).map pcObj).filter (fun u => handlesTest st o u)
 
 def emitted (tr : Array (Array (Node p))) (i : Nat) : List (Obj p) :=
   match rho.events[i]? with
@@ -260,7 +317,7 @@ def audit : IO Unit := do
   require "F1 broadcast" (emissions.all (fun row =>
     let (_, o, t) := row
     hs.all (fun x => if deadline t ≤ 22 && !excluded x o t then handlesBy x o t else true)))
-  require "F1 acceptance relay" (is.all (fun i =>
+  require "hidden whole PC violates F1 acceptance relay" (!(is.all (fun i =>
     match es.getD i (.tick 0 0) with
     | .deliver y o t => (handledObjects (atIndex tr i y).st o).all (fun a =>
         if !processedS p (atIndex tr i y).st a && processedS p (atIndex tr (i + 1) y).st a then
@@ -268,7 +325,7 @@ def audit : IO Unit := do
             if !processedS p (atIndex tr (i + 1) x).st a && deadline t ≤ 22 && !excluded x a t then
               handlesBy x a t else true)
         else true)
-    | _ => true))
+    | _ => true)))
   require "honest proposal at slot 4" (seats (.prop 4) ⟨0, by change 0 < 1; decide⟩ == 0 &&
     E.awake 0 16 && (emitted tr ((rho.tickIdx? 0 16).getD 0)).contains (prop 4 N))
   require "F2 participation" (decide (nQuorum p.n ≤
@@ -314,7 +371,7 @@ def audit : IO Unit := do
       (proposerVotes controlRead 4) (proposerSupport controlRead 4) == B.erase)
   require "six honest early acks" (participants.all (fun x =>
     ackFor p (readTick tr x 18) 4 == some N.erase))
-  require "C7 all-awake-early ack counterexample" (
+  require "invalid hidden-PC run has an early ack split" (
     !E.awake 6 17 && E.awake 6 18 &&
     ((voterPC p (readTick tr 6 18) 4).map PC.target) == some B.erase &&
     !viewOK p (readTick tr 6 18) 4 N.erase && ackFor p (readTick tr 6 18) 4 == none)
@@ -344,7 +401,7 @@ def audit : IO Unit := do
 
 #eval audit
 #print axioms cachedStep_exact
-#print axioms carriedObjects_exact
+#print axioms carriedObjects_signed
 #print axioms handlesTest_exact
 #print axioms cachedFold_exact
 #print axioms fresh_committees
