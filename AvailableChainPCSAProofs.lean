@@ -30,6 +30,7 @@ public import AvailableChainPCSAProofs.Proofs.Recovery.Anchor
 public import AvailableChainPCSAProofs.Proofs.Recovery.Exclusions
 public import AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot
 public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalStore
+public import AvailableChainPCSAProofs.Proofs.Recovery.PathSource
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockWindow
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
