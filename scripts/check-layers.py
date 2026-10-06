@@ -109,6 +109,7 @@ SA = GEN + ".Statements.AC"
 PP = GEN + ".Proofs.Pure"
 PV = GEN + ".Proofs.V2"
 PA = GEN + ".Proofs.AC"
+COMPOSE = "AvailableChainFGCompose"
 KITFG = "AvailableChainKitFG"
 FGSA = "AvailableChainFGSA"
 RUN = "AvailableChainFGSARun"
@@ -122,7 +123,7 @@ DUTY_CLOCK = "AvailableChainKitV2.DutyClockLaws"  # no-round migration 02: same 
 CLOCKS = (CLOCK, DUTY_CLOCK)
 WALK = "AvailableChainGridCO.Model.Walk"
 STORE_FACTS = "AvailableChainGridCO.Proofs.StoreFacts"
-FUTURE_LIBS = {GEN, RUN, CLAIMS, PROOFS, INHABIT, PC_PROOFS, "AvailableChainCheckSupport"}
+FUTURE_LIBS = {COMPOSE, GEN, RUN, CLAIMS, PROOFS, INHABIT, PC_PROOFS, "AvailableChainCheckSupport"}
 BASELINE = Path("scripts/baselines/check-layers.txt")
 # L42 (SYN P10 amendment): the only modules outside a lane Export that may
 # import Claims/*. Exact module names, not prefixes. Statement-only assembly
@@ -447,7 +448,7 @@ def gly_pac(ctx: Context, m: Module, dep: str) -> bool:
 
 
 def is_fg(name: str) -> bool:
-    return any_under(name, ("AvailableChainSimplexFG", KITFG, FGSA, RUN, CLAIMS, PROOFS, INHABIT))
+    return any_under(name, ("AvailableChainSimplexFG", KITFG, COMPOSE, FGSA, RUN, CLAIMS, PROOFS, INHABIT))
 
 
 def gly_fg(ctx: Context, m: Module, dep: str) -> bool:
@@ -499,7 +500,7 @@ def claims(ctx: Context, m: Module, dep: str) -> bool:
         allowed = allowed or any_under(dep, (PC_CLAIMS, "AvailableChainPCSA.Model",
             "AvailableChainPCSA.Statements", "AvailableChainPCSARun.Model",
             "AvailableChainPCSARun.Statements", "AvailableChainEngineV2.Conditions"))
-        allowed = allowed or dep == "AvailableChainSimplexFG.Evidence"
+        allowed = allowed or dep == "AvailableChainSimplexFG.Evidence" or (m.name, dep) in COMPOSE_EDGES
         return not m.facade and not is_test(m.name) and (not allowed or is_proof(ctx, dep))
     return under(m.name, CLAIMS) and not m.facade and not is_test(m.name) and (not allowed or is_proof(ctx, dep))
 
@@ -626,7 +627,53 @@ def check_support(ctx: Context, m: Module, dep: str) -> bool:
     return m.path.parts[0] != "scripts" and under(dep, "AvailableChainCheckSupport")
 
 
+# Exact external edges. Both source guards use this table.
+COMPOSE_MODULES = (COMPOSE + ".Statements.EventReads", COMPOSE + ".Statements.CoreReads",
+                   COMPOSE + ".Proofs.SourceHead")
+COMPOSE_EDGES = frozenset(
+    [(PROOFS + ".Proofs.Shared.FGCompose", dep) for dep in COMPOSE_MODULES]
+    + [(PROOFS + ".Proofs.Finality." + name, COMPOSE + ".Proofs.SourceHead")
+       for name in ("MiddleSupport", "Rows")]
+    + [("AvailableChainPCSAProofs.Proofs.Shared.FGCompose", COMPOSE + ".Statements.CoreReads")]
+    + [("AvailableChainPCSAClaims.Statements.Reads", COMPOSE + ".Statements.EventReads")])
+
+
+def compose_base(dep: str) -> bool:
+    return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
+            or any_under(dep, ("AvailableChainEngineV2.Engine",
+                               "AvailableChainEngineV2.Conditions",
+                               "AvailableChainEngineV2.Laws.Duty"))
+            or pure_statements(dep) or under(dep, SV + ".Duty")
+            or dep in {"AvailableChainSimplexFG.Store", KITFG + ".HeightLawsDef"})
+
+
+def compose_s(ctx: Context, m: Module, dep: str) -> bool:
+    if not under(m.name, COMPOSE):
+        return False
+    if m.facade:
+        return dep not in COMPOSE_MODULES
+    if under(m.name, COMPOSE + ".Statements"):
+        return not (compose_base(dep) or under(dep, COMPOSE + ".Statements"))
+    return not any_under(m.name, (COMPOSE + ".Proofs", COMPOSE + ".Tests"))
+
+
+def compose_p(ctx: Context, m: Module, dep: str) -> bool:
+    if not (under(m.name, COMPOSE + ".Proofs") or under(m.name, COMPOSE + ".Tests")):
+        return False
+    own = any_under(dep, (COMPOSE + ".Statements", COMPOSE + ".Proofs"))
+    if is_test(m.name):
+        return not (foundation(dep) or own)
+    return not (compose_base(dep) or own
+                or dep in {"AvailableChainKitV2.DutyStable", KITFG + ".Correspondence"})
+
+
+def upstream_compose(ctx: Context, m: Module, dep: str) -> bool:
+    return under(dep, COMPOSE) and not under(m.name, COMPOSE) and (m.name, dep) not in COMPOSE_EDGES
+
+
 EDGE_RULES: dict[str, Callable[[Context, Module, str], bool]] = {
+    "COMPOSE-S": compose_s, "COMPOSE-P": compose_p,
+    "UPSTREAM-COMPOSE": upstream_compose,
     "B4": b4, "B6-FACADE": b6_facade, "B6-MATHLIB": b6_mathlib,
     "B6-TACTIC": b6_tactic, "B7-TESTS": b7_tests,
     "GLY-SPURE": gly_spure, "GLY-SV2": gly_sv2, "GLY-SAC": gly_sac,
@@ -676,7 +723,7 @@ def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
         PC_CLAIMS + ".Statements", GEN, "AvailableChainKitV2", "AvailableChainKitFG",
         "AvailableChainSimplexFG", "AvailableChainFGSA.Model", "AvailableChainFGSA.Statements",
         "AvailableChainFGSA.Proofs", "AvailableChainFGSARun", PROOFS + ".Proofs"))
-        or dep == STORE_FACTS)
+        or dep == STORE_FACTS or (m.name, dep) in COMPOSE_EDGES)
     if parts[0] == "Assembly":
         allowed = upstream or (target and (target[0] == "Shared" or target_export))
         if m.name == PC_PROOFS + ".Proofs.Assembly.Root":
