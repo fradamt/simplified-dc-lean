@@ -27,6 +27,7 @@ public import AvailableChainPCSAProofs.Proofs.PC.RunEvidence
 public import AvailableChainPCSAProofs.Proofs.PC.StoreEvidence
 public import AvailableChainPCSAProofs.Proofs.PC.Uniqueness
 public import AvailableChainPCSAProofs.Proofs.Recovery.Anchor
+public import AvailableChainPCSAProofs.Proofs.Recovery.Exclusions
 public import AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot
 public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalStore
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin
