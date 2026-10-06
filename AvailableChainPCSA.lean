@@ -5,6 +5,7 @@ public import AvailableChainPCSA.Model.Store
 public import AvailableChainPCSA.Model.PC
 public import AvailableChainPCSA.Model.RowCore
 public import AvailableChainPCSA.Model.Handlers
+public import AvailableChainPCSA.Model.FrameCore
 public import AvailableChainPCSA.Model.Clock
 public import AvailableChainPCSA.Model.Frame
 public import AvailableChainPCSA.Model.RowStore

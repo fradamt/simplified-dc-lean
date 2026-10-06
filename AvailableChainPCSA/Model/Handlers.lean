@@ -29,7 +29,8 @@ def admitAck (p : Params) (st : State p.n) (a : AckWire p.n) : State p.n :=
 /-- [PC-SA M1; pcsa-decisions 3n/4; review fix 1 (D4)] `on_pc`: a well-formed
 PC contributes its acks whole (no acceptance limit), then the PCs are
 assembled; a malformed PC is ignored. A PC enters the store only by
-assembly, with the node's own first-per-seat acks. -/
+assembly, with the node's own first-per-seat acks. `installPC` records the
+stamp and deletes conflicting leases (pcsa34-r4.3 §3.7 (iii)). -/
 def admitPC {n : Nat} (st : State n) (c : PC n) : State n :=
   if c.wellFormed then collectPCs (c.acks.foldl poolAckRaw st) else st
 

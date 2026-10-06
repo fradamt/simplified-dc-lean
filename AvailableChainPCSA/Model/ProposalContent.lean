@@ -148,6 +148,31 @@ def wellFormed (c : PC n) : Bool :=
       | none => false)
 end PC
 
+/-- [PC-SA M1; pcsa34-r4.3 §3.7] The PC rank stored with a lease.
+Compare `slot`, then `depth`, then `root`. -/
+structure PCRank where
+  slot : Slot
+  depth : Nat
+  root : BlockId
+  deriving DecidableEq, Repr
+
+/-- [PC-SA M1; pcsa34-r4.3 §3.7] Read the rank of a PC. -/
+def PC.rank {n : Nat} (c : PC n) : PCRank :=
+  ⟨c.slot, c.target.depth, c.target.root⟩
+
+theorem PC.rank_def {n : Nat} (c : PC n) :
+    c.rank = ⟨c.slot, c.target.depth, c.target.root⟩ := rfl
+
+/-- [PC-SA M1; pcsa34-r4.3 §3.7] Test `rank(c) ≥ ρ`. Every PC rank
+is greater than the empty rank `none`. -/
+def rankAtLeast {n : Nat} (c : PC n) (ρ : Option PCRank) : Bool :=
+  ρ.all (fun r => !(c.slot < r.slot || (c.slot == r.slot &&
+    (c.target.depth < r.depth || (c.target.depth == r.depth && c.target.root < r.root)))))
+
+theorem rankAtLeast_def {n : Nat} (c : PC n) (ρ : Option PCRank) :
+    rankAtLeast c ρ = ρ.all (fun r => !(c.slot < r.slot || (c.slot == r.slot &&
+      (c.target.depth < r.depth || (c.target.depth == r.depth && c.target.root < r.root))))) := rfl
+
 /-- [PC-SA M1; pcsa-decisions R-f; SAPC Choice.lean preferPC] The PC rank
 `(slot, depth, root)`: `a` ranks below `b`. -/
 def pcBelow {n : Nat} (a b : PC n) : Bool :=

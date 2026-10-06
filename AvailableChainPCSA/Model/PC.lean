@@ -21,11 +21,37 @@ target in the cumulative tree (usable) and compatible with F. -/
 def pcValid (st : State n) (c : PC n) : Bool :=
   c.wellFormed && decide (c.target ∈ st.base.blocks) && activeCompatible st c.target
 
-/-- [PC-SA M1; pcsa34-r3 3.6 on_pc] Accept a PC into `Σ.pcs` unless one with
-its slot and target is held. -/
+/-- [PC-SA M1; pcsa34-r4.3 §3.7 (iii)] Delete every lease whose target
+conflicts with the new PC and whose stored rank is at most its rank. -/
+def deleteConflictingLeases (st : State n) (c : PC n) : State n :=
+  { st with base := { st.base with
+    obligations := st.base.obligations.filter (fun row =>
+      !(rankAtLeast c (leaseRank st row.1) && !Block.compatible c.target row.1)) } }
+
+theorem deleteConflictingLeases_def (st : State n) (c : PC n) :
+    deleteConflictingLeases st c =
+      { st with base := { st.base with
+        obligations := st.base.obligations.filter (fun row =>
+          !(rankAtLeast c (leaseRank st row.1) && !Block.compatible c.target row.1)) } } := rfl
+
+/-- [PC-SA M1; pcsa34-r4.3 §3.6 on_pc, §3.7 (iii)] Accept a PC unless
+its slot and target are held. Record its first acceptance time, then delete
+conflicting leases at or below its rank. All PC admission paths use this step. -/
 def installPC (st : State n) (c : PC n) : State n :=
   if st.pcs.any (fun o => o.slot == c.slot && o.target == c.target) then st
-  else { st with pcs := st.pcs ++ [c] }
+  else deleteConflictingLeases { st with
+    pcs := st.pcs ++ [c]
+    pcStamps := st.pcStamps.filter (fun row => !(row.1 == c.slot && row.2.1 == c.target.root)) ++
+      [(c.slot, c.target.root, st.base.now)] } c
+
+theorem installPC_def (st : State n) (c : PC n) :
+    installPC st c =
+      (if st.pcs.any (fun o => o.slot == c.slot && o.target == c.target) then st
+       else deleteConflictingLeases { st with
+         pcs := st.pcs ++ [c]
+         pcStamps := st.pcStamps.filter
+           (fun row => !(row.1 == c.slot && row.2.1 == c.target.root)) ++
+             [(c.slot, c.target.root, st.base.now)] } c) := rfl
 
 /-- [PC-SA M1; SAPC firstPerSeat] Scan in receipt order; retain the first ack
 of each seat. -/

@@ -2,8 +2,7 @@ module
 public import AvailableChainPCSA.Model.Handlers
 public import AvailableChainPCSA.Model.Clock
 public import AvailableChainPCSA.Model.RowCore
-public import AvailableChainFGSA.Model.WindowViews
-public import AvailableChainKitFG.ClientOnce
+public import AvailableChainPCSA.Model.FrameCore
 
 @[expose] public section
 
@@ -11,23 +10,7 @@ namespace AvailableChain.PCSA
 
 open AvailableChain.Generic AvailableChain.SimplexFG
 
-/-- [PC-SA M1] [spec 616–633] The live frame: the FG module's store controls. -/
-def controls (p : Params) (st : State p.n) : Controls (Fin p.n) :=
-  KitFG.storeControlsView (FGSA.heightView p) st.fg
-/-- [PC-SA M1] [spec 1033–1037] `get_filtered_block_tree(Σ)`. -/
-def fullTree (p : Params) (st : State p.n) : Finset (FGBlock (Fin p.n)) :=
-  KitFG.storeFrameView (FGSA.heightView p) st.fg st.fg.TF
-/-- [PC-SA M1] [spec 1025–1037; model representation of a block set as the erased base list]
-The erasure of an FG block set, in the order of the base list. -/
-def erasedList {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))) : List Block :=
-  st.base.blocks.filter (fun b => decide (∃ B ∈ X, eraseFG B = b))
-
-/-- [PC-SA M1; pcsa34-r4 3.3 frame_active] A PC is frame-active when its
-target is in the full filtered tree (read at the time of use). -/
-def frameActive (p : Params) (st : State p.n) (c : PC p.n) : Bool :=
-  decide (∃ B ∈ fullTree p st, eraseFG B = c.target)
-
-/-- [PC-SA M1; FG-SA Frame.lean liveRoot; pcsa34-r4 3.3 live_root, R6, C3]
+/-- [PC-SA M1; FG-SA Frame.lean liveRoot; pcsa34-r4.3 §3.7 (iv), 3.3 live_root, R6, C3]
 [spec 648–655, 1086–1098] `live_root` with the PC view `c`: the root is the
 view target when the view is frame-active (then `Z ⪯ target`, so it is the
 deeper of `Z` and the target), else the FG root `Z`; then the deepest of the
@@ -35,7 +18,7 @@ root and the live lease targets in the tree that are compatible with the
 root, deeper than it, and compatible with the view target (C3, walk
 effectiveness; ties: the greater root). Leases outside the tree or not
 compatible with the view are ignored, not deleted. The gate guard and the
-lease write read `effectiveLease` (`Σ.pc`), not the view. -/
+lease write read live leases (pcsa34-r4.3 §3.7). -/
 def liveRoot (p : Params) (st : State p.n) (c : Option (PC p.n)) : Block :=
   let tree := fullTree p st
   let inTree := fun b => decide (∃ B ∈ tree, eraseFG B = b)

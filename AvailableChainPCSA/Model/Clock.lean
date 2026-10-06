@@ -1,5 +1,5 @@
 module
-public import AvailableChainPCSA.Model.Store
+public import AvailableChainPCSA.Model.FrameCore
 
 @[expose] public section
 
@@ -14,40 +14,69 @@ def slowLevels (p : Params) {n : Nat} (v : GridCO.State n .root) (s : Slot) (b :
     List Nat :=
   if SA.Root.slowEligible p.toParams v s b then [SA.releaseThreshold p.toParams] else []
 
-/-- [PC-SA M1; pcsa34-r3 3.7; GridCO gateFrom] The SA gate with the walk
-from `a`, the slow lease loop only, and the effective leases: `pcT` is
-`Σ.pc.target`. A genuine gate advances G. It advances S and writes
-obligations only when the result is compatible with every live EFFECTIVE
-target (compatible with `pcT`); a lease write needs the prefix compatible
-with `pcT`. -/
-def gateFrom (p : Params) {n : Nat} (a : Block) (pcT : Option Block)
-    (v : GridCO.State n .root) (s : Slot) : GridCO.State n .root :=
-  let pcOK := fun b => pcT.all (fun t => Block.compatible b t)
+/-- [PC-SA M1; pcsa34-r4.3 §3.7] Run the SA gate on the active view.
+A genuine result advances G. It advances S only if no live lease conflicts
+with the result. Each slow write must pass the rank check. Each write or
+renewal stores `ρ_s` and keeps the maximum deadline. -/
+def gateFrom (p : Params) {n : Nat} (a : Block) (cs : List (PC n)) (ρ : Option PCRank)
+    (st : State n) (s : Slot) : State n :=
+  let v := actView st
   let q := p.toParams.engine
   match SA.Root.confirmationFrom p.toParams a v s with
-  | none => { v with genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s none }
+  | none => { st with base := { st.base with
+      genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s none } }
   | some h =>
-      let v := { v with
+      let st := { st with base := { st.base with
         goldfishRecord := GridCO.advance v.goldfishRecord h
-        genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s (some h) }
-      if v.obligations.any (fun row => pcOK row.1 && !Block.compatible row.1 h) then v else
-        let v := { v with stableRecord := GridCO.advance v.stableRecord h }
-        let prefixes := v.blocks.filter (fun b => b != .genesis && Block.preceq b h && pcOK b)
+        genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s (some h) } }
+      if st.base.obligations.any (fun row => st.base.now < row.2.2 &&
+          !Block.compatible row.1 h) then st else
+        let st := { st with base := { st.base with
+          stableRecord := GridCO.advance st.base.stableRecord h } }
+        let prefixes := v.blocks.filter (fun b => b != .genesis && Block.preceq b h &&
+          leaseWriteOK cs ρ b)
         prefixes.foldl (fun acc b =>
-          (slowLevels p acc s b).foldl
-            (fun acc g => GridCO.writeObligation acc b g
-              (GridCO.gateTime q s + GridCO.lifetime q)) acc) v
+          (slowLevels p (actView acc) s b).foldl
+            (fun acc g => writeLease acc b g
+              (GridCO.gateTime q s + GridCO.lifetime q) ρ) acc) st
 
-/-- [PC-SA M1; FG-SA Clock.lean gateStep; pcsa-decisions 3n/4, R8′]
-[spec 885–913, 502–505; M7, DQ5] `update_confirmation`: if label `s` is not
-saved, run the gate on the active view with the walk from `Σ.F`
-(`genuine_result`); then `S := F` if `F ⋠ S`, also after an empty or vetoed
-gate. There is no fast-write set (R8′: the FG source is a PC). -/
+theorem gateFrom_def (p : Params) {n : Nat} (a : Block) (cs : List (PC n)) (ρ : Option PCRank)
+    (st : State n) (s : Slot) :
+    gateFrom p a cs ρ st s =
+      (let v := actView st
+       let q := p.toParams.engine
+       match SA.Root.confirmationFrom p.toParams a v s with
+       | none => { st with base := { st.base with
+           genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s none } }
+       | some h =>
+           let st := { st with base := { st.base with
+             goldfishRecord := GridCO.advance v.goldfishRecord h
+             genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s (some h) } }
+           if st.base.obligations.any (fun row => st.base.now < row.2.2 &&
+               !Block.compatible row.1 h) then st else
+             let st := { st with base := { st.base with
+               stableRecord := GridCO.advance st.base.stableRecord h } }
+             let prefixes := v.blocks.filter (fun b => b != .genesis && Block.preceq b h &&
+               leaseWriteOK cs ρ b)
+             prefixes.foldl (fun acc b =>
+               (slowLevels p (actView acc) s b).foldl
+                 (fun acc g => writeLease acc b g
+                   (GridCO.gateTime q s + GridCO.lifetime q) ρ) acc) st) := rfl
+
+/-- [PC-SA M1; pcsa34-r4.3 §3.7] If label `s` is not saved, read its
+rank stamp and run the gate from `Σ.F`. Then normalize S against F. -/
 def gateStep (p : Params) (st : State p.n) (s : Slot) : State p.n :=
   let a := eraseFG st.fg.F
   let st := if (GridCO.savedGenuine st.base s).isSome then st else
-    onView (fun v => gateFrom p a (pcTarget? st) v s) st
+    gateFrom p a st.pcs (gateRank p st s) st s
   normalizeS st
+
+theorem gateStep_def (p : Params) (st : State p.n) (s : Slot) :
+    gateStep p st s =
+      (let a := eraseFG st.fg.F
+       let st := if (GridCO.savedGenuine st.base s).isSome then st else
+         gateFrom p a st.pcs (gateRank p st s) st s
+       normalizeS st) := rfl
 
 /-- [PC-SA M1; FG-SA Clock.lean clockPre; pcsa-decisions R-f]
 [spec 683–694, 709–752; M8] The tick before the gate: set the time and

@@ -28,6 +28,11 @@ structure State (n : Nat) where
   rowPool : List (RowWire n) := []
   ackPool : List (AckWire n) := []
   pcs : List (PC n) := []
+  /-- [pcsa34-r4.3 §3.7] The first acceptance time of each PC, by slot and root. -/
+  pcStamps : List (Slot × BlockId × Time) := []
+  /-- [pcsa34-r4.3 §3.7] The rank from the last lease write or renewal.
+  A row without an obligation is metadata only. -/
+  leaseRanks : List (Block × Option PCRank) := []
   pcSnapshot : List (Slot × List (PC n)) := []
 
 variable {n : Nat}
@@ -73,10 +78,63 @@ def pcAt (st : State n) (s : Slot) : Option (PC n) :=
 `(slot, depth, root)`. -/
 def latestPC (st : State n) : Option (PC n) := bestPC st.pcs
 
-/-- [PC-SA M1; pcsa34-r3 3.1] A lease row is effective when its target is
-compatible with `Σ.pc.target` (or there is no PC). -/
-def effectiveLease (st : State n) (b : Block) : Bool :=
-  (latestPC st).all (fun c => Block.compatible b c.target)
+/-- [PC-SA M1; pcsa34-r4.3 §3.7] A target has a live lease when its
+stored deadline is strictly after the current time. -/
+def liveLease (st : State n) (b : Block) : Bool :=
+  st.base.obligations.any (fun row => row.1 == b && st.base.now < row.2.2)
+
+theorem liveLease_def (st : State n) (b : Block) :
+    liveLease st b = st.base.obligations.any
+      (fun row => row.1 == b && st.base.now < row.2.2) := rfl
+
+/-- [PC-SA M1; pcsa34-r4.3 §3.7] Compatibility alias for the two existing
+`LeaseBelowRecordClaim` statements in PCSAClaims. Read live leases. -/
+def effectiveLease (st : State n) (b : Block) : Bool := liveLease st b
+
+theorem effectiveLease_def (st : State n) (b : Block) :
+    effectiveLease st b = liveLease st b := rfl
+
+/-- [PC-SA M1; pcsa34-r4.3 §3.7] Read the first acceptance time of a PC.
+An unstamped PC has no receipt time. -/
+def pcStamp? (st : State n) (c : PC n) : Option Time :=
+  (st.pcStamps.find? (fun row => row.1 == c.slot && row.2.1 == c.target.root)).map
+    (fun row => row.2.2)
+
+theorem pcStamp?_def (st : State n) (c : PC n) :
+    pcStamp? st c = (st.pcStamps.find?
+      (fun row => row.1 == c.slot && row.2.1 == c.target.root)).map
+        (fun row => row.2.2) := rfl
+
+/-- [PC-SA M1; pcsa34-r4.3 §3.7] Read the rank from the last write on `b`.
+The empty rank is below every PC rank. -/
+def leaseRank (st : State n) (b : Block) : Option PCRank :=
+  ((st.leaseRanks.find? (fun row => row.1 == b)).map Prod.snd).getD none
+
+theorem leaseRank_def (st : State n) (b : Block) :
+    leaseRank st b = ((st.leaseRanks.find? (fun row => row.1 == b)).map Prod.snd).getD none := rfl
+
+/-- [PC-SA M1; pcsa34-r4.3 §3.7 (i)] Write or renew a lease. Keep the
+maximum deadline and replace the stored rank on every write. -/
+def writeLease (st : State n) (b : Block) (g : Nat) (deadline : Time)
+    (ρ : Option PCRank) : State n :=
+  { st with
+    base := GridCO.writeObligation st.base b g deadline
+    leaseRanks := st.leaseRanks.filter (fun row => row.1 != b) ++ [(b, ρ)] }
+
+theorem writeLease_def (st : State n) (b : Block) (g : Nat) (deadline : Time)
+    (ρ : Option PCRank) : writeLease st b g deadline ρ =
+      { st with
+        base := GridCO.writeObligation st.base b g deadline
+        leaseRanks := st.leaseRanks.filter (fun row => row.1 != b) ++ [(b, ρ)] } := rfl
+
+/-- [PC-SA M1; pcsa34-r4.3 §3.7 (ii)] Permit a write if no held PC at
+or above `ρ` has a target that conflicts with `b`. Read all held PCs. -/
+def leaseWriteOK (cs : List (PC n)) (ρ : Option PCRank) (b : Block) : Bool :=
+  !cs.any (fun c => rankAtLeast c ρ && !Block.compatible c.target b)
+
+theorem leaseWriteOK_def (cs : List (PC n)) (ρ : Option PCRank) (b : Block) :
+    leaseWriteOK cs ρ b = !cs.any
+      (fun c => rankAtLeast c ρ && !Block.compatible c.target b) := rfl
 
 /-- [PC-SA M1; pcsa-decisions R-f; pcsa34-r4 3.3] The PCs frozen at `z_s`
 (held before the tick `z_s`, in stored order); `[]` if none was held, or the
