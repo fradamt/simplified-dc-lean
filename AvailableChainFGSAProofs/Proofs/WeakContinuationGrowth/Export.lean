@@ -10,5 +10,7 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Frame -- sh
 
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.EventReplay -- shake: keep (local event correspondence)
 
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Dynamics -- shake: keep (weaker event induction)
+
 /-! Additive WC growth lane. These are proved component lemmas.
 The closed WeakContinuationGrowthClaim is still open; see OPEN.md. -/
