@@ -25,5 +25,7 @@ public import AvailableChainPCSAProofs.Proofs.PC.HeadSupport
 public import AvailableChainPCSAProofs.Proofs.PC.RunEvidence
 public import AvailableChainPCSAProofs.Proofs.PC.StoreEvidence
 public import AvailableChainPCSAProofs.Proofs.PC.Uniqueness
+public import AvailableChainPCSAProofs.Proofs.Shared.CleanGate
 public import AvailableChainPCSAProofs.Proofs.Shared.Dissemination
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestQuorum
+public import AvailableChainPCSAProofs.Proofs.Shared.RetainedWalk
