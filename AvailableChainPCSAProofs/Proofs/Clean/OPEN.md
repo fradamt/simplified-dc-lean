@@ -297,3 +297,44 @@ need indexed accepted-proposal provenance. Frozen arms use the first
 stamp below the freeze. Then derive CL1–CL4 run count inputs, retained
 paths, equal honest proposal/voter walks, and the joint CI record.
 No new unconditional run claim is exported by this resolution module.
+
+## Count-input plan after the receipt modules (2026-10-07)
+
+The generic public-cutoff interfaces are proved. They do not yet supply
+the lists in CL1–CL4. Use the actual definitions in Model/Frame.lean.
+
+1. Prove indexed provenance of every wire in `st.proposals`: it was
+   appended by an earlier accepted direct proposal delivery. Keep the
+   named proposal and the exact handler tests. Lift the wire's well-formed
+   raw/support subset rule from that delivery.
+2. For `headVotes p st s`, split the deduplicated union into its frozen
+   arm and carried arm. The frozen arm has first HEAD stamp below
+   `freezeTime (s - 1)`. Apply HEAD cutoff relay to that arm.
+   A carried raw HEAD has an actual handler at the proposal's earlier
+   accepting delivery. The local handler theorem supplies its exact
+   copy or two cap witnesses. Relay those witnesses before the source
+   gate. Do not treat carried metadata as automatic pool admission.
+3. For `headSupport p st s`, add exact body resolution and the body
+   stamp bound. Its frozen arm uses current active resolution and the
+   same freeze cutoff. Its carried arm is the declared support, filtered
+   by label and current resolution; recover membership in the raw arm
+   from the delivered proposal's well-formedness.
+4. For `proposerVotes` and `proposerSupport`, use the actual slot-start
+   indexed read. Prove every pooled HEAD has first stamp before the
+   read's public cutoff. Relay it into the preceding label's gate pool.
+   This is the backward denominator input.
+5. Instantiate CL1 with actual support-seat sets and their union in both
+   late denominators. A shared clean seat has one exact signed HEAD;
+   `CommonResolution` gives one body. Instantiate CL2/CL3 transfer with
+   both receipt directions and retained path membership. Instantiate
+   CL4 with the early N-seats and these same read interfaces.
+6. Prove equal honest proposer/voter PC views and walks, then the
+   Vote/Ack/Gate/PC record steps. The composing induction must contain
+   no new store case split.
+
+Exact open facts: proposal-pool provenance; raw/support carried-input
+membership; concrete forward/backward walk-list transport; retained
+path membership; common honest proposal/voter views; CI label zero and
+the four record steps. These are proof tasks, not counterexample blockers.
+C5 and the clean dissemination/safety/inclusion claims still depend on
+the completed run invariant. No new statement change is proposed.
