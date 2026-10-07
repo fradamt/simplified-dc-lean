@@ -9,8 +9,8 @@ public section
 Every admitted slot-s proposal has the honest emitted body and vote lists.
 F1 handles an old accepted PC before t_s, including at an asleep receiver.
 Frozen identity receipt and carried-PC presence fix every early view and A2.
-Installation origins remain the named input hFrozenPCOrigin until Shared
-stage 1 lands. The view proof names hFrozenPCReceipt and hCarriedPresence.
+FormationOrigins supplies hFrozenPCOrigin at the actual early read.
+The view proof names hFrozenPCReceipt and hCarriedPresence.
 Root-mode vote transport preserves counts and scores under explicit receipt
 and resolution inputs. In stage 1 the low-parent eligibility arm is false.
 OPEN: derive receipt-to-collection, proposal presence and retained input
@@ -731,7 +731,8 @@ theorem pcsa_formation_pc_receipt_before_proposal (E : Generic.Env V)
     exact pcsa_formation_old_pc_relay E rho s N ΔF h j x y t C hx hy ht hAccept
       (Bool.eq_false_iff.mpr hDone)
 
-/-- Frozen-PC origins are a named input until the Shared stage-1 branch lands. -/
+/-- An origin input supplies the generic frozen-PC receipt boundary.
+FormationOrigins supplies it from the run at the actual early read. -/
 theorem pcsa_formation_frozen_pc_receipt (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
     (h : FormationPrem p c E rho s N ΔF) (x y : V) (nd : Node p) (C : PC p.n)

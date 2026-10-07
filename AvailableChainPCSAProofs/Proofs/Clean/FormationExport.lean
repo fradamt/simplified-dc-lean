@@ -11,6 +11,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationPC
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationSource
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationTime
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationOrigins
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCollect
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationView
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationFreeze
@@ -44,6 +45,7 @@ FormationRetention closes hAckPoolMono from NoRestart.
 FormationFreeze closes hFreezeKeep and supplies PC consumers.
 FormationTerminal closes hStop from handler slot bounds and sorted run times.
 The retained HEAD consumer still needs the receipt, resolution, path and child inputs.
+FormationOrigins closes hFrozenPCOrigin at the actual early read.
 The C3 inputs remain hAckAdmit and hPCCollect.
 The main Clean.Export module is owned by the other Clean writer. -/
 
