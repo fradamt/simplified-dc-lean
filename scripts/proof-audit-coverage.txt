@@ -5685,12 +5685,16 @@
             'AvailableChain.PCSA.Run.pcsa_formation_key_at_read',
             'AvailableChain.PCSA.Run.pcsa_formation_key_before_proposal_of_handler',
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_run',
+            'AvailableChain.PCSA.Run.pcsa_formation_vote_presence_of_metadata',
             'AvailableChain.PCSA.pcsa_formation_current_body_in_voter_tree',
             'AvailableChain.PCSA.pcsa_formation_raw_keep_of_metadata',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.FormationOrigins': (
             'AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_read_valid',
             'AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_valid',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.FormationView': (
+            'AvailableChain.PCSA.pcsa_formation_metadata_body',
         ),
         'AvailableChainPCSAProofs.Proofs.Foundations.AckPool': (
             'AvailableChain.PCSA.acksOn_subset',

@@ -3,6 +3,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationProposal
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 
 public section
 
@@ -73,66 +74,6 @@ private theorem metadata_pool (p : Params) (st : State p.n) (a : AckWire p.n) :
     dsimp only
     split_ifs <;> rfl
 
-private theorem metadata_process (p : Params) (st : State p.n) (o : Wire p.n)
-    (P : Wire p.n → Prop) (h : ∀ w ∈ st.proposals, P w)
-    (ho : ∀ s N, o.decode = some (.block s N) →
-      N.erase.slot = s → P ⟨.proposer s, .proposal N⟩) :
-    ∀ w ∈ (process p st o).proposals, P w := by
-  cases hd : o.decode with
-  | none => delta process; rw [hd]; exact h
-  | some d =>
-    cases d with
-    | vote s i r => delta process; rw [hd]; exact h
-    | row i body => delta process; rw [hd, metadata_row]; exact h
-    | ack s i r =>
-      delta process
-      rw [hd]
-      change ∀ w ∈ (collectPCs (poolAck p st ⟨o.auth, r⟩)).proposals, P w
-      rw [metadata_collect, metadata_pool]
-      exact h
-    | pc C =>
-      delta process
-      rw [hd]
-      change ∀ w ∈ (admitPC st C).proposals, P w
-      delta admitPC
-      split
-      · rw [metadata_collect, metadata_raws]; exact h
-      · exact h
-    | block s N =>
-      delta process
-      rw [hd]
-      change ∀ w ∈ (admitBlock p st s N).proposals, P w
-      delta admitBlock
-      split
-      · exact h
-      · cases parentFG st N.erase with
-        | none => exact h
-        | some B =>
-          dsimp only
-          split
-          · rename_i hAcc
-            have hSlot : N.erase.slot = s := by
-              have hf := hAcc
-              change (N.erase != .genesis && decide (N.erase.slot ≤ st.slot p) &&
-                !decide (∃ Y ∈ st.fg.TF, Y.root = N.erase.root) &&
-                SimplexFG.FGBlock.preceq st.fg.F (fgBlock B N.erase N.rows) &&
-                decide (N.erase.parent.slot < N.erase.slot) && s == N.erase.slot &&
-                rowsValidForParent p B N.erase.slot N.rows &&
-                (N.pc.map PC.wellFormed).getD true && namedContentOk p N) = true at hf
-              simp only [Bool.and_eq_true] at hf
-              exact (beq_iff_eq.mp (by tauto)).symm
-            rw [metadata_rows, metadata_collect, metadata_raws]
-            have hh : ∀ w ∈ st.proposals ++ [⟨.proposer s, .proposal N⟩], P w := by
-              intro w hw
-              rcases List.mem_append.mp hw with hw | hw
-              · exact h w hw
-              · exact List.mem_singleton.mp hw ▸ ho s N hd hSlot
-            cases N.pc <;> dsimp only <;> split_ifs <;>
-              first
-              | exact hh
-              | (rw [metadata_reconcile]; exact hh)
-          · exact h
-
 private theorem metadata_gate (p : Params) (st : State p.n) (a : Block)
     (cs : List (PC p.n)) (rank : Option PCRank) (s : Slot) :
     (gateFrom p a cs rank st s).proposals = st.proposals := by
@@ -166,6 +107,105 @@ private theorem metadata_clock (p : Params) (st : State p.n) (t : Time) :
     · exact hp
     · rw [metadata_gate]; exact hp
   · exact hp
+
+private theorem metadata_process_accepted (p : Params) (st : State p.n) (o : Wire p.n)
+    (P : Wire p.n → Prop) (h : ∀ w ∈ st.proposals, P w)
+    (ho : ∀ s N B, o.decode = some (.block s N) → namedParentHeld st N = true →
+      parentFG st N.erase = some B → blockAccepted p st s N B = true →
+      P ⟨.proposer s, .proposal N⟩) :
+    ∀ w ∈ (process p st o).proposals, P w := by
+  cases hd : o.decode with
+  | none => delta process; rw [hd]; exact h
+  | some d =>
+    cases d with
+    | vote s i r => delta process; rw [hd]; exact h
+    | row i body => delta process; rw [hd, metadata_row]; exact h
+    | ack s i r =>
+      delta process
+      rw [hd]
+      change ∀ w ∈ (collectPCs (poolAck p st ⟨o.auth, r⟩)).proposals, P w
+      rw [metadata_collect, metadata_pool]
+      exact h
+    | pc C =>
+      delta process
+      rw [hd]
+      change ∀ w ∈ (admitPC st C).proposals, P w
+      delta admitPC
+      split
+      · rw [metadata_collect, metadata_raws]; exact h
+      · exact h
+    | block s N =>
+      delta process
+      rw [hd]
+      change ∀ w ∈ (admitBlock p st s N).proposals, P w
+      delta admitBlock
+      split
+      · exact h
+      · rename_i hNamed
+        cases hp : parentFG st N.erase with
+        | none => exact h
+        | some B =>
+          dsimp only
+          split
+          · rename_i hAcc
+            rw [metadata_rows, metadata_collect, metadata_raws]
+            have hh : ∀ w ∈ st.proposals ++ [⟨.proposer s, .proposal N⟩], P w := by
+              intro w hw
+              rcases List.mem_append.mp hw with hw | hw
+              · exact h w hw
+              · exact List.mem_singleton.mp hw ▸
+                  ho s N B hd (by simpa only [Bool.not_eq_true', Bool.not_eq_false] using hNamed)
+                    hp hAcc
+            cases N.pc <;> dsimp only <;> split_ifs <;>
+              first
+              | exact hh
+              | (rw [metadata_reconcile]; exact hh)
+          · exact h
+
+/-- Stored proposal metadata has its body in the same reachable store. -/
+theorem pcsa_formation_metadata_body (p : Params) (st : State p.n) (hReach : Reachable p st) :
+    ∀ s N, (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ st.proposals → N.erase ∈ st.base.blocks := by
+  induction hReach with
+  | init =>
+    intro s N hm
+    change _ ∈ ([] : List (Wire p.n)) at hm
+    exact (List.not_mem_nil hm).elim
+  | tick t hr ih =>
+    intro s N hm
+    rw [metadata_clock] at hm
+    exact pcsa_body_clock_keep p _ t hr (ih s N hm)
+  | @deliver st o hr ih =>
+    have hAll := metadata_process_accepted p st o
+      (fun w => ∀ s N, w = ⟨.proposer s, .proposal N⟩ → N.erase ∈ (process p st o).base.blocks)
+      (fun w hw s N he => pcsa_body_process_keep p st o hr (ih s N (he ▸ hw)))
+      (by
+        intro s N B hd hn hp ha s' N' he
+        cases he
+        have hpr : process p st o = admitBlock p st s N := by
+          delta process
+          rw [hd]
+        rw [hpr]
+        exact pcsa_admitBlock_body_mem p st s N B (pcsa_tree_correspondence p st hr) hn hp ha)
+    intro s N hm
+    exact hAll _ hm s N rfl
+
+private theorem metadata_process (p : Params) (st : State p.n) (o : Wire p.n)
+    (P : Wire p.n → Prop) (h : ∀ w ∈ st.proposals, P w)
+    (ho : ∀ s N, o.decode = some (.block s N) →
+      N.erase.slot = s → P ⟨.proposer s, .proposal N⟩) :
+    ∀ w ∈ (process p st o).proposals, P w := by
+  refine metadata_process_accepted p st o P h ?_
+  intro s N B hd _ _ hAcc
+  apply ho s N hd
+  have hf := hAcc
+  change (N.erase != .genesis && decide (N.erase.slot ≤ st.slot p) &&
+    !decide (∃ Y ∈ st.fg.TF, Y.root = N.erase.root) &&
+    SimplexFG.FGBlock.preceq st.fg.F (fgBlock B N.erase N.rows) &&
+    decide (N.erase.parent.slot < N.erase.slot) && s == N.erase.slot &&
+    rowsValidForParent p B N.erase.slot N.rows &&
+    (N.pc.map PC.wellFormed).getD true && namedContentOk p N) = true at hf
+  simp only [Bool.and_eq_true] at hf
+  exact (beq_iff_eq.mp (by tauto)).symm
 
 end AvailableChain.PCSA
 

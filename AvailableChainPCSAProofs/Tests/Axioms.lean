@@ -378,5 +378,7 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_run
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_body_before_proposal
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_body
+#print axioms AvailableChain.PCSA.pcsa_formation_metadata_body
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_vote_presence_of_metadata
 
 end

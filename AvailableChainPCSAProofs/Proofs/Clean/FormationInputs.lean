@@ -333,6 +333,29 @@ theorem pcsa_formation_frozen_body (E : Generic.Env V)
   rw [hAt, hDt] at hT
   exact pcsa_formation_body_before_proposal E rho s N ΔF h x _ hx h.proposal.1 j _ hj hu C.target hT
 
+omit [Fintype V] in
+/-- Proposal metadata at the vote read also gives its stored body. -/
+theorem pcsa_formation_vote_presence_of_metadata (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n)
+    (hVoteMetadata : ∀ y ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some nd →
+      (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals) :
+    ∀ y ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some nd →
+      N.erase ∈ nd.st.base.blocks ∧ (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals := by
+  intro y hy nd hr
+  have hm := hVoteMetadata y hy nd hr
+  have hReach : Reachable p nd.st := by
+    have hr' := hr
+    rw [pcsa_postClock_def] at hr'
+    obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hr'
+    rw [pcsa_preTick_def] at hp
+    obtain ⟨k, _, he⟩ := Option.map_eq_some_iff.mp hp
+    subst pre
+    subst nd
+    exact Reachable.tick _ (pcsa_reachable_stateBefore E rho k y)
+  exact ⟨pcsa_formation_metadata_body p nd.st hReach s N hm, hm⟩
+
 /-- The retained inputs for the actual proposer and voter reads. -/
 structure FormationRetainedHeadRest (p : Params) (src dst : Node p)
     (s : Slot) (N : NamedProposal p.n) : Prop where
