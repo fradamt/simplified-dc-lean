@@ -629,3 +629,6 @@ end
 
 -- C6 NDissemination.
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_dissemination_step
+
+-- C6 ReleaseCount.
+#print axioms AvailableChain.PCSA.Run.pcsa_release_count_fault_bound

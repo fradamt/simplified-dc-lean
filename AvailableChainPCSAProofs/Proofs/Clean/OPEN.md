@@ -1191,3 +1191,13 @@ C6 support: derive current ack dissemination from prior label facts. The
 module uses the concrete readers and preserves the joint-induction
 premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### ReleaseCount
+
+C6 support: bound actual release counts by faulty seats. The module uses
+the concrete readers and preserves the joint-induction premises.
+Validation and current claim status are recorded in log.md and state.md.
+
+ReleaseCount validation found two private theorem names shared with FGSA.
+The helpers now use the pcsa_ prefix. Their statements and proofs are unchanged.
+Rerun the full pre-commit list before committing this module.
