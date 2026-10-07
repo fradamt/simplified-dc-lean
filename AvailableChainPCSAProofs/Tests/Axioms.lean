@@ -366,3 +366,8 @@ end
 -- C6 GateCounts.
 #print axioms AvailableChain.PCSA.Run.pcsa_early_input_gate_relay
 #print axioms AvailableChain.PCSA.Run.pcsa_same_label_gate_results
+
+-- C6 GateReads.
+#print axioms AvailableChain.PCSA.pcsa_clock_confirmation_eq_pre
+#print axioms AvailableChain.PCSA.Run.pcsa_gateResultAt_source
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_same_label_results

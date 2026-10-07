@@ -524,3 +524,27 @@ Lift this origin through the run to the existing collision scope.
 ack origin. Use unforgeability and the actual ack duty to get an honest
 ack decision on the held PC's exact target and its slot-time bound.
 These supply the PC fields of C6 and the label-zero PC base case.
+
+### GateReads
+
+The clock preserves all raw confirmation inputs after clockPre. The same-
+label compatibility theorem now applies to gateResultAt from the claim.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`AckDecisions`: split the decision read from the timed-origin proof.
+Identify the actual post-clock ack decision, resolve its full target in
+the collision scope, and lift the result to `storeAt` below a cutoff.
+Derive PC slot bounds and the empty-PC fact before the first gate.
+`StoreOrigins`: deliveries preserve S or normalize it to F. They only
+remove locks. The pre-gate clock only removes locks and keeps S. Use
+these facts for the label-zero store base and the joint record origins.
+
+GateReads hygiene: the first field-congruence proof generated three
+foreign `resolvedBefore` matcher exports. Explicit receipt-field
+equalities remove them. The direct equation audit now has zero
+unaccepted exports; the full validation is being repeated.
+
+GateReads passed the complete pre-commit list after the field proof
+repair. The equation audit reports zero unaccepted exports.
+The announced root-form relay commit is now main `861ca1f8`; integrate
+it at this validated boundary before the PC-view proofs.
