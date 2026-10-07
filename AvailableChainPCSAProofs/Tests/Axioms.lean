@@ -32,6 +32,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.StageRun
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayStore
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayRun
 public import AvailableChainPCSAProofs.Proofs.Shared.PCViews
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 
 public section
 
@@ -310,5 +311,7 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_run_pcs_mono
 
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_stamped_pc_c1
+
+#print axioms AvailableChain.PCSA.Run.FormationPrem.toPreFreeze
 
 end

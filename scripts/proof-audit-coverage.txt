@@ -5749,6 +5749,9 @@
             'AvailableChain.PCSA.pcsa_pc_wellFormed_of',
             'AvailableChain.PCSA.pcsa_pc_wellFormed_parts',
         ),
+        'AvailableChainPCSAProofs.Proofs.Shared.FormationWindow': (
+            'AvailableChain.PCSA.Run.FormationPrem.toPreFreeze',
+        ),
         'AvailableChainPCSAProofs.Proofs.Shared.HeadSupport': (
             'AvailableChain.PCSA.Run.ack_emission_nTarget',
             'AvailableChain.PCSA.Run.head_emission_duty',
