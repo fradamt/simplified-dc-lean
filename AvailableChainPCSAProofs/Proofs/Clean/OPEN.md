@@ -715,3 +715,15 @@ The premises name the one generated proposal and its actual tick.
 honest proposal. Split the voter domain into pre-freeze bodies and
 ancestors of that proposal. Relay the first arm to the proposer and
 retain the proposal-parent path in both trees.
+
+### HonestReceipt
+
+Honest HEADs pass slot and cap checks. Strict broadcast gives exact early
+HEAD receipt and stamps.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`ViewRank`: compare the maximum slot in the source and voter PC
+lists. Same-slot honest ack uniqueness already fixes the full target,
+so certificate ack-list equality is unnecessary. A carried source
+maximum and relayed upper bounds on frozen sources give equal view
+targets, including ties.

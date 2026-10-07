@@ -402,3 +402,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_body_before_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_body_before_early
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_slot_le
+
+-- C6 HonestReceipt.
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_emits
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_not_excluded_early
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_before_early
