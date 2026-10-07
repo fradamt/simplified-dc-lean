@@ -6095,6 +6095,20 @@
             'AvailableChain.PCSA.pcsa_fullTree_of_frame',
             'AvailableChain.PCSA.pcsa_tree_correspondence',
         ),
+        'AvailableChainPCSAProofs.Proofs.Shared.VoterView': (
+            'AvailableChain.PCSA.Run.pcsa_commonView_of_delivery',
+            'AvailableChain.PCSA.Run.pcsa_formation_carried_pc_unique',
+            'AvailableChain.PCSA.Run.pcsa_formation_delivered_proposal_unique',
+            'AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_read_valid',
+            'AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_valid',
+            'AvailableChain.PCSA.Run.pcsa_formation_metadata_read_scope',
+            'AvailableChain.PCSA.Run.pcsa_formation_metadata_scope',
+            'AvailableChain.PCSA.Run.pcsa_formation_metadata_unique',
+            'AvailableChain.PCSA.Run.pcsa_frozen_key_before_proposal',
+            'AvailableChain.PCSA.Run.pcsa_postClock_exists',
+            'AvailableChain.PCSA.Run.pcsa_voter_view_of_delivery',
+            'AvailableChain.PCSA.pcsa_formation_view_of_frozen_receipt',
+        ),
     },
     'AvailableChainPCSAProofs.Tests.FGCompose': {
         'AvailableChainPCSAProofs.Proofs.Shared.FGCompose': (
