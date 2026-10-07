@@ -783,3 +783,8 @@ end
 #print axioms AvailableChain.PCSA.pcsa_release_count_congr
 #print axioms AvailableChain.PCSA.pcsa_clock_release_count
 #print axioms AvailableChain.PCSA.pcsa_clockPre_keep_lock
+
+-- C6 GateLockRetention.
+#print axioms AvailableChain.PCSA.pcsa_gate_keep_lock_target
+#print axioms AvailableChain.PCSA.pcsa_gateStep_keep_lock_target
+#print axioms AvailableChain.PCSA.pcsa_clock_keep_lock_target

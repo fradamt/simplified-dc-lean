@@ -1349,3 +1349,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Exact read-field congruence connects clock release counts to the current
 clean counts; live rows survive when the count is below their level.
 Validation and current claim status are recorded in log.md and state.md.
+
+### GateLockRetention
+
+Gate writes can renew rows but retain every existing target; combine this
+with live-row pre-clock retention.
+Validation and current claim status are recorded in log.md and state.md.
