@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.Arming
+public import AvailableChainFGSAProofs.Proofs.Outage.Arming -- shake: keep (test layer route to Bounds and Families; TEST-SCOPE forbids direct imports)
 public meta import AvailableChainFGSAProofs.Proofs.Outage.Arming -- shake: keep (closed run evaluation)
 
 @[expose] public section
