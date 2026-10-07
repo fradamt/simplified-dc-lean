@@ -377,3 +377,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_frame_subset_of_frame
 #print axioms AvailableChain.PCSA.Run.pcsa_full_read_prefix_mem
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_read_prefix_mem
+
+-- C6 ResultPaths.
+#print axioms AvailableChain.PCSA.Run.pcsa_result_early_support
+#print axioms AvailableChain.PCSA.Run.pcsa_result_prefixes_retained

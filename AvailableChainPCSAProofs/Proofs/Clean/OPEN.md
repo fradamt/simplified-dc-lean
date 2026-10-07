@@ -595,3 +595,19 @@ Use these exact payload facts for the common-view and retained-walk step.
 pool equals that label's late denominator at the same read. Relay
 frozen voter inputs into this proposer pool. Use the generated proposal
 input equations to compare the carried and frozen counts.
+
+### ResultPaths
+
+Each genuine gate result has an early resolved support witness above it.
+Body relay and prefix closure retain all result prefixes in both next-
+label walk trees.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`ProposalEvidence`: use the unique proposer duty and unforgeability to
+show that every stored proposal of an honest proposer's slot is its
+exact emitted named body. Then all carried input metadata at that
+slot comes from the one actual proposer read.
+
+`ProposalStore`: prove exact proposal-wire insertion and pool
+preservation. Use these facts after strict honest proposal broadcast
+to keep the one emitted body's raw/support/PC metadata at voter reads.
