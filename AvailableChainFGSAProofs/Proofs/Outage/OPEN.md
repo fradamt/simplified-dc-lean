@@ -1,6 +1,7 @@
 # Outage continuation under (V)
 
-The full companion is proved as `fgsa_outageContinuationClaim`.
+The full companion is proved as `fgsa_outageContinuationClaim` in
+`Assembly/Clean.lean:78`.
 No FinalitySlashableBound premise was added.
 
 ## Lead rulings of 2026-10-07
@@ -40,15 +41,27 @@ is beside the existing Clean cut producer in Assembly/Clean. This placement
 uses current layer rules and needs no additional Assembly import allowance.
 The frozen FGSAClaims record and existing Statements/Claims are unchanged.
 
-## Non-vacuity: optional kernel fixture remains open
+## Non-vacuity: kernel premise witness complete
+
+`Tests/OutageContinuationInhabit.lean` supplies the completed kernel witness.
+`outageContinuation_inhabited_sleep` proves every field of
+`OutageContinuationPrem` in both modes for a 1-node run with full honest
+sleep on [8,13). Condition (V) holds at equality. `not_outage₂` proves that
+the old budget fails for this run.
+
+`Tests/OutageAfterWindowCounterexample.lean` checks the old budget and
+output loss after recovery. It is an executable counterexample to extending
+the old budget through the horizon, not to the old finite-window claim.
+
+## Optional 168-event kernel fixture remains open
 
 The exact missing result is a kernel inhabitant of
 `OutageContinuationPrem p unitCodec fast E rho 10 17 21 1`, using the
-parameters and run in Tests/OutageContinuationSleep, for either mode.
+parameters and run in `Tests/OutageContinuationSleep.lean`, for either mode.
 The existing audits check the execution, synchrony, healthy-prefix,
 participation, and output facts by evaluation. Those finite checks have
 not been lifted to all quantified fields of Base₂, HealthyPrefix₂, and
-PartialSynchronyBy. No kernel inhabitant is claimed.
+PartialSynchronyBy. No kernel inhabitant is claimed for this 168-event fixture.
 
 The 168-event fixture permits full honest sleep on [17,21), satisfies (V)
 at equality, and retains B through horizon 30. All 18 executable audits pass.

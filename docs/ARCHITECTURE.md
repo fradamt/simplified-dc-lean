@@ -348,6 +348,17 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   Assembly/WeakContinuation imports WC Export and Shared/Claims; it imports
   no Assembly module.
 
+- FG-SA outage continuation under (V): `Proofs/Outage/ContinuationTiming`,
+  `ContinuationInduction`, `ContinuationReceipt`, `ContinuationFrame`,
+  `ContinuationGate`, and `ContinuationJoint` prove the continuation body.
+  `Proofs/OutageContinuation/Export` exports `outageContinuation_claim_of`.
+  `Proofs/Shared/Claims` uses `outageContinuation_of_body` to bridge the body
+  to `OutageContinuationClaim`. `Proofs/Assembly/Clean` supplies the interfaces
+  and proves `fgsa_outageContinuationClaim`. The exact lane import exception
+  in `scripts/check-layers.py` permits `OutageContinuation.Export` to import
+  exactly the six `Outage/Continuation*` modules listed above. No other lane
+  import allowance changes. `FGSAClaims` is unchanged; this is a companion claim.
+
 How the pieces meet:
 - FG-SA store: `FGSA.State` keeps a root-mode `GridCO.State`, an FG store, and pools.
   GridCO proofs use `slowLeasePolicy`; FG store facts come from KitFG. Duty `ACReads`

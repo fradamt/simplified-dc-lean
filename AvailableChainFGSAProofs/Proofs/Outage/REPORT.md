@@ -49,7 +49,8 @@ All reads are inclusive.
 ## Proof closure
 
 `fgsa_outageContinuationClaim p : OutageContinuationClaim p` is the
-unconditional companion theorem. The final assembly is in Assembly/Clean.
+proved unconditional companion theorem. The final assembly is in
+`Assembly/Clean.lean:78`.
 It uses the existing Clean cut and foundation producers. The claim-to-claim
 bridge is in Shared/Claims. OutageContinuation/Export proves the matching claim from expanded
 supplier interfaces. The frozen FGSAClaims record and old claims remain unchanged.
@@ -95,11 +96,20 @@ No sorry, admit, or new axiom was added.
 ## Open items and old reads
 
 No paper proof fact remains open. No extra guard ruling is requested.
-A kernel inhabitant of the full OutageContinuationPrem remains open.
-The unchanged 168-event run passes 18 executable audits. It permits full
-honest sleep on [17,21), satisfies (V) at equality, and retains B through
-horizon 30. These audits do not prove all fields of the full premise in the
-kernel. The 583cee0 parameters still violate (V), by decide.
+The kernel premise witness is complete in `Tests/OutageContinuationInhabit.lean`.
+`outageContinuation_inhabited_sleep` proves every field of
+`OutageContinuationPrem` in both modes for a 1-node run with full honest
+sleep on [8,13). Condition (V) holds at equality. `not_outage₂` proves that
+the old budget fails for this run.
+
+The separate 168-event fixture in `Tests/OutageContinuationSleep.lean`
+passes 18 executable audits. It permits full honest sleep on [17,21),
+satisfies (V) at equality, and retains B through horizon 30. Its full kernel
+premise proof remains open. The 583cee0 parameters still violate (V), by decide.
+
+`Tests/OutageAfterWindowCounterexample.lean` checks the old budget and
+output loss after recovery. It is an executable counterexample to extending
+the old budget through the horizon, not to the old finite-window claim.
 
 The final old-read audit passes. It scans 8,781 constants in 471 active
 modules. The six old/finality readers and 185 height-only readers match
