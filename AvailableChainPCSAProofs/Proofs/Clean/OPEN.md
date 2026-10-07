@@ -474,3 +474,21 @@ seat gives the same signed HEAD and body. Then transfer the N quorum
 into next-label walk scores; bound caps by faulty seats and apply the
 strict N score gap. Use only geometric PC identities in later view work;
 certificate ack lists can differ on equal ranks.
+
+### ForwardReceipt
+
+Early HEAD and body receipt gives strict freeze stamps and exact body
+resolution in both proposer and voter support. Cap witnesses reach both
+raw lists. Genesis is included.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`NWalkCounts`: bound the intersection of conflicting score-seat sets
+by capped seats. The fault bound gives the strict N score gap. Prove
+honest seats cannot be capped in actual voter or proposer raw inputs;
+use backward receipt for the voter case. This prepares N dissemination.
+
+`NReadTransport`: extract a resolved HEAD witness from an N count.
+Transport every counted seat into both next-label score sets, including
+cap outcomes, and retain every N-target prefix. Then apply NWalkCounts
+under an explicit N-target root-compatibility premise. The existing
+StepPC root-bound helper must still receive its run premises.

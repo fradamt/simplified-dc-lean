@@ -349,3 +349,9 @@ end
 
 -- C6 BackwardInputs.
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_tick_input_relay_late
+
+-- C6 ForwardReceipt.
+#print axioms AvailableChain.PCSA.Run.pcsa_genesis_body_stamp
+#print axioms AvailableChain.PCSA.Run.pcsa_early_head_relay_frozen
+#print axioms AvailableChain.PCSA.Run.pcsa_early_body_relay_frozen
+#print axioms AvailableChain.PCSA.Run.pcsa_early_input_relay_support
