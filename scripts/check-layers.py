@@ -532,6 +532,12 @@ def lane(ctx: Context, m: Module, dep: str) -> bool:
     parts, target = proof_path(m.name), proof_path(dep)
     if not parts or parts[0] in {"Shared", "Assembly", "Statements", "Model", "Tests"}:
         return False
+    # Import-policy lead ruling 2026-10-07: OutageContinuation Export route.
+    # Only the six new Outage continuation modules may cross this lane boundary.
+    if (m.name == PROOFS + ".Proofs.OutageContinuation.Export" and dep in {
+            PROOFS + ".Proofs.Outage.Continuation" + suffix for suffix in
+            ("Timing", "Induction", "Receipt", "Frame", "Gate", "Joint")}):
+        return False
     if target and target[0] not in {"Statements", "Model"}:
         return target[0] not in {parts[0], "Shared"} or is_export(dep)
     own_claim = is_export(m.name) and claim_path(dep) == (parts[0],)
