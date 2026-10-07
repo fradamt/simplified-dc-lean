@@ -499,3 +499,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_zero_gate_pcs
 #print axioms AvailableChain.PCSA.Run.pcsa_zero_next_root
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_invariant_zero
+
+-- C6 RecordEvents.
+#print axioms AvailableChain.PCSA.pcsa_clock_record_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_record_stateBefore_origin

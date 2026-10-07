@@ -971,3 +971,9 @@ C6 support: identify label-zero views and the next genesis root. The
 module uses the concrete readers and preserves the joint-induction
 premises.
 These are support facts. C6 and its remaining joint record fields are open.
+
+### RecordEvents
+
+C6 support: trace records to exact earlier gate results. The module uses
+the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.

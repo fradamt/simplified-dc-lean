@@ -78,6 +78,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.CarriedPCs
 
 public import AvailableChainPCSAProofs.Proofs.Clean.ZeroViews
 
+public import AvailableChainPCSAProofs.Proofs.Clean.RecordEvents
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
