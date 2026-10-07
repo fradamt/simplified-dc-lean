@@ -1331,3 +1331,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Indexed held PCs, valid carried PCs and exact gate inputs have honest ack
 witnesses with the required label bounds.
 Validation and current claim status are recorded in log.md and state.md.
+
+### LockWrites
+
+Bounded ack/result compatibility prevents every PC veto of a result-prefix
+lock write.
+Validation and current claim status are recorded in log.md and state.md.

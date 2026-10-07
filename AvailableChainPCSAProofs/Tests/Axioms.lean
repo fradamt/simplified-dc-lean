@@ -770,3 +770,6 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_index_ack_slot
 #print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_index_ack_slot
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_pc_ack_slot
+
+-- C6 LockWrites.
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_write_all_of_ack_results
