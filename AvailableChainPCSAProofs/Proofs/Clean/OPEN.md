@@ -1012,3 +1012,20 @@ C6 support: derive record monotonicity from ordered own results. The
 module uses the concrete readers and preserves the joint-induction
 premises.
 These are support facts. C6 and its remaining joint record fields are open.
+
+### ProposerInputs
+
+C6 support: recover actual inputs of emitted proposals. The module uses
+the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`StoreCutFacts`: preserve the exact gate event and time for every
+lock at an inclusive read. The gate result is below post-gate S,
+and full-cut record order carries this to the read. Observed PC ack
+targets are compatible with that result. This proves the unchanged
+LeaseBelowRecordClaim used as M5 by Assembly/Outage.
+
+`BlockReceipt`: trace a held non-genesis body to its accepting event
+at or before T. Strict relay places it before that event time plus
+Delta, hence before every requested after-ticks read at T+Delta or
+later. Genesis uses the initial body invariant.

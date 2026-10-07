@@ -521,3 +521,9 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_record_indices_mono
 #print axioms AvailableChain.PCSA.Run.pcsa_record_storeAt_mono
 #print axioms AvailableChain.PCSA.Run.pcsa_record_indices_mono_at_limit
+
+-- C6 ProposerInputs.
+#print axioms AvailableChain.PCSA.pcsa_liftHead_baseVote
+#print axioms AvailableChain.PCSA.pcsa_generated_proposal_inputs
+#print axioms AvailableChain.PCSA.Run.pcsa_prop_single_duty
+#print axioms AvailableChain.PCSA.Run.pcsa_emitted_proposal_inputs

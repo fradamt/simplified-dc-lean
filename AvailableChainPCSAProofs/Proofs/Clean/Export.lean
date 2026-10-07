@@ -86,6 +86,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.RecordBounds
 
 public import AvailableChainPCSAProofs.Proofs.Clean.RecordOrder
 
+public import AvailableChainPCSAProofs.Proofs.Clean.ProposerInputs
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
