@@ -23,6 +23,11 @@ The PC call pools the ack raw and installs `PC(1, B)` (collection resolves
 the root to `B`). The PC tests of `carriesS` read the target root, so that
 call handles `PC(1, B)` and the relay obliges its delivery to nodes 2 and 3;
 an exact-target test would not.
+Carried PC: at node 2 of the control run without the relay (it holds `B` and
+the acks of seats 0 and 1, and no PC), a slot-2 proposal that carries the
+faulty PC on `T'` completes the ack quorum, so its call installs `PC(1, B)`
+and handles its object. Controls: a carried PC with another slot, or with
+another root, is not carried and does not install `PC(1, B)`.
 This is a Lean run witness checked by evaluation over the actual engine. -/
 
 open AvailableChain AvailableChain.PCSA AvailableChain.PCSA.Run AvailableChain.SimplexFG
@@ -51,6 +56,16 @@ def pcObj (C : PC 5) : Obj p := ⟨.none, .pc C⟩
 def fakeB : Block := .node .genesis 1 B.root 77777
 /-- A faulty PC on `fakeB` with the acks of `pcB`. -/
 def pcFake : PC 5 := ⟨1, fakeB, pcB.acks⟩
+/-- A slot-2 proposal on `B` that carries the PC `d`. -/
+def N2 (d : PC 5) : NamedProposal 5 := namedProposal p B 2 0 [] [] [] (some d)
+/-- Mismatched slot: a slot-2 PC on a target with the root of `B`. -/
+def pcSlot : PC 5 :=
+  ⟨2, .node B.erase 2 B.root 88888, [⟨.seat (.ack 2) 0, B.root⟩, ⟨.seat (.ack 2) 1, B.root⟩,
+    ⟨.seat (.ack 2) 4, B.root⟩]⟩
+/-- Mismatched root: a slot-1 PC on a target with another root. -/
+def pcRoot : PC 5 :=
+  ⟨1, .node .genesis 1 ⟨55⟩ 55555, [⟨.seat (.ack 1) 0, ⟨55⟩⟩, ⟨.seat (.ack 1) 1, ⟨55⟩⟩,
+    ⟨.seat (.ack 1) 4, ⟨55⟩⟩]⟩
 def E : Generic.Env (Fin 5) :=
   { Δ := 1, Δ_pos := by decide, t_GST := 20, t_GST_nonneg := by decide,
     awake := fun v t =>
@@ -458,8 +473,28 @@ def auditFake : IO Unit := do
     !relayOK rhoFakeNoRelay 9 && !relayOK rhoFakeNoRelay 10)
   IO.println s!"PC relay regression (fabricated target): events={es.size}"
 
+def auditCarry : IO Unit := do
+  let tr := trace rhoNoRelay
+  let st := readAtNode rhoNoRelay tr 2 9
+  require "carry: y = 2 holds B and no PC at t = 9 without the relay" (
+    st.pcs.isEmpty && st.base.blocks.contains B.erase)
+  let o := prop 2 (N2 pcFake)
+  require "carry: the slot-2 proposal carrying PC(T') is accepted" (
+    processedS p (PCSA.process p st (toWire p o)) o)
+  require "carry: its call installs PC(1, B) and handles the PC object" (
+    installedBy st o == [pcB] && handlesTest st o (pcObj pcB))
+  require "carry control: the exact-target test does not carry PC(1, B)" (
+    !carriesPCExact o pcB && carriesPC o pcB)
+  for (label, d) in [("slot", pcSlot), ("root", pcRoot)] do
+    let o := prop 2 (N2 d)
+    require s!"carry control ({label}): the carried PC is well formed and accepted" (
+      d.wellFormed && processedS p (PCSA.process p st (toWire p o)) o)
+    require s!"carry control ({label}): PC(1, B) is not carried, installed or handled" (
+      !carriesPC o pcB && !(installedBy st o).contains pcB && !handlesTest st o (pcObj pcB))
+
 #eval audit
 #eval auditFake
+#eval auditCarry
 #print axioms cachedStep_exact
 #print axioms carriedObjects_signed
 #print axioms carriesS_pcObj

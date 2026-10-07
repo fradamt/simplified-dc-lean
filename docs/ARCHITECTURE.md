@@ -275,6 +275,19 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
   lemmas with smaller premises, without the lane prefix (Shared carries no lane
   names); Formation drops its copies when it switches.
+- PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
+  holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
+  items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow
+  P1 boundary `CleanSlowBoundary`, `CleanSlowItems` (5.5 steps 1–2). They are
+  not claims. A lane module may import them (Statements are upstream of every
+  lane); the proofs stay in their lanes. The pending-label Clean claims
+  (`CleanResultsNonemptyClaim`, `CleanResultsChainPendingClaim`,
+  `CleanDisseminationPendingClaim`) and `CleanBlockReceiptClaim` (the relay item) are
+  in `Claims/Clean`, outside the `PCSAClaims` record. C8 ARM-healthy and C10
+  slow P1 take the `CutChain`, `CutFacts` and `CleanSlowItems` records as OPEN
+  hypotheses (see `AvailableChainPCSAProofs/Proofs/Outage/OPEN.md`).
+  `Outage/BlockReceipt` proves block receipt from the Shared body relay;
+  Assembly/Outage packages it as `CleanBlockReceiptClaim`.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.
