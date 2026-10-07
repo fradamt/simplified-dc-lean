@@ -36,7 +36,8 @@ explicit inputs. The proposer lists and root-mode score transport are proved.
 The old release witness fails F4.
 No whole claim is exported. Source selection still needs an own-slot PC
 in the action snapshot, its target identity, and retained target membership.
-The C3 inputs remain hAckAdmit, hAckPoolMono, hPCCollect, and hFreezeKeep.
+FormationRetention closes hAckPoolMono from NoRestart.
+The C3 inputs remain hAckAdmit, hPCCollect, and hFreezeKeep.
 The main Clean.Export module is owned by the other Clean writer. -/
 
 end

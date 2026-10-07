@@ -1,6 +1,6 @@
 module
 public import AvailableChainPCSAClaims.Statements.Premises
-public import AvailableChainPCSAProofs.Proofs.Clean.FormationAck
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationRetention
 public import AvailableChainPCSAProofs.Proofs.Shared.GateReceipt
 public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
 
@@ -8,7 +8,8 @@ public section
 
 /-! Formation step 4 with named C3 store inputs (pcsa34-r4.3 §5.3).
 F1 uses a max deadline, so HealthyPrefixDeliveryBy cannot be used directly.
-The C3 hypotheses are hAckAdmit, hAckPoolMono, hPCCollect, and hFreezeKeep.
+The remaining C3 hypotheses are hAckAdmit, hPCCollect, and hFreezeKeep.
+FormationRetention closes hAckPoolMono from NoRestart.
 hPCCollect must assemble the full proposal target, not only a block with
 the same root. FormationAck supplies the emitted quorum from honest acks.
 The participating-ack variant uses only the nodes counted by F2. -/
@@ -44,7 +45,7 @@ theorem pcsa_formation_ack_receipt (E : Generic.Env V)
     (pcsa_ack_not_excluded _ s i N.erase.root)
   simpa only [hdl] using hh
 
-/-- Strict F1 receipt and the C3 store inputs give the stamped Formation PC. -/
+/-- Strict F1 receipt and the remaining C3 store inputs give the stamped Formation PC. -/
 theorem pcsa_formation_pc_of_store_facts (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
     (h : FormationPrem p c E rho s N ΔF)
@@ -56,9 +57,6 @@ theorem pcsa_formation_pc_of_store_facts (E : Generic.Env V)
       V2.D.Run.handlesAt E rho j y (ackObj p s i N.erase.root) t →
       (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
         (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool)
-    (hAckPoolMono : ∀ y ∈ rho.honest, ∀ j k, j ≤ k →
-      (V2.D.Run.stateBefore E rho j y).st.ackPool ⊆
-        (V2.D.Run.stateBefore E rho k y).st.ackPool)
     (hPCCollect : ∀ y ∈ rho.honest, ∀ Q : Finset (Fin p.n),
       let st := (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st
       (∀ i ∈ Q, (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈ st.ackPool) →
@@ -79,13 +77,14 @@ theorem pcsa_formation_pc_of_store_facts (E : Generic.Env V)
     obtain ⟨parent, hj, _⟩ := hh
     have hjz : j < V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) :=
       (Gen.V2.Duty.index_lt_idxBefore_iff h.base.valid.toScheduleWellFormed hj _).mpr htz
-    have hm := hAckPoolMono y hy (j + 1) _ (Nat.succ_le_of_lt hjz) ha
+    have hm := pcsa_formation_run_ackPool_mono E rho h.base.noRestart y (j + 1) _
+      (Nat.succ_le_of_lt hjz) ha
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ h.base.valid.toScheduleWellFormed] at hm
     exact hm
   obtain ⟨C, hC, hs, ht⟩ := hPCCollect y hy Q hp hQ
   exact ⟨C, hFreezeKeep y hy hC, hs, ht⟩
 
-/-- F1 and the four C3 facts stamp the PC from participating acks.
+/-- F1 and the three C3 facts stamp the PC from participating acks.
 A node that wakes only at e_s need not ack for this PC conclusion. -/
 theorem pcsa_formation_pc_of_participating_acks (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
@@ -98,9 +97,6 @@ theorem pcsa_formation_pc_of_participating_acks (E : Generic.Env V)
       V2.D.Run.handlesAt E rho j y (ackObj p s i N.erase.root) t →
       (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
         (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool)
-    (hAckPoolMono : ∀ y ∈ rho.honest, ∀ j k, j ≤ k →
-      (V2.D.Run.stateBefore E rho j y).st.ackPool ⊆
-        (V2.D.Run.stateBefore E rho k y).st.ackPool)
     (hPCCollect : ∀ y ∈ rho.honest, ∀ Q : Finset (Fin p.n),
       let st := (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st
       (∀ i ∈ Q, (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈ st.ackPool) →
@@ -121,7 +117,8 @@ theorem pcsa_formation_pc_of_participating_acks (E : Generic.Env V)
     obtain ⟨parent, hj, _⟩ := hh
     have hjz : j < V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) :=
       (Gen.V2.Duty.index_lt_idxBefore_iff h.base.valid.toScheduleWellFormed hj _).mpr htz
-    have hm := hAckPoolMono y hy (j + 1) _ (Nat.succ_le_of_lt hjz) ha
+    have hm := pcsa_formation_run_ackPool_mono E rho h.base.noRestart y (j + 1) _
+      (Nat.succ_le_of_lt hjz) ha
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ h.base.valid.toScheduleWellFormed] at hm
     exact hm
   obtain ⟨C, hC, hs, ht⟩ := hPCCollect y hy Q hp hQ
