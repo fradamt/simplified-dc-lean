@@ -1091,3 +1091,10 @@ C6 support: preserve admitted proposal metadata through run events. The
 module uses the concrete readers and preserves the joint-induction
 premises.
 These are support facts. C6 and its remaining joint record fields are open.
+
+### ProposalDelivery
+
+C6 support: deliver exact honest proposal metadata before votes. The
+module uses the concrete readers and preserves the joint-induction
+premises.
+Validation and current claim status are recorded in log.md and state.md.

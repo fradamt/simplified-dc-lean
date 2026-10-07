@@ -549,3 +549,6 @@ end
 #print axioms AvailableChain.PCSA.pcsa_admitBlock_proposals
 #print axioms AvailableChain.PCSA.pcsa_process_proposals_mono
 #print axioms AvailableChain.PCSA.Run.pcsa_proposals_stateBefore_mono
+
+-- C6 ProposalDelivery.
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote
