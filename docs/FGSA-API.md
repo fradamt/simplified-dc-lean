@@ -427,6 +427,12 @@ def AvailableChain.FGSA.Run.WeakContinuationClaim 86a0139ab94ac9ce
 def AvailableChain.FGSA.Run.WeakContinuationLiveClaim 8a7a0b669ed803e8
 ```
 
+### `AvailableChainFGSAClaims.Claims.WeakContinuationGrowth`
+
+```text
+def AvailableChain.FGSA.Run.WeakContinuationGrowthClaim 01892b3a7e006e51
+```
+
 ### `AvailableChainFGSAClaims.FGSAClaims`
 
 ```text
@@ -1446,6 +1452,36 @@ field AvailableChain.FGSA.Run.SSafeFromCut₂.seed 28056caf4b9310aa
 field AvailableChain.FGSA.Run.SSafeFromCut₂.finalBelow 21d080049557ba52
 field AvailableChain.FGSA.Run.SSafeFromCut₂.outputs 5f8f19783c1641ef
 def AvailableChain.FGSA.Run.BoundedSafetyRecovery₂ fd187331f0665919
+```
+
+### `AvailableChainFGSAClaims.Statements.WeakContinuationGrowth`
+
+```text
+structure AvailableChain.FGSA.Run.RetainedAgreesThrough₂ 3ca74db9e3882d7d
+ctor AvailableChain.FGSA.Run.RetainedAgreesThrough₂.mk 305f104af202b678
+field AvailableChain.FGSA.Run.RetainedAgreesThrough₂.honest d9336d293598db8e
+field AvailableChain.FGSA.Run.RetainedAgreesThrough₂.gst 3a166376e5efdedc
+field AvailableChain.FGSA.Run.RetainedAgreesThrough₂.delta ad415de1e72155ea
+field AvailableChain.FGSA.Run.RetainedAgreesThrough₂.seats b87bc8ba8a651372
+field AvailableChain.FGSA.Run.RetainedAgreesThrough₂.inputs 7583a2b19d526b8d
+field AvailableChain.FGSA.Run.RetainedAgreesThrough₂.awake 9e8f9b0281f2d024
+field AvailableChain.FGSA.Run.RetainedAgreesThrough₂.events 7e789e9ccb492e21
+structure AvailableChain.FGSA.Run.PendingSourceDelivery₂ abf312de2a87bf36
+ctor AvailableChain.FGSA.Run.PendingSourceDelivery₂.mk 8e1b426308829f85
+field AvailableChain.FGSA.Run.PendingSourceDelivery₂.sourceBroadcast febc052096dbe75b
+field AvailableChain.FGSA.Run.PendingSourceDelivery₂.sourceRelay 01f05df3f62f295a
+structure AvailableChain.FGSA.Run.CleanGrowthContinuation₂ c83792bd793ff8b3
+ctor AvailableChain.FGSA.Run.CleanGrowthContinuation₂.mk 28a9272ab8649a66
+field AvailableChain.FGSA.Run.CleanGrowthContinuation₂.base aab74e5d8516493f
+field AvailableChain.FGSA.Run.CleanGrowthContinuation₂.agrees 1164ca4a67fa7928
+field AvailableChain.FGSA.Run.CleanGrowthContinuation₂.covered 6f8600467dd1ae51
+field AvailableChain.FGSA.Run.CleanGrowthContinuation₂.sync d314825f3f70c6ca
+field AvailableChain.FGSA.Run.CleanGrowthContinuation₂.pending df12476f625ec466
+field AvailableChain.FGSA.Run.CleanGrowthContinuation₂.deltaF fbac4b851e1adecd
+field AvailableChain.FGSA.Run.CleanGrowthContinuation₂.accountable e160902d1309b29a
+field AvailableChain.FGSA.Run.CleanGrowthContinuation₂.participation c69fa8883188fc0b
+def AvailableChain.FGSA.Run.BoundedGrowthRecovery₂ 1f820ffb829f34fe
+theorem AvailableChain.FGSA.Run.BoundedGrowthRecovery₂_def 6f198dc838e2ac34
 ```
 
 ### `AvailableChainFGSAClaims.Statements.WeakContinuationLive`
