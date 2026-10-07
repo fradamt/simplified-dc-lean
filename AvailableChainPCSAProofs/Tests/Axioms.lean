@@ -552,3 +552,9 @@ end
 
 -- C6 ProposalDelivery.
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote
+
+-- C6 CommonRaw.
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_pool_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_headVotes_source
+#print axioms AvailableChain.PCSA.Run.pcsa_emitted_raw_in_headVotes
+#print axioms AvailableChain.PCSA.Run.pcsa_common_raw_transfer

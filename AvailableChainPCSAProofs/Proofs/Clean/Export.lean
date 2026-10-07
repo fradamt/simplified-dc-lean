@@ -96,6 +96,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.ProposalStore
 
 public import AvailableChainPCSAProofs.Proofs.Clean.ProposalDelivery
 
+public import AvailableChainPCSAProofs.Proofs.Clean.CommonRaw
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

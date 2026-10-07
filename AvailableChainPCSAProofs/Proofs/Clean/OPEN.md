@@ -1098,3 +1098,9 @@ C6 support: deliver exact honest proposal metadata before votes. The
 module uses the concrete readers and preserves the joint-induction
 premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### CommonRaw
+
+C6 support: compare concrete proposer and voter raw inputs. The module
+uses the concrete readers and preserves the joint-induction premises.
+Validation and current claim status are recorded in log.md and state.md.
