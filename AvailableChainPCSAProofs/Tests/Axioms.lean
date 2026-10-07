@@ -632,3 +632,7 @@ end
 
 -- C6 ReleaseCount.
 #print axioms AvailableChain.PCSA.Run.pcsa_release_count_fault_bound
+
+-- C6 LockRetention.
+#print axioms AvailableChain.PCSA.pcsa_collect_keep_lock
+#print axioms AvailableChain.PCSA.pcsa_write_lock_keep_target

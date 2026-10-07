@@ -1201,3 +1201,10 @@ Validation and current claim status are recorded in log.md and state.md.
 ReleaseCount validation found two private theorem names shared with FGSA.
 The helpers now use the pcsa_ prefix. Their statements and proofs are unchanged.
 Rerun the full pre-commit list before committing this module.
+
+### LockRetention
+
+C6 support: retain locks through compatible collection and renewal. The
+module uses the concrete readers and preserves the joint-induction
+premises.
+Validation and current claim status are recorded in log.md and state.md.
