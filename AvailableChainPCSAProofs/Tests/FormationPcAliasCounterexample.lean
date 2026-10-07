@@ -4,15 +4,14 @@ public meta import AvailableChainPCSAProofs -- shake: keep (closed run evaluatio
 
 @[expose] public section
 
-/-! Formation run audit for a PC whose declared target has the correct
-root but a different body. The wire check permits this PC. Receipt pools its
-acks and assembles the real PC on the held B. The PC carries hook requires
-full target equality, so the installing call does not handle the real PC.
-NamedRootCollisionFree does not include unheld PC targets. The four named
-bodies in this run still have distinct roots. F1–F4 and stage 1 pass, but
-node 6 wakes only at e_4 and refuses the N ack with its old frozen B view.
-This is a finite run audit, not a kernel theorem of negated FormationClaim. -/
-
+/-! Regression for root-form Formation PC relay.
+A wire PC can declare the correct target root with a different body. Receipt
+assembles the real PC on the held B. Root-form carriage now handles that PC.
+The old exact-target relation is an explicit control. The old schedule fails
+F1 acceptance relay. The repaired schedule relays the real PC before t_4.
+The proposer carries it, and all seven honest nodes ack its child at e_4.
+Node 6 is asleep at v_4. Both runs use the actual engine and corrected F4.
+No kernel theorem of negated FormationClaim is asserted. -/
 open AvailableChain AvailableChain.PCSA AvailableChain.PCSA.Run AvailableChain.SimplexFG
 namespace AvailableChain.PCSA.Run.Tests.FormationPcAliasCounterexample
 abbrev p : Params :=
@@ -170,9 +169,9 @@ def pcObj (C : PC 8) : Obj p := ⟨.none, .pc C⟩
 def carriesPC (o : Obj p) (C : PC 8) : Bool :=
   match o.payload with
   | .ack _ => (C.acks.map (ofAck p)).contains o
-  | .proposal N => C.target == N.erase ||
-      N.pc.any (fun d => d.slot == C.slot && d.target == C.target)
-  | .pc c => c.slot == C.slot && c.target == C.target
+  | .proposal N => (C.slot == N.erase.slot && C.target.root == N.erase.root) ||
+      N.pc.any (fun d => d.slot == C.slot && d.target.root == C.target.root)
+  | .pc c => c.slot == C.slot && c.target.root == C.target.root
   | _ => false
 
 /-- The PCs that the call of `o` installs. -/
@@ -252,27 +251,49 @@ theorem alias_target_ne : aliasTarget ≠ B.erase := by
 /-- The wire check permits the declared PC target. -/
 theorem alias_wellFormed : aliasC.wellFormed = true := by decide
 
-/-- A PC wire does not carry the installed certificate when the bodies differ. -/
-theorem alias_real_not_carried : ¬carriesS p aliasPC oldPC := by
-  change ¬carriesS p aliasPC (pcObj C)
+/-- Control: the former exact-target PC carriage test. -/
+def carriesPCExactControl (o : Obj p) (C : PC 8) : Bool :=
+  match o.payload with
+  | .ack _ => (C.acks.map (ofAck p)).contains o
+  | .proposal N => C.target == N.erase ||
+      N.pc.any (fun d => d.slot == C.slot && d.target == C.target)
+  | .pc c => c.slot == C.slot && c.target == C.target
+  | _ => false
+
+/-- Control: the former relation misses the real PC. -/
+theorem alias_exact_control : carriesPCExactControl aliasPC C = false := by decide
+
+/-- Root-form carriage includes the real installed PC. -/
+theorem alias_real_carried : carriesS p aliasPC oldPC := by
+  change carriesS p aliasPC (pcObj C)
   rw [carriesS_pcObj]
   decide
 
-/-- The declared PC cannot handle the real PC in any store. -/
-theorem alias_real_not_handled (st : State 8) : ¬handlesS p st aliasPC oldPC := by
-  intro hh
-  delta handlesS at hh
-  rcases hh with he | he | he
-  · have hp := congrArg (fun o : Obj p => o.payload) he
-    change Msg.pc aliasC = Msg.pc C at hp
-    have ht := congrArg PC.target (Msg.pc.inj hp)
-    exact alias_target_ne ht
-  · change oldPC ∈ aliasC.acks.map (ofAck p) at he
-    obtain ⟨a, _, ha⟩ := List.mem_map.mp he
-    have hp := congrArg (fun o : Obj p => o.payload) ha
-    change Msg.ack a.payload = Msg.pc C at hp
-    cases hp
-  · exact alias_real_not_carried he.1
+/-- A proposal carrying the target alias also carries the real PC. -/
+theorem proposal_alias_real_carried :
+    carriesS p (prop 3 (namedProposal p .genesis 3 0 [] [] [] (some aliasC))) oldPC := by
+  change carriesS p _ (pcObj C)
+  rw [carriesS_pcObj]
+  decide
+
+/-- Slot mismatch is not root-form carriage through the alias PC. -/
+theorem alias_wrong_slot_control :
+    ¬carriesS p aliasPC (pcObj { C with slot := 2 }) := by
+  rw [carriesS_pcObj]
+  decide
+
+/-- Root mismatch is not root-form carriage through the alias PC. -/
+theorem alias_wrong_root_control :
+    ¬carriesS p aliasPC (pcObj { C with target := .node .genesis 1 ⟨42⟩ 0 }) := by
+  rw [carriesS_pcObj]
+  decide
+
+/-- The installing call handles the real PC in every installing store. -/
+theorem alias_real_handled_of_install (st : State 8)
+    (hInstall : C ∈ (PCSA.process p st (toWire p aliasPC)).pcs)
+    (hNew : C ∉ st.pcs) : handlesS p st aliasPC oldPC := by
+  delta handlesS
+  exact Or.inr (Or.inr ⟨alias_real_carried, C, rfl, hInstall, hNew⟩)
 
 -- All acceptance handles are the parent, a carried object or an installed PC.
 def handledObjects (st : State 8) (o : Obj p) : List (Obj p) :=
@@ -285,9 +306,62 @@ def emitted (tr : Array (Array (Node p))) (i : Nat) : List (Obj p) :=
 
 def deadline (t : Time) : Time := max t 15 + 1
 
+/-- The same schedule with the old PC relayed before t_4. The honest
+proposal and all current-slot HEADs and acks use the resulting parent. -/
+def repairedN : NamedProposal 8 := namedProposal p B 4 0 raw3 raw3 [] (some C)
+def repairedDeliveries (t : Nat) : List FixtureEvent :=
+  if t = 15 then deliveries t ++ participants.map (fun x => .deliver x oldPC 15)
+  else if t = 16 then honestNodes.map (fun x => .deliver x (prop 4 repairedN) 16)
+  else if t = 17 then participants.flatMap (fun i =>
+    honestNodes.map (fun x => .deliver x (head 4 i repairedN) 17))
+  else if t = 18 then honestNodes.flatMap (fun i =>
+    honestNodes.map (fun x => .deliver x (ack 4 i repairedN.root) 18))
+  else deliveries t
+def repairedRho : V2.D.Run (Fin 8) (pcsaWith .idle p unitCodec) :=
+  { rho with events := (List.range 23).flatMap (fun (t : Nat) =>
+    honestNodes.map (fun x => V2.Event.tick x (t : Int)) ++ repairedDeliveries t) }
+
+def repairedStep (w : Array (Node p)) (e : FixtureEvent) : Array (Node p) :=
+  Array.ofFn (V2.D.World.step E repairedRho (world w) e)
+
+/-- The repaired cache uses the actual engine at every event and node. -/
+theorem repairedStep_exact (w : Array (Node p)) (e : FixtureEvent) (x : Fin 8) :
+    world (repairedStep w e) x = V2.D.World.step E repairedRho (world w) e x := by
+  have h (f : Fin 8 → Node p) : (Array.ofFn f).getD x.val node0 = f x := by
+    rw [← Array.getElem_eq_getD (h := by rw [Array.size_ofFn]; exact x.isLt)]
+    exact Array.getElem_ofFn _
+  exact h (V2.D.World.step E repairedRho (world w) e)
+
+def repairedTrace : Array (Array (Node p)) :=
+  repairedRho.events.foldl (fun acc e =>
+    acc.push (repairedStep (acc.getD (acc.size - 1) #[]) e)) #[Array.replicate 8 node0]
+def repairedRead (x : Fin 8) (t : Time) : State 8 :=
+  clock p (atIndex repairedTrace ((repairedRho.tickIdx? x t).getD 0) x).st t
+
+def relayFor (r : V2.D.Run (Fin 8) (pcsaWith .idle p unitCodec))
+    (tr : Array (Array (Node p))) : Bool :=
+  let es := r.events.toArray
+  let is := List.range es.size
+  let handlesBy := fun x o t => is.any (fun j =>
+    match es.getD j (.tick 0 0) with
+    | .deliver y a u => x == y && decide (t ≤ u ∧ u < deadline t) &&
+        handlesTest (atIndex tr j x).st a o
+    | _ => false)
+  let excluded := fun x o t =>
+    let k := (es.toList.takeWhile (fun e => decide (e.time < deadline t))).length
+    excludesS p (atIndex tr k x).st o
+  is.all (fun i => match es.getD i (.tick 0 0) with
+    | .deliver y o t => (handledObjects (atIndex tr i y).st o).all (fun a =>
+        if !processedS p (atIndex tr i y).st a && processedS p (atIndex tr (i + 1) y).st a then
+          honestNodes.all (fun x =>
+            if !processedS p (atIndex tr (i + 1) x).st a && deadline t ≤ 22 && !excluded x a t then
+              handlesBy x a t else true)
+        else true)
+    | _ => true)
+
 def require (label : String) (ok : Bool) : IO Unit := do
-  unless ok do throw (IO.userError s!"Formation PC alias counterexample: {label} failed")
-  IO.println s!"Formation PC alias counterexample: {label}: PASS"
+  unless ok do throw (IO.userError s!"Formation PC alias regression: {label} failed")
+  IO.println s!"Formation PC alias regression: {label}: PASS"
 
 def audit : IO Unit := do
   let es : Array FixtureEvent := rho.events.toArray
@@ -348,7 +422,7 @@ def audit : IO Unit := do
   require "F1 broadcast" (emissions.all (fun row =>
     let (_, o, t) := row
     hs.all (fun x => if deadline t ≤ 22 && !excluded x o t then handlesBy x o t else true)))
-  require "F1 acceptance relay" (is.all (fun i =>
+  require "old schedule fails root-form F1 acceptance relay" (!(is.all (fun i =>
     match es.getD i (.tick 0 0) with
     | .deliver y o t => (handledObjects (atIndex tr i y).st o).all (fun a =>
         if !processedS p (atIndex tr i y).st a && processedS p (atIndex tr (i + 1) y).st a then
@@ -356,7 +430,7 @@ def audit : IO Unit := do
             if !processedS p (atIndex tr (i + 1) x).st a && deadline t ≤ 22 && !excluded x a t then
               handlesBy x a t else true)
         else true)
-    | _ => true))
+    | _ => true)))
   require "honest proposal at slot 4" (seats (.prop 4) ⟨0, by change 0 < 1; decide⟩ == 0 &&
     E.awake 0 16 && (emitted tr ((rho.tickIdx? 0 16).getD 0)).contains (prop 4 N))
   require "F2 participation" (decide (nQuorum p.n ≤
@@ -396,10 +470,11 @@ def audit : IO Unit := do
     aliasTarget.root == B.root && aliasTarget != B.erase &&
     !bodies.any (fun X => X.erase == aliasTarget))
   let install := is.find? (fun i => es.getD i (.tick 0 0) == .deliver 6 aliasPC 6)
-  require "aliased PC installs the real PC without its relay handle" (install.any (fun i =>
+  require "aliased PC installs and handles the real PC" (install.any (fun i =>
     !processedS p (atIndex tr i 6).st oldPC && processedS p (atIndex tr (i + 1) 6).st oldPC &&
     !processedS p (atIndex tr (i + 1) 6).st aliasPC &&
-    !carriesPC aliasPC C && !handlesTest (atIndex tr i 6).st aliasPC oldPC))
+    carriesPC aliasPC C && handlesTest (atIndex tr i 6).st aliasPC oldPC &&
+    !carriesPCExactControl aliasPC C))
   let controlEvents := (es.toList.filter (fun e => decide (e.time < 16))) ++
     participants.map (fun x => V2.Event.deliver x oldPC 15)
   let controlWorld := controlEvents.foldl cachedStep (Array.replicate 8 node0)
@@ -410,7 +485,7 @@ def audit : IO Unit := do
       (proposerVotes controlRead 4) (proposerSupport controlRead 4) == B.erase)
   require "six honest early acks" (participants.all (fun x =>
     ackFor p (readTick tr x 18) 4 == some N.erase))
-  require "C7 all-awake-early ack counterexample" (
+  require "invalid old schedule has an early ack split" (
     !E.awake 6 17 && E.awake 6 18 &&
     ((voterPC p (readTick tr 6 18) 4).map PC.target) == some B.erase &&
     !viewOK p (readTick tr 6 18) 4 N.erase && ackFor p (readTick tr 6 18) 4 == none)
@@ -434,15 +509,102 @@ def audit : IO Unit := do
       (pcStamp? (readTick tr x 19) C).any (fun t => t < 19))))
   require "Formation source still present" (hs.all (fun x =>
     ((fgSource p (readTick tr x 22)).map eraseFG) == some N.erase))
-  IO.println s!"Formation PC alias counterexample: events={es.size}; h_s=6; faults=1"
-  IO.println "Formation PC alias counterexample: node 6 wakes at e_4 and refuses the ack"
-  IO.println "Formation PC alias counterexample: current PC and source are present"
+  IO.println s!"Formation PC alias regression: events={es.size}; h_s=6; faults=1"
+  IO.println "Formation PC alias regression: the old schedule fails F1 and refuses node 6 ack"
+  IO.println "Formation PC alias regression: current PC and source are present"
+
+def auditRepair : IO Unit := do
+  let r := repairedRho
+  let es := r.events.toArray
+  let tr := repairedTrace
+  let is := List.range es.size
+  require "repaired schedule" (decide ((r.events : List FixtureEvent).Nodup) &&
+    (es.toList.zip (es.toList.drop 1)).all (fun ef => decide (ef.1.key ≤ ef.2.key)) &&
+    es.all (fun e => decide (0 ≤ e.time ∧ e.time ≤ 22) && honestNodes.contains e.node &&
+      match e with | .restart .. => false | _ => true) &&
+    (List.range 23).all (fun t => honestNodes.all (fun x => es.contains (.tick x (t : Int)))))
+  let emissions := is.flatMap (fun i => match es.getD i (.tick 0 0) with
+    | .tick x t => (V2.D.tick E r (atIndex tr i x) x t).2.map (fun o => (x, o, t))
+    | _ => [])
+  let hasEmission := fun x o t =>
+    emissions.any (fun row => row.1 == x && row.2.1 == o && row.2.2 ≤ t)
+  require "repaired direct and carried signatures" (es.all (fun e => match e with
+    | .deliver _ o t => honestNodes.all (fun x =>
+        if r.holder o.auth == some x then hasEmission x o t else true) &&
+        (carriedObjects o).all (fun u => honestNodes.all (fun x =>
+          if r.holder u.auth == some x then hasEmission x u t else true))
+    | _ => true))
+  let bodies := [.genesis, A, B, repairedN]
+  require "repaired frame and root collision freedom" (
+    (List.range tr.size).all (fun i => honestNodes.all (fun x =>
+      let st := (atIndex tr i x).st
+      st.fg.F == .genesis && (controls p st).Z == .genesis && (controls p st).lo == 0 &&
+        st.namedBodies.all bodies.contains)) &&
+    bodies.all (fun X => bodies.contains X.parent) &&
+    bodies.all (fun X => bodies.all (fun Y => if X.root == Y.root then X == Y else true)))
+  let handlesBy := fun x o t => is.any (fun j => match es.getD j (.tick 0 0) with
+    | .deliver y a u => x == y && decide (t ≤ u ∧ u < deadline t) &&
+        handlesTest (atIndex tr j x).st a o
+    | _ => false)
+  let excluded := fun x o t =>
+    let k := (es.toList.takeWhile (fun e => decide (e.time < deadline t))).length
+    excludesS p (atIndex tr k x).st o
+  require "repaired F1 broadcast" (emissions.all (fun row =>
+    let (_, o, t) := row
+    honestNodes.all (fun x =>
+      if deadline t ≤ 22 && !excluded x o t then handlesBy x o t else true)))
+  require "repaired wire/dependencies/freshness" (is.all (fun i =>
+    match es.getD i (.tick 0 0) with
+    | .deliver x o _ => (pcsaWith .idle p unitCodec).wellFormed o &&
+        depsS p (atIndex tr i x).st o && !processedS p (atIndex tr i x).st o
+    | _ => true))
+  require "repaired F1 acceptance relay" (relayFor r tr)
+  require "old PC reaches every honest node before proposal" (honestNodes.all (fun x =>
+    (repairedRead x 16).pcs.any (fun D => D.slot == 1 && D.target == B.erase)))
+  let ki := (r.tickIdx? 0 16).getD 0
+  require "repaired honest proposal is emitted" (
+    (V2.D.tick E r (atIndex tr ki 0) 0 16).2.contains (prop 4 repairedN))
+  require "repaired F3 common view" (participants.all (fun x =>
+    ((voterPC p (repairedRead x 17) 4).map PC.target) == some B.erase))
+  require "repaired F4 root path" (
+    let st := repairedRead 0 16
+    let pc := proposerPC p st
+    let root := (pc.map PC.target).getD (eraseFG (controls p st).Z)
+    let raw := proposerVotes st 4
+    let support := proposerSupport st 4
+    Block.preceq (liveRoot p st pc)
+      (GridCO.ghost root (erasedList st (fullTree p st))
+        (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support)))
+  require "repaired F4 voter upper bound" (participants.all (fun x =>
+    let st := repairedRead x 17
+    st.base.obligations.all (fun row =>
+      if st.base.now < row.2.2 && Block.compatible row.1 B.erase && B.erase.depth < row.1.depth then
+        Block.preceq row.1 repairedN.erase.parent else true)))
+  require "repaired honest HEADs" (participants.all (fun x =>
+    headVote p (repairedRead x 17) 4 == repairedN.erase))
+  require "repaired N quorum at every early read" (honestNodes.all (fun x =>
+    holdsN p (actView (repairedRead x 18)) 4 repairedN.erase))
+  require "relay repairs the ack-only node" (!E.awake 6 17 && E.awake 6 18 &&
+    ((voterPC p (repairedRead 6 18) 4).map PC.target) == some B.erase &&
+    ackFor p (repairedRead 6 18) 4 == some repairedN.erase)
+  require "repaired all-awake-early acks" (honestNodes.all (fun x =>
+    ackFor p (repairedRead x 18) 4 == some repairedN.erase))
+  require "repaired PC before freeze" (honestNodes.all (fun x =>
+    (repairedRead x 19).pcs.any (fun D => D.slot == 4 && D.target == repairedN.erase)))
+  require "repaired source" (honestNodes.all (fun x =>
+    ((fgSource p (repairedRead x 22)).map eraseFG) == some repairedN.erase))
 
 #eval audit
+#eval auditRepair
 #print axioms alias_target_ne
 #print axioms alias_wellFormed
-#print axioms alias_real_not_carried
-#print axioms alias_real_not_handled
+#print axioms alias_exact_control
+#print axioms alias_real_carried
+#print axioms proposal_alias_real_carried
+#print axioms alias_wrong_slot_control
+#print axioms alias_wrong_root_control
+#print axioms alias_real_handled_of_install
+#print axioms repairedStep_exact
 #print axioms cachedStep_exact
 #print axioms carriedObjects_signed
 #print axioms handlesTest_exact

@@ -161,9 +161,9 @@ def pcObj (C : PC 4) : Obj p := ⟨.none, .pc C⟩
 def carriesPC (o : Obj p) (C : PC 4) : Bool :=
   match o.payload with
   | .ack _ => (C.acks.map (ofAck p)).contains o
-  | .proposal N => C.target == N.erase ||
-      N.pc.any (fun d => d.slot == C.slot && d.target == C.target)
-  | .pc c => c.slot == C.slot && c.target == C.target
+  | .proposal N => (C.slot == N.erase.slot && C.target.root == N.erase.root) ||
+      N.pc.any (fun d => d.slot == C.slot && d.target.root == C.target.root)
+  | .pc c => c.slot == C.slot && c.target.root == C.target.root
   | _ => false
 
 /-- The PCs that the call of `o` installs. -/
