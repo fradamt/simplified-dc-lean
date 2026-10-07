@@ -1129,3 +1129,9 @@ Each current-slot body is the exact honest proposal. Every voter-tree body
 is in the proposer tree or on the proposal path, and every proposal prefix
 remains in the voter tree.
 Validation and current claim status are recorded in log.md and state.md.
+
+### NCounts
+
+C6 support: prove N targets compatible with same-label results. The module
+uses the concrete readers and preserves the joint-induction premises.
+Validation and current claim status are recorded in log.md and state.md.

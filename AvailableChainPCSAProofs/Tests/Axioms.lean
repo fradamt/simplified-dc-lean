@@ -580,3 +580,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_slot_body_unique
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_tree_source
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_prefix_voter_mem
+
+-- C6 NCounts.
+#print axioms AvailableChain.PCSA.Run.pcsa_N_same_label_result
+#print axioms AvailableChain.PCSA.Run.pcsa_honestAck_same_label_result
