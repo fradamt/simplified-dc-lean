@@ -148,6 +148,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.RelayReceipt
 
 public import AvailableChainPCSAProofs.Proofs.Clean.FrozenPCTransport
 
+public import AvailableChainPCSAProofs.Proofs.Clean.CarriedView
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

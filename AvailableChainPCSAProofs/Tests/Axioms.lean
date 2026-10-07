@@ -715,3 +715,7 @@ end
 -- C6 FrozenPCTransport.
 #print axioms AvailableChain.PCSA.Run.pcsa_clock_target_active
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_pc_in_proposer
+
+-- C6 CarriedView.
+#print axioms AvailableChain.PCSA.pcsa_carriedPC_of_proposal
+#print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_eq_emitted

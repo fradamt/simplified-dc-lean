@@ -1264,3 +1264,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Each frozen voter PC has a matching slot and full target in the proposer
 active PC list. The certificate ack list may differ.
 Validation and current claim status are recorded in log.md and state.md.
+
+### CarriedView
+
+Every valid carried PC at an honest proposer slot is the one in the
+emitted metadata; receipt includes that PC when it is valid.
+Validation and current claim status are recorded in log.md and state.md.
