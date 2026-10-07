@@ -727,3 +727,22 @@ lists. Same-slot honest ack uniqueness already fixes the full target,
 so certificate ack-list equality is unnecessary. A carried source
 maximum and relayed upper bounds on frozen sources give equal view
 targets, including ties.
+
+### HonestSupport
+
+Honest HEADs are never capped in honest late pools. Their exact bodies
+resolve in clean early support.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`RelayCollect`: use Clean saturation to obtain complete assembly on
+uniquely resolved stored targets. A new key after adding acks requires
+a new matching ack; with one added ack, that ack is in the assembled
+certificate. Adapt the outage Shared/CollectClosed proof pattern in
+a separate Clean namespace; do not import Outage or PC lane proofs.
+This identifies the carrier for strict whole-PC relay.
+
+`RelayFrames` and `RelayStore`: supply the exact unchanged fields
+and ack-pool growth used by RelayCollect. `RelayCarrier`: show that
+the call installing a new key carries its installed PC under the
+root-form slot/target-root rule. These are the store premises for
+the strict PC relay used in common views.

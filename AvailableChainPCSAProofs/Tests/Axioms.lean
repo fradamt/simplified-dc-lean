@@ -407,3 +407,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_emits
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_not_excluded_early
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_before_early
+
+-- C6 HonestSupport.
+#print axioms AvailableChain.PCSA.pcsa_early_uncapped_clean
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_late_not_capped
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_clean_support

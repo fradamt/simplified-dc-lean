@@ -50,6 +50,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.HeadBody
 
 public import AvailableChainPCSAProofs.Proofs.Clean.HonestReceipt
 
+public import AvailableChainPCSAProofs.Proofs.Clean.HonestSupport
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
