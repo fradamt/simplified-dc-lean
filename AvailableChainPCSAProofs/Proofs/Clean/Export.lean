@@ -152,6 +152,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.CarriedView
 
 public import AvailableChainPCSAProofs.Proofs.Clean.CommonViews
 
+public import AvailableChainPCSAProofs.Proofs.Clean.BodySlotBounds
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

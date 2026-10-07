@@ -1277,3 +1277,9 @@ Frozen PC relay, exact carried metadata, slot maxima, and same-slot ack
 uniqueness give equal view targets. Empty views and different certificate
 ack lists are covered.
 Validation and current claim status are recorded in log.md and state.md.
+
+### BodySlotBounds
+
+Actual admitted bodies have strictly earlier parents and cannot exceed the
+current slot before the next proposal.
+Validation and current claim status are recorded in log.md and state.md.

@@ -722,3 +722,8 @@ end
 
 -- C6 CommonViews.
 #print axioms AvailableChain.PCSA.Run.pcsa_common_view_targets
+
+-- C6 BodySlotBounds.
+#print axioms AvailableChain.PCSA.pcsa_admission_slot_bounds
+#print axioms AvailableChain.PCSA.Run.pcsa_body_parent_slot_lt
+#print axioms AvailableChain.PCSA.Run.pcsa_body_slot_before_next_proposal
