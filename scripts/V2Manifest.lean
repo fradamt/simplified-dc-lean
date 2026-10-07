@@ -30,6 +30,15 @@ These exceptions apply only to the FGSA entry scan; the shared hash rules and
 the v2 and Gen scans do not change. Structure widening has no exception:
 later fields must go in new structures.
 
+With `--scope pcsa`, `docs/PCSA-API.md` lists the PC-SA claim surface by the
+FGSA rules, with the PC-SA names: every public declaration under
+`AvailableChainPCSA.Statements`, `AvailableChainPCSARun.Statements`,
+`AvailableChainPCSAClaims.Statements` and `AvailableChainPCSAClaims.Claims`,
+and in the module `AvailableChainPCSAClaims.PCSAClaims` (the claim records).
+PC-SA uses every FGSA rule below (entry exceptions, `--write`, the frozen
+check), with its own paths and header. PC-SA is not frozen: its frozen copy
+does not exist, so only D15 applies. A missing PC-SA doc is an error (no SKIP).
+
 FGSA has one `##` entry section per library and uses the Gen header style.
 `--write` creates the current manifest from code. Before G-F0a, a missing
 current manifest makes `--check` print SKIP and exit 0. Otherwise D15 checks
@@ -50,7 +59,8 @@ The entry hash (`entryHex`, 16 hex digits) mixes:
   constant in its closure (the `deps` rules of `scripts/CatalogLock.lean`)
   that is generated or private and in a library of the selected scope
   (`AvailableChainEngineV2`, `AvailableChainKitV2` for v2;
-  `AvailableChainGeneric` for Gen; the three FGSA libraries for FGSA)
+  `AvailableChainGeneric` for Gen; the three FGSA libraries for FGSA; the
+  three PC-SA libraries for PC-SA)
   or in the module of the entry: its matchers,
   equation lemmas, `_proof_` constants and private helpers;
 - the binder names (without macro scopes) and binder infos of the entry's
@@ -72,33 +82,35 @@ Modes:
   from the environment, in source order.
 - `--anchor`: print a `let` chain over the engine declarations that no anchor
   covers yet, as the body of a new anchor def (v2 only).
-- `--write`: write the FGSA header and entries to the manifest (FGSA only).
+- `--write`: write the FGSA (or PC-SA) header and entries to the manifest
+  (FGSA and PC-SA only).
 - `--check`: for v2, exit 1 if the anchor `AvailableChain.Framework.V2.anchor` is
   missing or is not in `AvailableChainFramework.V2.Anchor`; if a manifest name
   does not exist or is not in the module of its heading; if a kind word
   differs; if a hash is missing or differs; if a v2 engine entry is not
   anchored; if a public declaration of a scope module, or of a module that
   has a heading, is not in the manifest; or if a scope module has no heading.
-  Gen and FGSA use the same checks without the anchor checks. FGSA also
-  rejects extra generated entries and checks the frozen copy as above.
+  Gen, FGSA and PC-SA use the same checks without the anchor checks. FGSA and
+  PC-SA also reject extra generated entries and check the frozen copy as above.
 
 `generated`, `deps`, the closure traversal, `kindTag` and `ownHash` are
 copies of `scripts/CatalogLock.lean` (`ownHash` with the universe renaming);
 a change to one needs the same change in the other.
 
-Run: `lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa)]
+Run: `lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa | pcsa)]
 (--list | --anchor | --check | --write | --check-frozen) [--manifest <path>]
 [--frozen <path>] [--allow <path>] [--frozen-sha <path>]`.
-The last three options require FGSA. Defaults: `docs/V2-API.md` for v2,
-`docs/GEN-API.md` for Gen, `docs/FGSA-API.md` for FGSA;
-`docs/FGSA-API-frozen.md`, `scripts/fgsa-manifest-allow.txt`, and
-`scripts/fgsa-manifest-frozen.sha256` for the FGSA frozen check.
+The last three options require FGSA or PC-SA. Defaults: `docs/V2-API.md` for v2,
+`docs/GEN-API.md` for Gen, `docs/FGSA-API.md` for FGSA, `docs/PCSA-API.md` for
+PC-SA; `docs/FGSA-API-frozen.md`, `scripts/fgsa-manifest-allow.txt`, and
+`scripts/fgsa-manifest-frozen.sha256` for the FGSA frozen check; the same names
+with `PCSA`/`pcsa` for the PC-SA frozen check.
 Exit codes: 0 clean; 1 a check failed; 2 a usage
 error, an unreadable manifest, a missing declaration in a closure, or no
 declaration ranges. -/
 
 inductive Scope where
-  | v2 | gen | fgsa
+  | v2 | gen | fgsa | pcsa
   deriving BEq
 
 def anchorName : Name := `AvailableChain.Framework.V2.anchor
@@ -129,6 +141,29 @@ def fgsaPrefixes : Array Name :=
 /-- Exact modules of the fgsa scope: the claim facade that assembles `FGSASafetyClaims`. -/
 def fgsaModules : Array Name := #[`AvailableChainFGSAClaims.FGSAClaims]
 
+def pcsaLibraries : Array Name :=
+  #[`AvailableChainPCSA, `AvailableChainPCSARun, `AvailableChainPCSAClaims]
+
+/-- Module prefixes of the pcsa scope: the `fgsaPrefixes` shape with the PC-SA names. -/
+def pcsaPrefixes : Array Name :=
+  #[`AvailableChainPCSA.Statements, `AvailableChainPCSARun.Statements,
+    `AvailableChainPCSAClaims.Statements, `AvailableChainPCSAClaims.Claims]
+
+/-- Exact modules of the pcsa scope: the facade with `PCSAClaims` and `PCSAStageTwoClaims`. -/
+def pcsaModules : Array Name := #[`AvailableChainPCSAClaims.PCSAClaims]
+
+/-- The scopes that use the FGSA rules (entry exceptions, `--write`, frozen check). -/
+def isFamily (scope : Scope) : Bool := scope == .fgsa || scope == .pcsa
+
+def familyLibraries : Scope → Array Name
+  | .fgsa => fgsaLibraries | .pcsa => pcsaLibraries | _ => #[]
+
+def familyPrefixes : Scope → Array Name
+  | .fgsa => fgsaPrefixes | .pcsa => pcsaPrefixes | _ => #[]
+
+def familyModules : Scope → Array Name
+  | .fgsa => fgsaModules | .pcsa => pcsaModules | _ => #[]
+
 def isEngineModule (m : Name) : Bool := engineScope.any (·.isPrefixOf m)
 
 def isKitModule (m : Name) : Bool :=
@@ -139,7 +174,8 @@ def inScope (scope : Scope) (m : Name) : Bool :=
   | .v2 => isEngineModule m || isKitModule m
   | .gen => (`AvailableChainGeneric.Statements).isPrefixOf m &&
       m != `AvailableChainGeneric.Statements
-  | .fgsa => fgsaPrefixes.any (·.isPrefixOf m) || fgsaModules.contains m
+  | .fgsa | .pcsa =>
+      (familyPrefixes scope).any (·.isPrefixOf m) || (familyModules scope).contains m
 
 /-- A module of the v2 libraries (tests included). -/
 def isV2Module (m : Name) : Bool :=
@@ -149,7 +185,7 @@ def isScopeLibraryModule (scope : Scope) (m : Name) : Bool :=
   match scope with
   | .v2 => isV2Module m
   | .gen => (`AvailableChainGeneric).isPrefixOf m
-  | .fgsa => fgsaLibraries.any (·.isPrefixOf m)
+  | .fgsa | .pcsa => (familyLibraries scope).any (·.isPrefixOf m)
 
 def moduleOf? (env : Environment) (n : Name) : Option Name :=
   (env.getModuleIdxFor? n).map (env.header.moduleNames[·.toNat]!)
@@ -267,21 +303,21 @@ def fgsaExplicit (env : Environment) (n : Name) (ci : ConstantInfo) : Bool :=
     (fgsaField env n || (ci matches .thmInfo _) && (toString n).endsWith "_def")
 
 def scopeKind (scope : Scope) (env : Environment) (ci : ConstantInfo) : String :=
-  if scope == .fgsa && fgsaField env ci.name then "field" else kindOf env ci
+  if isFamily scope && fgsaField env ci.name then "field" else kindOf env ci
 
 /-- The public declarations of the scope modules, per module, in source order
 (line, column, then name). -/
 def scan (scope : Scope) : CoreM (Std.HashMap Name (Array (Name × String))) := do
   let env ← getEnv
   let mut found : Std.HashMap Name (Array (Position × Name × String)) := {}
-  if scope == .fgsa then
+  if isFamily scope then
     for m in env.header.moduleNames do
       if inScope scope m then found := found.insert m #[]
   for (n, ci) in env.constants.toList do
     let some m := moduleOf? env n | continue
     unless inScope scope m do continue
     if ← generated n then
-      unless scope == .fgsa && fgsaExplicit env n ci do continue
+      unless isFamily scope && fgsaExplicit env n ci do continue
     let pos := (← findDeclarationRangesCore? n).map (·.range.pos) |>.getD ⟨0, 0⟩
     found := found.insert m ((found.getD m #[]).push (pos, n, scopeKind scope env ci))
   let lt (a b : Position × Name × String) : Bool :=
@@ -352,15 +388,15 @@ def tryCore (env : Environment) (x : CoreM α) : IO (Except String α) :=
   try return .ok (← runCore env x) catch e => return .error (toString e)
 
 /-- Load existing roots and all source modules of the scope, including facade orphans. -/
-def fgsaImports : IO (Array Import) := do
+def familyImports (scope : Scope) : IO (Array Import) := do
   let mut roots : Std.HashSet Name := {}
   let path (m : Name) : System.FilePath :=
     (m.components.foldl (fun d c => d / c.toString) (System.FilePath.mk ".")).addExtension "lean"
-  for lib in fgsaLibraries do
+  for lib in familyLibraries scope do
     if ← (path lib).pathExists then roots := roots.insert lib
-  for m in fgsaModules do
+  for m in familyModules scope do
     if ← (path m).pathExists then roots := roots.insert m
-  for pre in fgsaPrefixes do
+  for pre in familyPrefixes scope do
     if ← (path pre).pathExists then roots := roots.insert pre
     let dir := pre.components.foldl (fun d c => d / c.toString) (System.FilePath.mk ".")
     unless ← dir.isDir do continue
@@ -370,10 +406,45 @@ def fgsaImports : IO (Array Import) := do
       roots := roots.insert (parts.foldl Name.str .anonymous)
   return (roots.toArray.qsort Name.lt).map fun m => { module := m }
 
-/-- A complete FGSA doc; each hash still belongs to one declaration. -/
-def fgsaManifest (env : Environment)
+/-- The header of the PC-SA doc (not frozen; D15 only until a freeze). -/
+def pcsaHeader : String :=
+  "# PC-SA API manifest\n\n\
+    _Statement manifest of the PC-SA claim surface (roadmap item 7). Not frozen._\n\n\
+    This file lists every public declaration under the Statements prefixes of\n\
+    `AvailableChainPCSA`, `AvailableChainPCSARun` and `AvailableChainPCSAClaims`,\n\
+    under `AvailableChainPCSAClaims.Claims`, and in the claim facade\n\
+    `AvailableChainPCSAClaims.PCSAClaims` (`PCSAClaims`, `PCSAStageTwoClaims`),\n\
+    by fully qualified name and grouped by library and module. It uses the\n\
+    FG-SA manifest rules (`docs/FGSA-API.md`). PC-SA has no anchor rule.\n\n\
+    ## Update rule\n\n\
+    The PC-SA claim surface is not frozen. A commit that adds, changes or removes\n\
+    a declaration in this scope must write this doc again in the same commit, so\n\
+    that the diff of this doc shows each statement change. The check fails when\n\
+    this doc and the code differ. A freeze copies this doc to\n\
+    `docs/PCSA-API-frozen.md` and records its SHA-256 in\n\
+    `scripts/pcsa-manifest-frozen.sha256`. Then the FG-SA append-only rule\n\
+    applies, with allow lines in `scripts/pcsa-manifest-allow.txt`.\n\n\
+    ## How to check\n\n\
+    `scripts/V2Manifest.lean` generates and checks this list.\n\n\
+    - `lake env lean --run scripts/V2Manifest.lean --scope pcsa --list` prints\n\
+      the module blocks from the environment, in source order, with hashes.\n\
+    - `lake env lean --run scripts/V2Manifest.lean --scope pcsa --write` writes this doc.\n\
+    - `lake env lean --run scripts/V2Manifest.lean --scope pcsa --check` checks\n\
+      the names, modules, kinds, hashes and completeness (D15). A failed check\n\
+      exits 1. A missing doc exits 2.\n\
+    - `bash scripts/check-pcsa-manifest.sh` runs the check, then (when `NEG` is\n\
+      not 0) checks that `--write` gives the same entry sections and runs negative\n\
+      controls.\n\n\
+    Each entry hash uses the shared hash rules in `scripts/V2Manifest.lean`:\n\
+    types and definition values, generated or private helpers in the closure,\n\
+    type binder names and infos, reducibility, and instance status. Theorem\n\
+    proofs do not affect the hash. Public `_def` theorems are entries. Each public\n\
+    structure projection is a separate `field` entry beside the structure entry.\n\n"
+
+/-- A complete FGSA (or PC-SA) doc; each hash still belongs to one declaration. -/
+def familyManifest (scope : Scope) (env : Environment)
     (decls : Std.HashMap Name (Array (Name × String))) : IO String := do
-  let mut out := "# FG-SA API manifest\n\n\
+  let mut out := if scope == .pcsa then pcsaHeader else "# FG-SA API manifest\n\n\
     _Baseline for G-F0a (D15, lead ruling DC 2026-09-30)._\n\n\
     This file lists every public declaration under the Statements prefixes of\n\
     `AvailableChainFGSA`, `AvailableChainFGSARun` and `AvailableChainFGSAClaims`,\n\
@@ -404,14 +475,14 @@ def fgsaManifest (env : Environment)
     proofs do not affect the hash. Public `_def` theorems are entries. Each public\n\
     structure projection is a separate `field` entry beside the structure entry.\n\n"
   let mods := sortedModules decls
-  for lib in fgsaLibraries do
+  for lib in familyLibraries scope do
     let ms := mods.filter (lib.isPrefixOf ·)
     if ms.isEmpty then continue
     out := out ++ s!"## `{lib}`\n\n"
     for m in ms do
       out := out ++ s!"### `{m}`\n\n```text\n"
       for (n, k) in decls.getD m #[] do
-        let h ← runCore env (entryHex .fgsa n)
+        let h ← runCore env (entryHex scope n)
         out := out ++ s!"{k} {n} {h}\n"
       out := out ++ "```\n\n"
   return (out.dropEndWhile (· == '\n')).toString ++ "\n"
@@ -498,6 +569,15 @@ def checkFrozen (current : Array (Name × Array Line))
     unless names.contains n do fails := fails.push s!"STALE ALLOW {n}: no frozen entry"
   return fails
 
+/-- The default frozen copy, allow file and frozen SHA-256 of a family scope. -/
+def frozenPaths : Scope → System.FilePath × System.FilePath × System.FilePath
+  | .pcsa => ("docs/PCSA-API-frozen.md", "scripts/pcsa-manifest-allow.txt",
+      "scripts/pcsa-manifest-frozen.sha256")
+  | _ => ("docs/FGSA-API-frozen.md", "scripts/fgsa-manifest-allow.txt",
+      "scripts/fgsa-manifest-frozen.sha256")
+
+def familyLabel (scope : Scope) : String := if scope == .pcsa then "PC-SA" else "FGSA"
+
 structure Opts where
   mode : String := ""
   scope : Scope := .v2
@@ -515,6 +595,7 @@ def parseArgs : List String → Opts → Option Opts
       | "v2" => parseArgs r { o with scope := .v2, scopeGiven := true }
       | "gen" => parseArgs r { o with scope := .gen, scopeGiven := true }
       | "fgsa" => parseArgs r { o with scope := .fgsa, scopeGiven := true }
+      | "pcsa" => parseArgs r { o with scope := .pcsa, scopeGiven := true }
       | _ => none
   | "--manifest" :: p :: r, o =>
       if o.manifest?.isSome then none else parseArgs r { o with manifest? := some p }
@@ -532,26 +613,31 @@ def parseArgs : List String → Opts → Option Opts
 
 def main (args : List String) : IO UInt32 := do
   let some o := parseArgs args {} | do
-    IO.eprintln "usage: lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa)] \
+    IO.eprintln "usage: lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa | pcsa)] \
       (--list | --anchor | --check | --write | --check-frozen) [--manifest <path>] \
       [--frozen <path>] [--allow <path>] [--frozen-sha <path>]"
     return 2
   if o.scope != .v2 && o.mode == "--anchor" then
     IO.eprintln "usage error: --anchor requires --scope v2"
     return 2
-  if o.scope != .fgsa && (o.mode == "--write" || o.mode == "--check-frozen" || o.frozen?.isSome ||
+  if !isFamily o.scope && (o.mode == "--write" || o.mode == "--check-frozen" || o.frozen?.isSome ||
       o.allow?.isSome || o.frozenSha?.isSome) then
     IO.eprintln "usage error: --write, --check-frozen, --frozen, --allow and --frozen-sha \
-      require --scope fgsa"
+      require --scope fgsa or pcsa"
     return 2
   let mode := o.mode
   let manifest := o.manifest?.getD (match o.scope with
-    | .v2 => "docs/V2-API.md" | .gen => "docs/GEN-API.md" | .fgsa => "docs/FGSA-API.md")
+    | .v2 => "docs/V2-API.md" | .gen => "docs/GEN-API.md" | .fgsa => "docs/FGSA-API.md"
+    | .pcsa => "docs/PCSA-API.md")
   if o.scope == .fgsa && mode == "--check" && !(← manifest.pathExists) then
     IO.println s!"SKIP: {manifest} does not exist (before G-F0a)"
     return 0
+  if o.scope == .pcsa && mode == "--check" && !(← manifest.pathExists) then
+    IO.eprintln s!"cannot read {manifest}: it does not exist (PC-SA has no SKIP)"
+    return 2
   -- `--check-frozen` compares the doc with the frozen copy only (no D15, no Lean
   -- environment). The controls of check-fgsa-manifest.sh use it for the frozen logic.
+  let (frozenDef, allowDef, frozenShaDef) := frozenPaths o.scope
   if mode == "--check-frozen" then
     let text ← match ← (IO.FS.readFile manifest).toBaseIO with
       | .ok s => pure s
@@ -560,10 +646,9 @@ def main (args : List String) : IO UInt32 := do
       | .ok x => pure x
       | .error e => IO.eprintln e; return 2
     let frozenFails ← try
-      checkFrozen entries (o.frozen?.getD "docs/FGSA-API-frozen.md")
-        (o.allow?.getD "scripts/fgsa-manifest-allow.txt")
-        (o.frozenSha?.getD "scripts/fgsa-manifest-frozen.sha256")
-    catch e => IO.eprintln s!"cannot check FGSA frozen manifest: {e}"; return 1
+      checkFrozen entries (o.frozen?.getD frozenDef) (o.allow?.getD allowDef)
+        (o.frozenSha?.getD frozenShaDef)
+    catch e => IO.eprintln s!"cannot check {familyLabel o.scope} frozen manifest: {e}"; return 1
     for f in frozenFails do IO.println f
     unless frozenFails.isEmpty do return 1
     IO.println s!"{manifest}: frozen entries present and unchanged"
@@ -573,16 +658,16 @@ def main (args : List String) : IO UInt32 := do
     | .v2 => pure #[{ module := `AvailableChainFramework },
         { module := `AvailableChainEngineV2 }, { module := `AvailableChainKitV2 }]
     | .gen => pure #[{ module := `AvailableChainGeneric }]
-    | .fgsa => fgsaImports
+    | .fgsa | .pcsa => familyImports o.scope
   let env ← importModules imports {}
-  if o.scope == .fgsa then
+  if isFamily o.scope then
     let hasRanges ← runCore env do
       for (n, _) in env.constants.toList do
         if let some m := moduleOf? env n then
-          if inScope .fgsa m && (← findDeclarationRangesCore? n).isSome then return true
+          if inScope o.scope m && (← findDeclarationRangesCore? n).isSome then return true
       return false
     unless hasRanges do
-      IO.eprintln "no FGSA declaration ranges: \
+      IO.eprintln s!"no {familyLabel o.scope} declaration ranges: \
         the .olean.server data is missing or the scope is empty"
       return 2
   else
@@ -594,7 +679,7 @@ def main (args : List String) : IO UInt32 := do
   let mods := sortedModules decls
   if mode == "--write" then
     try
-      IO.FS.writeFile manifest (← fgsaManifest env decls)
+      IO.FS.writeFile manifest (← familyManifest o.scope env decls)
     catch e => IO.eprintln s!"cannot write {manifest}: {e}"; return 2
     IO.println s!"{manifest}: written; {mods.size} modules"
     return 0
@@ -644,7 +729,7 @@ def main (args : List String) : IO UInt32 := do
       count := count + 1
       if listed.contains n then fails := fails.push s!"DUPLICATE ENTRY {n}"
       listed := listed.insert n
-      if o.scope == .fgsa && !(decls.getD m #[]).any (·.1 == n) then
+      if isFamily o.scope && !(decls.getD m #[]).any (·.1 == n) then
         fails := fails.push s!"EXTRA ENTRY {n} (heading {m})"
       match env.find? n, moduleOf? env n with
       | some ci, some m' =>
@@ -666,12 +751,11 @@ def main (args : List String) : IO UInt32 := do
       unless listed.contains n do fails := fails.push s!"NOT LISTED {n}"
   for f in fails do IO.println f
   unless fails.isEmpty do return 1
-  if o.scope == .fgsa then
+  if isFamily o.scope then
     let frozenFails ← try
-      checkFrozen entries (o.frozen?.getD "docs/FGSA-API-frozen.md")
-        (o.allow?.getD "scripts/fgsa-manifest-allow.txt")
-        (o.frozenSha?.getD "scripts/fgsa-manifest-frozen.sha256")
-    catch e => IO.eprintln s!"cannot check FGSA frozen manifest: {e}"; return 1
+      checkFrozen entries (o.frozen?.getD frozenDef) (o.allow?.getD allowDef)
+        (o.frozenSha?.getD frozenShaDef)
+    catch e => IO.eprintln s!"cannot check {familyLabel o.scope} frozen manifest: {e}"; return 1
     for f in frozenFails do IO.println f
     unless frozenFails.isEmpty do return 1
   if o.scope == .v2 then
