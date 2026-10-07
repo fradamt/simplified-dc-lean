@@ -1313,3 +1313,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Common view targets and predecessor-result lock bounds give the retained-
 walk root conditions.
 Validation and current claim status are recorded in log.md and state.md.
+
+### HonestProposal
+
+Actual proposal receipt, common views and counts, retained trees, root
+bounds and slot bounds prove the successor headsEqual field.
+Validation and current claim status are recorded in log.md and state.md.

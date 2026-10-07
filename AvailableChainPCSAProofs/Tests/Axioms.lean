@@ -754,3 +754,10 @@ end
 #print axioms AvailableChain.PCSA.pcsa_selected_walk_bases_eq
 #print axioms AvailableChain.PCSA.pcsa_proposal_root_geometry
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_pre_vote_lock_below_result
+
+-- C6 HonestProposal.
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_named
+#print axioms AvailableChain.PCSA.pcsa_named_parent_prefix
+#print axioms AvailableChain.PCSA.pcsa_named_parent_of_positive
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_emitted_heads_equal
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_headsEqual_step

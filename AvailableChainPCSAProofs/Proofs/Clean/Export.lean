@@ -164,6 +164,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.ProposerReads
 
 public import AvailableChainPCSAProofs.Proofs.Clean.RootAgreement
 
+public import AvailableChainPCSAProofs.Proofs.Clean.HonestProposal
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -442,6 +444,200 @@ theorem pcsa_clean_pre_vote_lock_below_result (E : Generic.Env V)
   have hi := pcsa_gate_label_lt_next_vote p i s ht
   exact Gen.Pure.block_preceq_trans hp
     ((hCI.resultsChain x hx y hy i s Y X hi.le (le_refl _) hY hX).1 hi)
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+/-- An honest next-slot proposal fixes every honest HEAD from the predecessor CI. -/
+theorem pcsa_clean_emitted_heads_equal (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (s : Slot) (hCI : CleanInvariantAt p c E rho s)
+    (hc : SA.gateTime p.toParams s ≤ cut) (N : NamedProposal p.n)
+    (hx : rho.seatOf (.prop (s + 1)) (0 : Fin 1) ∈ rho.honest)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (⟨.seat (.prop (s + 1)) (0 : Fin 1), .proposal N⟩ : Obj p)
+        (SA.proposalTime p.toParams (s + 1)))
+    (y : V) (H : Block) (hH : HonestHeadAt p c E rho y (s + 1) H) : H = N.erase := by
+  let x := rho.seatOf (.prop (s + 1)) (0 : Fin 1)
+  obtain ⟨k, hk, _, hslot, hraw, hsup, hpc, hparent⟩ := pcsa_emitted_proposal_inputs E rho x
+    (s + 1) N he
+  let a := V2.D.Run.idxBefore rho (SA.voteTime p.toParams (s + 1))
+  let src := clock p (V2.D.Run.stateBefore E rho k x).st (SA.proposalTime p.toParams (s + 1))
+  let dst := clock p (V2.D.Run.stateBefore E rho a y).st (SA.voteTime p.toParams (s + 1))
+  let Ts := erasedList src (fullTree p src)
+  let Tt := erasedList dst (KitFG.storeFrameView (FGSA.heightView p) dst.fg (voterBlocks p dst (s
+    + 1)))
+  let rs := proposerVotes src (s + 1)
+  let ss := proposerSupport src (s + 1)
+  let rt := headVotes p dst (s + 1)
+  let st := headSupport p dst (s + 1)
+  let Rsrc := liveRoot p src (proposerPC p src)
+  let Rdst := liveRoot p dst (voterPC p dst (s + 1))
+  have hy := hH.1
+  have hp : (0 : Int) < p.Δ := p.deltaPos
+  have hpropVote : SA.proposalTime p.toParams (s + 1) < SA.voteTime p.toParams (s + 1) := by
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) < 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    exact lt_add_of_pos_right _ hp
+  have hvcut : SA.voteTime p.toParams (s + 1) ≤ cut := by
+    apply le_trans _ hc
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    push_cast
+    nlinarith
+  have hkbefore : k ≤ a := Nat.le_of_lt
+    ((Gen.V2.Duty.index_lt_idxBefore_iff h.base.valid.toScheduleWellFormed hk _).mpr hpropVote)
+  obtain ⟨hNwire, hNbody⟩ := pcsa_honest_proposal_before_vote E rho h.base hF h.healthy x y hx hy
+    (s + 1) N he hvcut a (le_refl _)
+  have hNdst : N.erase ∈ dst.base.blocks := by
+    change N.erase ∈ (clock p _ _).base.blocks
+    rwa [pcsa_clock_blocks]
+  have hNslot : N.erase.slot = s + 1 := pcsa_proposal_emitted_slot E rho x (s + 1) N _ he
+  have hNpositive : 0 < N.slot := by rw [hslot]; exact Nat.succ_pos _
+  have hNparent := pcsa_named_parent_of_positive N hNpositive
+  have hcount := pcsa_common_walk_counts E rho h.base hF h.healthy a k y hy s
+    (SA.voteTime p.toParams (s + 1)) N hx he hk (le_refl _) hslot hNwire hc hraw hsup
+  have hviews := pcsa_common_view_targets E rho h.base hF hFault h.healthy k y hy s N hx he hk
+    hslot hvcut hNwire hpc
+  have frame (i : Nat) (z : V) (hz : z ∈ rho.honest) (t : Time) :
+      FrameVacuous p (clock p (V2.D.Run.stateBefore E rho i z).st t) := by
+    change (clock p _ t).fg.F = .genesis ∧
+      (KitFG.storeControlsView (FGSA.heightView p) (clock p _ t).fg).Z = .genesis ∧
+      (KitFG.storeControlsView (FGSA.heightView p) (clock p _ t).fg).lo = 0
+    rw [pcsa_body_clock_fg]
+    exact hF z hz i
+  have hsrcF := frame k x hx (SA.proposalTime p.toParams (s + 1))
+  have hdstF := frame a y hy (SA.voteTime p.toParams (s + 1))
+  have hslots : src.slot p = dst.slot p :=
+    (pcsa_proposal_clock_slot p _ (s + 1)).trans (pcsa_vote_clock_slot p _ (s + 1)).symm
+  have heleg := pcsa_eligible_equal_counts p src dst rs ss rt st hsrcF.2.2 hdstF.2.2 hslots
+    hcount.1 hcount.2.2
+  have hhead : headVote p dst (s + 1) = H := by
+    have hh := hH.2.2
+    rw [pcsa_voteHeadAt_def] at hh
+    obtain ⟨nd, hnd, hh⟩ := Option.map_eq_some_iff.mp hh
+    obtain ⟨b, hb, hbSt⟩ := pcsa_postClock_source E rho y _ nd hnd
+    have hpre := V2.D.Engine.stateBefore_tick_eq_stateBeforeTime h.base.valid.toScheduleWellFormed
+      h.base.noRestart hb
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ h.base.valid.toScheduleWellFormed] at hpre
+    rw [hbSt, hpre] at hh
+    exact hh
+  have hghost : GridCO.ghost Rdst Tt (GridCO.goldfishScore dst.base.blocks rt st)
+      (eligible p dst rt st) = H := by
+    delta headVote at hhead
+    rw [ite_eq_right (Nat.succ_ne_zero s)] at hhead
+    exact hhead
+  obtain ⟨D, hD⟩ := pcsa_clean_result_exists E rho h hF x hx s hc
+  have hDparent : Block.Preceq D N.parent.erase := by
+    rw [hparent]
+    exact pcsa_clean_proposer_head_above_result E rho h hF s hCI hc k x x hx hx hk D hD
+  have hDH : Block.Preceq D H := pcsa_clean_next_head_above E rho h hF s hCI hc x y hx D H hD hH
+  have hsrcRootParent : Block.Preceq Rsrc N.parent.erase := by
+    rw [hparent]
+    exact pcsa_headInTree_extends_root p src _ _ rs ss
+  have hsrcLocks : ∀ row ∈ src.base.obligations, Block.Preceq row.1 D := by
+    intro row hr
+    exact pcsa_clean_pre_vote_lock_below_result E rho h.base s hCI k x x hx hx hkbefore row
+      (pcsa_proposal_locks_subset p _ (s + 1) hr) D hD
+  have hdstLocks : ∀ row ∈ dst.base.obligations, Block.Preceq row.1 D := by
+    intro row hr
+    exact pcsa_clean_pre_vote_lock_below_result E rho h.base s hCI a y x hy hx (le_refl _) row
+      (pcsa_vote_locks_subset p _ (s + 1) hr) D hD
+  have hgeometry := pcsa_proposal_root_geometry p src dst (s + 1) N.parent.erase D H
+    (pcsa_selected_walk_bases_eq p src dst (s + 1) hsrcF.2.1 hdstF.2.1 hviews)
+    hsrcRootParent hDparent hDH hsrcLocks hdstLocks
+  have unique (i : Nat) (z : V) (hz : z ∈ rho.honest) (t : Time) :
+      ∀ A ∈ (clock p (V2.D.Run.stateBefore E rho i z).st t).base.blocks,
+      ∀ B ∈ (clock p (V2.D.Run.stateBefore E rho i z).st t).base.blocks,
+        A.root = B.root → A = B := by
+    intro A hA B hB hr
+    have scope := pcsa_clean_clock_body_scope p (RootBlockInRun p c E rho) _ t
+      (pcsa_clean_body_scope E rho i z hz)
+    exact pcsa_clean_scoped_root_eq E rho h.base.idealization A B (scope A hA) (scope B hB) hr
+  have hsrcUnique : ∀ A ∈ Ts, ∀ B ∈ Ts, A.root = B.root → A = B := by
+    intro A hA B hB hr
+    exact unique k x hx _ A (List.mem_filter.mp hA).1 B (List.mem_filter.mp hB).1 hr
+  have hdstUnique : ∀ A ∈ Tt, ∀ B ∈ Tt, A.root = B.root → A = B := by
+    intro A hA B hB hr
+    exact unique a y hy _ A (List.mem_filter.mp hA).1 B (List.mem_filter.mp hB).1 hr
+  have hclosed : Gen.Pure.AnchorClosed Rsrc Ts := by
+    intro B hB _ A _ hAB
+    exact pcsa_full_read_prefix_mem E rho hF k x hx _ B A (List.mem_filter.mp hB).1 hAB
+  have hretained (C : Block) (hC : Block.Preceq C N.erase) : C ∈ Tt :=
+    pcsa_proposal_prefix_voter_mem E rho hF a y hy _ (s + 1) N.erase C hNdst hNslot hC
+  have htree : ∀ C ∈ Tt, C = N.erase ∨ C ∈ Ts := by
+    intro C hC
+    rcases pcsa_voter_tree_source E rho h.base hF h.healthy a k y hy s
+        (SA.voteTime p.toParams (s + 1)) N hx he hk (hpropVote.le.trans hvcut) C hC with
+      hs | hpref
+    · exact Or.inr hs
+    · by_cases hn : C = N.erase
+      · exact Or.inl hn
+      · exact Or.inr (pcsa_proposal_proper_prefix_source E rho h.base hF k x hx (s + 1) N
+          hparent C hpref hn)
+  have hstop : Gen.Pure.NoEligibleChild Tt (eligible p dst rt st) N.erase := by
+    intro B hB hpar
+    have hb : B ∈ (V2.D.Run.stateBefore E rho a y).st.base.blocks := by
+      have hb := (List.mem_filter.mp hB).1
+      change B ∈ (clock p _ _).base.blocks at hb
+      rwa [pcsa_clock_blocks] at hb
+    have hg : B ≠ .genesis := by intro heq; rw [heq] at hpar; cases hpar
+    have hparentB : B.parent = N.erase := by
+      cases B with
+      | genesis => cases hpar
+      | node Q r root app => exact Option.some.inj hpar
+    have hlt := pcsa_body_parent_slot_lt E rho h.base a y B hg hb
+    rw [hparentB, hNslot] at hlt
+    have htime : SA.voteTime p.toParams (s + 1) ≤ SA.proposalTime p.toParams (s + 1 + 1) := by
+      change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤
+        4 * p.Δ * ((s + 1 + 1 : Nat) : Int)
+      push_cast
+      nlinarith
+    have hidx : a ≤ V2.D.Run.idxBefore rho (SA.proposalTime p.toParams (s + 1 + 1)) := by
+      change V2.D.Run.idxBefore rho _ ≤ V2.D.Run.idxBefore rho _
+      rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def, ← List.countP_eq_length_filter,
+        ← List.countP_eq_length_filter]
+      exact List.countP_mono_left (fun e _ he =>
+        decide_eq_true (lt_of_lt_of_le (of_decide_eq_true he) htime))
+    exact (Nat.not_lt_of_ge (pcsa_body_slot_before_next_proposal E rho h.base a y (s + 1)
+      hidx B hb) hlt).elim
+  have hwalk := pcsa_retained_proposal_walk Rsrc Rdst N.parent.erase N.erase Ts Tt
+    (GridCO.goldfishScore src.base.blocks rs ss) (GridCO.goldfishScore dst.base.blocks rt st)
+    (eligible p src rs ss) (eligible p dst rt st) hsrcUnique hclosed hdstUnique hparent.symm
+    hsrcRootParent hgeometry.1 (by simpa only [hghost] using hgeometry.2) hNparent
+    (hretained N.erase (Gen.Pure.block_preceq_refl _))
+    (pcsa_eligible_current_slot p dst rt st N.erase
+      (hNslot.trans (pcsa_vote_clock_slot p _ (s + 1)).symm))
+    (fun C hC => hretained C (Gen.Pure.block_preceq_trans hC (pcsa_named_parent_prefix N)))
+    htree hcount.2.2 heleg hstop
+  exact hghost.symm.trans hwalk
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+/-- The successor equal-HEAD field follows from the predecessor invariant and actual walks. -/
+theorem pcsa_clean_headsEqual_step (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (s : Slot) (hCI : CleanInvariantAt p c E rho s)
+    (hc : SA.gateTime p.toParams (s + 1) ≤ cut) :
+    ∀ i P x H, i ≤ s + 1 →
+      Gen.V2.Duty.HonestProposalAt E (pcsaInterface p c (m := m)).toInterface rho i P →
+      HonestHeadAt p c E rho x i H → H = P := by
+  have hprev : SA.gateTime p.toParams s ≤ cut := by
+    apply le_trans _ hc
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
+    push_cast
+    have hp : (0 : Int) < p.Δ := p.deltaPos
+    nlinarith
+  intro i P x H hi hP hH
+  by_cases hold : i ≤ s
+  · exact hCI.headsEqual i P x H hold hP hH
+  · have his : i = s + 1 := Nat.le_antisymm hi (Nat.succ_le_of_lt (Nat.lt_of_not_ge hold))
+    subst i
+    obtain ⟨hx, N, hN, he⟩ := pcsa_honest_proposal_named E rho (s + 1) P hP
+    exact (pcsa_clean_emitted_heads_equal E rho h hF hFault s hCI hprev N hx he x H hH).trans hN
 end AvailableChain.PCSA.Run
 
 end
