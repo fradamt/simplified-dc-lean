@@ -5604,6 +5604,19 @@
         'AvailableChainPCSAProofs.Proofs.Foundations.Store': (
             'AvailableChain.PCSA.initial_pcs',
         ),
+        'AvailableChainPCSAProofs.Proofs.Foundations.TickOutput': (
+            'AvailableChain.PCSA.Run.pcsa_head_singleDuty',
+            'AvailableChain.PCSA.Run.pcsa_prop_singleDuty',
+            'AvailableChain.PCSA.Run.pcsa_ack_singleDuty',
+            'AvailableChain.PCSA.Run.signLabel_fg_iff',
+            'AvailableChain.PCSA.Run.pcsa_emits_head',
+            'AvailableChain.PCSA.Run.pcsa_emits_row',
+            'AvailableChain.PCSA.Run.pcsa_emitsAt_row',
+            'AvailableChain.PCSA.Run.pcsa_emits_proposal',
+            'AvailableChain.PCSA.Run.pcsa_emits_ack',
+            'AvailableChain.PCSA.Run.pcsa_tick_asleep',
+            'AvailableChain.PCSA.Run.pcsa_tick_rows_of_seats',
+        ),
         'AvailableChainPCSAProofs.Proofs.PC.AckOrigins': (
             'AvailableChain.PCSA.Run.AckOrigin_def',
             'AvailableChain.PCSA.Run.certSafe_stateBefore',

@@ -19,6 +19,7 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.StampRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.Stamps
 public import AvailableChainPCSAProofs.Proofs.Foundations.Store
+public import AvailableChainPCSAProofs.Proofs.Foundations.TickOutput
 public import AvailableChainPCSAProofs.Proofs.PC.AckOrigins
 public import AvailableChainPCSAProofs.Proofs.PC.Certificates
 public import AvailableChainPCSAProofs.Proofs.PC.HeadSupport

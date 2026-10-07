@@ -19,6 +19,7 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.StampRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.Stamps
 public import AvailableChainPCSAProofs.Proofs.Foundations.Store
+public import AvailableChainPCSAProofs.Proofs.Foundations.TickOutput
 public import AvailableChainPCSAProofs.Proofs.PC.AckOrigins
 public import AvailableChainPCSAProofs.Proofs.PC.Certificates
 public import AvailableChainPCSAProofs.Proofs.PC.HeadSupport
@@ -69,6 +70,17 @@ public section
 #print axioms AvailableChain.PCSA.Run.early_gate_duty_order
 #print axioms AvailableChain.PCSA.Run.ack_emission_duty
 #print axioms AvailableChain.PCSA.Run.ack_emission_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_head_singleDuty
+#print axioms AvailableChain.PCSA.Run.pcsa_prop_singleDuty
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_singleDuty
+#print axioms AvailableChain.PCSA.Run.signLabel_fg_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_emits_head
+#print axioms AvailableChain.PCSA.Run.pcsa_emits_row
+#print axioms AvailableChain.PCSA.Run.pcsa_emitsAt_row
+#print axioms AvailableChain.PCSA.Run.pcsa_emits_proposal
+#print axioms AvailableChain.PCSA.Run.pcsa_emits_ack
+#print axioms AvailableChain.PCSA.Run.pcsa_tick_asleep
+#print axioms AvailableChain.PCSA.Run.pcsa_tick_rows_of_seats
 #print axioms AvailableChain.PCSA.installPC_frame
 #print axioms AvailableChain.PCSA.installPC_duplicate
 #print axioms AvailableChain.PCSA.installPC_pcs_new
