@@ -11,6 +11,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationPC
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationSource
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationTime
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationCollect
 
 public section
 
