@@ -69,26 +69,15 @@ These do not yet provide the joint CI record or the composing induction.
 
 ## OPEN facts
 
-- C6 (`CleanInvariantClaim`): CL1–CL4 still need run-level count inputs.
-  For each gate and next-label walk, prove forward and backward receipt
-  membership, unchanged resolution of each common seat, and retained path
-  membership. `CommonResolution` now proves equality for one signed HEAD
-  resolved at two indexed honest post-clock reads. `HeadPersistence` proves
-  exact pooled HEAD preservation through each step and between indices.
-  `HeadStamps` keeps the full receipt-stamp prefix between indices and
-  keeps an existing first stamp lookup unchanged.
-  `HeadReceipt` proves stamp keys, first lookup, exact receipt-time
-  preservation, direct/carried stamp origin, and acceptance before a public
-  cutoff. `HeadTransport` proves actual handler admission as an exact HEAD
-  or a capped seat, and transports both outcomes into later late
-  denominators with strict stamps. `HeadRelay` now proves cross-node
-  exact HEAD or cap transport before any public cutoff whose relay
-  deadline precedes the gate. Body stamp and resolution transport, and
-  connection of these receipts to the actual walk input lists, remain.
-  Then prove equal proposal/voter views and walk inputs at an
-  honest slot. The label-zero case and the Vote/Ack/PC record steps are open.
-  `StepGate` has only the store consequences of chain compatibility; it does
-  not establish that compatibility from the previous `CleanInvariantAt`.
+- C6 (`CleanInvariantClaim`): generic HEAD/body receipt, stamp transport,
+  exact resolution, proposal-pool provenance, and concrete voter list
+  decomposition are proved. `ProposalReceipt` identifies the earlier
+  accepted proposal and its carried raw HEAD handlers. `WalkInputs`
+  proves the frozen/carried split and support membership in raw inputs.
+  The next modules connect these facts to actual CL1–CL4 counts and
+  retained paths. Then prove common proposal/voter views, label zero,
+  and the Vote/Ack/Gate/PC steps of the joint record. The detailed module
+  plans and completed boundaries are below. These remain proof tasks.
 - C6 N-target helper: `StepPC.pcsa_clean_N_root` proves that the next
   root is below, and compatible with, the N target from the source bounds
   in r4.3a step (d). The run induction must still prove: the selected PC
@@ -405,3 +394,24 @@ proposer form and the CL1/CL4 support-seat instances.
 union into both same-label late denominators. A shared clean seat has
 one exact signed HEAD; common resolution gives one body. Apply the
 finite-set majority intersection to prove compatible actual gate results.
+
+### Concrete voter lists
+
+`WalkInputs` splits each concrete voter raw/support input into its
+frozen or carried arm. It recovers the exact stored proposal and extracts
+the frozen HEAD/body stamp bounds. It proves support is a subset of raw
+input at every indexed post-clock read. These eight facts are exported.
+They do not yet prove retained paths or the joint CI record.
+
+`GateReads`: the claim reads `clockPre`, while the count lemmas use the
+post-clock state. Prove that the gate preserves every confirmation input
+field. Convert `gateResultAt` to its indexed clocked source. Lift the
+same-label count result to the exact claim reader.
+
+`BodyPaths`: prove prefix closure of reachable body pools from exact
+parent admission. Stage 1 retains every block in any supplied frame
+subset. A body held before the freeze retains all its prefixes in the
+voter tree at a later read. Use first stamps, with genesis handled at 0.
+`ResultPaths`: a genuine gate result has an early resolved support
+witness above it. Relay that body before the freeze and retain its
+prefixes. This discharges the path premises of both actual CL2 walks.

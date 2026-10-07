@@ -328,3 +328,13 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_support_raw
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_raw_label
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_raw_handled
+
+-- C6 concrete voter input lists.
+#print axioms AvailableChain.PCSA.pcsa_proposalsAt_mem
+#print axioms AvailableChain.PCSA.pcsa_headVotes_mem
+#print axioms AvailableChain.PCSA.pcsa_headSupport_mem
+#print axioms AvailableChain.PCSA.pcsa_headVotes_of_frozen
+#print axioms AvailableChain.PCSA.pcsa_headVotes_of_carried
+#print axioms AvailableChain.PCSA.pcsa_frozen_support_data
+#print axioms AvailableChain.PCSA.pcsa_headSupport_subset_headVotes
+#print axioms AvailableChain.PCSA.Run.pcsa_headSupport_subset_at_read

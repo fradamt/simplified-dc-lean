@@ -11,6 +11,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.HeadRelay
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyStamps
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyRelayTime
 public import AvailableChainPCSAProofs.Proofs.Clean.ProposalReceipt
+public import AvailableChainPCSAProofs.Proofs.Clean.WalkInputs
 public import AvailableChainPCSAProofs.Proofs.Clean.ResolutionDomain
 public import AvailableChainPCSAProofs.Proofs.Clean.HonestBody
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
