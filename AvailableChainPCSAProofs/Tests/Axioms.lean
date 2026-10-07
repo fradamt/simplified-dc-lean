@@ -476,3 +476,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_process_locks_subset
 #print axioms AvailableChain.PCSA.pcsa_clockPre_locks_subset
 #print axioms AvailableChain.PCSA.pcsa_clock_locks_before_first_gate
+
+-- C6 ZeroStores.
+#print axioms AvailableChain.PCSA.Run.pcsa_zero_store_before_gate
+#print axioms AvailableChain.PCSA.Run.pcsa_zero_storeAt_before_gate

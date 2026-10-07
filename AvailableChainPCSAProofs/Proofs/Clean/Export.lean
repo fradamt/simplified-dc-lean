@@ -70,6 +70,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.StoreOrigins
 
 public import AvailableChainPCSAProofs.Proofs.Clean.LockOrigins
 
+public import AvailableChainPCSAProofs.Proofs.Clean.ZeroStores
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

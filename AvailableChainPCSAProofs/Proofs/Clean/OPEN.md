@@ -914,3 +914,9 @@ ack/result compatibility, store and lock fields, roots, and the
 extended ack coverage in the recorded order. `CleanInvariantClaim`
 then follows by induction from the checked label-zero record and
 label-zero auxiliary coverage. The assembly adds no new premises.
+
+### ZeroStores
+
+C6 support: prove empty pre-gate PC and lock stores. The module uses the
+concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
