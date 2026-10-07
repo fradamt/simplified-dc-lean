@@ -1104,3 +1104,9 @@ Validation and current claim status are recorded in log.md and state.md.
 C6 support: compare concrete proposer and voter raw inputs. The module
 uses the concrete readers and preserves the joint-induction premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### CommonBodies
+
+C6 support: relay common walk support bodies between reads. The module
+uses the concrete readers and preserves the joint-induction premises.
+Validation and current claim status are recorded in log.md and state.md.

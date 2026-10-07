@@ -558,3 +558,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_headVotes_source
 #print axioms AvailableChain.PCSA.Run.pcsa_emitted_raw_in_headVotes
 #print axioms AvailableChain.PCSA.Run.pcsa_common_raw_transfer
+
+-- C6 CommonBodies.
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_body_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_body_in_proposer
