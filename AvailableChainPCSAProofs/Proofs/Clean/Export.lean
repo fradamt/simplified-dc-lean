@@ -28,6 +28,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.StepPC
 public import AvailableChainPCSAProofs.Proofs.Shared.Dissemination
 public import AvailableChainPCSAProofs.Proofs.Shared.CleanPC
 
+public import AvailableChainPCSAProofs.Proofs.Clean.BackwardInputs
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

@@ -346,3 +346,6 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_input_relay_late
 #print axioms AvailableChain.PCSA.Run.pcsa_handled_input_relay_late
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_tick_input_relay_late
+
+-- C6 BackwardInputs.
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_tick_input_relay_late

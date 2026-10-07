@@ -439,3 +439,38 @@ put each awake honest HEAD into every early support list. Bound late
 participants by awake honest HEADs plus faulty seats. Use the clean
 participation bound to prove the gate batch and result extension.
 These modules support C6; pending-label claim exports remain deferred.
+
+### BackwardInputs
+
+Every concrete frozen or carried voter raw input reaches the source late
+denominator at the actual gate, as an exact HEAD or a capped seat.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`HeadBody`: use the existing live-root origin and walk membership facts
+to show an honest HEAD's exact body is held before its vote tick. Keep
+its first body stamp strictly below that public time. Relay the body
+before the early cutoff. This supplies the body part of HonestBatch.
+
+`HonestReceipt`: recover the actual honest HEAD emission. Prove it is
+not excluded before the early cutoff, using the store-slot bound and
+honest-seat no-cap fact. Strict broadcast then gives exact HEAD receipt
+and a strict early stamp at every later honest read.
+`HonestSupport`: combine exact HEAD receipt with HeadBody resolution
+and the HEAD slot bound. Exclude conflicting late copies with honest
+signature uniqueness, so the HEAD belongs to clean early support.
+
+`GateBatch`: use the honest batch majority and a held honest HEAD
+witness to retain the path above genesis. Apply the existing FG-SA
+confirmation walk theorem to prove nonempty clean results and extension
+of any common honest HEAD prefix. Require the gate to be in the clean
+cut; leave the pending-label result claim for after C6.
+`ZeroResult`: admitted non-genesis bodies have positive slots. Combine
+this fact with an early support witness to identify the label-zero
+result as genesis. This is the result part of the CI base case.
+
+`NCounts`: instantiate CL4 with actual N-seat sets and same-label gate
+support. Relay each N HEAD into the gate denominator. A shared clean
+seat gives the same signed HEAD and body. Then transfer the N quorum
+into next-label walk scores; bound caps by faulty seats and apply the
+strict N score gap. Use only geometric PC identities in later view work;
+certificate ack lists can differ on equal ranks.
