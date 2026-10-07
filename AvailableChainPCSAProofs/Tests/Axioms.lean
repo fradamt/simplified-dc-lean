@@ -418,3 +418,11 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_head_batch
 #print axioms AvailableChain.PCSA.Run.pcsa_late_participant_bound
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority
+
+-- C6 GateBatch.
+#print axioms AvailableChain.PCSA.Run.pcsa_gateResultAt_at_tick
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_covers_heads
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_result_exists
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_result_covers_heads
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_headsAbove_step
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_resultsChain_step

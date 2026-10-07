@@ -764,3 +764,20 @@ receipt of a whole certificate and its exact target body. Relay an
 accepted PC object before the public cutoff plus Delta, retain its
 acks or installed key, then use saturation at the receiver. This
 provides the PC source bound needed by common views.
+
+### GateBatch
+
+Every clean gate in the prefix has a nonempty result. Its raw result
+covers each common prefix of honest HEADs.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`FrozenPCTransport`: a held PC target is active in the stage-one
+full tree. Recover each frozen voter PC at its exact freeze tick,
+then apply whole-PC relay to the proposer tick. The receiver may
+hold a different ack list; the slot and full scoped target agree.
+
+`CarriedView`: at an honest proposer slot, every carried PC is the
+PC in the unique emitted metadata. Receipt of that proposal includes
+its valid carried PC. `CommonViews`: combine this with frozen-PC
+relay, source maximality, and same-slot ack uniqueness to prove equal
+view targets at the proposer and voter reads, including empty views.
