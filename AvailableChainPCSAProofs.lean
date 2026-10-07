@@ -54,4 +54,5 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClientLaws
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope

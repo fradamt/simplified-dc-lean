@@ -44,6 +44,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClientLaws
 
 public section
 
@@ -418,5 +419,11 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_block_isNonRow
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_from_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_early
+#print axioms AvailableChain.PCSA.Run.pcsa_attest_signer_irrel
+#print axioms AvailableChain.PCSA.Run.pcsa_attest_decode_rows
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_tick_rows
+#print axioms AvailableChain.PCSA.Run.pcsa_safetyReads_record
+#print axioms AvailableChain.PCSA.Run.pcsaSafetyClientLaws
+#print axioms AvailableChain.PCSA.Run.pcsaSafetyUnitLaws
 
 end
