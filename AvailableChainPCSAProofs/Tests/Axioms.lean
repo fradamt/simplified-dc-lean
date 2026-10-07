@@ -463,3 +463,16 @@ end
 #print axioms AvailableChain.PCSA.pcsa_process_record_origin
 #print axioms AvailableChain.PCSA.pcsa_process_record_of_genesis
 #print axioms AvailableChain.PCSA.pcsa_clock_record_before_first_gate
+
+-- C6 LockOrigins.
+#print axioms AvailableChain.PCSA.pcsa_admit_vote_locks
+#print axioms AvailableChain.PCSA.pcsa_admit_proposal_locks
+#print axioms AvailableChain.PCSA.pcsa_admit_row_locks
+#print axioms AvailableChain.PCSA.pcsa_pool_raw_ack_locks
+#print axioms AvailableChain.PCSA.pcsa_pool_ack_locks
+#print axioms AvailableChain.PCSA.pcsa_admit_rows_locks
+#print axioms AvailableChain.PCSA.pcsa_pool_raw_acks_locks
+#print axioms AvailableChain.PCSA.pcsa_normalize_locks
+#print axioms AvailableChain.PCSA.pcsa_process_locks_subset
+#print axioms AvailableChain.PCSA.pcsa_clockPre_locks_subset
+#print axioms AvailableChain.PCSA.pcsa_clock_locks_before_first_gate

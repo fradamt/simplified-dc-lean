@@ -901,3 +901,16 @@ then preserve the live target. Other-node events leave it unchanged.
 label-zero ack target is genesis. Convert adjacent HEAD coverage
 and ordered results into coverage of every earlier result. These
 are the auxiliary premises for the final joint successor step.
+
+### LockOrigins
+
+C6 support: trace lock rows through delivery and pre-gate filtering. The
+module uses the concrete readers and preserves the joint-induction
+premises.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`JointStep` export: construct the current result/HEAD fields,
+ack/result compatibility, store and lock fields, roots, and the
+extended ack coverage in the recorded order. `CleanInvariantClaim`
+then follows by induction from the checked label-zero record and
+label-zero auxiliary coverage. The assembly adds no new premises.

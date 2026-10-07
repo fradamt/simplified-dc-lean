@@ -68,6 +68,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.AckDecisions
 
 public import AvailableChainPCSAProofs.Proofs.Clean.StoreOrigins
 
+public import AvailableChainPCSAProofs.Proofs.Clean.LockOrigins
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
