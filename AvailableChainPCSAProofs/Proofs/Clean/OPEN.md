@@ -1178,3 +1178,9 @@ Validation and current claim status are recorded in log.md and state.md.
 C6 support: derive the separate N-target root condition. The module uses
 the concrete readers and preserves the joint-induction premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### PCChain
+
+C6 support: order PCs and compare them with results by label. The module
+uses the concrete readers and preserves the joint-induction premises.
+Validation and current claim status are recorded in log.md and state.md.

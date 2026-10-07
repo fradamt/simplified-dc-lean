@@ -122,6 +122,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.RootSources
 
 public import AvailableChainPCSAProofs.Proofs.Clean.NRoot
 
+public import AvailableChainPCSAProofs.Proofs.Clean.PCChain
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

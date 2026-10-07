@@ -620,3 +620,9 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_has_honest_head
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_targets_unique
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_next_root_below
+
+-- C6 PCChain.
+#print axioms AvailableChain.PCSA.pcsa_early_label_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_ack_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_chain
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_result
