@@ -1343,3 +1343,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Every delivery preserves a row if all resulting held and valid carried PCs
 are compatible with its target.
 Validation and current claim status are recorded in log.md and state.md.
+
+### ClockLockRetention
+
+Exact read-field congruence connects clock release counts to the current
+clean counts; live rows survive when the count is below their level.
+Validation and current claim status are recorded in log.md and state.md.

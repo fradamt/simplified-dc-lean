@@ -778,3 +778,8 @@ end
 #print axioms AvailableChain.PCSA.pcsa_reconcile_locks_genesis
 #print axioms AvailableChain.PCSA.pcsa_admit_block_keep_lock
 #print axioms AvailableChain.PCSA.pcsa_process_keep_lock
+
+-- C6 ClockLockRetention.
+#print axioms AvailableChain.PCSA.pcsa_release_count_congr
+#print axioms AvailableChain.PCSA.pcsa_clock_release_count
+#print axioms AvailableChain.PCSA.pcsa_clockPre_keep_lock
