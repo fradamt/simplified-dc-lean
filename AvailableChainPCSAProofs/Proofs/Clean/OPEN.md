@@ -1035,3 +1035,46 @@ later. Genesis uses the initial body invariant.
 C6 support: relay frozen voter inputs to actual proposer reads. The module
 uses the concrete readers and preserves the joint-induction premises.
 These are support facts. C6 and its remaining joint record fields are open.
+
+### Confirmed cutoff counterexample: M3 and HeadsPastCut
+
+The executable run in /tmp/PendingHeadCounterexampleChecked.lean passes
+all finite execution and clean-prefix checks. The cached trace and
+its HEAD/result readers are proved equal to the actual engine readers;
+these identities use only propext, Classical.choice and Quot.sound.
+The check is /tmp/pcsa-pending-head-counterexample5.log (exit 0).
+
+Parameters: n=6, one faulty node, Delta=2, cut=18. Five honest label-1
+HEADs split 3 on X and 2 on Y. At 17, only node 3 receives faulty
+slot-2 proposal Z, a sibling of X, carrying one faulty label-1 HEAD
+on Y. Its relay deadline 19 is outside the clean cut. At the vote
+time 18, node 3 has 6 raw voters: X has score 3 and is ineligible.
+Its current-slot child Z is eligible, so HEAD_3(2)=Z. At the gate
+time 20, node 0 has 5 late voters and 3 early X supporters, so
+R_0(1)=X. X is not a prefix of Z. Both disputed claim premises hold:
+v_2=18 <= cut and e_1=12 <= cut.
+
+M3 and CleanHeadsPastCutClaim cannot be proved as stated. No claim
+was changed. A sufficient repair for the general result-to-HEAD
+statement is d_(i-1) <= cut, which covers the backward carried-vote
+relay deadline; that repair does not give the requested past-cut
+conclusion. The outage boundary may need a weaker statement about
+its stable prefix instead of every pending raw result.
+
+The validation queue will stop after its current commit because this
+new OPEN entry is intentionally unstaged. Add the counterexample as
+a separate test commit, then resume the remaining module sequence.
+
+The counterexample is now in Tests/PendingHeadCounterexample.lean.
+The same run passes CLEAN at both cut 18 (M3 fails at the cut) and
+cut 12 (HeadsPastCut fails strictly after the cut). Saved trace and
+claim-reader identities are kernel checked. The pending declarations
+were copied exactly from pcsa-w3-outage (f16292f5/a428844a); existing
+claim statements were not edited. Full test validation is running.
+
+`VoterAuthenticity`: trace each frozen or carried raw voter HEAD
+to an authentic emission. One honest duty gives one signed root, so
+an honest seat is never capped in any voter input list, without a
+relay or gate-time premise. `PendingNHead`: use that bound with N
+receipt and retained paths; only the next vote must be within the
+clean prefix. This proves M4 without the false M3 premise.

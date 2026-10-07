@@ -531,3 +531,11 @@ end
 -- C6 CommonInputs.
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_late_eq
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_input_in_proposer
+
+-- Frozen pending-label declarations from pcsa-w3-outage.
+#print axioms AvailableChain.PCSA.Run.CleanResultsNonemptyClaim_def
+#print axioms AvailableChain.PCSA.Run.CleanResultsChainPendingClaim_def
+#print axioms AvailableChain.PCSA.Run.CleanHeadsAbovePendingClaim_def
+#print axioms AvailableChain.PCSA.Run.CleanDisseminationPendingClaim_def
+#print axioms AvailableChain.PCSA.Run.CleanHeadsPastCutClaim_def
+#print axioms AvailableChain.PCSA.Run.CleanBlockReceiptClaim_def
