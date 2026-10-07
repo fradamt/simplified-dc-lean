@@ -386,6 +386,7 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (pc + ".Proofs.PC.Export", cc + ".Claims.PC"),
             (pc + ".Proofs.Shared.Claims", cc + ".Claims.PC"),
             (pc + ".Proofs.Assembly.PC", pc + ".Proofs.PC.Export"),
+            (pc + ".Proofs.Assembly.Formation", pc + ".Proofs.Clean.FormationExport"),
         ]
         for index, (importer, dep) in enumerate(pc_positives):
             root = temp / f"pcsa-positive-{index}"
@@ -396,6 +397,8 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (cc + ".Claims.PC", pc + ".Proofs.Foundations.Store", "CLAIMS"),
             (pc + ".Proofs.Shared.Other", pc + ".Proofs.Shared.Claims", "LANE-CLAIMS"),
             (pc + ".Proofs.Assembly.PC", pc + ".Proofs.Assembly.Clean", "ASSEMBLY"),
+            (pc + ".Proofs.Assembly.Formation", pc + ".Proofs.Clean.Store", "ASSEMBLY"),
+            (pc + ".Proofs.Assembly.PC", pc + ".Proofs.Clean.FormationExport", "ASSEMBLY"),
             (pc + ".Proofs.PC.Store", pc + ".Proofs.Clean.Store", "LANE"),
             (pc + ".Proofs.Shared.Reads", pc + ".Proofs.Clean.Store", "SHARED"),
             (pc + ".Proofs.Assembly.PC", pc + ".Proofs.PC.Store", "ASSEMBLY"),
