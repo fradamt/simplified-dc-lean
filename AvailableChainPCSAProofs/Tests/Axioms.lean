@@ -514,3 +514,10 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_record_storeAt_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_storeAt_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_record_storeAt_compatible
+
+-- C6 RecordOrder.
+#print axioms AvailableChain.PCSA.Run.pcsa_record_step_mono_at_limit
+#print axioms AvailableChain.PCSA.Run.pcsa_record_step_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_record_indices_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_record_storeAt_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_record_indices_mono_at_limit

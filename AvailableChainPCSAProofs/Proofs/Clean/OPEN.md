@@ -1005,3 +1005,10 @@ Use this for M1 (CleanResultsNonemptyClaim) and M2
 (CleanResultsChainPendingClaim). The fifth store fact used by the
 Outage assembly is LeaseBelowRecordClaim (Claims/PC.lean); keep that
 exact statement as the M5 target.
+
+### RecordOrder
+
+C6 support: derive record monotonicity from ordered own results. The
+module uses the concrete readers and preserves the joint-induction
+premises.
+These are support facts. C6 and its remaining joint record fields are open.
