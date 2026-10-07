@@ -5888,6 +5888,17 @@
             'AvailableChain.PCSA.Run.nTarget_support',
             'AvailableChain.PCSA.Run.signLabel_head_iff',
         ),
+        'AvailableChainPCSAProofs.Proofs.Shared.HonestProposal': (
+            'AvailableChain.PCSA.Run.pcsa_block_isNonRow',
+            'AvailableChain.PCSA.Run.pcsa_clock_slot_proposal',
+            'AvailableChain.PCSA.Run.pcsa_emitted_propose',
+            'AvailableChain.PCSA.Run.pcsa_honest_proposal_early',
+            'AvailableChain.PCSA.Run.pcsa_honest_proposal_receipt',
+            'AvailableChain.PCSA.Run.pcsa_honest_proposal_rows_valid',
+            'AvailableChain.PCSA.pcsa_accepted_pc_wellFormed',
+            'AvailableChain.PCSA.pcsa_propose_rows_valid',
+            'AvailableChain.PCSA.pcsa_rows_valid_not_excluded',
+        ),
         'AvailableChainPCSAProofs.Proofs.Shared.PCViews': (
             'AvailableChain.PCSA.Run.pcsa_installed_pc_accepted',
             'AvailableChain.PCSA.Run.pcsa_run_pcs_mono',
