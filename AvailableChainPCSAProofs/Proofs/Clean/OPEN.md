@@ -1246,3 +1246,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Stage-one reconciliation and all handlers preserve held PCs; clocks
 preserve them exactly.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RelayOrigin
+
+Every held key has an earlier delivery that accepts its carried whole-PC
+object.
+Validation and current claim status are recorded in log.md and state.md.

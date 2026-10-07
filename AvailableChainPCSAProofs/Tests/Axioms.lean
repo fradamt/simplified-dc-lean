@@ -701,3 +701,9 @@ end
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_admitBlock_tail_genesis
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_process_stageOne
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_indices_mono
+
+-- C6 RelayOrigin.
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_processed_pc
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_tick_step
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_deliver_succ
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_keyHeld_accepted
