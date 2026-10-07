@@ -1,24 +1,23 @@
-# FG-SA outage continuation under (V), w2
+# FG-SA outage continuation under (V), w3
 
-Status: partial. The full companion claim remains unproved.
+Status: proved and validated.
 Branch: fgsa-outage-v. Base: 43733fe. No push.
-The statement still has no FinalitySlashableBound premise.
+No FinalitySlashableBound premise is needed.
 
-## Code commits
+## Commits
 
-- 5dd22552 Policy-only: register the OutageContinuation Statements module
-- 53d311eb Add the outage continuation statement and initial proofs
-- d0949303 Prove continuation HEAD coverage and frame adapters
-- b6cded48 Prove outage source and exact carrier receipt adapters
-- b280b43a Prove restored gate compatibility and local preservation
-- 1eea0534 Prove inclusive continuation reads and audit all helpers
+W1 and w2 end at 258bdb8b. Policy commit 1 is already present as 5dd22552.
+W3 code commits:
 
-The policy commit changes only the approved ORDER line. The staged-work
-commit also adds the missing claims-root and proofs-root imports. These
-are additive assembly imports. They change no guard or frozen contract.
-Direct imports replace unused broad imports. Typed audit targets retain
-proof dependencies. The positive sleep-bound test uses the timing theorem;
-the counterexample still uses decide. No new keep allowance was added.
+- 92219616 Prove uncontested continuation HEAD coverage from frozen receipts
+- 7670bb08 Prove outage continuation by joint event and label induction
+- 84ef999e Policy-only: allow the approved OutageContinuation Export imports
+- bc6cdbae Export the proved outage continuation claim under (V)
+
+The second policy commit changes only scripts/check-layers.py. It permits
+exactly Timing, Induction, Receipt, Frame, Gate, and Joint from the Outage
+lane at OutageContinuation/Export. No other rule or allowance was changed.
+All commits have the requested Claude-Session trailer.
 
 ## Exact companion
 
@@ -47,82 +46,95 @@ satisfy all four facts:
 `B ⪯ confirmed_y(t)`, and `B ∥ F_at(...,timeIdx rho t,y)`.
 All reads are inclusive.
 
-## Proofs
+## Proof closure
 
-The 27 w1 helper theorems remain. W2 adds 26 theorems:
+`fgsa_outageContinuationClaim p : OutageContinuationClaim p` is the
+unconditional companion theorem. The final assembly is in Assembly/Clean.
+It uses the existing Clean cut and foundation producers. The claim-to-claim
+bridge is in Shared/Claims. OutageContinuation/Export proves the matching claim from expanded
+supplier interfaces. The frozen FGSAClaims record and old claims remain unchanged.
 
-- ContinuationFrame: actual frozen-witness walk coverage; live-root
-  compatibility; walk membership; filter-to-HEAD compatibility; contested
-  HEADs; marker HEADs; scoped-row HEADs; actual merged-pool batch coverage.
-- ContinuationReceipt: exact-carrier receipt; receipt at the regression
-  HEAD cut; short-horizon exclusion; earlier gate labels through relay;
-  inclusive source cutoff; strict block stamps; frozen membership;
-  pre-action source storage; original crossing source extraction;
-  full-run compatible HEAD receipts at the actual pre-gate view.
-- ContinuationGate: count from actual receipts; gateStep output retention;
-  compatible fast writes; compatible live locks; compatible current sources;
-  genuine-result ancestry; the assembled restored-gate theorem.
-- ContinuationInduction: inclusive S, stable, confirmed, and F reads from
-  a local event invariant, including horizon deliveries.
+W3 adds three Receipt theorems:
 
-`outageV_restored_gate` needs current F compatibility, compatible scheduled
-label-s HEADs, execution, no restart, CStar, root identity, full synchrony,
-GST before v_s, and restored participation at v_s. It derives the receipt
-and count facts. Honest HEADs may be strict ancestors of B or of F.
+- `outageV_covering_head_receipts`: authentic previous HEADs and all their
+  paths reach the early cut. The next HEAD has their votes in its merged
+  support pool and their ancestors in its frozen voter set.
+- `outageV_frozen_path_receipt`: an old source accepted through the early
+  boundary relays before freeze. Current F and monotonic F exclude conflicts.
+- `outageV_uncontested_head`: the actual uncontested HEAD covers B.
+  Its height witnesses are frozen. No receipt or score premise remains.
 
-All 53 helper axiom checks pass. Their axioms are subsets of propext,
-Classical.choice, and Quot.sound. No sorry, admit, or new axiom was added.
-The exact theorem names and audit targets are in the
-[axiom audit](../../Tests/OutageContinuationAxioms.lean).
+ContinuationJoint adds ten theorems:
 
-No completed theorem uses FinalitySlashableBound. The full claim is open,
-so this is not a claim that its remaining assembly needs no such premise.
-Old saved results have no compatibility premise. Writes use the current
-result. Empty, vetoed, and already-saved gates preserve the output.
+- `outageV_history_through_relay`: event induction derives original source
+  history and F compatibility through the regression relay cut.
+- `outageV_contest_relay`: a contest supplies one exact carrier to all
+  honest receivers. Its F exclusion facts come from earlier-label gates.
+- `outageV_events_through_relay`: source history and S survive each event.
+  Gate writes use the current result. Deliveries use the successor F fact.
+- `outageV_received_marker_head`: the exact carrier stays in the cumulative
+  store and protects later clocked HEAD reads.
+- `outageV_clocked_root_compatible` and `outageV_clocked_contested_head`:
+  scoped names and the output after the tick supply the actual frame facts.
+- `outageV_restored_heads`: strong label induction proves compatibility
+  for every restored scheduled HEAD. Before the first regression, HEADs
+  cover B. A contest at that regression supplies the later marker.
+- `outageV_first_restored_head`: the healthy batch or pre-expiry protection
+  seeds coverage. It includes a sleeping node's deterministic read.
+- `outageV_armed_outputs`: arming and the two inductions give every requested
+  inclusive read, including deliveries at the horizon.
+- `outageV_body`: both original modes supply arming at auxiliary endpoint
+  b₀. Condition (V) supplies the restored-label bound.
 
-## Open facts
+The three wiring theorems are `outageContinuation_claim_of`,
+`outageContinuation_of_body`, and `fgsa_outageContinuationClaim`.
+All 69 typed helper and theorem audits use only propext, Classical.choice,
+and Quot.sound. The full companion theorem uses exactly those three.
+No sorry, admit, or new axiom was added.
 
-- §3: assemble the uncontested frozen height witnesses and covering HEAD
-  receipts at the scheduled clocked read. Crossing-source extraction,
-  its inclusive cutoff, frozen membership, and merged-pool counts exist.
-- §6: prove receiver F compatibility through v_s+Δ at the first regression
-  from earlier-label gates. Then carry the exact marker forward and apply
-  its frame protection at each later scheduled read.
-- §§8–10: build the joint event/label induction. Extend original source
-  history on actions and use it on deliveries. Seed from arming and the
-  pre-expiry theorem. Supply the S/F invariant to the inclusive read adapter.
-- Non-vacuity: a kernel OutageContinuationPrem inhabitant remains open.
-  The existing full-sleep run still has 18 executable audits.
+## Open items and old reads
 
-[OPEN.md](OPEN.md) gives the exact missing facts and theorem interfaces.
-There is no lane Export for the unproved claim. The approved second policy change,
-OutageContinuation/Export, and Shared/Claims wiring remain deferred.
-No other guard or allow-list change was made.
+No paper proof fact remains open. No extra guard ruling is requested.
+A kernel inhabitant of the full OutageContinuationPrem remains open.
+The unchanged 168-event run passes 18 executable audits. It permits full
+honest sleep on [17,21), satisfies (V) at equality, and retains B through
+horizon 30. These audits do not prove all fields of the full premise in the
+kernel. The 583cee0 parameters still violate (V), by decide.
 
-## Non-vacuity and old reads
-
-The 583cee0 parameters violate (V), by decide. The 168-event full-sleep
-run satisfies (V) at equality and keeps B through horizon 30. It is
-unchanged from w1. Its audits are not a kernel proof of the full premise.
-
-The final old-read audit passes. It scans 8,747 constants in 469 active
-modules. Its six old/finality readers and 185 height-only readers match
-the unchanged baseline. No new old read needs a lead ruling.
+The final old-read audit passes. It scans 8,781 constants in 471 active
+modules. The six old/finality readers and 185 height-only readers match
+the unchanged baseline. No new read requires a lead ruling.
+No old-read baseline or other allow list was changed.
 
 ## Validation
 
-The final source snapshot passes the full --wfail build, layers, GLY
-(including F-31), FGSA with negative controls and the old-read audit,
-NEG=0 claims, API manifest, and all 53 helper axiom checks.
-`bash scripts/check-build.sh` passes checks (a) through (j).
-CheckProofEqns has no unaccepted exports and no Gen exports. The claims
-unused-import check passes without a new keep allowance. The API manifest
-has 1,189 entries in 52 modules, with matching hashes. All 36 checked
-frozen source and guard files are byte-identical to 43733fe.
+The final source passes all required checks:
 
-Logs: /tmp/outage-w2-final-build4.log,
-/tmp/outage-w2-final-check-build2.log, /tmp/outage-w2-final-fgsa.log,
-/tmp/outage-w2-final-claims2.log, /tmp/outage-w2-final-old-reads.log,
-/tmp/outage-w2-final-manifest.log, and /tmp/outage-w2-final-shake2.log.
-The normal shared throttle was used. No lake update, agent, review process,
-throttle bypass, or push was used.
+- The full proof library and touched axiom tests build with --wfail.
+- `bash scripts/check-build.sh` passes (a) through (j).
+- Layers report zero new findings. GLY, including F-31, passes.
+- `bash scripts/check-fgsa.sh` passes, including negative controls and old reads.
+- The NEG=0 claims check passes axioms, coverage, used constants, lease checks,
+  proof equations, unused imports, and the existing weak-continuation witness.
+- The API manifest has 1,189 entries in 52 modules. All hashes match.
+- All 69 explicit axiom audits pass. The full claim has only standard axioms.
+
+CheckProofEqns has zero unaccepted exports and zero Gen exports. The import
+audit needs no new keep marker. A direct scope check admits exactly the six
+approved Export imports and rejects other Outage modules and other lanes.
+A direct type check confirms that the Export concludes OutageContinuationClaim.
+
+All existing Statements/Claims, FGSAClaims, model, run, generic, and kit files
+remain byte-identical to 43733fe. Only the two approved guard edits differ.
+The w3 additions are proofs, so the API manifest needs no new entries.
+
+Successful final logs: /tmp/outage-w3-final2-build.log,
+/tmp/outage-w3-final2-check-build.log, /tmp/outage-w3-final2-layers.log,
+/tmp/outage-w3-final2-gly.log, /tmp/outage-w3-final2-fgsa.log,
+/tmp/outage-w3-final2-claims.log, /tmp/outage-w3-final2-manifest.log,
+and /tmp/outage-w3-final2-axioms.log. The earlier §3 commit passed its full
+suite in /tmp/outage-w3-receipt-*.log. Exact audit targets are in
+[OutageContinuationAxioms.lean](../../Tests/OutageContinuationAxioms.lean).
+The normal shared Lean throttle was used. Sandbox access was needed for
+its existing shared lock. No throttle bypass, lake update, agent, review
+process, or push was used.
