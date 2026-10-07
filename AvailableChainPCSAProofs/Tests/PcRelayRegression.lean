@@ -17,6 +17,12 @@ relayed faulty ack at nodes 2 and 3 (seat cap), but the whole PC pools its
 acks raw, so nodes 2 and 3 install `PC(1, B)` at `6` and their strong output
 is `B` from then on. A control without the PC deliveries fails the healthy
 acceptance relay check: the relay obligation is in the model.
+Fabricated target: in a second run, seat 4's ack on `B` reaches nodes 0 and
+1 only inside a faulty PC whose target `T' ≠ B` has the root and slot of `B`.
+The PC call pools the ack raw and installs `PC(1, B)` (collection resolves
+the root to `B`). The PC tests of `carriesS` read the target root, so that
+call handles `PC(1, B)` and the relay obliges its delivery to nodes 2 and 3;
+an exact-target test would not.
 This is a Lean run witness checked by evaluation over the actual engine. -/
 
 open AvailableChain AvailableChain.PCSA AvailableChain.PCSA.Run AvailableChain.SimplexFG
@@ -41,6 +47,10 @@ def pcB : PC 5 :=
   ⟨1, B.erase, [⟨.seat (.ack 1) 0, B.root⟩, ⟨.seat (.ack 1) 1, B.root⟩,
     ⟨.seat (.ack 1) 4, B.root⟩]⟩
 def pcObj (C : PC 5) : Obj p := ⟨.none, .pc C⟩
+/-- A fabricated target: the slot and root of `B`, another body. -/
+def fakeB : Block := .node .genesis 1 B.root 77777
+/-- A faulty PC on `fakeB` with the acks of `pcB`. -/
+def pcFake : PC 5 := ⟨1, fakeB, pcB.acks⟩
 def E : Generic.Env (Fin 5) :=
   { Δ := 1, Δ_pos := by decide, t_GST := 20, t_GST_nonneg := by decide,
     awake := fun v t =>
@@ -55,7 +65,7 @@ def ackers : List (Fin 5) := [0, 1]
 def others : List (Fin 5) := [2, 3]
 def allSeats : List (Fin 5) := [0, 1, 2, 3, 4]
 
-def deliveries (relay : Bool) (t : Nat) : List (V2.Event (Fin 5) (Obj p)) :=
+def deliveries (fake relay : Bool) (t : Nat) : List (V2.Event (Fin 5) (Obj p)) :=
   match t with
   | 1 => ackers.flatMap (fun i =>
       honestNodes.map (fun v => .deliver v (head 0 i Block.genesis.root) 1))
@@ -63,24 +73,30 @@ def deliveries (relay : Bool) (t : Nat) : List (V2.Event (Fin 5) (Obj p)) :=
   | 5 => allSeats.flatMap (fun i => honestNodes.map (fun v => .deliver v (head 1 i B.root) 5))
   | 6 => others.flatMap (fun v => [.deliver v (ack 1 4 r1) 6, .deliver v (ack 1 4 r2) 6]) ++
       ackers.flatMap (fun i => honestNodes.map (fun v => .deliver v (ack 1 i B.root) 6)) ++
-      ackers.map (fun v => .deliver v (ack 1 4 B.root) 6) ++
+      (if fake then ackers.map (fun v => .deliver v (pcObj pcFake) 6)
+        else ackers.map (fun v => .deliver v (ack 1 4 B.root) 6)) ++
       others.map (fun v => .deliver v (ack 1 4 B.root) 6) ++
       ackers.flatMap (fun v => [.deliver v (ack 1 4 r1) 6, .deliver v (ack 1 4 r2) 6]) ++
       (if relay then others.map (fun v => .deliver v (pcObj pcB) 6) else [])
   | 9 => ackers.flatMap (fun i => honestNodes.map (fun v => .deliver v (head 2 i B.root) 9))
   | _ => []
-def runWith (relay : Bool) : V2.D.Run (Fin 5) (pcsaWith .idle p unitCodec) :=
+def runWith (fake relay : Bool) : V2.D.Run (Fin 5) (pcsaWith .idle p unitCodec) :=
   { honest := {0, 1, 2, 3}, horizon := 14,
     events := (List.range 15).flatMap (fun (t : Nat) =>
-      honestNodes.map (fun v => V2.Event.tick v (t : Int)) ++ deliveries relay t),
+      honestNodes.map (fun v => V2.Event.tick v (t : Int)) ++ deliveries fake relay t),
     seatOf := seats, input := fun _ _ => () }
 /-- The run with the PC relayed. -/
-def rho : V2.D.Run (Fin 5) (pcsaWith .idle p unitCodec) := runWith true
+def rho : V2.D.Run (Fin 5) (pcsaWith .idle p unitCodec) := runWith false true
 /-- The control run without the PC deliveries. -/
-def rhoNoRelay : V2.D.Run (Fin 5) (pcsaWith .idle p unitCodec) := runWith false
+def rhoNoRelay : V2.D.Run (Fin 5) (pcsaWith .idle p unitCodec) := runWith false false
+/-- The fabricated-target run with the PC relayed. -/
+def rhoFake : V2.D.Run (Fin 5) (pcsaWith .idle p unitCodec) := runWith true true
+/-- The fabricated-target control run without the PC deliveries. -/
+def rhoFakeNoRelay : V2.D.Run (Fin 5) (pcsaWith .idle p unitCodec) := runWith true false
 
 /-- Every fresh HEAD and ack committee uses the same identity map. -/
-theorem fresh_committees : V2.D.CStar (pcsaFamilies p unitCodec).fresh rho := by
+theorem fresh_committees (fake relay : Bool) :
+    V2.D.CStar (pcsaFamilies p unitCodec).fresh (runWith fake relay) := by
   intro l hl
   cases l with
   | prop s => exact hl.elim
@@ -91,7 +107,8 @@ theorem fresh_committees : V2.D.CStar (pcsaFamilies p unitCodec).fresh rho := by
     | ack s => exact Function.bijective_id
 
 /-- The FG committee is fixed and linked. -/
-theorem linked_committee : V2.D.Linked (pcsaFamilies p unitCodec).linked rho := by
+theorem linked_committee (fake relay : Bool) :
+    V2.D.Linked (pcsaFamilies p unitCodec).linked (runWith fake relay) := by
   refine ⟨5, Equiv.refl (Fin 5), ?_⟩
   intro l hl
   cases l with
@@ -103,9 +120,9 @@ theorem linked_committee : V2.D.Linked (pcsaFamilies p unitCodec).linked rho := 
     | fg => exact ⟨rfl, fun _ => rfl⟩
 
 /-- One faulty seat: `a = 1 < q_A = 3`. -/
-theorem faults_below_qa : FaultsBelowQA p unitCodec rho := by
+theorem faults_below_qa (fake relay : Bool) : FaultsBelowQA p unitCodec (runWith fake relay) := by
   rw [FaultsBelowQA_def]
-  decide
+  cases fake <;> cases relay <;> decide
 
 abbrev node0 : Node p := ⟨initial p.n, RecordOnce.initial⟩
 abbrev world (w : Array (Node p)) : Fin 5 → Node p := fun x => w.getD x.val node0
@@ -182,6 +199,15 @@ theorem carriedObjects_signed (o u : Obj p) :
 
 /-- The carried PC test of `carriesS`. -/
 def carriesPC (o : Obj p) (C : PC 5) : Bool :=
+  match o.payload with
+  | .ack _ => (C.acks.map (ofAck p)).contains o
+  | .proposal N => (C.slot == N.erase.slot && C.target.root == N.erase.root) ||
+      N.pc.any (fun d => d.slot == C.slot && d.target.root == C.target.root)
+  | .pc c => c.slot == C.slot && c.target.root == C.target.root
+  | _ => false
+
+/-- The exact-target PC test (43733fe), for the control. -/
+def carriesPCExact (o : Obj p) (C : PC 5) : Bool :=
   match o.payload with
   | .ack _ => (C.acks.map (ofAck p)).contains o
   | .proposal N => C.target == N.erase ||
@@ -299,7 +325,7 @@ def relayOK (r : Run5) (b₀ : Time) : Bool :=
 /-- The delivery-premise checks of `Clean₂` with cut `b₀` (strict delivery
 within `Δ = 1` of every emission and every acceptance before the cut, and
 `a < h_j` for every label with `e_j ≤ b₀`). -/
-def cleanChecks (b₀ : Time) : IO Unit := do
+def cleanChecks (rho : Run5) (b₀ : Time) : IO Unit := do
   let es : Array FixtureEvent := rho.events.toArray
   let tr := trace rho
   let hs := honestNodes
@@ -326,7 +352,7 @@ def cleanChecks (b₀ : Time) : IO Unit := do
     else true))
   require s!"cut 0 ≤ b₀ ≤ horizon = {b₀}" (decide (0 ≤ b₀ ∧ b₀ ≤ rho.horizon))
 
-def audit : IO Unit := do
+def auditRun (rho : Run5) : IO Unit := do
   let es : Array FixtureEvent := rho.events.toArray
   let tr := trace rho
   let hs := honestNodes
@@ -370,8 +396,14 @@ def audit : IO Unit := do
   require "stage-one frame" (states.all (fun i => hs.all (fun x =>
     let st := (atIndex tr i x).st
     st.fg.F == .genesis && (controls p st).Z == .genesis && (controls p st).lo == 0)))
-  cleanChecks 9
-  cleanChecks 10
+  cleanChecks rho 9
+  cleanChecks rho 10
+
+def audit : IO Unit := do
+  auditRun rho
+  let es : Array FixtureEvent := rho.events.toArray
+  let tr := trace rho
+  let is := List.range es.size
   require "v = 0 holds PC(1, B) at T = 6, as assembled" (
     (readAtNode rho tr 0 6).pcs == [pcB] && strong (readAtNode rho tr 0 6) == B.erase)
   require "the ack call of v = 0 that installs PC(1, B) handles and accepts the PC object" (
@@ -392,7 +424,42 @@ def audit : IO Unit := do
     !relayOK rhoNoRelay 9 && !relayOK rhoNoRelay 10)
   IO.println s!"PC relay regression: events={es.size}; honest=4; faults=1"
 
+def auditFake : IO Unit := do
+  auditRun rhoFake
+  let es : Array FixtureEvent := rhoFake.events.toArray
+  let tr := trace rhoFake
+  let is := List.range es.size
+  require "fake: T' ≠ B with the slot and root of B, and PC(T') is well formed" (
+    fakeB != B.erase && fakeB.root == B.erase.root && fakeB.slot == B.erase.slot &&
+      pcFake.wellFormed)
+  require "fake: v = 0 holds PC(1, B), not PC(1, T'), at T = 6" (
+    (readAtNode rhoFake tr 0 6).pcs == [pcB] && strong (readAtNode rhoFake tr 0 6) == B.erase)
+  require "fake: the PC call of v = 0 installs PC(1, B) and handles and accepts its object" (
+    is.any (fun i => match es.getD i (.tick 0 0) with
+      | .deliver 0 o 6 => o == pcObj pcFake &&
+          handlesTest (atIndex tr i 0).st o (pcObj pcB) &&
+          !processedS p (atIndex tr i 0).st (pcObj pcB) &&
+          processedS p (atIndex tr (i + 1) 0).st (pcObj pcB)
+      | _ => false))
+  require "fake: the PC object of T' is not accepted at v = 0" (
+    !processedS p (readAtNode rhoFake tr 0 14) (pcObj pcFake))
+  require "fake control: the exact-target test does not carry PC(1, B)" (
+    !carriesPCExact (pcObj pcFake) pcB && carriesPC (pcObj pcFake) pcB)
+  require "fake: y = 2 refuses the relayed faulty ack through the seat cap" (
+    is.any (fun i => es.getD i (.tick 0 0) == .deliver 2 (ack 1 4 B.root) 6 &&
+      seatAcks (atIndex tr i 2).st 1 4 == [r1, r2] &&
+      !(atIndex tr (i + 1) 2).st.ackPool.contains ⟨.seat (.ack 1) 4, B.root⟩))
+  require "fake: y = 2 and y = 3 install PC(1, B) within Δ of T = 6" (others.all (fun y =>
+    (readAtNode rhoFake tr y 6).pcs.any (fun C => C.slot == 1 && C.target == B.erase)))
+  require "fake: C8 conclusion holds at y = 2, 3 from T + Δ to the horizon" (others.all (fun y =>
+    (List.range 8).all (fun j =>
+      Block.preceq B.erase (strong (readAtNode rhoFake tr y (7 + j))))))
+  require "fake control: without the PC deliveries the acceptance relay fails" (
+    !relayOK rhoFakeNoRelay 9 && !relayOK rhoFakeNoRelay 10)
+  IO.println s!"PC relay regression (fabricated target): events={es.size}"
+
 #eval audit
+#eval auditFake
 #print axioms cachedStep_exact
 #print axioms carriedObjects_signed
 #print axioms carriesS_pcObj
