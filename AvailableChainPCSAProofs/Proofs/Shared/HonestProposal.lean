@@ -177,6 +177,22 @@ private theorem honest_process_proposals_mono (p : Params) (st : State p.n) (o :
         rw [hf]
         exact List.Subset.refl _
 
+private theorem honest_rowsCore_valid (p : Params) (Q : SimplexFG.FGBlock (Fin p.n))
+    (chainRows : State p.n → Block → List (RowWire p.n))
+    (blockOf : State p.n → Block → Option (SimplexFG.FGBlock (Fin p.n)))
+    (blockRows : State p.n → List (RowWire p.n)) (st : State p.n) (s : Slot) (H : Block)
+    (hQ : ∀ P0, blockOf st H = some P0 → Q = P0) :
+    rowsValidForParent p Q s (proposalRowsCore p chainRows blockOf blockRows st s H) = true := by
+  delta proposalRowsCore
+  cases hb : blockOf st H with
+  | none => rfl
+  | some P0 =>
+    obtain rfl := hQ P0 hb
+    delta rowsValidForParent
+    apply List.all_eq_true.mpr
+    intro a ha
+    exact (Bool.and_eq_true_iff.mp (List.mem_filter.mp ha).2).1
+
 /-- R6 from the construction: the rows of a proposal built at the current slot
 are valid for every FG lift of its parent. -/
 theorem pcsa_propose_rows_valid (p : Params) (st : State p.n) (s app : Nat)
@@ -198,22 +214,14 @@ theorem pcsa_propose_rows_valid (p : Params) (st : State p.n) (s app : Nat)
     rw [hpar] at hQ
     change rowsValidForParent p Q s (proposalRows p st
       (getHead p st (proposerPC p st) (proposerVotes st s) (proposerSupport st s))) = true
-    delta proposalRows proposalRowsCore
-    dsimp only
-    split
-    · rfl
-    · rename_i P0 hP0
-      have hl := FGSA.pickPair_some_spec st.fg.TF _ hP0
-      have hQP : Q = P0 := by
-        apply FGSA.eraseFG_injective
-        rw [← pcsa_eraseFG_eq, ← pcsa_eraseFG_eq]
-        exact hQ.trans (of_decide_eq_true hl.2).symm
-      subst Q
-      delta rowsValidForParent
-      rw [hs]
-      apply List.all_eq_true.mpr
-      intro a ha
-      exact (Bool.and_eq_true_iff.mp (List.mem_filter.mp ha).2).1
+    subst hs
+    delta proposalRows
+    refine honest_rowsCore_valid p Q _ _ _ st (st.slot p) _ ?_
+    intro P0 hP0
+    have hl := FGSA.pickPair_some_spec st.fg.TF _ hP0
+    apply FGSA.eraseFG_injective
+    rw [← pcsa_eraseFG_eq, ← pcsa_eraseFG_eq]
+    exact hQ.trans (of_decide_eq_true hl.2).symm
 
 /-- An accepted proposal carries a well-formed PC. -/
 theorem pcsa_accepted_pc_wellFormed (p : Params) (st : State p.n) (s : Slot)
