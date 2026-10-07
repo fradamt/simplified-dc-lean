@@ -1078,3 +1078,9 @@ an honest seat is never capped in any voter input list, without a
 relay or gate-time premise. `PendingNHead`: use that bound with N
 receipt and retained paths; only the next vote must be within the
 clean prefix. This proves M4 without the false M3 premise.
+
+### ProposalEvidence
+
+C6 support: identify stored honest proposal metadata exactly. The module
+uses the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.

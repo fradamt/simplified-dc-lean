@@ -539,3 +539,8 @@ end
 #print axioms AvailableChain.PCSA.Run.CleanDisseminationPendingClaim_def
 #print axioms AvailableChain.PCSA.Run.CleanHeadsPastCutClaim_def
 #print axioms AvailableChain.PCSA.Run.CleanBlockReceiptClaim_def
+
+-- C6 ProposalEvidence.
+#print axioms AvailableChain.PCSA.Run.pcsa_decoded_proposal_object
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_pool_eq_emitted
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_decoded_eq_emitted
