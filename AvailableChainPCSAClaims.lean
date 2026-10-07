@@ -3,6 +3,7 @@ public import AvailableChainPCSAClaims.Statements.Reads
 public import AvailableChainPCSAClaims.Statements.Regimes
 public import AvailableChainPCSAClaims.Statements.LaneReads
 public import AvailableChainPCSAClaims.Statements.Premises
+public import AvailableChainPCSAClaims.Statements.OutageItems
 public import AvailableChainPCSAClaims.Statements.FinalityApi
 public import AvailableChainPCSAClaims.Statements.Slashing
 public import AvailableChainPCSAClaims.Claims.PC
