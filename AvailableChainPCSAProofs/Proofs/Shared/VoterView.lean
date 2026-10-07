@@ -86,7 +86,7 @@ private theorem voter_snapshot_before_clock (p : Params) (st : State p.n)
 
 /-- Frozen key receipt at the proposer and the unique carried PC fix the
 voter view target. -/
-theorem pcsa_formation_view_of_frozen_receipt (p : Params) (src dst : State p.n)
+theorem pcsa_view_of_frozen_receipt (p : Params) (src dst : State p.n)
     (s : Slot) (pc : Option (PC p.n))
     (hProposer : proposerPC p src = pc)
     (hFrozenPCReceipt : ∀ C ∈ pcSnapshotAt dst (s - 1), frameActive p dst C = true →
@@ -207,7 +207,7 @@ namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
 
 /-- Each frozen key comes from a whole-PC acceptance no later than its freeze. -/
-theorem pcsa_formation_frozen_pc_origin_valid (E : Generic.Env V)
+theorem pcsa_frozen_pc_origin_valid (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (hBase : Base₂ p c E rho)
     (hFrame : StageOneFrame p c E rho) (x : V) (hx : x ∈ rho.honest)
     (K : Nat) (s : Slot) (C : PC p.n)
@@ -240,7 +240,7 @@ theorem pcsa_formation_frozen_pc_origin_valid (E : Generic.Env V)
     voter_pcs_wellFormed p _ (pcsa_reachable_stateBefore E rho (j + 1) x) D hD, ha⟩
 
 /-- A read away from the freeze time keeps the frozen-key origin. -/
-theorem pcsa_formation_frozen_pc_origin_read_valid (E : Generic.Env V)
+theorem pcsa_frozen_pc_origin_read_valid (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (hBase : Base₂ p c E rho)
     (hFrame : StageOneFrame p c E rho) (x : V) (hx : x ∈ rho.honest)
     (s : Slot) (t : Time) (nd : Node p) (C : PC p.n)
@@ -255,11 +255,11 @@ theorem pcsa_formation_frozen_pc_origin_read_valid (E : Generic.Env V)
   obtain ⟨k, _, he⟩ := Option.map_eq_some_iff.mp hp
   subst pre
   subst nd
-  exact pcsa_formation_frozen_pc_origin_valid E rho hBase hFrame x hx k s C
+  exact pcsa_frozen_pc_origin_valid E rho hBase hFrame x hx k s C
     (voter_snapshot_before_clock p _ s t C ht hC)
 
 /-- Every stored proposal wire has `P` when every admitted one has. -/
-theorem pcsa_formation_metadata_scope (E : Generic.Env V)
+theorem pcsa_metadata_scope (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (P : Wire p.n → Prop)
     (hDeliver : ∀ (j : Nat) (x : V) (o : Obj p) (t : Time) (s : Slot)
       (N : NamedProposal p.n), rho.events[j]? = some (.deliver x o t) →
@@ -294,7 +294,7 @@ theorem pcsa_formation_metadata_scope (E : Generic.Env V)
   · exact fun w hw => (List.not_mem_nil hw).elim
 
 /-- The stored-proposal scope at a post-clock read. -/
-theorem pcsa_formation_metadata_read_scope (E : Generic.Env V)
+theorem pcsa_metadata_read_scope (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (P : Wire p.n → Prop)
     (hDeliver : ∀ (j : Nat) (x : V) (o : Obj p) (t : Time) (s : Slot)
       (N : NamedProposal p.n), rho.events[j]? = some (.deliver x o t) →
@@ -310,7 +310,7 @@ theorem pcsa_formation_metadata_read_scope (E : Generic.Env V)
   subst nd
   rw [show ((pcsaWith m p c).clock (V2.D.Run.stateBefore E rho k x) t).st =
     clock p (V2.D.Run.stateBefore E rho k x).st t from rfl, pcsa_clock_proposals]
-  exact pcsa_formation_metadata_scope E rho P hDeliver k x
+  exact pcsa_metadata_scope E rho P hDeliver k x
 
 private theorem voter_decoded (o : Obj p) (s : Slot) (N : NamedProposal p.n)
     (hd : (toWire p o).decode = some (.block s N)) :
@@ -335,7 +335,7 @@ private theorem voter_decoded (o : Obj p) (s : Slot) (N : NamedProposal p.n)
         delta toWire toAuth Wire.decode Label.ackSlot? at hd <;> cases hd
 
 /-- Every delivered proposal signed for slot `s` is its honest emitted proposal. -/
-theorem pcsa_formation_delivered_proposal_unique (E : Generic.Env V)
+theorem pcsa_delivered_proposal_unique (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) (s : Slot)
     (N : NamedProposal p.n) (hN : HonestNamedProposal p c E rho s N)
     (j : Nat) (y : V) (o : Obj p) (t : Time)
@@ -355,13 +355,13 @@ theorem pcsa_formation_delivered_proposal_unique (E : Generic.Env V)
 
 /-- Stored proposal wires keep the signed slot, and the slot-`s` one is the
 honest proposal. -/
-theorem pcsa_formation_metadata_unique (E : Generic.Env V)
+theorem pcsa_metadata_unique (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) (s : Slot)
     (N : NamedProposal p.n) (hN : HonestNamedProposal p c E rho s N)
     (x : V) (t : Time) (nd : Node p) (hr : pcsa_postClock E rho x t = some nd) :
     ∀ w ∈ nd.st.proposals, ∀ k M, w.decode = some (.block k M) →
       M.erase.slot = k ∧ (k = s → M = N) := by
-  apply pcsa_formation_metadata_read_scope E rho
+  apply pcsa_metadata_read_scope E rho
     (fun w => ∀ k M, w.decode = some (.block k M) →
       M.erase.slot = k ∧ (k = s → M = N)) ?_ x t nd hr
   intro j y o u k M he hd hs l D hw
@@ -370,16 +370,16 @@ theorem pcsa_formation_metadata_unique (E : Generic.Env V)
   refine ⟨hs, ?_⟩
   intro hk
   rw [hk] at hd
-  exact pcsa_formation_delivered_proposal_unique E rho h s N hN j y o u M he hd
+  exact pcsa_delivered_proposal_unique E rho h s N hN j y o u M he hd
 
 /-- Every PC carried by a stored slot-`s` proposal is the honest proposal's PC. -/
-theorem pcsa_formation_carried_pc_unique (E : Generic.Env V)
+theorem pcsa_carried_pc_unique (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) (s : Slot)
     (N : NamedProposal p.n) (hN : HonestNamedProposal p c E rho s N)
     (x : V) (t : Time) (nd : Node p)
     (hr : pcsa_postClock E rho x t = some nd) (C : PC p.n)
     (hm : C ∈ carriedPCs nd.st s) : N.pc = some C := by
-  have hmeta := pcsa_formation_metadata_unique E rho h s N hN x t nd hr
+  have hmeta := pcsa_metadata_unique E rho h s N hN x t nd hr
   delta carriedPCs at hm
   obtain ⟨w, hw, hf⟩ := List.mem_filterMap.mp (List.mem_filter.mp hm).1
   cases hd : w.decode with
@@ -544,7 +544,7 @@ theorem pcsa_voter_view_of_delivery (E : Generic.Env V)
   have hx := hN.1
   have hRecv := pcsa_honest_proposal_from_vote E rho h hF s hs N hN hD _ le_rfl hcut
     y hy dst hr
-  apply pcsa_formation_view_of_frozen_receipt p _ dst.st s N.pc hpc.symm
+  apply pcsa_view_of_frozen_receipt p _ dst.st s N.pc hpc.symm
   · intro C hC _
     have hne : SA.voteTime p.toParams s ≠ SA.freezeTime p.toParams (s - 1) := by
       have hz := voter_deadline E rho h s hs _ le_rfl
@@ -554,7 +554,7 @@ theorem pcsa_voter_view_of_delivery (E : Generic.Env V)
       rw [← hz] at he
       linarith
     obtain ⟨j, u, D, hu, hDs, hDt, hwf, ha⟩ :=
-      pcsa_formation_frozen_pc_origin_read_valid E rho h hF y hy (s - 1) _ dst C hr hne hC
+      pcsa_frozen_pc_origin_read_valid E rho h hF y hy (s - 1) _ dst C hr hne hC
     have hkey := pcsa_frozen_key_before_proposal E rho h hF s hs hD (hts.trans hcut)
       y _ hy hx j u D hu hwf ha
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS, KeyHeld_def] at hkey
@@ -570,7 +570,7 @@ theorem pcsa_voter_view_of_delivery (E : Generic.Env V)
     refine ⟨A, List.mem_filter.mpr ⟨hAc, voter_read_active E rho hF _ hx k _ A hAb⟩, ?_, ?_⟩
     · rw [hAs, hDs]
     · rw [hAt, hDt]
-  · exact fun C hC => pcsa_formation_carried_pc_unique E rho h s N hN y _ dst hr C hC
+  · exact fun C hC => pcsa_carried_pc_unique E rho h s N hN y _ dst hr C hC
   · intro D hD
     obtain ⟨hw, hv⟩ := hRecv
     have hval := hv D hD

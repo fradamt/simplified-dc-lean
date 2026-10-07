@@ -272,8 +272,9 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   whole-PC acceptance by `z_{s-1}`, so under the deadline `max t z_{s-1} + Δ`
   its key is held at the proposer before `t_s`, and every honest voter view at
   `v_s` has the proposer target (`pcsa_commonView_of_delivery`, the F3 field of
-  `FormationPrem`). The `pcsa_formation_*` names are the Formation lane's
-  lemmas with smaller premises; Formation drops its copies when it switches.
+  `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
+  lemmas with smaller premises, without the lane prefix (Shared carries no lane
+  names); Formation drops its copies when it switches.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.
