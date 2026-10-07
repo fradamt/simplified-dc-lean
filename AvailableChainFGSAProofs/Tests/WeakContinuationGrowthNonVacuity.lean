@@ -3866,6 +3866,8 @@ structure ValidPrefixFacts (endpoint : Nat) (data : World × List Event) : Prop
     extends PrefixFacts (endpoint + 1) data.2 where
   valid : V2.D.ExecutionValid env (runData (endpoint : Time) data.2)
   roots : NamedRootCollisionFree params unitCodec env (runData (endpoint : Time) data.2)
+  sync : Gen.V2.Duty.PartialSynchronyBy env (runData (endpoint : Time) data.2)
+    (fgsaDelay env.Δ 1)
 
 /-- The W1 proof is instantiated at five validators, before the trace is sealed. -/
 def certifiedValidPrefix (endpoint : Nat) :
@@ -3882,7 +3884,10 @@ def certifiedValidPrefix (endpoint : Nat) :
       exact GrowthGenerator.nvGen_prefix_execution (count := 5) endpoint
     roots := by
       rw [nvGrowth_generator_env, nvGrowth_generator_run]
-      exact GrowthGenerator.nvGen_prefix_roots (count := 5) endpoint }⟩
+      exact GrowthGenerator.nvGen_prefix_roots (count := 5) endpoint
+    sync := by
+      rw [nvGrowth_generator_env, nvGrowth_generator_run]
+      exact GrowthGenerator.nvGen_prefix_sync (count := 5) endpoint }⟩
 
 /-- A checked opaque value keeps the long trace out of kernel conversion.
 The value is the real generator paired with its symbolic schedule proofs. -/
@@ -4035,6 +4040,10 @@ theorem nvGrowth_source_valid : V2.D.ExecutionValid env source :=
 theorem nvGrowth_source_roots : NamedRootCollisionFree params unitCodec env source :=
   generatedPrefix.property.roots
 
+theorem nvGrowth_source_sync :
+    Gen.V2.Duty.PartialSynchronyBy env source (fgsaDelay env.Δ 1) :=
+  generatedPrefix.property.sync
+
 theorem nvGrowth_continuation_schedule : V2.D.ScheduleWellFormed env continuation :=
   nvGrowth_continuation_schedule_of source.events endWorld nvGrowth_source_schedule
 
@@ -4126,6 +4135,7 @@ theorem nvGrowth_complete_of_missing (h : MissingFields) :
 #print axioms nvGrowth_source_schedule
 #print axioms nvGrowth_source_valid
 #print axioms nvGrowth_source_roots
+#print axioms nvGrowth_source_sync
 #print axioms nvGrowth_continuation_schedule
 #print axioms nvGrowth_pending
 #print axioms nvGrowth_partialWitness

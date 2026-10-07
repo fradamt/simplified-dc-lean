@@ -31,7 +31,9 @@ remaining obligations for this concrete pair:
 - `sourceRoots`: closed in w6 by `nvGrowth_source_roots`. The generic
   W1 final-store table covers delivered and held full named proposals,
   including their ancestors. The opaque certificate retains this proof.
-- `sourceSync`: source Recovery₂.sync, family PartialSynchronyBy.
+- `sourceSync`: closed in w6 by `nvGrowth_source_sync`. Generic W1
+  receipt proofs supply both family synchrony clauses. The HEAD/proposal
+  and row delays are one. The opaque certificate retains this proof.
 - `continuationValid`: continuation Base₂.valid. ScheduleWellFormed is
   proved; the same delivery and signature fields remain open.
 - `continuationRoots`: continuation Base₂.idealization.
