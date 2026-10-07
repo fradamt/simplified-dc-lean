@@ -9,7 +9,8 @@ OPEN: F1 and equal honest HEADs must supply timely, non-equivocating,
 resolved seat witnesses at the post-clock early read. N-target uniqueness
 uses QNHeadUnique through Shared.Count and local equivocation exclusion.
 OPEN: derive all-awake-early A2 with whole-PC relay. The old ack-only
-split in FormationAckCounterexample fails current F1. -/
+split in FormationAckCounterexample fails current F1. A PC target alias
+can still hide a real PC; FormationPcAliasCounterexample is the current blocker. -/
 
 namespace AvailableChain.PCSA
 
