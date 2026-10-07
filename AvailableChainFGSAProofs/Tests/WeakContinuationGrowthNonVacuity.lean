@@ -3742,6 +3742,40 @@ theorem nvRestrict_execution_restrict (kept : Finset V) (hsub : kept ⊆ rho.hon
     obtain ⟨s, ht, he⟩ := hs.carried v o t ⟨i, hi⟩ a hc u (hsub hu) hh
     exact ⟨s, ht, (nvRestrict_emits_restrict E rho kept u hu a s).mpr he⟩
 
+/-- Family synchrony keeps the same deadline and receiver guards after retention. -/
+theorem nvRestrict_sync_restrict (kept : Finset V) (hsub : kept ⊆ rho.honest) (delay : P.Object
+  → Time)
+    (hs : Gen.V2.Duty.PartialSynchronyBy E rho delay) :
+    Gen.V2.Duty.PartialSynchronyBy E (restrictRun rho kept) delay where
+  broadcast_emitted := by
+    intro v hv o t he w hw hh hx
+    have he' := (nvRestrict_emits_restrict E rho kept v hv o t).mp he
+    have hx' : P.excludes (V2.D.Run.stateBeforeTime E rho (max t E.t_GST + delay o) w) o
+        = false := by rwa [nvRestrict_beforeTime_restrict E rho kept w hw] at hx
+    obtain ⟨s, ht, hd, j, hj⟩ := hs.broadcast_emitted v (hsub hv) o t he' w (hsub hw) hh hx'
+    exact ⟨s, ht, hd, (nvRestrict_handles_restrict E rho kept w hw o s).mpr ⟨j, hj⟩⟩
+  relay_accepted := by
+    intro v hv j o t ha w hw hp hh hx
+    obtain ⟨a, hj, hhandle⟩ := ha.1
+    obtain ⟨i, hi, hk, hpre⟩ := nvRestrict_index_filter
+      (fun e : V2.Event V P.Object => decide (e.node ∈ kept)) rho.events j (.deliver v a t) hj
+    have hpost := nvRestrict_filter_prefix_succ
+      (fun e : V2.Event V P.Object => decide (e.node ∈ kept)) rho.events i j
+      (.deliver v a t) hi hj hk hpre
+    have ha' : V2.D.Run.acceptsAt E rho i v o t := by
+      refine ⟨⟨a, hi, ?_⟩, ?_, ?_⟩
+      · rwa [nvRestrict_state_restrict E rho kept v hv i j hpre] at hhandle
+      · have hp0 := ha.2.1
+        rwa [nvRestrict_state_restrict E rho kept v hv i j hpre] at hp0
+      · have hp' := ha.2.2
+        rwa [nvRestrict_state_restrict E rho kept v hv (i + 1) (j + 1) hpost] at hp'
+    have hp' : P.processed (V2.D.Run.stateBefore E rho (i + 1) w) o = false := by
+      rwa [nvRestrict_state_restrict E rho kept w hw (i + 1) (j + 1) hpost] at hp
+    have hx' : P.excludes (V2.D.Run.stateBeforeTime E rho (max t E.t_GST + delay o) w) o
+        = false := by rwa [nvRestrict_beforeTime_restrict E rho kept w hw] at hx
+    obtain ⟨s, ht, hd, k, hk⟩ := hs.relay_accepted v (hsub hv) i o t ha' w (hsub hw) hp' hh hx'
+    exact ⟨s, ht, hd, (nvRestrict_handles_restrict E rho kept w hw o s).mpr ⟨k, hk⟩⟩
+
 end Local
 
 section FGSA
@@ -4158,6 +4192,10 @@ structure ValidPrefixFacts (endpoint : Nat) (data : World × List Event) : Prop
   roots : NamedRootCollisionFree params unitCodec env (runData (endpoint : Time) data.2)
   sync : Gen.V2.Duty.PartialSynchronyBy env (runData (endpoint : Time) data.2)
     (fgsaDelay env.Δ 1)
+  nextSync : Gen.V2.Duty.PartialSynchronyBy env (runData (endpoint + 1 : Nat)
+    (data.2 ++ (show List Event from
+      (GrowthGenerator.timeBatch (count := 5) (endpoint + 1 : Nat) data.1).2)))
+    (fgsaDelay env.Δ 1)
   nextRoots : NamedRootCollisionFree params unitCodec env (runData (endpoint + 1 : Nat)
     (data.2 ++ (show List Event from
       (GrowthGenerator.timeBatch (count := 5) (endpoint + 1 : Nat) data.1).2)))
@@ -4189,7 +4227,10 @@ def certifiedValidPrefix (endpoint : Nat) :
       exact GrowthGenerator.nvGen_prefix_execution (count := 5) (endpoint + 1)
     nextRoots := by
       rw [nvGrowth_generator_env, nvGrowth_generator_run]
-      exact GrowthGenerator.nvGen_prefix_roots (count := 5) (endpoint + 1) }⟩
+      exact GrowthGenerator.nvGen_prefix_roots (count := 5) (endpoint + 1)
+    nextSync := by
+      rw [nvGrowth_generator_env, nvGrowth_generator_run]
+      exact GrowthGenerator.nvGen_prefix_sync (count := 5) (endpoint + 1) }⟩
 
 /-- A checked opaque value keeps the long trace out of kernel conversion.
 The value is the real generator paired with its symbolic schedule proofs. -/
@@ -4382,6 +4423,16 @@ theorem nvGrowth_continuation_roots : NamedRootCollisionFree params unitCodec en
   exact GrowthRestriction.nvRestrict_roots_restrict params unitCodec env reference retainedSet
     (by intro v _; exact Finset.mem_univ v) nvGrowth_reference_roots
 
+theorem nvGrowth_reference_sync :
+    Gen.V2.Duty.PartialSynchronyBy env reference (fgsaDelay env.Δ 1) :=
+  generatedPrefix.property.nextSync
+
+theorem nvGrowth_continuation_sync :
+    Gen.V2.Duty.PartialSynchronyBy env continuation (fgsaDelay env.Δ 1) := by
+  rw [nvGrowth_reference_restrict]
+  exact GrowthRestriction.nvRestrict_sync_restrict env reference retainedSet
+    (by intro v _; exact Finset.mem_univ v) (fgsaDelay env.Δ 1) nvGrowth_reference_sync
+
 theorem nvGrowth_continuation_schedule : V2.D.ScheduleWellFormed env continuation :=
   nvGrowth_continuation_valid.toScheduleWellFormed
 
@@ -4477,6 +4528,7 @@ theorem nvGrowth_complete_of_missing (h : MissingFields) :
 #print axioms nvGrowth_continuation_schedule
 #print axioms nvGrowth_continuation_valid
 #print axioms nvGrowth_continuation_roots
+#print axioms nvGrowth_continuation_sync
 #print axioms nvGrowth_pending
 #print axioms nvGrowth_partialWitness
 #print axioms nvGrowth_complete_of_missing

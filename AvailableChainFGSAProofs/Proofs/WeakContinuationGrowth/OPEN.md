@@ -42,7 +42,9 @@ remaining obligations for this concrete pair:
 - `continuationRoots`: closed in w6 by `nvGrowth_continuation_roots`.
   All retained stored bodies and delivered bodies occur in the reference
   named scope. Ancestry and full named identity are preserved.
-- `continuationSync`: CleanGrowthContinuation₂.sync.
+- `continuationSync`: closed in w6 by `nvGrowth_continuation_sync`.
+  Retained emission and receipt indices preserve both synchrony clauses,
+  the original post-acceptance receiver guard, and the family deadlines.
 - `pending`: closed in w6 by `nvGrowth_pending`. The generic duty-free-round
   lemmas prove that time 247 has no emissions or deliveries. Both original
   source guards and family deadlines remain in the theorem.
