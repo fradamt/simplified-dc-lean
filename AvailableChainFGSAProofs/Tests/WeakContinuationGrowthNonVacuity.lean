@@ -3480,6 +3480,274 @@ end AvailableChain.FGSA.Run.Tests.GrowthGenerator
 end
 
 @[expose] public section
+namespace AvailableChain.FGSA.Run.Tests.GrowthRestriction
+
+open AvailableChain
+
+/-- Keep the local events of the specified validators. -/
+def restrictRun {In V : Type} [DecidableEq V] {P : V2.ProtocolSpecD In}
+    (rho : V2.D.Run V P) (kept : Finset V) : V2.D.Run V P :=
+  { rho with honest := kept, events := rho.events.filter (fun e : V2.Event V P.Object => decide
+    (e.node ∈ kept)) }
+
+/-- The retained index has the same earlier retained events. -/
+theorem nvRestrict_filter_index {A : Type} (keep : A → Bool) (es : List A) (i : Nat) (e : A)
+    (hi : es[i]? = some e) (hk : keep e = true) :
+    ∃ j, (es.filter keep)[j]? = some e ∧
+      (es.filter keep).take j = (es.take i).filter keep := by
+  induction es generalizing i with
+  | nil => simp at hi
+  | cons a es ih =>
+      cases i with
+      | zero =>
+          have he : a = e := Option.some.inj hi
+          subst a
+          exact ⟨0, by simp [hk], by simp⟩
+      | succ i =>
+          obtain ⟨j, hj, hp⟩ := ih i (by simpa using hi)
+          by_cases ha : keep a = true
+          · exact ⟨j + 1, by simpa [ha] using hj, by simpa [ha] using congrArg (a :: ·) hp⟩
+          · have hf : keep a = false := Bool.eq_false_iff.mpr ha
+            exact ⟨j, by simpa [hf] using hj, by simpa [hf] using hp⟩
+
+/-- Every retained occurrence has a corresponding original occurrence. -/
+theorem nvRestrict_index_filter {A : Type} (keep : A → Bool) (es : List A) (j : Nat) (e : A)
+    (hj : (es.filter keep)[j]? = some e) :
+    ∃ i, es[i]? = some e ∧ keep e = true ∧
+      (es.filter keep).take j = (es.take i).filter keep := by
+  induction es generalizing j with
+  | nil => simp at hj
+  | cons a es ih =>
+      by_cases ha : keep a = true
+      · cases j with
+        | zero =>
+            have he : a = e := by simpa [ha] using hj
+            subst a
+            exact ⟨0, by simp, ha, by simp⟩
+        | succ j =>
+            obtain ⟨i, hi, hk, hp⟩ := ih j (by simpa [ha] using hj)
+            exact ⟨i + 1, by simpa using hi, hk, by simpa [ha] using congrArg (a :: ·) hp⟩
+      · have hf : keep a = false := Bool.eq_false_iff.mpr ha
+        obtain ⟨i, hi, hk, hp⟩ := ih j (by simpa [hf] using hj)
+        exact ⟨i + 1, by simpa using hi, hk, by simpa [hf] using hp⟩
+
+section Local
+variable {In V : Type} [DecidableEq V] {P : V2.ProtocolSpecD In}
+    (E : Generic.Env V) (rho : V2.D.Run V P)
+
+private def localStep (v : V) (st : P.State) : V2.Event V P.Object → P.State
+  | .restart u _ => if u = v then P.restore (P.durable st) else st
+  | .tick u t => if u = v then (V2.D.tick E rho st u t).1 else st
+  | .deliver u o _ => if u = v then P.process st o else st
+
+private theorem nvRestrict_step_local (w : V2.D.World V P) (v : V) (e : V2.Event V P.Object) :
+    V2.D.World.step E rho w e v = localStep E rho v (w v) e := by
+  cases e with
+  | restart u t =>
+      by_cases he : u = v
+      · subst u; simp [V2.D.World.step, localStep]
+      · simp [V2.D.World.step, localStep, he, Ne.symm he]
+  | tick u t =>
+      by_cases he : u = v
+      · subst u; simp [V2.D.World.step, localStep]
+      · simp [V2.D.World.step, localStep, he, Ne.symm he]
+  | deliver u o t =>
+      by_cases he : u = v
+      · subst u; simp [V2.D.World.step, localStep]
+      · simp [V2.D.World.step, localStep, he, Ne.symm he]
+
+private theorem nvRestrict_fold_local (es : List (V2.Event V P.Object)) (w : V2.D.World V P) (v
+  : V) :
+    (es.foldl (V2.D.World.step E rho) w) v = es.foldl (localStep E rho v) (w v) := by
+  induction es generalizing w with
+  | nil => rfl
+  | cons e es ih =>
+      rw [List.foldl_cons, ih, nvRestrict_step_local]
+      rfl
+
+private theorem nvRestrict_localStep_other (v : V) (st : P.State)
+    (e : V2.Event V P.Object) (hn : e.node ≠ v) : localStep E rho v st e = st := by
+  cases e with
+  | restart u t => change u ≠ v at hn; exact ite_eq_right hn
+  | tick u t => change u ≠ v at hn; exact ite_eq_right hn
+  | deliver u o t => change u ≠ v at hn; exact ite_eq_right hn
+
+/-- Dropping other validators' events preserves a retained node's full state. -/
+theorem nvRestrict_fold_restrict (es : List (V2.Event V P.Object)) (w : V2.D.World V P)
+    (kept : Finset V) (v : V) (hv : v ∈ kept) :
+    ((es.filter (fun e : V2.Event V P.Object => decide (e.node ∈ kept))).foldl (V2.D.World.step
+      E rho) w) v =
+      (es.foldl (V2.D.World.step E rho) w) v := by
+  rw [nvRestrict_fold_local, nvRestrict_fold_local]
+  have hs (st : P.State) :
+      (es.filter (fun e : V2.Event V P.Object => decide (e.node ∈ kept))).foldl (localStep E rho
+        v) st =
+        es.foldl (localStep E rho v) st := by
+    induction es generalizing st with
+    | nil => rfl
+    | cons e es ih =>
+        by_cases hk : e.node ∈ kept
+        · simpa only [List.filter_cons, hk, decide_true, ↓reduceIte,
+            List.foldl_cons] using ih _
+        · have hn : e.node ≠ v := by intro he; exact hk (he.symm ▸ hv)
+          simp only [List.filter_cons, hk, decide_false, Bool.false_eq_true,
+            ite_false, List.foldl_cons]
+          rw [nvRestrict_localStep_other E rho v st e hn]
+          exact ih st
+  exact hs _
+
+/-- Retention does not change the transition function. -/
+theorem nvRestrict_step_restrict (kept : Finset V) :
+    V2.D.World.step E (restrictRun rho kept) = V2.D.World.step E rho := rfl
+
+/-- An original occurrence and its retained index read the same full node state. -/
+theorem nvRestrict_state_restrict (kept : Finset V) (v : V) (hv : v ∈ kept) (i j : Nat)
+    (hp : ((restrictRun rho kept).events).take j =
+      (rho.events.take i).filter (fun e : V2.Event V P.Object => decide (e.node ∈ kept))) :
+    V2.D.Run.stateBefore E (restrictRun rho kept) j v = V2.D.Run.stateBefore E rho i v := by
+  unfold V2.D.Run.stateBefore
+  rw [hp, nvRestrict_step_restrict]
+  exact nvRestrict_fold_restrict E rho _ _ kept v hv
+
+/-- Every retained prefix is the filter of an original prefix. -/
+theorem nvRestrict_filter_prefix {A : Type} (keep : A → Bool) (es : List A) (j : Nat) :
+    ∃ i, (es.filter keep).take j = (es.take i).filter keep := by
+  by_cases hj : j < (es.filter keep).length
+  · obtain ⟨i, _, _, hp⟩ := nvRestrict_index_filter keep es j (es.filter keep)[j]
+      (List.getElem?_eq_getElem hj)
+    exact ⟨i, hp⟩
+  · exact ⟨es.length, by rw [List.take_of_length_le (Nat.le_of_not_lt hj), List.take_length]⟩
+
+/-- A retained node's state at any retained prefix occurs in the original run. -/
+theorem nvRestrict_state_restrict_any (kept : Finset V) (v : V) (hv : v ∈ kept) (j : Nat) :
+    ∃ i, V2.D.Run.stateBefore E (restrictRun rho kept) j v =
+      V2.D.Run.stateBefore E rho i v := by
+  obtain ⟨i, hp⟩ := nvRestrict_filter_prefix (fun e : V2.Event V P.Object => decide (e.node ∈
+    kept)) rho.events j
+  exact ⟨i, nvRestrict_state_restrict E rho kept v hv i j hp⟩
+
+/-- Before-time reads are unchanged at each retained node. -/
+theorem nvRestrict_beforeTime_restrict (kept : Finset V) (v : V) (hv : v ∈ kept) (t : Time) :
+    V2.D.Run.stateBeforeTime E (restrictRun rho kept) t v =
+      V2.D.Run.stateBeforeTime E rho t v := by
+  unfold V2.D.Run.stateBeforeTime
+  change (((rho.events.filter (fun e : V2.Event V P.Object => decide (e.node ∈ kept))).filter
+    (fun e => decide (e.time < t))).foldl (V2.D.World.step E (restrictRun rho kept))
+      V2.D.World.init) v = _
+  rw [nvRestrict_step_restrict, List.filter_comm]
+  exact nvRestrict_fold_restrict E rho _ _ kept v hv
+
+/-- The occurrence pairing also pairs the states after the event. -/
+theorem nvRestrict_filter_prefix_succ {A : Type} (keep : A → Bool) (es : List A)
+    (i j : Nat) (e : A) (hi : es[i]? = some e) (hj : (es.filter keep)[j]? = some e)
+    (hk : keep e = true) (hp : (es.filter keep).take j = (es.take i).filter keep) :
+    (es.filter keep).take (j + 1) = (es.take (i + 1)).filter keep := by
+  rw [List.take_add_one, List.take_add_one, hi, hj, List.filter_append, hp]
+  simp [hk]
+
+/-- Both traces release the same objects at paired retained ticks. -/
+theorem nvRestrict_emits_restrict (kept : Finset V) (v : V) (hv : v ∈ kept) (o : P.Object) (t :
+  Time) :
+    V2.D.Run.emits E (restrictRun rho kept) v o t ↔ V2.D.Run.emits E rho v o t := by
+  constructor
+  · rintro ⟨j, hj, ho⟩
+    obtain ⟨i, hi, _, hp⟩ := nvRestrict_index_filter (fun e : V2.Event V P.Object => decide
+      (e.node ∈ kept)) rho.events j
+      (.tick v t) hj
+    refine ⟨i, hi, ?_⟩
+    rw [(V2.D.Run.step_tick_eq E (restrictRun rho kept) hj).2,
+      nvRestrict_state_restrict E rho kept v hv i j hp] at ho
+    rwa [(V2.D.Run.step_tick_eq E rho hi).2]
+  · rintro ⟨i, hi, ho⟩
+    obtain ⟨j, hj, hp⟩ := nvRestrict_filter_index (fun e : V2.Event V P.Object => decide (e.node
+      ∈ kept)) rho.events i
+      (.tick v t) hi (by change decide (v ∈ kept) = true; exact decide_eq_true hv)
+    refine ⟨j, hj, ?_⟩
+    rw [(V2.D.Run.step_tick_eq E (restrictRun rho kept) hj).2,
+      nvRestrict_state_restrict E rho kept v hv i j hp]
+    rwa [(V2.D.Run.step_tick_eq E rho hi).2] at ho
+
+/-- A retained delivery gives the same handler calls at its paired index. -/
+theorem nvRestrict_handles_restrict (kept : Finset V) (v : V) (hv : v ∈ kept) (o : P.Object) (t
+  : Time) :
+    (∃ j, V2.D.Run.handlesAt E (restrictRun rho kept) j v o t) ↔
+      ∃ i, V2.D.Run.handlesAt E rho i v o t := by
+  constructor
+  · rintro ⟨j, a, hj, hh⟩
+    obtain ⟨i, hi, _, hp⟩ := nvRestrict_index_filter (fun e : V2.Event V P.Object => decide
+      (e.node ∈ kept)) rho.events j
+      (.deliver v a t) hj
+    exact ⟨i, a, hi, by rwa [nvRestrict_state_restrict E rho kept v hv i j hp] at hh⟩
+  · rintro ⟨i, a, hi, hh⟩
+    obtain ⟨j, hj, hp⟩ := nvRestrict_filter_index (fun e : V2.Event V P.Object => decide (e.node
+      ∈ kept)) rho.events i
+      (.deliver v a t) hi (by change decide (v ∈ kept) = true; exact decide_eq_true hv)
+    exact ⟨j, a, hj, by rwa [nvRestrict_state_restrict E rho kept v hv i j hp]⟩
+
+/-- The schedule restriction keeps the original horizon and public ticks. -/
+theorem nvRestrict_schedule_restrict (kept : Finset V) (hsub : kept ⊆ rho.honest)
+    (hs : V2.D.ScheduleWellFormed E rho) :
+    V2.D.ScheduleWellFormed E (restrictRun rho kept) where
+  horizon_nonneg := hs.horizon_nonneg
+  sorted := hs.sorted.filter _
+  nodup := hs.nodup.filter _
+  in_horizon := fun e he => hs.in_horizon e (List.mem_filter.mp he).1
+  honest_only := fun e he => of_decide_eq_true (List.mem_filter.mp he).2
+  tick_public := fun v t he => hs.tick_public v t (List.mem_filter.mp he).1
+  tick_total := by
+    intro v hv t hp ht hh
+    apply List.mem_filter.mpr
+    exact ⟨hs.tick_total v (hsub hv) t hp ht hh, by
+      change decide (v ∈ kept) = true
+      exact decide_eq_true hv⟩
+
+/-- Validity survives removal of other nodes' local events. -/
+theorem nvRestrict_execution_restrict (kept : Finset V) (hsub : kept ⊆ rho.honest)
+    (hs : V2.D.ExecutionValid E rho) : V2.D.ExecutionValid E (restrictRun rho kept) where
+  toScheduleWellFormed := nvRestrict_schedule_restrict E rho kept hsub hs.toScheduleWellFormed
+  wire := by
+    intro j v o t hj
+    obtain ⟨i, hi, _, _⟩ := nvRestrict_index_filter (fun e : V2.Event V P.Object => decide
+      (e.node ∈ kept)) rho.events j
+      (.deliver v o t) hj
+    exact hs.wire i v o t hi
+  deps := by
+    intro j v o t hj
+    obtain ⟨i, hi, hk, hp⟩ := nvRestrict_index_filter (fun e : V2.Event V P.Object => decide
+      (e.node ∈ kept)) rho.events j
+      (.deliver v o t) hj
+    have hv : v ∈ kept := of_decide_eq_true hk
+    rw [nvRestrict_state_restrict E rho kept v hv i j hp]
+    exact hs.deps i v o t hi
+  fresh := by
+    intro j v o t hj
+    obtain ⟨i, hi, hk, hp⟩ := nvRestrict_index_filter (fun e : V2.Event V P.Object => decide
+      (e.node ∈ kept)) rho.events j
+      (.deliver v o t) hj
+    have hv : v ∈ kept := of_decide_eq_true hk
+    rw [nvRestrict_state_restrict E rho kept v hv i j hp]
+    exact hs.fresh i v o t hi
+  unforgeable := by
+    rintro v o t ⟨j, hj⟩ u hu hh
+    obtain ⟨i, hi, _, _⟩ := nvRestrict_index_filter (fun e : V2.Event V P.Object => decide
+      (e.node ∈ kept)) rho.events j
+      (.deliver v o t) hj
+    obtain ⟨s, ht, he⟩ := hs.unforgeable v o t ⟨i, hi⟩ u (hsub hu) hh
+    exact ⟨s, ht, (nvRestrict_emits_restrict E rho kept u hu o s).mpr he⟩
+  carried := by
+    rintro v o t ⟨j, hj⟩ a hc u hu hh
+    obtain ⟨i, hi, _, _⟩ := nvRestrict_index_filter (fun e : V2.Event V P.Object => decide
+      (e.node ∈ kept)) rho.events j
+      (.deliver v o t) hj
+    obtain ⟨s, ht, he⟩ := hs.carried v o t ⟨i, hi⟩ a hc u (hsub hu) hh
+    exact ⟨s, ht, (nvRestrict_emits_restrict E rho kept u hu a s).mpr he⟩
+
+end Local
+
+end AvailableChain.FGSA.Run.Tests.GrowthRestriction
+end
+
+@[expose] public section
 
 set_option maxRecDepth 1000
 
@@ -3868,6 +4136,9 @@ structure ValidPrefixFacts (endpoint : Nat) (data : World × List Event) : Prop
   roots : NamedRootCollisionFree params unitCodec env (runData (endpoint : Time) data.2)
   sync : Gen.V2.Duty.PartialSynchronyBy env (runData (endpoint : Time) data.2)
     (fgsaDelay env.Δ 1)
+  nextValid : V2.D.ExecutionValid env (runData (endpoint + 1 : Nat)
+    (data.2 ++ (show List Event from
+      (GrowthGenerator.timeBatch (count := 5) (endpoint + 1 : Nat) data.1).2)))
 
 /-- The W1 proof is instantiated at five validators, before the trace is sealed. -/
 def certifiedValidPrefix (endpoint : Nat) :
@@ -3887,7 +4158,10 @@ def certifiedValidPrefix (endpoint : Nat) :
       exact GrowthGenerator.nvGen_prefix_roots (count := 5) endpoint
     sync := by
       rw [nvGrowth_generator_env, nvGrowth_generator_run]
-      exact GrowthGenerator.nvGen_prefix_sync (count := 5) endpoint }⟩
+      exact GrowthGenerator.nvGen_prefix_sync (count := 5) endpoint
+    nextValid := by
+      rw [nvGrowth_generator_env, nvGrowth_generator_run]
+      exact GrowthGenerator.nvGen_prefix_execution (count := 5) (endpoint + 1) }⟩
 
 /-- A checked opaque value keeps the long trace out of kernel conversion.
 The value is the real generator paired with its symbolic schedule proofs. -/
@@ -3898,7 +4172,12 @@ def source : V2.D.Run Validator (fgsa params unitCodec) := runData 247 generated
 
 def endWorld : World := generatedPrefix.val.1
 
-def suffix : List Event := (timeBatch retained 248 endWorld).2
+def fullSuffix : List Event := (GrowthGenerator.timeBatch (count := 5) 248 endWorld).2
+
+def suffix : List Event := fullSuffix.filter (fun e => decide (e.node ∈ retainedSet))
+
+def reference : V2.D.Run Validator (fgsa params unitCodec) :=
+  runData 248 (source.events ++ fullSuffix)
 
 def continuation : V2.D.Run Validator (fgsa params unitCodec) :=
   continuationData source.events suffix
@@ -3935,18 +4214,28 @@ theorem nvGrowth_participation (t : Time) :
   decide
 
 theorem nvGrowth_suffix_nonempty : V2.Event.tick 0 248 ∈ suffix := by
-  unfold suffix
-  exact nvGrowth_batch_tick retained 248 endWorld 0 (by simp [retained])
+  apply List.mem_filter.mpr
+  exact ⟨GrowthGenerator.nvGen_timeBatch_tick (count := 5) 248 endWorld 0, by decide⟩
 
 theorem nvGrowth_agreement :
     RetainedAgreesThrough₂ params unitCodec env source env continuation := by
   apply nvGrowth_agreement_of_suffix source.events suffix
   intro e he
-  rw [(nvGrowth_batch_shape retained 248 endWorld e he).1]
+  have ht : e.time = (248 : Time) :=
+    GrowthGenerator.nvGen_timeBatch_time (count := 5) 248 endWorld e
+      (List.mem_filter.mp he).1
+  rw [ht]
   decide
 
-theorem nvGrowth_no_restart : V2.D.NoRestart source ∧ V2.D.NoRestart continuation :=
-  nvGrowth_no_restart_of generatedPrefix.val.2 endWorld generatedPrefix.property.noRestart
+theorem nvGrowth_no_restart : V2.D.NoRestart source ∧ V2.D.NoRestart continuation := by
+  constructor
+  · intro i v t hi
+    exact generatedPrefix.property.noRestart v t (List.mem_of_getElem? hi)
+  · intro i v t hi
+    rcases List.mem_append.mp (List.mem_of_getElem? hi) with he | he
+    · exact generatedPrefix.property.noRestart v t (List.mem_filter.mp he).1
+    · exact GrowthGenerator.nvGen_timeBatch_no_restart (count := 5) 248 endWorld v t
+        (List.mem_filter.mp he).1
 
 theorem nvGrowth_source_in_horizon (e : Event) (he : e ∈ source.events) :
     0 ≤ e.time ∧ e.time ≤ source.horizon := by
@@ -4044,8 +4333,21 @@ theorem nvGrowth_source_sync :
     Gen.V2.Duty.PartialSynchronyBy env source (fgsaDelay env.Δ 1) :=
   generatedPrefix.property.sync
 
+theorem nvGrowth_reference_valid : V2.D.ExecutionValid env reference :=
+  generatedPrefix.property.nextValid
+
+theorem nvGrowth_reference_restrict :
+    continuation = GrowthRestriction.restrictRun reference retainedSet := by
+  simp only [continuation, continuationData, reference, suffix, GrowthRestriction.restrictRun,
+    runData, List.filter_append]
+
+theorem nvGrowth_continuation_valid : V2.D.ExecutionValid env continuation := by
+  rw [nvGrowth_reference_restrict]
+  exact GrowthRestriction.nvRestrict_execution_restrict env reference retainedSet
+    (by intro v _; exact Finset.mem_univ v) nvGrowth_reference_valid
+
 theorem nvGrowth_continuation_schedule : V2.D.ScheduleWellFormed env continuation :=
-  nvGrowth_continuation_schedule_of source.events endWorld nvGrowth_source_schedule
+  nvGrowth_continuation_valid.toScheduleWellFormed
 
 /-- The endpoint round has no network trigger. Both original pending guards remain. -/
 theorem nvGrowth_pending :
@@ -4137,6 +4439,7 @@ theorem nvGrowth_complete_of_missing (h : MissingFields) :
 #print axioms nvGrowth_source_roots
 #print axioms nvGrowth_source_sync
 #print axioms nvGrowth_continuation_schedule
+#print axioms nvGrowth_continuation_valid
 #print axioms nvGrowth_pending
 #print axioms nvGrowth_partialWitness
 #print axioms nvGrowth_complete_of_missing

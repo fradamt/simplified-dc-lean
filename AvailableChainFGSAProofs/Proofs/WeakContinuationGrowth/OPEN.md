@@ -34,8 +34,11 @@ remaining obligations for this concrete pair:
 - `sourceSync`: closed in w6 by `nvGrowth_source_sync`. Generic W1
   receipt proofs supply both family synchrony clauses. The HEAD/proposal
   and row delays are one. The opaque certificate retains this proof.
-- `continuationValid`: continuation Base₂.valid. ScheduleWellFormed is
-  proved; the same delivery and signature fields remain open.
+- `continuationValid`: closed in w6 by `nvGrowth_continuation_valid`.
+  The continuation retains exactly nodes 0, 1, and 2 from a valid full
+  five-validator reference run. Generic occurrence and full-state replay
+  proofs preserve wire checks, dependencies, freshness, and both signature
+  fields. The strict suffix still contains the tick at time 248.
 - `continuationRoots`: continuation Base₂.idealization.
 - `continuationSync`: CleanGrowthContinuation₂.sync.
 - `pending`: closed in w6 by `nvGrowth_pending`. The generic duty-free-round
