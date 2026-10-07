@@ -90,7 +90,8 @@ private abbrev formationAccepted (p : Params) (st : State p.n) (s : Slot)
 
 private theorem formation_process_scope (p : Params) (B : Block → Prop) (st : State p.n)
     (o : Wire p.n) (h : FormationBodyScope B st)
-    (ho : ∀ s N, o.decode = some (.block s N) → B N.erase) :
+    (ho : ∀ s N, o.decode = some (.block s N) →
+      ∀ P, blockAccepted p st s N P = true → B N.erase) :
     FormationBodyScope B (process p st o) := by
   have ha (st : State p.n) (as : List (AckWire p.n)) (h : FormationBodyScope B st) :
       FormationBodyScope B (as.foldl poolAckRaw st) :=
@@ -113,7 +114,6 @@ private theorem formation_process_scope (p : Params) (B : Block → Prop) (st : 
       change FormationBodyScope B (admitRow p st ⟨o.auth, body⟩)
       exact formation_row_scope p B st _ h
     | block slot N =>
-      have hb := ho slot N hd
       delta process
       rw [hd]
       change FormationBodyScope B (admitBlock p st slot N)
@@ -126,7 +126,9 @@ private theorem formation_process_scope (p : Params) (B : Block → Prop) (st : 
           change FormationBodyScope B (if blockAccepted p st slot N P then
             formationAccepted p st slot N P else st)
           split
-          · delta formationAccepted
+          · rename_i hAcc
+            have hb := ho slot N hd P hAcc
+            delta formationAccepted
             apply hr
             apply formation_collect_scope
             apply ha
@@ -162,6 +164,14 @@ private theorem formation_process_scope (p : Params) (B : Block → Prop) (st : 
       split
       · exact formation_collect_scope B _ (ha _ _ h)
       · exact h
+
+/-- Accepted body predicates persist through every handler. -/
+theorem pcsa_formation_process_body_scope (p : Params) (B : Block → Prop)
+    (st : State p.n) (o : Wire p.n) (h : ∀ b ∈ st.base.blocks, B b)
+    (ho : ∀ s N, o.decode = some (.block s N) →
+      ∀ P, blockAccepted p st s N P = true → B N.erase) :
+    ∀ b ∈ (process p st o).base.blocks, B b :=
+  formation_process_scope p B st o h ho
 
 private abbrev formationGateAccepted (p : Params) {n : Nat} (st : State n)
     (cs : List (PC n)) (rank : Option PCRank) (s : Slot) (result : Block) : State n :=
@@ -296,7 +306,7 @@ theorem pcsa_formation_body_scope (E : Generic.Env V)
     change FormationBodyScope _ (Function.update (V2.D.Run.stateBefore E rho k) x _ x).st
     rw [Function.update_self]
     apply formation_process_scope p _ _ (toWire p o) h
-    intro s N hd
+    intro s N hd _ _
     exact ⟨N, ⟨N, Or.inl ⟨x, o, t, List.mem_of_getElem? he,
       formation_decode_proposal o s N hd⟩, formation_named_refl N⟩, rfl⟩
 
