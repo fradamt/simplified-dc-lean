@@ -57,8 +57,8 @@ index b9ce2ce..6e48eb0 100755
 +        return not (compose_base(dep) or under(dep, COMPOSE + ".Statements")
 +                    or (m.name, dep) in COMPOSE_SAFETY_IMPORTS)
      return not any_under(m.name, (COMPOSE + ".Proofs", COMPOSE + ".Tests"))
- 
- 
+
+
 diff --git a/scripts/fg-compose-expected.txt b/scripts/fg-compose-expected.txt
 index 2ba9c6f..5504b3b 100644
 --- a/scripts/fg-compose-expected.txt
