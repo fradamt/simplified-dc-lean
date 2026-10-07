@@ -9,6 +9,9 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
 public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation
 -- shake: keep (SYN L58 named assembly boundary)
 
+public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth
+public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -115,6 +118,19 @@ theorem fgsaClaims_of_hTime (hH : HTimeClaim p) : FGSAClaims p :=
 WC plan §8 Job 4 and r2.1; DC: SAME source-witness order for weak continuation.
 The closed HTimeClaim also supplies the ten existing liveness fields. -/
 theorem fgsaClaims : FGSAClaims p := fgsaClaims_of_hTime p (healing_hTimeClaim p)
+
+/-- The corruption-growth companion follows from one source witness and
+both retained continuation branches. The frozen FGSAClaims field is unchanged. -/
+theorem fgsa_weakContinuationGrowthClaim (p : Params) (G : Time) :
+    WeakContinuationGrowthClaim p G := by
+  intro V _ _ In c ΔF hδ E source hS
+  obtain ⟨w, hcut, hseed⟩ := wcg_sourceWitness (healing_hTimeClaim p) hδ hS
+  refine ⟨w.u, w.QStar, afterTicksIdx source (SA.gateTime p.toParams w.u), hcut, ?_⟩
+  intro E' rho hc
+  rcases hc.covered.lt_or_eq with hne | heq
+  · exact wcg_nonemptyLive hS hc hne
+      (wcg_retainedSeed hS hc hne hseed hcut.beforeEnd.le)
+  · exact wcg_emptyLive hS hc heq.symm hseed hcut.beforeEnd.le
 
 end AvailableChain.FGSA.Run
 end
