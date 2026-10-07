@@ -544,3 +544,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_decoded_proposal_object
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_pool_eq_emitted
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_decoded_eq_emitted
+
+-- C6 ProposalStore.
+#print axioms AvailableChain.PCSA.pcsa_admitBlock_proposals
+#print axioms AvailableChain.PCSA.pcsa_process_proposals_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_proposals_stateBefore_mono

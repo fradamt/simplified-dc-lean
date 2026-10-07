@@ -1084,3 +1084,10 @@ clean prefix. This proves M4 without the false M3 premise.
 C6 support: identify stored honest proposal metadata exactly. The module
 uses the concrete readers and preserves the joint-induction premises.
 These are support facts. C6 and its remaining joint record fields are open.
+
+### ProposalStore
+
+C6 support: preserve admitted proposal metadata through run events. The
+module uses the concrete readers and preserves the joint-induction
+premises.
+These are support facts. C6 and its remaining joint record fields are open.
