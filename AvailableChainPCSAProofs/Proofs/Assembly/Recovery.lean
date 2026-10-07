@@ -1,10 +1,12 @@
 module
 public import AvailableChainPCSAProofs.Proofs.Recovery.Export
 public import AvailableChainPCSAProofs.Proofs.Clean.Export
+public import AvailableChainPCSAProofs.Proofs.Outage.Export
 
 public section
 
-/-! Clean CI consumers for the recovery archive. -/
+/-! Clean CI consumers for the recovery archive, and the persistence input of
+the recovery suffix from C8. -/
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
 
@@ -46,6 +48,24 @@ theorem recovery_cleanSaved_of_ci_pc (E : Generic.Env V)
     · exact Bool.or_eq_true_iff.mpr (Or.inr h)
     · exact Bool.or_eq_true_iff.mpr (Or.inl h)
   exact recovery_saved_below_of_compatible E rho x i r cA C P hr hP hc hsym
+
+/-- [§5.6.1; C8] The persistence input of the recovery suffix: ARM at `s₁`
+with `j₀ = s₁ + 1` gives its conclusion by C8 (`pcsa_armPersistence`).
+RECOVERY's `a ≤ ⌊n/4⌋` gives `a < ⌈n/2⌉`. -/
+theorem recovery_persistence_of_run [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time} (h : Recovery₂ p c E rho G ΔF)
+    (hfr : StageOneFrame p c E rho) (s₁ : Slot) :
+    ∀ B, Arm p c E rho s₁ B (s₁ + 1) → ArmConcl p c E rho s₁ B (s₁ + 1) := by
+  have hf : FaultsBelowQA p c rho := by
+    rw [FaultsBelowQA_def]
+    have hq := (QuarterCap_def p c rho).mp h.quarterCap
+    have hn := p.nPos
+    change (Gen.V2.Duty.faulty rho).card < (p.n + 1) / 2
+    omega
+  have hP : ArmPersistenceClaim p := pcsa_armPersistence p
+  rw [ArmPersistenceClaim_def] at hP
+  intro B harm
+  exact hP c m E rho s₁ B (s₁ + 1) h.base hf hfr (Nat.lt_succ_self s₁) harm
 
 end AvailableChain.PCSA.Run
 end
