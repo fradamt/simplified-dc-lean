@@ -527,3 +527,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_generated_proposal_inputs
 #print axioms AvailableChain.PCSA.Run.pcsa_prop_single_duty
 #print axioms AvailableChain.PCSA.Run.pcsa_emitted_proposal_inputs
+
+-- C6 CommonInputs.
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_late_eq
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_input_in_proposer

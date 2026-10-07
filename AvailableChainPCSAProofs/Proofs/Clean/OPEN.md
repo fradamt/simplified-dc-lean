@@ -1029,3 +1029,9 @@ LeaseBelowRecordClaim used as M5 by Assembly/Outage.
 at or before T. Strict relay places it before that event time plus
 Delta, hence before every requested after-ticks read at T+Delta or
 later. Genesis uses the initial body invariant.
+
+### CommonInputs
+
+C6 support: relay frozen voter inputs to actual proposer reads. The module
+uses the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
