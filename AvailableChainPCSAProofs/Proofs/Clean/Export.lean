@@ -118,6 +118,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.NHeads
 
 public import AvailableChainPCSAProofs.Proofs.Clean.ViewOrigins
 
+public import AvailableChainPCSAProofs.Proofs.Clean.RootSources
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

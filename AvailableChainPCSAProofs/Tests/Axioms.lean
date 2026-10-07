@@ -609,3 +609,9 @@ end
 #print axioms AvailableChain.PCSA.pcsa_vote_snapshot
 #print axioms AvailableChain.PCSA.pcsa_clock_carriedPCs
 #print axioms AvailableChain.PCSA.Run.pcsa_voterPC_honest_ack_before
+
+-- C6 RootSources.
+#print axioms AvailableChain.PCSA.pcsa_vote_ne_gate
+#print axioms AvailableChain.PCSA.pcsa_vote_locks_subset
+#print axioms AvailableChain.PCSA.pcsa_gate_label_lt_next_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_next_root_source

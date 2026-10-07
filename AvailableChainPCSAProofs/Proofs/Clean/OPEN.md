@@ -1166,3 +1166,9 @@ Validation and current claim status are recorded in log.md and state.md.
 C6 support: trace voter PC views to earlier honest ack targets. The module
 uses the concrete readers and preserves the joint-induction premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RootSources
+
+C6 support: trace next-vote roots to PCs and earlier results. The module
+uses the concrete readers and preserves the joint-induction premises.
+Validation and current claim status are recorded in log.md and state.md.
