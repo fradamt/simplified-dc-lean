@@ -376,5 +376,7 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_timely_head_of_early
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_of_run
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_body_before_proposal
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_body
 
 end

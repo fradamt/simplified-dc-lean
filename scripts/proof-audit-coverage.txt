@@ -5677,7 +5677,9 @@
             'AvailableChain.PCSA.Run.pcsa_formation_timely_head_of_early',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.FormationInputs': (
+            'AvailableChain.PCSA.Run.pcsa_formation_body_before_proposal',
             'AvailableChain.PCSA.Run.pcsa_formation_carried_presence_of_metadata',
+            'AvailableChain.PCSA.Run.pcsa_formation_frozen_body',
             'AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_receipt_of_body',
             'AvailableChain.PCSA.Run.pcsa_formation_inputs_of_run',
             'AvailableChain.PCSA.Run.pcsa_formation_key_at_read',

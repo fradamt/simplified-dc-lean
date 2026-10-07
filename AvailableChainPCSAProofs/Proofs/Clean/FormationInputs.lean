@@ -2,12 +2,15 @@ module
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationOrigins
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationHeads
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
 
 public section
 
 /-! Formation input producers from the named stage-2 receipt contracts.
+Shared body relay closes the old frozen-target receipt (hFrozenBody).
 No body-admission or body-relay proof is copied here. The retained path,
-support receipts, timely HEAD witnesses and ack handler pool stay named. -/
+support receipts, timely HEAD witnesses, honest-proposal receipt and ack
+handler pool stay named. -/
 
 open AvailableChain AvailableChain.SimplexFG
 namespace AvailableChain.PCSA
@@ -235,6 +238,100 @@ theorem pcsa_formation_carried_presence_of_metadata (E : Generic.Env V)
     hReach
     (pcsa_formation_frame_read E rho h.frame y _ nd hy hr) hb
   exact List.mem_filter.mpr ⟨List.mem_append.mpr (Or.inr hm), ha⟩
+
+/-- A decoded proposal object is not a row. -/
+private theorem formation_block_nonRow (o : Obj p) (s : Slot) (N : NamedProposal p.n)
+    (h : (toWire p o).decode = some (.block s N)) : IsNonRow o := by
+  rcases o with ⟨auth, payload⟩
+  cases payload with
+  | row body =>
+    exfalso
+    change Wire.decode (⟨toAuth p auth, .row body⟩ : Wire p.n) = _ at h
+    generalize toAuth p auth = a at h
+    cases a with
+    | seat l i => cases l <;> delta Wire.decode Label.ackSlot? at h <;> cases h
+    | _ => delta Wire.decode at h; cases h
+  | _ => exact True.intro
+
+/-- F1 stores at every honest node, before t_s, each body stored by an event
+no later than the previous freeze. -/
+theorem pcsa_formation_body_before_proposal (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (x y : V) (hx : x ∈ rho.honest)
+    (hy : y ∈ rho.honest) (j : Nat) (e : V2.Event V (Obj p))
+    (hj : rho.events[j]? = some e) (hu : e.time ≤ SA.freezeTime p.toParams (s - 1))
+    (B : Block) (hB : B ∈ (V2.D.Run.stateBefore E rho (j + 1) x).st.base.blocks) :
+    B ∈ (V2.D.Run.stateBeforeTime E rho (SA.proposalTime p.toParams s) y).st.base.blocks := by
+  have hS := h.base.valid.toScheduleWellFormed
+  by_cases hg : B = .genesis
+  · subst hg
+    have h0 : Block.genesis ∈ (V2.D.Run.stateBefore E rho 0 y).st.base.blocks := by
+      change Block.genesis ∈ [Block.genesis]
+      exact List.mem_singleton_self _
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+    exact pcsa_body_stateBefore_mono E rho h.base.noRestart y (Nat.zero_le _) h0
+  obtain ⟨i, hij, t, o, r, M, P, hev, hd, hMB, hP, hacc, hA⟩ :=
+    pcsa_body_receipt_origin E rho h.base.valid (j + 1) x B hg hB
+  have hti : t ≤ SA.freezeTime p.toParams (s - 1) := by
+    have h1 := (Gen.V2.Duty.index_lt_idxBefore_iff hS hj
+      (SA.freezeTime p.toParams (s - 1) + 1)).mpr (lt_of_le_of_lt hu (lt_add_one _))
+    have h2 := (Gen.V2.Duty.index_lt_idxBefore_iff hS hev
+      (SA.freezeTime p.toParams (s - 1) + 1)).mp (lt_of_le_of_lt (Nat.lt_succ_iff.mp hij) h1)
+    exact Int.lt_add_one_iff.mp h2
+  have hs : ((s - 1 : Nat) : Int) + 1 = (s : Int) := by
+    exact_mod_cast Nat.sub_add_cancel (Nat.one_le_of_lt h.slotPos)
+  have hdl : max t (SA.freezeTime p.toParams (s - 1)) + E.Δ =
+      SA.proposalTime p.toParams s := by
+    rw [max_eq_right hti, h.base.delta]
+    change (4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ) + p.Δ = 4 * p.Δ * (s : Int)
+    have hs' : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by omega
+    rw [hs']
+    ring
+  have hd0 : (0 : Int) < p.Δ := p.deltaPos
+  have hR := pcsa_body_relay_within_on E rho h.base h.frame h.delivery i x y hx hy t o r M P
+    hev hd hP hacc hA (formation_block_nonRow o r M hd)
+    (by
+      rw [hdl]
+      have : SA.freezeTime p.toParams (s - 1) < SA.proposalTime p.toParams s := by
+        rw [← hdl, max_eq_right hti, h.base.delta]
+        linarith
+      exact lt_of_le_of_lt hti this)
+    (by
+      rw [hdl]
+      change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
+      linarith)
+  rw [hdl, hMB] at hR
+  exact hR
+
+/-- F1 stores each old frozen target at the proposer strictly before t_s. -/
+theorem pcsa_formation_frozen_body (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) :
+    ∀ x ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho x (SA.earlyTime p.toParams s) = some nd →
+      ∀ C ∈ pcSnapshotAt nd.st (s - 1),
+        C.target ∈ (V2.D.Run.stateBeforeTime E rho (SA.proposalTime p.toParams s)
+          (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)).st.base.blocks := by
+  intro x hx nd hr C hC
+  have hne : SA.earlyTime p.toParams s ≠ SA.freezeTime p.toParams (s - 1) := by
+    have hs : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by
+      have hi : ((s - 1 : Nat) : Int) + 1 = (s : Int) := by
+        exact_mod_cast Nat.sub_add_cancel h.slotPos
+      omega
+    have hd : (0 : Int) < p.Δ := p.deltaPos
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ ≠ 4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ
+    rw [hs]
+    nlinarith
+  obtain ⟨j, u, D, hu, _, hDt, _, ha⟩ := pcsa_formation_frozen_pc_origin_read_valid
+    E rho h.base h.frame x hx (s - 1) _ nd C hr hne hC
+  obtain ⟨o, hj, _⟩ := ha.1
+  have hp : (V2.D.Run.stateBefore E rho (j + 1) x).st.pcs.any
+      (fun d => d.slot == D.slot && d.target == D.target) = true := ha.2.2
+  obtain ⟨A, hA, hAD⟩ := List.any_eq_true.mp hp
+  have hAt : A.target = D.target := beq_iff_eq.mp (Bool.and_eq_true_iff.mp hAD).2
+  have hT := pcsa_formation_held_pc_targets p _ (pcsa_reachable_stateBefore E rho (j + 1) x) A hA
+  rw [hAt, hDt] at hT
+  exact pcsa_formation_body_before_proposal E rho s N ΔF h x _ hx h.proposal.1 j _ hj hu C.target hT
 
 /-- The retained inputs for the actual proposer and voter reads. -/
 structure FormationRetainedHeadRest (p : Params) (src dst : Node p)
