@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationFrame
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint
 public import AvailableChainFGSAProofs.Proofs.Shared.HealingFixture
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
