@@ -34,3 +34,9 @@ public import AvailableChainPCSAProofs.Proofs.Shared.RetainedWalk
 public import AvailableChainPCSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainPCSAProofs.Proofs.Shared.RunEvidence
 public import AvailableChainPCSAProofs.Proofs.Shared.StoreEvidence
+public import AvailableChainPCSAProofs.Proofs.Shared.CollectClosed
+public import AvailableChainPCSAProofs.Proofs.Shared.StageStore
+public import AvailableChainPCSAProofs.Proofs.Shared.StageRun
+public import AvailableChainPCSAProofs.Proofs.Shared.RelayStore
+public import AvailableChainPCSAProofs.Proofs.Shared.RelayRun
+public import AvailableChainPCSAProofs.Proofs.Shared.PCViews
