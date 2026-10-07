@@ -761,3 +761,6 @@ end
 #print axioms AvailableChain.PCSA.pcsa_named_parent_of_positive
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_emitted_heads_equal
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_headsEqual_step
+
+-- C6 AckResults.
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_result_compatible

@@ -166,6 +166,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.RootAgreement
 
 public import AvailableChainPCSAProofs.Proofs.Clean.HonestProposal
 
+public import AvailableChainPCSAProofs.Proofs.Clean.AckResults
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
