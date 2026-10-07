@@ -1,6 +1,7 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FGStore
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Height
-public import AvailableChainPCSAProofs.Proofs.Foundations.Run
+public import AvailableChainPCSAProofs.Proofs.Foundations.Run -- shake: keep (engine induction re-export for AcFrame.Run)
 public import AvailableChainFGSA.Proofs.Admission
 
 public section
@@ -23,68 +24,6 @@ theorem AcStoreSafe_def (F : Finset (Fin n)) (st : State n) :
         ∀ B ∈ st.fg.TF, ∀ W, FGBlock.Preceq W B → ∀ a ∈ W.rows, a.signer ∈ F) := by
   apply propext
   exact ⟨fun h => h, fun h => h⟩
-
-/-- Normalization changes no FG field. -/
-theorem pcsa_normalizeS_fg (st : State n) : (normalizeS st).fg = st.fg := by
-  unfold normalizeS
-  split <;> rfl
-
-/-- Reconciliation changes no FG field. -/
-theorem pcsa_reconcile_fg (st : State n) : (reconcile st).fg = st.fg := by
-  unfold reconcile
-  rw [pcsa_normalizeS_fg]
-
-/-- A clock changes no FG field. -/
-theorem pcsa_clock_fg (p : Params) (st : State p.n) (t : Time) : (clock p st t).fg = st.fg := by
-  unfold clock
-  dsimp only
-  split
-  · unfold gateStep
-    rw [pcsa_normalizeS_fg]
-    split
-    · exact (clockPre_output_fields p st t).1
-    · rw [(gateFrom_pc_frame _ _ _ _ _ _).2]
-      exact (clockPre_output_fields p st t).1
-  · exact (clockPre_output_fields p st t).1
-
-/-- A row batch changes no FG field. -/
-theorem pcsa_fold_admitRow_fg (p : Params) (st : State p.n) (as : List (RowWire p.n)) :
-    (as.foldl (admitRow p) st).fg = st.fg := by
-  induction as generalizing st with
-  | nil => rfl
-  | cons a as ih =>
-    rw [List.foldl_cons, ih]
-    delta admitRow
-    cases hdecode : a.decode? <;> dsimp only
-    split <;> rfl
-
-/-- A raw ack batch changes no FG field. -/
-theorem pcsa_fold_poolAckRaw_fg (st : State n) (as : List (AckWire n)) :
-    (as.foldl poolAckRaw st).fg = st.fg := by
-  induction as generalizing st with
-  | nil => rfl
-  | cons a as ih => rw [List.foldl_cons, ih, (poolAckRaw_frame st a).2.2.2]
-
-/-- Block admission changes FG only through the existing window handler. -/
-theorem pcsa_admitBlock_fg_cases (p : Params) (st : State p.n) (s : Slot)
-    (N : NamedProposal p.n) :
-    (admitBlock p st s N).fg = st.fg ∨
-      ∃ P, parentFG st N.erase = some P ∧
-        (admitBlock p st s N).fg =
-          FGSA.Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows) := by
-  delta admitBlock
-  split
-  · exact Or.inl rfl
-  · cases hP : parentFG st N.erase
-    · exact Or.inl rfl
-    · rename_i P
-      dsimp only
-      split
-      · right
-        refine ⟨P, rfl, ?_⟩
-        rw [pcsa_fold_admitRow_fg, (collectPCs_frame _).2.2.2.2, pcsa_fold_poolAckRaw_fg]
-        cases N.pc <;> dsimp only <;> split_ifs <;> simp only [pcsa_reconcile_fg] <;> rfl
-      · exact Or.inl rfl
 
 /-- A window update on a block with only faulty rows keeps the cached frame initial. -/
 theorem pcsa_on_block_acSafe (p : Params) (F : Finset (Fin p.n))

@@ -79,6 +79,34 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
             (tree / 'AvailableChainFGCompose.lean').rename(tree / 'root.saved')
             require('missing source root', audit(tree, env), 2, 'MISSING COMPOSE ROOT')
 
+    # Keep lower libraries available, but exclude the real Compose output.
+    fallback = root / 'lower-oleans'
+    fallback.mkdir()
+    for entry in (REPO / '.lake/build/lib/lean').iterdir():
+        if not entry.name.startswith('AvailableChainFGCompose'):
+            (fallback / entry.name).symlink_to(entry, target_is_directory=entry.is_dir())
+    # Exercise the introduced safety paths, without fallback to real oleans.
+    for name in ('Statements.SafetyReads', 'Statements.SafetyStore', 'Statements.SafetyClient',
+                 'Statements.SafetyClaims', 'Proofs.SafetyStore', 'Proofs.SafetyAccountable'):
+        tree, env = fixture('safety-' + name)
+        env['LEAN_PATH'] = os.pathsep.join([str(fallback), *[part for part in
+            env['LEAN_PATH'].split(os.pathsep) if part != str(REPO / '.lake/build/lib/lean')]])
+        compile_module(tree, env, 'AvailableChainFGCompose', 'module\n')
+        target = 'AvailableChainFGCompose.' + name
+        source = compile_module(tree, env, target,
+                                'module\npublic section\n'
+                                'namespace SafetyControl\n'
+                                'def present : Prop := True\nend SafetyControl\n')
+        require('safety ' + name + ' coverage', audit(tree, env, '--expect', 'SafetyControl.present'),
+                0, 'Compose checked')
+        require('safety ' + name + ' missing name', audit(tree, env, '--expect', 'SafetyControl.absent'),
+                2, 'NOT CHECKED: SafetyControl.absent')
+        source.with_suffix('.olean').rename(tree / 'saved.olean')
+        require('safety ' + name + ' missing olean', audit(tree, env), 2, 'COMPOSE INPUT ERROR:')
+        compile_module(tree, env, target,
+                       'module\nprivate axiom bad : False\nprivate theorem present : False := bad\n')
+        require('safety ' + name + ' forbidden axiom', audit(tree, env), 1, 'BAD AXIOMS')
+
     # A forbidden extra root is exempt only for itself, never for its imports.
     for dep in ('AvailableChainEngineV2.Engine.Duty.Run', 'AvailableChainFGCompose.Statements.EventReads'):
         tree, env = fixture('pure-' + dep.split('.')[0])
@@ -243,6 +271,19 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
     inventory.write_text(inventory.read_text().replace("    'AvailableChain.FGCompose.cutPred',\n", ''))
     require('inventory omission', run(['bash', 'scripts/check-fg-compose.sh'], tree, env),
             2, 'AvailableChain.FGCompose.cutPred')
+
+    inventory.write_text((REPO / 'scripts/fg-compose-expected.txt').read_text())
+    for name in ('Statements/SafetyReads', 'Statements/SafetyStore', 'Statements/SafetyClient',
+                 'Statements/SafetyClaims', 'Proofs/SafetyStore', 'Proofs/SafetyAccountable'):
+        source = tree / ('AvailableChainFGCompose/' + name + '.lean')
+        if not source.exists():
+            continue
+        saved = source.read_bytes()
+        source.rename(tree / (name.replace('/', '-') + '.saved'))
+        require('safety ' + name + ' missing source',
+                run(['bash', 'scripts/check-fg-compose.sh'], tree, env),
+                2, 'COMPOSE INVENTORY MISSING:')
+        source.write_bytes(saved)
 
     if (REPO / 'AvailableChainFGCompose/Proofs/SourceHead.lean').exists():
         # These attempts fail at the exact omitted contract premise.

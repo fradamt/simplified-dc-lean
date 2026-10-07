@@ -79,6 +79,12 @@ theorem healing_resetArrivalStatement (p : Params) (G ΔF : Time) :
     ResetArrivalStatement p G ΔF :=
   healing_resetArrival p G ΔF fun c E rho hset _ => healing_frontierSearch_of_set p c E rho hset
 
+/-- Blueprint 21 H.11:1572–1595; the reset-only claim from the frozen statement.
+DC: SAME reset-only conclusion; ResetArrivalPrem supplies the set, bound and horizon. -/
+theorem healing_resetArrivalClaim (p : Params) : ResetArrivalClaim p := by
+  intro G ΔF hδ V _ _ In c E rho _ h
+  exact healing_resetArrivalStatement p G ΔF hδ c E rho h.set h.bound h.hhor
+
 /-- ROOT-DIGEST W2b. Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2.
 DC: SAME cone step at every event cut. HealingSet supplies each run port. -/
 theorem healing_postReset_coneStep_of_set (p : Params) {V : Type}

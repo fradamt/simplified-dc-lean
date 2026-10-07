@@ -97,7 +97,7 @@ failed=0
 # run before a commit. Use NUL delimiters for names and disable external diffs.
 tier_path() {
   case "$1" in
-    scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|Statements/*|*/Statements/*|docs/FGSA-API.md|docs/FGSA-API-frozen.md)
+    scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|Statements/*|*/Statements/*|docs/FGSA-API.md|docs/FGSA-API-frozen.md|docs/PCSA-API.md)
       reason="gate input changed: $1"; return 0 ;;
   esac
   return 1
@@ -210,6 +210,7 @@ run_check() {
     v2-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --check ;;
     gen-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check ;;
     fgsa-manifest) step "$1" gate_with_slot bash scripts/check-fgsa-manifest.sh ;;
+    pcsa-manifest) step "$1" gate_with_slot bash scripts/check-pcsa-manifest.sh ;;
     fgsa-claims) step "$1" gate_with_slot bash scripts/check-fgsa-claims.sh ;;
     *) echo "unknown gate step: $1" >&2; return 2 ;;
   esac
@@ -224,7 +225,7 @@ run_group() {
   local name
   for name in "$@"; do summary "$name"; done
 }
-tail_steps=(catalog-lock v2-manifest gen-manifest fgsa-manifest fgsa-claims)
+tail_steps=(catalog-lock v2-manifest gen-manifest fgsa-manifest pcsa-manifest fgsa-claims)
 if [ "$tier" = merge ]; then
   # Merge tier (NEG=0): no step writes the real tree, so the tail joins the
   # parallel group. The longest step goes first. Full tier: the controls write
@@ -232,7 +233,7 @@ if [ "$tier" = merge ]; then
   # copies the built roots, so the tail stays sequential there. Claims controls
   # exceeded 7 GiB on the Mac. No new memory evidence supports overlap or more
   # than the measured two audit workers (U158/U160/U172).
-  run_group fgsa-claims fgsa-manifest check-build check-fgsa check-fgsa-run \
+  run_group fgsa-claims fgsa-manifest pcsa-manifest check-build check-fgsa check-fgsa-run \
     catalog-lock v2-manifest gen-manifest
 else
   run_group check-build check-fgsa check-fgsa-run
@@ -270,6 +271,15 @@ summary FGSACompose-axioms
 stop_if_failed
 step PCSACompose-axioms audit AvailableChainPCSAProofs/Tests/FGCompose.lean "$logs/PCSACompose.axioms"
 summary PCSACompose-axioms
+stop_if_failed
+step FGSafety-axioms audit AvailableChainFGCompose/Tests/SafetyAxioms.lean "$logs/FGSafety.axioms"
+summary FGSafety-axioms
+stop_if_failed
+step FGSASafety-axioms audit AvailableChainFGSAProofs/Tests/FGSafety.lean "$logs/FGSASafety.axioms"
+summary FGSASafety-axioms
+stop_if_failed
+step PCSASafety-axioms audit AvailableChainPCSAProofs/Tests/FGSafety.lean "$logs/PCSASafety.axioms"
+summary PCSASafety-axioms
 stop_if_failed
 finish
 exit "$failed"
