@@ -1823,6 +1823,7 @@
             'AvailableChain.FGSA.Run.healing_postReset_rawStep_of_set',
             'AvailableChain.FGSA.Run.healing_postReset_resetLeaseStep_of_set',
             'AvailableChain.FGSA.Run.healing_resetArrival',
+            'AvailableChain.FGSA.Run.healing_resetArrivalClaim',
             'AvailableChain.FGSA.Run.healing_resetArrivalFull',
             'AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open',
             'AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open₂',
