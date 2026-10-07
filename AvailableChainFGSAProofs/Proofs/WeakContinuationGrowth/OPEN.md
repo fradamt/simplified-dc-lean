@@ -33,8 +33,9 @@ remaining obligations for this concrete pair:
   proved; the same delivery and signature fields remain open.
 - `continuationRoots`: continuation Base₂.idealization.
 - `continuationSync`: CleanGrowthContinuation₂.sync.
-- `pending`: CleanGrowthContinuation₂.pending, both sourceBroadcast and
-  sourceRelay with the original source guard and deadlines.
+- `pending`: closed in w6 by `nvGrowth_pending`. The generic duty-free-round
+  lemmas prove that time 247 has no emissions or deliveries. Both original
+  source guards and family deadlines remain in the theorem.
 - `accountable`: CleanGrowthContinuation₂.accountable,
   FinalitySlashableBound on the whole continuation.
 

@@ -318,6 +318,47 @@ theorem nvGrowth_prefix_sorted (steps : Nat) :
       rw [(nvGrowth_batch_shape _ _ _ _ hf).1]
       exact ⟨he'.le, fun h => False.elim (ne_of_lt he' h)⟩
 
+/-- A duty-free round releases no object, for any state or run data. -/
+theorem nvGrowth_tick_empty {p : Params} {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (st : (fgsa p c).State) (v : V) (t : Time) (hd : duties p t = []) :
+    (V2.D.tick E rho st v t).2 = [] := by
+  simp [V2.D.tick, fgsa, hd]
+  intro _
+  rfl
+
+/-- The generator has no deliveries in a duty-free round. -/
+theorem nvGrowth_batch_empty (vs : List Validator) (t : Time) (w : World)
+    (hd : duties params t = []) :
+    (timeBatch vs t w).2 = vs.map (fun v => .tick v t) := by
+  have ht (vs : List Validator) (w : World)
+      (os : List (fgsa params unitCodec).Object) :
+      (vs.foldl (fun acc v =>
+        let result := V2.D.tick env (runData 0 []) (acc.1 v) v t
+        (Function.update acc.1 v result.1, acc.2 ++ result.2)) (w, os)).2 = os := by
+    induction vs generalizing w os with
+    | nil => rfl
+    | cons v vs ih =>
+        exact (ih _ _).trans (by
+          rw [nvGrowth_tick_empty unitCodec env _ _ v t hd, List.append_nil])
+  have he : (tickBatch vs t w).2 = [] := ht vs w []
+  simp [timeBatch, he]
+
+/-- This fact holds for every prefix length, without trace evaluation. -/
+theorem nvGrowth_prefix_no_delivery (steps : Nat) (v : Validator) (o : Obj params)
+    (t : Time) (hd : duties params t = []) :
+    V2.Event.deliver v o t ∉ (buildPrefix steps).2 := by
+  induction steps with
+  | zero => exact List.not_mem_nil
+  | succ steps ih =>
+      intro he
+      rcases List.mem_append.mp he with he | he
+      · exact ih he
+      · have ht : t = (steps : Time) := (nvGrowth_batch_shape _ _ _ _ he).1
+        rw [← ht, nvGrowth_batch_empty nodes t _ hd] at he
+        obtain ⟨u, _, hu⟩ := List.mem_map.mp he
+        cases hu
+
 /-- Schedule facts proved for each symbolic prefix. -/
 structure PrefixFacts (steps : Nat) (es : List Event) : Prop where
   sorted : es.Pairwise (fun e f => e.key ≤ f.key)
@@ -325,11 +366,13 @@ structure PrefixFacts (steps : Nat) (es : List Event) : Prop where
   times : ∀ e ∈ es, 0 ≤ e.time ∧ e.time < steps
   ticks : ∀ t, t < steps → ∀ v, V2.Event.tick v (t : Time) ∈ es
   noRestart : ∀ v t, V2.Event.restart v t ∉ es
+  noDelivery : ∀ v o t, duties params t = [] → V2.Event.deliver v o t ∉ es
 
 def certifiedPrefix (steps : Nat) :
     { data : World × List Event // PrefixFacts steps data.2 } :=
   ⟨buildPrefix steps, ⟨nvGrowth_prefix_sorted steps, nvGrowth_prefix_nodup steps,
-    nvGrowth_prefix_times steps, nvGrowth_prefix_tick steps, nvGrowth_prefix_no_restart steps⟩⟩
+    nvGrowth_prefix_times steps, nvGrowth_prefix_tick steps, nvGrowth_prefix_no_restart steps,
+    nvGrowth_prefix_no_delivery steps⟩⟩
 
 /-- A checked opaque value keeps the long trace out of kernel conversion.
 The value is the real generator paired with its symbolic schedule proofs. -/
@@ -479,6 +522,37 @@ theorem nvGrowth_continuation_schedule_of (es : List Event) (w : World)
 theorem nvGrowth_continuation_schedule : V2.D.ScheduleWellFormed env continuation :=
   nvGrowth_continuation_schedule_of source.events endWorld nvGrowth_source_schedule
 
+/-- The endpoint round has no network trigger. Both original pending guards remain. -/
+theorem nvGrowth_pending :
+    PendingSourceDelivery₂ params unitCodec env source env continuation 1 where
+  sourceBroadcast := by
+    intro v _ o t hem hh w _ hcross _ _
+    obtain ⟨i, hi, ho⟩ := hem
+    have ht := (nvGrowth_source_in_horizon _ (List.mem_of_getElem? hi)).1
+    have hd : fgsaDelay (p := params) env.Δ 1 o = 1 := by
+      cases o with | mk a m => cases m <;> rfl
+    rw [hd] at hcross
+    change 247 < max t 0 + 1 at hcross
+    change t ≤ 247 at hh
+    have he : t = 247 := by simp only [Time] at *; omega
+    subst t
+    rw [(V2.D.Run.step_tick_eq env source hi).2,
+      nvGrowth_tick_empty unitCodec env source _ v 247 (by decide)] at ho
+    cases ho
+  sourceRelay := by
+    intro v _ i o t ha hh w _ _ hcross _ _
+    obtain ⟨a, hi, _⟩ := ha.1
+    have ht := (nvGrowth_source_in_horizon _ (List.mem_of_getElem? hi)).1
+    have hd : fgsaDelay (p := params) env.Δ 1 o = 1 := by
+      cases o with | mk a m => cases m <;> rfl
+    rw [hd] at hcross
+    change 247 < max t 0 + 1 at hcross
+    change t ≤ 247 at hh
+    have he : t = 247 := by simp only [Time] at *; omega
+    subst t
+    exact (generatedPrefix.property.noDelivery v a 247 (by decide)
+      (List.mem_of_getElem? hi)).elim
+
 theorem nvGrowth_partialWitness :
     V2.D.ScheduleWellFormed env source ∧
     V2.D.ScheduleWellFormed env continuation ∧
@@ -535,6 +609,7 @@ theorem nvGrowth_complete_of_missing (h : MissingFields) :
 #print axioms nvGrowth_no_restart
 #print axioms nvGrowth_source_schedule
 #print axioms nvGrowth_continuation_schedule
+#print axioms nvGrowth_pending
 #print axioms nvGrowth_partialWitness
 #print axioms nvGrowth_complete_of_missing
 
