@@ -584,3 +584,8 @@ end
 -- C6 NCounts.
 #print axioms AvailableChain.PCSA.Run.pcsa_N_same_label_result
 #print axioms AvailableChain.PCSA.Run.pcsa_honestAck_same_label_result
+
+-- C6 NWalkCounts.
+#print axioms AvailableChain.PCSA.pcsa_N_score_dominance
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_honest_not_capped
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped
