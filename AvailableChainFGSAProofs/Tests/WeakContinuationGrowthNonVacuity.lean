@@ -3799,6 +3799,29 @@ theorem nvRestrict_roots_restrict (kept : Finset V) (hsub : kept ⊆ rho.honest)
     intro B C hB hC A D hA hD he
     exact hr.root_injective B C (scope B hB) (scope C hC) A D hA hD he
 
+/-- Every continuation finality observation occurs in the reference run. -/
+theorem nvRestrict_finalityBlock_restrict (kept : Finset V)
+    (hs : V2.D.ScheduleWellFormed E (restrictRun rho kept))
+    (K : SimplexFG.FGBlock (Fin p.n))
+    (hK : FinalityBlock p c E (restrictRun rho kept) K) : FinalityBlock p c E rho K := by
+  obtain ⟨o, N, ho, he, hKN⟩ := hK
+  refine ⟨o, N, ho, ?_, hKN⟩
+  rcases he with ⟨x, t, he⟩ | ⟨x, t, he⟩
+  · have hx : x ∈ kept := by
+      obtain ⟨j, hj, _⟩ := he
+      exact hs.honest_only _ (List.mem_of_getElem? hj)
+    exact Or.inl ⟨x, t, (nvRestrict_emits_restrict E rho kept x hx o t).mp he⟩
+  · exact Or.inr ⟨x, t, (List.mem_filter.mp he).1⟩
+
+/-- Whole-run slashing weight is bounded by the reference's coherent history. -/
+theorem nvRestrict_accountable_restrict (kept : Finset V)
+    (hs : V2.D.ScheduleWellFormed E (restrictRun rho kept))
+    (hb : FinalitySlashableBound p c E rho) :
+    FinalitySlashableBound p c E (restrictRun rho kept) := by
+  intro K W hK hW
+  exact hb K W (nvRestrict_finalityBlock_restrict p c E rho kept hs K hK)
+    (nvRestrict_finalityBlock_restrict p c E rho kept hs W hW)
+
 end FGSA
 end AvailableChain.FGSA.Run.Tests.GrowthRestriction
 end
@@ -4192,6 +4215,9 @@ structure ValidPrefixFacts (endpoint : Nat) (data : World × List Event) : Prop
   roots : NamedRootCollisionFree params unitCodec env (runData (endpoint : Time) data.2)
   sync : Gen.V2.Duty.PartialSynchronyBy env (runData (endpoint : Time) data.2)
     (fgsaDelay env.Δ 1)
+  nextAccountable : FinalitySlashableBound params unitCodec env (runData (endpoint + 1 : Nat)
+    (data.2 ++ (show List Event from
+      (GrowthGenerator.timeBatch (count := 5) (endpoint + 1 : Nat) data.1).2)))
   nextSync : Gen.V2.Duty.PartialSynchronyBy env (runData (endpoint + 1 : Nat)
     (data.2 ++ (show List Event from
       (GrowthGenerator.timeBatch (count := 5) (endpoint + 1 : Nat) data.1).2)))
@@ -4230,7 +4256,10 @@ def certifiedValidPrefix (endpoint : Nat) :
       exact GrowthGenerator.nvGen_prefix_roots (count := 5) (endpoint + 1)
     nextSync := by
       rw [nvGrowth_generator_env, nvGrowth_generator_run]
-      exact GrowthGenerator.nvGen_prefix_sync (count := 5) (endpoint + 1) }⟩
+      exact GrowthGenerator.nvGen_prefix_sync (count := 5) (endpoint + 1)
+    nextAccountable := by
+      rw [nvGrowth_generator_env, nvGrowth_generator_run]
+      exact GrowthGenerator.nvGen_prefix_accountable (count := 5) (endpoint + 1) }⟩
 
 /-- A checked opaque value keeps the long trace out of kernel conversion.
 The value is the real generator paired with its symbolic schedule proofs. -/
@@ -4433,6 +4462,16 @@ theorem nvGrowth_continuation_sync :
   exact GrowthRestriction.nvRestrict_sync_restrict env reference retainedSet
     (by intro v _; exact Finset.mem_univ v) (fgsaDelay env.Δ 1) nvGrowth_reference_sync
 
+theorem nvGrowth_reference_accountable : FinalitySlashableBound params unitCodec env reference :=
+  generatedPrefix.property.nextAccountable
+
+theorem nvGrowth_continuation_accountable :
+    FinalitySlashableBound params unitCodec env continuation := by
+  rw [nvGrowth_reference_restrict]
+  exact GrowthRestriction.nvRestrict_accountable_restrict params unitCodec env reference retainedSet
+    (by rw [← nvGrowth_reference_restrict]; exact nvGrowth_continuation_valid.toScheduleWellFormed)
+    nvGrowth_reference_accountable
+
 theorem nvGrowth_continuation_schedule : V2.D.ScheduleWellFormed env continuation :=
   nvGrowth_continuation_valid.toScheduleWellFormed
 
@@ -4490,6 +4529,16 @@ structure MissingFields : Prop where
   pending : PendingSourceDelivery₂ params unitCodec env source env continuation 1
   accountable : FinalitySlashableBound params unitCodec env continuation
 
+theorem nvGrowth_missing : MissingFields := {
+  sourceValid := nvGrowth_source_valid
+  sourceRoots := nvGrowth_source_roots
+  sourceSync := nvGrowth_source_sync
+  continuationValid := nvGrowth_continuation_valid
+  continuationRoots := nvGrowth_continuation_roots
+  continuationSync := nvGrowth_continuation_sync
+  pending := nvGrowth_pending
+  accountable := nvGrowth_continuation_accountable }
+
 theorem nvGrowth_complete_of_missing (h : MissingFields) :
     StrongRecoverySearchPrefix₂ params unitCodec env source 4 1 ∧
     CleanGrowthContinuation₂ params unitCodec env source env continuation 1 := by
@@ -4516,6 +4565,15 @@ theorem nvGrowth_complete_of_missing (h : MissingFields) :
       deltaF := le_rfl
       accountable := h.accountable
       participation := fun t _ _ => nvGrowth_participation t }
+
+theorem nvGrowth_complete :
+    StrongRecoverySearchPrefix₂ params unitCodec env source 4 1 ∧
+    CleanGrowthContinuation₂ params unitCodec env source env continuation 1 :=
+  nvGrowth_complete_of_missing nvGrowth_missing
+
+#print axioms nvGrowth_continuation_accountable
+#print axioms nvGrowth_missing
+#print axioms nvGrowth_complete
 
 #print axioms nvGrowth_numbers
 #print axioms nvGrowth_agreement

@@ -6,7 +6,7 @@ The API manifest includes the additive declarations. The two named Root
 import exceptions and the Statements-order exception are applied.
 The frozen FGSAClaims field and the original WC interface are unchanged.
 
-## Remaining non-vacuity fields (w5)
+## Non-vacuity fields (w6, closed)
 
 `Tests/WeakContinuationGrowthNonVacuity.lean` adds a closed partial pair.
 It adapts the W1 duty-engine generator to five validators. The source has
@@ -20,9 +20,8 @@ retained local agreement, the full seat map, linked and fresh committees,
 no restarts, proposer recurrence, source participation, the source fault
 cap, the liveness bound, and continuation participation.
 
-The full conjunction of StrongRecoverySearchPrefix₂ and
-CleanGrowthContinuation₂ remains open. `MissingFields` gives the exact
-remaining obligations for this concrete pair:
+The full conjunction is closed by `nvGrowth_complete`. `nvGrowth_missing`
+fills all eight fields of `MissingFields` for the concrete pair:
 
 - `sourceValid`: closed in w6 by `nvGrowth_source_valid`. The W1 proof is
   parameterized by the positive validator count. Generic replay, dependency,
@@ -48,13 +47,16 @@ remaining obligations for this concrete pair:
 - `pending`: closed in w6 by `nvGrowth_pending`. The generic duty-free-round
   lemmas prove that time 247 has no emissions or deliveries. Both original
   source guards and family deadlines remain in the theorem.
-- `accountable`: CleanGrowthContinuation₂.accountable,
-  FinalitySlashableBound on the whole continuation.
+- `accountable`: closed in w6 by `nvGrowth_continuation_accountable`.
+  Every continuation FinalityBlock occurs in the coherent reference run.
+  Its zero-fault slashing bound covers the whole continuation.
 
-`nvGrowth_complete_of_missing` constructs both full records from exactly these
-fields. It does not prove that MissingFields is inhabited. Do not report
-this test as a full non-vacuity proof. The earlier horizon-0 executable
-candidate remains available as a short engine check.
+`nvGrowth_complete_of_missing nvGrowth_missing` constructs both full records.
+`nvGrowth_complete` has only propext, Classical.choice, and Quot.sound.
+`nvGrowth_numbers` proves source faults 0, continuation faults 2, 5 < 6,
+and 4 < 5. `nvGrowth_suffix_nonempty` proves the retained tick at time 248.
+The source endpoint is 247 = GST + B_HF. The continuation endpoint is 248.
+No non-vacuity gap remains for this witness. No statement defect was found.
 
 ## Reuse path (w6)
 
@@ -66,19 +68,13 @@ The W1 generator now has checked prefix proofs for every positive validator
 count: `nvGen_prefix_execution`, `nvGen_prefix_roots`, `nvGen_prefix_sync`, and
 `nvGen_prefix_accountable`. The source uses its fresh-only delivery generator.
 The slot digest, five seats, endpoints, fault counts, and suffix remain.
-Only source execution validity is added to the opaque certificate so far.
-The other generic results do not yet close the remaining concrete fields.
+The opaque certificate retains source validity, roots, and synchrony. It
+retains all four reference-run fields for the next round. Generic retained
+occurrence proofs then preserve the continuation fields.
 
-Exact transfer work remains:
-
-- Source roots and family synchrony must be retained by the certificate.
-- Continuation validity needs full-state replay at retained delivery indices,
-  including each carried honest signature's earlier retained emission.
-- Continuation roots need coverage of all delivered bodies and retained
-  stored bodies by the reference run's full named scope.
-- Continuation synchrony needs retained receipt indices and the original
-  post-acceptance receiver guard, with the same family deadline.
-- Whole-run accountability needs every continuation FinalityBlock to be a
-  reference FinalityBlock. The full reference generator has zero faults.
-  Its slashing bound can then cover the two-fault continuation. A two-fault
-  one-third bound is not used.
+The occurrence proofs preserve full local states at paired indices,
+including the post-acceptance state. Root coverage includes delivered and
+held full named bodies and their ancestors. All finality observations occur
+in the valid, zero-fault reference run. The continuation uses two faults;
+no one-third bound is assumed for it. Pending duties retain the original
+source guards and deadlines.
