@@ -920,3 +920,41 @@ label-zero auxiliary coverage. The assembly adds no new premises.
 C6 support: prove empty pre-gate PC and lock stores. The module uses the
 concrete readers and preserves the joint-induction premises.
 These are support facts. C6 and its remaining joint record fields are open.
+
+### SnapshotContents
+
+C6 support: trace frozen PCs to exact earlier pool reads. The module uses
+the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
+
+C6 kernel milestone: /tmp/Invariant.lean proves CleanInvariantClaim
+and the joint ack-coverage theorem. Both axiom prints contain exactly
+propext, Classical.choice and Quot.sound. Production module gates and
+commits are still in progress.
+
+C5 plan: generalize record event order to an indexed limit, so each
+completed gate uses C6 at its own label. For a held PC of slot s, its
+honest ack has earlyTime s within the prefix; CI(s-1) and its auxiliary
+HEAD coverage order it after older PCs and results. PC persistence and
+maximum-slot selection give selected-target monotonicity. Apply the
+Generic pcFloor monotonicity theorem to S and the selected PC target.
+
+`CutReads`: retain actual gate times for S origins, actual early
+times for PC ack origins, PC persistence at inclusive reads, and
+selected-PC source witnesses. `CutOrder` export: use C6 at completed
+gates and at the gate equal to the later PC ack time. Derive record
+monotonicity, PC target order and PC/S compatibility through the full
+cut, then prove AvailableMonotoneClaim (C5) with pcFloor_mono.
+
+`CleanOutputs` exports: clean dissemination is a projection of the
+checked joint ack coverage. For safety, compare all completed S
+origins and observed PC ack targets across nodes and times. The
+available output is S or a selected PC target; strong is that target
+or genesis. C5 and selected-target order give both monotonicity parts.
+
+`GenuineKeys`: trace each saved raw-result label to its exact earlier
+gate tick. Delivery preserves labels; only the matching clock gate
+adds one. Nodup makes the actual gate input unsaved. `GateAdvance`:
+with the clean lock guard clear, the gate result is below post-clock S.
+Use the checked C5 event-order lemma to carry this lower bound to
+every later read and then to the available output for clean inclusion.

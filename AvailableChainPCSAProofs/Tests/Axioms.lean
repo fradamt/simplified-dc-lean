@@ -480,3 +480,8 @@ end
 -- C6 ZeroStores.
 #print axioms AvailableChain.PCSA.Run.pcsa_zero_store_before_gate
 #print axioms AvailableChain.PCSA.Run.pcsa_zero_storeAt_before_gate
+
+-- C6 SnapshotContents.
+#print axioms AvailableChain.PCSA.Run.pcsa_snapshot_row_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_snapshot_pc_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_snapshots_before_first_gate_empty
