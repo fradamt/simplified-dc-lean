@@ -84,7 +84,14 @@ is proved in RunInputs and is no longer an input.
 installing call handles the real PC, and the PC target-alias run in
 Tests/RecoveryViewCounterexample has a common view at the first slot and
 after the mix time. The F3 producer needs the run fact that every PC
-installed before the freeze is an accepted, relayed object (OPEN). -/
+installed before the freeze is an accepted, relayed object (OPEN).
+OPEN block admission under RECOVERY, with `x` the slot-`s₁` proposer:
+(B1) if an honest `y` installs `C` before `z_{s₁-1}`, then `C.target` is in
+the blocks of `x` at `t_{s₁}`; (B2) every honest voter at `v_{s₁}` holds the
+proposal `N` and the target of `N.pc`. `recovery_path_source_receipt` gives
+only the network step of (B2): an honest node handles each body on the path
+before `v_{s₁}`. It does not give the admission of a handled body, and it
+does not give the direction from the voters to the proposer (deadline `t_{s₁}`). -/
 structure RecoverySuffixInputs (s₁ : Slot) (ΔF : Time) : Prop where
   firstSlot : ∃ N : NamedProposal p.n,
     FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁
