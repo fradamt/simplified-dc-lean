@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.SafetyClaims
+public import AvailableChainFGCompose.Proofs.SafetyAccountable
 
 public section
 
@@ -17,25 +18,28 @@ variable [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V P)
 
 variable (Good : P.State → Prop) (Q : Block → Prop)
 
--- Type check safety_run_accountable. No proof is declared.
-#check (∀ (_C : FGCoreLaws R) (_L : FGSafetyStoreLaws R S H f Good)
+-- safety_run_accountable has the provisional field type.
+example : (∀ (_C : FGCoreLaws R) (_L : FGSafetyStoreLaws R S H f Good)
     (_K : FGCertificateLaws Ef H f) (_N : FGSafetyScopeLaws R S E rho Q)
     (_hr : safetyScopedRoots R Q),
-    SafetyWholeAccountable R S Ef f E rho)
+    SafetyWholeAccountable R S Ef f E rho) :=
+  safety_run_accountable R S Ef H f E rho Good Q
 
--- Type check safety_run_agreement. No proof is declared.
-#check (∀ (_C : FGCoreLaws R) (_L : FGSafetyStoreLaws R S H f Good)
+-- safety_run_agreement has the provisional field type.
+example : (∀ (_C : FGCoreLaws R) (_L : FGSafetyStoreLaws R S H f Good)
     (_K : FGCertificateLaws Ef H f) (_N : FGSafetyScopeLaws R S E rho Q)
     (_hr : safetyScopedRoots R Q) (_hb : safetyBound R S Ef E rho),
-    SafetyWholeAgreement R S f E rho)
+    SafetyWholeAgreement R S f E rho) :=
+  safety_run_agreement R S Ef H f E rho Good Q
 
--- Type check safety_event_agreement. No proof is declared.
-#check (∀ (_C : FGCoreLaws R) (_L : FGSafetyStoreLaws R S H f Good)
+-- safety_event_agreement has the provisional field type.
+example : (∀ (_C : FGCoreLaws R) (_L : FGSafetyStoreLaws R S H f Good)
     (_K : FGCertificateLaws Ef H f) (_N : FGSafetyScopeLaws R S E rho Q)
     (_hr : safetyScopedRoots R Q) (_hb : safetyBound R S Ef E rho)
     (i j : Nat) (x y : V),
     FGBlock.compatible (R.core (V2.D.Run.stateBefore E rho i x)).fg.F
-      (R.core (V2.D.Run.stateBefore E rho j y)).fg.F = true)
+      (R.core (V2.D.Run.stateBefore E rho j y)).fg.F = true) :=
+  safety_event_agreement R S Ef H f E rho Good Q
 
 -- Type check safety_fault_count_bound. No proof is declared.
 #check (∀ [Fintype V]
