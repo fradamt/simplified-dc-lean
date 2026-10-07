@@ -479,5 +479,83 @@ theorem pcsa_formation_preFreeze_of_run (E : Generic.Env V)
   exact pcsa_formation_preFreeze E rho s N ΔF h
     (pcsa_formation_inputs_of_run E rho s N ΔF h hRun)
 
+/-- The pre-freeze premise supplies every field of `FormationPreFreezeInputs`
+from five named producers. Shared body relay closes the old frozen targets;
+metadata gives the vote-read body. The binders are the retained HEAD path,
+early HEAD receipt, honest-proposal receipt at `v_s` and `e_s`, and the
+honest ack handler pool. -/
+theorem pcsa_formation_preFreeze_inputs (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
+    (hRetained : ∀ src dst y,
+      pcsa_postClock E rho
+        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
+      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
+      FormationRetainedHeadRest p src dst s N)
+    (hEarlyHeads : ∀ y ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd →
+      ∀ i : Fin p.n, rho.seatOf (.base (.head s)) i ∈ awakeHonestLabel p c E rho s →
+        ∃ o ∈ GridCO.earlyVotes p.toParams.engine (actView nd.st) s,
+          GridCO.headSeat? o = some i ∧ GridCO.resolvedHead? (actView nd.st) o = some N.erase)
+    (hVoteMetadata : ∀ y ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some nd →
+      (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals)
+    (hEarlyPresence : ∀ y ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd →
+      (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧
+        ∀ D, N.pc = some D → pcValid nd.st D = true)
+    (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
+      rho.seatOf (.base (.ack s)) i ∈ rho.honest →
+      SA.earlyTime p.toParams s ≤ t → t < SA.freezeTime p.toParams s →
+      V2.D.Run.handlesAt E rho j y (ackObj p s i N.erase.root) t →
+      (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
+        (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool) :
+    FormationPreFreezeInputs E rho s N :=
+  pcsa_formation_inputs_of_run E rho s N ΔF h
+    ⟨hRetained, hEarlyHeads, pcsa_formation_frozen_body E rho s N ΔF h,
+      pcsa_formation_vote_presence_of_metadata E rho s N hVoteMetadata,
+      hEarlyPresence, hAckAdmit⟩
+
+/-- Formation parts 1–4 from the pre-freeze premise and the five named producers. -/
+theorem pcsa_formation_preFreeze_of_prem (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
+    (hRetained : ∀ src dst y,
+      pcsa_postClock E rho
+        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
+      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
+      FormationRetainedHeadRest p src dst s N)
+    (hEarlyHeads : ∀ y ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd →
+      ∀ i : Fin p.n, rho.seatOf (.base (.head s)) i ∈ awakeHonestLabel p c E rho s →
+        ∃ o ∈ GridCO.earlyVotes p.toParams.engine (actView nd.st) s,
+          GridCO.headSeat? o = some i ∧ GridCO.resolvedHead? (actView nd.st) o = some N.erase)
+    (hVoteMetadata : ∀ y ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some nd →
+      (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals)
+    (hEarlyPresence : ∀ y ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd →
+      (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧
+        ∀ D, N.pc = some D → pcValid nd.st D = true)
+    (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
+      rho.seatOf (.base (.ack s)) i ∈ rho.honest →
+      SA.earlyTime p.toParams s ≤ t → t < SA.freezeTime p.toParams s →
+      V2.D.Run.handlesAt E rho j y (ackObj p s i N.erase.root) t →
+      (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
+        (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool) :
+    (∀ y H, HonestHeadAt p c E rho y s H → H = N.erase) ∧
+    (∀ y ∈ rho.honest, ∃ nd, pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd ∧
+      holdsN p (actView nd.st) s N.erase = true) ∧
+    (∀ y ∈ rho.honest, E.awake y (SA.earlyTime p.toParams s) = true →
+      HonestAckAt p c E rho y s N.erase) ∧
+    (∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams s) s N.erase) :=
+  pcsa_formation_preFreeze E rho s N ΔF h
+    (pcsa_formation_preFreeze_inputs E rho s N ΔF h hRetained hEarlyHeads hVoteMetadata
+      hEarlyPresence hAckAdmit)
+
 end AvailableChain.PCSA.Run
 end

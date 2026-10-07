@@ -5684,6 +5684,8 @@
             'AvailableChain.PCSA.Run.pcsa_formation_inputs_of_run',
             'AvailableChain.PCSA.Run.pcsa_formation_key_at_read',
             'AvailableChain.PCSA.Run.pcsa_formation_key_before_proposal_of_handler',
+            'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs',
+            'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_prem',
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_run',
             'AvailableChain.PCSA.Run.pcsa_formation_vote_presence_of_metadata',
             'AvailableChain.PCSA.pcsa_formation_current_body_in_voter_tree',
