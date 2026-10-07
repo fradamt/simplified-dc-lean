@@ -2409,7 +2409,6 @@
             'AvailableChain.FGSA.Run.held_chain_row_origin',
             'AvailableChain.FGSA.Run.held_chain_row_origin_before',
             'AvailableChain.FGSA.Run.held_chain_row_origin_delivery',
-            'AvailableChain.FGSA.Run.row_auth_of_toRow',
             'AvailableChain.FGSA.Run.stored_block_wire_delivery',
             'AvailableChain.FGSA.Run.stored_chain_row_origin_delivery',
         ),
@@ -4095,6 +4094,9 @@
             'AvailableChain.FGSA.Run.rootScope_store',
             'AvailableChain.FGSA.Run.srcFrameAbove_scoped',
         ),
+        'AvailableChainFGSAProofs.Proofs.Shared.RowAuth': (
+            'AvailableChain.FGSA.Run.row_auth_of_toRow',
+        ),
         'AvailableChainFGSAProofs.Proofs.Shared.SameLabel': (
             'AvailableChain.FGSA.Run.fgsa_sameLabel',
         ),
@@ -4225,7 +4227,10 @@
     },
     'AvailableChainFGSAProofs.Tests.FGSafety': {
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
+            'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyReads',
+            'AvailableChain.FGSA.Run.fgsaSafetyUnitLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyWireLaws',
         ),
         'AvailableChainFGSARun.Model.Protocol': (
             'AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def',
@@ -5749,6 +5754,21 @@
             'AvailableChain.PCSA.Run.early_gate_duty_order',
             'AvailableChain.PCSA.Run.pcsa_duties_early',
             'AvailableChain.PCSA.Run.signLabel_ack_iff',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope': (
+            'AvailableChain.PCSA.Run.pcsaSafetyScopeLaws',
+            'AvailableChain.PCSA.Run.pcsa_block_parent_preceq',
+            'AvailableChain.PCSA.Run.pcsa_block_parent_preceq_parent',
+            'AvailableChain.PCSA.Run.pcsa_coreReadsWith_erase',
+            'AvailableChain.PCSA.Run.pcsa_emits_proposal_parent',
+            'AvailableChain.PCSA.Run.pcsa_eraseFG_parent',
+            'AvailableChain.PCSA.Run.pcsa_safetyProposalErase_some',
+            'AvailableChain.PCSA.Run.pcsa_safetyReads_proposalErase',
+            'AvailableChain.PCSA.Run.pcsa_safetyScopedRoots',
+            'AvailableChain.PCSA.Run.pcsa_safety_delivered_scope',
+            'AvailableChain.PCSA.Run.pcsa_safety_genesis_scope',
+            'AvailableChain.PCSA.Run.pcsa_safety_parent_scope',
+            'AvailableChain.PCSA.Run.pcsa_tick_mem',
         ),
         'AvailableChainPCSAProofs.Proofs.Foundations.Install': (
             'AvailableChain.PCSA.assemblePC_some_iff',

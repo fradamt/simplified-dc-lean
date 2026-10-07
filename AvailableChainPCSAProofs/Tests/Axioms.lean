@@ -45,6 +45,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope
 
 public section
 
@@ -268,6 +269,19 @@ public section
 #print axioms AvailableChain.PCSA.Run.held_pc_head_support
 #print axioms AvailableChain.PCSA.Run.held_pc_root_unique
 #print axioms AvailableChain.PCSA.Run.held_pc_target_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_block_parent_preceq
+#print axioms AvailableChain.PCSA.Run.pcsa_block_parent_preceq_parent
+#print axioms AvailableChain.PCSA.Run.pcsa_eraseFG_parent
+#print axioms AvailableChain.PCSA.Run.pcsa_coreReadsWith_erase
+#print axioms AvailableChain.PCSA.Run.pcsa_safetyReads_proposalErase
+#print axioms AvailableChain.PCSA.Run.pcsa_tick_mem
+#print axioms AvailableChain.PCSA.Run.pcsa_emits_proposal_parent
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_genesis_scope
+#print axioms AvailableChain.PCSA.Run.pcsa_safetyProposalErase_some
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_delivered_scope
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_parent_scope
+#print axioms AvailableChain.PCSA.Run.pcsaSafetyScopeLaws
+#print axioms AvailableChain.PCSA.Run.pcsa_safetyScopedRoots
 
 #print axioms AvailableChain.PCSA.KeyHeld_def
 #print axioms AvailableChain.PCSA.pcsa_keyHeld_iff_any
