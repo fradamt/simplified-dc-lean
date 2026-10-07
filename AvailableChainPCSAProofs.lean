@@ -12,8 +12,10 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
 public import AvailableChainPCSAProofs.Proofs.Foundations.Locks
+public import AvailableChainPCSAProofs.Proofs.Foundations.NamedScope
 public import AvailableChainPCSAProofs.Proofs.Foundations.Output
 public import AvailableChainPCSAProofs.Proofs.Foundations.OutputState
+public import AvailableChainPCSAProofs.Proofs.Foundations.Proposals
 public import AvailableChainPCSAProofs.Proofs.Foundations.Rank
 public import AvailableChainPCSAProofs.Proofs.Foundations.Run
 public import AvailableChainPCSAProofs.Proofs.Foundations.Snapshot
@@ -22,6 +24,7 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.SnapshotRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.StampRun
 public import AvailableChainPCSAProofs.Proofs.Foundations.Stamps
 public import AvailableChainPCSAProofs.Proofs.Foundations.Store
+public import AvailableChainPCSAProofs.Proofs.Foundations.TickOutput
 public import AvailableChainPCSAProofs.Proofs.PC.AckOrigins
 public import AvailableChainPCSAProofs.Proofs.PC.Certificates
 public import AvailableChainPCSAProofs.Proofs.PC.HeadSupport
@@ -51,5 +54,6 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
+public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore

@@ -202,6 +202,7 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (CO + ".Proofs.SourceHead", K + ".Correspondence"),
             *sorted(api["COMPOSE_EDGES"]),
             *sorted(api["COMPOSE_SAFETY_IMPORTS"]),
+            *sorted(api["COMPOSE_PROOF_IMPORTS"]),
         ]):
             root = temp / f"compose-positive-{index}"
             setup(root)
@@ -219,6 +220,23 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
                 else:
                     found = run(root, 1)
                     assert ("COMPOSE-S", neighbor, target) in found, found
+        # Negative controls: a neighbour of an exact proof edge must still fail.
+        for index, (importer, dep) in enumerate(sorted(api["COMPOSE_PROOF_IMPORTS"])):
+            for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
+                root = temp / f"safety-proof-boundary-{index}-{neighbor}-{target}"
+                setup(root)
+                module(root, neighbor, target)
+                found = run(root, 1)
+                assert ("COMPOSE-P", neighbor, target) in found, found
+        for index, (importer, dep) in enumerate([
+            (CO + ".Proofs.SafetyStore", K + ".AccountableCore"),
+            (CO + ".Proofs.SafetyAccountable", K + ".ClientOnce"),
+        ]):
+            root = temp / f"safety-proof-other-{index}"
+            setup(root)
+            module(root, importer, dep)
+            found = run(root, 1)
+            assert ("COMPOSE-P", importer, dep) in found, found
         print("PASS Safety exact external edges and neighbors")
         for index, (importer, dep) in enumerate(sorted(api["COMPOSE_EDGES"])):
             if "FGSafetyClient" not in importer:

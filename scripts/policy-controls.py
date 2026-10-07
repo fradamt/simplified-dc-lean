@@ -260,7 +260,7 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
     with (scripts / 'gate-common.sh').open('a') as out:
         out.write('\ngate_precheck() { return 0; }\n')
     for name in ('check-build.sh', 'check-fgsa.sh', 'check-fgsa-run.sh',
-                 'check-fgsa-manifest.sh', 'check-fgsa-claims.sh'):
+                 'check-fgsa-manifest.sh', 'check-pcsa-manifest.sh', 'check-fgsa-claims.sh'):
         (scripts / name).write_text('#!/bin/bash\nexit 0\n')
     (scripts / 'check-proof-coverage.py').write_text('print("coverage stub")\n')
     (scripts / 'check-fg-compose.sh').write_text(
