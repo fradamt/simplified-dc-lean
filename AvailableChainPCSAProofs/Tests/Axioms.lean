@@ -426,3 +426,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_result_covers_heads
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_headsAbove_step
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_resultsChain_step
+
+-- C6 ZeroResult.
+#print axioms AvailableChain.PCSA.pcsa_body_positive_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_zero_result_eq_genesis
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_zero_result

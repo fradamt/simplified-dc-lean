@@ -781,3 +781,19 @@ PC in the unique emitted metadata. Receipt of that proposal includes
 its valid carried PC. `CommonViews`: combine this with frozen-PC
 relay, source maximality, and same-slot ack uniqueness to prove equal
 view targets at the proposer and voter reads, including empty views.
+
+### ZeroResult
+
+All non-genesis reachable bodies have positive slots. The label-zero clean
+gate result is genesis.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`BodySlotBounds`: extract the handler slot bound and strict parent
+slot increase from actual body admission. A read before proposal
+slot s+1 contains only bodies of slots at most s. These bounds rule
+out a child beyond the current honest proposal in the voter walk.
+
+`ProposalPaths`: the generated parent is the actual proposer head
+and is held at that read. Every proper prefix of the proposal is
+therefore in the proposer tree. Together with CommonTree, the voter
+tree adds at most the proposal itself.
