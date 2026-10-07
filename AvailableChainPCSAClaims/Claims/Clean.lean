@@ -300,6 +300,110 @@ theorem StrongIncludedClaim_def (p : Params) : StrongIncludedClaim p =
           Block.Preceq P (strong (storeAt p c E rho x t))) := by
   rw [StrongIncludedClaim]
 
+/-! ### Pending-label claims
+
+CI and `CleanDisseminationClaim` reach the labels whose gate is in the clean
+prefix (`d_j ≤ b₀`). ARM-healthy (5.4.2 (b)) and slow P1 (5.5 steps 1–2)
+also read the pending labels: the labels whose votes or early reads are in
+the prefix and whose gate is after `b₀`. The claims below state these facts
+additively. They are not fields of `PCSAClaims`. The HEAD facts at the
+pending labels (5.2.2 (ii) with `v_i ≤ b₀`, and past the cut with
+`e_{i−1} ≤ b₀`) are not claims: as stated, they are false in the boundary
+case `v_r ≤ b₀ < d_{r−1}` of 5.5 step 2. The Outage assembly takes the
+`CutChain` and `CutFacts` records, with the cone and bridge forms of these
+facts, as OPEN hypotheses. -/
+
+/-- [PC-SA claims; pcsa34-r4.3 5.2.2 (c), 5.4.2 (b), 5.5 steps 1–2; FG-SA
+`hnonempty` (outage supplier history)] In a clean prefix, every honest result
+of a label `i` with `e_i ≤ b₀` is not empty (5.2.2 (c): `2h > h + a ≥` the
+early voters). -/
+def CleanResultsNonemptyClaim (p : Params) : Prop :=
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+    ∀ i : Slot, SA.earlyTime p.toParams i ≤ b₀ → ∀ x ∈ rho.honest,
+      gateResultAt p c E rho x i ≠ some none
+
+theorem CleanResultsNonemptyClaim_def (p : Params) : CleanResultsNonemptyClaim p =
+    (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ i : Slot, SA.earlyTime p.toParams i ≤ b₀ → ∀ x ∈ rho.honest,
+        gateResultAt p c E rho x i ≠ some none) := by
+  rw [CleanResultsNonemptyClaim]
+
+/-- [PC-SA claims; pcsa34-r4.3 5.2.2 (i), 5.5 step 1; CI `resultsChain` at the
+pending labels; FG-SA outage supplier history (scope `timeIdx b₀`)] In a clean
+prefix, an honest result of a label `i'` with `e_{i'} ≤ b₀` extends every
+honest result of an earlier label. -/
+def CleanResultsChainPendingClaim (p : Params) : Prop :=
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+    ∀ (i i' : Slot) (x y : V) (X Y : Block), i < i' → SA.earlyTime p.toParams i' ≤ b₀ →
+      x ∈ rho.honest → y ∈ rho.honest →
+      gateResultAt p c E rho x i = some (some X) → gateResultAt p c E rho y i' = some (some Y) →
+      Block.Preceq X Y
+
+theorem CleanResultsChainPendingClaim_def (p : Params) : CleanResultsChainPendingClaim p =
+    (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ (i i' : Slot) (x y : V) (X Y : Block), i < i' → SA.earlyTime p.toParams i' ≤ b₀ →
+        x ∈ rho.honest → y ∈ rho.honest →
+        gateResultAt p c E rho x i = some (some X) →
+        gateResultAt p c E rho y i' = some (some Y) → Block.Preceq X Y) := by
+  rw [CleanResultsChainPendingClaim]
+
+/-- [PC-SA claims; pcsa34-r4.3 5.2.3 Dissemination, 5.2.2 (d), 5.4.2 (b), 5.5
+step 1; `CleanDisseminationClaim` at the pending label] An honest ack `(s, B)`
+in a clean prefix gives every honest HEAD of label `s + 1` `⪰ B` when
+`v_{s+1} ≤ b₀`, and every honest result of label `s + 1` `⪰ B` when
+`e_{s+1} ≤ b₀`. Unverified: no proof or check of this statement yet. -/
+def CleanDisseminationPendingClaim (p : Params) : Prop :=
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+    ∀ (s : Slot) (y : V) (B : Block), HonestAckAt p c E rho y s B →
+      (SA.voteTime p.toParams (s + 1) ≤ b₀ →
+        ∀ x H, HonestHeadAt p c E rho x (s + 1) H → Block.Preceq B H) ∧
+      (SA.earlyTime p.toParams (s + 1) ≤ b₀ → ∀ x ∈ rho.honest, ∀ X,
+        gateResultAt p c E rho x (s + 1) = some (some X) → Block.Preceq B X)
+
+theorem CleanDisseminationPendingClaim_def (p : Params) : CleanDisseminationPendingClaim p =
+    (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ (s : Slot) (y : V) (B : Block), HonestAckAt p c E rho y s B →
+        (SA.voteTime p.toParams (s + 1) ≤ b₀ →
+          ∀ x H, HonestHeadAt p c E rho x (s + 1) H → Block.Preceq B H) ∧
+        (SA.earlyTime p.toParams (s + 1) ≤ b₀ → ∀ x ∈ rho.honest, ∀ X,
+          gateResultAt p c E rho x (s + 1) = some (some X) → Block.Preceq B X)) := by
+  rw [CleanDisseminationPendingClaim]
+
+/-- [PC-SA claims; pcsa34-r4.3 5.2.3 (strict receipt), 5.4.2 ARM-healthy (a);
+FG-SA `fgsa_proposal_receipt` (AvailableChainFGSARun Proofs/Receipts)] In a
+clean prefix, a block stored by an honest node at `T ≥ 0` with `T + Δ ≤ b₀` is
+stored by every honest node after the ticks of every time `≥ T + Δ` (strict
+proposal receipt within `Δ`, stage-1 store monotonicity). The relay of a held
+PC reads it for the PC target. -/
+def CleanBlockReceiptClaim (p : Params) : Prop :=
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+    Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+    ∀ v ∈ rho.honest, ∀ (T : Time) (B : Block), 0 ≤ T → T + E.Δ ≤ b₀ →
+      B ∈ (storeAt p c E rho v T).base.blocks → ∀ y ∈ rho.honest, ∀ t : Time,
+        T + E.Δ ≤ t → B ∈ (storeAfterTicks p c E rho y t).base.blocks
+
+theorem CleanBlockReceiptClaim_def (p : Params) : CleanBlockReceiptClaim p =
+    (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ v ∈ rho.honest, ∀ (T : Time) (B : Block), 0 ≤ T → T + E.Δ ≤ b₀ →
+        B ∈ (storeAt p c E rho v T).base.blocks → ∀ y ∈ rho.honest, ∀ t : Time,
+          T + E.Δ ≤ t → B ∈ (storeAfterTicks p c E rho y t).base.blocks) := by
+  rw [CleanBlockReceiptClaim]
+
 end AvailableChain.PCSA.Run
 
 end

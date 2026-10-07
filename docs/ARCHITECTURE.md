@@ -262,10 +262,24 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   honest receiver holds its wire and a valid carried PC
   (`pcsa_honest_proposal_receipt`, and `pcsa_honest_proposal_early` at the
   early read).
-  The delivery wrappers stay in the lanes: each lane supplies the relay step
-  from its own delivery premise (Outage and Clean: `HealthyPrefixDeliveryBy`
-  through `Shared/Relay`; Recovery: the RECOVERY deadline
-  `max t z_{s-1} + Δ`; Formation: `FormationPrem.delivery`).
+  Shared keeps the `HealthyPrefixDeliveryBy` wrapper
+  (`pcsa_body_relay_before_deadline` in `Shared/BodyReceipt`, through
+  `Shared/Relay`), used by Outage and Clean. The other lanes supply the relay
+  step from their own delivery premises through `BodyRelay` (Recovery: the
+  RECOVERY deadline `max t z_{s-1} + Δ`; Formation: `FormationPrem.delivery`).
+- PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
+  holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
+  items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow
+  P1 boundary `CleanSlowBoundary`, `CleanSlowItems` (5.5 steps 1–2). They are
+  not claims. A lane module may import them (Statements are upstream of every
+  lane); the proofs stay in their lanes. The pending-label Clean claims
+  (`CleanResultsNonemptyClaim`, `CleanResultsChainPendingClaim`,
+  `CleanDisseminationPendingClaim`) and `CleanBlockReceiptClaim` (the relay item) are
+  in `Claims/Clean`, outside the `PCSAClaims` record. C8 ARM-healthy and C10
+  slow P1 take the `CutChain`, `CutFacts` and `CleanSlowItems` records as OPEN
+  hypotheses (see `AvailableChainPCSAProofs/Proofs/Outage/OPEN.md`).
+  `Outage/BlockReceipt` proves block receipt from the Shared body relay;
+  Assembly/Outage packages it as `CleanBlockReceiptClaim`.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.
@@ -375,6 +389,17 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   closed `healing_hTimeClaim`. `fgsaClaims` has no additional hypothesis.
   Assembly/WeakContinuation imports WC Export and Shared/Claims; it imports
   no Assembly module.
+
+- FG-SA outage continuation under (V): `Proofs/Outage/ContinuationTiming`,
+  `ContinuationInduction`, `ContinuationReceipt`, `ContinuationFrame`,
+  `ContinuationGate`, and `ContinuationJoint` prove the continuation body.
+  `Proofs/OutageContinuation/Export` exports `outageContinuation_claim_of`.
+  `Proofs/Shared/Claims` uses `outageContinuation_of_body` to bridge the body
+  to `OutageContinuationClaim`. `Proofs/Assembly/Clean` supplies the interfaces
+  and proves `fgsa_outageContinuationClaim`. The exact lane import exception
+  in `scripts/check-layers.py` permits `OutageContinuation.Export` to import
+  exactly the six `Outage/Continuation*` modules listed above. No other lane
+  import allowance changes. `FGSAClaims` is unchanged; this is a companion claim.
 
 - WC corruption growth adds `fgsa_weakContinuationGrowthClaim` in
   `Proofs/Assembly/Root`, without changing the frozen `FGSAClaims` field.
