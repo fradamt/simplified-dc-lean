@@ -124,13 +124,18 @@ def composeImportAllowed (m dep : Name) : Bool :=
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
      `AvailableChainFGCompose.Proofs.SourceHead,
      `AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainFGCompose.Statements.SafetyStore,
-     `AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainFGCompose.Statements.SafetyClaims].contains dep
+     `AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainFGCompose.Statements.SafetyClaims,
+     `AvailableChainFGCompose.Proofs.SafetyStore,
+     `AvailableChainFGCompose.Proofs.SafetyAccountable].contains dep
   else if composeStatements m then base || ownStatements || safety
   else if (`AvailableChainFGCompose.Tests).isPrefixOf m then
     foundation || ownStatements || ownProofs
   else if (`AvailableChainFGCompose.Proofs).isPrefixOf m then
     base || ownStatements || ownProofs ||
-      [`AvailableChainKitV2.DutyStable, `AvailableChainKitFG.Correspondence].contains dep
+      [`AvailableChainKitV2.DutyStable, `AvailableChainKitFG.Correspondence].contains dep ||
+      -- Lead ruling 2026-10-07 (s2-plan P1): the exact pair of check-layers.py.
+      [(`AvailableChainFGCompose.Proofs.SafetyAccountable,
+        `AvailableChainKitFG.AccountableCore)].contains (m, dep)
   else false
 
 partial def composeSources (path : System.FilePath) : IO (Array Name) := do
