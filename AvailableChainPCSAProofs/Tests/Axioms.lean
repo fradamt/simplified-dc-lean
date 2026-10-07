@@ -562,3 +562,12 @@ end
 -- C6 CommonBodies.
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_body_before_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_body_in_proposer
+
+-- C6 CommonSupport.
+#print axioms AvailableChain.PCSA.pcsa_active_base_resolution
+#print axioms AvailableChain.PCSA.pcsa_headSupport_of_carried
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_support_in_voter
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_headSupport_source
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_support_in_proposer
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_support_backward
+#print axioms AvailableChain.PCSA.pcsa_headSupport_resolution
