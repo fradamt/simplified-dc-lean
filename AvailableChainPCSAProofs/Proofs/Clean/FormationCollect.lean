@@ -3,6 +3,7 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.Install
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSA.Model.Frame
 public import AvailableChainPCSA.Statements.Invariants
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
 
 public section
 
@@ -10,8 +11,9 @@ public section
 A collected store holds every supported, resolved PC identity. Every
 reachable store is collected. A standalone PC installs only its slot and
 root. A completing ack belongs to the certificate that its call installs.
-These facts supply the whole-PC relay trigger. The proposal case and the
-run-level early-view bound remain open. No whole claim is exported. -/
+Every installing handler carries the new PC. Each held stage-1 PC identity
+has a whole-PC acceptance origin. Whole-PC receipt and the early-view rank
+bound remain open. No whole claim is exported. -/
 
 open AvailableChain
 namespace AvailableChain.PCSA
@@ -544,6 +546,338 @@ theorem pcsa_formation_admitAck_contains (p : Params) (st : State p.n)
   rw [hf.1] at hb
   exact hNew (pcsa_formation_collected_identity st _ _ C p.nPos hClosed hb hc)
 
+private theorem formation_accepted_base (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n))
+    (hTree : ∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
+    (hParent : parentFG st N.erase = some P)
+    (hAcc : blockAccepted p st s N P = true) :
+    (GridCO.admitProposal p.toParams.engine st.base
+      (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)).blocks =
+      st.base.blocks ++ [N.erase] := by
+  have hLook := FGSA.pickPair_some_spec st.fg.TF _ hParent
+  have hP : eraseFG P = N.erase.parent := of_decide_eq_true hLook.2
+  have hf := hAcc
+  change (N.erase != .genesis && decide (N.erase.slot ≤ st.slot p) &&
+    !decide (∃ Y ∈ st.fg.TF, Y.root = N.erase.root) &&
+    SimplexFG.FGBlock.preceq st.fg.F (fgBlock P N.erase N.rows) &&
+    decide (N.erase.parent.slot < N.erase.slot) && s == N.erase.slot &&
+    rowsValidForParent p P N.erase.slot N.rows && (N.pc.map PC.wellFormed).getD true &&
+    namedContentOk p N) = true at hf
+  simp only [Bool.and_eq_true, bne_iff_ne, decide_eq_true_eq,
+    Bool.not_eq_true', decide_eq_false_iff_not, beq_iff_eq] at hf
+  have hSlot : N.erase.slot ≤ st.slot p := by tauto
+  have hFresh : ¬∃ B ∈ st.fg.TF, B.root = N.erase.root := hf.1.1.1.1.1.1.2
+  have hPS : N.erase.parent.slot < N.erase.slot := by tauto
+  have hS : s = N.erase.slot := by tauto
+  have hNot : N.erase ∉ st.base.blocks := by
+    intro hb
+    obtain ⟨B, hB, he⟩ := (hTree _).mp hb
+    apply hFresh
+    exact ⟨B, hB, by rw [← he]; cases B <;> rfl⟩
+  have hBase := FGSA.admitProposal_of_accept p.toParams.engine st.base s
+    (.proposal N.erase (N.raw.map baseHead) (N.support.map baseHead)) N.erase
+    (N.raw.map baseHead) hSlot ((hTree _).mpr ⟨P, hLook.1, hP⟩) hNot hPS hS
+  have hBlocks := (FGSA.foldVotes_fields p.toParams.engine (N.raw.map baseHead)
+    { st.base with
+      blocks := st.base.blocks ++ [N.erase]
+      blockStamp := st.base.blockStamp ++ [(N.erase, st.base.now)]
+      proposals := st.base.proposals ++ [baseProposal s N.erase N.raw N.support] }).1
+  exact (congrArg (fun v : GridCO.State p.n .root => v.blocks) hBase).trans hBlocks
+
+private abbrev formationCollectWindow (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) : State p.n :=
+  let st1 : State p.n := { st with
+    base := GridCO.admitProposal p.toParams.engine st.base
+      (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead) }
+  let st1 := match N.pc with
+    | none => st1
+    | some D => if pcValid st1 D &&
+        !st1.pcs.any (fun old => old.slot == D.slot && old.target == D.target)
+      then deleteConflictingLeases st1 D else st1
+  let st1 := { st1 with
+    fg := FGSA.Window.on_block p p.K_W st1.fg (fgBlock P N.erase N.rows)
+    proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
+  st1
+
+private abbrev formationCollectPre (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) : State p.n :=
+  let updated := formationCollectWindow p st s N P
+  if updated.fg.F = st.fg.F then updated else reconcile updated
+
+private abbrev formationCollectInput (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) : State p.n :=
+  N.pcAcks.foldl poolAckRaw (formationCollectPre p st s N P)
+
+private theorem formation_normalize_blocks (st : State n) :
+    (normalizeS st).base.blocks = st.base.blocks := by
+  delta normalizeS
+  split <;> rfl
+
+private theorem formation_normalize_acks (st : State n) :
+    (normalizeS st).ackPool = st.ackPool := by
+  delta normalizeS
+  split <;> rfl
+
+private theorem formation_reconcile_blocks (st : State n) :
+    (reconcile st).base.blocks = st.base.blocks := by
+  delta reconcile
+  rw [formation_normalize_blocks]
+
+private theorem formation_reconcile_acks (st : State n) :
+    (reconcile st).ackPool = st.ackPool := by
+  delta reconcile
+  rw [formation_normalize_acks]
+
+private theorem formation_normalize_pcs (st : State n) :
+    (normalizeS st).pcs = st.pcs := by
+  delta normalizeS
+  split <;> rfl
+
+private theorem formation_reconcile_pcs_sub (st : State n) :
+    (reconcile st).pcs ⊆ st.pcs := by
+  intro C hC
+  delta reconcile at hC
+  rw [formation_normalize_pcs] at hC
+  exact (List.mem_filter.mp hC).1
+
+private theorem formation_if_reconcile_blocks (st : State n)
+    (F : SimplexFG.FGBlock (Fin n)) :
+    (if st.fg.F = F then st else reconcile st).base.blocks = st.base.blocks := by
+  by_cases h : st.fg.F = F
+  · rw [ite_eq_left h]
+  · rw [ite_eq_right h, formation_reconcile_blocks]
+
+private theorem formation_if_reconcile_acks (st : State n)
+    (F : SimplexFG.FGBlock (Fin n)) :
+    (if st.fg.F = F then st else reconcile st).ackPool = st.ackPool := by
+  by_cases h : st.fg.F = F
+  · rw [ite_eq_left h]
+  · rw [ite_eq_right h, formation_reconcile_acks]
+
+private theorem formation_if_reconcile_pcs_sub (st : State n)
+    (F : SimplexFG.FGBlock (Fin n)) :
+    (if st.fg.F = F then st else reconcile st).pcs ⊆ st.pcs := by
+  by_cases h : st.fg.F = F
+  · rw [ite_eq_left h]
+  · rw [ite_eq_right h]
+    exact formation_reconcile_pcs_sub st
+
+private theorem formation_window_blocks (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) :
+    (formationCollectWindow p st s N P).base.blocks =
+      (GridCO.admitProposal p.toParams.engine st.base
+        (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)).blocks := by
+  delta formationCollectWindow
+  cases hp : N.pc with
+  | none => rfl
+  | some D =>
+    dsimp only
+    split <;> rfl
+
+private theorem formation_window_acks (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) :
+    (formationCollectWindow p st s N P).ackPool = st.ackPool := by
+  delta formationCollectWindow
+  cases hp : N.pc with
+  | none => rfl
+  | some D =>
+    dsimp only
+    split <;> rfl
+
+private theorem formation_window_pcs (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) :
+    (formationCollectWindow p st s N P).pcs = st.pcs := by
+  delta formationCollectWindow
+  cases hp : N.pc with
+  | none => rfl
+  | some D =>
+    dsimp only
+    split <;> rfl
+
+private theorem formation_pre_blocks (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) :
+    (formationCollectPre p st s N P).base.blocks =
+      (GridCO.admitProposal p.toParams.engine st.base
+        (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)).blocks := by
+  exact (formation_if_reconcile_blocks (formationCollectWindow p st s N P) st.fg.F).trans
+    (formation_window_blocks p st s N P)
+
+private theorem formation_pre_acks (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) :
+    (formationCollectPre p st s N P).ackPool = st.ackPool := by
+  exact (formation_if_reconcile_acks (formationCollectWindow p st s N P) st.fg.F).trans
+    (formation_window_acks p st s N P)
+
+private theorem formation_pre_pcs_sub (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) :
+    (formationCollectPre p st s N P).pcs ⊆ st.pcs := by
+  have hsub := formation_if_reconcile_pcs_sub (formationCollectWindow p st s N P) st.fg.F
+  rw [formation_window_pcs] at hsub
+  exact hsub
+
+private theorem formation_row_pcs (p : Params) (st : State p.n) (a : RowWire p.n) :
+    (admitRow p st a).pcs = st.pcs := by
+  delta admitRow
+  cases hd : RowWire.decode? a with
+  | none => rfl
+  | some x =>
+    dsimp only
+    split <;> rfl
+
+private theorem formation_rows_pcs (p : Params) (st : State p.n)
+    (as : List (RowWire p.n)) : (as.foldl (admitRow p) st).pcs = st.pcs := by
+  induction as generalizing st with
+  | nil => rfl
+  | cons a as ih => rw [List.foldl_cons, ih, formation_row_pcs]
+
+private theorem formation_acksOn_of_pool_eq (st st' : State n) (s : Slot) (r : BlockId)
+    (ha : st'.ackPool = st.ackPool) : acksOn st' s r = acksOn st s r := by
+  delta acksOn
+  rw [ha]
+
+private theorem formation_input_on_miss (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) (C : PC p.n)
+    (hWF : (N.pc.map PC.wellFormed).getD true = true)
+    (hMiss : ∀ D ∈ N.pc, ¬(D.slot = C.slot ∧ D.target.root = C.target.root)) :
+    acksOn (formationCollectInput p st s N P) C.slot C.target.root =
+      acksOn st C.slot C.target.root := by
+  apply Eq.trans ?_ (formation_acksOn_of_pool_eq st _ C.slot C.target.root
+    (formation_pre_acks p st s N P))
+  delta formationCollectInput
+  apply formation_raw_on_miss
+  intro a ha i hi
+  change a ∈ (N.pc.map PC.acks).getD [] at ha
+  cases hp : N.pc with
+  | none => rw [hp] at ha; exact (List.not_mem_nil ha).elim
+  | some D =>
+    rw [hp] at ha hWF
+    have hd : D.wellFormed = true := hWF
+    obtain ⟨j, hj⟩ := formation_pc_ack_decode D hd a ha
+    have he := Option.some.inj (hj.symm.trans hi)
+    simp only [Prod.mk.injEq] at he
+    exact hMiss D (by rw [hp]; exact Option.mem_def.mpr rfl) ⟨he.1, he.2.2⟩
+
+private theorem formation_find_old_or_new (xs : List Block) (N b : Block)
+    (hf : (xs ++ [N]).find? (fun B => B.root == b.root) = some b) :
+    xs.find? (fun B => B.root == b.root) = some b ∨ b = N := by
+  rw [List.find?_append] at hf
+  cases ho : xs.find? (fun B => B.root == b.root) with
+  | none =>
+    rw [ho] at hf
+    by_cases hroot : (N.root == b.root) = true
+    · simp only [List.find?_cons, hroot] at hf
+      exact Or.inr (Option.some.inj hf).symm
+    · simp only [List.find?_cons, List.find?_nil, hroot] at hf
+      cases hf
+  | some B =>
+    rw [ho] at hf
+    obtain rfl := Option.some.inj hf
+    exact Or.inl rfl
+
+private theorem formation_pc_slot (C : PC n) (hw : C.wellFormed = true) :
+    C.target.slot = C.slot := by
+  have h1 := (Bool.and_eq_true_iff.mp hw).1
+  have h2 := (Bool.and_eq_true_iff.mp h1).1
+  have h3 := (Bool.and_eq_true_iff.mp h2).1
+  exact beq_iff_eq.mp (Bool.and_eq_true_iff.mp h3).2
+
+/-- An accepted proposal installs only its block slot/root or its carried PC slot/root. -/
+private theorem pcsa_formation_accepted_proposal_root (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n)) (C : PC p.n)
+    (hTree : ∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
+    (hParent : parentFG st N.erase = some P) (hAcc : blockAccepted p st s N P = true)
+    (hClosed : FormationCollected st) (hF : st.fg.F = .genesis)
+    (hWF : (N.pc.map PC.wellFormed).getD true = true)
+    (hNew : ¬FormationPCIdentity st C.slot C.target)
+    (hm : C ∈ (N.rows.foldl (admitRow p)
+      (collectPCs (formationCollectInput p st s N P))).pcs) :
+    (C.slot = N.erase.slot ∧ C.target.root = N.erase.root) ∨
+      ∃ D ∈ N.pc, D.slot = C.slot ∧ D.target.root = C.target.root := by
+  rw [formation_rows_pcs] at hm
+  have hInput : C ∉ (formationCollectInput p st s N P).pcs := by
+    intro hC
+    change C ∈ (N.pcAcks.foldl poolAckRaw (formationCollectPre p st s N P)).pcs at hC
+    rw [(formation_raw_frame _ N.pcAcks).2.2] at hC
+    exact hNew ⟨C, formation_pre_pcs_sub p st s N P hC, rfl, rfl⟩
+  obtain ⟨_, hb, hc⟩ := pcsa_formation_collect_new_origin _ C hm hInput
+  have hValid := pcsa_assemblePC_valid _ _ _ C hc
+  have hw := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hValid).1).1
+  have hBlocks : (formationCollectInput p st s N P).base.blocks =
+      st.base.blocks ++ [N.erase] := by
+    exact (formation_raw_frame _ N.pcAcks).1.trans
+      ((formation_pre_blocks p st s N P).trans
+        (formation_accepted_base p st s N P hTree hParent hAcc))
+  rw [hBlocks] at hb
+  by_contra hNot
+  have hMiss : ∀ D ∈ N.pc, ¬(D.slot = C.slot ∧ D.target.root = C.target.root) := by
+    intro D hD he
+    exact hNot (Or.inr ⟨D, hD, he⟩)
+  have hOn := formation_input_on_miss p st s N P C hWF hMiss
+  rcases formation_find_old_or_new st.base.blocks N.erase C.target hb with hOld | he
+  · have hCompat : activeCompatible st C.target = true := by
+      delta activeCompatible
+      rw [hF]
+      exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_genesis_preceq C.target))
+    have hv : pcValid st C = true := by
+      change (C.wellFormed && decide (C.target ∈ st.base.blocks) &&
+        activeCompatible st C.target) = true
+      exact Bool.and_eq_true_iff.mpr ⟨Bool.and_eq_true_iff.mpr
+        ⟨hw, decide_eq_true (List.mem_of_find?_eq_some hOld)⟩, hCompat⟩
+    have heq := ((assemblePC_some_iff _ C.slot C.target C).mp hc).1
+    rw [hOn] at heq
+    have hcOld := (assemblePC_some_iff st C.slot C.target C).mpr ⟨heq, hv⟩
+    exact hNew (pcsa_formation_collected_identity st _ _ C p.nPos hClosed hOld hcOld)
+  · have hs := formation_pc_slot C hw
+    exact hNot (Or.inl ⟨(he ▸ hs).symm, congrArg Block.root he⟩)
+
+/-- Every new PC identity from a proposal is covered by root-form carriage. -/
+theorem pcsa_formation_admitBlock_root (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (C : PC p.n)
+    (hTree : ∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
+    (hClosed : FormationCollected st) (hF : st.fg.F = .genesis)
+    (hNew : ¬FormationPCIdentity st C.slot C.target)
+    (hm : C ∈ (admitBlock p st s N).pcs) :
+    (C.slot = N.erase.slot ∧ C.target.root = N.erase.root) ∨
+      ∃ D ∈ N.pc, D.slot = C.slot ∧ D.target.root = C.target.root := by
+  delta admitBlock at hm
+  split at hm
+  · exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+  · cases hp : parentFG st N.erase with
+    | none => rw [hp] at hm; exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+    | some P =>
+      rw [hp] at hm
+      dsimp only at hm
+      split at hm
+      · rename_i hAcc
+        have hWF : (N.pc.map PC.wellFormed).getD true = true := by
+          have hf := hAcc
+          change (N.erase != .genesis && decide (N.erase.slot ≤ st.slot p) &&
+            !decide (∃ Y ∈ st.fg.TF, Y.root = N.erase.root) &&
+            SimplexFG.FGBlock.preceq st.fg.F (fgBlock P N.erase N.rows) &&
+            decide (N.erase.parent.slot < N.erase.slot) && s == N.erase.slot &&
+            rowsValidForParent p P N.erase.slot N.rows &&
+            (N.pc.map PC.wellFormed).getD true && namedContentOk p N) = true at hf
+          exact (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hf).1).2
+        change C ∈ (N.rows.foldl (admitRow p)
+          (collectPCs (formationCollectInput p st s N P))).pcs at hm
+        exact pcsa_formation_accepted_proposal_root p st s N P C
+          hTree hp hAcc hClosed hF hWF hNew hm
+      · exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+
+/-- A collected identity does not need another collection call. -/
+theorem pcsa_formation_collect_identity_iff (st : State n) (s : Slot) (b : Block)
+    (hClosed : FormationCollected st) :
+    FormationPCIdentity (collectPCs st) s b ↔ FormationPCIdentity st s b := by
+  constructor
+  · rintro ⟨C, hm, hs, hb⟩
+    by_cases hC : C ∈ st.pcs
+    · exact ⟨C, hC, hs, hb⟩
+    · obtain ⟨hcand, hfind, hasm⟩ := pcsa_formation_collect_new_origin st C hm hC
+      have hi := hClosed C.slot C.target C hcand hfind hasm
+      simpa only [hs, hb] using hi
+  · rintro ⟨C, hm, hs, hb⟩
+    exact ⟨C, collectPCs_pcs_mono st hm, hs, hb⟩
+
 private theorem formation_initial_collected : FormationCollected (initial n) := by
   intro s b C hm
   exact (List.not_mem_nil hm).elim
@@ -663,4 +997,208 @@ theorem pcsa_formation_reachable_collected (p : Params) (st : State p.n)
   | deliver o _ ih => exact pcsa_formation_process_collected p _ o ih
 
 end AvailableChain.PCSA
+
+namespace AvailableChain.PCSA.Run
+open AvailableChain.PCSA
+
+private theorem formation_decoded_pc (p : Params) (o : Obj p) (D : PC p.n)
+    (h : (toWire p o).decode = some (.pc D)) : o.payload = .pc D := by
+  rcases o with ⟨auth, payload⟩
+  cases auth with
+  | none =>
+    cases payload <;> (cases h <;> rfl)
+  | seat l i =>
+    cases l with
+    | prop s => cases payload <;> cases h
+    | base l => cases l <;> cases payload <;> cases h
+
+private theorem formation_decoded_proposal (p : Params) (o : Obj p) (s : Slot)
+    (N : NamedProposal p.n) (h : (toWire p o).decode = some (.block s N)) :
+    o.payload = .proposal N := by
+  rcases o with ⟨auth, payload⟩
+  cases auth with
+  | none => cases payload <;> cases h
+  | seat l i =>
+    cases l with
+    | base l => cases l <;> cases payload <;> cases h
+    | prop k =>
+      cases payload <;> (cases h <;> rfl)
+
+private theorem formation_decoded_ack (p : Params) (o : Obj p)
+    (s : Slot) (i : Fin p.n) (r : BlockId)
+    (h : (toWire p o).decode = some (.ack s i r)) :
+    ofAck p ⟨(toWire p o).auth, r⟩ = o := by
+  rcases o with ⟨auth, payload⟩
+  cases auth with
+  | none => cases payload <;> cases h
+  | seat l j =>
+    cases l with
+    | prop k => cases payload <;> cases h
+    | base l =>
+      cases l <;> cases payload <;> (cases h <;> rfl)
+
+/-- Every newly installed stage-1 PC identity is carried by its handler call. -/
+theorem pcsa_formation_process_new_pc_carries (p : Params) (st : State p.n)
+    (o : Obj p) (C : PC p.n)
+    (hTree : ∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
+    (hClosed : FormationCollected st) (hF : st.fg.F = .genesis)
+    (hNew : ¬FormationPCIdentity st C.slot C.target)
+    (hm : C ∈ (PCSA.process p st (toWire p o)).pcs) :
+    carriesS p o (⟨.none, .pc C⟩ : Obj p) := by
+  delta PCSA.process at hm
+  cases hd : (toWire p o).decode with
+  | none => rw [hd] at hm; exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+  | some d =>
+    rw [hd] at hm
+    cases d with
+    | vote s i r =>
+      change C ∈ st.pcs at hm
+      exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+    | row i body =>
+      change C ∈ (admitRow p st _).pcs at hm
+      rw [formation_row_pcs] at hm
+      exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+    | ack s i r =>
+      change C ∈ (admitAck p st ⟨(toWire p o).auth, r⟩).pcs at hm
+      have ha := pcsa_formation_admitAck_contains p st _ C hClosed hNew hm
+      have he := formation_decoded_ack p o s i r hd
+      have hp : o.payload = .ack r := by rw [← he]; rfl
+      delta carriesS
+      right
+      refine ⟨C, rfl, ?_⟩
+      rw [hp]
+      exact List.mem_map.mpr ⟨_, ha, he⟩
+    | pc D =>
+      change C ∈ (admitPC st D).pcs at hm
+      by_cases hw : D.wellFormed = true
+      · have hr := pcsa_formation_admitPC_root st D C p.nPos hClosed hw hNew hm
+        have hp := formation_decoded_pc p o D hd
+        delta carriesS
+        right
+        refine ⟨C, rfl, ?_⟩
+        rw [hp]
+        exact hr
+      · delta admitPC at hm
+        rw [ite_eq_right hw] at hm
+        exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+    | block s N =>
+      change C ∈ (admitBlock p st s N).pcs at hm
+      have hr := pcsa_formation_admitBlock_root p st s N C hTree hClosed hF hNew hm
+      have hp := formation_decoded_proposal p o s N hd
+      delta carriesS
+      right
+      refine ⟨C, rfl, ?_⟩
+      rw [hp]
+      exact hr
+
+
+private theorem formation_identity_delivery_origin {p : Params} {In V : Type}
+    [DecidableEq V] {c : AppCodec In} {m : FGMode} (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (x : V) (i : Nat) (s : Slot) (b : Block)
+    (hm : FormationPCIdentity (V2.D.Run.stateBefore E rho i x).st s b) :
+    ∃ j < i, ∃ o t C, rho.events[j]? = some (.deliver x o t) ∧
+      ¬FormationPCIdentity (V2.D.Run.stateBefore E rho j x).st s b ∧
+      C ∈ (PCSA.process p (V2.D.Run.stateBefore E rho j x).st (toWire p o)).pcs ∧
+      C.slot = s ∧ C.target = b := by
+  induction i with
+  | zero =>
+    change ∃ C ∈ ([] : List (PC p.n)), C.slot = s ∧ C.target = b at hm
+    exact hm.elim (fun C hC => (List.not_mem_nil hC.1).elim)
+  | succ i ih =>
+    by_cases hOld : FormationPCIdentity (V2.D.Run.stateBefore E rho i x).st s b
+    · obtain ⟨j, hj, rest⟩ := ih hOld
+      exact ⟨j, Nat.lt_succ_of_lt hj, rest⟩
+    · cases he : rho.events[i]? with
+      | none =>
+        have hEq : V2.D.Run.stateBefore E rho (i + 1) = V2.D.Run.stateBefore E rho i := by
+          delta V2.D.Run.stateBefore
+          rw [List.take_add_one, he]
+          simp only [Option.toList_none, List.append_nil]
+        rw [hEq] at hm
+        exact (hOld hm).elim
+      | some e =>
+        rw [V2.D.Run.stateBefore_succ E rho he] at hm
+        by_cases hx : e.node = x
+        · cases e with
+          | restart y t =>
+            change y = x at hx
+            subst y
+            delta V2.D.World.step at hm
+            dsimp only at hm
+            rw [Function.update_self] at hm
+            change ∃ C ∈ ([] : List (PC p.n)), C.slot = s ∧ C.target = b at hm
+            exact hm.elim (fun C hC => (List.not_mem_nil hC.1).elim)
+          | tick y t =>
+            change y = x at hx
+            subst y
+            delta V2.D.World.step at hm
+            dsimp only at hm
+            rw [Function.update_self] at hm
+            obtain ⟨C, hC, hs, hb⟩ := hm
+            have ht := pcsa_tick_st E rho (V2.D.Run.stateBefore E rho i x) x t
+            have hClock : C ∈ (clock p (V2.D.Run.stateBefore E rho i x).st t).pcs :=
+              Eq.mp (congrArg (fun st : State p.n => C ∈ st.pcs) ht) hC
+            rw [pcsa_formation_clock_pcs] at hClock
+            exact (hOld ⟨C, hClock, hs, hb⟩).elim
+          | deliver y o t =>
+            change y = x at hx
+            subst y
+            delta V2.D.World.step at hm
+            dsimp only at hm
+            rw [Function.update_self] at hm
+            obtain ⟨C, hC, hs, hb⟩ := hm
+            exact ⟨i, Nat.lt_succ_self i, o, t, C, he, hOld, hC, hs, hb⟩
+        · cases e with
+          | restart y t =>
+            change y ≠ x at hx
+            delta V2.D.World.step at hm
+            dsimp only at hm
+            rw [Function.update_of_ne (Ne.symm hx)] at hm
+            exact (hOld hm).elim
+          | tick y t =>
+            change y ≠ x at hx
+            delta V2.D.World.step at hm
+            dsimp only at hm
+            rw [Function.update_of_ne (Ne.symm hx)] at hm
+            exact (hOld hm).elim
+          | deliver y o t =>
+            change y ≠ x at hx
+            delta V2.D.World.step at hm
+            dsimp only at hm
+            rw [Function.update_of_ne (Ne.symm hx)] at hm
+            exact (hOld hm).elim
+
+/-- Every held stage-1 PC identity has an earlier whole-PC acceptance. -/
+theorem pcsa_formation_pc_accept_origin {p : Params} {In V : Type}
+    [DecidableEq V] {c : AppCodec In} {m : FGMode} (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hFrame : StageOneFrame p c E rho)
+    (x : V) (hx : x ∈ rho.honest) (i : Nat) (s : Slot) (b : Block)
+    (hm : FormationPCIdentity (V2.D.Run.stateBefore E rho i x).st s b) :
+    ∃ j < i, ∃ t D, D.slot = s ∧ D.target = b ∧
+      V2.D.Run.acceptsAt E rho j x (⟨.none, .pc D⟩ : Obj p) t := by
+  obtain ⟨j, hj, o, t, D, he, hNew, hInstall, hs, hb⟩ :=
+    formation_identity_delivery_origin E rho x i s b hm
+  have hNewD : ¬FormationPCIdentity (V2.D.Run.stateBefore E rho j x).st D.slot D.target := by
+    simpa only [hs, hb] using hNew
+  have hReach := pcsa_reachable_stateBefore E rho j x
+  have hClosed := pcsa_formation_reachable_collected p _ hReach
+  have hTree := pcsa_formation_tree_correspondence p _ hReach
+  have hF := (hFrame x hx j).1
+  have hCarry := pcsa_formation_process_new_pc_carries p _ o D
+    hTree hClosed hF hNewD hInstall
+  have hNeed : processedS p (V2.D.Run.stateBefore E rho j x).st
+      (⟨.none, .pc D⟩ : Obj p) = false := by
+    change ((V2.D.Run.stateBefore E rho j x).st.pcs.any
+      (fun A => A.slot == D.slot && A.target == D.target)) = false
+    apply Bool.eq_false_iff.mpr
+    intro hh
+    obtain ⟨A, ha, heq⟩ := List.any_eq_true.mp hh
+    simp only [Bool.and_eq_true, beq_iff_eq] at heq
+    exact hNewD ⟨A, ha, heq⟩
+  exact ⟨j, hj, t, D, hs, hb,
+    pcsa_formation_installed_pc_accepted E rho j x o t D he hCarry hNeed hInstall⟩
+
+
+end AvailableChain.PCSA.Run
+
 end
