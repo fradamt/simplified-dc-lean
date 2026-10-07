@@ -119,8 +119,9 @@ cut `b₀` for a block `A ≠ genesis` (`A = S_u(T)`) and the pending label `p*`
   and `A` stored (no lock on `A` is required before `d_{p*}`: no gate runs
   in `(b₀, d_{p*})`);
 - the `k − 1` labels before `p*` have saved results `⪰ A` (step 1);
-- every honest result of `p*` exists, is `⪰ A`, and is compatible with every
-  lock held at `b₀` (step 2, CI (iv));
+- every existing pending-gate read is nonempty and covers `A`, and is
+  compatible with every lock held at `b₀` (step 2, CI (iv)); the gate exists
+  only when `d_{p*}` is in the run;
 - every honest ack of a label with `v_s ≤ b₀` is compatible with `A` (CL4 and
   dissemination);
 - every honest HEAD of a label `r` with `v_r ≤ b₀ < q_r` and `q_r` in the run

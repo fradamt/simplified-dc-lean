@@ -13,9 +13,11 @@ S-case induction from `d_J` carries the invariant to `b₀`.
 No lock on `A` is required before the pending gate `d_{J+1}`: no gate runs in
 `(d_J, d_{J+1})`. The lag puts `j₁ + k ≤ J + 1`, so the pending gate has the
 `k − 1` saved results `⪰ A` it needs to write the lock (the result of label
-`j₁` at another node is only compatible with `A`, CL1). The only HEAD read
-in `(d_J, d_{J+1})` is that of label `J + 2`; it extends every honest result
-of label `J + 1` (the HEAD past the cut), which extends `A`. -/
+`j₁` at another node is only compatible with `A`, CL1). The only possible
+HEAD read in `(d_J, d_{J+1})` is that of label `J + 2`. It covers `A`: the
+clean-gate bridge puts `A = R_u(j₁)` below every honest HEAD of label
+`j₁ + 1` (`d_{j₁} ≤ b₀`), and the HEAD cone carries it up to label `J + 2`
+(`e_{J+1} = d_J ≤ b₀`). -/
 
 namespace AvailableChain.PCSA.Run
 
