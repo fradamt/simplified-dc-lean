@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSA.Proofs.WindowStore
 public import AvailableChainPCSA.Model.Handlers
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
+public import AvailableChainPCSAProofs.Proofs.Foundations.Snapshot
 
 public section
 
@@ -18,6 +19,19 @@ theorem pcsa_normalizeS_fg (st : State n) : (normalizeS st).fg = st.fg := by
 theorem pcsa_reconcile_fg (st : State n) : (reconcile st).fg = st.fg := by
   unfold reconcile
   rw [pcsa_normalizeS_fg]
+
+/-- A clock changes no FG field. -/
+theorem pcsa_clock_fg (p : Params) (st : State p.n) (t : Time) : (clock p st t).fg = st.fg := by
+  unfold clock
+  dsimp only
+  split
+  · unfold gateStep
+    rw [pcsa_normalizeS_fg]
+    split
+    · exact (clockPre_output_fields p st t).1
+    · rw [(gateFrom_pc_frame _ _ _ _ _ _).2]
+      exact (clockPre_output_fields p st t).1
+  · exact (clockPre_output_fields p st t).1
 
 /-- A row batch changes no FG field. -/
 theorem pcsa_fold_admitRow_fg (p : Params) (st : State p.n) (as : List (RowWire p.n)) :

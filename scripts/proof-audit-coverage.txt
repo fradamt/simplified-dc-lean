@@ -5453,6 +5453,7 @@
             'AvailableChain.PCSA.Run.pcsa_ac_frame',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.FGStore': (
+            'AvailableChain.PCSA.pcsa_clock_fg',
             'AvailableChain.PCSA.pcsa_normalizeS_fg',
             'AvailableChain.PCSA.pcsa_reconcile_fg',
             'AvailableChain.PCSA.pcsa_fold_admitRow_fg',
@@ -5461,7 +5462,6 @@
         ),
         'AvailableChainPCSAProofs.Proofs.AcFrame.Store': (
             'AvailableChain.PCSA.AcStoreSafe_def',
-            'AvailableChain.PCSA.pcsa_clock_fg',
             'AvailableChain.PCSA.pcsa_on_block_acSafe',
             'AvailableChain.PCSA.pcsa_child_rows',
             'AvailableChain.PCSA.pcsa_process_acSafe',
