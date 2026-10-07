@@ -1,7 +1,7 @@
 # FG finality safety: S0, S1, S1P
 
-S0/S1 commit: `3b4fe60` (rebased from `78b736b`). All contracts are PROVISIONAL.
-Earlier S1P: `5672b24` (rebased from `aea1639`). S1P is now complete.
+S0/S1 commit: `2ebd6523` (rebased from `78b736b`). All contracts are PROVISIONAL.
+Earlier S1P: `fcbf0266` (rebased from `aea1639`). S1P is now complete.
 S2 has not started. No push, review, or agent process was started.
 
 S0 records the fixed 2d5b47a input, step-1 API, source and guard hashes,
@@ -149,9 +149,10 @@ The affected-module build passes with --wfail. The focused Shake command
 then found stale downstream build files. The full repository build
 rebuilds those files before the required Shake and claims checks.
 
-Review-fix commits: P1 `20d26c2`; helper move `13bb4eff`; order completion in
-this commit. Each has the required Claude-Session trailer. No push.
-The rebase target is main `43733fe`. The fixed S0 input remains `2d5b47a`.
+Review-fix commits: P1 `fbe5db6e`; helper move `ea23a148`;
+order completion `fa7bb693`. Each has the required Claude-Session trailer.
+No push.
+The current rebase target is main `861ca1f`. The fixed S0 input remains `2d5b47a`.
 The integration delta against the earlier main base is the PC relay model,
 its affected proofs and regression, and audit-pool-selftest.py. The 122
 frozen hashes and five step-1 Lean API hashes match after each fix commit.
@@ -204,3 +205,21 @@ full pre-commit list and check-build.sh. Claims use NEG=0. All 42 saved
 axiom sets match exactly. All 122 frozen hashes, five step-1 Lean hashes,
 and moved helper and remaining AcFrame proof bytes match.
 Log: /private/tmp/fg-fin-cont3-before-full.log.
+
+Cont3 rebases all five FG finality commits onto main 861ca1f.
+The order completion is fa7bb693, rebased from 91ff57f8. The helper move
+is ea23a148, rebased from 13bb4eff. P1 is fbe5db6e, rebased from 20d26c2.
+The rebase has no conflict. Its only source delta is main's root-form
+PC-object carriesS branch and its PcRelayRegression tests. All local
+proof bytes are unchanged. P1 still selects the left branch with Or.inl.
+The guard patch remains a document. No guard code or exception is added.
+The full post-rebase build and pre-commit list pass. All 13 independent
+checker commands return zero. Claims then pass alone with NEG=0.
+Both mode instances compile. All 42 saved axiom sets match exactly and
+use only propext, Classical.choice, and Quot.sound. The 122 frozen files,
+five step-1 Lean API files, and moved proof bytes keep their hashes.
+CheckProofEqns has 743 proof modules, 1,033 exports, and zero unaccepted.
+Coverage has 4,767 declarations in 13 audits. No source fix was needed.
+Log: /private/tmp/fg-fin-cont3-after-full.log.
+Checker logs: /private/tmp/fg-fin-cont3-after-checks/.
+S1P is complete. P1 and P2 are fixed. S2 has not started. No push.
