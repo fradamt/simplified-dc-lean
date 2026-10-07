@@ -40,3 +40,5 @@ public import AvailableChainPCSAProofs.Proofs.Shared.StageRun
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayStore
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayRun
 public import AvailableChainPCSAProofs.Proofs.Shared.PCViews
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore

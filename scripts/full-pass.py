@@ -11,7 +11,8 @@ IDENTITY = 'full-gate'
 STEPS = ('build', 'check-build', 'check-fgsa', 'check-fgsa-run', 'catalog-lock',
          'v2-manifest', 'gen-manifest', 'fgsa-manifest', 'fgsa-claims',
          'Generic-axioms', 'FGSA-axioms', 'FGSARun-axioms', 'proof-audit-coverage',
-         'check-fg-compose', 'FGCompose-axioms', 'FGSACompose-axioms', 'PCSACompose-axioms')
+         'check-fg-compose', 'FGCompose-axioms', 'FGSACompose-axioms', 'PCSACompose-axioms',
+         'FGSafety-axioms', 'FGSASafety-axioms', 'PCSASafety-axioms')
 
 
 def git(root, *args):
