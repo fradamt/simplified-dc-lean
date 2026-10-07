@@ -35,3 +35,4 @@ public import AvailableChainPCSAProofs.Proofs.Shared.RetainedWalk
 public import AvailableChainPCSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope
