@@ -31,6 +31,14 @@ public import AvailableChainPCSAProofs.Proofs.Shared.StageRun
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayStore
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayRun
 public import AvailableChainPCSAProofs.Proofs.Shared.PCViews
+public import AvailableChainPCSAProofs.Proofs.Shared.Proposal
+public import AvailableChainPCSAProofs.Proofs.Shared.Clock
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyScope
+public import AvailableChainPCSAProofs.Proofs.Shared.TreeReceipt
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
 
 public section
 
@@ -307,5 +315,34 @@ public section
 #print axioms AvailableChain.PCSA.pcsa_process_pcs_mono
 #print axioms AvailableChain.PCSA.pcsa_clock_pcs
 #print axioms AvailableChain.PCSA.Run.pcsa_run_pcs_mono
+#print axioms AvailableChain.PCSA.pcsa_propose_parent
+#print axioms AvailableChain.PCSA.Run.pcsa_signLabel_prop
+#print axioms AvailableChain.PCSA.Run.pcsa_emitted_parent
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_state
+#print axioms AvailableChain.PCSA.pcsa_clock_now
+#print axioms AvailableChain.PCSA.pcsa_process_now
+#print axioms AvailableChain.PCSA.Run.pcsa_clock_read
+#print axioms AvailableChain.PCSA.pcsa_clock_body_scope
+#print axioms AvailableChain.PCSA.Run.pcsa_body_scope
+#print axioms AvailableChain.PCSA.Run.pcsa_scoped_root_eq
+#print axioms AvailableChain.PCSA.pcsa_tree_correspondence
+#print axioms AvailableChain.PCSA.pcsa_fullTree_of_frame
+#print axioms AvailableChain.PCSA.pcsa_body_clock_fg
+#print axioms AvailableChain.PCSA.pcsa_body_process_fg_mono
+#print axioms AvailableChain.PCSA.pcsa_body_clock_keep
+#print axioms AvailableChain.PCSA.pcsa_body_process_keep
+#print axioms AvailableChain.PCSA.Run.pcsa_body_stateBefore_mono
+#print axioms AvailableChain.PCSA.pcsa_body_not_excluded
+#print axioms AvailableChain.PCSA.pcsa_body_accepted
+#print axioms AvailableChain.PCSA.pcsa_body_insert_data
+#print axioms AvailableChain.PCSA.pcsa_admitBlock_body_mem
+#print axioms AvailableChain.PCSA.pcsa_c3_process_body_pred
+#print axioms AvailableChain.PCSA.pcsa_process_new_body
+#print axioms AvailableChain.PCSA.Run.pcsa_body_receipt_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_body_handles_direct
+#print axioms AvailableChain.PCSA.Run.pcsa_body_relay_admitted
+#print axioms AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline
+#print axioms AvailableChain.PCSA.Run.pcsa_body_relay_within_on
+#print axioms AvailableChain.PCSA.Run.pcsa_stored_body_within_on
 
 end

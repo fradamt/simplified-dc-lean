@@ -40,3 +40,11 @@ public import AvailableChainPCSAProofs.Proofs.Shared.StageRun
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayStore
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayRun
 public import AvailableChainPCSAProofs.Proofs.Shared.PCViews
+public import AvailableChainPCSAProofs.Proofs.Shared.Proposal
+public import AvailableChainPCSAProofs.Proofs.Shared.Clock
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyScope
+public import AvailableChainPCSAProofs.Proofs.Shared.TreeReceipt
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay

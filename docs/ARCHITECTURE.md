@@ -239,6 +239,29 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `AcOnlyFrameClaim`), stage 2 `ArmHealthyStageTwoClaim`,
   `StrongIncludedStageTwoClaim` (`Clean₂`, `a ≤ f`, no frame premise) in
   `AvailableChainPCSAClaims`.
+- PC-SA shared proof layer (2026-10-07; stage 1 and stage 2). Paths are
+  under `AvailableChainPCSAProofs/Proofs/`. `Shared/` holds lane-neutral run
+  and store facts; it imports only `Foundations`, `Shared` and the allowed
+  upstream layers, never a lane. Stage 1 moves `Certificates`,
+  `HeadSupport`, `RunEvidence` and `StoreEvidence` from `PC/` to `Shared/`;
+  the four `PC/` modules stay as compatibility shims that import the
+  `Shared/` module, so open lanes keep their `PC/` imports. Stage 1 also
+  adds the PC relay layer: `CollectClosed`, `StageStore` (the stage-1 store
+  invariant; it keeps the names `OutageStore` and `pcsa_outage_*` from the
+  move), `StageRun`, `RelayStore`, `RelayRun` (whole-PC relay and
+  `pcsa_keyHeld_accepted`) and `PCViews` (best-PC rank, view target,
+  installed-PC acceptance, PC retention). Stage 2 adds `Proposal` (the honest
+  proposal is built at the proposer post-clock state: parent and `N.pc`),
+  `Clock` (`pcsaClock`, `pcsa_clock_now`, `pcsa_process_now`), the body
+  layer `BodyScope`, `TreeReceipt`, `BodyPersistence`, `BodyAdmission` and
+  `BodyReceipt` (body origin, and `pcsa_body_relay_admitted`: a relayed
+  accepted body is admitted by a deadline `d`, given the relay step to `d`)
+  and `BodyRelay` (the same over a `DeliveryWithinOn` premise with the lane's
+  deadline map).
+  The delivery wrappers stay in the lanes: each lane supplies the relay step
+  from its own delivery premise (Outage and Clean: `HealthyPrefixDeliveryBy`
+  through `Shared/Relay`; Recovery: the RECOVERY deadline
+  `max t z_{s-1} + Δ`; Formation: `FormationPrem.delivery`).
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.
