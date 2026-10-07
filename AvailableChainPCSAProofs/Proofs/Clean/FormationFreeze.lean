@@ -1,18 +1,18 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.FormationCollect
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
 
 public section
 
-/-! Freeze retention for Formation. Existing collection closure makes a
+/-! Freeze retention for Formation. Shared CollectClosed makes a
 repeated collection call leave the store unchanged. The freeze clock keeps
 the full PC list. This closes hFreezeKeep without a PC acceptance input. -/
 
 namespace AvailableChain.PCSA
 variable {n : Nat}
 
-private theorem formation_collected_fixed (st : State n) (h : FormationCollected st) :
+private theorem formation_collectClosed_fixed (st : State n) (h : CollectClosed st) :
     collectPCs st = st := by
-  rw [FormationCollected_def] at h
+  rw [CollectClosed_def] at h
   let candidates := (st.ackPool.filterMap (fun a =>
     (AckWire.decode? a).map (fun x => (x.1, x.2.2)))).eraseDups
   suffices ∀ cs : List (Slot × BlockId), cs ⊆ candidates →
@@ -36,14 +36,8 @@ private theorem formation_collected_fixed (st : State n) (h : FormationCollected
       | none => exact ih htail
       | some C =>
         dsimp only
-        have hr : b.root = sr.2 := beq_iff_eq.mp
-          (List.find?_some (p := fun B : Block => B.root == sr.2) hb)
-        have hfind : st.base.blocks.find? (fun B => B.root == b.root) = some b := by
-          rw [hr]; exact hb
-        have hmem : (sr.1, b.root) ∈ candidates := by
-          rw [hr]; exact hc List.mem_cons_self
-        have hid := h sr.1 b C hmem hfind ha
-        rw [FormationPCIdentity_def] at hid
+        have hid := h sr.1 b C (List.mem_of_find?_eq_some hb) ha
+        rw [KeyHeld_def] at hid
         obtain ⟨A, hm, hs, ht⟩ := hid
         have he := ((assemblePC_some_iff st sr.1 b C).mp ha).1
         have hslot : C.slot = sr.1 := congrArg PC.slot he
@@ -78,9 +72,9 @@ theorem pcsa_formation_freeze_keep (E : Generic.Env V) (rho : V2.D.Run V (pcsaWi
   obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp (hBase.valid.tick_total y hy _ hpub hz hhor)
   have hpre := V2.D.Engine.stateBefore_tick_eq_stateBeforeTime
     hBase.valid.toScheduleWellFormed hBase.noRestart hi
-  have hReach := pcsa_reachable_stateBefore E rho i y
-  rw [hpre] at hReach
-  rw [formation_collected_fixed _ (pcsa_formation_reachable_collected p _ hReach)]
+  have hClosed := pcsa_collectClosed_stateBefore E rho hBase y hy i
+  rw [hpre] at hClosed
+  rw [formation_collectClosed_fixed _ hClosed]
   have hread : storeAfterTicks p c E rho y (SA.freezeTime p.toParams s) =
       clock p (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st
         (SA.freezeTime p.toParams s) := by

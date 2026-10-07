@@ -17,16 +17,9 @@ open AvailableChain
 namespace AvailableChain.PCSA
 variable {n : Nat}
 
-def FormationPCIdentity (st : State n) (s : Slot) (b : Block) : Prop :=
-  ∃ C ∈ st.pcs, C.slot = s ∧ C.target = b
-
-theorem FormationPCIdentity_def (st : State n) (s : Slot) (b : Block) :
-    FormationPCIdentity st s b = (∃ C ∈ st.pcs, C.slot = s ∧ C.target = b) := by
-  apply propext
-  exact ⟨fun h => h, fun h => h⟩
-
 private theorem formation_identity_mono (st st' : State n) (s : Slot) (b : Block)
-    (h : st.pcs ⊆ st'.pcs) : FormationPCIdentity st s b → FormationPCIdentity st' s b := by
+    (h : st.pcs ⊆ st'.pcs) : KeyHeld st s b → KeyHeld st' s b := by
+  simp only [KeyHeld_def]
   rintro ⟨C, hC, hs, hb⟩
   exact ⟨C, h hC, hs, hb⟩
 
@@ -50,7 +43,8 @@ private theorem formation_collect_step_frame (st : State n) (sr : Slot × BlockI
         installPC_pcs_mono st C⟩
 
 private theorem formation_identity_install (st : State n) (C : PC n) :
-    FormationPCIdentity (installPC st C) C.slot C.target := by
+    KeyHeld (installPC st C) C.slot C.target := by
+  rw [KeyHeld_def]
   cases h : st.pcs.any (fun A => A.slot == C.slot && A.target == C.target) with
   | true =>
     rw [installPC_duplicate st C h]
@@ -86,7 +80,7 @@ private theorem formation_collect_fold_identity (cs : List (Slot × BlockId))
     (hm : (s, b.root) ∈ cs)
     (hb : st.base.blocks.find? (fun B => B.root == b.root) = some b)
     (hc : assemblePC st s b = some C) :
-    FormationPCIdentity (cs.foldl (fun acc sr =>
+    KeyHeld (cs.foldl (fun acc sr =>
       match acc.base.blocks.find? (fun B => B.root == sr.2) with
       | none => acc
       | some B => match assemblePC acc sr.1 B with
@@ -104,7 +98,7 @@ private theorem formation_collect_fold_identity (cs : List (Slot × BlockId))
     have hd := formation_collect_step_frame st sr
     rcases List.mem_cons.mp hm with he | hm
     · subst sr
-      change FormationPCIdentity (cs.foldl _ dst) s b
+      change KeyHeld (cs.foldl _ dst) s b
       apply formation_identity_mono dst _ s b (formation_collect_fold_mono cs dst)
       dsimp only [dst]
       rw [hb]
@@ -125,7 +119,7 @@ theorem pcsa_formation_collect_identity (st : State n) (s : Slot) (b : Block)
     (hm : (s, b.root) ∈ (st.ackPool.filterMap (fun a =>
       (AckWire.decode? a).map (fun x => (x.1, x.2.2)))).eraseDups)
     (hb : st.base.blocks.find? (fun B => B.root == b.root) = some b)
-    (hc : assemblePC st s b = some C) : FormationPCIdentity (collectPCs st) s b := by
+    (hc : assemblePC st s b = some C) : KeyHeld (collectPCs st) s b := by
   delta collectPCs
   exact formation_collect_fold_identity _ st s b C hm hb hc
 
@@ -200,14 +194,14 @@ def FormationCollected (st : State n) : Prop :=
     (s, b.root) ∈ (st.ackPool.filterMap (fun a =>
       (AckWire.decode? a).map (fun x => (x.1, x.2.2)))).eraseDups →
     st.base.blocks.find? (fun B => B.root == b.root) = some b →
-    assemblePC st s b = some C → FormationPCIdentity st s b
+    assemblePC st s b = some C → KeyHeld st s b
 
 theorem FormationCollected_def (st : State n) : FormationCollected st =
     (∀ (s : Slot) (b : Block) (C : PC n),
       (s, b.root) ∈ (st.ackPool.filterMap (fun a =>
         (AckWire.decode? a).map (fun x => (x.1, x.2.2)))).eraseDups →
       st.base.blocks.find? (fun B => B.root == b.root) = some b →
-      assemblePC st s b = some C → FormationPCIdentity st s b) := by
+      assemblePC st s b = some C → KeyHeld st s b) := by
   apply propext
   exact ⟨fun h => h, fun h => h⟩
 
@@ -280,7 +274,7 @@ private theorem formation_assembly_candidate (st : State n) (s : Slot) (b : Bloc
 theorem pcsa_formation_collected_identity (st : State n) (s : Slot) (b : Block)
     (C : PC n) (hn : 0 < n) (h : FormationCollected st)
     (hb : st.base.blocks.find? (fun B => B.root == b.root) = some b)
-    (hc : assemblePC st s b = some C) : FormationPCIdentity st s b :=
+    (hc : assemblePC st s b = some C) : KeyHeld st s b :=
   h s b C (formation_assembly_candidate st s b C hn hc) hb hc
 
 private theorem formation_assemble_eq_of_on (st st' : State n) (s : Slot) (b : Block)
@@ -371,13 +365,13 @@ private theorem formation_pc_ack_decode (D : PC n) (hD : D.wellFormed = true)
 Collection closure excludes an unrelated candidate from an earlier pool. -/
 theorem pcsa_formation_admitPC_root (st : State n) (D C : PC n) (hn : 0 < n)
     (hClosed : FormationCollected st) (hD : D.wellFormed = true)
-    (hNew : ¬FormationPCIdentity st C.slot C.target)
+    (hNew : ¬KeyHeld st C.slot C.target)
     (hm : C ∈ (admitPC st D).pcs) : D.slot = C.slot ∧ D.target.root = C.target.root := by
   have hf := formation_raw_frame st D.acks
   have hNot : C ∉ (D.acks.foldl poolAckRaw st).pcs := by
     rw [hf.2.2]
     intro hc
-    exact hNew ⟨C, hc, rfl, rfl⟩
+    exact hNew ((KeyHeld_def _ _ _).mpr ⟨C, hc, rfl, rfl⟩)
   change C ∈ (if D.wellFormed then collectPCs (D.acks.foldl poolAckRaw st) else st).pcs at hm
   rw [ite_eq_left hD] at hm
   obtain ⟨_, hb, hc⟩ := pcsa_formation_collect_new_origin _ C hm hNot
@@ -520,13 +514,13 @@ private theorem formation_poolAck_on_missing (p : Params) (st : State p.n)
 /-- A completing ack belongs to the certificate that its call newly installs. -/
 theorem pcsa_formation_admitAck_contains (p : Params) (st : State p.n)
     (a : AckWire p.n) (C : PC p.n) (hClosed : FormationCollected st)
-    (hNew : ¬FormationPCIdentity st C.slot C.target)
+    (hNew : ¬KeyHeld st C.slot C.target)
     (hm : C ∈ (admitAck p st a).pcs) : a ∈ C.acks := by
   have hf := formation_poolAck_frame p st a
   have hNot : C ∉ (poolAck p st a).pcs := by
     rw [hf.2.2]
     intro hc
-    exact hNew ⟨C, hc, rfl, rfl⟩
+    exact hNew ((KeyHeld_def _ _ _).mpr ⟨C, hc, rfl, rfl⟩)
   obtain ⟨_, hb, hc⟩ := pcsa_formation_collect_new_origin _ C hm hNot
   by_contra hA
   have hMiss : a ∉ acksOn (poolAck p st a) C.slot C.target.root := by
@@ -786,7 +780,7 @@ private theorem pcsa_formation_accepted_proposal_root (p : Params) (st : State p
     (hParent : parentFG st N.erase = some P) (hAcc : blockAccepted p st s N P = true)
     (hClosed : FormationCollected st) (hF : st.fg.F = .genesis)
     (hWF : (N.pc.map PC.wellFormed).getD true = true)
-    (hNew : ¬FormationPCIdentity st C.slot C.target)
+    (hNew : ¬KeyHeld st C.slot C.target)
     (hm : C ∈ (N.rows.foldl (admitRow p)
       (collectPCs (formationCollectInput p st s N P))).pcs) :
     (C.slot = N.erase.slot ∧ C.target.root = N.erase.root) ∨
@@ -796,7 +790,7 @@ private theorem pcsa_formation_accepted_proposal_root (p : Params) (st : State p
     intro hC
     change C ∈ (N.pcAcks.foldl poolAckRaw (formationCollectPre p st s N P)).pcs at hC
     rw [(formation_raw_frame _ N.pcAcks).2.2] at hC
-    exact hNew ⟨C, formation_pre_pcs_sub p st s N P hC, rfl, rfl⟩
+    exact hNew ((KeyHeld_def _ _ _).mpr ⟨C, formation_pre_pcs_sub p st s N P hC, rfl, rfl⟩)
   obtain ⟨_, hb, hc⟩ := pcsa_formation_collect_new_origin _ C hm hInput
   have hValid := pcsa_assemblePC_valid _ _ _ C hc
   have hw := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hValid).1).1
@@ -833,15 +827,15 @@ theorem pcsa_formation_admitBlock_root (p : Params) (st : State p.n) (s : Slot)
     (N : NamedProposal p.n) (C : PC p.n)
     (hTree : ∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
     (hClosed : FormationCollected st) (hF : st.fg.F = .genesis)
-    (hNew : ¬FormationPCIdentity st C.slot C.target)
+    (hNew : ¬KeyHeld st C.slot C.target)
     (hm : C ∈ (admitBlock p st s N).pcs) :
     (C.slot = N.erase.slot ∧ C.target.root = N.erase.root) ∨
       ∃ D ∈ N.pc, D.slot = C.slot ∧ D.target.root = C.target.root := by
   delta admitBlock at hm
   split at hm
-  · exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+  · exact (hNew ((KeyHeld_def _ _ _).mpr ⟨C, hm, rfl, rfl⟩)).elim
   · cases hp : parentFG st N.erase with
-    | none => rw [hp] at hm; exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+    | none => rw [hp] at hm; exact (hNew ((KeyHeld_def _ _ _).mpr ⟨C, hm, rfl, rfl⟩)).elim
     | some P =>
       rw [hp] at hm
       dsimp only at hm
@@ -860,19 +854,20 @@ theorem pcsa_formation_admitBlock_root (p : Params) (st : State p.n) (s : Slot)
           (collectPCs (formationCollectInput p st s N P))).pcs at hm
         exact pcsa_formation_accepted_proposal_root p st s N P C
           hTree hp hAcc hClosed hF hWF hNew hm
-      · exact (hNew ⟨C, hm, rfl, rfl⟩).elim
+      · exact (hNew ((KeyHeld_def _ _ _).mpr ⟨C, hm, rfl, rfl⟩)).elim
 
 /-- A collected identity does not need another collection call. -/
 theorem pcsa_formation_collect_identity_iff (st : State n) (s : Slot) (b : Block)
     (hClosed : FormationCollected st) :
-    FormationPCIdentity (collectPCs st) s b ↔ FormationPCIdentity st s b := by
+    KeyHeld (collectPCs st) s b ↔ KeyHeld st s b := by
+  simp only [KeyHeld_def]
   constructor
   · rintro ⟨C, hm, hs, hb⟩
     by_cases hC : C ∈ st.pcs
     · exact ⟨C, hC, hs, hb⟩
     · obtain ⟨hcand, hfind, hasm⟩ := pcsa_formation_collect_new_origin st C hm hC
       have hi := hClosed C.slot C.target C hcand hfind hasm
-      simpa only [hs, hb] using hi
+      simpa only [KeyHeld_def, hs, hb] using hi
   · rintro ⟨C, hm, hs, hb⟩
     exact ⟨C, collectPCs_pcs_mono st hm, hs, hb⟩
 

@@ -16,6 +16,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationCollect
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationView
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationFreeze
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationSourceRetention
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationCollection
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationTerminal
 
 public section
@@ -46,7 +47,8 @@ FormationFreeze closes hFreezeKeep and supplies PC consumers.
 FormationTerminal closes hStop from handler slot bounds and sorted run times.
 The retained HEAD consumer still needs the receipt, resolution, path and child inputs.
 FormationOrigins closes hFrozenPCOrigin at the actual early read.
-The C3 inputs remain hAckAdmit and hPCCollect.
+FormationCollection closes hPCCollect from the required early N counts.
+Its PC consumers need only hAckAdmit from C3. The early N-count producer is open.
 The main Clean.Export module is owned by the other Clean writer. -/
 
 end
