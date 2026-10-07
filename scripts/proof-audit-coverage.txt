@@ -5554,6 +5554,9 @@
         'AvailableChainPCSAProofs.Proofs.Assembly.AcFrame': (
             'AvailableChain.PCSA.Run.pcsa_acFrameClaim',
         ),
+        'AvailableChainPCSAProofs.Proofs.Assembly.Formation': (
+            'AvailableChain.PCSA.Run.pcsa_formation_source_of_stamped_pc_c1',
+        ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Small': (
             'AvailableChain.PCSA.Run.pcsa_smallClaims',
         ),

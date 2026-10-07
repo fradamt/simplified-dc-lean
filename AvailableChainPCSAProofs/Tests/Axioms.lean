@@ -5,6 +5,7 @@ public import AvailableChainPCSAProofs.Proofs.AcFrame.Run
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Store
 public import AvailableChainPCSAProofs.Proofs.Assembly.AcFrame
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
+public import AvailableChainPCSAProofs.Proofs.Assembly.Formation
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
@@ -307,5 +308,7 @@ public section
 #print axioms AvailableChain.PCSA.pcsa_process_pcs_mono
 #print axioms AvailableChain.PCSA.pcsa_clock_pcs
 #print axioms AvailableChain.PCSA.Run.pcsa_run_pcs_mono
+
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_stamped_pc_c1
 
 end
