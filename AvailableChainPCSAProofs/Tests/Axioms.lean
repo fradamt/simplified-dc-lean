@@ -571,3 +571,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_support_in_proposer
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_support_backward
 #print axioms AvailableChain.PCSA.pcsa_headSupport_resolution
+
+-- C6 CommonScores.
+#print axioms AvailableChain.PCSA.Run.pcsa_read_vote_support_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_common_walk_counts

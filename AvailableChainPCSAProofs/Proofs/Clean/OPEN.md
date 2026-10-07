@@ -1116,3 +1116,9 @@ Validation and current claim status are recorded in log.md and state.md.
 C6 support: transport exact proposer and voter support inputs. The module
 uses the concrete readers and preserves the joint-induction premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### CommonScores
+
+Actual raw and support transfers give equal participant counts, cap
+status, and scores at every walk candidate.
+Validation and current claim status are recorded in log.md and state.md.
