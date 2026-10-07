@@ -79,7 +79,11 @@ variable [Fintype V]
 /-- Missing producers needed by the conditional C11 export.
 `formation` takes the corrected F4 clause as a separate argument until the
 statement branch adds it to FormationPrem. The stamp-to-reader boundary
-is proved in RunInputs and is no longer an input. -/
+is proved in RunInputs and is no longer an input.
+`firstSlot` still needs F3. The PC target-alias run in
+Tests/RecoveryViewCounterexample passes the finite RECOVERY audit but has
+unequal views at the first slot and after the mix time. Its installed real
+PC is not handled, so the whole-PC relay premise does not close this input. -/
 structure RecoverySuffixInputs (s₁ : Slot) (ΔF : Time) : Prop where
   firstSlot : ∃ N : NamedProposal p.n,
     FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁
