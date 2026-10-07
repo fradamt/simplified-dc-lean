@@ -984,3 +984,24 @@ C6 support: trace lock targets and levels to earlier gate results. The
 module uses the concrete readers and preserves the joint-induction
 premises.
 These are support facts. C6 and its remaining joint record fields are open.
+
+### RecordBounds
+
+C6 support: bound record and lock origins at inclusive reads. The module
+uses the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
+
+Pending cutoff audit: HealthyPrefixDeliveryBy covers a relay only
+when its full deadline is at or before the cut. M3 assumes only the
+next HEAD time is before the cut. Test n=6, Delta=2, cut=18, with a
+faulty proposal delivered at 17 carrying one new off-branch HEAD.
+Its relay deadline is 19; the source result is read at 20. The same
+run tests CleanHeadsPastCutClaim. Verify all executable run and
+clean-prefix checks before recording a counterexample.
+
+`PendingGates`: the honest early batch gives a nonempty result and
+covers any common honest HEAD prefix using only earlyTime <= cut.
+Use this for M1 (CleanResultsNonemptyClaim) and M2
+(CleanResultsChainPendingClaim). The fifth store fact used by the
+Outage assembly is LeaseBelowRecordClaim (Claims/PC.lean); keep that
+exact statement as the M5 target.

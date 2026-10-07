@@ -508,3 +508,9 @@ end
 #print axioms AvailableChain.PCSA.pcsa_gate_lock_origin
 #print axioms AvailableChain.PCSA.pcsa_clock_lock_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_stateBefore_origin
+
+-- C6 RecordBounds.
+#print axioms AvailableChain.PCSA.pcsa_gate_label_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_record_storeAt_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_storeAt_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_record_storeAt_compatible
