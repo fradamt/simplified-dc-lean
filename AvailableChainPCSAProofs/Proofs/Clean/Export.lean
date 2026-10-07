@@ -162,6 +162,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.RetainedProposal
 
 public import AvailableChainPCSAProofs.Proofs.Clean.ProposerReads
 
+public import AvailableChainPCSAProofs.Proofs.Clean.RootAgreement
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -422,6 +424,24 @@ theorem pcsa_clean_proposer_head_above_result (E : Generic.Env V)
     (SA.gateTime p.toParams s) (SA.proposalTime p.toParams (s + 1)) s X hfcut hidx hresult
   exact pcsa_gate_proposer_walk_counts E rho h.base hF h.healthy a k y x hy hx s X _ _ hc ha hk
     hresult hroot (fun B _ hBX => (hpaths B hBX).1)
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
+/-- Predecessor CI bounds every pre-vote lock by each result of that predecessor label. -/
+theorem pcsa_clean_pre_vote_lock_below_result (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (s : Slot) (hCI : CleanInvariantAt p c E rho s)
+    (k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hk : k ≤ V2.D.Run.idxBefore rho (SA.voteTime p.toParams (s + 1)))
+    (row : Block × Nat × Time) (hr : row ∈ (V2.D.Run.stateBefore E rho k x).st.base.obligations)
+    (X : Block) (hX : gateResultAt p c E rho y s = some (some X)) : Block.Preceq row.1 X := by
+  obtain ⟨a, ha, i, Y, he, hY, hp, _⟩ := pcsa_lock_stateBefore_origin E rho h k x row hr
+  have ht := (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed he _).mp
+    (ha.trans_le hk)
+  have hi := pcsa_gate_label_lt_next_vote p i s ht
+  exact Gen.Pure.block_preceq_trans hp
+    ((hCI.resultsChain x hx y hy i s Y X hi.le (le_refl _) hY hX).1 hi)
 end AvailableChain.PCSA.Run
 
 end

@@ -1307,3 +1307,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Exact pre-tick reads let predecessor CI compare proposer roots with
 results. Concrete proposer counts then give parent coverage.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RootAgreement
+
+Common view targets and predecessor-result lock bounds give the retained-
+walk root conditions.
+Validation and current claim status are recorded in log.md and state.md.

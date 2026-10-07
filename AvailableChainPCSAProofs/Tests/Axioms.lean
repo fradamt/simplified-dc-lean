@@ -749,3 +749,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_pre_tick_storeAt
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_proposer_root_compatible
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_proposer_head_above_result
+
+-- C6 RootAgreement.
+#print axioms AvailableChain.PCSA.pcsa_selected_walk_bases_eq
+#print axioms AvailableChain.PCSA.pcsa_proposal_root_geometry
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pre_vote_lock_below_result
