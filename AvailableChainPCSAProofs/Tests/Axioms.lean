@@ -44,6 +44,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
+public import AvailableChainPCSAProofs.Proofs.Shared.StoreRoots
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope
 
@@ -454,14 +455,14 @@ public section
 #print axioms AvailableChain.PCSA.pcsa_formation_metadata_body
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_vote_presence_of_metadata
 #print axioms AvailableChain.PCSA.pcsa_reachable_headDomain_none
-#print axioms AvailableChain.PCSA.pcsa_formation_findByRoot_mono
-#print axioms AvailableChain.PCSA.pcsa_formation_actView_resolved
-#print axioms AvailableChain.PCSA.pcsa_formation_base_resolved
+#print axioms AvailableChain.PCSA.pcsa_findByRoot_mono
+#print axioms AvailableChain.PCSA.pcsa_actView_resolved
+#print axioms AvailableChain.PCSA.pcsa_base_resolved
 #print axioms AvailableChain.PCSA.pcsa_formation_resolution_of_blocks
 #print axioms AvailableChain.PCSA.pcsa_formation_support_keep_of_metadata
-#print axioms AvailableChain.PCSA.Run.pcsa_formation_read_root_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_read_root_unique
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_proposer_blocks_at_vote
-#print axioms AvailableChain.PCSA.Run.pcsa_formation_read_reachable
+#print axioms AvailableChain.PCSA.Run.pcsa_read_reachable
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_rest_of_open
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_vote_metadata
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_early_presence

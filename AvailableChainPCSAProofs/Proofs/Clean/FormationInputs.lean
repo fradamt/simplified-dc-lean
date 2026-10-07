@@ -3,6 +3,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationOrigins
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationHeads
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
+public import AvailableChainPCSAProofs.Proofs.Shared.StoreRoots
 
 public section
 
@@ -73,58 +74,6 @@ theorem pcsa_formation_current_body_in_voter_tree (p : Params) (st : State p.n)
   rw [erasedList_def]
   exact List.mem_filter.mpr ⟨hBody, decide_eq_true ⟨B, hFiltered, he⟩⟩
 
-/-- A root resolved in a sub-store resolves to the same body in a root-unique store. -/
-theorem pcsa_formation_findByRoot_mono {src dst : List Block} {r : BlockId} {B : Block}
-    (hsub : src ⊆ dst) (hu : ∀ C ∈ dst, ∀ D ∈ dst, C.root = D.root → C = D)
-    (h : Block.findByRoot? src r = some B) : Block.findByRoot? dst r = some B := by
-  have hm := Block.findByRoot?_mem h
-  have hr := Block.findByRoot?_root h
-  exact (Block.findByRoot?_spec dst r B).mpr
-    ⟨hsub hm, hr, fun C hC hCr => hu C hC B (hsub hm) (hCr.trans hr.symm)⟩
-
-/-- With the cumulative domain unset, active resolution is a root lookup. -/
-theorem pcsa_formation_actView_resolved {n : Nat} (st : State n)
-    (hd : st.base.headDomain = none) (o : GridCO.Wire n .root) (B : Block)
-    (h : GridCO.resolvedHead? (actView st) o = some B) :
-    ∃ r, GridCO.headTarget? o = some r ∧ Block.findByRoot? st.base.blocks r = some B := by
-  have htree : GridCO.resolutionTree (actView st) = st.base.blocks := by
-    change (some (GridCO.resolutionTree st.base)).getD (actView st).blocks = _
-    rw [Option.getD_some, GridCO.resolutionTree, hd, Option.getD_none]
-  rw [GridCO.resolvedHead?] at h
-  cases ht : GridCO.headTarget? o with
-  | none => rw [ht] at h; cases h
-  | some r =>
-    rw [ht] at h
-    change Option.bind (GridCO.resolveTarget .root (GridCO.resolutionTree (actView st)) r)
-      (fun B => if B ∈ (actView st).blocks then some B else none) = some B at h
-    rw [htree, GridCO.resolveTarget] at h
-    dsimp only at h
-    cases hf : Block.findByRoot? st.base.blocks r with
-    | none => rw [hf] at h; cases h
-    | some C =>
-      rw [hf] at h
-      change (if C ∈ (actView st).blocks then some C else none) = some B at h
-      split at h
-      · cases h
-        exact ⟨r, rfl, hf⟩
-      · cases h
-
-/-- With the cumulative domain unset, base resolution is a root lookup. -/
-theorem pcsa_formation_base_resolved {n : Nat} (st : State n)
-    (hd : st.base.headDomain = none) (o : GridCO.Wire n .root) (r : BlockId) (B : Block)
-    (ht : GridCO.headTarget? o = some r) (hf : Block.findByRoot? st.base.blocks r = some B) :
-    GridCO.resolvedHead? st.base o = some B := by
-  rw [GridCO.resolvedHead?, ht]
-  change Option.bind (GridCO.resolveTarget .root (GridCO.resolutionTree st.base) r)
-    (fun B => if B ∈ st.base.blocks then some B else none) = some B
-  rw [GridCO.resolutionTree, hd, Option.getD_none, GridCO.resolveTarget]
-  dsimp only
-  rw [hf]
-  change (if B ∈ st.base.blocks then some B else none) = some B
-  split
-  · rfl
-  · exact absurd (Block.findByRoot?_mem hf) ‹_›
-
 private theorem formation_support_resolved {n : Nat} (st : State n) (s : Slot)
     (hd : st.base.headDomain = none) (o : GridCO.Wire n .root)
     (ho : o ∈ proposerSupport st s) :
@@ -135,7 +84,7 @@ private theorem formation_support_resolved {n : Nat} (st : State n) (s : Slot)
   | none => rw [hres] at hf; cases hf
   | some H =>
     rw [hres] at hf
-    obtain ⟨r, ht, hr⟩ := pcsa_formation_actView_resolved st hd o H hres
+    obtain ⟨r, ht, hr⟩ := pcsa_actView_resolved st hd o H hres
     exact ⟨r, H, ht, hr, of_decide_eq_true hf⟩
 
 /-- Proposer support resolves to the same bodies in a larger root-unique store. -/
@@ -147,7 +96,7 @@ theorem pcsa_formation_resolution_of_blocks {n : Nat} (src dst : State n) (s : S
         Gen.AC.Root.voteSupports dst.base.blocks B o := by
   intro o ho B
   obtain ⟨r, H, ht, hf, _⟩ := formation_support_resolved src s hd o ho
-  have hf' := pcsa_formation_findByRoot_mono hsub hu hf
+  have hf' := pcsa_findByRoot_mono hsub hu hf
   have e1 : Gen.AC.Root.resolvedTarget? src.base.blocks o = some H := by
     delta Gen.AC.Root.resolvedTarget?
     rw [ht]
@@ -180,8 +129,8 @@ theorem pcsa_formation_support_keep_of_metadata (src dst : State p.n) (s : Slot)
     change o ∈ src.base.votes.filter _ at hv
     exact (List.mem_filter.mp hv).2
   obtain ⟨r, H, ht, hf, hH⟩ := formation_support_resolved src s hdSrc o ho
-  have hres := pcsa_formation_base_resolved dst hdDst o r H ht
-    (pcsa_formation_findByRoot_mono hsub hu hf)
+  have hres := pcsa_base_resolved dst hdDst o r H ht
+    (pcsa_findByRoot_mono hsub hu hf)
   have hx : ∃ a, liftHead? o = some a ∧ baseVote a = o := by
     obtain ⟨auth, msg⟩ := o
     cases auth with
@@ -594,23 +543,6 @@ theorem pcsa_formation_preFreeze_of_run (E : Generic.Env V)
   exact pcsa_formation_preFreeze E rho s N ΔF h
     (pcsa_formation_inputs_of_run E rho s N ΔF h hRun)
 
-omit [Fintype V] in
-/-- Every body of an honest duty read is in the run's named root scope. -/
-theorem pcsa_formation_read_root_unique (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (hBase : Base₂ p c E rho) (y : V)
-    (hy : y ∈ rho.honest) (t : Time) (nd : Node p) (hr : pcsa_postClock E rho y t = some nd) :
-    ∀ C ∈ nd.st.base.blocks, ∀ D ∈ nd.st.base.blocks, C.root = D.root → C = D := by
-  rw [pcsa_postClock_def] at hr
-  obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hr
-  rw [pcsa_preTick_def] at hp
-  obtain ⟨k, _, he⟩ := Option.map_eq_some_iff.mp hp
-  subst pre
-  subst nd
-  have hscope := pcsa_clock_body_scope p (RootBlockInRun p c E rho)
-    (V2.D.Run.stateBefore E rho k y).st t (pcsa_body_scope E rho k y hy)
-  intro C hC D hD he
-  exact pcsa_scoped_root_eq E rho hBase.idealization C D (hscope C hC) (hscope D hD) he
-
 /-- F1 carries every body of the proposer read to each honest vote read. -/
 theorem pcsa_formation_proposer_blocks_at_vote (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
@@ -700,19 +632,6 @@ theorem pcsa_formation_early_presence (E : Generic.Env V)
       change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
       linarith)
 
-omit [Fintype V] in
-/-- A post-clock duty read is a reachable store. -/
-theorem pcsa_formation_read_reachable (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (y : V) (t : Time) (nd : Node p)
-    (hr : pcsa_postClock E rho y t = some nd) : Reachable p nd.st := by
-  rw [pcsa_postClock_def] at hr
-  obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hr
-  rw [pcsa_preTick_def] at hp
-  obtain ⟨k, _, he⟩ := Option.map_eq_some_iff.mp hp
-  subst pre
-  subst nd
-  exact Reachable.tick _ (pcsa_reachable_stateBefore E rho k y)
-
 /-- The retained inputs that remain open at the actual proposer and voter reads. -/
 structure FormationRetainedHeadOpen (p : Params) (src dst : Node p)
     (s : Slot) (N : NamedProposal p.n) : Prop where
@@ -755,11 +674,11 @@ theorem pcsa_formation_retained_rest_of_open (E : Generic.Env V)
     have he : N.erase.slot = N.slot := by cases N <;> rfl
     exact he.symm.trans hSrc.1
   have hdSrc := pcsa_reachable_headDomain_none p src.st
-    (pcsa_formation_read_reachable E rho _ _ src hs)
+    (pcsa_read_reachable E rho _ _ src hs)
   have hdDst := pcsa_reachable_headDomain_none p dst.st
-    (pcsa_formation_read_reachable E rho y _ dst hd)
+    (pcsa_read_reachable E rho y _ dst hd)
   have hsub := pcsa_formation_proposer_blocks_at_vote E rho s N ΔF h src dst y hy hs hd
-  have hu := pcsa_formation_read_root_unique E rho h.base y hy _ dst hd
+  have hu := pcsa_read_root_unique E rho h.base y hy _ dst hd
   exact ⟨hOpen.hRawBack,
     pcsa_formation_support_keep_of_metadata src.st dst.st s N hslot hSrc.2.2.2.2
       (pcsa_formation_vote_metadata E rho s N ΔF h y hy dst hd) hdSrc hdDst hsub hu,
