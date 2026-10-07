@@ -641,6 +641,13 @@ COMPOSE_SAFETY_IMPORTS = frozenset({
     (COMPOSE + ".Statements.SafetyStore", KITFG + ".StoreSafetyDef"),
     (COMPOSE + ".Statements.SafetyClient", SP + ".Quorum"),
 })
+COMPOSE_MODULES += tuple(COMPOSE + ".Proofs." + name for name in
+                         ("SafetyClient", "SafetyCount", "SafetyMonotone"))
+# Lead ruling 2026-10-07 (P2, S3a): exact Compose Proofs pairs. No prefix.
+COMPOSE_PROOF_IMPORTS = frozenset({
+    (COMPOSE + ".Proofs.SafetyClient", KITFG + ".ClientOnceSafety"),
+    (COMPOSE + ".Proofs.SafetyClient", PV + ".Duty.Fields"),
+})
 COMPOSE_EDGES = frozenset(
     [(PROOFS + ".Proofs.Shared.FGCompose", dep) for dep in COMPOSE_MODULES[:3]]
     + [(PROOFS + ".Proofs.Finality." + name, COMPOSE + ".Proofs.SourceHead")
@@ -683,7 +690,8 @@ def compose_p(ctx: Context, m: Module, dep: str) -> bool:
     if is_test(m.name):
         return not (foundation(dep) or own)
     return not (compose_base(dep) or own
-                or dep in {"AvailableChainKitV2.DutyStable", KITFG + ".Correspondence"})
+                or dep in {"AvailableChainKitV2.DutyStable", KITFG + ".Correspondence"}
+                or (m.name, dep) in COMPOSE_PROOF_IMPORTS)
 
 
 def upstream_compose(ctx: Context, m: Module, dep: str) -> bool:

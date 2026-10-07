@@ -124,13 +124,19 @@ def composeImportAllowed (m dep : Name) : Bool :=
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
      `AvailableChainFGCompose.Proofs.SourceHead,
      `AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainFGCompose.Statements.SafetyStore,
-     `AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainFGCompose.Statements.SafetyClaims].contains dep
+     `AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainFGCompose.Statements.SafetyClaims,
+     `AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainFGCompose.Proofs.SafetyCount,
+     `AvailableChainFGCompose.Proofs.SafetyMonotone].contains dep
   else if composeStatements m then base || ownStatements || safety
   else if (`AvailableChainFGCompose.Tests).isPrefixOf m then
     foundation || ownStatements || ownProofs
   else if (`AvailableChainFGCompose.Proofs).isPrefixOf m then
     base || ownStatements || ownProofs ||
-      [`AvailableChainKitV2.DutyStable, `AvailableChainKitFG.Correspondence].contains dep
+      [`AvailableChainKitV2.DutyStable, `AvailableChainKitFG.Correspondence].contains dep ||
+      -- Lead ruling 2026-10-07 (P2, S3a): exact Compose Proofs pairs. No prefix.
+      [(`AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainKitFG.ClientOnceSafety),
+       (`AvailableChainFGCompose.Proofs.SafetyClient,
+        `AvailableChainGeneric.Proofs.V2.Duty.Fields)].contains (m, dep)
   else false
 
 partial def composeSources (path : System.FilePath) : IO (Array Name) := do
