@@ -462,6 +462,7 @@
             'AvailableChain.FGSA.ne_of_saved',
             'AvailableChain.FGSA.notMem_keys_of_unsaved',
             'AvailableChain.FGSA.process_F_mono',
+            'AvailableChain.FGSA.process_TF_new',
             'AvailableChain.FGSA.process_hmax_mono',
             'AvailableChain.FGSA.process_pair_mono',
             'AvailableChain.FGSA.rootInjectiveBelow_base',
@@ -6034,6 +6035,15 @@
     'AvailableChainFGSAProofs.Tests.FGSafety': {
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyReads',
+            'AvailableChain.FGSA.Run.fgsaSafetyReads_def',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope': (
+            'AvailableChain.FGSA.Run.fgsaSafetyScopeLaws',
+            'AvailableChain.FGSA.Run.fgsa_safetyScopedRoots',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore': (
+            'AvailableChain.FGSA.Run.fgsaSafetyOrderLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyStoreLaws',
         ),
         'AvailableChainFGSARun.Model.Protocol': (
             'AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def',
