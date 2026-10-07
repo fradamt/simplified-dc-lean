@@ -67,7 +67,7 @@ MODEL_ROOTS = sorted({module for module, _ in MODEL_SCOPE})
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = read_names('scripts/fgsa-claims-expected.txt')
 # WC Job 4 adds no Statements module; the WC entries keep their current order.
-ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
+ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'OutageContinuation', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
          'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'Packages.Finality', 'Packages.FinalityGST',
          'LiveDC', 'ComposeStmt', 'Fold',
