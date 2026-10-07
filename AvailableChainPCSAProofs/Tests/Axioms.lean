@@ -438,3 +438,10 @@ end
 #print axioms AvailableChain.PCSA.CleanPCPool.CertSafe_def
 #print axioms AvailableChain.PCSA.CleanPCPool.process_certSafe
 #print axioms AvailableChain.PCSA.CleanPCPool.clock_certSafe
+
+-- C6 PCScope.
+#print axioms AvailableChain.PCSA.pcsa_clock_pcs
+#print axioms AvailableChain.PCSA.pcsa_collect_pc_target_origin
+#print axioms AvailableChain.PCSA.pcsa_process_pc_target_origin
+#print axioms AvailableChain.PCSA.pcsa_pc_targets_held
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_scope

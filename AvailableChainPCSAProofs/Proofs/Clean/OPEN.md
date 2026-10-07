@@ -810,3 +810,31 @@ the voter tree adds only the proposal. Retain the source parent path,
 use equal scores and eligibility, and handle different roots with
 coverage of the source root. The sole eligible new child then makes
 the voter walk end at the proposal.
+
+### PCScope
+
+C6 support: keep held PC targets in the scoped body pool. The module uses
+the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`ProposerReads`: identify the actual pre-tick state with the inclusive
+read one integer time unit earlier. A proposer tick creates no lock.
+Use these facts to apply the predecessor CI PC/result field to the
+proposer root, and to trace its locks to earlier results.
+
+`ProposerStep` export: predecessor CI makes every proposer root
+compatible with the preceding result. PCs use the exact pre-tick
+inclusive reader; locks use their earlier gate origin. Apply actual
+proposer counts and retained paths to show the generated parent
+extends each preceding-label result.
+
+`CommonEligibility`: reduce the low-parent arm using the zero
+stage-one band floor. Compute the actual proposer and voter clock
+slots. Equal counts and scores then give equal eligibility, and the
+current proposal is eligible by its slot.
+
+`RootAgreement`: common selected view targets give a common walk
+base in stage one. The predecessor result bounds every pre-vote lock
+and is covered by both walks. Thus the voter root lies below the
+proposer parent, and the voter walk covers any deeper proposer root.
+This supplies the remaining retained-walk root premises.
