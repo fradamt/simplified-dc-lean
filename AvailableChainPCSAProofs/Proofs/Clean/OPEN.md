@@ -687,3 +687,31 @@ retained paths. Given prior ack dissemination and earlier-result HEAD
 coverage, an ack of the current label is below every next-label HEAD.
 Keep next-label results out of this step unless their gate is inside
 the healthy prefix.
+
+### HeadBody
+
+Actual live roots and HEAD walks retain their bodies. Honest HEAD bodies
+are held before the vote and reach honest early readers with strict
+stamps.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`CommonBodies`: a body held at an honest proposer tick is held at
+every voter before the vote. Derive its strict source stamp from the
+actual pre-tick index. Also relay frozen support bodies to the
+proposer. Use these receipts only to establish common walk support.
+
+`CommonSupport`: insert carried support using the exact stored
+proposal and resolved body. Relay proposer support bodies to voters
+and frozen support bodies to the proposer. Together with CommonRaw,
+this gives equal support incidence for uncapped seats and equal walk
+scores on the retained candidates.
+
+`CommonScores`: use the actual common raw and support transfers to
+instantiate Generic score_eq_on. Prove equal participant counts, cap
+status, and scores at every candidate from resolved body witnesses.
+The premises name the one generated proposal and its actual tick.
+
+`CommonTree`: identify every current-slot held body with the unique
+honest proposal. Split the voter domain into pre-freeze bodies and
+ancestors of that proposal. Relay the first arm to the proposer and
+retain the proposal-parent path in both trees.

@@ -46,6 +46,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.VoteTransport
 
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadEvidence
 
+public import AvailableChainPCSAProofs.Proofs.Clean.HeadBody
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

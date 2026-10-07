@@ -395,3 +395,10 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_pool_not_capped
 #print axioms AvailableChain.PCSA.Run.pcsa_head_emission_time_awake
 #print axioms AvailableChain.PCSA.Run.pcsa_handles_carried
+
+-- C6 HeadBody.
+#print axioms AvailableChain.PCSA.pcsa_liveRoot_body_mem
+#print axioms AvailableChain.PCSA.pcsa_headVote_body_mem
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_body_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_body_before_early
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_slot_le
