@@ -597,3 +597,9 @@ end
 -- C6 NNextHead.
 #print axioms AvailableChain.PCSA.Run.pcsa_N_next_head_of_root
 #print axioms AvailableChain.PCSA.Run.pcsa_honestAck_next_head_of_root
+
+-- C6 NHeads.
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_pool_head_source
+#print axioms AvailableChain.PCSA.Run.pcsa_early_honest_head_source
+#print axioms AvailableChain.PCSA.Run.pcsa_N_has_honest_head
+#print axioms AvailableChain.PCSA.Run.pcsa_N_targets_unique

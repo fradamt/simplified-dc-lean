@@ -1154,3 +1154,9 @@ C6 support: transfer N counts to next HEADs under compatible roots. The
 module uses the concrete readers and preserves the joint-induction
 premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### NHeads
+
+C6 support: identify exact honest HEAD witnesses for N targets. The module
+uses the concrete readers and preserves the joint-induction premises.
+Validation and current claim status are recorded in log.md and state.md.
