@@ -12,6 +12,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationSource
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationTime
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCollect
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationView
 
 public section
 
@@ -28,7 +29,10 @@ PC to every honest node before the proposal and all seven nodes ack its child.
 F3 constrains only nodes awake at v_s. C7 still needs the relay-derived
 view bound at every honest early reader. Root-form carriage closes the PC
 target alias gap: its installing call now handles the real PC for relay.
-The alias fixture needs a relay regression under that relation.
+The alias regression checks installation, handling and all seven early acks.
+FormationView proves signed proposal metadata uniqueness and conditional
+receipt, early-view and A2 facts. Frozen receipt and carried presence remain
+explicit inputs. The proposer lists and root-mode score transport are proved.
 The old release witness fails F4.
 No whole claim is exported. Source selection still needs an own-slot PC
 in the action snapshot, its target identity, and retained target membership.

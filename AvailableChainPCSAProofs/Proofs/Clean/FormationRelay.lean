@@ -10,8 +10,10 @@ an accepted old PC before the proposal, including at an asleep receiver.
 Stage 1 keeps installed PCs. A carried maximum rank fixes a view target.
 Root-form carriage includes a PC installed from a wire with the same slot
 and root and a different declared target body. The installing call handles
-the real PC. OPEN: derive installation origins and the early-view rank bound
-from the run. These helpers do not assert FormationClaim or FormationSourceClaim. -/
+the real PC. FormationCollect proves first PC acceptance origins.
+OPEN: derive timed frozen-PC origins and receipt-to-collection before t_s.
+FormationView bounds early views under explicit receipt inputs. These helpers
+do not assert FormationClaim or FormationSourceClaim. -/
 
 open AvailableChain AvailableChain.SimplexFG
 namespace AvailableChain.PCSA
