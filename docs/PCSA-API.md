@@ -276,9 +276,10 @@ field AvailableChain.PCSA.Run.PCSAPCClaims.leaseBelowRecord f26bd6bd6df08fd0
 def AvailableChain.PCSA.Run.HealedFrom 823cd36ca0a98002
 theorem AvailableChain.PCSA.Run.HealedFrom_def 3d5ef20bbc75a5ba
 structure AvailableChain.PCSA.Run.ShortBreakPrem 72251b865d8072e9
-ctor AvailableChain.PCSA.Run.ShortBreakPrem.mk 1cf987fd8b817276
+ctor AvailableChain.PCSA.Run.ShortBreakPrem.mk 29ff87d70379944c
 field AvailableChain.PCSA.Run.ShortBreakPrem.recovery 85d49d14c5827186
 field AvailableChain.PCSA.Run.ShortBreakPrem.frame 754a684459370a41
+field AvailableChain.PCSA.Run.ShortBreakPrem.anchorPos 69e541ba0117360a
 field AvailableChain.PCSA.Run.ShortBreakPrem.anchorProposer 16e11d38cac9f236
 field AvailableChain.PCSA.Run.ShortBreakPrem.anchorClean f14da246041b5fd8
 field AvailableChain.PCSA.Run.ShortBreakPrem.anchorPart 2a2e685da4d6e8cb
