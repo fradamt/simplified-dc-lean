@@ -582,6 +582,7 @@
             'AvailableChain.FGSA.viewRootInj_TF',
             'AvailableChain.FGSA.writeKeys_keys',
             'AvailableChain.FGSA.writeObligation_keys',
+            'AvailableChain.FGSA.process_TF_new',
         ),
         'AvailableChainFGSA.Proofs.StoreLaws': (
             'AvailableChain.FGSA.fgCertificateLaws',
@@ -4231,6 +4232,15 @@
             'AvailableChain.FGSA.Run.fgsaSafetyReads',
             'AvailableChain.FGSA.Run.fgsaSafetyUnitLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyWireLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyReads_def',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope': (
+            'AvailableChain.FGSA.Run.fgsaSafetyScopeLaws',
+            'AvailableChain.FGSA.Run.fgsa_safetyScopedRoots',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore': (
+            'AvailableChain.FGSA.Run.fgsaSafetyStoreLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyOrderLaws',
         ),
         'AvailableChainFGSARun.Model.Protocol': (
             'AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def',

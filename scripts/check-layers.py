@@ -669,6 +669,12 @@ COMPOSE_EDGES |= frozenset({
     ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyClient'),
     ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyStore'),
 })
+# Lead ruling 2026-10-07 (s2-plan P4a): the FG-SA store and scope producers read the
+# store-law statements. Two exact pairs. No prefix.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore', 'AvailableChainFGCompose.Statements.SafetyStore'),
+    ('AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope', 'AvailableChainFGCompose.Statements.SafetyStore'),
+})
 
 
 def compose_base(dep: str) -> bool:
