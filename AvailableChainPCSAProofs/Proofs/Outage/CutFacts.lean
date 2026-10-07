@@ -6,8 +6,9 @@ public section
 /-! The Clean facts at the cut `b₀` (pcsa34-r4.3 §5.5 steps 1–2), stage 1, as
 one record: CI (i) on one label (`CleanInvariantClaim`), the locks below `S`
 (`LeaseBelowRecordClaim`), the pending-label claims, and the HEAD past the
-cut (`CleanHeadsPastCutClaim`). The Outage assembly
-reads the record from these claims. From a result `A = R_u(j₁)`: every later
+cut. The Outage assembly takes the record as an OPEN hypothesis: as stated,
+the HEAD fields are false in the boundary case `v_r ≤ b₀ < d_{r−1}` of 5.5
+step 2. From a result `A = R_u(j₁)`: every later
 honest result and HEAD in the prefix extends `A`, every honest ack and record
 in the prefix is compatible with `A`. -/
 
@@ -34,9 +35,8 @@ structure CutFacts (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀
     gateResultAt p c E rho y (i - 1) = some (some X) → Block.Preceq X H
 
 /-- [pcsa34-r4.3 §5.2.2, §5.5 steps 1–2] The Clean facts at the cut of every
-clean stage-1 run. The Outage assembly derives them from `CleanInvariantClaim`,
-`LeaseBelowRecordClaim`, the pending-label Clean claims and
-`CleanHeadsPastCutClaim`. -/
+clean stage-1 run. The Outage assembly takes them as an OPEN hypothesis
+(`pastCut` and `heads` cover the boundary case of 5.5 step 2). -/
 def CleanCutItems (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),

@@ -551,9 +551,7 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_cut_boundary
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanSlowItems_of
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanCutChainItems_of
-#print axioms AvailableChain.PCSA.Run.pcsa_cleanCutItems_of
 #print axioms AvailableChain.PCSA.Run.pcsa_armHealthy_of_claims
-#print axioms AvailableChain.PCSA.Run.pcsa_cleanSlowItems_of_claims
 #print axioms AvailableChain.PCSA.Run.pcsa_slowP1_of_claims
 #print axioms AvailableChain.PCSA.pcsa_initial_collectClosed
 #print axioms AvailableChain.PCSA.pcsa_rows_collectClosed

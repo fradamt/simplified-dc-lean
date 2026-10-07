@@ -187,12 +187,8 @@ def AvailableChain.PCSA.Run.CleanResultsNonemptyClaim 0a3612b39473aed4
 theorem AvailableChain.PCSA.Run.CleanResultsNonemptyClaim_def 3778269113aa1f1d
 def AvailableChain.PCSA.Run.CleanResultsChainPendingClaim 306f9ce0f29ba746
 theorem AvailableChain.PCSA.Run.CleanResultsChainPendingClaim_def 0d90537b89b5ea6a
-def AvailableChain.PCSA.Run.CleanHeadsAbovePendingClaim 28ce3dda27fb1c69
-theorem AvailableChain.PCSA.Run.CleanHeadsAbovePendingClaim_def c63e2ab9c041d0f8
 def AvailableChain.PCSA.Run.CleanDisseminationPendingClaim 65dab35403a93ee2
 theorem AvailableChain.PCSA.Run.CleanDisseminationPendingClaim_def 679a14dddb81c495
-def AvailableChain.PCSA.Run.CleanHeadsPastCutClaim 8b0587724420a390
-theorem AvailableChain.PCSA.Run.CleanHeadsPastCutClaim_def 53dd3ce9f9f6e4ba
 def AvailableChain.PCSA.Run.CleanBlockReceiptClaim fcc6c53e56d2abbb
 theorem AvailableChain.PCSA.Run.CleanBlockReceiptClaim_def 3a310d3a15393af9
 ```

@@ -9,8 +9,8 @@ the labels with `d_j ≤ b₀`; ARM (b) reads the honest acks of every label wit
 `v_j < b₀`. `CutChain` records the four facts it needs at the cut: honest
 results are not empty (5.2.2 (c)), the results chain and the HEADs above the
 previous results at the labels whose votes are in the prefix (CI (i), (ii)),
-and dissemination at the pending label (5.2.3). The Outage assembly derives
-them from the pending-label Clean claims. -/
+and dissemination at the pending label (5.2.3). The Outage assembly takes
+them as an OPEN hypothesis (`heads` covers the boundary case of 5.5 step 2). -/
 
 namespace AvailableChain.PCSA.Run
 

@@ -5685,9 +5685,7 @@
             'AvailableChain.PCSA.Run.pcsa_armPersistenceClaim',
             'AvailableChain.PCSA.Run.pcsa_cleanBlockReceipt',
             'AvailableChain.PCSA.Run.pcsa_cleanCutChainItems_of',
-            'AvailableChain.PCSA.Run.pcsa_cleanCutItems_of',
             'AvailableChain.PCSA.Run.pcsa_cleanRelayItems_of',
-            'AvailableChain.PCSA.Run.pcsa_cleanSlowItems_of_claims',
             'AvailableChain.PCSA.Run.pcsa_slowP1_of_claims',
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Small': (
