@@ -281,3 +281,19 @@ The exact receiver root-domain and held-body resolution facts also
 compile in scratch (`ResolutionLookup.lean`). Check and commit those
 next. Then put concrete early, frozen, and carried walk inputs into the
 CL1–CL4 count interfaces and prove the four joint CI record steps.
+
+### Exact receiving resolution (2026-10-07)
+
+`ResolutionDomain` proves that clocks preserve the cumulative resolution
+field and that it is `none` at every indexed run state.
+`pcsa_resolved_head_of_held_body` resolves the exact signed root HEAD at
+an honest stage-1 clocked read once its body is held. It uses scoped root
+uniqueness and `Block.findByRoot?_of_unique`, not a first-copy lookup.
+All three facts are exported.
+
+Next: apply the HEAD and body cutoff-relay interfaces to `headVotes`,
+`headSupport`, `proposerVotes`, and `proposerSupport`. The carried arms
+need indexed accepted-proposal provenance. Frozen arms use the first
+stamp below the freeze. Then derive CL1–CL4 run count inputs, retained
+paths, equal honest proposal/voter walks, and the joint CI record.
+No new unconditional run claim is exported by this resolution module.

@@ -315,3 +315,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_body_accepted_before
 #print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_lt_of_index_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay
+
+#print axioms AvailableChain.PCSA.pcsa_clock_headDomain
+#print axioms AvailableChain.PCSA.Run.pcsa_headDomain_stateBefore_none
+#print axioms AvailableChain.PCSA.Run.pcsa_resolved_head_of_held_body
