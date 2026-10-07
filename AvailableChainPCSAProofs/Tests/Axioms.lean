@@ -436,10 +436,11 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_timely_head_of_early
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_of_run
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_run
-#print axioms AvailableChain.PCSA.Run.pcsa_formation_body_before_proposal
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_body
 #print axioms AvailableChain.PCSA.pcsa_formation_metadata_body
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_vote_presence_of_metadata
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_vote_metadata
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_early_presence
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_prem
 

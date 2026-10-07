@@ -42,10 +42,10 @@ FormationView proves signed proposal metadata uniqueness and conditional
 receipt, early-view and A2 facts. FormationInputs derives frozen identity
 receipt from target-body receipt.
 It derives carried presence from exact metadata and PC validity.
-Shared body relay closes the old frozen targets. Stored metadata gives
-the vote-read body. pcsa_formation_preFreeze_of_prem needs the premise,
-the retained path, early HEAD receipt, honest-proposal receipt and ack
-admission. The latter two are stage-2b outputs. The proposer lists
+Shared body relay closes the old frozen targets. Shared honest-proposal
+receipt gives the metadata; stored metadata gives the vote-read body.
+pcsa_formation_preFreeze_of_prem needs the premise, the retained path,
+early HEAD receipt and ack admission. The proposer lists
 and root-mode score transport are proved.
 The old release witness fails F4.
 FormationCompose proves parts 1–4 with named run inputs.
