@@ -373,8 +373,10 @@ def excludesS (p : Params) (st : State p.n) (o : Obj p) : Bool :=
 containment: a proposal payload carries its raw HEADs, its support HEADs, its
 rows and the acks of its PC; a PC payload carries its acks. A PC object (no
 signer) is carried by the objects whose call can install it: an ack by the
-PCs that contain it, a proposal by the PCs on its block and on the slot and
-target of its PC, a PC by the PCs of its slot and target. -/
+PCs that contain it, a proposal by the PCs on the slot and root of its block
+and on the slot and root of its PC, a PC by the PCs of its slot and root.
+Collection resolves a root to a stored block, so these tests read the target
+root, not the target block (a PC target with that root can be another block). -/
 def carriesS (p : Params) (o o' : Obj p) : Prop :=
   (match o.payload with
   | .proposal N =>
@@ -384,9 +386,9 @@ def carriesS (p : Params) (o o' : Obj p) : Prop :=
   | _ => False) ∨
   ∃ C : PC p.n, o' = ofWire p ⟨.none, .pc C⟩ ∧ match o.payload with
     | .ack _ => o ∈ C.acks.map (ofAck p)
-    | .proposal N => C.target = N.erase ∨
-        ∃ d ∈ N.pc, d.slot = C.slot ∧ d.target = C.target
-    | .pc c => c.slot = C.slot ∧ c.target = C.target
+    | .proposal N => (C.slot = N.erase.slot ∧ C.target.root = N.erase.root) ∨
+        ∃ d ∈ N.pc, d.slot = C.slot ∧ d.target.root = C.target.root
+    | .pc c => c.slot = C.slot ∧ c.target.root = C.target.root
     | _ => False
 
 /-- [PC-SA M1; pcsa-decisions R-e] [spec 804–829; plan T7.2] Handler calls:
