@@ -2,7 +2,7 @@
 # allow <declaration> # <reason>: an old-constant or old-derive FINALITY read that may stay for now (J4 removes).
 # height <declaration> # <reason>: a height-only read of the old derive (ruling 7 named exceptions; J6 removes).
 # Exception: lead ruling 2026-10-05 added the WC height lines (70) for the weak-continuation lane; J6 must cover them too.
-# Exception: lead ruling 2026-10-07 added the 7 WCG height lines (WC growth companion, same reads as their WC lines); J6 must cover them too.
+# Exception: lead ruling 2026-10-07 added the 54 WC growth height lines (48 mirror a WC line; 6 growth-only lemmas, height-only via hOf); J6 must cover them too.
 # old <constant> # <reason>: one more old constant (tightening only).
 # An unlisted read fails; a stale, duplicate or misplaced line fails.
 allow AvailableChain.FGSA.Window.acceptViable_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
@@ -164,6 +164,53 @@ height AvailableChain.FGSA.Run.WCGInitStatement # WC growth companion: same heig
 height AvailableChain.FGSA.Run.WCGProposalAdmissionStatement # WC growth companion: same height-only reads as the WCProposalAdmissionStatement line (shared client hOf); lead ruling 2026-10-07
 height AvailableChain.FGSA.Run.WCGProposalPivotStatement # WC growth companion: same height-only reads as the WCProposalPivotStatement line (shared client hOf); lead ruling 2026-10-07
 height AvailableChain.FGSA.Run.WCGRetrospectiveStatement # WC growth companion: same height-only reads as the WCRetrospectiveStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGSeededFrameLiveStatement # WC growth companion: same height-only reads as the WCSeededFrameLiveStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGSeededFramePathStatement # WC growth companion: same height-only reads as the WCSeededFramePathStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGSeededFrameStatement # WC growth companion: same height-only reads as the WCSeededFrameStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGSeededInductionStatement # WC growth companion: same height-only reads as the WCSeededInductionStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGService4Statement # WC growth companion: same height-only reads as the WCService4Statement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGStepDeliveryStatement # WC growth companion: same height-only reads as the WCStepDeliveryStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGStepGateTickStatement # WC growth companion: same height-only reads as the WCStepGateTickStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGStepNoGateTickStatement # WC growth companion: same height-only reads as the WCStepNoGateTickStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGStepRestartStatement # WC growth companion: same height-only reads as the WCStepRestartStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.WCGStepStatement # WC growth companion: same height-only reads as the WCStepStatement line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.growthStep_step_core # WC growth companion: growth-only proof lemma, height-only reads via shared client (hOf/simplexHeightView); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_certifiedOrigin # WC growth companion: growth-only proof lemma, height-only reads via shared client (hOf/simplexHeightView); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_dischargeL # WC growth companion: same height-only reads as the wc_dischargeL line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_emptyLive # WC growth companion: growth-only proof lemma, height-only reads via shared client (hOf/simplexHeightView); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_empty_finalBelow # WC growth companion: growth-only proof lemma, height-only reads via shared client (hOf/simplexHeightView); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_exactProposal # WC growth companion: same height-only reads as the wc_exactProposal line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_finalBelow # WC growth companion: same height-only reads as the wc_finalBelow line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_finiteFacts # WC growth companion: same height-only reads as the wc_finiteFacts line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_finiteStep # WC growth companion: same height-only reads as the wc_finiteStep line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_gateBatch # WC growth companion: same height-only reads as the wc_gateBatch line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_gateFinalOrigin # WC growth companion: same height-only reads as the wc_gateFinalOrigin line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_gateHeads # WC growth companion: same height-only reads as the wc_gateHeads line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_gateResult # WC growth companion: same height-only reads as the wc_gateResult line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_heightSeed # WC growth companion: same height-only reads as the wc_heightSeed line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_inclusion6 # WC growth companion: same height-only reads as the wc_inclusion6 line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_init # WC growth companion: same height-only reads as the wc_init line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_liveOfSeed # WC growth companion: growth-only proof lemma, height-only reads via shared client (hOf/simplexHeightView); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_outputStep # WC growth companion: same height-only reads as the wc_outputStep line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_proposalAdmission # WC growth companion: same height-only reads as the wc_proposalAdmission line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_proposalPivot # WC growth companion: same height-only reads as the wc_proposalPivot line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_reconcileBound # WC growth companion: same height-only reads as the wc_reconcileBound line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_retainedSeed # WC growth companion: growth-only proof lemma, height-only reads via shared client (hOf/simplexHeightView); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_retrospective # WC growth companion: same height-only reads as the wc_retrospective line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_retrospectiveFrame # WC growth companion: same height-only reads as the wc_retrospectiveFrame line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_retrospectivePaths # WC growth companion: same height-only reads as the wc_retrospectivePaths line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_seededFrame # WC growth companion: same height-only reads as the wc_seededFrame line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_seededFrameLive # WC growth companion: same height-only reads as the wc_seededFrameLive line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_seededFramePath # WC growth companion: same height-only reads as the wc_seededFramePath line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_seededInduction # WC growth companion: same height-only reads as the wc_seededInduction line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_seededLiveAt # WC growth companion: same height-only reads as the wc_seededLiveAt line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_service4 # WC growth companion: same height-only reads as the wc_service4 line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_service4_prefix # WC growth companion: same height-only reads as the wc_service4_prefix line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_step # WC growth companion: same height-only reads as the wc_step line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_stepDelivery # WC growth companion: same height-only reads as the wc_stepDelivery line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_stepGateTick # WC growth companion: same height-only reads as the wc_stepGateTick line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_stepNoGateTick # WC growth companion: same height-only reads as the wc_stepNoGateTick line (shared client hOf); lead ruling 2026-10-07
+height AvailableChain.FGSA.Run.wcg_stepRestart # WC growth companion: same height-only reads as the wc_stepRestart line (shared client hOf); lead ruling 2026-10-07
 height AvailableChain.FGSA.Run.fgsa_weakContinuationLiveClaim_of_hTime # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.step_core # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_checkpoint # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
