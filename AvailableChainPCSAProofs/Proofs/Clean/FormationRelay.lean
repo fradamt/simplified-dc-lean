@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationTime
 public import AvailableChainPCSAProofs.Proofs.Shared.PCViews
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayRun
@@ -18,7 +19,7 @@ variable [Fintype V]
 The receiver does not need to be awake. -/
 theorem pcsa_formation_old_pc_relay (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (j : Nat) (x y : V) (t : Time) (C : PC p.n)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (j : Nat) (x y : V) (t : Time) (C : PC p.n)
     (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (ht : t ≤ SA.freezeTime p.toParams (s - 1))
     (hAccept : V2.D.Run.acceptsAt E rho j x (⟨.none, .pc C⟩ : Obj p) t)
@@ -35,9 +36,9 @@ theorem pcsa_formation_old_pc_relay (E : Generic.Env V)
     have hs' : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by omega
     rw [hs']
     ring
-  have hcut : SA.proposalTime p.toParams s ≤ SA.gateTime p.toParams s := by
+  have hcut : SA.proposalTime p.toParams s ≤ SA.freezeTime p.toParams s := by
     have hd : (0 : Int) < p.Δ := p.deltaPos
-    change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
     nlinarith
   have hr := h.delivery.relay x hx j (⟨.none, .pc C⟩ : Obj p) True.intro t
     hAccept y hy hNeed (by rw [hdl]; exact hcut) (pcsa_pc_not_excluded _ C)

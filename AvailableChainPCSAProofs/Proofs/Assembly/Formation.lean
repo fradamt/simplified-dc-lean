@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Clean.Export
 public import AvailableChainPCSAProofs.Proofs.PC.Export
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationExport
 public section
@@ -26,5 +27,32 @@ theorem pcsa_formation_source_of_stamped_pc_c1 (E : Generic.Env V)
   intro y hy A hA B hB hs
   exact pcsa_pcUniqueness p c m E rho h.base hf y hy y hy
     (SA.freezeTime p.toParams (r * p.R)) (SA.freezeTime p.toParams (r * p.R)) A hA B hB hs
+
+/-- C7 composition from the shorter Formation result and the named late counts.
+The whole FormationClaim stays open until the run input producers are connected. -/
+theorem pcsa_formation (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPrem p c E rho s N ΔF)
+    (hInputs : FormationPreFreezeInputs E rho s N)
+    (hGateCounts : ∀ y ∈ rho.honest, ∀ st, gateInAt p c E rho y s = some st →
+      ∃ H, (awakeHonestLabel p c E rho s).card ≤ H ∧
+        FormationGateCounts p st s N.erase H (Gen.V2.Duty.faulty rho).card) :
+    FormationConcl p c E rho s N := by
+  obtain ⟨hh, hn, ha, hp⟩ := pcsa_formation_preFreeze E rho s N ΔF
+    (h.toPreFreeze p c E rho) hInputs
+  rw [FormationConcl_def]
+  exact ⟨hh, hn, ha, hp, pcsa_formation_gate_of_counts E rho s N ΔF h hGateCounts⟩
+
+/-- Formation parts 1–4 supply the stamped PC for the C1 source connection. -/
+theorem pcsa_formation_source_of_preFreeze (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (r : Nat) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPrem p c E rho (r * p.R) N ΔF)
+    (hInputs : FormationPreFreezeInputs E rho (r * p.R) N) :
+    ∀ y ∈ rho.honest, ∃ B : SimplexFG.FGBlock (Fin p.n),
+      actionSourceAt p c E rho y r = some (some B) ∧ eraseFG B = N.erase := by
+  have hp := (pcsa_formation_preFreeze E rho (r * p.R) N ΔF
+    (h.toPreFreeze p c E rho) hInputs).2.2.2
+  exact pcsa_formation_source_of_stamped_pc_c1 E rho r N ΔF h hp
+
 end AvailableChain.PCSA.Run
 end

@@ -5555,6 +5555,8 @@
             'AvailableChain.PCSA.Run.pcsa_acFrameClaim',
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Formation': (
+            'AvailableChain.PCSA.Run.pcsa_formation',
+            'AvailableChain.PCSA.Run.pcsa_formation_source_of_preFreeze',
             'AvailableChain.PCSA.Run.pcsa_formation_source_of_stamped_pc_c1',
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Small': (
@@ -5562,6 +5564,15 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.Export': (
             'AvailableChain.PCSA.Run.pcsa_snapshotStamp',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.FormationCompose': (
+            'AvailableChain.PCSA.Run.pcsa_formation_early_read',
+            'AvailableChain.PCSA.Run.pcsa_formation_n_counts_of_timely_heads',
+            'AvailableChain.PCSA.Run.pcsa_formation_preFreeze',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.FormationGate': (
+            'AvailableChain.PCSA.Run.pcsa_formation_gate_of_counts',
+            'AvailableChain.PCSA.Run.pcsa_formation_gate_read',
         ),
         'AvailableChainPCSAProofs.Proofs.Foundations.AckPool': (
             'AvailableChain.PCSA.acksOn_subset',

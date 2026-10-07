@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationProposal
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
@@ -255,7 +256,7 @@ variable [Fintype V]
 /-- Every delivered proposal signed for slot s is its honest emitted proposal. -/
 theorem pcsa_formation_delivered_proposal_unique (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (j : Nat) (y : V) (o : Obj p) (t : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (j : Nat) (y : V) (o : Obj p) (t : Time)
     (M : NamedProposal p.n) (he : rho.events[j]? = some (.deliver y o t))
     (hd : (toWire p o).decode = some (.block s M)) : M = N := by
   obtain rfl := metadata_decoded o s M hd
@@ -279,7 +280,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
 /-- Stored proposal metadata retains the signed slot and the unique slot-s body. -/
 theorem pcsa_formation_metadata_unique (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (x : V) (t : Time) (nd : Node p)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (x : V) (t : Time) (nd : Node p)
     (hr : pcsa_postClock E rho x t = some nd) :
     ∀ w ∈ nd.st.proposals, ∀ k M, w.decode = some (.block k M) →
       M.erase.slot = k ∧ (k = s → M = N) := by
@@ -297,7 +298,7 @@ theorem pcsa_formation_metadata_unique (E : Generic.Env V)
 /-- Every PC carried by stored slot-s metadata is the honest proposal's PC. -/
 theorem pcsa_formation_carried_pc_unique (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (x : V) (t : Time) (nd : Node p)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (x : V) (t : Time) (nd : Node p)
     (hr : pcsa_postClock E rho x t = some nd) (C : PC p.n)
     (hm : C ∈ carriedPCs nd.st s) : N.pc = some C := by
   have hmeta := pcsa_formation_metadata_unique E rho s N ΔF h x t nd hr
@@ -425,7 +426,7 @@ theorem pcsa_formation_read_pc_root_injective (E : Generic.Env V)
 /-- Receipt bounds every early view, including a node asleep at the vote time. -/
 theorem pcsa_formation_early_view_of_receipt (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (y : V) (dst : Node p)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (y : V) (dst : Node p)
     (_hy : y ∈ rho.honest)
     (hr : pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some dst)
     (hFrozenPCReceipt : ∀ src, pcsa_postClock E rho
@@ -458,7 +459,7 @@ theorem pcsa_formation_early_view_of_receipt (E : Generic.Env V)
 /-- Frozen receipt and a passing N count give the all-awake-early A2 ack. -/
 theorem pcsa_formation_early_ack_of_receipt (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (y : V) (dst : Node p)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (y : V) (dst : Node p)
     (hy : y ∈ rho.honest) (haw : E.awake y (SA.earlyTime p.toParams s) = true)
     (hr : pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some dst)
     (hN : holdsN p (actView dst.st) s N.erase = true)
@@ -523,7 +524,7 @@ variable [Fintype V]
 /-- Every admitted slot-s raw/support pair is the honest proposer's pair. -/
 theorem pcsa_formation_proposalsAt_unique (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (x : V) (t : Time) (nd : Node p)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (x : V) (t : Time) (nd : Node p)
     (hr : pcsa_postClock E rho x t = some nd) :
     ∀ pair ∈ proposalsAt nd.st s, pair = (N.raw, N.support) := by
   have hmeta := pcsa_formation_metadata_unique E rho s N ΔF h x t nd hr
@@ -662,7 +663,7 @@ variable [Fintype V]
 /-- The unique proposer read fixes the parent, PC and both carried vote lists. -/
 theorem pcsa_formation_proposer_read_inputs (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (src : Node p)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (src : Node p)
     (hr : pcsa_postClock E rho
       (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
       (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src) :
@@ -696,7 +697,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
 /-- An old accepted PC is held before the proposal or has a strict earlier handler. -/
 theorem pcsa_formation_pc_receipt_before_proposal (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (j : Nat) (x y : V) (t : Time) (C : PC p.n)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (j : Nat) (x y : V) (t : Time) (C : PC p.n)
     (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (ht : t ≤ SA.freezeTime p.toParams (s - 1))
     (hAccept : V2.D.Run.acceptsAt E rho j x (⟨.none, .pc C⟩ : Obj p) t) :
@@ -735,7 +736,7 @@ theorem pcsa_formation_pc_receipt_before_proposal (E : Generic.Env V)
 FormationOrigins supplies it from the run at the actual early read. -/
 theorem pcsa_formation_frozen_pc_receipt (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (x y : V) (nd : Node p) (C : PC p.n)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (x y : V) (nd : Node p) (C : PC p.n)
     (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hFrozen : C ∈ pcSnapshotAt nd.st (s - 1))
     (hFrozenPCOrigin : ∀ A ∈ pcSnapshotAt nd.st (s - 1),
@@ -774,7 +775,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
 /-- F4 and retained root-mode receipt inputs give coverage of the proposal parent. -/
 theorem pcsa_formation_parent_cover_of_retained_inputs (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (src dst : Node p) (y : V)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (src dst : Node p) (y : V)
     (hSrc : pcsa_postClock E rho
       (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
       (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src)
@@ -853,7 +854,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
 /-- Retained receipt inputs and the terminal child facts give the exact honest HEAD. -/
 theorem pcsa_formation_head_exact_of_retained_inputs (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (src dst : Node p) (y : V)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (src dst : Node p) (y : V)
     (hSrc : pcsa_postClock E rho
       (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
       (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src)

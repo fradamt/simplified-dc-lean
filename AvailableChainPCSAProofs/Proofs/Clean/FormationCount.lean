@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAClaims.Statements.Premises
 public import AvailableChainPCSAProofs.Proofs.Shared.Count
 
@@ -179,7 +180,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
 /-- The post-clock N count and view prefix give an honest early ack. -/
 theorem pcsa_formation_honestAck (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (_h : FormationPrem p c E rho s N ΔF) (y : V) (nd : Node p)
+    (_h : FormationPreFreezePrem p c E rho s N ΔF) (y : V) (nd : Node p)
     (hy : y ∈ rho.honest) (haw : E.awake y (SA.earlyTime p.toParams s) = true)
     (hRead : pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd)
     (hSlot : N.erase.slot = s) (hN : holdsN p (actView nd.st) s N.erase = true)

@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationWalk
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationFrame
@@ -88,7 +89,7 @@ variable [Fintype V]
 /-- Corrected F4 puts the common base root below the emitted proposal parent. -/
 theorem pcsa_formation_base_below_parent (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) :
+    (h : FormationPreFreezePrem p c E rho s N ΔF) :
     ∃ nd : Node p, pcsa_postClock E rho
       (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
       (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some nd ∧
@@ -132,7 +133,7 @@ theorem pcsa_formation_base_below_parent (E : Generic.Env V)
 /-- The two corrected F4 clauses bound the actual post-release voter root. -/
 theorem pcsa_formation_voter_root_below_parent (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (y : V) (nd : Node p)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (y : V) (nd : Node p)
     (hy : y ∈ rho.honest) (haw : E.awake y (SA.voteTime p.toParams s) = true)
     (hr : pcsa_postClock E rho y (SA.voteTime p.toParams s) = some nd) :
     Block.Preceq (liveRoot p nd.st (voterPC p nd.st s)) N.erase.parent := by

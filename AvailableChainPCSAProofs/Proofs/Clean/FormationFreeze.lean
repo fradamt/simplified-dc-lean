@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
 
 public section
@@ -89,7 +90,7 @@ variable [Fintype V]
 /-- Formation stamps the PC with only ack admission and collection inputs. -/
 theorem pcsa_formation_pc_of_store_facts_retained (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
     (hAck : ∀ y ∈ rho.honest, E.awake y (SA.earlyTime p.toParams s) = true →
       HonestAckAt p c E rho y s N.erase)
     (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
@@ -107,12 +108,12 @@ theorem pcsa_formation_pc_of_store_facts_retained (E : Generic.Env V)
   exact pcsa_formation_pc_of_store_facts E rho s N ΔF h hAck hAckAdmit hPCCollect (by
     intro y hy
     exact pcsa_formation_freeze_keep E rho h.base y hy s
-      (le_trans (le_of_lt (pcsa_freeze_lt_gate p s)) h.horizon))
+      h.horizon)
 
 /-- Formation stamps the PC with only ack admission and collection inputs. -/
 theorem pcsa_formation_pc_of_participating_acks_retained (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
     (hAck : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s) = true →
       E.awake y (SA.earlyTime p.toParams s) = true → HonestAckAt p c E rho y s N.erase)
     (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
@@ -130,7 +131,7 @@ theorem pcsa_formation_pc_of_participating_acks_retained (E : Generic.Env V)
   exact pcsa_formation_pc_of_participating_acks E rho s N ΔF h hAck hAckAdmit hPCCollect (by
     intro y hy
     exact pcsa_formation_freeze_keep E rho h.base y hy s
-      (le_trans (le_of_lt (pcsa_freeze_lt_gate p s)) h.horizon))
+      h.horizon)
 
 end AvailableChain.PCSA.Run
 end

@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAClaims.Statements.Premises
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRetention
 public import AvailableChainPCSAProofs.Proofs.Shared.GateReceipt
@@ -22,7 +23,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
 /-- F1 delivers an honest early ack strictly before the freeze. -/
 theorem pcsa_formation_ack_receipt (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (i : Fin p.n) (y : V)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (i : Fin p.n) (y : V)
     (hi : rho.seatOf (.base (.ack s)) i ∈ rho.honest) (hy : y ∈ rho.honest)
     (he : V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i)
       (ackObj p s i N.erase.root) (SA.earlyTime p.toParams s)) :
@@ -41,14 +42,14 @@ theorem pcsa_formation_ack_receipt (E : Generic.Env V)
     ring
   have hh := h.delivery.broadcast _ hi (ackObj p s i N.erase.root)
     (show IsNonRow (ackObj p s i N.erase.root) from True.intro) _ he y hy
-    (by rw [hdl]; exact le_of_lt (pcsa_freeze_lt_gate p s))
+    (by rw [hdl])
     (pcsa_ack_not_excluded _ s i N.erase.root)
   simpa only [hdl] using hh
 
 /-- Strict F1 receipt and the remaining C3 store inputs give the stamped Formation PC. -/
 theorem pcsa_formation_pc_of_store_facts (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
     (hAck : ∀ y ∈ rho.honest, E.awake y (SA.earlyTime p.toParams s) = true →
       HonestAckAt p c E rho y s N.erase)
     (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
@@ -88,7 +89,7 @@ theorem pcsa_formation_pc_of_store_facts (E : Generic.Env V)
 A node that wakes only at e_s need not ack for this PC conclusion. -/
 theorem pcsa_formation_pc_of_participating_acks (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
     (hAck : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s) = true →
       E.awake y (SA.earlyTime p.toParams s) = true → HonestAckAt p c E rho y s N.erase)
     (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
@@ -127,12 +128,12 @@ theorem pcsa_formation_pc_of_participating_acks (E : Generic.Env V)
 /-- A stamped Formation PC is in the complete snapshot frozen at z_s. -/
 theorem pcsa_formation_snapshot (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (y : V) (hy : y ∈ rho.honest)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (y : V) (hy : y ∈ rho.honest)
     (hPC : PCStampedBefore p c E rho y (SA.freezeTime p.toParams s) s N.erase) :
     ∃ C ∈ pcSnapshotAt (storeAfterTicks p c E rho y (SA.freezeTime p.toParams s)) s,
       C.slot = s ∧ C.target = N.erase := by
   rw [snapshot_afterTicks E rho h.base.valid.toScheduleWellFormed h.base.delta y hy s
-    (le_trans (le_of_lt (pcsa_freeze_lt_gate p s)) h.horizon)]
+    h.horizon]
   exact hPC
 
 end AvailableChain.PCSA.Run

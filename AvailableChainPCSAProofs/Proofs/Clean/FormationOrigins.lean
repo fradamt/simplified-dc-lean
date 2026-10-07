@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationView
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayRun
 
@@ -124,7 +125,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 /-- F1 supplies old-PC receipt from the run, without hFrozenPCOrigin. -/
 theorem pcsa_formation_frozen_pc_receipt_of_run (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (x y : V) (nd : Node p) (C : PC p.n)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (x y : V) (nd : Node p) (C : PC p.n)
     (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hr : pcsa_postClock E rho x (SA.earlyTime p.toParams s) = some nd)
     (hFrozen : C ∈ pcSnapshotAt nd.st (s - 1)) :

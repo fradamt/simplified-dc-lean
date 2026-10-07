@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationEvidence
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationWalk
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationProposal
@@ -39,6 +40,8 @@ FormationView proves signed proposal metadata uniqueness and conditional
 receipt, early-view and A2 facts. Frozen receipt and carried presence remain
 explicit inputs. The proposer lists and root-mode score transport are proved.
 The old release witness fails F4.
+FormationCompose proves parts 1–4 with named run inputs.
+Assembly.Formation composes them with the named late gate counts.
 No whole claim is exported. FormationSourceRetention derives snapshot and
 target retention. The stamped-PC part of C7 supplies the source when
 connected to C1 PC target uniqueness. No source retention input remains.

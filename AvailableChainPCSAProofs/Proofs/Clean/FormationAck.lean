@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCount
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 
@@ -21,7 +22,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
 /-- An honest early ack decision emits the exact ack for each owned seat. -/
 theorem pcsa_formation_ack_emits (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (_h : FormationPrem p c E rho s N ΔF) (y : V) (i : Fin p.n)
+    (_h : FormationPreFreezePrem p c E rho s N ΔF) (y : V) (i : Fin p.n)
     (hAck : HonestAckAt p c E rho y s N.erase) (hSeat : rho.seatOf (.base (.ack s)) i = y) :
     V2.D.Run.emits E rho y (ackObj p s i N.erase.root) (SA.earlyTime p.toParams s) := by
   have ha := hAck
@@ -52,7 +53,7 @@ theorem pcsa_formation_ack_emits (E : Generic.Env V)
 /-- F2 and honest ack decisions supply a fresh emitted PC quorum. -/
 theorem pcsa_formation_ack_quorum (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
     (hAck : ∀ y ∈ rho.honest, E.awake y (SA.earlyTime p.toParams s) = true →
       HonestAckAt p c E rho y s N.erase) :
     ∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧
@@ -90,7 +91,7 @@ theorem pcsa_formation_ack_quorum (E : Generic.Env V)
 /-- Only the nodes awake at both reads are needed for the emitted PC quorum. -/
 theorem pcsa_formation_participating_ack_quorum (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
     (hAck : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s) = true →
       E.awake y (SA.earlyTime p.toParams s) = true → HonestAckAt p c E rho y s N.erase) :
     ∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧

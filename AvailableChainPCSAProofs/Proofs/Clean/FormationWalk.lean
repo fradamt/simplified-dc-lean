@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAClaims.Statements.Premises
 public import AvailableChainPCSAProofs.Proofs.Shared.RetainedWalk
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationEvidence
@@ -236,7 +237,7 @@ theorem pcsa_formation_read_root_injective (E : Generic.Env V)
 /-- Corrected F4 reanchors the actual proposer walk at its common base root. -/
 theorem pcsa_formation_proposer_base_walk (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (nd : Node p)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (nd : Node p)
     (hr : pcsa_postClock E rho
       (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
       (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some nd) :

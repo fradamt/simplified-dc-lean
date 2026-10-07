@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationSourceRetention
 public import AvailableChainFGSA.Proofs.HeadResolution
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayRun
@@ -96,7 +97,7 @@ theorem pcsa_formation_target_before_freeze_of_n_count (E : Generic.Env V)
 /-- C7 early N counts discharge hPCCollect at every honest receiver. -/
 theorem pcsa_formation_pcCollect_of_n_counts (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
     (hN : ∀ y ∈ rho.honest, ∃ nd, pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd ∧
       holdsN p (actView nd.st) s N.erase = true) :
     ∀ y ∈ rho.honest, ∀ Q : Finset (Fin p.n),
@@ -121,7 +122,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 /-- Early N counts replace hPCCollect in the all-early PC consumer. -/
 theorem pcsa_formation_pc_of_n_counts (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
     (hAck : ∀ y ∈ rho.honest, E.awake y (SA.earlyTime p.toParams s) = true →
       HonestAckAt p c E rho y s N.erase)
     (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
@@ -140,7 +141,7 @@ theorem pcsa_formation_pc_of_n_counts (E : Generic.Env V)
 /-- Early N counts replace hPCCollect in the participating-ack consumer. -/
 theorem pcsa_formation_pc_of_participating_acks_n_counts (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
     (hAck : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s) = true →
       E.awake y (SA.earlyTime p.toParams s) = true → HonestAckAt p c E rho y s N.erase)
     (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,

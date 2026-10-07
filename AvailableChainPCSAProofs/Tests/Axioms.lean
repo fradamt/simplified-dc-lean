@@ -314,4 +314,12 @@ public section
 
 #print axioms AvailableChain.PCSA.Run.FormationPrem.toPreFreeze
 
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_early_read
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_n_counts_of_timely_heads
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_gate_read
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_gate_of_counts
+#print axioms AvailableChain.PCSA.Run.pcsa_formation
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_preFreeze
+
 end

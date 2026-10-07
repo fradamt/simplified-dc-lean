@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationSourceRetention
 
 public section
@@ -147,7 +148,7 @@ variable [Fintype V]
 /-- The actual voter tree has no child of the Formation proposal. -/
 theorem pcsa_formation_head_terminal (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (y : V) (nd : Node p)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (y : V) (nd : Node p)
     (hr : pcsa_postClock E rho y (SA.voteTime p.toParams s) = some nd) :
     Gen.Pure.NoEligibleChild
       (erasedList nd.st (KitFG.storeFrameView (FGSA.heightView p) nd.st.fg
@@ -166,7 +167,7 @@ theorem pcsa_formation_head_terminal (E : Generic.Env V)
 /-- The run slot bounds close the retained HEAD stop input. -/
 theorem pcsa_formation_head_exact_of_run_terminal (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho s N ΔF) (src dst : Node p) (y : V)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (src dst : Node p) (y : V)
     (hSrc : pcsa_postClock E rho
       (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
       (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src)
