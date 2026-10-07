@@ -696,3 +696,8 @@ end
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_relay_decoded_proposal
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_handles_pc_store
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_install_carries
+
+-- C6 RelayPersistence.
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_admitBlock_tail_genesis
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_process_stageOne
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_indices_mono

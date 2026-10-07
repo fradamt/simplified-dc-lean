@@ -140,6 +140,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.RelayStore
 
 public import AvailableChainPCSAProofs.Proofs.Clean.RelayCarrier
 
+public import AvailableChainPCSAProofs.Proofs.Clean.RelayPersistence
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

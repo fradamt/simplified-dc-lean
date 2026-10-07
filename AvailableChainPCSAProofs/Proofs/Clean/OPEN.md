@@ -1240,3 +1240,9 @@ Validation and current claim status are recorded in log.md and state.md.
 The call installing a new PC key carries the installed whole-PC object
 under the slot/root model rule.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RelayPersistence
+
+Stage-one reconciliation and all handlers preserve held PCs; clocks
+preserve them exactly.
+Validation and current claim status are recorded in log.md and state.md.
