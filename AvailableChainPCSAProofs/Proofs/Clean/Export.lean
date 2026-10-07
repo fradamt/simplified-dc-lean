@@ -34,6 +34,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.ForwardReceipt
 
 public import AvailableChainPCSAProofs.Proofs.Clean.CountTransport
 
+public import AvailableChainPCSAProofs.Proofs.Clean.GateCounts
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

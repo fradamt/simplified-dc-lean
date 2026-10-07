@@ -362,3 +362,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_read_vote_support_body
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_voter_walk_counts
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts
+
+-- C6 GateCounts.
+#print axioms AvailableChain.PCSA.Run.pcsa_early_input_gate_relay
+#print axioms AvailableChain.PCSA.Run.pcsa_same_label_gate_results

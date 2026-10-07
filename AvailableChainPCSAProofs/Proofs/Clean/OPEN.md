@@ -507,3 +507,20 @@ coverage under the separate N-root compatibility premise.
 to identify actual honest HEAD decisions on N targets. Derive N-target
 uniqueness from one common honest seat. These facts supply the PC
 chain step without a dependency on the separate PC proof lane.
+
+### GateCounts
+
+Actual score-seat sets and cross-node late receipt prove compatibility of
+two same-label honest gate results. Shared clean seats have one signed
+HEAD and one resolved body.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`PCPool`: keep the certificate provenance invariant local to the Clean
+lane. Reuse the established PC/Certificates proof pattern in a separate
+namespace. The lane import rules forbid a direct dependency on PC.
+`PCScope`: each new installed PC target is in the completed body pool.
+Lift this origin through the run to the existing collision scope.
+`AckOrigins`: retain a strict public-time bound in each pooled/certified
+ack origin. Use unforgeability and the actual ack duty to get an honest
+ack decision on the held PC's exact target and its slot-time bound.
+These supply the PC fields of C6 and the label-zero PC base case.
