@@ -13,6 +13,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationTime
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCollect
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationView
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationFreeze
 
 public section
 
@@ -37,7 +38,8 @@ The old release witness fails F4.
 No whole claim is exported. Source selection still needs an own-slot PC
 in the action snapshot, its target identity, and retained target membership.
 FormationRetention closes hAckPoolMono from NoRestart.
-The C3 inputs remain hAckAdmit, hPCCollect, and hFreezeKeep.
+FormationFreeze closes hFreezeKeep and supplies PC consumers.
+The C3 inputs remain hAckAdmit and hPCCollect.
 The main Clean.Export module is owned by the other Clean writer. -/
 
 end
