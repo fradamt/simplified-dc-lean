@@ -615,3 +615,8 @@ end
 #print axioms AvailableChain.PCSA.pcsa_vote_locks_subset
 #print axioms AvailableChain.PCSA.pcsa_gate_label_lt_next_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_next_root_source
+
+-- C6 NRoot.
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_has_honest_head
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_targets_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_next_root_below
