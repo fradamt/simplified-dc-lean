@@ -352,7 +352,9 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_clock_slot_proposal
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_rows_valid
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_receipt
+#print axioms AvailableChain.PCSA.Run.pcsa_indexed_body_within_on
 #print axioms AvailableChain.PCSA.Run.pcsa_block_isNonRow
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_from_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_early
 
 end

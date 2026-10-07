@@ -352,8 +352,54 @@ private theorem honest_postClock_tick (E : Generic.Env V)
   obtain ⟨k, hk, rfl⟩ := Option.map_eq_some_iff.mp hnd0
   exact ⟨k, V2.D.Run.tickIdx?_spec hk, rfl⟩
 
+/-- The events before a tick at `t` have times at most `t`. -/
+private theorem honest_events_before_tick (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hS : V2.D.ScheduleWellFormed E rho)
+    (k : Nat) (y : V) (t : Time) (hk : rho.events[k]? = some (.tick y t)) :
+    ∀ k' < k, ∀ e, rho.events[k']? = some e → e.time ≤ t := by
+  intro k' hk' e he
+  apply le_of_not_gt
+  intro hlt
+  have h1 := (Gen.V2.Duty.index_lt_idxBefore_iff hS hk e.time).mpr hlt
+  have h2 := (Gen.V2.Duty.index_lt_idxBefore_iff hS he e.time).not.mpr (lt_irrefl _)
+  omega
+
+/-- A block stored at an honest node at event index `k`, whose earlier events
+have times at most `T`, is stored at every honest node before `dl T`. -/
+theorem pcsa_indexed_body_within_on (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {Q : Obj p → Prop} {dl : Time → Time} {cut : Time}
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho Q dl cut)
+    (hQ : ∀ (o : Obj p) s N, (toWire p o).decode = some (.block s N) → Q o)
+    (hmono : Monotone dl) (hlt : ∀ t, t < dl t)
+    (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) (k : Nat) (T : Time)
+    (hT : ∀ k' < k, ∀ e, rho.events[k']? = some e → e.time ≤ T) (hc : dl T ≤ cut)
+    (B : Block) (hB : B ∈ (V2.D.Run.stateBefore E rho k x).st.base.blocks) :
+    B ∈ (V2.D.Run.stateBeforeTime E rho (dl T) y).st.base.blocks := by
+  have hS := h.valid.toScheduleWellFormed
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (dl T) hS]
+  by_cases hg : B = .genesis
+  · subst hg
+    have h0 : Block.genesis ∈ (V2.D.Run.stateBefore E rho 0 y).st.base.blocks := by
+      change Block.genesis ∈ [Block.genesis]
+      exact List.mem_singleton_self _
+    exact pcsa_body_stateBefore_mono E rho h.noRestart y (Nat.zero_le _) h0
+  obtain ⟨j, hjk, t, o, s, N, P, hev, hd, hNB, hP, hacc, hA⟩ :=
+    pcsa_body_receipt_origin E rho h.valid _ x B hg hB
+  have htT : t ≤ T := hT j hjk _ hev
+  have hR := pcsa_body_relay_within_on E rho h hF hD j x y hx hy t o s N P hev hd hP hacc hA
+    (hQ o s N hd) (hlt t) ((hmono htT).trans hc)
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS, hNB] at hR
+  have hIdx' : V2.D.Run.idxBefore rho (dl t) ≤ V2.D.Run.idxBefore rho (dl T) := by
+    rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def,
+      ← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+    apply List.countP_mono_left
+    intro e _ he
+    exact decide_eq_true (lt_of_lt_of_le (of_decide_eq_true he) (hmono htT))
+  exact pcsa_body_stateBefore_mono E rho h.noRestart y hIdx' hR
+
 /-- [pcsa34-r4.3b §5.3 (F5), §5.6.1] Receipt of an honest proposal: under a
-`DeliveryWithinOn` premise whose deadline after `t_s + 1` is at most `r`, every
+`DeliveryWithinOn` premise whose deadline after `t_s` is at most `r`, every
 honest node holds the exact signed wire of the slot-`s` honest proposal at its
 post-clock read at `r`, and the carried PC is valid there. -/
 theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
@@ -363,7 +409,7 @@ theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
     (hQ : ∀ (o : Obj p) s N, (toWire p o).decode = some (.block s N) → Q o)
     (hmono : Monotone dl) (hlt : ∀ t, t < dl t)
     (s : Slot) (N : NamedProposal p.n) (hN : HonestNamedProposal p c E rho s N)
-    (r : Time) (hr : dl (SA.proposalTime p.toParams s + 1) ≤ r) (hc : r ≤ cut)
+    (r : Time) (hr : dl (SA.proposalTime p.toParams s) ≤ r) (hc : r ≤ cut)
     (y : V) (hy : y ∈ rho.honest) (nd : Node p)
     (hnd : pcsa_postClock E rho y r = some nd) :
     (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧
@@ -376,9 +422,7 @@ theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
   have hR6 := pcsa_honest_proposal_rows_valid E rho s N hN
   let o : Obj p := ofWire p ⟨.proposer s, .proposal N⟩
   have hd : (toWire p o).decode = some (.block s N) := rfl
-  have hts : SA.proposalTime p.toParams s < SA.proposalTime p.toParams s + 1 :=
-    lt_add_one _
-  have hdl0 : dl (SA.proposalTime p.toParams s) ≤ r := (hmono hts.le).trans hr
+  have hdl0 : dl (SA.proposalTime p.toParams s) ≤ r := hr
   have hNX : (pcsaWith m p c).excludes
       (V2.D.Run.stateBeforeTime E rho (dl (SA.proposalTime p.toParams s)) y) o = false := by
     have hf := (hF y hy (V2.D.Run.idxBefore rho (dl (SA.proposalTime p.toParams s)))).1
@@ -463,14 +507,11 @@ theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
       rwa [pcsa_clock_pcs] at hm'
     have hO := pcsa_outageStore_stateBefore E rho k _ hN.1
     have hT0 := hO.pcBlocks D hDx
-    have hkT : k + 1 ≤ V2.D.Run.idxBefore rho (SA.proposalTime p.toParams s + 1) :=
-      Nat.succ_le_of_lt ((Gen.V2.Duty.index_lt_idxBefore_iff hS hk _).mpr hts)
-    have hT1 := pcsa_body_stateBefore_mono E rho h.noRestart _ (Nat.le_of_succ_le hkT) hT0
-    rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hT1
-    have hT2 := pcsa_stored_body_within_on E rho h hF hD hQ hmono hlt _ y hN.1 hy
-      (SA.proposalTime p.toParams s + 1) (hr.trans hc) D.target hT1
+    have hT2 := pcsa_indexed_body_within_on E rho h hF hD hQ hmono hlt _ y hN.1 hy k
+      (SA.proposalTime p.toParams s) (honest_events_before_tick E rho hS k _ _ hk)
+      (hdl0.trans hc) D.target hT0
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hT2
-    have hidx : V2.D.Run.idxBefore rho (dl (SA.proposalTime p.toParams s + 1)) ≤
+    have hidx : V2.D.Run.idxBefore rho (dl (SA.proposalTime p.toParams s)) ≤
         V2.D.Run.idxBefore rho r := by
       rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def,
         ← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
@@ -506,10 +547,45 @@ theorem pcsa_block_isNonRow (o : Obj p) (s : Slot) (N : NamedProposal p.n)
   rw [ho]
   trivial
 
-/-- [pcsa34-r4.3b §5.3 (F5), §5.6.1] Honest-proposal receipt at the early read
+/-- [pcsa34-r4.3b §5.3 (F5), §5.6.1] Honest-proposal receipt from the vote read
 under the delivery premise of Formation and RECOVERY (deadline
 `max t z_{s-1} + Δ`): every honest node holds the exact signed wire of the
-slot-`s` honest proposal at `e_s`, and its carried PC is valid there. -/
+slot-`s` honest proposal at each read `r ∈ [v_s, cut]`, and its carried PC is
+valid there. -/
+theorem pcsa_honest_proposal_from_vote (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (s : Slot) (hs : 0 < s) (N : NamedProposal p.n)
+    (hN : HonestNamedProposal p c E rho s N) {cut : Time}
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho IsNonRow
+      (fun t => max t (SA.freezeTime p.toParams (s - 1)) + E.Δ) cut)
+    (r : Time) (hr : SA.voteTime p.toParams s ≤ r) (hc : r ≤ cut) :
+    ∀ y ∈ rho.honest, ∀ nd, pcsa_postClock E rho y r = some nd →
+      (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧
+        ∀ D, N.pc = some D → pcValid nd.st D = true := by
+  intro y hy nd hnd
+  have hd := p.deltaPos
+  have hΔ := E.Δ_pos
+  refine pcsa_honest_proposal_receipt E rho h hF hD
+    (fun o s N hdec => pcsa_block_isNonRow o s N hdec) ?_ ?_ s N hN r ?_ hc y hy nd hnd
+  · intro a b hab
+    dsimp only
+    exact Int.add_le_add_right (max_le_max hab (le_refl _)) E.Δ
+  · intro t
+    exact lt_of_le_of_lt (le_max_left t _) (lt_add_of_pos_right _ hΔ)
+  · refine le_trans ?_ hr
+    rw [h.delta]
+    have hcast : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by
+      have h1 : 1 ≤ s := hs
+      push_cast [Nat.cast_sub h1]
+      ring
+    change max (4 * p.Δ * (s : Int)) (4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ) + p.Δ ≤
+      4 * p.Δ * (s : Int) + p.Δ
+    rw [hcast]
+    rcases max_cases (4 * p.Δ * (s : Int)) (4 * p.Δ * ((s : Int) - 1) + 3 * p.Δ) with
+      ⟨h1, _⟩ | ⟨h1, _⟩ <;> rw [h1] <;> linarith
+
+/-- [pcsa34-r4.3b §5.3 (F5), §5.6.1] Honest-proposal receipt at the early read
+`e_s` (the Formation contract). -/
 theorem pcsa_honest_proposal_early (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
     (hF : StageOneFrame p c E rho) (s : Slot) (hs : 0 < s) (N : NamedProposal p.n)
@@ -520,27 +596,10 @@ theorem pcsa_honest_proposal_early (E : Generic.Env V)
     ∀ y ∈ rho.honest, ∀ nd, pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd →
       (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧
         ∀ D, N.pc = some D → pcValid nd.st D = true := by
-  intro y hy nd hnd
+  refine pcsa_honest_proposal_from_vote E rho h hF s hs N hN hD _ ?_ hc
   have hd := p.deltaPos
-  have hΔ := E.Δ_pos
-  refine pcsa_honest_proposal_receipt E rho h hF hD
-    (fun o s N hdec => pcsa_block_isNonRow o s N hdec) ?_ ?_ s N hN _ ?_ hc y hy nd hnd
-  · intro a b hab
-    dsimp only
-    exact Int.add_le_add_right (max_le_max hab (le_refl _)) E.Δ
-  · intro t
-    exact lt_of_le_of_lt (le_max_left t _) (lt_add_of_pos_right _ hΔ)
-  · rw [h.delta]
-    have h1Δ : (1 : Int) ≤ p.Δ := by simpa using Int.add_one_le_iff.mpr hd
-    have hcast : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by
-      have h1 : 1 ≤ s := hs
-      push_cast [Nat.cast_sub h1]
-      ring
-    change max (4 * p.Δ * (s : Int) + 1) (4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ) + p.Δ ≤
-      4 * p.Δ * (s : Int) + 2 * p.Δ
-    rw [hcast]
-    rcases max_cases (4 * p.Δ * (s : Int) + 1) (4 * p.Δ * ((s : Int) - 1) + 3 * p.Δ) with
-      ⟨h1, _⟩ | ⟨h1, _⟩ <;> rw [h1] <;> nlinarith
+  change SA.proposalTime p.toParams s + p.Δ ≤ SA.proposalTime p.toParams s + 2 * p.Δ
+  linarith
 
 end AvailableChain.PCSA.Run
 end
