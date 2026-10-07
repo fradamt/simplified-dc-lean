@@ -1283,3 +1283,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Actual admitted bodies have strictly earlier parents and cannot exceed the
 current slot before the next proposal.
 Validation and current claim status are recorded in log.md and state.md.
+
+### ProposalPaths
+
+The actual proposer head is held, and all proper proposal prefixes lie in
+its full tree.
+Validation and current claim status are recorded in log.md and state.md.

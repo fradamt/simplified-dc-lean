@@ -727,3 +727,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_admission_slot_bounds
 #print axioms AvailableChain.PCSA.Run.pcsa_body_parent_slot_lt
 #print axioms AvailableChain.PCSA.Run.pcsa_body_slot_before_next_proposal
+
+-- C6 ProposalPaths.
+#print axioms AvailableChain.PCSA.Run.pcsa_getHead_body_at_read
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_proper_prefix_source
