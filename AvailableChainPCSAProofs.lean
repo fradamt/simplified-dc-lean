@@ -48,5 +48,6 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
+public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore

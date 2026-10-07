@@ -39,6 +39,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
+public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 
 public section
 
@@ -344,5 +345,14 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_within_on
 #print axioms AvailableChain.PCSA.Run.pcsa_stored_body_within_on
+#print axioms AvailableChain.PCSA.pcsa_propose_rows_valid
+#print axioms AvailableChain.PCSA.pcsa_accepted_pc_wellFormed
+#print axioms AvailableChain.PCSA.pcsa_rows_valid_not_excluded
+#print axioms AvailableChain.PCSA.Run.pcsa_emitted_propose
+#print axioms AvailableChain.PCSA.Run.pcsa_clock_slot_proposal
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_rows_valid
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_receipt
+#print axioms AvailableChain.PCSA.Run.pcsa_block_isNonRow
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_early
 
 end

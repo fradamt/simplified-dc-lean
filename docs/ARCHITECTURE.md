@@ -257,7 +257,11 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `BodyReceipt` (body origin, and `pcsa_body_relay_admitted`: a relayed
   accepted body is admitted by a deadline `d`, given the relay step to `d`)
   and `BodyRelay` (the same over a `DeliveryWithinOn` premise with the lane's
-  deadline map).
+  deadline map). Stage 2b adds `HonestProposal`: the rows of an honest
+  proposal pass R6, so no receiver excludes it; under `DeliveryWithinOn` each
+  honest receiver holds its wire and a valid carried PC
+  (`pcsa_honest_proposal_receipt`, and `pcsa_honest_proposal_early` at the
+  early read).
   The delivery wrappers stay in the lanes: each lane supplies the relay step
   from its own delivery premise (Outage and Clean: `HealthyPrefixDeliveryBy`
   through `Shared/Relay`; Recovery: the RECOVERY deadline
