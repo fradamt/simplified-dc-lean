@@ -707,3 +707,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_tick_step
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_deliver_succ
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_keyHeld_accepted
+
+-- C6 RelayReceipt.
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_from_pool
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_before_public_cut_relay

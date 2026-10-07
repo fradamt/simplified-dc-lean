@@ -1252,3 +1252,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Every held key has an earlier delivery that accepts its carried whole-PC
 object.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RelayReceipt
+
+Strict whole-PC relay, exact target-body receipt, and C3 assembly give the
+same slot and target at each later honest read.
+Validation and current claim status are recorded in log.md and state.md.
