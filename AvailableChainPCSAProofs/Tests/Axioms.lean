@@ -626,3 +626,6 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_ack_slot
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_chain
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_result
+
+-- C6 NDissemination.
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_dissemination_step
