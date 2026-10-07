@@ -441,8 +441,10 @@ theorem pcsa_honest_proposal_from_vote (E : Generic.Env V)
     change max (4 * p.Δ * (s : Int)) (4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ) + p.Δ ≤
       4 * p.Δ * (s : Int) + p.Δ
     rw [hcast]
-    rcases max_cases (4 * p.Δ * (s : Int)) (4 * p.Δ * ((s : Int) - 1) + 3 * p.Δ) with
-      ⟨h1, _⟩ | ⟨h1, _⟩ <;> (rw [h1]; linarith)
+    have hm : max (4 * p.Δ * (s : Int)) (4 * p.Δ * ((s : Int) - 1) + 3 * p.Δ) ≤
+        4 * p.Δ * (s : Int) :=
+      max_le le_rfl (by linarith)
+    linarith
 
 /-- [pcsa34-r4.3b §5.3 (F5), §5.6.1] Honest-proposal receipt at the early read
 `e_s` (the Formation contract). -/
