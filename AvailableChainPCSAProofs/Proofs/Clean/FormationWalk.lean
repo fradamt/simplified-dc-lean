@@ -226,11 +226,11 @@ theorem pcsa_formation_read_root_injective (E : Generic.Env V)
   obtain ⟨k, _, he⟩ := Option.map_eq_some_iff.mp hpre
   subst pre
   subst nd
-  have hi := pcsa_formation_clock_body_scope p _ _ t
-    (pcsa_formation_body_scope E rho k x hx)
+  have hi := pcsa_clock_body_scope p _ _ t
+    (pcsa_body_scope E rho k x hx)
   intro A hA B hB he
   rw [erasedList_def] at hA hB
-  exact pcsa_formation_scoped_root_eq E rho h.idealization A B
+  exact pcsa_scoped_root_eq E rho h.idealization A B
     (hi A (List.mem_filter.mp hA).1)
     (hi B (List.mem_filter.mp hB).1) he
 

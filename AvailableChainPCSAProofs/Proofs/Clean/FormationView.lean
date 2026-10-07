@@ -266,7 +266,7 @@ theorem pcsa_formation_delivered_proposal_unique (E : Generic.Env V)
   have hD : Gen.V2.Duty.SingleDuty (pcsaWith m p c) (.prop s) := by
     refine ⟨.propAction s, rfl, ?_⟩
     intro d hd
-    exact (pcsa_formation_signLabel_prop d s).mp hd
+    exact (pcsa_signLabel_prop d s).mp hd
   have ho := Gen.V2.Duty.emitted_unique_of_singleDuty E rho h.base.valid.nodup
     (.prop s) hD ⟨0, Nat.one_pos⟩ _ k i u _ _ _ hk hi hm hn rfl rfl
   exact Msg.proposal.inj (congrArg V2.Signed.payload ho.2)
@@ -408,7 +408,7 @@ theorem pcsa_formation_read_pc_root_injective (E : Generic.Env V)
     subst nd
     exact Reachable.tick t (pcsa_reachable_stateBefore E rho k x)
   have hf := pcsa_formation_frame_read E rho hFrame x t nd hx hr
-  have hTree := pcsa_formation_tree_correspondence p nd.st hReach
+  have hTree := pcsa_tree_correspondence p nd.st hReach
   have hm : ∀ C ∈ nd.st.pcs.filter (frameActive p nd.st),
       C.target ∈ erasedList nd.st (fullTree p nd.st) := by
     intro C hC
@@ -417,7 +417,7 @@ theorem pcsa_formation_read_pc_root_injective (E : Generic.Env V)
     obtain ⟨D, hD, he⟩ := of_decide_eq_true ha
     rw [erasedList_def]
     refine List.mem_filter.mpr ⟨(hTree _).mpr ⟨D, ?_, he⟩, decide_eq_true ⟨D, hD, he⟩⟩
-    rw [pcsa_formation_fullTree_of_frame p nd.st hf] at hD
+    rw [pcsa_fullTree_of_frame p nd.st hf] at hD
     exact hD
   have hi := pcsa_formation_read_root_injective E rho h x t nd hx hr (fullTree p nd.st)
   intro A hA B hB he
@@ -513,7 +513,7 @@ theorem pcsa_formation_emitted_lists (E : Generic.Env V)
   obtain ⟨_, _, d, hl, ht, ha⟩ :=
     (V2.D.Engine.mem_tick_seat_iff E rho _ x t (.prop s) ⟨0, Nat.one_pos⟩
       (.proposal N)).mp ho
-  obtain rfl := (pcsa_formation_signLabel_prop d s).mp hl
+  obtain rfl := (pcsa_signLabel_prop d s).mp hl
   cases m <;>
     change (propose p (clock p (V2.D.Run.stateBefore E rho k x).st t) s).map
       (withApp p (c.app (rho.input x t))) = some (.proposal N) at ha
@@ -655,7 +655,7 @@ theorem pcsa_formation_read_slot (E : Generic.Env V)
   obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hr
   subst nd
   change p.slotOf (clock p pre.st t).base.now = s
-  rw [pcsa_formation_clock_now, hTime]
+  rw [pcsa_clock_now, hTime]
   exact pcsa_slotOf_offset p s offset hOffset hOffsetLt
 
 variable [Fintype V]
@@ -684,7 +684,7 @@ theorem pcsa_formation_proposer_read_inputs (E : Generic.Env V)
   have hik : i = k := (List.Nodup.getElem?_inj
     (List.getElem?_eq_some_iff.mp hi).1 h.base.valid.nodup).mp (hi.trans hTick.symm)
   subst i
-  have hb := pcsa_formation_emitted_parent E rho s N _ _ k hTick hem
+  have hb := pcsa_emitted_parent E rho s N _ _ k hTick hem
   have hl := pcsa_formation_emitted_lists E rho s N _ _ k hTick hem
   exact ⟨hb.2.1, hb.2.2.1, hb.2.2.2, hl⟩
 

@@ -4,6 +4,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationStore
 public import AvailableChainPCSAProofs.Proofs.Foundations.Rank
 public import AvailableChainPCSAProofs.Proofs.Foundations.Locks
 public import AvailableChainPCSAProofs.Proofs.Shared.Roots
+public import AvailableChainPCSAProofs.Proofs.Shared.Clock
 public import AvailableChainKitFG.FrameSelection
 
 public section
@@ -16,73 +17,6 @@ The source window uses snapshot label rR, not rR+1. -/
 
 namespace AvailableChain.PCSA
 
-private theorem formation_normalize_now {n : Nat} (st : State n) :
-    (normalizeS st).base.now = st.base.now := by
-  delta normalizeS
-  split <;> rfl
-
-private theorem formation_clockPre_now (p : Params) (st : State p.n) (t : Time) :
-    (clockPre p st t).base.now = t := by
-  delta clockPre
-  dsimp only
-  split <;> split <;> split <;> rfl
-
-private abbrev formationGateAccepted (p : Params) {n : Nat} (st : State n)
-    (cs : List (PC n)) (rank : Option PCRank) (s : Slot) (result : Block) : State n :=
-  let v := actView st
-  let q := p.toParams.engine
-  let st1 : State n := { st with base := { st.base with
-    goldfishRecord := GridCO.advance v.goldfishRecord result
-    genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s (some result) } }
-  if st1.base.obligations.any (fun row => st1.base.now < row.2.2 &&
-      !Block.compatible row.1 result) then st1 else
-    let st2 := { st1 with base := { st1.base with
-      stableRecord := GridCO.advance st1.base.stableRecord result } }
-    let prefixes := v.blocks.filter (fun b => b != .genesis && Block.preceq b result &&
-      leaseWriteOK cs rank b)
-    prefixes.foldl (fun acc b => (slowLevels p (actView acc) s b).foldl
-      (fun acc g => writeLease acc b g (GridCO.gateTime q s + GridCO.lifetime q) rank) acc) st2
-
-private theorem formation_gateFrom_now (p : Params) {n : Nat} (st : State n)
-    (a : Block) (cs : List (PC n)) (rank : Option PCRank) (s : Slot) :
-    (gateFrom p a cs rank st s).base.now = st.base.now := by
-  cases hg : SA.Root.confirmationFrom p.toParams a (actView st) s with
-  | none =>
-    rw [gateFrom_def]
-    dsimp only
-    rw [hg]
-  | some result =>
-    rw [gateFrom_def]
-    dsimp only
-    rw [hg]
-    change (formationGateAccepted p st cs rank s result).base.now = st.base.now
-    delta formationGateAccepted
-    dsimp only
-    split
-    · rfl
-    · apply List.foldlRecOn (motive := fun acc : State n => acc.base.now = st.base.now)
-      · rfl
-      · intro acc ha b _
-        apply List.foldlRecOn (motive := fun acc' : State n => acc'.base.now = st.base.now)
-        · exact ha
-        · intro acc' ha' g _
-          exact (writeLease_frame acc' b g _ rank).2.2.2.1.trans ha'
-
-/-- Every Formation duty reads its actual tick time after the clock. -/
-theorem pcsa_formation_clock_now (p : Params) (st : State p.n) (t : Time) :
-    (clock p st t).base.now = t := by
-  delta clock
-  dsimp only
-  split
-  · rw [gateStep_def]
-    dsimp only
-    rw [formation_normalize_now]
-    split
-    · exact formation_clockPre_now p st t
-    · rw [formation_gateFrom_now]
-      exact formation_clockPre_now p st t
-  · exact formation_clockPre_now p st t
-
 /-- The action read of round r is in slot rR+1 and uses opening rR. -/
 theorem pcsa_formation_source_opening (p : Params) (st : State p.n) (r : Nat) :
     p.round ((clock p st (p.actionTime r)).slot p) * p.R = r * p.R := by
@@ -92,7 +26,7 @@ theorem pcsa_formation_source_opening (p : Params) (st : State p.n) (r : Nat) :
     ring
   have hs : (clock p st (p.actionTime r)).slot p = r * p.R + 1 := by
     change p.slotOf (clock p st (p.actionTime r)).base.now = _
-    rw [pcsa_formation_clock_now, ht]
+    rw [pcsa_clock_now, ht]
     exact Run.pcsa_slotOf_offset p _ (2 * p.Δ)
       (by have hd : (0 : Int) < p.Δ := p.deltaPos; omega)
       (by have hd : (0 : Int) < p.Δ := p.deltaPos; omega)

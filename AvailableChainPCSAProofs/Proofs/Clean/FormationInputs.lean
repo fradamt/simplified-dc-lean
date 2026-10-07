@@ -50,7 +50,7 @@ theorem pcsa_formation_current_body_in_voter_tree (p : Params) (st : State p.n)
     (s : Slot) (P : Block) (hReach : Reachable p st) (hFrame : Run.FrameVacuous p st)
     (hBody : P ∈ st.base.blocks) (hSlot : P.slot = s) :
     P ∈ erasedList st (KitFG.storeFrameView (FGSA.heightView p) st.fg (voterBlocks p st s)) := by
-  obtain ⟨B, hB, he⟩ := (pcsa_formation_tree_correspondence p st hReach P).mp hBody
+  obtain ⟨B, hB, he⟩ := (pcsa_tree_correspondence p st hReach P).mp hBody
   have hBs : B.slot = s := by
     have hs : (eraseFG B).slot = B.slot := by cases B <;> rfl
     exact hs.symm.trans (he ▸ hSlot)

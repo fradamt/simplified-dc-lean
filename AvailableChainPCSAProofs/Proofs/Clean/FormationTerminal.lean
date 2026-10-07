@@ -41,7 +41,7 @@ theorem pcsa_formation_parent_slots (p : Params) (st : State p.n) (h : Reachable
     intro b hb hn
     exact (hn (List.mem_singleton.mp hb)).elim
   | tick t _ ih =>
-    exact pcsa_formation_clock_body_scope p (fun b => b ≠ .genesis → b.parent.slot < b.slot)
+    exact pcsa_clock_body_scope p (fun b => b ≠ .genesis → b.parent.slot < b.slot)
       _ t ih
   | deliver o _ ih =>
     apply pcsa_formation_process_body_scope p _ _ o ih
