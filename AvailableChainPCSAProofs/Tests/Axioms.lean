@@ -731,3 +731,10 @@ end
 -- C6 ProposalPaths.
 #print axioms AvailableChain.PCSA.Run.pcsa_getHead_body_at_read
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_proper_prefix_source
+
+-- C6 CommonEligibility.
+#print axioms AvailableChain.PCSA.pcsa_eligible_zero_floor
+#print axioms AvailableChain.PCSA.pcsa_eligible_equal_counts
+#print axioms AvailableChain.PCSA.pcsa_eligible_current_slot
+#print axioms AvailableChain.PCSA.pcsa_proposal_clock_slot
+#print axioms AvailableChain.PCSA.pcsa_vote_clock_slot

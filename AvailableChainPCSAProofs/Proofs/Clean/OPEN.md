@@ -1289,3 +1289,9 @@ Validation and current claim status are recorded in log.md and state.md.
 The actual proposer head is held, and all proper proposal prefixes lie in
 its full tree.
 Validation and current claim status are recorded in log.md and state.md.
+
+### CommonEligibility
+
+Zero band floors and equal counts reduce eligibility to the same majority
+and duty-slot tests.
+Validation and current claim status are recorded in log.md and state.md.
