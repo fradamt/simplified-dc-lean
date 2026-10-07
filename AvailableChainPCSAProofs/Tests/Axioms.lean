@@ -10,8 +10,10 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
 public import AvailableChainPCSAProofs.Proofs.Foundations.Locks
+public import AvailableChainPCSAProofs.Proofs.Foundations.NamedScope
 public import AvailableChainPCSAProofs.Proofs.Foundations.Output
 public import AvailableChainPCSAProofs.Proofs.Foundations.OutputState
+public import AvailableChainPCSAProofs.Proofs.Foundations.Proposals
 public import AvailableChainPCSAProofs.Proofs.Foundations.Rank
 public import AvailableChainPCSAProofs.Proofs.Foundations.Run
 public import AvailableChainPCSAProofs.Proofs.Foundations.Snapshot
@@ -38,6 +40,7 @@ public import AvailableChainPCSAProofs.Proofs.Outage.SlowRoot
 public import AvailableChainPCSAProofs.Proofs.Outage.SlowRun
 public import AvailableChainPCSAProofs.Proofs.Outage.SlowStep
 public import AvailableChainPCSAProofs.Proofs.Outage.SlowStore
+public import AvailableChainPCSAProofs.Proofs.Foundations.TickOutput
 public import AvailableChainPCSAProofs.Proofs.PC.AckOrigins
 public import AvailableChainPCSAProofs.Proofs.PC.Uniqueness
 public import AvailableChainPCSAProofs.Proofs.Shared.Certificates
@@ -58,6 +61,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
+public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 
 public section
 
@@ -102,6 +106,51 @@ public section
 #print axioms AvailableChain.PCSA.Run.early_gate_duty_order
 #print axioms AvailableChain.PCSA.Run.ack_emission_duty
 #print axioms AvailableChain.PCSA.Run.ack_emission_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_head_singleDuty
+#print axioms AvailableChain.PCSA.Run.pcsa_prop_singleDuty
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_singleDuty
+#print axioms AvailableChain.PCSA.Run.signLabel_fg_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_emits_head
+#print axioms AvailableChain.PCSA.Run.pcsa_emits_row
+#print axioms AvailableChain.PCSA.Run.pcsa_emitsAt_row
+#print axioms AvailableChain.PCSA.Run.pcsa_emits_proposal
+#print axioms AvailableChain.PCSA.Run.pcsa_emits_ack
+#print axioms AvailableChain.PCSA.Run.pcsa_tick_asleep
+#print axioms AvailableChain.PCSA.Run.pcsa_tick_rows_of_seats
+#print axioms AvailableChain.PCSA.pcsa_wire_decode_block
+#print axioms AvailableChain.PCSA.pcsa_wire_proposal_some
+#print axioms AvailableChain.PCSA.pcsa_normalizeS_proposals
+#print axioms AvailableChain.PCSA.pcsa_reconcile_proposals
+#print axioms AvailableChain.PCSA.pcsa_installPC_proposals
+#print axioms AvailableChain.PCSA.pcsa_collectPCs_keeps_proposals
+#print axioms AvailableChain.PCSA.pcsa_poolAckRaw_proposals
+#print axioms AvailableChain.PCSA.pcsa_fold_poolAckRaw_proposals
+#print axioms AvailableChain.PCSA.pcsa_poolAck_proposals
+#print axioms AvailableChain.PCSA.pcsa_admitRow_proposals
+#print axioms AvailableChain.PCSA.pcsa_fold_admitRow_proposals
+#print axioms AvailableChain.PCSA.pcsa_admitBlock_proposals
+#print axioms AvailableChain.PCSA.pcsa_process_proposals
+#print axioms AvailableChain.PCSA.pcsa_process_proposals_mono
+#print axioms AvailableChain.PCSA.pcsa_clockPre_proposals
+#print axioms AvailableChain.PCSA.pcsa_gateFrom_proposals
+#print axioms AvailableChain.PCSA.pcsa_clock_proposals
+#print axioms AvailableChain.PCSA.pcsa_clock_namedBodies
+#print axioms AvailableChain.PCSA.pcsa_namedByErase_sound
+#print axioms AvailableChain.PCSA.pcsa_named_preceq_self
+#print axioms AvailableChain.PCSA.pcsa_named_erase_parent
+#print axioms AvailableChain.PCSA.pcsa_named_preceq_trans
+#print axioms AvailableChain.PCSA.pcsa_named_preceq_erase
+#print axioms AvailableChain.PCSA.pcsa_named_erase_ancestor
+#print axioms AvailableChain.PCSA.Run.pcsa_stored_proposal_delivered
+#print axioms AvailableChain.PCSA.Run.pcsa_namedBody_delivered
+#print axioms AvailableChain.PCSA.Run.pcsa_namedScope_genesis
+#print axioms AvailableChain.PCSA.Run.pcsa_namedScope_delivered
+#print axioms AvailableChain.PCSA.Run.pcsa_namedScope_held
+#print axioms AvailableChain.PCSA.Run.pcsa_namedScope_ancestor
+#print axioms AvailableChain.PCSA.Run.pcsa_rootBlockInRun_ancestor
+#print axioms AvailableChain.PCSA.Run.pcsa_rootBlockInRun_root_eq
+#print axioms AvailableChain.PCSA.Run.pcsa_rootInjectiveOn_run
+#print axioms AvailableChain.PCSA.Run.pcsa_emitted_proposal_parent
 #print axioms AvailableChain.PCSA.installPC_frame
 #print axioms AvailableChain.PCSA.installPC_duplicate
 #print axioms AvailableChain.PCSA.installPC_pcs_new
@@ -565,6 +614,17 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_within_on
 #print axioms AvailableChain.PCSA.Run.pcsa_stored_body_within_on
+#print axioms AvailableChain.PCSA.pcsa_propose_rows_valid
+#print axioms AvailableChain.PCSA.pcsa_accepted_pc_wellFormed
+#print axioms AvailableChain.PCSA.pcsa_rows_valid_not_excluded
+#print axioms AvailableChain.PCSA.Run.pcsa_emitted_propose
+#print axioms AvailableChain.PCSA.Run.pcsa_clock_slot_proposal
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_rows_valid
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_receipt
+#print axioms AvailableChain.PCSA.Run.pcsa_indexed_body_within_on
+#print axioms AvailableChain.PCSA.Run.pcsa_block_isNonRow
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_from_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_early
 
 #print axioms AvailableChain.PCSA.Run.pcsa_heldPCRelay_of
 #print axioms AvailableChain.PCSA.Run.pcsa_healthy_block_receipt

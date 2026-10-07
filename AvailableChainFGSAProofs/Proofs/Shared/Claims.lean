@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Claims.OutageContinuation
 public import AvailableChainFGSAClaims.Claims.Outage
 public import AvailableChainFGSAClaims.Claims.WeakContinuation
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
@@ -256,6 +257,104 @@ theorem fgsa_availableGST (hH : HTimeClaim p) : AvailableGSTClaim p := by
   change Block.Preceq pt.P (V2.D.outputAt E rho g x t)
   rw [hread]
   exact Gen.Pure.block_preceq_trans hb hm
+
+/-- OUTPUT-DIRECT §10. Claim-to-claim assembly stays in Shared/Claims.
+One healthy cut supplies the individual arming inputs of the proved lane body.
+The companion leaves the frozen FGSAClaims record unchanged. -/
+theorem outageContinuation_of_body (p : Params)
+    (hbody : ∀ {In V : Type} [DecidableEq V] {c : AppCodec In}
+      {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} [Fintype V]
+      {fast : Bool} {T b₀ b₁ ΔF : Time}
+      (_hstore : RStore p c E rho) (_hframe : RFrameExact p c E rho)
+      (_hsrc : SrcFrameAboveStmt p c E rho)
+      (_htsrc : ∀ y r C, y ∈ rho.honest →
+        actionSource p c E rho y r = some (some C) →
+        ∃ X G, candidatesAt p c E rho y r = some X ∧ C ∈ X ∧
+          gateResult p c E rho y (r * p.R) = some (some G) ∧
+          (∀ A ∈ X, Block.Preceq A G) ∧
+          (∀ A ∈ X, fastAt p c E rho y (r * p.R) A) ∧
+          ∃ i, IsGateTick p c rho i y (r * p.R) ∧ gatePassedAt p c E rho i)
+      (_hnamed : ∀ i y r a, HonestRowAt p c E rho i y r a →
+        ∃ e C G, namedEntry a.payload.height_pair = some e ∧
+          actionSourceFG p c E rho y r = some (some C) ∧
+          e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+          AvailableChain.SimplexFG.FGBlock.Preceq (heightView p C).T_h C ∧
+          gateResult p c E rho y (r * p.R) = some (some G) ∧
+          Block.Preceq (eraseFG C) G ∧
+          fastAt p c E rho y (r * p.R) (eraseFG C))
+      (_hordered : ∀ y z r s C D, y ∈ rho.honest → z ∈ rho.honest →
+        SA.gateTime p.toParams r ≤ b₀ → SA.gateTime p.toParams s ≤ b₀ →
+        gateResult p c E rho y r = some (some C) →
+        gateResult p c E rho z s = some (some D) →
+        (r < s → Block.Preceq C D) ∧ (r = s → Block.Compatible C D))
+      (_hnonempty : ∀ i y s, i < timeIdx rho b₀ → y ∈ rho.honest →
+        IsGateTick p c rho i y s →
+        ∃ C, gateResultAt p c E rho i = some (some C) ∧ (s = 0 → C = .genesis))
+      (_htransfer : ∀ y z s C H, y ∈ rho.honest → z ∈ rho.honest →
+        SA.gateTime p.toParams s ≤ b₀ →
+        gateResult p c E rho y s = some (some C) →
+        vHead p c E rho z s = some H → Block.Preceq C H)
+      (_hbelow : ∀ i y, i ≤ timeIdx rho b₀ → y ∈ rho.honest →
+        let below := BelowLabel p c E rho i (labelBoundAt p c rho i)
+        below (F_at p c E rho i y) ∧ below (J_at p c E rho i y) ∧
+          below (S_at p c E rho i y))
+      (_hleaseOrigin : ∀ i y, i ≤ timeIdx rho b₀ → y ∈ rho.honest →
+        ∀ row ∈ (storeAt p c E rho i y).base.obligations,
+        ∃ q < i, ∃ s C, IsGateTick p c rho q y s ∧
+          gatePassedAt p c E rho q ∧
+          gateResultAt p c E rho q = some (some C) ∧ Block.Preceq row.1 C)
+      (_hsavedKeep : fast = false → ∀ i y, i ≤ timeIdx rho b₀ → y ∈ rho.honest →
+        ∀ q s C, q < i → IsGateTick p c rho q y s →
+        gateResultAt p c E rho q = some (some C) →
+        GridCO.savedGenuine (storeAt p c E rho i y).base s = some (some C))
+      (_hsOrigin : ∀ i y, i ≤ timeIdx rho b₀ → y ∈ rho.honest →
+        S_at p c E rho i y = .genesis ∨
+        (∃ q < i, ∃ s, IsGateTick p c rho q y s ∧
+          gateResultAt p c E rho q = some (some (S_at p c E rho i y))) ∨
+        (∃ q ≤ i, S_at p c E rho i y = F_at p c E rho q y))
+      (_hmono : ∀ y, y ∈ rho.honest → ∀ i k,
+        i ≤ k → k ≤ timeIdx rho b₀ →
+        Block.Preceq (S_at p c E rho i y) (S_at p c E rho k y))
+      (_hcleanGate : ∀ r y, SA.gateTime p.toParams r ≤ b₀ → y ∈ rho.honest →
+        ∃ C, gateResult p c E rho y r = some (some C) ∧
+          (∃ i, IsGateTick p c rho i y r ∧ gatePassedAt p c E rho i) ∧
+          Block.Preceq C (S_at p c E rho
+            (afterTicksIdx rho (SA.gateTime p.toParams r)) y) ∧
+          ∀ r' < r, ∀ C', gateResult p c E rho y r' = some (some C') →
+            Block.Preceq C' C),
+      OutageContinuationPrem p c fast E rho T b₀ b₁ ΔF →
+      RStrat p c E rho → RStoreCumul p c E rho → RQCOrigin p c E rho →
+      OutageContinuationConcl p c E rho T b₀)
+    (hstore : StoreClaim p) (hactive : ActiveViewClaim p) (hframe : FrameClaim p)
+    (hsrc : SrcFrameAboveClaim p) (hdisc : SourceDisciplineClaim p)
+    (hcut : CleanCutClaim p) : OutageContinuationClaim p := by
+  intro V _ _ In c E rho fast T b₀ b₁ ΔF h
+  have hb0 : 0 < b₀ := by
+    have hT := h.order.1
+    have hlag := h.lag
+    have hd := p.deltaPos
+    have hk : (2 : Time) ≤ p.k := by exact_mod_cast p.kLarge
+    cases fast with
+    | false =>
+      change T + ((4 * (p.k : Time) - 1) * p.Δ - 3 * p.Δ) ≤ b₀ at hlag
+      nlinarith
+    | true =>
+      change T + 4 * p.Δ ≤ b₀ at hlag
+      linarith
+  have hsource : SourceDisciplinePrem p c E rho () :=
+    ⟨h.pre.base, h.pre.faultQ_of_pos hb0⟩
+  have hd := hdisc c E rho () hsource
+  have hc := hcut c E rho (ΔF := ΔF) ⟨b₀⟩ ⟨h.pre⟩
+  have hl := hc.1.2.2.2.1
+  exact hbody (hactive c E rho).1 (hframe c E rho).1 (hsrc c E rho () hsource)
+    hd.1.1 hd.1.2.2 hc.1.1 hc.1.2.1 hc.1.2.2.1
+    (fun i y hi hy => ⟨(hl i y hi hy).1, (hl i y hi hy).2.1, (hl i y hi hy).2.2.1⟩)
+    (fun i y hi hy row hrow => ((hl i y hi hy).2.2.2.1 row hrow).2)
+    (fun _ i y hi hy => (hl i y hi hy).2.2.2.2.2.1)
+    (fun i y hi hy => (hl i y hi hy).2.2.2.2.2.2.2)
+    (fun y hy i k hik hk => hc.2.2.1 i k y (hik.trans hk) hk hik hy)
+    hc.2.2.2.2.2.2 h hd.2.1
+    ((hstore c E rho).2 h.pre.base.valid.toScheduleWellFormed).1 hd.2.2
 
 end AvailableChain.FGSA.Run
 end
