@@ -92,7 +92,9 @@
       "AvailableChainFGSARun.**",
       "AvailableChainFGCompose.Statements.EventReads",
       "AvailableChainFGCompose.Statements.CoreReads",
-      "AvailableChainFGCompose.Proofs.SourceHead"
+      "AvailableChainFGCompose.Proofs.SourceHead",
+      "AvailableChainFGCompose.Statements.SafetyClient",
+      "AvailableChainFGCompose.Statements.SafetyStore"
     ]
   },
   "profiles": {
