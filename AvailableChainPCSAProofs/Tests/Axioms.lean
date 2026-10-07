@@ -636,3 +636,8 @@ end
 -- C6 LockRetention.
 #print axioms AvailableChain.PCSA.pcsa_collect_keep_lock
 #print axioms AvailableChain.PCSA.pcsa_write_lock_keep_target
+
+-- C6 ViewRank.
+#print axioms AvailableChain.PCSA.pcsa_bestPC_slot_ge
+#print axioms AvailableChain.PCSA.pcsa_bestPC_target_of_max_slot
+#print axioms AvailableChain.PCSA.pcsa_bestPC_isSome_of_mem

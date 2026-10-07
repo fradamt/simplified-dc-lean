@@ -130,6 +130,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.ReleaseCount
 
 public import AvailableChainPCSAProofs.Proofs.Clean.LockRetention
 
+public import AvailableChainPCSAProofs.Proofs.Clean.ViewRank
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

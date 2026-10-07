@@ -1208,3 +1208,10 @@ C6 support: retain locks through compatible collection and renewal. The
 module uses the concrete readers and preserves the joint-induction
 premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### ViewRank
+
+The best PC has maximal source slot. A present slot maximum fixes the
+selected target when same-slot targets are unique; ack-list equality is
+not used.
+Validation and current claim status are recorded in log.md and state.md.
