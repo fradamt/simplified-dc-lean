@@ -746,3 +746,21 @@ and ack-pool growth used by RelayCollect. `RelayCarrier`: show that
 the call installing a new key carries its installed PC under the
 root-form slot/target-root rule. These are the store premises for
 the strict PC relay used in common views.
+
+### HonestBatch
+
+Actual honest HEAD seats outnumber faulty seats. A common honest HEAD
+prefix has strict majority in the actual clean gate counts.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`RelayPersistence`: a stage-one delivery preserves held PC keys.
+Lift this and clock preservation through run indices. `RelayOrigin`:
+find the first delivery that installs a held key and prove that it
+accepts the carried PC object. Use existing ack-pool monotonicity for
+receipt; no new pending-label claim is exported.
+
+`RelayReceipt`: use the existing C3 quorum assembly theorem after
+receipt of a whole certificate and its exact target body. Relay an
+accepted PC object before the public cutoff plus Delta, retain its
+acks or installed key, then use saturation at the receiver. This
+provides the PC source bound needed by common views.

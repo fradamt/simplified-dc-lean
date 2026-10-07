@@ -412,3 +412,9 @@ end
 #print axioms AvailableChain.PCSA.pcsa_early_uncapped_clean
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_late_not_capped
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_clean_support
+
+-- C6 HonestBatch.
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_exists
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_head_batch
+#print axioms AvailableChain.PCSA.Run.pcsa_late_participant_bound
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority
