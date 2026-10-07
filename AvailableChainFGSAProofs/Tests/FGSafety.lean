@@ -4,6 +4,9 @@ public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: ke
 public section
 
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyReads
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyWireLaws
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyClientLaws
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyUnitLaws
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyProposalRows_def
 #print axioms AvailableChain.FGSA.Run.safetyProposalErase
