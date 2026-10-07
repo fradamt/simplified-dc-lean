@@ -271,5 +271,14 @@ stop_if_failed
 step PCSACompose-axioms audit AvailableChainPCSAProofs/Tests/FGCompose.lean "$logs/PCSACompose.axioms"
 summary PCSACompose-axioms
 stop_if_failed
+step FGSafety-axioms audit AvailableChainFGCompose/Tests/SafetyAxioms.lean "$logs/FGSafety.axioms"
+summary FGSafety-axioms
+stop_if_failed
+step FGSASafety-axioms audit AvailableChainFGSAProofs/Tests/FGSafety.lean "$logs/FGSASafety.axioms"
+summary FGSASafety-axioms
+stop_if_failed
+step PCSASafety-axioms audit AvailableChainPCSAProofs/Tests/FGSafety.lean "$logs/PCSASafety.axioms"
+summary PCSASafety-axioms
+stop_if_failed
 finish
 exit "$failed"

@@ -1783,6 +1783,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.healing_resetArrival
 #print axioms AvailableChain.FGSA.Run.healing_frontierSearch_of_set
 #print axioms AvailableChain.FGSA.Run.healing_resetArrivalStatement
+#print axioms AvailableChain.FGSA.Run.healing_resetArrivalClaim
 #print axioms AvailableChain.FGSA.Run.healing_renewedPromotion_terminal
 #print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest
 #print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other

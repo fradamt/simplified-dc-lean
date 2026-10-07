@@ -113,11 +113,19 @@ def composeImportAllowed (m dep : Name) : Bool :=
     (under `AvailableChainGeneric.Statements.Pure &&
       !under `AvailableChainGeneric.Statements.Pure.Walk) ||
     [`AvailableChainSimplexFG.Store, `AvailableChainKitFG.HeightLawsDef].contains dep
+  let safety := [(`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainKitFG.ClientOnce),
+    (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainSimplexFG.Evidence),
+    (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainKitFG.CertificateCoreDef),
+    (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainGeneric.Statements.V2.Duty.Slashing),
+    (`AvailableChainFGCompose.Statements.SafetyStore, `AvailableChainKitFG.StoreSafetyDef),
+    (`AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainGeneric.Statements.Pure.Quorum)].contains (m, dep)
   if dep == `Init then true
   else if m == `AvailableChainFGCompose then
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
-     `AvailableChainFGCompose.Proofs.SourceHead].contains dep
-  else if composeStatements m then base || ownStatements
+     `AvailableChainFGCompose.Proofs.SourceHead,
+     `AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainFGCompose.Statements.SafetyStore,
+     `AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainFGCompose.Statements.SafetyClaims].contains dep
+  else if composeStatements m then base || ownStatements || safety
   else if (`AvailableChainFGCompose.Tests).isPrefixOf m then
     foundation || ownStatements || ownProofs
   else if (`AvailableChainFGCompose.Proofs).isPrefixOf m then

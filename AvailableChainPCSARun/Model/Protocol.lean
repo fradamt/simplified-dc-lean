@@ -517,6 +517,48 @@ private theorem pcsa_toAuth_eq_3_export :
 private theorem pcsa_toWire_eq_1_export :
     type_of% (@toWire.eq_1) := @toWire.eq_1
 
+
+/-! Raw payload and row reads for the provisional safety adapter. -/
+def safetyProposalErase (p : Params) (o : Obj p) : Option Block :=
+  match o.payload with
+  | .proposal N => some N.erase
+  | _ => none
+
+theorem pcsa_safetyProposalErase_def (p : Params) (o : Obj p) :
+    safetyProposalErase p o = (match o.payload with
+      | .proposal N => some N.erase
+      | _ => none) := rfl
+
+def safetyProposalRows (p : Params) (o : Obj p) : List (RowWire p.n) :=
+  match o.payload with
+  | .proposal N => N.rows
+  | _ => []
+
+theorem pcsa_safetyProposalRows_def (p : Params) (o : Obj p) :
+    safetyProposalRows p o = (match o.payload with
+      | .proposal N => N.rows
+      | _ => []) := rfl
+
+def decodeSafetyRow (p : Params) (o : Obj p) : Option (Row (Fin p.n)) :=
+  match o.payload with
+  | .row body => RowWire.toRow? ⟨toAuth p o.auth, body⟩
+  | _ => none
+
+theorem pcsa_decodeSafetyRow_def (p : Params) (o : Obj p) :
+    decodeSafetyRow p o = (match o.payload with
+      | .row body => RowWire.toRow? ⟨toAuth p o.auth, body⟩
+      | _ => none) := rfl
+
+def safetyEnabled (m : FGMode) (p : Params) (t : Time) : Bool :=
+  match m with
+  | .on => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  | .idle => false
+
+theorem pcsa_safetyEnabled_def (m : FGMode) (p : Params) (t : Time) :
+    safetyEnabled m p t = (match m with
+      | .on => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+      | .idle => false) := rfl
+
 end AvailableChain.PCSA.Run
 
 end
