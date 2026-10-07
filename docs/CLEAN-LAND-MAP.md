@@ -1,8 +1,8 @@
 # Clean lane landing map
 
 This map records the renames and deletions made when the clean lane
-(`pcsa-w2-clean` at `9242cad3`) was merged with main `c30bb265` on
-`pcsa-clean-land`. Port later clean-lane commits with this map.
+(`pcsa-w2-clean` at `9242cad3`) was merged with main `c30bb265`, then `b7946b9b` and
+`6611726b`, on `pcsa-clean-land`. Port later clean-lane commits with this map.
 
 All names are in `AvailableChain.PCSA` or `AvailableChain.PCSA.Run`, as
 before. Module paths are relative to `AvailableChainPCSAProofs/Proofs/`.
@@ -37,6 +37,13 @@ import closure is kept. `Clean.AckAdmit` imports `Shared.Clock` and
 | `Run.pcsa_clean_body_scope` | `Run.pcsa_body_scope` (Shared/BodyScope) |
 | `Run.pcsa_clean_scoped_root_eq` | `Run.pcsa_scoped_root_eq` (Shared/BodyScope) |
 | `pcsa_admitBlock_proposals` (Clean/ProposalStore) | `pcsa_clean_admitBlock_proposals` |
+| `pcsa_bestPC_slot_ge` (Clean/ViewRank) | `pcsa_clean_bestPC_slot_ge` |
+| `Run.pcsa_formation_freeze_keep` (Clean/AckAdmit) | `Run.pcsa_clean_freeze_keep` |
+
+The two last renames remove clashes with other lanes. The outage lane on
+main has `Outage/Choice.pcsa_bestPC_slot_ge`, an existential statement. The
+formation lane (`c45746d1`) has `Clean/FormationFreeze.pcsa_formation_freeze_keep`
+under `Base₂`. The Clean versions keep their statements.
 
 The Clean `pcsa_admitBlock_proposals` has a different statement from
 `Foundations/Proposals.pcsa_admitBlock_proposals`, which keeps the name.

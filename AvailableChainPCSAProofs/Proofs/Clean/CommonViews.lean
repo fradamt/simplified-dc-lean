@@ -108,13 +108,13 @@ theorem pcsa_common_view_targets (E : Generic.Env V)
       rcases List.mem_append.mp (List.mem_filter.mp hm).1 with hfrozen | hcar
       · obtain ⟨D, hDmem, hDs, _⟩ := frozen C hfrozen
         rw [← hDs]
-        exact pcsa_bestPC_slot_ge _ D V hDmem hsv
+        exact pcsa_clean_bestPC_slot_ge _ D V hDmem hsv
       · have heq : C = V := Option.some.inj ((carried C hcar).symm.trans hNp)
         rw [heq]
     obtain ⟨D, hbest⟩ := Option.isSome_iff_exists.mp (pcsa_bestPC_isSome_of_mem sources V hVsource)
     have hd : voterPC p dst (s + 1) = some D := hview.trans hbest
     have hDs : D.slot = V.slot := Nat.le_antisymm (upper D (bestPC_mem sources D hbest))
-      (pcsa_bestPC_slot_ge sources V D hVsource hbest)
+      (pcsa_clean_bestPC_slot_ge sources V D hVsource hbest)
     obtain ⟨u, hDack, _⟩ := pcsa_voterPC_honest_ack_before E rho h hFault a y hy (s + 1)
       (le_refl _) D hd
     have hDt := pcsa_ack_targets_unique E rho h hF hFault u z V.slot D.target V.target

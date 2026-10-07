@@ -344,8 +344,8 @@ theorem pcsa_formation_ack_admit [Fintype V] (E : Generic.Env V)
   intro y hy i j t hi het _htz hh
   exact pcsa_honest_ack_admitted E rho h.base y hy s i N.erase.root j t hi het hh
 
-/-- Formation's exact hFreezeKeep interface. -/
-theorem pcsa_formation_freeze_keep [Fintype V] (E : Generic.Env V)
+/-- The exact hFreezeKeep interface for formation. -/
+theorem pcsa_clean_freeze_keep [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
     (h : FormationPrem p c E rho s N ΔF) :
     ∀ y ∈ rho.honest,

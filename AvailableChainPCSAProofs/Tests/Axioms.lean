@@ -666,7 +666,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_receiver_slot
 
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_ack_admit
-#print axioms AvailableChain.PCSA.Run.pcsa_formation_freeze_keep
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_freeze_keep
 
 #print axioms AvailableChain.PCSA.Run.pcsa_lookup_held_target
 #print axioms AvailableChain.PCSA.Run.pcsa_collect_held_target
@@ -1047,7 +1047,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_write_lock_keep_target
 
 -- C6 ViewRank.
-#print axioms AvailableChain.PCSA.pcsa_bestPC_slot_ge
+#print axioms AvailableChain.PCSA.pcsa_clean_bestPC_slot_ge
 #print axioms AvailableChain.PCSA.pcsa_bestPC_target_of_max_slot
 #print axioms AvailableChain.PCSA.pcsa_bestPC_isSome_of_mem
 
@@ -1136,3 +1136,40 @@ end
 #print axioms AvailableChain.PCSA.pcsa_admission_slot_bounds
 #print axioms AvailableChain.PCSA.Run.pcsa_body_parent_slot_lt
 #print axioms AvailableChain.PCSA.Run.pcsa_body_slot_before_next_proposal
+
+-- Clean AckRun (clean landing audit).
+#print axioms AvailableChain.PCSA.Run.pcsa_ackPool_stateBefore_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_freeze_pcs
+#print axioms AvailableChain.PCSA.Run.pcsa_pcs_after_freeze
+
+-- Clean AckStore (clean landing audit).
+#print axioms AvailableChain.PCSA.pcsa_gateFrom_ackPool
+#print axioms AvailableChain.PCSA.pcsa_clock_ackPool
+#print axioms AvailableChain.PCSA.pcsa_poolAck_mem
+#print axioms AvailableChain.PCSA.pcsa_admitAck_mem
+#print axioms AvailableChain.PCSA.pcsa_fold_poolAckRaw_mono
+#print axioms AvailableChain.PCSA.pcsa_process_ackPool_mono
+
+-- Clean Collect (clean landing audit).
+#print axioms AvailableChain.PCSA.pcsa_collectPCs_of_assemble
+#print axioms AvailableChain.PCSA.PCSaturated
+#print axioms AvailableChain.PCSA.PCSaturated_def
+#print axioms AvailableChain.PCSA.pcsa_saturated_transfer
+
+-- Clean Saturation (clean landing audit).
+#print axioms AvailableChain.PCSA.pcsa_process_saturated
+#print axioms AvailableChain.PCSA.pcsa_clock_saturated
+
+-- Clean StepGate (clean landing audit).
+#print axioms AvailableChain.PCSA.pcsa_clean_lock_write
+#print axioms AvailableChain.PCSA.pcsa_clean_gate_guard
+#print axioms AvailableChain.PCSA.pcsa_clean_delete_locks
+#print axioms AvailableChain.PCSA.pcsa_clean_gate_record
+
+-- Clean StepPC (clean landing audit).
+#print axioms AvailableChain.PCSA.pcsa_clean_N_root
+
+-- Shared CleanPC (clean landing audit).
+#print axioms AvailableChain.PCSA.pcsa_n_score_gap
+#print axioms AvailableChain.PCSA.pcsa_cl4_same_label
+#print axioms AvailableChain.PCSA.pcsa_cl4_later_label

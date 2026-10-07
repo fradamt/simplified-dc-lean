@@ -120,7 +120,7 @@ conditional theorem as an unconditional claim.
   admission and preservation at every honest receiver before the freeze.
   `pcsa_formation_body_before_freeze` supplies the full named proposal body.
   No extra hypothesis remains in this interface.
-- `hFreezeKeep`: the exact interface is `pcsa_formation_freeze_keep`; its
+- `hFreezeKeep`: the exact interface is `pcsa_clean_freeze_keep`; its
   base theorem is `pcsa_collectPCs_after_freeze`, using
   `FormationPrem.base.valid.toScheduleWellFormed`, `base.noRestart`,
   `base.delta`, and `freezeTime s < gateTime s ≤ horizon`.
