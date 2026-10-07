@@ -42,6 +42,24 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_safety_process_F
 #print axioms AvailableChain.PCSA.Run.pcsaSafetyOrderLaws
 
+#print axioms AvailableChain.PCSA.pcsa_safety_admitBlock_fg_cases
+#print axioms AvailableChain.PCSA.pcsa_safety_process_fg_cases
+#print axioms AvailableChain.PCSA.pcsa_safety_normalize_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_reconcile_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_collect_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_poolAckRaw_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_fold_poolAckRaw_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_admitRow_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_fold_admitRow_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_poolAck_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_admitBlock_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_process_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_gateFrom_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_clockPre_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_clock_metadata
+#print axioms AvailableChain.PCSA.pcsa_safety_decode_block_payload
+#print axioms AvailableChain.PCSA.pcsa_safety_process_TF
+
 namespace AvailableChain.PCSA.Run
 open AvailableChain.FGCompose AvailableChain.SimplexFG
 example (p : Params) {In : Type} (c : AppCodec In) :
