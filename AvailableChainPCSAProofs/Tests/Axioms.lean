@@ -575,3 +575,8 @@ end
 -- C6 CommonScores.
 #print axioms AvailableChain.PCSA.Run.pcsa_read_vote_support_iff
 #print axioms AvailableChain.PCSA.Run.pcsa_common_walk_counts
+
+-- C6 CommonTree.
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_slot_body_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_tree_source
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_prefix_voter_mem

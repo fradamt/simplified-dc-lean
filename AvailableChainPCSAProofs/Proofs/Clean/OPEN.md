@@ -1122,3 +1122,10 @@ Validation and current claim status are recorded in log.md and state.md.
 Actual raw and support transfers give equal participant counts, cap
 status, and scores at every walk candidate.
 Validation and current claim status are recorded in log.md and state.md.
+
+### CommonTree
+
+Each current-slot body is the exact honest proposal. Every voter-tree body
+is in the proposer tree or on the proposal path, and every proposal prefix
+remains in the voter tree.
+Validation and current claim status are recorded in log.md and state.md.
