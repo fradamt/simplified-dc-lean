@@ -183,6 +183,18 @@ def AvailableChain.PCSA.Run.PCSACleanInclusionClaim 4069ee5460286b1a
 theorem AvailableChain.PCSA.Run.PCSACleanInclusionClaim_def 39d8b678ae6f3039
 def AvailableChain.PCSA.Run.StrongIncludedClaim 390afc56c4c23f34
 theorem AvailableChain.PCSA.Run.StrongIncludedClaim_def 87827fe228b6d984
+def AvailableChain.PCSA.Run.CleanResultsNonemptyClaim 0a3612b39473aed4
+theorem AvailableChain.PCSA.Run.CleanResultsNonemptyClaim_def 3778269113aa1f1d
+def AvailableChain.PCSA.Run.CleanResultsChainPendingClaim 306f9ce0f29ba746
+theorem AvailableChain.PCSA.Run.CleanResultsChainPendingClaim_def 0d90537b89b5ea6a
+def AvailableChain.PCSA.Run.CleanHeadsAbovePendingClaim 28ce3dda27fb1c69
+theorem AvailableChain.PCSA.Run.CleanHeadsAbovePendingClaim_def c63e2ab9c041d0f8
+def AvailableChain.PCSA.Run.CleanDisseminationPendingClaim 65dab35403a93ee2
+theorem AvailableChain.PCSA.Run.CleanDisseminationPendingClaim_def 679a14dddb81c495
+def AvailableChain.PCSA.Run.CleanHeadsPastCutClaim 8b0587724420a390
+theorem AvailableChain.PCSA.Run.CleanHeadsPastCutClaim_def 53dd3ce9f9f6e4ba
+def AvailableChain.PCSA.Run.CleanBlockReceiptClaim fcc6c53e56d2abbb
+theorem AvailableChain.PCSA.Run.CleanBlockReceiptClaim_def 3a310d3a15393af9
 ```
 
 ### `AvailableChainPCSAClaims.Claims.Finality`
@@ -385,6 +397,36 @@ def AvailableChain.PCSA.Run.HeldJustification 3aa22f36ffa64801
 theorem AvailableChain.PCSA.Run.pcsa_HeldJustification_def d1b5dc196a2f48aa
 def AvailableChain.PCSA.LiveLease ad088f160da401a8
 theorem AvailableChain.PCSA.pcsa_LiveLease_def e03984ff72f6fcf3
+```
+
+### `AvailableChainPCSAClaims.Statements.OutageItems`
+
+```text
+def AvailableChain.PCSA.LockRow d1624a7c94a59ccd
+theorem AvailableChain.PCSA.LockRow_def fd9ee0ff8a00a84c
+def AvailableChain.PCSA.Run.CleanHeldPCRelay f486819be3935e2c
+theorem AvailableChain.PCSA.Run.CleanHeldPCRelay_def 9a512cf41d452de1
+def AvailableChain.PCSA.Run.CleanArmAcks edbf0c14d4c9e165
+theorem AvailableChain.PCSA.Run.CleanArmAcks_def 625e99bb11bc128a
+def AvailableChain.PCSA.Run.CleanArmItems 014134844516c064
+theorem AvailableChain.PCSA.Run.CleanArmItems_def a017af64c66664c9
+def AvailableChain.PCSA.Run.CleanRelayItems 437aa1b7229b5905
+theorem AvailableChain.PCSA.Run.CleanRelayItems_def ccfe860da7adbe84
+structure AvailableChain.PCSA.Run.CleanSlowBoundary 633f6c7e8c1261f9
+ctor AvailableChain.PCSA.Run.CleanSlowBoundary.mk 8ba21a2f78bcd9b3
+field AvailableChain.PCSA.Run.CleanSlowBoundary.pending 0ddc0e87d866c6cb
+field AvailableChain.PCSA.Run.CleanSlowBoundary.first 564d02d31770ffa7
+field AvailableChain.PCSA.Run.CleanSlowBoundary.window 6469688111be05fc
+field AvailableChain.PCSA.Run.CleanSlowBoundary.stable 909af95b9e7c3482
+field AvailableChain.PCSA.Run.CleanSlowBoundary.locks 24c4976f1589431a
+field AvailableChain.PCSA.Run.CleanSlowBoundary.tree 415ad01595b9e9c1
+field AvailableChain.PCSA.Run.CleanSlowBoundary.saved fb12899c6e265194
+field AvailableChain.PCSA.Run.CleanSlowBoundary.result 48bfc9a213dba983
+field AvailableChain.PCSA.Run.CleanSlowBoundary.acks e4cc2b086b322e87
+field AvailableChain.PCSA.Run.CleanSlowBoundary.heads dca0ea586384686f
+field AvailableChain.PCSA.Run.CleanSlowBoundary.pendingHeads 9554b0f9bfe98181
+def AvailableChain.PCSA.Run.CleanSlowItems 534229c226ba3542
+theorem AvailableChain.PCSA.Run.CleanSlowItems_def 3f7bc9ccc35d7944
 ```
 
 ### `AvailableChainPCSAClaims.Statements.Premises`
