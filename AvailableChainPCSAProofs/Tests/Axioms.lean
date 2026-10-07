@@ -485,3 +485,10 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_snapshot_row_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_snapshot_pc_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_snapshots_before_first_gate_empty
+
+-- C6 CarriedPCs.
+#print axioms AvailableChain.PCSA.Run.pcsa_carried_pc_early_le
+#print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_honest_ack_before
+#print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_early_before
+#print axioms AvailableChain.PCSA.Run.pcsa_carriedPCs_before_first_gate_empty

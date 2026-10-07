@@ -958,3 +958,9 @@ adds one. Nodup makes the actual gate input unsaved. `GateAdvance`:
 with the clean lock guard clear, the gate result is below post-clock S.
 Use the checked C5 event-order lemma to carry this lower bound to
 every later read and then to the available output for clean inclusion.
+
+### CarriedPCs
+
+C6 support: trace carried PCs to exact honest ack targets. The module uses
+the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
