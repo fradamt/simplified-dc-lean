@@ -2302,7 +2302,6 @@
             'AvailableChain.FGSA.Run.held_chain_row_origin',
             'AvailableChain.FGSA.Run.held_chain_row_origin_before',
             'AvailableChain.FGSA.Run.held_chain_row_origin_delivery',
-            'AvailableChain.FGSA.Run.row_auth_of_toRow',
             'AvailableChain.FGSA.Run.stored_block_wire_delivery',
             'AvailableChain.FGSA.Run.stored_chain_row_origin_delivery',
         ),
@@ -3987,6 +3986,9 @@
             'AvailableChain.FGSA.Run.rootScope_source',
             'AvailableChain.FGSA.Run.rootScope_store',
             'AvailableChain.FGSA.Run.srcFrameAbove_scoped',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.RowAuth': (
+            'AvailableChain.FGSA.Run.row_auth_of_toRow',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.SameLabel': (
             'AvailableChain.FGSA.Run.fgsa_sameLabel',
@@ -6033,7 +6035,10 @@
     },
     'AvailableChainFGSAProofs.Tests.FGSafety': {
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
+            'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyReads',
+            'AvailableChain.FGSA.Run.fgsaSafetyUnitLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyWireLaws',
         ),
         'AvailableChainFGSARun.Model.Protocol': (
             'AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def',
