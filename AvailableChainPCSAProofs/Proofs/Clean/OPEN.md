@@ -1295,3 +1295,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Zero band floors and equal counts reduce eligibility to the same majority
 and duty-slot tests.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RetainedProposal
+
+Retained paths and equal inputs transport the parent walk between roots;
+the unique eligible new child is the proposal.
+Validation and current claim status are recorded in log.md and state.md.

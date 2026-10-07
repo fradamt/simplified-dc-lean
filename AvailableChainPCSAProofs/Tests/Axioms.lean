@@ -738,3 +738,6 @@ end
 #print axioms AvailableChain.PCSA.pcsa_eligible_current_slot
 #print axioms AvailableChain.PCSA.pcsa_proposal_clock_slot
 #print axioms AvailableChain.PCSA.pcsa_vote_clock_slot
+
+-- C6 RetainedProposal.
+#print axioms AvailableChain.PCSA.pcsa_retained_proposal_walk
