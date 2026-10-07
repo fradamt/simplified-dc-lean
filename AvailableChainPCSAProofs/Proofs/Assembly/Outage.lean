@@ -57,7 +57,7 @@ theorem pcsa_cleanBlockReceipt (p : Params) : CleanBlockReceiptClaim p := by
 /-- [pcsa34-r4.3 §5.4.2 ARM-healthy (a)] The relay item from block receipt
 (`pcsa_cleanBlockReceipt`). -/
 theorem pcsa_cleanRelayItems_of (p : Params) : CleanRelayItems p := by
-  have hrecv := pcsa_cleanBlockReceipt p
+  have hrecv : CleanBlockReceiptClaim p := pcsa_cleanBlockReceipt p
   rw [CleanRelayItems_def]
   rw [CleanBlockReceiptClaim_def] at hrecv
   intro V _ _ In c m E rho b₀ ΔF hC hf hfr
