@@ -611,3 +611,37 @@ slot comes from the one actual proposer read.
 `ProposalStore`: prove exact proposal-wire insertion and pool
 preservation. Use these facts after strict honest proposal broadcast
 to keep the one emitted body's raw/support/PC metadata at voter reads.
+
+### VoteTransport
+
+The actual honest HEAD read, concrete counts, and retained paths turn the
+predecessor CI root field into next-label HEAD extension. No invariant at
+the new label is assumed.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`ProposalDelivery`: strict broadcast and immutable-parent row validity
+give a passed direct admission before the voter tick. Keep both the
+exact proposal wire and its body at every later read. This supplies
+the carried input arm for the honest-proposal common-view proof.
+
+`LockEvents`: show that a gate retains an old lock row or writes a
+row below its raw result, at the SA release level. Trace each reachable
+row to an earlier honest gate. Use this origin for leaseBelowResult
+and for the release-count bound in lockKeep.
+
+`RecordBounds`: convert indexed record and lock origins to inclusive
+store reads. Bound their gate labels by the next-vote cutoff. Use the
+result-chain field to compare honest records across nodes and times.
+Prove record monotonicity separately from the update event and its
+earlier own result.
+
+`ReleaseCount`: map every seat counted against a lock to its holder.
+Use the exact pooled-HEAD source to exclude honest holders when their
+HEADs are compatible with the lock. The resulting faulty-seat bound
+is below the SA release threshold under FaultsBelowQA.
+
+`ViewOrigins`: a vote tick preserves PC snapshots and proposal
+metadata. Split the selected voter PC into frozen and carried sources.
+Recover an exact honest ack before the vote for either source, using
+scoped body-root equality for carried targets. This supplies the
+separate N-root argument and the common-view comparison.

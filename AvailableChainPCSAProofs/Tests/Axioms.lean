@@ -381,3 +381,8 @@ end
 -- C6 ResultPaths.
 #print axioms AvailableChain.PCSA.Run.pcsa_result_early_support
 #print axioms AvailableChain.PCSA.Run.pcsa_result_prefixes_retained
+
+-- C6 VoteTransport.
+#print axioms AvailableChain.PCSA.Run.pcsa_postClock_source
+#print axioms AvailableChain.PCSA.Run.pcsa_next_head_above_result_of_root
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_next_head_above
