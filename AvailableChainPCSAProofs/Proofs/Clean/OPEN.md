@@ -838,3 +838,16 @@ base in stage one. The predecessor result bounds every pre-vote lock
 and is covered by both walks. Thus the voter root lies below the
 proposer parent, and the voter walk covers any deeper proposer root.
 This supplies the remaining retained-walk root premises.
+
+### AckOrigins
+
+C6 support: trace held PCs to earlier honest ack emissions. The module
+uses the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`HonestProposal` and the `EqualHeads` export: recover the unique
+named proposal from HonestProposalAt. Normalize the actual voter
+read to its strict pre-vote index. Combine common counts, eligibility,
+views, tree reflection, retained paths and root agreement. Body slot
+bounds make the current proposal terminal. This proves the new
+headsEqual field from the predecessor CI.

@@ -445,3 +445,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_process_pc_target_origin
 #print axioms AvailableChain.PCSA.pcsa_pc_targets_held
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_scope
+
+-- C6 AckOrigins.
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_honest_emission_before
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_early_before
