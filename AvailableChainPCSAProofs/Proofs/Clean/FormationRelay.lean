@@ -8,10 +8,10 @@ public section
 A carried PC installed by a call is accepted as a whole object. F1 handles
 an accepted old PC before the proposal, including at an asleep receiver.
 Stage 1 keeps installed PCs. A carried maximum rank fixes a view target.
-OPEN: not every installed PC is carried by its call in the current model.
-Tests.FormationPcAliasCounterexample installs a real PC from a wire with the
-same root and a different declared target body. The call does not handle the
-real PC. These helpers do not assert FormationClaim or FormationSourceClaim. -/
+Root-form carriage includes a PC installed from a wire with the same slot
+and root and a different declared target body. The installing call handles
+the real PC. OPEN: derive installation origins and the early-view rank bound
+from the run. These helpers do not assert FormationClaim or FormationSourceClaim. -/
 
 open AvailableChain AvailableChain.SimplexFG
 namespace AvailableChain.PCSA

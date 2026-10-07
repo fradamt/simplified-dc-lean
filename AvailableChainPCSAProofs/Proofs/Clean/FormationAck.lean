@@ -10,7 +10,8 @@ F2 then gives a PC quorum; no additional ack emission hypothesis is needed.
 OPEN: produce the early N target and A2 for participating nodes from F1–F7.
 OPEN: derive the view bound with whole-PC relay, including ack-only nodes.
 The old missing-PC fixture fails current F1 and is a relay regression.
-The PC target alias fixture passes F1 and still blocks the all-early ack clause. -/
+Root-form carriage closes the PC target alias gap. Its fixture needs the
+root-form relay schedule. The all-early view bound remains to be derived. -/
 
 namespace AvailableChain.PCSA.Run
 
