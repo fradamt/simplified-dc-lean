@@ -773,3 +773,8 @@ end
 
 -- C6 LockWrites.
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_write_all_of_ack_results
+
+-- C6 ProcessLockRetention.
+#print axioms AvailableChain.PCSA.pcsa_reconcile_locks_genesis
+#print axioms AvailableChain.PCSA.pcsa_admit_block_keep_lock
+#print axioms AvailableChain.PCSA.pcsa_process_keep_lock

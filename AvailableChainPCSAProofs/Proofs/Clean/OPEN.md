@@ -1337,3 +1337,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Bounded ack/result compatibility prevents every PC veto of a result-prefix
 lock write.
 Validation and current claim status are recorded in log.md and state.md.
+
+### ProcessLockRetention
+
+Every delivery preserves a row if all resulting held and valid carried PCs
+are compatible with its target.
+Validation and current claim status are recorded in log.md and state.md.
