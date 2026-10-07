@@ -332,7 +332,8 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 
 - SYN L58: `Proofs/Assembly/Root` imports the `FGSAClaims` facade and the named
   lower Assembly modules `Foundations`, `Shared`, `Clean`, `Outage`, `Finality`,
-  `ResetArrival`, and `WeakContinuation`. The other layer rules still apply.
+  `ResetArrival`, `WeakContinuation`, `WeakContinuationGrowth`, and
+  `WeakContinuationGrowthSeed`. The other layer rules still apply.
 
 - WC plan r2.1, §8 Job 4; DC: SAME source witness before continuation.
   `Proofs/Assembly/WeakContinuation` takes the H-time producer from Root.
@@ -347,6 +348,27 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   closed `healing_hTimeClaim`. `fgsaClaims` has no additional hypothesis.
   Assembly/WeakContinuation imports WC Export and Shared/Claims; it imports
   no Assembly module.
+
+- FG-SA outage continuation under (V): `Proofs/Outage/ContinuationTiming`,
+  `ContinuationInduction`, `ContinuationReceipt`, `ContinuationFrame`,
+  `ContinuationGate`, and `ContinuationJoint` prove the continuation body.
+  `Proofs/OutageContinuation/Export` exports `outageContinuation_claim_of`.
+  `Proofs/Shared/Claims` uses `outageContinuation_of_body` to bridge the body
+  to `OutageContinuationClaim`. `Proofs/Assembly/Clean` supplies the interfaces
+  and proves `fgsa_outageContinuationClaim`. The exact lane import exception
+  in `scripts/check-layers.py` permits `OutageContinuation.Export` to import
+  exactly the six `Outage/Continuation*` modules listed above. No other lane
+  import allowance changes. `FGSAClaims` is unchanged; this is a companion claim.
+
+- WC corruption growth adds `fgsa_weakContinuationGrowthClaim` in
+  `Proofs/Assembly/Root`, without changing the frozen `FGSAClaims` field.
+  `Assembly/WeakContinuationGrowthSeed` selects one bounded source witness.
+  `WeakContinuationGrowth/Replay` transfers retained local traces through
+  the inclusive endpoint, with separate source and continuation cut indices.
+  `Assembly/WeakContinuationGrowth` joins the nonempty suffix branch with
+  weak participation and the empty suffix branch with prefix-only replay.
+  The claim keeps safety, both outputs, inclusion, and conditional growth
+  under the whole-run `FinalitySlashableBound` premise.
 
 How the pieces meet:
 - FG-SA store: `FGSA.State` keeps a root-mode `GridCO.State`, an FG store, and pools.

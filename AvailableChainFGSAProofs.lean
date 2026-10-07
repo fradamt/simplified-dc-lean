@@ -1,4 +1,10 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationFrame
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint
 public import AvailableChainFGSAProofs.Proofs.Shared.HealingFixture
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
@@ -289,4 +295,6 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Live
 public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
+public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth
+public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
