@@ -385,3 +385,23 @@ zero warnings; full check-build, zero unaccepted equation exports; layers,
 F-13/F-23, precheck, permitted axioms, prohibited scan, and diff check.
 The slot-zero regression keeps its counterexample and excludes unsigned
 PC children from the honest-signature obligation. No claim changed.
+
+### Proposal provenance
+
+`ProposalReceipt` proves the earlier indexed direct delivery and all
+three admission tests for each stored proposal. The delivery wire check
+gives raw HEAD labels and support membership in raw HEADs. Each carried
+raw HEAD has an earlier handler. Clocks preserve the proposal pool.
+These seven support facts are exported. C6 is still open.
+
+`CountTransport`: instantiate CL2 with the actual gate support and late
+denominator, and the actual voter raw/support lists. Prove source clean
+seats are not capped in the source denominator. Use forward exact body
+receipt and backward raw receipt. Leave only root compatibility and
+retained-path premises for the joint CI step to supply. Then add the
+proposer form and the CL1/CL4 support-seat instances.
+
+`GateCounts`: identify the actual clean score-seat sets. Relay their
+union into both same-label late denominators. A shared clean seat has
+one exact signed HEAD; common resolution gives one body. Apply the
+finite-set majority intersection to prove compatible actual gate results.

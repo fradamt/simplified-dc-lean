@@ -319,3 +319,12 @@ end
 #print axioms AvailableChain.PCSA.pcsa_clock_headDomain
 #print axioms AvailableChain.PCSA.Run.pcsa_headDomain_stateBefore_none
 #print axioms AvailableChain.PCSA.Run.pcsa_resolved_head_of_held_body
+
+-- C6 proposal-pool provenance and carried input validity.
+#print axioms AvailableChain.PCSA.pcsa_clock_proposals
+#print axioms AvailableChain.PCSA.pcsa_process_proposal_pred
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_receipt_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_pool_wellFormed
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_support_raw
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_raw_label
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_raw_handled
