@@ -48,7 +48,7 @@ def cachedStep (w : Array (Node p)) (e : FixtureEvent) : Array (Node p) :=
   Array.ofFn (V2.D.World.step E (runWith []) (world w) e)
 
 /-- Materialization preserves the actual V2 step; events do not affect that step. -/
-theorem cachedStep_exact (es : List FixtureEvent) (w : Array (Node p))
+theorem outageCex_cachedStep_exact (es : List FixtureEvent) (w : Array (Node p))
     (e : FixtureEvent) (x : Fin 4) :
     world (cachedStep w e) x = V2.D.World.step E (runWith es) (world w) e x := by
   have h (f : Fin 4 → Node p) : (Array.ofFn f).getD x.val node0 = f x := by
@@ -57,11 +57,11 @@ theorem cachedStep_exact (es : List FixtureEvent) (w : Array (Node p))
   exact h (V2.D.World.step E (runWith []) (world w) e)
 
 /-- Cached folds have exactly the event-fold semantics of the V2 engine. -/
-theorem cachedFold_exact (es : List FixtureEvent) (w : Array (Node p)) :
+theorem outageCex_cachedFold_exact (es : List FixtureEvent) (w : Array (Node p)) :
     world (es.foldl cachedStep w) = es.foldl (V2.D.World.step E (runWith es)) (world w) := by
   have stepEq (w : Array (Node p)) (e : FixtureEvent) :
       world (cachedStep w e) = V2.D.World.step E (runWith es) (world w) e :=
-    funext (cachedStep_exact es w e)
+    funext (outageCex_cachedStep_exact es w e)
   have foldEq (xs : List FixtureEvent) (w : Array (Node p)) :
       world (xs.foldl cachedStep w) = xs.foldl (V2.D.World.step E (runWith es)) (world w) := by
     induction xs generalizing w with
@@ -99,7 +99,7 @@ def generateDay (acc : List FixtureEvent × Array (Node p)) (t : Nat) :
 def rho : V2.D.Run (Fin 4) (fgsa p unitCodec) :=
   runWith ((List.range 31).foldl generateDay ([], Array.replicate 4 node0)).1
 
-theorem fresh_committees : V2.D.CStar (fgsaFamilies p unitCodec).fresh rho := by
+theorem outageCex_fresh_committees : V2.D.CStar (fgsaFamilies p unitCodec).fresh rho := by
   intro l hl
   cases l with
   | prop s => exact hl.elim
@@ -107,7 +107,7 @@ theorem fresh_committees : V2.D.CStar (fgsaFamilies p unitCodec).fresh rho := by
     | fg => exact hl.elim
     | head s => exact Function.bijective_id
 
-theorem linked_committee : V2.D.Linked (fgsaFamilies p unitCodec).linked rho := by
+theorem outageCex_linked_committee : V2.D.Linked (fgsaFamilies p unitCodec).linked rho := by
   refine ⟨4, Equiv.refl (Fin 4), ?_⟩
   intro l hl
   cases l with
@@ -292,10 +292,10 @@ def audit : IO Unit := do
 
 #eval audit
 #print axioms carriedObjects_exact
-#print axioms cachedStep_exact
-#print axioms cachedFold_exact
-#print axioms fresh_committees
-#print axioms linked_committee
+#print axioms outageCex_cachedStep_exact
+#print axioms outageCex_cachedFold_exact
+#print axioms outageCex_fresh_committees
+#print axioms outageCex_linked_committee
 
 end AvailableChain.FGSA.Run.Tests.OutageAfterWindowCounterexample
 end
