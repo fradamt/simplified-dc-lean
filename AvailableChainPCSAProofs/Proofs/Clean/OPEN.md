@@ -1147,3 +1147,10 @@ Validation and current claim status are recorded in log.md and state.md.
 C6 support: relay N counts and retain their target prefixes. The module
 uses the concrete readers and preserves the joint-induction premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### NNextHead
+
+C6 support: transfer N counts to next HEADs under compatible roots. The
+module uses the concrete readers and preserves the joint-induction
+premises.
+Validation and current claim status are recorded in log.md and state.md.

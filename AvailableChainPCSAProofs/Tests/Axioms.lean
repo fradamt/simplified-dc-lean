@@ -593,3 +593,7 @@ end
 -- C6 NReadTransport.
 #print axioms AvailableChain.PCSA.pcsa_N_head_witness
 #print axioms AvailableChain.PCSA.Run.pcsa_N_read_transport
+
+-- C6 NNextHead.
+#print axioms AvailableChain.PCSA.Run.pcsa_N_next_head_of_root
+#print axioms AvailableChain.PCSA.Run.pcsa_honestAck_next_head_of_root
