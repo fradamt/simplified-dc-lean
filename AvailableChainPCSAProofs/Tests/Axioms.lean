@@ -641,3 +641,22 @@ end
 #print axioms AvailableChain.PCSA.pcsa_bestPC_slot_ge
 #print axioms AvailableChain.PCSA.pcsa_bestPC_target_of_max_slot
 #print axioms AvailableChain.PCSA.pcsa_bestPC_isSome_of_mem
+
+-- C6 RelayFrames.
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_compatible_genesis
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_activeCompatible_genesis
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_normalizeS_frame
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_reconcile_frame
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_reconcile_genesis
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_admitRow_frame
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_fold_admitRow_frame
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_poolAckRaw_frame
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_fold_poolAckRaw_frame
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_collectPCs_proposals
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_gateFrom_frame
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_clockPre_frame
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_clock_frame
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_admitVote_blocks
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_foldVotes_blocks
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_admitProposal_blocks
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_poolAck_frame

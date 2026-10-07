@@ -1215,3 +1215,9 @@ The best PC has maximal source slot. A present slot maximum fixes the
 selected target when same-slot targets are unique; ack-list equality is
 not used.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RelayFrames
+
+Clean-local store field facts support new-key provenance and PC
+preservation.
+Validation and current claim status are recorded in log.md and state.md.
