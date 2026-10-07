@@ -39,7 +39,9 @@ remaining obligations for this concrete pair:
   five-validator reference run. Generic occurrence and full-state replay
   proofs preserve wire checks, dependencies, freshness, and both signature
   fields. The strict suffix still contains the tick at time 248.
-- `continuationRoots`: continuation Base₂.idealization.
+- `continuationRoots`: closed in w6 by `nvGrowth_continuation_roots`.
+  All retained stored bodies and delivered bodies occur in the reference
+  named scope. Ancestry and full named identity are preserved.
 - `continuationSync`: CleanGrowthContinuation₂.sync.
 - `pending`: closed in w6 by `nvGrowth_pending`. The generic duty-free-round
   lemmas prove that time 247 has no emissions or deliveries. Both original

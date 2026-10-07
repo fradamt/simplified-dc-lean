@@ -3744,6 +3744,28 @@ theorem nvRestrict_execution_restrict (kept : Finset V) (hsub : kept ⊆ rho.hon
 
 end Local
 
+section FGSA
+variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+
+/-- Retained full named scope is a subset of the original full named scope. -/
+theorem nvRestrict_roots_restrict (kept : Finset V) (hsub : kept ⊆ rho.honest)
+    (hr : NamedRootCollisionFree p c E rho) :
+    NamedRootCollisionFree p c E (restrictRun rho kept) where
+  root_injective := by
+    have scope (B : NamedProposal p.n)
+        (hB : NamedProposalInRun p c E (restrictRun rho kept) B) :
+        NamedProposalInRun p c E rho B := by
+      obtain ⟨C, hC, hBC⟩ := hB
+      refine ⟨C, ?_, hBC⟩
+      rcases hC with ⟨x, o, t, he, hp⟩ | ⟨x, hx, j, hC⟩
+      · exact Or.inl ⟨x, o, t, (List.mem_filter.mp he).1, hp⟩
+      · obtain ⟨i, hi⟩ := nvRestrict_state_restrict_any E rho kept x hx j
+        exact Or.inr ⟨x, hsub hx, i, by rwa [hi] at hC⟩
+    intro B C hB hC A D hA hD he
+    exact hr.root_injective B C (scope B hB) (scope C hC) A D hA hD he
+
+end FGSA
 end AvailableChain.FGSA.Run.Tests.GrowthRestriction
 end
 
@@ -4136,6 +4158,9 @@ structure ValidPrefixFacts (endpoint : Nat) (data : World × List Event) : Prop
   roots : NamedRootCollisionFree params unitCodec env (runData (endpoint : Time) data.2)
   sync : Gen.V2.Duty.PartialSynchronyBy env (runData (endpoint : Time) data.2)
     (fgsaDelay env.Δ 1)
+  nextRoots : NamedRootCollisionFree params unitCodec env (runData (endpoint + 1 : Nat)
+    (data.2 ++ (show List Event from
+      (GrowthGenerator.timeBatch (count := 5) (endpoint + 1 : Nat) data.1).2)))
   nextValid : V2.D.ExecutionValid env (runData (endpoint + 1 : Nat)
     (data.2 ++ (show List Event from
       (GrowthGenerator.timeBatch (count := 5) (endpoint + 1 : Nat) data.1).2)))
@@ -4161,7 +4186,10 @@ def certifiedValidPrefix (endpoint : Nat) :
       exact GrowthGenerator.nvGen_prefix_sync (count := 5) endpoint
     nextValid := by
       rw [nvGrowth_generator_env, nvGrowth_generator_run]
-      exact GrowthGenerator.nvGen_prefix_execution (count := 5) (endpoint + 1) }⟩
+      exact GrowthGenerator.nvGen_prefix_execution (count := 5) (endpoint + 1)
+    nextRoots := by
+      rw [nvGrowth_generator_env, nvGrowth_generator_run]
+      exact GrowthGenerator.nvGen_prefix_roots (count := 5) (endpoint + 1) }⟩
 
 /-- A checked opaque value keeps the long trace out of kernel conversion.
 The value is the real generator paired with its symbolic schedule proofs. -/
@@ -4346,6 +4374,14 @@ theorem nvGrowth_continuation_valid : V2.D.ExecutionValid env continuation := by
   exact GrowthRestriction.nvRestrict_execution_restrict env reference retainedSet
     (by intro v _; exact Finset.mem_univ v) nvGrowth_reference_valid
 
+theorem nvGrowth_reference_roots : NamedRootCollisionFree params unitCodec env reference :=
+  generatedPrefix.property.nextRoots
+
+theorem nvGrowth_continuation_roots : NamedRootCollisionFree params unitCodec env continuation := by
+  rw [nvGrowth_reference_restrict]
+  exact GrowthRestriction.nvRestrict_roots_restrict params unitCodec env reference retainedSet
+    (by intro v _; exact Finset.mem_univ v) nvGrowth_reference_roots
+
 theorem nvGrowth_continuation_schedule : V2.D.ScheduleWellFormed env continuation :=
   nvGrowth_continuation_valid.toScheduleWellFormed
 
@@ -4440,6 +4476,7 @@ theorem nvGrowth_complete_of_missing (h : MissingFields) :
 #print axioms nvGrowth_source_sync
 #print axioms nvGrowth_continuation_schedule
 #print axioms nvGrowth_continuation_valid
+#print axioms nvGrowth_continuation_roots
 #print axioms nvGrowth_pending
 #print axioms nvGrowth_partialWitness
 #print axioms nvGrowth_complete_of_missing
