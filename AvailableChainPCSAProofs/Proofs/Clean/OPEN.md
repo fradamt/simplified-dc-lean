@@ -1258,3 +1258,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Strict whole-PC relay, exact target-body receipt, and C3 assembly give the
 same slot and target at each later honest read.
 Validation and current claim status are recorded in log.md and state.md.
+
+### FrozenPCTransport
+
+Each frozen voter PC has a matching slot and full target in the proposer
+active PC list. The certificate ack list may differ.
+Validation and current claim status are recorded in log.md and state.md.

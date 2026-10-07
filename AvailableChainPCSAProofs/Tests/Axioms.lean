@@ -711,3 +711,7 @@ end
 -- C6 RelayReceipt.
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_from_pool
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_before_public_cut_relay
+
+-- C6 FrozenPCTransport.
+#print axioms AvailableChain.PCSA.Run.pcsa_clock_target_active
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_pc_in_proposer
