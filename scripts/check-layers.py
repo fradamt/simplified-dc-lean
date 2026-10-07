@@ -633,6 +633,9 @@ COMPOSE_MODULES = (COMPOSE + ".Statements.EventReads", COMPOSE + ".Statements.Co
 COMPOSE_SAFETY_MODULES = tuple(COMPOSE + ".Statements." + name for name in
                                ("SafetyReads", "SafetyStore", "SafetyClient", "SafetyClaims"))
 COMPOSE_MODULES += COMPOSE_SAFETY_MODULES
+# Lead ruling 2026-10-07 (s2-plan P1): the facade may import the P1 proof modules.
+COMPOSE_MODULES += tuple(COMPOSE + ".Proofs." + name for name in
+                         ("SafetyStore", "SafetyAccountable"))
 COMPOSE_SAFETY_IMPORTS = frozenset({
     (COMPOSE + ".Statements.SafetyReads", KITFG + ".ClientOnce"),
     (COMPOSE + ".Statements.SafetyReads", "AvailableChainSimplexFG.Evidence"),
@@ -640,6 +643,10 @@ COMPOSE_SAFETY_IMPORTS = frozenset({
     (COMPOSE + ".Statements.SafetyReads", SV + ".Duty.Slashing"),
     (COMPOSE + ".Statements.SafetyStore", KITFG + ".StoreSafetyDef"),
     (COMPOSE + ".Statements.SafetyClient", SP + ".Quorum"),
+})
+# Lead ruling 2026-10-07 (s2-plan P1): one exact Compose proof edge. No prefix.
+COMPOSE_PROOF_IMPORTS = frozenset({
+    (COMPOSE + ".Proofs.SafetyAccountable", KITFG + ".AccountableCore"),
 })
 COMPOSE_EDGES = frozenset(
     [(PROOFS + ".Proofs.Shared.FGCompose", dep) for dep in COMPOSE_MODULES[:3]]
@@ -683,7 +690,8 @@ def compose_p(ctx: Context, m: Module, dep: str) -> bool:
     if is_test(m.name):
         return not (foundation(dep) or own)
     return not (compose_base(dep) or own
-                or dep in {"AvailableChainKitV2.DutyStable", KITFG + ".Correspondence"})
+                or dep in {"AvailableChainKitV2.DutyStable", KITFG + ".Correspondence"}
+                or (m.name, dep) in COMPOSE_PROOF_IMPORTS)
 
 
 def upstream_compose(ctx: Context, m: Module, dep: str) -> bool:
