@@ -503,3 +503,8 @@ end
 -- C6 RecordEvents.
 #print axioms AvailableChain.PCSA.pcsa_clock_record_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_record_stateBefore_origin
+
+-- C6 LockEvents.
+#print axioms AvailableChain.PCSA.pcsa_gate_lock_origin
+#print axioms AvailableChain.PCSA.pcsa_clock_lock_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_stateBefore_origin

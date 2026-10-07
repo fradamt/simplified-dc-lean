@@ -977,3 +977,10 @@ These are support facts. C6 and its remaining joint record fields are open.
 C6 support: trace records to exact earlier gate results. The module uses
 the concrete readers and preserves the joint-induction premises.
 These are support facts. C6 and its remaining joint record fields are open.
+
+### LockEvents
+
+C6 support: trace lock targets and levels to earlier gate results. The
+module uses the concrete readers and preserves the joint-induction
+premises.
+These are support facts. C6 and its remaining joint record fields are open.
