@@ -44,7 +44,7 @@ receipt from target-body receipt.
 It derives carried presence from exact metadata and PC validity.
 Shared body relay closes the old frozen targets. Shared honest-proposal
 receipt gives the metadata; stored metadata gives the vote-read body.
-pcsa_formation_preFreeze_of_prem needs the premise, the retained path,
+pcsa_formation_preFreeze_of_prem needs the premise, five retained facts,
 early HEAD receipt and ack admission. The proposer lists
 and root-mode score transport are proved.
 The old release witness fails F4.
@@ -62,7 +62,8 @@ FormationCollection closes hPCCollect from the required early N counts.
 Its PC consumers need only hAckAdmit from C3. FormationHeads closes honest pool non-equivocation.
 FormationInputs now needs early resolved HEAD receipt, without an equivocation input.
 Raw-HEAD carriage and the current child follow from body/metadata receipt.
-Seven retained path/support inputs and late gate counts remain open.
+Body relay and metadata close support retention and resolution.
+Five retained path/support inputs and late gate counts remain open.
 The main Clean.Export module is owned by the other Clean writer. -/
 
 end

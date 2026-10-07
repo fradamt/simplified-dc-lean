@@ -73,6 +73,136 @@ theorem pcsa_formation_current_body_in_voter_tree (p : Params) (st : State p.n)
   rw [erasedList_def]
   exact List.mem_filter.mpr ⟨hBody, decide_eq_true ⟨B, hFiltered, he⟩⟩
 
+/-- A root resolved in a sub-store resolves to the same body in a root-unique store. -/
+theorem pcsa_formation_findByRoot_mono {src dst : List Block} {r : BlockId} {B : Block}
+    (hsub : src ⊆ dst) (hu : ∀ C ∈ dst, ∀ D ∈ dst, C.root = D.root → C = D)
+    (h : Block.findByRoot? src r = some B) : Block.findByRoot? dst r = some B := by
+  have hm := Block.findByRoot?_mem h
+  have hr := Block.findByRoot?_root h
+  exact (Block.findByRoot?_spec dst r B).mpr
+    ⟨hsub hm, hr, fun C hC hCr => hu C hC B (hsub hm) (hCr.trans hr.symm)⟩
+
+/-- With the cumulative domain unset, active resolution is a root lookup. -/
+theorem pcsa_formation_actView_resolved {n : Nat} (st : State n)
+    (hd : st.base.headDomain = none) (o : GridCO.Wire n .root) (B : Block)
+    (h : GridCO.resolvedHead? (actView st) o = some B) :
+    ∃ r, GridCO.headTarget? o = some r ∧ Block.findByRoot? st.base.blocks r = some B := by
+  have htree : GridCO.resolutionTree (actView st) = st.base.blocks := by
+    change (some (GridCO.resolutionTree st.base)).getD (actView st).blocks = _
+    rw [Option.getD_some, GridCO.resolutionTree, hd, Option.getD_none]
+  rw [GridCO.resolvedHead?] at h
+  cases ht : GridCO.headTarget? o with
+  | none => rw [ht] at h; cases h
+  | some r =>
+    rw [ht] at h
+    change Option.bind (GridCO.resolveTarget .root (GridCO.resolutionTree (actView st)) r)
+      (fun B => if B ∈ (actView st).blocks then some B else none) = some B at h
+    rw [htree, GridCO.resolveTarget] at h
+    dsimp only at h
+    cases hf : Block.findByRoot? st.base.blocks r with
+    | none => rw [hf] at h; cases h
+    | some C =>
+      rw [hf] at h
+      change (if C ∈ (actView st).blocks then some C else none) = some B at h
+      split at h
+      · cases h
+        exact ⟨r, rfl, hf⟩
+      · cases h
+
+/-- With the cumulative domain unset, base resolution is a root lookup. -/
+theorem pcsa_formation_base_resolved {n : Nat} (st : State n)
+    (hd : st.base.headDomain = none) (o : GridCO.Wire n .root) (r : BlockId) (B : Block)
+    (ht : GridCO.headTarget? o = some r) (hf : Block.findByRoot? st.base.blocks r = some B) :
+    GridCO.resolvedHead? st.base o = some B := by
+  rw [GridCO.resolvedHead?, ht]
+  change Option.bind (GridCO.resolveTarget .root (GridCO.resolutionTree st.base) r)
+    (fun B => if B ∈ st.base.blocks then some B else none) = some B
+  rw [GridCO.resolutionTree, hd, Option.getD_none, GridCO.resolveTarget]
+  dsimp only
+  rw [hf]
+  change (if B ∈ st.base.blocks then some B else none) = some B
+  split
+  · rfl
+  · exact absurd (Block.findByRoot?_mem hf) ‹_›
+
+private theorem formation_support_resolved {n : Nat} (st : State n) (s : Slot)
+    (hd : st.base.headDomain = none) (o : GridCO.Wire n .root)
+    (ho : o ∈ proposerSupport st s) :
+    ∃ r H, GridCO.headTarget? o = some r ∧ Block.findByRoot? st.base.blocks r = some H ∧
+      H.slot ≤ s - 1 := by
+  have hf := (List.mem_filter.mp ho).2
+  cases hres : GridCO.resolvedHead? (actView st) o with
+  | none => rw [hres] at hf; cases hf
+  | some H =>
+    rw [hres] at hf
+    obtain ⟨r, ht, hr⟩ := pcsa_formation_actView_resolved st hd o H hres
+    exact ⟨r, H, ht, hr, of_decide_eq_true hf⟩
+
+/-- Proposer support resolves to the same bodies in a larger root-unique store. -/
+theorem pcsa_formation_resolution_of_blocks {n : Nat} (src dst : State n) (s : Slot)
+    (hd : src.base.headDomain = none) (hsub : src.base.blocks ⊆ dst.base.blocks)
+    (hu : ∀ C ∈ dst.base.blocks, ∀ D ∈ dst.base.blocks, C.root = D.root → C = D) :
+    ∀ o ∈ proposerSupport src s, ∀ B,
+      Gen.AC.Root.voteSupports src.base.blocks B o =
+        Gen.AC.Root.voteSupports dst.base.blocks B o := by
+  intro o ho B
+  obtain ⟨r, H, ht, hf, _⟩ := formation_support_resolved src s hd o ho
+  have hf' := pcsa_formation_findByRoot_mono hsub hu hf
+  have e1 : Gen.AC.Root.resolvedTarget? src.base.blocks o = some H := by
+    delta Gen.AC.Root.resolvedTarget?
+    rw [ht]
+    exact hf
+  have e2 : Gen.AC.Root.resolvedTarget? dst.base.blocks o = some H := by
+    delta Gen.AC.Root.resolvedTarget?
+    rw [ht]
+    exact hf'
+  rw [Gen.AC.Root.voteSupports_def, Gen.AC.Root.voteSupports_def, e1, e2]
+  dsimp only
+  rw [decide_eq_true (Block.findByRoot?_mem hf), decide_eq_true (Block.findByRoot?_mem hf')]
+
+/-- Stored metadata carries proposer support into the voter support merge. -/
+theorem pcsa_formation_support_keep_of_metadata (src dst : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (hslot : N.slot = s)
+    (hSupport : N.support = (proposerSupport src s).filterMap liftHead?)
+    (hMetadata : (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ dst.proposals)
+    (hdSrc : src.base.headDomain = none) (hdDst : dst.base.headDomain = none)
+    (hsub : src.base.blocks ⊆ dst.base.blocks)
+    (hu : ∀ C ∈ dst.base.blocks, ∀ D ∈ dst.base.blocks, C.root = D.root → C = D) :
+    proposerSupport src s ⊆ headSupport p dst s := by
+  have hPair : (N.raw, N.support) ∈ proposalsAt dst s := by
+    delta proposalsAt
+    exact List.mem_filterMap.mpr ⟨_, hMetadata, by
+      change (if N.slot = s then some (N.raw, N.support) else none) = _
+      rw [ite_eq_left hslot]⟩
+  intro o ho
+  have hl : GridCO.headLabel? o == some (s - 1) := by
+    have hv := (List.mem_filter.mp ho).1
+    change o ∈ src.base.votes.filter _ at hv
+    exact (List.mem_filter.mp hv).2
+  obtain ⟨r, H, ht, hf, hH⟩ := formation_support_resolved src s hdSrc o ho
+  have hres := pcsa_formation_base_resolved dst hdDst o r H ht
+    (pcsa_formation_findByRoot_mono hsub hu hf)
+  have hx : ∃ a, liftHead? o = some a ∧ baseVote a = o := by
+    obtain ⟨auth, msg⟩ := o
+    cases auth with
+    | none => cases msg <;> cases hl
+    | proposer r => cases msg <;> cases hl
+    | seat r i =>
+      cases msg with
+      | head b => exact ⟨⟨.seat (.head r) i, b⟩, rfl, rfl⟩
+      | proposal B raw sup => cases hl
+  obtain ⟨a, ha, he⟩ := hx
+  have hc : o ∈ N.support.map baseVote := by
+    rw [hSupport]
+    exact List.mem_map.mpr ⟨a, List.mem_filterMap.mpr ⟨o, ho, ha⟩, he⟩
+  delta headSupport
+  apply List.mem_eraseDups.mpr
+  apply List.mem_append.mpr
+  right
+  refine List.mem_filter.mpr ⟨List.mem_flatMap.mpr ⟨_, hPair, hc⟩, ?_⟩
+  rw [hl, hres]
+  exact decide_eq_true hH
+
 end AvailableChain.PCSA
 
 namespace AvailableChain.PCSA.Run
@@ -464,6 +594,84 @@ theorem pcsa_formation_preFreeze_of_run (E : Generic.Env V)
   exact pcsa_formation_preFreeze E rho s N ΔF h
     (pcsa_formation_inputs_of_run E rho s N ΔF h hRun)
 
+omit [Fintype V] in
+/-- Every body of an honest duty read is in the run's named root scope. -/
+theorem pcsa_formation_read_root_unique (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hBase : Base₂ p c E rho) (y : V)
+    (hy : y ∈ rho.honest) (t : Time) (nd : Node p) (hr : pcsa_postClock E rho y t = some nd) :
+    ∀ C ∈ nd.st.base.blocks, ∀ D ∈ nd.st.base.blocks, C.root = D.root → C = D := by
+  rw [pcsa_postClock_def] at hr
+  obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hr
+  rw [pcsa_preTick_def] at hp
+  obtain ⟨k, _, he⟩ := Option.map_eq_some_iff.mp hp
+  subst pre
+  subst nd
+  have hscope := pcsa_clock_body_scope p (RootBlockInRun p c E rho)
+    (V2.D.Run.stateBefore E rho k y).st t (pcsa_body_scope E rho k y hy)
+  intro C hC D hD he
+  exact pcsa_scoped_root_eq E rho hBase.idealization C D (hscope C hC) (hscope D hD) he
+
+/-- F1 carries every body of the proposer read to each honest vote read. -/
+theorem pcsa_formation_proposer_blocks_at_vote (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (src dst : Node p) (y : V)
+    (hy : y ∈ rho.honest)
+    (hs : pcsa_postClock E rho
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src)
+    (hd : pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst) :
+    src.st.base.blocks ⊆ dst.st.base.blocks := by
+  have hS := h.base.valid.toScheduleWellFormed
+  have hΔ : (0 : Int) < p.Δ := p.deltaPos
+  have hs1 : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by
+    have hi : ((s - 1 : Nat) : Int) + 1 = (s : Int) := by
+      exact_mod_cast Nat.sub_add_cancel h.slotPos
+    omega
+  have hdl : max (SA.proposalTime p.toParams s) (SA.freezeTime p.toParams (s - 1)) + E.Δ =
+      SA.voteTime p.toParams s := by
+    rw [max_eq_left, h.base.delta]
+    · rfl
+    · change 4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ ≤ 4 * p.Δ * (s : Int)
+      rw [hs1]
+      linarith
+  intro B hB
+  rw [pcsa_postClock_def] at hs
+  obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hs
+  rw [pcsa_preTick_def] at hp
+  obtain ⟨k, hidx, he⟩ := Option.map_eq_some_iff.mp hp
+  subst pre
+  subst src
+  have htick := V2.D.Run.tickIdx?_spec hidx
+  have hB0 := pcsa_clock_body_scope p
+    (· ∈ (V2.D.Run.stateBefore E rho k
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)).st.base.blocks)
+    _ _ (fun b hb => hb) B hB
+  have hR := pcsa_indexed_body_within_on E rho h.base h.frame h.delivery
+    (fun o r M hdec => pcsa_block_isNonRow o r M hdec) (formation_dl_mono E s)
+    (formation_dl_lt E s) _ y h.proposal.1 hy k (SA.proposalTime p.toParams s)
+    (fun k' hk' => formation_times_before E rho hS k _ htick _ le_rfl k'
+      (Nat.lt_succ_of_lt hk'))
+    (by
+      rw [hdl]
+      change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
+      linarith)
+    B hB0
+  rw [hdl] at hR
+  rw [pcsa_postClock_def] at hd
+  obtain ⟨pre, hp', hc'⟩ := Option.map_eq_some_iff.mp hd
+  rw [pcsa_preTick_def] at hp'
+  obtain ⟨k', hidx', he'⟩ := Option.map_eq_some_iff.mp hp'
+  subst pre
+  subst dst
+  have htick' := V2.D.Run.tickIdx?_spec hidx'
+  have hle : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ k' := by
+    by_contra hn
+    exact (lt_irrefl (SA.voteTime p.toParams s)) ((Gen.V2.Duty.index_lt_idxBefore_iff
+      hS htick' _).mp (by omega))
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hR
+  exact pcsa_body_clock_keep p _ _ (pcsa_reachable_stateBefore E rho k' y)
+    (pcsa_body_stateBefore_mono E rho h.base.noRestart y hle hR)
+
 /-- Shared honest-proposal receipt gives the proposal metadata at the vote read. -/
 theorem pcsa_formation_vote_metadata (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
@@ -492,11 +700,79 @@ theorem pcsa_formation_early_presence (E : Generic.Env V)
       change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
       linarith)
 
+omit [Fintype V] in
+/-- A post-clock duty read is a reachable store. -/
+theorem pcsa_formation_read_reachable (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (y : V) (t : Time) (nd : Node p)
+    (hr : pcsa_postClock E rho y t = some nd) : Reachable p nd.st := by
+  rw [pcsa_postClock_def] at hr
+  obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hr
+  rw [pcsa_preTick_def] at hp
+  obtain ⟨k, _, he⟩ := Option.map_eq_some_iff.mp hp
+  subst pre
+  subst nd
+  exact Reachable.tick _ (pcsa_reachable_stateBefore E rho k y)
+
+/-- The retained inputs that remain open at the actual proposer and voter reads. -/
+structure FormationRetainedHeadOpen (p : Params) (src dst : Node p)
+    (s : Slot) (N : NamedProposal p.n) : Prop where
+  hRawBack : ∀ o ∈ headVotes p dst.st s, ∀ i, GridCO.headSeat? o = some i →
+    o ∈ proposerVotes src.st s ∨ GridCO.equivocates (proposerVotes src.st s) i = true
+  hSupportBack : ∀ o ∈ headSupport p dst.st s, ∀ i, GridCO.headSeat? o = some i →
+    o ∈ proposerSupport src.st s ∨ GridCO.equivocates (proposerVotes src.st s) i = true
+  hKeep : Gen.Pure.SuffixPersists (walkBase p src.st (proposerPC p src.st)) N.erase.parent
+    (erasedList src.st (fullTree p src.st))
+    (erasedList dst.st (KitFG.storeFrameView (FGSA.heightView p) dst.st.fg
+      (voterBlocks p dst.st s)))
+    (GridCO.goldfishScore src.st.base.blocks (proposerVotes src.st s) (proposerSupport src.st s))
+    (eligible p src.st (proposerVotes src.st s) (proposerSupport src.st s))
+    (eligible p dst.st (headVotes p dst.st s) (headSupport p dst.st s))
+  hReflect : Gen.Pure.SuffixReflects (walkBase p src.st (proposerPC p src.st)) N.erase.parent
+    (erasedList src.st (fullTree p src.st))
+    (erasedList dst.st (KitFG.storeFrameView (FGSA.heightView p) dst.st.fg
+      (voterBlocks p dst.st s)))
+    (eligible p src.st (proposerVotes src.st s) (proposerSupport src.st s))
+    (eligible p dst.st (headVotes p dst.st s) (headSupport p dst.st s))
+  hUnique : ∀ B ∈ erasedList dst.st
+    (KitFG.storeFrameView (FGSA.heightView p) dst.st.fg (voterBlocks p dst.st s)),
+    B.parent? = some N.erase.parent →
+    eligible p dst.st (headVotes p dst.st s) (headSupport p dst.st s) B = true →
+    B = N.erase
+
+/-- Body relay and stored metadata close support retention and resolution. -/
+theorem pcsa_formation_retained_rest_of_open (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (src dst : Node p) (y : V)
+    (hs : pcsa_postClock E rho
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src)
+    (hy : y ∈ rho.honest)
+    (hd : pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst)
+    (hOpen : FormationRetainedHeadOpen p src dst s N) :
+    FormationRetainedHeadRest p src dst s N := by
+  have hSrc := pcsa_formation_proposer_read_inputs E rho s N ΔF h src hs
+  have hslot : N.slot = s := by
+    have he : N.erase.slot = N.slot := by cases N <;> rfl
+    exact he.symm.trans hSrc.1
+  have hdSrc := pcsa_reachable_headDomain_none p src.st
+    (pcsa_formation_read_reachable E rho _ _ src hs)
+  have hdDst := pcsa_reachable_headDomain_none p dst.st
+    (pcsa_formation_read_reachable E rho y _ dst hd)
+  have hsub := pcsa_formation_proposer_blocks_at_vote E rho s N ΔF h src dst y hy hs hd
+  have hu := pcsa_formation_read_root_unique E rho h.base y hy _ dst hd
+  exact ⟨hOpen.hRawBack,
+    pcsa_formation_support_keep_of_metadata src.st dst.st s N hslot hSrc.2.2.2.2
+      (pcsa_formation_vote_metadata E rho s N ΔF h y hy dst hd) hdSrc hdDst hsub hu,
+    hOpen.hSupportBack,
+    pcsa_formation_resolution_of_blocks src.st dst.st s hdSrc hsub hu,
+    hOpen.hKeep, hOpen.hReflect, hOpen.hUnique⟩
+
 /-- The pre-freeze premise supplies every field of `FormationPreFreezeInputs`
-from three named producers. Shared body relay closes the old frozen targets;
-Shared honest-proposal receipt gives the metadata at `v_s` and `e_s`. The
-binders are the retained HEAD path, early HEAD receipt and the honest ack
-handler pool. -/
+from three named producers. Shared body relay closes the old frozen targets
+and, with stored metadata, support retention and resolution. Shared
+honest-proposal receipt gives the metadata at `v_s` and `e_s`. The binders
+are five retained HEAD facts, early HEAD receipt and the honest ack handler
+pool. -/
 theorem pcsa_formation_preFreeze_inputs (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
     (h : FormationPreFreezePrem p c E rho s N ΔF)
@@ -506,7 +782,7 @@ theorem pcsa_formation_preFreeze_inputs (E : Generic.Env V)
         (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
       y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
       pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
-      FormationRetainedHeadRest p src dst s N)
+      FormationRetainedHeadOpen p src dst s N)
     (hEarlyHeads : ∀ y ∈ rho.honest, ∀ nd,
       pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd →
       ∀ i : Fin p.n, rho.seatOf (.base (.head s)) i ∈ awakeHonestLabel p c E rho s →
@@ -520,7 +796,9 @@ theorem pcsa_formation_preFreeze_inputs (E : Generic.Env V)
         (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool) :
     FormationPreFreezeInputs E rho s N :=
   pcsa_formation_inputs_of_run E rho s N ΔF h
-    ⟨hRetained, hEarlyHeads, pcsa_formation_frozen_body E rho s N ΔF h,
+    ⟨fun src dst y hs hy haw hd => pcsa_formation_retained_rest_of_open E rho s N ΔF h
+        src dst y hs hy hd (hRetained src dst y hs hy haw hd),
+      hEarlyHeads, pcsa_formation_frozen_body E rho s N ΔF h,
       pcsa_formation_vote_presence_of_metadata E rho s N
         (pcsa_formation_vote_metadata E rho s N ΔF h),
       pcsa_formation_early_presence E rho s N ΔF h, hAckAdmit⟩
@@ -535,7 +813,7 @@ theorem pcsa_formation_preFreeze_of_prem (E : Generic.Env V)
         (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
       y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
       pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
-      FormationRetainedHeadRest p src dst s N)
+      FormationRetainedHeadOpen p src dst s N)
     (hEarlyHeads : ∀ y ∈ rho.honest, ∀ nd,
       pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd →
       ∀ i : Fin p.n, rho.seatOf (.base (.head s)) i ∈ awakeHonestLabel p c E rho s →
