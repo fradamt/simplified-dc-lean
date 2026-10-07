@@ -1141,3 +1141,9 @@ Validation and current claim status are recorded in log.md and state.md.
 C6 support: derive strict N-target score dominance with caps. The module
 uses the concrete readers and preserves the joint-induction premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### NReadTransport
+
+C6 support: relay N counts and retain their target prefixes. The module
+uses the concrete readers and preserves the joint-induction premises.
+Validation and current claim status are recorded in log.md and state.md.

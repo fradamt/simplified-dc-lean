@@ -589,3 +589,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_N_score_dominance
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_honest_not_capped
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped
+
+-- C6 NReadTransport.
+#print axioms AvailableChain.PCSA.pcsa_N_head_witness
+#print axioms AvailableChain.PCSA.Run.pcsa_N_read_transport
