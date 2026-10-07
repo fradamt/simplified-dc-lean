@@ -1,5 +1,5 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
+public import AvailableChainPCSAProofs.Proofs.Clean.AckTargetBody
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadPersistence
 
 public section

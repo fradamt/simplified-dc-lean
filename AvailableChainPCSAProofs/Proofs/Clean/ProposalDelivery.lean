@@ -71,7 +71,7 @@ theorem pcsa_honest_proposal_before_vote (E : Generic.Env V)
     change _ ∈ (Function.update (V2.D.Run.stateBefore E rho j) y _ y).st.proposals
     rw [Function.update_self]
     change _ ∈ (admitBlock p (V2.D.Run.stateBefore E rho j y).st s N).proposals
-    rw [pcsa_admitBlock_proposals p _ s N Q hn hQ hAcc]
+    rw [pcsa_clean_admitBlock_proposals p _ s N Q hn hQ hAcc]
     exact List.mem_append_right _ (List.mem_singleton_self _)
   have hbMem : N.erase ∈ (V2.D.Run.stateBefore E rho (j + 1) y).st.base.blocks := by
     rw [V2.D.Run.stateBefore_succ E rho hjo]

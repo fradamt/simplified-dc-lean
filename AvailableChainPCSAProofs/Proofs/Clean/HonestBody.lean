@@ -1,7 +1,7 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyPersistence
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyAdmission
+public import AvailableChainPCSAProofs.Proofs.Clean.AckTargetBody
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Clean.TargetCollect
 
 public section

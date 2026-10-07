@@ -36,9 +36,9 @@ theorem pcsa_honestAck_body_scope (E : Generic.Env V)
   rw [pcsa_preTick_def] at hb
   obtain ⟨k, _, hk⟩ := Option.map_eq_some_iff.mp hb
   subst before
-  have hs := pcsa_clean_clock_body_scope p (RootBlockInRun p c E rho)
+  have hs := pcsa_clock_body_scope p (RootBlockInRun p c E rho)
     (V2.D.Run.stateBefore E rho k x).st (SA.earlyTime p.toParams s)
-    (pcsa_clean_body_scope E rho k x ha.1)
+    (pcsa_body_scope E rho k x ha.1)
   have hst : (clock p (V2.D.Run.stateBefore E rho k x).st
       (SA.earlyTime p.toParams s)) = nd.st := congrArg Node.st he
   exact hs B (hst.symm ▸ hmem)

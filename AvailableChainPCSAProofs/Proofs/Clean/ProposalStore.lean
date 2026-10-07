@@ -45,7 +45,7 @@ private theorem proposal_store_raws (st : State n) (acks : List (AckWire n)) :
   · intro acc hh a _
     exact (proposal_store_raw acc a).trans hh
 /-- A passed proposal admission appends exactly its full signed wire. -/
-theorem pcsa_admitBlock_proposals (p : Params) (st : State p.n) (s : Slot)
+theorem pcsa_clean_admitBlock_proposals (p : Params) (st : State p.n) (s : Slot)
     (N : NamedProposal p.n) (P : SimplexFG.FGBlock (Fin p.n))
     (hn : namedParentHeld st N = true) (hp : parentFG st N.erase = some P)
     (ha : blockAccepted p st s N P = true) :
@@ -74,53 +74,6 @@ theorem pcsa_admitBlock_proposals (p : Params) (st : State p.n) (s : Slot)
   split
   · rfl
   · exact proposal_store_reconcile st3
-/-- Every delivery preserves the exact proposal pool. -/
-theorem pcsa_process_proposals_mono (p : Params) (st : State p.n) (o : Wire p.n) :
-    st.proposals ⊆ (process p st o).proposals := by
-  delta process
-  cases o.decode with
-  | none => exact List.Subset.refl _
-  | some msg => cases msg with
-    | vote s i r => exact List.Subset.refl _
-    | row i body => rw [proposal_store_row]
-    | ack s i r =>
-      change st.proposals ⊆ (collectPCs (poolAck p st _)).proposals
-      rw [proposal_store_collect]
-      delta poolAck
-      cases AckWire.decode? (⟨o.auth, r⟩ : AckWire p.n) with
-      | none => exact List.Subset.refl _
-      | some v =>
-        rcases v with ⟨_, _, _⟩
-        dsimp only
-        split
-        · exact List.Subset.refl _
-        · split <;> exact List.Subset.refl _
-    | pc C =>
-      dsimp only
-      delta admitPC
-      split
-      · rw [proposal_store_collect, proposal_store_raws]
-      · exact List.Subset.refl _
-    | block s N =>
-      dsimp only
-      by_cases hn : namedParentHeld st N = true
-      · cases hp : parentFG st N.erase with
-        | none =>
-          delta admitBlock
-          rw [hn, hp]
-          exact List.Subset.refl _
-        | some P =>
-          by_cases ha : blockAccepted p st s N P = true
-          · rw [pcsa_admitBlock_proposals p st s N P hn hp ha]
-            exact fun _ hm => List.mem_append_left _ hm
-          · delta admitBlock
-            rw [hn, hp]
-            change st.proposals ⊆ (if blockAccepted p st s N P then _ else st).proposals
-            rw [ite_eq_right ha]
-      · have hf : namedParentHeld st N = false := Bool.eq_false_iff.mpr hn
-        delta admitBlock
-        rw [hf]
-        exact List.Subset.refl _
 end AvailableChain.PCSA
 
 namespace AvailableChain.PCSA.Run

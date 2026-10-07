@@ -15,10 +15,10 @@ public import AvailableChainPCSAProofs.Proofs.Clean.WalkInputs
 public import AvailableChainPCSAProofs.Proofs.Clean.InputTransport
 public import AvailableChainPCSAProofs.Proofs.Clean.ResolutionDomain
 public import AvailableChainPCSAProofs.Proofs.Clean.HonestBody
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyPersistence
-public import AvailableChainPCSAProofs.Proofs.Clean.TreeReceipt
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyAdmission
+public import AvailableChainPCSAProofs.Proofs.Clean.AckTargetBody
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
+public import AvailableChainPCSAProofs.Proofs.Shared.TreeReceipt
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Clean.TargetCollect
 public import AvailableChainPCSAProofs.Proofs.Clean.StepVote
 public import AvailableChainPCSAProofs.Proofs.Clean.StepAck

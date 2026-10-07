@@ -415,17 +415,11 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_saturated_stateBefore
 #print axioms AvailableChain.PCSA.Run.pcsa_collectPCs_after_freeze
 
-#print axioms AvailableChain.PCSA.pcsa_clock_now
-#print axioms AvailableChain.PCSA.pcsa_process_now
 
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_ack_admitted
 
-#print axioms AvailableChain.PCSA.Run.pcsa_clock_read
 #print axioms AvailableChain.PCSA.pcsa_process_pool_pred
 #print axioms AvailableChain.PCSA.Run.pcsa_pool_honest_emits
-#print axioms AvailableChain.PCSA.pcsa_clean_clock_body_scope
-#print axioms AvailableChain.PCSA.Run.pcsa_clean_body_scope
-#print axioms AvailableChain.PCSA.Run.pcsa_clean_scoped_root_eq
 #print axioms AvailableChain.PCSA.Run.pcsa_seat_roots
 #print axioms AvailableChain.PCSA.pcsa_poolAck_one_root
 #print axioms AvailableChain.PCSA.Run.pcsa_handled_ack_pool
@@ -436,8 +430,6 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_ack_admit
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_freeze_keep
 
-#print axioms AvailableChain.PCSA.pcsa_body_not_excluded
-#print axioms AvailableChain.PCSA.pcsa_body_accepted
 #print axioms AvailableChain.PCSA.Run.pcsa_lookup_held_target
 #print axioms AvailableChain.PCSA.Run.pcsa_collect_held_target
 #print axioms AvailableChain.PCSA.Run.pcsa_honestHead_extends_root
@@ -449,17 +441,6 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_emitted_slot
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_collect_of_held_body
 
-#print axioms AvailableChain.PCSA.pcsa_tree_correspondence
-#print axioms AvailableChain.PCSA.pcsa_fullTree_of_frame
-#print axioms AvailableChain.PCSA.pcsa_body_clock_fg
-#print axioms AvailableChain.PCSA.pcsa_body_process_fg_mono
-#print axioms AvailableChain.PCSA.Run.pcsa_body_stateBefore_mono
-#print axioms AvailableChain.PCSA.pcsa_body_insert_data
-#print axioms AvailableChain.PCSA.pcsa_admitBlock_body_mem
-#print axioms AvailableChain.PCSA.pcsa_process_new_body
-#print axioms AvailableChain.PCSA.Run.pcsa_body_receipt_origin
-#print axioms AvailableChain.PCSA.Run.pcsa_body_handles_direct
-#print axioms AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_target_body_before_freeze
 #print axioms AvailableChain.PCSA.Run.pcsa_pcDissemination
 
@@ -522,7 +503,6 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_resolved_head_of_held_body
 
 -- C6 proposal-pool provenance and carried input validity.
-#print axioms AvailableChain.PCSA.pcsa_clock_proposals
 #print axioms AvailableChain.PCSA.pcsa_process_proposal_pred
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_receipt_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_pool_wellFormed
@@ -641,7 +621,6 @@ end
 #print axioms AvailableChain.PCSA.CleanPCPool.clock_certSafe
 
 -- C6 PCScope.
-#print axioms AvailableChain.PCSA.pcsa_clock_pcs
 #print axioms AvailableChain.PCSA.pcsa_collect_pc_target_origin
 #print axioms AvailableChain.PCSA.pcsa_process_pc_target_origin
 #print axioms AvailableChain.PCSA.pcsa_pc_targets_held
@@ -747,8 +726,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_decoded_eq_emitted
 
 -- C6 ProposalStore.
-#print axioms AvailableChain.PCSA.pcsa_admitBlock_proposals
-#print axioms AvailableChain.PCSA.pcsa_process_proposals_mono
+#print axioms AvailableChain.PCSA.pcsa_clean_admitBlock_proposals
 #print axioms AvailableChain.PCSA.Run.pcsa_proposals_stateBefore_mono
 
 -- C6 ProposalDelivery.

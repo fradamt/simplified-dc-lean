@@ -40,11 +40,11 @@ theorem pcsa_honest_pool_head_source (E : Generic.Env V)
   have hBHroot := pcsa_honest_pool_head_eq_emitted E rho h.valid a x s i B.root H.root _ hi hpool
     hEmitH
   have hBm := (List.mem_filter.mp (FGSA.resolvedHead_mem _ _ hr)).1
-  have hBs := pcsa_clean_clock_body_scope p (RootBlockInRun p c E rho) _ v
-    (pcsa_clean_body_scope E rho a x hx) B hBm
+  have hBs := pcsa_clock_body_scope p (RootBlockInRun p c E rho) _ v
+    (pcsa_body_scope E rho a x hx) B hBm
   obtain ⟨j, _, hHm, _⟩ := pcsa_honest_head_body_before_vote E rho h hF _ s H hH
-  have hHs := pcsa_clean_body_scope E rho j _ hi H hHm
-  have hBH := pcsa_clean_scoped_root_eq E rho h.idealization B H hBs hHs hBHroot
+  have hHs := pcsa_body_scope E rho j _ hi H hHm
+  have hBH := pcsa_scoped_root_eq E rho h.idealization B H hBs hHs hBHroot
   rw [hBH]
   exact hH
 /-- An early resolved HEAD of an honest seat names that holder's actual HEAD decision. -/
