@@ -338,3 +338,11 @@ end
 #print axioms AvailableChain.PCSA.pcsa_frozen_support_data
 #print axioms AvailableChain.PCSA.pcsa_headSupport_subset_headVotes
 #print axioms AvailableChain.PCSA.Run.pcsa_headSupport_subset_at_read
+
+-- C6 concrete backward receipt and cap transport.
+#print axioms AvailableChain.PCSA.Run.pcsa_count_head_shape
+#print axioms AvailableChain.PCSA.Run.pcsa_cap_before_public_cut_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_input_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_input_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_handled_input_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_tick_input_relay_late

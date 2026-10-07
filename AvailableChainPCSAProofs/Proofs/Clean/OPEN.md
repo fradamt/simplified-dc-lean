@@ -415,3 +415,27 @@ voter tree at a later read. Use first stamps, with genesis handled at 0.
 `ResultPaths`: a genuine gate result has an early resolved support
 witness above it. Relay that body before the freeze and retain its
 prefixes. This discharges the path premises of both actual CL2 walks.
+
+### Backward input receipt interfaces
+
+`InputTransport` relays both witnesses of a capped source seat. It
+instantiates the public cutoff for frozen inputs and proposer inputs.
+The proposer form uses the actual proposer and gate tick indices.
+The handler form relays an exact HEAD or a source cap. Six facts are
+exported. The concrete carried voter arm is the next module.
+
+`VoteTransport`: extract the actual indexed read of an honest HEAD.
+Use the predecessor CI root-compatibility field, actual voter counts,
+and retained result paths to prove that every next-label honest HEAD
+extends each predecessor result. Keep this as a step from the previous
+record; do not assume the invariant at the label being proved.
+
+`HeadEvidence`: expose the existing handles-to-carries helper from
+AckAdmit. Use the Generic single-duty signature theorem and HEAD stamp
+origin to prove honest pooled HEAD uniqueness and the absence of honest
+seat caps. Recover honest pool emissions and their duty reads.
+`HonestBatch`: use those facts, strict broadcast, and body receipt to
+put each awake honest HEAD into every early support list. Bound late
+participants by awake honest HEADs plus faulty seats. Use the clean
+participation bound to prove the gate batch and result extension.
+These modules support C6; pending-label claim exports remain deferred.
