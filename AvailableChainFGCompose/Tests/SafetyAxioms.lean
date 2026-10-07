@@ -3,6 +3,8 @@ public import AvailableChainFGCompose.Statements.SafetyReads -- shake: keep (#pr
 public import AvailableChainFGCompose.Statements.SafetyStore -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.SafetyClient -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.SafetyClaims -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.SafetyStore -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.SafetyAccountable -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.SafetyClient -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.SafetyCount -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.SafetyMonotone -- shake: keep (#print axioms)
@@ -90,9 +92,26 @@ public import AvailableChainFGCompose.Proofs.SafetyMonotone -- shake: keep (#pri
 #print axioms AvailableChain.FGCompose.safety_F_mono
 #print axioms AvailableChain.FGCompose.safety_client_trace
 #print axioms AvailableChain.FGCompose.safety_emitted_noSlash
+#print axioms AvailableChain.FGCompose.safety_event_agreement
 #print axioms AvailableChain.FGCompose.safety_fault_count_bound
 #print axioms AvailableChain.FGCompose.safety_finalized_monotone
+#print axioms AvailableChain.FGCompose.safety_good_readAt
+#print axioms AvailableChain.FGCompose.safety_good_stateBefore
+#print axioms AvailableChain.FGCompose.safety_invariant_readAt
+#print axioms AvailableChain.FGCompose.safety_invariant_stateBefore
 #print axioms AvailableChain.FGCompose.safety_linked_seats
 #print axioms AvailableChain.FGCompose.safety_readAt_prefix
+#print axioms AvailableChain.FGCompose.safety_readAt_replay
+#print axioms AvailableChain.FGCompose.safety_read_delivery
+#print axioms AvailableChain.FGCompose.safety_read_runBlock
+#print axioms AvailableChain.FGCompose.safety_read_scope
 #print axioms AvailableChain.FGCompose.safety_record_fold
+#print axioms AvailableChain.FGCompose.safety_runBlock_accountable
+#print axioms AvailableChain.FGCompose.safety_run_accountable
+#print axioms AvailableChain.FGCompose.safety_run_agreement
 #print axioms AvailableChain.FGCompose.safety_slashable_faulty_count
+#print axioms AvailableChain.FGCompose.safety_store_accountable
+#print axioms AvailableChain.FGCompose.safety_store_agreement
+#print axioms AvailableChain.FGCompose.safety_stored_delivery
+#print axioms AvailableChain.FGCompose.safety_stored_runBlock
+#print axioms AvailableChain.FGCompose.safety_stored_scope

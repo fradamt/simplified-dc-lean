@@ -146,7 +146,9 @@ ASSEMBLY_ROOT_IMPORTS = frozenset({CLAIMS + ".FGSAClaims",
                                   PROOFS + ".Proofs.Assembly.Outage",
                                   PROOFS + ".Proofs.Assembly.Finality",
                                   PROOFS + ".Proofs.Assembly.ResetArrival",
-                                  PROOFS + ".Proofs.Assembly.WeakContinuation"})
+                                  PROOFS + ".Proofs.Assembly.WeakContinuation",
+                                  PROOFS + ".Proofs.Assembly.WeakContinuationGrowth",
+                                  PROOFS + ".Proofs.Assembly.WeakContinuationGrowthSeed"})
 NAME_PART = r"(?:«[^»]+»|[^\W\d][\w'!?]*)"
 NAME = re.compile(NAME_PART + r"(?:\." + NAME_PART + r")*")
 Finding = tuple[str, str, str]
@@ -532,6 +534,12 @@ def lane(ctx: Context, m: Module, dep: str) -> bool:
     parts, target = proof_path(m.name), proof_path(dep)
     if not parts or parts[0] in {"Shared", "Assembly", "Statements", "Model", "Tests"}:
         return False
+    # Import-policy lead ruling 2026-10-07: OutageContinuation Export route.
+    # Only the six new Outage continuation modules may cross this lane boundary.
+    if (m.name == PROOFS + ".Proofs.OutageContinuation.Export" and dep in {
+            PROOFS + ".Proofs.Outage.Continuation" + suffix for suffix in
+            ("Timing", "Induction", "Receipt", "Frame", "Gate", "Joint")}):
+        return False
     if target and target[0] not in {"Statements", "Model"}:
         return target[0] not in {parts[0], "Shared"} or is_export(dep)
     own_claim = is_export(m.name) and claim_path(dep) == (parts[0],)
@@ -633,6 +641,9 @@ COMPOSE_MODULES = (COMPOSE + ".Statements.EventReads", COMPOSE + ".Statements.Co
 COMPOSE_SAFETY_MODULES = tuple(COMPOSE + ".Statements." + name for name in
                                ("SafetyReads", "SafetyStore", "SafetyClient", "SafetyClaims"))
 COMPOSE_MODULES += COMPOSE_SAFETY_MODULES
+# Lead ruling 2026-10-07 (s2-plan P1): the facade may import the P1 proof modules.
+COMPOSE_MODULES += tuple(COMPOSE + ".Proofs." + name for name in
+                         ("SafetyStore", "SafetyAccountable"))
 COMPOSE_SAFETY_IMPORTS = frozenset({
     (COMPOSE + ".Statements.SafetyReads", KITFG + ".ClientOnce"),
     (COMPOSE + ".Statements.SafetyReads", "AvailableChainSimplexFG.Evidence"),
@@ -641,10 +652,13 @@ COMPOSE_SAFETY_IMPORTS = frozenset({
     (COMPOSE + ".Statements.SafetyStore", KITFG + ".StoreSafetyDef"),
     (COMPOSE + ".Statements.SafetyClient", SP + ".Quorum"),
 })
+# Lead ruling 2026-10-07 (P2, S3a): the facade may import the P2 proof modules.
 COMPOSE_MODULES += tuple(COMPOSE + ".Proofs." + name for name in
                          ("SafetyClient", "SafetyCount", "SafetyMonotone"))
-# Lead ruling 2026-10-07 (P2, S3a): exact Compose Proofs pairs. No prefix.
+# Lead ruling 2026-10-07 (s2-plan P1): one exact Compose proof edge. No prefix.
+# Lead ruling 2026-10-07 (P2, S3a): two exact pairs for Proofs.SafetyClient. No prefix.
 COMPOSE_PROOF_IMPORTS = frozenset({
+    (COMPOSE + ".Proofs.SafetyAccountable", KITFG + ".AccountableCore"),
     (COMPOSE + ".Proofs.SafetyClient", KITFG + ".ClientOnceSafety"),
     (COMPOSE + ".Proofs.SafetyClient", PV + ".Duty.Fields"),
 })

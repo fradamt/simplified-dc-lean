@@ -87,8 +87,8 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
             (fallback / entry.name).symlink_to(entry, target_is_directory=entry.is_dir())
     # Exercise the introduced safety paths, without fallback to real oleans.
     for name in ('Statements.SafetyReads', 'Statements.SafetyStore', 'Statements.SafetyClient',
-                 'Statements.SafetyClaims', 'Proofs.SafetyClient', 'Proofs.SafetyCount',
-                 'Proofs.SafetyMonotone'):
+                 'Statements.SafetyClaims', 'Proofs.SafetyStore', 'Proofs.SafetyAccountable',
+                 'Proofs.SafetyClient', 'Proofs.SafetyCount', 'Proofs.SafetyMonotone'):
         tree, env = fixture('safety-' + name)
         env['LEAN_PATH'] = os.pathsep.join([str(fallback), *[part for part in
             env['LEAN_PATH'].split(os.pathsep) if part != str(REPO / '.lake/build/lib/lean')]])
@@ -274,14 +274,14 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
             2, 'AvailableChain.FGCompose.cutPred')
 
     inventory.write_text((REPO / 'scripts/fg-compose-expected.txt').read_text())
-    for name in ('Statements.SafetyReads', 'Statements.SafetyStore', 'Statements.SafetyClient',
-                 'Statements.SafetyClaims', 'Proofs.SafetyClient', 'Proofs.SafetyCount',
-                 'Proofs.SafetyMonotone'):
-        source = tree / ('AvailableChainFGCompose/' + name.replace('.', '/') + '.lean')
+    for name in ('Statements/SafetyReads', 'Statements/SafetyStore', 'Statements/SafetyClient',
+                 'Statements/SafetyClaims', 'Proofs/SafetyStore', 'Proofs/SafetyAccountable',
+                 'Proofs/SafetyClient', 'Proofs/SafetyCount', 'Proofs/SafetyMonotone'):
+        source = tree / ('AvailableChainFGCompose/' + name + '.lean')
         if not source.exists():
             continue
         saved = source.read_bytes()
-        source.rename(tree / (name + '.saved'))
+        source.rename(tree / (name.replace('/', '-') + '.saved'))
         require('safety ' + name + ' missing source',
                 run(['bash', 'scripts/check-fg-compose.sh'], tree, env),
                 2, 'COMPOSE INVENTORY MISSING:')

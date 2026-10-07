@@ -220,12 +220,27 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
                 else:
                     found = run(root, 1)
                     assert ("COMPOSE-S", neighbor, target) in found, found
+        # Negative controls: a neighbour of an exact proof edge must still fail.
+        for index, (importer, dep) in enumerate(sorted(api["COMPOSE_PROOF_IMPORTS"])):
+            for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
+                root = temp / f"safety-proof-boundary-{index}-{neighbor}-{target}"
+                setup(root)
+                module(root, neighbor, target)
+                found = run(root, 1)
+                assert ("COMPOSE-P", neighbor, target) in found, found
+        for index, (importer, dep) in enumerate([
+            (CO + ".Proofs.SafetyStore", K + ".AccountableCore"),
+            (CO + ".Proofs.SafetyAccountable", K + ".ClientOnce"),
+        ]):
+            root = temp / f"safety-proof-other-{index}"
+            setup(root)
+            module(root, importer, dep)
+            found = run(root, 1)
+            assert ("COMPOSE-P", importer, dep) in found, found
         print("PASS Safety exact external edges and neighbors")
-        # Lead ruling 2026-10-07 (P2, S3a): only the exact Proofs pairs pass.
+        # Lead ruling 2026-10-07 (P2, S3a): other importers and other targets fail.
         proof_negatives = []
         for importer, dep in sorted(api["COMPOSE_PROOF_IMPORTS"]):
-            proof_negatives += [(importer + ".Extra", dep, "COMPOSE-P"),
-                                (importer, dep + ".Extra", "COMPOSE-P")]
             proof_negatives += [(CO + ".Proofs." + other, dep, "COMPOSE-P")
                                 for other in ("SafetyCount", "SafetyMonotone", "SourceHead",
                                               "Control")]

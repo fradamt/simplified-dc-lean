@@ -1,5 +1,5 @@
 module
-public import AvailableChainPCSAProofs.Proofs.PC.Certificates
+public import AvailableChainPCSAProofs.Proofs.Shared.Certificates
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAClaims.Statements.Regimes
 public import AvailableChainGeneric.Proofs.Pure.PCQuorum
