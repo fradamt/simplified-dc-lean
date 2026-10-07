@@ -313,5 +313,26 @@ theorem outageV_armed_to_expiry {fast : Bool} {T b₀ b₁ : Time} {B : Block} (
 
 end Armed
 
+/-- OUTPUT-DIRECT §10. DC: INTENTIONAL; inclusive reads use all events
+at t, including horizon deliveries. This is the read adapter only; its
+local S and F invariant must be proved by the joint continuation induction. -/
+theorem outageV_inclusive_outputs {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) {B : Block} {b₀ : Time}
+    (hlocal : ∀ i, timeIdx rho b₀ ≤ i → i ≤ rho.events.length →
+      ∀ y ∈ rho.honest, Block.Preceq B (S_at p c E rho i y) ∧
+        Block.Compatible B (F_at p c E rho i y))
+    {y : V} {t : Time} (hy : y ∈ rho.honest) (ht : b₀ ≤ t) :
+    Block.Preceq B (S_at p c E rho (timeIdx rho t) y) ∧
+      Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable y t) ∧
+      Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).confirmed y t) ∧
+      Block.Compatible B (F_at p c E rho (timeIdx rho t) y) := by
+  have hlen : timeIdx rho t ≤ rho.events.length := List.length_filter_le _ _
+  obtain ⟨hS, hF⟩ := hlocal _ (arming_timeIdx_mono rho ht) hlen y hy
+  have hstable := arming_stable_read hs y t
+  have hconfirmed : V2.D.outputAt E rho (fgsaInterface p c).confirmed y t =
+      S_at p c E rho (timeIdx rho t) y := hstable
+  exact ⟨hS, hstable.symm ▸ hS, hconfirmed.symm ▸ hS, hF⟩
+
 end AvailableChain.FGSA.Run
 end

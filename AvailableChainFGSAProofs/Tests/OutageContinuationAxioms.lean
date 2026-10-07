@@ -123,5 +123,135 @@ theorem audit_outageV_active_path_of_coverage :
   @AvailableChain.FGSA.Run.outageV_active_path_of_coverage
 #print axioms audit_outageV_active_path_of_coverage
 
+theorem audit_outageV_head_covers_of_witnesses :
+    type_of% (@AvailableChain.FGSA.Run.outageV_head_covers_of_witnesses) :=
+  @AvailableChain.FGSA.Run.outageV_head_covers_of_witnesses
+#print axioms audit_outageV_head_covers_of_witnesses
+
+theorem audit_outageV_liveRoot_compatible :
+    type_of% (@AvailableChain.FGSA.Run.outageV_liveRoot_compatible) :=
+  @AvailableChain.FGSA.Run.outageV_liveRoot_compatible
+#print axioms audit_outageV_liveRoot_compatible
+
+theorem audit_outageV_headInTree_compatible :
+    type_of% (@AvailableChain.FGSA.Run.outageV_headInTree_compatible) :=
+  @AvailableChain.FGSA.Run.outageV_headInTree_compatible
+#print axioms audit_outageV_headInTree_compatible
+
+theorem audit_outageV_head_of_filter :
+    type_of% (@AvailableChain.FGSA.Run.outageV_head_of_filter) :=
+  @AvailableChain.FGSA.Run.outageV_head_of_filter
+#print axioms audit_outageV_head_of_filter
+
+theorem audit_outageV_contested_head :
+    type_of% (@AvailableChain.FGSA.Run.outageV_contested_head) :=
+  @AvailableChain.FGSA.Run.outageV_contested_head
+#print axioms audit_outageV_contested_head
+
+theorem audit_outageV_marker_head :
+    type_of% (@AvailableChain.FGSA.Run.outageV_marker_head) :=
+  @AvailableChain.FGSA.Run.outageV_marker_head
+#print axioms audit_outageV_marker_head
+
+theorem audit_outageV_head_from_rows :
+    type_of% (@AvailableChain.FGSA.Run.outageV_head_from_rows) :=
+  @AvailableChain.FGSA.Run.outageV_head_from_rows
+#print axioms audit_outageV_head_from_rows
+
+theorem audit_outageV_head_covers_from_batch :
+    type_of% (@AvailableChain.FGSA.Run.outageV_head_covers_from_batch) :=
+  @AvailableChain.FGSA.Run.outageV_head_covers_from_batch
+#print axioms audit_outageV_head_covers_from_batch
+
+theorem audit_outageV_exact_carrier_receipt :
+    type_of% (@AvailableChain.FGSA.Run.outageV_exact_carrier_receipt) :=
+  @AvailableChain.FGSA.Run.outageV_exact_carrier_receipt
+#print axioms audit_outageV_exact_carrier_receipt
+
+theorem audit_outageV_regression_receipt :
+    type_of% (@AvailableChain.FGSA.Run.outageV_regression_receipt) :=
+  @AvailableChain.FGSA.Run.outageV_regression_receipt
+#print axioms audit_outageV_regression_receipt
+
+theorem audit_outageV_short_horizon :
+    type_of% (@AvailableChain.FGSA.Run.outageV_short_horizon) :=
+  @AvailableChain.FGSA.Run.outageV_short_horizon
+#print axioms audit_outageV_short_horizon
+
+theorem audit_outageV_gate_through_relay :
+    type_of% (@AvailableChain.FGSA.Run.outageV_gate_through_relay) :=
+  @AvailableChain.FGSA.Run.outageV_gate_through_relay
+#print axioms audit_outageV_gate_through_relay
+
+theorem audit_outageV_source_gate_cutoff :
+    type_of% (@AvailableChain.FGSA.Run.outageV_source_gate_cutoff) :=
+  @AvailableChain.FGSA.Run.outageV_source_gate_cutoff
+#print axioms audit_outageV_source_gate_cutoff
+
+theorem audit_outageV_block_stamp_lt :
+    type_of% (@AvailableChain.FGSA.Run.outageV_block_stamp_lt) :=
+  @AvailableChain.FGSA.Run.outageV_block_stamp_lt
+#print axioms audit_outageV_block_stamp_lt
+
+theorem audit_outageV_frozen_of_receipt :
+    type_of% (@AvailableChain.FGSA.Run.outageV_frozen_of_receipt) :=
+  @AvailableChain.FGSA.Run.outageV_frozen_of_receipt
+#print axioms audit_outageV_frozen_of_receipt
+
+theorem audit_outageV_source_held :
+    type_of% (@AvailableChain.FGSA.Run.outageV_source_held) :=
+  @AvailableChain.FGSA.Run.outageV_source_held
+#print axioms audit_outageV_source_held
+
+theorem audit_outageV_crossing_source :
+    type_of% (@AvailableChain.FGSA.Run.outageV_crossing_source) :=
+  @AvailableChain.FGSA.Run.outageV_crossing_source
+#print axioms audit_outageV_crossing_source
+
+theorem audit_outageV_compatible_head_receipts :
+    type_of% (@AvailableChain.FGSA.Run.outageV_compatible_head_receipts) :=
+  @AvailableChain.FGSA.Run.outageV_compatible_head_receipts
+#print axioms audit_outageV_compatible_head_receipts
+
+theorem audit_outageV_gate_of_receipts :
+    type_of% (@AvailableChain.FGSA.Run.outageV_gate_of_receipts) :=
+  @AvailableChain.FGSA.Run.outageV_gate_of_receipts
+#print axioms audit_outageV_gate_of_receipts
+
+theorem audit_outageV_gateStep_covers :
+    type_of% (@AvailableChain.FGSA.Run.outageV_gateStep_covers) :=
+  @AvailableChain.FGSA.Run.outageV_gateStep_covers
+#print axioms audit_outageV_gateStep_covers
+
+theorem audit_outageV_fastSet_compatible :
+    type_of% (@AvailableChain.FGSA.Run.outageV_fastSet_compatible) :=
+  @AvailableChain.FGSA.Run.outageV_fastSet_compatible
+#print axioms audit_outageV_fastSet_compatible
+
+theorem audit_outageV_live_locks :
+    type_of% (@AvailableChain.FGSA.Run.outageV_live_locks) :=
+  @AvailableChain.FGSA.Run.outageV_live_locks
+#print axioms audit_outageV_live_locks
+
+theorem audit_outageV_source_compatible :
+    type_of% (@AvailableChain.FGSA.Run.outageV_source_compatible) :=
+  @AvailableChain.FGSA.Run.outageV_source_compatible
+#print axioms audit_outageV_source_compatible
+
+theorem audit_outageV_result_extends :
+    type_of% (@AvailableChain.FGSA.Run.outageV_result_extends) :=
+  @AvailableChain.FGSA.Run.outageV_result_extends
+#print axioms audit_outageV_result_extends
+
+theorem audit_outageV_restored_gate :
+    type_of% (@AvailableChain.FGSA.Run.outageV_restored_gate) :=
+  @AvailableChain.FGSA.Run.outageV_restored_gate
+#print axioms audit_outageV_restored_gate
+
+theorem audit_outageV_inclusive_outputs :
+    type_of% (@AvailableChain.FGSA.Run.outageV_inclusive_outputs) :=
+  @AvailableChain.FGSA.Run.outageV_inclusive_outputs
+#print axioms audit_outageV_inclusive_outputs
+
 end AvailableChain.FGSA.Run.Tests.OutageContinuationAxioms
 end
