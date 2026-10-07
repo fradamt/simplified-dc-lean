@@ -401,6 +401,12 @@ def AvailableChain.FGSA.Run.AvailableGrowthGSTClaim 6072041819bb7c8b
 def AvailableChain.FGSA.Run.CleanGrowthClaim ad27d9e2270c1a56
 ```
 
+### `AvailableChainFGSAClaims.Claims.OutageContinuation`
+
+```text
+def AvailableChain.FGSA.Run.OutageContinuationClaim 4486260beeae6bd1
+```
+
 ### `AvailableChainFGSAClaims.Claims.Shared`
 
 ```text
@@ -1003,6 +1009,25 @@ def AvailableChain.FGSA.Run.LiveDCConcl_W ce5564d01ca16ad3
 theorem AvailableChain.FGSA.Run.LiveDCConcl_W_def cc3dbb918c460c62
 def AvailableChain.FGSA.Run.LiveDCFromWindowsStatement be831f6ababf21c5
 theorem AvailableChain.FGSA.Run.LiveDCFromWindowsStatement_def 185bd932cb7c9d84
+```
+
+### `AvailableChainFGSAClaims.Statements.OutageContinuation`
+
+```text
+def AvailableChain.FGSA.Run.OutageLengthV df9f8cdb53ebe336
+theorem AvailableChain.FGSA.Run.OutageLengthV_def a5143e0190facb37
+structure AvailableChain.FGSA.Run.OutageContinuationPrem f325410a0e482ea2
+ctor AvailableChain.FGSA.Run.OutageContinuationPrem.mk 362c4888743b42db
+field AvailableChain.FGSA.Run.OutageContinuationPrem.pre 6a88f3ea3a8b686b
+field AvailableChain.FGSA.Run.OutageContinuationPrem.sleepy fa900c719e641893
+field AvailableChain.FGSA.Run.OutageContinuationPrem.order eec10cb9f3e2f476
+field AvailableChain.FGSA.Run.OutageContinuationPrem.lag 8752be0fcb6f16f1
+field AvailableChain.FGSA.Run.OutageContinuationPrem.lengthV 990ecc883b6b0b89
+field AvailableChain.FGSA.Run.OutageContinuationPrem.fastPart 3c9bbb1603278916
+field AvailableChain.FGSA.Run.OutageContinuationPrem.sync 329dcddd442f7a43
+field AvailableChain.FGSA.Run.OutageContinuationPrem.gst 028325cea697bed2
+field AvailableChain.FGSA.Run.OutageContinuationPrem.partAfter b944594b942273f9
+def AvailableChain.FGSA.Run.OutageContinuationConcl 64658e60df285c44
 ```
 
 ### `AvailableChainFGSAClaims.Statements.OutputReads`
