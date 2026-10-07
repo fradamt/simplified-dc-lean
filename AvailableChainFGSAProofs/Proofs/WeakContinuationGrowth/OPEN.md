@@ -59,18 +59,8 @@ The public theorem is not yet installed in Assembly.Root.
 1. Public integration awaits the lead's import decision below. No
    mathematical fact remains missing for the companion claim. The checked
    theorem and exact unapplied patch are in PUBLIC_JOIN.md and PUBLIC_JOIN.patch.
-2. Full bounded-source non-vacuity above one-third remains unproved.
-   The short five-validator candidate has source faults 0 and continuation
-   faults 2, with 5 < 3*2 and 2 < 3. Delta is 2; horizons are 0 and 1.
-   For DeltaF 2 and gap 8, B_HF is 494, as checked in scratch. A bounded
-   strong source therefore needs 248 public tick rounds and their deliveries.
-   Exact missing facts: a complete 494-endpoint five-validator execution,
-   Base₂, authentication including carried objects, linked/CStar data,
-   collision freedom, synchrony, proposer recurrence, pending source duties,
-   and FinalitySlashableBound for the retained continuation.
-   The existing full four-validator witness does not prove these facts
-   for five validators. This is more than an endpoint or count adjustment.
-   Keep the cheap candidate. No unverified long trace replaces these proofs.
+2. Full bounded-source non-vacuity above one-third remains open. See the
+   exact partial witness and remaining field types below.
 
 ## Pending lead decision: two named root imports
 
@@ -121,3 +111,41 @@ has been no reply and no rule change. The patch passes `git apply --check
    H-time witness with the nonempty and empty branches at the public root.
 4. Check the full five-validator source requirement against build time.
    Keep the short candidate and list the full missing regime facts.
+
+
+## Remaining non-vacuity fields (w5)
+
+`Tests/WeakContinuationGrowthNonVacuity.lean` adds a closed partial pair.
+It adapts the W1 duty-engine generator to five validators. The source has
+248 tick rounds and horizon 247 = GST + B_HF, with Delta = DeltaF = 1
+and gap 4. The continuation retains validators 0, 1, and 2. It has
+horizon 248 and actual suffix ticks at time 248. Faults rise from 0 to 2.
+The test proves 5 < 3*2 and 2*2 < 5.
+
+Closed proofs cover both schedules, the nonzero bounded endpoint,
+retained local agreement, the full seat map, linked and fresh committees,
+no restarts, proposer recurrence, source participation, the source fault
+cap, the liveness bound, and continuation participation.
+
+The full conjunction of StrongRecoverySearchPrefix₂ and
+CleanGrowthContinuation₂ remains open. `MissingFields` gives the exact
+remaining obligations for this concrete pair:
+
+- `sourceValid`: source Base₂.valid. ScheduleWellFormed is proved;
+  DeliveryWellFormed (wire, deps, fresh) and UnforgeableSignatures
+  (unforgeable and carried) remain open.
+- `sourceRoots`: source Base₂.idealization, NamedRootCollisionFree.
+- `sourceSync`: source Recovery₂.sync, family PartialSynchronyBy.
+- `continuationValid`: continuation Base₂.valid. ScheduleWellFormed is
+  proved; the same delivery and signature fields remain open.
+- `continuationRoots`: continuation Base₂.idealization.
+- `continuationSync`: CleanGrowthContinuation₂.sync.
+- `pending`: CleanGrowthContinuation₂.pending, both sourceBroadcast and
+  sourceRelay with the original source guard and deadlines.
+- `accountable`: CleanGrowthContinuation₂.accountable,
+  FinalitySlashableBound on the whole continuation.
+
+`nvGrowth_complete_of_missing` constructs both full records from exactly these
+fields. It does not prove that MissingFields is inhabited. Do not report
+this test as a full non-vacuity proof. The earlier horizon-0 executable
+candidate remains available as a short engine check.
