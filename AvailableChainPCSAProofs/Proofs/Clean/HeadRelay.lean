@@ -41,7 +41,7 @@ theorem pcsa_head_accepting_slot (E : Generic.Env V)
       (⟨.seat (.base (.head s)) i, .head r⟩ : Obj p) t) :
     s ≤ (V2.D.Run.stateBefore E rho k x).st.slot p := by
   obtain ⟨parent, he, hh⟩ := ha.1
-  rcases hh with hdir | hh
+  rcases hh with hdir | hh | hh
   · subst parent
     have hnot : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∉
         (V2.D.Run.stateBefore E rho k x).st.base.votes := by
@@ -115,6 +115,9 @@ theorem pcsa_head_accepting_slot (E : Generic.Env V)
         · obtain ⟨a, _, heq⟩ := List.mem_map.mp hh
           have hp := congrArg (fun o : Obj p => o.payload) heq
           cases hp
+  · obtain ⟨_, C, heq, _, _⟩ := hh
+    have hp := congrArg (fun o : Obj p => o.payload) heq
+    cases hp
 /-- No accepted HEAD, including a faulty one, can arrive before its slot start. -/
 theorem pcsa_head_acceptance_after_slot_start (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)

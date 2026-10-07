@@ -106,7 +106,8 @@ theorem valid : V2.D.ExecutionValid env run := by
       · exact ⟨2, le_refl _, (emitted _ _).mpr (Or.inr ⟨rfl, rfl⟩)⟩
     · rintro v o t ⟨i, h⟩ a ha
       rcases zeroSlot_delivery h with ⟨rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl⟩ <;>
-        exact ha.elim
+        rcases ha with ha | ⟨C, rfl, _⟩
+      all_goals first | exact ha.elim | (intro u _ hh; cases hh)
 theorem bodies (i : Nat) : (V2.D.Run.stateBefore env run i 0).st.namedBodies = [.genesis] := by
   by_cases hi : i < 6
   · interval_cases i <;> decide +kernel

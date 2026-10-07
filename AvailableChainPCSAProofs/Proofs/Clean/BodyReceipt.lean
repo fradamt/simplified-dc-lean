@@ -378,7 +378,7 @@ theorem pcsa_body_handles_direct (st : State p.n) (parent : Obj p)
     (s : Slot) (N : NamedProposal p.n)
     (h : handlesS p st parent (ofWire p ⟨.proposer s, .proposal N⟩)) :
     parent = ofWire p ⟨.proposer s, .proposal N⟩ := by
-  rcases h with h | h
+  rcases h with h | h | h
   · exact h
   · cases hd : (toWire p parent).decode with
     | none => rw [hd] at h; exact h.elim
@@ -398,6 +398,9 @@ theorem pcsa_body_handles_direct (st : State p.n) (parent : Obj p)
         all_goals obtain ⟨a, _, he⟩ := List.mem_map.mp h
         all_goals have hp := congrArg (fun o : Obj p => o.payload) he
         all_goals cases hp
+  · obtain ⟨_, C, he, _, _⟩ := h
+    have hp := congrArg (fun o : Obj p => o.payload) he
+    cases hp
 
 private theorem pcsa_c3_accept_rows (st : State p.n) (s : Slot) (N : NamedProposal p.n)
     (P : SimplexFG.FGBlock (Fin p.n)) (h : blockAccepted p st s N P = true) :

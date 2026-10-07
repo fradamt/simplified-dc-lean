@@ -339,7 +339,7 @@ theorem pcsa_process_head_stamp_origin (st : State p.n) (parent : Obj p)
             · rcases origin_fold N.raw _ _ stamp hbase with hm | ⟨ht, hf, ho⟩
               · exact Or.inl hm
               · obtain ⟨wire, hw, he⟩ := List.mem_map.mp ho
-                refine Or.inr ⟨ht, hf, Or.inr ?_⟩
+                refine Or.inr ⟨ht, hf, Or.inr (Or.inl ?_)⟩
                 rw [hd]
                 refine ⟨⟨hn, P, hp, hacc⟩, Or.inl ?_⟩
                 exact List.mem_map.mpr ⟨wire, hw, origin_carried_head wire s i r he⟩

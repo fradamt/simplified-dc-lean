@@ -107,7 +107,7 @@ theorem pcsa_handled_ack_pool (st : State p.n) (o : Obj p) (s : Slot) (i : Fin p
     (⟨.seat (.ack s) i, r⟩ : AckWire p.n) ∈ (process p st (toWire p o)).ackPool := by
   change handlesS p st o (ackObj p s i r) at hh
   delta handlesS at hh
-  rcases hh with he | hh
+  rcases hh with he | hh | hh
   · subst o
     exact pcsa_poolAck_one_root p st s i r hs hr hroots
   · cases hd : (toWire p o).decode with
@@ -173,6 +173,9 @@ theorem pcsa_handled_ack_pool (st : State p.n) (o : Obj p) (s : Slot) (i : Fin p
                 all_goals rw [hrw, (collectPCs_frame _).2.2.1]
                 all_goals exact pcsa_raw_mem _ N.pcAcks _ ha ⟨s, i, r, rfl⟩
               · exact (‹¬ blockAccepted p st t N P = true› hb).elim
+  · obtain ⟨_, C, he, _, _⟩ := hh
+    have hp := congrArg (fun o : Obj p => o.payload) he
+    cases hp
 
 end AvailableChain.PCSA.Run
 
@@ -192,7 +195,7 @@ private theorem pcsa_decoded_payloads_ack (o : Obj p) :
 private theorem pcsa_handles_carried (st : State p.n) (o child : Obj p)
     (hh : handlesS p st o child) : child = o ∨ carriesS p o child := by
   delta handlesS at hh
-  rcases hh with hh | hh
+  rcases hh with hh | hh | hh
   · exact Or.inl hh.symm
   · right
     cases hd : (toWire p o).decode with
@@ -204,16 +207,19 @@ private theorem pcsa_handles_carried (st : State p.n) (o child : Obj p)
       | pc C =>
         rw [hd] at hh
         delta carriesS
+        left
         rw [(pcsa_decoded_payloads_ack o).2 C hd]
         exact hh
       | block s N =>
         rw [hd] at hh
         delta carriesS
+        left
         rw [(pcsa_decoded_payloads_ack o).1 s N hd]
         rcases hh.2 with hh | hh | hh
         · exact Or.inl hh
         · exact Or.inr (Or.inr (Or.inl hh))
         · exact Or.inr (Or.inr (Or.inr hh))
+  · exact Or.inr hh.1
 end AvailableChain.PCSA.Run
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}

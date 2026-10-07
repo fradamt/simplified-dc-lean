@@ -162,7 +162,7 @@ theorem pcsa_handled_head_mem_or_cap (st : State p.n) (parent : Obj p)
     (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
         (process p st (toWire p parent)).base.votes ∨
       GridCO.equivocates (GridCO.votesAt (process p st (toWire p parent)).base s) i = true := by
-  rcases hh with he | hh
+  rcases hh with he | hh | hh
   · subst parent
     exact head_grid p.toParams.engine st.base s i r hlo hhi
   · cases hd : (toWire p parent).decode with
@@ -197,6 +197,10 @@ theorem pcsa_handled_head_mem_or_cap (st : State p.n) (parent : Obj p)
         · obtain ⟨a, _, he⟩ := List.mem_map.mp hh
           have he' := congrArg (fun o : Obj p => o.payload) he
           cases he'
+  · obtain ⟨_, C, he, _, _⟩ := hh
+    have hp := congrArg (fun o : Obj p => o.payload) he
+    cases hp
+
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run

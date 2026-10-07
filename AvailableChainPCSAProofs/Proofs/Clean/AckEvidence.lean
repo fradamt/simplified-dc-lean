@@ -174,6 +174,7 @@ theorem pcsa_pool_honest_emits (E : Generic.Env V)
         have hc : (pcsaWith m p c).carries o (ofAck p a) := by
           change carriesS p o (ofAck p a)
           delta carriesS
+          left
           rw [hp]
           exact Or.inr (Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩)))
         rw [pcsa_decoded_ack_exact a s i r hd] at hc
@@ -184,6 +185,7 @@ theorem pcsa_pool_honest_emits (E : Generic.Env V)
         have hc : (pcsaWith m p c).carries o (ofAck p a) := by
           change carriesS p o (ofAck p a)
           delta carriesS
+          left
           rw [hp]
           exact List.mem_map.mpr ⟨a, ha, rfl⟩
         rw [pcsa_decoded_ack_exact a s i r hd] at hc

@@ -338,3 +338,50 @@ path membership; common honest proposal/voter views; CI label zero and
 the four record steps. These are proof tasks, not counterexample blockers.
 C5 and the clean dissemination/safety/inclusion claims still depend on
 the completed run invariant. No new statement change is proposed.
+
+## Continuation 6: model integration (2026-10-07)
+
+Rebased onto `43733fe`. First update the relay proofs for the new PC
+handler arm. Signed ack, HEAD, and proposal children cannot equal an
+unsigned PC object. The generic handles-to-carries proof uses the stored
+carriage premise. These steps do not inspect PC target equality.
+Run the full pre-commit checks and commit this integration before C6.
+The later `HeadReceipt` and `HeadRelay` modules also need the new outer
+disjunction. The same constructor argument applies.
+
+### Next modules
+
+`ProposalReceipt`: preserve the proposal pool through clocks. Prove a
+process predicate with the exact named-parent, parent lookup, and block
+admission checks. Use event induction to find the earlier delivery.
+Use its wire check for support membership and raw labels. Export the
+earlier handler for each carried raw HEAD.
+
+`WalkInputs`: split the concrete voter lists into frozen and carried
+arms. Recover the stored named proposal behind each carried input.
+Use `ProposalReceipt` to give its earlier handler. Then connect each
+arm to the public-cutoff receipt lemmas and exact body resolution.
+
+`InputTransport`: relay both witnesses of a capped source seat. Prove
+backward denominator receipt for pooled proposer inputs and frozen voter
+inputs at their actual public cutoffs. For carried inputs, use the earlier
+handler and its receipt window, then relay its exact HEAD or cap witnesses.
+Keep body-resolution transport separate from raw denominator receipt.
+
+`BackwardInputs`: use the actual voter tick to read the strict prefix.
+Split its raw list with `WalkInputs`. For the carried arm, recover the
+earlier accepted proposal and the exact signed HEAD. Derive its receipt
+window from the admitted proposal slot and the source tick. Relay the
+handler outcome with `InputTransport`. Combine this with frozen relay.
+
+`ForwardReceipt`: relay early source support into the strict pre-freeze
+state. Preserve the exact HEAD and its first stamp to the voter read,
+or preserve both cap witnesses. Relay the resolved body before the freeze
+and keep its first stamp. Use stage-1 exact resolution to enter the
+frozen support arm. Include genesis explicitly.
+
+Integration validation passed: four PC-SA targets and default build,
+zero warnings; full check-build, zero unaccepted equation exports; layers,
+F-13/F-23, precheck, permitted axioms, prohibited scan, and diff check.
+The slot-zero regression keeps its counterexample and excludes unsigned
+PC children from the honest-signature obligation. No claim changed.
