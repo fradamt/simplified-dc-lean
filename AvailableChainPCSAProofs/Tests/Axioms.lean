@@ -689,3 +689,10 @@ end
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_ite_reconcile_pool
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_process_pool_mono
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_admitPC_pool
+
+-- C6 RelayCarrier.
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_relay_decoded_ack
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_relay_decoded_pc
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_relay_decoded_proposal
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_handles_pc_store
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_install_carries

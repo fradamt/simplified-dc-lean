@@ -1234,3 +1234,9 @@ Validation and current claim status are recorded in log.md and state.md.
 The admission tail preserves ack growth and traces a new PC key to the
 delivered body or ack batch.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RelayCarrier
+
+The call installing a new PC key carries the installed whole-PC object
+under the slot/root model rule.
+Validation and current claim status are recorded in log.md and state.md.
