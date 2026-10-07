@@ -1,7 +1,7 @@
 # FG finality safety: S0, S1, S1P
 
-S0/S1 commit: `78b736b`. All contracts are PROVISIONAL.
-The S1P commit contains independent laws and the recorded lane STOP.
+S0/S1 commit: `3b4fe60` (rebased from `78b736b`). All contracts are PROVISIONAL.
+Earlier S1P: `5672b24` (rebased from `aea1639`). S1P is now complete.
 S2 has not started. No push, review, or agent process was started.
 
 S0 records the fixed 2d5b47a input, step-1 API, source and guard hashes,
@@ -25,7 +25,8 @@ For both `.on` and `.idle`, S1P proves:
   authentication, visibility, and exact proposal carriage agree.
 - Initial, clock, process, restart, and own-record equations.
 - initial_tf and restart_tf, without a Reachable premise.
-- Erasure prefix and output equality, the two independent order fields.
+- process_F and all three fields of the complete FGSafetyOrderLaws record.
+  Erasure prefix and output equality remain its two other fields.
 - Source membership and own-core equality for the mode-general core read.
 
 The `.on` core read equals the old pcsaCoreReads by a proved owner bridge.
@@ -45,29 +46,35 @@ They start from Reachable and a local ViewRootInj induction. They list the
 accepted packed-body/row correspondence and exact named-body obligations.
 The named scope uses full PC payloads, including attachments. Emitted tips
 need a stored named parent; the emitted-only tip is not placed in Q.
-The order citation is pcsa_admitBlock_fg_cases in AcFrame/Store.lean:69–85.
+The order citation is pcsa_admitBlock_fg_cases in Shared/FGStore.lean. It moved unchanged from AcFrame/Store.lean:69–85.
 Acceptance tests use the original state. Lease deletion precedes the FG
 window update. Reconciliation and collection do not write FG.
 
-STOP: the existing PC LANE rule rejects this required direct import:
+P2 resolves the lane STOP through lower-helper extraction. Shared.FGStore
+owns pcsa_normalizeS_fg, pcsa_reconcile_fg, pcsa_fold_admitRow_fg,
+pcsa_fold_poolAckRaw_fg, and pcsa_admitBlock_fg_cases. Their declaration
+bytes are unchanged. AcFrame.Store keeps its lane-specific proofs and
+publicly imports Shared.FGStore, so its existing imports retain the names.
+The move commit changes only the module layout, imports, and audit owners.
 
-```text
-AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore
-  → AvailableChainPCSAProofs.Proofs.AcFrame.Store
-```
+The later proof commit adds pcsa_process_F_mono for every PC store and wire.
+HEAD, row, ACK, PC, and failed-decode cases preserve FG. A proposal either
+preserves FG or calls the window handler on the original FG state.
+FGSA.Window.window_on_block_F_mono proves growth in the latter case.
+This is a shared window-model fact. It is not an FG-SA run safety theorem.
+The new proof uses change bridges and named frame facts. It adds no model
+read, owner equation, premise, foreign equation export, or layer exception.
 
-The exact required line is:
+pcsa_safety_process_F lifts that fact through pcsaCoreReadsWith_def.
+pcsaSafetyOrderLaws combines it with erase_prefix and output_eq.
+The audit checks explicit .on and .idle record instances. Both modes use
+the same general proofs and axiom sets. All 42 saved S1P axiom sets are
+subsets of propext, Classical.choice, and Quot.sound.
 
-```text
-public import AvailableChainPCSAProofs.Proofs.AcFrame.Store
-```
-
-The plan does not list this lane exception. It was not added.
-process_F and the complete FGSafetyOrderLaws record are not proved.
-The lead must approve the exact edge or arrange a lower helper extraction.
 Full PC invariant, insertion metadata, named/emitted-parent scope,
-core metadata growth, and client tick_rows remain open. FG-SA stays on its
-existing claim path. S1P is partial because of this STOP.
+core metadata growth, and client tick_rows remain later work. The prose
+drafts stay in FG-FINALITY-SAFETY-PC-DRAFTS.md. There is no open S1P STOP.
+FG-SA stays on its existing claim path. S2 has not started.
 
 S1P guard changes are exact. The only new Compose adapter pairs are:
 
@@ -105,14 +112,14 @@ Checker code in S1P, with reasons:
   scripts/proof-audit-coverage.txt records each new name and its owner.
 - scripts/check-layers-selftest.sh rejects adjacent .Extra imports,
   PC adapter imports of FG-SA run proofs, and the AcFrame lane edge.
-  These controls test the new exact boundaries and preserve the lane STOP.
+  These controls test the new exact boundaries and preserve the lane boundary.
 
 There is no S1P change to scripts/CheckFGAxioms.lean or check-gly-rules.
 The exact S1P checker and inventory diff is in
 FG-FINALITY-SAFETY-S1P-guards.patch.
 
 S0/S1 validation passed before commit. Its complete results are in the S1
-notes. The full S1P pre-commit list passes. The affected modules and full
+notes. The earlier S1P pre-commit list passed. The affected modules and full
 build pass with --wfail. check-build.sh, the layer check, check-gly-rules,
 and precheck.sh . pass. CheckProofEqns checks 742 proof modules and 1,033
 existing exports, with zero unaccepted. Coverage checks 4,764 declarations
@@ -141,3 +148,59 @@ keep their bytes. The FG-SA manifest/API check reports 1,174 entries in
 The affected-module build passes with --wfail. The focused Shake command
 then found stale downstream build files. The full repository build
 rebuilds those files before the required Shake and claims checks.
+
+Review-fix commits: P1 `20d26c2`; helper move `13bb4eff`; order completion in
+this commit. Each has the required Claude-Session trailer. No push.
+The rebase target is main `43733fe`. The fixed S0 input remains `2d5b47a`.
+The integration delta against the earlier main base is the PC relay model,
+its affected proofs and regression, and audit-pool-selftest.py. The 122
+frozen hashes and five step-1 Lean API hashes match after each fix commit.
+P1 selects Or.inl before change and uses only the left carriesS branch.
+The PC-object branch is not used by that proof.
+
+Each S1 checker change, with its reason:
+
+- scripts/check-layers.py adds the six exact safety Statements edges and
+  four facade imports. This permits only the reviewed S1 dependencies.
+- scripts/CheckFGAxioms.lean uses the same exact edges and facade imports
+  in the compiled Compose closure check.
+- scripts/check-layers-selftest.sh tests those edges and their neighbors.
+- scripts/check-fg-compose-controls.py tests missing source, olean, name,
+  and forbidden-axiom cases for the four safety Statements modules.
+- scripts/fg-compose-expected.txt adds the 76 required safety names.
+- scripts/check-proof-coverage.py adds the SafetyAxioms audit.
+- scripts/proof-audit-coverage.txt maps those 76 names to their owners.
+- scripts/gate.sh adds the required FGSafety-axioms step.
+- scripts/full-pass.py requires that step in a FULL receipt.
+
+The earlier S1P checker changes and reasons are listed above. The review
+fixes change no checker code. Their only checker-data change is in
+scripts/proof-audit-coverage.txt: remap five moved owners, then add the
+three new theorem audits. Tests/FGSafety.lean adds their three #print
+axioms lines and complete order-record checks for both modes.
+The exact review-fix inventory diff is FG-FINALITY-SAFETY-REVIEW-guards.patch.
+That patch records the owner remap and three theorem audit additions.
+It is a document, not a pending request for a guard exception.
+No import-policy, check-layers, allow-list, or equation-baseline line changes.
+
+The rebase also imports main's scripts/audit-pool-selftest.py change.
+It separates success and timeout budgets. It checks exact exit codes,
+passing twins, and published child PIDs before cleanup. These are main's
+control changes, not a new exception in the review fixes.
+
+Full pre-commit checks pass before each of the three review-fix commits.
+They include touched builds with --wfail, check-build.sh, check-layers,
+check-gly-rules, precheck.sh ., coverage, Compose, archive pins, FG-SA
+model/Run/Claims, CatalogLock, manifests, and the new theorem axioms.
+Claims use NEG=0. The final equation audit has 743 proof modules, 1,033
+existing exports, and zero unaccepted. Coverage has 4,767 declarations
+in 13 audits. All 42 S1P axiom sets match the saved JSON exactly.
+Logs: /private/tmp/fg-fin-review-p1-full.log,
+/private/tmp/fg-fin-review-move-full.log, and
+/private/tmp/fg-fin-review-complete-full.log.
+
+Cont3 validation of the staged order completion passes. It includes the
+full pre-commit list and check-build.sh. Claims use NEG=0. All 42 saved
+axiom sets match exactly. All 122 frozen hashes, five step-1 Lean hashes,
+and moved helper and remaining AcFrame proof bytes match.
+Log: /private/tmp/fg-fin-cont3-before-full.log.

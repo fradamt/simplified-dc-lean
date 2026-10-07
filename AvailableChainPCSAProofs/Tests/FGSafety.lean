@@ -38,6 +38,9 @@ public section
 #print axioms AvailableChain.PCSA.Run.safetyProposalErase
 #print axioms AvailableChain.PCSA.Run.safetyProposalRows
 #print axioms AvailableChain.PCSA.pcsa_safety_delete_core
+#print axioms AvailableChain.PCSA.pcsa_process_F_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_process_F
+#print axioms AvailableChain.PCSA.Run.pcsaSafetyOrderLaws
 
 namespace AvailableChain.PCSA.Run
 open AvailableChain.FGCompose AvailableChain.SimplexFG
@@ -63,8 +66,12 @@ example (m : FGMode) (p : Params) {In : Type} (c : AppCodec In) : Prop :=
   FGCoreLaws (pcsaCoreReadsWith m p c)
 example (m : FGMode) (p : Params) {In : Type} (c : AppCodec In) : Prop :=
   FGSafetyClientLaws (pcsaSafetyReads m p c) p.E p.cfg
-example (m : FGMode) (p : Params) {In : Type} (c : AppCodec In) : Prop :=
-  FGSafetyOrderLaws (pcsaCoreReadsWith m p c) (pcsaSafetyReads m p c)
+example (p : Params) {In : Type} (c : AppCodec In) :
+    FGSafetyOrderLaws (pcsaCoreReadsWith .on p c) (pcsaSafetyReads .on p c) :=
+  pcsaSafetyOrderLaws .on p c
+example (p : Params) {In : Type} (c : AppCodec In) :
+    FGSafetyOrderLaws (pcsaCoreReadsWith .idle p c) (pcsaSafetyReads .idle p c) :=
+  pcsaSafetyOrderLaws .idle p c
 end AvailableChain.PCSA.Run
 
 end

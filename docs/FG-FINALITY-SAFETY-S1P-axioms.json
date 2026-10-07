@@ -39,6 +39,11 @@
     "Quot.sound",
     "propext"
   ],
+  "AvailableChain.PCSA.Run.pcsaSafetyOrderLaws": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
   "AvailableChain.PCSA.Run.pcsaSafetyReads": [
     "Classical.choice",
     "Quot.sound",
@@ -127,6 +132,11 @@
     "Quot.sound",
     "propext"
   ],
+  "AvailableChain.PCSA.Run.pcsa_safety_process_F": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
   "AvailableChain.PCSA.Run.pcsa_safety_process_record": [
     "Classical.choice",
     "Quot.sound",
@@ -159,6 +169,11 @@
     "propext"
   ],
   "AvailableChain.PCSA.Run.safetyProposalRows": [
+    "propext"
+  ],
+  "AvailableChain.PCSA.pcsa_process_F_mono": [
+    "Classical.choice",
+    "Quot.sound",
     "propext"
   ],
   "AvailableChain.PCSA.pcsa_safety_delete_core": [

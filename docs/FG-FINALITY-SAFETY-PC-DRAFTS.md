@@ -13,8 +13,8 @@ Both input reads are the actual protocol fgInputs.
 The PC wire record proves all five fields. It keeps exact signed wires.
 The record equations prove initial, clock, process, restore, and recordOwn.
 The local tick_rows field is not proved here. It remains for S6.
-The independent order fields erase_prefix and output_eq are proved.
-process_F and the complete order record are stopped by the lane boundary below.
+process_F, erase_prefix, and output_eq are proved. The complete order
+record holds for both .on and .idle. Its producer is pcsaSafetyOrderLaws.
 The initial_tf and restart_tf facts need no Reachable assumption.
 The store producer signatures use Good nd = Reachable p nd.st.
 FG-SA uses its existing height and finality views. PC-SA uses the same height
@@ -55,7 +55,8 @@ Apply FGSA.Window.windowStoreInvariant_on_block with p.kWLarge.
 Use the PC finality projection equality to convert its finality view.
 
 The order is fixed by pcsa_admitBlock_fg_cases in
-AvailableChainPCSAProofs/Proofs/AcFrame/Store.lean:69–85.
+AvailableChainPCSAProofs/Proofs/Shared/FGStore.lean. It moved unchanged
+from AcFrame/Store.lean:69–85. AcFrame.Store publicly imports the helper.
 The handler first admits to base, then may delete conflicting leases from
 a carried PC. It then updates FG, reconciles, collects PCs, and admits rows.
 The carried pcValid test reads the old F. The base admission can change
@@ -127,27 +128,24 @@ new premise. Leave the FG-SA claim path in place until S5a and S5b close.
 The full core metadata growth and client tick_rows producers are also
 open. No LAW is frozen by the early codec or order producer alone.
 
-## STOP: store-proof import edge
+## S1P order completion — 2026-10-07
 
-The current layer rule rejects this exact edge:
+The lead chose lower-helper extraction. Five FG frame helpers moved to
+Shared.FGStore with unchanged declaration bytes. AcFrame.Store keeps
+its lane-specific proofs and publicly imports the new module.
+No layer exception or checker code change was needed.
 
-```text
-AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore
-  → AvailableChainPCSAProofs.Proofs.AcFrame.Store
-```
+Shared.FGStore now proves pcsa_process_F_mono for every store and wire.
+The proof splits the decoded wire cases through a change bridge.
+The row singleton fold, collection frame, raw ACK fold, and a local
+checked-pooling calculation prove the non-block cases.
+The moved pcsa_admitBlock_fg_cases gives the proposal cases.
+The window-model window_on_block_F_mono proves the accepted case.
+The lease-deletion-before-FG-update order remains unchanged.
 
-The required Lean import would be:
-
-```text
-public import AvailableChainPCSAProofs.Proofs.AcFrame.Store
-```
-
-check-layers.py.pcsa_findings produces LANE for that pair.
-Foundations can import its own lane and Shared, but it cannot import AcFrame.
-The plan cites pcsa_admitBlock_fg_cases there. It does not list this internal
-lane exception among the reviewed exact guard edges.
-No exception was added. The import is absent from the committed source.
-process_F and the full order record are not claimed.
-The lead must choose an approved exact edge or a lower helper extraction.
-The source-order evidence at AcFrame/Store.lean:69–85 remains valid.
-The independent laws and type checks continue under the existing guards.
+Foundations.FGSafetyStore lifts process_F for every FGMode. Its full
+pcsaSafetyOrderLaws producer also supplies erase_prefix and output_eq.
+Tests/FGSafety checks complete .on and .idle instances and their axioms.
+The proof adds no Reachable, root-injectivity, or schedule premise.
+The invariant and process_new arguments above remain prose drafts for S5a.
+The named/emitted-parent obligations remain for S5b. Stop before S2 here.

@@ -5884,12 +5884,17 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore': (
             'AvailableChain.PCSA.Run.pcsaSafetyCertificateLaws',
+            'AvailableChain.PCSA.Run.pcsaSafetyOrderLaws',
             'AvailableChain.PCSA.Run.pcsa_safety_erase_prefix',
             'AvailableChain.PCSA.Run.pcsa_safety_finalityView_eq',
             'AvailableChain.PCSA.Run.pcsa_safety_initial_tf',
             'AvailableChain.PCSA.Run.pcsa_safety_output_eq',
+            'AvailableChain.PCSA.Run.pcsa_safety_process_F',
             'AvailableChain.PCSA.Run.pcsa_safety_restart_tf',
             'AvailableChain.PCSA.pcsa_safety_delete_core',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Shared.FGStore': (
+            'AvailableChain.PCSA.pcsa_process_F_mono',
         ),
         'AvailableChainPCSARun.Model.Protocol': (
             'AvailableChain.PCSA.Run.decodeSafetyRow',
