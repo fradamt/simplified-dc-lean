@@ -1270,3 +1270,10 @@ Validation and current claim status are recorded in log.md and state.md.
 Every valid carried PC at an honest proposer slot is the one in the
 emitted metadata; receipt includes that PC when it is valid.
 Validation and current claim status are recorded in log.md and state.md.
+
+### CommonViews
+
+Frozen PC relay, exact carried metadata, slot maxima, and same-slot ack
+uniqueness give equal view targets. Empty views and different certificate
+ack lists are covered.
+Validation and current claim status are recorded in log.md and state.md.

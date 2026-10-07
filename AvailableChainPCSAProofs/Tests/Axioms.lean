@@ -719,3 +719,6 @@ end
 -- C6 CarriedView.
 #print axioms AvailableChain.PCSA.pcsa_carriedPC_of_proposal
 #print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_eq_emitted
+
+-- C6 CommonViews.
+#print axioms AvailableChain.PCSA.Run.pcsa_common_view_targets
