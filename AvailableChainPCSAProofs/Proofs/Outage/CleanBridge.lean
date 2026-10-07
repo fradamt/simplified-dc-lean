@@ -6,11 +6,12 @@ public section
 /-! The Clean-lane ARM item (b) of ARM-healthy (pcsa34-r4.3 §5.4.2) from the
 Clean facts at the pending labels. CI and `CleanDisseminationClaim` reach only
 the labels with `d_j ≤ b₀`; ARM (b) reads the honest acks of every label with
-`v_j < b₀`. `CutChain` records the four facts it needs at the cut: honest
-results are not empty (5.2.2 (c)), the results chain and the HEADs above the
-previous results at the labels whose votes are in the prefix (CI (i), (ii)),
-and dissemination at the pending label (5.2.3). The Outage assembly takes
-them as an OPEN hypothesis (`heads` covers the boundary case of 5.5 step 2). -/
+`v_j < b₀`. `CutChain` records four facts at the cut: honest results are
+not empty (5.2.2 (c)), the results chain at the labels whose early reads are
+in the prefix (CI (i)), the HEAD cone (a block below every honest HEAD of
+label `i − 1` with `e_{i−1} ≤ b₀` is below every honest HEAD of label `i`),
+and dissemination at the pending label (5.2.3). ARM (b) uses the cone and
+dissemination. The Outage assembly takes the record as an OPEN hypothesis. -/
 
 namespace AvailableChain.PCSA.Run
 
@@ -20,7 +21,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 
 variable (p c) in
 omit [Fintype V] in
-/-- [pcsa34-r4.3 §5.2.2 (i), (ii), (c), §5.2.3, §5.5 step 1] The Clean facts
+/-- [pcsa34-r4.3 §5.2.2 (i), (c), §5.2.3, §5.5 step 2] The Clean facts
 of one run at the pending labels of the cut `b₀`. -/
 structure CutChain (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ : Time) :
     Prop where
@@ -30,9 +31,9 @@ structure CutChain (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀
     x ∈ rho.honest → y ∈ rho.honest →
     gateResultAt p c E rho x i = some (some X) → gateResultAt p c E rho y i' = some (some Y) →
     Block.Preceq X Y
-  heads : ∀ (i : Slot) (x y : V) (H X : Block), 0 < i → SA.voteTime p.toParams i ≤ b₀ →
-    HonestHeadAt p c E rho x i H → y ∈ rho.honest →
-    gateResultAt p c E rho y (i - 1) = some (some X) → Block.Preceq X H
+  cone : ∀ (i : Slot) (B : Block), 0 < i → SA.earlyTime p.toParams (i - 1) ≤ b₀ →
+    (∀ y G, HonestHeadAt p c E rho y (i - 1) G → Block.Preceq B G) →
+    ∀ x H, HonestHeadAt p c E rho x i H → Block.Preceq B H
   dis : ∀ (s : Slot) (y : V) (B : Block), HonestAckAt p c E rho y s B →
     (SA.voteTime p.toParams (s + 1) ≤ b₀ →
       ∀ x H, HonestHeadAt p c E rho x (s + 1) H → Block.Preceq B H) ∧
@@ -85,6 +86,25 @@ theorem pcsa_early_lt_vote_of_lt {a b : Slot} (h : a < b) :
   have : (a : Int) + 1 ≤ b := by exact_mod_cast h
   nlinarith
 
+omit [Fintype V] in
+/-- [§5.5 step 2] The HEAD cone along the labels: a block below every honest
+HEAD of label `j` is below every honest HEAD of label `j + n + 1` when
+`e_{j+n} ≤ b₀`. -/
+theorem pcsa_cone_up {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b₀ : Time}
+    (hK : CutChain p c E rho b₀) {B : Block} {j : Slot}
+    (hB : ∀ y G, HonestHeadAt p c E rho y j G → Block.Preceq B G) :
+    ∀ n : Nat, SA.earlyTime p.toParams (j + n) ≤ b₀ →
+      ∀ x H, HonestHeadAt p c E rho x (j + n + 1) H → Block.Preceq B H := by
+  intro n
+  induction n with
+  | zero =>
+    intro he
+    exact hK.cone (j + 0 + 1) B (Nat.succ_pos _) he hB
+  | succ n ih =>
+    intro he
+    exact hK.cone (j + (n + 1) + 1) B (Nat.succ_pos _) he
+      (ih (le_trans (pcsa_early_mono (Nat.le_succ (j + n))) he))
+
 /-! ### ARM item (b) -/
 
 omit [Fintype V] in
@@ -105,67 +125,31 @@ theorem pcsa_ack_gateResult (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p 
 
 /-- [pcsa34-r4.3 §5.4.2 ARM-healthy (b)] In a clean prefix, every honest ack
 of a later label with `v_{s'} < b₀` extends the target of a PC held by an
-honest node, given the Clean facts at the pending labels. -/
+honest node, given the Clean facts at the pending labels (OPEN: `hK`).
+Dissemination puts the target below every honest HEAD of label `s + 1`; the
+HEAD cone carries it to the label of the ack. -/
 theorem pcsa_cleanArmAcks_of (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
     {b₀ ΔF : Time} (hC : Clean₂ p c E rho b₀ ΔF) (hf : FaultsBelowQA p c rho)
     (hfr : StageOneFrame p c E rho) (hK : CutChain p c E rho b₀) :
     CleanArmAcks p c E rho b₀ := by
   have h := hC.base
   have hs := h.valid.toScheduleWellFormed
-  have hne := hK.nonempty
-  have hres := hK.chain
-  have hheads := hK.heads
   rw [CleanArmAcks_def]
   intro v hv T d _ _ hd y s' X hs' hvs hX
   rw [pcsa_storeAt_index E rho hs] at hd
   obtain ⟨-, x₀, hx₀⟩ := pcsa_held_pc_ack E rho h hf v hv _ d hd
-  obtain ⟨hdH, hdR⟩ := hK.dis d.slot x₀ d.target hx₀
   obtain ⟨z, hz⟩ := pcsa_honest_ack_head E rho h hf hfr y s' X hX
+  have hB : ∀ x H, HonestHeadAt p c E rho x (d.slot + 1) H → Block.Preceq d.target H :=
+    (hK.dis d.slot x₀ d.target hx₀).1 (le_trans (pcsa_vote_mono hs') (le_of_lt hvs))
   rcases Nat.lt_or_eq_of_le hs' with hlt | heq
-  · have h0 : 0 < s' := lt_of_le_of_lt (Nat.zero_le _) hlt
-    have hy : y ∈ rho.honest := hX.1
-    obtain ⟨⟨r, hr⟩, hhor⟩ := pcsa_ack_gateResult E rho hs h0 hX
-    have hlt' : d.slot + 1 ≤ s' - 1 := Nat.le_sub_one_of_lt hlt
-    have he1 : SA.earlyTime p.toParams (s' - 1) ≤ b₀ :=
-      le_of_lt (lt_trans
-        (pcsa_early_lt_vote_of_lt (a := s' - 1) (b := s') (Nat.sub_lt h0 Nat.one_pos)) hvs)
-    obtain ⟨R, rfl⟩ : ∃ R, r = some R := by
-      cases r with
-      | none => exact absurd hr (hne _ he1 y hy)
-      | some R => exact ⟨R, rfl⟩
-    have hRX := hheads s' z y X R h0 (le_of_lt hvs) hz hy hr
-    refine Gen.Pure.block_preceq_trans ?_ hRX
-    have he2 : SA.earlyTime p.toParams (d.slot + 1) ≤ b₀ :=
-      le_trans (pcsa_early_mono hlt') he1
-    rcases Nat.lt_or_eq_of_le hlt' with hlt2 | heq2
-    · -- a result of label `s + 1` at `y`
-      have hg : SA.gateTime p.toParams (d.slot + 1) ≤ rho.horizon := by
-        refine le_trans (pcsa_gate_mono (Nat.le_of_lt hlt2)) ?_
-        rw [pcsa_gate_pred_early s' h0]
-        exact hhor
-      have hg0 : 0 ≤ SA.gateTime p.toParams (d.slot + 1) := by
-        have hΔ : (0 : Int) < p.Δ := p.deltaPos
-        change 0 ≤ 4 * p.Δ * ((d.slot + 1 : Nat) : Int) + 6 * p.Δ
-        positivity
-      obtain ⟨k, hk⟩ := pcsa_tick_exists E rho hs y hy _ (pcsa_gate_public E h.delta _) hg0 hg
-      have hr1 : ∃ r1, gateResultAt p c E rho y (d.slot + 1) = some r1 := by
-        rw [pcsa_gateResultAt_def, pcsa_gateInAt_def, pcsa_preTick_def,
-          pcsa_tickIdx_of_event E rho hs hk]
-        exact ⟨_, rfl⟩
-      obtain ⟨r1, hr1⟩ := hr1
-      obtain ⟨R1, rfl⟩ : ∃ R1, r1 = some R1 := by
-        cases r1 with
-        | none => exact absurd hr1 (hne _ he2 y hy)
-        | some R1 => exact ⟨R1, rfl⟩
-      exact Gen.Pure.block_preceq_trans (hdR he2 y hy R1 hr1)
-        (hres _ _ y y R1 R hlt2 he1 hy hy hr1 hr)
-    · rw [← heq2] at hr
-      exact hdR he2 y hy R hr
-  · rw [← heq] at hz hvs
-    exact hdH (le_of_lt hvs) z X hz
+  · obtain ⟨n, rfl⟩ := Nat.exists_eq_add_of_lt hlt
+    exact pcsa_cone_up hK hB n
+      (le_of_lt (lt_trans (pcsa_early_lt_vote_of_lt (Nat.lt_succ_self _)) hvs)) z X hz
+  · rw [← heq] at hz
+    exact hB z X hz
 
 /-- [pcsa34-r4.3 §5.4.2] The two ARM items from the relay item and the Clean
-facts at the pending labels. -/
+facts at the pending labels (OPEN: `hK`). -/
 theorem pcsa_cleanArmItems_of (p : Params) (hrel : CleanRelayItems p)
     (hK : CleanCutChainItems p) : CleanArmItems p := by
   rw [CleanArmItems_def]

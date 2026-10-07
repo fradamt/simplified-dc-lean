@@ -5955,6 +5955,7 @@
             'AvailableChain.PCSA.Run.pcsa_ack_gateResult',
             'AvailableChain.PCSA.Run.pcsa_cleanArmAcks_of',
             'AvailableChain.PCSA.Run.pcsa_cleanArmItems_of',
+            'AvailableChain.PCSA.Run.pcsa_cone_up',
             'AvailableChain.PCSA.Run.pcsa_early_lt_vote_of_lt',
             'AvailableChain.PCSA.Run.pcsa_early_mono',
             'AvailableChain.PCSA.Run.pcsa_gate_pred_early',

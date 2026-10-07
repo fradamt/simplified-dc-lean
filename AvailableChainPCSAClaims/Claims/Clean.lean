@@ -310,7 +310,8 @@ additively. They are not fields of `PCSAClaims`. The HEAD facts at the
 pending labels (5.2.2 (ii) with `v_i ≤ b₀`, and past the cut with
 `e_{i−1} ≤ b₀`) are not claims: as stated, they are false in the boundary
 case `v_r ≤ b₀ < d_{r−1}` of 5.5 step 2. The Outage assembly takes the
-`CutChain` and `CutFacts` records as OPEN hypotheses. -/
+`CutChain` and `CutFacts` records, with the cone and bridge forms of these
+facts, as OPEN hypotheses. -/
 
 /-- [PC-SA claims; pcsa34-r4.3 5.2.2 (c), 5.4.2 (b), 5.5 steps 1–2; FG-SA
 `hnonempty` (outage supplier history)] In a clean prefix, every honest result

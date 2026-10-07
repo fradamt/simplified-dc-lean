@@ -7,8 +7,9 @@ public import AvailableChainPCSAClaims.Statements.Premises
 Outage lane: the lock row of a store, the two ARM-healthy items
 (`CleanHeldPCRelay`, `CleanArmAcks`) and the slow P1 boundary at the cut
 (`CleanSlowBoundary`). They are not claims and not fields of `PCSAClaims`.
-The Outage lane proves C8 and C10 from them; the Outage assembly derives them
-from the Clean claims. -/
+The Outage lane proves C8 and C10 from them. The Outage assembly proves the
+relay item and takes the others from OPEN records (`CleanCutChainItems`,
+`CleanSlowItems`); it does not derive them from the Clean claims. -/
 
 namespace AvailableChain.PCSA
 

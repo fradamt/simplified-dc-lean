@@ -13,9 +13,8 @@ namespace AvailableChain.PCSA.Run
 theorem pcsa_armPersistenceClaim (p : Params) : ArmPersistenceClaim p := pcsa_armPersistence p
 
 /-- [pcsa34-r4.3 §5.2.2, §5.2.3, §5.5 step 1] The Clean facts at the pending
-labels from the Clean facts at the cut. OPEN: `hK` is a hypothesis. Its HEAD
-fields cover the boundary case `v_r ≤ b₀ < d_{r−1}` of 5.5 step 2, which the
-counterexample refutes as stated. -/
+labels from the Clean facts at the cut. OPEN: `hK` is a hypothesis (the cone
+and the bridge of 5.5 step 2 are not proved). -/
 theorem pcsa_cleanCutChainItems_of (p : Params) (hK : CleanCutItems p) :
     CleanCutChainItems p := by
   rw [CleanCutChainItems_def]
@@ -41,8 +40,7 @@ theorem pcsa_cleanRelayItems_of (p : Params) : CleanRelayItems p := by
 /-- [pcsa34-r4.3 §5.4.2] C8, ARM-healthy, from the relay item and the Clean
 facts at the pending labels. The relay item follows from block receipt
 (`pcsa_cleanBlockReceipt`, `pcsa_cleanRelayItems_of`). OPEN: `hK` is a
-hypothesis. Its `heads` field covers the boundary case `v_r ≤ b₀ < d_{r−1}`
-of 5.5 step 2, which the counterexample refutes as stated. -/
+hypothesis (the HEAD cone and pending-label dissemination are not proved). -/
 theorem pcsa_armHealthy_of_claims (p : Params) (hK : CleanCutChainItems p) :
     ArmHealthyClaim p :=
   pcsa_armHealthy p (pcsa_cleanArmItems_of p (pcsa_cleanRelayItems_of p) hK)
@@ -50,9 +48,8 @@ theorem pcsa_armHealthy_of_claims (p : Params) (hK : CleanCutChainItems p) :
 /-- [pcsa34-r4.3 §5.5] C10, slow P1, from the relay item, the Clean facts at
 the pending labels and the slow boundary facts. The relay item follows from
 block receipt (`pcsa_cleanBlockReceipt`, `pcsa_cleanRelayItems_of`). OPEN:
-`hK` and `hslow` are hypotheses. They cover the boundary case
-`v_r ≤ b₀ < d_{r−1}` of 5.5 step 2, which the counterexample refutes as
-stated. `pcsa_cleanSlowItems_of` gives `hslow` from `CleanCutItems`. -/
+`hK` and `hslow` are hypotheses. `pcsa_cleanSlowItems_of` gives `hslow` from
+`CleanCutItems` (with the HEAD cone and the clean-gate successor bridge). -/
 theorem pcsa_slowP1_of_claims (p : Params) (hK : CleanCutChainItems p)
     (hslow : CleanSlowItems p) : PCSASlowP1Claim p :=
   pcsa_slowP1 p (pcsa_cleanArmItems_of p (pcsa_cleanRelayItems_of p) hK) hslow

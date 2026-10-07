@@ -140,16 +140,16 @@ theorem pcsa_cut_deliveries (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p 
 
 omit [Fintype V] in
 /-- [§5.5 step 2] Every honest HEAD of a label `r` with `d_J < v_r < d_{J+1}`
-(so `r = J + 2`) and `e_r` in the run extends `A`: it extends every honest
-result of label `J + 1` (the HEAD past the cut), which extends `A`. -/
+(so `r = J + 2`) extends `A`: the bridge puts `A` below every honest HEAD of
+label `j₁ + 1`, and the HEAD cone carries it to label `J + 2`, since
+`e_{J+1} = d_J ≤ b₀`. -/
 theorem pcsa_cut_pendingHead {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)}
-    {b₀ : Time} (h : Base₂ p c E rho) (hfr : StageOneFrame p c E rho)
-    (hK : CutFacts p c E rho b₀) {u : V} (hu : u ∈ rho.honest) {j₁ : Nat} {A : Block}
+    {b₀ : Time} (hK : CutFacts p c E rho b₀) {u : V} (hu : u ∈ rho.honest) {j₁ : Nat} {A : Block}
     (hA : gateResultAt p c E rho u j₁ = some (some A)) {J : Nat} (hjJ : j₁ < J + 1)
     (hdJ : SA.gateTime p.toParams J ≤ b₀) {z : V} {r' : Slot} {H : Block}
     (hH : HonestHeadAt p c E rho z r' H) (h1 : SA.gateTime p.toParams J < SA.voteTime p.toParams r')
-    (h2 : SA.voteTime p.toParams r' < SA.gateTime p.toParams (J + 1))
-    (he : SA.earlyTime p.toParams r' ≤ rho.horizon) : Block.Preceq A H := by
+    (h2 : SA.voteTime p.toParams r' < SA.gateTime p.toParams (J + 1)) :
+    Block.Preceq A H := by
   obtain ⟨r, rfl⟩ : ∃ r : Nat, r = r' := ⟨_, rfl⟩
   have hΔ : (0 : Int) < p.Δ := p.deltaPos
   have hr : r = J + 2 := by
@@ -166,18 +166,18 @@ theorem pcsa_cut_pendingHead {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p
       nlinarith
     omega
   subst hr
-  have hsub : J + 2 - 1 = J + 1 := rfl
   have heJ : SA.earlyTime p.toParams (J + 1) ≤ b₀ := by
     rw [← pcsa_gate_pred_early (p := p) (J + 1) (Nat.succ_pos J)]
     exact hdJ
-  have hgJ : SA.gateTime p.toParams (J + 1) ≤ rho.horizon := by
-    rw [← hsub, pcsa_gate_pred_early (p := p) (J + 2) (Nat.succ_pos _)]
-    exact he
-  obtain ⟨r₁, hr₁⟩ := pcsa_gate_result_exists E rho h hfr hu hgJ
-  obtain ⟨R, rfl, hAR⟩ := pcsa_cut_res hK hu hA hu hjJ heJ hr₁
-  exact Gen.Pure.block_preceq_trans hAR
-    (hK.pastCut (J + 2) z u H R (Nat.succ_pos _) (by rw [hsub]; exact heJ) hH hu
-      (by rw [hsub]; exact hr₁))
+  have hB : ∀ y G, HonestHeadAt p c E rho y (j₁ + 1) G → Block.Preceq A G :=
+    fun y G hG =>
+      hK.bridge j₁ u y A G (le_trans (pcsa_gate_mono (Nat.le_of_lt_succ hjJ)) hdJ) hu hA hG
+  obtain ⟨n, hn⟩ : ∃ n, J + 1 = j₁ + 1 + n := ⟨J - j₁, by omega⟩
+  rw [hn] at heJ
+  have hH' : HonestHeadAt p c E rho z (j₁ + 1 + n + 1) H := by
+    rw [← hn]
+    exact hH
+  exact pcsa_cone_up hK.toCutChain hB n heJ z H hH'
 
 /-! ### The boundary at the last clean gate -/
 
@@ -252,11 +252,11 @@ theorem pcsa_cut_boundary_gate (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_trans hrow hSR)
       (Gen.Pure.block_preceq_refl R)
   · exact fun y s X hX hv => pcsa_cut_ack hC hf hfr hK hu hA hd1 hX (le_trans hv hdJ)
-  · intro y r H hH hq hqh hv
+  · intro y r H hH hq _ hv
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl H)
-      (pcsa_cut_head h hfr hK hu hA (lt_trans hj1J (pcsa_release_gt_slot hq))
-        (le_trans hv hdJ) (le_trans (pcsa_early_lt_release r).le hqh) hH)
-  · exact fun z r H hH h1 h2 he => pcsa_cut_pendingHead h hfr hK hu hA (by omega) hdJ hH h1 h2 he
+      (pcsa_cut_head hK hu hA (le_trans (pcsa_gate_mono (Nat.le_succ j₁)) hd1)
+        (lt_trans hj1J (pcsa_release_gt_slot hq)) (le_trans hv hdJ) hH)
+  · exact fun z r H hH h1 h2 _ => pcsa_cut_pendingHead hK hu hA (by omega) hdJ hH h1 h2
 
 /-- [§5.5 steps 1–4] Under the lag `T + 4(k − 1)Δ ≤ b₀` of `Outage₂`, the
 boundary facts at `b₀` hold for `A = S_u(T) ≠ genesis` from the Clean facts at
@@ -332,8 +332,8 @@ theorem pcsa_cut_boundary (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)
   refine ⟨J + 1, hbJ, fun s hs' => hJ ▸ Nat.find_min' hex hs', by omega, fun x hx => ?_,
     fun x hx => ?_, fun x hx => ?_, fun x hx j hj => ?_, fun x hx r hr => ?_,
     fun y s X hX hv => pcsa_cut_ack hC hf hfr hK hu hA hd1 hX hv, ?_,
-    fun z r H hH h1 h2 he => pcsa_cut_pendingHead h hfr hK hu hA (by omega) hdJ hH
-      (lt_of_le_of_lt hdJ h1) h2 he⟩
+    fun z r H hH h1 h2 _ => pcsa_cut_pendingHead hK hu hA (by omega) hdJ hH
+      (lt_of_le_of_lt hdJ h1) h2⟩
   · rw [pcsa_storeAt_index E rho hs x b₀]
     exact (hinv x hx).stable
   · rw [pcsa_storeAt_index E rho hs x b₀]
@@ -351,16 +351,15 @@ theorem pcsa_cut_boundary (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)
     refine ⟨R, hRe, hAR, fun row hrow => hrows row ?_⟩
     rw [pcsa_storeAt_index E rho hs x b₀] at hrow
     exact (hinv x hx).sub (hpre x) hrow
-  · intro y r H hH hq hqh hv
+  · intro y r H hH hq _ hv
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl H)
-      (pcsa_cut_head h hfr hK hu hA (lt_trans hj1J
-        (pcsa_release_gt_slot (lt_of_le_of_lt hdJ hq))) hv
-        (le_trans (pcsa_early_lt_release r).le hqh) hH)
+      (pcsa_cut_head hK hu hA (le_trans (pcsa_gate_mono (Nat.le_succ j₁)) hd1) (lt_trans hj1J
+        (pcsa_release_gt_slot (lt_of_le_of_lt hdJ hq))) hv hH)
 
 /-! ### The boundary under the lag of `Outage₂` -/
 
 /-- [pcsa34-r4.3 §5.5 steps 1–2] The boundary facts from the Clean facts at
-the cut. -/
+the cut (OPEN: `hK`). -/
 theorem pcsa_cleanSlowItems_of (p : Params) (hK : CleanCutItems p) : CleanSlowItems p := by
   rw [CleanSlowItems_def]
   rw [CleanCutItems_def] at hK

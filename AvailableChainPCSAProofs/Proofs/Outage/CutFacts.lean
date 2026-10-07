@@ -5,10 +5,10 @@ public section
 
 /-! The Clean facts at the cut `b₀` (pcsa34-r4.3 §5.5 steps 1–2), stage 1, as
 one record: CI (i) on one label (`CleanInvariantClaim`), the locks below `S`
-(`LeaseBelowRecordClaim`), the pending-label claims, and the HEAD past the
-cut. The Outage assembly takes the record as an OPEN hypothesis: as stated,
-the HEAD fields are false in the boundary case `v_r ≤ b₀ < d_{r−1}` of 5.5
-step 2. From a result `A = R_u(j₁)`: every later
+(`LeaseBelowRecordClaim`), the facts at the pending labels (`CutChain`), and
+the clean-gate successor bridge (a HEAD of label `j + 1` extends an honest
+result of label `j` with `d_j ≤ b₀`). The Outage assembly takes the record as
+an OPEN hypothesis. From a result `A = R_u(j₁)`: every later
 honest result and HEAD in the prefix extends `A`, every honest ack and record
 in the prefix is compatible with `A`. -/
 
@@ -30,13 +30,12 @@ structure CutFacts (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀
     ∀ ℓ ∈ (storeAt p c E rho x t).base.obligations,
       (storeAt p c E rho x t).base.now < ℓ.2.2 →
       Block.Preceq ℓ.1 (storeAt p c E rho x t).base.stableRecord
-  pastCut : ∀ (i : Slot) (x y : V) (H X : Block), 0 < i →
-    SA.earlyTime p.toParams (i - 1) ≤ b₀ → HonestHeadAt p c E rho x i H → y ∈ rho.honest →
-    gateResultAt p c E rho y (i - 1) = some (some X) → Block.Preceq X H
+  bridge : ∀ (j : Slot) (u x : V) (A H : Block), SA.gateTime p.toParams j ≤ b₀ →
+    u ∈ rho.honest → gateResultAt p c E rho u j = some (some A) →
+    HonestHeadAt p c E rho x (j + 1) H → Block.Preceq A H
 
 /-- [pcsa34-r4.3 §5.2.2, §5.5 steps 1–2] The Clean facts at the cut of every
-clean stage-1 run. The Outage assembly takes them as an OPEN hypothesis
-(`pastCut` and `heads` cover the boundary case of 5.5 step 2). -/
+clean stage-1 run. The Outage assembly takes them as an OPEN hypothesis. -/
 def CleanCutItems (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
@@ -113,24 +112,23 @@ theorem pcsa_cut_res {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b�
   | some R => exact ⟨R, rfl, hK.chain j₁ i u x A R hi he hu hx hA hr⟩
 
 omit [Fintype V] in
-/-- [§5.5 steps 1, 3] Every honest HEAD of a later label with `v_r ≤ b₀` (and
-its previous gate in the run) extends `A`. -/
+/-- [§5.5 steps 1, 3] Every honest HEAD of a later label `r` with `v_r ≤ b₀`
+extends `A` when `d_{j₁} ≤ b₀`: the bridge gives the HEADs of label `j₁ + 1`,
+the HEAD cone the later labels. -/
 theorem pcsa_cut_head {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b₀ : Time}
-    (h : Base₂ p c E rho) (hfr : StageOneFrame p c E rho) (hK : CutFacts p c E rho b₀)
-    {u : V} (hu : u ∈ rho.honest) {j₁ : Slot} {A : Block}
-    (hA : gateResultAt p c E rho u j₁ = some (some A)) {z : V} {r : Slot} {H : Block}
+    (hK : CutFacts p c E rho b₀) {u : V} (hu : u ∈ rho.honest) {j₁ : Slot} {A : Block}
+    (hA : gateResultAt p c E rho u j₁ = some (some A))
+    (hd : SA.gateTime p.toParams j₁ ≤ b₀) {z : V} {r : Slot} {H : Block}
     (hr : j₁ < r) (hv : SA.voteTime p.toParams r ≤ b₀)
-    (hq : SA.earlyTime p.toParams r ≤ rho.horizon) (hH : HonestHeadAt p c E rho z r H) :
-    Block.Preceq A H := by
-  have h0 : 0 < r := lt_of_le_of_lt (Nat.zero_le _) hr
-  rcases Nat.lt_or_eq_of_le (Nat.le_sub_one_of_lt hr) with hlt | heq
-  · obtain ⟨r', hr'⟩ := pcsa_gate_result_exists E rho h hfr hu
-      (i := r - 1) (by rw [pcsa_gate_pred_early r h0]; exact hq)
-    obtain ⟨R, rfl, hAR⟩ := pcsa_cut_res hK hu hA hu hlt
-      (le_of_lt (lt_of_lt_of_le (pcsa_early_lt_vote_of_lt (Nat.sub_lt h0 Nat.one_pos)) hv)) hr'
-    exact Gen.Pure.block_preceq_trans hAR (hK.heads r z u H R h0 hv hH hu hr')
-  · rw [heq] at hA
-    exact hK.heads r z u H A h0 hv hH hu hA
+    (hH : HonestHeadAt p c E rho z r H) : Block.Preceq A H := by
+  have hB : ∀ y G, HonestHeadAt p c E rho y (j₁ + 1) G → Block.Preceq A G :=
+    fun y G hG => hK.bridge j₁ u y A G hd hu hA hG
+  rcases Nat.lt_or_eq_of_le (Nat.succ_le_of_lt hr) with hlt | heq
+  · obtain ⟨n, rfl⟩ := Nat.exists_eq_add_of_lt hlt
+    exact pcsa_cone_up hK.toCutChain hB n
+      (le_of_lt (lt_of_lt_of_le (pcsa_early_lt_vote_of_lt (Nat.lt_succ_self _)) hv)) z H hH
+  · rw [← heq] at hH
+    exact hB z H hH
 
 /-- [§5.5 step 3, CL4] Every honest ack of a label with `v_s ≤ b₀` is
 compatible with `A`. -/
@@ -145,9 +143,8 @@ theorem pcsa_cut_ack {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b�
   have hs := h.valid.toScheduleWellFormed
   by_cases hsj : j₁ < s
   · obtain ⟨z, hz⟩ := pcsa_honest_ack_head E rho h hf hfr y s X hX
-    have hq := (pcsa_ack_gateResult E rho hs (lt_of_le_of_lt (Nat.zero_le _) hsj) hX).2
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl X)
-      (pcsa_cut_head h hfr hK hu hA hsj hv hq hz)
+      (pcsa_cut_head hK hu hA (le_trans (pcsa_gate_mono (Nat.le_succ j₁)) hd1) hsj hv hz)
   · have hsj' : s ≤ j₁ := Nat.le_of_not_lt hsj
     have hg : SA.gateTime p.toParams (s + 1) ≤ b₀ :=
       le_trans (pcsa_gate_mono (Nat.succ_le_succ hsj')) hd1
