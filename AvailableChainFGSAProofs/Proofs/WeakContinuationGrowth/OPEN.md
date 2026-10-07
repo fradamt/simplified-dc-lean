@@ -28,7 +28,9 @@ remaining obligations for this concrete pair:
   parameterized by the positive validator count. Generic replay, dependency,
   origin, carriage, and wire lemmas certify the real five-validator prefix.
   A checked opaque certificate retains all execution-validity fields.
-- `sourceRoots`: source Base₂.idealization, NamedRootCollisionFree.
+- `sourceRoots`: closed in w6 by `nvGrowth_source_roots`. The generic
+  W1 final-store table covers delivered and held full named proposals,
+  including their ancestors. The opaque certificate retains this proof.
 - `sourceSync`: source Recovery₂.sync, family PartialSynchronyBy.
 - `continuationValid`: continuation Base₂.valid. ScheduleWellFormed is
   proved; the same delivery and signature fields remain open.
