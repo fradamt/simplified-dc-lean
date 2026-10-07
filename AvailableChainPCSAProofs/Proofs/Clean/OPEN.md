@@ -851,3 +851,35 @@ read to its strict pre-vote index. Combine common counts, eligibility,
 views, tree reflection, retained paths and root agreement. Body slot
 bounds make the current proposal terminal. This proves the new
 headsEqual field from the predecessor CI.
+
+### AckDecisions
+
+C6 support: recover exact honest ack decisions for held PCs. The module
+uses the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`ProcessLockRetention`: expose the small lock-field preservation
+facts in LockOrigins. Under the stage-one finality value, a delivery
+keeps a row if every resulting held or valid carried PC is compatible
+with its target. The collection proof already keeps compatible rows;
+check the proposal-carried deletion separately.
+
+`ClockLockRetention`: compare release-count read fields before and
+after the clock. A live row survives expiry; the strict faulty-seat
+bound prevents release. Gate writes can renew rows but retain each
+old target. Lift these store facts through actual tick events.
+
+Joint C6 order: carry an auxiliary ack-to-later-HEAD/result prefix
+property with CI. From predecessor CI, prove current headsAbove,
+headsEqual and resultsChain. Old ack coverage gives current result
+coverage. NRoot gives next-HEAD coverage for current acks. The
+current result chain and ack/result compatibility give PC order,
+record fields, lock fields and roots. Use those roots with CL2 to
+extend older ack coverage to the next HEAD. Then construct CI and
+the auxiliary record together. No current CI is assumed in a step.
+
+`AckResults`: combine prior-result HEAD coverage, same-label CL4,
+and ack-to-later-result coverage for all label orders. `StorePCInputs`:
+recover bounded honest acks from indexed held/carried PCs and exact
+gate inputs. `LockWrites`: ack/result compatibility makes each PC
+compatible with every result prefix, so no gate lock write is vetoed.

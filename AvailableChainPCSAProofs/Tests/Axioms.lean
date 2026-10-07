@@ -449,3 +449,12 @@ end
 -- C6 AckOrigins.
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_honest_emission_before
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_early_before
+
+-- C6 AckDecisions.
+#print axioms AvailableChain.PCSA.Run.pcsa_postClock_at_tick
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_ack_of_emission
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_honest_ack_before
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_slot_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_pcs_before_first_gate_empty
+#print axioms AvailableChain.PCSA.Run.pcsa_readAt_index_before_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_honest_ack_storeAt
