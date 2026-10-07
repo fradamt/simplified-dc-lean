@@ -1,7 +1,7 @@
 module
 public import AvailableChainPCSAProofs.Proofs.Shared.FGStore
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Height
-public import AvailableChainPCSAProofs.Proofs.Foundations.Run
+public import AvailableChainPCSAProofs.Proofs.Foundations.Run -- shake: keep (engine induction re-export for AcFrame.Run)
 public import AvailableChainFGSA.Proofs.Admission
 
 public section
@@ -24,19 +24,6 @@ theorem AcStoreSafe_def (F : Finset (Fin n)) (st : State n) :
         ∀ B ∈ st.fg.TF, ∀ W, FGBlock.Preceq W B → ∀ a ∈ W.rows, a.signer ∈ F) := by
   apply propext
   exact ⟨fun h => h, fun h => h⟩
-
-/-- A clock changes no FG field. -/
-theorem pcsa_clock_fg (p : Params) (st : State p.n) (t : Time) : (clock p st t).fg = st.fg := by
-  unfold clock
-  dsimp only
-  split
-  · unfold gateStep
-    rw [pcsa_normalizeS_fg]
-    split
-    · exact (clockPre_output_fields p st t).1
-    · rw [(gateFrom_pc_frame _ _ _ _ _ _).2]
-      exact (clockPre_output_fields p st t).1
-  · exact (clockPre_output_fields p st t).1
 
 /-- A window update on a block with only faulty rows keeps the cached frame initial. -/
 theorem pcsa_on_block_acSafe (p : Params) (F : Finset (Fin p.n))
