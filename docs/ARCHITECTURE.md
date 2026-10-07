@@ -262,10 +262,11 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   honest receiver holds its wire and a valid carried PC
   (`pcsa_honest_proposal_receipt`, and `pcsa_honest_proposal_early` at the
   early read).
-  The delivery wrappers stay in the lanes: each lane supplies the relay step
-  from its own delivery premise (Outage and Clean: `HealthyPrefixDeliveryBy`
-  through `Shared/Relay`; Recovery: the RECOVERY deadline
-  `max t z_{s-1} + Δ`; Formation: `FormationPrem.delivery`).
+  Shared keeps the `HealthyPrefixDeliveryBy` wrapper
+  (`pcsa_body_relay_before_deadline` in `Shared/BodyReceipt`, through
+  `Shared/Relay`), used by Outage and Clean. The other lanes supply the relay
+  step from their own delivery premises through `BodyRelay` (Recovery: the
+  RECOVERY deadline `max t z_{s-1} + Δ`; Formation: `FormationPrem.delivery`).
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.
