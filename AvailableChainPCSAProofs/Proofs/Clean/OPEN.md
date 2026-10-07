@@ -797,3 +797,16 @@ out a child beyond the current honest proposal in the voter walk.
 and is held at that read. Every proper prefix of the proposal is
 therefore in the proposer tree. Together with CommonTree, the voter
 tree adds at most the proposal itself.
+
+### PCPool
+
+C6 support: preserve certificate ack provenance through all handlers. The
+module uses the concrete readers and preserves the joint-induction
+premises.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`RetainedProposal`: apply the Generic retained-suffix theorem when
+the voter tree adds only the proposal. Retain the source parent path,
+use equal scores and eligibility, and handle different roots with
+coverage of the source root. The sole eligible new child then makes
+the voter walk end at the proposal.

@@ -58,6 +58,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.GateBatch
 
 public import AvailableChainPCSAProofs.Proofs.Clean.ZeroResult
 
+public import AvailableChainPCSAProofs.Proofs.Clean.PCPool
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

@@ -431,3 +431,10 @@ end
 #print axioms AvailableChain.PCSA.pcsa_body_positive_slot
 #print axioms AvailableChain.PCSA.Run.pcsa_zero_result_eq_genesis
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_zero_result
+
+-- C6 PCPool.
+#print axioms AvailableChain.PCSA.CleanPCPool.pcsa_firstPerSeat_subset
+#print axioms AvailableChain.PCSA.CleanPCPool.CertSafe
+#print axioms AvailableChain.PCSA.CleanPCPool.CertSafe_def
+#print axioms AvailableChain.PCSA.CleanPCPool.process_certSafe
+#print axioms AvailableChain.PCSA.CleanPCPool.clock_certSafe
