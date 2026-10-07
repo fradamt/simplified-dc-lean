@@ -136,6 +136,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.RelayFrames
 
 public import AvailableChainPCSAProofs.Proofs.Clean.RelayCollect
 
+public import AvailableChainPCSAProofs.Proofs.Clean.RelayStore
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

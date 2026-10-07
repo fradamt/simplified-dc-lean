@@ -1228,3 +1228,9 @@ Clean saturation gives complete exact-target assembly. A new key requires
 a matching added ack; a single completing ack belongs to the resulting
 certificate.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RelayStore
+
+The admission tail preserves ack growth and traces a new PC key to the
+delivered body or ack batch.
+Validation and current claim status are recorded in log.md and state.md.

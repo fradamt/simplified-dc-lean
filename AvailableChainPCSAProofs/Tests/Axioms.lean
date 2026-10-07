@@ -678,3 +678,14 @@ end
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_new_key_single
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_saturated_collectClosed
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_collectClosed
+
+-- C6 RelayStore.
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_poolAck_pool
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_fold_poolAckRaw_extra
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_collect_new_key
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_ack_new_key
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_admitBlock_new_key
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_tail_pool
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_ite_reconcile_pool
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_process_pool_mono
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_admitPC_pool
