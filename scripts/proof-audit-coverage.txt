@@ -5556,7 +5556,9 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Formation': (
             'AvailableChain.PCSA.Run.pcsa_formation',
+            'AvailableChain.PCSA.Run.pcsa_formation_of_run',
             'AvailableChain.PCSA.Run.pcsa_formation_source_of_preFreeze',
+            'AvailableChain.PCSA.Run.pcsa_formation_source_of_run',
             'AvailableChain.PCSA.Run.pcsa_formation_source_of_stamped_pc_c1',
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Small': (
@@ -5571,8 +5573,29 @@
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.FormationGate': (
+            'AvailableChain.PCSA.Run.pcsa_formation_gate_anchor',
             'AvailableChain.PCSA.Run.pcsa_formation_gate_of_counts',
             'AvailableChain.PCSA.Run.pcsa_formation_gate_read',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.FormationHeads': (
+            'AvailableChain.PCSA.Run.pcsa_formation_honest_head_clean',
+            'AvailableChain.PCSA.Run.pcsa_formation_honest_head_clean_of_evidence',
+            'AvailableChain.PCSA.Run.pcsa_formation_honest_head_clean_read',
+            'AvailableChain.PCSA.Run.pcsa_formation_timely_head_of_early',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.FormationInputs': (
+            'AvailableChain.PCSA.Run.pcsa_formation_carried_presence_of_metadata',
+            'AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_receipt_of_body',
+            'AvailableChain.PCSA.Run.pcsa_formation_inputs_of_run',
+            'AvailableChain.PCSA.Run.pcsa_formation_key_at_read',
+            'AvailableChain.PCSA.Run.pcsa_formation_key_before_proposal_of_handler',
+            'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_run',
+            'AvailableChain.PCSA.pcsa_formation_current_body_in_voter_tree',
+            'AvailableChain.PCSA.pcsa_formation_raw_keep_of_metadata',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.FormationOrigins': (
+            'AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_read_valid',
+            'AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_valid',
         ),
         'AvailableChainPCSAProofs.Proofs.Foundations.AckPool': (
             'AvailableChain.PCSA.acksOn_subset',

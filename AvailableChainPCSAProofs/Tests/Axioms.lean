@@ -322,4 +322,22 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_preFreeze
 
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_gate_anchor
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_valid
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_read_valid
+#print axioms AvailableChain.PCSA.pcsa_formation_raw_keep_of_metadata
+#print axioms AvailableChain.PCSA.pcsa_formation_current_body_in_voter_tree
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_key_before_proposal_of_handler
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_key_at_read
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_receipt_of_body
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_carried_presence_of_metadata
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_inputs_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_honest_head_clean_of_evidence
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_honest_head_clean
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_honest_head_clean_read
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_timely_head_of_early
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_run
+
 end

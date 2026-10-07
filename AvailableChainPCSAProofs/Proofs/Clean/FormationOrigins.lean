@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Shared.Certificates
 public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationView
 public import AvailableChainPCSAProofs.Proofs.Shared.RelayRun
@@ -13,6 +14,23 @@ and the resulting collection remain separate inputs. -/
 
 open AvailableChain AvailableChain.SimplexFG
 namespace AvailableChain.PCSA
+private theorem formation_pcs_wellFormed (p : Params) (st : State p.n) (h : Reachable p st) :
+    ∀ D ∈ st.pcs, D.wellFormed = true := by
+  have hs : CertSafe (fun _ => True) st := by
+    induction h with
+    | init =>
+      rw [CertSafe_def]
+      refine ⟨fun _ _ => True.intro, ?_⟩
+      intro d hd
+      change d ∈ ([] : List (PC p.n)) at hd
+      cases hd
+    | tick t _ ih => exact clock_certSafe p _ _ t ih
+    | deliver o _ ih =>
+      exact process_certSafe p _ _ o ih (by intros; trivial)
+        (by intros; trivial) (by intros; trivial)
+  rw [CertSafe_def] at hs
+  exact fun D hD => (hs.2 D hD).1
+
 private theorem formation_freeze_row (p : Params) (st : State p.n) (s : Slot)
     (h : st.pcSnapshot.find? (fun row => row.1 == s) = none) :
     (clock p st (SA.freezeTime p.toParams s)).pcSnapshot.find?
@@ -35,12 +53,13 @@ end AvailableChain.PCSA
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
 /-- Each frozen key comes from acceptance no later than its freeze. -/
-theorem pcsa_formation_frozen_pc_origin (E : Generic.Env V)
+theorem pcsa_formation_frozen_pc_origin_valid (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (hBase : Base₂ p c E rho)
     (hFrame : StageOneFrame p c E rho) (x : V) (hx : x ∈ rho.honest)
     (K : Nat) (s : Slot) (C : PC p.n)
     (hC : C ∈ pcSnapshotAt (V2.D.Run.stateBefore E rho K x).st s) :
     ∃ j t D, t ≤ SA.freezeTime p.toParams s ∧ D.slot = C.slot ∧ D.target = C.target ∧
+      D.wellFormed = true ∧
       V2.D.Run.acceptsAt E rho j x (⟨.none, .pc D⟩ : Obj p) t := by
   have hlabel : s ∈ (V2.D.Run.stateBefore E rho K x).st.pcSnapshot.map Prod.fst := by
     delta pcSnapshotAt at hC
@@ -63,14 +82,27 @@ theorem pcsa_formation_frozen_pc_origin (E : Generic.Env V)
   change C ∈ pcSnapshotAt
     (V2.D.World.step E rho (V2.D.Run.stateBefore E rho i) (.tick x _) x).st s at hC
   rw [pcsa_tick_step, clock_freeze_snapshot p _ s hs, pcsa_clock_pcs] at hC
-  obtain ⟨j, hji, D, t, hDs, hDt, _, ha⟩ := pcsa_keyHeld_accepted E rho hBase hFrame x hx
+  obtain ⟨j, hji, D, t, hDs, hDt, hD, ha⟩ := pcsa_keyHeld_accepted E rho hBase hFrame x hx
     C.slot C.target i ((KeyHeld_def _ _ _).mpr ⟨C, hC, rfl, rfl⟩)
   obtain ⟨o, hj, _⟩ := ha.1
   obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hj
   obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
   have ht := (List.pairwise_iff_getElem.mp hBase.valid.sorted) j i hjl hil hji
   rw [hje, hie] at ht
-  exact ⟨j, t, D, V2.D.Engine.time_le_of_key_le _ _ ht, hDs, hDt, ha⟩
+  exact ⟨j, t, D, V2.D.Engine.time_le_of_key_le _ _ ht, hDs, hDt,
+    formation_pcs_wellFormed p _ (pcsa_reachable_stateBefore E rho (j + 1) x) D hD, ha⟩
+/-- The original frozen-key origin follows from its valid certificate origin. -/
+theorem pcsa_formation_frozen_pc_origin (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hBase : Base₂ p c E rho)
+    (hFrame : StageOneFrame p c E rho) (x : V) (hx : x ∈ rho.honest)
+    (K : Nat) (s : Slot) (C : PC p.n)
+    (hC : C ∈ pcSnapshotAt (V2.D.Run.stateBefore E rho K x).st s) :
+    ∃ j t D, t ≤ SA.freezeTime p.toParams s ∧ D.slot = C.slot ∧ D.target = C.target ∧
+      V2.D.Run.acceptsAt E rho j x (⟨.none, .pc D⟩ : Obj p) t := by
+  obtain ⟨j, t, D, ht, hs, hb, _, ha⟩ := pcsa_formation_frozen_pc_origin_valid
+    E rho hBase hFrame x hx K s C hC
+  exact ⟨j, t, D, ht, hs, hb, ha⟩
+
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA
@@ -102,6 +134,29 @@ end AvailableChain.PCSA
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
 /-- A duty read after another time keeps the old frozen-key origin. -/
+theorem pcsa_formation_frozen_pc_origin_read_valid (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hBase : Base₂ p c E rho)
+    (hFrame : StageOneFrame p c E rho) (x : V) (hx : x ∈ rho.honest)
+    (s : Slot) (t : Time) (nd : Node p) (C : PC p.n)
+    (hr : pcsa_postClock E rho x t = some nd) (ht : t ≠ SA.freezeTime p.toParams s)
+    (hC : C ∈ pcSnapshotAt nd.st s) :
+    ∃ j u D, u ≤ SA.freezeTime p.toParams s ∧ D.slot = C.slot ∧ D.target = C.target ∧
+      D.wellFormed = true ∧
+      V2.D.Run.acceptsAt E rho j x (⟨.none, .pc D⟩ : Obj p) u := by
+  rw [pcsa_postClock_def] at hr
+  obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hr
+  rw [pcsa_preTick_def] at hp
+  obtain ⟨k, _, he⟩ := Option.map_eq_some_iff.mp hp
+  subst pre
+  subst nd
+  exact pcsa_formation_frozen_pc_origin_valid E rho hBase hFrame x hx k s C
+    (formation_snapshot_before_clock p _ s t C ht hC)
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In} {m : FGMode}
+omit [Fintype V] in
+/-- The original read interface follows from the valid certificate origin. -/
 theorem pcsa_formation_frozen_pc_origin_read (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (hBase : Base₂ p c E rho)
     (hFrame : StageOneFrame p c E rho) (x : V) (hx : x ∈ rho.honest)
@@ -110,18 +165,10 @@ theorem pcsa_formation_frozen_pc_origin_read (E : Generic.Env V)
     (hC : C ∈ pcSnapshotAt nd.st s) :
     ∃ j u D, u ≤ SA.freezeTime p.toParams s ∧ D.slot = C.slot ∧ D.target = C.target ∧
       V2.D.Run.acceptsAt E rho j x (⟨.none, .pc D⟩ : Obj p) u := by
-  rw [pcsa_postClock_def] at hr
-  obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hr
-  rw [pcsa_preTick_def] at hp
-  obtain ⟨k, _, he⟩ := Option.map_eq_some_iff.mp hp
-  subst pre
-  subst nd
-  exact pcsa_formation_frozen_pc_origin E rho hBase hFrame x hx k s C
-    (formation_snapshot_before_clock p _ s t C ht hC)
-end AvailableChain.PCSA.Run
+  obtain ⟨j, u, D, hu, hs, hb, _, ha⟩ := pcsa_formation_frozen_pc_origin_read_valid
+    E rho hBase hFrame x hx s t nd C hr ht hC
+  exact ⟨j, u, D, hu, hs, hb, ha⟩
 
-namespace AvailableChain.PCSA.Run
-variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In} {m : FGMode}
 /-- F1 supplies old-PC receipt from the run, without hFrozenPCOrigin. -/
 theorem pcsa_formation_frozen_pc_receipt_of_run (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)

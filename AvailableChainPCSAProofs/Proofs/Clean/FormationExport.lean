@@ -1,4 +1,6 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationInputs
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationHeads
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationEvidence
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationWalk
@@ -37,8 +39,11 @@ view bound at every honest early reader. Root-form carriage closes the PC
 target alias gap: its installing call now handles the real PC for relay.
 The alias regression checks installation, handling and all seven early acks.
 FormationView proves signed proposal metadata uniqueness and conditional
-receipt, early-view and A2 facts. Frozen receipt and carried presence remain
-explicit inputs. The proposer lists and root-mode score transport are proved.
+receipt, early-view and A2 facts. FormationInputs derives frozen identity
+receipt from target-body receipt.
+It derives carried presence from exact metadata and PC validity.
+Body admission and relay remain named stage-2 inputs. The proposer lists
+and root-mode score transport are proved.
 The old release witness fails F4.
 FormationCompose proves parts 1–4 with named run inputs.
 Assembly.Formation composes them with the named late gate counts.
@@ -51,7 +56,10 @@ FormationTerminal closes hStop from handler slot bounds and sorted run times.
 The retained HEAD consumer still needs the receipt, resolution, path and child inputs.
 FormationOrigins closes hFrozenPCOrigin at the actual early read.
 FormationCollection closes hPCCollect from the required early N counts.
-Its PC consumers need only hAckAdmit from C3. The early N-count producer is open.
+Its PC consumers need only hAckAdmit from C3. FormationHeads closes honest pool non-equivocation.
+FormationInputs now needs early resolved HEAD receipt, without an equivocation input.
+Raw-HEAD carriage and the current child follow from body/metadata receipt.
+Seven retained path/support inputs and late gate counts remain open.
 The main Clean.Export module is owned by the other Clean writer. -/
 
 end
