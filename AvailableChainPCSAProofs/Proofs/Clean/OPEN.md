@@ -1160,3 +1160,9 @@ Validation and current claim status are recorded in log.md and state.md.
 C6 support: identify exact honest HEAD witnesses for N targets. The module
 uses the concrete readers and preserves the joint-induction premises.
 Validation and current claim status are recorded in log.md and state.md.
+
+### ViewOrigins
+
+C6 support: trace voter PC views to earlier honest ack targets. The module
+uses the concrete readers and preserves the joint-induction premises.
+Validation and current claim status are recorded in log.md and state.md.

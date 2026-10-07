@@ -603,3 +603,9 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_early_honest_head_source
 #print axioms AvailableChain.PCSA.Run.pcsa_N_has_honest_head
 #print axioms AvailableChain.PCSA.Run.pcsa_N_targets_unique
+
+-- C6 ViewOrigins.
+#print axioms AvailableChain.PCSA.pcsa_vote_ne_freeze
+#print axioms AvailableChain.PCSA.pcsa_vote_snapshot
+#print axioms AvailableChain.PCSA.pcsa_clock_carriedPCs
+#print axioms AvailableChain.PCSA.Run.pcsa_voterPC_honest_ack_before
