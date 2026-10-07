@@ -355,3 +355,10 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_early_head_relay_frozen
 #print axioms AvailableChain.PCSA.Run.pcsa_early_body_relay_frozen
 #print axioms AvailableChain.PCSA.Run.pcsa_early_input_relay_support
+
+-- C6 CountTransport.
+#print axioms AvailableChain.PCSA.pcsa_clean_input_not_capped
+#print axioms AvailableChain.PCSA.pcsa_clean_input_unique_late
+#print axioms AvailableChain.PCSA.Run.pcsa_read_vote_support_body
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_voter_walk_counts
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts

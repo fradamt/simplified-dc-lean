@@ -492,3 +492,18 @@ Transport every counted seat into both next-label score sets, including
 cap outcomes, and retain every N-target prefix. Then apply NWalkCounts
 under an explicit N-target root-compatibility premise. The existing
 StepPC root-bound helper must still receive its run premises.
+
+### CountTransport
+
+Actual gate-to-voter and gate-to-proposer counts discharge CL2. The only
+geometric premises are root compatibility and retained paths. Clean late-
+seat uniqueness and resolved support witnesses are exported.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`NNextHead`: combine NReadTransport, the honest-cap bound, and the
+strict N score gap at the actual next voter read. Prove next HEAD
+coverage under the separate N-root compatibility premise.
+`NHeads`: use the N-seat intersection bound and honest pool evidence
+to identify actual honest HEAD decisions on N targets. Derive N-target
+uniqueness from one common honest seat. These facts supply the PC
+chain step without a dependency on the separate PC proof lane.
