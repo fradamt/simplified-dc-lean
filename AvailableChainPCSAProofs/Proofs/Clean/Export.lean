@@ -160,6 +160,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.CommonEligibility
 
 public import AvailableChainPCSAProofs.Proofs.Clean.RetainedProposal
 
+public import AvailableChainPCSAProofs.Proofs.Clean.ProposerReads
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -334,6 +336,92 @@ theorem pcsa_clean_invariant_zero (E : Generic.Env V)
   · intro x hx R hr y hy X hX
     rw [pcsa_zero_next_root E rho h.base hF hFault x hx R hr, results y hy X hX]
     exact compatible
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+omit [Fintype V] in
+/-- The predecessor invariant makes the actual proposer root compatible with its results. -/
+theorem pcsa_clean_proposer_root_compatible (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (s : Slot) (hCI : CleanInvariantAt p c E rho s)
+    (k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hk : rho.events[k]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
+    (X : Block) (hX : gateResultAt p c E rho y s = some (some X)) :
+    Block.Compatible
+      (liveRoot p (clock p (V2.D.Run.stateBefore E rho k x).st (SA.proposalTime p.toParams (s + 1)))
+        (proposerPC p (clock p (V2.D.Run.stateBefore E rho k x).st
+          (SA.proposalTime p.toParams (s + 1))))) X := by
+  let st := clock p (V2.D.Run.stateBefore E rho k x).st (SA.proposalTime p.toParams (s + 1))
+  have hz : (controls p st).Z = .genesis := by
+    change (KitFG.storeControlsView (FGSA.heightView p) (clock p _ _).fg).Z = .genesis
+    rw [pcsa_body_clock_fg]
+    exact (hF x hx k).2.1
+  have htime : SA.proposalTime p.toParams (s + 1) - 1 < SA.voteTime p.toParams (s + 1) := by
+    have hp : (0 : Int) < p.Δ := p.deltaPos
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) - 1 < 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    linarith
+  have hpropVote : SA.proposalTime p.toParams (s + 1) < SA.voteTime p.toParams (s + 1) := by
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) < 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    exact lt_add_of_pos_right _ p.deltaPos
+  rcases pcsa_liveRoot_origin p st (proposerPC p st) with he | hm
+  · rw [he]
+    cases hv : proposerPC p st with
+    | none =>
+      change Block.Compatible (eraseFG (controls p st).Z) X
+      rw [hz]
+      exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_genesis_preceq X))
+    | some C =>
+      change Block.Compatible (if frameActive p st C then C.target else eraseFG (controls p st).Z) X
+      split
+      · have hC := (List.mem_filter.mp (bestPC_mem _ C hv)).1
+        change C ∈ (clock p _ _).pcs at hC
+        rw [pcsa_clock_pcs, pcsa_pre_tick_storeAt E rho h k x _ hk] at hC
+        exact hCI.pcResults x hx y hy _ C s X htime hC (le_refl _) hX
+      · rw [hz]
+        exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_genesis_preceq X))
+  · obtain ⟨row, hrow, hr, _, _⟩ := (pcsa_walkLocks_mem p st _ _).mp hm
+    have hpre := pcsa_proposal_locks_subset p (V2.D.Run.stateBefore E rho k x).st (s + 1) hrow
+    have hread := V2.D.Engine.stateBefore_tick_eq_stateBeforeTime h.valid.toScheduleWellFormed
+      h.noRestart hk
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ h.valid.toScheduleWellFormed] at hread
+    rw [hread] at hpre
+    obtain ⟨a, ha, i, Y, hevent, hY, hrowY, _⟩ := pcsa_lock_stateBefore_origin E rho h _ x row hpre
+    have hgate := (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed hevent _).mp ha
+    have hi := pcsa_gate_label_lt_next_vote p i s (hgate.trans hpropVote)
+    have hYX := (hCI.resultsChain x hx y hy i s Y X hi.le (le_refl _) hY hX).1 hi
+    exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_preceq_trans (hr ▸ hrowY) hYX))
+/-- The actual proposer walk extends every predecessor-label result. -/
+theorem pcsa_clean_proposer_head_above_result (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (s : Slot) (hCI : CleanInvariantAt p c E rho s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hk : rho.events[k]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
+    (X : Block) (hX : gateResultAt p c E rho y s = some (some X)) :
+    let st := clock p (V2.D.Run.stateBefore E rho k x).st (SA.proposalTime p.toParams (s + 1))
+    Block.Preceq X (getHead p st (proposerPC p st) (proposerVotes st (s + 1))
+      (proposerSupport st (s + 1))) := by
+  obtain ⟨a, ha, hresult⟩ := pcsa_gateResultAt_source E rho y s X hX
+  have hroot := pcsa_clean_proposer_root_compatible E rho h.base hF s hCI k x y hx hy hk X hX
+  have hfcut : SA.freezeTime p.toParams s ≤ cut := by
+    apply le_trans _ hc
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    have hp : (0 : Int) < p.Δ := p.deltaPos
+    linarith
+  have hidx : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k := by
+    apply Nat.le_of_not_gt
+    intro hn
+    have ht := (Gen.V2.Duty.index_lt_idxBefore_iff h.base.valid.toScheduleWellFormed hk _).mp hn
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) < 4 * p.Δ * (s : Int) + 3 * p.Δ at ht
+    push_cast at ht
+    have hp : (0 : Int) < p.Δ := p.deltaPos
+    nlinarith
+  have hpaths := pcsa_result_prefixes_retained E rho h.base hF h.healthy a k y x hy hx
+    (SA.gateTime p.toParams s) (SA.proposalTime p.toParams (s + 1)) s X hfcut hidx hresult
+  exact pcsa_gate_proposer_walk_counts E rho h.base hF h.healthy a k y x hy hx s X _ _ hc ha hk
+    hresult hroot (fun B _ hBX => (hpaths B hBX).1)
 end AvailableChain.PCSA.Run
 
 end

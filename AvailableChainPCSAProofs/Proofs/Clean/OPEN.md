@@ -1301,3 +1301,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Retained paths and equal inputs transport the parent walk between roots;
 the unique eligible new child is the proposal.
 Validation and current claim status are recorded in log.md and state.md.
+
+### ProposerReads
+
+Exact pre-tick reads let predecessor CI compare proposer roots with
+results. Concrete proposer counts then give parent coverage.
+Validation and current claim status are recorded in log.md and state.md.

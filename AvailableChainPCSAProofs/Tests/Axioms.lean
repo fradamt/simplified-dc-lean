@@ -741,3 +741,11 @@ end
 
 -- C6 RetainedProposal.
 #print axioms AvailableChain.PCSA.pcsa_retained_proposal_walk
+
+-- C6 ProposerReads.
+#print axioms AvailableChain.PCSA.pcsa_proposal_ne_gate
+#print axioms AvailableChain.PCSA.pcsa_proposal_locks_subset
+#print axioms AvailableChain.PCSA.Run.pcsa_strict_read_eq_previous
+#print axioms AvailableChain.PCSA.Run.pcsa_pre_tick_storeAt
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_proposer_root_compatible
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_proposer_head_above_result
