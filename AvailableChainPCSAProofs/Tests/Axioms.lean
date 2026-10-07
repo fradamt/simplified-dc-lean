@@ -764,3 +764,9 @@ end
 
 -- C6 AckResults.
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_result_compatible
+
+-- C6 StorePCInputs.
+#print axioms AvailableChain.PCSA.pcsa_early_label_before_gate
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_index_ack_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_index_ack_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_pc_ack_slot

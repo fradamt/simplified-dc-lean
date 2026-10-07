@@ -1325,3 +1325,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Earlier, equal and later label arguments give the full ack/result
 compatibility used by the joint record.
 Validation and current claim status are recorded in log.md and state.md.
+
+### StorePCInputs
+
+Indexed held PCs, valid carried PCs and exact gate inputs have honest ack
+witnesses with the required label bounds.
+Validation and current claim status are recorded in log.md and state.md.
