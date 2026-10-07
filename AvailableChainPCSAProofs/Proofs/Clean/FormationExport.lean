@@ -14,6 +14,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCollect
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationView
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationFreeze
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationSourceRetention
 
 public section
 
@@ -35,8 +36,9 @@ FormationView proves signed proposal metadata uniqueness and conditional
 receipt, early-view and A2 facts. Frozen receipt and carried presence remain
 explicit inputs. The proposer lists and root-mode score transport are proved.
 The old release witness fails F4.
-No whole claim is exported. Source selection still needs an own-slot PC
-in the action snapshot, its target identity, and retained target membership.
+No whole claim is exported. FormationSourceRetention derives snapshot and
+target retention. The stamped-PC part of C7 supplies the source when
+connected to C1 PC target uniqueness. No source retention input remains.
 FormationRetention closes hAckPoolMono from NoRestart.
 FormationFreeze closes hFreezeKeep and supplies PC consumers.
 The C3 inputs remain hAckAdmit and hPCCollect.
