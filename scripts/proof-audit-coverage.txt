@@ -5764,6 +5764,21 @@
         ),
     },
     'AvailableChainFGCompose.Tests.SafetyAxioms': {
+        'AvailableChainFGCompose.Proofs.SafetyClient': (
+            'AvailableChain.FGCompose.safety_client_trace',
+            'AvailableChain.FGCompose.safety_emitted_noSlash',
+            'AvailableChain.FGCompose.safety_linked_seats',
+            'AvailableChain.FGCompose.safety_record_fold',
+        ),
+        'AvailableChainFGCompose.Proofs.SafetyCount': (
+            'AvailableChain.FGCompose.safety_fault_count_bound',
+            'AvailableChain.FGCompose.safety_slashable_faulty_count',
+        ),
+        'AvailableChainFGCompose.Proofs.SafetyMonotone': (
+            'AvailableChain.FGCompose.safety_F_mono',
+            'AvailableChain.FGCompose.safety_finalized_monotone',
+            'AvailableChain.FGCompose.safety_readAt_prefix',
+        ),
         'AvailableChainFGCompose.Statements.SafetyClaims': (
             'AvailableChain.FGCompose.SafetyWholeAccountable',
             'AvailableChain.FGCompose.SafetyWholeAccountable_def',
@@ -5811,10 +5826,14 @@
             'AvailableChain.FGCompose.safetyHolder_def',
             'AvailableChain.FGCompose.safetyInputAt',
             'AvailableChain.FGCompose.safetyInputAt_def',
+            'AvailableChain.FGCompose.safetyInputAt_other',
+            'AvailableChain.FGCompose.safetyInputAt_tick',
             'AvailableChain.FGCompose.safetyNoSlash',
             'AvailableChain.FGCompose.safetyNoSlash_def',
             'AvailableChain.FGCompose.safetyRecordStep',
             'AvailableChain.FGCompose.safetyRecordStep_def',
+            'AvailableChain.FGCompose.safetyRecordStep_none',
+            'AvailableChain.FGCompose.safetyRecordStep_some',
             'AvailableChain.FGCompose.safetyRows',
             'AvailableChain.FGCompose.safetyRows_def',
             'AvailableChain.FGCompose.safetyRunBlock',
