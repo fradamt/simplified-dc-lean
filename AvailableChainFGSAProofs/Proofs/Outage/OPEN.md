@@ -15,39 +15,27 @@ No FinalitySlashableBound premise has been added.
    the claim is proved. No empty Export and no Shared/Claims wiring exist.
 3. No other guard change is requested. The old-read baseline is unchanged.
 
-## Paper §3: remaining uncontested coverage producer
+## Paper §3: uncontested coverage producer closed in w3
 
-`outageV_head_covers_of_witnesses` instantiates the actual voter filter,
-eligibility, and dominated walk. It requires these exact facts at the
-scheduled label-s HEAD state, for s at least r+1:
+`outageV_covering_head_receipts` delivers each authentic previous HEAD
+and its path before e_s. It preserves their stamps through the actual
+clocked label-(s+1) HEAD. The vote is in its merged support pool. Every
+FG ancestor of the target is in its frozen voter set.
 
-- The live root is compatible with B.
-- For each C with liveRoot ≺ C ⪯ B, there is X in `voterBlocks p st s`
-  with `eraseFG X = C`. There is W in the same voter set with X ⪯ W and
-  `controls.lo ≤ (heightView p W).h`.
-- `voterCount (headVotes p st s) < 2 * score B` in the actual merged pools.
-- Every D conflicting with B has `score D < score B` in those pools.
+`outageV_frozen_path_receipt` relays an old held path before z_s from an
+inclusive source cutoff at e_s. Current F below the path and monotonic F
+supply every earlier exclusion check.
 
-`outageV_head_covers_from_batch` derives the score bounds from authentic
-covering HEADs in the actual merged support pool and restored participation.
-`outageV_crossing_source` extracts the original honest height-(H-1) source,
-its action index, its held body, and compatibility from source history.
-`outageV_source_held` proves that the clock did not admit that body.
-`outageV_frozen_of_receipt` preserves a carrier received before the freeze
-in the actual later voter set, with its original strict stamp.
+`outageV_uncontested_head` combines these facts with the crossing-source
+producer and the actual dominated walk. Its causal inputs are source
+history, coverage of all previous honest scheduled HEADs, and live-root
+compatibility. It also uses execution, no restart, CStar, cumulative
+storage, root identity, row origin, full synchrony, GST, restored
+participation, and an uncontested frame. There is no separate receipt,
+score, full-store path, or frozen-witness premise.
 
-Assemble these at the uncontested scheduled HEAD read. Supply the covering
-HEAD receipts and a height witness for each live-root-to-B path vertex.
-If the crossing source is below B, use B. Otherwise relay that source and
-its path. Prove the needed F compatibility from the current F below B and
-monotonic F. Do not use a full-store witness in place of a frozen witness.
-
-`outageV_source_gate_cutoff` proves the inclusive source-time bound from
-its gate-time bound. `outageV_path_coverage` permits that inclusive cutoff.
-The remaining facts are the covering HEAD receipt producer and the
-assembly of the frozen height witnesses at the scheduled clocked HEAD read.
-The gate receipt read at d_(s-1) is later than v_s. Do not use it unchanged
-for this HEAD. Supply receipts before z_(s-1) and preserve them to v_s.
+The joint induction must still produce its three causal inputs. The
+first restored HEAD seed is separate and remains open below.
 
 ## Paper §§4–6: frames and the first regression
 

@@ -253,5 +253,20 @@ theorem audit_outageV_inclusive_outputs :
   @AvailableChain.FGSA.Run.outageV_inclusive_outputs
 #print axioms audit_outageV_inclusive_outputs
 
+theorem audit_outageV_covering_head_receipts :
+    type_of% (@AvailableChain.FGSA.Run.outageV_covering_head_receipts) :=
+  @AvailableChain.FGSA.Run.outageV_covering_head_receipts
+#print axioms audit_outageV_covering_head_receipts
+
+theorem audit_outageV_frozen_path_receipt :
+    type_of% (@AvailableChain.FGSA.Run.outageV_frozen_path_receipt) :=
+  @AvailableChain.FGSA.Run.outageV_frozen_path_receipt
+#print axioms audit_outageV_frozen_path_receipt
+
+theorem audit_outageV_uncontested_head :
+    type_of% (@AvailableChain.FGSA.Run.outageV_uncontested_head) :=
+  @AvailableChain.FGSA.Run.outageV_uncontested_head
+#print axioms audit_outageV_uncontested_head
+
 end AvailableChain.FGSA.Run.Tests.OutageContinuationAxioms
 end
