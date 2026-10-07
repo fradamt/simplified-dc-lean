@@ -632,12 +632,30 @@ def check_support(ctx: Context, m: Module, dep: str) -> bool:
 # Exact external edges. Both source guards use this table.
 COMPOSE_MODULES = (COMPOSE + ".Statements.EventReads", COMPOSE + ".Statements.CoreReads",
                    COMPOSE + ".Proofs.SourceHead")
+COMPOSE_SAFETY_MODULES = tuple(COMPOSE + ".Statements." + name for name in
+                               ("SafetyReads", "SafetyStore", "SafetyClient", "SafetyClaims"))
+COMPOSE_MODULES += COMPOSE_SAFETY_MODULES
+COMPOSE_SAFETY_IMPORTS = frozenset({
+    (COMPOSE + ".Statements.SafetyReads", KITFG + ".ClientOnce"),
+    (COMPOSE + ".Statements.SafetyReads", "AvailableChainSimplexFG.Evidence"),
+    (COMPOSE + ".Statements.SafetyReads", KITFG + ".CertificateCoreDef"),
+    (COMPOSE + ".Statements.SafetyReads", SV + ".Duty.Slashing"),
+    (COMPOSE + ".Statements.SafetyStore", KITFG + ".StoreSafetyDef"),
+    (COMPOSE + ".Statements.SafetyClient", SP + ".Quorum"),
+})
 COMPOSE_EDGES = frozenset(
-    [(PROOFS + ".Proofs.Shared.FGCompose", dep) for dep in COMPOSE_MODULES]
+    [(PROOFS + ".Proofs.Shared.FGCompose", dep) for dep in COMPOSE_MODULES[:3]]
     + [(PROOFS + ".Proofs.Finality." + name, COMPOSE + ".Proofs.SourceHead")
        for name in ("MiddleSupport", "Rows")]
     + [("AvailableChainPCSAProofs.Proofs.Shared.FGCompose", COMPOSE + ".Statements.CoreReads")]
     + [("AvailableChainPCSAClaims.Statements.Reads", COMPOSE + ".Statements.EventReads")])
+
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyClient'),
+    ('AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyStore'),
+    ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyClient'),
+    ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyStore'),
+})
 
 
 def compose_base(dep: str) -> bool:
@@ -655,7 +673,8 @@ def compose_s(ctx: Context, m: Module, dep: str) -> bool:
     if m.facade:
         return dep not in COMPOSE_MODULES
     if under(m.name, COMPOSE + ".Statements"):
-        return not (compose_base(dep) or under(dep, COMPOSE + ".Statements"))
+        return not (compose_base(dep) or under(dep, COMPOSE + ".Statements")
+                    or (m.name, dep) in COMPOSE_SAFETY_IMPORTS)
     return not any_under(m.name, (COMPOSE + ".Proofs", COMPOSE + ".Tests"))
 
 
@@ -726,6 +745,13 @@ def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
         "AvailableChainSimplexFG", "AvailableChainFGSA.Model", "AvailableChainFGSA.Statements",
         "AvailableChainFGSA.Proofs", "AvailableChainFGSARun", PROOFS + ".Proofs"))
         or dep == STORE_FACTS or (m.name, dep) in COMPOSE_EDGES)
+    # New safety adapters use named FG-SA model producers, never its run claims.
+    if m.name in {
+            PC_PROOFS + ".Proofs.Foundations.FGSafetyClient",
+            PC_PROOFS + ".Proofs.Foundations.FGSafetyStore"} and any_under(dep, (
+                "AvailableChainFGSA", "AvailableChainFGSARun", PROOFS, CLAIMS)):
+        upstream = dep in {"AvailableChainFGSA.Proofs.Carrier",
+                           "AvailableChainFGSA.Proofs.StoreLaws"}
     if parts[0] == "Assembly":
         allowed = upstream or (target and (target[0] == "Shared" or target_export))
         if m.name == PC_PROOFS + ".Proofs.Assembly.Root":

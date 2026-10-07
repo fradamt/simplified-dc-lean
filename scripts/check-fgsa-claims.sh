@@ -121,6 +121,8 @@ def direct_ok(m, dep):
         return True
     if dep in LIBS or dep.endswith('.FGSAClaims'):
         return False
+    if (m, dep) in L.COMPOSE_EDGES:
+        return True  # the shared exact adapter/wrapper pairs, with no prefix exception
     if dep.startswith(('AvailableChainGridCO.Proofs.', 'AvailableChainKit.',
                        'AvailableChainStatements.')) or dep == 'AvailableChainModel.Generic.Run':
         return False
