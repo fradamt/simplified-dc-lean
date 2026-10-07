@@ -192,7 +192,8 @@ private theorem pcsa_decoded_payloads_ack (o : Obj p) :
     | prop k => cases payload <;> dsimp only [toWire, toAuth, Wire.decode] <;> simp
     | base l => cases l <;> cases payload <;>
       dsimp only [toWire, toAuth, Wire.decode, Label.ackSlot?] <;> simp
-private theorem pcsa_handles_carried (st : State p.n) (o child : Obj p)
+/-- Every handled child is the delivered object or a carried object. -/
+theorem pcsa_handles_carried (st : State p.n) (o child : Obj p)
     (hh : handlesS p st o child) : child = o ∨ carriesS p o child := by
   delta handlesS at hh
   rcases hh with hh | hh | hh

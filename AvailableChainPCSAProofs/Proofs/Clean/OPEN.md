@@ -645,3 +645,45 @@ metadata. Split the selected voter PC into frozen and carried sources.
 Recover an exact honest ack before the vote for either source, using
 scoped body-root equality for carried targets. This supplies the
 separate N-root argument and the common-view comparison.
+
+`CommonRaw`: use wire well-formedness to recover the signing slot of
+stored metadata. At an honest proposer slot, all carried raw lists
+come from the unique emitted proposal. That list is in every voter
+read after receipt. Every extra raw voter input is frozen and relays
+back to the proposer as an exact input or a capped seat.
+
+### HeadEvidence
+
+Every honest pooled HEAD has an exact prior emission. Unique HEAD duties
+rule out honest caps and fix the emission time and awake status.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`RootSources`: a vote tick creates no lock. Split each actual next-vote
+root into genesis, a PC target with an earlier honest ack, or a lock
+below an earlier result. Keep the result label strictly below the
+current label. Use these alternatives for result and N-target root
+compatibility in the joint induction.
+
+`NRoot`: an honest ack target is an exact honest HEAD, and same-label
+ack targets are equal. For its next-vote root, earlier PC targets lie
+below that HEAD by prior dissemination; a same-label PC has the same
+target. Earlier lock results also lie below the HEAD. This proves the
+separate N-target root condition without the false old CI(vii) clause.
+
+`PCChain`: bound the slot of each held PC by the next-vote cutoff.
+Use exact honest ack origins, same-label uniqueness, and earlier ack
+dissemination to prove PC prefix order. Compare a PC with a result by
+splitting earlier, equal, and later labels. Keep these dependencies
+explicit for the joint record construction.
+
+`LockRetention`: track a retained row or a conflicting installed PC
+through collection. If all resulting PCs are compatible with the row,
+collection keeps it. Extend this argument through direct and carried
+PC admission. Combine it with expiry and the faulty release-count
+bound to prove lockKeep from the joint chain facts.
+
+`NDissemination`: combine NRoot with the actual N-count transfer and
+retained paths. Given prior ack dissemination and earlier-result HEAD
+coverage, an ack of the current label is below every next-label HEAD.
+Keep next-label results out of this step unless their gate is inside
+the healthy prefix.

@@ -386,3 +386,12 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_postClock_source
 #print axioms AvailableChain.PCSA.Run.pcsa_next_head_above_result_of_root
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_next_head_above
+
+-- C6 HeadEvidence.
+#print axioms AvailableChain.PCSA.Run.pcsa_head_single_duty
+#print axioms AvailableChain.PCSA.Run.pcsa_pool_head_handled
+#print axioms AvailableChain.PCSA.Run.pcsa_pool_head_emission
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_pool_head_eq_emitted
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_pool_not_capped
+#print axioms AvailableChain.PCSA.Run.pcsa_head_emission_time_awake
+#print axioms AvailableChain.PCSA.Run.pcsa_handles_carried
