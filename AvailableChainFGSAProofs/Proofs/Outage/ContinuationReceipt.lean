@@ -1,6 +1,9 @@
 module
 public import AvailableChainFGSARun.Proofs.ReceiptCoverage
-public import AvailableChainFGSAClaims.Statements.Reads
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationFrame
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty
+public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDefs
 
 public section
 
@@ -132,6 +135,434 @@ theorem outageV_active_path_of_coverage (hE : V2.D.ExecutionValid E rho)
       exact (actView_blocks st K).mpr ⟨(hb.baseTree K).mpr ⟨Y, hY, hYK⟩, hKF⟩
   intro X hX
   exact actView_ancestor_closed p st hb hK hX
+
+/-- OUTPUT-DIRECT §6. DC: INTENTIONAL; relay keeps the exact FG carrier,
+not only its erased path. The alternative is finality above B. Monotonic F
+reduces every earlier exclusion check to compatibility at the receipt cut. -/
+theorem outageV_exact_carrier_receipt (hE : V2.D.ExecutionValid E rho)
+    (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    {ΔF : Time} (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hroots : NamedRootCollisionFree p c E rho)
+    {k : Nat} {x y : V} {B P : FGBlock (Fin p.n)} {u D : Time}
+    (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hP : P ∈ (storeAt p c E rho k y).fg.TF)
+    (hBP : FGBlock.Preceq B P)
+    (hBJ : FGBlock.Preceq B (heightView p P).J)
+    (hcut : ∀ l < k, ∀ e, rho.events[l]? = some e → e.time ≤ u)
+    (hdeadline : max u E.t_GST + p.Δ ≤ D) (hhor : D ≤ rho.horizon)
+    (hF : Block.Compatible (eraseFG B) (F_at p c E rho (V2.D.Run.idxBefore rho D) x)) :
+    let dst := (V2.D.Run.stateBeforeTime E rho D x).st
+    Block.Preceq (eraseFG B) (eraseFG dst.fg.F) ∨
+      P ∈ dst.fg.TF ∧ (heightView p P).h_j ≤ dst.fg.h_j := by
+  intro dst
+  have hread : F_at p c E rho (V2.D.Run.idxBefore rho D) x = eraseFG dst.fg.F := by
+    change eraseFG (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) x).st.fg.F = _
+    rw [Gen.V2.Duty.stateBefore_idxBefore E rho D hE.toScheduleWellFormed]
+  rw [hread] at hF
+  by_cases hBF : Block.Preceq (eraseFG B) (eraseFG dst.fg.F)
+  · exact Or.inl hBF
+  have hFB : Block.Preceq (eraseFG dst.fg.F) (eraseFG B) := by
+    rcases Bool.or_eq_true_iff.mp hF with h | h
+    · exact (hBF h).elim
+    · exact h
+  have hhistory : ∀ j, j ≤ V2.D.Run.idxBefore rho D →
+      Block.Compatible (eraseFG P) (F_at p c E rho j x) := by
+    intro j hj
+    have hm := arming_F_mono (E := E) hN hj x
+    rw [hread] at hm
+    exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_trans
+      hm (block_preceq_trans hFB (eraseFG_preceq hBP))))
+  have hPb := ((storeBundle_stateBefore E rho k y).cstore.baseTree _).mpr ⟨P, hP, rfl⟩
+  obtain ⟨required, paths, hcov, hpath⟩ := outageV_path_coverage hE hDelta hsync
+    hy hPb hcut hdeadline hhor hhistory
+  have hc := (fgsa_receiptCoverage E rho (fun t => max t E.t_GST + p.Δ)
+    rho.horizon D 0 x (eraseFG P) required paths hroots hDelta hE hN hx hcov).1
+  have hmem : P ∈ dst.fg.TF := by
+    rcases hc with ⟨hPF, _⟩ | ⟨_, _, hp⟩
+    · exact (hBF (block_preceq_trans (eraseFG_preceq hBP) hPF)).elim
+    · obtain ⟨Y, hY, heY⟩ := hp _ D hpath _ (block_preceq_refl _)
+      exact eraseFG_injective heY ▸ hY
+  exact Or.inr ⟨hmem, outageV_received_height p dst
+    (storeBundle_stateBeforeTime E rho D x).cstore hmem
+    (eraseFG_preceq_iff.mp (block_preceq_trans hFB (eraseFG_preceq hBJ)))⟩
+
+/-- OUTPUT-DIRECT §6. DC: INTENTIONAL; instantiate exact-carrier relay
+at an actual first-regression HEAD cut. The F fact is required only at the
+old-label gate deadline, before a gate can consume the regressed batch. -/
+theorem outageV_regression_receipt (hE : V2.D.ExecutionValid E rho)
+    (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    {ΔF : Time} (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hroots : NamedRootCollisionFree p c E rho)
+    {k : Nat} {x y : V} {B P : FGBlock (Fin p.n)} {s : Slot}
+    (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hP : P ∈ (storeAt p c E rho k y).fg.TF)
+    (hBP : FGBlock.Preceq B P) (hBJ : FGBlock.Preceq B (heightView p P).J)
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hhor : SA.voteTime p.toParams s + p.Δ ≤ rho.horizon)
+    (hF : Block.Compatible (eraseFG B)
+      (F_at p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ)) x)) :
+    let dst := (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams s + p.Δ) x).st
+    Block.Preceq (eraseFG B) (eraseFG dst.fg.F) ∨
+      P ∈ dst.fg.TF ∧ (heightView p P).h_j ≤ dst.fg.h_j := by
+  apply outageV_exact_carrier_receipt hE hN hDelta hsync hroots hx hy hP hBP hBJ
+    (u := SA.voteTime p.toParams s) ?_ ?_ hhor hF
+  · intro l hl e he
+    by_contra hn
+    have := V2.D.Engine.eventIndex_lt_of_time_lt hE.toScheduleWellFormed hk he
+      (lt_of_not_ge hn)
+    omega
+  · exact (outageV_regression_relay_bound p s _ _ le_rfl hgst).1
+
+/-- OUTPUT-DIRECT §6. DC: INTENTIONAL; a horizon before the relay deadline
+also excludes the next HEAD and the gate that consumes regressed HEADs. -/
+theorem outageV_short_horizon (p : Params) (s : Slot) (horizon : Time)
+    (h : horizon < SA.voteTime p.toParams s + p.Δ) :
+    horizon < SA.voteTime p.toParams (s + 1) ∧ horizon < SA.gateTime p.toParams s := by
+  rw [arming_vote_eq] at h
+  rw [arming_vote_eq, arming_gate_eq]
+  push_cast
+  have := p.deltaPos
+  constructor <;> nlinarith
+/-- OUTPUT-DIRECT §6. DC: INTENTIONAL; every gate through the relay
+cut uses an earlier label. No regressed HEAD can justify its own receipt. -/
+theorem outageV_gate_through_relay (p : Params) (s q : Slot)
+    (h : SA.gateTime p.toParams q ≤ SA.voteTime p.toParams s + p.Δ) : q < s := by
+  rw [arming_gate_eq, arming_vote_eq] at h
+  by_contra hn
+  have hsq : (s : Int) ≤ (q : Int) := by exact_mod_cast (Nat.le_of_not_gt hn)
+  have := p.deltaPos
+  nlinarith
+
+/-- OUTPUT-DIRECT §3. DC: INTENTIONAL; any source gate no later than
+this HEAD lies at or before the previous label's early boundary. The
+endpoint is inclusive, as required for the old-source relay witness. -/
+theorem outageV_source_gate_cutoff (p : Params) (s q : Slot)
+    (h : SA.gateTime p.toParams q ≤ SA.voteTime p.toParams (s + 1)) :
+    SA.gateTime p.toParams q ≤ SA.earlyTime p.toParams s := by
+  rw [arming_gate_eq, arming_vote_eq] at h
+  rw [arming_gate_eq, arming_early_eq]
+  push_cast at h
+  have hd := p.deltaPos
+  have hqs : q < s := by
+    by_contra hn
+    have hsq : (s : Int) ≤ (q : Int) := by exact_mod_cast (Nat.le_of_not_gt hn)
+    nlinarith
+  have hcast : (q : Int) + 1 ≤ (s : Int) := by exact_mod_cast (Nat.succ_le_of_lt hqs)
+  nlinarith
+
+
+/-- OUTPUT-DIRECT §§3,7. DC: INTENTIONAL; a block held before a positive
+tick has a strict earlier stamp, including an old acceptance. -/
+theorem outageV_block_stamp_lt (hsch : V2.D.ScheduleWellFormed E rho)
+    (hn : V2.D.NoRestart rho) {j : Nat} {x : V} {t : Time}
+    (hj : rho.events[j]? = some (.tick x t)) (ht : 0 < t)
+    (B : Block) (hB : B ∈ (storeAt p c E rho j x).base.blocks) :
+    GridCO.stampBlock (storeAt p c E rho j x).base B < t := by
+  have hbm : B ∈ (V2.D.Run.stateBefore E rho j x).st.base.blockStamp.map Prod.fst := by
+    rw [(storeBundle_stateBefore E rho j x).«meta».stampKeys]
+    exact hB
+  change (((V2.D.Run.stateBefore E rho j x).st.base.blockStamp.find? _).map Prod.snd).getD _ < t
+  cases he : (V2.D.Run.stateBefore E rho j x).st.base.blockStamp.find? (fun row => row.1 == B) with
+  | none =>
+    obtain ⟨row, hr, hb⟩ := List.mem_map.mp hbm
+    have hno := List.find?_eq_none.mp he row hr
+    rw [hb, beq_self_eq_true] at hno
+    contradiction
+  | some row =>
+    change row.2 < t
+    have hmem := List.mem_of_find?_eq_some he
+    rcases fgsa_block_stamp_source E rho j x row.1 row.2 hmem with hg | ⟨l, hl, _, _, _, _, hs⟩
+    · rw [hg.2]
+      exact ht
+    · rw [hs]
+      have hm := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hsch hn
+        (Nat.le_of_lt hl) x
+      rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l x),
+        fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hm
+      exact hm.trans_lt (fgsa_preTick_now_lt E rho hsch hj ht)
+
+/-- OUTPUT-DIRECT §3. DC: INTENTIONAL; a carrier held before the freeze
+remains in the actual later frozen voter set, with its original stamp. -/
+theorem outageV_frozen_of_receipt (hsch : V2.D.ScheduleWellFormed E rho)
+    (hn : V2.D.NoRestart rho) (hcumul : RStoreCumul p c E rho)
+    {j i : Nat} {x : V} {t : Time} {s : Slot} {P : FGBlock (Fin p.n)}
+    (hx : x ∈ rho.honest) (hj : rho.events[j]? = some (.tick x t))
+    (ht : 0 < t) (hfreeze : t ≤ SA.freezeTime p.toParams (s - 1))
+    (hji : j ≤ i) (hi : i ≤ rho.events.length)
+    (hP : P ∈ (storeAt p c E rho j x).fg.TF) :
+    P ∈ voterBlocks p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) s := by
+  let src := storeAt p c E rho j x
+  let dst := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
+  have hc := hcumul hn j i x hx hji hi
+  have hPb : eraseFG P ∈ src.base.blocks :=
+    ((storeBundle_stateBefore E rho j x).cstore.baseTree _).mpr ⟨P, hP, rfl⟩
+  have hkey : eraseFG P ∈ src.base.blockStamp.map Prod.fst := by
+    change eraseFG P ∈ (V2.D.Run.stateBefore E rho j x).st.base.blockStamp.map Prod.fst
+    rw [(storeBundle_stateBefore E rho j x).«meta».stampKeys]
+    exact hPb
+  have hkey' : eraseFG P ∈ (storeAt p c E rho i x).base.blockStamp.map Prod.fst := by
+    obtain ⟨row, hr, he⟩ := List.mem_map.mp hkey
+    exact List.mem_map.mpr ⟨row, hc.2.2.1.subset hr, he⟩
+  have hstamp : GridCO.stampBlock dst.base (eraseFG P) =
+      GridCO.stampBlock src.base (eraseFG P) := by
+    have hcstamp := inclusion_stampBlock_of_prefix (K := eraseFG P)
+      (show (storeAt p c E rho i x).base.blockStamp <+: dst.base.blockStamp by
+        rw [(clock_cumulative p _ _).2.2.1]) hkey'
+    exact hcstamp.trans (inclusion_stampBlock_of_prefix hc.2.2.1 hkey)
+  have hm : P ∈ dst.fg.TF := by
+    change P ∈ (clock p (storeAt p c E rho i x) _).fg.TF
+    rw [clock_fg]
+    exact hc.1 hP
+  apply Finset.mem_filter.mpr
+  refine ⟨hm, Bool.or_eq_true_iff.mpr (Or.inl (decide_eq_true ?_))⟩
+  rw [hstamp]
+  exact (outageV_block_stamp_lt hsch hn hj ht _ hPb).trans_le hfreeze
+
+
+/-- OUTPUT-DIRECT §3. DC: INTENTIONAL; clock processing admits no FG
+blocks. Thus the actual action source was held before its emission tick. -/
+theorem outageV_source_held (hsch : V2.D.ScheduleWellFormed E rho)
+    {k : Nat} {y : V} {r : Nat} {C : FGBlock (Fin p.n)}
+    (hk : rho.events[k]? = some (.tick y (p.actionTime r)))
+    (hC : actionSourceFG p c E rho y r = some (some C)) :
+    C ∈ (storeAt p c E rho k y).fg.TF := by
+  rw [actionSourceFG_def, postClock_def, preTick_def] at hC
+  cases hl : V2.D.Run.tickIdx? rho y (p.actionTime r) with
+  | none => simp only [hl, Option.map_none] at hC; contradiction
+  | some l =>
+    have he := fgsa_tick_unique E rho hsch (V2.D.Run.tickIdx?_spec hl) hk
+    subst l
+    simp only [hl, Option.map_some, Option.some.injEq] at hC
+    have hm := (Finset.mem_filter.mp (pickPair_some_spec _ _ hC).1).1
+    have ht := (KitFG.mem_filteredFromView _ _ _ _).mp hm |>.1
+    change C ∈ (clock p (storeAt p c E rho k y) (p.actionTime r)).fg.TF at ht
+    rw [clock_fg] at ht
+    exact ht
+
+/-- OUTPUT-DIRECT §3. DC: INTENTIONAL; crossing a held carrier gives an
+original honest source of the exact crossed height. Its action precedes the
+inclusive previous early boundary, and its full body was held at that action. -/
+theorem outageV_crossing_source (hsch : V2.D.ScheduleWellFormed E rho)
+    (origin : RQCOrigin p c E rho) {i : Nat} {x : V} {s m : Nat}
+    {W B : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams (s + 1))))
+    (hW : W ∈ (storeAt p c E rho i x).fg.TF)
+    (hm : 1 ≤ m) (hmW : m < (heightView p W).h)
+    (hist : OutageSourceHistory p c E rho (eraseFG B) i) :
+    ∃ k, k < i ∧ ∃ y r, ∃ (wire : RowWire p.n) (C : FGBlock (Fin p.n)),
+      HonestRowAt p c E rho k y r wire ∧
+      actionSourceFG p c E rho y r = some (some C) ∧
+      (heightView p C).h = m ∧ Block.Compatible (eraseFG C) (eraseFG B) ∧
+      C ∈ (storeAt p c E rho k y).fg.TF ∧
+      p.actionTime r ≤ SA.earlyTime p.toParams s := by
+  classical
+  obtain ⟨Y, hYW, hYm, Q, hQ, hrows⟩ :=
+    (fgCertificateLaws p).height.height_crossing W m hm hmW
+  let rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n) := fun k =>
+    if hk : k ∈ Q then
+      (Classical.choose (hrows k hk), Classical.choose (Classical.choose_spec (hrows k hk)))
+    else (.genesis, ⟨k, .empty, none⟩)
+  have hr : ∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧
+      (rows k).2 ∈ (rows k).1.rows ∧ (rows k).2.signer = k ∧
+      (rows k).2.height_pair.matchesEntry m Y.root = true := fun k hk => by
+    simpa only [rows, hk, ↓reduceDIte] using
+      Classical.choose_spec (Classical.choose_spec (hrows k hk))
+  obtain ⟨q, hq, y, r, wire, ⟨k, hk, hrow⟩, _, _, C, G, hC, hn, _⟩ :=
+    (origin i x W hx hW).1 m Y Q rows hm hmW hYW hYm hQ hr
+  have hheight : (heightView p C).h = m := by
+    have hmatch := (hr q hq).2.2.2
+    cases hp : (rows q).2.height_pair with
+    | empty => rw [hp] at hmatch; contradiction
+    | vote h e tm =>
+      rw [hp] at hmatch hn
+      have he : h = m ∧ e = Y.root := of_decide_eq_true hmatch
+      exact (Prod.mk.inj (Option.some.inj hn)).1.symm.trans he.1
+  have hsource : actionSource p c E rho y r = some (some (eraseFG C)) := by
+    change (actionSourceFG p c E rho y r).map (Option.map eraseFG) = _
+    rw [hC]
+    rfl
+  have htime : p.actionTime r ≤ SA.voteTime p.toParams (s + 1) := by
+    by_contra hn
+    have := V2.D.Engine.eventIndex_lt_of_time_lt hsch hi hrow.2.1 (lt_of_not_ge hn)
+    omega
+  refine ⟨k, hk, y, r, wire, C, hrow, hC, hheight,
+    hist.history k y r _ hk hrow.1 hrow.2.1 hsource,
+    outageV_source_held hsch hrow.2.1 hC, ?_⟩
+  rw [fgsa_action_gate_time] at htime ⊢
+  exact outageV_source_gate_cutoff p s (r * p.R) htime
+
+/-- OUTPUT-DIRECT §7. DC: INTENTIONAL; full-run relay supplies the actual
+compatible honest HEAD batch and its strict stamps. Targets may lie below F.
+The explicit F history will be supplied by the joint event invariant. -/
+theorem outageV_compatible_head_receipts
+    {ΔF : Time} (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ)
+    (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {i : Nat} {x : V} {s : Slot}
+    (ht : IsGateTick p c rho i x s) (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hfinal : ∀ k y, rho.events[k]? = some (.tick y (SA.voteTime p.toParams s)) →
+      ∀ j, j ≤ i → Block.Compatible
+        (headVote p (clock p (storeAt p c E rho k y) (SA.voteTime p.toParams s)) s)
+        (F_at p c E rho j x))
+    (B : Block)
+    (hB : ∀ k y, rho.events[k]? = some (.tick y (SA.voteTime p.toParams s)) →
+      Block.Compatible
+        (headVote p (clock p (storeAt p c E rho k y) (SA.voteTime p.toParams s)) s) B) :
+    ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+      E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true →
+      ∃ K t,
+        rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+        V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+          (ofHead p ⟨.seat (.head s) q, K.root⟩) t ∧
+        baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
+          (storeAt p c E rho i x).base.votes ∧
+        K ∈ (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))).blocks ∧
+        K.slot ≤ s ∧
+        GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)))
+          (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) <
+            GridCO.earlyTime p.toParams.engine s ∧
+        GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
+        Block.Compatible K B := by
+  intro q hy hawake
+  let y := rho.seatOf (.base (.head s)) q
+  have hsch := hvalid.toScheduleWellFormed
+  have hd : (0 : Int) < p.Δ := p.deltaPos
+  have hx : x ∈ rho.honest := hsch.honest_only _ (List.mem_of_getElem? ht)
+  have hcut : SA.gateTime p.toParams s ≤ rho.horizon :=
+    (hvalid.in_horizon _ (List.mem_of_getElem? ht)).2
+  have htimes : max (SA.voteTime p.toParams s) E.t_GST + p.Δ =
+      SA.earlyTime p.toParams s := by
+    rw [max_eq_left hGST]
+    change 4 * p.Δ * ((s : Nat) : Int) + p.Δ + p.Δ =
+      4 * p.Δ * ((s : Nat) : Int) + 2 * p.Δ
+    ring
+  have hearly : SA.earlyTime p.toParams s < SA.gateTime p.toParams s := by
+    change 4 * p.Δ * ((s : Nat) : Int) + 2 * p.Δ <
+      4 * p.Δ * ((s : Nat) : Int) + 6 * p.Δ
+    linarith
+  have hvote : SA.voteTime p.toParams s < SA.earlyTime p.toParams s := by
+    rw [← htimes]
+    exact (le_max_left _ _).trans_lt (lt_add_of_pos_right _ hd)
+  have hvt : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
+    change ((4 * s + 1 : Nat) : Int) * p.Δ = 4 * p.Δ * ((s : Nat) : Int) + p.Δ
+    push_cast
+    ring
+  have het : ((4 * s + 2 : Nat) : Time) * p.Δ = SA.earlyTime p.toParams s := by
+    change ((4 * s + 2 : Nat) : Int) * p.Δ = 4 * p.Δ * ((s : Nat) : Int) + 2 * p.Δ
+    push_cast
+    ring
+  obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hsch hdelta y hy (4 * s + 1)
+    (hvt ▸ (hvote.le.trans (hearly.le.trans hcut)))
+  rw [hvt] at hk
+  obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hsch hdelta x hx (4 * s + 2)
+    (het ▸ (hearly.le.trans hcut))
+  rw [het] at hj
+  have hji := V2.D.Engine.eventIndex_lt_of_time_lt hsch hj ht hearly
+  have hjread := fgsa_preTick_eq_timeRead E rho hsch hnr hj
+  let K := headVote p (clock p (storeAt p c E rho k y) (SA.voteTime p.toParams s)) s
+  have hKeq : K = headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y)
+      (SA.voteTime p.toParams s)).st s := rfl
+  have hKsource : K ∈ (storeAt p c E rho k y).base.blocks := by
+    have hm := headVote_stored p _ (storeBundle_postClock E rho k y
+      (SA.voteTime p.toParams s)).cstore s
+    rw [← hKeq] at hm
+    change K ∈ (clock p (storeAt p c E rho k y) _).base.blocks at hm
+    rwa [(clock_cumulative p _ _).2.1] at hm
+  have hem : V2.D.Run.emits E rho y (ofHead p ⟨.seat (.head s) q, K.root⟩)
+      (SA.voteTime p.toParams s) := by
+    refine ⟨k, hk, ?_⟩
+    rw [(V2.D.Run.step_tick_eq E rho hk).2]
+    exact (fgsa_emits_head E rho _ y _ s q K.root).mpr ⟨hawake, rfl, rfl, congrArg
+        Block.root hKeq⟩
+  have hprefix := hfinal k y hk
+  have hidx : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ i := by
+    by_contra hn
+    exact (not_lt.mpr hearly.le)
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hsch ht _).mp (Nat.lt_of_not_ge hn))
+  obtain ⟨required, paths, hcov, hp⟩ := outageV_path_coverage hvalid hdelta hsync
+    (u := SA.voteTime p.toParams s) hy hKsource (by
+      intro l hl e he
+      by_contra hn
+      have := V2.D.Engine.eventIndex_lt_of_time_lt hsch hk he (lt_of_not_ge hn)
+      omega) htimes.le (hearly.le.trans hcut) (fun j hj => hprefix j (hj.trans hidx))
+  have hFearly : Block.Compatible K (eraseFG (V2.D.Run.stateBeforeTime E rho
+      (SA.earlyTime p.toParams s) x).st.fg.F) := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch]
+    exact hprefix _ hidx
+  have hpath := outageV_active_path_of_coverage (hroots := hroots)
+    hvalid hnr hdelta
+    (fun t => max t E.t_GST + p.Δ) rho.horizon (SA.earlyTime p.toParams s) 0 x K
+    required paths hx hcov hp hFearly
+  have hKearly : K ∈ (storeAt p c E rho j x).base.blocks := by
+    have hm := (actView_blocks _ K).mp (hpath K (block_preceq_refl K))
+    rw [← hjread] at hm
+    exact hm.1
+  have hwindow : (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x).st.slot p ≤
+      s + 1 := by
+    rw [← hjread]
+    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+      E rho hsch hj x
+    rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hn
+    have he := slotOf_offset p s (2 * p.Δ) (by omega) (by omega)
+    exact ((Internal.slotOf_mono (p := p) hn).trans_eq he).trans (Nat.le_succ _)
+  have hr := fgsa_honest_head_receipt E rho hdelta hvalid hnr
+    hcstar (fun t => max t E.t_GST + p.Δ) rho.horizon s q K.root (SA.voteTime p.toParams s) y x
+    (by
+      simpa only [hdelta] using
+        Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hsync
+            (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ _))
+    hy hem hx (by rw [htimes]; exact hearly.le.trans hcut)
+    ((le_max_left _ _).trans_lt (lt_add_of_pos_right _ hd))
+    (by rw [htimes]; exact hwindow)
+  dsimp only at hr
+  rw [htimes, ← hjread] at hr
+  obtain ⟨hvoteI, hblockI, hvsI, hbsI⟩ :=
+    inclusion_stamps_kept E rho hnr hji.le x _ K hr.1 hKearly
+  let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)
+  let v := actView pre
+  have hvsKey : baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
+      (storeAt p c E rho i x).base.voteStamp.map Prod.fst := by
+    change _ ∈ (V2.D.Run.stateBefore E rho i x).st.base.voteStamp.map Prod.fst
+    rw [fgsa_vote_stamp_keys E rho i x]
+    exact hvoteI
+  have hbsKey : K ∈ (storeAt p c E rho i x).base.blockStamp.map Prod.fst := by
+    change K ∈ (V2.D.Run.stateBefore E rho i x).st.base.blockStamp.map Prod.fst
+    rw [(storeBundle_stateBefore E rho i x).«meta».stampKeys]
+    exact hblockI
+  have hvs : GridCO.stampVote v (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) =
+      GridCO.stampVote (storeAt p c E rho j x).base
+        (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) := by
+    apply Eq.trans (inclusion_stampVote_of_prefix (st' := v) ?_ hvsKey) hvsI
+    change _ <+: (clockPre p _ _).base.voteStamp
+    rw [(clockPre_stamps p _ _).2]
+  have hbs : GridCO.stampBlock v K = GridCO.stampBlock (storeAt p c E rho j x).base K := by
+    apply Eq.trans (inclusion_stampBlock_of_prefix (st' := v) ?_ hbsKey) hbsI
+    change _ <+: (clockPre p _ _).base.blockStamp
+    rw [(clockPre_stamps p _ _).1]
+  have hKg : K ∈ v.blocks := by
+    apply (actView_blocks _ K).mpr
+    rw [(clockPre_fields p _ _).2.1, clockPre_fg]
+    exact ⟨hblockI, hprefix i le_rfl⟩
+  have hslot : K.slot ≤ s := by
+    have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
+    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+      E rho hsch hk y
+    rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
+    exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq
+      (slotOf_offset p s p.Δ hd.le (by omega)))
+  have hpos : 0 < SA.earlyTime p.toParams s := by
+    change 0 < 4 * p.Δ * ((s : Nat) : Int) + 2 * p.Δ
+    positivity
+  refine ⟨K, SA.voteTime p.toParams s, hy, hem, hvoteI, hKg, hslot, ?_, ?_, hB k y hk⟩
+  · rw [hvs]
+    exact hr.2
+  · rw [hbs]
+    exact outageV_block_stamp_lt hsch hnr hj hpos K hKearly
 
 end AvailableChain.FGSA.Run
 end
