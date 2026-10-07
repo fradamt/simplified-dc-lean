@@ -359,7 +359,7 @@ theorem pcsa_formation_held_pc_targets (p : Params) (st : State p.n) (h : Reacha
   | init => exact fun C hc => (List.not_mem_nil hc).elim
   | tick t _ ih =>
     intro C hc
-    rw [pcsa_formation_clock_pcs] at hc
+    rw [pcsa_clock_pcs] at hc
     rw [pcsa_formation_clock_blocks]
     exact ih C hc
   | deliver o _ ih => exact formation_process_targets p _ o ih
@@ -565,7 +565,7 @@ theorem pcsa_formation_afterTicks_pcs_storeAt (E : Generic.Env V)
   change (FGSA.Run.afterTicks E rho t y).st.pcs ⊆ (V2.D.Run.readAt E rho t y).st.pcs
   rw [FGSA.Run.afterTicks_eq_stateBefore E rho hBase.valid.toScheduleWellFormed,
     V2.D.Engine.readAt_eq_stateBefore hBase.valid.toScheduleWellFormed]
-  exact pcsa_formation_run_pcs_mono E rho hFrame hBase.noRestart y hy _ _
+  exact pcsa_run_pcs_mono E rho hFrame hBase.noRestart y hy _ _
     (FGSA.Run.preIdx_le_afterTicksIdx E rho hBase.valid.toScheduleWellFormed t).2
 
 variable [Fintype V]

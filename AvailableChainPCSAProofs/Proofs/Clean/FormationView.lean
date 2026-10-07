@@ -354,7 +354,7 @@ theorem pcsa_formation_view_of_frozen_receipt (p : Params) (src dst : State p.n)
   cases hp : pc with
   | none =>
     have hEmpty : src.pcs.filter (frameActive p src) = [] :=
-      pcsa_formation_bestPC_none _ (hProposer.trans hp)
+      pcsa_bestPC_none _ (hProposer.trans hp)
     cases hv : voterPC p dst s with
     | none => rfl
     | some C =>
@@ -364,10 +364,10 @@ theorem pcsa_formation_view_of_frozen_receipt (p : Params) (src dst : State p.n)
   | some D =>
     have hD : D ∈ src.pcs.filter (frameActive p src) :=
       bestPC_mem _ D (hProposer.trans hp)
-    apply pcsa_formation_view_target_of_rank cs D (hPresent D hp)
+    apply pcsa_view_target_of_rank cs D (hPresent D hp)
     · intro C hC
       obtain ⟨A, hA, hs, ht⟩ := hRecv C hC
-      have hb := pcsa_formation_bestPC_rank_max _ A D hA (hProposer.trans hp)
+      have hb := pcsa_bestPC_rank_max _ A D hA (hProposer.trans hp)
       change (decide (D.slot < A.slot) ||
         (D.slot == A.slot && (decide (D.target.depth < A.target.depth) ||
           (D.target.depth == A.target.depth &&
@@ -723,7 +723,7 @@ theorem pcsa_formation_pc_receipt_before_proposal (E : Generic.Env V)
     have hj : j < V2.D.Run.idxBefore rho (SA.proposalTime p.toParams s) :=
       (Gen.V2.Duty.index_lt_idxBefore_iff h.base.valid.toScheduleWellFormed he _).mpr
         (ht.trans_lt hz)
-    have hm := pcsa_formation_run_pcs_mono E rho h.frame h.base.noRestart y hy
+    have hm := pcsa_run_pcs_mono E rho h.frame h.base.noRestart y hy
       (j + 1) _ (Nat.succ_le_of_lt hj) hA
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ h.base.valid.toScheduleWellFormed] at hm
     exact ⟨A, hm, hid⟩

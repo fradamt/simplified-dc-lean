@@ -88,7 +88,7 @@ theorem pcsa_formation_freeze_keep (E : Generic.Env V) (rho : V2.D.Run V (pcsaWi
     rw [FGSA.Run.afterTicks_eq_tick_preTick E rho hBase.valid.toScheduleWellFormed
       hBase.noRestart hi]
     exact pcsa_tick_st E rho _ _ _
-  rw [hread, pcsa_formation_clock_pcs]
+  rw [hread, pcsa_clock_pcs]
 
 variable [Fintype V]
 
