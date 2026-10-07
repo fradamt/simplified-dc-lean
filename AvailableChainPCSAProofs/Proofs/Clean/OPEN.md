@@ -883,3 +883,21 @@ and ack-to-later-result coverage for all label orders. `StorePCInputs`:
 recover bounded honest acks from indexed held/carried PCs and exact
 gate inputs. `LockWrites`: ack/result compatibility makes each PC
 compatible with every result prefix, so no gate lock write is vetoed.
+
+### StoreOrigins
+
+C6 support: preserve stage-one records outside gate advances. The module
+uses the concrete readers and preserves the joint-induction premises.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`RunLockKeep`: split each actual event. Deliveries preserve the row
+using exact post-state PC/metadata ack origins and ack/result
+compatibility. At a release tick, each old lock lies below an earlier
+result and therefore every honest HEAD of the release label. Only
+faulty seats can count, below the stored level. Expiry and renewal
+then preserve the live target. Other-node events leave it unchanged.
+
+`JointAux`: retain ack-to-later-HEAD/result coverage with CI. The
+label-zero ack target is genesis. Convert adjacent HEAD coverage
+and ordered results into coverage of every earlier result. These
+are the auxiliary premises for the final joint successor step.

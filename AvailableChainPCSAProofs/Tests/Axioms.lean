@@ -458,3 +458,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_pcs_before_first_gate_empty
 #print axioms AvailableChain.PCSA.Run.pcsa_readAt_index_before_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_honest_ack_storeAt
+
+-- C6 StoreOrigins.
+#print axioms AvailableChain.PCSA.pcsa_process_record_origin
+#print axioms AvailableChain.PCSA.pcsa_process_record_of_genesis
+#print axioms AvailableChain.PCSA.pcsa_clock_record_before_first_gate
