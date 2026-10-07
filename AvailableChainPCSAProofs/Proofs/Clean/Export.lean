@@ -76,6 +76,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.SnapshotContents
 
 public import AvailableChainPCSAProofs.Proofs.Clean.CarriedPCs
 
+public import AvailableChainPCSAProofs.Proofs.Clean.ZeroViews
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -167,6 +169,89 @@ theorem pcsa_clean_resultsChain_step (E : Generic.Env V)
       exact ⟨fun hi => (Nat.lt_irrefl _ hi).elim,
         fun _ => pcsa_clean_same_label_results E rho h.base hF h.healthy x y hx hy
           (s + 1) X Y hc hX hY⟩
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+/-- The label-zero Clean record follows from the empty pre-gate stores and genesis result. -/
+theorem pcsa_clean_invariant_zero (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hFault : FaultsBelowQA p c rho)
+    (hF : StageOneFrame p c E rho) (hc : SA.gateTime p.toParams 0 ≤ cut) :
+    CleanInvariantAt p c E rho 0 := by
+  have htime : SA.voteTime p.toParams 1 < SA.gateTime p.toParams 0 := by
+    have hp := p.deltaPos
+    change 4 * p.Δ * (1 : Int) + p.Δ < 4 * p.Δ * (0 : Int) + 6 * p.Δ
+    nlinarith
+  have stores (x : V) (hx : x ∈ rho.honest) (t : Time)
+      (ht : t < SA.voteTime p.toParams 1) :=
+    pcsa_zero_storeAt_before_gate E rho h.base hF hFault x hx t (ht.trans htime)
+  have results (x : V) (hx : x ∈ rho.honest) (X : Block)
+      (hX : gateResultAt p c E rho x 0 = some (some X)) : X = .genesis :=
+    Option.some.inj (Option.some.inj (hX.symm.trans (pcsa_clean_zero_result E rho h hF x hx hc)))
+  have compatible : Block.Compatible Block.genesis Block.genesis :=
+    Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl _) (Gen.Pure.block_preceq_refl
+      _)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro x hx y hy i i' X Y hii' hi' hX hY
+    have hi0 : i = 0 := Nat.eq_zero_of_le_zero (hii'.trans hi')
+    have hi'0 : i' = 0 := Nat.eq_zero_of_le_zero hi'
+    subst i
+    subst i'
+    rw [results x hx X hX, results y hy Y hY]
+    exact ⟨fun hn => (Nat.lt_irrefl 0 hn).elim, fun _ => compatible⟩
+  · intro i x y H X hi hi0
+    exact (Nat.not_lt.mpr hi0 hi).elim
+  · intro i P x H hi hp _
+    have hi0 := Nat.eq_zero_of_le_zero hi
+    subst i
+    exact (pcsa_no_honest_proposal_zero E rho P hp).elim
+  · intro x hx t C ht hC
+    rw [(stores x hx t ht).2.2] at hC
+    exact (List.not_mem_nil hC).elim
+  · intro x hx y hy t t' C D ht _ hC _
+    rw [(stores x hx t ht).2.2] at hC
+    exact (List.not_mem_nil hC).elim
+  · intro x hx y hy t C i X ht hC _ _
+    rw [(stores x hx t ht).2.2] at hC
+    exact (List.not_mem_nil hC).elim
+  · intro x hx t row ht hr
+    rw [(stores x hx t ht).2.1] at hr
+    exact (List.not_mem_nil hr).elim
+  · intro x hx t B C ht hl _
+    obtain ⟨row, hr, _⟩ := hl
+    rw [(stores x hx t ht).2.1] at hr
+    exact (List.not_mem_nil hr).elim
+  · intro x hx i st X B hi hst _ _
+    have hi0 := Nat.eq_zero_of_le_zero hi
+    subst i
+    rw [pcsa_zero_gate_pcs E rho h.base hFault x st hst]
+    rfl
+  · intro x hx i e he ht row hr _
+    have hi : i ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams 0) :=
+      Nat.le_of_lt ((Gen.V2.Duty.index_lt_idxBefore_iff h.base.valid.toScheduleWellFormed he _).mpr
+        (ht.trans htime))
+    have hs := (pcsa_zero_store_before_gate E rho h.base hF i x hx hi).2
+    change row ∈ (V2.D.Run.stateBefore E rho i x).st.base.obligations at hr
+    rw [hs] at hr
+    exact (List.not_mem_nil hr).elim
+  · intro x hx t ht
+    left
+    have hf : (storeAt p c E rho x t).fg.F = .genesis := by
+      rw [storeAt_def, V2.D.Engine.readAt_eq_stateBefore h.base.valid.toScheduleWellFormed]
+      exact (hF x hx _).1
+    rw [(stores x hx t ht).1, hf]
+    rfl
+  · intro x hx t t' htt ht'
+    rw [(stores x hx t (lt_of_le_of_lt htt ht')).1, (stores x hx t' ht').1]
+    exact Gen.Pure.block_preceq_refl _
+  · intro x hx y hy t t' ht ht'
+    rw [(stores x hx t ht).1, (stores y hy t' ht').1]
+    exact compatible
+  · intro x hx R hr y hy X hX
+    rw [pcsa_zero_next_root E rho h.base hF hFault x hx R hr, results y hy X hX]
+    exact compatible
 end AvailableChain.PCSA.Run
 
 end

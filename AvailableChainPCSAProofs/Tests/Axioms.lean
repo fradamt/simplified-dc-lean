@@ -492,3 +492,10 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_honest_ack_before
 #print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_early_before
 #print axioms AvailableChain.PCSA.Run.pcsa_carriedPCs_before_first_gate_empty
+
+-- C6 ZeroViews.
+#print axioms AvailableChain.PCSA.Run.pcsa_no_honest_proposal_zero
+#print axioms AvailableChain.PCSA.Run.pcsa_gateInAt_source
+#print axioms AvailableChain.PCSA.Run.pcsa_zero_gate_pcs
+#print axioms AvailableChain.PCSA.Run.pcsa_zero_next_root
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_invariant_zero
