@@ -22,6 +22,20 @@ def fgsaSafetyReads (p : Params) {In : Type} (c : AppCodec In) :
   inputs := fun nd => fgInputs p nd.st
   enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
   finalizedOut := finalizedOut
+theorem fgsaSafetyReads_def (p : Params) {In : Type} (c : AppCodec In) :
+    fgsaSafetyReads p c =
+      { proposalErase := safetyProposalErase p
+        proposalRows := safetyProposalRows p
+        encode := ofRow p
+        decode := RowWire.toRow?
+        decodeObject := decodeRowObject p
+        fgLabel := .base .fg
+        fgSeats := Equiv.refl _
+        record := Node.record
+        inputs := fun nd => fgInputs p nd.st
+        enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+        finalizedOut := finalizedOut } := by
+  rfl
 
 /-- The producer fits the provisional store-law signature. No law is assumed. -/
 example (p : Params) {In : Type} (c : AppCodec In) : Prop :=
