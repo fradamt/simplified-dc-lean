@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.OutageContinuation.Export
 public import AvailableChainFGSAProofs.Proofs.Clean.Export -- shake: keep (L42 export boundary)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Export -- shake: keep (L42 positive-cut foundation exports)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (Clean claim implications)
@@ -71,6 +72,13 @@ theorem fgsa_cleanSafety_outputs
       Gen.Pure.MonoOn (· ∈ rho.honest)
         (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) :=
   cleanSafety_outputs (fgsa_cleanSafetyClaim p) hc
+
+/-- OUTPUT-DIRECT §§1–10. DC: INTENTIONAL; the additive outage continuation
+claim under (V), with all foundation and healthy-cut suppliers discharged. -/
+theorem fgsa_outageContinuationClaim (p : Params) : OutageContinuationClaim p :=
+  outageContinuation_claim_of p
+    (fgsa_storeClaim p) (fgsa_activeViewClaim p) (fgsa_frameClaim p)
+    (fgsa_srcFrameAboveClaim p) (fgsa_sourceDisciplineClaim p) (fgsa_cleanCutClaim p)
 
 end AvailableChain.FGSA.Run
 end
