@@ -371,3 +371,9 @@ end
 #print axioms AvailableChain.PCSA.pcsa_clock_confirmation_eq_pre
 #print axioms AvailableChain.PCSA.Run.pcsa_gateResultAt_source
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_same_label_results
+
+-- C6 BodyPaths.
+#print axioms AvailableChain.PCSA.pcsa_body_prefix_mem
+#print axioms AvailableChain.PCSA.pcsa_frame_subset_of_frame
+#print axioms AvailableChain.PCSA.Run.pcsa_full_read_prefix_mem
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_read_prefix_mem

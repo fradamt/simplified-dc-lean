@@ -548,3 +548,50 @@ GateReads passed the complete pre-commit list after the field proof
 repair. The equation audit reports zero unaccepted exports.
 The announced root-form relay commit is now main `861ca1f8`; integrate
 it at this validated boundary before the PC-view proofs.
+
+### BodyPaths
+
+Reachable body pools are prefix closed. A vacuous frame retains any block
+subset. Pre-freeze bodies retain all prefixes in later voter trees.
+These are support facts. C6 and its remaining joint record fields are open.
+
+`ZeroStores`: lift S preservation and lock removal through the event
+prefix before the first gate. Combine them with the PC time bound at
+`storeAt`. The draft proves genesis S and empty lock/PC lists there.
+`SnapshotContents`: trace each frozen PC to the exact freeze tick and
+the PC pool before that tick. Filtering can remove entries but cannot
+create them. Derive empty snapshots in the label-zero store interval.
+`CarriedPCs`: trace each proposal-carried PC to its earlier delivery.
+Use well-formed ack witnesses and unforgeability to bound its slot.
+This closes the remaining label-zero voter-view cases.
+
+BodyPaths naming: F-20 rejects the `_closed` suffix even for prefix
+closure. Rename the new helper to `pcsa_body_prefix_mem`; keep its
+statement unchanged and rerun the full checks.
+
+`ZeroViews`: show that no proposal duty emits at label zero. Use the
+empty PC, snapshot, carried-PC, and lock facts at the slot-one vote to
+identify its root as genesis. Show that the label-zero gate input has
+no PC, so its lock-write predicate is true. Assemble CI(0) in Export.
+
+Record composition: assemble the successor `headsAbove` and
+`resultsChain` fields in Export from the predecessor CI, next-HEAD
+transport, and the clean gate batch. For an old result at the predecessor
+label, use the same node's result to get equality. Do not turn
+same-label compatibility at different nodes into prefix order.
+
+`RecordEvents`: a gate keeps S or writes its raw result. Under the
+stage-1 frame, normalization keeps S. Trace a changed clock record to
+the exact gate label and result, then lift origins through event
+indices. This supplies recordOrigin; compatible result order supplies
+recordMono and recordCompatible.
+
+`ProposerInputs`: extract the exact raw/support lists, PC view, and
+parent walk from an honest generated proposal. Prove that lifting
+root HEAD wires and projecting them back keeps both source lists.
+Use these exact payload facts for the common-view and retained-walk step.
+
+`CommonInputs`: at the actual proposer tick, its full preceding-label
+pool equals that label's late denominator at the same read. Relay
+frozen voter inputs into this proposer pool. Use the generated proposal
+input equations to compare the carried and frozen counts.

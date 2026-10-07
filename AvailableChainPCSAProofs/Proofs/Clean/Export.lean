@@ -38,6 +38,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.GateCounts
 
 public import AvailableChainPCSAProofs.Proofs.Clean.GateReads
 
+public import AvailableChainPCSAProofs.Proofs.Clean.BodyPaths
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
