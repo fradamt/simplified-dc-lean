@@ -145,6 +145,7 @@ theorem pcsa_safety_carried (m : FGMode) (p : Params) {In : Type} (c : AppCodec 
       rw [hp] at h
       change a ∈ N.rows at h
       change (o.payload = Msg.proposal N) at hp
+      apply Or.inl
       change (match o.payload with
         | .proposal N => ofRow p a ∈ N.raw.map (ofHead p) ∨
             ofRow p a ∈ N.support.map (ofHead p) ∨ ofRow p a ∈ N.rows.map (ofRow p) ∨
