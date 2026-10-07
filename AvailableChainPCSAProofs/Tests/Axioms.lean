@@ -660,3 +660,21 @@ end
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_foldVotes_blocks
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_admitProposal_blocks
 #print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_poolAck_frame
+
+-- C6 RelayCollect.
+#print axioms AvailableChain.PCSA.CleanPCRelay.KeyHeld
+#print axioms AvailableChain.PCSA.CleanPCRelay.KeyHeld_def
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_keyHeld_iff_any
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_keyHeld_mono
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_pc_wellFormed_parts
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_assemblePC_congr
+#print axioms AvailableChain.PCSA.CleanPCRelay.CollectClosed
+#print axioms AvailableChain.PCSA.CleanPCRelay.CollectClosed_def
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_mem_collectPCs
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_assemblePC_of_parts
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_acksOn_append
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_new_key_ack
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_firstPerSeat_append
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_new_key_single
+#print axioms AvailableChain.PCSA.CleanPCRelay.pcsa_saturated_collectClosed
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_collectClosed

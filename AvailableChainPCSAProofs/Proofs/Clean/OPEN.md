@@ -1221,3 +1221,10 @@ Validation and current claim status are recorded in log.md and state.md.
 Clean-local store field facts support new-key provenance and PC
 preservation.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RelayCollect
+
+Clean saturation gives complete exact-target assembly. A new key requires
+a matching added ack; a single completing ack belongs to the resulting
+certificate.
+Validation and current claim status are recorded in log.md and state.md.
