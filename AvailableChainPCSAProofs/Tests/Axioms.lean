@@ -1606,3 +1606,10 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_stampBound_of_ticks
 #print axioms AvailableChain.PCSA.Run.pcsa_run_stamp_keep
 #print axioms AvailableChain.PCSA.pcsa_clock_pcStamps
+#print axioms AvailableChain.PCSA.Run.CleanStateFrom
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_state_base
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_pre_vote_lock_below_result
+#print axioms AvailableChain.PCSA.Run.pcsa_heads_cover_past_results_from
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_result_compatible_from
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_chain_from
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_result_from

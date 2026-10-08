@@ -6417,6 +6417,12 @@
             'AvailableChain.PCSA.Run.pcsa_resolved_head_of_held_body',
             'AvailableChain.PCSA.pcsa_clock_headDomain',
         ),
+        'AvailableChainPCSAProofs.Proofs.Clean.RestartKernels': (
+            'AvailableChain.PCSA.Run.pcsa_ack_result_compatible_from',
+            'AvailableChain.PCSA.Run.pcsa_heads_cover_past_results_from',
+            'AvailableChain.PCSA.Run.pcsa_pc_storeAt_chain_from',
+            'AvailableChain.PCSA.Run.pcsa_pc_storeAt_result_from',
+        ),
         'AvailableChainPCSAProofs.Proofs.Clean.RestartRecord': (
             'AvailableChain.PCSA.Run.pcsa_restart_post_gate_record',
             'AvailableChain.PCSA.pcsa_clock_gate_record_eq_result',
@@ -6429,6 +6435,11 @@
             'AvailableChain.PCSA.Run.pcsa_restart_ack_target',
             'AvailableChain.PCSA.Run.pcsa_restart_root_base',
             'AvailableChain.PCSA.Run.pcsa_restart_voterPC_slot',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.RestartState': (
+            'AvailableChain.PCSA.Run.CleanStateFrom',
+            'AvailableChain.PCSA.Run.pcsa_restart_pre_vote_lock_below_result',
+            'AvailableChain.PCSA.Run.pcsa_restart_state_base',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.ResultPaths': (
             'AvailableChain.PCSA.Run.pcsa_result_early_support',
