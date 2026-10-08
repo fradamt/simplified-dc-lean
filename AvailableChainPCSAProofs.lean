@@ -90,3 +90,5 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClientLaws
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge
+public import AvailableChainPCSAProofs.Proofs.Foundations.FinalitySafety
