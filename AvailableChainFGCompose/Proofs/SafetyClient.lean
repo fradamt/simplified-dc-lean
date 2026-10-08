@@ -19,6 +19,46 @@ variable (S : FGSafetyReads P n Wire)
 variable (Ef : Electorate (Fin n)) (cfg : FGConfig)
 variable [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V P)
 
+/-- A decoded own object records its row. -/
+theorem safetyRecordStep_some {rec : RecordOnce} {o : P.Object} {u : Row (Fin n)}
+    (h : S.decodeObject o = some u) : safetyRecordStep S rec o = record_row_once rec u := by
+  rw [safetyRecordStep_def, h]
+
+/-- An own object that decodes to no row leaves the record unchanged. -/
+theorem safetyRecordStep_none {rec : RecordOnce} {o : P.Object}
+    (h : S.decodeObject o = none) : safetyRecordStep S rec o = rec := by
+  rw [safetyRecordStep_def, h]
+
+/-- The client input of a node at its own tick. -/
+theorem safetyInputAt_tick {x : V} {k : Nat} {t : Time}
+    (h : rho.events[k]? = some (.tick x t)) :
+    safetyInputAt S E rho x k =
+      if E.awake x t = true ∧ S.enabled t = true then
+        some (S.inputs (P.clock (V2.D.Run.stateBefore E rho k x) t)) else none := by
+  rw [safetyInputAt_def, h]
+  change (if x = x ∧ E.awake x t = true ∧ S.enabled t = true then
+      some (S.inputs (P.clock (V2.D.Run.stateBefore E rho k x) t)) else none) = _
+  by_cases hc : E.awake x t = true ∧ S.enabled t = true
+  · rw [ite_eq_left ⟨rfl, hc⟩, ite_eq_left hc]
+  · rw [ite_eq_right (fun h' => hc h'.2), ite_eq_right hc]
+
+/-- No client input at an index that is not a tick of the node. -/
+theorem safetyInputAt_other {x : V} {k : Nat}
+    (h : ∀ t, rho.events[k]? ≠ some (.tick x t)) : safetyInputAt S E rho x k = none := by
+  rw [safetyInputAt_def]
+  cases hk : rho.events[k]? with
+  | none => rfl
+  | some e =>
+    cases e with
+    | restart y t => rfl
+    | deliver y o t => rfl
+    | tick y t =>
+      change (if y = x ∧ E.awake x t = true ∧ S.enabled t = true then
+          some (S.inputs (P.clock (V2.D.Run.stateBefore E rho k x) t)) else none) = none
+      rw [ite_eq_right]
+      rintro ⟨rfl, -⟩
+      exact h t hk
+
 omit [DecidableEq V] in
 /-- Linked gives one bijection between FG seats and nodes. -/
 theorem safety_linked_seats (linked : P.Label → Prop) (hfg : linked S.fgLabel)
