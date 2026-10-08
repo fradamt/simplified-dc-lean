@@ -223,6 +223,23 @@ theorem pcsa_clean_heads_cone_past_cut [Fintype V] (E : Generic.Env V)
     rw [← hhead]
     exact hcover
 
+/-- The full HEAD cone also holds when the next vote is inside the clean cut. -/
+theorem pcsa_clean_heads_cone_at_vote [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hf : FaultsBelowQA p c rho)
+    (hF : StageOneFrame p c E rho) (i : Slot) (B : Block) (hi : 0 < i)
+    (hv : SA.voteTime p.toParams i ≤ cut)
+    (hheads : ∀ y G, HonestHeadAt p c E rho y (i - 1) G → Block.Preceq B G)
+    (x : V) (H : Block) (hH : HonestHeadAt p c E rho x i H) : Block.Preceq B H := by
+  apply pcsa_clean_heads_cone_past_cut E rho h hf hF i B hi _ hheads x H hH
+  apply le_trans _ hv
+  obtain ⟨s, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hi)
+  simp only [Nat.succ_sub_one]
+  change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+  push_cast
+  have hp := p.deltaPos
+  linarith
+
 end AvailableChain.PCSA.Run
 
 end

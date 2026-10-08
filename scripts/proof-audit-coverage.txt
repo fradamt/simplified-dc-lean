@@ -5969,6 +5969,7 @@
         'AvailableChainPCSAProofs.Proofs.Clean.HeadCone': (
             'AvailableChain.PCSA.Run.pcsa_clean_cone_inputs',
             'AvailableChain.PCSA.Run.pcsa_clean_cone_root_compatible',
+            'AvailableChain.PCSA.Run.pcsa_clean_heads_cone_at_vote',
             'AvailableChain.PCSA.Run.pcsa_clean_heads_cone_past_cut',
             'AvailableChain.PCSA.Run.pcsa_voter_honest_awake',
         ),

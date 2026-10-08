@@ -1345,3 +1345,4 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_inputs
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_root_compatible
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_past_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_at_vote
