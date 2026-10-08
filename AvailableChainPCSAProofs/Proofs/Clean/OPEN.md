@@ -1,5 +1,59 @@
 # Clean lane W2a
 
+## Current status — continuation 6
+
+Base: `861ca1f8`. This includes `43733fe` and the slot/root PC relay fix.
+The signed ack, HEAD, and proposal cases handle the added PC branch.
+Whole-PC relay uses slot and target root. It does not assume that PC
+carriage gives full target-block equality.
+
+The following claims are proved. Clean claims are exported by
+`Clean/Export.lean`. The C5 and M5 PC claim adapters are exported by
+`Assembly/Small.lean`, which combines both lanes:
+
+- C6 `CleanInvariantClaim`: all 14 fields, by joint induction with
+  earlier-ack coverage. The successor uses the preceding invariant.
+- C5 `AvailableMonotoneClaim`: inclusive reads through the full clean cut.
+- `CleanDisseminationClaim`, `PCSACleanSafetyClaim`, and
+  `PCSACleanInclusionClaim`.
+- M1 `CleanResultsNonemptyClaim`, M2 `CleanResultsChainPendingClaim`,
+  M4 `CleanDisseminationPendingClaim`, and M5 `LeaseBelowRecordClaim`.
+- `CleanBlockReceiptClaim`, with the exact after-ticks target reader.
+
+Each claim uses only `propext`, `Classical.choice`, and `Quot.sound`.
+C3 positive-slot dissemination and PC snapshot stamps remain proved.
+No existing claim statement was changed in continuation 6. The pending
+claim declarations were copied verbatim from the outage branch.
+
+### False pending claims
+
+M3 `CleanHeadsAbovePendingClaim` and `CleanHeadsPastCutClaim` are false
+as stated. `Tests/PendingHeadCounterexample.lean` checks one full run:
+five honest nodes, one faulty node, and delay 2. A carried faulty HEAD
+reaches node 3 at time 17. Its relay deadline, 19, is outside cut 18.
+At time 18, node 3 chooses Z. At the label-1 gate, time 20, node 0
+returns X. X and Z are siblings. The run also passes CLEAN checks at
+cut 12, so it refutes the past-cut statement strictly after the cut.
+
+The executable audit checks all finite run premises. Kernel-checked
+trace identities connect its cached reads to the exact claim readers.
+Requiring the source gate by the cut is sufficient for the general
+result-to-HEAD argument. That change would not supply the requested
+past-cut guarantee. The outage lane needs a corrected statement.
+
+### Remaining scope
+
+C9 `StrongIncludedClaim` needs Formation to produce the proposal PC by
+the freeze. It remains with the Formation writer, as the brief permits.
+C7 `FormationClaim` was not changed.
+
+All module commits passed the full pre-commit list. There are no Lean
+warnings, forbidden proof placeholders, or unaccepted equation exports.
+The later sections preserve the earlier findings and proof plans. Their
+old OPEN labels describe the state at the time; this section is current.
+
+## Earlier findings and module plans
+
 Base: `92a4673`, on `31fa4d7`. Stage 1 only.
 Claim changes: the approved r4.3a correction to `CleanInvariantAt.roots`
 and the approved `0 < s` premise of `PCDisseminationClaim`.
@@ -1282,4 +1336,153 @@ Validation and current claim status are recorded in log.md and state.md.
 
 Actual admitted bodies have strictly earlier parents and cannot exceed the
 current slot before the next proposal.
+Validation and current claim status are recorded in log.md and state.md.
+
+### ProposalPaths
+
+The actual proposer head is held, and all proper proposal prefixes lie in
+its full tree.
+Validation and current claim status are recorded in log.md and state.md.
+
+### CommonEligibility
+
+Zero band floors and equal counts reduce eligibility to the same majority
+and duty-slot tests.
+Validation and current claim status are recorded in log.md and state.md.
+
+### RetainedProposal
+
+Retained paths and equal inputs transport the parent walk between roots;
+the unique eligible new child is the proposal.
+Validation and current claim status are recorded in log.md and state.md.
+
+### ProposerReads
+
+Exact pre-tick reads let predecessor CI compare proposer roots with
+results. Concrete proposer counts then give parent coverage.
+Validation and current claim status are recorded in log.md and state.md.
+
+### RootAgreement
+
+Common view targets and predecessor-result lock bounds give the retained-
+walk root conditions.
+Validation and current claim status are recorded in log.md and state.md.
+
+### HonestProposal
+
+Actual proposal receipt, common views and counts, retained trees, root
+bounds and slot bounds prove the successor headsEqual field.
+Validation and current claim status are recorded in log.md and state.md.
+
+### AckResults
+
+Earlier, equal and later label arguments give the full ack/result
+compatibility used by the joint record.
+Validation and current claim status are recorded in log.md and state.md.
+
+### StorePCInputs
+
+Indexed held PCs, valid carried PCs and exact gate inputs have honest ack
+witnesses with the required label bounds.
+Validation and current claim status are recorded in log.md and state.md.
+
+### LockWrites
+
+Bounded ack/result compatibility prevents every PC veto of a result-prefix
+lock write.
+Validation and current claim status are recorded in log.md and state.md.
+
+### ProcessLockRetention
+
+Every delivery preserves a row if all resulting held and valid carried PCs
+are compatible with its target.
+Validation and current claim status are recorded in log.md and state.md.
+
+### ClockLockRetention
+
+Exact read-field congruence connects clock release counts to the current
+clean counts; live rows survive when the count is below their level.
+Validation and current claim status are recorded in log.md and state.md.
+
+### GateLockRetention
+
+Gate writes can renew rows but retain every existing target; combine this
+with live-row pre-clock retention.
+Validation and current claim status are recorded in log.md and state.md.
+
+### RunLockKeep
+
+Deliveries preserve compatible rows; release counts contain only faulty
+seats; expiry and gate renewal preserve every live target.
+Validation and current claim status are recorded in log.md and state.md.
+
+### JointAux
+
+The successor record and earlier-ack coverage are constructed together.
+Label-zero initialization closes the full CleanInvariantClaim with only
+standard permitted axioms.
+Validation and current claim status are recorded in log.md and state.md.
+
+### CutReads
+
+Actual gate and ack times give full-cut S and selected-PC order. Generic
+floor monotonicity proves AvailableMonotoneClaim.
+Validation and current claim status are recorded in log.md and state.md.
+
+C6 is committed as 4a92c9e1. All 14 fields and the joint ack coverage
+passed the full pre-commit list with only the three permitted axioms.
+
+C5 layer check: Clean/Export cannot import Claims/PC. Keep the concrete
+available-output proof in Clean/Export. Put the C5 claim adapter in
+Assembly/Small beside C3. Put the later M5 adapter there for the same
+reason. Clean safety uses the concrete monotonicity theorem. No claim,
+checker, or allow list changes. Recheck the remaining export boundaries.
+
+### CleanOutputs
+
+Joint ack coverage gives dissemination. Completed result origins and
+observed ack targets give cross-node safety and both monotonicity
+conclusions.
+Validation and current claim status are recorded in log.md and state.md.
+
+### GenuineKeys
+
+Only the matching gate clock adds a saved label. Event uniqueness makes
+each actual gate input unsaved.
+Validation and current claim status are recorded in log.md and state.md.
+
+### GateAdvance
+
+The C6 result chain clears the lock guard. Each fresh gate covers its
+result in S, and later available reads retain the honest proposal.
+Validation and current claim status are recorded in log.md and state.md.
+
+### PendingGates
+
+An early-cut honest batch gives M1 nonempty results and M2 coverage of
+every earlier result, even when the gate follows the cut.
+Validation and current claim status are recorded in log.md and state.md.
+
+### StoreCutFacts
+
+Exact lock gate origins and full-cut S order prove LeaseBelowRecordClaim,
+the M5 store fact used by the outage assembly.
+Validation and current claim status are recorded in log.md and state.md.
+
+### BlockReceipt
+
+Exact acceptance times and strict relay prove CleanBlockReceiptClaim
+without changing its inclusive source or after-ticks target readers.
+Validation and current claim status are recorded in log.md and state.md.
+
+### VoterAuthenticity
+
+Every raw voter HEAD has an authentic emission. The unique honest duty
+prevents caps without a healthy-cut or gate-time premise.
+Validation and current claim status are recorded in log.md and state.md.
+
+### PendingNHead
+
+Unconditional honest-seat cap bounds and N-quorum receipt prove M4
+independently of the false pending result-to-HEAD claim.
 Validation and current claim status are recorded in log.md and state.md.

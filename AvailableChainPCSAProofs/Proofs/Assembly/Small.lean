@@ -48,4 +48,35 @@ theorem pcsa_pcDissemination (p : Params) : PCDisseminationClaim p := by
     exact pcsa_collectPCs_after_freeze E rho h.base.valid.toScheduleWellFormed h.base.noRestart
       h.base.delta y hy s (hz.trans h.cut.2)
 end AvailableChain.PCSA.Run
+namespace AvailableChain.PCSA.Run
+/-- C5: the available output is monotone through the full healthy prefix. -/
+theorem pcsa_available_monotone (p : Params) : AvailableMonotoneClaim p := by
+  intro V _ _ In c m E rho cut ΔF h hFault hF x hx t t' _ htt hc
+  exact pcsa_clean_available_mono_cut E rho h hF hFault x hx t t' htt hc
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+/-- M5: every retained lock is below S and compatible with every held PC through the cut. -/
+theorem pcsa_lock_below_record (p : Params) : LeaseBelowRecordClaim p := by
+  intro V _ _ In c m E rho cut ΔF h hFault hF x hx t _ ht row hr _
+  obtain ⟨k, i, X, hk, hi, hX, hrowX⟩ := pcsa_lock_storeAt_timed_origin E rho h.base x t row hr
+  have hXS := pcsa_clean_result_below_post_gate E rho h hF hFault i (hi.trans ht) x hx k hk X hX
+  have hkt : k + 1 ≤ (rho.events.filter (fun e : V2.Event V (Obj p) => decide (e.time ≤
+    t))).length :=
+    Nat.succ_le_of_lt ((V2.D.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed t
+      hk).mpr hi)
+  have hmono := pcsa_clean_record_indices_mono_cut E rho h hF hFault x hx (k + 1) _ hkt
+    (V2.D.Engine.read_length_mono (rho := rho) t cut ht)
+  constructor
+  · rw [storeAt_def, V2.D.Engine.readAt_eq_stateBefore h.base.valid.toScheduleWellFormed]
+    exact Gen.Pure.block_preceq_trans hrowX (Gen.Pure.block_preceq_trans hXS hmono)
+  · intro C hC
+    obtain ⟨_, y, hy, htime⟩ := pcsa_pc_storeAt_timed_ack E rho h.base hFault x hx t C hC
+    have hc := pcsa_clean_ack_result_cut E rho h hF hFault C.slot (htime.trans ht) y C.target hy
+      i (hi.trans ht) x hx X hX
+    rcases Bool.or_eq_true_iff.mp hc with hCX | hXC
+    · exact Gen.Pure.block_compatible_of_common hrowX hCX
+    · exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_preceq_trans hrowX hXC))
+end AvailableChain.PCSA.Run
+
 end
