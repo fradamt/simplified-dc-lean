@@ -30,11 +30,12 @@ theorem pcsa_read_vote_support_iff (E : Generic.Env V)
     exact ⟨hs, hp⟩
   · rintro ⟨hs, hp⟩
     exact ⟨B, hl, hm, hs, hp⟩
-/-- An honest proposal gives identical actual participant counts, caps, and walk scores. -/
-theorem pcsa_common_walk_counts (E : Generic.Env V)
+/-- In the delivery window: An honest proposal gives identical actual participant counts, caps, and
+walk scores. -/
+theorem pcsa_common_walk_counts_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (v : Time)
     (N : NamedProposal p.n)
     (hx : rho.seatOf (.prop (s + 1)) (0 : Fin 1) ∈ rho.honest)
@@ -47,7 +48,7 @@ theorem pcsa_common_walk_counts (E : Generic.Env V)
     (hslot : N.slot = s + 1)
     (hmem : (⟨.proposer (s + 1), .proposal N⟩ : Wire p.n) ∈
       (V2.D.Run.stateBefore E rho a y).st.proposals)
-    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hr : N.raw.map baseVote = proposerVotes
       (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
         (SA.proposalTime p.toParams (s + 1))) (s + 1))
@@ -67,7 +68,8 @@ theorem pcsa_common_walk_counts (E : Generic.Env V)
   let x := rho.seatOf (.prop (s + 1)) (0 : Fin 1)
   let src := clock p (V2.D.Run.stateBefore E rho k x).st (SA.proposalTime p.toParams (s + 1))
   let dst := clock p (V2.D.Run.stateBefore E rho a y).st v
-  have hraw := pcsa_common_raw_transfer E rho h hD a k y hy s v N hx he hk hslot hmem hc hr
+  have hraw := pcsa_common_raw_transfer_win E rho h hD (hT := hT) a k y hy s v N hx he hk hslot
+      hmem hc hr
   have hvcut : SA.voteTime p.toParams (s + 1) ≤ cut := by
     apply le_trans _ hc
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
@@ -75,11 +77,13 @@ theorem pcsa_common_walk_counts (E : Generic.Env V)
     have hp := p.deltaPos
     nlinarith
   have forward (o : GridCO.Wire p.n .root) (ho : o ∈ proposerSupport src (s + 1)) :=
-    pcsa_proposer_support_in_voter E rho h hF hD k a x y hx hy (s + 1) v N hslot hk ha
+    pcsa_proposer_support_in_voter_win E rho h hF hD
+      (hT := pcsa_floor_le hT (Nat.le_succ s)) k a x y hx hy (s + 1) v N hslot hk ha
       hvcut hmem hsup o ho
   have backward (o : GridCO.Wire p.n .root) (ho : o ∈ headSupport p dst (s + 1))
       (i : Fin p.n) (hi : GridCO.headSeat? o = some i) :=
-    pcsa_honest_support_backward E rho h hF hD a k y hy s v N hx he hk hc hsup o ho i hi
+    pcsa_honest_support_backward_win E rho h hF hD (hT := hT) a k y hy s v N hx he hk hc hsup o ho
+        i hi
   have incidence (X : Block) (i : Fin p.n)
       (hi : GridCO.equivocates (proposerVotes src (s + 1)) i = false) :
       Gen.AC.Root.poolSupports src.base.blocks (proposerSupport src (s + 1)) i X =
@@ -117,6 +121,42 @@ theorem pcsa_common_walk_counts (E : Generic.Env V)
     (fun o ho i hi hnot => (hraw.2 o ho i hi).resolve_left hnot)
     (fun B _ i hi => incidence B i hi)
   exact ⟨counts.2.2.1, counts.2.1, fun B => counts.2.2.2 B (Set.mem_univ B)⟩
+/-- An honest proposal gives identical actual participant counts, caps, and walk scores. -/
+theorem pcsa_common_walk_counts (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (v : Time)
+    (N : NamedProposal p.n)
+    (hx : rho.seatOf (.prop (s + 1)) (0 : Fin 1) ∈ rho.honest)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (⟨.seat (.prop (s + 1)) (0 : Fin 1), .proposal N⟩ : Obj p)
+        (SA.proposalTime p.toParams (s + 1)))
+    (hk : rho.events[k]? = some (.tick (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (SA.proposalTime p.toParams (s + 1))))
+    (ha : V2.D.Run.idxBefore rho (SA.voteTime p.toParams (s + 1)) ≤ a)
+    (hslot : N.slot = s + 1)
+    (hmem : (⟨.proposer (s + 1), .proposal N⟩ : Wire p.n) ∈
+      (V2.D.Run.stateBefore E rho a y).st.proposals)
+    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hr : N.raw.map baseVote = proposerVotes
+      (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
+        (SA.proposalTime p.toParams (s + 1))) (s + 1))
+    (hsup : N.support.map baseVote = proposerSupport
+      (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
+        (SA.proposalTime p.toParams (s + 1))) (s + 1)) :
+    let src := clock p (V2.D.Run.stateBefore E rho k
+      (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st (SA.proposalTime p.toParams (s + 1))
+    let dst := clock p (V2.D.Run.stateBefore E rho a y).st v
+    GridCO.voterCount (proposerVotes src (s + 1)) = GridCO.voterCount (headVotes p dst (s + 1)) ∧
+      (∀ i, GridCO.equivocates (proposerVotes src (s + 1)) i =
+        GridCO.equivocates (headVotes p dst (s + 1)) i) ∧
+      ∀ B, GridCO.goldfishScore src.base.blocks (proposerVotes src (s + 1))
+        (proposerSupport src (s + 1)) B =
+          GridCO.goldfishScore dst.base.blocks (headVotes p dst (s + 1))
+            (headSupport p dst (s + 1)) B :=
+  pcsa_common_walk_counts_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k y hy s v N hx
+    he hk ha hslot hmem (le_refl _) hc hr hsup
 end AvailableChain.PCSA.Run
 
 end

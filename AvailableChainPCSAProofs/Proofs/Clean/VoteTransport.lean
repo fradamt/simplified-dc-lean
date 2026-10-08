@@ -20,13 +20,14 @@ theorem pcsa_postClock_source (E : Generic.Env V)
   subst pre
   subst nd
   exact ⟨k, V2.D.Run.tickIdx?_spec hk, rfl⟩
-/-- Actual receipt and retained paths turn root compatibility into HEAD extension. -/
-theorem pcsa_next_head_above_result_of_root (E : Generic.Env V)
+/-- In the delivery window: Actual receipt and retained paths turn root compatibility into HEAD
+extension. -/
+theorem pcsa_next_head_above_result_of_root_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (x y : V) (hx : x ∈ rho.honest) (s : Slot) (X H : Block)
-    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hX : gateResultAt p c E rho x s = some (some X))
     (hH : HonestHeadAt p c E rho y (s + 1) H)
     (hroot : ∀ R, liveRootAt p c E rho y (s + 1) = some R → Block.Compatible R X) :
@@ -57,9 +58,9 @@ theorem pcsa_next_head_above_result_of_root (E : Generic.Env V)
     push_cast at ht
     have hp := p.deltaPos
     nlinarith
-  have hpaths := pcsa_result_prefixes_retained E rho h hF hD a k x y hx hy
+  have hpaths := pcsa_result_prefixes_retained_win E rho h hF hD (hT := hT) a k x y hx hy
     (SA.gateTime p.toParams s) (SA.voteTime p.toParams (s + 1)) s X hfcut hfk hresult
-  have hcover := pcsa_gate_voter_walk_counts E rho h hF hD a k x y hx hy s X
+  have hcover := pcsa_gate_voter_walk_counts_win E rho h hF hD (hT := hT) a k x y hx hy s X
     (voterPC p dst (s + 1))
     (erasedList dst (KitFG.storeFrameView (FGSA.heightView p) dst.fg (voterBlocks p dst (s + 1))))
     hc ha hk hresult hcompat (fun C _ hCX => (hpaths C hCX).2)
@@ -67,6 +68,19 @@ theorem pcsa_next_head_above_result_of_root (E : Generic.Env V)
   rw [ite_eq_right (Nat.succ_ne_zero s)] at hhead
   rw [← hhead]
   exact hcover
+/-- Actual receipt and retained paths turn root compatibility into HEAD extension. -/
+theorem pcsa_next_head_above_result_of_root (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (x y : V) (hx : x ∈ rho.honest) (s : Slot) (X H : Block)
+    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hX : gateResultAt p c E rho x s = some (some X))
+    (hH : HonestHeadAt p c E rho y (s + 1) H)
+    (hroot : ∀ R, liveRootAt p c E rho y (s + 1) = some R → Block.Compatible R X) :
+    Block.Preceq X H :=
+  pcsa_next_head_above_result_of_root_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) x y
+    hx s X H (le_refl _) hc hX hH hroot
 end AvailableChain.PCSA.Run
 
 end

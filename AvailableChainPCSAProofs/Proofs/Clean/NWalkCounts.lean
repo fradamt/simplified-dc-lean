@@ -71,15 +71,16 @@ theorem pcsa_proposer_honest_not_capped (E : Generic.Env V)
   delta GridCO.votesAt
   rw [pcsa_clock_heads]
   exact pcsa_honest_head_pool_not_capped E rho hv k x s i hi
-/-- Backward receipt prevents an honest cap in the actual voter raw input. -/
-theorem pcsa_voter_honest_not_capped (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+/-- In the delivery window: Backward receipt prevents an honest cap in the actual voter raw input.
+-/
+theorem pcsa_voter_honest_not_capped_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (k a : Nat) (y x : V) (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (hi : rho.seatOf (.base (.head s)) i ∈ rho.honest)
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
     (ha : rho.events[a]? = some (.tick x (SA.gateTime p.toParams s)))
-    (hc : SA.gateTime p.toParams s ≤ cut) :
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut) :
     GridCO.equivocates (headVotes p (clock p (V2.D.Run.stateBefore E rho k y).st
       (SA.voteTime p.toParams (s + 1))) (s + 1)) i = false := by
   let dst := clock p (V2.D.Run.stateBefore E rho k y).st (SA.voteTime p.toParams (s + 1))
@@ -95,7 +96,8 @@ theorem pcsa_voter_honest_not_capped (E : Generic.Env V)
       · obtain ⟨_, _, _, _, _, _, _, _, _, hl⟩ := hc
         simpa only [Nat.add_sub_cancel] using hl
     obtain ⟨r, rfl⟩ := pcsa_count_head_shape o s i hl hoi
-    rcases pcsa_voter_tick_input_relay_late E rho h hD k a y x hy hx s i r hc hk ha ho with hm | he
+    rcases pcsa_voter_tick_input_relay_late_win E rho h hD (hT := hT) k a y x hy hx s i r hc hk ha
+        ho with hm | he
     · exact hm
     · rw [hclean] at he
       cases he
@@ -106,6 +108,19 @@ theorem pcsa_voter_honest_not_capped (E : Generic.Env V)
     ⟨o, read o ho hoi, o', read o' ho' ho'i, hne, hoi, ho'i⟩
   rw [hclean] at hcap
   cases hcap
+/-- Backward receipt prevents an honest cap in the actual voter raw input. -/
+theorem pcsa_voter_honest_not_capped (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (k a : Nat) (y x : V) (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (hi : rho.seatOf (.base (.head s)) i ∈ rho.honest)
+    (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (ha : rho.events[a]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hc : SA.gateTime p.toParams s ≤ cut) :
+    GridCO.equivocates (headVotes p (clock p (V2.D.Run.stateBefore E rho k y).st
+      (SA.voteTime p.toParams (s + 1))) (s + 1)) i = false :=
+  pcsa_voter_honest_not_capped_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) k a y x hy hx s
+    i hi hk ha (le_refl _) hc
 end AvailableChain.PCSA.Run
 
 end

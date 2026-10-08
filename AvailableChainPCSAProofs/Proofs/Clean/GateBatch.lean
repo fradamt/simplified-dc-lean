@@ -30,13 +30,14 @@ theorem pcsa_gateResultAt_at_tick (E : Generic.Env V)
   change some (SA.Root.confirmationFrom p.toParams (eraseFG (clockPre p _ _).fg.F)
     (actView (clockPre p _ _)) s) = _
   rw [pcsa_clock_confirmation_eq_pre]
-/-- The honest batch gives a genuine result above every common honest HEAD prefix. -/
-theorem pcsa_clean_gate_covers_heads [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
-    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+/-- In the delivery window: The honest batch gives a genuine result above every common honest HEAD
+prefix. -/
+theorem pcsa_clean_gate_covers_heads_win [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
+    (h : CleanWindow E rho j₀ T₀ cut) (hF : StageOneFrame p c E rho)
     (k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (B : Block)
     (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
-    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hs : j₀ ≤ s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hheads : ∀ x H, HonestHeadAt p c E rho x s H → Block.Preceq B H) :
     ∃ X, SA.Root.confirmationFrom p.toParams
       (eraseFG (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s)).fg.F)
@@ -44,10 +45,10 @@ theorem pcsa_clean_gate_covers_heads [Fintype V] (E : Generic.Env V)
         X ∧
       Block.Preceq B X := by
   let st := clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s)
-  have hb := pcsa_clean_gate_majority E rho h hF k y hy s B hk hc hheads
-  have ha := pcsa_clean_gate_majority E rho h hF k y hy s .genesis hk hc
+  have hb := pcsa_clean_gate_majority_win E rho h (hs := hs) hF k y hy s B hk hc hheads
+  have ha := pcsa_clean_gate_majority_win E rho h (hs := hs) hF k y hy s .genesis hk hc
     (fun _ H _ => Gen.Pure.block_genesis_preceq H)
-  obtain ⟨Hon, hHon, hbatch⟩ := pcsa_clean_head_batch E rho h s hc
+  obtain ⟨Hon, hHon, hbatch⟩ := pcsa_clean_head_batch_win E rho h (hs := hs) s hc
   have hpos : 0 < Hon.card := lt_of_le_of_lt (Nat.zero_le _) hbatch
   obtain ⟨i, hi⟩ := Finset.card_pos.mp hpos
   obtain ⟨hih, hiw⟩ := (hHon i).mp hi
@@ -70,7 +71,8 @@ theorem pcsa_clean_gate_covers_heads [Fintype V] (E : Generic.Env V)
     linarith
   obtain ⟨H, hH⟩ := pcsa_honest_head_exists E rho h.base _ hih s hiw hvote
   have hBH := hheads _ H hH
-  obtain ⟨hm, _⟩ := pcsa_honest_head_body_before_early E rho h.base hF h.healthy _ y hy s H
+  obtain ⟨hm, _⟩ := pcsa_honest_head_body_before_early_win E rho h.base hF h.strict
+    (hT := pcsa_cleanWindow_floor E rho h s hs) _ y hy s H
     hH hearly k hidx
   have hclock : H ∈ st.base.blocks := by
     change H ∈ (clock p _ _).base.blocks
@@ -95,11 +97,27 @@ theorem pcsa_clean_gate_covers_heads [Fintype V] (E : Generic.Env V)
   change SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s = some X
   rw [hf]
   exact hr
-/-- Every clean gate in the healthy cut has a nonempty claim-level result. -/
-theorem pcsa_clean_result_exists [Fintype V] (E : Generic.Env V)
+/-- The honest batch gives a genuine result above every common honest HEAD prefix. -/
+theorem pcsa_clean_gate_covers_heads [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
     (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
-    (y : V) (hy : y ∈ rho.honest) (s : Slot) (hc : SA.gateTime p.toParams s ≤ cut) :
+    (k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (B : Block)
+    (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
+    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hheads : ∀ x H, HonestHeadAt p c E rho x s H → Block.Preceq B H) :
+    ∃ X, SA.Root.confirmationFrom p.toParams
+      (eraseFG (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s)).fg.F)
+      (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s = some
+        X ∧
+      Block.Preceq B X :=
+  pcsa_clean_gate_covers_heads_win E rho (pcsa_cleanWindow_of_clean E rho h) hF k y hy s B hk
+    (Nat.zero_le _) hc hheads
+/-- In the delivery window: Every clean gate in the healthy cut has a nonempty claim-level result.
+-/
+theorem pcsa_clean_result_exists_win [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
+    (h : CleanWindow E rho j₀ T₀ cut) (hF : StageOneFrame p c E rho)
+    (y : V) (hy : y ∈ rho.honest) (s : Slot) (hs : j₀ ≤ s) (hc : SA.gateTime p.toParams s ≤ cut) :
     ∃ X, gateResultAt p c E rho y s = some (some X) := by
   have hp : V2.PublicTime E (SA.gateTime p.toParams s) := by
     refine ⟨4 * s + 6, ?_⟩
@@ -113,10 +131,33 @@ theorem pcsa_clean_result_exists [Fintype V] (E : Generic.Env V)
     positivity
   obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp
     (h.base.valid.tick_total y hy _ hp hz (hc.trans h.cut.2))
-  obtain ⟨X, hr, _⟩ := pcsa_clean_gate_covers_heads E rho h hF k y hy s .genesis hk hc
+  obtain ⟨X, hr, _⟩ := pcsa_clean_gate_covers_heads_win E rho h (hs := hs) hF k y hy s .genesis hk
+      hc
     (fun _ H _ => Gen.Pure.block_genesis_preceq H)
   refine ⟨X, ?_⟩
   rw [pcsa_gateResultAt_at_tick E rho h.base.valid.nodup k y s hk, hr]
+/-- Every clean gate in the healthy cut has a nonempty claim-level result. -/
+theorem pcsa_clean_result_exists [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (y : V) (hy : y ∈ rho.honest) (s : Slot) (hc : SA.gateTime p.toParams s ≤ cut) :
+    ∃ X, gateResultAt p c E rho y s = some (some X) :=
+  pcsa_clean_result_exists_win E rho (pcsa_cleanWindow_of_clean E rho h) hF y hy s (Nat.zero_le _)
+    hc
+/-- In the delivery window: A claim-level result extends any prefix covered by every honest HEAD of
+its label. -/
+theorem pcsa_clean_result_covers_heads_win [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
+    (h : CleanWindow E rho j₀ T₀ cut) (hF : StageOneFrame p c E rho)
+    (y : V) (hy : y ∈ rho.honest) (s : Slot) (B X : Block)
+    (hs : j₀ ≤ s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hheads : ∀ x H, HonestHeadAt p c E rho x s H → Block.Preceq B H)
+    (hr : gateResultAt p c E rho y s = some (some X)) : Block.Preceq B X := by
+  obtain ⟨k, hk, hX⟩ := pcsa_gateResultAt_source E rho y s X hr
+  obtain ⟨Y, hY, hBY⟩ := pcsa_clean_gate_covers_heads_win E rho h (hs := hs) hF k y hy s B hk hc
+      hheads
+  have he : Y = X := Option.some.inj (hY.symm.trans hX)
+  exact he ▸ hBY
 /-- A claim-level result extends any prefix covered by every honest HEAD of its label. -/
 theorem pcsa_clean_result_covers_heads [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
@@ -124,11 +165,9 @@ theorem pcsa_clean_result_covers_heads [Fintype V] (E : Generic.Env V)
     (y : V) (hy : y ∈ rho.honest) (s : Slot) (B X : Block)
     (hc : SA.gateTime p.toParams s ≤ cut)
     (hheads : ∀ x H, HonestHeadAt p c E rho x s H → Block.Preceq B H)
-    (hr : gateResultAt p c E rho y s = some (some X)) : Block.Preceq B X := by
-  obtain ⟨k, hk, hX⟩ := pcsa_gateResultAt_source E rho y s X hr
-  obtain ⟨Y, hY, hBY⟩ := pcsa_clean_gate_covers_heads E rho h hF k y hy s B hk hc hheads
-  have he : Y = X := Option.some.inj (hY.symm.trans hX)
-  exact he ▸ hBY
+    (hr : gateResultAt p c E rho y s = some (some X)) : Block.Preceq B X :=
+  pcsa_clean_result_covers_heads_win E rho (pcsa_cleanWindow_of_clean E rho h) hF y hy s B X
+    (Nat.zero_le _) hc hheads hr
 end AvailableChain.PCSA.Run
 
 end

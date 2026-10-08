@@ -11,12 +11,13 @@ public section
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {m : FGMode}
-/-- Actual N receipt forces the next HEAD above the target once its root is compatible. -/
-theorem pcsa_N_next_head_of_root (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
-    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+/-- In the delivery window: Actual N receipt forces the next HEAD above the target once its root is
+compatible. -/
+theorem pcsa_N_next_head_of_root_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
+    (h : CleanWindow E rho j₀ T₀ cut) (hF : StageOneFrame p c E rho)
     (hFault : FaultsBelowQA p c rho) (a : Nat) (x y : V) (hx : x ∈ rho.honest)
-    (v : Time) (s : Slot) (B H : Block) (hc : SA.gateTime p.toParams s ≤ cut)
+    (v : Time) (s : Slot) (B H : Block) (hs : j₀ ≤ s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hN : holdsN p (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s B = true)
     (hH : HonestHeadAt p c E rho y (s + 1) H)
     (hroot : ∀ R, liveRootAt p c E rho y (s + 1) = some R → Block.Compatible R B) :
@@ -49,9 +50,10 @@ theorem pcsa_N_next_head_of_root (E : Generic.Env V)
     push_cast at ht
     have hp := p.deltaPos
     nlinarith
-  have hread := pcsa_N_read_transport E rho h.base hF h.healthy a k x y hx hy v
+  have hread := pcsa_N_read_transport_win E rho h.base hF h.strict
+    (hT := pcsa_cleanWindow_floor E rho h s hs) a k x y hx hy v
     (SA.voteTime p.toParams (s + 1)) s B hfcut hfk hN
-  obtain ⟨X, hX⟩ := pcsa_clean_result_exists E rho h hF x hx s hc
+  obtain ⟨X, hX⟩ := pcsa_clean_result_exists_win E rho h (hs := hs) hF x hx s hc
   obtain ⟨q, hq, _⟩ := pcsa_gateResultAt_source E rho x s X hX
   let F := Finset.univ.filter (fun i : Fin p.n => rho.seatOf (.base (.head s)) i ∉ rho.honest)
   have hFcard : F.card < pcQuorum p.n := by
@@ -66,7 +68,8 @@ theorem pcsa_N_next_head_of_root (E : Generic.Env V)
     apply Finset.mem_filter.mpr
     refine ⟨Finset.mem_univ _, ?_⟩
     intro hh
-    have hf := pcsa_voter_honest_not_capped E rho h.base h.healthy k q y x hy hx s i hh hk hq hc
+    have hf := pcsa_voter_honest_not_capped_win E rho h.base h.strict
+      (hT := pcsa_cleanWindow_floor E rho h s hs) k q y x hy hx s i hh hk hq hc
     change GridCO.equivocates raw i = false at hf
     rw [hi] at hf
     cases hf
@@ -81,6 +84,33 @@ theorem pcsa_N_next_head_of_root (E : Generic.Env V)
   rw [ite_eq_right (Nat.succ_ne_zero s)] at hhead
   rw [← hhead]
   exact hcover
+/-- Actual N receipt forces the next HEAD above the target once its root is compatible. -/
+theorem pcsa_N_next_head_of_root (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (a : Nat) (x y : V) (hx : x ∈ rho.honest)
+    (v : Time) (s : Slot) (B H : Block) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hN : holdsN p (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s B = true)
+    (hH : HonestHeadAt p c E rho y (s + 1) H)
+    (hroot : ∀ R, liveRootAt p c E rho y (s + 1) = some R → Block.Compatible R B) :
+    Block.Preceq B H :=
+  pcsa_N_next_head_of_root_win E rho (pcsa_cleanWindow_of_clean E rho h) hF hFault a x y hx v s B
+    H (Nat.zero_le _) hc hN hH hroot
+/-- In the delivery window: An honest ack disseminates into the next HEAD under its separate N-root
+premise. -/
+theorem pcsa_honestAck_next_head_of_root_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
+    (h : CleanWindow E rho j₀ T₀ cut) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x y : V) (s : Slot) (B H : Block)
+    (hs : j₀ ≤ s) (hc : SA.gateTime p.toParams s ≤ cut) (hAck : HonestAckAt p c E rho x s B)
+    (hH : HonestHeadAt p c E rho y (s + 1) H)
+    (hroot : ∀ R, liveRootAt p c E rho y (s + 1) = some R → Block.Compatible R B) :
+    Block.Preceq B H := by
+  obtain ⟨nd, hnd, _, _, hN, _⟩ := pcsa_honestAck_N_source E rho x s B hAck
+  obtain ⟨a, _, hstore⟩ := pcsa_postClock_source E rho x _ nd hnd
+  rw [hstore] at hN
+  exact pcsa_N_next_head_of_root_win E rho h (hs := hs) hF hFault a x y hAck.1 _ s B H hc hN hH
+      hroot
 /-- An honest ack disseminates into the next HEAD under its separate N-root premise. -/
 theorem pcsa_honestAck_next_head_of_root (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
@@ -89,11 +119,9 @@ theorem pcsa_honestAck_next_head_of_root (E : Generic.Env V)
     (hc : SA.gateTime p.toParams s ≤ cut) (hAck : HonestAckAt p c E rho x s B)
     (hH : HonestHeadAt p c E rho y (s + 1) H)
     (hroot : ∀ R, liveRootAt p c E rho y (s + 1) = some R → Block.Compatible R B) :
-    Block.Preceq B H := by
-  obtain ⟨nd, hnd, _, _, hN, _⟩ := pcsa_honestAck_N_source E rho x s B hAck
-  obtain ⟨a, _, hstore⟩ := pcsa_postClock_source E rho x _ nd hnd
-  rw [hstore] at hN
-  exact pcsa_N_next_head_of_root E rho h hF hFault a x y hAck.1 _ s B H hc hN hH hroot
+    Block.Preceq B H :=
+  pcsa_honestAck_next_head_of_root_win E rho (pcsa_cleanWindow_of_clean E rho h) hF hFault x y s B
+    H (Nat.zero_le _) hc hAck hH hroot
 end AvailableChain.PCSA.Run
 
 end
