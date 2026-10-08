@@ -1,6 +1,7 @@
 module
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationFreeze
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationView
+public import AvailableChainPCSAProofs.Proofs.Clean.PCScope
 public import AvailableChainFGSA.Proofs.Metadata
 
 public section
@@ -189,44 +190,6 @@ theorem pcsa_formation_process_snapshot (p : Params) (st : State p.n) (o : Wire 
                   | rfl
                   | simpa only [formation_reconcile_fg, deleteConflictingLeases_def] using hF)
           · rfl
-private theorem formation_gate_blocks (p : Params) (st : State n) (a : Block)
-    (cs : List (PC n)) (rank : Option PCRank) (s : Slot) :
-    (gateFrom p a cs rank st s).base.blocks = st.base.blocks := by
-  rw [gateFrom_def]
-  dsimp only
-  cases SA.Root.confirmationFrom p.toParams a (actView st) s with
-  | none => rfl
-  | some result =>
-    dsimp only
-    split
-    · rfl
-    · apply List.foldlRecOn (motive := fun acc : State n => acc.base.blocks = st.base.blocks)
-      · rfl
-      · intro acc ha b _
-        apply List.foldlRecOn (motive := fun acc' : State n => acc'.base.blocks = st.base.blocks)
-        · exact ha
-        · intro acc' ha' g _
-          exact (writeLease_frame acc' b g _ rank).2.2.2.2.1.trans ha'
-
-private theorem formation_clockPre_blocks (p : Params) (st : State p.n) (t : Time) :
-    (clockPre p st t).base.blocks = st.base.blocks := by
-  delta clockPre
-  dsimp only
-  split <;> split <;> split <;> rfl
-
-/-- Every tick keeps the cumulative target block list. -/
-theorem pcsa_formation_clock_blocks (p : Params) (st : State p.n) (t : Time) :
-    (clock p st t).base.blocks = st.base.blocks := by
-  delta clock
-  dsimp only
-  split
-  · rw [gateStep_def, formation_normalize_blocks]
-    split
-    · exact formation_clockPre_blocks p st t
-    · rw [formation_gate_blocks]
-      exact formation_clockPre_blocks p st t
-  · exact formation_clockPre_blocks p st t
-
 /-- Every tick retains all entries of each existing frozen PC view. -/
 theorem pcsa_formation_clock_snapshot_mono (p : Params) (st : State p.n) (t : Time) (s : Slot) :
     pcSnapshotAt st s ⊆ pcSnapshotAt (clock p st t) s := by
@@ -250,119 +213,6 @@ theorem pcsa_formation_clock_snapshot_mono (p : Params) (st : State p.n) (t : Ti
       | none => exact List.nil_subset _
       | some row => exact List.Subset.refl _
   · exact List.Subset.refl _
-private def FormationTargets (st : State n) : Prop :=
-  ∀ C ∈ st.pcs, C.target ∈ st.base.blocks
-
-private theorem formation_collect_targets (st : State n) (h : FormationTargets st) :
-    FormationTargets (collectPCs st) := by
-  apply collectPCs_invariant FormationTargets
-  · intro acc C ha hv D hd
-    rw [(installPC_frame acc C).2.1]
-    rcases mem_installPC_pcs acc C D hd with hm | rfl
-    · exact ha D hm
-    · exact of_decide_eq_true (Bool.and_eq_true_iff.mp
-        (Bool.and_eq_true_iff.mp hv).1).2
-  · exact h
-
-private theorem formation_raw_targets (st : State n) (as : List (AckWire n))
-    (h : FormationTargets st) : FormationTargets (as.foldl poolAckRaw st) := by
-  induction as generalizing st with
-  | nil => exact h
-  | cons a as ih =>
-    rw [List.foldl_cons]
-    apply ih
-    intro C hc
-    rw [(poolAckRaw_frame st a).1] at hc
-    rw [(poolAckRaw_frame st a).2.2.1]
-    exact h C hc
-
-private theorem formation_row_targets (p : Params) (st : State p.n) (a : RowWire p.n)
-    (h : FormationTargets st) : FormationTargets (admitRow p st a) := by
-  delta admitRow
-  cases a.decode? with
-  | none => exact h
-  | some val => dsimp only; split <;> exact h
-
-private theorem formation_rows_targets (p : Params) (st : State p.n) (as : List (RowWire p.n))
-    (h : FormationTargets st) : FormationTargets (as.foldl (admitRow p) st) := by
-  induction as generalizing st with
-  | nil => exact h
-  | cons a as ih =>
-    rw [List.foldl_cons]
-    exact ih _ (formation_row_targets p st a h)
-
-private theorem formation_normalize_targets (st : State n) (h : FormationTargets st) :
-    FormationTargets (normalizeS st) := by
-  delta normalizeS
-  split <;> exact h
-
-private theorem formation_reconcile_targets (st : State n) (h : FormationTargets st) :
-    FormationTargets (reconcile st) := by
-  delta reconcile
-  apply formation_normalize_targets
-  exact fun C hc => h C (List.mem_filter.mp hc).1
-
-private theorem formation_process_targets (p : Params) (st : State p.n) (o : Wire p.n)
-    (h : FormationTargets st) : FormationTargets (process p st o) := by
-  delta process
-  cases o.decode with
-  | none => exact h
-  | some d =>
-    cases d with
-    | vote s i root =>
-      intro C hc
-      change C.target ∈ (GridCO.admitVote p.toParams.engine st.base _).blocks
-      rw [GridCO.admitVote_blocks]
-      exact h C hc
-    | row i body => exact formation_row_targets p st _ h
-    | ack s i root =>
-      apply formation_collect_targets
-      delta poolAck
-      cases (AckWire.decode? (⟨o.auth, root⟩ : AckWire p.n)) with
-      | none => exact h
-      | some val => rcases val with ⟨s, i, root⟩; dsimp only; split_ifs <;> exact h
-    | pc C =>
-      change FormationTargets (admitPC st C)
-      delta admitPC
-      split
-      · exact formation_collect_targets _ (formation_raw_targets st C.acks h)
-      · exact h
-    | block s N =>
-      change FormationTargets (admitBlock p st s N)
-      delta admitBlock
-      split
-      · exact h
-      · cases parentFG st N.erase with
-        | none => exact h
-        | some P =>
-          change FormationTargets
-            (if blockAccepted p st s N P then formationAccepted p st s N P else st)
-          split
-          · delta formationAccepted
-            apply formation_rows_targets
-            apply formation_collect_targets
-            apply formation_raw_targets
-            cases N.pc <;> dsimp only <;> split_ifs
-            all_goals first
-              | apply formation_reconcile_targets
-              | skip
-            all_goals
-              intro C hc
-              exact (FGSA.admitProposal_prefix p.toParams.engine st.base _ _ _).1.subset (h C hc)
-          · exact h
-
-/-- Every reachable held PC has a target in the cumulative block list. -/
-theorem pcsa_formation_held_pc_targets (p : Params) (st : State p.n) (h : Reachable p st) :
-    ∀ C ∈ st.pcs, C.target ∈ st.base.blocks := by
-  change FormationTargets st
-  induction h with
-  | init => exact fun C hc => (List.not_mem_nil hc).elim
-  | tick t _ ih =>
-    intro C hc
-    rw [pcsa_clock_pcs] at hc
-    rw [pcsa_formation_clock_blocks]
-    exact ih C hc
-  | deliver o _ ih => exact formation_process_targets p _ o ih
 
 end AvailableChain.PCSA
 
@@ -387,7 +237,7 @@ theorem pcsa_formation_run_blocks_mono (E : Generic.Env V) (rho : V2.D.Run V (pc
       (Function.update (V2.D.Run.stateBefore E rho k) y _ y).st.base.blocks
     rw [Function.update_self]
     have ht := pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k y) y t
-    rw [ht, pcsa_formation_clock_blocks]
+    rw [ht, pcsa_clock_blocks]
     exact hm
   | deliver x o t =>
     change x = y at hn
@@ -595,7 +445,7 @@ theorem pcsa_formation_source_of_retained_freeze (E : Generic.Env V)
   have hHeld : P ∈ (storeAfterTicks p c E rho y
       (SA.freezeTime p.toParams (r * p.R))).base.blocks := by
     rw [← ht]
-    exact pcsa_formation_held_pc_targets p _ (reachable_storeAfterTicks E rho _ y) C hC
+    exact pcsa_pc_targets_held p _ (reachable_storeAfterTicks E rho _ y) C hC
   have hheld := pcsa_formation_afterTicks_blocks_mono E rho hBase y _ _ htime hHeld
   rw [heq] at hheld
   have hsnap : C ∈ pcSnapshotAt (storeAfterTicks p c E rho y

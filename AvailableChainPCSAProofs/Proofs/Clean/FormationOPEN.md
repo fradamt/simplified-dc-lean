@@ -6,20 +6,24 @@ Formation writer owns this file and the `Clean/Formation*` modules.
 
 ## Status
 
-`Assembly/Formation.lean` proves C7 under named hypotheses:
+`Assembly/Formation.lean` proves the claims under one named OPEN input,
+`hFrozen`: a producer of the frozen raw relay at every Formation context
+(the same binders as `FormationClaim`):
 
-- `pcsa_formation_of_open`: `FormationPrem` and the two OPEN inputs below
-  give `FormationConcl`.
-- `pcsa_formation_source_of_open`: `FormationPrem` and the frozen raw
-  relay give the Formation source with C1 connected.
+- `pcsa_formation_of_open`: `hFrozen` gives `FormationClaim p`.
+- `pcsa_formation_source_of_open`: `hFrozen` gives the body of
+  `FormationSourceClaim p` (`Claims/Finality.lean`). No Export of this
+  branch imports `Claims.Finality`, so the statement is the unfolded body.
 
-The `FormationClaim` field of `PCSAClaims` stays OPEN until both inputs
-are proved.
+The `FormationClaim` and `FormationSourceClaim` fields stay OPEN until
+`hFrozen` is proved.
 
 The F4 statement fix is part of this landing. It adds
 `FormationRootReachable` and the `proposerRootReachable` fields of
-`FormationPrem` and `HealedSourcePrem` (at `r * p.R`). Without it,
-`FormationPrem` is false. `docs/PCSA-API.md` is regenerated.
+`FormationPrem` and `HealedSourcePrem` (at `r * p.R`). Without this clause,
+the old `FormationClaim` and `FormationSourceClaim` were false under those
+premises; the old premises were satisfiable. `docs/PCSA-API.md` is
+regenerated.
 
 Proved inputs, with their producers:
 
@@ -36,6 +40,9 @@ Proved inputs, with their producers:
   strict `t + Δ` delivery of the Clean receipt proofs.
 - Ack admission: `pcsa_formation_preFreeze_ack_admit`, from Clean
   `pcsa_honest_ack_admitted`.
+- Late gate counts: `pcsa_formation_gate_counts`
+  (`FormationGateCounts`), from the exact honest HEADs. `H` is the number
+  of honest HEAD seats awake at `v_s`.
 - Retained walk facts `hKeep`, `hReflect`, `hUnique`
   (`FormationRetainedTree`): equal stage-1 eligibility
   (`pcsa_formation_retained_eligible_eq`, from the two back receipts) and
@@ -49,13 +56,13 @@ Proved inputs, with their producers:
   as a raw HEAD; Formation body relay gives its body at the proposer
   (`pcsa_formation_frozen_body_in_proposer`).
 
-## OPEN input 1: the frozen raw relay
+## OPEN input: the frozen raw relay
 
-The binder is `hFrozen`, with type `FormationFrozenRawOpen p src dst s`.
-It covers the honest proposer read at `t_s` (`src`) and each honest voter
-awake at `v_s` (`dst`): a HEAD `⟨seat (s-1) i, head r⟩` in the voter pool
-with a stamp before `z_{s-1}` is in the proposer raw list
-(`proposerVotes src.st s`), or seat `i` is capped there.
+The binder is `hFrozen`, with type `FormationFrozenRawOpen p src dst s` at
+the honest proposer read at `t_s` (`src`) and each honest voter awake at
+`v_s` (`dst`): a HEAD `⟨seat (s-1) i, head r⟩` in the voter pool with a
+stamp before `z_{s-1}` is in the proposer raw list (`proposerVotes src.st
+s`), or seat `i` is capped there.
 
 `pcsa_formation_preFreeze_inputs_of_frozen` derives all pre-freeze inputs
 from it.
@@ -64,17 +71,4 @@ Plan: this is the Clean `pcsa_frozen_input_in_proposer` at slot `s - 1`,
 with the windowed delivery `max t z_{s-1} + Δ` in place of
 `HealthyPrefixDeliveryBy`. Its only delivery step is the relay of the
 accepted HEAD (`pcsa_head_relay_late_or_cap`), with deadline `t_s` in place
-of `t + Δ`. The windowed relay helpers of the Clean restart work supply it.
-
-## OPEN input 2: the late gate counts
-
-The binder is `hGateCounts`: for each honest gate read, there is an `H`
-with `(awakeHonestLabel p c E rho s).card ≤ H` and
-`FormationGateCounts p st s N.erase H f`. Its fields are `hVoters`,
-`hPath`, `hRivals` and `hChildren`.
-
-Plan (Codex plan, items 1, 2, 9, 10): take `H` as the number of honest
-HEAD seats awake at `v_s`, that is, all honest HEAD senders. The smaller
-choice `H := h_s` is refuted (the plan gives an `n = 8` run). Adapt
-`pcsa_late_participant_bound` for `hVoters`. For `hChildren`, keep the
-additive inequality and use a disjoint child-support seat set.
+of `t + Δ`. The windowed HEAD relay of the Clean restart work supplies it.

@@ -275,6 +275,25 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
   lemmas with smaller premises, without the lane prefix (Shared carries no lane
   names); Formation drops its copies when it switches.
+- PC-SA Formation (C7; 2026-10-08). Paths are under
+  `AvailableChainPCSAProofs/Proofs/`. The Formation proofs are the
+  `Clean/Formation*` modules; `Clean/FormationExport` collects them. It is an
+  ordinary Clean module, not a lane Export. The layer checker grants one exact
+  edge for it, `Assembly.Formation → Clean.FormationExport`
+  (`scripts/check-layers.py`); no other module may import it across lanes.
+  `Shared/FormationWindow` holds the pre-freeze interface
+  `FormationPreFreezePrem`: `FormationPrem` with the delivery cut at
+  `freezeTime s` and the Formation deadline `max t z_{s-1} + Δ`.
+  `FormationPrem` carries the F4 clause `FormationRootReachable` (the
+  proposer walk from the carried PC target, or `Z`, reaches `liveRoot`);
+  `HealedSourcePrem` carries the same clause at `r * p.R`. Parts 1–4 of the
+  conclusion follow from `FormationPreFreezeInputs`; the gate counts
+  (`Clean/FormationGateCounts`) give part 5. `Assembly/Formation` proves
+  `FormationClaim` (`pcsa_formation_of_open`) and the body of
+  `FormationSourceClaim` (`pcsa_formation_source_of_open`) from one named
+  OPEN input, a producer of the five retained HEAD facts
+  (`FormationRetainedHeadOpen`) at every Formation context. See
+  `Clean/FormationOPEN.md`.
 - PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
   holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
   items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow

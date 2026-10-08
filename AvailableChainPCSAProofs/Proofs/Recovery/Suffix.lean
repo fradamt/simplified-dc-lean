@@ -77,8 +77,9 @@ structure RecoveryChainRestart (s₁ : Slot) : Prop where
 variable [Fintype V]
 
 /-- Missing producers needed by the conditional C11 export.
-`formation` takes the corrected F4 clause as a separate argument until the
-statement branch adds it to FormationPrem. The stamp-to-reader boundary
+`FormationPrem` now carries the corrected F4 clause
+(`FormationRootReachable`), so the separate `RecoveryRootReachable`
+arguments are redundant; their removal is separate. The stamp-to-reader boundary
 is proved in RunInputs and is no longer an input.
 `firstSlot` needs F3, which `recovery_commonView` (Recovery/View) gives at a
 slot `s > 0` with `t_GST + Δ ≤ t_s` and `d_s` in the run, from the Shared

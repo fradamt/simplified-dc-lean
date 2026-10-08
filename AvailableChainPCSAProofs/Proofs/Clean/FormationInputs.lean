@@ -279,7 +279,7 @@ theorem pcsa_formation_frozen_pc_receipt_of_body (E : Generic.Env V)
     exact Reachable.tick _ (pcsa_reachable_stateBefore E rho k x)
   have hf := pcsa_formation_frame_read E rho h.frame x _ src hx hsrc
   have hactive := pcsa_formation_frame_active_of_target p src.st A hReach hf
-    (pcsa_formation_held_pc_targets p src.st hReach A hA)
+    (pcsa_pc_targets_held p src.st hReach A hA)
   exact ⟨A, List.mem_filter.mpr ⟨hA, hactive⟩, has.trans hDs, hab.trans hDt⟩
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In} {m : FGMode}
@@ -375,7 +375,7 @@ theorem pcsa_formation_frozen_body (E : Generic.Env V)
       (fun d => d.slot == D.slot && d.target == D.target) = true := ha.2.2
   obtain ⟨A, hA, hAD⟩ := List.any_eq_true.mp hp
   have hAt : A.target = D.target := beq_iff_eq.mp (Bool.and_eq_true_iff.mp hAD).2
-  have hT := pcsa_formation_held_pc_targets p _ (pcsa_reachable_stateBefore E rho (j + 1) x) A hA
+  have hT := pcsa_pc_targets_held p _ (pcsa_reachable_stateBefore E rho (j + 1) x) A hA
   rw [hAt, hDt] at hT
   have hdl : max (SA.freezeTime p.toParams (s - 1)) (SA.freezeTime p.toParams (s - 1)) + E.Δ =
       SA.proposalTime p.toParams s := by

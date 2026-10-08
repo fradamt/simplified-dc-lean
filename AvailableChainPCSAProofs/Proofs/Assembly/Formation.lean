@@ -77,44 +77,78 @@ theorem pcsa_formation_source_of_run (E : Generic.Env V)
   exact pcsa_formation_source_of_preFreeze E rho r N ΔF h
     (pcsa_formation_inputs_of_run E rho (r * p.R) N ΔF (h.toPreFreeze p c E rho) hRun)
 
-/-- C7 with its named OPEN inputs: the frozen raw relay
-(`FormationFrozenRawOpen`) and the late gate counts. Early HEAD receipt,
-ack admission and the five retained HEAD facts are proved from them. -/
-theorem pcsa_formation_of_open (E : Generic.Env V)
+/-- C7 at one Formation context from the five retained HEAD facts. The gate
+counts follow from the exact honest HEADs. -/
+theorem pcsa_formation_of_retained (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
     (h : FormationPrem p c E rho s N ΔF)
-    (hFrozen : ∀ src dst y,
+    (hRetained : ∀ src dst y,
       pcsa_postClock E rho
         (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
         (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
       y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
       pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
-      FormationFrozenRawOpen p src dst s)
-    (hGateCounts : ∀ y ∈ rho.honest, ∀ st, gateInAt p c E rho y s = some st →
-      ∃ H, (awakeHonestLabel p c E rho s).card ≤ H ∧
-        FormationGateCounts p st s N.erase H (Gen.V2.Duty.faulty rho).card) :
-    FormationConcl p c E rho s N :=
-  pcsa_formation E rho s N ΔF h
-    (pcsa_formation_preFreeze_inputs_of_frozen E rho s N ΔF (h.toPreFreeze p c E rho) hFrozen)
-    hGateCounts
+      FormationRetainedHeadOpen p src dst s N) :
+    FormationConcl p c E rho s N := by
+  have hInputs := pcsa_formation_preFreeze_inputs E rho s N ΔF (h.toPreFreeze p c E rho)
+    hRetained
+  have hExact := (pcsa_formation_preFreeze E rho s N ΔF (h.toPreFreeze p c E rho)
+    hInputs).1
+  exact pcsa_formation E rho s N ΔF h hInputs
+    (pcsa_formation_gate_counts E rho s N ΔF h hExact)
 
-/-- The Formation source with C1 connected needs only the frozen raw
-relay. -/
-theorem pcsa_formation_source_of_open (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (r : Nat) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPrem p c E rho (r * p.R) N ΔF)
-    (hFrozen : ∀ src dst y,
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+
+/-- C7 (`FormationClaim`) with one named OPEN input: a producer of the
+frozen raw relay (`FormationFrozenRawOpen`) at every Formation context. The
+five retained HEAD facts, early HEAD receipt, ack admission and the gate
+counts are proved. -/
+theorem pcsa_formation_of_open (p : Params)
+    (hFrozen : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (s : Slot) (N : NamedProposal p.n) (ΔF : Time),
+      FormationPrem p c E rho s N ΔF → ∀ src dst y,
       pcsa_postClock E rho
-        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface (r * p.R))
-        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface (r * p.R)) = some src →
-      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams (r * p.R)) = true →
-      pcsa_postClock E rho y (SA.voteTime p.toParams (r * p.R)) = some dst →
-      FormationFrozenRawOpen p src dst (r * p.R)) :
-    ∀ y ∈ rho.honest, ∃ B : SimplexFG.FGBlock (Fin p.n),
-      actionSourceAt p c E rho y r = some (some B) ∧ eraseFG B = N.erase :=
-  pcsa_formation_source_of_preFreeze E rho r N ΔF h
+        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
+      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
+      FormationFrozenRawOpen p src dst s) :
+    FormationClaim p := by
+  rw [FormationClaim_def]
+  intro V _ _ In c m E rho s N ΔF h
+  have hpf := h.toPreFreeze p c E rho
+  exact pcsa_formation_of_retained E rho s N ΔF h (fun src dst y hs hy haw hd =>
+    pcsa_formation_retained_open_of_back E rho s N ΔF hpf src dst y hs hy hd
+      (pcsa_formation_retained_back_of_frozen E rho s N ΔF hpf src dst y hs hy hd
+        (hFrozen c m E rho s N ΔF h src dst y hs hy haw hd)))
+
+/-- The Formation source from the same frozen-relay producer as C7, at the
+opening slot `r * p.R`. The statement is the body of `FormationSourceClaim p`
+(`Claims/Finality.lean`); no Export of this branch imports that claim module. -/
+theorem pcsa_formation_source_of_open (p : Params)
+    (hFrozen : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (s : Slot) (N : NamedProposal p.n) (ΔF : Time),
+      FormationPrem p c E rho s N ΔF → ∀ src dst y,
+      pcsa_postClock E rho
+        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
+      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
+      FormationFrozenRawOpen p src dst s) :
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (r : Nat) (N : NamedProposal p.n) (ΔF : Time),
+      FormationPrem p c E rho (r * p.R) N ΔF →
+      ∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
+        actionSourceAt p c E rho x r = some (some C) ∧ eraseFG C = N.erase := by
+  intro V _ _ In c m E rho r N ΔF h
+  exact pcsa_formation_source_of_preFreeze E rho r N ΔF h
     (pcsa_formation_preFreeze_inputs_of_frozen E rho (r * p.R) N ΔF (h.toPreFreeze p c E rho)
-      hFrozen)
+      (hFrozen c m E rho (r * p.R) N ΔF h))
 
 end AvailableChain.PCSA.Run
 end

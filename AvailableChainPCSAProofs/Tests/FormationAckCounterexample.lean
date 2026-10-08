@@ -532,6 +532,7 @@ def auditRepair : IO Unit := do
 
 #eval audit
 #eval auditRepair
+#print axioms carriesS_pcObj
 #print axioms repairedStep_exact
 #print axioms cachedStep_exact
 #print axioms carriedObjects_signed
