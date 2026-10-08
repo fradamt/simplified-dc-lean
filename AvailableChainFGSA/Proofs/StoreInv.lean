@@ -634,6 +634,48 @@ theorem fg_step_cases (p : Params) (st : State p.n) (o : Wire p.n) :
             · rw [reconcile_fg]
   · exact Or.inl rfl
 
+/-- [bp bp.frame.v1] A new FG block comes only from an accepted proposal wire. -/
+theorem process_TF_new (p : Params) (st : State p.n) (w : Wire p.n) (B : FGBlock (Fin p.n))
+    (hB : B ∈ (process p st w).fg.TF) (hn : B ∉ st.fg.TF) :
+    ∃ s N P, w = ⟨.proposer s, .proposal N⟩ ∧ parentFG st N.erase = some P ∧
+      blockAccepted p st s N P = true ∧ B = fgBlock P N.erase N.rows := by
+  unfold process at hB
+  split at hB
+  · exact absurd hB hn
+  · rcases admitRow_eq p st ⟨w.auth, _⟩ with he | he <;> rw [he] at hB <;> exact absurd hB hn
+  · rename_i s N hd
+    have hw : w = ⟨.proposer s, .proposal N⟩ := by
+      clear hB hn
+      obtain ⟨a, m⟩ := w
+      rcases a with ⟨(_ | _), _⟩ | _ | _ <;> cases m <;> simp_all [Wire.decode]
+    by_cases hNamed : namedParentHeld st N = true
+    swap
+    · rw [admitBlock_refused p st s N (Or.inl (Bool.eq_false_iff.mpr hNamed))] at hB
+      exact absurd hB hn
+    cases hP : parentFG st N.erase with
+    | none =>
+        rw [admitBlock_refused p st s N (Or.inr (Or.inl hP))] at hB
+        exact absurd hB hn
+    | some P =>
+        cases hacc : blockAccepted p st s N P with
+        | false =>
+            rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hP, hacc⟩))] at hB
+            exact absurd hB hn
+        | true =>
+            refine ⟨s, N, P, hw, hP, hacc, ?_⟩
+            have hTF : (Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)).TF =
+                insert (fgBlock P N.erase N.rows) st.fg.TF := by
+              rw [fg_on_block_accepts p st s N P hP hacc, Window.window_update_finality_TF]
+            obtain ⟨pool, heq, -⟩ := admitBlock_accepted_eq p st s N P hNamed hP hacc
+            rw [heq] at hB
+            dsimp only at hB
+            split at hB
+            · rw [hTF] at hB
+              exact (Finset.mem_insert.mp hB).resolve_right hn
+            · rw [reconcile_fg, hTF] at hB
+              exact (Finset.mem_insert.mp hB).resolve_right hn
+  · exact absurd hB hn
+
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.store.v1; K4] -/
 theorem fMonotone (p : Params) : FMonotone p := by
   intro st

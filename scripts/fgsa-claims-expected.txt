@@ -1,4 +1,8 @@
 (
+    # FG finality P4b: shared wire, client, and unit laws.
+    'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
+    'AvailableChain.FGSA.Run.fgsaSafetyUnitLaws',
+    'AvailableChain.FGSA.Run.fgsaSafetyWireLaws',
     # ROOT-DIGEST-2 W2 producers.
     'AvailableChain.FGSA.Run.proposal_read_named',
     # ROOT-DIGEST W3b: scoped producers and concrete premise witnesses.

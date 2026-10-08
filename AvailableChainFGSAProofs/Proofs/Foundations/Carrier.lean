@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSARun.Statements.Client
+public import AvailableChainFGSAProofs.Proofs.Shared.RowAuth
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.Emission
@@ -21,23 +22,6 @@ theorem fgsa_carrier_geometry {n : Nat} (X Y : FGBlock (Fin n)) :
     (eraseFG_parent X).symm, eraseFG_slot X, eraseFG_root X⟩
   intro h
   exact eraseFG_preceq_iff.mp h
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-DC counterpart: none (row decoding helper).
-A decoded row has the FG seat authentication of its signer. -/
-theorem row_auth_of_toRow {n : Nat} (a : RowWire n) (u : Row (Fin n))
-    (hau : a.toRow? = some u) : a.auth = .seat .fg u.signer := by
-  rcases a with ⟨auth, payload⟩
-  cases auth with
-  | none => cases hau
-  | proposer s => cases hau
-  | seat label i =>
-      cases label with
-      | head s => cases hau
-      | fg =>
-          have he : (⟨i, payload.height_pair, payload.finality_pair⟩ : Row (Fin n)) = u :=
-            Option.some.inj hau
-          exact by rw [← he]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 DC counterpart: none (shared stored-wire delivery step).

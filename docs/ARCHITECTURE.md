@@ -239,6 +239,55 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `AcOnlyFrameClaim`), stage 2 `ArmHealthyStageTwoClaim`,
   `StrongIncludedStageTwoClaim` (`Clean₂`, `a ≤ f`, no frame premise) in
   `AvailableChainPCSAClaims`.
+- PC-SA shared proof layer (2026-10-07; stage 1 and stage 2). Paths are
+  under `AvailableChainPCSAProofs/Proofs/`. `Shared/` holds lane-neutral run
+  and store facts; it imports only `Foundations`, `Shared` and the allowed
+  upstream layers, never a lane. Stage 1 moves `Certificates`,
+  `HeadSupport`, `RunEvidence` and `StoreEvidence` from `PC/` to `Shared/`;
+  the four `PC/` modules stay as compatibility shims that import the
+  `Shared/` module, so open lanes keep their `PC/` imports. Stage 1 also
+  adds the PC relay layer: `CollectClosed`, `StageStore` (the stage-1 store
+  invariant; it keeps the names `OutageStore` and `pcsa_outage_*` from the
+  move), `StageRun`, `RelayStore`, `RelayRun` (whole-PC relay and
+  `pcsa_keyHeld_accepted`) and `PCViews` (best-PC rank, view target,
+  installed-PC acceptance, PC retention). Stage 2 adds `Proposal` (the honest
+  proposal is built at the proposer post-clock state: parent and `N.pc`),
+  `Clock` (`pcsaClock`, `pcsa_clock_now`, `pcsa_process_now`), the body
+  layer `BodyScope`, `TreeReceipt`, `BodyPersistence`, `BodyAdmission` and
+  `BodyReceipt` (body origin, and `pcsa_body_relay_admitted`: a relayed
+  accepted body is admitted by a deadline `d`, given the relay step to `d`)
+  and `BodyRelay` (the same over a `DeliveryWithinOn` premise with the lane's
+  deadline map). Stage 2b adds `HonestProposal`: the rows of an honest
+  proposal pass R6, so no receiver excludes it; under `DeliveryWithinOn` each
+  honest receiver holds its wire and a valid carried PC
+  (`pcsa_honest_proposal_receipt`; `pcsa_honest_proposal_from_vote` from
+  `v_s`, and `pcsa_honest_proposal_early` at the early read).
+  Shared keeps the `HealthyPrefixDeliveryBy` wrapper
+  (`pcsa_body_relay_before_deadline` in `Shared/BodyReceipt`, through
+  `Shared/Relay`), used by Outage and Clean. The other lanes supply the relay
+  step from their own delivery premises through `BodyRelay` (Recovery: the
+  RECOVERY deadline `max t z_{s-1} + Δ`; Formation: `FormationPrem.delivery`).
+  Stage 3 adds `VoterView`: every stored slot-`s` proposal is the honest one, so
+  its PC is the only carried PC; every frozen PC of slot `s - 1` has a
+  whole-PC acceptance by `z_{s-1}`, so under the deadline `max t z_{s-1} + Δ`
+  its key is held at the proposer before `t_s`, and every honest voter view at
+  `v_s` has the proposer target (`pcsa_commonView_of_delivery`, the F3 field of
+  `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
+  lemmas with smaller premises, without the lane prefix (Shared carries no lane
+  names); Formation drops its copies when it switches.
+- PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
+  holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
+  items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow
+  P1 boundary `CleanSlowBoundary`, `CleanSlowItems` (5.5 steps 1–2). They are
+  not claims. A lane module may import them (Statements are upstream of every
+  lane); the proofs stay in their lanes. The pending-label Clean claims
+  (`CleanResultsNonemptyClaim`, `CleanResultsChainPendingClaim`,
+  `CleanDisseminationPendingClaim`) and `CleanBlockReceiptClaim` (the relay item) are
+  in `Claims/Clean`, outside the `PCSAClaims` record. C8 ARM-healthy and C10
+  slow P1 take the `CutChain`, `CutFacts` and `CleanSlowItems` records as OPEN
+  hypotheses (see `AvailableChainPCSAProofs/Proofs/Outage/OPEN.md`).
+  `Outage/BlockReceipt` proves block receipt from the Shared body relay;
+  Assembly/Outage packages it as `CleanBlockReceiptClaim`.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.
