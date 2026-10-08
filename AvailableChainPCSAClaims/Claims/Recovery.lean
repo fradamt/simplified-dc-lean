@@ -80,14 +80,17 @@ theorem HealedFrom_def (s₁ : Slot) (P : Block) :
 with the anchor `cA` and the first post-GST honest slot `s₁`:
 - `recovery`: RECOVERY (5.0), with `a ≤ ⌊n/4⌋` and full participation after
   GST; `frame`: stage 1;
-- the anchor: an honest awake proposer at `cA`, CLEAN(z_cA) (clean from genesis
-  through `z_cA`) and `h_cA ≥ q_N`;
+- the anchor: a slot `cA > 0` with an honest awake proposer, CLEAN(z_cA)
+  (clean from genesis through `z_cA`) and `h_cA ≥ q_N`. Slot 0 has no
+  proposal and no PC; the genesis-anchor case is left to
+  `LongBreakRecoveredClaim`, with the weaker bound;
 - `s₁`: the first slot with an honest awake proposer and `t_{s₁} ≥ t_GST + Δ`;
 - `cA < s₁` and `D′ = s₁ − 1 − cA ≤ k − 1`;
 - `horizon`: the gate `d_{s₁}` is in the run. -/
 structure ShortBreakPrem (G ΔF : Time) (cA s₁ : Slot) : Prop where
   recovery : Recovery₂ p c E rho G ΔF
   frame : StageOneFrame p c E rho
+  anchorPos : 0 < cA
   anchorProposer : Gen.V2.Duty.HonestAwakeProposer E (pcsaInterface p c (m := m)).toInterface rho cA
   anchorClean : Clean₂ p c E rho (SA.freezeTime p.toParams cA) ΔF
   anchorPart : nQuorum p.n ≤ (awakeHonestLabel p c E rho cA).card

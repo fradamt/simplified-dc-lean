@@ -273,8 +273,9 @@ theorem pcsa_indexed_body_within_on (E : Generic.Env V)
 /-- [pcsa34-r4.3b §5.3 (F5), §5.6.1] Receipt of an honest proposal: under a
 `DeliveryWithinOn` premise whose deadline after `t_s` is at most `r`, every
 honest node holds the exact signed wire of the slot-`s` honest proposal at its
-post-clock read at `r`, and the carried PC is valid there. -/
-theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
+post-clock read at `r`, the carried PC is valid there, and the proposal body
+is a stored block there. -/
+theorem pcsa_honest_proposal_receipt_body (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
     (hF : StageOneFrame p c E rho) {Q : Obj p → Prop} {dl : Time → Time} {cut : Time}
     (hD : Gen.V2.Duty.DeliveryWithinOn E rho Q dl cut)
@@ -285,7 +286,7 @@ theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
     (y : V) (hy : y ∈ rho.honest) (nd : Node p)
     (hnd : pcsa_postClock E rho y r = some nd) :
     (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧
-      ∀ D, N.pc = some D → pcValid nd.st D = true := by
+      (∀ D, N.pc = some D → pcValid nd.st D = true) ∧ N.erase ∈ nd.st.base.blocks := by
   have hS := h.valid.toScheduleWellFormed
   obtain ⟨k, hk, hem⟩ := hN.2
   obtain ⟨ht, app, hprop⟩ := pcsa_emitted_propose E rho s N _ _ k hk hem
@@ -353,6 +354,15 @@ theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
     dsimp only
     rw [honest_admitBlock_proposals p _ s N Q' hNamed hQ' hAcc]
     exact List.mem_append_right _ (List.mem_singleton_self _)
+  have hb : N.erase ∈ (V2.D.Run.stateBefore E rho (j + 1) y).st.base.blocks := by
+    rw [V2.D.Run.stateBefore_succ E rho hjo]
+    change N.erase ∈ (Function.update (V2.D.Run.stateBefore E rho j) y _ y).st.base.blocks
+    rw [Function.update_self]
+    change N.erase ∈ (process p (V2.D.Run.stateBefore E rho j y).st (toWire p o)).base.blocks
+    delta process
+    rw [hd]
+    exact pcsa_admitBlock_body_mem p _ s N Q'
+      (pcsa_tree_correspondence p _ (pcsa_reachable_stateBefore E rho j y)) hNamed hQ' hAcc
   obtain ⟨k', hk', hst⟩ := honest_postClock_tick E rho y r nd hnd
   have hrk : V2.D.Run.idxBefore rho r ≤ k' := by
     apply Nat.le_of_not_lt
@@ -362,7 +372,7 @@ theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
   have hjk : j + 1 ≤ k' := by
     have := (Gen.V2.Duty.index_lt_idxBefore_iff hS hjo r).mpr (lt_of_lt_of_le htd hdl0)
     omega
-  refine ⟨?_, ?_⟩
+  refine ⟨?_, ?_, ?_⟩
   · rw [hst, pcsa_clock_proposals]
     exact honest_proposals_stateBefore_mono E rho h.noRestart _ _ y hjk hw
   · intro D hND
@@ -397,6 +407,27 @@ theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
       Block.compatible D.target (eraseFG nd.st.fg.F)) = true
     rw [hst, pcsa_body_clock_fg, hFy, hwf, decide_eq_true hT4]
     exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_genesis_preceq _))
+  · rw [hst]
+    exact pcsa_body_clock_keep p _ r (pcsa_reachable_stateBefore E rho k' y)
+      (pcsa_body_stateBefore_mono E rho h.noRestart y hjk hb)
+
+/-- [pcsa34-r4.3b §5.3 (F5), §5.6.1] Receipt of an honest proposal: the exact
+signed wire and the valid carried PC (`pcsa_honest_proposal_receipt_body`). -/
+theorem pcsa_honest_proposal_receipt (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {Q : Obj p → Prop} {dl : Time → Time} {cut : Time}
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho Q dl cut)
+    (hQ : ∀ (o : Obj p) s N, (toWire p o).decode = some (.block s N) → Q o)
+    (hmono : Monotone dl) (hlt : ∀ t, t < dl t)
+    (s : Slot) (N : NamedProposal p.n) (hN : HonestNamedProposal p c E rho s N)
+    (r : Time) (hr : dl (SA.proposalTime p.toParams s) ≤ r) (hc : r ≤ cut)
+    (y : V) (hy : y ∈ rho.honest) (nd : Node p)
+    (hnd : pcsa_postClock E rho y r = some nd) :
+    (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧
+      ∀ D, N.pc = some D → pcValid nd.st D = true :=
+  let hR := pcsa_honest_proposal_receipt_body E rho h hF hD hQ hmono hlt s N hN r hr hc y hy
+    nd hnd
+  ⟨hR.1, hR.2.1⟩
 
 /-- An object that decodes to a proposal is not an FG row. -/
 theorem pcsa_block_isNonRow (o : Obj p) (s : Slot) (N : NamedProposal p.n)
@@ -406,6 +437,36 @@ theorem pcsa_block_isNonRow (o : Obj p) (s : Slot) (N : NamedProposal p.n)
       (congrArg (ofWire p) (pcsa_wire_decode_block (toWire p o) s N h))
   rw [ho]
   trivial
+
+omit [DecidableEq V] in
+/-- The Formation and RECOVERY deadline `max t z_{s-1} + Δ` is monotone, above
+the identity, and at most `v_s` at `t_s` (`s > 0`). -/
+private theorem honest_vote_deadline (E : Generic.Env V) (hΔE : E.Δ = p.Δ) (s : Slot)
+    (hs : 0 < s) :
+    Monotone (fun t => max t (SA.freezeTime p.toParams (s - 1)) + E.Δ) ∧
+      (∀ t, t < max t (SA.freezeTime p.toParams (s - 1)) + E.Δ) ∧
+      max (SA.proposalTime p.toParams s) (SA.freezeTime p.toParams (s - 1)) + E.Δ ≤
+        SA.voteTime p.toParams s := by
+  have hd := p.deltaPos
+  have hΔ := E.Δ_pos
+  refine ⟨?_, ?_, ?_⟩
+  · intro a b hab
+    dsimp only
+    exact Int.add_le_add_right (max_le_max hab (le_refl _)) E.Δ
+  · intro t
+    exact lt_of_le_of_lt (le_max_left t _) (lt_add_of_pos_right _ hΔ)
+  · rw [hΔE]
+    have hcast : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by
+      have h1 : 1 ≤ s := hs
+      push_cast [Nat.cast_sub h1]
+      ring
+    change max (4 * p.Δ * (s : Int)) (4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ) + p.Δ ≤
+      4 * p.Δ * (s : Int) + p.Δ
+    rw [hcast]
+    have hm : max (4 * p.Δ * (s : Int)) (4 * p.Δ * ((s : Int) - 1) + 3 * p.Δ) ≤
+        4 * p.Δ * (s : Int) :=
+      max_le le_rfl (by linarith)
+    linarith
 
 /-- [pcsa34-r4.3b §5.3 (F5), §5.6.1] Honest-proposal receipt from the vote read
 under the delivery premise of Formation and RECOVERY (deadline
@@ -423,28 +484,28 @@ theorem pcsa_honest_proposal_from_vote (E : Generic.Env V)
       (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧
         ∀ D, N.pc = some D → pcValid nd.st D = true := by
   intro y hy nd hnd
-  have hd := p.deltaPos
-  have hΔ := E.Δ_pos
-  refine pcsa_honest_proposal_receipt E rho h hF hD
-    (fun o s N hdec => pcsa_block_isNonRow o s N hdec) ?_ ?_ s N hN r ?_ hc y hy nd hnd
-  · intro a b hab
-    dsimp only
-    exact Int.add_le_add_right (max_le_max hab (le_refl _)) E.Δ
-  · intro t
-    exact lt_of_le_of_lt (le_max_left t _) (lt_add_of_pos_right _ hΔ)
-  · refine le_trans ?_ hr
-    rw [h.delta]
-    have hcast : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by
-      have h1 : 1 ≤ s := hs
-      push_cast [Nat.cast_sub h1]
-      ring
-    change max (4 * p.Δ * (s : Int)) (4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ) + p.Δ ≤
-      4 * p.Δ * (s : Int) + p.Δ
-    rw [hcast]
-    have hm : max (4 * p.Δ * (s : Int)) (4 * p.Δ * ((s : Int) - 1) + 3 * p.Δ) ≤
-        4 * p.Δ * (s : Int) :=
-      max_le le_rfl (by linarith)
-    linarith
+  obtain ⟨hmono, hlt, hdl⟩ := honest_vote_deadline E h.delta s hs
+  exact pcsa_honest_proposal_receipt E rho h hF hD
+    (fun o s N hdec => pcsa_block_isNonRow o s N hdec) hmono hlt s N hN r (hdl.trans hr) hc
+    y hy nd hnd
+
+/-- [pcsa34-r4.3b §5.6.1 (B2)] The body of the slot-`s` honest proposal is a
+stored block at every honest read `r ∈ [v_s, cut]`, under the delivery premise
+of Formation and RECOVERY. -/
+theorem pcsa_honest_proposal_body_from_vote (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (s : Slot) (hs : 0 < s) (N : NamedProposal p.n)
+    (hN : HonestNamedProposal p c E rho s N) {cut : Time}
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho IsNonRow
+      (fun t => max t (SA.freezeTime p.toParams (s - 1)) + E.Δ) cut)
+    (r : Time) (hr : SA.voteTime p.toParams s ≤ r) (hc : r ≤ cut) :
+    ∀ y ∈ rho.honest, ∀ nd, pcsa_postClock E rho y r = some nd →
+      N.erase ∈ nd.st.base.blocks := by
+  intro y hy nd hnd
+  obtain ⟨hmono, hlt, hdl⟩ := honest_vote_deadline E h.delta s hs
+  exact (pcsa_honest_proposal_receipt_body E rho h hF hD
+    (fun o s N hdec => pcsa_block_isNonRow o s N hdec) hmono hlt s N hN r (hdl.trans hr) hc
+    y hy nd hnd).2.2
 
 /-- [pcsa34-r4.3b §5.3 (F5), §5.6.1] Honest-proposal receipt at the early read
 `e_s` (the Formation contract). -/

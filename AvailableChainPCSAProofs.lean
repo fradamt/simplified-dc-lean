@@ -5,6 +5,7 @@ public import AvailableChainPCSAProofs.Proofs.AcFrame.Run
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Store
 public import AvailableChainPCSAProofs.Proofs.Assembly.AcFrame
 public import AvailableChainPCSAProofs.Proofs.Assembly.Outage
+public import AvailableChainPCSAProofs.Proofs.Assembly.Recovery
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
@@ -47,6 +48,18 @@ public import AvailableChainPCSAProofs.Proofs.PC.HeadSupport
 public import AvailableChainPCSAProofs.Proofs.PC.RunEvidence
 public import AvailableChainPCSAProofs.Proofs.PC.StoreEvidence
 public import AvailableChainPCSAProofs.Proofs.PC.Uniqueness
+public import AvailableChainPCSAProofs.Proofs.Recovery.Anchor
+public import AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved
+public import AvailableChainPCSAProofs.Proofs.Recovery.Exclusions
+public import AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot
+public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalStore
+public import AvailableChainPCSAProofs.Proofs.Recovery.PathSource
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockWindow
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
+public import AvailableChainPCSAProofs.Proofs.Recovery.RunInputs
+public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
+public import AvailableChainPCSAProofs.Proofs.Recovery.View
 public import AvailableChainPCSAProofs.Proofs.Shared.Certificates
 public import AvailableChainPCSAProofs.Proofs.Shared.CollectClosed
 public import AvailableChainPCSAProofs.Proofs.Shared.CleanGate
