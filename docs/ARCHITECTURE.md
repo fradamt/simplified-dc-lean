@@ -288,6 +288,10 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   components give it with `T₀ = t_GST`. The `_win` lemmas of `Shared/Relay`,
   `Shared/BodyReceipt` and the Clean lane take `StrictFrom` (or `CleanWindow`);
   the old `HealthyPrefixDeliveryBy` names are wrappers with unchanged types.
+  `Clean/StampFrom.pcsa_clean_honestProposal_stamped_from` proves pre-freeze
+  stamping in this window from equal honest HEADs and the awake N quorum.
+  It needs `T₀ ≤ z_s` for the proposal at `s + 1`. It does not use
+  `CleanRestartSeed`; recovery can use its conclusion to supply a seed stamp.
 - PC-SA finality safety (P12): `Foundations/FGSafetyBridge` converts the PC
   reads and applies Compose `SafetyAccountable`, `SafetyCount`,
   `SafetyMonotone`, and `SafetySlashing` through four exact `COMPOSE_EDGES`.

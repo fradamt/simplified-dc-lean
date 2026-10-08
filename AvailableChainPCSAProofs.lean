@@ -9,6 +9,7 @@ public import AvailableChainPCSAProofs.Proofs.Assembly.Outage
 public import AvailableChainPCSAProofs.Proofs.Assembly.Recovery
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
+public import AvailableChainPCSAProofs.Proofs.Clean.StampFrom
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
