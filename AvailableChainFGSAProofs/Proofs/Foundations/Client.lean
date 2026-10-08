@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSARun.Proofs.ClientTrace
@@ -16,7 +17,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 The claim type is applied only at the Foundations export boundary (L42). -/
 theorem fgsa_clientSafeAll (hL : V2.D.Linked (fgsaFamilies p c).linked rho) :
     ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x :=
-  emittedRowsNoSlash E rho hL
+  fgsa_bridge_clientSafeAll p c E rho hL
 
 set_option linter.unusedFintypeInType false in
 /-- BaseSet supplies authenticity to the validator-attribution adapters.
