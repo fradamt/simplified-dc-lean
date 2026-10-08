@@ -75,13 +75,14 @@ theorem recovery_process_pc_stamp_origin (p : Params) (st : State p.n) (o : Wire
       LockStampHistory src acc ∧ acc.base.now = src.base.now) as poolAckRaw ⟨h, hn⟩
     intro acc hh a _
     obtain ⟨h1, h2, h3⟩ := lock_stamp_raw acc a
-    exact ⟨by simpa only [LockStampHistory, h1, h2] using hh.1, h3.trans hh.2⟩
+    exact ⟨by dsimp only [LockStampHistory] at *; simpa only [h1, h2] using hh.1, h3.trans hh.2⟩
   have hb (src acc : State p.n) (as : List (RowWire p.n))
       (h : LockStampHistory src acc) : LockStampHistory src (as.foldl (admitRow p) acc) := by
     apply List.foldlRecOn as (admitRow p) h
     intro acc hh a _
     obtain ⟨h1, h2⟩ := lock_stamp_row p acc a
-    simpa only [LockStampHistory, h1, h2] using hh
+    dsimp only [LockStampHistory] at *
+    simpa only [h1, h2] using hh
   have hid : LockStampHistory st st := fun _ hr => Or.inl hr
   delta process
   cases hd : o.decode with
@@ -89,7 +90,8 @@ theorem recovery_process_pc_stamp_origin (p : Params) (st : State p.n) (o : Wire
   | some msg => cases msg with
     | vote s i r => exact fun _ hr => Or.inl hr
     | row i body =>
-      simpa only [LockStampHistory, (lock_stamp_row p st _).1,
+      dsimp only [LockStampHistory] at *
+      simpa only [(lock_stamp_row p st _).1,
         (lock_stamp_row p st _).2] using hid
     | ack s i r =>
       dsimp only
@@ -297,7 +299,7 @@ theorem recovery_gate_rank_before_early (E : Generic.Env V)
     ((pcsa_outageStore_stateBefore E rho k x hx).pcBlocks C hC) hDr
   refine ⟨D, hD, ?_⟩
   rw [← hCr]
-  simp only [PC.rank, hDs, he]
+  simp only [PC.rank_def, hDs, he]
 
 /-- The gate rank's key reaches every honest node strictly before the freeze. -/
 theorem recovery_gate_rank_disseminated (E : Generic.Env V)
@@ -319,7 +321,7 @@ theorem recovery_gate_rank_disseminated (E : Generic.Env V)
   obtain ⟨hk, _⟩ := transport.pcReceipt _ hg (by rwa [he]) x hx y hy C hC
   rw [he] at hk
   obtain ⟨D, hD, hDs, hDt⟩ := (KeyHeld_def _ _ _).mp hk
-  exact ⟨D, hD, by simpa only [PC.rank, hDs, hDt] using hr⟩
+  exact ⟨D, hD, by simpa only [PC.rank_def, hDs, hDt] using hr⟩
 
 end AvailableChain.PCSA.Run
 end

@@ -11,7 +11,9 @@ namespace AvailableChain.PCSA
 theorem recovery_bestPC_rank_bound {n : Nat} (cs : List (PC n)) (C D : PC n)
     (hC : C ∈ cs) (hD : bestPC cs = some D) : rankAtLeast D (some C.rank) = true := by
   have h := pcsa_bestPC_rank_max cs C D hC hD
-  simpa only [rankAtLeast_def, Option.all_some, PC.rank_def, Bool.not_eq_true', pcBelow] using h
+  rw [rankAtLeast_def, Option.all_some, PC.rank_def]
+  change (!pcBelow D C) = true
+  simpa only [Bool.not_eq_true'] using h
 
 end AvailableChain.PCSA
 namespace AvailableChain.PCSA.Run
@@ -200,7 +202,8 @@ theorem recovery_voter_key_before_vote (E : Generic.Env V)
           split at hf
           · intro a ha
             apply hO.carried w hw r N hd a
-            · simpa only [NamedProposal.pcAcks, hf, Option.map_some, Option.getD_some] using ha
+            · change a ∈ (N.pc.map PC.acks).getD []
+              simpa only [hf, Option.map_some, Option.getD_some] using ha
             · obtain ⟨i, hi⟩ := (pcsa_pc_wellFormed_parts C hwf).2.2.2.2.2 a ha
               rw [hi]
               rfl
