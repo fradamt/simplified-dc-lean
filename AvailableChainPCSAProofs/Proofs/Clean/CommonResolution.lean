@@ -1,5 +1,5 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
+public import AvailableChainPCSAProofs.Proofs.Clean.AckTargetBody
 
 public section
 
@@ -40,10 +40,10 @@ theorem pcsa_run_common_head_resolution (E : Generic.Env V)
     A = B := by
   have ha := (List.mem_filter.mp (FGSA.resolvedHead_mem _ _ hA)).1
   have hb := (List.mem_filter.mp (FGSA.resolvedHead_mem _ _ hB)).1
-  have hAs := pcsa_clean_clock_body_scope p (RootBlockInRun p c E rho) _ t
-    (pcsa_clean_body_scope E rho i x hx) A ha
-  have hBs := pcsa_clean_clock_body_scope p (RootBlockInRun p c E rho) _ u
-    (pcsa_clean_body_scope E rho j y hy) B hb
+  have hAs := pcsa_clock_body_scope p (RootBlockInRun p c E rho) _ t
+    (pcsa_body_scope E rho i x hx) A ha
+  have hBs := pcsa_clock_body_scope p (RootBlockInRun p c E rho) _ u
+    (pcsa_body_scope E rho j y hy) B hb
   cases ht : GridCO.headTarget? o with
   | none =>
     delta GridCO.resolvedHead? at hA
@@ -52,6 +52,6 @@ theorem pcsa_run_common_head_resolution (E : Generic.Env V)
   | some r =>
     have har := pcsa_head_resolved_root _ o r A ht hA
     have hbr := pcsa_head_resolved_root _ o r B ht hB
-    exact pcsa_clean_scoped_root_eq E rho h.idealization A B hAs hBs (har.trans hbr.symm)
+    exact pcsa_scoped_root_eq E rho h.idealization A B hAs hBs (har.trans hbr.symm)
 end AvailableChain.PCSA.Run
 end

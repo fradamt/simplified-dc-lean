@@ -1,5 +1,5 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.TreeReceipt
+public import AvailableChainPCSAProofs.Proofs.Shared.TreeReceipt
 
 public section
 

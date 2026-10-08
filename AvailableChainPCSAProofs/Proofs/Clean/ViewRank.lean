@@ -61,7 +61,7 @@ private theorem view_fold_member_slot (cs : List (PC n)) (C : PC n) (hc : C ∈ 
       exact hD
     · exact ih hm (preferPC old A)
 /-- The selected PC has at least the slot of every source PC. -/
-theorem pcsa_bestPC_slot_ge (cs : List (PC n)) (C D : PC n)
+theorem pcsa_clean_bestPC_slot_ge (cs : List (PC n)) (C D : PC n)
     (hc : C ∈ cs) (hd : bestPC cs = some D) : C.slot ≤ D.slot := by
   obtain ⟨B, hb, hCB⟩ := view_fold_member_slot cs C hc none
   have he : B = D := Option.some.inj (hb.symm.trans hd)

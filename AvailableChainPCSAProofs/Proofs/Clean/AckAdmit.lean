@@ -2,8 +2,9 @@ module
 public import AvailableChainPCSAClaims.Statements.Premises
 public import AvailableChainPCSAProofs.Proofs.Shared.GateReceipt
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
-public import AvailableChainPCSAProofs.Proofs.Clean.Clock
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyScope
+public import AvailableChainPCSAProofs.Proofs.Shared.Clock
+public import AvailableChainPCSAProofs.Proofs.Clean.Saturation
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyScope
 public import AvailableChainPCSAProofs.Proofs.Clean.AckEvidence
 public import AvailableChainPCSAProofs.Proofs.Clean.AckStore
 public import AvailableChainFGSA.Proofs.HeadResolution
@@ -257,9 +258,9 @@ theorem pcsa_ack_root_slotOK (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p
   have hmem : B ∈ (clock p (V2.D.Run.stateBefore E rho k x).st t).base.blocks := by
     obtain ⟨o, _, hb⟩ := List.mem_filterMap.mp (List.mem_of_find?_eq_some hn)
     exact (List.mem_filter.mp (FGSA.resolvedHead_mem _ _ hb)).1
-  have hB := pcsa_clean_clock_body_scope p (RootBlockInRun p c E rho)
-    (V2.D.Run.stateBefore E rho k x).st t (pcsa_clean_body_scope E rho k x hx) B hmem
-  have hdst := pcsa_clean_body_scope E rho j y hy
+  have hB := pcsa_clock_body_scope p (RootBlockInRun p c E rho)
+    (V2.D.Run.stateBefore E rho k x).st t (pcsa_body_scope E rho k x hx) B hmem
+  have hdst := pcsa_body_scope E rho j y hy
   delta ackSlotOK
   cases hf : (V2.D.Run.stateBefore E rho j y).st.base.blocks.find? (fun b => b.root == r) with
   | none => rfl
@@ -268,7 +269,7 @@ theorem pcsa_ack_root_slotOK (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p
     have hD := hdst D (List.mem_of_find?_eq_some hf)
     have hr' : (D.root == r) = true := List.find?_some (p := fun b : Block => b.root == r) hf
     have hr : D.root = B.root := (beq_iff_eq.mp hr').trans hroot.symm
-    rw [pcsa_clean_scoped_root_eq E rho h.idealization D B hD hB hr, hslot]
+    rw [pcsa_scoped_root_eq E rho h.idealization D B hD hB hr, hslot]
     exact BEq.rfl
 
 theorem pcsa_ack_receiver_slot (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
@@ -343,8 +344,8 @@ theorem pcsa_formation_ack_admit [Fintype V] (E : Generic.Env V)
   intro y hy i j t hi het _htz hh
   exact pcsa_honest_ack_admitted E rho h.base y hy s i N.erase.root j t hi het hh
 
-/-- Formation's exact hFreezeKeep interface. -/
-theorem pcsa_formation_freeze_keep [Fintype V] (E : Generic.Env V)
+/-- The exact hFreezeKeep interface for formation. -/
+theorem pcsa_clean_freeze_keep [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
     (h : FormationPrem p c E rho s N ΔF) :
     ∀ y ∈ rho.honest,

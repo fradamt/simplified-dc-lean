@@ -1,5 +1,6 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.AckAdmit
+public import AvailableChainPCSAProofs.Proofs.Foundations.Run
+public import AvailableChainPCSAProofs.Proofs.Shared.Roots
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Proofs.Admission
 public import AvailableChainFGSA.Proofs.WindowStore

@@ -1,5 +1,6 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
+public import AvailableChainPCSAProofs.Proofs.Clean.AckTargetBody
+public import AvailableChainPCSAProofs.Proofs.Foundations.Proposals
 
 public section
 
@@ -52,22 +53,6 @@ private theorem proposals_gate (p : Params) (st : State n) (a : Block)
         · exact ha
         · intro acc' ha' g _
           exact ha'
-/-- Clocks do not change the stored named proposals. -/
-theorem pcsa_clock_proposals (p : Params) (st : State p.n) (t : Time) :
-    (clock p st t).proposals = st.proposals := by
-  have hp : (clockPre p st t).proposals = st.proposals := by
-    delta clockPre
-    dsimp only
-    split <;> split <;> split <;> rfl
-  delta clock
-  dsimp only
-  split
-  · rw [gateStep_def, proposals_normalize]
-    split
-    · exact hp
-    · rw [proposals_gate]
-      exact hp
-  · exact hp
 /-- A proposal delivery adds only the named wire that passed all admission tests. -/
 theorem pcsa_process_proposal_pred (p : Params) (Q : Wire p.n → Prop)
     (st : State p.n) (o : Wire p.n) (h : ∀ w ∈ st.proposals, Q w)

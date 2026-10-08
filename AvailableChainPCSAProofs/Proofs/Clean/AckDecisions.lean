@@ -66,7 +66,7 @@ theorem pcsa_pc_honest_ack_before [Fintype V] (E : Generic.Env V)
     C.slot i C.target.root t hem
   have hBs := pcsa_honestAck_body_scope E rho _ C.slot B hAck
   have hCs := pcsa_clean_pc_scope E rho k x hx C hC
-  have hBC := pcsa_clean_scoped_root_eq E rho h.idealization B C.target hBs hCs hroot
+  have hBC := pcsa_scoped_root_eq E rho h.idealization B C.target hBs hCs hroot
   refine ⟨hw, rho.seatOf (.base (.ack C.slot)) i, ?_, he ▸ ht⟩
   exact hBC ▸ hAck
 /-- A PC held before the next vote cannot have a later slot. -/

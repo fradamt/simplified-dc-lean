@@ -23,8 +23,8 @@ theorem pcsa_lookup_held_target (E : Generic.Env V)
     have hm := List.mem_of_find?_eq_some hf
     have hr : (D.root == B.root) = true :=
       List.find?_some (p := fun b : Block => b.root == B.root) hf
-    have hs := pcsa_clean_body_scope E rho j y hy
-    have he := pcsa_clean_scoped_root_eq E rho h.idealization D B (hs D hm) (hs B hB)
+    have hs := pcsa_body_scope E rho j y hy
+    have he := pcsa_scoped_root_eq E rho h.idealization D B (hs D hm) (hs B hB)
       (beq_iff_eq.mp hr)
     exact congrArg some he
 /-- Run-level collection for a held slot-correct target in stage 1. -/

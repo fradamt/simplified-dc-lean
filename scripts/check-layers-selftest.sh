@@ -201,12 +201,70 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (CO + ".Proofs.SourceHead", "AvailableChainKitV2.DutyStable"),
             (CO + ".Proofs.SourceHead", K + ".Correspondence"),
             *sorted(api["COMPOSE_EDGES"]),
+            *sorted(api["COMPOSE_SAFETY_IMPORTS"]),
+            *sorted(api["COMPOSE_PROOF_IMPORTS"]),
         ]):
             root = temp / f"compose-positive-{index}"
             setup(root)
             module(root, importer, dep)
             run(root, 0, set())
         print("PASS Compose positive exact edges")
+        for index, (importer, dep) in enumerate(sorted(api["COMPOSE_SAFETY_IMPORTS"])):
+            for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
+                root = temp / f"safety-boundary-{index}-{neighbor}-{target}"
+                setup(root)
+                module(root, neighbor, target)
+                # Some imports were already allowed by the step-1 base policy.
+                if api["compose_base"](target):
+                    run(root, 0, set())
+                else:
+                    found = run(root, 1)
+                    assert ("COMPOSE-S", neighbor, target) in found, found
+        # Negative controls: a neighbour of an exact proof edge must still fail.
+        for index, (importer, dep) in enumerate(sorted(api["COMPOSE_PROOF_IMPORTS"])):
+            for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
+                root = temp / f"safety-proof-boundary-{index}-{neighbor}-{target}"
+                setup(root)
+                module(root, neighbor, target)
+                found = run(root, 1)
+                assert ("COMPOSE-P", neighbor, target) in found, found
+        for index, (importer, dep) in enumerate([
+            (CO + ".Proofs.SafetyStore", K + ".AccountableCore"),
+            (CO + ".Proofs.SafetyAccountable", K + ".ClientOnce"),
+        ]):
+            root = temp / f"safety-proof-other-{index}"
+            setup(root)
+            module(root, importer, dep)
+            found = run(root, 1)
+            assert ("COMPOSE-P", importer, dep) in found, found
+        print("PASS Safety exact external edges and neighbors")
+        for index, (importer, dep) in enumerate(sorted(api["COMPOSE_EDGES"])):
+            if "FGSafetyClient" not in importer:
+                continue
+            for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
+                root = temp / f"safety-adapter-{index}-{neighbor}-{target}"
+                setup(root)
+                module(root, neighbor, target)
+                found = run(root, 1)
+                assert ("UPSTREAM-COMPOSE", neighbor, target) in found, found
+        for index, (importer, dep) in enumerate([
+            ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient",
+             R + ".Proofs.Protocol"),
+            ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore",
+             R + ".Proofs.Reachable"),
+            ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore",
+             "AvailableChainPCSAProofs.Proofs.AcFrame.Store"),
+            ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore",
+             F + ".Proofs.StoreLaws.Extra"),
+        ]):
+            root = temp / f"safety-forbidden-{index}"
+            setup(root)
+            module(root, importer, dep)
+            found = run(root, 1)
+            assert ("LANE", importer, dep) in found, found
+        print("PASS Safety adapters, run exclusion, and AcFrame lane STOP")
+
+
 
         # Real-file header controls. Each spelling must produce the same
         # edge, including newlines, nested comments and quoted identifiers.

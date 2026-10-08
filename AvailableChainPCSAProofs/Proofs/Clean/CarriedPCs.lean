@@ -100,8 +100,8 @@ theorem pcsa_carriedPC_honest_ack_before [Fintype V] (E : Generic.Env V)
   have hmem : C.target ∈ (V2.D.Run.stateBefore E rho k x).st.base.blocks :=
     of_decide_eq_true (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hvalid).1).2
   have hBs := pcsa_honestAck_body_scope E rho _ C.slot B hAck
-  have hCs := pcsa_clean_body_scope E rho k x hx C.target hmem
-  have hBC := pcsa_clean_scoped_root_eq E rho h.idealization B C.target hBs hCs hroot
+  have hCs := pcsa_body_scope E rho k x hx C.target hmem
+  have hBC := pcsa_scoped_root_eq E rho h.idealization B C.target hBs hCs hroot
   have htime : t < bound :=
     (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed he bound).mp
       (lt_of_lt_of_le hj hk)

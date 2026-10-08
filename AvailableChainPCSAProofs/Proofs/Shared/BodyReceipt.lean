@@ -1,6 +1,10 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyPersistence
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyAdmission
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
+public import AvailableChainPCSAProofs.Proofs.Shared.BodyScope
+public import AvailableChainPCSAProofs.Proofs.Shared.Clock
+public import AvailableChainGeneric.Proofs.V2.Duty.Reads
+public import AvailableChainPCSAProofs.Proofs.Shared.Relay
 
 public section
 
@@ -324,7 +328,7 @@ theorem pcsa_body_receipt_origin (E : Generic.Env V)
             rw [Function.update_self] at hm
             have ht := pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k x) x t
             rw [ht] at hm
-            have hb := pcsa_clean_clock_body_scope p
+            have hb := pcsa_clock_body_scope p
               (fun b => b ∈ (V2.D.Run.stateBefore E rho k x).st.base.blocks)
               (V2.D.Run.stateBefore E rho k x).st t (fun _ h => h) B hm
             exact (hold hb).elim
@@ -417,11 +421,11 @@ private theorem pcsa_c3_accept_rows (st : State p.n) (s : Slot) (N : NamedPropos
   have he : N.slot = N.erase.slot := by cases N <;> rfl
   exact ⟨hSlot, by simpa only [he] using hRows⟩
 
-/-- An accepted exact body reaches every honest receiver before its relay deadline. -/
-theorem pcsa_body_relay_before_deadline (E : Generic.Env V)
+/-- An accepted exact body is admitted at every honest receiver by a deadline
+`d`, given the relay step to `d` (the lane delivery premise supplies it). -/
+theorem pcsa_body_relay_admitted (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho)
     (j : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (t : Time) (o : Obj p) (s : Slot) (N : NamedProposal p.n)
     (P : SimplexFG.FGBlock (Fin p.n))
@@ -429,8 +433,11 @@ theorem pcsa_body_relay_before_deadline (E : Generic.Env V)
     (hd : (toWire p o).decode = some (.block s N))
     (hp : parentFG (V2.D.Run.stateBefore E rho j x).st N.erase = some P)
     (ha : blockAccepted p (V2.D.Run.stateBefore E rho j x).st s N P = true)
-    (hAccept : V2.D.Run.acceptsAt E rho j x o t) (hc : t + E.Δ ≤ cut) :
-    N.erase ∈ (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y).st.base.blocks := by
+    (d : Time) (htd0 : t < d)
+    (hRelay : (pcsaWith m p c).processed (V2.D.Run.stateBefore E rho (j + 1) y) o = false →
+      (pcsaWith m p c).excludes (V2.D.Run.stateBeforeTime E rho d y) o = false →
+      ∃ t', t ≤ t' ∧ t' < d ∧ ∃ k, V2.D.Run.handlesAt E rho k y o t') :
+    N.erase ∈ (V2.D.Run.stateBeforeTime E rho d y).st.base.blocks := by
   have hS := h.valid.toScheduleWellFormed
   have hShape := pcsa_c3_decoded_object o s N hd
   have hTree := pcsa_tree_correspondence p _ (pcsa_reachable_stateBefore E rho j x)
@@ -447,13 +454,13 @@ theorem pcsa_body_relay_before_deadline (E : Generic.Env V)
     delta process
     rw [hd]
     exact hSrc
-  have hScope := pcsa_clean_body_scope E rho (j + 1) x hx N.erase hSrc'
+  have hScope := pcsa_body_scope E rho (j + 1) x hx N.erase hSrc'
   have hparent := FGSA.pickPair_some_spec (V2.D.Run.stateBefore E rho j x).st.fg.TF _ hp
   have hGeom : eraseFG P = N.erase.parent := of_decide_eq_true hparent.2
   obtain ⟨hSlot, hRows⟩ := pcsa_c3_accept_rows _ s N P ha
-  have hidx : j + 1 ≤ V2.D.Run.idxBefore rho (t + E.Δ) :=
+  have hidx : j + 1 ≤ V2.D.Run.idxBefore rho d :=
     Nat.succ_le_of_lt ((Gen.V2.Duty.index_lt_idxBefore_iff hS hj _).mpr
-      (by change t < t + E.Δ; exact lt_add_of_pos_right t E.Δ_pos))
+      htd0)
   by_cases hNeed : (pcsaWith m p c).processed (V2.D.Run.stateBefore E rho (j + 1) y) o = true
   · change processedS p (V2.D.Run.stateBefore E rho (j + 1) y).st o = true at hNeed
     delta processedS at hNeed
@@ -461,28 +468,23 @@ theorem pcsa_body_relay_before_deadline (E : Generic.Env V)
     obtain ⟨D, hDmem, hr⟩ := of_decide_eq_true hNeed
     have hB := (pcsa_tree_correspondence p _ (pcsa_reachable_stateBefore E rho (j + 1) y)
       (eraseFG D)).mpr ⟨D, hDmem, rfl⟩
-    have hDscope := pcsa_clean_body_scope E rho (j + 1) y hy (eraseFG D) hB
+    have hDscope := pcsa_body_scope E rho (j + 1) y hy (eraseFG D) hB
     have er : (eraseFG D).root = D.root := by cases D <;> rfl
     have nr : N.erase.root = N.root := by cases N <;> rfl
-    have he := pcsa_clean_scoped_root_eq E rho h.idealization (eraseFG D) N.erase hDscope
+    have he := pcsa_scoped_root_eq E rho h.idealization (eraseFG D) N.erase hDscope
       hScope (er.trans (hr.trans nr.symm))
     have hm := pcsa_body_stateBefore_mono E rho h.noRestart y hidx (he ▸ hB)
     rwa [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hm
-  · have hn : ∀ body, o.payload ≠ .row body := by
-      rw [hShape]
-      intro body he
-      cases he
-    have hNX : (pcsaWith m p c).excludes
-        (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y) o = false := by
-      have hf := (hF y hy (V2.D.Run.idxBefore rho (t + E.Δ))).1
+  · have hNX : (pcsaWith m p c).excludes
+        (V2.D.Run.stateBeforeTime E rho d y) o = false := by
+      have hf := (hF y hy (V2.D.Run.idxBefore rho d)).1
       rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hf
       have he := pcsa_body_not_excluded p _ s N P hf hGeom hRows
-      change excludesS p (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y).st o = false
+      change excludesS p (V2.D.Run.stateBeforeTime E rho d y).st o = false
       delta excludesS
       rw [hd]
       exact he
-    obtain ⟨t', htt, htd, k, parent, hk, hh⟩ := pcsa_strict_relay E rho hD o hn x y j t hx hy
-      hAccept (Bool.eq_false_iff.mpr hNeed) hc hNX
+    obtain ⟨t', htt, htd, k, parent, hk, hh⟩ := hRelay (Bool.eq_false_iff.mpr hNeed) hNX
     have hpobj := pcsa_body_handles_direct (V2.D.Run.stateBefore E rho k y).st parent s N
       (hShape ▸ hh)
     have hko : rho.events[k]? = some (.deliver y o t') := by rwa [hpobj, ← hShape] at hk
@@ -528,70 +530,29 @@ theorem pcsa_body_relay_before_deadline (E : Generic.Env V)
     have hkd := Nat.succ_le_of_lt ((Gen.V2.Duty.index_lt_idxBefore_iff hS hko _).mpr htd)
     have hm := pcsa_body_stateBefore_mono E rho h.noRestart y hkd hb'
     rwa [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hm
-end AvailableChain.PCSA.Run
-namespace AvailableChain.PCSA.Run
-variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
 
-omit [DecidableEq V] in
-private theorem pcsa_c3_idxBefore_mono (rho : V2.D.Run V (pcsaWith m p c))
-    (a b : Time) (hab : a ≤ b) : V2.D.Run.idxBefore rho a ≤ V2.D.Run.idxBefore rho b := by
-  rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def,
-    ← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
-  apply List.countP_mono_left
-  intro e _ he
-  exact decide_eq_true (lt_of_lt_of_le (of_decide_eq_true he) hab)
-
-/-- An honest positive-slot ack supplies an exact body at every node before the freeze. -/
-theorem pcsa_ack_target_body_before_freeze (E : Generic.Env V)
+/-- An accepted exact body reaches every honest receiver before its relay deadline. -/
+theorem pcsa_body_relay_before_deadline (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
     (hF : StageOneFrame p c E rho) {cut ΔF : Time}
     (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
-    (s : Slot) (i : Fin p.n) (r : BlockId) (hs : 0 < s)
-    (hi : rho.seatOf (.base (.ack s)) i ∈ rho.honest)
-    (he : V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i) (ackObj p s i r)
-      (SA.earlyTime p.toParams s)) (hz : SA.freezeTime p.toParams s ≤ cut) :
-    ∃ B, B.slot = s ∧ B.root = r ∧ ∀ y ∈ rho.honest,
-      B ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st.base.blocks := by
-  obtain ⟨k, hk, ho⟩ := he
-  obtain ⟨B, hr, hn⟩ := pcsa_ack_emission_nTarget p c m E rho _ s i r _ k hk ho
-  delta nTarget? at hn
-  have htB := List.find?_some (p := fun b : Block => b.slot == s &&
-    holdsN p (actView (clock p (V2.D.Run.stateBefore E rho k
-      (rho.seatOf (.base (.ack s)) i)).st (SA.earlyTime p.toParams s))) s b) hn
-  have hsB : B.slot = s := beq_iff_eq.mp (Bool.and_eq_true_iff.mp htB).1
-  have hmem : B ∈ (clock p (V2.D.Run.stateBefore E rho k
-      (rho.seatOf (.base (.ack s)) i)).st (SA.earlyTime p.toParams s)).base.blocks := by
-    obtain ⟨o, _, hres⟩ := List.mem_filterMap.mp (List.mem_of_find?_eq_some hn)
-    exact (List.mem_filter.mp (FGSA.resolvedHead_mem _ _ hres)).1
-  have hbefore := pcsa_clean_clock_body_scope p
-    (fun b => b ∈ (V2.D.Run.stateBefore E rho k (rho.seatOf (.base (.ack s)) i)).st.base.blocks)
-    _ _ (fun _ hm => hm) B hmem
-  have hg : B ≠ .genesis := by
-    intro hb
-    have hzero : B.slot = 0 := hb ▸ rfl
-    exact (Nat.ne_of_gt hs) (hsB.symm.trans hzero)
-  obtain ⟨j, hjk, t, o, label, N, P, hj, hd, hB, hp, ha, hAccept⟩ :=
-    pcsa_body_receipt_origin E rho h.valid k _ B hg hbefore
-  have ht : t < SA.earlyTime p.toParams s := by
-    by_contra hn
-    have hklt := V2.D.Engine.tick_index_lt_delivery E rho h.valid.toScheduleWellFormed hk hj
-      (le_of_not_gt hn)
-    omega
-  have htime : SA.earlyTime p.toParams s + E.Δ = SA.freezeTime p.toParams s := by
-    rw [h.delta]
-    change (4 * p.Δ * (s : Int) + 2 * p.Δ) + p.Δ = 4 * p.Δ * (s : Int) + 3 * p.Δ
-    ring
-  have hdeadline : t + E.Δ ≤ SA.freezeTime p.toParams s := by
-    rw [← htime]
-    simpa only [add_comm] using add_le_add_right (le_of_lt ht) E.Δ
-  refine ⟨B, hsB, hr, ?_⟩
-  intro y hy
-  have hb := pcsa_body_relay_before_deadline E rho h hF hD j _ y hi hy t o label N P
-    hj hd hp ha hAccept (hdeadline.trans hz)
-  rw [hB, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ h.valid.toScheduleWellFormed] at hb
-  have hm := pcsa_body_stateBefore_mono E rho h.noRestart y
-    (pcsa_c3_idxBefore_mono rho _ _ hdeadline) hb
-  rwa [Gen.V2.Duty.stateBefore_idxBefore E rho _ h.valid.toScheduleWellFormed] at hm
+    (j : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (t : Time) (o : Obj p) (s : Slot) (N : NamedProposal p.n)
+    (P : SimplexFG.FGBlock (Fin p.n))
+    (hj : rho.events[j]? = some (.deliver x o t))
+    (hd : (toWire p o).decode = some (.block s N))
+    (hp : parentFG (V2.D.Run.stateBefore E rho j x).st N.erase = some P)
+    (ha : blockAccepted p (V2.D.Run.stateBefore E rho j x).st s N P = true)
+    (hAccept : V2.D.Run.acceptsAt E rho j x o t) (hc : t + E.Δ ≤ cut) :
+    N.erase ∈ (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y).st.base.blocks := by
+  have hShape := pcsa_c3_decoded_object o s N hd
+  have hn : ∀ body, o.payload ≠ .row body := by
+    rw [hShape]
+    intro body he
+    cases he
+  exact pcsa_body_relay_admitted E rho h hF j x y hx hy t o s N P hj hd hp ha (t + E.Δ)
+    (lt_add_of_pos_right t E.Δ_pos)
+    (fun hNeed hNX => pcsa_strict_relay E rho hD o hn x y j t hx hy hAccept hNeed hc hNX)
 end AvailableChain.PCSA.Run
 
 end

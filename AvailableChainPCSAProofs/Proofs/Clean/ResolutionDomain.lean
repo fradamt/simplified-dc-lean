@@ -219,11 +219,11 @@ theorem pcsa_resolved_head_of_held_body (E : Generic.Env V)
   have hclock := pcsa_clock_blocks p (V2.D.Run.stateBefore E rho k x).st u
   have hdomain := pcsa_headDomain_stateBefore_none E rho k x
   have hclockDomain := pcsa_clock_headDomain p (V2.D.Run.stateBefore E rho k x).st u
-  have hscope := pcsa_clean_body_scope E rho k x hx
+  have hscope := pcsa_body_scope E rho k x hx
   have hunique : ∀ A ∈ (V2.D.Run.stateBefore E rho k x).st.base.blocks,
       ∀ C ∈ (V2.D.Run.stateBefore E rho k x).st.base.blocks, A.root = C.root → A = C := by
     intro A ha C hc hr
-    exact pcsa_clean_scoped_root_eq E rho h.idealization A C
+    exact pcsa_scoped_root_eq E rho h.idealization A C
       (hscope A ha) (hscope C hc) hr
   have hlookup := Block.findByRoot?_of_unique hm hunique
   have hd : GridCO.resolutionTree

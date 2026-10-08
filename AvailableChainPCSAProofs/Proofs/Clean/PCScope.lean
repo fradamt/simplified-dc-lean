@@ -1,5 +1,6 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.BodyReceipt
+public import AvailableChainPCSAProofs.Proofs.Clean.AckTargetBody
+public import AvailableChainPCSAProofs.Proofs.Shared.PCViews
 public import AvailableChainPCSAProofs.Proofs.Clean.BodyStamps
 
 public section
@@ -53,18 +54,6 @@ private theorem pcscope_raws (st : State n) (acks : List (AckWire n)) :
   · rfl
   · intro acc hh a _
     exact ((pcscope_raw acc a).1).trans hh
-/-- Clocks preserve the held PC list. -/
-theorem pcsa_clock_pcs (p : Params) (st : State p.n) (t : Time) :
-    (clock p st t).pcs = st.pcs := by
-  delta clock
-  dsimp only
-  split
-  · rw [gateStep_def, (pcscope_norm _).1]
-    split
-    · exact clockPre_pcs p st t
-    · rw [(gateFrom_pc_frame _ _ _ _ _ _).1]
-      exact clockPre_pcs p st t
-  · exact clockPre_pcs p st t
 /-- A collected PC was already held or has a target in the resulting body pool. -/
 theorem pcsa_collect_pc_target_origin (st : State n) (C : PC n)
     (hm : C ∈ (collectPCs st).pcs) : C ∈ st.pcs ∨ C.target ∈ (collectPCs st).base.blocks := by
@@ -207,7 +196,7 @@ theorem pcsa_clean_pc_scope (E : Generic.Env V)
     intro C hc
     rcases pcsa_process_pc_target_origin p _ (toWire p o) C hc with hold | hnew
     · exact ih C hold
-    · apply pcsa_clean_body_scope E rho (k + 1) x hx C.target
+    · apply pcsa_body_scope E rho (k + 1) x hx C.target
       rw [V2.D.Run.stateBefore_succ E rho he]
       change C.target ∈ (Function.update (V2.D.Run.stateBefore E rho k) x _ x).st.base.blocks
       rw [Function.update_self]

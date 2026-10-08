@@ -67,9 +67,9 @@ MODEL_ROOTS = sorted({module for module, _ in MODEL_SCOPE})
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = read_names('scripts/fgsa-claims-expected.txt')
 # WC Job 4 adds no Statements module; the WC entries keep their current order.
-ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
+ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'OutageContinuation', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
-         'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'Packages.Finality', 'Packages.FinalityGST',
+         'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'WeakContinuationGrowth', 'Packages.Finality', 'Packages.FinalityGST',
          'LiveDC', 'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 def audit_workers():
@@ -121,6 +121,8 @@ def direct_ok(m, dep):
         return True
     if dep in LIBS or dep.endswith('.FGSAClaims'):
         return False
+    if (m, dep) in L.COMPOSE_EDGES:
+        return True  # the shared exact adapter/wrapper pairs, with no prefix exception
     if dep.startswith(('AvailableChainGridCO.Proofs.', 'AvailableChainKit.',
                        'AvailableChainStatements.')) or dep == 'AvailableChainModel.Generic.Run':
         return False

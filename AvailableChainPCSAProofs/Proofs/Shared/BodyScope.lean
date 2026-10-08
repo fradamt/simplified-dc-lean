@@ -142,7 +142,7 @@ private theorem pcsa_clean_gate_scope (p : Params) {n : Nat} (B : Block → Prop
           exact ha'
 
 /-- Clock steps keep every stored body within its original scope. -/
-theorem pcsa_clean_clock_body_scope (p : Params) (B : Block → Prop)
+theorem pcsa_clock_body_scope (p : Params) (B : Block → Prop)
     (st : State p.n) (t : Time) (h : ∀ b ∈ st.base.blocks, B b) :
     ∀ b ∈ (clock p st t).base.blocks, B b := by
   have hc : CleanBodyScope B (clockPre p st t) := by
@@ -189,7 +189,7 @@ private theorem pcsa_clean_decode_proposal (o : Obj p) (s : Slot) (N : NamedProp
       cases l <;> cases payload <;> delta toWire toAuth Wire.decode Label.ackSlot? at h <;> cases h
 
 /-- Every stored body in an honest run state is in the named collision scope. -/
-theorem pcsa_clean_body_scope (E : Generic.Env V)
+theorem pcsa_body_scope (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (j : Nat) (x : V) (hx : x ∈ rho.honest) :
     ∀ b ∈ (V2.D.Run.stateBefore E rho j x).st.base.blocks, RootBlockInRun p c E rho b := by
   have hg : RootBlockInRun p c E rho .genesis := by
@@ -219,7 +219,7 @@ theorem pcsa_clean_body_scope (E : Generic.Env V)
     have ht := pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k x) x t
     have hf : CleanBodyScope (RootBlockInRun p c E rho)
         (clock p (V2.D.Run.stateBefore E rho k x).st t) :=
-      pcsa_clean_clock_body_scope p _ _ t h
+      pcsa_clock_body_scope p _ _ t h
     exact ht.symm ▸ hf
   | deliver y o t =>
     change y = x at hn
@@ -232,7 +232,7 @@ theorem pcsa_clean_body_scope (E : Generic.Env V)
       pcsa_clean_decode_proposal o s N hd⟩, pcsa_clean_named_refl N⟩, rfl⟩
 
 /-- The collision premise identifies equal roots of scoped blocks. -/
-theorem pcsa_clean_scoped_root_eq (E : Generic.Env V)
+theorem pcsa_scoped_root_eq (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : NamedRootCollisionFree p c E rho)
     (A B : Block) (hA : RootBlockInRun p c E rho A) (hB : RootBlockInRun p c E rho B)
     (he : A.root = B.root) : A = B := by

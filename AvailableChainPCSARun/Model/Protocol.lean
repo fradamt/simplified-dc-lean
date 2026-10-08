@@ -338,7 +338,8 @@ a proposal by root (a stored FG block has the root of its block, the
 duplicate test of `blockAccepted`); a HEAD if its base vote is in the vote
 pool; a row if it is in the row pool; an ack if it is in the ack pool; a PC
 if a PC of its slot and target is installed (the test of `installPC`; the
-pools and the installed PCs only grow). -/
+pools only grow; the installed PCs grow in stage 1, and `reconcile` filters
+them when `F` moves). -/
 def processedS (p : Params) (st : State p.n) (o : Obj p) : Bool :=
   match (toWire p o).decode with
   | some (.vote s i b) => decide (baseVote (⟨.seat (.head s) i, b⟩ : HeadWire p.n) ∈ st.base.votes)
@@ -516,6 +517,48 @@ private theorem pcsa_toAuth_eq_3_export :
     type_of% (@toAuth.eq_3) := @toAuth.eq_3
 private theorem pcsa_toWire_eq_1_export :
     type_of% (@toWire.eq_1) := @toWire.eq_1
+
+
+/-! Raw payload and row reads for the provisional safety adapter. -/
+def safetyProposalErase (p : Params) (o : Obj p) : Option Block :=
+  match o.payload with
+  | .proposal N => some N.erase
+  | _ => none
+
+theorem pcsa_safetyProposalErase_def (p : Params) (o : Obj p) :
+    safetyProposalErase p o = (match o.payload with
+      | .proposal N => some N.erase
+      | _ => none) := rfl
+
+def safetyProposalRows (p : Params) (o : Obj p) : List (RowWire p.n) :=
+  match o.payload with
+  | .proposal N => N.rows
+  | _ => []
+
+theorem pcsa_safetyProposalRows_def (p : Params) (o : Obj p) :
+    safetyProposalRows p o = (match o.payload with
+      | .proposal N => N.rows
+      | _ => []) := rfl
+
+def decodeSafetyRow (p : Params) (o : Obj p) : Option (Row (Fin p.n)) :=
+  match o.payload with
+  | .row body => RowWire.toRow? ⟨toAuth p o.auth, body⟩
+  | _ => none
+
+theorem pcsa_decodeSafetyRow_def (p : Params) (o : Obj p) :
+    decodeSafetyRow p o = (match o.payload with
+      | .row body => RowWire.toRow? ⟨toAuth p o.auth, body⟩
+      | _ => none) := rfl
+
+def safetyEnabled (m : FGMode) (p : Params) (t : Time) : Bool :=
+  match m with
+  | .on => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  | .idle => false
+
+theorem pcsa_safetyEnabled_def (m : FGMode) (p : Params) (t : Time) :
+    safetyEnabled m p t = (match m with
+      | .on => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+      | .idle => false) := rfl
 
 end AvailableChain.PCSA.Run
 

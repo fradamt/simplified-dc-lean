@@ -1,7 +1,7 @@
 module
 public import AvailableChainPCSAProofs.Proofs.PC.AckOrigins
-public import AvailableChainPCSAProofs.Proofs.PC.HeadSupport
-public import AvailableChainPCSAProofs.Proofs.PC.RunEvidence
+public import AvailableChainPCSAProofs.Proofs.Shared.HeadSupport
+public import AvailableChainPCSAProofs.Proofs.Shared.RunEvidence
 
 public section
 
