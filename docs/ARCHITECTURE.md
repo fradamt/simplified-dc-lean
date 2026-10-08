@@ -288,6 +288,26 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   components give it with `T₀ = t_GST`. The `_win` lemmas of `Shared/Relay`,
   `Shared/BodyReceipt` and the Clean lane take `StrictFrom` (or `CleanWindow`);
   the old `HealthyPrefixDeliveryBy` names are wrappers with unchanged types.
+- PC-SA Formation (C7; 2026-10-08). Paths are under
+  `AvailableChainPCSAProofs/Proofs/`. The Formation proofs are the
+  `Clean/Formation*` modules; `Clean/FormationExport` collects them. It is an
+  ordinary Clean module, not a lane Export. The layer checker grants one exact
+  edge for it, `Assembly.Formation → Clean.FormationExport`
+  (`scripts/check-layers.py`); no other module may import it across lanes.
+  `Shared/FormationWindow` holds the pre-freeze interface
+  `FormationPreFreezePrem`: `FormationPrem` with the delivery cut at
+  `freezeTime s` and the Formation deadline `max t z_{s-1} + Δ`.
+  `FormationPrem` carries the F4 clause `FormationRootReachable` (the
+  proposer walk from the carried PC target, or `Z`, reaches `liveRoot`);
+  `HealedSourcePrem` carries the same clause at `r * p.R`. Parts 1–4 of the
+  conclusion follow from `FormationPreFreezeInputs`; the gate counts
+  (`Clean/FormationGateCounts`) give part 5. `Assembly/Formation` proves
+  `FormationClaim` (`pcsa_formationClaim`) and `FormationSourceClaim`
+  (`pcsa_formationSourceClaim`, through `Finality/Export`) with no open input.
+  `Clean/FormationRetainedTree` and `Clean/FormationRetainedBack` prove the
+  five retained HEAD facts; `Clean/FormationFrozenRaw` proves the frozen raw
+  relay from the Clean windowed HEAD relay (`StrictFrom` at `T₀ = z_{s-1}`).
+  See `Clean/FormationOPEN.md`.
 - PC-SA finality safety (P12): `Foundations/FGSafetyBridge` converts the PC
   reads and applies Compose `SafetyAccountable`, `SafetyCount`,
   `SafetyMonotone`, and `SafetySlashing` through four exact `COMPOSE_EDGES`.

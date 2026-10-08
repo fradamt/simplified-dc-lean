@@ -48,6 +48,25 @@ theorem pcsa_HonestNamedProposal_def (s : Slot) (N : NamedProposal p.n) :
             (V2.D.propSeat (pcsaInterface p c (m := m)).toInterface s), .proposal N⟩
           (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s)) := rfl
 
+/-- [pcsa34-r4.3b 5.3, F4 first clause] The walk from the common base
+root reaches the proposer's live root at the proposal read. -/
+def FormationRootReachable (s : Slot) : Prop :=
+  ∀ nd₀, pcsa_postClock E rho
+      (V2.D.proposerOf rho
+        (pcsaInterface p c (m := m)).toInterface s)
+      (V2.D.proposalTime
+        (pcsaInterface p c (m := m)).toInterface s) = some nd₀ →
+    let st := nd₀.st
+    let pc := proposerPC p st
+    let root := (pc.map PC.target).getD
+      (eraseFG (controls p st).Z)
+    let raw := proposerVotes st s
+    let support := proposerSupport st s
+    Block.Preceq (liveRoot p st pc)
+      (GridCO.ghost root (erasedList st (fullTree p st))
+        (GridCO.goldfishScore st.base.blocks raw support)
+        (eligible p st raw support))
+
 /-- [PC-SA claims, W0; pcsa34-r4 5.3 premises (F1)–(F7)] The formation
 premises at slot `s` with the honest proposal `N` (`P = N.erase`), stage 1.
 - (F1) `delivery`: every non-row object sent or accepted at `t` reaches every
@@ -56,8 +75,11 @@ premises at slot `s` with the honest proposal `N` (`P = N.erase`), stage 1.
 - (F2) `participation`: `h_s ≥ q_N` honest nodes awake at `v_s` and `e_s`.
 - (F3) `commonView`: every honest voter's `view(s)` has the target of the
   carried PC `N.pc` (both `⊥` when `N.pc = ⊥`).
-- (F4) `leases`: every live lease at an honest voter that is deeper than the
-  view target (or `Z` without a view) and compatible with it is `⪯ parent(P)`.
+- (F4) first clause, `proposerRootReachable`: the base-root walk reaches
+  the proposer's live root at `t_s`.
+- (F4) second clause, `leases`: every live lock at the post-clock honest
+  voter read that is deeper than the view target (or `Z` without a view)
+  and compatible with it is `⪯ parent(P)`.
 - (F5) is not a field: r4.3 derives it from (F1) (p accepted the visited
   blocks before `t_s`, so they reach every voter before `v_s`).
 - (F6), (F7) `frame`: stage 1, vacuous (`StageOneFrame`).
@@ -75,6 +97,7 @@ structure FormationPrem (s : Slot) (N : NamedProposal p.n) (ΔF : Time) : Prop w
   participation : nQuorum p.n ≤ (awakeHonestLabel p c E rho s).card
   commonView : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s) = true →
     (viewAt p c E rho y s).map (Option.map PC.target) = some (N.pc.map PC.target)
+  proposerRootReachable : FormationRootReachable p c E rho s
   leases : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s) = true →
     ∀ nd, pcsa_postClock E rho y (SA.voteTime p.toParams s) = some nd →
     ∀ B, LiveLease nd.st B →
@@ -233,7 +256,10 @@ the healing time, with every frame item explicit (no `StageOneFrame`).
 - `afterGST` (timing): `t_GST + Δ ≤ t_{rR}`, so `z_{rR−1} ≥ t_GST` and (F1)
   follows from `recovery`.
 - `participation` (F2): `h_{rR} ≥ q_N`.
-- `commonView` (F3) and `locks` (F4): the formation premises at `rR`, as in
+- `commonView` (F3): the formation common view at `rR`.
+- `proposerRootReachable` (F4 first clause): the base-root walk reaches
+  the proposer's live root at `t_{rR}`.
+- `locks` (F4 second clause): the post-clock voter lock upper bound, as in
   `FormationPrem`. After `t*` their producers are the HEALING_INPUT items
   H2/H3 of [FG-HEAL] (OPEN).
 - `equalFrames` (F6): every honest voter awake at `v_{rR}` reads the
@@ -250,6 +276,7 @@ structure HealedSourcePrem (G ΔF : Time) (r : Nat) (N : NamedProposal p.n) : Pr
   participation : nQuorum p.n ≤ (awakeHonestLabel p c E rho (r * p.R)).card
   commonView : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams (r * p.R)) = true →
     (viewAt p c E rho y (r * p.R)).map (Option.map PC.target) = some (N.pc.map PC.target)
+  proposerRootReachable : FormationRootReachable p c E rho (r * p.R)
   locks : ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams (r * p.R)) = true →
     ∀ nd, pcsa_postClock E rho y (SA.voteTime p.toParams (r * p.R)) = some nd →
     ∀ B, LiveLease nd.st B →

@@ -45,6 +45,11 @@ theorem recovery_root_reachable (s : Slot) (P : Block)
   rw [← he]
   exact root_reachable_of_locks_below p nd.st (proposerPC p nd.st) P hb hl _ _ _
 
+/-- The Recovery root clause is the corrected F4 field of `FormationPrem`. -/
+theorem pcsa_recovery_rootReachable_iff_formation (s : Slot) :
+    RecoveryRootReachable p c E rho s ↔ FormationRootReachable p c E rho s :=
+  Iff.rfl
+
 /-- The corrected proposer-root clause holds with the genesis anchor. -/
 theorem recovery_genesis_root_reachable (hs : V2.D.ScheduleWellFormed E rho)
     (s : Slot) (hpos : 0 < s) (hwindow : s - 1 ≤ p.k - 1)
@@ -77,8 +82,9 @@ structure RecoveryChainRestart (s₁ : Slot) : Prop where
 variable [Fintype V]
 
 /-- Missing producers needed by the conditional C11 export.
-`formation` takes the corrected F4 clause as a separate argument until the
-statement branch adds it to FormationPrem. The stamp-to-reader boundary
+`FormationPrem` now carries the corrected F4 clause
+(`FormationRootReachable`), so the separate `RecoveryRootReachable`
+arguments are redundant; their removal is separate. The stamp-to-reader boundary
 is proved in RunInputs and is no longer an input.
 `firstSlot` needs F3, which `recovery_commonView` (Recovery/View) gives at a
 slot `s > 0` with `t_GST + Δ ≤ t_s` and `d_s` in the run, from the Shared

@@ -801,6 +801,9 @@ def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
                            "AvailableChainFGSA.Proofs.StoreLaws"}
     if parts[0] == "Assembly":
         allowed = upstream or (target and (target[0] == "Shared" or target_export))
+        allowed = allowed or (
+            m.name == PC_PROOFS + ".Proofs.Assembly.Formation" and
+            dep == PC_PROOFS + ".Proofs.Clean.FormationExport")
         if m.name == PC_PROOFS + ".Proofs.Assembly.Root":
             allowed = foundation(dep) or dep in {
                 PC_PROOFS + ".Proofs.Assembly." + name for name in

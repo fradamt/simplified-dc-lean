@@ -433,8 +433,9 @@ def AvailableChain.PCSA.Run.IsNonRow 5ff6adcc713fe9ff
 theorem AvailableChain.PCSA.Run.pcsa_IsNonRow_def 12e59365c6a7ac23
 def AvailableChain.PCSA.Run.HonestNamedProposal 44d0249ad2543248
 theorem AvailableChain.PCSA.Run.pcsa_HonestNamedProposal_def 6ee3cbed8a46bb15
+def AvailableChain.PCSA.Run.FormationRootReachable 103fcb157ae2235c
 structure AvailableChain.PCSA.Run.FormationPrem 0ec792f1dbf3c8b5
-ctor AvailableChain.PCSA.Run.FormationPrem.mk ee5cd3a41d4d9269
+ctor AvailableChain.PCSA.Run.FormationPrem.mk 4bc7d664bd9f84e8
 field AvailableChain.PCSA.Run.FormationPrem.base 7c4b092dc163f877
 field AvailableChain.PCSA.Run.FormationPrem.quarterCap a0ad8dde404f1fac
 field AvailableChain.PCSA.Run.FormationPrem.frame 2798151296e9a5f2
@@ -445,6 +446,7 @@ field AvailableChain.PCSA.Run.FormationPrem.proposal 6896451a097bb02b
 field AvailableChain.PCSA.Run.FormationPrem.delivery 13c3204d03eab0ac
 field AvailableChain.PCSA.Run.FormationPrem.participation b83dcec527d26041
 field AvailableChain.PCSA.Run.FormationPrem.commonView b129da707229c82e
+field AvailableChain.PCSA.Run.FormationPrem.proposerRootReachable e18687e9743d0f5d
 field AvailableChain.PCSA.Run.FormationPrem.leases af68f1f26801003a
 structure AvailableChain.PCSA.Run.Arm c25c25b4c80c3403
 ctor AvailableChain.PCSA.Run.Arm.mk 7cf8bc62c933abeb
@@ -472,13 +474,14 @@ field AvailableChain.PCSA.Run.Q0PCPackage.ff2 b0772b113c36bf37
 field AvailableChain.PCSA.Run.Q0PCPackage.ff2C 62d5bdf53fd41af8
 field AvailableChain.PCSA.Run.Q0PCPackage.transfer a71f72c7320d203b
 structure AvailableChain.PCSA.Run.HealedSourcePrem ff245e66f5d306aa
-ctor AvailableChain.PCSA.Run.HealedSourcePrem.mk 82fefd9a108123c5
+ctor AvailableChain.PCSA.Run.HealedSourcePrem.mk 1d0ea387642ac128
 field AvailableChain.PCSA.Run.HealedSourcePrem.recovery d6210b0e514d60c9
 field AvailableChain.PCSA.Run.HealedSourcePrem.proposal e3f7b7bc65783005
 field AvailableChain.PCSA.Run.HealedSourcePrem.horizon 2db39c23597f3063
 field AvailableChain.PCSA.Run.HealedSourcePrem.afterGST f9e41eef0f6efa04
 field AvailableChain.PCSA.Run.HealedSourcePrem.participation 14a96d7f223aeb30
 field AvailableChain.PCSA.Run.HealedSourcePrem.commonView ce7ed766aab039ef
+field AvailableChain.PCSA.Run.HealedSourcePrem.proposerRootReachable 6c2bff4b45d798b5
 field AvailableChain.PCSA.Run.HealedSourcePrem.locks 1b9c76031c8c0420
 field AvailableChain.PCSA.Run.HealedSourcePrem.equalFrames 52f1bc7847916901
 field AvailableChain.PCSA.Run.HealedSourcePrem.fCompat f731545f8995cf77
