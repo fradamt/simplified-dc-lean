@@ -288,6 +288,10 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   components give it with `T₀ = t_GST`. The `_win` lemmas of `Shared/Relay`,
   `Shared/BodyReceipt` and the Clean lane take `StrictFrom` (or `CleanWindow`);
   the old `HealthyPrefixDeliveryBy` names are wrappers with unchanged types.
+  `Clean/StampFrom.pcsa_clean_honestProposal_stamped_from` proves pre-freeze
+  stamping in this window from equal honest HEADs and the awake N quorum.
+  It needs `T₀ ≤ z_s` for the proposal at `s + 1`. It does not use
+  `CleanRestartSeed`; recovery can use its conclusion to supply a seed stamp.
 - PC-SA CI restart from a label `a` (2026-10-08; steps 4a, 4b, 5a and K2).
   The clean induction restarts at a seed label `a > 0` with seed block `A`.
   Shared modules:
@@ -328,9 +332,9 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   needs no Recovery lemma. `pcsa_cleanRestartSeed_mk` builds the seed from
   `0 < a`, `A.slot = a`, the stamp, the HEADs, the proposal, the results,
   `ArmConcl` and `z_a ≤ horizon`.
-  Open boundary: the windowed pre-freeze stamp
-  (`pcsa_clean_honestProposal_stamped_from`, step 5b) and the Recovery
-  assembly that supplies the seed and the window. The Clean, Shared and
+  Open boundary: the Recovery assembly that supplies the seed and the window.
+  The seed stamp comes from `pcsa_clean_honestProposal_stamped_from` at
+  `s = a - 1`, with `T₀ = t_GST ≤ z_{a-1}`. The Clean, Shared and
   Recovery copies of the lock and record event inductions become one Shared
   provenance core after this chain lands.
 - PC-SA Formation (C7; 2026-10-08). Paths are under

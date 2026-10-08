@@ -10,6 +10,7 @@ public import AvailableChainPCSAProofs.Proofs.Assembly.Small
 public import AvailableChainPCSAProofs.Proofs.Assembly.Formation
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationGateCounts
+public import AvailableChainPCSAProofs.Proofs.Clean.StampFrom
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
@@ -683,6 +684,7 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_floor_early_next
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_of_sync
 #print axioms AvailableChain.PCSA.Run.pcsa_strict_broadcast_win
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_handled_before_freeze_win
 #print axioms AvailableChain.PCSA.Run.pcsa_strict_relay_from
 #print axioms AvailableChain.PCSA.Run.pcsa_strict_relay_win
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_within_on
@@ -1740,16 +1742,21 @@ end
 #print axioms AvailableChain.PCSA.pcsa_c9_early_snapshot
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_honestAck
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_early_holdsN
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_early_holdsN_win
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_postClock_index
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_early_N
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_early_N_win
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_early_view_below
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_early_view_below_win
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_idxBefore_mono
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_ack_emits
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_ack_quorum
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_stamped
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_stamped_win
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_faultsBelowQA_of_quarterCap
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_afterTicks_pcs_storeAt
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_honestProposal_stamped
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_honestProposal_stamped_from
 #print axioms AvailableChain.PCSA.Run.pcsa_strongIncludedClaim
 
 #print axioms AvailableChain.PCSA.Run.recovery_base_of_arm

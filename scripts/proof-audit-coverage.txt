@@ -5866,7 +5866,9 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.C9Early': (
             'AvailableChain.PCSA.Run.pcsa_c9_early_N',
+            'AvailableChain.PCSA.Run.pcsa_c9_early_N_win',
             'AvailableChain.PCSA.Run.pcsa_c9_early_holdsN',
+            'AvailableChain.PCSA.Run.pcsa_c9_early_holdsN_win',
             'AvailableChain.PCSA.Run.pcsa_c9_postClock_index',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.C9Stamp': (
@@ -5876,9 +5878,11 @@
             'AvailableChain.PCSA.Run.pcsa_c9_faultsBelowQA_of_quarterCap',
             'AvailableChain.PCSA.Run.pcsa_c9_idxBefore_mono',
             'AvailableChain.PCSA.Run.pcsa_c9_stamped',
+            'AvailableChain.PCSA.Run.pcsa_c9_stamped_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.C9View': (
             'AvailableChain.PCSA.Run.pcsa_c9_early_view_below',
+            'AvailableChain.PCSA.Run.pcsa_c9_early_view_below_win',
             'AvailableChain.PCSA.pcsa_c9_early_ne_freeze',
             'AvailableChain.PCSA.pcsa_c9_early_snapshot',
         ),
@@ -6730,6 +6734,9 @@
             'AvailableChain.PCSA.Run.pcsa_snapshot_row_origin',
             'AvailableChain.PCSA.Run.pcsa_snapshots_before_first_gate_empty',
         ),
+        'AvailableChainPCSAProofs.Proofs.Clean.StampFrom': (
+            'AvailableChain.PCSA.Run.pcsa_clean_honestProposal_stamped_from',
+        ),
         'AvailableChainPCSAProofs.Proofs.Clean.StepAck': (
             'AvailableChain.PCSA.Run.pcsa_honestAck_N_source',
             'AvailableChain.PCSA.Run.pcsa_honestAck_body_scope',
@@ -7547,6 +7554,7 @@
             'AvailableChain.PCSA.pcsa_propose_parent',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.Relay': (
+            'AvailableChain.PCSA.Run.pcsa_ack_handled_before_freeze_win',
             'AvailableChain.PCSA.Run.pcsa_strict_broadcast_win',
             'AvailableChain.PCSA.Run.pcsa_strict_relay_from',
             'AvailableChain.PCSA.Run.pcsa_strict_relay_win',

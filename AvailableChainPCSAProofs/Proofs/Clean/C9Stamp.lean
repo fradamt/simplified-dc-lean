@@ -97,11 +97,12 @@ theorem pcsa_c9_ack_quorum (E : Generic.Env V)
   exact ⟨hy, pcsa_c9_ack_emits E rho s P _ i (hAck _ hy haw) rfl⟩
 
 /-- An emitted honest PC quorum on a held slot-`s` block is stamped at every honest node. -/
-theorem pcsa_c9_stamped (E : Generic.Env V)
+theorem pcsa_c9_stamped_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (s : Slot) (P : Block) (hs : 0 < s) (hslot : P.slot = s)
+    (hT : T₀ ≤ SA.earlyTime p.toParams s)
     (hz : SA.freezeTime p.toParams s ≤ cut) (hhor : SA.freezeTime p.toParams s ≤ rho.horizon)
     (hBody : ∀ y ∈ rho.honest, P ∈ (V2.D.Run.stateBefore E rho
       (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).st.base.blocks)
@@ -117,8 +118,8 @@ theorem pcsa_c9_stamped (E : Generic.Env V)
         y).st.ackPool := by
     intro i hi
     obtain ⟨hih, hie⟩ := hQi i hi
-    obtain ⟨t', het, htz, j, hj⟩ := pcsa_ack_handled_before_freeze E rho hD h.delta s i P.root y
-      hih hy hie hz
+    obtain ⟨t', het, htz, j, hj⟩ := pcsa_ack_handled_before_freeze_win E rho hD h.delta s i P.root y
+      hih hy hie hT hz
     have hadm := pcsa_honest_ack_admitted E rho h y hy s i P.root j t' hih het hj
     obtain ⟨_, hje, _⟩ := hj
     have hjlt := (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed hje _).mpr htz
@@ -129,6 +130,25 @@ theorem pcsa_c9_stamped (E : Generic.Env V)
   rw [pcsa_PCStampedBefore_def]
   exact ⟨C, pcsa_collectPCs_after_freeze E rho h.valid.toScheduleWellFormed h.noRestart h.delta
     y hy s hhor hC, hCs, hCt⟩
+
+
+/-- An emitted honest PC quorum on a held slot-`s` block is stamped at every honest node. -/
+theorem pcsa_c9_stamped (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (s : Slot) (P : Block) (hs : 0 < s) (hslot : P.slot = s)
+    (hz : SA.freezeTime p.toParams s ≤ cut) (hhor : SA.freezeTime p.toParams s ≤ rho.horizon)
+    (hBody : ∀ y ∈ rho.honest, P ∈ (V2.D.Run.stateBefore E rho
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).st.base.blocks)
+    (hQ : ∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧
+      ∀ i ∈ Q, rho.seatOf (.base (.ack s)) i ∈ rho.honest ∧
+        V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i)
+          (ackObj p s i P.root) (SA.earlyTime p.toParams s)) :
+    ∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams s) s P :=
+  pcsa_c9_stamped_win E rho h hF
+    (pcsa_strictFrom_of_healthy E rho hD (SA.earlyTime p.toParams s)) s P hs hslot (le_refl _)
+    hz hhor hBody hQ
 
 
 /-- The quarter fault cap is strictly below the PC quorum. -/

@@ -54,15 +54,16 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {m : FGMode}
 
 /-- At the early read of an honest proposal's label, every view target is below the proposal. -/
-theorem pcsa_c9_early_view_below (E : Generic.Env V)
+theorem pcsa_c9_early_view_below_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (s : Slot) (N : NamedProposal p.n)
     (hx : rho.seatOf (.prop (s + 1)) (0 : Fin 1) ∈ rho.honest)
     (he : V2.D.Run.emits E rho (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
       (⟨.seat (.prop (s + 1)) (0 : Fin 1), .proposal N⟩ : Obj p)
         (SA.proposalTime p.toParams (s + 1)))
+    (hT : T₀ ≤ SA.freezeTime p.toParams s)
     (hc : SA.voteTime p.toParams (s + 1) ≤ cut)
     (y : V) (hy : y ∈ rho.honest) (nd : Node p)
     (hnd : pcsa_postClock E rho y (SA.earlyTime p.toParams (s + 1)) = some nd) :
@@ -105,8 +106,8 @@ theorem pcsa_c9_early_view_below (E : Generic.Env V)
     have hpropVote : SA.proposalTime p.toParams (s + 1) < SA.voteTime p.toParams (s + 1) := by
       change 4 * p.Δ * ((s + 1 : Nat) : Int) < 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
       linarith
-    obtain ⟨D, hDmem, hDs, hDt, hDa⟩ := pcsa_frozen_pc_in_proposer E rho h hF hFault hD a kp y x
-      hy hx s C hkp (hpropVote.le.trans hc) hfrozen
+    obtain ⟨D, hDmem, hDs, hDt, hDa⟩ := pcsa_frozen_pc_in_proposer_win E rho h hF hFault hD a kp y x
+      hy hx s C hkp hT (hpropVote.le.trans hc) hfrozen
     have hDf : D ∈ src.pcs.filter (frameActive p src) := List.mem_filter.mpr ⟨hDmem, hDa⟩
     obtain ⟨W, hsv⟩ := Option.isSome_iff_exists.mp (pcsa_bestPC_isSome_of_mem _ D hDf)
     have hNp : N.pc = some W := hpc.trans hsv
@@ -134,8 +135,8 @@ theorem pcsa_c9_early_view_below (E : Generic.Env V)
       change W.target ∈ (clock p _ _).base.blocks
       rw [pcsa_clock_blocks]
       exact pcsa_pc_targets_held p _ (pcsa_reachable_stateBefore E rho kp x) W hWpre
-    have hrecv := pcsa_proposer_body_before_vote E rho h hF hD kp a x y hx hy (s + 1)
-      W.target hkp hva hc hWB
+    have hrecv := pcsa_proposer_body_before_vote_win E rho h hF hD kp a x y hx hy (s + 1)
+      W.target hkp hva (pcsa_floor_freeze_next hT) hc hWB
     have hWBdst : W.target ∈ dst.base.blocks := by
       change W.target ∈ (clock p _ _).base.blocks
       rwa [pcsa_clock_blocks]
@@ -146,8 +147,8 @@ theorem pcsa_c9_early_view_below (E : Generic.Env V)
     have hvalid : pcValid dst W = true :=
       Bool.and_eq_true_iff.mpr ⟨Bool.and_eq_true_iff.mpr ⟨hw, decide_eq_true hWBdst⟩,
         CleanPCRelay.pcsa_activeCompatible_genesis dst hf W.target⟩
-    have hmem := (pcsa_honest_proposal_before_vote E rho h hF hD x y hx hy (s + 1) N he hc a
-      hva).1
+    have hmem := (pcsa_honest_proposal_before_vote_win E rho h hF hD x y hx hy (s + 1) N he
+      (pcsa_floor_freeze_next hT) hc a hva).1
     have hWcar : W ∈ carriedPCs dst (s + 1) := pcsa_carriedPC_of_proposal dst (s + 1) N
       hslot (by change _ ∈ (clock p _ _).proposals; rwa [pcsa_clock_proposals]) W hNp hvalid
     have hWsource : W ∈ sources := List.mem_filter.mpr
@@ -161,6 +162,24 @@ theorem pcsa_c9_early_view_below (E : Generic.Env V)
   · change C ∈ carriedPCs (clock p _ _) (s + 1) at hcar
     rw [pcsa_clock_carriedPCs] at hcar
     exact hbelow C (pcsa_carriedPC_eq_emitted E rho h.valid a y (s + 1) N hx he C hcar)
+
+/-- At the early read of an honest proposal's label, every view target is below the proposal. -/
+theorem pcsa_c9_early_view_below (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (s : Slot) (N : NamedProposal p.n)
+    (hx : rho.seatOf (.prop (s + 1)) (0 : Fin 1) ∈ rho.honest)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (⟨.seat (.prop (s + 1)) (0 : Fin 1), .proposal N⟩ : Obj p)
+        (SA.proposalTime p.toParams (s + 1)))
+    (hc : SA.voteTime p.toParams (s + 1) ≤ cut)
+    (y : V) (hy : y ∈ rho.honest) (nd : Node p)
+    (hnd : pcsa_postClock E rho y (SA.earlyTime p.toParams (s + 1)) = some nd) :
+    ∀ C, voterPC p nd.st (s + 1) = some C → Block.Preceq C.target N.erase :=
+  pcsa_c9_early_view_below_win E rho h hF hFault
+    (pcsa_strictFrom_of_healthy E rho hD (SA.freezeTime p.toParams s)) s N hx he (le_refl _)
+    hc y hy nd hnd
 
 end AvailableChain.PCSA.Run
 
