@@ -45,6 +45,11 @@ theorem recovery_root_reachable (s : Slot) (P : Block)
   rw [← he]
   exact root_reachable_of_locks_below p nd.st (proposerPC p nd.st) P hb hl _ _ _
 
+/-- The Recovery root clause is the corrected F4 field of `FormationPrem`. -/
+theorem pcsa_recovery_rootReachable_iff_formation (s : Slot) :
+    RecoveryRootReachable p c E rho s ↔ FormationRootReachable p c E rho s :=
+  Iff.rfl
+
 /-- The corrected proposer-root clause holds with the genesis anchor. -/
 theorem recovery_genesis_root_reachable (hs : V2.D.ScheduleWellFormed E rho)
     (s : Slot) (hpos : 0 < s) (hwindow : s - 1 ≤ p.k - 1)

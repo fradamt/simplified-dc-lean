@@ -7274,6 +7274,7 @@
             'AvailableChain.PCSA.Run.RecoveryChainRestart',
             'AvailableChain.PCSA.Run.RecoveryRootReachable',
             'AvailableChain.PCSA.Run.RecoverySuffixInputs',
+            'AvailableChain.PCSA.Run.pcsa_recovery_rootReachable_iff_formation',
             'AvailableChain.PCSA.Run.recovery_genesis_root_reachable',
             'AvailableChain.PCSA.Run.recovery_root_reachable',
         ),

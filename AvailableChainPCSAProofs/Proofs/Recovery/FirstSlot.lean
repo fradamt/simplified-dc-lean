@@ -55,7 +55,12 @@ theorem recovery_firstSlot_of_anchor (E : Generic.Env V)
     exact Gen.Pure.block_preceq_trans (hbase nd hnd)
       (Gen.Pure.block_preceq_trans (pcsa_liveRoot_extends_base p nd.st _)
         (pcsa_headInTree_extends_root p nd.st _ _ _ _))
-  refine ⟨N, ?_, ?_⟩
+  have hroot : RecoveryRootReachable p c E rho s := by
+    apply recovery_root_reachable p c E rho s P
+    intro nd hnd
+    exact ⟨recovery_proposer_base p nd.st, hbase nd hnd,
+      hlocks _ hprop.1 _ (Or.inl rfl) nd hnd⟩
+  refine ⟨N, ?_, hroot⟩
   · exact {
       base := h.base
       quarterCap := h.quarterCap
@@ -68,11 +73,9 @@ theorem recovery_firstSlot_of_anchor (E : Generic.Env V)
       participation := (recovery_participation E rho h s hafter horizon).1
       commonView := recovery_commonView E rho h hf s hpos hafter horizon N hN
       leases := fun y hy _ nd hnd B hB _ _ =>
-        Gen.Pure.block_preceq_trans (hlocks y hy _ (Or.inr rfl) nd hnd B hB) hparent }
-  · apply recovery_root_reachable p c E rho s P
-    intro nd hnd
-    exact ⟨recovery_proposer_base p nd.st, hbase nd hnd,
-      hlocks _ hprop.1 _ (Or.inl rfl) nd hnd⟩
+        Gen.Pure.block_preceq_trans (hlocks y hy _ (Or.inr rfl) nd hnd B hB) hparent
+      proposerRootReachable :=
+        (pcsa_recovery_rootReachable_iff_formation p c E rho s).mp hroot }
 
 end AvailableChain.PCSA.Run
 end

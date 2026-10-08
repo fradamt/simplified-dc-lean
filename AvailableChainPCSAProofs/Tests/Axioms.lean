@@ -1642,6 +1642,7 @@ end
 #print axioms AvailableChain.PCSA.Run.long_recovery_slot
 #print axioms AvailableChain.PCSA.Run.recovery_prefix_delivery
 #print axioms AvailableChain.PCSA.Run.recovery_root_reachable
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_rootReachable_iff_formation
 #print axioms AvailableChain.PCSA.Run.recovery_genesis_root_reachable
 #print axioms AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci
 #print axioms AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci_pc
