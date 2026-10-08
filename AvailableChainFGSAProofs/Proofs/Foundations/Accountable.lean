@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client
+public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
 public import AvailableChainFGSARun.Proofs.Receipts
 
 public section
@@ -100,35 +101,8 @@ theorem fgsa_pureAgreement (K W T₁ T₂ : FGBlock (Fin p.n)) (h₁ h₂ : Nat)
 ROOT-DIGEST W2b. A non-genesis observed parent is delivered or prefix-held. -/
 theorem finalityRun_parent_scope {K : FGBlock (Fin p.n)}
     (hK : FinalityRunBlock p c E rho K) (hne : K.parent ≠ .genesis) :
-    RootBlockInRun p c E rho (eraseFG K.parent) := by
-  obtain ⟨o, N, ho, hemit | hdel, hKb⟩ := hK
-  · obtain ⟨x, t, hemit⟩ := hemit
-    obtain ⟨i, hp⟩ := emitted_payload_parent_base_stored E rho hemit ho
-    generalize hb : N.erase = b at hKb hp
-    have hparent : Block.Preceq (eraseFG K.parent) b.parent := by
-      rw [← eraseFG_parent]
-      have hPK : Block.Preceq (eraseFG K).parent (eraseFG K) := by
-        cases K with
-        | genesis => exact block_preceq_refl _
-        | node P s root body rs => exact eraseFG_preceq (KitFG.preceq_parent_node _ _ _ _ _)
-      by_cases he : eraseFG K = b
-      · rw [he]; exact block_preceq_refl _
-      cases b with
-      | genesis =>
-        have hg : eraseFG K = .genesis := by simpa [Block.Preceq, Block.preceq] using hKb
-        exact (he hg).elim
-      | node P s root body =>
-        exact block_preceq_trans hPK
-          ((Bool.or_eq_true_iff.mp hKb).resolve_left (by simpa using he))
-    exact rootBlockInRun_stored E rho i x (stored_body_ancestor E rho i x hp hparent)
-      (fun hg => hne (eraseFG_eq_genesis.mp hg))
-  · obtain ⟨x, t, hd⟩ := hdel
-    apply rootBlockInRun_ancestor E rho (rootBlockInRun_delivered E rho hd ho)
-    apply block_preceq_trans _ hKb
-    apply eraseFG_preceq
-    cases K with
-    | genesis => exact KitFG.preceq_refl _
-    | node P s root body rs => exact KitFG.preceq_parent_node _ _ _ _ _
+    RootBlockInRun p c E rho (eraseFG K.parent) :=
+  fgsa_bridge_parent_scope p c E rho hK hne
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Whole-run finality compares parent chains and keeps all evidence rows. -/
@@ -136,23 +110,8 @@ theorem fgsa_runAccountable (hroots : NamedRootCollisionFree p c E rho)
     {K W : FGBlock (Fin p.n)} (hK : FinalityRunBlock p c E rho K)
     (hW : FinalityRunBlock p c E rho W) :
     HasSlashableWeightBetween p.E (chainRows K) (chainRows W) ∨
-      FGBlock.compatible (finalityView p K).F (finalityView p W).F = true := by
-  by_cases hk : (finalityView p K).F = .genesis
-  · right; rw [hk]; exact Bool.or_eq_true_iff.mpr (Or.inl (KitFG.genesis_preceq _))
-  by_cases hw : (finalityView p W).F = .genesis
-  · right; rw [hw]; exact Bool.or_eq_true_iff.mpr (Or.inr (KitFG.genesis_preceq _))
-  have parent_ne (B : FGBlock (Fin p.n)) (h : (finalityView p B).F ≠ .genesis) :
-      B.parent ≠ .genesis := by
-    intro hg
-    have hp := KitFG.finalized_preceq_parent_of_certificate
-      p.E (heightView p) (finalityView p) (fgCertificateLaws p) B
-    rw [hg] at hp
-    exact h (KitFG.preceq_genesis.mp hp)
-  exact KitFG.slashableWeight_or_finalized_compatible_of_parent_roots
-    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W
-    (rootInjectiveOn_run E rho hroots
-      (finalityRun_parent_scope p c E rho hK (parent_ne K hk))
-      (finalityRun_parent_scope p c E rho hW (parent_ne W hw)))
+      FGBlock.compatible (finalityView p K).F (finalityView p W).F = true :=
+  fgsa_bridge_runAccountable p c E rho hroots hK hW
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 All three DC observation clauses. No honesty behaviour, authenticity,
@@ -173,23 +132,6 @@ structure FGWholeRunAccountable : Prop where
       FGBlock.compatible (V2.D.Run.readAt E rho t u).st.fg.F
         (V2.D.Run.readAt E rho t' v).st.fg.F = true
 
-private theorem store_accountable (st st' : State p.n)
-    (hs : CStoreInv p st) (hs' : CStoreInv p st')
-    (hpair : ∀ K ∈ st.fg.TF, ∀ W ∈ st'.fg.TF, KitFG.RootInjectiveOn K W) :
-    HasSlashableWeightBetween p.E (finalityStoreRows p st) (finalityStoreRows p st') ∨
-      FGBlock.compatible st.fg.F st'.fg.F = true := by
-  obtain ⟨K, hK, hKF⟩ := hs.fg.Fcar
-  obtain ⟨W, hW, hWF⟩ := hs'.fg.Fcar
-  rcases KitFG.slashableWeight_or_finalized_compatible_of_certificate
-    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W (hpair K hK W hW) with hev | hc
-  · obtain ⟨S, hw, he⟩ := hev
-    refine Or.inl ⟨S, hw, ?_⟩
-    intro i hi
-    obtain ⟨a, ha, b, hb, hai, hbi, hab⟩ := he i hi
-    exact ⟨a, Finset.mem_biUnion.mpr ⟨K, hK, ha⟩,
-      b, Finset.mem_biUnion.mpr ⟨W, hW, hb⟩, hai, hbi, hab⟩
-  · exact Or.inr (hKF ▸ hWF ▸ hc)
-
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 DC DecoupledConsensusInternal/Legacy/Assumptions/Weight.lean:30:
 no slashable weight between ALL run blocks, including ancestors of emitted or
@@ -206,52 +148,12 @@ theorem FGSASlashableBound_def : FGSASlashableBound p c E rho ↔
     ∀ K W, FinalityRunBlock p c E rho K → FinalityRunBlock p c E rho W →
       ¬ HasSlashableWeightBetween p.E (chainRows K) (chainRows W) := by rfl
 
-private theorem stored_finality_delivery (i : Nat) (x : V) (K : FGBlock (Fin p.n))
-    (hK : K ∈ (storeAt p c E rho i x).fg.TF) (hne : K ≠ .genesis) :
-    ∃ o N y t, o.payload = Msg.proposal N ∧ N.erase = eraseFG K ∧
-      V2.Event.deliver y o t ∈ rho.events := by
-  obtain ⟨slot, N, heN, _, j, o, t, _, hd, he⟩ :=
-    stored_block_wire_delivery p c E rho i x K hK hne
-  refine ⟨o, N, x, t, ?_, heN, List.mem_of_getElem? hd⟩
-  rw [he]
-  rfl
-
-private theorem read_finality_runBlock (t : Time) (x : V) (K : FGBlock (Fin p.n))
-    (hK : K ∈ (V2.D.Run.readAt E rho t x).st.fg.TF) (hne : K ≠ .genesis) :
-    FinalityRunBlock p c E rho K := by
-  let rho' := { rho with events := rho.events.filter (fun e => decide (e.time ≤ t)) }
-  have hs : V2.D.World.step E rho' = V2.D.World.step E rho := by
-    funext w e
-    cases e <;> rfl
-  have hst : storeAt p c E rho' rho'.events.length x = (V2.D.Run.readAt E rho t x).st := by
-    change ((rho'.events.take rho'.events.length).foldl
-      (V2.D.World.step E rho') V2.D.World.init x).st = _
-    rw [List.take_length, hs]
-    rfl
-  obtain ⟨o, N, y, s, ho, heN, hd⟩ :=
-    stored_finality_delivery p c E rho' rho'.events.length x K (hst ▸ hK) hne
-  refine ⟨o, N, ho, Or.inr ⟨y, s, (List.mem_filter.mp hd).1⟩, ?_⟩
-  rw [heN]
-  exact eraseFG_preceq (KitFG.preceq_refl K)
-
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. A time-read body has original-run delivery or honest genesis scope. -/
 theorem rootScope_finality_read (t : Time) (x : V) (hx : x ∈ rho.honest)
     (K : FGBlock (Fin p.n)) (hK : K ∈ (V2.D.Run.readAt E rho t x).st.fg.TF) :
-    RootBlockInRun p c E rho (eraseFG K) := by
-  by_cases hg : K = .genesis
-  · subst K
-    exact rootScope_store hx (i := 0) (cstoreInv_stateBefore E rho 0 x).fg.gen
-  let rho' := { rho with events := rho.events.filter (fun e => decide (e.time ≤ t)) }
-  have hs : V2.D.World.step E rho' = V2.D.World.step E rho := by
-    funext w e; cases e <;> rfl
-  have hst : storeAt p c E rho' rho'.events.length x = (V2.D.Run.readAt E rho t x).st := by
-    change ((rho'.events.take rho'.events.length).foldl
-      (V2.D.World.step E rho') V2.D.World.init x).st = _
-    rw [List.take_length, hs]; rfl
-  obtain ⟨o, N, y, s, ho, heN, hd⟩ :=
-    stored_finality_delivery p c E rho' rho'.events.length x K (hst ▸ hK) hg
-  exact heN ▸ rootBlockInRun_delivered E rho (List.mem_filter.mp hd).1 ho
+    RootBlockInRun p c E rho (eraseFG K) :=
+  fgsa_bridge_read_scope p c E rho t x hx K hK
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. The one run premise covers all three observation clauses. -/
@@ -260,35 +162,10 @@ theorem fgsa_wholeRunAccountable (hroots : NamedRootCollisionFree p c E rho) :
   chains := fun _K _W _T₁ _T₂ _h₁ _h₂ hK hW hf hg =>
     (fgsa_runAccountable (hroots := hroots) p c E rho hK hW).imp id
       (fun he => hf.1 ▸ hg.1 ▸ he)
-  eventPrefixes := fun u hu v hv i j => store_accountable p _ _
-    (storeBundle_stateBefore E rho i u).cstore (storeBundle_stateBefore E rho j v).cstore
-    (fun _K hK _W hW => rootInjectiveOn_run E rho hroots
-      (rootScope_store hu hK) (rootScope_store hv hW))
-  reads := fun u hu v hv t t' => store_accountable p _ _
-    (storeBundle_readAt E rho t u).cstore (storeBundle_readAt E rho t' v).cstore
-    (fun K hK W hW => rootInjectiveOn_run E rho hroots
-      (rootScope_finality_read p c E rho t u hu K hK)
-      (rootScope_finality_read p c E rho t' v hv W hW))
-
-private theorem store_agreement_of_bound (hroots : NamedRootCollisionFree p c E rho) (hb :
-    FGSASlashableBound p c E rho)
-    (st st' : State p.n) (hs : CStoreInv p st) (hs' : CStoreInv p st')
-    (hcar : ∀ K ∈ st.fg.TF, K ≠ .genesis → FinalityRunBlock p c E rho K)
-    (hcar' : ∀ K ∈ st'.fg.TF, K ≠ .genesis → FinalityRunBlock p c E rho K) :
-    FGBlock.compatible st.fg.F st'.fg.F = true := by
-  obtain ⟨K, hK, hKF⟩ := hs.fg.Fcar
-  obtain ⟨W, hW, hWF⟩ := hs'.fg.Fcar
-  by_cases hk : K = .genesis
-  · subst K
-    rw [← hKF]
-    exact Bool.or_eq_true_iff.mpr (Or.inl (KitFG.genesis_preceq _))
-  by_cases hw : W = .genesis
-  · subst W
-    rw [← hWF]
-    exact Bool.or_eq_true_iff.mpr (Or.inr (KitFG.genesis_preceq _))
-  have hc := (fgsa_runAccountable (hroots := hroots) p c E rho (hcar K hK hk) (hcar' W hW hw))
-    |>.resolve_left (hb K W (hcar K hK hk) (hcar' W hW hw))
-  exact hKF ▸ hWF ▸ hc
+  eventPrefixes := fun u hu v hv i j =>
+    fgsa_bridge_stores_accountable p c E rho hroots u hu v hv i j
+  reads := fun u hu v hv t t' =>
+    fgsa_bridge_reads_accountable p c E rho hroots u hu v hv t t'
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 DC DecoupledConsensusInternal/Legacy/Definitions/FinalitySafety.lean:83
@@ -299,17 +176,8 @@ theorem fgsa_eventPrefixAgreement_of_bound (hroots : NamedRootCollisionFree p c 
     FGSASlashableBound p c E rho)
     (e e' : Nat) (x y : V) :
     FGBlock.compatible (storeAt p c E rho e x).fg.F
-      (storeAt p c E rho e' y).fg.F = true := by
-  apply store_agreement_of_bound (hroots := hroots) p c E rho hb _ _
-    (storeBundle_stateBefore E rho e x).cstore (storeBundle_stateBefore E rho e' y).cstore
-  · intro K hK hne
-    obtain ⟨o, N, z, t, ho, heN, hd⟩ := stored_finality_delivery p c E rho e x K hK hne
-    exact ⟨o, N, ho, Or.inr ⟨z, t, hd⟩,
-      by rw [heN]; exact eraseFG_preceq (KitFG.preceq_refl K)⟩
-  · intro K hK hne
-    obtain ⟨o, N, z, t, ho, heN, hd⟩ := stored_finality_delivery p c E rho e' y K hK hne
-    exact ⟨o, N, ho, Or.inr ⟨z, t, hd⟩,
-      by rw [heN]; exact eraseFG_preceq (KitFG.preceq_refl K)⟩
+      (storeAt p c E rho e' y).fg.F = true :=
+  fgsa_bridge_event_agreement p c E rho hroots hb e e' x y
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. DC WholeRunFinalitySafety with the same SlashableBound over all run blocks.
@@ -325,10 +193,9 @@ theorem fgsa_wholeRunAgreement (hroots : NamedRootCollisionFree p c E rho) (hb :
   have ha := fgsa_wholeRunAccountable (hroots := hroots) p c E rho
   refine ⟨fun K W T₁ T₂ h₁ h₂ hK hW hf hg =>
     (ha.chains K W T₁ T₂ h₁ h₂ hK hW hf hg).resolve_left (hb K W hK hW), ?_⟩
-  intro u _ v _ t t'
-  exact store_agreement_of_bound (hroots := hroots) p c E rho hb _ _
-    (storeBundle_readAt E rho t u).cstore (storeBundle_readAt E rho t' v).cstore
-    (read_finality_runBlock p c E rho t u) (read_finality_runBlock p c E rho t' v)
+  intro u hu v hv t t'
+  exact fgsa_bridge_read_agreement p c E rho hroots hb
+    u hu v hv t t'
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Slashable identities on two held chains give distinct faulty holders.
