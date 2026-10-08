@@ -73,6 +73,25 @@
             'AvailableChain.FGCompose.safety_store_accountable',
             'AvailableChain.FGCompose.safety_store_agreement',
         ),
+        'AvailableChainFGCompose.Proofs.SafetyClient': (
+            'AvailableChain.FGCompose.safetyInputAt_other',
+            'AvailableChain.FGCompose.safetyInputAt_tick',
+            'AvailableChain.FGCompose.safetyRecordStep_none',
+            'AvailableChain.FGCompose.safetyRecordStep_some',
+            'AvailableChain.FGCompose.safety_client_trace',
+            'AvailableChain.FGCompose.safety_emitted_noSlash',
+            'AvailableChain.FGCompose.safety_linked_seats',
+            'AvailableChain.FGCompose.safety_record_fold',
+        ),
+        'AvailableChainFGCompose.Proofs.SafetyCount': (
+            'AvailableChain.FGCompose.safety_fault_count_bound',
+            'AvailableChain.FGCompose.safety_slashable_faulty_count',
+        ),
+        'AvailableChainFGCompose.Proofs.SafetyMonotone': (
+            'AvailableChain.FGCompose.safety_F_mono',
+            'AvailableChain.FGCompose.safety_finalized_monotone',
+            'AvailableChain.FGCompose.safety_readAt_prefix',
+        ),
         'AvailableChainFGCompose.Proofs.SafetyStore': (
             'AvailableChain.FGCompose.safety_good_readAt',
             'AvailableChain.FGCompose.safety_good_stateBefore',
