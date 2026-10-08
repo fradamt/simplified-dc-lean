@@ -283,9 +283,11 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   lane); the proofs stay in their lanes. The pending-label Clean claims
   (`CleanResultsNonemptyClaim`, `CleanResultsChainPendingClaim`,
   `CleanDisseminationPendingClaim`) and `CleanBlockReceiptClaim` (the relay item) are
-  in `Claims/Clean`, outside the `PCSAClaims` record. C8 ARM-healthy and C10
-  slow P1 take the `CutChain`, `CutFacts` and `CleanSlowItems` records as OPEN
-  hypotheses (see `AvailableChainPCSAProofs/Proofs/Outage/OPEN.md`).
+  in `Claims/Clean`, outside the `PCSAClaims` record. C8 ARM-healthy takes the
+  vote-time HEAD cone `CleanVoteConeItems` and C10 slow P1 takes the full HEAD
+  cone `CleanConeItems` as OPEN hypotheses (`Outage/CleanBridge`); the
+  Outage assembly proves the other `CutChain` and `CutFacts` fields (see
+  `AvailableChainPCSAProofs/Proofs/Outage/OPEN.md`).
   `Outage/BlockReceipt` proves block receipt from the Shared body relay;
   Assembly/Outage packages it as `CleanBlockReceiptClaim`.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;

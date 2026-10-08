@@ -308,9 +308,9 @@ the prefix and whose gate is after `b₀`. The claims below state these facts
 additively. They are not fields of `PCSAClaims`. The HEAD facts at the
 pending labels (5.2.2 (ii) with `v_i ≤ b₀`, and past the cut with
 `e_{i−1} ≤ b₀`) are not claims: as stated, they are false in the boundary
-case `v_r ≤ b₀ < d_{r−1}` of 5.5 step 2. The Outage assembly takes the
-`CutChain` and `CutFacts` records, with the cone and bridge forms of these
-facts, as OPEN hypotheses. -/
+case `v_r ≤ b₀ < d_{r−1}` of 5.5 step 2. The Outage assembly builds the
+`CutChain` and `CutFacts` records from these claims; it takes the HEAD cone
+as an OPEN hypothesis. -/
 
 /-- [PC-SA claims; pcsa34-r4.3 5.2.2 (c), 5.4.2 (b), 5.5 steps 1–2; FG-SA
 `hnonempty` (outage supplier history)] In a clean prefix, every honest result
@@ -358,7 +358,7 @@ theorem CleanResultsChainPendingClaim_def (p : Params) : CleanResultsChainPendin
 step 1; `CleanDisseminationClaim` at the pending label] An honest ack `(s, B)`
 in a clean prefix gives every honest HEAD of label `s + 1` `⪰ B` when
 `v_{s+1} ≤ b₀`, and every honest result of label `s + 1` `⪰ B` when
-`e_{s+1} ≤ b₀`. Unverified: no proof or check of this statement yet. -/
+`e_{s+1} ≤ b₀`. -/
 def CleanDisseminationPendingClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),

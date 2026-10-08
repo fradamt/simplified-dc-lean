@@ -200,6 +200,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.BlockReceipt
 public import AvailableChainPCSAProofs.Proofs.Clean.VoterAuthenticity
 
 public import AvailableChainPCSAProofs.Proofs.Clean.PendingNHead
+public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
 
 public section
 
@@ -1103,25 +1104,9 @@ theorem pcsa_clean_gate_guard (E : Generic.Env V)
     (X : Block) (hX : gateResultAt p c E rho x s = some (some X)) :
     (clockPre p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams s)).base.obligations.any
       (fun row => (clockPre p (V2.D.Run.stateBefore E rho k x).st
-        (SA.gateTime p.toParams s)).base.now < row.2.2 && !Block.compatible row.1 X) = false := by
-  rw [List.any_eq_false]
-  intro row hr
-  have hrow := pcsa_clockPre_locks_subset p (V2.D.Run.stateBefore E rho k x).st _ hr
-  have hpre := V2.D.Engine.stateBefore_tick_eq_stateBeforeTime h.valid.toScheduleWellFormed
-    h.noRestart hk
-  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ h.valid.toScheduleWellFormed] at hpre
-  rw [hpre] at hrow
-  obtain ⟨a, ha, i, Y, he, hY, hrowY, _⟩ := pcsa_lock_stateBefore_origin E rho h _ x row hrow
-  have ht := (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed he _).mp ha
-  have hi : i < s := by
-    apply Nat.lt_of_not_ge
-    intro hn
-    exact not_lt_of_ge (pcsa_gate_time_mono p hn) ht
-  have hYX := (hCI.resultsChain x hx x hx i s Y X hi.le (le_refl _) hY hX).1 hi
-  have hc : Block.compatible row.1 X = true := Bool.or_eq_true_iff.mpr
-    (Or.inl (Gen.Pure.block_preceq_trans hrowY hYX))
-  rw [hc]
-  simp only [Bool.not_true, Bool.and_false, Bool.false_eq_true, not_false_eq_true]
+        (SA.gateTime p.toParams s)).base.now < row.2.2 && !Block.compatible row.1 X) = false :=
+  pcsa_gate_guard_of_chain E rho h s k x hk X (fun i Y hi hY =>
+    (hCI.resultsChain x hx x hx i s Y X hi.le (le_refl _) hY hX).1 hi)
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
@@ -1202,21 +1187,20 @@ theorem pcsa_clean_result_below_post_gate (E : Generic.Env V)
     (x : V) (hx : x ∈ rho.honest) (k : Nat)
     (hk : rho.events[k]? = some (.tick x (SA.gateTime p.toParams i))) (X : Block)
     (hX : gateResultAt p c E rho x i = some (some X)) :
-    Block.Preceq X (V2.D.Run.stateBefore E rho (k + 1) x).st.base.stableRecord := by
-  have hCI := (pcsa_clean_joint_invariant E rho h hF hFault i hc).1
-  have hraw := Option.some.inj ((pcsa_gateResultAt_at_tick E rho h.base.valid.nodup k x i
-    hk).symm.trans hX)
-  rw [pcsa_clock_confirmation_eq_pre] at hraw
-  have hs := pcsa_clock_gate_record_covers_result p (V2.D.Run.stateBefore E rho k x).st i X
-    (hF x hx k).1 (pcsa_gate_input_unsaved E rho h.base.valid.nodup k x i hk) hraw
-    (pcsa_clean_gate_guard E rho h.base i hCI k x hx hk X hX)
-  have hpost : (V2.D.Run.stateBefore E rho (k + 1) x).st =
-      clock p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams i) := by
-    rw [V2.D.Run.stateBefore_succ E rho hk]
-    change (Function.update (V2.D.Run.stateBefore E rho k) x _ x).st = _
-    rw [Function.update_self]
-    exact pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k x) x _
-  rwa [hpost]
+    Block.Preceq X (V2.D.Run.stateBefore E rho (k + 1) x).st.base.stableRecord :=
+  pcsa_result_below_post_gate_of_chain E rho h.base hF i x hx k hk X hX (fun i' Y hi hY =>
+    ((pcsa_clean_joint_invariant E rho h hF hFault i hc).1.resultsChain x hx x hx i' i Y X hi.le
+      (le_refl _) hY hX).1 hi)
+/-- Every lock at an inclusive read through the clean cut is below the S of that read. -/
+theorem pcsa_clean_lock_below_record_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x : V) (hx : x ∈ rho.honest) (t : Time) (ht : t ≤ cut)
+    (row : Block × Nat × Time) (hr : row ∈ (storeAt p c E rho x t).base.obligations) :
+    Block.Preceq row.1 (storeAt p c E rho x t).base.stableRecord :=
+  pcsa_lock_below_record_of_chain E rho h.base hF x hx (fun i i' X Y hi hc hX hY =>
+    ((pcsa_clean_joint_invariant E rho h hF hFault i' hc).1.resultsChain x hx x hx i i' X Y hi.le
+      (le_refl _) hX hY).1 hi) t ht row hr
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
@@ -1262,7 +1246,7 @@ theorem pcsa_clean_ack_next_head_pending (E : Generic.Env V)
     (pcsa_clean_head_above_past_at_early E rho h hF hFault s hearly)
     (fun i hi z A hA w K hK => pcsa_clean_ack_to_head_at_early E rho h hF hFault
       i s hi hearly z w A K hA hK) x y hH.1 B R hB hR))
-/-- M4: honest acks disseminate to the pending next HEAD and result at the stated cutoffs. -/
+/-- M3: honest acks disseminate to the pending next HEAD and result at the stated cutoffs. -/
 theorem pcsa_clean_dissemination_pending (p : Params) : CleanDisseminationPendingClaim p := by
   intro V _ _ In c m E rho cut ΔF h hFault hF s y B hB
   constructor
@@ -1275,6 +1259,120 @@ theorem pcsa_clean_dissemination_pending (p : Params) : CleanDisseminationPendin
     have hAux := (pcsa_clean_joint_invariant E rho h hF hFault s hgate).2
     exact pcsa_pending_result_covers_heads E rho h hF x hx (s + 1) B X hc
       (fun z H hH => hAux.heads s (s + 1) (Nat.lt_succ_self _) (le_refl _) y B hB z H hH) hX
+end AvailableChain.PCSA.Run
+/-! Clean HEAD cone exports. -/
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
+
+/-- Every next live root is compatible with a common honest HEAD prefix. -/
+theorem pcsa_clean_cone_root_compatible [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hf : FaultsBelowQA p c rho) (s : Slot) (B : Block)
+    (he : SA.earlyTime p.toParams s ≤ cut)
+    (hheads : ∀ y G, HonestHeadAt p c E rho y s G → Block.Preceq B G)
+    (x : V) (hx : x ∈ rho.honest) (R : Block)
+    (hR : liveRootAt p c E rho x (s + 1) = some R) : Block.Compatible R B := by
+  obtain ⟨Hon, hHon, hbatch⟩ := pcsa_clean_head_batch_early E rho h s he
+  obtain ⟨j, hj⟩ := Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) hbatch)
+  obtain ⟨hjh, hjw⟩ := (hHon j).mp hj
+  have hvote : SA.voteTime p.toParams s ≤ rho.horizon := by
+    apply le_trans _ (he.trans h.cut.2)
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
+    have hp := p.deltaPos
+    linarith
+  obtain ⟨G, hG⟩ := pcsa_honest_head_exists E rho h.base _ hjh s hjw hvote
+  rcases pcsa_next_root_source E rho h.base hF hf x hx s R hR with hg | ha | hr
+  · subst R
+    exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_genesis_preceq B)
+      (Gen.Pure.block_preceq_refl B)
+  · obtain ⟨y, l, ha, ht⟩ := ha
+    have hls := pcsa_early_label_before_vote p l s ht
+    rcases lt_or_eq_of_le hls with hlt | rfl
+    · exact Gen.Pure.block_compatible_of_common
+        (pcsa_clean_ack_to_head_at_early E rho h hF hf l s hlt he y _ R G ha hG)
+        (hheads _ G hG)
+    · obtain ⟨z, hz⟩ := pcsa_ack_has_honest_head E rho h.base hF hf y _ R ha
+      exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl R)
+        (hheads z R hz)
+  · obtain ⟨l, X, hlt, hX, hRX⟩ := hr
+    exact Gen.Pure.block_compatible_of_common
+      (Gen.Pure.block_preceq_trans hRX
+        (pcsa_clean_head_above_past_at_early E rho h hF hf s he _ G hG x hx l X hlt hX))
+      (hheads _ G hG)
+
+/-- The next honest HEAD covers every common predecessor prefix after the early cut. -/
+theorem pcsa_clean_heads_cone_past_cut [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hf : FaultsBelowQA p c rho)
+    (hF : StageOneFrame p c E rho) (i : Slot) (B : Block) (hi : 0 < i)
+    (he : SA.earlyTime p.toParams (i - 1) ≤ cut)
+    (hheads : ∀ y G, HonestHeadAt p c E rho y (i - 1) G → Block.Preceq B G)
+    (x : V) (H : Block) (hH : HonestHeadAt p c E rho x i H) : Block.Preceq B H := by
+  classical
+  obtain ⟨s, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hi)
+  simp only [Nat.succ_sub_one] at he hheads
+  by_cases hs : s = 0
+  · subst s
+    obtain ⟨Hon, hHon, hbatch⟩ := pcsa_clean_head_batch_early E rho h 0 he
+    obtain ⟨j, hj⟩ := Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) hbatch)
+    obtain ⟨hjh, hjw⟩ := (hHon j).mp hj
+    have hvote : SA.voteTime p.toParams 0 ≤ rho.horizon := by
+      apply le_trans _ (he.trans h.cut.2)
+      change 4 * p.Δ * (0 : Int) + p.Δ ≤ 4 * p.Δ * (0 : Int) + 2 * p.Δ
+      have hp := p.deltaPos
+      linarith
+    obtain ⟨G, hG⟩ := pcsa_honest_head_exists E rho h.base _ hjh 0 hjw hvote
+    have hBG := hheads _ G hG
+    rw [pcsa_honestHead_zero E rho _ G hG] at hBG
+    have hB : B = .genesis := of_decide_eq_true hBG
+    rw [hB]
+    exact Gen.Pure.block_genesis_preceq H
+  · have hx := hH.1
+    have hhead := hH.2.2
+    rw [pcsa_voteHeadAt_def] at hhead
+    obtain ⟨nd, hnd, hhead⟩ := Option.map_eq_some_iff.mp hhead
+    obtain ⟨k, hk, hstore⟩ := pcsa_postClock_source E rho x _ nd hnd
+    have hR : liveRootAt p c E rho x (s + 1) =
+        some (liveRoot p nd.st (voterPC p nd.st (s + 1))) := by
+      rw [pcsa_liveRootAt_def, hnd]
+      rfl
+    have hcompat := pcsa_clean_cone_root_compatible E rho h hF hf s B he hheads x hx _ hR
+    rw [hstore] at hhead hcompat
+    let st := clock p (V2.D.Run.stateBefore E rho k x).st (SA.voteTime p.toParams (s + 1))
+    let raw := headVotes p st (s + 1)
+    let sup := headSupport p st (s + 1)
+    obtain ⟨Hon, hbatch, hcap, hsup, hbound, hpath⟩ :=
+      pcsa_clean_cone_inputs E rho h hF s B he hheads k x hx hk
+    have hsub : sup ⊆ raw :=
+      pcsa_headSupport_subset_at_read E rho h.base.valid.toDeliveryWellFormed k x _ (s + 1)
+    have hcounts := Gen.AC.Root.transfer_n2 st.base.blocks raw sup Hon Hon.card
+      (Gen.V2.Duty.faulty rho).card B hsub rfl hcap hsup hbound hbatch
+    have hcover := pcsa_headInTree_covers_of_transfer p st (voterPC p st (s + 1))
+      (erasedList st (KitFG.storeFrameView (FGSA.heightView p) st.fg (voterBlocks p st (s + 1))))
+      raw sup B hcompat (fun C _ hCB => hpath C hCB) hcounts.2.2.2.2.2.1 hcounts.2.2.2.2.2.2
+    delta headVote at hhead
+    rw [ite_eq_right (Nat.succ_ne_zero s)] at hhead
+    rw [← hhead]
+    exact hcover
+
+/-- The full HEAD cone also holds when the next vote is inside the clean cut. -/
+theorem pcsa_clean_heads_cone_at_vote [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hf : FaultsBelowQA p c rho)
+    (hF : StageOneFrame p c E rho) (i : Slot) (B : Block) (hi : 0 < i)
+    (hv : SA.voteTime p.toParams i ≤ cut)
+    (hheads : ∀ y G, HonestHeadAt p c E rho y (i - 1) G → Block.Preceq B G)
+    (x : V) (H : Block) (hH : HonestHeadAt p c E rho x i H) : Block.Preceq B H := by
+  apply pcsa_clean_heads_cone_past_cut E rho h hf hF i B hi _ hheads x H hH
+  apply le_trans _ hv
+  obtain ⟨s, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hi)
+  simp only [Nat.succ_sub_one]
+  change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+  push_cast
+  have hp := p.deltaPos
+  linarith
+
 end AvailableChain.PCSA.Run
 
 end
