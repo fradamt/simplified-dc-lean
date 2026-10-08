@@ -4252,13 +4252,20 @@
     },
     'AvailableChainFGSAProofs.Tests.FGSafety': {
         'AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge': (
+            'AvailableChain.FGSA.Run.fgsa_bridge_clientSafeAll',
             'AvailableChain.FGSA.Run.fgsa_bridge_event_agreement',
+            'AvailableChain.FGSA.Run.fgsa_bridge_finalizedMonotone',
+            'AvailableChain.FGSA.Run.fgsa_bridge_honestNeverSlashed',
             'AvailableChain.FGSA.Run.fgsa_bridge_parent_scope',
+            'AvailableChain.FGSA.Run.fgsa_bridge_pool_count',
             'AvailableChain.FGSA.Run.fgsa_bridge_read_agreement',
+            'AvailableChain.FGSA.Run.fgsa_bridge_read_row_origin',
             'AvailableChain.FGSA.Run.fgsa_bridge_read_scope',
             'AvailableChain.FGSA.Run.fgsa_bridge_reads_accountable',
             'AvailableChain.FGSA.Run.fgsa_bridge_runAccountable',
+            'AvailableChain.FGSA.Run.fgsa_bridge_slashableBound_of_faults',
             'AvailableChain.FGSA.Run.fgsa_bridge_stores_accountable',
+            'AvailableChain.FGSA.Run.fgsa_safetySlashesRead',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
@@ -6119,6 +6126,7 @@
             'AvailableChain.PCSA.Run.pcsa_clean_gate_majority_win',
             'AvailableChain.PCSA.Run.pcsa_clean_head_batch',
             'AvailableChain.PCSA.Run.pcsa_clean_head_batch_win',
+            'AvailableChain.PCSA.Run.pcsa_head_batch_of_label',
             'AvailableChain.PCSA.Run.pcsa_honest_head_exists',
             'AvailableChain.PCSA.Run.pcsa_late_participant_bound',
         ),
@@ -7128,6 +7136,8 @@
             'AvailableChain.PCSA.pcsa_n_score_gap',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.CleanWindow': (
+            'AvailableChain.PCSA.Run.CleanWindow',
+            'AvailableChain.PCSA.Run.StrictFrom',
             'AvailableChain.PCSA.Run.pcsa_cleanWindow_floor',
             'AvailableChain.PCSA.Run.pcsa_cleanWindow_of_clean',
             'AvailableChain.PCSA.Run.pcsa_cleanWindow_of_sync',
@@ -7141,6 +7151,7 @@
             'AvailableChain.PCSA.Run.pcsa_strictFrom_mono',
             'AvailableChain.PCSA.Run.pcsa_strictFrom_of_healthy',
             'AvailableChain.PCSA.Run.pcsa_strictFrom_of_sync',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_of_within',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.Clock': (
             'AvailableChain.PCSA.Run.pcsa_clock_read',

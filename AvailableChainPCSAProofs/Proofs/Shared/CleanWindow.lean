@@ -58,6 +58,18 @@ theorem pcsa_strictFrom_of_sync (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith 
   · change t < max t E.t_GST + E.Δ
     exact lt_of_le_of_lt (le_max_left t E.t_GST) (lt_add_of_pos_right _ E.Δ_pos)
 
+/-- Delivery within `max t T₀ + Δ` (the formation premise (F1) shape, with
+`T₀ = z_{s−1}`) is strict delivery from `T₀`. -/
+theorem pcsa_strictFrom_of_within (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    {T₀ cut : Time}
+    (hW : Gen.V2.Duty.DeliveryWithinOn E rho IsNonRow (fun t => max t T₀ + E.Δ) cut) :
+    StrictFrom E rho T₀ cut := by
+  refine ⟨⟨fun t => max t T₀ + E.Δ, hW, fun t ht => ?_, fun t => ?_, fun _ => le_refl _⟩⟩
+  · change max t T₀ + E.Δ = t + E.Δ
+    rw [max_eq_left ht]
+  · change t < max t T₀ + E.Δ
+    exact lt_of_le_of_lt (le_max_left t T₀) (lt_add_of_pos_right _ E.Δ_pos)
+
 /-- Strict delivery to a cut gives it to every earlier cut. -/
 theorem pcsa_strictFrom_mono (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
     {T₀ cut cut' : Time} (hD : StrictFrom E rho T₀ cut) (hc : cut' ≤ cut) :
