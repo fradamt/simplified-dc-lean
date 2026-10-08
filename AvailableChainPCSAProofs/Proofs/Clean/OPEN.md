@@ -1491,6 +1491,7 @@ Validation and current claim status are recorded in log.md and state.md.
 
 `pcsa_clean_heads_cone_past_cut` proves that each honest HEAD covers every
 common prefix of the honest predecessor HEADs when `earlyTime (i - 1) ≤ cut`.
-`pcsa_clean_heads_cone_at_vote` is its vote-time corollary. The input and root
-helpers are proved in `HeadCone.lean`. Frozen support uses early receipt,
+`pcsa_clean_heads_cone_at_vote` is its vote-time corollary. The voter and input
+helpers stay in `HeadCone.lean`. Root compatibility and both cone theorems
+are in `Export.lean`, which imports `HeadCone.lean`. Frozen support uses early receipt,
 and the count step uses `Gen.AC.Root.transfer_n2`.
