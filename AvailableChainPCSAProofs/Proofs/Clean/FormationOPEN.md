@@ -10,8 +10,8 @@ Formation writer owns this file and the `Clean/Formation*` modules.
 
 - `pcsa_formation_of_open`: `FormationPrem` and the two OPEN inputs below
   give `FormationConcl`.
-- `pcsa_formation_source_of_open`: `FormationPrem` and the retained HEAD
-  facts give the Formation source with C1 connected.
+- `pcsa_formation_source_of_open`: `FormationPrem` and the two back
+  receipts give the Formation source with C1 connected.
 
 The `FormationClaim` field of `PCSAClaims` stays OPEN until both inputs
 are proved.
@@ -36,27 +36,33 @@ Proved inputs, with their producers:
   strict `t + Δ` delivery of the Clean receipt proofs.
 - Ack admission: `pcsa_formation_preFreeze_ack_admit`, from Clean
   `pcsa_honest_ack_admitted`.
+- Retained walk facts `hKeep`, `hReflect`, `hUnique`
+  (`FormationRetainedTree`): equal stage-1 eligibility
+  (`pcsa_formation_retained_eligible_eq`, from the two back receipts) and
+  voter-tree inclusion (`pcsa_formation_retained_tree`: each voter-tree
+  body is `N.erase` or a proposer-tree body). Formation body relay carries
+  the frozen bodies to the proposer by `t_s`; the other bodies are
+  prefixes of the unique slot-`s` body.
 
-## OPEN input 1: the five retained HEAD facts
+## OPEN input 1: the two retained back receipts
 
-The binder is `hRetained`, with type `FormationRetainedHeadOpen p src dst s N`.
+The binder is `hBack`, with type `FormationRetainedBackOpen p src dst s N`.
 It covers the honest proposer read at `t_s` (`src`) and each honest voter
 awake at `v_s` (`dst`):
 
 - `hRawBack`: each voter raw HEAD is in the proposer raw list, or its seat
   is capped there.
 - `hSupportBack`: the same, for the support lists.
-- `hKeep`: `Gen.Pure.SuffixPersists` below `parent(P)`.
-- `hReflect`: `Gen.Pure.SuffixReflects` below `parent(P)`.
-- `hUnique`: `N.erase` is the only eligible voter child of `parent(P)`.
 
-Plan (Codex plan `plan-formation-inputs-sol.md`, items 4–8):
+`pcsa_formation_retained_open_of_back` derives the five retained HEAD
+facts (`FormationRetainedHeadOpen`) from these two.
 
-1. Port the two-arm Clean raw transfer (`pcsa_common_raw_transfer`). Adapt
-   the frozen HEAD relay helper to the Formation deadline.
-2. Adapt `pcsa_honest_support_backward` for `hSupportBack`.
-3. Prove the voter-tree inclusion `C = N.erase ∨ C ∈ sourceTree` and equal
-   eligibility. These close `hKeep`, `hReflect` and `hUnique`.
+Plan (Codex plan `plan-formation-inputs-sol.md`, items 4–8): the carried
+arm is the proposal's own lists. The frozen arm needs the windowed form of
+the Clean frozen relay (`pcsa_frozen_input_in_proposer`,
+`pcsa_frozen_support_in_proposer`) for the Formation deadline. Then port
+the two-arm Clean proofs `pcsa_common_raw_transfer` and
+`pcsa_honest_support_backward`.
 
 ## OPEN input 2: the late gate counts
 

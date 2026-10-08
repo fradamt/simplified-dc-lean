@@ -1,5 +1,6 @@
 module
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationInputs
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationRetainedTree
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationHeads
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationEvidence
@@ -45,7 +46,8 @@ It derives carried presence from exact metadata and PC validity.
 Shared body relay closes the old frozen targets. Shared honest-proposal
 receipt gives the metadata; stored metadata gives the vote-read body.
 pcsa_formation_preFreeze_of_prem needs the premise and five retained
-facts; Clean ack admission closes the ack handler pool. FormationEarlyHeads
+facts; FormationRetainedTree reduces them to two back receipts. Clean ack
+admission closes the ack handler pool. FormationEarlyHeads
 gives early HEAD receipt from Formation delivery once the retained facts
 make the honest HEADs exact. The proposer lists and root-mode score
 transport are proved.
@@ -58,13 +60,14 @@ connected to C1 PC target uniqueness. No source retention input remains.
 FormationRetention closes hAckPoolMono from NoRestart.
 FormationFreeze closes hFreezeKeep and supplies PC consumers.
 FormationTerminal closes hStop from handler slot bounds and sorted run times.
-The retained HEAD consumer still needs the receipt, resolution, path and child inputs.
+FormationRetainedTree closes hKeep, hReflect and hUnique from equal
+eligibility and voter-tree inclusion.
 FormationOrigins closes hFrozenPCOrigin at the actual early read.
 FormationCollection closes hPCCollect from the required early N counts.
 Its PC consumers need only hAckAdmit from C3. FormationHeads closes honest pool non-equivocation.
 Raw-HEAD carriage and the current child follow from body/metadata receipt.
 Body relay and metadata close support retention and resolution.
-Five retained path/support inputs and late gate counts remain open.
+Two retained back receipts and late gate counts remain open.
 The main Clean.Export module is owned by the other Clean writer. -/
 
 end

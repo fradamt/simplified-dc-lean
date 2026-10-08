@@ -749,6 +749,12 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_head_exact_of_retained
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_inputs
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_ack_admit
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_eligible_eq
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_keep
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_reflect_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_tree
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_open_of_back
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs_of_back
 
 #print axioms AvailableChain.PCSA.Run.pcsa_heldPCRelay_of
 #print axioms AvailableChain.PCSA.Run.pcsa_healthy_block_receipt
