@@ -277,7 +277,7 @@ theorem recovery_survivor_voter_compatible (E : Generic.Env V)
     change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (r : Int) + p.Δ
     nlinarith
   have hc := recovery_survivor_relay_pc_compatible E rho h.valid.toScheduleWellFormed
-    g transport i k x y hx hy row hsurv _ ht horizon hlo hhi D hD
+    g transport i k x y hx hy row hsurv _ ⟨r, Or.inr rfl⟩ ht horizon hlo hhi D hD
     (by rw [hrank]; simpa only [rankAtLeast_def, hDs, hDt] using hr)
   simpa only [hDt] using hc
 

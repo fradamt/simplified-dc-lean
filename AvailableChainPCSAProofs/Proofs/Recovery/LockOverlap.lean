@@ -235,14 +235,16 @@ theorem recovery_survivor_relay_pc_compatible (E : Generic.Env V)
       row ∈ (V2.D.Run.stateBefore E rho a x).st.base.obligations ∧
       leaseRank (V2.D.Run.stateBefore E rho a x).st row.1 =
         leaseRank (V2.D.Run.stateBefore E rho i x).st row.1)
-    (t : Time) (ht : E.t_GST ≤ t) (horizon : t + p.Δ ≤ rho.horizon)
+    (t : Time)
+    (hcut : ∃ s, t = SA.earlyTime p.toParams s ∨ t = SA.voteTime p.toParams s)
+    (ht : E.t_GST ≤ t) (horizon : t + p.Δ ≤ rho.horizon)
     (hlo : j < V2.D.Run.idxBefore rho (t + p.Δ))
     (hhi : V2.D.Run.idxBefore rho (t + p.Δ) ≤ i)
     (pc : PC p.n) (hpc : pc ∈ (V2.D.Run.stateBeforeTime E rho t y).st.pcs)
     (hrank : rankAtLeast pc
       (leaseRank (V2.D.Run.stateBefore E rho i x).st row.1) = true) :
     Block.Compatible pc.target row.1 := by
-  obtain ⟨hk, _⟩ := transport.pcReceipt t ht horizon y hy x hx pc hpc
+  have hk := transport.pcReceipt t hcut ht horizon y hy x hx pc hpc
   obtain ⟨D, hD, hslot, htarget⟩ := (KeyHeld_def _ _ _).mp hk
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hD
   have hge : rankAtLeast D
@@ -275,7 +277,7 @@ theorem recovery_write_relay_pc_compatible (E : Generic.Env V)
   have horizon : SA.voteTime p.toParams (s + 1) + p.Δ ≤ rho.horizon := by
     rw [htime]
     exact (hs.in_horizon _ (List.mem_of_getElem? hk)).2
-  obtain ⟨held, _⟩ := transport.pcReceipt _ hafter horizon y hy x hx pc hpc
+  have held := transport.pcReceipt _ ⟨s + 1, Or.inr rfl⟩ hafter horizon y hy x hx pc hpc
   obtain ⟨D, hD, hslot, htarget⟩ := (KeyHeld_def _ _ _).mp held
   rw [htime, ← V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hs hnr hk] at hD
   rw [clockPre_pcs] at hwrite

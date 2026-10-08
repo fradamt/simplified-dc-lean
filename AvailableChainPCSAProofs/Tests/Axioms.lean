@@ -1654,3 +1654,13 @@ end
 #print axioms AvailableChain.PCSA.Run.RecoveryRootReachable_def
 #print axioms AvailableChain.PCSA.Run.recovery_firstSlot_long
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_long
+
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_sameLabel_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_earlyForward_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_voterBackward_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_pcReceipt_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_honestVoterInputs_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_honestProposerInputs_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_rootResolution_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_lock_transport_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_long_of_run

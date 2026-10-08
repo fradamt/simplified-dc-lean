@@ -318,7 +318,7 @@ theorem recovery_gate_rank_disseminated (E : Generic.Env V)
   have he : SA.earlyTime p.toParams s + p.Δ = SA.freezeTime p.toParams s := by
     change (4 * p.Δ * (s : Int) + 2 * p.Δ) + p.Δ = 4 * p.Δ * (s : Int) + 3 * p.Δ
     ring
-  obtain ⟨hk, _⟩ := transport.pcReceipt _ hg (by rwa [he]) x hx y hy C hC
+  have hk := transport.pcReceipt _ ⟨s, Or.inl rfl⟩ hg (by rwa [he]) x hx y hy C hC
   rw [he] at hk
   obtain ⟨D, hD, hDs, hDt⟩ := (KeyHeld_def _ _ _).mp hk
   exact ⟨D, hD, by simpa only [PC.rank_def, hDs, hDt] using hr⟩

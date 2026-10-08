@@ -9,7 +9,7 @@ namespace AvailableChain.PCSA.Run
 /-- Lane-neutral receipt facts for long-break recovery. The first label is
 `g`, with the intended floor `GST ≤ v_g`; no proposal-time floor is required.
 These fields contain no lock coverage, root compatibility, or walk conclusion.
-PC receipt concerns held keys and bodies, including assembled and carried PCs. -/
+PC receipt concerns held keys at early and vote cutoffs, including assembled and carried PCs. -/
 structure RecoveryLockTransport (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) {m : FGMode} (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (g : Slot) : Prop where
@@ -39,11 +39,11 @@ structure RecoveryLockTransport (p : Params) {In V : Type} [DecidableEq V]
       ∀ o ∈ headVotes p dst.st (r + 1), ∀ i, GridCO.headSeat? o = some i →
         o ∈ GridCO.lateVotes p.toParams.engine (actView src.st) r ∨
         GridCO.equivocates (GridCO.lateVotes p.toParams.engine (actView src.st) r) i = true
-  pcReceipt : ∀ t, E.t_GST ≤ t → t + p.Δ ≤ rho.horizon →
+  pcReceipt : ∀ t, (∃ s, t = SA.earlyTime p.toParams s ∨ t = SA.voteTime p.toParams s) →
+    E.t_GST ≤ t → t + p.Δ ≤ rho.horizon →
     ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ pc,
       pc ∈ (V2.D.Run.stateBeforeTime E rho t x).st.pcs →
-      KeyHeld (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st pc.slot pc.target ∧
-      pc.target ∈ (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st.base.blocks
+      KeyHeld (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st pc.slot pc.target
   honestVoterInputs : ∀ r, g ≤ r → ∀ x H, HonestHeadAt p c E rho x r H →
     ∀ i : Fin p.n, rho.seatOf (.base (.head r)) i = x →
     ∀ y ∈ rho.honest, ∀ dst,
