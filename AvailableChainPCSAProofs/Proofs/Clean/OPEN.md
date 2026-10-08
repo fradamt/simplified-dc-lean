@@ -1408,3 +1408,9 @@ Validation and current claim status are recorded in log.md and state.md.
 An early-cut honest batch gives M1 nonempty results and M2 coverage of
 every earlier result, even when the gate follows the cut.
 Validation and current claim status are recorded in log.md and state.md.
+
+### StoreCutFacts
+
+Exact lock gate origins and full-cut S order prove LeaseBelowRecordClaim,
+the M5 store fact used by the outage assembly.
+Validation and current claim status are recorded in log.md and state.md.

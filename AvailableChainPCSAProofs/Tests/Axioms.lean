@@ -851,3 +851,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_pending_result_nonempty
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_results_nonempty
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_results_chain_pending
+
+-- C6 StoreCutFacts.
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_storeAt_timed_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_result_below_post_gate
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_below_record

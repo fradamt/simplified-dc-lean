@@ -193,6 +193,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.GateAdvance
 
 public import AvailableChainPCSAProofs.Proofs.Clean.PendingGates
 
+public import AvailableChainPCSAProofs.Proofs.Clean.StoreCutFacts
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -1181,6 +1183,34 @@ theorem pcsa_clean_results_chain_pending (p : Params) : CleanResultsChainPending
   exact pcsa_pending_result_covers_heads E rho h hF y hy j X Y hj
     (fun z H hH => pcsa_clean_head_above_past_at_early E rho h hF hFault j hj z H hH
       x hx i X hij hX) hY
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+/-- A completed clean gate places its raw result below the actual post-event S. -/
+theorem pcsa_clean_result_below_post_gate (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (i : Slot) (hc : SA.gateTime p.toParams i ≤ cut)
+    (x : V) (hx : x ∈ rho.honest) (k : Nat)
+    (hk : rho.events[k]? = some (.tick x (SA.gateTime p.toParams i))) (X : Block)
+    (hX : gateResultAt p c E rho x i = some (some X)) :
+    Block.Preceq X (V2.D.Run.stateBefore E rho (k + 1) x).st.base.stableRecord := by
+  have hCI := (pcsa_clean_joint_invariant E rho h hF hFault i hc).1
+  have hraw := Option.some.inj ((pcsa_gateResultAt_at_tick E rho h.base.valid.nodup k x i
+    hk).symm.trans hX)
+  rw [pcsa_clock_confirmation_eq_pre] at hraw
+  have hs := pcsa_clock_gate_record_covers_result p (V2.D.Run.stateBefore E rho k x).st i X
+    (hF x hx k).1 (pcsa_gate_input_unsaved E rho h.base.valid.nodup k x i hk) hraw
+    (pcsa_clean_gate_guard E rho h.base i hCI k x hx hk X hX)
+  have hpost : (V2.D.Run.stateBefore E rho (k + 1) x).st =
+      clock p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams i) := by
+    rw [V2.D.Run.stateBefore_succ E rho hk]
+    change (Function.update (V2.D.Run.stateBefore E rho k) x _ x).st = _
+    rw [Function.update_self]
+    exact pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k x) x _
+  rwa [hpost]
 end AvailableChain.PCSA.Run
 
 end
