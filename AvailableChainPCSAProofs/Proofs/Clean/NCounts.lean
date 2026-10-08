@@ -11,13 +11,15 @@ public section
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {m : FGMode}
-/-- An actual N observation is compatible with every same-label honest result. -/
-theorem pcsa_N_same_label_result (E : Generic.Env V)
+/-- In the delivery window: An actual N observation is compatible with every same-label honest
+result. -/
+theorem pcsa_N_same_label_result_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
-    (v : Time) (s : Slot) (B X : Block) (hc : SA.gateTime p.toParams s ≤ cut)
+    (v : Time) (s : Slot) (B X : Block) (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime
+        p.toParams s ≤ cut)
     (hN : holdsN p (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s B = true)
     (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X := by
   classical
@@ -50,7 +52,8 @@ theorem pcsa_N_same_label_result (E : Generic.Env V)
     obtain ⟨o, ho, hoi⟩ := (Gen.AC.Root.vote_pool_mem_seats Nvotes i).mp hi
     have hearly : o ∈ GridCO.earlyVotes p.toParams.engine (actView src) s :=
       (List.mem_filter.mp (List.mem_filter.mp ho).1).1
-    rcases pcsa_early_input_gate_relay E rho h hD a b x y hx hy s o i v hc hb hearly hoi with hm
+    rcases pcsa_early_input_gate_relay_win E rho h hD (hT := hT) a b x y hx hy s o i v hc hb hearly
+        hoi with hm
       | he
     · exact (Gen.AC.Root.vote_pool_mem_seats L i).mpr ⟨o, hm, hoi⟩
     · exact Gen.AC.Root.vote_pool_equivocates_participant L i he
@@ -73,7 +76,8 @@ theorem pcsa_N_same_label_result (E : Generic.Env V)
   obtain ⟨o', ho', ho'i, hscore⟩ :=
     (Gen.AC.Root.vote_pool_support_witness dst.base.blocks P i X).mp hs
   have heq : o = o' := by
-    rcases pcsa_early_input_gate_relay E rho h hD a b x y hx hy s o i v hc hb hearly hoi with hm
+    rcases pcsa_early_input_gate_relay_win E rho h hD (hT := hT) a b x y hx hy s o i v hc hb hearly
+        hoi with hm
       | he
     · exact pcsa_clean_input_unique_late p (actView dst) s o' i ho' ho'i o hm hoi
     · have hf := pcsa_clean_input_not_capped p (actView dst) s o' i ho' ho'i
@@ -85,6 +89,17 @@ theorem pcsa_N_same_label_result (E : Generic.Env V)
   refine ⟨B, Gen.Pure.block_preceq_refl B, ?_⟩
   rw [hsame]
   exact hXH
+/-- An actual N observation is compatible with every same-label honest result. -/
+theorem pcsa_N_same_label_result (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (v : Time) (s : Slot) (B X : Block) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hN : holdsN p (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s B = true)
+    (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X :=
+  pcsa_N_same_label_result_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD _) a x y hx
+    hy v s B X (le_refl _) hc hN hX
 /-- An honest ack target is compatible with every same-label clean result. -/
 theorem pcsa_honestAck_same_label_result (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}

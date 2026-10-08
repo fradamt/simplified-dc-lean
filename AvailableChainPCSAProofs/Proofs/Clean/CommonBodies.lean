@@ -6,16 +6,17 @@ public section
 /-! C6 CommonBodies: concrete receipt and count support. -/
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
-/-- Every body held at the actual proposer tick reaches the voter before its vote. -/
-theorem pcsa_proposer_body_before_vote (E : Generic.Env V)
+/-- In the delivery window: Every body held at the actual proposer tick reaches the voter before
+its vote. -/
+theorem pcsa_proposer_body_before_vote_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (B : Block)
     (ha : rho.events[a]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hk : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ k)
-    (hc : SA.voteTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.voteTime p.toParams s ≤ cut)
     (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho a x).st
       (SA.proposalTime p.toParams s)).base.blocks) :
     B ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks := by
@@ -42,17 +43,33 @@ theorem pcsa_proposer_body_before_vote (E : Generic.Env V)
     have he : SA.proposalTime p.toParams s + E.Δ = SA.voteTime p.toParams s := by
       rw [h.delta]
       rfl
-    exact (pcsa_body_before_public_cut_relay E rho h hF hD _ k x y hx hy B _ hpub hz
+    exact (pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := hT) _ k x y hx hy B _ hpub hz
       (by rwa [he]) (by rwa [he]) hg hm ht).1
-/-- A frozen support body reaches the honest proposer before its proposal tick. -/
-theorem pcsa_frozen_body_in_proposer (E : Generic.Env V)
+/-- Every body held at the actual proposer tick reaches the voter before its vote. -/
+theorem pcsa_proposer_body_before_vote (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
     (hF : StageOneFrame p c E rho) {cut ΔF : Time}
     (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (B : Block)
+    (ha : rho.events[a]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hk : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ k)
+    (hc : SA.voteTime p.toParams s ≤ cut)
+    (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho a x).st
+      (SA.proposalTime p.toParams s)).base.blocks) :
+    B ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks :=
+  pcsa_proposer_body_before_vote_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
+    hy s B ha hk (le_refl _) hc hm
+/-- In the delivery window: A frozen support body reaches the honest proposer before its proposal
+tick. -/
+theorem pcsa_frozen_body_in_proposer_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (B : Block) (v : Time)
     (hk : rho.events[k]? = some (.tick y (SA.proposalTime p.toParams (s + 1))))
-    (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
     (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho a x).st v).base.blocks)
     (hs : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a x).st v).base B <
       SA.freezeTime p.toParams s) :
@@ -91,8 +108,25 @@ theorem pcsa_frozen_body_in_proposer (E : Generic.Env V)
       intro hn
       exact lt_irrefl _ ((Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed hk _).mp
         hn)
-    exact (pcsa_body_before_public_cut_relay E rho h hF hD a k x y hx hy B _ hpub hz
-      (by rwa [he]) (by rwa [he]) hg hm hs').1
+    exact (pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := pcsa_floor_freeze hT) a k x y
+        hx hy B _
+      hpub hz (by rwa [he]) (by rwa [he]) hg hm hs').1
+/-- A frozen support body reaches the honest proposer before its proposal tick. -/
+theorem pcsa_frozen_body_in_proposer (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (B : Block) (v : Time)
+    (hk : rho.events[k]? = some (.tick y (SA.proposalTime p.toParams (s + 1))))
+    (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
+    (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho a x).st v).base.blocks)
+    (hs : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a x).st v).base B <
+      SA.freezeTime p.toParams s) :
+    B ∈ (clock p (V2.D.Run.stateBefore E rho k y).st
+      (SA.proposalTime p.toParams (s + 1))).base.blocks :=
+  pcsa_frozen_body_in_proposer_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
+    hy s B v hk (le_refl _) hc hm hs
 end AvailableChain.PCSA.Run
 
 end

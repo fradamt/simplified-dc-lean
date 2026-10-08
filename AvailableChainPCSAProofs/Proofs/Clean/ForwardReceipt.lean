@@ -49,13 +49,14 @@ theorem pcsa_genesis_body_stamp (E : Generic.Env V)
   refine ⟨pcsa_body_stateBefore_mono E rho hn y (Nat.zero_le k) hz, ?_⟩
   rw [pcsa_body_stamp_stateBefore_eq E rho hn y (Nat.zero_le k) .genesis hz]
   rfl
-/-- Early receipt gives an exact pre-freeze HEAD at the later read, or a voter-list cap. -/
-theorem pcsa_early_head_relay_frozen (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+/-- In the delivery window: Early receipt gives an exact pre-freeze HEAD at the later read, or a
+voter-list cap. -/
+theorem pcsa_early_head_relay_frozen_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (r : BlockId) (u : Time)
-    (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
       (V2.D.Run.stateBefore E rho a x).st.base.votes)
@@ -88,7 +89,7 @@ theorem pcsa_early_head_relay_frozen (E : Generic.Env V)
     change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     have hp := p.deltaPos
     linarith
-  have relay := pcsa_head_before_public_cut_relay_late E rho h hD a
+  have relay := pcsa_head_before_public_cut_relay_late_win E rho h hD (hT := hT) a
     (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) x y hx hy s i r _ u
     hpub hz (by rwa [he]) hg (by rw [he]) hm ht
   have lift (r : BlockId) (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
@@ -133,18 +134,41 @@ theorem pcsa_early_head_relay_frozen (E : Generic.Env V)
       _, List.mem_filter.mpr ⟨(lift rw hw).1, ?_⟩, hne, hvi, hwi⟩
     all_goals change (some s == some (s + 1 - 1)) = true
     all_goals rw [Nat.add_sub_cancel]; exact beq_self_eq_true _
+/-- Early receipt gives an exact pre-freeze HEAD at the later read, or a voter-list cap. -/
+theorem pcsa_early_head_relay_frozen (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (r : BlockId) (u : Time)
+    (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
+    (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
+      (V2.D.Run.stateBefore E rho a x).st.base.votes)
+    (ht : GridCO.stampVote (V2.D.Run.stateBefore E rho a x).st.base
+      ⟨.seat s i, .head r⟩ < SA.earlyTime p.toParams s) :
+    ((⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
+      (clock p (V2.D.Run.stateBefore E rho k y).st u).base.votes ∧
+      GridCO.stampVote (clock p (V2.D.Run.stateBefore E rho k y).st u).base
+        ⟨.seat s i, .head r⟩ < SA.freezeTime p.toParams s) ∨
+    (GridCO.equivocates (headVotes p (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1)) i =
+      true ∧
+      GridCO.equivocates (proposerVotes (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1))
+        i = true) :=
+  pcsa_early_head_relay_frozen_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx hy s
+    i r u (le_refl _) hc hk hm ht
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
-/-- A body resolved early arrives with a strict freeze stamp, including genesis. -/
-theorem pcsa_early_body_relay_frozen (E : Generic.Env V)
+/-- In the delivery window: A body resolved early arrives with a strict freeze stamp, including
+genesis. -/
+theorem pcsa_early_body_relay_frozen_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (B : Block) (v u : Time)
-    (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho a x).st v).base.blocks)
     (ht : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a x).st v).base B <
@@ -179,22 +203,41 @@ theorem pcsa_early_body_relay_frozen (E : Generic.Env V)
         have hp := p.deltaPos
         change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
         positivity
-      have hh := pcsa_body_before_public_cut_relay E rho h hF hD a k x y hx hy B _
-        hpub hz (by rwa [he]) (by rwa [he]) hg hm ht
+      have hh := pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := pcsa_floor_early hT) a
+          k x y hx hy
+        B _ hpub hz (by rwa [he]) (by rwa [he]) hg hm ht
       rwa [he] at hh
   refine ⟨?_, ?_⟩
   · rw [pcsa_clock_blocks]
     exact hresult.1
   · rw [forward_body_clock_stamp E rho k y B u hresult.1]
     exact hresult.2
-/-- An early resolved HEAD enters the next voter support list, or its seat is capped. -/
-theorem pcsa_early_input_relay_support (E : Generic.Env V)
+/-- A body resolved early arrives with a strict freeze stamp, including genesis. -/
+theorem pcsa_early_body_relay_frozen (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
     (hF : StageOneFrame p c E rho) {cut ΔF : Time}
     (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
-    (s : Slot) (i : Fin p.n) (B : Block) (v u : Time)
+    (s : Slot) (B : Block) (v u : Time)
     (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
+    (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho a x).st v).base.blocks)
+    (ht : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a x).st v).base B <
+      SA.earlyTime p.toParams s) :
+    B ∈ (clock p (V2.D.Run.stateBefore E rho k y).st u).base.blocks ∧
+      GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho k y).st u).base B <
+        SA.freezeTime p.toParams s :=
+  pcsa_early_body_relay_frozen_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
+    hy s B v u (le_refl _) hc hk hm ht
+/-- In the delivery window: An early resolved HEAD enters the next voter support list, or its seat
+is capped. -/
+theorem pcsa_early_input_relay_support_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (B : Block) (v u : Time)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hm : (⟨.seat s i, .head B.root⟩ : GridCO.Wire p.n .root) ∈
       GridCO.earlyVotes p.toParams.engine
@@ -230,10 +273,12 @@ theorem pcsa_early_input_relay_support (E : Generic.Env V)
     rw [pcsa_clock_headStamps, hlookup]
     rfl
   rw [heq] at hvs
-  rcases pcsa_early_head_relay_frozen E rho h hD a k x y hx hy s i B.root u hc hk hpool hvs with
+  rcases pcsa_early_head_relay_frozen_win E rho h hD (hT := hT) a k x y hx hy s i B.root u hc hk
+      hpool hvs with
     hh | hcap
   · have hbm := (List.mem_filter.mp (FGSA.resolvedHead_mem _ _ hr)).1
-    obtain ⟨hbm', hbt'⟩ := pcsa_early_body_relay_frozen E rho h hF hD a k x y hx hy s B v u
+    obtain ⟨hbm', hbt'⟩ := pcsa_early_body_relay_frozen_win E rho h hF hD (hT := hT) a k x y hx hy
+        s B v u
       hc hk hbm (of_decide_eq_true hbody)
     have hbm0 := hbm'
     rw [pcsa_clock_blocks] at hbm0
@@ -264,6 +309,32 @@ theorem pcsa_early_input_relay_support (E : Generic.Env V)
       exact Bool.and_eq_true_iff.mpr ⟨Bool.and_eq_true_iff.mpr
         ⟨decide_eq_true hbs, decide_eq_true hh.2⟩, decide_eq_true hbt'⟩
   · exact Or.inr hcap
+/-- An early resolved HEAD enters the next voter support list, or its seat is capped. -/
+theorem pcsa_early_input_relay_support (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (B : Block) (v u : Time)
+    (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
+    (hm : (⟨.seat s i, .head B.root⟩ : GridCO.Wire p.n .root) ∈
+      GridCO.earlyVotes p.toParams.engine
+        (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s)
+    (hr : GridCO.resolvedHead? (actView (clock p (V2.D.Run.stateBefore E rho a x).st v))
+      ⟨.seat s i, .head B.root⟩ = some B) :
+    ((⟨.seat s i, .head B.root⟩ : GridCO.Wire p.n .root) ∈
+      headSupport p (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1) ∧
+      (⟨.seat s i, .head B.root⟩ : GridCO.Wire p.n .root) ∈
+        proposerSupport (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1) ∧
+      GridCO.resolvedHead? (actView (clock p (V2.D.Run.stateBefore E rho k y).st u))
+        ⟨.seat s i, .head B.root⟩ = some B) ∨
+    (GridCO.equivocates (headVotes p (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1)) i =
+      true ∧
+      GridCO.equivocates (proposerVotes (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1))
+        i = true) :=
+  pcsa_early_input_relay_support_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
+    hy s i B v u (le_refl _) hc hk hm hr
 end AvailableChain.PCSA.Run
 
 end

@@ -69,6 +69,43 @@ theorem pcsa_strictFrom_mono (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p
   · intro v hv i o ho t ha w hw hp hcut hx
     exact hW.relay v hv i o ho t ha w hw hp (hcut.trans hc) hx
 
+/-- A floor below `t_s` is below `t_{s'}` for every `s' ≥ s`. -/
+theorem pcsa_floor_le {T₀ : Time} {s s' : Slot} (hT : T₀ ≤ SA.proposalTime p.toParams s)
+    (hs : s ≤ s') : T₀ ≤ SA.proposalTime p.toParams s' := by
+  apply hT.trans
+  change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s' : Int)
+  have hd := p.deltaPos
+  have hle : (s : Int) ≤ (s' : Int) := by exact_mod_cast hs
+  nlinarith
+
+/-- A floor below `t_s` is below `v_s`. -/
+theorem pcsa_floor_vote {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.proposalTime p.toParams s) :
+    T₀ ≤ SA.voteTime p.toParams s := by
+  apply hT.trans
+  change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
+  linarith [p.deltaPos]
+
+/-- A floor below `t_s` is below `e_s`. -/
+theorem pcsa_floor_early {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.proposalTime p.toParams s) :
+    T₀ ≤ SA.earlyTime p.toParams s := by
+  apply hT.trans
+  change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
+  linarith [p.deltaPos]
+
+/-- A floor below `t_s` is below `z_s`. -/
+theorem pcsa_floor_freeze {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.proposalTime p.toParams s) :
+    T₀ ≤ SA.freezeTime p.toParams s := by
+  apply hT.trans
+  change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
+  linarith [p.deltaPos]
+
+/-- A floor below `t_s` is below `d_s`. -/
+theorem pcsa_floor_gate {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.proposalTime p.toParams s) :
+    T₀ ≤ SA.gateTime p.toParams s := by
+  apply hT.trans
+  change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+  linarith [p.deltaPos]
+
 /-- The window of the clean induction from label `j₀`: the execution, the cut,
 strict delivery from `T₀ ≤ t_{j₀}`, and `a < h_j` at every label `j ≥ j₀` with
 `e_j ≤ b₀`. -/

@@ -25,15 +25,16 @@ theorem pcsa_clock_target_active (E : Generic.Env V)
   apply decide_eq_true
   exact (pcsa_tree_correspondence p _ (Reachable.tick t (pcsa_reachable_stateBefore E rho k x))
     C.target).mp hm
-/-- Every frozen voter PC has a matching active key at the honest proposer read. -/
-theorem pcsa_frozen_pc_in_proposer [Fintype V] (E : Generic.Env V)
+/-- In the delivery window: Every frozen voter PC has a matching active key at the honest proposer
+read. -/
+theorem pcsa_frozen_pc_in_proposer_win [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (C : PC p.n)
     (hk : rho.events[k]? = some (.tick y (SA.proposalTime p.toParams (s + 1))))
-    (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
     (hC : C ∈ pcSnapshotAt (clock p (V2.D.Run.stateBefore E rho a x).st
       (SA.voteTime p.toParams (s + 1))) s) :
     ∃ D ∈ (clock p (V2.D.Run.stateBefore E rho k y).st
@@ -69,14 +70,32 @@ theorem pcsa_frozen_pc_in_proposer [Fintype V] (E : Generic.Env V)
     apply Nat.le_of_not_gt
     intro hn
     exact lt_irrefl _ ((Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed hk _).mp hn)
-  obtain ⟨D, hDmem, hDs, hDt⟩ := pcsa_pc_before_public_cut_relay E rho h hF hFault hD _ k x y
-    hx hy _ hpub hz (le_refl _) (by rwa [he]) (by rwa [he]) C hm
+  obtain ⟨D, hDmem, hDs, hDt⟩ := pcsa_pc_before_public_cut_relay_win E rho h hF hFault hD
+    (hT := pcsa_floor_freeze hT) _ k x y hx hy _ hpub hz (le_refl _) (by rwa [he]) (by rwa [he]) C
+        hm
   have hDclock : D ∈ (clock p (V2.D.Run.stateBefore E rho k y).st
       (SA.proposalTime p.toParams (s + 1))).pcs := by
     rwa [pcsa_clock_pcs]
   refine ⟨D, hDclock, hDs, hDt, pcsa_clock_target_active E rho hF k y hy _ D ?_⟩
   rw [pcsa_clock_blocks]
   exact pcsa_pc_targets_held p _ (pcsa_reachable_stateBefore E rho k y) D hDmem
+/-- Every frozen voter PC has a matching active key at the honest proposer read. -/
+theorem pcsa_frozen_pc_in_proposer [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (C : PC p.n)
+    (hk : rho.events[k]? = some (.tick y (SA.proposalTime p.toParams (s + 1))))
+    (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
+    (hC : C ∈ pcSnapshotAt (clock p (V2.D.Run.stateBefore E rho a x).st
+      (SA.voteTime p.toParams (s + 1))) s) :
+    ∃ D ∈ (clock p (V2.D.Run.stateBefore E rho k y).st
+      (SA.proposalTime p.toParams (s + 1))).pcs, D.slot = C.slot ∧ D.target = C.target ∧
+        frameActive p (clock p (V2.D.Run.stateBefore E rho k y).st
+          (SA.proposalTime p.toParams (s + 1))) D = true :=
+  pcsa_frozen_pc_in_proposer_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD _) a k x y
+    hx hy s C hk (le_refl _) hc hC
 end AvailableChain.PCSA.Run
 
 end

@@ -55,15 +55,16 @@ theorem pcsa_clean_pc_from_pool (E : Generic.Env V)
   rw [pcsa_collectPCs_eq_of_saturated _ (pcsa_saturated_stateBefore E rho k y)] at hh
   rw [KeyHeld_def]
   exact hh
-/-- A held PC before a public cut is relayed by key to every later honest read within Delta. -/
-theorem pcsa_pc_before_public_cut_relay [Fintype V] (E : Generic.Env V)
+/-- In the delivery window: A held PC before a public cut is relayed by key to every later honest
+read within Delta. -/
+theorem pcsa_pc_before_public_cut_relay_win [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (bound : Time) (hpub : V2.PublicTime E bound) (hz : 0 ≤ bound)
     (ha : a ≤ V2.D.Run.idxBefore rho bound)
-    (hk : V2.D.Run.idxBefore rho (bound + E.Δ) ≤ k) (hc : bound + E.Δ ≤ cut)
+    (hk : V2.D.Run.idxBefore rho (bound + E.Δ) ≤ k) (hT : T₀ ≤ bound) (hc : bound + E.Δ ≤ cut)
     (D : PC p.n) (hDmem : D ∈ (V2.D.Run.stateBefore E rho a x).st.pcs) :
     ∃ C ∈ (V2.D.Run.stateBefore E rho k y).st.pcs, C.slot = D.slot ∧ C.target = D.target := by
   obtain ⟨i, hi, C, t, hCs, hCt, hCm, hacc⟩ := pcsa_clean_keyHeld_accepted E rho h hF x hx
@@ -79,7 +80,8 @@ theorem pcsa_pc_before_public_cut_relay [Fintype V] (E : Generic.Env V)
   have hg : C.target ≠ .genesis := (pcsa_pc_wellFormed_parts C hw).2.1
   have hs := pcsa_body_stamp_lt_of_index_cut E rho h.valid.toScheduleWellFormed h.noRestart
     a x C.target bound ha hg hbody
-  have hrecv := (pcsa_body_before_public_cut_relay E rho h hF hD a k x y hx hy C.target bound
+  have hrecv := (pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := hT) a k x y hx hy
+      C.target bound
     hpub hz hc hk hg hbody hs).1
   have hiK : i + 1 ≤ k := by
     apply le_trans _ hk
@@ -97,15 +99,15 @@ theorem pcsa_pc_before_public_cut_relay [Fintype V] (E : Generic.Env V)
     exact pcsa_keyHeld_mono (pcsa_clean_pc_indices_mono E rho h.noRestart hF y hy
       (i + 1) k hiK) ((pcsa_clean_processed_pc _ C).mp hprocessed)
   | false =>
-    obtain ⟨u, _, hu, j, parent, hj, hh⟩ := pcsa_strict_relay E rho hD
-      (⟨.none, .pc C⟩ : Obj p) (by intro body heq; cases heq) x y i t hx hy hacc hprocessed
-      (by linarith) rfl
+    obtain ⟨d, _, hdle, _, hrel⟩ := pcsa_strict_relay_from E rho hD
+      (⟨.none, .pc C⟩ : Obj p) (by intro body heq; cases heq) x i t hx hacc
+    have hdb : d ≤ bound + E.Δ := hdle.trans (Int.add_le_add_right (max_le ht.le hT) E.Δ)
+    obtain ⟨u, _, hu, j, parent, hj, hh⟩ := hrel y hy hprocessed (hdb.trans hc) rfl
     have hjK : j + 1 ≤ k := by
       apply le_trans _ hk
       apply Nat.succ_le_of_lt
       apply (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed hj _).mpr
-      have hub : u < bound + E.Δ := by linarith
-      exact hub
+      exact lt_of_lt_of_le hu hdb
     apply finish
     rcases pcsa_handles_pc_store _ parent C hw hh with hkey | hpool
     · rw [← pcsa_clean_deliver_succ E rho hj] at hkey
@@ -115,6 +117,19 @@ theorem pcsa_pc_before_public_cut_relay [Fintype V] (E : Generic.Env V)
       apply pcsa_clean_pc_from_pool E rho h hF k y hy C hw hrecv
       intro ack hack
       exact pcsa_ackPool_stateBefore_mono E rho h.noRestart y hjK (hpool ack hack)
+/-- A held PC before a public cut is relayed by key to every later honest read within Delta. -/
+theorem pcsa_pc_before_public_cut_relay [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (bound : Time) (hpub : V2.PublicTime E bound) (hz : 0 ≤ bound)
+    (ha : a ≤ V2.D.Run.idxBefore rho bound)
+    (hk : V2.D.Run.idxBefore rho (bound + E.Δ) ≤ k) (hc : bound + E.Δ ≤ cut)
+    (D : PC p.n) (hDmem : D ∈ (V2.D.Run.stateBefore E rho a x).st.pcs) :
+    ∃ C ∈ (V2.D.Run.stateBefore E rho k y).st.pcs, C.slot = D.slot ∧ C.target = D.target :=
+  pcsa_pc_before_public_cut_relay_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD _) a
+    k x y hx hy bound hpub hz ha hk (le_refl _) hc D hDmem
 end AvailableChain.PCSA.Run
 
 end

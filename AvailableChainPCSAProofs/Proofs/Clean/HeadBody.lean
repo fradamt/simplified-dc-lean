@@ -86,13 +86,15 @@ theorem pcsa_honest_head_body_before_vote (E : Generic.Env V)
     rw [he] at hm ⊢
     exact pcsa_body_stamp_lt_of_index_cut E rho h.valid.toScheduleWellFormed h.noRestart
       _ x H _ (le_refl _) hg hm
-/-- Every honest receiver holds the exact HEAD body before the early cutoff. -/
-theorem pcsa_honest_head_body_before_early (E : Generic.Env V)
+/-- In the delivery window: Every honest receiver holds the exact HEAD body before the early
+cutoff. -/
+theorem pcsa_honest_head_body_before_early_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (x y : V) (hy : y ∈ rho.honest) (s : Slot) (H : Block)
-    (hH : HonestHeadAt p c E rho x s H) (hc : SA.earlyTime p.toParams s ≤ cut)
+    (hH : HonestHeadAt p c E rho x s H) (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.earlyTime
+        p.toParams s ≤ cut)
     (k : Nat) (hk : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ k) :
     H ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks ∧
       GridCO.stampBlock (V2.D.Run.stateBefore E rho k y).st.base H < SA.earlyTime p.toParams s := by
@@ -119,10 +121,24 @@ theorem pcsa_honest_head_body_before_early (E : Generic.Env V)
       have hp := p.deltaPos
       change 0 ≤ 4 * p.Δ * (s : Int) + p.Δ
       positivity
-    have hh := pcsa_body_before_public_cut_relay E rho h hF hD a k x y hH.1 hy H _ hp hz
+    have hh := pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := pcsa_floor_vote hT) a k x
+        y hH.1 hy H _
+      hp hz
       (by rwa [he]) (by rwa [he]) hg hm ht
     rwa [he] at hh
 
+/-- Every honest receiver holds the exact HEAD body before the early cutoff. -/
+theorem pcsa_honest_head_body_before_early (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (x y : V) (hy : y ∈ rho.honest) (s : Slot) (H : Block)
+    (hH : HonestHeadAt p c E rho x s H) (hc : SA.earlyTime p.toParams s ≤ cut)
+    (k : Nat) (hk : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ k) :
+    H ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks ∧
+      GridCO.stampBlock (V2.D.Run.stateBefore E rho k y).st.base H < SA.earlyTime p.toParams s :=
+  pcsa_honest_head_body_before_early_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) x y hy
+    s H hH (le_refl _) hc k hk
 /-- An honest HEAD cannot name a body from a future slot. -/
 theorem pcsa_honest_head_slot_le (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)

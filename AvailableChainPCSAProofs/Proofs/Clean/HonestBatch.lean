@@ -118,13 +118,14 @@ theorem pcsa_late_participant_bound [Fintype V] (E : Generic.Env V)
   rw [Gen.AC.Root.vote_pool_voterCount_card]
   exact (Finset.card_le_card hsub).trans
     ((Finset.card_union_le _ _).trans (Nat.add_le_add_left hF _))
-/-- If every honest HEAD covers a prefix, it has a strict majority at the actual gate. -/
-theorem pcsa_clean_gate_majority [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
-    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+/-- In the delivery window: If every honest HEAD covers a prefix, it has a strict majority at the
+actual gate. -/
+theorem pcsa_clean_gate_majority_win [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
+    (h : CleanWindow E rho j₀ T₀ cut) (hF : StageOneFrame p c E rho)
     (k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (B : Block)
     (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
-    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hs : j₀ ≤ s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hheads : ∀ x H, HonestHeadAt p c E rho x s H → Block.Preceq B H) :
     GridCO.voterCount (GridCO.lateVotes p.toParams.engine
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s) <
@@ -133,7 +134,7 @@ theorem pcsa_clean_gate_majority [Fintype V] (E : Generic.Env V)
   classical
   let st := clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s)
   let P := GridCO.cleanSupport p.toParams.engine (actView st) s
-  obtain ⟨Hon, hHon, hbatch⟩ := pcsa_clean_head_batch E rho h s hc
+  obtain ⟨Hon, hHon, hbatch⟩ := pcsa_clean_head_batch_win E rho h (hs := hs) s hc
   have hbound := pcsa_late_participant_bound E rho h.base k y (SA.gateTime p.toParams s) s Hon hHon
   have hearly : SA.earlyTime p.toParams s ≤ cut := by
     apply le_trans _ hc
@@ -165,7 +166,8 @@ theorem pcsa_clean_gate_majority [Fintype V] (E : Generic.Env V)
     intro i hi
     obtain ⟨hih, hiw⟩ := (hHon i).mp hi
     obtain ⟨H, hH⟩ := pcsa_honest_head_exists E rho h.base _ hih s hiw hvote
-    obtain ⟨hm, hr⟩ := pcsa_honest_head_clean_support E rho h.base hF h.healthy _ y hy s i H
+    obtain ⟨hm, hr⟩ := pcsa_honest_head_clean_support_win E rho h.base hF h.strict (hT :=
+        pcsa_cleanWindow_floor E rho h s hs) _ y hy s i H
       rfl hH hearly k hidx (SA.gateTime p.toParams s)
     apply Finset.mem_filter.mpr
     refine ⟨(Gen.AC.Root.vote_pool_mem_seats _ i).mpr ⟨_, hm, rfl⟩, ?_⟩
@@ -188,6 +190,20 @@ theorem pcsa_clean_gate_majority [Fintype V] (E : Generic.Env V)
   change GridCO.voterCount (GridCO.lateVotes p.toParams.engine (actView st) s) ≤
     Hon.card + (Gen.V2.Duty.faulty rho).card at hbound
   omega
+/-- If every honest HEAD covers a prefix, it has a strict majority at the actual gate. -/
+theorem pcsa_clean_gate_majority [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (B : Block)
+    (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
+    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hheads : ∀ x H, HonestHeadAt p c E rho x s H → Block.Preceq B H) :
+    GridCO.voterCount (GridCO.lateVotes p.toParams.engine
+      (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s) <
+      2 * SA.Root.prefixSupport p.toParams
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s B :=
+  pcsa_clean_gate_majority_win E rho (pcsa_cleanWindow_of_clean E rho h) hF k y hy s B hk
+    (Nat.zero_le _) hc hheads
 end AvailableChain.PCSA.Run
 
 end

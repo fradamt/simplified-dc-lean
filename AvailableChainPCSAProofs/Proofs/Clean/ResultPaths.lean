@@ -50,14 +50,15 @@ theorem pcsa_result_early_support (E : Generic.Env V)
   have heq := Option.some.inj he
   subst r
   exact ⟨i, H, (List.mem_filter.mp ho).1, hr, hXH⟩
-/-- Every prefix of a result is retained in both later proposer and voter trees. -/
-theorem pcsa_result_prefixes_retained (E : Generic.Env V)
+/-- In the delivery window: Every prefix of a result is retained in both later proposer and voter
+trees. -/
+theorem pcsa_result_prefixes_retained_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (v u : Time) (s : Slot) (X : Block)
-    (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hresult : SA.Root.confirmationFrom p.toParams
       (eraseFG (clock p (V2.D.Run.stateBefore E rho a x).st v).fg.F)
@@ -76,7 +77,7 @@ theorem pcsa_result_prefixes_retained (E : Generic.Env V)
   rw [hr] at ht
   have hstamp : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a x).st v).base H <
       SA.earlyTime p.toParams s := of_decide_eq_true (Bool.and_eq_true_iff.mp ht).2
-  have hrelay := pcsa_early_body_relay_frozen E rho h hF hD a
+  have hrelay := pcsa_early_body_relay_frozen_win E rho h hF hD (hT := hT) a
     (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) x y hx hy s H v u hc (le_refl _) hm hstamp
   have hearly := hrelay.1
   rw [pcsa_clock_blocks] at hearly
@@ -88,6 +89,26 @@ theorem pcsa_result_prefixes_retained (E : Generic.Env V)
   have hCH := Gen.Pure.block_preceq_trans hCX hXH
   exact ⟨pcsa_full_read_prefix_mem E rho hF k y hy u H C hclock hCH,
     pcsa_frozen_read_prefix_mem E rho h hF _ k y hy s u H C (le_refl _) hk hearly hCH⟩
+/-- Every prefix of a result is retained in both later proposer and voter trees. -/
+theorem pcsa_result_prefixes_retained (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (v u : Time) (s : Slot) (X : Block)
+    (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
+    (hresult : SA.Root.confirmationFrom p.toParams
+      (eraseFG (clock p (V2.D.Run.stateBefore E rho a x).st v).fg.F)
+      (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s = some X) :
+    ∀ C, Block.Preceq C X →
+      C ∈ erasedList (clock p (V2.D.Run.stateBefore E rho k y).st u)
+        (fullTree p (clock p (V2.D.Run.stateBefore E rho k y).st u)) ∧
+      C ∈ erasedList (clock p (V2.D.Run.stateBefore E rho k y).st u)
+        (KitFG.storeFrameView (FGSA.heightView p) (clock p (V2.D.Run.stateBefore E rho k y).st u).fg
+          (voterBlocks p (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1))) :=
+  pcsa_result_prefixes_retained_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
+    hy v u s X (le_refl _) hc hk hresult
 end AvailableChain.PCSA.Run
 
 end
