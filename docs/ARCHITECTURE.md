@@ -288,6 +288,51 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   components give it with `T₀ = t_GST`. The `_win` lemmas of `Shared/Relay`,
   `Shared/BodyReceipt` and the Clean lane take `StrictFrom` (or `CleanWindow`);
   the old `HealthyPrefixDeliveryBy` names are wrappers with unchanged types.
+- PC-SA CI restart from a label `a` (2026-10-08; steps 4a, 4b, 5a and K2).
+  The clean induction restarts at a seed label `a > 0` with seed block `A`.
+  Shared modules:
+  `Shared/SlotOrder` holds the slot-order facts that were in
+  `Recovery/LockWindow` (`RecoverySlotOrdered`, `StoreSlotOrdered`,
+  `ResultsSlotBound`, `pcsa_reachable_slot_order`, `pcsa_stored_strict_slots`,
+  `pcsa_result_prefix_slot`, `pcsa_saved_result_slot`); `Recovery/LockWindow`
+  keeps the four `recovery_` names as one-line wrappers with unchanged types.
+  `Shared/LockRankSafe` is the store-level lock rank invariant
+  (`pcsa_lock_rank_compatible`, `pcsa_live_lock_rank_compatible`), copied from
+  `Recovery/LockRank` on `pcsa-recov-long`; the Recovery names become wrappers
+  when that branch lands. `Shared/StampKeep` keeps PC stamps after their
+  install (root uniqueness). `Shared/RestartSeed` defines the positive seed
+  `CleanRestartSeed a A` (`0 < a`, `A.slot = a`, a PC `(a, A)` stamped before
+  `z_a` at every honest node, every honest HEAD and proposal of label `a` is
+  `A`, every result of label `a` is `A`, every lock from `z_a` to the input of
+  gate `a` is `⪯ A` (`locksFromFreeze`), and `ArmConcl a A (a + 1)`), and K1:
+  from `z_a`, the proposer PC, the voter snapshot and the gate rank have slot
+  `≥ a`. `Shared/RestartSuffix` defines the output interface
+  `RecoveredSuffixInvariant s P cut` with eight fields: `resultsChain`,
+  `pcChain`, `pcResults`, `selected`, `recordOrigin`, `recordMono`,
+  `gateAdvance` and `honestGate`.
+  Clean modules: `LockFromCut` (K3: a lock after a cut index was stored at the
+  cut or written by a later own gate), `RestartRecord` (K4: after gate `a`
+  the record is `A`), `RestartRoots` (the root at `v_{a+1}` is `A`; the root
+  sources and ack dissemination from `a`), `RestartState` (the seven-field
+  state `CleanStateFrom a j`: results, HEADs above results, equal HEADs,
+  PC/result pairs, roots, ack/HEAD and ack/result coverage, every label
+  quantifier from `a`), `RestartKernels` (the joint-step kernels from `a`),
+  `RestartStep` (the joint step and `pcsa_restart_state_from`, for every
+  `j ≥ a` with `d_j ≤ cut`), `RestartOutputs` (record history from gate `a`
+  and `pcsa_restart_suffix_invariant`, over `CleanWindow E rho a T₀ cut`,
+  `StageOneFrame`, `FaultsBelowQA` and the seed) and `RestartLocks` (K2:
+  `pcsa_restart_locks_from_freeze` proves `locksFromFreeze`; every stored
+  lease rank comes from an earlier own gate below `a`, so the held seed PC
+  ranks above it).
+  K2 and K4 are in Clean: they use Clean record and lock provenance, and K2
+  needs no Recovery lemma. `pcsa_cleanRestartSeed_mk` builds the seed from
+  `0 < a`, `A.slot = a`, the stamp, the HEADs, the proposal, the results,
+  `ArmConcl` and `z_a ≤ horizon`.
+  Open boundary: the windowed pre-freeze stamp
+  (`pcsa_clean_honestProposal_stamped_from`, step 5b) and the Recovery
+  assembly that supplies the seed and the window. The Clean, Shared and
+  Recovery copies of the lock and record event inductions become one Shared
+  provenance core after this chain lands.
 - PC-SA finality safety (P12): `Foundations/FGSafetyBridge` converts the PC
   reads and applies Compose `SafetyAccountable`, `SafetyCount`,
   `SafetyMonotone`, and `SafetySlashing` through four exact `COMPOSE_EDGES`.
