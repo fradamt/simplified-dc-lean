@@ -12,6 +12,35 @@ namespace AvailableChain.PCSA.Run
 /-- C8 is available independently of the unfinished claim record. -/
 theorem pcsa_armPersistenceClaim (p : Params) : ArmPersistenceClaim p := pcsa_armPersistence p
 
+/-- [pcsa34-r4.3 §5.2.3] C9, strong inclusion, with no open hypothesis. The Clean-lane
+producer `pcsa_clean_honestProposal_stamped` stamps the proposal PC before `z_u`; C8
+persistence (`pcsa_armPersistence`) with `j₀ = u + 1` (empty later-ack interval) keeps it below
+the strong output from `z_u` on. -/
+theorem pcsa_strongIncludedClaim (p : Params) : StrongIncludedClaim p := by
+  have hArm : ArmPersistenceClaim p := pcsa_armPersistence p
+  rw [ArmPersistenceClaim_def] at hArm
+  rw [StrongIncludedClaim_def]
+  intro V _ _ In c m E rho b₀ ΔF hClean hQuarter hFrame u P hProposal hQuorum x hx t hzt ht
+  obtain ⟨hw, N, hErase, he⟩ := pcsa_honest_proposal_named E rho u P hProposal
+  obtain ⟨_, _, hPos, _⟩ := pcsa_emitted_proposal_inputs E rho _ u N he
+  have hFault := pcsa_c9_faultsBelowQA_of_quarterCap rho hQuarter
+  have hStamp := pcsa_clean_honestProposal_stamped p c m E rho b₀ ΔF hClean hQuarter hFrame u N
+    hPos ⟨hw, he⟩ hQuorum (hzt.trans ht)
+  have hArmPrem : Arm p c E rho u P (u + 1) := by
+    constructor
+    · simpa only [Nat.add_sub_cancel, hErase] using hStamp
+    · intro y s' X hlo hhi _
+      exact (Nat.not_lt_of_ge hlo hhi).elim
+  have hPersist := hArm c m E rho u P (u + 1) hClean.base hFault hFrame (Nat.lt_succ_self u)
+    hArmPrem
+  have hAt := hStamp x hx
+  rw [pcsa_PCStampedBefore_def] at hAt
+  obtain ⟨A, hA, hSlot, hTarget⟩ := hAt
+  have hHeld := pcsa_c9_afterTicks_pcs_storeAt E rho hClean.base hFrame x hx
+    (SA.freezeTime p.toParams u) hA
+  exact (hPersist.2.2 x hx (SA.freezeTime p.toParams u) t hzt
+    ⟨A, hHeld, hSlot, hTarget.trans hErase⟩).1
+
 /-- [pcsa34-r4.3 §5.2.2, §5.2.3, §5.5 step 1] The Clean facts at the pending
 labels from the Clean facts at the cut. `pcsa_cleanCutItems_of_cone` gives
 the facts at the cut from the HEAD cone. -/

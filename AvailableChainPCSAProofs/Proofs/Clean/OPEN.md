@@ -43,9 +43,11 @@ past-cut guarantee. The outage lane needs a corrected statement.
 
 ### Remaining scope
 
-C9 `StrongIncludedClaim` needs Formation to produce the proposal PC by
-the freeze. It remains with the Formation writer, as the brief permits.
-C7 `FormationClaim` was not changed.
+C9 `StrongIncludedClaim` is closed (`pcsa_strongIncludedClaim`,
+Assembly/Outage) by formation part 4 only: `pcsa_clean_honestProposal_stamped`
+(Clean/Export, helpers in Clean/C9*.lean) stamps the proposal PC before the
+freeze from predecessor C6 and Clean delivery, and C8 persistence with
+`j₀ = u + 1` gives the strong output. C7 `FormationClaim` was not changed.
 
 All module commits passed the full pre-commit list. There are no Lean
 warnings, forbidden proof placeholders, or unaccepted equation exports.
@@ -154,9 +156,9 @@ These do not yet provide the joint CI record or the composing induction.
 - `PCSACleanInclusionClaim`: prove equal honest HEADs at the proposal label,
   result = proposal at every honest gate, and persistence of its prefix in S
   and in the available output through the cut. The gate write fact is done.
-- C9 (`StrongIncludedClaim`): needs Formation to produce the proposal's PC by
-  the freeze, then prefix monotonicity of later selected PCs. Leave this to
-  the Formation writer. Formation itself was not changed.
+- C9 (`StrongIncludedClaim`): closed by formation part 4 only
+  (`pcsa_clean_honestProposal_stamped`, `pcsa_strongIncludedClaim`).
+  Formation itself was not changed.
 
 Do not fill these gaps by adding premises to any claim or by exporting a
 conditional theorem as an unconditional claim.
