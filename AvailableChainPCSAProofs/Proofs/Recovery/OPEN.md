@@ -632,9 +632,9 @@ statement in full and calls `pcsa_recovery_lock_transport`.
 No extra coverage or claim premise is added. Minimality of `g` is not needed
 for this kernel; the inputs supplied by `long_recovery_slot` suffice.
 
-The label-`g` majority supplier is `pcsa_gate_majority_of_label` in
-`Clean/HonestBatch.lean` on `pcsa-ci-win-2`, with floor `T₀ ≤ v_s`.
-It is the intended supplier behind `OPEN_sameLabel`, including
+The same-label supplier is `pcsa_same_label_gate_results_win` in
+`Clean/GateCounts.lean:91` on `05052c10`, with floor `T₀ ≤ z_r`.
+It supplies `OPEN_sameLabel`, including
 `t_g < GST ≤ v_g`. That branch was not merged. All seven lane suppliers
 remain OPEN here. Formation and CI restart remain separate suffix inputs.
 This result does not close the unconditional `LongBreakRecoveredClaim`.

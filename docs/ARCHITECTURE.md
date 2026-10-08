@@ -707,7 +707,8 @@ and only the instance swap is atomic.
 
 - PC-SA lock overlap (2026-10-08). `Recovery/LockOverlap` proves mix-time
   expiry, overlap compatibility, and PC relay compatibility at the write
-  and within a surviving interval. The voter-view rank bound remains open.
+  and within a surviving interval. `Recovery/LockView` proves the voter-view
+  rank bound.
 
 - PC-SA recovery rank dissemination (2026-10-08). `Recovery/LockStamp` derives
   a held key before the early cutoff from the actual PC stamp history, then
@@ -728,4 +729,4 @@ and only the instance swap is atomic.
 
 - PC-SA long first-slot assembly (2026-10-08). `Recovery/LongFirstSlot`
   constructs `FormationPrem` and the explicit proposer-root walk conjunct.
-  The predicate conversion needs the defining equation recorded in OPEN.md.
+  `Recovery/Export` proves the predicate conversion with the defining equation.
