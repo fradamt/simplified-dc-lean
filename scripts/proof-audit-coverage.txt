@@ -4289,6 +4289,16 @@
             'AvailableChain.FGSA.Run.safetyProposalRows',
         ),
     },
+    'AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms': {
+        'AvailableChainFGSAProofs.Proofs.Assembly.Root': (
+            'AvailableChain.FGSA.Run.fgsa_weakContinuationGrowthClaim',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth': (
+            'AvailableChain.FGSA.Run.wcg_emptyLive',
+            'AvailableChain.FGSA.Run.wcg_nonemptyLive',
+            'AvailableChain.FGSA.Run.wcg_sourceLive',
+        ),
+    },
     'AvailableChainFGSARun.Tests.Axioms': {
         'AvailableChainFGSARun.Model.Families': (
             'AvailableChain.FGSA.Run.fgsaFamilies',
