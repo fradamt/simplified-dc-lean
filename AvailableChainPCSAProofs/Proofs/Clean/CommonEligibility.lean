@@ -1,5 +1,6 @@
 module
-public import AvailableChainPCSAProofs.Proofs.Clean.Clock
+public import AvailableChainPCSAProofs.Proofs.Shared.Clock
+public import AvailableChainPCSAProofs.Proofs.Clean.Saturation
 
 public section
 

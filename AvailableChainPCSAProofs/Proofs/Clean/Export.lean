@@ -586,9 +586,9 @@ theorem pcsa_clean_emitted_heads_equal (E : Generic.Env V)
       ∀ B ∈ (clock p (V2.D.Run.stateBefore E rho i z).st t).base.blocks,
         A.root = B.root → A = B := by
     intro A hA B hB hr
-    have scope := pcsa_clean_clock_body_scope p (RootBlockInRun p c E rho) _ t
-      (pcsa_clean_body_scope E rho i z hz)
-    exact pcsa_clean_scoped_root_eq E rho h.base.idealization A B (scope A hA) (scope B hB) hr
+    have scope := pcsa_clock_body_scope p (RootBlockInRun p c E rho) _ t
+      (pcsa_body_scope E rho i z hz)
+    exact pcsa_scoped_root_eq E rho h.base.idealization A B (scope A hA) (scope B hB) hr
   have hsrcUnique : ∀ A ∈ Ts, ∀ B ∈ Ts, A.root = B.root → A = B := by
     intro A hA B hB hr
     exact unique k x hx _ A (List.mem_filter.mp hA).1 B (List.mem_filter.mp hB).1 hr
@@ -923,7 +923,7 @@ theorem pcsa_clean_pcTarget_mono_cut (E : Generic.Env V)
   · rw [← hPB]
     obtain ⟨_, y, hy, _⟩ := pcsa_pc_storeAt_timed_ack E rho h.base hFault x hx t P hP
     obtain ⟨_, z, hz, htime⟩ := pcsa_pc_storeAt_timed_ack E rho h.base hFault x hx t' Q hQmem
-    have hslot := pcsa_bestPC_slot_ge _ P Q hPnew hQ
+    have hslot := pcsa_clean_bestPC_slot_ge _ P Q hPnew hQ
     rcases hslot.lt_or_eq with hlt | heq
     · exact pcsa_clean_ack_targets_order_cut E rho h hF hFault P.slot Q.slot hlt
         (htime.trans hc) y z P.target Q.target hy hz

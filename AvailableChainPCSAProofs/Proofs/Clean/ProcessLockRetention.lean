@@ -86,7 +86,7 @@ theorem pcsa_admit_block_keep_lock (p : Params) (st : State p.n) (s : Slot)
           | some C => dsimp only; split <;> rfl
         have hprops : out.proposals = st.proposals ++ [⟨.proposer s, .proposal N⟩] := by
           rw [← hout]
-          exact pcsa_admitBlock_proposals p st s N P hn hp ha
+          exact pcsa_clean_admitBlock_proposals p st s N P hn hp ha
         have hrow1 : row ∈ st1.base.obligations := by
           change row ∈ (GridCO.admitProposal p.toParams.engine st.base _ _ _).obligations
           rw [pcsa_admit_proposal_locks]
