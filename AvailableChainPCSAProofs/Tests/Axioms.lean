@@ -870,6 +870,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_read_vote_support_body
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_voter_walk_counts
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_voter_walk_counts_win
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_voter_walk_counts_from_early
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts_win
 
@@ -884,6 +885,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_gateResultAt_source
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_same_label_results
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_same_label_results_win
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_same_label_results_from_freeze
 
 -- C6 BodyPaths.
 #print axioms AvailableChain.PCSA.pcsa_body_prefix_mem
@@ -900,6 +902,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_postClock_source
 #print axioms AvailableChain.PCSA.Run.pcsa_next_head_above_result_of_root
 #print axioms AvailableChain.PCSA.Run.pcsa_next_head_above_result_of_root_win
+#print axioms AvailableChain.PCSA.Run.pcsa_next_head_above_result_of_root_from_early
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_next_head_above
 
 -- C6 HeadEvidence.
@@ -945,10 +948,13 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_gateResultAt_at_tick
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_covers_heads
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_covers_heads_win
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_covers_heads_of_label
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_result_exists
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_result_exists_win
+#print axioms AvailableChain.PCSA.Run.pcsa_result_exists_of_label
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_result_covers_heads
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_result_covers_heads_win
+#print axioms AvailableChain.PCSA.Run.pcsa_result_covers_heads_of_label
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_headsAbove_step
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_resultsChain_step
 
@@ -1093,12 +1099,14 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_support_in_proposer_win
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_support_backward
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_support_backward_win
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_support_backward_from_freeze
 #print axioms AvailableChain.PCSA.pcsa_headSupport_resolution
 
 -- C6 CommonScores.
 #print axioms AvailableChain.PCSA.Run.pcsa_read_vote_support_iff
 #print axioms AvailableChain.PCSA.Run.pcsa_common_walk_counts
 #print axioms AvailableChain.PCSA.Run.pcsa_common_walk_counts_win
+#print axioms AvailableChain.PCSA.Run.pcsa_common_walk_counts_from_freeze
 
 -- C6 CommonTree.
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_slot_body_unique
@@ -1111,12 +1119,14 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_N_same_label_result_win
 #print axioms AvailableChain.PCSA.Run.pcsa_honestAck_same_label_result
 #print axioms AvailableChain.PCSA.Run.pcsa_honestAck_same_label_result_win
+#print axioms AvailableChain.PCSA.Run.pcsa_honestAck_same_label_result_from_freeze
 
 -- C6 NWalkCounts.
 #print axioms AvailableChain.PCSA.pcsa_N_score_dominance
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_honest_not_capped
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped_win
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped_from_freeze
 
 -- C6 NReadTransport.
 #print axioms AvailableChain.PCSA.pcsa_N_head_witness
@@ -1126,8 +1136,10 @@ end
 -- C6 NNextHead.
 #print axioms AvailableChain.PCSA.Run.pcsa_N_next_head_of_root
 #print axioms AvailableChain.PCSA.Run.pcsa_N_next_head_of_root_win
+#print axioms AvailableChain.PCSA.Run.pcsa_N_next_head_of_root_from_early
 #print axioms AvailableChain.PCSA.Run.pcsa_honestAck_next_head_of_root
 #print axioms AvailableChain.PCSA.Run.pcsa_honestAck_next_head_of_root_win
+#print axioms AvailableChain.PCSA.Run.pcsa_honestAck_next_head_of_root_from_early
 
 -- C6 NHeads.
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_pool_head_source
