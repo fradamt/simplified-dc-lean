@@ -12,9 +12,9 @@ in the prefix (CI (i)), the HEAD cone (a block below every honest HEAD of
 label `i − 1` with `e_{i−1} ≤ b₀` is below every honest HEAD of label `i`),
 and dissemination at the pending label (5.2.3). ARM (b) uses only the
 vote-time cone (`v_i ≤ b₀`) and dissemination. The Outage assembly proves
-every field except the cone; it takes the HEAD cone as the OPEN records
-`CleanConeItems` (full cone, C10) and `CleanVoteConeItems` (vote-time cone,
-C8). -/
+every field; the HEAD cone records `CleanConeItems` (full cone, C10) and
+`CleanVoteConeItems` (vote-time cone, C8) come from the Clean-lane cone
+theorems. -/
 
 namespace AvailableChain.PCSA.Run
 
@@ -62,7 +62,8 @@ theorem CleanCutChainItems_def (p : Params) : CleanCutChainItems p =
 /-- [pcsa34-r4.3 §5.5 step 2; tip-stability `pending-cone-repair.md`] The HEAD
 cone (`CutChain.cone`) in every clean stage-1 run with `a < ⌈n/2⌉`: for
 `0 < i` with `e_{i−1} ≤ b₀`, a block below every honest HEAD of label `i − 1`
-is below every honest HEAD of label `i`. OPEN: not proved. -/
+is below every honest HEAD of label `i`. The Outage assembly proves it
+(`pcsa_cleanConeItems`). -/
 def CleanConeItems (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
@@ -83,7 +84,8 @@ theorem CleanConeItems_def (p : Params) : CleanConeItems p =
 
 /-- [pcsa34-r4.3 §5.4.2 (b)] The vote-time HEAD cone in every clean stage-1 run
 with `a < ⌈n/2⌉`: the cone of `CleanConeItems` at the labels `i` with
-`v_i ≤ b₀`. C8 reads only this form. OPEN: not proved. -/
+`v_i ≤ b₀`. C8 reads only this form. The Outage assembly proves it
+(`pcsa_cleanVoteConeItems`). -/
 def CleanVoteConeItems (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
@@ -214,7 +216,7 @@ theorem pcsa_ack_gateResult (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p 
 /-- [pcsa34-r4.3 §5.4.2 ARM-healthy (b)] In a clean prefix, every honest ack
 of a later label with `v_{s'} < b₀` extends the target of a PC held by an
 honest node, given pending-label dissemination at the vote cutoff (`hdis`)
-and the vote-time HEAD cone (OPEN: `hvc`). Dissemination puts the target
+and the vote-time HEAD cone (`hvc`). Dissemination puts the target
 below every honest HEAD of label `s + 1`; the vote-time cone carries it to
 the label of the ack. -/
 theorem pcsa_cleanArmAcks_of_vote (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
