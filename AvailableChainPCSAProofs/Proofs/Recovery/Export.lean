@@ -3,6 +3,7 @@ public import AvailableChainPCSAClaims.Claims.Recovery
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
 public import AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved
 public import AvailableChainPCSAProofs.Proofs.Recovery.AnchorBase
+public import AvailableChainPCSAProofs.Proofs.Recovery.FirstSlot
 
 public section
 
