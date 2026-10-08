@@ -28,6 +28,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.StepPC
 public import AvailableChainPCSAProofs.Proofs.Shared.Dissemination
 public import AvailableChainPCSAProofs.Proofs.Shared.CleanPC
 public import AvailableChainPCSAProofs.Proofs.Shared.VoterView
+public import AvailableChainPCSAProofs.Proofs.Clean.C9Stamp
 
 public import AvailableChainPCSAProofs.Proofs.Clean.BackwardInputs
 
@@ -1476,6 +1477,59 @@ theorem pcsa_clean_formation_leaseRead (p : Params) :
   have hrow' := pcsa_vote_locks_subset p _ u hrow
   rw [pcsa_pre_tick_storeAt E rho hC.base k y _ hk] at hrow'
   exact ⟨SA.voteTime p.toParams u - 1, row, sub_one_lt _, hrow', hrB⟩
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+/-- [pcsa34-r4.3 §5.3 part 4] Clean stamping: an honest proposal at `u` with `h_u ≥ q_N` is a
+PC stamped before `z_u` at every honest node, when `z_u ≤ b₀`. Predecessor C6 fixes every honest
+HEAD at `u` (`pcsa_clean_emitted_heads_equal`); the HEADs pass the early N count, the early view
+is below the proposal, the acks form a PC quorum, and the freeze collects it. -/
+theorem pcsa_clean_honestProposal_stamped (p : Params) :
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → QuarterCap p c rho → StageOneFrame p c E rho →
+      ∀ (u : Slot) (N : NamedProposal p.n), 0 < u → HonestNamedProposal p c E rho u N →
+        nQuorum p.n ≤ (awakeHonestLabel p c E rho u).card →
+        SA.freezeTime p.toParams u ≤ b₀ →
+        ∀ y ∈ rho.honest,
+          PCStampedBefore p c E rho y (SA.freezeTime p.toParams u) u N.erase := by
+  intro V _ _ In c m E rho b₀ ΔF hC hQc hF u N hu hN hQ hz
+  obtain ⟨s, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hu)
+  have hFault := pcsa_c9_faultsBelowQA_of_quarterCap rho hQc
+  have hp : (0 : Int) < p.Δ := p.deltaPos
+  have hds : SA.gateTime p.toParams s ≤ b₀ := by
+    apply le_trans _ hz
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + 3 * p.Δ
+    push_cast
+    linarith
+  have hez : SA.earlyTime p.toParams (s + 1) ≤ SA.freezeTime p.toParams (s + 1) := by
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + 2 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + 3 * p.Δ
+    linarith
+  have hve : SA.voteTime p.toParams (s + 1) ≤ SA.earlyTime p.toParams (s + 1) := by
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + 2 * p.Δ
+    linarith
+  have hec := hez.trans hz
+  have hvc := hve.trans hec
+  have hCI := (pcsa_clean_joint_invariant E rho hC hF hFault s hds).1
+  obtain ⟨hw, he⟩ := hN
+  have hHeads : ∀ x H, HonestHeadAt p c E rho x (s + 1) H → H = N.erase :=
+    fun x H hH => pcsa_clean_emitted_heads_equal E rho hC hF hFault s hCI hds N hw he x H hH
+  have hslot : N.erase.slot = s + 1 := pcsa_proposal_emitted_slot E rho _ (s + 1) N _ he
+  have hNc := pcsa_c9_early_N E rho hC.base hF hC.healthy (s + 1) N.erase hec
+    (hec.trans hC.cut.2) hQ hHeads
+  have hAck : ∀ y ∈ rho.honest, E.awake y (SA.earlyTime p.toParams (s + 1)) = true →
+      HonestAckAt p c E rho y (s + 1) N.erase := by
+    intro y hy haw
+    obtain ⟨nd, hnd, hn⟩ := hNc y hy
+    exact pcsa_c9_honestAck E rho (s + 1) N.erase y nd hy haw hnd hslot hn
+      (pcsa_c9_early_view_below E rho hC.base hF hFault hC.healthy s N hw he hvc y hy nd hnd)
+  have hBody : ∀ y ∈ rho.honest, N.erase ∈ (V2.D.Run.stateBefore E rho
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams (s + 1))) y).st.base.blocks :=
+    fun y hy => (pcsa_honest_proposal_before_vote E rho hC.base hF hC.healthy _ y hw hy (s + 1)
+      N he hvc _ (pcsa_c9_idxBefore_mono rho (hve.trans hez))).2
+  exact pcsa_c9_stamped E rho hC.base hF hC.healthy (s + 1) N.erase (Nat.succ_pos s) hslot hz
+    (hz.trans hC.cut.2) hBody (pcsa_c9_ack_quorum E rho hC.base (s + 1) N.erase hQ hAck)
 end AvailableChain.PCSA.Run
 
 end
