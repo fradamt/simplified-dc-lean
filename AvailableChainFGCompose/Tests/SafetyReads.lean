@@ -3,6 +3,7 @@ public import AvailableChainFGCompose.Statements.SafetyClaims
 public import AvailableChainFGCompose.Proofs.SafetyAccountable
 public import AvailableChainFGCompose.Proofs.SafetyCount
 public import AvailableChainFGCompose.Proofs.SafetyMonotone
+public import AvailableChainFGCompose.Proofs.SafetySlashing
 
 public section
 
@@ -65,15 +66,16 @@ example : ∀ (_C : FGCoreLaws R) (_O : FGSafetyOrderLaws R S)
   intro C O hs hnr
   exact safety_finalized_monotone R S E rho C O hs hnr
 
--- Type check safety_honest_never_slashed. No proof is declared.
-#check (∀ (_C : FGCoreLaws R) (_W : FGSafetyWireLaws S)
+-- safety_honest_never_slashed has the provisional field type.
+example : (∀ (_C : FGCoreLaws R) (_W : FGSafetyWireLaws S)
     (_L : FGSafetyStoreLaws R S H f Good)
     (_J : FGSafetyClientLaws S Ef cfg)
     (linked : P.Label → Prop) (_hfg : linked S.fgLabel)
     (I : Gen.V2.Duty.SlashingInterface (V := V) P)
     (_hi : safetySlashesRead R S E rho I)
     (_hu : V2.D.UnforgeableSignatures E rho) (_hl : V2.D.Linked linked rho),
-    Gen.V2.Duty.HonestNeverSlashed I rho)
+    Gen.V2.Duty.HonestNeverSlashed I rho) :=
+  safety_honest_never_slashed R S Ef H f cfg E rho Good
 
 end AvailableChain.FGCompose
 end

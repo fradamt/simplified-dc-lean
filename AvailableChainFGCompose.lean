@@ -11,3 +11,4 @@ public import AvailableChainFGCompose.Proofs.SafetyAccountable
 public import AvailableChainFGCompose.Proofs.SafetyClient
 public import AvailableChainFGCompose.Proofs.SafetyCount
 public import AvailableChainFGCompose.Proofs.SafetyMonotone
+public import AvailableChainFGCompose.Proofs.SafetySlashing
