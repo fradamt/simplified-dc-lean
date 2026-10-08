@@ -195,6 +195,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.PendingGates
 
 public import AvailableChainPCSAProofs.Proofs.Clean.StoreCutFacts
 
+public import AvailableChainPCSAProofs.Proofs.Clean.BlockReceipt
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -1211,6 +1213,13 @@ theorem pcsa_clean_result_below_post_gate (E : Generic.Env V)
     rw [Function.update_self]
     exact pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k x) x _
   rwa [hpost]
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+/-- The clean block-receipt claim follows from exact acceptance and strict relay. -/
+theorem pcsa_clean_block_receipt (p : Params) : CleanBlockReceiptClaim p := by
+  intro V _ _ In c m E rho cut ΔF h _ hF x hx T B _ hc hB y hy t ht
+  exact pcsa_body_storeAt_relay E rho h.base hF h.healthy x y hx hy T t B hc ht hB
 end AvailableChain.PCSA.Run
 
 end

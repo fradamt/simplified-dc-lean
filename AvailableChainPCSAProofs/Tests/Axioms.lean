@@ -856,3 +856,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_storeAt_timed_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_result_below_post_gate
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_below_record
+
+-- C6 BlockReceipt.
+#print axioms AvailableChain.PCSA.Run.pcsa_body_storeAt_relay
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_block_receipt

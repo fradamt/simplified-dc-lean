@@ -1414,3 +1414,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Exact lock gate origins and full-cut S order prove LeaseBelowRecordClaim,
 the M5 store fact used by the outage assembly.
 Validation and current claim status are recorded in log.md and state.md.
+
+### BlockReceipt
+
+Exact acceptance times and strict relay prove CleanBlockReceiptClaim
+without changing its inclusive source or after-ticks target readers.
+Validation and current claim status are recorded in log.md and state.md.
