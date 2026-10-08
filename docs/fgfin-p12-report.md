@@ -99,4 +99,3 @@ The GLY check inherits `LC_ALL=C`. The Compose driver runs its full controls.
 
 The explicit axiom-line check passes for all 31 public names. Coverage adds
 31 names and removes none. `git diff --check` passes. No push.
-
