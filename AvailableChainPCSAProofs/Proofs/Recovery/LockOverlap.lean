@@ -247,7 +247,7 @@ theorem recovery_survivor_relay_pc_compatible (E : Generic.Env V)
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hD
   have hge : rankAtLeast D
       (leaseRank (V2.D.Run.stateBefore E rho i x).st row.1) = true := by
-    simpa only [rankAtLeast, hslot, htarget] using hrank
+    simpa only [rankAtLeast_def, hslot, htarget] using hrank
   rw [← htarget]
   exact recovery_survivor_received_pc_compatible E rho i j _ x row hsurv hlo hhi D hD hge
 
@@ -280,7 +280,7 @@ theorem recovery_write_relay_pc_compatible (E : Generic.Env V)
   rw [htime, ← V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hs hnr hk] at hD
   rw [clockPre_pcs] at hwrite
   have hc := (leaseWriteOK_iff _ _ _).mp hwrite D hD
-    (by simpa only [rankAtLeast, hslot, htarget] using hrank)
+    (by simpa only [rankAtLeast_def, hslot, htarget] using hrank)
   change Block.compatible pc.target B = true
   simpa only [htarget] using hc
 
