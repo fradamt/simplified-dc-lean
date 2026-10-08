@@ -280,7 +280,8 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   rows and ranks across receipts and clocks outside gates. It locates the gate
   at the start of the final uninterrupted interval of a row and its rank.
   The derived write witness keeps that interval, the fresh gate, the current
-  result, the preceding saved window, the write rank, and a deadline bound.
+  result, the preceding saved window, the write rank, and the exact deadline.
+  `recovery_live_lock_last_write` supplies it at an actual post-clock read.
 - PC-SA recovery anchor (2026-10-08). `Recovery/AnchorBase` bounds the
   proposer base from one node's anchor stamp and the C8 strong-output bound.
   `Recovery/FirstSlot` proves the first formation slot and its separate

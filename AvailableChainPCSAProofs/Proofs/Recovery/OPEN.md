@@ -51,12 +51,14 @@ compatible target.
 stored row and the schedule. It derives an actual fresh gate, the current
 result, the preceding saved window, the checked write rank, and an
 uninterrupted interval of that exact row and rank. It proves the deadline
-bound `row.2.2 ≤ SA.gateTime p.toParams s + pcsaL p`.
+equality `row.2.2 = SA.gateTime p.toParams s + pcsaL p`.
+`recovery_live_lock_last_write` derives this witness at the actual post-clock
+read index.
 
-This is partial work on recovery-plan step 1. The exact deadline equality,
-the exclusion of every later successful renewal, and the complete
-post-clock last-write interface remain open. The witness is not a claim
-premise. It does not prove surviving HEAD coverage or either long-slot F4.
+The witness also exposes every saved result in the full k-window. The exact
+row and rank remain present at every event state after the selected gate.
+An explicit no-later-successful-renewal corollary remains open in step 1.
+The witness is not a claim premise. It does not prove surviving HEAD coverage or either long-slot F4.
 
 Steps 2–6 remain open. No long transport structure, Assembly OPEN transport
 parameters, long-slot export kernel, or `pcsa_recovery_firstSlot_long`

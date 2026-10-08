@@ -1509,3 +1509,4 @@ end
 #print axioms AvailableChain.PCSA.recovery_clock_change_window
 #print axioms AvailableChain.PCSA.Run.recovery_lock_deadline_bound
 #print axioms AvailableChain.PCSA.Run.recovery_lock_write_witness
+#print axioms AvailableChain.PCSA.Run.recovery_live_lock_last_write

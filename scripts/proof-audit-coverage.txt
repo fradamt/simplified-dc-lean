@@ -6989,6 +6989,7 @@
             'AvailableChain.PCSA.slow_lock_oldest_label',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockHistory': (
+            'AvailableChain.PCSA.Run.recovery_live_lock_last_write',
             'AvailableChain.PCSA.Run.recovery_lock_deadline_bound',
             'AvailableChain.PCSA.Run.recovery_lock_last_change',
             'AvailableChain.PCSA.Run.recovery_lock_write_witness',
