@@ -792,3 +792,12 @@ end
 -- C6 RunLockKeep.
 #print axioms AvailableChain.PCSA.pcsa_release_label_before_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_keep_of_chain
+
+-- C6 JointAux.
+#print axioms AvailableChain.PCSA.pcsa_gate_time_mono
+#print axioms AvailableChain.PCSA.Run.CleanAckCoverageAt
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_coverage_zero
+#print axioms AvailableChain.PCSA.Run.pcsa_heads_cover_past_results
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_joint_step
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_joint_invariant
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_invariant

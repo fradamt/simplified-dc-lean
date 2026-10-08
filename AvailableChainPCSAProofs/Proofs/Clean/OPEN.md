@@ -1361,3 +1361,10 @@ Validation and current claim status are recorded in log.md and state.md.
 Deliveries preserve compatible rows; release counts contain only faulty
 seats; expiry and gate renewal preserve every live target.
 Validation and current claim status are recorded in log.md and state.md.
+
+### JointAux
+
+The successor record and earlier-ack coverage are constructed together.
+Label-zero initialization closes the full CleanInvariantClaim with only
+standard permitted axioms.
+Validation and current claim status are recorded in log.md and state.md.

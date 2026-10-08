@@ -180,6 +180,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.GateLockRetention
 
 public import AvailableChainPCSAProofs.Proofs.Clean.RunLockKeep
 
+public import AvailableChainPCSAProofs.Proofs.Clean.JointAux
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -652,6 +654,160 @@ theorem pcsa_clean_headsEqual_step (E : Generic.Env V)
     subst i
     obtain ⟨hx, N, hN, he⟩ := pcsa_honest_proposal_named E rho (s + 1) P hP
     exact (pcsa_clean_emitted_heads_equal E rho h hF hFault s hCI hprev N hx he x H hH).trans hN
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+/-- The C6 successor record and earlier-ack coverage are constructed together. -/
+theorem pcsa_clean_joint_step (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (s : Slot) (hCI : CleanInvariantAt p c E rho s)
+    (hAux : CleanAckCoverageAt p c E rho s) (hc : SA.gateTime p.toParams (s + 1) ≤ cut) :
+    CleanInvariantAt p c E rho (s + 1) ∧ CleanAckCoverageAt p c E rho (s + 1) := by
+  have hheads := pcsa_clean_headsAbove_step E rho h hF s hCI hc
+  have hchain := pcsa_clean_resultsChain_step E rho h hF s hCI hc
+  have hequal := pcsa_clean_headsEqual_step E rho h hF hFault s hCI hc
+  have hpast := pcsa_heads_cover_past_results E rho h hF (s + 1) hc hchain hheads
+  have hDresults : ∀ i k, i < k → k ≤ s + 1 → ∀ y B, HonestAckAt p c E rho y i B →
+      ∀ x ∈ rho.honest, ∀ X, gateResultAt p c E rho x k = some (some X) → Block.Preceq B X := by
+    intro i k hik hk y B hB x hx X hX
+    by_cases hold : k ≤ s
+    · exact hAux.results i k hik hold y B hB x hx X hX
+    · have he : k = s + 1 := Nat.le_antisymm hk (Nat.succ_le_of_lt (Nat.lt_of_not_ge hold))
+      subst k
+      exact pcsa_clean_result_covers_heads E rho h hF x hx (s + 1) B X hc
+        (fun z H hH => hAux.heads i (s + 1) hik (le_refl _) y B hB z H hH) hX
+  have hAckResults := pcsa_ack_result_compatible E rho h hF hFault (s + 1) hc hpast hDresults
+  have hroots : ∀ x ∈ rho.honest, ∀ R,
+      liveRootAt p c E rho x (s + 1 + 1) = some R →
+      ∀ y ∈ rho.honest, ∀ X, gateResultAt p c E rho y (s + 1) = some (some X) →
+        Block.Compatible R X := by
+    intro x hx R hR y hy X hX
+    rcases pcsa_next_root_source E rho h.base hF hFault x hx (s + 1) R hR with
+      hgen | ⟨z, i, hAck, ht⟩ | ⟨i, Y, hi, hY, hRY⟩
+    · rw [hgen]
+      exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_genesis_preceq X))
+    · exact hAckResults i (pcsa_early_label_before_vote p i (s + 1) ht) z R hAck
+        (s + 1) (le_refl _) y hy X hX
+    · exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_preceq_trans hRY
+        ((hchain x hx y hy i (s + 1) Y X hi.le (le_refl _) hY hX).1 hi)))
+  have hDheads : ∀ i k, i < k → k ≤ s + 1 + 1 → ∀ y B, HonestAckAt p c E rho y i B →
+      ∀ x H, HonestHeadAt p c E rho x k H → Block.Preceq B H := by
+    intro i k hik hk y B hB x H hH
+    by_cases hold : k ≤ s + 1
+    · exact hAux.heads i k hik hold y B hB x H hH
+    · have he : k = s + 1 + 1 := Nat.le_antisymm hk
+        (Nat.succ_le_of_lt (Nat.lt_of_not_ge hold))
+      subst k
+      have hi : i ≤ s + 1 := Nat.le_of_lt_succ hik
+      rcases hi.lt_or_eq with hi | hi
+      · obtain ⟨D, hD⟩ := pcsa_clean_result_exists E rho h hF y hB.1 (s + 1) hc
+        have hBD := hDresults i (s + 1) hi (le_refl _) y B hB y hB.1 D hD
+        have hDH := pcsa_next_head_above_result_of_root E rho h.base hF h.healthy y x hB.1
+          (s + 1) D H hc hD hH (fun R hR => hroots x hH.1 R hR y hB.1 D hD)
+        exact Gen.Pure.block_preceq_trans hBD hDH
+      · subst i
+        exact pcsa_ack_dissemination_step E rho h hF hFault (s + 1) hc
+          (hpast (s + 1) (le_refl _))
+          (fun i hi y B hB x H hH => hAux.heads i (s + 1) hi (le_refl _) y B hB x H hH)
+          y x B H hB hH
+  have hresultCompatible : ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ i i' X Y,
+      i ≤ s + 1 → i' ≤ s + 1 → gateResultAt p c E rho x i = some (some X) →
+      gateResultAt p c E rho y i' = some (some Y) → Block.Compatible X Y := by
+    intro x hx y hy i i' X Y hi hi' hX hY
+    rcases le_total i i' with hle | hle
+    · rcases hle.lt_or_eq with hlt | he
+      · exact Bool.or_eq_true_iff.mpr (Or.inl ((hchain x hx y hy i i' X Y hle hi' hX hY).1 hlt))
+      · exact (hchain x hx y hy i i' X Y hle hi' hX hY).2 he
+    · rcases hle.lt_or_eq with hlt | he
+      · exact Bool.or_eq_true_iff.mpr (Or.inr ((hchain y hy x hx i' i Y X hle hi hY hX).1 hlt))
+      · exact (hchain x hx y hy i i' X Y (Nat.le_of_eq he.symm) hi' hX hY).2 he.symm
+  refine ⟨{
+    resultsChain := hchain
+    headsAbove := hheads
+    headsEqual := hequal
+    pcAck := ?_
+    pcChain := ?_
+    pcResults := ?_
+    leaseBelowResult := ?_
+    leaseCompatible := ?_
+    lockWriteAll := ?_
+    lockKeep := ?_
+    recordOrigin := ?_
+    recordMono := ?_
+    recordCompatible := ?_
+    roots := hroots }, ⟨hDheads, hDresults⟩⟩
+  · intro x hx t C ht hC
+    exact (pcsa_pc_storeAt_ack_slot E rho h.base hFault (s + 1) x hx t ht C hC).2
+  · intro x hx y hy t t' C D ht ht' hC hD
+    exact pcsa_pc_storeAt_chain E rho h.base hF hFault (s + 1)
+      (fun i i' hi hi' y A hA z H hH => hAux.heads i i' hi hi' y A hA z H hH)
+      x y hx hy t t' ht ht' C D hC hD
+  · intro x hx y hy t C i X ht hC hi hX
+    exact pcsa_pc_storeAt_result E rho h hF hFault (s + 1) hc hpast hDresults
+      x y hx hy t ht C hC i hi X hX
+  · intro x hx t row ht hr
+    obtain ⟨i, X, hi, hX, hb, _⟩ := pcsa_lock_storeAt_origin E rho h.base x t (s + 1) ht row hr
+    exact ⟨x, hx, i, X, hi, hX, hb⟩
+  · intro x hx t B C ht hLive hC
+    obtain ⟨row, hr, he, _⟩ := hLive
+    obtain ⟨i, X, hi, hX, hb, _⟩ := pcsa_lock_storeAt_origin E rho h.base x t (s + 1) ht row hr
+    obtain ⟨hj, y, ha⟩ := pcsa_pc_storeAt_ack_slot E rho h.base hFault (s + 1) x hx t ht C hC
+    have hc := hAckResults C.slot hj y C.target ha i hi x hx X hX
+    have hBX : Block.Preceq B X := he ▸ hb
+    rcases Bool.or_eq_true_iff.mp hc with hCX | hXC
+    · exact Gen.Pure.block_compatible_of_common hBX hCX
+    · exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_preceq_trans hBX hXC))
+  · intro x hx i st X b hi hst hX hb
+    exact pcsa_lock_write_all_of_ack_results E rho h.base hFault (s + 1) hAckResults
+      x hx i hi st X b hst hX hb
+  · intro x hx k e he ht row hr hlive
+    exact pcsa_lock_keep_of_chain E rho h.base hF hFault (s + 1) hpast hAckResults
+      x hx k e he ht row hr hlive
+  · intro x hx t ht
+    rcases pcsa_record_storeAt_origin E rho h.base hF x hx t (s + 1) ht with hz | hresult
+    · left
+      have hf : (storeAt p c E rho x t).fg.F = .genesis := by
+        rw [storeAt_def, V2.D.Engine.readAt_eq_stateBefore h.base.valid.toScheduleWellFormed]
+        exact (hF x hx _).1
+      rw [hz, hf]
+      rfl
+    · exact Or.inr hresult
+  · intro x hx t t' htt ht'
+    exact pcsa_record_storeAt_mono E rho h.base hF (s + 1) x hx
+      (fun i i' X Y hi hi' hX hY => (hchain x hx x hx i i' X Y hi.le hi' hX hY).1 hi)
+      t t' htt ht'
+  · intro x hx y hy t t' ht ht'
+    exact pcsa_record_storeAt_compatible E rho h.base hF (s + 1) hresultCompatible
+      x y hx hy t t' ht ht'
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+/-- The stage-one Clean invariant and ack coverage hold by joint induction over gate labels. -/
+theorem pcsa_clean_joint_invariant (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) :
+    ∀ j, SA.gateTime p.toParams j ≤ cut →
+      CleanInvariantAt p c E rho j ∧ CleanAckCoverageAt p c E rho j := by
+  intro j
+  induction j with
+  | zero =>
+    intro hc
+    exact ⟨pcsa_clean_invariant_zero E rho h hFault hF hc,
+      pcsa_ack_coverage_zero E rho h.base hF hFault⟩
+  | succ j ih =>
+    intro hc
+    obtain ⟨hCI, hAux⟩ := ih ((pcsa_gate_time_mono p (Nat.le_succ j)).trans hc)
+    exact pcsa_clean_joint_step E rho h hF hFault j hCI hAux hc
+/-- C6: the full stage-one Clean invariant holds at every gate inside the healthy prefix. -/
+theorem pcsa_clean_invariant (p : Params) : CleanInvariantClaim p := by
+  intro V _ _ In c m E rho cut ΔF h hFault hF j hc
+  exact (pcsa_clean_joint_invariant E rho h hF hFault j hc).1
 end AvailableChain.PCSA.Run
 
 end
