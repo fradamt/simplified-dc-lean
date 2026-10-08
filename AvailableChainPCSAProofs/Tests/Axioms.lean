@@ -79,6 +79,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Shared.VoterView
 public import AvailableChainPCSAProofs.Proofs.Shared.LockRankSafe
 public import AvailableChainPCSAProofs.Proofs.Shared.RestartSeed
+public import AvailableChainPCSAProofs.Proofs.Shared.RestartSuffix
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClientLaws
 
@@ -1613,3 +1614,21 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_result_compatible_from
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_chain_from
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_result_from
+#print axioms AvailableChain.PCSA.Run.RecoveredSuffixInvariant
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_proposer_root_compatible
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_proposer_head_above_result
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_emitted_heads_equal
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_joint_step
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_state_from
+#print axioms AvailableChain.PCSA.Run.pcsa_record_stateBefore_origin_from
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_tick_label_lt
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_tick_exists
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_record_origin_index
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_record_step_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_record_indices_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_lock_below_gate_result
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_head_above_past
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_ack_order
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_ack_result
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_pc_pair
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_suffix_invariant

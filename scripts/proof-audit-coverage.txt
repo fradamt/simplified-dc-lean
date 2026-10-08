@@ -6423,6 +6423,20 @@
             'AvailableChain.PCSA.Run.pcsa_pc_storeAt_chain_from',
             'AvailableChain.PCSA.Run.pcsa_pc_storeAt_result_from',
         ),
+        'AvailableChainPCSAProofs.Proofs.Clean.RestartOutputs': (
+            'AvailableChain.PCSA.Run.pcsa_gate_tick_exists',
+            'AvailableChain.PCSA.Run.pcsa_gate_tick_label_lt',
+            'AvailableChain.PCSA.Run.pcsa_record_stateBefore_origin_from',
+            'AvailableChain.PCSA.Run.pcsa_restart_ack_order',
+            'AvailableChain.PCSA.Run.pcsa_restart_ack_result',
+            'AvailableChain.PCSA.Run.pcsa_restart_head_above_past',
+            'AvailableChain.PCSA.Run.pcsa_restart_lock_below_gate_result',
+            'AvailableChain.PCSA.Run.pcsa_restart_pc_pair',
+            'AvailableChain.PCSA.Run.pcsa_restart_record_indices_mono',
+            'AvailableChain.PCSA.Run.pcsa_restart_record_origin_index',
+            'AvailableChain.PCSA.Run.pcsa_restart_record_step_mono',
+            'AvailableChain.PCSA.Run.pcsa_restart_suffix_invariant',
+        ),
         'AvailableChainPCSAProofs.Proofs.Clean.RestartRecord': (
             'AvailableChain.PCSA.Run.pcsa_restart_post_gate_record',
             'AvailableChain.PCSA.pcsa_clock_gate_record_eq_result',
@@ -6440,6 +6454,13 @@
             'AvailableChain.PCSA.Run.CleanStateFrom',
             'AvailableChain.PCSA.Run.pcsa_restart_pre_vote_lock_below_result',
             'AvailableChain.PCSA.Run.pcsa_restart_state_base',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.RestartStep': (
+            'AvailableChain.PCSA.Run.pcsa_restart_emitted_heads_equal',
+            'AvailableChain.PCSA.Run.pcsa_restart_joint_step',
+            'AvailableChain.PCSA.Run.pcsa_restart_proposer_head_above_result',
+            'AvailableChain.PCSA.Run.pcsa_restart_proposer_root_compatible',
+            'AvailableChain.PCSA.Run.pcsa_restart_state_from',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.ResultPaths': (
             'AvailableChain.PCSA.Run.pcsa_result_early_support',
@@ -7330,6 +7351,9 @@
             'AvailableChain.PCSA.Run.pcsa_restart_proposerPC_slot',
             'AvailableChain.PCSA.Run.pcsa_restart_snapshot_held',
             'AvailableChain.PCSA.Run.pcsa_stamped_held',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Shared.RestartSuffix': (
+            'AvailableChain.PCSA.Run.RecoveredSuffixInvariant',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.RunEvidence': (
             'AvailableChain.PCSA.Run.HeadAuthentic_def',

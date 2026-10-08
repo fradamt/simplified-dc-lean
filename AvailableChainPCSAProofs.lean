@@ -88,6 +88,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.SlotOrder
 public import AvailableChainPCSAProofs.Proofs.Shared.LockRankSafe
 public import AvailableChainPCSAProofs.Proofs.Shared.StampKeep
 public import AvailableChainPCSAProofs.Proofs.Shared.RestartSeed
+public import AvailableChainPCSAProofs.Proofs.Shared.RestartSuffix
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
