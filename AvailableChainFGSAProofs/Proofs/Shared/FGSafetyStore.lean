@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGCompose.Statements.SafetyStore
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 
 public section

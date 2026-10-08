@@ -1,7 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.SafetyStore
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
-public import AvailableChainFGSARun.Proofs.NamedOrigins
 public import AvailableChainFGSARun.Proofs.Roots
 
 public section

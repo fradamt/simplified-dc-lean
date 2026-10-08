@@ -59,7 +59,7 @@ theorem OneAckPerSlotClaim_def (p : Params) : OneAckPerSlotClaim p =
 `q_A` honest seats of slot `s` emit acks on one root at `e_s` and delivery is
 healthy up to `z_s` (CLEAN, `Clean₂`), every honest node holds a PC of slot
 `s` on that root after the ticks at `z_s` (so it is in every frozen view of
-slot `s + 1`).
+slot `s + 1`). The slot is positive: genesis needs no PC.
 
 Premise `StageOneFrame` (plan C3; pcsa34-r4 5.3 (F7), stage 1): the target
 must stay `F`-compatible at every honest node through `z_s`, also before
@@ -73,7 +73,7 @@ def PCDisseminationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
     Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
-    ∀ (s : Slot) (r : BlockId), SA.freezeTime p.toParams s ≤ b₀ →
+    ∀ (s : Slot) (r : BlockId), 0 < s → SA.freezeTime p.toParams s ≤ b₀ →
       (∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧ ∀ i ∈ Q,
         rho.seatOf (.base (.ack s)) i ∈ rho.honest ∧
         V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i) (ackObj p s i r)
@@ -85,7 +85,7 @@ theorem PCDisseminationClaim_def (p : Params) : PCDisseminationClaim p =
     (∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
       Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
-      ∀ (s : Slot) (r : BlockId), SA.freezeTime p.toParams s ≤ b₀ →
+      ∀ (s : Slot) (r : BlockId), 0 < s → SA.freezeTime p.toParams s ≤ b₀ →
         (∃ Q : Finset (Fin p.n), pcQuorum p.n ≤ Q.card ∧ ∀ i ∈ Q,
           rho.seatOf (.base (.ack s)) i ∈ rho.honest ∧
           V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i) (ackObj p s i r)
