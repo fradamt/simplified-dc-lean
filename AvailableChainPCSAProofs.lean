@@ -1,4 +1,8 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockDomain
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockCounts
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockBatch
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockFollow
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockView
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOverlap
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockTransport

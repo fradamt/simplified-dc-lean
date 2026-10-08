@@ -685,3 +685,9 @@ and only the instance swap is atomic.
   relays its rank before the freeze. `Recovery/LockView` retains that rank
   in later voter candidates and proves K for pending writes and surviving
   rows, including PCs carried by proposals. Existing lock signatures stay fixed.
+
+- PC-SA surviving-lock coverage (2026-10-08). `Recovery/LockDomain` proves
+  the cumulative resolution domain. `LockCounts` transfers a saved gate
+  result to the actual next voter pool. `LockBatch` gives later honest
+  batch counts. `LockFollow` proves F′ from the last write and exact-row
+  survival, then derives preceding HEAD coverage from a live read.

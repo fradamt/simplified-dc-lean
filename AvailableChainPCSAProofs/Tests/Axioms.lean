@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockFollow
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockView
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOverlap
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockRank
@@ -1555,3 +1556,23 @@ end
 #print axioms AvailableChain.PCSA.Run.recovery_voter_key_before_vote
 #print axioms AvailableChain.PCSA.Run.recovery_write_voter_compatible
 #print axioms AvailableChain.PCSA.Run.recovery_survivor_voter_compatible
+
+-- Long recovery: actual pools and surviving-lock HEAD coverage.
+#print axioms AvailableChain.PCSA.recovery_clock_headDomain
+#print axioms AvailableChain.PCSA.Run.recovery_headDomain_stateBefore_none
+#print axioms AvailableChain.PCSA.recovery_clock_confirmation_eq_pre
+#print axioms AvailableChain.PCSA.Run.recovery_postClock_store
+#print axioms AvailableChain.PCSA.Run.recovery_gate_result_source
+#print axioms AvailableChain.PCSA.Run.recovery_headSupport_subset
+#print axioms AvailableChain.PCSA.Run.recovery_read_count_domain
+#print axioms AvailableChain.PCSA.Run.recovery_resolved_support
+#print axioms AvailableChain.PCSA.Run.recovery_gate_prefix_next_head
+#print axioms AvailableChain.PCSA.recovery_active_resolution
+#print axioms AvailableChain.PCSA.recovery_voter_support_slot
+#print axioms AvailableChain.PCSA.recovery_batch_scores
+#print axioms AvailableChain.PCSA.Run.recovery_honest_head_exists
+#print axioms AvailableChain.PCSA.Run.recovery_honest_seats
+#print axioms AvailableChain.PCSA.Run.recovery_voter_batch_path
+#print axioms AvailableChain.PCSA.Run.recovery_voter_root_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_lock_follow
+#print axioms AvailableChain.PCSA.Run.recovery_live_lock_preceding_heads
