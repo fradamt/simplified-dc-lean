@@ -62,6 +62,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
+public import AvailableChainPCSAProofs.Proofs.Shared.VoterView
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope
 
 public section
@@ -638,6 +639,18 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_block_isNonRow
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_from_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_early
+#print axioms AvailableChain.PCSA.pcsa_view_of_frozen_receipt
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_pc_origin_valid
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_pc_origin_read_valid
+#print axioms AvailableChain.PCSA.Run.pcsa_metadata_scope
+#print axioms AvailableChain.PCSA.Run.pcsa_metadata_read_scope
+#print axioms AvailableChain.PCSA.Run.pcsa_delivered_proposal_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_metadata_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_carried_pc_unique
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_key_before_proposal
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_view_of_delivery
+#print axioms AvailableChain.PCSA.Run.pcsa_postClock_exists
+#print axioms AvailableChain.PCSA.Run.pcsa_commonView_of_delivery
 
 #print axioms AvailableChain.PCSA.Run.pcsa_heldPCRelay_of
 #print axioms AvailableChain.PCSA.Run.pcsa_healthy_block_receipt
