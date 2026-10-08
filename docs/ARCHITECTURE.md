@@ -671,3 +671,7 @@ and only the instance swap is atomic.
   1aa6885; `docs/PHASE2A-REPORT.md`);
   fgsa-composition-t7-t1 (r11 adopted, 2ec3003; in
   `~/worktrees/available-chain-fgsa-plan`).
+
+- PC-SA long-break transport (2026-10-08). `Recovery/LockTransport` holds
+  lane-neutral receipt and pool facts from label `g`. `Assembly/Recovery`
+  names the OPEN lane suppliers. It does not assume surviving-lock coverage.

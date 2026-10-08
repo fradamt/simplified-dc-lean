@@ -131,5 +131,77 @@ theorem pcsa_recovery_firstSlot_short [Fintype V] (E : Generic.Env V)
     h.order h.window h.firstAfterGST h.firstProposer h.horizon
     hStamp hArm hSaved
 
+/-- OPEN lane suppliers for the long-break receipt boundary. Existing clean
+exports require a healthy prefix and do not supply these recovery statements.
+In particular, OPEN_sameLabel must include `t_g < GST ≤ v_g`. -/
+theorem pcsa_recovery_lock_transport (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (g : Slot)
+    (OPEN_sameLabel : ∀ r, g ≤ r → SA.gateTime p.toParams r ≤ rho.horizon →
+    ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ X Y,
+      gateResultAt p c E rho x r = some (some X) →
+      gateResultAt p c E rho y r = some (some Y) → Block.Compatible X Y)
+    (OPEN_earlyForward : ∀ r, g ≤ r → SA.gateTime p.toParams r ≤ rho.horizon →
+    ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ src dst,
+      pcsa_postClock E rho x (SA.gateTime p.toParams r) = some src →
+      pcsa_postClock E rho y (SA.voteTime p.toParams (r + 1)) = some dst →
+      ∀ o ∈ GridCO.earlyVotes p.toParams.engine (actView src.st) r,
+      ∀ i, GridCO.headSeat? o = some i → ∀ H,
+        GridCO.resolvedHead? (actView src.st) o = some H →
+        ((o ∈ headSupport p dst.st (r + 1) ∧
+          GridCO.resolvedHead? dst.st.base o = some H ∧
+          GridCO.stampVote dst.st.base o < SA.freezeTime p.toParams r) ∨
+          GridCO.equivocates (headVotes p dst.st (r + 1)) i = true) ∧
+        H ∈ dst.st.base.blocks ∧
+        GridCO.stampBlock dst.st.base H < SA.freezeTime p.toParams r ∧
+        (∀ B, Block.Preceq B H → B ∈ erasedList dst.st
+          (KitFG.storeFrameView (FGSA.heightView p) dst.st.fg (voterBlocks p dst.st (r + 1)))))
+    (OPEN_voterBackward : ∀ r, g ≤ r → SA.gateTime p.toParams r ≤ rho.horizon →
+    ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ src dst,
+      pcsa_postClock E rho x (SA.gateTime p.toParams r) = some src →
+      pcsa_postClock E rho y (SA.voteTime p.toParams (r + 1)) = some dst →
+      ∀ o ∈ headVotes p dst.st (r + 1), ∀ i, GridCO.headSeat? o = some i →
+        o ∈ GridCO.lateVotes p.toParams.engine (actView src.st) r ∨
+        GridCO.equivocates (GridCO.lateVotes p.toParams.engine (actView src.st) r) i = true)
+    (OPEN_pcReceipt : ∀ t, E.t_GST ≤ t → t + p.Δ ≤ rho.horizon →
+    ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ pc,
+      pc ∈ (V2.D.Run.stateBeforeTime E rho t x).st.pcs →
+      KeyHeld (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st pc.slot pc.target ∧
+      pc.target ∈ (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st.base.blocks)
+    (OPEN_honestVoterInputs : ∀ r, g ≤ r → ∀ x H, HonestHeadAt p c E rho x r H →
+    ∀ i : Fin p.n, rho.seatOf (.base (.head r)) i = x →
+    ∀ y ∈ rho.honest, ∀ dst,
+      pcsa_postClock E rho y (SA.voteTime p.toParams (r + 1)) = some dst →
+      let o : GridCO.Wire p.n .root := ⟨.seat r i, .head H.root⟩
+      o ∈ headSupport p dst.st (r + 1) ∧
+      o ∈ headVotes p dst.st (r + 1) ∧
+      GridCO.equivocates (headVotes p dst.st (r + 1)) i = false ∧
+      GridCO.resolvedHead? dst.st.base o = some H ∧
+      (∀ B, Block.Preceq B H → B ∈ erasedList dst.st
+        (KitFG.storeFrameView (FGSA.heightView p) dst.st.fg (voterBlocks p dst.st (r + 1)))))
+    (OPEN_honestProposerInputs : ∀ r, g ≤ r → ∀ x H, HonestHeadAt p c E rho x r H →
+    ∀ i : Fin p.n, rho.seatOf (.base (.head r)) i = x →
+    ∀ y ∈ rho.honest, ∀ dst,
+      pcsa_postClock E rho y (SA.proposalTime p.toParams (r + 1)) = some dst →
+      let o : GridCO.Wire p.n .root := ⟨.seat r i, .head H.root⟩
+      o ∈ proposerSupport dst.st (r + 1) ∧
+      o ∈ proposerVotes dst.st (r + 1) ∧
+      GridCO.equivocates (proposerVotes dst.st (r + 1)) i = false ∧
+      GridCO.resolvedHead? dst.st.base o = some H ∧
+      (∀ B, Block.Preceq B H → B ∈ erasedList dst.st (fullTree p dst.st)))
+    (OPEN_rootResolution : ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ a b : Nat, ∀ X Y,
+    X ∈ (V2.D.Run.stateBefore E rho a x).st.base.blocks →
+    Y ∈ (V2.D.Run.stateBefore E rho b y).st.base.blocks →
+    X.root = Y.root → X = Y)
+    : RecoveryLockTransport p c E rho g := by
+  exact {
+    sameLabel := OPEN_sameLabel
+    earlyForward := OPEN_earlyForward
+    voterBackward := OPEN_voterBackward
+    pcReceipt := OPEN_pcReceipt
+    honestVoterInputs := OPEN_honestVoterInputs
+    honestProposerInputs := OPEN_honestProposerInputs
+    rootResolution := OPEN_rootResolution
+  }
+
 end AvailableChain.PCSA.Run
 end

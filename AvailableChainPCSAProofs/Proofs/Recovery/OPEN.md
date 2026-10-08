@@ -61,7 +61,15 @@ row and rank remain present at every event state after the selected gate.
 renewal in this interval. It uses the actual fresh-gate and slow-write tests.
 The witness is not a claim premise. It does not prove surviving HEAD coverage or either long-slot F4.
 
-Steps 2–6 remain open. No long transport structure, Assembly OPEN transport
-parameters, long-slot export kernel, or `pcsa_recovery_firstSlot_long`
-wrapper has been added. The required transport boundary remains label `g`,
-including `t_g < GST ≤ v_g`; it has not been moved to `g + 1`.
+Step 2 is implemented as the lane-neutral `RecoveryLockTransport` structure
+and the Assembly constructor `pcsa_recovery_lock_transport`. The constructor
+has seven named OPEN parameters. Existing Clean exports require a healthy
+prefix, so none supplies the required recovery statement on this branch.
+`OPEN_sameLabel` includes label `g`, also when `t_g < GST ≤ v_g`.
+The other fields are `OPEN_earlyForward`, `OPEN_voterBackward`,
+`OPEN_pcReceipt`, `OPEN_honestVoterInputs`, `OPEN_honestProposerInputs`, and
+`OPEN_rootResolution`. The structure and the constructor state each field in
+full. They do not assume lock coverage, root compatibility, or walk dominance.
+
+Steps 3–6 remain open. No long-slot export kernel or
+`pcsa_recovery_firstSlot_long` wrapper has been added.

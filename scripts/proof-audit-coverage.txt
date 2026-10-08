@@ -5742,6 +5742,7 @@
             'AvailableChain.PCSA.Run.pcsa_recovery_anchor_from_shortBreak',
             'AvailableChain.PCSA.Run.pcsa_recovery_cleanSaved_from_anchor',
             'AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_short',
+            'AvailableChain.PCSA.Run.pcsa_recovery_lock_transport',
             'AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci',
             'AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci_pc',
             'AvailableChain.PCSA.Run.recovery_persistence_of_run',
@@ -7010,6 +7011,17 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockRank': (
             'AvailableChain.PCSA.recovery_live_lock_rank_compatible',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LockTransport': (
+            'AvailableChain.PCSA.Run.RecoveryLockTransport',
+            'AvailableChain.PCSA.Run.RecoveryLockTransport.earlyForward',
+            'AvailableChain.PCSA.Run.RecoveryLockTransport.honestProposerInputs',
+            'AvailableChain.PCSA.Run.RecoveryLockTransport.honestVoterInputs',
+            'AvailableChain.PCSA.Run.RecoveryLockTransport.mk',
+            'AvailableChain.PCSA.Run.RecoveryLockTransport.pcReceipt',
+            'AvailableChain.PCSA.Run.RecoveryLockTransport.rootResolution',
+            'AvailableChain.PCSA.Run.RecoveryLockTransport.sameLabel',
+            'AvailableChain.PCSA.Run.RecoveryLockTransport.voterBackward',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockWindow': (
             'AvailableChain.PCSA.RecoverySlotOrdered',

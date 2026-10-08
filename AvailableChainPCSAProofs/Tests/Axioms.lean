@@ -1513,3 +1513,14 @@ end
 
 #print axioms AvailableChain.PCSA.recovery_gate_no_renewal_of_old_row
 #print axioms AvailableChain.PCSA.Run.recovery_lock_no_later_successful_renewal
+
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.mk
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.sameLabel
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.earlyForward
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.voterBackward
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.pcReceipt
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.honestVoterInputs
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.honestProposerInputs
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.rootResolution
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_lock_transport

@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockTransport
 public import AvailableChainPCSAClaims.Claims.Recovery
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
 public import AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved
