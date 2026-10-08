@@ -1,6 +1,7 @@
 module
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationInputs
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRetainedTree
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationRetainedBack
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationHeads
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationEvidence
@@ -61,13 +62,14 @@ FormationRetention closes hAckPoolMono from NoRestart.
 FormationFreeze closes hFreezeKeep and supplies PC consumers.
 FormationTerminal closes hStop from handler slot bounds and sorted run times.
 FormationRetainedTree closes hKeep, hReflect and hUnique from equal
-eligibility and voter-tree inclusion.
+eligibility and voter-tree inclusion. FormationRetainedBack closes the two
+back receipts from the frozen raw relay.
 FormationOrigins closes hFrozenPCOrigin at the actual early read.
 FormationCollection closes hPCCollect from the required early N counts.
 Its PC consumers need only hAckAdmit from C3. FormationHeads closes honest pool non-equivocation.
 Raw-HEAD carriage and the current child follow from body/metadata receipt.
 Body relay and metadata close support retention and resolution.
-Two retained back receipts and late gate counts remain open.
+The frozen raw relay and late gate counts remain open.
 The main Clean.Export module is owned by the other Clean writer. -/
 
 end

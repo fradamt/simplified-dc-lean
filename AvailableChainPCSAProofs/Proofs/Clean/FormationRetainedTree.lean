@@ -192,26 +192,20 @@ theorem pcsa_formation_retained_reflect_unique (E : Generic.Env V)
       rw [← hEq, hn] at hel
       cases hel
 
-/-- Each voter-tree body at `v_s` is the proposal or a proposer-tree body.
-Formation body relay carries the frozen bodies to the proposer by `t_s`. The
-other bodies are prefixes of the unique slot-`s` body. -/
-theorem pcsa_formation_retained_tree (E : Generic.Env V)
+/-- Formation body relay: a body stamped before `z_{s-1}` at an honest read is
+held at the actual proposer tick. -/
+theorem pcsa_formation_frozen_body_in_proposer (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
-    (h : FormationPreFreezePrem p c E rho s N ΔF) (src dst : Node p) (y : V)
-    (hSrc : pcsa_postClock E rho
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (a k : Nat) (y : V) (hy : y ∈ rho.honest)
+    (v : Time)
+    (hk : rho.events[k]? = some (.tick
       (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
-      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src)
-    (hy : y ∈ rho.honest)
-    (hDst : pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst) :
-    ∀ C ∈ erasedList dst.st (KitFG.storeFrameView (FGSA.heightView p) dst.st.fg
-        (voterBlocks p dst.st s)),
-      C = N.erase ∨ C ∈ erasedList src.st (fullTree p src.st) := by
-  have hInputs := pcsa_formation_proposer_read_inputs E rho s N ΔF h src hSrc
-  have hp : N.parent.erase = getHead p src.st (proposerPC p src.st)
-      (proposerVotes src.st s) (proposerSupport src.st s) := by
-    have he : N.erase.parent = N.parent.erase := by cases N <;> rfl
-    rw [← he]
-    exact hInputs.2.1
+      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s)))
+    (C : Block) (hm : C ∈ (clock p (V2.D.Run.stateBefore E rho a y).st v).base.blocks)
+    (hs : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a y).st v).base C <
+      SA.freezeTime p.toParams (s - 1)) :
+    C ∈ (V2.D.Run.stateBefore E rho k
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)).st.base.blocks := by
   have hΔ : (0 : Int) < p.Δ := p.deltaPos
   have hs1 : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by
     have hi : ((s - 1 : Nat) : Int) + 1 = (s : Int) := by
@@ -234,6 +228,61 @@ theorem pcsa_formation_retained_tree (E : Generic.Env V)
   have hcut : SA.proposalTime p.toParams s ≤ SA.freezeTime p.toParams s := by
     change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
     linarith
+  rw [pcsa_clock_blocks] at hm
+  by_cases hg : C = .genesis
+  · rw [hg]
+    exact (pcsa_genesis_body_stamp E rho h.base.noRestart k _).1
+  have hs' : GridCO.stampBlock (V2.D.Run.stateBefore E rho a y).st.base C <
+      SA.freezeTime p.toParams (s - 1) := by
+    have hse : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a y).st v).base C =
+        GridCO.stampBlock (V2.D.Run.stateBefore E rho a y).st.base C := by
+      obtain ⟨row, hr⟩ := pcsa_body_stamp_lookup E rho a y C hm
+      delta GridCO.stampBlock
+      rw [pcsa_clock_bodyStamps, hr]
+      rfl
+    rwa [hse] at hs
+  obtain ⟨j, _, t, o, s', N', P, hev, htz, hd, hNB, hP, hacc, hAcc⟩ :=
+    pcsa_body_accepted_before E rho h.base a y C _ hpub hzero hg hm hs'
+  have hmax : max t (SA.freezeTime p.toParams (s - 1)) + E.Δ =
+      SA.proposalTime p.toParams s := by
+    rw [max_eq_right (le_of_lt htz), hdl]
+  have hR := pcsa_body_relay_within_on E rho h.base h.frame h.delivery j y _ hy
+    h.proposal.1 t o s' N' P hev hd hP hacc hAcc (pcsa_block_isNonRow o s' N' hd)
+    (lt_of_le_of_lt (le_max_left t _) (lt_add_of_pos_right _ E.Δ_pos))
+    (by
+      rw [hmax]
+      exact hcut)
+  change N'.erase ∈ (V2.D.Run.stateBeforeTime E rho
+    (max t (SA.freezeTime p.toParams (s - 1)) + E.Δ) _).st.base.blocks at hR
+  rw [hmax, hNB, ← Gen.V2.Duty.stateBefore_idxBefore E rho _
+    h.base.valid.toScheduleWellFormed] at hR
+  have hle : V2.D.Run.idxBefore rho (SA.proposalTime p.toParams s) ≤ k := by
+    apply Nat.le_of_not_gt
+    intro hn
+    exact lt_irrefl _ ((Gen.V2.Duty.index_lt_idxBefore_iff
+      h.base.valid.toScheduleWellFormed hk _).mp hn)
+  exact pcsa_body_stateBefore_mono E rho h.base.noRestart _ hle hR
+
+/-- Each voter-tree body at `v_s` is the proposal or a proposer-tree body.
+Formation body relay carries the frozen bodies to the proposer by `t_s`. The
+other bodies are prefixes of the unique slot-`s` body. -/
+theorem pcsa_formation_retained_tree (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) (src dst : Node p) (y : V)
+    (hSrc : pcsa_postClock E rho
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src)
+    (hy : y ∈ rho.honest)
+    (hDst : pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst) :
+    ∀ C ∈ erasedList dst.st (KitFG.storeFrameView (FGSA.heightView p) dst.st.fg
+        (voterBlocks p dst.st s)),
+      C = N.erase ∨ C ∈ erasedList src.st (fullTree p src.st) := by
+  have hInputs := pcsa_formation_proposer_read_inputs E rho s N ΔF h src hSrc
+  have hp : N.parent.erase = getHead p src.st (proposerPC p src.st)
+      (proposerVotes src.st s) (proposerSupport src.st s) := by
+    have he : N.erase.parent = N.parent.erase := by cases N <;> rfl
+    rw [← he]
+    exact hInputs.2.1
   rw [pcsa_postClock_def] at hSrc hDst
   obtain ⟨pre, hpre, hc⟩ := Option.map_eq_some_iff.mp hSrc
   rw [pcsa_preTick_def] at hpre
@@ -257,46 +306,7 @@ theorem pcsa_formation_retained_tree (E : Generic.Env V)
         (SA.voteTime p.toParams s)).base C < SA.freezeTime p.toParams (s - 1) := by
       rw [← hDC]
       exact of_decide_eq_true hfreeze
-    have hm' : C ∈ (V2.D.Run.stateBefore E rho a y).st.base.blocks := by
-      have hm2 : C ∈ (clock p (V2.D.Run.stateBefore E rho a y).st
-          (SA.voteTime p.toParams s)).base.blocks := hm
-      rwa [pcsa_clock_blocks] at hm2
-    have hb : C ∈ (V2.D.Run.stateBefore E rho k
-        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)).st.base.blocks := by
-      by_cases hg : C = .genesis
-      · rw [hg]
-        exact (pcsa_genesis_body_stamp E rho h.base.noRestart k _).1
-      · have hs' : GridCO.stampBlock (V2.D.Run.stateBefore E rho a y).st.base C <
-            SA.freezeTime p.toParams (s - 1) := by
-          have hse : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a y).st
-              (SA.voteTime p.toParams s)).base C =
-              GridCO.stampBlock (V2.D.Run.stateBefore E rho a y).st.base C := by
-            obtain ⟨row, hr⟩ := pcsa_body_stamp_lookup E rho a y C hm'
-            delta GridCO.stampBlock
-            rw [pcsa_clock_bodyStamps, hr]
-            rfl
-          rwa [hse] at hs
-        obtain ⟨j, _, t, o, s', N', P, hev, htz, hd, hNB, hP, hacc, hAcc⟩ :=
-          pcsa_body_accepted_before E rho h.base a y C _ hpub hzero hg hm' hs'
-        have hmax : max t (SA.freezeTime p.toParams (s - 1)) + E.Δ =
-            SA.proposalTime p.toParams s := by
-          rw [max_eq_right (le_of_lt htz), hdl]
-        have hR := pcsa_body_relay_within_on E rho h.base h.frame h.delivery j y _ hy
-          h.proposal.1 t o s' N' P hev hd hP hacc hAcc (pcsa_block_isNonRow o s' N' hd)
-          (lt_of_le_of_lt (le_max_left t _) (lt_add_of_pos_right _ E.Δ_pos))
-          (by
-            rw [hmax]
-            exact hcut)
-        change N'.erase ∈ (V2.D.Run.stateBeforeTime E rho
-          (max t (SA.freezeTime p.toParams (s - 1)) + E.Δ) _).st.base.blocks at hR
-        rw [hmax, hNB, ← Gen.V2.Duty.stateBefore_idxBefore E rho _
-          h.base.valid.toScheduleWellFormed] at hR
-        have hle : V2.D.Run.idxBefore rho (SA.proposalTime p.toParams s) ≤ k := by
-          apply Nat.le_of_not_gt
-          intro hn
-          exact lt_irrefl _ ((Gen.V2.Duty.index_lt_idxBefore_iff
-            h.base.valid.toScheduleWellFormed htick _).mp hn)
-        exact pcsa_body_stateBefore_mono E rho h.base.noRestart _ hle hR
+    have hb := pcsa_formation_frozen_body_in_proposer E rho s N ΔF h a k y hy _ htick C hm hs
     exact pcsa_full_read_prefix_mem E rho h.frame k _ h.proposal.1 _ C C
       (pcsa_body_clock_keep p _ _ (pcsa_reachable_stateBefore E rho k _) hb)
       (Gen.Pure.block_preceq_refl _)

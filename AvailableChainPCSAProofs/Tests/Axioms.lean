@@ -755,6 +755,9 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_tree
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_open_of_back
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs_of_back
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_body_in_proposer
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_back_of_frozen
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs_of_frozen
 
 #print axioms AvailableChain.PCSA.Run.pcsa_heldPCRelay_of
 #print axioms AvailableChain.PCSA.Run.pcsa_healthy_block_receipt

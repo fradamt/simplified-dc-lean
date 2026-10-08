@@ -10,8 +10,8 @@ Formation writer owns this file and the `Clean/Formation*` modules.
 
 - `pcsa_formation_of_open`: `FormationPrem` and the two OPEN inputs below
   give `FormationConcl`.
-- `pcsa_formation_source_of_open`: `FormationPrem` and the two back
-  receipts give the Formation source with C1 connected.
+- `pcsa_formation_source_of_open`: `FormationPrem` and the frozen raw
+  relay give the Formation source with C1 connected.
 
 The `FormationClaim` field of `PCSAClaims` stays OPEN until both inputs
 are proved.
@@ -43,26 +43,28 @@ Proved inputs, with their producers:
   body is `N.erase` or a proposer-tree body). Formation body relay carries
   the frozen bodies to the proposer by `t_s`; the other bodies are
   prefixes of the unique slot-`s` body.
+- Retained back receipts `hRawBack`, `hSupportBack`
+  (`pcsa_formation_retained_back_of_frozen`, `FormationRetainedBack`): the
+  carried arms are the proposal's own lists. A frozen support HEAD relays
+  as a raw HEAD; Formation body relay gives its body at the proposer
+  (`pcsa_formation_frozen_body_in_proposer`).
 
-## OPEN input 1: the two retained back receipts
+## OPEN input 1: the frozen raw relay
 
-The binder is `hBack`, with type `FormationRetainedBackOpen p src dst s N`.
+The binder is `hFrozen`, with type `FormationFrozenRawOpen p src dst s`.
 It covers the honest proposer read at `t_s` (`src`) and each honest voter
-awake at `v_s` (`dst`):
+awake at `v_s` (`dst`): a HEAD `⟨seat (s-1) i, head r⟩` in the voter pool
+with a stamp before `z_{s-1}` is in the proposer raw list
+(`proposerVotes src.st s`), or seat `i` is capped there.
 
-- `hRawBack`: each voter raw HEAD is in the proposer raw list, or its seat
-  is capped there.
-- `hSupportBack`: the same, for the support lists.
+`pcsa_formation_preFreeze_inputs_of_frozen` derives all pre-freeze inputs
+from it.
 
-`pcsa_formation_retained_open_of_back` derives the five retained HEAD
-facts (`FormationRetainedHeadOpen`) from these two.
-
-Plan (Codex plan `plan-formation-inputs-sol.md`, items 4–8): the carried
-arm is the proposal's own lists. The frozen arm needs the windowed form of
-the Clean frozen relay (`pcsa_frozen_input_in_proposer`,
-`pcsa_frozen_support_in_proposer`) for the Formation deadline. Then port
-the two-arm Clean proofs `pcsa_common_raw_transfer` and
-`pcsa_honest_support_backward`.
+Plan: this is the Clean `pcsa_frozen_input_in_proposer` at slot `s - 1`,
+with the windowed delivery `max t z_{s-1} + Δ` in place of
+`HealthyPrefixDeliveryBy`. Its only delivery step is the relay of the
+accepted HEAD (`pcsa_head_relay_late_or_cap`), with deadline `t_s` in place
+of `t + Δ`. The windowed relay helpers of the Clean restart work supply it.
 
 ## OPEN input 2: the late gate counts
 
