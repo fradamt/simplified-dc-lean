@@ -260,13 +260,21 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   deadline map). Stage 2b adds `HonestProposal`: the rows of an honest
   proposal pass R6, so no receiver excludes it; under `DeliveryWithinOn` each
   honest receiver holds its wire and a valid carried PC
-  (`pcsa_honest_proposal_receipt`, and `pcsa_honest_proposal_early` at the
-  early read).
+  (`pcsa_honest_proposal_receipt`; `pcsa_honest_proposal_from_vote` from
+  `v_s`, and `pcsa_honest_proposal_early` at the early read).
   Shared keeps the `HealthyPrefixDeliveryBy` wrapper
   (`pcsa_body_relay_before_deadline` in `Shared/BodyReceipt`, through
   `Shared/Relay`), used by Outage and Clean. The other lanes supply the relay
   step from their own delivery premises through `BodyRelay` (Recovery: the
   RECOVERY deadline `max t z_{s-1} + Δ`; Formation: `FormationPrem.delivery`).
+  Stage 3 adds `VoterView`: every stored slot-`s` proposal is the honest one, so
+  its PC is the only carried PC; every frozen PC of slot `s - 1` has a
+  whole-PC acceptance by `z_{s-1}`, so under the deadline `max t z_{s-1} + Δ`
+  its key is held at the proposer before `t_s`, and every honest voter view at
+  `v_s` has the proposer target (`pcsa_commonView_of_delivery`, the F3 field of
+  `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
+  lemmas with smaller premises, without the lane prefix (Shared carries no lane
+  names); Formation drops its copies when it switches.
 - PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
   holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
   items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow
