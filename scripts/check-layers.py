@@ -740,11 +740,14 @@ def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
     target_export = len(target) == 2 and target[1] == "Export"
     shared_claims = PC_PROOFS + ".Proofs.Shared.Claims"
     own_claim = export and dep == PC_CLAIMS + ".Claims." + parts[0]
+    # The HEAD cone composes the completed clean exports without a reverse import.
+    head_cone_export = (m.name == PC_PROOFS + ".Proofs.Clean.HeadCone"
+                        and dep == PC_PROOFS + ".Proofs.Clean.Export")
     if claim and not (own_claim or m.name in {
             PC_CLAIMS, PC_CLAIMS + ".PCSAClaims", PC_CLAIMS + ".Tests.Axioms",
             shared_claims}):
         yield ("CLAIM-USE", m.name, dep)
-    if target_export and not (parts and parts[0] == "Assembly"):
+    if target_export and not (head_cone_export or (parts and parts[0] == "Assembly")):
         yield ("EXPORT-USE", m.name, dep)
     if under(m.name, GEN) and under(dep, PC_PROOFS):
         yield ("GLY-FG", m.name, dep)
@@ -781,11 +784,11 @@ def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
         allowed = allowed or (m.name == shared_claims and claim) or own_claim
         rule = "SHARED"
     else:
-        allowed = upstream or own_claim or (target and target[0] in {
+        allowed = upstream or own_claim or head_cone_export or (target and target[0] in {
             parts[0], "Foundations", "Shared"} and not target_export)
         rule = "LANE"
     if (parts[0] != "Assembly" and m.name != shared_claims
-            and not own_claim and reaches_claims(ctx, dep)):
+            and not own_claim and not head_cone_export and reaches_claims(ctx, dep)):
         yield ("LANE-CLAIMS", m.name, dep)
     if not allowed:
         yield (rule, m.name, dep)

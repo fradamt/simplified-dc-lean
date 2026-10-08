@@ -6,6 +6,7 @@ public import AvailableChainPCSAProofs.Proofs.AcFrame.Store
 public import AvailableChainPCSAProofs.Proofs.Assembly.AcFrame
 public import AvailableChainPCSAProofs.Proofs.Assembly.Outage
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
+public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install

@@ -436,6 +436,7 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
         # PC-SA uses the same boundaries, with Foundations as a common lane.
         pc, cc = api["PC_PROOFS"], api["PC_CLAIMS"]
         pc_positives = [
+            (pc + ".Proofs.Clean.HeadCone", pc + ".Proofs.Clean.Export"),
             (pc + ".Proofs.Assembly.Root", pc + ".Proofs.Assembly.Small"),
             (pc + ".Proofs.Assembly.Root", cc + ".PCSAClaims"),
             (cc + ".Claims.PC", cc + ".Statements.Reads"),
@@ -451,6 +452,8 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             module(root, importer, dep)
             run(root, 0, set())
         pc_negatives = [
+            (pc + ".Proofs.Clean.Other", pc + ".Proofs.Clean.Export", "EXPORT-USE"),
+            (pc + ".Proofs.Clean.HeadCone", pc + ".Proofs.PC.Export", "EXPORT-USE"),
             (cc + ".Claims.PC", pc + ".Proofs.Foundations.Store", "CLAIMS"),
             (pc + ".Proofs.Shared.Other", pc + ".Proofs.Shared.Claims", "LANE-CLAIMS"),
             (pc + ".Proofs.Assembly.PC", pc + ".Proofs.Assembly.Clean", "ASSEMBLY"),
@@ -467,6 +470,11 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             setup(root)
             module(root, importer, dep)
             assert (rule, importer, dep) in run(root, 1)
+        root = temp / "pcsa-head-cone-export"
+        setup(root)
+        module(root, pc + ".Proofs.Clean.Export", cc + ".Claims.Clean")
+        module(root, pc + ".Proofs.Clean.HeadCone", pc + ".Proofs.Clean.Export")
+        run(root, 0, set())
         root = temp / "pcsa-export-transitive"
         setup(root)
         module(root, pc + ".Proofs.Shared.Claims", cc + ".Claims.Clean")

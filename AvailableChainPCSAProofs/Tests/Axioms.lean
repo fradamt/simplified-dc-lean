@@ -6,6 +6,7 @@ public import AvailableChainPCSAProofs.Proofs.AcFrame.Store
 public import AvailableChainPCSAProofs.Proofs.Assembly.AcFrame
 public import AvailableChainPCSAProofs.Proofs.Assembly.Outage
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
+public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
@@ -1338,3 +1339,6 @@ end
 #print axioms AvailableChain.PCSA.pcsa_n_score_gap
 #print axioms AvailableChain.PCSA.pcsa_cl4_same_label
 #print axioms AvailableChain.PCSA.pcsa_cl4_later_label
+
+-- Clean HeadCone.
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_awake
