@@ -5756,6 +5756,9 @@
             'AvailableChain.PCSA.Run.pcsa_strongIncludedClaim',
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Recovery': (
+            'AvailableChain.PCSA.Run.pcsa_recovery_anchor_from_shortBreak',
+            'AvailableChain.PCSA.Run.pcsa_recovery_cleanSaved_from_anchor',
+            'AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_short',
             'AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci',
             'AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci_pc',
             'AvailableChain.PCSA.Run.recovery_persistence_of_run',
@@ -5830,6 +5833,7 @@
             'AvailableChain.PCSA.Run.pcsa_body_accepted_before',
             'AvailableChain.PCSA.Run.pcsa_body_admitted_before',
             'AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay',
+            'AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay_win',
             'AvailableChain.PCSA.Run.pcsa_body_stamp_lt_of_index_cut',
             'AvailableChain.PCSA.Run.pcsa_body_stamp_source',
             'AvailableChain.PCSA.Run.pcsa_passed_body_accepts',
@@ -6092,7 +6096,9 @@
             'AvailableChain.PCSA.Run.pcsa_head_acceptance_after_slot_start',
             'AvailableChain.PCSA.Run.pcsa_head_accepting_slot',
             'AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late',
+            'AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late_win',
             'AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap',
+            'AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap_win',
             'AvailableChain.PCSA.pcsa_blockAccepted_slot',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HeadStamps': (
@@ -6114,6 +6120,8 @@
         'AvailableChainPCSAProofs.Proofs.Clean.HonestBatch': (
             'AvailableChain.PCSA.Run.pcsa_clean_gate_majority',
             'AvailableChain.PCSA.Run.pcsa_clean_head_batch',
+            'AvailableChain.PCSA.Run.pcsa_clean_head_batch_win',
+            'AvailableChain.PCSA.Run.pcsa_head_batch_of_label',
             'AvailableChain.PCSA.Run.pcsa_honest_head_exists',
             'AvailableChain.PCSA.Run.pcsa_late_participant_bound',
         ),
@@ -6130,6 +6138,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HonestReceipt': (
             'AvailableChain.PCSA.Run.pcsa_honest_head_before_early',
+            'AvailableChain.PCSA.Run.pcsa_honest_head_before_early_win',
             'AvailableChain.PCSA.Run.pcsa_honest_head_emits',
             'AvailableChain.PCSA.Run.pcsa_honest_head_not_excluded_early',
         ),
@@ -6245,6 +6254,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.ProposalDelivery': (
             'AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote',
+            'AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.ProposalEvidence': (
             'AvailableChain.PCSA.Run.pcsa_decoded_proposal_object',
@@ -6957,6 +6967,9 @@
             'AvailableChain.PCSA.Run.honestProposal_of_named',
             'AvailableChain.PCSA.Run.recovery_anchor',
         ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.AnchorBase': (
+            'AvailableChain.PCSA.Run.recovery_base_of_arm',
+        ),
         'AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved': (
             'AvailableChain.PCSA.Run.recovery_anchor_gate_after_freeze',
             'AvailableChain.PCSA.Run.recovery_anchor_locks_of_gate_prefix',
@@ -6978,6 +6991,7 @@
         'AvailableChainPCSAProofs.Proofs.Recovery.Export': (
             'AvailableChain.PCSA.Run.pcsa_fastRecoveredClaim',
             'AvailableChain.PCSA.Run.pcsa_longBreakRecoveredClaim',
+            'AvailableChain.PCSA.Run.pcsa_recovery_anchor_proposer_base',
             'AvailableChain.PCSA.Run.recovery_healed_of_inputs',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot': (
@@ -6986,6 +7000,9 @@
             'AvailableChain.PCSA.Run.recovery_first_gate_bound',
             'AvailableChain.PCSA.Run.recovery_freeze_after_gst',
             'AvailableChain.PCSA.Run.recovery_participation',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.FirstSlot': (
+            'AvailableChain.PCSA.Run.recovery_firstSlot_of_anchor',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockBound': (
             'AvailableChain.PCSA.Run.recovery_lock_bound',
@@ -7077,6 +7094,7 @@
             'AvailableChain.PCSA.Run.pcsa_body_receipt_origin',
             'AvailableChain.PCSA.Run.pcsa_body_relay_admitted',
             'AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline',
+            'AvailableChain.PCSA.Run.pcsa_body_relay_from',
             'AvailableChain.PCSA.pcsa_admitBlock_body_mem',
             'AvailableChain.PCSA.pcsa_body_insert_data',
             'AvailableChain.PCSA.pcsa_c3_process_body_pred',
@@ -7108,6 +7126,19 @@
             'AvailableChain.PCSA.pcsa_cl4_later_label',
             'AvailableChain.PCSA.pcsa_cl4_same_label',
             'AvailableChain.PCSA.pcsa_n_score_gap',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Shared.CleanWindow': (
+            'AvailableChain.PCSA.Run.CleanWindow',
+            'AvailableChain.PCSA.Run.StrictFrom',
+            'AvailableChain.PCSA.Run.pcsa_cleanWindow_floor',
+            'AvailableChain.PCSA.Run.pcsa_cleanWindow_of_clean',
+            'AvailableChain.PCSA.Run.pcsa_cleanWindow_of_sync',
+            'AvailableChain.PCSA.Run.pcsa_isNonRow_delay',
+            'AvailableChain.PCSA.Run.pcsa_isNonRow_of_ne',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_mono',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_of_healthy',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_of_sync',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_of_within',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.Clock': (
             'AvailableChain.PCSA.Run.pcsa_clock_read',
@@ -7183,6 +7214,11 @@
             'AvailableChain.PCSA.Run.pcsa_honest_proposal_state',
             'AvailableChain.PCSA.Run.pcsa_signLabel_prop',
             'AvailableChain.PCSA.pcsa_propose_parent',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Shared.Relay': (
+            'AvailableChain.PCSA.Run.pcsa_strict_broadcast_win',
+            'AvailableChain.PCSA.Run.pcsa_strict_relay_from',
+            'AvailableChain.PCSA.Run.pcsa_strict_relay_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.RelayRun': (
             'AvailableChain.PCSA.Run.pcsa_ackPool_mono_run',

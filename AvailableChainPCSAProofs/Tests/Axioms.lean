@@ -655,6 +655,21 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_body_handles_direct
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_admitted
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline
+#print axioms AvailableChain.PCSA.Run.pcsa_body_relay_from
+#print axioms AvailableChain.PCSA.Run.pcsa_isNonRow_delay
+#print axioms AvailableChain.PCSA.Run.pcsa_isNonRow_of_ne
+#print axioms AvailableChain.PCSA.Run.StrictFrom
+#print axioms AvailableChain.PCSA.Run.CleanWindow
+#print axioms AvailableChain.PCSA.Run.pcsa_strictFrom_of_healthy
+#print axioms AvailableChain.PCSA.Run.pcsa_strictFrom_of_within
+#print axioms AvailableChain.PCSA.Run.pcsa_strictFrom_of_sync
+#print axioms AvailableChain.PCSA.Run.pcsa_strictFrom_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_of_clean
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_floor
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_of_sync
+#print axioms AvailableChain.PCSA.Run.pcsa_strict_broadcast_win
+#print axioms AvailableChain.PCSA.Run.pcsa_strict_relay_from
+#print axioms AvailableChain.PCSA.Run.pcsa_strict_relay_win
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_within_on
 #print axioms AvailableChain.PCSA.Run.pcsa_stored_body_within_on
 #print axioms AvailableChain.PCSA.pcsa_propose_rows_valid
@@ -768,6 +783,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_head_acceptance_after_slot_start
 #print axioms AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap
 #print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap_win
+#print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late_win
 
 #print axioms AvailableChain.PCSA.pcsa_clock_blocks
 #print axioms AvailableChain.PCSA.pcsa_clock_bodyStamps
@@ -785,6 +802,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_body_accepted_before
 #print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_lt_of_index_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay
+#print axioms AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay_win
 
 #print axioms AvailableChain.PCSA.pcsa_clock_headDomain
 #print axioms AvailableChain.PCSA.Run.pcsa_headDomain_stateBefore_none
@@ -876,6 +894,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_emits
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_not_excluded_early
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_before_early
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_before_early_win
 
 -- C6 HonestSupport.
 #print axioms AvailableChain.PCSA.pcsa_early_uncapped_clean
@@ -885,6 +904,8 @@ end
 -- C6 HonestBatch.
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_exists
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_head_batch
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_head_batch_win
+#print axioms AvailableChain.PCSA.Run.pcsa_head_batch_of_label
 #print axioms AvailableChain.PCSA.Run.pcsa_late_participant_bound
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority
 
@@ -1011,6 +1032,7 @@ end
 
 -- C6 ProposalDelivery.
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote_win
 
 -- C6 CommonRaw.
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_pool_slot
@@ -1491,3 +1513,10 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_afterTicks_pcs_storeAt
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_honestProposal_stamped
 #print axioms AvailableChain.PCSA.Run.pcsa_strongIncludedClaim
+
+#print axioms AvailableChain.PCSA.Run.recovery_base_of_arm
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_anchor_proposer_base
+#print axioms AvailableChain.PCSA.Run.recovery_firstSlot_of_anchor
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_cleanSaved_from_anchor
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_anchor_from_shortBreak
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_short
