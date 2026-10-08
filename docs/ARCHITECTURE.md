@@ -302,12 +302,20 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `HealedSourcePrem` carries the same clause at `r * p.R`. Parts 1–4 of the
   conclusion follow from `FormationPreFreezeInputs`; the gate counts
   (`Clean/FormationGateCounts`) give part 5. `Assembly/Formation` proves
-  `FormationClaim` (`pcsa_formationClaim`) and the body of
-  `FormationSourceClaim` (`pcsa_formationSourceClaim`) with no open input.
+  `FormationClaim` (`pcsa_formationClaim`) and `FormationSourceClaim`
+  (`pcsa_formationSourceClaim`, through `Finality/Export`) with no open input.
   `Clean/FormationRetainedTree` and `Clean/FormationRetainedBack` prove the
   five retained HEAD facts; `Clean/FormationFrozenRaw` proves the frozen raw
   relay from the Clean windowed HEAD relay (`StrictFrom` at `T₀ = z_{s-1}`).
   See `Clean/FormationOPEN.md`.
+- PC-SA finality safety (P12): `Foundations/FGSafetyBridge` converts the PC
+  reads and applies Compose `SafetyAccountable`, `SafetyCount`,
+  `SafetyMonotone`, and `SafetySlashing` through four exact `COMPOSE_EDGES`.
+  `Foundations/FinalitySafety` supplies the six run bodies. `Finality/Export`
+  proves the two pure fields with KitFG and closes all eight frozen claims.
+  `Assembly/Finality` supplies `PCSAClaims.finality` with
+  `pcsaSafetyFinalityClaims`. Both FG modes are covered. Count retains
+  all-run carriage; honest non-slashing uses stored-row carriage.
 - PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
   holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
   items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow

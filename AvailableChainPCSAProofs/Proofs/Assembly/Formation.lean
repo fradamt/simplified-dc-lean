@@ -1,6 +1,7 @@
 module
 public import AvailableChainPCSAProofs.Proofs.Clean.Export
 public import AvailableChainPCSAProofs.Proofs.PC.Export
+public import AvailableChainPCSAProofs.Proofs.Finality.Export
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationExport
 public section
 
@@ -113,16 +114,10 @@ theorem pcsa_formationClaim (p : Params) : FormationClaim p := by
   exact pcsa_formation E rho s N ΔF h hInputs
     (pcsa_formation_gate_counts E rho s N ΔF h hExact)
 
-/-- The Formation source at the opening slot `r * p.R`, with no open input.
-The statement is the body of `FormationSourceClaim p` (`Claims/Finality.lean`);
-no Export of this branch imports that claim module yet. -/
-theorem pcsa_formationSourceClaim (p : Params) :
-    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
-      (r : Nat) (N : NamedProposal p.n) (ΔF : Time),
-      FormationPrem p c E rho (r * p.R) N ΔF →
-      ∀ x ∈ rho.honest, ∃ C : FGBlock (Fin p.n),
-        actionSourceAt p c E rho x r = some (some C) ∧ eraseFG C = N.erase := by
+/-- `FormationSourceClaim` (the Formation source at the opening slot
+`r * p.R`) with no open input. -/
+theorem pcsa_formationSourceClaim (p : Params) : FormationSourceClaim p := by
+  rw [FormationSourceClaim_def]
   intro V _ _ In c m E rho r N ΔF h
   exact pcsa_formation_source_of_preFreeze E rho r N ΔF h
     (pcsa_formation_preFreeze_inputs_of_premise E rho (r * p.R) N ΔF (h.toPreFreeze p c E rho))

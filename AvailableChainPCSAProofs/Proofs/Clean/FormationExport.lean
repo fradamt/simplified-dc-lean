@@ -56,8 +56,8 @@ transport are proved.
 The old release witness fails F4.
 FormationCompose proves parts 1–4 with named run inputs.
 FormationGateCounts proves the late gate counts from the exact honest
-HEADs. Assembly.Formation proves FormationClaim and the FormationSourceClaim
-body with no open input. FormationSourceRetention
+HEADs. Assembly.Formation proves FormationClaim and FormationSourceClaim
+with no open input. FormationSourceRetention
 derives snapshot and target retention. The stamped-PC part of C7 supplies the source when
 connected to C1 PC target uniqueness. No source retention input remains.
 FormationRetention closes hAckPoolMono from NoRestart and the Clean

@@ -9,10 +9,8 @@ Formation writer owns this file and the `Clean/Formation*` modules.
 C7 has no open input. `Assembly/Formation.lean` proves:
 
 - `pcsa_formationClaim : FormationClaim p`.
-- `pcsa_formationSourceClaim`: the body of `FormationSourceClaim p`
-  (`Claims/Finality.lean`). No Export of this branch imports
-  `Claims.Finality` yet, so the statement is the unfolded body. After
-  `Finality/Export` lands, `FormationSourceClaim_def` gives the named claim.
+- `pcsa_formationSourceClaim : FormationSourceClaim p`. Assembly/Formation
+  imports `Finality/Export` for `Claims.Finality`.
 
 The F4 statement fix is part of this landing. It adds
 `FormationRootReachable` and the `proposerRootReachable` fields of
