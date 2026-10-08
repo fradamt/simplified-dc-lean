@@ -20,7 +20,6 @@ theorem pcsa_recovery_anchor_proposer_base (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time} {cA s₁ : Slot}
     (h : ShortBreakPrem p c E rho G ΔF cA s₁)
     (N : NamedProposal p.n)
-    (_hN : HonestNamedProposal p c E rho cA N)
     (hStamp : ∀ y ∈ rho.honest,
       PCStampedBefore p c E rho y (SA.freezeTime p.toParams cA) cA N.erase)
     (hArm : ArmConcl p c E rho cA N.erase (cA + 1)) :
