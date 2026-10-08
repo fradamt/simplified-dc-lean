@@ -7,6 +7,7 @@ public import AvailableChainPCSAProofs.Proofs.Assembly.AcFrame
 public import AvailableChainPCSAProofs.Proofs.Assembly.Outage
 public import AvailableChainPCSAProofs.Proofs.Assembly.Recovery
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
+public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
@@ -1439,3 +1440,12 @@ end
 #print axioms AvailableChain.PCSA.Run.RecoveryRootReachable
 #print axioms AvailableChain.PCSA.Run.RecoveryChainRestart
 #print axioms AvailableChain.PCSA.Run.RecoverySuffixInputs
+
+-- Clean HeadCone.
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_awake
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_inputs
+
+-- Clean Export (HEAD cone).
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_root_compatible
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_past_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_at_vote

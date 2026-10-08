@@ -4247,13 +4247,13 @@
     },
     'AvailableChainFGSAProofs.Tests.FGSafety': {
         'AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge': (
-            'AvailableChain.FGSA.Run.fgsa_bridge_runAccountable',
-            'AvailableChain.FGSA.Run.fgsa_bridge_parent_scope',
-            'AvailableChain.FGSA.Run.fgsa_bridge_read_scope',
-            'AvailableChain.FGSA.Run.fgsa_bridge_stores_accountable',
-            'AvailableChain.FGSA.Run.fgsa_bridge_reads_accountable',
             'AvailableChain.FGSA.Run.fgsa_bridge_event_agreement',
+            'AvailableChain.FGSA.Run.fgsa_bridge_parent_scope',
             'AvailableChain.FGSA.Run.fgsa_bridge_read_agreement',
+            'AvailableChain.FGSA.Run.fgsa_bridge_read_scope',
+            'AvailableChain.FGSA.Run.fgsa_bridge_reads_accountable',
+            'AvailableChain.FGSA.Run.fgsa_bridge_runAccountable',
+            'AvailableChain.FGSA.Run.fgsa_bridge_stores_accountable',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
@@ -5916,6 +5916,7 @@
             'AvailableChain.PCSA.Run.pcsa_clean_ack_to_head_at_early',
             'AvailableChain.PCSA.Run.pcsa_clean_available_mono_cut',
             'AvailableChain.PCSA.Run.pcsa_clean_block_receipt',
+            'AvailableChain.PCSA.Run.pcsa_clean_cone_root_compatible',
             'AvailableChain.PCSA.Run.pcsa_clean_confirmed_compatible_cut',
             'AvailableChain.PCSA.Run.pcsa_clean_dissemination',
             'AvailableChain.PCSA.Run.pcsa_clean_dissemination_pending',
@@ -5924,6 +5925,8 @@
             'AvailableChain.PCSA.Run.pcsa_clean_head_above_past_at_early',
             'AvailableChain.PCSA.Run.pcsa_clean_headsAbove_step',
             'AvailableChain.PCSA.Run.pcsa_clean_headsEqual_step',
+            'AvailableChain.PCSA.Run.pcsa_clean_heads_cone_at_vote',
+            'AvailableChain.PCSA.Run.pcsa_clean_heads_cone_past_cut',
             'AvailableChain.PCSA.Run.pcsa_clean_inclusion',
             'AvailableChain.PCSA.Run.pcsa_clean_invariant',
             'AvailableChain.PCSA.Run.pcsa_clean_invariant_zero',
@@ -5998,6 +6001,10 @@
             'AvailableChain.PCSA.Run.pcsa_honest_head_slot_le',
             'AvailableChain.PCSA.pcsa_headVote_body_mem',
             'AvailableChain.PCSA.pcsa_liveRoot_body_mem',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.HeadCone': (
+            'AvailableChain.PCSA.Run.pcsa_clean_cone_inputs',
+            'AvailableChain.PCSA.Run.pcsa_voter_honest_awake',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HeadEvidence': (
             'AvailableChain.PCSA.Run.pcsa_head_emission_time_awake',
@@ -6441,12 +6448,12 @@
             'AvailableChain.PCSA.Run.signLabel_ack_iff',
         ),
         'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClientLaws': (
-            'AvailableChain.PCSA.Run.pcsa_attest_signer_irrel',
-            'AvailableChain.PCSA.Run.pcsa_attest_decode_rows',
-            'AvailableChain.PCSA.Run.pcsa_safety_tick_rows',
-            'AvailableChain.PCSA.Run.pcsa_safetyReads_record',
             'AvailableChain.PCSA.Run.pcsaSafetyClientLaws',
             'AvailableChain.PCSA.Run.pcsaSafetyUnitLaws',
+            'AvailableChain.PCSA.Run.pcsa_attest_decode_rows',
+            'AvailableChain.PCSA.Run.pcsa_attest_signer_irrel',
+            'AvailableChain.PCSA.Run.pcsa_safetyReads_record',
+            'AvailableChain.PCSA.Run.pcsa_safety_tick_rows',
         ),
         'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope': (
             'AvailableChain.PCSA.Run.pcsaSafetyScopeLaws',
