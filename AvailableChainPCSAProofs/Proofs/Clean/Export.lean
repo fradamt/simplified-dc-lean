@@ -1217,6 +1217,23 @@ theorem pcsa_clean_result_below_post_gate (E : Generic.Env V)
     rw [Function.update_self]
     exact pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k x) x _
   rwa [hpost]
+/-- Every lock at an inclusive read through the clean cut is below the S of that read. -/
+theorem pcsa_clean_lock_below_record_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x : V) (hx : x ∈ rho.honest) (t : Time) (ht : t ≤ cut)
+    (row : Block × Nat × Time) (hr : row ∈ (storeAt p c E rho x t).base.obligations) :
+    Block.Preceq row.1 (storeAt p c E rho x t).base.stableRecord := by
+  obtain ⟨k, i, X, hk, hi, hX, hrowX⟩ := pcsa_lock_storeAt_timed_origin E rho h.base x t row hr
+  have hXS := pcsa_clean_result_below_post_gate E rho h hF hFault i (hi.trans ht) x hx k hk X hX
+  have hkt : k + 1 ≤ (rho.events.filter (fun e : V2.Event V (Obj p) => decide (e.time ≤
+    t))).length :=
+    Nat.succ_le_of_lt ((V2.D.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed t
+      hk).mpr hi)
+  have hmono := pcsa_clean_record_indices_mono_cut E rho h hF hFault x hx (k + 1) _ hkt
+    (V2.D.Engine.read_length_mono (rho := rho) t cut ht)
+  rw [storeAt_def, V2.D.Engine.readAt_eq_stateBefore h.base.valid.toScheduleWellFormed]
+  exact Gen.Pure.block_preceq_trans hrowX (Gen.Pure.block_preceq_trans hXS hmono)
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run

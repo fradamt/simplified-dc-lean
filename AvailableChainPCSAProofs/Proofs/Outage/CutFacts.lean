@@ -114,7 +114,7 @@ theorem pcsa_cut_res {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b�
 omit [Fintype V] in
 /-- [§5.5 steps 1, 3] Every honest HEAD of a later label `r` with `v_r ≤ b₀`
 extends `A` when `d_{j₁} ≤ b₀`: the bridge gives the HEADs of label `j₁ + 1`,
-the HEAD cone the later labels. -/
+the vote-time HEAD cone the later labels. -/
 theorem pcsa_cut_head {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b₀ : Time}
     (hK : CutFacts p c E rho b₀) {u : V} (hu : u ∈ rho.honest) {j₁ : Slot} {A : Block}
     (hA : gateResultAt p c E rho u j₁ = some (some A))
@@ -125,8 +125,7 @@ theorem pcsa_cut_head {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b
     fun y G hG => hK.bridge j₁ u y A G hd hu hA hG
   rcases Nat.lt_or_eq_of_le (Nat.succ_le_of_lt hr) with hlt | heq
   · obtain ⟨n, rfl⟩ := Nat.exists_eq_add_of_lt hlt
-    exact pcsa_cone_up hK.toCutChain hB n
-      (le_of_lt (lt_of_lt_of_le (pcsa_early_lt_vote_of_lt (Nat.lt_succ_self _)) hv)) z H hH
+    exact pcsa_voteCone_up (pcsa_cutChain_voteCone hK.toCutChain) hB n hv z H hH
   · rw [← heq] at hH
     exact hB z H hH
 
