@@ -400,72 +400,9 @@ theorem pcsa_gate_proposer_walk_counts (E : Generic.Env V)
       (proposerVotes (clock p (V2.D.Run.stateBefore E rho k y).st (GridCO.proposalTime
         p.toParams.engine (s + 1))) (s + 1))
       (proposerSupport (clock p (V2.D.Run.stateBefore E rho k y).st (GridCO.proposalTime
-        p.toParams.engine (s + 1))) (s + 1))) := by
-  let src := clock p (V2.D.Run.stateBefore E rho a x).st (SA.gateTime p.toParams s)
-  let dst := clock p (V2.D.Run.stateBefore E rho k y).st (GridCO.proposalTime p.toParams.engine
-    (s + 1))
-  have hFs : src.fg.F = .genesis := by
-    change (clock p _ _).fg.F = _
-    rw [pcsa_body_clock_fg]
-    exact (hF x hx a).1
-  have hDs : src.base.headDomain = none := by
-    change (clock p _ _).base.headDomain = none
-    rw [pcsa_clock_headDomain, pcsa_headDomain_stateBefore_none]
-  have hmaj := pcsa_gate_result_majority p (actView src) (eraseFG src.fg.F) X s hresult
-  rw [pcsa_gate_score_of_genesis p src s X hFs hDs] at hmaj
-  have hfcut : SA.freezeTime p.toParams s ≤ cut := by
-    apply le_trans _ hc
-    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
-    have hp := p.deltaPos
-    linarith
-  have hfk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k := by
-    apply Nat.le_of_not_gt
-    intro hlt
-    have ht := (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed hk _).mp hlt
-    change 4 * p.Δ * ((s + 1 : Nat) : Int) < 4 * p.Δ * (s : Int) + 3 * p.Δ at ht
-    push_cast at ht
-    have hp := p.deltaPos
-    nlinarith
-  apply pcsa_cl2_head_extends_majority p dst view tree src.base.blocks
-    (GridCO.cleanSupport p.toParams.engine (actView src) s)
-    (GridCO.lateVotes p.toParams.engine (actView src) s)
-    (proposerVotes dst (s + 1)) (proposerSupport dst (s + 1)) X
-    ?_ ?_ ?_ ?_ (fun _ ho => (List.mem_filter.mp ho).1) hmaj hanchor hpath
-  · intro o ho
-    exact FGSA.fgsa_early_subset_late p (actView src) s (List.mem_filter.mp ho).1
-  · intro o ho i hi
-    exact pcsa_clean_input_not_capped p (actView src) s o i ho hi
-  · intro o ho i hi hv
-    have hl : GridCO.headLabel? o = some s :=
-      beq_iff_eq.mp (List.mem_filter.mp (List.mem_filter.mp (List.mem_filter.mp ho).1).1).2
-    obtain ⟨H, hlookup, hmem, hslot, hprefix⟩ := (Gen.AC.Root.vote_support_body src.base.blocks X
-      o).mp hv
-    have hr : GridCO.resolvedHead? (actView src) o = some H := by
-      apply FGSA.Run.resolvedHead_of_lookup
-      · rw [count_read_domain]
-        exact hlookup
-      · rw [pcsa_actView_blocks_of_genesis src hFs]
-        exact hmem
-    obtain ⟨r, rfl⟩ := pcsa_count_head_shape o s i hl hi
-    have hroot := FGSA.Run.resolvedHead_root _ _ hr
-    change some r = some H.root at hroot
-    have heq := Option.some.inj hroot
-    subst r
-    rcases pcsa_early_input_relay_support E rho h hF hD a k x y hx hy s i H _ _
-      hfcut hfk (List.mem_filter.mp ho).1 hr with hh | hcap
-    · refine Or.inl ⟨hh.2.1, ?_⟩
-      apply (Gen.AC.Root.vote_support_body dst.base.blocks X _).mpr
-      refine ⟨H, ?_, ?_, hslot, hprefix⟩
-      · have hlook := FGSA.Run.resolvedHead_target _ _ hh.2.2
-        rw [count_read_domain] at hlook
-        exact hlook
-      · exact (List.mem_filter.mp (FGSA.resolvedHead_mem _ _ hh.2.2)).1
-    · exact Or.inr hcap.2
-  · intro o ho i hi
-    have hl : GridCO.headLabel? o = some s := by
-      simpa only [Nat.add_sub_cancel] using beq_iff_eq.mp (List.mem_filter.mp ho).2
-    obtain ⟨r, rfl⟩ := pcsa_count_head_shape o s i hl hi
-    exact pcsa_proposer_tick_input_relay_late E rho h hD k a y x hy hx s i r hc hk ha ho
+        p.toParams.engine (s + 1))) (s + 1))) :=
+  pcsa_gate_proposer_walk_counts_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx
+    hy s X view tree (pcsa_floor_early (pcsa_zero_le_proposal s)) hc ha hk hresult hanchor hpath
 end AvailableChain.PCSA.Run
 
 end
