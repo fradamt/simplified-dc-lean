@@ -22,6 +22,13 @@ public section
 #print axioms AvailableChain.FGSA.Run.fgsa_bridge_reads_accountable
 #print axioms AvailableChain.FGSA.Run.fgsa_bridge_event_agreement
 #print axioms AvailableChain.FGSA.Run.fgsa_bridge_read_agreement
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_pool_count
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_slashableBound_of_faults
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_finalizedMonotone
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_clientSafeAll
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_read_row_origin
+#print axioms AvailableChain.FGSA.Run.fgsa_safetySlashesRead
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_honestNeverSlashed
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyProposalRows_def
 #print axioms AvailableChain.FGSA.Run.safetyProposalErase
