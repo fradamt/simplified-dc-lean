@@ -118,5 +118,18 @@ theorem pcsa_recovery_anchor_from_shortBreak [Fintype V] (E : Generic.Env V)
   exact ⟨N, hN, hStamp, hArm,
     recovery_persistence_of_run E rho h.recovery h.frame cA N.erase hArm⟩
 
+/-- Short-break premises supply the first formation slot and its separate root clauses. -/
+theorem pcsa_recovery_firstSlot_short [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time} {cA s₁ : Slot}
+    (h : ShortBreakPrem p c E rho G ΔF cA s₁) :
+    ∃ N : NamedProposal p.n,
+      FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁ := by
+  obtain ⟨N, hN, hStamp, _, hArm⟩ := pcsa_recovery_anchor_from_shortBreak E rho h
+  have hSaved := pcsa_recovery_cleanSaved_from_anchor E rho cA N h.anchorPos h.anchorClean
+    (pcsa_c9_faultsBelowQA_of_quarterCap rho h.recovery.quarterCap) h.frame hN
+  exact recovery_firstSlot_of_anchor E rho h.recovery h.frame cA s₁ N.erase
+    (lt_trans h.anchorPos h.order) h.order h.window h.firstAfterGST h.firstProposer h.horizon
+    hStamp hArm hSaved
+
 end AvailableChain.PCSA.Run
 end
