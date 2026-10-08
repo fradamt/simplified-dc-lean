@@ -44,8 +44,9 @@ receipt from target-body receipt.
 It derives carried presence from exact metadata and PC validity.
 Shared body relay closes the old frozen targets. Shared honest-proposal
 receipt gives the metadata; stored metadata gives the vote-read body.
-pcsa_formation_preFreeze_of_prem needs the premise, five retained facts,
-early HEAD receipt and ack admission. The proposer lists
+pcsa_formation_preFreeze_of_prem needs the premise, five retained facts
+and ack admission. FormationEarlyHeads gives early HEAD receipt from
+Formation delivery once the retained facts make the honest HEADs exact. The proposer lists
 and root-mode score transport are proved.
 The old release witness fails F4.
 FormationCompose proves parts 1–4 with named run inputs.
@@ -60,7 +61,6 @@ The retained HEAD consumer still needs the receipt, resolution, path and child i
 FormationOrigins closes hFrozenPCOrigin at the actual early read.
 FormationCollection closes hPCCollect from the required early N counts.
 Its PC consumers need only hAckAdmit from C3. FormationHeads closes honest pool non-equivocation.
-FormationInputs now needs early resolved HEAD receipt, without an equivocation input.
 Raw-HEAD carriage and the current child follow from body/metadata receipt.
 Body relay and metadata close support retention and resolution.
 Five retained path/support inputs and late gate counts remain open.

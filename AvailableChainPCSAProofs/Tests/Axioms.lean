@@ -723,6 +723,16 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_early_presence
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_prem
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_isNonRow
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_freeze_prev_le_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_strict_broadcast
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_strict_relay
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_head_before_early
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_head_body_before_early
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_head_early_resolved
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_early_heads_of_exact
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_head_exact_of_retained
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_inputs
 
 #print axioms AvailableChain.PCSA.Run.pcsa_heldPCRelay_of
 #print axioms AvailableChain.PCSA.Run.pcsa_healthy_block_receipt

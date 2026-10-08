@@ -5930,8 +5930,19 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.FormationCompose': (
             'AvailableChain.PCSA.Run.pcsa_formation_early_read',
+            'AvailableChain.PCSA.Run.pcsa_formation_head_exact_of_retained',
             'AvailableChain.PCSA.Run.pcsa_formation_n_counts_of_timely_heads',
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.FormationEarlyHeads': (
+            'AvailableChain.PCSA.Run.pcsa_formation_early_heads_of_exact',
+            'AvailableChain.PCSA.Run.pcsa_formation_freeze_prev_le_vote',
+            'AvailableChain.PCSA.Run.pcsa_formation_head_before_early',
+            'AvailableChain.PCSA.Run.pcsa_formation_head_body_before_early',
+            'AvailableChain.PCSA.Run.pcsa_formation_head_early_resolved',
+            'AvailableChain.PCSA.Run.pcsa_formation_isNonRow',
+            'AvailableChain.PCSA.Run.pcsa_formation_strict_broadcast',
+            'AvailableChain.PCSA.Run.pcsa_formation_strict_relay',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.FormationGate': (
             'AvailableChain.PCSA.Run.pcsa_formation_gate_anchor',
@@ -5956,6 +5967,7 @@
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_prem',
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_run',
             'AvailableChain.PCSA.Run.pcsa_formation_proposer_blocks_at_vote',
+            'AvailableChain.PCSA.Run.pcsa_formation_retained_inputs',
             'AvailableChain.PCSA.Run.pcsa_formation_retained_rest_of_open',
             'AvailableChain.PCSA.Run.pcsa_formation_vote_metadata',
             'AvailableChain.PCSA.Run.pcsa_formation_vote_presence_of_metadata',

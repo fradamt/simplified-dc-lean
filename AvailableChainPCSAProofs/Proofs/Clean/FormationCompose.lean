@@ -139,6 +139,29 @@ theorem pcsa_formation_n_counts_of_timely_heads (E : Generic.Env V)
   intro i hi
   exact hTimelyHeads y hy nd hr i (Finset.mem_filter.mp hi).2
 
+/-- The retained HEAD inputs alone make every honest HEAD of slot `s` exact.
+The proof uses no early HEAD receipt, so early receipt can use it. -/
+theorem pcsa_formation_head_exact_of_retained (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
+    (hRetained : ∀ src dst y,
+      pcsa_postClock E rho
+        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
+      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
+      FormationRetainedHeadInputs p src dst s N) :
+    ∀ y H, HonestHeadAt p c E rho y s H → H = N.erase := by
+  intro y H hh
+  rw [pcsa_HonestHeadAt_def] at hh
+  rw [pcsa_voteHeadAt_def] at hh
+  obtain ⟨dst, hr, he⟩ := Option.map_eq_some_iff.mp hh.2.2
+  obtain ⟨src, hs, _⟩ := pcsa_formation_base_below_parent E rho s N ΔF h
+  have hi := hRetained src dst y hs hh.1 hh.2.1 hr
+  exact he.symm.trans (pcsa_formation_head_exact_of_run_terminal E rho s N ΔF h src dst y
+    hs hh.1 hh.2.1 hr hi.hRawKeep hi.hRawBack hi.hSupportKeep hi.hSupportBack hi.hResolution
+    hi.hKeep hi.hReflect hi.hChild hi.hUnique)
+
 /-- Formation parts 1–4 use only the window through z_s and the named run inputs. -/
 theorem pcsa_formation_preFreeze (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
@@ -157,17 +180,8 @@ theorem pcsa_formation_preFreeze (E : Generic.Env V)
     obtain ⟨nd, hr, hn⟩ := hN y hy
     exact pcsa_formation_early_ack_of_receipt E rho s N ΔF h y nd hy haw hr hn
       (hInputs.hFrozenPCReceipt y hy nd hr) (hInputs.hCarriedPresence y hy nd hr)
-  refine ⟨?_, hN, hAck,
+  exact ⟨pcsa_formation_head_exact_of_retained E rho s N ΔF h hInputs.hRetained, hN, hAck,
     pcsa_formation_pc_of_n_counts E rho s N ΔF h hAck hInputs.hAckAdmit hN⟩
-  intro y H hh
-  rw [pcsa_HonestHeadAt_def] at hh
-  rw [pcsa_voteHeadAt_def] at hh
-  obtain ⟨dst, hr, he⟩ := Option.map_eq_some_iff.mp hh.2.2
-  obtain ⟨src, hs, _⟩ := pcsa_formation_base_below_parent E rho s N ΔF h
-  have hi := hInputs.hRetained src dst y hs hh.1 hh.2.1 hr
-  exact he.symm.trans (pcsa_formation_head_exact_of_run_terminal E rho s N ΔF h src dst y
-    hs hh.1 hh.2.1 hr hi.hRawKeep hi.hRawBack hi.hSupportKeep hi.hSupportBack hi.hResolution
-    hi.hKeep hi.hReflect hi.hChild hi.hUnique)
 
 end AvailableChain.PCSA.Run
 end

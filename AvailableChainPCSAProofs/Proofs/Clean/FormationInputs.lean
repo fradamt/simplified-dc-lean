@@ -2,6 +2,7 @@ module
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationOrigins
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationHeads
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationEarlyHeads
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Shared.StoreRoots
 
@@ -486,17 +487,31 @@ structure FormationRunInputs (E : Generic.Env V)
       (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool
 
 
-/-- The remaining run inputs supply all input fields of the pre-freeze theorem. -/
-theorem pcsa_formation_inputs_of_run (E : Generic.Env V)
+/-- The retained rest and the vote-read presence give the retained HEAD
+inputs of the pre-freeze theorem. -/
+theorem pcsa_formation_retained_inputs (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
     (h : FormationPreFreezePrem p c E rho s N ΔF)
-    (hRun : FormationRunInputs E rho s N) : FormationPreFreezeInputs E rho s N := by
-  refine ⟨?_, ?_,
-    pcsa_formation_frozen_pc_receipt_of_body E rho s N ΔF h hRun.hFrozenBody,
-    ?_, hRun.hAckAdmit⟩
-  · intro src dst y hs hy haw hd
-    have hi := hRun.hRetained src dst y hs hy haw hd
-    have hPresence := hRun.hVotePresence y hy dst hd
+    (hRetained : ∀ src dst y,
+      pcsa_postClock E rho
+        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
+      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
+      FormationRetainedHeadRest p src dst s N)
+    (hVotePresence : ∀ y ∈ rho.honest, ∀ nd,
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some nd →
+      N.erase ∈ nd.st.base.blocks ∧ (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals) :
+    ∀ src dst y,
+      pcsa_postClock E rho
+        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
+      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
+      FormationRetainedHeadInputs p src dst s N := by
+    intro src dst y hs hy haw hd
+    have hi := hRetained src dst y hs hy haw hd
+    have hPresence := hVotePresence y hy dst hd
     have hSrc := pcsa_formation_proposer_read_inputs E rho s N ΔF h src hs
     have hslot : N.slot = s := by
       have he : N.erase.slot = N.slot := by cases N <;> rfl
@@ -516,6 +531,15 @@ theorem pcsa_formation_inputs_of_run (E : Generic.Env V)
       (pcsa_formation_frame_read E rho h.frame y _ dst hy hd) hPresence.1 hSrc.1
     exact ⟨hRaw, hi.hRawBack, hi.hSupportKeep, hi.hSupportBack, hi.hResolution,
       hi.hKeep, hi.hReflect, hChild, hi.hUnique⟩
+
+/-- The remaining run inputs supply all input fields of the pre-freeze theorem. -/
+theorem pcsa_formation_inputs_of_run (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF)
+    (hRun : FormationRunInputs E rho s N) : FormationPreFreezeInputs E rho s N := by
+  refine ⟨pcsa_formation_retained_inputs E rho s N ΔF h hRun.hRetained hRun.hVotePresence, ?_,
+    pcsa_formation_frozen_pc_receipt_of_body E rho s N ΔF h hRun.hFrozenBody,
+    ?_, hRun.hAckAdmit⟩
   · intro y hy nd hr i hi
     obtain ⟨o, ho, hs, hb⟩ := hRun.hEarlyHeads y hy nd hr i hi
     have hhon : rho.seatOf (.base (.head s)) i ∈ rho.honest := by
@@ -689,8 +713,9 @@ theorem pcsa_formation_retained_rest_of_open (E : Generic.Env V)
 /-- The pre-freeze premise supplies every field of `FormationPreFreezeInputs`
 from three named producers. Shared body relay closes the old frozen targets
 and, with stored metadata, support retention and resolution. Shared
-honest-proposal receipt gives the metadata at `v_s` and `e_s`. The binders
-are five retained HEAD facts, early HEAD receipt and the honest ack handler
+honest-proposal receipt gives the metadata at `v_s` and `e_s`. The retained
+facts make the honest HEADs exact; Formation delivery then gives early HEAD
+receipt. The binders are five retained HEAD facts and the honest ack handler
 pool. -/
 theorem pcsa_formation_preFreeze_inputs (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
@@ -702,24 +727,22 @@ theorem pcsa_formation_preFreeze_inputs (E : Generic.Env V)
       y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
       pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
       FormationRetainedHeadOpen p src dst s N)
-    (hEarlyHeads : ∀ y ∈ rho.honest, ∀ nd,
-      pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd →
-      ∀ i : Fin p.n, rho.seatOf (.base (.head s)) i ∈ awakeHonestLabel p c E rho s →
-        ∃ o ∈ GridCO.earlyVotes p.toParams.engine (actView nd.st) s,
-          GridCO.headSeat? o = some i ∧ GridCO.resolvedHead? (actView nd.st) o = some N.erase)
     (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
       rho.seatOf (.base (.ack s)) i ∈ rho.honest →
       SA.earlyTime p.toParams s ≤ t → t < SA.freezeTime p.toParams s →
       V2.D.Run.handlesAt E rho j y (ackObj p s i N.erase.root) t →
       (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
         (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool) :
-    FormationPreFreezeInputs E rho s N :=
-  pcsa_formation_inputs_of_run E rho s N ΔF h
-    ⟨fun src dst y hs hy haw hd => pcsa_formation_retained_rest_of_open E rho s N ΔF h
-        src dst y hs hy hd (hRetained src dst y hs hy haw hd),
-      hEarlyHeads, pcsa_formation_frozen_body E rho s N ΔF h,
-      pcsa_formation_vote_presence_of_metadata E rho s N
-        (pcsa_formation_vote_metadata E rho s N ΔF h),
+    FormationPreFreezeInputs E rho s N := by
+  have hRest := fun src dst y hs hy haw hd => pcsa_formation_retained_rest_of_open E rho s N
+    ΔF h src dst y hs hy hd (hRetained src dst y hs hy haw hd)
+  have hPresence := pcsa_formation_vote_presence_of_metadata E rho s N
+    (pcsa_formation_vote_metadata E rho s N ΔF h)
+  have hExact := pcsa_formation_head_exact_of_retained E rho s N ΔF h
+    (pcsa_formation_retained_inputs E rho s N ΔF h hRest hPresence)
+  exact pcsa_formation_inputs_of_run E rho s N ΔF h
+    ⟨hRest, pcsa_formation_early_heads_of_exact E rho s N ΔF h hExact,
+      pcsa_formation_frozen_body E rho s N ΔF h, hPresence,
       pcsa_formation_early_presence E rho s N ΔF h, hAckAdmit⟩
 
 /-- Formation parts 1–4 from the pre-freeze premise and the three named producers. -/
@@ -733,11 +756,6 @@ theorem pcsa_formation_preFreeze_of_prem (E : Generic.Env V)
       y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
       pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
       FormationRetainedHeadOpen p src dst s N)
-    (hEarlyHeads : ∀ y ∈ rho.honest, ∀ nd,
-      pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd →
-      ∀ i : Fin p.n, rho.seatOf (.base (.head s)) i ∈ awakeHonestLabel p c E rho s →
-        ∃ o ∈ GridCO.earlyVotes p.toParams.engine (actView nd.st) s,
-          GridCO.headSeat? o = some i ∧ GridCO.resolvedHead? (actView nd.st) o = some N.erase)
     (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
       rho.seatOf (.base (.ack s)) i ∈ rho.honest →
       SA.earlyTime p.toParams s ≤ t → t < SA.freezeTime p.toParams s →
@@ -751,7 +769,7 @@ theorem pcsa_formation_preFreeze_of_prem (E : Generic.Env V)
       HonestAckAt p c E rho y s N.erase) ∧
     (∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams s) s N.erase) :=
   pcsa_formation_preFreeze E rho s N ΔF h
-    (pcsa_formation_preFreeze_inputs E rho s N ΔF h hRetained hEarlyHeads hAckAdmit)
+    (pcsa_formation_preFreeze_inputs E rho s N ΔF h hRetained hAckAdmit)
 
 end AvailableChain.PCSA.Run
 end
