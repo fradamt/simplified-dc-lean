@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAClaims.Statements.Regimes
-public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 
 public section

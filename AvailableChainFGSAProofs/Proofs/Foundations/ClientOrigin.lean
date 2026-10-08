@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
 
 public section

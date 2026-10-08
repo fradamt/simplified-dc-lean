@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Foundations.Accountable
-public import AvailableChainFGSAProofs.Proofs.Foundations.Store
+public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (FinalityApi rMono)
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 
 public section
