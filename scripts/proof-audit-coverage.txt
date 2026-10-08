@@ -92,6 +92,11 @@
             'AvailableChain.FGCompose.safety_finalized_monotone',
             'AvailableChain.FGCompose.safety_readAt_prefix',
         ),
+        'AvailableChainFGCompose.Proofs.SafetySlashing': (
+            'AvailableChain.FGCompose.safety_honest_never_slashed',
+            'AvailableChain.FGCompose.safety_read_carriage',
+            'AvailableChain.FGCompose.safety_read_row_origin',
+        ),
         'AvailableChainFGCompose.Proofs.SafetyStore': (
             'AvailableChain.FGCompose.safety_good_readAt',
             'AvailableChain.FGCompose.safety_good_stateBefore',
