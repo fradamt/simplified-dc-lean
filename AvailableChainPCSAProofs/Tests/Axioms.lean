@@ -860,3 +860,8 @@ end
 -- C6 BlockReceipt.
 #print axioms AvailableChain.PCSA.Run.pcsa_body_storeAt_relay
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_block_receipt
+
+-- C6 VoterAuthenticity.
+#print axioms AvailableChain.PCSA.pcsa_headVotes_label
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_input_emission
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped_unconditional

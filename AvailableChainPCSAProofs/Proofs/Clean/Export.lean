@@ -197,6 +197,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.StoreCutFacts
 
 public import AvailableChainPCSAProofs.Proofs.Clean.BlockReceipt
 
+public import AvailableChainPCSAProofs.Proofs.Clean.VoterAuthenticity
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/

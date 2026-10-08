@@ -1420,3 +1420,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Exact acceptance times and strict relay prove CleanBlockReceiptClaim
 without changing its inclusive source or after-ticks target readers.
 Validation and current claim status are recorded in log.md and state.md.
+
+### VoterAuthenticity
+
+Every raw voter HEAD has an authentic emission. The unique honest duty
+prevents caps without a healthy-cut or gate-time premise.
+Validation and current claim status are recorded in log.md and state.md.
