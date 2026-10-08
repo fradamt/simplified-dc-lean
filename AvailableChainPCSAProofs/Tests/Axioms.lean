@@ -659,6 +659,21 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_body_handles_direct
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_admitted
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline
+#print axioms AvailableChain.PCSA.Run.pcsa_body_relay_from
+#print axioms AvailableChain.PCSA.Run.pcsa_isNonRow_delay
+#print axioms AvailableChain.PCSA.Run.pcsa_isNonRow_of_ne
+#print axioms AvailableChain.PCSA.Run.StrictFrom
+#print axioms AvailableChain.PCSA.Run.CleanWindow
+#print axioms AvailableChain.PCSA.Run.pcsa_strictFrom_of_healthy
+#print axioms AvailableChain.PCSA.Run.pcsa_strictFrom_of_within
+#print axioms AvailableChain.PCSA.Run.pcsa_strictFrom_of_sync
+#print axioms AvailableChain.PCSA.Run.pcsa_strictFrom_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_of_clean
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_floor
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_of_sync
+#print axioms AvailableChain.PCSA.Run.pcsa_strict_broadcast_win
+#print axioms AvailableChain.PCSA.Run.pcsa_strict_relay_from
+#print axioms AvailableChain.PCSA.Run.pcsa_strict_relay_win
 #print axioms AvailableChain.PCSA.Run.pcsa_body_relay_within_on
 #print axioms AvailableChain.PCSA.Run.pcsa_stored_body_within_on
 #print axioms AvailableChain.PCSA.pcsa_propose_rows_valid
@@ -720,8 +735,8 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_timely_head_of_early
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_of_run
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_run
-#print axioms AvailableChain.PCSA.Run.pcsa_formation_of_open
-#print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_open
+#print axioms AvailableChain.PCSA.Run.pcsa_formationClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_formationSourceClaim
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_body
 #print axioms AvailableChain.PCSA.pcsa_formation_metadata_body
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_vote_presence_of_metadata
@@ -759,6 +774,9 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_body_in_proposer
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_back_of_frozen
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs_of_frozen
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_strictFrom
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_raw
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs_of_premise
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_gate_counts
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_ack_emits
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_ack_quorum
@@ -935,6 +953,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_head_acceptance_after_slot_start
 #print axioms AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap
 #print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap_win
+#print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late_win
 
 #print axioms AvailableChain.PCSA.pcsa_clock_blocks
 #print axioms AvailableChain.PCSA.pcsa_clock_bodyStamps
@@ -952,6 +972,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_body_accepted_before
 #print axioms AvailableChain.PCSA.Run.pcsa_body_stamp_lt_of_index_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay
+#print axioms AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay_win
 
 #print axioms AvailableChain.PCSA.pcsa_clock_headDomain
 #print axioms AvailableChain.PCSA.Run.pcsa_headDomain_stateBefore_none
@@ -1043,6 +1064,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_emits
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_not_excluded_early
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_before_early
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_before_early_win
 
 -- C6 HonestSupport.
 #print axioms AvailableChain.PCSA.pcsa_early_uncapped_clean
@@ -1052,6 +1074,8 @@ end
 -- C6 HonestBatch.
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_exists
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_head_batch
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_head_batch_win
+#print axioms AvailableChain.PCSA.Run.pcsa_head_batch_of_label
 #print axioms AvailableChain.PCSA.Run.pcsa_late_participant_bound
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority
 
@@ -1178,6 +1202,7 @@ end
 
 -- C6 ProposalDelivery.
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote_win
 
 -- C6 CommonRaw.
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_pool_slot
@@ -1634,3 +1659,27 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_root_compatible
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_past_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_at_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_result_below_proposal_parent
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_formation_commonView
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_formation_leaseRead
+#print axioms AvailableChain.PCSA.pcsa_c9_nCount_lower
+#print axioms AvailableChain.PCSA.pcsa_c9_holdsN
+#print axioms AvailableChain.PCSA.pcsa_c9_n_witness
+#print axioms AvailableChain.PCSA.pcsa_c9_timely_seat_unique
+#print axioms AvailableChain.PCSA.pcsa_c9_nTarget_of_holdsN
+#print axioms AvailableChain.PCSA.pcsa_c9_ackFor
+#print axioms AvailableChain.PCSA.pcsa_c9_early_ne_freeze
+#print axioms AvailableChain.PCSA.pcsa_c9_early_snapshot
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_honestAck
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_early_holdsN
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_postClock_index
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_early_N
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_early_view_below
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_idxBefore_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_ack_emits
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_ack_quorum
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_stamped
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_faultsBelowQA_of_quarterCap
+#print axioms AvailableChain.PCSA.Run.pcsa_c9_afterTicks_pcs_storeAt
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_honestProposal_stamped
+#print axioms AvailableChain.PCSA.Run.pcsa_strongIncludedClaim

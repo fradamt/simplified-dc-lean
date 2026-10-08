@@ -1,22 +1,18 @@
-# Formation (C7): OPEN inputs
+# Formation (C7): inputs
 
-This file lists the inputs that C7 `FormationClaim` still needs. The
+This file lists the inputs of C7 `FormationClaim` and their producers. The
 Formation writer owns this file and the `Clean/Formation*` modules.
 `Clean/OPEN.md` covers the rest of the Clean lane.
 
 ## Status
 
-`Assembly/Formation.lean` proves the claims under one named OPEN input,
-`hFrozen`: a producer of the frozen raw relay at every Formation context
-(the same binders as `FormationClaim`):
+C7 has no open input. `Assembly/Formation.lean` proves:
 
-- `pcsa_formation_of_open`: `hFrozen` gives `FormationClaim p`.
-- `pcsa_formation_source_of_open`: `hFrozen` gives the body of
-  `FormationSourceClaim p` (`Claims/Finality.lean`). No Export of this
-  branch imports `Claims.Finality`, so the statement is the unfolded body.
-
-The `FormationClaim` and `FormationSourceClaim` fields stay OPEN until
-`hFrozen` is proved.
+- `pcsa_formationClaim : FormationClaim p`.
+- `pcsa_formationSourceClaim`: the body of `FormationSourceClaim p`
+  (`Claims/Finality.lean`). No Export of this branch imports
+  `Claims.Finality` yet, so the statement is the unfolded body. After
+  `Finality/Export` lands, `FormationSourceClaim_def` gives the named claim.
 
 The F4 statement fix is part of this landing. It adds
 `FormationRootReachable` and the `proposerRootReachable` fields of
@@ -55,20 +51,9 @@ Proved inputs, with their producers:
   carried arms are the proposal's own lists. A frozen support HEAD relays
   as a raw HEAD; Formation body relay gives its body at the proposer
   (`pcsa_formation_frozen_body_in_proposer`).
-
-## OPEN input: the frozen raw relay
-
-The binder is `hFrozen`, with type `FormationFrozenRawOpen p src dst s` at
-the honest proposer read at `t_s` (`src`) and each honest voter awake at
-`v_s` (`dst`): a HEAD `⟨seat (s-1) i, head r⟩` in the voter pool with a
-stamp before `z_{s-1}` is in the proposer raw list (`proposerVotes src.st
-s`), or seat `i` is capped there.
-
-`pcsa_formation_preFreeze_inputs_of_frozen` derives all pre-freeze inputs
-from it.
-
-Plan: this is the Clean `pcsa_frozen_input_in_proposer` at slot `s - 1`,
-with the windowed delivery `max t z_{s-1} + Δ` in place of
-`HealthyPrefixDeliveryBy`. Its only delivery step is the relay of the
-accepted HEAD (`pcsa_head_relay_late_or_cap`), with deadline `t_s` in place
-of `t + Δ`. The windowed HEAD relay of the Clean restart work supplies it.
+- Frozen raw relay `FormationFrozenRawOpen` (`pcsa_formation_frozen_raw`,
+  `FormationFrozenRaw`): Formation delivery is `StrictFrom` at
+  `T₀ = z_{s-1}` (`pcsa_strictFrom_of_within`). A frozen voter HEAD was
+  accepted before `z_{s-1}`; the Clean windowed HEAD relay
+  (`pcsa_head_relay_late_or_cap_win`) gives it, or a cap of its seat, at the
+  proposer by `max t z_{s-1} + Δ = t_s`.

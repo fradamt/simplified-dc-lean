@@ -2,6 +2,7 @@ module
 public import AvailableChainPCSAClaims.Statements.Reads
 public import AvailableChainPCSAClaims.Statements.Regimes
 public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
+public import AvailableChainPCSAProofs.Proofs.Shared.CleanWindow
 
 public section
 
@@ -69,6 +70,21 @@ theorem pcsa_proposal_handles_ack (nd : Node p) (s : Slot) (N : NamedProposal p.
   left
   exact ⟨⟨hn, hp⟩, Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩))⟩
 
+/-- Broadcast from the window floor has the strict deadline `t + Δ`. -/
+theorem pcsa_strict_broadcast_win (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    {T₀ cut : Time} (hD : StrictFrom E rho T₀ cut)
+    (o : Obj p) (hn : ∀ body, o.payload ≠ .row body) (x y : V) (t : Time)
+    (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) (he : V2.D.Run.emits E rho x o t)
+    (hT : T₀ ≤ t) (hc : t + E.Δ ≤ cut)
+    (hNX : (pcsaWith m p c).excludes
+      (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y) o = false) :
+    ∃ t', t ≤ t' ∧ t' < t + E.Δ ∧ ∃ j, V2.D.Run.handlesAt E rho j y o t' := by
+  obtain ⟨dl, hW, hexact, _, _⟩ := hD.deadline
+  have hd := hexact t hT
+  have hr := hW.broadcast x hx o (pcsa_isNonRow_of_ne o hn) t he y hy (by rw [hd]; exact hc)
+    (by rw [hd]; exact hNX)
+  rwa [hd] at hr
+
 /-- Broadcast receipt has a strict deadline, also at an asleep receiver. -/
 theorem pcsa_strict_broadcast (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
     {cut ΔF : Time}
@@ -78,10 +94,41 @@ theorem pcsa_strict_broadcast (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m 
     (hc : t + E.Δ ≤ cut)
     (hNX : (pcsaWith m p c).excludes
       (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y) o = false) :
+    ∃ t', t ≤ t' ∧ t' < t + E.Δ ∧ ∃ j, V2.D.Run.handlesAt E rho j y o t' :=
+  -- Floor `T₀ = t`, not `0`: the statement has no `0 ≤ t`, and healthy delivery is
+  -- strict from every floor.
+  pcsa_strict_broadcast_win E rho (pcsa_strictFrom_of_healthy E rho hD t) o hn x y t hx hy he
+    (le_refl t) hc hNX
+
+/-- An object accepted at `t` relays to each honest node that still needs it
+before a deadline `d ≤ max t T₀ + Δ`, with `d = t + Δ` from the window floor. -/
+theorem pcsa_strict_relay_from (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    {T₀ cut : Time} (hD : StrictFrom E rho T₀ cut)
+    (o : Obj p) (hn : ∀ body, o.payload ≠ .row body) (x : V) (i : Nat) (t : Time)
+    (hx : x ∈ rho.honest) (ha : V2.D.Run.acceptsAt E rho i x o t) :
+    ∃ d, t < d ∧ d ≤ max t T₀ + E.Δ ∧ (T₀ ≤ t → d = t + E.Δ) ∧
+      ∀ y ∈ rho.honest,
+        (pcsaWith m p c).processed (V2.D.Run.stateBefore E rho (i + 1) y) o = false →
+        d ≤ cut → (pcsaWith m p c).excludes (V2.D.Run.stateBeforeTime E rho d y) o = false →
+        ∃ t', t ≤ t' ∧ t' < d ∧ ∃ j, V2.D.Run.handlesAt E rho j y o t' := by
+  obtain ⟨dl, hW, hexact, hlt, hle⟩ := hD.deadline
+  exact ⟨dl t, hlt t, hle t, hexact t, fun y hy hneed hc hNX =>
+    hW.relay x hx i o (pcsa_isNonRow_of_ne o hn) t ha y hy hneed hc hNX⟩
+
+/-- An object accepted from the window floor relays with the strict deadline `t + Δ`. -/
+theorem pcsa_strict_relay_win (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    {T₀ cut : Time} (hD : StrictFrom E rho T₀ cut)
+    (o : Obj p) (hn : ∀ body, o.payload ≠ .row body) (x y : V) (i : Nat) (t : Time)
+    (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (ha : V2.D.Run.acceptsAt E rho i x o t) (hT : T₀ ≤ t)
+    (hneed : (pcsaWith m p c).processed (V2.D.Run.stateBefore E rho (i + 1) y) o = false)
+    (hc : t + E.Δ ≤ cut)
+    (hNX : (pcsaWith m p c).excludes
+      (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y) o = false) :
     ∃ t', t ≤ t' ∧ t' < t + E.Δ ∧ ∃ j, V2.D.Run.handlesAt E rho j y o t' := by
-  have hd := pcsa_nonrow_delay o E.Δ ΔF hn
-  simpa only [hd] using hD.broadcast_emitted x hx o t he y hy (by simpa [hd] using hc)
-    (by simpa [hd] using hNX)
+  obtain ⟨d, _, _, hd, hrel⟩ := pcsa_strict_relay_from E rho hD o hn x i t hx ha
+  rw [hd hT] at hrel
+  exact hrel y hy hneed hc hNX
 
 /-- Accepted objects relay with a strict deadline if the receiver still needs them. -/
 theorem pcsa_strict_relay (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
@@ -94,10 +141,11 @@ theorem pcsa_strict_relay (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)
     (hc : t + E.Δ ≤ cut)
     (hNX : (pcsaWith m p c).excludes
       (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y) o = false) :
-    ∃ t', t ≤ t' ∧ t' < t + E.Δ ∧ ∃ j, V2.D.Run.handlesAt E rho j y o t' := by
-  have hd := pcsa_nonrow_delay o E.Δ ΔF hn
-  simpa only [hd] using hD.relay_accepted x hx i o t ha y hy hneed
-    (by simpa [hd] using hc) (by simpa [hd] using hNX)
+    ∃ t', t ≤ t' ∧ t' < t + E.Δ ∧ ∃ j, V2.D.Run.handlesAt E rho j y o t' :=
+  -- Floor `T₀ = t`, not `0`: the statement has no `0 ≤ t`, and healthy delivery is
+  -- strict from every floor.
+  pcsa_strict_relay_win E rho (pcsa_strictFrom_of_healthy E rho hD t) o hn x y i t hx hy ha
+    (le_refl t) hneed hc hNX
 
 /-- Honest acks emitted at the early duty are handled strictly before the freeze. -/
 theorem pcsa_ack_handled_before_freeze (E : Generic.Env V)

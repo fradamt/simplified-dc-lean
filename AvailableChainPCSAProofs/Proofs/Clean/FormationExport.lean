@@ -2,6 +2,7 @@ module
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationInputs
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRetainedTree
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRetainedBack
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationFrozenRaw
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationGateCounts
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationHeads
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
@@ -56,7 +57,7 @@ The old release witness fails F4.
 FormationCompose proves parts 1–4 with named run inputs.
 FormationGateCounts proves the late gate counts from the exact honest
 HEADs. Assembly.Formation proves FormationClaim and the FormationSourceClaim
-body from a producer of the frozen raw relay. FormationSourceRetention
+body with no open input. FormationSourceRetention
 derives snapshot and target retention. The stamped-PC part of C7 supplies the source when
 connected to C1 PC target uniqueness. No source retention input remains.
 FormationRetention closes hAckPoolMono from NoRestart and the Clean
@@ -71,7 +72,8 @@ FormationCollection closes hPCCollect from the required early N counts.
 Its PC consumers need only hAckAdmit from C3. FormationHeads closes honest pool non-equivocation.
 Raw-HEAD carriage and the current child follow from body/metadata receipt.
 Body relay and metadata close support retention and resolution.
-The frozen raw relay remains open.
+FormationFrozenRaw proves the frozen raw relay from the Clean windowed HEAD
+relay at T₀ = z_{s-1}. No Formation input remains open.
 The main Clean.Export module is owned by the other Clean writer. -/
 
 end

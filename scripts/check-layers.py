@@ -681,6 +681,13 @@ COMPOSE_EDGES |= frozenset({
 COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetyAccountable'),
 })
+# Lead ruling 2026-10-08 (s2-plan P10, D2): the bridge also reads the Compose
+# count, monotone and slashing proofs. Three exact pairs. No prefix.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetyCount'),
+    ('AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetyMonotone'),
+    ('AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetySlashing'),
+})
 
 
 def compose_base(dep: str) -> bool:

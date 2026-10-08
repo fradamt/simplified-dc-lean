@@ -339,6 +339,35 @@ theorem pcsa_body_stamp_lt_of_index_cut (E : Generic.Env V)
   change (V2.D.Run.stateBefore E rho j x).st.base.now ≤ t at hc
   rw [hs]
   exact lt_of_le_of_lt hc ht
+/-- From the window floor, a body first stamped before a public cutoff is held and timely
+at each later honest read. -/
+theorem pcsa_body_before_public_cut_relay_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (B : Block) (bound : Time) (hpub : V2.PublicTime E bound) (hzero : 0 ≤ bound)
+    (hT : T₀ ≤ bound)
+    (hc : bound + E.Δ ≤ cut) (hk : V2.D.Run.idxBefore rho (bound + E.Δ) ≤ k)
+    (hg : B ≠ .genesis) (hm : B ∈ (V2.D.Run.stateBefore E rho a x).st.base.blocks)
+    (hs : GridCO.stampBlock (V2.D.Run.stateBefore E rho a x).st.base B < bound) :
+    B ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks ∧
+      GridCO.stampBlock (V2.D.Run.stateBefore E rho k y).st.base B < bound + E.Δ := by
+  obtain ⟨j, _, t, parent, s, N, P, he, ht, hd, hb, hp, ha, hacc⟩ :=
+    pcsa_body_accepted_before E rho h a x B bound hpub hzero hg hm hs
+  obtain ⟨dl, _, hdl, _, hrecv⟩ := pcsa_body_relay_from E rho h hF hD j x hx t parent s N P
+    he hd hp ha hacc
+  have hdeadline : dl ≤ bound + E.Δ :=
+    hdl.trans (Int.add_le_add_right (max_le ht.le hT) E.Δ)
+  have hmem := hrecv y hy (hdeadline.trans hc)
+  rw [hb, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ h.valid.toScheduleWellFormed] at hmem
+  have hidx : V2.D.Run.idxBefore rho dl ≤ k := (pcsa_body_idx_mono rho hdeadline).trans hk
+  have hstamp := pcsa_body_stamp_lt_of_index_cut E rho h.valid.toScheduleWellFormed
+    h.noRestart _ y B dl (le_refl _) hg hmem
+  have hlate := pcsa_body_stateBefore_mono E rho h.noRestart y hidx hmem
+  refine ⟨hlate, ?_⟩
+  rw [pcsa_body_stamp_stateBefore_eq E rho h.noRestart y hidx B hmem]
+  exact lt_of_lt_of_le hstamp hdeadline
 /-- A body first stamped before a public cutoff is held and timely at each later honest read. -/
 theorem pcsa_body_before_public_cut_relay (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
@@ -350,20 +379,9 @@ theorem pcsa_body_before_public_cut_relay (E : Generic.Env V)
     (hg : B ≠ .genesis) (hm : B ∈ (V2.D.Run.stateBefore E rho a x).st.base.blocks)
     (hs : GridCO.stampBlock (V2.D.Run.stateBefore E rho a x).st.base B < bound) :
     B ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks ∧
-      GridCO.stampBlock (V2.D.Run.stateBefore E rho k y).st.base B < bound + E.Δ := by
-  obtain ⟨j, _, t, parent, s, N, P, he, ht, hd, hb, hp, ha, hacc⟩ :=
-    pcsa_body_accepted_before E rho h a x B bound hpub hzero hg hm hs
-  have hdeadline : t + E.Δ ≤ bound + E.Δ := by linarith
-  have hmem := pcsa_body_relay_before_deadline E rho h hF hD j x y hx hy t parent s N P
-    he hd hp ha hacc (hdeadline.trans hc)
-  rw [hb, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ h.valid.toScheduleWellFormed] at hmem
-  have hidx : V2.D.Run.idxBefore rho (t + E.Δ) ≤ k := (pcsa_body_idx_mono rho hdeadline).trans hk
-  have hstamp := pcsa_body_stamp_lt_of_index_cut E rho h.valid.toScheduleWellFormed
-    h.noRestart _ y B (t + E.Δ) (le_refl _) hg hmem
-  have hlate := pcsa_body_stateBefore_mono E rho h.noRestart y hidx hmem
-  refine ⟨hlate, ?_⟩
-  rw [pcsa_body_stamp_stateBefore_eq E rho h.noRestart y hidx B hmem]
-  exact lt_of_lt_of_le hstamp hdeadline
+      GridCO.stampBlock (V2.D.Run.stateBefore E rho k y).st.base B < bound + E.Δ :=
+  pcsa_body_before_public_cut_relay_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y
+    hx hy B bound hpub hzero hzero hc hk hg hm hs
 end AvailableChain.PCSA.Run
 
 end

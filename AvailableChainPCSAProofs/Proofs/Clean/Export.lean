@@ -27,6 +27,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.StepGate
 public import AvailableChainPCSAProofs.Proofs.Clean.StepPC
 public import AvailableChainPCSAProofs.Proofs.Shared.Dissemination
 public import AvailableChainPCSAProofs.Proofs.Shared.CleanPC
+public import AvailableChainPCSAProofs.Proofs.Shared.VoterView
+public import AvailableChainPCSAProofs.Proofs.Clean.C9Stamp
 
 public import AvailableChainPCSAProofs.Proofs.Clean.BackwardInputs
 
@@ -1373,6 +1375,161 @@ theorem pcsa_clean_heads_cone_at_vote [Fintype V] (E : Generic.Env V)
   have hp := p.deltaPos
   linarith
 
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+/-- [pcsa34-r4.3 §5.3, F4] Every honest result of a label before an honest proposal is below
+the proposal parent. The proposer head at `t_u` extends the results of label `u − 1`
+(`pcsa_clean_proposer_head_above_result`); the C6 results chain carries the lower labels. -/
+theorem pcsa_clean_result_below_proposal_parent (p : Params) :
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ (u : Slot) (N : NamedProposal p.n), 0 < u → HonestNamedProposal p c E rho u N →
+        SA.gateTime p.toParams (u - 1) ≤ b₀ →
+        ∀ x ∈ rho.honest, ∀ (i : Slot) (X : Block), i ≤ u - 1 →
+          gateResultAt p c E rho x i = some (some X) → Block.Preceq X N.erase.parent := by
+  intro V _ _ In c m E rho b₀ ΔF hC hf hF u N hu hN hc x hx i X hi hX
+  obtain ⟨s, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hu)
+  simp only [Nat.succ_sub_one] at hc hi
+  have hCI := (pcsa_clean_joint_invariant E rho hC hF hf s hc).1
+  obtain ⟨hw, he⟩ := hN
+  obtain ⟨k, hk, _, hslot, _, _, _, hparent⟩ := pcsa_emitted_proposal_inputs E rho _ (s + 1) N he
+  obtain ⟨D, hD⟩ := pcsa_clean_result_exists E rho hC hF x hx s hc
+  have hXD : Block.Preceq X D := by
+    rcases hi.lt_or_eq with hlt | heq
+    · exact (hCI.resultsChain x hx x hx i s X D hi (le_refl _) hX hD).1 hlt
+    · subst i
+      rw [Option.some.inj (Option.some.inj (hX.symm.trans hD))]
+      exact Gen.Pure.block_preceq_refl _
+  have hDH := pcsa_clean_proposer_head_above_result E rho hC hF s hCI hc k _ x hw hx hk D hD
+  have hpar : N.erase.parent = N.parent.erase := by
+    have h1 := pcsa_named_parent_of_positive N (hslot ▸ Nat.succ_pos s)
+    generalize N.erase = B at h1 ⊢
+    cases B with
+    | genesis => cases h1
+    | node Q r root app => exact Option.some.inj h1
+  rw [hpar, hparent]
+  exact Gen.Pure.block_preceq_trans hXD hDH
+/-- [pcsa34-r4.3 §5.3, F3] Every honest voter awake at `v_u` reads the target of the carried
+PC of an honest proposal at label `u` (`pcsa_common_view_targets` at the post-clock vote read). -/
+theorem pcsa_clean_formation_commonView (p : Params) :
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ (u : Slot) (N : NamedProposal p.n), 0 < u → HonestNamedProposal p c E rho u N →
+        SA.gateTime p.toParams (u - 1) ≤ b₀ →
+        ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams u) = true →
+          (viewAt p c E rho y u).map (Option.map PC.target) = some (N.pc.map PC.target) := by
+  intro V _ _ In c m E rho b₀ ΔF hC hf hF u N hu hN hc y hy _
+  obtain ⟨s, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hu)
+  simp only [Nat.succ_sub_one] at hc
+  obtain ⟨hw, he⟩ := hN
+  obtain ⟨k, hk, _, hslot, _, _, hpc, _⟩ := pcsa_emitted_proposal_inputs E rho _ (s + 1) N he
+  have hp : (0 : Int) < p.Δ := p.deltaPos
+  have hvc : SA.voteTime p.toParams (s + 1) ≤ b₀ := by
+    apply le_trans _ hc
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    push_cast
+    linarith
+  have hmem := (pcsa_honest_proposal_before_vote E rho hC.base hF hC.healthy _ y hw hy (s + 1) N
+    he hvc _ (le_refl _)).1
+  have hview := pcsa_common_view_targets E rho hC.base hF hf hC.healthy k y hy s N hw he hk hslot
+    hvc hmem hpc
+  have hpub : V2.PublicTime E (SA.voteTime p.toParams (s + 1)) := by
+    refine ⟨4 * (s + 1) + 1, ?_⟩
+    rw [hC.base.delta]
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ = ((4 * (s + 1) + 1 : Nat) : Int) * p.Δ
+    push_cast
+    ring
+  have h0 : 0 ≤ SA.voteTime p.toParams (s + 1) := by
+    change 0 ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    positivity
+  obtain ⟨nd, hnd⟩ := pcsa_postClock_exists E rho hC.base y hy _ hpub h0 (hvc.trans hC.cut.2)
+  obtain ⟨k', hk', hst⟩ := pcsa_postClock_source E rho y _ nd hnd
+  have hpre := V2.D.Engine.stateBefore_tick_eq_stateBeforeTime
+    hC.base.valid.toScheduleWellFormed hC.base.noRestart hk'
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hC.base.valid.toScheduleWellFormed] at hpre
+  rw [pcsa_viewAt_def, hnd, Option.map_some, Option.map_some, hst, hpre, hview, hpc]
+  rfl
+/-- [pcsa34-r4.3 §5.3, F4] A live lock at the post-clock vote read of `v_u` is a lock row of
+the inclusive store at `v_u − 1` (`pcsa_vote_locks_subset`, `pcsa_pre_tick_storeAt`). -/
+theorem pcsa_clean_formation_leaseRead (p : Params) :
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ (u : Slot) (N : NamedProposal p.n), 0 < u → HonestNamedProposal p c E rho u N →
+        SA.gateTime p.toParams (u - 1) ≤ b₀ →
+        ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams u) = true →
+          ∀ nd, pcsa_postClock E rho y (SA.voteTime p.toParams u) = some nd →
+          ∀ B, LiveLease nd.st B →
+            Block.Compatible B ((N.pc.map PC.target).getD (eraseFG (controls p nd.st).Z)) →
+            ((N.pc.map PC.target).getD (eraseFG (controls p nd.st).Z)).depth < B.depth →
+            ∃ t : Time, ∃ row, t < SA.voteTime p.toParams u ∧
+              row ∈ (storeAt p c E rho y t).base.obligations ∧ row.1 = B := by
+  intro V _ _ In c m E rho b₀ ΔF hC _ _ u N _ _ _ y _ _ nd hnd B hLive _ _
+  obtain ⟨k, hk, hst⟩ := pcsa_postClock_source E rho y _ nd hnd
+  obtain ⟨row, hrow, hrB, _⟩ := hLive
+  rw [hst] at hrow
+  have hrow' := pcsa_vote_locks_subset p _ u hrow
+  rw [pcsa_pre_tick_storeAt E rho hC.base k y _ hk] at hrow'
+  exact ⟨SA.voteTime p.toParams u - 1, row, sub_one_lt _, hrow', hrB⟩
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+/-- [pcsa34-r4.3 §5.3 part 4] Clean stamping: an honest proposal at `u` with `h_u ≥ q_N` is a
+PC stamped before `z_u` at every honest node, when `z_u ≤ b₀`. Predecessor C6 fixes every honest
+HEAD at `u` (`pcsa_clean_emitted_heads_equal`); the HEADs pass the early N count, the early view
+is below the proposal, the acks form a PC quorum, and the freeze collects it. -/
+theorem pcsa_clean_honestProposal_stamped (p : Params) :
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → QuarterCap p c rho → StageOneFrame p c E rho →
+      ∀ (u : Slot) (N : NamedProposal p.n), 0 < u → HonestNamedProposal p c E rho u N →
+        nQuorum p.n ≤ (awakeHonestLabel p c E rho u).card →
+        SA.freezeTime p.toParams u ≤ b₀ →
+        ∀ y ∈ rho.honest,
+          PCStampedBefore p c E rho y (SA.freezeTime p.toParams u) u N.erase := by
+  intro V _ _ In c m E rho b₀ ΔF hC hQc hF u N hu hN hQ hz
+  obtain ⟨s, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hu)
+  have hFault := pcsa_c9_faultsBelowQA_of_quarterCap rho hQc
+  have hp : (0 : Int) < p.Δ := p.deltaPos
+  have hds : SA.gateTime p.toParams s ≤ b₀ := by
+    apply le_trans _ hz
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + 3 * p.Δ
+    push_cast
+    linarith
+  have hez : SA.earlyTime p.toParams (s + 1) ≤ SA.freezeTime p.toParams (s + 1) := by
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + 2 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + 3 * p.Δ
+    linarith
+  have hve : SA.voteTime p.toParams (s + 1) ≤ SA.earlyTime p.toParams (s + 1) := by
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + 2 * p.Δ
+    linarith
+  have hec := hez.trans hz
+  have hvc := hve.trans hec
+  have hCI := (pcsa_clean_joint_invariant E rho hC hF hFault s hds).1
+  obtain ⟨hw, he⟩ := hN
+  have hHeads : ∀ x H, HonestHeadAt p c E rho x (s + 1) H → H = N.erase :=
+    fun x H hH => pcsa_clean_emitted_heads_equal E rho hC hF hFault s hCI hds N hw he x H hH
+  have hslot : N.erase.slot = s + 1 := pcsa_proposal_emitted_slot E rho _ (s + 1) N _ he
+  have hNc := pcsa_c9_early_N E rho hC.base hF hC.healthy (s + 1) N.erase hec
+    (hec.trans hC.cut.2) hQ hHeads
+  have hAck : ∀ y ∈ rho.honest, E.awake y (SA.earlyTime p.toParams (s + 1)) = true →
+      HonestAckAt p c E rho y (s + 1) N.erase := by
+    intro y hy haw
+    obtain ⟨nd, hnd, hn⟩ := hNc y hy
+    exact pcsa_c9_honestAck E rho (s + 1) N.erase y nd hy haw hnd hslot hn
+      (pcsa_c9_early_view_below E rho hC.base hF hFault hC.healthy s N hw he hvc y hy nd hnd)
+  have hBody : ∀ y ∈ rho.honest, N.erase ∈ (V2.D.Run.stateBefore E rho
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams (s + 1))) y).st.base.blocks :=
+    fun y hy => (pcsa_honest_proposal_before_vote E rho hC.base hF hC.healthy _ y hw hy (s + 1)
+      N he hvc _ (pcsa_c9_idxBefore_mono rho (hve.trans hez))).2
+  exact pcsa_c9_stamped E rho hC.base hF hC.healthy (s + 1) N.erase (Nat.succ_pos s) hslot hz
+    (hz.trans hC.cut.2) hBody (pcsa_c9_ack_quorum E rho hC.base (s + 1) N.erase hQ hAck)
 end AvailableChain.PCSA.Run
 
 end

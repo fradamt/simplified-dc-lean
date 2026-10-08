@@ -275,6 +275,19 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
   lemmas with smaller premises, without the lane prefix (Shared carries no lane
   names); Formation drops its copies when it switches.
+  The CI restart (2026-10-08) adds `CleanWindow`, the delivery window of the
+  clean induction from a label `j₀`. `StrictFrom E rho T₀ cut` is non-row
+  delivery with a deadline `dl t` that is `t + Δ` from the floor `T₀` and at
+  most `max t T₀ + Δ` before it. Converters: `pcsa_strictFrom_of_healthy`
+  (`HealthyPrefixDeliveryBy`, any `T₀`), `pcsa_strictFrom_of_sync`
+  (`PartialSynchronyBy`, `T₀ = t_GST`) and `pcsa_strictFrom_of_within` (a
+  `DeliveryWithinOn` premise with deadline `max t T₀ + Δ`, as
+  `FormationPrem.delivery` with `T₀ = z_{s-1}`). `CleanWindow E rho j₀ T₀ b₀`
+  adds `Base₂`, the cut, `T₀ ≤ t_{j₀}` and `a < h_j` at each label `j ≥ j₀` with
+  `e_j ≤ b₀`; `Clean₂` gives it with `j₀ = 0`, `T₀ = 0`, and the RECOVERY
+  components give it with `T₀ = t_GST`. The `_win` lemmas of `Shared/Relay`,
+  `Shared/BodyReceipt` and the Clean lane take `StrictFrom` (or `CleanWindow`);
+  the old `HealthyPrefixDeliveryBy` names are wrappers with unchanged types.
 - PC-SA Formation (C7; 2026-10-08). Paths are under
   `AvailableChainPCSAProofs/Proofs/`. The Formation proofs are the
   `Clean/Formation*` modules; `Clean/FormationExport` collects them. It is an
@@ -289,11 +302,12 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `HealedSourcePrem` carries the same clause at `r * p.R`. Parts 1–4 of the
   conclusion follow from `FormationPreFreezeInputs`; the gate counts
   (`Clean/FormationGateCounts`) give part 5. `Assembly/Formation` proves
-  `FormationClaim` (`pcsa_formation_of_open`) and the body of
-  `FormationSourceClaim` (`pcsa_formation_source_of_open`) from one named
-  OPEN input, a producer of the five retained HEAD facts
-  (`FormationRetainedHeadOpen`) at every Formation context. See
-  `Clean/FormationOPEN.md`.
+  `FormationClaim` (`pcsa_formationClaim`) and the body of
+  `FormationSourceClaim` (`pcsa_formationSourceClaim`) with no open input.
+  `Clean/FormationRetainedTree` and `Clean/FormationRetainedBack` prove the
+  five retained HEAD facts; `Clean/FormationFrozenRaw` proves the frozen raw
+  relay from the Clean windowed HEAD relay (`StrictFrom` at `T₀ = z_{s-1}`).
+  See `Clean/FormationOPEN.md`.
 - PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
   holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
   items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow
@@ -468,14 +482,22 @@ How the pieces meet:
 - Generic FG finality safety (2026-10-07). `AvailableChainFGCompose` states
   the safety contracts (`Statements/SafetyReads`, `SafetyStore`,
   `SafetyClient`, `SafetyClaims`) and proves the accountability fields 3-5 in
-  `Proofs/SafetyStore` and `Proofs/SafetyAccountable`. FG-SA supplies the laws
-  in `Shared/FGSafetyClient`, `Shared/FGSafetyStore` and `Shared/FGSafetyScope`.
-  `Foundations/FGSafetyBridge` states the accountability results at the FG-SA
-  reads. Its public types use only FG-SA terms, with the `FinalityRunBlock`
-  body expanded, because `Foundations/Accountable` imports the bridge. Its one
-  Compose import is the exact pair `Foundations.FGSafetyBridge` →
-  `AvailableChainFGCompose.Proofs.SafetyAccountable` (`COMPOSE_EDGES` and
-  `laneUpstream`). `Accountable` reaches Compose only through the bridge.
+  `Proofs/SafetyStore` and `Proofs/SafetyAccountable`, the client and count
+  results in `Proofs/SafetyClient` and `Proofs/SafetyCount`, finalized
+  monotonicity in `Proofs/SafetyMonotone`, and field 8 (honest non-slashing)
+  in `Proofs/SafetySlashing`. FG-SA supplies the laws in
+  `Shared/FGSafetyClient`, `Shared/FGSafetyStore` and `Shared/FGSafetyScope`.
+  `Foundations/FGSafetyBridge` states these results at the FG-SA reads:
+  accountability, the pool count, client safety and row origins, finalized
+  monotonicity and honest non-slashing. `Accountable`, `Client`,
+  `ClientOrigin`, `FinalizedSafety` and `HonestNeverSlashed` call the bridge.
+  Its public types use only FG-SA terms, with the `FinalityRunBlock` body
+  expanded, because `Foundations/Accountable` imports the bridge. Its four
+  Compose imports are the exact pairs `Foundations.FGSafetyBridge` →
+  `AvailableChainFGCompose.Proofs.SafetyAccountable`, `.SafetyCount`,
+  `.SafetyMonotone` and `.SafetySlashing` (`COMPOSE_EDGES` and
+  `laneUpstream`). The five callers reach the Compose proofs only through
+  the bridge.
 - FG-SA on engine v2 (T7): `Node = {st, rec}`, `base = st`, `rec = Λ`
   (durable). Label families: HEAD labels AP and fresh (`CStar`); FG labels
   `Linked`; proposal labels AP and `SingleSeat`, one label per slot

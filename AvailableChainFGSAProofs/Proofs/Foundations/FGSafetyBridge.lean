@@ -1,13 +1,17 @@
 module
 public import AvailableChainFGCompose.Proofs.SafetyAccountable
+public import AvailableChainFGCompose.Proofs.SafetyCount
+public import AvailableChainFGCompose.Proofs.SafetyMonotone
+public import AvailableChainFGCompose.Proofs.SafetySlashing
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
+public import AvailableChainFGSARun.Statements.Slashing
 
 public section
 
-/-! FG finality safety, step S4a: the generic accountability results (fields 3,
-4 and 5) at the FG-SA reads. `Accountable` imports this module, so the
-statements expand `FinalityRunBlock` instead of naming it. -/
+/-! FG finality safety, steps S4a and S4b: the generic results (fields 3 to 8)
+at the FG-SA reads. `Accountable` imports this module, so the statements
+expand `FinalityRunBlock` and `FinalityCarriage` instead of naming them. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG AvailableChain.FGCompose
@@ -181,6 +185,163 @@ theorem fgsa_bridge_read_agreement (hroots : NamedRootCollisionFree p c E rho)
   have h' := h.2 u hu v hv t t'
   rw [fgsaCoreReads_def] at h'
   exact h'
+
+/-! S4b: client safety, fault count, finalized monotonicity and slashing. -/
+
+private theorem bridge_fg_linked : (fgsaFamilies p c).linked (fgsaSafetyReads p c).fgLabel := by
+  rw [fgsaSafetyReads_def]
+  trivial
+
+omit [DecidableEq V] in
+private theorem bridge_holder (i : Fin p.n) :
+    safetyHolder (fgsaSafetyReads p c) rho i = rho.seatOf (.base .fg) i := by
+  rw [safetyHolder_def, fgsaSafetyReads_def]
+  rfl
+
+private theorem bridge_emits_iff (x : V) (a : RowWire p.n) :
+    safetyEmits (fgsaSafetyReads p c) E rho x a ↔ EmitsRow p c E rho x a := by
+  rw [safetyEmits_def, fgsaSafetyReads_def]
+  exact Iff.rfl
+
+/-- The Compose no-slash read at the FG-SA reads is `EmittedRowsNoSlash`. -/
+private theorem bridge_noSlash_iff (x : V) :
+    safetyNoSlash (fgsaSafetyReads p c) E rho x ↔ EmittedRowsNoSlash p c E rho x := by
+  rw [safetyNoSlash_def, fgsaSafetyReads_def]
+  exact Iff.rfl
+
+/-- A set of rows with signed wires that their honest signers emitted is carried. -/
+private theorem bridge_carriage_of (A : Finset (Row (Fin p.n)))
+    (h : ∀ u ∈ A, ∃ a : RowWire p.n, a.toRow? = some u ∧
+      ∀ z, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a) :
+    safetyCarriage (fgsaSafetyReads p c) E rho A := by
+  rw [safetyCarriage_def]
+  intro u hu
+  obtain ⟨a, hau, hem⟩ := h u hu
+  have hsign : RowSigner p c rho a (rho.seatOf (.base .fg) u.signer) := by
+    rw [RowSigner_def]
+    exact ⟨u.signer, row_auth_of_toRow a u hau, rfl⟩
+  have hdec : (fgsaSafetyReads p c).decode a = some u := by
+    rw [fgsaSafetyReads_def]
+    exact hau
+  refine ⟨a, hdec, fun hh => ?_⟩
+  rw [bridge_holder] at hh ⊢
+  exact (bridge_emits_iff p c E rho _ a).2 (hem _ hsign hh)
+
+/-- Two carried row sets with slashable weight have at least `2 q_F − n`
+faulty holders. -/
+theorem fgsa_bridge_pool_count [Fintype V]
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hC : ∀ z ∈ rho.honest, EmittedRowsNoSlash p c E rho z)
+    (A B : Finset (Row (Fin p.n)))
+    (hA : ∀ u ∈ A, ∃ a : RowWire p.n, a.toRow? = some u ∧
+      ∀ z, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a)
+    (hB : ∀ u ∈ B, ∃ a : RowWire p.n, a.toRow? = some u ∧
+      ∀ z, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a)
+    (hev : HasSlashableWeightBetween p.E A B) :
+    2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.Duty.faulty rho).card :=
+  safety_slashable_faulty_count (fgsaSafetyReads p c) p.E E rho (fgsaSafetyUnitLaws p)
+    (fgsaFamilies p c).linked (bridge_fg_linked p c) hL
+    (fun z hz => (bridge_noSlash_iff p c E rho z).2 (hC z hz))
+    (bridge_carriage_of p c E rho A hA) (bridge_carriage_of p c E rho B hB) hev
+
+/-- Field 6: carriage of every run block, client safety and the one-third
+fault bound exclude slashable weight between run blocks. -/
+theorem fgsa_bridge_slashableBound_of_faults [Fintype V]
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hbot : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+    (hC : ∀ z ∈ rho.honest, EmittedRowsNoSlash p c E rho z)
+    (hcar : ∀ K,
+      (∃ o N, o.payload = Msg.proposal N ∧
+        ((∃ x t, V2.D.Run.emits E rho x o t) ∨
+          (∃ x t, V2.Event.deliver x o t ∈ rho.events)) ∧
+        Block.Preceq (eraseFG K) N.erase) →
+      ∀ u ∈ chainRows K, ∃ a : RowWire p.n, a.toRow? = some u ∧
+        ∀ z, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a)
+    (K W : FGBlock (Fin p.n))
+    (hK : ∃ o N, o.payload = Msg.proposal N ∧
+      ((∃ x t, V2.D.Run.emits E rho x o t) ∨
+        (∃ x t, V2.Event.deliver x o t ∈ rho.events)) ∧
+      Block.Preceq (eraseFG K) N.erase)
+    (hW : ∃ o N, o.payload = Msg.proposal N ∧
+      ((∃ x t, V2.D.Run.emits E rho x o t) ∨
+        (∃ x t, V2.Event.deliver x o t ∈ rho.events)) ∧
+      Block.Preceq (eraseFG W) N.erase) :
+    ¬ HasSlashableWeightBetween p.E (chainRows K) (chainRows W) := by
+  have hb := safety_fault_count_bound (fgsaCoreReads p c) (fgsaSafetyReads p c) p.E E rho
+    (fgsaSafetyUnitLaws p) (fgsaFamilies p c).linked (bridge_fg_linked p c) hL
+    (fun B hB => bridge_carriage_of p c E rho _
+      (hcar B ((bridge_runBlock_iff p c E rho B).1 hB)))
+    (fun z hz => (bridge_noSlash_iff p c E rho z).2 (hC z hz)) hbot
+  rw [safetyBound_def] at hb
+  exact hb K W ((bridge_runBlock_iff p c E rho K).2 hK) ((bridge_runBlock_iff p c E rho W).2 hW)
+
+/-- Field 7: sorted inclusive time reads inherit the order of the local F. -/
+theorem fgsa_bridge_finalizedMonotone (hs : rho.events.Pairwise (fun a b => a.key ≤ b.key))
+    (hnr : V2.D.NoRestart rho) :
+    ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →
+      Block.Preceq (finalizedOut (V2.D.Run.readAt E rho t x))
+        (finalizedOut (V2.D.Run.readAt E rho t' x)) := by
+  have h := safety_finalized_monotone (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho
+    (fgsaCoreLaws p c) (fgsaSafetyOrderLaws p c) hs hnr
+  rw [fgsaSafetyReads_def] at h
+  exact h
+
+/-- Client safety: an honest node's emitted rows contain no slashable pair. -/
+theorem fgsa_bridge_clientSafeAll (hL : V2.D.Linked (fgsaFamilies p c).linked rho) :
+    ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x :=
+  fun x _ => (bridge_noSlash_iff p c E rho x).1
+    (safety_emitted_noSlash (fgsaSafetyReads p c) p.E p.cfg E rho (fgsaSafetyWireLaws p c)
+      (fgsaSafetyClientLaws p c) (fgsaFamilies p c).linked (bridge_fg_linked p c) hL x)
+
+/-- Each row of a time-read chain has a signed wire at its FG seat; the honest
+holder of that seat emitted the wire. -/
+theorem fgsa_bridge_read_row_origin (hU : V2.D.UnforgeableSignatures E rho)
+    (t : Time) (x : V) (W : FGBlock (Fin p.n))
+    (hW : W ∈ (V2.D.Run.readAt E rho t x).st.fg.TF)
+    (u : Row (Fin p.n)) (hu : u ∈ chainRows W) :
+    ∃ a : RowWire p.n,
+      RowWire.toRow? a = some u ∧ a.auth = .seat .fg u.signer ∧
+      ∀ z, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a := by
+  have hc := safety_read_carriage (fgsaCoreLaws p c) (fgsaSafetyStoreLaws p c)
+    (fgsaSafetyWireLaws p c) hU t x
+  rw [safetyCarriage_def] at hc
+  have hmem : u ∈ safetyRows (fgsaCoreReads p c) (V2.D.Run.readAt E rho t x) := by
+    rw [safetyRows_def, fgsaCoreReads_def]
+    exact Finset.mem_biUnion.mpr ⟨W, hW, hu⟩
+  obtain ⟨a, hdec, hem⟩ := hc u hmem
+  rw [bridge_holder] at hem
+  have hau : RowWire.toRow? a = some u := by
+    rw [fgsaSafetyReads_def] at hdec
+    exact hdec
+  have har := row_auth_of_toRow a u hau
+  refine ⟨a, hau, har, fun z hz hzh => ?_⟩
+  rw [RowSigner_def] at hz
+  obtain ⟨i, hi, hiz⟩ := hz
+  rw [har] at hi
+  cases hi
+  subst hiz
+  exact (bridge_emits_iff p c E rho _ a).1 (hem hzh)
+
+/-- The Compose slashing read at the FG-SA reads is `fgsaSlashing`. -/
+theorem fgsa_safetySlashesRead (E : Generic.Env (Fin p.n))
+    (rho : V2.D.Run (Fin p.n) (fgsa p c)) :
+    safetySlashesRead (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho (fgsaSlashing p c E) := by
+  rw [safetySlashesRead_def, fgsaCoreReads_def, fgsaSafetyReads_def]
+  intro v
+  exact Iff.rfl
+
+/-- Field 8: under Linked and unforgeable signatures, `fgsaSlashing` never
+names an honest node. -/
+theorem fgsa_bridge_honestNeverSlashed (E : Generic.Env (Fin p.n))
+    (rho : V2.D.Run (Fin p.n) (fgsa p c))
+    (hU : V2.D.UnforgeableSignatures E rho)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho) :
+    Gen.V2.Duty.HonestNeverSlashed (fgsaSlashing p c E) rho :=
+  safety_honest_never_slashed (fgsaCoreReads p c) (fgsaSafetyReads p c) p.E (heightView p)
+    (finalityView p) p.cfg E rho (fun nd => Reachable p nd.st) (fgsaCoreLaws p c)
+    (fgsaSafetyWireLaws p c) (fgsaSafetyStoreLaws p c) (fgsaSafetyClientLaws p c)
+    (fgsaFamilies p c).linked (bridge_fg_linked p c) (fgsaSlashing p c E)
+    (fgsa_safetySlashesRead p c E rho) hU hL
 
 end AvailableChain.FGSA.Run
 end

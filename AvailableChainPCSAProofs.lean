@@ -86,6 +86,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyScope
 public import AvailableChainPCSAProofs.Proofs.Shared.TreeReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
+public import AvailableChainPCSAProofs.Proofs.Shared.CleanWindow
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
 public import AvailableChainPCSAProofs.Proofs.Shared.StoreRoots
