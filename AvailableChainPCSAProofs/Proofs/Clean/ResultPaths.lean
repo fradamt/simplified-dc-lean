@@ -58,7 +58,7 @@ theorem pcsa_result_prefixes_retained_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (v u : Time) (s : Slot) (X : Block)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.earlyTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hresult : SA.Root.confirmationFrom p.toParams
       (eraseFG (clock p (V2.D.Run.stateBefore E rho a x).st v).fg.F)
@@ -107,8 +107,8 @@ theorem pcsa_result_prefixes_retained (E : Generic.Env V)
       C ∈ erasedList (clock p (V2.D.Run.stateBefore E rho k y).st u)
         (KitFG.storeFrameView (FGSA.heightView p) (clock p (V2.D.Run.stateBefore E rho k y).st u).fg
           (voterBlocks p (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1))) :=
-  pcsa_result_prefixes_retained_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
-    hy v u s X (le_refl _) hc hk hresult
+  pcsa_result_prefixes_retained_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx
+    hy v u s X (pcsa_floor_early (pcsa_zero_le_proposal s)) hc hk hresult
 end AvailableChain.PCSA.Run
 
 end

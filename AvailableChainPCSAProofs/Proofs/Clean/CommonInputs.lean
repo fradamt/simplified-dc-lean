@@ -49,7 +49,7 @@ theorem pcsa_frozen_input_in_proposer_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (r : BlockId) (v : Time)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hk : rho.events[k]? = some (.tick y (GridCO.proposalTime p.toParams.engine (s + 1))))
     (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
       (clock p (V2.D.Run.stateBefore E rho a x).st v).base.votes)
@@ -92,8 +92,8 @@ theorem pcsa_frozen_input_in_proposer (E : Generic.Env V)
         (GridCO.proposalTime p.toParams.engine (s + 1))) (s + 1) ∨
     GridCO.equivocates (proposerVotes (clock p (V2.D.Run.stateBefore E rho k y).st
       (GridCO.proposalTime p.toParams.engine (s + 1))) (s + 1)) i = true :=
-  pcsa_frozen_input_in_proposer_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx hy
-    s i r v (le_refl _) hc hk hm hs
+  pcsa_frozen_input_in_proposer_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy
+    s i r v (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hk hm hs
 end AvailableChain.PCSA.Run
 
 end

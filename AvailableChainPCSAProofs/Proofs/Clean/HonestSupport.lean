@@ -61,14 +61,14 @@ theorem pcsa_honest_head_clean_support_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (x y : V) (hy : y ∈ rho.honest) (s : Slot) (i : Fin p.n) (H : Block)
     (hi : rho.seatOf (.base (.head s)) i = x) (hH : HonestHeadAt p c E rho x s H)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.earlyTime p.toParams s ≤ cut) (k : Nat)
+    (hT : T₀ ≤ SA.voteTime p.toParams s) (hc : SA.earlyTime p.toParams s ≤ cut) (k : Nat)
     (hk : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ k) (u : Time) :
     (⟨.seat s i, .head H.root⟩ : GridCO.Wire p.n .root) ∈
       GridCO.cleanSupport p.toParams.engine
         (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∧
     GridCO.resolvedHead? (actView (clock p (V2.D.Run.stateBefore E rho k y).st u))
       ⟨.seat s i, .head H.root⟩ = some H := by
-  obtain ⟨hh, ht⟩ := pcsa_honest_head_before_early_win E rho h hD (hT := pcsa_floor_vote hT) x y hy
+  obtain ⟨hh, ht⟩ := pcsa_honest_head_before_early_win E rho h hD (hT := hT) x y hy
       s i H hi hH hc k hk
   obtain ⟨hb, hbt⟩ := pcsa_honest_head_body_before_early_win E rho h hF hD (hT := hT) x y hy s H hH
       hc k hk
@@ -122,8 +122,8 @@ theorem pcsa_honest_head_clean_support (E : Generic.Env V)
         (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∧
     GridCO.resolvedHead? (actView (clock p (V2.D.Run.stateBefore E rho k y).st u))
       ⟨.seat s i, .head H.root⟩ = some H :=
-  pcsa_honest_head_clean_support_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) x y hy s i
-    H hi hH (le_refl _) hc k hk u
+  pcsa_honest_head_clean_support_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) x y hy s i
+    H hi hH (pcsa_floor_vote (pcsa_zero_le_proposal s)) hc k hk u
 end AvailableChain.PCSA.Run
 
 end

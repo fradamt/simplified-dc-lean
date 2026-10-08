@@ -66,7 +66,7 @@ theorem pcsa_N_read_transport_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (v u : Time) (s : Slot) (B : Block)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.earlyTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hN : holdsN p (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s B = true) :
     let dst := clock p (V2.D.Run.stateBefore E rho k y).st u
@@ -169,8 +169,8 @@ theorem pcsa_N_read_transport (E : Generic.Env V)
     ∀ C, Block.Preceq C B → C ∈ erasedList dst (fullTree p dst) ∧
       C ∈ erasedList dst (KitFG.storeFrameView (FGSA.heightView p) dst.fg (voterBlocks p dst (s +
         1))) :=
-  pcsa_N_read_transport_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx hy v u s
-    B (le_refl _) hc hk hN
+  pcsa_N_read_transport_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy v u s
+    B (pcsa_floor_early (pcsa_zero_le_proposal s)) hc hk hN
 end AvailableChain.PCSA.Run
 
 end

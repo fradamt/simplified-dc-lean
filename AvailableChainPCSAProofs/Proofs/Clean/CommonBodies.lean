@@ -58,8 +58,8 @@ theorem pcsa_proposer_body_before_vote (E : Generic.Env V)
     (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho a x).st
       (SA.proposalTime p.toParams s)).base.blocks) :
     B ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks :=
-  pcsa_proposer_body_before_vote_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
-    hy s B ha hk (le_refl _) hc hm
+  pcsa_proposer_body_before_vote_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx
+    hy s B ha hk (pcsa_zero_le_proposal s) hc hm
 /-- In the delivery window: A frozen support body reaches the honest proposer before its proposal
 tick. -/
 theorem pcsa_frozen_body_in_proposer_win (E : Generic.Env V)
@@ -69,7 +69,7 @@ theorem pcsa_frozen_body_in_proposer_win (E : Generic.Env V)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (B : Block) (v : Time)
     (hk : rho.events[k]? = some (.tick y (SA.proposalTime p.toParams (s + 1))))
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
     (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho a x).st v).base.blocks)
     (hs : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a x).st v).base B <
       SA.freezeTime p.toParams s) :
@@ -108,7 +108,7 @@ theorem pcsa_frozen_body_in_proposer_win (E : Generic.Env V)
       intro hn
       exact lt_irrefl _ ((Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed hk _).mp
         hn)
-    exact (pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := pcsa_floor_freeze hT) a k x y
+    exact (pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := hT) a k x y
         hx hy B _
       hpub hz (by rwa [he]) (by rwa [he]) hg hm hs').1
 /-- A frozen support body reaches the honest proposer before its proposal tick. -/
@@ -125,8 +125,8 @@ theorem pcsa_frozen_body_in_proposer (E : Generic.Env V)
       SA.freezeTime p.toParams s) :
     B ∈ (clock p (V2.D.Run.stateBefore E rho k y).st
       (SA.proposalTime p.toParams (s + 1))).base.blocks :=
-  pcsa_frozen_body_in_proposer_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
-    hy s B v hk (le_refl _) hc hm hs
+  pcsa_frozen_body_in_proposer_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx
+    hy s B v hk (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hm hs
 end AvailableChain.PCSA.Run
 
 end

@@ -128,8 +128,8 @@ theorem pcsa_pc_before_public_cut_relay [Fintype V] (E : Generic.Env V)
     (hk : V2.D.Run.idxBefore rho (bound + E.Δ) ≤ k) (hc : bound + E.Δ ≤ cut)
     (D : PC p.n) (hDmem : D ∈ (V2.D.Run.stateBefore E rho a x).st.pcs) :
     ∃ C ∈ (V2.D.Run.stateBefore E rho k y).st.pcs, C.slot = D.slot ∧ C.target = D.target :=
-  pcsa_pc_before_public_cut_relay_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD _) a
-    k x y hx hy bound hpub hz ha hk (le_refl _) hc D hDmem
+  pcsa_pc_before_public_cut_relay_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD 0) a
+    k x y hx hy bound hpub hz ha hk hz hc D hDmem
 end AvailableChain.PCSA.Run
 
 end

@@ -177,7 +177,7 @@ theorem pcsa_clean_gate_majority_win [Fintype V] (E : Generic.Env V)
     obtain ⟨hih, hiw⟩ := (hHon i).mp hi
     obtain ⟨H, hH⟩ := pcsa_honest_head_exists E rho h.base _ hih s hiw hvote
     obtain ⟨hm, hr⟩ := pcsa_honest_head_clean_support_win E rho h.base hF h.strict (hT :=
-        pcsa_cleanWindow_floor E rho h s hs) _ y hy s i H
+        pcsa_floor_vote (pcsa_cleanWindow_floor E rho h s hs)) _ y hy s i H
       rfl hH hearly k hidx (SA.gateTime p.toParams s)
     apply Finset.mem_filter.mpr
     refine ⟨(Gen.AC.Root.vote_pool_mem_seats _ i).mpr ⟨_, hm, rfl⟩, ?_⟩

@@ -25,7 +25,7 @@ theorem pcsa_common_view_targets_win (E : Generic.Env V)
     (hk : rho.events[k]? = some (.tick (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
       (SA.proposalTime p.toParams (s + 1))))
     (hslot : N.slot = s + 1)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.voteTime p.toParams (s + 1) ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.voteTime p.toParams (s + 1) ≤ cut)
     (hmem : (⟨.proposer (s + 1), .proposal N⟩ : Wire p.n) ∈
       (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams (s + 1)))
         y).st.proposals)
@@ -91,7 +91,7 @@ theorem pcsa_common_view_targets_win (E : Generic.Env V)
       rw [pcsa_clock_blocks]
       exact pcsa_pc_targets_held p _ (pcsa_reachable_stateBefore E rho k x) V hVpre
     have hrecv := pcsa_proposer_body_before_vote_win E rho h hF hD
-      (hT := pcsa_floor_le hT (Nat.le_succ s)) k a x y hx hy (s + 1)
+      (hT := pcsa_floor_freeze_next hT) k a x y hx hy (s + 1)
       V.target hk (le_refl _) hc hVB
     have hVBdst : V.target ∈ dst.base.blocks := by
       change V.target ∈ (clock p _ _).base.blocks
@@ -149,8 +149,8 @@ theorem pcsa_common_view_targets (E : Generic.Env V)
       (proposerPC p (clock p (V2.D.Run.stateBefore E rho k
         (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
           (SA.proposalTime p.toParams (s + 1)))).map PC.target :=
-  pcsa_common_view_targets_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD _) k y hy s
-    N hx he hk hslot (le_refl _) hc hmem hpc
+  pcsa_common_view_targets_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD 0) k y hy s
+    N hx he hk hslot (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hmem hpc
 end AvailableChain.PCSA.Run
 
 end

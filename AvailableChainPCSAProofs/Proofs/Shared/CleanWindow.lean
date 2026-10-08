@@ -118,6 +118,28 @@ theorem pcsa_floor_gate {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.proposalTime 
   change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
   linarith [p.deltaPos]
 
+/-- Every proposal time is nonnegative: the floor `0` of a clean run is below it. -/
+theorem pcsa_zero_le_proposal (s : Slot) : (0 : Time) ≤ SA.proposalTime p.toParams s := by
+  have hd := p.deltaPos
+  change (0 : Time) ≤ 4 * p.Δ * (s : Int)
+  positivity
+
+/-- A floor below `z_s` is below `t_{s+1}`. -/
+theorem pcsa_floor_freeze_next {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.freezeTime p.toParams s) :
+    T₀ ≤ SA.proposalTime p.toParams (s + 1) := by
+  apply hT.trans
+  change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int)
+  push_cast
+  linarith [p.deltaPos]
+
+/-- A floor below `e_s` is below `t_{s+1}`. -/
+theorem pcsa_floor_early_next {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.earlyTime p.toParams s) :
+    T₀ ≤ SA.proposalTime p.toParams (s + 1) := by
+  apply hT.trans
+  change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int)
+  push_cast
+  linarith [p.deltaPos]
+
 /-- The window of the clean induction from label `j₀`: the execution, the cut,
 strict delivery from `T₀ ≤ t_{j₀}`, and `a < h_j` at every label `j ≥ j₀` with
 `e_j ≤ b₀`. -/

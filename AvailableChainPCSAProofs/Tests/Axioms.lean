@@ -671,6 +671,9 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_floor_early
 #print axioms AvailableChain.PCSA.Run.pcsa_floor_freeze
 #print axioms AvailableChain.PCSA.Run.pcsa_floor_gate
+#print axioms AvailableChain.PCSA.Run.pcsa_zero_le_proposal
+#print axioms AvailableChain.PCSA.Run.pcsa_floor_freeze_next
+#print axioms AvailableChain.PCSA.Run.pcsa_floor_early_next
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_of_sync
 #print axioms AvailableChain.PCSA.Run.pcsa_strict_broadcast_win
 #print axioms AvailableChain.PCSA.Run.pcsa_strict_relay_from
@@ -790,6 +793,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late
 #print axioms AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap_win
 #print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late_win
+#print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late_floor
 
 #print axioms AvailableChain.PCSA.pcsa_clock_blocks
 #print axioms AvailableChain.PCSA.pcsa_clock_bodyStamps
