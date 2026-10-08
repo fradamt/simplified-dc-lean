@@ -288,6 +288,14 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   components give it with `T₀ = t_GST`. The `_win` lemmas of `Shared/Relay`,
   `Shared/BodyReceipt` and the Clean lane take `StrictFrom` (or `CleanWindow`);
   the old `HealthyPrefixDeliveryBy` names are wrappers with unchanged types.
+- PC-SA finality safety (P12): `Foundations/FGSafetyBridge` converts the PC
+  reads and applies Compose `SafetyAccountable`, `SafetyCount`,
+  `SafetyMonotone`, and `SafetySlashing` through four exact `COMPOSE_EDGES`.
+  `Foundations/FinalitySafety` supplies the six run bodies. `Finality/Export`
+  proves the two pure fields with KitFG and closes all eight frozen claims.
+  `Assembly/Finality` supplies `PCSAClaims.finality` with
+  `pcsaSafetyFinalityClaims`. Both FG modes are covered. Count retains
+  all-run carriage; honest non-slashing uses stored-row carriage.
 - PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
   holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
   items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow
