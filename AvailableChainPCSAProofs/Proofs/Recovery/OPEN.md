@@ -446,3 +446,25 @@ No file named `Recovery/RestartSeed.lean` was created.
 This is a budget checkpoint. No counterexample or false-statement blocker
 was found. Start the next continuation with step 4 and the actual
 HEAD-pool count transfer. Do not add the missing coverage as a claim premise.
+
+## Continuation 3 interface change needed
+
+The long proposer walk proof has the exact body of `RecoveryRootReachable`.
+The predicate is opaque outside `Recovery/Suffix.lean`. That file is outside
+the job's allowed list. Step 6 needs the following defining equation in that
+file, immediately after the definition. This changes no predicate or premise.
+
+```lean
+theorem RecoveryRootReachable_def (s : Slot) :
+    RecoveryRootReachable p c E rho s =
+  ∀ nd, pcsa_postClock E rho
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some nd →
+    let st := nd.st
+    let pc := proposerPC p st
+    let root := (pc.map PC.target).getD (eraseFG (controls p st).Z)
+    Block.Preceq (liveRoot p st pc)
+      (GridCO.ghost root (erasedList st (fullTree p st))
+        (GridCO.goldfishScore st.base.blocks (proposerVotes st s) (proposerSupport st s))
+        (eligible p st (proposerVotes st s) (proposerSupport st s))) := rfl
+```

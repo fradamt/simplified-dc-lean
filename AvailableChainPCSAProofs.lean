@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalPaths
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockDomain
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockCounts
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBatch

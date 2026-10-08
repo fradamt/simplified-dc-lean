@@ -691,3 +691,8 @@ and only the instance swap is atomic.
   result to the actual next voter pool. `LockBatch` gives later honest
   batch counts. `LockFollow` proves F′ from the last write and exact-row
   survival, then derives preceding HEAD coverage from a live read.
+
+- PC-SA long proposal paths (2026-10-08). `Recovery/ProposalPaths` transfers
+  the actual preceding honest HEAD batch into the proposer pools. It proves
+  the walk from the selected base reaches the live root and the voter F4
+  lease clause. Both use the survival proof in `LockFollow`.

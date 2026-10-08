@@ -6981,6 +6981,14 @@
         'AvailableChainPCSAProofs.Proofs.Recovery.FirstSlot': (
             'AvailableChain.PCSA.Run.recovery_firstSlot_of_anchor',
         ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LockBatch': (
+            'AvailableChain.PCSA.Run.recovery_honest_head_exists',
+            'AvailableChain.PCSA.Run.recovery_honest_seats',
+            'AvailableChain.PCSA.Run.recovery_voter_batch_path',
+            'AvailableChain.PCSA.recovery_active_resolution',
+            'AvailableChain.PCSA.recovery_batch_scores',
+            'AvailableChain.PCSA.recovery_voter_support_slot',
+        ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockBound': (
             'AvailableChain.PCSA.Run.recovery_lock_bound',
             'AvailableChain.PCSA.liveRoot_eq_base_of_locks_below',
@@ -6988,6 +6996,24 @@
             'AvailableChain.PCSA.lock_window_below_anchor',
             'AvailableChain.PCSA.root_reachable_of_locks_below',
             'AvailableChain.PCSA.slow_lock_oldest_label',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LockCounts': (
+            'AvailableChain.PCSA.Run.recovery_gate_prefix_next_head',
+            'AvailableChain.PCSA.Run.recovery_gate_result_source',
+            'AvailableChain.PCSA.Run.recovery_headSupport_subset',
+            'AvailableChain.PCSA.Run.recovery_postClock_store',
+            'AvailableChain.PCSA.Run.recovery_read_count_domain',
+            'AvailableChain.PCSA.Run.recovery_resolved_support',
+            'AvailableChain.PCSA.recovery_clock_confirmation_eq_pre',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LockDomain': (
+            'AvailableChain.PCSA.Run.recovery_headDomain_stateBefore_none',
+            'AvailableChain.PCSA.recovery_clock_headDomain',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LockFollow': (
+            'AvailableChain.PCSA.Run.recovery_live_lock_preceding_heads',
+            'AvailableChain.PCSA.Run.recovery_lock_follow',
+            'AvailableChain.PCSA.Run.recovery_voter_root_compatible',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockHistory': (
             'AvailableChain.PCSA.Run.recovery_live_lock_last_write',

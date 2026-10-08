@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalPaths
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockFollow
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockView
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOverlap
@@ -1576,3 +1577,12 @@ end
 #print axioms AvailableChain.PCSA.Run.recovery_voter_root_compatible
 #print axioms AvailableChain.PCSA.Run.recovery_lock_follow
 #print axioms AvailableChain.PCSA.Run.recovery_live_lock_preceding_heads
+
+-- Long recovery: actual proposal paths and both F4 clauses.
+#print axioms AvailableChain.PCSA.recovery_proposer_support_slot
+#print axioms AvailableChain.PCSA.recovery_base_walk_covers
+#print axioms AvailableChain.PCSA.Run.recovery_proposer_batch_path
+#print axioms AvailableChain.PCSA.Run.recovery_long_slot_bounds
+#print axioms AvailableChain.PCSA.Run.recovery_preceding_vote_bounds
+#print axioms AvailableChain.PCSA.Run.recovery_long_proposer_root
+#print axioms AvailableChain.PCSA.Run.recovery_long_voter_leases
