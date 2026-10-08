@@ -191,3 +191,111 @@ The requested final firstSlot signature remains unproved and absent:
 ∃ N : NamedProposal p.n,
   FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁
 ```
+
+## Proved checkpoint signatures
+
+The source namespace is `AvailableChain.PCSA.Run`. The usual implicit
+parameters are `{p : Params} {In V : Type} [DecidableEq V]`,
+`{c : AppCodec In}`, and `{m : FGMode}`.
+
+```lean
+theorem recovery_lock_no_later_successful_renewal (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hs : V2.D.ScheduleWellFormed E rho)
+    (i j : Nat) (x : V) (s : Slot) (row : Block × Nat × Time)
+    (hj : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hd : row.2.2 = SA.gateTime p.toParams s + pcsaL p)
+    (hsurv : ∀ q, j < q → q ≤ i →
+      row ∈ (V2.D.Run.stateBefore E rho q x).st.base.obligations)
+    (k : Nat) (r : Slot) (hjk : j < k) (hki : k < i)
+    (hk : rho.events[k]? = some (.tick x (SA.gateTime p.toParams r))) :
+    let pre := clockPre p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams r)
+    ¬ (GridCO.savedGenuine pre.base r = none ∧
+      ∃ C, SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) r = some C ∧
+        (pre.base.obligations.any (fun q => pre.base.now < q.2.2 &&
+          !Block.compatible q.1 C)) = false ∧
+        row.1 ∈ (actView pre).blocks ∧ row.1 ≠ .genesis ∧
+        Block.Preceq row.1 C ∧ leaseWriteOK pre.pcs (gateRank p pre r) row.1 = true ∧
+        SA.Root.slowEligible p.toParams
+          (actView (gateFrom p (eraseFG pre.fg.F) pre.pcs (gateRank p pre r) pre r))
+          r row.1 = true)
+```
+
+```lean
+theorem recovery_postmix_lock_window (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hs : V2.D.ScheduleWellFormed E rho)
+    (g : Slot) (x : V) (t : Time) (nd : Node p)
+    (hn : pcsa_postClock E rho x t = some nd) (B : Block) (hB : LiveLease nd.st B)
+    (hmix : SA.voteTime p.toParams (g + 2 * p.k - 1) ≤ t) :
+    ∃ a s, g ≤ s + 1 - p.k ∧ SA.gateTime p.toParams s ≤ t ∧
+      t < SA.gateTime p.toParams s + pcsaL p ∧
+      ∀ r, s + 1 - p.k ≤ r → r ≤ s → ∃ D,
+        GridCO.savedGenuine (V2.D.Run.stateBefore E rho a x).st.base r = some (some D) ∧
+        Block.Preceq B D
+```
+
+```lean
+theorem recovery_survivor_relay_pc_compatible (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hs : V2.D.ScheduleWellFormed E rho)
+    (g : Slot) (transport : RecoveryLockTransport p c E rho g)
+    (i j : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (row : Block × Nat × Time)
+    (hsurv : ∀ a, j < a → a ≤ i →
+      row ∈ (V2.D.Run.stateBefore E rho a x).st.base.obligations ∧
+      leaseRank (V2.D.Run.stateBefore E rho a x).st row.1 =
+        leaseRank (V2.D.Run.stateBefore E rho i x).st row.1)
+    (t : Time) (ht : E.t_GST ≤ t) (horizon : t + p.Δ ≤ rho.horizon)
+    (hlo : j < V2.D.Run.idxBefore rho (t + p.Δ))
+    (hhi : V2.D.Run.idxBefore rho (t + p.Δ) ≤ i)
+    (pc : PC p.n) (hpc : pc ∈ (V2.D.Run.stateBeforeTime E rho t y).st.pcs)
+    (hrank : rankAtLeast pc
+      (leaseRank (V2.D.Run.stateBefore E rho i x).st row.1) = true) :
+    Block.Compatible pc.target row.1
+```
+
+## Checked continuation report (2026-10-08)
+
+Code commits:
+
+- `a8304cb6`: step 1, no later successful renewal.
+- `86fde434`: step 2, transport interface and named OPEN suppliers.
+- `a14fced9`: step 3 overlap proofs and rank-conditional K kernels.
+- `b8debb9d`: remove the foreign rank equation export. No signature change.
+
+```text
+┌──────┬─────────┬──────────────────────────────────────────────────────────┐
+│ Step │ Status  │ Result or exact remaining work                           │
+├──────┼─────────┼──────────────────────────────────────────────────────────┤
+│ 1    │ PROVED  │ Explicit no-later-successful-renewal corollary.          │
+│ 2    │ PROVED  │ Interface only. Seven lane suppliers remain OPEN.        │
+│ 3    │ STOPPED │ Rank dissemination and selected-view rank bound missing. │
+│ 4    │ STOPPED │ Not started. Step 3 is incomplete.                       │
+│ 5    │ STOPPED │ Not started. Step 3 is incomplete.                       │
+│ 6    │ STOPPED │ Not started. The long firstSlot wrapper is absent.       │
+└──────┴─────────┴──────────────────────────────────────────────────────────┘
+```
+
+This is a budget checkpoint. No counterexample or false statement was found.
+The next proof must connect the gate-rank witness's early stamp to a PC held
+before `e_j`. Then apply PC receipt before `z_j` and derive the rank lower
+bound in later frozen views. This completes the missing part of K before F′.
+
+Validation of the code at `b8debb9d`:
+
+- Default `lake build --wfail`: PASS, 4,589 jobs.
+- `LC_ALL=C bash scripts/check-build.sh`: PASS, including all self-tests.
+- Layers: PASS, zero new findings. Layer self-test: PASS, 37 controls.
+- GLY and F-13 under `LC_ALL=C`: PASS.
+- `NEG=0 check-fgsa-claims.sh`: PASS.
+- `NEG=0 check-pcsa-manifest.sh`: PASS, 421 entries in 21 modules; hashes match.
+- Normal proof coverage: PASS, 5,901 declarations across 13 audits.
+- All 25 new public names have explicit axiom audits. Only standard axioms occur.
+- New declaration names have no collision on the six requested refs.
+- Main precheck: expected ancestry refusal, main `b698238`, target `b8debb9d`.
+  Fixed ref `222cf06a` is also not an ancestor. No main merge or push.
+
+The first full check found `rankAtLeast.eq_1` exported from `LockOverlap`.
+Commit `b8debb9d` uses `rankAtLeast_def` instead. The full rerun has zero
+unaccepted equation exports. No checker, policy, or model change was made.
+The five shared lock theorem signatures remain unchanged. No file named
+`Recovery/RestartSeed.lean` was created. All tracked edits are within the
+allowed file list. This report commit changes only this Markdown file.
