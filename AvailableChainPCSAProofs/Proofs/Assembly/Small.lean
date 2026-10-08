@@ -48,4 +48,11 @@ theorem pcsa_pcDissemination (p : Params) : PCDisseminationClaim p := by
     exact pcsa_collectPCs_after_freeze E rho h.base.valid.toScheduleWellFormed h.base.noRestart
       h.base.delta y hy s (hz.trans h.cut.2)
 end AvailableChain.PCSA.Run
+namespace AvailableChain.PCSA.Run
+/-- C5: the available output is monotone through the full healthy prefix. -/
+theorem pcsa_available_monotone (p : Params) : AvailableMonotoneClaim p := by
+  intro V _ _ In c m E rho cut ΔF h hFault hF x hx t t' _ htt hc
+  exact pcsa_clean_available_mono_cut E rho h hF hFault x hx t t' htt hc
+end AvailableChain.PCSA.Run
+
 end

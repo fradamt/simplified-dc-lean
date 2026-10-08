@@ -1368,3 +1368,18 @@ The successor record and earlier-ack coverage are constructed together.
 Label-zero initialization closes the full CleanInvariantClaim with only
 standard permitted axioms.
 Validation and current claim status are recorded in log.md and state.md.
+
+### CutReads
+
+Actual gate and ack times give full-cut S and selected-PC order. Generic
+floor monotonicity proves AvailableMonotoneClaim.
+Validation and current claim status are recorded in log.md and state.md.
+
+C6 is committed as 4a92c9e1. All 14 fields and the joint ack coverage
+passed the full pre-commit list with only the three permitted axioms.
+
+C5 layer check: Clean/Export cannot import Claims/PC. Keep the concrete
+available-output proof in Clean/Export. Put the C5 claim adapter in
+Assembly/Small beside C3. Put the later M5 adapter there for the same
+reason. Clean safety uses the concrete monotonicity theorem. No claim,
+checker, or allow list changes. Recheck the remaining export boundaries.

@@ -801,3 +801,17 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_joint_step
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_joint_invariant
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_invariant
+
+-- C6 CutReads.
+#print axioms AvailableChain.PCSA.pcsa_pcTarget_source
+#print axioms AvailableChain.PCSA.Run.pcsa_record_storeAt_timed_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_timed_ack
+#print axioms AvailableChain.PCSA.Run.pcsa_storeAt_pcs_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_record_mono_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_head_above_past_at_early
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_ack_targets_order_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_ack_result_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pcTarget_mono_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_record_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_available_monotone
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_available_mono_cut
