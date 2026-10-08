@@ -1,5 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: keep (#print axioms)
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore -- shake: keep (#print axioms)
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope -- shake: keep (#print axioms)
 
 public section
 
@@ -7,6 +9,11 @@ public section
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyWireLaws
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyClientLaws
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyUnitLaws
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyReads_def
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyStoreLaws
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyOrderLaws
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyScopeLaws
+#print axioms AvailableChain.FGSA.Run.fgsa_safetyScopedRoots
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyProposalRows_def
 #print axioms AvailableChain.FGSA.Run.safetyProposalErase
@@ -20,8 +27,8 @@ example (p : Params) {In : Type} (c : AppCodec In) : Prop :=
   FGSafetyWireLaws (fgsaSafetyReads p c)
 example (p : Params) {In : Type} (c : AppCodec In) : Prop :=
   FGSafetyClientLaws (fgsaSafetyReads p c) p.E p.cfg
-example (p : Params) {In : Type} (c : AppCodec In) : Prop :=
-  FGSafetyOrderLaws (fgsaCoreReads p c) (fgsaSafetyReads p c)
+example (p : Params) {In : Type} (c : AppCodec In) :
+    FGSafetyOrderLaws (fgsaCoreReads p c) (fgsaSafetyReads p c) := fgsaSafetyOrderLaws p c
 end AvailableChain.FGSA.Run
 
 end
