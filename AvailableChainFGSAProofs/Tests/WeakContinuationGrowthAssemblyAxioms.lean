@@ -3,12 +3,10 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Root -- shake: keep (axio
 
 public section
 
-open AvailableChain.FGSA.Run
+#print axioms AvailableChain.FGSA.Run.wcg_sourceLive
+#print axioms AvailableChain.FGSA.Run.wcg_nonemptyLive
+#print axioms AvailableChain.FGSA.Run.wcg_emptyLive
 
-#print axioms wcg_sourceLive
-#print axioms wcg_nonemptyLive
-#print axioms wcg_emptyLive
-
-#print axioms fgsa_weakContinuationGrowthClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_weakContinuationGrowthClaim
 
 end
