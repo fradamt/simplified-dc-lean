@@ -12,6 +12,9 @@ Base: `5995104a`. Branch: `pcsa-recov-anchor`. No push.
 - `9a3e0fe1`: step 2, anchor proposal, stamp, ARM, and ARM conclusion.
 - `4148bea2`: step 4, exact short-break first-slot wrapper.
 - `358ae7b1`: regenerated coverage for the three wrappers.
+- `bc94e27c`: review fix 1, remove the unused proposal premise.
+- `23e90c02`: review fix 2, narrow the kernel premises and update callers.
+- `6844445d`: review fix 3, record the kernels and wrappers in the architecture map.
 
 All commits have the requested Claude-Session trailer.
 
@@ -41,7 +44,47 @@ Claims, Statements, Model, Clean, Shared, and Finality files are unchanged.
 The formation F4 field, long-break proof, suffix invariant, and CI restart
 are outside this change.
 
-## Validation
+## Review fixes (2026-10-08)
+
+- Fix 1: **DONE**. Removed `_hN` from `pcsa_recovery_anchor_proposer_base`
+  and its report signature. No Lean call sites use this adapter.
+- Fix 2: **DONE**. `recovery_firstSlot_of_anchor` derives `0 < s` from
+  `horder`. `recovery_base_of_arm` takes schedule well-formedness, no restart,
+  one node's stamp, and only the strong-output bound. Its callers supply
+  the required projections. `pcsa_recovery_firstSlot_short` keeps its exact type.
+- Fix 3: **DONE**. Added the roles of `Recovery/AnchorBase`,
+  `Recovery/FirstSlot`, and the three `Assembly/Recovery` wrappers to
+  `docs/ARCHITECTURE.md`. Other architecture text is unchanged.
+
+All public names are unchanged. The existing `#print axioms` entries still
+apply. Coverage was checked without regeneration.
+
+## Review validation
+
+- PASS: Export and Assembly builds with `--wfail`, before their fix commits.
+- PASS: default `lake build --wfail` (4,585 jobs).
+- PASS: `LC_ALL=C bash scripts/check-build.sh`, including all GLY rules,
+  proof equations, and checker self-tests. No unaccepted equation exports.
+- PASS: layer check (zero new findings) and layer self-test (37 controls).
+- PASS: `LC_ALL=C` F-13 (zero failing or stale entries).
+- Name check under `LC_ALL=C`: no clashes on `main`, `pcsa-w2-formation`,
+  `pcsa-ci-win-1`, or `pcsa-fsrc`. No name changed.
+- PASS: all six existing `#print axioms` entries. Only `propext`,
+  `Classical.choice`, and `Quot.sound` occur.
+- PASS: `NEG=0 bash scripts/check-fgsa-claims.sh`.
+- PASS: `NEG=0 bash scripts/check-pcsa-manifest.sh` (421 entries, 21 modules,
+  hashes match).
+- PASS: `check-proof-coverage.py` (5,867 declarations across 13 audits).
+  The existing inventory is unchanged.
+- **FAILED**: the requested precheck from the MAIN repository at `222cf06a`.
+  Its base check reports `BASE REFUSED`: this branch does not descend from
+  current main. Later policy checks do not run. The task forbids merging main,
+  so no merge or checker change was made.
+- PASS: all six report signatures match the source. All three Assembly
+  wrapper types and imports are unchanged. Only the six allowed files changed.
+- PASS: diff whitespace check. No push.
+
+## Initial validation
 
 - PASS: each wrapper's Assembly build with `--wfail`, before its commit.
 - PASS: default `lake build --wfail` (4,585 jobs).
