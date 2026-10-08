@@ -336,7 +336,7 @@ theorem tip_emitted : V2.D.Run.emits envU emitRun () ⟨.none, ()⟩ 1 :=
 theorem tip_runBlock : safetyRunBlock emitReads emitSafety envU emitRun tip :=
   ⟨⟨.none, ()⟩, tipBlock, rfl, Or.inl ⟨(), 1, tip_emitted⟩, by decide⟩
 
-private theorem no_delivery (x : Unit) (o : emitter.Object) (t : Time) :
+private theorem emitRun_no_delivery (x : Unit) (o : emitter.Object) (t : Time) :
     V2.Event.deliver x o t ∉ emitRun.events := by
   simp
 
@@ -362,13 +362,13 @@ private theorem runBlock_parent (K : FGBlock (Fin 0))
 theorem delivered_scope_laws :
     FGSafetyScopeLaws emitReads emitSafety envU emitRun deliveredScope where
   genesis_scope _ _ := Or.inl rfl
-  delivered_scope x o t _ hd _ := absurd hd (no_delivery x o t)
+  delivered_scope x o t _ hd _ := absurd hd (emitRun_no_delivery x o t)
   parent_scope K hK hne := absurd (runBlock_parent K hK) hne
 
 theorem tip_not_seed : ¬ deliveredScope (emitReads.erase tip) := by
   rintro (h | ⟨x, o, t, hd, _⟩)
   · exact absurd h (by decide)
-  · exact no_delivery x o t hd
+  · exact emitRun_no_delivery x o t hd
 
 /-- The parent-scope route remains valid for the tip. -/
 theorem tip_parent_in_scope : deliveredScope (emitReads.erase tip.parent) := Or.inl rfl
