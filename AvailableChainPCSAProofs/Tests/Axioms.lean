@@ -1945,3 +1945,5 @@ end
 
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_restartSeed
 #print axioms AvailableChain.PCSA.Run.recovery_chainRestart_of_suffix
+
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_honestProposal_stamped

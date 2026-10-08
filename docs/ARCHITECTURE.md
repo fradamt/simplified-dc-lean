@@ -802,3 +802,9 @@ and only the instance swap is atomic.
   `Recovery/Export` proves the predicate conversion with the defining equation.
   `pcsa_recovery_firstSlot_long_of_run` selects a bounded slot from the long
   claim premises. The Formation literal also uses the existing root proof.
+
+- PC-SA restart stamps (2026-10-08). `Clean/RestartStamp` derives equal
+  honest HEADs from the restarted state at the predecessor gate. It applies
+  `Clean/StampFrom` to stamp each later honest proposal by its freeze.
+  The proof needs the freeze inside the window, not the current gate.
+  `Clean/Export` and the PC-SA proof facade export the module.

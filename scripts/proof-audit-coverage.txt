@@ -6703,6 +6703,9 @@
             'AvailableChain.PCSA.Run.pcsa_restart_root_base',
             'AvailableChain.PCSA.Run.pcsa_restart_voterPC_slot',
         ),
+        'AvailableChainPCSAProofs.Proofs.Clean.RestartStamp': (
+            'AvailableChain.PCSA.Run.pcsa_restart_honestProposal_stamped',
+        ),
         'AvailableChainPCSAProofs.Proofs.Clean.RestartState': (
             'AvailableChain.PCSA.Run.CleanStateFrom',
             'AvailableChain.PCSA.Run.pcsa_restart_pre_vote_lock_below_result',

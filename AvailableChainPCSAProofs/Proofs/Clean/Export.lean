@@ -213,6 +213,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.PendingNHead
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
 
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationExport
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartStamp
 
 public section
 
