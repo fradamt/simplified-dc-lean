@@ -5967,6 +5967,7 @@
             'AvailableChain.PCSA.pcsa_liveRoot_body_mem',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HeadCone': (
+            'AvailableChain.PCSA.Run.pcsa_clean_cone_inputs',
             'AvailableChain.PCSA.Run.pcsa_voter_honest_awake',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HeadEvidence': (
