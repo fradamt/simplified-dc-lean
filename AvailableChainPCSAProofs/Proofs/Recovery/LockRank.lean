@@ -219,5 +219,33 @@ theorem recovery_live_lock_rank_compatible (p : Params) (st : State p.n)
   subst B
   exact allSafe st h row hr pc hpc hrank
 
+/-- The rank invariant also applies to an exact stored row before expiry runs. -/
+theorem recovery_stored_lock_rank_compatible (p : Params) (st : State p.n)
+    (h : Reachable p st) (row : Block × Nat × Time)
+    (hr : row ∈ st.base.obligations) (pc : PC p.n) (hpc : pc ∈ st.pcs)
+    (hrank : rankAtLeast pc (leaseRank st row.1) = true) :
+    Block.Compatible pc.target row.1 := by
+  have allSafe : ∀ st : State p.n, Reachable p st → RecoveryRankSafe st := by
+    intro st hs
+    induction hs with
+    | init => intro row hr; exact (List.not_mem_nil hr).elim
+    | tick t _ ih => exact recovery_rank_clock_safe p _ t ih
+    | deliver o _ ih => exact recovery_rank_process_safe p _ o ih
+  exact allSafe st h row hr pc hpc hrank
+
+/-- A nonempty gate rank has an active held-PC witness with an early stamp. -/
+theorem recovery_gate_rank_witness (p : Params) (st : State p.n) (s : Slot)
+    (rank : PCRank) (hr : gateRank p st s = some rank) :
+    ∃ pc ∈ st.pcs, pc.rank = rank ∧ frameActive p st pc = true ∧
+      ∃ t, t < SA.earlyTime p.toParams s ∧ pcStamp? st pc = some t := by
+  rw [gateRank_def] at hr
+  obtain ⟨pc, hp, he⟩ := Option.map_eq_some_iff.mp hr
+  obtain ⟨hm, hf⟩ := List.mem_filter.mp (bestPC_mem _ pc hp)
+  obtain ⟨ha, ht⟩ := Bool.and_eq_true_iff.mp hf
+  refine ⟨pc, hm, he, ha, ?_⟩
+  cases hs : pcStamp? st pc with
+  | none => simp [hs] at ht
+  | some t => exact ⟨t, by simpa only [hs, Option.any_some, decide_eq_true_eq] using ht, rfl⟩
+
 end AvailableChain.PCSA
 end

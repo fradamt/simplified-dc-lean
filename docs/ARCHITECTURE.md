@@ -675,3 +675,7 @@ and only the instance swap is atomic.
 - PC-SA long-break transport (2026-10-08). `Recovery/LockTransport` holds
   lane-neutral receipt and pool facts from label `g`. `Assembly/Recovery`
   names the OPEN lane suppliers. It does not assume surviving-lock coverage.
+
+- PC-SA lock overlap (2026-10-08). `Recovery/LockOverlap` proves mix-time
+  expiry, overlap compatibility, and PC relay compatibility at the write
+  and within a surviving interval. The voter-view rank bound remains open.

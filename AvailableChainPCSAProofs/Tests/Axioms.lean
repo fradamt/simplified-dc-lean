@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockOverlap
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockRank
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockHistory
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Height
@@ -1524,3 +1525,17 @@ end
 #print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.honestProposerInputs
 #print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.rootResolution
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_lock_transport
+
+#print axioms AvailableChain.PCSA.recovery_stored_lock_rank_compatible
+#print axioms AvailableChain.PCSA.recovery_gate_rank_witness
+#print axioms AvailableChain.PCSA.Run.recovery_postmix_write_window
+#print axioms AvailableChain.PCSA.Run.recovery_live_write_windows_overlap
+#print axioms AvailableChain.PCSA.Run.recovery_next_vote_write_in_window
+#print axioms AvailableChain.PCSA.Run.recovery_saved_window_overlap_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_postmix_lock_window
+#print axioms AvailableChain.PCSA.Run.recovery_postmix_live_locks_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_window_next_vote_locks_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_window_later_locks_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_survivor_received_pc_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_survivor_relay_pc_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_write_relay_pc_compatible

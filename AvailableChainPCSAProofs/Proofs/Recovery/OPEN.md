@@ -71,5 +71,123 @@ The other fields are `OPEN_earlyForward`, `OPEN_voterBackward`,
 `OPEN_rootResolution`. The structure and the constructor state each field in
 full. They do not assume lock coverage, root compatibility, or walk dominance.
 
-Steps 3–6 remain open. No long-slot export kernel or
-`pcsa_recovery_firstSlot_long` wrapper has been added.
+Step 3 is partial. `Recovery/LockOverlap.lean` proves:
+
+- A live write after the mix has a window wholly at labels at least `g`.
+- Two coexisting live deadlines force their saved windows to overlap.
+- A live lock at `v_(j+1)` has a write label in the pending write's window.
+- The same-label transport field excludes conflicting window prefixes.
+- All live locks at the first HEAD are compatible with the pending target.
+- All live locks after the write are compatible while its deadline is live.
+- Post-mix live locks at different honest nodes are compatible.
+- A conflicting PC at or above the saved rank blocks the write when relayed
+  from `v_(j+1)` before `d_j`. At later reads it cannot coexist with the
+  exact row if the receipt deadline is inside the surviving interval.
+
+`Recovery/LockRank.lean` also proves the stored-row rank invariant and
+extracts an active, early-stamped PC witness of a nonempty gate rank.
+K is not complete. The rank witness still needs dissemination before `z_j`.
+Each later selected voter view still needs the resulting rank lower bound.
+The relay kernels take that lower bound explicitly; they do not prove it.
+
+Steps 4–6 were not started. No `LockFollow`, `ProposalPaths`, or
+`LongFirstSlot` module, long-slot export kernel, or
+`pcsa_recovery_firstSlot_long` wrapper has been added. The continuation
+stops at a checked commit boundary to stay within the session budget.
+This is partial work. No counterexample or false-statement blocker was found.
+
+## Continuation transport statements
+
+The exact OPEN parameter names in `Assembly/Recovery.lean` are `OPEN_`
+followed by each field name below. The intended supplier premises are
+`Recovery₂ p c E rho G ΔF`, `StageOneFrame p c E rho`, and
+`E.t_GST ≤ SA.voteTime p.toParams g`. There is no `GST ≤ t_g` premise.
+No existing Clean export on this branch supplies these statements from
+those recovery premises. The Assembly constructor takes them explicitly.
+
+```lean
+structure RecoveryLockTransport (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) {m : FGMode} (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (g : Slot) : Prop where
+  sameLabel : ∀ r, g ≤ r → SA.gateTime p.toParams r ≤ rho.horizon →
+    ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ X Y,
+      gateResultAt p c E rho x r = some (some X) →
+      gateResultAt p c E rho y r = some (some Y) → Block.Compatible X Y
+  earlyForward : ∀ r, g ≤ r → SA.gateTime p.toParams r ≤ rho.horizon →
+    ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ src dst,
+      pcsa_postClock E rho x (SA.gateTime p.toParams r) = some src →
+      pcsa_postClock E rho y (SA.voteTime p.toParams (r + 1)) = some dst →
+      ∀ o ∈ GridCO.earlyVotes p.toParams.engine (actView src.st) r,
+      ∀ i, GridCO.headSeat? o = some i → ∀ H,
+        GridCO.resolvedHead? (actView src.st) o = some H →
+        ((o ∈ headSupport p dst.st (r + 1) ∧
+          GridCO.resolvedHead? dst.st.base o = some H ∧
+          GridCO.stampVote dst.st.base o < SA.freezeTime p.toParams r) ∨
+          GridCO.equivocates (headVotes p dst.st (r + 1)) i = true) ∧
+        H ∈ dst.st.base.blocks ∧
+        GridCO.stampBlock dst.st.base H < SA.freezeTime p.toParams r ∧
+        (∀ B, Block.Preceq B H → B ∈ erasedList dst.st
+          (KitFG.storeFrameView (FGSA.heightView p) dst.st.fg (voterBlocks p dst.st (r + 1))))
+  voterBackward : ∀ r, g ≤ r → SA.gateTime p.toParams r ≤ rho.horizon →
+    ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ src dst,
+      pcsa_postClock E rho x (SA.gateTime p.toParams r) = some src →
+      pcsa_postClock E rho y (SA.voteTime p.toParams (r + 1)) = some dst →
+      ∀ o ∈ headVotes p dst.st (r + 1), ∀ i, GridCO.headSeat? o = some i →
+        o ∈ GridCO.lateVotes p.toParams.engine (actView src.st) r ∨
+        GridCO.equivocates (GridCO.lateVotes p.toParams.engine (actView src.st) r) i = true
+  pcReceipt : ∀ t, E.t_GST ≤ t → t + p.Δ ≤ rho.horizon →
+    ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ pc,
+      pc ∈ (V2.D.Run.stateBeforeTime E rho t x).st.pcs →
+      KeyHeld (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st pc.slot pc.target ∧
+      pc.target ∈ (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st.base.blocks
+  honestVoterInputs : ∀ r, g ≤ r → ∀ x H, HonestHeadAt p c E rho x r H →
+    ∀ i : Fin p.n, rho.seatOf (.base (.head r)) i = x →
+    ∀ y ∈ rho.honest, ∀ dst,
+      pcsa_postClock E rho y (SA.voteTime p.toParams (r + 1)) = some dst →
+      let o : GridCO.Wire p.n .root := ⟨.seat r i, .head H.root⟩
+      o ∈ headSupport p dst.st (r + 1) ∧
+      o ∈ headVotes p dst.st (r + 1) ∧
+      GridCO.equivocates (headVotes p dst.st (r + 1)) i = false ∧
+      GridCO.resolvedHead? dst.st.base o = some H ∧
+      (∀ B, Block.Preceq B H → B ∈ erasedList dst.st
+        (KitFG.storeFrameView (FGSA.heightView p) dst.st.fg (voterBlocks p dst.st (r + 1))))
+  honestProposerInputs : ∀ r, g ≤ r → ∀ x H, HonestHeadAt p c E rho x r H →
+    ∀ i : Fin p.n, rho.seatOf (.base (.head r)) i = x →
+    ∀ y ∈ rho.honest, ∀ dst,
+      pcsa_postClock E rho y (SA.proposalTime p.toParams (r + 1)) = some dst →
+      let o : GridCO.Wire p.n .root := ⟨.seat r i, .head H.root⟩
+      o ∈ proposerSupport dst.st (r + 1) ∧
+      o ∈ proposerVotes dst.st (r + 1) ∧
+      GridCO.equivocates (proposerVotes dst.st (r + 1)) i = false ∧
+      GridCO.resolvedHead? dst.st.base o = some H ∧
+      (∀ B, Block.Preceq B H → B ∈ erasedList dst.st (fullTree p dst.st))
+  rootResolution : ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ a b : Nat, ∀ X Y,
+    X ∈ (V2.D.Run.stateBefore E rho a x).st.base.blocks →
+    Y ∈ (V2.D.Run.stateBefore E rho b y).st.base.blocks →
+    X.root = Y.root → X = Y
+```
+
+## Continuation signature locations
+
+The full proved signatures are in the source declarations:
+
+- `recovery_lock_no_later_successful_renewal` in `LockHistory.lean`.
+  It takes the exact deadline and uninterrupted interval from
+  `recovery_lock_write_witness`. It rules out every later successful
+  fresh-gate slow-write branch before the read.
+- `RecoveryLockTransport` above and `pcsa_recovery_lock_transport` in
+  `Assembly/Recovery.lean`. The latter constructs only the transport value.
+- `recovery_postmix_lock_window`, `recovery_postmix_live_locks_compatible`,
+  `recovery_window_next_vote_locks_compatible`, and
+  `recovery_window_later_locks_compatible` in `LockOverlap.lean`.
+- `recovery_survivor_received_pc_compatible`,
+  `recovery_survivor_relay_pc_compatible`, and
+  `recovery_write_relay_pc_compatible` in `LockOverlap.lean`.
+  These K kernels retain an explicit PC rank lower bound.
+
+The requested final firstSlot signature remains unproved and absent:
+
+```lean
+∃ N : NamedProposal p.n,
+  FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁
+```
