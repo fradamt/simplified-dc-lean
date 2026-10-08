@@ -652,9 +652,10 @@ COMPOSE_SAFETY_IMPORTS = frozenset({
     (COMPOSE + ".Statements.SafetyStore", KITFG + ".StoreSafetyDef"),
     (COMPOSE + ".Statements.SafetyClient", SP + ".Quorum"),
 })
-# Lead ruling 2026-10-07 (P2, S3a): the facade may import the P2 proof modules.
+# Lead rulings 2026-10-07 (P2, S3a) and 2026-10-08 (P3, S3b): the facade may
+# import the P2 and P3 proof modules.
 COMPOSE_MODULES += tuple(COMPOSE + ".Proofs." + name for name in
-                         ("SafetyClient", "SafetyCount", "SafetyMonotone"))
+                         ("SafetyClient", "SafetyCount", "SafetyMonotone", "SafetySlashing"))
 # Lead ruling 2026-10-07 (s2-plan P1): one exact Compose proof edge. No prefix.
 # Lead ruling 2026-10-07 (P2, S3a): two exact pairs for Proofs.SafetyClient. No prefix.
 COMPOSE_PROOF_IMPORTS = frozenset({
