@@ -50,6 +50,7 @@ theorem recovery_firstSlot_long_body (E : Generic.Env V)
     proposal := hN
     delivery := recovery_delivery_from_run E rho h s hpos hafter horizon
     participation := (recovery_participation E rho h s hafter horizon).1
+    proposerRootReachable := hroot
     commonView := recovery_commonView E rho h hF s hpos hafter horizon N hN
     leases := fun y hy _ nd hnd B hB hcompat _ =>
       recovery_long_voter_leases E rho h hF g s transport hgst hmix horizon N hN
