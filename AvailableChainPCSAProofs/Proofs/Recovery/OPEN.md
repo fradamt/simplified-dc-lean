@@ -651,3 +651,49 @@ Keep the separate `RecoveryRootReachable` conjunct. The new export converts
 that same root proof; it does not construct a second Formation literal.
 LockHistory and LockRank statements are unchanged. No RestartSeed file,
 main merge, push, or checker/policy change was made.
+
+## Checked continuation 4 report (2026-10-08)
+
+Code commit: `f87b1c21` — exact first-slot equation, export, and Assembly wrapper.
+
+- Step 1: PROVED. Last write, rank invariant, and no later successful renewal.
+- Step 2: PROVED as an interface. Seven lane suppliers remain OPEN.
+- Step 3: PROVED. Lock overlap and K for the selected voter key.
+- Step 4: PROVED. F′ from exact-row survival and preceding honest HEAD coverage.
+- Step 5: PROVED. Actual proposal paths and both F4 bodies.
+- Step 6: PROVED. Exact `Recovery/Export.recovery_firstSlot_long` kernel and
+  `Assembly/Recovery.pcsa_recovery_firstSlot_long` wrapper.
+
+The kernel's full signature is in “Continuation 4: exact first-slot export”.
+The Assembly signature has the same slot premises and exact target, with
+all seven named OPEN parameters written in full in `Assembly/Recovery.lean`.
+Their exact statements remain in “Continuation transport statements”.
+The approved step-6 scope has no remaining proof item. The transport
+suppliers, Formation producer, and CI restart are separate OPEN work.
+
+Validation of `f87b1c21`:
+
+- Default `lake build --wfail`: PASS, 4,597 jobs.
+- `LC_ALL=C bash scripts/check-build.sh`: PASS, all checks and self-tests.
+- `check-layers.py`: PASS, zero new findings. Self-test: PASS, 37 controls.
+- `LC_ALL=C` GLY and F-13: PASS.
+- `NEG=0 check-fgsa-claims.sh`: PASS, including compiled axioms, lease,
+  equation, and unused-import checks.
+- `NEG=0 check-pcsa-manifest.sh`: PASS, 421 entries in 21 modules; hashes match.
+- Normal `check-proof-coverage.py`: PASS, 5,944 declarations across 13 audits.
+- All three new public names have `#print axioms` lines and coverage rows.
+  Only `propext`, `Classical.choice`, and `Quot.sound` occur.
+- Equation audit: zero unaccepted exports.
+- New names have no collision on main, `222cf06a`, `pcsa-w2-formation-next`,
+  `pcsa-ci-win-1/-2/-3`, `nuc/pcsa-fsrc`, or `form-land3`, under `LC_ALL=C`.
+- Main precheck: expected ancestry refusal, main `a1f0b3b`, target `f87b1c2`.
+  No main merge or push.
+- `Suffix.lean` is append-only relative to `9c043312`. LockHistory and
+  LockRank are byte-for-byte unchanged. The seven Assembly OPEN statements
+  match the existing constructor byte for byte. No RestartSeed file exists.
+
+The initial equation proof `:= rfl` failed Lean's exported definitional
+equality check. The proof `:= by rfl` passes in the owning module. No
+predicate, premise, exposure policy, or checker was changed. The initial
+sandboxed build could not write the global Lean throttle lock. Validation
+then used the normal throttle with lock access; no bypass was used.
