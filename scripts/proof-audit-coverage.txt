@@ -6129,10 +6129,12 @@
             'AvailableChain.PCSA.Run.pcsa_formation_old_pc_relay',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.FormationRetainedBack': (
+            'AvailableChain.PCSA.Run.FormationFrozenRawOpen',
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs_of_frozen',
             'AvailableChain.PCSA.Run.pcsa_formation_retained_back_of_frozen',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.FormationRetainedTree': (
+            'AvailableChain.PCSA.Run.FormationRetainedBackOpen',
             'AvailableChain.PCSA.Run.pcsa_formation_frozen_body_in_proposer',
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs_of_back',
             'AvailableChain.PCSA.Run.pcsa_formation_retained_eligible_eq',
