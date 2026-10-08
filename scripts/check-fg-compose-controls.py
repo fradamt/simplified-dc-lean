@@ -338,6 +338,7 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
                  "    deliveredScope (emitReads.erase BLOCK) :=\n"
                  "  N.parent_scope tip tip_runBlock hne\n")
         row = '(⟨0, .empty, none⟩ : Row (Fin 1))'
+        controls = []
         for label, good, bad, reason in [
             ('unordered inclusive read',
              "example : V2.D.Run.readAt envU unordered 1 () = 2 := by decide\n",
@@ -367,17 +368,20 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
              scope.replace('BLOCK', 'tip.parent'), scope.replace('BLOCK', 'tip'),
              'deliveredScope (emitReads.erase tip.parent)'),
         ]:
-            for kind, body, code in (('positive', good, 0), ('negative', bad, 1)):
-                source = root / ('safety-' + label.replace(' ', '-') + '-' + kind + '.lean')
-                source.write_text(context + body +
-                                  'end AvailableChain.FGCompose.Tests.SafetyControls.NegativeControl\n')
-                result = run(['lake', 'env', 'lean', str(source)])
-                if code == 0:
-                    assert result.returncode == 0 and 'error' not in result.stdout, \
-                        (label, result.stdout + result.stderr)
-                    print(f'CONTROL Compose safety {label} positive: PASS (rc 0)', flush=True)
-                else:
-                    require('safety ' + label, result, 1, reason)
-                    assert result.stdout.count('error:') == 1, (label, result.stdout)
+            controls.append((label, good, bad, reason))
+        # All positive forms compile in one file; each negative form alone.
+        end = 'end AvailableChain.FGCompose.Tests.SafetyControls.NegativeControl\n'
+        source = root / 'safety-positive.lean'
+        source.write_text(context + ''.join(
+            f'section\n{good}end\n' for _, good, _, _ in controls) + end)
+        result = run(['lake', 'env', 'lean', str(source)])
+        assert result.returncode == 0 and 'error' not in result.stdout, result.stdout + result.stderr
+        print(f'CONTROL Compose safety positive forms ({len(controls)}): PASS (rc 0)', flush=True)
+        for label, _, bad, reason in controls:
+            source = root / ('safety-' + label.replace(' ', '-') + '-negative.lean')
+            source.write_text(context + bad + end)
+            result = run(['lake', 'env', 'lean', str(source)])
+            require('safety ' + label, result, 1, reason)
+            assert result.stdout.count('error:') == 1, (label, result.stdout)
 
 print('Compose controls: PASS', flush=True)
