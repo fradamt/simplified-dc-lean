@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope -- shake: keep (#print axioms)
+public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge -- shake: keep (#print axioms)
 
 public section
 
@@ -14,6 +15,13 @@ public section
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyOrderLaws
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyScopeLaws
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyScopedRoots
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_runAccountable
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_parent_scope
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_read_scope
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_stores_accountable
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_reads_accountable
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_event_agreement
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_read_agreement
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyProposalRows_def
 #print axioms AvailableChain.FGSA.Run.safetyProposalErase

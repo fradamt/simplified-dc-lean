@@ -7,8 +7,10 @@ public section
 one record: CI (i) on one label (`CleanInvariantClaim`), the locks below `S`
 (`LeaseBelowRecordClaim`), the facts at the pending labels (`CutChain`), and
 the clean-gate successor bridge (a HEAD of label `j + 1` extends an honest
-result of label `j` with `d_j ≤ b₀`). The Outage assembly takes the record as
-an OPEN hypothesis. From a result `A = R_u(j₁)`: every later
+result of label `j` with `d_j ≤ b₀`). The Outage assembly proves every field
+from the Clean claims and the HEAD cone (`pcsa_cleanCutItems_of_cone`,
+`pcsa_cleanConeItems`).
+From a result `A = R_u(j₁)`: every later
 honest result and HEAD in the prefix extends `A`, every honest ack and record
 in the prefix is compatible with `A`. -/
 
@@ -35,7 +37,8 @@ structure CutFacts (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀
     HonestHeadAt p c E rho x (j + 1) H → Block.Preceq A H
 
 /-- [pcsa34-r4.3 §5.2.2, §5.5 steps 1–2] The Clean facts at the cut of every
-clean stage-1 run. The Outage assembly takes them as an OPEN hypothesis. -/
+clean stage-1 run. The Outage assembly builds them from the Clean claims and
+the HEAD cone `CleanConeItems` (`pcsa_cleanConeItems`). -/
 def CleanCutItems (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
@@ -114,7 +117,7 @@ theorem pcsa_cut_res {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b�
 omit [Fintype V] in
 /-- [§5.5 steps 1, 3] Every honest HEAD of a later label `r` with `v_r ≤ b₀`
 extends `A` when `d_{j₁} ≤ b₀`: the bridge gives the HEADs of label `j₁ + 1`,
-the HEAD cone the later labels. -/
+the vote-time HEAD cone the later labels. -/
 theorem pcsa_cut_head {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b₀ : Time}
     (hK : CutFacts p c E rho b₀) {u : V} (hu : u ∈ rho.honest) {j₁ : Slot} {A : Block}
     (hA : gateResultAt p c E rho u j₁ = some (some A))
@@ -125,8 +128,7 @@ theorem pcsa_cut_head {E : Generic.Env V} {rho : V2.D.Run V (pcsaWith m p c)} {b
     fun y G hG => hK.bridge j₁ u y A G hd hu hA hG
   rcases Nat.lt_or_eq_of_le (Nat.succ_le_of_lt hr) with hlt | heq
   · obtain ⟨n, rfl⟩ := Nat.exists_eq_add_of_lt hlt
-    exact pcsa_cone_up hK.toCutChain hB n
-      (le_of_lt (lt_of_lt_of_le (pcsa_early_lt_vote_of_lt (Nat.lt_succ_self _)) hv)) z H hH
+    exact pcsa_voteCone_up (pcsa_cutChain_voteCone hK.toCutChain) hB n hv z H hH
   · rw [← heq] at hH
     exact hB z H hH
 

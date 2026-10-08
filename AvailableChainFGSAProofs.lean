@@ -300,3 +300,4 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSee
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
+public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge

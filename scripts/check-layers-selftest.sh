@@ -238,8 +238,38 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             found = run(root, 1)
             assert ("COMPOSE-P", importer, dep) in found, found
         print("PASS Safety exact external edges and neighbors")
+        # Lead ruling 2026-10-07 (P2, S3a): other importers and other targets fail.
+        proof_negatives = []
+        for importer, dep in sorted(api["COMPOSE_PROOF_IMPORTS"]):
+            proof_negatives += [(CO + ".Proofs." + other, dep, "COMPOSE-P")
+                                for other in ("SafetyCount", "SafetyMonotone", "SafetySlashing",
+                                              "SourceHead", "Control")]
+            proof_negatives += [(CO + ".Statements.SafetyClient", dep, "COMPOSE-S"),
+                                (CO + ".Tests.SafetyReads", dep, "COMPOSE-P")]
+        proof_negatives += [(CO + ".Proofs.SafetyClient", dep, "COMPOSE-P") for dep in
+                            [K + ".ClientOnce", K + ".AccountableCore", K + ".ClientOnceSafety.Extra",
+                             PV + ".Duty", PV + ".Duty.LinkedHolders", PP + ".Quorum",
+                             G + ".Proofs.V2.Duty.Fields.Extra"]]
+        for index, (importer, dep, rule) in enumerate(proof_negatives):
+            root = temp / f"compose-proof-boundary-{index}"
+            setup(root)
+            module(root, importer, dep)
+            found = run(root, 1)
+            assert (rule, importer, dep) in found, (rule, importer, dep, found)
+        print("PASS Compose Proofs exact external edges and neighbors")
+        # Lead ruling 2026-10-08 (P3, S3b): the facade imports the exact P3 module only.
+        root = temp / "compose-facade-slashing"
+        setup(root)
+        module(root, CO, CO + ".Proofs.SafetySlashing")
+        run(root, 0, set())
+        root = temp / "compose-facade-slashing-extra"
+        setup(root)
+        module(root, CO, CO + ".Proofs.SafetySlashing.Extra")
+        found = run(root, 1)
+        assert ("COMPOSE-S", CO, CO + ".Proofs.SafetySlashing.Extra") in found, found
+        print("PASS Compose facade P3 module and neighbor")
         for index, (importer, dep) in enumerate(sorted(api["COMPOSE_EDGES"])):
-            if "FGSafetyClient" not in importer:
+            if not any(name in importer for name in ("FGSafetyClient", "FGSafetyBridge")):
                 continue
             for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
                 root = temp / f"safety-adapter-{index}-{neighbor}-{target}"

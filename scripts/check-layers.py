@@ -652,9 +652,16 @@ COMPOSE_SAFETY_IMPORTS = frozenset({
     (COMPOSE + ".Statements.SafetyStore", KITFG + ".StoreSafetyDef"),
     (COMPOSE + ".Statements.SafetyClient", SP + ".Quorum"),
 })
+# Lead rulings 2026-10-07 (P2, S3a) and 2026-10-08 (P3, S3b): the facade may
+# import the P2 and P3 proof modules.
+COMPOSE_MODULES += tuple(COMPOSE + ".Proofs." + name for name in
+                         ("SafetyClient", "SafetyCount", "SafetyMonotone", "SafetySlashing"))
 # Lead ruling 2026-10-07 (s2-plan P1): one exact Compose proof edge. No prefix.
+# Lead ruling 2026-10-07 (P2, S3a): two exact pairs for Proofs.SafetyClient. No prefix.
 COMPOSE_PROOF_IMPORTS = frozenset({
     (COMPOSE + ".Proofs.SafetyAccountable", KITFG + ".AccountableCore"),
+    (COMPOSE + ".Proofs.SafetyClient", KITFG + ".ClientOnceSafety"),
+    (COMPOSE + ".Proofs.SafetyClient", PV + ".Duty.Fields"),
 })
 COMPOSE_EDGES = frozenset(
     [(PROOFS + ".Proofs.Shared.FGCompose", dep) for dep in COMPOSE_MODULES[:3]]
@@ -668,6 +675,11 @@ COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyStore'),
     ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyClient'),
     ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient', 'AvailableChainFGCompose.Statements.SafetyStore'),
+})
+# Lead ruling 2026-10-07 (s2-plan P9): the FG-SA accountability bridge reads the
+# Compose accountability proofs. One exact pair. No prefix.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetyAccountable'),
 })
 
 

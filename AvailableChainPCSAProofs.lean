@@ -10,6 +10,7 @@ public import AvailableChainPCSAProofs.Proofs.Assembly.Small
 public import AvailableChainPCSAProofs.Proofs.Assembly.Formation
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationExport
 public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
+public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
