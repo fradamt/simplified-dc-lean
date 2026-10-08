@@ -2,6 +2,7 @@ module
 public import AvailableChainPCSAProofs.Proofs.Recovery.Export
 public import AvailableChainPCSAProofs.Proofs.Clean.Export
 public import AvailableChainPCSAProofs.Proofs.Outage.Export
+public import AvailableChainPCSAProofs.Proofs.PC.Export
 
 public section
 
@@ -645,6 +646,165 @@ theorem pcsa_recovery_firstSlot_long_of_run [Fintype V] (E : Generic.Env V)
     (pcsa_recovery_lock_transport_of_run E rho h hF g hg)
     hg hmix.le hafter hprop (hbound.trans horizon)
   exact ⟨s₁, N, hbound, hN, hroot⟩
+
+end AvailableChain.PCSA.Run
+end
+
+public section
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+
+/-- Formation and persistence supply the complete restart seed. -/
+theorem pcsa_recovery_restartSeed (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (hPrem : FormationPrem p c E rho s N ΔF)
+    (hForm : FormationConcl p c E rho s N)
+    (hArm : ArmConcl p c E rho s N.erase (s + 1)) :
+    CleanRestartSeed p c E rho s N.erase := by
+  rw [FormationConcl_def] at hForm
+  have hf := pcsa_c9_faultsBelowQA_of_quarterCap rho hPrem.quarterCap
+  have hmajor : (Gen.V2.Duty.faulty rho).card < (awakeHonestLabel p c E rho s).card := by
+    have hq := hPrem.participation
+    have hc : 4 * (Gen.V2.Duty.faulty rho).card ≤ p.n := hPrem.quarterCap
+    have hn := p.nPos
+    rw [pcsa_nQuorum_eq_qN, Gen.Pure.qN_def] at hq
+    omega
+  refine pcsa_cleanRestartSeed_mk E rho hPrem.base hPrem.frame hf s N.erase hPrem.slotPos
+    (pcsa_proposal_emitted_slot E rho _ s N _ hPrem.proposal.2)
+    hForm.2.2.2.1 hForm.1 ?_ ?_ hArm ?_
+  · intro P hP
+    obtain ⟨_, M, hM, heM⟩ := pcsa_honest_proposal_named E rho s P hP
+    obtain ⟨a, ha, hoa⟩ := heM
+    obtain ⟨b, hb, hob⟩ := hPrem.proposal.2
+    have heq := (Gen.V2.Duty.emitted_unique_of_singleDuty E rho hPrem.base.valid.nodup
+      (.prop s) (pcsa_prop_single_duty p c m s) (0 : Fin 1) _ a b _ _ _ _
+      ha hb hoa hob rfl rfl).2
+    have hMN := Msg.proposal.inj (congrArg (fun o : Obj p => o.payload) heq)
+    exact hM.symm.trans (congrArg NamedProposal.erase hMN)
+  · intro x hx R hR
+    exact Option.some.inj (hR.symm.trans (hForm.2.2.2.2 hmajor x hx))
+  · apply le_trans _ hPrem.horizon
+    have hd := p.deltaPos
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith
+
+/-- The suffix invariant, later stamps and persistence give the recovery outputs. -/
+theorem recovery_chainRestart_of_suffix (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c))
+    (hBase : Base₂ p c E rho) (hFrame : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (s : Slot) (P : Block)
+    (hI : RecoveredSuffixInvariant p c E rho s P rho.horizon)
+    (hStamp : ∀ u N, s + 1 ≤ u → HonestNamedProposal p c E rho u N →
+      SA.freezeTime p.toParams u ≤ rho.horizon → ∀ x ∈ rho.honest,
+        PCStampedBefore p c E rho x (SA.freezeTime p.toParams u) u N.erase)
+    (hPersist : ∀ u B, Arm p c E rho u B (u + 1) → ArmConcl p c E rho u B (u + 1)) :
+    RecoveryChainRestart p c E rho s := by
+  have hzg : SA.freezeTime p.toParams s ≤ SA.gateTime p.toParams s := by
+    have hd := p.deltaPos
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith
+  have symm (X Y : Block) (h : Block.Compatible X Y) : Block.Compatible Y X := by
+    rcases Bool.or_eq_true_iff.mp h with h | h
+    · exact Bool.or_eq_true_iff.mpr (Or.inr h)
+    · exact Bool.or_eq_true_iff.mpr (Or.inl h)
+  have target (x : V) (t : Time) (C : PC p.n)
+      (hC : latestPC (storeAt p c E rho x t) = some C) :
+      pcTarget? (storeAt p c E rho x t) = some C.target := by
+    change (latestPC (storeAt p c E rho x t)).map PC.target = _
+    rw [hC]; rfl
+  have strongEq (x : V) (t : Time) (C : PC p.n)
+      (hC : latestPC (storeAt p c E rho x t) = some C) :
+      strong (storeAt p c E rho x t) = C.target := by
+    change (pcTarget? (storeAt p c E rho x t)).getD .genesis = _
+    rw [target x t C hC]; rfl
+  have pcRecord (x : V) (hx : x ∈ rho.honest) (y : V) (hy : y ∈ rho.honest)
+      (t t' : Time) (ht : t ≤ rho.horizon) (hg : SA.gateTime p.toParams s ≤ t')
+      (ht' : t' ≤ rho.horizon) (C : PC p.n) (hCs : s ≤ C.slot)
+      (hC : C ∈ (storeAt p c E rho x t).pcs) :
+      Block.Compatible C.target (storeAt p c E rho y t').base.stableRecord := by
+    obtain ⟨i, X, hi, hit, hX, hr⟩ := hI.recordOrigin y hy t' hg ht'
+    rw [hr]
+    exact hI.pcResults x hx y hy t C i X ht hCs hi (hit.trans ht') hC hX
+  refine ⟨?_, ?_, ?_⟩
+  · intro x hx y hy t t' hg ht hg' ht'
+    obtain ⟨C, hC, hc, hCs, _⟩ := hI.selected x hx t (hzg.trans hg) ht
+    obtain ⟨D, hD, hd, hDs, _⟩ := hI.selected y hy t' (hzg.trans hg') ht'
+    have hCD := (hI.pcChain x hx y hy t t' C D ht ht' hCs hDs hC hD).1
+    have hCR := pcRecord x hx y hy t t' ht hg' ht' C hCs hC
+    have hDR := pcRecord y hy x hx t' t ht' hg ht D hDs hD
+    have hRR : Block.Compatible (storeAt p c E rho x t).base.stableRecord
+        (storeAt p c E rho y t').base.stableRecord := by
+      obtain ⟨i, X, hi, hit, hX, hr⟩ := hI.recordOrigin x hx t hg ht
+      obtain ⟨j, Y, hj, hjt, hY, hr'⟩ := hI.recordOrigin y hy t' hg' ht'
+      rw [hr, hr']
+      rcases lt_trichotomy i j with hij | hij | hij
+      · exact Bool.or_eq_true_iff.mpr (Or.inl
+          ((hI.resultsChain x hx y hy i j X Y hi hij.le (hjt.trans ht') hX hY).1 hij))
+      · exact (hI.resultsChain x hx y hy i j X Y hi hij.le (hjt.trans ht') hX hY).2 hij
+      · exact Bool.or_eq_true_iff.mpr (Or.inr
+          ((hI.resultsChain y hy x hx j i Y X hj hij.le (hit.trans ht) hY hX).1 hij))
+    have hsource (z : V) (v : Time) (K : PC p.n)
+        (hk : latestPC (storeAt p c E rho z v) = some K) :
+        confirmed (storeAt p c E rho z v) = (storeAt p c E rho z v).base.stableRecord ∨
+          confirmed (storeAt p c E rho z v) = K.target := by
+      rw [confirmed_eq_pcFloor, target z v K hk]
+      exact Gen.Pure.pcFloor_some_eq_or _ _
+    rw [strongEq x t C hc, strongEq y t' D hd]
+    refine ⟨?_, hCD, ?_⟩
+    · rcases hsource x t C hc with h | h <;>
+        rcases hsource y t' D hd with h' | h' <;> rw [h, h']
+      · exact hRR
+      · exact symm _ _ hDR
+      · exact hCR
+      · exact hCD
+    · rcases hsource x t C hc with h | h <;> rw [h]
+      · exact symm _ _ hDR
+      · exact hCD
+  · intro x hx t t' hg htt ht'
+    have ht := htt.trans ht'
+    obtain ⟨C, hC, hc, hCs, _⟩ := hI.selected x hx t (hzg.trans hg) ht
+    obtain ⟨D, hD, hd, hDs, _⟩ := hI.selected x hx t' ((hzg.trans hg).trans htt) ht'
+    have hkeep := pcsa_storeAt_pcs_mono E rho hBase hFrame x hx t t' htt hC
+    have hslot := pcsa_bestPC_slot_of_mem (storeAt p c E rho x t').pcs C D hkeep hd
+    have hCD : Block.Preceq C.target D.target := by
+      rcases hslot.lt_or_eq with hlt | heq
+      · exact (hI.pcChain x hx x hx t t' C D ht ht' hCs hDs hC hD).2 hlt
+      · rw [pcsa_pcUniqueness p c m E rho hBase hFault x hx x hx t t' C hC D hD heq]
+        exact Gen.Pure.block_preceq_refl _
+    rw [strongEq x t C hc, strongEq x t' D hd, confirmed_eq_pcFloor,
+      confirmed_eq_pcFloor, target x t C hc, target x t' D hd]
+    exact ⟨Gen.Pure.pcFloor_mono_some (hI.recordMono x hx t t' hg htt ht') hCD
+      (pcRecord x hx x hx t' t' ht' (hg.trans htt) ht' D hDs hD), hCD⟩
+  · intro u B hu hB
+    obtain ⟨hw, N, hN, he⟩ := pcsa_honest_proposal_named E rho u B hB
+    have hNamed : HonestNamedProposal p c E rho u N := ⟨hw, he⟩
+    constructor
+    · intro x hx t hgt ht
+      have hut := hgt.trans ht
+      have hsu : s ≤ u := (Nat.le_succ s).trans hu
+      have hgs : SA.gateTime p.toParams s ≤ SA.gateTime p.toParams u := by
+        have hsu' : (s : Int) ≤ (u : Int) := by exact_mod_cast hsu
+        have hd := p.deltaPos
+        change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ 4 * p.Δ * (u : Int) + 6 * p.Δ
+        nlinarith
+      have hresult := hI.honestGate u B hsu hB hut x hx
+      have hBR := Gen.Pure.block_preceq_trans (hI.gateAdvance u hsu hut x hx B hresult)
+        (hI.recordMono x hx _ t hgs hgt ht)
+      obtain ⟨C, hC, hc, hCs, _⟩ := hI.selected x hx t (hzg.trans (hgs.trans hgt)) ht
+      rw [confirmed_eq_pcFloor, target x t C hc]
+      apply Gen.Pure.preceq_pcFloor hBR
+      intro D hD
+      have heq : C.target = D := Option.some.inj hD
+      rw [← heq]
+      exact symm _ _ (hI.pcResults x hx x hx t C u B ht hCs hsu hut hC hresult)
+    · intro x hx t hzt ht
+      have hs := hStamp u N hu hNamed (hzt.trans ht)
+      have hp := hPersist u N.erase (arm_next_of_common_stamp E rho u N.erase hs)
+      rw [← hN]
+      exact (hp.2.2 x hx _ t hzt
+        (recovery_stampRead E rho hBase.valid.toScheduleWellFormed hBase.noRestart hFrame
+          x hx _ u N.erase (hs x hx))).1
 
 end AvailableChain.PCSA.Run
 end

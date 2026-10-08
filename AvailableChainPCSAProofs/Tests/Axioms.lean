@@ -1942,3 +1942,6 @@ end
 
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_concl_of_premise
 #print axioms AvailableChain.PCSA.Run.recovery_participation_at_early
+
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_restartSeed
+#print axioms AvailableChain.PCSA.Run.recovery_chainRestart_of_suffix
