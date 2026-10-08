@@ -12,10 +12,10 @@ claimed. Status of the inputs:
   - Short break: CLOSED by `pcsa_recovery_firstSlot_short`
     (`Assembly/Recovery.lean`). It supplies `FormationPrem` and the separate
     `RecoveryRootReachable` predicate from `ShortBreakPrem`.
-  - Long break: both F4 bodies and `FormationPrem` are proved under the
-    explicit transport interface. `recovery_firstSlot_long_body` retains the
-    separate root-walk conjunct. The exact predicate conversion, export, and
-    Assembly wrapper need the `Suffix.lean` equation recorded below.
+  - Long break: CLOSED under the explicit transport interface by
+    `recovery_firstSlot_long` (`Recovery/Export.lean`) and
+    `pcsa_recovery_firstSlot_long` (`Assembly/Recovery.lean`). The Assembly
+    wrapper takes the seven named OPEN suppliers stated below.
 - Formation with corrected F4 (`formation`: every honest node holds the
   stamped PC of `N.erase` before `z_{s₁}`): OPEN, Formation lane. The clause
   is a separate argument until `FormationPrem` carries it.
@@ -101,10 +101,10 @@ receipt before an arbitrary faulty-slot HEAD.
 Steps 4–5 are now proved. `LockFollow` derives F′ from the last write and
 exact-row survival. `ProposalPaths` uses the actual preceding HEAD batch
 at proposal time and proves both F4 bodies. `LongFirstSlot` constructs
-`FormationPrem` with the explicit root-walk conjunct. The exact long-slot
-export and `pcsa_recovery_firstSlot_long` wrapper remain blocked by the
-missing defining equation for `RecoveryRootReachable` in `Suffix.lean`.
-The equation changes no claim premise. See the continuation 3 section.
+`FormationPrem` with the explicit root-walk conjunct. Step 6 now converts
+that conjunct with the appended `RecoveryRootReachable_def` equation.
+The exact export and `pcsa_recovery_firstSlot_long` wrapper are proved.
+The equation changes no claim premise. See the continuation 4 section.
 
 ## Continuation transport statements
 
@@ -195,7 +195,7 @@ The full proved signatures are in the source declarations:
   `recovery_write_relay_pc_compatible` in `LockOverlap.lean`.
   These K kernels retain an explicit PC rank lower bound.
 
-The requested final firstSlot signature remains unproved and absent:
+The final firstSlot signature is now proved under the transport interface:
 
 ```lean
 ∃ N : NamedProposal p.n,
@@ -593,3 +593,61 @@ Validation of the final Lean sources at `a678c134`:
 All tracked changes are inside the allowed file list. No `RestartSeed.lean`,
 main merge, or push. The defining-equation scope question is the remaining
 block for the exact first-slot export and wrapper.
+
+## Continuation 4: exact first-slot export
+
+Step 6 is PROVED under the unchanged step-2 transport boundary.
+`RecoveryRootReachable_def` is appended after the old end of `Suffix.lean`.
+No earlier byte of that file changes. The lead approved this scope exception.
+Its name differs from formation's planned
+`pcsa_recovery_rootReachable_iff_formation` bridge. The new names were checked
+with `LC_ALL=C` against `form-land3` and the seven required refs.
+
+Namespace: `AvailableChain.PCSA.Run`. Implicit parameters are `{p : Params}`,
+`{In V : Type}`, `[DecidableEq V]`, `[Fintype V]`, `{c : AppCodec In}`,
+and `{m : FGMode}`.
+
+```lean
+theorem recovery_firstSlot_long (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) (hF : StageOneFrame p c E rho)
+    (g s : Slot) (transport : RecoveryLockTransport p c E rho g)
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams g)
+    (hmix : SA.voteTime p.toParams (g + 2 * p.k - 1) ≤ SA.proposalTime p.toParams s)
+    (hafter : E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s)
+    (hprop : Gen.V2.Duty.HonestAwakeProposer E
+      (pcsaInterface p c (m := m)).toInterface rho s)
+    (horizon : SA.gateTime p.toParams s ≤ rho.horizon) :
+    ∃ N : NamedProposal p.n,
+      FormationPrem p c E rho s N ΔF ∧ RecoveryRootReachable p c E rho s
+```
+
+The Assembly declaration `pcsa_recovery_firstSlot_long` has the same slot
+premises, with `s₁` for `s`. It replaces the one `transport` argument with
+`OPEN_sameLabel`, `OPEN_earlyForward`, `OPEN_voterBackward`,
+`OPEN_pcReceipt`, `OPEN_honestVoterInputs`, `OPEN_honestProposerInputs`, and
+`OPEN_rootResolution`. Their exact statements are the seven fields in
+“Continuation transport statements” above. The wrapper writes each
+statement in full and calls `pcsa_recovery_lock_transport`.
+No extra coverage or claim premise is added. Minimality of `g` is not needed
+for this kernel; the inputs supplied by `long_recovery_slot` suffice.
+
+The label-`g` majority supplier is `pcsa_gate_majority_of_label` in
+`Clean/HonestBatch.lean` on `pcsa-ci-win-2`, with floor `T₀ ≤ v_s`.
+It is the intended supplier behind `OPEN_sameLabel`, including
+`t_g < GST ≤ v_g`. That branch was not merged. All seven lane suppliers
+remain OPEN here. Formation and CI restart remain separate suffix inputs.
+This result does not close the unconditional `LongBreakRecoveredClaim`.
+
+Main and this branch still lack `FormationPrem.proposerRootReachable`.
+The existing literal in `LongFirstSlot.lean` uses the local root proof
+`hroot` for the separate conjunct. When the Formation field lands, add:
+
+```lean
+    proposerRootReachable := hroot
+```
+
+Keep the separate `RecoveryRootReachable` conjunct. The new export converts
+that same root proof; it does not construct a second Formation literal.
+LockHistory and LockRank statements are unchanged. No RestartSeed file,
+main merge, push, or checker/policy change was made.

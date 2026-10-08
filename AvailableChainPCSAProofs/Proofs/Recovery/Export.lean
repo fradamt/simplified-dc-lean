@@ -5,6 +5,7 @@ public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
 public import AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved
 public import AvailableChainPCSAProofs.Proofs.Recovery.AnchorBase
 public import AvailableChainPCSAProofs.Proofs.Recovery.FirstSlot
+public import AvailableChainPCSAProofs.Proofs.Recovery.LongFirstSlot
 
 public section
 
@@ -98,6 +99,23 @@ theorem pcsa_longBreakRecoveredClaim (p : Params)
   obtain ⟨P, hP, heal⟩ := recovery_healed_of_inputs E rho s ΔF
     (recoveryInputs c m E rho G ΔF h hf g s hg hm hs.le ha hp (hb.trans hh))
   exact ⟨s, P, hP, hb, heal⟩
+
+/-- The long-break transport facts supply the exact first-slot predicates. -/
+theorem recovery_firstSlot_long (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) (hF : StageOneFrame p c E rho)
+    (g s : Slot) (transport : RecoveryLockTransport p c E rho g)
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams g)
+    (hmix : SA.voteTime p.toParams (g + 2 * p.k - 1) ≤ SA.proposalTime p.toParams s)
+    (hafter : E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s)
+    (hprop : Gen.V2.Duty.HonestAwakeProposer E
+      (pcsaInterface p c (m := m)).toInterface rho s)
+    (horizon : SA.gateTime p.toParams s ≤ rho.horizon) :
+    ∃ N : NamedProposal p.n,
+      FormationPrem p c E rho s N ΔF ∧ RecoveryRootReachable p c E rho s := by
+  obtain ⟨N, hN, hroot⟩ := recovery_firstSlot_long_body E rho h hF g s transport
+    hgst hmix hafter hprop horizon
+  exact ⟨N, hN, (RecoveryRootReachable_def p c E rho s).mpr hroot⟩
 
 end AvailableChain.PCSA.Run
 end

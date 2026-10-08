@@ -9,7 +9,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {m : FGMode}
 
 /-- Long-break first-slot inputs with the explicit proposer-root walk conjunct.
-The conversion to RecoveryRootReachable needs its defining equation. -/
+Recovery/Export converts the root conjunct with RecoveryRootReachable_def. -/
 theorem recovery_firstSlot_long_body (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
     (h : Recovery₂ p c E rho G ΔF) (hF : StageOneFrame p c E rho)

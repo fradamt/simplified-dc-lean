@@ -1589,3 +1589,8 @@ end
 #print axioms AvailableChain.PCSA.Run.recovery_long_voter_leases
 
 #print axioms AvailableChain.PCSA.Run.recovery_firstSlot_long_body
+
+-- Long recovery: exact first-slot export and Assembly boundary.
+#print axioms AvailableChain.PCSA.Run.RecoveryRootReachable_def
+#print axioms AvailableChain.PCSA.Run.recovery_firstSlot_long
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_long
