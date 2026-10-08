@@ -1375,4 +1375,41 @@ theorem pcsa_clean_heads_cone_at_vote [Fintype V] (E : Generic.Env V)
 
 end AvailableChain.PCSA.Run
 
+namespace AvailableChain.PCSA.Run
+/-- [pcsa34-r4.3 §5.3, F4] Every honest result of a label before an honest proposal is below
+the proposal parent. The proposer head at `t_u` extends the results of label `u − 1`
+(`pcsa_clean_proposer_head_above_result`); the C6 results chain carries the lower labels. -/
+theorem pcsa_clean_result_below_proposal_parent (p : Params) :
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ (u : Slot) (N : NamedProposal p.n), 0 < u → HonestNamedProposal p c E rho u N →
+        SA.gateTime p.toParams (u - 1) ≤ b₀ →
+        ∀ x ∈ rho.honest, ∀ (i : Slot) (X : Block), i ≤ u - 1 →
+          gateResultAt p c E rho x i = some (some X) → Block.Preceq X N.erase.parent := by
+  intro V _ _ In c m E rho b₀ ΔF hC hf hF u N hu hN hc x hx i X hi hX
+  obtain ⟨s, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hu)
+  simp only [Nat.succ_sub_one] at hc hi
+  have hCI := (pcsa_clean_joint_invariant E rho hC hF hf s hc).1
+  obtain ⟨hw, he⟩ := hN
+  obtain ⟨k, hk, _, hslot, _, _, _, hparent⟩ := pcsa_emitted_proposal_inputs E rho _ (s + 1) N he
+  obtain ⟨D, hD⟩ := pcsa_clean_result_exists E rho hC hF x hx s hc
+  have hXD : Block.Preceq X D := by
+    rcases hi.lt_or_eq with hlt | heq
+    · exact (hCI.resultsChain x hx x hx i s X D hi (le_refl _) hX hD).1 hlt
+    · subst i
+      rw [Option.some.inj (Option.some.inj (hX.symm.trans hD))]
+      exact Gen.Pure.block_preceq_refl _
+  have hDH := pcsa_clean_proposer_head_above_result E rho hC hF s hCI hc k _ x hw hx hk D hD
+  have hpar : N.erase.parent = N.parent.erase := by
+    have h1 := pcsa_named_parent_of_positive N (hslot ▸ Nat.succ_pos s)
+    generalize N.erase = B at h1 ⊢
+    cases B with
+    | genesis => cases h1
+    | node Q r root app => exact Option.some.inj h1
+  rw [hpar, hparent]
+  exact Gen.Pure.block_preceq_trans hXD hDH
+end AvailableChain.PCSA.Run
+
 end
