@@ -199,6 +199,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.BlockReceipt
 
 public import AvailableChainPCSAProofs.Proofs.Clean.VoterAuthenticity
 
+public import AvailableChainPCSAProofs.Proofs.Clean.PendingNHead
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -1222,6 +1224,57 @@ namespace AvailableChain.PCSA.Run
 theorem pcsa_clean_block_receipt (p : Params) : CleanBlockReceiptClaim p := by
   intro V _ _ In c m E rho cut ΔF h _ hF x hx T B _ hc hB y hy t ht
   exact pcsa_body_storeAt_relay E rho h.base hF h.healthy x y hx hy T t B hc ht hB
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+/-- Earlier ack targets are below later honest HEADs whose early time is in the prefix. -/
+theorem pcsa_clean_ack_to_head_at_early (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (i s : Slot) (hi : i < s)
+    (hc : SA.earlyTime p.toParams s ≤ cut) (x y : V) (B H : Block)
+    (hB : HonestAckAt p c E rho x i B) (hH : HonestHeadAt p c E rho y s H) :
+    Block.Preceq B H := by
+  cases s with
+  | zero => exact (Nat.not_lt_zero i hi).elim
+  | succ s =>
+    rw [earlyTime_succ_eq_gateTime] at hc
+    have hAux := (pcsa_clean_joint_invariant E rho h hF hFault s hc).2
+    exact hAux.heads i (s + 1) hi (le_refl _) x B hB y H hH
+/-- The current honest ack reaches the next HEAD when that vote is inside the clean cut. -/
+theorem pcsa_clean_ack_next_head_pending (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (s : Slot) (y : V) (B : Block)
+    (hB : HonestAckAt p c E rho y s B) (hc : SA.voteTime p.toParams (s + 1) ≤ cut)
+    (x : V) (H : Block) (hH : HonestHeadAt p c E rho x (s + 1) H) : Block.Preceq B H := by
+  have hearly : SA.earlyTime p.toParams s ≤ cut := by
+    apply le_trans _ hc
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    have hp : (0 : Int) < p.Δ := p.deltaPos
+    nlinarith
+  apply pcsa_honestAck_next_head_of_root_at_vote E rho h hF hFault y x s B H hc hB hH
+  intro R hR
+  exact Bool.or_eq_true_iff.mpr (Or.inl (pcsa_ack_next_root_below E rho h.base hF hFault s
+    (pcsa_clean_head_above_past_at_early E rho h hF hFault s hearly)
+    (fun i hi z A hA w K hK => pcsa_clean_ack_to_head_at_early E rho h hF hFault
+      i s hi hearly z w A K hA hK) x y hH.1 B R hB hR))
+/-- M4: honest acks disseminate to the pending next HEAD and result at the stated cutoffs. -/
+theorem pcsa_clean_dissemination_pending (p : Params) : CleanDisseminationPendingClaim p := by
+  intro V _ _ In c m E rho cut ΔF h hFault hF s y B hB
+  constructor
+  · intro hc x H hH
+    exact pcsa_clean_ack_next_head_pending E rho h hF hFault s y B hB hc x H hH
+  · intro hc x hx X hX
+    have hgate : SA.gateTime p.toParams s ≤ cut := by
+      rw [← earlyTime_succ_eq_gateTime]
+      exact hc
+    have hAux := (pcsa_clean_joint_invariant E rho h hF hFault s hgate).2
+    exact pcsa_pending_result_covers_heads E rho h hF x hx (s + 1) B X hc
+      (fun z H hH => hAux.heads s (s + 1) (Nat.lt_succ_self _) (le_refl _) y B hB z H hH) hX
 end AvailableChain.PCSA.Run
 
 end

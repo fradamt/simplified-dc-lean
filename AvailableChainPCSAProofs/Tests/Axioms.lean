@@ -865,3 +865,10 @@ end
 #print axioms AvailableChain.PCSA.pcsa_headVotes_label
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_input_emission
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped_unconditional
+
+-- C6 PendingNHead.
+#print axioms AvailableChain.PCSA.Run.pcsa_N_next_head_of_root_at_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_honestAck_next_head_of_root_at_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_ack_to_head_at_early
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_ack_next_head_pending
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_dissemination_pending

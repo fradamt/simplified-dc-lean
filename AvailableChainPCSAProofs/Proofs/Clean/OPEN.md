@@ -1,5 +1,59 @@
 # Clean lane W2a
 
+## Current status — continuation 6
+
+Base: `861ca1f8`. This includes `43733fe` and the slot/root PC relay fix.
+The signed ack, HEAD, and proposal cases handle the added PC branch.
+Whole-PC relay uses slot and target root. It does not assume that PC
+carriage gives full target-block equality.
+
+The following claims are proved. Clean claims are exported by
+`Clean/Export.lean`. The C5 and M5 PC claim adapters are exported by
+`Assembly/Small.lean`, which combines both lanes:
+
+- C6 `CleanInvariantClaim`: all 14 fields, by joint induction with
+  earlier-ack coverage. The successor uses the preceding invariant.
+- C5 `AvailableMonotoneClaim`: inclusive reads through the full clean cut.
+- `CleanDisseminationClaim`, `PCSACleanSafetyClaim`, and
+  `PCSACleanInclusionClaim`.
+- M1 `CleanResultsNonemptyClaim`, M2 `CleanResultsChainPendingClaim`,
+  M4 `CleanDisseminationPendingClaim`, and M5 `LeaseBelowRecordClaim`.
+- `CleanBlockReceiptClaim`, with the exact after-ticks target reader.
+
+Each claim uses only `propext`, `Classical.choice`, and `Quot.sound`.
+C3 positive-slot dissemination and PC snapshot stamps remain proved.
+No existing claim statement was changed in continuation 6. The pending
+claim declarations were copied verbatim from the outage branch.
+
+### False pending claims
+
+M3 `CleanHeadsAbovePendingClaim` and `CleanHeadsPastCutClaim` are false
+as stated. `Tests/PendingHeadCounterexample.lean` checks one full run:
+five honest nodes, one faulty node, and delay 2. A carried faulty HEAD
+reaches node 3 at time 17. Its relay deadline, 19, is outside cut 18.
+At time 18, node 3 chooses Z. At the label-1 gate, time 20, node 0
+returns X. X and Z are siblings. The run also passes CLEAN checks at
+cut 12, so it refutes the past-cut statement strictly after the cut.
+
+The executable audit checks all finite run premises. Kernel-checked
+trace identities connect its cached reads to the exact claim readers.
+Requiring the source gate by the cut is sufficient for the general
+result-to-HEAD argument. That change would not supply the requested
+past-cut guarantee. The outage lane needs a corrected statement.
+
+### Remaining scope
+
+C9 `StrongIncludedClaim` needs Formation to produce the proposal PC by
+the freeze. It remains with the Formation writer, as the brief permits.
+C7 `FormationClaim` was not changed.
+
+All module commits passed the full pre-commit list. There are no Lean
+warnings, forbidden proof placeholders, or unaccepted equation exports.
+The later sections preserve the earlier findings and proof plans. Their
+old OPEN labels describe the state at the time; this section is current.
+
+## Earlier findings and module plans
+
 Base: `92a4673`, on `31fa4d7`. Stage 1 only.
 Claim changes: the approved r4.3a correction to `CleanInvariantAt.roots`
 and the approved `0 < s` premise of `PCDisseminationClaim`.
@@ -1425,4 +1479,10 @@ Validation and current claim status are recorded in log.md and state.md.
 
 Every raw voter HEAD has an authentic emission. The unique honest duty
 prevents caps without a healthy-cut or gate-time premise.
+Validation and current claim status are recorded in log.md and state.md.
+
+### PendingNHead
+
+Unconditional honest-seat cap bounds and N-quorum receipt prove M4
+independently of the false pending result-to-HEAD claim.
 Validation and current claim status are recorded in log.md and state.md.
