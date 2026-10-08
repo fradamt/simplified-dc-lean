@@ -7,6 +7,7 @@ public import AvailableChainPCSAProofs.Proofs.Assembly.AcFrame
 public import AvailableChainPCSAProofs.Proofs.Assembly.Outage
 public import AvailableChainPCSAProofs.Proofs.Assembly.Recovery
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
+public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
@@ -541,11 +542,19 @@ public section
 #print axioms AvailableChain.PCSA.pcsa_gateFrom_live
 #print axioms AvailableChain.PCSA.pcsa_clock_live
 #print axioms AvailableChain.PCSA.Run.CleanCutChainItems_def
+#print axioms AvailableChain.PCSA.Run.CleanConeItems
+#print axioms AvailableChain.PCSA.Run.CleanConeItems_def
+#print axioms AvailableChain.PCSA.Run.CleanVoteConeItems
+#print axioms AvailableChain.PCSA.Run.CleanVoteConeItems_def
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_pred_early
 #print axioms AvailableChain.PCSA.Run.pcsa_early_mono
 #print axioms AvailableChain.PCSA.Run.pcsa_early_lt_vote_of_lt
 #print axioms AvailableChain.PCSA.Run.pcsa_ack_gateResult
 #print axioms AvailableChain.PCSA.Run.pcsa_cone_up
+#print axioms AvailableChain.PCSA.Run.pcsa_voteCone_up
+#print axioms AvailableChain.PCSA.Run.pcsa_cutChain_voteCone
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanVoteConeItems_of_cone
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanArmAcks_of_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanArmAcks_of
 #print axioms AvailableChain.PCSA.Run.CleanRelayItems_def
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanArmItems_of
@@ -581,6 +590,8 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_cut_boundary
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanSlowItems_of
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanCutChainItems_of
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanCutItems_of_cone
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanArmItems_of_vcone
 #print axioms AvailableChain.PCSA.Run.pcsa_armHealthy_of_claims
 #print axioms AvailableChain.PCSA.Run.pcsa_slowP1_of_claims
 #print axioms AvailableChain.PCSA.pcsa_initial_collectClosed
@@ -1298,7 +1309,11 @@ end
 
 -- C6 StoreCutFacts.
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_storeAt_timed_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_guard_of_chain
+#print axioms AvailableChain.PCSA.Run.pcsa_result_below_post_gate_of_chain
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_below_record_of_chain
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_result_below_post_gate
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_lock_below_record_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_below_record
 
 -- C6 BlockReceipt.
@@ -1439,3 +1454,12 @@ end
 #print axioms AvailableChain.PCSA.Run.RecoveryRootReachable
 #print axioms AvailableChain.PCSA.Run.RecoveryChainRestart
 #print axioms AvailableChain.PCSA.Run.RecoverySuffixInputs
+
+-- Clean HeadCone.
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_awake
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_inputs
+
+-- Clean Export (HEAD cone).
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_root_compatible
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_past_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_at_vote
