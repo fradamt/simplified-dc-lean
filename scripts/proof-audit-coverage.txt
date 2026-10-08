@@ -5949,6 +5949,9 @@
             'AvailableChain.PCSA.Run.pcsa_formation_gate_of_counts',
             'AvailableChain.PCSA.Run.pcsa_formation_gate_read',
         ),
+        'AvailableChainPCSAProofs.Proofs.Clean.FormationGateCounts': (
+            'AvailableChain.PCSA.Run.pcsa_formation_gate_counts',
+        ),
         'AvailableChainPCSAProofs.Proofs.Clean.FormationHeads': (
             'AvailableChain.PCSA.Run.pcsa_formation_honest_head_clean',
             'AvailableChain.PCSA.Run.pcsa_formation_honest_head_clean_of_evidence',
