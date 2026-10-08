@@ -1157,6 +1157,151 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_body_parent_slot_lt
 #print axioms AvailableChain.PCSA.Run.pcsa_body_slot_before_next_proposal
 
+-- C6 ProposalPaths.
+#print axioms AvailableChain.PCSA.Run.pcsa_getHead_body_at_read
+#print axioms AvailableChain.PCSA.Run.pcsa_proposal_proper_prefix_source
+
+-- C6 CommonEligibility.
+#print axioms AvailableChain.PCSA.pcsa_eligible_zero_floor
+#print axioms AvailableChain.PCSA.pcsa_eligible_equal_counts
+#print axioms AvailableChain.PCSA.pcsa_eligible_current_slot
+#print axioms AvailableChain.PCSA.pcsa_proposal_clock_slot
+#print axioms AvailableChain.PCSA.pcsa_vote_clock_slot
+
+-- C6 RetainedProposal.
+#print axioms AvailableChain.PCSA.pcsa_retained_proposal_walk
+
+-- C6 ProposerReads.
+#print axioms AvailableChain.PCSA.pcsa_proposal_ne_gate
+#print axioms AvailableChain.PCSA.pcsa_proposal_locks_subset
+#print axioms AvailableChain.PCSA.Run.pcsa_strict_read_eq_previous
+#print axioms AvailableChain.PCSA.Run.pcsa_pre_tick_storeAt
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_proposer_root_compatible
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_proposer_head_above_result
+
+-- C6 RootAgreement.
+#print axioms AvailableChain.PCSA.pcsa_selected_walk_bases_eq
+#print axioms AvailableChain.PCSA.pcsa_proposal_root_geometry
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pre_vote_lock_below_result
+
+-- C6 HonestProposal.
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_named
+#print axioms AvailableChain.PCSA.pcsa_named_parent_prefix
+#print axioms AvailableChain.PCSA.pcsa_named_parent_of_positive
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_emitted_heads_equal
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_headsEqual_step
+
+-- C6 AckResults.
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_result_compatible
+
+-- C6 StorePCInputs.
+#print axioms AvailableChain.PCSA.pcsa_early_label_before_gate
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_index_ack_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_carriedPC_index_ack_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_pc_ack_slot
+
+-- C6 LockWrites.
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_write_all_of_ack_results
+
+-- C6 ProcessLockRetention.
+#print axioms AvailableChain.PCSA.pcsa_reconcile_locks_genesis
+#print axioms AvailableChain.PCSA.pcsa_admit_block_keep_lock
+#print axioms AvailableChain.PCSA.pcsa_process_keep_lock
+
+-- C6 ClockLockRetention.
+#print axioms AvailableChain.PCSA.pcsa_release_count_congr
+#print axioms AvailableChain.PCSA.pcsa_clock_release_count
+#print axioms AvailableChain.PCSA.pcsa_clockPre_keep_lock
+
+-- C6 GateLockRetention.
+#print axioms AvailableChain.PCSA.pcsa_gate_keep_lock_target
+#print axioms AvailableChain.PCSA.pcsa_gateStep_keep_lock_target
+#print axioms AvailableChain.PCSA.pcsa_clock_keep_lock_target
+
+-- C6 RunLockKeep.
+#print axioms AvailableChain.PCSA.pcsa_release_label_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_keep_of_chain
+
+-- C6 JointAux.
+#print axioms AvailableChain.PCSA.pcsa_gate_time_mono
+#print axioms AvailableChain.PCSA.Run.CleanAckCoverageAt
+#print axioms AvailableChain.PCSA.Run.pcsa_ack_coverage_zero
+#print axioms AvailableChain.PCSA.Run.pcsa_heads_cover_past_results
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_joint_step
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_joint_invariant
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_invariant
+
+-- C6 CutReads.
+#print axioms AvailableChain.PCSA.pcsa_pcTarget_source
+#print axioms AvailableChain.PCSA.Run.pcsa_record_storeAt_timed_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_storeAt_timed_ack
+#print axioms AvailableChain.PCSA.Run.pcsa_storeAt_pcs_mono
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_record_mono_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_head_above_past_at_early
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_ack_targets_order_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_ack_result_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pcTarget_mono_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_record_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_available_monotone
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_available_mono_cut
+
+-- C6 CleanOutputs.
+#print axioms AvailableChain.PCSA.pcsa_confirmed_source
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_records_compatible_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_record_cross_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_targets_compatible_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_confirmed_compatible_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_strong_compatible_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_strong_mono_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_dissemination
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_safety
+
+-- C6 GenuineKeys.
+#print axioms AvailableChain.PCSA.pcsa_process_genuine_keys
+#print axioms AvailableChain.PCSA.pcsa_clockPre_genuine
+#print axioms AvailableChain.PCSA.pcsa_gate_genuine
+#print axioms AvailableChain.PCSA.pcsa_clock_genuine_key_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_genuine_key_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_input_unsaved
+
+-- C6 GateAdvance.
+#print axioms AvailableChain.PCSA.pcsa_gate_record_covers_result
+#print axioms AvailableChain.PCSA.pcsa_gateStep_record_covers_result
+#print axioms AvailableChain.PCSA.pcsa_clock_gate_record_covers_result
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_guard
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_record_indices_mono_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_inclusion
+
+-- C6 PendingGates.
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_head_batch_early
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority_early
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_covers_heads_early
+#print axioms AvailableChain.PCSA.Run.pcsa_pending_result_covers_heads
+#print axioms AvailableChain.PCSA.Run.pcsa_pending_result_nonempty
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_results_nonempty
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_results_chain_pending
+
+-- C6 StoreCutFacts.
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_storeAt_timed_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_result_below_post_gate
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_below_record
+
+-- C6 BlockReceipt.
+#print axioms AvailableChain.PCSA.Run.pcsa_body_storeAt_relay
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_block_receipt
+
+-- C6 VoterAuthenticity.
+#print axioms AvailableChain.PCSA.pcsa_headVotes_label
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_input_emission
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped_unconditional
+
+-- C6 PendingNHead.
+#print axioms AvailableChain.PCSA.Run.pcsa_N_next_head_of_root_at_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_honestAck_next_head_of_root_at_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_ack_to_head_at_early
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_ack_next_head_pending
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_dissemination_pending
+
 -- Clean AckRun (clean landing audit).
 #print axioms AvailableChain.PCSA.Run.pcsa_ackPool_stateBefore_mono
 #print axioms AvailableChain.PCSA.Run.pcsa_freeze_pcs
