@@ -263,13 +263,21 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
                  'check-fgsa-manifest.sh', 'check-pcsa-manifest.sh', 'check-fgsa-claims.sh'):
         (scripts / name).write_text('#!/bin/bash\nexit 0\n')
     (scripts / 'check-proof-coverage.py').write_text('print("coverage stub")\n')
+    for name in ('check-fg-finality-freeze.py', 'check-fg-finality-coverage.py',
+                 'check-fgsa-blueprint.py'):
+        (scripts / name).write_text('print("P13 stub")\n')
     (scripts / 'check-fg-compose.sh').write_text(
         '#!/bin/bash\necho "compose NEG=$NEG" >> calls\n')
     bindir = tree / 'bin'
     bindir.mkdir()
     fake = bindir / 'lake'
     fake.write_text('#!/bin/bash\necho "lake $*" >> calls\n'
-                    'case "$*" in *--libraries*) echo AvailableChainFGCompose ;; esac\n')
+                    'case "$*" in *--libraries*) echo AvailableChainFGCompose ;;\n'
+                    "  *WeakContinuationGrowthAssemblyAxioms*) echo \"'x' depends on axioms: "
+                    '[propext, ${BAD_AXIOM:-Quot.sound}]" ;; esac\n')
+    growth = tree / 'AvailableChainFGSAProofs/Tests/WeakContinuationGrowthAssemblyAxioms.lean'
+    growth.parent.mkdir(parents=True)
+    growth.write_text('#print axioms x\n')
     fake.chmod(0o755)
     env = dict(os.environ, PATH=str(bindir) + os.pathsep + os.environ['PATH'])
     for tier, neg in [('merge', '0'), ('full', '1')]:
@@ -282,7 +290,24 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
         assert 'FGCompose-axioms rc=0' in result.stdout, result.stdout
         assert 'FGSACompose-axioms rc=0' in result.stdout, result.stdout
         assert 'PCSACompose-axioms rc=0' in result.stdout, result.stdout
+        for step in ('FGSAGrowth-axioms', 'fg-finality-freeze', 'fg-finality-coverage'):
+            assert step + ' rc=0' in result.stdout, result.stdout
+        # The compiled blueprint check runs in the FULL tier only.
+        assert ('fgsa-blueprint rc=0' in result.stdout) == (tier == 'full'), result.stdout
         (tree / 'calls').write_text('')
         print(f'CONTROL Compose gate {tier}: build, scan and NEG={neg}: PASS')
+    # The growth audit step fails on a project axiom and on a missing result.
+    for label, extra, text, reason in [
+            ('project axiom', {'BAD_AXIOM': 'Fix.bad'}, '#print axioms x\n', 'BAD AXIOMS: Fix.bad'),
+            ('missing result', {}, '#print axioms x\n#print axioms y\n',
+             'AXIOM RESULTS: 1 of 2 commands')]:
+        growth.write_text(text)
+        result = subprocess.run(['bash', 'scripts/gate.sh', '--tier', 'merge'], cwd=tree,
+                                env=dict(env, **extra), text=True, capture_output=True)
+        logs = sorted((tree / '.lake').glob('gate-logs.*/FGSAGrowth-axioms*'))
+        output = result.stdout + ''.join(path.read_text() for path in logs)
+        assert result.returncode != 0 and 'FGSAGrowth-axioms rc=1' in result.stdout, result.stdout
+        assert reason in output, output
+        print(f'CONTROL growth audit {label}: PASS ({reason})')
 
 print('policy-controls: PASS')

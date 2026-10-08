@@ -13,7 +13,9 @@ AUDITS = tuple('AvailableChain' + lib + '.Tests.Axioms' for lib in
                                             'AvailableChainPCSAProofs.Tests.FGCompose',
                                             'AvailableChainFGCompose.Tests.SafetyAxioms',
                                             'AvailableChainFGSAProofs.Tests.FGSafety',
-                                            'AvailableChainPCSAProofs.Tests.FGSafety')
+                                            'AvailableChainPCSAProofs.Tests.FGSafety',
+                                            ('AvailableChainFGSAProofs.Tests.'
+                                             'WeakContinuationGrowthAssemblyAxioms'))
 
 
 def read_coverage(path):

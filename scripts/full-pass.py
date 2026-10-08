@@ -12,7 +12,9 @@ STEPS = ('build', 'check-build', 'check-fgsa', 'check-fgsa-run', 'catalog-lock',
          'v2-manifest', 'gen-manifest', 'fgsa-manifest', 'pcsa-manifest', 'fgsa-claims',
          'Generic-axioms', 'FGSA-axioms', 'FGSARun-axioms', 'proof-audit-coverage',
          'check-fg-compose', 'FGCompose-axioms', 'FGSACompose-axioms', 'PCSACompose-axioms',
-         'FGSafety-axioms', 'FGSASafety-axioms', 'PCSASafety-axioms')
+         'FGSafety-axioms', 'FGSASafety-axioms', 'PCSASafety-axioms', 'FGSAGrowth-axioms',
+         'fg-finality-freeze',
+         'fg-finality-coverage', 'fgsa-blueprint')
 
 
 def git(root, *args):

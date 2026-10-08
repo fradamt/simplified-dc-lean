@@ -254,6 +254,19 @@ audit() {
   echo "sorryAx = $count"
   [ "$rc" -eq 0 ] && [ "$count" = 0 ]
 }
+# A strict audit: every `#print axioms` command has a result, and each result
+# uses only propext, Classical.choice and Quot.sound.
+audit_strict() {
+  local path=$1 out=$2 want got bad
+  audit "$path" "$out" || return 1
+  want=$(grep -c '^#print axioms' "$path" 2>/dev/null); want=${want:-0}
+  got=$(grep -c "depends on axioms: \[\|does not depend on any axioms" "$out" || :)
+  bad=$(tr '\n' ' ' < "$out" | grep -o 'depends on axioms: \[[^]]*\]' | sed 's/.*\[//; s/\]$//' |
+    tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -vxE 'propext|Classical\.choice|Quot\.sound' || :)
+  if [ -n "$bad" ]; then echo "BAD AXIOMS: $(echo $bad)"; return 1; fi
+  if [ "$got" != "$want" ]; then echo "AXIOM RESULTS: $got of $want commands"; return 1; fi
+  echo "axioms: $got results; only propext, Classical.choice, Quot.sound"
+}
 # C14: keep required audit lines tied to their declaration's owning module.
 step proof-audit-coverage gate_with_slot python3 scripts/check-proof-coverage.py
 summary proof-audit-coverage
@@ -281,5 +294,23 @@ stop_if_failed
 step PCSASafety-axioms audit AvailableChainPCSAProofs/Tests/FGSafety.lean "$logs/PCSASafety.axioms"
 summary PCSASafety-axioms
 stop_if_failed
+# P13: the growth companion audit, the S0 freeze with its inherited-difference
+# record, the public-source audit coverage of the safety modules, and the
+# blueprint → Lean map (D10, compiled; FULL tier only).
+step FGSAGrowth-axioms audit_strict AvailableChainFGSAProofs/Tests/WeakContinuationGrowthAssemblyAxioms.lean \
+  "$logs/FGSAGrowth.axioms"
+summary FGSAGrowth-axioms
+stop_if_failed
+step fg-finality-freeze python3 -B scripts/check-fg-finality-freeze.py --check
+summary fg-finality-freeze
+stop_if_failed
+step fg-finality-coverage python3 -B scripts/check-fg-finality-coverage.py
+summary fg-finality-coverage
+stop_if_failed
+if [ "$tier" = full ]; then
+  step fgsa-blueprint gate_with_slot python3 -B scripts/check-fgsa-blueprint.py --check
+  summary fgsa-blueprint
+  stop_if_failed
+fi
 finish
 exit "$failed"
