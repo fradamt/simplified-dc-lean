@@ -5922,6 +5922,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.CommonScores': (
             'AvailableChain.PCSA.Run.pcsa_common_walk_counts',
+            'AvailableChain.PCSA.Run.pcsa_common_walk_counts_win',
             'AvailableChain.PCSA.Run.pcsa_read_vote_support_iff',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.CommonSupport': (
@@ -5929,6 +5930,7 @@
             'AvailableChain.PCSA.Run.pcsa_frozen_support_in_proposer_win',
             'AvailableChain.PCSA.Run.pcsa_honest_headSupport_source',
             'AvailableChain.PCSA.Run.pcsa_honest_support_backward',
+            'AvailableChain.PCSA.Run.pcsa_honest_support_backward_win',
             'AvailableChain.PCSA.Run.pcsa_proposer_support_in_voter',
             'AvailableChain.PCSA.Run.pcsa_proposer_support_in_voter_win',
             'AvailableChain.PCSA.pcsa_active_base_resolution',
@@ -5949,6 +5951,7 @@
             'AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts',
             'AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts_win',
             'AvailableChain.PCSA.Run.pcsa_gate_voter_walk_counts',
+            'AvailableChain.PCSA.Run.pcsa_gate_voter_walk_counts_win',
             'AvailableChain.PCSA.Run.pcsa_read_vote_support_body',
             'AvailableChain.PCSA.pcsa_clean_input_not_capped',
             'AvailableChain.PCSA.pcsa_clean_input_unique_late',
@@ -6028,8 +6031,11 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.GateBatch': (
             'AvailableChain.PCSA.Run.pcsa_clean_gate_covers_heads',
+            'AvailableChain.PCSA.Run.pcsa_clean_gate_covers_heads_win',
             'AvailableChain.PCSA.Run.pcsa_clean_result_covers_heads',
+            'AvailableChain.PCSA.Run.pcsa_clean_result_covers_heads_win',
             'AvailableChain.PCSA.Run.pcsa_clean_result_exists',
+            'AvailableChain.PCSA.Run.pcsa_clean_result_exists_win',
             'AvailableChain.PCSA.Run.pcsa_gateResultAt_at_tick',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.GateCounts': (
@@ -6045,6 +6051,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.GateReads': (
             'AvailableChain.PCSA.Run.pcsa_clean_same_label_results',
+            'AvailableChain.PCSA.Run.pcsa_clean_same_label_results_win',
             'AvailableChain.PCSA.Run.pcsa_gateResultAt_source',
             'AvailableChain.PCSA.pcsa_clock_confirmation_eq_pre',
         ),
@@ -6193,6 +6200,7 @@
             'AvailableChain.PCSA.Run.pcsa_N_same_label_result',
             'AvailableChain.PCSA.Run.pcsa_N_same_label_result_win',
             'AvailableChain.PCSA.Run.pcsa_honestAck_same_label_result',
+            'AvailableChain.PCSA.Run.pcsa_honestAck_same_label_result_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.NDissemination': (
             'AvailableChain.PCSA.Run.pcsa_ack_dissemination_step',
@@ -6205,7 +6213,9 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.NNextHead': (
             'AvailableChain.PCSA.Run.pcsa_N_next_head_of_root',
+            'AvailableChain.PCSA.Run.pcsa_N_next_head_of_root_win',
             'AvailableChain.PCSA.Run.pcsa_honestAck_next_head_of_root',
+            'AvailableChain.PCSA.Run.pcsa_honestAck_next_head_of_root_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.NReadTransport': (
             'AvailableChain.PCSA.Run.pcsa_N_read_transport',
@@ -6220,6 +6230,7 @@
         'AvailableChainPCSAProofs.Proofs.Clean.NWalkCounts': (
             'AvailableChain.PCSA.Run.pcsa_proposer_honest_not_capped',
             'AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped',
+            'AvailableChain.PCSA.Run.pcsa_voter_honest_not_capped_win',
             'AvailableChain.PCSA.pcsa_N_score_dominance',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.PCChain': (
@@ -6477,6 +6488,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.VoteTransport': (
             'AvailableChain.PCSA.Run.pcsa_next_head_above_result_of_root',
+            'AvailableChain.PCSA.Run.pcsa_next_head_above_result_of_root_win',
             'AvailableChain.PCSA.Run.pcsa_postClock_source',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.VoterAuthenticity': (
