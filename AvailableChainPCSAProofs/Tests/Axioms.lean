@@ -1,4 +1,6 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockRank
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockHistory
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Height
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Rows
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Run
@@ -1498,3 +1500,12 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_cleanSaved_from_anchor
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_anchor_from_shortBreak
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_short
+
+#print axioms AvailableChain.PCSA.recovery_live_lock_rank_compatible
+#print axioms AvailableChain.PCSA.recovery_process_lock_history
+#print axioms AvailableChain.PCSA.recovery_clock_lock_history
+#print axioms AvailableChain.PCSA.Run.recovery_lock_last_change
+#print axioms AvailableChain.PCSA.recovery_gate_change_window
+#print axioms AvailableChain.PCSA.recovery_clock_change_window
+#print axioms AvailableChain.PCSA.Run.recovery_lock_deadline_bound
+#print axioms AvailableChain.PCSA.Run.recovery_lock_write_witness

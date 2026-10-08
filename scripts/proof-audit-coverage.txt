@@ -6988,6 +6988,15 @@
             'AvailableChain.PCSA.root_reachable_of_locks_below',
             'AvailableChain.PCSA.slow_lock_oldest_label',
         ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LockHistory': (
+            'AvailableChain.PCSA.Run.recovery_lock_deadline_bound',
+            'AvailableChain.PCSA.Run.recovery_lock_last_change',
+            'AvailableChain.PCSA.Run.recovery_lock_write_witness',
+            'AvailableChain.PCSA.recovery_clock_change_window',
+            'AvailableChain.PCSA.recovery_clock_lock_history',
+            'AvailableChain.PCSA.recovery_gate_change_window',
+            'AvailableChain.PCSA.recovery_process_lock_history',
+        ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin': (
             'AvailableChain.PCSA.Run.live_lock_gate_origin',
             'AvailableChain.PCSA.Run.lock_target_gate_origin',
@@ -6995,6 +7004,9 @@
             'AvailableChain.PCSA.clock_lock_target_origin',
             'AvailableChain.PCSA.gate_lock_target_origin',
             'AvailableChain.PCSA.process_lock_targets_subset',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LockRank': (
+            'AvailableChain.PCSA.recovery_live_lock_rank_compatible',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockWindow': (
             'AvailableChain.PCSA.RecoverySlotOrdered',

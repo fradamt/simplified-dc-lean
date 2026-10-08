@@ -275,6 +275,12 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
   lemmas with smaller premises, without the lane prefix (Shared carries no lane
   names); Formation drops its copies when it switches.
+- PC-SA recovery lock history (2026-10-08). `Recovery/LockRank` proves the
+  held-PC rank invariant for live locks. `Recovery/LockHistory` retains exact
+  rows and ranks across receipts and clocks outside gates. It locates the gate
+  at the start of the final uninterrupted interval of a row and its rank.
+  The derived write witness keeps that interval, the fresh gate, the current
+  result, the preceding saved window, the write rank, and a deadline bound.
 - PC-SA recovery anchor (2026-10-08). `Recovery/AnchorBase` bounds the
   proposer base from one node's anchor stamp and the C8 strong-output bound.
   `Recovery/FirstSlot` proves the first formation slot and its separate

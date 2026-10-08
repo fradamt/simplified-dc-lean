@@ -57,6 +57,8 @@ public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalStore
 public import AvailableChainPCSAProofs.Proofs.Recovery.PathSource
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockWindow
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockRank
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockHistory
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
 public import AvailableChainPCSAProofs.Proofs.Recovery.RunInputs
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix

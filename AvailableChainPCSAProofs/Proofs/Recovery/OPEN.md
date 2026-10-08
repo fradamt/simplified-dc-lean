@@ -40,3 +40,25 @@ Block admission under RECOVERY at a slot `s > 0` with `t_GST + Δ ≤ t_s` and
 - (B2) `pcsa_honest_proposal_from_vote` (proposal wire and valid PC target)
   and `pcsa_honest_proposal_body_from_vote` (the body `N.erase`), at every
   honest read in `[v_s, d_s]`.
+
+## Long-break lock history progress
+
+`Recovery/LockRank.lean` proves `recovery_live_lock_rank_compatible` from
+store reachability. Every held PC at or above a live lock's rank has a
+compatible target.
+
+`Recovery/LockHistory.lean` proves `recovery_lock_write_witness` from a
+stored row and the schedule. It derives an actual fresh gate, the current
+result, the preceding saved window, the checked write rank, and an
+uninterrupted interval of that exact row and rank. It proves the deadline
+bound `row.2.2 ≤ SA.gateTime p.toParams s + pcsaL p`.
+
+This is partial work on recovery-plan step 1. The exact deadline equality,
+the exclusion of every later successful renewal, and the complete
+post-clock last-write interface remain open. The witness is not a claim
+premise. It does not prove surviving HEAD coverage or either long-slot F4.
+
+Steps 2–6 remain open. No long transport structure, Assembly OPEN transport
+parameters, long-slot export kernel, or `pcsa_recovery_firstSlot_long`
+wrapper has been added. The required transport boundary remains label `g`,
+including `t_g < GST ≤ v_g`; it has not been moved to `g + 1`.
