@@ -131,6 +131,43 @@ theorem pcsa_clean_cone_inputs [Fintype V] (E : Generic.Env V)
     exact pcsa_frozen_read_prefix_mem E rho h.base hF _ k x hx s _ G C hfreeze hidx hb
       (Gen.Pure.block_preceq_trans hCB (hheads _ G hG))
 
+/-- Every next live root is compatible with a common honest HEAD prefix. -/
+theorem pcsa_clean_cone_root_compatible [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hf : FaultsBelowQA p c rho) (s : Slot) (B : Block)
+    (he : SA.earlyTime p.toParams s ≤ cut)
+    (hheads : ∀ y G, HonestHeadAt p c E rho y s G → Block.Preceq B G)
+    (x : V) (hx : x ∈ rho.honest) (R : Block)
+    (hR : liveRootAt p c E rho x (s + 1) = some R) : Block.Compatible R B := by
+  obtain ⟨Hon, hHon, hbatch⟩ := pcsa_clean_head_batch_early E rho h s he
+  obtain ⟨j, hj⟩ := Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) hbatch)
+  obtain ⟨hjh, hjw⟩ := (hHon j).mp hj
+  have hvote : SA.voteTime p.toParams s ≤ rho.horizon := by
+    apply le_trans _ (he.trans h.cut.2)
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
+    have hp := p.deltaPos
+    linarith
+  obtain ⟨G, hG⟩ := pcsa_honest_head_exists E rho h.base _ hjh s hjw hvote
+  rcases pcsa_next_root_source E rho h.base hF hf x hx s R hR with hg | ha | hr
+  · subst R
+    exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_genesis_preceq B)
+      (Gen.Pure.block_preceq_refl B)
+  · obtain ⟨y, l, ha, ht⟩ := ha
+    have hls := pcsa_early_label_before_vote p l s ht
+    rcases lt_or_eq_of_le hls with hlt | rfl
+    · exact Gen.Pure.block_compatible_of_common
+        (pcsa_clean_ack_to_head_at_early E rho h hF hf l s hlt he y _ R G ha hG)
+        (hheads _ G hG)
+    · obtain ⟨z, hz⟩ := pcsa_ack_has_honest_head E rho h.base hF hf y _ R ha
+      exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl R)
+        (hheads z R hz)
+  · obtain ⟨l, X, hlt, hX, hRX⟩ := hr
+    exact Gen.Pure.block_compatible_of_common
+      (Gen.Pure.block_preceq_trans hRX
+        (pcsa_clean_head_above_past_at_early E rho h hF hf s he _ G hG x hx l X hlt hX))
+      (hheads _ G hG)
+
 end AvailableChain.PCSA.Run
 
 end

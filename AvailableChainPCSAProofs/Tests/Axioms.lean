@@ -1343,3 +1343,4 @@ end
 -- Clean HeadCone.
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_honest_awake
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_inputs
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_root_compatible
