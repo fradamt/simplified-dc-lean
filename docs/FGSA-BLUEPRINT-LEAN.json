@@ -1,0 +1,2224 @@
+{
+ "version": 1,
+ "description": "Reviewed map from the current FG-SA blueprint claims to Lean theorems. scripts/check-fgsa-blueprint.py checks it. A PROVED entry states that its clauses cover the blueprint statement by review; the checker does not establish semantic equivalence. OPEN items stay open.",
+ "snapshot": "docs/blueprint/fgsa/SOURCE.json",
+ "outline": "00-outline.md",
+ "review": "plan-fgfin-p13-sol §4 tables; Lean names resolved at 1e958d9c",
+ "entries": [
+  {
+   "id": "bp.channel.v2",
+   "kind": "claim",
+   "line": 583,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "RESTATE (no-round) — PROVED-paper",
+   "statement_sha256": "290d36e1fdab9a07f5216ca67b9325ce1ac1d462534e2df3a668b0429b4444ae",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "source discipline at an honest action",
+     "theorem": "AvailableChain.FGSA.Run.sourceDiscipline_tSrc",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Sources",
+     "type_fingerprint": "cb6425b64231d7e4"
+    },
+    {
+     "clause": "row service",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_rowServiceClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "04e971cd2cc54a13"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.channel.v2.1",
+     "missing": "No Lean theorem states the combined channel claim at an honest action a_r; the clause-by-clause match of the source and row parts to the paper channel is not reviewed."
+    }
+   ]
+  },
+  {
+   "id": "bp.jointServices.v2",
+   "kind": "claim",
+   "line": 598,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW — PROVED-paper",
+   "statement_sha256": "076a2060428ce70400da96016491301623d4122f337daab04739a9b2ad3b757b",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "core FG services under the awake and quorum premises",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_coreServices",
+     "module": "AvailableChainFGSAProofs.Proofs.Finality.CoreServices",
+     "type_fingerprint": "6415585298e4ef92"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.jointServices.v2.1",
+     "missing": "The paper joins five service clauses; no reviewed map shows that fgsa_coreServices states all five with the paper premises."
+    }
+   ]
+  },
+  {
+   "id": "bp.carrier.v1",
+   "kind": "claim",
+   "line": 616,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "RESTATE (no-round), K5 — PROVED-paper",
+   "statement_sha256": "1b970a8a04016ff86e801314e27d365e6b1748c352585119af6d2ac19eddf2fc",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "carrier claim (K5)",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_carrierClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "7a227dc30607c4ef"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.chainCertificates.v2",
+   "kind": "claim",
+   "line": 625,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW — PROVED-paper",
+   "statement_sha256": "a6827812367bf015551462024c5b97e4d95a42f42902a83c229c2df8037c42e8",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "chain certificates",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_chainCertificatesClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "e224438fa1be8866"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.heightBridge.v1",
+   "kind": "claim",
+   "line": 639,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW — PROVED-paper",
+   "statement_sha256": "42a735de712bb4497eb91757261065e05e16580ad28741707b32b7d489c55d65",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "height bridge on the same original block",
+     "theorem": "AvailableChain.FGSA.Window.heightRefinement",
+     "module": "AvailableChainFGSA.Proofs.WindowHeightBridge",
+     "type_fingerprint": "d8f093a8157bc158"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.store.v2",
+   "kind": "claim",
+   "line": 649,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "RESTATE (no-round), K4 — PROVED-paper",
+   "statement_sha256": "26c61e73245bf3502576ac54c1591deedf75d3467b9fb5e71a4c02de1f8869e4",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "store claim (K4)",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_storeClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "7b9eb1b449c07370"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.activeView.v2",
+   "kind": "claim",
+   "line": 662,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW — PROVED-paper",
+   "statement_sha256": "c8a848050e780b1b48735fbdf72d34058e94085c065851c733883b7b6d45bf08",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "active view",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_activeViewClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "41da695ddaba32f0"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.leaseOrigins.v2",
+   "kind": "claim",
+   "line": 671,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW — PROVED-paper",
+   "statement_sha256": "fe76612856cbc9f7653c45879e3a204364bd3978770600d8d3f9fa6e10119137",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "lock origins",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_leaseOriginsClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "15e8d6356e84cb91"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.genuineFromF.v2",
+   "kind": "claim",
+   "line": 681,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW — PROVED-paper",
+   "statement_sha256": "724db849938b88a874298712c156b014892f1bf5fd403e02146f2aeedf6b399a",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.genuineFromF.v2.1",
+     "missing": "The paired old/new executions and their external-trace equivalence have no Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.reconcile.v2",
+   "kind": "claim",
+   "line": 692,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW, K1,K3 — PROVED-paper",
+   "statement_sha256": "85da6b760be9a51de27958b9306cf143496215cd462f7e2c141dfb127321df9b",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "reconcile claim (K1, K3)",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_reconcileClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "d8a44bd878121d1e"
+    },
+    {
+     "clause": "reconcile is idempotent",
+     "theorem": "AvailableChain.FGSA.reconcile_idem",
+     "module": "AvailableChainFGSA.Proofs.Reconcile",
+     "type_fingerprint": "bc22e2472e2c7c9d"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "comp.outputNesting.v1",
+   "kind": "claim",
+   "line": 702,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "PROVED-paper",
+   "statement_sha256": "f3a15a17991f8b6ef00a1a8f10e9ea5d750caee77292121b71ba96b990893f8e",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "old accessor output nesting",
+     "theorem": "AvailableChain.FGSA.outputNesting_v1",
+     "module": "AvailableChainFGSA.Proofs.Nesting",
+     "type_fingerprint": "95e6685c5a2d6367"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "comp.outputNesting.v3",
+   "kind": "claim",
+   "line": 707,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW, K2 — PROVED-paper",
+   "statement_sha256": "ba2963421b67c1b33b60a9190fec6cedf5facd754fb85b302f5b178f53251edd",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "stored output nesting (K2)",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_outputNestingClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "feae77b9e5f05128"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.frame.v2",
+   "kind": "claim",
+   "line": 714,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW, current fj.frame.v5 store clauses — PROVED-paper",
+   "statement_sha256": "fb6fe5d2084127da2705aa1c6bf70b2802a1b49a3b23b52276eadafd9d28837b",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "frame claim with the fj.frame.v5 store clauses",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_frameClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "0d7fc736587ae281"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "fj.frame.v5",
+   "kind": "claim",
+   "line": 723,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW — PROVED-paper (window store clauses)",
+   "statement_sha256": "c3420d6e035988df624a1e24a22b8d5d11454c2aee22adee4ec54d8f6925069d",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "frame clauses",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_frameClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "0d7fc736587ae281"
+    },
+    {
+     "clause": "window store clauses",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_storeClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "7b9eb1b449c07370"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.fj.frame.v5.1",
+     "missing": "The full registry-to-Lean clause match, including the read-domain clauses, is not reviewed."
+    }
+   ]
+  },
+  {
+   "id": "fj.frame.v4",
+   "kind": "claim",
+   "line": 729,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "historical old-fold evidence; WITHDRAWN for current use — NEW — PROVED-paper (2026-09-29); clause 2 deletion remark: REPLACED (01 §11.2; HEAD 720, S 800)",
+   "statement_sha256": "7ab1cc357af2da702484227d55dc1200b934e029c778f70a6f907d948538b88d",
+   "lean_status": "HISTORICAL",
+   "clauses": [],
+   "open": [],
+   "note": "Withdrawn for current window use; old-fold evidence only."
+  },
+  {
+   "id": "fg.finalLock.v3",
+   "kind": "claim",
+   "line": 788,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW — PROVED-paper (window provenance)",
+   "statement_sha256": "f8f95eee698f06e4095bddcb0fbb95c7f09886642366aa55bac4417fab382497",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "final lock for honest-held evidence",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_finalLock_ev",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Accountable",
+     "type_fingerprint": "6a5be7bf138d2fd2"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.fg.finalLock.v3.1",
+     "missing": "The full emitted-run-block statement needs its exact root premise or a proved scope supplier; emitted-only tips are not named-scope seeds, and the held theorem is not extended."
+    }
+   ]
+  },
+  {
+   "id": "fg.finalLock.v3-held",
+   "kind": "claim",
+   "line": 801,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "PROVED-paper (fault-bounded, honest-held corollary)",
+   "statement_sha256": "28a0bed815c3c3f98f6e373a71cf36d3364364799e7c773860784d75ddc80197",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "fault-bounded honest-held corollary",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_finalLockClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "383180a14ddc69bd"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.clientSafety.v1",
+   "kind": "claim",
+   "line": 814,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "RESTATE (no-round) — PROVED-paper",
+   "statement_sha256": "3e3c10ee6d74d298e73b3795f87706ff80c9452b97a7ebcb3b7a1e77981e1e17",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "client safety",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_clientSafetyClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "dfe4de53ef30d654"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "fg.accountable.v2",
+   "kind": "claim",
+   "line": 827,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "PROVED-paper",
+   "statement_sha256": "c30b92ffaa7fda372f4787e5dd3f29f0013700ffaf1bed80c5505bb06181172e",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "pure accountability",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_pureAccountableClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "dfc687b40fe50529"
+    },
+    {
+     "clause": "whole-run accountability",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_wholeRunAccountableClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "ee747d6772fdcd58"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "fg.finalLock.v1",
+   "kind": "claim",
+   "line": 838,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "historical carrier-height form; WITHDRAWN for current use",
+   "statement_sha256": "ab3f093299741c75a4e22da4635fc38b06077751ef52fa1d182f9932cdab0e28",
+   "lean_status": "HISTORICAL",
+   "clauses": [],
+   "open": [],
+   "note": "Withdrawn carrier-height form."
+  },
+  {
+   "id": "bp.finalizedSafety.v2",
+   "kind": "claim",
+   "line": 850,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "NEW — PROVED-paper",
+   "statement_sha256": "e70d804e48d00d9eabbb79b21c3740e3839a3010cb58039ee616322128a149a0",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "finalized safety for every δ_t",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_finalizedSafetyClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "2f8a75dbc7cb2243"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.sourceDiscipline.v2",
+   "kind": "claim",
+   "line": 862,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "RESTATE (no-round), K6 — PROVED-paper",
+   "statement_sha256": "71581aef208e936f5d055c93fc417e0bedcbad965cf23078b0311df3c1d2ccea",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "source discipline (K6)",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_sourceDisciplineClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "70ba171416070108"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.receiptCoverage.v2",
+   "kind": "claim",
+   "line": 873,
+   "section": "3.1 Foundations — stage 1",
+   "paper_status": "RESTATE (no-round), K8 — PROVED-paper",
+   "statement_sha256": "06ce7b5ed9213739082c7621e42b0fe1c375a91b1cb7db0882fad70362ddd96f",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "receipt coverage (K8)",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_receiptCoverage",
+     "module": "AvailableChainFGSARun.Proofs.ReceiptCoverage",
+     "type_fingerprint": "6f60aef6d9d6727b"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.receiptCoverage.v2.1",
+     "missing": "No reviewed map shows that ReceiptCoverageStatement matches all paper deadline and coverage clauses."
+    }
+   ]
+  },
+  {
+   "id": "bp.sameLabel.v1",
+   "kind": "claim",
+   "line": 897,
+   "section": "3.2 Clean — stage 1",
+   "paper_status": "NEW — PROVED-paper (pure conditional argument)",
+   "statement_sha256": "2e2b4f7576d998583027ed7ab23ae43c962f75334e6266a3009fc28cf1dce70c",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "same label",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_sameLabelClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Export",
+     "type_fingerprint": "7f3801cf20d1c333"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.release.v1",
+   "kind": "claim",
+   "line": 908,
+   "section": "3.2 Clean — stage 1",
+   "paper_status": "NEW, K11 — PROVED-paper (pure conditional argument)",
+   "statement_sha256": "773808ba10ff819185cddd5281be53f1ac35cae81be2d163e7613c6aa20ec15d",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "release (K11)",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_releaseClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Export",
+     "type_fingerprint": "0e780fd387d0bd42"
+    },
+    {
+     "clause": "release count is antitone",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_releaseCount_antitone",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Release",
+     "type_fingerprint": "6b477ac3bba671d9"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.cleanFrame.v2",
+   "kind": "claim",
+   "line": 916,
+   "section": "3.2 Clean — stage 1",
+   "paper_status": "NEW, K7 Clean/K9 — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "bcffbcb8ff3a266b89528acd4d7bd7def03b02880d498bd381dceb4c65755684",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "clean frame (K7 Clean, K9)",
+     "theorem": "AvailableChain.FGSA.Run.cleanFrame",
+     "module": "AvailableChainFGSAProofs.Proofs.Clean.Action",
+     "type_fingerprint": "fc04a8ccd04d2b67"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.suffixWalk.v1",
+   "kind": "claim",
+   "line": 932,
+   "section": "3.2 Clean — stage 1",
+   "paper_status": "NEW, K10 geometry — PROVED-paper (pure conditional argument)",
+   "statement_sha256": "8f462a9dd3709025e040f121431ca0b83e5448065a2f3a949c94357ccab13b15",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "suffix walk (K10 geometry)",
+     "theorem": "AvailableChain.FGSA.fgsa_getHead_covers_of_dominated_suffix",
+     "module": "AvailableChainFGSA.Proofs.Head.Walk",
+     "type_fingerprint": "46f241042e433d40"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.cleanTransfer.v2",
+   "kind": "claim",
+   "line": 942,
+   "section": "3.2 Clean — stage 1",
+   "paper_status": "NEW, K10 Clean — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "733980ac1c4ce21399fcb49b5a80e6de1bab2f444787729324f0ba533b9f987f",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "clean transfer (K10 Clean)",
+     "theorem": "AvailableChain.FGSA.Run.cleanTransfer",
+     "module": "AvailableChainFGSAProofs.Proofs.Clean.Transfer",
+     "type_fingerprint": "5d5adfab59cce50e"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.cleanHistory.v2",
+   "kind": "claim",
+   "line": 953,
+   "section": "3.2 Clean — stage 1",
+   "paper_status": "NEW — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "03ad5fd161924b6fcf73615f4d4298c9baa34ef16c35ee37ccd6c33975793ae6",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "clean history",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_cleanHistoryClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
+     "type_fingerprint": "1ff5d7a390d65a70"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.cleanSafety.v2",
+   "kind": "claim",
+   "line": 966,
+   "section": "3.2 Clean — stage 1",
+   "paper_status": "NEW, Clean clause of fj.armedSafe.v2 — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "f83eb50132ef2edf72cab3d64ed347620fcdf5cc4719036c3a848ea7e5422f30",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "clean safety",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_cleanSafetyClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
+     "type_fingerprint": "062d422b7f310d78"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.cleanPrefixTruncation.v2",
+   "kind": "claim",
+   "line": 980,
+   "section": "3.3 Stage 2a — window targets; old-fold proofs in 03",
+   "paper_status": "NEW — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "f0c218b7523da304db009632d5c7e8e6ddeb39ec517a650de490d21b81045cd2",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "clean prefix truncation",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_cleanPrefixTruncationClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
+     "type_fingerprint": "ba88c313b29daddf"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.scoreSuffix.v2",
+   "kind": "claim",
+   "line": 994,
+   "section": "3.3 Stage 2a — window targets; old-fold proofs in 03",
+   "paper_status": "PORT PENDING for its window run producer; pure algebra unchanged",
+   "statement_sha256": "368ad1870d05442012c5e5e30ead0b0da2a1994dacd8368e91215bc0af94e82c",
+   "lean_status": "OPEN",
+   "clauses": [
+    {
+     "clause": "candidate: score equality on the run",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_score_eq_on_run",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.ScoreRun",
+     "type_fingerprint": "d4eb0c9ce0d84cdf"
+    },
+    {
+     "clause": "candidate: reader scores for exact-proposal receipts",
+     "theorem": "AvailableChain.FGSA.Run.inclusion_reader_scores",
+     "module": "AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts",
+     "type_fingerprint": "fa57bdbd3434fdd9"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.scoreSuffix.v2.1",
+     "missing": "The exact paper suffix statement has no reviewed map; the listed theorems are candidates only."
+    }
+   ]
+  },
+  {
+   "id": "bp.exactProposal.v2",
+   "kind": "claim",
+   "line": 1012,
+   "section": "3.3 Stage 2a — window targets; old-fold proofs in 03",
+   "paper_status": "NEW, remaining K10 — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "3ceeae68006caf94ae4f364a061de7e4c6aaa90d491a1912e4f01279ea675464",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "exact proposal",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_exactProposalClaim_of_clean",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
+     "type_fingerprint": "e3a4bb35ae6eb851"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.cleanInclusion.v2",
+   "kind": "claim",
+   "line": 1026,
+   "section": "3.3 Stage 2a — window targets; old-fold proofs in 03",
+   "paper_status": "NEW — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "930cd730f3a801b85e27204bd4aa79d38418656e6a0cbfc360a811bed1fc98fa",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "clean inclusion",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_cleanInclusionClaim_of_clean",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
+     "type_fingerprint": "23297aaa69f4167e"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.cleanGrowth.v1",
+   "kind": "claim",
+   "line": 1036,
+   "section": "3.3 Stage 2a — window targets; old-fold proofs in 03",
+   "paper_status": "NEW — PORT PENDING",
+   "statement_sha256": "5bfc1c12fb368ad61d35c065c7a9fbe233a6afdd96e4f3a61d0a4ae9ca3302d1",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "clean growth",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_cleanGrowthClaim_of_clean",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
+     "type_fingerprint": "02d5fedf69278233"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.outageCompatibility.v2",
+   "kind": "claim",
+   "line": 1051,
+   "section": "3.3 Stage 2a — window targets; old-fold proofs in 03",
+   "paper_status": "NEW, K7/K9 P1 — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "de2fdaa603afbaf107c444cecb5899c398369ce01f6b284ff1e4a77ac65e405b",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "outage compatibility",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_outageCompatClaim_of_clean",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
+     "type_fingerprint": "9cd88a1dde7ce166"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.fastP1.v2",
+   "kind": "claim",
+   "line": 1073,
+   "section": "3.3 Stage 2a — window targets; old-fold proofs in 03",
+   "paper_status": "NEW — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "57bb2f760fa74cf435acae63f16a75f5e546f03be41e6590b5b10b47f953bcd0",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "fast P1",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_fastP1Claim_of_clean",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
+     "type_fingerprint": "64064e329f3b78b9"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.slowP1.v2",
+   "kind": "claim",
+   "line": 1085,
+   "section": "3.3 Stage 2a — window targets; old-fold proofs in 03",
+   "paper_status": "NEW — PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "fc4916d8811b14386cecd6d1dfdb6d4baee8ba2eccb51bbdfda215a145fd8d88",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "slow P1",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_slowP1Claim_of_clean",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
+     "type_fingerprint": "b617e96e3e4407ad"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "fj.armedSafe.v2",
+   "kind": "claim",
+   "line": 1098,
+   "section": "3.3 Stage 2a — window targets; old-fold proofs in 03",
+   "paper_status": "PORT PENDING (old-fold proof retained)",
+   "statement_sha256": "99271b8ccb6585ea9d6c14111f2198336e3b1bcfe90f37b0329fea33a962bc42",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "the root joins the component claims",
+     "theorem": "AvailableChain.FGSA.Run.fgsaClaims_of_open",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
+     "type_fingerprint": "386e8e8e44457eb0"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.fj.armedSafe.v2.1",
+     "missing": "No reviewed map shows that the joined component claims state the combined blueprint statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.phaseWitness.v2",
+   "kind": "claim",
+   "line": 1118,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "",
+   "statement_sha256": "c904818609002ee5da64bc9011f46b88bdbcad8a9b0014c3cfbac9c4c8236fe1",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "phase witness",
+     "theorem": "AvailableChain.FGSA.Run.healing_phaseWitness",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.Phase",
+     "type_fingerprint": "1295e0f6aeb8d527"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "ap.headReachesLo.v7",
+   "kind": "claim",
+   "line": 1124,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "NEW window version, 2026-10-01",
+   "statement_sha256": "4556405c418177df73a3045db382991de5dc560aaaace58ea3022db19b2f4864",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "head geometry clauses",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_headReachesLo",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry",
+     "type_fingerprint": "2d83907e5aad4232"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.ap.headReachesLo.v7.1",
+     "missing": "The exact six-clause map of the full paper claim is not reviewed."
+    }
+   ]
+  },
+  {
+   "id": "fj.twoChanges.core.v3",
+   "kind": "claim",
+   "line": 1141,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "NEW window version, 2026-10-01",
+   "statement_sha256": "dec6c9b63fe76d8bfab0a94dacf3137e78d871fae7397dc3d75a33431aec13d4",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "phase order",
+     "theorem": "AvailableChain.FGSA.Run.healing_phase_order",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder",
+     "type_fingerprint": "9e01b9e172100c67"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.fj.twoChanges.core.v3.1",
+     "missing": "The exact two-change bound packaging has no Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "fj.descent.v3",
+   "kind": "claim",
+   "line": 1154,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "NEW window version, 2026-10-01",
+   "statement_sha256": "462cd01f00efae0cc5146ea2316ca08739da761cbbe640e630b28118a2b9f478",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "descent at an alleged first change",
+     "theorem": "AvailableChain.FGSA.Run.healing_descent",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.Descent",
+     "type_fingerprint": "c2c3669fa634dcf5"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.phaseSourcePermanence.v2",
+   "kind": "claim",
+   "line": 1167,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "NEW",
+   "statement_sha256": "96ca55f6d7304cd25be0ba936b2a779cf26101a5adb847a1aa906acf3eb143c6",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "phase transfers",
+     "theorem": "AvailableChain.FGSA.Run.healing_phase_transfers",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.SupportPerm",
+     "type_fingerprint": "d994b871a5f406ca"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.phaseSourcePermanence.v2.1",
+     "missing": "The exact fast and slow S1–S3 statement map is not reviewed."
+    }
+   ]
+  },
+  {
+   "id": "bp.phaseRepair.v2",
+   "kind": "claim",
+   "line": 1173,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "",
+   "statement_sha256": "456397d89cca1baf49e60fa40602f0f83355307c541e4cbcb2067b78a48415d2",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "repair with two locks",
+     "theorem": "AvailableChain.FGSA.Run.repair_two_lease",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.Repair",
+     "type_fingerprint": "8740ee40d6a78009"
+    },
+    {
+     "clause": "synchronous repair",
+     "theorem": "AvailableChain.FGSA.Run.repair_synchronous",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.Repair",
+     "type_fingerprint": "764acc8a52b6a0f6"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.phaseRepair.v2.1",
+     "missing": "Not all bound alternatives of the paper repair statement have a Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.phaseEvents.v2",
+   "kind": "claim",
+   "line": 1185,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "",
+   "statement_sha256": "08ad3bc3ced600c7d300446cbb90abdff04655dfad3cdc58c8b70bc4662e7569",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "phase order",
+     "theorem": "AvailableChain.FGSA.Run.healing_phase_order",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder",
+     "type_fingerprint": "9e01b9e172100c67"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.phaseEvents.v2.1",
+     "missing": "The complete timing clauses of the phase-event statement are not mapped."
+    }
+   ]
+  },
+  {
+   "id": "bp.rowPermission.v2",
+   "kind": "claim",
+   "line": 1192,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "RESTATE (no-round)",
+   "statement_sha256": "21f88bee63a7d8db08726f4cd4c82af325a236350b7cfbbb6c8b89a53aebe9db",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "row permission",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_rowPermissionClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Healing",
+     "type_fingerprint": "ad350d66a7a10586"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.rowService.v2",
+   "kind": "claim",
+   "line": 1199,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "PROVED-paper",
+   "statement_sha256": "30b946c7263e1654819510cf2a3ef4c03ec3b3a1d6d0b2a2ccec8784f497769a",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "row service (T-ROWS)",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_rowServiceClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+     "type_fingerprint": "04e971cd2cc54a13"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.commonEntry.v2",
+   "kind": "claim",
+   "line": 1207,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "NEW",
+   "statement_sha256": "8e6463e4f4f367bd1b8c56ed04c5848dde3a6bf026c104078559358668e9ef51",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "common entry at the high height",
+     "theorem": "AvailableChain.FGSA.Run.common_entry_at_high",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight",
+     "type_fingerprint": "3320ae57f8827fae"
+    },
+    {
+     "clause": "next common entry",
+     "theorem": "AvailableChain.FGSA.Run.common_next_entry",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight",
+     "type_fingerprint": "81f137c602eadded"
+    },
+    {
+     "clause": "common entry at the low height",
+     "theorem": "AvailableChain.FGSA.Run.common_entry_at_low",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight",
+     "type_fingerprint": "f45b1a3da13ca955"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.renewedPromotion.v2",
+   "kind": "claim",
+   "line": 1219,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "RESTATE (no-round)",
+   "statement_sha256": "f52953a11f984f116a435e7861867f96ac208bc368580143a97ef841b51fa40c",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "renewed promotion",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_renewedPromotionClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Healing",
+     "type_fingerprint": "818feca6c5f5010b"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.qualifiedOpening.v2",
+   "kind": "claim",
+   "line": 1234,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "retained alternative",
+   "statement_sha256": "ff81a3e8dd1cbe791634dd3c2984e6bbbcb34dea56362496c3e34449b938e4c7",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.qualifiedOpening.v2.1",
+     "missing": "The optional H.9-Q–H.11-Q qualified-opening results have no Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.progressAttempt.v2",
+   "kind": "claim",
+   "line": 1245,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "",
+   "statement_sha256": "bac800385c9e9b297f03ad85aa75feddec221e350f33126519304d690187c173",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "progress attempt",
+     "theorem": "AvailableChain.FGSA.Run.healing_progressAttemptStatement",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt",
+     "type_fingerprint": "e0f510aea231fa25"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.resetArrival.v2",
+   "kind": "claim",
+   "line": 1256,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "RESTATE (no-round)",
+   "statement_sha256": "4223dc1067caacd94953bd1534363b6b2670ae3d28567d84d81cd461c9743afa",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "reset arrival",
+     "theorem": "AvailableChain.FGSA.Run.healing_resetArrivalClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
+     "type_fingerprint": "69053192b1faac69"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.postResetKeep.v2",
+   "kind": "claim",
+   "line": 1269,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "",
+   "statement_sha256": "71811a0855c9e5025289b7642c811fc16fa913362e90f90ccfd87587a8aa4a05",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "post-reset invariant",
+     "theorem": "AvailableChain.FGSA.Run.postReset_inv_all",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint",
+     "type_fingerprint": "4113dd1c64bdf9c7"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.universalLeases.v2",
+   "kind": "claim",
+   "line": 1281,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "NEW",
+   "statement_sha256": "2d9f3bc1fe377850e289edde59d8cc455acdfc1fb303a3d481b7c78f616ae505",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "slow window synchronization",
+     "theorem": "AvailableChain.FGSA.Run.postReset_slow_window_sync",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw",
+     "type_fingerprint": "776d9702a3487ded"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.universalLeases.v2.1",
+     "missing": "The full Lemma U map is not reviewed."
+    }
+   ]
+  },
+  {
+   "id": "bp.rawResultTransfer.v2",
+   "kind": "claim",
+   "line": 1287,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "NEW",
+   "statement_sha256": "e86e20d8845efe7c04f60030ee10f2f49a5eec5b54f4baba462e1fb8bac6dcdb",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "raw result transfer",
+     "theorem": "AvailableChain.FGSA.Run.postReset_h5RawTransfer_body",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw",
+     "type_fingerprint": "b38a8e73c3154420"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.postResetService.v2",
+   "kind": "claim",
+   "line": 1292,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "NEW",
+   "statement_sha256": "b34031eab5f73eab3c730689f3fe5a1f48e8377785c84481adaa8ea11fc11f35",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "post-reset exact service",
+     "theorem": "AvailableChain.FGSA.Run.healing_postReset_exactService",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetService",
+     "type_fingerprint": "afda35f898e83011"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.localHealing.v2",
+   "kind": "claim",
+   "line": 1299,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "",
+   "statement_sha256": "8a16d612bfcb1be3f8ed480aa550f34ca20f10c0595f377f881ef53889e2d0cc",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "local healing",
+     "theorem": "AvailableChain.FGSA.Run.healing_healed",
+     "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed",
+     "type_fingerprint": "f53f264bc4525e17"
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.localHealing.v2.1",
+     "missing": "The separate early all-fast corollary has no mapped Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.uniformHealing.v2",
+   "kind": "claim",
+   "line": 1307,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "PROVED-paper",
+   "statement_sha256": "2b2acc3d3cd06558a8747e7d65de07223eeba6e14545c56f861a21a4909fd3be",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "uniform healing from the H-time conclusion",
+     "theorem": "AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
+     "type_fingerprint": "2def699d2f2ba5c8"
+    },
+    {
+     "clause": "the H-time claim",
+     "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
+     "type_fingerprint": "d5bbac51b8d20091"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.healingInput.v2",
+   "kind": "claim",
+   "line": 1315,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "RESTATE (no-round); sole healing→finality export",
+   "statement_sha256": "2afb7fca7744becc31fd10d129ae1d20a6104fe41680dcceefc8d83998b40c2a",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "healing input export",
+     "theorem": "AvailableChain.FGSA.Run.healing_healingInputClaim",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
+     "type_fingerprint": "5b77486fb1ec8d38"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.finalityKernel.v2",
+   "kind": "claim",
+   "line": 1333,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "PROVED-paper",
+   "statement_sha256": "bf0724f5d5b75637e1b90a8802d8eb561c1f64f01478635ae6961aaad46dca29",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "window finality kernel",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_finalityKernel_W",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
+     "type_fingerprint": "2fe5aea2d0dc92bc"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.tailWindow.v1",
+   "kind": "claim",
+   "line": 1348,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "NEW — PROVED-paper",
+   "statement_sha256": "4ebbf7ad6d33038927b9d2b5bcb7175cdb805a44afdaf65f01d1dce85292d8fa",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "window tail kernel",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_tailKernel_W",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
+     "type_fingerprint": "4e56ed11e8072ca7"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.firstFinality.v2",
+   "kind": "claim",
+   "line": 1354,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "PROVED-paper",
+   "statement_sha256": "b4b0da5ecaf734ff6f4933c53406f03b46057217eb41d95ecacc94e5c5a6a2cb",
+   "lean_status": "PARTIAL",
+   "clauses": [],
+   "open": [],
+   "note": "Status from its facets."
+  },
+  {
+   "id": "bp.firstFinality.v2#Rec_FE_W",
+   "kind": "facet",
+   "parent": "bp.firstFinality.v2",
+   "statement_sha256": "b4b0da5ecaf734ff6f4933c53406f03b46057217eb41d95ecacc94e5c5a6a2cb",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "first finality under Rec_FE_W",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_firstFinality_recFE",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
+     "type_fingerprint": "b18a77c7f099916b"
+    },
+    {
+     "clause": "discharged in the root",
+     "theorem": "AvailableChain.FGSA.Run.fgsaClaims_of_hTime",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
+     "type_fingerprint": "05eb66286e6e1588"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.firstFinality.v2#Rec_F4_W",
+   "kind": "facet",
+   "parent": "bp.firstFinality.v2",
+   "statement_sha256": "b4b0da5ecaf734ff6f4933c53406f03b46057217eb41d95ecacc94e5c5a6a2cb",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "first finality under Rec_F4_W",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_firstFinality_recF4",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
+     "type_fingerprint": "2b3e6cf30a004442"
+    },
+    {
+     "clause": "discharged in the root",
+     "theorem": "AvailableChain.FGSA.Run.fgsaClaims_of_hTime",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
+     "type_fingerprint": "05eb66286e6e1588"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.firstFinality.v2#strong alternatives",
+   "kind": "facet",
+   "parent": "bp.firstFinality.v2",
+   "statement_sha256": "b4b0da5ecaf734ff6f4933c53406f03b46057217eb41d95ecacc94e5c5a6a2cb",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.firstFinality.v2#strong alternatives.1",
+     "missing": "The strong alternatives remain PORT PENDING in the paper and have no Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.firstFinality.v2#qualified search B_best^F",
+   "kind": "facet",
+   "parent": "bp.firstFinality.v2",
+   "statement_sha256": "b4b0da5ecaf734ff6f4933c53406f03b46057217eb41d95ecacc94e5c5a6a2cb",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.firstFinality.v2#qualified search B_best^F.1",
+     "missing": "The qualified healing-search bound B_best^F is a deferred companion; only B_H^F is exported."
+    }
+   ]
+  },
+  {
+   "id": "bp.finalityLiveness.v2",
+   "kind": "claim",
+   "line": 1361,
+   "section": "3.4 Stage 2b — exact statements proved in 21 and 22",
+   "paper_status": "PROVED-paper",
+   "statement_sha256": "7becc0e4808d56f24895cb59004bcfe8133b56a6e431849d47b1c68d48d5cb2b",
+   "lean_status": "PARTIAL",
+   "clauses": [],
+   "open": [],
+   "note": "Status from its facets."
+  },
+  {
+   "id": "bp.finalityLiveness.v2#FF5 Rec_FE_W",
+   "kind": "facet",
+   "parent": "bp.finalityLiveness.v2",
+   "statement_sha256": "7becc0e4808d56f24895cb59004bcfe8133b56a6e431849d47b1c68d48d5cb2b",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "local FF5 under Rec_FE_W",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
+     "type_fingerprint": "a42a9a969891b3e4"
+    },
+    {
+     "clause": "GST export of FF5 for triggers with GST+B_HF ≤ t",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
+     "type_fingerprint": "c538fd51c964985a"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.finalityLiveness.v2#FF5 Rec_F4_W",
+   "kind": "facet",
+   "parent": "bp.finalityLiveness.v2",
+   "statement_sha256": "7becc0e4808d56f24895cb59004bcfe8133b56a6e431849d47b1c68d48d5cb2b",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "local FF5 under Rec_F4_W",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
+     "type_fingerprint": "b9b5f1c6b87112ea"
+    },
+    {
+     "clause": "GST export of FF5 for triggers with GST+B_HF ≤ t",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
+     "type_fingerprint": "c98f816dbc7477ee"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.finalityLiveness.v2#FF6 Rec_FE_W",
+   "kind": "facet",
+   "parent": "bp.finalityLiveness.v2",
+   "anchor": "**FF6 / FF7 window instances.**",
+   "statement_sha256": "d0bc81aac50af4925b30573e0250898217c865dcee0e744fc5da1111032825cf",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "local FF6 under Rec_FE_W",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
+     "type_fingerprint": "f29c1fa7a2e4de32"
+    },
+    {
+     "clause": "GST export of FF6 for triggers with GST+B_HF ≤ t",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
+     "type_fingerprint": "4e4c0e9ec7db8c83"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.finalityLiveness.v2#FF6 Rec_F4_W",
+   "kind": "facet",
+   "parent": "bp.finalityLiveness.v2",
+   "anchor": "**FF6 / FF7 window instances.**",
+   "statement_sha256": "d0bc81aac50af4925b30573e0250898217c865dcee0e744fc5da1111032825cf",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "local FF6 under Rec_F4_W",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
+     "type_fingerprint": "d5595d213b955ca0"
+    },
+    {
+     "clause": "GST export of FF6 for triggers with GST+B_HF ≤ t",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
+     "type_fingerprint": "884f1e35f536838f"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.finalityLiveness.v2#FF7 Rec_FE_W",
+   "kind": "facet",
+   "parent": "bp.finalityLiveness.v2",
+   "anchor": "**FF6 / FF7 window instances.**",
+   "statement_sha256": "d0bc81aac50af4925b30573e0250898217c865dcee0e744fc5da1111032825cf",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "local FF7 under Rec_FE_W",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
+     "type_fingerprint": "a349b2ab2018ac0b"
+    },
+    {
+     "clause": "GST export of FF7 for triggers with GST+B_HF ≤ t",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recFE",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
+     "type_fingerprint": "ffb58edcece0e9d5"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.finalityLiveness.v2#FF7 Rec_F4_W",
+   "kind": "facet",
+   "parent": "bp.finalityLiveness.v2",
+   "anchor": "**FF6 / FF7 window instances.**",
+   "statement_sha256": "d0bc81aac50af4925b30573e0250898217c865dcee0e744fc5da1111032825cf",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "local FF7 under Rec_F4_W",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
+     "type_fingerprint": "4cb417629a647bdd"
+    },
+    {
+     "clause": "GST export of FF7 for triggers with GST+B_HF ≤ t",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recF4",
+     "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
+     "type_fingerprint": "eb0745beca1e1a55"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.finalityLiveness.v2#strong alternatives",
+   "kind": "facet",
+   "parent": "bp.finalityLiveness.v2",
+   "statement_sha256": "7becc0e4808d56f24895cb59004bcfe8133b56a6e431849d47b1c68d48d5cb2b",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.finalityLiveness.v2#strong alternatives.1",
+     "missing": "The strong alternatives remain old-fold proofs, PORT PENDING, with no Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.finalityLiveness.v2#HP",
+   "kind": "facet",
+   "parent": "bp.finalityLiveness.v2",
+   "statement_sha256": "7becc0e4808d56f24895cb59004bcfe8133b56a6e431849d47b1c68d48d5cb2b",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.finalityLiveness.v2#HP.1",
+     "missing": "The HP form remains an old-fold proof, PORT PENDING, with no Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.finalityLiveness.v2#FL-W/RF/D/T7",
+   "kind": "facet",
+   "parent": "bp.finalityLiveness.v2",
+   "statement_sha256": "7becc0e4808d56f24895cb59004bcfe8133b56a6e431849d47b1c68d48d5cb2b",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.finalityLiveness.v2#FL-W/RF/D/T7.1",
+     "missing": "The general-timeout forms FL-W, RF, D and T7 remain old-fold proofs, PORT PENDING."
+    }
+   ]
+  },
+  {
+   "id": "bp.weakContinuationAvailable.v2",
+   "kind": "claim",
+   "line": 1469,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "FGSAClaims.weakContinuationLive field (user 2026-10-05) — PROVED-paper",
+   "statement_sha256": "3fdfeb90ce97082aa7ee3d5f1e893b0b6241f0e13d5b1abfa6403b8d6462013a",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "FGSAClaims.weakContinuationLive field",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_weakContinuationLiveClaim_of_hTime",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
+     "type_fingerprint": "14f335f874efd509"
+    },
+    {
+     "clause": "the closed root exports the field",
+     "theorem": "AvailableChain.FGSA.Run.fgsaClaims",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
+     "aggregate": true,
+     "type_fingerprint": "4b6f469593903b4d",
+     "binders": 1
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.weakContinuationGrowth.v2",
+   "kind": "inline",
+   "parent": "bp.weakContinuationAvailable.v2",
+   "anchor": "Growth field (bp.weakContinuationGrowth.v2)",
+   "line": 1481,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "inline in bp.weakContinuationAvailable.v2",
+   "statement_sha256": "cc613ddce8f9c1c36eb836d62054fb24a964ff10a1d367289044ce412470c8df",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "the same claim includes conditional growth",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_weakContinuationLiveClaim_of_hTime",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
+     "type_fingerprint": "14f335f874efd509"
+    },
+    {
+     "clause": "seeded live growth",
+     "theorem": "AvailableChain.FGSA.Run.wc_seededLiveAt",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Live",
+     "type_fingerprint": "424e2b315a8fa346"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcPrefixReplay.v2",
+   "kind": "claim",
+   "line": 1485,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "bb9031d5d502fb6d64f79a0c8896f92228c4267e2ec9c3368410c3de979c2a43",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "prefix replay",
+     "theorem": "AvailableChain.FGSA.Run.wc_prefixReplay",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay",
+     "type_fingerprint": "6ce205d2eba426ee"
+    },
+    {
+     "clause": "store replay",
+     "theorem": "AvailableChain.FGSA.Run.wc_storeReplay",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay",
+     "type_fingerprint": "563a7bdffd62921c"
+    },
+    {
+     "clause": "cut replay",
+     "theorem": "AvailableChain.FGSA.Run.wc_cutReplay",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay",
+     "type_fingerprint": "1a6febe0be061c29"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcHeightSeed.v2",
+   "kind": "claim",
+   "line": 1490,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "aef6ec94f83aede7a1aaad2e97ef18d2f938ef84970194fd5d540526056d86ae",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "height seed",
+     "theorem": "AvailableChain.FGSA.Run.wc_heightSeed",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
+     "type_fingerprint": "7da281301d29e373"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcLowFinalized.v2",
+   "kind": "claim",
+   "line": 1495,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "423e66a5ed9221059da2a5c3f393760d0976354c9c64088ba4b15e74f4f22390",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "low finalized",
+     "theorem": "AvailableChain.FGSA.Run.wc_lowFinalized",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins",
+     "type_fingerprint": "fcb7bd9bcc825215"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcSourceOrigin.v2",
+   "kind": "claim",
+   "line": 1500,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "e053a68a73b74fd720f217576cde835398e8645e9419bfade95af8caeaa4cdd1",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "emitted-name source discipline",
+     "theorem": "AvailableChain.FGSA.Run.sourceDiscipline_emittedName",
+     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Sources",
+     "type_fingerprint": "b2fcfba6293233fc"
+    },
+    {
+     "clause": "scoped row origin producer",
+     "theorem": "AvailableChain.FGSA.Run.wc_scopedRowOrigins",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
+     "type_fingerprint": "f4e9442a1a7db280"
+    },
+    {
+     "clause": "receipt origin producer",
+     "theorem": "AvailableChain.FGSA.Run.wc_receiptOrigins",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
+     "type_fingerprint": "d5768828c53b76ff"
+    },
+    {
+     "clause": "forwarding wrapper of the produced premise",
+     "theorem": "AvailableChain.FGSA.Run.wc_sourceOrigin",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins",
+     "type_fingerprint": "bb963271375512ab"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcSeededFrame.v2",
+   "kind": "claim",
+   "line": 1505,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "7d241135388b6a277044d636518d994925701f6ebeb64438472b1c6294fefaae",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "seeded frame",
+     "theorem": "AvailableChain.FGSA.Run.wc_seededFrame",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Frame",
+     "type_fingerprint": "250fb448e90e6cdb"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcSeededInduction.v2",
+   "kind": "claim",
+   "line": 1510,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "5c4de3360fca2d225f01bfe2c94f8721c316564ba41a9245052cc4158abb9e0a",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "seeded induction",
+     "theorem": "AvailableChain.FGSA.Run.wc_seededInduction",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction",
+     "type_fingerprint": "4890f9d051c9bbc3"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcSeededSafety.v2",
+   "kind": "claim",
+   "line": 1515,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "81594332dfeb23b8df0b6e6fbb9dba13678e598ed064bb6e33ac7b8ece60b0e1",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "seeded safety",
+     "theorem": "AvailableChain.FGSA.Run.wc_seededSafety",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety",
+     "type_fingerprint": "bd541086c77d0b7a"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcFinalBelow.v2",
+   "kind": "claim",
+   "line": 1520,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "c4942129f9e70021e4d42267986319dc162830d2e9ee5406867377420698c3ae",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "final below",
+     "theorem": "AvailableChain.FGSA.Run.wc_finalBelow",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow",
+     "type_fingerprint": "d9144a057c47b206"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcProposalPivot.v2",
+   "kind": "claim",
+   "line": 1525,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "c8d74a8e9afa87fbe65012d213ab59c49b604ca793978bffd8d6a7474c553ff0",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "proposal pivot",
+     "theorem": "AvailableChain.FGSA.Run.wc_proposalPivot",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal",
+     "type_fingerprint": "7ad09f8b9414410c"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcExactProposal.v2",
+   "kind": "claim",
+   "line": 1530,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "9c36f37853ca7baab1bc1d4ed1825a9977b8c9908ae23609d5fbc5f0d68823c8",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "exact proposal after recovery",
+     "theorem": "AvailableChain.FGSA.Run.wc_exactProposal",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal",
+     "type_fingerprint": "1904796cf5f642d0"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.wcInclusion6.v2",
+   "kind": "claim",
+   "line": 1535,
+   "section": "3.4a Continuation — FGSAClaims field and proof helpers",
+   "paper_status": "PROOF HELPER — PROVED-paper",
+   "statement_sha256": "4742e1b9bd879ce8e4180510bfb07ea2ed7e93c6d86f7c6574f10d60eed6a554",
+   "lean_status": "PROVED",
+   "clauses": [
+    {
+     "clause": "inclusion within 6Δ",
+     "theorem": "AvailableChain.FGSA.Run.wc_inclusion6",
+     "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion",
+     "type_fingerprint": "6dc004a8c3425316"
+    }
+   ],
+   "open": []
+  },
+  {
+   "id": "bp.pendingBoundaryNegative.v1",
+   "kind": "claim",
+   "line": 1570,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "NEW — PROVED-paper (window checked)",
+   "statement_sha256": "6edf91dc02ed63c9f1c0ef9a1deb5e0fa465fbc92715cc20b97a3bedfdbfff93",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.pendingBoundaryNegative.v1.1",
+     "missing": "No Lean witness execution; the paper window check is in 03 §10.1."
+    }
+   ]
+  },
+  {
+   "id": "bp.targetExtensionNegative.v1",
+   "kind": "claim",
+   "line": 1580,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "NEW — PROVED-paper (window checked)",
+   "statement_sha256": "b1302ecd37e462aa859ff15e449defd3f5f3ae93d0f7b2cb208a26ade98867af",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.targetExtensionNegative.v1.1",
+     "missing": "No Lean witness execution; the paper window check is in 03 §10.2."
+    }
+   ]
+  },
+  {
+   "id": "comp.leaseVsFinal.v1",
+   "kind": "claim",
+   "line": 1590,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "PROVED-paper (old fold); REVALIDATE (no-round)",
+   "statement_sha256": "0dd34d25a0afd2e8a9ed2f1ddb63f2aa2d89222e31fc8821ce3c2797ee2e467c",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.comp.leaseVsFinal.v1.1",
+     "missing": "No current-window Lean witness; only old-fold evidence exists."
+    }
+   ]
+  },
+  {
+   "id": "bp.noPhysicalPruning.v1",
+   "kind": "claim",
+   "line": 1595,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "PROVED-paper (old fold); REPLACED",
+   "statement_sha256": "75fcf407091c899c48fa82bfd4eecefe3cdfc6c48079e170b3b4c4f1d33e9d5d",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.noPhysicalPruning.v1.1",
+     "missing": "No Lean witness for the replacement paper execution."
+    }
+   ]
+  },
+  {
+   "id": "bp.slowWindowLoss.v1",
+   "kind": "claim",
+   "line": 1602,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "NEW — PROVED-paper (old fold); REVALIDATE (no-round)",
+   "statement_sha256": "6fe746e97bb65a2ad2a6d991366ba2c3467eb88609047b19b57c1f25294f4f10",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.slowWindowLoss.v1.1",
+     "missing": "No current-window Lean witness."
+    }
+   ]
+  },
+  {
+   "id": "bp.healedAtResetNegative.v1",
+   "kind": "claim",
+   "line": 1608,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "PROVED-paper (old fold); REPLACED",
+   "statement_sha256": "23ed3344c077e078f7832278ddb935eb25c2c6b19a46f71fb6f278d10c366287",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.healedAtResetNegative.v1.1",
+     "missing": "No Lean witness for the replacement execution."
+    }
+   ]
+  },
+  {
+   "id": "bp.weakFinalityNegative.v1",
+   "kind": "claim",
+   "line": 1612,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "NEW — PROVED-paper (old fold); REVALIDATE (no-round)",
+   "statement_sha256": "47a3cb5ad82bcf58d25f02cb9fce82e6d5d4e1fea5898acb75dc45d5dabdf1f7",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.weakFinalityNegative.v1.1",
+     "missing": "No current-window Lean witness; only old-fold evidence exists."
+    }
+   ]
+  },
+  {
+   "id": "bp.gapFinalityNegative.v1",
+   "kind": "claim",
+   "line": 1617,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "R=2 old-fold negative; window replay pending; R=3 OPEN",
+   "statement_sha256": "7e8d87b0b1fab70ff6f9e8e0887b322658387a10821fb48ce55204f1a2bf10ce",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.gapFinalityNegative.v1.1",
+     "missing": "No R=2 window replay and no R=3 witness; window N2 is refuted."
+    }
+   ]
+  },
+  {
+   "id": "bp.qualifiedFirstFinality.v2",
+   "kind": "claim",
+   "line": 1627,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "OPEN extension, outside the claim set (user, 2026-10-01)",
+   "statement_sha256": "23fe929ccf39c5a695a0c58cf4004bc2b2760ebaff207003d003aa223e44fc93",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.qualifiedFirstFinality.v2.1",
+     "missing": "Dropped QF2 extension, outside the claim set; no Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.skipFirstFinality.v2",
+   "kind": "claim",
+   "line": 1635,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "OPEN extension, outside the claim set (user, 2026-10-01)",
+   "statement_sha256": "485d9f796dd617a1ab88faa72160a46f747d3a1d3c1e3bb49b9881b946782a81",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.skipFirstFinality.v2.1",
+     "missing": "Dropped QF4 extension, outside the claim set; no Lean statement."
+    }
+   ]
+  },
+  {
+   "id": "bp.qualifiedGapNegative.v1",
+   "kind": "claim",
+   "line": 1641,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "NEW — PROVED-paper (old fold); REVALIDATE (no-round)",
+   "statement_sha256": "944511b0e983a5d8aff8b5925a18546d929426654707814a277ab820cfa32cdc",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.qualifiedGapNegative.v1.1",
+     "missing": "No current-window Lean witness."
+    }
+   ]
+  },
+  {
+   "id": "bp.openingDeletion.v1",
+   "kind": "claim",
+   "line": 1647,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "RESTATE (no-round) — PROVED-paper (old fold); REVALIDATE (no-round)",
+   "statement_sha256": "0985b7b9d3499de2f5c2e54a3f0cc5099a617f5c3c017af1b15ddf29fbd06562",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.openingDeletion.v1.1",
+     "missing": "No current-window Lean witness."
+    }
+   ]
+  },
+  {
+   "id": "bp.sourceAgreementNegative.v1",
+   "kind": "claim",
+   "line": 1667,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "NEW — PROVED-paper (old fold); REVALIDATE (no-round)",
+   "statement_sha256": "9a0f0fc6d19f2eaa94b8ca3090a4a7a0b8bf1c8b4d31154cfc166164657177f6",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.sourceAgreementNegative.v1.1",
+     "missing": "No current-window Lean witness."
+    }
+   ]
+  },
+  {
+   "id": "bp.mixedLean.v1",
+   "kind": "claim",
+   "line": 1672,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "NEW — OPEN",
+   "statement_sha256": "56ea435e871d1ea9b257a99e708674886d75d93b236e2a64da56af4bb841f636",
+   "lean_status": "PARTIAL",
+   "clauses": [
+    {
+     "clause": "exported closed FG-SA contract",
+     "theorem": "AvailableChain.FGSA.Run.fgsaClaims",
+     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
+     "aggregate": true,
+     "type_fingerprint": "4b6f469593903b4d",
+     "binders": 1
+    }
+   ],
+   "open": [
+    {
+     "id": "OPEN.bp.mixedLean.v1.1",
+     "missing": "The closure of every broader blueprint target in one composed checked run model is not established."
+    }
+   ]
+  },
+  {
+   "id": "bp.recoveryExtensions.v1",
+   "kind": "claim",
+   "line": 1676,
+   "section": "3.5 Negatives and open boundaries",
+   "paper_status": "NEW — OPEN",
+   "statement_sha256": "5e97f09acc405a9769f9b977e2d21896ff2fdafeea33097057784798e4850f58",
+   "lean_status": "OPEN",
+   "clauses": [],
+   "open": [
+    {
+     "id": "OPEN.bp.recoveryExtensions.v1.1",
+     "missing": "The general-delay (δ_t≠2R), one-repair and optimal uniform healing bounds have no proof."
+    }
+   ]
+  }
+ ],
+ "safety_package": {
+  "FG-SA": [
+   {
+    "clause": "accountable",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_pureAccountableClaim",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+    "field": "accountable",
+    "type_fingerprint": "dfc687b40fe50529"
+   },
+   {
+    "clause": "agreement",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_pureAgreementClaim",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+    "field": "agreement",
+    "type_fingerprint": "16303ac5cc56f33b"
+   },
+   {
+    "clause": "runAccountable",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_wholeRunAccountableClaim",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+    "field": "runAccountable",
+    "type_fingerprint": "ee747d6772fdcd58"
+   },
+   {
+    "clause": "runAgreement",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_wholeRunAgreementClaim",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+    "field": "runAgreement",
+    "type_fingerprint": "abbd8e1d18492d2f"
+   },
+   {
+    "clause": "eventPrefixAgreement",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_eventPrefixAgreementClaim",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+    "field": "eventPrefixAgreement",
+    "type_fingerprint": "b3d5cf4b2f6efd77"
+   },
+   {
+    "clause": "finalizedMonotone",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityClaim",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+    "field": "finalizedMonotone",
+    "type_fingerprint": "61bab716f800437c"
+   },
+   {
+    "clause": "faultCountSlashableBound",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_faultCountSlashableBoundClaim",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+    "field": "faultCountSlashableBound",
+    "type_fingerprint": "d7b01da5b86e76a8"
+   },
+   {
+    "clause": "honestNeverSlashed",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_honestNeverSlashedClaim",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
+    "field": "honestNeverSlashed",
+    "type_fingerprint": "67f235bb0a4e6042"
+   },
+   {
+    "clause": "assembled package",
+    "theorem": "AvailableChain.FGSA.Run.fgsaClaims",
+    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
+    "aggregate": true,
+    "field": "assembled package",
+    "type_fingerprint": "4b6f469593903b4d",
+    "binders": 1
+   }
+  ],
+  "PC-SA": [
+   {
+    "clause": "accountable",
+    "theorem": "AvailableChain.PCSA.Run.pcsa_safety_pureAccountableClaim",
+    "module": "AvailableChainPCSAProofs.Proofs.Finality.Export",
+    "field": "accountable",
+    "type_fingerprint": "c5756920f63c34d8"
+   },
+   {
+    "clause": "agreement",
+    "theorem": "AvailableChain.PCSA.Run.pcsa_safety_pureAgreementClaim",
+    "module": "AvailableChainPCSAProofs.Proofs.Finality.Export",
+    "field": "agreement",
+    "type_fingerprint": "ccfac3b1e2e0bf0d"
+   },
+   {
+    "clause": "runAccountable",
+    "theorem": "AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountableClaim",
+    "module": "AvailableChainPCSAProofs.Proofs.Finality.Export",
+    "field": "runAccountable",
+    "type_fingerprint": "f7ba6f2d7e30245c"
+   },
+   {
+    "clause": "runAgreement",
+    "theorem": "AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreementClaim",
+    "module": "AvailableChainPCSAProofs.Proofs.Finality.Export",
+    "field": "runAgreement",
+    "type_fingerprint": "babb91a365e579f0"
+   },
+   {
+    "clause": "eventPrefixAgreement",
+    "theorem": "AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreementClaim",
+    "module": "AvailableChainPCSAProofs.Proofs.Finality.Export",
+    "field": "eventPrefixAgreement",
+    "type_fingerprint": "b6f00804de0845d4"
+   },
+   {
+    "clause": "finalizedMonotone",
+    "theorem": "AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotoneClaim",
+    "module": "AvailableChainPCSAProofs.Proofs.Finality.Export",
+    "field": "finalizedMonotone",
+    "type_fingerprint": "b3bbc7c4a2e6ea46"
+   },
+   {
+    "clause": "faultCountSlashableBound",
+    "theorem": "AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBoundClaim",
+    "module": "AvailableChainPCSAProofs.Proofs.Finality.Export",
+    "field": "faultCountSlashableBound",
+    "type_fingerprint": "d113b53f3da362dc"
+   },
+   {
+    "clause": "honestNeverSlashed",
+    "theorem": "AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashedClaim",
+    "module": "AvailableChainPCSAProofs.Proofs.Finality.Export",
+    "field": "honestNeverSlashed",
+    "type_fingerprint": "4392a402e0e47d14"
+   },
+   {
+    "clause": "assembled package",
+    "theorem": "AvailableChain.PCSA.Run.pcsaSafetyFinalityClaims",
+    "module": "AvailableChainPCSAProofs.Proofs.Assembly.Finality",
+    "aggregate": true,
+    "field": "assembled package",
+    "type_fingerprint": "0a9eb1b20165a214",
+    "binders": 1
+   }
+  ],
+  "FG-SA bridges": [
+   {
+    "clause": "P10 bridge: slashable bound",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_slashableBound_of_faults",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
+    "field": "faultCountSlashableBound",
+    "type_fingerprint": "c03e916af32a1258"
+   },
+   {
+    "clause": "P10 bridge: finalized monotonicity",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_finalizedMonotone",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
+    "field": "finalizedMonotone",
+    "type_fingerprint": "f54f6117aea82cac"
+   },
+   {
+    "clause": "P10 bridge: honest non-slashing",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_honestNeverSlashed",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
+    "field": "honestNeverSlashed",
+    "type_fingerprint": "fc3f0c2829637dea"
+   },
+   {
+    "clause": "P10 client bridge",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_clientSafeAll",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
+    "field": "client",
+    "type_fingerprint": "998a3bbd3b990a0f"
+   },
+   {
+    "clause": "P10 origin bridge",
+    "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_read_row_origin",
+    "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
+    "field": "origin",
+    "type_fingerprint": "fa04d22b611fc763"
+   }
+  ]
+ },
+ "additional_results": [
+  {
+   "clause": "corruption-growth companion; distinct from the conditional-growth facet",
+   "theorem": "AvailableChain.FGSA.Run.fgsa_weakContinuationGrowthClaim",
+   "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
+   "id": "fgsa.weakContinuationGrowthCompanion",
+   "type_fingerprint": "6785cacfe7e5123c"
+  }
+ ]
+}
