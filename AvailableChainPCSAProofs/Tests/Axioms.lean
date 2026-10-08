@@ -44,7 +44,6 @@ public import AvailableChainPCSAProofs.Proofs.Outage.SlowStore
 public import AvailableChainPCSAProofs.Proofs.Recovery.Anchor
 public import AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved
 public import AvailableChainPCSAProofs.Proofs.Recovery.Exclusions
-public import AvailableChainPCSAProofs.Proofs.Recovery.Export
 public import AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin
