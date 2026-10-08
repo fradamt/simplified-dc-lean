@@ -9,6 +9,7 @@ public import AvailableChainPCSAProofs.Proofs.Assembly.Recovery
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
 public import AvailableChainPCSAProofs.Proofs.Assembly.Formation
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationGateCounts
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
@@ -749,6 +750,7 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_head_exact_of_retained
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_inputs
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_ack_admit
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_gate_counts
 
 #print axioms AvailableChain.PCSA.Run.pcsa_heldPCRelay_of
 #print axioms AvailableChain.PCSA.Run.pcsa_healthy_block_receipt
