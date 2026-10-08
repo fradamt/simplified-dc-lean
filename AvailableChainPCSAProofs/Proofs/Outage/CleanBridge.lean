@@ -10,8 +10,11 @@ the labels with `d_j ≤ b₀`; ARM (b) reads the honest acks of every label wit
 not empty (5.2.2 (c)), the results chain at the labels whose early reads are
 in the prefix (CI (i)), the HEAD cone (a block below every honest HEAD of
 label `i − 1` with `e_{i−1} ≤ b₀` is below every honest HEAD of label `i`),
-and dissemination at the pending label (5.2.3). ARM (b) uses the cone and
-dissemination. The Outage assembly takes the record as an OPEN hypothesis. -/
+and dissemination at the pending label (5.2.3). ARM (b) uses only the
+vote-time cone (`v_i ≤ b₀`) and dissemination. The Outage assembly proves
+every field except the cone; it takes the HEAD cone as the OPEN records
+`CleanConeItems` (full cone, C10) and `CleanVoteConeItems` (vote-time cone,
+C8). -/
 
 namespace AvailableChain.PCSA.Run
 

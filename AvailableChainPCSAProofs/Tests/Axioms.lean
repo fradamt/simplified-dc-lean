@@ -1308,6 +1308,9 @@ end
 
 -- C6 StoreCutFacts.
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_storeAt_timed_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_guard_of_chain
+#print axioms AvailableChain.PCSA.Run.pcsa_result_below_post_gate_of_chain
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_below_record_of_chain
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_result_below_post_gate
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_lock_below_record_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_lock_below_record

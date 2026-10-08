@@ -7,8 +7,9 @@ public section
 one record: CI (i) on one label (`CleanInvariantClaim`), the locks below `S`
 (`LeaseBelowRecordClaim`), the facts at the pending labels (`CutChain`), and
 the clean-gate successor bridge (a HEAD of label `j + 1` extends an honest
-result of label `j` with `d_j ≤ b₀`). The Outage assembly takes the record as
-an OPEN hypothesis. From a result `A = R_u(j₁)`: every later
+result of label `j` with `d_j ≤ b₀`). The Outage assembly proves every field
+except the HEAD cone (`pcsa_cleanCutItems_of_cone`, OPEN: `CleanConeItems`).
+From a result `A = R_u(j₁)`: every later
 honest result and HEAD in the prefix extends `A`, every honest ack and record
 in the prefix is compatible with `A`. -/
 
@@ -35,7 +36,8 @@ structure CutFacts (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀
     HonestHeadAt p c E rho x (j + 1) H → Block.Preceq A H
 
 /-- [pcsa34-r4.3 §5.2.2, §5.5 steps 1–2] The Clean facts at the cut of every
-clean stage-1 run. The Outage assembly takes them as an OPEN hypothesis. -/
+clean stage-1 run. The Outage assembly builds them from the Clean claims and
+the OPEN HEAD cone `CleanConeItems`. -/
 def CleanCutItems (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)) (b₀ ΔF : Time),
