@@ -157,7 +157,8 @@ Layers (design §1). L0, L1, LM, L2 and L3 import nothing from L4–L6.
 │    │            │ slowLeasePolicy), SA, FGSA, SAPC, LStar;             │
 │    │            │ Registry/Instances                                   │
 │ L5 │ Kits       │ AvailableChainKit (v1), AvailableChainKitV2,         │
-│    │            │ AvailableChainKitFG (FG proofs, Pins)                │
+│    │            │ AvailableChainKitFG (FG proofs, Pins);               │
+│    │            │ AvailableChainFGCompose (generic FG run composition) │
 │ L6 │ Registry   │ AvailableChainRegistry, catalog.lock, MATRIX.md      │
 └────┴────────────┴──────────────────────────────────────────────────────┘
 ```
@@ -481,6 +482,43 @@ How the pieces meet:
   `gateFrom a` and `clockFrom a` (713f56f); the old names are the genesis
   forms. SA uses genesis; FG-SA uses Σ.F (spec sync, 1944bb8).
 
+`AvailableChainFGCompose` is the generic FG run-composition library (L5). The
+facade imports the 13 modules below; the library glob also builds Tests.
+Paths are relative to `AvailableChainFGCompose/` and omit `.lean`.
+
+```text
+┌──────────────────────────┬─────────────────────────────────────────────────────┐
+│ Module                   │ Role                                                │
+├──────────────────────────┼─────────────────────────────────────────────────────┤
+│ Statements/EventReads    │ Shared event cuts and inclusive time reads          │
+│ Statements/CoreReads     │ FG core reads, core/head laws and source service    │
+│ Proofs/SourceHead        │ Core store, head, source and carrier consequences   │
+│ Statements/SafetyReads   │ Wire, record, output, scope and safety reads        │
+│ Statements/SafetyStore   │ Store, order and scope law records                  │
+│ Statements/SafetyClient  │ Wire, client and unit-weight law records            │
+│ Statements/SafetyClaims  │ Generic run accountability and agreement contracts  │
+│ Proofs/SafetyStore       │ Reachability, replay, delivery origins and scope    │
+│ Proofs/SafetyAccountable │ Run/store accountability and agreement; fields 3–5  │
+│ Proofs/SafetyClient      │ Client trace, record fold and emitted-row safety    │
+│ Proofs/SafetyCount       │ Fault attribution and slashable bound; field 6      │
+│ Proofs/SafetyMonotone    │ Finalized monotonicity; field 7                     │
+│ Proofs/SafetySlashing    │ Stored-row origins and honest non-slashing; field 8 │
+└──────────────────────────┴─────────────────────────────────────────────────────┘
+```
+
+Tests: `Axioms` and `SafetyAxioms` are the audits; `Reads`, `Restart` and
+`SafetyReads` check the read contracts; `SafetyControls` holds the positive
+behavior controls (unordered inclusive reads, repeated rows, a two-seat swap,
+a lost durable record, an emitted-only tip). `scripts/check-fg-compose-controls.py`
+compiles the matching negative forms and requires their exact diagnostics.
+
+The two adapters: FG-SA enters through `AvailableChainFGSAProofs/Proofs/Foundations/FGSafetyBridge`
+(laws in `Shared/FGSafetyClient`, `Shared/FGSafetyStore`, `Shared/FGSafetyScope`);
+PC-SA enters through `AvailableChainPCSAProofs/Proofs/Foundations/FGSafetyBridge`
+(laws in `Foundations/FGSafetyClient`, `FGSafetyClientLaws`, `FGSafetyStore`,
+`FGSafetyScope`; bodies in `FinalitySafety`; claims in `Finality/Export` and
+`Assembly/Finality`).
+
 Engine v2 decisions (design §2), one line each:
 - E1 duties and keys: `Auth = seat ℓ i | none`; a proposal duty is a
   one-seat label; no global `n`.
@@ -539,6 +577,29 @@ Engine v2 decisions (design §2), one line each:
   always with `-c service_tier="fast"`. Commits by explicit path;
   worktrees under `~/worktrees/`.
 
+- FG finality safety (P13). `AvailableChainFGCompose` is the generic run-composition
+  library. Its Statements and Proofs have separate import permissions.
+  Compose imports no protocol model, run, Claims, Framework or Registry library.
+  Protocol adapters import Compose only through exact `COMPOSE_EDGES`.
+  FG-SA safety proofs enter through `Foundations/FGSafetyBridge`, with four
+  exact targets: `SafetyAccountable`, `SafetyCount`, `SafetyMonotone` and
+  `SafetySlashing`. PC-SA uses the same four targets from its own
+  `Foundations/FGSafetyBridge`. PC law producers cover both `.on` and `.idle`.
+  Pure fields 1–2 use KitFG directly; Compose supplies run fields 3–8.
+  Monotonicity requires sorted execution and `NoRestart`. Client safety and
+  honest non-slashing retain durable Λ and do not gain those premises.
+  All-run carriage and stored-row carriage are distinct contracts.
+  `scripts/check-fg-finality-freeze.py` checks the S0 hashes against the
+  inherited-difference record; `scripts/check-fg-finality-coverage.py` checks
+  that every public declaration of the safety modules is audited. The gate
+  step `FGSAGrowth-axioms` audits the growth companion
+  (`Tests/WeakContinuationGrowthAssemblyAxioms`).
+- Blueprint coverage (D10). `scripts/check-fgsa-blueprint.py` checks the
+  current blueprint snapshot (`docs/blueprint/fgsa/`) against the reviewed map
+  `docs/FGSA-BLUEPRINT-LEAN.json`, with `scripts/CheckBlueprintClaims.lean`
+  for the compiled theorems (a FULL-tier gate step). A pass means every
+  blueprint item is accounted for; OPEN items remain open. Historical pins
+  keep their original scope.
 - Generic API: `docs/GEN-API.md` records Statements types and values;
   `lake env lean --run scripts/V2Manifest.lean --scope gen --check` checks it.
   Before G-F0a, a Statements edit updates the manifest in the same commit;
@@ -590,6 +651,9 @@ Engine v2 decisions (design §2), one line each:
 │    │ anchor + pruning optional claim      │                          │
 └────┴──────────────────────────────────────┴──────────────────────────┘
 ```
+
+P13 is the final FG finality-safety integration package. It does not close
+the broader blueprint OPEN items (`docs/FGSA-BLUEPRINT-OPEN.md`).
 
 Window migration (stages, `tip-stability/codex/reports/window-migration.md`
 §1): 0 close the current no-round migration (06/07, Δ_F delivery) → 1 add
@@ -663,6 +727,11 @@ and only the instance swap is atomic.
   `codex/`.
 - Lean: `docs/FRAMEWORK-DESIGN.md` (framework), `docs/FG-COMPOSITION.md`
   (FG composition), `docs/MAP.md` (contract to Lean), `docs/audit/`.
+- FG finality safety: `docs/FG-FINALITY-SAFETY-S0.md` (freeze),
+  `docs/FG-FINALITY-SAFETY-S0-inherited.json` (inherited S0 differences with
+  commit provenance), `docs/FGSA-BLUEPRINT-LEAN.json` (blueprint → Lean map),
+  `docs/FGSA-BLUEPRINT-OPEN.md` (OPEN items), `docs/blueprint/fgsa/SOURCE.json`
+  (blueprint snapshot provenance).
 - Lean module rules: `docs/LEAN-ARCHITECTURE.md`; Generic Statements API:
   `docs/GEN-API.md` (checked by `V2Manifest --scope gen --check`).
 - Plans (`docs/plans/`): framework-phase0, phase1a-gate-catalog,
