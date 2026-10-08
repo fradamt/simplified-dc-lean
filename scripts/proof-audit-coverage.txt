@@ -73,6 +73,25 @@
             'AvailableChain.FGCompose.safety_store_accountable',
             'AvailableChain.FGCompose.safety_store_agreement',
         ),
+        'AvailableChainFGCompose.Proofs.SafetyClient': (
+            'AvailableChain.FGCompose.safetyInputAt_other',
+            'AvailableChain.FGCompose.safetyInputAt_tick',
+            'AvailableChain.FGCompose.safetyRecordStep_none',
+            'AvailableChain.FGCompose.safetyRecordStep_some',
+            'AvailableChain.FGCompose.safety_client_trace',
+            'AvailableChain.FGCompose.safety_emitted_noSlash',
+            'AvailableChain.FGCompose.safety_linked_seats',
+            'AvailableChain.FGCompose.safety_record_fold',
+        ),
+        'AvailableChainFGCompose.Proofs.SafetyCount': (
+            'AvailableChain.FGCompose.safety_fault_count_bound',
+            'AvailableChain.FGCompose.safety_slashable_faulty_count',
+        ),
+        'AvailableChainFGCompose.Proofs.SafetyMonotone': (
+            'AvailableChain.FGCompose.safety_F_mono',
+            'AvailableChain.FGCompose.safety_finalized_monotone',
+            'AvailableChain.FGCompose.safety_readAt_prefix',
+        ),
         'AvailableChainFGCompose.Proofs.SafetyStore': (
             'AvailableChain.FGCompose.safety_good_readAt',
             'AvailableChain.FGCompose.safety_good_stateBefore',
@@ -5899,6 +5918,7 @@
             'AvailableChain.PCSA.Run.pcsa_clean_ack_to_head_at_early',
             'AvailableChain.PCSA.Run.pcsa_clean_available_mono_cut',
             'AvailableChain.PCSA.Run.pcsa_clean_block_receipt',
+            'AvailableChain.PCSA.Run.pcsa_clean_cone_root_compatible',
             'AvailableChain.PCSA.Run.pcsa_clean_confirmed_compatible_cut',
             'AvailableChain.PCSA.Run.pcsa_clean_dissemination',
             'AvailableChain.PCSA.Run.pcsa_clean_dissemination_pending',
@@ -5907,6 +5927,8 @@
             'AvailableChain.PCSA.Run.pcsa_clean_head_above_past_at_early',
             'AvailableChain.PCSA.Run.pcsa_clean_headsAbove_step',
             'AvailableChain.PCSA.Run.pcsa_clean_headsEqual_step',
+            'AvailableChain.PCSA.Run.pcsa_clean_heads_cone_at_vote',
+            'AvailableChain.PCSA.Run.pcsa_clean_heads_cone_past_cut',
             'AvailableChain.PCSA.Run.pcsa_clean_inclusion',
             'AvailableChain.PCSA.Run.pcsa_clean_invariant',
             'AvailableChain.PCSA.Run.pcsa_clean_invariant_zero',
@@ -5982,6 +6004,10 @@
             'AvailableChain.PCSA.Run.pcsa_honest_head_slot_le',
             'AvailableChain.PCSA.pcsa_headVote_body_mem',
             'AvailableChain.PCSA.pcsa_liveRoot_body_mem',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.HeadCone': (
+            'AvailableChain.PCSA.Run.pcsa_clean_cone_inputs',
+            'AvailableChain.PCSA.Run.pcsa_voter_honest_awake',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HeadEvidence': (
             'AvailableChain.PCSA.Run.pcsa_head_emission_time_awake',
