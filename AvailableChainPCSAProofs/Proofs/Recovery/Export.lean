@@ -2,6 +2,8 @@ module
 public import AvailableChainPCSAClaims.Claims.Recovery
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
 public import AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved
+public import AvailableChainPCSAProofs.Proofs.Recovery.AnchorBase
+public import AvailableChainPCSAProofs.Proofs.Recovery.FirstSlot
 
 public section
 
@@ -12,6 +14,28 @@ namespace AvailableChain.PCSA.Run
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {m : FGMode}
+
+/-- The clean anchor is below the first recovered proposer base. -/
+theorem pcsa_recovery_anchor_proposer_base (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time} {cA s₁ : Slot}
+    (h : ShortBreakPrem p c E rho G ΔF cA s₁)
+    (N : NamedProposal p.n)
+    (hStamp : ∀ y ∈ rho.honest,
+      PCStampedBefore p c E rho y (SA.freezeTime p.toParams cA) cA N.erase)
+    (hArm : ArmConcl p c E rho cA N.erase (cA + 1)) :
+    ∀ nd, pcsa_postClock E rho
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s₁)
+      (SA.proposalTime p.toParams s₁) = some nd →
+      Block.Preceq N.erase (walkBase p nd.st (proposerPC p nd.st)) := by
+  intro nd hnd
+  apply recovery_base_of_arm E rho h.recovery.base.valid.toScheduleWellFormed
+    h.recovery.base.noRestart h.frame cA N.erase _ h.firstProposer.1
+    (hStamp _ h.firstProposer.1)
+    (fun t t' htt hpc => (hArm.2.2 _ h.firstProposer.1 t t' htt hpc).1) _ _ nd hnd
+  have hd := p.deltaPos
+  have horder : (cA : Int) + 1 ≤ (s₁ : Int) := by exact_mod_cast h.order
+  change 4 * p.Δ * (cA : Int) + 3 * p.Δ < 4 * p.Δ * (s₁ : Int)
+  nlinarith
 
 /-- C8 supplies initial coverage; restarted CI supplies the healed suffix. -/
 theorem recovery_healed_of_inputs (E : Generic.Env V)
