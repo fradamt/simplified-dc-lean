@@ -6262,6 +6262,14 @@
             'AvailableChain.PCSA.Run.pcsa_duties_early',
             'AvailableChain.PCSA.Run.signLabel_ack_iff',
         ),
+        'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClientLaws': (
+            'AvailableChain.PCSA.Run.pcsa_attest_signer_irrel',
+            'AvailableChain.PCSA.Run.pcsa_attest_decode_rows',
+            'AvailableChain.PCSA.Run.pcsa_safety_tick_rows',
+            'AvailableChain.PCSA.Run.pcsa_safetyReads_record',
+            'AvailableChain.PCSA.Run.pcsaSafetyClientLaws',
+            'AvailableChain.PCSA.Run.pcsaSafetyUnitLaws',
+        ),
         'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope': (
             'AvailableChain.PCSA.Run.pcsaSafetyScopeLaws',
             'AvailableChain.PCSA.Run.pcsa_block_parent_preceq',
