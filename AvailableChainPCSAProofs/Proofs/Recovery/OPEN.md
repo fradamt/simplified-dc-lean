@@ -318,3 +318,131 @@ Formation is adding `FormationPrem.proposerRootReachable`. Step 6 must set
 `proposerRootReachable := hroot` from the same proof as the separate
 `RecoveryRootReachable` conjunct. This branch still has the old structure.
 No Formation or Claims file is changed here.
+
+## Continuation 2 proved signatures
+
+Namespace: `AvailableChain.PCSA.Run`. The implicit parameters remain
+`{p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}`.
+These are derived run facts. No new claim premise is added.
+
+```lean
+theorem recovery_gate_rank_disseminated (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hs : V2.D.ScheduleWellFormed E rho)
+    (hnr : V2.D.NoRestart rho) (hF : StageOneFrame p c E rho) (hΔ : E.Δ = p.Δ)
+    (g : Slot) (transport : RecoveryLockTransport p c E rho g)
+    (k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (rank : PCRank) (hg : E.t_GST ≤ SA.earlyTime p.toParams s)
+    (horizon : SA.freezeTime p.toParams s ≤ rho.horizon)
+    (hrank : gateRank p (clockPre p (V2.D.Run.stateBefore E rho k x).st
+      (SA.gateTime p.toParams s)) s = some rank) :
+    ∃ D ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st.pcs,
+      D.rank = rank
+```
+
+```lean
+theorem recovery_voter_rank_bound (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hs : V2.D.ScheduleWellFormed E rho)
+    (hnr : V2.D.NoRestart rho) (hF : StageOneFrame p c E rho) (hΔ : E.Δ = p.Δ)
+    (g : Slot) (transport : RecoveryLockTransport p c E rho g)
+    (k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s r : Slot) (hsr : s < r) (hg : E.t_GST ≤ SA.earlyTime p.toParams s)
+    (nd : Node p) (hn : pcsa_postClock E rho y (SA.voteTime p.toParams r) = some nd)
+    (D : PC p.n) (hD : voterPC p nd.st r = some D) :
+    rankAtLeast D (gateRank p (clockPre p (V2.D.Run.stateBefore E rho k x).st
+      (SA.gateTime p.toParams s)) s) = true
+```
+
+```lean
+theorem recovery_write_voter_compatible (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (g s : Slot)
+    (transport : RecoveryLockTransport p c E rho g)
+    (k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hk : rho.events[k]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hg : E.t_GST ≤ SA.earlyTime p.toParams s) (B : Block)
+    (hwrite : leaseWriteOK
+      (clockPre p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams s)).pcs
+      (gateRank p (clockPre p (V2.D.Run.stateBefore E rho k x).st
+        (SA.gateTime p.toParams s)) s) B = true)
+    (nd : Node p) (hn : pcsa_postClock E rho y (SA.voteTime p.toParams (s + 1)) = some nd)
+    (C : PC p.n) (hC : voterPC p nd.st (s + 1) = some C) : Block.Compatible C.target B
+```
+
+```lean
+theorem recovery_survivor_voter_compatible (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (g s r : Slot) (hsr : s < r)
+    (transport : RecoveryLockTransport p c E rho g)
+    (i k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (row : Block × Nat × Time)
+    (hsurv : ∀ a, k < a → a ≤ i →
+      row ∈ (V2.D.Run.stateBefore E rho a x).st.base.obligations ∧
+      leaseRank (V2.D.Run.stateBefore E rho a x).st row.1 =
+        leaseRank (V2.D.Run.stateBefore E rho i x).st row.1)
+    (hrank : leaseRank (V2.D.Run.stateBefore E rho i x).st row.1 =
+      gateRank p (clockPre p (V2.D.Run.stateBefore E rho k x).st
+        (SA.gateTime p.toParams s)) s)
+    (hg : E.t_GST ≤ SA.earlyTime p.toParams s)
+    (horizon : SA.voteTime p.toParams r + p.Δ ≤ rho.horizon)
+    (hlo : k < V2.D.Run.idxBefore rho (SA.voteTime p.toParams r + p.Δ))
+    (hhi : V2.D.Run.idxBefore rho (SA.voteTime p.toParams r + p.Δ) ≤ i)
+    (nd : Node p) (hn : pcsa_postClock E rho y (SA.voteTime p.toParams r) = some nd)
+    (C : PC p.n) (hC : voterPC p nd.st r = some C) : Block.Compatible C.target row.1
+```
+
+## Checked continuation 2 report (2026-10-08)
+
+Commits:
+
+- `68b7687d`: step 3, PC stamp history, rank dissemination, the voter-view
+  bound, and K for actual selected voter keys.
+- `13d00d9a`: remove four generated equation exports. No signature change.
+
+```text
+┌──────┬─────────┬────────────────────────────────────────────────────────────────┐
+│ Step │ Status  │ Result or exact remaining work                                 │
+├──────┼─────────┼────────────────────────────────────────────────────────────────┤
+│ 3    │ PROVED  │ Rank receipt before z_j, voter bound, and K.                   │
+│ 4    │ STOPPED │ Budget checkpoint. Survival-indexed F′ is not implemented.     │
+│ 5    │ STOPPED │ Needs F′, actual proposal-pool paths, and both F4 clauses.     │
+│ 6    │ STOPPED │ Needs steps 4–5. Long firstSlot export and wrapper are absent. │
+└──────┴─────────┴────────────────────────────────────────────────────────────────┘
+```
+
+Step 3 uses the unchanged `RecoveryLockTransport` argument. All seven
+Assembly suppliers remain OPEN: `OPEN_sameLabel`, `OPEN_earlyForward`,
+`OPEN_voterBackward`, `OPEN_pcReceipt`, `OPEN_honestVoterInputs`,
+`OPEN_honestProposerInputs`, and `OPEN_rootResolution`. Their exact
+statements remain in “Continuation transport statements” above.
+The label-`g` supplier and Formation integration are recorded above.
+
+The final firstSlot target is still absent:
+
+```lean
+∃ N : NamedProposal p.n,
+  FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁
+```
+
+Validation of the final Lean sources at `13d00d9a`:
+
+- Default `lake build --wfail`: PASS, 4,591 jobs.
+- `LC_ALL=C bash scripts/check-build.sh`: PASS, including all self-tests.
+- Layers: PASS, zero new findings. Stable self-test: PASS, 37 controls.
+- GLY and F-13 under `LC_ALL=C`: PASS.
+- `NEG=0 check-fgsa-claims.sh`: PASS.
+- `NEG=0 check-pcsa-manifest.sh`: PASS, 421 entries in 21 modules; hashes match.
+- Normal proof coverage: PASS, 5,915 declarations across 13 audits.
+- All 14 new public names have explicit standard-axiom audits.
+- Equation audit: zero unaccepted exports after the proof-only correction.
+- All 22 new source names are clear on main, `222cf06a`,
+  `pcsa-w2-formation-next`, `pcsa-ci-win-1/-2/-3`, and `nuc/pcsa-fsrc`.
+- Main precheck: expected ancestry refusal, main `b698238`, target `13d00d9`.
+  Fixed ref `222cf06a` is also not an ancestor. No main merge or push.
+
+One layer self-test overlapped a commit and detected the changed worktree.
+Its stable rerun passed. No checker, policy, model, or claim record changed.
+`LockHistory.lean` and `LockRank.lean` have no diff from `a9f73cd8`.
+No file named `Recovery/RestartSeed.lean` was created.
+This is a budget checkpoint. No counterexample or false-statement blocker
+was found. Start the next continuation with step 4 and the actual
+HEAD-pool count transfer. Do not add the missing coverage as a claim premise.
