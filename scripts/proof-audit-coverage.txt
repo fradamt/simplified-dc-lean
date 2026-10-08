@@ -5724,13 +5724,17 @@
             'AvailableChain.PCSA.Run.pcsa_acFrameClaim',
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Outage': (
+            'AvailableChain.PCSA.Run.pcsa_armHealthyClaim',
             'AvailableChain.PCSA.Run.pcsa_armHealthy_of_claims',
             'AvailableChain.PCSA.Run.pcsa_armPersistenceClaim',
             'AvailableChain.PCSA.Run.pcsa_cleanArmItems_of_vcone',
             'AvailableChain.PCSA.Run.pcsa_cleanBlockReceipt',
+            'AvailableChain.PCSA.Run.pcsa_cleanConeItems',
             'AvailableChain.PCSA.Run.pcsa_cleanCutChainItems_of',
             'AvailableChain.PCSA.Run.pcsa_cleanCutItems_of_cone',
             'AvailableChain.PCSA.Run.pcsa_cleanRelayItems_of',
+            'AvailableChain.PCSA.Run.pcsa_cleanVoteConeItems',
+            'AvailableChain.PCSA.Run.pcsa_slowP1Claim',
             'AvailableChain.PCSA.Run.pcsa_slowP1_of_claims',
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Recovery': (
