@@ -88,7 +88,8 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
     # Exercise the introduced safety paths, without fallback to real oleans.
     for name in ('Statements.SafetyReads', 'Statements.SafetyStore', 'Statements.SafetyClient',
                  'Statements.SafetyClaims', 'Proofs.SafetyStore', 'Proofs.SafetyAccountable',
-                 'Proofs.SafetyClient', 'Proofs.SafetyCount', 'Proofs.SafetyMonotone'):
+                 'Proofs.SafetyClient', 'Proofs.SafetyCount', 'Proofs.SafetyMonotone',
+                 'Proofs.SafetySlashing'):
         tree, env = fixture('safety-' + name)
         env['LEAN_PATH'] = os.pathsep.join([str(fallback), *[part for part in
             env['LEAN_PATH'].split(os.pathsep) if part != str(REPO / '.lake/build/lib/lean')]])
@@ -276,7 +277,8 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
     inventory.write_text((REPO / 'scripts/fg-compose-expected.txt').read_text())
     for name in ('Statements/SafetyReads', 'Statements/SafetyStore', 'Statements/SafetyClient',
                  'Statements/SafetyClaims', 'Proofs/SafetyStore', 'Proofs/SafetyAccountable',
-                 'Proofs/SafetyClient', 'Proofs/SafetyCount', 'Proofs/SafetyMonotone'):
+                 'Proofs/SafetyClient', 'Proofs/SafetyCount', 'Proofs/SafetyMonotone',
+                 'Proofs/SafetySlashing'):
         source = tree / ('AvailableChainFGCompose/' + name + '.lean')
         if not source.exists():
             continue

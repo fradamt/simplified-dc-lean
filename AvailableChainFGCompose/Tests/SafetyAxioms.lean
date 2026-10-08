@@ -8,6 +8,7 @@ public import AvailableChainFGCompose.Proofs.SafetyAccountable -- shake: keep (#
 public import AvailableChainFGCompose.Proofs.SafetyClient -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.SafetyCount -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.SafetyMonotone -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.SafetySlashing -- shake: keep (#print axioms)
 
 #print axioms AvailableChain.FGCompose.FGSafetyClientLaws
 #print axioms AvailableChain.FGCompose.FGSafetyClientLaws.clock_record
@@ -97,12 +98,15 @@ public import AvailableChainFGCompose.Proofs.SafetyMonotone -- shake: keep (#pri
 #print axioms AvailableChain.FGCompose.safety_finalized_monotone
 #print axioms AvailableChain.FGCompose.safety_good_readAt
 #print axioms AvailableChain.FGCompose.safety_good_stateBefore
+#print axioms AvailableChain.FGCompose.safety_honest_never_slashed
 #print axioms AvailableChain.FGCompose.safety_invariant_readAt
 #print axioms AvailableChain.FGCompose.safety_invariant_stateBefore
 #print axioms AvailableChain.FGCompose.safety_linked_seats
 #print axioms AvailableChain.FGCompose.safety_readAt_prefix
 #print axioms AvailableChain.FGCompose.safety_readAt_replay
+#print axioms AvailableChain.FGCompose.safety_read_carriage
 #print axioms AvailableChain.FGCompose.safety_read_delivery
+#print axioms AvailableChain.FGCompose.safety_read_row_origin
 #print axioms AvailableChain.FGCompose.safety_read_runBlock
 #print axioms AvailableChain.FGCompose.safety_read_scope
 #print axioms AvailableChain.FGCompose.safety_record_fold
