@@ -1,4 +1,13 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LongFirstSlot
+public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalPaths
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockDomain
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockCounts
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockBatch
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockFollow
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockView
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockOverlap
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockTransport
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Height
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Rows
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Run
@@ -63,6 +72,8 @@ public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalStore
 public import AvailableChainPCSAProofs.Proofs.Recovery.PathSource
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockWindow
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockRank
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockHistory
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
 public import AvailableChainPCSAProofs.Proofs.Recovery.RunInputs
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix

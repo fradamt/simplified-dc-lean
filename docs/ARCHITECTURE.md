@@ -365,6 +365,13 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `Assembly/Finality` supplies `PCSAClaims.finality` with
   `pcsaSafetyFinalityClaims`. Both FG modes are covered. Count retains
   all-run carriage; honest non-slashing uses stored-row carriage.
+- PC-SA recovery lock history (2026-10-08). `Recovery/LockRank` proves the
+  held-PC rank invariant for live locks. `Recovery/LockHistory` retains exact
+  rows and ranks across receipts and clocks outside gates. It locates the gate
+  at the start of the final uninterrupted interval of a row and its rank.
+  The derived write witness keeps that interval, the fresh gate, the current
+  result, the preceding saved window, the write rank, and the exact deadline.
+  `recovery_live_lock_last_write` supplies it at an actual post-clock read.
 - PC-SA recovery anchor (2026-10-08). `Recovery/AnchorBase` bounds the
   proposer base from one node's anchor stamp and the C8 strong-output bound.
   `Recovery/FirstSlot` proves the first formation slot and its separate
@@ -762,3 +769,36 @@ and only the instance swap is atomic.
   1aa6885; `docs/PHASE2A-REPORT.md`);
   fgsa-composition-t7-t1 (r11 adopted, 2ec3003; in
   `~/worktrees/available-chain-fgsa-plan`).
+
+- PC-SA long-break transport (2026-10-08). `Recovery/LockTransport` holds
+  lane-neutral receipt and pool facts from label `g`. `Assembly/Recovery`
+  proves all seven suppliers from lane exports. PC key receipt uses only early
+  and vote cutoffs. The run wrapper has no OPEN transport premise.
+
+- PC-SA lock overlap (2026-10-08). `Recovery/LockOverlap` proves mix-time
+  expiry, overlap compatibility, and PC relay compatibility at the write
+  and within a surviving interval. `Recovery/LockView` proves the voter-view
+  rank bound.
+
+- PC-SA recovery rank dissemination (2026-10-08). `Recovery/LockStamp` derives
+  a held key before the early cutoff from the actual PC stamp history, then
+  relays its rank before the freeze. `Recovery/LockView` retains that rank
+  in later voter candidates and proves K for pending writes and surviving
+  rows, including PCs carried by proposals. Existing lock signatures stay fixed.
+
+- PC-SA surviving-lock coverage (2026-10-08). `Recovery/LockDomain` proves
+  the cumulative resolution domain. `LockCounts` transfers a saved gate
+  result to the actual next voter pool. `LockBatch` gives later honest
+  batch counts. `LockFollow` proves F′ from the last write and exact-row
+  survival, then derives preceding HEAD coverage from a live read.
+
+- PC-SA long proposal paths (2026-10-08). `Recovery/ProposalPaths` transfers
+  the actual preceding honest HEAD batch into the proposer pools. It proves
+  the walk from the selected base reaches the live root and the voter F4
+  lease clause. Both use the survival proof in `LockFollow`.
+
+- PC-SA long first-slot assembly (2026-10-08). `Recovery/LongFirstSlot`
+  constructs `FormationPrem` and the explicit proposer-root walk conjunct.
+  `Recovery/Export` proves the predicate conversion with the defining equation.
+  `pcsa_recovery_firstSlot_long_of_run` selects a bounded slot from the long
+  claim premises. The Formation literal also uses the existing root proof.

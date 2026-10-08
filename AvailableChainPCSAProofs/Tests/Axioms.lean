@@ -1,4 +1,11 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LongFirstSlot
+public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalPaths
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockFollow
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockView
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockOverlap
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockRank
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockHistory
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Height
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Rows
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Run
@@ -1833,3 +1840,102 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_stamped_held_from
 #print axioms AvailableChain.PCSA.Run.pcsa_restart_locks_from_freeze
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanRestartSeed_mk
+
+#print axioms AvailableChain.PCSA.recovery_live_lock_rank_compatible
+#print axioms AvailableChain.PCSA.recovery_process_lock_history
+#print axioms AvailableChain.PCSA.recovery_clock_lock_history
+#print axioms AvailableChain.PCSA.Run.recovery_lock_last_change
+#print axioms AvailableChain.PCSA.recovery_gate_change_window
+#print axioms AvailableChain.PCSA.recovery_clock_change_window
+#print axioms AvailableChain.PCSA.Run.recovery_lock_deadline_bound
+#print axioms AvailableChain.PCSA.Run.recovery_lock_write_witness
+#print axioms AvailableChain.PCSA.Run.recovery_live_lock_last_write
+
+#print axioms AvailableChain.PCSA.recovery_gate_no_renewal_of_old_row
+#print axioms AvailableChain.PCSA.Run.recovery_lock_no_later_successful_renewal
+
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.mk
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.sameLabel
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.earlyForward
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.voterBackward
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.pcReceipt
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.honestVoterInputs
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.honestProposerInputs
+#print axioms AvailableChain.PCSA.Run.RecoveryLockTransport.rootResolution
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_lock_transport
+
+#print axioms AvailableChain.PCSA.recovery_stored_lock_rank_compatible
+#print axioms AvailableChain.PCSA.recovery_gate_rank_witness
+#print axioms AvailableChain.PCSA.Run.recovery_postmix_write_window
+#print axioms AvailableChain.PCSA.Run.recovery_live_write_windows_overlap
+#print axioms AvailableChain.PCSA.Run.recovery_next_vote_write_in_window
+#print axioms AvailableChain.PCSA.Run.recovery_saved_window_overlap_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_postmix_lock_window
+#print axioms AvailableChain.PCSA.Run.recovery_postmix_live_locks_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_window_next_vote_locks_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_window_later_locks_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_survivor_received_pc_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_survivor_relay_pc_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_write_relay_pc_compatible
+
+#print axioms AvailableChain.PCSA.recovery_process_pc_stamp_origin
+#print axioms AvailableChain.PCSA.recovery_clock_pcStamps
+#print axioms AvailableChain.PCSA.Run.recovery_pc_stamp_source
+#print axioms AvailableChain.PCSA.Run.recovery_pc_stamp_before_cut
+#print axioms AvailableChain.PCSA.Run.recovery_gate_rank_before_early
+#print axioms AvailableChain.PCSA.Run.recovery_gate_rank_disseminated
+#print axioms AvailableChain.PCSA.recovery_bestPC_rank_bound
+#print axioms AvailableChain.PCSA.Run.recovery_postClock_index
+#print axioms AvailableChain.PCSA.Run.recovery_frozen_pc_at_read
+#print axioms AvailableChain.PCSA.Run.recovery_gate_rank_voter_candidate
+#print axioms AvailableChain.PCSA.Run.recovery_voter_rank_bound
+#print axioms AvailableChain.PCSA.Run.recovery_voter_key_before_vote
+#print axioms AvailableChain.PCSA.Run.recovery_write_voter_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_survivor_voter_compatible
+
+-- Long recovery: actual pools and surviving-lock HEAD coverage.
+#print axioms AvailableChain.PCSA.recovery_clock_headDomain
+#print axioms AvailableChain.PCSA.Run.recovery_headDomain_stateBefore_none
+#print axioms AvailableChain.PCSA.recovery_clock_confirmation_eq_pre
+#print axioms AvailableChain.PCSA.Run.recovery_postClock_store
+#print axioms AvailableChain.PCSA.Run.recovery_gate_result_source
+#print axioms AvailableChain.PCSA.Run.recovery_headSupport_subset
+#print axioms AvailableChain.PCSA.Run.recovery_read_count_domain
+#print axioms AvailableChain.PCSA.Run.recovery_resolved_support
+#print axioms AvailableChain.PCSA.Run.recovery_gate_prefix_next_head
+#print axioms AvailableChain.PCSA.recovery_active_resolution
+#print axioms AvailableChain.PCSA.recovery_voter_support_slot
+#print axioms AvailableChain.PCSA.recovery_batch_scores
+#print axioms AvailableChain.PCSA.Run.recovery_honest_head_exists
+#print axioms AvailableChain.PCSA.Run.recovery_honest_seats
+#print axioms AvailableChain.PCSA.Run.recovery_voter_batch_path
+#print axioms AvailableChain.PCSA.Run.recovery_voter_root_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_lock_follow
+#print axioms AvailableChain.PCSA.Run.recovery_live_lock_preceding_heads
+
+-- Long recovery: actual proposal paths and both F4 clauses.
+#print axioms AvailableChain.PCSA.recovery_proposer_support_slot
+#print axioms AvailableChain.PCSA.recovery_base_walk_covers
+#print axioms AvailableChain.PCSA.Run.recovery_proposer_batch_path
+#print axioms AvailableChain.PCSA.Run.recovery_long_slot_bounds
+#print axioms AvailableChain.PCSA.Run.recovery_preceding_vote_bounds
+#print axioms AvailableChain.PCSA.Run.recovery_long_proposer_root
+#print axioms AvailableChain.PCSA.Run.recovery_long_voter_leases
+
+#print axioms AvailableChain.PCSA.Run.recovery_firstSlot_long_body
+
+-- Long recovery: exact first-slot export and Assembly boundary.
+#print axioms AvailableChain.PCSA.Run.RecoveryRootReachable_def
+#print axioms AvailableChain.PCSA.Run.recovery_firstSlot_long
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_long
+
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_sameLabel_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_earlyForward_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_voterBackward_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_pcReceipt_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_honestVoterInputs_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_honestProposerInputs_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_rootResolution_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_lock_transport_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_long_of_run

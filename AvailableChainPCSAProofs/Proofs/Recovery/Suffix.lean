@@ -110,3 +110,26 @@ structure RecoverySuffixInputs (s₁ : Slot) (ΔF : Time) : Prop where
 
 end AvailableChain.PCSA.Run
 end
+
+public section
+namespace AvailableChain.PCSA.Run
+variable (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) {m : FGMode} (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c))
+
+/-- The explicit proposer walk is the recovery root predicate. -/
+theorem RecoveryRootReachable_def (s : Slot) :
+    RecoveryRootReachable p c E rho s =
+  ∀ nd, pcsa_postClock E rho
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some nd →
+    let st := nd.st
+    let pc := proposerPC p st
+    let root := (pc.map PC.target).getD (eraseFG (controls p st).Z)
+    Block.Preceq (liveRoot p st pc)
+      (GridCO.ghost root (erasedList st (fullTree p st))
+        (GridCO.goldfishScore st.base.blocks (proposerVotes st s) (proposerSupport st s))
+        (eligible p st (proposerVotes st s) (proposerSupport st s))) := by rfl
+
+end AvailableChain.PCSA.Run
+end
