@@ -721,6 +721,8 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_timely_head_of_early
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_of_run
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_run
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_of_open
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_open
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_body
 #print axioms AvailableChain.PCSA.pcsa_formation_metadata_body
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_vote_presence_of_metadata
@@ -748,6 +750,7 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_early_heads_of_exact
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_head_exact_of_retained
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_retained_inputs
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_preFreeze_ack_admit
 
 #print axioms AvailableChain.PCSA.Run.pcsa_heldPCRelay_of
 #print axioms AvailableChain.PCSA.Run.pcsa_healthy_block_receipt

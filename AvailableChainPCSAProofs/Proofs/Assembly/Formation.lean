@@ -77,5 +77,43 @@ theorem pcsa_formation_source_of_run (E : Generic.Env V)
   exact pcsa_formation_source_of_preFreeze E rho r N ΔF h
     (pcsa_formation_inputs_of_run E rho (r * p.R) N ΔF (h.toPreFreeze p c E rho) hRun)
 
+/-- C7 with its named OPEN inputs: the five retained HEAD facts
+(`FormationRetainedHeadOpen`) and the late gate counts. Early HEAD receipt
+and ack admission are proved. -/
+theorem pcsa_formation_of_open (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPrem p c E rho s N ΔF)
+    (hRetained : ∀ src dst y,
+      pcsa_postClock E rho
+        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
+      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
+      pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
+      FormationRetainedHeadOpen p src dst s N)
+    (hGateCounts : ∀ y ∈ rho.honest, ∀ st, gateInAt p c E rho y s = some st →
+      ∃ H, (awakeHonestLabel p c E rho s).card ≤ H ∧
+        FormationGateCounts p st s N.erase H (Gen.V2.Duty.faulty rho).card) :
+    FormationConcl p c E rho s N :=
+  pcsa_formation E rho s N ΔF h
+    (pcsa_formation_preFreeze_inputs E rho s N ΔF (h.toPreFreeze p c E rho) hRetained)
+    hGateCounts
+
+/-- The Formation source with C1 connected needs only the five retained HEAD
+facts. -/
+theorem pcsa_formation_source_of_open (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (r : Nat) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPrem p c E rho (r * p.R) N ΔF)
+    (hRetained : ∀ src dst y,
+      pcsa_postClock E rho
+        (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface (r * p.R))
+        (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface (r * p.R)) = some src →
+      y ∈ rho.honest → E.awake y (SA.voteTime p.toParams (r * p.R)) = true →
+      pcsa_postClock E rho y (SA.voteTime p.toParams (r * p.R)) = some dst →
+      FormationRetainedHeadOpen p src dst (r * p.R) N) :
+    ∀ y ∈ rho.honest, ∃ B : SimplexFG.FGBlock (Fin p.n),
+      actionSourceAt p c E rho y r = some (some B) ∧ eraseFG B = N.erase :=
+  pcsa_formation_source_of_preFreeze E rho r N ΔF h
+    (pcsa_formation_preFreeze_inputs E rho (r * p.R) N ΔF (h.toPreFreeze p c E rho) hRetained)
+
 end AvailableChain.PCSA.Run
 end

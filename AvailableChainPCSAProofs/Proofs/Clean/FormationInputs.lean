@@ -3,6 +3,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationOrigins
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationHeads
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationEarlyHeads
+public import AvailableChainPCSAProofs.Proofs.Clean.AckAdmit
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Shared.StoreRoots
 
@@ -710,13 +711,27 @@ theorem pcsa_formation_retained_rest_of_open (E : Generic.Env V)
     pcsa_formation_resolution_of_blocks src.st dst.st s hdSrc hsub hu,
     hOpen.hKeep, hOpen.hReflect, hOpen.hUnique⟩
 
+/-- Clean ack admission gives the honest ack handler pool of the pre-freeze
+theorem. -/
+theorem pcsa_formation_preFreeze_ack_admit (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPreFreezePrem p c E rho s N ΔF) :
+    ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
+      rho.seatOf (.base (.ack s)) i ∈ rho.honest →
+      SA.earlyTime p.toParams s ≤ t → t < SA.freezeTime p.toParams s →
+      V2.D.Run.handlesAt E rho j y (ackObj p s i N.erase.root) t →
+      (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
+        (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool := by
+  intro y hy i j t hi het _htz hh
+  exact pcsa_honest_ack_admitted E rho h.base y hy s i N.erase.root j t hi het hh
+
 /-- The pre-freeze premise supplies every field of `FormationPreFreezeInputs`
 from three named producers. Shared body relay closes the old frozen targets
 and, with stored metadata, support retention and resolution. Shared
 honest-proposal receipt gives the metadata at `v_s` and `e_s`. The retained
 facts make the honest HEADs exact; Formation delivery then gives early HEAD
-receipt. The binders are five retained HEAD facts and the honest ack handler
-pool. -/
+receipt, and Clean ack admission gives the ack handler pool. The binders
+are the five retained HEAD facts. -/
 theorem pcsa_formation_preFreeze_inputs (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
     (h : FormationPreFreezePrem p c E rho s N ΔF)
@@ -726,13 +741,7 @@ theorem pcsa_formation_preFreeze_inputs (E : Generic.Env V)
         (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
       y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
       pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
-      FormationRetainedHeadOpen p src dst s N)
-    (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
-      rho.seatOf (.base (.ack s)) i ∈ rho.honest →
-      SA.earlyTime p.toParams s ≤ t → t < SA.freezeTime p.toParams s →
-      V2.D.Run.handlesAt E rho j y (ackObj p s i N.erase.root) t →
-      (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
-        (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool) :
+      FormationRetainedHeadOpen p src dst s N) :
     FormationPreFreezeInputs E rho s N := by
   have hRest := fun src dst y hs hy haw hd => pcsa_formation_retained_rest_of_open E rho s N
     ΔF h src dst y hs hy hd (hRetained src dst y hs hy haw hd)
@@ -743,7 +752,8 @@ theorem pcsa_formation_preFreeze_inputs (E : Generic.Env V)
   exact pcsa_formation_inputs_of_run E rho s N ΔF h
     ⟨hRest, pcsa_formation_early_heads_of_exact E rho s N ΔF h hExact,
       pcsa_formation_frozen_body E rho s N ΔF h, hPresence,
-      pcsa_formation_early_presence E rho s N ΔF h, hAckAdmit⟩
+      pcsa_formation_early_presence E rho s N ΔF h,
+      pcsa_formation_preFreeze_ack_admit E rho s N ΔF h⟩
 
 /-- Formation parts 1–4 from the pre-freeze premise and the three named producers. -/
 theorem pcsa_formation_preFreeze_of_prem (E : Generic.Env V)
@@ -755,13 +765,7 @@ theorem pcsa_formation_preFreeze_of_prem (E : Generic.Env V)
         (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some src →
       y ∈ rho.honest → E.awake y (SA.voteTime p.toParams s) = true →
       pcsa_postClock E rho y (SA.voteTime p.toParams s) = some dst →
-      FormationRetainedHeadOpen p src dst s N)
-    (hAckAdmit : ∀ y ∈ rho.honest, ∀ (i : Fin p.n) j t,
-      rho.seatOf (.base (.ack s)) i ∈ rho.honest →
-      SA.earlyTime p.toParams s ≤ t → t < SA.freezeTime p.toParams s →
-      V2.D.Run.handlesAt E rho j y (ackObj p s i N.erase.root) t →
-      (⟨.seat (.ack s) i, N.erase.root⟩ : AckWire p.n) ∈
-        (V2.D.Run.stateBefore E rho (j + 1) y).st.ackPool) :
+      FormationRetainedHeadOpen p src dst s N) :
     (∀ y H, HonestHeadAt p c E rho y s H → H = N.erase) ∧
     (∀ y ∈ rho.honest, ∃ nd, pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd ∧
       holdsN p (actView nd.st) s N.erase = true) ∧
@@ -769,7 +773,7 @@ theorem pcsa_formation_preFreeze_of_prem (E : Generic.Env V)
       HonestAckAt p c E rho y s N.erase) ∧
     (∀ y ∈ rho.honest, PCStampedBefore p c E rho y (SA.freezeTime p.toParams s) s N.erase) :=
   pcsa_formation_preFreeze E rho s N ΔF h
-    (pcsa_formation_preFreeze_inputs E rho s N ΔF h hRetained hAckAdmit)
+    (pcsa_formation_preFreeze_inputs E rho s N ΔF h hRetained)
 
 end AvailableChain.PCSA.Run
 end

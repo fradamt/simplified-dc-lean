@@ -5725,7 +5725,9 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Formation': (
             'AvailableChain.PCSA.Run.pcsa_formation',
+            'AvailableChain.PCSA.Run.pcsa_formation_of_open',
             'AvailableChain.PCSA.Run.pcsa_formation_of_run',
+            'AvailableChain.PCSA.Run.pcsa_formation_source_of_open',
             'AvailableChain.PCSA.Run.pcsa_formation_source_of_preFreeze',
             'AvailableChain.PCSA.Run.pcsa_formation_source_of_run',
             'AvailableChain.PCSA.Run.pcsa_formation_source_of_stamped_pc_c1',
@@ -6006,6 +6008,7 @@
             'AvailableChain.PCSA.Run.pcsa_formation_inputs_of_run',
             'AvailableChain.PCSA.Run.pcsa_formation_key_at_read',
             'AvailableChain.PCSA.Run.pcsa_formation_key_before_proposal_of_handler',
+            'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_ack_admit',
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_inputs',
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_prem',
             'AvailableChain.PCSA.Run.pcsa_formation_preFreeze_of_run',
