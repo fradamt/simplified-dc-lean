@@ -258,7 +258,7 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             assert (rule, importer, dep) in found, (rule, importer, dep, found)
         print("PASS Compose Proofs exact external edges and neighbors")
         for index, (importer, dep) in enumerate(sorted(api["COMPOSE_EDGES"])):
-            if "FGSafetyClient" not in importer:
+            if not any(name in importer for name in ("FGSafetyClient", "FGSafetyBridge")):
                 continue
             for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
                 root = temp / f"safety-adapter-{index}-{neighbor}-{target}"

@@ -4246,6 +4246,15 @@
         ),
     },
     'AvailableChainFGSAProofs.Tests.FGSafety': {
+        'AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge': (
+            'AvailableChain.FGSA.Run.fgsa_bridge_runAccountable',
+            'AvailableChain.FGSA.Run.fgsa_bridge_parent_scope',
+            'AvailableChain.FGSA.Run.fgsa_bridge_read_scope',
+            'AvailableChain.FGSA.Run.fgsa_bridge_stores_accountable',
+            'AvailableChain.FGSA.Run.fgsa_bridge_reads_accountable',
+            'AvailableChain.FGSA.Run.fgsa_bridge_event_agreement',
+            'AvailableChain.FGSA.Run.fgsa_bridge_read_agreement',
+        ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyReads',

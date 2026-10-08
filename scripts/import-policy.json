@@ -94,7 +94,8 @@
       "AvailableChainFGCompose.Statements.CoreReads",
       "AvailableChainFGCompose.Proofs.SourceHead",
       "AvailableChainFGCompose.Statements.SafetyClient",
-      "AvailableChainFGCompose.Statements.SafetyStore"
+      "AvailableChainFGCompose.Statements.SafetyStore",
+      "AvailableChainFGCompose.Proofs.SafetyAccountable"
     ]
   },
   "profiles": {
