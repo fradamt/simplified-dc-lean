@@ -58,14 +58,15 @@ end AvailableChain.PCSA
 
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
-/-- An actual N quorum reaches both next-label scores and both retained path domains. -/
-theorem pcsa_N_read_transport (E : Generic.Env V)
+/-- In the delivery window: An actual N quorum reaches both next-label scores and both retained
+path domains. -/
+theorem pcsa_N_read_transport_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (v u : Time) (s : Slot) (B : Block)
-    (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.earlyTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hN : holdsN p (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s B = true) :
     let dst := clock p (V2.D.Run.stateBefore E rho k y).st u
@@ -109,7 +110,7 @@ theorem pcsa_N_read_transport (E : Generic.Env V)
     change some r = some B.root at he
     have heq := Option.some.inj he
     subst r
-    rcases pcsa_early_input_relay_support E rho h hF hD a k x y hx hy s i B v u hc hk
+    rcases pcsa_early_input_relay_support_win E rho h hF hD (hT := hT) a k x y hx hy s i B v u hc hk
       hearly hr with hh | he
     · have hsup : Gen.AC.Root.voteSupports dst.base.blocks B ⟨.seat s i, .head B.root⟩ = true := by
         apply (Gen.AC.Root.vote_support_body dst.base.blocks B _).mpr
@@ -137,7 +138,7 @@ theorem pcsa_N_read_transport (E : Generic.Env V)
     rw [hr0] at ht
     have hstamp : GridCO.stampBlock src.base B < SA.earlyTime p.toParams s :=
       of_decide_eq_true (Bool.and_eq_true_iff.mp ht).2
-    have hrelay := pcsa_early_body_relay_frozen E rho h hF hD a
+    have hrelay := pcsa_early_body_relay_frozen_win E rho h hF hD (hT := hT) a
       (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) x y hx hy s B v u hc (le_refl _) hm
         hstamp
     have hb := hrelay.1
@@ -150,6 +151,26 @@ theorem pcsa_N_read_transport (E : Generic.Env V)
     intro C hCB
     exact ⟨pcsa_full_read_prefix_mem E rho hF k y hy u B C hclock hCB,
       pcsa_frozen_read_prefix_mem E rho h hF _ k y hy s u B C (le_refl _) hk hb hCB⟩
+/-- An actual N quorum reaches both next-label scores and both retained path domains. -/
+theorem pcsa_N_read_transport (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (v u : Time) (s : Slot) (B : Block)
+    (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
+    (hN : holdsN p (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s B = true) :
+    let dst := clock p (V2.D.Run.stateBefore E rho k y).st u
+    nQuorum p.n ≤ GridCO.goldfishScore dst.base.blocks
+      (headVotes p dst (s + 1)) (headSupport p dst (s + 1)) B ∧
+    nQuorum p.n ≤ GridCO.goldfishScore dst.base.blocks
+      (proposerVotes dst (s + 1)) (proposerSupport dst (s + 1)) B ∧
+    ∀ C, Block.Preceq C B → C ∈ erasedList dst (fullTree p dst) ∧
+      C ∈ erasedList dst (KitFG.storeFrameView (FGSA.heightView p) dst.fg (voterBlocks p dst (s +
+        1))) :=
+  pcsa_N_read_transport_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy v u s
+    B (pcsa_floor_early (pcsa_zero_le_proposal s)) hc hk hN
 end AvailableChain.PCSA.Run
 
 end

@@ -192,6 +192,14 @@ public import AvailableChainPCSAProofs.Proofs.Clean.CleanOutputs
 public import AvailableChainPCSAProofs.Proofs.Clean.GenuineKeys
 
 public import AvailableChainPCSAProofs.Proofs.Clean.GateAdvance
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartRoots
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartLocks
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartOutputs
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartStep
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartKernels
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartState
+public import AvailableChainPCSAProofs.Proofs.Clean.LockFromCut
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartRecord
 
 public import AvailableChainPCSAProofs.Proofs.Clean.PendingGates
 
@@ -203,6 +211,9 @@ public import AvailableChainPCSAProofs.Proofs.Clean.VoterAuthenticity
 
 public import AvailableChainPCSAProofs.Proofs.Clean.PendingNHead
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
+
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationExport
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartStamp
 
 public section
 
@@ -1532,4 +1543,23 @@ theorem pcsa_clean_honestProposal_stamped (p : Params) :
     (hz.trans hC.cut.2) hBody (pcsa_c9_ack_quorum E rho hC.base (s + 1) N.erase hQ hAck)
 end AvailableChain.PCSA.Run
 
+end
+
+public section
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+
+/-- Formation supplies its full conclusion from the run premise. -/
+theorem pcsa_formation_concl_of_premise (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (s : Slot) (N : NamedProposal p.n) (ΔF : Time)
+    (h : FormationPrem p c E rho s N ΔF) : FormationConcl p c E rho s N := by
+  have hpf := h.toPreFreeze p c E rho
+  have hInputs := pcsa_formation_preFreeze_inputs_of_premise E rho s N ΔF hpf
+  obtain ⟨hh, hn, ha, hp⟩ := pcsa_formation_preFreeze E rho s N ΔF hpf hInputs
+  rw [FormationConcl_def]
+  exact ⟨hh, hn, ha, hp, pcsa_formation_gate_of_counts E rho s N ΔF h
+    (pcsa_formation_gate_counts E rho s N ΔF h hh)⟩
+
+end AvailableChain.PCSA.Run
 end

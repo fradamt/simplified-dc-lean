@@ -1,4 +1,13 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LongFirstSlot
+public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalPaths
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockDomain
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockCounts
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockBatch
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockFollow
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockView
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockOverlap
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockTransport
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Height
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Rows
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Run
@@ -8,7 +17,13 @@ public import AvailableChainPCSAProofs.Proofs.Assembly.Finality
 public import AvailableChainPCSAProofs.Proofs.Assembly.Outage
 public import AvailableChainPCSAProofs.Proofs.Assembly.Recovery
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
+public import AvailableChainPCSAProofs.Proofs.Assembly.Formation
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationExport
+public import AvailableChainPCSAProofs.Proofs.Shared.FormationWindow
 public import AvailableChainPCSAProofs.Proofs.Clean.HeadCone
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationGateCounts
+public import AvailableChainPCSAProofs.Proofs.Clean.StampFrom
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartStamp
 public import AvailableChainPCSAProofs.Proofs.Foundations.AckPool
 public import AvailableChainPCSAProofs.Proofs.Foundations.Duties
 public import AvailableChainPCSAProofs.Proofs.Foundations.Install
@@ -58,6 +73,8 @@ public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalStore
 public import AvailableChainPCSAProofs.Proofs.Recovery.PathSource
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockWindow
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockRank
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockHistory
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
 public import AvailableChainPCSAProofs.Proofs.Recovery.RunInputs
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
@@ -84,8 +101,14 @@ public import AvailableChainPCSAProofs.Proofs.Shared.TreeReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyPersistence
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission
 public import AvailableChainPCSAProofs.Proofs.Shared.CleanWindow
+public import AvailableChainPCSAProofs.Proofs.Shared.SlotOrder
+public import AvailableChainPCSAProofs.Proofs.Shared.LockRankSafe
+public import AvailableChainPCSAProofs.Proofs.Shared.StampKeep
+public import AvailableChainPCSAProofs.Proofs.Shared.RestartSeed
+public import AvailableChainPCSAProofs.Proofs.Shared.RestartSuffix
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
+public import AvailableChainPCSAProofs.Proofs.Shared.StoreRoots
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Shared.VoterView
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient

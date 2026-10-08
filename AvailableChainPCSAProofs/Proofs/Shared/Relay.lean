@@ -148,6 +148,26 @@ theorem pcsa_strict_relay (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)
     (le_refl t) hneed hc hNX
 
 /-- Honest acks emitted at the early duty are handled strictly before the freeze. -/
+theorem pcsa_ack_handled_before_freeze_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (hdelta : E.Δ = p.Δ) (s : Slot) (i : Fin p.n) (r : BlockId) (y : V)
+    (hi : rho.seatOf (.base (.ack s)) i ∈ rho.honest) (hy : y ∈ rho.honest)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i) (ackObj p s i r)
+      (SA.earlyTime p.toParams s)) (hT : T₀ ≤ SA.earlyTime p.toParams s)
+    (hc : SA.freezeTime p.toParams s ≤ cut) :
+    ∃ t', SA.earlyTime p.toParams s ≤ t' ∧ t' < SA.freezeTime p.toParams s ∧
+      ∃ j, V2.D.Run.handlesAt E rho j y (ackObj p s i r) t' := by
+  have ht : SA.earlyTime p.toParams s + E.Δ = SA.freezeTime p.toParams s := by
+    rw [hdelta]
+    change (4 * p.Δ * (s : Int) + 2 * p.Δ) + p.Δ = 4 * p.Δ * (s : Int) + 3 * p.Δ
+    ring
+  have hh := pcsa_strict_broadcast_win E rho hD (ackObj p s i r)
+    (fun _ => by intro h; cases h) _ y _ hi hy he hT (by simpa only [ht] using hc)
+    (pcsa_ack_not_excluded _ s i r)
+  simpa only [ht] using hh
+
+/-- Honest acks emitted at the early duty are handled strictly before the freeze. -/
 theorem pcsa_ack_handled_before_freeze (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
     (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
@@ -156,15 +176,10 @@ theorem pcsa_ack_handled_before_freeze (E : Generic.Env V)
     (he : V2.D.Run.emits E rho (rho.seatOf (.base (.ack s)) i) (ackObj p s i r)
       (SA.earlyTime p.toParams s)) (hc : SA.freezeTime p.toParams s ≤ cut) :
     ∃ t', SA.earlyTime p.toParams s ≤ t' ∧ t' < SA.freezeTime p.toParams s ∧
-      ∃ j, V2.D.Run.handlesAt E rho j y (ackObj p s i r) t' := by
-  have ht : SA.earlyTime p.toParams s + E.Δ = SA.freezeTime p.toParams s := by
-    rw [hdelta]
-    change (4 * p.Δ * (s : Int) + 2 * p.Δ) + p.Δ = 4 * p.Δ * (s : Int) + 3 * p.Δ
-    ring
-  have hh := pcsa_strict_broadcast E rho hD (ackObj p s i r)
-    (fun _ => by intro h; cases h) _ y _ hi hy he (by simpa only [ht] using hc)
-    (pcsa_ack_not_excluded _ s i r)
-  simpa only [ht] using hh
+      ∃ j, V2.D.Run.handlesAt E rho j y (ackObj p s i r) t' :=
+  pcsa_ack_handled_before_freeze_win E rho
+    (pcsa_strictFrom_of_healthy E rho hD (SA.earlyTime p.toParams s)) hdelta s i r y hi hy he
+    (le_refl _) hc
 
 end AvailableChain.PCSA.Run
 end

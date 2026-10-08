@@ -296,6 +296,27 @@ theorem pcsa_head_before_public_cut_relay_late_win (E : Generic.Env V)
     Int.add_le_add_right (max_le_max ht.le (le_refl T₀)) E.Δ
   exact pcsa_head_relay_late_or_cap_win E rho h hD j k x y hx hy s i r t u ha
     (hd.trans hc) (hd.trans hg) ((pcsa_relay_idx_mono rho hd).trans hk)
+/-- The public-cut HEAD relay with a floor `T₀ ≤ bound`: the deadline is `bound + Δ`. -/
+theorem pcsa_head_before_public_cut_relay_late_floor (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (r : BlockId) (bound u : Time)
+    (hpub : V2.PublicTime E bound) (hzero : 0 ≤ bound) (hT : T₀ ≤ bound)
+    (hc : bound + E.Δ ≤ cut) (hg : bound + E.Δ ≤ SA.gateTime p.toParams s)
+    (hk : V2.D.Run.idxBefore rho (bound + E.Δ) ≤ k)
+    (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
+      (V2.D.Run.stateBefore E rho a x).st.base.votes)
+    (hs : GridCO.stampVote (V2.D.Run.stateBefore E rho a x).st.base
+      ⟨.seat s i, .head r⟩ < bound) :
+    (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈ GridCO.lateVotes p.toParams.engine
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∨
+      GridCO.equivocates (GridCO.lateVotes p.toParams.engine
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true := by
+  have hw := pcsa_head_before_public_cut_relay_late_win E rho h hD a k x y hx hy s i r bound u
+    hpub hzero
+  rw [max_eq_left hT] at hw
+  exact hw hc hg hk hm hs
 /-- Any pooled HEAD stamped before a public cutoff relays into the later late denominator. -/
 theorem pcsa_head_before_public_cut_relay_late (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}

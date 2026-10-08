@@ -289,6 +289,73 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   components give it with `T₀ = t_GST`. The `_win` lemmas of `Shared/Relay`,
   `Shared/BodyReceipt` and the Clean lane take `StrictFrom` (or `CleanWindow`);
   the old `HealthyPrefixDeliveryBy` names are wrappers with unchanged types.
+  `Clean/StampFrom.pcsa_clean_honestProposal_stamped_from` proves pre-freeze
+  stamping in this window from equal honest HEADs and the awake N quorum.
+  It needs `T₀ ≤ z_s` for the proposal at `s + 1`. It does not use
+  `CleanRestartSeed`; recovery can use its conclusion to supply a seed stamp.
+- PC-SA CI restart from a label `a` (2026-10-08; steps 4a, 4b, 5a and K2).
+  The clean induction restarts at a seed label `a > 0` with seed block `A`.
+  Shared modules:
+  `Shared/SlotOrder` holds the slot-order facts that were in
+  `Recovery/LockWindow` (`RecoverySlotOrdered`, `StoreSlotOrdered`,
+  `ResultsSlotBound`, `pcsa_reachable_slot_order`, `pcsa_stored_strict_slots`,
+  `pcsa_result_prefix_slot`, `pcsa_saved_result_slot`); `Recovery/LockWindow`
+  keeps the four `recovery_` names as one-line wrappers with unchanged types.
+  `Shared/LockRankSafe` is the store-level lock rank invariant
+  (`pcsa_lock_rank_compatible`, `pcsa_live_lock_rank_compatible`), copied from
+  `Recovery/LockRank` on `pcsa-recov-long`; the Recovery names become wrappers
+  when that branch lands. `Shared/StampKeep` keeps PC stamps after their
+  install (root uniqueness). `Shared/RestartSeed` defines the positive seed
+  `CleanRestartSeed a A` (`0 < a`, `A.slot = a`, a PC `(a, A)` stamped before
+  `z_a` at every honest node, every honest HEAD and proposal of label `a` is
+  `A`, every result of label `a` is `A`, every lock from `z_a` to the input of
+  gate `a` is `⪯ A` (`locksFromFreeze`), and `ArmConcl a A (a + 1)`), and K1:
+  from `z_a`, the proposer PC, the voter snapshot and the gate rank have slot
+  `≥ a`. `Shared/RestartSuffix` defines the output interface
+  `RecoveredSuffixInvariant s P cut` with eight fields: `resultsChain`,
+  `pcChain`, `pcResults`, `selected`, `recordOrigin`, `recordMono`,
+  `gateAdvance` and `honestGate`.
+  Clean modules: `LockFromCut` (K3: a lock after a cut index was stored at the
+  cut or written by a later own gate), `RestartRecord` (K4: after gate `a`
+  the record is `A`), `RestartRoots` (the root at `v_{a+1}` is `A`; the root
+  sources and ack dissemination from `a`), `RestartState` (the seven-field
+  state `CleanStateFrom a j`: results, HEADs above results, equal HEADs,
+  PC/result pairs, roots, ack/HEAD and ack/result coverage, every label
+  quantifier from `a`), `RestartKernels` (the joint-step kernels from `a`),
+  `RestartStep` (the joint step and `pcsa_restart_state_from`, for every
+  `j ≥ a` with `d_j ≤ cut`), `RestartOutputs` (record history from gate `a`
+  and `pcsa_restart_suffix_invariant`, over `CleanWindow E rho a T₀ cut`,
+  `StageOneFrame`, `FaultsBelowQA` and the seed) and `RestartLocks` (K2:
+  `pcsa_restart_locks_from_freeze` proves `locksFromFreeze`; every stored
+  lock rank comes from an earlier own gate below `a`, so the held seed PC
+  ranks above it).
+  K2 and K4 are in Clean: they use Clean record and lock provenance, and K2
+  needs no Recovery lemma. `pcsa_cleanRestartSeed_mk` builds the seed from
+  `0 < a`, `A.slot = a`, the stamp, the HEADs, the proposal, the results,
+  `ArmConcl` and `z_a ≤ horizon`.
+  `Assembly/Recovery` supplies the seed from Formation and C8, and the
+  horizon window from RECOVERY. The Formation conclusion supplies the seed
+  stamp. `Clean/RestartStamp` supplies the stamps for later honest slots.
+- PC-SA Formation (C7; 2026-10-08). Paths are under
+  `AvailableChainPCSAProofs/Proofs/`. The Formation proofs are the
+  `Clean/Formation*` modules; `Clean/FormationExport` collects them. It is an
+  ordinary Clean module, not a lane Export. The layer checker grants one exact
+  edge for it, `Assembly.Formation → Clean.FormationExport`
+  (`scripts/check-layers.py`); no other module may import it across lanes.
+  `Shared/FormationWindow` holds the pre-freeze interface
+  `FormationPreFreezePrem`: `FormationPrem` with the delivery cut at
+  `freezeTime s` and the Formation deadline `max t z_{s-1} + Δ`.
+  `FormationPrem` carries the F4 clause `FormationRootReachable` (the
+  proposer walk from the carried PC target, or `Z`, reaches `liveRoot`);
+  `HealedSourcePrem` carries the same clause at `r * p.R`. Parts 1–4 of the
+  conclusion follow from `FormationPreFreezeInputs`; the gate counts
+  (`Clean/FormationGateCounts`) give part 5. `Assembly/Formation` proves
+  `FormationClaim` (`pcsa_formationClaim`) and `FormationSourceClaim`
+  (`pcsa_formationSourceClaim`, through `Finality/Export`) with no open input.
+  `Clean/FormationRetainedTree` and `Clean/FormationRetainedBack` prove the
+  five retained HEAD facts; `Clean/FormationFrozenRaw` proves the frozen raw
+  relay from the Clean windowed HEAD relay (`StrictFrom` at `T₀ = z_{s-1}`).
+  See `Clean/FormationOPEN.md`.
 - PC-SA finality safety (P12): `Foundations/FGSafetyBridge` converts the PC
   reads and applies Compose `SafetyAccountable`, `SafetyCount`,
   `SafetyMonotone`, and `SafetySlashing` through four exact `COMPOSE_EDGES`.
@@ -297,6 +364,13 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `Assembly/Finality` supplies `PCSAClaims.finality` with
   `pcsaSafetyFinalityClaims`. Both FG modes are covered. Count retains
   all-run carriage; honest non-slashing uses stored-row carriage.
+- PC-SA recovery lock history (2026-10-08). `Recovery/LockRank` proves the
+  held-PC rank invariant for live locks. `Recovery/LockHistory` retains exact
+  rows and ranks across receipts and clocks outside gates. It locates the gate
+  at the start of the final uninterrupted interval of a row and its rank.
+  The derived write witness keeps that interval, the fresh gate, the current
+  result, the preceding saved window, the write rank, and the exact deadline.
+  `recovery_live_lock_last_write` supplies it at an actual post-clock read.
 - PC-SA recovery anchor (2026-10-08). `Recovery/AnchorBase` bounds the
   proposer base from one node's anchor stamp and the C8 strong-output bound.
   `Recovery/FirstSlot` proves the first formation slot and its separate
@@ -762,3 +836,56 @@ and only the instance swap is atomic.
   1aa6885; `docs/PHASE2A-REPORT.md`);
   fgsa-composition-t7-t1 (r11 adopted, 2ec3003; in
   `~/worktrees/available-chain-fgsa-plan`).
+
+- PC-SA long-break transport (2026-10-08). `Recovery/LockTransport` holds
+  lane-neutral receipt and pool facts from label `g`. `Assembly/Recovery`
+  proves all seven suppliers from lane exports. PC key receipt uses only early
+  and vote cutoffs. The run wrapper has no OPEN transport premise.
+
+- PC-SA lock overlap (2026-10-08). `Recovery/LockOverlap` proves mix-time
+  expiry, overlap compatibility, and PC relay compatibility at the write
+  and within a surviving interval. `Recovery/LockView` proves the voter-view
+  rank bound.
+
+- PC-SA recovery rank dissemination (2026-10-08). `Recovery/LockStamp` derives
+  a held key before the early cutoff from the actual PC stamp history, then
+  relays its rank before the freeze. `Recovery/LockView` retains that rank
+  in later voter candidates and proves K for pending writes and surviving
+  rows, including PCs carried by proposals. Existing lock signatures stay fixed.
+
+- PC-SA surviving-lock coverage (2026-10-08). `Recovery/LockDomain` proves
+  the cumulative resolution domain. `LockCounts` transfers a saved gate
+  result to the actual next voter pool. `LockBatch` gives later honest
+  batch counts. `LockFollow` proves F′ from the last write and exact-row
+  survival, then derives preceding HEAD coverage from a live read.
+
+- PC-SA long proposal paths (2026-10-08). `Recovery/ProposalPaths` transfers
+  the actual preceding honest HEAD batch into the proposer pools. It proves
+  the walk from the selected base reaches the live root and the voter F4
+  lease clause. Both use the survival proof in `LockFollow`.
+
+- PC-SA long first-slot assembly (2026-10-08). `Recovery/LongFirstSlot`
+  constructs `FormationPrem` and the explicit proposer-root walk conjunct.
+  `Recovery/Export` proves the predicate conversion with the defining equation.
+  `pcsa_recovery_firstSlot_long_of_run` selects a bounded slot from the long
+  claim premises. The Formation literal also uses the existing root proof.
+
+- PC-SA restart stamps (2026-10-08). `Clean/RestartStamp` derives equal
+  honest HEADs from the restarted state at the predecessor gate. It applies
+  `Clean/StampFrom` to stamp each later honest proposal by its freeze.
+  The proof needs the freeze inside the window, not the current gate.
+  `Clean/Export` and the PC-SA proof facade export the module.
+
+- PC-SA short recovery (2026-10-08). `Assembly/Recovery` proves
+  `pcsa_fastRecoveredClaim (p) : FastRecoveredClaim p` without an extra
+  premise. `pcsa_recovery_suffixInputs_short` connects Formation, C8 and the
+  restarted outputs. `Recovery/Export` keeps the conditional interface as
+  `pcsa_fastRecoveredClaim_of_inputs` with its original type.
+
+- PC-SA long recovery (2026-10-08). `Assembly/Recovery` proves
+  `pcsa_longBreakRecoveredClaim (p) : LongBreakRecoveredClaim p` without an
+  extra premise. `pcsa_recovery_suffixInputs_long` uses the existing specified
+  first-slot proof. The final claim retains `hafter` from `long_recovery_slot`
+  for the horizon window. The long first-slot proof is unchanged.
+  `Recovery/Export` keeps `pcsa_longBreakRecoveredClaim_of_inputs` with its
+  original type. Both recovery claims now have complete suffix suppliers.

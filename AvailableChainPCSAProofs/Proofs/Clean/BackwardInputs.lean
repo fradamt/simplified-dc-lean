@@ -56,13 +56,14 @@ private theorem backward_slot_lower (E : Generic.Env V)
     change (V2.D.Run.stateBefore E rho j x).st.base.now ≤ t at ht
     change 4 * p.Δ * (s : Int) ≤ t
     nlinarith
-/-- Every raw input at the actual voter tick reaches every honest source late pool. -/
-theorem pcsa_voter_tick_input_relay_late (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+/-- In the delivery window: Every raw input at the actual voter tick reaches every honest source
+late pool. -/
+theorem pcsa_voter_tick_input_relay_late_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (r : BlockId)
-    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (ha : rho.events[a]? = some (.tick x (SA.voteTime p.toParams (s + 1))))
     (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
     (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
@@ -88,7 +89,7 @@ theorem pcsa_voter_tick_input_relay_late (E : Generic.Env V)
       change 4 * p.Δ * (s : Int) + 3 * p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
       have hp := p.deltaPos
       linarith
-    exact pcsa_frozen_input_relay_late E rho h hD _ k x y hx hy s i r _ _ hc
+    exact pcsa_frozen_input_relay_late_win E rho h hD (hT := hT) _ k x y hx hy s i r _ _ hc
       (idx _ htime) (List.mem_filter.mp hf.1).1 (by simpa only [Nat.add_sub_cancel] using hf.2)
   · obtain ⟨w, hw, t', N, v, hd, hNs, hv, hvote, _⟩ := hcarried
     rw [pcsa_clock_proposals] at hw
@@ -128,8 +129,28 @@ theorem pcsa_voter_tick_input_relay_late (E : Generic.Env V)
         4 * p.Δ * (s : Int) + 6 * p.Δ
       push_cast
       linarith
-    exact pcsa_handled_input_relay_late E rho h hD j k x y hx hy s i r t _ _
+    exact pcsa_handled_input_relay_late_win E rho h hD
+      (hT := pcsa_floor_vote (pcsa_floor_freeze_next hT)) j k x y hx hy s i r t _ _
       hpub hz (htime.trans hc) htime (idx _ htime) hlo ht hhandle
+/-- Every raw input at the actual voter tick reaches every honest source late pool. -/
+theorem pcsa_voter_tick_input_relay_late (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (r : BlockId)
+    (hc : SA.gateTime p.toParams s ≤ cut)
+    (ha : rho.events[a]? = some (.tick x (SA.voteTime p.toParams (s + 1))))
+    (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
+    (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
+      headVotes p (clock p (V2.D.Run.stateBefore E rho a x).st
+        (SA.voteTime p.toParams (s + 1))) (s + 1)) :
+    (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈ GridCO.lateVotes p.toParams.engine
+      (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s ∨
+    GridCO.equivocates (GridCO.lateVotes p.toParams.engine
+      (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s) i =
+        true :=
+  pcsa_voter_tick_input_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx
+    hy s i r (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc ha hk hm
 end AvailableChain.PCSA.Run
 
 end

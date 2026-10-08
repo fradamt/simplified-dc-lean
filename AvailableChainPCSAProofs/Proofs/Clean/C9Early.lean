@@ -18,11 +18,12 @@ namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
 
 /-- With equal honest HEADs, every read at or after the early index passes the N count. -/
-theorem pcsa_c9_early_holdsN (E : Generic.Env V)
+theorem pcsa_c9_early_holdsN_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
-    (s : Slot) (P : Block) (hc : SA.earlyTime p.toParams s ≤ cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (s : Slot) (P : Block) (hT : T₀ ≤ SA.voteTime p.toParams s)
+    (hc : SA.earlyTime p.toParams s ≤ cut)
     (hhor : SA.voteTime p.toParams s ≤ rho.horizon)
     (hQ : nQuorum p.n ≤ (awakeHonestLabel p c E rho s).card)
     (hHeads : ∀ x H, HonestHeadAt p c E rho x s H → H = P)
@@ -46,7 +47,7 @@ theorem pcsa_c9_early_holdsN (E : Generic.Env V)
   obtain ⟨hxh, hxw⟩ := Finset.mem_filter.mp hxv
   obtain ⟨H, hH⟩ := pcsa_honest_head_exists E rho h x hxh s hxw hhor
   have hHP := hHeads x H hH
-  obtain ⟨hcl, hres⟩ := pcsa_honest_head_clean_support E rho h hF hD x y hy s i H hseat hH hc
+  obtain ⟨hcl, hres⟩ := pcsa_honest_head_clean_support_win E rho h hF hD x y hy s i H hseat hH hT hc
     k hk t
   refine ⟨⟨.seat s i, .head H.root⟩, ?_, rfl, hHP ▸ hres⟩
   apply List.mem_filter.mpr
@@ -62,6 +63,22 @@ theorem pcsa_c9_early_holdsN (E : Generic.Env V)
   rw [hv, hn]
   rfl
 
+/-- With equal honest HEADs, every read at or after the early index passes the N count. -/
+theorem pcsa_c9_early_holdsN (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (s : Slot) (P : Block) (hc : SA.earlyTime p.toParams s ≤ cut)
+    (hhor : SA.voteTime p.toParams s ≤ rho.horizon)
+    (hQ : nQuorum p.n ≤ (awakeHonestLabel p c E rho s).card)
+    (hHeads : ∀ x H, HonestHeadAt p c E rho x s H → H = P)
+    (y : V) (hy : y ∈ rho.honest) (k : Nat)
+    (hk : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ k) (t : Time) :
+    holdsN p (actView (clock p (V2.D.Run.stateBefore E rho k y).st t)) s P = true :=
+  pcsa_c9_early_holdsN_win E rho h hF
+    (pcsa_strictFrom_of_healthy E rho hD (SA.voteTime p.toParams s)) s P (le_refl _) hc hhor hQ
+    hHeads y hy k hk t
+
 /-- A post-clock read at a duty time is at or after that time's index. -/
 theorem pcsa_c9_postClock_index (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) (y : V) (t : Time)
@@ -76,11 +93,12 @@ theorem pcsa_c9_postClock_index (E : Generic.Env V)
   exact lt_irrefl _ ht
 
 /-- Every honest node has an early read, and with equal honest HEADs it passes the N count. -/
-theorem pcsa_c9_early_N (E : Generic.Env V)
+theorem pcsa_c9_early_N_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
-    (s : Slot) (P : Block) (hc : SA.earlyTime p.toParams s ≤ cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (s : Slot) (P : Block) (hT : T₀ ≤ SA.voteTime p.toParams s)
+    (hc : SA.earlyTime p.toParams s ≤ cut)
     (hhor : SA.earlyTime p.toParams s ≤ rho.horizon)
     (hQ : nQuorum p.n ≤ (awakeHonestLabel p c E rho s).card)
     (hHeads : ∀ x H, HonestHeadAt p c E rho x s H → H = P) :
@@ -104,7 +122,22 @@ theorem pcsa_c9_early_N (E : Generic.Env V)
   obtain ⟨k, _, hk, hst⟩ := pcsa_c9_postClock_index E rho h y _ nd hnd
   refine ⟨nd, hnd, ?_⟩
   rw [hst]
-  exact pcsa_c9_early_holdsN E rho h hF hD s P hc (hve.trans hhor) hQ hHeads y hy k hk _
+  exact pcsa_c9_early_holdsN_win E rho h hF hD s P hT hc (hve.trans hhor) hQ hHeads y hy k hk _
+
+/-- Every honest node has an early read, and with equal honest HEADs it passes the N count. -/
+theorem pcsa_c9_early_N (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (s : Slot) (P : Block) (hc : SA.earlyTime p.toParams s ≤ cut)
+    (hhor : SA.earlyTime p.toParams s ≤ rho.horizon)
+    (hQ : nQuorum p.n ≤ (awakeHonestLabel p c E rho s).card)
+    (hHeads : ∀ x H, HonestHeadAt p c E rho x s H → H = P) :
+    ∀ y ∈ rho.honest, ∃ nd, pcsa_postClock E rho y (SA.earlyTime p.toParams s) = some nd ∧
+      holdsN p (actView nd.st) s P = true :=
+  pcsa_c9_early_N_win E rho h hF
+    (pcsa_strictFrom_of_healthy E rho hD (SA.voteTime p.toParams s)) s P (le_refl _) hc hhor hQ
+    hHeads
 
 end AvailableChain.PCSA.Run
 
