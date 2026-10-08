@@ -679,3 +679,9 @@ and only the instance swap is atomic.
 - PC-SA lock overlap (2026-10-08). `Recovery/LockOverlap` proves mix-time
   expiry, overlap compatibility, and PC relay compatibility at the write
   and within a surviving interval. The voter-view rank bound remains open.
+
+- PC-SA recovery rank dissemination (2026-10-08). `Recovery/LockStamp` derives
+  a held key before the early cutoff from the actual PC stamp history, then
+  relays its rank before the freeze. `Recovery/LockView` retains that rank
+  in later voter candidates and proves K for pending writes and surviving
+  rows, including PCs carried by proposals. Existing lock signatures stay fixed.

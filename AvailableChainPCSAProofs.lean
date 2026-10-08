@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockView
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOverlap
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockTransport
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Height

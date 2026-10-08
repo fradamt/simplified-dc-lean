@@ -71,7 +71,7 @@ The other fields are `OPEN_earlyForward`, `OPEN_voterBackward`,
 `OPEN_rootResolution`. The structure and the constructor state each field in
 full. They do not assume lock coverage, root compatibility, or walk dominance.
 
-Step 3 is partial. `Recovery/LockOverlap.lean` proves:
+Step 3 is proved. `Recovery/LockOverlap.lean` proves:
 
 - A live write after the mix has a window wholly at labels at least `g`.
 - Two coexisting live deadlines force their saved windows to overlap.
@@ -86,11 +86,17 @@ Step 3 is partial. `Recovery/LockOverlap.lean` proves:
 
 `Recovery/LockRank.lean` also proves the stored-row rank invariant and
 extracts an active, early-stamped PC witness of a nonempty gate rank.
-K is not complete. The rank witness still needs dissemination before `z_j`.
-Each later selected voter view still needs the resulting rank lower bound.
-The relay kernels take that lower bound explicitly; they do not prove it.
+`Recovery/LockStamp.lean` now derives the held key before `e_j` from the
+actual stamp history. `recovery_gate_rank_disseminated` relays the same rank
+before `z_j`. `Recovery/LockView.lean` retains that PC in each later frozen
+view and proves `recovery_voter_rank_bound`. The selected view's key is held
+before `v_r`, including when a proposal carries it.
+`recovery_write_voter_compatible` and `recovery_survivor_voter_compatible`
+close K without an assumed rank lower bound. The survival theorem retains
+the exact receipt-index bounds for `v_r + Δ = e_r`. It does not assert
+receipt before an arbitrary faulty-slot HEAD.
 
-Steps 4–6 were not started. No `LockFollow`, `ProposalPaths`, or
+Steps 4–6 remain to be proved. No `LockFollow`, `ProposalPaths`, or
 `LongFirstSlot` module, long-slot export kernel, or
 `pcsa_recovery_firstSlot_long` wrapper has been added. The continuation
 stops at a checked commit boundary to stay within the session budget.
@@ -299,3 +305,16 @@ unaccepted equation exports. No checker, policy, or model change was made.
 The five shared lock theorem signatures remain unchanged. No file named
 `Recovery/RestartSeed.lean` was created. All tracked edits are within the
 allowed file list. This report commit changes only this Markdown file.
+
+## Continuation 2 coordination
+
+The intended label-`g` majority supplier is `pcsa_gate_majority_of_label`
+in `Clean/HonestBatch.lean` on `pcsa-ci-win-2`. Its floor is `T₀ ≤ v_s`.
+Use it for the boundary `t_g < GST ≤ v_g` behind `OPEN_sameLabel`.
+That branch has not been merged. The seven Assembly transport parameters
+remain OPEN on this branch. Their exact statements above are unchanged.
+
+Formation is adding `FormationPrem.proposerRootReachable`. Step 6 must set
+`proposerRootReachable := hroot` from the same proof as the separate
+`RecoveryRootReachable` conjunct. This branch still has the old structure.
+No Formation or Claims file is changed here.

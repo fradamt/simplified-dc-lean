@@ -7027,6 +7027,14 @@
             'AvailableChain.PCSA.recovery_live_lock_rank_compatible',
             'AvailableChain.PCSA.recovery_stored_lock_rank_compatible',
         ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LockStamp': (
+            'AvailableChain.PCSA.Run.recovery_gate_rank_before_early',
+            'AvailableChain.PCSA.Run.recovery_gate_rank_disseminated',
+            'AvailableChain.PCSA.Run.recovery_pc_stamp_before_cut',
+            'AvailableChain.PCSA.Run.recovery_pc_stamp_source',
+            'AvailableChain.PCSA.recovery_clock_pcStamps',
+            'AvailableChain.PCSA.recovery_process_pc_stamp_origin',
+        ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockTransport': (
             'AvailableChain.PCSA.Run.RecoveryLockTransport',
             'AvailableChain.PCSA.Run.RecoveryLockTransport.earlyForward',
@@ -7037,6 +7045,16 @@
             'AvailableChain.PCSA.Run.RecoveryLockTransport.rootResolution',
             'AvailableChain.PCSA.Run.RecoveryLockTransport.sameLabel',
             'AvailableChain.PCSA.Run.RecoveryLockTransport.voterBackward',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LockView': (
+            'AvailableChain.PCSA.Run.recovery_frozen_pc_at_read',
+            'AvailableChain.PCSA.Run.recovery_gate_rank_voter_candidate',
+            'AvailableChain.PCSA.Run.recovery_postClock_index',
+            'AvailableChain.PCSA.Run.recovery_survivor_voter_compatible',
+            'AvailableChain.PCSA.Run.recovery_voter_key_before_vote',
+            'AvailableChain.PCSA.Run.recovery_voter_rank_bound',
+            'AvailableChain.PCSA.Run.recovery_write_voter_compatible',
+            'AvailableChain.PCSA.recovery_bestPC_rank_bound',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockWindow': (
             'AvailableChain.PCSA.RecoverySlotOrdered',

@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LockView
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockOverlap
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockRank
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockHistory
@@ -1539,3 +1540,18 @@ end
 #print axioms AvailableChain.PCSA.Run.recovery_survivor_received_pc_compatible
 #print axioms AvailableChain.PCSA.Run.recovery_survivor_relay_pc_compatible
 #print axioms AvailableChain.PCSA.Run.recovery_write_relay_pc_compatible
+
+#print axioms AvailableChain.PCSA.recovery_process_pc_stamp_origin
+#print axioms AvailableChain.PCSA.recovery_clock_pcStamps
+#print axioms AvailableChain.PCSA.Run.recovery_pc_stamp_source
+#print axioms AvailableChain.PCSA.Run.recovery_pc_stamp_before_cut
+#print axioms AvailableChain.PCSA.Run.recovery_gate_rank_before_early
+#print axioms AvailableChain.PCSA.Run.recovery_gate_rank_disseminated
+#print axioms AvailableChain.PCSA.recovery_bestPC_rank_bound
+#print axioms AvailableChain.PCSA.Run.recovery_postClock_index
+#print axioms AvailableChain.PCSA.Run.recovery_frozen_pc_at_read
+#print axioms AvailableChain.PCSA.Run.recovery_gate_rank_voter_candidate
+#print axioms AvailableChain.PCSA.Run.recovery_voter_rank_bound
+#print axioms AvailableChain.PCSA.Run.recovery_voter_key_before_vote
+#print axioms AvailableChain.PCSA.Run.recovery_write_voter_compatible
+#print axioms AvailableChain.PCSA.Run.recovery_survivor_voter_compatible
