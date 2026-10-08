@@ -95,7 +95,10 @@
       "AvailableChainFGCompose.Proofs.SourceHead",
       "AvailableChainFGCompose.Statements.SafetyClient",
       "AvailableChainFGCompose.Statements.SafetyStore",
-      "AvailableChainFGCompose.Proofs.SafetyAccountable"
+      "AvailableChainFGCompose.Proofs.SafetyAccountable",
+      "AvailableChainFGCompose.Proofs.SafetyCount",
+      "AvailableChainFGCompose.Proofs.SafetyMonotone",
+      "AvailableChainFGCompose.Proofs.SafetySlashing"
     ]
   },
   "profiles": {

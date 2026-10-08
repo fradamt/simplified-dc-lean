@@ -275,6 +275,27 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
   lemmas with smaller premises, without the lane prefix (Shared carries no lane
   names); Formation drops its copies when it switches.
+  The CI restart (2026-10-08) adds `CleanWindow`, the delivery window of the
+  clean induction from a label `j₀`. `StrictFrom E rho T₀ cut` is non-row
+  delivery with a deadline `dl t` that is `t + Δ` from the floor `T₀` and at
+  most `max t T₀ + Δ` before it. Converters: `pcsa_strictFrom_of_healthy`
+  (`HealthyPrefixDeliveryBy`, any `T₀`), `pcsa_strictFrom_of_sync`
+  (`PartialSynchronyBy`, `T₀ = t_GST`) and `pcsa_strictFrom_of_within` (a
+  `DeliveryWithinOn` premise with deadline `max t T₀ + Δ`, as
+  `FormationPrem.delivery` with `T₀ = z_{s-1}`). `CleanWindow E rho j₀ T₀ b₀`
+  adds `Base₂`, the cut, `T₀ ≤ t_{j₀}` and `a < h_j` at each label `j ≥ j₀` with
+  `e_j ≤ b₀`; `Clean₂` gives it with `j₀ = 0`, `T₀ = 0`, and the RECOVERY
+  components give it with `T₀ = t_GST`. The `_win` lemmas of `Shared/Relay`,
+  `Shared/BodyReceipt` and the Clean lane take `StrictFrom` (or `CleanWindow`);
+  the old `HealthyPrefixDeliveryBy` names are wrappers with unchanged types.
+- PC-SA finality safety (P12): `Foundations/FGSafetyBridge` converts the PC
+  reads and applies Compose `SafetyAccountable`, `SafetyCount`,
+  `SafetyMonotone`, and `SafetySlashing` through four exact `COMPOSE_EDGES`.
+  `Foundations/FinalitySafety` supplies the six run bodies. `Finality/Export`
+  proves the two pure fields with KitFG and closes all eight frozen claims.
+  `Assembly/Finality` supplies `PCSAClaims.finality` with
+  `pcsaSafetyFinalityClaims`. Both FG modes are covered. Count retains
+  all-run carriage; honest non-slashing uses stored-row carriage.
 - PC-SA recovery lock history (2026-10-08). `Recovery/LockRank` proves the
   held-PC rank invariant for live locks. `Recovery/LockHistory` retains exact
   rows and ranks across receipts and clocks outside gates. It locates the gate
@@ -465,14 +486,22 @@ How the pieces meet:
 - Generic FG finality safety (2026-10-07). `AvailableChainFGCompose` states
   the safety contracts (`Statements/SafetyReads`, `SafetyStore`,
   `SafetyClient`, `SafetyClaims`) and proves the accountability fields 3-5 in
-  `Proofs/SafetyStore` and `Proofs/SafetyAccountable`. FG-SA supplies the laws
-  in `Shared/FGSafetyClient`, `Shared/FGSafetyStore` and `Shared/FGSafetyScope`.
-  `Foundations/FGSafetyBridge` states the accountability results at the FG-SA
-  reads. Its public types use only FG-SA terms, with the `FinalityRunBlock`
-  body expanded, because `Foundations/Accountable` imports the bridge. Its one
-  Compose import is the exact pair `Foundations.FGSafetyBridge` →
-  `AvailableChainFGCompose.Proofs.SafetyAccountable` (`COMPOSE_EDGES` and
-  `laneUpstream`). `Accountable` reaches Compose only through the bridge.
+  `Proofs/SafetyStore` and `Proofs/SafetyAccountable`, the client and count
+  results in `Proofs/SafetyClient` and `Proofs/SafetyCount`, finalized
+  monotonicity in `Proofs/SafetyMonotone`, and field 8 (honest non-slashing)
+  in `Proofs/SafetySlashing`. FG-SA supplies the laws in
+  `Shared/FGSafetyClient`, `Shared/FGSafetyStore` and `Shared/FGSafetyScope`.
+  `Foundations/FGSafetyBridge` states these results at the FG-SA reads:
+  accountability, the pool count, client safety and row origins, finalized
+  monotonicity and honest non-slashing. `Accountable`, `Client`,
+  `ClientOrigin`, `FinalizedSafety` and `HonestNeverSlashed` call the bridge.
+  Its public types use only FG-SA terms, with the `FinalityRunBlock` body
+  expanded, because `Foundations/Accountable` imports the bridge. Its four
+  Compose imports are the exact pairs `Foundations.FGSafetyBridge` →
+  `AvailableChainFGCompose.Proofs.SafetyAccountable`, `.SafetyCount`,
+  `.SafetyMonotone` and `.SafetySlashing` (`COMPOSE_EDGES` and
+  `laneUpstream`). The five callers reach the Compose proofs only through
+  the bridge.
 - FG-SA on engine v2 (T7): `Node = {st, rec}`, `base = st`, `rec = Λ`
   (durable). Label families: HEAD labels AP and fresh (`CStar`); FG labels
   `Linked`; proposal labels AP and `SingleSeat`, one label per slot

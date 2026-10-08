@@ -4252,13 +4252,20 @@
     },
     'AvailableChainFGSAProofs.Tests.FGSafety': {
         'AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge': (
+            'AvailableChain.FGSA.Run.fgsa_bridge_clientSafeAll',
             'AvailableChain.FGSA.Run.fgsa_bridge_event_agreement',
+            'AvailableChain.FGSA.Run.fgsa_bridge_finalizedMonotone',
+            'AvailableChain.FGSA.Run.fgsa_bridge_honestNeverSlashed',
             'AvailableChain.FGSA.Run.fgsa_bridge_parent_scope',
+            'AvailableChain.FGSA.Run.fgsa_bridge_pool_count',
             'AvailableChain.FGSA.Run.fgsa_bridge_read_agreement',
+            'AvailableChain.FGSA.Run.fgsa_bridge_read_row_origin',
             'AvailableChain.FGSA.Run.fgsa_bridge_read_scope',
             'AvailableChain.FGSA.Run.fgsa_bridge_reads_accountable',
             'AvailableChain.FGSA.Run.fgsa_bridge_runAccountable',
+            'AvailableChain.FGSA.Run.fgsa_bridge_slashableBound_of_faults',
             'AvailableChain.FGSA.Run.fgsa_bridge_stores_accountable',
+            'AvailableChain.FGSA.Run.fgsa_safetySlashesRead',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
@@ -5804,6 +5811,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.BackwardInputs': (
             'AvailableChain.PCSA.Run.pcsa_voter_tick_input_relay_late',
+            'AvailableChain.PCSA.Run.pcsa_voter_tick_input_relay_late_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.BlockReceipt': (
             'AvailableChain.PCSA.Run.pcsa_body_storeAt_relay',
@@ -5818,6 +5826,7 @@
             'AvailableChain.PCSA.Run.pcsa_body_accepted_before',
             'AvailableChain.PCSA.Run.pcsa_body_admitted_before',
             'AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay',
+            'AvailableChain.PCSA.Run.pcsa_body_before_public_cut_relay_win',
             'AvailableChain.PCSA.Run.pcsa_body_stamp_lt_of_index_cut',
             'AvailableChain.PCSA.Run.pcsa_body_stamp_source',
             'AvailableChain.PCSA.Run.pcsa_passed_body_accepts',
@@ -5897,7 +5906,9 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.CommonBodies': (
             'AvailableChain.PCSA.Run.pcsa_frozen_body_in_proposer',
+            'AvailableChain.PCSA.Run.pcsa_frozen_body_in_proposer_win',
             'AvailableChain.PCSA.Run.pcsa_proposer_body_before_vote',
+            'AvailableChain.PCSA.Run.pcsa_proposer_body_before_vote_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.CommonEligibility': (
             'AvailableChain.PCSA.pcsa_eligible_current_slot',
@@ -5908,10 +5919,12 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.CommonInputs': (
             'AvailableChain.PCSA.Run.pcsa_frozen_input_in_proposer',
+            'AvailableChain.PCSA.Run.pcsa_frozen_input_in_proposer_win',
             'AvailableChain.PCSA.Run.pcsa_proposer_late_eq',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.CommonRaw': (
             'AvailableChain.PCSA.Run.pcsa_common_raw_transfer',
+            'AvailableChain.PCSA.Run.pcsa_common_raw_transfer_win',
             'AvailableChain.PCSA.Run.pcsa_emitted_raw_in_headVotes',
             'AvailableChain.PCSA.Run.pcsa_honest_headVotes_source',
             'AvailableChain.PCSA.Run.pcsa_proposal_pool_slot',
@@ -5925,9 +5938,11 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.CommonSupport': (
             'AvailableChain.PCSA.Run.pcsa_frozen_support_in_proposer',
+            'AvailableChain.PCSA.Run.pcsa_frozen_support_in_proposer_win',
             'AvailableChain.PCSA.Run.pcsa_honest_headSupport_source',
             'AvailableChain.PCSA.Run.pcsa_honest_support_backward',
             'AvailableChain.PCSA.Run.pcsa_proposer_support_in_voter',
+            'AvailableChain.PCSA.Run.pcsa_proposer_support_in_voter_win',
             'AvailableChain.PCSA.pcsa_active_base_resolution',
             'AvailableChain.PCSA.pcsa_headSupport_of_carried',
             'AvailableChain.PCSA.pcsa_headSupport_resolution',
@@ -5936,12 +5951,15 @@
             'AvailableChain.PCSA.Run.pcsa_honest_slot_body_unique',
             'AvailableChain.PCSA.Run.pcsa_proposal_prefix_voter_mem',
             'AvailableChain.PCSA.Run.pcsa_voter_tree_source',
+            'AvailableChain.PCSA.Run.pcsa_voter_tree_source_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.CommonViews': (
             'AvailableChain.PCSA.Run.pcsa_common_view_targets',
+            'AvailableChain.PCSA.Run.pcsa_common_view_targets_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.CountTransport': (
             'AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts',
+            'AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts_win',
             'AvailableChain.PCSA.Run.pcsa_gate_voter_walk_counts',
             'AvailableChain.PCSA.Run.pcsa_read_vote_support_body',
             'AvailableChain.PCSA.pcsa_clean_input_not_capped',
@@ -6003,13 +6021,17 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.ForwardReceipt': (
             'AvailableChain.PCSA.Run.pcsa_early_body_relay_frozen',
+            'AvailableChain.PCSA.Run.pcsa_early_body_relay_frozen_win',
             'AvailableChain.PCSA.Run.pcsa_early_head_relay_frozen',
+            'AvailableChain.PCSA.Run.pcsa_early_head_relay_frozen_win',
             'AvailableChain.PCSA.Run.pcsa_early_input_relay_support',
+            'AvailableChain.PCSA.Run.pcsa_early_input_relay_support_win',
             'AvailableChain.PCSA.Run.pcsa_genesis_body_stamp',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.FrozenPCTransport': (
             'AvailableChain.PCSA.Run.pcsa_clock_target_active',
             'AvailableChain.PCSA.Run.pcsa_frozen_pc_in_proposer',
+            'AvailableChain.PCSA.Run.pcsa_frozen_pc_in_proposer_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.GateAdvance': (
             'AvailableChain.PCSA.pcsa_clock_gate_record_covers_result',
@@ -6024,7 +6046,9 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.GateCounts': (
             'AvailableChain.PCSA.Run.pcsa_early_input_gate_relay',
+            'AvailableChain.PCSA.Run.pcsa_early_input_gate_relay_win',
             'AvailableChain.PCSA.Run.pcsa_same_label_gate_results',
+            'AvailableChain.PCSA.Run.pcsa_same_label_gate_results_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.GateLockRetention': (
             'AvailableChain.PCSA.pcsa_clock_keep_lock_target',
@@ -6046,6 +6070,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HeadBody': (
             'AvailableChain.PCSA.Run.pcsa_honest_head_body_before_early',
+            'AvailableChain.PCSA.Run.pcsa_honest_head_body_before_early_win',
             'AvailableChain.PCSA.Run.pcsa_honest_head_body_before_vote',
             'AvailableChain.PCSA.Run.pcsa_honest_head_slot_le',
             'AvailableChain.PCSA.pcsa_headVote_body_mem',
@@ -6080,7 +6105,10 @@
             'AvailableChain.PCSA.Run.pcsa_head_acceptance_after_slot_start',
             'AvailableChain.PCSA.Run.pcsa_head_accepting_slot',
             'AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late',
+            'AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late_floor',
+            'AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late_win',
             'AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap',
+            'AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap_win',
             'AvailableChain.PCSA.pcsa_blockAccepted_slot',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HeadStamps': (
@@ -6101,7 +6129,11 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HonestBatch': (
             'AvailableChain.PCSA.Run.pcsa_clean_gate_majority',
+            'AvailableChain.PCSA.Run.pcsa_clean_gate_majority_win',
             'AvailableChain.PCSA.Run.pcsa_clean_head_batch',
+            'AvailableChain.PCSA.Run.pcsa_clean_head_batch_win',
+            'AvailableChain.PCSA.Run.pcsa_gate_majority_of_label',
+            'AvailableChain.PCSA.Run.pcsa_head_batch_of_label',
             'AvailableChain.PCSA.Run.pcsa_honest_head_exists',
             'AvailableChain.PCSA.Run.pcsa_late_participant_bound',
         ),
@@ -6118,21 +6150,28 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HonestReceipt': (
             'AvailableChain.PCSA.Run.pcsa_honest_head_before_early',
+            'AvailableChain.PCSA.Run.pcsa_honest_head_before_early_win',
             'AvailableChain.PCSA.Run.pcsa_honest_head_emits',
             'AvailableChain.PCSA.Run.pcsa_honest_head_not_excluded_early',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.HonestSupport': (
             'AvailableChain.PCSA.Run.pcsa_honest_head_clean_support',
+            'AvailableChain.PCSA.Run.pcsa_honest_head_clean_support_win',
             'AvailableChain.PCSA.Run.pcsa_honest_late_not_capped',
             'AvailableChain.PCSA.pcsa_early_uncapped_clean',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.InputTransport': (
             'AvailableChain.PCSA.Run.pcsa_cap_before_public_cut_relay_late',
+            'AvailableChain.PCSA.Run.pcsa_cap_before_public_cut_relay_late_win',
             'AvailableChain.PCSA.Run.pcsa_count_head_shape',
             'AvailableChain.PCSA.Run.pcsa_frozen_input_relay_late',
+            'AvailableChain.PCSA.Run.pcsa_frozen_input_relay_late_win',
             'AvailableChain.PCSA.Run.pcsa_handled_input_relay_late',
+            'AvailableChain.PCSA.Run.pcsa_handled_input_relay_late_win',
             'AvailableChain.PCSA.Run.pcsa_proposer_input_relay_late',
+            'AvailableChain.PCSA.Run.pcsa_proposer_input_relay_late_win',
             'AvailableChain.PCSA.Run.pcsa_proposer_tick_input_relay_late',
+            'AvailableChain.PCSA.Run.pcsa_proposer_tick_input_relay_late_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.JointAux': (
             'AvailableChain.PCSA.Run.CleanAckCoverageAt',
@@ -6167,6 +6206,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.NCounts': (
             'AvailableChain.PCSA.Run.pcsa_N_same_label_result',
+            'AvailableChain.PCSA.Run.pcsa_N_same_label_result_win',
             'AvailableChain.PCSA.Run.pcsa_honestAck_same_label_result',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.NDissemination': (
@@ -6184,6 +6224,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.NReadTransport': (
             'AvailableChain.PCSA.Run.pcsa_N_read_transport',
+            'AvailableChain.PCSA.Run.pcsa_N_read_transport_win',
             'AvailableChain.PCSA.pcsa_N_head_witness',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.NRoot': (
@@ -6233,6 +6274,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.ProposalDelivery': (
             'AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote',
+            'AvailableChain.PCSA.Run.pcsa_honest_proposal_before_vote_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.ProposalEvidence': (
             'AvailableChain.PCSA.Run.pcsa_decoded_proposal_object',
@@ -6342,6 +6384,7 @@
         'AvailableChainPCSAProofs.Proofs.Clean.RelayReceipt': (
             'AvailableChain.PCSA.Run.pcsa_clean_pc_from_pool',
             'AvailableChain.PCSA.Run.pcsa_pc_before_public_cut_relay',
+            'AvailableChain.PCSA.Run.pcsa_pc_before_public_cut_relay_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.RelayStore': (
             'AvailableChain.PCSA.CleanPCRelay.pcsa_ack_new_key',
@@ -6365,6 +6408,7 @@
         'AvailableChainPCSAProofs.Proofs.Clean.ResultPaths': (
             'AvailableChain.PCSA.Run.pcsa_result_early_support',
             'AvailableChain.PCSA.Run.pcsa_result_prefixes_retained',
+            'AvailableChain.PCSA.Run.pcsa_result_prefixes_retained_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.RetainedProposal': (
             'AvailableChain.PCSA.pcsa_retained_proposal_walk',
@@ -7171,6 +7215,7 @@
             'AvailableChain.PCSA.Run.pcsa_body_receipt_origin',
             'AvailableChain.PCSA.Run.pcsa_body_relay_admitted',
             'AvailableChain.PCSA.Run.pcsa_body_relay_before_deadline',
+            'AvailableChain.PCSA.Run.pcsa_body_relay_from',
             'AvailableChain.PCSA.pcsa_admitBlock_body_mem',
             'AvailableChain.PCSA.pcsa_body_insert_data',
             'AvailableChain.PCSA.pcsa_c3_process_body_pred',
@@ -7202,6 +7247,27 @@
             'AvailableChain.PCSA.pcsa_cl4_later_label',
             'AvailableChain.PCSA.pcsa_cl4_same_label',
             'AvailableChain.PCSA.pcsa_n_score_gap',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Shared.CleanWindow': (
+            'AvailableChain.PCSA.Run.CleanWindow',
+            'AvailableChain.PCSA.Run.StrictFrom',
+            'AvailableChain.PCSA.Run.pcsa_cleanWindow_floor',
+            'AvailableChain.PCSA.Run.pcsa_cleanWindow_of_clean',
+            'AvailableChain.PCSA.Run.pcsa_cleanWindow_of_sync',
+            'AvailableChain.PCSA.Run.pcsa_floor_early',
+            'AvailableChain.PCSA.Run.pcsa_floor_early_next',
+            'AvailableChain.PCSA.Run.pcsa_floor_freeze',
+            'AvailableChain.PCSA.Run.pcsa_floor_freeze_next',
+            'AvailableChain.PCSA.Run.pcsa_floor_gate',
+            'AvailableChain.PCSA.Run.pcsa_floor_le',
+            'AvailableChain.PCSA.Run.pcsa_floor_vote',
+            'AvailableChain.PCSA.Run.pcsa_isNonRow_delay',
+            'AvailableChain.PCSA.Run.pcsa_isNonRow_of_ne',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_mono',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_of_healthy',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_of_sync',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_of_within',
+            'AvailableChain.PCSA.Run.pcsa_zero_le_proposal',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.Clock': (
             'AvailableChain.PCSA.Run.pcsa_clock_read',
@@ -7277,6 +7343,11 @@
             'AvailableChain.PCSA.Run.pcsa_honest_proposal_state',
             'AvailableChain.PCSA.Run.pcsa_signLabel_prop',
             'AvailableChain.PCSA.pcsa_propose_parent',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Shared.Relay': (
+            'AvailableChain.PCSA.Run.pcsa_strict_broadcast_win',
+            'AvailableChain.PCSA.Run.pcsa_strict_relay_from',
+            'AvailableChain.PCSA.Run.pcsa_strict_relay_win',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.RelayRun': (
             'AvailableChain.PCSA.Run.pcsa_ackPool_mono_run',
@@ -7405,6 +7476,37 @@
         ),
     },
     'AvailableChainPCSAProofs.Tests.FGSafety': {
+        'AvailableChainPCSAProofs.Proofs.Assembly.Finality': (
+            'AvailableChain.PCSA.Run.pcsaSafetyFinalityClaims',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Finality.Export': (
+            'AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreementClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBoundClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotoneClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashedClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_pureAccountableClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_pureAgreementClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountableClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreementClaim',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge': (
+            'AvailableChain.PCSA.Run.pcsa_safetySlashesRead',
+            'AvailableChain.PCSA.Run.pcsa_safety_accountable_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_agreement_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_bound_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_carriage_of',
+            'AvailableChain.PCSA.Run.pcsa_safety_count_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_emits_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_eventAgreement_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_finalizedAt_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_monotone_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_noSlash_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_nonSlashing_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_rows_eq',
+            'AvailableChain.PCSA.Run.pcsa_safety_runBlock_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeAccountable_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeAgreement_iff',
+        ),
         'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient': (
             'AvailableChain.PCSA.Run.pcsaCoreReadsWith',
             'AvailableChain.PCSA.Run.pcsaCoreReadsWith_def',
@@ -7446,6 +7548,14 @@
             'AvailableChain.PCSA.pcsa_safety_storeInvariant',
             'AvailableChain.PCSA.pcsa_safety_storeStepRoots',
             'AvailableChain.PCSA.pcsa_safety_window_TF_cases',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Foundations.FinalitySafety': (
+            'AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreement_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBound_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotone_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashed_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountable_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreement_body',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.FGStore': (
             'AvailableChain.PCSA.pcsa_process_F_mono',

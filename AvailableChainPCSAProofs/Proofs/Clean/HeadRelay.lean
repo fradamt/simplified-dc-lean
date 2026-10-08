@@ -180,6 +180,71 @@ private theorem relay_slot_upper (E : Generic.Env V)
   apply (Int.ediv_le_iff_le_mul (show 0 < 4 * p.Δ by positivity)).mpr
   push_cast
   nlinarith
+omit [DecidableEq V] in
+private theorem pcsa_relay_idx_mono (rho : V2.D.Run V (pcsaWith m p c)) {a b : Time}
+    (hab : a ≤ b) : V2.D.Run.idxBefore rho a ≤ V2.D.Run.idxBefore rho b := by
+  rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def, ← List.countP_eq_length_filter,
+    ← List.countP_eq_length_filter]
+  exact List.countP_mono_left (fun e _ he =>
+    decide_eq_true (lt_of_lt_of_le (of_decide_eq_true he) hab))
+/-- An accepted HEAD reaches each honest node's late pool by the window deadline
+`max t T₀ + Δ`, or its capped seat does. The acceptance may precede the floor. -/
+theorem pcsa_head_relay_late_or_cap_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (j k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (r : BlockId) (t u : Time)
+    (ha : V2.D.Run.acceptsAt E rho j x
+      (⟨.seat (.base (.head s)) i, .head r⟩ : Obj p) t)
+    (hc : max t T₀ + E.Δ ≤ cut)
+    (hg : max t T₀ + E.Δ ≤ SA.gateTime p.toParams s)
+    (hk : V2.D.Run.idxBefore rho (max t T₀ + E.Δ) ≤ k) :
+    (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈ GridCO.lateVotes p.toParams.engine
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∨
+      GridCO.equivocates (GridCO.lateVotes p.toParams.engine
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true := by
+  let obj : Obj p := ⟨.seat (.base (.head s)) i, .head r⟩
+  have hS := h.valid.toScheduleWellFormed
+  have ht0 := pcsa_head_acceptance_after_slot_start E rho h j x s i r t ha
+  have hnonneg : 0 ≤ t := by
+    have hd := p.deltaPos
+    change 4 * p.Δ * (s : Int) ≤ t at ht0
+    nlinarith [Int.natCast_nonneg s]
+  have hnr : ∀ body, obj.payload ≠ .row body := by intro body he; cases he
+  obtain ⟨d, htd, hdD, _, hrel⟩ := pcsa_strict_relay_from E rho hD obj hnr x j t hx ha
+  have hpos : 0 < d := lt_of_le_of_lt hnonneg htd
+  have hdc : d ≤ cut := hdD.trans hc
+  have hdg : d ≤ SA.gateTime p.toParams s := hdD.trans hg
+  have hdk : V2.D.Run.idxBefore rho d ≤ k := (pcsa_relay_idx_mono rho hdD).trans hk
+  obtain ⟨parent, hparent, _⟩ := ha.1
+  have hj : j + 1 ≤ V2.D.Run.idxBefore rho d := Nat.succ_le_of_lt
+    ((Gen.V2.Duty.index_lt_idxBefore_iff hS hparent _).mpr htd)
+  by_cases hOld : (pcsaWith m p c).processed (V2.D.Run.stateBefore E rho (j + 1) y) obj = true
+  · have hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
+        (V2.D.Run.stateBefore E rho (j + 1) y).st.base.votes := of_decide_eq_true hOld
+    exact Or.inl (pcsa_head_before_cut_mem_late E rho hS h.noRestart (j + 1) k y s i r
+      d u (hj.trans hdk) hj hdg hm)
+  · by_cases hEx : (pcsaWith m p c).excludes (V2.D.Run.stateBeforeTime E rho d y) obj = true
+    · have he : GridCO.excludes p.toParams.engine
+          (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho d) y).st.base
+          ⟨.seat s i, .head r⟩ = true := by
+        rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+        exact hEx
+      obtain ⟨_, hold | hcap⟩ := (FGSA.Run.Internal.grid_excludes_head_iff _ s i r).mp he
+      · have hu := relay_slot_upper E rho h y d s hpos hdg
+        change s + 1 <
+          (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho d) y).st.slot p at hold
+        exact (Nat.not_lt.mpr hu hold).elim
+      · exact Or.inr (pcsa_cap_before_cut_mem_late E rho hS h.noRestart _ k y s i
+          d u hdk (le_refl _) hdg hcap)
+    · obtain ⟨t', htt, htd', hhandle⟩ := hrel y hy (Bool.eq_false_iff.mpr hOld) hdc
+        (Bool.eq_false_iff.mpr hEx)
+      obtain ⟨q, hq⟩ := hhandle
+      have hq' : q + 1 ≤ V2.D.Run.idxBefore rho d := by
+        obtain ⟨parent, he, _⟩ := hq
+        exact Nat.succ_le_of_lt ((Gen.V2.Duty.index_lt_idxBefore_iff hS he _).mpr htd')
+      exact pcsa_handled_head_late_or_cap E rho h q k y t' d u s i r
+        (hq'.trans hdk) (ht0.trans htt) htd' hdg hq
 /-- An accepted HEAD reaches each honest node's later late pool, or its capped seat does. -/
 theorem pcsa_head_relay_late_or_cap (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
@@ -194,55 +259,64 @@ theorem pcsa_head_relay_late_or_cap (E : Generic.Env V)
         (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∨
       GridCO.equivocates (GridCO.lateVotes p.toParams.engine
         (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true := by
-  let obj : Obj p := ⟨.seat (.base (.head s)) i, .head r⟩
-  have hS := h.valid.toScheduleWellFormed
   have ht0 := pcsa_head_acceptance_after_slot_start E rho h j x s i r t ha
-  have hnonneg : 0 ≤ t := by
+  have hmax : max t 0 = t := by
+    apply max_eq_left
     have hd := p.deltaPos
     change 4 * p.Δ * (s : Int) ≤ t at ht0
     nlinarith [Int.natCast_nonneg s]
-  have hpos : 0 < t + E.Δ := by linarith [E.Δ_pos]
-  obtain ⟨parent, hparent, _⟩ := ha.1
-  have hj : j + 1 ≤ V2.D.Run.idxBefore rho (t + E.Δ) := Nat.succ_le_of_lt
-    ((Gen.V2.Duty.index_lt_idxBefore_iff hS hparent _).mpr
-      (by change t < t + E.Δ; exact lt_add_of_pos_right t E.Δ_pos))
-  by_cases hOld : (pcsaWith m p c).processed (V2.D.Run.stateBefore E rho (j + 1) y) obj = true
-  · have hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
-        (V2.D.Run.stateBefore E rho (j + 1) y).st.base.votes := of_decide_eq_true hOld
-    exact Or.inl (pcsa_head_before_cut_mem_late E rho hS h.noRestart (j + 1) k y s i r
-      (t + E.Δ) u (hj.trans hk) hj hg hm)
-  · by_cases hEx : (pcsaWith m p c).excludes
-        (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y) obj = true
-    · have he : GridCO.excludes p.toParams.engine
-          (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (t + E.Δ)) y).st.base
-          ⟨.seat s i, .head r⟩ = true := by
-        rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
-        exact hEx
-      obtain ⟨_, hold | hcap⟩ := (FGSA.Run.Internal.grid_excludes_head_iff _ s i r).mp he
-      · have hu := relay_slot_upper E rho h y (t + E.Δ) s hpos hg
-        change s + 1 <
-          (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (t + E.Δ)) y).st.slot p at hold
-        exact (Nat.not_lt.mpr hu hold).elim
-      · exact Or.inr (pcsa_cap_before_cut_mem_late E rho hS h.noRestart _ k y s i
-          (t + E.Δ) u hk (le_refl _) hg hcap)
-    · have hnr : ∀ body, obj.payload ≠ .row body := by intro body he; cases he
-      obtain ⟨t', htt, htd, q, hhandle⟩ := pcsa_strict_relay E rho hD obj hnr x y j t hx hy ha
-        (Bool.eq_false_iff.mpr hOld) hc (Bool.eq_false_iff.mpr hEx)
-      have hq : q + 1 ≤ V2.D.Run.idxBefore rho (t + E.Δ) := by
-        obtain ⟨parent, he, _⟩ := hhandle
-        exact Nat.succ_le_of_lt ((Gen.V2.Duty.index_lt_idxBefore_iff hS he _).mpr htd)
-      exact pcsa_handled_head_late_or_cap E rho h q k y t' (t + E.Δ) u s i r
-        (hq.trans hk) (ht0.trans htt) htd hg hhandle
+  have hw := pcsa_head_relay_late_or_cap_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0)
+    j k x y hx hy s i r t u ha
+  rw [hmax] at hw
+  exact hw hc hg hk
 end AvailableChain.PCSA.Run
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
-omit [DecidableEq V] in
-private theorem pcsa_relay_idx_mono (rho : V2.D.Run V (pcsaWith m p c)) {a b : Time}
-    (hab : a ≤ b) : V2.D.Run.idxBefore rho a ≤ V2.D.Run.idxBefore rho b := by
-  rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def, ← List.countP_eq_length_filter,
-    ← List.countP_eq_length_filter]
-  exact List.countP_mono_left (fun e _ he =>
-    decide_eq_true (lt_of_lt_of_le (of_decide_eq_true he) hab))
+/-- Any pooled HEAD stamped before a public cutoff `bound` relays into the later late
+denominator by the window deadline `max bound T₀ + Δ`. -/
+theorem pcsa_head_before_public_cut_relay_late_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (r : BlockId) (bound u : Time)
+    (hpub : V2.PublicTime E bound) (hzero : 0 ≤ bound)
+    (hc : max bound T₀ + E.Δ ≤ cut) (hg : max bound T₀ + E.Δ ≤ SA.gateTime p.toParams s)
+    (hk : V2.D.Run.idxBefore rho (max bound T₀ + E.Δ) ≤ k)
+    (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
+      (V2.D.Run.stateBefore E rho a x).st.base.votes)
+    (hs : GridCO.stampVote (V2.D.Run.stateBefore E rho a x).st.base
+      ⟨.seat s i, .head r⟩ < bound) :
+    (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈ GridCO.lateVotes p.toParams.engine
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∨
+      GridCO.equivocates (GridCO.lateVotes p.toParams.engine
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true := by
+  obtain ⟨j, _, t, ha, ht⟩ := pcsa_head_accepted_before E rho h.valid.toScheduleWellFormed
+    h.noRestart a x s i r bound hpub hzero hm hs
+  have hd : max t T₀ + E.Δ ≤ max bound T₀ + E.Δ :=
+    Int.add_le_add_right (max_le_max ht.le (le_refl T₀)) E.Δ
+  exact pcsa_head_relay_late_or_cap_win E rho h hD j k x y hx hy s i r t u ha
+    (hd.trans hc) (hd.trans hg) ((pcsa_relay_idx_mono rho hd).trans hk)
+/-- The public-cut HEAD relay with a floor `T₀ ≤ bound`: the deadline is `bound + Δ`. -/
+theorem pcsa_head_before_public_cut_relay_late_floor (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (r : BlockId) (bound u : Time)
+    (hpub : V2.PublicTime E bound) (hzero : 0 ≤ bound) (hT : T₀ ≤ bound)
+    (hc : bound + E.Δ ≤ cut) (hg : bound + E.Δ ≤ SA.gateTime p.toParams s)
+    (hk : V2.D.Run.idxBefore rho (bound + E.Δ) ≤ k)
+    (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
+      (V2.D.Run.stateBefore E rho a x).st.base.votes)
+    (hs : GridCO.stampVote (V2.D.Run.stateBefore E rho a x).st.base
+      ⟨.seat s i, .head r⟩ < bound) :
+    (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈ GridCO.lateVotes p.toParams.engine
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∨
+      GridCO.equivocates (GridCO.lateVotes p.toParams.engine
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true := by
+  have hw := pcsa_head_before_public_cut_relay_late_win E rho h hD a k x y hx hy s i r bound u
+    hpub hzero
+  rw [max_eq_left hT] at hw
+  exact hw hc hg hk hm hs
 /-- Any pooled HEAD stamped before a public cutoff relays into the later late denominator. -/
 theorem pcsa_head_before_public_cut_relay_late (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
@@ -260,11 +334,10 @@ theorem pcsa_head_before_public_cut_relay_late (E : Generic.Env V)
         (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∨
       GridCO.equivocates (GridCO.lateVotes p.toParams.engine
         (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true := by
-  obtain ⟨j, _, t, ha, ht⟩ := pcsa_head_accepted_before E rho h.valid.toScheduleWellFormed
-    h.noRestart a x s i r bound hpub hzero hm hs
-  have hd : t + E.Δ ≤ bound + E.Δ := by linarith
-  exact pcsa_head_relay_late_or_cap E rho h hD j k x y hx hy s i r t u ha
-    (hd.trans hc) (hd.trans hg) ((pcsa_relay_idx_mono rho hd).trans hk)
+  have hw := pcsa_head_before_public_cut_relay_late_win E rho h
+    (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy s i r bound u hpub hzero
+  rw [max_eq_left hzero] at hw
+  exact hw hc hg hk hm hs
 end AvailableChain.PCSA.Run
 
 end

@@ -63,6 +63,50 @@ end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
+/-- In the delivery window: Honest proposal receipt gives both directions of the actual raw-input
+comparison. -/
+theorem pcsa_common_raw_transfer_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (a k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (v : Time)
+    (N : NamedProposal p.n)
+    (hx : rho.seatOf (.prop (s + 1)) (0 : Fin 1) ∈ rho.honest)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (⟨.seat (.prop (s + 1)) (0 : Fin 1), .proposal N⟩ : Obj p)
+        (SA.proposalTime p.toParams (s + 1)))
+    (hk : rho.events[k]? = some (.tick (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (SA.proposalTime p.toParams (s + 1))))
+    (hslot : N.slot = s + 1)
+    (hmem : (⟨.proposer (s + 1), .proposal N⟩ : Wire p.n) ∈
+      (V2.D.Run.stateBefore E rho a y).st.proposals)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hr : N.raw.map baseVote = proposerVotes
+      (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
+        (SA.proposalTime p.toParams (s + 1))) (s + 1)) :
+    let src := clock p (V2.D.Run.stateBefore E rho k
+      (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st (SA.proposalTime p.toParams (s + 1))
+    let dst := clock p (V2.D.Run.stateBefore E rho a y).st v
+    proposerVotes src (s + 1) ⊆ headVotes p dst (s + 1) ∧
+      ∀ o ∈ headVotes p dst (s + 1), ∀ i, GridCO.headSeat? o = some i →
+        o ∈ proposerVotes src (s + 1) ∨ GridCO.equivocates (proposerVotes src (s + 1)) i = true :=
+          by
+  dsimp only
+  constructor
+  · rw [← hr]
+    apply pcsa_emitted_raw_in_headVotes E rho a y v (s + 1) N hslot
+    · intro o ho
+      rw [hr] at ho
+      exact beq_iff_eq.mp (List.mem_filter.mp ho).2
+    · exact hmem
+  · intro o ho i hi
+    rcases pcsa_honest_headVotes_source E rho h.valid a y v (s + 1) N hx he o ho with
+      ⟨hm, ht⟩ | hm
+    · rw [Nat.add_sub_cancel] at hm ht
+      have hl : GridCO.headLabel? o = some s := beq_iff_eq.mp (List.mem_filter.mp hm).2
+      obtain ⟨r, rfl⟩ := pcsa_count_head_shape o s i hl hi
+      exact pcsa_frozen_input_in_proposer_win E rho h hD (hT := hT) a k y _ hy hx s i r v hc hk
+        (List.mem_filter.mp hm).1 ht
+    · exact Or.inl (hr ▸ hm)
 /-- Honest proposal receipt gives both directions of the actual raw-input comparison. -/
 theorem pcsa_common_raw_transfer (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
@@ -88,24 +132,8 @@ theorem pcsa_common_raw_transfer (E : Generic.Env V)
     proposerVotes src (s + 1) ⊆ headVotes p dst (s + 1) ∧
       ∀ o ∈ headVotes p dst (s + 1), ∀ i, GridCO.headSeat? o = some i →
         o ∈ proposerVotes src (s + 1) ∨ GridCO.equivocates (proposerVotes src (s + 1)) i = true :=
-          by
-  dsimp only
-  constructor
-  · rw [← hr]
-    apply pcsa_emitted_raw_in_headVotes E rho a y v (s + 1) N hslot
-    · intro o ho
-      rw [hr] at ho
-      exact beq_iff_eq.mp (List.mem_filter.mp ho).2
-    · exact hmem
-  · intro o ho i hi
-    rcases pcsa_honest_headVotes_source E rho h.valid a y v (s + 1) N hx he o ho with
-      ⟨hm, ht⟩ | hm
-    · rw [Nat.add_sub_cancel] at hm ht
-      have hl : GridCO.headLabel? o = some s := beq_iff_eq.mp (List.mem_filter.mp hm).2
-      obtain ⟨r, rfl⟩ := pcsa_count_head_shape o s i hl hi
-      exact pcsa_frozen_input_in_proposer E rho h hD a k y _ hy hx s i r v hc hk
-        (List.mem_filter.mp hm).1 ht
-    · exact Or.inl (hr ▸ hm)
+  pcsa_common_raw_transfer_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k y hy s v N hx
+    he hk hslot hmem (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hr
 end AvailableChain.PCSA.Run
 
 end
