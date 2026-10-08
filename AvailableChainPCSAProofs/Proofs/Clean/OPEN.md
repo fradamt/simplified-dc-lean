@@ -17,7 +17,7 @@ The following claims are proved. Clean claims are exported by
 - `CleanDisseminationClaim`, `PCSACleanSafetyClaim`, and
   `PCSACleanInclusionClaim`.
 - M1 `CleanResultsNonemptyClaim`, M2 `CleanResultsChainPendingClaim`,
-  M4 `CleanDisseminationPendingClaim`, and M5 `LeaseBelowRecordClaim`.
+  M3 `CleanDisseminationPendingClaim`, and M5 `LeaseBelowRecordClaim`.
 - `CleanBlockReceiptClaim`, with the exact after-ticks target reader.
 
 Each claim uses only `propext`, `Classical.choice`, and `Quot.sound`.
@@ -27,7 +27,7 @@ claim declarations were copied verbatim from the outage branch.
 
 ### False pending claims
 
-M3 `CleanHeadsAbovePendingClaim` and `CleanHeadsPastCutClaim` are false
+`CleanHeadsAbovePendingClaim` and `CleanHeadsPastCutClaim` are false
 as stated. `Tests/PendingHeadCounterexample.lean` checks one full run:
 five honest nodes, one faulty node, and delay 2. A carried faulty HEAD
 reaches node 3 at time 17. Its relay deadline, 19, is outside cut 18.

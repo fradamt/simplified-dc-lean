@@ -1104,25 +1104,9 @@ theorem pcsa_clean_gate_guard (E : Generic.Env V)
     (X : Block) (hX : gateResultAt p c E rho x s = some (some X)) :
     (clockPre p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams s)).base.obligations.any
       (fun row => (clockPre p (V2.D.Run.stateBefore E rho k x).st
-        (SA.gateTime p.toParams s)).base.now < row.2.2 && !Block.compatible row.1 X) = false := by
-  rw [List.any_eq_false]
-  intro row hr
-  have hrow := pcsa_clockPre_locks_subset p (V2.D.Run.stateBefore E rho k x).st _ hr
-  have hpre := V2.D.Engine.stateBefore_tick_eq_stateBeforeTime h.valid.toScheduleWellFormed
-    h.noRestart hk
-  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ h.valid.toScheduleWellFormed] at hpre
-  rw [hpre] at hrow
-  obtain ⟨a, ha, i, Y, he, hY, hrowY, _⟩ := pcsa_lock_stateBefore_origin E rho h _ x row hrow
-  have ht := (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed he _).mp ha
-  have hi : i < s := by
-    apply Nat.lt_of_not_ge
-    intro hn
-    exact not_lt_of_ge (pcsa_gate_time_mono p hn) ht
-  have hYX := (hCI.resultsChain x hx x hx i s Y X hi.le (le_refl _) hY hX).1 hi
-  have hc : Block.compatible row.1 X = true := Bool.or_eq_true_iff.mpr
-    (Or.inl (Gen.Pure.block_preceq_trans hrowY hYX))
-  rw [hc]
-  simp only [Bool.not_true, Bool.and_false, Bool.false_eq_true, not_false_eq_true]
+        (SA.gateTime p.toParams s)).base.now < row.2.2 && !Block.compatible row.1 X) = false :=
+  pcsa_gate_guard_of_chain E rho h s k x hk X (fun i Y hi hY =>
+    (hCI.resultsChain x hx x hx i s Y X hi.le (le_refl _) hY hX).1 hi)
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
@@ -1203,21 +1187,20 @@ theorem pcsa_clean_result_below_post_gate (E : Generic.Env V)
     (x : V) (hx : x ∈ rho.honest) (k : Nat)
     (hk : rho.events[k]? = some (.tick x (SA.gateTime p.toParams i))) (X : Block)
     (hX : gateResultAt p c E rho x i = some (some X)) :
-    Block.Preceq X (V2.D.Run.stateBefore E rho (k + 1) x).st.base.stableRecord := by
-  have hCI := (pcsa_clean_joint_invariant E rho h hF hFault i hc).1
-  have hraw := Option.some.inj ((pcsa_gateResultAt_at_tick E rho h.base.valid.nodup k x i
-    hk).symm.trans hX)
-  rw [pcsa_clock_confirmation_eq_pre] at hraw
-  have hs := pcsa_clock_gate_record_covers_result p (V2.D.Run.stateBefore E rho k x).st i X
-    (hF x hx k).1 (pcsa_gate_input_unsaved E rho h.base.valid.nodup k x i hk) hraw
-    (pcsa_clean_gate_guard E rho h.base i hCI k x hx hk X hX)
-  have hpost : (V2.D.Run.stateBefore E rho (k + 1) x).st =
-      clock p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams i) := by
-    rw [V2.D.Run.stateBefore_succ E rho hk]
-    change (Function.update (V2.D.Run.stateBefore E rho k) x _ x).st = _
-    rw [Function.update_self]
-    exact pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k x) x _
-  rwa [hpost]
+    Block.Preceq X (V2.D.Run.stateBefore E rho (k + 1) x).st.base.stableRecord :=
+  pcsa_result_below_post_gate_of_chain E rho h.base hF i x hx k hk X hX (fun i' Y hi hY =>
+    ((pcsa_clean_joint_invariant E rho h hF hFault i hc).1.resultsChain x hx x hx i' i Y X hi.le
+      (le_refl _) hY hX).1 hi)
+/-- Every lock at an inclusive read through the clean cut is below the S of that read. -/
+theorem pcsa_clean_lock_below_record_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x : V) (hx : x ∈ rho.honest) (t : Time) (ht : t ≤ cut)
+    (row : Block × Nat × Time) (hr : row ∈ (storeAt p c E rho x t).base.obligations) :
+    Block.Preceq row.1 (storeAt p c E rho x t).base.stableRecord :=
+  pcsa_lock_below_record_of_chain E rho h.base hF x hx (fun i i' X Y hi hc hX hY =>
+    ((pcsa_clean_joint_invariant E rho h hF hFault i' hc).1.resultsChain x hx x hx i i' X Y hi.le
+      (le_refl _) hX hY).1 hi) t ht row hr
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
@@ -1263,7 +1246,7 @@ theorem pcsa_clean_ack_next_head_pending (E : Generic.Env V)
     (pcsa_clean_head_above_past_at_early E rho h hF hFault s hearly)
     (fun i hi z A hA w K hK => pcsa_clean_ack_to_head_at_early E rho h hF hFault
       i s hi hearly z w A K hA hK) x y hH.1 B R hB hR))
-/-- M4: honest acks disseminate to the pending next HEAD and result at the stated cutoffs. -/
+/-- M3: honest acks disseminate to the pending next HEAD and result at the stated cutoffs. -/
 theorem pcsa_clean_dissemination_pending (p : Params) : CleanDisseminationPendingClaim p := by
   intro V _ _ In c m E rho cut ΔF h hFault hF s y B hB
   constructor
