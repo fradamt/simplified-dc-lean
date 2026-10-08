@@ -477,20 +477,20 @@ theorem RecoveryRootReachable_def (s : Slot) :
 
 The exact source signatures are:
 
-- `LockFollow.recovery_lock_follow`: F′ for `s < r < S`, indexed by the
+- `recovery_lock_follow` in `LockFollow.lean`: F′ for `s < r < S`, indexed by the
   write event `k`, final read event `i`, exact row, and unchanged rank.
   The PC receipt deadline `v_r + Δ` is before the final read.
-- `LockFollow.recovery_live_lock_preceding_heads`: from `Recovery₂`,
+- `recovery_live_lock_preceding_heads` in `LockFollow.lean`: from `Recovery₂`,
   `StageOneFrame`, `RecoveryLockTransport`, `GST ≤ v_g`, a post-mix
   live read at `t_S` or `v_S`, derive `B ⪯ H` for every honest HEAD at
   label `S - 1`. The last-write witness is derived from the run.
-- `ProposalPaths.recovery_long_proposer_root`: the full body of
+- `recovery_long_proposer_root` in `ProposalPaths.lean`: the full body of
   `RecoveryRootReachable`, from the same premises, an honest proposer,
   `v_(g+2k-1) ≤ t_s`, and `d_s ≤ horizon`.
-- `ProposalPaths.recovery_long_voter_leases`: each live voter lock
+- `recovery_long_voter_leases` in `ProposalPaths.lean`: each live voter lock
   compatible with the carried PC base is below `N.erase.parent`.
   This is stronger than the requested depth-filtered F4 clause.
-- `LongFirstSlot.recovery_firstSlot_long_body`: the long-slot premises
+- `recovery_firstSlot_long_body` in `LongFirstSlot.lean`: the long-slot premises
   and one explicit `RecoveryLockTransport` argument give
   `∃ N, FormationPrem p c E rho s N ΔF ∧` the explicit root-walk body.
 
@@ -508,3 +508,88 @@ already has the local proof `hroot`. The one-line integration is:
 ```
 
 Keep the separate root conjunct after that integration.
+
+## Checked continuation 3 report (2026-10-08)
+
+Code commits:
+
+- `b9498443`: step 4, F′ from the last write and exact-row survival.
+- `f8742ab8`: step 5, actual proposal-pool paths and both F4 bodies.
+- `a678c134`: step 6 body, `FormationPrem` and the explicit root walk.
+
+Step 4: PROVED under the unchanged transport interface.
+Step 5: PROVED under the unchanged transport interface.
+Step 6: STOPPED at the predicate interface. The complete first-slot body
+is proved. The exact `Recovery/Export` kernel and the Assembly wrapper
+`pcsa_recovery_firstSlot_long` are absent.
+
+Exact reason: `RecoveryRootReachable` is not exposed from
+`Recovery/Suffix.lean`. That file has no defining-equation theorem and is
+outside the allowed file list. A module-mode Lean check of direct
+`exact hroot` fails with: “The following definitions were not unfolded
+because their definition is not exposed: RecoveryRootReachable”.
+The required equation is shown above. Scope approval was requested and
+is still pending. No import-all, exposure-policy, or checker bypass was used.
+
+The final proved body signature is below. Its namespace is
+`AvailableChain.PCSA.Run`. Implicit parameters are `{p : Params}`,
+`{In V : Type}`, `[DecidableEq V]`, `[Fintype V]`, `{c : AppCodec In}`,
+and `{m : FGMode}`.
+
+```lean
+theorem recovery_firstSlot_long_body (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) (hF : StageOneFrame p c E rho)
+    (g s : Slot) (transport : RecoveryLockTransport p c E rho g)
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams g)
+    (hmix : SA.voteTime p.toParams (g + 2 * p.k - 1) ≤ SA.proposalTime p.toParams s)
+    (hafter : E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s)
+    (hprop : Gen.V2.Duty.HonestAwakeProposer E
+      (pcsaInterface p c (m := m)).toInterface rho s)
+    (horizon : SA.gateTime p.toParams s ≤ rho.horizon) :
+    ∃ N : NamedProposal p.n, FormationPrem p c E rho s N ΔF ∧
+  ∀ nd, pcsa_postClock E rho
+      (V2.D.proposerOf rho (pcsaInterface p c (m := m)).toInterface s)
+      (V2.D.proposalTime (pcsaInterface p c (m := m)).toInterface s) = some nd →
+    let st := nd.st
+    let pc := proposerPC p st
+    let root := (pc.map PC.target).getD (eraseFG (controls p st).Z)
+    Block.Preceq (liveRoot p st pc)
+      (GridCO.ghost root (erasedList st (fullTree p st))
+        (GridCO.goldfishScore st.base.blocks (proposerVotes st s) (proposerSupport st s))
+        (eligible p st (proposerVotes st s) (proposerSupport st s)))
+```
+
+The exact final target still needs the predicate conversion:
+
+```lean
+∃ N : NamedProposal p.n,
+  FormationPrem p c E rho s N ΔF ∧ RecoveryRootReachable p c E rho s
+```
+
+All seven Assembly parameters remain OPEN: `OPEN_sameLabel`,
+`OPEN_earlyForward`, `OPEN_voterBackward`, `OPEN_pcReceipt`,
+`OPEN_honestVoterInputs`, `OPEN_honestProposerInputs`, and
+`OPEN_rootResolution`. Their full statements in “Continuation transport
+statements” are unchanged. No new transport field or claim premise was added.
+The label-`g` supplier and Formation field integration are recorded above.
+
+Validation of the final Lean sources at `a678c134`:
+
+- Default `lake build --wfail`: PASS, 4,597 jobs.
+- `LC_ALL=C bash scripts/check-build.sh`: PASS, all checks and self-tests.
+- Layers: PASS, zero new findings. Layer self-test: PASS, 37 controls.
+- GLY and F-13 under `LC_ALL=C`: PASS.
+- `NEG=0 check-fgsa-claims.sh`: PASS.
+- `NEG=0 check-pcsa-manifest.sh`: PASS, 421 entries in 21 modules; hashes match.
+- Normal proof coverage: PASS, 5,941 declarations across 13 audits.
+- All 26 new public declarations have explicit standard-axiom audits.
+- Equation audit: zero unaccepted exports.
+- All 43 new public and private source names are clear on main, `222cf06a`,
+  `pcsa-w2-formation-next`, `pcsa-ci-win-1/-2/-3`, and `nuc/pcsa-fsrc`.
+- Main precheck: expected ancestry refusal, main `b698238`, target `a678c13`.
+
+`LockHistory.lean` and `LockRank.lean` have no diff from `9b22048e`.
+All tracked changes are inside the allowed file list. No `RestartSeed.lean`,
+main merge, or push. The defining-equation scope question is the remaining
+block for the exact first-slot export and wrapper.
