@@ -338,7 +338,8 @@ a proposal by root (a stored FG block has the root of its block, the
 duplicate test of `blockAccepted`); a HEAD if its base vote is in the vote
 pool; a row if it is in the row pool; an ack if it is in the ack pool; a PC
 if a PC of its slot and target is installed (the test of `installPC`; the
-pools and the installed PCs only grow). -/
+pools only grow; the installed PCs grow in stage 1, and `reconcile` filters
+them when `F` moves). -/
 def processedS (p : Params) (st : State p.n) (o : Obj p) : Bool :=
   match (toWire p o).decode with
   | some (.vote s i b) => decide (baseVote (⟨.seat (.head s) i, b⟩ : HeadWire p.n) ∈ st.base.votes)

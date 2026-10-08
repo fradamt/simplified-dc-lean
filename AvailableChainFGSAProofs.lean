@@ -298,3 +298,5 @@ public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth
 public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope

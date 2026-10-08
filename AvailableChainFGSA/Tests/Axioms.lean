@@ -236,6 +236,7 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.cstoreInv_clock
 #print axioms AvailableChain.FGSA.storeInvariant
 #print axioms AvailableChain.FGSA.fg_step_cases
+#print axioms AvailableChain.FGSA.process_TF_new
 #print axioms AvailableChain.FGSA.fMonotone
 #print axioms AvailableChain.FGSA.process_F_mono
 #print axioms AvailableChain.FGSA.clock_F_eq
