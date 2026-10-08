@@ -531,6 +531,31 @@ theorem pcsa_body_relay_admitted (E : Generic.Env V)
     have hm := pcsa_body_stateBefore_mono E rho h.noRestart y hkd hb'
     rwa [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hm
 
+/-- An accepted exact body reaches every honest receiver before a window deadline
+`d ≤ max t T₀ + Δ`, with `d = t + Δ` from the floor `T₀`. -/
+theorem pcsa_body_relay_from (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time} (hD : StrictFrom E rho T₀ cut)
+    (j : Nat) (x : V) (hx : x ∈ rho.honest)
+    (t : Time) (o : Obj p) (s : Slot) (N : NamedProposal p.n)
+    (P : SimplexFG.FGBlock (Fin p.n))
+    (hj : rho.events[j]? = some (.deliver x o t))
+    (hd : (toWire p o).decode = some (.block s N))
+    (hp : parentFG (V2.D.Run.stateBefore E rho j x).st N.erase = some P)
+    (ha : blockAccepted p (V2.D.Run.stateBefore E rho j x).st s N P = true)
+    (hAccept : V2.D.Run.acceptsAt E rho j x o t) :
+    ∃ d, t < d ∧ d ≤ max t T₀ + E.Δ ∧ (T₀ ≤ t → d = t + E.Δ) ∧
+      ∀ y ∈ rho.honest, d ≤ cut →
+        N.erase ∈ (V2.D.Run.stateBeforeTime E rho d y).st.base.blocks := by
+  have hShape := pcsa_c3_decoded_object o s N hd
+  have hn : ∀ body, o.payload ≠ .row body := by
+    rw [hShape]
+    intro body he
+    cases he
+  obtain ⟨d, htd, hle, hex, hrel⟩ := pcsa_strict_relay_from E rho hD o hn x j t hx hAccept
+  exact ⟨d, htd, hle, hex, fun y hy hc => pcsa_body_relay_admitted E rho h hF j x y hx hy t o s
+    N P hj hd hp ha d htd (fun hNeed hNX => hrel y hy hNeed hc hNX)⟩
+
 /-- An accepted exact body reaches every honest receiver before its relay deadline. -/
 theorem pcsa_body_relay_before_deadline (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
@@ -545,14 +570,10 @@ theorem pcsa_body_relay_before_deadline (E : Generic.Env V)
     (ha : blockAccepted p (V2.D.Run.stateBefore E rho j x).st s N P = true)
     (hAccept : V2.D.Run.acceptsAt E rho j x o t) (hc : t + E.Δ ≤ cut) :
     N.erase ∈ (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y).st.base.blocks := by
-  have hShape := pcsa_c3_decoded_object o s N hd
-  have hn : ∀ body, o.payload ≠ .row body := by
-    rw [hShape]
-    intro body he
-    cases he
-  exact pcsa_body_relay_admitted E rho h hF j x y hx hy t o s N P hj hd hp ha (t + E.Δ)
-    (lt_add_of_pos_right t E.Δ_pos)
-    (fun hNeed hNX => pcsa_strict_relay E rho hD o hn x y j t hx hy hAccept hNeed hc hNX)
+  obtain ⟨d, _, _, hex, hrecv⟩ := pcsa_body_relay_from E rho h hF
+    (pcsa_strictFrom_of_healthy E rho hD t) j x hx t o s N P hj hd hp ha hAccept
+  rw [hex (le_refl t)] at hrecv
+  exact hrecv y hy hc
 end AvailableChain.PCSA.Run
 
 end

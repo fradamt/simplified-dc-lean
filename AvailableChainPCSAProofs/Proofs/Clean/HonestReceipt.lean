@@ -74,12 +74,14 @@ theorem pcsa_honest_head_not_excluded_early (E : Generic.Env V)
       (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) y s i hi
     rw [hcap] at hf
     cases hf
-/-- Strict broadcast puts each honest HEAD in the pool with a strict early stamp. -/
-theorem pcsa_honest_head_before_early (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+/-- From the window floor, strict broadcast puts each honest HEAD in the pool with a
+strict early stamp. -/
+theorem pcsa_honest_head_before_early_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (x y : V) (hy : y ∈ rho.honest) (s : Slot) (i : Fin p.n) (H : Block)
     (hi : rho.seatOf (.base (.head s)) i = x) (hH : HonestHeadAt p c E rho x s H)
+    (hT : T₀ ≤ SA.voteTime p.toParams s)
     (hc : SA.earlyTime p.toParams s ≤ cut) (k : Nat)
     (hk : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ k) :
     (⟨.seat s i, .head H.root⟩ : GridCO.Wire p.n .root) ∈
@@ -97,8 +99,8 @@ theorem pcsa_honest_head_before_early (E : Generic.Env V)
       (⟨.seat (.base (.head s)) i, .head H.root⟩ : Obj p) = false := by
     rw [htime]
     exact pcsa_honest_head_not_excluded_early E rho h y s i H.root hh
-  obtain ⟨t, hlo, hhi, j, hhandle⟩ := pcsa_strict_broadcast E rho hD _
-    (by intro body heq; cases heq) x y _ hH.1 hy he (by rwa [htime]) hNX
+  obtain ⟨t, hlo, hhi, j, hhandle⟩ := pcsa_strict_broadcast_win E rho hD _
+    (by intro body heq; cases heq) x y _ hH.1 hy he hT (by rwa [htime]) hNX
   rw [htime] at hhi
   have hstart : GridCO.proposalTime p.toParams.engine s ≤ t := by
     change 4 * p.Δ * (s : Int) ≤ t
@@ -126,6 +128,20 @@ theorem pcsa_honest_head_before_early (E : Generic.Env V)
   rw [pcsa_head_stamp_stateBefore_eq E rho h.noRestart y (hj.trans hk) _ hm]
   exact pcsa_head_stamp_lt_of_index_cut E rho h.valid.toScheduleWellFormed h.noRestart
     (j + 1) y s i H.root _ hj hm
+/-- Strict broadcast puts each honest HEAD in the pool with a strict early stamp. -/
+theorem pcsa_honest_head_before_early (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (x y : V) (hy : y ∈ rho.honest) (s : Slot) (i : Fin p.n) (H : Block)
+    (hi : rho.seatOf (.base (.head s)) i = x) (hH : HonestHeadAt p c E rho x s H)
+    (hc : SA.earlyTime p.toParams s ≤ cut) (k : Nat)
+    (hk : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ k) :
+    (⟨.seat s i, .head H.root⟩ : GridCO.Wire p.n .root) ∈
+      (V2.D.Run.stateBefore E rho k y).st.base.votes ∧
+    GridCO.stampVote (V2.D.Run.stateBefore E rho k y).st.base
+      ⟨.seat s i, .head H.root⟩ < SA.earlyTime p.toParams s :=
+  pcsa_honest_head_before_early_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) x y hy s i H
+    hi hH (le_refl _) hc k hk
 end AvailableChain.PCSA.Run
 
 end

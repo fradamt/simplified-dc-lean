@@ -7,16 +7,17 @@ public section
 /-! C6 ProposalDelivery: concrete receipt and count support. -/
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
-/-- Every honest emitted proposal is stored, with its exact metadata, before the voter read. -/
-theorem pcsa_honest_proposal_before_vote (E : Generic.Env V)
+/-- From the window floor, every honest emitted proposal is stored, with its exact
+metadata, before the voter read. -/
+theorem pcsa_honest_proposal_before_vote_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) (s : Slot)
     (N : NamedProposal p.n)
     (he : V2.D.Run.emits E rho x (⟨.seat (.prop s) (0 : Fin 1), .proposal N⟩ : Obj p)
       (SA.proposalTime p.toParams s))
-    (hc : SA.voteTime p.toParams s ≤ cut) (k : Nat)
+    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.voteTime p.toParams s ≤ cut) (k : Nat)
     (hk : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ k) :
     (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
       (V2.D.Run.stateBefore E rho k y).st.proposals ∧
@@ -47,8 +48,8 @@ theorem pcsa_honest_proposal_before_vote (E : Generic.Env V)
       (V2.D.Run.stateBeforeTime E rho (SA.proposalTime p.toParams s + E.Δ) y) obj = false := by
     rw [hdeadline]
     exact pcsa_body_not_excluded p _ s N P hf hP hRows
-  obtain ⟨t, hlo, hhi, j, parent, hj, hh⟩ := pcsa_strict_broadcast E rho hD obj
-    (by intro body heq; cases heq) x y _ hx hy he (by rwa [hdeadline]) hNX
+  obtain ⟨t, hlo, hhi, j, parent, hj, hh⟩ := pcsa_strict_broadcast_win E rho hD obj
+    (by intro body heq; cases heq) x y _ hx hy he hT (by rwa [hdeadline]) hNX
   rw [hdeadline] at hhi
   have hpObj : parent = obj :=
     pcsa_body_handles_direct (V2.D.Run.stateBefore E rho j y).st parent s N hh
@@ -83,6 +84,22 @@ theorem pcsa_honest_proposal_before_vote (E : Generic.Env V)
     ((Gen.V2.Duty.index_lt_idxBefore_iff hS hjo _).mpr hhi)).trans hk
   exact ⟨pcsa_proposals_stateBefore_mono E rho h.noRestart (j + 1) k y hidx hpMem,
     pcsa_body_stateBefore_mono E rho h.noRestart y hidx hbMem⟩
+/-- Every honest emitted proposal is stored, with its exact metadata, before the voter read. -/
+theorem pcsa_honest_proposal_before_vote (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) (s : Slot)
+    (N : NamedProposal p.n)
+    (he : V2.D.Run.emits E rho x (⟨.seat (.prop s) (0 : Fin 1), .proposal N⟩ : Obj p)
+      (SA.proposalTime p.toParams s))
+    (hc : SA.voteTime p.toParams s ≤ cut) (k : Nat)
+    (hk : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ k) :
+    (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
+      (V2.D.Run.stateBefore E rho k y).st.proposals ∧
+      N.erase ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks :=
+  pcsa_honest_proposal_before_vote_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) x y hx hy
+    s N he (le_refl _) hc k hk
 end AvailableChain.PCSA.Run
 
 end

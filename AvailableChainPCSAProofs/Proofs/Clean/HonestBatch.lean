@@ -35,10 +35,12 @@ theorem pcsa_honest_head_exists (E : Generic.Env V)
     (SA.voteTime p.toParams s)) s, hx, hw, ?_⟩
   rw [pcsa_voteHeadAt_def, pcsa_postClock_def, pcsa_preTick_def, hk]
   rfl
-/-- The clean participation premise gives an honest HEAD-seat batch larger than faults. -/
-theorem pcsa_clean_head_batch [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
-    (h : Clean₂ p c E rho cut ΔF) (s : Slot) (hc : SA.gateTime p.toParams s ≤ cut) :
+/-- In the window from `j₀`, the label bound gives an honest HEAD-seat batch at each label
+`s ≥ j₀` that is larger than the faults. -/
+theorem pcsa_clean_head_batch_win [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
+    (h : CleanWindow E rho j₀ T₀ cut) (s : Slot) (hs : j₀ ≤ s)
+    (hc : SA.gateTime p.toParams s ≤ cut) :
     ∃ Hon : Finset (Fin p.n),
       (∀ i, i ∈ Hon ↔ rho.seatOf (.base (.head s)) i ∈ rho.honest ∧
         E.awake (rho.seatOf (.base (.head s)) i) (SA.voteTime p.toParams s) = true) ∧
@@ -66,7 +68,16 @@ theorem pcsa_clean_head_batch [Fintype V] (E : Generic.Env V)
     have hcard : Hon.card = A.card := Finset.card_image_of_injective A e.symm.injective
     rw [hcard]
     have hsub : awakeHonestLabel p c E rho s ⊆ A := Finset.inter_subset_left
-    exact lt_of_lt_of_le (h.labels s hearly) (Finset.card_le_card hsub)
+    exact lt_of_lt_of_le (h.labels s hs hearly) (Finset.card_le_card hsub)
+/-- The clean participation premise gives an honest HEAD-seat batch larger than faults. -/
+theorem pcsa_clean_head_batch [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (s : Slot) (hc : SA.gateTime p.toParams s ≤ cut) :
+    ∃ Hon : Finset (Fin p.n),
+      (∀ i, i ∈ Hon ↔ rho.seatOf (.base (.head s)) i ∈ rho.honest ∧
+        E.awake (rho.seatOf (.base (.head s)) i) (SA.voteTime p.toParams s) = true) ∧
+      (Gen.V2.Duty.faulty rho).card < Hon.card :=
+  pcsa_clean_head_batch_win E rho (pcsa_cleanWindow_of_clean E rho h) s (Nat.zero_le s) hc
 /-- The late denominator contains only awake honest HEAD seats and faulty seats. -/
 theorem pcsa_late_participant_bound [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
