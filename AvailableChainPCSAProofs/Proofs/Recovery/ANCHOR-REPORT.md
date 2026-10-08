@@ -7,42 +7,35 @@ Base: `5995104a`. Branch: `pcsa-recov-anchor`. No push.
 - `00e0a155`: step 3, anchor-to-proposer-base bound.
 - `031f5e4d`: first-slot kernel from explicit anchor facts.
 - `2153c628`: regenerated proof-audit coverage.
+- `3536a568`: initial report and placement request.
+- `6d8d0553`: step 1, saved-result anchor wrapper.
+- `9a3e0fe1`: step 2, anchor proposal, stamp, ARM, and ARM conclusion.
+- `4148bea2`: step 4, exact short-break first-slot wrapper.
+- `358ae7b1`: regenerated coverage for the three wrappers.
 
 All commits have the requested Claude-Session trailer.
 
 ## Plan status
 
-- Step 1: **STOPPED**. The saved-result target needs
-  `pcsa_clean_result_below_proposal_parent` from `Clean.Export`.
-  The Recovery-only limit prevents this import. The layer policy rejects it.
-- Step 2: **STOPPED**. The anchor target needs
-  `pcsa_clean_honestProposal_stamped` from `Clean.Export` and
-  `recovery_persistence_of_run` from `Assembly.Recovery`.
-  Recovery cannot import these cross-lane suppliers.
+- Step 1: **PROVED**. `pcsa_recovery_cleanSaved_from_anchor` bounds saved
+  results through the clean predecessor gate and the proposal parent.
+- Step 2: **PROVED**. `pcsa_recovery_anchor_from_shortBreak` supplies the
+  honest anchor proposal, common stamp, ARM, and its C8 conclusion.
 - Step 3: **PROVED**. `pcsa_recovery_anchor_proposer_base` has the planned type.
   C8 bounds the strong output at the integer time before the proposal tick.
   The tick preserves PCs. All held PCs are active in stage one, so the
   proposer base is this strong output. No new C1 argument is needed.
-- Step 4: **STOPPED** for the exact target `pcsa_recovery_firstSlot_short`.
-  The kernel `recovery_firstSlot_of_anchor` is proved. It supplies
-  `FormationPrem` and the separate `RecoveryRootReachable` predicate from
-  the step 1 saved-result bound and the step 2 stamp and ARM conclusion.
-  All live voter locks are below the proposal parent. This proves F4 directly.
+- Step 4: **PROVED**. `pcsa_recovery_firstSlot_short` has the exact planned
+  type. It applies `recovery_firstSlot_of_anchor` to steps 1 and 2.
+  `RecoveryRootReachable` remains separate from `FormationPrem`.
 
-No counterexample or false statement was found. The remaining block is scope.
+No counterexample or false statement was found. All four plan steps are proved.
 
-## Required placement decision
+## Placement decision
 
-Plan section 6 requires cross-lane composition in `Assembly/Recovery.lean`.
-The exact requested scope exception is to append these three wrappers there:
-
-- `pcsa_recovery_cleanSaved_from_anchor`
-- `pcsa_recovery_anchor_from_shortBreak`
-- `pcsa_recovery_firstSlot_short`
-
-The permission question is pending. No checker, guard, or policy edit is
-needed if this placement is allowed. No such edit was made.
-The existing Assembly module already imports the required lane exports.
+The lead approved the three wrappers in `Assembly/Recovery.lean`.
+They use the existing lane Export imports. No import was added.
+No checker, guard, or policy edit was needed or made.
 
 Claims, Statements, Model, Clean, Shared, and Finality files are unchanged.
 The formation F4 field, long-break proof, suffix invariant, and CI restart
@@ -50,23 +43,24 @@ are outside this change.
 
 ## Validation
 
+- PASS: each wrapper's Assembly build with `--wfail`, before its commit.
 - PASS: default `lake build --wfail` (4,585 jobs).
 - PASS: layer check (zero new findings) and layer self-test (37 controls).
 - PASS: F-13 under `LC_ALL=C` (zero failing or stale entries).
-- PASS: `NEG=0 check-pcsa-manifest.sh` (421 entries, 21 modules, hashes match).
-- PASS: coverage regeneration (5,864 declarations across 13 audits).
-- PASS: main-repository precheck (`main=5995104`, `target=2153c62`).
-- PASS: coverage check (all 13 audits).
-- PASS: `LC_ALL=C bash scripts/check-build.sh`, including proof equations,
-  GLY, and all checker self-tests. No unaccepted equation exports.
-- PASS: `NEG=0 bash scripts/check-fgsa-claims.sh`.
-- The first full build check failed its unchanged-worktree control because
-  this report was edited during the layer self-test. The rerun kept all
-  worktree files fixed and passed. No checker change was made.
-- Name check under `LC_ALL=C`: no clashes on visible `main`,
-  `pcsa-w2-formation`, or `pcsa-ci-win-1`. `pcsa-fsrc` is not visible; skipped.
-- All three new public names have explicit `#print axioms` lines.
+- Name check under `LC_ALL=C`: no clashes on `main`, `pcsa-w2-formation`,
+  `pcsa-ci-win-1`, or `pcsa-fsrc`. All four branches are now visible.
+- All three wrappers have explicit `#print axioms` lines.
   Only `propext`, `Classical.choice`, and `Quot.sound` occur.
+- PASS: `LC_ALL=C bash scripts/check-build.sh`, including proof equations,
+  all GLY checks, and all checker self-tests. No unaccepted equation exports.
+- PASS: `NEG=0 bash scripts/check-fgsa-claims.sh`.
+- PASS: `NEG=0 bash scripts/check-pcsa-manifest.sh` (421 entries, 21 modules,
+  hashes match).
+- PASS: coverage regeneration with `--write` and coverage verification
+  (5,867 declarations across 13 audits). The inventory adds only three names.
+- PASS: precheck from the MAIN repository (`main=5995104`, `target=358ae7b`).
+- PASS: final diff check. Only the five permitted tracked files changed.
+  Each wrapper was committed after its Assembly build passed.
 
 ## Final public signatures
 
@@ -119,4 +113,38 @@ theorem recovery_firstSlot_of_anchor (E : Generic.Env V)
       Block.Preceq C P) :
     ∃ N : NamedProposal p.n,
       FormationPrem p c E rho s N ΔF ∧ RecoveryRootReachable p c E rho s
+```
+
+The three Assembly wrappers have these signatures.
+
+```lean
+theorem pcsa_recovery_cleanSaved_from_anchor [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {ΔF : Time} (cA : Slot) (N : NamedProposal p.n)
+    (hPos : 0 < cA)
+    (hClean : Clean₂ p c E rho (SA.freezeTime p.toParams cA) ΔF)
+    (hFault : FaultsBelowQA p c rho) (hFrame : StageOneFrame p c E rho)
+    (hN : HonestNamedProposal p c E rho cA N) :
+    ∀ x ∈ rho.honest, ∀ (i : Nat) (r : Slot) (C : Block), r < cA →
+      GridCO.savedGenuine (V2.D.Run.stateBefore E rho i x).st.base r = some (some C) →
+      Block.Preceq C N.erase
+```
+
+```lean
+theorem pcsa_recovery_anchor_from_shortBreak [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time} {cA s₁ : Slot}
+    (h : ShortBreakPrem p c E rho G ΔF cA s₁) :
+    ∃ N : NamedProposal p.n,
+      HonestNamedProposal p c E rho cA N ∧
+      (∀ y ∈ rho.honest,
+        PCStampedBefore p c E rho y (SA.freezeTime p.toParams cA) cA N.erase) ∧
+      Arm p c E rho cA N.erase (cA + 1) ∧
+      ArmConcl p c E rho cA N.erase (cA + 1)
+```
+
+```lean
+theorem pcsa_recovery_firstSlot_short [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time} {cA s₁ : Slot}
+    (h : ShortBreakPrem p c E rho G ΔF cA s₁) :
+    ∃ N : NamedProposal p.n,
+      FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁
 ```
