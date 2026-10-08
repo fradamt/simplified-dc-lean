@@ -9,12 +9,15 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMod
 
 /-- C8's strong-output bound also bounds the proposer base in stage one. -/
 theorem recovery_base_of_arm (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : V2.D.ScheduleWellFormed E rho)
+    (hnr : V2.D.NoRestart rho)
     (hf : StageOneFrame p c E rho) (cA : Slot) (P : Block)
-    (hs : ∀ y ∈ rho.honest,
-      PCStampedBefore p c E rho y (SA.freezeTime p.toParams cA) cA P)
-    (ha : ArmConcl p c E rho cA P (cA + 1))
-    (x : V) (hx : x ∈ rho.honest) (t : Time)
+    (x : V) (hx : x ∈ rho.honest)
+    (hs : PCStampedBefore p c E rho x (SA.freezeTime p.toParams cA) cA P)
+    (hstrong : ∀ t t' : Time, t ≤ t' →
+      (∃ pc ∈ (storeAt p c E rho x t).pcs, pc.slot = cA ∧ pc.target = P) →
+      Block.Preceq P (strong (storeAt p c E rho x t')))
+    (t : Time)
     (ht : SA.freezeTime p.toParams cA < t)
     (nd : Node p) (hn : pcsa_postClock E rho x t = some nd) :
     Block.Preceq P (walkBase p nd.st (proposerPC p nd.st)) := by
@@ -42,12 +45,11 @@ theorem recovery_base_of_arm (E : Generic.Env V)
     exact (pcsa_frameActive_vacuous p _ hframe pc).mpr (ho.lift _ (ho.pcBlocks pc hpc))
   have hread : (V2.D.Run.stateBefore E rho k x).st = storeAt p c E rho x (t - 1) := by
     rw [V2.D.Engine.stateBefore_tick_eq_stateBeforeTime
-      h.valid.toScheduleWellFormed h.noRestart hev, storeAt_def]
+      h hnr hev, storeAt_def]
     unfold V2.D.Run.stateBeforeTime V2.D.Run.readAt
     simp only [Int.le_sub_one_iff]
-  have hbound := (ha.2.2 x hx (SA.freezeTime p.toParams cA) (t - 1) (Int.le_sub_one_iff.mpr ht)
-    (recovery_stampRead E rho h.valid.toScheduleWellFormed h.noRestart hf x hx _ cA P
-      (hs x hx))).1
+  have hbound := hstrong (SA.freezeTime p.toParams cA) (t - 1) (Int.le_sub_one_iff.mpr ht)
+    (recovery_stampRead E rho h hnr hf x hx _ cA P hs)
   change Block.Preceq P (walkBase p (clock p (V2.D.Run.stateBefore E rho k x).st t)
     (proposerPC p (clock p (V2.D.Run.stateBefore E rho k x).st t)))
   rw [recovery_proposer_base]

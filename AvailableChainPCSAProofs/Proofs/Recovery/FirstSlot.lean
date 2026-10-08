@@ -15,7 +15,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
 theorem recovery_firstSlot_of_anchor (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
     (h : Recovery₂ p c E rho G ΔF) (hf : StageOneFrame p c E rho)
-    (cA s : Slot) (P : Block) (hpos : 0 < s) (horder : cA < s)
+    (cA s : Slot) (P : Block) (horder : cA < s)
     (hwindow : s - 1 - cA ≤ p.k - 1)
     (hafter : E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s)
     (hprop : Gen.V2.Duty.HonestAwakeProposer E
@@ -29,6 +29,7 @@ theorem recovery_firstSlot_of_anchor (E : Generic.Env V)
       Block.Preceq C P) :
     ∃ N : NamedProposal p.n,
       FormationPrem p c E rho s N ΔF ∧ RecoveryRootReachable p c E rho s := by
+  have hpos : 0 < s := Nat.zero_le cA |>.trans_lt horder
   have hd := p.deltaPos
   have htime : SA.proposalTime p.toParams s ≤ SA.gateTime p.toParams s := by
     change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
@@ -42,7 +43,9 @@ theorem recovery_firstSlot_of_anchor (E : Generic.Env V)
       (SA.proposalTime p.toParams s) = some nd →
       Block.Preceq P (walkBase p nd.st (proposerPC p nd.st)) := by
     intro nd hnd
-    apply recovery_base_of_arm E rho h.base hf cA P hStamp hArm _ hprop.1 _ _ nd hnd
+    apply recovery_base_of_arm E rho h.base.valid.toScheduleWellFormed h.base.noRestart
+      hf cA P _ hprop.1 (hStamp _ hprop.1)
+      (fun t t' htt hpc => (hArm.2.2 _ hprop.1 t t' htt hpc).1) _ _ nd hnd
     have hcs : (cA : Int) + 1 ≤ (s : Int) := by exact_mod_cast horder
     change 4 * p.Δ * (cA : Int) + 3 * p.Δ < 4 * p.Δ * (s : Int)
     nlinarith

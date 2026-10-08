@@ -128,7 +128,7 @@ theorem pcsa_recovery_firstSlot_short [Fintype V] (E : Generic.Env V)
   have hSaved := pcsa_recovery_cleanSaved_from_anchor E rho cA N h.anchorPos h.anchorClean
     (pcsa_c9_faultsBelowQA_of_quarterCap rho h.recovery.quarterCap) h.frame hN
   exact recovery_firstSlot_of_anchor E rho h.recovery h.frame cA s₁ N.erase
-    (lt_trans h.anchorPos h.order) h.order h.window h.firstAfterGST h.firstProposer h.horizon
+    h.order h.window h.firstAfterGST h.firstProposer h.horizon
     hStamp hArm hSaved
 
 end AvailableChain.PCSA.Run

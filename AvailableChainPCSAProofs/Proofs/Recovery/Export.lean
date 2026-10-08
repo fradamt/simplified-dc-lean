@@ -28,8 +28,10 @@ theorem pcsa_recovery_anchor_proposer_base (E : Generic.Env V)
       (SA.proposalTime p.toParams s₁) = some nd →
       Block.Preceq N.erase (walkBase p nd.st (proposerPC p nd.st)) := by
   intro nd hnd
-  apply recovery_base_of_arm E rho h.recovery.base h.frame cA N.erase hStamp hArm
-    _ h.firstProposer.1 _ _ nd hnd
+  apply recovery_base_of_arm E rho h.recovery.base.valid.toScheduleWellFormed
+    h.recovery.base.noRestart h.frame cA N.erase _ h.firstProposer.1
+    (hStamp _ h.firstProposer.1)
+    (fun t t' htt hpc => (hArm.2.2 _ h.firstProposer.1 t t' htt hpc).1) _ _ nd hnd
   have hd := p.deltaPos
   have horder : (cA : Int) + 1 ≤ (s₁ : Int) := by exact_mod_cast h.order
   change 4 * p.Δ * (cA : Int) + 3 * p.Δ < 4 * p.Δ * (s₁ : Int)

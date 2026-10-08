@@ -69,12 +69,15 @@ ambient parameters from their source modules.
 
 ```lean
 theorem recovery_base_of_arm (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : V2.D.ScheduleWellFormed E rho)
+    (hnr : V2.D.NoRestart rho)
     (hf : StageOneFrame p c E rho) (cA : Slot) (P : Block)
-    (hs : ∀ y ∈ rho.honest,
-      PCStampedBefore p c E rho y (SA.freezeTime p.toParams cA) cA P)
-    (ha : ArmConcl p c E rho cA P (cA + 1))
-    (x : V) (hx : x ∈ rho.honest) (t : Time)
+    (x : V) (hx : x ∈ rho.honest)
+    (hs : PCStampedBefore p c E rho x (SA.freezeTime p.toParams cA) cA P)
+    (hstrong : ∀ t t' : Time, t ≤ t' →
+      (∃ pc ∈ (storeAt p c E rho x t).pcs, pc.slot = cA ∧ pc.target = P) →
+      Block.Preceq P (strong (storeAt p c E rho x t')))
+    (t : Time)
     (ht : SA.freezeTime p.toParams cA < t)
     (nd : Node p) (hn : pcsa_postClock E rho x t = some nd) :
     Block.Preceq P (walkBase p nd.st (proposerPC p nd.st))
@@ -98,7 +101,7 @@ theorem pcsa_recovery_anchor_proposer_base (E : Generic.Env V)
 theorem recovery_firstSlot_of_anchor (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
     (h : Recovery₂ p c E rho G ΔF) (hf : StageOneFrame p c E rho)
-    (cA s : Slot) (P : Block) (hpos : 0 < s) (horder : cA < s)
+    (cA s : Slot) (P : Block) (horder : cA < s)
     (hwindow : s - 1 - cA ≤ p.k - 1)
     (hafter : E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s)
     (hprop : Gen.V2.Duty.HonestAwakeProposer E
