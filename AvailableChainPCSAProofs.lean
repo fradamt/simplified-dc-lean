@@ -59,6 +59,7 @@ public import AvailableChainPCSAProofs.Proofs.Recovery.LockWindow
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockBound
 public import AvailableChainPCSAProofs.Proofs.Recovery.RunInputs
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
+public import AvailableChainPCSAProofs.Proofs.Recovery.View
 public import AvailableChainPCSAProofs.Proofs.Shared.Certificates
 public import AvailableChainPCSAProofs.Proofs.Shared.CollectClosed
 public import AvailableChainPCSAProofs.Proofs.Shared.CleanGate

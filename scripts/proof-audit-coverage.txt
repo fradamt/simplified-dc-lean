@@ -6783,6 +6783,9 @@
             'AvailableChain.PCSA.Run.recovery_genesis_root_reachable',
             'AvailableChain.PCSA.Run.recovery_root_reachable',
         ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.View': (
+            'AvailableChain.PCSA.Run.recovery_commonView',
+        ),
         'AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission': (
             'AvailableChain.PCSA.pcsa_body_accepted',
             'AvailableChain.PCSA.pcsa_body_not_excluded',

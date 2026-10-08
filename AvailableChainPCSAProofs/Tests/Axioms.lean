@@ -52,6 +52,7 @@ public import AvailableChainPCSAProofs.Proofs.Recovery.PathSource
 public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalStore
 public import AvailableChainPCSAProofs.Proofs.Recovery.RunInputs
 public import AvailableChainPCSAProofs.Proofs.Recovery.Suffix
+public import AvailableChainPCSAProofs.Proofs.Recovery.View
 public import AvailableChainPCSAProofs.Proofs.Foundations.TickOutput
 public import AvailableChainPCSAProofs.Proofs.PC.AckOrigins
 public import AvailableChainPCSAProofs.Proofs.PC.Uniqueness
@@ -1278,3 +1279,4 @@ end
 #print axioms AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci
 #print axioms AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci_pc
 #print axioms AvailableChain.PCSA.Run.recovery_persistence_of_run
+#print axioms AvailableChain.PCSA.Run.recovery_commonView
