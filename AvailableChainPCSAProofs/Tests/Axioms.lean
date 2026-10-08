@@ -1939,3 +1939,6 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_rootResolution_of_run
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_lock_transport_of_run
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_long_of_run
+
+#print axioms AvailableChain.PCSA.Run.pcsa_formation_concl_of_premise
+#print axioms AvailableChain.PCSA.Run.recovery_participation_at_early

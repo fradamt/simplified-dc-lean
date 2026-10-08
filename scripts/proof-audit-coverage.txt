@@ -6046,6 +6046,7 @@
             'AvailableChain.PCSA.Run.pcsa_clean_safety',
             'AvailableChain.PCSA.Run.pcsa_clean_strong_compatible_cut',
             'AvailableChain.PCSA.Run.pcsa_clean_strong_mono_cut',
+            'AvailableChain.PCSA.Run.pcsa_formation_concl_of_premise',
             'AvailableChain.PCSA.Run.pcsa_snapshotStamp',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.FormationAck': (
@@ -7335,6 +7336,7 @@
             'AvailableChain.PCSA.Run.recovery_first_gate_bound',
             'AvailableChain.PCSA.Run.recovery_freeze_after_gst',
             'AvailableChain.PCSA.Run.recovery_participation',
+            'AvailableChain.PCSA.Run.recovery_participation_at_early',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.FirstSlot': (
             'AvailableChain.PCSA.Run.recovery_firstSlot_of_anchor',

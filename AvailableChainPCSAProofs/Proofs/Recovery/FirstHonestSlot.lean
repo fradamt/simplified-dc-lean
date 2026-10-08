@@ -145,5 +145,44 @@ theorem recovery_first_gate_bound (E : Generic.Env V)
     linarith
   · linarith
 
+/-- Recovery gives quorum participation when the early read is in the run. -/
+theorem recovery_participation_at_early (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) (u : Slot)
+    (hafter : E.t_GST ≤ SA.proposalTime p.toParams u)
+    (he : SA.earlyTime p.toParams u ≤ rho.horizon) :
+    nQuorum p.n ≤ (awakeHonestLabel p c E rho u).card ∧
+      (Gen.V2.Duty.faulty rho).card < (awakeHonestLabel p c E rho u).card := by
+  have hd := p.deltaPos
+  have hv : E.t_GST ≤ SA.voteTime p.toParams u ∧
+      SA.voteTime p.toParams u ≤ rho.horizon := by
+    change E.t_GST ≤ 4 * p.Δ * (u : Int) at hafter
+    change 4 * p.Δ * (u : Int) + 2 * p.Δ ≤ rho.horizon at he
+    change E.t_GST ≤ 4 * p.Δ * (u : Int) + p.Δ ∧
+      4 * p.Δ * (u : Int) + p.Δ ≤ rho.horizon
+    constructor <;> linarith
+  have hge : E.t_GST ≤ SA.earlyTime p.toParams u := by
+    change E.t_GST ≤ 4 * p.Δ * (u : Int) at hafter
+    change E.t_GST ≤ 4 * p.Δ * (u : Int) + 2 * p.Δ
+    linarith
+  have hlabel : awakeHonestLabel p c E rho u = rho.honest := by
+    rw [pcsa_awakeHonestLabel_def]
+    ext x
+    simp only [Finset.mem_inter, Gen.V2.Duty.awakeHonest_def, Finset.mem_filter]
+    exact ⟨fun hx => hx.1.1, fun hx =>
+      ⟨⟨hx, h.awake x hx _ hv.1 hv.2⟩, ⟨hx, h.awake x hx _ hge he⟩⟩⟩
+  rw [hlabel]
+  have hn : p.n = Fintype.card V :=
+    h.base.cstar.seats_eq (ℓ := .base (.head u)) trivial
+  have hsum : (Gen.V2.Duty.faulty rho).card + rho.honest.card = p.n := by
+    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
+      Finset.card_univ]
+    have hle := Finset.card_le_univ rho.honest
+    omega
+  have hcap : 4 * (Gen.V2.Duty.faulty rho).card ≤ p.n := h.quarterCap
+  have hpos := p.nPos
+  rw [pcsa_nQuorum_eq_qN, Gen.Pure.qN_def]
+  omega
+
 end AvailableChain.PCSA.Run
 end
