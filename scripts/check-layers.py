@@ -681,6 +681,13 @@ COMPOSE_EDGES |= frozenset({
 COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetyAccountable'),
 })
+# P12: four exact PC-SA safety bridge pairs (derisk §3). No prefix.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetyAccountable'),
+    ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetyCount'),
+    ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetyMonotone'),
+    ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetySlashing'),
+})
 
 
 def compose_base(dep: str) -> bool:
@@ -774,7 +781,14 @@ def pcsa_findings(ctx: Context, m: Module, dep: str) -> Iterator[Finding]:
     # New safety adapters use named FG-SA model producers, never its run claims.
     if m.name in {
             PC_PROOFS + ".Proofs.Foundations.FGSafetyClient",
-            PC_PROOFS + ".Proofs.Foundations.FGSafetyStore"} and any_under(dep, (
+            PC_PROOFS + ".Proofs.Foundations.FGSafetyStore",
+            PC_PROOFS + ".Proofs.Foundations.NamedScope",
+            PC_PROOFS + ".Proofs.Foundations.Proposals",
+            PC_PROOFS + ".Proofs.Foundations.TickOutput",
+            PC_PROOFS + ".Proofs.Foundations.FGSafetyScope",
+            PC_PROOFS + ".Proofs.Foundations.FGSafetyClientLaws",
+            PC_PROOFS + ".Proofs.Foundations.FGSafetyBridge",
+            PC_PROOFS + ".Proofs.Foundations.FinalitySafety"} and any_under(dep, (
                 "AvailableChainFGSA", "AvailableChainFGSARun", PROOFS, CLAIMS)):
         upstream = dep in {"AvailableChainFGSA.Proofs.Carrier",
                            "AvailableChainFGSA.Proofs.StoreLaws"}
