@@ -6940,6 +6940,9 @@
             'AvailableChain.PCSA.Run.honestProposal_of_named',
             'AvailableChain.PCSA.Run.recovery_anchor',
         ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.AnchorBase': (
+            'AvailableChain.PCSA.Run.recovery_base_of_arm',
+        ),
         'AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved': (
             'AvailableChain.PCSA.Run.recovery_anchor_gate_after_freeze',
             'AvailableChain.PCSA.Run.recovery_anchor_locks_of_gate_prefix',
@@ -6961,6 +6964,7 @@
         'AvailableChainPCSAProofs.Proofs.Recovery.Export': (
             'AvailableChain.PCSA.Run.pcsa_fastRecoveredClaim',
             'AvailableChain.PCSA.Run.pcsa_longBreakRecoveredClaim',
+            'AvailableChain.PCSA.Run.pcsa_recovery_anchor_proposer_base',
             'AvailableChain.PCSA.Run.recovery_healed_of_inputs',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot': (
@@ -6969,6 +6973,9 @@
             'AvailableChain.PCSA.Run.recovery_first_gate_bound',
             'AvailableChain.PCSA.Run.recovery_freeze_after_gst',
             'AvailableChain.PCSA.Run.recovery_participation',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.FirstSlot': (
+            'AvailableChain.PCSA.Run.recovery_firstSlot_of_anchor',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockBound': (
             'AvailableChain.PCSA.Run.recovery_lock_bound',
