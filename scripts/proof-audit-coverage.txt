@@ -4228,13 +4228,13 @@
     },
     'AvailableChainFGSAProofs.Tests.FGSafety': {
         'AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge': (
-            'AvailableChain.FGSA.Run.fgsa_bridge_runAccountable',
-            'AvailableChain.FGSA.Run.fgsa_bridge_parent_scope',
-            'AvailableChain.FGSA.Run.fgsa_bridge_read_scope',
-            'AvailableChain.FGSA.Run.fgsa_bridge_stores_accountable',
-            'AvailableChain.FGSA.Run.fgsa_bridge_reads_accountable',
             'AvailableChain.FGSA.Run.fgsa_bridge_event_agreement',
+            'AvailableChain.FGSA.Run.fgsa_bridge_parent_scope',
             'AvailableChain.FGSA.Run.fgsa_bridge_read_agreement',
+            'AvailableChain.FGSA.Run.fgsa_bridge_read_scope',
+            'AvailableChain.FGSA.Run.fgsa_bridge_reads_accountable',
+            'AvailableChain.FGSA.Run.fgsa_bridge_runAccountable',
+            'AvailableChain.FGSA.Run.fgsa_bridge_stores_accountable',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
@@ -6341,7 +6341,10 @@
             'AvailableChain.PCSA.Run.pcsa_honestHead_zero',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.StoreCutFacts': (
+            'AvailableChain.PCSA.Run.pcsa_gate_guard_of_chain',
+            'AvailableChain.PCSA.Run.pcsa_lock_below_record_of_chain',
             'AvailableChain.PCSA.Run.pcsa_lock_storeAt_timed_origin',
+            'AvailableChain.PCSA.Run.pcsa_result_below_post_gate_of_chain',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.StoreOrigins': (
             'AvailableChain.PCSA.pcsa_clock_record_before_first_gate',
