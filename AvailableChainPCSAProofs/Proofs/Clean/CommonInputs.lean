@@ -42,13 +42,14 @@ theorem pcsa_proposer_late_eq (E : Generic.Env V)
     have hp := p.deltaPos
     nlinarith
   exact lt_of_lt_of_le ht hb
-/-- Every frozen voter input reaches the honest proposer pool, or that pool caps its seat. -/
-theorem pcsa_frozen_input_in_proposer (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+/-- In the delivery window: Every frozen voter input reaches the honest proposer pool, or that pool
+caps its seat. -/
+theorem pcsa_frozen_input_in_proposer_win (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (r : BlockId) (v : Time)
-    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hk : rho.events[k]? = some (.tick y (GridCO.proposalTime p.toParams.engine (s + 1))))
     (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
       (clock p (V2.D.Run.stateBefore E rho a x).st v).base.votes)
@@ -71,9 +72,28 @@ theorem pcsa_frozen_input_in_proposer (E : Generic.Env V)
     intro hlt
     exact lt_irrefl _ ((Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed hk _).mp
       hlt)
-  have ht := pcsa_frozen_input_relay_late E rho h hD a k x y hx hy s i r v
+  have ht := pcsa_frozen_input_relay_late_win E rho h hD (hT := hT) a k x y hx hy s i r v
     (GridCO.proposalTime p.toParams.engine (s + 1)) hc hi hm hs
   rwa [pcsa_proposer_late_eq E rho h k y s hk] at ht
+/-- Every frozen voter input reaches the honest proposer pool, or that pool caps its seat. -/
+theorem pcsa_frozen_input_in_proposer (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (i : Fin p.n) (r : BlockId) (v : Time)
+    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hk : rho.events[k]? = some (.tick y (GridCO.proposalTime p.toParams.engine (s + 1))))
+    (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
+      (clock p (V2.D.Run.stateBefore E rho a x).st v).base.votes)
+    (hs : GridCO.stampVote (clock p (V2.D.Run.stateBefore E rho a x).st v).base
+      ⟨.seat s i, .head r⟩ < SA.freezeTime p.toParams s) :
+    (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
+      proposerVotes (clock p (V2.D.Run.stateBefore E rho k y).st
+        (GridCO.proposalTime p.toParams.engine (s + 1))) (s + 1) ∨
+    GridCO.equivocates (proposerVotes (clock p (V2.D.Run.stateBefore E rho k y).st
+      (GridCO.proposalTime p.toParams.engine (s + 1))) (s + 1)) i = true :=
+  pcsa_frozen_input_in_proposer_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy
+    s i r v (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hk hm hs
 end AvailableChain.PCSA.Run
 
 end

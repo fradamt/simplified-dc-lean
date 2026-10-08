@@ -670,6 +670,14 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_strictFrom_mono
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_of_clean
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_floor
+#print axioms AvailableChain.PCSA.Run.pcsa_floor_le
+#print axioms AvailableChain.PCSA.Run.pcsa_floor_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_floor_early
+#print axioms AvailableChain.PCSA.Run.pcsa_floor_freeze
+#print axioms AvailableChain.PCSA.Run.pcsa_floor_gate
+#print axioms AvailableChain.PCSA.Run.pcsa_zero_le_proposal
+#print axioms AvailableChain.PCSA.Run.pcsa_floor_freeze_next
+#print axioms AvailableChain.PCSA.Run.pcsa_floor_early_next
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanWindow_of_sync
 #print axioms AvailableChain.PCSA.Run.pcsa_strict_broadcast_win
 #print axioms AvailableChain.PCSA.Run.pcsa_strict_relay_from
@@ -957,6 +965,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late
 #print axioms AvailableChain.PCSA.Run.pcsa_head_relay_late_or_cap_win
 #print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late_win
+#print axioms AvailableChain.PCSA.Run.pcsa_head_before_public_cut_relay_late_floor
 
 #print axioms AvailableChain.PCSA.pcsa_clock_blocks
 #print axioms AvailableChain.PCSA.pcsa_clock_bodyStamps
@@ -1001,19 +1010,28 @@ end
 -- C6 concrete backward receipt and cap transport.
 #print axioms AvailableChain.PCSA.Run.pcsa_count_head_shape
 #print axioms AvailableChain.PCSA.Run.pcsa_cap_before_public_cut_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_cap_before_public_cut_relay_late_win
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_input_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_input_relay_late_win
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_input_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_input_relay_late_win
 #print axioms AvailableChain.PCSA.Run.pcsa_handled_input_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_handled_input_relay_late_win
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_tick_input_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_tick_input_relay_late_win
 
 -- C6 BackwardInputs.
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_tick_input_relay_late
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_tick_input_relay_late_win
 
 -- C6 ForwardReceipt.
 #print axioms AvailableChain.PCSA.Run.pcsa_genesis_body_stamp
 #print axioms AvailableChain.PCSA.Run.pcsa_early_head_relay_frozen
+#print axioms AvailableChain.PCSA.Run.pcsa_early_head_relay_frozen_win
 #print axioms AvailableChain.PCSA.Run.pcsa_early_body_relay_frozen
+#print axioms AvailableChain.PCSA.Run.pcsa_early_body_relay_frozen_win
 #print axioms AvailableChain.PCSA.Run.pcsa_early_input_relay_support
+#print axioms AvailableChain.PCSA.Run.pcsa_early_input_relay_support_win
 
 -- C6 CountTransport.
 #print axioms AvailableChain.PCSA.pcsa_clean_input_not_capped
@@ -1021,10 +1039,13 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_read_vote_support_body
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_voter_walk_counts
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_proposer_walk_counts_win
 
 -- C6 GateCounts.
 #print axioms AvailableChain.PCSA.Run.pcsa_early_input_gate_relay
+#print axioms AvailableChain.PCSA.Run.pcsa_early_input_gate_relay_win
 #print axioms AvailableChain.PCSA.Run.pcsa_same_label_gate_results
+#print axioms AvailableChain.PCSA.Run.pcsa_same_label_gate_results_win
 
 -- C6 GateReads.
 #print axioms AvailableChain.PCSA.pcsa_clock_confirmation_eq_pre
@@ -1040,6 +1061,7 @@ end
 -- C6 ResultPaths.
 #print axioms AvailableChain.PCSA.Run.pcsa_result_early_support
 #print axioms AvailableChain.PCSA.Run.pcsa_result_prefixes_retained
+#print axioms AvailableChain.PCSA.Run.pcsa_result_prefixes_retained_win
 
 -- C6 VoteTransport.
 #print axioms AvailableChain.PCSA.Run.pcsa_postClock_source
@@ -1060,6 +1082,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_headVote_body_mem
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_body_before_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_body_before_early
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_body_before_early_win
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_slot_le
 
 -- C6 HonestReceipt.
@@ -1072,6 +1095,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_early_uncapped_clean
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_late_not_capped
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_clean_support
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_head_clean_support_win
 
 -- C6 HonestBatch.
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_head_exists
@@ -1080,6 +1104,8 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_head_batch_of_label
 #print axioms AvailableChain.PCSA.Run.pcsa_late_participant_bound
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_majority_of_label
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority_win
 
 -- C6 GateBatch.
 #print axioms AvailableChain.PCSA.Run.pcsa_gateResultAt_at_tick
@@ -1192,6 +1218,7 @@ end
 -- C6 CommonInputs.
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_late_eq
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_input_in_proposer
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_input_in_proposer_win
 
 -- C6 ProposalEvidence.
 #print axioms AvailableChain.PCSA.Run.pcsa_decoded_proposal_object
@@ -1211,17 +1238,22 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_headVotes_source
 #print axioms AvailableChain.PCSA.Run.pcsa_emitted_raw_in_headVotes
 #print axioms AvailableChain.PCSA.Run.pcsa_common_raw_transfer
+#print axioms AvailableChain.PCSA.Run.pcsa_common_raw_transfer_win
 
 -- C6 CommonBodies.
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_body_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_body_before_vote_win
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_body_in_proposer
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_body_in_proposer_win
 
 -- C6 CommonSupport.
 #print axioms AvailableChain.PCSA.pcsa_active_base_resolution
 #print axioms AvailableChain.PCSA.pcsa_headSupport_of_carried
 #print axioms AvailableChain.PCSA.Run.pcsa_proposer_support_in_voter
+#print axioms AvailableChain.PCSA.Run.pcsa_proposer_support_in_voter_win
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_headSupport_source
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_support_in_proposer
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_support_in_proposer_win
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_support_backward
 #print axioms AvailableChain.PCSA.pcsa_headSupport_resolution
 
@@ -1232,10 +1264,12 @@ end
 -- C6 CommonTree.
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_slot_body_unique
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_tree_source
+#print axioms AvailableChain.PCSA.Run.pcsa_voter_tree_source_win
 #print axioms AvailableChain.PCSA.Run.pcsa_proposal_prefix_voter_mem
 
 -- C6 NCounts.
 #print axioms AvailableChain.PCSA.Run.pcsa_N_same_label_result
+#print axioms AvailableChain.PCSA.Run.pcsa_N_same_label_result_win
 #print axioms AvailableChain.PCSA.Run.pcsa_honestAck_same_label_result
 
 -- C6 NWalkCounts.
@@ -1246,6 +1280,7 @@ end
 -- C6 NReadTransport.
 #print axioms AvailableChain.PCSA.pcsa_N_head_witness
 #print axioms AvailableChain.PCSA.Run.pcsa_N_read_transport
+#print axioms AvailableChain.PCSA.Run.pcsa_N_read_transport_win
 
 -- C6 NNextHead.
 #print axioms AvailableChain.PCSA.Run.pcsa_N_next_head_of_root
@@ -1364,10 +1399,12 @@ end
 -- C6 RelayReceipt.
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_from_pool
 #print axioms AvailableChain.PCSA.Run.pcsa_pc_before_public_cut_relay
+#print axioms AvailableChain.PCSA.Run.pcsa_pc_before_public_cut_relay_win
 
 -- C6 FrozenPCTransport.
 #print axioms AvailableChain.PCSA.Run.pcsa_clock_target_active
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_pc_in_proposer
+#print axioms AvailableChain.PCSA.Run.pcsa_frozen_pc_in_proposer_win
 
 -- C6 CarriedView.
 #print axioms AvailableChain.PCSA.pcsa_carriedPC_of_proposal
@@ -1375,6 +1412,7 @@ end
 
 -- C6 CommonViews.
 #print axioms AvailableChain.PCSA.Run.pcsa_common_view_targets
+#print axioms AvailableChain.PCSA.Run.pcsa_common_view_targets_win
 
 -- C6 BodySlotBounds.
 #print axioms AvailableChain.PCSA.pcsa_admission_slot_bounds

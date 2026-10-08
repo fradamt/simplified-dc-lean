@@ -11,11 +11,12 @@ public section
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {m : FGMode}
-/-- At an honest proposal, the actual proposer and voter PC views have the same target. -/
-theorem pcsa_common_view_targets (E : Generic.Env V)
+/-- In the delivery window: At an honest proposal, the actual proposer and voter PC views have the
+same target. -/
+theorem pcsa_common_view_targets_win (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
-    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
-    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
     (k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (N : NamedProposal p.n)
     (hx : rho.seatOf (.prop (s + 1)) (0 : Fin 1) ∈ rho.honest)
     (he : V2.D.Run.emits E rho (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
@@ -24,7 +25,7 @@ theorem pcsa_common_view_targets (E : Generic.Env V)
     (hk : rho.events[k]? = some (.tick (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
       (SA.proposalTime p.toParams (s + 1))))
     (hslot : N.slot = s + 1)
-    (hc : SA.voteTime p.toParams (s + 1) ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.voteTime p.toParams (s + 1) ≤ cut)
     (hmem : (⟨.proposer (s + 1), .proposal N⟩ : Wire p.n) ∈
       (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams (s + 1)))
         y).st.proposals)
@@ -53,7 +54,8 @@ theorem pcsa_common_view_targets (E : Generic.Env V)
       hpropVote)
   have frozen (C : PC p.n) (hm : C ∈ pcSnapshotAt dst s) :
       ∃ D ∈ src.pcs.filter (frameActive p src), D.slot = C.slot ∧ D.target = C.target := by
-    obtain ⟨D, hDmem, hDs, hDt, hDa⟩ := pcsa_frozen_pc_in_proposer E rho h hF hFault hD
+    obtain ⟨D, hDmem, hDs, hDt, hDa⟩ := pcsa_frozen_pc_in_proposer_win E rho h hF hFault hD (hT :=
+        hT)
       a k y x hy hx s C hk hpropCut hm
     exact ⟨D, List.mem_filter.mpr ⟨hDmem, hDa⟩, hDs, hDt⟩
   have carried (C : PC p.n) (hm : C ∈ carriedPCs dst (s + 1)) : N.pc = some C := by
@@ -88,7 +90,8 @@ theorem pcsa_common_view_targets (E : Generic.Env V)
       change V.target ∈ (clock p _ _).base.blocks
       rw [pcsa_clock_blocks]
       exact pcsa_pc_targets_held p _ (pcsa_reachable_stateBefore E rho k x) V hVpre
-    have hrecv := pcsa_proposer_body_before_vote E rho h hF hD k a x y hx hy (s + 1)
+    have hrecv := pcsa_proposer_body_before_vote_win E rho h hF hD
+      (hT := pcsa_floor_freeze_next hT) k a x y hx hy (s + 1)
       V.target hk (le_refl _) hc hVB
     have hVBdst : V.target ∈ dst.base.blocks := by
       change V.target ∈ (clock p _ _).base.blocks
@@ -121,6 +124,33 @@ theorem pcsa_common_view_targets (E : Generic.Env V)
       (hDs ▸ hDack) hAck
     rw [hd]
     exact congrArg some hDt
+/-- At an honest proposal, the actual proposer and voter PC views have the same target. -/
+theorem pcsa_common_view_targets (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {cut ΔF : Time}
+    (hD : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (pcsaDelay p E.Δ ΔF) cut)
+    (k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (N : NamedProposal p.n)
+    (hx : rho.seatOf (.prop (s + 1)) (0 : Fin 1) ∈ rho.honest)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (⟨.seat (.prop (s + 1)) (0 : Fin 1), .proposal N⟩ : Obj p)
+        (SA.proposalTime p.toParams (s + 1)))
+    (hk : rho.events[k]? = some (.tick (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (SA.proposalTime p.toParams (s + 1))))
+    (hslot : N.slot = s + 1)
+    (hc : SA.voteTime p.toParams (s + 1) ≤ cut)
+    (hmem : (⟨.proposer (s + 1), .proposal N⟩ : Wire p.n) ∈
+      (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams (s + 1)))
+        y).st.proposals)
+    (hpc : N.pc = proposerPC p (clock p (V2.D.Run.stateBefore E rho k
+      (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st (SA.proposalTime p.toParams (s + 1)))) :
+    (voterPC p (clock p (V2.D.Run.stateBefore E rho
+      (V2.D.Run.idxBefore rho (SA.voteTime p.toParams (s + 1))) y).st
+        (SA.voteTime p.toParams (s + 1))) (s + 1)).map PC.target =
+      (proposerPC p (clock p (V2.D.Run.stateBefore E rho k
+        (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
+          (SA.proposalTime p.toParams (s + 1)))).map PC.target :=
+  pcsa_common_view_targets_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD 0) k y hy s
+    N hx he hk hslot (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hmem hpc
 end AvailableChain.PCSA.Run
 
 end
