@@ -842,3 +842,12 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_guard
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_record_indices_mono_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_inclusion
+
+-- C6 PendingGates.
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_head_batch_early
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority_early
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_covers_heads_early
+#print axioms AvailableChain.PCSA.Run.pcsa_pending_result_covers_heads
+#print axioms AvailableChain.PCSA.Run.pcsa_pending_result_nonempty
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_results_nonempty
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_results_chain_pending

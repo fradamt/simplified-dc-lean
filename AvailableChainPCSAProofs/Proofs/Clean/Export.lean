@@ -191,6 +191,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.GenuineKeys
 
 public import AvailableChainPCSAProofs.Proofs.Clean.GateAdvance
 
+public import AvailableChainPCSAProofs.Proofs.Clean.PendingGates
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -1166,6 +1168,19 @@ theorem pcsa_clean_inclusion (p : Params) : PCSACleanInclusionClaim p := by
   apply Gen.Pure.block_preceq_trans hPSt
   rw [confirmed_eq_pcFloor]
   exact Gen.Pure.self_preceq_pcFloor (pcsa_clean_pc_record_cut E rho h hF hFault x hx t ht)
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+/-- M1: pending clean result reads are not empty. -/
+theorem pcsa_clean_results_nonempty (p : Params) : CleanResultsNonemptyClaim p := by
+  intro V _ _ In c m E rho cut ΔF h _ hF i hi x hx
+  exact pcsa_pending_result_nonempty E rho h hF x hx i hi
+/-- M2: a pending result extends every earlier honest result. -/
+theorem pcsa_clean_results_chain_pending (p : Params) : CleanResultsChainPendingClaim p := by
+  intro V _ _ In c m E rho cut ΔF h hFault hF i j x y X Y hij hj hx hy hX hY
+  exact pcsa_pending_result_covers_heads E rho h hF y hy j X Y hj
+    (fun z H hH => pcsa_clean_head_above_past_at_early E rho h hF hFault j hj z H hH
+      x hx i X hij hX) hY
 end AvailableChain.PCSA.Run
 
 end

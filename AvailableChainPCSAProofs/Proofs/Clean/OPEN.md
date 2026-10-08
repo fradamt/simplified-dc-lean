@@ -1402,3 +1402,9 @@ Validation and current claim status are recorded in log.md and state.md.
 The C6 result chain clears the lock guard. Each fresh gate covers its
 result in S, and later available reads retain the honest proposal.
 Validation and current claim status are recorded in log.md and state.md.
+
+### PendingGates
+
+An early-cut honest batch gives M1 nonempty results and M2 coverage of
+every earlier result, even when the gate follows the cut.
+Validation and current claim status are recorded in log.md and state.md.
