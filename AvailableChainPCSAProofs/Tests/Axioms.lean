@@ -1659,7 +1659,7 @@ end
 #print axioms AvailableChain.PCSA.Run.recovery_accepted_path_receipt
 #print axioms AvailableChain.PCSA.Run.recovery_healed_of_inputs
 #print axioms AvailableChain.PCSA.Run.pcsa_fastRecoveredClaim_of_inputs
-#print axioms AvailableChain.PCSA.Run.pcsa_longBreakRecoveredClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_longBreakRecoveredClaim_of_inputs
 #print axioms AvailableChain.PCSA.Run.recovery_freeze_after_gst
 #print axioms AvailableChain.PCSA.Run.recovery_awake_label
 #print axioms AvailableChain.PCSA.Run.recovery_participation
@@ -1951,3 +1951,6 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_chainRestart
 #print axioms AvailableChain.PCSA.Run.pcsa_recovery_suffixInputs_short
 #print axioms AvailableChain.PCSA.Run.pcsa_fastRecoveredClaim
+
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_suffixInputs_long
+#print axioms AvailableChain.PCSA.Run.pcsa_longBreakRecoveredClaim

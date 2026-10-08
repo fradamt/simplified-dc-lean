@@ -878,3 +878,42 @@ theorem pcsa_fastRecoveredClaim (p : Params) : FastRecoveredClaim p := by
 
 end AvailableChain.PCSA.Run
 end
+
+public section
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+
+/-- The long-break premises at the retained slot supply every suffix field. -/
+theorem pcsa_recovery_suffixInputs_long (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) (hF : StageOneFrame p c E rho) (g s : Slot)
+    (hg : E.t_GST ≤ SA.voteTime p.toParams g)
+    (hmix : SA.voteTime p.toParams (g + 2 * p.k - 1) ≤ SA.proposalTime p.toParams s)
+    (hafter : E.t_GST + p.Δ ≤ SA.proposalTime p.toParams s)
+    (hprop : Gen.V2.Duty.HonestAwakeProposer E
+      (pcsaInterface p c (m := m)).toInterface rho s)
+    (horizon : SA.gateTime p.toParams s ≤ rho.horizon) :
+    RecoverySuffixInputs p c E rho s ΔF := by
+  refine ⟨recovery_firstSlot_long E rho h hF g s
+    (pcsa_recovery_lock_transport_of_run E rho h hF g hg)
+    hg hmix hafter hprop horizon, ?_, recovery_persistence_of_run E rho h hF s, ?_⟩
+  · intro N hN _
+    have hForm := pcsa_formation_concl_of_premise E rho s N ΔF hN
+    rw [FormationConcl_def] at hForm
+    exact hForm.2.2.2.1
+  · intro N hN _ hA
+    apply pcsa_recovery_chainRestart E rho h s _ N hN hA
+    have hd := p.deltaPos
+    linarith
+
+/-- Long-break recovery has no additional supplier premise. -/
+theorem pcsa_longBreakRecoveredClaim (p : Params) : LongBreakRecoveredClaim p := by
+  intro V _ _ In c m E rho G ΔF h hF hh
+  obtain ⟨g, s, hg, _, hm, hafter, hp, hb⟩ := long_recovery_slot E rho h hh
+  obtain ⟨P, hP, heal⟩ := recovery_healed_of_inputs E rho s ΔF
+    (pcsa_recovery_suffixInputs_long E rho h hF g s hg hm.le hafter hp (hb.trans hh))
+  exact ⟨s, P, hP, hb, heal⟩
+
+end AvailableChain.PCSA.Run
+end

@@ -5757,6 +5757,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Recovery': (
             'AvailableChain.PCSA.Run.pcsa_fastRecoveredClaim',
+            'AvailableChain.PCSA.Run.pcsa_longBreakRecoveredClaim',
             'AvailableChain.PCSA.Run.pcsa_recovery_anchor_from_shortBreak',
             'AvailableChain.PCSA.Run.pcsa_recovery_chainRestart',
             'AvailableChain.PCSA.Run.pcsa_recovery_cleanSaved_from_anchor',
@@ -5772,6 +5773,7 @@
             'AvailableChain.PCSA.Run.pcsa_recovery_restartSeed',
             'AvailableChain.PCSA.Run.pcsa_recovery_rootResolution_of_run',
             'AvailableChain.PCSA.Run.pcsa_recovery_sameLabel_of_run',
+            'AvailableChain.PCSA.Run.pcsa_recovery_suffixInputs_long',
             'AvailableChain.PCSA.Run.pcsa_recovery_suffixInputs_short',
             'AvailableChain.PCSA.Run.pcsa_recovery_voterBackward_of_run',
             'AvailableChain.PCSA.Run.recovery_chainRestart_of_suffix',
@@ -7333,7 +7335,7 @@
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.Export': (
             'AvailableChain.PCSA.Run.pcsa_fastRecoveredClaim_of_inputs',
-            'AvailableChain.PCSA.Run.pcsa_longBreakRecoveredClaim',
+            'AvailableChain.PCSA.Run.pcsa_longBreakRecoveredClaim_of_inputs',
             'AvailableChain.PCSA.Run.pcsa_recovery_anchor_proposer_base',
             'AvailableChain.PCSA.Run.recovery_firstSlot_long',
             'AvailableChain.PCSA.Run.recovery_healed_of_inputs',

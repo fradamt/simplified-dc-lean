@@ -812,3 +812,11 @@ and only the instance swap is atomic.
   premise. `pcsa_recovery_suffixInputs_short` connects Formation, C8 and the
   restarted outputs. `Recovery/Export` keeps the conditional interface as
   `pcsa_fastRecoveredClaim_of_inputs` with its original type.
+
+- PC-SA long recovery (2026-10-08). `Assembly/Recovery` proves
+  `pcsa_longBreakRecoveredClaim (p) : LongBreakRecoveredClaim p` without an
+  extra premise. `pcsa_recovery_suffixInputs_long` uses the existing specified
+  first-slot proof. The final claim retains `hafter` from `long_recovery_slot`
+  for the horizon window. The long first-slot proof is unchanged.
+  `Recovery/Export` keeps `pcsa_longBreakRecoveredClaim_of_inputs` with its
+  original type. Both recovery claims now have complete suffix suppliers.

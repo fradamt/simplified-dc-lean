@@ -1,9 +1,11 @@
 # Open inputs of the Recovery lane (C11)
 
-`pcsa_fastRecoveredClaim` (`Assembly/Recovery.lean`) is unconditional.
-The conditional short-break wrapper is `pcsa_fastRecoveredClaim_of_inputs`.
-`pcsa_longBreakRecoveredClaim` (`Recovery/Export.lean`) still takes a producer
-of `RecoverySuffixInputs`. Status of the inputs:
+`pcsa_fastRecoveredClaim` and `pcsa_longBreakRecoveredClaim` in
+`Assembly/Recovery.lean` are unconditional. Each takes only `(p : Params)`.
+`Recovery/Export.lean` retains the conditional interfaces as
+`pcsa_fastRecoveredClaim_of_inputs` and `pcsa_longBreakRecoveredClaim_of_inputs`,
+with unchanged types. No recovery suffix supplier remains OPEN.
+Status of the inputs:
 
 - First slot (`firstSlot`: a `FormationPrem` at `s₁` with the corrected F4
   clause `RecoveryRootReachable`):
@@ -15,7 +17,9 @@ of `RecoverySuffixInputs`. Status of the inputs:
   - Long break: PROVED from the long claim premises by
     `pcsa_recovery_firstSlot_long_of_run` (`Assembly/Recovery.lean`). All seven
     transport suppliers are proved. No OPEN transport premise remains.
-    The earlier explicit-supplier wrappers are retained.
+    The earlier explicit-supplier wrappers are retained. The final assembly
+    keeps `hafter` from `long_recovery_slot` and uses the specified-slot
+    supplier. The long first-slot proof is unchanged.
 - Formation with corrected F4 (`formation`: every honest node holds the
   stamped PC of `N.erase` before `z_{s₁}`): its producer is now on main as
   `pcsa_formationClaim`. `FormationPrem` carries `proposerRootReachable`.
@@ -804,3 +808,21 @@ Validation of the final Lean source:
 
 No rebase or push. No direct Claims, Model, Clean, Shared, checker, or policy
 edit. The authorized main merges retain their upstream changes.
+
+## Final recovery assembly (2026-10-08)
+
+This section supersedes the earlier suffix-assembly status.
+All five assembly steps are PROVED. No new OPEN hypothesis was needed.
+Formation supplies the seed stamp and result. RECOVERY supplies the window
+through `rho.horizon`. The output adapter combines the suffix invariant,
+later-slot stamps and C8 persistence. A later strong-inclusion read needs
+only its freeze inside the horizon.
+
+```lean
+pcsa_fastRecoveredClaim (p : Params) : FastRecoveredClaim p
+pcsa_longBreakRecoveredClaim (p : Params) : LongBreakRecoveredClaim p
+```
+
+The conditional wrappers keep their original types. Every new public name
+has a `#print axioms` audit. The proof coverage file is regenerated with
+`check-proof-coverage.py --write`.

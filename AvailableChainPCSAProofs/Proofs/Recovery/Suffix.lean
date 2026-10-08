@@ -6,9 +6,9 @@ public import AvailableChainPCSAProofs.Proofs.Recovery.RunInputs
 
 public section
 
-/-! The short-break suffix interfaces (pcsa34-r4.3b §5.6.1).
-Formation, persistence, and the restarted chain invariant remain named inputs.
-The local root predicate has the shape of the pending corrected F4 field. -/
+/-! Recovery suffix interfaces (pcsa34-r4.3b §5.6.1).
+Assembly/Recovery supplies Formation, persistence and the restarted chain invariant
+for both break kinds. The local root predicate is the corrected F4 field. -/
 
 namespace AvailableChain.PCSA.Run
 
@@ -81,21 +81,11 @@ structure RecoveryChainRestart (s₁ : Slot) : Prop where
 
 variable [Fintype V]
 
-/-- Missing producers needed by the conditional C11 export.
-`FormationPrem` now carries the corrected F4 clause
-(`FormationRootReachable`), so the separate `RecoveryRootReachable`
-arguments are redundant; their removal is separate. The stamp-to-reader boundary
-is proved in RunInputs and is no longer an input.
-`firstSlot` needs F3, which `recovery_commonView` (Recovery/View) gives at a
-slot `s > 0` with `t_GST + Δ ≤ t_s` and `d_s` in the run, from the Shared
-voter view (`pcsa_commonView_of_delivery`) and the RECOVERY delivery premise.
-The other fields of `FormationPrem` at `s₁` remain OPEN.
-Block admission under RECOVERY (closed): (B1) if an honest `y` holds `C`
-before `z_{s₁-1}`, then `C.target` is stored at every honest node before
-`t_{s₁}` (`recovery_installed_target_body`); (B2) every honest voter at
-`v_{s₁}` holds the proposal wire `N`, the valid target of `N.pc`
-(`pcsa_honest_proposal_from_vote`) and the body `N.erase`
-(`pcsa_honest_proposal_body_from_vote`). -/
+/-- Named producers for the recovery suffix.
+Assembly/Recovery supplies all fields from the short-break or long-break run
+premises. `FormationPrem` carries `FormationRootReachable`; the separate
+`RecoveryRootReachable` argument is retained for the existing interface.
+RunInputs supplies the stamp-to-reader boundary. -/
 structure RecoverySuffixInputs (s₁ : Slot) (ΔF : Time) : Prop where
   firstSlot : ∃ N : NamedProposal p.n,
     FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁

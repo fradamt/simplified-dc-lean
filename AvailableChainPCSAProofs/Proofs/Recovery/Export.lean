@@ -81,7 +81,7 @@ theorem pcsa_fastRecoveredClaim_of_inputs (p : Params)
   exact ⟨P, hp, recovery_first_gate_bound E rho h.recovery s₁ h.firstMin h.horizon, hh⟩
 
 /-- The long-break claim follows when the named producers hold after the mix time. -/
-theorem pcsa_longBreakRecoveredClaim (p : Params)
+theorem pcsa_longBreakRecoveredClaim_of_inputs (p : Params)
     (recoveryInputs : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (m : FGMode) (E : Generic.Env V)
       (rho : V2.D.Run V (pcsaWith m p c)) (G ΔF : Time),
