@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
 public import AvailableChainFGSAProofs.Proofs.Foundations.ClientOrigin -- shake: keep (axiom audit)
-public import AvailableChainFGSARun.Proofs.Slashing -- shake: keep (axiom audit)
 
 public section
 

@@ -448,14 +448,22 @@ How the pieces meet:
 - Generic FG finality safety (2026-10-07). `AvailableChainFGCompose` states
   the safety contracts (`Statements/SafetyReads`, `SafetyStore`,
   `SafetyClient`, `SafetyClaims`) and proves the accountability fields 3-5 in
-  `Proofs/SafetyStore` and `Proofs/SafetyAccountable`. FG-SA supplies the laws
-  in `Shared/FGSafetyClient`, `Shared/FGSafetyStore` and `Shared/FGSafetyScope`.
-  `Foundations/FGSafetyBridge` states the accountability results at the FG-SA
-  reads. Its public types use only FG-SA terms, with the `FinalityRunBlock`
-  body expanded, because `Foundations/Accountable` imports the bridge. Its one
-  Compose import is the exact pair `Foundations.FGSafetyBridge` →
-  `AvailableChainFGCompose.Proofs.SafetyAccountable` (`COMPOSE_EDGES` and
-  `laneUpstream`). `Accountable` reaches Compose only through the bridge.
+  `Proofs/SafetyStore` and `Proofs/SafetyAccountable`, the client and count
+  results in `Proofs/SafetyClient` and `Proofs/SafetyCount`, finalized
+  monotonicity in `Proofs/SafetyMonotone`, and field 8 (honest non-slashing)
+  in `Proofs/SafetySlashing`. FG-SA supplies the laws in
+  `Shared/FGSafetyClient`, `Shared/FGSafetyStore` and `Shared/FGSafetyScope`.
+  `Foundations/FGSafetyBridge` states these results at the FG-SA reads:
+  accountability, the pool count, client safety and row origins, finalized
+  monotonicity and honest non-slashing. `Accountable`, `Client`,
+  `ClientOrigin`, `FinalizedSafety` and `HonestNeverSlashed` call the bridge.
+  Its public types use only FG-SA terms, with the `FinalityRunBlock` body
+  expanded, because `Foundations/Accountable` imports the bridge. Its four
+  Compose imports are the exact pairs `Foundations.FGSafetyBridge` →
+  `AvailableChainFGCompose.Proofs.SafetyAccountable`, `.SafetyCount`,
+  `.SafetyMonotone` and `.SafetySlashing` (`COMPOSE_EDGES` and
+  `laneUpstream`). The five callers reach the Compose proofs only through
+  the bridge.
 - FG-SA on engine v2 (T7): `Node = {st, rec}`, `base = st`, `rec = Λ`
   (durable). Label families: HEAD labels AP and fresh (`CStar`); FG labels
   `Linked`; proposal labels AP and `SingleSeat`, one label per slot
