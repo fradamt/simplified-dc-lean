@@ -154,7 +154,7 @@ theorem AvailableChain.PCSA.Run.AcOnlyFrameClaim_def 14c1c9c9ff4ed334
 def AvailableChain.PCSA.Run.PCSnapshotStampClaim 732330527a02f73e
 theorem AvailableChain.PCSA.Run.PCSnapshotStampClaim_def 33aae28c534e2a68
 structure AvailableChain.PCSA.Run.CleanInvariantAt 66d0b47c4eecaef2
-ctor AvailableChain.PCSA.Run.CleanInvariantAt.mk 8800c4508fbd6db0
+ctor AvailableChain.PCSA.Run.CleanInvariantAt.mk 29a4e6ca0f7ca932
 field AvailableChain.PCSA.Run.CleanInvariantAt.resultsChain 56d5af38137e74fe
 field AvailableChain.PCSA.Run.CleanInvariantAt.headsAbove db4606aaaf4b5f07
 field AvailableChain.PCSA.Run.CleanInvariantAt.headsEqual 2a060cad46ef4fa1
@@ -168,7 +168,7 @@ field AvailableChain.PCSA.Run.CleanInvariantAt.lockKeep aebeba7c314e8f43
 field AvailableChain.PCSA.Run.CleanInvariantAt.recordOrigin 4d60b108335e2ea3
 field AvailableChain.PCSA.Run.CleanInvariantAt.recordMono 59238bb202d2ad5f
 field AvailableChain.PCSA.Run.CleanInvariantAt.recordCompatible 3d496b311f81d505
-field AvailableChain.PCSA.Run.CleanInvariantAt.roots 0fdbbfeb6d3522d4
+field AvailableChain.PCSA.Run.CleanInvariantAt.roots 1fbbecc6deddb192
 def AvailableChain.PCSA.Run.FormationConcl cb8cdb500acbcc71
 theorem AvailableChain.PCSA.Run.FormationConcl_def b6da8480e3fa5ba7
 def AvailableChain.PCSA.Run.CleanInvariantClaim 0a2ea45e4cddb170
@@ -252,8 +252,8 @@ def AvailableChain.PCSA.Run.PCUniquenessClaim 209e8175aaea19fd
 theorem AvailableChain.PCSA.Run.PCUniquenessClaim_def 22de6449a6209104
 def AvailableChain.PCSA.Run.OneAckPerSlotClaim 1ab08e9df8941327
 theorem AvailableChain.PCSA.Run.OneAckPerSlotClaim_def 618255dd06b29489
-def AvailableChain.PCSA.Run.PCDisseminationClaim bba8587931ae9c82
-theorem AvailableChain.PCSA.Run.PCDisseminationClaim_def d528127f3639ebe2
+def AvailableChain.PCSA.Run.PCDisseminationClaim 09bc5edd3d3fce89
+theorem AvailableChain.PCSA.Run.PCDisseminationClaim_def f45509656636f453
 def AvailableChain.PCSA.Run.OutputNestingClaim a389c2a1fadfd6b0
 theorem AvailableChain.PCSA.Run.OutputNestingClaim_def d1f6e3f89f4678d0
 def AvailableChain.PCSA.Run.AvailableMonotoneClaim 3ccf989433e54d4b
