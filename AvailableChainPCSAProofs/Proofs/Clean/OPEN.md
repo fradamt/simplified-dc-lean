@@ -1355,3 +1355,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Gate writes can renew rows but retain every existing target; combine this
 with live-row pre-clock retention.
 Validation and current claim status are recorded in log.md and state.md.
+
+### RunLockKeep
+
+Deliveries preserve compatible rows; release counts contain only faulty
+seats; expiry and gate renewal preserve every live target.
+Validation and current claim status are recorded in log.md and state.md.

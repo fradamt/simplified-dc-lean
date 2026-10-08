@@ -788,3 +788,7 @@ end
 #print axioms AvailableChain.PCSA.pcsa_gate_keep_lock_target
 #print axioms AvailableChain.PCSA.pcsa_gateStep_keep_lock_target
 #print axioms AvailableChain.PCSA.pcsa_clock_keep_lock_target
+
+-- C6 RunLockKeep.
+#print axioms AvailableChain.PCSA.pcsa_release_label_before_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_lock_keep_of_chain
