@@ -192,6 +192,9 @@ public import AvailableChainPCSAProofs.Proofs.Clean.CleanOutputs
 public import AvailableChainPCSAProofs.Proofs.Clean.GenuineKeys
 
 public import AvailableChainPCSAProofs.Proofs.Clean.GateAdvance
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartRoots
+public import AvailableChainPCSAProofs.Proofs.Clean.LockFromCut
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartRecord
 
 public import AvailableChainPCSAProofs.Proofs.Clean.PendingGates
 

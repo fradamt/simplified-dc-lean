@@ -6189,6 +6189,9 @@
             'AvailableChain.PCSA.pcsa_clock_lock_origin',
             'AvailableChain.PCSA.pcsa_gate_lock_origin',
         ),
+        'AvailableChainPCSAProofs.Proofs.Clean.LockFromCut': (
+            'AvailableChain.PCSA.Run.pcsa_lock_stateBefore_origin_from',
+        ),
         'AvailableChainPCSAProofs.Proofs.Clean.LockOrigins': (
             'AvailableChain.PCSA.pcsa_admit_proposal_locks',
             'AvailableChain.PCSA.pcsa_admit_row_locks',
@@ -6413,6 +6416,19 @@
             'AvailableChain.PCSA.Run.pcsa_headDomain_stateBefore_none',
             'AvailableChain.PCSA.Run.pcsa_resolved_head_of_held_body',
             'AvailableChain.PCSA.pcsa_clock_headDomain',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.RestartRecord': (
+            'AvailableChain.PCSA.Run.pcsa_restart_post_gate_record',
+            'AvailableChain.PCSA.pcsa_clock_gate_record_eq_result',
+            'AvailableChain.PCSA.pcsa_gate_record_eq_result',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Clean.RestartRoots': (
+            'AvailableChain.PCSA.Run.pcsa_ack_dissemination_step_from',
+            'AvailableChain.PCSA.Run.pcsa_ack_next_root_below_from',
+            'AvailableChain.PCSA.Run.pcsa_next_root_source_from',
+            'AvailableChain.PCSA.Run.pcsa_restart_ack_target',
+            'AvailableChain.PCSA.Run.pcsa_restart_root_base',
+            'AvailableChain.PCSA.Run.pcsa_restart_voterPC_slot',
         ),
         'AvailableChainPCSAProofs.Proofs.Clean.ResultPaths': (
             'AvailableChain.PCSA.Run.pcsa_result_early_support',
@@ -7053,7 +7069,6 @@
             'AvailableChain.PCSA.process_lock_targets_subset',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockWindow': (
-            'AvailableChain.PCSA.RecoverySlotOrdered',
             'AvailableChain.PCSA.Run.recovery_live_lock_window_origin',
             'AvailableChain.PCSA.Run.recovery_lock_bound_from_run',
             'AvailableChain.PCSA.Run.recovery_lock_window_origin',
@@ -7240,6 +7255,10 @@
             'AvailableChain.PCSA.pcsa_propose_rows_valid',
             'AvailableChain.PCSA.pcsa_rows_valid_not_excluded',
         ),
+        'AvailableChainPCSAProofs.Proofs.Shared.LockRankSafe': (
+            'AvailableChain.PCSA.pcsa_live_lock_rank_compatible',
+            'AvailableChain.PCSA.pcsa_lock_rank_compatible',
+        ),
         'AvailableChainPCSAProofs.Proofs.Shared.PCViews': (
             'AvailableChain.PCSA.Run.pcsa_installed_pc_accepted',
             'AvailableChain.PCSA.Run.pcsa_run_pcs_mono',
@@ -7291,6 +7310,16 @@
             'AvailableChain.PCSA.pcsa_tail_collectClosed',
             'AvailableChain.PCSA.pcsa_tail_pool',
         ),
+        'AvailableChainPCSAProofs.Proofs.Shared.RestartSeed': (
+            'AvailableChain.PCSA.Run.CleanRestartSeed',
+            'AvailableChain.PCSA.Run.pcsa_afterTicksIdx_le_tick',
+            'AvailableChain.PCSA.Run.pcsa_bestPC_slot_of_mem',
+            'AvailableChain.PCSA.Run.pcsa_held_frameActive',
+            'AvailableChain.PCSA.Run.pcsa_restart_gateRank_slot',
+            'AvailableChain.PCSA.Run.pcsa_restart_proposerPC_slot',
+            'AvailableChain.PCSA.Run.pcsa_restart_snapshot_held',
+            'AvailableChain.PCSA.Run.pcsa_stamped_held',
+        ),
         'AvailableChainPCSAProofs.Proofs.Shared.RunEvidence': (
             'AvailableChain.PCSA.Run.HeadAuthentic_def',
             'AvailableChain.PCSA.Run.evidence_stateBefore',
@@ -7299,6 +7328,18 @@
             'AvailableChain.PCSA.Run.pcsa_named_preceq_refl',
             'AvailableChain.PCSA.Run.pcsa_rootBlock_delivered',
             'AvailableChain.PCSA.Run.pcsa_rootBlock_eq',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Shared.SlotOrder': (
+            'AvailableChain.PCSA.RecoverySlotOrdered',
+            'AvailableChain.PCSA.ResultsSlotBound',
+            'AvailableChain.PCSA.StoreSlotOrdered',
+            'AvailableChain.PCSA.pcsa_prefix_eq_of_slot_ge',
+            'AvailableChain.PCSA.pcsa_reachable_slot_order',
+            'AvailableChain.PCSA.pcsa_record_results',
+            'AvailableChain.PCSA.pcsa_result_prefix_slot',
+            'AvailableChain.PCSA.pcsa_saved_result_slot',
+            'AvailableChain.PCSA.pcsa_slot_le_of_prefix',
+            'AvailableChain.PCSA.pcsa_stored_strict_slots',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.StageRun': (
             'AvailableChain.PCSA.Run.pcsa_outageStore_stateBefore',
@@ -7343,6 +7384,13 @@
             'AvailableChain.PCSA.pcsa_process_stageOne',
             'AvailableChain.PCSA.pcsa_reconcile_frame',
             'AvailableChain.PCSA.pcsa_reconcile_genesis',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Shared.StampKeep': (
+            'AvailableChain.PCSA.Run.pcsa_run_stamp_keep',
+            'AvailableChain.PCSA.Run.pcsa_stampBound_of_ticks',
+            'AvailableChain.PCSA.pcsa_clock_pcStamps',
+            'AvailableChain.PCSA.pcsa_gateFrom_pcStamps',
+            'AvailableChain.PCSA.pcsa_process_stamp_keep',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.StoreEvidence': (
             'AvailableChain.PCSA.StoreEvidence_def',
