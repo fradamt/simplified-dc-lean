@@ -5932,6 +5932,8 @@
             'AvailableChain.PCSA.Run.pcsa_clean_dissemination',
             'AvailableChain.PCSA.Run.pcsa_clean_dissemination_pending',
             'AvailableChain.PCSA.Run.pcsa_clean_emitted_heads_equal',
+            'AvailableChain.PCSA.Run.pcsa_clean_formation_commonView',
+            'AvailableChain.PCSA.Run.pcsa_clean_formation_leaseRead',
             'AvailableChain.PCSA.Run.pcsa_clean_gate_guard',
             'AvailableChain.PCSA.Run.pcsa_clean_head_above_past_at_early',
             'AvailableChain.PCSA.Run.pcsa_clean_headsAbove_step',
