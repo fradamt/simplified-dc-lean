@@ -705,8 +705,6 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_source_of_preFreeze
 
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_gate_anchor
-#print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_valid
-#print axioms AvailableChain.PCSA.Run.pcsa_formation_frozen_pc_origin_read_valid
 #print axioms AvailableChain.PCSA.pcsa_formation_raw_keep_of_metadata
 #print axioms AvailableChain.PCSA.pcsa_formation_current_body_in_voter_tree
 #print axioms AvailableChain.PCSA.Run.pcsa_formation_key_before_proposal_of_handler

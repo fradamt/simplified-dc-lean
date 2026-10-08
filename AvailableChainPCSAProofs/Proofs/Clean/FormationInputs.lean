@@ -257,7 +257,7 @@ theorem pcsa_formation_frozen_pc_receipt_of_body (E : Generic.Env V)
     change 4 * p.Δ * (s : Int) + 2 * p.Δ ≠ 4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ
     rw [hs]
     nlinarith
-  obtain ⟨j, t, D, ht, hDs, hDt, hw, ha⟩ := pcsa_formation_frozen_pc_origin_read_valid
+  obtain ⟨j, t, D, ht, hDs, hDt, hw, ha⟩ := pcsa_frozen_pc_origin_read_valid
     E rho h.base h.frame y hy (s - 1) _ nd C hr hne hC
   have hb := hFrozenBody y hy nd hr C hC
   have hk : KeyHeld (V2.D.Run.stateBeforeTime E rho (SA.proposalTime p.toParams s) x).st
@@ -368,7 +368,7 @@ theorem pcsa_formation_frozen_body (E : Generic.Env V)
     change 4 * p.Δ * (s : Int) + 2 * p.Δ ≠ 4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ
     rw [hs]
     nlinarith
-  obtain ⟨j, u, D, hu, _, hDt, _, ha⟩ := pcsa_formation_frozen_pc_origin_read_valid
+  obtain ⟨j, u, D, hu, _, hDt, _, ha⟩ := pcsa_frozen_pc_origin_read_valid
     E rho h.base h.frame x hx (s - 1) _ nd C hr hne hC
   obtain ⟨o, hj, _⟩ := ha.1
   have hp : (V2.D.Run.stateBefore E rho (j + 1) x).st.pcs.any

@@ -4,6 +4,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationProposal
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
 public import AvailableChainPCSAProofs.Proofs.Shared.BodyReceipt
+public import AvailableChainPCSAProofs.Proofs.Shared.VoterView
 
 public section
 
@@ -11,6 +12,7 @@ public section
 Every admitted slot-s proposal has the honest emitted body and vote lists.
 F1 handles an old accepted PC before t_s, including at an asleep receiver.
 Frozen identity receipt and carried-PC presence fix every early view and A2.
+The metadata scope and voter-view lemmas are the Shared/VoterView ones.
 FormationOrigins supplies hFrozenPCOrigin at the actual early read.
 The view proof names hFrozenPCReceipt and hCarriedPresence.
 Root-mode vote transport preserves counts and scores under explicit receipt
@@ -189,82 +191,7 @@ theorem pcsa_formation_metadata_body (p : Params) (st : State p.n) (hReach : Rea
     intro s N hm
     exact hAll _ hm s N rfl
 
-private theorem metadata_process (p : Params) (st : State p.n) (o : Wire p.n)
-    (P : Wire p.n → Prop) (h : ∀ w ∈ st.proposals, P w)
-    (ho : ∀ s N, o.decode = some (.block s N) →
-      N.erase.slot = s → P ⟨.proposer s, .proposal N⟩) :
-    ∀ w ∈ (process p st o).proposals, P w := by
-  refine metadata_process_accepted p st o P h ?_
-  intro s N B hd _ _ hAcc
-  apply ho s N hd
-  have hf := hAcc
-  change (N.erase != .genesis && decide (N.erase.slot ≤ st.slot p) &&
-    !decide (∃ Y ∈ st.fg.TF, Y.root = N.erase.root) &&
-    SimplexFG.FGBlock.preceq st.fg.F (fgBlock B N.erase N.rows) &&
-    decide (N.erase.parent.slot < N.erase.slot) && s == N.erase.slot &&
-    rowsValidForParent p B N.erase.slot N.rows &&
-    (N.pc.map PC.wellFormed).getD true && namedContentOk p N) = true at hf
-  simp only [Bool.and_eq_true] at hf
-  exact (beq_iff_eq.mp (by tauto)).symm
-
 end AvailableChain.PCSA
-
-namespace AvailableChain.PCSA.Run
-variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
-
-theorem pcsa_formation_metadata_scope (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (P : Wire p.n → Prop)
-    (hDeliver : ∀ (j : Nat) (x : V) (o : Obj p) (t : Time) (s : Slot)
-      (N : NamedProposal p.n), rho.events[j]? = some (.deliver x o t) →
-      (toWire p o).decode = some (.block s N) →
-      N.erase.slot = s → P ⟨.proposer s, .proposal N⟩)
-    (i : Nat) (x : V) :
-    ∀ w ∈ (V2.D.Run.stateBefore E rho i x).st.proposals, P w := by
-  refine V2.D.Engine.stateBefore_step_induction E rho
-    (fun nd : Node p => ∀ w ∈ nd.st.proposals, P w) (Nat.zero_le i) x ?_ ?_
-  · intro j e _ _ he hx h
-    cases e with
-    | restart y t =>
-      change y = x at hx
-      subst y
-      change ∀ w ∈ (Function.update (V2.D.Run.stateBefore E rho j) x _ x).st.proposals, P w
-      rw [Function.update_self]
-      exact fun w hw => (List.not_mem_nil hw).elim
-    | tick y t =>
-      change y = x at hx
-      subst y
-      change ∀ w ∈ (Function.update (V2.D.Run.stateBefore E rho j) x _ x).st.proposals, P w
-      rw [Function.update_self]
-      have ht := pcsa_tick_st E rho (V2.D.Run.stateBefore E rho j x) x t
-      rw [ht, metadata_clock]
-      exact h
-    | deliver y o t =>
-      change y = x at hx
-      subst y
-      change ∀ w ∈ (Function.update (V2.D.Run.stateBefore E rho j) x _ x).st.proposals, P w
-      rw [Function.update_self]
-      exact metadata_process p _ (toWire p o) P h (hDeliver j x o t · · he)
-  · exact fun w hw => (List.not_mem_nil hw).elim
-
-theorem pcsa_formation_metadata_read_scope (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) (P : Wire p.n → Prop)
-    (hDeliver : ∀ (j : Nat) (x : V) (o : Obj p) (t : Time) (s : Slot)
-      (N : NamedProposal p.n), rho.events[j]? = some (.deliver x o t) →
-      (toWire p o).decode = some (.block s N) →
-      N.erase.slot = s → P ⟨.proposer s, .proposal N⟩)
-    (x : V) (t : Time) (nd : Node p) (hr : pcsa_postClock E rho x t = some nd) :
-    ∀ w ∈ nd.st.proposals, P w := by
-  rw [pcsa_postClock_def] at hr
-  obtain ⟨pre, hp, hc⟩ := Option.map_eq_some_iff.mp hr
-  rw [pcsa_preTick_def] at hp
-  obtain ⟨k, hk, he⟩ := Option.map_eq_some_iff.mp hp
-  subst pre
-  subst nd
-  rw [show ((pcsaWith m p c).clock (V2.D.Run.stateBefore E rho k x) t).st =
-    clock p (V2.D.Run.stateBefore E rho k x).st t from rfl, metadata_clock]
-  exact pcsa_formation_metadata_scope E rho P hDeliver k x
-
-end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
@@ -324,7 +251,7 @@ theorem pcsa_formation_metadata_unique (E : Generic.Env V)
     (hr : pcsa_postClock E rho x t = some nd) :
     ∀ w ∈ nd.st.proposals, ∀ k M, w.decode = some (.block k M) →
       M.erase.slot = k ∧ (k = s → M = N) := by
-  apply pcsa_formation_metadata_read_scope E rho
+  apply pcsa_metadata_read_scope E rho
     (fun w => ∀ k M, w.decode = some (.block k M) →
       M.erase.slot = k ∧ (k = s → M = N)) ?_ x t nd hr
   intro j y o u k M he hd hs l D hw
@@ -365,66 +292,6 @@ theorem pcsa_formation_carried_pc_unique (E : Generic.Env V)
       · cases hf
 
 end AvailableChain.PCSA.Run
-
-namespace AvailableChain.PCSA
-variable {n : Nat}
-
-/-- Frozen identity receipt and the unique carried PC fix the voter view target. -/
-theorem pcsa_formation_view_of_frozen_receipt (p : Params) (src dst : State p.n)
-    (s : Slot) (pc : Option (PC p.n))
-    (hProposer : proposerPC p src = pc)
-    (hFrozenPCReceipt : ∀ C ∈ pcSnapshotAt dst (s - 1), frameActive p dst C = true →
-      ∃ A ∈ src.pcs.filter (frameActive p src), A.slot = C.slot ∧ A.target = C.target)
-    (hCarried : ∀ C ∈ carriedPCs dst s, pc = some C)
-    (hPresent : ∀ D, pc = some D →
-      D ∈ (pcSnapshotAt dst (s - 1) ++ carriedPCs dst s).filter (frameActive p dst))
-    (hRoots : ∀ A ∈ src.pcs.filter (frameActive p src),
-      ∀ B ∈ src.pcs.filter (frameActive p src), A.target.root = B.target.root →
-      A.target = B.target) :
-    (voterPC p dst s).map PC.target = pc.map PC.target := by
-  let cs := (pcSnapshotAt dst (s - 1) ++ carriedPCs dst s).filter (frameActive p dst)
-  have hRecv : ∀ C ∈ cs,
-      ∃ A ∈ src.pcs.filter (frameActive p src), A.slot = C.slot ∧ A.target = C.target := by
-    intro C hC
-    obtain ⟨hm, ha⟩ := List.mem_filter.mp hC
-    rcases List.mem_append.mp hm with hf | hc
-    · exact hFrozenPCReceipt C hf ha
-    · have he := hCarried C hc
-      have hbest : proposerPC p src = some C := hProposer.trans he
-      exact ⟨C, bestPC_mem _ C hbest, rfl, rfl⟩
-  cases hp : pc with
-  | none =>
-    have hEmpty : src.pcs.filter (frameActive p src) = [] :=
-      pcsa_bestPC_none _ (hProposer.trans hp)
-    cases hv : voterPC p dst s with
-    | none => rfl
-    | some C =>
-      obtain ⟨A, hA, _⟩ := hRecv C (bestPC_mem cs C hv)
-      rw [hEmpty] at hA
-      exact (List.not_mem_nil hA).elim
-  | some D =>
-    have hD : D ∈ src.pcs.filter (frameActive p src) :=
-      bestPC_mem _ D (hProposer.trans hp)
-    apply pcsa_view_target_of_rank cs D (hPresent D hp)
-    · intro C hC
-      obtain ⟨A, hA, hs, ht⟩ := hRecv C hC
-      have hb := pcsa_bestPC_rank_max _ A D hA (hProposer.trans hp)
-      change (decide (D.slot < A.slot) ||
-        (D.slot == A.slot && (decide (D.target.depth < A.target.depth) ||
-          (D.target.depth == A.target.depth &&
-            decide (D.target.root < A.target.root))))) = false at hb
-      change (decide (D.slot < C.slot) ||
-        (D.slot == C.slot && (decide (D.target.depth < C.target.depth) ||
-          (D.target.depth == C.target.depth && decide (D.target.root < C.target.root))))) = false
-      rw [hs, ht] at hb
-      exact hb
-    · intro C hC A hA he
-      obtain ⟨B, hB, _, htB⟩ := hRecv C hC
-      obtain ⟨D', hD', _, htD⟩ := hRecv A hA
-      exact htB.symm.trans ((hRoots B hB D' hD'
-        (by rw [htB, htD]; exact he)).trans htD)
-
-end AvailableChain.PCSA
 
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
@@ -479,7 +346,7 @@ theorem pcsa_formation_early_view_of_receipt (E : Generic.Env V)
     (voterPC p dst.st s).map PC.target = N.pc.map PC.target ∧
       ∀ C, voterPC p dst.st s = some C → Block.Preceq C.target N.erase := by
   obtain ⟨src, hs, _, hp, hb⟩ := pcsa_formation_base_below_parent E rho s N ΔF h
-  have he := pcsa_formation_view_of_frozen_receipt p src.st dst.st s N.pc hp.symm
+  have he := pcsa_view_of_frozen_receipt p src.st dst.st s N.pc hp.symm
     (hFrozenPCReceipt src hs)
     (fun C hC => pcsa_formation_carried_pc_unique E rho s N ΔF h y _ dst hr C hC)
     hCarriedPresence (pcsa_formation_read_pc_root_injective E rho h.base h.frame _ _ src
