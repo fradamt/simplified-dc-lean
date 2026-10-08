@@ -139,6 +139,20 @@ theorem pcsa_gateResultAt_source (E : Generic.Env V)
   refine ⟨k, V2.D.Run.tickIdx?_spec hk, ?_⟩
   rw [pcsa_clock_confirmation_eq_pre]
   exact hr
+/-- Same-label results need a floor at the freeze time of label `s`. -/
+theorem pcsa_clean_same_label_results_from_freeze (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (s : Slot) (X Y : Block) (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams
+        s ≤ cut)
+    (hX : gateResultAt p c E rho x s = some (some X))
+    (hY : gateResultAt p c E rho y s = some (some Y)) : Block.Compatible X Y := by
+  obtain ⟨a, ha, hX⟩ := pcsa_gateResultAt_source E rho x s X hX
+  obtain ⟨b, hb, hY⟩ := pcsa_gateResultAt_source E rho y s Y hY
+  exact pcsa_same_label_gate_results_win E rho h hF hD (hT := hT) a b x y hx hy s
+    X Y hc ha hb hX hY
 /-- In the delivery window: Same-label compatibility holds for the exact gate reader in the Clean
 claim. -/
 theorem pcsa_clean_same_label_results_win (E : Generic.Env V)
@@ -149,11 +163,9 @@ theorem pcsa_clean_same_label_results_win (E : Generic.Env V)
     (s : Slot) (X Y : Block) (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams
         s ≤ cut)
     (hX : gateResultAt p c E rho x s = some (some X))
-    (hY : gateResultAt p c E rho y s = some (some Y)) : Block.Compatible X Y := by
-  obtain ⟨a, ha, hX⟩ := pcsa_gateResultAt_source E rho x s X hX
-  obtain ⟨b, hb, hY⟩ := pcsa_gateResultAt_source E rho y s Y hY
-  exact pcsa_same_label_gate_results_win E rho h hF hD (hT := pcsa_floor_freeze hT) a b x y hx hy s
-    X Y hc ha hb hX hY
+    (hY : gateResultAt p c E rho y s = some (some Y)) : Block.Compatible X Y :=
+  pcsa_clean_same_label_results_from_freeze E rho h hF hD x y hx hy s X Y
+    (pcsa_floor_freeze hT) hc hX hY
 /-- Same-label compatibility holds for the exact gate reader in the Clean claim. -/
 theorem pcsa_clean_same_label_results (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
@@ -162,9 +174,10 @@ theorem pcsa_clean_same_label_results (E : Generic.Env V)
     (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (X Y : Block) (hc : SA.gateTime p.toParams s ≤ cut)
     (hX : gateResultAt p c E rho x s = some (some X))
-    (hY : gateResultAt p c E rho y s = some (some Y)) : Block.Compatible X Y :=
-  pcsa_clean_same_label_results_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) x y hx hy s
-    X Y (pcsa_zero_le_proposal s) hc hX hY
+    (hY : gateResultAt p c E rho y s = some (some Y)) : Block.Compatible X Y := by
+  obtain ⟨a, ha, hX⟩ := pcsa_gateResultAt_source E rho x s X hX
+  obtain ⟨b, hb, hY⟩ := pcsa_gateResultAt_source E rho y s Y hY
+  exact pcsa_same_label_gate_results E rho h hF hD a b x y hx hy s X Y hc ha hb hX hY
 end AvailableChain.PCSA.Run
 
 end
