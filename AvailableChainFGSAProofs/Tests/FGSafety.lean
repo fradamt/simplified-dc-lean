@@ -15,9 +15,6 @@ public section
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyOrderLaws
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyScopeLaws
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyScopedRoots
-#print axioms AvailableChain.FGSA.Run.fgsa_safetyRunBlock_iff
-#print axioms AvailableChain.FGSA.Run.fgsa_safetyWholeAccountable
-#print axioms AvailableChain.FGSA.Run.fgsa_safetyBound_of
 #print axioms AvailableChain.FGSA.Run.fgsa_bridge_runAccountable
 #print axioms AvailableChain.FGSA.Run.fgsa_bridge_parent_scope
 #print axioms AvailableChain.FGSA.Run.fgsa_bridge_read_scope

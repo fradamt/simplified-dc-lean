@@ -4228,9 +4228,6 @@
     },
     'AvailableChainFGSAProofs.Tests.FGSafety': {
         'AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge': (
-            'AvailableChain.FGSA.Run.fgsa_safetyRunBlock_iff',
-            'AvailableChain.FGSA.Run.fgsa_safetyWholeAccountable',
-            'AvailableChain.FGSA.Run.fgsa_safetyBound_of',
             'AvailableChain.FGSA.Run.fgsa_bridge_runAccountable',
             'AvailableChain.FGSA.Run.fgsa_bridge_parent_scope',
             'AvailableChain.FGSA.Run.fgsa_bridge_read_scope',

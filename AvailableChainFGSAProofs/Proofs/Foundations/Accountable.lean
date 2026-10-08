@@ -177,7 +177,7 @@ theorem fgsa_eventPrefixAgreement_of_bound (hroots : NamedRootCollisionFree p c 
     (e e' : Nat) (x y : V) :
     FGBlock.compatible (storeAt p c E rho e x).fg.F
       (storeAt p c E rho e' y).fg.F = true :=
-  fgsa_bridge_event_agreement p c E rho hroots (fgsa_safetyBound_of p c E rho hb) e e' x y
+  fgsa_bridge_event_agreement p c E rho hroots hb e e' x y
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. DC WholeRunFinalitySafety with the same SlashableBound over all run blocks.
@@ -194,7 +194,7 @@ theorem fgsa_wholeRunAgreement (hroots : NamedRootCollisionFree p c E rho) (hb :
   refine ⟨fun K W T₁ T₂ h₁ h₂ hK hW hf hg =>
     (ha.chains K W T₁ T₂ h₁ h₂ hK hW hf hg).resolve_left (hb K W hK hW), ?_⟩
   intro u hu v hv t t'
-  exact fgsa_bridge_read_agreement p c E rho hroots (fgsa_safetyBound_of p c E rho hb)
+  exact fgsa_bridge_read_agreement p c E rho hroots hb
     u hu v hv t t'
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
