@@ -69,7 +69,7 @@ theorem recovery_healed_of_inputs (E : Generic.Env V)
     exact (hp.2.2 x hx _ t ht (stampRead x hx _ (hs x hx))).1
 
 /-- The unchanged C11 statement follows when the named recovery producers are supplied. -/
-theorem pcsa_fastRecoveredClaim (p : Params)
+theorem pcsa_fastRecoveredClaim_of_inputs (p : Params)
     (recoveryInputs : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (m : FGMode) (E : Generic.Env V)
       (rho : V2.D.Run V (pcsaWith m p c)) (G ΔF : Time) (cA s₁ : Slot),

@@ -332,11 +332,9 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   needs no Recovery lemma. `pcsa_cleanRestartSeed_mk` builds the seed from
   `0 < a`, `A.slot = a`, the stamp, the HEADs, the proposal, the results,
   `ArmConcl` and `z_a ≤ horizon`.
-  Open boundary: the Recovery assembly that supplies the seed and the window.
-  The seed stamp comes from `pcsa_clean_honestProposal_stamped_from` at
-  `s = a - 1`, with `T₀ = t_GST ≤ z_{a-1}`. The Clean, Shared and
-  Recovery copies of the lock and record event inductions become one Shared
-  provenance core after this chain lands.
+  `Assembly/Recovery` supplies the seed from Formation and C8, and the
+  horizon window from RECOVERY. The Formation conclusion supplies the seed
+  stamp. `Clean/RestartStamp` supplies the stamps for later honest slots.
 - PC-SA Formation (C7; 2026-10-08). Paths are under
   `AvailableChainPCSAProofs/Proofs/`. The Formation proofs are the
   `Clean/Formation*` modules; `Clean/FormationExport` collects them. It is an
@@ -808,3 +806,9 @@ and only the instance swap is atomic.
   `Clean/StampFrom` to stamp each later honest proposal by its freeze.
   The proof needs the freeze inside the window, not the current gate.
   `Clean/Export` and the PC-SA proof facade export the module.
+
+- PC-SA short recovery (2026-10-08). `Assembly/Recovery` proves
+  `pcsa_fastRecoveredClaim (p) : FastRecoveredClaim p` without an extra
+  premise. `pcsa_recovery_suffixInputs_short` connects Formation, C8 and the
+  restarted outputs. `Recovery/Export` keeps the conditional interface as
+  `pcsa_fastRecoveredClaim_of_inputs` with its original type.

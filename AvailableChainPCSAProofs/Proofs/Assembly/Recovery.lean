@@ -808,3 +808,73 @@ theorem recovery_chainRestart_of_suffix (E : Generic.Env V)
 
 end AvailableChain.PCSA.Run
 end
+
+public section
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+
+/-- Recovery supplies the horizon window, restart seed and later inclusion. -/
+theorem pcsa_recovery_chainRestart (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
+    (hR : Recovery₂ p c E rho G ΔF) (s : Slot)
+    (hafter : E.t_GST ≤ SA.proposalTime p.toParams s) (N : NamedProposal p.n)
+    (hPrem : FormationPrem p c E rho s N ΔF)
+    (hArm : ArmConcl p c E rho s N.erase (s + 1)) :
+    RecoveryChainRestart p c E rho s := by
+  have hForm := pcsa_formation_concl_of_premise E rho s N ΔF hPrem
+  have hSeed := pcsa_recovery_restartSeed E rho s N ΔF hPrem hForm hArm
+  have hf := pcsa_c9_faultsBelowQA_of_quarterCap rho hR.quarterCap
+  have hzero : 0 ≤ rho.horizon := by
+    apply le_trans _ hPrem.horizon
+    change 0 ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    have hd := p.deltaPos
+    positivity
+  have hW := pcsa_cleanWindow_of_sync E rho hR.base hR.sync hR.awake hR.quarterCap
+    s rho.horizon hafter ⟨hzero, le_rfl⟩
+  have hSeedResult : ∃ w ∈ rho.honest,
+      gateResultAt p c E rho w s = some (some N.erase) := by
+    let w := rho.seatOf (.prop s) (0 : Fin 1)
+    have hw : w ∈ rho.honest := hPrem.proposal.1
+    obtain ⟨X, hX⟩ := pcsa_clean_result_exists_win E rho hW hPrem.frame w hw s le_rfl
+      hPrem.horizon
+    have heq := hSeed.result w hw (some X) hX
+    exact ⟨w, hw, hX.trans (congrArg some heq)⟩
+  apply recovery_chainRestart_of_suffix E rho hR.base hPrem.frame hf s N.erase
+    (pcsa_restart_suffix_invariant E rho hW hPrem.frame hf hSeed)
+  · intro u M hu hM hz
+    have he : SA.earlyTime p.toParams u ≤ rho.horizon := by
+      apply le_trans _ hz
+      have hd := p.deltaPos
+      change 4 * p.Δ * (u : Int) + 2 * p.Δ ≤ 4 * p.Δ * (u : Int) + 3 * p.Δ
+      linarith
+    have hp := pcsa_cleanWindow_floor E rho hW u ((Nat.le_succ s).trans hu)
+    exact pcsa_restart_honestProposal_stamped E rho hW hPrem.frame hf hSeed hSeedResult
+      u M hu hM (recovery_participation_at_early E rho hR u hp he).1 hz
+  · intro u B hB
+    exact recovery_persistence_of_run E rho hR hPrem.frame u B hB
+
+/-- The short-break premises supply every recovery suffix field. -/
+theorem pcsa_recovery_suffixInputs_short (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time} {cA s₁ : Slot}
+    (h : ShortBreakPrem p c E rho G ΔF cA s₁) : RecoverySuffixInputs p c E rho s₁ ΔF := by
+  refine ⟨pcsa_recovery_firstSlot_short E rho h, ?_,
+    recovery_persistence_of_run E rho h.recovery h.frame s₁, ?_⟩
+  · intro N hN _
+    have hF := pcsa_formation_concl_of_premise E rho s₁ N ΔF hN
+    rw [FormationConcl_def] at hF
+    exact hF.2.2.2.1
+  · intro N hN _ hA
+    apply pcsa_recovery_chainRestart E rho h.recovery s₁ _ N hN hA
+    have hd := p.deltaPos
+    have ha := h.firstAfterGST
+    linarith
+
+/-- C11: short-break recovery has no additional supplier premise. -/
+theorem pcsa_fastRecoveredClaim (p : Params) : FastRecoveredClaim p := by
+  apply pcsa_fastRecoveredClaim_of_inputs p
+  intro V _ _ In c m E rho G ΔF cA s₁ h
+  exact pcsa_recovery_suffixInputs_short E rho h
+
+end AvailableChain.PCSA.Run
+end

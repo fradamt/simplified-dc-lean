@@ -1,9 +1,9 @@
 # Open inputs of the Recovery lane (C11)
 
-`pcsa_fastRecoveredClaim` and `pcsa_longBreakRecoveredClaim`
-(`Recovery/Export.lean`) are conditional: each takes a producer of
-`RecoverySuffixInputs` (`Recovery/Suffix.lean`). No unconditional C11 is
-claimed. Status of the inputs:
+`pcsa_fastRecoveredClaim` (`Assembly/Recovery.lean`) is unconditional.
+The conditional short-break wrapper is `pcsa_fastRecoveredClaim_of_inputs`.
+`pcsa_longBreakRecoveredClaim` (`Recovery/Export.lean`) still takes a producer
+of `RecoverySuffixInputs`. Status of the inputs:
 
 - First slot (`firstSlot`: a `FormationPrem` at `s₁` with the corrected F4
   clause `RecoveryRootReachable`):
@@ -19,7 +19,7 @@ claimed. Status of the inputs:
 - Formation with corrected F4 (`formation`: every honest node holds the
   stamped PC of `N.erase` before `z_{s₁}`): its producer is now on main as
   `pcsa_formationClaim`. `FormationPrem` carries `proposerRootReachable`.
-  Connecting the complete recovery suffix is separate from this job.
+  `pcsa_formation_concl_of_premise` exports the conclusion through Clean.
 - Persistence (`persistence`, ARM at `s₁` with `j₀ = s₁ + 1`): CLOSED by
   `recovery_persistence_of_run` (`Assembly/Recovery.lean`), from the
   unconditional C8 `pcsa_armPersistence`.
@@ -33,7 +33,9 @@ claimed. Status of the inputs:
   `ShortBreakPrem.anchorPos` (`0 < cA`) leaves the genesis-anchor case to
   `LongBreakRecoveredClaim`.
 - CI restart (`ciRestart`: the restarted chain invariant from `d_{s₁}`):
-  OPEN, Clean lane.
+  CLOSED by `pcsa_recovery_chainRestart` in Assembly. Formation supplies the
+  seed. RECOVERY supplies the window through the horizon. `Clean/RestartStamp`
+  and C8 supply strong inclusion for each later honest proposal.
 
 Block admission under RECOVERY at a slot `s > 0` with `t_GST + Δ ≤ t_s` and
 `d_s` in the run is CLOSED:
