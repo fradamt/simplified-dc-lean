@@ -594,6 +594,10 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_cleanArmItems_of_vcone
 #print axioms AvailableChain.PCSA.Run.pcsa_armHealthy_of_claims
 #print axioms AvailableChain.PCSA.Run.pcsa_slowP1_of_claims
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanConeItems
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanVoteConeItems
+#print axioms AvailableChain.PCSA.Run.pcsa_armHealthyClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_slowP1Claim
 #print axioms AvailableChain.PCSA.pcsa_initial_collectClosed
 #print axioms AvailableChain.PCSA.pcsa_rows_collectClosed
 #print axioms AvailableChain.PCSA.pcsa_tail_collectClosed
@@ -1463,3 +1467,6 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_cone_root_compatible
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_past_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_heads_cone_at_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_result_below_proposal_parent
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_formation_commonView
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_formation_leaseRead

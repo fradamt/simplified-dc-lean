@@ -283,10 +283,11 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   lane); the proofs stay in their lanes. The pending-label Clean claims
   (`CleanResultsNonemptyClaim`, `CleanResultsChainPendingClaim`,
   `CleanDisseminationPendingClaim`) and `CleanBlockReceiptClaim` (the relay item) are
-  in `Claims/Clean`, outside the `PCSAClaims` record. C8 ARM-healthy takes the
-  vote-time HEAD cone `CleanVoteConeItems` and C10 slow P1 takes the full HEAD
-  cone `CleanConeItems` as OPEN hypotheses (`Outage/CleanBridge`); the
-  Outage assembly proves the other `CutChain` and `CutFacts` fields (see
+  in `Claims/Clean`, outside the `PCSAClaims` record. C8 ARM-healthy uses the
+  vote-time HEAD cone `CleanVoteConeItems` and C10 slow P1 uses the full HEAD
+  cone `CleanConeItems` (`Outage/CleanBridge`). The Outage assembly proves both
+  from the Clean cone theorems and closes C8 (`pcsa_armHealthyClaim`) and C10
+  (`pcsa_slowP1Claim`) with no open hypothesis (see
   `AvailableChainPCSAProofs/Proofs/Outage/OPEN.md`).
   `Outage/BlockReceipt` proves block receipt from the Shared body relay;
   Assembly/Outage packages it as `CleanBlockReceiptClaim`.

@@ -23,7 +23,7 @@ theorem pcsa_cleanCutChainItems_of (p : Params) (hK : CleanCutItems p) :
   exact (hK c m E rho b₀ ΔF hC hf hfr).toCutChain
 
 /-- [pcsa34-r4.3 §5.2.2, §5.2.3, §5.5 steps 1–2] The Clean facts at the cut
-from the HEAD cone (OPEN: `hcone`). The other fields are Clean-lane theorems:
+from the HEAD cone (`hcone`; `pcsa_cleanConeItems`). The other fields are Clean-lane theorems:
 `nonempty` (M1, `pcsa_clean_results_nonempty`), `chain` (M2,
 `pcsa_clean_results_chain_pending`), `dis` (M3,
 `pcsa_clean_dissemination_pending`), `same` (CI (i), `pcsa_clean_invariant`),
@@ -73,7 +73,7 @@ theorem pcsa_cleanRelayItems_of (p : Params) : CleanRelayItems p := by
 
 /-- [pcsa34-r4.3 §5.4.2] The two ARM items from the relay item, pending-label
 dissemination (M3, `pcsa_clean_dissemination_pending`) and the vote-time
-HEAD cone (OPEN: `hvcone`). -/
+HEAD cone (`hvcone`; `pcsa_cleanVoteConeItems`). -/
 theorem pcsa_cleanArmItems_of_vcone (p : Params) (hvcone : CleanVoteConeItems p) :
     CleanArmItems p := by
   have hrel : CleanRelayItems p := pcsa_cleanRelayItems_of p
@@ -89,20 +89,42 @@ theorem pcsa_cleanArmItems_of_vcone (p : Params) (hvcone : CleanVoteConeItems p)
       (hvcone c m E rho b₀ ΔF hC hf hfr)⟩
 
 /-- [pcsa34-r4.3 §5.4.2] C8, ARM-healthy, from the vote-time HEAD cone
-(OPEN: `hvcone`). The relay item follows from block receipt
+(`hvcone`; `pcsa_armHealthyClaim` supplies it). The relay item follows from block receipt
 (`pcsa_cleanBlockReceipt`, `pcsa_cleanRelayItems_of`); pending-label
 dissemination is M3 (`pcsa_clean_dissemination_pending`). -/
 theorem pcsa_armHealthy_of_claims (p : Params) (hvcone : CleanVoteConeItems p) :
     ArmHealthyClaim p :=
   pcsa_armHealthy p (pcsa_cleanArmItems_of_vcone p hvcone)
 
-/-- [pcsa34-r4.3 §5.5] C10, slow P1, from the HEAD cone (OPEN: `hcone`).
+/-- [pcsa34-r4.3 §5.5] C10, slow P1, from the HEAD cone (`hcone`; `pcsa_slowP1Claim` supplies it).
 The ARM items use its vote-time form (`pcsa_cleanVoteConeItems_of_cone`); the
 slow boundary facts come from the Clean facts at the cut
 (`pcsa_cleanCutItems_of_cone`, `pcsa_cleanSlowItems_of`). -/
 theorem pcsa_slowP1_of_claims (p : Params) (hcone : CleanConeItems p) : PCSASlowP1Claim p :=
   pcsa_slowP1 p (pcsa_cleanArmItems_of_vcone p (pcsa_cleanVoteConeItems_of_cone p hcone))
     (pcsa_cleanSlowItems_of p (pcsa_cleanCutItems_of_cone p hcone))
+
+/-- [pcsa34-r4.3 §5.5 step 2] The full HEAD cone (`pcsa_clean_heads_cone_past_cut`). -/
+theorem pcsa_cleanConeItems (p : Params) : CleanConeItems p := by
+  rw [CleanConeItems_def]
+  intro V _ _ In c m E rho b₀ ΔF hC hf hfr
+  exact pcsa_clean_heads_cone_past_cut (p := p) (c := c) (m := m) E rho
+    (cut := b₀) (ΔF := ΔF) hC hf hfr
+
+/-- [pcsa34-r4.3 §5.4.2] The vote-time HEAD cone (`pcsa_clean_heads_cone_at_vote`). -/
+theorem pcsa_cleanVoteConeItems (p : Params) : CleanVoteConeItems p := by
+  rw [CleanVoteConeItems_def]
+  intro V _ _ In c m E rho b₀ ΔF hC hf hfr
+  exact pcsa_clean_heads_cone_at_vote (p := p) (c := c) (m := m) E rho
+    (cut := b₀) (ΔF := ΔF) hC hf hfr
+
+/-- [pcsa34-r4.3 §5.4.2] C8, ARM-healthy, with no open hypothesis. -/
+theorem pcsa_armHealthyClaim (p : Params) : ArmHealthyClaim p :=
+  pcsa_armHealthy_of_claims p (pcsa_cleanVoteConeItems p)
+
+/-- [pcsa34-r4.3 §5.5] C10, slow P1, with no open hypothesis. -/
+theorem pcsa_slowP1Claim (p : Params) : PCSASlowP1Claim p :=
+  pcsa_slowP1_of_claims p (pcsa_cleanConeItems p)
 
 end AvailableChain.PCSA.Run
 end
