@@ -269,7 +269,7 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
         assert ("COMPOSE-S", CO, CO + ".Proofs.SafetySlashing.Extra") in found, found
         print("PASS Compose facade P3 module and neighbor")
         for index, (importer, dep) in enumerate(sorted(api["COMPOSE_EDGES"])):
-            if "FGSafetyClient" not in importer:
+            if not any(name in importer for name in ("FGSafetyClient", "FGSafetyBridge")):
                 continue
             for neighbor, target in ((importer + ".Extra", dep), (importer, dep + ".Extra")):
                 root = temp / f"safety-adapter-{index}-{neighbor}-{target}"
