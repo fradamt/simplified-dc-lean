@@ -27,6 +27,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.StepGate
 public import AvailableChainPCSAProofs.Proofs.Clean.StepPC
 public import AvailableChainPCSAProofs.Proofs.Shared.Dissemination
 public import AvailableChainPCSAProofs.Proofs.Shared.CleanPC
+public import AvailableChainPCSAProofs.Proofs.Shared.VoterView
 
 public import AvailableChainPCSAProofs.Proofs.Clean.BackwardInputs
 
@@ -1410,6 +1411,71 @@ theorem pcsa_clean_result_below_proposal_parent (p : Params) :
     | node Q r root app => exact Option.some.inj h1
   rw [hpar, hparent]
   exact Gen.Pure.block_preceq_trans hXD hDH
+/-- [pcsa34-r4.3 §5.3, F3] Every honest voter awake at `v_u` reads the target of the carried
+PC of an honest proposal at label `u` (`pcsa_common_view_targets` at the post-clock vote read). -/
+theorem pcsa_clean_formation_commonView (p : Params) :
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ (u : Slot) (N : NamedProposal p.n), 0 < u → HonestNamedProposal p c E rho u N →
+        SA.gateTime p.toParams (u - 1) ≤ b₀ →
+        ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams u) = true →
+          (viewAt p c E rho y u).map (Option.map PC.target) = some (N.pc.map PC.target) := by
+  intro V _ _ In c m E rho b₀ ΔF hC hf hF u N hu hN hc y hy _
+  obtain ⟨s, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hu)
+  simp only [Nat.succ_sub_one] at hc
+  obtain ⟨hw, he⟩ := hN
+  obtain ⟨k, hk, _, hslot, _, _, hpc, _⟩ := pcsa_emitted_proposal_inputs E rho _ (s + 1) N he
+  have hp : (0 : Int) < p.Δ := p.deltaPos
+  have hvc : SA.voteTime p.toParams (s + 1) ≤ b₀ := by
+    apply le_trans _ hc
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    push_cast
+    linarith
+  have hmem := (pcsa_honest_proposal_before_vote E rho hC.base hF hC.healthy _ y hw hy (s + 1) N
+    he hvc _ (le_refl _)).1
+  have hview := pcsa_common_view_targets E rho hC.base hF hf hC.healthy k y hy s N hw he hk hslot
+    hvc hmem hpc
+  have hpub : V2.PublicTime E (SA.voteTime p.toParams (s + 1)) := by
+    refine ⟨4 * (s + 1) + 1, ?_⟩
+    rw [hC.base.delta]
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ = ((4 * (s + 1) + 1 : Nat) : Int) * p.Δ
+    push_cast
+    ring
+  have h0 : 0 ≤ SA.voteTime p.toParams (s + 1) := by
+    change 0 ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    positivity
+  obtain ⟨nd, hnd⟩ := pcsa_postClock_exists E rho hC.base y hy _ hpub h0 (hvc.trans hC.cut.2)
+  obtain ⟨k', hk', hst⟩ := pcsa_postClock_source E rho y _ nd hnd
+  have hpre := V2.D.Engine.stateBefore_tick_eq_stateBeforeTime
+    hC.base.valid.toScheduleWellFormed hC.base.noRestart hk'
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hC.base.valid.toScheduleWellFormed] at hpre
+  rw [pcsa_viewAt_def, hnd, Option.map_some, Option.map_some, hst, hpre, hview, hpc]
+  rfl
+/-- [pcsa34-r4.3 §5.3, F4] A live lock at the post-clock vote read of `v_u` is a lock row of
+the inclusive store at `v_u − 1` (`pcsa_vote_locks_subset`, `pcsa_pre_tick_storeAt`). -/
+theorem pcsa_clean_formation_leaseRead (p : Params) :
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (m : FGMode) (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+      (b₀ ΔF : Time),
+      Clean₂ p c E rho b₀ ΔF → FaultsBelowQA p c rho → StageOneFrame p c E rho →
+      ∀ (u : Slot) (N : NamedProposal p.n), 0 < u → HonestNamedProposal p c E rho u N →
+        SA.gateTime p.toParams (u - 1) ≤ b₀ →
+        ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams u) = true →
+          ∀ nd, pcsa_postClock E rho y (SA.voteTime p.toParams u) = some nd →
+          ∀ B, LiveLease nd.st B →
+            Block.Compatible B ((N.pc.map PC.target).getD (eraseFG (controls p nd.st).Z)) →
+            ((N.pc.map PC.target).getD (eraseFG (controls p nd.st).Z)).depth < B.depth →
+            ∃ t : Time, ∃ row, t < SA.voteTime p.toParams u ∧
+              row ∈ (storeAt p c E rho y t).base.obligations ∧ row.1 = B := by
+  intro V _ _ In c m E rho b₀ ΔF hC _ _ u N _ _ _ y _ _ nd hnd B hLive _ _
+  obtain ⟨k, hk, hst⟩ := pcsa_postClock_source E rho y _ nd hnd
+  obtain ⟨row, hrow, hrB, _⟩ := hLive
+  rw [hst] at hrow
+  have hrow' := pcsa_vote_locks_subset p _ u hrow
+  rw [pcsa_pre_tick_storeAt E rho hC.base k y _ hk] at hrow'
+  exact ⟨SA.voteTime p.toParams u - 1, row, sub_one_lt _, hrow', hrB⟩
 end AvailableChain.PCSA.Run
 
 end
