@@ -67,9 +67,9 @@ frame) is stage 2 and is not a field. Results are the raw gate results
   `≤ j`; `recordMono`, `recordCompatible`: `S` is monotone at a node and
   honest `S` values are pairwise compatible.
 - (vii) `roots`: every honest root for `v_{j+1}` is compatible with every
-  honest result of label `j` and every honest HEAD of label `j` (r4.3: the
-  root is `Z`, a PC target or a lease target; that part is the definition of
-  `live_root`). -/
+  honest result of label `j` (r4.3a). Step (d) needs a separate proof of
+  compatibility with an N target. The root is `Z`, a PC target or a lock
+  target, by the definition of `live_root`. -/
 structure CleanInvariantAt (j : Slot) : Prop where
   resultsChain : ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ (i i' : Slot) (X Y : Block),
     i ≤ i' → i' ≤ j →
@@ -117,9 +117,8 @@ structure CleanInvariantAt (j : Slot) : Prop where
     Block.Compatible (storeAt p c E rho x t).base.stableRecord
       (storeAt p c E rho y t').base.stableRecord
   roots : ∀ x ∈ rho.honest, ∀ R : Block, liveRootAt p c E rho x (j + 1) = some R →
-    (∀ y ∈ rho.honest, ∀ X, gateResultAt p c E rho y j = some (some X) →
-      Block.Compatible R X) ∧
-    (∀ y H, HonestHeadAt p c E rho y j H → Block.Compatible R H)
+    ∀ y ∈ rho.honest, ∀ X, gateResultAt p c E rho y j = some (some X) →
+      Block.Compatible R X
 
 /-- [PC-SA claims, W0; pcsa34-r4 5.3 Claim] The formation conclusion at slot
 `s` with the honest proposal `N` (`P = N.erase`): every honest HEAD at `v_s`
