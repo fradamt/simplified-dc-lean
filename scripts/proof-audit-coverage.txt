@@ -5746,6 +5746,9 @@
             'AvailableChain.PCSA.Run.pcsa_strongIncludedClaim',
         ),
         'AvailableChainPCSAProofs.Proofs.Assembly.Recovery': (
+            'AvailableChain.PCSA.Run.pcsa_recovery_anchor_from_shortBreak',
+            'AvailableChain.PCSA.Run.pcsa_recovery_cleanSaved_from_anchor',
+            'AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_short',
             'AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci',
             'AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci_pc',
             'AvailableChain.PCSA.Run.recovery_persistence_of_run',
@@ -6954,6 +6957,9 @@
             'AvailableChain.PCSA.Run.honestProposal_of_named',
             'AvailableChain.PCSA.Run.recovery_anchor',
         ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.AnchorBase': (
+            'AvailableChain.PCSA.Run.recovery_base_of_arm',
+        ),
         'AvailableChainPCSAProofs.Proofs.Recovery.CleanSaved': (
             'AvailableChain.PCSA.Run.recovery_anchor_gate_after_freeze',
             'AvailableChain.PCSA.Run.recovery_anchor_locks_of_gate_prefix',
@@ -6975,6 +6981,7 @@
         'AvailableChainPCSAProofs.Proofs.Recovery.Export': (
             'AvailableChain.PCSA.Run.pcsa_fastRecoveredClaim',
             'AvailableChain.PCSA.Run.pcsa_longBreakRecoveredClaim',
+            'AvailableChain.PCSA.Run.pcsa_recovery_anchor_proposer_base',
             'AvailableChain.PCSA.Run.recovery_healed_of_inputs',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.FirstHonestSlot': (
@@ -6983,6 +6990,9 @@
             'AvailableChain.PCSA.Run.recovery_first_gate_bound',
             'AvailableChain.PCSA.Run.recovery_freeze_after_gst',
             'AvailableChain.PCSA.Run.recovery_participation',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.FirstSlot': (
+            'AvailableChain.PCSA.Run.recovery_firstSlot_of_anchor',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockBound': (
             'AvailableChain.PCSA.Run.recovery_lock_bound',
@@ -7327,6 +7337,37 @@
         ),
     },
     'AvailableChainPCSAProofs.Tests.FGSafety': {
+        'AvailableChainPCSAProofs.Proofs.Assembly.Finality': (
+            'AvailableChain.PCSA.Run.pcsaSafetyFinalityClaims',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Finality.Export': (
+            'AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreementClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBoundClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotoneClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashedClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_pureAccountableClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_pureAgreementClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountableClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreementClaim',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge': (
+            'AvailableChain.PCSA.Run.pcsa_safetySlashesRead',
+            'AvailableChain.PCSA.Run.pcsa_safety_accountable_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_agreement_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_bound_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_carriage_of',
+            'AvailableChain.PCSA.Run.pcsa_safety_count_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_emits_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_eventAgreement_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_finalizedAt_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_monotone_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_noSlash_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_nonSlashing_supply',
+            'AvailableChain.PCSA.Run.pcsa_safety_rows_eq',
+            'AvailableChain.PCSA.Run.pcsa_safety_runBlock_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeAccountable_iff',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeAgreement_iff',
+        ),
         'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient': (
             'AvailableChain.PCSA.Run.pcsaCoreReadsWith',
             'AvailableChain.PCSA.Run.pcsaCoreReadsWith_def',
@@ -7368,6 +7409,14 @@
             'AvailableChain.PCSA.pcsa_safety_storeInvariant',
             'AvailableChain.PCSA.pcsa_safety_storeStepRoots',
             'AvailableChain.PCSA.pcsa_safety_window_TF_cases',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Foundations.FinalitySafety': (
+            'AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreement_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBound_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotone_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashed_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountable_body',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreement_body',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.FGStore': (
             'AvailableChain.PCSA.pcsa_process_F_mono',

@@ -4,6 +4,7 @@ public import AvailableChainPCSAProofs.Proofs.AcFrame.Rows
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Run
 public import AvailableChainPCSAProofs.Proofs.AcFrame.Store
 public import AvailableChainPCSAProofs.Proofs.Assembly.AcFrame
+public import AvailableChainPCSAProofs.Proofs.Assembly.Finality
 public import AvailableChainPCSAProofs.Proofs.Assembly.Outage
 public import AvailableChainPCSAProofs.Proofs.Assembly.Recovery
 public import AvailableChainPCSAProofs.Proofs.Assembly.Small
@@ -91,3 +92,5 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClientLaws
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge
+public import AvailableChainPCSAProofs.Proofs.Foundations.FinalitySafety
