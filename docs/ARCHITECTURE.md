@@ -275,6 +275,14 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
   lemmas with smaller premises, without the lane prefix (Shared carries no lane
   names); Formation drops its copies when it switches.
+- PC-SA finality safety (P12): `Foundations/FGSafetyBridge` converts the PC
+  reads and applies Compose `SafetyAccountable`, `SafetyCount`,
+  `SafetyMonotone`, and `SafetySlashing` through four exact `COMPOSE_EDGES`.
+  `Foundations/FinalitySafety` supplies the six run bodies. `Finality/Export`
+  proves the two pure fields with KitFG and closes all eight frozen claims.
+  `Assembly/Finality` supplies `PCSAClaims.finality` with
+  `pcsaSafetyFinalityClaims`. Both FG modes are covered. Count retains
+  all-run carriage; honest non-slashing uses stored-row carriage.
 - PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
   holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
   items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow

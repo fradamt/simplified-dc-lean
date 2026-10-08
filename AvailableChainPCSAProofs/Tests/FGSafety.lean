@@ -5,6 +5,8 @@ public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore -- shake
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge -- shake: keep (#print axioms)
 public import AvailableChainPCSAProofs.Proofs.Foundations.FinalitySafety -- shake: keep (#print axioms)
 
+public import AvailableChainPCSAProofs.Proofs.Assembly.Finality -- shake: keep (#print axioms)
+
 public section
 
 #print axioms AvailableChain.PCSA.Run.decodeSafetyRow
@@ -96,6 +98,16 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotone_body
 #print axioms AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBound_body
 #print axioms AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashed_body
+
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_pureAccountableClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_pureAgreementClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountableClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreementClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreementClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotoneClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBoundClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashedClaim
+#print axioms AvailableChain.PCSA.Run.pcsaSafetyFinalityClaims
 
 namespace AvailableChain.PCSA.Run
 open AvailableChain.FGCompose AvailableChain.SimplexFG

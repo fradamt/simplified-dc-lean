@@ -7262,6 +7262,19 @@
         ),
     },
     'AvailableChainPCSAProofs.Tests.FGSafety': {
+        'AvailableChainPCSAProofs.Proofs.Assembly.Finality': (
+            'AvailableChain.PCSA.Run.pcsaSafetyFinalityClaims',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Finality.Export': (
+            'AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreementClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBoundClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotoneClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashedClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_pureAccountableClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_pureAgreementClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountableClaim',
+            'AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreementClaim',
+        ),
         'AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge': (
             'AvailableChain.PCSA.Run.pcsa_safetySlashesRead',
             'AvailableChain.PCSA.Run.pcsa_safety_accountable_supply',
