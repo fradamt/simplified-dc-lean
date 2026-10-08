@@ -1390,3 +1390,9 @@ Joint ack coverage gives dissemination. Completed result origins and
 observed ack targets give cross-node safety and both monotonicity
 conclusions.
 Validation and current claim status are recorded in log.md and state.md.
+
+### GenuineKeys
+
+Only the matching gate clock adds a saved label. Event uniqueness makes
+each actual gate input unsaved.
+Validation and current claim status are recorded in log.md and state.md.

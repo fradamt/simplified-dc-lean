@@ -826,3 +826,11 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_strong_mono_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_dissemination
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_safety
+
+-- C6 GenuineKeys.
+#print axioms AvailableChain.PCSA.pcsa_process_genuine_keys
+#print axioms AvailableChain.PCSA.pcsa_clockPre_genuine
+#print axioms AvailableChain.PCSA.pcsa_gate_genuine
+#print axioms AvailableChain.PCSA.pcsa_clock_genuine_key_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_genuine_key_origin
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_input_unsaved

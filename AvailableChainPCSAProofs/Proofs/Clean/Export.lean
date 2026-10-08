@@ -187,6 +187,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.CutReads
 
 public import AvailableChainPCSAProofs.Proofs.Clean.CleanOutputs
 
+public import AvailableChainPCSAProofs.Proofs.Clean.GenuineKeys
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
