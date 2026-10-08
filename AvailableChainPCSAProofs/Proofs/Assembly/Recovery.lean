@@ -67,5 +67,69 @@ theorem recovery_persistence_of_run [Fintype V] (E : Generic.Env V)
   intro B harm
   exact hP c m E rho s₁ B (s₁ + 1) h.base hf hfr (Nat.lt_succ_self s₁) harm
 
+/-- Clean results before the anchor are below its honest proposal, including saved results. -/
+theorem pcsa_recovery_cleanSaved_from_anchor [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {ΔF : Time} (cA : Slot) (N : NamedProposal p.n)
+    (hPos : 0 < cA)
+    (hClean : Clean₂ p c E rho (SA.freezeTime p.toParams cA) ΔF)
+    (hFault : FaultsBelowQA p c rho) (hFrame : StageOneFrame p c E rho)
+    (hN : HonestNamedProposal p c E rho cA N) :
+    ∀ x ∈ rho.honest, ∀ (i : Nat) (r : Slot) (C : Block), r < cA →
+      GridCO.savedGenuine (V2.D.Run.stateBefore E rho i x).st.base r = some (some C) →
+      Block.Preceq C N.erase := by
+  have hgate : SA.gateTime p.toParams (cA - 1) ≤ SA.freezeTime p.toParams cA := by
+    obtain ⟨a, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hPos)
+    simp only [Nat.succ_sub_one]
+    have hd := p.deltaPos
+    change 4 * p.Δ * (a : Int) + 6 * p.Δ ≤ 4 * p.Δ * ((a + 1 : Nat) : Int) + 3 * p.Δ
+    push_cast
+    linarith
+  have hparent : Block.Preceq N.erase.parent N.erase := by
+    cases N.erase with
+    | genesis => exact Gen.Pure.block_preceq_refl _
+    | node P s r app =>
+      change (decide (P = .node P s r app) || Block.preceq P P) = true
+      exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_preceq_refl P))
+  apply recovery_cleanSaved_of_gate_prefix E rho hClean.base.valid.toScheduleWellFormed cA N.erase
+  intro x hx r C hr hc
+  exact Gen.Pure.block_preceq_trans
+    (pcsa_clean_result_below_proposal_parent p c m E rho _ ΔF hClean hFault hFrame
+      cA N hPos hN hgate x hx r C (Nat.le_sub_one_of_lt hr) hc) hparent
+
+/-- The short-break anchor has an honest proposal, common stamp, and persistent ARM. -/
+theorem pcsa_recovery_anchor_from_shortBreak [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time} {cA s₁ : Slot}
+    (h : ShortBreakPrem p c E rho G ΔF cA s₁) :
+    ∃ N : NamedProposal p.n,
+      HonestNamedProposal p c E rho cA N ∧
+      (∀ y ∈ rho.honest,
+        PCStampedBefore p c E rho y (SA.freezeTime p.toParams cA) cA N.erase) ∧
+      Arm p c E rho cA N.erase (cA + 1) ∧
+      ArmConcl p c E rho cA N.erase (cA + 1) := by
+  have htime : SA.proposalTime p.toParams cA ≤ SA.freezeTime p.toParams cA := by
+    have hd := p.deltaPos
+    change 4 * p.Δ * (cA : Int) ≤ 4 * p.Δ * (cA : Int) + 3 * p.Δ
+    linarith
+  obtain ⟨N, hN⟩ := recovery_named_proposal_exists E rho h.recovery.base h.frame cA
+    h.anchorPos h.anchorProposer (htime.trans h.anchorClean.cut.2)
+  have hStamp := pcsa_clean_honestProposal_stamped p c m E rho _ ΔF h.anchorClean
+    h.recovery.quarterCap h.frame cA N h.anchorPos hN h.anchorPart (le_refl _)
+  have hArm := arm_next_of_common_stamp E rho cA N.erase hStamp
+  exact ⟨N, hN, hStamp, hArm,
+    recovery_persistence_of_run E rho h.recovery h.frame cA N.erase hArm⟩
+
+/-- Short-break premises supply the first formation slot and its separate root clauses. -/
+theorem pcsa_recovery_firstSlot_short [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time} {cA s₁ : Slot}
+    (h : ShortBreakPrem p c E rho G ΔF cA s₁) :
+    ∃ N : NamedProposal p.n,
+      FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁ := by
+  obtain ⟨N, hN, hStamp, _, hArm⟩ := pcsa_recovery_anchor_from_shortBreak E rho h
+  have hSaved := pcsa_recovery_cleanSaved_from_anchor E rho cA N h.anchorPos h.anchorClean
+    (pcsa_c9_faultsBelowQA_of_quarterCap rho h.recovery.quarterCap) h.frame hN
+  exact recovery_firstSlot_of_anchor E rho h.recovery h.frame cA s₁ N.erase
+    h.order h.window h.firstAfterGST h.firstProposer h.horizon
+    hStamp hArm hSaved
+
 end AvailableChain.PCSA.Run
 end

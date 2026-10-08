@@ -30,7 +30,7 @@ theorem pcsa_early_input_gate_relay_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (o : GridCO.Wire p.n .root) (i : Fin p.n) (v : Time)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
     (ho : o ∈ GridCO.earlyVotes p.toParams.engine
       (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s)
@@ -84,8 +84,8 @@ theorem pcsa_early_input_gate_relay (E : Generic.Env V)
     GridCO.equivocates (GridCO.lateVotes p.toParams.engine
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s) i =
         true :=
-  pcsa_early_input_gate_relay_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx hy s
-    o i v (le_refl _) hc hk ho hi
+  pcsa_early_input_gate_relay_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy s
+    o i v (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hk ho hi
 /-- In the delivery window: Actual same-label honest gate results are compatible by their receipt
 counts. -/
 theorem pcsa_same_label_gate_results_win (E : Generic.Env V)
@@ -93,7 +93,7 @@ theorem pcsa_same_label_gate_results_win (E : Generic.Env V)
     (hF : StageOneFrame p c E rho) {T₀ cut : Time}
     (hD : StrictFrom E rho T₀ cut)
     (a b : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
-    (s : Slot) (X Y : Block) (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams
+    (s : Slot) (X Y : Block) (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams
         s ≤ cut)
     (ha : rho.events[a]? = some (.tick x (SA.gateTime p.toParams s)))
     (hb : rho.events[b]? = some (.tick y (SA.gateTime p.toParams s)))
@@ -193,8 +193,8 @@ theorem pcsa_same_label_gate_results (E : Generic.Env V)
       (actView (clock p (V2.D.Run.stateBefore E rho b y).st (SA.gateTime p.toParams s))) s = some
         Y) :
     Block.Compatible X Y :=
-  pcsa_same_label_gate_results_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a b x y hx
-    hy s X Y (le_refl _) hc ha hb hX hY
+  pcsa_same_label_gate_results_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a b x y hx
+    hy s X Y (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc ha hb hX hY
 end AvailableChain.PCSA.Run
 
 end

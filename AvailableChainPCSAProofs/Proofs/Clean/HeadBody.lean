@@ -93,7 +93,7 @@ theorem pcsa_honest_head_body_before_early_win (E : Generic.Env V)
     (hF : StageOneFrame p c E rho) {T₀ cut : Time}
     (hD : StrictFrom E rho T₀ cut)
     (x y : V) (hy : y ∈ rho.honest) (s : Slot) (H : Block)
-    (hH : HonestHeadAt p c E rho x s H) (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.earlyTime
+    (hH : HonestHeadAt p c E rho x s H) (hT : T₀ ≤ SA.voteTime p.toParams s) (hc : SA.earlyTime
         p.toParams s ≤ cut)
     (k : Nat) (hk : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ k) :
     H ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks ∧
@@ -121,7 +121,7 @@ theorem pcsa_honest_head_body_before_early_win (E : Generic.Env V)
       have hp := p.deltaPos
       change 0 ≤ 4 * p.Δ * (s : Int) + p.Δ
       positivity
-    have hh := pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := pcsa_floor_vote hT) a k x
+    have hh := pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := hT) a k x
         y hH.1 hy H _
       hp hz
       (by rwa [he]) (by rwa [he]) hg hm ht
@@ -137,8 +137,8 @@ theorem pcsa_honest_head_body_before_early (E : Generic.Env V)
     (k : Nat) (hk : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ k) :
     H ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks ∧
       GridCO.stampBlock (V2.D.Run.stateBefore E rho k y).st.base H < SA.earlyTime p.toParams s :=
-  pcsa_honest_head_body_before_early_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) x y hy
-    s H hH (le_refl _) hc k hk
+  pcsa_honest_head_body_before_early_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) x y hy
+    s H hH (pcsa_floor_vote (pcsa_zero_le_proposal s)) hc k hk
 /-- An honest HEAD cannot name a body from a future slot. -/
 theorem pcsa_honest_head_slot_le (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)

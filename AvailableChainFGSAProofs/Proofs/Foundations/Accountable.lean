@@ -206,50 +206,14 @@ private theorem slashable_pool_count [Fintype V]
     (A B : Finset (Row (Fin p.n)))
     (hA : FinalityCarriage p c E rho A) (hB : FinalityCarriage p c E rho B)
     (hev : HasSlashableWeightBetween p.E A B) :
-    2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.Duty.faulty rho).card := by
-  classical
-  obtain ⟨S, hw, hs⟩ := hev
-  have hsub : S.image (rho.seatOf (.base .fg)) ⊆ Gen.V2.Duty.faulty rho := by
-      intro z hz
-      obtain ⟨i, hi, rfl⟩ := Finset.mem_image.mp hz
-      obtain ⟨u, hu, v, hv, hui, hvi, huv⟩ := hs i hi
-      obtain ⟨a, _, hau, har, hea⟩ := hA u hu
-      obtain ⟨b, _, hbv, hbs, heb⟩ := hB v hv
-      let z := rho.seatOf (.base .fg) u.signer
-      have heq : rho.seatOf (.base .fg) v.signer = z :=
-        congrArg (rho.seatOf (.base .fg)) (hvi.trans hui.symm)
-      have ha : RowSigner p c rho a z := (rowSigner_iff_holder p c rho a z).mpr
-        ⟨⟨u.signer, har⟩, by
-          change V2.D.Run.holder rho (ofAuth p a.auth) = some z
-          rw [har]
-          rfl⟩
-      have hb : RowSigner p c rho b z := (rowSigner_iff_holder p c rho b z).mpr
-        ⟨⟨v.signer, hbs⟩, by
-          change V2.D.Run.holder rho (ofAuth p b.auth) = some z
-          rw [hbs]
-          exact congrArg some heq⟩
-      have hz : z ∉ rho.honest := by
-        intro hzh
-        exact hC z hzh a b (hea z ha hzh) (heb z hb hzh) u v hau hbv huv
-      rw [← hui]
-      rw [Gen.V2.Duty.faulty_def]
-      exact Finset.mem_sdiff.mpr ⟨Finset.mem_univ z, hz⟩
-  have hinj : Function.Injective (fun i : Fin p.n => rho.seatOf (.base .fg) i) :=
-    (hL.toCStar (.base .fg) trivial).1
-  have hcard : S.card ≤ (Gen.V2.Duty.faulty rho).card :=
-    (Finset.card_image_of_injective S hinj).symm.trans_le (Finset.card_le_card hsub)
-  have htotal : p.E.totalWeight = p.n := by
-    change (∑ _i : Fin p.n, (1 : Nat)) = p.n
-    simp
-  have hunit : p.E.weightOf S = S.card := by
-    change (∑ _i ∈ S, (1 : Nat)) = S.card
-    simp
-  have hq : p.E.q = Gen.Pure.qF p.n := by
-    change (2 * p.E.totalWeight + 2) / 3 = Gen.Pure.qF p.n
-    rw [htotal, Gen.Pure.qF_def]
-  change 2 * p.E.q ≤ p.E.totalWeight + p.E.weightOf S at hw
-  rw [hq, htotal, hunit] at hw
-  omega
+    2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.Duty.faulty rho).card :=
+  fgsa_bridge_pool_count p c E rho hL hC A B
+    (fun u hu => by
+      obtain ⟨a, _, hau, _, hea⟩ := hA u hu
+      exact ⟨a, hau, hea⟩)
+    (fun u hu => by
+      obtain ⟨b, _, hbv, _, heb⟩ := hB u hu
+      exact ⟨b, hbv, heb⟩) hev
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The stored-tree union inherits honest carriage from each held chain. -/
@@ -314,10 +278,11 @@ theorem fgsa_slashableBound_of_faults [Fintype V]
     (hC : ∀ z ∈ rho.honest, EmittedRowsNoSlash p c E rho z)
     (hcar : ∀ K, FinalityRunBlock p c E rho K → FinalityCarriage p c E rho (chainRows K)) :
     FGSASlashableBound p c E rho := by
-  intro K W hK hW hev
-  have hc := slashable_pool_count p c E rho hL hC _ _ (hcar K hK) (hcar W hW) hev
-  have ht := (Gen.Pure.count_rec p.nPos hbot).lt
-  omega
+  intro K W hK hW
+  rw [FinalityRunBlock_def] at hK hW
+  refine fgsa_bridge_slashableBound_of_faults p c E rho hL hbot hC (fun B hB u hu => ?_) K W hK hW
+  obtain ⟨a, _, hau, _, hea⟩ := hcar B (by rw [FinalityRunBlock_def]; exact hB) u hu
+  exact ⟨a, hau, hea⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 DC counterpart: none (store-scope bound adapter).

@@ -97,9 +97,13 @@ theorem pcsa_honest_proposal_before_vote (E : Generic.Env V)
     (hk : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ k) :
     (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
       (V2.D.Run.stateBefore E rho k y).st.proposals ∧
-      N.erase ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks :=
-  pcsa_honest_proposal_before_vote_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) x y hx hy
-    s N he (le_refl _) hc k hk
+      N.erase ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks := by
+  have hT : (0 : Time) ≤ SA.proposalTime p.toParams s := by
+    have hd := p.deltaPos
+    change (0 : Time) ≤ 4 * p.Δ * (s : Int)
+    positivity
+  exact pcsa_honest_proposal_before_vote_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0)
+    x y hx hy s N he hT hc k hk
 end AvailableChain.PCSA.Run
 
 end

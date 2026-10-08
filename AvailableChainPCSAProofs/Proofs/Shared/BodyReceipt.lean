@@ -570,6 +570,8 @@ theorem pcsa_body_relay_before_deadline (E : Generic.Env V)
     (ha : blockAccepted p (V2.D.Run.stateBefore E rho j x).st s N P = true)
     (hAccept : V2.D.Run.acceptsAt E rho j x o t) (hc : t + E.Δ ≤ cut) :
     N.erase ∈ (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y).st.base.blocks := by
+  -- Floor `T₀ = t`, not `0`: the statement has no `0 ≤ t`, and healthy delivery is
+  -- strict from every floor.
   obtain ⟨d, _, _, hex, hrecv⟩ := pcsa_body_relay_from E rho h hF
     (pcsa_strictFrom_of_healthy E rho hD t) j x hx t o s N P hj hd hp ha hAccept
   rw [hex (le_refl t)] at hrecv

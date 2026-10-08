@@ -18,7 +18,7 @@ theorem pcsa_N_same_label_result_win (E : Generic.Env V)
     (hF : StageOneFrame p c E rho) (hFault : FaultsBelowQA p c rho) {T₀ cut : Time}
     (hD : StrictFrom E rho T₀ cut)
     (a : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
-    (v : Time) (s : Slot) (B X : Block) (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime
+    (v : Time) (s : Slot) (B X : Block) (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime
         p.toParams s ≤ cut)
     (hN : holdsN p (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s B = true)
     (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X := by
@@ -98,8 +98,8 @@ theorem pcsa_N_same_label_result (E : Generic.Env V)
     (v : Time) (s : Slot) (B X : Block) (hc : SA.gateTime p.toParams s ≤ cut)
     (hN : holdsN p (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) s B = true)
     (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X :=
-  pcsa_N_same_label_result_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD _) a x y hx
-    hy v s B X (le_refl _) hc hN hX
+  pcsa_N_same_label_result_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD 0) a x y hx
+    hy v s B X (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hN hX
 /-- In the delivery window: An honest ack target is compatible with every same-label clean result.
 -/
 theorem pcsa_honestAck_same_label_result_win (E : Generic.Env V)
@@ -113,7 +113,7 @@ theorem pcsa_honestAck_same_label_result_win (E : Generic.Env V)
   obtain ⟨a, _, hstore⟩ := pcsa_postClock_source E rho x _ nd hnd
   rw [hstore] at hN
   exact pcsa_N_same_label_result_win E rho h.base hF hFault h.strict
-    (hT := pcsa_cleanWindow_floor E rho h s hs) a x y hAck.1 hy _ s B X hc hN hX
+    (hT := pcsa_floor_freeze (pcsa_cleanWindow_floor E rho h s hs)) a x y hAck.1 hy _ s B X hc hN hX
 /-- An honest ack target is compatible with every same-label clean result. -/
 theorem pcsa_honestAck_same_label_result (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}

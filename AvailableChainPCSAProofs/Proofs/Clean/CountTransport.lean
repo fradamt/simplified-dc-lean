@@ -135,8 +135,8 @@ theorem pcsa_gate_voter_walk_counts_win (E : Generic.Env V)
     change some r = some H.root at hroot
     have heq := Option.some.inj hroot
     subst r
-    rcases pcsa_early_input_relay_support_win E rho h hF hD (hT := hT) a k x y hx hy s i H _ _
-      hfcut hfk (List.mem_filter.mp ho).1 hr with hh | hcap
+    rcases pcsa_early_input_relay_support_win E rho h hF hD (hT := pcsa_floor_early hT) a k x y hx
+      hy s i H _ _ hfcut hfk (List.mem_filter.mp ho).1 hr with hh | hcap
     · refine Or.inl ⟨hh.1, ?_⟩
       apply (Gen.AC.Root.vote_support_body dst.base.blocks X _).mpr
       refine ⟨H, ?_, ?_, hslot, hprefix⟩
@@ -152,7 +152,8 @@ theorem pcsa_gate_voter_walk_counts_win (E : Generic.Env V)
       · obtain ⟨_, _, _, _, _, _, _, _, _, hl⟩ := hc
         simpa only [Nat.add_sub_cancel] using hl
     obtain ⟨r, rfl⟩ := pcsa_count_head_shape o s i hl hi
-    exact pcsa_voter_tick_input_relay_late_win E rho h hD (hT := hT) k a y x hy hx s i r hc hk ha ho
+    exact pcsa_voter_tick_input_relay_late_win E rho h hD (hT := pcsa_floor_freeze hT) k a y x hy hx
+      s i r hc hk ha ho
 /-- Actual gate-to-voter counts discharge CL2 once the root and retained path are supplied. -/
 theorem pcsa_gate_voter_walk_counts (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
@@ -179,8 +180,8 @@ theorem pcsa_gate_voter_walk_counts (E : Generic.Env V)
         (s + 1))
       (headSupport p (clock p (V2.D.Run.stateBefore E rho k y).st (SA.voteTime p.toParams (s +
         1))) (s + 1))) :=
-  pcsa_gate_voter_walk_counts_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx hy
-    s X view tree (le_refl _) hc ha hk hresult hanchor hpath
+  pcsa_gate_voter_walk_counts_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy
+    s X view tree (pcsa_zero_le_proposal s) hc ha hk hresult hanchor hpath
 /-- In the delivery window: Actual gate-to-proposer counts discharge CL2 once the root and retained
 path are supplied. -/
 theorem pcsa_gate_proposer_walk_counts_win (E : Generic.Env V)
@@ -189,7 +190,7 @@ theorem pcsa_gate_proposer_walk_counts_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (X : Block) (view : Option (PC p.n)) (tree : List Block)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.earlyTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (ha : rho.events[a]? = some (.tick x (SA.gateTime p.toParams s)))
     (hk : rho.events[k]? = some (.tick y (GridCO.proposalTime p.toParams.engine (s + 1))))
     (hresult : SA.Root.confirmationFrom p.toParams
@@ -273,8 +274,8 @@ theorem pcsa_gate_proposer_walk_counts_win (E : Generic.Env V)
     have hl : GridCO.headLabel? o = some s := by
       simpa only [Nat.add_sub_cancel] using beq_iff_eq.mp (List.mem_filter.mp ho).2
     obtain ⟨r, rfl⟩ := pcsa_count_head_shape o s i hl hi
-    exact pcsa_proposer_tick_input_relay_late_win E rho h hD (hT := hT) k a y x hy hx s i r hc hk
-        ha ho
+    exact pcsa_proposer_tick_input_relay_late_win E rho h hD (hT := pcsa_floor_early_next hT) k a
+      y x hy hx s i r hc hk ha ho
 /-- Actual gate-to-proposer counts discharge CL2 once the root and retained path are supplied. -/
 theorem pcsa_gate_proposer_walk_counts (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
@@ -302,8 +303,8 @@ theorem pcsa_gate_proposer_walk_counts (E : Generic.Env V)
         p.toParams.engine (s + 1))) (s + 1))
       (proposerSupport (clock p (V2.D.Run.stateBefore E rho k y).st (GridCO.proposalTime
         p.toParams.engine (s + 1))) (s + 1))) :=
-  pcsa_gate_proposer_walk_counts_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
-    hy s X view tree (le_refl _) hc ha hk hresult hanchor hpath
+  pcsa_gate_proposer_walk_counts_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx
+    hy s X view tree (pcsa_floor_early (pcsa_zero_le_proposal s)) hc ha hk hresult hanchor hpath
 end AvailableChain.PCSA.Run
 
 end

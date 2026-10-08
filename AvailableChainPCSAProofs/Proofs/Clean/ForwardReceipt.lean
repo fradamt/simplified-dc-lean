@@ -56,7 +56,7 @@ theorem pcsa_early_head_relay_frozen_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (r : BlockId) (u : Time)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.earlyTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
       (V2.D.Run.stateBefore E rho a x).st.base.votes)
@@ -89,7 +89,7 @@ theorem pcsa_early_head_relay_frozen_win (E : Generic.Env V)
     change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     have hp := p.deltaPos
     linarith
-  have relay := pcsa_head_before_public_cut_relay_late_win E rho h hD (hT := hT) a
+  have relay := pcsa_head_before_public_cut_relay_late_floor E rho h hD (hT := hT) a
     (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) x y hx hy s i r _ u
     hpub hz (by rwa [he]) hg (by rw [he]) hm ht
   have lift (r : BlockId) (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
@@ -154,8 +154,8 @@ theorem pcsa_early_head_relay_frozen (E : Generic.Env V)
       true ∧
       GridCO.equivocates (proposerVotes (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1))
         i = true) :=
-  pcsa_early_head_relay_frozen_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx hy s
-    i r u (le_refl _) hc hk hm ht
+  pcsa_early_head_relay_frozen_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy s
+    i r u (pcsa_floor_early (pcsa_zero_le_proposal s)) hc hk hm ht
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
@@ -168,7 +168,7 @@ theorem pcsa_early_body_relay_frozen_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (B : Block) (v u : Time)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.earlyTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho a x).st v).base.blocks)
     (ht : GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho a x).st v).base B <
@@ -203,7 +203,7 @@ theorem pcsa_early_body_relay_frozen_win (E : Generic.Env V)
         have hp := p.deltaPos
         change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
         positivity
-      have hh := pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := pcsa_floor_early hT) a
+      have hh := pcsa_body_before_public_cut_relay_win E rho h hF hD (hT := hT) a
           k x y hx hy
         B _ hpub hz (by rwa [he]) (by rwa [he]) hg hm ht
       rwa [he] at hh
@@ -227,8 +227,8 @@ theorem pcsa_early_body_relay_frozen (E : Generic.Env V)
     B ∈ (clock p (V2.D.Run.stateBefore E rho k y).st u).base.blocks ∧
       GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho k y).st u).base B <
         SA.freezeTime p.toParams s :=
-  pcsa_early_body_relay_frozen_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
-    hy s B v u (le_refl _) hc hk hm ht
+  pcsa_early_body_relay_frozen_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx
+    hy s B v u (pcsa_floor_early (pcsa_zero_le_proposal s)) hc hk hm ht
 /-- In the delivery window: An early resolved HEAD enters the next voter support list, or its seat
 is capped. -/
 theorem pcsa_early_input_relay_support_win (E : Generic.Env V)
@@ -237,7 +237,7 @@ theorem pcsa_early_input_relay_support_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (B : Block) (v u : Time)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.earlyTime p.toParams s) (hc : SA.freezeTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k)
     (hm : (⟨.seat s i, .head B.root⟩ : GridCO.Wire p.n .root) ∈
       GridCO.earlyVotes p.toParams.engine
@@ -333,8 +333,8 @@ theorem pcsa_early_input_relay_support (E : Generic.Env V)
       true ∧
       GridCO.equivocates (proposerVotes (clock p (V2.D.Run.stateBefore E rho k y).st u) (s + 1))
         i = true) :=
-  pcsa_early_input_relay_support_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
-    hy s i B v u (le_refl _) hc hk hm hr
+  pcsa_early_input_relay_support_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx
+    hy s i B v u (pcsa_floor_early (pcsa_zero_le_proposal s)) hc hk hm hr
 end AvailableChain.PCSA.Run
 
 end

@@ -96,8 +96,8 @@ theorem pcsa_voter_honest_not_capped_win (E : Generic.Env V)
       · obtain ⟨_, _, _, _, _, _, _, _, _, hl⟩ := hc
         simpa only [Nat.add_sub_cancel] using hl
     obtain ⟨r, rfl⟩ := pcsa_count_head_shape o s i hl hoi
-    rcases pcsa_voter_tick_input_relay_late_win E rho h hD (hT := hT) k a y x hy hx s i r hc hk ha
-        ho with hm | he
+    rcases pcsa_voter_tick_input_relay_late_win E rho h hD (hT := pcsa_floor_freeze hT) k a y x hy
+        hx s i r hc hk ha ho with hm | he
     · exact hm
     · rw [hclean] at he
       cases he
@@ -119,8 +119,8 @@ theorem pcsa_voter_honest_not_capped (E : Generic.Env V)
     (hc : SA.gateTime p.toParams s ≤ cut) :
     GridCO.equivocates (headVotes p (clock p (V2.D.Run.stateBefore E rho k y).st
       (SA.voteTime p.toParams (s + 1))) (s + 1)) i = false :=
-  pcsa_voter_honest_not_capped_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) k a y x hy hx s
-    i hi hk ha (le_refl _) hc
+  pcsa_voter_honest_not_capped_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) k a y x hy hx s
+    i hi hk ha (pcsa_zero_le_proposal s) hc
 end AvailableChain.PCSA.Run
 
 end

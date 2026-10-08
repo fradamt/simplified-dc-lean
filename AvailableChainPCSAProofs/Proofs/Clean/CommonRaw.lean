@@ -79,7 +79,7 @@ theorem pcsa_common_raw_transfer_win (E : Generic.Env V)
     (hslot : N.slot = s + 1)
     (hmem : (⟨.proposer (s + 1), .proposal N⟩ : Wire p.n) ∈
       (V2.D.Run.stateBefore E rho a y).st.proposals)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hr : N.raw.map baseVote = proposerVotes
       (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
         (SA.proposalTime p.toParams (s + 1))) (s + 1)) :
@@ -132,8 +132,8 @@ theorem pcsa_common_raw_transfer (E : Generic.Env V)
     proposerVotes src (s + 1) ⊆ headVotes p dst (s + 1) ∧
       ∀ o ∈ headVotes p dst (s + 1), ∀ i, GridCO.headSeat? o = some i →
         o ∈ proposerVotes src (s + 1) ∨ GridCO.equivocates (proposerVotes src (s + 1)) i = true :=
-  pcsa_common_raw_transfer_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) a k y hy s v N hx
-    he hk hslot hmem (le_refl _) hc hr
+  pcsa_common_raw_transfer_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k y hy s v N hx
+    he hk hslot hmem (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hr
 end AvailableChain.PCSA.Run
 
 end

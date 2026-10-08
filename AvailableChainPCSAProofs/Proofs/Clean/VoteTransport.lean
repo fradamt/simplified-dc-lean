@@ -58,8 +58,8 @@ theorem pcsa_next_head_above_result_of_root_win (E : Generic.Env V)
     push_cast at ht
     have hp := p.deltaPos
     nlinarith
-  have hpaths := pcsa_result_prefixes_retained_win E rho h hF hD (hT := hT) a k x y hx hy
-    (SA.gateTime p.toParams s) (SA.voteTime p.toParams (s + 1)) s X hfcut hfk hresult
+  have hpaths := pcsa_result_prefixes_retained_win E rho h hF hD (hT := pcsa_floor_early hT) a k x y
+    hx hy (SA.gateTime p.toParams s) (SA.voteTime p.toParams (s + 1)) s X hfcut hfk hresult
   have hcover := pcsa_gate_voter_walk_counts_win E rho h hF hD (hT := hT) a k x y hx hy s X
     (voterPC p dst (s + 1))
     (erasedList dst (KitFG.storeFrameView (FGSA.heightView p) dst.fg (voterBlocks p dst (s + 1))))
@@ -79,8 +79,8 @@ theorem pcsa_next_head_above_result_of_root (E : Generic.Env V)
     (hH : HonestHeadAt p c E rho y (s + 1) H)
     (hroot : ∀ R, liveRootAt p c E rho y (s + 1) = some R → Block.Compatible R X) :
     Block.Preceq X H :=
-  pcsa_next_head_above_result_of_root_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) x y
-    hx s X H (le_refl _) hc hX hH hroot
+  pcsa_next_head_above_result_of_root_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) x y
+    hx s X H (pcsa_zero_le_proposal s) hc hX hH hroot
 end AvailableChain.PCSA.Run
 
 end

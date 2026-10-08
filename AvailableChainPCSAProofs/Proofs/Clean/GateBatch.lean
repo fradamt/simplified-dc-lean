@@ -72,7 +72,7 @@ theorem pcsa_clean_gate_covers_heads_win [Fintype V] (E : Generic.Env V)
   obtain ⟨H, hH⟩ := pcsa_honest_head_exists E rho h.base _ hih s hiw hvote
   have hBH := hheads _ H hH
   obtain ⟨hm, _⟩ := pcsa_honest_head_body_before_early_win E rho h.base hF h.strict
-    (hT := pcsa_cleanWindow_floor E rho h s hs) _ y hy s H
+    (hT := pcsa_floor_vote (pcsa_cleanWindow_floor E rho h s hs)) _ y hy s H
     hH hearly k hidx
   have hclock : H ∈ st.base.blocks := by
     change H ∈ (clock p _ _).base.blocks

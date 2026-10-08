@@ -110,8 +110,8 @@ theorem pcsa_proposer_support_in_voter (E : Generic.Env V)
       GridCO.resolvedHead? (actView (clock p (V2.D.Run.stateBefore E rho k y).st v)) o =
         GridCO.resolvedHead? (actView (clock p (V2.D.Run.stateBefore E rho a x).st
           (SA.proposalTime p.toParams s))) o :=
-  pcsa_proposer_support_in_voter_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx
-    hy s v N hslot ha hk (le_refl _) hc hmem hsup o ho
+  pcsa_proposer_support_in_voter_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx
+    hy s v N hslot ha hk (pcsa_zero_le_proposal s) hc hmem hsup o ho
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
@@ -146,7 +146,7 @@ theorem pcsa_frozen_support_in_proposer_win (E : Generic.Env V)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (v : Time) (o : GridCO.Wire p.n .root) (i : Fin p.n)
     (hk : rho.events[k]? = some (.tick y (SA.proposalTime p.toParams (s + 1))))
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hm : o ∈ GridCO.votesAt (clock p (V2.D.Run.stateBefore E rho a x).st v).base s)
     (hr : GridCO.resolvedBefore (actView (clock p (V2.D.Run.stateBefore E rho a x).st v)) o
       (SA.freezeTime p.toParams s) = true) (hi : GridCO.headSeat? o = some i) :
@@ -201,8 +201,8 @@ theorem pcsa_frozen_support_in_proposer (E : Generic.Env V)
       (SA.proposalTime p.toParams (s + 1))) (s + 1) ∨
     GridCO.equivocates (proposerVotes (clock p (V2.D.Run.stateBefore E rho k y).st
       (SA.proposalTime p.toParams (s + 1))) (s + 1)) i = true :=
-  pcsa_frozen_support_in_proposer_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k x y
-    hx hy s v o i hk (le_refl _) hc hm hr hi
+  pcsa_frozen_support_in_proposer_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k x y
+    hx hy s v o i hk (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hm hr hi
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
@@ -237,8 +237,8 @@ theorem pcsa_honest_support_backward_win (E : Generic.Env V)
   rcases pcsa_honest_headSupport_source E rho h.valid a y v (s + 1) N hx he o ho with
     ⟨hm, hr⟩ | hm
   · rw [Nat.add_sub_cancel] at hm hr
-    exact pcsa_frozen_support_in_proposer_win E rho h hF hD (hT := hT) a k y _ hy hx s v o i hk hc
-        hm hr hi
+    exact pcsa_frozen_support_in_proposer_win E rho h hF hD (hT := pcsa_floor_freeze hT) a k y _ hy
+        hx s v o i hk hc hm hr hi
   · exact Or.inl (hsup ▸ hm)
 /-- Every support input at an honest proposer slot is proposer support or a capped extra. -/
 theorem pcsa_honest_support_backward (E : Generic.Env V)
@@ -266,8 +266,8 @@ theorem pcsa_honest_support_backward (E : Generic.Env V)
     GridCO.equivocates (proposerVotes
       (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
         (SA.proposalTime p.toParams (s + 1))) (s + 1)) i = true :=
-  pcsa_honest_support_backward_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k y hy s v
-    N hx he hk (le_refl _) hc hsup o ho i hi
+  pcsa_honest_support_backward_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k y hy s v
+    N hx he hk (pcsa_zero_le_proposal s) hc hsup o ho i hi
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA

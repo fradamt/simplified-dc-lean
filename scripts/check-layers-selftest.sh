@@ -282,6 +282,8 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
              R + ".Proofs.Protocol"),
             ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore",
              R + ".Proofs.Reachable"),
+            ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge",
+             R + ".Proofs.Reachable"),
             ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore",
              "AvailableChainPCSAProofs.Proofs.AcFrame.Store"),
             ("AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore",

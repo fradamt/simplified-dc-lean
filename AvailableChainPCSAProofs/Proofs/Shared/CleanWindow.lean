@@ -58,6 +58,18 @@ theorem pcsa_strictFrom_of_sync (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith 
   · change t < max t E.t_GST + E.Δ
     exact lt_of_le_of_lt (le_max_left t E.t_GST) (lt_add_of_pos_right _ E.Δ_pos)
 
+/-- Delivery within `max t T₀ + Δ` (the formation premise (F1) shape, with
+`T₀ = z_{s−1}`) is strict delivery from `T₀`. -/
+theorem pcsa_strictFrom_of_within (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
+    {T₀ cut : Time}
+    (hW : Gen.V2.Duty.DeliveryWithinOn E rho IsNonRow (fun t => max t T₀ + E.Δ) cut) :
+    StrictFrom E rho T₀ cut := by
+  refine ⟨⟨fun t => max t T₀ + E.Δ, hW, fun t ht => ?_, fun t => ?_, fun _ => le_refl _⟩⟩
+  · change max t T₀ + E.Δ = t + E.Δ
+    rw [max_eq_left ht]
+  · change t < max t T₀ + E.Δ
+    exact lt_of_le_of_lt (le_max_left t T₀) (lt_add_of_pos_right _ E.Δ_pos)
+
 /-- Strict delivery to a cut gives it to every earlier cut. -/
 theorem pcsa_strictFrom_mono (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c))
     {T₀ cut cut' : Time} (hD : StrictFrom E rho T₀ cut) (hc : cut' ≤ cut) :
@@ -104,6 +116,28 @@ theorem pcsa_floor_gate {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.proposalTime 
     T₀ ≤ SA.gateTime p.toParams s := by
   apply hT.trans
   change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+  linarith [p.deltaPos]
+
+/-- Every proposal time is nonnegative: the floor `0` of a clean run is below it. -/
+theorem pcsa_zero_le_proposal (s : Slot) : (0 : Time) ≤ SA.proposalTime p.toParams s := by
+  have hd := p.deltaPos
+  change (0 : Time) ≤ 4 * p.Δ * (s : Int)
+  positivity
+
+/-- A floor below `z_s` is below `t_{s+1}`. -/
+theorem pcsa_floor_freeze_next {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.freezeTime p.toParams s) :
+    T₀ ≤ SA.proposalTime p.toParams (s + 1) := by
+  apply hT.trans
+  change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int)
+  push_cast
+  linarith [p.deltaPos]
+
+/-- A floor below `e_s` is below `t_{s+1}`. -/
+theorem pcsa_floor_early_next {T₀ : Time} {s : Slot} (hT : T₀ ≤ SA.earlyTime p.toParams s) :
+    T₀ ≤ SA.proposalTime p.toParams (s + 1) := by
+  apply hT.trans
+  change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int)
+  push_cast
   linarith [p.deltaPos]
 
 /-- The window of the clean induction from label `j₀`: the execution, the cut,

@@ -35,19 +35,18 @@ theorem pcsa_honest_head_exists (E : Generic.Env V)
     (SA.voteTime p.toParams s)) s, hx, hw, ?_⟩
   rw [pcsa_voteHeadAt_def, pcsa_postClock_def, pcsa_preTick_def, hk]
   rfl
-/-- In the window from `j₀`, the label bound gives an honest HEAD-seat batch at each label
-`s ≥ j₀` that is larger than the faults. -/
-theorem pcsa_clean_head_batch_win [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
-    (h : CleanWindow E rho j₀ T₀ cut) (s : Slot) (hs : j₀ ≤ s)
-    (hc : SA.gateTime p.toParams s ≤ cut) :
+/-- The label bound `a < h_s` gives an honest HEAD-seat batch at label `s` that is
+larger than the faults. -/
+theorem pcsa_head_batch_of_label [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho) (s : Slot)
+    (hlab : (Gen.V2.Duty.faulty rho).card < (awakeHonestLabel p c E rho s).card) :
     ∃ Hon : Finset (Fin p.n),
       (∀ i, i ∈ Hon ↔ rho.seatOf (.base (.head s)) i ∈ rho.honest ∧
         E.awake (rho.seatOf (.base (.head s)) i) (SA.voteTime p.toParams s) = true) ∧
       (Gen.V2.Duty.faulty rho).card < Hon.card := by
   classical
   let A := Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)
-  let e : Fin p.n ≃ V := Equiv.ofBijective _ (h.base.cstar (.base (.head s)) trivial)
+  let e : Fin p.n ≃ V := Equiv.ofBijective _ (h.cstar (.base (.head s)) trivial)
   let Hon := A.image e.symm
   refine ⟨Hon, ?_, ?_⟩
   · intro i
@@ -60,15 +59,26 @@ theorem pcsa_clean_head_batch_win [Fintype V] (E : Generic.Env V)
       Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s) ↔ _
     rw [Gen.V2.Duty.awakeHonest_def]
     exact Finset.mem_filter
-  · have hearly : SA.earlyTime p.toParams s ≤ cut := by
-      apply le_trans _ hc
-      change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
-      have hp := p.deltaPos
-      linarith
-    have hcard : Hon.card = A.card := Finset.card_image_of_injective A e.symm.injective
+  · have hcard : Hon.card = A.card := Finset.card_image_of_injective A e.symm.injective
     rw [hcard]
     have hsub : awakeHonestLabel p c E rho s ⊆ A := Finset.inter_subset_left
-    exact lt_of_lt_of_le (h.labels s hs hearly) (Finset.card_le_card hsub)
+    exact lt_of_lt_of_le hlab (Finset.card_le_card hsub)
+/-- In the window from `j₀`, the label bound gives an honest HEAD-seat batch at each label
+`s ≥ j₀` that is larger than the faults. -/
+theorem pcsa_clean_head_batch_win [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
+    (h : CleanWindow E rho j₀ T₀ cut) (s : Slot) (hs : j₀ ≤ s)
+    (hc : SA.gateTime p.toParams s ≤ cut) :
+    ∃ Hon : Finset (Fin p.n),
+      (∀ i, i ∈ Hon ↔ rho.seatOf (.base (.head s)) i ∈ rho.honest ∧
+        E.awake (rho.seatOf (.base (.head s)) i) (SA.voteTime p.toParams s) = true) ∧
+      (Gen.V2.Duty.faulty rho).card < Hon.card := by
+  have hearly : SA.earlyTime p.toParams s ≤ cut := by
+    apply le_trans _ hc
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    have hp := p.deltaPos
+    linarith
+  exact pcsa_head_batch_of_label E rho h.base s (h.labels s hs hearly)
 /-- The clean participation premise gives an honest HEAD-seat batch larger than faults. -/
 theorem pcsa_clean_head_batch [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
@@ -167,7 +177,7 @@ theorem pcsa_clean_gate_majority_win [Fintype V] (E : Generic.Env V)
     obtain ⟨hih, hiw⟩ := (hHon i).mp hi
     obtain ⟨H, hH⟩ := pcsa_honest_head_exists E rho h.base _ hih s hiw hvote
     obtain ⟨hm, hr⟩ := pcsa_honest_head_clean_support_win E rho h.base hF h.strict (hT :=
-        pcsa_cleanWindow_floor E rho h s hs) _ y hy s i H
+        pcsa_floor_vote (pcsa_cleanWindow_floor E rho h s hs)) _ y hy s i H
       rfl hH hearly k hidx (SA.gateTime p.toParams s)
     apply Finset.mem_filter.mpr
     refine ⟨(Gen.AC.Root.vote_pool_mem_seats _ i).mpr ⟨_, hm, rfl⟩, ?_⟩

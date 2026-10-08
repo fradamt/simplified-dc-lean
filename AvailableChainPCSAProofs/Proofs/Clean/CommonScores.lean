@@ -68,8 +68,8 @@ theorem pcsa_common_walk_counts_win (E : Generic.Env V)
   let x := rho.seatOf (.prop (s + 1)) (0 : Fin 1)
   let src := clock p (V2.D.Run.stateBefore E rho k x).st (SA.proposalTime p.toParams (s + 1))
   let dst := clock p (V2.D.Run.stateBefore E rho a y).st v
-  have hraw := pcsa_common_raw_transfer_win E rho h hD (hT := hT) a k y hy s v N hx he hk hslot
-      hmem hc hr
+  have hraw := pcsa_common_raw_transfer_win E rho h hD (hT := pcsa_floor_freeze hT) a k y hy s v N
+      hx he hk hslot hmem hc hr
   have hvcut : SA.voteTime p.toParams (s + 1) ≤ cut := by
     apply le_trans _ hc
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
@@ -155,8 +155,8 @@ theorem pcsa_common_walk_counts (E : Generic.Env V)
         (proposerSupport src (s + 1)) B =
           GridCO.goldfishScore dst.base.blocks (headVotes p dst (s + 1))
             (headSupport p dst (s + 1)) B :=
-  pcsa_common_walk_counts_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k y hy s v N hx
-    he hk ha hslot hmem (le_refl _) hc hr hsup
+  pcsa_common_walk_counts_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k y hy s v N hx
+    he hk ha hslot hmem (pcsa_zero_le_proposal s) hc hr hsup
 end AvailableChain.PCSA.Run
 
 end

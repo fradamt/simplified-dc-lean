@@ -22,7 +22,7 @@ theorem pcsa_cap_before_public_cut_relay_late_win (E : Generic.Env V)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (bound u : Time)
     (hpub : V2.PublicTime E bound) (hzero : 0 ≤ bound)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : bound + E.Δ ≤ cut) (hg : bound + E.Δ ≤
+    (hT : T₀ ≤ bound) (hc : bound + E.Δ ≤ cut) (hg : bound + E.Δ ≤
         SA.gateTime p.toParams s)
     (ha : a ≤ V2.D.Run.idxBefore rho bound)
     (hk : V2.D.Run.idxBefore rho (bound + E.Δ) ≤ k)
@@ -36,7 +36,7 @@ theorem pcsa_cap_before_public_cut_relay_late_win (E : Generic.Env V)
   obtain ⟨r', rfl⟩ := pcsa_count_head_shape w s i hwl hwi
   have relay (r : BlockId) (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
       (V2.D.Run.stateBefore E rho a x).st.base.votes) :=
-    pcsa_head_before_public_cut_relay_late_win E rho h hD (hT := hT) a k x y hx hy s i r bound u
+    pcsa_head_before_public_cut_relay_late_floor E rho h hD (hT := hT) a k x y hx hy s i r bound u
       hpub hzero hc hg hk hm
       (pcsa_head_stamp_lt_of_index_cut E rho h.valid.toScheduleWellFormed h.noRestart
         a x s i r bound ha hm)
@@ -58,8 +58,8 @@ theorem pcsa_cap_before_public_cut_relay_late (E : Generic.Env V)
     (he : GridCO.equivocates (GridCO.votesAt (V2.D.Run.stateBefore E rho a x).st.base s) i = true) :
     GridCO.equivocates (GridCO.lateVotes p.toParams.engine
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true :=
-  pcsa_cap_before_public_cut_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) a k x
-    y hx hy s i bound u hpub hzero (le_refl _) hc hg ha hk he
+  pcsa_cap_before_public_cut_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k x
+    y hx hy s i bound u hpub hzero hzero hc hg ha hk he
 /-- In the delivery window: A proposer pool input before its public read reaches a later late
 denominator. -/
 theorem pcsa_proposer_input_relay_late_win (E : Generic.Env V)
@@ -67,7 +67,7 @@ theorem pcsa_proposer_input_relay_late_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (r : BlockId) (v u : Time)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams (s + 1)) (hc : SA.gateTime p.toParams s ≤ cut)
     (ha : a ≤ V2.D.Run.idxBefore rho (GridCO.proposalTime p.toParams.engine (s + 1)))
     (hk : V2.D.Run.idxBefore rho
       (GridCO.proposalTime p.toParams.engine (s + 1) + E.Δ) ≤ k)
@@ -96,7 +96,7 @@ theorem pcsa_proposer_input_relay_late_win (E : Generic.Env V)
     push_cast
     have hp := p.deltaPos
     nlinarith
-  exact pcsa_head_before_public_cut_relay_late_win E rho h hD (hT := hT) a k x y hx hy s i r _ u
+  exact pcsa_head_before_public_cut_relay_late_floor E rho h hD (hT := hT) a k x y hx hy s i r _ u
     hpub hz (hg.trans hc) hg hk hmem
     (pcsa_head_stamp_lt_of_index_cut E rho h.valid.toScheduleWellFormed h.noRestart
       a x s i r _ ha hmem)
@@ -116,8 +116,8 @@ theorem pcsa_proposer_input_relay_late (E : Generic.Env V)
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∨
     GridCO.equivocates (GridCO.lateVotes p.toParams.engine
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true :=
-  pcsa_proposer_input_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx hy
-    s i r v u (le_refl _) hc ha hk hm
+  pcsa_proposer_input_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy
+    s i r v u (pcsa_zero_le_proposal (s + 1)) hc ha hk hm
 /-- In the delivery window: A frozen pool input relays by the next proposal time into the source
 late denominator. -/
 theorem pcsa_frozen_input_relay_late_win (E : Generic.Env V)
@@ -125,7 +125,7 @@ theorem pcsa_frozen_input_relay_late_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (r : BlockId) (v u : Time)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hk : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s + E.Δ) ≤ k)
     (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
       (clock p (V2.D.Run.stateBefore E rho a x).st v).base.votes)
@@ -159,7 +159,7 @@ theorem pcsa_frozen_input_relay_late_win (E : Generic.Env V)
     change 4 * p.Δ * (s : Int) + 3 * p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     have hp := p.deltaPos
     linarith
-  exact pcsa_head_before_public_cut_relay_late_win E rho h hD (hT := hT) a k x y hx hy s i r _ u
+  exact pcsa_head_before_public_cut_relay_late_floor E rho h hD (hT := hT) a k x y hx hy s i r _ u
     hpub hz (hg.trans hc) hg hk hm hs
 
 /-- A frozen pool input relays by the next proposal time into the source late denominator. -/
@@ -178,8 +178,8 @@ theorem pcsa_frozen_input_relay_late (E : Generic.Env V)
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∨
     GridCO.equivocates (GridCO.lateVotes p.toParams.engine
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true :=
-  pcsa_frozen_input_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) a k x y hx hy s
-    i r v u (le_refl _) hc hk hm hs
+  pcsa_frozen_input_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k x y hx hy s
+    i r v u (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hk hm hs
 /-- In the delivery window: A handled raw input relays even when its source handler retained only a
 cap. -/
 theorem pcsa_handled_input_relay_late_win (E : Generic.Env V)
@@ -188,7 +188,7 @@ theorem pcsa_handled_input_relay_late_win (E : Generic.Env V)
     (j k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (r : BlockId) (t bound u : Time)
     (hpub : V2.PublicTime E bound) (hzero : 0 ≤ bound)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : bound + E.Δ ≤ cut) (hg : bound + E.Δ ≤
+    (hT : T₀ ≤ bound) (hc : bound + E.Δ ≤ cut) (hg : bound + E.Δ ≤
         SA.gateTime p.toParams s)
     (hk : V2.D.Run.idxBefore rho (bound + E.Δ) ≤ k)
     (ht : GridCO.proposalTime p.toParams.engine s ≤ t) (hb : t < bound)
@@ -206,8 +206,8 @@ theorem pcsa_handled_input_relay_late_win (E : Generic.Env V)
     linarith
   rcases pcsa_handled_head_stateBefore_mem_or_cap E rho h j x t s i r ht hgate ⟨parent, he,
     hhandle⟩ with hm | he
-  · exact pcsa_head_before_public_cut_relay_late_win E rho h hD (hT := hT) (j + 1) k x y hx hy s i r
-      bound u hpub hzero hc hg hk hm
+  · exact pcsa_head_before_public_cut_relay_late_floor E rho h hD (hT := hT) (j + 1) k x y hx hy s
+      i r bound u hpub hzero hc hg hk hm
       (pcsa_head_stamp_lt_of_index_cut E rho h.valid.toScheduleWellFormed h.noRestart
         (j + 1) x s i r bound hj hm)
   · exact Or.inr (pcsa_cap_before_public_cut_relay_late_win E rho h hD (hT := hT) (j + 1) k x y hx
@@ -230,8 +230,8 @@ theorem pcsa_handled_input_relay_late (E : Generic.Env V)
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s ∨
     GridCO.equivocates (GridCO.lateVotes p.toParams.engine
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st u)) s) i = true :=
-  pcsa_handled_input_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) j k x y hx hy
-    s i r t bound u hpub hzero (le_refl _) hc hg hk ht hb hh
+  pcsa_handled_input_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) j k x y hx hy
+    s i r t bound u hpub hzero hzero hc hg hk ht hb hh
 /-- In the delivery window: The actual proposer tick supplies backward receipt at any honest source
 gate. -/
 theorem pcsa_proposer_tick_input_relay_late_win (E : Generic.Env V)
@@ -239,7 +239,7 @@ theorem pcsa_proposer_tick_input_relay_late_win (E : Generic.Env V)
     (hD : StrictFrom E rho T₀ cut)
     (a k : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (s : Slot) (i : Fin p.n) (r : BlockId)
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.proposalTime p.toParams (s + 1)) (hc : SA.gateTime p.toParams s ≤ cut)
     (ha : rho.events[a]? = some (.tick x (GridCO.proposalTime p.toParams.engine (s + 1))))
     (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
     (hm : (⟨.seat s i, .head r⟩ : GridCO.Wire p.n .root) ∈
@@ -286,8 +286,8 @@ theorem pcsa_proposer_tick_input_relay_late (E : Generic.Env V)
     GridCO.equivocates (GridCO.lateVotes p.toParams.engine
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s) i =
         true :=
-  pcsa_proposer_tick_input_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) a k x y
-    hx hy s i r (le_refl _) hc ha hk hm
+  pcsa_proposer_tick_input_relay_late_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) a k x y
+    hx hy s i r (pcsa_zero_le_proposal (s + 1)) hc ha hk hm
 end AvailableChain.PCSA.Run
 
 end

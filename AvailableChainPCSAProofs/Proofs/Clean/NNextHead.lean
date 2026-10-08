@@ -51,7 +51,7 @@ theorem pcsa_N_next_head_of_root_win (E : Generic.Env V)
     have hp := p.deltaPos
     nlinarith
   have hread := pcsa_N_read_transport_win E rho h.base hF h.strict
-    (hT := pcsa_cleanWindow_floor E rho h s hs) a k x y hx hy v
+    (hT := pcsa_floor_early (pcsa_cleanWindow_floor E rho h s hs)) a k x y hx hy v
     (SA.voteTime p.toParams (s + 1)) s B hfcut hfk hN
   obtain ⟨X, hX⟩ := pcsa_clean_result_exists_win E rho h (hs := hs) hF x hx s hc
   obtain ⟨q, hq, _⟩ := pcsa_gateResultAt_source E rho x s X hX

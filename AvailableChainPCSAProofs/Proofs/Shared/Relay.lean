@@ -95,6 +95,8 @@ theorem pcsa_strict_broadcast (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m 
     (hNX : (pcsaWith m p c).excludes
       (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y) o = false) :
     ∃ t', t ≤ t' ∧ t' < t + E.Δ ∧ ∃ j, V2.D.Run.handlesAt E rho j y o t' :=
+  -- Floor `T₀ = t`, not `0`: the statement has no `0 ≤ t`, and healthy delivery is
+  -- strict from every floor.
   pcsa_strict_broadcast_win E rho (pcsa_strictFrom_of_healthy E rho hD t) o hn x y t hx hy he
     (le_refl t) hc hNX
 
@@ -140,6 +142,8 @@ theorem pcsa_strict_relay (E : Generic.Env V) (rho : V2.D.Run V (pcsaWith m p c)
     (hNX : (pcsaWith m p c).excludes
       (V2.D.Run.stateBeforeTime E rho (t + E.Δ) y) o = false) :
     ∃ t', t ≤ t' ∧ t' < t + E.Δ ∧ ∃ j, V2.D.Run.handlesAt E rho j y o t' :=
+  -- Floor `T₀ = t`, not `0`: the statement has no `0 ≤ t`, and healthy delivery is
+  -- strict from every floor.
   pcsa_strict_relay_win E rho (pcsa_strictFrom_of_healthy E rho hD t) o hn x y i t hx hy ha
     (le_refl t) hneed hc hNX
 

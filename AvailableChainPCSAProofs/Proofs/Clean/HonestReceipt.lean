@@ -139,9 +139,13 @@ theorem pcsa_honest_head_before_early (E : Generic.Env V)
     (⟨.seat s i, .head H.root⟩ : GridCO.Wire p.n .root) ∈
       (V2.D.Run.stateBefore E rho k y).st.base.votes ∧
     GridCO.stampVote (V2.D.Run.stateBefore E rho k y).st.base
-      ⟨.seat s i, .head H.root⟩ < SA.earlyTime p.toParams s :=
-  pcsa_honest_head_before_early_win E rho h (pcsa_strictFrom_of_healthy E rho hD _) x y hy s i H
-    hi hH (le_refl _) hc k hk
+      ⟨.seat s i, .head H.root⟩ < SA.earlyTime p.toParams s := by
+  have hT : (0 : Time) ≤ SA.voteTime p.toParams s := by
+    have hd := p.deltaPos
+    change (0 : Time) ≤ 4 * p.Δ * (s : Int) + p.Δ
+    positivity
+  exact pcsa_honest_head_before_early_win E rho h (pcsa_strictFrom_of_healthy E rho hD 0) x y
+    hy s i H hi hH hT hc k hk
 end AvailableChain.PCSA.Run
 
 end

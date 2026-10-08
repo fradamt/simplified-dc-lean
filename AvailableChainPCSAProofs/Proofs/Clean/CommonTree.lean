@@ -58,7 +58,7 @@ theorem pcsa_voter_tree_source_win (E : Generic.Env V)
         (SA.proposalTime p.toParams (s + 1)))
     (hk : rho.events[k]? = some (.tick (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
       (SA.proposalTime p.toParams (s + 1))))
-    (hT : T₀ ≤ SA.proposalTime p.toParams s) (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.proposalTime p.toParams (s + 1) ≤ cut)
     (C : Block)
     (hC : C ∈ erasedList (clock p (V2.D.Run.stateBefore E rho a y).st v)
       (KitFG.storeFrameView (FGSA.heightView p) (clock p (V2.D.Run.stateBefore E rho a y).st v).fg
@@ -123,8 +123,8 @@ theorem pcsa_voter_tree_source (E : Generic.Env V)
       (fullTree p
         (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
           (SA.proposalTime p.toParams (s + 1)))) ∨ Block.Preceq C N.erase :=
-  pcsa_voter_tree_source_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD _) a k y hy s v N hx
-    he hk (le_refl _) hc C hC
+  pcsa_voter_tree_source_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k y hy s v N hx
+    he hk (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc C hC
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
