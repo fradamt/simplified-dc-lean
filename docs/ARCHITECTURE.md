@@ -723,7 +723,8 @@ and only the instance swap is atomic.
 
 - PC-SA long-break transport (2026-10-08). `Recovery/LockTransport` holds
   lane-neutral receipt and pool facts from label `g`. `Assembly/Recovery`
-  names the OPEN lane suppliers. It does not assume surviving-lock coverage.
+  proves all seven suppliers from lane exports. PC key receipt uses only early
+  and vote cutoffs. The run wrapper has no OPEN transport premise.
 
 - PC-SA lock overlap (2026-10-08). `Recovery/LockOverlap` proves mix-time
   expiry, overlap compatibility, and PC relay compatibility at the write
@@ -750,3 +751,5 @@ and only the instance swap is atomic.
 - PC-SA long first-slot assembly (2026-10-08). `Recovery/LongFirstSlot`
   constructs `FormationPrem` and the explicit proposer-root walk conjunct.
   `Recovery/Export` proves the predicate conversion with the defining equation.
+  `pcsa_recovery_firstSlot_long_of_run` selects a bounded slot from the long
+  claim premises. The Formation literal also uses the existing root proof.

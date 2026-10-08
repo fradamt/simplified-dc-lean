@@ -12,13 +12,14 @@ claimed. Status of the inputs:
   - Short break: CLOSED by `pcsa_recovery_firstSlot_short`
     (`Assembly/Recovery.lean`). It supplies `FormationPrem` and the separate
     `RecoveryRootReachable` predicate from `ShortBreakPrem`.
-  - Long break: CLOSED under the explicit transport interface by
-    `recovery_firstSlot_long` (`Recovery/Export.lean`) and
-    `pcsa_recovery_firstSlot_long` (`Assembly/Recovery.lean`). The Assembly
-    wrapper takes the seven named OPEN suppliers stated below.
+  - Long break: PROVED from the long claim premises by
+    `pcsa_recovery_firstSlot_long_of_run` (`Assembly/Recovery.lean`). All seven
+    transport suppliers are proved. No OPEN transport premise remains.
+    The earlier explicit-supplier wrappers are retained.
 - Formation with corrected F4 (`formation`: every honest node holds the
-  stamped PC of `N.erase` before `z_{s₁}`): OPEN, Formation lane. The clause
-  is a separate argument until `FormationPrem` carries it.
+  stamped PC of `N.erase` before `z_{s₁}`): its producer is now on main as
+  `pcsa_formationClaim`. `FormationPrem` carries `proposerRootReachable`.
+  Connecting the complete recovery suffix is separate from this job.
 - Persistence (`persistence`, ARM at `s₁` with `j₀ = s₁ + 1`): CLOSED by
   `recovery_persistence_of_run` (`Assembly/Recovery.lean`), from the
   unconditional C8 `pcsa_armPersistence`.
@@ -61,12 +62,14 @@ The witness also exposes every saved result in the full k-window. The exact
 row and rank remain present at every event state after the selected gate.
 `recovery_lock_no_later_successful_renewal` excludes every later successful
 renewal in this interval. It uses the actual fresh-gate and slow-write tests.
-The witness is not a claim premise. It does not prove surviving HEAD coverage or either long-slot F4.
+The witness is not a claim premise. Later modules use it to prove surviving
+HEAD coverage and both long-slot F4 clauses.
 
 Step 2 is implemented as the lane-neutral `RecoveryLockTransport` structure
 and the Assembly constructor `pcsa_recovery_lock_transport`. The constructor
-has seven named OPEN parameters. Existing Clean exports require a healthy
-prefix, so none supplies the required recovery statement on this branch.
+retains seven named supplier parameters. The new constructor
+`pcsa_recovery_lock_transport_of_run` supplies all seven from the run.
+The Clean `_win` exports use strict synchrony after GST.
 `OPEN_sameLabel` includes label `g`, also when `t_g < GST ≤ v_g`.
 The other fields are `OPEN_earlyForward`, `OPEN_voterBackward`,
 `OPEN_pcReceipt`, `OPEN_honestVoterInputs`, `OPEN_honestProposerInputs`, and
@@ -145,11 +148,11 @@ structure RecoveryLockTransport (p : Params) {In V : Type} [DecidableEq V]
       ∀ o ∈ headVotes p dst.st (r + 1), ∀ i, GridCO.headSeat? o = some i →
         o ∈ GridCO.lateVotes p.toParams.engine (actView src.st) r ∨
         GridCO.equivocates (GridCO.lateVotes p.toParams.engine (actView src.st) r) i = true
-  pcReceipt : ∀ t, E.t_GST ≤ t → t + p.Δ ≤ rho.horizon →
+  pcReceipt : ∀ t, (∃ s, t = SA.earlyTime p.toParams s ∨ t = SA.voteTime p.toParams s) →
+    E.t_GST ≤ t → t + p.Δ ≤ rho.horizon →
     ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ pc,
       pc ∈ (V2.D.Run.stateBeforeTime E rho t x).st.pcs →
-      KeyHeld (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st pc.slot pc.target ∧
-      pc.target ∈ (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st.base.blocks
+      KeyHeld (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st pc.slot pc.target
   honestVoterInputs : ∀ r, g ≤ r → ∀ x H, HonestHeadAt p c E rho x r H →
     ∀ i : Fin p.n, rho.seatOf (.base (.head r)) i = x →
     ∀ y ∈ rho.honest, ∀ dst,
@@ -697,3 +700,105 @@ equality check. The proof `:= by rfl` passes in the owning module. No
 predicate, premise, exposure policy, or checker was changed. The initial
 sandboxed build could not write the global Lean throttle lock. Validation
 then used the normal throttle with lock access; no bypass was used.
+
+## Review fixes and transport suppliers (2026-10-08)
+
+This section supersedes the OPEN supplier status in the continuation reports
+above. Those reports describe their recorded commits.
+
+Part A: DONE. `OPEN_sameLabel` uses `pcsa_same_label_gate_results_win`,
+with floor `T₀ ≤ z_r`. The voter rank bound and predicate conversion are
+proved. The two architecture records now state this.
+
+Part B: DONE. Main `a1f0b3be` was merged in `1facafb2`. The five suppliers
+are named theorems in `Assembly/Recovery.lean`:
+
+- `pcsa_recovery_rootResolution_of_run`: named body scope and collision freedom.
+- `pcsa_recovery_earlyForward_of_run`: early wire/body relay, resolution, stamps,
+  and every prefix in the frozen voter tree.
+- `pcsa_recovery_honestVoterInputs_of_run`: honest support, authentication,
+  raw membership, resolution, and frozen-tree prefixes.
+- `pcsa_recovery_honestProposerInputs_of_run`: honest support, authentication,
+  raw membership, resolution, and full-tree prefixes.
+- `pcsa_recovery_pcReceipt_of_run`: public-cut PC key relay. The field now
+  accepts only `e_s` and `v_r`; every caller discarded the former body conjunct.
+  The exact revised statement is in “Continuation transport statements”.
+
+All needed Clean modules are already re-exported by `Clean.Export`. No Clean
+file was edited. Strict delivery comes from `pcsa_strictFrom_of_sync`.
+
+Part C: DONE. Both required `_win` theorems are already in `a1f0b3be`.
+`pcsa_recovery_sameLabel_of_run` and `pcsa_recovery_voterBackward_of_run`
+convert the indexed read facts and use `GST ≤ v_g ≤ v_r < z_r`. The proof
+retains label `g`, including `t_g < GST ≤ v_g`.
+
+Main `d1491021` was then merged in `5e0992e1`. The new Formation field is
+filled by `proposerRootReachable := hroot` in `LongFirstSlot`. The separate
+`RecoveryRootReachable` conjunct is retained.
+
+Remaining OPEN transport fields: **none**. The old explicit-supplier wrappers
+remain available. `pcsa_recovery_lock_transport_of_run` supplies their
+`RecoveryLockTransport` argument. Its signature is:
+
+```lean
+theorem pcsa_recovery_lock_transport_of_run [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) (hF : StageOneFrame p c E rho)
+    (g : Slot) (hgst : E.t_GST ≤ SA.voteTime p.toParams g) :
+    RecoveryLockTransport p c E rho g
+```
+
+The final wrapper selects the slot with `long_recovery_slot`. Its only
+premises are the long claim's premises:
+
+```lean
+theorem pcsa_recovery_firstSlot_long_of_run [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) (hF : StageOneFrame p c E rho)
+    (horizon : E.t_GST + 2 * pcsaL p + G + 8 * p.Δ ≤ rho.horizon) :
+    ∃ (s₁ : Slot) (N : NamedProposal p.n),
+      SA.gateTime p.toParams s₁ ≤ E.t_GST + 2 * pcsaL p + G + 8 * p.Δ ∧
+      FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁
+```
+
+The seven supplier signatures are written in full in Assembly/Recovery.
+Each conclusion is its corresponding field in “Continuation transport
+statements”. Each takes `Recovery₂`. The receipt, support, and same-label
+suppliers also take `StageOneFrame`. The five label-indexed suppliers take
+`g` and `GST ≤ v_g`; the root and PC-key suppliers do not.
+
+The complete `LongBreakRecoveredClaim` still needs suffix assembly and CI
+restart. This result proves its first-slot input.
+
+Commits:
+
+- `1facafb2`: merge main `a1f0b3be`.
+- `b62a7418`: Part A record corrections.
+- `3153eb50`: all seven suppliers, narrowed PC receipt, and the run wrapper.
+- `5e0992e1`: merge main `d1491021` with Formation integration.
+- `24e1d86d`: fill the long first-slot Formation root field.
+- This report commit: nine proof-coverage entries and the checked status.
+
+Validation of the final Lean source:
+
+- `lake build --wfail`: PASS, default targets, 4,636 jobs.
+- `bash scripts/check-build.sh`: PASS, all steps and self-tests. The rebuild
+  test changed exactly one module. No unaccepted equation export remains.
+- `check-layers.py`: PASS, 72 baseline findings and zero new findings.
+  Layer self-test: PASS, 37 rule controls.
+- `LC_ALL=C check-gly-rules`: PASS. Separate F-13 check: PASS. F-20: PASS.
+- `NEG=0 check-fgsa-claims.sh`: PASS.
+- `NEG=0 check-pcsa-manifest.sh`: PASS, 424 entries in 21 modules; hashes match.
+- `check-proof-coverage.py --write` and the following normal check: PASS.
+  The diff adds exactly nine entries. Total: 6,216 declarations in 13 audits.
+- All nine new public declarations have compiled `#print axioms` entries.
+  Only `propext`, `Classical.choice`, and `Quot.sound` occur.
+- Main precheck: PASS against `d1491021`, after both main merges.
+- `LC_ALL=C` name checks: PASS on main, `222cf06a`,
+  `pcsa-w2-formation-next`, `pcsa-ci-win-1`, `pcsa-ci-win-2`,
+  `pcsa-ci-win-3`, `nuc/pcsa-fsrc`, `form-land3`, `pcsa-ci-win-k2`,
+  and `pcsa-ci-win-5b`. All twelve new names are clear.
+- `git diff --check`: PASS. `LockHistory` and `LockRank` are unchanged.
+
+No rebase or push. No direct Claims, Model, Clean, Shared, checker, or policy
+edit. The authorized main merges retain their upstream changes.
