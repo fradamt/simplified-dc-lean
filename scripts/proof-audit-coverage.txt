@@ -6423,6 +6423,17 @@
             'AvailableChain.PCSA.Run.pcsa_pc_storeAt_chain_from',
             'AvailableChain.PCSA.Run.pcsa_pc_storeAt_result_from',
         ),
+        'AvailableChainPCSAProofs.Proofs.Clean.RestartLocks': (
+            'AvailableChain.PCSA.Run.pcsa_cleanRestartSeed_mk',
+            'AvailableChain.PCSA.Run.pcsa_leaseRanks_gate_slot',
+            'AvailableChain.PCSA.Run.pcsa_restart_locks_from_freeze',
+            'AvailableChain.PCSA.Run.pcsa_stamped_held_from',
+            'AvailableChain.PCSA.pcsa_clock_leaseRanks',
+            'AvailableChain.PCSA.pcsa_gateFrom_leaseRanks',
+            'AvailableChain.PCSA.pcsa_gateRank_mem',
+            'AvailableChain.PCSA.pcsa_leaseRank_mem',
+            'AvailableChain.PCSA.pcsa_process_leaseRanks',
+        ),
         'AvailableChainPCSAProofs.Proofs.Clean.RestartOutputs': (
             'AvailableChain.PCSA.Run.pcsa_gate_tick_exists',
             'AvailableChain.PCSA.Run.pcsa_gate_tick_label_lt',

@@ -193,6 +193,7 @@ public import AvailableChainPCSAProofs.Proofs.Clean.GenuineKeys
 
 public import AvailableChainPCSAProofs.Proofs.Clean.GateAdvance
 public import AvailableChainPCSAProofs.Proofs.Clean.RestartRoots
+public import AvailableChainPCSAProofs.Proofs.Clean.RestartLocks
 public import AvailableChainPCSAProofs.Proofs.Clean.RestartOutputs
 public import AvailableChainPCSAProofs.Proofs.Clean.RestartStep
 public import AvailableChainPCSAProofs.Proofs.Clean.RestartKernels

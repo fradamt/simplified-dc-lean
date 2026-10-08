@@ -1632,3 +1632,12 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_restart_ack_result
 #print axioms AvailableChain.PCSA.Run.pcsa_restart_pc_pair
 #print axioms AvailableChain.PCSA.Run.pcsa_restart_suffix_invariant
+#print axioms AvailableChain.PCSA.pcsa_process_leaseRanks
+#print axioms AvailableChain.PCSA.pcsa_gateFrom_leaseRanks
+#print axioms AvailableChain.PCSA.pcsa_clock_leaseRanks
+#print axioms AvailableChain.PCSA.pcsa_gateRank_mem
+#print axioms AvailableChain.PCSA.pcsa_leaseRank_mem
+#print axioms AvailableChain.PCSA.Run.pcsa_leaseRanks_gate_slot
+#print axioms AvailableChain.PCSA.Run.pcsa_stamped_held_from
+#print axioms AvailableChain.PCSA.Run.pcsa_restart_locks_from_freeze
+#print axioms AvailableChain.PCSA.Run.pcsa_cleanRestartSeed_mk
