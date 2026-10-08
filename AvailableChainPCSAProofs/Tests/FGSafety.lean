@@ -2,6 +2,11 @@ module
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClient -- shake: keep (#print axioms)
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyStore -- shake: keep (#print axioms)
 
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge -- shake: keep (#print axioms)
+public import AvailableChainPCSAProofs.Proofs.Foundations.FinalitySafety -- shake: keep (#print axioms)
+
+public import AvailableChainPCSAProofs.Proofs.Assembly.Finality -- shake: keep (#print axioms)
+
 public section
 
 #print axioms AvailableChain.PCSA.Run.decodeSafetyRow
@@ -70,6 +75,39 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsaCoreLawsWith
 #print axioms AvailableChain.PCSA.Run.pcsa_safety_process_new
 #print axioms AvailableChain.PCSA.Run.pcsaSafetyStoreLaws
+
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_runBlock_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_bound_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_finalizedAt_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_rows_eq
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_emits_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_noSlash_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_carriage_of
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_wholeAccountable_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_wholeAgreement_iff
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_accountable_supply
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_agreement_supply
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_eventAgreement_supply
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_monotone_supply
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_count_supply
+#print axioms AvailableChain.PCSA.Run.pcsa_safetySlashesRead
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_nonSlashing_supply
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountable_body
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreement_body
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreement_body
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotone_body
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBound_body
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashed_body
+
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_pureAccountableClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_pureAgreementClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountableClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreementClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreementClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotoneClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBoundClaim
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashedClaim
+#print axioms AvailableChain.PCSA.Run.pcsaSafetyFinalityClaims
 
 namespace AvailableChain.PCSA.Run
 open AvailableChain.FGCompose AvailableChain.SimplexFG
