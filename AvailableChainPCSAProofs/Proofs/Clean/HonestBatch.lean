@@ -128,14 +128,16 @@ theorem pcsa_late_participant_bound [Fintype V] (E : Generic.Env V)
   rw [Gen.AC.Root.vote_pool_voterCount_card]
   exact (Finset.card_le_card hsub).trans
     ((Finset.card_union_le _ _).trans (Nat.add_le_add_left hF _))
-/-- In the delivery window: If every honest HEAD covers a prefix, it has a strict majority at the
-actual gate. -/
-theorem pcsa_clean_gate_majority_win [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
-    (h : CleanWindow E rho j₀ T₀ cut) (hF : StageOneFrame p c E rho)
+/-- Label-local core: if every honest HEAD of label `s` covers a prefix, it has a strict
+majority at the actual gate. The window needs only `T₀ ≤ v_s` and the label-`s` count. -/
+theorem pcsa_gate_majority_of_label [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {T₀ cut : Time}
+    (h : Base₂ p c E rho) (hS : StrictFrom E rho T₀ cut) (hF : StageOneFrame p c E rho)
     (k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (B : Block)
     (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
-    (hs : j₀ ≤ s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hT : T₀ ≤ SA.voteTime p.toParams s)
+    (hlab : (Gen.V2.Duty.faulty rho).card < (awakeHonestLabel p c E rho s).card)
+    (hc : SA.gateTime p.toParams s ≤ cut) (hcut : cut ≤ rho.horizon)
     (hheads : ∀ x H, HonestHeadAt p c E rho x s H → Block.Preceq B H) :
     GridCO.voterCount (GridCO.lateVotes p.toParams.engine
       (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s) <
@@ -144,22 +146,22 @@ theorem pcsa_clean_gate_majority_win [Fintype V] (E : Generic.Env V)
   classical
   let st := clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s)
   let P := GridCO.cleanSupport p.toParams.engine (actView st) s
-  obtain ⟨Hon, hHon, hbatch⟩ := pcsa_clean_head_batch_win E rho h (hs := hs) s hc
-  have hbound := pcsa_late_participant_bound E rho h.base k y (SA.gateTime p.toParams s) s Hon hHon
+  obtain ⟨Hon, hHon, hbatch⟩ := pcsa_head_batch_of_label E rho h s hlab
+  have hbound := pcsa_late_participant_bound E rho h k y (SA.gateTime p.toParams s) s Hon hHon
   have hearly : SA.earlyTime p.toParams s ≤ cut := by
     apply le_trans _ hc
     change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     have hp := p.deltaPos
     linarith
   have hvote : SA.voteTime p.toParams s ≤ rho.horizon := by
-    apply le_trans _ (hearly.trans h.cut.2)
+    apply le_trans _ (hearly.trans hcut)
     change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
     have hp := p.deltaPos
     linarith
   have hidx : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ k := by
     apply Nat.le_of_not_gt
     intro hlt
-    have ht := (Gen.V2.Duty.index_lt_idxBefore_iff h.base.valid.toScheduleWellFormed hk _).mp hlt
+    have ht := (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed hk _).mp hlt
     change 4 * p.Δ * (s : Int) + 6 * p.Δ < 4 * p.Δ * (s : Int) + 2 * p.Δ at ht
     have hp := p.deltaPos
     linarith
@@ -175,9 +177,8 @@ theorem pcsa_clean_gate_majority_win [Fintype V] (E : Generic.Env V)
     apply Finset.card_le_card
     intro i hi
     obtain ⟨hih, hiw⟩ := (hHon i).mp hi
-    obtain ⟨H, hH⟩ := pcsa_honest_head_exists E rho h.base _ hih s hiw hvote
-    obtain ⟨hm, hr⟩ := pcsa_honest_head_clean_support_win E rho h.base hF h.strict (hT :=
-        pcsa_floor_vote (pcsa_cleanWindow_floor E rho h s hs)) _ y hy s i H
+    obtain ⟨H, hH⟩ := pcsa_honest_head_exists E rho h _ hih s hiw hvote
+    obtain ⟨hm, hr⟩ := pcsa_honest_head_clean_support_win E rho h hF hS (hT := hT) _ y hy s i H
       rfl hH hearly k hidx (SA.gateTime p.toParams s)
     apply Finset.mem_filter.mpr
     refine ⟨(Gen.AC.Root.vote_pool_mem_seats _ i).mpr ⟨_, hm, rfl⟩, ?_⟩
@@ -186,7 +187,7 @@ theorem pcsa_clean_gate_majority_win [Fintype V] (E : Generic.Env V)
     apply (Gen.AC.Root.vote_pool_support_witness st.base.blocks P i B).mpr
     refine ⟨_, hm, rfl, ?_⟩
     apply (Gen.AC.Root.vote_support_body st.base.blocks B _).mpr
-    refine ⟨H, ?_, ?_, pcsa_honest_head_slot_le E rho h.base hF _ s H hH, hheads _ H hH⟩
+    refine ⟨H, ?_, ?_, pcsa_honest_head_slot_le E rho h hF _ s H hH, hheads _ H hH⟩
     · have hlook := FGSA.Run.resolvedHead_target _ _ hr
       have hdom : GridCO.resolutionTree (actView st) = st.base.blocks := by
         change st.base.headDomain.getD st.base.blocks = st.base.blocks
@@ -200,6 +201,27 @@ theorem pcsa_clean_gate_majority_win [Fintype V] (E : Generic.Env V)
   change GridCO.voterCount (GridCO.lateVotes p.toParams.engine (actView st) s) ≤
     Hon.card + (Gen.V2.Duty.faulty rho).card at hbound
   omega
+/-- In the delivery window: If every honest HEAD covers a prefix, it has a strict majority at the
+actual gate. -/
+theorem pcsa_clean_gate_majority_win [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {j₀ : Slot} {T₀ cut : Time}
+    (h : CleanWindow E rho j₀ T₀ cut) (hF : StageOneFrame p c E rho)
+    (k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (B : Block)
+    (hk : rho.events[k]? = some (.tick y (SA.gateTime p.toParams s)))
+    (hs : j₀ ≤ s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hheads : ∀ x H, HonestHeadAt p c E rho x s H → Block.Preceq B H) :
+    GridCO.voterCount (GridCO.lateVotes p.toParams.engine
+      (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s) <
+      2 * SA.Root.prefixSupport p.toParams
+        (actView (clock p (V2.D.Run.stateBefore E rho k y).st (SA.gateTime p.toParams s))) s B := by
+  have hearly : SA.earlyTime p.toParams s ≤ cut := by
+    apply le_trans _ hc
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    have hp := p.deltaPos
+    linarith
+  exact pcsa_gate_majority_of_label E rho h.base h.strict hF k y hy s B hk
+    (pcsa_floor_vote (pcsa_cleanWindow_floor E rho h s hs)) (h.labels s hs hearly) hc h.cut.2
+    hheads
 /-- If every honest HEAD covers a prefix, it has a strict majority at the actual gate. -/
 theorem pcsa_clean_gate_majority [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}

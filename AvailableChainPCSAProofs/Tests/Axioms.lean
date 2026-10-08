@@ -932,6 +932,7 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_head_batch_of_label
 #print axioms AvailableChain.PCSA.Run.pcsa_late_participant_bound
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority
+#print axioms AvailableChain.PCSA.Run.pcsa_gate_majority_of_label
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_majority_win
 
 -- C6 GateBatch.
