@@ -57,7 +57,8 @@ read index.
 
 The witness also exposes every saved result in the full k-window. The exact
 row and rank remain present at every event state after the selected gate.
-An explicit no-later-successful-renewal corollary remains open in step 1.
+`recovery_lock_no_later_successful_renewal` excludes every later successful
+renewal in this interval. It uses the actual fresh-gate and slow-write tests.
 The witness is not a claim premise. It does not prove surviving HEAD coverage or either long-slot F4.
 
 Steps 2–6 remain open. No long transport structure, Assembly OPEN transport

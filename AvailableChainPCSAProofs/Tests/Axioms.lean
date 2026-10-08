@@ -1510,3 +1510,6 @@ end
 #print axioms AvailableChain.PCSA.Run.recovery_lock_deadline_bound
 #print axioms AvailableChain.PCSA.Run.recovery_lock_write_witness
 #print axioms AvailableChain.PCSA.Run.recovery_live_lock_last_write
+
+#print axioms AvailableChain.PCSA.recovery_gate_no_renewal_of_old_row
+#print axioms AvailableChain.PCSA.Run.recovery_lock_no_later_successful_renewal

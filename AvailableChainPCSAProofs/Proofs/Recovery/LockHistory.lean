@@ -645,6 +645,106 @@ private theorem recovery_history_clock_exact (p : Params) (st : State p.n) (t : 
     simp only [ht, Bool.false_eq_true, ite_false] at hc
     exact (hc (hpre hr)).elim
 
+private theorem recovery_history_write_old_row (st : State n) (B : Block)
+    (g : Nat) (d : Time) (rank : Option PCRank) (row : Block × Nat × Time)
+    (hd : row.2.2 < d)
+    (hr : row ∈ (writeLease st B g d rank).base.obligations) :
+    row ∈ st.base.obligations ∧ ¬ (row.1 = B ∧ row.2.1 = g) := by
+  change row ∈ (GridCO.writeObligation st.base B g d).obligations at hr
+  delta GridCO.writeObligation at hr
+  rcases List.mem_append.mp hr with hr | hr
+  · obtain ⟨hr, hn⟩ := List.mem_filter.mp hr
+    refine ⟨hr, ?_⟩
+    rintro ⟨hb, hg⟩
+    simp [hb, hg] at hn
+  · have he := congrArg (fun r : Block × Nat × Time => r.2.2)
+      (List.mem_singleton.mp hr)
+    dsimp only at he
+    exact (not_lt_of_ge (he ▸ le_max_right _ d) hd).elim
+
+private theorem recovery_history_fold_old_row (p : Params) (s : Slot)
+    (d : Time) (rank : Option PCRank) (row : Block × Nat × Time)
+    (hd : row.2.2 < d) (hl : row.2.1 = SA.releaseThreshold p.toParams)
+    (bs : List Block) (st : State p.n)
+    (hr : row ∈ (bs.foldl (fun acc B => (slowLevels p (actView acc) s B).foldl
+      (fun acc g => writeLease acc B g d rank) acc) st).base.obligations) :
+    row ∈ st.base.obligations ∧
+      (row.1 ∈ bs → SA.Root.slowEligible p.toParams (actView st) s row.1 = false) := by
+  induction bs generalizing st with
+  | nil => exact ⟨hr, by simp⟩
+  | cons B bs ih =>
+    simp only [List.foldl_cons] at hr
+    obtain ⟨hr, ht⟩ := ih _ hr
+    delta slowLevels at hr ht
+    split at hr
+    · rename_i hb
+      simp only [hb, ite_true, List.foldl_cons, List.foldl_nil] at hr ht
+      obtain ⟨hr, hn⟩ := recovery_history_write_old_row st B _ d rank row hd hr
+      have hne : row.1 ≠ B := fun he => hn ⟨he, hl⟩
+      refine ⟨hr, ?_⟩
+      intro hm
+      rcases List.mem_cons.mp hm with he | hm
+      · exact (hne he).elim
+      · have he := ht hm
+        rwa [recovery_history_slow_of_genuine_eq p
+          (actView (writeLease st B (SA.releaseThreshold p.toParams) d rank))
+          (actView st) rfl s row.1] at he
+    · rename_i hb
+      simp only [hb, Bool.false_eq_true, ite_false, List.foldl_nil] at hr ht
+      refine ⟨hr, ?_⟩
+      intro hm
+      rcases List.mem_cons.mp hm with he | hm
+      · subst B
+        exact Bool.eq_false_iff.mpr hb
+      · exact ht hm
+
+/-- A successful gate renewal removes every older row for the same key.
+Thus an exact row with an earlier deadline cannot survive that branch. -/
+theorem recovery_gate_no_renewal_of_old_row (p : Params) (st : State p.n)
+    (a : Block) (cs : List (PC p.n)) (rank : Option PCRank) (s : Slot)
+    (row : Block × Nat × Time)
+    (hd : row.2.2 < SA.gateTime p.toParams s + Run.pcsaL p)
+    (hl : row.2.1 = SA.releaseThreshold p.toParams)
+    (hr : row ∈ (gateFrom p a cs rank st s).base.obligations) :
+    ¬ (∃ C, SA.Root.confirmationFrom p.toParams a (actView st) s = some C ∧
+      (st.base.obligations.any (fun r => st.base.now < r.2.2 &&
+        !Block.compatible r.1 C)) = false ∧
+      row.1 ∈ (actView st).blocks ∧ row.1 ≠ .genesis ∧
+      Block.Preceq row.1 C ∧ leaseWriteOK cs rank row.1 = true ∧
+      SA.Root.slowEligible p.toParams (actView (gateFrom p a cs rank st s))
+        s row.1 = true) := by
+  rintro ⟨C, hc, hg, hm, hn, hp, hw, hs⟩
+  have hgen := recovery_history_gate_genuine p st a cs rank s
+  rw [hc] at hgen
+  rw [gateFrom_def] at hr
+  dsimp only at hr
+  rw [hc] at hr
+  dsimp only at hr
+  simp only [hg, Bool.false_eq_true, ite_false] at hr
+  have hfold := recovery_history_fold_old_row p s _ rank row hd hl _ _ hr
+  have hf := hfold.2 (List.mem_filter.mpr ⟨hm, by
+    simp only [Bool.and_eq_true, bne_iff_ne, ne_eq]
+    exact ⟨⟨hn, hp⟩, hw⟩⟩)
+  rw [recovery_history_slow_of_genuine_eq p _
+    (actView (gateFrom p a cs rank st s)) hgen.symm s row.1] at hf
+  rw [hs] at hf
+  cases hf
+
+private theorem recovery_history_clock_at_gate (p : Params) (st : State p.n) (s : Slot) :
+    clock p st (SA.gateTime p.toParams s) =
+      gateStep p (clockPre p st (SA.gateTime p.toParams s)) s := by
+  have hd : (0 : Int) < p.Δ := p.deltaPos
+  have hslot : ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat = s := by
+    change ((4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ) / (4 * p.Δ)).toNat = s
+    rw [add_sub_cancel_right, Int.mul_ediv_cancel_left _ (by positivity)]
+    exact Int.toNat_natCast s
+  have hpos : 0 ≤ SA.gateTime p.toParams s - 6 * p.Δ := by
+    change 0 ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ
+    have := Int.natCast_nonneg s
+    nlinarith
+  unfold clock
+  simp only [hslot, hpos, decide_true, BEq.rfl, Bool.and_self, ite_true]
+
 end AvailableChain.PCSA
 
 namespace AvailableChain.PCSA.Run
@@ -899,6 +999,63 @@ theorem recovery_live_lock_last_write (E : Generic.Env V)
     rwa [pcsa_clock_now] at htime
   · apply recovery_lock_write_witness E rho hs (i + 1) x row
     rwa [hstep]
+
+/-- No later gate can successfully renew the key of an uninterrupted exact
+row. The predicate lists the actual fresh-gate and slow-write branch tests. -/
+theorem recovery_lock_no_later_successful_renewal (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (hs : V2.D.ScheduleWellFormed E rho)
+    (i j : Nat) (x : V) (s : Slot) (row : Block × Nat × Time)
+    (hj : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hd : row.2.2 = SA.gateTime p.toParams s + pcsaL p)
+    (hsurv : ∀ q, j < q → q ≤ i →
+      row ∈ (V2.D.Run.stateBefore E rho q x).st.base.obligations)
+    (k : Nat) (r : Slot) (hjk : j < k) (hki : k < i)
+    (hk : rho.events[k]? = some (.tick x (SA.gateTime p.toParams r))) :
+    let pre := clockPre p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams r)
+    ¬ (GridCO.savedGenuine pre.base r = none ∧
+      ∃ C, SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) r = some C ∧
+        (pre.base.obligations.any (fun q => pre.base.now < q.2.2 &&
+          !Block.compatible q.1 C)) = false ∧
+        row.1 ∈ (actView pre).blocks ∧ row.1 ≠ .genesis ∧
+        Block.Preceq row.1 C ∧ leaseWriteOK pre.pcs (gateRank p pre r) row.1 = true ∧
+        SA.Root.slowEligible p.toParams
+          (actView (gateFrom p (eraseFG pre.fg.F) pre.pcs (gateRank p pre r) pre r))
+          r row.1 = true) := by
+  dsimp only
+  rintro ⟨hfresh, hwrite⟩
+  obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hj
+  obtain ⟨hkl, hke⟩ := List.getElem?_eq_some_iff.mp hk
+  have horder := (List.pairwise_iff_getElem.mp hs.sorted) j k hjl hkl hjk
+  rw [hje, hke] at horder
+  have htime := V2.D.Engine.time_le_of_key_le _ _ horder
+  have hne : s ≠ r := by
+    intro he
+    subst r
+    have heq : j = k := (List.Nodup.getElem?_inj hjl hs.nodup).mp (hj.trans hk.symm)
+    omega
+  have hstrict : SA.gateTime p.toParams s < SA.gateTime p.toParams r := by
+    have hd := p.deltaPos
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ 4 * p.Δ * (r : Int) + 6 * p.Δ at htime
+    have hn : (s : Int) ≠ (r : Int) := by exact_mod_cast hne
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ < 4 * p.Δ * (r : Int) + 6 * p.Δ
+    rcases lt_or_gt_of_ne hn with hn | hn <;> nlinarith
+  have hr := hsurv (k + 1) (by omega) (by omega)
+  have hl := recovery_history_reachable_level p _ (pcsa_reachable_stateBefore E rho (k + 1) x)
+    row hr
+  rw [V2.D.Run.stateBefore_succ E rho hk] at hr
+  change row ∈ (Function.update (V2.D.Run.stateBefore E rho k) x _ x).st.base.obligations at hr
+  rw [Function.update_self] at hr
+  change row ∈ (V2.D.tick E rho (V2.D.Run.stateBefore E rho k x) x
+    (SA.gateTime p.toParams r)).1.st.base.obligations at hr
+  have hclock := pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k x) x
+    (SA.gateTime p.toParams r)
+  rw [hclock, recovery_history_clock_at_gate, gateStep_def] at hr
+  dsimp only at hr
+  rw [hfresh] at hr
+  simp only [Option.isSome_none, Bool.false_eq_true, ite_false,
+    (recovery_history_normalize_history_fields _).1] at hr
+  exact recovery_gate_no_renewal_of_old_row p _ _ _ _ r row
+    (by rw [hd]; exact Int.add_lt_add_right hstrict _) hl hr hwrite
 
 end AvailableChain.PCSA.Run
 end

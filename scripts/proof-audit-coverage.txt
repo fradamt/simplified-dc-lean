@@ -6992,10 +6992,12 @@
             'AvailableChain.PCSA.Run.recovery_live_lock_last_write',
             'AvailableChain.PCSA.Run.recovery_lock_deadline_bound',
             'AvailableChain.PCSA.Run.recovery_lock_last_change',
+            'AvailableChain.PCSA.Run.recovery_lock_no_later_successful_renewal',
             'AvailableChain.PCSA.Run.recovery_lock_write_witness',
             'AvailableChain.PCSA.recovery_clock_change_window',
             'AvailableChain.PCSA.recovery_clock_lock_history',
             'AvailableChain.PCSA.recovery_gate_change_window',
+            'AvailableChain.PCSA.recovery_gate_no_renewal_of_old_row',
             'AvailableChain.PCSA.recovery_process_lock_history',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockOrigin': (
