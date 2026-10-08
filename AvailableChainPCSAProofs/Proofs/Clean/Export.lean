@@ -185,6 +185,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.JointAux
 public import AvailableChainPCSAProofs.Proofs.Clean.CutReads
 
 
+public import AvailableChainPCSAProofs.Proofs.Clean.CleanOutputs
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -942,6 +944,139 @@ theorem pcsa_clean_available_mono_cut (E : Generic.Env V)
     (pcsa_clean_record_mono_cut E rho h hF hFault x hx t t' htt hc)
     (pcsa_clean_pcTarget_mono_cut E rho h hF hFault x hx t t' htt hc)
     (pcsa_clean_pc_record_cut E rho h hF hFault x hx t' hc)
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+/-- Honest records at any two reads inside the healthy prefix are compatible. -/
+theorem pcsa_clean_records_compatible_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (t u : Time) (ht : t ≤ cut) (hu : u ≤ cut) :
+    Block.Compatible (storeAt p c E rho x t).base.stableRecord
+      (storeAt p c E rho y u).base.stableRecord := by
+  rcases pcsa_record_storeAt_timed_origin E rho h.base hF x hx t with hg | ⟨i, X, hi, hX, hs⟩
+  · rw [hg]
+    exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_genesis_preceq _))
+  · rw [hs]
+    rcases pcsa_record_storeAt_timed_origin E rho h.base hF y hy u with hg | ⟨j, Y, hj, hY, hs'⟩
+    · rw [hg]
+      exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_genesis_preceq _))
+    · rw [hs']
+      rcases lt_trichotomy i j with hlt | heq | hgt
+      · have hCI := (pcsa_clean_joint_invariant E rho h hF hFault j (hj.trans hu)).1
+        exact Bool.or_eq_true_iff.mpr (Or.inl
+          ((hCI.resultsChain x hx y hy i j X Y hlt.le (le_refl _) hX hY).1 hlt))
+      · have hCI := (pcsa_clean_joint_invariant E rho h hF hFault j (hj.trans hu)).1
+        exact (hCI.resultsChain x hx y hy i j X Y heq.le (le_refl _) hX hY).2 heq
+      · have hCI := (pcsa_clean_joint_invariant E rho h hF hFault i (hi.trans ht)).1
+        exact Bool.or_eq_true_iff.mpr (Or.inr
+          ((hCI.resultsChain y hy x hx j i Y X hgt.le (le_refl _) hY hX).1 hgt))
+/-- A selected PC target is compatible with every honest record read inside the prefix. -/
+theorem pcsa_clean_pc_record_cross_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (t u : Time) (ht : t ≤ cut) (hu : u ≤ cut) (B : Block)
+    (hB : pcTarget? (storeAt p c E rho x t) = some B) :
+    Block.Compatible B (storeAt p c E rho y u).base.stableRecord := by
+  obtain ⟨C, hC, _, hCB⟩ := pcsa_pcTarget_source _ B hB
+  obtain ⟨_, z, hz, hc⟩ := pcsa_pc_storeAt_timed_ack E rho h.base hFault x hx t C hC
+  rcases pcsa_record_storeAt_timed_origin E rho h.base hF y hy u with hg | ⟨i, X, hi, hX, hs⟩
+  · rw [hg]
+    exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_genesis_preceq _))
+  · rw [hs, ← hCB]
+    exact pcsa_clean_ack_result_cut E rho h hF hFault C.slot (hc.trans ht) z C.target hz
+      i (hi.trans hu) y hy X hX
+/-- Selected PC targets at any two honest prefix reads are compatible. -/
+theorem pcsa_clean_pc_targets_compatible_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (t u : Time) (ht : t ≤ cut) (hu : u ≤ cut) (B C : Block)
+    (hB : pcTarget? (storeAt p c E rho x t) = some B)
+    (hC : pcTarget? (storeAt p c E rho y u) = some C) : Block.Compatible B C := by
+  obtain ⟨P, hP, _, hPB⟩ := pcsa_pcTarget_source _ B hB
+  obtain ⟨Q, hQ, _, hQC⟩ := pcsa_pcTarget_source _ C hC
+  obtain ⟨_, z, hz, hPtime⟩ := pcsa_pc_storeAt_timed_ack E rho h.base hFault x hx t P hP
+  obtain ⟨_, w, hw, hQtime⟩ := pcsa_pc_storeAt_timed_ack E rho h.base hFault y hy u Q hQ
+  rw [← hPB, ← hQC]
+  rcases lt_trichotomy P.slot Q.slot with hlt | heq | hgt
+  · exact Bool.or_eq_true_iff.mpr (Or.inl (pcsa_clean_ack_targets_order_cut E rho h hF hFault
+      P.slot Q.slot hlt (hQtime.trans hu) z w P.target Q.target hz hw))
+  · rw [pcsa_ack_targets_unique E rho h.base hF hFault z w Q.slot P.target Q.target
+      (heq ▸ hz) hw]
+    exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl _)
+      (Gen.Pure.block_preceq_refl _)
+  · exact Bool.or_eq_true_iff.mpr (Or.inr (pcsa_clean_ack_targets_order_cut E rho h hF hFault
+      Q.slot P.slot hgt (hPtime.trans ht) w z Q.target P.target hw hz))
+/-- Available outputs at any two honest prefix reads are compatible. -/
+theorem pcsa_clean_confirmed_compatible_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (t u : Time) (ht : t ≤ cut) (hu : u ≤ cut) :
+    Block.Compatible (confirmed (storeAt p c E rho x t)) (confirmed (storeAt p c E rho y u)) := by
+  rcases pcsa_confirmed_source (storeAt p c E rho x t) with hs | ⟨B, hB, hOut⟩
+  · rw [hs]
+    rcases pcsa_confirmed_source (storeAt p c E rho y u) with hs' | ⟨C, hC, hOut⟩
+    · rw [hs']
+      exact pcsa_clean_records_compatible_cut E rho h hF hFault x y hx hy t u ht hu
+    · rw [hOut]
+      change Block.compatible _ C = true
+      rw [Gen.Pure.block_compatible_comm]
+      exact pcsa_clean_pc_record_cross_cut E rho h hF hFault y x hy hx u t hu ht C hC
+  · rw [hOut]
+    rcases pcsa_confirmed_source (storeAt p c E rho y u) with hs | ⟨C, hC, hOut⟩
+    · rw [hs]
+      exact pcsa_clean_pc_record_cross_cut E rho h hF hFault x y hx hy t u ht hu B hB
+    · rw [hOut]
+      exact pcsa_clean_pc_targets_compatible_cut E rho h hF hFault x y hx hy t u ht hu B C hB hC
+/-- Strong outputs at any two honest prefix reads are compatible. -/
+theorem pcsa_clean_strong_compatible_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (t u : Time) (ht : t ≤ cut) (hu : u ≤ cut) :
+    Block.Compatible (strong (storeAt p c E rho x t)) (strong (storeAt p c E rho y u)) := by
+  change Block.Compatible ((pcTarget? _).getD .genesis) ((pcTarget? _).getD .genesis)
+  cases hp : pcTarget? (storeAt p c E rho x t) with
+  | none => exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_genesis_preceq _))
+  | some B =>
+    cases hq : pcTarget? (storeAt p c E rho y u) with
+    | none => exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_genesis_preceq _))
+    | some C =>
+      exact pcsa_clean_pc_targets_compatible_cut E rho h hF hFault x y hx hy t u ht hu B C hp hq
+/-- Strong outputs are monotone between honest reads in the prefix. -/
+theorem pcsa_clean_strong_mono_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x : V) (hx : x ∈ rho.honest) (t u : Time)
+    (htu : t ≤ u) (hu : u ≤ cut) :
+    Block.Preceq (strong (storeAt p c E rho x t)) (strong (storeAt p c E rho x u)) := by
+  change Block.Preceq ((pcTarget? _).getD .genesis) ((pcTarget? _).getD .genesis)
+  cases hp : pcTarget? (storeAt p c E rho x t) with
+  | none => exact Gen.Pure.block_genesis_preceq _
+  | some B =>
+    obtain ⟨C, hC, hBC⟩ := pcsa_clean_pcTarget_mono_cut E rho h hF hFault x hx t u htu hu B hp
+    rw [hC]
+    exact hBC
+/-- Clean dissemination follows from the auxiliary coverage proved jointly with C6. -/
+theorem pcsa_clean_dissemination (p : Params) : CleanDisseminationClaim p := by
+  intro V _ _ In c m E rho cut ΔF h hFault hF s y B hc hAck
+  have hAux := (pcsa_clean_joint_invariant E rho h hF hFault (s + 1) hc).2
+  exact ⟨fun x H hH => hAux.heads s (s + 1) (Nat.lt_succ_self _) (Nat.le_succ _) y B hAck x H hH,
+    fun x hx X hX => hAux.results s (s + 1) (Nat.lt_succ_self _) (le_refl _) y B hAck x hx X hX⟩
+/-- Clean safety holds for available and strong outputs throughout the healthy prefix. -/
+theorem pcsa_clean_safety (p : Params) : PCSACleanSafetyClaim p := by
+  intro V _ _ In c m E rho cut ΔF h hFault hF x hx y hy t u _ ht _ hu
+  refine ⟨pcsa_clean_confirmed_compatible_cut E rho h hF hFault x y hx hy t u ht hu,
+    pcsa_clean_strong_compatible_cut E rho h hF hFault x y hx hy t u ht hu, ?_⟩
+  intro htu
+  exact ⟨pcsa_clean_available_mono_cut E rho h hF hFault x hx t u htu hu,
+    pcsa_clean_strong_mono_cut E rho h hF hFault x hx t u htu hu⟩
 end AvailableChain.PCSA.Run
 
 end

@@ -815,3 +815,14 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_record_cut
 #print axioms AvailableChain.PCSA.Run.pcsa_available_monotone
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_available_mono_cut
+
+-- C6 CleanOutputs.
+#print axioms AvailableChain.PCSA.pcsa_confirmed_source
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_records_compatible_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_record_cross_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_pc_targets_compatible_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_confirmed_compatible_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_strong_compatible_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_strong_mono_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_dissemination
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_safety

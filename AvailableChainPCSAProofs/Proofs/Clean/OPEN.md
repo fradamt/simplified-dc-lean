@@ -1383,3 +1383,10 @@ available-output proof in Clean/Export. Put the C5 claim adapter in
 Assembly/Small beside C3. Put the later M5 adapter there for the same
 reason. Clean safety uses the concrete monotonicity theorem. No claim,
 checker, or allow list changes. Recheck the remaining export boundaries.
+
+### CleanOutputs
+
+Joint ack coverage gives dissemination. Completed result origins and
+observed ack targets give cross-node safety and both monotonicity
+conclusions.
+Validation and current claim status are recorded in log.md and state.md.
