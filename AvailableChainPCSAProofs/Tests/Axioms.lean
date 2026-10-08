@@ -1550,3 +1550,10 @@ end
 #print axioms AvailableChain.PCSA.Run.pcsa_c9_afterTicks_pcs_storeAt
 #print axioms AvailableChain.PCSA.Run.pcsa_clean_honestProposal_stamped
 #print axioms AvailableChain.PCSA.Run.pcsa_strongIncludedClaim
+
+#print axioms AvailableChain.PCSA.Run.recovery_base_of_arm
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_anchor_proposer_base
+#print axioms AvailableChain.PCSA.Run.recovery_firstSlot_of_anchor
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_cleanSaved_from_anchor
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_anchor_from_shortBreak
+#print axioms AvailableChain.PCSA.Run.pcsa_recovery_firstSlot_short

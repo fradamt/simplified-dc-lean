@@ -296,6 +296,15 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `Assembly/Finality` supplies `PCSAClaims.finality` with
   `pcsaSafetyFinalityClaims`. Both FG modes are covered. Count retains
   all-run carriage; honest non-slashing uses stored-row carriage.
+- PC-SA recovery anchor (2026-10-08). `Recovery/AnchorBase` bounds the
+  proposer base from one node's anchor stamp and the C8 strong-output bound.
+  `Recovery/FirstSlot` proves the first formation slot and its separate
+  `RecoveryRootReachable` clauses from the anchor and saved-result bounds.
+  `Assembly/Recovery` supplies three wrappers:
+  `pcsa_recovery_cleanSaved_from_anchor` bounds saved results below the anchor;
+  `pcsa_recovery_anchor_from_shortBreak` supplies the anchor proposal, stamp,
+  ARM, and C8 conclusion; `pcsa_recovery_firstSlot_short` supplies the first
+  formation slot and its separate root clauses from `ShortBreakPrem`.
 - PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
   holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
   items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow
