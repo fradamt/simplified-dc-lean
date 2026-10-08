@@ -64,6 +64,7 @@ public import AvailableChainPCSAProofs.Proofs.Shared.BodyRelay
 public import AvailableChainPCSAProofs.Proofs.Shared.HonestProposal
 public import AvailableChainPCSAProofs.Proofs.Shared.VoterView
 public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyScope
+public import AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyClientLaws
 
 public section
 
@@ -651,6 +652,12 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_voter_view_of_delivery
 #print axioms AvailableChain.PCSA.Run.pcsa_postClock_exists
 #print axioms AvailableChain.PCSA.Run.pcsa_commonView_of_delivery
+#print axioms AvailableChain.PCSA.Run.pcsa_attest_signer_irrel
+#print axioms AvailableChain.PCSA.Run.pcsa_attest_decode_rows
+#print axioms AvailableChain.PCSA.Run.pcsa_safety_tick_rows
+#print axioms AvailableChain.PCSA.Run.pcsa_safetyReads_record
+#print axioms AvailableChain.PCSA.Run.pcsaSafetyClientLaws
+#print axioms AvailableChain.PCSA.Run.pcsaSafetyUnitLaws
 
 #print axioms AvailableChain.PCSA.Run.pcsa_heldPCRelay_of
 #print axioms AvailableChain.PCSA.Run.pcsa_healthy_block_receipt
