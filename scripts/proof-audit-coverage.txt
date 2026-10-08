@@ -569,6 +569,7 @@
             'AvailableChain.FGSA.ne_of_saved',
             'AvailableChain.FGSA.notMem_keys_of_unsaved',
             'AvailableChain.FGSA.process_F_mono',
+            'AvailableChain.FGSA.process_TF_new',
             'AvailableChain.FGSA.process_hmax_mono',
             'AvailableChain.FGSA.process_pair_mono',
             'AvailableChain.FGSA.rootInjectiveBelow_base',
@@ -4229,8 +4230,17 @@
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyReads',
+            'AvailableChain.FGSA.Run.fgsaSafetyReads_def',
             'AvailableChain.FGSA.Run.fgsaSafetyUnitLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyWireLaws',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope': (
+            'AvailableChain.FGSA.Run.fgsaSafetyScopeLaws',
+            'AvailableChain.FGSA.Run.fgsa_safetyScopedRoots',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore': (
+            'AvailableChain.FGSA.Run.fgsaSafetyOrderLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyStoreLaws',
         ),
         'AvailableChainFGSARun.Model.Protocol': (
             'AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def',
@@ -6907,6 +6917,20 @@
         'AvailableChainPCSAProofs.Proofs.Shared.TreeReceipt': (
             'AvailableChain.PCSA.pcsa_fullTree_of_frame',
             'AvailableChain.PCSA.pcsa_tree_correspondence',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Shared.VoterView': (
+            'AvailableChain.PCSA.Run.pcsa_commonView_of_delivery',
+            'AvailableChain.PCSA.Run.pcsa_carried_pc_unique',
+            'AvailableChain.PCSA.Run.pcsa_delivered_proposal_unique',
+            'AvailableChain.PCSA.Run.pcsa_frozen_pc_origin_read_valid',
+            'AvailableChain.PCSA.Run.pcsa_frozen_pc_origin_valid',
+            'AvailableChain.PCSA.Run.pcsa_metadata_read_scope',
+            'AvailableChain.PCSA.Run.pcsa_metadata_scope',
+            'AvailableChain.PCSA.Run.pcsa_metadata_unique',
+            'AvailableChain.PCSA.Run.pcsa_frozen_key_before_proposal',
+            'AvailableChain.PCSA.Run.pcsa_postClock_exists',
+            'AvailableChain.PCSA.Run.pcsa_voter_view_of_delivery',
+            'AvailableChain.PCSA.pcsa_view_of_frozen_receipt',
         ),
     },
     'AvailableChainPCSAProofs.Tests.FGCompose': {
