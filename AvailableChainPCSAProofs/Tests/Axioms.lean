@@ -647,10 +647,12 @@ public section
 #print axioms AvailableChain.PCSA.Run.pcsa_emitted_propose
 #print axioms AvailableChain.PCSA.Run.pcsa_clock_slot_proposal
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_rows_valid
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_receipt_body
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_receipt
 #print axioms AvailableChain.PCSA.Run.pcsa_indexed_body_within_on
 #print axioms AvailableChain.PCSA.Run.pcsa_block_isNonRow
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_from_vote
+#print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_body_from_vote
 #print axioms AvailableChain.PCSA.Run.pcsa_honest_proposal_early
 #print axioms AvailableChain.PCSA.pcsa_view_of_frozen_receipt
 #print axioms AvailableChain.PCSA.Run.pcsa_frozen_pc_origin_valid
@@ -1280,3 +1282,8 @@ end
 #print axioms AvailableChain.PCSA.Run.recovery_cleanSaved_of_ci_pc
 #print axioms AvailableChain.PCSA.Run.recovery_persistence_of_run
 #print axioms AvailableChain.PCSA.Run.recovery_commonView
+#print axioms AvailableChain.PCSA.Run.recovery_installed_target_body
+#print axioms AvailableChain.PCSA.RecoverySlotOrdered
+#print axioms AvailableChain.PCSA.Run.RecoveryRootReachable
+#print axioms AvailableChain.PCSA.Run.RecoveryChainRestart
+#print axioms AvailableChain.PCSA.Run.RecoverySuffixInputs

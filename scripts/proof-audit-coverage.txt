@@ -6744,6 +6744,7 @@
             'AvailableChain.PCSA.process_lock_targets_subset',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.LockWindow': (
+            'AvailableChain.PCSA.RecoverySlotOrdered',
             'AvailableChain.PCSA.Run.recovery_live_lock_window_origin',
             'AvailableChain.PCSA.Run.recovery_lock_bound_from_run',
             'AvailableChain.PCSA.Run.recovery_lock_window_origin',
@@ -6790,11 +6791,15 @@
             'AvailableChain.PCSA.recovery_proposer_base',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.Suffix': (
+            'AvailableChain.PCSA.Run.RecoveryChainRestart',
+            'AvailableChain.PCSA.Run.RecoveryRootReachable',
+            'AvailableChain.PCSA.Run.RecoverySuffixInputs',
             'AvailableChain.PCSA.Run.recovery_genesis_root_reachable',
             'AvailableChain.PCSA.Run.recovery_root_reachable',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.View': (
             'AvailableChain.PCSA.Run.recovery_commonView',
+            'AvailableChain.PCSA.Run.recovery_installed_target_body',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.BodyAdmission': (
             'AvailableChain.PCSA.pcsa_body_accepted',
@@ -6893,9 +6898,11 @@
             'AvailableChain.PCSA.Run.pcsa_block_isNonRow',
             'AvailableChain.PCSA.Run.pcsa_clock_slot_proposal',
             'AvailableChain.PCSA.Run.pcsa_emitted_propose',
+            'AvailableChain.PCSA.Run.pcsa_honest_proposal_body_from_vote',
             'AvailableChain.PCSA.Run.pcsa_honest_proposal_early',
             'AvailableChain.PCSA.Run.pcsa_honest_proposal_from_vote',
             'AvailableChain.PCSA.Run.pcsa_honest_proposal_receipt',
+            'AvailableChain.PCSA.Run.pcsa_honest_proposal_receipt_body',
             'AvailableChain.PCSA.Run.pcsa_honest_proposal_rows_valid',
             'AvailableChain.PCSA.Run.pcsa_indexed_body_within_on',
             'AvailableChain.PCSA.pcsa_accepted_pc_wellFormed',

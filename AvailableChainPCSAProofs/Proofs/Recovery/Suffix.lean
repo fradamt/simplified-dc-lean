@@ -84,13 +84,12 @@ is proved in RunInputs and is no longer an input.
 slot `s > 0` with `t_GST + Δ ≤ t_s` and `d_s` in the run, from the Shared
 voter view (`pcsa_commonView_of_delivery`) and the RECOVERY delivery premise.
 The other fields of `FormationPrem` at `s₁` remain OPEN.
-OPEN block admission under RECOVERY, with `x` the slot-`s₁` proposer:
-(B1) if an honest `y` installs `C` before `z_{s₁-1}`, then `C.target` is in
-the blocks of `x` at `t_{s₁}`; (B2) every honest voter at `v_{s₁}` holds the
-proposal `N` and the target of `N.pc`. `recovery_path_source_receipt` gives
-only the network step of (B2): an honest node handles each body on the path
-before `v_{s₁}`. It does not give the admission of a handled body, and it
-does not give the direction from the voters to the proposer (deadline `t_{s₁}`). -/
+Block admission under RECOVERY (closed): (B1) if an honest `y` holds `C`
+before `z_{s₁-1}`, then `C.target` is stored at every honest node before
+`t_{s₁}` (`recovery_installed_target_body`); (B2) every honest voter at
+`v_{s₁}` holds the proposal wire `N`, the valid target of `N.pc`
+(`pcsa_honest_proposal_from_vote`) and the body `N.erase`
+(`pcsa_honest_proposal_body_from_vote`). -/
 structure RecoverySuffixInputs (s₁ : Slot) (ΔF : Time) : Prop where
   firstSlot : ∃ N : NamedProposal p.n,
     FormationPrem p c E rho s₁ N ΔF ∧ RecoveryRootReachable p c E rho s₁
