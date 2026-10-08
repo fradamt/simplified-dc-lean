@@ -85,7 +85,7 @@ theorem pcsa_formation_slots_before_tick (E : Generic.Env V)
     change ∀ b ∈ (Function.update (V2.D.Run.stateBefore E rho k) y _ y).st.base.blocks, b.slot ≤ s
     rw [Function.update_self]
     have ht := pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k y) y u
-    rw [ht, pcsa_formation_clock_blocks]
+    rw [ht, pcsa_clock_blocks]
     exact hm
   | deliver x o u =>
     change x = y at hn
@@ -118,7 +118,7 @@ theorem pcsa_formation_read_slot_bound (E : Generic.Env V)
   subst pre
   subst nd
   change ∀ b ∈ (clock p (V2.D.Run.stateBefore E rho k y).st t).base.blocks, b.slot ≤ s
-  rw [pcsa_formation_clock_blocks]
+  rw [pcsa_clock_blocks]
   exact pcsa_formation_slots_before_tick E rho hv y k t s (V2.D.Run.tickIdx?_spec hk) hs
 
 /-- A current-slot block has no stored child at the same-slot read. -/

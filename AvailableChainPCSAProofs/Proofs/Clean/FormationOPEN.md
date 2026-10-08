@@ -6,20 +6,24 @@ Formation writer owns this file and the `Clean/Formation*` modules.
 
 ## Status
 
-`Assembly/Formation.lean` proves C7 under named hypotheses:
+`Assembly/Formation.lean` proves the claims under one named OPEN input,
+`hRetained`: a producer of the five retained HEAD facts at every Formation
+context (the same binders as `FormationClaim`):
 
-- `pcsa_formation_of_open`: `FormationPrem` and the two OPEN inputs below
-  give `FormationConcl`.
-- `pcsa_formation_source_of_open`: `FormationPrem` and the retained HEAD
-  facts give the Formation source with C1 connected.
+- `pcsa_formation_of_open`: `hRetained` gives `FormationClaim p`.
+- `pcsa_formation_source_of_open`: `hRetained` gives the body of
+  `FormationSourceClaim p` (`Claims/Finality.lean`). No Export of this
+  branch imports `Claims.Finality`, so the statement is the unfolded body.
 
-The `FormationClaim` field of `PCSAClaims` stays OPEN until both inputs
-are proved.
+The `FormationClaim` and `FormationSourceClaim` fields stay OPEN until
+`hRetained` is proved.
 
 The F4 statement fix is part of this landing. It adds
 `FormationRootReachable` and the `proposerRootReachable` fields of
-`FormationPrem` and `HealedSourcePrem` (at `r * p.R`). Without it,
-`FormationPrem` is false. `docs/PCSA-API.md` is regenerated.
+`FormationPrem` and `HealedSourcePrem` (at `r * p.R`). Without this clause,
+the old `FormationClaim` and `FormationSourceClaim` were false under those
+premises; the old premises were satisfiable. `docs/PCSA-API.md` is
+regenerated.
 
 Proved inputs, with their producers:
 
@@ -36,8 +40,11 @@ Proved inputs, with their producers:
   strict `t + Δ` delivery of the Clean receipt proofs.
 - Ack admission: `pcsa_formation_preFreeze_ack_admit`, from Clean
   `pcsa_honest_ack_admitted`.
+- Late gate counts: `pcsa_formation_gate_counts`
+  (`FormationGateCounts`), from the exact honest HEADs. `H` is the number
+  of honest HEAD seats awake at `v_s`.
 
-## OPEN input 1: the five retained HEAD facts
+## OPEN input: the five retained HEAD facts
 
 The binder is `hRetained`, with type `FormationRetainedHeadOpen p src dst s N`.
 It covers the honest proposer read at `t_s` (`src`) and each honest voter
@@ -57,16 +64,3 @@ Plan (Codex plan `plan-formation-inputs-sol.md`, items 4–8):
 2. Adapt `pcsa_honest_support_backward` for `hSupportBack`.
 3. Prove the voter-tree inclusion `C = N.erase ∨ C ∈ sourceTree` and equal
    eligibility. These close `hKeep`, `hReflect` and `hUnique`.
-
-## OPEN input 2: the late gate counts
-
-The binder is `hGateCounts`: for each honest gate read, there is an `H`
-with `(awakeHonestLabel p c E rho s).card ≤ H` and
-`FormationGateCounts p st s N.erase H f`. Its fields are `hVoters`,
-`hPath`, `hRivals` and `hChildren`.
-
-Plan (Codex plan, items 1, 2, 9, 10): take `H` as the number of honest
-HEAD seats awake at `v_s`, that is, all honest HEAD senders. The smaller
-choice `H := h_s` is refuted (the plan gives an `n = 8` run). Adapt
-`pcsa_late_participant_bound` for `hVoters`. For `hChildren`, keep the
-additive inequality and use a disjoint child-support seat set.

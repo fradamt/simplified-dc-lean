@@ -1,5 +1,6 @@
 module
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationInputs
+public import AvailableChainPCSAProofs.Proofs.Clean.FormationGateCounts
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationHeads
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationCompose
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationEvidence
@@ -15,7 +16,6 @@ public import AvailableChainPCSAProofs.Proofs.Clean.FormationSource
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationTime
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationRelay
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationOrigins
-public import AvailableChainPCSAProofs.Proofs.Clean.FormationCollect
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationView
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationFreeze
 public import AvailableChainPCSAProofs.Proofs.Clean.FormationSourceRetention
@@ -51,11 +51,13 @@ make the honest HEADs exact. The proposer lists and root-mode score
 transport are proved.
 The old release witness fails F4.
 FormationCompose proves parts 1–4 with named run inputs.
-Assembly.Formation composes them with the named late gate counts.
-No whole claim is exported. FormationSourceRetention derives snapshot and
+FormationGateCounts proves the late gate counts from the exact honest
+HEADs. Assembly.Formation proves FormationClaim and the FormationSourceClaim
+body from a producer of the five retained facts. FormationSourceRetention derives snapshot and
 target retention. The stamped-PC part of C7 supplies the source when
 connected to C1 PC target uniqueness. No source retention input remains.
-FormationRetention closes hAckPoolMono from NoRestart.
+FormationRetention closes hAckPoolMono from NoRestart and the Clean
+AckStore facts.
 FormationFreeze closes hFreezeKeep and supplies PC consumers.
 FormationTerminal closes hStop from handler slot bounds and sorted run times.
 The retained HEAD consumer still needs the receipt, resolution, path and child inputs.
@@ -64,7 +66,7 @@ FormationCollection closes hPCCollect from the required early N counts.
 Its PC consumers need only hAckAdmit from C3. FormationHeads closes honest pool non-equivocation.
 Raw-HEAD carriage and the current child follow from body/metadata receipt.
 Body relay and metadata close support retention and resolution.
-Five retained path/support inputs and late gate counts remain open.
+Five retained path/support inputs remain open.
 The main Clean.Export module is owned by the other Clean writer. -/
 
 end

@@ -596,6 +596,7 @@ def auditRepair : IO Unit := do
 
 #eval audit
 #eval auditRepair
+#print axioms carriesS_pcObj
 #print axioms alias_target_ne
 #print axioms alias_wellFormed
 #print axioms alias_exact_control

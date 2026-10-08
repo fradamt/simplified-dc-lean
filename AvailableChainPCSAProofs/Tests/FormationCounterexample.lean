@@ -358,6 +358,7 @@ def audit : IO Unit := do
   IO.println "Formation counterexample: proposal root=3; HEAD root=2; source=none"
 
 #eval audit
+#print axioms carriesS_pcObj
 #print axioms cachedStep_exact
 #print axioms carriedObjects_signed
 #print axioms handlesTest_exact
