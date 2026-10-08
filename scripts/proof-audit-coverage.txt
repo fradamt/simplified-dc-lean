@@ -6101,6 +6101,7 @@
             'AvailableChain.PCSA.Run.pcsa_clean_gate_majority',
             'AvailableChain.PCSA.Run.pcsa_clean_head_batch',
             'AvailableChain.PCSA.Run.pcsa_clean_head_batch_win',
+            'AvailableChain.PCSA.Run.pcsa_head_batch_of_label',
             'AvailableChain.PCSA.Run.pcsa_honest_head_exists',
             'AvailableChain.PCSA.Run.pcsa_late_participant_bound',
         ),
@@ -7100,6 +7101,8 @@
             'AvailableChain.PCSA.pcsa_n_score_gap',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.CleanWindow': (
+            'AvailableChain.PCSA.Run.CleanWindow',
+            'AvailableChain.PCSA.Run.StrictFrom',
             'AvailableChain.PCSA.Run.pcsa_cleanWindow_floor',
             'AvailableChain.PCSA.Run.pcsa_cleanWindow_of_clean',
             'AvailableChain.PCSA.Run.pcsa_cleanWindow_of_sync',
@@ -7108,6 +7111,7 @@
             'AvailableChain.PCSA.Run.pcsa_strictFrom_mono',
             'AvailableChain.PCSA.Run.pcsa_strictFrom_of_healthy',
             'AvailableChain.PCSA.Run.pcsa_strictFrom_of_sync',
+            'AvailableChain.PCSA.Run.pcsa_strictFrom_of_within',
         ),
         'AvailableChainPCSAProofs.Proofs.Shared.Clock': (
             'AvailableChain.PCSA.Run.pcsa_clock_read',

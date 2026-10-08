@@ -275,6 +275,19 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `FormationPrem`). These lemmas are the Formation lane's `pcsa_formation_*`
   lemmas with smaller premises, without the lane prefix (Shared carries no lane
   names); Formation drops its copies when it switches.
+  The CI restart (2026-10-08) adds `CleanWindow`, the delivery window of the
+  clean induction from a label `j₀`. `StrictFrom E rho T₀ cut` is non-row
+  delivery with a deadline `dl t` that is `t + Δ` from the floor `T₀` and at
+  most `max t T₀ + Δ` before it. Converters: `pcsa_strictFrom_of_healthy`
+  (`HealthyPrefixDeliveryBy`, any `T₀`), `pcsa_strictFrom_of_sync`
+  (`PartialSynchronyBy`, `T₀ = t_GST`) and `pcsa_strictFrom_of_within` (a
+  `DeliveryWithinOn` premise with deadline `max t T₀ + Δ`, as
+  `FormationPrem.delivery` with `T₀ = z_{s-1}`). `CleanWindow E rho j₀ T₀ b₀`
+  adds `Base₂`, the cut, `T₀ ≤ t_{j₀}` and `a < h_j` at each label `j ≥ j₀` with
+  `e_j ≤ b₀`; `Clean₂` gives it with `j₀ = 0`, `T₀ = 0`, and the RECOVERY
+  components give it with `T₀ = t_GST`. The `_win` lemmas of `Shared/Relay`,
+  `Shared/BodyReceipt` and the Clean lane take `StrictFrom` (or `CleanWindow`);
+  the old `HealthyPrefixDeliveryBy` names are wrappers with unchanged types.
 - PC-SA Outage items (2026-10-06): `AvailableChainPCSAClaims/Statements/OutageItems`
   holds the statement-only items of the Outage lane: `LockRow`, the ARM-healthy
   items `CleanHeldPCRelay`, `CleanArmAcks`, `CleanArmItems` (5.4.2) and the slow
