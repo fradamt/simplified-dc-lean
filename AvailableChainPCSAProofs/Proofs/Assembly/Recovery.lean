@@ -67,5 +67,34 @@ theorem recovery_persistence_of_run [Fintype V] (E : Generic.Env V)
   intro B harm
   exact hP c m E rho s₁ B (s₁ + 1) h.base hf hfr (Nat.lt_succ_self s₁) harm
 
+/-- Clean results before the anchor are below its honest proposal, including saved results. -/
+theorem pcsa_recovery_cleanSaved_from_anchor [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {ΔF : Time} (cA : Slot) (N : NamedProposal p.n)
+    (hPos : 0 < cA)
+    (hClean : Clean₂ p c E rho (SA.freezeTime p.toParams cA) ΔF)
+    (hFault : FaultsBelowQA p c rho) (hFrame : StageOneFrame p c E rho)
+    (hN : HonestNamedProposal p c E rho cA N) :
+    ∀ x ∈ rho.honest, ∀ (i : Nat) (r : Slot) (C : Block), r < cA →
+      GridCO.savedGenuine (V2.D.Run.stateBefore E rho i x).st.base r = some (some C) →
+      Block.Preceq C N.erase := by
+  have hgate : SA.gateTime p.toParams (cA - 1) ≤ SA.freezeTime p.toParams cA := by
+    obtain ⟨a, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hPos)
+    simp only [Nat.succ_sub_one]
+    have hd := p.deltaPos
+    change 4 * p.Δ * (a : Int) + 6 * p.Δ ≤ 4 * p.Δ * ((a + 1 : Nat) : Int) + 3 * p.Δ
+    push_cast
+    linarith
+  have hparent : Block.Preceq N.erase.parent N.erase := by
+    cases N.erase with
+    | genesis => exact Gen.Pure.block_preceq_refl _
+    | node P s r app =>
+      change (decide (P = .node P s r app) || Block.preceq P P) = true
+      exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_preceq_refl P))
+  apply recovery_cleanSaved_of_gate_prefix E rho hClean.base.valid.toScheduleWellFormed cA N.erase
+  intro x hx r C hr hc
+  exact Gen.Pure.block_preceq_trans
+    (pcsa_clean_result_below_proposal_parent p c m E rho _ ΔF hClean hFault hFrame
+      cA N hPos hN hgate x hx r C (Nat.le_sub_one_of_lt hr) hc) hparent
+
 end AvailableChain.PCSA.Run
 end
