@@ -696,3 +696,7 @@ and only the instance swap is atomic.
   the actual preceding honest HEAD batch into the proposer pools. It proves
   the walk from the selected base reaches the live root and the voter F4
   lease clause. Both use the survival proof in `LockFollow`.
+
+- PC-SA long first-slot assembly (2026-10-08). `Recovery/LongFirstSlot`
+  constructs `FormationPrem` and the explicit proposer-root walk conjunct.
+  The predicate conversion needs the defining equation recorded in OPEN.md.

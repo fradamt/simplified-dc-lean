@@ -7095,11 +7095,23 @@
             'AvailableChain.PCSA.recovery_saved_result_slot',
             'AvailableChain.PCSA.recovery_stored_strict_slots',
         ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.LongFirstSlot': (
+            'AvailableChain.PCSA.Run.recovery_firstSlot_long_body',
+        ),
         'AvailableChainPCSAProofs.Proofs.Recovery.PathSource': (
             'AvailableChain.PCSA.Run.recovery_named_source_origin',
             'AvailableChain.PCSA.Run.recovery_path_source_receipt',
             'AvailableChain.PCSA.Run.recovery_postClock_source',
             'AvailableChain.PCSA.recovery_new_named_source',
+        ),
+        'AvailableChainPCSAProofs.Proofs.Recovery.ProposalPaths': (
+            'AvailableChain.PCSA.Run.recovery_long_proposer_root',
+            'AvailableChain.PCSA.Run.recovery_long_slot_bounds',
+            'AvailableChain.PCSA.Run.recovery_long_voter_leases',
+            'AvailableChain.PCSA.Run.recovery_preceding_vote_bounds',
+            'AvailableChain.PCSA.Run.recovery_proposer_batch_path',
+            'AvailableChain.PCSA.recovery_base_walk_covers',
+            'AvailableChain.PCSA.recovery_proposer_support_slot',
         ),
         'AvailableChainPCSAProofs.Proofs.Recovery.ProposalStore': (
             'AvailableChain.PCSA.Run.recovery_named_proposal_exists',

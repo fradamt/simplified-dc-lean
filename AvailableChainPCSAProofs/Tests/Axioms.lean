@@ -1,4 +1,5 @@
 module
+public import AvailableChainPCSAProofs.Proofs.Recovery.LongFirstSlot
 public import AvailableChainPCSAProofs.Proofs.Recovery.ProposalPaths
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockFollow
 public import AvailableChainPCSAProofs.Proofs.Recovery.LockView
@@ -1586,3 +1587,5 @@ end
 #print axioms AvailableChain.PCSA.Run.recovery_preceding_vote_bounds
 #print axioms AvailableChain.PCSA.Run.recovery_long_proposer_root
 #print axioms AvailableChain.PCSA.Run.recovery_long_voter_leases
+
+#print axioms AvailableChain.PCSA.Run.recovery_firstSlot_long_body

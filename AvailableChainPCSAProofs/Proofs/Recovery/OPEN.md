@@ -12,8 +12,10 @@ claimed. Status of the inputs:
   - Short break: CLOSED by `pcsa_recovery_firstSlot_short`
     (`Assembly/Recovery.lean`). It supplies `FormationPrem` and the separate
     `RecoveryRootReachable` predicate from `ShortBreakPrem`.
-  - Long break: OPEN. The surviving-lock and proposer-root proof remains.
-    `recovery_genesis_root_reachable` gives F4 with the genesis anchor.
+  - Long break: both F4 bodies and `FormationPrem` are proved under the
+    explicit transport interface. `recovery_firstSlot_long_body` retains the
+    separate root-walk conjunct. The exact predicate conversion, export, and
+    Assembly wrapper need the `Suffix.lean` equation recorded below.
 - Formation with corrected F4 (`formation`: every honest node holds the
   stamped PC of `N.erase` before `z_{s₁}`): OPEN, Formation lane. The clause
   is a separate argument until `FormationPrem` carries it.
@@ -96,11 +98,13 @@ close K without an assumed rank lower bound. The survival theorem retains
 the exact receipt-index bounds for `v_r + Δ = e_r`. It does not assert
 receipt before an arbitrary faulty-slot HEAD.
 
-Steps 4–6 remain to be proved. No `LockFollow`, `ProposalPaths`, or
-`LongFirstSlot` module, long-slot export kernel, or
-`pcsa_recovery_firstSlot_long` wrapper has been added. The continuation
-stops at a checked commit boundary to stay within the session budget.
-This is partial work. No counterexample or false-statement blocker was found.
+Steps 4–5 are now proved. `LockFollow` derives F′ from the last write and
+exact-row survival. `ProposalPaths` uses the actual preceding HEAD batch
+at proposal time and proves both F4 bodies. `LongFirstSlot` constructs
+`FormationPrem` with the explicit root-walk conjunct. The exact long-slot
+export and `pcsa_recovery_firstSlot_long` wrapper remain blocked by the
+missing defining equation for `RecoveryRootReachable` in `Suffix.lean`.
+The equation changes no claim premise. See the continuation 3 section.
 
 ## Continuation transport statements
 
@@ -468,3 +472,39 @@ theorem RecoveryRootReachable_def (s : Slot) :
         (GridCO.goldfishScore st.base.blocks (proposerVotes st s) (proposerSupport st s))
         (eligible p st (proposerVotes st s) (proposerSupport st s))) := rfl
 ```
+
+## Continuation 3 proof signatures
+
+The exact source signatures are:
+
+- `LockFollow.recovery_lock_follow`: F′ for `s < r < S`, indexed by the
+  write event `k`, final read event `i`, exact row, and unchanged rank.
+  The PC receipt deadline `v_r + Δ` is before the final read.
+- `LockFollow.recovery_live_lock_preceding_heads`: from `Recovery₂`,
+  `StageOneFrame`, `RecoveryLockTransport`, `GST ≤ v_g`, a post-mix
+  live read at `t_S` or `v_S`, derive `B ⪯ H` for every honest HEAD at
+  label `S - 1`. The last-write witness is derived from the run.
+- `ProposalPaths.recovery_long_proposer_root`: the full body of
+  `RecoveryRootReachable`, from the same premises, an honest proposer,
+  `v_(g+2k-1) ≤ t_s`, and `d_s ≤ horizon`.
+- `ProposalPaths.recovery_long_voter_leases`: each live voter lock
+  compatible with the carried PC base is below `N.erase.parent`.
+  This is stronger than the requested depth-filtered F4 clause.
+- `LongFirstSlot.recovery_firstSlot_long_body`: the long-slot premises
+  and one explicit `RecoveryLockTransport` argument give
+  `∃ N, FormationPrem p c E rho s N ΔF ∧` the explicit root-walk body.
+
+No coverage, root compatibility, or dominant path was added as a run or
+claim premise. All seven transport suppliers remain OPEN with the exact
+statements above. `pcsa_gate_majority_of_label` on `pcsa-ci-win-2` remains
+the intended label-`g` supplier. That branch was not merged.
+
+The local branch and inspected main still lack
+`FormationPrem.proposerRootReachable`. The literal in `LongFirstSlot.lean`
+already has the local proof `hroot`. The one-line integration is:
+
+```lean
+    proposerRootReachable := hroot
+```
+
+Keep the separate root conjunct after that integration.
