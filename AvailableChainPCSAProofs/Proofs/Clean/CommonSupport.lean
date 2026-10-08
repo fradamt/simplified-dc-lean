@@ -207,6 +207,38 @@ end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
+/-- Backward honest support needs a floor at the freeze time of label `s`. -/
+theorem pcsa_honest_support_backward_from_freeze (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (hF : StageOneFrame p c E rho) {T₀ cut : Time}
+    (hD : StrictFrom E rho T₀ cut)
+    (a k : Nat) (y : V) (hy : y ∈ rho.honest) (s : Slot) (v : Time)
+    (N : NamedProposal p.n)
+    (hx : rho.seatOf (.prop (s + 1)) (0 : Fin 1) ∈ rho.honest)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (⟨.seat (.prop (s + 1)) (0 : Fin 1), .proposal N⟩ : Obj p)
+        (SA.proposalTime p.toParams (s + 1)))
+    (hk : rho.events[k]? = some (.tick (rho.seatOf (.prop (s + 1)) (0 : Fin 1))
+      (SA.proposalTime p.toParams (s + 1))))
+    (hT : T₀ ≤ SA.freezeTime p.toParams s) (hc : SA.gateTime p.toParams s ≤ cut)
+    (hsup : N.support.map baseVote = proposerSupport
+      (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
+        (SA.proposalTime p.toParams (s + 1))) (s + 1))
+    (o : GridCO.Wire p.n .root)
+    (ho : o ∈ headSupport p (clock p (V2.D.Run.stateBefore E rho a y).st v) (s + 1))
+    (i : Fin p.n) (hi : GridCO.headSeat? o = some i) :
+    o ∈ proposerSupport
+      (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
+        (SA.proposalTime p.toParams (s + 1))) (s + 1) ∨
+    GridCO.equivocates (proposerVotes
+      (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
+        (SA.proposalTime p.toParams (s + 1))) (s + 1)) i = true := by
+  rcases pcsa_honest_headSupport_source E rho h.valid a y v (s + 1) N hx he o ho with
+    ⟨hm, hr⟩ | hm
+  · rw [Nat.add_sub_cancel] at hm hr
+    exact pcsa_frozen_support_in_proposer_win E rho h hF hD (hT := hT) a k y _ hy
+        hx s v o i hk hc hm hr hi
+  · exact Or.inl (hsup ▸ hm)
 /-- In the delivery window: Every support input at an honest proposer slot is proposer support or a
 capped extra. -/
 theorem pcsa_honest_support_backward_win (E : Generic.Env V)
@@ -233,13 +265,9 @@ theorem pcsa_honest_support_backward_win (E : Generic.Env V)
         (SA.proposalTime p.toParams (s + 1))) (s + 1) ∨
     GridCO.equivocates (proposerVotes
       (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
-        (SA.proposalTime p.toParams (s + 1))) (s + 1)) i = true := by
-  rcases pcsa_honest_headSupport_source E rho h.valid a y v (s + 1) N hx he o ho with
-    ⟨hm, hr⟩ | hm
-  · rw [Nat.add_sub_cancel] at hm hr
-    exact pcsa_frozen_support_in_proposer_win E rho h hF hD (hT := pcsa_floor_freeze hT) a k y _ hy
-        hx s v o i hk hc hm hr hi
-  · exact Or.inl (hsup ▸ hm)
+        (SA.proposalTime p.toParams (s + 1))) (s + 1)) i = true :=
+  pcsa_honest_support_backward_from_freeze E rho h hF hD a k y hy s v N hx he hk
+    (pcsa_floor_freeze hT) hc hsup o ho i hi
 /-- Every support input at an honest proposer slot is proposer support or a capped extra. -/
 theorem pcsa_honest_support_backward (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
@@ -265,9 +293,12 @@ theorem pcsa_honest_support_backward (E : Generic.Env V)
         (SA.proposalTime p.toParams (s + 1))) (s + 1) ∨
     GridCO.equivocates (proposerVotes
       (clock p (V2.D.Run.stateBefore E rho k (rho.seatOf (.prop (s + 1)) (0 : Fin 1))).st
-        (SA.proposalTime p.toParams (s + 1))) (s + 1)) i = true :=
-  pcsa_honest_support_backward_win E rho h hF (pcsa_strictFrom_of_healthy E rho hD 0) a k y hy s v
-    N hx he hk (pcsa_zero_le_proposal s) hc hsup o ho i hi
+        (SA.proposalTime p.toParams (s + 1))) (s + 1)) i = true := by
+  rcases pcsa_honest_headSupport_source E rho h.valid a y v (s + 1) N hx he o ho with
+    ⟨hm, hr⟩ | hm
+  · rw [Nat.add_sub_cancel] at hm hr
+    exact pcsa_frozen_support_in_proposer E rho h hF hD a k y _ hy hx s v o i hk hc hm hr hi
+  · exact Or.inl (hsup ▸ hm)
 end AvailableChain.PCSA.Run
 
 namespace AvailableChain.PCSA

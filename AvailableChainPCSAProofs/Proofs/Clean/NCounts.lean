@@ -100,6 +100,20 @@ theorem pcsa_N_same_label_result (E : Generic.Env V)
     (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X :=
   pcsa_N_same_label_result_win E rho h hF hFault (pcsa_strictFrom_of_healthy E rho hD 0) a x y hx
     hy v s B X (pcsa_floor_freeze (pcsa_zero_le_proposal s)) hc hN hX
+/-- An honest ack target and a same-label result are compatible with a freeze floor. -/
+theorem pcsa_honestAck_same_label_result_from_freeze (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {T₀ cut : Time}
+    (h : Base₂ p c E rho) (hD : StrictFrom E rho T₀ cut) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x y : V) (hy : y ∈ rho.honest)
+    (s : Slot) (B X : Block) (hT : T₀ ≤ SA.freezeTime p.toParams s)
+    (hc : SA.gateTime p.toParams s ≤ cut)
+    (hAck : HonestAckAt p c E rho x s B)
+    (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X := by
+  obtain ⟨nd, hnd, _, _, hN, _⟩ := pcsa_honestAck_N_source E rho x s B hAck
+  obtain ⟨a, _, hstore⟩ := pcsa_postClock_source E rho x _ nd hnd
+  rw [hstore] at hN
+  exact pcsa_N_same_label_result_win E rho h hF hFault hD
+    (hT := hT) a x y hAck.1 hy _ s B X hc hN hX
 /-- In the delivery window: An honest ack target is compatible with every same-label clean result.
 -/
 theorem pcsa_honestAck_same_label_result_win (E : Generic.Env V)
@@ -108,12 +122,9 @@ theorem pcsa_honestAck_same_label_result_win (E : Generic.Env V)
     (hFault : FaultsBelowQA p c rho) (x y : V) (hy : y ∈ rho.honest)
     (s : Slot) (B X : Block) (hs : j₀ ≤ s) (hc : SA.gateTime p.toParams s ≤ cut)
     (hAck : HonestAckAt p c E rho x s B)
-    (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X := by
-  obtain ⟨nd, hnd, _, _, hN, _⟩ := pcsa_honestAck_N_source E rho x s B hAck
-  obtain ⟨a, _, hstore⟩ := pcsa_postClock_source E rho x _ nd hnd
-  rw [hstore] at hN
-  exact pcsa_N_same_label_result_win E rho h.base hF hFault h.strict
-    (hT := pcsa_floor_freeze (pcsa_cleanWindow_floor E rho h s hs)) a x y hAck.1 hy _ s B X hc hN hX
+    (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X :=
+  pcsa_honestAck_same_label_result_from_freeze E rho h.base h.strict hF hFault x y hy s B X
+    (pcsa_floor_freeze (pcsa_cleanWindow_floor E rho h s hs)) hc hAck hX
 /-- An honest ack target is compatible with every same-label clean result. -/
 theorem pcsa_honestAck_same_label_result (E : Generic.Env V)
     (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
@@ -121,9 +132,11 @@ theorem pcsa_honestAck_same_label_result (E : Generic.Env V)
     (hFault : FaultsBelowQA p c rho) (x y : V) (hy : y ∈ rho.honest)
     (s : Slot) (B X : Block) (hc : SA.gateTime p.toParams s ≤ cut)
     (hAck : HonestAckAt p c E rho x s B)
-    (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X :=
-  pcsa_honestAck_same_label_result_win E rho (pcsa_cleanWindow_of_clean E rho h) hF hFault x y hy
-    s B X (Nat.zero_le _) hc hAck hX
+    (hX : gateResultAt p c E rho y s = some (some X)) : Block.Compatible B X := by
+  obtain ⟨nd, hnd, _, _, hN, _⟩ := pcsa_honestAck_N_source E rho x s B hAck
+  obtain ⟨a, _, hstore⟩ := pcsa_postClock_source E rho x _ nd hnd
+  rw [hstore] at hN
+  exact pcsa_N_same_label_result E rho h.base hF hFault h.healthy a x y hAck.1 hy _ s B X hc hN hX
 end AvailableChain.PCSA.Run
 
 end
