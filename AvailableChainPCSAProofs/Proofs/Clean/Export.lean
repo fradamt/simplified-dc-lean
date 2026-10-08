@@ -189,6 +189,8 @@ public import AvailableChainPCSAProofs.Proofs.Clean.CleanOutputs
 
 public import AvailableChainPCSAProofs.Proofs.Clean.GenuineKeys
 
+public import AvailableChainPCSAProofs.Proofs.Clean.GateAdvance
+
 public section
 
 /-! Clean store support and snapshot claim exports (pcsa34-r4.3; proof plan §5). -/
@@ -1079,6 +1081,91 @@ theorem pcsa_clean_safety (p : Params) : PCSACleanSafetyClaim p := by
   intro htu
   exact ⟨pcsa_clean_available_mono_cut E rho h hF hFault x hx t u htu hu,
     pcsa_clean_strong_mono_cut E rho h hF hFault x hx t u htu hu⟩
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In} {m : FGMode}
+/-- The C6 result chain makes the lock guard clear at each exact honest gate input. -/
+theorem pcsa_clean_gate_guard (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) (h : Base₂ p c E rho)
+    (s : Slot) (hCI : CleanInvariantAt p c E rho s) (k : Nat) (x : V) (hx : x ∈ rho.honest)
+    (hk : rho.events[k]? = some (.tick x (SA.gateTime p.toParams s)))
+    (X : Block) (hX : gateResultAt p c E rho x s = some (some X)) :
+    (clockPre p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams s)).base.obligations.any
+      (fun row => (clockPre p (V2.D.Run.stateBefore E rho k x).st
+        (SA.gateTime p.toParams s)).base.now < row.2.2 && !Block.compatible row.1 X) = false := by
+  rw [List.any_eq_false]
+  intro row hr
+  have hrow := pcsa_clockPre_locks_subset p (V2.D.Run.stateBefore E rho k x).st _ hr
+  have hpre := V2.D.Engine.stateBefore_tick_eq_stateBeforeTime h.valid.toScheduleWellFormed
+    h.noRestart hk
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ h.valid.toScheduleWellFormed] at hpre
+  rw [hpre] at hrow
+  obtain ⟨a, ha, i, Y, he, hY, hrowY, _⟩ := pcsa_lock_stateBefore_origin E rho h _ x row hrow
+  have ht := (Gen.V2.Duty.index_lt_idxBefore_iff h.valid.toScheduleWellFormed he _).mp ha
+  have hi : i < s := by
+    apply Nat.lt_of_not_ge
+    intro hn
+    exact not_lt_of_ge (pcsa_gate_time_mono p hn) ht
+  have hYX := (hCI.resultsChain x hx x hx i s Y X hi.le (le_refl _) hY hX).1 hi
+  have hc : Block.compatible row.1 X = true := Bool.or_eq_true_iff.mpr
+    (Or.inl (Gen.Pure.block_preceq_trans hrowY hYX))
+  rw [hc]
+  simp only [Bool.not_true, Bool.and_false, Bool.false_eq_true, not_false_eq_true]
+end AvailableChain.PCSA.Run
+
+namespace AvailableChain.PCSA.Run
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {m : FGMode}
+/-- Completed-gate order preserves S between arbitrary indices inside the healthy prefix. -/
+theorem pcsa_clean_record_indices_mono_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (pcsaWith m p c)) {cut ΔF : Time}
+    (h : Clean₂ p c E rho cut ΔF) (hF : StageOneFrame p c E rho)
+    (hFault : FaultsBelowQA p c rho) (x : V) (hx : x ∈ rho.honest)
+    (a b : Nat) (hab : a ≤ b)
+    (hb : b ≤ (rho.events.filter (fun e => decide (e.time ≤ cut))).length) :
+    Block.Preceq (V2.D.Run.stateBefore E rho a x).st.base.stableRecord
+      (V2.D.Run.stateBefore E rho b x).st.base.stableRecord := by
+  apply pcsa_record_indices_mono_at_limit E rho h.base hF _ x hx ?_ a b hab hb
+  intro i i' X Y hi k hk hkl hX hY
+  have hgate := (V2.D.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed cut hk).mp
+    hkl
+  have hCI := (pcsa_clean_joint_invariant E rho h hF hFault i' hgate).1
+  exact (hCI.resultsChain x hx x hx i i' X Y hi.le (le_refl _) hX hY).1 hi
+/-- Clean inclusion: every honest proposal is below all available outputs from its gate onward. -/
+theorem pcsa_clean_inclusion (p : Params) : PCSACleanInclusionClaim p := by
+  intro V _ _ In c m E rho cut ΔF h hFault hF s P hP x hx t hgate ht
+  have hc : SA.gateTime p.toParams s ≤ cut := hgate.trans ht
+  have hCI := (pcsa_clean_joint_invariant E rho h hF hFault s hc).1
+  obtain ⟨X, hX⟩ := pcsa_clean_result_exists E rho h hF x hx s hc
+  have hPX : Block.Preceq P X := pcsa_clean_result_covers_heads E rho h hF x hx s P X hc
+    (fun y H hH => by
+      rw [hCI.headsEqual s P y H (le_refl _) hP hH]
+      exact Gen.Pure.block_preceq_refl _) hX
+  obtain ⟨k, hk, hraw⟩ := pcsa_gateResultAt_source E rho x s X hX
+  rw [pcsa_clock_confirmation_eq_pre] at hraw
+  have hXS := pcsa_clock_gate_record_covers_result p (V2.D.Run.stateBefore E rho k x).st s X
+    (hF x hx k).1 (pcsa_gate_input_unsaved E rho h.base.valid.nodup k x s hk) hraw
+    (pcsa_clean_gate_guard E rho h.base s hCI k x hx hk X hX)
+  have hpost : (V2.D.Run.stateBefore E rho (k + 1) x).st =
+      clock p (V2.D.Run.stateBefore E rho k x).st (SA.gateTime p.toParams s) := by
+    rw [V2.D.Run.stateBefore_succ E rho hk]
+    change (Function.update (V2.D.Run.stateBefore E rho k) x _ x).st = _
+    rw [Function.update_self]
+    exact pcsa_tick_st E rho (V2.D.Run.stateBefore E rho k x) x _
+  rw [← hpost] at hXS
+  have hkt : k + 1 ≤ (rho.events.filter (fun e : V2.Event V (Obj p) => decide (e.time ≤
+    t))).length :=
+    Nat.succ_le_of_lt ((V2.D.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed t
+      hk).mpr hgate)
+  have hmono := pcsa_clean_record_indices_mono_cut E rho h hF hFault x hx (k + 1) _ hkt
+    (V2.D.Engine.read_length_mono (rho := rho) t cut ht)
+  have hPSt : Block.Preceq P (storeAt p c E rho x t).base.stableRecord := by
+    rw [storeAt_def, V2.D.Engine.readAt_eq_stateBefore h.base.valid.toScheduleWellFormed]
+    exact Gen.Pure.block_preceq_trans hPX (Gen.Pure.block_preceq_trans hXS hmono)
+  apply Gen.Pure.block_preceq_trans hPSt
+  rw [confirmed_eq_pcFloor]
+  exact Gen.Pure.self_preceq_pcFloor (pcsa_clean_pc_record_cut E rho h hF hFault x hx t ht)
 end AvailableChain.PCSA.Run
 
 end

@@ -1396,3 +1396,9 @@ Validation and current claim status are recorded in log.md and state.md.
 Only the matching gate clock adds a saved label. Event uniqueness makes
 each actual gate input unsaved.
 Validation and current claim status are recorded in log.md and state.md.
+
+### GateAdvance
+
+The C6 result chain clears the lock guard. Each fresh gate covers its
+result in S, and later available reads retain the honest proposal.
+Validation and current claim status are recorded in log.md and state.md.

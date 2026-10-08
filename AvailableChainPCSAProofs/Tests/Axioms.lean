@@ -834,3 +834,11 @@ end
 #print axioms AvailableChain.PCSA.pcsa_clock_genuine_key_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_genuine_key_origin
 #print axioms AvailableChain.PCSA.Run.pcsa_gate_input_unsaved
+
+-- C6 GateAdvance.
+#print axioms AvailableChain.PCSA.pcsa_gate_record_covers_result
+#print axioms AvailableChain.PCSA.pcsa_gateStep_record_covers_result
+#print axioms AvailableChain.PCSA.pcsa_clock_gate_record_covers_result
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_gate_guard
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_record_indices_mono_cut
+#print axioms AvailableChain.PCSA.Run.pcsa_clean_inclusion
