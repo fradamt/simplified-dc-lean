@@ -12,7 +12,9 @@ namespace AvailableChain.FGSA.Spec
 The identity gate, store invariant, emission identity, and event stutter are proved below.
 The old raw-erasure trace remains as regression evidence. A second initialized trace
 shows that restart between public ticks changes block acceptance, even on Assigned
-chains. Full block-step simulation, matched-cut induction, and claim transfer stop there.
+chains. Ruling W excludes restart from the core scope and reads row targets as root names.
+Dependency/freshness normalization has a complete target-state induction and validity proof.
+The independent source-handler, clock/lock relation and regime transfer remain unproved.
 No Lean protocol or existing claim is changed. -/
 
 /-- The last-tick cutoff can be removed at a gate when all stored votes precede it. -/
@@ -223,6 +225,439 @@ theorem spec_simulation_event_key {V : Type} (p : Params) (assigned : Slot → F
       simp only [specSimulationEvent, Option.map_eq_some_iff] at h
       obtain ⟨q, _, rfl⟩ := h
       exact ⟨rfl, rfl⟩
+
+
+/-- Missing dependencies cause no writes, for arbitrary target states and inputs. -/
+theorem spec_missing_dependency_stutter (p : Params) (st : State p.n) (q : Run.Obj p)
+    (h : Run.depsS p st q = false) : process p st (Run.toWire p q) = st := by
+  unfold Run.depsS at h
+  unfold process
+  cases hd : (Run.toWire p q).decode with
+  | none => simp [hd] at h
+  | some x =>
+    cases x with
+    | vote s i b => simp [hd] at h
+    | row i a => simp [hd] at h
+    | block s N =>
+      simp only [hd] at h
+      change admitBlock p st s N = st
+      unfold admitBlock
+      cases hn : namedParentHeld st N with
+      | false => rfl
+      | true =>
+        cases hp : parentFG st N.erase with
+        | none => rfl
+        | some P => simp [hn, hp] at h
+
+/-- A duplicate delivery causes no writes, including votes, rows and proposals. -/
+theorem spec_duplicate_delivery_stutter (p : Params) (st : State p.n) (q : Run.Obj p)
+    (h : Run.processedS p st q = true) : process p st (Run.toWire p q) = st := by
+  unfold Run.processedS at h
+  unfold process
+  cases hd : (Run.toWire p q).decode with
+  | none => simp [hd] at h
+  | some x =>
+    cases x with
+    | vote s i b =>
+      simp only [hd, decide_eq_true_eq] at h
+      change (⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∈ st.base.votes at h
+      simp [admitHead, GridCO.admitVote, h]
+    | row i a =>
+      simp only [hd, decide_eq_true_eq] at h
+      have ha : (Run.toWire p q).auth = .seat .fg i := by
+        cases hw : Run.toWire p q with
+        | mk auth payload =>
+          rcases auth with ⟨(_ | _), _⟩ | _ | _ <;>
+            cases payload <;> simp_all [FGSA.Wire.decode]
+      simp [admitRow, ha, RowWire.decode?, h]
+    | block s N =>
+      simp only [hd, decide_eq_true_eq] at h
+      have hb (P : SimplexFG.FGBlock (Fin p.n)) : blockAccepted p st s N P = false := by
+        simp [blockAccepted, named_erase_root, h]
+      change admitBlock p st s N = st
+      unfold admitBlock
+      split
+      · rfl
+      · cases hp : parentFG st N.erase <;> simp [hb]
+
+/-- Second simulation stage: test dependencies and freshness in the current target state.
+The first stage retains the complete source identity. Row targets use root names (W2). -/
+def specReadyWire (p : Params) (assigned : Slot → Fin p.n) (st : State p.n)
+    (o : Wire p.n) : Option (Run.Obj p) :=
+  match specSimulationWire p assigned o with
+  | none => none
+  | some q => if Run.depsS p st q && !Run.processedS p st q then some q else none
+
+/-- All three delivery conditions hold for each retained wire. -/
+theorem spec_ready_wire_valid (p : Params) (assigned : Slot → Fin p.n) (st : State p.n)
+    (o : Wire p.n) (q : Run.Obj p) (h : specReadyWire p assigned st o = some q) :
+    (Run.fgsa p Run.unitCodec).wellFormed q = true ∧
+      Run.depsS p st q = true ∧ Run.processedS p st q = false := by
+  cases hr : specSimulationWire p assigned o with
+  | none => simp [specReadyWire, hr] at h
+  | some r =>
+    simp only [specReadyWire, hr] at h
+    split_ifs at h with hd
+    · cases Option.some.inj h
+      exact ⟨spec_simulation_wire_valid p assigned o q hr,
+        by simpa only [Bool.and_eq_true, Bool.not_eq_true'] using hd⟩
+
+/-- Dependency/freshness filtering preserves the target process step after the wire stage.
+This is not a source-handler correspondence: the first stage needs the source refusal proof. -/
+theorem spec_ready_wire_step (p : Params) (assigned : Slot → Fin p.n) (st : State p.n)
+    (o : Wire p.n) :
+    ((specReadyWire p assigned st o).map (fun q => process p st (Run.toWire p q))).getD st =
+      ((specSimulationWire p assigned o).map
+        (fun q => process p st (Run.toWire p q))).getD st := by
+  cases hq : specSimulationWire p assigned o with
+  | none => simp [specReadyWire, hq]
+  | some q =>
+    simp only [specReadyWire, hq, Option.map_some, Option.getD_some]
+    cases hd : Run.depsS p st q <;> cases hf : Run.processedS p st q
+    · simp [spec_missing_dependency_stutter p st q hd]
+    · simp [spec_missing_dependency_stutter p st q hd]
+    · rfl
+    · simp [spec_duplicate_delivery_stutter p st q hf]
+
+/-- The full-parent gate agrees with the identity-filtered block step. This covers the
+identity and refusal shell; the remaining handler here is still the Lean `process` kernel.
+`hstore` and `hheld` are state-relation invariants, not new protocol claim premises. -/
+theorem spec_block_identity_step (p : Params) (assigned : Slot → Fin p.n)
+    (held : List (Block p.n)) (hheld : ∀ B ∈ held, B.Assigned assigned)
+    (st : State p.n) (hstore : st.namedBodies = held.map Block.embed)
+    (auth : Auth Label p.n) (B : Block p.n)
+    (hw : wellFormed p ⟨auth, .proposal B⟩ = true)
+    (ha : admissionValid assigned ⟨auth, .proposal B⟩ = true) :
+    (if specIdentityGate assigned held B then
+      process p st (Wire.embed ⟨auth, .proposal B⟩) else st) =
+    ((specReadyWire p assigned st ⟨auth, .proposal B⟩).map
+      (fun q => process p st (Run.toWire p q))).getD st := by
+  rw [spec_ready_wire_step]
+  by_cases hb : B.Assigned assigned
+  · rw [spec_simulation_proposal_retained p assigned auth B hb hw ha]
+    simp only [Option.map_some, Option.getD_some]
+    have he : Run.toWire p (Run.ofWire p (Wire.embed ⟨auth, .proposal B⟩)) =
+        Wire.embed ⟨auth, .proposal B⟩ := (Run.toWireEquiv p).right_inv _
+    rw [he]
+    split_ifs with hg
+    · rfl
+    · have hp : B.parent ∉ held := by
+        cases B with
+        | genesis => simp [admissionValid, proposerAllowed] at ha
+        | node P s i root rows raw support =>
+          simpa [specIdentityGate, Block.parent, hb.1] using hg
+      have hn : namedParentHeld st B.embed = false := by
+        simp only [namedParentHeld, hstore]
+        exact decide_eq_false
+          (fun h => hp ((spec_assigned_parent_membership assigned held hheld B hb).mp h))
+      cases auth with
+      | none => rfl
+      | seat l i => cases l <;> rfl
+      | proposer s =>
+        change st = admitBlock p st s B.embed
+        simp [admitBlock, hn]
+  · rw [spec_identity_gate_refused assigned held hheld B hb,
+      spec_simulation_wire_stutter p assigned auth B hb]
+    rfl
+
+/-- A target delivery is kept precisely when its dependencies are present and it is fresh.
+Ticks and restarts remain in place; W1 restricts the source of the full simulation to NoRestart. -/
+def specKeepEvent {V : Type} (p : Params)
+    (w : V2.D.World V (Run.fgsa p Run.unitCodec)) :
+    V2.Event V (Run.fgsa p Run.unitCodec).Object → Bool
+  | .deliver v q _ => Run.depsS p (w v).st q && !Run.processedS p (w v).st q
+  | _ => true
+
+/-- Every discarded target event is a state stutter. No reachability premise is needed. -/
+theorem spec_discarded_event_step {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (w : V2.D.World V (Run.fgsa p Run.unitCodec)) (e : V2.Event V (Run.fgsa p Run.unitCodec).Object)
+    (h : specKeepEvent p w e = false) : V2.D.World.step E rho w e = w := by
+  cases e with
+  | restart v t => simp [specKeepEvent] at h
+  | tick v t => simp [specKeepEvent] at h
+  | deliver v q t =>
+    have hp : process p (w v).st (Run.toWire p q) = (w v).st := by
+      cases hd : Run.depsS p (w v).st q
+      · exact spec_missing_dependency_stutter p (w v).st q hd
+      · have hf : Run.processedS p (w v).st q = true := by
+          simpa [specKeepEvent, hd] using h
+        exact spec_duplicate_delivery_stutter p (w v).st q hf
+    change Function.update w v { w v with st := process p (w v).st (Run.toWire p q) } = w
+    rw [hp]
+    exact Function.update_eq_self v w
+
+/-- Normalize target events after the identity/wire stage, using the state at each cut.
+The raw fold is used to compute that state; discarded events have no effect. -/
+def specPruneEvents {V : Type} [DecidableEq V] (p : Params) (E : Generic.Env V)
+    (rho : V2.D.Run V (Run.fgsa p Run.unitCodec)) :
+    V2.D.World V (Run.fgsa p Run.unitCodec) →
+      List (V2.Event V (Run.fgsa p Run.unitCodec).Object) →
+      List (V2.Event V (Run.fgsa p Run.unitCodec).Object)
+  | _, [] => []
+  | w, e :: es =>
+      let tail := specPruneEvents p E rho (V2.D.World.step E rho w e) es
+      if specKeepEvent p w e then e :: tail else tail
+
+/-- Matched-cut induction for the dependency/freshness stage, for every finite prefix.
+The equality includes all nodes, their complete Lean stores and their durable records.
+It does not assert that the input fold is the independent spec execution. -/
+theorem spec_prune_matched_cut {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (events : List (V2.Event V (Run.fgsa p Run.unitCodec).Object))
+    (w : V2.D.World V (Run.fgsa p Run.unitCodec)) :
+    (specPruneEvents p E rho w events).foldl (V2.D.World.step E rho) w =
+      events.foldl (V2.D.World.step E rho) w := by
+  induction events generalizing w with
+  | nil => rfl
+  | cons e es ih =>
+    simp only [specPruneEvents]
+    cases hk : specKeepEvent p w e
+    · have hs := spec_discarded_event_step p E rho w e hk
+      simp only [Bool.false_eq_true, ↓reduceIte, hs]
+      change _ = es.foldl (V2.D.World.step E rho) (V2.D.World.step E rho w e)
+      rw [hs]
+      exact ih w
+    · simp only [↓reduceIte]
+      exact ih (V2.D.World.step E rho w e)
+
+/-- Normalization only deletes deliveries; it preserves event order, nodes and times. -/
+theorem spec_prune_sublist {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (events : List (V2.Event V (Run.fgsa p Run.unitCodec).Object))
+    (w : V2.D.World V (Run.fgsa p Run.unitCodec)) :
+    List.Sublist (specPruneEvents p E rho w events) events := by
+  induction events generalizing w with
+  | nil => exact List.Sublist.refl []
+  | cons e es ih =>
+    simp only [specPruneEvents]
+    split
+    · exact (ih _).cons_cons e
+    · exact (ih _).cons e
+
+/-- Appending a suffix starts normalization from the corresponding raw prefix cut. -/
+theorem spec_prune_append {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (xs ys : List (V2.Event V (Run.fgsa p Run.unitCodec).Object))
+    (w : V2.D.World V (Run.fgsa p Run.unitCodec)) :
+    specPruneEvents p E rho w (xs ++ ys) = specPruneEvents p E rho w xs ++
+      specPruneEvents p E rho (xs.foldl (V2.D.World.step E rho) w) ys := by
+  induction xs generalizing w with
+  | nil => rfl
+  | cons e es ih =>
+    change specPruneEvents p E rho w (e :: (es ++ ys)) = _
+    simp only [specPruneEvents]
+    split <;> simp only [ih, List.cons_append] <;> rfl
+
+/-- Every surviving delivery has dependencies and is fresh at its new list position. -/
+theorem spec_prune_delivery_conditions {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (events : List (V2.Event V (Run.fgsa p Run.unitCodec).Object))
+    (w : V2.D.World V (Run.fgsa p Run.unitCodec)) (i : Nat) (v : V) (q : Run.Obj p)
+    (t : Time) (h : (specPruneEvents p E rho w events)[i]? = some (.deliver v q t)) :
+    let st := (((specPruneEvents p E rho w events).take i).foldl
+      (V2.D.World.step E rho) w v).st
+    Run.depsS p st q = true ∧ Run.processedS p st q = false := by
+  induction events generalizing w i with
+  | nil => simp [specPruneEvents] at h
+  | cons e es ih =>
+    cases hk : specKeepEvent p w e
+    · have hs := spec_discarded_event_step p E rho w e hk
+      simp only [specPruneEvents, hk, Bool.false_eq_true, ↓reduceIte, hs] at h ⊢
+      exact ih w i h
+    · simp only [specPruneEvents, hk, ↓reduceIte] at h ⊢
+      cases i with
+      | zero =>
+        have he := Option.some.inj h
+        subst e
+        change Run.depsS p (w v).st q = true ∧ Run.processedS p (w v).st q = false
+        simpa only [specKeepEvent, Bool.and_eq_true, Bool.not_eq_true'] using hk
+      | succ i =>
+        simp only [List.getElem?_cons_succ] at h
+        simp only [List.take_succ_cons]
+        exact ih _ i h
+
+/-- No tick is removed. -/
+theorem spec_prune_tick_mem {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (events : List (V2.Event V (Run.fgsa p Run.unitCodec).Object))
+    (w : V2.D.World V (Run.fgsa p Run.unitCodec)) (v : V) (t : Time) :
+    .tick v t ∈ specPruneEvents p E rho w events ↔ .tick v t ∈ events := by
+  induction events generalizing w with
+  | nil => rfl
+  | cons e es ih =>
+    simp only [specPruneEvents]
+    split_ifs with hk
+    · simp only [List.mem_cons, ih]
+    · have he : (.tick v t : V2.Event V (Run.fgsa p Run.unitCodec).Object) ≠ e := by
+        rintro rfl
+        exact hk rfl
+      simp only [List.mem_cons, he, false_or, ih]
+
+/-- The revised target run keeps the fixed identities, inputs, honest set and horizon. -/
+def specPruneRun {V : Type} [DecidableEq V] (p : Params) (E : Generic.Env V)
+    (rho : V2.D.Run V (Run.fgsa p Run.unitCodec)) :
+    V2.D.Run V (Run.fgsa p Run.unitCodec) :=
+  { rho with events := specPruneEvents p E rho V2.D.World.init rho.events }
+
+/-- Schedule validity survives the deletion of delivery stutters. -/
+theorem spec_prune_schedule {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (h : V2.D.ScheduleWellFormed E rho) :
+    V2.D.ScheduleWellFormed E (specPruneRun p E rho) := by
+  have hs := spec_prune_sublist p E rho rho.events V2.D.World.init
+  refine ⟨h.horizon_nonneg, h.sorted.sublist hs, h.nodup.sublist hs, ?_, ?_, ?_, ?_⟩
+  · intro e he
+    exact h.in_horizon e (hs.subset he)
+  · intro e he
+    exact h.honest_only e (hs.subset he)
+  · intro v t ht
+    exact h.tick_public v t (hs.subset ht)
+  · intro v hv t ht h0 hh
+    exact (spec_prune_tick_mem p E rho rho.events V2.D.World.init v t).mpr
+      (h.tick_total v hv t ht h0 hh)
+
+/-- The construction preserves ruling W1's NoRestart scope. -/
+theorem spec_prune_no_restart {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (h : V2.D.NoRestart rho) : V2.D.NoRestart (specPruneRun p E rho) := by
+  intro i v t he
+  have hm := List.mem_of_getElem? he
+  have hr := (spec_prune_sublist p E rho rho.events V2.D.World.init).subset hm
+  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hr
+  exact h j v t hj
+
+/-- Dependency and freshness conditions are derived, not added as claim premises.
+The premise describes only the preceding identity/wire stage. -/
+theorem spec_prune_delivery_valid {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (hw : ∀ v q t, .deliver v q t ∈ rho.events →
+      (Run.fgsa p Run.unitCodec).wellFormed q = true) :
+    V2.D.DeliveryWellFormed E (specPruneRun p E rho) := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro i v q t he
+    exact hw v q t ((spec_prune_sublist p E rho rho.events V2.D.World.init).subset
+      (List.mem_of_getElem? he))
+  · intro i v q t he
+    exact (spec_prune_delivery_conditions p E rho rho.events V2.D.World.init i v q t he).1
+  · intro i v q t he
+    exact (spec_prune_delivery_conditions p E rho rho.events V2.D.World.init i v q t he).2
+
+/-- Full final-state equality for the target normalization stage. -/
+theorem spec_prune_final {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec)) :
+    V2.D.Run.final E (specPruneRun p E rho) = V2.D.Run.final E rho :=
+  spec_prune_matched_cut p E rho rho.events V2.D.World.init
+
+/-- Every raw tick has a target tick at the same time with the same input state.
+This supplies the emission witness needed by the signature conditions. -/
+theorem spec_prune_tick_cut {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (i : Nat) (v : V) (t : Time) (hi : rho.events[i]? = some (.tick v t)) :
+    ∃ j, (specPruneRun p E rho).events[j]? = some (.tick v t) ∧
+      V2.D.Run.stateBefore E (specPruneRun p E rho) j = V2.D.Run.stateBefore E rho i := by
+  let xs : List (V2.Event V (Run.fgsa p Run.unitCodec).Object) := rho.events.take i
+  let ys : List (V2.Event V (Run.fgsa p Run.unitCodec).Object) := rho.events.drop (i + 1)
+  have he : rho.events = xs ++ .tick v t :: ys := by
+    have ht := List.take_append_drop (i + 1) rho.events
+    rw [List.take_add_one, hi] at ht
+    simpa only [Option.toList_some, List.append_assoc, List.singleton_append] using ht.symm
+  let pre := specPruneEvents p E rho V2.D.World.init xs
+  let w := xs.foldl (V2.D.World.step E rho) V2.D.World.init
+  have hout : (specPruneRun p E rho).events = pre ++ .tick v t ::
+      specPruneEvents p E rho (V2.D.World.step E rho w (.tick v t)) ys := by
+    change specPruneEvents p E rho V2.D.World.init rho.events = _
+    rw [he, spec_prune_append]
+    rfl
+  refine ⟨pre.length, ?_, ?_⟩
+  · rw [hout]
+    simp
+  · change (((specPruneRun p E rho).events.take pre.length).foldl
+      (V2.D.World.step E rho) V2.D.World.init) = _
+    rw [hout, List.take_left]
+    exact spec_prune_matched_cut p E rho xs V2.D.World.init
+
+/-- Honest emission witnesses survive normalization with their original times. -/
+theorem spec_prune_emits {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (v : V) (q : Run.Obj p) (t : Time) (h : V2.D.Run.emits E rho v q t) :
+    V2.D.Run.emits E (specPruneRun p E rho) v q t := by
+  obtain ⟨i, hi, hq⟩ := h
+  obtain ⟨j, hj, hs⟩ := spec_prune_tick_cut p E rho i v t hi
+  refine ⟨j, hj, ?_⟩
+  simp only [V2.D.Run.emitsAt, hi] at hq
+  simp only [V2.D.Run.emitsAt, hj, hs]
+  exact hq
+
+/-- Signature and carried-signature witnesses survive the revised construction. -/
+theorem spec_prune_signatures {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (h : V2.D.UnforgeableSignatures E rho) :
+    V2.D.UnforgeableSignatures E (specPruneRun p E rho) := by
+  have hp v q t (hx : V2.D.Run.processes (specPruneRun p E rho) v q t) :
+      V2.D.Run.processes rho v q t := by
+    obtain ⟨i, hi⟩ := hx
+    exact List.mem_iff_getElem?.mp
+      ((spec_prune_sublist p E rho rho.events V2.D.World.init).subset
+        (List.mem_of_getElem? hi))
+  constructor
+  · intro v q t hx u hu hh
+    obtain ⟨t', ht, he⟩ := h.unforgeable v q t (hp v q t hx) u hu hh
+    exact ⟨t', ht, spec_prune_emits p E rho u q t' he⟩
+  · intro v q t hx q' hc u hu hh
+    obtain ⟨t', ht, he⟩ := h.carried v q t (hp v q t hx) q' hc u hu hh
+    exact ⟨t', ht, spec_prune_emits p E rho u q' t' he⟩
+
+/-- Complete target validity after dependency/freshness normalization. The input run may
+have missing-dependency and duplicate deliveries. This theorem does not supply the source
+schedule or signature correspondence; those are separate simulation obligations. -/
+theorem spec_prune_execution_valid {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (hs : V2.D.ScheduleWellFormed E rho) (ha : V2.D.UnforgeableSignatures E rho)
+    (hw : ∀ v q t, .deliver v q t ∈ rho.events →
+      (Run.fgsa p Run.unitCodec).wellFormed q = true) :
+    V2.D.ExecutionValid E (specPruneRun p E rho) :=
+  { spec_prune_schedule p E rho hs, spec_prune_delivery_valid p E rho hw,
+    spec_prune_signatures p E rho ha with }
+
+/-- The first-stage event list is valid on the wire, including arbitrary refused inputs. -/
+theorem spec_mapped_delivery_wire {V : Type} (p : Params) (assigned : Slot → Fin p.n)
+    (events : List (V2.Event V (Wire p.n))) (v : V) (q : Run.Obj p) (t : Time)
+    (h : .deliver v q t ∈ events.filterMap (specSimulationEvent p assigned)) :
+    (Run.fgsa p Run.unitCodec).wellFormed q = true := by
+  obtain ⟨e, _, he⟩ := List.mem_filterMap.mp h
+  cases e with
+  | tick u s => simp [specSimulationEvent] at he
+  | restart u s => simp [specSimulationEvent] at he
+  | deliver u o s =>
+    simp only [specSimulationEvent, Option.map_eq_some_iff] at he
+    obtain ⟨r, hr, hh⟩ := he
+    cases hh
+    exact spec_simulation_wire_valid p assigned o q hr
+
+/-- The concrete second-stage construction yields a valid NoRestart target execution.
+The wire premise is discharged from the ruling-U mapping. Schedule and signature
+correspondence from an independent spec run remain obligations of the first stage.
+This is not the full spec-execution or protocol-claim transfer theorem. -/
+theorem spec_revised_target_execution {V : Type} [DecidableEq V] (p : Params)
+    (assigned : Slot → Fin p.n) (E : Generic.Env V)
+    (events : List (V2.Event V (Wire p.n)))
+    (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (hm : rho.events = events.filterMap (specSimulationEvent p assigned))
+    (hs : V2.D.ScheduleWellFormed E rho) (ha : V2.D.UnforgeableSignatures E rho)
+    (hn : V2.D.NoRestart rho) :
+    V2.D.ExecutionValid E (specPruneRun p E rho) ∧
+      V2.D.NoRestart (specPruneRun p E rho) ∧
+      (specPruneRun p E rho).honest = rho.honest ∧
+      (specPruneRun p E rho).horizon = rho.horizon ∧
+      (specPruneRun p E rho).seatOf = rho.seatOf ∧
+      (specPruneRun p E rho).input = rho.input ∧
+      V2.D.Run.final E (specPruneRun p E rho) = V2.D.Run.final E rho := by
+  refine ⟨spec_prune_execution_valid p E rho hs ha ?_, spec_prune_no_restart p E rho hn,
+    rfl, rfl, rfl, rfl, spec_prune_final p E rho⟩
+  intro v q t h
+  rw [hm] at h
+  exact spec_mapped_delivery_wire p assigned events v q t h
 
 /-- A small parameter set with distinct parent and child roots. -/
 abbrev parentIdentityParams : Params :=
@@ -473,6 +908,11 @@ theorem spec_restart_no_public_tick : ¬ V2.PublicTime specRestartEnv 9 := by
   rintro ⟨k, hk⟩
   change (9 : Int) = (k : Int) * 2 at hk
   omega
+
+/-- The earlier restart counterexample is outside the W1 NoRestart domain. -/
+theorem spec_restart_outside_no_restart : ¬ V2.D.NoRestart specRestartRun := by
+  intro h
+  exact h 6 1 9 rfl
 
 end AvailableChain.FGSA.Spec
 end
