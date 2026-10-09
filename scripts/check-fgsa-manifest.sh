@@ -31,6 +31,9 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 timing_dir=$(mktemp -d "$PWD/.lake/fgsa-manifest-times.XXXXXX")
 manifest_run main lake env lean --run scripts/V2Manifest.lean --scope fgsa --check
+# The frame/deep baselines are required at both tiers, after complete D15.
+manifest_run frame python3 scripts/fgsa-deep.py --frame-check
+manifest_run deep lake env lean --run scripts/V2Manifest.lean --scope fgsa --deep --check
 # The controls are negative controls: the merge tier (NEG=0) skips them (BUILD §7.7).
 if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0, merge tier)"; exit 0; fi
 mkdir -p .lake
@@ -255,3 +258,5 @@ with ThreadPoolExecutor(max_workers=int(os.environ['manifest_workers'])) as pool
             failure = code if code > 0 else 1
     raise SystemExit(failure)
 PY
+
+manifest_run deep-controls python3 scripts/fgsa-deep-controls.py
