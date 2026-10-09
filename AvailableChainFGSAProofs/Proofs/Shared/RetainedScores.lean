@@ -76,6 +76,23 @@ theorem fgsa_score_geometry_of_domains
         (KitFG.storeControlsView (heightView p) st.fg) V B).mp hB).2.1
   exact ⟨floor src Vs hsrc, floor dst Vt hdst⟩
 
+/-- The canonical source and voter domains supply their separate F bounds. -/
+theorem fgsa_score_geometry_of_tree_domains
+    (p : Params) (src dst : State p.n)
+    (Vs Vt : Finset (FGBlock (Fin p.n))) (C : Block)
+    (hsrc : C ∈ erasedList src (KitFG.treeStoreFrameView (heightView p) src.fg Vs))
+    (hdst : C ∈ erasedList dst (KitFG.treeStoreFrameView (heightView p) dst.fg Vt)) :
+    ScoreRunGeometry src dst C := by
+  have floor (st : State p.n) (V : Finset (FGBlock (Fin p.n)))
+      (hm : C ∈ erasedList st (KitFG.treeStoreFrameView (heightView p) st.fg V)) :
+      Block.Preceq (eraseFG st.fg.F) C := by
+    obtain ⟨B, hB, he⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
+    rw [← he]
+    exact eraseFG_preceq
+      ((KitFG.mem_filteredFromView (heightView p)
+        (KitFG.treeStoreControlsView (heightView p) st.fg) V B).mp hB).2.1
+  exact ⟨floor src Vs hsrc, floor dst Vt hdst⟩
+
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -110,11 +127,12 @@ theorem fgsa_score_eq_on_candidates_on_run
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
     GridCO.voterCount (proposerVotes src s) = GridCO.voterCount (headVotes p dst s) ∧
       ∀ C, Candidates C → RetainedWalk.ss src s C = RetainedWalk.ts p dst s C := by
+  have hFN := block_preceq_trans hA.target_floor (fgsa_parent_preceq N.erase)
   refine ⟨(fgsa_score_eq_on_run (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hih hseat
-    N hem hadm N.erase.parent hA).2.2.1, ?_⟩
+    N hem hadm hFN N.erase.parent hA).2.2.1, ?_⟩
   intro C hC
   exact (fgsa_score_eq_on_run (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hih hseat
-    N hem hadm C (hCandidates C hC)).2.2.2 C (block_preceq_refl C)
+    N hem hadm hFN C (hCandidates C hC)).2.2.2 C (block_preceq_refl C)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.5:886–914, H.17:2987–3009; spec 1330–1360.
