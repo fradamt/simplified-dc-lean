@@ -80,9 +80,9 @@ structure RetainedReadPremises (p : Params) (src dst : State p.n)
 Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; converse S3 gives a witness in the same view.
 No store invariant is needed. -/
-theorem fgsa_domain_witness_of_mem (p : Params) (st : State p.n)
+theorem fgsa_tree_domain_witness_of_mem (p : Params) (st : State p.n)
     (Vw : Finset (FGBlock (Fin p.n))) (C : Block)
-    (hm : C ∈ erasedList st (KitFG.storeFrameView (heightView p) st.fg Vw)) :
+    (hm : C ∈ erasedList st (KitFG.treeStoreFrameView (heightView p) st.fg Vw)) :
     ∃ B ∈ Vw, eraseFG B = C ∧ FGBlock.Preceq st.fg.F B ∧
       FGBlock.Preceq (controls p st).Z B ∧
       ∃ W ∈ Vw, FGBlock.Preceq B W ∧ (controls p st).lo ≤ (heightView p W).h := by
@@ -90,6 +90,18 @@ theorem fgsa_domain_witness_of_mem (p : Params) (st : State p.n)
   obtain ⟨hv, hf, hz, hw⟩ :=
     (KitFG.mem_filteredFromView (heightView p) (controls p st) Vw B).mp hB
   exact ⟨B, hv, he, hf, hz, hw⟩
+
+/-- Top retention permits the old-domain witness conclusion with canonical controls. -/
+theorem fgsa_domain_witness_of_mem_of_top_retained (p : Params) (st : State p.n)
+    (Vw : Finset (FGBlock (Fin p.n))) (C : Block)
+    (hTop : ∀ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max →
+      ¬ FGBlock.Preceq st.fg.J W → FGBlock.Preceq st.fg.F W)
+    (hm : C ∈ erasedList st (KitFG.storeFrameView (heightView p) st.fg Vw)) :
+    ∃ B ∈ Vw, eraseFG B = C ∧ FGBlock.Preceq st.fg.F B ∧
+      FGBlock.Preceq (controls p st).Z B ∧
+      ∃ W ∈ Vw, FGBlock.Preceq B W ∧ (controls p st).lo ≤ (heightView p W).h := by
+  apply fgsa_tree_domain_witness_of_mem p st Vw C
+  simpa only [KitFG.treeStoreFrameView_eq (heightView p) st.fg Vw hTop] using hm
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 03:371–373; 21 H.6:942–958 (design 798–814); spec 1290–1297.
@@ -117,8 +129,9 @@ theorem fgsa_walkRun_path_domain_view (p : Params) (st : State p.n)
     (hDC : Block.Preceq (eraseFG D) C) (hCP : Block.Preceq C P) :
     C ∈ T p st s := by
   dsimp only [T]
-  rw [← KitFG.storeFrame_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
-  exact fgsa_walkRun_path_domain p st h s D C P hF hZ
+  change C ∈ erasedList st (KitFG.filteredFromView (heightView p) (controls p st) _)
+  rw [← KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+  exact fgsa_walkRun_path_domain_filtered p st h s D C P hF hZ
     (by simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
         using hlo) hP hs hDC hCP
 
@@ -191,7 +204,7 @@ private theorem reflect_witness_on_run
   have hWsrc : W ∈ src.fg.TF := by
     rcases hW with hW | ⟨hW, hstamp⟩
     · exact hW
-    · obtain ⟨Q, -, heQ, hFQ, -⟩ := fgsa_domain_witness_of_mem p dst _ C hm
+    · obtain ⟨Q, -, heQ, hFQ, -⟩ := fgsa_tree_domain_witness_of_mem p dst _ C hm
       have hFdst : Block.Preceq (eraseFG dst.fg.F) (eraseFG B) := by
         rw [heB, ← heQ]
         exact eraseFG_preceq hFQ
@@ -292,7 +305,7 @@ theorem fgsa_retained_old_child_reflects_on_run
   have scores := fgsa_score_eq_on_candidates_on_run (hroots := hroots) E rho hE hN hDelta (s + 1)
     hScoreSync hx hy hip hih hseat N hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1)) hA
-    (fun C hm => fgsa_score_geometry_of_domains p src dst src.fg.TF
+    (fun C hm => fgsa_score_geometry_of_tree_domains p src dst src.fg.TF
       (voterBlocks p dst (s + 1)) C hm.1 hm.2)
   have reflect (X C : Block) (hKX : Block.Preceq Kc X) (hXA : Block.Preceq X N.erase.parent)
       (hm : C ∈ T p dst (s + 1)) (hp : C.parent? = some X) (hold : C.slot < s + 1)
@@ -310,14 +323,27 @@ theorem fgsa_retained_old_child_reflects_on_run
     exact hel.trans he
   constructor
   · intro X C hKX hXA hm hp he
-    have hmOld := hm
-    dsimp only [T] at hmOld
-    rw [← KitFG.storeFrame_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hmOld
-    have hc := fgsa_walkRun_reflected_block (hroots := hroots)
-      E rho hE hN hDelta s hWalkSync hx hy hip
-      hseat N hem Kc X C hK hKX hXA hp hmOld
-    have hold := (fgsa_stored_block_slots E rho hE.toScheduleWellFormed hip
-      (Nat.succ_pos s)).2.1 C hc
+    have hCpre : C ∈ (rho.stateBefore E ih y).st.base.blocks := by
+      simpa only [dst, clock_base_blocks] using (List.mem_filter.mp hm).1
+    have hn := fgsa_preTick_now_lt E rho hE.toScheduleWellFormed hih (by
+      change 0 < 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+      have hd := p.deltaPos
+      have hs := Int.natCast_nonneg (s + 1)
+      positivity)
+    have hslot := Internal.slotOf_mono (p := p) (le_of_lt hn)
+    have htick : p.slotOf (SA.voteTime p.toParams (s + 1)) = s + 1 := by
+      simpa only [(fgsa_postClock_slot (c := c) (rho.stateBefore E ih y) _).2] using
+        fgsa_vote_slot (c := c) (rho.stateBefore E ih y) (s + 1)
+    have hle := ((fgsa_stateBefore_bounds E rho hE.toScheduleWellFormed ih y).1 C hCpre).trans
+      (htick ▸ hslot)
+    have hold : C.slot < s + 1 := lt_of_le_of_ne hle (by
+      intro he
+      have hCN := fgsa_walkRun_current_block_eq E rho hE (s + 1) (Nat.succ_pos s)
+        hx hip hseat N hem C hCpre he
+      have hX : X = N.erase.parent := by
+        simpa only [hCN] using (fgsa_parent_eq_of_some hp).symm
+      have hn := (Bool.and_eq_true_iff.mp hXA).1
+      simp only [hX, decide_true, Bool.not_true, Bool.false_eq_true] at hn)
     exact reflect X C hKX (Bool.and_eq_true_iff.mp hXA).2 hm hp hold he
   · intro C hm hp hold he
     exact reflect N.erase.parent C h.cut_parent (block_preceq_refl _) hm hp hold he

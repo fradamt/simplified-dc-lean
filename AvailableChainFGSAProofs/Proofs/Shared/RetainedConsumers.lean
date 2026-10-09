@@ -142,8 +142,8 @@ private theorem consumer_trunk_prefix (p : Params) (src dst : State p.n) (s : Sl
       exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
   have hm := hpath C (block_preceq_trans hAX hXC) hCZ
   refine ⟨C, hp, hCZ, hm, ?_, Or.inl ?_⟩
-  · obtain ⟨B, hB, heB, _, _, _⟩ := fgsa_domain_witness_of_mem p dst _ C hm
-    have hP := ht.fg.closed B (Finset.mem_filter.mp hB).1
+  · obtain ⟨B, hB, heB, _, _, _⟩ := fgsa_tree_domain_witness_of_mem p dst _ C hm
+    have hP := ht.fg.closed B (Next.tree_subset_TF p dst (Finset.mem_filter.mp hB).1)
     have heP : eraseFG B.parent = X := by
       rw [← eraseFG_parent, heB, fgsa_parent_eq_of_some hp]
     have hh := hlow B.parent hP (heP ▸ hXZ)
@@ -153,7 +153,7 @@ private theorem consumer_trunk_prefix (p : Params) (src dst : State p.n) (s : Sl
     unfold et eligible
     simp only [hb, decide_true, Bool.true_or]
   · intro B hB hpB
-    obtain ⟨Q, _, heQ, _, _, W, hW, hQW, hlo⟩ := fgsa_domain_witness_of_mem p dst _ B hB
+    obtain ⟨Q, _, heQ, _, _, W, hW, hQW, hlo⟩ := fgsa_tree_domain_witness_of_mem p dst _ B hB
     have hBW : Block.Preceq B (eraseFG W) := heQ ▸ eraseFG_preceq hQW
     have hCW := block_preceq_trans hCZ (hhigh W hW hlo)
     have hd : B.depth = C.depth := by
@@ -182,16 +182,16 @@ private theorem consumer_reflected_witness (p : Params) (src dst : State p.n)
     (hunique : ∀ P ∈ dst.fg.TF, P.slot = s → eraseFG P = b)
     (C : Block) (hm : C ∈ T p dst s) (hold : C.slot < s) :
     ReflectedDomainWitness p src dst s C := by
-  obtain ⟨B, hB, heB, _, _, W, hW, hBW, hlo⟩ := fgsa_domain_witness_of_mem p dst _ C hm
-  have hBd := (Finset.mem_filter.mp hB).1
-  have hWd := (Finset.mem_filter.mp hW).1
+  obtain ⟨B, hB, heB, _, _, W, hW, hBW, hlo⟩ := fgsa_tree_domain_witness_of_mem p dst _ C hm
+  have hBd := (Next.tree_subset_TF p dst (Finset.mem_filter.mp hB).1)
+  have hWd := (Next.tree_subset_TF p dst (Finset.mem_filter.mp hW).1)
   rw [ReflectedDomainWitness_def]
   rcases Bool.or_eq_true_iff.mp (Finset.mem_filter.mp hW).2 with hf | hc
   · exact ⟨B, W, hBd, heB, hBW, hfloor ▸ hlo,
       Or.inr ⟨hWd, of_decide_eq_true hf⟩⟩
   · obtain ⟨P, hP, hsP, hWP⟩ := of_decide_eq_true hc
     have hCb : Block.Preceq C b := by
-      rw [← heB, ← hunique P hP hsP]
+      rw [← heB, ← hunique P (Next.tree_subset_TF p dst hP) hsP]
       exact eraseFG_preceq (KitFG.preceq_trans hBW hWP)
     have hCA : Block.Preceq C b.parent := by
       cases b with
@@ -215,12 +215,12 @@ private theorem consumer_band_agrees (p : Params) (src dst : State p.n)
     (hfloor : (controls p src).lo = (controls p dst).lo)
     (C : Block) (hS : C ∈ S p src) (hT : C ∈ T p dst s) :
     retainedBand p src C ↔ retainedBand p dst C := by
-  obtain ⟨B, hB, heB, _, _, _⟩ := fgsa_domain_witness_of_mem p src src.fg.TF C hS
-  obtain ⟨Q, hQ, heQ, _, _, _⟩ := fgsa_domain_witness_of_mem p dst _ C hT
+  obtain ⟨B, hB, heB, _, _, _⟩ := fgsa_tree_domain_witness_of_mem p src src.fg.TF C hS
+  obtain ⟨Q, hQ, heQ, _, _, _⟩ := fgsa_tree_domain_witness_of_mem p dst _ C hT
   have he : Q = B := eraseFG_injective (heQ.trans heB.symm)
   subst Q
   have hb := fgsa_band_eq_of_same_floor p src dst C B.parent
-    (hs.fg.closed B hB) (ht.fg.closed B (Finset.mem_filter.mp hQ).1)
+    (hs.fg.closed B hB) (ht.fg.closed B (Next.tree_subset_TF p dst (Finset.mem_filter.mp hQ).1))
     (by rw [← eraseFG_parent, heB]) hfloor
   rw [retainedBand_def, retainedBand_def]
   simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] using hb
@@ -504,8 +504,8 @@ private theorem consumer_cone_reflection (p : Params) (src dst : State p.n)
     (hunique : ∀ P ∈ dst.fg.TF, P.slot = s → eraseFG P = b)
     (X C : Block) (hDX : Block.Preceq (eraseFG D) X) (hp : C.parent? = some X)
     (hm : C ∈ T p dst s) (hold : C.slot < s) : ReflectedDomainWitness p src dst s C := by
-  obtain ⟨B, hB, heB, _, _, _⟩ := fgsa_domain_witness_of_mem p dst _ C hm
-  have hBd := (Finset.mem_filter.mp hB).1
+  obtain ⟨B, hB, heB, _, _, _⟩ := fgsa_tree_domain_witness_of_mem p dst _ C hm
+  have hBd := (Next.tree_subset_TF p dst (Finset.mem_filter.mp hB).1)
   rw [ReflectedDomainWitness_def]
   rcases Bool.or_eq_true_iff.mp (Finset.mem_filter.mp hB).2 with hf | hc
   · have hXC : Block.Preceq X C := by
@@ -520,7 +520,7 @@ private theorem consumer_cone_reflection (p : Params) (src dst : State p.n)
       Or.inr ⟨hBd, of_decide_eq_true hf⟩⟩
   · obtain ⟨P, hP, hsP, hBP⟩ := of_decide_eq_true hc
     have hCb : Block.Preceq C b := by
-      rw [← heB, ← hunique P hP hsP]
+      rw [← heB, ← hunique P (Next.tree_subset_TF p dst hP) hsP]
       exact eraseFG_preceq hBP
     have hCA : Block.Preceq C b.parent := by
       cases b with

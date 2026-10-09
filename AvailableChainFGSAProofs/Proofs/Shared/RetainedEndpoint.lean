@@ -70,7 +70,7 @@ theorem fgsa_exactHeadGeometry_of_retained_endpoint
     rw [h.proposal_slot, h.target_slot]
     simp only [beq_self_eq_true, Bool.or_true]
   constructor
-  · rw [fgsa_domainR_eq_storeFrameView]
+  · rw [fgsa_domainR_eq_treeStoreFrameView]
     refine ⟨h.proposal_mem, h.proposal_parent, hel, ?_⟩
     intro C hm hp he
     rcases Nat.lt_or_eq_of_le (h.no_future C hm) with hold | hcurrent
@@ -78,7 +78,7 @@ theorem fgsa_exactHeadGeometry_of_retained_endpoint
       have hn := hsourceStop C hs hp
       simp only [he', Bool.true_eq_false] at hn
     · exact h.current_unique C hm hcurrent
-  · rw [fgsa_domainR_eq_storeFrameView]
+  · rw [fgsa_domainR_eq_treeStoreFrameView]
     intro C hm hp
     have hlt := h.child_slot C hm hp
     have hle := h.no_future C hm
@@ -109,20 +109,21 @@ theorem fgsa_headVote_covers_parent_of_retained_geometry
     (hparent : getHead p src (proposerVotes src s) (proposerSupport src s) = b.parent)
     (h : RetainedWalkRunGeometry p src dst s D b Kc) :
     Block.Preceq b.parent (headVote p dst s) := by
-  have hp := (fgsa_ordinary_parent_of_live_prefix p src
+  have hp := (fgsa_ordinary_parent_of_live_prefix_filtered p src
     (proposerVotes src s) (proposerSupport src s) b.parent hsourceRoot hparent
-    (by simpa only [BestAncestry_def, S, fullTree_eq, erasedList_unfold, z, ap, ss, es]
-      using h.ordinary_prefix)).2
+    (by simpa only [BestAncestry_def, S, fgsa_fullTree_eq_filtered, erasedList_unfold,
+      z, ap, ss, es] using h.ordinary_prefix)).2
   have hsource : Block.Preceq b.parent (GridCO.ghost (z p src) (S p src)
       (ss src s) (es p src s)) := by
-    simpa only [S, fullTree_eq, erasedList_unfold, z, ss, es, hp] using block_preceq_refl b.parent
+    simpa only [S, fgsa_fullTree_eq_filtered, erasedList_unfold, z, ss, es, hp] using
+      block_preceq_refl b.parent
   have hc := walk_covers_of_retained_transport (z p src) (ay p dst) Kc b.parent
     (S p src) (T p dst s) (ss src s) (ts p dst s) (es p src s) (et p dst s)
     htargetRoot hsource h.source_cut h.target_cut h.cut_parent h.target_prefix
     h.persists h.reflects h.scores
   unfold headVote
   rw [ite_eq_right hs]
-  simpa only [fgsa_domainR_eq_storeFrameView, headInTree_unfold, ay, ts, et] using hc
+  simpa only [fgsa_domainR_eq_treeStoreFrameView, headInTree_unfold, ay, ts, et] using hc
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:956–958, H.17:3006–3012 (design 812–814,2865–2872);
@@ -254,7 +255,7 @@ theorem fgsa_retained_source_stop (p : Params) (src : State p.n) (s : Slot)
     (KitFG.ancestor_closed_of_parent_closed _ h.fg.closed)
     (proposerVotes src s) (proposerSupport src s)
   have he : fullTree p src = filteredFrom p.E p.cfg (controls p src) src.fg.TF := by
-    rw [fullTree_eq, storeFrame, controls_eq]
+    rw [fgsa_fullTree_eq_filtered]
   rw [← he] at ht
   rw [← hp]
   exact ht

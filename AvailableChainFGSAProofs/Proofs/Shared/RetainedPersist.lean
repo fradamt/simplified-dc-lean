@@ -15,28 +15,50 @@ open RetainedWalk
 Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; bridge the two FJ domain interfaces through
 heightView_bridge, without reducing the active height view. -/
-theorem fgsa_domainR_eq_storeFrameView (p : Params) (st : State p.n)
+theorem fgsa_domainR_eq_treeStoreFrameView (p : Params) (st : State p.n)
     (Vw : Finset (FGBlock (Fin p.n))) :
-    domainR p st Vw = KitFG.storeFrameView (heightView p) st.fg Vw := by
-  -- `controls` is `storeControlsView (heightView p)` by its definition; heightView stays folded.
-  rw [domainR_def, frameR_def, KitFG.storeFrameView_def]
+    domainR p st Vw = KitFG.treeStoreFrameView (heightView p) st.fg Vw := by
+  rw [domainR_def, frameR_def, KitFG.treeStoreFrameView_def]
   rfl
+
+/-- Top retention permits comparison with the old store frame. -/
+theorem fgsa_domainR_eq_storeFrameView_of_top_retained (p : Params) (st : State p.n)
+    (Vw : Finset (FGBlock (Fin p.n)))
+    (hTop : ∀ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max →
+      ¬ FGBlock.Preceq st.fg.J W → FGBlock.Preceq st.fg.F W) :
+    domainR p st Vw = KitFG.storeFrameView (heightView p) st.fg Vw := by
+  rw [fgsa_domainR_eq_treeStoreFrameView,
+    KitFG.treeStoreFrameView_eq (heightView p) st.fg Vw hTop]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; S3 with a witness inside the target view.
 The base premise is supplied by CStoreInv.baseTree. -/
-theorem fgsa_walk_domain_of_witness_view (p : Params) (st : State p.n)
+theorem fgsa_walk_domain_of_witness_tree_view (p : Params) (st : State p.n)
     (Vw : Finset (FGBlock (Fin p.n))) (C W : FGBlock (Fin p.n))
     (hbase : ∀ B ∈ st.fg.TF, eraseFG B ∈ st.base.blocks)
     (hV : Vw ⊆ st.fg.TF) (hC : C ∈ Vw) (hW : W ∈ Vw)
     (hF : FGBlock.Preceq st.fg.F C)
     (hZ : FGBlock.Preceq (controls p st).Z C)
     (hCW : FGBlock.Preceq C W) (hlo : (controls p st).lo ≤ (heightView p W).h) :
-    eraseFG C ∈ erasedList st (KitFG.storeFrameView (heightView p) st.fg Vw) := by
+    eraseFG C ∈ erasedList st (KitFG.treeStoreFrameView (heightView p) st.fg Vw) := by
   exact List.mem_filter.mpr ⟨hbase C (hV hC), decide_eq_true ⟨C,
     (KitFG.mem_filteredFromView (heightView p) (controls p st) Vw C).mpr
       ⟨hC, hF, hZ, W, hW, hCW, hlo⟩, rfl⟩⟩
+
+/-- Top retention preserves the old-frame conclusion of the path witness helper. -/
+theorem fgsa_walk_domain_of_witness_view_of_top_retained (p : Params) (st : State p.n)
+    (Vw : Finset (FGBlock (Fin p.n))) (C W : FGBlock (Fin p.n))
+    (hTop : ∀ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max →
+      ¬ FGBlock.Preceq st.fg.J W → FGBlock.Preceq st.fg.F W)
+    (hbase : ∀ B ∈ st.fg.TF, eraseFG B ∈ st.base.blocks)
+    (hV : Vw ⊆ st.fg.TF) (hC : C ∈ Vw) (hW : W ∈ Vw)
+    (hF : FGBlock.Preceq st.fg.F C)
+    (hZ : FGBlock.Preceq (controls p st).Z C)
+    (hCW : FGBlock.Preceq C W) (hlo : (controls p st).lo ≤ (heightView p W).h) :
+    eraseFG C ∈ erasedList st (KitFG.storeFrameView (heightView p) st.fg Vw) := by
+  rw [← KitFG.treeStoreFrameView_eq (heightView p) st.fg Vw hTop]
+  exact fgsa_walk_domain_of_witness_tree_view p st Vw C W hbase hV hC hW hF hZ hCW hlo
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:927–953, H.17:2986–3006 (design 783–809,2847–2867); spec 1286–1293, 1520–1523.
@@ -70,10 +92,14 @@ theorem fgsa_retained_path_mem (p : Params) (src dst : State p.n)
   obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem hclosed hB (heB ▸ hCb)
   have hAB : FGBlock.Preceq A B := eraseFG_preceq_iff.mp (heA ▸ heB ▸ hCb)
   have hbslot : B.slot = s := by rw [← eraseFG_slot, heB, hslot]
+  have hFA : FGBlock.Preceq dst.fg.F A :=
+    eraseFG_preceq_iff.mp (heA ▸ block_preceq_trans hfloor hstart)
   have inView (Q : FGBlock (Fin p.n)) (hQ : Q ∈ dst.fg.TF)
-      (hQB : FGBlock.Preceq Q B) : Q ∈ voterBlocks p dst s :=
-    Finset.mem_filter.mpr ⟨hQ, Bool.or_eq_true_iff.mpr
-      (Or.inr (decide_eq_true ⟨B, hB, hbslot, hQB⟩))⟩
+      (hQB : FGBlock.Preceq Q B) (hFQ : FGBlock.Preceq dst.fg.F Q) :
+      Q ∈ voterBlocks p dst s :=
+    Finset.mem_filter.mpr ⟨Finset.mem_filter.mpr ⟨hQ, hFQ⟩, Bool.or_eq_true_iff.mpr
+      (Or.inr (decide_eq_true ⟨B, Finset.mem_filter.mpr ⟨hB, KitFG.preceq_trans hFA hAB⟩,
+        hbslot, hQB⟩))⟩
   have hlo : (controls p dst).lo ≤ (heightView p B).h := by
     obtain ⟨W, hw, hlo⟩ := hw
     have hWB : FGBlock.Preceq W B := by
@@ -85,11 +111,11 @@ theorem fgsa_retained_path_mem (p : Params) (src dst : State p.n)
       (KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) B).1]
     exact KitFG.h_mono p.E p.cfg hWB
   rw [← heA]
-  exact fgsa_walk_domain_of_witness_view p dst (voterBlocks p dst s) A B
+  exact fgsa_walk_domain_of_witness_tree_view p dst (voterBlocks p dst s) A B
     (fun Q hm => (hbase _).mpr ⟨Q, hm, rfl⟩)
-    (fun _ hm => (Finset.mem_filter.mp hm).1) (inView A hA hAB)
-    (inView B hB (KitFG.preceq_refl _))
-    (eraseFG_preceq_iff.mp (heA ▸ block_preceq_trans hfloor hstart))
+    (fun _ hm => Next.tree_subset_TF p dst (Finset.mem_filter.mp hm).1)
+    (inView A hA hAB hFA)
+    (inView B hB (KitFG.preceq_refl _) (KitFG.preceq_trans hFA hAB)) hFA
     (eraseFG_preceq_iff.mp (heA ▸ block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) hstart)) hAB hlo
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -255,7 +281,7 @@ theorem fgsa_retained_path_persists_on_run
     hScoreSync hx hy hip hih hseat N hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1))
     (fgsa_score_geometry_of_retained_cuts p src dst hs ht (s + 1) D N.erase Kc h)
-    (fun C hm => fgsa_score_geometry_of_domains p src dst src.fg.TF
+    (fun C hm => fgsa_score_geometry_of_tree_domains p src dst src.fg.TF
       (voterBlocks p dst (s + 1)) C hm.1 hm.2)
   apply fgsa_retained_persists_of_path
   · intro X C hK _ hp hCA
@@ -327,7 +353,7 @@ theorem fgsa_retainedWalk_geometry_on_run
   have scores := fgsa_score_eq_on_candidates_on_run (hroots := hroots) E rho hE hN hDelta (s + 1)
     hScoreSync hx hy hip hih hseat N hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1)) hA
-    (fun C hm => fgsa_score_geometry_of_domains p src dst src.fg.TF
+    (fun C hm => fgsa_score_geometry_of_tree_domains p src dst src.fg.TF
       (voterBlocks p dst (s + 1)) C hm.1 hm.2)
   refine ⟨{
     pivot_parent := h.pivot_parent
