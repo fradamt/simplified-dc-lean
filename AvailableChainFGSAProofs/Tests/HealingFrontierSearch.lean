@@ -119,7 +119,8 @@ example [Fintype V] (E : Generic.Env V)
     healing_frontierTail_row E rho hrec mono crossing cap writes rowCoverage hserved hhor.le
 
 -- Same-frontier stops advance the phase under the actual phase-order producer.
-example (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
+example (crossing : RXing p c E rho) (mono : RMono p c E rho)
+    (hnr : V2.D.NoRestart rho)
     (hs : V2.D.ScheduleWellFormed E rho) {i m : Nat} {kind : PhaseKind}
     {ev : V2.Event V (Obj p)} {deadline : Time}
     (hstart : FrontierSearchStart p c E rho i ev m kind)
@@ -127,7 +128,7 @@ example (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
     ∃ j nextEv nextKind, i < j ∧ nextEv.time ≤ deadline ∧
       FrontierSearchStart p c E rho j nextEv m nextKind ∧
       frontierSearch_phaseRank nextKind > frontierSearch_phaseRank kind :=
-  frontierSearch_phase_step p c E rho mono hnr hs hstart hstop
+  frontierSearch_phase_step_of_crossing p c E rho crossing mono hnr hs hstart hstop
 
 section PhaseApplications
 variable [Fintype V] {G ΔF ρbar : Time}
@@ -198,7 +199,7 @@ example : ¬ (∀ d a horizon : Int, d ≤ a → a ≤ d + (8 - 4) →
 #print axioms frontier_hg3_gap
 #print axioms frontier_hg3_topJ
 #print axioms frontier_hg3_contest
-#print axioms frontierSearch_phase_step
+#print axioms frontierSearch_phase_step_of_crossing
 #print axioms healing_frontierTail_row
 #print axioms frontierSearch_terminal_horizon_gap8
 #print axioms frontierSearch_terminal_horizon_gap12

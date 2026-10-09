@@ -32,8 +32,8 @@ Tests/HealingPhase.lean.
 
 Merge onto the freeze line (B21 1 ≤ m, B25 strict lower cut):
 * `healing_phase_entries_eq` has no h_j ≠ 0 premise: at h_j = 0 both J are
-  genesis. Thus `healing_phase_contest_persist` and `healing_phase_top_node`
-  have no bound on m, and RPhase clause 1 holds at m = 1.
+  genesis. Thus `healing_phase_contest_persist_of_crossing` and
+  `healing_phase_top_node` have no bound on m, and RPhase clause 1 holds at m = 1.
 * `healing_settle_event` and `healing_rPhase` take 1 ≤ m. The settled
   controls hold from the strict cut at ev.time + Δ, which is at or before
   the strict cut at ev.time + 3Δ.
