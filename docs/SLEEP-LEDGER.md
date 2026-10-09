@@ -146,3 +146,48 @@ The normal run passed builds and strict audits, then the old P-PC control map
 rejected the five new W1a modules. The NEG=0 run passed in 88.14 s.
 Checker scripts are unchanged; the sleep-int controls fix was not merged.
 The required Sol and Opus reviews remain with the lead.
+
+## W2a continuation — lead rulings, 2026-10-10
+
+The lead approved the two corrections after merge `02531030`.
+`clock_namedBodies` in `AvailableChainFGSA/Proofs/NamedStore.lean`
+keeps its type and uses `clock_proposals` from `Proofs/Fields.lean`.
+This proof-only edit is approved outside plan §14.2.
+Validation uses the default repository heartbeat config.
+No source heartbeat limit is increased.
+
+Two modules omitted from plan §14.6 are EXPECTED-FAIL, owner W3:
+- `AvailableChainFGSARun.Proofs.AncestorDeadlinesStore`: gate unfolds
+  at lines 455, 465 and 485 do not handle the unjoined branch.
+- `AvailableChainFGSARun.Proofs.AncestorDeadlines`: imports that failed module.
+
+Both modules stay REQUIRED at S1. The W2a package map now includes
+the five new W1a modules from the merged S1 list as GREEN.
+`NamedStore` is a W2a TARGET for the approved proof repair.
+
+W1a merge failures are assigned by plan §14.6/§8.1 and the merged W1a map.
+The failed modules are:
+- `AvailableChainFGCompose.Statements.SafetyClient` — W3.
+- `AvailableChainFGCompose.Statements.SafetyStore` — W3.
+- `AvailableChainFGCompose.Tests.Restart` — W3.
+- `AvailableChainFGSARun.Model.Protocol` — W2b.
+- `AvailableChainGeneric.Proofs.V2.Fields` — W1b.
+- `AvailableChainGeneric.Statements.V2.Duty.Receipt` — W1b.
+- `AvailableChainGeneric.Statements.V2.Receipt` — W1b.
+- `AvailableChainKitV2.DutyEngineClock` — W1b.
+- `AvailableChainKitV2.DutyRecord` — W1b.
+- `AvailableChainKitV2.EngineClock` — W1b.
+- `AvailableChainKitV2.Tests.Toy` — W1b.
+
+These 11 failures affect 106 prior GREEN entries through imports.
+Additional EXPECTED-FAIL owners: W1b 34, W2b 32, W3 14, P-ShA 13, S-Ap 13.
+The final W2a map has 34 TARGETS, 273 GREEN and 176 EXPECTED-FAIL entries.
+All 110 W2a store/pin targets stay GREEN. No S1 entry moves to DEFERRED.
+The W1b and W3 owners have approved statement repairs in plan r9.
+This continuation changes no statement and adds no premise.
+
+Writer checkpoint: DCK PASS (package W2a), with all controls, 109.716 s.
+Default-config GREEN build: PASS, 273 module targets, 2.852 s.
+Strict FGSA audit: PASS, 822 results, 42.343 s.
+Scoped FGSA coverage: PASS, 0 unaccepted exports, 19.902 s.
+The coverage inventory is unchanged. Astra review remains with the lead.

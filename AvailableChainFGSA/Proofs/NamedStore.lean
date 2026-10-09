@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.NamedProposal
 public import AvailableChainFGSA.Proofs.Carrier
+public import AvailableChainFGSA.Proofs.Fields
 public import AvailableChainFGSA.Statements.Invariants
 
 -- Find matcher bodies in the two definitions; do not depend on generated names.
@@ -197,8 +198,7 @@ theorem namedByErase?_stored (p : Params) (st : State p.n) (h : CStoreInv p st)
 /-- [ROOT-DIGEST-2 W1; DC NamedStore.bodies] A clock does not change named proposal storage. -/
 theorem clock_namedBodies (p : Params) (st : State p.n) (t : Time) :
     (clock p st t).namedBodies = st.namedBodies := by
-  simp only [State.namedBodies, clock, clockPre, gateStep, normalizeS, onView]
-  split_ifs <;> rfl
+  simp only [State.namedBodies, clock_proposals]
 
 /-- [ROOT-DIGEST-2 W1; DC NamedRootCollisionFree] The geometric API follows full agreement. -/
 theorem contentAgree_projection {n : Nat} {st st' : State n} (hc : ContentAgree st st')
