@@ -205,9 +205,14 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     apply List.mem_filter.mpr
     refine ⟨hvotes, ?_⟩
     change (match GridCO.resolvedHead? (actView st) o with
-      | some C => decide (C.slot ≤ r + 1 - 1) | none => false) = true
+      | some C => Block.preceq (eraseFG st.fg.F) C &&
+        decide (C.slot ≤ r + 1 - 1) | none => false) = true
     rw [hresolve]
-    exact decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)
+    apply Bool.and_eq_true_iff.mpr
+    refine ⟨?_, decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)⟩
+    change Block.Preceq (eraseFG (FGSA.clock p _ _).fg.F) K
+    rw [clock_fg]
+    exact Gen.Pure.block_preceq_trans hFB hBK
   have hvs : Gen.AC.Root.voteSupports st.base.blocks B o = true := by
     exact (Gen.AC.Root.vote_support_body _ _ _).mpr
       ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p _ hinv) o hKb hoK,
@@ -271,8 +276,8 @@ theorem healing_proposal_core [Fintype V] (E : Generic.Env V)
   have hinv : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hdfg : st.fg = (storeAt p c E rho ip x).fg := clock_fg p _ _
   have hRd : FGSA.controls p st = R_at p c E rho ip x := by
-    change KitFG.storeControlsView (heightView p) st.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho ip x).fg
+    change KitFG.treeStoreControlsView (heightView p) st.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho ip x).fg
     rw [hdfg]
   -- The frame witness of the proposer's own label-r HEAD.
   obtain ⟨jx, hjx⟩ := healing_support_vote_tick E rho hS hDelta hx r hhorr
@@ -295,7 +300,7 @@ theorem healing_proposal_core [Fintype V] (E : Generic.Env V)
   have hhead_eq : proposerHead p st (r + 1) = headInTree p st
       (erasedList st (domainR p st st.fg.TF)) (FGSA.proposerVotes st (r + 1))
       (FGSA.proposerSupport st (r + 1)) := by
-    rw [fgsa_domainR_eq_storeFrameView]
+    rw [fgsa_domainR_eq_treeStoreFrameView]
     rfl
   rw [hhead_eq]
   rcases Gen.Pure.block_preceq_total_of_common hFW' hBW with hFB | hBF

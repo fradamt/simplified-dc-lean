@@ -283,9 +283,11 @@ theorem postReset_keep_contest (hs : V2.D.ScheduleWellFormed E rho)
   intro hct
   let st := (storeAt p c E rho i x).fg
   change (decide (st.h_max = st.h_j + 1) && decide (∃ W ∈ st.TF,
-    (heightView p W).h = st.h_max ∧ ¬ FGBlock.Preceq st.J W)) = true at hct
-  obtain ⟨htop, W, hW, hhW, hn⟩ : st.h_max = st.h_j + 1 ∧ ∃ W ∈ st.TF,
-      (heightView p W).h = st.h_max ∧ ¬ FGBlock.Preceq st.J W := by
+    FGBlock.Preceq st.F W ∧ (heightView p W).h = st.h_max ∧
+      ¬ FGBlock.Preceq st.J W)) = true at hct
+  obtain ⟨htop, W, hW, _hFW, hhW, hn⟩ : st.h_max = st.h_j + 1 ∧ ∃ W ∈ st.TF,
+      FGBlock.Preceq st.F W ∧ (heightView p W).h = st.h_max ∧
+        ¬ FGBlock.Preceq st.J W := by
     simpa only [Bool.and_eq_true, decide_eq_true_eq] using hct
   by_contra hne
   have hhighj : w.M + 1 ≤ st.h_j := by dsimp only [st] at *; simp only [Height] at *; omega
@@ -383,7 +385,8 @@ theorem postReset_keep_roots (hs : V2.D.ScheduleWellFormed E rho)
           have hbad : (R_at p c E rho i x).contest = true := by
             change (decide (st.h_max = st.h_j + 1) && decide _) = true
             simp only [Bool.and_eq_true, decide_eq_true_eq]
-            exact ⟨htop, C, hC, htopC, hn⟩
+            exact ⟨htop, C, hC,
+              (healing_phase_frontier_root p c E rho xing hx hC htopC).1, htopC, hn⟩
           rw [hct] at hbad
           contradiction
         exact Or.inl (hz ▸ hJC)

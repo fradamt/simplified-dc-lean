@@ -201,10 +201,10 @@ theorem healing_resetTransferCore [Fintype V] (E : Generic.Env V)
       by_contra hn
       have ht : (R_at p c E rho j x).contest = true := by
         change (decide (st.fg.h_max = st.fg.h_j + 1) &&
-          decide (∃ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max ∧
-            ¬ FGBlock.Preceq st.fg.J W)) = true
+          decide (∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧
+            (heightView p W).h = st.fg.h_max ∧ ¬ FGBlock.Preceq st.fg.J W)) = true
         exact Bool.and_eq_true_iff.mpr ⟨htop, decide_eq_true
-          ⟨C, hX hCX, hCh.trans hmax.symm, hn⟩⟩
+          ⟨C, hX hCX, hFC, hCh.trans hmax.symm, hn⟩⟩
       rw [hc] at ht
       contradiction
   refine ⟨hCh, hH, hlo, ?_⟩
