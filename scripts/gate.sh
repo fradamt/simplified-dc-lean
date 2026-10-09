@@ -209,6 +209,7 @@ run_check() {
     catalog-lock) step "$1" gate_with_slot lake env lean --run scripts/CatalogLock.lean --check ;;
     v2-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --check ;;
     gen-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check ;;
+    # Includes mandatory frame/deep checks at both tiers; NEG only selects controls.
     fgsa-manifest) step "$1" gate_with_slot bash scripts/check-fgsa-manifest.sh ;;
     pcsa-manifest) step "$1" gate_with_slot bash scripts/check-pcsa-manifest.sh ;;
     fgsa-claims) step "$1" gate_with_slot bash scripts/check-fgsa-claims.sh ;;

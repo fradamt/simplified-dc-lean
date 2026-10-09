@@ -77,6 +77,13 @@ declaration of a module under `AvailableChainFramework.V2` (the locked anchor
 defs). A later stage never edits `anchor`: it adds a new anchor def, so that
 the lock change is ADDED only.
 
+Deep mode (FGSA only): `--scope fgsa --deep` with `--write` or `--check` keeps a separate
+SHA-256 baseline in `scripts/fgsa-deep-frozen.json`. `--frozen`, `--frozen-sha`,
+and `--allow` override its baseline, checksum, and exact JSON exception paths.
+`--manifest` is the complete current shallow manifest. Deep mode never writes
+that manifest. The mandatory shell gate first checks D15, then the frame and
+deep baselines. See `docs/reports/fgsa-port-s0f00c.md` for the format and controls.
+
 Modes:
 - `--list`: print the manifest blocks (headings, kinds, names and hashes)
   from the environment, in source order.
@@ -98,7 +105,7 @@ copies of `scripts/CatalogLock.lean` (`ownHash` with the universe renaming);
 a change to one needs the same change in the other.
 
 Run: `lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa | pcsa)]
-(--list | --anchor | --check | --write | --check-frozen) [--manifest <path>]
+(--list | --anchor | --check | --write | --check-frozen) [--deep] [--manifest <path>]
 [--frozen <path>] [--allow <path>] [--frozen-sha <path>]`.
 The last three options require FGSA or PC-SA. Defaults: `docs/V2-API.md` for v2,
 `docs/GEN-API.md` for Gen, `docs/FGSA-API.md` for FGSA, `docs/PCSA-API.md` for
@@ -578,10 +585,199 @@ def frozenPaths : Scope → System.FilePath × System.FilePath × System.FilePat
 
 def familyLabel (scope : Scope) : String := if scope == .pcsa then "PC-SA" else "FGSA"
 
+/-! FG-SA deep format v1. These rules are separate from the shallow manifest.
+Names and kernel expressions use tagged, UTF-8 byte-length-prefixed fields.
+Theorem values and expression metadata are excluded. No library/name filter is used.
+SHA-256 node digests cover these bytes; root digests cover sorted name/digest pairs. -/
+def deepPack (tag : String) (fields : Array String) : String :=
+  s!"{tag}:{fields.size}:" ++ String.join (fields.toList.map fun s =>
+    s!"{s.utf8ByteSize}:{s}")
+
+partial def deepName : Name → String
+  | .anonymous => deepPack "anonymous" #[]
+  | .str p s => deepPack "str" #[deepName p, s]
+  | .num p n => deepPack "num" #[deepName p, toString n]
+
+partial def deepLevel : Level → String
+  | .zero => deepPack "zero" #[]
+  | .succ l => deepPack "succ" #[deepLevel l]
+  | .max a b => deepPack "max" #[deepLevel a, deepLevel b]
+  | .imax a b => deepPack "imax" #[deepLevel a, deepLevel b]
+  | .param n => deepPack "param" #[deepName n]
+  | .mvar n => deepPack "mvar" #[deepName n.name]
+
+partial def deepExpr : Expr → String
+  | .bvar i => deepPack "bvar" #[toString i]
+  | .fvar n => deepPack "fvar" #[deepName n.name]
+  | .mvar n => deepPack "mvar" #[deepName n.name]
+  | .sort l => deepPack "sort" #[deepLevel l]
+  | .const n ls => deepPack "const" #[deepName n, deepPack "levels" (ls.toArray.map deepLevel)]
+  | .app f a => deepPack "app" #[deepExpr f, deepExpr a]
+  | .lam n t b bi => deepPack "lam"
+      #[deepName n.eraseMacroScopes, toString (binderInfoTag bi), deepExpr t, deepExpr b]
+  | .forallE n t b bi => deepPack "forall"
+      #[deepName n.eraseMacroScopes, toString (binderInfoTag bi), deepExpr t, deepExpr b]
+  | .letE n t v b nd => deepPack "let"
+      #[deepName n.eraseMacroScopes, deepExpr t, deepExpr v, deepExpr b, toString nd]
+  | .lit (.natVal n) => deepPack "nat" #[toString n]
+  | .lit (.strVal s) => deepPack "string" #[s]
+  | .mdata _ e => deepExpr e
+  | .proj n i e => deepPack "proj" #[deepName n, toString i, deepExpr e]
+
+/-- Extend `deps` with all constructor and recursor data. Never traverse theorem values. -/
+def deepDeps (ci : ConstantInfo) : Array Name :=
+  let extra := match ci with
+    | .inductInfo d => (d.all ++ d.ctors).toArray
+    | .ctorInfo d => #[d.induct]
+    | .recInfo d => d.all.toArray ++ d.rules.toArray.flatMap fun r =>
+        #[r.ctor] ++ r.rhs.getUsedConstants
+    | _ => #[]
+  (({} : Std.HashSet Name).insertMany (deps ci ++ extra)).toArray.qsort Name.lt
+
+def deepClosure (env : Environment) (n : Name)
+    (edges : Std.HashMap Name (Array Name) := {}) : Except String (Array Name) := do
+  let mut seen : Std.HashSet Name := {}
+  let mut stack := #[n]
+  while h : stack.size > 0 do
+    let m := stack[stack.size - 1]
+    stack := stack.pop
+    if seen.contains m then continue
+    seen := seen.insert m
+    let some ci := env.find? m | throw s!"missing deep dependency: {m}"
+    stack := stack ++ (match edges[m]? with | some ds => ds | none => deepDeps ci)
+  return seen.toArray.qsort Name.lt
+
+/-- Full node bytes, not a rendering or a 64-bit Expr hash. -/
+def deepNodeBytes (env : Environment) (ci : ConstantInfo) : String := Id.run do
+  let us := (List.range ci.levelParams.length).map fun i => Level.param (.mkSimple s!"u{i}")
+  let expr (e : Expr) := deepExpr (e.instantiateLevelParams ci.levelParams us)
+  let names (ns : List Name) := deepPack "names" (ns.toArray.map deepName)
+  let data := match ci with
+    | .defnInfo d =>
+      let hints := match d.hints with
+        | .opaque => deepPack "opaque" #[] | .abbrev => deepPack "abbrev" #[]
+        | .regular h => deepPack "regular" #[toString h]
+      deepPack "definition" #[expr d.value, hints, (match d.safety with
+          | .safe => "safe" | .unsafe => "unsafe" | .partial => "partial")]
+    | .opaqueInfo d => deepPack "opaque" #[expr d.value, toString d.isUnsafe]
+    | .inductInfo d => deepPack "inductive" #[names d.all, names d.ctors,
+        toString d.numParams, toString d.numIndices, toString d.numNested,
+        toString d.isRec, toString d.isUnsafe, toString d.isReflexive]
+    | .ctorInfo d => deepPack "constructor" #[deepName d.induct, toString d.cidx,
+        toString d.numParams, toString d.numFields, toString d.isUnsafe]
+    | .recInfo d => deepPack "recursor" #[names d.all, toString d.numParams,
+        toString d.numIndices, toString d.numMotives, toString d.numMinors,
+        toString d.k, toString d.isUnsafe, deepPack "rules" (d.rules.toArray.map fun r =>
+          deepPack "rule" #[deepName r.ctor, toString r.nfields, expr r.rhs])]
+    | .axiomInfo d => deepPack "axiom" #[toString d.isUnsafe]
+    | .quotInfo d => deepPack "quotient" #[match d.kind with
+        | .type => "type" | .ctor => "ctor" | .lift => "lift" | .ind => "ind"]
+    | .thmInfo _ => deepPack "theorem" #[]
+  return deepPack "fgsa-deep-node-v1" #[deepName ci.name, toString (kindTag ci),
+    toString ci.levelParams.length, expr ci.type, data,
+    toString (reducibilityTag (getReducibilityStatusCore env ci.name)),
+    toString (Meta.isInstanceCore env ci.name),
+    deepPack "dependencies" ((deepDeps ci).map deepName)]
+
+/-- SHA-256 of the full statement closure, in Name.lt order. Node SHA-256 values
+cover the versioned kernel bytes above, including public/private/library data. -/
+def deepEntryDigest (env : Environment) (n : Name) (nodes : Std.HashMap Name String)
+    (hashBytes : String → IO String)
+    (edges : Std.HashMap Name (Array Name) := {}) : IO String := do
+  let ns ← IO.ofExcept (deepClosure env n edges)
+  let parts ← ns.mapM fun d => do
+    let some digest := nodes[d]? | throw (IO.userError s!"missing deep node digest: {d}")
+    pure (deepPack "dependency" #[deepName d, digest])
+  hashBytes (deepPack "fgsa-deep-entry-v1" parts)
+
+/-- One Python SHA-256 worker avoids starting a process for each dependency. -/
+def withDeepHasher (f : (String → IO String) → IO α) : IO α := do
+  let child ← IO.Process.spawn {
+    cmd := "python3"
+    args := #["-u", "-c",
+      "import hashlib,json,sys\n" ++
+      "for line in sys.stdin:\n" ++
+      " if line == 'STOP\\n': break\n" ++
+      " print(hashlib.sha256(json.loads(line).encode('utf-8')).hexdigest(), flush=True)"]
+    stdin := .piped
+    stdout := .piped }
+  let reaped ← IO.mkRef false
+  try
+    let result ← f fun bytes => do
+      child.stdin.putStrLn (toJson bytes).compress
+      child.stdin.flush
+      let digest := (← child.stdout.getLine).trimAscii.toString
+      unless digest.length == 64 && digest.toList.all (fun c =>
+          c.isDigit || ('a' ≤ c && c ≤ 'f')) do
+        throw (IO.userError "deep SHA-256 worker returned an invalid digest")
+      return digest
+    child.stdin.putStrLn "STOP"
+    child.stdin.flush
+    let code ← child.wait
+    reaped.set true
+    unless code == 0 do throw (IO.userError "deep SHA-256 worker failed")
+    return result
+  finally
+    unless ← reaped.get do
+      try child.kill catch _ => pure ()
+      try discard child.wait catch _ => pure ()
+
+/-- The shared node table and per-root node IDs retain dependency digests without
+repeating long names. Both tables use Name.lt order. -/
+def deepSnapshot (env : Environment) (roots : Array Name) : IO Json := withDeepHasher fun hashBytes => do
+  let roots := roots.qsort Name.lt
+  let mut edges : Std.HashMap Name (Array Name) := {}
+  let mut stack := roots
+  while h : stack.size > 0 do
+    let n := stack[stack.size - 1]
+    stack := stack.pop
+    if edges.contains n then continue
+    let some ci := env.find? n | throw (IO.userError s!"missing deep dependency: {n}")
+    let ds := deepDeps ci
+    edges := edges.insert n ds
+    stack := stack ++ ds
+  let names := (edges.toArray.map (·.1)).qsort Name.lt
+  IO.eprintln s!"DEEP snapshot: {roots.size} roots; {names.size} dependency nodes"
+  let ids : Std.HashMap Name Nat := (names.zipIdx).foldl (fun m (n, i) => m.insert n i) {}
+  let mut digests : Std.HashMap Name String := {}
+  let mut nodes : Array Json := #[]
+  for n in names do
+    let some ci := env.find? n | throw (IO.userError s!"missing deep dependency: {n}")
+    let digest ← hashBytes (deepNodeBytes env ci)
+    digests := digests.insert n digest
+    nodes := nodes.push (Json.mkObj [("name", toJson n.toString), ("digest", toJson digest),
+      ("dependencies", toJson ((deepDeps ci).map fun d => ids[d]!))])
+  let mut entries : Array (String × Json) := #[]
+  for n in roots do
+    let digest ← deepEntryDigest env n digests hashBytes edges
+    let ns ← IO.ofExcept (deepClosure env n edges)
+    entries := entries.push (n.toString, Json.mkObj [("digest", toJson digest),
+      ("dependencies", toJson (ns.map fun d => ids[d]!))])
+  return Json.mkObj [("format_version", toJson (1 : Nat)), ("entries", Json.mkObj entries.toList),
+    ("nodes", toJson nodes)]
+
+/-- The Python side stores baselines and checks exact exceptions. It cannot alter
+Lean dependency extraction or the existing shallow checks. -/
+def runDeep (mode : String) (manifest frozen allow frozenSha : System.FilePath) : IO UInt32 := do
+  initSearchPath (← findSysroot)
+  let env ← importModules (← familyImports .fgsa) {}
+  let decls ← runCore env (scan .fgsa)
+  let roots := decls.toArray.flatMap fun (_, xs) => xs.map (·.1)
+  if roots.isEmpty then throw (IO.userError "no deep roots: missing declaration ranges/build")
+  let snapshot ← deepSnapshot env roots
+  IO.FS.withTempFile fun handle path => do
+    handle.putStrLn snapshot.compress
+    handle.flush
+    let child ← IO.Process.spawn { cmd := "python3", args := #["scripts/fgsa-deep.py", mode,
+      "--snapshot", path.toString, "--manifest", manifest.toString,
+      "--baseline", frozen.toString, "--allow", allow.toString, "--sha", frozenSha.toString] }
+    child.wait
+
 structure Opts where
   mode : String := ""
   scope : Scope := .v2
   scopeGiven : Bool := false
+  deep : Bool := false
   manifest? : Option System.FilePath := none
   frozen? : Option System.FilePath := none
   allow? : Option System.FilePath := none
@@ -589,6 +785,8 @@ structure Opts where
 
 def parseArgs : List String → Opts → Option Opts
   | [], o => if o.mode.isEmpty then none else some o
+  | "--deep" :: r, o =>
+      if o.deep then none else parseArgs r { o with deep := true }
   | "--scope" :: s :: r, o =>
       if o.scopeGiven then none else
       match s with
@@ -614,7 +812,7 @@ def parseArgs : List String → Opts → Option Opts
 def main (args : List String) : IO UInt32 := do
   let some o := parseArgs args {} | do
     IO.eprintln "usage: lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa | pcsa)] \
-      (--list | --anchor | --check | --write | --check-frozen) [--manifest <path>] \
+      (--list | --anchor | --check | --write | --check-frozen) [--deep] [--manifest <path>] \
       [--frozen <path>] [--allow <path>] [--frozen-sha <path>]"
     return 2
   if o.scope != .v2 && o.mode == "--anchor" then
@@ -625,6 +823,16 @@ def main (args : List String) : IO UInt32 := do
     IO.eprintln "usage error: --write, --check-frozen, --frozen, --allow and --frozen-sha \
       require --scope fgsa or pcsa"
     return 2
+  if o.deep then
+    unless o.scope == .fgsa && ["--write", "--check"].contains o.mode do
+      IO.eprintln "usage error: --deep requires --scope fgsa and --write or --check"
+      return 2
+    try
+      return ← runDeep o.mode (o.manifest?.getD "docs/FGSA-API.md")
+        (o.frozen?.getD "scripts/fgsa-deep-frozen.json")
+        (o.allow?.getD "scripts/fgsa-deep-allow.json")
+        (o.frozenSha?.getD "scripts/fgsa-deep-frozen.sha256")
+    catch e => IO.eprintln s!"DEEP FAIL: {e}"; return 1
   let mode := o.mode
   let manifest := o.manifest?.getD (match o.scope with
     | .v2 => "docs/V2-API.md" | .gen => "docs/GEN-API.md" | .fgsa => "docs/FGSA-API.md"

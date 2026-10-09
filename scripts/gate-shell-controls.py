@@ -19,6 +19,12 @@ with tempfile.TemporaryDirectory(prefix="gate-shell-controls-") as scratch:
     (root / ".lake").mkdir()
     for name in ("fgsa-freeze.sh", "check-fgsa-manifest.sh", "check-fg.sh", "gate-common.sh"):
         shutil.copy2(REPO / "scripts" / name, scripts / name)
+    # This test checks shell propagation, not real baseline contents.
+    (scripts / "fgsa-deep.py").write_text("""import os,sys
+from pathlib import Path
+Path('calls').open('a').write('frame ' + ' '.join(sys.argv[1:]) + '\\n')
+sys.exit(18 if os.environ['CONTROL_MODE'] == 'frame-fail' else 0)
+""")
     bindir = root / "bin"
     bindir.mkdir()
     lake = bindir / "lake"
@@ -36,6 +42,8 @@ elif mode == 'signal':
     Path('started').touch()
     while True:
         time.sleep(0.05)
+elif mode == 'deep-fail' and '--deep' in sys.argv:
+    sys.exit(19)
 elif mode == 'fail' or (mode == 'setup-fail' and '--write' in sys.argv):
     sys.exit(17)
 """)
@@ -57,7 +65,9 @@ elif mode == 'fail' or (mode == 'setup-fail' and '--write' in sys.argv):
     assert (root / "frozen.sha256").read_text() == hashlib.sha256(b"entry\n").hexdigest() + "\n"
     print("CONTROL freeze normalizes before copy/hash: PASS")
 
-    for mode, neg, rc in (("pass", "0", 0), ("fail", "0", 17), ("setup-fail", "1", 17)):
+    for mode, neg, rc in (("pass", "0", 0), ("fail", "0", 17),
+                          ("frame-fail", "0", 18), ("deep-fail", "0", 19),
+                          ("setup-fail", "1", 17)):
         result = run("check-fgsa-manifest.sh", mode, NEG=neg, AUDIT_TIMING="1")
         assert result.returncode == rc, result
         assert not list((root / ".lake").glob("fgsa-manifest*"))
