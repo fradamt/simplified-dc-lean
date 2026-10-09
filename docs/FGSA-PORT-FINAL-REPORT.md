@@ -1,197 +1,161 @@
-# port-w16c — WP16 Y / WP12d / wfix2 data refresh
+READY FOR FULL GATE
 
-Data tip: `acca54f9670dccd67f03c72992a4cb1119ff896b`. Earlier groups: `33ac5fec`, `2862a33a`.
-Branch: `port-w16c`. Source base: `988177e222b441e9ee08d51f8dfd39c80b0d395d`.
-Required precheck base: `318074ba`. Date: 2026-10-09.
+# port-w16d — final data closure
 
-The required precheck, freeze bytes/history/packages, both source checks,
-old-read audit/controls, and P13 pass. The three requested FG-SA libraries pass.
-The complete audit build, expected-name gate, and coverage gate do not pass.
-They find a new Y reset-proof failure in the WP13v Inhabit fixture.
-The shallow and deep checks also require protected data edits outside current approval.
-No complete port acceptance pass is claimed.
+Branch: `port-w16d`. Source base: `4924efecd4635740060126d4ac9946063ef65ad6`.
+Data tip before this report: `1b25cf53a0e67eff0eadbfa538c42c86129ba1da`.
+Required precheck base: `318074ba`.
+Date: 2026-10-09. Evidence: `.lake/port-w16d/`.
 
-## Data changes
+All required precheck and data checks pass. The default build passes with
+warnings as errors: exit 0, 4,697 jobs, all 25 default targets. No `.lean` file,
+claim statement, checker, Lake configuration, or fixed baseline was edited.
+The lead can now run the FULL gate. This report does not claim a FULL-gate pass.
 
-The FGSA-to-Run import exception is removed. Both generated policies match.
-The stored facade no longer imports the two absent Spec paths. The Run facade
-already imports their replacements. The ownership registrations use Run/Proofs/Spec.
-The old coverage inventory has zero rows for either moved module; its 48 other
-stored Spec rows remain. All 59 moved public theorem owners are measured separately.
-Simulation has 50 public theorems and Transfer has nine. Fifty-five headers match;
-the four retained-clock replacements have complete old/new statements and source reviews.
-Two expected names have their retained-clock replacements.
+The exact reviewed shallow patch is applied at `79c3390c`.
+Reachable's pin is `6dbbc505d29881d3`. The same commit applies all 897 approved
+deep deltas: 886 existing exception updates and 11 new entries. Each old digest
+is the handoff's `baseline_digest`; each new digest is its exact `new_digest`.
+There are 908 exact exceptions. Approval evidence is
+`codex/reports/reviews/rev-port-w16c-astra.md`; lead: `fg-sa-manager`.
 
-The ledger records all six source commits: b0b493d8, 3c64a7e2, 9ef4bc76,
-7ab64f69, c00e3236, and 29dfcf26. It has 60 source-file events and complete
-statement comparisons. Explicit replacement pairs cover the five renamed restore
-helpers, four Spec results, and the private timing fixture. The same-name
-restore_rec and ancestorDeadlines_restore changes are also recorded.
-Source review and WP16 data review remain separate. The existing named production
-consumer conclusions and all claim source bytes remain unchanged.
+The recovered `.lake/port-switch/current-snapshot.json` matches all 1,242
+accepted pre-Y roots. All pre-Y and current root SHA-256 values were recomputed
+with the repository's tagged serialization. Four existing node digests change;
+two nodes are added. The local handoff now has actual prior node digests and
+the saved graph path. Its stale missing-graph note is removed.
 
-All 118 FG-SA P13 suppliers were measured. The 177 changed map rows have measured
-paths to changed Y source dependencies. The P13 check passes for FG-SA and PC-SA.
-All 36 OPEN items and all PARTIAL statuses remain. The aggregate has one binder,
-zero proposition binders, and fingerprint `f0d9a772701a8a1a` at all three locations.
-The aggregate and six restart-permitting claims compile from Params alone.
-The 59 moved Spec theorems and 15 other changed public helpers resolve.
-Their transitive axioms are only propext, Classical.choice, and Quot.sound.
-The private timing fixture has the same standard axiom set in the full build log.
+The five retained restore replacements were already applied at `2862a33a`
+and included in this branch. Their declarations, owners, and audit commands
+are measured again. Complete normal coverage passes: 6,681 rows, 14 audits,
+1,034 proof modules, 1,033 accepted equation exports, zero unaccepted exports.
+The inventory keeps its current bytes. The ledger records all 36 port-weq
+export removals as exact module/name keys. The equation baseline is unchanged.
 
-Of 2,578 expected names, 2,214 resolve from current unblocked modules.
-The other 364 depend on Inhabit modules that cannot build on this source base.
-The 1,782 changed unblocked evidence rows have measured dependency causes.
-The full expected gate remains an input failure; no expected row is removed.
+All 2,578 FG-SA expected names and all 209 FG expected names pass.
+The earlier 2,214 measurements are unchanged. The 364 names blocked in w16c
+are now measured; 303 further changed evidence rows have measured source
+dependencies. No expected name is removed. Every measured axiom set is standard.
 
-Coverage has 6,681 rows in 14 fixed audits. Five restore-name rows have exact
-replacements verified by the current Run build and supplemental oracle.
-The other 6,676 rows keep their bytes. Complete generation and the normal check
-stop at the missing Inhabit object. The previous 35-export failure remains assigned
-to port-weq; this run cannot reach or recount those exports. No equation baseline edit.
+P13 and blueprint pass. All 36 OPEN items and all PARTIAL statuses remain.
+The aggregate fingerprint is `f0d9a772701a8a1a`, with one binder and zero
+proposition binders. The aggregate and six restart claims compile from Params
+alone. Old reads and all controls pass: 10,148 constants, 520 active modules,
+six old/finality readers and 244 height-only readers. WCProposalPivot remains
+height-only. The old-read baseline keeps its bytes. The final rebuilt scan has
+55 fewer constants than the initial local scan; all 520 active modules remain.
 
-Old reads pass: 10,203 constants in 520 active modules, six old/finality readers,
-and 244 height-only readers. All controls pass. The baseline retains its bytes.
-WCProposalPivot stays height-only; no scope reclassification is made.
+API generation uses `V2Manifest.lean --scope fgsa --write` with a local output
+path. All 1,243 generated entries match the stored document exactly. The stored
+document and its historical prose keep their bytes. Shallow, deep, and frame
+pass. Frame retains 43 entries and five exact exceptions.
 
-The API generator measures 1,243 entries in 57 modules. Only Reachable changes hash,
-and Reachable.reset is added. All other generated rows and historical prose remain.
-The shallow check now stops only at the old protected Reachable pin.
-Frame passes: 43 entries, five exact exceptions, no frame data edit.
-Deep measures 1,243 roots and 3,665 nodes. Relative to the accepted pre-Y digests,
-897 roots change: 886 existing exceptions need new digests and 11 need new entries.
-Each old/new root digest has a measured current path to fgsa or Reachable.
-No prior node digest is inferred from equal source text. The exact handoff is
-`claude-files/port-w16c-deep-handoff.json`; WP00c owns the exception file.
+S0 has one further byte change: `scripts/fgsa-manifest-allow.txt`, commit
+`79c3390cbddc1939dbe7735aabd37b03063f47e5`, actual parent `4924efec`.
+Before SHA-256: `c86a1e8c0ee181e2ca855f8766c43d2481afe2ee5d0896ac58ffbbee750e69d4`.
+After SHA-256: `b4d8cd96a5fb23ac6f62a74d4beb89d1e0f6106668cf96da00d87f900a776972`.
+Freeze bytes, history, and packages pass: 122 paths, 20 differences,
+47 history records, 23 packages. Both fixed S0 manifest hashes are unchanged.
 
-The S0 history covers both changed frozen paths. Reachable changes at b0b493d8,
-with actual parent b8f60fd1 and measured hashes. The API data changes at 2862a33a,
-with actual parent 33ac5fec and measured hashes. The final pin is 2862a33a:
-122 paths, 20 differences, 46 history records, and 22 packages. No S0 manifest edit.
-ARCHITECTURE E6 now describes retained last tick and record, no added tick/duty,
-and all six restart-permitting claims. Z, AA, and AB remain explicit later obligations.
+The source attribution covers nine file events at `3acf74ea`, `7a7e1eee`,
+`de993213`, `8c22d862`, and `66af0148`, with actual parents and file hashes.
+All declaration headers and definition bodies match their parents. There are
+zero statement changes. Reviews: `rev-port-weq-astra.md` and
+`rev-port-wfix3-astra.md`. This job repairs no source module; the integrated
+jobs repaired seven export-producing proof modules, the FGSA facade, and
+Inhabit WeakContinuationW1. All operational blockers in the ledger are closed.
 
-## Before / after
+Changed tracked paths: `scripts/fgsa-manifest-allow.txt`,
+`scripts/fgsa-deep-allow.json`, `docs/FGSA-PORT-CHANGES.json`,
+`docs/FG-FINALITY-SAFETY-S0-inherited.json`, and this report.
+The local handoff and local job report remain excluded from Git.
+
+Before/after results follow. Before is measured on the initial local tree,
+except the rows that explicitly name the saved w16c result.
 
 ```text
-┌──────────────────────┬─────────────────────────────┬───────────────────────────┐
-│ Check                │ Before                      │ After                     │
-├──────────────────────┼─────────────────────────────┼───────────────────────────┤
-│ precheck             │ PASS                        │ PASS                      │
-│ freeze               │ FAIL: Invariants            │ PASS: 122 paths; 20 diffs │
-│ store source         │ PASS                        │ PASS                      │
-│ run source           │ PASS                        │ PASS                      │
-│ three libraries      │ 143: stopped blocked build  │ PASS: 3899 jobs           │
-│ audit roots          │ Not run                     │ FAIL: Inhabit reset       │
-│ policy module        │ Not run                     │ PASS: 2 jobs              │
-│ expected names       │ Old paths / two stale names │ INPUT ERROR: 364 blocked  │
-│ unblocked names      │ Not measured                │ PASS: 2214 / 2578         │
-│ supplement           │ Not measured                │ PASS: 74; moved 59        │
-│ old reads / controls │ Same baseline               │ PASS: 10203 / 520 modules │
-│ coverage             │ Five stale audit names      │ INPUT ERROR: Inhabit      │
-│ coverage generation  │ 6681 rows                   │ INPUT ERROR: Inhabit      │
-│ P13                  │ FAIL: 177 mismatches        │ PASS; 36 OPEN retained    │
-│ six witnesses        │ Not run                     │ PASS: Params alone        │
-│ API generation       │ 1242 entries                │ PASS: 1243; prose kept    │
-│ shallow              │ Changed / missing reset     │ FAIL: protected old pin   │
-│ deep                 │ Pre-Y exception data        │ FAIL: 897 exact deltas    │
-│ frame                │ Same fixed data             │ PASS: 43; 5 exceptions    │
-│ finality coverage    │ PASS                        │ PASS                      │
-│ ownership            │ PASS                        │ PASS: 746 paths           │
-│ Inhabit candidate    │ Six reset goals fail        │ PASS; patch not applied   │
-│ freeze history       │ 44 records; pre-Y pin       │ PASS: 46 exact records    │
-│ freeze packages      │ 20 packages                 │ PASS: 22 packages         │
-└──────────────────────┴─────────────────────────────┴───────────────────────────┘
+┌────────────────────────────┬────────────────────────────┬────────────────────────────┬──────┐
+│ Check                      │ Before                     │ After                      │ Exit │
+├────────────────────────────┼────────────────────────────┼────────────────────────────┼──────┤
+│ Precheck: base             │ PASS                       │ PASS                       │ 0    │
+│ Precheck: diff-check       │ PASS                       │ PASS                       │ 0    │
+│ Precheck: guard-lists      │ PASS                       │ PASS                       │ 0    │
+│ Precheck: import-policy    │ PASS                       │ PASS                       │ 0    │
+│ Precheck: check-layers     │ PASS                       │ PASS                       │ 0    │
+│ Precheck:                  │ PASS                       │ PASS                       │ 0    │
+│ check-module-headers       │                            │                            │      │
+│ Precheck: check-expose     │ PASS                       │ PASS                       │ 0    │
+│ Precheck:                  │ PASS                       │ PASS                       │ 0    │
+│ check-transparency         │                            │                            │      │
+│ Precheck: check-gly-rules  │ PASS                       │ PASS                       │ 0    │
+│ Precheck: check-fgsa       │ PASS                       │ PASS                       │ 0    │
+│ Precheck: check-fgsa-run   │ PASS                       │ PASS                       │ 0    │
+│ Precheck:                  │ PASS                       │ PASS                       │ 0    │
+│ check-fgsa-claims          │                            │                            │      │
+│ Required precheck          │ PASS                       │ PASS; base 318074ba        │ 0    │
+│ S0 bytes                   │ PASS; 46 history records   │ PASS; 122 paths / 20 diffs │ 0    │
+│ S0 history                 │ PASS in w16c; 46 records   │ PASS; 47 records           │ 0    │
+│ S0 packages                │ PASS in w16c; 22 packages  │ PASS; 23 packages          │ 0    │
+│ Store source (standalone)  │ PASS                       │ PASS                       │ 0    │
+│ Run source (standalone)    │ PASS                       │ PASS                       │ 0    │
+│ Default --wfail build      │ Objects stale locally      │ PASS; 25 targets / 4697    │ 0    │
+│                            │                            │ jobs                       │      │
+│ FG-SA expected names       │ Exit 2; stale Inhabit      │ PASS; all 2578             │ 0    │
+│                            │ object                     │                            │      │
+│ FG expected names          │ Not run in this job        │ PASS; all 209              │ 0    │
+│ Expected evidence          │ 2214 measured / 364        │ PASS; 2787 names / 303 new │ 0    │
+│                            │ blocked                    │ rows                       │      │
+│ Proof coverage             │ Exit 2; stale Inhabit      │ PASS; 6681 rows / 14       │ 0    │
+│                            │ object                     │ audits                     │      │
+│ Old reads / controls       │ PASS; baseline unchanged   │ PASS; 10148 constants /    │ 0    │
+│                            │                            │ 520                        │      │
+│ P13 / blueprint            │ PASS; 36 OPEN items        │ PASS; 36 OPEN items        │ 0    │
+│                            │                            │ retained                   │      │
+│ Aggregate / six witnesses  │ PASS in w16c               │ PASS; Params alone; 1/0    │ 0    │
+│                            │                            │ binders                    │      │
+│ API generation             │ 1243 stored entries        │ PASS; 1243 entries match   │ 0    │
+│ Shallow                    │ FAIL; old Reachable pin    │ PASS; exact approved pin   │ 0    │
+│ Deep                       │ FAIL; 897 exact deltas     │ PASS; 1243 roots / 908     │ 0    │
+│                            │                            │ exceptions                 │      │
+│ Frame                      │ PASS; same fixed data      │ PASS; 43 entries / 5       │ 0    │
+│                            │                            │ exceptions                 │      │
+│ Finality coverage          │ PASS                       │ PASS; 24 modules / 221     │ 0    │
+│                            │                            │ names                      │      │
+│ Ownership                  │ PASS; 746 paths            │ PASS; 746 paths            │ 0    │
+│ Source / baseline scope    │ Clean base                 │ PASS; no Lean or baseline  │ 0    │
+│                            │                            │ edit                       │      │
+└────────────────────────────┴────────────────────────────┴────────────────────────────┴──────┘
 ```
 
-All commands and exits are in `final_refresh` and the port-w16c check rows in
-`docs/FGSA-PORT-CHANGES.json`. Evidence is in `.lake/port-w16c/`.
-The exact required commands were run:
+Every command, exit, runtime, and evidence hash is recorded in
+`docs/FGSA-PORT-CHANGES.json` under `last_data_closure.checks`.
+The required commands were run exactly:
 
 ```sh
 bash /Users/francesco/.claude/jobs/22f59f85/tmp/precheck.sh \
   /Users/francesco/.claude/jobs/22f59f85/tmp/wt-pcsa-formation 318074ba
 python3 -B scripts/check-fg-finality-freeze.py --check
-python3 -B scripts/check-fg-finality-freeze.py --history
-python3 -B scripts/check-fg-finality-freeze.py --packages
 SOURCE_ONLY=1 bash scripts/check-fgsa.sh
 SOURCE_ONLY=1 bash scripts/check-fgsa-run.sh
-LEAN_SLOTS=2 lake env lean --run scripts/CheckFGSAOldReads.lean --controls
+LEAN_SLOTS=2 lake build --wfail
 LEAN_SLOTS=2 python3 -B scripts/check-proof-coverage.py
-LEAN_SLOTS=2 python3 -B scripts/check-proof-coverage.py --write
-LEAN_SLOTS=2 python3 -B scripts/check-fgsa-blueprint.py --check
 ```
 
-## Build evidence
+Initial sandbox Lean attempts could not acquire shared slot locks. Only this
+job's four inspected waiting wrappers were stopped. Runs with normal shared
+lock access used `LEAN_SLOTS=2`. The first expected/coverage attempts found
+stale local Inhabit objects. Manifest attempts during the build also found
+objects invalidated by Lake. All final compiled measurements ran after the
+successful build. Replayed scheduling stderr is not a Lean warning.
 
-```sh
-LEAN_SLOTS=2 lake build --wfail \
-  AvailableChainFGSAProofs AvailableChainFGSARun AvailableChainFGSA
-# exit 0; 3899 jobs; build-final.log
-LEAN_SLOTS=2 lake build --wfail $(cat .lake/port-w16c/audit-targets.txt)
-# exit 1; 4158 jobs; audits-build.log; only failed module: Inhabit WeakContinuationW1
-LEAN_SLOTS=2 lake build --wfail AvailableChainCheckSupport.ImportPolicy
-# exit 0; 2 jobs; policy-build.log
-```
+No failure remains in the required checks. New WP16 data still needs its
+normal data review. Ruling Z's independent source simulation and claim transfer,
+and the existing AA/AB obligations, remain explicit later work. No claim text
+or status was changed to close them.
 
-The first sandbox build reported the stale facade imports and waited for shared
-slot locks. Only its verified waiting processes and sleep children were stopped;
-exit 143. The corrected build used the normal shared two-slot wrapper.
-No throttle bypass, other-writer process kill, lake update, push, rebase, agent,
-or review process was used.
-
-## Blockers and cross-WP work
-
-WP13v: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:106:17` has an unsolved
-reset rowPool goal. The other first errors are 106:42, 107:12, 1184:17, 1184:42,
-and 1185:12. The two restart proofs need initialAt in their simplification lists.
-`claude-files/port-w16c-inhabit-fix.patch` is ready. Its complete local candidate
-compiles with warnings as errors, exit 0. It changes no statement and is unapplied.
-An ownership exception was requested; no answer has arrived.
-
-Protected shallow data: `claude-files/port-w16c-shallow-pin.patch` changes only
-Reachable's existing pin from b8ebe90e84f54451 to measured 6dbbc505d29881d3.
-Automatic approval review rejected the mutation because AGENTS.md protects allow lists.
-The pin patch is unapplied. Approval was requested; no answer has arrived.
-An incorrect pin could accept an unintended statement change; this patch is exact.
-
-WP00c: apply/review the 897 measured deep exceptions from the handoff.
-The frozen deep/frame files, all SHA pins, and both exception maps retain their bytes.
-No broad allowance or checker change was made.
-
-port-weq: the 35 foreign equation exports remain pending. They were not accepted,
-removed from the baseline, or remeasured through the blocked current coverage input.
-After its merge and the Inhabit repair, run the short complete coverage refresh.
-
-WP12: full independent source state, handlers, duties, matched-cut equivalence,
-and claim transfer remain post-landing work under Z. All six restart-permitting
-claims need correspondence; NoRestart transfer cannot cover them. Keep AA's
-unlock/lock-relation delta and AB's positivity requirement. The spec session must
-update the obsolete restart notes after landing.
-
-Not run: default whole-repository build, full compiled FG/FGSA gates and negative
-controls, FULL/MERGE, NUC FULL, complete PC-SA baseline refresh, new review,
-or final joint WP15/WP16 acceptance. The Inhabit and protected-data blockers prevent
-completion of the requested final refresh. Every applied edit stays in the authorized
-WP16 data/facade scope, plus the requested ownership-registration edit.
-
-## Files
-
-- AvailableChainFGSA.lean
-- docs/ARCHITECTURE.md
-- docs/FG-FINALITY-SAFETY-S0-inherited.json
-- docs/FGSA-API.md
-- docs/FGSA-BLUEPRINT-LEAN.json
-- docs/FGSA-PORT-CHANGES.json
-- docs/FGSA-PORT-OWNERS.json
-- docs/FGSA-PRODUCER-MAP-stage4.md
-- docs/FGSA-SEMANTIC-LEDGER-stage4.md
-- scripts/AvailableChainCheckSupport/ImportPolicy.lean
-- scripts/fgsa-claims-expected.txt
-- scripts/import-policy.json
-- scripts/import-policy.sh
-- scripts/proof-audit-coverage.txt
-
-- docs/FGSA-PORT-FINAL-REPORT.md (this report)
+Not run: FULL/MERGE gates, compiled FGSA/Run checker gates and their negative
+controls, or extra coverage generation. Complete normal coverage verifies the
+fixed inventory. No review, agent, Codex/Claude child process, push, rebase,
+or lake update was started.
 
 Claude-Session: https://claude.ai/code/session_01QreJ9BuHuNn5MNfMUXRdLN

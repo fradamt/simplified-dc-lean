@@ -225468,7 +225468,7 @@
       "command": "bash /Users/francesco/.claude/jobs/22f59f85/tmp/precheck.sh /Users/francesco/.claude/jobs/22f59f85/tmp/wt-pcsa-formation 318074ba",
       "after": "PASS",
       "exit": 0,
-      "seconds": 29.1,
+      "seconds": 33.55,
       "evidence": ".lake/port-w16d/precheck.log",
       "evidence_sha256": "70485650635700a3a765aaaa38320c769c28cb00a8bd0b9ac10c44d1e1f4c79f"
     },
@@ -225478,7 +225478,7 @@
       "command": "python3 -B scripts/check-fg-finality-freeze.py --check",
       "after": "PASS",
       "exit": 0,
-      "seconds": 0.06,
+      "seconds": 0.07,
       "evidence": ".lake/port-w16d/freeze.log",
       "evidence_sha256": "43f66ec196f53b01a2082a6f5fb3478add3055c031a34caf5c79c068ed840c71"
     },
@@ -233931,14 +233931,14 @@
           "name": "precheck",
           "command": "bash /Users/francesco/.claude/jobs/22f59f85/tmp/precheck.sh /Users/francesco/.claude/jobs/22f59f85/tmp/wt-pcsa-formation 318074ba",
           "exit": 0,
-          "seconds": 29.1,
+          "seconds": 33.55,
           "log": ".lake/port-w16d/precheck.log"
         },
         {
           "name": "freeze",
           "command": "python3 -B scripts/check-fg-finality-freeze.py --check",
           "exit": 0,
-          "seconds": 0.06,
+          "seconds": 0.07,
           "log": ".lake/port-w16d/freeze.log"
         },
         {
