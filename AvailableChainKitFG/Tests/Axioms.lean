@@ -1,4 +1,5 @@
 module
+public import AvailableChainKitFG.TreeFrameBridge
 public import AvailableChainKitFG.FrameChannels
 public import AvailableChainKitFG.Accountable
 public import AvailableChainKitFG.CrossingNoFinal
@@ -97,3 +98,31 @@ public import AvailableChainKitFG.AccountableCore
 #print axioms AvailableChain.KitFG.parent_preceq_parent
 #print axioms AvailableChain.KitFG.preceq_parent_of_ne
 #print axioms AvailableChain.KitFG.slashableWeight_or_finalized_compatible_of_parent_roots
+
+-- AvailableChainKitFG/TreeFrameDef.lean
+#print axioms AvailableChain.KitFG.treeStoreControlsView
+#print axioms AvailableChain.KitFG.treeStoreControlsView_def
+#print axioms AvailableChain.KitFG.treeStoreFrameView
+#print axioms AvailableChain.KitFG.treeStoreFrameView_def
+#print axioms AvailableChain.KitFG.treeFjControlsView
+#print axioms AvailableChain.KitFG.treeFjControlsView_def
+#print axioms AvailableChain.KitFG.treeFjFrameView
+#print axioms AvailableChain.KitFG.treeFjFrameView_def
+
+-- AvailableChainKitFG/TreeFrameBridge.lean
+#print axioms AvailableChain.KitFG.treeECView
+#print axioms AvailableChain.KitFG.treeECView_def
+#print axioms AvailableChain.KitFG.treeStoreControlsView_contest_iff
+#print axioms AvailableChain.KitFG.treeFjControlsView_contest_iff
+#print axioms AvailableChain.KitFG.treeStoreControlsView_contest_witness
+#print axioms AvailableChain.KitFG.treeFjControlsView_contest_witness
+#print axioms AvailableChain.KitFG.treeStoreControlsView_contest_imp
+#print axioms AvailableChain.KitFG.treeFjControlsView_contest_imp
+#print axioms AvailableChain.KitFG.treeStoreControlsView_eq
+#print axioms AvailableChain.KitFG.treeStoreFrameView_eq
+#print axioms AvailableChain.KitFG.treeFjControlsView_eq
+#print axioms AvailableChain.KitFG.treeFjFrameView_eq
+#print axioms AvailableChain.KitFG.treeStoreControlsView_eq_of_no_offF_top
+#print axioms AvailableChain.KitFG.treeFjControlsView_eq_of_no_offF_top
+#print axioms AvailableChain.KitFG.treeStoreControlsView_J_preceq_of_rootIsJ
+#print axioms AvailableChain.KitFG.treeFjControlsView_J_preceq_of_rootIsJ

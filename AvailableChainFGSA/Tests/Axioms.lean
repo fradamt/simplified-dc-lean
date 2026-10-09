@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.Port.ContestFrame
 public import AvailableChainFGSA.Proofs.Port.Tree
 public import AvailableChainFGSA.Proofs.NamedReachable
 public import AvailableChainFGSA.Proofs.HeadResolution
@@ -627,3 +628,45 @@ end AvailableChain.FGSA.instDecidableEqNamedProposal
 namespace AvailableChain.FGSA.instReprNamedProposal
 #print axioms repr
 end AvailableChain.FGSA.instReprNamedProposal
+
+-- AvailableChainFGSA/Model/ContestFrame.lean
+#print axioms AvailableChain.FGSA.Next.controls
+#print axioms AvailableChain.FGSA.Next.controls_def
+#print axioms AvailableChain.FGSA.Next.fullTree
+#print axioms AvailableChain.FGSA.Next.fullTree_def
+
+-- AvailableChainFGSA/Proofs/Port/ContestFrame.lean
+#print axioms AvailableChain.FGSA.Next.controls_eq_of_top_extends_F
+#print axioms AvailableChain.FGSA.Next.fullTree_eq_of_top_extends_F
+#print axioms AvailableChain.FGSA.Next.controls_contest_imp
+#print axioms AvailableChain.FGSA.Next.controls_contest_witness
+#print axioms AvailableChain.FGSA.Next.controls_J_preceq_of_rootIsJ
+#print axioms AvailableChain.FGSA.Next.contestFullTree_subset_tree
+
+-- AvailableChainKitFG/TreeFrameDef.lean
+#print axioms AvailableChain.KitFG.treeStoreControlsView
+#print axioms AvailableChain.KitFG.treeStoreControlsView_def
+#print axioms AvailableChain.KitFG.treeStoreFrameView
+#print axioms AvailableChain.KitFG.treeStoreFrameView_def
+#print axioms AvailableChain.KitFG.treeFjControlsView
+#print axioms AvailableChain.KitFG.treeFjControlsView_def
+#print axioms AvailableChain.KitFG.treeFjFrameView
+#print axioms AvailableChain.KitFG.treeFjFrameView_def
+
+-- AvailableChainKitFG/TreeFrameBridge.lean
+#print axioms AvailableChain.KitFG.treeECView
+#print axioms AvailableChain.KitFG.treeECView_def
+#print axioms AvailableChain.KitFG.treeStoreControlsView_contest_iff
+#print axioms AvailableChain.KitFG.treeFjControlsView_contest_iff
+#print axioms AvailableChain.KitFG.treeStoreControlsView_contest_witness
+#print axioms AvailableChain.KitFG.treeFjControlsView_contest_witness
+#print axioms AvailableChain.KitFG.treeStoreControlsView_contest_imp
+#print axioms AvailableChain.KitFG.treeFjControlsView_contest_imp
+#print axioms AvailableChain.KitFG.treeStoreControlsView_eq
+#print axioms AvailableChain.KitFG.treeStoreFrameView_eq
+#print axioms AvailableChain.KitFG.treeFjControlsView_eq
+#print axioms AvailableChain.KitFG.treeFjFrameView_eq
+#print axioms AvailableChain.KitFG.treeStoreControlsView_eq_of_no_offF_top
+#print axioms AvailableChain.KitFG.treeFjControlsView_eq_of_no_offF_top
+#print axioms AvailableChain.KitFG.treeStoreControlsView_J_preceq_of_rootIsJ
+#print axioms AvailableChain.KitFG.treeFjControlsView_J_preceq_of_rootIsJ

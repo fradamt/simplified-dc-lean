@@ -167,6 +167,16 @@ for m in $(test_modules .); do TEST_ROOTS+=(--root "$m"); done
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]}" --expect \
   AvailableChain.FGSA.Next.tree \
   AvailableChain.FGSA.Next.erasedList \
+  AvailableChain.FGSA.Next.controls \
+  AvailableChain.FGSA.Next.controls_def \
+  AvailableChain.FGSA.Next.fullTree \
+  AvailableChain.FGSA.Next.fullTree_def \
+  AvailableChain.FGSA.Next.controls_eq_of_top_extends_F \
+  AvailableChain.FGSA.Next.fullTree_eq_of_top_extends_F \
+  AvailableChain.FGSA.Next.controls_contest_imp \
+  AvailableChain.FGSA.Next.controls_contest_witness \
+  AvailableChain.FGSA.Next.controls_J_preceq_of_rootIsJ \
+  AvailableChain.FGSA.Next.contestFullTree_subset_tree \
   AvailableChain.FGSA.Next.mem_tree \
   AvailableChain.FGSA.Next.F_mem_tree \
   AvailableChain.FGSA.Next.tree_subset_TF \

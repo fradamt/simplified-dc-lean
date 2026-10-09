@@ -114,7 +114,8 @@
         "AvailableChainFGSA.Model.*",
         "@fgsaExternal",
         "AvailableChainKitFG.ClientOnce",
-        "AvailableChainKitFG.FrameBridgeDef"
+        "AvailableChainKitFG.FrameBridgeDef",
+        "AvailableChainKitFG.TreeFrameDef"
       ],
       "Statements": [
         "AvailableChainFGSA.Model.*",

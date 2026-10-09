@@ -35,7 +35,8 @@ def fgsaAllowedImport (mod imp : Name) : Bool :=
       (`AvailableChainSimplexFG, true, false),
       (`Mathlib, true, false),
       (`AvailableChainKitFG.ClientOnce, false, true),
-      (`AvailableChainKitFG.FrameBridgeDef, false, true)]
+      (`AvailableChainKitFG.FrameBridgeDef, false, true),
+      (`AvailableChainKitFG.TreeFrameDef, false, true)]
     | "Statements" => [
       (`AvailableChainFGSA.Model, true, false),
       (`AvailableChainFGSA.Statements, true, false),

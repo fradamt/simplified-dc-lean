@@ -57,6 +57,8 @@ public import AvailableChainKitFG.StoreSafety
 public import AvailableChainKitFG.StoreSafetySimplex
 public import AvailableChainKitFG.FrameBridgeDef
 public import AvailableChainKitFG.FrameBridge
+public import AvailableChainKitFG.TreeFrameDef
+public import AvailableChainKitFG.TreeFrameBridge
 public import AvailableChainKitFG.JustificationLawsDef
 public import AvailableChainKitFG.FrameSelection
 public import AvailableChainKitFG.FrameGeometry
