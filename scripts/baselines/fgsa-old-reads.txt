@@ -27,7 +27,6 @@ height AvailableChain.FGSA.Run.attest_signer_irrel # pre-J4 baseline 2026-10-02 
 height AvailableChain.FGSA.Run.attest_some_fresh # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol)
 height AvailableChain.FGSA.Run.attest_some_record # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol)
 height AvailableChain.FGSA.Run.cap_finality_head # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap)
-height AvailableChain.FGSA.Run.cleanCut_zero_body # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Zero)
 height AvailableChain.FGSA.Run.cleanFrame_of_state # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Frame)
 height AvailableChain.FGSA.Run.cleanHistoryAt_body # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Closure)
 height AvailableChain.FGSA.Run.cleanState_zero # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.State)
@@ -46,8 +45,6 @@ height AvailableChain.FGSA.Run.client_step # pre-J4 baseline 2026-10-02 (Availab
 height AvailableChain.FGSA.Run.consumer_band_agrees # G11 job 7 bridge: heights through heightView_bridge / heightBridge_fields; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers)
 height AvailableChain.FGSA.Run.consumer_height_mono # G11 job 7 bridge: heights through heightView_bridge / heightBridge_fields; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers)
 height AvailableChain.FGSA.Run.consumer_parent_height # G11 job 7 bridge: heights through heightView_bridge / heightBridge_fields; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers)
-height AvailableChain.FGSA.Run.cpCompat_of_srcFrame # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels)
-height AvailableChain.FGSA.Run.cpPrefix_of_srcFrame # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels)
 height AvailableChain.FGSA.Run.eligible_lo_live # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels)
 height AvailableChain.FGSA.Run.emission_attest_valid # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.EmissionWellFormed)
 height AvailableChain.FGSA.Run.fgsaSafetyClientLaws # fg-fin P4b: tick_rows height-only read via shared client; lead ruling 2026-10-07; J6 removes
@@ -76,7 +73,6 @@ height AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff # pre-J4 baseline 2026-
 height AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff_view # G11 job 5a bridge: view form of the landed SR eligibility adapter via heightView_bridge; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect)
 height AvailableChain.FGSA.Run.fgsa_walkRun_full_domain # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
 height AvailableChain.FGSA.Run.fgsa_walkRun_full_domain_view # G11 job 5a bridge: view form of the landed SR full-domain adapter via heightView_bridge; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect)
-height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
 height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_view # G11 job 5a bridge: view form of the landed SR path-domain adapter via heightView_bridge; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect)
 height AvailableChain.FGSA.Run.high_record_fresh_at_cut # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact)
@@ -131,7 +127,6 @@ height AvailableChain.FGSA.heightView_eq_simplex # pre-J4 baseline 2026-10-02 (A
 height AvailableChain.FGSA.row_bit_persist # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.RowValidity)
 
 # ROOT-DIGEST W3b: scoped r2.3 helpers keep the existing height-only route.
-height AvailableChain.FGSA.Run.cpCompat_of_scopedFrame # r2.3 scoped frame height view
 height AvailableChain.FGSA.Run.srcFrameAbove_scoped # r2.3 certified entry height view
 height AvailableChain.FGSA.Run.WCExactProposalStatement # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.WCFinalBelowStatement # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
@@ -257,3 +252,9 @@ height AvailableChain.FGSA.Run.wc_stepDelivery # WC plan r2: height-only via sha
 height AvailableChain.FGSA.Run.wc_stepGateTick # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_stepNoGateTick # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_stepRestart # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
+height AvailableChain.FGSA.Legacy.attest_eq # WP16 port: measured height-only derive dependency; WP01b Legacy comparison
+height AvailableChain.FGSA.Run.fgsa_cpCompat_of_scopedFrame # WP16 port: measured height-only derive dependency; A/N canonical or guarded frame helper
+height AvailableChain.FGSA.Run.fgsa_cpCompat_of_srcFrame # WP16 port: measured height-only derive dependency; A/N canonical or guarded frame helper
+height AvailableChain.FGSA.Run.fgsa_cpPrefix_of_srcFrame # WP16 port: measured height-only derive dependency; A/N canonical or guarded frame helper
+height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_filtered # WP16 port: measured height-only derive dependency; A/N canonical or guarded frame helper
+height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_of_top_retained # WP16 port: measured height-only derive dependency; A/N canonical or guarded frame helper

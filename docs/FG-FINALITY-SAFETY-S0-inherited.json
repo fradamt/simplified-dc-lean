@@ -7,8 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "e961df941261be5f421a03ae80635d1806a516e9",
-  "main_revision_note": "WP16 second-pass pin on e961df94. Ruling Y and WP12d are pending source merges.",
+  "main_revision": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+  "main_revision_note": "WP16 second-pass pin including the approved guard edit. Ruling Y and WP12d are pending.",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -529,6 +529,22 @@
           "kind": "commit"
         }
       ]
+    },
+    {
+      "path": "scripts/guard-lists-allow.txt",
+      "s0_sha256": "e05e674f98e0a494e9ea9031c45e8da9262ff99eedd5edd610b7e2d13dab5009",
+      "comparison_sha256": "e05e674f98e0a494e9ea9031c45e8da9262ff99eedd5edd610b7e2d13dab5009",
+      "main_sha256": "475793a013e98e5568665b6fce1fa51d8706bd0da1d12675506259c1b0463d9a",
+      "changes": [
+        {
+          "commit": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+          "parent": "e961df941261be5f421a03ae80635d1806a516e9",
+          "before_sha256": "e05e674f98e0a494e9ea9031c45e8da9262ff99eedd5edd610b7e2d13dab5009",
+          "after_sha256": "475793a013e98e5568665b6fce1fa51d8706bd0da1d12675506259c1b0463d9a",
+          "reason": "WP16 exact guard records approved by fg-sa-manager: fix(fgsa): correct WP16 attribution and apply approved guard records",
+          "kind": "commit"
+        }
+      ]
     }
   ],
   "packages": [
@@ -718,6 +734,18 @@
         {
           "path": "AvailableChainFGSAProofs/Tests/Axioms.lean",
           "commit": "fd5a26137eb9d0346dec6ceb9eed88e91703e948"
+        }
+      ],
+      "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."
+    },
+    {
+      "id": "FGSA-port-approved-guard-edit",
+      "base": "e961df941261be5f421a03ae80635d1806a516e9",
+      "tip": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+      "recorded_changes": [
+        {
+          "path": "scripts/guard-lists-allow.txt",
+          "commit": "02f5ac9aab84c6587f3f8e708a1736f354021d3b"
         }
       ],
       "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."

@@ -907,3 +907,12 @@ Ruling V requires FrameNext inputs. Legacy frame declarations remain comparison 
 The [change record](FGSA-PORT-CHANGES.json) gives exact data and source attribution.
 The [first-pass report](FGSA-PORT-FINAL-REPORT.md) lists checks and pending packages.
 WP08, WP10, WP12b, and WP15 are still open on this base. No final gate pass is recorded.
+
+## FG-SA port WP16 second pass
+
+The merged WP08 and WP10 frame inputs use FrameNext. WP13v2 repairs the tests.
+The complete Formation/Run build passes on source base `e961df94` (3,856 jobs).
+The change record gives complete source statements, change commits, and review snapshots.
+Ruling Z permits the proved partial Spec construction to land. The full independent
+source interpreter, matched-cut equivalence, and claim transfer remain open.
+Ruling Y and the WP12d Spec move are pending on this source base.
