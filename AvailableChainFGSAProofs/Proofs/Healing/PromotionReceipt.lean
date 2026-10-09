@@ -49,7 +49,7 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
   have hne : (fullTree p st).Nonempty := by
     obtain ⟨W, hW, hh⟩ := healing_phase_frontier_witness p c E rho ip x
     obtain ⟨hF, hZ⟩ := healing_phase_frontier_root p c E rho crossing hx hW hh
-    change (KitFG.storeFrameView (heightView p) st.fg st.fg.TF).Nonempty
+    change (KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF).Nonempty
     rw [hfg]
     exact ⟨W, (KitFG.mem_filteredFromView _ _ _ _).mpr
       ⟨hW, hF, hZ, W, hW, KitFG.preceq_refl _, hh ▸ KitFG.Controls.lo_le_H _⟩⟩
@@ -71,7 +71,7 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
       change (if (controls p st).contest then st.fg.h_max else st.fg.h_max - 1) = _
       have hHi' : st.fg.h_max = m := hfg ▸ hHi
       have hci' : (controls p st).contest = contested := by
-        change (KitFG.storeControlsView (heightView p) st.fg).contest = contested
+        change (KitFG.treeStoreControlsView (heightView p) st.fg).contest = contested
         rw [hfg]
         exact hci
       rw [hci', hHi']
@@ -86,8 +86,8 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
       obtain ⟨_, _, _, _, _, hFB⟩ := frameD.2.2.2.1
       have hZ : (controls p st).Z = B := by
         have hri' : (controls p st).rootIsJ = true ∧ (controls p st).J = B := by
-          change (KitFG.storeControlsView (heightView p) st.fg).rootIsJ = true ∧
-            (KitFG.storeControlsView (heightView p) st.fg).J = B
+          change (KitFG.treeStoreControlsView (heightView p) st.fg).rootIsJ = true ∧
+            (KitFG.treeStoreControlsView (heightView p) st.fg).J = B
           rw [hfg]
           exact hri
         change (if (controls p st).rootIsJ then st.fg.J else st.fg.F) = B

@@ -207,7 +207,8 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
       rcases (frontierHG3Result_iff p c E rho i m ev.time _).mp result with
           hphase | hrise | ⟨t, hwt, ht, hserved⟩
       · obtain ⟨j, nextEv, nextKind, hij, ht, hnext, hrank⟩ :=
-          frontierSearch_phase_step p c E rho mono hrec.base.noRestart hs hstart hphase
+          frontierSearch_phase_step_of_crossing p c E rho crossing mono
+            hrec.base.noRestart hs hstart hphase
         have htime : ev.time ≤ nextEv.time := by
           obtain ⟨hi, _⟩ := (frontierSearchStart_iff p c E rho i ev m kind).mp hstart
           obtain ⟨hjEv, _⟩ := (frontierSearchStart_iff p c E rho j nextEv m nextKind).mp hnext
