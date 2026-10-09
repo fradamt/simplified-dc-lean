@@ -899,3 +899,11 @@ entries. The [ownership register](FGSA-PORT-OWNERS.json) gives one owner for
 each exact edit path. The [PC-SA baseline](FGSA-PORT-PCSA-BASELINE.json) records
 the source and compiled statement dependencies that the port must preserve.
 `FrameNext` will become the final frame surface at SWITCH.
+
+## FG-SA port WP16 first-pass handoff
+
+The h+i+j switch uses the accepted tree above F for canonical reads.
+Ruling V requires FrameNext inputs. Legacy frame declarations remain comparison objects.
+The [change record](FGSA-PORT-CHANGES.json) gives exact data and source attribution.
+The [first-pass report](FGSA-PORT-FINAL-REPORT.md) lists checks and pending packages.
+WP08, WP10, WP12b, and WP15 are still open on this base. No final gate pass is recorded.

@@ -130,7 +130,8 @@
         "@fgsaExternal",
         "AvailableChainGridCO.Proofs.*",
         "AvailableChainKitFG.*",
-        "AvailableChainGeneric.Proofs.*"
+        "AvailableChainGeneric.Proofs.*",
+        "AvailableChainFGSARun.Model.Protocol"
       ]
     },
     "AvailableChainFGSARun": {

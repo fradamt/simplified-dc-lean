@@ -3965,3 +3965,11 @@ HealRContract.keep). CleanGrowthClaim takes `0 ≤ t` before the horizon bound (
 deadline before 0 and a false AvailableGrowthConcl; EXPOSED via FGSAClaims.cleanGrowth; DC LiveFrom t₀ ≤ t,
 Generic/Properties.lean:105). AvailableGrowthConcl is unchanged. WEAKER statements. Hash moves: RKeep,
 CleanGrowthClaim; none frozen at G-F0a (no allow line).
+
+## FG-SA port WP16 first-pass handoff
+
+The table above records stage-4 history. The
+[port change record](FGSA-PORT-CHANGES.json) attributes the single h+i+j switch,
+the guarded helper replacements, and the later source contract changes.
+Equal source text does not establish equal fingerprints. Current shallow, frame, and deep
+checks pass against fixed baselines. The final supplier map and joint gate remain pending.
