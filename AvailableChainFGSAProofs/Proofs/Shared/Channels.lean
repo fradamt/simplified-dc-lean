@@ -86,9 +86,12 @@ theorem fgsa_domainR_eq_filtered (st : State p.n) (X : Finset (FGBlock (Fin p.n)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The channel domain equals the fixed-store frame through the height bridge. -/
-theorem domainR_eq_storeFrame (st : State p.n) (X : Finset (FGBlock (Fin p.n))) :
+theorem fgsa_domainR_eq_storeFrame_of_top_retained (st : State p.n)
+    (X : Finset (FGBlock (Fin p.n)))
+    (hF : ∀ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max →
+      ¬ FGBlock.Preceq st.fg.J W → FGBlock.Preceq st.fg.F W) :
     domainR p st X = storeFrame p.E p.cfg st.fg X := by
-  rw [domainR_def, frameR_def, controls_eq,
+  rw [domainR_def, frameR_def, fgsa_controls_eq_of_top_retained p st hF,
     ← KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
   rfl
 

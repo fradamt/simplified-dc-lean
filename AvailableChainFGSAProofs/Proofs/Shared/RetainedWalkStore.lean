@@ -25,8 +25,10 @@ ROOT-DIGEST W2. Blueprint 21:783–795, 878–883, 1401–1427, 1998–2019, 211
 DC: INTENTIONAL; ProposalWalkTransportCore.lean:169 has the source result;
 FG-SA first proves equality of the ordinary and live-root walks.
 The best-ancestry conjunction is inline until the Gen predicate is available. -/
-theorem fgsa_ordinary_parent_of_live_prefix
+theorem fgsa_ordinary_parent_of_live_prefix_of_top_retained
     (p : Params) (src : State p.n) (raw sup : List (GridCO.Wire p.n .root)) (A : Block)
+    (hF : ∀ W ∈ src.fg.TF, (heightView p W).h = src.fg.h_max →
+      ¬ FGBlock.Preceq src.fg.J W → FGBlock.Preceq src.fg.F W)
     (hroot : ∀ B ∈ erasedList src (fullTree p src),
       ∀ C ∈ erasedList src (fullTree p src), B.root = C.root → B = C)
     (hparent : getHead p src raw sup = A)
@@ -49,21 +51,23 @@ theorem fgsa_ordinary_parent_of_live_prefix
     GridCO.ghost z S ss es = getHead p src raw sup ∧
       GridCO.ghost z S ss es = A := by
   have he := walk_reanchor_of_best_ancestry _ _ _ _ _
-    (by simpa only [erasedList, fullTree_eq] using hroot)
+    (by simpa only [erasedList, fgsa_fullTree_eq_of_top_retained p src hF] using hroot)
     (retained_store_root_live p src) hprefix
   change GridCO.ghost _ _ _ _ = _ at hparent
-  simp only [fullTree_eq p src] at hparent
+  simp only [fgsa_fullTree_eq_of_top_retained p src hF] at hparent
   refine ⟨?_, he.trans hparent⟩
   dsimp only [getHead, headInTree, erasedList]
-  rw [fullTree_eq]
+  rw [fgsa_fullTree_eq_of_top_retained p src hF]
   exact he
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2. Blueprint 21:783–795, 2818–2825; spec 1109–1114. Class (iii).
 DC: INTENTIONAL; ProposalWalkTransportCore.lean:162 extracts source steps.
 Coverage of the live root supplies the ordinary best prefix. -/
-theorem fgsa_ordinary_parent_of_live_cover
+theorem fgsa_ordinary_parent_of_live_cover_of_top_retained
     (p : Params) (src : State p.n) (raw sup : List (GridCO.Wire p.n .root)) (A : Block)
+    (hF : ∀ W ∈ src.fg.TF, (heightView p W).h = src.fg.h_max →
+      ¬ FGBlock.Preceq src.fg.J W → FGBlock.Preceq src.fg.F W)
     (hroot : ∀ B ∈ erasedList src (fullTree p src),
       ∀ C ∈ erasedList src (fullTree p src), B.root = C.root → B = C)
     (hparent : getHead p src raw sup = A)
@@ -76,7 +80,7 @@ theorem fgsa_ordinary_parent_of_live_cover
       (src.base.blocks.filter (fun b =>
         decide (∃ B ∈ storeFrame p.E p.cfg src.fg src.fg.TF, eraseFG B = b)))
       (GridCO.goldfishScore src.base.blocks raw sup) (eligible p src raw sup) = A := by
-  exact (fgsa_ordinary_parent_of_live_prefix p src raw sup A hroot hparent
+  exact (fgsa_ordinary_parent_of_live_prefix_of_top_retained p src raw sup A hF hroot hparent
     (walk_best_ancestry_of_cover _ _ _ _ _ hcover)).2
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
