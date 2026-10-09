@@ -503,8 +503,8 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   have hRz : FGSA.controls p ((fgsa p c).clock (rho.stateBefore E jz
       (rho.seatOf (.base (.head s)) k)) (SA.voteTime p.toParams s)).st =
       R_at p c E rho jz (rho.seatOf (.base (.head s)) k) := by
-    change KitFG.storeControlsView (heightView p) (FGSA.clock p _ _).fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho jz _).fg
+    change KitFG.treeStoreControlsView (heightView p) (FGSA.clock p _ _).fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho jz _).fg
     rw [clock_fg]
     rfl
   rw [hRz] at hZK hloW
@@ -562,8 +562,8 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hdfg : dst.fg = (storeAt p c E rho iy y).fg := clock_fg p _ _
   have hRd : FGSA.controls p dst = R_at p c E rho iy y := by
-    change KitFG.storeControlsView (heightView p) dst.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho iy y).fg
+    change KitFG.treeStoreControlsView (heightView p) dst.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho iy y).fg
     rw [hdfg]
   have hWdst : W ∈ dst.fg.TF := hdfg ▸ hWy
   have hFW' : Block.Preceq (eraseFG dst.fg.F) (eraseFG W) := by
@@ -591,7 +591,8 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     linarith
   have hfrozen := healing_frozen_path p c E rho hS hN hdpos hes hdfreeze hWd hread
   have hpath : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C B →
-      C ∈ erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst (s + 1))) := by
+      C ∈ erasedList dst (filteredFrom p.E p.cfg (FGSA.controls p dst)
+        (voterBlocks p dst (s + 1))) := by
     intro C hr hCB
     have hr' : liveRoot p dst ≠ C ∧ Block.Preceq (liveRoot p dst) C := by
       change ((!decide (liveRoot p dst = C)) && Block.preceq (liveRoot p dst) C) = true at hr
@@ -605,9 +606,10 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
       (Gen.Pure.block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) (heA ▸ hr'.2))
     apply List.mem_filter.mpr
     refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
-    rw [← domainR_eq_storeFrame, domainR_def, frameR_def]
+    rw [KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
     exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p dst) _ A).mpr
-      ⟨hfrozen A hAW, hFA, hZA, W, hfrozen W (KitFG.preceq_refl W), hAW, hRd ▸ hloy⟩
+      ⟨hfrozen A hFA hAW, hFA, hZA, W,
+        hfrozen W (hdfg ▸ hZFy.2) (KitFG.preceq_refl W), hAW, hRd ▸ hloy⟩
   -- The live root is compatible with B (lease premise of H.1).
   have hrows := hlease hFB0
   have hanchor : Block.Compatible (liveRoot p dst) B := by
@@ -653,7 +655,9 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at hc
-  exact fgsa_headVote_covers_of_transfer p dst s B hanchor hpath hc.2.2.2.2.2.1 hc.2.2.2.2.2.2
+  rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero s)]
+  exact fgsa_headInTree_covers_of_transfer p dst _ _ _ B
+    hanchor hpath hc.2.2.2.2.2.1 hc.2.2.2.2.2.2
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:673–699 (H.1, fast case p ≥ τ); plan H-SUPPORT §4 (S1 first HEAD

@@ -362,8 +362,8 @@ theorem healing_support_head_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     ((KitFG.mem_filteredFromView _ _ _ _).mp hKfull).2.2.1
   have hRz : FGSA.controls p ((fgsa p c).clock (rho.stateBefore E jz z)
       (SA.voteTime p.toParams i)).st = R_at p c E rho jz z := by
-    change KitFG.storeControlsView (heightView p) (FGSA.clock p _ _).fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho jz _).fg
+    change KitFG.treeStoreControlsView (heightView p) (FGSA.clock p _ _).fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho jz _).fg
     rw [clock_fg]
     rfl
   rw [hRz] at hZK hloW
@@ -461,8 +461,8 @@ theorem healing_next_transfer_core [Fintype V] (E : Generic.Env V)
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hdfg : dst.fg = (storeAt p c E rho iy y).fg := clock_fg p _ _
   have hRd : FGSA.controls p dst = R_at p c E rho iy y := by
-    change KitFG.storeControlsView (heightView p) dst.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho iy y).fg
+    change KitFG.treeStoreControlsView (heightView p) dst.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho iy y).fg
     rw [hdfg]
   have hWdst : W ∈ dst.fg.TF := by
     rw [hdfg]
@@ -510,7 +510,8 @@ theorem healing_next_transfer_core [Fintype V] (E : Generic.Env V)
     refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
     rw [domainR_def, frameR_def]
     exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p dst) _ A).mpr
-      ⟨hfrozen A hAW, hFA, hZA, W, hfrozen W (KitFG.preceq_refl W), hAW, hRd ▸ hloy⟩
+      ⟨hfrozen A hFA hAW, hFA, hZA, W,
+        hfrozen W (hdfg ▸ hFW) (KitFG.preceq_refl W), hAW, hRd ▸ hloy⟩
   -- The live root is compatible with B.
   have hrows := hlease hFB0
   have hanchor : Block.Compatible (liveRoot p dst) B := by
@@ -570,8 +571,8 @@ theorem healing_next_transfer_core [Fintype V] (E : Generic.Env V)
     (FGSA.headSupport p dst (i + 1)) Hon Hon.card (Gen.V2.Duty.faulty rho).card B
     (fgsa_headSupport_subset_headVotes E rho hE iy y i) rfl
     (fun k hk => (hseat k hk).2) (fun k hk => (hseat k hk).1) hother hb hanchor hkeep
-  rw [domainR_eq_storeFrame] at hcov
-  rw [headVote_eq, ite_eq_right (Nat.succ_ne_zero i)]
+  rw [fgsa_domainR_eq_filtered] at hcov
+  rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero i)]
   exact hcov
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
