@@ -5580,6 +5580,7 @@
             'AvailableChain.Gen.V2.Duty.stateBefore_idxBefore_statement',
         ),
         'AvailableChainGeneric.Proofs.V2.Duty.Receipt': (
+            'AvailableChain.Gen.V2.Duty.AcceptanceLaw.processed_of_not_excluded',
             'AvailableChain.Gen.V2.Duty.accepted_by_deadline',
             'AvailableChain.Gen.V2.Duty.accepted_by_deadline_statement',
             'AvailableChain.Gen.V2.Duty.deliveryWithin_of_healthyPrefix',
@@ -5589,6 +5590,7 @@
             'AvailableChain.Gen.V2.Duty.historySafeAt_of_fresh',
             'AvailableChain.Gen.V2.Duty.historySafeAt_of_processed_mono',
             'AvailableChain.Gen.V2.Duty.processed_by_deadline_of_service',
+            'AvailableChain.Gen.V2.Duty.processed_or_retried_of_service',
             'AvailableChain.Gen.V2.Duty.ready_broadcast',
             'AvailableChain.Gen.V2.Duty.ready_relay',
             'AvailableChain.Gen.V2.Duty.service_of_readyTrigger',
@@ -5597,6 +5599,7 @@
             'AvailableChain.Gen.V2.Duty.timely_of_emit',
             'AvailableChain.Gen.V2.Duty.timely_of_emit_statement',
             'AvailableChain.Gen.V2.Duty.timely_of_relay',
+            'AvailableChain.Gen.V2.Duty.timely_of_relay_public_actTime',
             'AvailableChain.Gen.V2.Duty.timely_of_relay_statement',
         ),
         'AvailableChainGeneric.Proofs.V2.Duty.Regimes': (
@@ -5664,6 +5667,7 @@
             'AvailableChain.Gen.V2.timely_of_emit',
             'AvailableChain.Gen.V2.timely_of_emit_statement',
             'AvailableChain.Gen.V2.timely_of_relay',
+            'AvailableChain.Gen.V2.timely_of_relay_public_actTime',
             'AvailableChain.Gen.V2.timely_of_relay_statement',
         ),
         'AvailableChainGeneric.Proofs.V2.Regimes': (

@@ -1,5 +1,6 @@
 module
 public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
+public import Mathlib.Tactic.IntervalCases
 
 @[expose] public section
 
@@ -292,31 +293,324 @@ example : ∃ t', 4 ≤ t' ∧ t' < (9 : Time) ∧
     (by simp) rfl row_accepted_through_block (by simp) (by decide) (by decide)
     (by decide) (by decide) (fun _ _ _ => rfl) row_fresh_at_four rfl
 
--- Receipt history survives as a service witness even when restore erases the flag.
-abbrev erasing : ProtocolSpecD Unit := { toy with restore := fun _ _ => false }
-abbrev erased : D.Run (Fin 2) erasing :=
-  { run with events := [.deliver 0 block 4, .restart 0 5] }
+namespace SleepReceipts
 
-example : D.DeliveryService env erased 0 row 5 9 := by
-  left
-  exact ⟨1, by decide, rfl⟩
+-- The clock and the stored receipt stamp are separate fields.
+abbrev stamped : ProtocolSpecD Unit :=
+  { toy with
+    State := Time × Option Time
+    act := fun _ d => d.elim
+    gossip := fun _ _ => []
+    depsPresent := fun _ _ => true
+    excludes := fun _ _ => false
+    Durable := Unit
+    init := (0, none)
+    clock := fun st t => (t, st.2)
+    process := fun st _ => (st.1, some st.1)
+    recordOwn := fun st _ => st
+    durable := fun _ => ()
+    restore := fun _ t => (t, none)
+    processed := fun st _ => st.2.isSome
+    handles := fun _ o o' => o = o'
+    carries := fun _ _ => False }
 
-example : erasing.processed (D.Run.stateAfterRestartsAt env erased 5 0) row = false := rfl
+abbrev object : stamped.Object := ⟨.none, true⟩
+abbrev awake : Generic.Env Unit :=
+  ⟨2, by decide, 0, le_rfl, fun _ t => decide (2 ≤ t)⟩
+abbrev trace (deliveryTime : Time) : D.Run Unit stamped where
+  honest := {()}
+  horizon := 4
+  events := if deliveryTime = 2 then [.restart () 2, .tick () 2, .deliver () object 2, .tick () 4]
+    else [.restart () 2, .tick () 2, .tick () 4, .deliver () object 4]
+  seatOf := fun _ _ => ()
+  input := fun _ _ => ()
 
--- A separate protocol refuses the post-wake handler. Past processing does not
--- make the restored state safe, and a handler witness does not change that.
-abbrev refusing : ProtocolSpecD Unit :=
-  { toy with process := fun st _ => st, restore := fun _ _ => false, init := true }
-abbrev refused : D.Run (Fin 2) refusing :=
-  { run with events := [.restart 0 5, .deliver 0 row 5] }
+private theorem trace_valid (deliveryTime : Time) :
+    D.ExecutionValid awake (trace deliveryTime) := by
+  have hcases : deliveryTime = 2 ∨ deliveryTime ≠ 2 := eq_or_ne deliveryTime 2
+  rcases hcases with h | h
+  all_goals
+    refine {
+      horizon_nonneg := ?_
+      sorted := ?_
+      nodup := ?_
+      in_horizon := ?_
+      honest_only := ?_
+      tick_public := ?_
+      tick_total := ?_
+      wire := ?_
+      deps := ?_
+      fresh := ?_
+      unforgeable := ?_
+      carried := ?_
+      tick_awake := ?_
+      deliver_awake := ?_
+      restart_awake := ?_
+      wake_restart := ?_
+    }
+  all_goals solve
+    | (change (0 : Time) ≤ 4; decide)
+    | (simp only [trace, h, ↓reduceIte]; decide)
+    | (intros; rfl)
+    | (intro v o t hp o' hc; exact hc.elim)
+    | (intros; simp)
+    | (intro v t ht
+       have ht' : t = 2 ∨ t = 4 := by simpa [h] using ht
+       rcases ht' with rfl | rfl
+       exact ⟨1, rfl⟩
+       exact ⟨2, rfl⟩)
+    | (intro v _ t ⟨k, hk⟩ _ hh ha
+       change t = (k : Int) * 2 at hk
+       change t ≤ 4 at hh
+       have ha' : 2 ≤ t := of_decide_eq_true ha
+       have ht : t = 2 ∨ t = 4 := by dsimp [Time] at *; omega
+       rcases ht with rfl | rfl <;> simp [h])
+    | (intro i v o t hi
+       have hil := (List.getElem?_eq_some_iff.mp hi).1
+       have hil' : i < 4 := by simpa [h] using hil
+       interval_cases i <;> simp [h] at hi
+       rcases hi with ⟨rfl, rfl⟩
+       simp [D.Run.stateBefore, D.World.step, D.tick, h])
+    | (rintro v o t ⟨i, hi⟩ u _ hu
+       have hm := List.mem_of_getElem? hi
+       simp [h] at hm
+       rcases hm with ⟨rfl, rfl⟩
+       contradiction)
+    | (intro v t ht; simp [h] at ht
+       rcases ht with rfl | rfl <;> rfl)
+    | (intro v o t ht; simp [h] at ht
+       rcases ht with ⟨rfl, rfl⟩; rfl)
+    | (intro v _ t _ _ hw
+       have ha : 2 ≤ t := of_decide_eq_true hw.1
+       have hb : ¬ 2 ≤ t - 1 := of_decide_eq_false hw.2
+       have ht : t = 2 := by dsimp [Time] at *; omega
+       subst t; simp [h])
 
-example : D.Run.handlesAt env refused 1 0 row 5 := ⟨row, rfl, Or.inl rfl⟩
+abbrev stampedClock : ClockLaws stamped :=
+  ⟨Prod.fst, rfl, fun _ _ => rfl, fun _ _ => rfl, fun _ _ => rfl⟩
+abbrev stampedRestore : RestoreTimeLaw stampedClock := ⟨fun _ _ => rfl⟩
 
-example : ¬ HistorySafeAt env refused 0 row 5 := by
+-- All premises of the receipt core hold together, including an actual wake.
+private theorem stampedHooks : D.HooksSound stamped where
+  excludes_inert := by intros st o h; contradiction
+  excludes_stable := by intros V _ E rho hS v o i j hij hrf hx; contradiction
+  processed_stable := by
+    intro V _ E rho _ v o i j hij hrf hi
+    exact stateBefore_stable (fun st => stamped.processed st o = true)
+      (by intros; assumption) (by intros; rfl) (by intros; assumption)
+      E rho hij v hrf hi
+  deps_stable := by intros; rfl
+  handles_carries := by intro st o o' h; exact Or.inl h
+  recordOwn_processed := by intros; rfl
+  recordOwn_deps := by intros; rfl
+  recordOwn_excludes := by intros; assumption
+
+private theorem stampedAcceptance :
+    AcceptanceLaw stamped (fun _ _ => True) (fun _ => True) :=
+  ⟨by intros; exact Or.inl rfl⟩
+
+private theorem fresh : ¬ D.ProcessedByActionCut awake (trace 2) () object 2 := by
+  rintro ⟨i, hi, hp⟩
+  have hi' : i ≤ 1 := by simpa [D.Run.actionCut, Event.time, Event.phase] using hi
+  interval_cases i <;> contradiction
+
+private theorem receipt_core :
+    stamped.processed (D.Run.stateBeforeTime awake (trace 2) 4 ()) object = true := by
+  apply processed_by_deadline_of_service awake (trace 2) (fun _ _ => True)
+    (fun _ => True) () object 2 4 (trace_valid 2).toScheduleWellFormed (by decide)
+    (Or.inr ⟨2, le_rfl, by decide, 2, object, rfl, rfl⟩)
+    (historySafeAt_of_fresh fresh) _ stampedHooks stampedAcceptance
+    (by intros; exact ⟨trivial, rfl, rfl, trivial⟩) rfl
+  intro k t hk hlt he
+  have hk' : 1 ≤ k := by simpa [D.Run.actionCut, Event.time, Event.phase] using hk
+  have hlt' : k < 3 := by simpa [D.Run.idxBefore, Event.time] using hlt
+  interval_cases k <;> simp at he
+
+private theorem demand :
+    D.DeliveryDemand awake (trace 2) () () object 2 (fun a => a + 2) 4 := by
+  intro a hsend _ _ hcut _ _ _
+  have ha : a = 2 := by dsimp [Time] at *; omega
+  subst a
+  exact Or.inr ⟨2, le_rfl, by decide, 2, object, rfl, rfl⟩
+
+private theorem handler_before_cutoff : D.HandledBetween awake (trace 2) () object 2 4 :=
+  (demand 2 le_rfl (by decide) (by decide) (by decide) (by decide)
+    (by intro t ha _; exact decide_eq_true ha) rfl).resolve_left fresh
+
+-- dl(2) = C = 4. The stored receipt uses the handler's pre-event clock.
+private theorem stamp_before_equal_cutoff : (fun a : Time => a + 2) 2 = (4 : Time) ∧
+    ∃ stamp, (D.Run.stateBeforeTime awake (trace 2) 4 ()).2 = some stamp ∧ stamp < 4 := by
+  obtain ⟨t, _, ht, i, o, hi, _⟩ := handler_before_cutoff
+  have hil : i < 4 := (List.getElem?_eq_some_iff.mp hi).1
+  interval_cases i <;> simp at hi
+  obtain ⟨rfl, rfl⟩ := hi
+  refine ⟨rfl, stampedClock.now (D.Run.stateBefore awake (trace 2) 2 ()), rfl, ?_⟩
+  exact lt_of_le_of_lt
+    (stateBefore_now_le_event_atRestart stampedClock stampedRestore awake (trace 2)
+      (trace_valid 2).toScheduleWellFormed
+      (show (trace 2).events[2]? = some (.deliver () object 2) from rfl) ()) ht
+
+-- A valid delivery exactly at C stores C, which fails the strict receipt test.
+private theorem late_stamp_rejected : D.ExecutionValid awake (trace 4) ∧
+    (D.Run.stateBefore awake (trace 4) 4 ()).2 = some 4 ∧
+    ¬ (4 : Time) < 4 := ⟨trace_valid 4, rfl, by decide⟩
+
+private theorem late_handler_at_cutoff : D.Run.handlesAt awake (trace 4) 3 () object 4 :=
+  ⟨object, rfl, rfl⟩
+
+private theorem late_handler_rejected : ¬ D.HandledBetween awake (trace 4) () object 2 4 := by
+  rintro ⟨t, _, ht, i, o, hi, _⟩
+  have hm := List.mem_of_getElem? hi
+  simp at hm
+  obtain ⟨_, _, rfl⟩ := hm
+  exact (lt_irrefl _ ht)
+
+private theorem late_demand_rejected :
+    ¬ D.DeliveryDemand awake (trace 4) () () object 2 (fun a => a + 2) 4 := by
+  intro hd
+  have hs := hd 2 le_rfl (by decide) (by decide) (by decide) (by decide)
+    (by intro t ha _; exact decide_eq_true ha) rfl
+  rcases hs with ⟨i, hi, hp⟩ | hh
+  · have hi' : i ≤ 1 := by simpa [D.Run.actionCut, Event.time, Event.phase] using hi
+    interval_cases i <;> contradiction
+  · exact late_handler_rejected hh
+
+private theorem late_read_empty :
+    stamped.processed (D.Run.stateBeforeTime awake (trace 4) 4 ()) object = false := rfl
+
+-- A second wake clears a receipt that was processed before the sleep.
+abbrev twiceAwake : Generic.Env Unit :=
+  ⟨2, by decide, 0, le_rfl, fun _ t => decide (t = 2 ∨ 4 ≤ t)⟩
+abbrev erased : D.Run Unit stamped :=
+  { trace 2 with events :=
+    [.restart () 2, .tick () 2, .deliver () object 2, .restart () 4, .tick () 4] }
+
+private theorem erased_valid : D.ExecutionValid twiceAwake erased where
+  horizon_nonneg := by decide
+  sorted := by decide
+  nodup := by decide
+  in_horizon := by simp [Event.time]
+  honest_only := by intros; simp
+  tick_public := by
+    intro v t h
+    simp at h
+    rcases h with rfl | rfl
+    · exact ⟨1, rfl⟩
+    · exact ⟨2, rfl⟩
+  tick_total := by
+    intro v _ t _ _ hh ha
+    change t ≤ 4 at hh
+    have ha' : t = 2 ∨ 4 ≤ t := of_decide_eq_true ha
+    have ht : t = 2 ∨ t = 4 := by dsimp [Time] at *; omega
+    rcases ht with rfl | rfl <;> simp
+  wire := by intros; rfl
+  deps := by intros; rfl
+  fresh := by
+    intro i v o t hi
+    have hil : i < 5 := (List.getElem?_eq_some_iff.mp hi).1
+    interval_cases i <;> simp at hi
+    obtain ⟨rfl, rfl⟩ := hi
+    rfl
+  unforgeable := by
+    rintro v o t ⟨i, hi⟩ u _ hu
+    have hm := List.mem_of_getElem? hi
+    simp at hm
+    obtain ⟨rfl, rfl⟩ := hm
+    contradiction
+  carried := by intro v o t _ o' hc; exact hc.elim
+  tick_awake := by intro v t h; simp at h; rcases h with rfl | rfl <;> rfl
+  deliver_awake := by intro v o t h; simp at h; obtain ⟨rfl, rfl⟩ := h; rfl
+  restart_awake := by intro v t h; simp at h; rcases h with rfl | rfl <;> rfl
+  wake_restart := by
+    intro v _ t _ hh hw
+    have ha : t = 2 ∨ 4 ≤ t := of_decide_eq_true hw.1
+    change t ≤ 4 at hh
+    have ht : t = 2 ∨ t = 4 := by dsimp [Time] at *; omega
+    rcases ht with rfl | rfl <;> simp
+
+private theorem erased_execution : D.ExecutionValid twiceAwake erased := erased_valid
+
+private theorem erased_service : D.DeliveryService twiceAwake erased () object 4 6 :=
+  Or.inl ⟨3, by decide, rfl⟩
+
+private theorem erased_history_rejected : ¬ HistorySafeAt twiceAwake erased () object 4 := by
   intro h
-  have hh : D.ProcessedByActionCut env refused 0 row 5 := ⟨0, by decide, rfl⟩
-  have := h hh
+  have := h ⟨3, by decide, rfl⟩
   contradiction
+
+-- A valid handler may refuse processing; it then fails the acceptance law.
+abbrev refusing : ProtocolSpecD Unit :=
+  { stamped with init := (0, some 0), process := fun st _ => st }
+abbrev refused : D.Run Unit refusing := { trace 2 with }
+
+private theorem refused_valid : D.ExecutionValid awake refused where
+  horizon_nonneg := (trace_valid 2).horizon_nonneg
+  sorted := (trace_valid 2).sorted
+  nodup := (trace_valid 2).nodup
+  in_horizon := (trace_valid 2).in_horizon
+  honest_only := (trace_valid 2).honest_only
+  tick_public := (trace_valid 2).tick_public
+  tick_total := (trace_valid 2).tick_total
+  tick_awake := (trace_valid 2).tick_awake
+  deliver_awake := (trace_valid 2).deliver_awake
+  restart_awake := (trace_valid 2).restart_awake
+  wake_restart := (trace_valid 2).wake_restart
+  wire := by intros; rfl
+  deps := by intros; rfl
+  fresh := by
+    intro i v o t hi
+    have hil : i < 4 := (List.getElem?_eq_some_iff.mp hi).1
+    interval_cases i <;> simp at hi
+    obtain ⟨rfl, rfl⟩ := hi
+    rfl
+  unforgeable := by
+    rintro v o t ⟨i, hi⟩ u _ hu
+    have hm := List.mem_of_getElem? hi
+    simp at hm
+    obtain ⟨rfl, rfl⟩ := hm
+    contradiction
+  carried := by intro v o t _ o' hc; exact hc.elim
+
+private theorem refused_handler :
+    D.ExecutionValid awake refused ∧ D.Run.handlesAt awake refused 2 () object 2 :=
+  ⟨refused_valid, object, rfl, rfl⟩
+
+private theorem refused_history_rejected : ¬ HistorySafeAt awake refused () object 2 := by
+  intro h
+  have := h ⟨0, by decide, rfl⟩
+  contradiction
+
+private theorem refused_acceptance_rejected :
+    ¬ AcceptanceLaw refusing (fun _ _ => True) (fun _ => True) := by
+  intro h
+  have := h.processed_of_not_excluded (2, none) object object
+    trivial rfl rfl rfl trivial rfl
+  contradiction
+
+#print axioms trace_valid
+#print axioms stampedHooks
+#print axioms stampedAcceptance
+#print axioms fresh
+#print axioms demand
+#print axioms handler_before_cutoff
+#print axioms erased_valid
+#print axioms refused_valid
+
+#print axioms receipt_core
+#print axioms stamp_before_equal_cutoff
+#print axioms late_stamp_rejected
+#print axioms late_handler_at_cutoff
+#print axioms late_handler_rejected
+#print axioms late_demand_rejected
+#print axioms late_read_empty
+#print axioms erased_execution
+#print axioms erased_service
+#print axioms erased_history_rejected
+#print axioms refused_handler
+#print axioms refused_history_rejected
+#print axioms refused_acceptance_rejected
+
+end SleepReceipts
 
 end AvailableChain.Gen.V2.Duty.DeliveryByTests
 

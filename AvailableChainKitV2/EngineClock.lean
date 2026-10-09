@@ -298,6 +298,31 @@ theorem stateBefore_stable_clock_atRestart (C : ClockLaws P) (R : RestoreTimeLaw
       change u = v at hv; subst u
       simpa only [World.step, Function.update_self] using hprocess _ o hk
 
+/-- Exact wake clocks also support properties on a restart-free interval. -/
+theorem stateBefore_stable_clock_restartFree (C : ClockLaws P) (R : RestoreTimeLaw C)
+    (E : Generic.Env V) (rho : Run V P) (hS : ScheduleWellFormed E rho)
+    (Q : P.State → Prop)
+    (hclock : ∀ st t, C.now st ≤ t → Q st → Q (P.clock st t))
+    (hprocess : ∀ st o, Q st → Q (P.process st o))
+    (hrecord : ∀ st o, Q st → Q (P.recordOwn st o))
+    {i j : Nat} (hij : i ≤ j) (v : V) (hrf : restartFree rho v i j)
+    (hi : Q (Run.stateBefore E rho i v)) :
+    Q (Run.stateBefore E rho j v) := by
+  refine stateBefore_step_induction E rho Q hij v ?_ hi
+  intro k e hik hkj he hv hk
+  cases e with
+  | restart u t =>
+      change u = v at hv; subst u
+      exact absurd he (hrf k t hik hkj)
+  | tick u t =>
+      change u = v at hv; subst u
+      simpa only [World.step, Function.update_self] using
+        tick_preserve E rho Q hrecord
+          (hclock _ t (stateBefore_now_le_event_atRestart C R E rho hS he v) hk)
+  | deliver u o t =>
+      change u = v at hv; subst u
+      simpa only [World.step, Function.update_self] using hprocess _ o hk
+
 /-- A restore-safe invariant holds for the entire run with exact wake clocks. -/
 theorem stateBefore_invariant_atRestart (C : ClockLaws P) (R : RestoreTimeLaw C)
     (E : Generic.Env V) (rho : Run V P) (hS : ScheduleWellFormed E rho)

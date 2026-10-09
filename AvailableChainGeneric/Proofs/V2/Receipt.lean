@@ -112,6 +112,29 @@ theorem timely_of_relay_statement : TimelyOfRelayStatement := by
   exact hact.trans (publicTime_le_pubFloor E hclock.2
     (stateBefore_now_le_event_atRestart C.clock ⟨hrestore⟩ E rho hS hi v))
 
+/-- Public action times give relay timeliness with arbitrary wake times. -/
+theorem timely_of_relay_public_actTime
+    (E : Generic.Env V) (rho : Run V P) {Timely : P.State → P.Object → Prop}
+    (C : TimelyClock P Timely) (hAS : AdmitSound P C)
+    (hS : ScheduleWellFormed E rho) (R : RestoreTimeLaw C.clock)
+    (hpubAct : ∀ o, V2.PublicTime E (C.actTime o))
+    (v : V) (i : Nat) (o : P.Object) (t : Time)
+    (hacc : Run.acceptsAt E rho i v o t) : C.actTime o ≤ pubFloor E t := by
+  have hn : 0 ≤ C.clock.now (Run.stateBefore E rho i v) := by
+    rcases stateBefore_now_source_atRestart C.clock R E rho i v with hz | ⟨j, _, he⟩
+    · rw [hz]
+    · rcases he with he | he <;>
+        exact (hS.in_horizon _ (List.mem_of_getElem? he)).1
+  obtain ⟨⟨o', hi, hhandles⟩, hfalse, htrue⟩ := hacc
+  rw [Run.stateBefore_succ E rho hi] at htrue
+  dsimp only [World.step] at htrue
+  rw [Function.update_self] at htrue
+  have ht := hAS.timely _ o' o (by rwa [C.clockOf_eq]) hfalse htrue hhandles
+  have ha := (C.timely_iff _ o).1 ht
+  rw [C.clockOf_eq] at ha
+  exact publicTime_le_pubFloor E (hpubAct o)
+    (ha.trans (stateBefore_now_le_event_atRestart C.clock R E rho hS hi v))
+
 -- S3-03; Statements/V2/Receipt.lean:162–179; KitV2/Stable.lean:49.
 theorem firstAccept_of_processed_statement : FirstAcceptOfProcessedStatement := by
   intro V _ In P E rho w o i₀ k hik hrf h₀ hk htick hdeliv

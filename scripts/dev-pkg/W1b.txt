@@ -445,6 +445,12 @@ AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
 [EXPECTED-FAIL]
+# Final repair owners follow r9 §3.3 and §8.2.
+# Schedule: W2b resets first; W3 repairs gate callers and the gate bridge last.
+# ClockLaws, Emission, Reachable, RetainedClock: W2b supplies restore/clock work;
+# W3 also repairs initialAt, emission freshness, receipt origins, and relay uses.
+# Proofs.ReceiptCoverage: W3 owns the ready core; S-Ap owns the public wrapper.
+# Tests.Axioms: W2b adds restore audits; W3 completes gate and receipt audits.
 AvailableChainFGCompose W3
 AvailableChainFGCompose.Proofs.SafetyAccountable W3
 AvailableChainFGCompose.Proofs.SafetyClient W3
@@ -541,10 +547,10 @@ AvailableChainFGSARun W2b
 AvailableChainFGSARun.Model.Families W2b
 AvailableChainFGSARun.Model.HealingFixture W2b
 AvailableChainFGSARun.Model.Protocol W2b
-AvailableChainFGSARun.Proofs.AC W2b
+AvailableChainFGSARun.Proofs.AC W3
 AvailableChainFGSARun.Proofs.Acceptance W2b
-AvailableChainFGSARun.Proofs.AncestorDeadlines W2b
-AvailableChainFGSARun.Proofs.AncestorDeadlinesStore W2b
+AvailableChainFGSARun.Proofs.AncestorDeadlines W3
+AvailableChainFGSARun.Proofs.AncestorDeadlinesStore W3
 AvailableChainFGSARun.Proofs.ClientTrace W2b
 AvailableChainFGSARun.Proofs.ClockLaws W2b
 AvailableChainFGSARun.Proofs.Content W2b
@@ -557,18 +563,18 @@ AvailableChainFGSARun.Proofs.Interface W2b
 AvailableChainFGSARun.Proofs.NamedDelivery W2b
 AvailableChainFGSARun.Proofs.NamedOrigins W2b
 AvailableChainFGSARun.Proofs.NamedScope W2b
-AvailableChainFGSARun.Proofs.Protocol W2b
+AvailableChainFGSARun.Proofs.Protocol W3
 AvailableChainFGSARun.Proofs.Reachable W2b
 AvailableChainFGSARun.Proofs.ReadFacts W2b
 AvailableChainFGSARun.Proofs.Readiness W2b
-AvailableChainFGSARun.Proofs.ReceiptCoverage W2b
-AvailableChainFGSARun.Proofs.Receipts W2b
+AvailableChainFGSARun.Proofs.ReceiptCoverage W3
+AvailableChainFGSARun.Proofs.Receipts W3
 AvailableChainFGSARun.Proofs.RetainedClock W2b
 AvailableChainFGSARun.Proofs.RootLease W2b
 AvailableChainFGSARun.Proofs.RootResolution W2b
 AvailableChainFGSARun.Proofs.Roots W2b
-AvailableChainFGSARun.Proofs.Schedule W2b
-AvailableChainFGSARun.Proofs.SelfDelivery W2b
+AvailableChainFGSARun.Proofs.Schedule W3
+AvailableChainFGSARun.Proofs.SelfDelivery W3
 AvailableChainFGSARun.Proofs.Slashing W2b
 AvailableChainFGSARun.Proofs.Spec.Simulation W2b
 AvailableChainFGSARun.Proofs.Spec.Transfer W2b
@@ -579,11 +585,11 @@ AvailableChainFGSARun.Statements.Client W2b
 AvailableChainFGSARun.Statements.Emission W2b
 AvailableChainFGSARun.Statements.Excludes W2b
 AvailableChainFGSARun.Statements.Interface W2b
-AvailableChainFGSARun.Statements.ReceiptCoverage W2b
-AvailableChainFGSARun.Statements.Receipts W2b
+AvailableChainFGSARun.Statements.ReceiptCoverage S-Ap
+AvailableChainFGSARun.Statements.Receipts W3
 AvailableChainFGSARun.Statements.Roots W2b
 AvailableChainFGSARun.Statements.Slashing W2b
-AvailableChainFGSARun.Tests.Axioms W2b
+AvailableChainFGSARun.Tests.Axioms W3
 AvailableChainFGSARun.Tests.DigestScope W2b
 AvailableChainFGSARun.Tests.HeadRoots W2b
 AvailableChainFGSARun.Tests.NVDigest W2b

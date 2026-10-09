@@ -152,6 +152,112 @@ example : Run.stateBefore wakeTickEnv wakeTickRun 1 () =
 example : Run.stateBefore wakeTickEnv wakeTickRun 1 () ≠
     Run.stateBeforeTime wakeTickEnv wakeTickRun 2 () := by decide
 
+-- Full validity includes delivery freshness and signature provenance.
+private theorem valid : ExecutionValid env run where
+  toScheduleWellFormed := schedule
+  toSleepWellFormed := sleep
+  wire := by intros; rfl
+  deps := by intros; rfl
+  fresh := by
+    intro i v o t hi
+    have hil := (List.getElem?_eq_some_iff.mp hi).1
+    change i < 3 at hil
+    interval_cases i <;> simp_all
+    obtain ⟨rfl, rfl⟩ := hi
+    cases v
+    decide
+  unforgeable := by
+    rintro v o t ⟨i, hi⟩ u _ hu
+    have hm := List.mem_of_getElem? hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false, reduceCtorEq,
+      false_or, Event.deliver.injEq] at hm
+    rcases hm with ⟨_, rfl, rfl⟩
+    contradiction
+  carried := by intro v o t _ o' hc; exact hc.elim
+
+private theorem frozenValid : ExecutionValid frozenEnv frozenRun where
+  toSleepWellFormed := frozenSleep
+  horizon_nonneg := by decide
+  sorted := by decide
+  nodup := by decide
+  in_horizon := by simp [Event.time]
+  honest_only := by intros; exact Finset.mem_univ _
+  tick_public := by
+    intro v t h
+    simp only [List.mem_cons, List.not_mem_nil, or_false, Event.tick.injEq] at h
+    rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · exact ⟨0, rfl⟩
+    · exact ⟨1, rfl⟩
+  tick_total := by
+    intro v _ t ⟨k, hk⟩ _ hh ha
+    have hv : v = 1 := of_decide_eq_true ha
+    subst v
+    change t = (k : Int) * 2 at hk
+    change t ≤ 2 at hh
+    have ht : t = 0 ∨ t = 2 := by dsimp [Time] at *; omega
+    rcases ht with rfl | rfl <;> simp
+  wire := by
+    intro i v o t hi
+    have := List.mem_of_getElem? hi
+    simp at this
+  deps := by intros; rfl
+  fresh := by
+    intro i v o t hi
+    have := List.mem_of_getElem? hi
+    simp at this
+  unforgeable := by
+    rintro v o t ⟨i, hi⟩
+    have := List.mem_of_getElem? hi
+    simp at this
+  carried := by intro v o t _ o' hc; exact hc.elim
+
+private theorem wakeTickValid : ExecutionValid wakeTickEnv wakeTickRun where
+  toScheduleWellFormed := wakeTickSchedule
+  toSleepWellFormed := wakeTickSleep
+  wire := by intros; rfl
+  deps := by intros; rfl
+  fresh := by
+    intro i v o t hi
+    have := List.mem_of_getElem? hi
+    simp at this
+  unforgeable := by
+    rintro v o t ⟨i, hi⟩
+    have := List.mem_of_getElem? hi
+    simp at this
+  carried := by intro v o t _ o' hc; exact hc.elim
+
+example : ExecutionValid env run ∧ D.ExecutionValid env run.toD :=
+  ⟨valid, (D.executionValid_toD_iff env run).mpr valid⟩
+
+example : ExecutionValid frozenEnv frozenRun ∧
+    D.ExecutionValid frozenEnv frozenRun.toD :=
+  ⟨frozenValid, (D.executionValid_toD_iff frozenEnv frozenRun).mpr frozenValid⟩
+
+example : ExecutionValid wakeTickEnv wakeTickRun ∧
+    D.ExecutionValid wakeTickEnv wakeTickRun.toD :=
+  ⟨wakeTickValid, (D.executionValid_toD_iff wakeTickEnv wakeTickRun).mpr wakeTickValid⟩
+
+-- The raw asleep tick changes the clock, but both validity forms reject it.
+abbrev asleepTick : Run (Fin 2) proto :=
+  { frozenRun with events := [.tick 1 0, .tick 0 2] }
+
+example : Run.stateBefore frozenEnv asleepTick 1 0 ≠
+    Run.stateBefore frozenEnv asleepTick 2 0 := by decide
+
+example : ¬ ExecutionValid frozenEnv asleepTick := by
+  intro h
+  have := h.tick_awake 0 2 (by simp)
+  contradiction
+
+example : ¬ D.ExecutionValid frozenEnv asleepTick.toD := by
+  intro h
+  have := h.tick_awake 0 2 (by simp)
+  contradiction
+
+#print axioms valid
+#print axioms frozenValid
+#print axioms wakeTickValid
+
 end AvailableChain.V2.Engine.Tests.Sleep
 
 end

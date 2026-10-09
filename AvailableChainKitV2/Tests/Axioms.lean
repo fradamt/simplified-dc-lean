@@ -137,3 +137,7 @@ public import AvailableChainKitV2.DutyRecord
 #print axioms AvailableChain.V2.Tests.Toy.toyRun_healthy
 #print axioms AvailableChain.V2.Tests.Toy.toyRun_partialSynchrony
 #print axioms AvailableChain.V2.Tests.Toy.accepts_row0
+
+-- Exact-time restore, restart-free interval companions.
+#print axioms AvailableChain.V2.Engine.stateBefore_stable_clock_restartFree
+#print axioms AvailableChain.V2.D.Engine.stateBefore_stable_clock_restartFree

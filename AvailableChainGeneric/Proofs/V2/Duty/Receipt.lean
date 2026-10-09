@@ -113,6 +113,29 @@ theorem timely_of_relay_statement : TimelyOfRelayStatement := by
   exact hact.trans (publicTime_le_pubFloor E hclock.2
     (stateBefore_now_le_event_atRestart C.clock ⟨hrestore⟩ E rho hS hi v))
 
+/-- Public action times give relay timeliness with arbitrary wake times. -/
+theorem timely_of_relay_public_actTime
+    (E : Generic.Env V) (rho : D.Run V P) {Timely : P.State → P.Object → Prop}
+    (C : TimelyClock P Timely) (hAS : AdmitSound P C)
+    (hS : D.ScheduleWellFormed E rho) (R : RestoreTimeLaw C.clock)
+    (hpubAct : ∀ o, V2.PublicTime E (C.actTime o))
+    (v : V) (i : Nat) (o : P.Object) (t : Time)
+    (hacc : D.Run.acceptsAt E rho i v o t) : C.actTime o ≤ pubFloor E t := by
+  have hn : 0 ≤ C.clock.now (D.Run.stateBefore E rho i v) := by
+    rcases stateBefore_now_source_atRestart C.clock R E rho i v with hz | ⟨j, _, he⟩
+    · rw [hz]
+    · rcases he with he | he <;>
+        exact (hS.in_horizon _ (List.mem_of_getElem? he)).1
+  obtain ⟨⟨o', hi, hhandles⟩, hfalse, htrue⟩ := hacc
+  rw [D.Run.stateBefore_succ E rho hi] at htrue
+  dsimp only [D.World.step] at htrue
+  rw [Function.update_self] at htrue
+  have ht := hAS.timely _ o' o (by rwa [C.clockOf_eq]) hfalse htrue hhandles
+  have ha := (C.timely_iff _ o).1 ht
+  rw [C.clockOf_eq] at ha
+  exact publicTime_le_pubFloor E (hpubAct o)
+    (ha.trans (stateBefore_now_le_event_atRestart C.clock R E rho hS hi v))
+
 -- Source: AvailableChainGeneric/Proofs/V2/Receipt.lean:114.
 theorem firstAccept_of_processed_statement : FirstAcceptOfProcessedStatement := by
   intro V _ In P E rho w o i₀ k hik hrf h₀ hk htick hdeliv
@@ -218,6 +241,28 @@ theorem firstAccept_of_processed :
       P.handles (D.Run.stateBefore E rho i w) o' o),
     ∃ i t', i₀ ≤ i ∧ i < k ∧ D.Run.acceptsAt E rho i w o t' :=
   @firstAccept_of_processed_statement
+
+/-- Acceptance under the pending-set rule. Protocol owners supply the invariant
+and timeliness at each relevant handler. Missing dependency refusals remain
+pending; DeliveryDemand supplies a retry in each ready window. -/
+theorem AcceptanceLaw.processed_of_not_excluded
+    {Timely : P.State → P.Object → Prop} {Inv : P.State → Prop}
+    (h : AcceptanceLaw P Timely Inv) (st : P.State) (o' o : P.Object)
+    (hInv : Inv st) (hhandles : P.handles st o' o) (hWF : P.wellFormed o = true)
+    (hDeps : P.depsPresent st o = true) (hTimely : Timely st o)
+    (hNX : P.excludes (P.process st o') o = false) :
+    P.processed (P.process st o') o = true := by
+  rcases h.accepts st o' o hInv hhandles hWF hDeps hTimely with hp | hx
+  · exact hp
+  · rw [hNX] at hx
+    cases hx
+
+/-- Safe history or a retry is the pending-set form of a service witness. -/
+theorem processed_or_retried_of_service {w : V} {o : P.Object} {a d : Time}
+    (h : D.DeliveryService E rho w o a d) (hHistory : HistorySafeAt E rho w o a) :
+    P.processed (D.Run.stateAfterRestartsAt E rho a w) o = true ∨
+      D.HandledBetween E rho w o a d :=
+  h.imp hHistory id
 
 /-- Fresh objects cannot use the historical processing exemption. -/
 theorem historySafeAt_of_fresh {w : V} {o : P.Object} {a : Time}

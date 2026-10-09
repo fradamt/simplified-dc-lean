@@ -1079,3 +1079,9 @@ end AvailableChain.Gen.AC.Root
 #print axioms AvailableChain.Gen.V2.Duty.Tests.Lift.accepted_by_deadline_agrees
 #print axioms AvailableChain.Gen.V2.Duty.Tests.twoDuty_schedule
 #print axioms AvailableChain.Gen.V2.Duty.Tests.twoDuty_executionValid
+
+-- W1b review companions.
+#print axioms AvailableChain.Gen.V2.timely_of_relay_public_actTime
+#print axioms AvailableChain.Gen.V2.Duty.timely_of_relay_public_actTime
+#print axioms AvailableChain.Gen.V2.Duty.AcceptanceLaw.processed_of_not_excluded
+#print axioms AvailableChain.Gen.V2.Duty.processed_or_retried_of_service
