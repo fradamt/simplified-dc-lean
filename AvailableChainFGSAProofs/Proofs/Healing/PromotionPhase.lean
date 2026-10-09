@@ -92,7 +92,7 @@ theorem healing_phase_extend_of_no_effective [Fintype V] {G ΔF : Time}
   have hc : (R_at p c E rho k x).contest = contested := by
     cases hcon : contested with
     | true =>
-      exact (healing_phase_contest_persist p c E rho mono hnr hx hbk hcap hH0
+      exact (healing_phase_contest_persist_of_crossing p c E rho crossing mono hnr hx hbk hcap hH0
         (hc0.trans hcon)).2
     | false =>
       cases hkcon : (R_at p c E rho k x).contest with
@@ -154,7 +154,9 @@ theorem healing_phase_extend_of_no_effective [Fintype V] {G ΔF : Time}
         change (decide ((storeAt p c E rho k x).fg.h_max =
           (storeAt p c E rho k x).fg.h_j + 1) && decide _) = true
         exact Bool.and_eq_true_iff.mpr ⟨decide_eq_true (hmax.trans htop.symm),
-          decide_eq_true ⟨C, hCk, hhC.trans hmax.symm, hn⟩⟩
+          decide_eq_true ⟨C, hCk,
+            (healing_phase_frontier_root p c E rho crossing hx hCk
+              (hhC.trans hmax.symm)).1, hhC.trans hmax.symm, hn⟩⟩
       rw [hc, hfalse] at hct
       contradiction
     refine ⟨?_, (hJeq hJCk).trans (hJC.symm.trans hJ0)⟩

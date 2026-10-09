@@ -72,7 +72,7 @@ theorem healing_phase_frontier_root (crossing : RXing p c E rho)
     by_contra hnot
     have hc : (FGSA.controls p st).contest = true := by
       change (decide (st.fg.h_max = st.fg.h_j + 1) && decide _) = true
-      exact Bool.and_eq_true_iff.mpr ⟨decide_eq_true ht, decide_eq_true ⟨B, hB, hh, hnot⟩⟩
+      exact Bool.and_eq_true_iff.mpr ⟨decide_eq_true ht, decide_eq_true ⟨B, hB, hFB, hh, hnot⟩⟩
     rw [hn] at hc
     contradiction
   · exact hFB
