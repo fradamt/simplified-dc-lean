@@ -18,7 +18,7 @@
 # note (a use that shake cannot see: `#print axioms`, `example`, policy).
 #
 # Usage: bash scripts/shake-report.sh [--fail-on-new] [--write-baseline] [<Module>...]
-#   <Module>...       check these modules only (default: every library module)
+#   <Module>...       check these modules only (default: active compiled library modules)
 #   --fail-on-new     exit 1 if a NEW removal exists (for a gate, after keep
 #                     annotations exist; not used by check-build.sh)
 #   --write-baseline  write the removals to the baseline
@@ -44,18 +44,7 @@ done
 ALL=0
 if [ ${#MODS[@]} -eq 0 ]; then
   ALL=1
-  while IFS= read -r m; do MODS+=("$m"); done < <(python3 - <<'PY'
-import os, sys
-sys.path.insert(0, 'scripts'); sys.dont_write_bytecode = True
-import check_common as C
-for lf in C.library_files():
-    olean = os.path.join('.lake/build/lib/lean', lf.module.replace('.', '/') + '.olean')
-    if os.path.exists(olean):
-        print(lf.module)
-    else:
-        print(f'shake-report: SKIPPED (no .olean; not built by any target): {lf.module}', file=sys.stderr)
-PY
-)
+  while IFS= read -r m; do MODS+=("$m"); done < <(python3 -B scripts/shake_scope.py)
 fi
 REPORT=${SHAKE_REPORT:-.lake/shake-report.txt}
 ERR=$(mktemp "${TMPDIR:-/tmp}/shake-err.XXXXXX"); RAW=$(mktemp "${TMPDIR:-/tmp}/shake-out.XXXXXX")

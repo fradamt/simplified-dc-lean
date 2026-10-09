@@ -19,6 +19,7 @@ D = load('dev', 'scripts/dev-check.py')
 S = load('scopes', 'scripts/check-sleep-scopes.py')
 P = load('coverage', 'scripts/check-proof-coverage.py')
 B = load('blueprint', 'scripts/check-fgsa-blueprint.py')
+H = load('shake', 'scripts/shake_scope.py')
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -127,6 +128,18 @@ def main():
     required = D.validate_scope(scope, graph)
     with tempfile.TemporaryDirectory(prefix='dev-controls-', dir=ROOT / '.lake') as tmp:
         tmp = Path(tmp)
+        files = [f for f in C.library_files() if f.module.startswith('AvailableChainFG')
+                 or S.deferred(f.module)]
+        build = tmp / 'shake-oleans'
+        for file in files:
+            olean = build / (file.module.replace('.', '/') + '.olean')
+            olean.parent.mkdir(parents=True, exist_ok=True)
+            olean.touch()
+        selected = set(H.selection(files, build))
+        assert selected == {f.module for f in files if not S.deferred(f.module)}
+        assert not any(S.deferred(m) for m in selected)
+        print('CONTROL shake PC-SA oleans present / all FG-SA retained: PASS '
+              f'({len(selected)} active modules)', flush=True)
         fixture = tmp / 'scope.txt'
         for option, name in (('--inventory', 'proof-audit-coverage.txt'),
                              ('--source-inventory', 'pcsa-source-audit-coverage.txt')):
