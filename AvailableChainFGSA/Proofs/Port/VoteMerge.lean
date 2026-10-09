@@ -19,7 +19,7 @@ theorem erasedList_eq : @erasedList = @FGSA.erasedList := rfl
 
 theorem liveRoot_eq : @liveRoot = @FGSA.liveRoot := rfl
 
-theorem eligible_eq : @eligible = @FGSA.eligible := rfl
+theorem legacy_eligible_eq : @eligible = @FGSA.eligible := rfl
 
 theorem headInTree_eq : @headInTree = @FGSA.headInTree := rfl
 

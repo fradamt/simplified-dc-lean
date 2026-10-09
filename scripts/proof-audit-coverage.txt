@@ -280,7 +280,7 @@
             'AvailableChain.FGSA.Legacy.chainWireRows_eq',
             'AvailableChain.FGSA.Legacy.controls_eq',
             'AvailableChain.FGSA.Legacy.deepest_eq',
-            'AvailableChain.FGSA.Legacy.eligible_eq',
+            'AvailableChain.FGSA.Legacy.legacy_eligible_eq',
             'AvailableChain.FGSA.Legacy.erasedList_eq',
             'AvailableChain.FGSA.Legacy.fgBlockOf_eq',
             'AvailableChain.FGSA.Legacy.fgHead_eq',

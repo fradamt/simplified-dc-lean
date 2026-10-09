@@ -743,7 +743,7 @@ end AvailableChain.FGSA.instReprNamedProposal
 #print axioms AvailableChain.FGSA.Legacy.fullTree_eq
 #print axioms AvailableChain.FGSA.Legacy.erasedList_eq
 #print axioms AvailableChain.FGSA.Legacy.liveRoot_eq
-#print axioms AvailableChain.FGSA.Legacy.eligible_eq
+#print axioms AvailableChain.FGSA.Legacy.legacy_eligible_eq
 #print axioms AvailableChain.FGSA.Legacy.headInTree_eq
 #print axioms AvailableChain.FGSA.Legacy.getHead_eq
 #print axioms AvailableChain.FGSA.Legacy.proposalsAt_eq

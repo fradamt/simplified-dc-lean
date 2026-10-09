@@ -213,7 +213,7 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   AvailableChain.FGSA.Legacy.fullTree_eq \
   AvailableChain.FGSA.Legacy.erasedList_eq \
   AvailableChain.FGSA.Legacy.liveRoot_eq \
-  AvailableChain.FGSA.Legacy.eligible_eq \
+  AvailableChain.FGSA.Legacy.legacy_eligible_eq \
   AvailableChain.FGSA.Legacy.headInTree_eq \
   AvailableChain.FGSA.Legacy.getHead_eq \
   AvailableChain.FGSA.Legacy.proposalsAt_eq \
