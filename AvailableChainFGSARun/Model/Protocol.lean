@@ -6,6 +6,7 @@ public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Model.FrameNext
+public import AvailableChainFGSA.Model.Restart
 
 @[expose] public section
 
@@ -263,9 +264,10 @@ AP labels): the HEAD vote at `v_s` and the proposal at `t_s`, with the input in
 the body. It reads only the store. There is no base payload for an FG label. -/
 def actS (p : Params) {In : Type} (c : AppCodec In) (st : State p.n) :
     RunDuty → In → Option (Msg p.n)
-  | .headAction s, _ => some (.head (headVote p st s).root)
+  | .headAction s, _ => if joinedNow p st then some (.head (headVote p st s).root) else none
   | .fgAction _, _ => none
-  | .propAction s, x => (propose p st s).map (withApp p (c.app x))
+  | .propAction s, x =>
+      if joinedNow p st then (propose p st s).map (withApp p (c.app x)) else none
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 1304–1313, 1391–1399; plan T7.2] The payload of a duty: `actS` on the
@@ -363,9 +365,9 @@ def carriesS (p : Params) (o o' : Obj p) : Prop :=
 [plan T7.2; FRAMEWORK E1, E2, E5, E6] FG-SA on engine v2, with the
 application codec `c`.
 
-* State: the store and Λ (`Node`). A restart keeps the last tick clock and Λ
-  (`Durable := Time × RecordOnce`, ruling Y) and resets store data with
-  `initialAt`. The clock is retained without running a tick.
+* State: the store and Λ (`Node`). A restart keeps the cumulative store,
+  locks, stable record, F and Λ (`Durable := State p.n × RecordOnce`).
+  `acRestart` clears the AC pools, replays retained HEADs and sets the wake time.
 * `clock` and `process` run the store functions and keep Λ; `recordOwn`
   writes only Λ (`recordRow?`).
 * `act`: HEAD and proposal from the store (`actS`), FG row from `attest`.
@@ -378,7 +380,7 @@ def fgsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
   signLabel := RunDuty.signLabel
   seats := RunLabel.seats p
   Payload := Msg p.n
-  Durable := Time × RecordOnce
+  Durable := State p.n × RecordOnce
   init := ⟨initial p.n, RecordOnce.initial⟩
   clock nd t := { nd with st := FGSA.clock p nd.st t }
   actTime := RunDuty.actTime p
@@ -390,8 +392,8 @@ def fgsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
   process nd o := { nd with st := FGSA.process p nd.st (toWire p o) }
   selfVisible := RunLabel.selfVisible
   recordOwn nd o := { nd with record := recordRow? p nd.record o }
-  durable nd := (nd.st.base.now, nd.record)
-  restore d := ⟨initialAt p.n d.1, d.2⟩
+  durable nd := (nd.st, nd.record)
+  restore d w := ⟨acRestart p d.1 w, d.2⟩
   wellFormed o := FGSA.wellFormed p (toWire p o)
   depsPresent nd o := depsS p nd.st o
   processed nd o := processedS p nd.st o

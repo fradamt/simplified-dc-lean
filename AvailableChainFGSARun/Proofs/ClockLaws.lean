@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.Excludes
+public import AvailableChainFGSARun.Proofs.Restore
 public import AvailableChainKitV2.DutyClockLaws
 public import AvailableChainFGSARun.Proofs.RetainedClock
 public import AvailableChainGeneric.Statements.V2.Duty.Reads
@@ -14,19 +15,6 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In : Type} (c : AppCodec In)
 
-/-- The run clock is the store's base clock. -/
-def fgsaClock : V2.D.Engine.ClockLaws (fgsa p c) where
-  now nd := nd.st.base.now
-  init := rfl
-  clock nd t := (clock_vn nd.st t).2
-  process nd o := process_base_now nd.st (toWire p o)
-  recordOwn_now _ _ := rfl
-
-/-- The clock projection is the base store clock. -/
-theorem fgsa_clock_now (nd : Node p) : (fgsaClock p c).now nd = nd.st.base.now := by
-  change nd.st.base.now = nd.st.base.now
-  rfl
-
 /-- [P3 r3.5.6 F0.2] An ancestor of F stays an ancestor through each local step. -/
 theorem fgsa_monoAlong_preceq_F (X : FGBlock (Fin p.n)) :
     Gen.V2.Duty.MonoAlong (P := fgsa p c) (fun nd => FGBlock.Preceq X nd.st.fg.F) := by
@@ -39,19 +27,6 @@ theorem fgsa_monoAlong_preceq_F (X : FGBlock (Fin p.n)) :
     exact KitFG.preceq_trans h (process_F_mono p nd.st (toWire p o))
   · intro nd o h
     exact h
-
-/-- Ruling Y: the restored clock is the durable last tick time. -/
-theorem fgsa_restore_now_retained :
-    ∀ d, (fgsaClock p c).now ((fgsa p c).restore d) = d.1 := by
-  intro d
-  rfl
-
-/-- Restore retains the clock of the node that supplied the durable state. -/
-theorem fgsa_hrestore_now_retained :
-    ∀ nd, (fgsaClock p c).now ((fgsa p c).restore ((fgsa p c).durable nd)) =
-      (fgsaClock p c).now nd := by
-  intro nd
-  rfl
 
 /-- A predicate true of reset stores at every clock holds after restore. -/
 theorem fgsa_hrestore_retained (Q : FGSA.State p.n → Prop)

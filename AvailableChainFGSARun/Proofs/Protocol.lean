@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Proofs.NamedProposal
 public import AvailableChainFGSARun.Model.Families
+public import AvailableChainFGSARun.Proofs.Restore
 public import AvailableChainKitFG.ClientOnceSafety
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
 
@@ -19,16 +20,6 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In : Type} {c : AppCodec In}
 
 /-! ### The two parts of the node state -/
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-[ruling Y] A restart resets store data and retains the last tick clock. -/
-theorem restore_st_retained (d : Time × RecordOnce) :
-    ((fgsa p c).restore d).st = initialAt p.n d.1 := rfl
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-[plan §1a restart decision] A restart keeps Λ. -/
-theorem restore_rec (d : Time × RecordOnce) :
-    ((fgsa p c).restore d).record = d.2 := rfl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The clock step keeps Λ. -/

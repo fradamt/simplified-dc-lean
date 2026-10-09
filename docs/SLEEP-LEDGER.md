@@ -191,3 +191,89 @@ Default-config GREEN build: PASS, 273 module targets, 2.852 s.
 Strict FGSA audit: PASS, 822 results, 42.343 s.
 Scoped FGSA coverage: PASS, 0 unaccepted exports, 19.902 s.
 The coverage inventory is unchanged. Astra review remains with the lead.
+
+## W2b — approved work and stopped items, 2026-10-10
+
+Approval: `sleep-packet-approved.md`, P1–P24; G-S0 passed.
+The model text follows the approved `actS` and `fgsa` blocks.
+Line breaks in `actS` keep lines at or below 100 characters.
+No packet typo was found in these blocks.
+
+- `actS; fgsa` — `P3, P24`, approved.
+  `AvailableChainFGSARun/Model/Protocol.lean`.
+  Repair: joined HEAD/proposal duties; keep the durable store and Λ.
+- `fgsaClock; fgsa_clock_now` — `P3, P24`, approved, types kept.
+  `AvailableChainFGSARun/Proofs/Restore.lean`.
+  Move from ClockLaws to avoid the stopped Protocol and W1b proof imports.
+- `fgsaRestoreTimeLaw; fgsa_restore_now` — `P3, P24`, approved.
+  `AvailableChainFGSARun/Proofs/Restore.lean`.
+  Repair: the clock equals the exact wake time.
+- `restore_st; restore_rec; fgsa_restore_record` — `P3, P24`, approved.
+  `AvailableChainFGSARun/Proofs/Restore.lean`.
+  `restore_st` replaces `restore_st_retained`; `restore_rec` gains the wake argument.
+- `fgsa_restore_restartTime; fgsa_restore_fg; fgsa_restore_rowPool` —
+  `P3, P24`, approved, `AvailableChainFGSARun/Proofs/Restore.lean`.
+- `fgsa_restore_proposals; fgsa_restore_namedBodies; fgsa_restore_blocks` —
+  `P3, P24`, approved, `AvailableChainFGSARun/Proofs/Restore.lean`.
+- `fgsa_restore_obligations; fgsa_restore_stableRecord` — `P3, P24`, approved.
+  `AvailableChainFGSARun/Proofs/Restore.lean`.
+- `fgsa_restore_reachable; fgsa_reachable_stateBefore` — `P3, P24`, approved.
+  `AvailableChainFGSARun/Proofs/Restore.lean`.
+  Use the pre-restart reachability proof, with no W1b declaration.
+- `reachable_stateBefore; namedOrigin_reachable` — `P3, P24`, approved, types kept.
+  `AvailableChainFGSARun/Proofs/{Reachable,NamedOrigins}.lean`.
+  Both reset sites use the compiled retained-store reachability bridge.
+  Their whole modules remain blocked by other statements/imports.
+- `fgsa_restore_now_retained; fgsa_hrestore_now_retained` — `P3, P24`, superseded.
+  `AvailableChainFGSARun/Proofs/ClockLaws.lean`.
+  The new exact-wake laws replace the last-tick laws.
+- `fgsa_hrestore_retained; fgsa_hrestore_field_retained` — stopped; ruling required.
+  `AvailableChainFGSARun/Proofs/ClockLaws.lean`.
+  Reset-to-genesis premises no longer apply. Keep their text pending a ruling;
+  the new laws already prove the approved retained-field behavior.
+- `stored_proposal_delivered` — stopped; meaning ruling required.
+  `AvailableChainFGSARun/Proofs/Reachable.lean`.
+  The current-epoch conclusion is false when proposals survive restart.
+  Keep its text; do not add a premise or weaken the conclusion without a ruling.
+- `act_prop` — stopped; meaning ruling required.
+  `AvailableChainFGSARun/Proofs/Protocol.lean`.
+  Its unconditional result conflicts with the approved joined `actS`.
+  `act_prop_zero` needs a proof repair after this item is released.
+- `fgsa_stateBefore_bounds` reset site — stopped; integration ruling required.
+  `AvailableChainFGSARun/Proofs/Schedule.lean`.
+  Its induction uses the superseded retained-clock helper and resets to genesis.
+  The module also imports W1b clock proofs and contains the false strict bound below.
+- `fgsa_preTick_now_lt; fgsa_release_votes_stamped` — stopped; meaning ruling required.
+  `AvailableChainFGSARun/Proofs/Schedule.lean`.
+  A wake at a tick time gives pre-tick now = tick time, and replay stamps can equal it.
+  `SleepTests.wake_at_tick` is a valid-run counterexample to the strict clock bound.
+
+The package is not closed. The stopped statements and the Schedule reset site
+need a lead ruling and W3 integration. No stopped statement has changed meaning.
+
+- `SleepTests.valid` — `P1, P3, P24`, approved.
+  `AvailableChainFGSARun/Tests/Sleep.lean`; full engine validity is proved.
+
+- `SleepTests.non_public_wake` — `P1, P3, P24`, approved.
+  `AvailableChainFGSARun/Tests/Sleep.lean`; full engine validity is proved.
+
+- `SleepTests.receipt_before_tick` — `P1, P3, P24`, approved.
+  `AvailableChainFGSARun/Tests/Sleep.lean`; full engine validity is proved.
+
+- `SleepTests.durable_run` — `P1, P3, P24`, approved.
+  `AvailableChainFGSARun/Tests/Sleep.lean`; full engine validity is proved.
+
+- `SleepTests.retained_not_fresh` — `P1, P3, P24`, approved.
+  `AvailableChainFGSARun/Tests/Sleep.lean`; full engine validity is proved.
+
+- `SleepTests.join_valid` — `P1, P3, P24`, approved.
+  `AvailableChainFGSARun/Tests/Sleep.lean`; full engine validity is proved.
+
+- `SleepTests.join_duties` — `P1, P3, P24`, approved.
+  `AvailableChainFGSARun/Tests/Sleep.lean`; full engine validity is proved.
+
+- `SleepTests.wake_at_tick` — `P1, P3, P24`, approved.
+  `AvailableChainFGSARun/Tests/Sleep.lean`; full engine validity is proved.
+
+- `SleepTests.initial_duties` — `P1, P3, P24`, approved.
+  `AvailableChainFGSARun/Tests/Sleep.lean`; full engine validity is proved.

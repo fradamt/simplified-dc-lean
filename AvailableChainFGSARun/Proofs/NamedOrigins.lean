@@ -3,7 +3,7 @@ public import AvailableChainFGSARun.Proofs.NamedScope
 public import AvailableChainFGSARun.Statements.Interface
 public import AvailableChainFGSARun.Statements.Emission
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
-public import AvailableChainGeneric.Proofs.V2.Duty.Induction
+public import AvailableChainFGSARun.Proofs.Restore
 public import AvailableChainFGSA.Proofs.NamedReachable
 
 public section
@@ -131,14 +131,8 @@ theorem emitted_payload_parent_stored (E : Generic.Env V)
 
 /-- [ROOT-DIGEST-2 W1; DC NamedStore.bodies] Indexed stores satisfy local reachability. -/
 theorem namedOrigin_reachable (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (i : Nat) (x : V) : Reachable p (V2.D.Run.stateBefore E rho i x).st := by
-  refine Gen.V2.Duty.invariant_triple (P := fgsa p c)
-    (fun nd : Node p => Reachable p nd.st) ?_ ?_ ?_ ?_ ?_ E rho i x
-  · exact Reachable.init
-  · intro nd t h; exact Reachable.tick t h
-  · intro nd o h; exact Reachable.deliver (toWire p o) h
-  · intro nd o h; exact h
-  · intro nd _; exact Reachable.reset nd.st.base.now
+    (i : Nat) (x : V) : Reachable p (V2.D.Run.stateBefore E rho i x).st :=
+  fgsa_reachable_stateBefore p c E rho i x
 
 /-- [ROOT-DIGEST-2 W1; DC NamedBlocks.erase]
 The emitted parent has its old base-store projection. -/

@@ -130,7 +130,7 @@ AX_OPTS=(--expect
   Run.processedS_ofRow Run.excludesS_ofRow Run.handlesS_ofRow_iff Run.excludesS_inert
   Run.excludes_inert Run.excludes_inert_epoch Run.excludesFixed_inert_epoch
   Run.epoch_of_restartFree Run.excludes_stable_epoch Run.excludesFixed_stable_epoch
-  Run.restore_st_retained Run.restore_rec Run.clock_rec Run.process_rec Run.recordOwn_st
+  Run.restore_st Run.restore_rec Run.clock_rec Run.process_rec Run.recordOwn_st
   Run.process_base_now Run.clock_vn Run.process_votes_subset Run.excludesS_process
   Run.fgsa_dutiesInjectiveAt Run.fgsa_emitOnceUnder
   Run.fgsa_head_singleDuty Run.fgsa_prop_singleDuty Run.invalidForParent_mono
@@ -140,8 +140,18 @@ AX_OPTS=(--expect
   Run.decode_eq_block Run.rowWire_decode
   Run.fgsaInterface Run.fgsaOutputs Run.finalizedOut Run.proposalTime_fgsa
   Run.propLabel_injective Run.fgsaClock Run.fgsa_monoAlong_preceq_F
-  Run.fgsa_restore_now_retained Run.fgsa_hrestore_now_retained
   Run.fgsa_hrestore_retained Run.fgsa_hrestore_field_retained
+  Run.fgsaRestoreTimeLaw Run.fgsa_restore_now Run.fgsa_restore_restartTime
+  Run.fgsa_restore_record Run.fgsa_restore_fg Run.fgsa_restore_rowPool
+  Run.fgsa_restore_proposals Run.fgsa_restore_namedBodies Run.fgsa_restore_blocks
+  Run.fgsa_restore_obligations Run.fgsa_restore_stableRecord
+  Run.fgsa_restore_reachable Run.fgsa_reachable_stateBefore
+  Run.SleepTests.p Run.SleepTests.P Run.SleepTests.proposal Run.SleepTests.row
+  Run.SleepTests.head Run.SleepTests.env Run.SleepTests.run
+  Run.SleepTests.joinEnv Run.SleepTests.joinRun Run.SleepTests.valid
+  Run.SleepTests.non_public_wake Run.SleepTests.receipt_before_tick
+  Run.SleepTests.durable_run Run.SleepTests.retained_not_fresh Run.SleepTests.join_valid
+  Run.SleepTests.join_duties Run.SleepTests.wake_at_tick Run.SleepTests.initial_duties
   Run.reachable_stateBefore Run.reachable_stateBeforeTime Run.reachable_readAt
   Run.reachable_final Run.reachable_postClock Run.reachable_postTick
   Run.storeBundle_stateBefore Run.storeBundle_stateBeforeTime Run.storeBundle_readAt

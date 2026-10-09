@@ -10,6 +10,7 @@ public import AvailableChainFGSARun.Proofs.Protocol
 public import AvailableChainFGSARun.Proofs.Excludes
 public import AvailableChainFGSARun.Statements.Interface
 public import AvailableChainFGSARun.Proofs.Interface
+public import AvailableChainFGSARun.Proofs.Restore
 public import AvailableChainFGSARun.Proofs.ClockLaws
 public import AvailableChainFGSARun.Proofs.RetainedClock
 public import AvailableChainFGSARun.Proofs.Reachable

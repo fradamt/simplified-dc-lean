@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSARun.Proofs.ClockLaws
 public import AvailableChainFGSARun.Statements.Interface
 public import AvailableChainFGSA.Proofs.StoreBundle
-public import AvailableChainGeneric.Proofs.V2.Duty.Induction
+public import AvailableChainFGSARun.Proofs.Restore
 
 public section
 
@@ -14,14 +14,8 @@ variable {V : Type} [DecidableEq V]
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Every indexed run state has a reachable store, including after restarts. -/
 theorem reachable_stateBefore (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (i : Nat) (v : V) : Reachable p (V2.D.Run.stateBefore E rho i v).st := by
-  refine Gen.V2.Duty.invariant_triple (P := fgsa p c)
-    (fun nd : Node p => Reachable p nd.st) ?_ ?_ ?_ ?_ ?_ E rho i v
-  · exact Reachable.init
-  · intro nd t h; exact Reachable.tick t h
-  · intro nd o h; exact Reachable.deliver (toWire p o) h
-  · intro nd o h; exact h
-  · intro nd _; exact Reachable.reset nd.st.base.now
+    (i : Nat) (v : V) : Reachable p (V2.D.Run.stateBefore E rho i v).st :=
+  fgsa_reachable_stateBefore p c E rho i v
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The strict time reader needs no event order premise. -/
