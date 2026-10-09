@@ -3,10 +3,9 @@ public import AvailableChainEngineV2.Conditions.Sleep
 
 @[expose] public section
 
-/-! Schedule, delivery, signature and restart conditions over v2 runs (plan 2a,
-Task 2). The texts of `PublicTime`, `ScheduleWellFormed`, `DeliveryWellFormed`,
-`UnforgeableSignatures` and `ExecutionValid` are the v1 texts
-(`AvailableChainStatements/Generic/Conditions.lean`) over v2 runs. -/
+/-! Schedule, delivery, signature and sleep conditions over v2 runs.
+The schedule requires ticks at awake public times. `ExecutionValid` also
+excludes local events during sleep and requires restarts at positive wakes. -/
 
 namespace AvailableChain.V2
 
@@ -18,7 +17,7 @@ variable {V : Type} {In : Type} {P : ProtocolSpec In}
 def PublicTime (E : Generic.Env V) (t : Time) : Prop :=
   ∃ k : Nat, t = (k : Time) * E.Δ
 
-/-- The event schedule is sorted, finite, honest-only, and total on public times.
+/-- The event schedule is sorted, finite, honest-only, and total on awake public times.
 Restarts have no further condition here. -/
 structure ScheduleWellFormed (E : Generic.Env V) (rho : Run V P) : Prop where
   horizon_nonneg : 0 ≤ rho.horizon

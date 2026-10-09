@@ -4,6 +4,8 @@ public import Mathlib.Tactic.IntervalCases
 public import AvailableChainEngineV2.Tests.Engine
 public import AvailableChainEngineV2.Tests.Duties
 public import AvailableChainEngineV2.Conditions.Duty.Lift
+public import AvailableChainKitV2.ClockLaws
+public import AvailableChainKitV2.DutyClockLaws
 
 @[expose] public section
 
@@ -33,10 +35,10 @@ abbrev toy : ProtocolSpec Unit :=
 def first : toy.Object := ⟨.none, 1⟩
 def second : toy.Object := ⟨.none, 2⟩
 
-/-- Node 0 sleeps on [2,5) and [7,10). Node 1 stays awake. -/
+/-- Both nodes sleep before zero. Node 0 also sleeps on [2,5) and [7,10). -/
 def env : Generic.Env (Fin 2) :=
   ⟨4, by decide, 5, by decide,
-    fun v t => decide (v = 1 ∨ t < 2 ∨ (5 ≤ t ∧ t < 7) ∨ 10 ≤ t)⟩
+    fun v t => decide (0 ≤ t ∧ (v = 1 ∨ t < 2 ∨ (5 ≤ t ∧ t < 7) ∨ 10 ≤ t))⟩
 
 /-- The sender emits before sleep and during sleep. Both receipts follow the wake. -/
 def run : Run (Fin 2) toy where
@@ -94,8 +96,9 @@ private theorem sleep_valid : SleepWellFormed env run := by
     rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;> decide
   · intro v _ t h0 hh hw
     fin_cases v <;> simp [Wakes, env] at hw
-    have ht : t = 5 ∨ t = 10 := by dsimp [Time] at *; omega
-    rcases ht with rfl | rfl <;> simp [run]
+    · have ht : t = 5 ∨ t = 10 := by dsimp [Time] at *; omega
+      rcases ht with rfl | rfl <;> simp [run]
+    · dsimp [Time] at *; omega
 
 private theorem valid : ExecutionValid env run := by
   refine { toSleepWellFormed := sleep_valid, toScheduleWellFormed := ?_,
@@ -157,6 +160,25 @@ example : D.ExecutionValid env run.toD ∧
 example : D.ExecutionValid env run.toD ↔ ExecutionValid env run :=
   D.executionValid_toD_iff env run
 
+-- The invalid local tick changes the sleeping node's clock.
+private def asleepTick : Run (Fin 2) toy :=
+  { run with events := run.events.set 2 (.tick 0 4) }
+
+example : (Run.stateBefore env asleepTick 2 0).1 = 0 ∧
+    (Run.stateBefore env asleepTick 3 0).1 = 4 ∧ ¬ SleepWellFormed env asleepTick := by
+  refine ⟨by decide, by decide, ?_⟩
+  intro h
+  have := h.tick_awake 0 4 (by decide)
+  contradiction
+
+example : (D.Run.stateBefore env asleepTick.toD 2 0).1 = 0 ∧
+    (D.Run.stateBefore env asleepTick.toD 3 0).1 = 4 ∧
+    ¬ D.SleepWellFormed env asleepTick.toD := by
+  refine ⟨by decide, by decide, ?_⟩
+  intro h
+  have := h.tick_awake 0 4 (by decide)
+  contradiction
+
 -- Test 3: a missing restart at a positive wake, including the horizon, is invalid.
 example : ¬ SleepWellFormed env { run with events := [] } := by
   intro h
@@ -180,13 +202,13 @@ example : ¬ D.SleepWellFormed env { run.toD with events := [.restart 0 5] } := 
     (by decide) (by decide) (by unfold D.Wakes; decide)
   simp at this
 
--- Test 4: node 0 is awake at zero, has no restart at zero, and the run is valid.
-example : env.awake 0 0 = true ∧ Event.restart 0 0 ∉ run.events ∧
-    ExecutionValid env run := ⟨by decide, by decide, valid⟩
+-- Test 4: zero is a wake, but the valid run has no restart there.
+example : Wakes env 0 0 ∧ Event.restart 0 0 ∉ run.events ∧
+    ExecutionValid env run := ⟨by unfold Wakes; decide, by decide, valid⟩
 
-example : env.awake 0 0 = true ∧ Event.restart 0 0 ∉ run.toD.events ∧
+example : D.Wakes env 0 0 ∧ Event.restart 0 0 ∉ run.toD.events ∧
     D.ExecutionValid env run.toD :=
-  ⟨by decide, by decide, (D.executionValid_toD_iff env run).mpr valid⟩
+  ⟨by unfold D.Wakes; decide, by decide, (D.executionValid_toD_iff env run).mpr valid⟩
 
 -- Test 5: same-time phases and the action cut include only the restart.
 private def sameTime : Run (Fin 2) toy :=
@@ -235,6 +257,25 @@ example : D.DeliveryDemand env run.toD 1 0 first 0 (fun a => max a 5 + 2) 10 :=
 example : D.DeliveryDemand env run.toD 1 0 second 4 (fun a => max a 5 + 2) 10 :=
   (D.deliveryDemand_toD_iff env run 1 0 second 4 _ 10).mpr (demand second (Or.inr rfl) 4)
 
+-- Anchor 5 meets every demand guard, for both send times and both objects.
+example (o : toy.Object) (send : Time) (hs : send = 0 ∨ send = 4) :
+    send ≤ 5 ∧ (0 : Time) ≤ 5 ∧ (5 : Time) < max 5 5 + 2 ∧
+    (max 5 5 + 2 : Time) ≤ 10 ∧ (max 5 5 + 2 : Time) ≤ run.horizon ∧
+    LinkReadyOn env run 1 0 5 (max 5 5 + 2) ∧
+    toy.excludes (Run.stateBeforeTime env run (max 5 5 + 2) 0) o = false := by
+  refine ⟨by rcases hs with rfl | rfl <;> decide, by decide, by decide,
+    by decide, by decide, ?_, rfl⟩
+  intro t h5 h7
+  simp [env]
+  dsimp [Time] at *; omega
+
+-- With the main fixture's Δ = 4, PartialSynchrony has no ready window for node 0:
+-- [5,9) includes sleep at 7. The separate fixture below tests full delivery records.
+example : ¬ LinkReadyOn env run 1 0 5 (max 5 env.t_GST + env.Δ) := by
+  intro h
+  have := h 7 (by decide) (by decide)
+  contradiction
+
 -- The second sleep cancels the anchor at 6 (deadline 8).
 example : ¬ LinkReadyOn env run 1 0 6 8 := by
   intro h
@@ -254,6 +295,167 @@ example : toy.processed (Run.stateAfterRestartsAt env run 10 0) first = false �
 example : toy.toD.processed (D.Run.stateAfterRestartsAt env run.toD 10 0) first = false ∧
     D.DeliveryService env run.toD 0 first 10 12 := by
   refine ⟨by decide, Or.inl ⟨5, by decide, by decide⟩⟩
+
+-- Both honest nodes emit and accept at zero. The deadline 2 is within the run.
+private def servedEnv : Generic.Env (Fin 2) :=
+  ⟨2, by decide, 0, by decide, fun _ t => decide (0 ≤ t)⟩
+
+private def servedRun : Run (Fin 2) toy :=
+  { run with horizon := 2, events := [.tick 0 0, .tick 1 0,
+      .deliver 0 first 0, .deliver 1 first 0, .tick 0 2, .tick 1 2] }
+
+private theorem served_valid : ExecutionValid servedEnv servedRun := by
+  refine { toScheduleWellFormed := ?_, toSleepWellFormed := ?_,
+           toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
+  · refine ⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩
+    · intro e he
+      simp only [servedRun, List.mem_cons, List.not_mem_nil, or_false] at he
+      rcases he with rfl | rfl | rfl | rfl | rfl | rfl <;> decide
+    · intro e _; exact Finset.mem_univ _
+    · intro v t h
+      simp only [servedRun, List.mem_cons, List.not_mem_nil, or_false,
+        Event.tick.injEq, reduceCtorEq, false_or, or_false] at h
+      rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+      · exact ⟨0, rfl⟩
+      · exact ⟨0, rfl⟩
+      · exact ⟨1, rfl⟩
+      · exact ⟨1, rfl⟩
+    · intro v _ t ⟨k, hk⟩ h0 hh _
+      have ht : t = 0 ∨ t = 2 := by
+        simp [servedEnv] at hk
+        simp [servedRun] at hh
+        dsimp [Time] at *; omega
+      fin_cases v <;> rcases ht with rfl | rfl <;> decide
+  · refine ⟨by intros; rfl, by intros; rfl, ?_⟩
+    intro i v o t hi
+    have hb := (List.getElem?_eq_some_iff.mp hi).1
+    simp [servedRun] at hb
+    interval_cases i <;> simp [servedRun] at hi
+    all_goals rcases hi with ⟨rfl, rfl, rfl⟩; decide
+  · refine ⟨?_, ?_⟩
+    · rintro v o t ⟨i, hi⟩ u _ hu
+      have h := List.mem_of_getElem? hi
+      simp only [servedRun, List.mem_cons, List.not_mem_nil, or_false,
+        Event.deliver.injEq, reduceCtorEq, false_or, or_false] at h
+      rcases h with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
+        simp [Run.holder, first] at hu
+    · intro v o t _ o' hc; exact hc.elim
+  · refine ⟨?_, ?_, ?_, ?_⟩
+    · intro v t h
+      simp only [servedRun, List.mem_cons, List.not_mem_nil, or_false,
+        Event.tick.injEq, reduceCtorEq, false_or, or_false] at h
+      rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;> decide
+    · intro v o t h
+      simp only [servedRun, List.mem_cons, List.not_mem_nil, or_false,
+        Event.deliver.injEq, reduceCtorEq, false_or, or_false] at h
+      rcases h with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;> decide
+    · intro v t h; simp [servedRun] at h
+    · intro v _ t h0 _ hw
+      simp [Wakes, servedEnv] at hw
+      dsimp [Time] at *; omega
+
+private theorem served_emits {v o t} (h : Run.emits servedEnv servedRun v o t) :
+    o = first := by
+  rcases h with ⟨i, hi, ho⟩
+  have hb := (List.getElem?_eq_some_iff.mp hi).1
+  simp [servedRun] at hb
+  interval_cases i <;> first
+    | exact List.mem_singleton.mp ho
+    | exact (List.not_mem_nil ho).elim
+
+private theorem served_accepts {i v o t}
+    (h : Run.acceptsAt servedEnv servedRun i v o t) : o = first := by
+  rcases h.1 with ⟨o', hi, he⟩
+  have hm := List.mem_of_getElem? hi
+  simp only [servedRun, List.mem_cons, List.not_mem_nil, or_false,
+    Event.deliver.injEq, reduceCtorEq, false_or, or_false] at hm
+  rcases hm with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;> exact he.symm
+
+private theorem served_demand (v w : Fin 2) (send : Time) (dl : Time → Time)
+    (hd : ∀ a, 0 ≤ a → dl a = a + 2) :
+    DeliveryDemand servedEnv servedRun v w first send dl 2 := by
+  intro a _ ha _ hc _ _ _
+  have ha0 : a = 0 := by rw [hd a ha] at hc; dsimp [Time] at *; omega
+  subst a
+  rw [hd 0 (by decide)]
+  apply Or.inr
+  fin_cases w
+  · exact ⟨0, by decide, by decide, 2, first, rfl, rfl⟩
+  · exact ⟨0, by decide, by decide, 3, first, rfl, rfl⟩
+
+private theorem served_partial : PartialSynchrony servedEnv servedRun := by
+  constructor
+  · intro v _ o t he w _
+    rw [served_emits he]
+    exact served_demand v w t _ (fun a ha => by simp [servedEnv, max_eq_left ha])
+  · intro v _ i o t he w _
+    rw [served_accepts he]
+    exact served_demand v w t _ (fun a ha => by simp [servedEnv, max_eq_left ha])
+
+private theorem served_healthy : HealthyPrefixDelivery servedEnv servedRun 2 := by
+  constructor
+  · intro v _ o t he w _
+    rw [served_emits he]
+    exact served_demand v w t _ (by intros; rfl)
+  · intro v _ i o t he w _
+    rw [served_accepts he]
+    exact served_demand v w t _ (by intros; rfl)
+
+example : D.ExecutionValid servedEnv servedRun.toD ∧
+    D.PartialSynchrony servedEnv servedRun.toD ∧
+    D.HealthyPrefixDelivery servedEnv servedRun.toD 2 :=
+  ⟨(D.executionValid_toD_iff servedEnv servedRun).mpr served_valid,
+    (D.partialSynchrony_toD_iff servedEnv servedRun).mpr served_partial,
+    (D.healthyPrefixDelivery_toD_iff servedEnv servedRun 2).mpr served_healthy⟩
+
+-- An actual broadcast, acceptance, and all demand guards at anchor zero.
+example : Run.emits servedEnv servedRun 0 first 0 ∧
+    Run.acceptsAt servedEnv servedRun 2 0 first 0 ∧
+    (0 : Fin 2) ∈ servedRun.honest ∧ (1 : Fin 2) ∈ servedRun.honest ∧
+    (0 : Time) ≤ 0 ∧ (0 : Time) < 2 ∧ (2 : Time) ≤ servedRun.horizon ∧
+    LinkReadyOn servedEnv servedRun 0 1 0 2 ∧
+    toy.excludes (Run.stateBeforeTime servedEnv servedRun 2 1) first = false := by
+  refine ⟨⟨0, rfl, by decide⟩, ?_, by decide, by decide,
+    by decide, by decide, by decide, ?_, rfl⟩
+  · exact ⟨⟨first, rfl, rfl⟩, by decide, by decide⟩
+  · intro t ht _; simpa [servedEnv] using ht
+
+-- Positive sleep premises include real restarts at both open interval endpoints.
+private theorem restarts : RestartsAtWakes env run := by
+  intro v t h
+  simp only [run, List.mem_cons, List.not_mem_nil, or_false,
+    Event.restart.injEq, reduceCtorEq, false_or, or_false] at h
+  rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;> exact ⟨by decide, by unfold Wakes; decide⟩
+
+example : D.RestartsAtWakes env run.toD := (D.restartsAtWakes_toD_iff env run).mpr restarts
+
+private theorem noRestartOn : NoRestartOn run 0 5 10 := by
+  intro i t hi ha hb
+  have h := List.mem_of_getElem? hi
+  simp only [run, List.mem_cons, List.not_mem_nil, or_false,
+    Event.restart.injEq, reduceCtorEq, false_or, or_false] at h
+  rcases h with ⟨_, rfl⟩ | ⟨_, rfl⟩ <;> dsimp [Time] at * <;> omega
+
+example : D.NoRestartOn run.toD 0 5 10 := (D.noRestartOn_toD_iff run 0 5 10).mpr noRestartOn
+
+private theorem noRestartAfter : NoRestartAfter run 0 10 := by
+  intro i t hi
+  exact (valid.in_horizon _ (List.mem_of_getElem? hi)).2
+
+example : D.NoRestartAfter run.toD 0 10 := (D.noRestartAfter_toD_iff run 0 10).mpr noRestartAfter
+
+example : AwakeOnClosed env 0 5 6 ∧ D.AwakeOnClosed env 0 5 6 := by
+  constructor <;> intro t ha hb <;> simp [env] <;> dsimp [Time] at * <;> omega
+
+private def clocks : Engine.ClockLaws toy := ⟨Prod.fst, rfl, by intros; rfl,
+  by intros; rfl, by intros; rfl⟩
+
+example : Engine.RestoreTimeLaw clocks := ⟨by intros; rfl⟩
+
+private def dutyClocks : D.Engine.ClockLaws toy.toD := ⟨Prod.fst, rfl, by intros; rfl,
+  by intros; rfl, by intros; rfl⟩
+
+example : D.Engine.RestoreTimeLaw dutyClocks := ⟨by intros; rfl⟩
 
 end AvailableChain.V2.Tests.Sleep
 
