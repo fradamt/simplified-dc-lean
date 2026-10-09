@@ -64,7 +64,7 @@ expect_fail() {  # NAME PATTERN...: the check failed and printed each PATTERN (f
   local name=$1 p; shift
   if [ "$code" -eq 0 ]; then echo "$out"; echo "NEGATIVE CONTROL NOT DETECTED: $name"; exit 1; fi
   for p in "$@"; do
-    if ! printf '%s\n' "$out" | grep -qF -- "$p"; then
+    if [[ $out != *"$p"* ]]; then
       echo "$out"; echo "NEGATIVE CONTROL $name: missing \"$p\""; exit 1
     fi
   done

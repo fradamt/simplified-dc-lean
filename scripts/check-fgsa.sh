@@ -401,7 +401,7 @@ expect_fail() {
   gate_control_check "$name" "$code" "$out" || exit 1
   if [ "$code" -eq 0 ]; then echo "$out"; echo "NEGATIVE CONTROL NOT DETECTED: $name"; exit 1; fi
   for p in "$@"; do
-    if ! printf '%s\n' "$out" | grep -qF -- "$p"; then
+    if [[ $out != *"$p"* ]]; then
       echo "$out"; echo "NEGATIVE CONTROL $name: missing \"$p\""; exit 1
     fi
   done
@@ -742,7 +742,7 @@ lease_owner_files
 compile_lease_owner LeaseOwnPos
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSALease.lean LeaseOwnPos' "$neg"
 gate_control_check "lease owner map" "$code" "$out" || exit 1
-if [ "$code" -ne 0 ] || printf '%s\n' "$out" | grep -qF 'BAD LEASE INSTANCE'; then
+if [ "$code" -ne 0 ] || [[ $out == *'BAD LEASE INSTANCE'* ]]; then
   echo "$out"; echo "POSITIVE CONTROL lease owner map: split/simp over GridCO.admitVote was refused"; exit 1
 fi
 echo "accepted, as expected: lease: generated equations of Grid CO model definitions (owner)"
