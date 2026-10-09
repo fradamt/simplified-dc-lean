@@ -1082,10 +1082,9 @@
     'AvailableChainFGSAClaims.Tests.Axioms': {
         'AvailableChainFGSAClaims.Claims.FrameNext': (
             'AvailableChain.FGSA.Run.FGFoundationClaimNext',
-            'AvailableChain.FGSA.Run.FrameAtNext',
             'AvailableChain.FGSA.Run.FrameClaimNext',
         ),
-        'AvailableChainFGSAClaims.Statements.FrameNext': (
+        'AvailableChainFGSAClaims.Statements.ComposeNext': (
             'AvailableChain.FGSA.Run.FGFoundationNext',
             'AvailableChain.FGSA.Run.FGFoundationNext.cumul',
             'AvailableChain.FGSA.Run.FGFoundationNext.frame',
@@ -1095,6 +1094,9 @@
             'AvailableChain.FGSA.Run.FGFoundationNext.reconcile',
             'AvailableChain.FGSA.Run.FGFoundationNext.store',
             'AvailableChain.FGSA.Run.FGFoundationNext.strat',
+        ),
+        'AvailableChainFGSAClaims.Statements.FrameNext': (
+            'AvailableChain.FGSA.Run.FrameAtNext',
             'AvailableChain.FGSA.Run.OpeningCoveredNext',
             'AvailableChain.FGSA.Run.RFrameExactNext',
             'AvailableChain.FGSA.Run.RFrameExactNext_def',
@@ -1105,6 +1107,7 @@
             'AvailableChain.FGSA.Run.TGeomNext',
             'AvailableChain.FGSA.Run.TStartNext',
             'AvailableChain.FGSA.Run.TWalkNext',
+            'AvailableChain.FGSA.Run.WalkBatchNext',
             'AvailableChain.FGSA.Run.domainRNext',
             'AvailableChain.FGSA.Run.domainRNext_def',
             'AvailableChain.FGSA.Run.frameRNext',

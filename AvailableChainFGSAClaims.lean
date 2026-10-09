@@ -29,4 +29,5 @@ public import AvailableChainFGSAClaims.Statements.Packages.FinalityGST
 public import AvailableChainFGSAClaims.Statements.LiveDC
 public import AvailableChainFGSAClaims.Claims.WeakContinuationGrowth
 public import AvailableChainFGSAClaims.Statements.FrameNext
+public import AvailableChainFGSAClaims.Statements.ComposeNext
 public import AvailableChainFGSAClaims.Claims.FrameNext

@@ -953,6 +953,13 @@
       "purpose": "claim adapter; no new premises or larger bounds"
     },
     {
+      "path": "AvailableChainFGSAClaims/Statements/ComposeNext.lean",
+      "owner": "WP00b",
+      "writer": "gpt-6.1-sol",
+      "new": true,
+      "purpose": "S0-F Compose-dependent foundation above the lower FrameNext surface"
+    },
+    {
       "path": "AvailableChainFGSAClaims/Statements/ComposeStmt.lean",
       "owner": "SWITCH",
       "writer": "gpt-6-astra",

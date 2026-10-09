@@ -2655,6 +2655,7 @@
     'AvailableChain.FGSA.Run.FGFoundationNext',
     'AvailableChain.FGSA.Run.TStartNext',
     'AvailableChain.FGSA.Run.TWalkNext',
+    'AvailableChain.FGSA.Run.WalkBatchNext',
     'AvailableChain.FGSA.Run.SettledPhaseFrameNext',
     'AvailableChain.FGSA.Run.SettledPhaseFrameNext_def',
     'AvailableChain.FGSA.Run.TGeomNext',

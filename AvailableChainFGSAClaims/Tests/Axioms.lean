@@ -828,7 +828,7 @@ end
 #print axioms AvailableChain.FGSA.Run.LiveDCFromWindowsStatement
 #print axioms AvailableChain.FGSA.Run.LiveDCFromWindowsStatement_def
 
--- AvailableChainFGSAClaims/Statements/FrameNext.lean
+-- FrameNext and ComposeNext statement modules
 #print axioms AvailableChain.FGSA.Run.frameRNext
 #print axioms AvailableChain.FGSA.Run.frameRNext_def
 #print axioms AvailableChain.FGSA.Run.domainRNext
@@ -840,6 +840,7 @@ end
 #print axioms AvailableChain.FGSA.Run.FGFoundationNext
 #print axioms AvailableChain.FGSA.Run.TStartNext
 #print axioms AvailableChain.FGSA.Run.TWalkNext
+#print axioms AvailableChain.FGSA.Run.WalkBatchNext
 #print axioms AvailableChain.FGSA.Run.SettledPhaseFrameNext
 #print axioms AvailableChain.FGSA.Run.SettledPhaseFrameNext_def
 #print axioms AvailableChain.FGSA.Run.TGeomNext

@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
-public import AvailableChainFGSAClaims.Statements.FrameNext
+public import AvailableChainFGSAClaims.Statements.ComposeNext
 
 @[expose] public section
 
@@ -20,8 +20,10 @@ frame channel. The canonical aggregate and all suppliers stay unchanged here.
 ```
 
 SWITCH deep-digest causes: `FrameAt`, `FrameClaim`, `FGFoundationClaim` ->
-new frame dependencies (class B). These three Next entries already depend on the
-canonical `fgsa` run binder: the h+i+j duty switch changes their deep closure too.
+new frame dependencies (canonical-to-Next class B). Across SWITCH, `FrameAtNext`
+and `FrameClaimNext` have class A by same-event transport of `Node.st` and fixed
+Next readers. `FGFoundationClaimNext` has class B through `RStrat` emissions.
+The run binder changes their deep closure independently of these classes.
 `CleanCutPosClaim` -> Next foundation antecedent only; keep its conclusion and
 premises otherwise fixed. WP00c records measured digests, not this module.
 No claim needs a new premise. Contest equality requires a context invariant;
@@ -38,9 +40,6 @@ def FGFoundationClaimNext (p : Params) : Prop :=
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-
-/-- Next claim surface; counterpart `FrameAt`, census B. -/
-def FrameAtNext : Prop := RFrameExactNext p c E rho ∧ RFrameNext p c E rho
 
 /-- Next claim surface; counterpart `FrameClaim`, census B. -/
 def FrameClaimNext : Prop :=

@@ -1,5 +1,8 @@
 module
-public import AvailableChainFGSAClaims.Statements.ComposeStmt
+public import AvailableChainFGSARun.Statements.AC
+public import AvailableChainFGSA.Statements.Invariants
+public import AvailableChainFGSAClaims.Statements.Channels
+public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainFGSA.Model.FrameNext
 
 @[expose] public section
@@ -25,17 +28,23 @@ guarded FJ controls, retained proposals/voter blocks, and retained carried suppo
 │ RFrameExactNext_def        │ RFrameExact_def        │ B     │
 │ RFrameNext                 │ RFrame                 │ B     │
 │ RFrameNext_def             │ RFrame_def             │ B     │
-│ FGFoundationNext           │ FGFoundation           │ B     │
 │ TStartNext                 │ TStart                 │ B     │
 │ TWalkNext                  │ TWalk                  │ B     │
 │ SettledPhaseFrameNext      │ SettledPhaseFrame      │ B     │
 │ SettledPhaseFrameNext_def  │ SettledPhaseFrame_def  │ B     │
 │ TGeomNext                  │ TGeom                  │ B     │
 │ OpeningCoveredNext         │ OpeningCovered         │ B     │
+│ FrameAtNext                │ FrameAt                │ B     │
+│ WalkBatchNext              │ WalkBatch              │ A     │
 └────────────────────────────┴────────────────────────┴───────┘
 ```
 
-SWITCH deep-digest causes (entry -> cause; all B, one h+i+j switch):
+Canonical-to-Next classes above compare two reader meanings, not two SWITCH stages.
+Before/after SWITCH: fixed Next state reads have class A under same-event transport.
+`TGeomNext` and `OpeningCoveredNext` have class B (emissions/canonical source).
+See docs/reports/fgsa-port-s0f00b.md for the complete class and cause records.
+
+SWITCH deep-digest causes (canonical entry -> cause; one h+i+j switch):
 * `RFrameExact`/`RFrame`, including `_def`: legacy reader attribution; source stays fixed.
 * `frameR`, `domainR`, `TStart`, `TWalk`, `TGeom`, `OpeningCovered`,
   `SettledPhaseFrame` and equations: canonical reader bodies acquire guarded controls
@@ -46,7 +55,7 @@ SWITCH deep-digest causes (entry -> cause; all B, one h+i+j switch):
 * `CleanCutPosClaim`: only its foundation antecedent becomes Next.
 * Every entry in this module (including constructors/projections) also reaches
   `fgsa` through the unchanged run binder, or `State` through a local reader.
-  Run-dependent Next entries need B exceptions when SWITCH changes `fgsa` duties.
+  These deep changes do not imply class B: fixed Next reads remain class A.
   Local reader-only entries need no exception unless their actual closure changes.
 
 WP00c measures exact old/new deep digests and dependency paths after all Stage 0
@@ -209,16 +218,6 @@ theorem RFrameNext_def : RFrameNext p c E rho =
       st.base.blockStamp <+: st'.base.blockStamp ∧ st.base.voteStamp <+: st'.base.voteStamp))) := by
   rw [RFrameNext]
 
-/-- Next frame surface; counterpart `FGFoundation`, census B. -/
-structure FGFoundationNext : Prop where
-  store : RStore p c E rho
-  cumul : RStoreCumul p c E rho
-  mono : RMono p c E rho
-  frame : RFrameExactNext p c E rho
-  geo : RGeo p c E rho
-  strat : RStrat p c E rho
-  reconcile : RRec p c E rho
-
 /-- Next frame surface; counterpart `TStart`, census B. -/
 def TStartNext : Prop := Gen.AC.Duty.LeaseBelowOutput (fgsaAC E rho) ∧
   ∀ i x, x ∈ rho.honest →
@@ -228,12 +227,22 @@ def TStartNext : Prop := Gen.AC.Duty.LeaseBelowOutput (fgsaAC E rho) ∧
         row.1 = FGSA.Next.liveRootNext p st ∧
         (∃ B ∈ FGSA.Next.fullTree p st, eraseFG B = row.1) ∧ Block.Preceq row.1 (outputS p st)
 
+/-- Lower batch premise; counterpart `WalkBatch`, class A in both comparisons. -/
+def WalkBatchNext (st : State p.n) (s : Slot) (raw support : List (GridCO.Wire p.n .root))
+    (Q : Block) (seats : Finset (Fin p.n)) (m : Nat) : Prop :=
+  support ⊆ raw ∧ (∀ o ∈ raw, GridCO.headLabel? o = some s) ∧
+  (∀ a ∈ seats, rho.seatOf (.base (.head s)) a ∈ rho.honest ∧
+    ∃ o ∈ support, o ∈ raw ∧ GridCO.headSeat? o = some a ∧
+      ∃ H, GridCO.resolvedHead? st.base o = some H ∧ H.slot ≤ s ∧ Block.Preceq Q H) ∧
+  ((GridCO.seats p.n raw).toFinset \ seats).card ≤ m ∧
+  (∀ a ∈ seats, GridCO.equivocates raw a = false)
+
 /-- Next frame surface; counterpart `TWalk`, census B. -/
 def TWalkNext : Prop := ∀ i x s raw support Q seats m,
   x ∈ rho.honest → Batch seats.card m →
   let st := storeAt p c E rho i x
   Q ∈ FGSA.Next.fullTree p st → Block.Compatible (FGSA.Next.liveRootNext p st) (eraseFG Q) →
-  WalkBatch p c rho st s raw support (eraseFG Q) seats m →
+  WalkBatchNext p c rho st s raw support (eraseFG Q) seats m →
   Block.Preceq (eraseFG Q) (FGSA.Next.getHeadNext p st raw support) ∧
   ((∀ B ∈ FGSA.Next.fullTree p st, FGBlock.Preceq Q B → B = Q) →
     FGSA.Next.getHeadNext p st raw support = eraseFG Q) ∧
@@ -291,6 +300,11 @@ def OpeningCoveredNext (r : Nat) (Q : Block) : Prop := ∀ x ∈ rho.honest,
     HonestRowAt p c E rho j x rSent a ∧
     namedEntry a.payload.height_pair =
       some ((heightView p K).h, (heightView p K).T_h.root)
+
+/-- Next claim surface; counterpart `FrameAt`, census B. -/
+def FrameAtNext (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop :=
+  RFrameExactNext p c E rho ∧ RFrameNext p c E rho
 
 end AvailableChain.FGSA.Run
 end
