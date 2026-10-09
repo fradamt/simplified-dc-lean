@@ -7,8 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
-  "main_revision_note": "WP16 second-pass pin including the approved guard edit. Ruling Y and WP12d are pending.",
+  "main_revision": "45db161df91761be29d6115659aa5182f4afaab3",
+  "main_revision_note": "WP16 measured second-pass pin; source base e961df94. Ruling Y and WP12d are pending.",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -364,7 +364,7 @@
       "path": "scripts/baselines/fgsa-old-reads.txt",
       "s0_sha256": "6e83b61661d138f8d6b1343766c60c3966c31d2de52244df1028b1c1c61d8d61",
       "comparison_sha256": "7463e7487fcd6f940180a791dbe2399aa4809a5e570f20d6dcbaf31586eda17a",
-      "main_sha256": "2a86e9b9c1c59bd89dfe4b42b71057acc6a7d40f7f65c9e5d18a0f389f7e482f",
+      "main_sha256": "501e7df699fab34f2f39b977c89d4b01092913721ddcf9c0aa18372ea54ed695",
       "changes": [
         {
           "commit": "cd13880836f16a76af42d094857bd4b428e0c02c",
@@ -414,6 +414,14 @@
           "before_sha256": "7463e7487fcd6f940180a791dbe2399aa4809a5e570f20d6dcbaf31586eda17a",
           "after_sha256": "2a86e9b9c1c59bd89dfe4b42b71057acc6a7d40f7f65c9e5d18a0f389f7e482f",
           "reason": "Record the three height-only old-read lines for Legacy.attest, Next.attestNext and its eq_1 export, which mirror canonical attest; retain the SWITCH/J6 obligation (lead ruling 2026-10-09; docs/plans/fgsa-port-r2.md, S0-IJ/WP01b and WP16 data-owner role).",
+          "kind": "commit"
+        },
+        {
+          "commit": "45db161df91761be29d6115659aa5182f4afaab3",
+          "parent": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+          "before_sha256": "2a86e9b9c1c59bd89dfe4b42b71057acc6a7d40f7f65c9e5d18a0f389f7e482f",
+          "after_sha256": "501e7df699fab34f2f39b977c89d4b01092913721ddcf9c0aa18372ea54ed695",
+          "reason": "WP16 measured data and exact approved guard records: fix(fgsa): measure P13 suppliers and refresh merged port data",
           "kind": "commit"
         }
       ]
@@ -746,6 +754,18 @@
         {
           "path": "scripts/guard-lists-allow.txt",
           "commit": "02f5ac9aab84c6587f3f8e708a1736f354021d3b"
+        }
+      ],
+      "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."
+    },
+    {
+      "id": "FGSA-port-measured-data",
+      "base": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+      "tip": "45db161df91761be29d6115659aa5182f4afaab3",
+      "recorded_changes": [
+        {
+          "path": "scripts/baselines/fgsa-old-reads.txt",
+          "commit": "45db161df91761be29d6115659aa5182f4afaab3"
         }
       ],
       "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."

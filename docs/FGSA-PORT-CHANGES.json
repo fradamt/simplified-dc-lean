@@ -54157,6 +54157,182 @@
       },
       "dependency_evidence": "AvailableChain.FGSA.Run.healing_hTimeClaim",
       "evidence": "Current closure measured after the 3856-job integration build. An unchanged written header does not establish an unchanged closure hash."
+    },
+    {
+      "path": "docs/FG-FINALITY-SAFETY-S0-inherited.json",
+      "kind": "s0-byte-history",
+      "old": "2a86e9b9c1c59bd89dfe4b42b71057acc6a7d40f7f65c9e5d18a0f389f7e482f",
+      "new": "501e7df699fab34f2f39b977c89d4b01092913721ddcf9c0aa18372ea54ed695",
+      "declaration": "scripts/baselines/fgsa-old-reads.txt",
+      "wp": "WP16",
+      "reason": "WP16 measured data and exact approved guard records: fix(fgsa): measure P13 suppliers and refresh merged port data",
+      "source_commit": "45db161df91761be29d6115659aa5182f4afaab3",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit.",
+      "parent": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+      "history_kind": "commit"
+    },
+    {
+      "path": "docs/FG-FINALITY-SAFETY-S0-inherited.json",
+      "kind": "s0-tip-hash",
+      "old": "2a86e9b9c1c59bd89dfe4b42b71057acc6a7d40f7f65c9e5d18a0f389f7e482f",
+      "new": "501e7df699fab34f2f39b977c89d4b01092913721ddcf9c0aa18372ea54ed695",
+      "declaration": "scripts/baselines/fgsa-old-reads.txt",
+      "wp": "WP16",
+      "reason": "Pin exact merged bytes before ruling Y and WP12d",
+      "source_commit": "45db161df91761be29d6115659aa5182f4afaab3",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit.",
+      "dependencies": [
+        "45db161df91761be29d6115659aa5182f4afaab3"
+      ]
+    },
+    {
+      "path": "docs/FG-FINALITY-SAFETY-S0-inherited.json",
+      "kind": "s0-revision-pin",
+      "old": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+      "new": "45db161df91761be29d6115659aa5182f4afaab3",
+      "declaration": "main_revision",
+      "wp": "WP16",
+      "reason": "Exact second-pass merged byte pin",
+      "source_commit": "45db161df91761be29d6115659aa5182f4afaab3",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit."
+    },
+    {
+      "path": "docs/FG-FINALITY-SAFETY-S0-inherited.json",
+      "kind": "s0-package",
+      "old": null,
+      "new": {
+        "id": "FGSA-port-measured-data",
+        "base": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+        "tip": "45db161df91761be29d6115659aa5182f4afaab3",
+        "recorded_changes": [
+          {
+            "path": "scripts/baselines/fgsa-old-reads.txt",
+            "commit": "45db161df91761be29d6115659aa5182f4afaab3"
+          }
+        ],
+        "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."
+      },
+      "declaration": "FGSA-port-measured-data",
+      "wp": "WP16",
+      "reason": "Exact package endpoint history",
+      "source_commit": "45db161df91761be29d6115659aa5182f4afaab3",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit."
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "kind": "documentation-pointer",
+      "old": null,
+      "new": [
+        "## FG-SA port WP16 second pass",
+        "",
+        "The merged WP08 and WP10 frame inputs use FrameNext. WP13v2 repairs the tests.",
+        "The complete Formation/Run build passes on source base `e961df94` (3,856 jobs).",
+        "The change record gives complete source statements, change commits, and review snapshots.",
+        "Ruling Z permits the proved partial Spec construction to land. The full independent",
+        "source interpreter, matched-cut equivalence, and claim transfer remain open.",
+        "Ruling Y and the WP12d Spec move are pending on this source base."
+      ],
+      "declaration": "WP16 second-pass notes",
+      "wp": "WP16",
+      "reason": "Current measured data, partial correspondence and Z/AA/AB notes",
+      "source_commit": "45db161df91761be29d6115659aa5182f4afaab3",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit."
+    },
+    {
+      "path": "docs/FGSA-PRODUCER-MAP-stage4.md",
+      "kind": "documentation-pointer",
+      "old": null,
+      "new": [
+        "## FG-SA port WP16 second-pass measurements",
+        "",
+        "The P13 map now uses compiled supplier fingerprints from source base `e961df94`.",
+        "The change record lists the changed source dependencies reached by each supplier.",
+        "`fgsaClaims` has one binder and zero proposition binders. Its claim source text is unchanged.",
+        "The phase-order map uses the approved `_of_crossing` helper. Both entries stay PARTIAL.",
+        "Ruling Y and WP12d require a final measurement after their source merges."
+      ],
+      "declaration": "WP16 second-pass notes",
+      "wp": "WP16",
+      "reason": "Current measured data, partial correspondence and Z/AA/AB notes",
+      "source_commit": "45db161df91761be29d6115659aa5182f4afaab3",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit."
+    },
+    {
+      "path": "docs/FGSA-SEMANTIC-LEDGER-stage4.md",
+      "kind": "documentation-pointer",
+      "old": null,
+      "new": [
+        "## FG-SA port rulings Z, AA, and AB",
+        "",
+        "Z changes the landing criterion: the port accepts the proved partial correspondence.",
+        "The full independent Spec interpreter, matched-cut equivalence, and claim transfer remain",
+        "post-landing work. They add no claim premise. Ruling X (`f54e403a`) settles row targets as roots.",
+        "",
+        "AA pins `cded72bb`, with notes `6cc92311`. `revoke_locks` becomes `unlock`.",
+        "The genesis guard and deletion branch are removed. A lock can move to genesis.",
+        "The future interpreter's lock relation must ignore a Spec lock at genesis or `Φ.F`.",
+        "The landing WP12a model still cites `f54e403a`; Lean `release` and `releaseCount` stay as implemented.",
+        "",
+        "AB pins `af218b78`, with the same notes. The Spec requires `n ≥ 1`.",
+        "The interpreter must assume `0 < p.n` where it uses unlock existence, unless Params supplies it.",
+        "",
+        "Y remains pending on source base `e961df94`. Durable/restore must keep the last tick time.",
+        "The final refresh must record the exact S0-frozen Reachable change and measure its dependencies.",
+        "All six restart-permitting claims retain their source text."
+      ],
+      "declaration": "WP16 second-pass notes",
+      "wp": "WP16",
+      "reason": "Current measured data, partial correspondence and Z/AA/AB notes",
+      "source_commit": "45db161df91761be29d6115659aa5182f4afaab3",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit."
+    },
+    {
+      "path": "scripts/proof-audit-coverage.txt",
+      "kind": "audit-scope",
+      "old": null,
+      "new": "AvailableChain.FGSA.Run.healing_domain_filter_F",
+      "declaration": "AvailableChain.FGSA.Run.healing_domain_filter_F",
+      "wp": "WP09b/WP13v",
+      "reason": "T3 retained-domain helper; complete current audit inventory adds its active print command",
+      "source_commit": "041b6360ca797a6e40e7e33b23a4e82238eb90bb",
+      "reviewed_commit": "35d380baaae8a3da4e46b417c19de73ba1568221",
+      "review": "rev-port-w09b-sol.md",
+      "review_status": "available",
+      "audit": "AvailableChainFGSAProofs.Tests.Axioms",
+      "owner": "AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause",
+      "compiled_evidence": {
+        "kind": "theorem",
+        "module": "AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause",
+        "fingerprint": "4d7c014995de24d5",
+        "binders": "3",
+        "props": "0",
+        "axioms": "propext,Classical.choice,Quot.sound"
+      },
+      "review_scope": "Source helper review only; this data registration needs its own review.",
+      "audit_command_commit": "fd5a26137eb9d0346dec6ceb9eed88e91703e948",
+      "audit_command_review": "rev-port-w13v2-astra.md",
+      "audit_command_review_snapshot": "fd5a2613"
     }
   ],
   "pending": [
@@ -54165,16 +54341,6 @@
       "item": "Ruling U simulation and transfer",
       "status": "pending",
       "reason": "Ruling Z accepts the proved partial construction. Full independent source simulation and claim transfer are post-landing obligations."
-    },
-    {
-      "wp": "WP08/WP10/WP15",
-      "item": "Compiled old-read baseline and coverage regeneration",
-      "status": "pending",
-      "paths": [
-        "scripts/baselines/fgsa-old-reads.txt",
-        "scripts/proof-audit-coverage.txt"
-      ],
-      "reason": "Old reads pass, including controls, after the Spec rebuild. Complete coverage needs three additional KitFG checker roots; their build is running."
     },
     {
       "wp": "WP12b",
@@ -54188,19 +54354,33 @@
       "wp": "WP12d/WP16",
       "item": "Item 2: Spec moves and import-policy removal",
       "status": "pending",
-      "reason": "Simulation/Transfer are still in AvailableChainFGSA/Proofs/Spec on e961df94. port-w12d is not merged; its requested report is absent."
+      "reason": "Not merged on this branch. Report now available at briefs/port-w12d-report.md; source commit 7ab64f69. Refresh facade registrations, import policy, owners and coverage after merge."
     },
     {
       "wp": "restart writer/WP16",
       "item": "Item 5: ruling Y retained-clock attribution and exact P13 Reachable freeze",
       "status": "pending",
-      "reason": "Ruling Y is not merged on e961df94; port-wrst report is absent. Measure the actual Durable, restore, suppliers, Reachable and claims closure after merge."
+      "reason": "Not merged on this branch. Report now available at briefs/port-wrst-report.md; source commits b0b493d8, 3c64a7e2, 9ef4bc76. Record actual source parents and S0 Reachable history after merge, then rebuild and measure all affected values."
     },
     {
       "wp": "WP12d/WP16",
       "item": "Item 5: Spec move ownership and coverage",
       "status": "pending",
-      "reason": "Measure and register the new Run paths after port-w12d merges."
+      "reason": "After merge, measure the new Run paths and the four ruling-Y restart replacements at 7ab64f69; preserve the namespace and compare the full moved inventory."
+    },
+    {
+      "wp": "WP12a/WP12b/WP03b/WP04b/WP09b",
+      "item": "Source repair for 35 unaccepted equation exports in complete coverage",
+      "status": "pending",
+      "reason": "The unchanged checker rejects 35 exports across six source modules. The full generated inventory has 6681 rows and no removals. Source repair is outside WP16 ownership; the fixed checker and proof-equation baseline retain their bytes.",
+      "evidence": ".lake/port-w16b/coverage-complete.log"
+    },
+    {
+      "wp": "review owner",
+      "item": "Review evidence for remaining attribution and new WP16 data",
+      "status": "pending",
+      "rows": 253,
+      "reason": "Each pending row has its exact reason. The 69 listed source-review rows are closed; new data edits need their own review. No SWITCH review is used for WP16 additions."
     }
   ],
   "checks": [
@@ -54356,6 +54536,167 @@
       "before": "PASS",
       "after": "PASS",
       "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "bash /Users/francesco/.claude/jobs/22f59f85/tmp/precheck.sh /Users/francesco/.claude/jobs/22f59f85/tmp/wt-pcsa-formation 318074ba",
+      "before": "FAIL: 11 guard-list records",
+      "after": "FAIL: Spec.Simulation Engine Duty.Schedule import; guard and all earlier stages pass",
+      "exit": 1
+    },
+    {
+      "job": "port-w16b",
+      "command": "python3 -B scripts/check-fg-finality-freeze.py --check",
+      "before": "FAIL: unlisted Tests/Axioms bytes",
+      "after": "PASS: 122 paths; 19 recorded differences",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "SOURCE_ONLY=1 bash scripts/check-fgsa.sh",
+      "before": "FAIL: Engine Duty.Schedule import",
+      "after": "FAIL: same pending WP12d boundary",
+      "exit": 1
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake build --wfail AvailableChainFGSAProofs AvailableChainFGSARun",
+      "before": "Not run on this base",
+      "after": "PASS: 3856 jobs",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake build --wfail AvailableChainFGSA",
+      "before": "51 new Spec names absent from stale objects",
+      "after": "PASS: 3276 jobs; both Spec modules rebuilt",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake build --wfail AvailableChainGeneric.Tests.Axioms AvailableChainFGSA.Tests.Axioms AvailableChainFGSARun.Tests.Axioms AvailableChainFGSAClaims.Tests.Axioms AvailableChainFGSAProofs.Tests.Axioms AvailableChainFGSAInhabit.Tests.Axioms AvailableChainPCSAProofs.Tests.Axioms AvailableChainFGCompose.Tests.Axioms AvailableChainFGSAProofs.Tests.FGCompose AvailableChainPCSAProofs.Tests.FGCompose AvailableChainFGCompose.Tests.SafetyAxioms AvailableChainFGSAProofs.Tests.FGSafety AvailableChainPCSAProofs.Tests.FGSafety AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms",
+      "before": "Coverage inputs missing",
+      "after": "PASS: 4152 jobs",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake build --wfail AvailableChainKitFG.TreeCorrespondence AvailableChainKitFG.TreeFrameGeometry AvailableChainKitFG.TreeTwoChanges",
+      "before": "Three extra checker roots missing",
+      "after": "PASS: 3137 jobs",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/CheckFGSAOldReads.lean --controls",
+      "before": "FAIL: 6 unlisted height rows; 5 stale rows",
+      "after": "PASS: 10188 constants in 519 modules; controls pass",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 python3 -B scripts/check-proof-coverage.py",
+      "before": "INPUT ERROR: TreeCorrespondence olean missing",
+      "after": "FAIL: 35 unaccepted source equation exports in 6 modules; stops at the first audit",
+      "exit": 1
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 python3 -B scripts/check-proof-coverage.py --write",
+      "before": "6680 rows; one active command missing",
+      "after": "PASS: measured 6681 rows, 14 audits; 1 addition, 0 removals",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 python3 -B scripts/check-fgsa-blueprint.py --check",
+      "before": "FAIL: 176 errors",
+      "after": "PASS: all mapped suppliers; PARTIAL statuses and 36 OPEN items preserved",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/CheckBlueprintClaims.lean <expected requests>",
+      "before": "2527 existing names pass; 51 new names absent in stale objects",
+      "after": "PASS: 2578 expected names and 33 coverage-only names; standard axioms",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake env lean claude-files/PortW16bClosedClaims.lean",
+      "before": "Not run",
+      "after": "PASS: aggregate and all six restart-permitting claims from Params alone",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/V2Manifest.lean --scope fgsa --check",
+      "before": "PASS on first pass",
+      "after": "PASS: 1242 entries; 57 modules",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/V2Manifest.lean --scope fgsa --write",
+      "before": "Current API rows",
+      "after": "PASS: all 1242 generated rows match; retain historical prose",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/V2Manifest.lean --scope fgsa --deep --check",
+      "before": "PASS on first pass",
+      "after": "PASS: 1242 roots; 897 exact exceptions",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "python3 -B scripts/fgsa-deep.py --frame-check",
+      "before": "PASS on first pass",
+      "after": "PASS: 43 entries; 5 exact exceptions",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "python3 -B scripts/check-fg-finality-freeze.py --history",
+      "before": "Missing current base/test/guard/data history",
+      "after": "PASS: 44 records; exact actual parents and hashes",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "python3 -B scripts/check-fg-finality-freeze.py --packages",
+      "before": "17 packages on first pass",
+      "after": "PASS: 20 packages",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "python3 -B scripts/check-fg-finality-coverage.py",
+      "before": "PASS",
+      "after": "PASS: 24 modules; 221 declarations",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "python3 -B scripts/check-fgsa-port-owners.py",
+      "before": "PASS",
+      "after": "PASS: 746 exact paths",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "SOURCE_ONLY=1 bash scripts/check-fgsa-run.sh",
+      "before": "PASS",
+      "after": "PASS",
+      "exit": 0
+    },
+    {
+      "job": "port-w16b",
+      "command": "SOURCE_ONLY=1 bash scripts/check-fgsa-claims.sh",
+      "before": "PASS",
+      "after": "PASS",
+      "exit": 0
     }
   ],
   "ruling_notes": [
@@ -54434,6 +54775,289 @@
       "attribution_rows_refreshed": 142,
       "standard_axioms_only": true,
       "initial_failure": "51 new Spec names were absent from stale objects; AvailableChainFGSA rebuild resolves them."
+    },
+    "coverage_source_failures": [
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Handlers",
+        "path": "AvailableChainFGSA/Proofs/Spec/Handlers.lean",
+        "declaration": "AvailableChain.GridCO.confirmationFrom.eq_1",
+        "owner": "WP12a",
+        "equation_owner": "AvailableChain.GridCO.confirmationFrom"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Handlers",
+        "path": "AvailableChainFGSA/Proofs/Spec/Handlers.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Handlers.0.AvailableChain.FGSA.Spec.advance.match_1.eq_1",
+        "owner": "WP12a",
+        "equation_owner": "AvailableChain.FGSA.Spec.advance.match_1"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Handlers",
+        "path": "AvailableChainFGSA/Proofs/Spec/Handlers.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Handlers.0.AvailableChain.FGSA.Spec.advance.match_1.eq_2",
+        "owner": "WP12a",
+        "equation_owner": "AvailableChain.FGSA.Spec.advance.match_1"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Handlers",
+        "path": "AvailableChainFGSA/Proofs/Spec/Handlers.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Handlers.0.AvailableChain.FGSA.Spec.advance.match_1.splitter",
+        "owner": "WP12a",
+        "equation_owner": "AvailableChain.FGSA.Spec.advance.match_1"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "AvailableChain.FGSA.RowWire.decode?.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.RowWire.decode?"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "AvailableChain.FGSA.admitBlock.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.admitBlock"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "AvailableChain.FGSA.admitHead.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.admitHead"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "AvailableChain.FGSA.admitRow.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.admitRow"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "AvailableChain.FGSA.blockAccepted.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.blockAccepted"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specAssignedCheck.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specAssignedCheck"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specAssignedCheck.eq_2",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specAssignedCheck"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specAssignedCheck.eq_def",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specAssignedCheck"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specIdentityGate.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specIdentityGate"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specIdentityGate.eq_2",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specIdentityGate"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specIdentityStoreStep.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specIdentityStoreStep"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specIdentityStoreStep.eq_2",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specIdentityStoreStep"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specKeepEvent.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specKeepEvent"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specKeepEvent.eq_2",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specKeepEvent"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specPruneEvents.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specPruneEvents"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specPruneEvents.eq_2",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specPruneEvents"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specPruneEvents.eq_def",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specPruneEvents"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specReadyWire.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specReadyWire"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specRestartRun.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specRestartRun"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specSimulationEvent.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specSimulationEvent"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specSimulationEvent.eq_2",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specSimulationEvent"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specSimulationEvent.eq_3",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specSimulationEvent"
+      },
+      {
+        "module": "AvailableChainFGSA.Proofs.Spec.Simulation",
+        "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+        "declaration": "_private.AvailableChainFGSA.Proofs.Spec.Simulation.0.AvailableChain.FGSA.Spec.specSimulationWire.eq_1",
+        "owner": "WP12b",
+        "equation_owner": "AvailableChain.FGSA.Spec.specSimulationWire"
+      },
+      {
+        "module": "AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay",
+        "path": "AvailableChainFGSAProofs/Proofs/Healing/PhaseRelay.lean",
+        "declaration": "AvailableChain.FGSA.Run.timeIdx.eq_1",
+        "owner": "WP04b",
+        "equation_owner": "AvailableChain.FGSA.Run.timeIdx"
+      },
+      {
+        "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime",
+        "path": "AvailableChainFGSAProofs/Proofs/Healing/PostResetH2Prime.lean",
+        "declaration": "AvailableChain.FGSA.Run.D_at.eq_1",
+        "owner": "WP09b",
+        "equation_owner": "AvailableChain.FGSA.Run.D_at"
+      },
+      {
+        "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime",
+        "path": "AvailableChainFGSAProofs/Proofs/Healing/PostResetH2Prime.lean",
+        "declaration": "AvailableChain.FGSA.Run.Kept.eq_1",
+        "owner": "WP09b",
+        "equation_owner": "AvailableChain.FGSA.Run.Kept"
+      },
+      {
+        "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep",
+        "path": "AvailableChainFGSAProofs/Proofs/Healing/PostResetLeaseStep.lean",
+        "declaration": "AvailableChain.FGSA.Run.D_at.eq_1",
+        "owner": "WP09b",
+        "equation_owner": "AvailableChain.FGSA.Run.D_at"
+      },
+      {
+        "module": "AvailableChainFGSAProofs.Proofs.Shared.ScoreRun",
+        "path": "AvailableChainFGSAProofs/Proofs/Shared/ScoreRun.lean",
+        "declaration": "AvailableChain.FGSA.proposalsAt.eq_1",
+        "owner": "WP03b",
+        "equation_owner": "AvailableChain.FGSA.proposalsAt"
+      },
+      {
+        "module": "AvailableChainFGSAProofs.Proofs.Shared.ScoreRun",
+        "path": "AvailableChainFGSAProofs/Proofs/Shared/ScoreRun.lean",
+        "declaration": "_private.AvailableChainFGSAProofs.Proofs.Shared.ScoreRun.0.AvailableChain.FGSA.proposalsAt.match_1.eq_1",
+        "owner": "WP03b",
+        "equation_owner": "AvailableChain.FGSA.proposalsAt.match_1"
+      },
+      {
+        "module": "AvailableChainFGSAProofs.Proofs.Shared.ScoreRun",
+        "path": "AvailableChainFGSAProofs/Proofs/Shared/ScoreRun.lean",
+        "declaration": "_private.AvailableChainFGSAProofs.Proofs.Shared.ScoreRun.0.AvailableChain.FGSA.proposalsAt.match_1.eq_2",
+        "owner": "WP03b",
+        "equation_owner": "AvailableChain.FGSA.proposalsAt.match_1"
+      },
+      {
+        "module": "AvailableChainFGSAProofs.Proofs.Shared.ScoreRun",
+        "path": "AvailableChainFGSAProofs/Proofs/Shared/ScoreRun.lean",
+        "declaration": "_private.AvailableChainFGSAProofs.Proofs.Shared.ScoreRun.0.AvailableChain.FGSA.proposalsAt.match_1.splitter",
+        "owner": "WP03b",
+        "equation_owner": "AvailableChain.FGSA.proposalsAt.match_1"
+      }
+    ],
+    "writer_reports_read": {
+      "port_wrst": "9ef4bc76ccd0b5ace72d299e364c39afb89b9b2e",
+      "port_w12d": "7ab64f696985f3846432255dbd3621fde2c63e54",
+      "note": "Reports were absent at start and arrived during this job. Neither source package is merged on this branch."
+    },
+    "coverage_inventory": {
+      "before": 6680,
+      "after": 6681,
+      "audits": 14,
+      "added": 1,
+      "removed": 0,
+      "generated": true,
+      "normal_check": "FAIL: 35 unaccepted source equation exports; fixed checker and baseline preserved"
+    },
+    "checks": {
+      "evidence_directory": ".lake/port-w16b",
+      "checks": 23,
+      "source_base": "e961df941261be5f421a03ae80635d1806a516e9",
+      "freeze_byte_revision": "45db161d",
+      "acceptance": "Pending WP12d source boundary and 35 source equation exports"
+    },
+    "pending_review_counts": {
+      "fd3df1fd": 18,
+      "1a4b2db1": 19,
+      "e6cfbc44": 7,
+      "3e53d37b": 7,
+      "63b98347": 13,
+      "e961df94": 3,
+      "02f5ac9a": 4,
+      "7e65c98d": 1,
+      "8b25b3db": 3,
+      "f3613517": 1,
+      "7230ac38": 4,
+      "3dab5843": 166,
+      "45db161d": 7
     }
   },
   "p13_dependency_evidence": {

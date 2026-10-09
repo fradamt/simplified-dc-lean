@@ -3057,6 +3057,7 @@
             'AvailableChain.FGSA.Run.healing_loss_single_cause',
             'AvailableChain.FGSA.Run.healing_noLoss_heads',
             'AvailableChain.FGSA.Run.healing_source_receipt',
+            'AvailableChain.FGSA.Run.healing_domain_filter_F',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.DescentLossFirst': (
             'AvailableChain.FGSA.Run.healing_first_transfer_domain',
