@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSA.Model.Spec.Frame
 public import AvailableChainKitFG.FrameBridgeDef
 public import AvailableChainKitFG.Ancestry
+public import AvailableChainFGSA.Model.ContestFrame
 
 public section
 
@@ -41,6 +42,14 @@ theorem viableTree_eq_filter (p : Params) (st : State p.n)
     refine ⟨hB, hZ, W, hW, ⟨?_, ?_, hHeight⟩, hBW⟩
     · exact Finset.mem_filter.mp (hX hW)
     · exact KitFG.preceq_trans hZ hBW
+
+/-- The pure viable-tree correspondence instantiated with the guarded controls. -/
+theorem viableTree_next_controls (p : Params) (st : State p.n)
+    (X : Finset (FGBlock (Fin p.n))) (hX : X ⊆ Next.tree p st) :
+    viableTree (frameOf p st (Next.controls p st).Z (Next.controls p st).lo
+      (fun B => (heightView p B).h)) X =
+      KitFG.filteredFromView (heightView p) (Next.controls p st) X :=
+  viableTree_eq_filter p st (heightView p) (Next.controls p st) rfl X hX
 
 end AvailableChain.FGSA.Spec
 end
