@@ -5298,6 +5298,29 @@
       "writer": "gpt-6.1-sol",
       "new": true,
       "purpose": "S0-I base inventory/checker/baseline"
+    },
+    {
+      "path": "docs/reports/fgsa-port-s0f00b.md",
+      "owner": "WP00b",
+      "writer": "gpt-6.1-sol",
+      "new": true,
+      "purpose": "S0-F statement map and SWITCH digest causes"
+    }
+  ],
+  "stage0_registration_handoffs": [
+    {
+      "package": "S0-F/00b",
+      "executor": "WP00b",
+      "authority": "Writer job port-s0f00b registration task",
+      "rule": "Owners stay fixed; this job executes the serial additive registration handoff.",
+      "paths": [
+        "AvailableChainFGSAClaims.lean",
+        "AvailableChainFGSAClaims/Tests/Axioms.lean",
+        "docs/FGSA-API.md",
+        "scripts/proof-audit-coverage.txt",
+        "scripts/fgsa-claims-expected.txt",
+        "scripts/check-fgsa-claims.sh"
+      ]
     }
   ]
 }

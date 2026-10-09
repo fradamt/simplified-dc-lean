@@ -361,6 +361,14 @@ def AvailableChain.FGSA.Run.FinalizedSafetyClaim ec0fd49cccf9b5dd
 def AvailableChain.FGSA.Run.FinalLockClaim e59705c6c1c10391
 ```
 
+### `AvailableChainFGSAClaims.Claims.FrameNext`
+
+```text
+def AvailableChain.FGSA.Run.FGFoundationClaimNext d3b1cfe9e6f752f7
+def AvailableChain.FGSA.Run.FrameAtNext 2918f5d8d75f1848
+def AvailableChain.FGSA.Run.FrameClaimNext 74ff06ab0c2c6b8d
+```
+
 ### `AvailableChainFGSAClaims.Claims.Healing`
 
 ```text
@@ -960,6 +968,34 @@ theorem AvailableChain.FGSA.Run.FinalityCoveredByChild_W_def b949f1a305ead8fa
 theorem AvailableChain.FGSA.Run.FinRowNames_def ed158b1dc934a188
 theorem AvailableChain.FGSA.Run.FinalityNames_def 008a06cf02c71175
 theorem AvailableChain.FGSA.Run.FinalityBatchCoverage_W_def 970563a98c533bf4
+```
+
+### `AvailableChainFGSAClaims.Statements.FrameNext`
+
+```text
+def AvailableChain.FGSA.Run.frameRNext 33b7c1ef71276d31
+theorem AvailableChain.FGSA.Run.frameRNext_def 649e816c96f958ce
+def AvailableChain.FGSA.Run.domainRNext 214f5b1a1f9887f2
+theorem AvailableChain.FGSA.Run.domainRNext_def 3a2c2f087ea67909
+def AvailableChain.FGSA.Run.RFrameExactNext d46b538aeb73ce7d
+theorem AvailableChain.FGSA.Run.RFrameExactNext_def d67cbcb59028142d
+def AvailableChain.FGSA.Run.RFrameNext a94a5ebbe3c6d044
+theorem AvailableChain.FGSA.Run.RFrameNext_def 41c2562bd2e3ff60
+structure AvailableChain.FGSA.Run.FGFoundationNext 789ae5bf91f9d7eb
+ctor AvailableChain.FGSA.Run.FGFoundationNext.mk d4fe042eae9b8a37
+field AvailableChain.FGSA.Run.FGFoundationNext.store d43b57ed084a7b71
+field AvailableChain.FGSA.Run.FGFoundationNext.cumul 75af14a7dcfb427e
+field AvailableChain.FGSA.Run.FGFoundationNext.mono 17ccdad28287265d
+field AvailableChain.FGSA.Run.FGFoundationNext.frame e7f4222629700f09
+field AvailableChain.FGSA.Run.FGFoundationNext.geo aec8036c3c3d8d49
+field AvailableChain.FGSA.Run.FGFoundationNext.strat 544099999af3a517
+field AvailableChain.FGSA.Run.FGFoundationNext.reconcile 66d55e9494cee731
+def AvailableChain.FGSA.Run.TStartNext d5abf0205883d14f
+def AvailableChain.FGSA.Run.TWalkNext 7d450d2c0cf697a9
+def AvailableChain.FGSA.Run.SettledPhaseFrameNext 63c3a6c59e1b286f
+theorem AvailableChain.FGSA.Run.SettledPhaseFrameNext_def c5096ec9c41a3e33
+def AvailableChain.FGSA.Run.TGeomNext 9b5f7c7d21ad3153
+def AvailableChain.FGSA.Run.OpeningCoveredNext 5345c1bc386ecb0e
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Healed`

@@ -70,7 +70,7 @@ EXPECTED = read_names('scripts/fgsa-claims-expected.txt')
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'OutageContinuation', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
          'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'WeakContinuationGrowth', 'Packages.Finality', 'Packages.FinalityGST',
-         'LiveDC', 'ComposeStmt', 'Fold',
+         'LiveDC', 'ComposeStmt', 'FrameNext', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 def audit_workers():
     values = []

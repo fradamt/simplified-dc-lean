@@ -14,6 +14,8 @@ public import AvailableChainFGSAClaims.Claims.Shared -- shake: keep (axiom audit
 public import AvailableChainFGSAClaims.Claims.Clean -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAClaims.Statements.Packages.Outage -- shake: keep (axiom audit commands)
 
+public import AvailableChainFGSAClaims.Claims.FrameNext -- shake: keep (axiom audit)
+
 /-! Axiom audit. Add one `#print axioms` for each new public theorem.
 The guard scans all compiled constants. -/
 
@@ -825,3 +827,33 @@ end
 #print axioms AvailableChain.FGSA.Run.LiveDCConcl_W_def
 #print axioms AvailableChain.FGSA.Run.LiveDCFromWindowsStatement
 #print axioms AvailableChain.FGSA.Run.LiveDCFromWindowsStatement_def
+
+-- AvailableChainFGSAClaims/Statements/FrameNext.lean
+#print axioms AvailableChain.FGSA.Run.frameRNext
+#print axioms AvailableChain.FGSA.Run.frameRNext_def
+#print axioms AvailableChain.FGSA.Run.domainRNext
+#print axioms AvailableChain.FGSA.Run.domainRNext_def
+#print axioms AvailableChain.FGSA.Run.RFrameExactNext
+#print axioms AvailableChain.FGSA.Run.RFrameExactNext_def
+#print axioms AvailableChain.FGSA.Run.RFrameNext
+#print axioms AvailableChain.FGSA.Run.RFrameNext_def
+#print axioms AvailableChain.FGSA.Run.FGFoundationNext
+#print axioms AvailableChain.FGSA.Run.TStartNext
+#print axioms AvailableChain.FGSA.Run.TWalkNext
+#print axioms AvailableChain.FGSA.Run.SettledPhaseFrameNext
+#print axioms AvailableChain.FGSA.Run.SettledPhaseFrameNext_def
+#print axioms AvailableChain.FGSA.Run.TGeomNext
+#print axioms AvailableChain.FGSA.Run.OpeningCoveredNext
+#print axioms AvailableChain.FGSA.Run.FGFoundationNext.mk
+#print axioms AvailableChain.FGSA.Run.FGFoundationNext.store
+#print axioms AvailableChain.FGSA.Run.FGFoundationNext.cumul
+#print axioms AvailableChain.FGSA.Run.FGFoundationNext.mono
+#print axioms AvailableChain.FGSA.Run.FGFoundationNext.frame
+#print axioms AvailableChain.FGSA.Run.FGFoundationNext.geo
+#print axioms AvailableChain.FGSA.Run.FGFoundationNext.strat
+#print axioms AvailableChain.FGSA.Run.FGFoundationNext.reconcile
+
+-- AvailableChainFGSAClaims/Claims/FrameNext.lean
+#print axioms AvailableChain.FGSA.Run.FGFoundationClaimNext
+#print axioms AvailableChain.FGSA.Run.FrameAtNext
+#print axioms AvailableChain.FGSA.Run.FrameClaimNext
