@@ -722,6 +722,13 @@
       "purpose": "central test ownership"
     },
     {
+      "path": "AvailableChainFGSA/Tests/PortHelpers.lean",
+      "owner": "WP03a",
+      "writer": "gpt-6-astra",
+      "new": true,
+      "purpose": "S0-P pure support/carry/local correspondence tests"
+    },
+    {
       "path": "AvailableChainFGSA/Tests/PortMerge.lean",
       "owner": "WP01b",
       "writer": "gpt-6-astra",

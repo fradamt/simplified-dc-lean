@@ -244,6 +244,37 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   AvailableChain.FGSA.Next.headInTreeNext_eq_of_controls \
   AvailableChain.FGSA.Next.getHeadNext_eq_of_controls \
   AvailableChain.FGSA.Next.headVoteNext_eq_of_reads \
+  AvailableChain.FGSA.Next.HelperTests.port_helpers_genesis_projection \
+  AvailableChain.FGSA.Next.port_proposerSupport_positive \
+  AvailableChain.FGSA.Next.port_scoreOn_resolved \
+  AvailableChain.FGSA.Next.port_support_filter_incidence \
+  AvailableChain.FGSA.Next.port_support_filter_score \
+  AvailableChain.FGSA.Next.port_headSupport_incidence \
+  AvailableChain.FGSA.Next.port_headSupport_scoreOn \
+  AvailableChain.FGSA.Next.port_headVotes_score \
+  AvailableChain.FGSA.Next.port_clean_score_card \
+  AvailableChain.FGSA.Next.port_clean_filter_score \
+  AvailableChain.FGSA.Next.port_ghostStep_congr \
+  AvailableChain.FGSA.Next.port_ghost_congr \
+  AvailableChain.FGSA.Next.port_confirmation_filter \
+  AvailableChain.FGSA.Next.port_selected_head_eq \
+  AvailableChain.FGSA.Next.port_proposer_selected_head \
+  AvailableChain.FGSA.Next.port_voter_selected_head \
+  AvailableChain.FGSA.Next.port_releaseCount_eq \
+  AvailableChain.FGSA.Next.port_retained_proposal_row \
+  AvailableChain.FGSA.Next.port_retained_raw_carry \
+  AvailableChain.FGSA.Next.port_retained_support_carry \
+  AvailableChain.FGSA.Next.port_retained_carry_score \
+  AvailableChain.FGSA.Next.port_resolvedHead_filter \
+  AvailableChain.FGSA.Next.port_resolvedBefore_filter \
+  AvailableChain.FGSA.Next.port_resolvedHead_above_F \
+  AvailableChain.FGSA.Next.port_resolvedHead_tree \
+  AvailableChain.FGSA.Next.port_resolvedBefore_tree \
+  AvailableChain.FGSA.Next.port_fastSet_projection \
+  AvailableChain.FGSA.Next.port_lease_projection \
+  AvailableChain.FGSA.Next.port_active_release_projection \
+  AvailableChain.FGSA.Next.port_fastSet_filter \
+  AvailableChain.FGSA.Next.port_fastWrite_projection \
   AvailableChain.FGSA.Next.proposerSupportNext \
   AvailableChain.FGSA.Next.proposerSupportNext_eq_filter \
   AvailableChain.FGSA.Next.proposerSupportNext_sublist \
