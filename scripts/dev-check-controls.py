@@ -3,6 +3,7 @@
 import importlib.util
 from pathlib import Path
 import subprocess
+import shutil
 import tempfile
 from unittest.mock import patch
 
@@ -35,6 +36,59 @@ def rejected(label, diagnostic, action):
 def section_bytes(text):
     lines = text.splitlines(keepends=True)
     return {key: ''.join(lines[start:end]) for key, (start, end) in P.sections(text).items()}
+
+
+def package_fixture(required):
+    return '[TARGETS]\n[GREEN]\n' + '\n'.join(sorted(required)) + '\n[EXPECTED-FAIL]\n'
+
+
+def scoped_write_control(tmp):
+    # An isolated library supplies the real compiled generator. No project audit
+    # olean is loaded, including audits a package can mark EXPECTED-FAIL.
+    root = tmp / 'coverage-build'
+    scripts = root / 'scripts'
+    scripts.mkdir(parents=True)
+    for name in ('check-proof-coverage.py', 'CheckProofEqns.lean'):
+        shutil.copyfile(ROOT / 'scripts' / name, scripts / name)
+    support = scripts / 'AvailableChainCheckSupport'
+    support.mkdir()
+    shutil.copyfile(ROOT / 'scripts/AvailableChainCheckSupport/GeneratedOwner.lean',
+                    support / 'GeneratedOwner.lean')
+    (scripts / 'baselines').mkdir()
+    for name in ('kitfg-def-modules.txt', 'check-proof-eqns.txt'):
+        shutil.copyfile(ROOT / 'scripts/baselines' / name, scripts / 'baselines' / name)
+    (root / 'lean-toolchain').write_text((ROOT / 'lean-toolchain').read_text())
+    (root / 'lakefile.toml').write_text(
+        'name = "dev-coverage"\nversion = "0.1.0"\n'
+        '[[lean_lib]]\nname = "AvailableChainGeneric"\n'
+        'roots = ["AvailableChainGeneric.Tests.Axioms"]\n'
+        '[[lean_lib]]\nname = "AvailableChainCheckSupport"\nsrcDir = "scripts"\n'
+        'roots = ["AvailableChainCheckSupport.GeneratedOwner"]\n')
+    key = 'AvailableChainGeneric.Tests.Axioms'
+    audit = root / (key.replace('.', '/') + '.lean')
+    audit.parent.mkdir(parents=True)
+    audit.write_text('module\npublic section\n'
+                     'theorem devCoverage : True := True.intro\n#print axioms devCoverage\n')
+    subprocess.run(['lake', 'build', '--wfail', key, 'AvailableChainCheckSupport'],
+                   cwd=root, check=True)
+    inventory = scripts / 'proof-audit-coverage.txt'
+    original = (ROOT / 'scripts/proof-audit-coverage.txt').read_text()
+    before = section_bytes(original)
+    inventory.write_text(P.replace_sections(original, {
+        key: P.section_text(key, [(key, 'devStaleName', key)])}))
+    command = ['python3', '-B', 'scripts/check-proof-coverage.py', '--audits', key]
+    subprocess.run([*command, '--write'], cwd=root, check=True)
+    after = section_bytes(inventory.read_text())
+    assert set(before) == set(after) == set(P.AUDITS)
+    assert all(before[k] == after[k] for k in before if k != key)
+    assert after[key] == P.section_text(key, [(key, 'devCoverage', key)])
+    subprocess.run(command, cwd=root, check=True)
+    inventory.write_text(P.replace_sections(inventory.read_text(), {
+        key: P.section_text(key, [(key, 'devStaleName', key)])}))
+    result = subprocess.run(command, cwd=root, text=True, capture_output=True)
+    assert result.returncode == 1 and 'AUDIT DECLARATION MISSING' in result.stdout, result.stdout
+    print('CONTROL isolated scoped write / stale compiled row: PASS '
+          '(other sections unchanged; real checker rc 1)', flush=True)
 
 
 def main():
@@ -95,7 +149,7 @@ def main():
                    D.SHARED + '.Claims': []}
         rejected('REQUIRED imports DEFERRED', 'REQUIRED IMPORTS DEFERRED',
                  lambda: D.validate_scope(fixture, changed))
-        package = (ROOT / 'scripts/dev-pkg/sleep-ppc.txt').read_text()
+        package = package_fixture(required)
         fixture.write_text(package.replace(omitted + '\n', '', 1))
         rejected('omitted package module', 'OMITTED PACKAGE MODULE',
                  lambda: D.validate_package(fixture, required, graph))
@@ -117,6 +171,19 @@ def main():
             '[GREEN]\nAvailableChainModel.Generic.Env', '[GREEN]'))
         rejected('omitted outside-S1 package target', 'OMITTED PACKAGE MODULE',
                  lambda: D.validate_package(fixture, required, graph))
+        new = 'AvailableChainEngineV2.Tests.ReviewNewSleep'
+        grown_graph = {**graph, new: []}
+        fixture.write_text(original.replace('[REQUIRED]', '[REQUIRED]\n' + new))
+        grown_required = D.validate_scope(fixture, grown_graph)
+        fixture.write_text(package_fixture(grown_required))
+        assert D.validate_package(fixture, grown_required, grown_graph) == grown_required
+        print('CONTROL valid S1 growth: PASS (current REQUIRED fixture)', flush=True)
+        fixture.write_text(package.replace(D.SHARED_AUDIT + '\n', '', 1).replace(
+            '[EXPECTED-FAIL]', '[EXPECTED-FAIL]\n' + D.SHARED_AUDIT + ' P-ShA'))
+        green = D.validate_package(fixture, required, graph)
+        assert D.SHARED_AUDIT not in green
+        assert set(D.AUDITS) & green == set(D.AUDITS) - {D.SHARED_AUDIT}
+        print('CONTROL package Shared audit EXPECTED-FAIL: PASS (not selected)', flush=True)
         rejected('active imports PC-SA', 'ACTIVE IMPORTS PC-SA', lambda: S.check_active(
             {'AvailableChainFGSA': ['AvailableChainPCSA']}, ['AvailableChainFGSA']))
         rejected('deferred source proof', 'DEFERRED FORBIDDEN PROOF', lambda:
@@ -130,12 +197,18 @@ def main():
         (sorry_dir / 'lean-toolchain').write_text((ROOT / 'lean-toolchain').read_text())
         (sorry_dir / 'lakefile.toml').write_text(
             'name = "dev-negative"\nversion = "0.1.0"\n'
-            'defaultTargets = ["DevSorry"]\n[[lean_lib]]\nname = "DevSorry"\n')
+            'defaultTargets = ["DevSorry"]\n[[lean_lib]]\nname = "DevSorry"\n'
+            '[[lean_lib]]\nname = "DevClean"\n')
         (sorry_dir / 'DevSorry.lean').write_text('theorem devSorry : True := by sorry\n')
-        result = subprocess.run(['lake', 'build', '--wfail'], cwd=sorry_dir,
+        (sorry_dir / 'DevClean.lean').write_text('theorem devClean : True := True.intro\n')
+        clean = subprocess.run(['lake', 'build', '--wfail', 'DevClean'], cwd=sorry_dir,
+                               text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        assert clean.returncode == 0, clean.stdout
+        result = subprocess.run(['lake', 'build', '--wfail', 'DevSorry'], cwd=sorry_dir,
                                 text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        assert result.returncode and 'sorry' in result.stdout, result.stdout
-        print('CONTROL sorry module: PASS (lake build --wfail rejected sorry)', flush=True)
+        assert result.returncode and "declaration uses `sorry`" in result.stdout, result.stdout
+        print('CONTROL sorry module: PASS (placeholder diagnostic; clean companion rc 0)',
+              flush=True)
         axiom = tmp / 'Axiom.lean'
         axiom.write_text('axiom devUnexpected : True\n#print axioms devUnexpected\n')
         result = subprocess.run(['lake', 'env', 'lean', str(axiom)], cwd=ROOT,
@@ -145,22 +218,7 @@ def main():
                  lambda: D.strict_results(axiom.read_text(), result.stdout))
         rejected('missing axiom result', 'AXIOM RESULTS',
                  lambda: D.strict_results('#print axioms missing\n', ''))
-        inventory = tmp / 'coverage.txt'
-        original_inventory = (ROOT / 'scripts/proof-audit-coverage.txt').read_text()
-        inventory.write_text(original_inventory)
-        key = D.SHARED_AUDIT
-        before = section_bytes(original_inventory)
-        # Make the selected section stale. The real scoped writer must repair it
-        # and preserve every byte of each section outside the selected key.
-        inventory.write_text(P.replace_sections(original_inventory, {
-            key: before[key].replace('fgsa_store_cumulative', 'devStaleName')}))
-        subprocess.run(['python3', '-B', 'scripts/check-proof-coverage.py', '--write',
-                        '--audits', key, '--inventory', str(inventory)], cwd=ROOT, check=True)
-        after = section_bytes(inventory.read_text())
-        assert set(before) == set(after) == set(P.AUDITS)
-        assert all(before[k] == after[k] for k in before if k != key)
-        assert before[key] == after[key]
-        print('CONTROL scoped write preserves all other sections: PASS', flush=True)
+        scoped_write_control(tmp)
         result = subprocess.run(['python3', '-B', 'scripts/check-proof-coverage.py',
                                  '--audits', 'AvailableChainUnknown.Tests.Axioms'], cwd=ROOT,
                                 text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
