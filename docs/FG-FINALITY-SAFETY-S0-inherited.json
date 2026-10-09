@@ -7,8 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "63b98347ffc517732bdf8e42c19730d4cc502a4b",
-  "main_revision_note": "WP16 first-pass byte pin on port-w16; not an acceptance or atomic landing. Pending WP08/WP10/WP12b/WP15 source work is excluded. Frozen manifests stay fixed.",
+  "main_revision": "e961df941261be5f421a03ae80635d1806a516e9",
+  "main_revision_note": "WP16 second-pass pin on e961df94. Ruling Y and WP12d are pending source merges.",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -112,7 +112,7 @@
       "path": "AvailableChainFGSAProofs/Tests/Axioms.lean",
       "s0_sha256": "eadf5b295fbd91c13684573d4b91d1facd7ab13243696f26c7ec41e66ff726d9",
       "comparison_sha256": "4f8d10bbf562323edf96fa8f6a299c35939dec65ab8b3864dd8c5d172be826dd",
-      "main_sha256": "b504cd3dfcd911f6889954a76ff6f554cc79aeeedd083826419d67e36526a1a9",
+      "main_sha256": "b47acf499f78d35e1383b5d04209f0da8c065e096b3cb7ca380e8e85bd008ab5",
       "changes": [
         {
           "commit": "8be7bf6bfde3f9b109216274cdf43c2cf95d6c62",
@@ -128,6 +128,14 @@
           "before_sha256": "4f8d10bbf562323edf96fa8f6a299c35939dec65ab8b3864dd8c5d172be826dd",
           "after_sha256": "b504cd3dfcd911f6889954a76ff6f554cc79aeeedd083826419d67e36526a1a9",
           "reason": "WP13v audit registration: test(fgsa): replace removed helper audits and cover guarded suppliers",
+          "kind": "commit"
+        },
+        {
+          "commit": "fd5a26137eb9d0346dec6ceb9eed88e91703e948",
+          "parent": "a05654a26c7c4e15507c98709e289bbf1716ea4d",
+          "before_sha256": "b504cd3dfcd911f6889954a76ff6f554cc79aeeedd083826419d67e36526a1a9",
+          "after_sha256": "b47acf499f78d35e1383b5d04209f0da8c065e096b3cb7ca380e8e85bd008ab5",
+          "reason": "WP13v A/V/S/T regression and axiom audit repairs: test(fgsa): audit guarded outage receipts and retained domains",
           "kind": "commit"
         }
       ]
@@ -701,6 +709,18 @@
         }
       ],
       "note": "WP16 first pass. The core package remains open for later source/data commits. This fixed tip records merged bytes only. Every qualifying intermediate change and merge resolution is in differences."
+    },
+    {
+      "id": "FGSA-port-second-pass-base",
+      "base": "63b98347ffc517732bdf8e42c19730d4cc502a4b",
+      "tip": "e961df941261be5f421a03ae80635d1806a516e9",
+      "recorded_changes": [
+        {
+          "path": "AvailableChainFGSAProofs/Tests/Axioms.lean",
+          "commit": "fd5a26137eb9d0346dec6ceb9eed88e91703e948"
+        }
+      ],
+      "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."
     }
   ]
 }
