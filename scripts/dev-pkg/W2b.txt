@@ -1,6 +1,6 @@
-# W2b: approved work; stopped statements and Schedule reset prevent closure.
-# W1b failures are inherited from the W2a base, not W2b dependencies.
-# W3 owns full run integration; no REQUIRED module is moved to DEFERRED.
+# W2b: exact-wake restore and all three reset sites are GREEN.
+# W1b and its review fixes are merged. W3 and the families own remaining failures.
+# No REQUIRED module is moved to DEFERRED.
 [TARGETS]
 AvailableChainFGSARun
 AvailableChainFGSARun.Model.Protocol
@@ -12,7 +12,8 @@ AvailableChainFGSARun.Proofs.Restore
 AvailableChainFGSARun.Proofs.Schedule
 AvailableChainFGSARun.Tests.RestoreAxioms
 AvailableChainFGSARun.Tests.Sleep
-
+AvailableChainFGSARun.Tests.SleepContinuation
+AvailableChainFGSARun.Tests.SleepContinuationAxioms
 [GREEN]
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
@@ -177,9 +178,16 @@ AvailableChainFGSAProofs.Proofs.Shared.RowAuth
 AvailableChainFGSARun.Model.Families
 AvailableChainFGSARun.Model.HealingFixture
 AvailableChainFGSARun.Model.Protocol
+AvailableChainFGSARun.Proofs.ClockLaws
+AvailableChainFGSARun.Proofs.NamedOrigins
+AvailableChainFGSARun.Proofs.Protocol
+AvailableChainFGSARun.Proofs.Reachable
 AvailableChainFGSARun.Proofs.Restore
+AvailableChainFGSARun.Proofs.RetainedClock
 AvailableChainFGSARun.Proofs.RootLease
+AvailableChainFGSARun.Proofs.Schedule
 AvailableChainFGSARun.Statements.AC
+AvailableChainFGSARun.Statements.Acceptance
 AvailableChainFGSARun.Statements.Client
 AvailableChainFGSARun.Statements.Emission
 AvailableChainFGSARun.Statements.Excludes
@@ -189,6 +197,9 @@ AvailableChainFGSARun.Statements.Roots
 AvailableChainFGSARun.Statements.Slashing
 AvailableChainFGSARun.Tests.RestoreAxioms
 AvailableChainFGSARun.Tests.Sleep
+AvailableChainFGSARun.Tests.SleepContinuation
+AvailableChainFGSARun.Tests.SleepContinuationAxioms
+AvailableChainGeneric
 AvailableChainGeneric.Proofs.AC.Batch
 AvailableChainGeneric.Proofs.AC.Duty.Transfer
 AvailableChainGeneric.Proofs.AC.History
@@ -226,14 +237,26 @@ AvailableChainGeneric.Proofs.Pure.SupportCounts
 AvailableChainGeneric.Proofs.Pure.Walk
 AvailableChainGeneric.Proofs.V2.BaseTransport
 AvailableChainGeneric.Proofs.V2.DCProps
+AvailableChainGeneric.Proofs.V2.DCRegimes
 AvailableChainGeneric.Proofs.V2.Duty.BaseTransport
+AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
+AvailableChainGeneric.Proofs.V2.Duty.Fields
+AvailableChainGeneric.Proofs.V2.Duty.Induction
 AvailableChainGeneric.Proofs.V2.Duty.Linked
 AvailableChainGeneric.Proofs.V2.Duty.LinkedHolders
 AvailableChainGeneric.Proofs.V2.Duty.Reads
+AvailableChainGeneric.Proofs.V2.Duty.Receipt
+AvailableChainGeneric.Proofs.V2.Duty.Regimes
 AvailableChainGeneric.Proofs.V2.Duty.Signatures
+AvailableChainGeneric.Proofs.V2.Duty.Sleep
+AvailableChainGeneric.Proofs.V2.Fields
+AvailableChainGeneric.Proofs.V2.Induction
 AvailableChainGeneric.Proofs.V2.Linked
 AvailableChainGeneric.Proofs.V2.Reads
+AvailableChainGeneric.Proofs.V2.Receipt
+AvailableChainGeneric.Proofs.V2.Regimes
 AvailableChainGeneric.Proofs.V2.Signatures
+AvailableChainGeneric.Proofs.V2.Sleep
 AvailableChainGeneric.Statements.AC.Duty.Reads
 AvailableChainGeneric.Statements.AC.Duty.Transfer
 AvailableChainGeneric.Statements.AC.History
@@ -271,36 +294,61 @@ AvailableChainGeneric.Statements.V2.Counts
 AvailableChainGeneric.Statements.V2.DCProps
 AvailableChainGeneric.Statements.V2.DCRegimes
 AvailableChainGeneric.Statements.V2.Duty.Counts
+AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 AvailableChainGeneric.Statements.V2.Duty.Interface
 AvailableChainGeneric.Statements.V2.Duty.Linked
 AvailableChainGeneric.Statements.V2.Duty.LinkedHolders
+AvailableChainGeneric.Statements.V2.Duty.PCCompanion
 AvailableChainGeneric.Statements.V2.Duty.Reads
+AvailableChainGeneric.Statements.V2.Duty.Receipt
+AvailableChainGeneric.Statements.V2.Duty.Regimes
 AvailableChainGeneric.Statements.V2.Duty.Signatures
 AvailableChainGeneric.Statements.V2.Duty.Slashing
 AvailableChainGeneric.Statements.V2.Interface
 AvailableChainGeneric.Statements.V2.Linked
 AvailableChainGeneric.Statements.V2.Obs
 AvailableChainGeneric.Statements.V2.Reads
+AvailableChainGeneric.Statements.V2.Receipt
+AvailableChainGeneric.Statements.V2.Regimes
 AvailableChainGeneric.Statements.V2.Signatures
 AvailableChainGeneric.Statements.V2.Slashing
+AvailableChainGeneric.Tests.Axioms
+AvailableChainGeneric.Tests.Batch
 AvailableChainGeneric.Tests.CommonAncestor
 AvailableChainGeneric.Tests.DCProps
+AvailableChainGeneric.Tests.DCRegimes
+AvailableChainGeneric.Tests.DeliveryBy
 AvailableChainGeneric.Tests.Dominance
+AvailableChainGeneric.Tests.Duties
+AvailableChainGeneric.Tests.FoldRestart
+AvailableChainGeneric.Tests.LeaseWindow
 AvailableChainGeneric.Tests.RetainedWalk
 AvailableChainGeneric.Tests.Schedule
 AvailableChainGeneric.Tests.ScheduleW
+AvailableChainGeneric.Tests.Support
+AvailableChainGeneric.Tests.Votes
 AvailableChainGeneric.Tests.WaveD2
+AvailableChainKitV2
 AvailableChainKitV2.ClockLaws
 AvailableChainKitV2.DutyClockLaws
 AvailableChainKitV2.DutyEmission
+AvailableChainKitV2.DutyEngineClock
 AvailableChainKitV2.DutyExecution
 AvailableChainKitV2.DutyLinked
+AvailableChainKitV2.DutyRecord
+AvailableChainKitV2.DutySleep
 AvailableChainKitV2.DutyStable
 AvailableChainKitV2.Emission
+AvailableChainKitV2.EngineClock
 AvailableChainKitV2.Execution
 AvailableChainKitV2.RunCheck
+AvailableChainKitV2.Sleep
 AvailableChainKitV2.Stable
-
+AvailableChainKitV2.Tests.Axioms
+AvailableChainKitV2.Tests.Counterexamples
+AvailableChainKitV2.Tests.Duties
+AvailableChainKitV2.Tests.Sleep
+AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
 AvailableChainFGCompose W3
 AvailableChainFGCompose.Proofs.SafetyAccountable W3
@@ -385,7 +433,6 @@ AvailableChainFGSARun.Proofs.Acceptance W3
 AvailableChainFGSARun.Proofs.AncestorDeadlines W3
 AvailableChainFGSARun.Proofs.AncestorDeadlinesStore W3
 AvailableChainFGSARun.Proofs.ClientTrace W3
-AvailableChainFGSARun.Proofs.ClockLaws W3
 AvailableChainFGSARun.Proofs.Content W3
 AvailableChainFGSARun.Proofs.Emission W3
 AvailableChainFGSARun.Proofs.EmissionWellFormed W3
@@ -394,24 +441,18 @@ AvailableChainFGSARun.Proofs.HeadIdentity W3
 AvailableChainFGSARun.Proofs.Hooks W3
 AvailableChainFGSARun.Proofs.Interface W3
 AvailableChainFGSARun.Proofs.NamedDelivery W3
-AvailableChainFGSARun.Proofs.NamedOrigins W3
 AvailableChainFGSARun.Proofs.NamedScope W3
-AvailableChainFGSARun.Proofs.Protocol W3
-AvailableChainFGSARun.Proofs.Reachable W3
 AvailableChainFGSARun.Proofs.ReadFacts W3
 AvailableChainFGSARun.Proofs.Readiness W3
 AvailableChainFGSARun.Proofs.ReceiptCoverage W3
 AvailableChainFGSARun.Proofs.Receipts W3
-AvailableChainFGSARun.Proofs.RetainedClock W3
 AvailableChainFGSARun.Proofs.RootResolution W3
 AvailableChainFGSARun.Proofs.Roots W3
-AvailableChainFGSARun.Proofs.Schedule W3
 AvailableChainFGSARun.Proofs.SelfDelivery W3
 AvailableChainFGSARun.Proofs.Slashing W3
 AvailableChainFGSARun.Proofs.Spec.Simulation W3
 AvailableChainFGSARun.Proofs.Spec.Transfer W3
 AvailableChainFGSARun.Proofs.WindowExclusion W3
-AvailableChainFGSARun.Statements.Acceptance W3
 AvailableChainFGSARun.Statements.ReceiptCoverage W3
 AvailableChainFGSARun.Tests.Axioms W3
 AvailableChainFGSARun.Tests.DigestScope W3
@@ -420,37 +461,3 @@ AvailableChainFGSARun.Tests.NVDigest W3
 AvailableChainFGSARun.Tests.Protocol W3
 AvailableChainFGSARun.Tests.Slashing W3
 AvailableChainFGSARun.Tests.WindowExclusion W3
-AvailableChainGeneric W1b
-AvailableChainGeneric.Proofs.V2.DCRegimes W1b
-AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy W1b
-AvailableChainGeneric.Proofs.V2.Duty.Fields W1b
-AvailableChainGeneric.Proofs.V2.Duty.Induction W1b
-AvailableChainGeneric.Proofs.V2.Duty.Receipt W1b
-AvailableChainGeneric.Proofs.V2.Duty.Regimes W1b
-AvailableChainGeneric.Proofs.V2.Fields W1b
-AvailableChainGeneric.Proofs.V2.Induction W1b
-AvailableChainGeneric.Proofs.V2.Receipt W1b
-AvailableChainGeneric.Proofs.V2.Regimes W1b
-AvailableChainGeneric.Statements.V2.Duty.DeliveryBy W1b
-AvailableChainGeneric.Statements.V2.Duty.PCCompanion W1b
-AvailableChainGeneric.Statements.V2.Duty.Receipt W1b
-AvailableChainGeneric.Statements.V2.Duty.Regimes W1b
-AvailableChainGeneric.Statements.V2.Receipt W1b
-AvailableChainGeneric.Statements.V2.Regimes W1b
-AvailableChainGeneric.Tests.Axioms W1b
-AvailableChainGeneric.Tests.Batch W1b
-AvailableChainGeneric.Tests.DCRegimes W1b
-AvailableChainGeneric.Tests.DeliveryBy W1b
-AvailableChainGeneric.Tests.Duties W1b
-AvailableChainGeneric.Tests.FoldRestart W1b
-AvailableChainGeneric.Tests.LeaseWindow W1b
-AvailableChainGeneric.Tests.Support W1b
-AvailableChainGeneric.Tests.Votes W1b
-AvailableChainKitV2 W1b
-AvailableChainKitV2.DutyEngineClock W1b
-AvailableChainKitV2.DutyRecord W1b
-AvailableChainKitV2.EngineClock W1b
-AvailableChainKitV2.Tests.Axioms W1b
-AvailableChainKitV2.Tests.Counterexamples W1b
-AvailableChainKitV2.Tests.Duties W1b
-AvailableChainKitV2.Tests.Toy W1b

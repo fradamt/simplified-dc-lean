@@ -151,6 +151,13 @@ AX_OPTS=(--expect
   Run.SleepTests.joinEnv Run.SleepTests.joinRun Run.SleepTests.valid
   Run.SleepTests.non_public_wake Run.SleepTests.receipt_before_tick
   Run.SleepTests.durable_run Run.SleepTests.retained_not_fresh Run.SleepTests.join_valid
+  Run.SleepContinuationTests.retained_origin
+  Run.SleepContinuationTests.joined_strict
+  Run.SleepContinuationTests.same_time_bound
+  Run.SleepContinuationTests.retained_block_bound
+  Run.SleepContinuationTests.wake_epoch_equiv
+  Run.SleepContinuationTests.gate_empty
+  Run.SleepContinuationTests.admission_public
   Run.SleepTests.join_duties Run.SleepTests.wake_at_tick Run.SleepTests.initial_duties
   Run.reachable_stateBefore Run.reachable_stateBeforeTime Run.reachable_readAt
   Run.reachable_final Run.reachable_postClock Run.reachable_postTick
@@ -184,6 +191,14 @@ AX_OPTS=(--expect
   Run.fgsa_gate_fresh
   Run.fgsa_gate_clock_bridge
   Run.fgsa_stateBefore_bounds
+  Run.fgsa_preTick_now_le
+  Run.fgsa_preTick_restartTime_at_wake
+  Run.fgsa_preTick_now_lt_joined
+  Run.fgsa_preTick_now_lt_iff
+  Run.fgsa_preTick_votes_stamped_le
+  Run.fgsa_gate_saved_unjoined
+  Run.timely_of_relay_retained
+  Run.fgsa_admissionTime_public
   Run.fgsa_preTick_now_lt
   Run.fgsa_release_votes_stamped
   Run.fgsa_vote_stamp_keys

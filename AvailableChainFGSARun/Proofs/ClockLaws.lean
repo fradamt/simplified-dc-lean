@@ -28,22 +28,21 @@ theorem fgsa_monoAlong_preceq_F (X : FGBlock (Fin p.n)) :
   · intro nd o h
     exact h
 
-/-- A predicate true of reset stores at every clock holds after restore. -/
+/-- A predicate preserved by retained-store restart holds after restore. -/
 theorem fgsa_hrestore_retained (Q : FGSA.State p.n → Prop)
-    (hQ : ∀ t, Q (FGSA.initialAt p.n t)) :
-    ∀ nd : Node p, Q ((fgsa p c).restore ((fgsa p c).durable nd)).st := by
-  intro nd
-  exact hQ nd.st.base.now
+    (hQ : ∀ st w, Q st → Q (acRestart p st w)) :
+    ∀ (nd : Node p) w, Q nd.st →
+      Q ((fgsa p c).restore ((fgsa p c).durable nd) w).st := by
+  intro nd w h
+  exact hQ nd.st w h
 
-/-- A list field empty in every reset store has no members after restore. -/
+/-- A retained list field has no new members after restore. -/
 theorem fgsa_hrestore_field_retained {α : Type} (field : FGSA.State p.n → List α)
-    (hfield : ∀ t, field (FGSA.initialAt p.n t) = []) :
-    ∀ (nd : Node p) x, x ∈ field ((fgsa p c).restore ((fgsa p c).durable nd)).st →
+    (hfield : ∀ st w, field (acRestart p st w) ⊆ field st) :
+    ∀ (nd : Node p) w x, x ∈ field ((fgsa p c).restore ((fgsa p c).durable nd) w).st →
       x ∈ field nd.st := by
-  intro nd x hx
-  change x ∈ field (FGSA.initialAt p.n nd.st.base.now) at hx
-  rw [hfield] at hx
-  exact (List.not_mem_nil hx).elim
+  intro nd w x hx
+  exact hfield nd.st w hx
 
 end AvailableChain.FGSA.Run
 

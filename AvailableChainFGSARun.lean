@@ -45,3 +45,5 @@ public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSARun.Proofs.SelfDelivery
 public import AvailableChainFGSARun.Proofs.Spec.Simulation
 public import AvailableChainFGSARun.Proofs.Spec.Transfer
+public import AvailableChainFGSARun.Tests.SleepContinuation
+public import AvailableChainFGSARun.Tests.SleepContinuationAxioms

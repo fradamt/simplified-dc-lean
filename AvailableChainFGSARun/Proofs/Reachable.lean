@@ -196,85 +196,76 @@ private theorem fgsa_process_stored_wire_origin (st : State p.n) (h : CStoreInv 
               · exact Or.inl hw
               · exact Or.inr hw
 
-/-- [ROOT-DIGEST-2 W2; DC NamedRun] Every stored proposal came from a delivery in the same
-restart epoch. The run itself can contain restarts and unordered events. -/
+/-- A stored proposal was delivered in an earlier epoch or the current epoch.
+The exact wire stays in durable storage at every index since that delivery. -/
 theorem stored_proposal_delivered (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (v : V) (w : Wire p.n)
     (hw : w ∈ (V2.D.Run.stateBefore E rho i v).st.proposals) :
     ∃ j o t, j < i ∧ rho.events[j]? = some (.deliver v o t) ∧
       toWire p o = w ∧ (∃ s N, o.payload = .proposal N ∧
         o.auth = .seat (.prop s) ⟨0, Nat.one_pos⟩) ∧
-      V2.D.restartFree rho v (j + 1) i := by
+      ∀ k, j + 1 ≤ k → k ≤ i → w ∈ (V2.D.Run.stateBefore E rho k v).st.proposals := by
   have origin : ∀ i v w, w ∈ (V2.D.Run.stateBefore E rho i v).st.proposals →
-      ∃ j o t, j < i ∧ rho.events[j]? = some (.deliver v o t) ∧
-        toWire p o = w ∧ V2.D.restartFree rho v (j + 1) i := by
+      ∃ j o t, j < i ∧ rho.events[j]? = some (.deliver v o t) ∧ toWire p o = w ∧
+        ∀ k, j + 1 ≤ k → k ≤ i → w ∈ (V2.D.Run.stateBefore E rho k v).st.proposals := by
     intro i
     induction i with
     | zero =>
         intro v w hw
-        change w ∈ ([] : List (Wire p.n)) at hw
         exact (List.not_mem_nil hw).elim
     | succ i ih =>
         intro v w hw
+        have carry (hm : w ∈ (V2.D.Run.stateBefore E rho i v).st.proposals) :
+            ∃ j o t, j < i + 1 ∧ rho.events[j]? = some (.deliver v o t) ∧ toWire p o = w ∧
+              ∀ k, j + 1 ≤ k → k ≤ i + 1 →
+                w ∈ (V2.D.Run.stateBefore E rho k v).st.proposals := by
+          obtain ⟨j, o, t, hj, hd, ho, hr⟩ := ih v w hm
+          refine ⟨j, o, t, by omega, hd, ho, ?_⟩
+          intro k hjk hki
+          by_cases hk : k ≤ i
+          · exact hr k hjk hk
+          · have : k = i + 1 := by omega
+            subst k; exact hw
         cases he : rho.events[i]? with
         | none =>
-            have hsame : V2.D.Run.stateBefore E rho (i + 1) = V2.D.Run.stateBefore E rho i := by
-              simp only [V2.D.Run.stateBefore, List.take_add_one, he,
-                Option.toList_none, List.append_nil]
-            rw [hsame] at hw
-            obtain ⟨j, o, t, hj, hd, ho, hr⟩ := ih v w hw
-            refine ⟨j, o, t, by omega, hd, ho, ?_⟩
-            intro k u hjk hki
-            by_cases hk : k < i
-            · exact hr k u hjk hk
-            · have : k = i := by omega
-              subst k; simp [he]
+            apply carry
+            simpa only [V2.D.Run.stateBefore, List.take_add_one, he,
+              Option.toList_none, List.append_nil] using hw
         | some e =>
-            rw [V2.D.Run.stateBefore_succ E rho he] at hw
-            have carry (hn : ∀ t, e ≠ .restart v t)
-                (hm : w ∈ (V2.D.Run.stateBefore E rho i v).st.proposals) :
-                ∃ j o t, j < i + 1 ∧ rho.events[j]? = some (.deliver v o t) ∧
-                  toWire p o = w ∧ V2.D.restartFree rho v (j + 1) (i + 1) := by
-              obtain ⟨j, o, t, hj, hd, ho, hr⟩ := ih v w hm
-              refine ⟨j, o, t, by omega, hd, ho, ?_⟩
-              intro k u hjk hki
-              by_cases hk : k < i
-              · exact hr k u hjk hk
-              · have : k = i := by omega
-                subst k
-                rw [he]
-                exact fun h => hn u (Option.some.inj h)
+            have hw' := hw
+            rw [V2.D.Run.stateBefore_succ E rho he] at hw'
             by_cases hv : e.node = v
             · cases e with
               | restart u t =>
                   change u = v at hv; subst u
-                  simp only [V2.D.World.step, Function.update_self] at hw
-                  change w ∈ ([] : List (Wire p.n)) at hw
-                  exact (List.not_mem_nil hw).elim
+                  simp only [V2.D.World.step, Function.update_self] at hw'
+                  apply carry
+                  change w ∈ (acRestart p (V2.D.Run.stateBefore E rho i v).st t).proposals at hw'
+                  rwa [acRestart_proposals] at hw'
               | tick u t =>
                   change u = v at hv; subst u
-                  simp only [V2.D.World.step, Function.update_self] at hw
+                  simp only [V2.D.World.step, Function.update_self] at hw'
                   rw [tick_st (c := c) E rho (V2.D.Run.stateBefore E rho i v) v t,
-                    clock_proposals] at hw
-                  exact carry (by intro u h; cases h) hw
+                    clock_proposals] at hw'
+                  exact carry hw'
               | deliver u o t =>
                   change u = v at hv; subst u
-                  simp only [V2.D.World.step, Function.update_self] at hw
+                  simp only [V2.D.World.step, Function.update_self] at hw'
                   rcases fgsa_process_stored_wire_origin _ (cstoreInv_stateBefore E rho i v)
-                      (toWire p o) w hw with hm | ho
-                  · exact carry (by intro u h; cases h) hm
-                  · exact ⟨i, o, t, Nat.lt_succ_self i, he, ho.symm,
-                      V2.D.restartFree_refl rho v (i + 1)⟩
-            · rw [V2.D.World.step_apply_of_node_ne E rho _ hv] at hw
-              exact carry (by intro t h; subst e; exact hv rfl) hw
+                      (toWire p o) w hw' with hm | ho
+                  · exact carry hm
+                  · refine ⟨i, o, t, Nat.lt_succ_self i, he, ho.symm, ?_⟩
+                    intro k hik hki
+                    have : k = i + 1 := by omega
+                    subst k; exact hw
+            · rw [V2.D.World.step_apply_of_node_ne E rho _ hv] at hw'
+              exact carry hw'
   obtain ⟨j, o, t, hj, hd, ho, hr⟩ := origin i v w hw
-  obtain ⟨s, N, he, -, -, -⟩ :=
-    (metaInv_stateBefore E rho i v).wireTree w hw
+  obtain ⟨s, N, he, -, -, -⟩ := (metaInv_stateBefore E rho i v).wireTree w hw
   have eo : o = ofWire p ⟨.proposer s, .proposal N⟩ := by
     apply toWire_injective
     rw [toWire_ofWire, ho, he]
-  refine ⟨j, o, t, hj, hd, ho, ⟨s, N, ?_, ?_⟩, hr⟩ <;>
-    rw [eo] <;> rfl
+  refine ⟨j, o, t, hj, hd, ho, ⟨s, N, ?_, ?_⟩, hr⟩ <;> rw [eo] <;> rfl
 
 end AvailableChain.FGSA.Run
 end

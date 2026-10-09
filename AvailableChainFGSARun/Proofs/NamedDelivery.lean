@@ -8,6 +8,40 @@ namespace AvailableChain.FGSA.Run
 
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
 
+-- W3 integration: these delivery-bound consumers retain their original contracts.
+/-- [ROOT-DIGEST-2 W1; DC NamedReceiptCalls] Broadcast or source acceptance scopes a trigger.
+This proof uses no root idealization or processed-to-body inference. -/
+theorem proposal_trigger_in_scope
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (o : Obj p) (s : Slot) (N : NamedProposal p.n)
+    (ho : o = ofWire p ⟨.proposer s, .proposal N⟩)
+    (dl : Time → Time) (cut t : Time) (w : V)
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
+    (hT : Gen.V2.Duty.Trigger E rho o t) (hw : w ∈ rho.honest)
+    (hcut : dl t ≤ cut)
+    (hNX : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho (dl t) w) o = false) :
+    NamedProposalInRun p c E rho N := by
+  rcases hT with ⟨v, hv, hemit⟩ | ⟨v, _, i, haccept⟩
+  · have hQ : ¬ isRowObject o := by
+      rw [ho]
+      simp [isRowObject, ofWire]
+    obtain ⟨t', _, _, j, hh⟩ := hD.broadcast v hv o hQ t hemit w hw hcut hNX
+    exact proposal_handle_in_scope E rho o s N ho j w t' hh
+  · exact proposal_handle_in_scope E rho o s N ho i v t haccept.1
+
+/-- [ROOT-DIGEST-2 W1; DC NamedRun.blockInRun] Trigger scope retains the Block projection. -/
+theorem proposal_trigger_in_root_scope
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (o : Obj p) (s : Slot) (N : NamedProposal p.n)
+    (ho : o = ofWire p ⟨.proposer s, .proposal N⟩)
+    (dl : Time → Time) (cut t : Time) (w : V)
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
+    (hT : Gen.V2.Duty.Trigger E rho o t) (hw : w ∈ rho.honest)
+    (hcut : dl t ≤ cut)
+    (hNX : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho (dl t) w) o = false) :
+    RootBlockInRun p c E rho N.erase :=
+  ⟨N, proposal_trigger_in_scope E rho o s N ho dl cut t w hD hT hw hcut hNX, rfl⟩
+
 /-- [ROOT-DIGEST-2 W2; DC NamedRun] A stored wire has an exact named delivery origin. -/
 theorem namedScope_stored_proposal (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) {s : Slot} {N : NamedProposal p.n}

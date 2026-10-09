@@ -497,3 +497,288 @@ Fix validation: the 290-module GREEN build passes --wfail (61.40 s). Scoped
 Generic coverage passes (4.75 s). DCK W1b passes with all 24 controls (394.69 s).
 Strict audits pass: Generic root 856, KitV2 root 116, DeliveryBy tests 53, and
 KitV2 sleep tests 3. All results use only the three permitted axioms.
+
+## W2b continuation — lead rulings applied, 2026-10-10
+
+The earlier stopped rows are history. The 01:22 W2b ruling releases all five stops.
+The 01:08 W1b ruling supplies pending-set service and public admission-time timeliness.
+All three reset modules are now GREEN. W3 and the family owners keep their integration work.
+
+- `stored_proposal_delivered` — internal statement, lead ruling 10-10.
+  Delivery is at an earlier index in any epoch. The exact wire stays in durable storage at each
+  index from j+1 through i. All consumers retain the delivery, wire and payload facts. The
+  Schedule consumer now carries the storage interval instead of restartFree; every other existing
+  consumer discards that final field.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSAProofs/Proofs/Finality/Receipt.lean:50`;
+  `AvailableChainFGSAProofs/Proofs/Foundations/Accountable.lean:531`;
+  `AvailableChainFGSAProofs/Proofs/Foundations/Carrier.lean:39`;
+  `AvailableChainFGSAProofs/Proofs/Foundations/Sources.lean:252`;
+  `AvailableChainFGSAProofs/Proofs/Shared/ScoreRun.lean:105`;
+  `AvailableChainFGSAProofs/Proofs/Shared/ScoreRun.lean:218`;
+  `AvailableChainFGSARun/Proofs/NamedDelivery.lean:50`;
+  `AvailableChainFGSARun/Proofs/NamedDelivery.lean:63`;
+  `AvailableChainFGSARun/Proofs/Roots.lean:107`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:1008`;
+- `act_prop` — internal statement, lead ruling 10-10.
+  The equation has exactly the joinedNow guard from approved actS. Its direct proof consumer is
+  act_prop_zero. NamedOrigins uses the same guard when it reads successful HEAD and proposal
+  emissions.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSARun/Proofs/Protocol.lean:154`;
+- `act_prop_zero` — internal statement, lead ruling 10-10.
+  The conclusion is kept: slot zero gives none in both joined branches. The proof uses act_prop
+  and the slot-zero proposal rule.
+  Consumers (proof calls; strict audits also cover each replacement):
+  no existing runtime caller; Tests/Axioms and SleepContinuationAxioms.
+- `fgsa_hrestore_retained` — internal statement, lead ruling 10-10.
+  A predicate must be preserved by acRestart of its retained input. A pre-state proof then gives
+  the post-restore proof at the supplied wake. There is no runtime consumer beyond the audits.
+  Consumers (proof calls; strict audits also cover each replacement):
+  no existing runtime caller; Tests/Axioms and SleepContinuationAxioms.
+- `fgsa_hrestore_field_retained` — internal statement, lead ruling 10-10.
+  Restore introduces no member into a list field that acRestart keeps or clears. Schedule supplies
+  acRestart_genuine and nil_subset. Family obligations use acRestart_obligations; saved-pair
+  fields use acRestart_genuine; fast-pair fields use acRestart_fastWrite. Each gives the exact
+  subset law needed by the clock-field origin consumer.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSAProofs/Proofs/Assembly/WeakContinuation.lean:237`;
+  `AvailableChainFGSAProofs/Proofs/Foundations/Leases.lean:323`;
+  `AvailableChainFGSAProofs/Proofs/Foundations/Leases.lean:494`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepFacts.lean:199`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:379`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:222`;
+- `fgsa_preTick_now_lt` — internal statement, lead ruling 10-10.
+  The strict bound uses the exact epoch condition: every earlier local restart is strictly before
+  this tick. fgsa_preTick_now_lt_iff proves necessity and sufficiency. fgsa_preTick_now_lt_joined
+  supplies the strict bound directly for joined reads. fgsa_preTick_now_le covers a wake at the
+  tick. The strict conclusions needed by consumers are kept. Family owners must use the joined
+  bridge or prove the epoch condition; the .le use in Healing/PostResetRaw:901 can use the
+  unconditional companion.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSAProofs/Proofs/Clean/StepGate.lean:511`;
+  `AvailableChainFGSAProofs/Proofs/Healing/DescentLossNext.lean:289`;
+  `AvailableChainFGSAProofs/Proofs/Healing/DescentLossUnanimous.lean:158`;
+  `AvailableChainFGSAProofs/Proofs/Healing/FrontierSupportHeads.lean:153`;
+  `AvailableChainFGSAProofs/Proofs/Healing/FrontierSupportProposal.lean:98`;
+  `AvailableChainFGSAProofs/Proofs/Healing/OpeningServiceGate.lean:152`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetConeReceipts.lean:125`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetConeReceipts.lean:286`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetRaw.lean:901`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetRaw.lean:1383`;
+  `AvailableChainFGSAProofs/Proofs/Healing/RepairGate.lean:504`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportHeads.lean:216`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportOutput.lean:198`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportProposal.lean:149`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportRelay.lean:92`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:283`;
+  `AvailableChainFGSAProofs/Proofs/Shared/GateReceipt.lean:131`;
+  `AvailableChainFGSAProofs/Proofs/Shared/Relay.lean:144`;
+  `AvailableChainFGSAProofs/Proofs/Shared/Relay.lean:576`;
+  `AvailableChainFGSAProofs/Proofs/Shared/RetainedEndpoint.lean:26`;
+  `AvailableChainFGSAProofs/Proofs/Shared/RetainedReflect.lean:328`;
+  `AvailableChainFGSAProofs/Proofs/Shared/SameLabel.lean:206`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/Inclusion.lean:206`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:297`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:493`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepGateBatch.lean:242`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:1425`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:544`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:568`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:610`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:778`;
+- `fgsa_release_votes_stamped` — internal statement, lead ruling 10-10.
+  All vote stamps, including the default stamp, are strictly before release under the exact pre-
+  tick epoch condition. The active-view projection equalities are kept. A same-time wake permits
+  equality, covered by fgsa_preTick_votes_stamped_le. There is no runtime caller of this export
+  beyond the audits.
+  Consumers (proof calls; strict audits also cover each replacement):
+  no existing runtime caller; Tests/Axioms and SleepContinuationAxioms.
+- `fgsa_stateBefore_bounds` — internal statement, lead ruling 10-10.
+  The statement is kept. Its reset case starts from the prior reachable store, applies
+  Reachable.restart to wipe, and proves replay reachability and bounds. The wake clock is at least
+  the old clock by RestoreTimeLaw and event order. Kept blocks remain within the wake slot;
+  accepted replay stamps are within the wake clock. All block-slot and stamp projections used by
+  consumers are kept.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSAProofs/Proofs/Clean/StepGate.lean:647`;
+  `AvailableChainFGSAProofs/Proofs/Healing/DescentLossNext.lean:285`;
+  `AvailableChainFGSAProofs/Proofs/Healing/DescentLossUnanimous.lean:154`;
+  `AvailableChainFGSAProofs/Proofs/Healing/FrameZero.lean:106`;
+  `AvailableChainFGSAProofs/Proofs/Healing/FrontierSupportHeads.lean:149`;
+  `AvailableChainFGSAProofs/Proofs/Healing/FrontierSupportProposal.lean:94`;
+  `AvailableChainFGSAProofs/Proofs/Healing/OpeningServiceGate.lean:146`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetConeReceipts.lean:121`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetConeReceipts.lean:282`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetRaw.lean:1379`;
+  `AvailableChainFGSAProofs/Proofs/Healing/RepairGate.lean:498`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportHeads.lean:212`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportProposal.lean:145`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportRelay.lean:93`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:556`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:724`;
+  `AvailableChainFGSAProofs/Proofs/Shared/GateReceipt.lean:363`;
+  `AvailableChainFGSAProofs/Proofs/Shared/HeadAdmit.lean:214`;
+  `AvailableChainFGSAProofs/Proofs/Shared/OutputGrowthCausal.lean:47`;
+  `AvailableChainFGSAProofs/Proofs/Shared/Relay.lean:145`;
+  `AvailableChainFGSAProofs/Proofs/Shared/Relay.lean:577`;
+  `AvailableChainFGSAProofs/Proofs/Shared/RetainedEndpoint.lean:35`;
+  `AvailableChainFGSAProofs/Proofs/Shared/RetainedReflect.lean:337`;
+  `AvailableChainFGSAProofs/Proofs/Shared/SameLabel.lean:207`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepGateBatch.lean:379`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:1564`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:586`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:613`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:783`;
+  `AvailableChainFGSARun/Proofs/Schedule.lean:843`;
+- `fgsa_stored_block_origin` — internal statement, lead ruling 10-10.
+  The origin is in any earlier epoch, with the exact wire retained from j+1 through i. The stored-
+  wire, block and delivery projections are kept. Every existing external consumer discards the
+  former restartFree field.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSAProofs/Proofs/Finality/MiddleSupport.lean:757`;
+  `AvailableChainFGSAProofs/Proofs/Healing/Promotion.lean:35`;
+  `AvailableChainFGSAProofs/Proofs/Shared/RetainedEndpoint.lean:47`;
+  `AvailableChainFGSAProofs/Proofs/Shared/ScoreRun.lean:897`;
+  `AvailableChainFGSAProofs/Proofs/Shared/ScoreRun.lean:1127`;
+- `fgsa_tick_total` — internal statement, lead ruling 10-10.
+  Tick existence is conditional on the honest node being awake at the public time, exactly as P1
+  and ScheduleWellFormed.tick_total require. The unique-index conclusion is kept; family owners
+  supply awake from their approved participation premise.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSAProofs/Proofs/Assembly/WeakContinuation.lean:538`;
+  `AvailableChainFGSAProofs/Proofs/Assembly/WeakContinuationGrowth.lean:377`;
+  `AvailableChainFGSAProofs/Proofs/Assembly/WeakContinuationGrowth.lean:572`;
+  `AvailableChainFGSAProofs/Proofs/Assembly/WeakContinuationGrowthSeed.lean:195`;
+  `AvailableChainFGSAProofs/Proofs/Clean/Closure.lean:200`;
+  `AvailableChainFGSAProofs/Proofs/Clean/Closure.lean:298`;
+  `AvailableChainFGSAProofs/Proofs/Clean/Safety.lean:197`;
+  `AvailableChainFGSAProofs/Proofs/Clean/StepGate.lean:212`;
+  `AvailableChainFGSAProofs/Proofs/Clean/StepGate.lean:257`;
+  `AvailableChainFGSAProofs/Proofs/Clean/StepGate.lean:447`;
+  `AvailableChainFGSAProofs/Proofs/Clean/StepGate.lean:566`;
+  `AvailableChainFGSAProofs/Proofs/Clean/StepGate.lean:569`;
+  `AvailableChainFGSAProofs/Proofs/Finality/RowsPrem.lean:91`;
+  `AvailableChainFGSAProofs/Proofs/Finality/TailFrame.lean:383`;
+  `AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchTasks.lean:211`;
+  `AvailableChainFGSAProofs/Proofs/Healing/OpeningServiceBody.lean:197`;
+  `AvailableChainFGSAProofs/Proofs/Healing/OpeningServiceOne.lean:29`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetGate.lean:265`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetOpening.lean:163`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetRaw.lean:592`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetRaw.lean:811`;
+  `AvailableChainFGSAProofs/Proofs/Healing/PostResetService.lean:235`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportHeads.lean:110`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportOutput.lean:261`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ArmingBatch.lean:63`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:462`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:465`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:626`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:629`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:820`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ExactProposalRetained.lean:299`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ExactProposalRetained.lean:513`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ExactProposalRetained.lean:519`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ExactProposalRetained.lean:581`;
+  `AvailableChainFGSAProofs/Proofs/Outage/ExactProposalRetained.lean:726`;
+  `AvailableChainFGSAProofs/Proofs/Outage/InclusionGate.lean:55`;
+  `AvailableChainFGSAProofs/Proofs/Outage/InclusionGate.lean:119`;
+  `AvailableChainFGSAProofs/Proofs/Outage/InclusionGateBody.lean:55`;
+  `AvailableChainFGSAProofs/Proofs/Shared/ExactHead.lean:193`;
+  `AvailableChainFGSAProofs/Proofs/Shared/ExactService.lean:462`;
+  `AvailableChainFGSAProofs/Proofs/Shared/GateReceipt.lean:269`;
+  `AvailableChainFGSAProofs/Proofs/Shared/GateReceipt.lean:272`;
+  `AvailableChainFGSAProofs/Proofs/Shared/HeadAdmit.lean:387`;
+  `AvailableChainFGSAProofs/Proofs/Shared/OutputGrowthProposal.lean:32`;
+  `AvailableChainFGSAProofs/Proofs/Shared/RetainedEndpoint.lean:293`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/ExactProposal.lean:214`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/Inclusion.lean:78`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/Inclusion.lean:332`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:203`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:750`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepGateBatch.lean:305`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepGateBatch.lean:308`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepInputs.lean:155`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepService.lean:201`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:44`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:811`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:1015`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:1488`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:1491`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:3074`;
+- `fgsa_gate_clock_bridge` — internal statement, lead ruling 10-10.
+  The anchored SA clock equation holds on the joined branch. The existing block, headDomain and
+  fastWrite expressions are kept. Family consumers of fastWrite must supply joinedness.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportWrite.lean:75`;
+  `AvailableChainFGSAProofs/Proofs/Shared/ExactService.lean:218`;
+  `AvailableChainFGSAProofs/Proofs/Shared/OpeningSource.lean:49`;
+- `fgsa_release_clockPre` — internal statement, lead ruling 10-10.
+  The release equation is conditional on the approved joined release guard. The active input and
+  release body are unchanged. Healing/SupportTransfer must supply that join test.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSAProofs/Proofs/Healing/DescentLossUnanimous.lean:291`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:72`;
+  `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:306`;
+- `fgsa_release_input_votes_stamped` — internal statement, lead ruling 10-10.
+  The input view keeps the same votes and stamps. The exact epoch condition gives each accepted
+  input vote its required strict release stamp. Its sole proof consumer, release_count_bridge,
+  passes that condition.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSARun/Proofs/Schedule.lean:888`;
+- `fgsa_release_count_bridge` — internal statement, lead ruling 10-10.
+  The raw-pool and cutoff-pool equality and all count expressions are kept under the exact epoch
+  condition. There is no runtime consumer beyond the audits.
+  Consumers (proof calls; strict audits also cover each replacement):
+  no existing runtime caller; Tests/Axioms and SleepContinuationAxioms.
+- `fgsa_gate_saved_result` — internal statement, lead ruling 10-10.
+  The genuine confirmation equation applies on the joined branch. fgsa_gate_saved_unjoined
+  supplies the exact other branch: some none. Both use the fresh-gate proof and retain the same
+  pre-gate active view. Family owners supply the approved gate join condition.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSAProofs/Proofs/Clean/StateGate.lean:32`;
+  `AvailableChainFGSAProofs/Proofs/Shared/Reads.lean:161`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepGateHistory.lean:139`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepOutput.lean:29`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepService.lean:30`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:91`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransferReceipts.lean:415`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:639`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:1877`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:2153`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:2965`;
+  `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:3121`;
+- `timely_of_relay_retained` — internal statement, lead ruling 10-10.
+  Relay timeliness now uses RestoreTimeLaw and public actTime through the additive W1b companion.
+  No public-wake premise is used. fgsa_admissionTime_public proves every FG-SA admission threshold
+  is a public multiple of 4Δ when E.Δ=p.Δ. Receipts:883,985 are W3 call repairs: supply that law
+  and fgsaRestoreTimeLaw with the TimelyClock projection.
+  Consumers (proof calls; strict audits also cover each replacement):
+  `AvailableChainFGSARun/Proofs/Receipts.lean:883`;
+  `AvailableChainFGSARun/Proofs/Receipts.lean:985`;
+
+The public companions are in Schedule and RetainedClock. SleepContinuationAxioms has one
+#print axioms for each new or replaced public proof (25 total). SleepContinuation has seven
+valid-run regressions, each with its own #print axioms. No heartbeat option is changed.
+
+NamedOrigins now contains its reset and successful-emission proofs. The two unchanged
+trigger-scope helpers move to NamedDelivery, already EXPECTED-FAIL under W3. Their old
+handler-only proof does not consume P2's ProcessedByActionCut-or-HandledBetween service.
+W3 must repair both those consumers and their exact body-scope preconditions. Their types
+are kept; no call or source obligation is removed. The REQUIRED scope is kept.
+
+The obsolete local retained-clock source, bound and invariant helpers are removed from
+RetainedClock. W3/Receipts and P-ShA/OutputGrowthCausal must use the shared exact-wake
+stateBefore_now_source_atRestart, stateBefore_now_le_event_atRestart and step induction.
+The run expected list includes every new public companion and test. The W2b map includes
+the five added W1b sleep modules, both new tests, and all three reset sites as GREEN.
+
+- New companions — P1, P3, P24, approved; exact forms of the 10-10 rulings.
+  `fgsa_preTick_now_le`, `fgsa_preTick_restartTime_at_wake`,
+  `fgsa_preTick_now_lt_joined`, `fgsa_preTick_now_lt_iff`,
+  `fgsa_preTick_votes_stamped_le`, `fgsa_gate_saved_unjoined`,
+  `fgsa_admissionTime_public`.
+  Consumers: SleepContinuation; strict audits; the W3 and family calls listed above.
+- `SleepContinuationTests.retained_origin`, `joined_strict`, `same_time_bound`,
+  `retained_block_bound`, `wake_epoch_equiv`, `gate_empty`, `admission_public` —
+  P1, P3, P24, approved. Consumers: strict audit and W2b GREEN/DCK acceptance.

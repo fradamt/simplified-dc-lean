@@ -145,11 +145,16 @@ theorem fgsa_prop_singleDuty (s : Slot) :
 [plan T7.2] The payload of a proposal label is the store proposal with the
 application value of the input. -/
 theorem act_prop (nd : Node p) (s : Slot) (x : In) :
-    (fgsa p c).act nd (.propAction s) x = (propose p nd.st s).map (withApp p (c.app x)) := rfl
+    (fgsa p c).act nd (.propAction s) x =
+      if joinedNow p nd.st then (propose p nd.st s).map (withApp p (c.app x)) else none := rfl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 [plan T7.2] There is no proposal at slot `0`. -/
-theorem act_prop_zero (nd : Node p) (x : In) : (fgsa p c).act nd (.propAction 0) x = none := rfl
+theorem act_prop_zero (nd : Node p) (x : In) : (fgsa p c).act nd (.propAction 0) x = none := by
+  rw [act_prop]
+  unfold propose
+  simp
+  rfl
 
 /-- [ROOT-DIGEST-2 W2; DC NamedBlocks] A zero-app update preserves the named payload.
 Thus unitCodec preserves the local proposal output. -/

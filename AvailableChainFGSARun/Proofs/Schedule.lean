@@ -1,12 +1,14 @@
 module
 public import AvailableChainFGSARun.Proofs.Reachable
+public import AvailableChainFGSA.Proofs.Join
+public import AvailableChainGeneric.Proofs.V2.Duty.Induction
 public import AvailableChainFGSA.Proofs.ActView
 public import AvailableChainKitV2.DutyEngineClock
 public import AvailableChainKitV2.DutyEmission
 
 public section
 
-/-! Schedule facts for T7.6. Restore starts the store again at genesis.
+/-! Schedule facts for T7.6. Restore keeps the durable store at the exact wake time.
 Only the comparison with the strict time reader needs `NoRestart`. -/
 namespace AvailableChain.FGSA.Run
 
@@ -51,10 +53,11 @@ omit [DecidableEq V] in
 An honest node ticks exactly once at each public time in the horizon. -/
 theorem fgsa_tick_total (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (hΔ : E.Δ = p.Δ) (v : V)
-    (hv : v ∈ rho.honest) (k : Nat) (hh : (k : Time) * p.Δ ≤ rho.horizon) :
+    (hv : v ∈ rho.honest) (k : Nat) (hh : (k : Time) * p.Δ ≤ rho.horizon)
+    (ha : E.awake v ((k : Time) * p.Δ) = true) :
     ∃! i : Nat, rho.events[i]? = some (.tick v ((k : Time) * p.Δ)) := by
   have hm := hs.tick_total v hv _ ⟨k, by rw [hΔ]⟩
-    (by exact mul_nonneg (Int.natCast_nonneg k) (le_of_lt p.deltaPos)) hh
+    (by exact mul_nonneg (Int.natCast_nonneg k) (le_of_lt p.deltaPos)) hh ha
   obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hm
   exact ⟨i, hi, fun j hj => fgsa_tick_unique E rho hs hj hi⟩
 
@@ -200,10 +203,7 @@ private theorem fgsa_clock_label_source (st : State p.n) (t : Time) (s : Slot)
     by_cases he : s = k
     · right; rwa [he]
     have hnone : GridCO.savedGenuine (gateStep p (clockPre p st t) k).base s = none := by
-      by_cases hk : GridCO.savedGenuine (clockPre p st t).base k = none
-      · rw [(gateStep_fresh p _ k hk).2.1 s he, hn]
-      · rw [gateStep_saved p _ k (Option.isSome_iff_ne_none.mpr hk), normalizeS_fields]
-        exact hn
+      rw [gateStep_other p _ k s he, hn]
     exact False.elim ((fgsa_unsaved_iff _ _).mp hnone hm)
   · rw [clockPre_genuine] at hm
     exact (hs hm).elim
@@ -219,7 +219,8 @@ theorem fgsa_saved_label_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     (P := fgsa p c) (fun nd : Node p => nd.st.base.genuine.map Prod.fst) rfl
     (fun nd o => fgsa_process_labels nd.st (toWire p o))
     (fun _ _ _ h => h)
-    (fgsa_hrestore_field_retained p c (fun st => st.base.genuine.map Prod.fst) (fun _ => rfl))
+    (fgsa_hrestore_field_retained p c (fun st => st.base.genuine.map Prod.fst) (fun st w => by
+      rw [acRestart_genuine]; exact List.nil_subset _))
     (fun _ t s => t = SA.gateTime p.toParams s)
     (fun nd t s h => fgsa_clock_label_source nd.st t s h) E rho i v s hm
   exact ⟨j, hj, ht ▸ he⟩
@@ -247,7 +248,9 @@ At the scheduled fresh gate the clock is the anchored SA clock,
 with the cumulative blocks and the fast-write row kept. -/
 theorem fgsa_gate_clock_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
-    (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s))) :
+    (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s)))
+    (hj : joinedAtTime p (V2.D.Run.stateBefore E rho i v).st.restartTime
+      (SA.gateTime p.toParams s) = true) :
     let st := (V2.D.Run.stateBefore E rho i v).st
     FGSA.clock p st (SA.gateTime p.toParams s) = normalizeS { st with
       base := { SA.Root.clockFrom p.toParams (eraseFG st.fg.F) (actView st)
@@ -255,7 +258,7 @@ theorem fgsa_gate_clock_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
             st.base.headDomain },
       fastWrite := st.fastWrite ++ [(s, fastSet p (eraseFG st.fg.F)
         (actView (clockPre p st (SA.gateTime p.toParams s))) s)] } :=
-  clock_eq_saClockFrom_gate' p _ _ s rfl (fgsa_gate_fresh E rho hs hi)
+  clock_eq_saClockFrom_gate' p _ _ s rfl (fgsa_gate_fresh E rho hs hi) hj
 
 private theorem fgsa_grid_stamp_le (q : GridCO.Params) {n : Nat} (st : GridCO.State n .root)
     (o : GridCO.Wire n .root) (h : ∀ row ∈ st.voteStamp, row.2 ≤ st.now) :
@@ -367,9 +370,25 @@ private theorem fgsa_clock_now_stateBefore (E : Generic.Env V)
     (V2.D.Run.stateBefore E rho i v).record
   exact h
 
+private theorem fgsa_processList_bounds (st : State p.n) (xs : List (Wire p.n))
+    (hr : Reachable p st) (hb : ∀ b ∈ st.base.blocks, b.slot ≤ st.slot p)
+    (hv : ∀ row ∈ st.base.voteStamp, row.2 ≤ st.base.now) :
+    Reachable p (xs.foldl (FGSA.process p) st) ∧
+      (∀ b ∈ (xs.foldl (FGSA.process p) st).base.blocks,
+        b.slot ≤ (xs.foldl (FGSA.process p) st).slot p) ∧
+      ∀ row ∈ (xs.foldl (FGSA.process p) st).base.voteStamp,
+        row.2 ≤ (xs.foldl (FGSA.process p) st).base.now := by
+  induction xs generalizing st with
+  | nil => exact ⟨hr, hb, hv⟩
+  | cons o xs ih =>
+    have h := fgsa_process_bounds st o (storeBundle_of_reachable p st hr).cstore hb hv
+    apply ih (FGSA.process p st o) (Reachable.deliver o hr)
+    · simpa only [State.slot, process_base_now] using h.1
+    · simpa only [process_base_now] using h.2
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Scheduled stores keep blocks within the store slot and stamps within
-its clock. Restarts restore genesis and an empty vote-stamp list. -/
+its clock. Restarts keep blocks and replay accepted votes at the wake time. -/
 theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (v : V) :
     (∀ b ∈ (V2.D.Run.stateBefore E rho i v).st.base.blocks,
@@ -388,19 +407,11 @@ theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     · intro row hr
       change row ∈ ([] : List (GridCO.Wire p.n .root × Time)) at hr
       exact (List.not_mem_nil hr).elim
-  have h := stateBefore_invariant_retained (fgsaClock p c)
-    (fgsa_hrestore_now_retained p c)
-    E rho hs Q hinit (fun nd t ht h => ?_) (fun nd o h => ?_)
-    (fun _ _ h => h) (fun nd _ => by
-      refine ⟨Reachable.reset nd.st.base.now, ?_, ?_⟩
-      · intro b hb
-        obtain rfl := List.mem_singleton.mp hb
-        exact Nat.zero_le _
-      · intro row hr
-        exact (List.not_mem_nil hr).elim) i v
-  · exact h.2
-  · have hn : (fgsaClock p c).now nd = nd.st.base.now :=
-      fgsa_clock_now_of_reachable (c := c) nd.st h.1 nd.record
+  have hclock : ∀ nd t, (fgsaClock p c).now nd ≤ t → Q nd →
+      Q ((fgsa p c).clock nd t) := by
+    intro nd t ht h
+    have hn : (fgsaClock p c).now nd = nd.st.base.now :=
+        fgsa_clock_now_of_reachable (c := c) nd.st h.1 nd.record
     have ht' : nd.st.base.now ≤ t := hn ▸ ht
     refine ⟨Reachable.tick t h.1, ?_, ?_⟩
     · intro b hb
@@ -416,7 +427,9 @@ theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
       exact le_trans (h.2.2 row hr) (by
         change nd.st.base.now ≤ (FGSA.clock p nd.st t).base.now
         rw [(clock_vn nd.st t).2]; exact ht')
-  · refine ⟨Reachable.deliver (toWire p o) h.1, ?_⟩
+  have hprocess : ∀ nd o, Q nd → Q ((fgsa p c).process nd o) := by
+    intro nd o h
+    refine ⟨Reachable.deliver (toWire p o) h.1, ?_⟩
     have hh := fgsa_process_bounds nd.st (toWire p o)
       (storeBundle_of_reachable p _ h.1).cstore h.2.1 h.2.2
     change (∀ b ∈ (FGSA.process p nd.st (toWire p o)).base.blocks,
@@ -425,28 +438,166 @@ theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
         row.2 ≤ (FGSA.process p nd.st (toWire p o)).base.now)
     rw [process_base_now]
     exact hh
+  have h := V2.D.Engine.stateBefore_step_induction E rho Q (Nat.zero_le i) v
+    (fun k e _ _ he heq h => by
+      have ht := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+        (fgsaRestoreTimeLaw p c) E rho hs he v
+      cases e with
+      | restart u w =>
+        change u = v at heq; subst u
+        simp only [V2.D.World.step, Function.update_self]
+        change Q ⟨acRestart p (V2.D.Run.stateBefore E rho k v).st w, _⟩
+        unfold acRestart
+        apply fgsa_processList_bounds _ _ (Reachable.restart w h.1)
+        · intro b hb
+          rw [fgsa_clock_now_stateBefore E rho k v] at ht
+          exact le_trans (h.2.1 b hb) (Internal.slotOf_mono ht)
+        · intro row hr
+          exact (List.not_mem_nil hr).elim
+      | tick u t =>
+        change u = v at heq; subst u
+        simpa only [V2.D.World.step, Function.update_self] using
+          V2.D.Engine.tick_preserve E rho Q (fun _ _ h => h) (hclock _ t ht h)
+      | deliver u o t =>
+        change u = v at heq; subst u
+        simpa only [V2.D.World.step, Function.update_self] using hprocess _ o h) hinit
+  exact h.2
 
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Before a positive-time local tick, the store clock is strictly earlier.
-Restore retains an earlier tick source, so NoRestart is not needed. -/
+/-- The pre-tick clock is at most the tick time, including a same-time wake. -/
+theorem fgsa_preTick_now_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {t : Time}
+    (hi : rho.events[i]? = some (.tick v t)) :
+    (V2.D.Run.stateBefore E rho i v).st.base.now ≤ t := by
+  have h := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+    (fgsaRestoreTimeLaw p c) E rho hs hi v
+  rw [fgsa_clock_now_stateBefore E rho i v] at h
+  exact h
+
+/-- The strict bound holds in an epoch with no same-time restart.
+A joined read has its last restart at or before the previous slot start,
+which is strictly before this tick. -/
 theorem fgsa_preTick_now_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {t : Time}
-    (hi : rho.events[i]? = some (.tick v t)) (ht : 0 < t) :
+    (hi : rho.events[i]? = some (.tick v t)) (ht : 0 < t)
+    (hEpoch : ∀ j w, j < i → rho.events[j]? = some (.restart v w) → w < t) :
     (V2.D.Run.stateBefore E rho i v).st.base.now < t := by
-  rcases stateBefore_now_source_retained (fgsaClock p c)
-    (fgsa_hrestore_now_retained p c)
-    E rho i v with hz | ⟨j, hj, he⟩
+  rcases V2.D.Engine.stateBefore_now_source_atRestart (fgsaClock p c)
+    (fgsaRestoreTimeLaw p c) E rho i v with hz | ⟨j, hj, he⟩
   · rw [fgsa_clock_now_stateBefore E rho i v] at hz
-    exact lt_of_le_of_lt hz ht
+    rw [hz]; exact ht
   · rw [fgsa_clock_now_stateBefore E rho i v] at he
-    exact fgsa_tick_time_strict E rho hs he hi hj
+    rcases he with he | he
+    · exact fgsa_tick_time_strict E rho hs he hi hj
+    · exact hEpoch j _ hj he
+
+omit [DecidableEq V] in
+private theorem fgsa_time_le_index (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i j : Nat} {e f : V2.Event V (Obj p)}
+    (hi : rho.events[i]? = some e) (hj : rho.events[j]? = some f) (hij : i < j) :
+    e.time ≤ f.time := by
+  obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
+  obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hj
+  have hk := (List.pairwise_iff_getElem.mp hs.sorted) i j hil hjl hij
+  rw [hie, hje] at hk
+  exact V2.D.Engine.time_le_of_key_le _ _ hk
+
+/-- A same-time restart is the restart marker read by the following local tick. -/
+theorem fgsa_preTick_restartTime_at_wake (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hs : V2.D.ScheduleWellFormed E rho)
+    {i j : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t))
+    (hj : rho.events[j]? = some (.restart v t)) (hji : j < i) :
+    (V2.D.Run.stateBefore E rho i v).st.restartTime = some t := by
+  have heq := V2.D.Engine.stateBefore_other_node E rho (a := j + 1) (b := i)
+    (Nat.succ_le_of_lt hji) (v := v) (fun k e hjk hki he hnode => by
+      have hl := fgsa_time_le_index E rho hs (i := j) (j := k) hj he (by omega)
+      have hu := fgsa_time_le_index E rho hs he hi hki
+      have ht : e.time = t := le_antisymm hu hl
+      cases e with
+      | restart u w =>
+        change u = v at hnode; subst u
+        change w = t at ht; subst w
+        obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hj
+        obtain ⟨hkl, hke⟩ := List.getElem?_eq_some_iff.mp he
+        have h := (List.Nodup.getElem_inj_iff hs.nodup).mp (hje.trans hke.symm)
+        omega
+      | tick u w =>
+        change u = v at hnode; subst u
+        change w = t at ht; subst w
+        have h := fgsa_tick_unique E rho hs he hi
+        omega
+      | deliver u o w =>
+        change u = v at hnode; subst u
+        change w = t at ht; subst w
+        have h := fgsa_tick_before_delivery E rho hs hi he
+        omega)
+  rw [heq, V2.D.Run.stateBefore_succ E rho hj]
+  simp only [V2.D.World.step, Function.update_self]
+  change (acRestart p _ t).restartTime = some t
+  exact acRestart_restartTime p _ t
+
+/-- Joined reads satisfy the strict pre-tick clock bound with arbitrary wakes. -/
+theorem fgsa_preTick_now_lt_joined (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {t : Time}
+    (hi : rho.events[i]? = some (.tick v t)) (ht : 0 < t)
+    (hj : joinedAtTime p (V2.D.Run.stateBefore E rho i v).st.restartTime t = true) :
+    (V2.D.Run.stateBefore E rho i v).st.base.now < t := by
+  apply fgsa_preTick_now_lt E rho hs hi ht
+  intro j w hji he
+  have hw := fgsa_time_le_index E rho hs (i := j) (j := i) he hi hji
+  change w ≤ t at hw
+  by_contra hn
+  have hwt : w = t := le_antisymm hw (le_of_not_gt hn)
+  subst w
+  have hr := fgsa_preTick_restartTime_at_wake E rho hs hi he hji
+  rw [hr] at hj
+  change decide (t ≤ 4 * p.Δ * ((p.slotOf t : Int) - 1)) = true at hj
+  have hj' := of_decide_eq_true hj
+  have hd : 0 < 4 * p.Δ := by linarith [p.deltaPos]
+  have hq : 0 ≤ t / (4 * p.Δ) := Int.ediv_nonneg (le_of_lt ht) (le_of_lt hd)
+  have hf := Int.ediv_mul_le t (ne_of_gt hd)
+  unfold Params.slotOf at hj'
+  rw [Int.toNat_of_nonneg hq] at hj'
+  nlinarith
+
+/-- The epoch condition is exactly the strict clock condition at a positive tick. -/
+theorem fgsa_preTick_now_lt_iff (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {t : Time}
+    (hi : rho.events[i]? = some (.tick v t)) (ht : 0 < t) :
+    (V2.D.Run.stateBefore E rho i v).st.base.now < t ↔
+      ∀ j w, j < i → rho.events[j]? = some (.restart v w) → w < t := by
+  refine ⟨?_, fgsa_preTick_now_lt E rho hs hi ht⟩
+  intro hn j w hji he
+  have hm := V2.D.Engine.stateBefore_now_mono_atRestart (fgsaClock p c)
+    (fgsaRestoreTimeLaw p c) E rho hs (Nat.succ_le_of_lt hji) v
+  rw [V2.D.Run.stateBefore_succ E rho he] at hm
+  simp only [V2.D.World.step, Function.update_self] at hm
+  rw [(fgsaRestoreTimeLaw p c).restore_now _ w] at hm
+  rw [fgsa_clock_now_stateBefore E rho i v] at hm
+  exact lt_of_le_of_lt hm hn
+
+/-- At any tick, accepted and default vote stamps are at most the tick time. -/
+theorem fgsa_preTick_votes_stamped_le (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hs : V2.D.ScheduleWellFormed E rho)
+    {i : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t)) :
+    ∀ o : GridCO.Wire p.n .root,
+      GridCO.stampVote (V2.D.Run.stateBefore E rho i v).st.base o ≤ t := by
+  intro o
+  have hn := fgsa_preTick_now_le E rho hs hi
+  have hb := (fgsa_stateBefore_bounds E rho hs i v).2
+  unfold GridCO.stampVote
+  cases hf : (V2.D.Run.stateBefore E rho i v).st.base.voteStamp.find?
+      (fun row => row.1 == o) with
+  | none => exact hn
+  | some row => exact le_trans (hb row (List.mem_of_find?_eq_some hf)) hn
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Every stored vote, including carried votes, has a stamp before release.
 The active view keeps both the votes and their stamps. -/
 theorem fgsa_release_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
-    (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r))) :
+    (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r)))
+    (hEpoch : ∀ j w, j < i → rho.events[j]? = some (.restart v w) →
+      w < SA.releaseTime p.toParams r) :
     let st := (V2.D.Run.stateBefore E rho i v).st
     (∀ o : GridCO.Wire p.n .root, GridCO.stampVote st.base o < SA.releaseTime p.toParams r) ∧
       (actView st).votes = st.base.votes ∧ (actView st).voteStamp = st.base.voteStamp := by
@@ -456,7 +607,7 @@ theorem fgsa_release_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     have hDelta : (0 : Int) < p.Δ := p.deltaPos
     have := Int.natCast_nonneg r
     positivity
-  have hn := fgsa_preTick_now_lt E rho hs hi ht
+  have hn := fgsa_preTick_now_lt E rho hs hi ht hEpoch
   refine ⟨?_, rfl, rfl⟩
   intro o
   have hb := (fgsa_stateBefore_bounds E rho hs i v).2
@@ -551,7 +702,7 @@ theorem fgsa_vote_stamp_keys (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       (V2.D.Run.stateBefore E rho i v).st.base.votes := by
   refine Gen.V2.Duty.invariant_triple (P := fgsa p c)
     (fun nd : Node p => nd.st.base.voteStamp.map Prod.fst = nd.st.base.votes)
-    rfl ?_ ?_ (fun _ _ h => h) (fun _ _ => rfl) E rho i v
+    rfl ?_ ?_ (fun _ _ h => h) (fun nd w _ => acRestart_voteStamp_keys p nd.st w) E rho i v
   · intro nd t h
     change (FGSA.clock p nd.st t).base.voteStamp.map Prod.fst =
       (FGSA.clock p nd.st t).base.votes
@@ -563,7 +714,8 @@ theorem fgsa_vote_stamp_keys (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 At `q_r`, freeze and early do not run. The release reads the active
 view after the time write and expiry, before any same-time delivery. -/
-theorem fgsa_release_clockPre (st : State p.n) (r : Slot) :
+theorem fgsa_release_clockPre (st : State p.n) (r : Slot)
+    (hj : joinedAtTime p st.restartTime (SA.releaseTime p.toParams r) = true) :
     clockPre p st (SA.releaseTime p.toParams r) =
       onView (fun view => SA.Root.release p.toParams view r)
         { st with
@@ -601,15 +753,21 @@ theorem fgsa_release_clockPre (st : State p.n) (r : Slot) :
   unfold clockPre
   dsimp only
   rw [hfs, hes, hqs]
+  change _ = _
   simp only [hfne, hene, Bool.and_false, Bool.false_eq_true, ite_false,
-    hqn, decide_true, beq_self_eq_true, Bool.true_and, ite_true]
+    hqn, decide_true, beq_self_eq_true, Bool.true_and]
+  change (if joinedAtTime p st.restartTime (SA.releaseTime p.toParams r) then _ else _) = _
+  rw [hj]
+  rfl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 At the release input, after the time write and expiry, every stored
 vote still has its earlier stamp. This is the view that release reads. -/
 theorem fgsa_release_input_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
-    (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r))) :
+    (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r)))
+    (hEpoch : ∀ j w, j < i → rho.events[j]? = some (.restart v w) →
+      w < SA.releaseTime p.toParams r) :
     let st := (V2.D.Run.stateBefore E rho i v).st
     let view := GridCO.expire { actView st with now := SA.releaseTime p.toParams r }
       (SA.releaseTime p.toParams r)
@@ -621,7 +779,7 @@ theorem fgsa_release_input_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (
       change 0 < 4 * p.Δ * (r : Int) + 5 * p.Δ
       have hDelta : (0 : Int) < p.Δ := p.deltaPos
       have hr := Int.natCast_nonneg r
-      positivity)
+      positivity) hEpoch
   have hb := (fgsa_stateBefore_bounds E rho hs i v).2
   change o ∈ st.base.votes at ho
   unfold GridCO.stampVote
@@ -647,22 +805,49 @@ theorem fgsa_stored_block_slots (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
       (∀ B ∈ ((fgsa p c).clock nd (SA.proposalTime p.toParams s)).st.fg.TF,
         B.slot < s) := by
   intro nd
-  have ht : 0 < SA.proposalTime p.toParams s := by
-    change 0 < 4 * p.Δ * (s : Int)
-    have hDelta : (0 : Int) < p.Δ := p.deltaPos
-    have hsp : (0 : Int) < (s : Int) := by exact_mod_cast hs0
-    positivity
-  have hn := fgsa_preTick_now_lt E rho hs hi ht
-  have hslot : nd.st.slot p < s := by
-    have hd : 0 < (4 * p.Δ : Int) := by have hDelta : (0 : Int) < p.Δ := p.deltaPos; omega
-    have hdiv : nd.st.base.now / (4 * p.Δ) < (s : Int) := by
-      apply (Int.ediv_lt_iff_lt_mul hd).mpr
-      change nd.st.base.now < (s : Int) * (4 * p.Δ)
-      change nd.st.base.now < 4 * p.Δ * (s : Int) at hn
-      nlinarith
-    exact (Int.toNat_lt' hs0).mpr hdiv
-  have hb : ∀ b ∈ nd.st.base.blocks, b.slot < s := fun b hm =>
-    lt_of_le_of_lt ((fgsa_stateBefore_bounds E rho hs i v).1 b hm) hslot
+  have hb : ∀ b ∈ nd.st.base.blocks, b.slot < s := by
+    let Q := fun nd : Node p => ∀ b ∈ nd.st.base.blocks, b.slot < s
+    refine V2.D.Engine.stateBefore_step_induction E rho Q (Nat.zero_le i) v ?_ ?_
+    · intro k e _ hki he heq hk
+      cases e with
+      | restart u w =>
+        change u = v at heq; subst u
+        simp only [V2.D.World.step, Function.update_self]
+        change ∀ b ∈ (acRestart p _ w).base.blocks, b.slot < s
+        rw [acRestart_blocks]
+        exact hk
+      | tick u t =>
+        change u = v at heq; subst u
+        simp only [V2.D.World.step, Function.update_self]
+        change ∀ b ∈ (V2.D.tick E rho _ v t).1.st.base.blocks, b.slot < s
+        rw [tick_st (c := c) E rho (V2.D.Run.stateBefore E rho k v) v t,
+          clock_base_blocks]
+        exact hk
+      | deliver u o t =>
+        change u = v at heq; subst u
+        have ht : t < SA.proposalTime p.toParams s := by
+          by_contra hn
+          have h := V2.D.Engine.tick_index_lt_delivery E rho hs hi he (le_of_not_gt hn)
+          omega
+        have hn := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+          (fgsaRestoreTimeLaw p c) E rho hs he v
+        rw [fgsa_clock_now_stateBefore E rho k v] at hn
+        have hslot : (V2.D.Run.stateBefore E rho k v).st.slot p < s := by
+          have hd : 0 < (4 * p.Δ : Int) := by linarith [p.deltaPos]
+          apply (Int.toNat_lt' hs0).mpr
+          apply (Int.ediv_lt_iff_lt_mul hd).mpr
+          have hn' : (V2.D.Run.stateBefore E rho k v).st.base.now <
+              SA.proposalTime p.toParams s := lt_of_le_of_lt hn ht
+          change _ < 4 * p.Δ * (s : Int) at hn'
+          nlinarith
+        have hb := (fgsa_stateBefore_bounds E rho hs k v)
+        have hproc := (fgsa_process_bounds _ (toWire p o)
+          (cstoreInv_stateBefore E rho k v) hb.1 hb.2).1
+        simp only [V2.D.World.step, Function.update_self]
+        exact fun b hm => lt_of_le_of_lt (hproc b hm) hslot
+    · intro b hb
+      obtain rfl := List.mem_singleton.mp hb
+      exact hs0
   have hfg : ∀ B ∈ nd.st.fg.TF, B.slot < s := by
     intro B hB
     have hm : eraseFG B ∈ nd.st.base.blocks :=
@@ -682,7 +867,9 @@ The raw equivocation pool equals its cutoff-filtered pool at release.
 Thus the implementation count is the specification count on the active view. -/
 theorem fgsa_release_count_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
-    (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r))) (B : Block) :
+    (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r)))
+    (hEpoch : ∀ j w, j < i → rho.events[j]? = some (.restart v w) →
+      w < SA.releaseTime p.toParams r) (B : Block) :
     let view := GridCO.expire
       { actView (V2.D.Run.stateBefore E rho i v).st with now := SA.releaseTime p.toParams r }
       (SA.releaseTime p.toParams r)
@@ -698,7 +885,7 @@ theorem fgsa_release_count_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
             (GridCO.resolvedHead? view o).any (fun target => !Block.compatible target
                 B)))).length := by
   intro view raw cut
-  have hh := fgsa_release_input_votes_stamped E rho hs hi
+  have hh := fgsa_release_input_votes_stamped E rho hs hi hEpoch
   have he : cut = raw := by
     apply List.filter_eq_self.mpr
     intro o ho
@@ -765,7 +952,9 @@ The fresh scheduled gate saves the anchored confirmation of its
 pre-gate active view, including an empty confirmation. -/
 theorem fgsa_gate_saved_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
-    (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s))) :
+    (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s)))
+    (hj : joinedAtTime p (V2.D.Run.stateBefore E rho i v).st.restartTime
+      (SA.gateTime p.toParams s) = true) :
     let st := (V2.D.Run.stateBefore E rho i v).st
     GridCO.savedGenuine (FGSA.clock p st (SA.gateTime p.toParams s)).base s =
       some (SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F)
@@ -777,19 +966,38 @@ theorem fgsa_gate_saved_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rw [clockPre_genuine]
     exact hn
   rw [fgsa_clock_gate_eq]
-  have he := (gateStep_fresh p _ s hn').1
+  have he := (gateStep_fresh p _ s hn' (by rwa [clockPre_joined])).1
   rw [clockPre_fg] at he
   exact he
 
+/-- A fresh unjoined gate saves an empty confirmation. -/
+theorem fgsa_gate_saved_unjoined (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
+    (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s)))
+    (hj : joinedAtTime p (V2.D.Run.stateBefore E rho i v).st.restartTime
+      (SA.gateTime p.toParams s) = false) :
+    GridCO.savedGenuine (FGSA.clock p (V2.D.Run.stateBefore E rho i v).st
+      (SA.gateTime p.toParams s)).base s = some none := by
+  have hn := fgsa_gate_fresh E rho hs hi
+  have hn' : GridCO.savedGenuine
+      (clockPre p (V2.D.Run.stateBefore E rho i v).st (SA.gateTime p.toParams s)).base s =
+      none := by
+    unfold GridCO.savedGenuine
+    rw [clockPre_genuine]
+    exact hn
+  rw [fgsa_clock_gate_eq]
+  exact (gateStep_unjoined p _ s hn' (by rwa [clockPre_joined])).1
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Every stored non-genesis block has a proposal delivered at an earlier
-index in the current local restart epoch. No schedule premise is needed. -/
+index in the current or an earlier local restart epoch. No schedule premise is needed. -/
 theorem fgsa_stored_block_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (v : V) (b : Block)
     (hb : b ∈ (V2.D.Run.stateBefore E rho i v).st.base.blocks) (hg : b ≠ .genesis) :
     ∃ w, w ∈ (V2.D.Run.stateBefore E rho i v).st.proposals ∧ Wire.block? w = some b ∧
       ∃ j o t, j < i ∧ rho.events[j]? = some (.deliver v o t) ∧ toWire p o = w ∧
-        V2.D.restartFree rho v (j + 1) i := by
+        ∀ k, j + 1 ≤ k → k ≤ i →
+          w ∈ (V2.D.Run.stateBefore E rho k v).st.proposals := by
   obtain ⟨B, hB, he⟩ := ((cstoreInv_stateBefore E rho i v).baseTree b).mp hb
   have hBg : B ≠ .genesis := by
     intro h
