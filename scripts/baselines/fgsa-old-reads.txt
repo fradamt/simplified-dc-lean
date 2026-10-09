@@ -3,6 +3,7 @@
 # height <declaration> # <reason>: a height-only read of the old derive (ruling 7 named exceptions; J6 removes).
 # Exception: lead ruling 2026-10-05 added the WC height lines (70) for the weak-continuation lane; J6 must cover them too.
 # Exception: lead ruling 2026-10-07 added the 54 WC growth height lines (48 mirror a WC line; 6 growth-only lemmas, height-only via hOf); J6 must cover them too.
+# Exception: lead ruling 2026-10-09 (FG-SA port Stage 0) added 3 height lines: Legacy.attest, Next.attestNext and its eq_1 export mirror the canonical `attest` line; the SWITCH/J6 must cover them too.
 # old <constant> # <reason>: one more old constant (tightening only).
 # An unlisted read fails; a stale, duplicate or misplaced line fails.
 allow AvailableChain.FGSA.Window.acceptViable_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
@@ -115,6 +116,9 @@ height AvailableChain.FGSA.Window.window_hj_eq # pre-J4 baseline 2026-10-02 (Ava
 height AvailableChain.FGSA.Window.window_lexMax_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowReaders)
 height AvailableChain.FGSA.Window.window_pair_iff # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
 height AvailableChain.FGSA.attest # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Model.Frame)
+height AvailableChain.FGSA.Legacy.attest # port Stage 0 2026-10-09: legacy copy of canonical attest (AvailableChainFGSA.Model.Legacy.Frame)
+height AvailableChain.FGSA.Next.attestNext # port Stage 0 2026-10-09: Next copy of canonical attest (AvailableChainFGSA.Model.FrameNext)
+height AvailableChain.FGSA.Next.attestNext_eq_1_export # port Stage 0 2026-10-09: equation export of attestNext (AvailableChainFGSA.Model.FrameNext)
 height AvailableChain.FGSA.attest_source_heightView # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.EmissionFields)
 height AvailableChain.FGSA.emitted_finality_pair_of_headFields # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.EmissionFields)
 height AvailableChain.FGSA.fgsa_band_eq_of_same_floor # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore)
