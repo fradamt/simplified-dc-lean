@@ -3,7 +3,7 @@ public import AvailableChainFGSA.Model.Spec.Frame
 public import AvailableChainKitFG.FrameBridgeDef
 public import AvailableChainKitFG.Ancestry
 
-@[expose] public section
+public section
 
 namespace AvailableChain.FGSA.Spec
 
@@ -29,8 +29,9 @@ theorem viableTree_eq_filter (p : Params) (st : State p.n)
     (hX : X ⊆ Next.tree p st) :
     viableTree (frameOf p st c.Z c.lo (fun B => (v B).h)) X =
       KitFG.filteredFromView v c X := by
+  dsimp only [KitFG.filteredFromView]
   ext B
-  simp only [mem_viableTree, frameOf, KitFG.filteredFromView,
+  simp only [mem_viableTree, frameOf,
     Finset.mem_filter, Bool.and_eq_true, decide_eq_true_eq]
   constructor
   · rintro ⟨hB, hZ, W, hW, ⟨_, hZW, hHeight⟩, hBW⟩

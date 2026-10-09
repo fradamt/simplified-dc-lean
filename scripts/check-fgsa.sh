@@ -165,6 +165,26 @@ echo "== axioms, build coverage, import closure"
 TEST_ROOTS=()
 for m in $(test_modules .); do TEST_ROOTS+=(--root "$m"); done
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]}" --expect \
+  AvailableChain.FGSA.Spec.parentSlotValid \
+  AvailableChain.FGSA.Spec.proposerAllowed \
+  AvailableChain.FGSA.Spec.admissionValid \
+  AvailableChain.FGSA.Spec.deliveryWire \
+  AvailableChain.FGSA.Spec.checkedDelivery \
+  AvailableChain.FGSA.Spec.Block.identities \
+  AvailableChain.FGSA.Spec.Block.representation \
+  AvailableChain.FGSA.Spec.BlockCorresponds \
+  AvailableChain.FGSA.Spec.Block.Assigned \
+  AvailableChain.FGSA.Spec.Wire.identities \
+  AvailableChain.FGSA.Spec.blockCorresponds_unique \
+  AvailableChain.FGSA.Spec.assigned_embed_injective \
+  AvailableChain.FGSA.Spec.delivery_check_embedding \
+  AvailableChain.FGSA.Spec.checkedDelivery_embedding \
+  AvailableChain.FGSA.Spec.wire_rejection_effect \
+  AvailableChain.FGSA.Spec.admission_rejection_effect \
+  AvailableChain.FGSA.Spec.process_parent_slot_refused \
+  AvailableChain.FGSA.Spec.process_proposer_refused \
+  AvailableChain.FGSA.Spec.advance_outside_embedding \
+  AvailableChain.FGSA.Spec.advance_absent_embedding \
   AvailableChain.FGSA.Spec.ACState \
   AvailableChain.FGSA.Spec.liveEntries \
   AvailableChain.FGSA.Spec.lockMap \

@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSA.Model.Spec.Transitions
 public import AvailableChainFGSA.Proofs.BlockAncestry
 
-@[expose] public section
+public section
 
 namespace AvailableChain.FGSA.Spec
 

@@ -649,6 +649,11 @@ end AvailableChain.FGSA.instReprNamedProposal
 #print axioms AvailableChain.FGSA.Spec.LeaseRelation
 
 -- AvailableChainFGSA.Model.Spec.Codec
+#print axioms AvailableChain.FGSA.Spec.parentSlotValid
+#print axioms AvailableChain.FGSA.Spec.proposerAllowed
+#print axioms AvailableChain.FGSA.Spec.admissionValid
+#print axioms AvailableChain.FGSA.Spec.deliveryWire
+#print axioms AvailableChain.FGSA.Spec.checkedDelivery
 #print axioms AvailableChain.FGSA.Spec.digestSpec
 #print axioms AvailableChain.FGSA.Spec.validPayload
 #print axioms AvailableChain.FGSA.Spec.wellFormed
@@ -661,6 +666,11 @@ end AvailableChain.FGSA.instReprNamedProposal
 #print axioms AvailableChain.FGSA.Spec.viableTree
 
 -- AvailableChainFGSA.Model.Spec.Objects
+#print axioms AvailableChain.FGSA.Spec.Block.identities
+#print axioms AvailableChain.FGSA.Spec.Block.representation
+#print axioms AvailableChain.FGSA.Spec.BlockCorresponds
+#print axioms AvailableChain.FGSA.Spec.Block.Assigned
+#print axioms AvailableChain.FGSA.Spec.Wire.identities
 #print axioms AvailableChain.FGSA.Spec.Block
 #print axioms AvailableChain.FGSA.Spec.Block.preceq
 #print axioms AvailableChain.FGSA.Spec.Block.root
@@ -693,6 +703,12 @@ end AvailableChain.FGSA.instReprNamedProposal
 #print axioms AvailableChain.FGSA.Spec.tick_order
 
 -- AvailableChainFGSA.Proofs.Spec.Codec
+#print axioms AvailableChain.FGSA.Spec.blockCorresponds_unique
+#print axioms AvailableChain.FGSA.Spec.assigned_embed_injective
+#print axioms AvailableChain.FGSA.Spec.delivery_check_embedding
+#print axioms AvailableChain.FGSA.Spec.checkedDelivery_embedding
+#print axioms AvailableChain.FGSA.Spec.wire_rejection_effect
+#print axioms AvailableChain.FGSA.Spec.admission_rejection_effect
 #print axioms AvailableChain.FGSA.Spec.embed_root
 #print axioms AvailableChain.FGSA.Spec.embed_slot
 #print axioms AvailableChain.FGSA.Spec.embed_parent
@@ -715,6 +731,10 @@ end AvailableChain.FGSA.instReprNamedProposal
 #print axioms AvailableChain.FGSA.Spec.viableTree_eq_filter
 
 -- AvailableChainFGSA.Proofs.Spec.Handlers
+#print axioms AvailableChain.FGSA.Spec.process_parent_slot_refused
+#print axioms AvailableChain.FGSA.Spec.process_proposer_refused
+#print axioms AvailableChain.FGSA.Spec.advance_outside_embedding
+#print axioms AvailableChain.FGSA.Spec.advance_absent_embedding
 #print axioms AvailableChain.FGSA.Spec.process_decode_refused
 #print axioms AvailableChain.FGSA.Spec.parent_membership
 #print axioms AvailableChain.FGSA.Spec.admitRow_pool

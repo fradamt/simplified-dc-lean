@@ -42,7 +42,7 @@ def slotTime (Δ : Time) (s : Int) : Time := 4 * Δ * s
 def phaseTime (Δ : Time) (s : Int) (offset : Int) : Time := slotTime Δ s + offset * Δ
 
 -- Generate equations in their owning model module (BUILD B3a).
-private theorem expire_eq_1_export :
+private theorem specExpire_eq_1_export :
     type_of% (@expire.eq_1) := @expire.eq_1
 private theorem advance_eq_1_export :
     type_of% (@advance.eq_1) := @advance.eq_1

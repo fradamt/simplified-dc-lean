@@ -1,8 +1,8 @@
 module
 public import AvailableChainFGSA.Model.Spec.Transitions
-public import Mathlib.Tactic
+public import Mathlib.Tactic.Ring
 
-@[expose] public section
+public section
 
 namespace AvailableChain.FGSA.Spec
 
@@ -31,10 +31,11 @@ theorem schedule_embedding (p : Params) (s : Slot) :
     phaseTime p.Δ s 3 = SA.freezeTime p.toParams s ∧
     phaseTime p.Δ s 5 = SA.releaseTime p.toParams s ∧
     phaseTime p.Δ s 6 = SA.gateTime p.toParams s := by
-  simp [slotTime, phaseTime, SA.proposalTime, SA.voteTime, SA.earlyTime,
+  dsimp only [slotTime, phaseTime, SA.proposalTime, SA.voteTime, SA.earlyTime,
     SA.freezeTime, SA.releaseTime, SA.gateTime, GridCO.proposalTime,
     GridCO.voteTime, GridCO.earlyTime, GridCO.freezeTime, GridCO.releaseTime,
     GridCO.gateTime, SA.Params.engine]
+  simp only [one_mul, and_self]
 
 theorem actionTime_embedding (p : Params) (r : Nat) :
     p.actionTime r = phaseTime p.Δ (r * p.R) 6 := rfl
