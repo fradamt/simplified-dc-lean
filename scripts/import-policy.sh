@@ -17,6 +17,7 @@ fgsa_import_allowed() {
     Model:Mathlib.*) return 0 ;;
     Model:AvailableChainKitFG.ClientOnce) return 0 ;;
     Model:AvailableChainKitFG.FrameBridgeDef) return 0 ;;
+    Model:AvailableChainKitFG.TreeFrameDef) return 0 ;;
     Statements:AvailableChainFGSA.Model.*) return 0 ;;
     Statements:AvailableChainFGSA.Statements.*) return 0 ;;
     Statements:AvailableChainModel.*) return 0 ;;

@@ -20,3 +20,4 @@ ProvenanceCoreDef
 FrameBridgeDef
 JustificationLawsDef
 RootScopeDef
+TreeFrameDef
