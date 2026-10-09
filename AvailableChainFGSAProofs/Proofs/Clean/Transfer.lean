@@ -125,9 +125,10 @@ private theorem cleanTransfer_of_forward (b₀ : Time) :
   have hinv : CStoreInv p dst :=
     cstoreInv_clock p _ (cstoreInv_stateBefore E rho k y) _
   have hstored : Bfg ∈ dst.fg.TF := by
-    exact (Finset.mem_filter.mp hV).1
+    exact (Finset.mem_filter.mp (Finset.mem_filter.mp hV).1).1
   have hpath : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C B →
-      C ∈ erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst (s + 1))) := by
+      C ∈ erasedList dst
+        (filteredFrom p.E p.cfg (controls p dst) (voterBlocks p dst (s + 1))) := by
     intro C hr hCB
     have hr' : liveRoot p dst ≠ C ∧ Block.Preceq (liveRoot p dst) C := by
       change ((!decide (liveRoot p dst = C)) && Block.preceq (liveRoot p dst) C) = true at hr
@@ -136,10 +137,12 @@ private theorem cleanTransfer_of_forward (b₀ : Time) :
     obtain ⟨A, hA, heA, hAB⟩ := eraseFG_ancestor_preceq hinv.fg.closed hstored (he ▸ hCB)
     apply List.mem_filter.mpr
     refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
-    simpa only [domainR_eq_storeFrame] using
+    simpa only [fgsa_domainR_eq_filtered] using
       hdom A (heA ▸ hr'.2) hAB (by simpa only [heA] using Ne.symm hr'.1)
-  have hhead := fgsa_headVote_covers_of_transfer p dst s B
-    (Bool.or_eq_true_iff.mpr (Or.inl hroot)) hpath hc.2.2.2.2.2.1 hc.2.2.2.2.2.2
+  have hhead : Block.Preceq B (headVote p dst (s + 1)) := by
+    rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero s)]
+    exact fgsa_headInTree_covers_of_transfer p dst _ _ _ B
+      (Bool.or_eq_true_iff.mpr (Or.inl hroot)) hpath hc.2.2.2.2.2.1 hc.2.2.2.2.2.2
   have hread : headAtIdx p c E rho k (s + 1) = headVote p dst (s + 1) := by
     delta headAtIdx
     rw [hk]
