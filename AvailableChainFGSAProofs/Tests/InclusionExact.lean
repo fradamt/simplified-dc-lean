@@ -279,7 +279,7 @@ example {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time) (pt : PtSP)
     (hset : CleanSet p c E rho ΔF) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.voteTime p.toParams pt.s ≤ rho.horizon)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hstrat : RStrat p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
