@@ -102,12 +102,12 @@ theorem moving_F_loses_EC :
 theorem bits_without_guarded_EC {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
     {E : Electorate V} (w : FGHeightView V) (hL : FGHeightLaws E w)
     (F J : FGBlock V) (T : View V) (m : Height) (hm : 2 ≤ m)
-    (hinj : ViewRootInj T) (hfront : frontierView w T = m)
+    (hfront : frontierView w T = m)
     (huniq : ∀ K ∈ T, (w K).h_j = m - 1 → (w K).J = J)
     (hFJ : FGBlock.Preceq F J) (hEJ : treeEJ w m J T)
     (hoff : ∀ W ∈ T, (w W).h = m → ¬ FGBlock.Preceq J W → ¬ FGBlock.Preceq F W) :
     treePhaseOf w F T = .uncontested ∧ treeNFrame w F T = ⟨m, m - 1, some J⟩ := by
-  apply (treeEffFrame_of_bits w hL hm hinj hfront huniq (fun _ => hFJ)).2.1 hEJ
+  apply (treeEffFrame_of_bits w hL hm hfront huniq (fun _ => hFJ)).2.1 hEJ
   rintro ⟨W, hW, hFW, hh, hJW⟩
   exact hoff W hW hh hJW hFW
 
@@ -115,14 +115,35 @@ theorem bits_without_guarded_EC {V : Type} [DecidableEq V] [Fintype V] [RowCodec
 theorem bits_from_carriers {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
     {E : Electorate V} (w : FGHeightView V) (hL : FGHeightLaws E w)
     (F J : FGBlock V) (T : View V) (m : Height) (hm : 2 ≤ m)
-    (hinj : ViewRootInj T) (hfront : frontierView w T = m)
+    (hfront : frontierView w T = m)
     (huniq : ∀ K ∈ T, (w K).h_j = m - 1 → (w K).J = J)
     (hFJ : FGBlock.Preceq F J)
     (hcar : ∃ K ∈ T, (w K).h_j = m - 1 ∧ (w K).J = J)
     (hc : treeECView w F m J T) :
     treePhaseOf w F T = .contested ∧ treeNFrame w F T = ⟨m, m, none⟩ := by
   have hEJ : treeEJ w m J T := (treeEJ_def w m J T).symm ▸ hcar
-  exact (treeEffFrame_of_bits w hL hm hinj hfront huniq (fun _ => hFJ)).2.2 hEJ hc
+  exact (treeEffFrame_of_bits w hL hm hfront huniq (fun _ => hFJ)).2.2 hEJ hc
+
+/-- A root collision below the maximum is permitted. At the maximum it causes fallback.
+This shows that a strict maximum does not assert root injectivity on the view. -/
+theorem selection_with_root_collision :
+    let twin : FGBlock (Fin 4) := .node .genesis 2 ⟨100⟩ 0 []
+    let w : FGHeightView (Fin 4) := fun W =>
+      ⟨.genesis, 0, 3, .genesis, ∅, ∅, if W = third then 2 else 1, W⟩
+    ¬ ViewRootInj {first, twin, third} ∧
+      lexKey ((w first).h_j, (w first).J) = lexKey ((w twin).h_j, (w twin).J) ∧
+      lexMaxView w .genesis {first, twin} = (0, .genesis) ∧
+      lexMaxView w .genesis {first, twin, third} = (2, third) := by
+  dsimp only
+  refine ⟨?_, by decide +kernel, by decide +kernel, ?_⟩
+  · intro hinj
+    have heq := hinj first (.node .genesis 2 ⟨100⟩ 0 [])
+      ⟨first, by decide +kernel, preceq_refl _⟩
+      ⟨.node .genesis 2 ⟨100⟩ 0 [], by decide +kernel, preceq_refl _⟩ rfl
+    exact (by decide +kernel : first ≠ .node .genesis 2 ⟨100⟩ 0 []) heq
+  · apply treeLexMax_eq_of_greatest _ _ _ third (by decide +kernel)
+      (by decide +kernel)
+    decide +kernel
 
 end AvailableChain.KitFG.Tests.TreeFrameHelpers
 end
@@ -153,3 +174,5 @@ end
 #print axioms AvailableChain.KitFG.Tests.TreeFrameHelpers.bits_without_guarded_EC
 
 #print axioms AvailableChain.KitFG.Tests.TreeFrameHelpers.bits_from_carriers
+
+#print axioms AvailableChain.KitFG.Tests.TreeFrameHelpers.selection_with_root_collision

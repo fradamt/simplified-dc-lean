@@ -161,50 +161,50 @@ theorem treeOne_le_frontier (Vw : View V) : 1 ≤ frontierView v Vw := by
   exact le_sup_right
 
 include hL in
-/-- Repairs `lexMax_fst_lt` for the guarded tree frame. The selected height is below the
-frontier. -/
-theorem treeLexMax_fst_lt (G : FGBlock V) (Vw : View V) (hinj : ViewRootInj Vw) :
+/-- Repairs `lexMax_fst_lt` for the guarded tree frame, including ambiguous selection. -/
+theorem treeLexMax_fst_lt (G : FGBlock V) (Vw : View V) :
     (lexMaxView v G Vw).1 < frontierView v Vw := by
-  by_cases hne : ∃ K ∈ Vw, FGBlock.Preceq G (v K).J
-  · obtain ⟨K, hK, -, hlex, -⟩ := treeLexMax_spec v hL G Vw hinj hne
-    rw [hlex]
-    exact lt_of_lt_of_le (hL.justified_below_height K) (treeLe_frontier v hK)
-  · push Not at hne
-    rw [treeLexMax_of_none v G Vw hne]
+  rcases treeLexMax_spec v G Vw with hf | ⟨K, hK, -, hlex, -⟩
+  · rw [hf]
     exact lt_of_lt_of_le Nat.zero_lt_one (treeOne_le_frontier v Vw)
+  · rw [hlex]
+    exact lt_of_lt_of_le (hL.justified_below_height K) (treeLe_frontier v hK)
 
 include hL in
-/-- Repairs `lexMax_top_of_carrier` for the guarded tree frame. At frontier m, a block of the
-view with a pair at `m − 1` whose J extends G makes the selected height `m − 1`. -/
-theorem treeLexMax_top_of_carrier (G : FGBlock V) (Vw : View V) (hinj : ViewRootInj Vw)
+/-- Repairs `lexMax_top_of_carrier`: a carrier at `m − 1` selects its pair when all pairs
+at that height name its J. Lower pairs need no collision-freedom premise. -/
+theorem treeLexMax_top_of_carrier (G : FGBlock V) (Vw : View V)
     (hfront : frontierView v Vw = m) (K : FGBlock V) (hK : K ∈ Vw)
-    (hKj : (v K).h_j = m - 1) (hGK : FGBlock.Preceq G (v K).J) :
+    (hKj : (v K).h_j = m - 1) (hGK : FGBlock.Preceq G (v K).J)
+    (huniq : ∀ W ∈ Vw, (v W).h_j = m - 1 → (v W).J = (v K).J) :
     (lexMaxView v G Vw).1 = m - 1 := by
-  obtain ⟨K', hK', -, hlex, hmax⟩ := treeLexMax_spec v hL G Vw hinj ⟨K, hK, hGK⟩
-  have hle := fst_le_of_lexKey_le (hmax K hK hGK)
-  have hlt := hL.justified_below_height K'
-  have hK'H := treeLe_frontier v hK'
+  have hlex := treeLexMax_eq_of_greatest v G Vw K hK hGK (by
+    intro W hW _ hne
+    have hlt := hL.justified_below_height W
+    have hWH := treeLe_frontier v hW
+    rw [hfront] at hWH
+    have hh : (v W).h_j < (v K).h_j := by
+      by_contra hn
+      have heq : (v W).h_j = m - 1 := by homega
+      exact hne (Prod.ext (heq.trans hKj.symm) (huniq W hW heq))
+    exact Prod.Lex.toLex_lt_toLex.mpr (Or.inl hh))
   rw [hlex]
-  rw [hfront] at hK'H
-  dsimp only at hle ⊢
-  homega
+  exact hKj
 
-include hL in
-/-- Repairs `lexMax_carrier_of_top` for the guarded tree frame. With `m ≥ 2`, a selected height
-`m − 1` is not the fallback: it is the pair of a block of the view whose J extends G. -/
+omit [Fintype V] in
+/-- Repairs `lexMax_carrier_of_top`: at `m ≥ 2` a selected height `m − 1` excludes the
+fallback, including an ambiguous maximum. No height laws or root injectivity are needed. -/
 theorem treeLexMax_carrier_of_top (G : FGBlock V) (Vw : View V) (hm : 2 ≤ m)
-    (hinj : ViewRootInj Vw) (htop : (lexMaxView v G Vw).1 = m - 1) :
+    (htop : (lexMaxView v G Vw).1 = m - 1) :
     ∃ K ∈ Vw, (v K).h_j = m - 1 ∧ FGBlock.Preceq G (v K).J ∧
       lexMaxView v G Vw = ((v K).h_j, (v K).J) := by
-  by_cases hne : ∃ K ∈ Vw, FGBlock.Preceq G (v K).J
-  · obtain ⟨K, hK, hGK, hlex, -⟩ := treeLexMax_spec v hL G Vw hinj hne
-    refine ⟨K, hK, ?_, hGK, hlex⟩
-    rw [hlex] at htop
-    exact htop
-  · push Not at hne
-    rw [treeLexMax_of_none v G Vw hne] at htop
+  rcases treeLexMax_spec v G Vw with hf | ⟨K, hK, hGK, hlex, -⟩
+  · rw [hf] at htop
     dsimp only at htop
     homega
+  · refine ⟨K, hK, ?_, hGK, hlex⟩
+    rw [hlex] at htop
+    exact htop
 
 omit [Fintype V] in
 /-- Repairs `EC` extraction from `fjControls_contest`: the witness must extend F. -/
@@ -236,7 +236,7 @@ include hL in
 every pair at m−1 in the view names Jm and F ⪯ Jm when E_J holds, the phase is given by the
 bits, and the normalized frame is: gap (m, m−1, ◇); uncontested (m, m−1, Jm); contested (m, m,
 ◇). -/
-theorem treeEffFrame_of_bits (hm : 2 ≤ m) (hinj : ViewRootInj Vw)
+theorem treeEffFrame_of_bits (hm : 2 ≤ m)
     (hfront : frontierView v Vw = m)
     (huniq : ∀ K ∈ Vw, (v K).h_j = m - 1 → (v K).J = Jm)
     (hFJ : treeEJ v m Jm Vw → FGBlock.Preceq F Jm) :
@@ -248,7 +248,7 @@ theorem treeEffFrame_of_bits (hm : 2 ≤ m) (hinj : ViewRootInj Vw)
         treePhaseOf v F Vw = .contested ∧ treeNFrame v F Vw = ⟨m, m, none⟩) := by
   have hH : (treeFjControlsView v F Vw).H = m := hfront
   have hlt : (treeFjControlsView v F Vw).j < m := by
-    have := treeLexMax_fst_lt v hL F Vw hinj
+    have := treeLexMax_fst_lt v hL F Vw
     rw [hfront] at this
     exact this
   -- With E_J, the selected pair is `(m − 1, Jm)`.
@@ -256,9 +256,10 @@ theorem treeEffFrame_of_bits (hm : 2 ≤ m) (hinj : ViewRootInj Vw)
       (treeFjControlsView v F Vw).j = m - 1 ∧ (treeFjControlsView v F Vw).J = Jm := by
     intro hJ
     obtain ⟨K, hK, hKj, hKJ⟩ := hJ
-    have htop := treeLexMax_top_of_carrier v hL F Vw hinj hfront K hK hKj
+    have htop := treeLexMax_top_of_carrier v hL F Vw hfront K hK hKj
       (by rw [hKJ]; exact hFJ ⟨K, hK, hKj, hKJ⟩)
-    obtain ⟨K', hK', hK'j, -, hlex⟩ := treeLexMax_carrier_of_top v hL F Vw hm hinj htop
+      (fun W hW hh => (huniq W hW hh).trans hKJ.symm)
+    obtain ⟨K', hK', hK'j, -, hlex⟩ := treeLexMax_carrier_of_top v F Vw hm htop
     refine ⟨htop, ?_⟩
     change (lexMaxView v F Vw).2 = Jm
     rw [hlex]
@@ -266,7 +267,7 @@ theorem treeEffFrame_of_bits (hm : 2 ≤ m) (hinj : ViewRootInj Vw)
   -- Without E_J, no pair at `m − 1` is selected.
   have hnotop : ¬ treeEJ v m Jm Vw → (treeFjControlsView v F Vw).j ≠ m - 1 := by
     intro hn htop
-    obtain ⟨K, hK, hKj, -, -⟩ := treeLexMax_carrier_of_top v hL F Vw hm hinj htop
+    obtain ⟨K, hK, hKj, -, -⟩ := treeLexMax_carrier_of_top v F Vw hm htop
     exact hn ⟨K, hK, hKj, huniq K hK hKj⟩
   -- With E_J, the contest test is E_C.
   have hcont : treeEJ v m Jm Vw →
@@ -301,12 +302,12 @@ theorem treeEffFrame_of_bits (hm : 2 ≤ m) (hinj : ViewRootInj Vw)
 include hL in
 /-- Repairs `nFrame_eq_phaseFrame` for the guarded tree frame. Under the hypotheses of
 `treeEffFrame_of_bits`, the normalized frame is the frame of the phase. -/
-theorem treeNFrame_eq_phaseFrame (hm : 2 ≤ m) (hinj : ViewRootInj Vw)
+theorem treeNFrame_eq_phaseFrame (hm : 2 ≤ m)
     (hfront : frontierView v Vw = m)
     (huniq : ∀ K ∈ Vw, (v K).h_j = m - 1 → (v K).J = Jm)
     (hFJ : treeEJ v m Jm Vw → FGBlock.Preceq F Jm) :
     treeNFrame v F Vw = phaseFrame m Jm (treePhaseOf v F Vw) := by
-  have h := treeEffFrame_of_bits v hL hm hinj hfront huniq hFJ
+  have h := treeEffFrame_of_bits v hL hm hfront huniq hFJ
   by_cases hJ : treeEJ v m Jm Vw
   · by_cases hC : treeECView v F m Jm Vw
     · obtain ⟨hp, hf⟩ := h.2.2 hJ hC
@@ -325,7 +326,7 @@ at frontier m, each with its own F, if each evidence bit persists once true, the
 never decreases, and two duties in one phase have the same normalized frame. The views need not
 be nested. -/
 theorem treeTwoChanges (Fs : ℕ → FGBlock V) (Vs : ℕ → View V) (hm : 2 ≤ m)
-    (hinj : ∀ k, ViewRootInj (Vs k)) (hfront : ∀ k, frontierView v (Vs k) = m)
+    (hfront : ∀ k, frontierView v (Vs k) = m)
     (huniq : ∀ k, ∀ K ∈ Vs k, (v K).h_j = m - 1 → (v K).J = Jm)
     (hFJ : ∀ k, treeEJ v m Jm (Vs k) → FGBlock.Preceq (Fs k) Jm)
     (hJ : ∀ k k', k ≤ k' → treeEJ v m Jm (Vs k) → treeEJ v m Jm (Vs k'))
@@ -334,8 +335,8 @@ theorem treeTwoChanges (Fs : ℕ → FGBlock V) (Vs : ℕ → View V) (hm : 2 �
       ∀ k k', treePhaseOf v (Fs k) (Vs k) = treePhaseOf v (Fs k') (Vs k') →
         treeNFrame v (Fs k) (Vs k) = treeNFrame v (Fs k') (Vs k') := by
   refine ⟨fun k k' hkk' => ?_, fun k k' hp => ?_⟩
-  · have e := treeEffFrame_of_bits v hL hm (hinj k) (hfront k) (huniq k) (hFJ k)
-    have e' := treeEffFrame_of_bits v hL hm (hinj k') (hfront k') (huniq k') (hFJ k')
+  · have e := treeEffFrame_of_bits v hL hm (hfront k) (huniq k) (hFJ k)
+    have e' := treeEffFrame_of_bits v hL hm (hfront k') (huniq k') (hFJ k')
     dsimp only
     by_cases hJk : treeEJ v m Jm (Vs k)
     · have hJk' := hJ k k' hkk' hJk
@@ -348,14 +349,14 @@ theorem treeTwoChanges (Fs : ℕ → FGBlock V) (Vs : ℕ → View V) (hm : 2 �
         · rw [(e'.2.1 hJk' hCk').1]
     · rw [(e.1 hJk).1]
       exact Nat.zero_le _
-  · rw [treeNFrame_eq_phaseFrame v hL hm (hinj k) (hfront k) (huniq k) (hFJ k),
-      treeNFrame_eq_phaseFrame v hL hm (hinj k') (hfront k') (huniq k') (hFJ k'), hp]
+  · rw [treeNFrame_eq_phaseFrame v hL hm (hfront k) (huniq k) (hFJ k),
+      treeNFrame_eq_phaseFrame v hL hm (hfront k') (huniq k') (hFJ k'), hp]
 
 include hL in
 /-- Repairs `twoChanges_count` for the guarded tree frame. (item 2, the count) Under the
 hypotheses of `treeTwoChanges`, the normalized frame changes at most twice in any prefix. -/
 theorem treeTwoChanges_count (Fs : ℕ → FGBlock V) (Vs : ℕ → View V) (hm : 2 ≤ m)
-    (hinj : ∀ k, ViewRootInj (Vs k)) (hfront : ∀ k, frontierView v (Vs k) = m)
+    (hfront : ∀ k, frontierView v (Vs k) = m)
     (huniq : ∀ k, ∀ K ∈ Vs k, (v K).h_j = m - 1 → (v K).J = Jm)
     (hFJ : ∀ k, treeEJ v m Jm (Vs k) → FGBlock.Preceq (Fs k) Jm)
     (hJ : ∀ k k', k ≤ k' → treeEJ v m Jm (Vs k) → treeEJ v m Jm (Vs k'))
@@ -364,7 +365,7 @@ theorem treeTwoChanges_count (Fs : ℕ → FGBlock V) (Vs : ℕ → View V) (hm 
     ((List.range n).filter (fun k =>
       decide (treeNFrame v (Fs (k + 1)) (Vs (k + 1)) ≠ treeNFrame v (Fs k) (Vs k)))).length
         ≤ 2 := by
-  obtain ⟨hmono, hsame⟩ := treeTwoChanges v hL Fs Vs hm hinj hfront huniq hFJ hJ hC
+  obtain ⟨hmono, hsame⟩ := treeTwoChanges v hL Fs Vs hm hfront huniq hFJ hJ hC
   -- A change of the normalized frame is a strict rise of the phase rank.
   have hstep : ∀ k, treeNFrame v (Fs (k + 1)) (Vs (k + 1)) ≠ treeNFrame v (Fs k) (Vs k) →
       (treePhaseOf v (Fs k) (Vs k)).rank < (treePhaseOf v (Fs (k + 1)) (Vs (k + 1))).rank := by
@@ -404,11 +405,11 @@ include hL in
 G07) Nested views keep both bits (`treeEvidence_mono`), so `treeTwoChanges` applies. The trees
 of different nodes need not be nested. -/
 theorem treeTwoChanges_nested (F : FGBlock V) (Vs : ℕ → View V) (hmono : Monotone Vs)
-    (hm : 2 ≤ m) (hinj : ∀ k, ViewRootInj (Vs k)) (hfront : ∀ k, frontierView v (Vs k) = m)
+    (hm : 2 ≤ m) (hfront : ∀ k, frontierView v (Vs k) = m)
     (huniq : ∀ k, ∀ K ∈ Vs k, (v K).h_j = m - 1 → (v K).J = Jm)
     (hFJ : ∀ k, treeEJ v m Jm (Vs k) → FGBlock.Preceq F Jm) :
     Monotone (fun k => (treePhaseOf v F (Vs k)).rank) :=
-  (treeTwoChanges v hL (fun _ => F) Vs hm hinj hfront huniq hFJ
+  (treeTwoChanges v hL (fun _ => F) Vs hm hfront huniq hFJ
     (fun _ _ h => (treeEvidence_mono v (F := F) (hmono h)).1)
     (fun _ _ h => (treeEvidence_mono v (F := F) (hmono h)).2)).1
 
