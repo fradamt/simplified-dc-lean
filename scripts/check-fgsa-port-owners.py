@@ -15,6 +15,22 @@ OWNERS = set('WP00a WP00t WP01a WP02 WP01b WP03a WP04a WP12a WP14p WP00b '
              'WP00c SWITCH WP05a WP05b WP06a WP05c WP03b WP06b WP03c WP06c '
              'WP09a WP04b WP07 WP08 WP09b WP11 WP10 WP12b WP13v WP15 WP16 '
              'WP13 WP14a WP14b'.split())
+STAGE0_FAMILIES = ('AvailableChainFGSA', 'AvailableChainFGSARun',
+                   'AvailableChainFGSAClaims', 'AvailableChainFGSAProofs',
+                   'AvailableChainFGSAInhabit', 'AvailableChainGeneric',
+                   'AvailableChainKitFG', 'AvailableChainModel')
+
+
+def registration_paths(root, files):
+    paths = {f'{family}.lean' for family in STAGE0_FAMILIES}
+    paths |= {f'{family}/Tests/Axioms.lean' for family in STAGE0_FAMILIES
+              if family != 'AvailableChainModel'}
+    paths |= {'scripts/proof-audit-coverage.txt', 'scripts/check-fgsa.sh',
+              'scripts/fg-expected.txt', 'scripts/baselines/kitfg-def-modules.txt',
+              'scripts/AvailableChainCheckSupport/ImportPolicy.lean', 'docs/GEN-API.md'}
+    paths |= {p for p in files if PurePosixPath(p).match('scripts/import-policy.*')}
+    paths |= {p.relative_to(root).as_posix() for p in (root / 'scripts').glob('import-policy.*')}
+    return paths
 
 
 def unique_object(pairs):
@@ -56,6 +72,12 @@ def check(data, root=ROOT):
             raise ValueError(f'protected edit path: {path}')
         if path in data['comparison_only_paths']:
             raise ValueError(f'comparison-only edit path: {path}')
+    # Shared registration edits at every Stage 0 landing need an owner and a file.
+    for path in sorted(registration_paths(root, files)):
+        if path not in owners:
+            raise ValueError(f'registration path has no owner: {path}')
+        if not (root / path).is_file():
+            raise ValueError(f'registration path does not exist: {path}')
     needed = {r['path'] for r in census.records(root)} | set(data['census_input_paths'])
     for path in sorted(needed):
         if path not in owners:
@@ -86,7 +108,8 @@ def check(data, root=ROOT):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--register', type=Path, default=ROOT / 'docs/FGSA-PORT-OWNERS.json')
-    ap.add_argument('--selftest', action='store_true', help='also run a duplicate-owner negative control')
+    ap.add_argument('--selftest', action='store_true',
+                    help='also run duplicate-owner and missing-registration-owner negative controls')
     args = ap.parse_args()
     data = json.loads(args.register.read_text(), object_pairs_hook=unique_object)
     size, new, tests = check(data)
@@ -104,6 +127,21 @@ def main():
             print(f'negative control: expected FAIL: {exc}')
         else:
             raise ValueError('duplicate-owner negative control unexpectedly passed')
+        files = set(subprocess.check_output(
+            ['git', 'ls-tree', '-r', '--name-only', data['base_revision']],
+            cwd=ROOT, text=True).splitlines())
+        registrations = registration_paths(ROOT, files)
+        for path in sorted(registrations):
+            bad = deepcopy(data)
+            bad['paths'] = [entry for entry in bad['paths'] if entry['path'] != path]
+            try:
+                check(bad)
+            except ValueError as exc:
+                if str(exc) != f'registration path has no owner: {path}':
+                    raise
+            else:
+                raise ValueError(f'missing-registration-owner negative control unexpectedly passed: {path}')
+        print(f'missing-registration-owner negative control: expected FAIL ({len(registrations)} paths)')
     return 0
 
 

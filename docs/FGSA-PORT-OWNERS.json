@@ -428,6 +428,13 @@
       "purpose": "S0-P pure support/carry/local correspondence"
     },
     {
+      "path": "AvailableChainFGSA/Proofs/Port/ContestFrame.lean",
+      "owner": "WP02",
+      "writer": "gpt-6.1-sol",
+      "new": true,
+      "purpose": "S0-IJ guarded contest proofs"
+    },
+    {
       "path": "AvailableChainFGSA/Proofs/Port/LocalReads.lean",
       "owner": "WP03a",
       "writer": "gpt-6-astra",
@@ -720,6 +727,13 @@
       "writer": "gpt-6.1-sol",
       "new": true,
       "purpose": "S0-H new test"
+    },
+    {
+      "path": "AvailableChainFGSA/Tests/PortSpec.lean",
+      "owner": "WP12a",
+      "writer": "gpt-6-astra",
+      "new": true,
+      "purpose": "S0-C new pure correspondence test"
     },
     {
       "path": "AvailableChainFGSA/Tests/PortTree.lean",
@@ -4754,6 +4768,13 @@
       "purpose": "S0-D new pure common ancestor module"
     },
     {
+      "path": "AvailableChainGeneric/Tests/Axioms.lean",
+      "owner": "WP16",
+      "writer": "gpt-6.1-sol",
+      "new": false,
+      "purpose": "serial registration handoff at each Stage 0 landing"
+    },
+    {
       "path": "AvailableChainGeneric/Tests/CommonAncestor.lean",
       "owner": "WP14p",
       "writer": "gpt-6.1-sol",
@@ -4766,6 +4787,13 @@
       "writer": "gpt-6.1-sol",
       "new": false,
       "purpose": "serial facade import handoff"
+    },
+    {
+      "path": "AvailableChainKitFG/Tests/Axioms.lean",
+      "owner": "WP16",
+      "writer": "gpt-6.1-sol",
+      "new": false,
+      "purpose": "serial registration handoff at each Stage 0 landing"
     },
     {
       "path": "AvailableChainKitFG/Tests/TreeFrame.lean",
@@ -5006,6 +5034,13 @@
       "purpose": "new library/target handoff; no lake update"
     },
     {
+      "path": "scripts/AvailableChainCheckSupport/ImportPolicy.lean",
+      "owner": "WP16",
+      "writer": "gpt-6.1-sol",
+      "new": false,
+      "purpose": "serial registration handoff at each Stage 0 landing"
+    },
+    {
       "path": "scripts/CheckFGSAAxioms.lean",
       "owner": "WP16",
       "writer": "gpt-6.1-sol",
@@ -5146,6 +5181,13 @@
       "purpose": "serial data handoff; exact attributed diff required"
     },
     {
+      "path": "scripts/fg-expected.txt",
+      "owner": "WP16",
+      "writer": "gpt-6.1-sol",
+      "new": false,
+      "purpose": "serial registration handoff at each Stage 0 landing"
+    },
+    {
       "path": "scripts/fgsa-claims-expected.txt",
       "owner": "WP16",
       "writer": "gpt-6.1-sol",
@@ -5207,6 +5249,13 @@
       "writer": "gpt-6.1-sol",
       "new": false,
       "purpose": "serial data handoff; exact attributed diff required"
+    },
+    {
+      "path": "scripts/import-policy.sh",
+      "owner": "WP16",
+      "writer": "gpt-6.1-sol",
+      "new": false,
+      "purpose": "serial registration handoff at each Stage 0 landing"
     },
     {
       "path": "scripts/new-libraries.txt",
