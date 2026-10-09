@@ -260,7 +260,7 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
     with (scripts / 'gate-common.sh').open('a') as out:
         out.write('\ngate_precheck() { return 0; }\n')
     for name in ('check-build.sh', 'check-fgsa.sh', 'check-fgsa-run.sh',
-                 'check-fgsa-manifest.sh', 'check-pcsa-manifest.sh', 'check-fgsa-claims.sh'):
+                 'check-fgsa-manifest.sh', 'check-fgsa-claims.sh'):
         (scripts / name).write_text('#!/bin/bash\nexit 0\n')
     (scripts / 'check-proof-coverage.py').write_text('print("coverage stub")\n')
     for name in ('check-fg-finality-freeze.py', 'check-fg-finality-coverage.py',
@@ -289,7 +289,9 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
         assert 'compose NEG=' + neg in calls, calls
         assert 'FGCompose-axioms rc=0' in result.stdout, result.stdout
         assert 'FGSACompose-axioms rc=0' in result.stdout, result.stdout
-        assert 'PCSACompose-axioms rc=0' in result.stdout, result.stdout
+        assert 'PCSACompose-axioms' not in result.stdout, result.stdout
+        assert 'PCSASafety-axioms' not in result.stdout, result.stdout
+        assert 'pcsa-manifest' not in result.stdout, result.stdout
         for step in ('FGSAGrowth-axioms', 'fg-finality-freeze', 'fg-finality-coverage'):
             assert step + ' rc=0' in result.stdout, result.stdout
         # The compiled blueprint check runs in the FULL tier only.

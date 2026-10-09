@@ -32,6 +32,7 @@ Disabled compiled paths:
 - Gate PC-SA manifest route, PCSACompose and PCSASafety audits, and their receipt names.
 - Claims root coverage for PCSAProofs; proof coverage keys for its Axioms, FGCompose
   and FGSafety audits; the Compose adapter check; the compiled FaultXRoute scan.
+- Blueprint oracle checks for PC-SA. The nine clauses stay as source/map records.
 - The four PC-SA entries in `scripts/new-libraries.txt`.
 
 The PCSA-API trigger in `gate.sh` stays. Source checks still read PC-SA files through

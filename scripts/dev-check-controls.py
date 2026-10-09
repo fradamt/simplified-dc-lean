@@ -4,6 +4,7 @@ import importlib.util
 from pathlib import Path
 import subprocess
 import tempfile
+from unittest.mock import patch
 
 import check_common as C
 def load(name, path):
@@ -16,6 +17,7 @@ def load(name, path):
 D = load('dev', 'scripts/dev-check.py')
 S = load('scopes', 'scripts/check-sleep-scopes.py')
 P = load('coverage', 'scripts/check-proof-coverage.py')
+B = load('blueprint', 'scripts/check-fgsa-blueprint.py')
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -36,6 +38,12 @@ def section_bytes(text):
 
 
 def main():
+    active = {'module': 'AvailableChainFGSAProofs.Proofs.Assembly.Finality', 'theorem': 'ok'}
+    disabled = {'module': 'AvailableChainPCSAProofs.Proofs.Assembly.Finality', 'theorem': 'bad'}
+    assert B.compiled_clauses([active, disabled]) == [active]
+    with patch.object(B.subprocess, 'run', side_effect=AssertionError('PC-SA Lean import')):
+        assert B.run_oracle(B.REPO, [disabled]) == {}
+    print('CONTROL blueprint compiled scope excludes PC-SA: PASS', flush=True)
     graph = C.import_graph()
     scope = ROOT / 'scripts/dev-scope-s1.txt'
     original = scope.read_text()

@@ -16,22 +16,20 @@ sys.path.insert(0, str(REPO / 'scripts'))
 from audit_pool import AuditPool
 
 HEAVY = ('fgsa-claims', 'check-fg-compose', 'check-fgsa', 'check-build',
-         'check-fgsa-run', 'fgsa-manifest', 'pcsa-manifest')
+         'check-fgsa-run', 'fgsa-manifest')
 CHEAP = ('build', 'fg-finality-freeze', 'fg-finality-coverage', 'catalog-lock',
          'v2-manifest', 'gen-manifest', 'fgsa-old-reads', 'proof-audit-coverage',
          'Generic-axioms', 'FGSA-axioms', 'FGSARun-axioms', 'FGCompose-axioms',
-         'FGSACompose-axioms', 'PCSACompose-axioms', 'FGSafety-axioms',
-         'FGSASafety-axioms', 'PCSASafety-axioms', 'FGSAGrowth-axioms', 'fgsa-blueprint')
+         'FGSACompose-axioms', 'FGSafety-axioms',
+         'FGSASafety-axioms', 'FGSAGrowth-axioms', 'fgsa-blueprint')
 AXIOMS = {
     'Generic': 'AvailableChainGeneric/Tests/Axioms.lean',
     'FGSA': 'AvailableChainFGSA/Tests/Axioms.lean',
     'FGSARun': 'AvailableChainFGSARun/Tests/Axioms.lean',
     'FGCompose': 'AvailableChainFGCompose/Tests/Axioms.lean',
     'FGSACompose': 'AvailableChainFGSAProofs/Tests/FGCompose.lean',
-    'PCSACompose': 'AvailableChainPCSAProofs/Tests/FGCompose.lean',
     'FGSafety': 'AvailableChainFGCompose/Tests/SafetyAxioms.lean',
     'FGSASafety': 'AvailableChainFGSAProofs/Tests/FGSafety.lean',
-    'PCSASafety': 'AvailableChainPCSAProofs/Tests/FGSafety.lean',
     'FGSAGrowth': 'AvailableChainFGSAProofs/Tests/WeakContinuationGrowthAssemblyAxioms.lean',
 }
 STUB = r'''
