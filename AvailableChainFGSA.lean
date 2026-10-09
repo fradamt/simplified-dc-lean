@@ -9,6 +9,8 @@ public import AvailableChainFGSA.Proofs.Port.Support
 public import AvailableChainFGSA.Proofs.Port.Carry
 public import AvailableChainFGSA.Proofs.Port.LocalReads
 public import AvailableChainFGSA.Proofs.Port.Tree
+public import AvailableChainFGSA.Proofs.Spec.Simulation
+public import AvailableChainFGSA.Proofs.Spec.Transfer
 public import AvailableChainFGSA.Model.ContestFrame
 public import AvailableChainFGSA.Model.VoteMerge
 public import AvailableChainFGSA.Model.FrameNext
