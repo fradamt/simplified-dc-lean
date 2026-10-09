@@ -534,6 +534,14 @@
             'AvailableChain.FGSA.process_nest',
             'AvailableChain.FGSA.reconcile_nest',
         ),
+        'AvailableChainFGSA.Proofs.Port.Tree': (
+            'AvailableChain.FGSA.Next.F_mem_tree',
+            'AvailableChain.FGSA.Next.erasedList_eq',
+            'AvailableChain.FGSA.Next.fullTree_subset_tree',
+            'AvailableChain.FGSA.Next.mem_erasedList',
+            'AvailableChain.FGSA.Next.mem_tree',
+            'AvailableChain.FGSA.Next.tree_subset_TF',
+        ),
         'AvailableChainFGSA.Proofs.Reconcile': (
             'AvailableChain.FGSA.mem_genuine_of_saved',
             'AvailableChain.FGSA.preceq_normal',

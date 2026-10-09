@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.Port.Tree
 public import AvailableChainFGSA.Proofs.NamedReachable
 public import AvailableChainFGSA.Proofs.HeadResolution
 public import AvailableChainFGSA.Proofs.WindowOccurrences
@@ -40,6 +41,14 @@ public import AvailableChainFGSA.Proofs.WindowValidity
 /-! Kernel dependency audit (Task 13 Step 1): one line for each public theorem of
 Tasks 2 and 7–12. Each prints only `propext`, `Classical.choice`, `Quot.sound`, or
 no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically. -/
+
+-- Proofs/Port/Tree.lean
+#print axioms AvailableChain.FGSA.Next.mem_tree
+#print axioms AvailableChain.FGSA.Next.F_mem_tree
+#print axioms AvailableChain.FGSA.Next.tree_subset_TF
+#print axioms AvailableChain.FGSA.Next.fullTree_subset_tree
+#print axioms AvailableChain.FGSA.Next.mem_erasedList
+#print axioms AvailableChain.FGSA.Next.erasedList_eq
 
 -- Proofs/BlockAncestry.lean
 #print axioms AvailableChain.FGSA.block_preceq_refl

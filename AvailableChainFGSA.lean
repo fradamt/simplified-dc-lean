@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSA.Model.ProposalContent
 public import AvailableChainFGSA.Model.Objects
 public import AvailableChainFGSA.Model.Store
+public import AvailableChainFGSA.Model.Tree
+public import AvailableChainFGSA.Proofs.Port.Tree
 public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Frame
