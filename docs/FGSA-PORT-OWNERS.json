@@ -533,18 +533,18 @@
       "purpose": "S0-C pure correspondence; only Next frame readers"
     },
     {
-      "path": "AvailableChainFGSA/Proofs/Spec/Simulation.lean",
+      "path": "AvailableChainFGSARun/Proofs/Spec/Simulation.lean",
       "owner": "WP12b",
       "writer": "gpt-6-astra",
       "new": true,
-      "purpose": "core run simulation and claim transfer"
+      "purpose": "WP12d Run-layer Spec simulation and transfer; namespace unchanged"
     },
     {
-      "path": "AvailableChainFGSA/Proofs/Spec/Transfer.lean",
+      "path": "AvailableChainFGSARun/Proofs/Spec/Transfer.lean",
       "owner": "WP12b",
       "writer": "gpt-6-astra",
       "new": true,
-      "purpose": "core run simulation and claim transfer"
+      "purpose": "WP12d Run-layer Spec simulation and transfer; namespace unchanged"
     },
     {
       "path": "AvailableChainFGSA/Proofs/StoreBundle.lean",

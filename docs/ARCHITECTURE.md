@@ -626,9 +626,12 @@ Engine v2 decisions (design §2), one line each:
 - E5 own-signature record: `selfVisible`, `recordOwn`, atomic tick;
   `Isolation` factors the AP part through `base`, so AC facts transport to
   the AP projection.
-- E6 restart: `restart v t`, `st ↦ restore (durable st)`. FG-SA interim
-  form: Λ durable, store reset; the anchor form (Λ + F) comes with the
-  optional anchor-and-pruning claim.
+- E6 restart: `restart v t`, `st ↦ restore (durable st)`. Ruling Y keeps
+  the last local tick value and the anti-slashing record. Restore resets
+  the other store fields, adds no tick or duty, and ignores restart time `t`.
+  The six restart-permitting claims remain proved: ClientSafetyClaim,
+  WholeRunAccountableClaim, WholeRunAgreementClaim, EventPrefixAgreementClaim,
+  FaultCountSlashableBoundClaim, and HonestNeverSlashedClaim.
 
 ## 4. Constraints
 

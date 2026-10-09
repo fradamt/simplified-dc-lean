@@ -7,8 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "45db161df91761be29d6115659aa5182f4afaab3",
-  "main_revision_note": "WP16 measured second-pass pin; source base e961df94. Ruling Y and WP12d are pending.",
+  "main_revision": "988177e222b441e9ee08d51f8dfd39c80b0d395d",
+  "main_revision_note": "WP16 final-refresh source pin 988177e2; Y/WP12d/wfix2 integrated.",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -553,6 +553,22 @@
           "kind": "commit"
         }
       ]
+    },
+    {
+      "path": "AvailableChainFGSA/Statements/Invariants.lean",
+      "s0_sha256": "f4cb8df055a973b7525b33d8c3aaef00c33c04864f1dd3de01165565a411694e",
+      "comparison_sha256": "f4cb8df055a973b7525b33d8c3aaef00c33c04864f1dd3de01165565a411694e",
+      "main_sha256": "296d28b56327445d5504fd7022d3a3ca7a5dc0dbd785aba57ec427046ac2a578",
+      "changes": [
+        {
+          "commit": "b0b493d88a0973da9c9716f430e2371eae0cdfd1",
+          "parent": "b8f60fd1f24c18ff11c4534531dfed9b59ebf6ad",
+          "before_sha256": "f4cb8df055a973b7525b33d8c3aaef00c33c04864f1dd3de01165565a411694e",
+          "after_sha256": "296d28b56327445d5504fd7022d3a3ca7a5dc0dbd785aba57ec427046ac2a578",
+          "reason": "Integrated Y/WP12d/wfix2 source and prior WP16 data: Retain the FG-SA last tick clock through restore (ruling Y)",
+          "kind": "commit"
+        }
+      ]
     }
   ],
   "packages": [
@@ -769,6 +785,18 @@
         }
       ],
       "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."
+    },
+    {
+      "id": "FGSA-port-final-refresh-base",
+      "base": "45db161df91761be29d6115659aa5182f4afaab3",
+      "tip": "988177e222b441e9ee08d51f8dfd39c80b0d395d",
+      "recorded_changes": [
+        {
+          "path": "AvailableChainFGSA/Statements/Invariants.lean",
+          "commit": "b0b493d88a0973da9c9716f430e2371eae0cdfd1"
+        }
+      ],
+      "note": "Exact integrated Y/WP12d/wfix2 bytes with actual parents and hashes."
     }
   ]
 }
