@@ -180,9 +180,14 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     apply List.mem_filter.mpr
     refine ⟨hvotes, ?_⟩
     change (match GridCO.resolvedHead? (actView st) o with
-      | some C => decide (C.slot ≤ r + 1 - 1) | none => false) = true
+      | some C => Block.preceq (eraseFG st.fg.F) C &&
+        decide (C.slot ≤ r + 1 - 1) | none => false) = true
     rw [hresolve]
-    exact decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)
+    apply Bool.and_eq_true_iff.mpr
+    refine ⟨?_, decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)⟩
+    change Block.Preceq (eraseFG st.fg.F) K
+    rw [clock_fg]
+    exact hFHeads z hk K hhl
   have hvs : Gen.AC.Root.voteSupports st.base.blocks B o = true := by
     exact (Gen.AC.Root.vote_support_body _ _ _).mpr
       ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p _ hinv) o hKb hoK,

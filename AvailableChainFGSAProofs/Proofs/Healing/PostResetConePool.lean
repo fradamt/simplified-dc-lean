@@ -76,8 +76,8 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
   have hZW : Block.Preceq (z p src) (eraseFG W) := by
     change Block.Preceq (eraseFG (controls p src).Z) (eraseFG W)
     have hcontrols : controls p src = R_at p c E rho ip x := by
-      change KitFG.storeControlsView (heightView p) src.fg =
-        KitFG.storeControlsView (heightView p) (storeAt p c E rho ip x).fg
+      change KitFG.treeStoreControlsView (heightView p) src.fg =
+        KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho ip x).fg
       rw [hdfg]
     rw [hcontrols]
     exact hWe ▸ hZHeads x hx _ hhl
