@@ -352,12 +352,12 @@ GridCO `resolvedBefore` and other shared read helpers receive **no implementatio
 
 These obligations come from the [minimal derisk](</Users/francesco/ethereum/research/async-resilient-committees/tip-stability/codex/reports/reviews/derisk2-port-minimal-astra.md>) and the [combined derisk](</Users/francesco/ethereum/research/async-resilient-committees/tip-stability/codex/reports/reviews/derisk2-port-combined-astra.md>).
 
-1. **WP03a: positive proposer support and local correspondence.**  
+1. **WP03a: positive proposer support and local correspondence.**
    Positive spec resolution needs a held, uniquely resolved head with `F ⪯ H` and the slot bound. Prove support incidence and score equality above `F`. Prove confirmation and selected-head equality for a fixed local frame and fixed raw pool. For confirmation, include clean-support non-equivocation; fixed-raw equality alone is insufficient.
 
    Prove release equality only for compatible retained targets. Project fast sets and leases to the tree above `F`. Do not assert equality of internal support lists, release snapshots, or stored fast sets below `F`.
 
-2. **WP03b: proposal retention is separate from candidate geometry.**  
+2. **WP03b: proposal retention is separate from candidate geometry.**
    Strengthen `fgsa_score_eq_on_run` with:
 
    `Block.Preceq (eraseFG dst.fg.F) N.erase`.
@@ -366,10 +366,10 @@ These obligations come from the [minimal derisk](</Users/francesco/ethereum/rese
 
    In `fgsa_ghost_transfer_sfx_on_run`, prove `D ⪯ N.parent` **before** the score call. Then derive `F_dst ⪯ N.parent ⪯ N`.
 
-3. **WP06b: every retained-score call receives the parent bound.**  
+3. **WP06b: every retained-score call receives the parent bound.**
    Derive proposal retention once from `hA.target_floor` and `N.parent ⪯ N`. Pass it to the count call and every candidate-specific score call. A rival candidate’s geometry does not retain `N`.
 
-4. **WP03c: name the wrapper changes.**  
+4. **WP03c: name the wrapper changes.**
    Add the same explicit destination-retention premise to new strengthened forms of:
 
    - `fgsa_score_eq_on_clean`
@@ -377,17 +377,17 @@ These obligations come from the [minimal derisk](</Users/francesco/ethereum/rese
 
    The suffix-walk wrappers `fgsa_ghost_transfer_sfx_on_clean` and `_on_recovery` can derive retention through their walk geometry. Preserve their conclusion and derive the premise before calling the repaired bridge.
 
-5. **WP04a/WP04b: repair the guarded frame helpers.**  
+5. **WP04a/WP04b: repair the guarded frame helpers.**
    The new top-height-extends-`J` theorem requires `F ⪯ W`. Guard EC witnesses by `F`; reprove `effFrame_of_bits` and the phase algebra for that evidence.
 
    Pure contest persistence takes destination top retention, including the retained old `J` carrier when `J` changes. Run persistence supplies that fact through `RXing`. Pass it through `healing_phase_contest_persist`, `healing_phase_order`, settlement, and promotion callers.
 
-6. **WP06a and downstream families: preserve the combined suppliers.**  
+6. **WP06a and downstream families: preserve the combined suppliers.**
    Reprove `cpPrefix` and `cpCompat` with new witness extraction. Keep `cpCompat`’s universal conclusion over cumulative top-height off-`J` blocks.
 
    Retained geometry establishes proposal admission before score transport. Frontier proofs obtain local top-block extension from `RXing`; required HEAD batches enter through the frozen arm. Use the actual new-run proposal and its actual root.
 
-7. **WP08/WP10/WP11: preserve their existing scopes.**  
+7. **WP08/WP10/WP11: preserve their existing scopes.**
    Outage continuation gains no slashing premise. WC permits sleeping readers and different local `F`. Corruption growth uses its existing whole-run slashable bound, including historical carriers. Finality tail witnesses receive the existing `F ⪯ Q` fact.
 
 These are helper repairs. They do not authorize new claim premises or larger bounds.
