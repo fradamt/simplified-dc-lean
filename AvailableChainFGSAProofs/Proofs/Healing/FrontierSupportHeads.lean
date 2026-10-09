@@ -34,7 +34,7 @@ private theorem fheads_kept_anchor (p : Params) (dst : State p.n)
     (hinv : CStoreInv p dst) (B : Block) (W : FGBlock (Fin p.n))
     (hW : W ∈ dst.fg.TF) (hBW : Block.Preceq B (eraseFG W))
     (X : Finset (FGBlock (Fin p.n)))
-    (hfrozen : ∀ A, FGBlock.Preceq A W → A ∈ X)
+    (hfrozen : ∀ A, FGBlock.Preceq dst.fg.F A → FGBlock.Preceq A W → A ∈ X)
     (hlo : (controls p dst).lo ≤ (heightView p W).h)
     (hZW : FGBlock.Preceq (controls p dst).Z W)
     (hrows : ∀ row ∈ dst.base.obligations, Block.Compatible row.1 B) :
@@ -56,7 +56,8 @@ private theorem fheads_kept_anchor (p : Params) (dst : State p.n)
     refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
     rw [domainR_def, frameR_def]
     exact (KitFG.mem_filteredFromView (heightView p) (controls p dst) _ A).mpr
-      ⟨hfrozen A hAW, hFA, hZA, W, hfrozen W (KitFG.preceq_refl W), hAW, hlo⟩
+      ⟨hfrozen A hFA hAW, hFA, hZA, W,
+        hfrozen W (KitFG.preceq_trans hFA hAW) (KitFG.preceq_refl W), hAW, hlo⟩
   · have hselect := Gen.Pure.foldl_select_mem (fun (best b : Block) =>
       best.depth < b.depth || (best.depth == b.depth && best.root < b.root))
       (dst.base.obligations.filterMap (fun row =>
@@ -327,8 +328,8 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hdfg : dst.fg = (storeAt p c E rho iy y).fg := clock_fg p _ _
   have hRd : FGSA.controls p dst = R_at p c E rho iy y := by
-    change KitFG.storeControlsView (heightView p) dst.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho iy y).fg
+    change KitFG.treeStoreControlsView (heightView p) dst.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho iy y).fg
     rw [hdfg]
   have hWdst : W ∈ dst.fg.TF := by
     rw [hdfg]
@@ -404,8 +405,8 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     (FGSA.headSupport p dst (i + 1)) Hon Hon.card (Gen.V2.Duty.faulty rho).card B
     (fgsa_headSupport_subset_headVotes E rho hE iy y i) rfl
     (fun k hk => (hseat k hk).2) (fun k hk => (hseat k hk).1) hother hb hanchor hkeep
-  rw [domainR_eq_storeFrame] at hcov
-  rw [headVote_eq, ite_eq_right (Nat.succ_ne_zero i)]
+  rw [fgsa_domainR_eq_filtered] at hcov
+  rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero i)]
   exact hcov
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -512,8 +513,8 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hdfg : dst.fg = (storeAt p c E rho iy y).fg := clock_fg p _ _
   have hRd : FGSA.controls p dst = R_at p c E rho iy y := by
-    change KitFG.storeControlsView (heightView p) dst.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho iy y).fg
+    change KitFG.treeStoreControlsView (heightView p) dst.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho iy y).fg
     rw [hdfg]
   have hWdst : W ∈ dst.fg.TF := hdfg ▸ hWy
   have hFW' : Block.Preceq (eraseFG dst.fg.F) (eraseFG W) := by
@@ -543,8 +544,9 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   have kept := fheads_kept_anchor p dst hinv B W hWdst hBW
     (voterBlocks p dst (s + 1)) hfrozen (hRd ▸ hloy) (hRd ▸ hZFy.1) (hlease hFB0)
   have hpath : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C B →
-      C ∈ erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst (s + 1))) := by
-    simpa only [domainR_eq_storeFrame] using kept.1
+      C ∈ erasedList dst (filteredFrom p.E p.cfg (FGSA.controls p dst)
+        (voterBlocks p dst (s + 1))) := by
+    simpa only [fgsa_domainR_eq_filtered] using kept.1
   have hanchor := kept.2
   -- Majority and rival dominance at the receiver (forward and reverse relay).
   have hforward : ∀ o ∈ GridCO.cleanSupport p.toParams.engine src s, ∀ seat,
@@ -572,7 +574,9 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at hc
-  exact fgsa_headVote_covers_of_transfer p dst s B hanchor hpath hc.2.2.2.2.2.1 hc.2.2.2.2.2.2
+  rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero s)]
+  exact fgsa_headInTree_covers_of_transfer p dst _ _ _ B
+    hanchor hpath hc.2.2.2.2.2.1 hc.2.2.2.2.2.2
 
 end AvailableChain.FGSA.Run
 end

@@ -35,13 +35,13 @@ theorem opening_domain_clock (nd : Node p) (t : Time) :
   have hfg : (FGSA.clock p nd.st t).fg = nd.st.fg := clock_fg p _ _
   constructor
   · change KitFG.filteredFromView (heightView p)
-      (KitFG.storeControlsView (heightView p) (FGSA.clock p nd.st t).fg)
+      (KitFG.treeStoreControlsView (heightView p) (FGSA.clock p nd.st t).fg)
       (FGSA.clock p nd.st t).fg.TF =
-        KitFG.filteredFromView (heightView p) (KitFG.storeControlsView (heightView p) nd.st.fg)
+        KitFG.filteredFromView (heightView p) (KitFG.treeStoreControlsView (heightView p) nd.st.fg)
           nd.st.fg.TF
     rw [hfg]
-  · change KitFG.storeControlsView (heightView p) (FGSA.clock p nd.st t).fg =
-      KitFG.storeControlsView (heightView p) nd.st.fg
+  · change KitFG.treeStoreControlsView (heightView p) (FGSA.clock p nd.st t).fg =
+      KitFG.treeStoreControlsView (heightView p) nd.st.fg
     rw [hfg]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -74,7 +74,7 @@ theorem opening_proposal_band (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     hjv hhon
   have hfg : st.fg = (storeAt p c E rho j y).fg := clock_fg p _ _
   have hne : (fullTree p st).Nonempty := by
-    change (KitFG.storeFrameView (heightView p) st.fg st.fg.TF).Nonempty
+    change (KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF).Nonempty
     rw [hfg]
     obtain ⟨W, hW, hh⟩ := healing_phase_frontier_witness p c E rho j y
     obtain ⟨hF, hZ⟩ := healing_phase_frontier_root p c E rho crossing hhon hW hh
@@ -92,8 +92,8 @@ theorem opening_proposal_band (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     | genesis => exact KitFG.preceq_refl _
     | node P s root b rows => exact KitFG.preceq_parent_node _ _ _ _ _
   have hR : frameR p st = FGSA.controls p (storeAt p c E rho j y) := by
-    change KitFG.storeControlsView (heightView p) st.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho j y).fg
+    change KitFG.treeStoreControlsView (heightView p) st.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho j y).fg
     rw [hfg]
   obtain ⟨_, _, hlo', hroot, _⟩ := hset
   rw [hR, hlo'] at hlo

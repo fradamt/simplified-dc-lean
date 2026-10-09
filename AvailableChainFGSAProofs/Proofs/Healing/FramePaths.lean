@@ -20,9 +20,9 @@ theorem healing_retained_path (st : State p.n) (hr : Reachable p st)
     (hlo : (controls p st).lo ≤ (heightView p W).h) :
     ∀ B, FGBlock.Preceq B W → FGBlock.Preceq B st.fg.F ∨
       FGBlock.Preceq B (controls p st).Z ∨
-      (B ∈ KitFG.storeFrameView (heightView p) st.fg X ∧
+      (B ∈ KitFG.treeStoreFrameView (heightView p) st.fg X ∧
         ∀ A, FGBlock.Preceq (controls p st).Z A → FGBlock.Preceq A B →
-          A ∈ KitFG.storeFrameView (heightView p) st.fg X) := by
+          A ∈ KitFG.treeStoreFrameView (heightView p) st.fg X) := by
   have hi := (storeBundle_of_reachable p st hr).cstore
   have hFZ : FGBlock.Preceq st.fg.F (controls p st).Z := by
     unfold Controls.Z
@@ -37,7 +37,7 @@ theorem healing_retained_path (st : State p.n) (hr : Reachable p st)
   have hZB : FGBlock.Preceq (controls p st).Z B :=
     (KitFG.preceq_total_of_common hZW hBW).resolve_right hBZ
   have mem (A : FGBlock (Fin p.n)) (hZA : FGBlock.Preceq (controls p st).Z A)
-      (hAW : FGBlock.Preceq A W) : A ∈ KitFG.storeFrameView (heightView p) st.fg X :=
+      (hAW : FGBlock.Preceq A W) : A ∈ KitFG.treeStoreFrameView (heightView p) st.fg X :=
     (KitFG.mem_filteredFromView _ _ _ _).mpr
       ⟨hclosed W hW A hAW, KitFG.preceq_trans hFZ hZA, hZA, W, hW, hAW, hlo⟩
   exact Or.inr (Or.inr ⟨mem B hZB hBW,
@@ -69,7 +69,8 @@ private theorem frame_frozen_mem (hs : V2.D.ScheduleWellFormed E rho)
     (hdpos : 0 < d) {s : Slot} {nd : Node p}
     (hdt : d ≤ SA.voteTime p.toParams s) (hdf : d ≤ SA.freezeTime p.toParams (s - 1))
     (hW : W ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho d) y).fg.TF)
-    (hpost : postClock E rho y (SA.voteTime p.toParams s) = some nd) :
+    (hpost : postClock E rho y (SA.voteTime p.toParams s) = some nd)
+    (hFW : FGBlock.Preceq nd.st.fg.F W) :
     W ∈ voterBlocks p nd.st s := by
   rw [postClock_def, preTick_def] at hpost
   cases hk : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams s) with
@@ -121,8 +122,8 @@ private theorem frame_frozen_mem (hs : V2.D.ScheduleWellFormed E rho)
     change W ∈ voterBlocks p (clock p st' (SA.voteTime p.toParams s)) s
     apply Finset.mem_filter.mpr
     refine ⟨?_, Bool.or_eq_true_iff.mpr (Or.inl (decide_eq_true ?_))⟩
-    · rw [(clock_cumulative p _ _).1]
-      exact hc.1 hW
+    · apply Finset.mem_filter.mpr
+      exact ⟨by rw [(clock_cumulative p _ _).1]; exact hc.1 hW, hFW⟩
     · have he : GridCO.stampBlock (clock p st' (SA.voteTime p.toParams s)).base (eraseFG W) =
           stamp := by
         unfold GridCO.stampBlock
@@ -140,13 +141,14 @@ theorem healing_frozen_path (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoR
     (hdfreeze : d ≤ SA.freezeTime p.toParams (q - 1))
     (hW : W ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho d) y).fg.TF)
     (hread : postClock E rho y (SA.voteTime p.toParams q) = some nd) :
-    ∀ B, FGBlock.Preceq B W → B ∈ voterBlocks p nd.st q := by
-  intro B hBW
+    ∀ B, FGBlock.Preceq nd.st.fg.F B → FGBlock.Preceq B W →
+      B ∈ voterBlocks p nd.st q := by
+  intro B hFB hBW
   have hi := (storeBundle_stateBefore E rho (V2.D.Run.idxBefore rho d) y).cstore
   obtain ⟨A, hA, he⟩ := eraseFG_ancestor_mem hi.fg.closed hW (eraseFG_preceq hBW)
   have hB : B ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho d) y).fg.TF :=
     (eraseFG_injective he) ▸ hA
-  exact frame_frozen_mem p c E rho hs hnr hdpos hdvote hdfreeze hB hread
+  exact frame_frozen_mem p c E rho hs hnr hdpos hdvote hdfreeze hB hread hFB
 
 end AvailableChain.FGSA.Run
 end

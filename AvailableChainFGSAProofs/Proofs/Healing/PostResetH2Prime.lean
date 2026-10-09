@@ -232,15 +232,23 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
   have path : ∀ A, FGBlock.Preceq A Qfg → A ∈ X := by
     intro A hA
     exact Finset.mem_filter.mpr ⟨(hpath A hA).1, hA⟩
-  have hXv : X ⊆ voterBlocks p dst (v + 1) := by
+  let Y := X.filter (fun A => FGBlock.Preceq (storeAt p c E rho iy x).fg.F A)
+  have hYv : Y ⊆ voterBlocks p dst (v + 1) := by
     intro A hA
+    obtain ⟨hA, hFA⟩ := Finset.mem_filter.mp hA
     obtain ⟨hm, hp⟩ := Finset.mem_filter.mp hA
     apply Finset.mem_filter.mpr
-    refine ⟨hm, Bool.or_eq_true_iff.mpr (Or.inl ?_)⟩
-    simpa only [Nat.add_sub_cancel, decide_eq_true_eq] using (hpath A hp).2
-  have hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X := by
-    intro W hW A hAW
-    exact path A (KitFG.preceq_trans hAW (Finset.mem_filter.mp hW).2)
+    refine ⟨Finset.mem_filter.mpr ⟨hm, ?_⟩, Bool.or_eq_true_iff.mpr (Or.inl ?_)⟩
+    · change FGBlock.Preceq (FGSA.clock p _ _).fg.F A
+      rw [clock_fg]
+      exact hFA
+    · simpa only [Nat.add_sub_cancel, decide_eq_true_eq] using (hpath A hp).2
+  have hYc : ∀ W ∈ Y, ∀ A, FGBlock.Preceq (storeAt p c E rho iy x).fg.F A →
+      FGBlock.Preceq A W → A ∈ Y := by
+    intro W hW A hFA hAW
+    exact Finset.mem_filter.mpr
+      ⟨path A (KitFG.preceq_trans hAW (Finset.mem_filter.mp (Finset.mem_filter.mp hW).1).2),
+        hFA⟩
   obtain ⟨jr, yr, ar, C0, hrow0, hname0, hsrc0, he0, hh0⟩ := h0r.fresh
   have hC0Q : FGBlock.Preceq C0 Qfg := h2Prime_lift p (by rwa [he0, hefg])
   have hX : X ⊆ (storeAt p c E rho iy x).fg.TF := by
@@ -258,7 +266,8 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
     (fun K s hK hhK => Gen.Pure.block_compatible_of_common
       (Gen.Pure.block_preceq_refl _) (by rw [hefg]; exact hbelow K s hK hhK))
   have hout := healing_unanimous_next_transfer_kept p c E rho hrec hgst hefg hbatch
-    hx hiy hXv hXc hkept
+    hx hiy hYv hYc (by
+      simpa only [Kept, Y, D_at, healing_domain_filter_F] using hkept)
   rw [healing_headAtIdx_tick p c E rho hiy] at hout
   exact (Option.some.inj hH) ▸ hout
 

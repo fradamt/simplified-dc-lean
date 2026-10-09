@@ -212,7 +212,8 @@ theorem healing_first_transfer_raw_domain [Fintype V] {G ΔF : Time}
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1))
-    (hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X)
+    (hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq (storeAt p c E rho iy y).fg.F A →
+      FGBlock.Preceq A W → A ∈ X)
     (hD : B ∈ D_at p c E rho iy y X)
     (hlease : ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 C) :
@@ -238,19 +239,21 @@ theorem healing_first_transfer_raw_domain [Fintype V] {G ΔF : Time}
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hdfg : dst.fg = (storeAt p c E rho iy y).fg := clock_fg p _ _
   have hRd : FGSA.controls p dst = R_at p c E rho iy y := by
-    change KitFG.storeControlsView (heightView p) dst.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho iy y).fg
+    change KitFG.treeStoreControlsView (heightView p) dst.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho iy y).fg
     rw [hdfg]
   obtain ⟨_hBX, hFB, hZB, W, hWX, hBW, hloW⟩ :=
     (KitFG.mem_filteredFromView (heightView p) (R_at p c E rho iy y) X B).mp hD
   have hvW : W ∈ voterBlocks p dst (s + 1) := hXv hWX
-  have hWdst : W ∈ dst.fg.TF := (Finset.mem_filter.mp hvW).1
+  have hWdst : W ∈ dst.fg.TF :=
+    Next.tree_subset_TF p dst (Finset.mem_filter.mp hvW).1
   have hFB0 : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) (eraseFG B) :=
     eraseFG_preceq hFB
   have hFB' : Block.Preceq (eraseFG dst.fg.F) (eraseFG B) := hdfg ▸ hFB0
   -- The kept path: every block between the live root and B is in the frozen domain.
   have hpath : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C (eraseFG B) →
-      C ∈ erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst (s + 1))) := by
+      C ∈ erasedList dst (filteredFrom p.E p.cfg (FGSA.controls p dst)
+        (voterBlocks p dst (s + 1))) := by
     intro C hr hCB
     have hr' : liveRoot p dst ≠ C ∧ Block.Preceq (liveRoot p dst) C := by
       change ((!decide (liveRoot p dst = C)) && Block.preceq (liveRoot p dst) C) = true at hr
@@ -264,9 +267,9 @@ theorem healing_first_transfer_raw_domain [Fintype V] {G ΔF : Time}
       (Gen.Pure.block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) (heA ▸ hr'.2))
     apply List.mem_filter.mpr
     refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
-    rw [← domainR_eq_storeFrame, domainR_def, frameR_def]
+    rw [KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
     exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p dst) _ A).mpr
-      ⟨hXv (hXc W hWX A hAW), hFA, hZA, W, hvW, hAW, hRd ▸ hloW⟩
+      ⟨hXv (hXc W hWX A (hdfg ▸ hFA) hAW), hFA, hZA, W, hvW, hAW, hRd ▸ hloW⟩
   -- The live root is compatible with B: every surviving lease passed the release.
   have hrows := hlease
   have hanchor : Block.Compatible (liveRoot p dst) (eraseFG B) := by
@@ -313,7 +316,8 @@ theorem healing_first_transfer_raw_domain [Fintype V] {G ΔF : Time}
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at htr
   rw [healing_headAtIdx_tick p c E rho hiy]
-  exact fgsa_headVote_covers_of_transfer p dst s (eraseFG B) hanchor hpath
+  rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero s)]
+  exact fgsa_headInTree_covers_of_transfer p dst _ _ _ (eraseFG B) hanchor hpath
     htr.2.2.2.2.2.1 htr.2.2.2.2.2.2
 
 
@@ -1435,9 +1439,14 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
     apply List.mem_filter.mpr
     refine ⟨hvotes, ?_⟩
     change (match GridCO.resolvedHead? (actView st) o with
-      | some H => decide (H.slot ≤ r + 1 - 1) | none => false) = true
+      | some H => Block.preceq (eraseFG st.fg.F) H &&
+        decide (H.slot ≤ r + 1 - 1) | none => false) = true
     rw [hresolve]
-    exact decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)
+    apply Bool.and_eq_true_iff.mpr
+    refine ⟨?_, decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)⟩
+    change Block.Preceq (eraseFG (FGSA.clock p _ _).fg.F) K
+    rw [clock_fg]
+    exact Gen.Pure.block_preceq_trans hFB hBK
   have hvs : Gen.AC.Root.voteSupports st.base.blocks B o = true := by
     exact (Gen.AC.Root.vote_support_body _ _ _).mpr
       ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p st hinv) o hKb hoK,
@@ -1500,8 +1509,8 @@ theorem healing_proposal_moving_domain [Fintype V] {G ΔF : Time}
   have hinv : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hdfg : st.fg = (storeAt p c E rho ip x).fg := clock_fg p _ _
   have hRd : FGSA.controls p st = R_at p c E rho ip x := by
-    change KitFG.storeControlsView (heightView p) st.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho ip x).fg
+    change KitFG.treeStoreControlsView (heightView p) st.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho ip x).fg
     rw [hdfg]
   obtain ⟨_, hFB, hZB, W, hWX, hBW, hloW⟩ :=
     (KitFG.mem_filteredFromView (heightView p) (R_at p c E rho ip x) X B).mp hD
@@ -1544,7 +1553,7 @@ theorem healing_proposal_moving_domain [Fintype V] {G ΔF : Time}
   have hhead_eq : proposerHead p st (r + 1) = headInTree p st
       (erasedList st (domainR p st st.fg.TF)) (FGSA.proposerVotes st (r + 1))
       (FGSA.proposerSupport st (r + 1)) := by
-    rw [fgsa_domainR_eq_storeFrameView]
+    rw [fgsa_domainR_eq_treeStoreFrameView]
     rfl
   rw [hhead_eq]
   -- The honest batch of label r.

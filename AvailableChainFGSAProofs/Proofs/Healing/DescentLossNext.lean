@@ -408,7 +408,8 @@ theorem healing_next_transfer_domain [Fintype V] {G ΔF : Time}
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (i + 1))) (i + 1))
-    (hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X)
+    (hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq (storeAt p c E rho iy y).fg.F A →
+      FGBlock.Preceq A W → A ∈ X)
     (hD : B ∈ D_at p c E rho iy y X)
     (hlease : ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (i + 1))).base.obligations, Block.Compatible row.1 (eraseFG B)) :
@@ -428,13 +429,14 @@ theorem healing_next_transfer_domain [Fintype V] {G ΔF : Time}
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hdfg : dst.fg = (storeAt p c E rho iy y).fg := clock_fg p _ _
   have hRd : FGSA.controls p dst = R_at p c E rho iy y := by
-    change KitFG.storeControlsView (heightView p) dst.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho iy y).fg
+    change KitFG.treeStoreControlsView (heightView p) dst.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho iy y).fg
     rw [hdfg]
   obtain ⟨-, hFB, hZB, W, hWX, hBW, hloW⟩ :=
     (KitFG.mem_filteredFromView (heightView p) (R_at p c E rho iy y) X B).mp hD
   have hvW : W ∈ voterBlocks p dst (i + 1) := hXv hWX
-  have hWdst : W ∈ dst.fg.TF := (Finset.mem_filter.mp hvW).1
+  have hWdst : W ∈ dst.fg.TF :=
+    Next.tree_subset_TF p dst (Finset.mem_filter.mp hvW).1
   have hFB0 : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) (eraseFG B) :=
     eraseFG_preceq hFB
   -- The kept path through the frozen domain.
@@ -456,7 +458,7 @@ theorem healing_next_transfer_domain [Fintype V] {G ΔF : Time}
     refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
     rw [domainR_def, frameR_def]
     exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p dst) _ A).mpr
-      ⟨hXv (hXc W hWX A hAW), hFA, hZA, W, hvW, hAW, hRd ▸ hloW⟩
+      ⟨hXv (hXc W hWX A (hdfg ▸ hFA) hAW), hFA, hZA, W, hvW, hAW, hRd ▸ hloW⟩
   -- The live root is compatible with B.
   have hanchor : Block.Compatible (liveRoot p dst) (eraseFG B) := by
     have hselect := Gen.Pure.foldl_select_mem (fun (best b : Block) =>
@@ -516,10 +518,10 @@ theorem healing_next_transfer_domain [Fintype V] {G ΔF : Time}
     (FGSA.headSupport p dst (i + 1)) Hon Hon.card (Gen.V2.Duty.faulty rho).card (eraseFG B)
     (fgsa_headSupport_subset_headVotes E rho hE iy y i) rfl
     (fun k hk => (hseat k hk).2) (fun k hk => (hseat k hk).1) hother hb hanchor hkeep
-  rw [domainR_eq_storeFrame] at hcov
+  rw [fgsa_domainR_eq_filtered] at hcov
   rw [healing_headAtIdx_tick p c E rho hiy]
   change Block.Preceq _ (headVote p dst (i + 1))
-  rw [headVote_eq, ite_eq_right (Nat.succ_ne_zero i)]
+  rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero i)]
   exact hcov
 
 end AvailableChain.FGSA.Run
