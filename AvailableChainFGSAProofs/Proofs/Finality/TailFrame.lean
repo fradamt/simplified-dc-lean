@@ -91,10 +91,11 @@ theorem ktail_frame_of_store (st : State p.n)
     · exact le_sup_of_le_left (Finset.le_sup (f := fun B => (heightView p B).h) hQ)
   have hc : FGSA.controls p st = ⟨st.fg.F, st.fg.h_max, st.fg.h_j, st.fg.J,
       decide (st.fg.h_max = st.fg.h_j + 1) &&
-        decide (∃ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max ∧
+        decide (∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧
+          (heightView p W).h = st.fg.h_max ∧
           ¬ FGBlock.Preceq st.fg.J W)⟩ := by
     unfold FGSA.controls
-    rw [KitFG.storeControlsView_def]
+    rw [KitFG.treeStoreControlsView_def]
   have hZ : FGBlock.Preceq (FGSA.controls p st).Z Q := by
     rw [hc]
     unfold Controls.Z Controls.rootIsJ
@@ -103,9 +104,10 @@ theorem ktail_frame_of_store (st : State p.n)
     · rw [Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true'] at hr
       obtain ⟨htop, hcon⟩ := hr
       by_contra hn
-      have hex : decide (∃ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max ∧
+      have hex : decide (∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧
+          (heightView p W).h = st.fg.h_max ∧
           ¬ FGBlock.Preceq st.fg.J W) = true :=
-        decide_eq_true ⟨Q, hQ, hmax.symm, hn⟩
+        decide_eq_true ⟨Q, hQ, hF, hmax.symm, hn⟩
       rw [hex, htop] at hcon
       simp at hcon
     · exact hF
