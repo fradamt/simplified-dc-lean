@@ -7,7 +7,7 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "d470234963683c7ad1e61aa58a8e5d4adfeecbad",
+  "main_revision": "a12363fdff8ac0d6e54dca3f048126aa5b530ae0",
   "main_revision_note": "Sleep P-PC on sleep-int; authorized change (2026-10-09); history only.",
   "differences": [
     {
@@ -888,7 +888,7 @@
     {
       "id": "sleep-ppc",
       "base": "943c1dfba1d514209a10f0e855b87835acdc0a87",
-      "tip": "d470234963683c7ad1e61aa58a8e5d4adfeecbad",
+      "tip": "a12363fdff8ac0d6e54dca3f048126aa5b530ae0",
       "recorded_changes": [],
       "note": "No S0-frozen path changed; history only."
     }
