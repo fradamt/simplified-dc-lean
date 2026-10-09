@@ -227,11 +227,11 @@ class Checker:
         return sorted(p for p in self.manifest
                       if self.repo.blob(base, p) != self.repo.blob(tip, p))
 
-    def check_range(self, base, tip, allowed=()):
+    def check_range(self, base, tip, allowed=(), inherited=()):
         base, tip = self.repo.commit(base), self.repo.commit(tip)
         if not self.repo.ancestor(base, tip):
             self.fail(f'WRONG ANCESTRY base {base[:8]} not below tip {tip[:8]}')
-        changed = self.frozen_changes(base, tip)
+        changed = [p for p in self.frozen_changes(base, tip) if p not in inherited]
         allowed = dict(allowed)
         for p in changed:
             if p not in allowed:
@@ -271,6 +271,14 @@ class Checker:
     def open_packages(self):
         return [pk for pk in self.record['packages'] if pk.get('tip') is None]
 
+    def inherited_since(self, base, rev):
+        """Recorded paths that a merge of a newer main brought into base..rev.
+        check_revision already requires their bytes at rev to be the main bytes."""
+        base = self.repo.commit(base)
+        if self.repo.ancestor(self.main, base) or not self.repo.ancestor(self.main, rev):
+            return []
+        return [p for p, d in self.diffs.items() if self.repo.blob(rev, p) == d['main_sha256']]
+
 
 def run_check(root, revision, report=print):
     ch = Checker(root)
@@ -279,7 +287,7 @@ def run_check(root, revision, report=print):
     worktree = revision is None
     rev = ch.check_revision(revision or 'HEAD', worktree)
     for pk in ch.open_packages():
-        ch.check_range(pk['base'], rev)
+        ch.check_range(pk['base'], rev, inherited=ch.inherited_since(pk['base'], rev))
     if not ch.findings:
         report(f'fg-finality-freeze: PASS: {len(ch.manifest)} S0 paths at {rev[:8]}, '
                f'{len(ch.diffs)} recorded differences, '
@@ -428,6 +436,28 @@ def selftest():
         rec['packages'][0]['base'] = c3
         rewrite_record(root, rec)
         expect('unrecorded history change', check(root), 'UNRECORDED CHANGE a.lean')
+    for edit in (False, True):
+        with tempfile.TemporaryDirectory() as tmp:
+            # Main advances with a recorded change of b.lean; the open package
+            # merges it. A package edit of b.lean after that still fails.
+            root, rec, c = fixture(tmp)
+            write(root, 'b.lean', 'b1\n')
+            c4 = commit(root, 'recorded change on a newer main')
+            rec['main_revision'] = c4
+            rec['differences'].append(dict(
+                path='b.lean', s0_sha256=sha(b'b0\n'), comparison_sha256=sha(b'b0\n'),
+                main_sha256=sha(b'b1\n'),
+                changes=[dict(commit=c4, parent=c['tip'], before_sha256=sha(b'b0\n'),
+                              after_sha256=sha(b'b1\n'), reason='fixture main change',
+                              kind='commit')]))
+            rewrite_record(root, rec)
+            if edit:
+                write(root, 'b.lean', 'b2\n')
+                commit(root, 'package edits the newly inherited path')
+                expect('package edits a newer inherited path', check(root),
+                       'UNLISTED DIFFERENCE b.lean')
+            else:
+                expect('newer main change merged into the open package', check(root), None)
     print(f'fg-finality-freeze selftest: PASS ({cases} cases)')
 
 
