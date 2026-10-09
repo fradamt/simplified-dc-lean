@@ -16,7 +16,6 @@ STEPS = ('build', 'check-build', 'check-fgsa', 'check-fgsa-run', 'catalog-lock',
          'Generic-axioms', 'FGSA-axioms', 'FGSARun-axioms', 'proof-audit-coverage',
          'check-fg-compose', 'FGCompose-axioms', 'FGSACompose-axioms', 'PCSACompose-axioms',
          'FGSafety-axioms', 'FGSASafety-axioms', 'PCSASafety-axioms', 'FGSAGrowth-axioms',
-         'fg-finality-freeze',
          'fg-finality-coverage', 'fgsa-blueprint')
 
 CONTROL_STEPS = ('checker-self-tests',)

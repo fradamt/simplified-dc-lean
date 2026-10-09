@@ -17,7 +17,7 @@ from audit_pool import AuditPool
 
 HEAVY = ('fgsa-claims', 'check-fg-compose', 'check-fgsa', 'check-build',
          'check-fgsa-run', 'fgsa-manifest', 'pcsa-manifest')
-CHEAP = ('build', 'fg-finality-freeze', 'fg-finality-coverage', 'catalog-lock',
+CHEAP = ('build', 'fg-finality-coverage', 'catalog-lock',
          'v2-manifest', 'gen-manifest', 'fgsa-old-reads', 'proof-audit-coverage',
          'Generic-axioms', 'FGSA-axioms', 'FGSARun-axioms', 'FGCompose-axioms',
          'FGSACompose-axioms', 'PCSACompose-axioms', 'FGSafety-axioms',
@@ -102,8 +102,7 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
                '  gate_with_slot python3 scripts/stub.py checker-self-tests\n'
                'else\n'
                f'  gate_with_slot python3 scripts/stub.py {name}\nfi\n'))
-    for script, name in (('check-fg-finality-freeze.py', 'fg-finality-freeze'),
-                         ('check-fg-finality-coverage.py', 'fg-finality-coverage'),
+    for script, name in (('check-fg-finality-coverage.py', 'fg-finality-coverage'),
                          ('check-proof-coverage.py', 'proof-audit-coverage'),
                          ('check-fgsa-blueprint.py', 'fgsa-blueprint')):
         write(scripts / script, f'import runpy,sys\nsys.argv = ["stub", {name!r}]\n'
@@ -294,7 +293,7 @@ with tempfile.TemporaryDirectory(prefix='gate-graph-') as temp:
                    cwd=REPO, check=True)
     root = Path(temp)
     for tier, slots, fail in (('full', 1, ''), ('full', 2, ''), ('full', 2, 'build'),
-                              ('full', 2, 'fg-finality-freeze'),
+                              ('full', 2, 'fg-finality-coverage'),
                               ('full', 2, 'fgsa-claims'), ('merge', 2, '')):
         graph(root / f'{tier}-{slots}-{fail or "pass"}', tier, slots, fail,
               force=tier == 'full')

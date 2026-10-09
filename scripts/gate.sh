@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run from the repository root. Freeze gates must use --tier full.
+# Run from the repository root.
 # Order: source precheck -> build -> cheap checks/audits -> one fail-fast heavy group.
 # Both tiers share GATE_SLOTS; checker changes or --neg select controls.
 # C23 uses private source/build/config/packages copies (CoW when supported, else copy).
@@ -92,8 +92,8 @@ if [ "$critical_path" = 0 ]; then
 fi
 # FIRST gate step: no build, slot directory, logs or full-pass stamp yet.
 gate_precheck "$base" || exit $?
-# BUILD §7.7: the critical-path measurement is separate from the tiers (freeze gates and
-# weekly). It runs in the same memory scope; the caller holds the NUC lock.
+# BUILD §7.7: critical-path measurement is separate from the tiers.
+# It runs in the same memory scope; the caller holds the NUC lock.
 if [ "$critical_path" = 1 ]; then
   [ "$(uname -s)" = Linux ] || { echo "gate.sh --critical-path: NUC (Linux) only" >&2; exit 2; }
   echo "critical-path: memory=$memory_limit"
@@ -268,10 +268,7 @@ audit_strict() {
 # Cheap checks need no controls. Source-only FGSA/run/claims checks already passed
 # in gate_precheck, before build. Keep the receipt's exact top-level result set:
 # the extra early old-read pass has its log/result below early/, and the original
-# check-fgsa still runs the audit and all FULL controls without a skip flag.
-step fg-finality-freeze python3 -B scripts/check-fg-finality-freeze.py --check
-summary fg-finality-freeze
-stop_if_failed
+# check-fgsa still runs the audit and all selected controls without a skip flag.
 step fg-finality-coverage python3 -B scripts/check-fg-finality-coverage.py
 summary fg-finality-coverage
 stop_if_failed

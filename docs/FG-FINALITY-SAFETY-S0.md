@@ -1,3 +1,5 @@
+Archival since 2026-10-09 (user decision); the S0 freeze is retired.
+
 # FG finality safety: S0
 
 Date: 2026-10-06. Scope: S0, S1, S1P. Stop before S2.

@@ -76,7 +76,6 @@ checker_selftests() {
 # (--packages) reads old revisions; it is not a gate check.
 p13_selftests() {
   [ "${NEG:-1}" = 0 ] && { echo "P13 selftests: SKIPPED (NEG=0)"; return 0; }
-  timed_selftest python3 -B scripts/check-fg-finality-freeze.py --selftest &&
   timed_selftest python3 -B scripts/check-fg-finality-coverage.py --selftest &&
   timed_selftest gate_with_slot python3 -B scripts/check-fgsa-blueprint.py --selftest
 }

@@ -274,7 +274,7 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
                  'check-fgsa-manifest.sh', 'check-pcsa-manifest.sh', 'check-fgsa-claims.sh'):
         (scripts / name).write_text('#!/bin/bash\nexit 0\n')
     (scripts / 'check-proof-coverage.py').write_text('print("coverage stub")\n')
-    for name in ('check-fg-finality-freeze.py', 'check-fg-finality-coverage.py',
+    for name in ('check-fg-finality-coverage.py',
                  'check-fgsa-blueprint.py'):
         (scripts / name).write_text('print("P13 stub")\n')
     (scripts / 'check-fg-compose.sh').write_text(
@@ -302,7 +302,7 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
         assert 'FGCompose-axioms rc=0' in result.stdout, result.stdout
         assert 'FGSACompose-axioms rc=0' in result.stdout, result.stdout
         assert 'PCSACompose-axioms rc=0' in result.stdout, result.stdout
-        for step in ('FGSAGrowth-axioms', 'fg-finality-freeze', 'fg-finality-coverage'):
+        for step in ('FGSAGrowth-axioms', 'fg-finality-coverage'):
             assert step + ' rc=0' in result.stdout, result.stdout
         # The compiled blueprint check runs in the FULL tier only.
         assert ('fgsa-blueprint rc=0' in result.stdout) == (tier == 'full'), result.stdout
