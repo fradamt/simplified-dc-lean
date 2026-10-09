@@ -6,6 +6,11 @@ AvailableChainFGSA.Proofs.Restart
 AvailableChainFGSA.Proofs.Join
 AvailableChainFGSA.Tests.Restart
 AvailableChainFGSA.Tests.Join
+AvailableChainEngineV2.Conditions.Sleep
+AvailableChainEngineV2.Conditions.Duty.Sleep
+AvailableChainEngineV2.Conditions.DeliveryWindow
+AvailableChainEngineV2.Conditions.Duty.DeliveryWindow
+AvailableChainEngineV2.Tests.Sleep
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery

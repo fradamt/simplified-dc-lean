@@ -113,7 +113,7 @@ abbrev specF : ProtocolSpec Unit where
   selfVisible := fun _ => false
   recordOwn := fun _ _ => true
   durable := fun _ => ()
-  restore := fun _ => false
+  restore := fun _ _ => false
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun s _ => s
@@ -170,7 +170,9 @@ example : Run.emitsAt (envAwake _) rhoV 1 = [oSD] := rfl
 
 theorem rhoV_valid : ExecutionValid (envAwake _) rhoV := by
   refine { toScheduleWellFormed := ?_, toDeliveryWellFormed := ?_,
-           toUnforgeableSignatures := ?_ }
+           toUnforgeableSignatures := ?_,
+           toSleepWellFormed := ⟨by intros; rfl, by intros; rfl, by intros; rfl,
+             by simp [Wakes, envAwake]⟩ }
   · refine ⟨by decide, ?_, by decide, ?_, ?_, ?_, ?_⟩
     · simp [rhoV, Event.key, Event.time, Event.phase, Prod.Lex.toLex_le_toLex]
     · simp [rhoV, Event.time]
@@ -180,7 +182,7 @@ theorem rhoV_valid : ExecutionValid (envAwake _) rhoV := by
       rcases h with ⟨-, rfl⟩ | ⟨-, rfl⟩
       · exact ⟨0, by simp [envAwake]⟩
       · exact ⟨1, by simp [envAwake]⟩
-    · intro v hv t ⟨k, hk⟩ h0 h1
+    · intro v hv t ⟨k, hk⟩ h0 h1 _ha
       simp only [rhoV, Finset.mem_singleton] at hv
       subst hv
       simp only [envAwake, mul_one] at hk

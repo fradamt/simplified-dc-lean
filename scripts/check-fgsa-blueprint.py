@@ -210,15 +210,15 @@ def module_olean(root, module):
     return root / '.lake/build/lib/lean' / (module.replace('.', '/') + '.olean')
 
 
-def compiled_clauses(clauses):
-    """PC-SA map rows stay as source records during the full-sleep migration."""
-    return [c for c in clauses if not c['module'].startswith('AvailableChainPCSA')]
+def compiled_clauses(data):
+    """Defer only the PC-SA safety section, regardless of a row's module field."""
+    return list(all_clauses(data, compiled=True))
 
 
 def run_oracle(root, clauses):
     """Read active constants only. Deferred source/map rows are checked in run."""
     groups = {}
-    for c in compiled_clauses(clauses):
+    for c in clauses:
         groups.setdefault('active', set()).add((c['module'], c['theorem']))
     results = {}
     with tempfile.TemporaryDirectory(prefix='fgsa-blueprint.', dir=root / '.lake') as tmp:
@@ -271,12 +271,14 @@ def compare_clause(c, got, where):
 # ---------------------------------------------------------------------------
 # The map
 
-def all_clauses(data):
+def all_clauses(data, compiled=False):
     for e in data['entries']:
         for c in e.get('clauses', []):
             yield e['id'], c
     for proto, rows in data.get('safety_package', {}).items():
         for c in rows:
+            if compiled and proto == 'PC-SA' and c.get('field') in SAFETY_FIELDS:
+                continue
             yield f'safety {proto} {c.get("field")}', c
     for c in data.get('additional_results', []):
         yield f'additional {c.get("id")}', c
@@ -437,7 +439,7 @@ def summary(data, oracle_errors):
         bad = [x for x in oracle_errors if f'safety {proto} ' in x]
         rows = data['safety_package'][proto]
         status = 'FAIL' if bad else 'PASS'
-        if rows and not compiled_clauses(rows):
+        if rows and proto == 'PC-SA' and all(c.get('field') in SAFETY_FIELDS for c in rows):
             status = 'DEFERRED (source/map only)'
         print(f'safety package {proto}: {status} ({len(rows)} fields)')
     print(f'claims {claims}; facets {facets}; PROVED {count["PROVED"]}; PARTIAL {count["PARTIAL"]}; '
@@ -454,14 +456,15 @@ def run(root, mode='check', oracle=None, oleans=None):
         fields = claim_fields(root)
         data = strict_json(root / MAP)
         clauses = list(all_clauses(data))
+        active = compiled_clauses(data)
         for _, c in clauses:
             if not module_source(root, c.get('module', '')).is_file():
                 raise InputError(f'MISSING SOURCE: {c.get("module")} for {c.get("theorem")}')
-            if compiled_clauses([c]) and \
-                    (oleans if oleans is not None else oracle is None) and \
+        for _, c in active:
+            if (oleans if oleans is not None else oracle is None) and \
                     not module_olean(root, c['module']).is_file():
                 raise InputError(f'MISSING OLEAN: {c["module"]} for {c["theorem"]}')
-        got = oracle(clauses) if oracle else run_oracle(root, [c for _, c in clauses])
+        got = oracle(active) if oracle else run_oracle(root, [c for _, c in active])
     except (InputError, json.JSONDecodeError) as err:
         print(f'fgsa-blueprint: INPUT ERROR: {err}')
         return 2
@@ -476,9 +479,7 @@ def run(root, mode='check', oracle=None, oleans=None):
         mode = 'check'
     errors += check_map(data, found, section_lines, fields)
     oracle_errors = []
-    for where, c in clauses:
-        if not compiled_clauses([c]):
-            continue
+    for where, c in active:
         oracle_errors += compare_clause(c, got.get(c['theorem']), where)
     errors += oracle_errors
     doc = root / OPEN_DOC

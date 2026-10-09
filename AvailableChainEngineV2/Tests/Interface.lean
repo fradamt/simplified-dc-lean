@@ -60,7 +60,7 @@ abbrev slotSpec (sts : Slot → Nat) (sv : Bool) (rec : Nat) : ProtocolSpec Nat 
   selfVisible := fun _ => sv
   recordOwn := fun s _ => s + rec
   durable := fun _ => ()
-  restore := fun _ => 0
+  restore := fun _ _ => 0
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -271,15 +271,18 @@ example : HealthyPrefixDelivery (envAwake _) rhoR 10 :=
   ⟨fun _ hv => absurd hv (Finset.notMem_empty _),
     fun _ hv => absurd hv (Finset.notMem_empty _)⟩
 
--- Broadcast includes the emitting node: in `rhoNoSD`, validator 0 emits `oSD`
--- at time 1 and never gets it, so the healthy prefix up to time 2 fails.
-example : ¬ HealthyPrefixDelivery (envAwake _) rhoNoSD 2 := by
+-- With horizon 2, validator 0 emits at time 1 and never gets the object.
+-- The deadline is within the run, so healthy-prefix delivery fails.
+example : ¬ HealthyPrefixDelivery (envAwake _) { rhoNoSD with horizon := 2 } 2 := by
   intro h
-  obtain ⟨_, _, _, j, _, hj, _⟩ := h.broadcast 0 (by decide) oSD 1
-    ⟨0, rfl, List.mem_singleton_self _⟩ 0 (by decide) (by decide) rfl
-  match j, hj with
-  | 0, hj => simp [rhoNoSD, rhoSD] at hj
-  | _ + 1, hj => simp [rhoNoSD, rhoSD] at hj
+  have hs := h.broadcast 0 (by decide) oSD 1
+    ⟨0, rfl, List.mem_singleton_self _⟩ 0 (by decide) 1
+    (by decide) (by decide) (by decide) (by decide) (by decide) (by intro u _ _; rfl) rfl
+  rcases hs with ⟨k, _, hk⟩ | ⟨_, _, _, j, _, hj, _⟩
+  · exact Bool.false_ne_true hk
+  · match j, hj with
+    | 0, hj => simp [rhoNoSD, rhoSD] at hj
+    | _ + 1, hj => simp [rhoNoSD, rhoSD] at hj
 
 end AvailableChain.V2.Tests
 

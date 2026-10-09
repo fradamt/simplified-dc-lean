@@ -58,7 +58,7 @@ abbrev specA : ProtocolSpec Unit where
   selfVisible := fun b => b
   recordOwn := fun s _ => s + 10
   durable := fun _ => ()
-  restore := fun _ => 0
+  restore := fun _ _ => 0
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -134,7 +134,7 @@ abbrev specM : ProtocolSpec Int where
   selfVisible := fun _ => false
   recordOwn := fun s _ => s
   durable := fun _ => ()
-  restore := fun _ => 0
+  restore := fun _ _ => 0
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -188,7 +188,7 @@ abbrev specB : ProtocolSpec Unit where
   selfVisible := fun _ => false
   recordOwn := fun s _ => s
   durable := fun _ => ()
-  restore := fun _ => 0
+  restore := fun _ _ => 0
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false

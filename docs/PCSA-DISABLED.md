@@ -32,12 +32,19 @@ Disabled compiled paths:
 - Gate PC-SA manifest route, PCSACompose and PCSASafety audits, and their receipt names.
 - Claims root coverage for PCSAProofs; proof coverage keys for its Axioms, FGCompose
   and FGSafety audits; the Compose adapter check; the compiled FaultXRoute scan.
-- Blueprint oracle checks for PC-SA. The nine clauses stay as source/map records.
+- Blueprint oracle checks for the PC-SA safety section only. The nine clauses stay
+  as source/map records. FG-SA rows keep full checks regardless of their module field.
+- Default shake selection, including when PC-SA `.olean` files are present.
 - The four PC-SA entries in `scripts/new-libraries.txt`.
+
+Finality source coverage uses `scripts/pcsa-source-audit-coverage.txt` for PC-SA.
+The active compiled inventory keeps every FG-SA and Compose requirement.
 
 The PCSA-API trigger in `gate.sh` stays. Source checks still read PC-SA files through
 Lake library tables. `check-sleep-scopes.py` checks the active import closure and
-checks deferred PC-SA source for proof placeholders and project axioms. PC-SA roots,
+checks deferred PC-SA source for proof placeholders, project axioms and adapter
+extensions. It also requires each PC-SA proof module to be reached from its source
+facade. The FG-SA facade check stays in `check-fgsa-claims.sh`. PC-SA roots,
 facades and Tests aggregators stay as source. No active facade imports them.
 CheckGenFirst already excludes PC-SA. CatalogLock imports Framework only and has
 no PC-SA roots; this package does not change the catalog. P-Da owns its regeneration

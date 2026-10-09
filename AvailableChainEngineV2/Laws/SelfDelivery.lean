@@ -211,7 +211,7 @@ theorem ExecutionValid.snoc_selfDelivery {E : Generic.Env V} {rho : Run V P}
     rw [Run.stateBefore_snoc_of_le (Nat.le_of_lt hilen)]; exact hok.snoc
   obtain ⟨hwire, hdeps, hfresh, hprov, hcarr⟩ := selfDelivery_admissible hH hi' ho' hok' hstate
   refine { toScheduleWellFormed := ?_, toDeliveryWellFormed := ?_,
-           toUnforgeableSignatures := ?_ }
+           toUnforgeableSignatures := ?_, toSleepWellFormed := ?_ }
   · refine ⟨hvalid.horizon_nonneg, ?_, ?_, ?_, ?_, ?_, ?_⟩
     · exact List.pairwise_append.mpr ⟨hvalid.sorted, List.pairwise_singleton _ _,
         fun a ha b hb => by rw [List.mem_singleton.mp hb]; exact hkey a ha⟩
@@ -241,8 +241,8 @@ theorem ExecutionValid.snoc_selfDelivery {E : Generic.Env V} {rho : Run V P}
       rcases List.mem_append.mp hf with hf | hf
       · exact hvalid.tick_public u s hf
       · exact absurd (List.mem_singleton.mp hf) (by simp [hd])
-    · intro u hu s hs h0 hh
-      exact List.mem_append_left _ (hvalid.tick_total u hu s hs h0 hh)
+    · intro u hu s hs h0 hh ha
+      exact List.mem_append_left _ (hvalid.tick_total u hu s hs h0 hh ha)
   · refine ⟨?_, ?_, ?_⟩
     · intro k u p s hk
       rcases hcases k _ hk with ⟨-, hk⟩ | ⟨-, hk⟩
@@ -267,6 +267,22 @@ theorem ExecutionValid.snoc_selfDelivery {E : Generic.Env V} {rho : Run V P}
       · obtain ⟨t', ht', he⟩ := hvalid.carried u p s ⟨k, hk'⟩ p' hc w hw hhold
         exact ⟨t', ht', Run.emits_snoc he⟩
       · obtain ⟨-, rfl, rfl⟩ := Event.deliver.inj hk'; exact hcarr p' hc w hw hhold
+  · refine ⟨?_, ?_, ?_, ?_⟩
+    · intro u s hf
+      rcases List.mem_append.mp hf with hf | hf
+      · exact hvalid.tick_awake u s hf
+      · exact absurd (List.mem_singleton.mp hf) (by simp [hd])
+    · intro u p s hf
+      rcases List.mem_append.mp hf with hf | hf
+      · exact hvalid.deliver_awake u p s hf
+      · obtain ⟨rfl, rfl, rfl⟩ := Event.deliver.inj (List.mem_singleton.mp hf)
+        exact hvalid.tick_awake _ _ hmem
+    · intro u s hf
+      rcases List.mem_append.mp hf with hf | hf
+      · exact hvalid.restart_awake u s hf
+      · exact absurd (List.mem_singleton.mp hf) (by simp [hd])
+    · intro u hu s h0 hh hw
+      exact List.mem_append_left _ (hvalid.wake_restart u hu s h0 hh hw)
 
 end AvailableChain.V2
 

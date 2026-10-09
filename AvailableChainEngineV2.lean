@@ -12,5 +12,11 @@ public import AvailableChainEngineV2.Laws.SelfDelivery
 public import AvailableChainEngineV2.Laws.Outputs
 public import AvailableChainEngineV2.Conditions.Duty.Lift
 
+public import AvailableChainEngineV2.Conditions.Sleep
+public import AvailableChainEngineV2.Conditions.Duty.Sleep
+public import AvailableChainEngineV2.Conditions.DeliveryWindow
+public import AvailableChainEngineV2.Conditions.Duty.DeliveryWindow
+public import AvailableChainEngineV2.Tests.Sleep
+
 @[expose] public section
 end

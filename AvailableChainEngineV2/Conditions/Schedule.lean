@@ -1,5 +1,5 @@
 module
-public import AvailableChainEngineV2.Engine.Run
+public import AvailableChainEngineV2.Conditions.Sleep
 
 @[expose] public section
 
@@ -28,7 +28,7 @@ structure ScheduleWellFormed (E : Generic.Env V) (rho : Run V P) : Prop where
   honest_only : ∀ e ∈ rho.events, e.node ∈ rho.honest
   tick_public : ∀ v t, Event.tick v t ∈ rho.events → PublicTime E t
   tick_total : ∀ v ∈ rho.honest, ∀ t, PublicTime E t → 0 ≤ t → t ≤ rho.horizon →
-    Event.tick v t ∈ rho.events
+    E.awake v t = true → Event.tick v t ∈ rho.events
 
 /-- No event is a restart. -/
 def NoRestart (rho : Run V P) : Prop :=
@@ -70,11 +70,11 @@ structure UnforgeableSignatures (E : Generic.Env V) (rho : Run V P) : Prop where
         Run.holder rho o'.auth = some u →
         ∃ t', t' ≤ t ∧ Run.emits E rho u o' t'
 
-/-- Valid execution. Asleep nodes need no extra field: the engine gates
-emission and the own record on `awake`, and the tick of an asleep node changes
-the state only through `clock` (`tick_asleep`). -/
+/-- Valid execution excludes ticks, deliveries, and restarts while asleep.
+Every positive honest wake through the horizon requires a restart. -/
 structure ExecutionValid (E : Generic.Env V) (rho : Run V P) : Prop extends
-  ScheduleWellFormed E rho, DeliveryWellFormed E rho, UnforgeableSignatures E rho
+  ScheduleWellFormed E rho, DeliveryWellFormed E rho, UnforgeableSignatures E rho,
+  SleepWellFormed E rho
 
 /-- Optional condition (plan 2a D4): every self-visible object that a tick
 releases is delivered to the emitting node at the emission time, after the

@@ -1,5 +1,5 @@
 module
-public import AvailableChainEngineV2.Engine.Duty.Run
+public import AvailableChainEngineV2.Conditions.Duty.Sleep
 public import AvailableChainEngineV2.Conditions.Schedule
 
 @[expose] public section
@@ -18,7 +18,7 @@ structure ScheduleWellFormed (E : Generic.Env V) (rho : Run V P) : Prop where
   honest_only : ∀ e ∈ rho.events, e.node ∈ rho.honest
   tick_public : ∀ v t, Event.tick v t ∈ rho.events → PublicTime E t
   tick_total : ∀ v ∈ rho.honest, ∀ t, PublicTime E t → 0 ≤ t → t ≤ rho.horizon →
-    Event.tick v t ∈ rho.events
+    E.awake v t = true → Event.tick v t ∈ rho.events
 
 def NoRestart (rho : Run V P) : Prop :=
   ∀ (i : Nat) (v : V) (t : Time), rho.events[i]? ≠ some (.restart v t)
@@ -51,7 +51,8 @@ structure UnforgeableSignatures (E : Generic.Env V) (rho : Run V P) : Prop where
         ∃ t', t' ≤ t ∧ Run.emits E rho u o' t'
 
 structure ExecutionValid (E : Generic.Env V) (rho : Run V P) : Prop extends
-  ScheduleWellFormed E rho, DeliveryWellFormed E rho, UnforgeableSignatures E rho
+  ScheduleWellFormed E rho, DeliveryWellFormed E rho, UnforgeableSignatures E rho,
+  SleepWellFormed E rho
 
 def SelfDelivery (E : Generic.Env V) (rho : Run V P) : Prop :=
   ∀ (i : Nat) (v : V) (t : Time), rho.events[i]? = some (.tick v t) →

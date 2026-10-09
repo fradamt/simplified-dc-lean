@@ -39,10 +39,20 @@ def check_deferred(module, text):
         raise ValueError('DEFERRED GLOBAL EXTENSION: ' + module)
 
 
+def check_deferred_facades(graph):
+    root = 'AvailableChainPCSAProofs'
+    seen = {root} | C.closure(graph, root)
+    missing = sorted(m for m in graph if (m == root or m.startswith(root + '.'))
+                     and '.Tests.' not in m and not m.endswith('.Tests') and m not in seen)
+    if missing:
+        raise ValueError('NOT IMPORTED BY ROOT: ' + ', '.join(missing))
+
+
 def main():
     graph = C.import_graph()
     active = [m for m in graph if not deferred(m)]
     check_active(graph, active)
+    check_deferred_facades(graph)
     files = [f for f in C.library_files() if deferred(f.module)]
     for file in files:
         check_deferred(file.module, Path(file.path).read_text())

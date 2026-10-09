@@ -125,6 +125,51 @@ namespace D
 variable [DecidableEq V] (E : Generic.Env V) (rho : V2.Run V P)
 
 omit [DecidableEq V] in
+@[simp] theorem sleepWellFormed_toD_iff :
+    SleepWellFormed E rho.toD ↔ V2.SleepWellFormed E rho :=
+  ⟨fun h => ⟨h.tick_awake, h.deliver_awake, h.restart_awake, h.wake_restart⟩,
+    fun h => ⟨h.tick_awake, h.deliver_awake, h.restart_awake, h.wake_restart⟩⟩
+
+omit [DecidableEq V] in
+@[simp] theorem restartsAtWakes_toD_iff :
+    RestartsAtWakes E rho.toD ↔ V2.RestartsAtWakes E rho := Iff.rfl
+
+omit [DecidableEq V] in
+@[simp] theorem noRestartOn_toD_iff (v : V) (a b : Time) :
+    NoRestartOn rho.toD v a b ↔ V2.NoRestartOn rho v a b := Iff.rfl
+
+omit [DecidableEq V] in
+@[simp] theorem noRestartAfter_toD_iff (v : V) (a : Time) :
+    NoRestartAfter rho.toD v a ↔ V2.NoRestartAfter rho v a := Iff.rfl
+
+omit [DecidableEq V] in
+@[simp] theorem linkReadyOn_toD_iff (src dst : V) (a d : Time) :
+    LinkReadyOn E rho.toD src dst a d ↔ V2.LinkReadyOn E rho src dst a d := Iff.rfl
+
+@[simp] theorem processedByActionCut_toD_iff (w : V) (o : P.Object) (a : Time) :
+    ProcessedByActionCut E rho.toD w o a ↔ V2.ProcessedByActionCut E rho w o a := by
+  unfold ProcessedByActionCut V2.ProcessedByActionCut
+  simp only [stateBefore_toD]
+  rfl
+
+@[simp] theorem handledBetween_toD_iff (w : V) (o : P.Object) (a d : Time) :
+    HandledBetween E rho.toD w o a d ↔ V2.HandledBetween E rho w o a d := by
+  unfold HandledBetween V2.HandledBetween
+  simp only [handlesAt_toD]
+
+@[simp] theorem deliveryService_toD_iff (w : V) (o : P.Object) (a d : Time) :
+    DeliveryService E rho.toD w o a d ↔ V2.DeliveryService E rho w o a d := by
+  unfold DeliveryService V2.DeliveryService
+  simp only [processedByActionCut_toD_iff, handledBetween_toD_iff]
+
+@[simp] theorem deliveryDemand_toD_iff (src dst : V) (o : P.Object) (send : Time)
+    (dl : Time → Time) (cut : Time) :
+    DeliveryDemand E rho.toD src dst o send dl cut ↔
+      V2.DeliveryDemand E rho src dst o send dl cut := by
+  unfold DeliveryDemand V2.DeliveryDemand
+  simp only [linkReadyOn_toD_iff, stateBeforeTime_toD, deliveryService_toD_iff]
+
+omit [DecidableEq V] in
 @[simp] theorem scheduleWellFormed_toD_iff :
     ScheduleWellFormed E rho.toD ↔ V2.ScheduleWellFormed E rho :=
   ⟨fun h => ⟨h.horizon_nonneg, h.sorted, h.nodup, h.in_horizon,
@@ -150,25 +195,19 @@ omit [DecidableEq V] in
 
 @[simp] theorem partialSynchrony_toD_iff :
     PartialSynchrony E rho.toD ↔ V2.PartialSynchrony E rho :=
-  ⟨fun h => ⟨by simpa only [emits_toD, acceptsAt_toD, handlesAt_toD,
-        stateBefore_toD, stateBeforeTime_toD] using h.broadcast_emitted,
-      by simpa only [emits_toD, acceptsAt_toD, handlesAt_toD,
-        stateBefore_toD, stateBeforeTime_toD] using h.relay_accepted⟩,
-    fun h => ⟨by simpa only [emits_toD, acceptsAt_toD, handlesAt_toD,
-        stateBefore_toD, stateBeforeTime_toD] using h.broadcast,
-      by simpa only [emits_toD, acceptsAt_toD, handlesAt_toD,
-        stateBefore_toD, stateBeforeTime_toD] using h.relay⟩⟩
+  ⟨fun h => ⟨by simpa only [emits_toD, acceptsAt_toD, deliveryDemand_toD_iff]
+        using h.broadcast_emitted,
+      by simpa only [emits_toD, acceptsAt_toD, deliveryDemand_toD_iff] using h.relay_accepted⟩,
+    fun h => ⟨by simpa only [emits_toD, acceptsAt_toD, deliveryDemand_toD_iff] using h.broadcast,
+      by simpa only [emits_toD, acceptsAt_toD, deliveryDemand_toD_iff] using h.relay⟩⟩
 
 @[simp] theorem healthyPrefixDelivery_toD_iff (cut : Time) :
     HealthyPrefixDelivery E rho.toD cut ↔ V2.HealthyPrefixDelivery E rho cut :=
-  ⟨fun h => ⟨by simpa only [emits_toD, acceptsAt_toD, handlesAt_toD,
-        stateBefore_toD, stateBeforeTime_toD] using h.broadcast_emitted,
-      by simpa only [emits_toD, acceptsAt_toD, handlesAt_toD,
-        stateBefore_toD, stateBeforeTime_toD] using h.relay_accepted⟩,
-    fun h => ⟨by simpa only [emits_toD, acceptsAt_toD, handlesAt_toD,
-        stateBefore_toD, stateBeforeTime_toD] using h.broadcast,
-      by simpa only [emits_toD, acceptsAt_toD, handlesAt_toD,
-        stateBefore_toD, stateBeforeTime_toD] using h.relay⟩⟩
+  ⟨fun h => ⟨by simpa only [emits_toD, acceptsAt_toD, deliveryDemand_toD_iff]
+        using h.broadcast_emitted,
+      by simpa only [emits_toD, acceptsAt_toD, deliveryDemand_toD_iff] using h.relay_accepted⟩,
+    fun h => ⟨by simpa only [emits_toD, acceptsAt_toD, deliveryDemand_toD_iff] using h.broadcast,
+      by simpa only [emits_toD, acceptsAt_toD, deliveryDemand_toD_iff] using h.relay⟩⟩
 
 @[simp] theorem emitOk_toD_iff (st : P.State) (v : V) (t : Time) (o : P.Object) :
     EmitOk E rho.toD st v t o ↔ V2.EmitOk E rho st v t o :=
@@ -187,11 +226,13 @@ omit [DecidableEq V] in
   · intro h
     exact ⟨(scheduleWellFormed_toD_iff E rho).mp h.toScheduleWellFormed,
       (deliveryWellFormed_toD_iff E rho).mp h.toDeliveryWellFormed,
-      (unforgeableSignatures_toD_iff E rho).mp h.toUnforgeableSignatures⟩
+      (unforgeableSignatures_toD_iff E rho).mp h.toUnforgeableSignatures,
+      (sleepWellFormed_toD_iff E rho).mp h.toSleepWellFormed⟩
   · intro h
     exact ⟨(scheduleWellFormed_toD_iff E rho).mpr h.toScheduleWellFormed,
       (deliveryWellFormed_toD_iff E rho).mpr h.toDeliveryWellFormed,
-      (unforgeableSignatures_toD_iff E rho).mpr h.toUnforgeableSignatures⟩
+      (unforgeableSignatures_toD_iff E rho).mpr h.toUnforgeableSignatures,
+      (sleepWellFormed_toD_iff E rho).mpr h.toSleepWellFormed⟩
 
 @[simp] theorem selfDelivery_toD_iff :
     SelfDelivery E rho.toD ↔ V2.SelfDelivery E rho := by
