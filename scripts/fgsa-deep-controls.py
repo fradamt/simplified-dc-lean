@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Compiled, isolated controls for FG-SA deep and frame checks."""
 from copy import deepcopy
+import argparse
 import importlib.util
 import json
 import os
@@ -44,6 +45,21 @@ def main (args : List String) : IO UInt32 := do
   IO.FS.writeFile (System.FilePath.mk dir / "shallow") shallow
   return 0
 '''
+
+
+def check_wiring(root=Path('.')):
+    # Both required positive commands must run before the NEG exit.
+    shell = (root / 'scripts/check-fgsa-manifest.sh').read_text()
+    boundary = shell.index('if [ "${NEG:-1}"')
+    assert shell.index('fgsa-deep.py --frame-check') < boundary
+    assert shell.index('--scope fgsa --deep --check') < boundary
+    gate = (root / 'scripts/gate.sh').read_text()
+    assert 'fgsa-manifest) step "$1" bash scripts/check-fgsa-manifest.sh ;;' in gate
+    group = ('run_group fgsa-claims check-fg-compose check-fgsa check-build check-fgsa-run '
+             '\\\n  fgsa-manifest pcsa-manifest')
+    assert group in gate
+    assert gate.index(group) > gate.index('fi\n# Longest measured FULL steps first;')
+    print('CONTROL merge/full mandatory frame and deep wiring: PASS')
 
 
 def main():
@@ -174,16 +190,14 @@ def main():
                 lambda: check.read_baseline(baseline, wrong_sha), 'BASELINE SHA256 MISMATCH')
         require_failure('missing exception file', lambda: check.exceptions(tmp / 'missing.json', 64),
                         'No such file')
-        # Check both required positive gate commands occur before the NEG exit.
-        shell = Path('scripts/check-fgsa-manifest.sh').read_text()
-        boundary = shell.index('if [ "${NEG:-1}"')
-        assert shell.index('fgsa-deep.py --frame-check') < boundary
-        assert shell.index('--scope fgsa --deep --check') < boundary
-        gate = Path('scripts/gate.sh').read_text()
-        assert 'fgsa-manifest) step "$1" gate_with_slot bash scripts/check-fgsa-manifest.sh' in gate
-        print('CONTROL merge/full mandatory frame and deep wiring: PASS')
+        check_wiring()
     print('FGSA deep/frame controls: PASS')
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--source-only', action='store_true')
+    if parser.parse_args().source_only:
+        check_wiring()
+    else:
+        main()

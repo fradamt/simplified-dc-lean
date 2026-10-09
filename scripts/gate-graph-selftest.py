@@ -255,6 +255,9 @@ def pool_slots(root, slots):
 
 
 with tempfile.TemporaryDirectory(prefix='gate-graph-') as temp:
+    # Stubs must not hide a stale assertion in the real manifest control suite.
+    subprocess.run([sys.executable, '-B', 'scripts/fgsa-deep-controls.py', '--source-only'],
+                   cwd=REPO, check=True)
     root = Path(temp)
     for tier, slots, fail in (('full', 1, ''), ('full', 2, ''), ('full', 2, 'build'),
                               ('full', 2, 'fg-finality-freeze'),
