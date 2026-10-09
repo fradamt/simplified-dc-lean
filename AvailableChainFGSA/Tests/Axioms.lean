@@ -37,6 +37,16 @@ public import AvailableChainFGSA.Model.WindowViews
 public import AvailableChainFGSA.Proofs.FrameViews
 public import AvailableChainFGSA.Proofs.WindowReaders
 public import AvailableChainFGSA.Proofs.WindowValidity
+public import AvailableChainFGSA.Model.Spec.ACState
+public import AvailableChainFGSA.Model.Spec.Codec
+public import AvailableChainFGSA.Model.Spec.Frame
+public import AvailableChainFGSA.Model.Spec.Objects
+public import AvailableChainFGSA.Model.Spec.Transitions
+public import AvailableChainFGSA.Proofs.Spec.Clock
+public import AvailableChainFGSA.Proofs.Spec.Codec
+public import AvailableChainFGSA.Proofs.Spec.Frame
+public import AvailableChainFGSA.Proofs.Spec.Handlers
+public import AvailableChainFGSA.Proofs.Spec.Locks
 
 /-! Kernel dependency audit (Task 13 Step 1): one line for each public theorem of
 Tasks 2 and 7–12. Each prints only `propext`, `Classical.choice`, `Quot.sound`, or
@@ -627,3 +637,97 @@ end AvailableChain.FGSA.instDecidableEqNamedProposal
 namespace AvailableChain.FGSA.instReprNamedProposal
 #print axioms repr
 end AvailableChain.FGSA.instReprNamedProposal
+
+-- S0-C: pure pinned-spec representation.
+
+-- AvailableChainFGSA.Model.Spec.ACState
+#print axioms AvailableChain.FGSA.Spec.ACState
+#print axioms AvailableChain.FGSA.Spec.liveEntries
+#print axioms AvailableChain.FGSA.Spec.lockMap
+#print axioms AvailableChain.FGSA.Spec.locked
+#print axioms AvailableChain.FGSA.Spec.normalizeRecord
+#print axioms AvailableChain.FGSA.Spec.LeaseRelation
+
+-- AvailableChainFGSA.Model.Spec.Codec
+#print axioms AvailableChain.FGSA.Spec.digestSpec
+#print axioms AvailableChain.FGSA.Spec.validPayload
+#print axioms AvailableChain.FGSA.Spec.wellFormed
+
+-- AvailableChainFGSA.Model.Spec.Frame
+#print axioms AvailableChain.FGSA.Spec.FGState
+#print axioms AvailableChain.FGSA.Spec.fgStateOf
+#print axioms AvailableChain.FGSA.Spec.Frame
+#print axioms AvailableChain.FGSA.Spec.frameOf
+#print axioms AvailableChain.FGSA.Spec.viableTree
+
+-- AvailableChainFGSA.Model.Spec.Objects
+#print axioms AvailableChain.FGSA.Spec.Block
+#print axioms AvailableChain.FGSA.Spec.Block.preceq
+#print axioms AvailableChain.FGSA.Spec.Block.root
+#print axioms AvailableChain.FGSA.Spec.Block.slot
+#print axioms AvailableChain.FGSA.Spec.Block.parent
+#print axioms AvailableChain.FGSA.Spec.Block.embed
+#print axioms AvailableChain.FGSA.Spec.Block.toFG
+#print axioms AvailableChain.FGSA.Spec.Msg
+#print axioms AvailableChain.FGSA.Spec.Wire
+#print axioms AvailableChain.FGSA.Spec.Wire.embed
+#print axioms AvailableChain.FGSA.Spec.Input
+#print axioms AvailableChain.FGSA.Spec.Wire.decode
+#print axioms AvailableChain.FGSA.Spec.Input.embed
+
+-- AvailableChainFGSA.Model.Spec.Transitions
+#print axioms AvailableChain.FGSA.Spec.expire
+#print axioms AvailableChain.FGSA.Spec.advance
+#print axioms AvailableChain.FGSA.Spec.insertRow
+#print axioms AvailableChain.FGSA.Spec.onBlock
+#print axioms AvailableChain.FGSA.Spec.tick
+#print axioms AvailableChain.FGSA.Spec.slotTime
+#print axioms AvailableChain.FGSA.Spec.phaseTime
+
+-- AvailableChainFGSA.Proofs.Spec.Clock
+#print axioms AvailableChain.FGSA.Spec.revoke_vote_time
+#print axioms AvailableChain.FGSA.Spec.confirmation_cutoff_time
+#print axioms AvailableChain.FGSA.Spec.phaseTime_strict
+#print axioms AvailableChain.FGSA.Spec.schedule_embedding
+#print axioms AvailableChain.FGSA.Spec.actionTime_embedding
+#print axioms AvailableChain.FGSA.Spec.tick_order
+
+-- AvailableChainFGSA.Proofs.Spec.Codec
+#print axioms AvailableChain.FGSA.Spec.embed_root
+#print axioms AvailableChain.FGSA.Spec.embed_slot
+#print axioms AvailableChain.FGSA.Spec.embed_parent
+#print axioms AvailableChain.FGSA.Spec.embed_injective
+#print axioms AvailableChain.FGSA.Spec.embed_preceq
+#print axioms AvailableChain.FGSA.Spec.carrier_embedding
+#print axioms AvailableChain.FGSA.Spec.embed_root_order
+#print axioms AvailableChain.FGSA.Spec.embed_lists
+#print axioms AvailableChain.FGSA.Spec.digest_embedding
+#print axioms AvailableChain.FGSA.Spec.content_check_embedding
+#print axioms AvailableChain.FGSA.Spec.wire_embed_auth
+#print axioms AvailableChain.FGSA.Spec.decode_embedding
+#print axioms AvailableChain.FGSA.Spec.wire_embed_injective
+#print axioms AvailableChain.FGSA.Spec.wellFormed_embedding
+#print axioms AvailableChain.FGSA.Spec.refusal_embedding
+
+-- AvailableChainFGSA.Proofs.Spec.Frame
+#print axioms AvailableChain.FGSA.Spec.frame_tree
+#print axioms AvailableChain.FGSA.Spec.mem_viableTree
+#print axioms AvailableChain.FGSA.Spec.viableTree_eq_filter
+
+-- AvailableChainFGSA.Proofs.Spec.Handlers
+#print axioms AvailableChain.FGSA.Spec.process_decode_refused
+#print axioms AvailableChain.FGSA.Spec.parent_membership
+#print axioms AvailableChain.FGSA.Spec.admitRow_pool
+#print axioms AvailableChain.FGSA.Spec.normalized_record
+#print axioms AvailableChain.FGSA.Spec.advance_embedding
+#print axioms AvailableChain.FGSA.Spec.onBlock_future
+#print axioms AvailableChain.FGSA.Spec.onBlock_refused
+#print axioms AvailableChain.FGSA.Spec.onBlock_accepted
+
+-- AvailableChainFGSA.Proofs.Spec.Locks
+#print axioms AvailableChain.FGSA.Spec.lt_lockMap_iff
+#print axioms AvailableChain.FGSA.Spec.locked_iff_map
+#print axioms AvailableChain.FGSA.Spec.liveEntries_expire
+#print axioms AvailableChain.FGSA.Spec.expire_lease_projection
+#print axioms AvailableChain.FGSA.Spec.lockMap_cleanup
+#print axioms AvailableChain.FGSA.Spec.lease_locked_iff

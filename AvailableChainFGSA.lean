@@ -67,3 +67,13 @@ public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant
 public import AvailableChainFGSA.Proofs.WindowSelection
 public import AvailableChainFGSA.Proofs.WindowReaders
 public import AvailableChainFGSA.Proofs.WindowValidity
+public import AvailableChainFGSA.Model.Spec.ACState
+public import AvailableChainFGSA.Model.Spec.Codec
+public import AvailableChainFGSA.Model.Spec.Frame
+public import AvailableChainFGSA.Model.Spec.Objects
+public import AvailableChainFGSA.Model.Spec.Transitions
+public import AvailableChainFGSA.Proofs.Spec.Clock
+public import AvailableChainFGSA.Proofs.Spec.Codec
+public import AvailableChainFGSA.Proofs.Spec.Frame
+public import AvailableChainFGSA.Proofs.Spec.Handlers
+public import AvailableChainFGSA.Proofs.Spec.Locks
