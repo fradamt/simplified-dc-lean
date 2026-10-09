@@ -55,6 +55,7 @@ with tempfile.TemporaryDirectory(prefix='gate-neg-') as tmp:
             ('blueprint chapter', 'docs/blueprint/fgsa/new.tex', 1),
             ('new control module', 'FGSAControl/New.lean', 1),
             ('audit input', 'AvailableChainFGSAProofs/Tests/Axioms.lean', 1),
+            ('FG pin checker data', 'AvailableChainKitFG/Pins.lean', 1),
             ('ordinary docs', 'docs/unrelated.md', 0)):
         target = root / path
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -100,6 +101,19 @@ with tempfile.TemporaryDirectory(prefix='gate-neg-') as tmp:
         shutil.rmtree(root / '.lake')
         print(f'CONTROL scope {label}: NEG={want}; override and receipt rules: PASS')
         base = head
+
+    # base = HEAD (main after a landing): an empty range selects the controls.
+    scope = select(root, base, base)
+    assert scope == dict(neg=1, reason='empty range', matched_paths=[]), scope
+    validate(root, base, base, scope)
+    try:
+        validate(root, base, base, dict(neg=0, reason='no checker path changed',
+                                        matched_paths=[]))
+    except ValueError as exc:
+        assert 'CONTROL SCOPE' in str(exc), exc
+    else:
+        raise AssertionError('receipt accepted NEG=0 for an empty range')
+    print('CONTROL scope empty range (base = HEAD): NEG=1: PASS')
 
 # Run the actual claims source fixtures up to the compiled checks, without Lean.
 text = (REPO / 'scripts/check-fgsa-claims.sh').read_text()

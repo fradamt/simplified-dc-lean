@@ -141,7 +141,7 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
         subprocess.run(['git', 'update-ref', 'HEAD', head], cwd=root, check=True)
     else:
         head = base
-    selected = force or env_neg == '1' or change.startswith(('scripts/', 'docs/'))
+    selected = force or env_neg == '1' or not change or change.startswith(('scripts/', 'docs/'))
     events = root / 'events'
     env = dict(os.environ, PATH=str(root / 'bin') + os.pathsep + os.environ['PATH'],
                GATE_SLOTS=str(slots), LEAN_SLOTS=str(slots), GATE_FF_GRACE='2',

@@ -19,7 +19,15 @@ def matched_paths(root, base, head):
     return sorted({p for p in paths if p and any(fnmatchcase(p, glob) for glob in patterns)})
 
 
+def resolve(root, rev):
+    return subprocess.check_output(['git', '-C', str(root), 'rev-parse', '--verify',
+                                    f'{rev}^{{commit}}'], text=True).strip()
+
+
 def select(root, base, head, force=False):
+    # An empty range is no evidence that no checker changed (base = HEAD on main).
+    if not force and resolve(root, base) == resolve(root, head):
+        return dict(neg=1, reason='empty range', matched_paths=[])
     paths = matched_paths(root, base, head)
     reason = ('override' if force else 'checker paths changed' if paths
               else 'no checker path changed')

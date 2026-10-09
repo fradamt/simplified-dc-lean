@@ -185,7 +185,7 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     receipt = root / 'receipt'
     refused('missing receipt', 'MISSING', lambda: full.verify(repo, repo, receipt))
     control_scope = full.validate(repo, head, head,
-        dict(neg=0, reason='no checker path changed', matched_paths=[]))
+        dict(neg=1, reason='empty range', matched_paths=[]))
     record = dict(version=2, head=head, policy=head, tier='full', result='PASS',
                   controls=control_scope)
     receipt.write_text(json.dumps(record))
@@ -200,9 +200,9 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     (logs / 'build.result').write_text('0 1\n')
     refused('partial FULL step set', 'FAILED OR MISSING STEP SET',
             lambda: full.sign(repo, head, head, logs, key, receipt))
-    for step in full.STEPS:
+    for step in full.steps_for(control_scope):
         (logs / (step + '.result')).write_text('0 1\n')
-    for step in full.STEPS:
+    for step in full.steps_for(control_scope):
         result = logs / (step + '.result')
         result.unlink()
         refused('missing FULL step ' + step, 'FAILED OR MISSING STEP SET',

@@ -22,6 +22,8 @@ docs/FGSA-API-frozen.md
 docs/PCSA-API.md
 docs/PCSA-API-frozen.md
 # check-fg-pins.sh; check-fg.sh controls
+# Pin table, history/registry parsing, manifest and external names (FGPinIds.lean)
+AvailableChainKitFG/Pins.lean
 docs/FG-COMPOSITION.md
 # check-fgsa-blueprint.py: claim map, generated OPEN document and chapter snapshots
 docs/FGSA-BLUEPRINT-LEAN.json
