@@ -236,13 +236,16 @@ theorem healing_settle_start (crossing : RXing p c E rho)
     have hc' := hc
     change (decide ((storeAt p c E rho k y).fg.h_max =
       (storeAt p c E rho k y).fg.h_j + 1) && decide (∃ W ∈ (storeAt p c E rho k y).fg.TF,
+        FGBlock.Preceq (storeAt p c E rho k y).fg.F W ∧
         (heightView p W).h = (storeAt p c E rho k y).fg.h_max ∧
         ¬ FGBlock.Preceq (storeAt p c E rho k y).fg.J W)) = false at hc'
     have hJC : FGBlock.Preceq (storeAt p c E rho k y).fg.J C := by
       by_contra hn
       rcases Bool.and_eq_false_iff.mp hc' with h | h
       · exact of_decide_eq_false h (hmax.trans htop.symm)
-      · exact of_decide_eq_false h ⟨C, hCk, hh.trans hmax.symm, hn⟩
+      · exact of_decide_eq_false h ⟨C, hCk,
+          (healing_phase_frontier_root p c E rho crossing hy hCk
+            (hh.trans hmax.symm)).1, hh.trans hmax.symm, hn⟩
     refine ⟨hmax, hc, ?_, hJ hJC⟩
     change (decide ((storeAt p c E rho k y).fg.h_max =
       (storeAt p c E rho k y).fg.h_j + 1) && !(R_at p c E rho k y).contest) = true
@@ -259,13 +262,19 @@ theorem healing_settle_start (crossing : RXing p c E rho)
     have hc : (R_at p c E rho k y).contest = true := by
       change (decide ((storeAt p c E rho k y).fg.h_max =
         (storeAt p c E rho k y).fg.h_j + 1) && decide (∃ W ∈ (storeAt p c E rho k y).fg.TF,
+          FGBlock.Preceq (storeAt p c E rho k y).fg.F W ∧
           (heightView p W).h = (storeAt p c E rho k y).fg.h_max ∧
           ¬ FGBlock.Preceq (storeAt p c E rho k y).fg.J W)) = true
       refine Bool.and_eq_true_iff.mpr ⟨decide_eq_true (hmax.trans htop.symm),
         decide_eq_true ?_⟩
       by_cases hJC : FGBlock.Preceq (storeAt p c E rho k y).fg.J C
-      · exact ⟨W, hWk, hhW.trans hmax.symm, by rw [hJ hJC]; exact hoff⟩
-      · exact ⟨C, hCk, hhC.trans hmax.symm, hJC⟩
+      · exact ⟨W, hWk,
+          (healing_phase_frontier_root p c E rho crossing hy hWk
+            (hhW.trans hmax.symm)).1, hhW.trans hmax.symm,
+          by rw [hJ hJC]; exact hoff⟩
+      · exact ⟨C, hCk,
+          (healing_phase_frontier_root p c E rho crossing hy hCk
+            (hhC.trans hmax.symm)).1, hhC.trans hmax.symm, hJC⟩
     refine ⟨hmax, hc, ?_⟩
     change (decide ((R_at p c E rho k y).H = (R_at p c E rho k y).j + 1) &&
       !(R_at p c E rho k y).contest) = false
@@ -306,7 +315,7 @@ theorem healing_rPhase (mono : RMono p c E rho) (crossing : RXing p c E rho)
     RPhase p c E rho := by
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · intro a b m hab hb hm hfixed
-    exact healing_phase_order p c E rho mono hnr a b m hab hb hm hfixed
+    exact healing_phase_order_of_crossing p c E rho crossing mono hnr a b m hab hb hm hfixed
   · intro i ev x W m hi hx hgst hm hfront hbefore hafter hh
     exact healing_evidence_spread (hroots := hroots)
       p c E rho crossing hvalid hnr hdelta hsync i ev x W m
