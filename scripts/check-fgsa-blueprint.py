@@ -66,6 +66,9 @@ SAFETY_FIELDS = ('accountable', 'agreement', 'runAccountable', 'runAgreement',
                  'eventPrefixAgreement', 'finalizedMonotone', 'faultCountSlashableBound',
                  'honestNeverSlashed', 'assembled package')
 PROTOCOLS = ('FG-SA', 'PC-SA')
+# Every field of these structures needs a supplier map (fgsa_fields).
+CLAIMS_SOURCE = 'AvailableChainFGSAClaims/FGSAClaims.lean'
+CLAIMS_STRUCTURES = ('FGSASafetyClaims', 'FGSAClaims')
 ID = r'[a-z][A-Za-z0-9]*(?:\.[A-Za-z0-9\-]+)+'
 ENTRY = re.compile(r'^\*\*(' + ID + r')(?=[ *.])')
 INLINE = re.compile(r'\bfield \((' + ID + r')\)')
@@ -172,6 +175,30 @@ def anchor_paragraph(section_lines, anchor):
     return paragraph(section_lines, hits[0])
 
 
+def claim_fields(root):
+    """The fields of the FGSAClaims structures, read from the source."""
+    path = root / CLAIMS_SOURCE
+    if not path.is_file():
+        raise InputError(f'MISSING SOURCE: {CLAIMS_SOURCE}')
+    lines = path.read_text().split('\n')
+    fields = []
+    for name in CLAIMS_STRUCTURES:
+        start = [i for i, l in enumerate(lines) if re.match(rf'^structure {name}\b', l)]
+        if len(start) != 1:
+            raise InputError(f'MISSING STRUCTURE: {name} in {CLAIMS_SOURCE}')
+        found = []
+        for line in lines[start[0] + 1:]:
+            if line and not line.startswith(' '):
+                break
+            m = re.match(r'^  ([A-Za-z_][A-Za-z0-9_]*) :', line)
+            if m:
+                found.append(m.group(1))
+        if not found:
+            raise InputError(f'NO FIELDS: {name} in {CLAIMS_SOURCE}')
+        fields += found
+    return fields
+
+
 # ---------------------------------------------------------------------------
 # The Lean oracle
 
@@ -249,6 +276,8 @@ def all_clauses(data):
             yield f'safety {proto} {c.get("field")}', c
     for c in data.get('additional_results', []):
         yield f'additional {c.get("id")}', c
+    for c in data.get('fgsa_fields', []):
+        yield f'FGSAClaims field {c.get("field")}', c
 
 
 def statement_of(entry, found, section_lines):
@@ -282,7 +311,7 @@ def open_document(data):
     return '\n'.join(lines).rstrip('\n')
 
 
-def check_map(data, found, section_lines):
+def check_map(data, found, section_lines, fields=()):
     errors = []
     entries = data.get('entries')
     if not isinstance(entries, list) or not entries:
@@ -358,10 +387,16 @@ def check_map(data, found, section_lines):
                 errors.append(f'INCOMPLETE CLAUSE: {cid}')
     safety = data.get('safety_package', {})
     for proto in PROTOCOLS:
-        fields = [c.get('field') for c in safety.get(proto, [])]
+        present = [c.get('field') for c in safety.get(proto, [])]
         for field in SAFETY_FIELDS:
-            if fields.count(field) != 1:
+            if present.count(field) != 1:
                 errors.append(f'MISSING SAFETY FIELD: {proto} {field}')
+    mapped = [c.get('field') for c in data.get('fgsa_fields', [])]
+    for field in fields:
+        if field not in mapped:
+            errors.append(f'MISSING FGSACLAIMS FIELD: {field}')
+    for field in sorted(set(mapped) - set(fields)):
+        errors.append(f'UNKNOWN FGSACLAIMS FIELD: {field}')
     return errors
 
 
@@ -409,6 +444,7 @@ def run(root, mode='check', oracle=None, oleans=None):
     try:
         outline, errors = load_snapshot(root)
         found, section_lines = extract(outline)
+        fields = claim_fields(root)
         data = strict_json(root / MAP)
         clauses = list(all_clauses(data))
         for _, c in clauses:
@@ -430,7 +466,7 @@ def run(root, mode='check', oracle=None, oleans=None):
         (root / OPEN_DOC).write_text(open_document(data) + '\n')
         print(f'fgsa-blueprint: wrote {MAP} and {OPEN_DOC}; review the diff')
         mode = 'check'
-    errors += check_map(data, found, section_lines)
+    errors += check_map(data, found, section_lines, fields)
     oracle_errors = []
     for where, c in clauses:
         oracle_errors += compare_clause(c, got.get(c['theorem']), where)
@@ -509,7 +545,9 @@ def fixture_map():
     safety = {p: [clause('alpha', field=f) for f in SAFETY_FIELDS] for p in PROTOCOLS}
     safety['FG-SA'][-1].update(theorem='Fix.package', aggregate=True, binders=1)
     safety['PC-SA'][-1].update(theorem='Fix.package', aggregate=True, binders=1)
-    return {'version': 1, 'entries': entries, 'safety_package': safety, 'additional_results': []}
+    fields = [clause('alpha', field=f) for f in ('base', 'extra')]
+    return {'version': 1, 'entries': entries, 'safety_package': safety, 'additional_results': [],
+            'fgsa_fields': fields}
 
 
 def fixture_oracle(table):
@@ -534,6 +572,11 @@ def make_fixture(root, outline=OUTLINE, data=None):
         'files': {'00-outline.md': hashlib.sha256(outline.encode()).hexdigest()}}))
     (root / 'Fix').mkdir()
     (root / 'Fix/Proofs.lean').write_text('-- fixture\n')
+    claims = root / CLAIMS_SOURCE
+    claims.parent.mkdir(parents=True)
+    claims.write_text('structure FGSASafetyClaims (p : Nat) : Prop where\n  base : True\n\n'
+                      'structure FGSAClaims (p : Nat) : Prop extends FGSASafetyClaims p where\n'
+                      '  extra : True\n')
     (root / 'docs').mkdir(exist_ok=True)
     (root / MAP).write_text(json.dumps(data or fixture_map()))
     # Derive the hashes and the OPEN document as --write does.
@@ -609,6 +652,8 @@ def selftest():
         ('added law parameter in an aggregate', None, None,
          oracle_change('Fix.package', binders='2', props='1'), 'check', 1,
          'AGGREGATE TYPE MISMATCH: Fix.package'),
+        ('missing FGSAClaims field map', lambda d: d['fgsa_fields'].pop(), None, None, 'check', 1,
+         'MISSING FGSACLAIMS FIELD: extra'),
         ('missing safety field', lambda d: d['safety_package']['PC-SA'].pop(), None, None, 'check', 1,
          'MISSING SAFETY FIELD: PC-SA assembled package'),
         ('OPEN document out of date', 'stale-open', None, None, 'check', 1,
