@@ -60,7 +60,13 @@ checker_selftests() {
   python3 scripts/audit-pool-selftest.py &&
   timed_selftest python3 scripts/gate-shell-controls.py &&
   timed_selftest gate_with_slot python3 scripts/check-proof-eqns-controls.py &&
-  p13_selftests
+  p13_selftests &&
+  sleep_selftests
+}
+# Sleep checker controls use isolated fixtures; run under the FULL tier too.
+sleep_selftests() {
+  [ "${NEG:-1}" = 0 ] && { echo "Sleep selftests: SKIPPED (NEG=0)"; return 0; }
+  timed_selftest gate_with_slot python3 -B scripts/dev-check-controls.py
 }
 # P13 isolated selftests: FULL tier only (NEG=1). The package history check
 # (--packages) reads old revisions; it is not a gate check.

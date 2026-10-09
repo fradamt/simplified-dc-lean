@@ -4667,6 +4667,26 @@
             'AvailableChain.FGSA.Run.safetyProposalRows',
         ),
     },
+    'AvailableChainFGSAProofs.Tests.SharedAxioms': {
+        'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
+            'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyReads',
+            'AvailableChain.FGSA.Run.fgsaSafetyReads_def',
+            'AvailableChain.FGSA.Run.fgsaSafetyUnitLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyWireLaws',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope': (
+            'AvailableChain.FGSA.Run.fgsaSafetyScopeLaws',
+            'AvailableChain.FGSA.Run.fgsa_safetyScopedRoots',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore': (
+            'AvailableChain.FGSA.Run.fgsaSafetyOrderLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyStoreLaws',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Shared.StoreRun': (
+            'AvailableChain.FGSA.Run.fgsa_store_cumulative',
+        ),
+    },
     'AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms': {
         'AvailableChainFGSAProofs.Proofs.Assembly.Root': (
             'AvailableChain.FGSA.Run.fgsa_weakContinuationGrowthClaim',

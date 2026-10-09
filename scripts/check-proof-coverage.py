@@ -12,6 +12,7 @@ AUDITS = tuple('AvailableChain' + lib + '.Tests.Axioms' for lib in
                 'FGCompose')) + ('AvailableChainFGSAProofs.Tests.FGCompose',
                                             'AvailableChainFGCompose.Tests.SafetyAxioms',
                                             'AvailableChainFGSAProofs.Tests.FGSafety',
+                                            'AvailableChainFGSAProofs.Tests.SharedAxioms',
                                             ('AvailableChainFGSAProofs.Tests.'
                                              'WeakContinuationGrowthAssemblyAxioms'))
 
@@ -44,21 +45,56 @@ def read_coverage(path):
     return sorted(rows)
 
 
+def section_text(audit, rows):
+    lines = [f'    {audit!r}: {{']
+    for owner in sorted({o for o, _, a in rows if a == audit}):
+        lines.append(f'        {owner!r}: (')
+        for name in sorted({n for o, n, a in rows if o == owner and a == audit}):
+            if len(repr(name)) <= 86:
+                lines.append(f'            {name!r},')
+            else:
+                cut = name.rfind('.', 0, 80) + 1
+                lines += [f'            ({name[:cut]!r}', f'             {name[cut:]!r}),']
+        lines.append('        ),')
+    return '\n'.join([*lines, '    },']) + '\n'
+
+
+def sections(text):
+    tree = ast.parse(text, mode='eval').body
+    return {ast.literal_eval(k): (k.lineno - 1, v.end_lineno)
+            for k, v in zip(tree.keys, tree.values)}
+
+
+def replace_sections(text, updates):
+    lines = text.splitlines(keepends=True)
+    spans = sections(text)
+    for key, (start, end) in sorted(spans.items(), key=lambda item: item[1], reverse=True):
+        if key in updates:
+            lines[start:end] = [updates[key]]
+    return ''.join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--write', action='store_true', help='regenerate; review the diff')
+    parser.add_argument('--audits', nargs='+', help='check or rewrite only these audit keys')
+    parser.add_argument('--inventory', type=Path, help='alternate inventory for isolated controls')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    inventory = root / 'scripts/proof-audit-coverage.txt'
-    rows = [] if args.write else read_coverage(inventory)
-    if not args.write and {audit for _, _, audit in rows} != set(AUDITS):
+    inventory = args.inventory or root / 'scripts/proof-audit-coverage.txt'
+    audits = sorted(set(args.audits if args.audits is not None else AUDITS))
+    unknown = set(audits) - set(AUDITS)
+    if unknown:
+        parser.error('unknown coverage key: ' + ', '.join(sorted(unknown)))
+    original = inventory.read_text()
+    rows = read_coverage(inventory) if not args.write or args.audits else []
+    if (not args.write or args.audits) and set(sections(original)) != set(AUDITS):
         raise ValueError('proof coverage audit set differs from the FULL tier')
+    updates = {}
     with tempfile.TemporaryDirectory(prefix='proof-coverage-', dir=root / '.lake') as tmp:
         coverage = Path(tmp) / 'coverage.txt'
-        audits = sorted(AUDITS)
         print(f'proof audit coverage: {len(rows)} declarations; {len(audits)} audits', flush=True)
-        # Import one audit's private syntax per process. Do not accumulate the
-        # private environments of all six libraries under the 7 GiB wrapper cap.
+        # Load only selected audit roots, one private environment per process.
         for audit in audits:
             selected = [row for row in rows if row[2] == audit]
             coverage.write_text(''.join(' '.join(row) + '\n' for row in selected))
@@ -67,31 +103,30 @@ def main():
                 '--coverage', str(coverage), '--complete-coverage']
             rc = subprocess.call(['lake', 'env', 'lean', '--run', 'scripts/CheckProofEqns.lean',
                                   '--baseline', 'scripts/baselines/check-proof-eqns.txt',
+                                  *(['--roots-only'] if args.audits else []),
                                   *mode, audit], cwd=root)
             if rc:
                 return rc
             if args.write:
-                rows.extend(tuple(line.split()) for line in coverage.read_text().splitlines())
+                generated = [tuple(line.split()) for line in coverage.read_text().splitlines()]
+                updates[audit] = section_text(audit, generated)
+                if not args.audits and audit in sections(original):
+                    start, end = sections(original)[audit]
+                    prior = ''.join(original.splitlines(keepends=True)[start:end])
+                    def row_set(section):
+                        data = ast.literal_eval('{' + section + '}')[audit]
+                        return {(o, n) for o, names in data.items() for n in names}
+                    if row_set(prior) == row_set(updates[audit]):
+                        updates[audit] = prior
         if args.write:
-            # Adjacent string literals keep long identifiers below 100 columns.
-            lines = ['# Complete C14 audit inventory. Generate with '
-                     'check-proof-coverage.py --write.',
-                     '# Review changes. Normal checks never regenerate this file.', '{']
-            for audit in audits:
-                lines.append(f'    {audit!r}: {{')
-                owners = sorted({owner for owner, _, a in rows if a == audit})
-                for owner in owners:
-                    lines.append(f'        {owner!r}: (')
-                    for name in sorted({n for o, n, a in rows if o == owner and a == audit}):
-                        if len(repr(name)) <= 86:
-                            lines.append(f'            {name!r},')
-                        else:
-                            cut = name.rfind('.', 0, 80) + 1
-                            lines += [f'            ({name[:cut]!r}',
-                                      f'             {name[cut:]!r}),']
-                    lines.append('        ),')
-                lines.append('    },')
-            inventory.write_text('\n'.join([*lines, '}']) + '\n')
+            if args.audits:
+                output = replace_sections(original, updates)
+            else:
+                header = ('# Complete C14 audit inventory. Generate with '
+                          'check-proof-coverage.py --write.\n'
+                          '# Review changes. Normal checks never regenerate this file.\n{\n')
+                output = header + ''.join(updates[a] for a in audits) + '}\n'
+            inventory.write_text(output)
         return 0
 
 

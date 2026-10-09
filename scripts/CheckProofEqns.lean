@@ -171,6 +171,7 @@ structure CheckOptions where
   completeCoverage : Bool := false
   writeCoverage : Option System.FilePath := none
   controls : Bool := false
+  rootsOnly : Bool := false
 
 def parseArgs : List String → CheckOptions → Except String CheckOptions
   | [], options =>
@@ -188,6 +189,7 @@ def parseArgs : List String → CheckOptions → Except String CheckOptions
   | "--coverage" :: path :: rest, options =>
     if path.startsWith "--" || options.coverage.isSome then .error "invalid --coverage"
     else parseArgs rest { options with coverage := some path }
+  | "--roots-only" :: rest, options => parseArgs rest { options with rootsOnly := true }
   | "--controls" :: rest, options => parseArgs rest { options with controls := true }
   | "--complete-coverage" :: rest, options =>
     parseArgs rest { options with completeCoverage := true }
@@ -391,7 +393,10 @@ def coverageControls (env : Environment) : IO Bool := do
 
 def runCheck (options : CheckOptions) : IO UInt32 := do
   let definitions ← kitFGDefinitions
-  let roots := (← defaultRoots definitions) ++ options.roots
+  let roots ← if options.rootsOnly then do
+      if options.roots.isEmpty then throw <| IO.userError "--roots-only needs an audit root"
+      pure options.roots
+    else do pure ((← defaultRoots definitions) ++ options.roots)
   let baseline := Std.HashSet.ofList (← match options.baseline with
     | some path => dataLines path
     | none => pure [])
