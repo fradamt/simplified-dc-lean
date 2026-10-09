@@ -44,10 +44,13 @@ private theorem rawStep_result_mem (hs : V2.D.ScheduleWellFormed E rho)
 private theorem rawStep_frozen_geometry [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) {iy : Nat} {y : V} {s : Slot}
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
-    let X := (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF
+    let X := (storeAt p c E rho
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF.filter
+        (fun A => FGBlock.Preceq (storeAt p c E rho iy y).fg.F A)
     X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1) ∧
-    ∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X := by
+    ∀ W ∈ X, ∀ A, FGBlock.Preceq (storeAt p c E rho iy y).fg.F A →
+      FGBlock.Preceq A W → A ∈ X := by
   intro X
   have hs := hrec.base.valid.toScheduleWellFormed
   have hread : postClock E rho y (SA.voteTime p.toParams (s + 1)) =
@@ -63,12 +66,18 @@ private theorem rawStep_frozen_geometry [Fintype V] {G ΔF : Time}
     change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
     push_cast
     linarith [p.deltaPos]
-  refine ⟨fun W hW => healing_frozen_path p c E rho hs hrec.base.noRestart hdpos hdvote
-    (by rw [Nat.add_sub_cancel]) hW hread W (KitFG.preceq_refl W), ?_⟩
-  intro W hW A hAW
+  constructor
+  · intro W hW
+    obtain ⟨hW, hFW⟩ := Finset.mem_filter.mp hW
+    exact healing_frozen_path p c E rho hs hrec.base.noRestart hdpos hdvote
+      (by rw [Nat.add_sub_cancel]) hW hread W
+      (by change FGBlock.Preceq (FGSA.clock p _ _).fg.F W; rw [clock_fg]; exact hFW)
+      (KitFG.preceq_refl W)
+  intro W hW A hFA hAW
+  obtain ⟨hW, -⟩ := Finset.mem_filter.mp hW
   obtain ⟨A', hA', heA'⟩ := eraseFG_ancestor_mem
     (cstoreInv_stateBefore E rho _ y).fg.closed hW (eraseFG_preceq hAW)
-  exact (eraseFG_injective heA') ▸ hA'
+  exact Finset.mem_filter.mpr ⟨(eraseFG_injective heA') ▸ hA', hFA⟩
 
 private theorem rawStep_proposals_at_gate_cut (hs : V2.D.ScheduleWellFormed E rho)
     {i : Nat} {x : V} {s : Slot} {C : Block} (hi : IsGateTick p c rho i x s) :
@@ -202,7 +211,8 @@ theorem postReset_raw_first_head_above
     exact of_decide_eq_true (List.mem_filter.mp hm).2
   rw [heB]
   exact healing_first_transfer_raw_domain p c E rho hrec hgst.le hx hix hres heB hy hiy
-    hXv hXc hD hlease
+    hXv hXc (by
+      simpa only [D_at, healing_domain_filter_F] using hD) hlease
 
 private theorem rawStep_reset_first_head
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -235,7 +245,8 @@ private theorem rawStep_reset_first_head
     (heB ▸ Gen.Pure.block_preceq_refl w.CStar) hmem hBC hy hiy hyi hZ hF
   obtain ⟨hXv, hXc⟩ := rawStep_frozen_geometry p c E rho hrec hiy
   exact healing_first_transfer_written p c E rho hrec mono writes ha.1 hix hres hBC
-    h0r.synchronous (Or.inl hτ) hy hiy hXv hXc hD
+    h0r.synchronous (Or.inl hτ) hy hiy hXv hXc (by
+      simpa only [D_at, healing_domain_filter_F] using hD)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2930–2944, H.1:663–708; plan J5-A-2 R1;
@@ -534,7 +545,8 @@ theorem postReset_raw_heads_succ_above
     have hlease := postReset_raw_moving_lease_compat p c E rho hrec emittedNonempty emittedName
       writes h0r hinv hreset hx hlabel hix hxi hres hsl (heB ▸ hbatch) hy hiy hyi hafter le_rfl
     obtain ⟨hXv, hXc⟩ := rawStep_frozen_geometry p c E rho hrec hiy
-    exact healing_next_transfer_domain p c E rho hrec hgst hbatch hy hiy hXv hXc hD (heB ▸ hlease)
+    exact healing_next_transfer_domain p c E rho hrec hgst hbatch hy hiy hXv hXc (by
+      simpa only [D_at, healing_domain_filter_F] using hD) (heB ▸ hlease)
 
 omit [Fintype V] hrec mono emittedNonempty emittedName writes xing origin h0r movingDomain in
 private theorem rawStep_proposal_read
@@ -620,8 +632,8 @@ theorem postReset_raw_proposals_succ_above
   have hin : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip y) _
   have hfg : st.fg = (storeAt p c E rho ip y).fg := clock_fg p _ _
   have hR : FGSA.controls p st = R_at p c E rho ip y := by
-    change KitFG.storeControlsView (heightView p) st.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho ip y).fg
+    change KitFG.treeStoreControlsView (heightView p) st.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho ip y).fg
     rw [hfg]
   by_cases hZ : FGBlock.Preceq B (R_at p c E rho ip y).Z
   · rw [hpar]
