@@ -1,8 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
-public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
-public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
-public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
+public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (#print axioms)
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: keep (#print axioms)
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore -- shake: keep (#print axioms)
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope -- shake: keep (#print axioms)
 
 public section
 
