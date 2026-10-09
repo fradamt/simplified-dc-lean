@@ -46,7 +46,7 @@ theorem fgsa_activeViewClaim : ActiveViewClaim p :=
   fun c E rho => fgsa_activeViewAt p c E rho
 
 theorem fgsa_frameAt : FrameAt p c E rho :=
-  ⟨fgsa_rFrameExact p c E rho, fgsa_rFrame p c E rho⟩
+  ⟨fgsa_rFrameExactNext p c E rho, fgsa_rFrameNext p c E rho⟩
 
 theorem fgsa_frameClaim : FrameClaim p :=
   fun c E rho => fgsa_frameAt p c E rho
@@ -139,7 +139,7 @@ theorem fgsa_srcFrameAboveClaim : SrcFrameAboveClaim p :=
 theorem fgsa_fgFoundationClaim : FGFoundationClaim p :=
   fun c E rho pt hb =>
     ⟨fgsa_rStore p c E rho, fgsa_rStoreCumul p c E rho,
-      fgsa_rMono p c E rho, fgsa_rFrameExact p c E rho, fgsa_rGeo p c E rho,
+      fgsa_rMono p c E rho, fgsa_rFrameExactNext p c E rho, fgsa_rGeo p c E rho,
       sourceDiscipline_strat p c E rho (pt := pt) hb (fgsa_rStore p c E rho),
       fgsa_rRec p c E rho⟩
 
