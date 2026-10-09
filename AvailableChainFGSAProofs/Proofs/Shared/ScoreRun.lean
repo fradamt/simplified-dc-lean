@@ -425,7 +425,9 @@ theorem fgsa_scoreRun_raw_extra
   have hpairs : ∀ q ∈ proposalsAt dst (s + 1), q = (N.raw, N.support) := by
     have h := fgsa_scoreRun_proposalsAt_eq E rho hE ih y (s + 1) N
       (hseat ▸ hx) ⟨_, by rw [hseat]; exact ⟨ip, hip, hem⟩⟩
-    simpa only [proposalsAt, dst, clock_proposals, clock_fg] using h
+    dsimp only [proposalsAt, dst] at h ⊢
+    rw [clock_proposals, clock_fg]
+    exact h
   change o ∈ List.eraseDups (_ ++ _) at ho
   rw [List.mem_eraseDups, List.mem_append] at ho
   rcases ho with ho | ho
@@ -754,7 +756,9 @@ theorem fgsa_scoreRun_support_backward
   have hpairs : ∀ q ∈ proposalsAt dst (s + 1), q = (N.raw, N.support) := by
     have h := fgsa_scoreRun_proposalsAt_eq E rho hE ih y (s + 1) N
       (hseat ▸ hx) ⟨_, by rw [hseat]; exact ⟨ip, hip, hem⟩⟩
-    simpa only [proposalsAt, dst, clock_proposals, clock_fg] using h
+    dsimp only [proposalsAt, dst] at h ⊢
+    rw [clock_proposals, clock_fg]
+    exact h
   obtain ⟨K, hk, hKdst, hslotK, hXK⟩ := (Gen.AC.Root.vote_support_body _ _ _).mp hv
   have ht := resolvedTarget_root _ o hk
   have hDK := Gen.Pure.block_preceq_trans hDX hXK

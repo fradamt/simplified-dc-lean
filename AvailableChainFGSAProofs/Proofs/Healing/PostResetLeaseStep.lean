@@ -590,7 +590,8 @@ theorem postReset_written_first_head
   obtain ⟨hXv, hXc⟩ := written_frozen_geometry p c E rho hrec hiy
   exact healing_first_transfer_written p c E rho hrec mono writes hx hix hres hBC
     hgst.le harm hy hiy hXv hXc (by
-      simpa only [D_at, healing_domain_filter_F] using hD)
+      dsimp only [D_at] at hD ⊢
+      simpa only [healing_domain_filter_F] using hD)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.15 S1:2902–2914; plan J4-A3; B1/B13/B17/B18.
@@ -1085,7 +1086,8 @@ theorem postReset_written_next_head
     hbatch hy hiy hyi hafter le_rfl
   obtain ⟨hXv, hXc⟩ := written_frozen_geometry p c E rho hrec hiy
   exact healing_next_transfer_domain p c E rho hrec hgst hbatch hy hiy hXv hXc (by
-      simpa only [D_at, healing_domain_filter_F] using hD) hlease
+      dsimp only [D_at] at hD ⊢
+      simpa only [healing_domain_filter_F] using hD) hlease
 
 omit [Fintype V] hrec mono emittedNonempty emittedName writes xing origin h0r in
 private theorem written_proposal_read

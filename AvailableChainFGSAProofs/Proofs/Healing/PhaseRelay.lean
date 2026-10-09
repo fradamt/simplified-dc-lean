@@ -223,7 +223,8 @@ private theorem phase_frozen_mem_of_crossing (crossing : RXing p c E rho)
           (SA.voteTime p.toParams s + 1)).mpr (Int.lt_add_one_iff.mpr le_rfl)
         have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + 1) =
             timeIdx rho (SA.voteTime p.toParams s) := by
-          simp only [V2.D.Run.idxBefore_def, timeIdx, Int.lt_add_one_iff]
+          dsimp only [timeIdx]
+          simp only [V2.D.Run.idxBefore_def, Int.lt_add_one_iff]
         exact (hcut ▸ hklt).le
       obtain ⟨K, hK, hKF⟩ := (storeBundle_stateBefore E rho k y).cstore.fg.Fcar
       have hlt := (healing_phase_finality_le p c E rho hK hKF).trans_lt

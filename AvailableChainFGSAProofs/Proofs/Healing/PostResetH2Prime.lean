@@ -267,7 +267,8 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
       (Gen.Pure.block_preceq_refl _) (by rw [hefg]; exact hbelow K s hK hhK))
   have hout := healing_unanimous_next_transfer_kept p c E rho hrec hgst hefg hbatch
     hx hiy hYv hYc (by
-      simpa only [Kept, Y, D_at, healing_domain_filter_F] using hkept)
+      dsimp only [Kept, D_at] at hkept ⊢
+      simpa only [Y, healing_domain_filter_F] using hkept)
   rw [healing_headAtIdx_tick p c E rho hiy] at hout
   exact (Option.some.inj hH) ▸ hout
 
