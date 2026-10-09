@@ -240,9 +240,10 @@ theorem healing_descent (hroots : NamedRootCollisionFree p c E rho) (xing : RXin
   | true =>
     have hct' := hct
     change (decide (st.h_max = st.h_j + 1) && decide (∃ W ∈ st.TF,
-      (heightView p W).h = st.h_max ∧ ¬ FGBlock.Preceq st.J W)) = true at hct'
-    obtain ⟨htop, W₀, hW₀, hh₀, hn₀⟩ : st.h_max = st.h_j + 1 ∧ ∃ W ∈ st.TF,
-        (heightView p W).h = st.h_max ∧ ¬ FGBlock.Preceq st.J W := by
+      FGBlock.Preceq st.F W ∧ (heightView p W).h = st.h_max ∧
+        ¬ FGBlock.Preceq st.J W)) = true at hct'
+    obtain ⟨htop, W₀, hW₀, _hFW₀, hh₀, hn₀⟩ : st.h_max = st.h_j + 1 ∧ ∃ W ∈ st.TF,
+        FGBlock.Preceq st.F W ∧ (heightView p W).h = st.h_max ∧ ¬ FGBlock.Preceq st.J W := by
       simpa only [Bool.and_eq_true, decide_eq_true_eq] using hct'
     have hZ : (R_at p c E rho i x).Z = st.F := by
       change (if (R_at p c E rho i x).rootIsJ then _ else _) = _
@@ -327,9 +328,10 @@ theorem healing_descent (hroots : NamedRootCollisionFree p c E rho) (xing : RXin
           have hCt : (heightView p C).h = st.h_max := by simp only [Height] at *; omega
           have hc : (R_at p c E rho i x).contest = true := by
             change (decide (st.h_max = st.h_j + 1) && decide (∃ W ∈ st.TF,
-              (heightView p W).h = st.h_max ∧ ¬ FGBlock.Preceq st.J W)) = true
+              FGBlock.Preceq st.F W ∧ (heightView p W).h = st.h_max ∧
+                ¬ FGBlock.Preceq st.J W)) = true
             simp only [Bool.and_eq_true, decide_eq_true_eq]
-            exact ⟨htop, C, hCT, hCt, hJC⟩
+            exact ⟨htop, C, hCT, hFC, hCt, hJC⟩
           rw [hct] at hc
           exact Bool.false_ne_true hc
         have hjnz : st.h_j ≠ 0 := fun hz =>

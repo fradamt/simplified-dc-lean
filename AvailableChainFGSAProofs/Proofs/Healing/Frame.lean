@@ -85,8 +85,7 @@ private theorem frame_liveRoot_mem (st : State p.n) (hi : CStoreInv p st)
       intro B hB A hAB
       obtain ⟨Q, hQ, he⟩ := eraseFG_ancestor_mem hi.fg.closed hB (eraseFG_preceq hAB)
       exact (eraseFG_injective he) ▸ hQ
-    rw [fullTree_eq] at hne ⊢
-    rw [controls_eq]
+    rw [fgsa_fullTree_eq_filtered] at hne ⊢
     apply KitFG.filteredFrom_Z_mem p.E p.cfg _ _ hclosed _ hne
     unfold Controls.Z
     split
@@ -137,9 +136,13 @@ private theorem frame_fullTree_nonempty (crossing : RXing p c E rho)
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:749–783; plan S30, H-FRAME/F1.
 DC: INTENTIONAL a duty-domain member and its witness remain in the full domain. -/
-private theorem frame_domain_subset_full (st : State p.n)
-    (X : Finset (FGBlock (Fin p.n))) (hX : X ⊆ st.fg.TF) :
+private theorem frame_domain_subset_full_of_top_retained (st : State p.n)
+    (X : Finset (FGBlock (Fin p.n))) (hX : X ⊆ st.fg.TF)
+    (hF : ∀ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max →
+      ¬ FGBlock.Preceq st.fg.J W → FGBlock.Preceq st.fg.F W) :
     KitFG.storeFrameView (heightView p) st.fg X ⊆ fullTree p st := by
+  change _ ⊆ KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF
+  rw [KitFG.treeStoreFrameView_eq (heightView p) st.fg st.fg.TF hF]
   intro B hB
   obtain ⟨hb, hf, hz, W, hw, hbw, hlo⟩ :=
     (KitFG.mem_filteredFromView _ _ _ _).mp hB
@@ -159,20 +162,28 @@ theorem healing_full_witness (crossing : RXing p c E rho)
       ∃ W ∈ st.fg.TF, FGBlock.Preceq K W ∧ (controls p st).lo ≤ (heightView p W).h := by
   let st := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
   have hne : (fullTree p st).Nonempty := by
-    change (KitFG.storeFrameView (heightView p) st.fg st.fg.TF).Nonempty
+    change (KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF).Nonempty
     rw [show st.fg = (storeAt p c E rho i x).fg from clock_fg p _ _]
     exact frame_fullTree_nonempty p c E rho crossing hx
   have hmem : ∃ K ∈ fullTree p st, eraseFG K = headVote p st s := by
     change ∃ K ∈ fullTree p st, eraseFG K =
       (if s = 0 then .genesis else headInTree p st
-        (erasedList st (KitFG.storeFrameView (heightView p) st.fg (voterBlocks p st s)))
+        (erasedList st (KitFG.treeStoreFrameView (heightView p) st.fg (voterBlocks p st s)))
         (headVotes p st s) (headSupport p st s))
     rw [ite_eq_right (Nat.ne_of_gt hs)]
     rcases fgsa_headInTree_mem_or_anchor p st _ (headVotes p st s) (headSupport p st s)
         with he | hm
     · exact he ▸ frame_liveRoot_mem p st (storeBundle_postClock E rho i x _).cstore hne
     · obtain ⟨K, hK, hk⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
-      exact ⟨K, frame_domain_subset_full p st _ (Finset.filter_subset _ _) hK, hk⟩
+      have htop : ∀ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max →
+          ¬ FGBlock.Preceq st.fg.J W → FGBlock.Preceq st.fg.F W := by
+        intro W hW hh _
+        have hfg : st.fg = (storeAt p c E rho i x).fg := clock_fg p _ _
+        rw [hfg] at hW hh ⊢
+        exact (healing_phase_frontier_root p c E rho crossing hx hW hh).1
+      rw [KitFG.treeStoreFrameView_eq (heightView p) st.fg _ htop] at hK
+      exact ⟨K, frame_domain_subset_full_of_top_retained p st _
+        ((Finset.filter_subset _ _).trans (Next.tree_subset_TF p st)) htop hK, hk⟩
   obtain ⟨K, hK, hk⟩ := hmem
   exact ⟨K, hK, hk, ((KitFG.mem_filteredFromView _ _ _ _).mp hK).2.2.2⟩
 
