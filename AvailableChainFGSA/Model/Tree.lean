@@ -7,7 +7,7 @@ namespace AvailableChain.FGSA.Next
 
 open AvailableChain.SimplexFG
 
-/-- [spec 305–326, 339–353, 804–829] `Φ.tree`: the accepted blocks above F.
+/-- [spec 274–275, 305–326, 339–353, 527–540] `Φ.tree`: the accepted blocks above F.
 `st.fg.TF` holds the cumulative accepted FG blocks, including their rows;
 `admitBlock` inserts into this set through `Window.on_block`. The erased base
 list is its SA representation. This reader filters TF without changing the

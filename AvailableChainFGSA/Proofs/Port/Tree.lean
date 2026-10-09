@@ -25,7 +25,7 @@ theorem tree_subset_TF (p : Params) (st : State p.n) :
   intro B hB
   exact ((mem_tree p st B).mp hB).1
 
-/-- [spec 305–326, 1033–1037] The viable full tree also requires extension of F,
+/-- [spec 305–326; old spec 1033–1037] The viable full tree also requires extension of F,
 so it is a subset of `Φ.tree`. No store invariant is needed. -/
 theorem fullTree_subset_tree (p : Params) (st : State p.n) :
     fullTree p st ⊆ tree p st := by
@@ -41,7 +41,7 @@ theorem mem_erasedList {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n)))
     b ∈ erasedList st X ↔ b ∈ st.base.blocks ∧ ∃ B ∈ X, eraseFG B = b := by
   simp [erasedList]
 
-/-- [spec 1025–1037; model representation] The new list helper keeps the
+/-- [old spec 1025–1037; model representation] The new list helper keeps the
 canonical erasure order and membership test. -/
 theorem erasedList_eq {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))) :
     erasedList st X = FGSA.erasedList st X := rfl
