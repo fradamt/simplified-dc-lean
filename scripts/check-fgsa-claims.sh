@@ -71,7 +71,6 @@ MODEL_SCOPE = read_model_scope(Path('scripts/claims-model-scope.txt').read_text(
 MODEL_ROOTS = sorted({module for module, _ in MODEL_SCOPE})
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = read_names('scripts/fgsa-claims-expected.txt')
-current_inventory.check_source('fgsa-claims', EXPECTED)
 # WC Job 4 adds no Statements module; the WC entries keep their current order.
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'OutageContinuation', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
@@ -210,6 +209,7 @@ findings = [f for p in files for f in source_findings(module(p), p.read_text())]
 if findings:
     print('\n'.join(findings))
     raise SystemExit(1)
+current_inventory.check_source('fgsa-claims', EXPECTED)
 if SOURCE_ONLY:
     result = subprocess.run(['python3', 'scripts/check-layers.py'])
     if result.returncode:
