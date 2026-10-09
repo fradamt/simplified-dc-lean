@@ -103,8 +103,9 @@ theorem w1_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
         by_cases hu : u = v
         · subst u
           simp only [V2.D.World.step, Function.update_self]
-          exact ⟨by simp [fgsa, initial], by simp [GenStoredRows, fgsa, initial],
-            by simp [fgsa, initial, GridCO.initial]⟩
+          exact ⟨by simp [fgsa, initialAt, initial],
+            by simp [GenStoredRows, fgsa, initialAt, initial],
+            by simp [fgsa, initialAt, initial, GridCO.initial]⟩
         · simpa only [V2.D.World.step, Function.update_of_ne hu] using hw u
       | tick v t =>
         by_cases hu : u = v
@@ -1181,8 +1182,9 @@ theorem w1_known_fold_local (P : Validator → Obj params → Prop) (w : World)
         by_cases hu : u = v
         · subst u
           simp only [V2.D.World.step, Function.update_self]
-          exact ⟨by simp [fgsa, initial], by simp [GenStoredRows, fgsa, initial],
-            by simp [fgsa, initial, GridCO.initial]⟩
+          exact ⟨by simp [fgsa, initialAt, initial],
+            by simp [GenStoredRows, fgsa, initialAt, initial],
+            by simp [fgsa, initialAt, initial, GridCO.initial]⟩
         · simpa only [V2.D.World.step, Function.update_of_ne hu] using hk u
       | tick v t =>
         by_cases hu : u = v
