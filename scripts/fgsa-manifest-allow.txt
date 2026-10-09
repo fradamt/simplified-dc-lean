@@ -30,7 +30,7 @@ AvailableChain.FGSA.MetaInv.wireTree	ROOT-DIGEST §2; ROOT-DIGEST-2 N / A: exact
 AvailableChain.FGSA.MetadataInvariant	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q representation dependency: shared state/readers and generated constructor/projection closure (§2.3 / §4.2)	option3	expect=e01cbd59d6dc4650
 AvailableChain.FGSA.NestOK	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q representation dependency: shared state/readers and generated constructor/projection closure (§2.3 / §4.2)	option3	expect=33ad573c238f8a2f
 AvailableChain.FGSA.OutputNestingStored	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q representation dependency: shared state/readers and generated constructor/projection closure (§2.3 / §4.2)	option3	expect=e186acf4b7f53a78
-AvailableChain.FGSA.Reachable	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q representation dependency: shared state/readers and generated constructor/projection closure (§2.3 / §4.2)	option3	expect=b8ebe90e84f54451
+AvailableChain.FGSA.Reachable	Y reset b0b493d8; ROOT-DIGEST §2	option3; Y	expect=6dbbc505d29881d3
 AvailableChain.FGSA.Reachable.deliver	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q representation dependency: shared state/readers and generated constructor/projection closure (§2.3 / §4.2)	option3	expect=719465d9a5f61c82
 AvailableChain.FGSA.Reachable.init	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q representation dependency: shared state/readers and generated constructor/projection closure (§2.3 / §4.2)	option3	expect=3eac19650fcdc2cf
 AvailableChain.FGSA.Reachable.tick	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q representation dependency: shared state/readers and generated constructor/projection closure (§2.3 / §4.2)	option3	expect=90a34c7f00023bec
