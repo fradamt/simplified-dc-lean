@@ -28,6 +28,7 @@ sys.modules['layers'] = L
 spec.loader.exec_module(L)
 ROOT = Path.cwd()
 SOURCE_ONLY = os.environ.get('SOURCE_ONLY', '0') == '1'
+NEG = os.environ.get('NEG', '1') == '1'
 LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit')
 CLAIMS, PROOFS, INHABIT = LIBS
 ROOT_LIBS = (*LIBS, "AvailableChainPCSAProofs")
@@ -266,13 +267,14 @@ def check_source_coverage(imports, roots):
             raise SystemExit('NOT REACHED FROM F4: ' + ', '.join(unreached))
 
 # The PC-SA root must reach every production module, as the FG-SA roots do.
-pcsa_orphan = "AvailableChainPCSAProofs.Proofs.Foundations.CoverageNegative"
-try:
-    check_source_coverage({}, [pcsa_orphan])
-except SystemExit as exc:
-    assert str(exc) == "NOT IMPORTED BY ROOT: " + pcsa_orphan, exc
-else:
-    raise SystemExit("PC-SA ROOT COVERAGE CONTROL FAILED")
+if NEG:
+    pcsa_orphan = "AvailableChainPCSAProofs.Proofs.Foundations.CoverageNegative"
+    try:
+        check_source_coverage({}, [pcsa_orphan])
+    except SystemExit as exc:
+        assert str(exc) == "NOT IMPORTED BY ROOT: " + pcsa_orphan, exc
+    else:
+        raise SystemExit("PC-SA ROOT COVERAGE CONTROL FAILED")
 
 if SOURCE_ONLY:
     source_edges = {module(p): L.read_header(p.read_text())[0] for p in files}
@@ -291,7 +293,7 @@ for pair in sorted(REQUIRED_MODEL_SCOPE):
         'missing-model-scope-' + pair[1],
         '\n'.join(' '.join(row) for row in MODEL_SCOPE if row != pair),
         'MISSING MODEL AUDIT SCOPE: ' + ' '.join(pair)))
-for label, raw, reason in scope_controls:
+for label, raw, reason in (scope_controls if NEG else ()):
     try:
         read_model_scope(raw)
     except SystemExit as exc:
@@ -354,7 +356,7 @@ controls = (
     ('assembly-root-phases-internal', L.ASSEMBLY_ROOT,
      'public import ' + CLAIMS + '.Statements.PhasesInternal\n', 'INTERNAL STATEMENT'),
 )
-for label, m, body, expected in controls:
+for label, m, body, expected in (controls if NEG else ()):
     hits = source_findings(m, 'module\n' + body)
     if not any(expected in f for f in hits):
         raise SystemExit(f'STOP: negative control passed: {label}: {hits}')
@@ -380,14 +382,16 @@ phase_internal = CLAIMS + '.Statements.PhasesInternal'
 finality_control = PROOFS + '.Proofs.Finality.Control'
 coverage_edges = {CLAIMS: (), PROOFS: (finality_control,), INHABIT: (),
                   phase_internal: (), finality_control: ()}
-try:
-    check_source_coverage(coverage_edges, list(coverage_edges))
-except SystemExit as exc:
-    if not str(exc).startswith('NOT REACHED FROM F4: '):
-        raise
-    print('missing-f4-reach: rc 1, rejected as expected (NOT REACHED FROM F4)', flush=True)
-else:
-    raise SystemExit('STOP: missing F4 reach control passed')
+if NEG:
+    try:
+        check_source_coverage(coverage_edges, list(coverage_edges))
+    except SystemExit as exc:
+        if not str(exc).startswith('NOT REACHED FROM F4: '):
+            raise
+        print('missing-f4-reach: rc 1, rejected as expected (NOT REACHED FROM F4)', flush=True)
+    else:
+        raise SystemExit('STOP: missing F4 reach control passed')
+
 coverage_edges[finality_control] = (phase_internal,)
 check_source_coverage(coverage_edges, list(coverage_edges))
 print('f4-reach-twin: rc 0', flush=True)

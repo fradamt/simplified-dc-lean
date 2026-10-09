@@ -2,6 +2,7 @@
 """Test checker scope and receipt rules with isolated commits; no Lean or gate tier."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -99,4 +100,16 @@ with tempfile.TemporaryDirectory(prefix='gate-neg-') as tmp:
         shutil.rmtree(root / '.lake')
         print(f'CONTROL scope {label}: NEG={want}; override and receipt rules: PASS')
         base = head
+
+# Run the actual claims source fixtures up to the compiled checks, without Lean.
+text = (REPO / 'scripts/check-fgsa-claims.sh').read_text()
+body = text.split("<<'PY'\n", 1)[1].split('\nfor lib in LIBS:\n    build(', 1)[0]
+for neg in ('0', '1'):
+    result = subprocess.run(['python3', '-B', '-c', body], cwd=REPO,
+                            env=dict(os.environ, SOURCE_ONLY='0', NEG=neg),
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert ('rejected as expected' in result.stdout) == (neg == '1'), result.stdout
+    assert 'f4-reach-twin: rc 0' in result.stdout, result.stdout
+    print(f'CONTROL claims source fixtures NEG={neg}: selection and positive checks: PASS')
 print('gate-neg-selftest: PASS')
