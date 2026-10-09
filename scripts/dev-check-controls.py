@@ -38,6 +38,10 @@ def section_bytes(text):
 
 
 def main():
+    result = subprocess.run(['python3', '-B', 'scripts/check-fg-finality-coverage.py'],
+                            cwd=ROOT, text=True, capture_output=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    print('CONTROL real finality source inventories: PASS (221 declarations)', flush=True)
     active = {'module': 'AvailableChainFGSAProofs.Proofs.Assembly.Finality', 'theorem': 'ok'}
     disabled = {'module': 'AvailableChainPCSAProofs.Proofs.Assembly.Finality', 'theorem': 'bad'}
     assert B.compiled_clauses([active, disabled]) == [active]
@@ -51,6 +55,15 @@ def main():
     with tempfile.TemporaryDirectory(prefix='dev-controls-', dir=ROOT / '.lake') as tmp:
         tmp = Path(tmp)
         fixture = tmp / 'scope.txt'
+        for option, name in (('--inventory', 'proof-audit-coverage.txt'),
+                             ('--source-inventory', 'pcsa-source-audit-coverage.txt')):
+            inventory = tmp / name
+            inventory.write_text('{}\n')
+            result = subprocess.run(['python3', '-B', 'scripts/check-fg-finality-coverage.py',
+                                     option, str(inventory)], cwd=ROOT,
+                                    text=True, capture_output=True)
+            assert result.returncode == 1 and 'NOT IN COVERAGE:' in result.stdout, result.stdout
+            print(f'CONTROL missing {name}: PASS (real checker rejected rows)', flush=True)
         omitted = sorted(required)[0]
         fixture.write_text(original.replace(omitted + '\n', '', 1))
         rejected('omitted REQUIRED', 'OMITTED S1 MODULE',

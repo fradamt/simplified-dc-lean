@@ -6,7 +6,8 @@ check starts from the source instead. It reads the public declarations of the
 exact safety adapter, bridge, export and assembly modules below (MODULES is the
 one list). Each one must have a `#print axioms` command in one owning audit of
 its module, and a row with that owner and audit in
-scripts/proof-audit-coverage.txt. The scope is exact: it needs no legacy
+scripts/proof-audit-coverage.txt (active) or
+scripts/pcsa-source-audit-coverage.txt (deferred PC-SA). The scope is exact: it needs no legacy
 baseline. A safety module that is not in MODULES fails the check: every
 `Safety*` module of AvailableChainFGCompose and every `*FGSafety*` or
 `*FinalitySafety*` module of the two protocol proof libraries.
@@ -58,6 +59,9 @@ MODULES = {
     'AvailableChainPCSAProofs.Proofs.Finality.Export': PCB,
     'AvailableChainPCSAProofs.Proofs.Assembly.Finality': PCB,
 }
+
+DEFERRED_MODULES = {m: a for m, a in MODULES.items() if m.startswith('AvailableChainPCSA')}
+ACTIVE_MODULES = {m: a for m, a in MODULES.items() if m not in DEFERRED_MODULES}
 
 KINDS = ('theorem', 'lemma', 'def', 'abbrev', 'structure', 'class', 'inductive', 'opaque',
          'irreducible_def', 'instance', 'axiom')
@@ -152,8 +156,11 @@ def unlisted_modules(root, modules):
     return found
 
 
-def check(root, modules=MODULES, coverage=None):
+def check(root, modules=MODULES, coverage=None, source_coverage=None):
     rows = read_coverage(coverage or root / 'scripts/proof-audit-coverage.txt')
+    deferred_rows = read_coverage(source_coverage or
+                                  root / 'scripts/pcsa-source-audit-coverage.txt') \
+        if modules is MODULES else set()
     audits = sorted({a for owner in modules.values() for a in audits_of(owner)})
     commands = {audit: audit_commands(root, audit) for audit in audits}
     errors = [f'UNLISTED SAFETY MODULE: {m}' for m in unlisted_modules(root, modules)]
@@ -166,8 +173,11 @@ def check(root, modules=MODULES, coverage=None):
             label = ', '.join(audits_of(owner))
             if not owning:
                 errors.append(f'NOT IN OWNING AUDIT: {name} ({module}; {label})')
-            elif not any((module, name, a) in rows for a in owning):
-                owners = sorted(f'{o} / {a}' for o, n, a in rows if n == name)
+            else:
+                inventory = deferred_rows if module in DEFERRED_MODULES else rows
+                if any((module, name, a) in inventory for a in owning):
+                    continue
+                owners = sorted(f'{o} / {a}' for o, n, a in inventory if n == name)
                 where = '; found under ' + ', '.join(owners) if owners else ''
                 errors.append(f'NOT IN COVERAGE: {name} ({module}; {label}){where}')
     return total, errors
@@ -263,8 +273,11 @@ def selftest():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--selftest', action='store_true')
+    parser.add_argument('--inventory', type=Path)
+    parser.add_argument('--source-inventory', type=Path)
     args = parser.parse_args()
-    return selftest() if args.selftest else report(ROOT)
+    return selftest() if args.selftest else report(
+        ROOT, coverage=args.inventory, source_coverage=args.source_inventory)
 
 
 if __name__ == '__main__':

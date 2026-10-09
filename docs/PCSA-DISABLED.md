@@ -35,6 +35,9 @@ Disabled compiled paths:
 - Blueprint oracle checks for PC-SA. The nine clauses stay as source/map records.
 - The four PC-SA entries in `scripts/new-libraries.txt`.
 
+Finality source coverage uses `scripts/pcsa-source-audit-coverage.txt` for PC-SA.
+The active compiled inventory keeps every FG-SA and Compose requirement.
+
 The PCSA-API trigger in `gate.sh` stays. Source checks still read PC-SA files through
 Lake library tables. `check-sleep-scopes.py` checks the active import closure and
 checks deferred PC-SA source for proof placeholders and project axioms. PC-SA roots,
