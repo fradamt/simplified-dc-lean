@@ -1961,3 +1961,20 @@ The change record lists the changed source dependencies reached by each supplier
 `fgsaClaims` has one binder and zero proposition binders. Its claim source text is unchanged.
 The phase-order map uses the approved `_of_crossing` helper. Both entries stay PARTIAL.
 Ruling Y and WP12d require a final measurement after their source merges.
+
+
+## FG-SA port WP16 final-refresh measurements
+
+On source base `988177e2`, all 118 FG-SA supplier roots were measured.
+The map has 177 refreshed rows. Each changed fingerprint has a measured path
+to the Y protocol or Reachable change (see the change record).
+`fgsaClaims` has one binder and zero proposition binders at all three map locations.
+Its fingerprint is `f0d9a772701a8a1a`. P13 passes; all 36 OPEN items remain.
+The aggregate and all six restart-permitting witnesses compile from Params alone.
+The 59 moved public Spec theorems and 15 changed public helpers resolve.
+Their transitive axioms are standard. Full independent source interpretation
+and claim transfer remain open under Z.
+
+Complete expected-name and coverage checks are blocked by the WP13v Inhabit
+reset proofs. The protected shallow pin needs approval; deep exact exceptions
+need the WP00c handoff. No complete port acceptance pass is claimed.
