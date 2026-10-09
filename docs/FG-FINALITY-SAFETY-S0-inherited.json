@@ -7,8 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "79c3390cbddc1939dbe7735aabd37b03063f47e5",
-  "main_revision_note": "port-w16d exact approved shallow/deep data pin 79c3390c",
+  "main_revision": "c29eee71b51479141668297c5c720b40fa78efec",
+  "main_revision_note": "Port unused-import baseline; authorized change (2026-10-09); history only.",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -451,6 +451,22 @@
       ]
     },
     {
+      "path": "scripts/baselines/shake-report.txt",
+      "s0_sha256": "6adaf95d3d9e22cf6ef7631658ddc87f1b784d5939ab9617a4635d01655407b7",
+      "comparison_sha256": "6adaf95d3d9e22cf6ef7631658ddc87f1b784d5939ab9617a4635d01655407b7",
+      "main_sha256": "55abebd7bed1541ff19d1a191bc88bb79b9f91dc5c3ff03c4bac2417f3fd5449",
+      "changes": [
+        {
+          "commit": "c29eee71b51479141668297c5c720b40fa78efec",
+          "parent": "a207ed5a76e452302239e9a5d9fc8d918982a415",
+          "before_sha256": "6adaf95d3d9e22cf6ef7631658ddc87f1b784d5939ab9617a4635d01655407b7",
+          "after_sha256": "55abebd7bed1541ff19d1a191bc88bb79b9f91dc5c3ff03c4bac2417f3fd5449",
+          "reason": "Record 4 unused imports in S0-frozen claim files; the files stay byte-identical (lead ruling 2026-10-09).",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
       "path": "scripts/check-fgsa-manifest.sh",
       "s0_sha256": "1c8622dc076d0926b08d0171d0e9fe1c383eb8c92641fc50ad9b3df58860fe9c",
       "comparison_sha256": "1c8622dc076d0926b08d0171d0e9fe1c383eb8c92641fc50ad9b3df58860fe9c",
@@ -837,6 +853,17 @@
         }
       ],
       "note": "Exact approval A delta; no other new S0 path changes."
+    },
+    {
+      "id": "port-shake",
+      "base": "a207ed5a76e452302239e9a5d9fc8d918982a415",
+      "tip": "c29eee71b51479141668297c5c720b40fa78efec",
+      "recorded_changes": [
+        {
+          "path": "scripts/baselines/shake-report.txt",
+          "commit": "c29eee71b51479141668297c5c720b40fa78efec"
+        }
+      ]
     }
   ]
 }
