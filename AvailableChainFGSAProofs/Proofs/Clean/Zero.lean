@@ -338,20 +338,17 @@ theorem cleanCut_zero_body (h : HealthyPrefix₂ p c E rho 0 ΔF) :
   · intro i v hi _
     have hf := (zero_state h i hi v).1
     have hctl : (FGSA.controls p (storeAt p c E rho i v)).contest = false := by
-      rw [controls_eq]
+      change (KitFG.treeStoreControlsView (heightView p)
+        (storeAt p c E rho i v).fg).contest = false
       rw [hf]
-      change (decide ((1 : Nat) = 0 + 1) && decide
-        (∃ W ∈ ({FGBlock.genesis} : Finset (FGBlock (Fin p.n))),
-          hOf p.E p.cfg W = 1 ∧ ¬ FGBlock.Preceq .genesis W)) = false
-      have hn : ¬ (∃ W ∈ ({FGBlock.genesis} : Finset (FGBlock (Fin p.n))),
-          hOf p.E p.cfg W = 1 ∧ ¬ FGBlock.Preceq .genesis W) := by
-        rintro ⟨W, hW, _, hn⟩
-        have he : W = .genesis := Finset.mem_singleton.mp hW
-        subst W
-        exact hn (KitFG.preceq_refl _)
-      rw [decide_eq_false hn, Bool.and_false]
+      apply Bool.eq_false_iff.mpr
+      intro ht
+      obtain ⟨W, _, _, _, hn⟩ :=
+        KitFG.treeStoreControlsView_contest_witness (heightView p) _ ht
+      exact hn (KitFG.genesis_preceq W)
     have hz : (FGSA.controls p (storeAt p c E rho i v)).Z = .genesis := by
-      rw [controls_eq]
+      change (KitFG.treeStoreControlsView (heightView p)
+        (storeAt p c E rho i v).fg).Z = .genesis
       rw [hf]
       change (if _ then FGBlock.genesis else FGBlock.genesis) = _
       exact ite_self _

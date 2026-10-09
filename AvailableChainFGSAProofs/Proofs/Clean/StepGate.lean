@@ -217,7 +217,8 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
   have hjread := fgsa_preTick_eq_timeRead E rho hsch h.base.noRestart hj
   have hjwindow : (V2.D.Run.stateBeforeTime E rho (2 * p.Δ) x).st.slot p ≤ 0 + 1 := by
     rw [← hjread]
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hj x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hn
     have hb := Internal.slotOf_mono (p := p) hn
@@ -618,7 +619,8 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
   have hwindow : (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams (s + 1)) x).st.slot p ≤
       s + 1 + 1 := by
     rw [← hjread]
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hj x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hn
     have he := slotOf_offset p (s + 1) (2 * p.Δ) (by omega) (by omega)
@@ -643,7 +645,8 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
       block_compatible_of_common (block_preceq_refl K) (hprefix.2 i le_rfl)⟩
   have hslot : K.slot ≤ s + 1 := by
     have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hk y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq

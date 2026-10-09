@@ -104,4 +104,41 @@ example : tick (fun x : Nat => 10 * x + 1) (fun x => 10 * x + 2)
     (fun x => 10 * x + 3) (fun x => 10 * x + 4) 0 = 1234 := by decide
 example : onBlock false (fun _ : Nat => none) (fun x : Nat => x + 1) (3, 4) = (3, 4) := rfl
 
+-- Confirmation uses distinct, non-equivocating voters and a strict majority at F.
+example : confirmationScore [vote, vote] (fun _ => true) = 1 := by decide
+example : confirmationScore [vote, ⟨.seat (.head 0) 0, ⟨4⟩⟩]
+    (fun _ => true) = 0 := by decide
+example : confirmationScore [vote] (fun _ => false) = 0 := by decide
+example : getConfirmation [.genesis] .genesis 0 (fun _ => 0) = none := by decide
+example : getConfirmation [.genesis] .genesis 1 (fun _ => 1) = some .genesis := by decide
+
+private def updateFixture : ACState 1 := { pool := fun _ => [vote] }
+
+example : (updateConfirmation [.genesis, a, b] .genesis 1 2 1 0 6
+    (fun _ => 1) updateFixture).locks = [(b, 13)] := by decide
+example : (updateConfirmation [.genesis, a, b] .genesis 1 2 1 0 6
+    (fun _ => 1) updateFixture).fast_confirmed = [a, b] := by decide
+-- The negative saved slot is absent: the slow test cannot lock at slot zero.
+example : (updateConfirmation [.genesis, a, b] .genesis 1 2 3 0 6
+    (fun _ => 1) updateFixture).locks = [] := by decide
+-- A veto still saves the result, but clears the current fast-confirmed set.
+private def vetoResult : ACState 1 :=
+  updateConfirmation [.genesis, a, b, other] .genesis 1 2 1 0 6
+    (fun B => if B = other then 0 else 1)
+    { updateFixture with locks := [(other, 20)], fast_confirmed := [a] }
+example : vetoResult.saved 0 = some b ∧ vetoResult.fast_confirmed = [] ∧
+    vetoResult.record = .genesis := by decide
+example : (revokeLocks [a, b] 5 2 (fun B => if B = b then 1 else 0)
+    ({ locks := [(b, 20)] } : ACState 1)).locks = [(a, 20)] := by decide
+
+-- Slot zero runs its vote, but has no predecessor confirmation or revocation.
+example : acOnTick 1 0 1 (fun _ (x : Nat) => x + 1) (fun _ x => x + 10)
+    (fun _ x => x + 100) (fun _ x => x + 1000) 0 = 101 := by decide
+example : acOnTick 1 0 2 (fun _ (x : Nat) => x + 1) (fun _ x => x + 10)
+    (fun _ x => x + 100) (fun _ x => x + 1000) 0 = 1 := by decide
+example : acOnTick 1 2 9 (fun _ (x : List Nat) => x ++ [0]) (fun s x => x ++ [s])
+    (fun s x => x ++ [s]) (fun s x => x ++ [s + 10]) [] = [0, 1, 2] := by decide
+example : acOnTick 1 2 10 (fun _ (x : List Nat) => x ++ [0]) (fun s x => x ++ [s])
+    (fun s x => x ++ [s]) (fun s x => x ++ [s + 10]) [] = [0, 11] := by decide
+
 end AvailableChain.FGSA.Spec.Tests

@@ -3,7 +3,6 @@ public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSARun.Proofs.Reachable
-public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section

@@ -82,8 +82,8 @@ theorem healing_support_frame_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     ((KitFG.mem_filteredFromView _ _ _ _).mp hKfull).2.2.1
   have hRz : FGSA.controls p ((fgsa p c).clock (rho.stateBefore E jz z)
       (SA.voteTime p.toParams i)).st = R_at p c E rho jz z := by
-    change KitFG.storeControlsView (heightView p) (FGSA.clock p _ _).fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho jz _).fg
+    change KitFG.treeStoreControlsView (heightView p) (FGSA.clock p _ _).fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho jz _).fg
     rw [clock_fg]
     rfl
   rw [hRz] at hZK hloW

@@ -5,6 +5,7 @@ public import AvailableChainEngineV2.Engine.Duty.Spec
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Model.FrameNext
 
 @[expose] public section
 
@@ -362,10 +363,9 @@ def carriesS (p : Params) (o o' : Obj p) : Prop :=
 [plan T7.2; FRAMEWORK E1, E2, E5, E6] FG-SA on engine v2, with the
 application codec `c`.
 
-* State: the store and Λ (`Node`). A restart keeps Λ (`Durable := RecordOnce`, the
-  slashing-protection database; user decision, plan §1a) and restarts the
-  store from `initial`, so the base after a restore does not depend on the
-  kept data (E5 restore law).
+* State: the store and Λ (`Node`). A restart keeps the last tick clock and Λ
+  (`Durable := Time × RecordOnce`, ruling Y) and resets store data with
+  `initialAt`. The clock is retained without running a tick.
 * `clock` and `process` run the store functions and keep Λ; `recordOwn`
   writes only Λ (`recordRow?`).
 * `act`: HEAD and proposal from the store (`actS`), FG row from `attest`.
@@ -378,7 +378,7 @@ def fgsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
   signLabel := RunDuty.signLabel
   seats := RunLabel.seats p
   Payload := Msg p.n
-  Durable := RecordOnce
+  Durable := Time × RecordOnce
   init := ⟨initial p.n, RecordOnce.initial⟩
   clock nd t := { nd with st := FGSA.clock p nd.st t }
   actTime := RunDuty.actTime p
@@ -390,8 +390,8 @@ def fgsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
   process nd o := { nd with st := FGSA.process p nd.st (toWire p o) }
   selfVisible := RunLabel.selfVisible
   recordOwn nd o := { nd with record := recordRow? p nd.record o }
-  durable nd := nd.record
-  restore d := ⟨initial p.n, d⟩
+  durable nd := (nd.st.base.now, nd.record)
+  restore d := ⟨initialAt p.n d.1, d.2⟩
   wellFormed o := FGSA.wellFormed p (toWire p o)
   depsPresent nd o := depsS p nd.st o
   processed nd o := processedS p nd.st o

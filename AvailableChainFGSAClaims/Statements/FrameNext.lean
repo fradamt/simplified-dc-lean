@@ -3,7 +3,6 @@ public import AvailableChainFGSARun.Statements.AC
 public import AvailableChainFGSA.Statements.Invariants
 public import AvailableChainFGSAClaims.Statements.Channels
 public import AvailableChainGeneric.Statements.Pure.Quorum
-public import AvailableChainFGSA.Model.FrameNext
 
 @[expose] public section
 

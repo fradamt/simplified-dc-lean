@@ -230,9 +230,11 @@ private theorem old_endpoint :
     (eraseFG oldFG).parent? = some (eraseFG parentFG) ∧ (eraseFG oldFG).slot < 4 ∧
     eraseFG oldFG ∈ T params target 4 := by
   refine ⟨rfl, by decide, ?_⟩
-  apply fgsa_walk_domain_of_witness_view params target (voterBlocks params target 4) oldFG oldFG
+  apply fgsa_walk_domain_of_witness_tree_view params target
+    (voterBlocks params target 4) oldFG oldFG
     (fun B hB => (target_base _).mpr ⟨B, hB, rfl⟩)
-    (fun _ h => (Finset.mem_filter.mp h).1) (by decide +kernel) (by decide +kernel)
+    (fun _ h => Next.tree_subset_TF params target ((Finset.mem_filter.mp h).1))
+    (by decide +kernel) (by decide +kernel)
     (by decide +kernel) ?_ (KitFG.preceq_refl _) (fixture_height target rfl oldFG)
   rw [fixture_root target rfl rfl]
   exact KitFG.genesis_preceq _

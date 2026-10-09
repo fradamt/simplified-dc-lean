@@ -94,8 +94,8 @@ theorem healing_head_witness_relay (mono : RMono p c E rho) (crossing : RXing p 
   have hZK : FGBlock.Preceq (controls p st).Z K :=
     ((KitFG.mem_filteredFromView _ _ _ _).mp hK).2.2.1
   have hR : controls p st = R_at p c E rho i x := by
-    change KitFG.storeControlsView (heightView p) st.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho i x).fg
+    change KitFG.treeStoreControlsView (heightView p) st.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho i x).fg
     rw [hfg]
   refine ⟨K, hK, hk, W, hW, hKW, hlo, ?_⟩
   apply healing_witness_relay_settled (hroots := hroots)

@@ -163,9 +163,14 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     apply List.mem_filter.mpr
     refine ⟨hvotes, ?_⟩
     change (match GridCO.resolvedHead? (actView st) o with
-      | some C => decide (C.slot ≤ r + 1 - 1) | none => false) = true
+      | some C => Block.preceq (eraseFG st.fg.F) C &&
+        decide (C.slot ≤ r + 1 - 1) | none => false) = true
     rw [hresolve]
-    exact decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)
+    apply Bool.and_eq_true_iff.mpr
+    refine ⟨?_, decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)⟩
+    change Block.Preceq (eraseFG (FGSA.clock p _ _).fg.F) K
+    rw [clock_fg, ← hKe']
+    exact eraseFG_preceq hFK0
   have hvs : Gen.AC.Root.voteSupports st.base.blocks B o = true := by
     exact (Gen.AC.Root.vote_support_body _ _ _).mpr
       ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p _ hinv) o hKb hoK,
@@ -228,8 +233,8 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
   have hhorr : SA.voteTime p.toParams r ≤ rho.horizon := hvv.trans hvh
   have hdfg : src.fg = (storeAt p c E rho ip x).fg := clock_fg p _ _
   have hRd : controls p src = R_at p c E rho ip x := by
-    change KitFG.storeControlsView (heightView p) src.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho ip x).fg
+    change KitFG.treeStoreControlsView (heightView p) src.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho ip x).fg
     rw [hdfg]
   -- The proposer's own label-r HEAD block is the height-m witness.
   obtain ⟨jx, hjx⟩ := healing_support_vote_tick E rho hS hDelta hx r hhorr

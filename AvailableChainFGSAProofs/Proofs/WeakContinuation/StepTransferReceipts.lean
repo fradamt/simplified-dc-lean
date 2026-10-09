@@ -197,8 +197,8 @@ private theorem transfer_read_stamp (hsch : V2.D.ScheduleWellFormed E rho)
     · rw [hg.2]; exact hD
     · obtain ⟨parent, hd, _⟩ := ha.1
       have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hd D).mp hl
-      have hc := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-        (fgsa_hrestore_now p c) E rho hsch hd y
+      have hc := stateBefore_now_le_event_retained (fgsaClock p c)
+        (fgsa_hrestore_now_retained p c) E rho hsch hd y
       rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hc
       rw [hs]
       exact hc.trans_lt ht
@@ -325,8 +325,8 @@ theorem wc_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iSt
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)

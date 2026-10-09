@@ -26,10 +26,13 @@ theorem fgsa_headVote_covers_of_transfer
       GridCO.goldfishScore st.base.blocks
         (headVotes p st (s + 1)) (headSupport p st (s + 1)) B) :
     Block.Preceq B (headVote p st (s + 1)) := by
-  rw [headVote_eq]
+  rw [fgsa_headVote_eq_filtered]
   rw [ite_eq_right (Nat.succ_ne_zero s)]
-  exact fgsa_headInTree_covers_of_transfer p st _ _ _ B
-    hanchor hpath hmajority hdominance
+  apply fgsa_headInTree_covers_of_transfer p st _ _ _ B
+    hanchor _ hmajority hdominance
+  intro C hac hcb
+  exact fgsa_storeFrame_mem_above_liveRoot p st _ C (hpath C hac hcb)
+    (Bool.and_eq_true_iff.mp hac).2
 
 end AvailableChain.FGSA
 end

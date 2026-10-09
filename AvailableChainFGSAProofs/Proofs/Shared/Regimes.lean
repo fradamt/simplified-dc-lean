@@ -330,7 +330,7 @@ INTENTIONAL: the Clean wrapper uses the healthy prefix through v_s and
 Gen LabelSync at (t_s - Δ, v_s); geometry remains a separate consumer input.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
-theorem fgsa_score_eq_on_clean
+theorem fgsa_score_eq_on_clean_of_retained_proposal
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     (s : Slot) (hcut : SA.voteTime p.toParams s ≤ b₀)
@@ -342,6 +342,8 @@ theorem fgsa_score_eq_on_clean
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
     (hadm : N.erase ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (hFN : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st
+      (SA.voteTime p.toParams s)).fg.F) N.erase)
     (D : Block)
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
@@ -365,7 +367,7 @@ theorem fgsa_score_eq_on_clean
     (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
   exact fgsa_score_eq_on_run (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart h.base.delta s hsync
-    hx hy hip hih hseat N hem hadm D hgeom
+    hx hy hip hih hseat N hem hadm hFN D hgeom
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. P3 N1:2518–2525 and O25 §7; blueprint 03:256–317.
@@ -374,7 +376,7 @@ INTENTIONAL: Recovery requires GST ≤ t_s - Δ, not merely GST ≤ v_s.
 The actual HEAD tick supplies the horizon bound for Gen LabelSync.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
-theorem fgsa_score_eq_on_recovery
+theorem fgsa_score_eq_on_recovery_of_retained_proposal
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (G : Time) (h : Recovery₂ p c E rho G ΔF)
     (s : Slot) (hGST : E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ)
@@ -386,6 +388,8 @@ theorem fgsa_score_eq_on_recovery
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
     (hadm : N.erase ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (hFN : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st
+      (SA.voteTime p.toParams s)).fg.F) N.erase)
     (D : Block)
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
@@ -410,7 +414,7 @@ theorem fgsa_score_eq_on_recovery
     (fgsaDelay_nonrow E.Δ _) hGST hvd hhorizon
   exact fgsa_score_eq_on_run (hroots := h.base.idealization)
     E rho h.base.valid h.base.noRestart h.base.delta s hsync
-    hx hy hip hih hseat N hem hadm D hgeom
+    hx hy hip hih hseat N hem hadm hFN D hgeom
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. P3 F1b.4b N1 C14 and C9/C11–C13/C19; blueprint 03:350–379.

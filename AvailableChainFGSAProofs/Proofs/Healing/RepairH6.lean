@@ -92,8 +92,8 @@ theorem repair_prior_support [Fintype V] (E : Generic.Env V)
   have hinv : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hdfg : src.fg = (storeAt p c E rho ip x).fg := clock_fg p _ _
   have hRd : controls p src = R_at p c E rho ip x := by
-    change KitFG.storeControlsView (heightView p) src.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho ip x).fg
+    change KitFG.treeStoreControlsView (heightView p) src.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho ip x).fg
     rw [hdfg]
   -- The frame witness of the proposer's own label-r HEAD.
   obtain ⟨jx, hjx⟩ := healing_support_vote_tick E rho hS hDelta hx r hhorr
@@ -183,8 +183,8 @@ theorem repair_prior_support [Fintype V] (E : Generic.Env V)
 Blueprint 21:749–783; spec 616–633. DC: SAME the clock keeps the FG controls. -/
 theorem repair_controls_clock (st : State p.n) (t : Time) :
     controls p (clock p st t) = controls p st := by
-  change KitFG.storeControlsView (heightView p) (clock p st t).fg =
-    KitFG.storeControlsView (heightView p) st.fg
+  change KitFG.treeStoreControlsView (heightView p) (clock p st t).fg =
+    KitFG.treeStoreControlsView (heightView p) st.fg
   rw [clock_fg]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -200,8 +200,7 @@ theorem repair_liveRoot_witness (st : State p.n) (hi : CStoreInv p st)
       intro B hB A hAB
       obtain ⟨Q, hQ, he⟩ := eraseFG_ancestor_mem hi.fg.closed hB (eraseFG_preceq hAB)
       exact (eraseFG_injective he) ▸ hQ
-    rw [fullTree_eq] at hne ⊢
-    rw [controls_eq]
+    rw [fgsa_fullTree_eq_filtered] at hne ⊢
     apply KitFG.filteredFrom_Z_mem p.E p.cfg _ _ hclosed _ hne
     unfold Controls.Z
     split
@@ -277,7 +276,7 @@ theorem repair_h6_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hne : (fullTree p (clock p (storeAt p c E rho ip x)
       (SA.proposalTime p.toParams s))).Nonempty := by
-    change (KitFG.storeFrameView (heightView p) _ _).Nonempty
+    change (KitFG.treeStoreFrameView (heightView p) _ _).Nonempty
     rw [hfgs]
     exact repair_fullTree_nonempty E rho crossing hx
   change RetainedH6Frame p (clock p (storeAt p c E rho ip x) (SA.proposalTime p.toParams s))
@@ -306,7 +305,7 @@ theorem repair_h6_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     | none =>
       obtain ⟨_, hZx, ⟨K, hK, hKF, hKlt⟩, _⟩ := hxi.2.2.2.1
       have hWd : W ∈ (storeAt p c E rho ih y).fg.TF := by
-        have h := (Finset.mem_filter.mp hW).1
+        have h := Next.tree_subset_TF p _ (Finset.mem_filter.mp hW).1
         rwa [hfgd] at h
       have hloW' : (controls p (storeAt p c E rho ip x)).lo ≤ (heightView p W).h := by
         rw [hlo, ← hcd]

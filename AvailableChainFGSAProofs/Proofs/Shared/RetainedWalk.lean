@@ -20,7 +20,7 @@ abbrev S (p : Params) (src : State p.n) : List Block :=
 /-- Blueprint 21:798–814, 2847–2867; spec 1219–1226, 1276–1302.
 Class (iii). DC: INTENTIONAL; the target uses the actual filtered duty view. -/
 abbrev T (p : Params) (dst : State p.n) (s : Slot) : List Block :=
-  erasedList dst (KitFG.storeFrameView (heightView p) dst.fg (voterBlocks p dst s))
+  erasedList dst (KitFG.treeStoreFrameView (heightView p) dst.fg (voterBlocks p dst s))
 
 /-- Blueprint 03:293–331; spec 1240–1243. Class (iii).
 DC: INTENTIONAL; the proposer score uses its own raw and support pools. -/

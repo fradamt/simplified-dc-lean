@@ -334,8 +334,9 @@ private theorem fg1 (i : Nat) (y : Fin 1) :
 private theorem R1 (i : Nat) (y : Fin 1) :
     R_at p1 unitCodec env1 rho1 i y =
       KitFG.storeControlsView (heightView p1) (initial p1.n).fg := by
-  change KitFG.storeControlsView (heightView p1) (storeAt p1 unitCodec env1 rho1 i y).fg = _
+  change KitFG.treeStoreControlsView (heightView p1) (storeAt p1 unitCodec env1 rho1 i y).fg = _
   rw [fg1]
+  exact KitFG.treeStoreControlsView_eq _ _ (fun W _ _ _ => KitFG.genesis_preceq W)
 
 private theorem roots1 : NamedRootCollisionFree p1 unitCodec env1 rho1 := by
     have hnone : ∀ x o t, V2.Event.deliver x o t ∉ rho1.events := by

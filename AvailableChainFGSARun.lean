@@ -11,6 +11,7 @@ public import AvailableChainFGSARun.Proofs.Excludes
 public import AvailableChainFGSARun.Statements.Interface
 public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.ClockLaws
+public import AvailableChainFGSARun.Proofs.RetainedClock
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSARun.Proofs.Content
@@ -41,3 +42,5 @@ public import AvailableChainFGSARun.Proofs.NamedDelivery
 public import AvailableChainFGSARun.Proofs.RootLease
 public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSARun.Proofs.SelfDelivery
+public import AvailableChainFGSARun.Proofs.Spec.Simulation
+public import AvailableChainFGSARun.Proofs.Spec.Transfer

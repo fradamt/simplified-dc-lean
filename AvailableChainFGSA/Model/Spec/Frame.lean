@@ -33,7 +33,7 @@ structure Frame (n : Nat) where
   allowed : Finset (FGBlock (Fin n))
 
 /-- [spec 600–605] `fg_to_ac`, parameterized by the guarded root and height floor.
-`Next.controls` will supply these after S0-IJ merges. -/
+`Next.controls` supplies these in the guarded frame correspondence. -/
 def frameOf (p : Params) (st : State p.n) (root : FGBlock (Fin p.n))
     (floor : Nat) (height : FGBlock (Fin p.n) → Nat) : Frame p.n :=
   let tree := st.fg.TF.filter (fun B => FGBlock.preceq st.fg.F B)

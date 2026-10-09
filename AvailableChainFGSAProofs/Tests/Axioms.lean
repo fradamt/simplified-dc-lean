@@ -279,12 +279,12 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_rMono
 #print axioms AvailableChain.FGSA.Run.fgsa_storeAt
 #print axioms AvailableChain.FGSA.Run.fgsa_storeClaim
-#print axioms AvailableChain.FGSA.Run.fgsa_rFrameExact
+#print axioms AvailableChain.FGSA.Run.fgsa_rFrameExactNext
 #print axioms AvailableChain.FGSA.Run.fgsa_rActive
 #print axioms AvailableChain.FGSA.Run.fgsa_activeViewAt
 #print axioms AvailableChain.FGSA.Run.fgsa_activeViewClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_rCarrierView
-#print axioms AvailableChain.FGSA.Run.fgsa_rFrame
+#print axioms AvailableChain.FGSA.Run.fgsa_rFrameNext
 #print axioms AvailableChain.FGSA.Run.fgsa_frameAt
 #print axioms AvailableChain.FGSA.Run.fgsa_frameClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_seed_stored
@@ -647,8 +647,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_forward
 #print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_backward
 #print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_run
-#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_clean
-#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_clean_of_retained_proposal
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery_of_retained_proposal
 -- Wave D1: every new public definition and theorem.
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_sa_proposalTime
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_engine_proposalTime
@@ -700,7 +700,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 -- F1b.4b G11 run suffix transport and regime wrappers.
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_frozen_block
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_full_domain
-#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_path_domain
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_of_top_retained
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_proposal_parent
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_current_block_eq
@@ -737,8 +737,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.exactService_participation_of_card
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_clean
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery
-#print axioms AvailableChain.FGSA.fgsa_ordinary_parent_of_live_prefix
-#print axioms AvailableChain.FGSA.fgsa_ordinary_parent_of_live_cover
+#print axioms AvailableChain.FGSA.fgsa_ordinary_parent_of_live_prefix_of_top_retained
+#print axioms AvailableChain.FGSA.fgsa_ordinary_parent_of_live_cover_of_top_retained
 #print axioms AvailableChain.FGSA.fgsa_band_eq_of_same_floor
 #print axioms AvailableChain.FGSA.fgsa_eligible_eq_of_band_score
 #print axioms AvailableChain.FGSA.fgsa_eligible_eq_of_no_band_score
@@ -783,7 +783,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.retainedBand
 #print axioms AvailableChain.FGSA.Run.ReflectedDomainWitness
 #print axioms AvailableChain.FGSA.Run.RetainedReadPremises
-#print axioms AvailableChain.FGSA.Run.fgsa_domain_witness_of_mem
+#print axioms AvailableChain.FGSA.Run.fgsa_domain_witness_of_mem_of_top_retained
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_full_domain_view
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_view
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff_view
@@ -792,8 +792,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_retained_old_child_reflects_on_run
 #print axioms AvailableChain.FGSA.Run.retainedBand_def
 #print axioms AvailableChain.FGSA.Run.ReflectedDomainWitness_def
-#print axioms AvailableChain.FGSA.Run.fgsa_domainR_eq_storeFrameView
-#print axioms AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness_view
+#print axioms AvailableChain.FGSA.Run.fgsa_domainR_eq_storeFrameView_of_top_retained
+#print axioms AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness_view_of_top_retained
 #print axioms AvailableChain.FGSA.Run.fgsa_score_geometry_of_retained_cuts
 #print axioms AvailableChain.FGSA.Run.fgsa_retained_path_mem
 #print axioms AvailableChain.FGSA.Run.fgsa_retained_proposal_mem
@@ -801,7 +801,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_retained_proposal_mem_on_run
 #print axioms AvailableChain.FGSA.Run.fgsa_retained_path_persists_on_run
 #print axioms AvailableChain.FGSA.Run.fgsa_retainedWalk_geometry_on_run
-#print axioms AvailableChain.FGSA.Run.domainR_eq_storeFrame
+#print axioms AvailableChain.FGSA.Run.fgsa_domainR_eq_storeFrame_of_top_retained
 #print axioms AvailableChain.FGSA.Run.kappaF_ceiling
 #print axioms AvailableChain.FGSA.Run.kappaF_ge_two
 #print axioms AvailableChain.FGSA.Run.kappaF_eq_two_iff
@@ -967,8 +967,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.healing_settled_frame
 #print axioms AvailableChain.FGSA.Run.healing_phase_local_le_frontier
 #print axioms AvailableChain.FGSA.Run.healing_phase_top_persist
-#print axioms AvailableChain.FGSA.Run.healing_phase_contest_persist
-#print axioms AvailableChain.FGSA.Run.healing_phase_order
+#print axioms AvailableChain.FGSA.Run.healing_phase_contest_persist_of_crossing
+#print axioms AvailableChain.FGSA.Run.healing_phase_order_of_crossing
 #print axioms AvailableChain.FGSA.Run.healing_phase_block_receipt
 #print axioms AvailableChain.FGSA.Run.healing_evidence_spread
 #print axioms AvailableChain.FGSA.Run.healing_phase_rows_spread
@@ -1219,7 +1219,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.inclusion_no_equivocation
 #print axioms AvailableChain.FGSA.Run.inclusion_head_seats
 #print axioms AvailableChain.FGSA.Run.inclusion_rest_bound
-#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior
+#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior_of_F_prefix
 #print axioms AvailableChain.FGSA.Run.inclusion_reader_scores
 #print axioms AvailableChain.FGSA.Run.inclusion_clock_offGate
 #print axioms AvailableChain.FGSA.Run.inclusion_time_le_of_tick
@@ -1758,7 +1758,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.frontier_hg3_gap
 #print axioms AvailableChain.FGSA.Run.frontierSearch_initial_J_age
 #print axioms AvailableChain.FGSA.Run.frontier_hg3_topJ
-#print axioms AvailableChain.FGSA.Run.frontierSearch_phase_step
+#print axioms AvailableChain.FGSA.Run.frontierSearch_phase_step_of_crossing
 #print axioms AvailableChain.FGSA.Run.frontierSearch_contest_rise_cost
 #print axioms AvailableChain.FGSA.Run.frontierSearch_contest_row_cost
 #print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_opening_cost
@@ -2219,3 +2219,19 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.wc_seededLiveAt
 #print axioms AvailableChain.FGSA.Run.weakContinuation_of_live
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.weakContinuationLive
+
+-- Guarded and canonical port helper audits.
+#print axioms AvailableChain.FGSA.Run.fgsa_cpCompat_of_scopedFrame
+#print axioms AvailableChain.FGSA.Run.fgsa_cpCompat_of_srcFrame
+#print axioms AvailableChain.FGSA.Run.fgsa_cpPrefix_of_srcFrame
+#print axioms AvailableChain.FGSA.Run.fgsa_domainR_eq_filtered
+#print axioms AvailableChain.FGSA.Run.fgsa_domainR_eq_treeStoreFrameView
+#print axioms AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness_tree_view
+#print axioms AvailableChain.FGSA.Run.fgsa_tree_domain_witness_of_mem
+#print axioms AvailableChain.FGSA.Run.fgsa_score_geometry_of_tree_domains
+#print axioms AvailableChain.FGSA.fgsa_ordinary_parent_of_live_cover_filtered
+#print axioms AvailableChain.FGSA.fgsa_ordinary_parent_of_live_prefix_filtered
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_filtered
+#print axioms AvailableChain.FGSA.Run.wc_proposer_prior_of_F_prefix
+#print axioms AvailableChain.FGSA.Run.wc_treeFrameAncestry
+#print axioms AvailableChain.FGSA.Run.healing_domain_filter_F

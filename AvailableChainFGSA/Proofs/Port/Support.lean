@@ -93,28 +93,13 @@ theorem port_headSupport_incidence (p : Params) (st : State p.n) (s : Slot)
     (H : Block) (hr : GridCO.resolvedHead? st.base o = some H)
     (hBH : Block.Preceq B H) :
     o ∈ headSupportNext p st s ↔ o ∈ headSupport p st s := by
-  have hm := hT H (resolvedHead_mem st.base o hr) (block_preceq_trans hFB hBH)
-  let frozen := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
-    GridCO.resolvedBefore (actView st) o (SA.freezeTime p.toParams (s - 1)))
-  change o ∈ (frozen ++ ((proposalsAtNext p st s).flatMap
-      (fun row => row.2.map baseVote)).filter (fun o =>
-        GridCO.headLabel? o == some (s - 1) &&
-          match GridCO.resolvedHead? st.base o with
-          | some H => decide (∃ B ∈ tree p st, eraseFG B = H) &&
-              decide (H.slot ≤ s - 1)
-          | none => false)).eraseDups ↔
-    o ∈ (frozen ++ ((proposalsAt st s).flatMap (fun row => row.2.map baseVote)).filter
-      (fun o => GridCO.headLabel? o == some (s - 1) &&
-        match GridCO.resolvedHead? st.base o with
-        | some H => decide (H.slot ≤ s - 1)
-        | none => false)).eraseDups
-  rw [List.mem_eraseDups, List.mem_eraseDups, List.mem_append, List.mem_append]
-  apply or_congr Iff.rfl
-  rw [List.mem_filter, List.mem_filter, hP, hr]
-  change (_ ∧ (GridCO.headLabel? o == some (s - 1) &&
-    (decide (∃ B ∈ tree p st, eraseFG B = H) && decide (H.slot ≤ s - 1))) = true) ↔
-    (_ ∧ (GridCO.headLabel? o == some (s - 1) && decide (H.slot ≤ s - 1)) = true)
-  simp only [hm, decide_true, Bool.true_and]
+  have _ := hT
+  have _ := hFB
+  have _ := hr
+  have _ := hBH
+  delta headSupportNext headSupport
+  rw [hP]
+  rfl
 
 /-- Feeds `fgsa_score_eq_on_run`: fixed raw pools give equal HEAD scores above
 F, even when the support lists differ. -/
@@ -570,6 +555,119 @@ theorem port_releaseCount_eq {n : Nat} (q : GridCO.Params)
         simp [ht, hr, hf]
       · rw [hres]
         simp [hr, Option.filter, hf, hn]
+
+/-- Support incidence and selected heads agree with Legacy under the old local facts. -/
+theorem port_headSupport_incidence_legacy (p : Params) (st : State p.n) (s : Slot)
+    (hP : proposalsAtNext p st s = Legacy.proposalsAt st s)
+    (hT : ∀ H ∈ st.base.blocks, Block.Preceq (eraseFG st.fg.F) H →
+      ∃ B ∈ tree p st, eraseFG B = H)
+    (B : Block) (hFB : Block.Preceq (eraseFG st.fg.F) B) (o : GridCO.Wire p.n .root)
+    (H : Block) (hr : GridCO.resolvedHead? st.base o = some H)
+    (hBH : Block.Preceq B H) :
+    o ∈ headSupportNext p st s ↔ o ∈ Legacy.headSupport p st s := by
+  have hm := hT H (resolvedHead_mem st.base o hr) (block_preceq_trans hFB hBH)
+  let frozen := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
+    GridCO.resolvedBefore (actView st) o (SA.freezeTime p.toParams (s - 1)))
+  change o ∈ (frozen ++ ((proposalsAtNext p st s).flatMap
+      (fun row => row.2.map baseVote)).filter (fun o =>
+        GridCO.headLabel? o == some (s - 1) &&
+          match GridCO.resolvedHead? st.base o with
+          | some H => decide (∃ B ∈ tree p st, eraseFG B = H) &&
+              decide (H.slot ≤ s - 1)
+          | none => false)).eraseDups ↔
+    o ∈ (frozen ++ ((Legacy.proposalsAt st s).flatMap (fun row => row.2.map baseVote)).filter
+      (fun o => GridCO.headLabel? o == some (s - 1) &&
+        match GridCO.resolvedHead? st.base o with
+        | some H => decide (H.slot ≤ s - 1)
+        | none => false)).eraseDups
+  rw [List.mem_eraseDups, List.mem_eraseDups, List.mem_append, List.mem_append]
+  apply or_congr Iff.rfl
+  rw [List.mem_filter, List.mem_filter, hP, hr]
+  change (_ ∧ (GridCO.headLabel? o == some (s - 1) &&
+    (decide (∃ B ∈ tree p st, eraseFG B = H) && decide (H.slot ≤ s - 1))) = true) ↔
+    (_ ∧ (GridCO.headLabel? o == some (s - 1) && decide (H.slot ≤ s - 1)) = true)
+  simp only [hm, decide_true, Bool.true_and]
+
+theorem port_headSupport_scoreOn_legacy (p : Params) (st : State p.n) (s : Slot)
+    (hP : proposalsAtNext p st s = Legacy.proposalsAt st s)
+    (hT : ∀ H ∈ st.base.blocks, Block.Preceq (eraseFG st.fg.F) H →
+      ∃ B ∈ tree p st, eraseFG B = H)
+    (raw : List (GridCO.Wire p.n .root)) (B : Block)
+    (hFB : Block.Preceq (eraseFG st.fg.F) B) :
+    GridCO.goldfishScoreOn (GridCO.resolutionTree st.base) st.base.blocks raw
+      (headSupportNext p st s) B =
+    GridCO.goldfishScoreOn (GridCO.resolutionTree st.base) st.base.blocks raw
+      (Legacy.headSupport p st s) B := by
+  rw [port_scoreOn_resolved, port_scoreOn_resolved]
+  congr 2
+  funext i
+  congr 1
+  apply Bool.eq_iff_iff.mpr
+  simp only [GridCO.seatVotes, List.any_eq_true, List.mem_filter]
+  constructor <;> rintro ⟨o, ⟨ho, hi⟩, hh⟩
+  all_goals
+    cases hr : GridCO.resolvedHead? st.base o with
+    | none => simp [hr] at hh
+    | some H =>
+      have hh' := hh
+      simp only [hr, Option.any_some, Bool.and_eq_true] at hh'
+      have hb : Block.Preceq B H := hh'.2
+      have he := port_headSupport_incidence_legacy p st s hP hT B hFB o H hr hb
+      exact ⟨o, ⟨by simpa only [he] using ho, hi⟩, hh⟩
+
+theorem port_headVotes_score_legacy (p : Params) (st : State p.n) (s : Slot)
+    (hP : proposalsAtNext p st s = Legacy.proposalsAt st s)
+    (hT : ∀ H ∈ st.base.blocks, Block.Preceq (eraseFG st.fg.F) H →
+      ∃ B ∈ tree p st, eraseFG B = H)
+    (B : Block) (hFB : Block.Preceq (eraseFG st.fg.F) B) :
+    GridCO.goldfishScoreOn (GridCO.resolutionTree st.base) st.base.blocks
+      (headVotesNext p st s) (headSupportNext p st s) B =
+    GridCO.goldfishScoreOn (GridCO.resolutionTree st.base) st.base.blocks
+      (Legacy.headVotes p st s) (Legacy.headSupport p st s) B := by
+  rw [port_headVotes_eq_legacy_of_proposals p st s hP]
+  exact port_headSupport_scoreOn_legacy p st s hP hT _ B hFB
+
+theorem port_selected_head_eq_legacy (p : Params) (st : State p.n) (T : List Block)
+    (raw left right : List (GridCO.Wire p.n .root))
+    (hc : controls p st = Legacy.controls p st)
+    (hF : Block.Preceq (eraseFG st.fg.F) (Legacy.liveRoot p st))
+    (hs : ∀ B, Block.Preceq (eraseFG st.fg.F) B →
+      GridCO.goldfishScore st.base.blocks raw left B =
+        GridCO.goldfishScore st.base.blocks raw right B) :
+    headInTreeNext p st T raw left = Legacy.headInTree p st T raw right := by
+  rw [port_headInTree_eq_legacy_of_controls p st hc]
+  unfold Legacy.headInTree
+  apply port_ghost_congr T (eraseFG st.fg.F) _ hF _ _ _ _ hs
+  intro B hFB
+  unfold Legacy.eligible
+  rw [hs B hFB]
+
+theorem port_proposer_selected_head_legacy (p : Params) (st : State p.n) (s : Slot)
+    (T : List Block) (hc : controls p st = Legacy.controls p st)
+    (hF : Block.Preceq (eraseFG st.fg.F) (Legacy.liveRoot p st))
+    (hd : st.base.headDomain = none) (raw : List (GridCO.Wire p.n .root)) :
+    headInTreeNext p st T raw (proposerSupportNext st s) =
+      Legacy.headInTree p st T raw (Legacy.proposerSupport st s) := by
+  apply port_selected_head_eq_legacy p st T raw _ _ hc hF
+  intro B hFB
+  exact port_proposerSupport_score_legacy st s B hFB hd raw
+
+theorem port_voter_selected_head_legacy (p : Params) (st : State p.n) (s : Slot)
+    (T : List Block) (hc : controls p st = Legacy.controls p st)
+    (hF : Block.Preceq (eraseFG st.fg.F) (Legacy.liveRoot p st))
+    (hd : st.base.headDomain = none)
+    (hP : proposalsAtNext p st s = Legacy.proposalsAt st s)
+    (hT : ∀ H ∈ st.base.blocks, Block.Preceq (eraseFG st.fg.F) H →
+      ∃ B ∈ tree p st, eraseFG B = H) :
+    headInTreeNext p st T (headVotesNext p st s) (headSupportNext p st s) =
+      Legacy.headInTree p st T (Legacy.headVotes p st s) (Legacy.headSupport p st s) := by
+  rw [port_headVotes_eq_legacy_of_proposals p st s hP]
+  apply port_selected_head_eq_legacy p st T _ _ _ hc hF
+  intro B hFB
+  change GridCO.goldfishScoreOn st.base.blocks st.base.blocks _ _ B =
+    GridCO.goldfishScoreOn st.base.blocks st.base.blocks _ _ B
+  simpa only [GridCO.resolutionTree, hd, Option.getD_none] using
+    port_headSupport_scoreOn_legacy p st s hP hT (Legacy.headVotes p st s) B hFB
 
 end AvailableChain.FGSA.Next
 end

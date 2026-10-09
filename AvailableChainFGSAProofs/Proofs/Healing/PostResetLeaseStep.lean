@@ -126,7 +126,8 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1))
-    (hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X)
+    (hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq (storeAt p c E rho iy y).fg.F A →
+      FGBlock.Preceq A W → A ∈ X)
     (hD : B ∈ D_at p c E rho iy y X) :
     Block.Preceq (eraseFG B) (headAtIdx p c E rho iy (s + 1)) := by
   have hE := hrec.base.valid
@@ -150,19 +151,21 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hdfg : dst.fg = (storeAt p c E rho iy y).fg := clock_fg p _ _
   have hRd : FGSA.controls p dst = R_at p c E rho iy y := by
-    change KitFG.storeControlsView (heightView p) dst.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho iy y).fg
+    change KitFG.treeStoreControlsView (heightView p) dst.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho iy y).fg
     rw [hdfg]
   obtain ⟨hBX, hFB, hZB, W, hWX, hBW, hloW⟩ :=
     (KitFG.mem_filteredFromView (heightView p) (R_at p c E rho iy y) X B).mp hD
   have hvW : W ∈ voterBlocks p dst (s + 1) := hXv hWX
-  have hWdst : W ∈ dst.fg.TF := (Finset.mem_filter.mp hvW).1
+  have hWdst : W ∈ dst.fg.TF :=
+    Next.tree_subset_TF p dst (Finset.mem_filter.mp hvW).1
   have hFB0 : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) (eraseFG B) :=
     eraseFG_preceq hFB
   have hFB' : Block.Preceq (eraseFG dst.fg.F) (eraseFG B) := hdfg ▸ hFB0
   -- The kept path: every block between the live root and B is in the frozen domain.
   have hpath : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C (eraseFG B) →
-      C ∈ erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst (s + 1))) := by
+      C ∈ erasedList dst (filteredFrom p.E p.cfg (FGSA.controls p dst)
+        (voterBlocks p dst (s + 1))) := by
     intro C hr hCB
     have hr' : liveRoot p dst ≠ C ∧ Block.Preceq (liveRoot p dst) C := by
       change ((!decide (liveRoot p dst = C)) && Block.preceq (liveRoot p dst) C) = true at hr
@@ -176,9 +179,9 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
       (Gen.Pure.block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) (heA ▸ hr'.2))
     apply List.mem_filter.mpr
     refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
-    rw [← domainR_eq_storeFrame, domainR_def, frameR_def]
+    rw [KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
     exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p dst) _ A).mpr
-      ⟨hXv (hXc W hWX A hAW), hFA, hZA, W, hvW, hAW, hRd ▸ hloW⟩
+      ⟨hXv (hXc W hWX A (hdfg ▸ hFA) hAW), hFA, hZA, W, hvW, hAW, hRd ▸ hloW⟩
   -- Both admission arms remove conflicting leases at this HEAD read.
   have hrows : ∀ row ∈ dst.base.obligations, Block.Compatible row.1 (eraseFG B) := by
     rcases harm with hτ | ⟨hgw, hel⟩
@@ -235,7 +238,8 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at htr
   rw [healing_headAtIdx_tick p c E rho hiy]
-  exact fgsa_headVote_covers_of_transfer p dst s (eraseFG B) hanchor hpath
+  rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero s)]
+  exact fgsa_headInTree_covers_of_transfer p dst _ _ _ (eraseFG B) hanchor hpath
     htr.2.2.2.2.2.1 htr.2.2.2.2.2.2
 
 
@@ -506,10 +510,13 @@ omit mono emittedNonempty emittedName writes xing origin h0r in
 private theorem written_frozen_geometry
     {iy : Nat} {y : V} {s : Slot}
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
-    let X := (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF
+    let X := (storeAt p c E rho
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF.filter
+        (fun A => FGBlock.Preceq (storeAt p c E rho iy y).fg.F A)
     X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1) ∧
-    ∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X := by
+    ∀ W ∈ X, ∀ A, FGBlock.Preceq (storeAt p c E rho iy y).fg.F A →
+      FGBlock.Preceq A W → A ∈ X := by
   intro X
   have hs := hrec.base.valid.toScheduleWellFormed
   have hread : postClock E rho y (SA.voteTime p.toParams (s + 1)) =
@@ -525,12 +532,18 @@ private theorem written_frozen_geometry
     change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
     push_cast
     linarith [p.deltaPos]
-  refine ⟨fun W hW => healing_frozen_path p c E rho hs hrec.base.noRestart hdpos hdvote
-    (by rw [Nat.add_sub_cancel]) hW hread W (KitFG.preceq_refl W), ?_⟩
-  intro W hW A hAW
+  constructor
+  · intro W hW
+    obtain ⟨hW, hFW⟩ := Finset.mem_filter.mp hW
+    exact healing_frozen_path p c E rho hs hrec.base.noRestart hdpos hdvote
+      (by rw [Nat.add_sub_cancel]) hW hread W
+      (by change FGBlock.Preceq (FGSA.clock p _ _).fg.F W; rw [clock_fg]; exact hFW)
+      (KitFG.preceq_refl W)
+  intro W hW A hFA hAW
+  obtain ⟨hW, -⟩ := Finset.mem_filter.mp hW
   obtain ⟨A', hA', heA'⟩ := eraseFG_ancestor_mem
     (cstoreInv_stateBefore E rho _ y).fg.closed hW (eraseFG_preceq hAW)
-  exact (eraseFG_injective heA') ▸ hA'
+  exact Finset.mem_filter.mpr ⟨(eraseFG_injective heA') ▸ hA', hFA⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.15:2902–2914, H.1:663–708; plan J4-A3;
@@ -576,7 +589,9 @@ theorem postReset_written_first_head
     ⟨(written_slow_boundary p c E rho hrec h0r hx hCB hel).le, hel⟩)
   obtain ⟨hXv, hXc⟩ := written_frozen_geometry p c E rho hrec hiy
   exact healing_first_transfer_written p c E rho hrec mono writes hx hix hres hBC
-    hgst.le harm hy hiy hXv hXc hD
+    hgst.le harm hy hiy hXv hXc (by
+      dsimp only [D_at] at hD ⊢
+      simpa only [healing_domain_filter_F] using hD)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.15 S1:2902–2914; plan J4-A3; B1/B13/B17/B18.
@@ -936,7 +951,7 @@ theorem postReset_moving_lease_compat
     · have hFZ : FGBlock.Preceq (storeAt p c E rho iy y).fg.F
           (R_at p c E rho iy y).Z := by
         change FGBlock.Preceq (storeAt p c E rho iy y).fg.F
-          (KitFG.storeControlsView (heightView p) (storeAt p c E rho iy y).fg).Z
+          (KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho iy y).fg).Z
         unfold Controls.Z
         split
         · exact (cstoreInv_stateBefore E rho iy y).fg.FJ
@@ -1070,7 +1085,9 @@ theorem postReset_written_next_head
     writes xing origin h0r hinv hx hix hxi hpass hres hCB hne hkey hsl
     hbatch hy hiy hyi hafter le_rfl
   obtain ⟨hXv, hXc⟩ := written_frozen_geometry p c E rho hrec hiy
-  exact healing_next_transfer_domain p c E rho hrec hgst hbatch hy hiy hXv hXc hD hlease
+  exact healing_next_transfer_domain p c E rho hrec hgst hbatch hy hiy hXv hXc (by
+      dsimp only [D_at] at hD ⊢
+      simpa only [healing_domain_filter_F] using hD) hlease
 
 omit [Fintype V] hrec mono emittedNonempty emittedName writes xing origin h0r in
 private theorem written_proposal_read
@@ -1158,8 +1175,8 @@ theorem postReset_written_moving_parent
   have hin : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip y) _
   have hfg : st.fg = (storeAt p c E rho ip y).fg := clock_fg p _ _
   have hR : FGSA.controls p st = R_at p c E rho ip y := by
-    change KitFG.storeControlsView (heightView p) st.fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho ip y).fg
+    change KitFG.treeStoreControlsView (heightView p) st.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho ip y).fg
     rw [hfg]
   by_cases hZ : FGBlock.Preceq B (R_at p c E rho ip y).Z
   · rw [hpar]

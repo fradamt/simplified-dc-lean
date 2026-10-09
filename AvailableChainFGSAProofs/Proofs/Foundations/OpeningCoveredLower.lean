@@ -51,8 +51,7 @@ theorem openingCovered_lower_gate (G ΔF : Time) (h : HealingPrem p c G ΔF E rh
     have hd : Qfg ∈ FGSA.fullTree p nd.st := by
       rw [fgSource_eq_jointSource] at hsel
       have hm := (Finset.mem_filter.mp (FGSA.pickPair_some_spec _ _ hsel).1).1
-      rw [fullTree_eq]
-      simpa only [domainR_eq_storeFrame, treeT_def] using hm
+      exact hm
     have hil : timeIdx rho u ≤ i := by
       apply Nat.le_of_not_gt
       intro hil
@@ -73,8 +72,8 @@ theorem openingCovered_lower_gate (G ΔF : Time) (h : HealingPrem p c G ΔF E rh
       rw [hh]
       have hcontest : (FGSA.controls p nd.st).contest = false := by
         change (FGSA.controls p (FGSA.clock p _ _)).contest = false
-        rw [FGSA.controls_eq, FGSA.clock_fg]
-        rw [← FGSA.controls_eq]
+        unfold FGSA.controls
+        rw [FGSA.clock_fg]
         exact hlocal.2.1
       change (if (FGSA.controls p nd.st).contest then _ else _) ≤ m - 1
       rw [hcontest, hH']

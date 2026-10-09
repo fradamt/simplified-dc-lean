@@ -128,7 +128,7 @@ INLINE hstore/hframe: fgsa_activeViewAt/fgsa_frameAt; hsrc:
 fgsa_srcFrameAboveClaim; hnamed: sourceDiscipline_emittedName. -/
 theorem outage_delivery_frame {p : Params} {In V : Type} [DecidableEq V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho)
     (hnamed : ∀ k x r (a : RowWire p.n) e,
       HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
@@ -147,12 +147,13 @@ theorem outage_delivery_frame {p : Params} {In V : Type} [DecidableEq V]
       FGBlock.Preceq e β ∨ FGBlock.Preceq β e) ∧
     (Block.Compatible B (F_at p c E rho (i + 1) x) ∧
       Block.Compatible B (J_at p c E rho (i + 1) x)) := by
+  have _hcanonicalFrame := hframe
   have hnames : OutageNamedHistory p c E rho β (i + 1) := by
     constructor
     intro y r a e ha he heScope
     exact (outage_named_of_source_history (hroots := hroots) hβ hist hnamed).history y r a e
       (outage_row_before_delivery hdel ha) he heScope
-  have hcp := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+  have hcp := fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
   obtain ⟨hcert, hF, hJ, _, _⟩ := hcp (i + 1) x β hx hnames.history
   refine ⟨hcert, ?_, ?_⟩
   · rw [← hβ]
@@ -170,7 +171,7 @@ full-domain or frame-root witness, including contested frames. INLINE
 hstore/hframe: fgsa_activeViewAt/fgsa_frameAt; hsrc: fgsa_srcFrameAboveClaim. -/
 theorem outage_frame_retains {p : Params} {In V : Type} [DecidableEq V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho)
     {i : Nat} {y : V} (hy : y ∈ rho.honest)
     {B : Block} {β : FGBlock (Fin p.n)} (hβ : eraseFG β = B)
@@ -181,6 +182,7 @@ theorem outage_frame_retains {p : Params} {In V : Type} [DecidableEq V]
       (Block.Preceq B (F_at p c E rho i y) ∨
         ((∃ X ∈ FGSA.fullTree p (storeAt p c E rho i y), eraseFG X = B) ∨
           Block.Preceq B (eraseFG (FGSA.controls p (storeAt p c E rho i y)).Z))) := by
+  have _hcanonicalFrame := hframe
   let st := storeAt p c E rho i y
   have hinv := (hstore i y hy).1
   obtain ⟨S, hS, hSe⟩ := (hinv.baseTree _).mp hinv.Smem
@@ -190,7 +192,7 @@ theorem outage_frame_retains {p : Params} {In V : Type} [DecidableEq V]
   obtain ⟨X, hX, hXe, _⟩ := eraseFG_ancestor_preceq hinv.fg.closed hS hBS'
   have hXβ : X = β := eraseFG_injective (hXe.trans hβ.symm)
   have hβmem : β ∈ st.fg.TF := hXβ ▸ hX
-  have hcp := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+  have hcp := fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
   obtain ⟨_, hF, _, hret, _⟩ := hcp i y β hy hist.history
   have hFB : Block.Compatible (F_at p c E rho i y) B := by
     rw [← hβ]
@@ -209,7 +211,7 @@ theorem outage_frame_retains {p : Params} {In V : Type} [DecidableEq V]
   · exact Or.inr (hβ ▸ eraseFG_preceq hZ)
   · left
     refine ⟨β, ?_, hβ⟩
-    rw [fullTree_eq, ← domainR_eq_storeFrame]
+    rw [fgsa_fullTree_eq_filtered, ← fgsa_domainR_eq_filtered]
     exact hdom
 
 end AvailableChain.FGSA.Run

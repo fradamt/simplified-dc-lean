@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAClaims.Statements.ComposeStmt -- shake: keep (foundation layer)
-public import AvailableChainFGSAClaims.Statements.FrameNext
 
 @[expose] public section
 

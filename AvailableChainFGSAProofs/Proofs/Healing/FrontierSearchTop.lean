@@ -78,7 +78,7 @@ private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
   have hne : (fullTree p st).Nonempty := by
     obtain ⟨W, hW, hh⟩ := healing_phase_frontier_witness p c E rho j x
     obtain ⟨hF, hZ⟩ := healing_phase_frontier_root p c E rho crossing hx hW hh
-    change (KitFG.storeFrameView (heightView p) st.fg st.fg.TF).Nonempty
+    change (KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF).Nonempty
     rw [hfg]
     exact ⟨W, (KitFG.mem_filteredFromView _ _ _ _).mpr
       ⟨hW, hF, hZ, W, hW, KitFG.preceq_refl _, hh ▸ KitFG.Controls.lo_le_H _⟩⟩
@@ -88,8 +88,8 @@ private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
   have hZ : (controls p st).Z = J := by
     change (if (controls p st).rootIsJ then st.fg.J else st.fg.F) = J
     have hr' : (controls p st).rootIsJ = true ∧ (controls p st).J = J := by
-      change (KitFG.storeControlsView (heightView p) st.fg).rootIsJ = true ∧
-        (KitFG.storeControlsView (heightView p) st.fg).J = J
+      change (KitFG.treeStoreControlsView (heightView p) st.fg).rootIsJ = true ∧
+        (KitFG.treeStoreControlsView (heightView p) st.fg).J = J
       rw [hfg]
       exact hr
     rw [hr'.1]
@@ -172,11 +172,14 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
     by_contra hn
     change (decide ((storeAt p c E rho j y).fg.h_max =
       (storeAt p c E rho j y).fg.h_j + 1) && decide (∃ W ∈ (storeAt p c E rho j y).fg.TF,
+        FGBlock.Preceq (storeAt p c E rho j y).fg.F W ∧
         (heightView p W).h = (storeAt p c E rho j y).fg.h_max ∧
         ¬ FGBlock.Preceq (storeAt p c E rho j y).fg.J W)) = false at hc
     rcases Bool.and_eq_false_iff.mp hc with h | h
     · exact of_decide_eq_false h (hHj.trans htopj.symm)
-    · exact of_decide_eq_false h ⟨C, hCj, hh.trans hHj.symm, hn⟩
+    · exact of_decide_eq_false h ⟨C, hCj,
+        (healing_phase_frontier_root p c E rho crossing hy hCj (hh.trans hHj.symm)).1,
+        hh.trans hHj.symm, hn⟩
   have hJJ : J = (storeAt p c E rho (i + 1) x).fg.J :=
     hr.2.symm.trans ((hJj hJC).trans hJ)
   have hj0 : (storeAt p c E rho (i + 1) x).fg.h_j ≠ 0 := by

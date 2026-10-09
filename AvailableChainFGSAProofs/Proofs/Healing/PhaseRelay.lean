@@ -153,9 +153,13 @@ theorem healing_phase_block_receipt (crossing : RXing p c E rho)
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1155–1163; plan S20, H-PHASE/P2.
 DC: INTENTIONAL strict receipt stamps enter the frozen HEAD arm at equality. -/
-private theorem phase_frozen_mem (hs : V2.D.ScheduleWellFormed E rho)
+private theorem phase_frozen_mem_of_crossing (crossing : RXing p c E rho)
+    (hs : V2.D.ScheduleWellFormed E rho)
     (hnr : V2.D.NoRestart rho) {y : V} {W : FGBlock (Fin p.n)} {d : Time}
     (hdpos : 0 < d) {s : Slot} {nd : Node p}
+    (hy : y ∈ rho.honest)
+    (hcap : frontierAtIdx p c E rho (timeIdx rho (SA.voteTime p.toParams s)) ≤
+      (heightView p W).h)
     (hdt : d ≤ SA.voteTime p.toParams s) (hdf : d ≤ SA.freezeTime p.toParams (s - 1))
     (hW : W ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho d) y).fg.TF)
     (hpost : postClock E rho y (SA.voteTime p.toParams s) = some nd) :
@@ -197,8 +201,8 @@ private theorem phase_frozen_mem (hs : V2.D.ScheduleWellFormed E rho)
       · exact hg.2 ▸ hdpos
       · obtain ⟨parent, he, _⟩ := ha.1
         have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hs he d).mp hl
-        have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-          (fgsa_hrestore_now p c) E rho hs he y
+        have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+          (fgsa_hrestore_now_retained p c) E rho hs he y
         rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hn
         exact hstamp ▸ hn.trans_lt ht
     have hkept : st'.base.blockStamp.find? (fun row => row.1 == eraseFG W) =
@@ -210,8 +214,26 @@ private theorem phase_frozen_mem (hs : V2.D.ScheduleWellFormed E rho)
     change W ∈ FGSA.voterBlocks p (clock p st' (SA.voteTime p.toParams s)) s
     apply Finset.mem_filter.mpr
     refine ⟨?_, Bool.or_eq_true_iff.mpr (Or.inl (decide_eq_true ?_))⟩
-    · rw [(clock_cumulative p _ _).1]
-      exact hc.1 hW
+    · change W ∈ (clock p st' (SA.voteTime p.toParams s)).fg.TF.filter _
+      apply Finset.mem_filter.mpr
+      rw [clock_fg]
+      refine ⟨hc.1 hW, ?_⟩
+      have hktime : k ≤ timeIdx rho (SA.voteTime p.toParams s) := by
+        have hklt := (Gen.V2.Duty.index_lt_idxBefore_iff hs htick
+          (SA.voteTime p.toParams s + 1)).mpr (Int.lt_add_one_iff.mpr le_rfl)
+        have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + 1) =
+            timeIdx rho (SA.voteTime p.toParams s) := by
+          dsimp only [timeIdx]
+          simp only [V2.D.Run.idxBefore_def, Int.lt_add_one_iff]
+        exact (hcut ▸ hklt).le
+      obtain ⟨K, hK, hKF⟩ := (storeBundle_stateBefore E rho k y).cstore.fg.Fcar
+      have hlt := (healing_phase_finality_le p c E rho hK hKF).trans_lt
+        (healing_phase_justified_lt p c E rho k y)
+      obtain ⟨Q, hQ, hhQ⟩ := healing_phase_frontier_witness p c E rho k y
+      have hQ' := (fgsa_store_cumulative p c E rho hnr hktime y).1 hQ
+      have hb := (hhQ ▸ healing_phase_height_le p c E rho hQ').trans
+        ((healing_phase_local_le_frontier p c E rho hy).trans hcap)
+      exact crossing k k y y K W hy le_rfl hK hKF ⟨hy, hc.1 hW⟩ (hlt.trans_le hb)
     · have he : GridCO.stampBlock (clock p st' (SA.voteTime p.toParams s)).base (eraseFG W) =
           stamp := by
         unfold GridCO.stampBlock
@@ -256,10 +278,14 @@ theorem healing_evidence_spread (crossing : RXing p c E rho)
       omega
     obtain ⟨hij, _, _, hw⟩ := receipt y (hdt.trans hhor) hy
     rcases hw with hw | hrise
-    · right
-      apply phase_frozen_mem p c E rho hvalid.toScheduleWellFormed hnr
+    · by_cases hrise : m < frontierAtIdx p c E rho (timeIdx rho (SA.voteTime p.toParams s))
+      · exact Or.inl ⟨_, hij.trans_le (healing_phase_idx_le_time p c rho hdt),
+          le_rfl, hrise⟩
+      right
+      apply phase_frozen_mem_of_crossing p c E rho crossing
+        hvalid.toScheduleWellFormed hnr
         (lt_add_of_le_of_pos (hvalid.in_horizon _ (List.mem_of_getElem? hi)).1 p.deltaPos)
-        hdt ?_ hw hpost
+        hy (hh ▸ Nat.le_of_not_gt hrise) hdt ?_ hw hpost
       cases s with
       | zero =>
         change ev.time + 3 * p.Δ ≤ 4 * p.Δ * (0 : Int) + p.Δ at htime

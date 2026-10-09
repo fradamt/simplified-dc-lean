@@ -73,7 +73,7 @@ theorem admitRow_pool (p : Params) (st : State p.n) (a : RowWire p.n)
       simp only
       split <;> rfl
 
-/-- Lean normalization represents the core record, before any saved-head clamp. -/
+/-- Lean normalization represents the core record, before the read-time head clamp. -/
 theorem normalized_record (st : State n) :
     (normalizeS st).base.stableRecord = normalizeRecord (eraseFG st.fg.F) st.base.stableRecord := by
   unfold normalizeS normalizeRecord
@@ -116,6 +116,31 @@ theorem onBlock_accepted {σ α : Type} (fg : σ → Option σ) (ac : α → α)
     (state : σ × α) (next : σ) (h : fg state.1 = some next) :
     onBlock false fg ac state = (next, ac state.2) := by
   simp [onBlock, h]
+
+/-- The separated confirmation walk is the unchanged Lean walk kernel.
+The all-pool/late-pool and resolved-score bridges are separate obligations. -/
+theorem getConfirmation_walk_embedding (p : Params) (st : GridCO.State p.n .root)
+    (F : AvailableChain.Block) (s : Slot) :
+    getConfirmation st.blocks F (GridCO.voterCount (GridCO.lateVotes p.toParams.engine st s))
+      (GridCO.goldfishScoreOn (GridCO.resolutionTree st) st.blocks
+        (GridCO.cleanSupport p.toParams.engine st s)
+        (GridCO.cleanSupport p.toParams.engine st s)) =
+      SA.Root.confirmationFrom p.toParams F st s := by
+  dsimp only [getConfirmation, SA.Root.confirmationFrom, GridCO.confirmationFrom]
+  simp only [decide_eq_true_eq]
+
+/-- Saving precedes both the empty-result return and the live-lock veto. -/
+theorem updateConfirmation_saved (tree : List AvailableChain.Block) (F : AvailableChain.Block)
+    (Δ : Time) (k committeeSize : Nat) (s : Int) (t : Time)
+    (score : AvailableChain.Block → Nat) (A : ACState n) :
+    (updateConfirmation tree F Δ k committeeSize s t score A).saved s =
+      getConfirmation tree F (confirmationVoters (A.pool s)).length score := by
+  delta updateConfirmation
+  cases hr : getConfirmation tree F (confirmationVoters (A.pool s)).length score with
+  | none => exact ite_eq_left rfl
+  | some C =>
+      dsimp only
+      split <;> exact ite_eq_left rfl
 
 end AvailableChain.FGSA.Spec
 end

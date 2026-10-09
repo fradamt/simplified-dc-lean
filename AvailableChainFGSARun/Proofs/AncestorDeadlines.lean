@@ -15,11 +15,10 @@ theorem ancestorDeadlines_recordOwn (nd : Node p) (o : Obj p)
   rw [recordOwn_st]
   exact h
 
-/-- [helper] Restore gives the initial store by `restore_st`. -/
-theorem ancestorDeadlines_restore (d : SimplexFG.RecordOnce) :
+/-- [helper] Restore clears the obligations and retains the clock. -/
+theorem ancestorDeadlines_restore (d : Time × SimplexFG.RecordOnce) :
     AncestorDeadlines (((fgsa p c).restore d).st) := by
-  rw [restore_st]
-  exact ancestorDeadlines_init p.n
+  exact ancestorDeadlines_initialAt p.n d.1
 
 end AvailableChain.FGSA.Run
 end

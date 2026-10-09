@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSA.Proofs.Head.Score
+public import AvailableChainFGSA.Proofs.Port.Tree
 public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (prefix lift)
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.RootResolution
@@ -24,8 +25,8 @@ structure ScoreRunGeometry {n : Nat} (src dst : State n) (D : Block) : Prop wher
 P3 F1b.4b G11; blueprint 03:249–253,350–359,367–373.
 DC: Goldfish/ProposalWalkTransportCore.lean:172–180, anchors and path.
 INTENTIONAL: the two FG-SA walks can have different roots and floors.
-The comparison prefixes are consumer geometry; the suffix domains are
-proved from the Z and height bounds with internal witnesses. -/
+The comparison prefixes are consumer geometry over the canonical frames;
+the suffix domains follow from the Z and height bounds with internal witnesses. -/
 structure WalkRunGeometry (p : Params) (src dst : State p.n)
     (s : Slot) (D : FGBlock (Fin p.n)) : Prop
     extends ScoreRunGeometry src dst (eraseFG D) where
@@ -40,7 +41,7 @@ structure WalkRunGeometry (p : Params) (src dst : State p.n)
     (GridCO.goldfishScore src.base.blocks (proposerVotes src s) (proposerSupport src s))
     (eligible p src (proposerVotes src s) (proposerSupport src s))
   target_prefix : Gen.Pure.DominatedSuffix (liveRoot p dst) (eraseFG D)
-    (erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst s)))
+    (erasedList dst (filteredFrom p.E p.cfg (controls p dst) (voterBlocks p dst s)))
     (GridCO.goldfishScore dst.base.blocks (headVotes p dst s) (headSupport p dst s))
     (eligible p dst (headVotes p dst s) (headSupport p dst s))
 
@@ -129,6 +130,13 @@ theorem fgsa_scoreRun_metadata_retained
   rw [clock_proposals]
   exact (fgsa_store_cumulative p c E rho hN hij x).2.2.2.2.1.subset hw
 
+private theorem scoreRun_retained_tree (p : Params) (st : State p.n)
+    (h : CStoreInv p st) (B : Block) (hb : B ∈ st.base.blocks)
+    (hF : Block.Preceq (eraseFG st.fg.F) B) :
+    ∃ A ∈ Next.tree p st, eraseFG A = B := by
+  obtain ⟨A, hA, rfl⟩ := (h.baseTree B).mp hb
+  exact ⟨A, (Next.mem_tree p st A).mpr ⟨hA, eraseFG_preceq_iff.mp hF⟩, rfl⟩
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 P3 F1b.4b G25; blueprint 03:279–283.
 DC: Goldfish/ProposalSnapshotBridge.lean:144, `raw_subset`.
@@ -138,6 +146,7 @@ theorem fgsa_scoreRun_carried_raw_subset (p : Params) (st : State p.n)
     (s : Slot) (N : NamedProposal p.n)
     (hw : (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ st.proposals)
     (hs : N.erase.slot = s)
+    (hret : ∃ B ∈ Next.tree p st, eraseFG B = N.erase)
     (hl : ∀ o ∈ N.raw.map baseVote, GridCO.headLabel? o = some (s - 1)) :
     N.raw.map baseVote ⊆ headVotes p st s := by
   intro o ho
@@ -148,8 +157,9 @@ theorem fgsa_scoreRun_carried_raw_subset (p : Params) (st : State p.n)
   refine ⟨List.mem_flatMap.mpr ⟨(N.raw, N.support), ?_, ho⟩, ?_⟩
   · apply List.mem_filterMap.mpr
     refine ⟨⟨.proposer s, .proposal N⟩, hw, ?_⟩
-    change (if N.slot = s then some (N.raw, N.support) else none) = some (N.raw, N.support)
-    rw [ite_eq_left (by simpa only [named_erase_slot] using hs)]
+    change (if N.slot = s ∧ ∃ B ∈ Next.tree p st, eraseFG B = N.erase then
+      some (N.raw, N.support) else none) = some (N.raw, N.support)
+    rw [ite_eq_left ⟨by simpa only [named_erase_slot] using hs, hret⟩]
   · simpa only [beq_iff_eq] using hl o ho
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -170,7 +180,9 @@ theorem fgsa_scoreRun_raw_subset
       V2.D.Run.emitsAt E rho ip)
     (M : NamedProposal p.n)
     (hadm : (⟨.proposer s, .proposal M⟩ : Wire p.n) ∈
-      (V2.D.Run.stateBefore E rho ia y).st.proposals) :
+      (V2.D.Run.stateBefore E rho ia y).st.proposals)
+    (hFN : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st
+      (SA.voteTime p.toParams s)).fg.F) N.erase) :
     proposerVotes (FGSA.clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams s)) s ⊆
     headVotes p (FGSA.clock p (V2.D.Run.stateBefore E rho ih y).st
@@ -187,7 +199,13 @@ theorem fgsa_scoreRun_raw_subset
     exact hadm
   have hkeep := fgsa_scoreRun_metadata_retained E rho hN horder y _ hw s
   rw [← pools.2.1]
+  have hInv := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y)
+    (SA.voteTime p.toParams s)
+  have hMeta := metaInv_clock p _ (metaInv_stateBefore E rho ih y)
+    (SA.voteTime p.toParams s)
+  have hheld := wire_block_mem p _ hInv hMeta hkeep (block?_proposal s N)
   apply fgsa_scoreRun_carried_raw_subset p _ s N hkeep pools.1
+    (scoreRun_retained_tree p _ hInv _ hheld hFN)
   intro o ho
   rw [pools.2.1] at ho
   exact beq_iff_eq.mp (List.mem_filter.mp ho).2
@@ -221,11 +239,13 @@ theorem fgsa_scoreRun_proposalsAt_eq
   intro q hq
   obtain ⟨w, hw, hd⟩ := List.mem_filterMap.mp hq
   obtain ⟨r, M, rfl, -⟩ := (metaInv_stateBefore E rho i x).wireTree w hw
-  change (if M.slot = s then some (M.raw, M.support) else none) = some q at hd
+  change (if M.slot = s ∧
+      ∃ B ∈ Next.tree p (V2.D.Run.stateBefore E rho i x).st, eraseFG B = M.erase then
+    some (M.raw, M.support) else none) = some q at hd
   split at hd
   · rename_i hs
     have hr := scoreRun_stored_label E rho hE i x r M hw
-    have hrs : r = s := (by simpa only [named_erase_slot] using hr : r = M.slot).trans hs
+    have hrs : r = s := (by simpa only [named_erase_slot] using hr : r = M.slot).trans hs.1
     rw [hrs] at hw
     have heq := fgsa_scoreRun_stored_proposal_eq E rho hE i x s M hw hh _ rfl he
     have hp := congrArg Signed.payload heq
@@ -261,7 +281,8 @@ private theorem scoreRun_proposal_window (E : Generic.Env V) (rho : V2.D.Run V (
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho d hS,
     Gen.V2.Duty.stateBefore_idxBefore E rho _ hS,
     ← fgsa_preTick_eq_timeRead E rho hS hN hi] at hm
-  have hb := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+  have hb := stateBefore_now_le_event_retained (fgsaClock p c)
+    (fgsa_hrestore_now_retained p c)
     E rho hS hi x
   rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho i x)] at hb
   have hs := Internal.slotOf_mono (p := p) (hm.trans hb)
@@ -404,9 +425,9 @@ theorem fgsa_scoreRun_raw_extra
   have hpairs : ∀ q ∈ proposalsAt dst (s + 1), q = (N.raw, N.support) := by
     have h := fgsa_scoreRun_proposalsAt_eq E rho hE ih y (s + 1) N
       (hseat ▸ hx) ⟨_, by rw [hseat]; exact ⟨ip, hip, hem⟩⟩
-    unfold proposalsAt at h ⊢
-    change ∀ q ∈ (clock p _ _).proposals.filterMap _, _
-    rwa [clock_proposals]
+    dsimp only [proposalsAt, dst] at h ⊢
+    rw [clock_proposals, clock_fg]
+    exact h
   change o ∈ List.eraseDups (_ ++ _) at ho
   rw [List.mem_eraseDups, List.mem_append] at ho
   rcases ho with ho | ho
@@ -612,9 +633,12 @@ theorem fgsa_scoreRun_block_backward
 private theorem scoreRun_carried_support (p : Params) (st : State p.n)
     (s : Slot) (N : NamedProposal p.n)
     (hw : (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ st.proposals)
-    (hs : N.erase.slot = s) (o : GridCO.Wire p.n .root) (ho : o ∈ N.support.map baseVote)
+    (hs : N.erase.slot = s)
+    (hret : ∃ B ∈ Next.tree p st, eraseFG B = N.erase)
+    (o : GridCO.Wire p.n .root) (ho : o ∈ N.support.map baseVote)
     (hl : GridCO.headLabel? o = some (s - 1)) (K : Block)
-    (hk : GridCO.resolvedHead? st.base o = some K) (hv : K.slot ≤ s - 1) :
+    (hk : GridCO.resolvedHead? st.base o = some K)
+    (hK : ∃ B ∈ Next.tree p st, eraseFG B = K) (hv : K.slot ≤ s - 1) :
     o ∈ headSupport p st s := by
   change o ∈ List.eraseDups (_ ++ _)
   rw [List.mem_eraseDups, List.mem_append]
@@ -623,10 +647,10 @@ private theorem scoreRun_carried_support (p : Params) (st : State p.n)
   refine ⟨List.mem_flatMap.mpr ⟨(N.raw, N.support), ?_, ho⟩, ?_⟩
   · apply List.mem_filterMap.mpr
     refine ⟨⟨.proposer s, .proposal N⟩, hw, ?_⟩
-    change (if N.slot = s then some (N.raw, N.support) else none) = some (N.raw, N.support)
-    rw [ite_eq_left (by simpa only [named_erase_slot] using hs)]
-  · simp only [hl, beq_self_eq_true, Bool.true_and, hk]
-    exact decide_eq_true hv
+    change (if N.slot = s ∧ ∃ B ∈ Next.tree p st, eraseFG B = N.erase then
+      some (N.raw, N.support) else none) = some (N.raw, N.support)
+    rw [ite_eq_left ⟨by simpa only [named_erase_slot] using hs, hret⟩]
+  · simp only [hl, beq_self_eq_true, Bool.true_and, hk, hK, hv, decide_true]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. P3 F1b.4b G25 N1; blueprint 03:298–304.
@@ -648,6 +672,8 @@ theorem fgsa_scoreRun_support_forward
       V2.D.Run.emitsAt E rho ip)
     (hadm : (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
       (V2.D.Run.stateBefore E rho ih y).st.proposals)
+    (hFN : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st
+      (SA.voteTime p.toParams s)).fg.F) N.erase)
     (D : Block)
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
@@ -678,8 +704,15 @@ theorem fgsa_scoreRun_support_forward
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
   have pools := fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2
   have hadm' := fgsa_scoreRun_metadata_retained E rho hN (Nat.le_refl ih) y _ hadm s
-  have hcar := scoreRun_carried_support p dst s N hadm' pools.1 o
-    (pools.2.2.symm ▸ ho) hl K hres hslot'
+  have hMeta := metaInv_clock p _ (metaInv_stateBefore E rho ih y)
+    (SA.voteTime p.toParams s)
+  have hheld := wire_block_mem p dst hInv hMeta hadm' (block?_proposal s N)
+  have hcar := scoreRun_carried_support p dst s N hadm' pools.1
+    (scoreRun_retained_tree p dst hInv _ hheld hFN) o
+    (pools.2.2.symm ▸ ho) hl K hres
+    (scoreRun_retained_tree p dst hInv K hKdst
+      (Gen.Pure.block_preceq_trans hgeom.target_floor
+        (Gen.Pure.block_preceq_trans hDX hXK))) hslot'
   apply (Gen.AC.Root.vote_pool_support_witness _ _ _ _).mpr
   refine ⟨o, hcar, hi, ?_⟩
   exact (Gen.AC.Root.vote_support_body _ _ _).mpr
@@ -723,9 +756,9 @@ theorem fgsa_scoreRun_support_backward
   have hpairs : ∀ q ∈ proposalsAt dst (s + 1), q = (N.raw, N.support) := by
     have h := fgsa_scoreRun_proposalsAt_eq E rho hE ih y (s + 1) N
       (hseat ▸ hx) ⟨_, by rw [hseat]; exact ⟨ip, hip, hem⟩⟩
-    unfold proposalsAt at h ⊢
-    change ∀ q ∈ (clock p _ _).proposals.filterMap _, _
-    rwa [clock_proposals]
+    dsimp only [proposalsAt, dst] at h ⊢
+    rw [clock_proposals, clock_fg]
+    exact h
   obtain ⟨K, hk, hKdst, hslotK, hXK⟩ := (Gen.AC.Root.vote_support_body _ _ _).mp hv
   have ht := resolvedTarget_root _ o hk
   have hDK := Gen.Pure.block_preceq_trans hDX hXK
@@ -737,7 +770,8 @@ theorem fgsa_scoreRun_support_backward
       Gen.AC.Root.poolSupports src.base.blocks (proposerSupport src (s + 1)) i X = true := by
     have hr := (List.mem_filter.mp hsource).2
     change (match GridCO.resolvedHead? (actView src) o with
-      | some C => decide (C.slot ≤ s + 1 - 1) | none => false) = true at hr
+      | some C => Block.preceq (eraseFG src.fg.F) C && decide (C.slot ≤ s + 1 - 1)
+      | none => false) = true at hr
     cases hc : GridCO.resolvedHead? (actView src) o with
     | none => simp only [hc, Bool.false_eq_true] at hr
     | some C =>
@@ -793,9 +827,12 @@ theorem fgsa_scoreRun_support_backward
     apply List.mem_filter.mpr
     refine ⟨hraw, ?_⟩
     change (match GridCO.resolvedHead? (actView src) o with
-      | some C => decide (C.slot ≤ s + 1 - 1) | none => false) = true
+      | some C => Block.preceq (eraseFG src.fg.F) C && decide (C.slot ≤ s + 1 - 1)
+      | none => false) = true
     rw [actView_resolve_target p src hSrc hdomain o hKsrc ht]
-    exact decide_eq_true (by simpa only [Nat.add_sub_cancel] using hslot)
+    exact Bool.and_eq_true_iff.mpr
+      ⟨Gen.Pure.block_preceq_trans hgeom.source_floor hDK,
+        decide_eq_true (by simpa only [Nat.add_sub_cancel] using hslot)⟩
   · obtain ⟨hm, _⟩ := List.mem_filter.mp ho
     obtain ⟨q, hq, hsup⟩ := List.mem_flatMap.mp hm
     rw [hpairs q hq] at hsup
@@ -823,6 +860,8 @@ theorem fgsa_score_eq_on_run
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
     (hadm : N.erase ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (hFN : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st
+      (SA.voteTime p.toParams s)).fg.F) N.erase)
     (D : Block)
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
@@ -869,13 +908,13 @@ theorem fgsa_score_eq_on_run
     apply fgsa_score_eq_on_retained_suffix p src dst D U (proposerSupport src (s + 1))
       U' (headSupport p dst (s + 1))
     · exact fgsa_scoreRun_raw_subset E rho hE hN (s + 1) hip hseat hx
-        (Nat.le_refl ih) N hem N hadm'
+        (Nat.le_refl ih) N hem N hadm' hFN
     · exact fgsa_scoreRun_raw_extra E rho hE hN hDelta s hSync hx hy hip hseat N hem
     · intro X hDX i hclean
       apply Bool.eq_iff_iff.mpr
       exact ⟨fgsa_scoreRun_support_forward (hroots := hroots)
         E rho hE hN hDelta (s + 1) hSync hx hy hip hih
-          N hem hadm' D hgeom X hDX i,
+          N hem hadm' hFN D hgeom X hDX i,
         fgsa_scoreRun_support_backward (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hseat
           N hem D hgeom X hDX i hclean⟩
 
@@ -971,7 +1010,48 @@ P3 F1b.4b G11; blueprint 03:350–354,364–366.
 DC: Goldfish/ProposalWalkTransportCore.lean:174–176, target path membership.
 INTENTIONAL: the admitted proposal is the height witness inside the
 receiving voter view itself, before applying its live controls. -/
-theorem fgsa_walkRun_path_domain (p : Params) (st : State p.n)
+theorem fgsa_walkRun_path_domain_filtered (p : Params) (st : State p.n)
+    (h : CStoreInv p st) (s : Slot) (D : FGBlock (Fin p.n)) (C P : Block)
+    (hF : Block.Preceq (eraseFG st.fg.F) (eraseFG D))
+    (hZ : FGBlock.Preceq (controls p st).Z D)
+    (hlo : (controls p st).lo ≤ hOf p.E p.cfg D)
+    (hP : P ∈ st.base.blocks) (hs : P.slot = s)
+    (hDC : Block.Preceq (eraseFG D) C) (hCP : Block.Preceq C P) :
+    C ∈ erasedList st (filteredFrom p.E p.cfg (controls p st) (voterBlocks p st s)) := by
+  obtain ⟨B, hB, heB⟩ := (h.baseTree P).mp hP
+  obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem h.fg.closed hB (heB ▸ hCP)
+  have hAB : FGBlock.Preceq A B := walkRun_lift_prefix (heA ▸ heB ▸ hCP)
+  have hDA : FGBlock.Preceq D A := walkRun_lift_prefix (heA ▸ hDC)
+  have hslot : B.slot = s := by rw [← eraseFG_slot, heB, hs]
+  have hFA : FGBlock.Preceq st.fg.F A :=
+    walkRun_lift_prefix (Gen.Pure.block_preceq_trans hF (heA ▸ hDC))
+  have hAt : A ∈ Next.tree p st := (Next.mem_tree p st A).mpr ⟨hA, hFA⟩
+  have hBt : B ∈ Next.tree p st :=
+    (Next.mem_tree p st B).mpr ⟨hB, KitFG.preceq_trans hFA hAB⟩
+  have hb : B ∈ voterBlocks p st s := by
+    apply Finset.mem_filter.mpr
+    exact ⟨hBt, Bool.or_eq_true_iff.mpr (Or.inr
+      (decide_eq_true ⟨B, hBt, hslot, KitFG.preceq_refl B⟩))⟩
+  have ha : A ∈ voterBlocks p st s := by
+    apply Finset.mem_filter.mpr
+    exact ⟨hAt, Bool.or_eq_true_iff.mpr (Or.inr (decide_eq_true ⟨B, hBt, hslot, hAB⟩))⟩
+  have hheight : (controls p st).lo ≤ hOf p.E p.cfg B :=
+    hlo.trans (KitFG.h_mono p.E p.cfg (KitFG.preceq_trans hDA hAB))
+  rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hheight
+  have hm : A ∈ filteredFrom p.E p.cfg (controls p st) (voterBlocks p st s) := by
+    rw [KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+    exact (KitFG.mem_filteredFromView (heightView p) _ _ A).mpr
+      ⟨ha, hFA, KitFG.preceq_trans hZ hDA, B, hb, hAB, hheight⟩
+  exact List.mem_filter.mpr ⟨(h.baseTree C).mpr ⟨A, hA, heA⟩,
+    decide_eq_true ⟨A, hm, heA⟩⟩
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F1b.4b G11; blueprint 03:350–354,364–366.
+DC: Goldfish/ProposalWalkTransportCore.lean:174–176, target path membership.
+The legacy conclusion additionally requires retention of all off-J top blocks. -/
+theorem fgsa_walkRun_path_domain_of_top_retained (p : Params) (st : State p.n)
+    (hTop : ∀ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max →
+      ¬ FGBlock.Preceq st.fg.J W → FGBlock.Preceq st.fg.F W)
     (h : CStoreInv p st) (s : Slot) (D : FGBlock (Fin p.n)) (C P : Block)
     (hF : Block.Preceq (eraseFG st.fg.F) (eraseFG D))
     (hZ : FGBlock.Preceq (controls p st).Z D)
@@ -979,29 +1059,8 @@ theorem fgsa_walkRun_path_domain (p : Params) (st : State p.n)
     (hP : P ∈ st.base.blocks) (hs : P.slot = s)
     (hDC : Block.Preceq (eraseFG D) C) (hCP : Block.Preceq C P) :
     C ∈ erasedList st (storeFrame p.E p.cfg st.fg (voterBlocks p st s)) := by
-  obtain ⟨B, hB, heB⟩ := (h.baseTree P).mp hP
-  obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem h.fg.closed hB (heB ▸ hCP)
-  have hAB : FGBlock.Preceq A B := walkRun_lift_prefix (heA ▸ heB ▸ hCP)
-  have hDA : FGBlock.Preceq D A := walkRun_lift_prefix (heA ▸ hDC)
-  have hslot : B.slot = s := by rw [← eraseFG_slot, heB, hs]
-  have hb : B ∈ voterBlocks p st s := by
-    apply Finset.mem_filter.mpr
-    exact ⟨hB, Bool.or_eq_true_iff.mpr (Or.inr
-      (decide_eq_true ⟨B, hB, hslot, KitFG.preceq_refl B⟩))⟩
-  have ha : A ∈ voterBlocks p st s := by
-    apply Finset.mem_filter.mpr
-    exact ⟨hA, Bool.or_eq_true_iff.mpr (Or.inr (decide_eq_true ⟨B, hB, hslot, hAB⟩))⟩
-  have hFA : FGBlock.Preceq st.fg.F A :=
-    walkRun_lift_prefix (Gen.Pure.block_preceq_trans hF (heA ▸ hDC))
-  have hheight : (controls p st).lo ≤ hOf p.E p.cfg B :=
-    hlo.trans (KitFG.h_mono p.E p.cfg (KitFG.preceq_trans hDA hAB))
-  rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hheight
-  have hm : A ∈ storeFrame p.E p.cfg st.fg (voterBlocks p st s) := by
-    rw [KitFG.storeFrame_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
-    exact (KitFG.mem_filteredFromView (heightView p) _ _ A).mpr
-      ⟨ha, hFA, KitFG.preceq_trans hZ hDA, B, hb, hAB, hheight⟩
-  exact List.mem_filter.mpr ⟨(h.baseTree C).mpr ⟨A, hA, heA⟩,
-    decide_eq_true ⟨A, hm, heA⟩⟩
+  have hm := fgsa_walkRun_path_domain_filtered p st h s D C P hF hZ hlo hP hs hDC hCP
+  rwa [fgsa_controls_eq_of_top_retained p st hTop] at hm
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 P3 F1b.4b G11; blueprint 03:356–360,373.
@@ -1122,6 +1181,74 @@ private theorem walkRun_ancestor_stored (p : Params) (st : State p.n)
   obtain ⟨A, hA, he⟩ := eraseFG_ancestor_mem h.fg.closed hW hCB
   exact (h.baseTree C).mpr ⟨A, hA, he⟩
 
+/-- Reflection uses only the frozen or authenticated proposal-path voter arm. -/
+private theorem walkRun_reflected_voter_block
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
+      (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.proposalTime p.toParams (s + 1)))
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
+    (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (D X C : Block)
+    (hgeom : ScoreRunGeometry
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D)
+    (hDX : Block.Preceq D X) (hXQ : Block.Prec X N.erase.parent)
+    (hp : C.parent? = some X)
+    (hm : C ∈ erasedList
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1)))
+      (voterBlocks p
+        (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1)))
+        (s + 1)))
+    (hroots : NamedRootCollisionFree p c E rho) :
+    C ∈ (clock p (V2.D.Run.stateBefore E rho ip x).st
+      (SA.proposalTime p.toParams (s + 1))).base.blocks := by
+  let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
+  let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
+  have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hCbase : C ∈ dst.base.blocks := (List.mem_filter.mp hm).1
+  have hCpre : C ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks := by
+    change C ∈ (clock p _ _).base.blocks at hCbase
+    rwa [clock_base_blocks] at hCbase
+  obtain ⟨A, hA, heA⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
+  rcases Bool.or_eq_true_iff.mp (Finset.mem_filter.mp hA).2 with hf | hc
+  · have hf := of_decide_eq_true hf
+    rw [heA] at hf
+    change GridCO.stampBlock (clock p _ _).base C < _ at hf
+    rw [fgsa_clock_block_stamp E rho ih y _ C hCpre] at hf
+    have hf' : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base C <
+        SA.freezeTime p.toParams s := by simpa only [Nat.add_sub_cancel] using hf
+    have hb := fgsa_walkRun_frozen_block (hroots := hroots)
+      E rho hE hN hDelta s hSync hx hy hip D C hgeom
+      (Gen.Pure.block_preceq_trans hDX (walkRun_parent_prefix hp)) hCpre hf'
+    exact ((actView_blocks src C).mp hb).1
+  · obtain ⟨P, hP, hslot, hAP⟩ := of_decide_eq_true hc
+    have hPbase : eraseFG P ∈ dst.base.blocks :=
+      (ht.baseTree _).mpr ⟨P, Next.tree_subset_TF p dst hP, rfl⟩
+    have hPpre : eraseFG P ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks := by
+      change eraseFG P ∈ (clock p _ _).base.blocks at hPbase
+      rwa [clock_base_blocks] at hPbase
+    have heP := fgsa_walkRun_current_block_eq E rho hE (s + 1) (Nat.succ_pos s) hx hip
+      hseat N hem (eraseFG P) hPpre ((eraseFG_slot P).trans hslot)
+    have hCb : Block.Preceq C N.erase := by simpa only [heA, heP] using eraseFG_preceq hAP
+    have hmem := hem
+    rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
+    have hem' := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hmem
+    have hparent := fgsa_walkRun_proposal_parent p src (s + 1) _ N hem'.2.2.2
+    have hne : X ≠ N.erase.parent := by
+      intro he
+      have hn := (Bool.and_eq_true_iff.mp hXQ).1
+      simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hn
+    have hpB : N.erase.parent? = some N.erase.parent := by rw [hparent.2.2]; exact hparent.2.1
+    have hCQ := walkRun_child_before_parent hpB hp hCb hne
+    rw [hparent.2.2] at hCQ
+    exact walkRun_ancestor_stored p src hs (walkRun_head_stored p src hs _ _) hCQ
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. P3 F1b.4b N1 C14; blueprint 03:367–371.
 DC: Goldfish/ProposalWalkTransportCore.lean:183–187, target-child reflection.
@@ -1157,48 +1284,13 @@ theorem fgsa_walkRun_reflected_block
     (hroots : NamedRootCollisionFree p c E rho) :
     C ∈ (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1))).base.blocks := by
-  let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
-  let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
-  have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
-  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
-  have hCbase : C ∈ dst.base.blocks := (List.mem_filter.mp hm).1
-  have hCpre : C ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks := by
-    change C ∈ (clock p _ _).base.blocks at hCbase
-    rwa [clock_base_blocks] at hCbase
-  obtain ⟨A, hA, heA⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
-  have hAv := ((KitFG.mem_filteredFrom_of_bridge
-    p.E p.cfg (heightView p) (heightView_bridge p) _ _ A).mp hA).1
-  rcases Bool.or_eq_true_iff.mp (Finset.mem_filter.mp hAv).2 with hf | hc
-  · have hf := of_decide_eq_true hf
-    rw [heA] at hf
-    change GridCO.stampBlock (clock p _ _).base C < _ at hf
-    rw [fgsa_clock_block_stamp E rho ih y _ C hCpre] at hf
-    have hf' : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base C <
-        SA.freezeTime p.toParams s := by simpa only [Nat.add_sub_cancel] using hf
-    have hb := fgsa_walkRun_frozen_block (hroots := hroots)
-      E rho hE hN hDelta s hSync hx hy hip D C hgeom
-      (Gen.Pure.block_preceq_trans hDX (walkRun_parent_prefix hp)) hCpre hf'
-    exact ((actView_blocks src C).mp hb).1
-  · obtain ⟨P, hP, hslot, hAP⟩ := of_decide_eq_true hc
-    have hPbase : eraseFG P ∈ dst.base.blocks := (ht.baseTree _).mpr ⟨P, hP, rfl⟩
-    have hPpre : eraseFG P ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks := by
-      change eraseFG P ∈ (clock p _ _).base.blocks at hPbase
-      rwa [clock_base_blocks] at hPbase
-    have heP := fgsa_walkRun_current_block_eq E rho hE (s + 1) (Nat.succ_pos s) hx hip
-      hseat N hem (eraseFG P) hPpre ((eraseFG_slot P).trans hslot)
-    have hCb : Block.Preceq C N.erase := by simpa only [heA, heP] using eraseFG_preceq hAP
-    have hmem := hem
-    rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
-    have hem' := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hmem
-    have hparent := fgsa_walkRun_proposal_parent p src (s + 1) _ N hem'.2.2.2
-    have hne : X ≠ N.erase.parent := by
-      intro he
-      have hn := (Bool.and_eq_true_iff.mp hXQ).1
-      simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hn
-    have hpB : N.erase.parent? = some N.erase.parent := by rw [hparent.2.2]; exact hparent.2.1
-    have hCQ := walkRun_child_before_parent hpB hp hCb hne
-    rw [hparent.2.2] at hCQ
-    exact walkRun_ancestor_stored p src hs (walkRun_head_stored p src hs _ _) hCQ
+  apply walkRun_reflected_voter_block (hroots := hroots)
+    E rho hE hN hDelta s hSync hx hy hip hseat N hem D X C hgeom hDX hXQ hp
+  obtain ⟨hC, hm⟩ := List.mem_filter.mp hm
+  obtain ⟨A, hA, heA⟩ := of_decide_eq_true hm
+  exact List.mem_filter.mpr ⟨hC, decide_eq_true ⟨A,
+    ((KitFG.mem_filteredFrom_of_bridge
+      p.E p.cfg (heightView p) (heightView_bridge p) _ _ A).mp hA).1, heA⟩⟩
 
 private theorem walkRun_fold_option_origin {α : Type}
     (f : Option α → α → Option α)
@@ -1308,11 +1400,6 @@ theorem fgsa_ghost_transfer_sfx_on_run
   have htInv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
   have hsrcslot : src.slot p = s := fgsa_proposal_slot (c := c) _ s
   have hdstslot : dst.slot p = s := fgsa_vote_slot (c := c) _ s
-  have hscore := fgsa_score_eq_on_run (hroots := hroots)
-    E rho hE hN hDelta s hScoreSync hx hy hip hih hseat
-    N hem hadm (eraseFG D) hgeom.toScoreRunGeometry
-  have hcount := hscore.2.2.1
-  have hscores := hscore.2.2.2
   have hb : N.erase ∈ dst.base.blocks := by change N.erase ∈ (clock p _ _).base.blocks; rwa
       [clock_base_blocks]
   have hpB : N.erase.parent? = some N.erase.parent := by rw [hparent.2.2]; exact hparent.2.1
@@ -1326,6 +1413,14 @@ theorem fgsa_ghost_transfer_sfx_on_run
     exact Gen.Pure.walk_covers_of_dominated_suffix _ _ _ _ _
       (Gen.Pure.block_compatible_of_common hgeom.source_anchor (Gen.Pure.block_preceq_refl _))
       hgeom.source_prefix
+  have hFN : Block.Preceq (eraseFG dst.fg.F) N.erase :=
+    Gen.Pure.block_preceq_trans hgeom.target_floor
+      (Gen.Pure.block_preceq_trans hDQ hQP)
+  have hscore := fgsa_score_eq_on_run (hroots := hroots)
+    E rho hE hN hDelta s hScoreSync hx hy hip hih hseat
+    N hem hadm hFN (eraseFG D) hgeom.toScoreRunGeometry
+  have hcount := hscore.2.2.1
+  have hscores := hscore.2.2.2
   have hcover : Block.Preceq N.erase.parent
       (GridCO.ghost (eraseFG D) (erasedList src (fullTree p src))
         (GridCO.goldfishScore src.base.blocks (proposerVotes src s) (proposerSupport src s))
@@ -1349,20 +1444,21 @@ theorem fgsa_ghost_transfer_sfx_on_run
     rw [hcount, hscores C hDC]
   have hkeep : Gen.Pure.SuffixPersists (eraseFG D) N.erase.parent
       (erasedList src (fullTree p src))
-      (erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst s)))
+      (erasedList dst (filteredFrom p.E p.cfg (controls p dst) (voterBlocks p dst s)))
       (GridCO.goldfishScore src.base.blocks (proposerVotes src s) (proposerSupport src s))
       (eligible p src (proposerVotes src s) (proposerSupport src s))
       (eligible p dst (headVotes p dst s) (headSupport p dst s)) := by
     intro X C hDX _ hstep hCQ
     obtain ⟨hC, hpC, heC⟩ := walkRun_step_child _ _ _ _ _ hstep
     have hDC := Gen.Pure.block_preceq_trans hDX (walkRun_parent_prefix hpC)
-    refine ⟨fgsa_walkRun_path_domain p dst htInv s D C N.erase hgeom.target_floor hgeom.target_Z
-      hgeom.target_lo hb pools.1 hDC (Gen.Pure.block_preceq_trans hCQ hQP), ?_⟩
+    refine ⟨fgsa_walkRun_path_domain_filtered p dst htInv s D C N.erase
+      hgeom.target_floor hgeom.target_Z hgeom.target_lo hb pools.1 hDC
+      (Gen.Pure.block_preceq_trans hCQ hQP), ?_⟩
     rw [← helig C (List.mem_filter.mp hC).1 hDC (by rw [walkRun_parent_eq hpC]; exact hDX)]
     exact heC
   have hreflect : Gen.Pure.SuffixReflects (eraseFG D) N.erase.parent
       (erasedList src (fullTree p src))
-      (erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst s)))
+      (erasedList dst (filteredFrom p.E p.cfg (controls p dst) (voterBlocks p dst s)))
       (eligible p src (proposerVotes src s) (proposerSupport src s))
       (eligible p dst (headVotes p dst s) (headSupport p dst s)) := by
     intro X C hDX hXQ hC hpC heC
@@ -1371,15 +1467,20 @@ theorem fgsa_ghost_transfer_sfx_on_run
       cases s with
       | zero => exact (Nat.lt_irrefl 0 hparent.1).elim
       | succ r =>
-        exact fgsa_walkRun_reflected_block (hroots := hroots)
+        apply walkRun_reflected_voter_block (hroots := hroots)
           E rho hE hN hDelta r hSync hx hy hip hseat
-          N hem (eraseFG D) X C hgeom.toScoreRunGeometry hDX hXQ hpC hC
+          N hem (eraseFG D) X C hgeom.toScoreRunGeometry hDX hXQ hpC
+        obtain ⟨hCbase, hCframe⟩ := List.mem_filter.mp hC
+        obtain ⟨A, hA, heA⟩ := of_decide_eq_true hCframe
+        exact List.mem_filter.mpr ⟨hCbase, decide_eq_true ⟨A,
+          ((KitFG.mem_filteredFrom_of_bridge
+            p.E p.cfg (heightView p) (heightView_bridge p) _ _ A).mp hA).1, heA⟩⟩
     refine ⟨fgsa_walkRun_full_domain p src hsInv D C hgeom.source_floor hgeom.source_Z
       hgeom.source_lo hstored hDC, ?_⟩
     rw [helig C hstored hDC (by rw [walkRun_parent_eq hpC]; exact hDX)]
     exact heC
   have hsfx : Gen.Pure.SuffixScoresAgree (eraseFG D) N.erase.parent
-      (erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst s)))
+      (erasedList dst (filteredFrom p.E p.cfg (controls p dst) (voterBlocks p dst s)))
       (GridCO.goldfishScore src.base.blocks (proposerVotes src s) (proposerSupport src s))
       (GridCO.goldfishScore dst.base.blocks (headVotes p dst s) (headSupport p dst s))
       (eligible p dst (headVotes p dst s) (headSupport p dst s)) := by
@@ -1387,7 +1488,7 @@ theorem fgsa_ghost_transfer_sfx_on_run
     exact (hscores C (Gen.Pure.block_preceq_trans hDX (walkRun_parent_prefix hpC))).symm
   have hresult := Gen.Pure.ghost_transfer_sfx _ _ _ _ _ _ _ _ hDQ hcover hkeep hreflect hsfx
   change Block.Preceq N.erase.parent (headVote p dst s)
-  rw [headVote_eq]
+  rw [fgsa_headVote_eq_filtered]
   rw [ite_eq_right (Nat.ne_of_gt hparent.1)]
   change Block.Preceq N.erase.parent (GridCO.ghost _ _ _ _)
   rw [htRe]

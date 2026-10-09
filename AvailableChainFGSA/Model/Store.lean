@@ -51,6 +51,10 @@ def namedByErase? (st : State n) (H : Block) : Option (NamedProposal n) :=
 [spec 486–503] The initial store: every field has its initial value. -/
 def initial (n : Nat) : State n := {}
 
+/-- Ruling Y: reset store data and retain the last tick clock. -/
+def initialAt (n : Nat) (t : Time) : State n :=
+  { initial n with base := { (initial n).base with now := t } }
+
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 711] The store slot `Σ.s`. -/
 def State.slot (p : Params) (st : State p.n) : Slot := p.slotOf st.base.now

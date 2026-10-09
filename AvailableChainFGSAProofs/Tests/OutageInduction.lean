@@ -82,7 +82,7 @@ example (hqc : RQCOrigin p c E rho) {i : Nat} {x : V} {o : Obj p} {t : Time}
 /-- A raised contested frame uses every old source, not the old receiver's visible certificates. -/
 theorem delayed_contested_frame (hroots : NamedRootCollisionFree p c E rho)
     (hstrat : RStrat p c E rho)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho)
     (hnamed : ∀ k x r (a : RowWire p.n) e,
       HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
@@ -102,7 +102,8 @@ theorem delayed_contested_frame (hroots : NamedRootCollisionFree p c E rho)
   have hn : OutageNamedHistory p c E rho β (i + 1) :=
     outage_named_of_source_history (hroots := hroots) hβ (outage_source_history_delivery hi
         hist) hnamed
-  have hcp := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+  have _ := hframe
+  have hcp := fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
   exact ((hcp (i + 1) x β hx hn.history).2.2.2.2 hcontest).2
 
 /-- A delivery can leave F unchanged while the successor frame is contested.

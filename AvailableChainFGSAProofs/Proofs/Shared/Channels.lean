@@ -70,7 +70,7 @@ The frame reads only the FG store. -/
 theorem frameR_congr_fg (st st' : State p.n) (h : st.fg = st'.fg) :
     frameR p st = frameR p st' := by
   rw [frameR_def, frameR_def]
-  exact congrArg (KitFG.storeControlsView (heightView p)) h
+  exact congrArg (KitFG.treeStoreControlsView (heightView p)) h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 D(X) reads the FG store and X, with no vote-pool input. -/
@@ -78,11 +78,20 @@ theorem domainR_congr_fg (st st' : State p.n) (X : Finset (FGBlock (Fin p.n)))
     (h : st.fg = st'.fg) : domainR p st X = domainR p st' X := by
   rw [domainR_def, domainR_def, frameR_congr_fg p st st' h]
 
+/-- The canonical channel domain uses the current guarded controls. -/
+theorem fgsa_domainR_eq_filtered (st : State p.n) (X : Finset (FGBlock (Fin p.n))) :
+    domainR p st X = filteredFrom p.E p.cfg (controls p st) X := by
+  rw [domainR_def, frameR_def,
+    ← KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The channel domain equals the fixed-store frame through the height bridge. -/
-theorem domainR_eq_storeFrame (st : State p.n) (X : Finset (FGBlock (Fin p.n))) :
+theorem fgsa_domainR_eq_storeFrame_of_top_retained (st : State p.n)
+    (X : Finset (FGBlock (Fin p.n)))
+    (hF : ∀ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max →
+      ¬ FGBlock.Preceq st.fg.J W → FGBlock.Preceq st.fg.F W) :
     domainR p st X = storeFrame p.E p.cfg st.fg X := by
-  rw [domainR_def, frameR_def, controls_eq,
+  rw [domainR_def, frameR_def, fgsa_controls_eq_of_top_retained p st hF,
     ← KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
   rfl
 
@@ -104,6 +113,63 @@ theorem jointSelections_record_irrel (st : State p.n) (Λ Λ' : RecordOnce)
       proposerHead p nd.st s, FGSA.fgHead p nd.st, (FGSA.fgInputs p nd.st).2) =
     (FGSA.liveRoot p nd'.st, FGSA.eligible p nd'.st raw sup B, jointSource p nd'.st,
       proposerHead p nd'.st s, FGSA.fgHead p nd'.st, (FGSA.fgInputs p nd'.st).2) := rfl
+
+/-- Plan repair 6: compatibility retains B in the guarded frame or below its root. -/
+private theorem fgsa_shared_retention_of_compatible (st : State p.n) (hI : CStoreInv p st)
+    (B : FGBlock (Fin p.n)) (hB : B ∈ st.fg.TF) (hFB : FGBlock.Preceq st.fg.F B)
+    (hJB : FGBlock.Preceq st.fg.J B ∨ FGBlock.Preceq B st.fg.J)
+    (hc : ∀ W ∈ st.fg.TF, ∀ U, FGBlock.Preceq U W →
+      (heightView p U).h < (heightView p W).h →
+      FGBlock.Preceq (heightView p U).T_h B ∨ FGBlock.Preceq B (heightView p U).T_h) :
+    FGBlock.Preceq B (controls p st).Z ∨ B ∈ domainR p st st.fg.TF := by
+  let R := controls p st
+  have hL := (fgCertificateLaws p).height
+  by_cases hBZ : FGBlock.Preceq B R.Z
+  · exact Or.inl hBZ
+  right
+  have hZB : FGBlock.Preceq R.Z B := by
+    change FGBlock.Preceq (if R.rootIsJ then st.fg.J else st.fg.F) B
+    cases hr : R.rootIsJ
+    · exact hFB
+    · rcases hJB with hj | hj
+      · exact hj
+      · exact (hBZ (by
+          change FGBlock.Preceq B (if R.rootIsJ then st.fg.J else st.fg.F)
+          rw [hr]; exact hj)).elim
+  apply (KitFG.mem_filteredFromView (heightView p) R st.fg.TF B).mpr
+  refine ⟨hB, hFB, hZB, ?_⟩
+  cases ht : R.contest with
+  | true =>
+    have ho := KitFG.treeStoreControlsView_contest_imp (heightView p) st.fg ht
+    have hx := KitFG.storeFrameView_contest_of_compatible_of_inv p.E (heightView p)
+      hL (finalityView p) st.fg hI.fg (fgJustificationLaws p) B hJB hc ho
+    obtain ⟨W, hW, _, hh, hn⟩ :=
+      KitFG.treeStoreControlsView_contest_witness (heightView p) st.fg ht
+    exact ⟨W, hW, hx.2 W hW hh hn, hh ▸ KitFG.Controls.lo_le_H R⟩
+  | false =>
+    have hlo : R.lo = st.fg.h_max - 1 := by
+      unfold Controls.lo
+      rw [ht]
+      rfl
+    by_cases hsmall : st.fg.h_max ≤ 1
+    · exact ⟨B, hB, KitFG.preceq_refl B, by
+        rw [hlo]; simp only [Height] at *; omega⟩
+    obtain ⟨W, hW, hsup⟩ :=
+      Finset.exists_mem_eq_sup st.fg.TF ⟨_, hI.fg.gen⟩ (fun W => (heightView p W).h)
+    have hw : (heightView p W).h = st.fg.h_max := by
+      have hm := hI.fg.hmax
+      rw [hsup] at hm
+      simp only [Height] at *
+      omega
+    obtain ⟨U, hU, hu, _⟩ := hL.height_crossing W (st.fg.h_max - 1)
+      (by simp only [Height] at *; omega) (by simp only [Height] at *; omega)
+    rcases hc W hW U hU (by simp only [Height] at *; omega) with heB | hBe
+    · refine ⟨B, hB, KitFG.preceq_refl B, ?_⟩
+      have hm := hL.h_mono heB
+      rw [hL.entry_same_height] at hm
+      exact hlo.trans hu.symm ▸ hm
+    · exact ⟨W, hW, KitFG.preceq_trans hBe (KitFG.preceq_trans (hL.entry_preceq U) hU),
+        by rw [hlo, hw]; simp only [Height] at *; omega⟩
 
 variable {In V : Type} (c : AppCodec In) [DecidableEq V]
     (rho : V2.D.Run V (fgsa p c))
@@ -196,8 +262,8 @@ DC counterparts: ChainState/FGRootWitness.lean:327,493 and
 Execution/WeakGenesisGSTZeroActionSources.lean:106. The all-entry FJ bundle
 and G1 differ intentionally (TS/spec/fgsa-protocol.tex:2557–2571;
 TS/log.md:1475). No source existence or Clean premise is used. -/
-theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+theorem fgsa_cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hstore : RStore p c E rho)
     (hr : NamedRootCollisionFree p c E rho) (hstrat : RStrat p c E rho) :
     CPPrefix p c E rho := by
   intro i x B hx hB hrows
@@ -220,8 +286,7 @@ theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hJ : FGBlock.Preceq st.fg.J B :=
     hc D hD _ ⟨D, KitFG.preceq_refl D, Or.inl hDJ⟩
   have hZ : FGBlock.Preceq (controls p st).Z B := by
-    rw [controls_eq]
-    change FGBlock.Preceq (if (storeControls p.E p.cfg st.fg).rootIsJ then
+    change FGBlock.Preceq (if (controls p st).rootIsJ then
       st.fg.J else st.fg.F) B
     split <;> assumption
   have hinv := (hstore i x hx).1.fg
@@ -242,22 +307,34 @@ theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact KitFG.preceq_total_of_common hJ (hcross W hW U hU hlt))
   have hlo := KitFG.storeFrameView_height_of_crossed_prefix_of_inv
       p.E (KitFG.simplexHeightView p.E p.cfg) hcert (finalityView p) st.fg hinv B hn hcross
-  have hcontrols : R_at p c E rho i x = storeControls p.E p.cfg st.fg :=
-    (hframe i x hx).1.trans (by
-      simpa only [KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
-        using (storeControls_eq p st (hstore i x hx).1).symm.trans (controls_eq p st))
+  have hcontrols : R_at p c E rho i x = controls p st := rfl
   refine ⟨hc, hF, hJ, hZ, ?_, ?_⟩
-  · rw [hcontrols]; exact hn
-  · rw [hcontrols, heightView_eq_simplex p]
-    exact hlo
+  · rw [hcontrols]
+    apply Bool.eq_false_iff.mpr
+    intro ht
+    have ho := KitFG.treeStoreControlsView_contest_imp (heightView p) st.fg ht
+    rw [heightView_eq_simplex p, hn] at ho
+    contradiction
+  · rw [hcontrols]
+    exact (fgsa_controls_lo_le_store p st).trans (by
+      simpa only [KitFG.storeControls_of_bridge p.E p.cfg (heightView p)
+        (heightView_bridge p), heightView_eq_simplex p] using hlo)
+
+theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hr : NamedRootCollisionFree p c E rho) (hstrat : RStrat p c E rho) :
+    CPPrefix p c E rho := by
+  have _hlegacyFrame := hframe
+  exact fgsa_cpPrefix_of_srcFrame p c E rho hstore hr hstrat
+
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. P3 §8.7 F2.2; bp02 §3.4 and P3 App. A.3 CPCompat. Class B.
 DC counterpart: ChainState/FGRootWitness.lean:548 concludes root
 compatibility only. Retention and EVERY contest witness are intentional FJ
 extensions (TS/spec/fgsa-protocol.tex:2557–2571; TS/log.md:1475). G1 is explicit. -/
-theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+theorem fgsa_cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hstore : RStore p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) : CPCompat p c E rho := by
   simp only [CPCompat_def, heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def]
   intro i x B hx hrows
@@ -286,32 +363,33 @@ theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     simp only [certified_def, heightView_eq_simplex p,
       KitFG.simplexHeightView_def, KitFG.heightOf_def]
     exact ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
-  have hcontrols : R_at p c E rho i x = storeControls p.E p.cfg st.fg :=
-    (hframe i x hx).1.trans (by
-      simpa only [KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
-        using (storeControls_eq p st (hstore i x hx).1).symm.trans (controls_eq p st))
+  have hcontrols : R_at p c E rho i x = controls p st := rfl
   refine ⟨hc, hF, hJ, ?_, ?_⟩
   · intro hB hFB
-    have hr := KitFG.storeFrameView_retention_of_compatible_of_inv
-      p.E (KitFG.simplexHeightView p.E p.cfg) hcert (finalityView p) st.fg hinv
-        hjust B hB hFB hJ hcross
-    rcases hr with hr | hr
-    · left
-      rw [hcontrols]
-      exact hr
-    · right
-      rw [← (hframe i x hx).2, fullTree_eq]
-      exact hr
+    have hr := fgsa_shared_retention_of_compatible p st (hstore i x hx).1 B hB hFB
+      hJ (by simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def,
+        KitFG.heightOf_def, hOf] using hcross)
+    exact hr
   · rw [hcontrols]
+    intro ht
+    have ho := KitFG.treeStoreControlsView_contest_imp (heightView p) st.fg ht
+    rw [heightView_eq_simplex p] at ho
     exact KitFG.storeFrameView_contest_of_compatible_of_inv
       p.E (KitFG.simplexHeightView p.E p.cfg) hcert (finalityView p) st.fg hinv
-        hjust B hJ hcross
+        hjust B hJ hcross ho
+
+
+theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho) : CPCompat p c E rho := by
+  have _hlegacyFrame := hframe
+  exact fgsa_cpCompat_of_srcFrame p c E rho hstore hsrc
 
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. The compatibility proof consumes names only for scoped entries. -/
-theorem cpCompat_of_scopedFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+theorem fgsa_cpCompat_of_scopedFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hstore : RStore p c E rho)
     (hstrat : RStrat p c E rho) : ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
   (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
     HonestRowBefore p c E rho i y r a →
@@ -357,26 +435,43 @@ theorem cpCompat_of_scopedFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     simp only [certified_def, heightView_eq_simplex p,
       KitFG.simplexHeightView_def, KitFG.heightOf_def]
     exact ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
-  have hcontrols : R_at p c E rho i x = storeControls p.E p.cfg st.fg :=
-    (hframe i x hx).1.trans (by
-      simpa only [KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
-        using (storeControls_eq p st (hstore i x hx).1).symm.trans (controls_eq p st))
+  have hcontrols : R_at p c E rho i x = controls p st := rfl
   refine ⟨hc, hF, hJ, ?_, ?_⟩
   · intro hB hFB
-    have hr := KitFG.storeFrameView_retention_of_compatible_of_inv
-      p.E (KitFG.simplexHeightView p.E p.cfg) hcert (finalityView p) st.fg hinv
-        hjust B hB hFB hJ hcross
-    rcases hr with hr | hr
-    · left
-      rw [hcontrols]
-      exact hr
-    · right
-      rw [← (hframe i x hx).2, fullTree_eq]
-      exact hr
+    have hr := fgsa_shared_retention_of_compatible p st (hstore i x hx).1 B hB hFB
+      hJ (by simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def,
+        KitFG.heightOf_def, hOf] using hcross)
+    exact hr
   · rw [hcontrols]
+    intro ht
+    have ho := KitFG.treeStoreControlsView_contest_imp (heightView p) st.fg ht
+    rw [heightView_eq_simplex p] at ho
     exact KitFG.storeFrameView_contest_of_compatible_of_inv
       p.E (KitFG.simplexHeightView p.E p.cfg) hcert (finalityView p) st.fg hinv
-        hjust B hJ hcross
+        hjust B hJ hcross ho
+
+theorem cpCompat_of_scopedFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstrat : RStrat p c E rho) : ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
+  (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
+    HonestRowBefore p c E rho i y r a →
+    namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+    RootBlockInRun p c E rho (eraseFG e) →
+    FGBlock.Preceq e B ∨ FGBlock.Preceq B e) →
+  (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
+    FGBlock.Preceq e B ∨ FGBlock.Preceq B e) ∧
+  (let st := storeAt p c E rho i x
+   let R := R_at p c E rho i x
+   (FGBlock.Preceq R.F B ∨ FGBlock.Preceq B R.F) ∧
+   (FGBlock.Preceq R.J B ∨ FGBlock.Preceq B R.J) ∧
+   (B ∈ st.fg.TF → FGBlock.Preceq R.F B →
+     FGBlock.Preceq B R.Z ∨ B ∈ domainR p st st.fg.TF) ∧
+   (R.contest = true → FGBlock.Preceq B R.J ∧
+     ∀ W ∈ st.fg.TF, (heightView p W).h = R.H → ¬ FGBlock.Preceq R.J W →
+       FGBlock.Preceq B W)) := by
+  have _hlegacyFrame := hframe
+  exact fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
+
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Plan item 4. DC: INTENTIONAL exact retained entry, then prefix coverage.

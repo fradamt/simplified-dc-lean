@@ -59,10 +59,11 @@ theorem healing_phaseWitness {i m : Nat} (hm : 1 ≤ m)
     have ht : (storeAt p c E rho i x).fg.h_max = (storeAt p c E rho i x).fg.h_j + 1 :=
       of_decide_eq_true (Bool.and_eq_true_iff.mp hc).1
     have hw : ∃ W ∈ (storeAt p c E rho i x).fg.TF,
+        FGBlock.Preceq (storeAt p c E rho i x).fg.F W ∧
         (heightView p W).h = (storeAt p c E rho i x).fg.h_max ∧
         ¬ FGBlock.Preceq (storeAt p c E rho i x).fg.J W :=
       of_decide_eq_true (Bool.and_eq_true_iff.mp hc).2
-    obtain ⟨W, hW, hhW, hn⟩ := hw
+    obtain ⟨W, hW, _hFW, hhW, hn⟩ := hw
     obtain ⟨C, hC, hh, hj, hJ⟩ := top x hx (ht.symm.trans hH)
     exact ⟨x, C, W, hC, ⟨hx, hW⟩, hh, hhW.trans hH, hj, hJ ▸ hn⟩
 

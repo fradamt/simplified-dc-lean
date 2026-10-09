@@ -88,7 +88,8 @@ private def lost : State 3 := { retained with fg := { retained.fg with F := fgOt
 /-- Regression for `port_retained_raw_carry`: held metadata alone is not a
 retention proof. Removing the proposal also removes its raw vote. -/
 example : headVotesNext p retained 4 = [baseVote carried] ∧
-    headVotesNext p lost 4 = [] ∧ headVotes p lost 4 = [baseVote carried] ∧
+    headVotesNext p lost 4 = [] ∧ headVotes p lost 4 = [] ∧
+    Legacy.headVotes p lost 4 = [baseVote carried] ∧
     headSupportNext p retained 4 = [baseVote carried] ∧
     headSupportNext p lost 4 = [] := by decide +kernel
 

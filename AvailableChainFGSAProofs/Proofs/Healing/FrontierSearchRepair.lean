@@ -111,7 +111,7 @@ theorem frontierSearch_proposal_heights [Fintype V] (E : Generic.Env V)
   obtain ⟨hH, hc, _hr⟩ := hp.2.2.2 j x hui hjD hx
   have hfg : st.fg = (storeAt p c E rho j x).fg := clock_fg p _ _
   have hne : (fullTree p st).Nonempty := by
-    change (KitFG.storeFrameView (heightView p) st.fg st.fg.TF).Nonempty
+    change (KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF).Nonempty
     rw [hfg]
     obtain ⟨W, hW, hh⟩ := healing_phase_frontier_witness p c E rho j x
     obtain ⟨hF, hZ⟩ := healing_phase_frontier_root p c E rho crossing hx hW hh
@@ -122,7 +122,7 @@ theorem frontierSearch_proposal_heights [Fintype V] (E : Generic.Env V)
     (by rw [← eraseFG_parent, heq]))
   have hH' : st.fg.h_max = m := by rw [hfg]; exact hH
   have hc' : (FGSA.controls p st).contest = contested := by
-    change (KitFG.storeControlsView (heightView p) st.fg).contest = contested
+    change (KitFG.treeStoreControlsView (heightView p) st.fg).contest = contested
     rw [hfg]
     exact hc
   change (if (FGSA.controls p st).contest then st.fg.h_max else st.fg.h_max - 1) ≤ _ at hlo

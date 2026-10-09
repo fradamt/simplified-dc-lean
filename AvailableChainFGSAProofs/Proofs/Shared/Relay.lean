@@ -163,7 +163,8 @@ private theorem relay_read_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho d hS,
     Gen.V2.Duty.stateBefore_idxBefore E rho _ hS,
     ← fgsa_preTick_eq_timeRead E rho hS hN hi] at hm
-  have hb := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+  have hb := stateBefore_now_le_event_retained (fgsaClock p c)
+    (fgsa_hrestore_now_retained p c)
     E rho hS hi x
   rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho i x)] at hb
   have hs := Internal.slotOf_mono (p := p) (hm.trans hb)
@@ -470,7 +471,8 @@ private theorem relay_carried_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     RelayCarried (V2.D.Run.stateBefore E rho k y).st s := by
   have hu (j : Nat) (hj : j ≤ k) : (V2.D.Run.stateBefore E rho j y).st.slot p ≤ s + 1 := by
     have hm := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hS hN hj y
-    have hb := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hb := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hS htick y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j y),
       fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hm
@@ -543,7 +545,7 @@ theorem fgsa_headVotes_provenance (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
         · rename_i hb
           cases hd
           exact relay_carried_run E rho hE.toScheduleWellFormed hN k y s htick
-            w hw' r N hdw (by simpa using hb) o hm seat hl' hk
+            w hw' r N hdw (by simpa using hb.1) o hm seat hl' hk
         · cases hd
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -782,7 +784,8 @@ theorem fgsa_cleanSupport_vote_forward (E : Generic.Env V) (rho : V2.D.Run V (fg
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed,
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed,
       ← fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hiy] at hm
-    have hb := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hb := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hE.toScheduleWellFormed hiy y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho iy y)] at hb
     have he : p.slotOf (SA.voteTime p.toParams (s + 1)) = s + 1 :=

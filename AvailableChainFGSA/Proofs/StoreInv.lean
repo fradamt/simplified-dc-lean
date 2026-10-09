@@ -41,14 +41,40 @@ theorem erasedList_rootInj (p : Params) (st : State p.n) (h : CStoreInv p st)
   intro A hA B hB
   exact baseBlocks_rootInj p st h A (List.mem_filter.mp hA).1 B (List.mem_filter.mp hB).1
 
-/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.frame.v1; K4] The live frame is the FJ_FRAME of Σ.T. -/
-theorem storeControls_eq (p : Params) (st : State p.n) (h : CStoreInv p st) :
+/-- [bp bp.frame.v1; K4] The live controls equal the old FJ controls with top retention. -/
+theorem fgsa_storeControls_eq_of_top_retained (p : Params) (st : State p.n)
+    (h : CStoreInv p st)
+    (hF : ∀ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max →
+      ¬ FGBlock.Preceq st.fg.J W → FGBlock.Preceq st.fg.F W) :
     controls p st = fjControls p.E p.cfg st.fg.F st.fg.TF := by
-  rw [KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+  rw [fgsa_controls_eq_of_top_retained p st hF,
+    KitFG.storeControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p),
+    KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
   exact KitFG.storeControlsView_eq_fjControlsView_of_inv
     (heightView p) (finalityView p) st.fg h.fg
     (KitFG.candidateJ_rootInj_of_viewRootInj p.E (heightView p)
       (fgCertificateLaws p).height st.fg.TF (viewRootInj_TF p st h))
+
+/-- [bp bp.frame.v1; K4] The live controls are the guarded FJ controls of Σ.T. -/
+theorem fgsa_storeControls_eq_tree (p : Params) (st : State p.n) (h : CStoreInv p st) :
+    controls p st = KitFG.treeFjControlsView (heightView p) st.fg.F st.fg.TF := by
+  have he := KitFG.storeControlsView_eq_fjControlsView_of_inv
+    (heightView p) (finalityView p) st.fg h.fg
+    (KitFG.candidateJ_rootInj_of_viewRootInj p.E (heightView p)
+      (fgCertificateLaws p).height st.fg.TF (viewRootInj_TF p st h))
+  have hH := congrArg Controls.H he
+  have hj := congrArg Controls.j he
+  have hJ := congrArg Controls.J he
+  dsimp [KitFG.storeControlsView, KitFG.fjControlsView] at hH hj hJ
+  unfold controls KitFG.treeStoreControlsView KitFG.treeFjControlsView
+  simp only [← hH, ← hj, ← hJ]
+
+/-- [bp bp.frame.v1; K4] The live full tree is the guarded FJ frame domain of Σ.T. -/
+theorem fgsa_fullTree_eq_treeFrame (p : Params) (st : State p.n) (h : CStoreInv p st) :
+    fullTree p st = (KitFG.treeFjFrameView (heightView p) st.fg.F st.fg.TF).D := by
+  change KitFG.filteredFromView (heightView p) (controls p st) st.fg.TF = _
+  rw [fgsa_storeControls_eq_tree p st h]
+  rfl
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.store.v1; K4] The live J is in Σ.T (the clause "F, J ∈
 T"; `Fmem` of
@@ -154,6 +180,12 @@ theorem cstoreInv_init (p : Params) : CStoreInv p (initial p.n) := by
   · simp [initial]
   · simp [initial, GridCO.initial]
   · simp [initial, GridCO.initial]
+
+/-- Ruling Y: the store invariant does not read the reset clock. -/
+theorem cstoreInv_initialAt (p : Params) (t : Time) : CStoreInv p (initialAt p.n t) := by
+  have h := cstoreInv_init p
+  exact ⟨h.fg, h.rootInj, h.baseTree, h.saCompat, h.Smem, h.fastOrigin,
+    h.fastDom, h.genuineKeys, h.leaseKeys⟩
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [ROOT-DIGEST W1; DC RootInjectiveOnAncestors] Admission proves
 inserted-tree roots locally. -/
@@ -596,6 +628,7 @@ theorem storeInvariant (p : Params) : StoreInvariant p := by
   intro st hst
   induction hst with
   | init => exact cstoreInv_init p
+  | reset t => exact cstoreInv_initialAt p t
   | tick t _ ih => exact cstoreInv_clock p _ ih t
   | deliver o _ ih => exact cstoreInv_process p _ ih o
 

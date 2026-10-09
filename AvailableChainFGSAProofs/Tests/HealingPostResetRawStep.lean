@@ -82,7 +82,8 @@ example {B : FGBlock (Fin p.n)} (heB : eraseFG B = C)
     (hlease : ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 C) :
     Block.Preceq C (headAtIdx p c E rho iy (s + 1)) :=
-  healing_first_transfer_raw_domain p c E rho hrec hgst hx hix hres heB hy hiy hXv hXc hD hlease
+  healing_first_transfer_raw_domain p c E rho hrec hgst hx hix hres heB hy hiy hXv
+    (fun W hW A _hFA hAW => hXc W hW A hAW) hD hlease
 
 end Raw
 -- Shared slow-window helper, conditional package: an actual saved result covers a reset extension.

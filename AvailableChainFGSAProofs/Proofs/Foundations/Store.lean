@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
+public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
@@ -54,12 +55,9 @@ theorem fgsa_rMono : RMono p c E rho := by
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The exact frame follows from T7.5 and FG store correspondence. -/
-theorem fgsa_rFrameExact : RFrameExact p c E rho := by
-  simp only [RFrameExact_def,
-    ← KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+theorem fgsa_rFrameExactNext : RFrameExactNext p c E rho := by
   intro i x _
-  refine ⟨storeControls_eq p _ (cstoreInv_stateBefore E rho i x), ?_⟩
-  rw [fullTree_eq, domainR_eq_storeFrame]
+  exact ⟨fgsa_storeControls_eq_tree p _ (cstoreInv_stateBefore E rho i x), rfl⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The active-view laws at every store, including conflict exclusion after F moves. -/
@@ -83,11 +81,11 @@ theorem fgsa_rCarrierView : RCarrierView p c E rho :=
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 L49 frame: the accepted FG step, stuttering steps, reconcile, and exact metadata reads.
 T7.5 supplies MetaInv; cumulative metadata uses the same KitV2 lift as RStoreCumul. -/
-theorem fgsa_rFrame : RFrame p c E rho := by
+theorem fgsa_rFrameNext : RFrameNext p c E rho := by
   intro i x _
   let st := storeAt p c E rho i x
   refine ⟨?_, ⟨(fun f => onView_fg f st), admitHead_fg p st, ?_, clock_fg p st, ?_, ?_⟩,
-    ⟨by rw [controls_eq, controls_eq]; exact storeControls_reconcile p st,
+    ⟨congrArg (KitFG.treeStoreControlsView (heightView p)) (reconcile_frame st).1,
       fun X => domainR_congr_fg p _ _ X (reconcile_frame st).1⟩,
     metaInv_stateBefore E rho i x, ?_⟩
   · intro s N P hNamed hP ha

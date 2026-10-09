@@ -31,10 +31,10 @@ theorem fgsa_headVote_best_ancestry_of_cover (p : Params) (st : State p.n)
           (GridCO.goldfishScore st.base.blocks (headVotes p st s) (headSupport p st s) D =
             GridCO.goldfishScore st.base.blocks (headVotes p st s) (headSupport p st s) C →
               D.root ≤ C.root) := by
-  rw [headVote_eq] at hcover
+  rw [fgsa_headVote_eq_filtered] at hcover
   rw [ite_eq_right hs] at hcover
   intro X _ hAX hXP
-  simpa only [domainR_eq_storeFrame] using
+  simpa only [fgsa_domainR_eq_filtered] using
     walk_best_ancestry_of_cover _ _ _ _ _ hcover X hAX hXP
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -74,9 +74,9 @@ theorem fgsa_headVote_exact_of_covered_parent (p : Params) (st : State p.n)
     (hcover : Block.Preceq b.parent (headVote p st s))
     (hgeom : ExactHeadGeometry p st s b) : headVote p st s = b := by
   have hancestry := fgsa_headVote_best_ancestry_of_cover p st s hs T b.parent hcover
-  rw [headVote_eq]
+  rw [fgsa_headVote_eq_filtered]
   rw [ite_eq_right hs]
-  simpa only [domainR_eq_storeFrame] using
+  simpa only [fgsa_domainR_eq_filtered] using
     exactHead_of_pivot_ancestry p st (voterBlocks p st s)
     (headVotes p st s) (headSupport p st s) T b.parent b hroot hstart hTP
     hancestry (Or.inr hgeom.last) hgeom.stop
@@ -134,7 +134,7 @@ theorem exactHead_of_proposal_on_run
     (eraseFG D) N.erase
     (erasedList_rootInj p dst (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _) _)
     (Or.inl ⟨hgeom.target_anchor, by
-      simpa only [domainR_eq_storeFrame] using hgeom.target_prefix⟩)
+      simpa only [fgsa_domainR_eq_filtered] using hgeom.target_prefix⟩)
     hDP hcover hterminal
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

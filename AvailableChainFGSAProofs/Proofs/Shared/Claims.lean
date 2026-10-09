@@ -265,7 +265,7 @@ theorem outageContinuation_of_body (p : Params)
     (hbody : ∀ {In V : Type} [DecidableEq V] {c : AppCodec In}
       {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} [Fintype V]
       {fast : Bool} {T b₀ b₁ ΔF : Time}
-      (_hstore : RStore p c E rho) (_hframe : RFrameExact p c E rho)
+      (_hstore : RStore p c E rho) (_hframe : RFrameExactNext p c E rho)
       (_hsrc : SrcFrameAboveStmt p c E rho)
       (_htsrc : ∀ y r C, y ∈ rho.honest →
         actionSource p c E rho y r = some (some C) →

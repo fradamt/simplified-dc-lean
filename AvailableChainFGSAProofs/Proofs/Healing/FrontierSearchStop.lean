@@ -143,7 +143,8 @@ def frontierSearch_phaseRank (kind : PhaseKind) : Nat :=
 /-- Blueprint 21 HG.5; phase-order composition.
 DC: SAME a same-frontier effective stop strictly advances the phase.
 Thus the gap and top-J charge cannot be repeated at this frontier. -/
-theorem frontierSearch_phase_step (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
+theorem frontierSearch_phase_step_of_crossing (crossing : RXing p c E rho)
+    (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
     (hs : V2.D.ScheduleWellFormed E rho) {i m : Nat} {kind : PhaseKind}
     {ev : V2.Event V (Obj p)} {deadline : Time}
     (hstart : FrontierSearchStart p c E rho i ev m kind)
@@ -162,7 +163,8 @@ theorem frontierSearch_phase_step (mono : RMono p c E rho) (hnr : V2.D.NoRestart
     apply Nat.le_antisymm
     · exact (healing_frontier_mono p c E rho hnr hkj).trans_eq hf
     · exact hf0 ▸ healing_frontier_mono p c E rho hnr hik
-  have horder := healing_phase_order p c E rho mono hnr (i + 1) (j + 1) m
+  have horder := healing_phase_order_of_crossing p c E rho crossing mono hnr
+    (i + 1) (j + 1) m
     (by omega) (by omega) hm hfixed
   have hbits := horder.1 (i + 1) j le_rfl (by omega) (by omega)
   have heff' : (¬ TopEvidence p c E rho j m ∧ TopEvidence p c E rho (j + 1) m) ∨

@@ -284,13 +284,14 @@ theorem outageV_block_stamp_lt (hsch : V2.D.ScheduleWellFormed E rho)
 
 /-- OUTPUT-DIRECT §3. DC: INTENTIONAL; a carrier held before the freeze
 remains in the actual later frozen voter set, with its original stamp. -/
-theorem outageV_frozen_of_receipt (hsch : V2.D.ScheduleWellFormed E rho)
+theorem outageV_frozen_of_receipt_of_F_prefix (hsch : V2.D.ScheduleWellFormed E rho)
     (hn : V2.D.NoRestart rho) (hcumul : RStoreCumul p c E rho)
     {j i : Nat} {x : V} {t : Time} {s : Slot} {P : FGBlock (Fin p.n)}
     (hx : x ∈ rho.honest) (hj : rho.events[j]? = some (.tick x t))
     (ht : 0 < t) (hfreeze : t ≤ SA.freezeTime p.toParams (s - 1))
     (hji : j ≤ i) (hi : i ≤ rho.events.length)
-    (hP : P ∈ (storeAt p c E rho j x).fg.TF) :
+    (hP : P ∈ (storeAt p c E rho j x).fg.TF)
+    (hFP : FGBlock.Preceq (storeAt p c E rho i x).fg.F P) :
     P ∈ voterBlocks p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) s := by
   let src := storeAt p c E rho j x
   let dst := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
@@ -315,9 +316,11 @@ theorem outageV_frozen_of_receipt (hsch : V2.D.ScheduleWellFormed E rho)
     rw [clock_fg]
     exact hc.1 hP
   apply Finset.mem_filter.mpr
-  refine ⟨hm, Bool.or_eq_true_iff.mpr (Or.inl (decide_eq_true ?_))⟩
-  rw [hstamp]
-  exact (outageV_block_stamp_lt hsch hn hj ht _ hPb).trans_le hfreeze
+  refine ⟨Finset.mem_filter.mpr ⟨hm, ?_⟩,
+    Bool.or_eq_true_iff.mpr (Or.inl (decide_eq_true ?_))⟩
+  · simpa only [dst, clock_fg, FGBlock.Preceq] using hFP
+  · rw [hstamp]
+    exact (outageV_block_stamp_lt hsch hn hj ht _ hPb).trans_le hfreeze
 
 
 /-- OUTPUT-DIRECT §3. DC: INTENTIONAL; clock processing admits no FG
@@ -505,7 +508,8 @@ theorem outageV_compatible_head_receipts
   have hwindow : (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x).st.slot p ≤
       s + 1 := by
     rw [← hjread]
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hj x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hn
     have he := slotOf_offset p s (2 * p.Δ) (by omega) (by omega)
@@ -550,7 +554,8 @@ theorem outageV_compatible_head_receipts
     exact ⟨hblockI, hprefix i le_rfl⟩
   have hslot : K.slot ≤ s := by
     have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hk y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq
@@ -587,7 +592,8 @@ theorem outageV_covering_head_receipts
         (ofHead p ⟨.seat (.head s) q, K.root⟩) t ∧
       baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈ headSupport p dst (s + 1) ∧
       K ∈ dst.base.blocks ∧ K.slot ≤ s ∧ Block.Preceq B K ∧
-      ∀ X : FGBlock (Fin p.n), Block.Preceq (eraseFG X) K →
+      ∀ X : FGBlock (Fin p.n), FGBlock.Preceq (storeAt p c E rho i x).fg.F X →
+        Block.Preceq (eraseFG X) K →
         X ∈ voterBlocks p dst (s + 1) := by
   intro dst q hy hawake
   let y := rho.seatOf (.base (.head s)) q
@@ -670,7 +676,8 @@ theorem outageV_covering_head_receipts
   have hwindow : (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x).st.slot p ≤
       s + 1 := by
     rw [← hjread]
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hj x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hn
     have he := slotOf_offset p s (2 * p.Δ) (by omega) (by omega)
@@ -715,7 +722,8 @@ theorem outageV_covering_head_receipts
     exact ⟨hblockI, hprefix i le_rfl⟩
   have hslot : K.slot ≤ s := by
     have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hk y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq
@@ -768,16 +776,16 @@ theorem outageV_covering_head_receipts
       ⟨Bool.and_eq_true_iff.mpr ⟨decide_eq_true hslot, decide_eq_true hvsf⟩,
         decide_eq_true hbsf⟩
   refine ⟨K, SA.voteTime p.toParams s, hem, hsup, hKd, hslot, hBK, ?_⟩
-  intro X hXK
+  intro X hFX hXK
   have hXe : eraseFG X ∈ (storeAt p c E rho j x).base.blocks := by
     have hm := (actView_blocks _ _).mp (hpath _ hXK)
     rw [← hjread] at hm
     exact hm.1
   obtain ⟨Y, hY, heY⟩ := ((storeBundle_stateBefore E rho j x).cstore.baseTree _).mp hXe
   have hX : X ∈ (storeAt p c E rho j x).fg.TF := eraseFG_injective heY ▸ hY
-  exact outageV_frozen_of_receipt hsch hnr hcumul hx hj hpos
+  exact outageV_frozen_of_receipt_of_F_prefix hsch hnr hcumul hx hj hpos
     (by simpa only [Nat.add_sub_cancel] using hfreeze.le) hji.le
-    (Nat.le_of_lt (List.getElem?_eq_some_iff.mp ht).1) hX
+    (Nat.le_of_lt (List.getElem?_eq_some_iff.mp ht).1) hX hFX
 
 /-- OUTPUT-DIRECT §3. DC: INTENTIONAL; an old held path relays before
 freeze even when its source cutoff equals the previous early boundary.
@@ -793,7 +801,8 @@ theorem outageV_frozen_path_receipt
     (hcut : ∀ l < k, ∀ e, rho.events[l]? = some e → e.time ≤ SA.earlyTime p.toParams s)
     (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
     (hF : Block.Preceq (F_at p c E rho i x) (eraseFG U)) :
-    ∀ X, FGBlock.Preceq X U → X ∈ voterBlocks p
+    ∀ X, FGBlock.Preceq (storeAt p c E rho i x).fg.F X →
+      FGBlock.Preceq X U → X ∈ voterBlocks p
       (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams (s + 1))) (s + 1) := by
   have hsch := hvalid.toScheduleWellFormed
   have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
@@ -831,7 +840,7 @@ theorem outageV_frozen_path_receipt
   have hpath := outageV_active_path_of_coverage (hroots := hroots) hvalid hnr hdelta
     (fun t => max t E.t_GST + p.Δ) rho.horizon (SA.freezeTime p.toParams s) 0 x
     (eraseFG U) required paths hx hcov hp hFcut
-  intro X hXU
+  intro X hFX hXU
   have hXe := (actView_blocks _ _).mp (hpath _ (eraseFG_preceq hXU)) |>.1
   rw [← hjread] at hXe
   obtain ⟨Y, hY, heY⟩ := ((storeBundle_stateBefore E rho j x).cstore.baseTree _).mp hXe
@@ -840,9 +849,9 @@ theorem outageV_frozen_path_receipt
     rw [arming_freeze_eq]
     have := p.deltaPos
     positivity
-  exact outageV_frozen_of_receipt hsch hnr hcumul hx hj hpos
+  exact outageV_frozen_of_receipt_of_F_prefix hsch hnr hcumul hx hj hpos
     (by simp only [Nat.add_sub_cancel]; exact le_rfl) hji.le
-    (Nat.le_of_lt (List.getElem?_eq_some_iff.mp ht).1) hX
+    (Nat.le_of_lt (List.getElem?_eq_some_iff.mp ht).1) hX hFX
 
 /-- OUTPUT-DIRECT §3. DC: INTENTIONAL; instantiate the uncontested HEAD
 with authentic covering receipts and frozen crossing-source witnesses.
@@ -890,10 +899,11 @@ theorem outageV_uncontested_head [Fintype V]
   obtain ⟨H, hH, hbatch⟩ := inclusion_head_seats E rho hcstar s ⟨hpart⟩
   obtain ⟨q, hq⟩ := Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) hbatch.lt)
   obtain ⟨K, _, _, _, _, _, hBK, hpathK⟩ := hrec q ((hH q).mp hq).1 ((hH q).mp hq).2
-  have hpathB : ∀ X, FGBlock.Preceq X B → X ∈ voterBlocks p dst (s + 1) := by
-    intro X hXB
-    exact hpathK X (block_preceq_trans (eraseFG_preceq hXB) hBK)
-  have hBm := hpathB B (preceq_refl B)
+  have hpathB : ∀ X, FGBlock.Preceq (storeAt p c E rho i x).fg.F X →
+      FGBlock.Preceq X B → X ∈ voterBlocks p dst (s + 1) := by
+    intro X hFX hXB
+    exact hpathK X hFX (block_preceq_trans (eraseFG_preceq hXB) hBK)
+  have hBm := hpathB B (eraseFG_preceq_iff.mp hF) (preceq_refl B)
   have hlo : (controls p dst).lo = dst.fg.h_max - 1 := by
     change (if (controls p dst).contest then dst.fg.h_max else dst.fg.h_max - 1) = _
     rw [hnt]
@@ -935,14 +945,21 @@ theorem outageV_uncontested_head [Fintype V]
             hrow.2.1 he (lt_of_not_ge hn)
           omega
         exact hle.trans htime) hGST hfU
-    exact ⟨U, hfreeze U (preceq_refl U), hBU, by rw [hlo, hUh]⟩
+    exact ⟨U, hfreeze U (eraseFG_preceq_iff.mp hfU) (preceq_refl U), hBU, by rw [hlo, hUh]⟩
   obtain ⟨W, hW, hBW, hWh⟩ := hwitness
   apply outageV_head_covers_from_batch E rho hvalid hnr hcstar s (eraseFG B) ht hpart hroot
-  · intro C _ hCB
+  · intro C hAC hCB
     obtain ⟨X, _, heX⟩ := eraseFG_ancestor_mem hinv.fg.closed
-      (Finset.mem_filter.mp hBm).1 hCB
+      (Finset.mem_filter.mp (Finset.mem_filter.mp hBm).1).1 hCB
     have hXB := eraseFG_preceq_iff.mp (heX ▸ hCB)
-    exact ⟨X, hpathB X hXB, heX, W, hW, preceq_trans hXB hBW, hWh⟩
+    have hFX : FGBlock.Preceq (storeAt p c E rho i x).fg.F X := by
+      apply eraseFG_preceq_iff.mp
+      rw [heX]
+      have hAC' : Block.Preceq (liveRoot p dst) C :=
+        (Bool.and_eq_true_iff.mp hAC).2
+      have hf := block_preceq_trans (F_preceq_liveRoot p dst hinv) hAC'
+      simpa only [dst, clock_fg] using hf
+    exact ⟨X, hpathB X hFX hXB, heX, W, hW, preceq_trans hXB hBW, hWh⟩
   · intro q hh ha
     obtain ⟨K, t, hem, hs, hm, hslot, hBK, _⟩ := hrec q hh ha
     exact ⟨K, t, hem, hs, hm, hslot, hBK⟩

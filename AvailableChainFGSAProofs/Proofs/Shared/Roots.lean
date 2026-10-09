@@ -123,12 +123,11 @@ theorem srcFrameAbove_scoped (p : Params) (c : AppCodec In) (E : Generic.Env V)
   change FrameBelow p Φ c₀ (controls p st)
   simp only [FrameBelow_def, heightView_eq_simplex p,
     KitFG.simplexHeightView_def, KitFG.heightOf_def]
-  rw [controls_eq]
   refine ⟨hF, hj, ?_⟩
-  change c₀ ≤ hOf p.E p.cfg (if (storeControls p.E p.cfg st.fg).rootIsJ then
-      st.fg.J else st.fg.F) → Φ (if (storeControls p.E p.cfg st.fg).rootIsJ then
+  change c₀ ≤ hOf p.E p.cfg (if (controls p st).rootIsJ then
+      st.fg.J else st.fg.F) → Φ (if (controls p st).rootIsJ then
       st.fg.J else st.fg.F)
-  cases (storeControls p.E p.cfg st.fg).rootIsJ <;> assumption
+  cases (controls p st).rootIsJ <;> assumption
 
 /-- ROOT-DIGEST W2b. A non-genesis gate result has earlier direct delivery provenance.
 The genesis case uses the honest gate node's initial body store. -/

@@ -1283,13 +1283,14 @@ theorem ff2_no_high_contest (w : HealingWitness)
   let st := storeAt p c E rho i x
   change (FGSA.controls p st).contest = true → (FGSA.controls p st).H ≤ w.M + 1
   unfold FGSA.controls
-  rw [KitFG.storeControlsView_def]
+  rw [KitFG.treeStoreControlsView_def]
   intro ht
   change (decide (st.fg.h_max = st.fg.h_j + 1) &&
-    decide (∃ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max ∧
+    decide (∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧
+      (heightView p W).h = st.fg.h_max ∧
       ¬ FGBlock.Preceq st.fg.J W)) = true at ht
   rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ht
-  obtain ⟨htop, W, hW, hw, hbad⟩ := ht
+  obtain ⟨htop, W, hW, _hFW, hw, hbad⟩ := ht
   change st.fg.h_max ≤ w.M + 1
   by_contra hlarge
   have hjhigh : w.M + 1 ≤ st.fg.h_j := by simp only [Height] at *; omega

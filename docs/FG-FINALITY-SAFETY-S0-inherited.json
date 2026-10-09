@@ -7,8 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "5ba8d4da647fe19d2006f3080dbeb076ea8b01e4",
-  "main_revision_note": "Gate-par byte revision; authorized change (2026-10-09); history only.",
+  "main_revision": "6c36d4810cb070655f2f4aadb3346db6c76aa0a3",
+  "main_revision_note": "gate-par merged onto post-port main 6c36d481; history only.",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -112,7 +112,7 @@
       "path": "AvailableChainFGSAProofs/Tests/Axioms.lean",
       "s0_sha256": "eadf5b295fbd91c13684573d4b91d1facd7ab13243696f26c7ec41e66ff726d9",
       "comparison_sha256": "4f8d10bbf562323edf96fa8f6a299c35939dec65ab8b3864dd8c5d172be826dd",
-      "main_sha256": "4f8d10bbf562323edf96fa8f6a299c35939dec65ab8b3864dd8c5d172be826dd",
+      "main_sha256": "b47acf499f78d35e1383b5d04209f0da8c065e096b3cb7ca380e8e85bd008ab5",
       "changes": [
         {
           "commit": "8be7bf6bfde3f9b109216274cdf43c2cf95d6c62",
@@ -120,6 +120,22 @@
           "before_sha256": "eadf5b295fbd91c13684573d4b91d1facd7ab13243696f26c7ec41e66ff726d9",
           "after_sha256": "4f8d10bbf562323edf96fa8f6a299c35939dec65ab8b3864dd8c5d172be826dd",
           "reason": "Add the axiom audit line for healing_resetArrivalClaim.",
+          "kind": "commit"
+        },
+        {
+          "commit": "2c3a3460c9f1794005fb66eb70f798979d9ff648",
+          "parent": "4aa85d9dbbaee0d840a4ed3d1fcb3191e79eeec9",
+          "before_sha256": "4f8d10bbf562323edf96fa8f6a299c35939dec65ab8b3864dd8c5d172be826dd",
+          "after_sha256": "b504cd3dfcd911f6889954a76ff6f554cc79aeeedd083826419d67e36526a1a9",
+          "reason": "WP13v audit registration: test(fgsa): replace removed helper audits and cover guarded suppliers",
+          "kind": "commit"
+        },
+        {
+          "commit": "fd5a26137eb9d0346dec6ceb9eed88e91703e948",
+          "parent": "a05654a26c7c4e15507c98709e289bbf1716ea4d",
+          "before_sha256": "b504cd3dfcd911f6889954a76ff6f554cc79aeeedd083826419d67e36526a1a9",
+          "after_sha256": "b47acf499f78d35e1383b5d04209f0da8c065e096b3cb7ca380e8e85bd008ab5",
+          "reason": "WP13v A/V/S/T regression and axiom audit repairs: test(fgsa): audit guarded outage receipts and retained domains",
           "kind": "commit"
         }
       ]
@@ -282,7 +298,7 @@
       "path": "docs/FGSA-API.md",
       "s0_sha256": "63b46ca4928064c0f21f9ade352bb6b9aa061e7b7d4d295842e3ed94c0fdab2e",
       "comparison_sha256": "b3075a0c0979320a26ba3fca7a43327882e24685574242a0f7e979381cc0e018",
-      "main_sha256": "23453dec2be723dfead8822514b68ef6d154f2a0a1b8d229c1281cef01e62046",
+      "main_sha256": "e43abf02e1359e1dd320aa647465613da6f82c8ce15b41b747faed5dbfedc05f",
       "changes": [
         {
           "commit": "4dbcf7871148db227abedd3a8c66fdbd1892cf55",
@@ -333,6 +349,22 @@
           "after_sha256": "23453dec2be723dfead8822514b68ef6d154f2a0a1b8d229c1281cef01e62046",
           "reason": "Move FGFoundationNext entries to ComposeNext and FrameAtNext to Statements.FrameNext; add WalkBatchNext and update the TWalkNext fingerprint for the S0-F/WP00b layering repair (docs/plans/fgsa-port-r2.md, WP16 data-owner role).",
           "kind": "commit"
+        },
+        {
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f",
+          "parent": "318074ba78132f90c894e54dbbc18dd571b02b5b",
+          "before_sha256": "23453dec2be723dfead8822514b68ef6d154f2a0a1b8d229c1281cef01e62046",
+          "after_sha256": "34c9bd072c9f57b928033e12a3b1825897143067c7f2fbe74867aeb6c89643cf",
+          "reason": "A; h+i+j protocol switch: Switch canonical FG-SA readers and final frame surface (red window)",
+          "kind": "commit"
+        },
+        {
+          "commit": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+          "parent": "33ac5feca6f3e2785ee18e892b1fb72e47f9f43c",
+          "before_sha256": "34c9bd072c9f57b928033e12a3b1825897143067c7f2fbe74867aeb6c89643cf",
+          "after_sha256": "e43abf02e1359e1dd320aa647465613da6f82c8ce15b41b747faed5dbfedc05f",
+          "reason": "WP16 measured Y API data: fix(fgsa): measure Y suppliers and record remaining audit blockers",
+          "kind": "commit"
         }
       ]
     },
@@ -340,7 +372,7 @@
       "path": "scripts/baselines/fgsa-old-reads.txt",
       "s0_sha256": "6e83b61661d138f8d6b1343766c60c3966c31d2de52244df1028b1c1c61d8d61",
       "comparison_sha256": "7463e7487fcd6f940180a791dbe2399aa4809a5e570f20d6dcbaf31586eda17a",
-      "main_sha256": "2a86e9b9c1c59bd89dfe4b42b71057acc6a7d40f7f65c9e5d18a0f389f7e482f",
+      "main_sha256": "501e7df699fab34f2f39b977c89d4b01092913721ddcf9c0aa18372ea54ed695",
       "changes": [
         {
           "commit": "cd13880836f16a76af42d094857bd4b428e0c02c",
@@ -391,6 +423,14 @@
           "after_sha256": "2a86e9b9c1c59bd89dfe4b42b71057acc6a7d40f7f65c9e5d18a0f389f7e482f",
           "reason": "Record the three height-only old-read lines for Legacy.attest, Next.attestNext and its eq_1 export, which mirror canonical attest; retain the SWITCH/J6 obligation (lead ruling 2026-10-09; docs/plans/fgsa-port-r2.md, S0-IJ/WP01b and WP16 data-owner role).",
           "kind": "commit"
+        },
+        {
+          "commit": "45db161df91761be29d6115659aa5182f4afaab3",
+          "parent": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+          "before_sha256": "2a86e9b9c1c59bd89dfe4b42b71057acc6a7d40f7f65c9e5d18a0f389f7e482f",
+          "after_sha256": "501e7df699fab34f2f39b977c89d4b01092913721ddcf9c0aa18372ea54ed695",
+          "reason": "WP16 measured data and exact approved guard records: fix(fgsa): measure P13 suppliers and refresh merged port data",
+          "kind": "commit"
         }
       ]
     },
@@ -406,6 +446,22 @@
           "before_sha256": "4b548a8a8dfaed422ae177c0ca0fb823acc6fc7e6825e8f76170c7933d756f81",
           "after_sha256": "a98b46deb10d65b1db855157240d68f8f60d7a10e51acafa606cf16b38de89c4",
           "reason": "Register the additive TreeFrameDef module in the KitFG definition policy for S0-IJ/WP02 (docs/plans/fgsa-port-r2.md, WP16 data-owner role).",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "scripts/baselines/shake-report.txt",
+      "s0_sha256": "6adaf95d3d9e22cf6ef7631658ddc87f1b784d5939ab9617a4635d01655407b7",
+      "comparison_sha256": "6adaf95d3d9e22cf6ef7631658ddc87f1b784d5939ab9617a4635d01655407b7",
+      "main_sha256": "55abebd7bed1541ff19d1a191bc88bb79b9f91dc5c3ff03c4bac2417f3fd5449",
+      "changes": [
+        {
+          "commit": "c29eee71b51479141668297c5c720b40fa78efec",
+          "parent": "a207ed5a76e452302239e9a5d9fc8d918982a415",
+          "before_sha256": "6adaf95d3d9e22cf6ef7631658ddc87f1b784d5939ab9617a4635d01655407b7",
+          "after_sha256": "55abebd7bed1541ff19d1a191bc88bb79b9f91dc5c3ff03c4bac2417f3fd5449",
+          "reason": "Record 4 unused imports in S0-frozen claim files; the files stay byte-identical (lead ruling 2026-10-09).",
           "kind": "commit"
         }
       ]
@@ -430,6 +486,126 @@
           "before_sha256": "3b95a9dbe9815162fc6fad985ba182bb6aa9170d9fdb94b63df5830cecc73908",
           "after_sha256": "549ed5ed530e552c00b6b3c43d3507d7bde8ab5ab160788220be870159f7b044",
           "reason": "Shared gate slots; all checks/controls stay (user request 2026-10-09).",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "AvailableChainFGSAClaims/Claims/Clean.lean",
+      "s0_sha256": "fc9969885e1daa52b2c86e88df5612ed95319466fa41703305c41b5bbb1d4559",
+      "comparison_sha256": "fc9969885e1daa52b2c86e88df5612ed95319466fa41703305c41b5bbb1d4559",
+      "main_sha256": "406d5b2fd9c1023c194979b061088d543c31b9f7ef3be39aadd112a7a6bf591d",
+      "changes": [
+        {
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f",
+          "parent": "318074ba78132f90c894e54dbbc18dd571b02b5b",
+          "before_sha256": "fc9969885e1daa52b2c86e88df5612ed95319466fa41703305c41b5bbb1d4559",
+          "after_sha256": "406d5b2fd9c1023c194979b061088d543c31b9f7ef3be39aadd112a7a6bf591d",
+          "reason": "A; h+i+j protocol switch: Switch canonical FG-SA readers and final frame surface (red window)",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "AvailableChainFGSAClaims/Claims/Foundations.lean",
+      "s0_sha256": "396cba3d002fdb24c7bebac5591686834c98d3b2cbfebaae46b366ee194e9713",
+      "comparison_sha256": "396cba3d002fdb24c7bebac5591686834c98d3b2cbfebaae46b366ee194e9713",
+      "main_sha256": "b4fcb9bbb581dcb0804424c4aa7157d4364860dac128bfd291c5c9742d624b3d",
+      "changes": [
+        {
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f",
+          "parent": "318074ba78132f90c894e54dbbc18dd571b02b5b",
+          "before_sha256": "396cba3d002fdb24c7bebac5591686834c98d3b2cbfebaae46b366ee194e9713",
+          "after_sha256": "b4fcb9bbb581dcb0804424c4aa7157d4364860dac128bfd291c5c9742d624b3d",
+          "reason": "A; h+i+j protocol switch: Switch canonical FG-SA readers and final frame surface (red window)",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "AvailableChainFGSAClaims/FGSAClaims.lean",
+      "s0_sha256": "a088b51e2333854e4c02f436e52bddfaccaf074e66cdb76b0df037c072bf729e",
+      "comparison_sha256": "a088b51e2333854e4c02f436e52bddfaccaf074e66cdb76b0df037c072bf729e",
+      "main_sha256": "d38995efed9e99f88a4c0286753d69a1b88934968adff2c1a78dd4c57fb3890c",
+      "changes": [
+        {
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f",
+          "parent": "318074ba78132f90c894e54dbbc18dd571b02b5b",
+          "before_sha256": "a088b51e2333854e4c02f436e52bddfaccaf074e66cdb76b0df037c072bf729e",
+          "after_sha256": "d38995efed9e99f88a4c0286753d69a1b88934968adff2c1a78dd4c57fb3890c",
+          "reason": "A; h+i+j protocol switch: Switch canonical FG-SA readers and final frame surface (red window)",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "AvailableChainFGSAClaims/Statements/ComposeStmt.lean",
+      "s0_sha256": "68788cd546204b5149e2af75f31d733880ea52fbd166b2c439abdf98068cf06e",
+      "comparison_sha256": "68788cd546204b5149e2af75f31d733880ea52fbd166b2c439abdf98068cf06e",
+      "main_sha256": "3752e9b81bf5e190d85fd79cfcda9333c2c026d93948fd66c680ed50354b252b",
+      "changes": [
+        {
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f",
+          "parent": "318074ba78132f90c894e54dbbc18dd571b02b5b",
+          "before_sha256": "68788cd546204b5149e2af75f31d733880ea52fbd166b2c439abdf98068cf06e",
+          "after_sha256": "3752e9b81bf5e190d85fd79cfcda9333c2c026d93948fd66c680ed50354b252b",
+          "reason": "A; h+i+j protocol switch: Switch canonical FG-SA readers and final frame surface (red window)",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "scripts/fgsa-manifest-allow.txt",
+      "s0_sha256": "526b2b1e05476d9f722cbf1775ad00eeaccc8c45297790ac2d21908128e8f2a9",
+      "comparison_sha256": "526b2b1e05476d9f722cbf1775ad00eeaccc8c45297790ac2d21908128e8f2a9",
+      "main_sha256": "b4d8cd96a5fb23ac6f62a74d4beb89d1e0f6106668cf96da00d87f900a776972",
+      "changes": [
+        {
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f",
+          "parent": "318074ba78132f90c894e54dbbc18dd571b02b5b",
+          "before_sha256": "526b2b1e05476d9f722cbf1775ad00eeaccc8c45297790ac2d21908128e8f2a9",
+          "after_sha256": "c86a1e8c0ee181e2ca855f8766c43d2481afe2ee5d0896ac58ffbbee750e69d4",
+          "reason": "A; h+i+j protocol switch: Switch canonical FG-SA readers and final frame surface (red window)",
+          "kind": "commit"
+        },
+        {
+          "commit": "79c3390cbddc1939dbe7735aabd37b03063f47e5",
+          "parent": "4924efecd4635740060126d4ac9946063ef65ad6",
+          "before_sha256": "c86a1e8c0ee181e2ca855f8766c43d2481afe2ee5d0896ac58ffbbee750e69d4",
+          "after_sha256": "b4d8cd96a5fb23ac6f62a74d4beb89d1e0f6106668cf96da00d87f900a776972",
+          "reason": "Lead approval A: exact ruling Y Reachable pin; codex/reports/reviews/rev-port-w16c-astra.md",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "scripts/guard-lists-allow.txt",
+      "s0_sha256": "e05e674f98e0a494e9ea9031c45e8da9262ff99eedd5edd610b7e2d13dab5009",
+      "comparison_sha256": "e05e674f98e0a494e9ea9031c45e8da9262ff99eedd5edd610b7e2d13dab5009",
+      "main_sha256": "475793a013e98e5568665b6fce1fa51d8706bd0da1d12675506259c1b0463d9a",
+      "changes": [
+        {
+          "commit": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+          "parent": "e961df941261be5f421a03ae80635d1806a516e9",
+          "before_sha256": "e05e674f98e0a494e9ea9031c45e8da9262ff99eedd5edd610b7e2d13dab5009",
+          "after_sha256": "475793a013e98e5568665b6fce1fa51d8706bd0da1d12675506259c1b0463d9a",
+          "reason": "WP16 exact guard records approved by fg-sa-manager: fix(fgsa): correct WP16 attribution and apply approved guard records",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "AvailableChainFGSA/Statements/Invariants.lean",
+      "s0_sha256": "f4cb8df055a973b7525b33d8c3aaef00c33c04864f1dd3de01165565a411694e",
+      "comparison_sha256": "f4cb8df055a973b7525b33d8c3aaef00c33c04864f1dd3de01165565a411694e",
+      "main_sha256": "296d28b56327445d5504fd7022d3a3ca7a5dc0dbd785aba57ec427046ac2a578",
+      "changes": [
+        {
+          "commit": "b0b493d88a0973da9c9716f430e2371eae0cdfd1",
+          "parent": "b8f60fd1f24c18ff11c4534531dfed9b59ebf6ad",
+          "before_sha256": "f4cb8df055a973b7525b33d8c3aaef00c33c04864f1dd3de01165565a411694e",
+          "after_sha256": "296d28b56327445d5504fd7022d3a3ca7a5dc0dbd785aba57ec427046ac2a578",
+          "reason": "Integrated Y/WP12d/wfix2 source and prior WP16 data: Retain the FG-SA last tick clock through restore (ruling Y)",
           "kind": "commit"
         }
       ]
@@ -577,6 +753,125 @@
         }
       ],
       "note": "Stage 0 candidate after the deep checker (WP00c) merge. All qualifying byte changes, including intermediate commits and any merge resolution with new bytes, are recorded in differences. Package entries identify the commits with the exact tip bytes. Merge commits in this range select existing parent bytes for frozen paths; none produces new frozen bytes. Changes follow docs/plans/fgsa-port-r2.md and its WP16 data-owner role; this record grants no edit permission."
+    },
+    {
+      "id": "FGSA-port-core-first-pass",
+      "base": "9bbecdbb088b9a1d95d0eb8445e092ff988c0f0c",
+      "tip": "63b98347ffc517732bdf8e42c19730d4cc502a4b",
+      "recorded_changes": [
+        {
+          "path": "AvailableChainFGSAClaims/Claims/Clean.lean",
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f"
+        },
+        {
+          "path": "AvailableChainFGSAClaims/Claims/Foundations.lean",
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f"
+        },
+        {
+          "path": "AvailableChainFGSAClaims/FGSAClaims.lean",
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f"
+        },
+        {
+          "path": "AvailableChainFGSAClaims/Statements/ComposeStmt.lean",
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f"
+        },
+        {
+          "path": "AvailableChainFGSAProofs/Tests/Axioms.lean",
+          "commit": "2c3a3460c9f1794005fb66eb70f798979d9ff648"
+        },
+        {
+          "path": "docs/FGSA-API.md",
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f"
+        },
+        {
+          "path": "scripts/fgsa-manifest-allow.txt",
+          "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f"
+        }
+      ],
+      "note": "WP16 first pass. The core package remains open for later source/data commits. This fixed tip records merged bytes only. Every qualifying intermediate change and merge resolution is in differences."
+    },
+    {
+      "id": "FGSA-port-second-pass-base",
+      "base": "63b98347ffc517732bdf8e42c19730d4cc502a4b",
+      "tip": "e961df941261be5f421a03ae80635d1806a516e9",
+      "recorded_changes": [
+        {
+          "path": "AvailableChainFGSAProofs/Tests/Axioms.lean",
+          "commit": "fd5a26137eb9d0346dec6ceb9eed88e91703e948"
+        }
+      ],
+      "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."
+    },
+    {
+      "id": "FGSA-port-approved-guard-edit",
+      "base": "e961df941261be5f421a03ae80635d1806a516e9",
+      "tip": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+      "recorded_changes": [
+        {
+          "path": "scripts/guard-lists-allow.txt",
+          "commit": "02f5ac9aab84c6587f3f8e708a1736f354021d3b"
+        }
+      ],
+      "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."
+    },
+    {
+      "id": "FGSA-port-measured-data",
+      "base": "02f5ac9aab84c6587f3f8e708a1736f354021d3b",
+      "tip": "45db161df91761be29d6115659aa5182f4afaab3",
+      "recorded_changes": [
+        {
+          "path": "scripts/baselines/fgsa-old-reads.txt",
+          "commit": "45db161df91761be29d6115659aa5182f4afaab3"
+        }
+      ],
+      "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."
+    },
+    {
+      "id": "FGSA-port-final-refresh-base",
+      "base": "45db161df91761be29d6115659aa5182f4afaab3",
+      "tip": "988177e222b441e9ee08d51f8dfd39c80b0d395d",
+      "recorded_changes": [
+        {
+          "path": "AvailableChainFGSA/Statements/Invariants.lean",
+          "commit": "b0b493d88a0973da9c9716f430e2371eae0cdfd1"
+        }
+      ],
+      "note": "Exact integrated Y/WP12d/wfix2 bytes with actual parents and hashes."
+    },
+    {
+      "id": "FGSA-port-final-refresh-data",
+      "base": "988177e222b441e9ee08d51f8dfd39c80b0d395d",
+      "tip": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+      "recorded_changes": [
+        {
+          "path": "docs/FGSA-API.md",
+          "commit": "2862a33a167325da8a0302a4fc2f29284b19fa60"
+        }
+      ],
+      "note": "Exact measured API bytes after the integrated Y constructor change."
+    },
+    {
+      "id": "FGSA-port-last-data-closure",
+      "base": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+      "tip": "79c3390cbddc1939dbe7735aabd37b03063f47e5",
+      "recorded_changes": [
+        {
+          "path": "scripts/fgsa-manifest-allow.txt",
+          "commit": "79c3390cbddc1939dbe7735aabd37b03063f47e5"
+        }
+      ],
+      "note": "Exact approval A delta; no other new S0 path changes."
+    },
+    {
+      "id": "port-shake",
+      "base": "a207ed5a76e452302239e9a5d9fc8d918982a415",
+      "tip": "c29eee71b51479141668297c5c720b40fa78efec",
+      "recorded_changes": [
+        {
+          "path": "scripts/baselines/shake-report.txt",
+          "commit": "c29eee71b51479141668297c5c720b40fa78efec"
+        }
+      ]
     },
     {
       "id": "gate-par",

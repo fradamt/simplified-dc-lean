@@ -208,7 +208,7 @@ private def st : State 4 :=
 
 /-- Only slot-4 proposals in the accepted tree supply lists; order is unchanged. -/
 example : proposalsAtNext p st 4 = [(raw, support), ([c, b], [a])] ∧
-    proposalsAt st 4 = [([b], [b]), (raw, support), ([c, b], [a])] := by decide +kernel
+    proposalsAt st 4 = [(raw, support), ([c, b], [a])] := by decide +kernel
 
 /-- Raw participation includes unresolved, off-F, ancestor, and future heads.
 Frozen votes precede carried votes; the first occurrence wins deduplication. -/
@@ -228,7 +228,7 @@ example : GridCO.resolvedHead? st.base (baseVote b) = some (eraseFG first) ∧
 stay out even with a current-slot proposal. Early ancestors below F stay out too. -/
 example : above ∈ voterBlocksNext p st 4 ∧ proposal ∈ voterBlocksNext p st 4 ∧
     first ∉ voterBlocksNext p st 4 ∧ fork ∉ voterBlocksNext p st 4 ∧
-    offProposal ∉ voterBlocksNext p st 4 ∧ fork ∈ voterBlocks p st 4 := by decide +kernel
+    offProposal ∉ voterBlocksNext p st 4 ∧ fork ∉ voterBlocks p st 4 := by decide +kernel
 
 private def ordered : State 4 :=
   { st with

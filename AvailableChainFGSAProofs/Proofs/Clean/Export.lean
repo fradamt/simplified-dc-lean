@@ -114,8 +114,10 @@ non-row traffic keeps Δ. -/
 theorem cleanCutPos_export (p : Params) : CleanCutPosClaim p := by
   intro V _ _ In c E rho ΔF pt hc hb hf hsrc
   have hq := hc.set.faultQ_of_pos hb
-  exact ⟨cleanHistoryAt p c E rho hc.set hq hf hsrc,
-    cleanTruncAt p c E rho hc.set hq hf hsrc⟩
+  have hf' : FGFoundation p c E rho :=
+    ⟨hf.store, hf.cumul, hf.mono, hf.frame, hf.geo, hf.strat, hf.reconcile⟩
+  exact ⟨cleanHistoryAt p c E rho hc.set hq hf' hsrc,
+    cleanTruncAt p c E rho hc.set hq hf' hsrc⟩
 
 /-- P3 §8.5, bp02 §6; DC Generic/Properties:27,41,48 and Interface:64.
 INTENTIONAL difference: a cut claim gives safety at every integer read,

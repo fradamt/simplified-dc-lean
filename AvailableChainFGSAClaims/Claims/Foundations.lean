@@ -5,6 +5,8 @@ public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainGeneric.Statements.AC.Lease
+public import AvailableChainFGSAClaims.Statements.FrameNext
+public import AvailableChainFGSAClaims.Statements.ComposeNext
 
 @[expose] public section
 
@@ -40,7 +42,7 @@ P3 App. A.10: all seven F1 foundation channels. BaseSet and FaultQ are in the pa
 def FGFoundationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-    SourceDisciplinePrem p c E rho pt → FGFoundation p c E rho
+    SourceDisciplinePrem p c E rho pt → FGFoundationNext p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 P3 App. A.10, G30: the source frame at every threshold.
@@ -203,7 +205,7 @@ def OutputNestingClaim : Prop :=
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 bp.frame.v1 (00:581–587), 01 §4.3: exact controls, projection and metadata.
 Consumers: all frame clients. Producer: F1.1. -/
-def FrameAt : Prop := RFrameExact p c E rho ∧ RFrame p c E rho
+def FrameAt : Prop := RFrameExactNext p c E rho ∧ RFrameNext p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 bp.frame.v1; all runs. -/

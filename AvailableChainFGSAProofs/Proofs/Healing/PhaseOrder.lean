@@ -44,7 +44,8 @@ theorem healing_phase_entries_eq {C D W : FGBlock (Fin p.n)}
 /-- Blueprint 21:1105–1113, 1193–1209; plan S20, H-PHASE/P1.
 DC: INTENTIONAL a contest uses cumulative live evidence.
 If the cached J changes, its old carrier supplies the off-J witness. -/
-theorem healing_phase_contest_persist (mono : RMono p c E rho)
+theorem healing_phase_contest_persist_of_crossing (crossing : RXing p c E rho)
+    (mono : RMono p c E rho)
     (hnr : V2.D.NoRestart rho) {i j m : Nat} {x : V}
     (hx : x ∈ rho.honest) (hij : i ≤ j)
     (hcap : frontierAtIdx p c E rho j = m)
@@ -56,7 +57,7 @@ theorem healing_phase_contest_persist (mono : RMono p c E rho)
   change (decide (st.fg.h_max = st.fg.h_j + 1) && decide _) = true at hcontest
   obtain ⟨ht, he⟩ := Bool.and_eq_true_iff.mp hcontest
   have ht : st.fg.h_max = st.fg.h_j + 1 := of_decide_eq_true ht
-  have he : ∃ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max ∧
+  have he : ∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧ (heightView p W).h = st.fg.h_max ∧
       ¬ FGBlock.Preceq st.fg.J W := of_decide_eq_true he
   have htop : st.fg.h_j + 1 = m := ht.symm.trans hH
   obtain ⟨htop', hmax'⟩ := healing_phase_top_persist p c E rho mono hnr hx hij hcap htop
@@ -65,8 +66,11 @@ theorem healing_phase_contest_persist (mono : RMono p c E rho)
   refine Bool.and_eq_true_iff.mpr ⟨decide_eq_true (hmax'.trans htop'.symm), decide_eq_true ?_⟩
   have hsub := (fgsa_store_cumulative p c E rho hnr hij x).1
   by_cases hJ : st.fg.J = st'.fg.J
-  · obtain ⟨W, hW, hh, hn⟩ := he
-    exact ⟨W, hsub hW, hh.trans (hH.trans hmax'.symm), hJ ▸ hn⟩
+  · obtain ⟨W, hW, _hFW, hh, hn⟩ := he
+    have hh' := hh.trans (hH.trans hmax'.symm)
+    exact ⟨W, hsub hW,
+      (healing_phase_frontier_root p c E rho crossing hx (hsub hW) hh').1,
+      hh', hJ ▸ hn⟩
   · obtain ⟨C, hC, _, hjC, hJC⟩ := (storeBundle_stateBefore E rho i x).cstore.fg.pair.1
     obtain ⟨D, _, _, hjD, hJD⟩ := (storeBundle_stateBefore E rho j x).cstore.fg.pair.1
     change st.fg.J = _ at hJC
@@ -82,7 +86,8 @@ theorem healing_phase_contest_persist (mono : RMono p c E rho)
       change st.fg.h_max = m at hH
       change st'.fg.h_max = m at hmax'
       (simp only [Height] at *; omega)
-    refine ⟨C, hsub hC, hc, ?_⟩
+    refine ⟨C, hsub hC,
+      (healing_phase_frontier_root p c E rho crossing hx (hsub hC) hc).1, hc, ?_⟩
     intro hDC
     apply hJ
     rw [hJC, hJD]
@@ -95,7 +100,8 @@ theorem healing_phase_contest_persist (mono : RMono p c E rho)
 /-- Blueprint 21:1091–1113, 1193–1209; plan S20, H-PHASE/P1.
 DC: INTENTIONAL gap, top J, contest are the live cumulative phase bits.
 This is the first frozen RPhase clause. Assembly supplies RMono. -/
-theorem healing_phase_order (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
+theorem healing_phase_order_of_crossing (crossing : RXing p c E rho)
+    (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
     (a b m : Nat) (_hab : a ≤ b) (_hb : b ≤ rho.events.length) (_hm : 1 ≤ m)
     (hfixed : ∀ i, a ≤ i → i ≤ b → frontierAtIdx p c E rho i = m) :
     (∀ i j, a ≤ i → i ≤ j → j ≤ b →
@@ -109,7 +115,8 @@ theorem healing_phase_order (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
     · rintro ⟨x, hx, ht⟩
       exact ⟨x, hx, (healing_phase_top_persist p c E rho mono hnr hx hij hcap ht).1⟩
     · rintro ⟨x, hx, hH, hc⟩
-      exact ⟨x, hx, healing_phase_contest_persist p c E rho mono hnr hx hij hcap hH hc⟩
+      exact ⟨x, hx, healing_phase_contest_persist_of_crossing
+        p c E rho crossing mono hnr hx hij hcap hH hc⟩
   · rintro i _ _ ⟨x, hx, hH, hc⟩
     have ht : (storeAt p c E rho i x).fg.h_max = (storeAt p c E rho i x).fg.h_j + 1 :=
       of_decide_eq_true (Bool.and_eq_true_iff.mp hc).1

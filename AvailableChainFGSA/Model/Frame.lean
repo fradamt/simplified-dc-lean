@@ -4,6 +4,7 @@ public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.RowCore
 public import AvailableChainFGSA.Model.WindowViews
 public import AvailableChainKitFG.ClientOnce
+public import AvailableChainFGSA.Model.FrameNext
 
 @[expose] public section
 
@@ -14,11 +15,11 @@ open AvailableChain.Generic AvailableChain.SimplexFG
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 616–633] The live frame: the FG module's store controls. -/
 def controls (p : Params) (st : State p.n) : Controls (Fin p.n) :=
-  KitFG.storeControlsView (heightView p) st.fg
+  KitFG.treeStoreControlsView (heightView p) st.fg
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 1033–1037] `get_filtered_block_tree(Σ)`. -/
 def fullTree (p : Params) (st : State p.n) : Finset (FGBlock (Fin p.n)) :=
-  KitFG.storeFrameView (heightView p) st.fg st.fg.TF
+  KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 1025–1037; model representation of a block set as the erased base list]
 The erasure of an FG block set, in the order of the base list. -/
@@ -60,20 +61,23 @@ def getHead (p : Params) (st : State p.n) (raw support : List (GridCO.Wire p.n .
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 190–193, 1288–1293; helper] The admitted slot-`s` proposals, with their
-vote lists. These stay readable when the block leaves `act(Σ)` (spec 190–193). -/
+vote lists. Only proposals retained above F supply lists (port r2, change j). -/
 def proposalsAt {n : Nat} (st : State n) (s : Slot) :
     List (List (HeadWire n) × List (HeadWire n)) :=
+  let tree := st.fg.TF.filter (fun B => FGBlock.preceq st.fg.F B)
   st.proposals.filterMap (fun o => match o.decode with
-    | some (.block _ N) => if N.slot = s then some (N.raw, N.support) else none
+    | some (.block _ N) =>
+        if N.slot = s ∧ ∃ B ∈ tree, eraseFG B = N.erase then
+          some (N.raw, N.support) else none
     | _ => none)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 598–606, 1219–1226] `voter_processed_block_tree(Σ, s)`: blocks of Σ.T
 received before `z_{s−1}`, and every ancestor of an admitted slot-`s` proposal. -/
 def voterBlocks (p : Params) (st : State p.n) (s : Slot) : Finset (FGBlock (Fin p.n)) :=
-  st.fg.TF.filter (fun B =>
+  (Next.tree p st).filter (fun B =>
     decide (GridCO.stampBlock st.base (eraseFG B) < SA.freezeTime p.toParams (s - 1)) ||
-    decide (∃ P ∈ st.fg.TF, P.slot = s ∧ FGBlock.Preceq B P))
+    decide (∃ P ∈ Next.tree p st, P.slot = s ∧ FGBlock.Preceq B P))
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 606–612, 1283–1294] The HEAD raw merge: pool votes of slot `s − 1`
@@ -96,7 +100,7 @@ def headSupport (p : Params) (st : State p.n) (s : Slot) : List (GridCO.Wire p.n
   let carried := ((proposalsAt st s).flatMap (fun row => row.2.map baseVote)).filter (fun o =>
     GridCO.headLabel? o == some (s - 1) &&
       match GridCO.resolvedHead? st.base o with
-      | some h => decide (h.slot ≤ s - 1)
+      | some h => decide (∃ B ∈ Next.tree p st, eraseFG B = h) && decide (h.slot ≤ s - 1)
       | none => false)
   (frozenArm ++ carried).eraseDups
 
@@ -108,7 +112,8 @@ this agrees with the spec only when `s = st.slot p`; the caller (T7) must
 guarantee it. -/
 def headVote (p : Params) (st : State p.n) (s : Slot) : Block :=
   if s = 0 then .genesis else
-    headInTree p st (erasedList st (KitFG.storeFrameView (heightView p) st.fg (voterBlocks p st s)))
+    headInTree p st
+      (erasedList st (KitFG.treeStoreFrameView (heightView p) st.fg (voterBlocks p st s)))
       (headVotes p st s) (headSupport p st s)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
@@ -118,10 +123,10 @@ def proposerVotes {n : Nat} (st : State n) (s : Slot) : List (GridCO.Wire n .roo
   GridCO.votesAt st.base (s - 1)
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 1240–1243] The proposer's support: the pool votes that resolve now
-(head in `act(Σ)`, valid slot). -/
+(head in `act(Σ)`, above F, valid slot; port r2, change h). -/
 def proposerSupport {n : Nat} (st : State n) (s : Slot) : List (GridCO.Wire n .root) :=
   (proposerVotes st s).filter (fun o => match GridCO.resolvedHead? (actView st) o with
-    | some h => decide (h.slot ≤ s - 1)
+    | some h => Block.preceq (eraseFG st.fg.F) h && decide (h.slot ≤ s - 1)
     | none => false)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]

@@ -120,7 +120,8 @@ P3:5185–5195, bp02 §5.4: no same-batch label may witness a gate input.
   store : ∀ v, v ∈ rho.honest → FGSA.CStoreInv p (storeAt p c E rho i v)
   frame : ∀ v, v ∈ rho.honest →
     FGSA.controls p (storeAt p c E rho i v) =
-      fjControls p.E p.cfg (storeAt p c E rho i v).fg.F (storeAt p c E rho i v).fg.TF
+      KitFG.treeFjControlsView (heightView p)
+        (storeAt p c E rho i v).fg.F (storeAt p c E rho i v).fg.TF
   client : ∀ v, v ∈ rho.honest → EmittedRowsNoSlash p c E rho v
   sExtends : ∀ v j k, j ≤ k → k ≤ i →
     Block.Preceq (S_at p c E rho j v) (S_at p c E rho k v)

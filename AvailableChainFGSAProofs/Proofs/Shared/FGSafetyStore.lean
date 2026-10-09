@@ -16,7 +16,7 @@ theorem fgsaSafetyStoreLaws (p : Params) {In : Type} (c : AppCodec In) :
       clock_good := fun _ t h => Reachable.tick t h
       process_good := fun _ o h => Reachable.deliver (toWire p o) h
       own_good := fun _ _ h => h
-      restart_good := fun _ _ => Reachable.init
+      restart_good := fun nd _ => Reachable.reset nd.st.base.now
       invariant := fun nd h => (storeBundle_of_reachable p nd.st h).cstore.fg
       initial_tf := fun _ hB => Finset.mem_singleton.mp hB
       restart_tf := fun _ _ _ hB => Finset.mem_singleton.mp hB

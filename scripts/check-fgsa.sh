@@ -526,10 +526,10 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.parentState_def \
   Window.headFields_def \
   heightView_def \
-  controls_eq \
-  fullTree_eq \
+  fgsa_controls_eq_of_top_retained \
+  fgsa_fullTree_eq_of_top_retained \
   fgsa_eligible_eq \
-  headVote_eq \
+  fgsa_headVote_eq_of_top_retained \
   Window.window_hOf_eq \
   Window.window_frontier_eq \
   Window.window_lexMax_eq \

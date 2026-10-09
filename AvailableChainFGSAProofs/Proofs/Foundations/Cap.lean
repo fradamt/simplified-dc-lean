@@ -6,7 +6,6 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainKitFG.CausalCap
-public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 
 public section
 

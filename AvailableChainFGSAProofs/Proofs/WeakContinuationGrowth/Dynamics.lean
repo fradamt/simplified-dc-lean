@@ -8,7 +8,7 @@ public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
-public import AvailableChainFGSA.Proofs.Head.Transfer
+public import AvailableChainFGSA.Proofs.Head.Transfer -- shake: keep (fgsa_headInTree_covers_of_transfer proof reference)
 
 namespace AvailableChain.GridCO
 
@@ -375,7 +375,8 @@ private theorem growthStepFacts_step_savedOrigin (hs : V2.D.ScheduleWellFormed E
     V2.D.Engine.clock_field_origin_of_subset (P := fgsa p c)
       (fun nd => growthStepFacts_step_savedPairs nd.st) rfl
       (fun nd o pair h => growthStepFacts_step_savedPairs_process nd.st (toWire p o) h)
-      (fun _ _ _ h => h) (fgsa_hrestore_field p c growthStepFacts_step_savedPairs rfl)
+      (fun _ _ _ h => h)
+        (fgsa_hrestore_field_retained p c growthStepFacts_step_savedPairs (fun _ => rfl))
       (fun nd t pair => t = SA.gateTime p.toParams pair.1 ∧
         SA.Root.confirmationFrom p.toParams (eraseFG (clockPre p nd.st t).fg.F)
           (actView (clockPre p nd.st t)) pair.1 = some pair.2)
@@ -520,8 +521,8 @@ theorem wcg_finiteStep (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -720,8 +721,8 @@ theorem wcg_service4_prefix :
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -911,8 +912,8 @@ theorem wcg_gateHeads (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -1061,8 +1062,8 @@ theorem wcg_gateFinalOrigin (hcausal : WCFinalityTargetEarlierStatement p c E rh
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -1534,7 +1535,8 @@ private theorem growthStepGateBatch_gate_active_heads
   have hwindow : (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x).st.slot p ≤
       s + 1 := by
     rw [← hjread]
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hj x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hn
     have he := slotOf_offset p s (2 * p.Δ) (by omega) (by omega)
@@ -1560,7 +1562,8 @@ private theorem growthStepGateBatch_gate_active_heads
       block_compatible_of_common (block_preceq_refl K) (hprefix i le_rfl)⟩
   have hslot : K.slot ≤ s := by
     have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hk y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq
@@ -1598,8 +1601,8 @@ theorem wcg_gateBatch [Fintype V] (hcausal : WCFinalityTargetEarlierStatement p 
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -1769,8 +1772,8 @@ theorem wcg_gateResult (hcausal : WCFinalityTargetEarlierStatement p c E rho) (�
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -1984,8 +1987,8 @@ theorem wcg_reconcileBound (hcausal : WCFinalityTargetEarlierStatement p c E rho
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -2225,8 +2228,8 @@ theorem wcg_outputStep [Fintype V] (hcausal : WCFinalityTargetEarlierStatement p
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -2387,8 +2390,8 @@ theorem wcg_retrospectiveFrame (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -2540,7 +2543,7 @@ theorem wcg_retrospectiveFrame (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
     hscopeRows hfinalHead hs k y (.head (s + 1)) st W Bfg hd hy hafter
     hWst hW hh hQB hhigh htarget (voterBlocks p st (s + 1))
-    ⟨Or.inl ⟨s + 1, rfl, rfl⟩⟩ (fun _ h => (Finset.mem_filter.mp h).1)
+    ⟨Or.inl ⟨s + 1, rfl, rfl⟩⟩ (fun _ h => (Finset.mem_filter.mp (Finset.mem_filter.mp h).1).1)
 
 end AvailableChain.FGSA.Run
 
@@ -2742,8 +2745,8 @@ private theorem growthStepTransferReceipts_transfer_read_stamp (hsch : V2.D.Sche
     · rw [hg.2]; exact hD
     · obtain ⟨parent, hd, _⟩ := ha.1
       have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hd D).mp hl
-      have hc := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-        (fgsa_hrestore_now p c) E rho hsch hd y
+      have hc := stateBefore_now_le_event_retained (fgsaClock p c)
+        (fgsa_hrestore_now_retained p c) E rho hsch hd y
       rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hc
       rw [hs]
       exact hc.trans_lt ht
@@ -2872,8 +2875,8 @@ theorem wcg_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iS
   (_hcumul : RStoreCumul p c E rho)
   (_hmono : RMono p c E rho)
   (_hactive : RActive p c E rho)
-  (_hframe : RFrameExact p c E rho)
-  (_hmeta : RFrame p c E rho)
+  (_hframe : RFrameExactNext p c E rho)
+  (_hmeta : RFrameNext p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -3140,32 +3143,38 @@ theorem wcg_retrospective (hcausal : WCFinalityTargetEarlierStatement p c E rho)
     (fgsa_headSupport_subset_headVotes E rho hvalid k y s) hmajority
   rw [Gen.AC.Root.TransferBounds_def] at hcounts
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho k y) _
-  have hv : ∀ A, FGBlock.Preceq A Bfg → A ∈ voterBlocks p dst (s + 1) := by
-    intro A hA
+  have hv : ∀ A, FGBlock.Preceq dst.fg.F A → FGBlock.Preceq A Bfg →
+      A ∈ voterBlocks p dst (s + 1) := by
+    intro A hFA hA
     apply Finset.mem_filter.mpr
-    refine ⟨(hpathB A hA).1, Bool.or_eq_true_iff.mpr (Or.inl ?_)⟩
+    refine ⟨Finset.mem_filter.mpr ⟨(hpathB A hA).1, hFA⟩,
+      Bool.or_eq_true_iff.mpr (Or.inl ?_)⟩
     apply decide_eq_true
     simpa only [Nat.add_sub_cancel] using (hpathB A hA).2
   obtain ⟨D, hD, hfloor⟩ := hframe.frame.floor
   have hDB : D = Bfg := eraseFG_injective hD
   subst D
   have hpath : ∀ A, Block.Prec (liveRoot p dst) A → Block.Preceq A B →
-      A ∈ erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst (s + 1))) := by
+      A ∈ erasedList dst
+        (filteredFrom p.E p.cfg (frameR p dst) (voterBlocks p dst (s + 1))) := by
     intro A hr hAB
     have hroot : Block.Preceq (liveRoot p dst) A := (Bool.and_eq_true_iff.mp hr).2
     obtain ⟨Afg, hAfg, heA, hpre⟩ := eraseFG_ancestor_preceq hinv.fg.closed
       (hpathB Bfg (preceq_refl _)).1 (he ▸ hAB)
     apply List.mem_filter.mpr
     refine ⟨(hinv.baseTree A).mpr ⟨Afg, hAfg, heA⟩, decide_eq_true ⟨Afg, ?_, heA⟩⟩
-    rw [storeFrame_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+    rw [filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
     apply (mem_filteredFromView (heightView p) (frameR p dst) _ Afg).mpr
     have hZA := block_preceq_trans hframe.startAbove hroot
-    exact ⟨hv Afg hpre, eraseFG_preceq_iff.mp
-      (heA ▸ block_preceq_trans hframe.frame.finalRoot hZA),
-      eraseFG_preceq_iff.mp (heA ▸ hZA), Bfg, hv Bfg (preceq_refl _), hpre, hfloor⟩
-  have hhead := fgsa_headVote_covers_of_transfer p dst s B
-    (block_compatible_of_common (he ▸ hframe.startBelow) (block_preceq_refl B))
-    hpath hcounts.2.2.2.2.2.1 hcounts.2.2.2.2.2.2
+    have hFA := eraseFG_preceq_iff.mp
+      (heA ▸ block_preceq_trans hframe.frame.finalRoot hZA)
+    exact ⟨hv Afg hFA hpre, hFA, eraseFG_preceq_iff.mp (heA ▸ hZA),
+      Bfg, hv Bfg (eraseFG_preceq_iff.mp (he ▸ hFB)) (preceq_refl _), hpre, hfloor⟩
+  have hhead : Block.Preceq B (headVote p dst (s + 1)) := by
+    rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero s)]
+    exact fgsa_headInTree_covers_of_transfer p dst _ _ _ B
+      (block_compatible_of_common (he ▸ hframe.startBelow) (block_preceq_refl B))
+      hpath hcounts.2.2.2.2.2.1 hcounts.2.2.2.2.2.2
   refine ⟨k, hki, hk, ?_, ?_, ?_⟩
   · rw [growth_headAtIdx_eq]
     unfold growth_headAtIdx

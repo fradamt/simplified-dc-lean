@@ -160,9 +160,11 @@ private theorem old_endpoint :
     (eraseFG oldFG).parent? = some (eraseFG parentFG) ∧ (eraseFG oldFG).slot < 4 ∧
     eraseFG oldFG ∈ T params target 4 := by
   refine ⟨rfl, by decide, ?_⟩
-  apply fgsa_walk_domain_of_witness_view params target (voterBlocks params target 4) oldFG oldFG
+  apply fgsa_walk_domain_of_witness_tree_view params target
+    (voterBlocks params target 4) oldFG oldFG
     (fun B hB => (target_base _).mpr ⟨B, hB, rfl⟩)
-    (fun _ h => (Finset.mem_filter.mp h).1) (by decide +kernel) (by decide +kernel)
+    (fun _ h => Next.tree_subset_TF params target ((Finset.mem_filter.mp h).1))
+    (by decide +kernel) (by decide +kernel)
     (by decide +kernel) ?_ (KitFG.preceq_refl _) (fixture_height target rfl oldFG)
   rw [fixture_root target rfl rfl]
   exact KitFG.genesis_preceq _
@@ -379,13 +381,13 @@ private theorem consumer_H6_instance :
 DC: INTENTIONAL; a genesis justification cannot have a conflicting carrier. -/
 private theorem consumer_floor_zero (st : State 1) (hJ : st.fg.J = .genesis)
     (hmax : st.fg.h_max = 1) : (controls params st).lo = 0 := by
-  have hn : ¬ ∃ W ∈ st.fg.TF, (heightView params W).h = st.fg.h_max ∧
-      ¬ FGBlock.Preceq st.fg.J W := by
-    rintro ⟨W, _, _, hnot⟩
+  have hn : ¬ ∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧
+      (heightView params W).h = st.fg.h_max ∧ ¬ FGBlock.Preceq st.fg.J W := by
+    rintro ⟨W, _, _, _, hnot⟩
     exact hnot (hJ.symm ▸ KitFG.genesis_preceq W)
   rw [hmax] at hn
   unfold controls Controls.lo
-  rw [KitFG.storeControlsView_def]
+  rw [KitFG.treeStoreControlsView_def]
   simp only [hn, decide_false, Bool.and_false, Bool.false_eq_true, ite_false, hmax]
 
 /-- Blueprint 21 H.6:932–944. Class (iii).

@@ -147,7 +147,7 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
     have he : proposerHead p st (r + 1) = headInTree p st
         (erasedList st (domainR p st st.fg.TF)) (proposerVotes st (r + 1))
         (proposerSupport st (r + 1)) := by
-      rw [fgsa_domainR_eq_storeFrameView]
+      rw [fgsa_domainR_eq_treeStoreFrameView]
       rfl
     rw [he]
     exact fgsa_headInTree_covers_of_transfer p st _ _ _ Q hanchor hpath hprior.majority

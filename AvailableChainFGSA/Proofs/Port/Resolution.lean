@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSA.Model.Resolution
 public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Model.Legacy.Frame
 public import AvailableChainFGSA.Proofs.HeadResolution
 public import AvailableChainFGSA.Proofs.BlockAncestry
 
@@ -195,23 +196,8 @@ theorem proposerSupportNext_scoreOn (st : State n) (s : Slot) (B : Block)
       raw (proposerSupportNext st s) B =
     GridCO.goldfishScoreOn (GridCO.resolutionTree st.base) st.base.blocks
       raw (proposerSupport st s) B := by
-  have he (o : GridCO.Wire n .root) : supports (GridCO.resolutionTree st.base) st.base.blocks B o =
-      (GridCO.resolvedHead? st.base o).any (fun h =>
-        decide (h.slot ≤ (GridCO.headLabel? o).getD 0) && Block.preceq B h) := by
-    apply Bool.eq_iff_iff.mpr
-    rw [supports_iff]
-    cases GridCO.resolvedHead? st.base o <;> simp [Block.Preceq]
-  unfold GridCO.goldfishScoreOn
-  congr 2
-  funext i
-  change (GridCO.equivocates raw i || (GridCO.seatVotes (proposerSupportNext st s) i).any
-      (supports (GridCO.resolutionTree st.base) st.base.blocks B)) =
-    (GridCO.equivocates raw i || (GridCO.seatVotes (proposerSupport st s) i).any
-      (supports (GridCO.resolutionTree st.base) st.base.blocks B))
-  have hf : supports (GridCO.resolutionTree st.base) st.base.blocks B = (fun o =>
-      (GridCO.resolvedHead? st.base o).any (fun h =>
-        decide (h.slot ≤ (GridCO.headLabel? o).getD 0) && Block.preceq B h)) := funext he
-  rw [hf, proposerSupportNext_seat_support st s B hFB i]
+  have _ := hFB
+  rfl
 
 /-- [minimal (h) correspondence] Canonical scores agree above F when the
 cumulative store has no temporary resolution override. This states a local
@@ -224,6 +210,65 @@ theorem proposerSupportNext_score (st : State n) (s : Slot) (B : Block)
   unfold GridCO.goldfishScore
   simpa [GridCO.resolutionTree, hd] using
     proposerSupportNext_scoreOn st s B hFB raw
+
+/-- The switched canonical support is the prefix filter of Legacy support. -/
+theorem port_proposerSupport_eq_legacy_filter (st : State n) (s : Slot) :
+    proposerSupport st s = (Legacy.proposerSupport st s).filter (fun o =>
+      (GridCO.resolvedHead? (actView st) o).any (Block.preceq (eraseFG st.fg.F))) := by
+  unfold proposerSupport Legacy.proposerSupport proposerVotes Legacy.proposerVotes
+  rw [List.filter_filter]
+  congr 1
+  funext o
+  cases GridCO.resolvedHead? (actView st) o <;> simp [Bool.and_comm]
+
+/-- Prefix filtering keeps the order of the Legacy support list. -/
+theorem port_proposerSupport_sublist_legacy (st : State n) (s : Slot) :
+    (proposerSupport st s).Sublist (Legacy.proposerSupport st s) := by
+  rw [port_proposerSupport_eq_legacy_filter]
+  exact List.filter_sublist
+
+/-- Canonical and Legacy scores agree above F in the same cumulative domain. -/
+theorem port_proposerSupport_scoreOn_legacy (st : State n) (s : Slot) (B : Block)
+    (hFB : Block.Preceq (eraseFG st.fg.F) B) (raw : List (GridCO.Wire n .root)) :
+    GridCO.goldfishScoreOn (GridCO.resolutionTree st.base) st.base.blocks
+      raw (proposerSupport st s) B =
+    GridCO.goldfishScoreOn (GridCO.resolutionTree st.base) st.base.blocks
+      raw (Legacy.proposerSupport st s) B := by
+  rw [port_proposerSupport_eq_legacy_filter]
+  unfold GridCO.goldfishScoreOn
+  congr 2
+  funext i
+  change (GridCO.equivocates raw i || (GridCO.seatVotes
+      ((Legacy.proposerSupport st s).filter (fun o =>
+        (GridCO.resolvedHead? (actView st) o).any (Block.preceq (eraseFG st.fg.F)))) i).any
+      (supports (GridCO.resolutionTree st.base) st.base.blocks B)) =
+    (GridCO.equivocates raw i || (GridCO.seatVotes (Legacy.proposerSupport st s) i).any
+      (supports (GridCO.resolutionTree st.base) st.base.blocks B))
+  congr 1
+  apply Bool.eq_iff_iff.mpr
+  simp only [GridCO.seatVotes, List.any_eq_true, List.mem_filter]
+  constructor
+  · rintro ⟨o, ⟨⟨ho, _⟩, hi⟩, hh⟩
+    exact ⟨o, ⟨ho, hi⟩, hh⟩
+  · rintro ⟨o, ⟨ho, hi⟩, hh⟩
+    obtain ⟨H, hr, _, hBH⟩ := (supports_iff st B o).mp hh
+    have hFH := block_preceq_trans hFB hBH
+    have ha : activeCompatible st H = true := by
+      change (Block.preceq H (eraseFG st.fg.F) || Block.preceq (eraseFG st.fg.F) H) = true
+      exact Bool.or_eq_true_iff.mpr (Or.inr hFH)
+    refine ⟨o, ⟨⟨ho, ?_⟩, hi⟩, hh⟩
+    rw [actView_resolvedHead, hr]
+    simpa [Option.filter, ha, Block.Preceq] using hFH
+
+/-- The ordinary score comparison needs the same local domain premise as before. -/
+theorem port_proposerSupport_score_legacy (st : State n) (s : Slot) (B : Block)
+    (hFB : Block.Preceq (eraseFG st.fg.F) B) (hd : st.base.headDomain = none)
+    (raw : List (GridCO.Wire n .root)) :
+    GridCO.goldfishScore st.base.blocks raw (proposerSupport st s) B =
+      GridCO.goldfishScore st.base.blocks raw (Legacy.proposerSupport st s) B := by
+  unfold GridCO.goldfishScore
+  simpa [GridCO.resolutionTree, hd] using
+    port_proposerSupport_scoreOn_legacy st s B hFB raw
 
 end AvailableChain.FGSA.Next
 end

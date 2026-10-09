@@ -18,7 +18,7 @@ section History
 variable [Fintype V]
 variable (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho) (hdelta : E.Δ = p.Δ)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hstrat : RStrat p c E rho) (htsrc : TSrc p c E rho)
     (hroots : NamedRootCollisionFree p c E rho)
     (hnamed : ∀ k x r (a : RowWire p.n) e,
@@ -51,6 +51,7 @@ theorem outageV_history_through_relay
     (hi : i ≤ V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ)) :
     OutageSourceHistory p c E rho (eraseFG B) i ∧
       ∀ x ∈ rho.honest, Block.Compatible (eraseFG B) (F_at p c E rho i x) := by
+  have _hcanonicalFrame := hframe
   have hs := hvalid.toScheduleWellFormed
   have hhist : OutageSourceHistory p c E rho (eraseFG B) i := by
     induction i, hI using Nat.le_induction with
@@ -77,7 +78,7 @@ theorem outageV_history_through_relay
             ((Gen.V2.Duty.index_lt_idxBefore_iff hs htick _).mpr haold) hx htick hC
         · have hra : r ≤ a * p.R := Nat.le_of_not_gt har
           have hnames := outage_named_of_source_history (hroots := hroots) rfl hist hnamed
-          have hf := (cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+          have hf := (fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
             i x B hx hnames.history).2.1
           have hfB : Block.Compatible (F_at p c E rho i x) (eraseFG B) :=
             Bool.or_eq_true_iff.mpr (hf.imp eraseFG_preceq eraseFG_preceq)
@@ -91,7 +92,7 @@ theorem outageV_history_through_relay
   refine ⟨hhist, ?_⟩
   intro x hx
   have hnames := outage_named_of_source_history (hroots := hroots) rfl hhist hnamed
-  have hf := (cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+  have hf := (fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
     i x B hx hnames.history).2.1
   exact Bool.or_eq_true_iff.mpr (Or.symm (hf.imp eraseFG_preceq eraseFG_preceq))
 
@@ -131,9 +132,9 @@ theorem outageV_contest_relay
     htsrc hroots hnamed hsync B j r s hr hGST hpart hheads hold hseed
   have hist := (hh k hIk hkD.le).1
   have hnames := outage_named_of_source_history (hroots := hroots) rfl hist hnamed
-  change (KitFG.storeControlsView (heightView p) (clock p _ _).fg).contest = true at hcontest
+  change (KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg).contest = true at hcontest
   rw [clock_fg] at hcontest
-  have hc := (cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+  have hc := (fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
     k y B hy hnames.history).2.2.2.2 hcontest
   obtain ⟨hnz, P, hP, hj, hJ, _⟩ := outageV_contest_carrier p (storeAt p c E rho k y)
     (hstore k y hy).1 hcontest
@@ -231,7 +232,7 @@ in the cumulative store and protects each later clocked HEAD. If F already
 covers B, monotonic F supplies protection without a marker-height read. -/
 theorem outageV_received_marker_head
     (hnr : V2.D.NoRestart rho) (hcumul : RStoreCumul p c E rho)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hstrat : RStrat p c E rho)
     {j i : Nat} {x : V} {B P : FGBlock (Fin p.n)} (s : Slot)
     (hx : x ∈ rho.honest) (hji : j ≤ i) (hi : i ≤ rho.events.length)
@@ -244,14 +245,15 @@ theorem outageV_received_marker_head
       Block.Compatible row.1 (eraseFG B)) :
     Block.Compatible (headVote p
       (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) s) (eraseFG B) := by
+  have _hcanonicalFrame := hframe
   let dst := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
   have hinv := cstoreInv_clock p _ (cstoreInv_stateBefore E rho i x) (SA.voteTime p.toParams s)
   by_cases hs : s = 0
   · rw [hs, headVote_zero]
     exact block_compatible_of_common (block_genesis_preceq _) (block_preceq_refl _)
-  have hc := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat i x B hx hnames.history
+  have hc := fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat i x B hx hnames.history
   have hctrl : controls p dst = controls p (storeAt p c E rho i x) := by
-    change KitFG.storeControlsView (heightView p) (clock p _ _).fg = _
+    change KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg = _
     rw [clock_fg]
     rfl
   have hfg : dst.fg = (storeAt p c E rho i x).fg := clock_fg p _ _
@@ -306,7 +308,7 @@ theorem outageV_received_marker_head
 /-- OUTPUT-DIRECT §§2–4. DC: INTENTIONAL; the event output and original
 names supply live-root compatibility at the actual clocked HEAD read. -/
 theorem outageV_clocked_root_compatible
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hstrat : RStrat p c E rho) {i : Nat} {x : V} {s : Slot}
     (ht : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
     (hx : x ∈ rho.honest) (B : FGBlock (Fin p.n))
@@ -316,6 +318,7 @@ theorem outageV_clocked_root_compatible
     Block.Compatible (liveRoot p dst) (eraseFG B) ∧
       ∀ row ∈ dst.base.obligations, dst.base.now < row.2.2 →
         Block.Compatible row.1 (eraseFG B) := by
+  have _hcanonicalFrame := hframe
   intro dst
   have hpost : storeAt p c E rho (i + 1) x = dst := by
     change (V2.D.Run.stateBefore E rho (i + 1) x).st = _
@@ -326,9 +329,9 @@ theorem outageV_clocked_root_compatible
   rw [hpost] at hlocks
   refine ⟨?_, hlocks⟩
   apply outageV_liveRoot_compatible p dst (eraseFG B) ?_ hlocks
-  have hc := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat i x B hx hnames.history
+  have hc := fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat i x B hx hnames.history
   have hctrl : controls p dst = controls p (storeAt p c E rho i x) := by
-    change KitFG.storeControlsView (heightView p) (clock p _ _).fg = _
+    change KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg = _
     rw [clock_fg]
     rfl
   rw [hctrl]
@@ -344,7 +347,7 @@ theorem outageV_clocked_root_compatible
 /-- OUTPUT-DIRECT §4. DC: INTENTIONAL; source names and post-tick S
 protect a contested scheduled HEAD without a receipt or score premise. -/
 theorem outageV_clocked_contested_head
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hstrat : RStrat p c E rho) {i : Nat} {x : V} {s : Slot}
     (ht : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
     (hx : x ∈ rho.honest) (B : FGBlock (Fin p.n))
@@ -356,14 +359,14 @@ theorem outageV_clocked_contested_head
       (SA.voteTime p.toParams s)) s) (eraseFG B) := by
   have hctrl : controls p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) =
       controls p (storeAt p c E rho i x) := by
-    change KitFG.storeControlsView (heightView p) (clock p _ _).fg = _
+    change KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg = _
     rw [clock_fg]
     rfl
   have hct : (R_at p c E rho i x).contest = true := by
     change (controls p (storeAt p c E rho i x)).contest = true
     rw [← hctrl]
     exact hcontest
-  have hc := (cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+  have hc := (fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
     i x B hx hnames.history).2.2.2.2 hct
   apply outageV_contested_head p _ (cstoreInv_clock p _ (cstoreInv_stateBefore E rho i x) _)
     B s (outageV_clocked_root_compatible hstore hframe hstrat ht hx B hnames hS).1 ?_ hcontest
@@ -378,7 +381,7 @@ section Labels
 variable [Fintype V]
 variable (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho) (hdelta : E.Δ = p.Δ)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hstrat : RStrat p c E rho) (htsrc : TSrc p c E rho)
     (hroots : NamedRootCollisionFree p c E rho)
     (hnamed : ∀ k x r (a : RowWire p.n) e,
@@ -587,7 +590,7 @@ theorem outageV_first_restored_head
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho) (hdelta : E.Δ = p.Δ)
     (hfault : (Gen.V2.Duty.faulty rho).card < SA.releaseThreshold p.toParams)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) (htsrc : TSrc p c E rho)
     (hroots : NamedRootCollisionFree p c E rho) (hstrat : RStrat p c E rho)
     (hnamesFull : ∀ i y r a, HonestRowAt p c E rho i y r a →
@@ -668,7 +671,7 @@ The arming endpoint is b₀; its old outage budget is not used here. -/
 theorem outageV_armed_outputs
     {fast : Bool} {T b₀ b₁ ΔF : Time}
     (h : OutageContinuationPrem p c fast E rho T b₀ b₁ ΔF)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) (htsrc : TSrc p c E rho)
     (hstrat : RStrat p c E rho) (hcumul : RStoreCumul p c E rho)
     (origin : RQCOrigin p c E rho)
@@ -741,7 +744,7 @@ theorem outageV_armed_outputs
       (afterTicksIdx_mono rho hpt).trans (preIdx_le_afterTicksIdx E rho hs t).2
     by_cases hte : t < SA.gateTime p.toParams (l + 1) + L p
     · obtain ⟨_, _, hn, hl⟩ := hall _ hIt (arming_timeIdx_le_idxBefore rho hte)
-      have hf := (cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+      have hf := (fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
         (timeIdx rho t) y β hy hn.history).2.1
       exact ⟨(hl y hy).1, hβ ▸ Bool.or_eq_true_iff.mpr
         (Or.symm (hf.imp eraseFG_preceq eraseFG_preceq))⟩
@@ -803,7 +806,7 @@ end Seed
 
 section Body
 variable [Fintype V] {fast : Bool} {T b₀ b₁ ΔF : Time}
-variable (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+variable (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (htsrc : ∀ y r C, y ∈ rho.honest →
       actionSource p c E rho y r = some (some C) →

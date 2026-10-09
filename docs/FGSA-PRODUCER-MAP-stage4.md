@@ -1946,3 +1946,35 @@ codex/reports/d35bac1-coverage.md. S4.7 reviews the new public entries.
 │ FGSAClaims.cleanGrowth                            │ AvailableChainFGSAClaims/FGSAClaims.lean:110               │ AGGREGATE FIELD           │ Bundle│ S4.7 P1: DC confirmedLive/stableLive (sleepy, t₀=0).       │
 └───────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┴───────────────────────────┴───────┴────────────────────────────────────────────────────────────┘
 ```
+
+## FG-SA port WP16 first-pass handoff
+
+The table above records stage-4 producers. The current port changes are in the
+[change record](FGSA-PORT-CHANGES.json) and [first-pass report](FGSA-PORT-FINAL-REPORT.md).
+Canonical frame suppliers use FrameNext. Guarded comparison helpers require retained tops.
+The final supplier fingerprint map waits for the WP08/WP10/WP15 frame and Assembly repairs.
+
+## FG-SA port WP16 second-pass measurements
+
+The P13 map now uses compiled supplier fingerprints from source base `e961df94`.
+The change record lists the changed source dependencies reached by each supplier.
+`fgsaClaims` has one binder and zero proposition binders. Its claim source text is unchanged.
+The phase-order map uses the approved `_of_crossing` helper. Both entries stay PARTIAL.
+Ruling Y and WP12d require a final measurement after their source merges.
+
+
+## FG-SA port WP16 final-refresh measurements
+
+On source base `988177e2`, all 118 FG-SA supplier roots were measured.
+The map has 177 refreshed rows. Each changed fingerprint has a measured path
+to the Y protocol or Reachable change (see the change record).
+`fgsaClaims` has one binder and zero proposition binders at all three map locations.
+Its fingerprint is `f0d9a772701a8a1a`. P13 passes; all 36 OPEN items remain.
+The aggregate and all six restart-permitting witnesses compile from Params alone.
+The 59 moved public Spec theorems and 15 changed public helpers resolve.
+Their transitive axioms are standard. Full independent source interpretation
+and claim transfer remain open under Z.
+
+Complete expected-name and coverage checks are blocked by the WP13v Inhabit
+reset proofs. The protected shallow pin needs approval; deep exact exceptions
+need the WP00c handoff. No complete port acceptance pass is claimed.

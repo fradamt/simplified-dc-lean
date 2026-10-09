@@ -247,7 +247,7 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 
 -- Proofs/StoreInv.lean
 #print axioms AvailableChain.FGSA.viewRootInj_TF
-#print axioms AvailableChain.FGSA.storeControls_eq
+#print axioms AvailableChain.FGSA.fgsa_storeControls_eq_of_top_retained
 #print axioms AvailableChain.FGSA.J_mem
 #print axioms AvailableChain.FGSA.Z_mem
 #print axioms AvailableChain.FGSA.savedGenuine_congr
@@ -508,10 +508,10 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.Window.parentState_def
 #print axioms AvailableChain.FGSA.Window.headFields_def
 #print axioms AvailableChain.FGSA.heightView_def
-#print axioms AvailableChain.FGSA.controls_eq
-#print axioms AvailableChain.FGSA.fullTree_eq
+#print axioms AvailableChain.FGSA.fgsa_controls_eq_of_top_retained
+#print axioms AvailableChain.FGSA.fgsa_fullTree_eq_of_top_retained
 #print axioms AvailableChain.FGSA.fgsa_eligible_eq
-#print axioms AvailableChain.FGSA.headVote_eq
+#print axioms AvailableChain.FGSA.fgsa_headVote_eq_of_top_retained
 #print axioms AvailableChain.FGSA.Window.window_hOf_eq
 #print axioms AvailableChain.FGSA.Window.window_frontier_eq
 #print axioms AvailableChain.FGSA.Window.window_lexMax_eq
@@ -936,3 +936,34 @@ end AvailableChain.FGSA.instReprNamedProposal
 #print axioms AvailableChain.FGSA.Next.port_active_release_projection
 #print axioms AvailableChain.FGSA.Next.port_fastSet_filter
 #print axioms AvailableChain.FGSA.Next.port_fastWrite_projection
+
+-- Guarded and canonical port helper audits.
+#print axioms AvailableChain.FGSA.fgsa_controls_lo_le_store
+#print axioms AvailableChain.FGSA.fgsa_fullTree_eq_filtered
+#print axioms AvailableChain.FGSA.fgsa_headVote_eq_filtered
+#print axioms AvailableChain.FGSA.fgsa_storeFrame_mem_above_liveRoot
+#print axioms AvailableChain.FGSA.Next.port_controls_contest_imp_legacy
+#print axioms AvailableChain.FGSA.Next.port_controls_eq_legacy_of_top_extends_F
+#print axioms AvailableChain.FGSA.Next.port_fullTree_eq_legacy_of_top_extends_F
+#print axioms AvailableChain.FGSA.Next.port_proposerSupport_eq_legacy_filter
+#print axioms AvailableChain.FGSA.Next.port_proposerSupport_scoreOn_legacy
+#print axioms AvailableChain.FGSA.Next.port_proposerSupport_score_legacy
+#print axioms AvailableChain.FGSA.Next.port_proposerSupport_sublist_legacy
+#print axioms AvailableChain.FGSA.Next.port_headSupport_incidence_legacy
+#print axioms AvailableChain.FGSA.Next.port_headSupport_scoreOn_legacy
+#print axioms AvailableChain.FGSA.Next.port_headVotes_score_legacy
+#print axioms AvailableChain.FGSA.Next.port_proposer_selected_head_legacy
+#print axioms AvailableChain.FGSA.Next.port_selected_head_eq_legacy
+#print axioms AvailableChain.FGSA.Next.port_voter_selected_head_legacy
+#print axioms AvailableChain.FGSA.Next.port_eligible_eq_legacy_of_controls
+#print axioms AvailableChain.FGSA.Next.port_fullTree_eq_legacy_of_controls
+#print axioms AvailableChain.FGSA.Next.port_getHead_eq_legacy_of_controls
+#print axioms AvailableChain.FGSA.Next.port_headInTree_eq_legacy_of_controls
+#print axioms AvailableChain.FGSA.Next.port_headSupport_eq_legacy_of_retained
+#print axioms AvailableChain.FGSA.Next.port_headVote_eq_legacy_of_reads
+#print axioms AvailableChain.FGSA.Next.port_headVotes_eq_legacy_of_proposals
+#print axioms AvailableChain.FGSA.Next.port_liveRoot_eq_legacy_of_controls
+#print axioms AvailableChain.FGSA.Next.port_proposalsAt_eq_legacy_of_retained
+#print axioms AvailableChain.FGSA.Next.port_voterBlocks_eq_legacy_of_tree
+#print axioms AvailableChain.FGSA.fgsa_fullTree_eq_treeFrame
+#print axioms AvailableChain.FGSA.fgsa_storeControls_eq_tree

@@ -626,9 +626,12 @@ Engine v2 decisions (design §2), one line each:
 - E5 own-signature record: `selfVisible`, `recordOwn`, atomic tick;
   `Isolation` factors the AP part through `base`, so AC facts transport to
   the AP projection.
-- E6 restart: `restart v t`, `st ↦ restore (durable st)`. FG-SA interim
-  form: Λ durable, store reset; the anchor form (Λ + F) comes with the
-  optional anchor-and-pruning claim.
+- E6 restart: `restart v t`, `st ↦ restore (durable st)`. Ruling Y keeps
+  the last local tick value and the anti-slashing record. Restore resets
+  the other store fields, adds no tick or duty, and ignores restart time `t`.
+  The six restart-permitting claims remain proved: ClientSafetyClaim,
+  WholeRunAccountableClaim, WholeRunAgreementClaim, EventPrefixAgreementClaim,
+  FaultCountSlashableBoundClaim, and HonestNeverSlashedClaim.
 
 ## 4. Constraints
 
@@ -899,3 +902,20 @@ entries. The [ownership register](FGSA-PORT-OWNERS.json) gives one owner for
 each exact edit path. The [PC-SA baseline](FGSA-PORT-PCSA-BASELINE.json) records
 the source and compiled statement dependencies that the port must preserve.
 `FrameNext` will become the final frame surface at SWITCH.
+
+## FG-SA port WP16 first-pass handoff
+
+The h+i+j switch uses the accepted tree above F for canonical reads.
+Ruling V requires FrameNext inputs. Legacy frame declarations remain comparison objects.
+The [change record](FGSA-PORT-CHANGES.json) gives exact data and source attribution.
+The [first-pass report](FGSA-PORT-FINAL-REPORT.md) lists checks and pending packages.
+WP08, WP10, WP12b, and WP15 are still open on this base. No final gate pass is recorded.
+
+## FG-SA port WP16 second pass
+
+The merged WP08 and WP10 frame inputs use FrameNext. WP13v2 repairs the tests.
+The complete Formation/Run build passes on source base `e961df94` (3,856 jobs).
+The change record gives complete source statements, change commits, and review snapshots.
+Ruling Z permits the proved partial Spec construction to land. The full independent
+source interpreter, matched-cut equivalence, and claim transfer remain open.
+Ruling Y and the WP12d Spec move are pending on this source base.

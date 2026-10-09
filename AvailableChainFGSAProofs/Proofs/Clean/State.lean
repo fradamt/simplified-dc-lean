@@ -5,7 +5,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
-public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 
 public section
 
@@ -216,13 +215,12 @@ theorem cleanState_index_facts {b₀ : Time} (h : CleanCut₂ p c E rho b₀ ΔF
     (∀ v, v ∈ rho.honest → FGSA.NestOK (storeAt p c E rho i v)) ∧
     (∀ v, v ∈ rho.honest → FGSA.CStoreInv p (storeAt p c E rho i v)) ∧
     (∀ v, v ∈ rho.honest → FGSA.controls p (storeAt p c E rho i v) =
-      fjControls p.E p.cfg (storeAt p c E rho i v).fg.F (storeAt p c E rho i v).fg.TF) ∧
+      KitFG.treeFjControlsView (heightView p)
+        (storeAt p c E rho i v).fg.F (storeAt p c E rho i v).fg.TF) ∧
     (∀ v, v ∈ rho.honest → EmittedRowsNoSlash p c E rho v) := by
   exact ⟨fun v _ => nestOK_stateBefore E rho i v,
     fun v hv => (hf.store i v hv).1,
-    fun v hv => by
-      simpa only [KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
-        using (hf.frame i v hv).1,
+    fun v hv => (hf.frame i v hv).1,
     emittedRowsNoSlash E rho h.base.linked⟩
 
 

@@ -531,12 +531,11 @@ theorem sourceDiscipline_srcFrameAbove [Fintype V] {Pt : Type} {pt : Pt}
   change FrameBelow p Φ c₀ (controls p st)
   simp only [FrameBelow_def, heightView_eq_simplex p,
     KitFG.simplexHeightView_def, KitFG.heightOf_def]
-  rw [controls_eq]
   refine ⟨hF, hj, ?_⟩
-  change c₀ ≤ hOf p.E p.cfg (if (storeControls p.E p.cfg st.fg).rootIsJ then
-      st.fg.J else st.fg.F) → Φ (if (storeControls p.E p.cfg st.fg).rootIsJ then
+  change c₀ ≤ hOf p.E p.cfg (if (controls p st).rootIsJ then
+      st.fg.J else st.fg.F) → Φ (if (controls p st).rootIsJ then
       st.fg.J else st.fg.F)
-  cases (storeControls p.E p.cfg st.fg).rootIsJ <;> assumption
+  cases (controls p st).rootIsJ <;> assumption
 
 end AvailableChain.FGSA.Run
 end

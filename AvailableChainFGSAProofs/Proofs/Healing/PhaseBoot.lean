@@ -43,9 +43,10 @@ theorem boot_height_one {i : Nat} {x : V} (hx : x ∈ rho.honest)
     exact (fgCertificateLaws p).justified_zero C (hjC ▸ hj)
   have hc : (R_at p c E rho i x).contest = false := by
     change (decide (st.fg.h_max = st.fg.h_j + 1) && decide (∃ W ∈ st.fg.TF,
-      (heightView p W).h = st.fg.h_max ∧ ¬ FGBlock.Preceq st.fg.J W)) = false
+      FGBlock.Preceq st.fg.F W ∧ (heightView p W).h = st.fg.h_max ∧
+      ¬ FGBlock.Preceq st.fg.J W)) = false
     refine Bool.and_eq_false_iff.mpr (Or.inr (decide_eq_false ?_))
-    rintro ⟨W, _, _, hn⟩
+    rintro ⟨W, _, _, _, hn⟩
     exact hn (hJ ▸ KitFG.genesis_preceq W)
   refine ⟨hmax, hj, hJ, hc, ?_, ?_⟩
   · change (decide (st.fg.h_max = st.fg.h_j + 1) && !(R_at p c E rho i x).contest) = true

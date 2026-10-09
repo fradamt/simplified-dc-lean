@@ -210,10 +210,18 @@ private theorem transfer_frame_at_vote
       exact KitFG.preceq_total_of_common hJ (hcrossH W hW U hU hlt))
     have hlo := KitFG.storeFrameView_height_of_crossed_prefix_of_inv
       p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv Bfg hn hcrossH
-    refine ⟨hF, hZ, hn, ?_⟩
+    have hnTree : (controls p st).contest = false := by
+      apply Bool.eq_false_iff.mpr
+      intro ht
+      have ho := KitFG.treeStoreControlsView_contest_imp (heightView p) st.fg ht
+      rw [hn] at ho
+      cases ho
+    refine ⟨hF, hZ, hnTree, ?_⟩
     change (controls p st).lo ≤ hOf p.E p.cfg Bfg
     rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
-    exact hlo
+    have hle := fgsa_controls_lo_le_store p st
+    rw [KitFG.storeControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hle
+    exact hle.trans hlo
   · intro z r a e ha he heScope _
     obtain ⟨j, hj, hrow⟩ := ha
     obtain ⟨C, hcSource, heq, hpre, hC⟩ := hrows j z r a _ (hj.trans hki) hrow he
@@ -499,8 +507,8 @@ private theorem transfer_read_stamp (hsch : V2.D.ScheduleWellFormed E rho)
     · rw [hg.2]; exact hD
     · obtain ⟨parent, hd, _⟩ := ha.1
       have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hd D).mp hl
-      have hc := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-        (fgsa_hrestore_now p c) E rho hsch hd y
+      have hc := stateBefore_now_le_event_retained (fgsaClock p c)
+        (fgsa_hrestore_now_retained p c) E rho hsch hd y
       rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hc
       rw [hs]
       exact hc.trans_lt ht
@@ -763,7 +771,7 @@ theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
     (hall i le_rfl) (by simpa only [he] using hord)
   have hfg : st.fg = (storeAt p c E rho k y).fg := clock_fg p _ _
   have hcontrols : FGSA.controls p st = FGSA.controls p (storeAt p c E rho k y) :=
-    congrArg (KitFG.storeControlsView (heightView p)) hfg
+    congrArg (KitFG.treeStoreControlsView (heightView p)) hfg
   have hF : FGBlock.Preceq st.fg.F Bfg := by rw [hfg]; exact hframe.1
   have hZ : FGBlock.Preceq (FGSA.controls p st).Z Bfg := by rw [hcontrols]; exact hframe.2.1
   have hn : (FGSA.controls p st).contest = false := by rw [hcontrols]; exact hframe.2.2.1
@@ -783,15 +791,17 @@ theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
       exact_mod_cast (show (r : Int) < (s : Int) by nlinarith)
     exact block_preceq_trans hrow (hord r C ⟨j, hj.trans hki, y, hjt, hC⟩ hrs)
   have hlive := transfer_live_bounds p st B (by rw [← he]; exact eraseFG_preceq hZ) hlease
-  have hv : ∀ A, FGBlock.Preceq A Bfg → A ∈ FGSA.voterBlocks p st (s + 1) := by
-    intro A hA
+  have hv : ∀ A, FGBlock.Preceq st.fg.F A → FGBlock.Preceq A Bfg →
+      A ∈ FGSA.voterBlocks p st (s + 1) := by
+    intro A hFA hA
     apply Finset.mem_filter.mpr
-    refine ⟨(hpath A hA).1, ?_⟩
+    refine ⟨Finset.mem_filter.mpr ⟨(hpath A hA).1, hFA⟩, ?_⟩
     rw [Bool.or_eq_true]
     left
     apply decide_eq_true
     simpa only [Nat.add_sub_cancel] using (hpath A hA).2
-  refine ⟨Bfg, he, hF, hZ, hn, hlo, hlive.1, hlive.2, hv Bfg (KitFG.preceq_refl _), ?_⟩
+  refine ⟨Bfg, he, hF, hZ, hn, hlo, hlive.1, hlive.2,
+    hv Bfg hF (KitFG.preceq_refl _), ?_⟩
   intro A hroot hA _
   have hZA := transfer_lift p (block_preceq_trans hlive.1 hroot)
   have hcstore := cstoreInv_clock p _ (storeBundle_stateBefore E rho k y).cstore
@@ -800,7 +810,7 @@ theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
   rw [domainR_def, frameR_def]
   rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hlo
   exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p st) _ A).mpr
-    ⟨hv A hA, hFA, hZA, Bfg, hv Bfg (KitFG.preceq_refl Bfg), hA, hlo⟩
+    ⟨hv A hFA hA, hFA, hZA, Bfg, hv Bfg hF (KitFG.preceq_refl Bfg), hA, hlo⟩
 
 end AvailableChain.FGSA.Run
 end

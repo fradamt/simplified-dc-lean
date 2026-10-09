@@ -5,6 +5,7 @@ public import AvailableChainFGSAClaims.Claims.Clean
 public import AvailableChainFGSAClaims.Claims.Outage
 public import AvailableChainFGSAClaims.Claims.Finality
 public import AvailableChainFGSAClaims.Claims.WeakContinuation
+public import AvailableChainFGSAClaims.Claims.FrameNext
 
 @[expose] public section
 
@@ -27,7 +28,7 @@ structure FGSASafetyClaims (p : FGSA.Params) : Prop where
   leaseOrigins : LeaseOriginsClaim p
   reconcile : ReconcileClaim p
   outputNesting : OutputNestingClaim p
-  frame : FrameClaim p
+  frame : FrameClaimNext p
   clientSafety : ClientSafetyClaim p
   clientSafetyBase : ClientSafetyBaseClaim p
   sourceDisciplineBase : SourceDisciplineBaseClaim p
@@ -45,7 +46,7 @@ structure FGSASafetyClaims (p : FGSA.Params) : Prop where
 structure FGSASafetyInterfaces (p : FGSA.Params) : Prop where
   -- consumer: F2 positive Clean, Assembly/Clean; producer: F1.1–F1.5 (P3 :7820–7836)
   -- strat is filled by the same RStrat producer as timingContract.certLag.
-  fgFoundation : FGFoundationClaim p
+  fgFoundation : FGFoundationClaimNext p
   -- consumer: F2/F3/F4/F5 lane proofs, Assembly/<Claim>; producer: F1.5 (P3 :7858–7870)
   srcFrameAbove : SrcFrameAboveClaim p
   -- consumer: Clean (F2), inclusion/proposal/suffix/gate;

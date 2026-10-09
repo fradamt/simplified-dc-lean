@@ -19,7 +19,7 @@ steps 4 and 6. Class (iii). DC: Goldfish/Confirmation:494,508,567; INTENTIONAL:
 the batch count is read in the actual proposer pools. Every awake honest
 label-(s−1) HEAD is a received, resolved vote above D0, so every prefix L of
 D0 has a strict majority and beats each conflicting block. -/
-theorem inclusion_proposer_prior [Fintype V]
+theorem inclusion_proposer_prior_of_F_prefix [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (s : Slot) (i : Nat) (x : V)
     (st : State p.n) (hvotes : st.base.votes = (storeAt p c E rho i x).base.votes)
@@ -27,6 +27,7 @@ theorem inclusion_proposer_prior [Fintype V]
     (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head (s - 1))) q ∈ rho.honest ∧
       E.awake (rho.seatOf (.base (.head (s - 1))) q) (SA.voteTime p.toParams (s - 1)) = true)
     (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card) (D0 : Block)
+    (hFD : Block.Preceq (eraseFG st.fg.F) D0)
     (hrec : ∀ q ∈ H, ∃ K t, V2.D.Run.emits E rho (rho.seatOf (.base (.head (s - 1))) q)
         (ofHead p ⟨.seat (.head (s - 1)) q, K.root⟩) t ∧
       baseVote (⟨.seat (.head (s - 1)) q, K.root⟩ : HeadWire p.n) ∈ st.base.votes ∧
@@ -61,9 +62,10 @@ theorem inclusion_proposer_prior [Fintype V]
     · apply List.mem_filter.mpr
       refine ⟨List.mem_filter.mpr ⟨hv, beq_self_eq_true _⟩, ?_⟩
       change (match GridCO.resolvedHead? (actView st) _ with
-        | some H => decide (H.slot ≤ s - 1) | none => false) = true
+        | some H => Block.preceq (eraseFG st.fg.F) H && decide (H.slot ≤ s - 1)
+        | none => false) = true
       rw [hK]
-      exact decide_eq_true hslot
+      exact Bool.and_eq_true_iff.mpr ⟨block_preceq_trans hFD hDK, decide_eq_true hslot⟩
     · exact (Gen.AC.Root.vote_support_body _ _ _).mpr ⟨K, hlookup, hKb, hslot, hDK⟩
   have hother := inclusion_rest_bound E rho hC hE (s - 1) H
     (fun k hh ha => (hH k).mpr ⟨hh, ha⟩) (proposerVotes st s)

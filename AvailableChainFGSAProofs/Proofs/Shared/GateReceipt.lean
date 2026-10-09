@@ -334,7 +334,8 @@ theorem fgsa_gateReceipt
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch,
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch,
       ← fgsa_preTick_eq_timeRead E rho hsch hN hj] at hn
-    have hb := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hb := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hj x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hb
     exact ((Internal.slotOf_mono (p := p) (hn.trans hb)).trans_eq
@@ -360,7 +361,8 @@ theorem fgsa_gateReceipt
       Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFpre⟩
   have hslot : K.slot ≤ s := by
     have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hk y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq

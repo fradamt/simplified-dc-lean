@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.Emission
-public import AvailableChainKitV2.DutyEngineClock
 
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 

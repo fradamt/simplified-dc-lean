@@ -185,7 +185,7 @@ ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551, 2557–2571; plan I-E
 Class (iii). DC: INTENTIONAL; cpPrefix_of_srcFrame at the FG lift D: F and Z
 are below D and the floor is at most the height of D. -/
 theorem inclusion_frame_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho) (hs : V2.D.ScheduleWellFormed E rho)
     (hrows : ∀ i j x r (a : RowWire p.n) e, i ≤ timeIdx rho rho.horizon → j < i →
       HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
@@ -201,7 +201,8 @@ theorem inclusion_frame_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     FGBlock.Preceq (storeAt p c E rho i z).fg.F D ∧
       FGBlock.Preceq (controls p (storeAt p c E rho i z)).Z D ∧
       (controls p (storeAt p c E rho i z)).lo ≤ (heightView p D).h := by
-  have hcp := cpPrefix_of_srcFrame p c E rho hstore hframe hroots hstrat
+  have _hcanonicalFrame := hframe
+  have hcp := fgsa_cpPrefix_of_srcFrame p c E rho hstore hroots hstrat
   rw [CPPrefix_def] at hcp
   obtain ⟨_, hF, _, hZ, _, hlo⟩ := hcp i z D hz hScope
     (inclusion_entries_below E rho hs hrows s D0 D hD hmax hiT hi)
@@ -325,7 +326,7 @@ parent_height uses the stored source parent Q. Sleeping readers are included. -/
 theorem inclusion_retained_reads [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
       SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
@@ -399,7 +400,7 @@ theorem inclusion_retained_reads [Fintype V]
     hmax hipT hipCut hx
   let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
   have hsrcCtrl : controls p src = controls p (storeAt p c E rho ip x) :=
-    congrArg (KitFG.storeControlsView (heightView p)) (clock_fg p _ _)
+    congrArg (KitFG.treeStoreControlsView (heightView p)) (clock_fg p _ _)
   have hzsrc : Block.Preceq (RetainedWalk.z p src) D0 := by
     change Block.Preceq (eraseFG (controls p src).Z) D0
     rw [hsrcCtrl, ← hD]
@@ -432,7 +433,7 @@ theorem inclusion_retained_reads [Fintype V]
     (hstrat := hstrat) (hScope := hScope) E rho hstore hframe hsrc hs hrows s D0 D hD
     hmax hihT hihCut hy
   have hdstCtrl : controls p dst = controls p (storeAt p c E rho ih y) :=
-    congrArg (KitFG.storeControlsView (heightView p)) (clock_fg p _ _)
+    congrArg (KitFG.treeStoreControlsView (heightView p)) (clock_fg p _ _)
   have hzdst : Block.Preceq (eraseFG (controls p dst).Z) D0 := by
     rw [hdstCtrl, ← hD]
     exact eraseFG_preceq hZy
@@ -548,9 +549,12 @@ theorem inclusion_retained_reads [Fintype V]
         change Block.Preceq (eraseFG (clock p (storeAt p c E rho ip x) _).fg.F) K
         rw [clock_fg]
         exact block_preceq_trans (hD ▸ eraseFG_preceq hFx) hDK
-  have hPP := inclusion_proposer_prior E rho hE hC (q + 2) ip x src (by
+  have hPP := inclusion_proposer_prior_of_F_prefix E rho hE hC (q + 2) ip x src (by
       change (clock p (storeAt p c E rho ip x) _).base.votes = _
       exact (clock_vn _ _).1) H hH hbatch D0 (by
+        change Block.Preceq (eraseFG (clock p (storeAt p c E rho ip x) _).fg.F) D0
+        rw [clock_fg]
+        exact hD ▸ eraseFG_preceq hFx) (by
         intro seat hseat
         obtain ⟨K, t, he, hv, hK, hslot, hDK⟩ := hrecP seat hseat
         have hInv : CStoreInv p src :=
@@ -683,7 +687,7 @@ the stored proposal parent. No awake-reader premise is used. -/
 theorem inclusion_exact_compat [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
       SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
@@ -746,7 +750,7 @@ Conclusion: E1 of ExactProposalAt, inline. -/
 theorem inclusion_exact_receipt [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
       SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
@@ -785,7 +789,7 @@ Conclusion: E2 of ExactProposalAt, inline. -/
 theorem inclusion_exact_head [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
       SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
