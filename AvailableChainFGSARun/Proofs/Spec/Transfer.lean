@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.Spec.Simulation
+public import AvailableChainFGSARun.Proofs.Spec.Simulation
 
 public section
 
@@ -7,8 +7,8 @@ namespace AvailableChain.FGSA.Spec
 
 /-! Ruling U repairs ancestor identity through a simulation-only stutter filter.
 The old raw-erasure obstructions below remain true. Ruling W restricts the requested
-core correspondence to NoRestart and adopts the root-name reading of row targets.
-The restart trace remains a limit outside that scope. Target normalization preserves
+core correspondence to NoRestart. Ruling X fixes row targets as root names in
+spec pin f54e403a. The ruling-Y restart trace now agrees on acceptance. Normalization preserves
 observations, but the independent source-handler and regime proofs are still required.
 No source protocol claim transfer is asserted here. -/
 
@@ -45,14 +45,13 @@ theorem spec_stutter_event_list {V : Type} (p : Params) (assigned : Slot → Fin
       (before ++ after).filterMap (specSimulationEvent p assigned) := by
   simp [List.filterMap_append, spec_simulation_event_stutter p assigned v t auth B hB]
 
-/-- Concrete failure of the full block-step observation after a between-ticks restart.
-This rules out equality at this prescribed post-delivery cut for the event mapping. -/
-theorem spec_restart_matched_cut_failure :
-    (process specRestartParams specRestartCurrent specRestartWire.embed).proposals.length ≠
+/-- Both clocks give one accepted proposal after the between-ticks restart.
+This is the proposal-count observation at the prescribed post-delivery cut. -/
+theorem spec_restart_matched_cut_agreement :
+    (process specRestartParams specRestartCurrent specRestartWire.embed).proposals.length =
       (V2.D.Run.final specRestartEnv specRestartRun 1).st.proposals.length := by
-  obtain ⟨_, _, _, _, _, hs, _, ht⟩ := spec_restart_block_trace
+  obtain ⟨_, _, _, _, _, hs, _, ht⟩ := spec_restart_retained_block_trace
   rw [hs, ht]
-  decide
 
 /-- Full row-target equality and root-valued height matching differ on the identity
 fixture. The Assigned proposal filter does not inspect row targets. This is the
@@ -85,14 +84,14 @@ theorem spec_no_full_row_target_reader :
   have he := (h parentIdentityAbsent).mp hm
   exact spec_parent_identity_erasure.1 he
 
-/-- Ruling W2: row targets are root names. This is the height/entry comparison in
+/-- Ruling X, spec pin f54e403a: row targets are root names. This is the height/entry comparison in
 `valid_attestation`; the timeout flag does not enter that comparison. -/
 theorem spec_row_height_root_match (height h : Nat) (entry target : BlockId) (τ : Bool) :
     SimplexFG.NamedHeightPair.matchesEntry height entry (.vote h target τ) =
       decide ((h, target) = (height, entry)) := by
   simp [SimplexFG.NamedHeightPair.matchesEntry]
 
-/-- Ruling W2: pending finality pairs compare height and root name, not full blocks.
+/-- Ruling X, spec pin f54e403a: finality pairs compare height and root name.
 This fact makes no assertion about the alternative full-block reading. -/
 theorem spec_row_finality_root_match (height h : Nat) (entry target : BlockId) :
     (some (⟨h, target⟩ : SimplexFG.FinalityPair) = some ⟨height, entry⟩) ↔
