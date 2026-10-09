@@ -329,7 +329,7 @@ structure WCProposalPivot (w : HealingWitness) (iStar : Nat) (pt : PtSP)
         GridCO.stampBlock st.base A < SA.proposalTime p.toParams pt.s
   headPath : ∀ i x st, x ∈ rho.honest →
     WCDutyInput p c E rho i x (.head pt.s) st →
-    ∃ Dfg ∈ KitFG.storeFrameView (heightView p) st.fg (voterBlocks p st pt.s),
+    ∃ Dfg ∈ KitFG.treeStoreFrameView (heightView p) st.fg (voterBlocks p st pt.s),
       eraseFG Dfg = D ∧
       ∀ A, Block.Preceq A D → A ∈ st.base.blocks ∧
         GridCO.stampBlock st.base A < SA.freezeTime p.toParams (pt.s - 1)
