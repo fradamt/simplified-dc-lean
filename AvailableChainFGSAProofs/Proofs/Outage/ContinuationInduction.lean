@@ -160,12 +160,12 @@ theorem outage_event_induction_le_expiry {B : Block} {β : FGBlock (Fin p.n)} {j
           (hlocal x hx).1).2
         have hfg : Q.fg = st.fg := clock_fg p st t
         have hdom : FGSA.fullTree p Q = FGSA.fullTree p st := by
-          change KitFG.storeFrameView (heightView p) Q.fg Q.fg.TF =
-            KitFG.storeFrameView (heightView p) st.fg st.fg.TF
+          change KitFG.treeStoreFrameView (heightView p) Q.fg Q.fg.TF =
+            KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF
           rw [hfg]
         have hZ : FGSA.controls p Q = FGSA.controls p st := by
-          change KitFG.storeControlsView (heightView p) Q.fg =
-            KitFG.storeControlsView (heightView p) st.fg
+          change KitFG.treeStoreControlsView (heightView p) Q.fg =
+            KitFG.treeStoreControlsView (heightView p) st.fg
           rw [hfg]
         apply outage_liveRoot_covers p Q hinv hpQ.1 hbelow
         rcases hret with hF | hret
