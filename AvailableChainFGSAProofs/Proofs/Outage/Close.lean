@@ -15,7 +15,7 @@ open Gen.Pure
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {fast : Bool} {pt : PtOut} {ΔF : Time}
-variable (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+variable (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (htsrc : ∀ y r C, y ∈ rho.honest →
       actionSource p c E rho y r = some (some C) →

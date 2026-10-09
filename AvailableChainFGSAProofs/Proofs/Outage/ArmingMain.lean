@@ -35,7 +35,7 @@ theorem arming_cert [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     (x : V) (B : Block) (hx : x ∈ rho.honest)
     (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
     (hne : B ≠ .genesis)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (htsrc : ∀ y r C, y ∈ rho.honest →
       actionSource p c E rho y r = some (some C) →
@@ -237,7 +237,7 @@ theorem fast_arming [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     (x : V) (B : Block) (hx : x ∈ rho.honest)
     (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
     (hne : B ≠ .genesis)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (htsrc : ∀ y r C, y ∈ rho.honest →
       actionSource p c E rho y r = some (some C) →
@@ -335,7 +335,7 @@ theorem slow_arming [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     (x : V) (B : Block) (hx : x ∈ rho.honest)
     (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
     (hne : B ≠ .genesis)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (htsrc : ∀ y r C, y ∈ rho.honest →
       actionSource p c E rho y r = some (some C) →

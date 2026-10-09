@@ -156,3 +156,24 @@ Final validation on the port-w08c source:
 Commands use `LEAN_SLOTS=2 lake build --wfail` with the shared slot wrapper.
 No FULL/MERGE or final manifest gate is claimed. The exact target lists, logs,
 and first-error records are local under `.lake/port-w08c/`.
+
+## FG-SA port WP08 canonical frame suppliers (2026-10-09)
+
+Rulings A/T4(a) replace the proof-layer `RFrameExact` arguments with
+`RFrameExactNext` throughout the WP08 arming, persistence, inclusion, and
+continuation supplier chains. Names, other premises, and conclusions stay
+unchanged. The shared canonical compatibility proofs need no frame premise;
+the WP08 callers use those proofs directly and keep their frame binders.
+No claim changes or new retention premises are required.
+
+All 38 WP08 targets pass `LEAN_SLOTS=2 lake build --wfail`
+(exit 0, 3419 jobs), including both exports. This closes the export blocker
+above. ArmingCover and ContinuationReceipt compile without further edits.
+The 103-theorem axiom audit reports only propext, Classical.choice, and
+Quot.sound. F-3, F-13, and source checks pass.
+
+WP16 must attribute the 52 canonical frame helper types and supplier changes.
+The earlier WP13v receipt/proposer audit renames remain open. External
+importers and FULL/MERGE gates were not run in this job. Exact files, names,
+commands, and known external blockers: `claude-files/port-w08d-report.md`.
+Build evidence: `.lake/port-w08d/`.

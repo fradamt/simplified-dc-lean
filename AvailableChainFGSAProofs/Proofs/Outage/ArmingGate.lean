@@ -284,7 +284,7 @@ the certificate form at its label `l`. The read index is I⁺, after all ticks
 at d(l + 1) and before the deliveries at d(l + 1). -/
 theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho)
     (hnamed : ∀ i y r a, HonestRowAt p c E rho i y r a →
       ∃ e C G, namedEntry a.payload.height_pair = some e ∧
@@ -310,6 +310,7 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
             SA.gateTime p.toParams (l + 1) + L p ≤ dl ∧
             ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
               Block.Preceq B (eraseFG (FGSA.controls p st).Z)))) := by
+  have _hcanonicalFrame := hframe
   intro y hy I st
   have hs := hvalid.toScheduleWellFormed
   obtain ⟨i, hi⟩ := arming_tick_exists hs hdelta hy (4 * (l + 1) + 6)
@@ -380,7 +381,7 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       exact ((actView_blocks P B).mp h9d).1
     obtain ⟨Bh, hBh, hBe⟩ := (hinv.baseTree B).1 hBm
     have hFBh : FGBlock.Preceq st.fg.F Bh := arming_lift (hBe ▸ hFB)
-    have hcp := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+    have hcp := fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
     obtain ⟨_, _, hdom, _⟩ := (hcp I y Bh hy (arming_rows_compat (hroots := hroots) hs hnamed hc
         hBe)).2
     rcases hdom hBh hFBh with hZ | hD
@@ -402,7 +403,7 @@ theorem pending_gate_lease_or_F {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     (T b₀ b₁ : Time)
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ)
     (B : Block) (hne : B ≠ .genesis)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hnamed : ∀ i y r a, HonestRowAt p c E rho i y r a →
       ∃ e C G, namedEntry a.payload.height_pair = some e ∧

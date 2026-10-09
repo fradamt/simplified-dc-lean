@@ -93,7 +93,7 @@ variable [Fintype V]
 variable (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho) (hdelta : E.Δ = p.Δ)
     (hfault : (Gen.V2.Duty.faulty rho).card < SA.releaseThreshold p.toParams)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) (htsrc : TSrc p c E rho)
     (hnamed : ∀ k x r (a : RowWire p.n) e,
       HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
@@ -323,7 +323,7 @@ variable [Fintype V]
 variable (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho) (hdelta : E.Δ = p.Δ)
     (hfault : (Gen.V2.Duty.faulty rho).card < SA.releaseThreshold p.toParams)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) (htsrc : TSrc p c E rho)
     (hnamesFull : ∀ i y r a, HonestRowAt p c E rho i y r a →
       ∃ e C G, namedEntry a.payload.height_pair = some e ∧

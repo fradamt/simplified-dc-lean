@@ -24,7 +24,7 @@ variable
     (hstore : ∀ {In V : Type} [DecidableEq V] (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RStore p c E rho)
     (hframe : ∀ {In V : Type} [DecidableEq V] (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RFrameExact p c E rho)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RFrameExactNext p c E rho)
     (hstrat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
       SourceDisciplinePrem p c E rho pt → RStrat p c E rho)
@@ -190,7 +190,7 @@ variable
     (hstore : ∀ {In V : Type} [DecidableEq V] (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RStore p c E rho)
     (hframe : ∀ {In V : Type} [DecidableEq V] (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RFrameExact p c E rho)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RFrameExactNext p c E rho)
     (hstrat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
       SourceDisciplinePrem p c E rho pt → RStrat p c E rho)
@@ -359,7 +359,7 @@ variable {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
 /-- ROOT-DIGEST W2b. Blueprint 03 §9. One Clean cut result supplies all nine Clean inputs.
 Monotonicity applies only up to the inclusive cut at b₀. -/
 theorem outage_compat_body_of_cut
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (htsrc : ∀ y r C, y ∈ rho.honest →
       actionSource p c E rho y r = some (some C) →
