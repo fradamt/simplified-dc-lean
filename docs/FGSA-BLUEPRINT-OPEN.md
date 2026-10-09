@@ -150,4 +150,3 @@ any item remains.
 ## bp.recoveryExtensions.v1 (OPEN)
 
 - `OPEN.bp.recoveryExtensions.v1.1`: The general-delay (δ_t≠2R), one-repair and optimal uniform healing bounds have no proof.
-
