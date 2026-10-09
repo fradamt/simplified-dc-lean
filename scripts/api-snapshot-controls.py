@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import shutil
 import tempfile
+from copy import deepcopy
 
 
 def run(tool, *args, want=0, reasons=()):
@@ -96,6 +97,32 @@ def main():
         else:
             raise AssertionError('accepted a missing blueprint root')
         print('CONTROL missing mapped root: PASS')
+        for scope, product in [('v2', 'v2-deep'), ('gen', 'gen-deep'),
+                               ('compose', 'compose-api'), ('fgsa-claims', 'fgsa-claims-api')]:
+            actual = snapshot.extract(scope)
+            snapshot.check_snapshot(snapshot.deep.read_baseline(
+                Path('docs/api') / (product + '.json')), actual)
+            stale = deepcopy(actual)
+            name = next(iter(stale['entries']))
+            stale['nodes'][name]['digest'] = '0' * 64
+            for root_name in stale['entries']:
+                stale['entries'][root_name]['digest'] = snapshot.deep.root_digest(stale, root_name)
+            path = root / (product + '.json')
+            path.write_text(snapshot.deep.render(stale))
+            try:
+                snapshot.check_snapshot(snapshot.deep.read_baseline(path), actual)
+            except ValueError as exc:
+                assert 'DEEP CHANGED' in str(exc), exc
+            else:
+                raise AssertionError('accepted stale ' + product)
+            path.unlink()
+            try:
+                snapshot.deep.read_baseline(path)
+            except OSError:
+                pass
+            else:
+                raise AssertionError('accepted missing ' + product)
+            print('CONTROL stale/missing ' + product + ': PASS', flush=True)
 
 
 if __name__ == '__main__':

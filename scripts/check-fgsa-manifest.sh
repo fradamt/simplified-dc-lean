@@ -36,6 +36,14 @@ gate_with_slot manifest_run main lake env lean --run scripts/V2Manifest.lean --s
 gate_with_slot manifest_run deep lake env lean --run scripts/V2Manifest.lean \
   --scope fgsa --deep --check
 gate_with_slot manifest_run legacy python3 -B scripts/api-snapshot.py --scope legacy --check
+# Every committed review product is compared with compiled state at both tiers.
+# PCSA deep remains a separate, explicit checkpoint.
+gate_with_slot manifest_run v2-deep python3 -B scripts/api-snapshot.py --scope v2 \
+  --output docs/api/v2-deep.json --check
+gate_with_slot manifest_run gen-deep python3 -B scripts/api-snapshot.py --scope gen \
+  --output docs/api/gen-deep.json --check
+gate_with_slot manifest_run compose-api python3 -B scripts/api-snapshot.py --scope compose --check
+gate_with_slot manifest_run claims-api python3 -B scripts/api-snapshot.py --scope fgsa-claims --check
 # NEG=0 skips controls when no checker path changed.
 if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0)"; exit 0; fi
 mkdir -p .lake

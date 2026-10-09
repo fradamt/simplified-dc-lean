@@ -42,13 +42,24 @@ def main (args : List String) : IO UInt32 := do
 '''
 
 
-def check_wiring(root=Path('.')):
+def check_wiring(root=Path('.'), shell=None):
     # Both required positive commands must run before the NEG exit.
-    shell = (root / 'scripts/check-fgsa-manifest.sh').read_text()
+    if shell is None:
+        shell = (root / 'scripts/check-fgsa-manifest.sh').read_text()
     boundary = shell.index('if [ "${NEG:-1}"')
     assert shell.index('--scope fgsa --check') < boundary
     assert shell.index('--scope fgsa --deep --check') < boundary
     assert shell.index('--scope legacy --check') < boundary
+    for scope, label in [('v2', 'v2-deep'), ('gen', 'gen-deep'),
+                         ('compose', 'compose-api'), ('fgsa-claims', 'claims-api')]:
+        call = 'gate_with_slot manifest_run ' + label + ' python3 -B scripts/api-snapshot.py'
+        start = shell.index(call)
+        assert start < boundary
+        command = shell[start:shell.index('\n', start)].replace('\\', '')
+        if scope in ('v2', 'gen'):
+            command += shell[shell.index('\n', start) + 1:].splitlines()[0]
+            assert '--output docs/api/' + label + '.json --check' in command
+        assert '--scope ' + scope in command and '--check' in command
     gate = (root / 'scripts/gate.sh').read_text()
     assert 'fgsa-manifest) step "$1" bash scripts/check-fgsa-manifest.sh ;;' in gate
     group = ('run_group fgsa-claims check-fg-compose check-fgsa check-build check-fgsa-run '
@@ -56,6 +67,18 @@ def check_wiring(root=Path('.')):
     assert group in gate
     assert gate.index(group) > gate.index('fi\n# Longest measured FULL steps first;')
     print('CONTROL merge/full mandatory current shallow and deep wiring: PASS')
+
+
+def omitted_products():
+    shell = Path('scripts/check-fgsa-manifest.sh').read_text()
+    for label in ('v2-deep', 'gen-deep', 'compose-api', 'claims-api'):
+        bad = shell.replace('manifest_run ' + label + ' ', 'manifest_run omitted ')
+        try:
+            check_wiring(shell=bad)
+        except ValueError:
+            print('CONTROL omitted gate product ' + label + ': PASS')
+        else:
+            raise AssertionError('accepted omitted product ' + label)
 
 
 def main():
@@ -204,6 +227,7 @@ def main():
         assert result.returncode == 2, result
         print('CONTROL CLI stale/missing snapshots, pins, roots, write rejection: PASS')
     check_wiring()
+    omitted_products()
 
 
 if __name__ == '__main__':
@@ -211,5 +235,6 @@ if __name__ == '__main__':
     ap.add_argument('--source-only', action='store_true')
     if ap.parse_args().source_only:
         check_wiring()
+        omitted_products()
     else:
         main()
