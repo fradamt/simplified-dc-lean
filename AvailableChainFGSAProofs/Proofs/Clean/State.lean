@@ -5,7 +5,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
-public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 
 public section
 

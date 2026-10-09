@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPrefix
-public import AvailableChainFGSA.Proofs.Head.Transfer
 
 public section
 

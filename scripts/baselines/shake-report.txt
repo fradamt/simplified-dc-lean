@@ -504,3 +504,8 @@ remove AvailableChainStatements/Strong/Constants.lean public import AvailableCha
 remove AvailableChainStatements/Strong/Regimes.lean public import AvailableChainStatements.Generic.Regimes
 remove AvailableChainWitnesses/Sanity.lean public import AvailableChainStatements
 remove AvailableChainWitnesses/Sanity.lean public import Mathlib.Tactic
+# FG-SA port (2026-10-09): unused imports in S0-frozen claim files; remove when the sleep migration edits these files.
+remove AvailableChainFGSAClaims/Claims/Clean.lean public import AvailableChainFGSAClaims.Statements.ComposeStmt
+remove AvailableChainFGSAClaims/Claims/Foundations.lean public import AvailableChainFGSAClaims.Statements.ComposeStmt
+remove AvailableChainFGSAClaims/Claims/Foundations.lean public import AvailableChainFGSAClaims.Statements.FrameNext
+remove AvailableChainFGSAClaims/Statements/ComposeStmt.lean public import AvailableChainFGSARun.Statements.AC

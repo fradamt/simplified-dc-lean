@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSA.Proofs.Head.Transfer
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportFrame
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportRelay

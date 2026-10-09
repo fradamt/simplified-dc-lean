@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLoss
-public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 
 public section
 

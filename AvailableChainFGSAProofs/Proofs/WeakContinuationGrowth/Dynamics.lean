@@ -8,7 +8,7 @@ public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
-public import AvailableChainFGSA.Proofs.Head.Transfer
+public import AvailableChainFGSA.Proofs.Head.Transfer -- shake: keep (fgsa_headInTree_covers_of_transfer proof reference)
 
 namespace AvailableChain.GridCO
 
