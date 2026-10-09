@@ -103,3 +103,15 @@ public import AvailableChainEngineV2.Laws.Duty.SelfDelivery
 #print axioms AvailableChain.V2.D.Run.emits_snoc
 #print axioms AvailableChain.V2.D.EmitOk.snoc
 #print axioms AvailableChain.V2.D.ExecutionValid.snoc_selfDelivery
+
+#print axioms AvailableChain.V2.D.sleepWellFormed_toD_iff
+#print axioms AvailableChain.V2.D.restartsAtWakes_toD_iff
+#print axioms AvailableChain.V2.D.noRestartOn_toD_iff
+#print axioms AvailableChain.V2.D.noRestartAfter_toD_iff
+#print axioms AvailableChain.V2.D.linkReadyOn_toD_iff
+#print axioms AvailableChain.V2.D.processedByActionCut_toD_iff
+#print axioms AvailableChain.V2.D.handledBetween_toD_iff
+#print axioms AvailableChain.V2.D.deliveryService_toD_iff
+#print axioms AvailableChain.V2.D.deliveryDemand_toD_iff
+
+#print axioms AvailableChain.V2.ExecutionValid.snoc_selfDelivery

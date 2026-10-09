@@ -12,9 +12,9 @@ structure Env (V : Type) where
   Δ_pos : 0 < Δ
   t_GST : Time
   t_GST_nonneg : 0 ≤ t_GST
-  /-- Who is awake when. An asleep node receives, processes, and runs its
-  clock, but emits nothing. Participation premises are stated on this
-  profile. -/
+  /-- Awake profile. The consuming engine defines sleep behavior.
+  The v1 engine suppresses emissions while asleep. V2 valid schedules
+  exclude local ticks, deliveries, and restarts while asleep. -/
   awake : V → Time → Bool
 
 end AvailableChain.Generic

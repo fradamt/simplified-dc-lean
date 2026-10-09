@@ -21,6 +21,10 @@ structure ClockLaws (P : ProtocolSpecD In) where
   process : ∀ st o, now (P.process st o) = now st
   recordOwn_now : ∀ st o, now (P.recordOwn st o) = now st
 
+structure RestoreTimeLaw {In : Type} {P : ProtocolSpecD In}
+    (C : ClockLaws P) : Prop where
+  restore_now : ∀ d t, C.now (P.restore d t) = t
+
 namespace ClockLaws
 
 variable {P : ProtocolSpecD In}

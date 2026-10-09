@@ -54,6 +54,15 @@ namespace Run
 def stateBefore (E : Generic.Env V) (rho : Run V P) (i : Nat) : World V P :=
   (rho.events.take i).foldl (World.step E rho) World.init
 
+def actionCut (rho : Run V P) (a : Time) : Nat :=
+  (rho.events.filter (fun e =>
+    decide (e.time < a ∨ (e.time = a ∧ e.phase = 0)))).length
+
+def stateAfterRestartsAt (E : Generic.Env V) (rho : Run V P)
+    (a : Time) : World V P :=
+  stateBefore E rho (actionCut rho a)
+
+
 def stateBeforeTime (E : Generic.Env V) (rho : Run V P) (t : Time) : World V P :=
   (rho.events.filter (fun e => decide (e.time < t))).foldl (World.step E rho) World.init
 

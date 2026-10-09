@@ -30,7 +30,7 @@ abbrev toy : ProtocolSpecD Unit where
   selfVisible := fun _ => true
   recordOwn := fun st o => o.payload :: st
   durable := id
-  restore := id
+  restore := fun d _ => d
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false

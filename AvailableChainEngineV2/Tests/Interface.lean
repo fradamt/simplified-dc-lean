@@ -60,7 +60,7 @@ abbrev slotSpec (sts : Slot → Nat) (sv : Bool) (rec : Nat) : ProtocolSpec Nat 
   selfVisible := fun _ => sv
   recordOwn := fun s _ => s + rec
   durable := fun _ => ()
-  restore := fun _ => 0
+  restore := fun _ _ => 0
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false

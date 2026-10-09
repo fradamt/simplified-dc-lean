@@ -43,7 +43,7 @@ structure ProtocolSpecD (In : Type) where
 
   durable : State → Durable
 
-  restore : Durable → State
+  restore : Durable → Time → State
 
   wellFormed : Signed Label seats Payload → Bool
 

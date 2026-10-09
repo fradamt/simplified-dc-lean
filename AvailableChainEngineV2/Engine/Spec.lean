@@ -59,7 +59,7 @@ structure ProtocolSpec (In : Type) where
   /-- The part of the state that a restart keeps. -/
   durable : State → Durable
   /-- The state after a restart, from the kept part. -/
-  restore : Durable → State
+  restore : Durable → Time → State
   /-- Syntactic well-formedness of an object on the wire. -/
   wellFormed : Signed Label seats Payload → Bool
   /-- The node's state holds what the object depends on (e.g. the parent block). -/
