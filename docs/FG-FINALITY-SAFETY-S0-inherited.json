@@ -431,8 +431,15 @@
     {
       "id": "P13",
       "base": "1e958d9ceca4a5f4c381f6483641a1866e1e0495",
-      "tip": null,
-      "recorded_changes": [],
+      "tip": "b033d223088fa30fd2763c3ae4a00b20bf28e91b",
+      "recorded_changes": [
+        {
+          "path": "AvailableChainPCSAClaims/Statements/Premises.lean",
+          "commit": "edc925ffe5969b035ba5c6b396b2196787e13391",
+          "kind": "inherited-main",
+          "reason": "Inherited from main in the P13 base-to-landing range; already recorded in differences. This is a PC-SA Formation change, not a P13 edit. The package checker checks endpoint bytes and requires this exact range attribution."
+        }
+      ],
       "note": "Combined base: main 5995104a with P10 (222cf06a) and P12 (d1e2232c). The tip is the checked revision."
     }
   ]

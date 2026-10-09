@@ -889,3 +889,13 @@ and only the instance swap is atomic.
   for the horizon window. The long first-slot proof is unchanged.
   `Recovery/Export` keeps `pcsa_longBreakRecoveredClaim_of_inputs` with its
   original type. Both recovery claims now have complete suffix suppliers.
+
+## FG-SA port (in progress)
+
+Stage 0 adds the port plan and base records after the checked P13 landing.
+The [plan and binding rulings](plans/fgsa-port-r2.md) define the port packages.
+The [source census](FGSA-PORT-CENSUS.md) maps 369 declarations to 876 manifest
+entries. The [ownership register](FGSA-PORT-OWNERS.json) gives one owner for
+each exact edit path. The [PC-SA baseline](FGSA-PORT-PCSA-BASELINE.json) records
+the source and compiled statement dependencies that the port must preserve.
+`FrameNext` will become the final frame surface at SWITCH.
