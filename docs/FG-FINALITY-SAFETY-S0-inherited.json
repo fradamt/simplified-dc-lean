@@ -7,8 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "2862a33a167325da8a0302a4fc2f29284b19fa60",
-  "main_revision_note": "WP16 final-refresh data pin 2862a33a; source base 988177e2; Y/WP12d/wfix2 integrated.",
+  "main_revision": "79c3390cbddc1939dbe7735aabd37b03063f47e5",
+  "main_revision_note": "port-w16d exact approved shallow/deep data pin 79c3390c",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -534,7 +534,7 @@
       "path": "scripts/fgsa-manifest-allow.txt",
       "s0_sha256": "526b2b1e05476d9f722cbf1775ad00eeaccc8c45297790ac2d21908128e8f2a9",
       "comparison_sha256": "526b2b1e05476d9f722cbf1775ad00eeaccc8c45297790ac2d21908128e8f2a9",
-      "main_sha256": "c86a1e8c0ee181e2ca855f8766c43d2481afe2ee5d0896ac58ffbbee750e69d4",
+      "main_sha256": "b4d8cd96a5fb23ac6f62a74d4beb89d1e0f6106668cf96da00d87f900a776972",
       "changes": [
         {
           "commit": "3dab58433a4ae070aac169753c7844d0fdfb734f",
@@ -542,6 +542,14 @@
           "before_sha256": "526b2b1e05476d9f722cbf1775ad00eeaccc8c45297790ac2d21908128e8f2a9",
           "after_sha256": "c86a1e8c0ee181e2ca855f8766c43d2481afe2ee5d0896ac58ffbbee750e69d4",
           "reason": "A; h+i+j protocol switch: Switch canonical FG-SA readers and final frame surface (red window)",
+          "kind": "commit"
+        },
+        {
+          "commit": "79c3390cbddc1939dbe7735aabd37b03063f47e5",
+          "parent": "4924efecd4635740060126d4ac9946063ef65ad6",
+          "before_sha256": "c86a1e8c0ee181e2ca855f8766c43d2481afe2ee5d0896ac58ffbbee750e69d4",
+          "after_sha256": "b4d8cd96a5fb23ac6f62a74d4beb89d1e0f6106668cf96da00d87f900a776972",
+          "reason": "Lead approval A: exact ruling Y Reachable pin; codex/reports/reviews/rev-port-w16c-astra.md",
           "kind": "commit"
         }
       ]
@@ -817,6 +825,18 @@
         }
       ],
       "note": "Exact measured API bytes after the integrated Y constructor change."
+    },
+    {
+      "id": "FGSA-port-last-data-closure",
+      "base": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+      "tip": "79c3390cbddc1939dbe7735aabd37b03063f47e5",
+      "recorded_changes": [
+        {
+          "path": "scripts/fgsa-manifest-allow.txt",
+          "commit": "79c3390cbddc1939dbe7735aabd37b03063f47e5"
+        }
+      ],
+      "note": "Exact approval A delta; no other new S0 path changes."
     }
   ]
 }
