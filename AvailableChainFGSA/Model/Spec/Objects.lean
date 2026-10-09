@@ -5,7 +5,7 @@ public import AvailableChainFGSA.Model.Objects
 
 namespace AvailableChain.FGSA.Spec
 
-/-! Pure representation for spec bb21bbd4 (S0-C).
+/-! Pure representation for spec d7a094e5 (WP12a; initially S0-C).
 
 Lean's `NamedProposal` has no proposer field. `Block.representation` and
 `BlockCorresponds` carry a separate list of proposer indices for the entire parent chain.
@@ -21,7 +21,7 @@ assertions, separate from the wire check; `ac_valid_payload`; `fg_to_ac`
 with root and height-floor parameters; `viable_tree`; lock-entry projection,
 live locks and expiry; record normalization and `advance`; `fg_on_attestation`
 pool insertion; the refusal shell of `on_block`; tick step composition and
-schedule times. Saved head is data only. The AC stores geometric block names;
+schedule times. No saved-head field is kept. The AC stores geometric block names;
 the wire type below keeps complete recursive signed content. These names need
 the usual admitted-store/root-uniqueness relation in a later simulation.
 
@@ -39,7 +39,9 @@ Not modeled: `fg_contest`, `head_height_floor`, `get_fc_root`, `is_viable`,
 and `ac_confirmed`. No run, sleep, output or claim correspondence is asserted.
 Later run correspondence is restricted to the ordered, initialized,
 always-awake fragment with immediate self-deliveries and fixed seat maps.
-The guarded controls and resolution readers on parallel branches are not imported.
+Frame correspondence uses only `FGSA.Next` readers and unchanged model parts.
+`Transitions` adds the confirmation split and lock-update kernels with explicit
+score inputs. These kernels do not assert a full handler or run correspondence.
 -/
 
 /-- [spec 237–258, 947–967] Full recursive block, with no application field.

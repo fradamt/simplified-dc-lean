@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSA.Model.Spec.Objects
 public import AvailableChainFGSA.Model.Store
 public import Mathlib.Order.WithBot
+public import Mathlib.Basic.Real.Basic
 
 @[expose] public section
 
@@ -9,17 +10,17 @@ namespace AvailableChain.FGSA.Spec
 
 /-- [spec 973–1039] AC state A. Blocks here are shared geometric names, not a store.
 A block timestamp of `some ⊥` is genesis; `none` is an unseen name.
-Negative slots are represented explicitly. The saved head has no Lean core field. -/
+Negative slots are represented explicitly. Receipt stamps use continuous time;
+lock deadlines remain public (integer) times. The head is computed at read time. -/
 structure ACState (n : Nat) where
   pool : Int → List (HeadWire n) := fun _ => []
-  voteStamp : HeadWire n → Option Time := fun _ => none
-  blockStamp : AvailableChain.Block → Option (WithBot Time) :=
+  voteStamp : HeadWire n → Option ℝ := fun _ => none
+  blockStamp : AvailableChain.Block → Option (WithBot ℝ) :=
     fun B => if B = .genesis then some ⊥ else none
   saved : Int → Option AvailableChain.Block := fun _ => none
   locks : List (AvailableChain.Block × Time) := []
-  fast : List AvailableChain.Block := []
+  fast_confirmed : List AvailableChain.Block := []
   record : AvailableChain.Block := .genesis
-  savedHead : AvailableChain.Block := .genesis
 
 /-- [spec 993–1013] Live lock entries, projected to the current frame tree. -/
 def liveEntries (tree : List AvailableChain.Block) (t : Time)
