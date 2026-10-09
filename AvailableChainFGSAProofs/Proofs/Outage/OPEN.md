@@ -74,3 +74,39 @@ The final audit scans 8,781 constants in 471 active modules. Its six
 old/finality readers and 185 height-only readers match the unchanged
 baseline. No new read requires a lead ruling.
 No new height-only old derive read was added to the baseline.
+
+## FG-SA port WP08 STOP (2026-10-09)
+
+At integration base `4ee95891`, `ExactProposalReceipts.lean:63` fails in
+`inclusion_proposer_prior`. Canonical proposer support requires
+`Block.Preceq (eraseFG st.fg.F) K` for each resolved head K. The helper takes
+an arbitrary st and equates only its votes with a run read. Its receipt premise
+supplies resolution in `actView st`, resolution in the cumulative block list,
+the slot bound, and `D0 ⪯ K`. It supplies no `F ⪯ D0` or `F ⪯ K` fact.
+An ancestor of F can resolve in actView and still fail the new prefix filter.
+A canonical frame conversion does not supply this missing support fact.
+
+A replacement helper with a new name and the added premise
+`Block.Preceq (eraseFG st.fg.F) D0` needs a lead ruling before implementation.
+Both callers already have this fact: `hFs` in `ArmingCover.lean:332`, and
+`hFx`, `hD`, and `clock_fg` in `ExactProposalRetained.lean:551`.
+No claim premise, slashing premise, conclusion, or bound needs to change.
+The old theorem and both callers remain unchanged pending that ruling.
+
+The all-WP08 target build also fails in WP03c `Shared/Regimes.lean:368`:
+the score call passes D where destination proposal retention is now required.
+Ten independent WP08 modules pass with `LEAN_SLOTS=2 lake build --wfail`
+(exit 0, 3325 jobs). The full 38-module build fails (exit 1, 3419 jobs).
+These are red-window TARGET results, not a FULL or MERGE pass.
+
+The canonical-domain repairs identified in `ArmingCover`, `ArmingGate`, and
+`PersistenceFrame` remain behind the failed receipt helper. No old-frame
+comparison was restored and no top-retention premise was added to a claim.
+
+A local kernel check confirms the failed support inference: one held vote
+resolves to a strict ancestor of F, meets the slot and self-prefix bounds,
+but canonical proposer support is empty (raw voter count 1, score 0).
+This is a local-state counterexample, not a complete run counterexample.
+A separate local check proves the proposed retained helper with the same
+conclusion and verifies the canonical domain-to-fullTree conversion.
+Neither local check changes a repository theorem or bypasses a failed import.
