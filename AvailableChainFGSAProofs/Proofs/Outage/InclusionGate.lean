@@ -18,7 +18,7 @@ honest node. The tick does not need an awake node. -/
 theorem inclusion_headAtLabel [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
       SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →

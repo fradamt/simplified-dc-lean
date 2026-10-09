@@ -181,7 +181,7 @@ an actual honest event cut from scoped original row provenance. -/
 theorem outageV_contested_frame_from_rows {p : Params} {In V : Type}
     [DecidableEq V] {c : AppCodec In} {E : Generic.Env V}
     {rho : V2.D.Run V (fgsa p c)} (hstore : RStore p c E rho)
-    (hframe : RFrameExact p c E rho) (hstrat : RStrat p c E rho)
+    (hframe : RFrameExactNext p c E rho) (hstrat : RStrat p c E rho)
     (i : Nat) (x : V) (B : FGBlock (Fin p.n)) (hx : x ∈ rho.honest)
     (hrows : ∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
       HonestRowBefore p c E rho i y r a →
@@ -193,7 +193,8 @@ theorem outageV_contested_frame_from_rows {p : Params} {In V : Type}
     {X : FGBlock (Fin p.n)}
     (hX : X ∈ KitFG.filteredFromView (heightView p) (R_at p c E rho i x) view) :
     FGBlock.Preceq X B ∨ FGBlock.Preceq B X := by
-  have hc := (cpCompat_of_scopedFrame p c E rho hstore hframe hstrat i x B hx hrows).2.2.2.2
+  have _hcanonicalFrame := hframe
+  have hc := (fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat i x B hx hrows).2.2.2.2
     hcontest
   exact outageV_contested_filter p (storeAt p c E rho i x) (hstore i x hx).1 B
     (outageV_contest_top p _ B hc.1 hc.2) hcontest view hview hX
@@ -326,7 +327,7 @@ row history supplies the frame and crossing facts used by the actual HEAD.
 A contest or a received marker is sufficient. Live locks remain explicit. -/
 theorem outageV_head_from_rows {p : Params} {In V : Type} [DecidableEq V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hstrat : RStrat p c E rho) (i : Nat) (x : V) (B : FGBlock (Fin p.n))
     (s : Slot) (hx : x ∈ rho.honest)
     (hrows : ∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
@@ -340,8 +341,9 @@ theorem outageV_head_from_rows {p : Params} {In V : Type} [DecidableEq V]
       ∃ Q, FGBlock.Preceq B Q ∧ (heightView p Q).T_h = Q ∧
         (heightView p Q).h ≤ (storeAt p c E rho i x).fg.h_j) :
     Block.Compatible (headVote p (storeAt p c E rho i x) s) (eraseFG B) := by
+  have _hcanonicalFrame := hframe
   let st := storeAt p c E rho i x
-  have hc := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat i x B hx hrows
+  have hc := fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat i x B hx hrows
   have htop : (controls p st).contest = true →
       ∀ W ∈ st.fg.TF, (heightView p W).h = (controls p st).H → FGBlock.Preceq B W := by
     intro ht

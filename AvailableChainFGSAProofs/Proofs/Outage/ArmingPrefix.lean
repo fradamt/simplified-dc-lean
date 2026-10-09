@@ -92,7 +92,7 @@ theorem arming_entry_below {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 pending read. The named entries are those of actions strictly before d(l + 1). -/
 theorem arming_frame_below {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho) {l : Slot} {D : Block}
     {Dh : FGBlock (Fin p.n)} (hDh : eraseFG Dh = D)
     (hentry : ∀ i y r (a : RowWire p.n) e, HonestRowAt p c E rho i y r a →
@@ -105,7 +105,8 @@ theorem arming_frame_below {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       Block.Preceq (eraseFG (FGSA.controls p (storeAt p c E rho i y)).Z) D ∧
       (FGSA.controls p (storeAt p c E rho i y)).contest = false ∧
       (FGSA.controls p (storeAt p c E rho i y)).lo ≤ (heightView p Dh).h := by
-  have hcp := cpPrefix_of_srcFrame p c E rho hstore hframe hroots hstrat
+  have _hcanonicalFrame := hframe
+  have hcp := fgsa_cpPrefix_of_srcFrame p c E rho hstore hroots hstrat
   rw [CPPrefix_def] at hcp
   obtain ⟨_, hF, hJ, hZ, hn, hlo⟩ := hcp i y Dh hy hScope (by
     intro z r a e ha he
@@ -178,7 +179,7 @@ theorem arming_leases_interval {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 certificate: every honest local state up to the strict pending read. -/
 theorem arming_prefix_state {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) {b₀ : Time} {l : Slot} {D : Block}
     {Dh : FGBlock (Fin p.n)} (hDh : eraseFG Dh = D)
     (hl : SA.gateTime p.toParams l ≤ b₀) (hcut : b₀ < SA.gateTime p.toParams (l + 1))
