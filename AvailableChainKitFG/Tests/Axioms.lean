@@ -1,4 +1,7 @@
 module
+public import AvailableChainKitFG.TreeCorrespondence
+public import AvailableChainKitFG.TreeFrameGeometry
+public import AvailableChainKitFG.TreeTwoChanges
 public import AvailableChainKitFG.TreeFrameBridge
 public import AvailableChainKitFG.FrameChannels
 public import AvailableChainKitFG.Accountable
@@ -126,3 +129,41 @@ public import AvailableChainKitFG.AccountableCore
 #print axioms AvailableChain.KitFG.treeFjControlsView_eq_of_no_offF_top
 #print axioms AvailableChain.KitFG.treeStoreControlsView_J_preceq_of_rootIsJ
 #print axioms AvailableChain.KitFG.treeFjControlsView_J_preceq_of_rootIsJ
+
+-- AvailableChainKitFG/TreeCorrespondence.lean
+#print axioms AvailableChain.KitFG.treePair_eq_of_lexKey_eq
+#print axioms AvailableChain.KitFG.treeLexMax_eq_of_greatest
+#print axioms AvailableChain.KitFG.treeLexMax_spec
+#print axioms AvailableChain.KitFG.treeLexMax_of_none
+#print axioms AvailableChain.KitFG.treeTop_extends_J
+
+-- AvailableChainKitFG/TreeFrameGeometry.lean
+#print axioms AvailableChain.KitFG.treeStore_contest_persist
+#print axioms AvailableChain.KitFG.treeStore_contest_persist_of_inv
+
+-- AvailableChainKitFG/TreeTwoChanges.lean
+#print axioms AvailableChain.KitFG.treeLe_frontier
+#print axioms AvailableChain.KitFG.treePhaseOf
+#print axioms AvailableChain.KitFG.treeEJ
+#print axioms AvailableChain.KitFG.treeEJ_def
+#print axioms AvailableChain.KitFG.treeNFrame
+#print axioms AvailableChain.KitFG.treePhaseOf_eq
+#print axioms AvailableChain.KitFG.treeNFrame_eq
+#print axioms AvailableChain.KitFG.treeFjControls_contest
+#print axioms AvailableChain.KitFG.treeGap_of_ne
+#print axioms AvailableChain.KitFG.treeTop_contest
+#print axioms AvailableChain.KitFG.treeTop_uncontested
+#print axioms AvailableChain.KitFG.treeTop_contested
+#print axioms AvailableChain.KitFG.treeRootIsJ_iff
+#print axioms AvailableChain.KitFG.treeOne_le_frontier
+#print axioms AvailableChain.KitFG.treeLexMax_fst_lt
+#print axioms AvailableChain.KitFG.treeLexMax_top_of_carrier
+#print axioms AvailableChain.KitFG.treeLexMax_carrier_of_top
+#print axioms AvailableChain.KitFG.treeECView_of_contest
+#print axioms AvailableChain.KitFG.treeECView_mono_of_retained
+#print axioms AvailableChain.KitFG.treeEvidence_mono
+#print axioms AvailableChain.KitFG.treeEffFrame_of_bits
+#print axioms AvailableChain.KitFG.treeNFrame_eq_phaseFrame
+#print axioms AvailableChain.KitFG.treeTwoChanges
+#print axioms AvailableChain.KitFG.treeTwoChanges_count
+#print axioms AvailableChain.KitFG.treeTwoChanges_nested

@@ -59,6 +59,9 @@ public import AvailableChainKitFG.FrameBridgeDef
 public import AvailableChainKitFG.FrameBridge
 public import AvailableChainKitFG.TreeFrameDef
 public import AvailableChainKitFG.TreeFrameBridge
+public import AvailableChainKitFG.TreeCorrespondence
+public import AvailableChainKitFG.TreeFrameGeometry
+public import AvailableChainKitFG.TreeTwoChanges
 public import AvailableChainKitFG.JustificationLawsDef
 public import AvailableChainKitFG.FrameSelection
 public import AvailableChainKitFG.FrameGeometry
