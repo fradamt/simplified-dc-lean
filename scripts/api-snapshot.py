@@ -42,10 +42,26 @@ def source_modules(libraries):
     return sorted(set(modules))
 
 
-def extract(scope, inventory=False, roots=None, blueprint=Path('docs/FGSA-BLUEPRINT-LEAN.json')):
+def checkpoint_modules(path):
+    modules = [row['name'] for row in deep.root_list(path)]
+    for module in modules:
+        if not Path(module.replace('.', '/') + '.lean').is_file():
+            raise ValueError('MISSING CHECKPOINT MODULE: ' + module)
+    return modules
+
+
+def extract(scope, inventory=False, roots=None, blueprint=Path('docs/FGSA-BLUEPRINT-LEAN.json'),
+            checkpoint='g-s2', imports=None):
     libraries = SCOPES[scope]
     extra = ('AvailableChainPCSAProofs',) if scope == 'fgsa-claims' and not inventory else ()
-    modules = source_modules(libraries + extra)
+    if checkpoint == 'g-s1':
+        if scope != 'semantic' or roots is None or imports is None or inventory:
+            raise ValueError('G-S1 requires semantic roots and an explicit REQUIRED module list')
+        modules = checkpoint_modules(imports)
+    else:
+        if imports is not None:
+            raise ValueError('--imports is only valid at G-S1')
+        modules = source_modules(libraries + extra)
     # Modules come from the source tree, independently of facades and inventories.
     imports = ', '.join('{ module := `' + m + ' }' for m in modules)
     lib_names = ', '.join('`' + lib for lib in libraries)
@@ -101,7 +117,12 @@ def main (_args : List String) : IO UInt32 := do
     ((statements.toArray.flatMap fun (_, xs) => xs.map (·.1)) ++ exports ++ mapped)).toArray
 ''' + probe[at:]
     if roots is not None:
-        subjects = ', '.join('`' + r['name'] for r in deep.root_list(roots))
+        subjects = deep.root_list(roots)
+        if checkpoint == 'g-s1':
+            if any(not r.get('module') for r in subjects):
+                raise ValueError('G-S1 subjects require exact module identities')
+            subjects = [r for r in subjects if r['module'] in modules]
+        subjects = ', '.join('`' + r['name'] for r in subjects)
         first = probe.index('  let mut roots : Array Name')
         last = probe.index('  if roots.isEmpty', first)
         probe = probe[:first] + f'''  let subjects : Array Name := #[{subjects}]
@@ -126,6 +147,11 @@ def main (_args : List String) : IO UInt32 := do
     if not inventory:
         deep.validate_graph(data)
         data['pins'] = deep.pins()
+        if checkpoint == 'g-s1':
+            data['checkpoint'] = dict(name=checkpoint, modules=modules)
+            data['pending'] = [dict(name=r['name'], module=r['module'],
+                                    reason='outside checkpoint import scope', state='pending')
+                               for r in deep.root_list(roots) if r['module'] not in modules]
     return data
 
 
@@ -143,15 +169,19 @@ def main():
     mode.add_argument('--check', action='store_true')
     ap.add_argument('--output', type=Path)
     ap.add_argument('--roots', type=Path)
+    ap.add_argument('--checkpoint', choices=('g-s1', 'g-s2'), default='g-s2')
+    ap.add_argument('--imports', type=Path, help='G-S1 REQUIRED modules, one exact name per line')
     args = ap.parse_args()
     path = args.output or Path('docs/api') / (args.scope + '-api.json')
-    data = extract(args.scope, roots=args.roots)
+    data = extract(args.scope, roots=args.roots, checkpoint=args.checkpoint, imports=args.imports)
     if args.write:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(deep.render(data))
     else:
         check_snapshot(deep.read_baseline(path), data)
     print(f'{path}: PASS ({len(data["entries"])} roots; {len(data["nodes"])} nodes)')
+    for row in data.get('pending', []):
+        print('PENDING ROOT: ' + row['name'] + ': ' + row['reason'])
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ import subprocess
 import shutil
 import tempfile
 from copy import deepcopy
+from unittest.mock import patch
 
 
 def run(tool, *args, want=0, reasons=()):
@@ -97,6 +98,36 @@ def main():
         else:
             raise AssertionError('accepted a missing blueprint root')
         print('CONTROL missing mapped root: PASS')
+        imports = root / 'required.txt'
+        imports.write_text('AvailableChainFGSA.Statements.Invariants\n')
+        subjects = root / 'subjects.json'
+        subjects.write_text(snapshot.deep.render([
+            dict(name='AvailableChain.FGSA.Reachable', status='existing',
+                 module='AvailableChainFGSA.Statements.Invariants'),
+            dict(name='UnavailableDeferred.subject', status='existing',
+                 module='UnavailableDeferred.Proofs')]))
+        # A deferred module has no compiled file. Full collection must reject it;
+        # G-S1 must not enumerate or import it, even if it has an existing subject.
+        with patch.object(snapshot, 'source_modules', return_value=[
+                'AvailableChainFGSA.Statements.Invariants', 'UnavailableDeferred.Proofs']):
+            data = snapshot.extract('semantic', roots=subjects, checkpoint='g-s1',
+                                    imports=imports)
+            assert list(data['entries']) == ['AvailableChain.FGSA.Reachable']
+            assert data['pending'][0]['name'] == 'UnavailableDeferred.subject'
+            assert data['pending'][0]['state'] == 'pending'
+            try:
+                snapshot.extract('semantic', roots=subjects, checkpoint='g-s2')
+            except ValueError as exc:
+                assert 'UnavailableDeferred' in str(exc), exc
+            else:
+                raise AssertionError('full collector accepted unavailable deferred module')
+        try:
+            snapshot.extract('semantic', roots=subjects, checkpoint='g-s1')
+        except ValueError as exc:
+            assert 'explicit REQUIRED module list' in str(exc), exc
+        else:
+            raise AssertionError('G-S1 accepted an implicit import scope')
+        print('CONTROL G-S1 unavailable deferred module; full G-S2 import: PASS', flush=True)
         for scope, product in [('v2', 'v2-deep'), ('gen', 'gen-deep'),
                                ('compose', 'compose-api'), ('fgsa-claims', 'fgsa-claims-api')]:
             actual = snapshot.extract(scope)
