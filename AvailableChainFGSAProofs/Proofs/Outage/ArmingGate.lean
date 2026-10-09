@@ -389,7 +389,7 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       exact eraseFG_preceq hZ
     · left
       refine ⟨Bh, ?_, hBe⟩
-      rw [fullTree_eq, ← domainR_eq_storeFrame]
+      rw [fgsa_fullTree_eq_filtered, ← fgsa_domainR_eq_filtered]
       exact hD
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

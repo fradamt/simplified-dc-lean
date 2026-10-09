@@ -75,38 +75,33 @@ old/finality readers and 185 height-only readers match the unchanged
 baseline. No new read requires a lead ruling.
 No new height-only old derive read was added to the baseline.
 
-## FG-SA port WP08 STOP (2026-10-09)
+## FG-SA port WP08 ruling Q resolution (2026-10-09)
 
-At integration base `4ee95891`, `ExactProposalReceipts.lean:63` fails in
-`inclusion_proposer_prior`. Canonical proposer support requires
-`Block.Preceq (eraseFG st.fg.F) K` for each resolved head K. The helper takes
-an arbitrary st and equates only its votes with a run read. Its receipt premise
-supplies resolution in `actView st`, resolution in the cumulative block list,
-the slot bound, and `D0 ⪯ K`. It supplies no `F ⪯ D0` or `F ⪯ K` fact.
-An ancestor of F can resolve in actView and still fail the new prefix filter.
-A canonical frame conversion does not supply this missing support fact.
+Ruling Q replaces `inclusion_proposer_prior` with
+`inclusion_proposer_prior_of_F_prefix`. The conclusion and all old parameters
+are unchanged. The new premise after D0 is
+`Block.Preceq (eraseFG st.fg.F) D0`. Each received head extends D0, so this
+premise supplies the canonical proposer-support guard.
 
-A replacement helper with a new name and the added premise
-`Block.Preceq (eraseFG st.fg.F) D0` needs a lead ruling before implementation.
-Both callers already have this fact: `hFs` in `ArmingCover.lean:332`, and
-`hFx`, `hD`, and `clock_fg` in `ExactProposalRetained.lean:551`.
-No claim premise, slashing premise, conclusion, or bound needs to change.
-The old theorem and both callers remain unchanged pending that ruling.
+Both callers supply the premise from existing facts: `hFs` in `ArmingCover`,
+and `hFx`, `hD`, and `clock_fg` in `ExactProposalRetained`. No caller or claim
+statement changes. No slashing premise or larger bound is added.
 
-The all-WP08 target build also fails in WP03c `Shared/Regimes.lean:368`:
-the score call passes D where destination proposal retention is now required.
-Ten independent WP08 modules pass with `LEAN_SLOTS=2 lake build --wfail`
-(exit 0, 3325 jobs). The full 38-module build fails (exit 1, 3419 jobs).
+The Arming and Persistence proofs use the canonical domain-to-fullTree bridge.
+The Arming HEAD path retains each vertex above destination F and uses the
+canonical voter filter directly. It needs no universal top-retention premise.
+Clock congruence uses `treeStoreControlsView`.
+
+The replacement helper passes `LEAN_SLOTS=2 lake build --wfail`
+(exit 0, 3325 jobs). The caller batch is blocked by WP03c
+`Shared/Regimes.lean:368`: its score call lacks destination proposal retention
+(exit 1, 3355 jobs). Caller bodies still need a build after that repair.
 These are red-window TARGET results, not a FULL or MERGE pass.
 
-The canonical-domain repairs identified in `ArmingCover`, `ArmingGate`, and
-`PersistenceFrame` remain behind the failed receipt helper. No old-frame
-comparison was restored and no top-retention premise was added to a claim.
+WP13v must replace the old helper reference in `Tests/Axioms.lean:1222`.
+WP16 must update `scripts/proof-audit-coverage.txt` and attribute the helper
+replacement and affected fingerprints. These paths are outside WP08 ownership.
 
-A local kernel check confirms the failed support inference: one held vote
-resolves to a strict ancestor of F, meets the slot and self-prefix bounds,
-but canonical proposer support is empty (raw voter count 1, score 0).
-This is a local-state counterexample, not a complete run counterexample.
-A separate local check proves the proposed retained helper with the same
-conclusion and verifies the canonical domain-to-fullTree conversion.
-Neither local check changes a repository theorem or bypasses a failed import.
+The earlier local kernel counterexample shows a resolved vote below F that
+fails canonical proposer support. It is local-state evidence, not a complete
+run counterexample. Ruling Q resolves that support obligation.

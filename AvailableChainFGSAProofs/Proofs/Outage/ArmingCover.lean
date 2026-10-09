@@ -117,7 +117,7 @@ theorem arming_read_bounds {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hiI.trans (arming_idxBefore_le_length rho _)) hy
   have hctrl : controls p (clock p (storeAt p c E rho i y) t) =
       controls p (storeAt p c E rho i y) :=
-    congrArg (KitFG.storeControlsView (heightView p)) (clock_fg p _ _)
+    congrArg (KitFG.treeStoreControlsView (heightView p)) (clock_fg p _ _)
   have hsub := (arming_clock_offGate_fields p (storeAt p c E rho i y) t hoff).2.2.2
   refine ⟨hiI, ?_, by rw [hctrl]; exact hlo, ?_⟩
   · rw [clock_fg]
@@ -236,8 +236,9 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
     exact h
   have hvoter : ∀ X, X ≠ .genesis → Block.Preceq X D →
       Block.Preceq (F_at p c E rho k0 y) X →
+      Block.Preceq (eraseFG dst.fg.F) X →
       ∃ Xh ∈ voterBlocks p dst (l + 1 + 1), eraseFG Xh = X := by
-    intro X hne hXD hFX
+    intro X hne hXD hFX hFXd
     obtain ⟨hXm, hXs⟩ := arming_ancestor_stamp (hroots := hroots)
       hE hN hDelta hSync hk0 hyw0 hObserver hDK0
       hk0ih.le _ hv0 X hne hXD hFX
@@ -250,29 +251,33 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
         SA.freezeTime p.toParams (l + 1 + 1 - 1) := by
       rw [hXe, hstampDst X hXm]
       exact hXs.trans hfr
-    exact ⟨Xh, Finset.mem_filter.mpr ⟨hXh, Bool.or_eq_true_iff.mpr
+    exact ⟨Xh, Finset.mem_filter.mpr ⟨Finset.mem_filter.mpr
+      ⟨hXh, arming_lift (hXe ▸ hFXd)⟩, Bool.or_eq_true_iff.mpr
       (Or.inl (decide_eq_true hlt))⟩, hXe⟩
-  obtain ⟨Dh', hDh'V, hDe⟩ := hvoter D hDne (block_preceq_refl D) hF0
+  obtain ⟨Dh', hDh'V, hDe⟩ := hvoter D hDne (block_preceq_refl D) hF0 hFd
   have hDhV : Dh ∈ voterBlocks p dst (l + 1 + 1) := by
     rw [← eraseFG_injective (hDe.trans hDh.symm)]
     exact hDh'V
   have hpath : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C D →
-      C ∈ erasedList dst (storeFrame p.E p.cfg dst.fg (voterBlocks p dst (l + 1 + 1))) := by
+      C ∈ erasedList dst
+        (filteredFrom p.E p.cfg (controls p dst) (voterBlocks p dst (l + 1 + 1))) := by
     intro C hr hCD
     have hlC := (arming_prec hr).2
     have hFC : Block.Preceq (eraseFG dst.fg.F) C :=
       block_preceq_trans (F_preceq_liveRoot p dst hinv) hlC
     obtain ⟨Ch, hChV, hCe⟩ := hvoter C (arming_prec_ne_genesis hr) hCD
-      (block_preceq_trans hFk0 hFC)
+      (block_preceq_trans hFk0 hFC) hFC
     have hm := fgsa_walk_domain_of_witness p dst (voterBlocks p dst (l + 1 + 1)) Ch Dh
-      (fun B hB => (hinv.baseTree _).2 ⟨B, hB, rfl⟩) (Finset.filter_subset _ _) hChV hDhV
+      (fun B hB => (hinv.baseTree _).2 ⟨B, hB, rfl⟩)
+      (fun _ h => (Finset.mem_filter.mp (Finset.mem_filter.mp h).1).1) hChV hDhV
       (arming_lift (hCe ▸ hFC))
       (arming_lift (hCe ▸ block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) hlC))
       (arming_lift (hCe ▸ hDh ▸ hCD)) hlod
-    rw [domainR_eq_storeFrame, hCe] at hm
+    rw [fgsa_domainR_eq_filtered, hCe] at hm
     exact hm
   have hD := hRS D (block_preceq_refl D)
-  exact fgsa_headVote_covers_of_transfer p dst (l + 1) D
+  rw [fgsa_headVote_eq_filtered, ite_eq_right (by omega)]
+  exact fgsa_headInTree_covers_of_transfer p dst _ _ _ D
     (block_compatible_of_common hlive (block_preceq_refl D)) hpath hD.majority
     (fun X hX => by
       have h₁ := hD.rivals X hX
@@ -329,9 +334,9 @@ theorem arming_proposal_covers [Fintype V] {E : Generic.Env V}
       change K ∈ (clock p (storeAt p c E rho ip y) _).base.blocks
       rw [clock_base_blocks]
       exact hKb
-  have hPP := inclusion_proposer_prior E rho hE hC (l + 2) ip y src (by
+  have hPP := inclusion_proposer_prior_of_F_prefix E rho hE hC (l + 2) ip y src (by
       change (clock p (storeAt p c E rho ip y) _).base.votes = _
-      exact (clock_vn _ _).1) H hH hbatch D (by
+      exact (clock_vn _ _).1) H hH hbatch D hFs (by
         intro seat hseat
         obtain ⟨K, t, he, hv, hK, hslot, hDK⟩ := hrecP seat hseat
         have hInv : CStoreInv p src :=
@@ -359,7 +364,7 @@ theorem arming_proposal_covers [Fintype V] {E : Generic.Env V}
       (arming_lift (hCe ▸ hFC))
       (arming_lift (hCe ▸ block_preceq_trans (fgsa_Z_preceq_liveRoot p src) hlC))
       (arming_lift (hCe ▸ hDh ▸ hCD)) hlos
-    rw [domainR_eq_storeFrame, hCe, ← fullTree_eq] at hm
+    rw [fgsa_domainR_eq_filtered, hCe, ← fgsa_fullTree_eq_filtered] at hm
     exact hm
   obtain ⟨hmaj, hdom⟩ := hPP D (block_preceq_refl D)
   rw [proposerHead_def]

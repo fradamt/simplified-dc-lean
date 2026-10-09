@@ -209,7 +209,7 @@ theorem outage_frame_retains {p : Params} {In V : Type} [DecidableEq V]
   · exact Or.inr (hβ ▸ eraseFG_preceq hZ)
   · left
     refine ⟨β, ?_, hβ⟩
-    rw [fullTree_eq, ← domainR_eq_storeFrame]
+    rw [fgsa_fullTree_eq_filtered, ← fgsa_domainR_eq_filtered]
     exact hdom
 
 end AvailableChain.FGSA.Run
