@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.Port.VoteMerge
 public import AvailableChainFGSA.Proofs.Port.ContestFrame
 public import AvailableChainFGSA.Proofs.Port.Tree
 public import AvailableChainFGSA.Proofs.Port.Resolution
@@ -809,3 +810,90 @@ end AvailableChain.FGSA.instReprNamedProposal
 #print axioms AvailableChain.FGSA.Spec.expire_lease_projection
 #print axioms AvailableChain.FGSA.Spec.lockMap_cleanup
 #print axioms AvailableChain.FGSA.Spec.lease_locked_iff
+
+-- AvailableChainFGSA/Model/VoteMerge.lean
+#print axioms AvailableChain.FGSA.Next.proposalsAtNext
+#print axioms AvailableChain.FGSA.Next.voterBlocksNext
+#print axioms AvailableChain.FGSA.Next.headVotesNext
+#print axioms AvailableChain.FGSA.Next.headSupportNext
+
+-- AvailableChainFGSA/Model/FrameNext.lean
+#print axioms AvailableChain.FGSA.Next.liveRootNext
+#print axioms AvailableChain.FGSA.Next.eligibleNext
+#print axioms AvailableChain.FGSA.Next.headInTreeNext
+#print axioms AvailableChain.FGSA.Next.getHeadNext
+#print axioms AvailableChain.FGSA.Next.headVoteNext
+#print axioms AvailableChain.FGSA.Next.proposerVotesNext
+#print axioms AvailableChain.FGSA.Next.chainWireRowsNext
+#print axioms AvailableChain.FGSA.Next.blockWireRowsNext
+#print axioms AvailableChain.FGSA.Next.proposalRowsNext
+#print axioms AvailableChain.FGSA.Next.proposeNext
+#print axioms AvailableChain.FGSA.Next.fgHeadNext
+#print axioms AvailableChain.FGSA.Next.fgBlockOfNext
+#print axioms AvailableChain.FGSA.Next.deepestNext
+#print axioms AvailableChain.FGSA.Next.fgSourceNext
+#print axioms AvailableChain.FGSA.Next.fgInputsNext
+#print axioms AvailableChain.FGSA.Next.attestNext
+
+-- AvailableChainFGSA/Model/Legacy/Frame.lean
+#print axioms AvailableChain.FGSA.Legacy.controls
+#print axioms AvailableChain.FGSA.Legacy.fullTree
+#print axioms AvailableChain.FGSA.Legacy.erasedList
+#print axioms AvailableChain.FGSA.Legacy.liveRoot
+#print axioms AvailableChain.FGSA.Legacy.eligible
+#print axioms AvailableChain.FGSA.Legacy.headInTree
+#print axioms AvailableChain.FGSA.Legacy.getHead
+#print axioms AvailableChain.FGSA.Legacy.proposalsAt
+#print axioms AvailableChain.FGSA.Legacy.voterBlocks
+#print axioms AvailableChain.FGSA.Legacy.headVotes
+#print axioms AvailableChain.FGSA.Legacy.headSupport
+#print axioms AvailableChain.FGSA.Legacy.headVote
+#print axioms AvailableChain.FGSA.Legacy.proposerVotes
+#print axioms AvailableChain.FGSA.Legacy.proposerSupport
+#print axioms AvailableChain.FGSA.Legacy.chainWireRows
+#print axioms AvailableChain.FGSA.Legacy.blockWireRows
+#print axioms AvailableChain.FGSA.Legacy.proposalRows
+#print axioms AvailableChain.FGSA.Legacy.propose
+#print axioms AvailableChain.FGSA.Legacy.fgHead
+#print axioms AvailableChain.FGSA.Legacy.fgBlockOf
+#print axioms AvailableChain.FGSA.Legacy.deepest
+#print axioms AvailableChain.FGSA.Legacy.fgSource
+#print axioms AvailableChain.FGSA.Legacy.fgInputs
+#print axioms AvailableChain.FGSA.Legacy.attest
+
+-- AvailableChainFGSA/Proofs/Port/VoteMerge.lean
+#print axioms AvailableChain.FGSA.Legacy.controls_eq
+#print axioms AvailableChain.FGSA.Legacy.fullTree_eq
+#print axioms AvailableChain.FGSA.Legacy.erasedList_eq
+#print axioms AvailableChain.FGSA.Legacy.liveRoot_eq
+#print axioms AvailableChain.FGSA.Legacy.legacy_eligible_eq
+#print axioms AvailableChain.FGSA.Legacy.headInTree_eq
+#print axioms AvailableChain.FGSA.Legacy.getHead_eq
+#print axioms AvailableChain.FGSA.Legacy.proposalsAt_eq
+#print axioms AvailableChain.FGSA.Legacy.voterBlocks_eq
+#print axioms AvailableChain.FGSA.Legacy.headVotes_eq
+#print axioms AvailableChain.FGSA.Legacy.headSupport_eq
+#print axioms AvailableChain.FGSA.Legacy.headVote_eq
+#print axioms AvailableChain.FGSA.Legacy.proposerVotes_eq
+#print axioms AvailableChain.FGSA.Legacy.proposerSupport_eq
+#print axioms AvailableChain.FGSA.Legacy.chainWireRows_eq
+#print axioms AvailableChain.FGSA.Legacy.blockWireRows_eq
+#print axioms AvailableChain.FGSA.Legacy.proposalRows_eq
+#print axioms AvailableChain.FGSA.Legacy.propose_eq
+#print axioms AvailableChain.FGSA.Legacy.fgHead_eq
+#print axioms AvailableChain.FGSA.Legacy.fgBlockOf_eq
+#print axioms AvailableChain.FGSA.Legacy.deepest_eq
+#print axioms AvailableChain.FGSA.Legacy.fgSource_eq
+#print axioms AvailableChain.FGSA.Legacy.fgInputs_eq
+#print axioms AvailableChain.FGSA.Legacy.attest_eq
+#print axioms AvailableChain.FGSA.Next.proposalsAtNext_eq_of_retained
+#print axioms AvailableChain.FGSA.Next.headVotesNext_eq_of_proposals
+#print axioms AvailableChain.FGSA.Next.voterBlocksNext_eq_of_tree
+#print axioms AvailableChain.FGSA.Next.headSupportNext_eq_of_retained
+#print axioms AvailableChain.FGSA.Next.tree_eq_of_all_extends
+#print axioms AvailableChain.FGSA.Next.fullTree_eq_of_controls
+#print axioms AvailableChain.FGSA.Next.liveRootNext_eq_of_controls
+#print axioms AvailableChain.FGSA.Next.eligibleNext_eq_of_controls
+#print axioms AvailableChain.FGSA.Next.headInTreeNext_eq_of_controls
+#print axioms AvailableChain.FGSA.Next.getHeadNext_eq_of_controls
+#print axioms AvailableChain.FGSA.Next.headVoteNext_eq_of_reads
