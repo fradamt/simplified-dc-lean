@@ -388,9 +388,11 @@ theorem wc_headPath_of_previous {s : Slot} {D : Block}
   let st := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
   have hmem : Dfg ∈ voterBlocks p st s := by
     apply Finset.mem_filter.mpr
-    refine ⟨(Finset.mem_filter.mp hfull).1, ?_⟩
-    apply Bool.or_eq_true_iff.mpr
-    exact Or.inl (decide_eq_true (hD ▸ (hp D (block_preceq_refl D)).2.trans hfreeze))
+    refine ⟨(Next.mem_tree p st Dfg).mpr ⟨(Finset.mem_filter.mp hfull).1, ?_⟩, ?_⟩
+    · exact ((KitFG.mem_filteredFromView (heightView p) (frameR p st) _ Dfg).mp
+        hfull).2.1
+    · apply Bool.or_eq_true_iff.mpr
+      exact Or.inl (decide_eq_true (hD ▸ (hp D (block_preceq_refl D)).2.trans hfreeze))
   obtain ⟨_, hF, hZ, _⟩ :=
     (KitFG.mem_filteredFromView (heightView p) (frameR p st) _ Dfg).mp hfull
   obtain ⟨D', hD', hlo⟩ := hf.floor
@@ -991,6 +993,30 @@ theorem wc_frameAncestry {st : State p.n} {D : Block} {Dfg : FGBlock (Fin p.n)}
     ⟨hclosed Afg hAf, eraseFG_preceq_iff.mp (he ▸ block_preceq_trans hf.finalRoot hZ),
       eraseFG_preceq_iff.mp (he ▸ hZ), Dfg, hm, hAf, hlo⟩
 
+omit [Fintype V] in
+/-- WC J3, plan §6.9; DC retained path: D witnesses height in the canonical duty view. -/
+theorem wc_treeFrameAncestry {st : State p.n} {D : Block} {Dfg : FGBlock (Fin p.n)}
+    (hstore : CStoreInv p st) (hf : WCFrameBelow p st D) (hD : eraseFG Dfg = D)
+    (view : Finset (FGBlock (Fin p.n))) (hsub : view ⊆ st.fg.TF) (hm : Dfg ∈ view)
+    (hclosed : ∀ A, FGBlock.Preceq st.fg.F A → FGBlock.Preceq A Dfg → A ∈ view) :
+    ∀ A, Block.Prec (liveRoot p st) A → Block.Preceq A D →
+      A ∈ erasedList st (KitFG.treeStoreFrameView (heightView p) st.fg view) := by
+  intro A hLA hAD
+  obtain ⟨Afg, hA, he⟩ := eraseFG_ancestor_mem hstore.fg.closed (hsub hm) (hD ▸ hAD)
+  have hZ : Block.Preceq (eraseFG (frameR p st).Z) A :=
+    block_preceq_trans (fgsa_Z_preceq_liveRoot p st) (Bool.and_eq_true_iff.mp hLA).2
+  obtain ⟨Bfg, hB, hlo⟩ := hf.floor
+  have hBD : Bfg = Dfg := eraseFG_injective (hB.trans hD.symm)
+  subst Bfg
+  have hAf : FGBlock.Preceq Afg Dfg := eraseFG_preceq_iff.mp (he ▸ hD ▸ hAD)
+  have hFA : FGBlock.Preceq st.fg.F Afg :=
+    eraseFG_preceq_iff.mp (he ▸ block_preceq_trans hf.finalRoot hZ)
+  apply List.mem_filter.mpr
+  refine ⟨(hstore.baseTree A).mpr ⟨Afg, hA, he⟩, decide_eq_true ⟨Afg, ?_, he⟩⟩
+  exact (KitFG.mem_filteredFromView (heightView p) (frameR p st) view Afg).mpr
+    ⟨hclosed Afg hFA hAf, hFA,
+      eraseFG_preceq_iff.mp (he ▸ hZ), Dfg, hm, hAf, hlo⟩
+
 /-- WC J3, plan §6.9; DC first eligible proposal: join the finite pivot, paths and walks.
 The only lane producer premise is the reviewed live-frame Statement. -/
 theorem wc_proposalPivot (ΔF : Time) (w : HealingWitness) (iStar : Nat)
@@ -1024,7 +1050,7 @@ theorem wc_proposalPivot (ΔF : Time) (w : HealingWitness) (iStar : Nat)
     obtain ⟨he, hst⟩ := wc_headInput hduty
     exact wc_comparisonFrame hs hseed hi hfl pt.s D hstart hQD hmax hprev hnr hduty
       hx he hst (Or.inr rfl) (voterBlocks p st pt.s) ⟨Or.inl ⟨pt.s, rfl, rfl⟩⟩
-      (fun _ h => (Finset.mem_filter.mp h).1)
+      (fun _ h => Next.tree_subset_TF p st (Finset.mem_filter.mp h).1)
   have hPP : ∀ i x st, WCDutyInput p c E rho i x (.proposal pt.s) st →
       x = V2.D.proposerOf rho (fgsaInterface p c) pt.s →
       ∃ Dfg ∈ fullTree p st, eraseFG Dfg = D ∧
@@ -1089,23 +1115,27 @@ theorem wc_proposalPivot (ΔF : Time) (w : HealingWitness) (iStar : Nat)
           ∀ B, Block.compatible L B = false →
             RetainedWalk.ts p st pt.s B < RetainedWalk.ts p st pt.s L := by
         simpa only [← hsq] using hcounts
-      have hclosed : ∀ A, FGBlock.Preceq A Dfg → A ∈ voterBlocks p st pt.s := by
-        intro A hAD
+      have hclosed : ∀ A, FGBlock.Preceq st.fg.F A → FGBlock.Preceq A Dfg →
+          A ∈ voterBlocks p st pt.s := by
+        intro A hFA hAD
         obtain ⟨B, hB, hBA⟩ := eraseFG_ancestor_mem hInv.fg.closed
-          ((Finset.mem_filter.mp (Finset.mem_filter.mp hm).1).1) (eraseFG_preceq hAD)
+          (Next.tree_subset_TF p st
+            (Finset.mem_filter.mp (Finset.mem_filter.mp hm).1).1) (eraseFG_preceq hAD)
         have hA : A ∈ st.fg.TF := (eraseFG_injective hBA) ▸ hB
-        exact Finset.mem_filter.mpr ⟨hA, Bool.or_eq_true_iff.mpr (Or.inl
+        exact Finset.mem_filter.mpr ⟨(Next.mem_tree p st A).mpr ⟨hA, hFA⟩,
+          Bool.or_eq_true_iff.mpr (Or.inl
           (decide_eq_true (hpath (eraseFG A) (hD ▸ eraseFG_preceq hAD)).2))⟩
       have hw := fgsa_headInTree_covers_of_transfer p st _ _ _ D
         (block_compatible_of_common hlive (block_preceq_refl D))
-        (wc_frameAncestry hInv hf hD (voterBlocks p st pt.s)
-          (fun _ h => (Finset.mem_filter.mp h).1) (Finset.mem_filter.mp hm).1 hclosed)
+        (wc_treeFrameAncestry hInv hf hD (voterBlocks p st pt.s)
+          (fun _ h => Next.tree_subset_TF p st (Finset.mem_filter.mp h).1)
+          (Finset.mem_filter.mp hm).1 hclosed)
         (hcountsS D (block_preceq_refl D)).1.majority
         (hcountsS D (block_preceq_refl D)).2
       have hsne : pt.s ≠ 0 := by simp only [Slot] at hs2 ⊢; omega
       have hread : headVote p st pt.s = H := hH
       change (if pt.s = 0 then .genesis else headInTree p st
-        (erasedList st (KitFG.storeFrameView (heightView p) st.fg (voterBlocks p st pt.s)))
+        (erasedList st (KitFG.treeStoreFrameView (heightView p) st.fg (voterBlocks p st pt.s)))
         (headVotes p st pt.s) (headSupport p st pt.s)) = H at hread
       rw [ite_eq_right hsne] at hread
       exact hread ▸ hw
@@ -1134,8 +1164,8 @@ theorem wc_proposalPivot (ΔF : Time) (w : HealingWitness) (iStar : Nat)
     exact (eraseFG_injective hBA) ▸ hB
   have hwalk := fgsa_headInTree_covers_of_transfer p src _ _ _ D
     (block_compatible_of_common hlas (block_preceq_refl D))
-    (wc_frameAncestry hInv hfs hD src.fg.TF (fun _ h => h)
-      (Finset.mem_filter.mp hDsrc).1 hclosed)
+    (wc_treeFrameAncestry hInv hfs hD src.fg.TF (fun _ h => h)
+      (Finset.mem_filter.mp hDsrc).1 (fun A _ hAD => hclosed A hAD))
     (hcountsS D (block_preceq_refl D)).1 (hcountsS D (block_preceq_refl D)).2
   have hem' := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hem'
