@@ -193,7 +193,41 @@ def root_list(path):
     return rows
 
 
-def diff_report(old, now, roots=()):
+def root_diagnostics(old, now, roots, checkpoint='baseline'):
+    diagnostics = []
+    scope = now.get('checkpoint', {})
+    modules = scope.get('modules') if scope.get('name') == 'g-s1' else None
+    for root in roots:
+        name = root['name']
+        status = root.get('status', 'existing')
+        present = [(side, data['nodes'][name]['module'])
+                   for side, data in [('base', old), ('target', now)] if name in data['nodes']]
+        reason, state = None, 'error'
+        if status not in ('existing', 'planned'):
+            reason = 'unknown root status'
+        elif root.get('module') and any(m != root['module'] for _, m in present):
+            reason = 'root module mismatch'
+        elif modules is not None and root.get('module') not in modules:
+            reason, state = 'outside checkpoint import scope', 'pending'
+        elif name not in now['nodes']:
+            if status == 'planned' and checkpoint in ('baseline', 'g-s1'):
+                reason, state = 'planned root absent before final measurement', 'pending'
+            else:
+                reason = 'required root absent from target graph'
+        if reason:
+            diagnostics.append(dict(name=name, reason=reason, state=state,
+                                    status=status, actual=present))
+    return diagnostics
+
+
+def require_roots(report):
+    failures = [f'ROOT ERROR {row["name"]}: {row["reason"]}'
+                for row in report['unresolved'] if row['state'] == 'error']
+    if failures:
+        raise ValueError('\n'.join(failures))
+
+
+def diff_report(old, now, roots=(), checkpoint='baseline'):
     validate_graph(old)
     validate_graph(now)
     old, now = canonical(old), canonical(now)
@@ -233,15 +267,7 @@ def diff_report(old, now, roots=()):
                             old_type='\n'.join(old['nodes'].get(name, {}).get('type', [])),
                             new_type='\n'.join(now['nodes'].get(name, {}).get('type', [])),
                             changed_nodes=changes, attribution=relations))
-    unresolved = []
-    for root in roots:
-        name = root['name']
-        present = [(side, nodes[name]['module']) for side, nodes in sides if name in nodes]
-        if not present:
-            unresolved.append(dict(name=name, reason='absent from both graphs',
-                                   status=root.get('status', 'unspecified')))
-        elif root.get('module') and any(m != root['module'] for _, m in present):
-            unresolved.append(dict(name=name, reason='root module mismatch', actual=present))
+    unresolved = root_diagnostics(old, now, roots, checkpoint)
     return dict(format_version=1, entries=entries,
                 nodes=[dict(name=n, old=old['nodes'].get(n), new=now['nodes'].get(n))
                        for n in changed_nodes], groups=groups, unresolved=unresolved,
@@ -268,6 +294,8 @@ def main():
     ap.add_argument('--baseline', type=Path, default=DEEP)
     ap.add_argument('--roots', type=Path)
     ap.add_argument('--output', type=Path)
+    ap.add_argument('--checkpoint', choices=('baseline', 'g-s1', 'g-s2', 'g-s3'),
+                    default='baseline')
     args = ap.parse_args()
     if args.write and args.roots:
         ap.error('--roots is read-only; use --attribute or --check')
@@ -283,7 +311,7 @@ def main():
         return
     old = read_baseline(args.baseline)
     roots = root_list(args.roots) if args.roots else []
-    report = diff_report(old, now, roots)
+    report = diff_report(old, now, roots, args.checkpoint)
     report['inputs'] = dict(base_sha256=sha(args.baseline.read_bytes()),
                            target_sha256=sha(args.snapshot.read_bytes()),
                            roots_sha256=sha(args.roots.read_bytes()) if args.roots else None)
@@ -296,7 +324,9 @@ def main():
     if args.attribute:
         if not args.output:
             print(json.dumps(report, indent=2, ensure_ascii=False))
+        require_roots(report)
         return
+    require_roots(report)
     failures = check_deep(old, now)
     if failures:
         raise ValueError('\n'.join(failures))

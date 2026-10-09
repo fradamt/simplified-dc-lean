@@ -51,7 +51,7 @@ def checkpoint_modules(path):
 
 
 def extract(scope, inventory=False, roots=None, blueprint=Path('docs/FGSA-BLUEPRINT-LEAN.json'),
-            checkpoint='g-s2', imports=None):
+            checkpoint='baseline', imports=None):
     libraries = SCOPES[scope]
     extra = ('AvailableChainPCSAProofs',) if scope == 'fgsa-claims' and not inventory else ()
     if checkpoint == 'g-s1':
@@ -149,9 +149,10 @@ def main (_args : List String) : IO UInt32 := do
         data['pins'] = deep.pins()
         if checkpoint == 'g-s1':
             data['checkpoint'] = dict(name=checkpoint, modules=modules)
-            data['pending'] = [dict(name=r['name'], module=r['module'],
-                                    reason='outside checkpoint import scope', state='pending')
-                               for r in deep.root_list(roots) if r['module'] not in modules]
+        if roots is not None:
+            diagnostics = deep.root_diagnostics(data, data, deep.root_list(roots), checkpoint)
+            deep.require_roots(dict(unresolved=diagnostics))
+            data['pending'] = diagnostics
     return data
 
 
@@ -169,7 +170,8 @@ def main():
     mode.add_argument('--check', action='store_true')
     ap.add_argument('--output', type=Path)
     ap.add_argument('--roots', type=Path)
-    ap.add_argument('--checkpoint', choices=('g-s1', 'g-s2'), default='g-s2')
+    ap.add_argument('--checkpoint', choices=('baseline', 'g-s1', 'g-s2', 'g-s3'),
+                    default='baseline')
     ap.add_argument('--imports', type=Path, help='G-S1 REQUIRED modules, one exact name per line')
     args = ap.parse_args()
     path = args.output or Path('docs/api') / (args.scope + '-api.json')

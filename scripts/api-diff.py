@@ -52,6 +52,8 @@ def main():
     ap.add_argument('--snapshots', nargs='+', default=['docs/api/fgsa-deep.json'])
     ap.add_argument('--roots', type=Path)
     ap.add_argument('--output', type=Path, required=True)
+    ap.add_argument('--checkpoint', choices=('baseline', 'g-s1', 'g-s2', 'g-s3'),
+                    default='baseline')
     args = ap.parse_args()
     commits = [git('rev-parse', ref + '^{commit}') for ref in (args.base, args.target)]
     graphs, inputs = [], []
@@ -68,7 +70,7 @@ def main():
             inputs.append(dict(commit=commit, path=path, sha256=deep.sha(raw)))
         graphs.append(combine(side))
     roots = deep.root_list(args.roots) if args.roots else []
-    report = deep.diff_report(*graphs, roots)
+    report = deep.diff_report(*graphs, roots, checkpoint=args.checkpoint)
     report['source'] = dict(base=commits[0], target=commits[1],
                           target_tree=git('rev-parse', commits[1] + '^{tree}'), inputs=inputs,
                           roots_sha256=deep.sha(args.roots.read_bytes()) if args.roots else None)
@@ -96,6 +98,7 @@ def main():
     lines += ['', 'Unresolved: ' + json.dumps(report['unresolved'], ensure_ascii=False)]
     args.output.with_suffix('.md').write_text('\n'.join(lines) + '\n')
     print(json.dumps(report['counts']))
+    deep.require_roots(report)
 
 
 if __name__ == '__main__':

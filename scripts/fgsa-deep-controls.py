@@ -228,6 +228,7 @@ def main():
         print('CONTROL CLI stale/missing snapshots, pins, roots, write rejection: PASS')
     check_wiring()
     omitted_products()
+    subprocess.run(['python3', '-B', 'scripts/root-report-controls.py'], check=True)
 
 
 if __name__ == '__main__':
@@ -236,5 +237,6 @@ if __name__ == '__main__':
     if ap.parse_args().source_only:
         check_wiring()
         omitted_products()
+        subprocess.run(['python3', '-B', 'scripts/root-report-controls.py'], check=True)
     else:
         main()
