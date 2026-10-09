@@ -134,7 +134,7 @@ theorem healing_postReset_headCarrier_at [Fintype V]
   obtain ⟨D, hgeom⟩ := healing_postReset_headGeometry_at E rho hrec w hreset v hcone
     hv hHeadHorizon hx hip hseat N hem
   have hm : N.erase ∈ erasedList dst (domainR p dst (voterBlocks p dst v)) := by
-    rw [fgsa_domainR_eq_storeFrameView]
+    rw [fgsa_domainR_eq_treeStoreFrameView]
     exact (hgeom.endpoint y hy ih hih).proposal_mem
   obtain ⟨C, hC, heC⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
   exact ⟨C, heC, hC⟩
@@ -178,7 +178,7 @@ theorem healing_postReset_opening_stored_at [Fintype V]
     healing_postReset_headCarrier_at E rho hrec w hreset hcone hp hv hh hx hih
   have hm := ((KitFG.mem_filteredFromView _ _ _ _).mp hD).1
   have hstored : D ∈ (storeAt p c E rho ih x).fg.TF := by
-    have hmem := (Finset.mem_filter.mp hm).1
+    have hmem := Next.tree_subset_TF p _ (Finset.mem_filter.mp hm).1
     change D ∈ (clock p (storeAt p c E rho ih x) (SA.voteTime p.toParams v)).fg.TF at hmem
     rwa [clock_fg] at hmem
   exact ⟨D, he, (fgsa_store_cumulative p c E rho hrec.base.noRestart hik x).1 hstored⟩
