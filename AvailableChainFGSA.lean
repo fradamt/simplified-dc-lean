@@ -5,6 +5,9 @@ public import AvailableChainFGSA.Model.Store
 public import AvailableChainFGSA.Model.Tree
 public import AvailableChainFGSA.Model.Resolution
 public import AvailableChainFGSA.Proofs.Port.Resolution
+public import AvailableChainFGSA.Proofs.Port.Support
+public import AvailableChainFGSA.Proofs.Port.Carry
+public import AvailableChainFGSA.Proofs.Port.LocalReads
 public import AvailableChainFGSA.Proofs.Port.Tree
 public import AvailableChainFGSA.Model.ContestFrame
 public import AvailableChainFGSA.Model.VoteMerge

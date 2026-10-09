@@ -3,6 +3,9 @@ public import AvailableChainFGSA.Proofs.Port.VoteMerge
 public import AvailableChainFGSA.Proofs.Port.ContestFrame
 public import AvailableChainFGSA.Proofs.Port.Tree
 public import AvailableChainFGSA.Proofs.Port.Resolution
+public import AvailableChainFGSA.Proofs.Port.Support
+public import AvailableChainFGSA.Proofs.Port.Carry
+public import AvailableChainFGSA.Proofs.Port.LocalReads
 public import AvailableChainFGSA.Proofs.NamedReachable
 public import AvailableChainFGSA.Proofs.HeadResolution
 public import AvailableChainFGSA.Proofs.WindowOccurrences
@@ -897,3 +900,39 @@ end AvailableChain.FGSA.instReprNamedProposal
 #print axioms AvailableChain.FGSA.Next.headInTreeNext_eq_of_controls
 #print axioms AvailableChain.FGSA.Next.getHeadNext_eq_of_controls
 #print axioms AvailableChain.FGSA.Next.headVoteNext_eq_of_reads
+
+-- AvailableChainFGSA/Proofs/Port/Support.lean
+#print axioms AvailableChain.FGSA.Next.port_proposerSupport_positive
+#print axioms AvailableChain.FGSA.Next.port_scoreOn_resolved
+#print axioms AvailableChain.FGSA.Next.port_support_filter_incidence
+#print axioms AvailableChain.FGSA.Next.port_support_filter_score
+#print axioms AvailableChain.FGSA.Next.port_headSupport_incidence
+#print axioms AvailableChain.FGSA.Next.port_headSupport_scoreOn
+#print axioms AvailableChain.FGSA.Next.port_headVotes_score
+#print axioms AvailableChain.FGSA.Next.port_clean_score_card
+#print axioms AvailableChain.FGSA.Next.port_clean_filter_score
+#print axioms AvailableChain.FGSA.Next.port_ghostStep_congr
+#print axioms AvailableChain.FGSA.Next.port_ghost_congr
+#print axioms AvailableChain.FGSA.Next.port_confirmation_filter
+#print axioms AvailableChain.FGSA.Next.port_selected_head_eq
+#print axioms AvailableChain.FGSA.Next.port_proposer_selected_head
+#print axioms AvailableChain.FGSA.Next.port_voter_selected_head
+#print axioms AvailableChain.FGSA.Next.port_releaseCount_eq
+
+-- AvailableChainFGSA/Proofs/Port/Carry.lean
+#print axioms AvailableChain.FGSA.Next.port_retained_proposal_row
+#print axioms AvailableChain.FGSA.Next.port_retained_raw_carry
+#print axioms AvailableChain.FGSA.Next.port_retained_support_carry
+#print axioms AvailableChain.FGSA.Next.port_retained_carry_score
+
+-- AvailableChainFGSA/Proofs/Port/LocalReads.lean
+#print axioms AvailableChain.FGSA.Next.port_resolvedHead_filter
+#print axioms AvailableChain.FGSA.Next.port_resolvedBefore_filter
+#print axioms AvailableChain.FGSA.Next.port_resolvedHead_above_F
+#print axioms AvailableChain.FGSA.Next.port_resolvedHead_tree
+#print axioms AvailableChain.FGSA.Next.port_resolvedBefore_tree
+#print axioms AvailableChain.FGSA.Next.port_fastSet_projection
+#print axioms AvailableChain.FGSA.Next.port_lease_projection
+#print axioms AvailableChain.FGSA.Next.port_active_release_projection
+#print axioms AvailableChain.FGSA.Next.port_fastSet_filter
+#print axioms AvailableChain.FGSA.Next.port_fastWrite_projection
