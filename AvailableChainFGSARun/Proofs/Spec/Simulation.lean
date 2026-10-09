@@ -55,9 +55,12 @@ def specAssignedCheck {n : Nat} (assigned : Slot → Fin n) : Block n → Bool
 theorem spec_assigned_check_iff {n : Nat} (assigned : Slot → Fin n) (B : Block n) :
     specAssignedCheck assigned B = true ↔ B.Assigned assigned := by
   induction B with
-  | genesis => simp [specAssignedCheck, Block.Assigned]
+  | genesis =>
+      dsimp only [specAssignedCheck]
+      simp [Block.Assigned]
   | node P s i r rows raw support ih =>
-      simp [specAssignedCheck, Block.Assigned, ih]
+      dsimp only [specAssignedCheck]
+      simp [Block.Assigned, ih]
 
 /-- The two identity conditions of FG admission. Other checks can only refuse more. -/
 def specIdentityGate {n : Nat} (assigned : Slot → Fin n) (held : List (Block n)) :
@@ -73,7 +76,8 @@ theorem spec_identity_gate_assigned {n : Nat} (assigned : Slot → Fin n)
   cases B with
   | genesis => trivial
   | node P s i r rows raw support =>
-      simp only [specIdentityGate, Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at hB
+      dsimp only [specIdentityGate] at hB
+      simp only [Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at hB
       exact ⟨hB.1, hheld P hB.2⟩
 
 /-- A non-Assigned payload fails before writes or carried-object handlers. -/
@@ -127,10 +131,12 @@ theorem spec_identity_store_induction {n : Nat} (assigned : Slot → Fin n)
       (event : Option (Block n × Bool)) :
       ∀ B ∈ specIdentityStoreStep assigned held event, B.Assigned assigned := by
     cases event with
-    | none => simp [specIdentityStoreStep, Block.Assigned]
+    | none =>
+        dsimp only [specIdentityStoreStep]
+        simp [Block.Assigned]
     | some item =>
         rcases item with ⟨B, accepted⟩
-        simp only [specIdentityStoreStep]
+        dsimp only [specIdentityStoreStep]
         split_ifs with h
         · intro C hC
           rcases List.mem_append.mp hC with hc | hc
@@ -174,14 +180,15 @@ theorem spec_simulation_wire_stutter (p : Params) (assigned : Slot → Fin p.n)
     cases h : specAssignedCheck assigned B
     · rfl
     · exact False.elim (hB ((spec_assigned_check_iff assigned B).mp h))
-  simp [specSimulationWire, hb]
+  dsimp only [specSimulationWire]
+  simp [hb]
 
 /-- Every retained delivery passes the target wire check. Dependency and freshness
 checks still need the state relation; this is not an ExecutionValid theorem. -/
 theorem spec_simulation_wire_valid (p : Params) (assigned : Slot → Fin p.n)
     (o : Wire p.n) (q : Run.Obj p) (hq : specSimulationWire p assigned o = some q) :
     (Run.fgsa p Run.unitCodec).wellFormed q = true := by
-  simp only [specSimulationWire] at hq
+  dsimp only [specSimulationWire] at hq
   split_ifs at hq with h
   · have hg : (wellFormed p o && admissionValid assigned o) = true := by
       simp only [Bool.and_eq_true] at h ⊢
@@ -199,7 +206,8 @@ theorem spec_simulation_proposal_retained (p : Params) (assigned : Slot → Fin 
   have ha' := ha
   simp only [admissionValid, Bool.and_eq_true] at ha'
   have hp := ha'.1
-  simp [specSimulationWire, (spec_assigned_check_iff assigned B).mpr hB, hw, ha,
+  dsimp only [specSimulationWire]
+  simp [(spec_assigned_check_iff assigned B).mpr hB, hw, ha,
     deliveryWire, hp]
 
 /-- Preserve ticks and restarts; filter refused deliveries without changing time or node. -/
@@ -213,7 +221,8 @@ theorem spec_simulation_event_stutter {V : Type} (p : Params)
     (assigned : Slot → Fin p.n) (v : V) (t : Time) (auth : Auth Label p.n)
     (B : Block p.n) (hB : ¬ B.Assigned assigned) :
     specSimulationEvent p assigned (.deliver v ⟨auth, .proposal B⟩ t) = none := by
-  simp [specSimulationEvent, spec_simulation_wire_stutter p assigned auth B hB]
+  dsimp only [specSimulationEvent]
+  simp [spec_simulation_wire_stutter p assigned auth B hB]
 
 theorem spec_simulation_event_key {V : Type} (p : Params) (assigned : Slot → Fin p.n)
     (e : V2.Event V (Wire p.n)) (f : V2.Event V (Run.Obj p))
@@ -223,7 +232,8 @@ theorem spec_simulation_event_key {V : Type} (p : Params) (assigned : Slot → F
   | tick v t => cases Option.some.inj h; exact ⟨rfl, rfl⟩
   | restart v t => cases Option.some.inj h; exact ⟨rfl, rfl⟩
   | deliver v o t =>
-      simp only [specSimulationEvent, Option.map_eq_some_iff] at h
+      dsimp only [specSimulationEvent] at h
+      simp only [Option.map_eq_some_iff] at h
       obtain ⟨q, _, rfl⟩ := h
       exact ⟨rfl, rfl⟩
 
@@ -242,7 +252,7 @@ theorem spec_missing_dependency_stutter (p : Params) (st : State p.n) (q : Run.O
     | block s N =>
       simp only [hd] at h
       change admitBlock p st s N = st
-      unfold admitBlock
+      delta admitBlock
       cases hn : namedParentHeld st N with
       | false => rfl
       | true =>
@@ -262,7 +272,8 @@ theorem spec_duplicate_delivery_stutter (p : Params) (st : State p.n) (q : Run.O
     | vote s i b =>
       simp only [hd, decide_eq_true_eq] at h
       change (⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root) ∈ st.base.votes at h
-      simp [admitHead, GridCO.admitVote, h]
+      dsimp only [admitHead]
+      simp [GridCO.admitVote, h]
     | row i a =>
       simp only [hd, decide_eq_true_eq] at h
       have ha : (Run.toWire p q).auth = .seat .fg i := by
@@ -270,13 +281,15 @@ theorem spec_duplicate_delivery_stutter (p : Params) (st : State p.n) (q : Run.O
         | mk auth payload =>
           rcases auth with ⟨(_ | _), _⟩ | _ | _ <;>
             cases payload <;> simp_all [FGSA.Wire.decode]
-      simp [admitRow, ha, RowWire.decode?, h]
+      dsimp only [admitRow, RowWire.decode?]
+      simp [ha, h]
     | block s N =>
       simp only [hd, decide_eq_true_eq] at h
       have hb (P : SimplexFG.FGBlock (Fin p.n)) : blockAccepted p st s N P = false := by
-        simp [blockAccepted, named_erase_root, h]
+        dsimp only [blockAccepted]
+        simp [named_erase_root, h]
       change admitBlock p st s N = st
-      unfold admitBlock
+      delta admitBlock
       split
       · rfl
       · cases hp : parentFG st N.erase <;> simp [hb]
@@ -295,9 +308,12 @@ theorem spec_ready_wire_valid (p : Params) (assigned : Slot → Fin p.n) (st : S
     (Run.fgsa p Run.unitCodec).wellFormed q = true ∧
       Run.depsS p st q = true ∧ Run.processedS p st q = false := by
   cases hr : specSimulationWire p assigned o with
-  | none => simp [specReadyWire, hr] at h
+  | none =>
+      dsimp only [specReadyWire] at h
+      simp [hr] at h
   | some r =>
-    simp only [specReadyWire, hr] at h
+    dsimp only [specReadyWire] at h
+    simp only [hr] at h
     split_ifs at h with hd
     · cases Option.some.inj h
       exact ⟨spec_simulation_wire_valid p assigned o q hr,
@@ -311,9 +327,12 @@ theorem spec_ready_wire_step (p : Params) (assigned : Slot → Fin p.n) (st : St
       ((specSimulationWire p assigned o).map
         (fun q => process p st (Run.toWire p q))).getD st := by
   cases hq : specSimulationWire p assigned o with
-  | none => simp [specReadyWire, hq]
+  | none =>
+      dsimp only [specReadyWire]
+      simp [hq]
   | some q =>
-    simp only [specReadyWire, hq, Option.map_some, Option.getD_some]
+    dsimp only [specReadyWire]
+    simp only [hq, Option.map_some, Option.getD_some]
     cases hd : Run.depsS p st q <;> cases hf : Run.processedS p st q
     · simp [spec_missing_dependency_stutter p st q hd]
     · simp [spec_missing_dependency_stutter p st q hd]
@@ -346,7 +365,8 @@ theorem spec_block_identity_step (p : Params) (assigned : Slot → Fin p.n)
         cases B with
         | genesis => simp [admissionValid, proposerAllowed] at ha
         | node P s i root rows raw support =>
-          simpa [specIdentityGate, Block.parent, hb.1] using hg
+          dsimp only [specIdentityGate] at hg ⊢
+          simpa [Block.parent, hb.1] using hg
       have hn : namedParentHeld st B.embed = false := by
         simp only [namedParentHeld, hstore]
         exact decide_eq_false
@@ -356,7 +376,8 @@ theorem spec_block_identity_step (p : Params) (assigned : Slot → Fin p.n)
       | seat l i => cases l <;> rfl
       | proposer s =>
         change st = admitBlock p st s B.embed
-        simp [admitBlock, hn]
+        dsimp only [admitBlock]
+        simp [hn]
   · rw [spec_identity_gate_refused assigned held hheld B hb,
       spec_simulation_wire_stutter p assigned auth B hb]
     rfl
@@ -375,14 +396,19 @@ theorem spec_discarded_event_step {V : Type} [DecidableEq V] (p : Params)
     (w : V2.D.World V (Run.fgsa p Run.unitCodec)) (e : V2.Event V (Run.fgsa p Run.unitCodec).Object)
     (h : specKeepEvent p w e = false) : V2.D.World.step E rho w e = w := by
   cases e with
-  | restart v t => simp [specKeepEvent] at h
-  | tick v t => simp [specKeepEvent] at h
+  | restart v t =>
+      dsimp only [specKeepEvent] at h
+      simp at h
+  | tick v t =>
+      dsimp only [specKeepEvent] at h
+      simp at h
   | deliver v q t =>
     have hp : process p (w v).st (Run.toWire p q) = (w v).st := by
       cases hd : Run.depsS p (w v).st q
       · exact spec_missing_dependency_stutter p (w v).st q hd
       · have hf : Run.processedS p (w v).st q = true := by
-          simpa [specKeepEvent, hd] using h
+          dsimp only [specKeepEvent] at h ⊢
+          simpa [hd] using h
         exact spec_duplicate_delivery_stutter p (w v).st q hf
     change Function.update w v { w v with st := process p (w v).st (Run.toWire p q) } = w
     rw [hp]
@@ -412,7 +438,7 @@ theorem spec_prune_matched_cut {V : Type} [DecidableEq V] (p : Params)
   induction events generalizing w with
   | nil => rfl
   | cons e es ih =>
-    simp only [specPruneEvents]
+    dsimp only [specPruneEvents]
     cases hk : specKeepEvent p w e
     · have hs := spec_discarded_event_step p E rho w e hk
       simp only [Bool.false_eq_true, ↓reduceIte, hs]
@@ -431,7 +457,7 @@ theorem spec_prune_sublist {V : Type} [DecidableEq V] (p : Params)
   induction events generalizing w with
   | nil => exact List.Sublist.refl []
   | cons e es ih =>
-    simp only [specPruneEvents]
+    dsimp only [specPruneEvents]
     split
     · exact (ih _).cons_cons e
     · exact (ih _).cons e
@@ -447,7 +473,7 @@ theorem spec_prune_append {V : Type} [DecidableEq V] (p : Params)
   | nil => rfl
   | cons e es ih =>
     change specPruneEvents p E rho w (e :: (es ++ ys)) = _
-    simp only [specPruneEvents]
+    dsimp only [specPruneEvents]
     split <;> simp only [ih, List.cons_append] <;> rfl
 
 /-- Every surviving delivery has dependencies and is fresh at its new list position. -/
@@ -460,19 +486,24 @@ theorem spec_prune_delivery_conditions {V : Type} [DecidableEq V] (p : Params)
       (V2.D.World.step E rho) w v).st
     Run.depsS p st q = true ∧ Run.processedS p st q = false := by
   induction events generalizing w i with
-  | nil => simp [specPruneEvents] at h
+  | nil =>
+      dsimp only [specPruneEvents] at h
+      simp at h
   | cons e es ih =>
     cases hk : specKeepEvent p w e
     · have hs := spec_discarded_event_step p E rho w e hk
-      simp only [specPruneEvents, hk, Bool.false_eq_true, ↓reduceIte, hs] at h ⊢
+      dsimp only [specPruneEvents] at h ⊢
+      simp only [hk, Bool.false_eq_true, ↓reduceIte, hs] at h ⊢
       exact ih w i h
-    · simp only [specPruneEvents, hk, ↓reduceIte] at h ⊢
+    · dsimp only [specPruneEvents] at h ⊢
+      simp only [hk, ↓reduceIte] at h ⊢
       cases i with
       | zero =>
         have he := Option.some.inj h
         subst e
         change Run.depsS p (w v).st q = true ∧ Run.processedS p (w v).st q = false
-        simpa only [specKeepEvent, Bool.and_eq_true, Bool.not_eq_true'] using hk
+        dsimp only [specKeepEvent] at hk ⊢
+        simpa only [Bool.and_eq_true, Bool.not_eq_true'] using hk
       | succ i =>
         simp only [List.getElem?_cons_succ] at h
         simp only [List.take_succ_cons]
@@ -487,7 +518,7 @@ theorem spec_prune_tick_mem {V : Type} [DecidableEq V] (p : Params)
   induction events generalizing w with
   | nil => rfl
   | cons e es ih =>
-    simp only [specPruneEvents]
+    dsimp only [specPruneEvents]
     split_ifs with hk
     · simp only [List.mem_cons, ih]
     · have he : (.tick v t : V2.Event V (Run.fgsa p Run.unitCodec).Object) ≠ e := by
@@ -628,10 +659,15 @@ theorem spec_mapped_delivery_wire {V : Type} (p : Params) (assigned : Slot → F
     (Run.fgsa p Run.unitCodec).wellFormed q = true := by
   obtain ⟨e, _, he⟩ := List.mem_filterMap.mp h
   cases e with
-  | tick u s => simp [specSimulationEvent] at he
-  | restart u s => simp [specSimulationEvent] at he
+  | tick u s =>
+      dsimp only [specSimulationEvent] at he
+      simp at he
+  | restart u s =>
+      dsimp only [specSimulationEvent] at he
+      simp at he
   | deliver u o s =>
-    simp only [specSimulationEvent, Option.map_eq_some_iff] at he
+    dsimp only [specSimulationEvent] at he
+    simp only [Option.map_eq_some_iff] at he
     obtain ⟨r, hr, hh⟩ := he
     cases hh
     exact spec_simulation_wire_valid p assigned o q hr
@@ -795,13 +831,16 @@ theorem spec_restart_schedule : V2.D.ScheduleWellFormed specRestartEnv specResta
   · decide
   · decide
   · intro e he
-    simp only [specRestartRun, List.mem_cons, List.not_mem_nil, or_false] at he
+    dsimp only [specRestartRun] at he
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at he
     rcases he with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide
   · intro e he
-    simp only [specRestartRun, List.mem_cons, List.not_mem_nil, or_false] at he
+    dsimp only [specRestartRun] at he
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at he
     rcases he with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide
   · intro v t ht
-    simp only [specRestartRun, List.mem_cons, List.not_mem_nil, or_false,
+    dsimp only [specRestartRun] at ht
+    simp only [List.mem_cons, List.not_mem_nil, or_false,
       V2.Event.tick.injEq, reduceCtorEq, or_false, false_or] at ht
     rcases ht with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
     · exact ⟨0, rfl⟩
@@ -827,7 +866,8 @@ theorem spec_restart_delivery_cases (i : Nat) (v : Fin 2) (o : Run.Obj specResta
   have hs : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 ∨ i = 4 ∨ i = 5 ∨ i = 6 ∨ i = 7 := by
     omega
   rcases hs with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
-  all_goals simp only [specRestartRun, List.getElem?_cons_zero, List.getElem?_cons_succ,
+  all_goals dsimp only [specRestartRun] at h
+  all_goals simp only [List.getElem?_cons_zero, List.getElem?_cons_succ,
     Option.some.injEq, reduceCtorEq] at h
   all_goals obtain ⟨rfl, rfl, rfl⟩ := h
   · exact Or.inl ⟨rfl, rfl, rfl, rfl⟩
@@ -885,7 +925,8 @@ theorem spec_restart_self_delivery : V2.D.SelfDelivery specRestartEnv specRestar
   have hs : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 ∨ i = 4 ∨ i = 5 ∨ i = 6 ∨ i = 7 := by
     omega
   rcases hs with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
-  all_goals simp only [specRestartRun, List.getElem?_cons_zero, List.getElem?_cons_succ,
+  all_goals dsimp only [specRestartRun] at h
+  all_goals simp only [List.getElem?_cons_zero, List.getElem?_cons_succ,
     Option.some.injEq, V2.Event.tick.injEq, reduceCtorEq] at h
   all_goals obtain ⟨rfl, rfl⟩ := h
   · change o ∈ [] at ho

@@ -126,8 +126,8 @@ theorem getConfirmation_walk_embedding (p : Params) (st : GridCO.State p.n .root
         (GridCO.cleanSupport p.toParams.engine st s)
         (GridCO.cleanSupport p.toParams.engine st s)) =
       SA.Root.confirmationFrom p.toParams F st s := by
-  simp only [getConfirmation, SA.Root.confirmationFrom, GridCO.confirmationFrom,
-    decide_eq_true_eq]
+  dsimp only [getConfirmation, SA.Root.confirmationFrom, GridCO.confirmationFrom]
+  simp only [decide_eq_true_eq]
 
 /-- Saving precedes both the empty-result return and the live-lock veto. -/
 theorem updateConfirmation_saved (tree : List AvailableChain.Block) (F : AvailableChain.Block)
@@ -135,10 +135,12 @@ theorem updateConfirmation_saved (tree : List AvailableChain.Block) (F : Availab
     (score : AvailableChain.Block → Nat) (A : ACState n) :
     (updateConfirmation tree F Δ k committeeSize s t score A).saved s =
       getConfirmation tree F (confirmationVoters (A.pool s)).length score := by
-  dsimp only [updateConfirmation]
-  split
-  · simp
-  · split <;> simp
+  delta updateConfirmation
+  cases hr : getConfirmation tree F (confirmationVoters (A.pool s)).length score with
+  | none => exact ite_eq_left rfl
+  | some C =>
+      dsimp only
+      split <;> exact ite_eq_left rfl
 
 end AvailableChain.FGSA.Spec
 end
