@@ -92,11 +92,11 @@ The Arming HEAD path retains each vertex above destination F and uses the
 canonical voter filter directly. It needs no universal top-retention premise.
 Clock congruence uses `treeStoreControlsView`.
 
-The replacement helper passes `LEAN_SLOTS=2 lake build --wfail`
-(exit 0, 3325 jobs). The caller batch is blocked by WP03c
-`Shared/Regimes.lean:368`: its score call lacks destination proposal retention
-(exit 1, 3355 jobs). Caller bodies still need a build after that repair.
-These are red-window TARGET results, not a FULL or MERGE pass.
+The replacement helper passed `LEAN_SLOTS=2 lake build --wfail`
+(exit 0, 3325 jobs). The earlier WP03c `Shared/Regimes` blocker is repaired
+on integration base 300d4747. `ExactProposalRetained` now compiles with its
+existing retention facts. These are red-window TARGET results, not a FULL
+or MERGE pass.
 
 WP13v must replace the old helper reference in `Tests/Axioms.lean:1222`.
 WP16 must update `scripts/proof-audit-coverage.txt` and attribute the helper
@@ -124,9 +124,35 @@ No claim premise, slashing premise, bound, or read scope changes.
 
 `ContinuationReceipt` passes `LEAN_SLOTS=2 lake build --wfail`
 (exit 0, 3335 jobs). The former receipt-contract STOP is closed.
-The remaining WP08 modules and direct importers still need validation at this base.
+All 36 WP08 modules outside the WP15 dependency now pass (exit 0, 3396 jobs).
+The Arming HEAD proof uses an explicit successor nonzero proof. Its statement
+is unchanged. No owned proof body remains stopped.
 This is red-window TARGET evidence, not a FULL or MERGE pass.
 
 WP13v must rename the receipt audit in `Tests/OutageContinuationAxioms.lean`.
 WP16 must attribute the renamed helper and both retained-path contracts in
 coverage, inventory, and shallow/deep fingerprints. No audit data is edited here.
+
+The two remaining targets, `Outage/Export` and `OutageContinuation/Export`,
+are blocked by WP15 `Shared/Claims.lean:349:34`. Its claim-to-body bridge passes
+`RFrameExactNext` from the active `FrameClaim` where hbody requires legacy
+`RFrameExact`. Ruling A preserves the legacy declarations and makes Next the
+active surface. This is an external obligation; no WP15 file is edited here.
+The WP08 body headers remain unchanged under this job's statement rule.
+
+Final validation on the port-w08c source:
+
+- All 38 owned targets requested: exit 1, 3419 jobs. The only failing module
+  is WP15 `Shared/Claims`; both WP08 exports remain blocked.
+- All 36 independent WP08 targets: exit 0, 3396 jobs.
+- All 13 direct external importers requested: exit 1, 3846 jobs. Six pass;
+  seven are blocked. Eight failing modules are outside WP08: WP09b FramePaths,
+  WP07 Clean/Export, WP15 Foundations/Export and Shared/Claims, WP10 Proposal,
+  and WP13v RetainedEndpoint, RetainedPersist, and HealingPhase tests.
+- The 17-declaration receipt/Arming axiom audit passes with only propext,
+  Classical.choice, and Quot.sound. F-3, F-13, ownership, exact ruling S header
+  changes, unchanged other headers/imports, line lengths, and source checks pass.
+
+Commands use `LEAN_SLOTS=2 lake build --wfail` with the shared slot wrapper.
+No FULL/MERGE or final manifest gate is claimed. The exact target lists, logs,
+and first-error records are local under `.lake/port-w08c/`.
