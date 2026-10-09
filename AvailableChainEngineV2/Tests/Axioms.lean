@@ -13,6 +13,8 @@ public import AvailableChainEngineV2.Laws.Duty.Isolation
 public import AvailableChainEngineV2.Laws.Duty.Outputs
 public import AvailableChainEngineV2.Laws.Duty.SelfDelivery
 
+public import AvailableChainEngineV2.Tests.Laws
+
 -- Duty engine: every new production theorem.
 #print axioms AvailableChain.V2.D.Linked.toCStar
 #print axioms AvailableChain.V2.D.CStar.seats_eq
@@ -115,3 +117,5 @@ public import AvailableChainEngineV2.Laws.Duty.SelfDelivery
 #print axioms AvailableChain.V2.D.deliveryDemand_toD_iff
 
 #print axioms AvailableChain.V2.ExecutionValid.snoc_selfDelivery
+
+#print axioms AvailableChain.V2.Tests.rhoV_valid

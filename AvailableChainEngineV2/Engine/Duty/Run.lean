@@ -44,7 +44,7 @@ namespace World
 
 def step (E : Generic.Env V) (rho : Run V P) (w : World V P) :
     Event V P.Object → World V P
-  | .restart v _ => Function.update w v (P.restore (P.durable (w v)))
+  | .restart v t => Function.update w v (P.restore (P.durable (w v)) t)
   | .tick v t => Function.update w v (tick E rho (w v) v t).1
   | .deliver v o _ => Function.update w v (P.process (w v) o)
 end World

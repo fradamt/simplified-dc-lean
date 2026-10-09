@@ -168,7 +168,6 @@ omit [DecidableEq V] in
       V2.DeliveryDemand E rho src dst o send dl cut := by
   unfold DeliveryDemand V2.DeliveryDemand
   simp only [linkReadyOn_toD_iff, stateBeforeTime_toD, deliveryService_toD_iff]
-  rfl
 
 omit [DecidableEq V] in
 @[simp] theorem scheduleWellFormed_toD_iff :

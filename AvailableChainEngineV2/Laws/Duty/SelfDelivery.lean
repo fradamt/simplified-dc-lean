@@ -212,7 +212,6 @@ theorem ExecutionValid.snoc_selfDelivery {E : Generic.Env V} {rho : Run V P}
       · obtain ⟨t', ht', he⟩ := hvalid.carried u p s ⟨k, hk'⟩ p' hc w hw hhold
         exact ⟨t', ht', Run.emits_snoc he⟩
       · obtain ⟨-, rfl, rfl⟩ := Event.deliver.inj hk'; exact hcarr p' hc w hw hhold
-
   · refine ⟨?_, ?_, ?_, ?_⟩
     · intro u s hf
       rcases List.mem_append.mp hf with hf | hf
@@ -222,7 +221,7 @@ theorem ExecutionValid.snoc_selfDelivery {E : Generic.Env V} {rho : Run V P}
       rcases List.mem_append.mp hf with hf | hf
       · exact hvalid.deliver_awake u p s hf
       · obtain ⟨rfl, rfl, rfl⟩ := Event.deliver.inj (List.mem_singleton.mp hf)
-        exact hvalid.tick_awake v t hmem
+        exact hvalid.tick_awake _ _ hmem
     · intro u s hf
       rcases List.mem_append.mp hf with hf | hf
       · exact hvalid.restart_awake u s hf

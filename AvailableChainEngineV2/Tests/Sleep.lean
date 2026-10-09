@@ -1,4 +1,6 @@
 module
+public import Mathlib.Tactic.FinCases
+public import Mathlib.Tactic.IntervalCases
 public import AvailableChainEngineV2.Tests.Engine
 public import AvailableChainEngineV2.Tests.Duties
 public import AvailableChainEngineV2.Conditions.Duty.Lift
@@ -23,7 +25,10 @@ abbrev toy : ProtocolSpec Unit :=
     recordOwn := fun st _ => st
     durable := fun _ => ()
     restore := fun _ t => (t, [])
-    processed := fun st o => decide (o.payload ∈ st.2) }
+    processed := fun st o => decide (o.payload ∈ st.2)
+    depsPresent := fun _ _ => true
+    excludes := fun _ _ => false
+    handles := fun _ o o' => o = o' }
 
 def first : toy.Object := ⟨.none, 1⟩
 def second : toy.Object := ⟨.none, 2⟩
@@ -89,12 +94,12 @@ private theorem sleep_valid : SleepWellFormed env run := by
     rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;> decide
   · intro v _ t h0 hh hw
     fin_cases v <;> simp [Wakes, env] at hw
-    have ht : t = 5 ∨ t = 10 := by omega
+    have ht : t = 5 ∨ t = 10 := by dsimp [Time] at *; omega
     rcases ht with rfl | rfl <;> simp [run]
 
 private theorem valid : ExecutionValid env run := by
   refine { toSleepWellFormed := sleep_valid, toScheduleWellFormed := ?_,
-    toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
+           toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
   · refine ⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩
     · intro e he
       simp only [run, List.mem_cons, List.not_mem_nil, or_false] at he
@@ -109,8 +114,13 @@ private theorem valid : ExecutionValid env run := by
       · exact ⟨1, rfl⟩
       · exact ⟨2, rfl⟩
     · intro v _ t ⟨k, hk⟩ h0 hh ha
-      have ht : t = 0 ∨ t = 4 ∨ t = 8 := by simp [env] at hk; simp [run] at hh; omega
-      fin_cases v <;> rcases ht with rfl | rfl | rfl <;> simp_all [env, run]
+      have ht : t = 0 ∨ t = 4 ∨ t = 8 := by
+        simp [env] at hk
+        simp [run] at hh
+        dsimp [Time] at *
+        omega
+      fin_cases v <;> rcases ht with rfl | rfl | rfl <;>
+        first | contradiction | decide
   · refine ⟨by intros; rfl, by intros; rfl, ?_⟩
     intro i v o t hi
     have he := List.mem_of_getElem? hi
@@ -151,23 +161,23 @@ example : D.ExecutionValid env run.toD ↔ ExecutionValid env run :=
 example : ¬ SleepWellFormed env { run with events := [] } := by
   intro h
   exact (by simp : Event.restart 0 5 ∉ ([] : List (Event (Fin 2) toy.Object)))
-    (h.wake_restart 0 (by simp [run]) 5 (by decide) (by decide) (by decide))
+    (h.wake_restart 0 (by simp [run]) 5 (by decide) (by decide) (by unfold Wakes; decide))
 
 example : ¬ SleepWellFormed env { run with events := [.restart 0 5] } := by
   intro h
-  have := h.wake_restart 0 (by simp [run]) 10 (by decide) (by decide) (by decide)
+  have := h.wake_restart 0 (by simp [run]) 10 (by decide) (by decide) (by unfold Wakes; decide)
   simp at this
 
 example : ¬ D.SleepWellFormed env { run.toD with events := [] } := by
   intro h
-  have := h.wake_restart 0 (by simp [Run.toD, run]) 5
-    (by decide) (by decide) (by decide)
+  have := h.wake_restart 0 (by simp [run]) 5
+    (by decide) (by decide) (by unfold D.Wakes; decide)
   simp at this
 
 example : ¬ D.SleepWellFormed env { run.toD with events := [.restart 0 5] } := by
   intro h
-  have := h.wake_restart 0 (by simp [Run.toD, run]) 10
-    (by decide) (by decide) (by decide)
+  have := h.wake_restart 0 (by simp [run]) 10
+    (by decide) (by decide) (by unfold D.Wakes; decide)
   simp at this
 
 -- Test 4: node 0 is awake at zero, has no restart at zero, and the run is valid.
@@ -186,7 +196,7 @@ example : sameTime.events.Pairwise (fun e f => e.key ≤ f.key) ∧
     Run.actionCut sameTime 5 = 1 ∧ D.Run.actionCut sameTime.toD 5 = 1 := by decide
 
 -- Test 6: 5 is not a public tick time; both restore clocks still read exactly 5.
-example : ¬ PublicTime env 5 := by rintro ⟨k, hk⟩; simp [env] at hk; omega
+example : ¬ PublicTime env 5 := by rintro ⟨k, hk⟩; simp [env] at hk; dsimp [Time] at *; omega
 
 example : (Run.stateAfterRestartsAt env run 5 0).1 = 5 ∧
     (D.Run.stateAfterRestartsAt env run.toD 5 0).1 = 5 := by decide
@@ -205,6 +215,7 @@ private theorem demand (o : toy.Object) (ho : o = first ∨ o = second) (send : 
     simp only [LinkReadyOn, AwakeOn] at hr
     simp [env] at hs h2 h7
     simp only [run] at hh
+    dsimp [Time] at *
     omega
   subst a
   apply Or.inr

@@ -29,10 +29,10 @@ def RestartsAtWakes (E : Generic.Env V) (rho : Run V P) : Prop :=
   ∀ v t, Event.restart v t ∈ rho.events → 0 < t ∧ Wakes E v t
 
 def NoRestartOn (rho : Run V P) (v : V) (a b : Time) : Prop :=
-  ∀ i t, rho.events[i]? = some (.restart v t) → a < t → t < b → False
+  ∀ (i : Nat) t, rho.events[i]? = some (.restart v t) → a < t → t < b → False
 
 def NoRestartAfter (rho : Run V P) (v : V) (a : Time) : Prop :=
-  ∀ i t, rho.events[i]? = some (.restart v t) → t ≤ a
+  ∀ (i : Nat) t, rho.events[i]? = some (.restart v t) → t ≤ a
 
 set_option linter.unusedVariables false in
 def LinkReadyOn (E : Generic.Env V) (rho : Run V P)
