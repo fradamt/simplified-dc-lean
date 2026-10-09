@@ -136,8 +136,8 @@ theorem postReset_liveLease_heads_at_cut (i : Nat)
       exact decide_eq_true (htime.trans_lt hqt)
     exact hpre.trans (healing_support_idxBefore_le p c E rho hS ht le_rfl)
   have hnow : (storeAt p c E rho j z).base.now ≤ t := by
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-      (fgsa_hrestore_now p c) E rho hS ht z
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c) E rho hS ht z
     rw [fgsa_clock_now p c (rho.stateBefore E j z)] at hn
     exact hn
   have hcompat := hrl j hji z hz hrelease row hrow (hnow.trans_lt hlive)

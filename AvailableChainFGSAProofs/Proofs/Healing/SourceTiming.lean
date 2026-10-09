@@ -222,8 +222,8 @@ private theorem source_stamp_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     · rw [hg.2]; exact hD
     · obtain ⟨parent, hd, _⟩ := ha.1
       have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hs hd D).mp hj
-      have hc := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-        (fgsa_hrestore_now p c) E rho hs hd x
+      have hc := stateBefore_now_le_event_retained (fgsaClock p c)
+        (fgsa_hrestore_now_retained p c) E rho hs hd x
       rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hc
       rw [hstamp]
       exact hc.trans_lt ht

@@ -194,6 +194,7 @@ theorem base_headDomain_none (p : Params) {st : State p.n} (h : Reachable p st) 
     st.base.headDomain = none := by
   induction h with
   | init => rfl
+  | reset t => rfl
   | tick t _ ih => rw [clock_headDomain, ih]
   | deliver o _ ih => rw [process_headDomain, ih]
 

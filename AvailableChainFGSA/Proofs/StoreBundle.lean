@@ -19,6 +19,10 @@ theorem storeBundleInvariant (p : Params) : StoreBundleInvariant p := by
       have hL := storedTargetsBelowOutput_init p
       exact ⟨⟨cstoreInv_init p, metaInv_init p, block_preceq_refl _,
         leaseBelowOutputStore_of_storedTargetsBelowOutput p _ hL⟩, hL⟩
+    | reset t =>
+      have hL := storedTargetsBelowOutput_initialAt p t
+      exact ⟨⟨cstoreInv_initialAt p t, metaInv_initialAt p t, block_preceq_refl _,
+        leaseBelowOutputStore_of_storedTargetsBelowOutput p _ hL⟩, hL⟩
     | @tick st t _ ih =>
       rcases ih with ⟨hB, hL⟩
       have hL' := storedTargetsBelowOutput_clock p st t hB.cstore hB.nest hL

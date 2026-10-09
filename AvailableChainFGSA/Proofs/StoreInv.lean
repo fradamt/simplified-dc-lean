@@ -181,6 +181,12 @@ theorem cstoreInv_init (p : Params) : CStoreInv p (initial p.n) := by
   · simp [initial, GridCO.initial]
   · simp [initial, GridCO.initial]
 
+/-- Ruling Y: the store invariant does not read the reset clock. -/
+theorem cstoreInv_initialAt (p : Params) (t : Time) : CStoreInv p (initialAt p.n t) := by
+  have h := cstoreInv_init p
+  exact ⟨h.fg, h.rootInj, h.baseTree, h.saCompat, h.Smem, h.fastOrigin,
+    h.fastDom, h.genuineKeys, h.leaseKeys⟩
+
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [ROOT-DIGEST W1; DC RootInjectiveOnAncestors] Admission proves
 inserted-tree roots locally. -/
 theorem storeStepRoots_of_blockAccepted (p : Params) (st : State p.n) (h : CStoreInv p st)
@@ -622,6 +628,7 @@ theorem storeInvariant (p : Params) : StoreInvariant p := by
   intro st hst
   induction hst with
   | init => exact cstoreInv_init p
+  | reset t => exact cstoreInv_initialAt p t
   | tick t _ ih => exact cstoreInv_clock p _ ih t
   | deliver o _ ih => exact cstoreInv_process p _ ih o
 

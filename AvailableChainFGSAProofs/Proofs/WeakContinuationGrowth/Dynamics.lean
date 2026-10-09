@@ -375,7 +375,8 @@ private theorem growthStepFacts_step_savedOrigin (hs : V2.D.ScheduleWellFormed E
     V2.D.Engine.clock_field_origin_of_subset (P := fgsa p c)
       (fun nd => growthStepFacts_step_savedPairs nd.st) rfl
       (fun nd o pair h => growthStepFacts_step_savedPairs_process nd.st (toWire p o) h)
-      (fun _ _ _ h => h) (fgsa_hrestore_field p c growthStepFacts_step_savedPairs rfl)
+      (fun _ _ _ h => h)
+        (fgsa_hrestore_field_retained p c growthStepFacts_step_savedPairs (fun _ => rfl))
       (fun nd t pair => t = SA.gateTime p.toParams pair.1 ∧
         SA.Root.confirmationFrom p.toParams (eraseFG (clockPre p nd.st t).fg.F)
           (actView (clockPre p nd.st t)) pair.1 = some pair.2)
@@ -1534,7 +1535,8 @@ private theorem growthStepGateBatch_gate_active_heads
   have hwindow : (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x).st.slot p ≤
       s + 1 := by
     rw [← hjread]
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hj x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hn
     have he := slotOf_offset p s (2 * p.Δ) (by omega) (by omega)
@@ -1560,7 +1562,8 @@ private theorem growthStepGateBatch_gate_active_heads
       block_compatible_of_common (block_preceq_refl K) (hprefix i le_rfl)⟩
   have hslot : K.slot ≤ s := by
     have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c)
       E rho hsch hk y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq
@@ -2742,8 +2745,8 @@ private theorem growthStepTransferReceipts_transfer_read_stamp (hsch : V2.D.Sche
     · rw [hg.2]; exact hD
     · obtain ⟨parent, hd, _⟩ := ha.1
       have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hd D).mp hl
-      have hc := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-        (fgsa_hrestore_now p c) E rho hsch hd y
+      have hc := stateBefore_now_le_event_retained (fgsaClock p c)
+        (fgsa_hrestore_now_retained p c) E rho hsch hd y
       rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hc
       rw [hs]
       exact hc.trans_lt ht

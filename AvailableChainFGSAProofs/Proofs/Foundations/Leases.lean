@@ -53,7 +53,8 @@ theorem fgsa_storedTargetsBelowOutput (i : Nat) (x : V) :
       storedTargetsBelowOutput_process p nd.st (toWire p o)
         (storeBundle_of_reachable p nd.st h.1).cstore h.2⟩)
     (fun _ _ h => h)
-    (fun _ _ => ⟨Reachable.init, storedTargetsBelowOutput_init p⟩)
+    (fun nd _ => ⟨Reachable.reset nd.st.base.now,
+      storedTargetsBelowOutput_initialAt p nd.st.base.now⟩)
     E rho i x
   exact h.2
 
@@ -318,7 +319,8 @@ theorem fgsa_leaseOrigins_writeLabel
     V2.D.Engine.clock_field_origin_of_subset (P := fgsa p c)
       (fun nd => nd.st.base.obligations) rfl
       (fun nd o a ha => leaseRows_process p nd.st (toWire p o) ha)
-      (fun _ _ _ h => h) (fgsa_hrestore_field p c (fun st => st.base.obligations) rfl)
+      (fun _ _ _ h => h)
+        (fgsa_hrestore_field_retained p c (fun st => st.base.obligations) (fun _ => rfl))
       (fun nd t row => leaseSource p nd.st t row)
       (fun nd t row hm => leaseRows_clock p nd.st t row hm) E rho i x row hr
   subst t
@@ -489,7 +491,7 @@ theorem fgsa_leaseOrigins_fastWrites (hs : V2.D.ScheduleWellFormed E rho) (i : N
     V2.D.Engine.clock_field_origin_of_subset (P := fgsa p c)
       (fun nd => fastPairs p nd.st) rfl
       (fun nd o pair h => fastPairs_process p nd.st (toWire p o) h)
-      (fun _ _ _ h => h) (fgsa_hrestore_field p c (fastPairs p) rfl)
+      (fun _ _ _ h => h) (fgsa_hrestore_field_retained p c (fastPairs p) (fun _ => rfl))
       (fun nd t pair => fastSource p nd.st t pair)
       (fun nd t pair h => fastPairs_clock p nd.st t pair h) E rho i x (s, X) hm
   change t = SA.gateTime p.toParams s at htime

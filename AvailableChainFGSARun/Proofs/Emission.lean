@@ -16,7 +16,7 @@ theorem ownRecord_fold_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       (ownReleased E rho v 0 i).foldl (recordRow? p) RecordOnce.initial := by
   have h := Gen.V2.Duty.ownRecord_fold_restart (P := fgsa p c) Node.record (recordRow? p)
     clock_rec process_rec recordOwn_rec E rho (Nat.zero_le i) v
-    (fun k _ _ _ _ => restore_rec (V2.D.Run.stateBefore E rho k v).record)
+    (fun k _ _ _ _ => restore_rec ((fgsa p c).durable (V2.D.Run.stateBefore E rho k v)))
   exact h
 
 /-- [ROOT-DIGEST-2 W2; DC HEAD] Exact identifier emission at a tick. -/

@@ -455,7 +455,7 @@ theorem prefix_mono {n m : Nat} (h : n ≤ m) :
 theorem step_constant (nd : FixtureNode) (e : Event) :
     V2.D.World.step env (mkRun []) (fun _ => nd) e =
       fun _ => match e with
-      | .restart _ _ => (fgsa params unitCodec).restore nd.record
+      | .restart _ _ => (fgsa params unitCodec).restore ((fgsa params unitCodec).durable nd)
       | .tick _ t => (V2.D.tick env (mkRun []) nd 0 t).1
       | .deliver _ o _ => (fgsa params unitCodec).process nd o := by
   funext v

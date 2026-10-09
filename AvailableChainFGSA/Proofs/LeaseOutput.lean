@@ -21,6 +21,12 @@ theorem storedTargetsBelowOutput_init (p : Params) :
   intro ℓ hℓ
   exact False.elim (List.not_mem_nil hℓ)
 
+/-- Ruling Y: reset stores have no obligations at any retained clock. -/
+theorem storedTargetsBelowOutput_initialAt (p : Params) (t : Time) :
+    StoredTargetsBelowOutput p (initialAt p.n t) := by
+  intro ℓ hℓ
+  exact False.elim (List.not_mem_nil hℓ)
+
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] Each stored target is below the output. -/
 theorem storedTargetsBelowOutput_target (p : Params) (st : State p.n)
     (h : StoredTargetsBelowOutput p st) (row : Block × Nat × Time)
