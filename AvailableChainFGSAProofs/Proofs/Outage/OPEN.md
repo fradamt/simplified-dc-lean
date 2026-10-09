@@ -92,11 +92,11 @@ The Arming HEAD path retains each vertex above destination F and uses the
 canonical voter filter directly. It needs no universal top-retention premise.
 Clock congruence uses `treeStoreControlsView`.
 
-The replacement helper passes `LEAN_SLOTS=2 lake build --wfail`
-(exit 0, 3325 jobs). The caller batch is blocked by WP03c
-`Shared/Regimes.lean:368`: its score call lacks destination proposal retention
-(exit 1, 3355 jobs). Caller bodies still need a build after that repair.
-These are red-window TARGET results, not a FULL or MERGE pass.
+The replacement helper passed `LEAN_SLOTS=2 lake build --wfail`
+(exit 0, 3325 jobs). The earlier WP03c `Shared/Regimes` blocker is repaired
+on integration base 300d4747. `ExactProposalRetained` now compiles with its
+existing retention facts. These are red-window TARGET results, not a FULL
+or MERGE pass.
 
 WP13v must replace the old helper reference in `Tests/Axioms.lean:1222`.
 WP16 must update `scripts/proof-audit-coverage.txt` and attribute the helper
@@ -106,46 +106,53 @@ The earlier local kernel counterexample shows a resolved vote below F that
 fails canonical proposer support. It is local-state evidence, not a complete
 run counterexample. Ruling Q resolves that support obligation.
 
-## FG-SA port WP08 continuation STOP (2026-10-09)
+## FG-SA port WP08 ruling S resolution (2026-10-09)
 
-At `46a3e612`, `ContinuationFrame` passes with warnings fatal (exit 0,
-3327 jobs). Its contest proof preserves the F-prefix guard, and its voter
-membership proofs account for the retained-tree filter. Clock congruence in
-`ContinuationInduction` and `ContinuationJoint` uses the canonical tree frame.
-Those downstream module bodies remain blocked by failed imports.
+Ruling S replaces `outageV_frozen_of_receipt` with
+`outageV_frozen_of_receipt_of_F_prefix`. All old parameters and the conclusion
+stay unchanged. The new premise after hP is
+`FGBlock.Preceq (storeAt p c E rho i x).fg.F P`.
 
-`ContinuationReceipt.lean:318`, in `outageV_frozen_of_receipt`, still fails.
-The old premises supply schedule validity, no restart, cumulative storage,
-honesty, a positive tick before freeze, ordered read indices, and P held at
-the earlier read. They do not supply destination `F ⪯ P`. The conclusion
-requires P in the canonical voter set, which now contains only blocks above F.
-The proof has `P ∈ dst.fg.TF`; it needs `P ∈ Next.tree p dst`.
-This item is stopped. Its old statement and conclusion remain unchanged.
+Only the ancestor-membership conclusions of `outageV_covering_head_receipts`
+and `outageV_frozen_path_receipt` change: each requested ancestor X must extend
+the destination F. All other premises and conjuncts stay unchanged.
 
-Two consumers also need a contract ruling:
+`outageV_uncontested_head` keeps its statement. It supplies retention for B
+from hF, for U from hF and hBU, and for each strict path vertex from
+`F_preceq_liveRoot` and the strict path prefix. No vertex below F is required.
+No claim premise, slashing premise, bound, or read scope changes.
 
-- `outageV_covering_head_receipts` promises voter membership for every ancestor
-  of each received K. Its F-prefix premise retains B and K, not all ancestors.
-- `outageV_frozen_path_receipt` promises voter membership for every ancestor of U.
-  Its F-prefix premise retains U, not all ancestors.
+`ContinuationReceipt` passes `LEAN_SLOTS=2 lake build --wfail`
+(exit 0, 3335 jobs). The former receipt-contract STOP is closed.
+All 36 WP08 modules outside the WP15 dependency now pass (exit 0, 3396 jobs).
+The Arming HEAD proof uses an explicit successor nonzero proof. Its statement
+is unchanged. No owned proof body remains stopped.
+This is red-window TARGET evidence, not a FULL or MERGE pass.
 
-Taking the requested ancestor as genesis makes either path conclusion require
-F = genesis. A local kernel proof checks this necessary condition. A separate
-local kernel check has a held genesis with a stamp before freeze and a retained
-non-genesis F: F is a voter block, genesis is not. This is local-state evidence,
-not a complete counterexample to the run premises. RXing cannot retain a vertex
-strictly below F. No new claim premise, conclusion change, or bound change was made.
+WP13v must rename the receipt audit in `Tests/OutageContinuationAxioms.lean`.
+WP16 must attribute the renamed helper and both retained-path contracts in
+coverage, inventory, and shallow/deep fingerprints. No audit data is edited here.
 
-A possible new frozen-receipt helper would require destination `F ⪯ P` and keep
-its conclusion. The two path helpers need a separate retained-path contract that
-requires `F ⪯ X` for each requested vertex X. That narrows an ancillary conclusion
-and needs a new ruling; Q does not authorize it. The caller `outageV_uncontested_head`
-has the needed F-prefix facts for B, U, and each strict vertex above liveRoot.
-Its claim statement need not change. This is a proposed route, not a checked repair.
-WP13v owns the three audits in `Tests/OutageContinuationAxioms.lean`;
-WP16 owns any resulting coverage and fingerprint changes.
+The two remaining targets, `Outage/Export` and `OutageContinuation/Export`,
+are blocked by WP15 `Shared/Claims.lean:349:34`. Its claim-to-body bridge passes
+`RFrameExactNext` from the active `FrameClaim` where hbody requires legacy
+`RFrameExact`. Ruling A preserves the legacy declarations and makes Next the
+active surface. This is an external obligation; no WP15 file is edited here.
+The WP08 body headers remain unchanged under this job's statement rule.
 
-Final owned validation requests all 38 modules with `LEAN_SLOTS=2 lake build --wfail`:
-exit 1, 3419 jobs. The only failing modules are WP03c `Shared/Regimes` and
-WP08 `ContinuationReceipt`. Twelve independent modules pass (exit 0, 3341 jobs).
-The other 25 module bodies remain blocked. No FULL or MERGE pass is claimed.
+Final validation on the port-w08c source:
+
+- All 38 owned targets requested: exit 1, 3419 jobs. The only failing module
+  is WP15 `Shared/Claims`; both WP08 exports remain blocked.
+- All 36 independent WP08 targets: exit 0, 3396 jobs.
+- All 13 direct external importers requested: exit 1, 3846 jobs. Six pass;
+  seven are blocked. Eight failing modules are outside WP08: WP09b FramePaths,
+  WP07 Clean/Export, WP15 Foundations/Export and Shared/Claims, WP10 Proposal,
+  and WP13v RetainedEndpoint, RetainedPersist, and HealingPhase tests.
+- The 17-declaration receipt/Arming axiom audit passes with only propext,
+  Classical.choice, and Quot.sound. F-3, F-13, ownership, exact ruling S header
+  changes, unchanged other headers/imports, line lengths, and source checks pass.
+
+Commands use `LEAN_SLOTS=2 lake build --wfail` with the shared slot wrapper.
+No FULL/MERGE or final manifest gate is claimed. The exact target lists, logs,
+and first-error records are local under `.lake/port-w08c/`.
