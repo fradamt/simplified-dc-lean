@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Proofs.Port.Tree
+public import AvailableChainFGSA.Proofs.Port.Resolution
 public import AvailableChainFGSA.Proofs.NamedReachable
 public import AvailableChainFGSA.Proofs.HeadResolution
 public import AvailableChainFGSA.Proofs.WindowOccurrences
@@ -41,6 +42,21 @@ public import AvailableChainFGSA.Proofs.WindowValidity
 /-! Kernel dependency audit (Task 13 Step 1): one line for each public theorem of
 Tasks 2 and 7–12. Each prints only `propext`, `Classical.choice`, `Quot.sound`, or
 no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically. -/
+
+-- Proofs/Port/Resolution.lean
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_eq_filter
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_sublist
+#print axioms AvailableChain.FGSA.Next.mem_proposerSupportNext_iff
+#print axioms AvailableChain.FGSA.Next.mem_proposerSupportNext_iff_base
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_unresolved
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_drop
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_keep
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_eq_of_extends
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_incidence
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_supporters
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_seat_support
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_scoreOn
+#print axioms AvailableChain.FGSA.Next.proposerSupportNext_score
 
 -- Proofs/Port/Tree.lean
 #print axioms AvailableChain.FGSA.Next.mem_tree

@@ -165,6 +165,20 @@ echo "== axioms, build coverage, import closure"
 TEST_ROOTS=()
 for m in $(test_modules .); do TEST_ROOTS+=(--root "$m"); done
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]}" --expect \
+  AvailableChain.FGSA.Next.proposerSupportNext \
+  AvailableChain.FGSA.Next.proposerSupportNext_eq_filter \
+  AvailableChain.FGSA.Next.proposerSupportNext_sublist \
+  AvailableChain.FGSA.Next.mem_proposerSupportNext_iff \
+  AvailableChain.FGSA.Next.mem_proposerSupportNext_iff_base \
+  AvailableChain.FGSA.Next.proposerSupportNext_unresolved \
+  AvailableChain.FGSA.Next.proposerSupportNext_drop \
+  AvailableChain.FGSA.Next.proposerSupportNext_keep \
+  AvailableChain.FGSA.Next.proposerSupportNext_eq_of_extends \
+  AvailableChain.FGSA.Next.proposerSupportNext_incidence \
+  AvailableChain.FGSA.Next.proposerSupportNext_supporters \
+  AvailableChain.FGSA.Next.proposerSupportNext_seat_support \
+  AvailableChain.FGSA.Next.proposerSupportNext_scoreOn \
+  AvailableChain.FGSA.Next.proposerSupportNext_score \
   AvailableChain.FGSA.Next.tree \
   AvailableChain.FGSA.Next.erasedList \
   AvailableChain.FGSA.Next.mem_tree \
