@@ -7,7 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "5995104ab41ecaa982063bd578a8c04fa3a3e8a6",
+  "main_revision": "7acdc143d87eb6f5b259ed253aa63c496e8c7581",
+  "main_revision_note": "Advanced from 5995104a to 7acdc143 for the P13 main merge; edc925ff changed one more S0 path on main.",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -217,6 +218,22 @@
           "before_sha256": "c69ef942bf46151b21277b77efd5bfa5bd2f2b99978bbe9ca2f883897398d93a",
           "after_sha256": "7454021d8895ae6de008a29b45bfa90a894c2e711972efff352b31aed7224ef2",
           "reason": "ShortBreakPrem requires a positive anchor slot (anchorPos : 0 < cA); slot 0 goes to LongBreakRecoveredClaim.",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "AvailableChainPCSAClaims/Statements/Premises.lean",
+      "s0_sha256": "ac7303d7b14216553d357ddc9c787c6ae33e7148ad3ebc001d1ef2111b1b205f",
+      "comparison_sha256": "ac7303d7b14216553d357ddc9c787c6ae33e7148ad3ebc001d1ef2111b1b205f",
+      "main_sha256": "8784f1c7fcfc493ddb544e5cdc1121a67f1d2c6223a44c61ff8e4a1f0a9562b5",
+      "changes": [
+        {
+          "commit": "edc925ffe5969b035ba5c6b396b2196787e13391",
+          "parent": "2d60817531d5456be72bb2f70708dfdf6bd153e9",
+          "before_sha256": "ac7303d7b14216553d357ddc9c787c6ae33e7148ad3ebc001d1ef2111b1b205f",
+          "after_sha256": "8784f1c7fcfc493ddb544e5cdc1121a67f1d2c6223a44c61ff8e4a1f0a9562b5",
+          "reason": "Add FormationRootReachable (F4 first clause) and its fields in FormationPrem and HealedSourcePrem (Formation lane, PC-SA).",
           "kind": "commit"
         }
       ]
