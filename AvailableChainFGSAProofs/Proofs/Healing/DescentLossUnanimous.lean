@@ -358,7 +358,8 @@ theorem healing_unanimous_next_transfer_kept [Fintype V] {G ΔF : Time}
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (v + 1))) (v + 1))
-    (hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X)
+    (hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq (storeAt p c E rho iy y).fg.F A →
+      FGBlock.Preceq A W → A ∈ X)
     (hkept : Kept p c E rho iy y X Qfg) :
     Block.Preceq Q (headAtIdx p c E rho iy (v + 1)) := by
   rw [← heQ]

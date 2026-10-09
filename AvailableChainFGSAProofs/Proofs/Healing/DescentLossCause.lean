@@ -22,6 +22,23 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
+/-- Filtering a view above the frame F preserves its canonical domain. -/
+theorem healing_domain_filter_F (st : State p.n) (X : Finset (FGBlock (Fin p.n))) :
+    domainR p st (X.filter (fun A => FGBlock.Preceq st.fg.F A)) = domainR p st X := by
+  ext B
+  constructor
+  · intro hB
+    obtain ⟨hB, hFB, hZB, W, hW, hBW, hlo⟩ :=
+      (KitFG.mem_filteredFromView _ _ _ _).mp hB
+    exact (KitFG.mem_filteredFromView _ _ _ _).mpr
+      ⟨(Finset.mem_filter.mp hB).1, hFB, hZB, W, (Finset.mem_filter.mp hW).1, hBW, hlo⟩
+  · intro hB
+    obtain ⟨hB, hFB, hZB, W, hW, hBW, hlo⟩ :=
+      (KitFG.mem_filteredFromView _ _ _ _).mp hB
+    exact (KitFG.mem_filteredFromView _ _ _ _).mpr
+      ⟨Finset.mem_filter.mpr ⟨hB, hFB⟩, hFB, hZB, W,
+        Finset.mem_filter.mpr ⟨hW, KitFG.preceq_trans hFB hBW⟩, hBW, hlo⟩
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B `cause` (finality coverage first); blueprint
 21:2689–2716. DC: SAME HEAD walk from the live root above Z. A block below the
@@ -45,10 +62,10 @@ theorem healing_head_covers_root {k : Nat} {x : V} {t : Time}
   rw [healing_headAtIdx_tick p c E rho hk]
   change Block.Preceq _ (FGSA.headVote p (FGSA.clock p (storeAt p c E rho k x) t) l)
   have hc : FGSA.controls p (FGSA.clock p (storeAt p c E rho k x) t) = R_at p c E rho k x := by
-    change KitFG.storeControlsView (heightView p) (FGSA.clock p (storeAt p c E rho k x) t).fg =
-      KitFG.storeControlsView (heightView p) (storeAt p c E rho k x).fg
+    change KitFG.treeStoreControlsView (heightView p) (FGSA.clock p (storeAt p c E rho k x) t).fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho k x).fg
     rw [clock_fg]
-  rw [headVote_eq, ite_eq_right hl]
+  rw [fgsa_headVote_eq_filtered, ite_eq_right hl]
   have hZ := fgsa_Z_preceq_liveRoot p (FGSA.clock p (storeAt p c E rho k x) t)
   rw [hc] at hZ
   exact Gen.Pure.block_preceq_trans (eraseFG_preceq hBZ)
@@ -406,7 +423,15 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
   have hN := hrec.base.noRestart
   have hd := p.deltaPos
   let D := SA.freezeTime p.toParams i
-  let X := (storeAt p c E rho (V2.D.Run.idxBefore rho D) x).fg.TF
+  classical
+  let X := (storeAt p c E rho (V2.D.Run.idxBefore rho D) x).fg.TF.filter
+    (fun A => FGBlock.Preceq (storeAt p c E rho k x).fg.F A)
+  have hDX : B ∈ D_at p c E rho k x X := by
+    obtain ⟨hBmem, hFB', hZB, W, hW, hBW, hlo⟩ :=
+      (KitFG.mem_filteredFromView _ _ _ _).mp hD
+    exact (KitFG.mem_filteredFromView _ _ _ _).mpr
+      ⟨Finset.mem_filter.mpr ⟨hBmem, hFB⟩, hFB', hZB, W,
+        Finset.mem_filter.mpr ⟨hW, KitFG.preceq_trans hFB hBW⟩, hBW, hlo⟩
   have hread : postClock E rho x (SA.voteTime p.toParams (i + 1)) =
       some ((fgsa p c).clock (V2.D.Run.stateBefore E rho k x)
         (SA.voteTime p.toParams (i + 1))) := by
@@ -422,16 +447,22 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
   have hdfreeze : D ≤ SA.freezeTime p.toParams (i + 1 - 1) := by
     rw [Nat.add_sub_cancel]
   have hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho k x)
-      (SA.voteTime p.toParams (i + 1))) (i + 1) := fun W hW =>
-    healing_frozen_path p c E rho hS hN hdpos hdvote hdfreeze hW hread W (KitFG.preceq_refl W)
-  have hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X := by
-    intro W hW A hAW
+      (SA.voteTime p.toParams (i + 1))) (i + 1) := by
+    intro W hW
+    obtain ⟨hW, hFW⟩ := Finset.mem_filter.mp hW
+    exact healing_frozen_path p c E rho hS hN hdpos hdvote hdfreeze hW hread W
+      (by change FGBlock.Preceq (FGSA.clock p _ _).fg.F W; rw [clock_fg]; exact hFW)
+      (KitFG.preceq_refl W)
+  have hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq (storeAt p c E rho k x).fg.F A →
+      FGBlock.Preceq A W → A ∈ X := by
+    intro W hW A hFA hAW
+    obtain ⟨hW, -⟩ := Finset.mem_filter.mp hW
     have hinv := (storeBundle_stateBefore E rho (V2.D.Run.idxBefore rho D) x).cstore
     obtain ⟨A', hA', he⟩ := eraseFG_ancestor_mem hinv.fg.closed hW (eraseFG_preceq hAW)
-    exact (eraseFG_injective he) ▸ hA'
+    exact Finset.mem_filter.mpr ⟨(eraseFG_injective he) ▸ hA', hFA⟩
   rcases Nat.eq_or_lt_of_le hl with rfl | hlt
   · exact healing_first_transfer_domain p c E rho hrec emittedNonempty emittedName hB hx hk
-      hXv hXc hD
+      hXv hXc hDX
   · have hB' := hB
     rw [HighSrcN_def] at hB'
     have hgst := healing_high_source_sync p c E rho emittedNonempty emittedName
@@ -448,7 +479,7 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
     have hlease := healing_loss_lease_late p c E rho hrec mono emittedNonempty emittedName
       writes noLoss hB hx (show sB + 2 ≤ i + 1 from Nat.succ_le_succ hlt) hk
       (eraseFG_preceq hFB)
-    exact healing_next_transfer_domain p c E rho hrec hgsti hcover hx hk hXv hXc hD hlease
+    exact healing_next_transfer_domain p c E rho hrec hgsti hcover hx hk hXv hXc hDX hlease
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B `cause`; blueprint 21:2677–2741, 2767–2813
