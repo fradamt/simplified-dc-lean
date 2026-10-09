@@ -276,7 +276,7 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
     rw [fgsa_domainR_eq_filtered, hCe] at hm
     exact hm
   have hD := hRS D (block_preceq_refl D)
-  rw [fgsa_headVote_eq_filtered, ite_eq_right (by omega)]
+  rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero (l + 1))]
   exact fgsa_headInTree_covers_of_transfer p dst _ _ _ D
     (block_compatible_of_common hlive (block_preceq_refl D)) hpath hD.majority
     (fun X hX => by
