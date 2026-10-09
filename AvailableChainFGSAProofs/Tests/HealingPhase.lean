@@ -9,7 +9,7 @@ set_option linter.privateModule false
 /-!
 H-PHASE coverage (plan S20, 2026-10-02):
 
-* P1: `healing_phase_order`, the first frozen RPhase clause.
+* P1: `healing_phase_order_of_crossing`, the first frozen RPhase clause.
 * P2: `healing_evidence_spread`, the second frozen clause, and
   `healing_phase_rows_spread`, the common row cut from HB4.
 * P4: `healing_settled_frame`, the fourth frozen clause.
@@ -24,7 +24,7 @@ Foundation inputs cross the lane boundary as hypotheses. RMono comes from
 `fgsa_rMono`; RXing comes from `fgsa_apiFinalLockClaim_body`; TRowsReceipt
 comes from `fgsa_tRowsReceipt` through HB4. Assembly discharges these inputs.
 The Healing modules import no Foundations proof. They use neither HB1 nor TDel.
-P1 also takes NoRestart. P2 takes ExecutionValid, NoRestart, E.Δ = p.Δ, and
+P1 also takes RXing and NoRestart. P2 takes ExecutionValid, NoRestart, E.Δ = p.Δ, and
 PartialSynchronyBy with fgsaDelay. The row companion takes ScheduleWellFormed,
 NoRestart, TRowsReceipt, GST/horizon bounds, and actual emissions by its cut.
 P4 and P5 take RXing and their frozen clause antecedents. P7 takes 1 <= m and
@@ -33,7 +33,7 @@ the actual frontier equality. The initial-frontier lemma takes honest.Nonempty.
 All 17 public theorems are in Tests/Axioms. Each print reports exactly
 `[propext, Classical.choice, Quot.sound]`. The structural helpers take only
 their displayed membership, certificate, height, honesty, and index facts;
-the persistence helpers take RMono and NoRestart; the root helper takes RXing.
+the persistence helpers take RXing, RMono, and NoRestart; the root helper takes RXing.
 -/
 
 section
@@ -44,14 +44,15 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 -- The first clause has the frozen quantifiers and uses the existing RMono producer.
-example (hnr : V2.D.NoRestart rho) (a b m : Nat)
+example (crossing : RXing p c E rho) (hnr : V2.D.NoRestart rho) (a b m : Nat)
     (hab : a ≤ b) (hb : b ≤ rho.events.length) (hm : 1 ≤ m)
     (hfixed : ∀ i, a ≤ i → i ≤ b → frontierAtIdx p c E rho i = m) :
     (∀ i j, a ≤ i → i ≤ j → j ≤ b →
       (TopEvidence p c E rho i m → TopEvidence p c E rho j m) ∧
       (ContestEvidence p c E rho i m → ContestEvidence p c E rho j m)) ∧
     (∀ i, a ≤ i → i ≤ b → ContestEvidence p c E rho i m → TopEvidence p c E rho i m) :=
-  healing_phase_order p c E rho (fgsa_rMono p c E rho) hnr a b m hab hb hm hfixed
+  healing_phase_order_of_crossing p c E rho crossing (fgsa_rMono p c E rho)
+    hnr a b m hab hb hm hfixed
 
 -- The settled-frame proof uses the accepted certificate form of final lock.
 example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())

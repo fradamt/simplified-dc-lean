@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Model.Legacy.Frame
 public import AvailableChainFGSA.Tests.Support
 public import AvailableChainFGSA.Proofs.RowSelection
 
@@ -667,15 +668,15 @@ example : vH ∈ headVotes pT stH0 3 ∧ vH ∈ headSupport pT stH0 3 ∧
 /-- (b) spec 190–193 (audit N1): a slot-3 proposal `X` on `b1'` carries a label-2
 vote of seat 1 for `b1'`. `X` is admitted at now = 12 while F = genesis (its vote
 enters the pool with stamp 12 ≥ z_2 = 11, so the frozen arm does not hold it).
-Then `B1`, `B2`, `B3` move F to `B1`: `X` leaves `act(Σ)`, but its carried vote
-stays in the raw merge of the slot-3 HEAD through the proposal arm. -/
+Then `B1`, `B2`, `B3` move F to `B1`: `X` leaves `act(Σ)`. Its carried vote
+stays in the Legacy raw merge; the canonical HEAD omits the off-F proposal. -/
 def xB : Block := pb b1' 3 96 [] [vX]
 def stX : State pT.n :=
   [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT)
     (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 12)
       ⟨.proposer 3, .proposal (namedBody (namedFixture B1') xB [vX] [] [])⟩)
 example : stX.fg.F = B1 ∧ xB ∈ stX.base.blocks ∧ xB ∉ (actView stX).blocks ∧
-    baseVote vX ∈ headVotes pT stX 3 := by decide +kernel
+    baseVote vX ∈ Legacy.headVotes pT stX 3 ∧ headVotes pT stX 3 = [] := by decide +kernel
 
 /-- [R7] Three distinct fixed-seat rows are valid for B2. All are held and
 selected when they are absent from the parent chain. -/
