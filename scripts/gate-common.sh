@@ -121,8 +121,10 @@ gate_slot_acquire() {
 }
 
 # Fail-fast parallel steps (gate policy 2026-10-02). Start `runner <name>` for each
-# name as a background job in its OWN process group (set -m). Poll for exits (Bash
-# 3.2: no wait -n). The runner writes "<rc> <wall>" to <resultdir>/<name>.result.
+# name as a background job in its OWN process group (set -m). Optional --width N
+# keeps at most N drivers active and launches pending names in submission order.
+# Poll for exits (Bash 3.2: no wait -n). The runner writes "<rc> <wall>" to
+# <resultdir>/<name>.result.
 # At the first nonzero rc (or a missing result), send TERM to every other running
 # step's process group, wait up to GATE_FF_GRACE seconds (default 30) for them to
 # exit (EXIT traps clean up control files), then KILL the groups still alive.
@@ -130,18 +132,22 @@ gate_slot_acquire() {
 # GATE_FF_KILLED=" <name>..." set. Return 0 when every step passes.
 gate_parallel_failfast() {
   local runner=$1 resultdir=$2; shift 2
+  local width=$#
+  if [ "${1:-}" = --width ]; then width=$2; shift 2; fi
+  case "$width" in
+    ''|0*|*[!0-9]*) echo "fail-fast width must be a positive integer" >&2; return 2 ;;
+  esac
   local names=("$@") pids=() state=() i j rc wall alive grace=${GATE_FF_GRACE:-30}
+  local running=0 next=0
   GATE_FF_FAILED= GATE_FF_KILLED=
-  set -m
-  for i in "${!names[@]}"; do "$runner" "${names[$i]}" & pids[$i]=$!; state[$i]=run; done
-  set +m
+  for i in "${!names[@]}"; do state[$i]=pending; done
   alive=${#names[@]}
   while [ "$alive" -gt 0 ]; do
     for i in "${!names[@]}"; do
       [ "${state[$i]}" = run ] || continue
       kill -0 "${pids[$i]}" 2>/dev/null && continue
       wait "${pids[$i]}" 2>/dev/null || :
-      state[$i]=done; alive=$((alive-1))
+      state[$i]=done; alive=$((alive-1)); running=$((running-1))
       rc=99
       if [ -f "$resultdir/${names[$i]}.result" ]; then read -r rc wall < "$resultdir/${names[$i]}.result"; fi
       [ "$rc" = 0 ] && continue
@@ -172,6 +178,13 @@ gate_parallel_failfast() {
       done
       return 1
     done
+    # Refill only after checking all completed drivers for failure.
+    set -m
+    while [ "$running" -lt "$width" ] && [ "$next" -lt "${#names[@]}" ]; do
+      "$runner" "${names[$next]}" & pids[$next]=$!; state[$next]=run
+      next=$((next+1)); running=$((running+1))
+    done
+    set +m
     if [ "$alive" -gt 0 ]; then sleep 1; fi
   done
   return 0
@@ -246,7 +259,7 @@ gate_copy_control_tree() {
   for part in build config packages; do
     [ -d "$source/.lake/$part" ] || continue
     if [ "$(uname -s)" = Darwin ]; then
-      if cp -c -R "$source/.lake/$part" "$target/.lake/" 2>/dev/null; then continue; fi
+      if cp -c -p -R "$source/.lake/$part" "$target/.lake/" 2>/dev/null; then continue; fi
     else
       if cp -a --reflink=auto "$source/.lake/$part" "$target/.lake/"; then continue; fi
     fi

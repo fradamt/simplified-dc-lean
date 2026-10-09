@@ -225,7 +225,7 @@ run_check() {
 }
 # Fail-fast group: the first failing step stops the others (their own process groups).
 run_group() {
-  if ! gate_parallel_failfast run_check "$logs" "$@"; then
+  if ! gate_parallel_failfast run_check "$logs" --width "$GATE_SLOTS" "$@"; then
     summary "$GATE_FF_FAILED"
     echo "fail-fast: $GATE_FF_FAILED failed; stopped:${GATE_FF_KILLED:- none}; later steps skipped"
     finish; exit 1

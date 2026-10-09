@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import os
 import signal
+import shutil
 import subprocess
 import sys
 sys.dont_write_bytecode = True
@@ -136,6 +137,9 @@ with tempfile.TemporaryDirectory(prefix='audit-pool-control-') as temp:
 
     # Run the real claims entry point. Stop its first Lake call without Lean.
     repo = Path(__file__).resolve().parents[1]
+    claims_repo = Path(temp) / 'claims'
+    shutil.copytree(repo, claims_repo,
+                    ignore=shutil.ignore_patterns('.lake', '.git', 'claude-files', '__pycache__'))
     bindir = Path(temp) / 'bin'
     bindir.mkdir()
     lake = bindir / 'lake'
@@ -148,9 +152,10 @@ with tempfile.TemporaryDirectory(prefix='audit-pool-control-') as temp:
         ready = Path(temp) / (mode + '.ready')
         log = Path(temp) / (mode + '.log')
         env = dict(os.environ, PATH=str(bindir) + os.pathsep + os.environ['PATH'],
-                   CLAIMS_READY=str(ready), AUDIT_TIMEOUT=timeout, SOURCE_ONLY='0', NEG='0')
+                   CLAIMS_READY=str(ready), AUDIT_TIMEOUT=timeout, SOURCE_ONLY='0', NEG='0',
+                   GATE_SLOT_DIR=str(claims_repo / '.lake/test-slots'), GATE_SLOT_HELD='0')
         with log.open('w') as output:
-            child = subprocess.Popen(['bash', 'scripts/check-fgsa-claims.sh'], cwd=repo,
+            child = subprocess.Popen(['bash', 'scripts/check-fgsa-claims.sh'], cwd=claims_repo,
                                      env=env, stdout=output, stderr=subprocess.STDOUT)
         try:
             deadline = time.monotonic() + 120
@@ -166,6 +171,8 @@ with tempfile.TemporaryDirectory(prefix='audit-pool-control-') as temp:
                 child.terminate()
             assert child.wait(timeout=int(timeout) + 10) == rc, log.read_text()
             assert not work.exists(), f'claims fixtures remain after {mode}: {work}'
+            assert not (claims_repo / '.lake/gate-build.lock.d').exists()
+            assert not list((claims_repo / '.lake/test-slots').glob('slot.*'))
         finally:
             if child.poll() is None:
                 child.terminate()

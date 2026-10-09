@@ -11,6 +11,7 @@ import subprocess
 import sys
 import threading
 import tempfile
+import time
 
 
 def positive_seconds(value):
@@ -67,11 +68,14 @@ class AuditPool:
             os.killpg(proc.pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
+        # Give slot/build EXIT traps two seconds even if the leader exits first.
+        deadline = time.monotonic() + 2
         try:
             proc.wait(timeout=2)
         except subprocess.TimeoutExpired:
             pass
-        # A child can survive after its group leader exits.
+        time.sleep(max(0, deadline - time.monotonic()))
+        # A child can survive after its group leader exits or ignore TERM.
         try:
             os.killpg(proc.pid, signal.SIGKILL)
         except ProcessLookupError:
