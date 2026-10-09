@@ -23,6 +23,15 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
     assert env_result.returncode == 0, env_result.stderr
     lean_path = str(source) + os.pathsep + env_result.stdout.strip()
     lean = ["lake", "env", "env", f"LEAN_PATH={lean_path}", "lean"]
+    # Keep the full default-root/source scope, but publish fixture links only
+    # in a private source copy. Lake supplies the real built imports before cd.
+    private_repo = root / 'repo'
+    private_repo.mkdir()
+    subprocess.run(['rsync', '-a', '--exclude=/.lake', '--exclude=/.git',
+                    '--exclude=/claude-files', str(REPO) + '/', str(private_repo) + '/'],
+                   check=True)
+    check_lean = lean[:-1] + ['bash', '-c', 'cd "$1" || exit; shift; exec lean "$@"',
+                             'proof-eqns-control', str(private_repo)]
     prefix = "AvailableChainCoverageControl"
 
     def compile_module(module, body):
@@ -90,7 +99,7 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
     compile_module(special_audit, special_body)
 
     def check(label, module, rc, reason, audit=None):
-        args = lean + ["--run", "scripts/CheckProofEqns.lean", "--baseline",
+        args = check_lean + ["--run", "scripts/CheckProofEqns.lean", "--baseline",
                        "scripts/baselines/check-proof-eqns.txt", module]
         if audit:
             data = root / "coverage.txt"
@@ -101,9 +110,8 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
         assert result.returncode == rc and reason in output, (label, result.returncode, output)
         print(f"CONTROL {label}: PASS (rc {rc}; {reason})", flush=True)
 
-    # The audit module source is under the fixture root. Link that library for
-    # the source parser, without changing any production library file.
-    link = REPO / prefix
+    # The audit parser reads its private source tree; no real-tree link is needed.
+    link = private_repo / prefix
     assert not link.exists()
     link.symlink_to(source / prefix, target_is_directory=True)
     try:
@@ -128,7 +136,7 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
         check("audit wrong library", audit, 1, "AUDIT MODULE NOT COVERED", audit)
         # Generate from all commands, including local names and an imported owner.
         data = root / 'complete-coverage.txt'
-        args = lean + ['--run', 'scripts/CheckProofEqns.lean', '--baseline',
+        args = check_lean + ['--run', 'scripts/CheckProofEqns.lean', '--baseline',
                        'scripts/baselines/check-proof-eqns.txt', special_audit]
         result = command(args + ['--write-coverage', str(data)])
         assert result.returncode == 0, (result.stdout, result.stderr)

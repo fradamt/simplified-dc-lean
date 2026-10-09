@@ -3,7 +3,8 @@
 # Order: source precheck -> build -> cheap checks/audits -> one fail-fast heavy group.
 # Both tiers share GATE_SLOTS; FULL keeps every control, MERGE keeps NEG=0.
 # C23 uses private source/build/config/packages copies (CoW when supported, else copy).
-# Other controls already use private fixtures; claims/manifest children take separate slots.
+# Proof-equation controls use private source copies; other controls use private fixtures.
+# Claims/manifest children take separate slots.
 # NUC 2026-10-08..09: FULL 7025-8097 s (2 slots/12G), 10316 s (1 slot/7G);
 # MERGE 1573-1993 s (2 slots). At 318074ba/1 slot: build 22, check-build 1938,
 # FGSA 2154, run 1834, manifest 1497, claims 3321, compose 2830, coverage 116 s;
