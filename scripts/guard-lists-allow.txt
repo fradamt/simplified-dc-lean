@@ -1,3 +1,14 @@
 # Guard list removal exceptions. Owner: lean-framework.
 # Format: <LIST> <entry> <reason...>; LIST is EXPECTED or ORDER.
 # Renames need the lead's OK. Keep one exception per line.
+EXPECTED AvailableChain.FGSA.Run.domainR_eq_storeFrame N; replacement=AvailableChain.FGSA.Run.fgsa_domainR_eq_storeFrame_of_top_retained; commit=d1f5c74d
+EXPECTED AvailableChain.FGSA.Run.fgsa_domainR_eq_storeFrameView A/N; replacement=AvailableChain.FGSA.Run.fgsa_domainR_eq_storeFrameView_of_top_retained; commit=74954f16
+EXPECTED AvailableChain.FGSA.Run.fgsa_domain_witness_of_mem A/N; replacement=AvailableChain.FGSA.Run.fgsa_domain_witness_of_mem_of_top_retained; commit=74954f16
+EXPECTED AvailableChain.FGSA.Run.fgsa_rFrame A; replacement=AvailableChain.FGSA.Run.fgsa_rFrameNext; commit=78fd38e8
+EXPECTED AvailableChain.FGSA.Run.fgsa_rFrameExact A; replacement=AvailableChain.FGSA.Run.fgsa_rFrameExactNext; commit=78fd38e8
+EXPECTED AvailableChain.FGSA.Run.fgsa_score_eq_on_clean WP03c proposal retention; replacement=AvailableChain.FGSA.Run.fgsa_score_eq_on_clean_of_retained_proposal; commit=db778cc6
+EXPECTED AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery WP03c proposal retention; replacement=AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery_of_retained_proposal; commit=db778cc6
+EXPECTED AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness_view A/N; replacement=AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness_view_of_top_retained; commit=74954f16
+EXPECTED AvailableChain.FGSA.Run.frontierSearch_phase_step WP09b crossing transport; replacement=AvailableChain.FGSA.Run.frontierSearch_phase_step_of_crossing; commit=b9b3552f
+EXPECTED AvailableChain.FGSA.Run.healing_phase_contest_persist N; replacement=AvailableChain.FGSA.Run.healing_phase_contest_persist_of_crossing; commit=7230ac38
+EXPECTED AvailableChain.FGSA.Run.healing_phase_order N; replacement=AvailableChain.FGSA.Run.healing_phase_order_of_crossing; commit=7230ac38

@@ -1946,3 +1946,18 @@ codex/reports/d35bac1-coverage.md. S4.7 reviews the new public entries.
 │ FGSAClaims.cleanGrowth                            │ AvailableChainFGSAClaims/FGSAClaims.lean:110               │ AGGREGATE FIELD           │ Bundle│ S4.7 P1: DC confirmedLive/stableLive (sleepy, t₀=0).       │
 └───────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┴───────────────────────────┴───────┴────────────────────────────────────────────────────────────┘
 ```
+
+## FG-SA port WP16 first-pass handoff
+
+The table above records stage-4 producers. The current port changes are in the
+[change record](FGSA-PORT-CHANGES.json) and [first-pass report](FGSA-PORT-FINAL-REPORT.md).
+Canonical frame suppliers use FrameNext. Guarded comparison helpers require retained tops.
+The final supplier fingerprint map waits for the WP08/WP10/WP15 frame and Assembly repairs.
+
+## FG-SA port WP16 second-pass measurements
+
+The P13 map now uses compiled supplier fingerprints from source base `e961df94`.
+The change record lists the changed source dependencies reached by each supplier.
+`fgsaClaims` has one binder and zero proposition binders. Its claim source text is unchanged.
+The phase-order map uses the approved `_of_crossing` helper. Both entries stay PARTIAL.
+Ruling Y and WP12d require a final measurement after their source merges.

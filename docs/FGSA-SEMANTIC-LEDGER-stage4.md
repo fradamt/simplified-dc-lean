@@ -3965,3 +3965,29 @@ HealRContract.keep). CleanGrowthClaim takes `0 ≤ t` before the horizon bound (
 deadline before 0 and a false AvailableGrowthConcl; EXPOSED via FGSAClaims.cleanGrowth; DC LiveFrom t₀ ≤ t,
 Generic/Properties.lean:105). AvailableGrowthConcl is unchanged. WEAKER statements. Hash moves: RKeep,
 CleanGrowthClaim; none frozen at G-F0a (no allow line).
+
+## FG-SA port WP16 first-pass handoff
+
+The table above records stage-4 history. The
+[port change record](FGSA-PORT-CHANGES.json) attributes the single h+i+j switch,
+the guarded helper replacements, and the later source contract changes.
+Equal source text does not establish equal fingerprints. Current shallow, frame, and deep
+checks pass against fixed baselines. The final supplier map and joint gate remain pending.
+
+## FG-SA port rulings Z, AA, and AB
+
+Z changes the landing criterion: the port accepts the proved partial correspondence.
+The full independent Spec interpreter, matched-cut equivalence, and claim transfer remain
+post-landing work. They add no claim premise. Ruling X (`f54e403a`) settles row targets as roots.
+
+AA pins `cded72bb`, with notes `6cc92311`. `revoke_locks` becomes `unlock`.
+The genesis guard and deletion branch are removed. A lock can move to genesis.
+The future interpreter's lock relation must ignore a Spec lock at genesis or `Φ.F`.
+The landing WP12a model still cites `f54e403a`; Lean `release` and `releaseCount` stay as implemented.
+
+AB pins `af218b78`, with the same notes. The Spec requires `n ≥ 1`.
+The interpreter must assume `0 < p.n` where it uses unlock existence, unless Params supplies it.
+
+Y remains pending on source base `e961df94`. Durable/restore must keep the last tick time.
+The final refresh must record the exact S0-frozen Reachable change and measure its dependencies.
+All six restart-permitting claims retain their source text.

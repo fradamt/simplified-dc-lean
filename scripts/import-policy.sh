@@ -37,6 +37,7 @@ fgsa_import_allowed() {
     Proofs:AvailableChainGridCO.Proofs.*) return 0 ;;
     Proofs:AvailableChainKitFG.*) return 0 ;;
     Proofs:AvailableChainGeneric.Proofs.*) return 0 ;;
+    Proofs:AvailableChainFGSARun.Model.Protocol) return 0 ;;
   esac
   return 1
 }
