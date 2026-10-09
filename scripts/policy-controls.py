@@ -104,6 +104,25 @@ def call(args, cwd=None):
     return result.stdout
 
 
+with tempfile.TemporaryDirectory(prefix='inventory-shell-') as tmp:
+    root = Path(tmp)
+    (root / 'scripts').mkdir()
+    shutil.copy2(REPO / 'scripts/check_inventory.py', root / 'scripts/check_inventory.py')
+    (root / 'names.txt').write_text("('lookup?', 'lookup!',)\n")
+    (root / 'lookupX').touch()
+    script = ('source "$1"; gate_inventory_args names.txt; '
+              'test "${#GATE_INVENTORY[@]}" = 2; '
+              'test "${GATE_INVENTORY[0]}" = "lookup?"; '
+              'test "${GATE_INVENTORY[1]}" = "lookup!"')
+    result = subprocess.run(['bash', '-ec', script, 'inventory-control',
+                             str(REPO / 'scripts/gate-common.sh')], cwd=root)
+    assert result.returncode == 0
+    (root / 'names.txt').write_text("('lookup?', 'lookup?',)\n")
+    result = subprocess.run(['bash', '-ec', script, 'inventory-control',
+                             str(REPO / 'scripts/gate-common.sh')], cwd=root, capture_output=True)
+    assert result.returncode != 0 and b'duplicate inventory' in result.stderr
+    print('CONTROL shell inventory glob collision and malformed data: PASS')
+
 with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     root = Path(tmp).resolve()
     # Exercise the gate entry point before any precheck, build or allocation.

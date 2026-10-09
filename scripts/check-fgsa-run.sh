@@ -33,8 +33,8 @@ fi
 # Current compiled inventory; the contract check is independent of its contents.
 AX_OPTS=(--expect AvailableChain.FGSA.Run.fgsa)
 if [ "${SOURCE_ONLY:-0}" != 1 ]; then
-  expected=$(python3 -B scripts/check_inventory.py scripts/fgsa-run-expected.txt)
-  for name in $expected; do AX_OPTS+=("$name"); done
+  gate_inventory_args scripts/fgsa-run-expected.txt
+  AX_OPTS+=("${GATE_INVENTORY[@]}")
 fi
 python3 -B scripts/current-inventory.py fgsa-run scripts/fgsa-run-expected.txt
 

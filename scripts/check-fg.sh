@@ -46,9 +46,9 @@ bash scripts/check-fg-syntax.sh
 step "scripts/CheckFGAxioms.lean"
 python3 -B scripts/current-inventory.py fg scripts/fg-expected.txt
 python3 -B scripts/write-check-inventories.py --scope fg --check
-expected=$(python3 scripts/check_inventory.py scripts/fg-expected.txt)
-# The reader accepts only declaration identifiers, with no shell metacharacters.
-lake env lean --run scripts/CheckFGAxioms.lean --expect finalityOf_def $expected
+gate_inventory_args scripts/fg-expected.txt
+# The data reader validates names; quoted array arguments preserve ? and !.
+lake env lean --run scripts/CheckFGAxioms.lean --expect finalityOf_def "${GATE_INVENTORY[@]}"
 fi
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names

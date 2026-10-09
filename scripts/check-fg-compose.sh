@@ -51,8 +51,8 @@ PY
 targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries)
 gate_build --wfail AvailableChainFGCompose $targets
 python3 -B scripts/write-check-inventories.py --scope compose --check
-expected=$(python3 -B scripts/check_inventory.py scripts/fg-compose-expected.txt)
-lake env lean --run scripts/CheckFGAxioms.lean --compose --expect $expected
+gate_inventory_args scripts/fg-compose-expected.txt
+lake env lean --run scripts/CheckFGAxioms.lean --compose --expect "${GATE_INVENTORY[@]}"
 bash scripts/check-fg-syntax.sh
 if [ "$NEG" = 1 ]; then
   python3 -B scripts/check-fg-compose-controls.py

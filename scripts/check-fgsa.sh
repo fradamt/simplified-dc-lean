@@ -165,11 +165,11 @@ echo "== axioms, build coverage, import closure"
 # Tests/ modules need no root import (C23): check them as extra roots.
 TEST_ROOTS=()
 for m in $(test_modules .); do TEST_ROOTS+=(--root "$m"); done
-expected=$(python3 -B scripts/check_inventory.py scripts/fgsa-expected.txt)
+gate_inventory_args scripts/fgsa-expected.txt
 gate_with_slot python3 -B scripts/write-check-inventories.py --scope fgsa --check
 # The contract remains explicit and independent of the generated inventory.
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]}" --expect \
-  AvailableChain.FGSA.parentFoldState AvailableChain.FGSA.Next.headVoteNext $expected
+  AvailableChain.FGSA.parentFoldState AvailableChain.FGSA.Next.headVoteNext "${GATE_INVENTORY[@]}"
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # Old-read audit (fg5-rulings STOP 6, ruling 7): no old SimplexFG store fold, old

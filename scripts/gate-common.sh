@@ -68,6 +68,14 @@ gate_precheck() (
   echo "PRECHECK PASS; build not started"
 )
 
+# Read inventory names as data. Preserve Lean's ? and ! identifiers as arguments.
+gate_inventory_args() {
+  local data name
+  data=$(python3 -B scripts/check_inventory.py "$1") || return $?
+  GATE_INVENTORY=()
+  while IFS= read -r name; do GATE_INVENTORY+=("$name"); done <<< "$data"
+}
+
 gate_jobs() {
   # JOBS is a per-script pool bound: default 3 on Mac, 6 on Linux; env wins.
   # It is not machine concurrency. GATE_SLOTS caps all shared heavy steps.
