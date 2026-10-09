@@ -96,12 +96,12 @@ theorem deliveryWithinOn_of_partialSynchronyBy_statement :
     DeliveryWithinOnOfPartialSynchronyByStatement := by
   intro V _ In P E rho delayOf h Q δ hQ
   constructor
-  · intro v hv o ho t he w hw hc hx
-    rw [← hQ o ho] at hc hx ⊢
-    exact h.broadcast_emitted v hv o t he w hw hc hx
-  · intro v hv i o ho t ha w hw hp hc hx
-    rw [← hQ o ho] at hc hx ⊢
-    exact h.relay_accepted v hv i o t ha w hw hp hc hx
+  · intro v hv o ho t he w hw
+    rw [← hQ o ho]
+    exact h.broadcast_emitted v hv o t he w hw
+  · intro v hv i o ho t ha w hw
+    rw [← hQ o ho]
+    exact h.relay_accepted v hv i o t ha w hw
 
 set_option linter.unusedVariables false in
 theorem deliveryWithinOn_of_partialSynchronyBy :
@@ -117,12 +117,12 @@ theorem deliveryWithinOn_of_healthyPrefixBy_statement :
     DeliveryWithinOnOfHealthyPrefixByStatement := by
   intro V _ In P E rho delayOf cut h Q δ hQ
   constructor
-  · intro v hv o ho t he w hw hc hx
-    rw [← hQ o ho] at hc hx ⊢
-    exact h.broadcast_emitted v hv o t he w hw hc hx
-  · intro v hv i o ho t ha w hw hp hc hx
-    rw [← hQ o ho] at hc hx ⊢
-    exact h.relay_accepted v hv i o t ha w hw hp hc hx
+  · intro v hv o ho t he w hw
+    rw [← hQ o ho]
+    exact h.broadcast_emitted v hv o t he w hw
+  · intro v hv i o ho t ha w hw
+    rw [← hQ o ho]
+    exact h.relay_accepted v hv i o t ha w hw
 
 set_option linter.unusedVariables false in
 theorem deliveryWithinOn_of_healthyPrefixBy :
@@ -212,90 +212,34 @@ theorem delay_pos_of_env_le :
   @delay_pos_of_env_le_statement
 
 theorem accepted_by_deadline_on_statement : AcceptedByDeadlineOnStatement := by
-  intro V _ In P E rho Timely Inv Q dl cut o t w hD hQ hT hw hcut hlt hS
-    hES hPS hReady hA C hInv hAdm j hj hrf hNX
-  let n := D.Run.idxBefore rho (dl t)
-  have hdeadline : D.Run.stateBefore E rho n = D.Run.stateBeforeTime E rho (dl t) :=
-    stateBefore_idxBefore E rho (dl t) hS
-  have hNXn : P.excludes (D.Run.stateBefore E rho n w) o = false := by
-    rw [hdeadline]
-    exact hNX
-  rw [← hdeadline]
-  have hhandled : ∀ a t', t ≤ t' → t' < dl t → D.Run.handlesAt E rho a w o t' →
-      P.processed (D.Run.stateBefore E rho n w) o = true := by
-    intro a t' htt htd ha
-    obtain ⟨o', hea, hhandles⟩ := ha
-    have han : a < n := (index_lt_idxBefore_iff hS hea (dl t)).2 htd
-    have hja : j < a := tick_index_lt_delivery E rho hS hj hea
-      ((pubFloor_le E t).trans htt)
-    have htimely := timely_of_clock E rho C hS w o (pubFloor E t) j a hAdm hj hja
-      (hrf.mono le_rfl (Nat.le_of_lt han))
-    obtain ⟨hWF, hdeps⟩ := hReady a t' han ⟨o', hea, hhandles⟩
-    have hpost : D.Run.stateBefore E rho (a + 1) w =
-        P.process (D.Run.stateBefore E rho a w) o' := by
-      rw [D.Run.stateBefore_succ E rho hea]
-      dsimp only [D.World.step]
-      rw [Function.update_self]
-    have hrfpost : D.restartFree rho w (a + 1) n :=
-      hrf.mono (Nat.le_trans (Nat.le_of_lt hja) (Nat.le_succ a)) le_rfl
-    rcases hA.accepts _ o' o (hInv a) hhandles hWF hdeps htimely with hP | hX
-    · exact hPS w o (a + 1) n (Nat.succ_le_of_lt han) hrfpost (by rwa [hpost])
-    · have hXn := hES w o (a + 1) n (Nat.succ_le_of_lt han) hrfpost
-        (by rwa [hpost])
-      rw [hNXn] at hXn
-      exact Bool.noConfusion hXn
-  rw [Trigger_def] at hT
-  rcases hT with ⟨v, hv, hemits⟩ | ⟨v, hv, i, hacc⟩
-  · obtain ⟨t', htt, htd, a, ha⟩ := hD.broadcast v hv o hQ t hemits w hw hcut hNX
-    exact hhandled a t' htt htd ha
-  · cases hprocessed : P.processed (D.Run.stateBefore E rho (i + 1) w) o with
-    | false =>
-        obtain ⟨t', htt, htd, a, ha⟩ := hD.relay v hv i o hQ t hacc w hw
-          hprocessed hcut hNX
-        exact hhandled a t' htt htd ha
-    | true =>
-        obtain ⟨⟨o', hei, _⟩, _, _⟩ := hacc
-        have hin : i < n := (index_lt_idxBefore_iff hS hei (dl t)).2 hlt
-        have hji : j < i := tick_index_lt_delivery E rho hS hj hei (pubFloor_le E t)
-        exact hPS w o (i + 1) n (Nat.succ_le_of_lt hin)
-          (hrf.mono (Nat.le_trans (Nat.le_of_lt hji) (Nat.le_succ i)) le_rfl) hprocessed
+  intro V _ In P E rho Timely Inv Q dl cut o send a w ho hD hT hw hta ha had hc hh
+    hHistory hS hRF hHooks hAccept hReady hNX
+  exact processed_by_deadline_of_service E rho Timely Inv w o a (dl a) hS had
+    (service_of_readyTrigger hD ho hT hw hta ha had hc hh hNX)
+    hHistory hRF hHooks hAccept hReady hNX
 
 set_option linter.unusedVariables false in
 theorem accepted_by_deadline_on :
   ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpecD In}
-    (E : Generic.Env V) (rho : D.Run V P),
-  ∀ {Timely : P.State → P.Object → Prop},
-  ∀ {Inv : P.State → Prop},
-  ∀ (Q : P.Object → Prop),
-  ∀ (dl : Time → Time),
-  ∀ (cut : Time),
-  ∀ (o : P.Object),
-  ∀ (t : Time),
-  ∀ (w : V),
-  ∀ (hD : DeliveryWithinOn E rho Q dl cut),
-  ∀ (hQ : Q o),
-  ∀ (hT : Trigger E rho o t),
-  ∀ (hw : w ∈ rho.honest),
-  ∀ (hcut : dl t ≤ cut),
-  ∀ (hlt : t < dl t),
-  ∀ (hS : D.ScheduleWellFormed E rho),
-  ∀ (hES : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-      P.excludes (D.Run.stateBefore E rho i v) o = true →
-      P.excludes (D.Run.stateBefore E rho j v) o = true),
-  ∀ (hPS : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-      P.processed (D.Run.stateBefore E rho i v) o = true →
-      P.processed (D.Run.stateBefore E rho j v) o = true),
-  ∀ (hReady : ∀ i t', i < D.Run.idxBefore rho (dl t) → D.Run.handlesAt E rho i w o t' →
-      P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho i w) o = true),
-  ∀ (hA : AcceptanceLaw P Timely Inv),
-  ∀ (C : TimelyClock P Timely),
-  ∀ (hInv : ∀ i, Inv (D.Run.stateBefore E rho i w)),
-  ∀ (hAdm : C.actTime o ≤ pubFloor E t),
-  ∀ (j : Nat),
-  ∀ (hj : rho.events[j]? = some (.tick w (pubFloor E t))),
-  ∀ (hrf : D.restartFree rho w j (D.Run.idxBefore rho (dl t))),
-  ∀ (hNX : P.excludes (D.Run.stateBeforeTime E rho (dl t) w) o = false),
-    P.processed (D.Run.stateBeforeTime E rho (dl t) w) o = true :=
+    (E : Generic.Env V) (rho : D.Run V P)
+    (Timely : P.State → P.Object → Prop) (Inv : P.State → Prop)
+    (Q : P.Object → Prop) (dl : Time → Time) (cut : Time)
+    (o : P.Object) (send a : Time) (w : V),
+    Q o →
+    DeliveryWithinOn E rho Q dl cut →
+    ReadyTrigger E rho o send w a (dl a) →
+    w ∈ rho.honest → send ≤ a → 0 ≤ a → a < dl a →
+    dl a ≤ cut → dl a ≤ rho.horizon →
+    HistorySafeAt E rho w o a →
+    D.ScheduleWellFormed E rho →
+    D.restartFree rho w (D.Run.actionCut rho a) (D.Run.idxBefore rho (dl a)) →
+    D.HooksSound P → AcceptanceLaw P Timely Inv →
+    (∀ j t', a ≤ t' → t' < dl a → D.Run.handlesAt E rho j w o t' →
+      Inv (D.Run.stateBefore E rho j w) ∧
+      P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho j w) o = true ∧
+      Timely (D.Run.stateBefore E rho j w) o) →
+    P.excludes (D.Run.stateBeforeTime E rho (dl a) w) o = false →
+    P.processed (D.Run.stateBeforeTime E rho (dl a) w) o = true :=
   @accepted_by_deadline_on_statement
 
 end AvailableChain.Gen.V2.Duty

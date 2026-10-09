@@ -15,38 +15,25 @@ variable {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpecD In}
 structure PartialSynchronyBy (E : Generic.Env V) (rho : D.Run V P)
     (delayOf : P.Object → Time) : Prop where
   broadcast_emitted : ∀ v ∈ rho.honest, ∀ o t, D.Run.emits E rho v o t → ∀ w ∈ rho.honest,
-    max t E.t_GST + delayOf o ≤ rho.horizon →
-    P.excludes (D.Run.stateBeforeTime E rho (max t E.t_GST + delayOf o) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < max t E.t_GST + delayOf o ∧ ∃ j, D.Run.handlesAt E rho j w o t'
+    D.DeliveryDemand E rho v w o t (fun a => max a E.t_GST + delayOf o) rho.horizon
   relay_accepted : ∀ v ∈ rho.honest, ∀ i o t, D.Run.acceptsAt E rho i v o t → ∀ w ∈ rho.honest,
-    P.processed (D.Run.stateBefore E rho (i + 1) w) o = false →
-    max t E.t_GST + delayOf o ≤ rho.horizon →
-    P.excludes (D.Run.stateBeforeTime E rho (max t E.t_GST + delayOf o) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < max t E.t_GST + delayOf o ∧ ∃ j, D.Run.handlesAt E rho j w o t'
+    D.DeliveryDemand E rho v w o t (fun a => max a E.t_GST + delayOf o) rho.horizon
 
 -- DC: Generic/Conditions.lean:134; INTENTIONAL: The prefix uses the object's delay.
 structure HealthyPrefixDeliveryBy (E : Generic.Env V) (rho : D.Run V P)
     (delayOf : P.Object → Time) (cut : Time) : Prop where
   broadcast_emitted : ∀ v ∈ rho.honest, ∀ o t, D.Run.emits E rho v o t → ∀ w ∈ rho.honest,
-    t + delayOf o ≤ cut →
-    P.excludes (D.Run.stateBeforeTime E rho (t + delayOf o) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < t + delayOf o ∧ ∃ j, D.Run.handlesAt E rho j w o t'
+    D.DeliveryDemand E rho v w o t (fun a => a + delayOf o) cut
   relay_accepted : ∀ v ∈ rho.honest, ∀ i o t, D.Run.acceptsAt E rho i v o t → ∀ w ∈ rho.honest,
-    P.processed (D.Run.stateBefore E rho (i + 1) w) o = false →
-    t + delayOf o ≤ cut →
-    P.excludes (D.Run.stateBeforeTime E rho (t + delayOf o) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < t + delayOf o ∧ ∃ j, D.Run.handlesAt E rho j w o t'
+    D.DeliveryDemand E rho v w o t (fun a => a + delayOf o) cut
 
 -- DC: Generic/Conditions.lean:110,134; INTENTIONAL: Delivery is required only on Q.
 structure DeliveryWithinOn (E : Generic.Env V) (rho : D.Run V P)
     (Q : P.Object → Prop) (dl : Time → Time) (cut : Time) : Prop where
   broadcast : ∀ v ∈ rho.honest, ∀ o, Q o → ∀ t, D.Run.emits E rho v o t → ∀ w ∈ rho.honest,
-    dl t ≤ cut → P.excludes (D.Run.stateBeforeTime E rho (dl t) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < dl t ∧ ∃ j, D.Run.handlesAt E rho j w o t'
+    D.DeliveryDemand E rho v w o t dl cut
   relay : ∀ v ∈ rho.honest, ∀ i o, Q o → ∀ t, D.Run.acceptsAt E rho i v o t → ∀ w ∈ rho.honest,
-    P.processed (D.Run.stateBefore E rho (i + 1) w) o = false →
-    dl t ≤ cut → P.excludes (D.Run.stateBeforeTime E rho (dl t) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < dl t ∧ ∃ j, D.Run.handlesAt E rho j w o t'
+    D.DeliveryDemand E rho v w o t dl cut
 
 -- DC: Generic/Conditions.lean:110,134; INTENTIONAL: The label window delivers only Q.
 def LabelSyncOn (E : Generic.Env V) (rho : D.Run V P) (Q : P.Object → Prop)
@@ -314,77 +301,50 @@ set_option linter.unusedVariables false in
 -- DC: RawHeightCoverage:1011,1026; SAME mechanism: Receipt uses only the object's family.
 def AcceptedByDeadlineOnStatement : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpecD In}
-    (E : Generic.Env V) (rho : D.Run V P),
-  ∀ {Timely : P.State → P.Object → Prop},
-  ∀ {Inv : P.State → Prop},
-  ∀ (Q : P.Object → Prop),
-  ∀ (dl : Time → Time),
-  ∀ (cut : Time),
-  ∀ (o : P.Object),
-  ∀ (t : Time),
-  ∀ (w : V),
-  ∀ (hD : DeliveryWithinOn E rho Q dl cut),
-  ∀ (hQ : Q o),
-  ∀ (hT : Trigger E rho o t),
-  ∀ (hw : w ∈ rho.honest),
-  ∀ (hcut : dl t ≤ cut),
-  ∀ (hlt : t < dl t),
-  ∀ (hS : D.ScheduleWellFormed E rho),
-  ∀ (hES : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-      P.excludes (D.Run.stateBefore E rho i v) o = true →
-      P.excludes (D.Run.stateBefore E rho j v) o = true),
-  ∀ (hPS : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-      P.processed (D.Run.stateBefore E rho i v) o = true →
-      P.processed (D.Run.stateBefore E rho j v) o = true),
-  ∀ (hReady : ∀ i t', i < D.Run.idxBefore rho (dl t) → D.Run.handlesAt E rho i w o t' →
-      P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho i w) o = true),
-  ∀ (hA : AcceptanceLaw P Timely Inv),
-  ∀ (C : TimelyClock P Timely),
-  ∀ (hInv : ∀ i, Inv (D.Run.stateBefore E rho i w)),
-  ∀ (hAdm : C.actTime o ≤ pubFloor E t),
-  ∀ (j : Nat),
-  ∀ (hj : rho.events[j]? = some (.tick w (pubFloor E t))),
-  ∀ (hrf : D.restartFree rho w j (D.Run.idxBefore rho (dl t))),
-  ∀ (hNX : P.excludes (D.Run.stateBeforeTime E rho (dl t) w) o = false),
-    P.processed (D.Run.stateBeforeTime E rho (dl t) w) o = true
+    (E : Generic.Env V) (rho : D.Run V P)
+    (Timely : P.State → P.Object → Prop) (Inv : P.State → Prop)
+    (Q : P.Object → Prop) (dl : Time → Time) (cut : Time)
+    (o : P.Object) (send a : Time) (w : V),
+    Q o →
+    DeliveryWithinOn E rho Q dl cut →
+    ReadyTrigger E rho o send w a (dl a) →
+    w ∈ rho.honest → send ≤ a → 0 ≤ a → a < dl a →
+    dl a ≤ cut → dl a ≤ rho.horizon →
+    HistorySafeAt E rho w o a →
+    D.ScheduleWellFormed E rho →
+    D.restartFree rho w (D.Run.actionCut rho a) (D.Run.idxBefore rho (dl a)) →
+    D.HooksSound P → AcceptanceLaw P Timely Inv →
+    (∀ j t', a ≤ t' → t' < dl a → D.Run.handlesAt E rho j w o t' →
+      Inv (D.Run.stateBefore E rho j w) ∧
+      P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho j w) o = true ∧
+      Timely (D.Run.stateBefore E rho j w) o) →
+    P.excludes (D.Run.stateBeforeTime E rho (dl a) w) o = false →
+    P.processed (D.Run.stateBeforeTime E rho (dl a) w) o = true
 
 set_option linter.unusedVariables false in
 -- DC: RawHeightCoverage:1011,1026; SAME mechanism: Receipt uses only the object's family.
 theorem AcceptedByDeadlineOnStatement_def :
     AcceptedByDeadlineOnStatement =
-      (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpecD In}
-    (E : Generic.Env V) (rho : D.Run V P),
-  ∀ {Timely : P.State → P.Object → Prop},
-  ∀ {Inv : P.State → Prop},
-  ∀ (Q : P.Object → Prop),
-  ∀ (dl : Time → Time),
-  ∀ (cut : Time),
-  ∀ (o : P.Object),
-  ∀ (t : Time),
-  ∀ (w : V),
-  ∀ (hD : DeliveryWithinOn E rho Q dl cut),
-  ∀ (hQ : Q o),
-  ∀ (hT : Trigger E rho o t),
-  ∀ (hw : w ∈ rho.honest),
-  ∀ (hcut : dl t ≤ cut),
-  ∀ (hlt : t < dl t),
-  ∀ (hS : D.ScheduleWellFormed E rho),
-  ∀ (hES : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-      P.excludes (D.Run.stateBefore E rho i v) o = true →
-      P.excludes (D.Run.stateBefore E rho j v) o = true),
-  ∀ (hPS : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-      P.processed (D.Run.stateBefore E rho i v) o = true →
-      P.processed (D.Run.stateBefore E rho j v) o = true),
-  ∀ (hReady : ∀ i t', i < D.Run.idxBefore rho (dl t) → D.Run.handlesAt E rho i w o t' →
-      P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho i w) o = true),
-  ∀ (hA : AcceptanceLaw P Timely Inv),
-  ∀ (C : TimelyClock P Timely),
-  ∀ (hInv : ∀ i, Inv (D.Run.stateBefore E rho i w)),
-  ∀ (hAdm : C.actTime o ≤ pubFloor E t),
-  ∀ (j : Nat),
-  ∀ (hj : rho.events[j]? = some (.tick w (pubFloor E t))),
-  ∀ (hrf : D.restartFree rho w j (D.Run.idxBefore rho (dl t))),
-  ∀ (hNX : P.excludes (D.Run.stateBeforeTime E rho (dl t) w) o = false),
-    P.processed (D.Run.stateBeforeTime E rho (dl t) w) o = true) := rfl
+  (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpecD In}
+    (E : Generic.Env V) (rho : D.Run V P)
+    (Timely : P.State → P.Object → Prop) (Inv : P.State → Prop)
+    (Q : P.Object → Prop) (dl : Time → Time) (cut : Time)
+    (o : P.Object) (send a : Time) (w : V),
+    Q o →
+    DeliveryWithinOn E rho Q dl cut →
+    ReadyTrigger E rho o send w a (dl a) →
+    w ∈ rho.honest → send ≤ a → 0 ≤ a → a < dl a →
+    dl a ≤ cut → dl a ≤ rho.horizon →
+    HistorySafeAt E rho w o a →
+    D.ScheduleWellFormed E rho →
+    D.restartFree rho w (D.Run.actionCut rho a) (D.Run.idxBefore rho (dl a)) →
+    D.HooksSound P → AcceptanceLaw P Timely Inv →
+    (∀ j t', a ≤ t' → t' < dl a → D.Run.handlesAt E rho j w o t' →
+      Inv (D.Run.stateBefore E rho j w) ∧
+      P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho j w) o = true ∧
+      Timely (D.Run.stateBefore E rho j w) o) →
+    P.excludes (D.Run.stateBeforeTime E rho (dl a) w) o = false →
+    P.processed (D.Run.stateBeforeTime E rho (dl a) w) o = true) := by
+  rfl
 
 end AvailableChain.Gen.V2.Duty

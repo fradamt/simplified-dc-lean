@@ -1,4 +1,6 @@
 module
+public import AvailableChainKitV2.Sleep
+public import AvailableChainKitV2.DutySleep
 public import AvailableChainKitV2.ClockLaws
 public import AvailableChainKitV2.Execution
 public import AvailableChainKitV2.Stable

@@ -9,6 +9,11 @@ AvailableChainFGSA.Proofs.Restart
 AvailableChainFGSA.Proofs.Join
 AvailableChainFGSA.Tests.Restart
 AvailableChainFGSA.Tests.Join
+AvailableChainKitV2.Sleep
+AvailableChainKitV2.DutySleep
+AvailableChainKitV2.Tests.Sleep
+AvailableChainGeneric.Proofs.V2.Sleep
+AvailableChainGeneric.Proofs.V2.Duty.Sleep
 AvailableChainEngineV2.Conditions.Sleep
 AvailableChainEngineV2.Conditions.Duty.Sleep
 AvailableChainEngineV2.Conditions.DeliveryWindow
