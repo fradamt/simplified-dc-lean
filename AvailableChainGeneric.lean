@@ -9,6 +9,8 @@ public import AvailableChainGeneric.Statements.Pure.Stages
 public import AvailableChainGeneric.Proofs.Pure.Stages
 public import AvailableChainGeneric.Statements.Pure.ChainSearch
 public import AvailableChainGeneric.Proofs.Pure.ChainSearch
+public import AvailableChainGeneric.Statements.Pure.CommonAncestor
+public import AvailableChainGeneric.Proofs.Pure.CommonAncestor
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
 public import AvailableChainGeneric.Statements.Pure.SupportCounts

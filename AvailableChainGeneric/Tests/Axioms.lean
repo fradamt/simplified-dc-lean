@@ -16,6 +16,8 @@ public import AvailableChainGeneric.Statements.Pure.Stages
 public import AvailableChainGeneric.Proofs.Pure.Stages
 public import AvailableChainGeneric.Statements.Pure.ChainSearch
 public import AvailableChainGeneric.Proofs.Pure.ChainSearch
+public import AvailableChainGeneric.Statements.Pure.CommonAncestor
+public import AvailableChainGeneric.Proofs.Pure.CommonAncestor
 public import AvailableChainGeneric.Proofs.V2.DCRegimes
 public import AvailableChainGeneric.Proofs.V2.DCProps
 public import AvailableChainGeneric.Statements.V2.Slashing
@@ -1012,3 +1014,34 @@ end AvailableChain.Gen.AC.Root
 #print axioms AvailableChain.Gen.V2.Duty.FullParticipation_def
 #print axioms AvailableChain.Gen.V2.Duty.PCPersistenceStatement_def
 #print axioms AvailableChain.Gen.V2.Duty.PCIncludedStatement_def
+
+-- Pure deepest common ancestor (S0-D / 14p).
+#print axioms AvailableChain.Block.meet
+#print axioms AvailableChain.Block.meet_def
+#print axioms AvailableChain.Gen.Pure.MeetPrefixStatement
+#print axioms AvailableChain.Gen.Pure.MeetPrefixStatement_def
+#print axioms AvailableChain.Gen.Pure.MeetMaximalStatement
+#print axioms AvailableChain.Gen.Pure.MeetMaximalStatement_def
+#print axioms AvailableChain.Gen.Pure.MeetCommStatement
+#print axioms AvailableChain.Gen.Pure.MeetCommStatement_def
+#print axioms AvailableChain.Gen.Pure.MeetInclusionStatement
+#print axioms AvailableChain.Gen.Pure.MeetInclusionStatement_def
+#print axioms AvailableChain.Gen.Pure.MeetOfPreceqStatement
+#print axioms AvailableChain.Gen.Pure.MeetOfPreceqStatement_def
+#print axioms AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement
+#print axioms AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement_def
+#print axioms AvailableChain.Gen.Pure.meet_prefix_statement
+#print axioms AvailableChain.Gen.Pure.meet_preceq_left
+#print axioms AvailableChain.Gen.Pure.meet_preceq_right
+#print axioms AvailableChain.Gen.Pure.meet_maximal_statement
+#print axioms AvailableChain.Gen.Pure.meet_maximal
+#print axioms AvailableChain.Gen.Pure.meet_comm_statement
+#print axioms AvailableChain.Gen.Pure.meet_comm
+#print axioms AvailableChain.Gen.Pure.meet_inclusion_statement
+#print axioms AvailableChain.Gen.Pure.preceq_meet_iff
+#print axioms AvailableChain.Gen.Pure.meet_of_preceq_statement
+#print axioms AvailableChain.Gen.Pure.meet_of_preceq_left
+#print axioms AvailableChain.Gen.Pure.meet_of_preceq_right
+#print axioms AvailableChain.Gen.Pure.meet_self
+#print axioms AvailableChain.Gen.Pure.meet_compatibility_transfer_statement
+#print axioms AvailableChain.Gen.Pure.compatible_of_preceq_meet
