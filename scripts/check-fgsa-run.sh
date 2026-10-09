@@ -130,7 +130,7 @@ AX_OPTS=(--expect
   Run.processedS_ofRow Run.excludesS_ofRow Run.handlesS_ofRow_iff Run.excludesS_inert
   Run.excludes_inert Run.excludes_inert_epoch Run.excludesFixed_inert_epoch
   Run.epoch_of_restartFree Run.excludes_stable_epoch Run.excludesFixed_stable_epoch
-  Run.restore_st Run.restore_rec Run.clock_rec Run.process_rec Run.recordOwn_st
+  Run.restore_st_retained Run.restore_rec Run.clock_rec Run.process_rec Run.recordOwn_st
   Run.process_base_now Run.clock_vn Run.process_votes_subset Run.excludesS_process
   Run.fgsa_dutiesInjectiveAt Run.fgsa_emitOnceUnder
   Run.fgsa_head_singleDuty Run.fgsa_prop_singleDuty Run.invalidForParent_mono
@@ -140,8 +140,8 @@ AX_OPTS=(--expect
   Run.decode_eq_block Run.rowWire_decode
   Run.fgsaInterface Run.fgsaOutputs Run.finalizedOut Run.proposalTime_fgsa
   Run.propLabel_injective Run.fgsaClock Run.fgsa_monoAlong_preceq_F
-  Run.fgsa_restore_now_eq Run.fgsa_hrestore_now
-  Run.fgsa_hrestore Run.fgsa_hrestore_field
+  Run.fgsa_restore_now_retained Run.fgsa_hrestore_now_retained
+  Run.fgsa_hrestore_retained Run.fgsa_hrestore_field_retained
   Run.reachable_stateBefore Run.reachable_stateBeforeTime Run.reachable_readAt
   Run.reachable_final Run.reachable_postClock Run.reachable_postTick
   Run.storeBundle_stateBefore Run.storeBundle_stateBeforeTime Run.storeBundle_readAt
