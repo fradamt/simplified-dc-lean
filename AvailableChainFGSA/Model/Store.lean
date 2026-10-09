@@ -25,6 +25,7 @@ structure State (n : Nat) where
   proposals : List (Wire n) := []
   rowPool : List (RowWire n) := []
   fastWrite : List (Slot × List Block) := []
+  restartTime : Option Time := none
 
 variable {n : Nat}
 
@@ -58,6 +59,24 @@ def initialAt (n : Nat) (t : Time) : State n :=
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 711] The store slot `Σ.s`. -/
 def State.slot (p : Params) (st : State p.n) : Slot := p.slotOf st.base.now
+
+/-- [Sleep v6; plan §14.3] Use integer subtraction at slot zero. -/
+def joinedAtTime (p : Params) (rt : Option Time) (t : Time) : Bool :=
+  match rt with
+  | none => true
+  | some w => decide (w ≤ 4 * p.Δ * ((p.slotOf t : Int) - 1))
+
+/-- [Sleep v6; uniform join rule] The join test at the store clock. -/
+def joinedNow (p : Params) (st : State p.n) : Bool :=
+  joinedAtTime p st.restartTime st.base.now
+
+-- Generate the join equations in their home module.
+private theorem joinedAtTime_eq_1_export :
+    type_of% (@joinedAtTime.eq_1) := @joinedAtTime.eq_1
+private theorem joinedAtTime_eq_2_export :
+    type_of% (@joinedAtTime.eq_2) := @joinedAtTime.eq_2
+private theorem joinedNow_eq_1_export :
+    type_of% (@joinedNow.eq_1) := @joinedNow.eq_1
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 [spec 558–561, 789–802] The outputs. -/

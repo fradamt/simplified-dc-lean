@@ -179,8 +179,8 @@ def pins : List Pin := [
     ⟨"Trees 3a: the confirmation walk starts at Σ.F in act(Σ); it returns a block only \
       if that block passes the strict-majority test, also when the block is Σ.F \
       (fgsa3 511–513, 1289–1306): gateStep_fresh states that the saved result of an \
-      unsaved gate is SA.confirmationFrom (an AvailableChainSA constant, the anchor) \
-      from Σ.F on the active view; clock_eq_saClockFrom_gate is the tick",
+      unsaved joined gate is SA.confirmationFrom (an AvailableChainSA constant, the anchor) \
+      from Σ.F on the active view; clock_eq_saClockFrom_gate is the joined tick",
       .leanIn "AvailableChainFGSA"
         [`AvailableChain.FGSA.gateStep, `AvailableChain.FGSA.fastSet,
           `AvailableChain.FGSA.gateStep_fresh, `AvailableChain.FGSA.clock_eq_saClockFrom_gate]⟩,

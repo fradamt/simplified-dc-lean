@@ -251,7 +251,7 @@ theorem clockPre_eq (p : Params) (st : State p.n) (t : Time) :
       let v := if 0 ≤ t - 2 * p.Δ && t == SA.earlyTime q eSlot then
         { v with early := v.early ++ [(eSlot, GridCO.earlyVotes q.engine v eSlot)] } else v
       let qSlot := ((t - 5 * p.Δ) / (4 * p.Δ)).toNat
-      if 0 ≤ t - 5 * p.Δ && t == SA.releaseTime q qSlot then
+      if 0 ≤ t - 5 * p.Δ && t == SA.releaseTime q qSlot && joinedAtTime p st.restartTime t then
         SA.Root.release q v qSlot else v) st := by
   unfold clockPre
   by_cases h1 : (0 ≤ t - 3 * p.Δ &&
@@ -259,8 +259,12 @@ theorem clockPre_eq (p : Params) (st : State p.n) (t : Time) :
   by_cases h2 : (0 ≤ t - 2 * p.Δ &&
     t == SA.earlyTime p.toParams ((t - 2 * p.Δ) / (4 * p.Δ)).toNat) = true <;>
   by_cases h3 : (0 ≤ t - 5 * p.Δ &&
-    t == SA.releaseTime p.toParams ((t - 5 * p.Δ) / (4 * p.Δ)).toNat) = true <;>
-  simp only [h1, h2, h3, ite_true, ite_false, Bool.false_eq_true] <;> rfl
+    t == SA.releaseTime p.toParams ((t - 5 * p.Δ) / (4 * p.Δ)).toNat &&
+    joinedAtTime p st.restartTime t) = true
+  all_goals simp only [h1, h2, ite_true, ite_false, Bool.false_eq_true]
+  all_goals dsimp only [joinedNow, onView, actView, GridCO.expire, GridCO.freeze]
+  all_goals simp only [h3, ite_true]
+  all_goals rfl
 
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [M2; helper] Two `onView` steps are one when the first
@@ -278,7 +282,8 @@ theorem onView_onView (f g : GridCO.State n .root → GridCO.State n .root)
 SA tick on
 the active view with the cumulative block list and resolution metadata restored. -/
 theorem clock_eq_saClock_offGate (p : Params) (st : State p.n) (t : Time)
-    (hg : ¬ (0 ≤ t - 6 * p.Δ ∧ t = SA.gateTime p.toParams ((t - 6 * p.Δ) / (4 * p.Δ)).toNat)) :
+    (hg : ¬ (0 ≤ t - 6 * p.Δ ∧ t = SA.gateTime p.toParams ((t - 6 * p.Δ) / (4 * p.Δ)).toNat))
+    (hj : joinedAtTime p st.restartTime t = true) :
     clock p st t =
       { st with base := { SA.Root.clock p.toParams (actView st) t with
         blocks := st.base.blocks, headDomain := st.base.headDomain } } := by
@@ -288,6 +293,7 @@ theorem clock_eq_saClock_offGate (p : Params) (st : State p.n) (t : Time)
   unfold clock
   rw [ite_eq_right hc, clockPre_eq,
     show SA.Root.clock p.toParams (actView st) t = _ from ite_eq_right hc]
+  simp only [hj, Bool.and_true]
   rfl
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [comp D3; M7, DQ5; Opus m1; spec 4e85ff34: 885–913, 1280–1297]
@@ -300,7 +306,8 @@ tick input. -/
 theorem clock_eq_saClockFrom_gate (p : Params) (st : State p.n) (t : Time) (s : Slot)
     (hs : s = ((t - 6 * p.Δ) / (4 * p.Δ)).toNat) (hg : 0 ≤ t - 6 * p.Δ)
     (ht : t = SA.gateTime p.toParams s)
-    (hnew : GridCO.savedGenuine st.base s = none) :
+    (hnew : GridCO.savedGenuine st.base s = none)
+    (hj : joinedAtTime p st.restartTime t = true) :
     clock p st t = normalizeS { st with
       base := { SA.Root.clockFrom p.toParams (eraseFG st.fg.F) (actView st) t with
         blocks := st.base.blocks, headDomain := st.base.headDomain },
@@ -315,17 +322,24 @@ theorem clock_eq_saClockFrom_gate (p : Params) (st : State p.n) (t : Time) (s : 
     unfold GridCO.savedGenuine at hnew ⊢
     rw [clockPre_genuine]
     exact hnew
+  have hjpre : joinedNow p (clockPre p st t) = true := by
+    unfold clockPre joinedNow
+    dsimp only
+    split_ifs <;> exact hj
   unfold clock
   rw [ite_eq_left hc, ← hs]
   unfold gateStep
   dsimp only
-  rw [ite_eq_right (by simp [hn]), clockPre_fastWrite, clockPre_fg]
+  rw [ite_eq_right (by simp [hn])]
+  simp only [hjpre, Bool.not_true, Bool.false_eq_true, ite_false]
+  rw [clockPre_fastWrite, clockPre_fg]
   rw [clockPre_eq, onView_onView _ _ (fun v => by
       dsimp only
       hygiene_split <;> hygiene_split <;> hygiene_split <;> rfl)
     (fun v => by
       dsimp only
       hygiene_split <;> hygiene_split <;> hygiene_split <;> rfl)]
+  simp only [hj, Bool.and_true]
   subst hs
   rw [show SA.Root.clockFrom p.toParams (eraseFG st.fg.F) (actView st) t = _ from ite_eq_left hc]
   rfl
@@ -335,7 +349,8 @@ the gate time
 and the unsaved label: the other two premises follow from `Δ > 0`. -/
 theorem clock_eq_saClockFrom_gate' (p : Params) (st : State p.n) (t : Time) (s : Slot)
     (ht : t = SA.gateTime p.toParams s)
-    (hnew : GridCO.savedGenuine st.base s = none) :
+    (hnew : GridCO.savedGenuine st.base s = none)
+    (hj : joinedAtTime p st.restartTime t = true) :
     clock p st t = normalizeS { st with
       base := { SA.Root.clockFrom p.toParams (eraseFG st.fg.F) (actView st) t with
         blocks := st.base.blocks, headDomain := st.base.headDomain },
@@ -345,7 +360,7 @@ theorem clock_eq_saClockFrom_gate' (p : Params) (st : State p.n) (t : Time) (s :
   have h4 : t - 6 * p.Δ = 4 * p.Δ * (s : Int) := by
     rw [ht]; simp only [SA.gateTime, GridCO.gateTime, GridCO.proposalTime]
     change 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ = _; ring
-  refine clock_eq_saClockFrom_gate p st t s ?_ (by rw [h4]; positivity) ht hnew
+  refine clock_eq_saClockFrom_gate p st t s ?_ (by rw [h4]; positivity) ht hnew hj
   rw [h4, Int.mul_ediv_cancel_left _ (by positivity)]
   simp
 

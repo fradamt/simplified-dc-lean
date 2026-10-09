@@ -186,15 +186,24 @@ theorem process_headDomain (p : Params) (st : State p.n) (o : Wire p.n) :
 /-- [ROOT-DIGEST-2 W1; DC temporary resolution domain] A clock restores the cumulative metadata. -/
 theorem clock_headDomain (p : Params) (st : State p.n) (t : Time) :
     (clock p st t).base.headDomain = st.base.headDomain := by
-  simp only [clock, clockPre, gateStep, normalizeS, onView, GridCO.expire]
-  split_ifs <;> rfl
+  have hp : (clockPre p st t).base.headDomain = st.base.headDomain := by
+    unfold clockPre
+    dsimp only
+    split_ifs <;> rfl
+  unfold clock
+  dsimp only
+  split
+  · unfold gateStep
+    dsimp only
+    split_ifs <;> unfold normalizeS <;> split <;> exact hp
+  · exact hp
 
 /-- [ROOT-DIGEST-2 W1; DC temporary resolution domain] Reachable cumulative stores keep none. -/
 theorem base_headDomain_none (p : Params) {st : State p.n} (h : Reachable p st) :
     st.base.headDomain = none := by
   induction h with
   | init => rfl
-  | reset t => rfl
+  | restart w _ _ => rfl
   | tick t _ ih => rw [clock_headDomain, ih]
   | deliver o _ ih => rw [process_headDomain, ih]
 

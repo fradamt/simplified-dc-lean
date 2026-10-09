@@ -1,6 +1,6 @@
 module
 public import AvailableChainGridCO.Proofs.StoreFacts
-public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Statements.Invariants
 public import AvailableChainFGSA.Proofs.FrameViews
 public import AvailableChainFGSA.Proofs.BlockAncestry
 
@@ -187,25 +187,25 @@ theorem gateStep_fg (p : Params) (st : State p.n) (s : Slot) :
     (gateStep p st s).fg = st.fg := by
   unfold gateStep
   rw [normalizeS_fg]
-  hygiene_split <;> rfl
+  split_ifs <;> rfl
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The gate keeps the cumulative block list. -/
 theorem gateStep_base_blocks (p : Params) (st : State p.n) (s : Slot) :
     (gateStep p st s).base.blocks = st.base.blocks := by
   unfold gateStep
   rw [normalizeS_fields]
-  hygiene_split <;> rfl
+  split_ifs <;> rfl
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The gate writes no proposal wire. -/
 theorem gateStep_proposals (p : Params) (st : State p.n) (s : Slot) :
     (gateStep p st s).proposals = st.proposals := by
   unfold gateStep
   rw [normalizeS_fields]
-  hygiene_split <;> rfl
+  split_ifs <;> rfl
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The gate writes no row. -/
 theorem gateStep_rowPool (p : Params) (st : State p.n) (s : Slot) :
     (gateStep p st s).rowPool = st.rowPool := by
   unfold gateStep
   rw [normalizeS_fields]
-  hygiene_split <;> rfl
+  split_ifs <;> rfl
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] `savedGenuine` of a list with one appended label `s`,
 when `s` was
@@ -269,7 +269,7 @@ gate saves the confirmation of the view with the walk from `Σ.F`
 (`genuine_result`) and adds exactly `fastSet` of the view at the same anchor; a
 saved label changes neither. -/
 theorem gateStep_fresh (p : Params) (st : State p.n) (s : Slot)
-    (hnew : GridCO.savedGenuine st.base s = none) :
+    (hnew : GridCO.savedGenuine st.base s = none) (hj : joinedNow p st = true) :
     GridCO.savedGenuine (gateStep p st s).base s =
       some (SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s) ∧
     (∀ r ≠ s, GridCO.savedGenuine (gateStep p st s).base r = GridCO.savedGenuine st.base r) ∧
@@ -285,7 +285,8 @@ theorem gateStep_fresh (p : Params) (st : State p.n) (s : Slot)
       (SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s) hv r
     unfold gateStep
     rw [normalizeS_fields]
-    simp only [hnew, Option.isSome_none, Bool.false_eq_true, ite_false]
+    simp only [hnew, Option.isSome_none, Bool.false_eq_true, ite_false, hj,
+      Bool.not_true]
     unfold onView
     simp only [GridCO.savedGenuine] at this ⊢
     rw [hg]
@@ -293,13 +294,76 @@ theorem gateStep_fresh (p : Params) (st : State p.n) (s : Slot)
   refine ⟨by simpa using hsave s, fun r hr => by simpa [hr] using hsave r, ?_⟩
   unfold gateStep
   rw [normalizeS_fields]
-  simp [hnew]
+  simp [hnew, hj]
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] A saved label: the gate is `normalizeS` only. -/
 theorem gateStep_saved (p : Params) (st : State p.n) (s : Slot)
     (hs : (GridCO.savedGenuine st.base s).isSome) : gateStep p st s = normalizeS st := by
   unfold gateStep
   simp only [hs, ite_true]
+
+/-- [Sleep v6; plan §14.3] An unjoined gate saves empty lists and keeps durable outputs. -/
+theorem gateStep_unjoined (p : Params) (st : State p.n) (s : Slot)
+    (hnew : GridCO.savedGenuine st.base s = none) (hj : joinedNow p st = false) :
+    GridCO.savedGenuine (gateStep p st s).base s = some none ∧
+    (gateStep p st s).fastWrite = st.fastWrite ++ [(s, [])] ∧
+    (NestOK st → (gateStep p st s).fg = st.fg ∧
+      (gateStep p st s).base.obligations = st.base.obligations ∧
+      (gateStep p st s).base.stableRecord = st.base.stableRecord) := by
+  have he : gateStep p st s = normalizeS
+      { onView (fun v => { v with genuine := v.genuine ++ [(s, none)] }) st with
+        fastWrite := st.fastWrite ++ [(s, [])] } := by
+    simp only [gateStep, hnew, Option.isSome_none, Bool.false_eq_true, ite_false,
+      hj, Bool.not_false, ite_true]
+  refine ⟨?_, ?_, ?_⟩
+  · rw [he, normalizeS_fields]
+    simpa only [GridCO.savedGenuine, onView, actView, ite_true] using
+      savedGenuine_append (actView st) s none hnew s
+  · rw [he, normalizeS_fields]
+  · intro hn
+    rw [he, normalizeS_fields]
+    exact ⟨rfl, rfl, ite_eq_left hn⟩
+
+/-- [Sleep v6; plan §14.3] A fresh unjoined gate saves an empty result. -/
+theorem gateStep_unjoined_eq (p : Params) (st : State p.n) (s : Slot)
+    (hnew : GridCO.savedGenuine st.base s = none) (hj : joinedNow p st = false) :
+    gateStep p st s = normalizeS
+      { onView (fun v => { v with genuine := v.genuine ++ [(s, none)] }) st with
+        fastWrite := st.fastWrite ++ [(s, [])] } := by
+  simp only [gateStep, hnew, Option.isSome_none, Bool.false_eq_true, ite_false,
+    hj, Bool.not_false, ite_true]
+
+/-- [Sleep v6; plan §14.3] A gate keeps each other saved label. -/
+theorem gateStep_other (p : Params) (st : State p.n) (s r : Slot) (hr : r ≠ s) :
+    GridCO.savedGenuine (gateStep p st s).base r = GridCO.savedGenuine st.base r := by
+  cases hs : GridCO.savedGenuine st.base s with
+  | some x =>
+      rw [gateStep_saved p st s (by simp [hs]), normalizeS_fields]
+      rfl
+  | none =>
+      cases hj : joinedNow p st with
+      | true => exact (gateStep_fresh p st s hs hj).2.1 r hr
+      | false =>
+          rw [gateStep_unjoined_eq p st s hs hj, normalizeS_fields]
+          exact (savedGenuine_append (actView st) s none hs r).trans (ite_eq_right hr)
+
+/-- [Sleep v6; plan §14.3] The two cases of a fresh gate. -/
+theorem gateStep_fresh_cases (p : Params) (st : State p.n) (s : Slot)
+    (hnew : GridCO.savedGenuine st.base s = none) :
+    GridCO.savedGenuine (gateStep p st s).base s =
+      (if joinedNow p st then
+        some (SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s)
+      else some none) ∧
+    (gateStep p st s).fastWrite = st.fastWrite ++
+      [(s, if joinedNow p st then fastSet p (eraseFG st.fg.F) (actView st) s else [])] := by
+  cases hj : joinedNow p st with
+  | true => simpa only [ite_true] using
+      ⟨(gateStep_fresh p st s hnew hj).1, (gateStep_fresh p st s hnew hj).2.2⟩
+  | false =>
+      simp only [Bool.false_eq_true, ite_false]
+      rw [gateStep_unjoined_eq p st s hnew hj, normalizeS_fields]
+      exact ⟨by simpa only [GridCO.savedGenuine, onView, actView, ite_true] using
+      savedGenuine_append (actView st) s none hnew s, rfl⟩
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] Every member of `fastSet` at anchor `a` is a
 non-genesis prefix of
