@@ -438,11 +438,102 @@ private theorem noRestartOn : NoRestartOn run 0 5 10 := by
 
 example : D.NoRestartOn run.toD 0 5 10 := (D.noRestartOn_toD_iff run 0 5 10).mpr noRestartOn
 
-private theorem noRestartAfter : NoRestartAfter run 0 10 := by
-  intro i t hi
-  exact (valid.in_horizon _ (List.mem_of_getElem? hi)).2
+-- The cut 10 is below horizon 11. Only the negative variant restarts after the cut.
+private def extendedRun : Run (Fin 2) toy := { run with horizon := 11 }
 
-example : D.NoRestartAfter run.toD 0 10 := (D.noRestartAfter_toD_iff run 0 10).mpr noRestartAfter
+private theorem extended_valid : ExecutionValid env extendedRun := by
+  refine { valid with
+    horizon_nonneg := by decide, in_horizon := ?_,
+    tick_total := ?_, wake_restart := ?_ }
+  · intro e he
+    have h := valid.in_horizon e he
+    exact ⟨h.1, le_trans h.2 (by decide)⟩
+  · intro v hv t ⟨k, hk⟩ h0 hh ha
+    have ht : t ≤ run.horizon := by
+      simp [env] at hk
+      simp [extendedRun] at hh
+      dsimp [run, Time] at *; omega
+    exact valid.tick_total v hv t ⟨k, hk⟩ h0 ht ha
+  · intro v hv t h0 hh hw
+    have ht : t = 5 ∨ t = 10 := by
+      fin_cases v <;> simp [Wakes, env] at hw <;> dsimp [Time] at * <;> omega
+    exact valid.wake_restart v hv t h0 (by rcases ht with rfl | rfl <;> decide) hw
+
+private def lateRestart : Run (Fin 2) toy :=
+  { extendedRun with events := run.events ++ [.restart 0 11] }
+
+private theorem late_valid : ExecutionValid env lateRestart := by
+  refine { extended_valid with
+    sorted := by decide, nodup := by decide,
+    in_horizon := ?_, honest_only := ?_, tick_public := ?_, tick_total := ?_,
+    wire := by intros; rfl, deps := by intros; rfl, fresh := ?_,
+    unforgeable := ?_, carried := ?_, tick_awake := ?_, deliver_awake := ?_,
+    restart_awake := ?_, wake_restart := ?_ }
+  · intro e he
+    simp only [lateRestart, List.mem_append, List.mem_singleton] at he
+    rcases he with he | rfl
+    · exact extended_valid.in_horizon e he
+    · decide
+  · intro e _; exact Finset.mem_univ _
+  · intro v t h
+    apply valid.tick_public v t
+    simpa [lateRestart] using h
+  · intro v hv t hp h0 hh ha
+    exact List.mem_append_left _ (extended_valid.tick_total v hv t hp h0 hh ha)
+  · intro i v o t hi
+    have hb := (List.getElem?_eq_some_iff.mp hi).1
+    simp [lateRestart, run] at hb
+    interval_cases i <;> simp [lateRestart, run] at hi
+    all_goals rcases hi with ⟨rfl, rfl, rfl⟩; decide
+  · rintro v o t ⟨i, hi⟩ u _ hu
+    have he := List.mem_of_getElem? hi
+    simp only [lateRestart, run, List.mem_append, List.mem_cons, List.not_mem_nil,
+      Event.deliver.injEq, reduceCtorEq, false_or, or_false] at he
+    rcases he with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
+      simp [Run.holder, first, second] at hu
+  · intro v o t _ o' hc; exact hc.elim
+  · intro v t h
+    apply valid.tick_awake v t
+    simpa [lateRestart] using h
+  · intro v o t h
+    apply valid.deliver_awake v o t
+    simpa [lateRestart] using h
+  · intro v t h
+    simp only [lateRestart, List.mem_append, List.mem_singleton, Event.restart.injEq] at h
+    rcases h with h | ⟨rfl, rfl⟩
+    · exact valid.restart_awake v t h
+    · decide
+  · intro v hv t h0 hh hw
+    exact List.mem_append_left _ (extended_valid.wake_restart v hv t h0 hh hw)
+
+private theorem noRestartAfter : NoRestartAfter extendedRun 0 10 := by
+  intro i t hi
+  have h := List.mem_of_getElem? hi
+  simp only [extendedRun, run, List.mem_cons, List.not_mem_nil,
+    Event.restart.injEq, reduceCtorEq, false_or, or_false] at h
+  rcases h with ⟨_, rfl⟩ | ⟨_, rfl⟩ <;> decide
+
+example : 10 < extendedRun.horizon ∧ ExecutionValid env extendedRun ∧
+    NoRestartAfter extendedRun 0 10 := ⟨by decide, extended_valid, noRestartAfter⟩
+
+example : 10 < extendedRun.toD.horizon ∧ D.ExecutionValid env extendedRun.toD ∧
+    D.NoRestartAfter extendedRun.toD 0 10 :=
+  ⟨by decide, (D.executionValid_toD_iff env extendedRun).mpr extended_valid,
+    (D.noRestartAfter_toD_iff extendedRun 0 10).mpr noRestartAfter⟩
+
+example : 10 < lateRestart.horizon ∧ ExecutionValid env lateRestart ∧
+    ¬ NoRestartAfter lateRestart 0 10 := by
+  refine ⟨by decide, late_valid, ?_⟩
+  intro h
+  have := h 8 11 (by rfl)
+  contradiction
+
+example : 10 < lateRestart.toD.horizon ∧ D.ExecutionValid env lateRestart.toD ∧
+    ¬ D.NoRestartAfter lateRestart.toD 0 10 := by
+  refine ⟨by decide, (D.executionValid_toD_iff env lateRestart).mpr late_valid, ?_⟩
+  intro h
+  have := h 8 11 (by rfl)
+  contradiction
 
 example : AwakeOnClosed env 0 5 6 ∧ D.AwakeOnClosed env 0 5 6 := by
   constructor <;> intro t ha hb <;> simp [env] <;> dsimp [Time] at * <;> omega
