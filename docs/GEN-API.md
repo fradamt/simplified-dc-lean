@@ -1164,3 +1164,20 @@ def AvailableChain.Gen.V2.SlashingInterface.slashes e464437d9cc362da
 def AvailableChain.Gen.V2.HonestNeverSlashed cb7d6d1806cfe47c
 theorem AvailableChain.Gen.V2.HonestNeverSlashed_def a06df42e8668cf32
 ```
+
+### `AvailableChainGeneric.Statements.Pure.CommonAncestor`
+
+```text
+def AvailableChain.Gen.Pure.MeetPrefixStatement 5ddf06b369d5ca7a
+theorem AvailableChain.Gen.Pure.MeetPrefixStatement_def f1737a28d97fb341
+def AvailableChain.Gen.Pure.MeetMaximalStatement e8cf1001e713daae
+theorem AvailableChain.Gen.Pure.MeetMaximalStatement_def a4d156d436daea3d
+def AvailableChain.Gen.Pure.MeetCommStatement bf7905b395ea61ef
+theorem AvailableChain.Gen.Pure.MeetCommStatement_def d4e704ef2675c8bf
+def AvailableChain.Gen.Pure.MeetInclusionStatement eff92fef3cacd3ae
+theorem AvailableChain.Gen.Pure.MeetInclusionStatement_def 951f9c7de215dea6
+def AvailableChain.Gen.Pure.MeetOfPreceqStatement 41970219accf1f62
+theorem AvailableChain.Gen.Pure.MeetOfPreceqStatement_def 6360ca81d2c9b3c9
+def AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement a83aef9afbb7ec52
+theorem AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement_def 4efb9c158b0f04d6
+```
