@@ -88,7 +88,7 @@ example (B : Block) :
 example [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
-    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hstrat : RStrat p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
