@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compiled, isolated controls for FG-SA deep and frame checks."""
+"""Compiled, isolated controls for current deep snapshots and root attribution."""
 from copy import deepcopy
 import argparse
 import importlib.util
@@ -21,11 +21,6 @@ def require_failure(label, action, reason):
         result = [str(exc)]
     assert result and any(reason in msg for msg in result), (label, result, reason)
     print(f'CONTROL {label}: PASS ({reason})')
-
-
-def record(before, after):
-    return dict(old_digest=before, new_digest=after, cause='isolated compiled body control',
-                census_class='B', plan_revision='S0-F/00c control only')
 
 
 PROBE = r'''
@@ -51,22 +46,23 @@ def check_wiring(root=Path('.')):
     # Both required positive commands must run before the NEG exit.
     shell = (root / 'scripts/check-fgsa-manifest.sh').read_text()
     boundary = shell.index('if [ "${NEG:-1}"')
-    assert shell.index('fgsa-deep.py --frame-check') < boundary
+    assert shell.index('--scope fgsa --check') < boundary
     assert shell.index('--scope fgsa --deep --check') < boundary
+    assert shell.index('--scope legacy --check') < boundary
     gate = (root / 'scripts/gate.sh').read_text()
     assert 'fgsa-manifest) step "$1" bash scripts/check-fgsa-manifest.sh ;;' in gate
     group = ('run_group fgsa-claims check-fg-compose check-fgsa check-build check-fgsa-run '
              '\\\n  fgsa-manifest pcsa-manifest')
     assert group in gate
     assert gate.index(group) > gate.index('fi\n# Longest measured FULL steps first;')
-    print('CONTROL merge/full mandatory frame and deep wiring: PASS')
+    print('CONTROL merge/full mandatory current shallow and deep wiring: PASS')
 
 
 def main():
     with tempfile.TemporaryDirectory(prefix='fgsa-deep-controls-') as scratch:
         tmp = Path(scratch)
         # Reuse the exact production extraction/digest functions. This is the same
-        # probe pattern as record-fgsa-port-pcsa-baseline.py; never edit repo sources.
+        # isolated probe pattern; never edit repo sources.
         helper = Path('scripts/V2Manifest.lean').read_text().split('def main (args : List String)')[0]
         probe = tmp / 'DeepProbe.lean'
         probe.write_text(helper + PROBE)
@@ -101,103 +97,118 @@ def main():
             shallow[variant] = (target / 'shallow').read_text()
         base, body, proof, private = (snapshots[v] for v in ('base', 'body', 'proof', 'private'))
         name = next(iter(base['entries']))
-        before, after = base['entries'][name]['digest'], body['entries'][name]['digest']
         assert shallow['base'] == shallow['body'] == shallow['proof'] == shallow['private']
-        print('CONTROL unchanged shallow hash for public/private body and proof edits: PASS')
-        assert not check.check_deep(base, base, {})
+        assert not check.check_deep(base, base)
         print('CONTROL deep unchanged positive: PASS')
-        require_failure('public model body', lambda: check.check_deep(base, body, {}), 'DEEP UNEXPLAINED')
-        require_failure('private cross-module body', lambda: check.check_deep(base, private, {}), 'DEEP UNEXPLAINED')
-        require_failure('constructor field type',
-            lambda: check.check_deep(base, snapshots['constructor'], {}), 'DEEP UNEXPLAINED')
-        assert not check.check_deep(base, proof, {})
+        for label in ('body', 'private', 'constructor'):
+            require_failure(label, lambda: check.check_deep(base, snapshots[label]), 'DEEP CHANGED')
+        assert not check.check_deep(base, proof)
         assert base == proof
         assert (tmp / 'base/proof-value').read_text() != (tmp / 'proof/proof-value').read_text()
         print('CONTROL theorem proof only: PASS (identical complete snapshot)')
-        exact = {name: record(before, after)}
-        assert not check.check_deep(base, body, exact)
-        print('CONTROL exact recorded exception: PASS')
-        require_failure('stale exception', lambda: check.check_deep(base, base, exact), 'STALE EXCEPTION')
-        wrong = {name: record(before, '0' * 64)}
-        require_failure('wrong new digest', lambda: check.check_deep(base, body, wrong), 'EXCEPTION DIGEST MISMATCH')
-        wrong = {name: record('0' * 64, after)}
-        require_failure('wrong old digest', lambda: check.check_deep(base, body, wrong), 'EXCEPTION DIGEST MISMATCH')
-        allow = tmp / 'allow.json'
-        bad = deepcopy(exact)
-        bad[name]['cause'] = ''
-        allow.write_text(json.dumps(dict(format_version=1, exceptions=bad)))
-        require_failure('unexplained exception', lambda: check.exceptions(allow, 64), 'UNEXPLAINED EXCEPTION')
-        allow.write_text('{"format_version":1,"exceptions":{},"exceptions":{}}')
-        require_failure('duplicate exception JSON', lambda: check.exceptions(allow, 64), 'DUPLICATE JSON KEY')
-        ghost = {'Absent.Control': record(before, after)}
-        require_failure('unknown stale exception', lambda: check.check_deep(base, base, ghost), 'STALE EXCEPTION')
-        missing = deepcopy(base)
-        missing['entries'][name]['dependencies'].pop()
-        require_failure('incomplete closure', lambda: check.validate_graph(missing), 'INCOMPLETE ROOT')
-        path = check.changed_path(name, base, body)
-        assert 'claim -> AvailableChain.FGSA.DeepControl.reader' in path, path
-        print('CONTROL changed dependency path: PASS')
-
-        # The compiled snapshots also pass through the production CLI used by
-        # V2Manifest, including file loading, SHA checks and exception parsing.
+        reader = 'AvailableChain.FGSA.DeepControl.reader'
+        report = check.diff_report(base, body, [dict(name=reader)])
+        assert report['entries'][0]['attribution'][0]['relation'] == 'through-root'
+        assert report['groups'][reader] == [name]
+        print('CONTROL all changed nodes, groups and through-root paths: PASS')
+        for field, value in [('kind', 'def'), ('module', 'MovedControl')]:
+            bad = deepcopy(base)
+            bad['entries'][name][field] = value
+            bad['nodes'][name][field] = value
+            require_failure('root ' + field, lambda: check.check_deep(base, bad), 'DEEP CHANGED')
+        bad = deepcopy(base)
+        bad['nodes']['Unreachable.Control'] = deepcopy(bad['nodes'][name])
+        bad['node_order'].append('Unreachable.Control')
+        require_failure('extra unattached node', lambda: check.validate_graph(bad), 'UNREACHABLE')
+        bad = deepcopy(base)
+        bad['node_order'].append(bad['node_order'][0])
+        require_failure('duplicate node order', lambda: check.validate_graph(bad), 'NODE ORDER')
+        bad = deepcopy(base)
+        bad['nodes'][name]['dependencies'].pop()
+        require_failure('incomplete closure', lambda: check.validate_graph(bad), 'INCOMPLETE ROOT')
+        bad = deepcopy(base)
+        bad['nodes'][reader]['dependencies'].append('Missing.Control')
+        require_failure('missing dependency', lambda: check.validate_graph(bad), 'MISSING DEEP')
+        # A foreign kernel dependency is checked without a library filter.
+        foreign = next(n for n in base['nodes'] if not n.startswith('AvailableChain'))
+        bad = deepcopy(base)
+        bad['nodes'][foreign]['digest'] = '0' * 64
+        for n in bad['entries']:
+            bad['entries'][n]['digest'] = check.root_digest(bad, n)
+        require_failure('foreign node drift', lambda: check.check_deep(base, bad), 'DEEP CHANGED')
+        report = check.diff_report(base, bad, [dict(name=reader)])
+        assert any(r['relation'] == 'shared-dependency'
+                   for e in report['entries'] for r in e['attribution']) is False
+        # Give another root a shared dependency but no entry-to-root path.
+        shared = deepcopy(base)
+        shared['entries'][reader] = dict(digest=check.root_digest(shared, reader),
+            kind=shared['nodes'][reader]['kind'], module=shared['nodes'][reader]['module'])
+        shared_bad = deepcopy(shared)
+        shared_bad['nodes'][reader]['digest'] = '3' * 64
+        for n in shared_bad['entries']:
+            shared_bad['entries'][n]['digest'] = check.root_digest(shared_bad, n)
+        report = check.diff_report(shared, shared_bad, [dict(name=name)])
+        assert any(r['relation'] == 'shared-dependency'
+                   for e in report['entries'] for r in e['attribution'])
+        removed = deepcopy(shared)
+        del removed['entries'][name]
+        reachable = set().union(*(check.closure(removed['nodes'], n)
+                                  for n in removed['entries']))
+        removed['nodes'] = {n: r for n, r in removed['nodes'].items() if n in reachable}
+        removed['node_order'] = [n for n in removed['node_order'] if n in reachable]
+        report = check.diff_report(shared, removed, [dict(name=name)])
+        assert any(e['name'] == name and e['membership'] == 'removed' for e in report['entries'])
+        assert any(p['side'] == 'base' for e in report['entries']
+                   for n in e['changed_nodes'] for p in n['paths'])
+        require_failure('deleted root', lambda: check.check_deep(shared, removed), 'DEEP CHANGED')
+        require_failure('added root', lambda: check.check_deep(removed, shared), 'DEEP CHANGED')
+        report = check.diff_report(base, body, [dict(name='Planned.Absent', status='planned')])
+        assert report['unresolved'][0]['name'] == 'Planned.Absent'
+        print('CONTROL shared dependencies, removal union, addition, absent roots: PASS')
+        path = tmp / 'duplicate.json'
+        path.write_text('{"entries":{},"entries":{}}')
+        require_failure('duplicate JSON', lambda: check.strict_json(path), 'DUPLICATE JSON KEY')
         fixture_manifest = tmp / 'fixture.md'
-        fixture_manifest.write_text('### `DeepStatements`\n\n```text\n'
+        fixture_manifest.write_text('### `DeepStatements`\n\n```text\n' +
             f'theorem {name} {shallow["base"]}\n```\n')
-        baseline = tmp / 'baseline.json'
-        baseline_sha = tmp / 'baseline.sha256'
-        stored = dict(base, provenance=check.provenance(fixture_manifest))
-        check.write_baseline(baseline, baseline_sha, stored)
-        for label, variant, allowances, status, reason in (
-                ('body CLI rejected', 'body', {}, 1, 'DEEP UNEXPLAINED'),
-                ('exact CLI accepted', 'body', exact, 0, 'DEEP PASS'),
-                ('stale CLI rejected', 'base', exact, 1, 'STALE EXCEPTION'),
-                ('proof CLI accepted', 'proof', {}, 0, 'DEEP PASS')):
-            allow.write_text(json.dumps(dict(format_version=1, exceptions=allowances)))
-            result = subprocess.run(['python3', 'scripts/fgsa-deep.py', '--check',
-                '--snapshot', str(tmp / variant / 'snapshot.json'),
-                '--manifest', str(fixture_manifest), '--baseline', str(baseline),
-                '--sha', str(baseline_sha), '--allow', str(allow)],
-                capture_output=True, text=True)
-            assert result.returncode == status and reason in result.stdout + result.stderr, result
-            print(f'CONTROL {label}: PASS')
-
-        current = check.manifest(check.MANIFEST)
-        frame = check.read_baseline(check.FRAME, check.FRAME_SHA)['entries']
-        now = check.frame_entries(current)
-        assert not check.check_frame(frame, now, check.exceptions(check.FRAME_ALLOW, 16))
-        print('CONTROL frame complete-current positive: PASS')
-        moved = deepcopy(current)
-        moved_name = next(n for n in frame if n.endswith('TGeomNext'))
-        moved[moved_name]['module'] = 'Moved.Outside.Frame.Selection'
-        require_failure('frame moved module in complete manifest',
-            lambda: check.check_frame(frame, moved, {}), 'FRAME KIND/MODULE CHANGED')
-        name = next(iter(frame))
-        changed = deepcopy(now)
-        changed[name]['digest'] = '0' * 16
-        require_failure('frame changed entry', lambda: check.check_frame(frame, changed, {}), 'FRAME UNEXPLAINED')
-        removed = deepcopy(now)
-        del removed[name]
-        require_failure('frame removed entry', lambda: check.check_frame(frame, removed, {}), 'FRAME UNEXPLAINED')
-        for label, baseline, sha_path in (('frame', check.FRAME, check.FRAME_SHA),
-                ('deep', check.DEEP, check.DEEP.with_suffix('.sha256'))):
-            require_failure(label + ' missing baseline',
-                lambda: check.read_baseline(tmp / 'missing.json', sha_path), 'No such file')
-            require_failure(label + ' missing SHA',
-                lambda: check.read_baseline(baseline, tmp / 'missing.sha256'), 'No such file')
-            wrong_sha = tmp / 'wrong.sha256'
-            wrong_sha.write_text('0' * 64 + '\n')
-            require_failure(label + ' wrong SHA',
-                lambda: check.read_baseline(baseline, wrong_sha), 'BASELINE SHA256 MISMATCH')
-        require_failure('missing exception file', lambda: check.exceptions(tmp / 'missing.json', 64),
-                        'No such file')
-        check_wiring()
-    print('FGSA deep/frame controls: PASS')
+        baseline = tmp / 'current.json'
+        snapshot = tmp / 'snapshot.json'
+        snapshot.write_text(json.dumps(base))
+        command = ['python3', '-B', 'scripts/fgsa-deep.py', '--snapshot', str(snapshot),
+                   '--manifest', str(fixture_manifest), '--baseline', str(baseline)]
+        for mode in ('--write', '--check'):
+            result = subprocess.run(command + [mode], capture_output=True, text=True)
+            assert result.returncode == 0, result
+        snapshot.write_text(json.dumps(body))
+        result = subprocess.run(command + ['--check'], capture_output=True, text=True)
+        assert result.returncode == 1 and 'DEEP CHANGED' in result.stderr, result
+        snapshot.write_text(json.dumps(base))
+        data = check.strict_json(baseline)
+        data['pins']['toolchain'] = 'wrong'
+        baseline.write_text(json.dumps(data))
+        result = subprocess.run(command + ['--check'], capture_output=True, text=True)
+        assert result.returncode == 1 and 'SNAPSHOT PIN MISMATCH' in result.stderr, result
+        baseline.unlink()
+        result = subprocess.run(command + ['--check'], capture_output=True, text=True)
+        assert result.returncode == 1, result
+        current = check.manifest(fixture_manifest)
+        current['Not.Compiled'] = dict(kind='def', module='Wrong', digest='0' * 16)
+        require_failure('manifest addition', lambda: check.bind_manifest(base, current), 'ROOTS DIFFER')
+        require_failure('manifest deletion', lambda: check.bind_manifest(base, {}), 'ROOTS DIFFER')
+        roots = tmp / 'roots.txt'
+        roots.write_text(reader + '\n' + reader + '\n')
+        require_failure('duplicate roots', lambda: check.root_list(roots), 'INVALID ROOT LIST')
+        result = subprocess.run(command + ['--write', '--roots', str(roots)],
+                                capture_output=True, text=True)
+        assert result.returncode == 2, result
+        print('CONTROL CLI stale/missing snapshots, pins, roots, write rejection: PASS')
+    check_wiring()
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--source-only', action='store_true')
-    if parser.parse_args().source_only:
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--source-only', action='store_true')
+    if ap.parse_args().source_only:
         check_wiring()
     else:
         main()

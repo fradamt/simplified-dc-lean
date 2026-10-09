@@ -1,94 +1,14 @@
 # FG-SA API manifest
 
-_Baseline for G-F0a (D15, lead ruling DC 2026-09-30)._
+_Current compiled snapshot. Policy: 2026-10-09._
 
-This file lists every public declaration under the Statements prefixes of
-`AvailableChainFGSA`, `AvailableChainFGSARun` and `AvailableChainFGSAClaims`,
-by fully qualified name and grouped by library and module. FGSA has no anchor rule.
+Run the writer after a source change and review the complete diff.
+The check requires all current names, modules, kinds and hashes.
+Theorem proof values are excluded. Snapshot updates do not approve claims.
 
-## Baseline rule
+Entries: 1243; modules: 57.
 
-Before G-F0a, a missing doc makes the check print SKIP and exit 0. F0 writers
-do not update this doc. At G-F0a, run `bash scripts/fgsa-freeze.sh` to write
-this doc, copy it to `docs/FGSA-API-frozen.md`, and record the frozen SHA-256
-in `scripts/fgsa-manifest-frozen.sha256`. From G-F0a the API is append-only.
-Every frozen entry must keep its kind and hash; new entries pass. A changed
-or removed entry needs an allow line in `scripts/fgsa-manifest-allow.txt`:
-`<name>\t<reason>\t<plan revision>`, with actual tabs and no empty field.
-Stale allow lines fail. Put later fields in new structures unless a named
-exception below permits the exact aggregate change.
-
-## WC plan r2.1 aggregate exception
-
-Lead ruling 2026-10-05, WC plan r2.1, §8 Job 4; DC: SAME source witness order.
-Append exactly one field after `cleanGrowth` in `AvailableChain.FGSA.Run.FGSAClaims`:
-`weakContinuationLive : ∀ G : Time, WeakContinuationLiveClaim p G`.
-The permitted delta is this aggregate, its constructor, every existing generated
-projection, and the new field entry. Each changed frozen entry has one measured
-allow line. The new field is additive and needs no frozen allowance.
-Root fills the field with the complete WC proof and the closed H-time producer.
-`fgsaClaims (p) : FGSAClaims p` stays hypothesis-free. The live-to-safety adapter
-stays in Shared/Claims. Source non-vacuity still requires `4 * p.Δ ≤ G`.
-No other frozen entry changes under this exception. Preserve the frozen file
-bytes and SHA. All earlier exception records still apply.
-
-## ROOT-DIGEST-2 option-3 exception
-
-ROOT-DIGEST-2, option 3, 2026-10-04. Full identity means equality of recursive NamedProposal,
-including each ancestor's body, signed rows, raw HEAD list, and support list. This supersedes
-root-digest-plan r2's body-only limitation and its instruction to retain the old ContentAgree.
-The exception permits the exact N/A/H/E/Q changes in root-digest2-plan §4.1, the 64-entry generic
-mode delta in §9, and their measured representation dependencies. It permits exact named-parent
-admission and root-identifier HEAD handling in the shared GridCO base, with legacy block-mode
-behavior retained for the deferred protocols. The closed fgsaClaims type, all claim fields,
-numerical bounds, original observation scopes, and prior named exceptions remain. Each changed
-frozen entry must have an old/new type or hash and a cause. No frozen baseline or SHA is replaced.
-
-## ROOT-DIGEST W1c class exception
-
-The [Gen exception list](GEN-API.md#root-digest-option-3-exception) names all four frozen walk
-entries and their kernel evidence under plan r2.1 and r2.2. No frozen FG-SA walk entry needs a
-new premise. The non-frozen `AvailableChain.FGSA.fgsa_headInTree_reanchor_of_pivot` now takes
-root uniqueness on its arbitrary `tree`. CStoreInv supplies this for each erasedList view.
-The census is `.lake/rdw1c-census.md`. FGSAClaims fields and Base₂ text are unchanged by W1c.
-W3 has migrated `AvailableChainFGSA.Tests.Support`. Final manifest generation waits for W2.
-No generated FG-SA entry, frozen baseline, SHA, or allow policy is changed here.
-
-## ROOT-DIGEST W2b D1 exception
-
-Plan r2.3 permits `AvailableChain.FGSA.Run.CPPrefix` and `CPPrefix_def` to take
-`RootBlockInRun p c E rho (eraseFG B)` after honest membership. EntryBelow is unchanged.
-CPPrefix now quantifies over run blocks only. Evidence:
-`TS/codex/reports/rdigest/w2/rdw2/cp-prefix-stop.lean`:
-"counterexample to the local inference only". This is not a full-run claim counterexample.
-
-## How to check
-
-`scripts/V2Manifest.lean` generates and checks this list.
-
-- `lake env lean --run scripts/V2Manifest.lean --scope fgsa --list` prints
-the module blocks from the environment, in source order, with hashes.
-- `lake env lean --run scripts/V2Manifest.lean --scope fgsa --write` writes this doc.
-- `lake env lean --run scripts/V2Manifest.lean --scope fgsa --check` checks
-the names, modules, kinds, hashes and completeness (D15), then the frozen
-SHA-256 and append-only rule. A failed check exits 1.
-- `--manifest <path>`, `--frozen <path>`, `--allow <path>` and
-`--frozen-sha <path>` override the paths. `--anchor` requires v2.
-
-Each entry hash uses the shared hash rules in `scripts/V2Manifest.lean`:
-types and definition values, generated or private helpers in the closure,
-type binder names and infos, reducibility, and instance status. Theorem
-proofs do not affect the hash. Public `_def` theorems are entries. Each public
-structure projection is a separate `field` entry beside the structure entry.
-
-## FG-SA port r2 SWITCH exception
-
-The single h+i+j protocol switch changes canonical readers and the final frame surface.
-The [SWITCH record](reports/fgsa-port-switch.md) gives the reason, scope, and red-window limits.
-The [measured diff](reports/fgsa-port-switch-diff.json) attributes all 54 changed shallow hashes.
-Exact allowances preserve earlier reasons. Deep and frame baselines remain fixed.
-The new exact exception maps contain 897 deep entries and five frame entries.
-
+`lake env lean --run scripts/V2Manifest.lean --scope fgsa --write` updates this file; `--check` checks it.
 
 ## `AvailableChainFGSA`
 

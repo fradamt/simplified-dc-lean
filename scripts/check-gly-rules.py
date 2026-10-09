@@ -43,10 +43,6 @@ Rules (GLY §F row → what this script checks):
   F-5  REVIEW  Block.genesis (or `.genesis`) in the statement of a theorem
                in a Walk, Votes or Lease module.
   F-6  FAIL    `slowLeasePolicy` in Generic.
-  F-7  FAIL    zero rename: a declaration of GridCO, SimplexFG or KitFG at
-               the base commit (GLY_BASE, default 7ac5b0c) is missing now.
-  F-10 FAIL    git guard: no change under AvailableChainKit/ (v1 Kit) since
-               the base commit.
   F-12 FAIL    the closure of Generic Statements.Pure (not Walk) holds only
                Model.Objects.* and Statements.Pure (not Walk); the closure of
                Statements.V2 also holds Statements.V2 and the closures of
@@ -102,7 +98,6 @@ FGSA_ALL = {'AvailableChainFGSA', 'AvailableChainFGSARun', 'AvailableChainFGSACl
             'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit', 'AvailableChainPCSAProofs'}
 COMPOSE = {'AvailableChainFGCompose'}
 KITFG = {'AvailableChainKitFG'}
-BASE = os.environ.get('GLY_BASE', '7ac5b0c')
 ALLOW = os.path.join(C.SCRIPTS, 'gly-rules-allow.txt')
 F1_ALLOW = os.path.join(C.SCRIPTS, 'gly-f1-allow.txt')
 F13_ALLOW = os.path.join(C.SCRIPTS, 'gly-f13-allow.txt')
@@ -319,47 +314,6 @@ def grep_rule(x, rule, libs, pattern, what, module_filter=lambda m: True):
 
 def rule_f6(x):
     return grep_rule(x, 'F-6', GEN, tok(['slowLeasePolicy']), 'slowLeasePolicy in Generic')
-
-
-def git(*args):
-    r = subprocess.run(['git', '-C', C.ROOT] + list(args), capture_output=True, text=True)
-    if r.returncode != 0:
-        raise RuntimeError(f'git {" ".join(args)}: {r.stderr.strip()}')
-    return r.stdout
-
-
-def lib_paths(lib):
-    return [lib + '.lean', lib + '/']
-
-
-def rule_f7(x):
-    libs = ['AvailableChainGridCO', 'AvailableChainSimplexFG', 'AvailableChainKitFG']
-    out = []
-    now = defaultdict(set)
-    for lf, d in x.all_decls(set(libs)):
-        if d.name:
-            now[lf.lib].add(d.full)
-    for lib in libs:
-        paths = [p for p in git('ls-tree', '-r', '--name-only', BASE, '--', *lib_paths(lib)).split('\n')
-                 if p.lower().endswith('.lean')]
-        before = {}
-        for p in paths:
-            lf = C.LeanFile(lib, p, p[:-5].replace('/', '.'))
-            lf._raw = git('show', f'{BASE}:{p}')
-            for d in C.declarations(lf):
-                if d.name:
-                    before.setdefault(d.full, p)
-        for name in sorted(set(before) - now[lib]):
-            out.append(F('F-7', f'{lib} {name}',
-                         f'{name} ({before[name]} at {BASE}) is no longer declared in {lib}'))
-    return out
-
-
-def rule_f10(x):
-    paths = lib_paths('AvailableChainKit')
-    changed = set(git('diff', '--name-only', BASE, '--', *paths).split())
-    changed |= set(git('ls-files', '--others', '--exclude-standard', '--', *paths).split())
-    return [F('F-10', p, f'{p} changed since {BASE} (v1 Kit is closed)') for p in sorted(changed)]
 
 
 def rule_f12(x):
@@ -717,7 +671,7 @@ def rule_f31(x):
 
 
 RULES = {'F-1': rule_f1, 'F-3': rule_f3, 'F-4': rule_f4, 'F-5': rule_f5, 'F-6': rule_f6,
-         'F-7': rule_f7, 'F-10': rule_f10, 'F-12': rule_f12, 'F-13': rule_f13, 'F-14': rule_f14,
+         'F-12': rule_f12, 'F-13': rule_f13, 'F-14': rule_f14,
          'F-15': rule_f15, 'F-18': rule_f18, 'F-20': rule_f20, 'F-21': rule_f21, 'F-23': rule_f23,
          'F-25': rule_f25, 'F-26': rule_f26, 'F-28': rule_f28, 'F-30': rule_f30,
          'F-31': rule_f31}

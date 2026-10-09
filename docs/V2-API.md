@@ -1,177 +1,18 @@
 # V2 API manifest
 
-_Frozen at the Phase 2a gate (plan `docs/plans/2026-09-29-phase2a-engine-v2-core.md`,
-Task 7), 2026-09-29._
+_Current compiled snapshot. Policy: 2026-10-09._
 
-This file lists the frozen v2 API: every public declaration of engine v2
-(`AvailableChainEngineV2`: `Engine`, `Conditions` and `Laws`) and of
-Kit v2 (`AvailableChainKitV2`, without `Tests`), by fully qualified name
-and grouped by module.
+Run the writer after a source change and review the complete diff.
+The check requires all current names, modules, kinds and hashes.
+Theorem proof values are excluded. Snapshot updates do not approve claims.
 
-ROOT-DIGEST W1 exception: user option 3, 2026-10-04 (plan r2 §2 M1).
-Remove only `AvailableChain.V2.rootInjective_all` and
-`AvailableChain.V2.D.rootInjective_all`. Keep both scope predicates. Remove each
-proof reference from its existing Framework anchor body; keep both anchors.
-This exception does not permit other engine claims or checker changes.
-W3 owns the final generated entries after the interface checkpoint.
+Entries: 592; modules: 37.
 
-ROOT-DIGEST W1c, option-3 class addition (plan r2.1 and r2.2):
-the [Gen exception list](GEN-API.md#root-digest-option-3-exception) names the no-eligible-child
-and retained-transport statement/equation pairs, their exact tree premises, and kernel evidence.
-No v2 walk entry changes. The v2 generated delta remains the two named M1 removals above.
-The tool output is `.lake/rdw1c-v2-manifest.md`; its exact delta is
-`.lake/rdw1c-v2-manifest-delta.json`. Both Framework anchors remain declared.
+`lake env lean --run scripts/V2Manifest.lean --scope v2 --write` updates this file; `--check` checks it.
 
-ROOT-DIGEST-2 option 3 permits the 64 mode-indexed generic entries and measured
-representation dependencies. See the [full exception](FGSA-API.md#root-digest-2-option-3-exception).
-Keep the frozen baselines and SHAs. Exact old/new hashes and causes follow at integration.
+Engine entries require anchor coverage. Existing anchors can be updated.
 
-## Freeze rule
-
-After the gate, no declaration in this file changes its name, type or body
-(DC N6). A 2a structure never gains a field, a 2a inductive never gains a
-constructor, and a 2a definition never gains a parameter. Later stages (2b,
-2c) only ADD declarations or separate structures.
-
-- **The module blocks are append-only.** A changed or removed line in a
-  module block below is a freeze break, unless a named user decision allows
-  it. A new line is an ADD. The Counts table and the date line change with
-  every ADD.
-- **Engine v2 entries are locked.** The values of the anchor defs
-  (`AvailableChain.Framework.V2.anchor` in
-  `AvailableChainFramework/V2/Anchor.lean` for the 2a entries, and one new
-  anchor def per later stage; see "Anchors") reference each engine entry.
-  `scripts/CatalogLock.lean` locks the module prefix
-  `AvailableChainFramework.V2`, so the lock lines of the anchor defs hash
-  the closure of every engine entry. A change to an engine entry gives a
-  `CHANGED` anchor line. As everywhere in the lock, a theorem contributes its
-  statement only: a new proof keeps the hash. A change to a model module in
-  the closure (for example `AvailableChainModel.Objects.Time`) also changes
-  the anchor line.
-- **Every entry has its own hash.** Each line of the blocks below ends with
-  an entry hash, and `V2Manifest --check` fails when it differs. Thus a
-  change to one engine entry is found even in a commit that also has a
-  `CHANGED` anchor line, and a change to a Kit entry is found although the
-  lock does not see the Kit (L5; the Framework does not import it). The
-  entry hash mixes: the own hash of the entry and of every generated or
-  private constant in its closure (`deps` rules of the lock) that is in a v2
-  module or in the module of the entry (matchers, equation lemmas,
-  `_proof_` constants, private helpers), in `Name.lt` order; the binder
-  names (without macro scopes, which depend on earlier declarations of the
-  module) and binder infos of its type; its reducibility status; and whether
-  it is an instance. The own hash is the `ownHash` of the lock (kind, name
-  and type; for a definition also the value; for an inductive also the
-  constructor names; for a theorem not the proof), after the universe
-  parameters are renamed `u0`, `u1`, …. A new proof keeps the hash.
-- **Frozen by rule, not checked.** The lock hash does not see binder names,
-  binder infos, reducibility or attributes. The entry hash sees binder names
-  and binder infos of the type, reducibility and the instance attribute, but
-  not other attributes (for example `@[simp]` on
-  `LabelFamilies.apObject_seat`) or an instance priority. All of them are
-  frozen by rule.
-- **Outside v2.** The entry hash does not see a change to a declaration
-  outside the v2 libraries that the entry uses (Model, Mathlib). For an
-  engine entry the lock line of its anchor sees it; a `CHANGED` anchor line
-  with no `CHANGED` entry means such a change. A Model declaration that
-  only Kit entries use is seen by neither the lock nor the manifest; it is
-  frozen by rule only.
-
-## Anchors
-
-Never edit `anchor`. A later stage adds its engine entries to this file
-and one new anchor def in a new module under `AvailableChainFramework/V2/`
-(for example `anchor_2b` in `Anchor2b.lean`, imported by the Framework
-root); `V2Manifest --anchor` prints its body (the engine entries that no
-anchor covers yet). The lock change is then ADDED only. An engine entry is
-anchored if it is in the closure of some non-generated declaration of a
-module under `AvailableChainFramework.V2`.
-
-Put new declarations AFTER the existing declarations of a 2a module, or in a
-new module. Lean reuses a matcher of the same shape within a module, first
-come first served: a declaration inserted above a 2a declaration can take
-over its matcher, and the ADD then gives `CHANGED` lines.
-
-## Scope
-
-An entry is a declaration of a scope module that Lean did not generate, by
-the rule of `scripts/CatalogLock.lean` (`generated`). Thus the list
-includes structure constructors and fields (projections) and derived
-instances, and excludes recursors, `casesOn`, `noConfusion`, matchers,
-equation lemmas, `injEq`, `sizeOf_spec` and private declarations.
-
-- Scope modules: `AvailableChainEngineV2.Engine.*`,
-  `AvailableChainEngineV2.Conditions.*`, `AvailableChainEngineV2.Laws.*`,
-  and every module `AvailableChainKitV2.*` outside `AvailableChainKitV2.Tests`.
-- Not in scope: the modules `AvailableChainEngineV2.Tests.*` (namespace
-  `AvailableChain.V2.Tests`) and `AvailableChainKitV2.Tests.*` (the Kit
-  counterexamples, namespace `AvailableChain.V2.Engine.Tests`, and the toy
-  run, namespace `AvailableChain.V2.Tests.Toy`); the library roots (imports
-  only). The exclusion is by module, not by namespace.
-- `AvailableChainEngineV2.Sketch` was deleted at the gate; it is not API.
-- Rulings: the Task 5 helpers (`propSeat`, `eq_propSeat`,
-  `holder_propLabel`, `Output`, the `OutputsFactor` lemmas) are listed
-  and frozen; `Interface.propLabel_injective` is a frozen field; the run
-  checks of `AvailableChainKitV2.RunCheck` (`allTicks`, `allDeliveries`,
-  `emittedBy` and their `_spec` lemmas) are Kit entries. Every Kit entry is
-  frozen; no group is "helpers, not frozen".
-
-## How to check
-
-`scripts/V2Manifest.lean` generates and checks this list.
-
-- `lake env lean --run scripts/V2Manifest.lean --list` prints the module
-  blocks below from the environment, in source order, with the hashes.
-- `lake env lean --run scripts/V2Manifest.lean --anchor` prints the body of
-  a new anchor def over the engine entries that no anchor covers yet.
-- `lake env lean --run scripts/V2Manifest.lean --check` exits 1 if the
-  anchor `AvailableChain.Framework.V2.anchor` is missing, if an entry does
-  not exist or is not in the module of its heading, if a kind word differs,
-  if a hash is missing or differs, if an engine entry is not anchored, if a
-  public declaration of a scope module is not listed, or if a scope module
-  has no heading. It exits 2 if the declaration ranges (`.olean.server`
-  data) are missing.
-- `V2Manifest --check` enforces completeness, so 2b adds a manifest line
-  for each new public declaration in a 2a scope module.
-- `generated`, `deps`, the closure traversal, `kindTag` and `ownHash` in
-  `V2Manifest` are copies of `scripts/CatalogLock.lean`, except that
-  `ownHash` renames the universe parameters first. A change to one needs
-  the same change in the other.
-
-Each block line is `<kind> <name> <hash>`. The kinds are `structure`,
-`inductive`, `ctor`, `def` (fields that are data included) and
-`theorem` (fields that are proofs included).
-
-## Counts
-
-```text
-┌──────────────────────────────────────────────┬─────────┬────────────────────┐
-│ Module                                       │ Entries │ Status             │
-├──────────────────────────────────────────────┼─────────┼────────────────────┤
-│ AvailableChainEngineV2.Engine.Objects        │      15 │ locked (anchor)    │
-│ AvailableChainEngineV2.Engine.Run            │      42 │ locked (anchor)    │
-│ AvailableChainEngineV2.Engine.Spec           │      28 │ locked (anchor)    │
-│ AvailableChainEngineV2.Conditions.Committees │      10 │ locked (anchor)    │
-│ AvailableChainEngineV2.Conditions.Delivery   │       8 │ locked (anchor)    │
-│ AvailableChainEngineV2.Conditions.Interface  │      19 │ locked (anchor)    │
-│ AvailableChainEngineV2.Conditions.Schedule   │      33 │ locked (anchor)    │
-│ AvailableChainEngineV2.Laws.Hooks            │      16 │ locked (anchor)    │
-│ AvailableChainEngineV2.Laws.Isolation        │      26 │ locked (anchor)    │
-│ AvailableChainEngineV2.Laws.Outputs          │      10 │ locked (anchor)    │
-│ AvailableChainEngineV2.Laws.SelfDelivery     │      17 │ locked (anchor)    │
-│ AvailableChainKitV2.ClockLaws                │       9 │ frozen, not locked │
-│ AvailableChainKitV2.Emission                 │      10 │ frozen, not locked │
-│ AvailableChainKitV2.EngineClock              │      16 │ frozen, not locked │
-│ AvailableChainKitV2.Execution                │      10 │ frozen, not locked │
-│ AvailableChainKitV2.RunCheck                 │       6 │ frozen, not locked │
-│ AvailableChainKitV2.Stable                   │       5 │ frozen, not locked │
-├──────────────────────────────────────────────┼─────────┼────────────────────┤
-│ Engine v2 total                              │     224 │ locked (anchor)    │
-│ Kit v2 total                                 │      56 │ frozen, not locked │
-│ Total                                        │     280 │                    │
-└──────────────────────────────────────────────┴─────────┴────────────────────┘
-```
-
-## Engine v2 (locked through the anchor)
+## Entries
 
 ### `AvailableChainEngineV2.Engine.Duty.Lift`
 

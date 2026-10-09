@@ -1,23 +1,20 @@
 #!/usr/bin/env python3
-"""Storage and exact exception checks for V2Manifest's FG-SA deep kernel digests.
+"""Check/write a current kernel dependency snapshot; report named root attribution.
 
-Use V2Manifest --scope fgsa --deep --write/--check for compiled checks.
-This helper also maintains the separate shallow frame baseline. All writes are
-explicit; --check never refreshes a baseline or an exception.
+V2Manifest supplies independently discovered compiled roots. --check is read-only.
+--attribute compares two graph files for dry-run measurement. --roots accepts a
+name list, P24 TSV, or JSON list. Attribution never grants a snapshot exception.
 """
 import argparse
 from collections import deque
+import csv
 import hashlib
 import json
 from pathlib import Path
 import re
-import subprocess
 import sys
 
-DEEP = Path('scripts/fgsa-deep-frozen.json')
-FRAME = Path('scripts/fgsa-frame-frozen.json')
-FRAME_SHA = Path('scripts/fgsa-frame-frozen.sha256')
-FRAME_ALLOW = Path('scripts/fgsa-frame-allow.json')
+DEEP = Path('docs/api/fgsa-deep.json')
 MANIFEST = Path('docs/FGSA-API.md')
 
 
@@ -52,230 +49,262 @@ def manifest(path):
     return result
 
 
-def frame_entries(current):
-    # Include every additive FrameNext/ComposeNext entry (including constructors,
-    # projections and _def equations), plus the full canonical frame families.
-    families = ('RFrameExact', 'RFrame', 'FGFoundation', 'FGFoundationClaim',
-                'FrameAt', 'FrameClaim')
-    prefix = 'AvailableChain.FGSA.Run.'
-    return {name: row for name, row in current.items()
-            if row['module'].split('.')[-1] in ('FrameNext', 'ComposeNext') or any(
-                name == prefix + family or name == prefix + family + '_def' or
-                name.startswith(prefix + family + '.') for family in families)}
-
-
 def pins():
     return dict(toolchain=Path('lean-toolchain').read_text().strip(),
                 package_pins_sha256=sha(Path('lake-manifest.json').read_bytes()))
 
 
-def provenance(current):
-    return dict(basis_commit=subprocess.check_output(
-        ['git', 'rev-parse', 'HEAD'], text=True).strip(), **pins(),
-        shallow_manifest_sha256=sha(current.read_bytes()),
-        original_frozen_sha256=sha(Path('docs/FGSA-API-frozen.md').read_bytes()),
-        original_frozen_entries=sorted(manifest(Path('docs/FGSA-API-frozen.md'))),
-        plan_revision='fgsa-port-r2 + binding addendum; S0-F/00c')
+def closure(nodes, name):
+    seen, stack = set(), [name]
+    while stack:
+        n = stack.pop()
+        if n not in nodes:
+            raise ValueError(f'MISSING DEEP DEPENDENCY {n}')
+        if n not in seen:
+            seen.add(n)
+            stack.extend(nodes[n]['dependencies'])
+    return seen
 
 
-def write_baseline(path, sha_path, data):
-    # One node/root per line keeps a full dependency list reviewable and compact.
-    fields = []
-    for key, value in data.items():
-        if key == 'nodes':
-            body = '[\n' + ',\n'.join('    ' + json.dumps(row, ensure_ascii=False,
-                separators=(',', ':')) for row in value) + '\n  ]'
-        elif key == 'entries':
-            body = '{\n' + ',\n'.join('    ' + json.dumps(name, ensure_ascii=False) + ': ' +
-                json.dumps(row, ensure_ascii=False, separators=(',', ':'))
-                for name, row in value.items()) + '\n  }'
-        else:
-            body = json.dumps(value, ensure_ascii=False, indent=2)
-        fields.append('  ' + json.dumps(key) + ': ' + body)
-    path.write_text('{\n' + ',\n'.join(fields) + '\n}\n')
-    sha_path.write_text(sha(path.read_bytes()) + '\n')
+def pack(tag, fields):
+    return f'{tag}:{len(fields)}:' + ''.join(f'{len(s.encode())}:{s}' for s in fields)
 
 
-def read_baseline(path, sha_path):
-    expected = sha_path.read_text().strip()
-    if not re.fullmatch('[0-9a-f]{64}', expected) or sha(path.read_bytes()) != expected:
-        raise ValueError(f'BASELINE SHA256 MISMATCH {path}')
-    data = strict_json(path)
-    if data['format_version'] != 1:
-        raise ValueError(f'UNSUPPORTED BASELINE FORMAT {path}')
-    if not re.fullmatch('[0-9a-f]{40}', data['provenance']['basis_commit']):
-        raise ValueError(f'INVALID BASIS COMMIT {path}')
-    for key, value in pins().items():
-        if data['provenance'][key] != value:
-            raise ValueError(f'BASELINE PIN MISMATCH {path}: {key}')
-    frozen = Path('docs/FGSA-API-frozen.md')
-    if (data['provenance']['original_frozen_sha256'] != sha(frozen.read_bytes()) or
-            data['provenance']['original_frozen_entries'] != sorted(manifest(frozen))):
-        raise ValueError(f'ORIGINAL FROZEN MEMBERSHIP MISMATCH {path}')
-    return data
-
-
-def exceptions(path, width):
-    data = strict_json(path)
-    if set(data) != {'format_version', 'exceptions'} or data['format_version'] != 1:
-        raise ValueError(f'INVALID EXCEPTION FORMAT {path}')
-    result = data['exceptions']
-    if not isinstance(result, dict):
-        raise ValueError(f'INVALID EXCEPTION MAP {path}')
-    keys = {'old_digest', 'new_digest', 'cause', 'census_class', 'plan_revision'}
-    for name, row in result.items():
-        if (not isinstance(row, dict) or set(row) != keys or any(
-                not isinstance(v, str) or not v.strip() for v in row.values())):
-            raise ValueError(f'UNEXPLAINED EXCEPTION {name}: require {sorted(keys)}')
-        if row['census_class'] not in ('A', 'B'):
-            raise ValueError(f'INVALID CENSUS CLASS {name}: use A or B; C-i is contextual')
-        for key in ('old_digest', 'new_digest'):
-            if not re.fullmatch(f'[0-9a-f]{{{width}}}|absent', row[key]):
-                raise ValueError(f'INVALID EXCEPTION DIGEST {name}: {key}')
-    return result
-
-
-def compare(old, now, allowed, label):
-    failures = []
-    for name in sorted(set(old) | set(now) | set(allowed)):
-        before, after = old.get(name, {}).get('digest', 'absent'), now.get(name, {}).get('digest', 'absent')
-        row = allowed.get(name)
-        if before == after:
-            if row is not None:
-                failures.append(f'STALE EXCEPTION {name}: digest is unchanged ({before})')
-        elif row is None:
-            failures.append(f'{label} UNEXPLAINED {name}: {before} -> {after}')
-        elif row['old_digest'] != before or row['new_digest'] != after:
-            failures.append(f'EXCEPTION DIGEST MISMATCH {name}: '
-                            f'recorded {row["old_digest"]} -> {row["new_digest"]}; '
-                            f'actual {before} -> {after}')
-    return failures
+def root_digest(data, name):
+    reached = closure(data['nodes'], name)
+    parts = [pack('dependency', [data['nodes'][n]['kernel_name'], data['nodes'][n]['digest']])
+             for n in data['node_order'] if n in reached]
+    return sha(pack('fgsa-deep-entry-v1', parts).encode())
 
 
 def validate_graph(data):
-    if data['format_version'] != 1 or not data['entries'] or not data['nodes']:
+    if (type(data['format_version']) is not int or data['format_version'] != 2 or not isinstance(data['entries'], dict) or
+            not data['entries'] or not isinstance(data['nodes'], dict) or not data['nodes']):
         raise ValueError('INVALID DEEP SNAPSHOT')
     nodes = data['nodes']
-    names = {row['name']: i for i, row in enumerate(nodes)}
-    if len(names) != len(nodes):
-        raise ValueError('DUPLICATE DEEP NODE')
-    for row in nodes:
+    order = data['node_order']
+    if (not isinstance(order, list) or not all(isinstance(n, str) for n in order) or
+            len(order) != len(set(order)) or set(order) != set(nodes)):
+        raise ValueError('INVALID DEEP NODE ORDER')
+    for name, row in nodes.items():
+        if set(row) != {'digest', 'kernel_name', 'module', 'kind', 'type', 'body', 'dependencies'}:
+            raise ValueError(f'INVALID DEEP NODE {name}')
         if not re.fullmatch('[0-9a-f]{64}', row['digest']):
-            raise ValueError(f'INVALID NODE DIGEST {row["name"]}')
-        if (row['dependencies'] != sorted(set(row['dependencies'])) or any(
-                type(i) is not int or not 0 <= i < len(nodes) for i in row['dependencies'])):
-            raise ValueError(f'INVALID NODE DEPENDENCIES {row["name"]}')
+            raise ValueError(f'INVALID NODE DIGEST {name}')
+        if not all(isinstance(row[k], str) for k in ('module', 'kind', 'kernel_name')):
+            raise ValueError(f'INVALID NODE METADATA {name}')
+        for k in ('type', 'body'):
+            if not isinstance(row[k], list) or not all(isinstance(s, str) for s in row[k]):
+                raise ValueError(f'INVALID READABLE NODE {name}')
+        ds = row['dependencies']
+        if (not isinstance(ds, list) or not all(isinstance(d, str) for d in ds) or
+                len(ds) != len(set(ds))):
+            raise ValueError(f'INVALID NODE DEPENDENCIES {name}')
+        if set(ds) - set(nodes):
+            raise ValueError(f'MISSING DEEP DEPENDENCY {name}')
+    reached = set()
     for name, row in data['entries'].items():
-        if not re.fullmatch('[0-9a-f]{64}', row['digest']) or name not in names:
+        if (set(row) != {'digest', 'module', 'kind'} or name not in nodes or
+                not re.fullmatch('[0-9a-f]{64}', row['digest'])):
             raise ValueError(f'INVALID ROOT {name}')
-        seen, stack = set(), [names[name]]
-        while stack:
-            i = stack.pop()
-            if i not in seen:
-                seen.add(i)
-                stack.extend(nodes[i]['dependencies'])
-        if sorted(seen) != row['dependencies']:
-            raise ValueError(f'INCOMPLETE ROOT DEPENDENCIES {name}')
+        if any(row[k] != nodes[name][k] for k in ('module', 'kind')):
+            raise ValueError(f'ROOT METADATA MISMATCH {name}')
+        actual = closure(nodes, name)
+        if row['digest'] != root_digest(data, name):
+            raise ValueError(f'INCOMPLETE ROOT DIGEST {name}')
+        reached.update(actual)
+    if reached != set(nodes):
+        raise ValueError('UNREACHABLE DEEP NODES')
 
 
-def changed_path(name, old, now):
-    old_nodes = {n['name']: n for n in old['nodes']}
-    new_nodes = {n['name']: n for n in now['nodes']}
-    changed = {n for n in set(old_nodes) | set(new_nodes)
-               if old_nodes.get(n, {}).get('digest') != new_nodes.get(n, {}).get('digest')}
-    for label, data in (('current', now), ('baseline', old)):
-        nodes = data['nodes']
-        ids = {n['name']: i for i, n in enumerate(nodes)}
-        if name not in ids:
-            continue
-        queue = deque([ids[name]])
-        parents = {ids[name]: None}
-        while queue:
-            i = queue.popleft()
-            node = nodes[i]
-            if node['name'] in changed:
-                path = []
-                cur = i
-                while cur is not None:
-                    path.append(nodes[cur]['name'])
-                    cur = parents[cur]
-                before = old_nodes.get(node['name'], {}).get('digest', 'absent')
-                after = new_nodes.get(node['name'], {}).get('digest', 'absent')
-                return f'{label} path: {" -> ".join(reversed(path))}; node {before} -> {after}'
-            for dep in node['dependencies']:
-                if dep not in parents:
-                    parents[dep] = i
-                    queue.append(dep)
-    return 'root added/removed or dependency graph changed'
+def canonical(data):
+    # Stable names and sorted edges avoid unrelated changes after an insertion.
+    data = json.loads(json.dumps(data))
+    for section in ('nodes',):
+        for row in data[section].values():
+            row['dependencies'] = sorted(row['dependencies'])
+    return data
 
 
-def check_deep(old, now, allowed):
+def render(data):
+    return json.dumps(canonical(data), indent=2, sort_keys=True, ensure_ascii=False) + '\n'
+
+
+def bind_manifest(data, current):
+    if set(data['entries']) != set(current):
+        raise ValueError('DEEP ROOTS DIFFER FROM COMPLETE CURRENT MANIFEST')
+    for name, row in data['entries'].items():
+        if any(row[k] != current[name][k] for k in ('kind', 'module')):
+            raise ValueError(f'DEEP MANIFEST METADATA MISMATCH {name}')
+
+
+def read_baseline(path):
+    data = strict_json(path)
+    validate_graph(data)
+    if data.get('pins') != pins():
+        raise ValueError(f'SNAPSHOT PIN MISMATCH {path}')
+    return data
+
+
+def paths_from(nodes, start):
+    if start not in nodes:
+        return {}
+    queue, parents = deque([start]), {start: None}
+    while queue:
+        name = queue.popleft()
+        for dep in sorted(nodes[name]['dependencies']):
+            if dep not in parents:
+                parents[dep] = name
+                queue.append(dep)
+    return parents
+
+
+def witness(parents, end):
+    if end not in parents:
+        return None
+    path = []
+    while end is not None:
+        path.append(end)
+        end = parents[end]
+    return list(reversed(path))
+
+
+def path_to(nodes, start, end):
+    return witness(paths_from(nodes, start), end)
+
+
+def root_list(path):
+    raw = path.read_text()
+    if path.suffix == '.tsv':
+        rows = list(csv.DictReader(raw.splitlines(), delimiter='\t'))
+    elif path.suffix == '.json':
+        rows = strict_json(path)
+        if isinstance(rows, dict):
+            rows = rows['roots']
+        rows = [dict(name=r) if isinstance(r, str) else r for r in rows]
+    else:
+        rows = [dict(name=line.strip()) for line in raw.splitlines()
+                if line.strip() and not line.lstrip().startswith('#')]
+    names = [r['name'] for r in rows]
+    if not names or len(names) != len(set(names)) or any(
+            not isinstance(n, str) or not re.fullmatch(r"[^\W\d][\w'.?!]*", n) for n in names):
+        raise ValueError('INVALID ROOT LIST: empty or duplicate names')
+    return rows
+
+
+def diff_report(old, now, roots=()):
     validate_graph(old)
     validate_graph(now)
-    failures = compare(old['entries'], now['entries'], allowed, 'DEEP')
+    old, now = canonical(old), canonical(now)
+    sides = [('base', old['nodes']), ('target', now['nodes'])]
+    changed_nodes = sorted(n for n in set(old['nodes']) | set(now['nodes'])
+                           if old['nodes'].get(n) != now['nodes'].get(n))
+    groups = {n: [] for n in changed_nodes}
+    root_paths = {(side, root['name']): paths_from(nodes, root['name'])
+                  for side, nodes in sides for root in roots}
+    entries = []
     for name in sorted(set(old['entries']) | set(now['entries'])):
-        before = old['entries'].get(name, {}).get('digest', 'absent')
-        after = now['entries'].get(name, {}).get('digest', 'absent')
-        if before != after:
-            print(f'DEEP CHANGE {name}: {before} -> {after}; {changed_path(name, old, now)}')
-    return failures
+        before, after = old['entries'].get(name), now['entries'].get(name)
+        if before == after:
+            continue
+        relations, changes = [], []
+        entry_paths = {side: paths_from(nodes, name) for side, nodes in sides}
+        for node in changed_nodes:
+            witnesses = []
+            for side, nodes in sides:
+                path = witness(entry_paths[side], node)
+                if path:
+                    witnesses.append(dict(side=side, path=path))
+                    for root in roots:
+                        subject = root['name']
+                        root_path = witness(root_paths[side, subject], node)
+                        if not root_path:
+                            continue
+                        entry_path = witness(entry_paths[side], subject)
+                        relations.append(dict(root=subject, node=node, side=side,
+                            relation='through-root' if entry_path else 'shared-dependency',
+                            entry_path=entry_path, node_path=path, root_path=root_path))
+            if witnesses:
+                changes.append(dict(name=node, paths=witnesses))
+                groups[node].append(name)
+        entries.append(dict(name=name, membership='added' if before is None else
+                            'removed' if after is None else 'changed', old=before, new=after,
+                            old_type='\n'.join(old['nodes'].get(name, {}).get('type', [])),
+                            new_type='\n'.join(now['nodes'].get(name, {}).get('type', [])),
+                            changed_nodes=changes, attribution=relations))
+    unresolved = []
+    for root in roots:
+        name = root['name']
+        present = [(side, nodes[name]['module']) for side, nodes in sides if name in nodes]
+        if not present:
+            unresolved.append(dict(name=name, reason='absent from both graphs',
+                                   status=root.get('status', 'unspecified')))
+        elif root.get('module') and any(m != root['module'] for _, m in present):
+            unresolved.append(dict(name=name, reason='root module mismatch', actual=present))
+    return dict(format_version=1, entries=entries,
+                nodes=[dict(name=n, old=old['nodes'].get(n), new=now['nodes'].get(n))
+                       for n in changed_nodes], groups=groups, unresolved=unresolved,
+                counts=dict(entries=len(entries), nodes=len(changed_nodes), roots=len(roots)))
 
 
-def check_frame(old, current, allowed):
-    # Look up frozen names in the complete current manifest even if an entry
-    # moved out of a selected module. Such a move is not an entry removal.
-    now = frame_entries(current)
-    now.update({name: current[name] for name in old if name in current})
-    failures = compare(old, now, allowed, 'FRAME')
-    for name in set(old) & set(now):
-        if any(old[name][k] != now[name][k] for k in ('kind', 'module')):
-            failures.append(f'FRAME KIND/MODULE CHANGED {name}')
+def check_deep(old, now):
+    validate_graph(old)
+    validate_graph(now)
+    report = diff_report(old, now)
+    failures = [f'DEEP CHANGED {row["name"]}: {row["membership"]}' for row in report['entries']]
+    if canonical(old) != canonical(now) and not failures:
+        failures.append('DEEP SNAPSHOT CHANGED: nodes, pins or metadata')
     return failures
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     modes = ap.add_mutually_exclusive_group(required=True)
-    for mode in ('write', 'check', 'frame-write', 'frame-check'):
+    for mode in ('write', 'check', 'attribute'):
         modes.add_argument('--' + mode, action='store_true')
-    ap.add_argument('--snapshot', type=Path)
+    ap.add_argument('--snapshot', type=Path, required=True)
     ap.add_argument('--manifest', type=Path, default=MANIFEST)
-    ap.add_argument('--baseline', type=Path)
-    ap.add_argument('--sha', type=Path)
-    ap.add_argument('--allow', type=Path)
+    ap.add_argument('--baseline', type=Path, default=DEEP)
+    ap.add_argument('--roots', type=Path)
+    ap.add_argument('--output', type=Path)
     args = ap.parse_args()
-    frame = args.frame_write or args.frame_check
-    path = args.baseline or (FRAME if frame else DEEP)
-    sha_path = args.sha or path.with_suffix('.sha256')
-    allow_path = args.allow or (FRAME_ALLOW if frame else Path('scripts/fgsa-deep-allow.json'))
-    current = manifest(args.manifest)
-    if frame:
-        now = dict(format_version=1, entries=frame_entries(current))
-    else:
-        if args.snapshot is None:
-            ap.error('deep modes require --snapshot; use V2Manifest --deep')
-        now = strict_json(args.snapshot)
-        validate_graph(now)
-        if set(now['entries']) != set(current):
-            raise ValueError('DEEP ROOTS DIFFER FROM COMPLETE CURRENT MANIFEST')
-    if args.write or args.frame_write:
-        now['provenance'] = provenance(args.manifest)
-        write_baseline(path, sha_path, now)
-        print(f'{path}: written; {len(now["entries"])} entries')
+    if args.write and args.roots:
+        ap.error('--roots is read-only; use --attribute or --check')
+    now = strict_json(args.snapshot)
+    validate_graph(now)
+    if not args.attribute:
+        bind_manifest(now, manifest(args.manifest))
+    now['pins'] = pins()
+    if args.write:
+        args.baseline.parent.mkdir(parents=True, exist_ok=True)
+        args.baseline.write_text(render(now))
+        print(f'{args.baseline}: written; {len(now["entries"])} entries')
         return
-    old = read_baseline(path, sha_path)
-    allowed = exceptions(allow_path, 16 if frame else 64)
-    failures = (check_frame(old['entries'], current, allowed) if frame else
-                check_deep(old, now, allowed))
+    old = read_baseline(args.baseline)
+    roots = root_list(args.roots) if args.roots else []
+    report = diff_report(old, now, roots)
+    report['inputs'] = dict(base_sha256=sha(args.baseline.read_bytes()),
+                           target_sha256=sha(args.snapshot.read_bytes()),
+                           roots_sha256=sha(args.roots.read_bytes()) if args.roots else None)
+    if args.output:
+        args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
+    if args.roots and args.check:
+        print('ROOT ATTRIBUTION: ' + json.dumps(report['counts']))
+        for row in report['unresolved']:
+            print('UNRESOLVED ROOT: ' + row['name'] + ': ' + row['reason'])
+    if args.attribute:
+        if not args.output:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    failures = check_deep(old, now)
     if failures:
         raise ValueError('\n'.join(failures))
-    print(f'{"FRAME" if frame else "DEEP"} PASS: {len(now["entries"])} entries; '
-          f'{len(allowed)} exact exceptions')
+    print(f'DEEP PASS: {len(now["entries"])} entries; current snapshot matches')
 
 
 if __name__ == '__main__':
     try:
         main()
-    except (ValueError, KeyError, TypeError, OSError, subprocess.CalledProcessError) as exc:
-        print(f'FGSA BASELINE FAIL: {exc}', file=sys.stderr)
+    except (ValueError, KeyError, TypeError, OSError) as exc:
+        print(f'DEEP SNAPSHOT FAIL: {exc}', file=sys.stderr)
         sys.exit(1)

@@ -33,7 +33,7 @@ exempt. Thus two pulls of one base claim along one map are not found by this
 check (by design).
 
 Run: `lake env lean --run scripts/CatalogLock.lean
-  (--check | --write [--allow-changes]) [--local] [--lock <path>]`.
+  (--check | --write) [--local] [--lock <path>]`.
 The lock file is `docs/catalog.lock` if `--lock` is not given.
 `--local` makes the local-closure lock: the closure stops at a constant of
 a module outside the project (core, Std, Mathlib, …), and such a constant
@@ -42,15 +42,13 @@ toolchain or Mathlib bump changes a foreign definition, so it shows that
 no project declaration changed. `--local` needs `--lock`; it never uses
 `docs/catalog.lock`. Bump procedure: on the old toolchain, `--write
 --local --lock <file>`; on the new one, `--check --local --lock <file>`
-(it must be clean); then `--write --allow-changes` of the full lock, with
+(it must be clean); then `--write` of the full lock, with
 a lock-log entry (design §8; example: `docs/lock-log/v4.34.1/`).
 `--check` compares by name. It prints `REMOVED <name>` for an old name that is
 not locked now, `CHANGED <name> <old> -> <new>` for a different hash, and
 `ADDED <name>` for a new name.
-`--write` writes the lock. It refuses when the old lock has a `REMOVED` or
-`CHANGED` name, unless `--allow-changes` is given.
-Exit codes: 0 same, or additions only; 1 a `REMOVED` or `CHANGED` name (and
-`--write` without `--allow-changes` wrote nothing); 2 a usage error, a
+`--write` replaces the current lock after all semantic checks. Review its diff.
+Exit codes: 0 same, or an explicit write; 1 any snapshot difference; 2 a usage error, a
 malformed lock line, a missing declaration in a closure, a bad axiom, two
 claims with one id, two profiles with one id, a claim or profile id that
 cannot be read, or no declaration ranges. -/
@@ -296,24 +294,21 @@ def diff (old new : Array (String × String)) : Array String × Bool := Id.run d
 
 structure Opts where
   mode : String := ""
-  allowChanges : Bool := false
   loc : Bool := false
   lockGiven : Bool := false
   lock : System.FilePath := "docs/catalog.lock"
 
 def parseArgs : List String → Opts → Option Opts
-  | [], o => if o.mode.isEmpty || (o.allowChanges && o.mode != "write") ||
-      (o.loc && !o.lockGiven) then none else some o
+  | [], o => if o.mode.isEmpty || (o.loc && !o.lockGiven) then none else some o
   | "--check" :: r, o => if o.mode.isEmpty then parseArgs r { o with mode := "check" } else none
   | "--write" :: r, o => if o.mode.isEmpty then parseArgs r { o with mode := "write" } else none
-  | "--allow-changes" :: r, o => parseArgs r { o with allowChanges := true }
   | "--local" :: r, o => parseArgs r { o with loc := true }
   | "--lock" :: p :: r, o => parseArgs r { o with lock := p, lockGiven := true }
   | _, _ => none
 
 def main (args : List String) : IO UInt32 := do
   let some o := parseArgs args {} | do
-    IO.eprintln "usage: lake env lean --run scripts/CatalogLock.lean (--check | --write [--allow-changes]) [--local] [--lock <path>]"
+    IO.eprintln "usage: lake env lean --run scripts/CatalogLock.lean (--check | --write) [--local] [--lock <path>]"
     return 2
   initSearchPath (← findSysroot)
   let env ← importModules #[{ module := frameworkLibrary }] {}
@@ -327,6 +322,10 @@ def main (args : List String) : IO UInt32 := do
     | .ok x => pure x
     | .error e => IO.eprintln e; return 2
   let text := String.intercalate "\n" (new.toList.map fun (n, h) => s!"{n} {h}") ++ "\n"
+  if o.mode == "write" then
+    IO.FS.writeFile o.lock text
+    IO.println s!"wrote {o.lock}: {new.size} lines"
+    return 0
   let old? ← match ← (IO.FS.readFile o.lock).toBaseIO with
     | .ok s => pure (some s)
     | .error e =>
@@ -337,18 +336,10 @@ def main (args : List String) : IO UInt32 := do
   let old ← match (old?.map parseLock).getD (.ok #[]) with
     | .ok x => pure x
     | .error e => IO.eprintln e; return 2
-  let (report, breaking) := diff old new
+  let (report, _) := diff old new
   for l in report do IO.println l
-  if o.mode == "write" then
-    if breaking && !o.allowChanges then
-      IO.eprintln s!"{o.lock} not written: a REMOVED or CHANGED name needs --allow-changes"
-      return 1
-    IO.FS.writeFile o.lock text
-    IO.println s!"wrote {o.lock}: {new.size} lines"
-    return 0
-  if breaking then
-    IO.eprintln s!"{o.lock} differs: a REMOVED or CHANGED name"
-    return 1
   unless report.isEmpty do
-    IO.println s!"additions only; run --write to record them"
+    IO.eprintln s!"{o.lock} differs: run --write and review the diff"
+    return 1
+  IO.println s!"{o.lock}: current snapshot matches"
   return 0

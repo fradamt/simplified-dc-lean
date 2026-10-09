@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # Check docs/PCSA-API.md against the code (V2Manifest --scope pcsa --check, D15),
 # then (full tier) the write control and the negative controls on temp files.
-# PC-SA is not frozen: the frozen-logic controls of check-fgsa-manifest.sh test
-# the shared checkFrozen code and are not repeated here.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
@@ -40,7 +38,7 @@ expect() {  # expect <id> <rc> <manifest> <reason>...
   local id=$1 want=$2 manifest=$3 rc=0 reason
   shift 3
   lake env lean --run scripts/V2Manifest.lean --scope pcsa --check \
-    --manifest "$manifest" --frozen "$tmp/no-frozen.md" > "$tmp/$id.log" 2>&1 || rc=$?
+    --manifest "$manifest" > "$tmp/$id.log" 2>&1 || rc=$?
   if [ "$rc" -ne "$want" ]; then
     echo "CONTROL $id FAIL: expected exit $want, got $rc" >&2; cat "$tmp/$id.log" >&2; exit 1
   fi

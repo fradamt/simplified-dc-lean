@@ -18,9 +18,8 @@ docs/MATRIX.md
 docs/V2-API.md
 docs/GEN-API.md
 docs/FGSA-API.md
-docs/FGSA-API-frozen.md
 docs/PCSA-API.md
-docs/PCSA-API-frozen.md
+docs/api/**
 # check-fg-pins.sh; check-fg.sh controls
 # Pin table, history/registry parsing, manifest and external names (FGPinIds.lean)
 AvailableChainKitFG/Pins.lean
@@ -29,9 +28,6 @@ docs/FG-COMPOSITION.md
 docs/FGSA-BLUEPRINT-LEAN.json
 docs/FGSA-BLUEPRINT-OPEN.md
 docs/blueprint/fgsa/**
-# check-fgsa-port-owners.py; recount-fgsa-port-census.py
-docs/FGSA-PORT-OWNERS.json
-docs/FGSA-PORT-CENSUS.md
 # Archival check-fg-finality-freeze.py inputs (kept as checker data)
 docs/FG-FINALITY-SAFETY-S0-hashes.json
 docs/FG-FINALITY-SAFETY-S0-step1-hashes.json

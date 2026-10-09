@@ -52,6 +52,8 @@ with tempfile.TemporaryDirectory(prefix='gate-neg-') as tmp:
             ('proof only', 'AvailableChainFGSAProofs/Proofs/Shared/Example.lean', 0),
             ('scripts data', 'scripts/new-inventory.txt', 1),
             ('docs data outside old tier list', 'docs/catalog.lock', 1),
+            ('current dependency snapshot', 'docs/api/fgsa-deep.json', 1),
+            ('historical port ledger', 'docs/FGSA-PORT-CHANGES.json', 0),
             ('blueprint chapter', 'docs/blueprint/fgsa/new.tex', 1),
             ('new control module', 'FGSAControl/New.lean', 1),
             ('audit input', 'AvailableChainFGSAProofs/Tests/Axioms.lean', 1),

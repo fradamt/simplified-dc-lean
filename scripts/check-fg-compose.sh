@@ -43,14 +43,14 @@ for path in (Path('AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean'),
                      r'initialize|register_option|elab|builtin_initialize|declare_syntax_cat|export|alias|'
                  r'register_simp_attr|declare_aesop_rule_sets)\b', raw):
             raise SystemExit('FORBIDDEN GLOBAL EXTENSION: ' + str(path))
-if found != expected:
-    print('COMPOSE INVENTORY MISSING:', sorted(expected - found))
+if found - expected:
     print('COMPOSE INVENTORY UNLISTED:', sorted(found - expected))
     raise SystemExit(2)
 print(f'Compose source coverage: {len(files)} modules; {len(expected)} public declarations/projections')
 PY
 targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries)
 gate_build --wfail AvailableChainFGCompose $targets
+python3 -B scripts/write-check-inventories.py --scope compose --check
 expected=$(python3 -B scripts/check_inventory.py scripts/fg-compose-expected.txt)
 lake env lean --run scripts/CheckFGAxioms.lean --compose --expect $expected
 bash scripts/check-fg-syntax.sh

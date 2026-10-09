@@ -22,6 +22,8 @@ sys.path.insert(0, 'scripts')
 import check_common as C
 import import_policy as P
 from check_inventory import read_names
+from importlib import import_module
+current_inventory = import_module('current-inventory')
 spec = importlib.util.spec_from_file_location('layers', 'scripts/check-layers.py')
 L = importlib.util.module_from_spec(spec)
 sys.modules['layers'] = L
@@ -69,6 +71,7 @@ MODEL_SCOPE = read_model_scope(Path('scripts/claims-model-scope.txt').read_text(
 MODEL_ROOTS = sorted({module for module, _ in MODEL_SCOPE})
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = read_names('scripts/fgsa-claims-expected.txt')
+current_inventory.check_source('fgsa-claims', EXPECTED)
 # WC Job 4 adds no Statements module; the WC entries keep their current order.
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'OutageContinuation', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
@@ -542,7 +545,9 @@ args = ['lake', 'env', 'lean', '--run', str(audit)]
 for m in [*roots, *MODEL_ROOTS]:
     args += ['--root', m]
 if EXPECTED:
-    args += ['--expect', *EXPECTED, *[n for _, n in MODEL_SCOPE
+    run('inventory', ['python3', '-B', 'scripts/write-check-inventories.py',
+                      '--scope', 'fgsa-claims', '--check'])
+    args += ['--expect', 'AvailableChain.FGSA.Run.fgsaClaims', *EXPECTED, *[n for _, n in MODEL_SCOPE
                                      if not n.endswith('_def')]]
 run('axioms-coverage-used-constants', args)
 run('lease', ['lake', 'env', 'lean', '--run', str(lease_file), *roots])

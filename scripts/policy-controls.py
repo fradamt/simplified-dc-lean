@@ -45,6 +45,9 @@ for text in ('()', "('__import__(\"os\")',)", "('valid', 2)", "['valid']"):
     refused('inventory data', 'inventory' if text == '()' else 'inventory',
             lambda: parse_names(text, 'inventory'))
 assert parse_names("('AvailableChain.FGSA.Run.Base₂',)", 'unicode')
+assert parse_names("('AvailableChain.FGSA.Run.blockOf?', 'lookup!')", 'Lean identifiers')
+refused('inventory executable punctuation', 'inventory',
+        lambda: parse_names("('lookup!()',)", 'inventory'))
 refused('duplicate inventory', 'duplicate inventory',
         lambda: parse_names("('valid', 'valid')", 'inventory'))
 for name in guards.LISTS:
@@ -53,6 +56,23 @@ for name in guards.LISTS:
                       for key in guards.LISTS) + '\nPY\n'
     refused('duplicate guard ' + name, 'duplicate ' + name,
             lambda: guards.read_guard(body, 'control'))
+# Generated inventories still require independent source coverage and exact
+# compiled equality. Removing an audit target is not a guard-list waiver.
+inventories = load('write-check-inventories')
+current = load('current-inventory')
+for expected, actual in [(('a',), ('a', 'b')), (('a', 'b'), ('a',))]:
+    refused('current compiled inventory', 'INVENTORY DIFF',
+            lambda: inventories.compare(expected, actual, 'control'))
+from unittest.mock import patch
+with patch.object(current, 'source_names', return_value={'Source.present', 'Source.new'}):
+    refused('source inventory deletion/addition', 'SOURCE INVENTORY UNLISTED',
+            lambda: current.check_source('control', ('Source.present',)))
+assert current.public_lines('module\nnamespace A\npublic section\ndef visible := 1\n'
+                            'end\ndef hidden := 1\nend A\n') == [False, False, True,
+                                                                              True, True,
+                                                                              False, False]
+print('CONTROL module public/private section scope: PASS')
+print('CONTROL source and compiled inventory completeness: PASS')
 refused('duplicate import entries', 'duplicate import-policy entry',
         lambda: P.expand(['Init.**', 'Init.**']))
 refused('duplicate JSON keys', 'duplicate import-policy key',

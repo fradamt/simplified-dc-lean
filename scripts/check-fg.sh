@@ -44,9 +44,11 @@ missing=$(comm -23 \
 step "scripts/check-fg-syntax.sh"
 bash scripts/check-fg-syntax.sh
 step "scripts/CheckFGAxioms.lean"
+python3 -B scripts/current-inventory.py fg scripts/fg-expected.txt
+python3 -B scripts/write-check-inventories.py --scope fg --check
 expected=$(python3 scripts/check_inventory.py scripts/fg-expected.txt)
 # The reader accepts only declaration identifiers, with no shell metacharacters.
-lake env lean --run scripts/CheckFGAxioms.lean --expect $expected
+lake env lean --run scripts/CheckFGAxioms.lean --expect finalityOf_def $expected
 fi
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names

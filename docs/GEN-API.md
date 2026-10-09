@@ -1,63 +1,14 @@
 # Generic API manifest
 
-_Baseline for A0 step 2 (I23, ruling D15), 2026-09-30._
+_Current compiled snapshot. Policy: 2026-10-09._
 
-This file lists every public declaration of
-`AvailableChainGeneric.Statements.*` (Pure, V2 and AC), by fully qualified
-name and grouped by module. Gen has no anchor rule.
+Run the writer after a source change and review the complete diff.
+The check requires all current names, modules, kinds and hashes.
+Theorem proof values are excluded. Snapshot updates do not approve claims.
 
-ROOT-DIGEST-2 option 3 permits the 64 mode-indexed generic entries and measured
-representation dependencies. See the [full exception](FGSA-API.md#root-digest-2-option-3-exception).
-Keep the frozen baselines and SHAs. Exact old/new hashes and causes follow at integration.
+Entries: 846; modules: 55.
 
-## Baseline rule
-
-Baseline at the A0 step-2 close. Before G-F0a a Gen Statements edit re-writes this file in the SAME commit (visible diff); from G-F0a it is append-only.
-
-## ROOT-DIGEST option-3 exception
-
-ROOT-DIGEST W1c, user option 3 (2026-10-04), plan r2 Addenda r2.1 and r2.2.
-The class exception covers these four entries in `AvailableChain.Gen.Pure`:
-
-- `WalkNoEligibleChildOfAnchorClosedStatement` and
-  `WalkNoEligibleChildOfAnchorClosedStatement_def`: add
-  `(∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B)` before `AnchorClosed anchor tree`.
-  Evidence: `.lake/rdw1b-walk-evidence.lean`, theorem `old_walk_claim_false`, checked against
-  production objects in `.lake/rdw1c-check-walk-evidence.log`. Equal-root eligible siblings
-  cause GHOST to stop at their parent.
-- `WalkCoversOfRetainedTransportStatement` and
-  `WalkCoversOfRetainedTransportStatement_def`: add
-  `(∀ A ∈ targetTree, ∀ B ∈ targetTree, A.root = B.root → A = B)` before source coverage.
-  Evidence: `.lake/rdw1c-retained-evidence.lean`, theorem `frozen_retained_claim_false`.
-  Its kernel check is `.lake/rdw1c-retained-evidence-final.log`. The source returns A;
-  equal-root target siblings make GHOST return genesis despite BestAncestry.
-
-The census is `.lake/rdw1c-census.md`. No other frozen walk entry needs a new premise.
-BestAncestry keeps its definition. Strict dominance and a selected source path need no new premise.
-CStoreInv supplies the local tree premise through `baseBlocks_rootInj` and `erasedList_rootInj`.
-Generic helpers forward their explicit tree premise. W2 caller edits remain outside W1 scope.
-No FGSAClaims field or Base₂ text changes beyond plan §2 are permitted by this exception.
-GHOST, its tie refusal, and the selector/window algorithm stay unchanged.
-
-The official Gen list has 705 entries. The tool output and the exact four-entry delta are in
-`.lake/rdw1c-gen-manifest.md` and `.lake/rdw1c-gen-manifest-delta.json`.
-All new objects come from the production build. No caller is removed from those modules.
-The full lower-library build remains blocked by W3 test migration.
-
-## How to check
-
-`scripts/V2Manifest.lean` generates and checks this list.
-
-- `lake env lean --run scripts/V2Manifest.lean --scope gen --list` prints
-  the module blocks from the environment, in source order, with hashes.
-- `lake env lean --run scripts/V2Manifest.lean --scope gen --check` checks
-  the names, modules, kinds, hashes and completeness. A failed check exits 1.
-- `--manifest <path>` overrides this file. `--anchor` is a usage error for Gen.
-
-Each entry hash uses the shared hash rules in `scripts/V2Manifest.lean`:
-types and definition values, generated or private helpers in the closure,
-type binder names and infos, reducibility, and instance status. Theorem
-proofs do not affect the hash.
+`lake env lean --run scripts/V2Manifest.lean --scope gen --write` updates this file; `--check` checks it.
 
 ## Entries
 
@@ -356,6 +307,23 @@ def AvailableChain.Gen.Pure.AntitoneChainSearchStatement e7383de4aeb45541
 theorem AvailableChain.Gen.Pure.AntitoneChainSearchStatement_def c894dc5c18fc6207
 def AvailableChain.Gen.Pure.TwoStepChainSearchStatement 3baf40b90947fa21
 theorem AvailableChain.Gen.Pure.TwoStepChainSearchStatement_def 66f2097822f16a55
+```
+
+### `AvailableChainGeneric.Statements.Pure.CommonAncestor`
+
+```text
+def AvailableChain.Gen.Pure.MeetPrefixStatement 5ddf06b369d5ca7a
+theorem AvailableChain.Gen.Pure.MeetPrefixStatement_def f1737a28d97fb341
+def AvailableChain.Gen.Pure.MeetMaximalStatement e8cf1001e713daae
+theorem AvailableChain.Gen.Pure.MeetMaximalStatement_def a4d156d436daea3d
+def AvailableChain.Gen.Pure.MeetCommStatement bf7905b395ea61ef
+theorem AvailableChain.Gen.Pure.MeetCommStatement_def d4e704ef2675c8bf
+def AvailableChain.Gen.Pure.MeetInclusionStatement eff92fef3cacd3ae
+theorem AvailableChain.Gen.Pure.MeetInclusionStatement_def 951f9c7de215dea6
+def AvailableChain.Gen.Pure.MeetOfPreceqStatement 41970219accf1f62
+theorem AvailableChain.Gen.Pure.MeetOfPreceqStatement_def 6360ca81d2c9b3c9
+def AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement a83aef9afbb7ec52
+theorem AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement_def 4efb9c158b0f04d6
 ```
 
 ### `AvailableChainGeneric.Statements.Pure.Dominance`
@@ -1163,21 +1131,4 @@ ctor AvailableChain.Gen.V2.SlashingInterface.mk 0636988bbb255725
 def AvailableChain.Gen.V2.SlashingInterface.slashes e464437d9cc362da
 def AvailableChain.Gen.V2.HonestNeverSlashed cb7d6d1806cfe47c
 theorem AvailableChain.Gen.V2.HonestNeverSlashed_def a06df42e8668cf32
-```
-
-### `AvailableChainGeneric.Statements.Pure.CommonAncestor`
-
-```text
-def AvailableChain.Gen.Pure.MeetPrefixStatement 5ddf06b369d5ca7a
-theorem AvailableChain.Gen.Pure.MeetPrefixStatement_def f1737a28d97fb341
-def AvailableChain.Gen.Pure.MeetMaximalStatement e8cf1001e713daae
-theorem AvailableChain.Gen.Pure.MeetMaximalStatement_def a4d156d436daea3d
-def AvailableChain.Gen.Pure.MeetCommStatement bf7905b395ea61ef
-theorem AvailableChain.Gen.Pure.MeetCommStatement_def d4e704ef2675c8bf
-def AvailableChain.Gen.Pure.MeetInclusionStatement eff92fef3cacd3ae
-theorem AvailableChain.Gen.Pure.MeetInclusionStatement_def 951f9c7de215dea6
-def AvailableChain.Gen.Pure.MeetOfPreceqStatement 41970219accf1f62
-theorem AvailableChain.Gen.Pure.MeetOfPreceqStatement_def 6360ca81d2c9b3c9
-def AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement a83aef9afbb7ec52
-theorem AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement_def 4efb9c158b0f04d6
 ```
