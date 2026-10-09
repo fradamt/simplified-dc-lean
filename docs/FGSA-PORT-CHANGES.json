@@ -180685,6 +180685,78 @@
       "review_status": "pending",
       "pending_reason": "No review explicitly covers this WP16 data edit.",
       "job": "port-w16c"
+    },
+    {
+      "path": "docs/FG-FINALITY-SAFETY-S0-inherited.json",
+      "kind": "s0-byte-history",
+      "old": "34c9bd072c9f57b928033e12a3b1825897143067c7f2fbe74867aeb6c89643cf",
+      "new": "e43abf02e1359e1dd320aa647465613da6f82c8ce15b41b747faed5dbfedc05f",
+      "declaration": "docs/FGSA-API.md",
+      "wp": "WP16",
+      "reason": "WP16 measured Y API data: fix(fgsa): measure Y suppliers and record remaining audit blockers",
+      "source_commit": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit.",
+      "parent": "33ac5feca6f3e2785ee18e892b1fb72e47f9f43c",
+      "history_kind": "commit"
+    },
+    {
+      "path": "docs/FG-FINALITY-SAFETY-S0-inherited.json",
+      "kind": "s0-tip-hash",
+      "old": "34c9bd072c9f57b928033e12a3b1825897143067c7f2fbe74867aeb6c89643cf",
+      "new": "e43abf02e1359e1dd320aa647465613da6f82c8ce15b41b747faed5dbfedc05f",
+      "declaration": "docs/FGSA-API.md",
+      "wp": "WP16",
+      "reason": "Pin exact integrated Y/WP12d/wfix2 source bytes",
+      "source_commit": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit.",
+      "dependencies": [
+        "2862a33a167325da8a0302a4fc2f29284b19fa60"
+      ]
+    },
+    {
+      "path": "docs/FG-FINALITY-SAFETY-S0-inherited.json",
+      "kind": "s0-revision-pin",
+      "old": "988177e222b441e9ee08d51f8dfd39c80b0d395d",
+      "new": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+      "declaration": "main_revision",
+      "wp": "WP16",
+      "reason": "Exact second-pass merged byte pin",
+      "source_commit": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit."
+    },
+    {
+      "path": "docs/FG-FINALITY-SAFETY-S0-inherited.json",
+      "kind": "s0-package",
+      "old": null,
+      "new": {
+        "id": "FGSA-port-final-refresh-data",
+        "base": "988177e222b441e9ee08d51f8dfd39c80b0d395d",
+        "tip": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+        "recorded_changes": [
+          {
+            "path": "docs/FGSA-API.md",
+            "commit": "2862a33a167325da8a0302a4fc2f29284b19fa60"
+          }
+        ],
+        "note": "Exact measured API bytes after the integrated Y constructor change."
+      },
+      "declaration": "FGSA-port-final-refresh-data",
+      "wp": "WP16",
+      "reason": "Exact package endpoint history",
+      "source_commit": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+      "reviewed_commit": null,
+      "review": null,
+      "review_status": "pending",
+      "pending_reason": "No review explicitly covers this WP16 data edit."
     }
   ],
   "pending": [
@@ -181042,6 +181114,198 @@
       "command": "SOURCE_ONLY=1 bash scripts/check-fgsa-claims.sh",
       "before": "PASS",
       "after": "PASS",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "precheck",
+      "command": "bash /Users/francesco/.claude/jobs/22f59f85/tmp/precheck.sh /Users/francesco/.claude/jobs/22f59f85/tmp/wt-pcsa-formation 318074ba",
+      "before": "PASS",
+      "after": "PASS",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "freeze",
+      "command": "python3 -B scripts/check-fg-finality-freeze.py --check",
+      "before": "FAIL: Invariants",
+      "after": "PASS: 122 paths; 20 diffs",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "store source",
+      "command": "SOURCE_ONLY=1 bash scripts/check-fgsa.sh",
+      "before": "PASS",
+      "after": "PASS",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "run source",
+      "command": "SOURCE_ONLY=1 bash scripts/check-fgsa-run.sh",
+      "before": "PASS",
+      "after": "PASS",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "three libraries",
+      "command": "LEAN_SLOTS=2 lake build --wfail AvailableChainFGSAProofs AvailableChainFGSARun AvailableChainFGSA",
+      "before": "143: stopped blocked build",
+      "after": "PASS: 3899 jobs",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "audit roots",
+      "command": "LEAN_SLOTS=2 lake build --wfail <14 audits and 3 extra roots>",
+      "before": "Not run",
+      "after": "FAIL: Inhabit reset",
+      "exit": 1
+    },
+    {
+      "job": "port-w16c",
+      "name": "policy module",
+      "command": "LEAN_SLOTS=2 lake build --wfail AvailableChainCheckSupport.ImportPolicy",
+      "before": "Not run",
+      "after": "PASS: 2 jobs",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "expected names",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/CheckBlueprintClaims.lean .lake/port-w16c/expected-request.txt",
+      "before": "Old paths / two stale names",
+      "after": "INPUT ERROR: 364 blocked",
+      "exit": 2
+    },
+    {
+      "job": "port-w16c",
+      "name": "unblocked names",
+      "command": "LEAN_SLOTS=2 lake env lean --run claude-files/PortW16cP13Evidence.lean .lake/port-w16c/expected-unblocked-request.txt .lake/port-w16c/p13-candidate-names.txt",
+      "before": "Not measured",
+      "after": "PASS: 2214 / 2578",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "supplement",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/CheckBlueprintClaims.lean .lake/port-w16c/supplement-request.txt",
+      "before": "Not measured",
+      "after": "PASS: 74; moved 59",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "old reads / controls",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/CheckFGSAOldReads.lean --controls",
+      "before": "Same baseline",
+      "after": "PASS: 10203 / 520 modules",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "coverage",
+      "command": "LEAN_SLOTS=2 python3 -B scripts/check-proof-coverage.py",
+      "before": "Five stale audit names",
+      "after": "INPUT ERROR: Inhabit",
+      "exit": 2
+    },
+    {
+      "job": "port-w16c",
+      "name": "coverage generation",
+      "command": "LEAN_SLOTS=2 python3 -B scripts/check-proof-coverage.py --write",
+      "before": "6681 rows",
+      "after": "INPUT ERROR: Inhabit",
+      "exit": 2
+    },
+    {
+      "job": "port-w16c",
+      "name": "P13",
+      "command": "LEAN_SLOTS=2 python3 -B scripts/check-fgsa-blueprint.py --check",
+      "before": "FAIL: 177 mismatches",
+      "after": "PASS; 36 OPEN retained",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "six witnesses",
+      "command": "LEAN_SLOTS=2 lake env lean -DwarningAsError=true claude-files/PortW16bClosedClaims.lean",
+      "before": "Not run",
+      "after": "PASS: Params alone",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "API generation",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/V2Manifest.lean --scope fgsa --write",
+      "before": "1242 entries",
+      "after": "PASS: 1243; prose kept",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "shallow",
+      "command": "LEAN_SLOTS=2 lake env lean --run scripts/V2Manifest.lean --scope fgsa --check",
+      "before": "Changed / missing reset",
+      "after": "FAIL: protected old pin",
+      "exit": 1
+    },
+    {
+      "job": "port-w16c",
+      "name": "deep",
+      "command": "LEAN_SLOTS=2 lake env lean --run claude-files/PortW16cDeepCapture.lean --scope fgsa --deep --check",
+      "before": "Pre-Y exception data",
+      "after": "FAIL: 897 exact deltas",
+      "exit": 1
+    },
+    {
+      "job": "port-w16c",
+      "name": "frame",
+      "command": "python3 -B scripts/fgsa-deep.py --frame-check",
+      "before": "Same fixed data",
+      "after": "PASS: 43; 5 exceptions",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "finality coverage",
+      "command": "python3 -B scripts/check-fg-finality-coverage.py",
+      "before": "PASS",
+      "after": "PASS",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "ownership",
+      "command": "python3 -B scripts/check-fgsa-port-owners.py",
+      "before": "PASS",
+      "after": "PASS: 746 paths",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "Inhabit candidate",
+      "command": "LEAN_SLOTS=2 lake env lean -DwarningAsError=true claude-files/PortW16cInhabitCandidate.lean",
+      "before": "Six reset goals fail",
+      "after": "PASS; patch not applied",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "freeze history",
+      "command": "python3 -B scripts/check-fg-finality-freeze.py --history",
+      "before": "44 records; pre-Y pin",
+      "after": "PASS: 46 exact records",
+      "exit": 0
+    },
+    {
+      "job": "port-w16c",
+      "name": "freeze packages",
+      "command": "python3 -B scripts/check-fg-finality-freeze.py --packages",
+      "before": "20 packages",
+      "after": "PASS: 22 packages",
       "exit": 0
     }
   ],
@@ -188938,6 +189202,16 @@
       "status": "PASS",
       "data_changed": false
     },
-    "acceptance": "Blocked by Inhabit source build, protected shallow pin, and WP00c deep data. Equation repair stays pending port-weq; no baseline edit."
+    "acceptance": "Blocked by Inhabit source build, protected shallow pin, and WP00c deep data. Equation repair stays pending port-weq; no baseline edit.",
+    "checks": {
+      "evidence_directory": ".lake/port-w16c",
+      "count": 24,
+      "data_tip": "2862a33a",
+      "freeze_history_records": 46,
+      "freeze_packages": 22,
+      "precheck_base": "318074ba",
+      "claims_source_changed": false
+    },
+    "pending_review_rows": 1160
   }
 }
