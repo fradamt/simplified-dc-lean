@@ -543,7 +543,7 @@ theorem fgsa_headVotes_provenance (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
         · rename_i hb
           cases hd
           exact relay_carried_run E rho hE.toScheduleWellFormed hN k y s htick
-            w hw' r N hdw (by simpa using hb) o hm seat hl' hk
+            w hw' r N hdw (by simpa using hb.1) o hm seat hl' hk
         · cases hd
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
