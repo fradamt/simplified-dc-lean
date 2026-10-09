@@ -2234,3 +2234,4 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_filtered
 #print axioms AvailableChain.FGSA.Run.wc_proposer_prior_of_F_prefix
 #print axioms AvailableChain.FGSA.Run.wc_treeFrameAncestry
+#print axioms AvailableChain.FGSA.Run.healing_domain_filter_F

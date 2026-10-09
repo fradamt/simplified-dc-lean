@@ -195,10 +195,10 @@ theorem audit_outageV_block_stamp_lt :
   @AvailableChain.FGSA.Run.outageV_block_stamp_lt
 #print axioms audit_outageV_block_stamp_lt
 
-theorem audit_outageV_frozen_of_receipt :
-    type_of% (@AvailableChain.FGSA.Run.outageV_frozen_of_receipt) :=
-  @AvailableChain.FGSA.Run.outageV_frozen_of_receipt
-#print axioms audit_outageV_frozen_of_receipt
+theorem audit_outageV_frozen_of_receipt_of_F_prefix :
+    type_of% (@AvailableChain.FGSA.Run.outageV_frozen_of_receipt_of_F_prefix) :=
+  @AvailableChain.FGSA.Run.outageV_frozen_of_receipt_of_F_prefix
+#print axioms audit_outageV_frozen_of_receipt_of_F_prefix
 
 theorem audit_outageV_source_held :
     type_of% (@AvailableChain.FGSA.Run.outageV_source_held) :=
