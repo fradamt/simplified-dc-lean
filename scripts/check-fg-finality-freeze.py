@@ -7,10 +7,16 @@ change to one of them, with its exact commit, parent and byte hashes. The
 record is history only: it grants no permission to edit a listed path.
 
 Modes:
-  --check [--revision REV]  every S0 path at REV (default HEAD, with the
+  --check                   the gate mode. It reads no Git history: each S0
+                            path in the working tree has its S0 bytes, or,
+                            for a recorded difference, the recorded main
+                            bytes. It also checks the record and the two
+                            manifest hashes. It runs on an archive.
+  --history [--revision REV]  every S0 path at REV (default HEAD, with the
                             working tree) has its S0 bytes or its recorded
                             bytes; the record matches Git history; the open
                             package (tip null) adds no frozen-byte change.
+                            Not a gate step: it reads old revisions.
   --packages                every package base/tip pair changes only its
                             recorded frozen paths.
   --base BASE --tip TIP     the range changes no frozen byte.
@@ -101,7 +107,8 @@ class Checker:
     def fail(self, msg):
         self.findings.append(msg)
 
-    def load(self):
+    def load_files(self):
+        """The record and the manifests, from files only (no Git)."""
         rp = self.root / self.record_path
         if not rp.is_file():
             raise FreezeError(f'MISSING RECORD {self.record_path}')
@@ -124,9 +131,6 @@ class Checker:
             sp = self.root / self.step1_path
             if not sp.is_file() or sha(sp.read_bytes()) != r['s0_step1_manifest_sha256']:
                 raise FreezeError('S0 STEP-1 MANIFEST CHANGED: ' + self.step1_path)
-        self.s0 = self.repo.commit(r['s0_revision'])
-        self.cmp = self.repo.commit(r['comparison_revision'])
-        self.main = self.repo.commit(r['main_revision'])
         self.diffs = {}
         for d in r['differences']:
             p = d.get('path')
@@ -134,7 +138,29 @@ class Checker:
                 raise FreezeError(f'DUPLICATE DIFFERENCE {p}')
             if p not in self.manifest:
                 raise FreezeError(f'DIFFERENCE NOT IN S0 MANIFEST {p}')
+            for key in ('s0_sha256', 'main_sha256'):
+                if not isinstance(d.get(key), str) or len(d[key]) != 64:
+                    raise FreezeError(f'DIFFERENCE MISSING {key} {p}')
+            if d['s0_sha256'] != self.manifest[p]:
+                raise FreezeError(f'S0 HASH MISMATCH {p}')
             self.diffs[p] = d
+
+    def load(self):
+        self.load_files()
+        r = self.record
+        self.s0 = self.repo.commit(r['s0_revision'])
+        self.cmp = self.repo.commit(r['comparison_revision'])
+        self.main = self.repo.commit(r['main_revision'])
+
+    def check_bytes(self):
+        """The gate mode: working-tree bytes only."""
+        for p, v in self.manifest.items():
+            want = self.diffs[p]['main_sha256'] if p in self.diffs else v
+            got = self.repo.worktree(p)
+            if got is None:
+                self.fail(f'MISSING FILE {p} in working tree')
+            elif got != want:
+                self.fail(f'UNLISTED DIFFERENCE {p} in working tree')
 
     def check_history(self):
         """Each recorded change is an exact parent-to-commit byte change, and
@@ -278,6 +304,16 @@ class Checker:
         if self.repo.ancestor(self.main, base) or not self.repo.ancestor(self.main, rev):
             return []
         return [p for p, d in self.diffs.items() if self.repo.blob(rev, p) == d['main_sha256']]
+
+
+def run_bytes_check(root, report=print):
+    ch = Checker(root)
+    ch.load_files()
+    ch.check_bytes()
+    if not ch.findings:
+        report(f'fg-finality-freeze: PASS (bytes): {len(ch.manifest)} S0 paths, '
+               f'{len(ch.diffs)} recorded differences at their main bytes')
+    return ch.findings
 
 
 def run_check(root, revision, report=print):
@@ -458,6 +494,37 @@ def selftest():
                        'UNLISTED DIFFERENCE b.lean')
             else:
                 expect('newer main change merged into the open package', check(root), None)
+    import tarfile
+    for label, edit, want in [('archive positive (no Git)', None, None),
+                              ('archive byte change (no Git)', 'b.lean',
+                               'UNLISTED DIFFERENCE b.lean in working tree'),
+                              ('archive recorded file at an older hash (no Git)', 'a.lean',
+                               'UNLISTED DIFFERENCE a.lean in working tree')]:
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as out:
+            root, rec, c = fixture(tmp)
+            data = subprocess.run(['git', '-C', str(root), 'archive', 'HEAD'], check=True,
+                                  capture_output=True).stdout
+            archive = Path(out) / 'tree.tar'
+            archive.write_bytes(data)
+            with tarfile.open(archive) as tar:
+                tar.extractall(Path(out) / 'x', **({'filter': 'data'} if hasattr(tarfile, 'data_filter') else {}))
+            tree = Path(out) / 'x'
+            if edit == 'b.lean':
+                write(tree, 'b.lean', 'b1\n')
+            elif edit == 'a.lean':
+                write(tree, 'a.lean', 'a0\n')
+            real = subprocess.run
+
+            def no_git(*args, **kw):
+                raise AssertionError('the bytes check ran a subprocess')
+            subprocess.run = no_git
+            try:
+                findings = run_bytes_check(tree, report=lambda _: None)
+            except FreezeError as exc:
+                findings = [str(exc)]
+            finally:
+                subprocess.run = real
+            expect(label, findings, want)
     print(f'fg-finality-freeze selftest: PASS ({cases} cases)')
 
 
@@ -467,6 +534,7 @@ def main():
     ap.add_argument('--root', default=str(Path(__file__).resolve().parent.parent))
     mode = ap.add_mutually_exclusive_group(required=True)
     mode.add_argument('--check', action='store_true')
+    mode.add_argument('--history', action='store_true')
     mode.add_argument('--packages', action='store_true')
     mode.add_argument('--selftest', action='store_true')
     mode.add_argument('--base')
@@ -477,7 +545,11 @@ def main():
         if a.selftest:
             selftest()
             return 0
+        if a.revision and not a.history:
+            ap.error('--revision needs --history')
         if a.check:
+            findings = run_bytes_check(a.root)
+        elif a.history:
             findings = run_check(a.root, a.revision)
         elif a.packages:
             ch = Checker(a.root)
