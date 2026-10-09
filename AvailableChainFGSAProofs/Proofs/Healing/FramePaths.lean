@@ -109,8 +109,8 @@ private theorem frame_frozen_mem (hs : V2.D.ScheduleWellFormed E rho)
       · exact hg.2 ▸ hdpos
       · obtain ⟨parent, he, _⟩ := ha.1
         have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hs he d).mp hl
-        have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-          (fgsa_hrestore_now p c) E rho hs he y
+        have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+          (fgsa_hrestore_now_retained p c) E rho hs he y
         rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hn
         exact hstamp ▸ hn.trans_lt ht
     have hkept : st'.base.blockStamp.find? (fun row => row.1 == eraseFG W) =

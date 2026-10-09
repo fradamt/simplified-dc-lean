@@ -255,6 +255,17 @@ private theorem frame_slots_reachable (st : State p.n) (hr : Reachable p st) :
       rfl
     · intro row hr
       exact (List.not_mem_nil hr).elim
+  | reset t =>
+    constructor
+    · intro B hb
+      have he : B = .genesis := List.mem_singleton.mp hb
+      subst B
+      intro A ha
+      have he : A = .genesis := by simpa [Block.Preceq, Block.preceq] using ha
+      subst A
+      rfl
+    · intro row hr
+      exact (List.not_mem_nil hr).elim
   | tick t _ ih => exact frame_slots_clock p _ t ih.1 ih.2
   | deliver o _ ih => exact frame_slots_process p _ o ih.1 ih.2
 

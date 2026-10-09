@@ -13,7 +13,8 @@ terminal reads and time zero. The clock source needs no next event. -/
 theorem fgsa_timeIdx_now_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (t : Time) (ht : 0 ≤ t) (x : V) :
     (V2.D.Run.stateBefore E rho (timeIdx rho t) x).st.base.now ≤ t := by
-  rcases V2.D.Engine.stateBefore_now_source (fgsaClock p c) (fgsa_hrestore_now p c)
+  rcases stateBefore_now_source_retained (fgsaClock p c)
+    (fgsa_hrestore_now_retained p c)
     E rho (timeIdx rho t) x with hz | ⟨j, hj, he⟩
   · rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho (timeIdx rho t) x)] at hz
     exact hz.trans ht

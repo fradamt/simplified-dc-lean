@@ -234,7 +234,7 @@ theorem wc_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
     V2.D.Engine.clock_field_origin_of_subset (P := fgsa p c)
       (fun nd => wc_savedPairs nd.st) rfl
       (fun nd o pair h => wc_savedPairs_process nd.st (toWire p o) h)
-      (fun _ _ _ h => h) (fgsa_hrestore_field p c wc_savedPairs rfl)
+      (fun _ _ _ h => h) (fgsa_hrestore_field_retained p c wc_savedPairs (fun _ => rfl))
       (fun nd t pair => t = SA.gateTime p.toParams pair.1 ∧
         SA.Root.confirmationFrom p.toParams (eraseFG (clockPre p nd.st t).fg.F)
           (actView (clockPre p nd.st t)) pair.1 = some pair.2)

@@ -81,6 +81,11 @@ theorem stored_r6wW (p : Params) {st : State p.n} (reachable : Reachable p st) :
       change FGBlock.node P s r_s x rs ∈ ({.genesis} : Finset (FGBlock (Fin p.n))) at stored
       simp only [Finset.mem_singleton] at stored
       cases stored
+  | reset t =>
+      intro P s r_s x rs stored
+      change FGBlock.node P s r_s x rs ∈ ({.genesis} : Finset (FGBlock (Fin p.n))) at stored
+      simp only [Finset.mem_singleton] at stored
+      cases stored
   | tick t _ ih =>
       simpa only [clock_fg] using ih
   | deliver o reachable ih =>
