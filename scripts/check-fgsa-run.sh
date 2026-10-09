@@ -215,6 +215,58 @@ AX_OPTS=(--expect
   AvailableChain.FGSA.Run.Tests.DigestScope.traceRun
   AvailableChain.FGSA.Run.Tests.NVDigest.live_horizon_grid
   AvailableChain.FGSA.Run.Tests.NVDigest.nvDigest
+  # WP12b/c spec construction helpers (AvailableChainFGSARun/Proofs/Spec, moved by w12d).
+  AvailableChain.FGSA.Spec.spec_assigned_check_iff
+  AvailableChain.FGSA.Spec.spec_assigned_parent_membership
+  AvailableChain.FGSA.Spec.spec_assigned_proposal_emission
+  AvailableChain.FGSA.Spec.spec_block_identity_step
+  AvailableChain.FGSA.Spec.spec_discarded_event_step
+  AvailableChain.FGSA.Spec.spec_duplicate_delivery_stutter
+  AvailableChain.FGSA.Spec.spec_identity_gate_assigned
+  AvailableChain.FGSA.Spec.spec_identity_gate_refused
+  AvailableChain.FGSA.Spec.spec_identity_refusal_step
+  AvailableChain.FGSA.Spec.spec_identity_store_induction
+  AvailableChain.FGSA.Spec.spec_mapped_delivery_wire
+  AvailableChain.FGSA.Spec.spec_missing_dependency_stutter
+  AvailableChain.FGSA.Spec.spec_no_full_row_target_reader
+  AvailableChain.FGSA.Spec.spec_parent_identity_filtered
+  AvailableChain.FGSA.Spec.spec_parent_identity_root
+  AvailableChain.FGSA.Spec.spec_prune_append
+  AvailableChain.FGSA.Spec.spec_prune_delivery_conditions
+  AvailableChain.FGSA.Spec.spec_prune_delivery_valid
+  AvailableChain.FGSA.Spec.spec_prune_emits
+  AvailableChain.FGSA.Spec.spec_prune_execution_valid
+  AvailableChain.FGSA.Spec.spec_prune_final
+  AvailableChain.FGSA.Spec.spec_prune_matched_cut
+  AvailableChain.FGSA.Spec.spec_prune_no_restart
+  AvailableChain.FGSA.Spec.spec_prune_observation
+  AvailableChain.FGSA.Spec.spec_prune_schedule
+  AvailableChain.FGSA.Spec.spec_prune_signatures
+  AvailableChain.FGSA.Spec.spec_prune_sublist
+  AvailableChain.FGSA.Spec.spec_prune_tick_cut
+  AvailableChain.FGSA.Spec.spec_prune_tick_mem
+  AvailableChain.FGSA.Spec.spec_ready_wire_step
+  AvailableChain.FGSA.Spec.spec_ready_wire_valid
+  AvailableChain.FGSA.Spec.spec_restart_retained_block_trace
+  AvailableChain.FGSA.Spec.spec_restart_delivery_cases
+  AvailableChain.FGSA.Spec.spec_restart_delivery_valid
+  AvailableChain.FGSA.Spec.spec_restart_execution_valid
+  AvailableChain.FGSA.Spec.spec_restart_matched_cut_agreement
+  AvailableChain.FGSA.Spec.spec_restart_no_public_tick
+  AvailableChain.FGSA.Spec.spec_restart_outside_no_restart
+  AvailableChain.FGSA.Spec.spec_restart_schedule
+  AvailableChain.FGSA.Spec.spec_restart_self_delivery
+  AvailableChain.FGSA.Spec.spec_restart_signatures
+  AvailableChain.FGSA.Spec.spec_revised_target_execution
+  AvailableChain.FGSA.Spec.spec_row_finality_root_match
+  AvailableChain.FGSA.Spec.spec_row_height_root_match
+  AvailableChain.FGSA.Spec.spec_row_target_identity_trace
+  AvailableChain.FGSA.Spec.spec_simulation_event_key
+  AvailableChain.FGSA.Spec.spec_simulation_event_stutter
+  AvailableChain.FGSA.Spec.spec_simulation_proposal_retained
+  AvailableChain.FGSA.Spec.spec_simulation_wire_stutter
+  AvailableChain.FGSA.Spec.spec_simulation_wire_valid
+  AvailableChain.FGSA.Spec.spec_stutter_event_list
 )
 
 # T7.11 content agreement.
