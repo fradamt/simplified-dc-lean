@@ -273,6 +273,12 @@ theorem metaInv_init (p : Params) : MetaInv p (initial p.n) := by
   · simp [initial]
   · intro o ho; simp [initial] at ho
 
+/-- Ruling Y: reset metadata does not read the retained clock. -/
+theorem metaInv_initialAt (p : Params) (t : Time) : MetaInv p (initialAt p.n t) := by
+  have h := metaInv_init p
+  exact ⟨h.wireTree, h.treeWire, h.proposalsNodup, h.stampKeys, h.blocksNodup,
+    h.poolDecodes, h.poolNodup, h.noGenesisWire⟩
+
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] `Wire.block?` of a proposal wire. -/
 theorem block?_proposal {n : Nat} (s : Slot) (N : NamedProposal n) :
     Wire.block? (n := n) ⟨.proposer s, .proposal N⟩ = some N.erase := rfl
@@ -478,6 +484,7 @@ theorem metadataInvariant (p : Params) : MetadataInvariant p := by
   intro st hst
   induction hst with
   | init => exact metaInv_init p
+  | reset t => exact metaInv_initialAt p t
   | tick t _ ih => exact metaInv_clock p _ ih t
   | deliver o hst' ih => exact metaInv_process p _ (storeInvariant p _ hst') ih o
 
@@ -556,6 +563,7 @@ theorem rowsValidStored_reachable (p : Params) {st : State p.n} (hr : Reachable 
     RowsValidStored p st := by
   induction hr with
   | init => exact rowsValidStored_initial p
+  | reset t => exact rowsValidStored_initial p
   | tick t _ ih => exact rowsValidStored_clock p _ ih t
   | deliver o hr ih => exact rowsValidStored_process p _ (storeInvariant p _ hr) ih o
 
