@@ -226,9 +226,9 @@
         ),
         'AvailableChainFGSA.Model.ContestFrame': (
             'AvailableChain.FGSA.Next.controls',
-            'AvailableChain.FGSA.Next.controls_def',
+            'AvailableChain.FGSA.Next.controlsNext_def',
             'AvailableChain.FGSA.Next.fullTree',
-            'AvailableChain.FGSA.Next.fullTree_def',
+            'AvailableChain.FGSA.Next.fullTreeNext_def',
         ),
         'AvailableChainFGSA.Proofs.Port.ContestFrame': (
             'AvailableChain.FGSA.Next.controls_eq_of_top_extends_F',
