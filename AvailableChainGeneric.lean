@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.V2.Sleep
+public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
 public import AvailableChainGeneric.Statements.Pure.ScheduleW
 public import AvailableChainGeneric.Proofs.Pure.ScheduleW
 public import AvailableChainGeneric.Statements.Pure.SlotGrid

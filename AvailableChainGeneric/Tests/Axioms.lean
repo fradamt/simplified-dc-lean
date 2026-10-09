@@ -1,4 +1,8 @@
 module
+public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
+public import AvailableChainGeneric.Proofs.V2.Sleep
+public import AvailableChainGeneric.Tests.DeliveryBy
+public import AvailableChainGeneric.Tests.Duties
 public import AvailableChainGeneric.Proofs.AC.RootVotes
 public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainGeneric.Proofs.AC.RootBatch
@@ -1045,3 +1049,39 @@ end AvailableChain.Gen.AC.Root
 #print axioms AvailableChain.Gen.Pure.meet_self
 #print axioms AvailableChain.Gen.Pure.meet_compatibility_transfer_statement
 #print axioms AvailableChain.Gen.Pure.compatible_of_preceq_meet
+
+-- W1b: sleep, exact restore time, demand, and receipt companions.
+#print axioms AvailableChain.Gen.V2.Duty.holdsBefore_iff_exists_idx_restore
+#print axioms AvailableChain.Gen.V2.Duty.historySafeAt_of_fresh
+#print axioms AvailableChain.Gen.V2.Duty.historySafeAt_of_processed_mono
+#print axioms AvailableChain.Gen.V2.Duty.processed_by_deadline_of_service
+#print axioms AvailableChain.Gen.V2.Duty.service_of_readyTrigger
+#print axioms AvailableChain.Gen.V2.Duty.ready_broadcast
+#print axioms AvailableChain.Gen.V2.Duty.ready_relay
+#print axioms AvailableChain.Gen.V2.Duty.restartFree_actionCut_idxBefore
+#print axioms AvailableChain.Gen.V2.Duty.actionCut_le_idxBefore
+#print axioms AvailableChain.Gen.V2.holdsBefore_iff_exists_idx_restore
+#print axioms AvailableChain.Gen.V2.historySafeAt_of_fresh
+#print axioms AvailableChain.Gen.V2.historySafeAt_of_processed_mono
+#print axioms AvailableChain.Gen.V2.processed_by_deadline_of_service
+#print axioms AvailableChain.Gen.V2.service_of_readyTrigger
+#print axioms AvailableChain.Gen.V2.ready_broadcast
+#print axioms AvailableChain.Gen.V2.ready_relay
+#print axioms AvailableChain.Gen.V2.restartFree_actionCut_idxBefore
+#print axioms AvailableChain.Gen.V2.actionCut_le_idxBefore
+#print axioms AvailableChain.Gen.V2.TimelyOfRelayStatement_def
+#print axioms AvailableChain.Gen.V2.AcceptedByDeadlineStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.partial_by
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.prefix_by
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.row_relay_from_acceptance
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.old_partial_rejected
+#print axioms AvailableChain.Gen.V2.Duty.Tests.Lift.deliveryWithin_agrees
+#print axioms AvailableChain.Gen.V2.Duty.Tests.Lift.accepted_by_deadline_agrees
+#print axioms AvailableChain.Gen.V2.Duty.Tests.twoDuty_schedule
+#print axioms AvailableChain.Gen.V2.Duty.Tests.twoDuty_executionValid
+
+-- W1b review companions.
+#print axioms AvailableChain.Gen.V2.timely_of_relay_public_actTime
+#print axioms AvailableChain.Gen.V2.Duty.timely_of_relay_public_actTime
+#print axioms AvailableChain.Gen.V2.Duty.AcceptanceLaw.processed_of_not_excluded
+#print axioms AvailableChain.Gen.V2.Duty.processed_or_retried_of_service

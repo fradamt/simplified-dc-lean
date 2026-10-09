@@ -16,7 +16,7 @@ theorem ownRecord_fold_restart {β : Type} (proj : P.State → β) (g : β → P
     (hrecord : ∀ st o, proj (P.recordOwn st o) = g (proj st) o)
     (E : Generic.Env V) (rho : D.Run V P) {i j : Nat} (hij : i ≤ j) (v : V)
     (hrestart : ∀ k t, i ≤ k → k < j → rho.events[k]? = some (.restart v t) →
-      proj (P.restore (P.durable (D.Run.stateBefore E rho k v))) =
+      proj (P.restore (P.durable (D.Run.stateBefore E rho k v)) t) =
         proj (D.Run.stateBefore E rho k v)) :
     proj (D.Run.stateBefore E rho j v) =
       (ownReleased E rho v i j).foldl g (proj (D.Run.stateBefore E rho i v)) :=

@@ -102,4 +102,34 @@ theorem holdsBefore_iff_exists_idx
         Q (Run.stateBefore E rho i x) :=
   @holdsBefore_iff_exists_idx_statement V _ In P E rho Q d x hNR hS hmono
 
+/-- A restore-safe property has the strict-time read characterization. -/
+theorem holdsBefore_iff_exists_idx_restore
+    {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+    {E : Generic.Env V} {rho : Run V P} {Q : P.State → Prop} {d : Time} {x : V}
+    (hS : ScheduleWellFormed E rho) (hmono : MonoAlong Q)
+    (hrestore : ∀ st t, Q st → Q (P.restore (P.durable st) t)) :
+    HoldsBefore E rho Q d x ↔
+      ∃ i ≤ rho.events.length,
+        (∀ k < i, ∃ e, rho.events[k]? = some e ∧ e.time < d) ∧
+        Q (Run.stateBefore E rho i x) := by
+  rw [HoldsBefore_def, ← stateBefore_idxBefore E rho d hS]
+  have hlen : Run.idxBefore rho d ≤ rho.events.length := by
+    rw [Run.idxBefore_def]
+    exact List.length_filter_le ..
+  constructor
+  · intro hQ
+    refine ⟨Run.idxBefore rho d, hlen, ?_, hQ⟩
+    intro k hk
+    have hklen : k < rho.events.length := lt_of_lt_of_le hk hlen
+    have he := List.getElem?_eq_getElem hklen
+    exact ⟨rho.events[k], he, (index_lt_idxBefore_iff hS he d).mp hk⟩
+  · rintro ⟨i, hi, hbefore, hQ⟩
+    have hiCut : i ≤ Run.idxBefore rho d := by
+      by_contra hn
+      obtain ⟨e, he, ht⟩ := hbefore (Run.idxBefore rho d) (Nat.lt_of_not_ge hn)
+      exact (Nat.lt_irrefl _) ((index_lt_idxBefore_iff hS he d).mpr ht)
+    rw [MonoAlong_def] at hmono
+    exact stateBefore_stable_restore Q hmono.1 hmono.2.1 hmono.2.2 E rho hiCut x
+      hrestore hQ
+
 end AvailableChain.Gen.V2

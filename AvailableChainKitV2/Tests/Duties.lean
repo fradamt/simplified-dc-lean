@@ -34,7 +34,7 @@ abbrev toy : ProtocolSpecD Unit where
   selfVisible := fun _ => true
   recordOwn := fun st o => o.payload :: st
   durable := id
-  restore := id
+  restore := fun d _ => d
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -379,7 +379,7 @@ theorem ownRecord_fold_interval_restart_agrees {β : Type}
     statementOf (D.Engine.ownRecord_fold_interval_restart (P := P.toD)
       proj g hclock hprocess hrecord E rho.toD hij v) ↔
       ((∀ k t, i ≤ k → k < j → rho.events[k]? = some (.restart v t) →
-        proj (P.restore (P.durable (V2.Run.stateBefore E rho k v))) =
+        proj (P.restore (P.durable (V2.Run.stateBefore E rho k v)) t) =
           proj (V2.Run.stateBefore E rho k v)) →
       proj (V2.Run.stateBefore E rho j v) =
         (V2.Engine.ownReleased E rho v i j).foldl g
@@ -391,7 +391,7 @@ theorem ownRecord_fold_restore_agrees {β : Type}
     (hclock : ∀ st t, proj (P.clock st t) = proj st)
     (hprocess : ∀ st o, proj (P.process st o) = proj st)
     (hrecord : ∀ st o, proj (P.recordOwn st o) = g (proj st) o)
-    (hrestore : ∀ st, proj (P.restore (P.durable st)) = proj st)
+    (hrestore : ∀ st t, proj (P.restore (P.durable st) t) = proj st)
     (i : Nat) (v : V) :
     statementOf (D.Engine.ownRecord_fold_restore (P := P.toD)
       proj g hclock hprocess hrecord hrestore E rho.toD i v) ↔
@@ -441,7 +441,7 @@ theorem restartRun_schedule : D.ScheduleWellFormed sleepEnv restartRun where
     · exact ⟨2, rfl⟩
     · exact ⟨3, rfl⟩
   tick_total := by
-    intro v _ t _ h0 h3
+    intro v _ t _ h0 h3 _
     have hv : v = 0 := Subsingleton.elim _ _
     subst v
     have ht : t = 0 ∨ t = 1 ∨ t = 2 ∨ t = 3 := by
@@ -487,7 +487,7 @@ theorem restart_record_fold (i : Nat) :
       (ownReleased sleepEnv restartRun 0 0 i).foldl
         (fun st o => o.payload :: st) [] :=
   ownRecord_fold_restore (P := durableToy) id (fun st o => o.payload :: st)
-    (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl)
+    (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl)
     sleepEnv restartRun i 0
 
 end AvailableChain.V2.D.Engine.Tests.Duties
