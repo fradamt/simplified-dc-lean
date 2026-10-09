@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.Excludes
 public import AvailableChainKitV2.DutyClockLaws
+public import AvailableChainFGSARun.Proofs.RetainedClock
 public import AvailableChainGeneric.Statements.V2.Duty.Reads
 
 public section
@@ -39,31 +40,33 @@ theorem fgsa_monoAlong_preceq_F (X : FGBlock (Fin p.n)) :
   · intro nd o h
     exact h
 
-/-- Restore resets the base clock to zero, for every durable record. -/
-theorem fgsa_restore_now_eq :
-    ∀ d, (fgsaClock p c).now ((fgsa p c).restore d) = 0 := by
+/-- Ruling Y: the restored clock is the durable last tick time. -/
+theorem fgsa_restore_now_retained :
+    ∀ d, (fgsaClock p c).now ((fgsa p c).restore d) = d.1 := by
   intro d
   rfl
 
-/-- The restore clock bound used by the Kit follows from the equality. -/
-theorem fgsa_hrestore_now :
-    ∀ d, (fgsaClock p c).now ((fgsa p c).restore d) ≤ 0 := by
-  intro d
-  rw [fgsa_restore_now_eq]
+/-- Restore retains the clock of the node that supplied the durable state. -/
+theorem fgsa_hrestore_now_retained :
+    ∀ nd, (fgsaClock p c).now ((fgsa p c).restore ((fgsa p c).durable nd)) =
+      (fgsaClock p c).now nd := by
+  intro nd
+  rfl
 
-/-- A store predicate that holds initially holds after restore. -/
-theorem fgsa_hrestore (Q : FGSA.State p.n → Prop) (hQ : Q (FGSA.initial p.n)) :
+/-- A predicate true of reset stores at every clock holds after restore. -/
+theorem fgsa_hrestore_retained (Q : FGSA.State p.n → Prop)
+    (hQ : ∀ t, Q (FGSA.initialAt p.n t)) :
     ∀ nd : Node p, Q ((fgsa p c).restore ((fgsa p c).durable nd)).st := by
   intro nd
-  exact hQ
+  exact hQ nd.st.base.now
 
-/-- A list field that is empty initially has no members after restore. -/
-theorem fgsa_hrestore_field {α : Type} (field : FGSA.State p.n → List α)
-    (hfield : field (FGSA.initial p.n) = []) :
+/-- A list field empty in every reset store has no members after restore. -/
+theorem fgsa_hrestore_field_retained {α : Type} (field : FGSA.State p.n → List α)
+    (hfield : ∀ t, field (FGSA.initialAt p.n t) = []) :
     ∀ (nd : Node p) x, x ∈ field ((fgsa p c).restore ((fgsa p c).durable nd)).st →
       x ∈ field nd.st := by
   intro nd x hx
-  change x ∈ field (FGSA.initial p.n) at hx
+  change x ∈ field (FGSA.initialAt p.n nd.st.base.now) at hx
   rw [hfield] at hx
   exact (List.not_mem_nil hx).elim
 

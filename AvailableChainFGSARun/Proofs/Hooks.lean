@@ -54,8 +54,8 @@ theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.D.HooksSound (fgsa p c) wh
   excludes_stable E rho hS v o i j hij hrf hx := by
     apply (excludes_stable_epoch E rho v o hij hrf ?_ hx).1
     intro k t _ _ he
-    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-      (fgsa_hrestore_now p c) E rho hS he v
+    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
+      (fgsa_hrestore_now_retained p c) E rho hS he v
     exact (fgsa_clock_now p c (V2.D.Run.stateBefore E rho k v)).symm.trans_le hn
   processed_stable E rho _ v o i j hij hrf hx := by
     apply V2.D.Engine.stateBefore_stable (fun nd => processedS p nd.st o = true)

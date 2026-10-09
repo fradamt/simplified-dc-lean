@@ -219,7 +219,7 @@ theorem fgsa_saved_label_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     (P := fgsa p c) (fun nd : Node p => nd.st.base.genuine.map Prod.fst) rfl
     (fun nd o => fgsa_process_labels nd.st (toWire p o))
     (fun _ _ _ h => h)
-    (fgsa_hrestore_field p c (fun st => st.base.genuine.map Prod.fst) rfl)
+    (fgsa_hrestore_field_retained p c (fun st => st.base.genuine.map Prod.fst) (fun _ => rfl))
     (fun _ t s => t = SA.gateTime p.toParams s)
     (fun nd t s h => fgsa_clock_label_source nd.st t s h) E rho i v s hm
   exact ⟨j, hj, ht ▸ he⟩
@@ -356,17 +356,8 @@ private theorem fgsa_process_bounds (st : State p.n) (o : Wire p.n)
 
 private theorem fgsa_clock_now_of_reachable (st : State p.n) (hr : Reachable p st)
     (record : RecordOnce) : (fgsaClock p c).now (⟨st, record⟩ : Node p) = st.base.now := by
-  induction hr with
-  | init => exact fgsa_restore_now_eq p c record
-  | @tick st t hr ih =>
-    have he := (fgsaClock p c).clock (⟨st, record⟩ : Node p) t
-    exact he.trans (clock_vn st t).2.symm
-  | @deliver st o hr ih =>
-    have he := (fgsaClock p c).process (⟨st, record⟩ : Node p) (ofWire p o)
-    change (fgsaClock p c).now (⟨FGSA.process p st (toWire p (ofWire p o)), record⟩ : Node p) =
-      (fgsaClock p c).now (⟨st, record⟩ : Node p) at he
-    rw [toWire_ofWire] at he
-    exact (he.trans ih).trans (process_base_now st o).symm
+  have _ := hr
+  exact fgsa_clock_now p c ⟨st, record⟩
 
 private theorem fgsa_clock_now_stateBefore (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (i : Nat) (v : V) :
@@ -397,9 +388,16 @@ theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     · intro row hr
       change row ∈ ([] : List (GridCO.Wire p.n .root × Time)) at hr
       exact (List.not_mem_nil hr).elim
-  have h := V2.D.Engine.stateBefore_invariant (fgsaClock p c) (fgsa_hrestore_now p c)
+  have h := stateBefore_invariant_retained (fgsaClock p c)
+    (fgsa_hrestore_now_retained p c)
     E rho hs Q hinit (fun nd t ht h => ?_) (fun nd o h => ?_)
-    (fun _ _ h => h) (fun _ _ => hinit) i v
+    (fun _ _ h => h) (fun nd _ => by
+      refine ⟨Reachable.reset nd.st.base.now, ?_, ?_⟩
+      · intro b hb
+        obtain rfl := List.mem_singleton.mp hb
+        exact Nat.zero_le _
+      · intro row hr
+        exact (List.not_mem_nil hr).elim) i v
   · exact h.2
   · have hn : (fgsaClock p c).now nd = nd.st.base.now :=
       fgsa_clock_now_of_reachable (c := c) nd.st h.1 nd.record
@@ -430,12 +428,13 @@ theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Before a positive-time local tick, the store clock is strictly earlier.
-NoRestart is not needed: restore sets the clock to zero. -/
+Restore retains an earlier tick source, so NoRestart is not needed. -/
 theorem fgsa_preTick_now_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {t : Time}
     (hi : rho.events[i]? = some (.tick v t)) (ht : 0 < t) :
     (V2.D.Run.stateBefore E rho i v).st.base.now < t := by
-  rcases V2.D.Engine.stateBefore_now_source (fgsaClock p c) (fgsa_hrestore_now p c)
+  rcases stateBefore_now_source_retained (fgsaClock p c)
+    (fgsa_hrestore_now_retained p c)
     E rho i v with hz | ⟨j, hj, he⟩
   · rw [fgsa_clock_now_stateBefore E rho i v] at hz
     exact lt_of_le_of_lt hz ht

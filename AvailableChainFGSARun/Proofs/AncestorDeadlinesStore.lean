@@ -43,6 +43,12 @@ theorem ancestorDeadlines_init (n : Nat) : AncestorDeadlines (initial n) := by
   intro K g d hr
   exact (List.not_mem_nil hr).elim
 
+/-- Ruling Y: reset stores have no ancestor-deadline obligations. -/
+theorem ancestorDeadlines_initialAt (n : Nat) (t : Time) :
+    AncestorDeadlines (initialAt n t) := by
+  intro K g deadline hrow
+  exact (List.not_mem_nil hrow).elim
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 [Proofs/Reconcile.lean:28] Compatibility with finality is closed under
 ancestors. Reconcile therefore keeps each ancestor of a surviving target. -/

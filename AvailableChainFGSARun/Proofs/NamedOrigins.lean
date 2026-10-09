@@ -138,7 +138,7 @@ theorem namedOrigin_reachable (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   · intro nd t h; exact Reachable.tick t h
   · intro nd o h; exact Reachable.deliver (toWire p o) h
   · intro nd o h; exact h
-  · intro nd _; exact Reachable.init
+  · intro nd _; exact Reachable.reset nd.st.base.now
 
 /-- [ROOT-DIGEST-2 W1; DC NamedBlocks.erase]
 The emitted parent has its old base-store projection. -/

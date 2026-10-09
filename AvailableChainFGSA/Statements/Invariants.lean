@@ -22,6 +22,7 @@ label-r votes; the spec reads the votes stamped before `q_r`; the two agree at
 the first scheduled release tick). -/
 inductive Reachable (p : Params) : State p.n → Prop
   | init : Reachable p (initial p.n)
+  | reset (t : Time) : Reachable p (initialAt p.n t)
   | tick {st : State p.n} (t : Time) : Reachable p st → Reachable p (clock p st t)
   | deliver {st : State p.n} (o : Wire p.n) : Reachable p st → Reachable p (process p st o)
 
