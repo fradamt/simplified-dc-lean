@@ -9,7 +9,8 @@ These variants are local to FG-SA and leave the shared Kit contracts unchanged. 
 
 namespace AvailableChain.FGSA.Run
 
-open AvailableChain AvailableChain.V2 AvailableChain.V2.D AvailableChain.V2.D.Engine
+open AvailableChain.V2 (Event)
+open AvailableChain.V2.D AvailableChain.V2.D.Engine
 open AvailableChain.Gen.V2.Duty
 
 variable {V : Type} [DecidableEq V] {In : Type} {P : V2.ProtocolSpecD In}
@@ -140,8 +141,8 @@ theorem timely_of_relay_retained
     refine ⟨le_rfl, ?_⟩
     unfold V2.PublicTime
     exact ⟨0, (Int.zero_mul E.Δ).symm⟩
-  have hclock : 0 ≤ C.clock.now (D.Run.stateBefore E rho i v) ∧
-      V2.PublicTime E (C.clock.now (D.Run.stateBefore E rho i v)) := by
+  have hclock : 0 ≤ C.clock.now (V2.D.Run.stateBefore E rho i v) ∧
+      V2.PublicTime E (C.clock.now (V2.D.Run.stateBefore E rho i v)) := by
     refine stateBefore_step_induction E rho
       (fun st => 0 ≤ C.clock.now st ∧ V2.PublicTime E (C.clock.now st))
       (Nat.zero_le i) v ?_ ?_
@@ -150,29 +151,29 @@ theorem timely_of_relay_retained
       | restart u t' =>
           dsimp only [Event.node] at hv
           subst u
-          dsimp only [D.World.step]
+          dsimp only [V2.D.World.step]
           rw [Function.update_self, hrestore]
           exact hk
       | tick u t' =>
           dsimp only [Event.node] at hv
           subst u
-          dsimp only [D.World.step]
+          dsimp only [V2.D.World.step]
           rw [Function.update_self, C.clock.now_tick]
           have hmem := List.mem_of_getElem? he
           exact ⟨(hS.in_horizon _ hmem).1, hS.tick_public v t' hmem⟩
       | deliver u o' t' =>
           dsimp only [Event.node] at hv
           subst u
-          dsimp only [D.World.step]
+          dsimp only [V2.D.World.step]
           rw [Function.update_self, C.clock.process]
           exact hk
-    · unfold D.Run.stateBefore D.World.init
+    · unfold V2.D.Run.stateBefore V2.D.World.init
       simp only [List.take_zero, List.foldl_nil, C.clock.init]
       exact hzero
-  unfold D.Run.acceptsAt D.Run.handlesAt at hacc
+  unfold V2.D.Run.acceptsAt V2.D.Run.handlesAt at hacc
   rcases hacc with ⟨⟨o', hi, hhandles⟩, hfalse, htrue⟩
-  rw [D.Run.stateBefore_succ E rho hi] at htrue
-  dsimp only [D.World.step] at htrue
+  rw [V2.D.Run.stateBefore_succ E rho hi] at htrue
+  dsimp only [V2.D.World.step] at htrue
   rw [Function.update_self] at htrue
   have htimely := hAS.timely _ o' o
     (by rw [C.clockOf_eq]; exact hclock.1) hfalse htrue hhandles
