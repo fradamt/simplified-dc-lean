@@ -123,7 +123,7 @@ theorem outputNesting_stored (p : Params) : OutputNestingStored p := by
   refine ⟨?_, rfl, rfl⟩
   induction hst with
   | init => exact block_preceq_refl _
-  | reset t => exact block_preceq_refl _
+  | restart w _ ih => exact ih
   | tick t _ ih => exact clock_nest p _ t ih
   | deliver o _ ih => exact process_nest p _ o ih
 

@@ -30,6 +30,10 @@ view with the walk from `Σ.F` (`genuine_result`) and record `fastWrite[s]`; the
 def gateStep (p : Params) (st : State p.n) (s : Slot) : State p.n :=
   let a := eraseFG st.fg.F
   let st := if (GridCO.savedGenuine st.base s).isSome then st else
+    if !joinedNow p st then
+      { onView (fun v => { v with genuine := v.genuine ++ [(s, none)] }) st with
+        fastWrite := st.fastWrite ++ [(s, [])] }
+    else
     { onView (fun v => SA.Root.gateFrom p.toParams a v s) st with
       fastWrite := st.fastWrite ++ [(s, fastSet p a (actView st) s)] }
   normalizeS st
@@ -52,7 +56,7 @@ def clockPre (p : Params) (st : State p.n) (t : Time) : State p.n :=
       { v with early := v.early ++ [(eSlot, GridCO.earlyVotes q.engine v eSlot)] }) st
     else st
   let qSlot := ((t - 5 * p.Δ) / (4 * p.Δ)).toNat
-  if 0 ≤ t - 5 * p.Δ && t == SA.releaseTime q qSlot then
+  if 0 ≤ t - 5 * p.Δ && t == SA.releaseTime q qSlot && joinedNow p st then
     onView (fun v => SA.Root.release q v qSlot) st else st
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]

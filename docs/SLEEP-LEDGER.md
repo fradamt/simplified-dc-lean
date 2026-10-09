@@ -11,6 +11,63 @@ or rework. P-Da keeps this file as a record.
 └──────────────┴──────────────┴─────────────┴────────────────────┘
 ```
 
+## W2a — approved packet, 2026-10-10
+
+Approval: `sleep-packet-approved.md`, P1–P24, G-S0 passed.
+Each row below is approved. No additional premise or public claim text is proposed.
+
+- `Reachable.restart` — `P24`, approved.
+  `AvailableChainFGSA/Statements/Invariants.lean`.
+  Repair: old reset → prior reachable wipe.
+
+- `joinedNow; joinedAtTime` — `P24`, approved.
+  `AvailableChainFGSA/Model/Store.lean`.
+  Repair: inclusive previous slot, integer subtraction.
+
+- `wipe; acRestart; reachable_acRestart` — `P24`, approved.
+  `AvailableChainFGSA/Model/Restart.lean`.
+  `AvailableChainFGSA/Proofs/Restart.lean`.
+  Repair: durable fields kept, HEAD-only replay.
+
+- `gateStep_fresh` — `P24`, approved.
+  `AvailableChainFGSA/Proofs/Fields.lean`.
+  Repair: add joinedNow at the gate input.
+
+- `clockPre_eq` — `P24`, approved.
+  `AvailableChainFGSA/Proofs/ActView.lean`.
+  Repair: release gains the tick-time join guard.
+
+- `clock_eq_saClock_offGate` — `P24`, approved.
+  `AvailableChainFGSA/Proofs/ActView.lean`.
+  Repair: add joinedAtTime at t.
+
+- `clock_eq_saClockFrom_gate; gate'` — `P24`, approved.
+  `AvailableChainFGSA/Proofs/ActView.lean`.
+  Repair: add joinedAtTime at t.
+
+- `storeInvariant; metadataInvariant` — `P24`, approved.
+  `AvailableChainFGSA/Proofs/StoreInv.lean`.
+  `AvailableChainFGSA/Proofs/Metadata.lean`.
+  Repair: prior invariant supplies retained content.
+
+- `rowsValidStored_reachable; stored_r6wW` — `P24`, approved.
+  `AvailableChainFGSA/Proofs/Metadata.lean`.
+  `AvailableChainFGSA/WindowAdmissionInvariant.lean`.
+  Repair: retained rows keep their validity.
+
+- `outputNesting_stored; base_headDomain_none` — `P24`, approved.
+  `AvailableChainFGSA/Proofs/Nesting.lean`.
+  `AvailableChainFGSA/Proofs/HeadDomain.lean`.
+  Repair: F/S kept; headDomain cleared.
+
+- `storeBundleInvariant` — `P24`, approved.
+  `AvailableChainFGSA/Proofs/StoreBundle.lean`.
+  Repair: all stored target bounds survive any w.
+
+Constructor record: remove `AvailableChain.FGSA.Reachable.reset`;
+add `AvailableChain.FGSA.Reachable.restart`. D0e-a must use the new spelling.
+Run callers remain with W2b/W3; other owners are in `scripts/dev-pkg/W2a.txt`.
+
 ## W1a — 2026-10-10
 
 Approved source: `sleep-packet-approved.md`, G-S0 approval of P1–P24 on 2026-10-09.
@@ -89,3 +146,48 @@ The normal run passed builds and strict audits, then the old P-PC control map
 rejected the five new W1a modules. The NEG=0 run passed in 88.14 s.
 Checker scripts are unchanged; the sleep-int controls fix was not merged.
 The required Sol and Opus reviews remain with the lead.
+
+## W2a continuation — lead rulings, 2026-10-10
+
+The lead approved the two corrections after merge `02531030`.
+`clock_namedBodies` in `AvailableChainFGSA/Proofs/NamedStore.lean`
+keeps its type and uses `clock_proposals` from `Proofs/Fields.lean`.
+This proof-only edit is approved outside plan §14.2.
+Validation uses the default repository heartbeat config.
+No source heartbeat limit is increased.
+
+Two modules omitted from plan §14.6 are EXPECTED-FAIL, owner W3:
+- `AvailableChainFGSARun.Proofs.AncestorDeadlinesStore`: gate unfolds
+  at lines 455, 465 and 485 do not handle the unjoined branch.
+- `AvailableChainFGSARun.Proofs.AncestorDeadlines`: imports that failed module.
+
+Both modules stay REQUIRED at S1. The W2a package map now includes
+the five new W1a modules from the merged S1 list as GREEN.
+`NamedStore` is a W2a TARGET for the approved proof repair.
+
+W1a merge failures are assigned by plan §14.6/§8.1 and the merged W1a map.
+The failed modules are:
+- `AvailableChainFGCompose.Statements.SafetyClient` — W3.
+- `AvailableChainFGCompose.Statements.SafetyStore` — W3.
+- `AvailableChainFGCompose.Tests.Restart` — W3.
+- `AvailableChainFGSARun.Model.Protocol` — W2b.
+- `AvailableChainGeneric.Proofs.V2.Fields` — W1b.
+- `AvailableChainGeneric.Statements.V2.Duty.Receipt` — W1b.
+- `AvailableChainGeneric.Statements.V2.Receipt` — W1b.
+- `AvailableChainKitV2.DutyEngineClock` — W1b.
+- `AvailableChainKitV2.DutyRecord` — W1b.
+- `AvailableChainKitV2.EngineClock` — W1b.
+- `AvailableChainKitV2.Tests.Toy` — W1b.
+
+These 11 failures affect 106 prior GREEN entries through imports.
+Additional EXPECTED-FAIL owners: W1b 34, W2b 32, W3 14, P-ShA 13, S-Ap 13.
+The final W2a map has 34 TARGETS, 273 GREEN and 176 EXPECTED-FAIL entries.
+All 110 W2a store/pin targets stay GREEN. No S1 entry moves to DEFERRED.
+The W1b and W3 owners have approved statement repairs in plan r9.
+This continuation changes no statement and adds no premise.
+
+Writer checkpoint: DCK PASS (package W2a), with all controls, 109.716 s.
+Default-config GREEN build: PASS, 273 module targets, 2.852 s.
+Strict FGSA audit: PASS, 822 results, 42.343 s.
+Scoped FGSA coverage: PASS, 0 unaccepted exports, 19.902 s.
+The coverage inventory is unchanged. Astra review remains with the lead.

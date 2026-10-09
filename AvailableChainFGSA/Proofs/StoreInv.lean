@@ -187,6 +187,18 @@ theorem cstoreInv_initialAt (p : Params) (t : Time) : CStoreInv p (initialAt p.n
   exact ⟨h.fg, h.rootInj, h.baseTree, h.saCompat, h.Smem, h.fastOrigin,
     h.fastDom, h.genuineKeys, h.leaseKeys⟩
 
+/-- [Sleep v6; P24] Wipe keeps durable invariant fields and clears fast histories. -/
+theorem cstoreInv_wipe (p : Params) (st : State p.n) (w : Time) (h : CStoreInv p st) :
+    CStoreInv p (wipe p st w) := by
+  refine ⟨h.fg, h.rootInj, h.baseTree, ⟨h.saCompat.1, ?_, ?_⟩, h.Smem, ?_, ?_, ?_,
+    h.leaseKeys⟩
+  · simp [wipe, GridCO.initial]
+  · simp [wipe]
+  · intro row hm
+    exact False.elim (List.not_mem_nil hm)
+  · simp [wipe]
+  · simp [wipe, GridCO.initial]
+
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [ROOT-DIGEST W1; DC RootInjectiveOnAncestors] Admission proves
 inserted-tree roots locally. -/
 theorem storeStepRoots_of_blockAccepted (p : Params) (st : State p.n) (h : CStoreInv p st)
@@ -589,6 +601,63 @@ theorem cstoreInv_gateFresh (p : Params) (st : State p.n) (h : CStoreInv p st) (
     rintro rfl
     exact notMem_keys_of_unsaved hv hx
 
+/-- [Sleep v6; plan §14.3] The suppressed fresh gate keeps all store invariants. -/
+theorem cstoreInv_gateUnjoined (p : Params) (st : State p.n) (h : CStoreInv p st)
+    (s : Slot) (hnew : GridCO.savedGenuine st.base s = none) :
+    CStoreInv p
+      { onView (fun v => { v with genuine := v.genuine ++ [(s, none)] }) st with
+        fastWrite := st.fastWrite ++ [(s, [])] } := by
+  have hsv := savedGenuine_append (actView st) s none hnew
+  refine ⟨h.fg, h.rootInj, h.baseTree, ⟨h.saCompat.1, ?_, ?_⟩, h.Smem, ?_, ?_, ?_,
+    h.leaseKeys⟩
+  · intro r C hm
+    change (r, some C) ∈ st.base.genuine ++ [(s, none)] at hm
+    rcases List.mem_append.mp hm with hm | hm
+    · exact h.saCompat.2.1 r C hm
+    · simp at hm
+  · intro row hm B hb
+    rcases List.mem_append.mp hm with hm | hm
+    · exact h.saCompat.2.2 row hm B hb
+    · have he := List.mem_singleton.mp hm
+      subst row
+      exact False.elim (List.not_mem_nil hb)
+  · intro row hm B hb
+    rcases List.mem_append.mp hm with hm | hm
+    · have hn := ne_of_saved (h.fastDom.2 row.1 (List.mem_map_of_mem hm)) hnew
+      change (∃ C, GridCO.savedGenuine
+        { (actView st) with genuine := (actView st).genuine ++ [(s, none)] }
+        row.1 = some (some C) ∧ Block.Preceq B C) ∨ Block.Preceq B (eraseFG st.fg.F)
+      rw [hsv, ite_eq_right hn]
+      exact h.fastOrigin row hm B hb
+    · have he := List.mem_singleton.mp hm
+      subst row
+      exact False.elim (List.not_mem_nil hb)
+  · change ((st.fastWrite ++ [(s, [])]).map Prod.fst).Nodup ∧ _
+    rw [List.map_append]
+    refine ⟨List.nodup_append.2 ⟨h.fastDom.1, List.nodup_singleton _, ?_⟩, ?_⟩
+    · intro x hx y hy
+      simp only [List.map_cons, List.map_nil, List.mem_singleton] at hy
+      subst y
+      exact ne_of_saved (h.fastDom.2 x hx) hnew
+    · intro r hr
+      change (GridCO.savedGenuine
+        { (actView st) with genuine := (actView st).genuine ++ [(s, none)] } r).isSome
+      rw [hsv]
+      rcases List.mem_append.mp hr with hr | hr
+      · rw [ite_eq_right (ne_of_saved (h.fastDom.2 r hr) hnew)]
+        exact h.fastDom.2 r hr
+      · simp only [List.map_cons, List.map_nil, List.mem_singleton] at hr
+        rw [ite_eq_left hr]
+        rfl
+  · change ((st.base.genuine ++ [(s, none)]).map Prod.fst).Nodup
+    rw [List.map_append, List.nodup_append]
+    refine ⟨h.genuineKeys, List.nodup_singleton _, ?_⟩
+    intro x hx y hy
+    simp only [List.map_cons, List.map_nil, List.mem_singleton] at hy
+    subst y
+    rintro rfl
+    exact notMem_keys_of_unsaved hnew hx
+
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The gate keeps the invariant. -/
 theorem cstoreInv_gateStep (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot) :
     CStoreInv p (gateStep p st s) := by
@@ -599,7 +668,9 @@ theorem cstoreInv_gateStep (p : Params) (st : State p.n) (h : CStoreInv p st) (s
     unfold gateStep
     dsimp only
     rw [ite_eq_right hs]
-    exact cstoreInv_normalizeS p _ (cstoreInv_gateFresh p st h s hnew)
+    split
+    · exact cstoreInv_normalizeS p _ (cstoreInv_gateUnjoined p st h s hnew)
+    · exact cstoreInv_normalizeS p _ (cstoreInv_gateFresh p st h s hnew)
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.activeView.v1] The gate keeps every SA target compatible
 with F. -/
@@ -628,7 +699,7 @@ theorem storeInvariant (p : Params) : StoreInvariant p := by
   intro st hst
   induction hst with
   | init => exact cstoreInv_init p
-  | reset t => exact cstoreInv_initialAt p t
+  | restart w _ ih => exact cstoreInv_wipe p _ w ih
   | tick t _ ih => exact cstoreInv_clock p _ ih t
   | deliver o _ ih => exact cstoreInv_process p _ ih o
 

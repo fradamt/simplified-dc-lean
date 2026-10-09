@@ -27,6 +27,10 @@ theorem storedTargetsBelowOutput_initialAt (p : Params) (t : Time) :
   intro ℓ hℓ
   exact False.elim (List.not_mem_nil hℓ)
 
+/-- [Sleep v6; P24] Wipe keeps all target bounds, including expired rows. -/
+theorem storedTargetsBelowOutput_wipe (p : Params) (st : State p.n) (w : Time)
+    (h : StoredTargetsBelowOutput p st) : StoredTargetsBelowOutput p (wipe p st w) := h
+
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] Each stored target is below the output. -/
 theorem storedTargetsBelowOutput_target (p : Params) (st : State p.n)
     (h : StoredTargetsBelowOutput p st) (row : Block × Nat × Time)
@@ -235,8 +239,11 @@ private theorem storedTargets_gate (p : Params) (st : State p.n) (s : Slot)
     exact hL
   · next hnew =>
     have hnone : GridCO.savedGenuine st.base s = none := Option.not_isSome_iff_eq_none.mp hnew
-    apply storedTargets_normalize p _ (cstoreInv_gateFresh p st hC s hnone).saCompat
-    exact saGate_targets p.toParams (eraseFG st.fg.F) (actView st) s hL
+    split
+    · apply storedTargets_normalize p _ (cstoreInv_gateUnjoined p st hC s hnone).saCompat
+      exact hL
+    · apply storedTargets_normalize p _ (cstoreInv_gateFresh p st hC s hnone).saCompat
+      exact saGate_targets p.toParams (eraseFG st.fg.F) (actView st) s hL
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [Proofs/StoreInv.lean:278,428; Model/Clock.lean:28,40,57]
 Expiry and release remove rows. A gate keeps the bound before and after normalization. -/

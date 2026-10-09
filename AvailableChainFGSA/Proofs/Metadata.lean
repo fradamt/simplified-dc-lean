@@ -89,7 +89,9 @@ theorem gateStep_stamps (p : Params) (st : State p.n) (s : Slot) :
   rw [normalizeS_fields]
   split
   · exact ⟨rfl, rfl⟩
-  · exact saGate_stamps p.toParams (eraseFG st.fg.F) (actView st) s
+  · split
+    · exact ⟨rfl, rfl⟩
+    · exact saGate_stamps p.toParams (eraseFG st.fg.F) (actView st) s
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The tick before the gate keeps both stamp lists. -/
 theorem clockPre_stamps (p : Params) (st : State p.n) (t : Time) :
@@ -278,6 +280,13 @@ theorem metaInv_initialAt (p : Params) (t : Time) : MetaInv p (initialAt p.n t) 
   have h := metaInv_init p
   exact ⟨h.wireTree, h.treeWire, h.proposalsNodup, h.stampKeys, h.blocksNodup,
     h.poolDecodes, h.poolNodup, h.noGenesisWire⟩
+
+/-- [Sleep v6; P24] Wipe rebuilds the stamp keys in the stored block order. -/
+theorem metaInv_wipe (p : Params) (st : State p.n) (w : Time) (h : MetaInv p st) :
+    MetaInv p (wipe p st w) := by
+  refine ⟨h.wireTree, h.treeWire, h.proposalsNodup, ?_, h.blocksNodup,
+    h.poolDecodes, h.poolNodup, h.noGenesisWire⟩
+  simp [wipe, List.map_map, Function.comp_def]
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] `Wire.block?` of a proposal wire. -/
 theorem block?_proposal {n : Nat} (s : Slot) (N : NamedProposal n) :
@@ -484,7 +493,7 @@ theorem metadataInvariant (p : Params) : MetadataInvariant p := by
   intro st hst
   induction hst with
   | init => exact metaInv_init p
-  | reset t => exact metaInv_initialAt p t
+  | restart w _ ih => exact metaInv_wipe p _ w ih
   | tick t _ ih => exact metaInv_clock p _ ih t
   | deliver o hst' ih => exact metaInv_process p _ (storeInvariant p _ hst') ih o
 
@@ -563,7 +572,7 @@ theorem rowsValidStored_reachable (p : Params) {st : State p.n} (hr : Reachable 
     RowsValidStored p st := by
   induction hr with
   | init => exact rowsValidStored_initial p
-  | reset t => exact rowsValidStored_initial p
+  | restart w _ ih => exact ih
   | tick t _ ih => exact rowsValidStored_clock p _ ih t
   | deliver o hr ih => exact rowsValidStored_process p _ (storeInvariant p _ hr) ih o
 
