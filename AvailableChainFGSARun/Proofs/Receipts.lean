@@ -56,7 +56,8 @@ theorem fgsa_clockOf_nonneg (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     | restart v t =>
       change v = x at hx
       subst v
-      simp only [V2.D.World.step, Function.update_self, fgsa_restore_now_eq, le_refl]
+      simpa only [V2.D.World.step, Function.update_self,
+        fgsa_hrestore_now_retained] using hj
     | tick v t =>
       change v = x at hx
       subst v
@@ -706,8 +707,8 @@ private theorem t78_block_clock_cut (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     cases e with
     | restart v u =>
       change v = x at hx; subst v
-      left
-      simp only [V2.D.World.step, Function.update_self, fgsa_restore_now_eq]
+      simpa only [V2.D.World.step, Function.update_self,
+        fgsa_hrestore_now_retained] using ih
     | tick v u =>
       change v = x at hx; subst v
       right
@@ -757,8 +758,8 @@ private theorem t78_vote_read_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     (t78_vote_stamp_mem E rho _ x _ hm)
   obtain ⟨o, he, -⟩ := ha.1
   have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hS he D).1 hj
-  have hc := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
-    (fgsa_hrestore_now p c) E rho hS he x
+  have hc := stateBefore_now_le_event_retained (fgsaClock p c)
+    (fgsa_hrestore_now_retained p c) E rho hS he x
   rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hc
   rw [hs]
   exact hc.trans_lt ht
@@ -879,12 +880,13 @@ theorem fgsa_head_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
           exact le_add_of_nonneg_right (le_of_lt p.deltaPos)
       · obtain ⟨parent, he, -⟩ := ha.1
         have ht := hS.in_horizon _ (List.mem_of_getElem? he)
-        refine ⟨ht.1, ht.2, Gen.V2.Duty.timely_of_relay E rho C (fgsaAdmitSound p c)
+        refine ⟨ht.1, ht.2, timely_of_relay_retained E rho C (fgsaAdmitSound p c)
           hS ?_ v k o t ha⟩
-        intro d
-        -- The public projection law avoids unfolding the opaque clock value.
-        rw [← C.clockOf_eq, fgsaTimelyClock_clockOf p c ((fgsa p c).restore d)]
-        rfl
+        intro nd
+        change Node p at nd
+        exact (C.clockOf_eq _).symm.trans
+          ((fgsaTimelyClock_clockOf p c _).trans
+            ((fgsaTimelyClock_clockOf p c nd).symm.trans (C.clockOf_eq nd)))
     have hfloor0 : 0 ≤ Gen.V2.Duty.pubFloor E t :=
       mul_nonneg (Int.ediv_nonneg htime.1 (le_of_lt E.Δ_pos)) (le_of_lt E.Δ_pos)
     have hfloorpub : V2.PublicTime E (Gen.V2.Duty.pubFloor E t) := by
@@ -980,11 +982,13 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         exact le_refl _
     · obtain ⟨parent, he, -⟩ := ha.1
       have ht := hS.in_horizon _ (List.mem_of_getElem? he)
-      refine ⟨ht.1, ht.2, Gen.V2.Duty.timely_of_relay E rho C (fgsaAdmitSound p c)
+      refine ⟨ht.1, ht.2, timely_of_relay_retained E rho C (fgsaAdmitSound p c)
         hS ?_ v k o t ha⟩
-      intro d
-      rw [← C.clockOf_eq, fgsaTimelyClock_clockOf p c ((fgsa p c).restore d)]
-      rfl
+      intro nd
+      change Node p at nd
+      exact (C.clockOf_eq _).symm.trans
+        ((fgsaTimelyClock_clockOf p c _).trans
+          ((fgsaTimelyClock_clockOf p c nd).symm.trans (C.clockOf_eq nd)))
   have hfloor0 : 0 ≤ Gen.V2.Duty.pubFloor E t :=
     mul_nonneg (Int.ediv_nonneg htime.1 (le_of_lt E.Δ_pos)) (le_of_lt E.Δ_pos)
   have hfloorpub : V2.PublicTime E (Gen.V2.Duty.pubFloor E t) := by

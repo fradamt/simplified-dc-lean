@@ -21,7 +21,7 @@ theorem reachable_stateBefore (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   · intro nd t h; exact Reachable.tick t h
   · intro nd o h; exact Reachable.deliver (toWire p o) h
   · intro nd o h; exact h
-  · intro nd _; exact Reachable.init
+  · intro nd _; exact Reachable.reset nd.st.base.now
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The strict time reader needs no event order premise. -/
