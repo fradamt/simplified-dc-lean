@@ -208,7 +208,7 @@ theorem wc_retrospectiveFrame (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
     hscopeRows hfinalHead hs k y (.head (s + 1)) st W Bfg hd hy hafter
     hWst hW hh hQB hhigh htarget (voterBlocks p st (s + 1))
-    ⟨Or.inl ⟨s + 1, rfl, rfl⟩⟩ (fun _ h => (Finset.mem_filter.mp h).1)
+    ⟨Or.inl ⟨s + 1, rfl, rfl⟩⟩ (fun _ h => (Finset.mem_filter.mp (Finset.mem_filter.mp h).1).1)
 
 end AvailableChain.FGSA.Run
 end

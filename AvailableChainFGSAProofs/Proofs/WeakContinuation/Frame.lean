@@ -177,14 +177,27 @@ theorem wc_seededFrame : WCSeededFrameStatement p c E rho ΔF w iStar := by
           rw [hhW] at *
           simp only [Height] at *
           omega
-        have hc : ¬ ∃ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max ∧
+        have hc : ¬ ∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧
+            (heightView p W).h = st.fg.h_max ∧
             ¬ FGBlock.Preceq st.fg.J W := by
           have hh := hroot'.2
           change (decide (st.fg.h_max = st.fg.h_j + 1) && decide _) = false at hh
           simpa only [hroot'.1, decide_true, Bool.true_and, decide_eq_false_iff_not] using hh
         have hJW : FGBlock.Preceq st.fg.J WStar := by
           by_contra hn
-          exact hc ⟨WStar, hW, htop, hn⟩
+          obtain ⟨K, _, _, hKh, hKJ⟩ := hI.pair.1
+          have hnz : (heightView p K).h_j ≠ 0 := by
+            intro hz
+            exact hn (hKJ ▸ (fgJustificationLaws p).J_zero K hz ▸ genesis_preceq WStar)
+          have hJh : (heightView p st.fg.J).h = st.fg.h_j := by
+            rw [hKJ, (fgJustificationLaws p).J_height K hnz, ← hKh]
+          have hFW : FGBlock.Preceq st.fg.F WStar := by
+            rcases preceq_total_of_common hFB hWB with hp | hp
+            · exact hp
+            · have hh := (fgCertificateLaws p).height.h_mono (preceq_trans hp hI.FJ)
+              rw [hJh, hhW] at hh
+              exact (hj hh).elim
+          exact hc ⟨WStar, hW, hFW, htop, hn⟩
         exact preceq_trans hJW hWB
     · exact hFB
   have hfloor : (frameR p st).lo ≤ (heightView p Bfg).h := by
@@ -208,14 +221,16 @@ theorem wc_seededFrame : WCSeededFrameStatement p c E rho ΔF w iStar := by
       rwa [hc, hXh] at *
     | true =>
       have hcontest : st.fg.h_max = st.fg.h_j + 1 ∧
-          ∃ D ∈ st.fg.TF, (heightView p D).h = st.fg.h_max ∧
+          ∃ D ∈ st.fg.TF, FGBlock.Preceq st.fg.F D ∧
+            (heightView p D).h = st.fg.h_max ∧
             ¬ FGBlock.Preceq st.fg.J D := by
         change (decide (st.fg.h_max = st.fg.h_j + 1) &&
-          decide (∃ D ∈ st.fg.TF, (heightView p D).h = st.fg.h_max ∧
+          decide (∃ D ∈ st.fg.TF, FGBlock.Preceq st.fg.F D ∧
+            (heightView p D).h = st.fg.h_max ∧
             ¬ FGBlock.Preceq st.fg.J D)) = true at hc
         have hh := Bool.and_eq_true_iff.mp hc
         exact ⟨of_decide_eq_true hh.1, of_decide_eq_true hh.2⟩
-      obtain ⟨htop, D, hD, hh, hn⟩ := hcontest
+      obtain ⟨htop, D, hD, _, hh, hn⟩ := hcontest
       have hj : w.M + 1 ≤ st.fg.h_j := by simp only [Height] at *; omega
       obtain ⟨X, hXD, hXh, hXB⟩ := crossing D hD st.fg.h_j hj
         (by rw [hh, htop]; exact Nat.lt_succ_self _)
