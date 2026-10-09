@@ -6,10 +6,11 @@ public section
 namespace AvailableChain.FGSA.Spec
 
 /-! Ruling U repairs ancestor identity through a simulation-only stutter filter.
-The old raw-erasure obstructions below remain true. Full transfer is still stopped:
-a between-public-ticks restart loses the target clock and changes block acceptance.
-Row targets also need a full-block-to-root equality bridge; the pinned text does
-not explicitly declare them root names. No claim transfer is assumed here. -/
+The old raw-erasure obstructions below remain true. Ruling W restricts the requested
+core correspondence to NoRestart and adopts the root-name reading of row targets.
+The restart trace remains a limit outside that scope. Target normalization preserves
+observations, but the independent source-handler and regime proofs are still required.
+No source protocol claim transfer is asserted here. -/
 
 /-- No reader of the erased child alone recovers the spec's exact-parent test,
 even for the fixed two-element accepted tree in the initialized counterexample. -/
@@ -83,6 +84,30 @@ theorem spec_no_full_row_target_reader :
   rw [← spec_parent_identity_root] at hm
   have he := (h parentIdentityAbsent).mp hm
   exact spec_parent_identity_erasure.1 he
+
+/-- Ruling W2: row targets are root names. This is the height/entry comparison in
+`valid_attestation`; the timeout flag does not enter that comparison. -/
+theorem spec_row_height_root_match (height h : Nat) (entry target : BlockId) (τ : Bool) :
+    SimplexFG.NamedHeightPair.matchesEntry height entry (.vote h target τ) =
+      decide ((h, target) = (height, entry)) := by
+  simp [SimplexFG.NamedHeightPair.matchesEntry]
+
+/-- Ruling W2: pending finality pairs compare height and root name, not full blocks.
+This fact makes no assertion about the alternative full-block reading. -/
+theorem spec_row_finality_root_match (height h : Nat) (entry target : BlockId) :
+    (some (⟨h, target⟩ : SimplexFG.FinalityPair) = some ⟨height, entry⟩) ↔
+      (h, target) = (height, entry) := by
+  simp [SimplexFG.FinalityPair.mk.injEq]
+
+/-- Observations of the target state transfer through the dependency/freshness stage.
+This is a normalization result only; no source protocol claim follows without the
+independent source-handler and regime correspondence. -/
+theorem spec_prune_observation {V α : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (observe : V2.D.World V (Run.fgsa p Run.unitCodec) → α) :
+    observe (V2.D.Run.final E (specPruneRun p E rho)) =
+      observe (V2.D.Run.final E rho) :=
+  congrArg observe (spec_prune_final p E rho)
 
 end AvailableChain.FGSA.Spec
 end
