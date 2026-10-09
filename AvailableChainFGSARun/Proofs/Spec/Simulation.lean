@@ -11,8 +11,8 @@ namespace AvailableChain.FGSA.Spec
 /-! WP12b: Ruling U's simulation-only filter removes non-Assigned proposal chains.
 The identity gate, store invariant, emission identity, and event stutter are proved below.
 The old raw-erasure trace remains as regression evidence. A second initialized trace
-shows that restart between public ticks changes block acceptance, even on Assigned
-chains. Ruling W excludes restart from the core scope and reads row targets as root names.
+checks block acceptance after restart with the retained clock of ruling Y.
+Ruling X fixes row targets as root names in spec pin f54e403a.
 Dependency/freshness normalization has a complete target-state induction and validity proof.
 The independent source-handler, clock/lock relation and regime transfer remain unproved.
 No Lean protocol or existing claim is changed. -/
@@ -35,16 +35,17 @@ theorem spec_run_wire_check (p : Params) (assigned : Slot → Fin p.n) (o : Wire
   rw [hw]
   exact delivery_check_embedding p assigned o
 
-/-- Restart preserves the durable anti-slashing record and resets the Lean store. -/
-theorem spec_restart_durable (p : Params) (nd : Run.Node p) :
+/-- Restart preserves the anti-slashing record and the last tick time (ruling Y). -/
+theorem spec_restart_durable_retained (p : Params) (nd : Run.Node p) :
     ((Run.fgsa p Run.unitCodec).restore ((Run.fgsa p Run.unitCodec).durable nd)).record =
       nd.record ∧
     ((Run.fgsa p Run.unitCodec).restore ((Run.fgsa p Run.unitCodec).durable nd)).st.base.now =
-      0 := ⟨rfl, rfl⟩
+      nd.st.base.now := ⟨rfl, rfl⟩
 
-/-- The pinned spec keeps the clock at restart; raw clock equality cannot cover that cut. -/
-theorem spec_restart_clock_mismatch (p : Params) (nd : Run.Node p) (t : Time) (ht : t ≠ 0) :
-    ((Run.fgsa p Run.unitCodec).restore nd.record).st.base.now ≠ t := Ne.symm ht
+/-- Restore reads the retained last tick, without an extra clock step or duty. -/
+theorem spec_restart_clock_retained (p : Params) (lastTick : Time)
+    (record : SimplexFG.RecordOnce) :
+    ((Run.fgsa p Run.unitCodec).restore (lastTick, record)).st.base.now = lastTick := rfl
 
 /-- Computable recursive proposer test, used only by the simulation. -/
 def specAssignedCheck {n : Nat} (assigned : Slot → Fin n) : Block n → Bool
@@ -771,9 +772,9 @@ set_option maxRecDepth 4096 in
 set_option maxHeartbeats 800000 in
 -- Kernel evaluation unfolds the eight-event engine prefix and the block handler.
 /-- All identity, parent, slot and row checks of the spec accept this empty block.
-Lean refuses it after restore because its clock has become zero. The last two
-conjuncts compute the initialized engine prefix and the differing post-delivery cut. -/
-theorem spec_restart_block_trace :
+Lean keeps tick 8 through the restart at 9 and accepts the same block. The last
+two conjuncts compute the initialized engine prefix and the post-delivery cut. -/
+theorem spec_restart_retained_block_trace :
     parentIdentityHeld.Assigned parentIdentityAssigned ∧
     wellFormed specRestartParams specRestartWire = true ∧
     admissionValid parentIdentityAssigned specRestartWire = true ∧
@@ -781,13 +782,13 @@ theorem spec_restart_block_trace :
     blockAccepted specRestartParams specRestartCurrent 1 parentIdentityHeld.embed
       .genesis = true ∧
     (process specRestartParams specRestartCurrent specRestartWire.embed).proposals.length = 1 ∧
-    (V2.D.Run.stateBefore specRestartEnv specRestartRun 7 1).st.base.now = 0 ∧
-    (V2.D.Run.final specRestartEnv specRestartRun 1).st.proposals.length = 0 := by
+    (V2.D.Run.stateBefore specRestartEnv specRestartRun 7 1).st.base.now = 8 ∧
+    (V2.D.Run.final specRestartEnv specRestartRun 1).st.proposals.length = 1 := by
   refine ⟨⟨rfl, trivial⟩, ?_⟩
   decide
 
 set_option maxRecDepth 4096 in
-/-- The counterexample obeys the engine's ordered, total public-tick schedule. -/
+/-- The restart trace obeys the engine's ordered, total public-tick schedule. -/
 theorem spec_restart_schedule : V2.D.ScheduleWellFormed specRestartEnv specRestartRun := by
   constructor
   · decide
@@ -833,7 +834,7 @@ theorem spec_restart_delivery_cases (i : Nat) (v : Fin 2) (o : Run.Obj specResta
   · exact Or.inr ⟨rfl, rfl, rfl, rfl⟩
 
 set_option maxRecDepth 4096 in
-/-- Even the refused block meets every engine delivery condition. -/
+/-- The accepted block meets every engine delivery condition. -/
 theorem spec_restart_delivery_valid :
     V2.D.DeliveryWellFormed specRestartEnv specRestartRun := by
   constructor
@@ -903,13 +904,13 @@ theorem spec_restart_self_delivery : V2.D.SelfDelivery specRestartEnv specRestar
   · change o ∈ [] at ho
     contradiction
 
-/-- The corrective tick at 9 would violate the target's public-time condition. -/
+/-- A tick at 9 would violate the target's public-time condition. -/
 theorem spec_restart_no_public_tick : ¬ V2.PublicTime specRestartEnv 9 := by
   rintro ⟨k, hk⟩
   change (9 : Int) = (k : Int) * 2 at hk
   omega
 
-/-- The earlier restart counterexample is outside the W1 NoRestart domain. -/
+/-- The restart trace is outside the W1 NoRestart domain. -/
 theorem spec_restart_outside_no_restart : ¬ V2.D.NoRestart specRestartRun := by
   intro h
   exact h 6 1 9 rfl

@@ -41,3 +41,5 @@ public import AvailableChainFGSARun.Proofs.NamedDelivery
 public import AvailableChainFGSARun.Proofs.RootLease
 public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSARun.Proofs.SelfDelivery
+public import AvailableChainFGSARun.Proofs.Spec.Simulation
+public import AvailableChainFGSARun.Proofs.Spec.Transfer
