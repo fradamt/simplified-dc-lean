@@ -193,7 +193,8 @@ def main():
         assert result.returncode == 1, result
         current = check.manifest(fixture_manifest)
         current['Not.Compiled'] = dict(kind='def', module='Wrong', digest='0' * 16)
-        require_failure('manifest addition', lambda: check.bind_manifest(base, current), 'ROOTS DIFFER')
+        require_failure('manifest addition',
+                        lambda: check.bind_manifest(base, current), 'ROOTS DIFFER')
         require_failure('manifest deletion', lambda: check.bind_manifest(base, {}), 'ROOTS DIFFER')
         roots = tmp / 'roots.txt'
         roots.write_text(reader + '\n' + reader + '\n')

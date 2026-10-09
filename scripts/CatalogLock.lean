@@ -308,7 +308,8 @@ def parseArgs : List String → Opts → Option Opts
 
 def main (args : List String) : IO UInt32 := do
   let some o := parseArgs args {} | do
-    IO.eprintln "usage: lake env lean --run scripts/CatalogLock.lean (--check | --write) [--local] [--lock <path>]"
+    IO.eprintln "usage: lake env lean --run scripts/CatalogLock.lean \
+      (--check | --write) [--local] [--lock <path>]"
     return 2
   initSearchPath (← findSysroot)
   let env ← importModules #[{ module := frameworkLibrary }] {}

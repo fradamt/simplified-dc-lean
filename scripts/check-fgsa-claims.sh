@@ -547,8 +547,8 @@ for m in [*roots, *MODEL_ROOTS]:
 if EXPECTED:
     run('inventory', ['python3', '-B', 'scripts/write-check-inventories.py',
                       '--scope', 'fgsa-claims', '--check'])
-    args += ['--expect', 'AvailableChain.FGSA.Run.fgsaClaims', *EXPECTED, *[n for _, n in MODEL_SCOPE
-                                     if not n.endswith('_def')]]
+    args += ['--expect', 'AvailableChain.FGSA.Run.fgsaClaims', *EXPECTED,
+             *[n for _, n in MODEL_SCOPE if not n.endswith('_def')]]
 run('axioms-coverage-used-constants', args)
 run('lease', ['lake', 'env', 'lean', '--run', str(lease_file), *roots])
 

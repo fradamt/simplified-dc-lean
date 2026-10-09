@@ -112,7 +112,8 @@ failed=0
 # run before a commit. Use NUL delimiters for names and disable external diffs.
 tier_path() {
   case "$1" in
-    scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|Statements/*|*/Statements/*|docs/FGSA-API.md|docs/PCSA-API.md|docs/api/*)
+    scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|\
+    Statements/*|*/Statements/*|docs/FGSA-API.md|docs/PCSA-API.md|docs/api/*)
       reason="gate input changed: $1"; return 0 ;;
   esac
   return 1

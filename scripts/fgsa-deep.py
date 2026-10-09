@@ -78,7 +78,8 @@ def root_digest(data, name):
 
 
 def validate_graph(data):
-    if (type(data['format_version']) is not int or data['format_version'] != 2 or not isinstance(data['entries'], dict) or
+    if (type(data['format_version']) is not int or data['format_version'] != 2 or
+            not isinstance(data['entries'], dict) or
             not data['entries'] or not isinstance(data['nodes'], dict) or not data['nodes']):
         raise ValueError('INVALID DEEP SNAPSHOT')
     nodes = data['nodes']
