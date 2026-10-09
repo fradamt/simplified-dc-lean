@@ -131,7 +131,7 @@ theorem outageV_contest_relay
     htsrc hroots hnamed hsync B j r s hr hGST hpart hheads hold hseed
   have hist := (hh k hIk hkD.le).1
   have hnames := outage_named_of_source_history (hroots := hroots) rfl hist hnamed
-  change (KitFG.storeControlsView (heightView p) (clock p _ _).fg).contest = true at hcontest
+  change (KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg).contest = true at hcontest
   rw [clock_fg] at hcontest
   have hc := (cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
     k y B hy hnames.history).2.2.2.2 hcontest
@@ -251,7 +251,7 @@ theorem outageV_received_marker_head
     exact block_compatible_of_common (block_genesis_preceq _) (block_preceq_refl _)
   have hc := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat i x B hx hnames.history
   have hctrl : controls p dst = controls p (storeAt p c E rho i x) := by
-    change KitFG.storeControlsView (heightView p) (clock p _ _).fg = _
+    change KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg = _
     rw [clock_fg]
     rfl
   have hfg : dst.fg = (storeAt p c E rho i x).fg := clock_fg p _ _
@@ -328,7 +328,7 @@ theorem outageV_clocked_root_compatible
   apply outageV_liveRoot_compatible p dst (eraseFG B) ?_ hlocks
   have hc := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat i x B hx hnames.history
   have hctrl : controls p dst = controls p (storeAt p c E rho i x) := by
-    change KitFG.storeControlsView (heightView p) (clock p _ _).fg = _
+    change KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg = _
     rw [clock_fg]
     rfl
   rw [hctrl]
@@ -356,7 +356,7 @@ theorem outageV_clocked_contested_head
       (SA.voteTime p.toParams s)) s) (eraseFG B) := by
   have hctrl : controls p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) =
       controls p (storeAt p c E rho i x) := by
-    change KitFG.storeControlsView (heightView p) (clock p _ _).fg = _
+    change KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg = _
     rw [clock_fg]
     rfl
   have hct : (R_at p c E rho i x).contest = true := by

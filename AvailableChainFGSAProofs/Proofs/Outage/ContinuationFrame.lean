@@ -91,11 +91,13 @@ theorem outageV_contest_carrier (p : Params) (st : State p.n) (hinv : CStoreInv 
       (heightView p P).h_j = st.fg.h_j ∧ (heightView p P).J = st.fg.J ∧
       (heightView p P).h = st.fg.h_j + 1 := by
   change (decide (st.fg.h_max = st.fg.h_j + 1) &&
-    decide (∃ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max ∧
+    decide (∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧
+      (heightView p W).h = st.fg.h_max ∧
       ¬ FGBlock.Preceq st.fg.J W)) = true at ht
-  obtain ⟨htop, W, _, _, hnW⟩ :=
+  obtain ⟨htop, W, _, _, _, hnW⟩ :=
     (show st.fg.h_max = st.fg.h_j + 1 ∧
-      ∃ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max ∧ ¬ FGBlock.Preceq st.fg.J W by
+      ∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧
+        (heightView p W).h = st.fg.h_max ∧ ¬ FGBlock.Preceq st.fg.J W by
       simpa only [Bool.and_eq_true, decide_eq_true_eq] using ht)
   obtain ⟨P, hP, _, hj, hJ⟩ := hinv.fg.pair.1
   have hn : st.fg.h_j ≠ 0 := by
@@ -223,7 +225,7 @@ theorem outageV_head_covers_of_witnesses (p : Params) (st : State p.n)
   have hZX := eraseFG_preceq_iff.mp (heX ▸ block_preceq_trans
     (fgsa_Z_preceq_liveRoot p st) hAC')
   apply List.mem_filter.mpr
-  refine ⟨(hinv.baseTree C).mpr ⟨X, (Finset.mem_filter.mp hX).1, heX⟩, ?_⟩
+  refine ⟨(hinv.baseTree C).mpr ⟨X, (Finset.mem_filter.mp (Finset.mem_filter.mp hX).1).1, heX⟩, ?_⟩
   exact decide_eq_true ⟨X, (mem_filteredFromView (heightView p) (controls p st)
     (voterBlocks p st s) X).mpr ⟨hX, hFX, hZX, W, hW, hXW, hlo⟩, heX⟩
 
@@ -288,7 +290,8 @@ theorem outageV_contested_head (p : Params) (st : State p.n) (hinv : CStoreInv p
     (ht : (controls p st).contest = true) :
     Block.Compatible (headVote p st s) (eraseFG B) :=
   outageV_head_of_filter p st B s hroot (fun _ hX =>
-    outageV_contested_filter p st hinv B htop ht _ (Finset.filter_subset _ _) hX)
+    outageV_contested_filter p st hinv B htop ht _
+      (fun _ h => (Finset.mem_filter.mp (Finset.mem_filter.mp h).1).1) hX)
 
 /-- OUTPUT-DIRECT §5. DC: INTENTIONAL; the retained marker protects
 all later scheduled HEAD reads, including an empty filtered view. -/
@@ -305,7 +308,8 @@ theorem outageV_marker_head (p : Params) (st : State p.n) (hinv : CStoreInv p st
       FGBlock.Preceq (heightView p U).T_h B ∨ FGBlock.Preceq B (heightView p U).T_h) :
     Block.Compatible (headVote p st s) (eraseFG B) := by
   rcases outageV_marker_frame p st hinv hBQ hQ hmark hJcomp htop hcross
-    (voterBlocks p st s) (Finset.filter_subset _ _) with hZ | htree
+    (voterBlocks p st s)
+    (fun _ h => (Finset.mem_filter.mp (Finset.mem_filter.mp h).1).1) with hZ | htree
   · by_cases hs : s = 0
     · rw [hs, headVote_zero]
       exact block_compatible_of_common (block_genesis_preceq _) (block_preceq_refl _)

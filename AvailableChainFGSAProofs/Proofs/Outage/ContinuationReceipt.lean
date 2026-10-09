@@ -940,7 +940,7 @@ theorem outageV_uncontested_head [Fintype V]
   apply outageV_head_covers_from_batch E rho hvalid hnr hcstar s (eraseFG B) ht hpart hroot
   · intro C _ hCB
     obtain ⟨X, _, heX⟩ := eraseFG_ancestor_mem hinv.fg.closed
-      (Finset.mem_filter.mp hBm).1 hCB
+      (Finset.mem_filter.mp (Finset.mem_filter.mp hBm).1).1 hCB
     have hXB := eraseFG_preceq_iff.mp (heX ▸ hCB)
     exact ⟨X, hpathB X hXB, heX, W, hW, preceq_trans hXB hBW, hWh⟩
   · intro q hh ha
