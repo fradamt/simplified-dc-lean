@@ -212,7 +212,8 @@ theorem postReset_raw_first_head_above
   rw [heB]
   exact healing_first_transfer_raw_domain p c E rho hrec hgst.le hx hix hres heB hy hiy
     hXv hXc (by
-      simpa only [D_at, healing_domain_filter_F] using hD) hlease
+      dsimp only [D_at] at hD ⊢
+      simpa only [healing_domain_filter_F] using hD) hlease
 
 private theorem rawStep_reset_first_head
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -246,7 +247,8 @@ private theorem rawStep_reset_first_head
   obtain ⟨hXv, hXc⟩ := rawStep_frozen_geometry p c E rho hrec hiy
   exact healing_first_transfer_written p c E rho hrec mono writes ha.1 hix hres hBC
     h0r.synchronous (Or.inl hτ) hy hiy hXv hXc (by
-      simpa only [D_at, healing_domain_filter_F] using hD)
+      dsimp only [D_at] at hD ⊢
+      simpa only [healing_domain_filter_F] using hD)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2930–2944, H.1:663–708; plan J5-A-2 R1;
@@ -546,7 +548,8 @@ theorem postReset_raw_heads_succ_above
       writes h0r hinv hreset hx hlabel hix hxi hres hsl (heB ▸ hbatch) hy hiy hyi hafter le_rfl
     obtain ⟨hXv, hXc⟩ := rawStep_frozen_geometry p c E rho hrec hiy
     exact healing_next_transfer_domain p c E rho hrec hgst hbatch hy hiy hXv hXc (by
-      simpa only [D_at, healing_domain_filter_F] using hD) (heB ▸ hlease)
+      dsimp only [D_at] at hD ⊢
+      simpa only [healing_domain_filter_F] using hD) (heB ▸ hlease)
 
 omit [Fintype V] hrec mono emittedNonempty emittedName writes xing origin h0r movingDomain in
 private theorem rawStep_proposal_read
