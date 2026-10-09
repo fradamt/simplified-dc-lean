@@ -279,7 +279,7 @@ def open_document(data):
         for o in e['open']:
             lines.append(f'- `{o["id"]}`: {o["missing"]}')
         lines.append('')
-    return '\n'.join(lines)
+    return '\n'.join(lines).rstrip('\n')
 
 
 def check_map(data, found, section_lines):
