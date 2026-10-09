@@ -22,18 +22,27 @@ case "${1:-}" in
   *) echo "usage: bash scripts/check-fg.sh [--research-only]" >&2; exit 2 ;;
 esac
 step() { echo "== $1"; }
+# Use the same complete source module set as the public inventory writer.
+targets=$(python3 -B - <<'PY'
+import runpy
+import sys
+sys.path.insert(0, 'scripts')
+snapshot = runpy.run_path('scripts/write-check-inventories.py')['snapshot']
+print(' '.join(snapshot.source_modules(snapshot.SCOPES['fg'])))
+PY
+)
 mkdir -p .lake
 log=$(mktemp)
 neg=$(mktemp -d "$PWD/.lake/fg-neg.XXXXXX")
 trap 'rm -f "$log"; rm -rf "$neg"' EXIT
 if [ "$research_only" = 1 ]; then
   step "research-only: require fresh FG build output"
-  lake build --no-build AvailableChainSimplexFG AvailableChainKitFG >"$log" 2>&1 ||
+  lake build --no-build $targets >"$log" 2>&1 ||
     { rc=$?; echo "RESEARCH CHECK NEEDS FRESH FG BUILD"; tail -30 "$log"; exit "$rc"; }
   export GATE_NO_BUILD=1
 else
-step "lake build --wfail AvailableChainSimplexFG AvailableChainKitFG"
-lake build --wfail AvailableChainSimplexFG AvailableChainKitFG >"$log" 2>&1 ||
+step "lake build --wfail: complete FG source scope"
+lake build --wfail $targets >"$log" 2>&1 ||
   { rc=$?; echo "BUILD FAILED"; tail -30 "$log"; exit $rc; }
 step "root imports"
 missing=$(comm -23 \
@@ -210,6 +219,26 @@ run lake env bash -c \
   'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGAxioms.lean --root FGClosureNeg' "$neg"
 expect_fail "(l) a library above the FG libraries in the FG import closure" \
   "FORBIDDEN LIBRARY IN THE FG IMPORT CLOSURE: AvailableChainNegLib"
+# An orphan module must be audited even when no facade imports it.
+orphan=$neg/orphan
+mkdir -p "$orphan"
+# Lean resolves a library prefix from one search directory. Keep its compiled
+# modules together when adding the isolated orphan under that prefix.
+for lib in AvailableChainSimplexFG AvailableChainKitFG; do
+  cp -R ".lake/build/lib/lean/$lib" "$orphan/"
+  cp .lake/build/lib/lean/"$lib".olean* "$orphan/"
+done
+mkdir -p "$orphan/AvailableChainKitFG/Tests"
+printf '%s\n' 'namespace AvailableChain.KitFG.Control' 'axiom orphanBad : Nat' \
+  'end AvailableChain.KitFG.Control' > "$orphan/AvailableChainKitFG/Tests/Orphan.lean"
+lake env bash -c \
+  'lean --root="$0" -o "$0/AvailableChainKitFG/Tests/Orphan.olean" \
+    "$0/AvailableChainKitFG/Tests/Orphan.lean"' "$orphan"
+run lake env bash -c \
+  'export LEAN_PATH="$0:$LEAN_PATH"; cd "$0"; lean --run "$1/scripts/CheckFGAxioms.lean"' \
+  "$orphan" "$PWD"
+expect_fail "(m) a project axiom in an FG module outside the facades" \
+  "BAD AXIOMS AvailableChain.KitFG.Control.orphanBad"
 fi
 if [ "$research_only" = 1 ]; then echo "FG research checks pass (research-only)"
 else echo "all FG checks pass"; fi

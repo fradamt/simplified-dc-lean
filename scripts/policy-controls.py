@@ -123,7 +123,7 @@ with tempfile.TemporaryDirectory(prefix='inventory-shell-') as tmp:
     shutil.copy2(REPO / 'scripts/check_inventory.py', root / 'scripts/check_inventory.py')
     shutil.copy2(REPO / 'scripts/gate-common.sh', root / 'scripts/gate-common.sh')
     # Run the real driver setup, before its first filesystem/build operation.
-    setup = (REPO / 'scripts/check-fg.sh').read_text().split('mkdir -p .lake', 1)[0]
+    setup = (REPO / 'scripts/check-fg.sh').read_text().split('targets=$(python3', 1)[0]
     driver = root / 'scripts/check-fg.sh'
     driver.write_text(setup + 'gate_inventory_args names.txt\n')
     (root / 'names.txt').write_text("('lookup?', 'lookup!',)\n")
