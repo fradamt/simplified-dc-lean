@@ -62,7 +62,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X)
     (hkept : Kept p c E rho iy y X Qfg) :
     Block.Preceq Q (headAtIdx p c E rho iy (v + 1)) :=
-  healing_unanimous_next_transfer_kept p c E rho hrec hgst heQ hbatch hy hiy hXv hXc hkept
+  healing_unanimous_next_transfer_kept p c E rho hrec hgst heQ hbatch hy hiy hXv
+    (fun W hW A _hFA hAW => hXc W hW A hAW) hkept
 
 end AvailableChain.FGSA.Run.Tests.HealingPostResetH2Prime
 end

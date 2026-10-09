@@ -68,7 +68,8 @@ example [Fintype V] {G ΔF : Time}
           (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
           (eraseFG B) = true) := hcase.imp_right (fun hel => ⟨hgw, hel⟩)
   exact ⟨healing_first_transfer_written p c E rho hrec mono writes hx hix hres hBC
-    hgst.le harm hy hiy hXv hXc hD, hpass, hne, hnotSource⟩
+    hgst.le harm hy hiy hXv (fun W hW A _hFA hAW => hXc W hW A hAW) hD,
+    hpass, hne, hnotSource⟩
 
 -- conditional package: the causal cut gives strict label synchrony even
 -- without a gate result or an emitted action source for the prefix.

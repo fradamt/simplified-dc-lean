@@ -93,7 +93,7 @@ example (hs : V2.D.ScheduleWellFormed E rho) (crossing : RXing p c E rho)
       ∃ W ∈ st.fg.TF, FGBlock.Preceq K W ∧ (controls p st).lo ≤ (heightView p W).h :=
   healing_full_witness_all p c E rho hs crossing hx hi
 
--- The deadline can equal the freeze: receipt and all ancestor stamps are strict.
+-- The deadline can equal the freeze: retained ancestor stamps are strict.
 example (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
     {y : V} {q : Slot} {nd : Node p} {W : FGBlock (Fin p.n)}
     (hdpos : 0 < SA.freezeTime p.toParams (q - 1))
@@ -101,7 +101,8 @@ example (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
     (hW : W ∈ (storeAt p c E rho
       (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams (q - 1))) y).fg.TF)
     (hread : postClock E rho y (SA.voteTime p.toParams q) = some nd) :
-    ∀ B, FGBlock.Preceq B W → B ∈ voterBlocks p nd.st q :=
+    ∀ B, FGBlock.Preceq nd.st.fg.F B → FGBlock.Preceq B W →
+      B ∈ voterBlocks p nd.st q :=
   healing_frozen_path p c E rho hs hnr hdpos hdt le_rfl hW hread
 
 -- Frontier one is a valid full-tree witness; there is no height-two assumption.
