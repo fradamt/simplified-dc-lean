@@ -108,6 +108,18 @@ with tempfile.TemporaryDirectory(prefix='inventory-shell-') as tmp:
     root = Path(tmp)
     (root / 'scripts').mkdir()
     shutil.copy2(REPO / 'scripts/check_inventory.py', root / 'scripts/check_inventory.py')
+    shutil.copy2(REPO / 'scripts/gate-common.sh', root / 'scripts/gate-common.sh')
+    # Run the real driver setup, before its first filesystem/build operation.
+    setup = (REPO / 'scripts/check-fg.sh').read_text().split('mkdir -p .lake', 1)[0]
+    driver = root / 'scripts/check-fg.sh'
+    driver.write_text(setup + 'gate_inventory_args names.txt\n')
+    (root / 'names.txt').write_text("('lookup?', 'lookup!',)\n")
+    call(['bash', str(driver)])
+    driver.write_text(setup.replace('source scripts/gate-common.sh\n', '') +
+                      'gate_inventory_args names.txt\n')
+    result = subprocess.run(['bash', str(driver)], capture_output=True)
+    assert result.returncode == 127 and b'gate_inventory_args: command not found' in result.stderr
+    print('CONTROL FG driver setup without shared helper: PASS (source only)')
     (root / 'names.txt').write_text("('lookup?', 'lookup!',)\n")
     (root / 'lookupX').touch()
     script = ('source "$1"; gate_inventory_args names.txt; '

@@ -14,6 +14,7 @@
 set -euo pipefail
 unset FGPINIDS FGREG FGHISTALLOW
 cd "$(dirname "$0")/.."
+source scripts/gate-common.sh
 research_only=0
 case "${1:-}" in
   '') [ $# -eq 0 ] || exit 2 ;;
