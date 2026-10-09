@@ -182,9 +182,9 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   AvailableChain.FGSA.Next.tree \
   AvailableChain.FGSA.Next.erasedList \
   AvailableChain.FGSA.Next.controls \
-  AvailableChain.FGSA.Next.controls_def \
+  AvailableChain.FGSA.Next.controlsNext_def \
   AvailableChain.FGSA.Next.fullTree \
-  AvailableChain.FGSA.Next.fullTree_def \
+  AvailableChain.FGSA.Next.fullTreeNext_def \
   AvailableChain.FGSA.Next.controls_eq_of_top_extends_F \
   AvailableChain.FGSA.Next.fullTree_eq_of_top_extends_F \
   AvailableChain.FGSA.Next.controls_contest_imp \

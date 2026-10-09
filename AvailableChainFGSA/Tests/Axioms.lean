@@ -647,9 +647,9 @@ end AvailableChain.FGSA.instReprNamedProposal
 
 -- AvailableChainFGSA/Model/ContestFrame.lean
 #print axioms AvailableChain.FGSA.Next.controls
-#print axioms AvailableChain.FGSA.Next.controls_def
+#print axioms AvailableChain.FGSA.Next.controlsNext_def
 #print axioms AvailableChain.FGSA.Next.fullTree
-#print axioms AvailableChain.FGSA.Next.fullTree_def
+#print axioms AvailableChain.FGSA.Next.fullTreeNext_def
 
 -- AvailableChainFGSA/Proofs/Port/ContestFrame.lean
 #print axioms AvailableChain.FGSA.Next.controls_eq_of_top_extends_F

@@ -13,14 +13,14 @@ open AvailableChain.SimplexFG
 def controls (p : Params) (st : State p.n) : Controls (Fin p.n) :=
   KitFG.treeStoreControlsView (heightView p) st.fg
 
-theorem controls_def (p : Params) (st : State p.n) :
+theorem controlsNext_def (p : Params) (st : State p.n) :
     controls p st = KitFG.treeStoreControlsView (heightView p) st.fg := rfl
 
 /-- [spec 305–326, 571–599] The full viable tree uses guarded live controls. -/
 def fullTree (p : Params) (st : State p.n) : Finset (FGBlock (Fin p.n)) :=
   KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF
 
-theorem fullTree_def (p : Params) (st : State p.n) :
+theorem fullTreeNext_def (p : Params) (st : State p.n) :
     fullTree p st = KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF := rfl
 
 private theorem controls_eq_1_export :
