@@ -7,8 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "9bbecdbb088b9a1d95d0eb8445e092ff988c0f0c",
-  "main_revision_note": "Advanced from 398fa571 to the fixed Stage 0 candidate 9bbecdbb (base main 5dbfcb3c) for its planned main landing after the deep checker (WP00c) merge. As in P13, this field pins the exact checked byte revision, not a moving branch name. The FG-SA port plan (docs/plans/fgsa-port-r2.md, WP16 data-owner role) explains these additive Stage 0 changes; this history record grants no edit permission.",
+  "main_revision": "5ba8d4da647fe19d2006f3080dbeb076ea8b01e4",
+  "main_revision_note": "Gate-par byte revision; authorized change (2026-10-09); history only.",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -414,7 +414,7 @@
       "path": "scripts/check-fgsa-manifest.sh",
       "s0_sha256": "1c8622dc076d0926b08d0171d0e9fe1c383eb8c92641fc50ad9b3df58860fe9c",
       "comparison_sha256": "1c8622dc076d0926b08d0171d0e9fe1c383eb8c92641fc50ad9b3df58860fe9c",
-      "main_sha256": "3b95a9dbe9815162fc6fad985ba182bb6aa9170d9fdb94b63df5830cecc73908",
+      "main_sha256": "549ed5ed530e552c00b6b3c43d3507d7bde8ab5ab160788220be870159f7b044",
       "changes": [
         {
           "commit": "360612574ad7661fc3757d8579883fb15a9386db",
@@ -422,6 +422,14 @@
           "before_sha256": "1c8622dc076d0926b08d0171d0e9fe1c383eb8c92641fc50ad9b3df58860fe9c",
           "after_sha256": "3b95a9dbe9815162fc6fad985ba182bb6aa9170d9fdb94b63df5830cecc73908",
           "reason": "Add the required frame and deep baseline checks before the NEG=0 early exit and the deep controls for S0-F/WP00c (docs/plans/fgsa-port-r2.md, WP16 data-owner role).",
+          "kind": "commit"
+        },
+        {
+          "commit": "3aa5071ca64f2f91045cbc5dbe80b320c321b3b7",
+          "parent": "318074ba78132f90c894e54dbbc18dd571b02b5b",
+          "before_sha256": "3b95a9dbe9815162fc6fad985ba182bb6aa9170d9fdb94b63df5830cecc73908",
+          "after_sha256": "549ed5ed530e552c00b6b3c43d3507d7bde8ab5ab160788220be870159f7b044",
+          "reason": "Shared gate slots; all checks/controls stay (user request 2026-10-09).",
           "kind": "commit"
         }
       ]
@@ -569,6 +577,18 @@
         }
       ],
       "note": "Stage 0 candidate after the deep checker (WP00c) merge. All qualifying byte changes, including intermediate commits and any merge resolution with new bytes, are recorded in differences. Package entries identify the commits with the exact tip bytes. Merge commits in this range select existing parent bytes for frozen paths; none produces new frozen bytes. Changes follow docs/plans/fgsa-port-r2.md and its WP16 data-owner role; this record grants no edit permission."
+    },
+    {
+      "id": "gate-par",
+      "base": "318074ba78132f90c894e54dbbc18dd571b02b5b",
+      "tip": "5ba8d4da647fe19d2006f3080dbeb076ea8b01e4",
+      "recorded_changes": [
+        {
+          "path": "scripts/check-fgsa-manifest.sh",
+          "commit": "3aa5071ca64f2f91045cbc5dbe80b320c321b3b7"
+        }
+      ],
+      "note": "Exact bytes for the authorized gate scheduling change (2026-10-09)."
     }
   ]
 }
