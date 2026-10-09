@@ -3,19 +3,57 @@
 
 import os
 from pathlib import Path
+import signal
 import subprocess
 import tempfile
+
+from audit_pool import AuditPool
 
 
 REPO = Path(__file__).resolve().parents[1]
 os.chdir(REPO)
 
 
-def command(args, **kwargs):
-    return subprocess.run(args, text=True, capture_output=True, **kwargs)
+SIGNALS = {signal.SIGTERM, signal.SIGINT}
 
 
+def interrupt(signum, _frame):
+    for sig in SIGNALS:
+        signal.signal(sig, signal.SIG_IGN)
+    raise SystemExit(128 + signum)
+
+
+for sig in SIGNALS:
+    signal.signal(sig, interrupt)
+
+
+def command(args, *, check=False, **kwargs):
+    # Defer signals until the child is stored; restore its mask before exec.
+    mask = signal.pthread_sigmask(signal.SIG_BLOCK, SIGNALS)
+    try:
+        proc = subprocess.Popen(args, text=True, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, start_new_session=True,
+                                preexec_fn=lambda: signal.pthread_sigmask(signal.SIG_SETMASK, mask),
+                                **kwargs)
+    except BaseException:
+        signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+        raise
+    try:
+        signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+        stdout, stderr = proc.communicate()
+    except BaseException:
+        # Stop and reap the child group before the source copy is removed.
+        AuditPool.terminate(proc)
+        raise
+    result = subprocess.CompletedProcess(args, proc.returncode, stdout, stderr)
+    if check:
+        result.check_returncode()
+    return result
+
+
+mask = signal.pthread_sigmask(signal.SIG_BLOCK, SIGNALS)
 with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") as scratch:
+    signal.pthread_sigmask(signal.SIG_SETMASK, mask)
     root = Path(scratch)
     source = root / "tree"
     source.mkdir()
@@ -27,7 +65,7 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
     # in a private source copy. Lake supplies the real built imports before cd.
     private_repo = root / 'repo'
     private_repo.mkdir()
-    subprocess.run(['rsync', '-a', '--exclude=/.lake', '--exclude=/.git',
+    command(['rsync', '-a', '--exclude=/.lake', '--exclude=/.git',
                     '--exclude=/claude-files', str(REPO) + '/', str(private_repo) + '/'],
                    check=True)
     check_lean = lean[:-1] + ['bash', '-c', 'cd "$1" || exit; shift; exec lean "$@"',
