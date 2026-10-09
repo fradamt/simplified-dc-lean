@@ -7,8 +7,8 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "45db161df91761be29d6115659aa5182f4afaab3",
-  "main_revision_note": "WP16 measured second-pass pin; source base e961df94. Ruling Y and WP12d are pending.",
+  "main_revision": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+  "main_revision_note": "WP16 final-refresh data pin 2862a33a; source base 988177e2; Y/WP12d/wfix2 integrated.",
   "differences": [
     {
       "path": "AvailableChainFGSAClaims.lean",
@@ -298,7 +298,7 @@
       "path": "docs/FGSA-API.md",
       "s0_sha256": "63b46ca4928064c0f21f9ade352bb6b9aa061e7b7d4d295842e3ed94c0fdab2e",
       "comparison_sha256": "b3075a0c0979320a26ba3fca7a43327882e24685574242a0f7e979381cc0e018",
-      "main_sha256": "34c9bd072c9f57b928033e12a3b1825897143067c7f2fbe74867aeb6c89643cf",
+      "main_sha256": "e43abf02e1359e1dd320aa647465613da6f82c8ce15b41b747faed5dbfedc05f",
       "changes": [
         {
           "commit": "4dbcf7871148db227abedd3a8c66fdbd1892cf55",
@@ -356,6 +356,14 @@
           "before_sha256": "23453dec2be723dfead8822514b68ef6d154f2a0a1b8d229c1281cef01e62046",
           "after_sha256": "34c9bd072c9f57b928033e12a3b1825897143067c7f2fbe74867aeb6c89643cf",
           "reason": "A; h+i+j protocol switch: Switch canonical FG-SA readers and final frame surface (red window)",
+          "kind": "commit"
+        },
+        {
+          "commit": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+          "parent": "33ac5feca6f3e2785ee18e892b1fb72e47f9f43c",
+          "before_sha256": "34c9bd072c9f57b928033e12a3b1825897143067c7f2fbe74867aeb6c89643cf",
+          "after_sha256": "e43abf02e1359e1dd320aa647465613da6f82c8ce15b41b747faed5dbfedc05f",
+          "reason": "WP16 measured Y API data: fix(fgsa): measure Y suppliers and record remaining audit blockers",
           "kind": "commit"
         }
       ]
@@ -550,6 +558,22 @@
           "before_sha256": "e05e674f98e0a494e9ea9031c45e8da9262ff99eedd5edd610b7e2d13dab5009",
           "after_sha256": "475793a013e98e5568665b6fce1fa51d8706bd0da1d12675506259c1b0463d9a",
           "reason": "WP16 exact guard records approved by fg-sa-manager: fix(fgsa): correct WP16 attribution and apply approved guard records",
+          "kind": "commit"
+        }
+      ]
+    },
+    {
+      "path": "AvailableChainFGSA/Statements/Invariants.lean",
+      "s0_sha256": "f4cb8df055a973b7525b33d8c3aaef00c33c04864f1dd3de01165565a411694e",
+      "comparison_sha256": "f4cb8df055a973b7525b33d8c3aaef00c33c04864f1dd3de01165565a411694e",
+      "main_sha256": "296d28b56327445d5504fd7022d3a3ca7a5dc0dbd785aba57ec427046ac2a578",
+      "changes": [
+        {
+          "commit": "b0b493d88a0973da9c9716f430e2371eae0cdfd1",
+          "parent": "b8f60fd1f24c18ff11c4534531dfed9b59ebf6ad",
+          "before_sha256": "f4cb8df055a973b7525b33d8c3aaef00c33c04864f1dd3de01165565a411694e",
+          "after_sha256": "296d28b56327445d5504fd7022d3a3ca7a5dc0dbd785aba57ec427046ac2a578",
+          "reason": "Integrated Y/WP12d/wfix2 source and prior WP16 data: Retain the FG-SA last tick clock through restore (ruling Y)",
           "kind": "commit"
         }
       ]
@@ -769,6 +793,30 @@
         }
       ],
       "note": "Exact pre-Y/pre-WP12d integration bytes. Pending packages have no inferred freeze records."
+    },
+    {
+      "id": "FGSA-port-final-refresh-base",
+      "base": "45db161df91761be29d6115659aa5182f4afaab3",
+      "tip": "988177e222b441e9ee08d51f8dfd39c80b0d395d",
+      "recorded_changes": [
+        {
+          "path": "AvailableChainFGSA/Statements/Invariants.lean",
+          "commit": "b0b493d88a0973da9c9716f430e2371eae0cdfd1"
+        }
+      ],
+      "note": "Exact integrated Y/WP12d/wfix2 bytes with actual parents and hashes."
+    },
+    {
+      "id": "FGSA-port-final-refresh-data",
+      "base": "988177e222b441e9ee08d51f8dfd39c80b0d395d",
+      "tip": "2862a33a167325da8a0302a4fc2f29284b19fa60",
+      "recorded_changes": [
+        {
+          "path": "docs/FGSA-API.md",
+          "commit": "2862a33a167325da8a0302a4fc2f29284b19fa60"
+        }
+      ],
+      "note": "Exact measured API bytes after the integrated Y constructor change."
     }
   ]
 }

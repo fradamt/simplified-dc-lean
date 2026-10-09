@@ -57,8 +57,7 @@ def fgsaAllowedImport (mod imp : Name) : Bool :=
       (`Mathlib, true, false),
       (`AvailableChainGridCO.Proofs, true, false),
       (`AvailableChainKitFG, true, false),
-      (`AvailableChainGeneric.Proofs, true, false),
-      (`AvailableChainFGSARun.Model.Protocol, false, true)]
+      (`AvailableChainGeneric.Proofs, true, false)]
     | _ => []) imp
 
 def runAllowedImport (mod imp : Name) : Bool :=

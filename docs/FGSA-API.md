@@ -102,8 +102,9 @@ theorem AvailableChain.FGSA.finalityView_def 1defbcb125e22963
 ### `AvailableChainFGSA.Statements.Invariants`
 
 ```text
-inductive AvailableChain.FGSA.Reachable b8ebe90e84f54451
+inductive AvailableChain.FGSA.Reachable 6dbbc505d29881d3
 ctor AvailableChain.FGSA.Reachable.init 3eac19650fcdc2cf
+ctor AvailableChain.FGSA.Reachable.reset c471b61cd55dc200
 ctor AvailableChain.FGSA.Reachable.tick 90a34c7f00023bec
 ctor AvailableChain.FGSA.Reachable.deliver 719465d9a5f61c82
 def AvailableChain.FGSA.NestOK 33ad573c238f8a2f

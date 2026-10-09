@@ -18,13 +18,13 @@
      "clause": "source discipline at an honest action",
      "theorem": "AvailableChain.FGSA.Run.sourceDiscipline_tSrc",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Sources",
-     "type_fingerprint": "21bd8971e29abf4c"
+     "type_fingerprint": "d6d8fb7370b75aea"
     },
     {
      "clause": "row service",
      "theorem": "AvailableChain.FGSA.Run.fgsa_rowServiceClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "d55dfea762a41023"
+     "type_fingerprint": "cb12c13467e19339"
     }
    ],
    "open": [
@@ -47,7 +47,7 @@
      "clause": "core FG services under the awake and quorum premises",
      "theorem": "AvailableChain.FGSA.Run.fgsa_coreServices",
      "module": "AvailableChainFGSAProofs.Proofs.Finality.CoreServices",
-     "type_fingerprint": "7157f8dee6ee0fea"
+     "type_fingerprint": "d1ebf505326ecee0"
     }
    ],
    "open": [
@@ -70,7 +70,7 @@
      "clause": "carrier claim (K5)",
      "theorem": "AvailableChain.FGSA.Run.fgsa_carrierClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "27d6af484914d0a3"
+     "type_fingerprint": "6df4b73f247042c5"
     }
    ],
    "open": []
@@ -88,7 +88,7 @@
      "clause": "chain certificates",
      "theorem": "AvailableChain.FGSA.Run.fgsa_chainCertificatesClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "ac0429a853125bee"
+     "type_fingerprint": "30c7cd802ccd00fc"
     }
    ],
    "open": []
@@ -124,7 +124,7 @@
      "clause": "store claim (K4)",
      "theorem": "AvailableChain.FGSA.Run.fgsa_storeClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "70dc5f3fab867394"
+     "type_fingerprint": "b6b483a04dc517ce"
     }
    ],
    "open": []
@@ -142,7 +142,7 @@
      "clause": "active view",
      "theorem": "AvailableChain.FGSA.Run.fgsa_activeViewClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "f08a952537abc980"
+     "type_fingerprint": "2ee7354dcbeac282"
     }
    ],
    "open": []
@@ -160,7 +160,7 @@
      "clause": "lock origins",
      "theorem": "AvailableChain.FGSA.Run.fgsa_leaseOriginsClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "116c6497bb8b5f01"
+     "type_fingerprint": "cb3039bd3aec0df7"
     }
    ],
    "open": []
@@ -194,7 +194,7 @@
      "clause": "reconcile claim (K1, K3)",
      "theorem": "AvailableChain.FGSA.Run.fgsa_reconcileClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "d8a44bd878121d1e"
+     "type_fingerprint": "cd50d76df698b6db"
     },
     {
      "clause": "reconcile is idempotent",
@@ -236,7 +236,7 @@
      "clause": "stored output nesting (K2)",
      "theorem": "AvailableChain.FGSA.Run.fgsa_outputNestingClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "5f48c4625dd94c00"
+     "type_fingerprint": "c4ec6f52e7482292"
     }
    ],
    "open": []
@@ -254,7 +254,7 @@
      "clause": "frame claim with the fj.frame.v5 store clauses",
      "theorem": "AvailableChain.FGSA.Run.fgsa_frameClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "5a6ce3ee1181f1bc"
+     "type_fingerprint": "50d72aa68d75a96e"
     }
    ],
    "open": []
@@ -272,13 +272,13 @@
      "clause": "frame clauses",
      "theorem": "AvailableChain.FGSA.Run.fgsa_frameClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "5a6ce3ee1181f1bc"
+     "type_fingerprint": "50d72aa68d75a96e"
     },
     {
      "clause": "window store clauses",
      "theorem": "AvailableChain.FGSA.Run.fgsa_storeClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "70dc5f3fab867394"
+     "type_fingerprint": "b6b483a04dc517ce"
     }
    ],
    "open": [
@@ -313,7 +313,7 @@
      "clause": "final lock for honest-held evidence",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalLock_ev",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Accountable",
-     "type_fingerprint": "ef1e2af6ef5dcd7a"
+     "type_fingerprint": "37f9ec06b8385e9c"
     }
    ],
    "open": [
@@ -336,7 +336,7 @@
      "clause": "fault-bounded honest-held corollary",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalLockClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "3ee3c64776db4715"
+     "type_fingerprint": "fa2c11c26d8774bf"
     }
    ],
    "open": []
@@ -354,7 +354,7 @@
      "clause": "client safety",
      "theorem": "AvailableChain.FGSA.Run.fgsa_clientSafetyClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "04dc66fe5f6103b4"
+     "type_fingerprint": "6fa578bc15b04942"
     }
    ],
    "open": []
@@ -378,7 +378,7 @@
      "clause": "whole-run accountability",
      "theorem": "AvailableChain.FGSA.Run.fgsa_wholeRunAccountableClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "367aa1ce3ccff6d0"
+     "type_fingerprint": "85c9adc7fb022a6e"
     }
    ],
    "open": []
@@ -408,7 +408,7 @@
      "clause": "finalized safety for every δ_t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalizedSafetyClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "f200a407fc92bbbb"
+     "type_fingerprint": "7e55d0cad45f91a1"
     }
    ],
    "open": []
@@ -426,7 +426,7 @@
      "clause": "source discipline (K6)",
      "theorem": "AvailableChain.FGSA.Run.fgsa_sourceDisciplineClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "a2040800229e8870"
+     "type_fingerprint": "1ed0b05994613bea"
     }
    ],
    "open": []
@@ -444,7 +444,7 @@
      "clause": "receipt coverage (K8)",
      "theorem": "AvailableChain.FGSA.Run.fgsa_receiptCoverage",
      "module": "AvailableChainFGSARun.Proofs.ReceiptCoverage",
-     "type_fingerprint": "0b06679ec2c8bfa3"
+     "type_fingerprint": "9626f7747ff63c39"
     }
    ],
    "open": [
@@ -467,7 +467,7 @@
      "clause": "same label",
      "theorem": "AvailableChain.FGSA.Run.fgsa_sameLabelClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Export",
-     "type_fingerprint": "daa3b810fef48c2b"
+     "type_fingerprint": "2cc8eea7d7de44d1"
     }
    ],
    "open": []
@@ -485,7 +485,7 @@
      "clause": "release (K11)",
      "theorem": "AvailableChain.FGSA.Run.fgsa_releaseClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Export",
-     "type_fingerprint": "35628cfa30a693ba"
+     "type_fingerprint": "f17c57e639f664d8"
     },
     {
      "clause": "release count is antitone",
@@ -509,7 +509,7 @@
      "clause": "clean frame (K7 Clean, K9)",
      "theorem": "AvailableChain.FGSA.Run.cleanFrame",
      "module": "AvailableChainFGSAProofs.Proofs.Clean.Action",
-     "type_fingerprint": "722f1ab69a3c1d9c"
+     "type_fingerprint": "b8fbe2dc09dd1b2a"
     }
    ],
    "open": []
@@ -545,7 +545,7 @@
      "clause": "clean transfer (K10 Clean)",
      "theorem": "AvailableChain.FGSA.Run.cleanTransfer",
      "module": "AvailableChainFGSAProofs.Proofs.Clean.Transfer",
-     "type_fingerprint": "398fa783073afd7b"
+     "type_fingerprint": "63e8ef09a3f92ccd"
     }
    ],
    "open": []
@@ -563,7 +563,7 @@
      "clause": "clean history",
      "theorem": "AvailableChain.FGSA.Run.fgsa_cleanHistoryClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-     "type_fingerprint": "8c87f92fcee3293c"
+     "type_fingerprint": "f4229bf2fa2b88f6"
     }
    ],
    "open": []
@@ -581,7 +581,7 @@
      "clause": "clean safety",
      "theorem": "AvailableChain.FGSA.Run.fgsa_cleanSafetyClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-     "type_fingerprint": "7a6db2909f50a3fc"
+     "type_fingerprint": "d1400016c1eb6c7e"
     }
    ],
    "open": []
@@ -599,7 +599,7 @@
      "clause": "clean prefix truncation",
      "theorem": "AvailableChain.FGSA.Run.fgsa_cleanPrefixTruncationClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-     "type_fingerprint": "b01c4c8842b2bcff"
+     "type_fingerprint": "80a477a290686f19"
     }
    ],
    "open": []
@@ -617,13 +617,13 @@
      "clause": "candidate: score equality on the run",
      "theorem": "AvailableChain.FGSA.Run.fgsa_score_eq_on_run",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.ScoreRun",
-     "type_fingerprint": "94999e181b00a39b"
+     "type_fingerprint": "5c222ce2e7c2a7a1"
     },
     {
      "clause": "candidate: reader scores for exact-proposal receipts",
      "theorem": "AvailableChain.FGSA.Run.inclusion_reader_scores",
      "module": "AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts",
-     "type_fingerprint": "01c2ad1684b06c95"
+     "type_fingerprint": "785c8e2982497d4b"
     }
    ],
    "open": [
@@ -646,7 +646,7 @@
      "clause": "exact proposal",
      "theorem": "AvailableChain.FGSA.Run.fgsa_exactProposalClaim_of_clean",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-     "type_fingerprint": "7d64da20ebe59179"
+     "type_fingerprint": "48314e7cd101faff"
     }
    ],
    "open": []
@@ -664,7 +664,7 @@
      "clause": "clean inclusion",
      "theorem": "AvailableChain.FGSA.Run.fgsa_cleanInclusionClaim_of_clean",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-     "type_fingerprint": "f2518bb67aa672c6"
+     "type_fingerprint": "07d426b08f0a6588"
     }
    ],
    "open": []
@@ -682,7 +682,7 @@
      "clause": "clean growth",
      "theorem": "AvailableChain.FGSA.Run.fgsa_cleanGrowthClaim_of_clean",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-     "type_fingerprint": "dc649402bcdc46e3"
+     "type_fingerprint": "2b048dffdb666269"
     }
    ],
    "open": []
@@ -700,7 +700,7 @@
      "clause": "outage compatibility",
      "theorem": "AvailableChain.FGSA.Run.fgsa_outageCompatClaim_of_clean",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-     "type_fingerprint": "f7258a9f7a30861e"
+     "type_fingerprint": "b3b6185ded140dbc"
     }
    ],
    "open": []
@@ -718,7 +718,7 @@
      "clause": "fast P1",
      "theorem": "AvailableChain.FGSA.Run.fgsa_fastP1Claim_of_clean",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-     "type_fingerprint": "529a8bee0d1b3fe1"
+     "type_fingerprint": "871a36d3adea626b"
     }
    ],
    "open": []
@@ -736,7 +736,7 @@
      "clause": "slow P1",
      "theorem": "AvailableChain.FGSA.Run.fgsa_slowP1Claim_of_clean",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-     "type_fingerprint": "266b8be3529f2115"
+     "type_fingerprint": "06d62f3503a39b67"
     }
    ],
    "open": []
@@ -754,7 +754,7 @@
      "clause": "the root joins the component claims",
      "theorem": "AvailableChain.FGSA.Run.fgsaClaims_of_open",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
-     "type_fingerprint": "3699e98c278982f3"
+     "type_fingerprint": "992a812ae6d96c53"
     }
    ],
    "open": [
@@ -777,7 +777,7 @@
      "clause": "phase witness",
      "theorem": "AvailableChain.FGSA.Run.healing_phaseWitness",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.Phase",
-     "type_fingerprint": "c112cf69f6ec1167"
+     "type_fingerprint": "c5f1fee10c0f4b71"
     }
    ],
    "open": []
@@ -795,7 +795,7 @@
      "clause": "head geometry clauses",
      "theorem": "AvailableChain.FGSA.Run.fgsa_headReachesLo",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry",
-     "type_fingerprint": "e52bb3a4c5fa8a9e"
+     "type_fingerprint": "f07f73d2de1cc87f"
     }
    ],
    "open": [
@@ -818,7 +818,7 @@
      "clause": "phase order",
      "theorem": "AvailableChain.FGSA.Run.healing_phase_order_of_crossing",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder",
-     "type_fingerprint": "c30185bb9824a8ab"
+     "type_fingerprint": "ea9bac9d936d707d"
     }
    ],
    "open": [
@@ -841,7 +841,7 @@
      "clause": "descent at an alleged first change",
      "theorem": "AvailableChain.FGSA.Run.healing_descent",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.Descent",
-     "type_fingerprint": "ddcf8594eef87f45"
+     "type_fingerprint": "fc449582d41d6e9f"
     }
    ],
    "open": []
@@ -859,7 +859,7 @@
      "clause": "phase transfers",
      "theorem": "AvailableChain.FGSA.Run.healing_phase_transfers",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.SupportPerm",
-     "type_fingerprint": "493fc3a6cf26e1da"
+     "type_fingerprint": "43de5c5670915c78"
     }
    ],
    "open": [
@@ -882,13 +882,13 @@
      "clause": "repair with two locks",
      "theorem": "AvailableChain.FGSA.Run.repair_two_lease",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.Repair",
-     "type_fingerprint": "cf691466cf8e5339"
+     "type_fingerprint": "bed0c973cfdcdffb"
     },
     {
      "clause": "synchronous repair",
      "theorem": "AvailableChain.FGSA.Run.repair_synchronous",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.Repair",
-     "type_fingerprint": "40b8a6f90b4a1646"
+     "type_fingerprint": "353e364587ca8b24"
     }
    ],
    "open": [
@@ -911,7 +911,7 @@
      "clause": "phase order",
      "theorem": "AvailableChain.FGSA.Run.healing_phase_order_of_crossing",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder",
-     "type_fingerprint": "c30185bb9824a8ab"
+     "type_fingerprint": "ea9bac9d936d707d"
     }
    ],
    "open": [
@@ -934,7 +934,7 @@
      "clause": "row permission",
      "theorem": "AvailableChain.FGSA.Run.fgsa_rowPermissionClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Healing",
-     "type_fingerprint": "e3f3f5cbe54f7036"
+     "type_fingerprint": "eae3ce39418ed030"
     }
    ],
    "open": []
@@ -952,7 +952,7 @@
      "clause": "row service (T-ROWS)",
      "theorem": "AvailableChain.FGSA.Run.fgsa_rowServiceClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-     "type_fingerprint": "d55dfea762a41023"
+     "type_fingerprint": "cb12c13467e19339"
     }
    ],
    "open": []
@@ -970,19 +970,19 @@
      "clause": "common entry at the high height",
      "theorem": "AvailableChain.FGSA.Run.common_entry_at_high",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight",
-     "type_fingerprint": "1d18e3ddce56841e"
+     "type_fingerprint": "ee842ed1f1765488"
     },
     {
      "clause": "next common entry",
      "theorem": "AvailableChain.FGSA.Run.common_next_entry",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight",
-     "type_fingerprint": "709a8f84883a6a7d"
+     "type_fingerprint": "0a424911004860f3"
     },
     {
      "clause": "common entry at the low height",
      "theorem": "AvailableChain.FGSA.Run.common_entry_at_low",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight",
-     "type_fingerprint": "22f2d4b4e54f8185"
+     "type_fingerprint": "2c1a5f05db49bbfb"
     }
    ],
    "open": []
@@ -1000,7 +1000,7 @@
      "clause": "renewed promotion",
      "theorem": "AvailableChain.FGSA.Run.fgsa_renewedPromotionClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Healing",
-     "type_fingerprint": "a783bbf771ce05c7"
+     "type_fingerprint": "b95a553e859b0485"
     }
    ],
    "open": []
@@ -1034,7 +1034,7 @@
      "clause": "progress attempt",
      "theorem": "AvailableChain.FGSA.Run.healing_progressAttemptStatement",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt",
-     "type_fingerprint": "595006f031c62965"
+     "type_fingerprint": "4692be62692a8e73"
     }
    ],
    "open": []
@@ -1052,7 +1052,7 @@
      "clause": "reset arrival",
      "theorem": "AvailableChain.FGSA.Run.healing_resetArrivalClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-     "type_fingerprint": "9e09b32e46a223a5"
+     "type_fingerprint": "4c8c8fcc344a996f"
     }
    ],
    "open": []
@@ -1070,7 +1070,7 @@
      "clause": "post-reset invariant",
      "theorem": "AvailableChain.FGSA.Run.postReset_inv_all",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint",
-     "type_fingerprint": "223cb5115f1a6e23"
+     "type_fingerprint": "5368bcd892a5badd"
     }
    ],
    "open": []
@@ -1088,7 +1088,7 @@
      "clause": "slow window synchronization",
      "theorem": "AvailableChain.FGSA.Run.postReset_slow_window_sync",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw",
-     "type_fingerprint": "5d67453208d440f1"
+     "type_fingerprint": "0ef321d1c669fbdf"
     }
    ],
    "open": [
@@ -1111,7 +1111,7 @@
      "clause": "raw result transfer",
      "theorem": "AvailableChain.FGSA.Run.postReset_h5RawTransfer_body",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw",
-     "type_fingerprint": "f877436db9b6f554"
+     "type_fingerprint": "0415497cb8718d9a"
     }
    ],
    "open": []
@@ -1129,7 +1129,7 @@
      "clause": "post-reset exact service",
      "theorem": "AvailableChain.FGSA.Run.healing_postReset_exactService",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetService",
-     "type_fingerprint": "b5cbef0e8b9d5b45"
+     "type_fingerprint": "bc28ae8e01c380cf"
     }
    ],
    "open": []
@@ -1147,7 +1147,7 @@
      "clause": "local healing",
      "theorem": "AvailableChain.FGSA.Run.healing_healed",
      "module": "AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed",
-     "type_fingerprint": "eb50def9b5268673"
+     "type_fingerprint": "5d1178b9ccbcbb7d"
     }
    ],
    "open": [
@@ -1170,13 +1170,13 @@
      "clause": "uniform healing from the H-time conclusion",
      "theorem": "AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-     "type_fingerprint": "98657aa93162ed20"
+     "type_fingerprint": "62065c5f0c1275b6"
     },
     {
      "clause": "the H-time claim",
      "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-     "type_fingerprint": "a3d56a4013aced2d"
+     "type_fingerprint": "48f8edc437d51c8b"
     }
    ],
    "open": []
@@ -1194,7 +1194,7 @@
      "clause": "healing input export",
      "theorem": "AvailableChain.FGSA.Run.healing_healingInputClaim",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-     "type_fingerprint": "9a2a05b22ec64a80"
+     "type_fingerprint": "2a5b266109c06d6a"
     }
    ],
    "open": []
@@ -1212,7 +1212,7 @@
      "clause": "window finality kernel",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalityKernel_W",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-     "type_fingerprint": "a804999c8f12f0f4"
+     "type_fingerprint": "04ecdfe209e21f6a"
     }
    ],
    "open": []
@@ -1230,7 +1230,7 @@
      "clause": "window tail kernel",
      "theorem": "AvailableChain.FGSA.Run.fgsa_tailKernel_W",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-     "type_fingerprint": "2221dc77ad2f9777"
+     "type_fingerprint": "b32683e899d6c605"
     }
    ],
    "open": []
@@ -1258,13 +1258,13 @@
      "clause": "first finality under Rec_FE_W",
      "theorem": "AvailableChain.FGSA.Run.fgsa_firstFinality_recFE",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-     "type_fingerprint": "4469f94a5e47b0af"
+     "type_fingerprint": "7d05f62a036c81bd"
     },
     {
      "clause": "discharged in the root",
      "theorem": "AvailableChain.FGSA.Run.fgsaClaims_of_hTime",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
-     "type_fingerprint": "0dbc532324d1575b"
+     "type_fingerprint": "b5b1dd3ac8a9a54b"
     }
    ],
    "open": []
@@ -1280,13 +1280,13 @@
      "clause": "first finality under Rec_F4_W",
      "theorem": "AvailableChain.FGSA.Run.fgsa_firstFinality_recF4",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-     "type_fingerprint": "90696d3feb6acd9e"
+     "type_fingerprint": "be29f95d88f8279c"
     },
     {
      "clause": "discharged in the root",
      "theorem": "AvailableChain.FGSA.Run.fgsaClaims_of_hTime",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
-     "type_fingerprint": "0dbc532324d1575b"
+     "type_fingerprint": "b5b1dd3ac8a9a54b"
     }
    ],
    "open": []
@@ -1342,13 +1342,13 @@
      "clause": "local FF5 under Rec_FE_W",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-     "type_fingerprint": "0edca99dd1a1aefc"
+     "type_fingerprint": "7ef26a3c7dbe63aa"
     },
     {
      "clause": "GST export of FF5 for triggers with GST+B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-     "type_fingerprint": "922a8418694fbb1e"
+     "type_fingerprint": "a22d4409b31639e8"
     }
    ],
    "open": []
@@ -1364,13 +1364,13 @@
      "clause": "local FF5 under Rec_F4_W",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-     "type_fingerprint": "bdc157c157677b82"
+     "type_fingerprint": "79a59df4121f6b14"
     },
     {
      "clause": "GST export of FF5 for triggers with GST+B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-     "type_fingerprint": "7fcd2eec0eac06ca"
+     "type_fingerprint": "7ddca1e697798c9c"
     }
    ],
    "open": []
@@ -1387,13 +1387,13 @@
      "clause": "local FF6 under Rec_FE_W",
      "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-     "type_fingerprint": "f07886415ade445a"
+     "type_fingerprint": "e9015b3ec08a64fc"
     },
     {
      "clause": "GST export of FF6 for triggers with GST+B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-     "type_fingerprint": "b9fbae21e4fa2acf"
+     "type_fingerprint": "9223697a7fb191b1"
     }
    ],
    "open": []
@@ -1410,13 +1410,13 @@
      "clause": "local FF6 under Rec_F4_W",
      "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-     "type_fingerprint": "a61ac73bb80f1a88"
+     "type_fingerprint": "4baf2d08c48dce8e"
     },
     {
      "clause": "GST export of FF6 for triggers with GST+B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-     "type_fingerprint": "968af48b3b01dbdb"
+     "type_fingerprint": "22fd435d6cef748d"
     }
    ],
    "open": []
@@ -1433,13 +1433,13 @@
      "clause": "local FF7 under Rec_FE_W",
      "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-     "type_fingerprint": "1781e2aa38599823"
+     "type_fingerprint": "2f0bb04de29ccb95"
     },
     {
      "clause": "GST export of FF7 for triggers with GST+B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recFE",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-     "type_fingerprint": "3114421b7cb538f1"
+     "type_fingerprint": "6788a1272d422dff"
     }
    ],
    "open": []
@@ -1456,13 +1456,13 @@
      "clause": "local FF7 under Rec_F4_W",
      "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-     "type_fingerprint": "9b2ae2475684fa55"
+     "type_fingerprint": "8dec16c1c585b8d3"
     },
     {
      "clause": "GST export of FF7 for triggers with GST+B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recF4",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-     "type_fingerprint": "f17cc0d5164c6091"
+     "type_fingerprint": "70ddd67ca89577df"
     }
    ],
    "open": []
@@ -1522,14 +1522,14 @@
      "clause": "FGSAClaims.weakContinuationLive field",
      "theorem": "AvailableChain.FGSA.Run.fgsa_weakContinuationLiveClaim_of_hTime",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
-     "type_fingerprint": "bf66b4a4f7e2b549"
+     "type_fingerprint": "7c99ef735f7c232b"
     },
     {
      "clause": "the closed root exports the field",
      "theorem": "AvailableChain.FGSA.Run.fgsaClaims",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
      "aggregate": true,
-     "type_fingerprint": "681bb87fc2d918fa",
+     "type_fingerprint": "f0d9a772701a8a1a",
      "binders": 1
     }
    ],
@@ -1550,13 +1550,13 @@
      "clause": "the same claim includes conditional growth",
      "theorem": "AvailableChain.FGSA.Run.fgsa_weakContinuationLiveClaim_of_hTime",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
-     "type_fingerprint": "bf66b4a4f7e2b549"
+     "type_fingerprint": "7c99ef735f7c232b"
     },
     {
      "clause": "seeded live growth",
      "theorem": "AvailableChain.FGSA.Run.wc_seededLiveAt",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Live",
-     "type_fingerprint": "3b4cdf74d4483555"
+     "type_fingerprint": "e744ac3b3659bc1f"
     }
    ],
    "open": []
@@ -1574,19 +1574,19 @@
      "clause": "prefix replay",
      "theorem": "AvailableChain.FGSA.Run.wc_prefixReplay",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay",
-     "type_fingerprint": "73fc84f5e30300da"
+     "type_fingerprint": "bdf1af9c62ab753c"
     },
     {
      "clause": "store replay",
      "theorem": "AvailableChain.FGSA.Run.wc_storeReplay",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay",
-     "type_fingerprint": "12d7c44dd80411e0"
+     "type_fingerprint": "fd2f1f398b76a246"
     },
     {
      "clause": "cut replay",
      "theorem": "AvailableChain.FGSA.Run.wc_cutReplay",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay",
-     "type_fingerprint": "71566ae35620154d"
+     "type_fingerprint": "339d68d04be4ec63"
     }
    ],
    "open": []
@@ -1604,7 +1604,7 @@
      "clause": "height seed",
      "theorem": "AvailableChain.FGSA.Run.wc_heightSeed",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
-     "type_fingerprint": "8c666d7419dcedab"
+     "type_fingerprint": "c34815e223d24a05"
     }
    ],
    "open": []
@@ -1622,7 +1622,7 @@
      "clause": "low finalized",
      "theorem": "AvailableChain.FGSA.Run.wc_lowFinalized",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins",
-     "type_fingerprint": "e09a3ce1ed213aa9"
+     "type_fingerprint": "00e8641ab4d5a423"
     }
    ],
    "open": []
@@ -1640,25 +1640,25 @@
      "clause": "emitted-name source discipline",
      "theorem": "AvailableChain.FGSA.Run.sourceDiscipline_emittedName",
      "module": "AvailableChainFGSAProofs.Proofs.Foundations.Sources",
-     "type_fingerprint": "4cc23035f02115a8"
+     "type_fingerprint": "d83bc34bb19875f6"
     },
     {
      "clause": "scoped row origin producer",
      "theorem": "AvailableChain.FGSA.Run.wc_scopedRowOrigins",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
-     "type_fingerprint": "4199c46a32f10334"
+     "type_fingerprint": "9c9152eb3bb5c0aa"
     },
     {
      "clause": "receipt origin producer",
      "theorem": "AvailableChain.FGSA.Run.wc_receiptOrigins",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
-     "type_fingerprint": "beb66c4c03004137"
+     "type_fingerprint": "dda32abdfcc8a05d"
     },
     {
      "clause": "forwarding wrapper of the produced premise",
      "theorem": "AvailableChain.FGSA.Run.wc_sourceOrigin",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins",
-     "type_fingerprint": "4e99cd78b2e2328b"
+     "type_fingerprint": "d0e2b272f0554e81"
     }
    ],
    "open": []
@@ -1676,7 +1676,7 @@
      "clause": "seeded frame",
      "theorem": "AvailableChain.FGSA.Run.wc_seededFrame",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Frame",
-     "type_fingerprint": "76a10652cb8246dd"
+     "type_fingerprint": "0452e0c2ea445137"
     }
    ],
    "open": []
@@ -1694,7 +1694,7 @@
      "clause": "seeded induction",
      "theorem": "AvailableChain.FGSA.Run.wc_seededInduction",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction",
-     "type_fingerprint": "33232db005766a0f"
+     "type_fingerprint": "460e4a3f52efefd9"
     }
    ],
    "open": []
@@ -1712,7 +1712,7 @@
      "clause": "seeded safety",
      "theorem": "AvailableChain.FGSA.Run.wc_seededSafety",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety",
-     "type_fingerprint": "f23376a8e4492206"
+     "type_fingerprint": "9ef1f3adc09f69f0"
     }
    ],
    "open": []
@@ -1730,7 +1730,7 @@
      "clause": "final below",
      "theorem": "AvailableChain.FGSA.Run.wc_finalBelow",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow",
-     "type_fingerprint": "051b866ec301b17b"
+     "type_fingerprint": "827ba5afbe202ded"
     }
    ],
    "open": []
@@ -1748,7 +1748,7 @@
      "clause": "proposal pivot",
      "theorem": "AvailableChain.FGSA.Run.wc_proposalPivot",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal",
-     "type_fingerprint": "8a71155839700a5c"
+     "type_fingerprint": "e84b467d7edf7c82"
     }
    ],
    "open": []
@@ -1766,7 +1766,7 @@
      "clause": "exact proposal after recovery",
      "theorem": "AvailableChain.FGSA.Run.wc_exactProposal",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal",
-     "type_fingerprint": "7f322063ab4dd581"
+     "type_fingerprint": "45047102ade22d7b"
     }
    ],
    "open": []
@@ -1784,7 +1784,7 @@
      "clause": "inclusion within 6Δ",
      "theorem": "AvailableChain.FGSA.Run.wc_inclusion6",
      "module": "AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion",
-     "type_fingerprint": "9b4cfad4ebf93ca3"
+     "type_fingerprint": "6845b1ecfa3e402d"
     }
    ],
    "open": []
@@ -2011,7 +2011,7 @@
      "theorem": "AvailableChain.FGSA.Run.fgsaClaims",
      "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
      "aggregate": true,
-     "type_fingerprint": "681bb87fc2d918fa",
+     "type_fingerprint": "f0d9a772701a8a1a",
      "binders": 1
     }
    ],
@@ -2060,42 +2060,42 @@
     "theorem": "AvailableChain.FGSA.Run.fgsa_wholeRunAccountableClaim",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
     "field": "runAccountable",
-    "type_fingerprint": "367aa1ce3ccff6d0"
+    "type_fingerprint": "85c9adc7fb022a6e"
    },
    {
     "clause": "runAgreement",
     "theorem": "AvailableChain.FGSA.Run.fgsa_wholeRunAgreementClaim",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
     "field": "runAgreement",
-    "type_fingerprint": "5ad7fc9520a0c137"
+    "type_fingerprint": "388398909266256d"
    },
    {
     "clause": "eventPrefixAgreement",
     "theorem": "AvailableChain.FGSA.Run.fgsa_eventPrefixAgreementClaim",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
     "field": "eventPrefixAgreement",
-    "type_fingerprint": "65f4f26674ea40f7"
+    "type_fingerprint": "ef7277dd3d12211d"
    },
    {
     "clause": "finalizedMonotone",
     "theorem": "AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityClaim",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
     "field": "finalizedMonotone",
-    "type_fingerprint": "8889cd799ec2fe88"
+    "type_fingerprint": "e6d181bd99c237a2"
    },
    {
     "clause": "faultCountSlashableBound",
     "theorem": "AvailableChain.FGSA.Run.fgsa_faultCountSlashableBoundClaim",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
     "field": "faultCountSlashableBound",
-    "type_fingerprint": "73280d3aeef599f4"
+    "type_fingerprint": "2f369eb49a5c3af6"
    },
    {
     "clause": "honestNeverSlashed",
     "theorem": "AvailableChain.FGSA.Run.fgsa_honestNeverSlashedClaim",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
     "field": "honestNeverSlashed",
-    "type_fingerprint": "6cedf6cc829593b6"
+    "type_fingerprint": "92e9e56b761b6a84"
    },
    {
     "clause": "assembled package",
@@ -2103,7 +2103,7 @@
     "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
     "aggregate": true,
     "field": "assembled package",
-    "type_fingerprint": "681bb87fc2d918fa",
+    "type_fingerprint": "f0d9a772701a8a1a",
     "binders": 1
    }
   ],
@@ -2180,35 +2180,35 @@
     "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_slashableBound_of_faults",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
     "field": "faultCountSlashableBound",
-    "type_fingerprint": "ba1511daa0567084"
+    "type_fingerprint": "f97b795219c2aafa"
    },
    {
     "clause": "P10 bridge: finalized monotonicity",
     "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_finalizedMonotone",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
     "field": "finalizedMonotone",
-    "type_fingerprint": "4f7399f0474fe1a0"
+    "type_fingerprint": "946f6dc633d554ae"
    },
    {
     "clause": "P10 bridge: honest non-slashing",
     "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_honestNeverSlashed",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
     "field": "honestNeverSlashed",
-    "type_fingerprint": "b078938a00add3f6"
+    "type_fingerprint": "ea3e311af9e70228"
    },
    {
     "clause": "P10 client bridge",
     "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_clientSafeAll",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
     "field": "client",
-    "type_fingerprint": "c8ce21c6ddeaebef"
+    "type_fingerprint": "06e1551e98319dc9"
    },
    {
     "clause": "P10 origin bridge",
     "theorem": "AvailableChain.FGSA.Run.fgsa_bridge_read_row_origin",
     "module": "AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge",
     "field": "origin",
-    "type_fingerprint": "eb0797c6a33e3353"
+    "type_fingerprint": "81d9bf383974127d"
    }
   ]
  },
@@ -2218,7 +2218,7 @@
    "theorem": "AvailableChain.FGSA.Run.fgsa_weakContinuationGrowthClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Root",
    "id": "fgsa.weakContinuationGrowthCompanion",
-   "type_fingerprint": "e823787dd34f08c4"
+   "type_fingerprint": "1dc2c54d5660ed82"
   }
  ],
  "fgsa_fields": [
@@ -2227,91 +2227,91 @@
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_carrierClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "27d6af484914d0a3"
+   "type_fingerprint": "6df4b73f247042c5"
   },
   {
    "field": "chainCertificates",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_chainCertificatesClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "ac0429a853125bee"
+   "type_fingerprint": "30c7cd802ccd00fc"
   },
   {
    "field": "store",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_storeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "70dc5f3fab867394"
+   "type_fingerprint": "b6b483a04dc517ce"
   },
   {
    "field": "activeView",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_activeViewClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "f08a952537abc980"
+   "type_fingerprint": "2ee7354dcbeac282"
   },
   {
    "field": "leaseOrigins",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_leaseOriginsClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "116c6497bb8b5f01"
+   "type_fingerprint": "cb3039bd3aec0df7"
   },
   {
    "field": "reconcile",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_reconcileClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "d8a44bd878121d1e"
+   "type_fingerprint": "cd50d76df698b6db"
   },
   {
    "field": "outputNesting",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_outputNestingClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "5f48c4625dd94c00"
+   "type_fingerprint": "c4ec6f52e7482292"
   },
   {
    "field": "frame",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_frameClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "5a6ce3ee1181f1bc"
+   "type_fingerprint": "50d72aa68d75a96e"
   },
   {
    "field": "clientSafety",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_clientSafetyClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "04dc66fe5f6103b4"
+   "type_fingerprint": "6fa578bc15b04942"
   },
   {
    "field": "clientSafetyBase",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_clientSafetyBaseClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "ce58fd8b7d9d5775"
+   "type_fingerprint": "0ba28f83629807cf"
   },
   {
    "field": "sourceDisciplineBase",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_sourceDisciplineBaseClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "5778f4c6a3c760ce"
+   "type_fingerprint": "38faab1e8e487c10"
   },
   {
    "field": "sourceDiscipline",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_sourceDisciplineClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "a2040800229e8870"
+   "type_fingerprint": "1ed0b05994613bea"
   },
   {
    "field": "sameLabel",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_sameLabelClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Export",
-   "type_fingerprint": "daa3b810fef48c2b"
+   "type_fingerprint": "2cc8eea7d7de44d1"
   },
   {
    "field": "releaseStore",
@@ -2325,56 +2325,56 @@
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_releaseClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Export",
-   "type_fingerprint": "35628cfa30a693ba"
+   "type_fingerprint": "f17c57e639f664d8"
   },
   {
    "field": "headReachesLo",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_headReachesLoClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Export",
-   "type_fingerprint": "43ea43d125869e6d"
+   "type_fingerprint": "f9aedc1eabb154e4"
   },
   {
    "field": "cleanCut",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanCutClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "097f2170958d4d00"
+   "type_fingerprint": "b4311ee047074f4e"
   },
   {
    "field": "cleanHistory",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanHistoryClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "8c87f92fcee3293c"
+   "type_fingerprint": "f4229bf2fa2b88f6"
   },
   {
    "field": "cleanPrefixTruncation",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanPrefixTruncationClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "b01c4c8842b2bcff"
+   "type_fingerprint": "80a477a290686f19"
   },
   {
    "field": "cleanSafety",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanSafetyClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "7a6db2909f50a3fc"
+   "type_fingerprint": "d1400016c1eb6c7e"
   },
   {
    "field": "finalizedSafety",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_finalizedSafetyClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "f200a407fc92bbbb"
+   "type_fingerprint": "7e55d0cad45f91a1"
   },
   {
    "field": "finalLock",
    "clause": "supplier in the root assembly",
    "theorem": "AvailableChain.FGSA.Run.fgsa_finalLockClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "3ee3c64776db4715"
+   "type_fingerprint": "fa2c11c26d8774bf"
   },
   {
    "field": "finality",
@@ -2395,308 +2395,308 @@
    "clause": "finality subfield runAccountable",
    "theorem": "AvailableChain.FGSA.Run.fgsa_wholeRunAccountableClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "367aa1ce3ccff6d0"
+   "type_fingerprint": "85c9adc7fb022a6e"
   },
   {
    "field": "finality",
    "clause": "finality subfield runAgreement",
    "theorem": "AvailableChain.FGSA.Run.fgsa_wholeRunAgreementClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "5ad7fc9520a0c137"
+   "type_fingerprint": "388398909266256d"
   },
   {
    "field": "finality",
    "clause": "finality subfield eventPrefixAgreement",
    "theorem": "AvailableChain.FGSA.Run.fgsa_eventPrefixAgreementClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "65f4f26674ea40f7"
+   "type_fingerprint": "ef7277dd3d12211d"
   },
   {
    "field": "finality",
    "clause": "finality subfield faultCountSlashableBound",
    "theorem": "AvailableChain.FGSA.Run.fgsa_faultCountSlashableBoundClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "73280d3aeef599f4"
+   "type_fingerprint": "2f369eb49a5c3af6"
   },
   {
    "field": "finality",
    "clause": "finality subfield finalizedMonotone",
    "theorem": "AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "8889cd799ec2fe88"
+   "type_fingerprint": "e6d181bd99c237a2"
   },
   {
    "field": "finality",
    "clause": "finality subfield honestNeverSlashed",
    "theorem": "AvailableChain.FGSA.Run.fgsa_honestNeverSlashedClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Foundations.Export",
-   "type_fingerprint": "6cedf6cc829593b6"
+   "type_fingerprint": "92e9e56b761b6a84"
   },
   {
    "field": "outageCompat",
    "clause": "supplier from the clean cut",
    "theorem": "AvailableChain.FGSA.Run.fgsa_outageCompatClaim_of_clean",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-   "type_fingerprint": "f7258a9f7a30861e"
+   "type_fingerprint": "b3b6185ded140dbc"
   },
   {
    "field": "outageCompat",
    "clause": "the clean cut premise",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanCutClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "097f2170958d4d00"
+   "type_fingerprint": "b4311ee047074f4e"
   },
   {
    "field": "fastP1",
    "clause": "supplier from the clean cut",
    "theorem": "AvailableChain.FGSA.Run.fgsa_fastP1Claim_of_clean",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-   "type_fingerprint": "529a8bee0d1b3fe1"
+   "type_fingerprint": "871a36d3adea626b"
   },
   {
    "field": "fastP1",
    "clause": "the clean cut premise",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanCutClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "097f2170958d4d00"
+   "type_fingerprint": "b4311ee047074f4e"
   },
   {
    "field": "slowP1",
    "clause": "supplier from the clean cut",
    "theorem": "AvailableChain.FGSA.Run.fgsa_slowP1Claim_of_clean",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-   "type_fingerprint": "266b8be3529f2115"
+   "type_fingerprint": "06d62f3503a39b67"
   },
   {
    "field": "slowP1",
    "clause": "the clean cut premise",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanCutClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "097f2170958d4d00"
+   "type_fingerprint": "b4311ee047074f4e"
   },
   {
    "field": "exactProposal",
    "clause": "supplier from the clean cut",
    "theorem": "AvailableChain.FGSA.Run.fgsa_exactProposalClaim_of_clean",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-   "type_fingerprint": "7d64da20ebe59179"
+   "type_fingerprint": "48314e7cd101faff"
   },
   {
    "field": "exactProposal",
    "clause": "the clean cut premise",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanCutClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "097f2170958d4d00"
+   "type_fingerprint": "b4311ee047074f4e"
   },
   {
    "field": "cleanInclusionPostGate",
    "clause": "supplier from the clean cut",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanInclusionPostGateClaim_of_clean",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-   "type_fingerprint": "84e19c7cc03fdeb4"
+   "type_fingerprint": "93975710dfa761da"
   },
   {
    "field": "cleanInclusionPostGate",
    "clause": "the clean cut premise",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanCutClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "097f2170958d4d00"
+   "type_fingerprint": "b4311ee047074f4e"
   },
   {
    "field": "cleanInclusion",
    "clause": "supplier from the clean cut",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanInclusionClaim_of_clean",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-   "type_fingerprint": "f2518bb67aa672c6"
+   "type_fingerprint": "07d426b08f0a6588"
   },
   {
    "field": "cleanInclusion",
    "clause": "the clean cut premise",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanCutClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "097f2170958d4d00"
+   "type_fingerprint": "b4311ee047074f4e"
   },
   {
    "field": "cleanGrowth",
    "clause": "supplier from the clean cut",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanGrowthClaim_of_clean",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Outage",
-   "type_fingerprint": "dc649402bcdc46e3"
+   "type_fingerprint": "2b048dffdb666269"
   },
   {
    "field": "cleanGrowth",
    "clause": "the clean cut premise",
    "theorem": "AvailableChain.FGSA.Run.fgsa_cleanCutClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Clean",
-   "type_fingerprint": "097f2170958d4d00"
+   "type_fingerprint": "b4311ee047074f4e"
   },
   {
    "field": "firstFinalityRecFE",
    "clause": "supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_firstFinality_recFE",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "4469f94a5e47b0af"
+   "type_fingerprint": "7d05f62a036c81bd"
   },
   {
    "field": "firstFinalityRecFE",
    "clause": "the local Rec kernel",
    "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-   "type_fingerprint": "0edca99dd1a1aefc"
+   "type_fingerprint": "7ef26a3c7dbe63aa"
   },
   {
    "field": "firstFinalityRecFE",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "finalityLivenessGSTRecFE",
    "clause": "GST supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "922a8418694fbb1e"
+   "type_fingerprint": "a22d4409b31639e8"
   },
   {
    "field": "finalityLivenessGSTRecFE",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "proposalFinalGSTRecFE",
    "clause": "GST supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "b9fbae21e4fa2acf"
+   "type_fingerprint": "9223697a7fb191b1"
   },
   {
    "field": "proposalFinalGSTRecFE",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "aboveFrontierGSTRecFE",
    "clause": "GST supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recFE",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "3114421b7cb538f1"
+   "type_fingerprint": "6788a1272d422dff"
   },
   {
    "field": "aboveFrontierGSTRecFE",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "firstFinalityRecF4",
    "clause": "supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_firstFinality_recF4",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "90696d3feb6acd9e"
+   "type_fingerprint": "be29f95d88f8279c"
   },
   {
    "field": "firstFinalityRecF4",
    "clause": "the local Rec kernel",
    "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.Finality",
-   "type_fingerprint": "bdc157c157677b82"
+   "type_fingerprint": "79a59df4121f6b14"
   },
   {
    "field": "firstFinalityRecF4",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "finalityLivenessGSTRecF4",
    "clause": "GST supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "7fcd2eec0eac06ca"
+   "type_fingerprint": "7ddca1e697798c9c"
   },
   {
    "field": "finalityLivenessGSTRecF4",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "proposalFinalGSTRecF4",
    "clause": "GST supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "968af48b3b01dbdb"
+   "type_fingerprint": "22fd435d6cef748d"
   },
   {
    "field": "proposalFinalGSTRecF4",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "aboveFrontierGSTRecF4",
    "clause": "GST supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recF4",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "f17cc0d5164c6091"
+   "type_fingerprint": "70ddd67ca89577df"
   },
   {
    "field": "aboveFrontierGSTRecF4",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "availableGST",
    "clause": "supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_availableGST",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "3914e3369c095d6c"
+   "type_fingerprint": "7149a74f3f6e23fa"
   },
   {
    "field": "availableGST",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "availableGrowthGST",
    "clause": "supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_availableGrowthGST",
    "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
-   "type_fingerprint": "84a32a6bf26d6dff"
+   "type_fingerprint": "d29e9ba4315d1809"
   },
   {
    "field": "availableGrowthGST",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   },
   {
    "field": "weakContinuationLive",
    "clause": "supplier from H-time",
    "theorem": "AvailableChain.FGSA.Run.fgsa_weakContinuationLiveClaim_of_hTime",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation",
-   "type_fingerprint": "bf66b4a4f7e2b549"
+   "type_fingerprint": "7c99ef735f7c232b"
   },
   {
    "field": "weakContinuationLive",
    "clause": "the closed H-time premise",
    "theorem": "AvailableChain.FGSA.Run.healing_hTimeClaim",
    "module": "AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival",
-   "type_fingerprint": "a3d56a4013aced2d"
+   "type_fingerprint": "48f8edc437d51c8b"
   }
  ]
 }

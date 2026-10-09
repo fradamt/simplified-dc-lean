@@ -3971,8 +3971,9 @@ CleanGrowthClaim; none frozen at G-F0a (no allow line).
 The table above records stage-4 history. The
 [port change record](FGSA-PORT-CHANGES.json) attributes the single h+i+j switch,
 the guarded helper replacements, and the later source contract changes.
-Equal source text does not establish equal fingerprints. Current shallow, frame, and deep
-checks pass against fixed baselines. The final supplier map and joint gate remain pending.
+Equal source text does not establish equal fingerprints. On the first-pass source base,
+shallow, frame, and deep checks passed against fixed baselines. The final refresh below
+records the integrated source status; the joint gate remains pending.
 
 ## FG-SA port rulings Z, AA, and AB
 
@@ -3988,6 +3989,10 @@ The landing WP12a model still cites `f54e403a`; Lean `release` and `releaseCount
 AB pins `af218b78`, with the same notes. The Spec requires `n ≥ 1`.
 The interpreter must assume `0 < p.n` where it uses unlock existence, unless Params supplies it.
 
-Y remains pending on source base `e961df94`. Durable/restore must keep the last tick time.
-The final refresh must record the exact S0-frozen Reachable change and measure its dependencies.
+Y is merged on source base `988177e2`. Durable keeps the last local tick and record.
+Restore keeps both and resets the other fields. It adds no tick or duty.
+The S0 Reachable reset record uses change `b0b493d8` and its actual parent and hashes.
+WP12d moves Simulation and Transfer to `AvailableChainFGSARun/Proofs/Spec/`.
+Its restart trace keeps clock 8 and accepts one proposal; the two proposal counts agree.
 All six restart-permitting claims retain their source text.
+The complete independent source interpreter and claim transfer remain open under Z.
