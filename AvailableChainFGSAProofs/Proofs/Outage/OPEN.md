@@ -105,3 +105,47 @@ replacement and affected fingerprints. These paths are outside WP08 ownership.
 The earlier local kernel counterexample shows a resolved vote below F that
 fails canonical proposer support. It is local-state evidence, not a complete
 run counterexample. Ruling Q resolves that support obligation.
+
+## FG-SA port WP08 continuation STOP (2026-10-09)
+
+At `46a3e612`, `ContinuationFrame` passes with warnings fatal (exit 0,
+3327 jobs). Its contest proof preserves the F-prefix guard, and its voter
+membership proofs account for the retained-tree filter. Clock congruence in
+`ContinuationInduction` and `ContinuationJoint` uses the canonical tree frame.
+Those downstream module bodies remain blocked by failed imports.
+
+`ContinuationReceipt.lean:318`, in `outageV_frozen_of_receipt`, still fails.
+The old premises supply schedule validity, no restart, cumulative storage,
+honesty, a positive tick before freeze, ordered read indices, and P held at
+the earlier read. They do not supply destination `F ⪯ P`. The conclusion
+requires P in the canonical voter set, which now contains only blocks above F.
+The proof has `P ∈ dst.fg.TF`; it needs `P ∈ Next.tree p dst`.
+This item is stopped. Its old statement and conclusion remain unchanged.
+
+Two consumers also need a contract ruling:
+
+- `outageV_covering_head_receipts` promises voter membership for every ancestor
+  of each received K. Its F-prefix premise retains B and K, not all ancestors.
+- `outageV_frozen_path_receipt` promises voter membership for every ancestor of U.
+  Its F-prefix premise retains U, not all ancestors.
+
+Taking the requested ancestor as genesis makes either path conclusion require
+F = genesis. A local kernel proof checks this necessary condition. A separate
+local kernel check has a held genesis with a stamp before freeze and a retained
+non-genesis F: F is a voter block, genesis is not. This is local-state evidence,
+not a complete counterexample to the run premises. RXing cannot retain a vertex
+strictly below F. No new claim premise, conclusion change, or bound change was made.
+
+A possible new frozen-receipt helper would require destination `F ⪯ P` and keep
+its conclusion. The two path helpers need a separate retained-path contract that
+requires `F ⪯ X` for each requested vertex X. That narrows an ancillary conclusion
+and needs a new ruling; Q does not authorize it. The caller `outageV_uncontested_head`
+has the needed F-prefix facts for B, U, and each strict vertex above liveRoot.
+Its claim statement need not change. This is a proposed route, not a checked repair.
+WP13v owns the three audits in `Tests/OutageContinuationAxioms.lean`;
+WP16 owns any resulting coverage and fingerprint changes.
+
+Final owned validation requests all 38 modules with `LEAN_SLOTS=2 lake build --wfail`:
+exit 1, 3419 jobs. The only failing modules are WP03c `Shared/Regimes` and
+WP08 `ContinuationReceipt`. Twelve independent modules pass (exit 0, 3341 jobs).
+The other 25 module bodies remain blocked. No FULL or MERGE pass is claimed.
