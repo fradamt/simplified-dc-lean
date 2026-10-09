@@ -254,6 +254,33 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     call(['ssh-keygen', '-Y', 'sign', '-f', str(other_key), '-n', full.NAMESPACE,
           str(receipt)])
     refused('untrusted issuer', 'SIGNATURE REFUSED', lambda: full.verify(repo, repo, receipt))
+    # NEG=0 on a non-empty range: policy checkout at the parent, proof-only child.
+    policy_repo = root / 'policy'
+    call(['git', 'clone', '-q', str(repo), str(policy_repo)])
+    (repo / 'Proofs').mkdir()
+    (repo / 'Proofs/Example.lean').write_text('theorem example0 : True := trivial\n')
+    call(['git', 'add', '.'], repo)
+    tree = call(['git', 'write-tree'], repo).decode().strip()
+    child = subprocess.check_output(['git', '-c', 'user.name=Control',
+        '-c', 'user.email=control@example.invalid', 'commit-tree', tree, '-p', head],
+        cwd=repo, input=b'proof-only child\n').decode().strip()
+    call(['git', 'update-ref', 'HEAD', child], repo)
+    assert child != head
+    scope0 = full.validate(repo, head, child,
+        dict(neg=0, reason='no checker path changed', matched_paths=[]))
+    assert 'checker-self-tests' not in full.steps_for(scope0)
+    logs0 = root / 'logs0'
+    logs0.mkdir()
+    (logs0 / 'negative-controls.json').write_text(json.dumps(scope0))
+    for step in full.steps_for(scope0):
+        (logs0 / (step + '.result')).write_text('0 1\n')
+    receipt0 = root / 'receipt0'
+    full.sign(repo, child, head, logs0, key, receipt0)
+    full.verify(policy_repo, repo, receipt0)
+    output = call(['bash', str(policy_repo / 'scripts/precheck.sh'),
+                   '--full-pass', str(receipt0), str(repo)]).decode()
+    assert 'MAIN POLICY COPY SKIPPED: verified exact-head FULL PASS' in output
+    print('CONTROL signed NEG=0 receipt on a non-empty range: PASS')
 
 with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
     tree = Path(tmp)
