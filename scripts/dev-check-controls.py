@@ -205,6 +205,11 @@ def main():
         rejected('deferred adapter extension', 'DEFERRED GLOBAL EXTENSION', lambda:
                  S.check_deferred('AvailableChainPCSAProofs.Proofs.Shared.FGCompose',
                                   'infix:50 \"bad\" => Nat.add'))
+        orphan = 'AvailableChainPCSAProofs.Proofs.Foundations.ReviewOrphan'
+        S.check_deferred_facades({'AvailableChainPCSAProofs': [orphan], orphan: []})
+        rejected('PC-SA facade orphan', 'NOT IMPORTED BY ROOT: ' + orphan,
+                 lambda: S.check_deferred_facades(
+                     {'AvailableChainPCSAProofs': [], orphan: []}))
         sorry_dir = tmp / 'sorry-build'
         sorry_dir.mkdir()
         (sorry_dir / 'lean-toolchain').write_text((ROOT / 'lean-toolchain').read_text())

@@ -42,7 +42,9 @@ The active compiled inventory keeps every FG-SA and Compose requirement.
 
 The PCSA-API trigger in `gate.sh` stays. Source checks still read PC-SA files through
 Lake library tables. `check-sleep-scopes.py` checks the active import closure and
-checks deferred PC-SA source for proof placeholders and project axioms. PC-SA roots,
+checks deferred PC-SA source for proof placeholders, project axioms and adapter
+extensions. It also requires each PC-SA proof module to be reached from its source
+facade. The FG-SA facade check stays in `check-fgsa-claims.sh`. PC-SA roots,
 facades and Tests aggregators stay as source. No active facade imports them.
 CheckGenFirst already excludes PC-SA. CatalogLock imports Framework only and has
 no PC-SA roots; this package does not change the catalog. P-Da owns its regeneration
