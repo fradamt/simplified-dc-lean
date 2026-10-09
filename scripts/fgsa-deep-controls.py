@@ -46,6 +46,7 @@ def check_wiring(root=Path('.'), shell=None):
     # Both required positive commands must run before the NEG exit.
     if shell is None:
         shell = (root / 'scripts/check-fgsa-manifest.sh').read_text()
+    shell = shell.replace('\\\n', '')
     boundary = shell.index('if [ "${NEG:-1}"')
     assert shell.index('--scope fgsa --check') < boundary
     assert shell.index('--scope fgsa --deep --check') < boundary
@@ -55,9 +56,8 @@ def check_wiring(root=Path('.'), shell=None):
         call = 'gate_with_slot manifest_run ' + label + ' python3 -B scripts/api-snapshot.py'
         start = shell.index(call)
         assert start < boundary
-        command = shell[start:shell.index('\n', start)].replace('\\', '')
+        command = shell[start:shell.index('\n', start)]
         if scope in ('v2', 'gen'):
-            command += shell[shell.index('\n', start) + 1:].splitlines()[0]
             assert '--output docs/api/' + label + '.json --check' in command
         assert '--scope ' + scope in command and '--check' in command
     gate = (root / 'scripts/gate.sh').read_text()
@@ -86,7 +86,8 @@ def main():
         tmp = Path(scratch)
         # Reuse the exact production extraction/digest functions. This is the same
         # isolated probe pattern; never edit repo sources.
-        helper = Path('scripts/V2Manifest.lean').read_text().split('def main (args : List String)')[0]
+        helper = Path('scripts/V2Manifest.lean').read_text().split(
+            'def main (args : List String)')[0]
         probe = tmp / 'DeepProbe.lean'
         probe.write_text(helper + PROBE)
         snapshots, shallow = {}, {}
@@ -96,7 +97,8 @@ def main():
             model = ('namespace AvailableChain.FGSA.DeepControl\n'
                      f'private def hidden : Nat := {2 if variant == "private" else 1}\n'
                      f'def reader : Nat := hidden{" + 1" if variant == "body" else ""}\n'
-                     f'structure Carrier where\n  value : {"Bool" if variant == "constructor" else "Nat"}\n'
+                     'structure Carrier where\n  value : ' +
+                     ('Bool' if variant == 'constructor' else 'Nat') + '\n'
                      'end AvailableChain.FGSA.DeepControl\n')
             (target / 'DeepModel.lean').write_text(model)
             proof = 'Eq.refl reader' if variant != 'proof' else 'Eq.symm (Eq.refl reader)'

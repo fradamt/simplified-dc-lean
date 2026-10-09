@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Compiled negative controls for current API and catalog snapshots."""
 import importlib.util
+import json
 from pathlib import Path
 import subprocess
 import shutil
@@ -101,7 +102,7 @@ def main():
         imports = root / 'required.txt'
         imports.write_text('AvailableChainFGSA.Statements.Invariants\n')
         subjects = root / 'subjects.json'
-        subjects.write_text(snapshot.deep.render([
+        subjects.write_text(json.dumps([
             dict(name='AvailableChain.FGSA.Reachable', status='existing',
                  module='AvailableChainFGSA.Statements.Invariants'),
             dict(name='UnavailableDeferred.subject', status='existing',

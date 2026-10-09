@@ -69,6 +69,13 @@ def main():
         report = deep.diff_report(base, scoped, subjects, checkpoint='g-s1')
         deep.require_roots(report)
         assert report['unresolved'][0]['state'] == 'pending'
+        report = deep.diff_report(base, scoped, subjects, checkpoint='g-s2')
+        try:
+            deep.require_roots(report)
+        except ValueError as exc:
+            assert 'final checkpoint import scope' in str(exc)
+        else:
+            raise AssertionError('accepted a deferred G-S1 subject at final measurement')
         # Presence in the reference alone is insufficient current evidence.
         removed = graph({'B': [], 'C': []})
         report = deep.diff_report(base, removed, [dict(name='A', status='existing')])
@@ -79,6 +86,33 @@ def main():
         else:
             raise AssertionError('accepted a required root present only in the reference')
         print('CONTROL planned before final, deferred at G-S1, target absence: PASS')
+        baseline.write_text(deep.render(removed))
+        roots.write_text(json.dumps([dict(name='A', status='existing', module='Control')]))
+        for mode in ('--attribute', '--check'):
+            result = subprocess.run(command + [mode], capture_output=True, text=True)
+            assert result.returncode == 1 and 'absent from reference graph' in result.stderr
+        print('CONTROL existing root absent from reference: PASS')
+    now = graph({'A': ['C'], 'B': [], 'C': []})
+    report = deep.diff_report(base, now, [dict(name='A')])
+    assert [n['name'] for n in report['nodes']] == ['A']
+    row, = report['entries']
+    assert row['closure_added'] == ['C'] and row['closure_removed'] == ['B']
+    assert row['closure_paths'] == [dict(name='B', side='base', path=['A', 'B']),
+                                    dict(name='C', side='target', path=['A', 'C'])]
+    assert base['nodes']['B'] == now['nodes']['B'] and base['nodes']['C'] == now['nodes']['C']
+    assert base['nodes']['A']['body'] == now['nodes']['A']['body']
+    assert [n['name'] for n in row['changed_nodes']] == ['A']
+    print('CONTROL unchanged B/C closure removal/addition with side paths: PASS')
+    diff = load('api-diff')
+    combined = diff.combine([base, base])
+    assert combined['entries'] == base['entries'] and combined['nodes'] == base['nodes']
+    try:
+        diff.combine([base, now])
+    except ValueError as exc:
+        assert 'CONFLICTING SNAPSHOT NODE/ROOT: A' in str(exc), exc
+    else:
+        raise AssertionError('accepted conflicting multi-snapshot inputs')
+    print('CONTROL conflicting multi-snapshot input: PASS')
 
 
 if __name__ == '__main__':

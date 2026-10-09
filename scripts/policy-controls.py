@@ -104,6 +104,19 @@ def call(args, cwd=None):
     return result.stdout
 
 
+with tempfile.TemporaryDirectory(prefix='guard-order-') as tmp:
+    base, target = Path(tmp) / 'base.sh', Path(tmp) / 'target.sh'
+    body = "#!/bin/bash\npython3 - <<'PY'\nEXPECTED = ('a', 'b')\nORDER = {}\nPY\n"
+    base.write_text(body.format("('a', 'b')"))
+    target.write_text(body.format("('b', 'a')"))
+    output = call(['python3', '-B', 'scripts/guard-lists.py', 'diff',
+                   '--main', str(base), '--target', str(target)]).decode()
+    assert 'GUARD ORDER MOVED: a: 0 -> 1' in output
+    assert 'GUARD ORDER MOVED: b: 1 -> 0' in output
+    assert 'ADDED' not in output and 'REMOVED' not in output
+    print('CONTROL ORDER move without membership change: PASS')
+
+
 with tempfile.TemporaryDirectory(prefix='inventory-shell-') as tmp:
     root = Path(tmp)
     (root / 'scripts').mkdir()

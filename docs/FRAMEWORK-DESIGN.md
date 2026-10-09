@@ -1123,7 +1123,7 @@ when these land (after I9 and 2a).
   removed.
 - 2026-09-29, I9 Task 11 (derived roots, §12; user decisions
   2026-09-29): 91 `CHANGED` lines, 0 `ADDED`, 0 `REMOVED`, written with
-  `--write` on the tree with main merged in (`f756404`).
+  `--write --allow-changes` on the tree with main merged in (`f756404`).
   The old lock is git blob `6a4d14869c409efa92f1c27cf3ce7a7d2bebc773`
   (250 lines); the new lock has 250 lines. Reason: the closure of each
   line reaches `Block`. `Block.node` has no root field now, and
@@ -1166,7 +1166,7 @@ when these land (after I9 and 2a).
   93 CHANGED lock lines, no REMOVED or ADDED line. Cost/source base: `98a62cd`.
   W3b input: `027f2f1`; W3c input: `b4bf03f`. W3c changes are not committed.
   The expected set is the 91 I9 closure names plus `V2.anchor` and `V2.dutyAnchor`.
-  Set equality was checked before the W3b `--write`.
+  Set equality was checked before the W3b `--write --allow-changes`.
   The closure change comes from explicit Block roots, Params.digest, generated constructor
   helpers, and the two approved anchor-reference deletions. The BODY codec stays.
   Exact names, old/new hashes, frozen classifications, exceptions, and the W3c check summary

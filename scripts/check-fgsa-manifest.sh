@@ -43,7 +43,8 @@ gate_with_slot manifest_run v2-deep python3 -B scripts/api-snapshot.py --scope v
 gate_with_slot manifest_run gen-deep python3 -B scripts/api-snapshot.py --scope gen \
   --output docs/api/gen-deep.json --check
 gate_with_slot manifest_run compose-api python3 -B scripts/api-snapshot.py --scope compose --check
-gate_with_slot manifest_run claims-api python3 -B scripts/api-snapshot.py --scope fgsa-claims --check
+gate_with_slot manifest_run claims-api python3 -B scripts/api-snapshot.py \
+  --scope fgsa-claims --check
 # NEG=0 skips controls when no checker path changed.
 if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0)"; exit 0; fi
 mkdir -p .lake

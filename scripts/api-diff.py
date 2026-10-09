@@ -89,6 +89,10 @@ def main():
         for node in row['changed_nodes']:
             lines.append('Dependency: ' + node['name'])
             lines.extend(p['side'] + ': ' + ' -> '.join(p['path']) for p in node['paths'])
+        lines.append('Closure additions: ' + ', '.join(row['closure_added']))
+        lines.append('Closure removals: ' + ', '.join(row['closure_removed']))
+        lines.extend(p['side'] + ' closure: ' + ' -> '.join(p['path'])
+                     for p in row['closure_paths'])
     for row in report['nodes']:
         lines += ['', 'Node: ' + row['name'], 'Old type:',
                   '\n'.join((row['old'] or {}).get('type', ['<absent>'])), 'New type:',

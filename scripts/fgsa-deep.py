@@ -208,7 +208,12 @@ def root_diagnostics(old, now, roots, checkpoint='baseline'):
         elif root.get('module') and any(m != root['module'] for _, m in present):
             reason = 'root module mismatch'
         elif modules is not None and root.get('module') not in modules:
-            reason, state = 'outside checkpoint import scope', 'pending'
+            if checkpoint in ('g-s2', 'g-s3'):
+                reason = 'root outside final checkpoint import scope'
+            else:
+                reason, state = 'outside checkpoint import scope', 'pending'
+        elif status == 'existing' and name not in old['nodes']:
+            reason = 'required root absent from reference graph'
         elif name not in now['nodes']:
             if status == 'planned' and checkpoint in ('baseline', 'g-s1'):
                 reason, state = 'planned root absent before final measurement', 'pending'
@@ -244,6 +249,11 @@ def diff_report(old, now, roots=(), checkpoint='baseline'):
             continue
         relations, changes = [], []
         entry_paths = {side: paths_from(nodes, name) for side, nodes in sides}
+        closure_added = sorted(set(entry_paths['target']) - set(entry_paths['base']))
+        closure_removed = sorted(set(entry_paths['base']) - set(entry_paths['target']))
+        closure_paths = [dict(name=n, side=side, path=witness(entry_paths[side], n))
+                         for side, names in [('base', closure_removed), ('target', closure_added)]
+                         for n in names]
         for node in changed_nodes:
             witnesses = []
             for side, nodes in sides:
@@ -266,7 +276,9 @@ def diff_report(old, now, roots=(), checkpoint='baseline'):
                             'removed' if after is None else 'changed', old=before, new=after,
                             old_type='\n'.join(old['nodes'].get(name, {}).get('type', [])),
                             new_type='\n'.join(now['nodes'].get(name, {}).get('type', [])),
-                            changed_nodes=changes, attribution=relations))
+                            changed_nodes=changes, attribution=relations,
+                            closure_added=closure_added, closure_removed=closure_removed,
+                            closure_paths=closure_paths))
     unresolved = root_diagnostics(old, now, roots, checkpoint)
     return dict(format_version=1, entries=entries,
                 nodes=[dict(name=n, old=old['nodes'].get(n), new=now['nodes'].get(n))
