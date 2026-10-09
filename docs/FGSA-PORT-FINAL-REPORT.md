@@ -73,6 +73,7 @@ and all six restart-permitting claims. Z, AA, and AB remain explicit later oblig
 
 ## Before / after
 
+```text
 ┌──────────────────────┬─────────────────────────────┬───────────────────────────┐
 │ Check                │ Before                      │ After                     │
 ├──────────────────────┼─────────────────────────────┼───────────────────────────┤
@@ -101,6 +102,7 @@ and all six restart-permitting claims. Z, AA, and AB remain explicit later oblig
 │ freeze history       │ 44 records; pre-Y pin       │ PASS: 46 exact records    │
 │ freeze packages      │ 20 packages                 │ PASS: 22 packages         │
 └──────────────────────┴─────────────────────────────┴───────────────────────────┘
+```
 
 All commands and exits are in `final_refresh` and the port-w16c check rows in
 `docs/FGSA-PORT-CHANGES.json`. Evidence is in `.lake/port-w16c/`.
