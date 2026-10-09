@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
+public import AvailableChainFGSAClaims.Statements.ComposeNext
 
 @[expose] public section
 
@@ -134,7 +135,7 @@ def CleanCutPosClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
     CleanCutPrem p c E rho pt ΔF → 0 < pt.b₀ →
-    FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+    FGFoundationNext p c E rho → SrcFrameAboveStmt p c E rho →
     CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀
 
 end AvailableChain.FGSA.Run

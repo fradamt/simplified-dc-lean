@@ -37,7 +37,7 @@ private def st : State 4 :=
 /-- [pinned spec 975–1015, 1120–1150] The ancestor is held and resolved, but
 is omitted. F and the slot-boundary head are kept in raw-pool order. -/
 example : GridCO.resolvedHead? (actView st) ancestorVote = some (eraseFG first) ∧
-    proposerSupport st 4 = [ancestorVote, aboveVote, finalVote] ∧
+    proposerSupport st 4 = [aboveVote, finalVote] ∧
     proposerSupportNext st 4 = [aboveVote, finalVote] := by decide
 
 /-- [pinned spec 975–1015] A head one slot above the vote bound is omitted;
@@ -82,16 +82,16 @@ private def minimal : State 4 :=
       voteStamp := [(ancestorVote, 1)]
       blockStamp := [(eraseFG first, 1)] } }
 
-/-- [minimal (h) example; pinned spec 975–1015, 1120–1150] Old support is [o],
-new support is empty. Early receipts do not imply that the head extends F. -/
+/-- [minimal (h) example; pinned spec 975–1015, 1120–1150] Canonical and Next
+support are empty. Early receipts do not imply that the head extends F. -/
 example : GridCO.resolvedBefore (actView minimal) ancestorVote 18 = true ∧
-    proposerSupport minimal 4 = [ancestorVote] ∧ proposerSupportNext minimal 4 = [] := by
+    proposerSupport minimal 4 = [] ∧ proposerSupportNext minimal 4 = [] := by
   decide
 
-/-- [minimal (h) correspondence] Scores agree at F and above it, but can
-differ at the omitted ancestor. The raw participant set stays fixed. -/
+/-- [minimal (h) correspondence] Canonical and Next scores agree, including
+at the omitted ancestor. The raw participant set stays fixed. -/
 example : GridCO.goldfishScore minimal.base.blocks (proposerVotes minimal 4)
-      (proposerSupport minimal 4) (eraseFG first) = 1 ∧
+      (proposerSupport minimal 4) (eraseFG first) = 0 ∧
     GridCO.goldfishScore minimal.base.blocks (proposerVotes minimal 4)
       (proposerSupportNext minimal 4) (eraseFG first) = 0 ∧
     GridCO.goldfishScore minimal.base.blocks (proposerVotes minimal 4)

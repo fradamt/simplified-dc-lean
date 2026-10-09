@@ -5,6 +5,7 @@ public import AvailableChainEngineV2.Engine.Duty.Spec
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Model.FrameNext
 
 @[expose] public section
 

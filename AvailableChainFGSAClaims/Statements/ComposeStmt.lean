@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSARun.Statements.AC
 public import AvailableChainFGSAClaims.Statements.Healed
+public import AvailableChainFGSAClaims.Statements.FrameNext
 
 @[expose] public section
 
@@ -45,7 +46,7 @@ structure FGFoundation : Prop where
   store : RStore p c E rho
   cumul : RStoreCumul p c E rho
   mono : RMono p c E rho
-  frame : RFrameExact p c E rho
+  frame : RFrameExactNext p c E rho
   geo : RGeo p c E rho
   strat : RStrat p c E rho
   reconcile : RRec p c E rho

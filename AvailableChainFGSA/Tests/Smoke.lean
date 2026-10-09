@@ -808,8 +808,8 @@ reaches the elaborator's recursion limit (plan Global Constraints, R1). -/
 /-- (Carried support, spec 1286–1293) As `stX`, but the slot-3 proposal `xB`
 also declares `vX` as support. By hand: after F moves to B1, `xB` and `b1'` are
 outside `act(Σ)` but `b1'` is in Σ.T. The frozen arm is empty (the pool stamp of
-`vX` is 12 ≥ z_2 = 11). The carried arm keeps `vX`: label 2 = s − 1, head `b1'`
-in Σ.T, slot 2 ≤ 2. Without the carried arm the support is empty. -/
+`vX` is 12 ≥ z_2 = 11). The carried arm now excludes `vX`: its proposal and head
+are not retained above F (port r2, change j). -/
 -- ROOT-DIGEST W3: carried support has its own digest, root 29.
 def xBs : Block := pb b1' 3 96 [] [vX] [vX]
 def stXs : State pT.n :=
@@ -817,7 +817,7 @@ def stXs : State pT.n :=
     (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 12)
       ⟨.proposer 3, .proposal (namedBody (namedFixture B1') xBs [vX] [vX] [])⟩)
 example : stXs.fg.F = B1 ∧ xBs ∉ (actView stXs).blocks ∧ b1' ∉ (actView stXs).blocks ∧
-    b1' ∈ stXs.base.blocks ∧ headSupport pT stXs 3 = [baseVote vX] := by decide +kernel
+    b1' ∈ stXs.base.blocks ∧ headSupport pT stXs 3 = [] := by decide +kernel
 
 /-- [R7] Two sibling proposals carry distinct parent-valid rows. All rows
 enter the pool; exact parent-chain exclusion removes only prior contents. -/
