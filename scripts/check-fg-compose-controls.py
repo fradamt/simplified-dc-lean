@@ -13,6 +13,15 @@ def run(args, cwd=REPO, env=None):
     return subprocess.run(args, cwd=cwd, env=env, text=True, capture_output=True)
 
 
+SAFETY_CONTROLS = 'AvailableChainFGCompose/Tests/SafetyControls.lean'
+
+
+def require_safety_controls(base):
+    """The P13 behavior controls are required; a missing file fails."""
+    if not (Path(base) / SAFETY_CONTROLS).is_file():
+        raise SystemExit(f'MISSING SAFETY CONTROLS: {SAFETY_CONTROLS}')
+
+
 def require(label, result, code, reason):
     output = result.stdout + result.stderr
     assert result.returncode == code and reason in output, (label, result.returncode, output)
@@ -315,73 +324,82 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
             require(label, result, 1, reason)
             assert 'Application type mismatch' in result.stdout, result.stdout + result.stderr
 
-    if (REPO / 'AvailableChainFGCompose/Tests/SafetyControls.lean').exists():
-        # Each behavior control: the positive form compiles, and the negative
-        # form fails with its exact diagnostic.
-        context = ("import AvailableChainFGCompose.Tests.SafetyControls\n"
-                   "import AvailableChainFGCompose.Proofs.SafetyMonotone\n"
-                   "namespace AvailableChain.FGCompose.Tests.SafetyControls.NegativeControl\n"
-                   "open AvailableChain.SimplexFG AvailableChain.KitFG "
-                   "AvailableChain.FGCompose.Tests.SafetyControls\n")
-        monotone = ("variable {In V : Type} {P : V2.ProtocolSpecD In} {n : Nat} "
-                    "{Base Proposal Wire : Type}\n"
-                    "variable (R : FGCoreReads P n Base Proposal Wire) (S : FGSafetyReads P n Wire)\n"
-                    "variable [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V P)\n"
-                    "example (C : FGCoreLaws R) (O : FGSafetyOrderLaws R S)SORTED\n"
-                    "    (hnr : V2.D.NoRestart rho) :\n"
-                    "    ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →\n"
-                    "      Block.Preceq (S.finalizedOut (V2.D.Run.readAt E rho t x))\n"
-                    "        (S.finalizedOut (V2.D.Run.readAt E rho t' x)) := by\n"
-                    "  exact safety_finalized_monotone R S E rho C O HS hnr\n")
-        scope = ("example (N : FGSafetyScopeLaws emitReads emitSafety envU emitRun deliveredScope)\n"
-                 "    (hne : tip.parent ≠ FGBlock.genesis) :\n"
-                 "    deliveredScope (emitReads.erase BLOCK) :=\n"
-                 "  N.parent_scope tip tip_runBlock hne\n")
-        row = '(⟨0, .empty, none⟩ : Row (Fin 1))'
-        controls = []
-        for label, good, bad, reason in [
-            ('unordered inclusive read',
-             "example : V2.D.Run.readAt envU unordered 1 () = 2 := by decide\n",
-             "example : V2.D.Run.readAt envU unordered 1 () =\n"
-             "    V2.D.Run.stateBefore envU unordered 1 () := by decide\n",
-             'V2.D.Run.stateBefore envU unordered 1 ()\nis false'),
-            ('monotone needs sorted events',
-             monotone.replace('SORTED', '\n    (hs : rho.events.Pairwise (fun a b => a.key ≤ b.key))')
-             .replace(' HS', ' hs'),
-             monotone.replace('SORTED', '').replace(' HS', ''),
-             'List.Pairwise (fun a b => a.key ≤ b.key) rho.events'),
-            ('repeated row one signer',
-             f"example : ([{row}, {row}].map Row.signer).toFinset.card = 1 := by decide\n",
-             f"example : ([{row}, {row}].map Row.signer).toFinset.card = 2 := by decide\n",
-             '    2\nis false'),
-            ('seat permutation holder',
-             "example : safetyHolder swapReads seatRun 0 = 1 := by decide\n",
-             "example : safetyHolder swapReads seatRun 0 = 0 := by decide\n",
-             'safetyHolder swapReads seatRun 0 = 0\nis false'),
-            ('lost durable record',
-             "example : ∀ nd, keptReads.record (kept.restore (kept.durable nd)) =\n"
-             "    keptReads.record nd := fun _ => rfl\n",
-             "example : ∀ nd, lossyReads.record (lossy.restore (lossy.durable nd)) =\n"
-             "    lossyReads.record nd := fun _ => rfl\n",
-             'lossyReads.record (lossy.restore (lossy.durable'),
-            ('emitted-only tip scope',
-             scope.replace('BLOCK', 'tip.parent'), scope.replace('BLOCK', 'tip'),
-             'deliveredScope (emitReads.erase tip.parent)'),
-        ]:
-            controls.append((label, good, bad, reason))
-        # All positive forms compile in one file; each negative form alone.
-        end = 'end AvailableChain.FGCompose.Tests.SafetyControls.NegativeControl\n'
-        source = root / 'safety-positive.lean'
-        source.write_text(context + ''.join(
-            f'section\n{good}end\n' for _, good, _, _ in controls) + end)
+    # Negative control: a tree without the controls file fails.
+    try:
+        require_safety_controls(root)
+    except SystemExit as exc:
+        assert str(exc) == f'MISSING SAFETY CONTROLS: {SAFETY_CONTROLS}', exc
+        print('CONTROL Compose safety controls file missing: PASS (MISSING SAFETY CONTROLS)',
+              flush=True)
+    else:
+        raise AssertionError('a missing SafetyControls.lean was not detected')
+    require_safety_controls(REPO)
+    # Each behavior control: the positive form compiles, and the negative
+    # form fails with its exact diagnostic.
+    context = ("import AvailableChainFGCompose.Tests.SafetyControls\n"
+               "import AvailableChainFGCompose.Proofs.SafetyMonotone\n"
+               "namespace AvailableChain.FGCompose.Tests.SafetyControls.NegativeControl\n"
+               "open AvailableChain.SimplexFG AvailableChain.KitFG "
+               "AvailableChain.FGCompose.Tests.SafetyControls\n")
+    monotone = ("variable {In V : Type} {P : V2.ProtocolSpecD In} {n : Nat} "
+                "{Base Proposal Wire : Type}\n"
+                "variable (R : FGCoreReads P n Base Proposal Wire) (S : FGSafetyReads P n Wire)\n"
+                "variable [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V P)\n"
+                "example (C : FGCoreLaws R) (O : FGSafetyOrderLaws R S)SORTED\n"
+                "    (hnr : V2.D.NoRestart rho) :\n"
+                "    ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →\n"
+                "      Block.Preceq (S.finalizedOut (V2.D.Run.readAt E rho t x))\n"
+                "        (S.finalizedOut (V2.D.Run.readAt E rho t' x)) := by\n"
+                "  exact safety_finalized_monotone R S E rho C O HS hnr\n")
+    scope = ("example (N : FGSafetyScopeLaws emitReads emitSafety envU emitRun deliveredScope)\n"
+             "    (hne : tip.parent ≠ FGBlock.genesis) :\n"
+             "    deliveredScope (emitReads.erase BLOCK) :=\n"
+             "  N.parent_scope tip tip_runBlock hne\n")
+    row = '(⟨0, .empty, none⟩ : Row (Fin 1))'
+    controls = []
+    for label, good, bad, reason in [
+        ('unordered inclusive read',
+         "example : V2.D.Run.readAt envU unordered 1 () = 2 := by decide\n",
+         "example : V2.D.Run.readAt envU unordered 1 () =\n"
+         "    V2.D.Run.stateBefore envU unordered 1 () := by decide\n",
+         'V2.D.Run.stateBefore envU unordered 1 ()\nis false'),
+        ('monotone needs sorted events',
+         monotone.replace('SORTED', '\n    (hs : rho.events.Pairwise (fun a b => a.key ≤ b.key))')
+         .replace(' HS', ' hs'),
+         monotone.replace('SORTED', '').replace(' HS', ''),
+         'List.Pairwise (fun a b => a.key ≤ b.key) rho.events'),
+        ('repeated row one signer',
+         f"example : ([{row}, {row}].map Row.signer).toFinset.card = 1 := by decide\n",
+         f"example : ([{row}, {row}].map Row.signer).toFinset.card = 2 := by decide\n",
+         '    2\nis false'),
+        ('seat permutation holder',
+         "example : safetyHolder swapReads seatRun 0 = 1 := by decide\n",
+         "example : safetyHolder swapReads seatRun 0 = 0 := by decide\n",
+         'safetyHolder swapReads seatRun 0 = 0\nis false'),
+        ('lost durable record',
+         "example : ∀ nd, keptReads.record (kept.restore (kept.durable nd)) =\n"
+         "    keptReads.record nd := fun _ => rfl\n",
+         "example : ∀ nd, lossyReads.record (lossy.restore (lossy.durable nd)) =\n"
+         "    lossyReads.record nd := fun _ => rfl\n",
+         'lossyReads.record (lossy.restore (lossy.durable'),
+        ('emitted-only tip scope',
+         scope.replace('BLOCK', 'tip.parent'), scope.replace('BLOCK', 'tip'),
+         'deliveredScope (emitReads.erase tip.parent)'),
+    ]:
+        controls.append((label, good, bad, reason))
+    # All positive forms compile in one file; each negative form alone.
+    end = 'end AvailableChain.FGCompose.Tests.SafetyControls.NegativeControl\n'
+    source = root / 'safety-positive.lean'
+    source.write_text(context + ''.join(
+        f'section\n{good}end\n' for _, good, _, _ in controls) + end)
+    result = run(['lake', 'env', 'lean', str(source)])
+    assert result.returncode == 0 and 'error' not in result.stdout, result.stdout + result.stderr
+    print(f'CONTROL Compose safety positive forms ({len(controls)}): PASS (rc 0)', flush=True)
+    for label, _, bad, reason in controls:
+        source = root / ('safety-' + label.replace(' ', '-') + '-negative.lean')
+        source.write_text(context + bad + end)
         result = run(['lake', 'env', 'lean', str(source)])
-        assert result.returncode == 0 and 'error' not in result.stdout, result.stdout + result.stderr
-        print(f'CONTROL Compose safety positive forms ({len(controls)}): PASS (rc 0)', flush=True)
-        for label, _, bad, reason in controls:
-            source = root / ('safety-' + label.replace(' ', '-') + '-negative.lean')
-            source.write_text(context + bad + end)
-            result = run(['lake', 'env', 'lean', str(source)])
-            require('safety ' + label, result, 1, reason)
-            assert result.stdout.count('error:') == 1, (label, result.stdout)
+        require('safety ' + label, result, 1, reason)
+        assert result.stdout.count('error:') == 1, (label, result.stdout)
 
 print('Compose controls: PASS', flush=True)
