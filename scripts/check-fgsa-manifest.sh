@@ -25,22 +25,24 @@ manifest_run() {
   fi
 }
 mkdir -p .lake
+gate_slots_init
 tmp= timing_dir=
 trap 'rm -rf "$tmp" "$timing_dir"' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 timing_dir=$(mktemp -d "$PWD/.lake/fgsa-manifest-times.XXXXXX")
-manifest_run main lake env lean --run scripts/V2Manifest.lean --scope fgsa --check
+gate_with_slot manifest_run main lake env lean --run scripts/V2Manifest.lean --scope fgsa --check
 # The frame/deep baselines are required at both tiers, after complete D15.
-manifest_run frame python3 scripts/fgsa-deep.py --frame-check
-manifest_run deep lake env lean --run scripts/V2Manifest.lean --scope fgsa --deep --check
+gate_with_slot manifest_run frame python3 scripts/fgsa-deep.py --frame-check
+gate_with_slot manifest_run deep lake env lean --run scripts/V2Manifest.lean \
+  --scope fgsa --deep --check
 # The controls are negative controls: the merge tier (NEG=0) skips them (BUILD §7.7).
 if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0, merge tier)"; exit 0; fi
 mkdir -p .lake
 tmp=$(mktemp -d "$PWD/.lake/fgsa-manifest.XXXXXX")
 
 # Test the freeze helper only on temp paths. It builds the control doc with --write.
-bash scripts/fgsa-freeze.sh --manifest "$tmp/base.md" \
+gate_with_slot bash scripts/fgsa-freeze.sh --manifest "$tmp/base.md" \
   --frozen "$tmp/base-frozen.md" --frozen-sha "$tmp/base.sha256"
 python3 - "$tmp" <<'PY'
 import hashlib
@@ -259,4 +261,4 @@ with ThreadPoolExecutor(max_workers=int(os.environ['manifest_workers'])) as pool
     raise SystemExit(failure)
 PY
 
-manifest_run deep-controls python3 scripts/fgsa-deep-controls.py
+gate_with_slot manifest_run deep-controls python3 scripts/fgsa-deep-controls.py

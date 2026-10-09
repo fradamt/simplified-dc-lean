@@ -5,6 +5,8 @@
 # SOURCE_ONLY=1 runs source findings and facade/F4 coverage, without controls or Lean.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+source scripts/gate-common.sh
+if [ "${SOURCE_ONLY:-0}" != 1 ]; then gate_slots_init; fi
 exec python3 - "$@" <<'PY'
 from pathlib import Path
 import importlib.util
@@ -89,7 +91,8 @@ os.environ['AUDIT_WORKERS'] = str(workers)
 
 if not SOURCE_ONLY:
     from audit_pool import AuditPool
-    pool = AuditPool(ROOT / '.lake', workers, temp_prefix='fgsa-claims-check.')
+    pool = AuditPool(ROOT / '.lake', workers, temp_prefix='fgsa-claims-check.',
+                     slot_script=ROOT / 'scripts/gate-common.sh')
     work = pool.work
     print(f'FGSA claims temporary audit logs: {work}', flush=True)
     run, run_pool = pool.run, pool.run_pool
@@ -406,10 +409,14 @@ if positive_hits:
     raise SystemExit(f'STOP: Statements _def positive case failed: {positive_hits}')
 print('statements-home-def-theorems: rc 0 (seven matching _def theorems)', flush=True)
 
+def build(label, *targets):
+    run(label, ['bash', '-c', 'source scripts/gate-common.sh; gate_build "$@"',
+                'claims-build', *targets])
+
 for lib in LIBS:
-    run('build-' + lib, ['lake', 'build', '--wfail', lib])
-    run('build-' + lib + 'Tests', ['lake', 'build', '--wfail', lib + 'Tests'])
-run('support', ['lake', 'build', 'AvailableChainCheckSupport'])
+    build('build-' + lib, '--wfail', lib)
+    build('build-' + lib + 'Tests', '--wfail', lib + 'Tests')
+build('support', 'AvailableChainCheckSupport')
 
 # Derive a compiled-edge table only AFTER source policy validation. A built
 # module may not contain an edge absent from its checked source. This also

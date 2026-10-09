@@ -20,7 +20,7 @@ def positive_seconds(value):
 
 
 class AuditPool:
-    def __init__(self, work, workers, timeout=None, *, temp_prefix=None):
+    def __init__(self, work, workers, timeout=None, *, temp_prefix=None, slot_script=None):
         self.work = None
         self.temporary = temp_prefix is not None
         self.active = set()
@@ -31,6 +31,7 @@ class AuditPool:
         signal.signal(signal.SIGTERM, self.interrupt)
         signal.signal(signal.SIGINT, self.interrupt)
         self.workers = workers
+        self.slot_script = slot_script
         self.timeout = positive_seconds(os.environ.get('AUDIT_TIMEOUT', '1800')) \
             if timeout is None else timeout
         self.serial = 0
@@ -92,6 +93,9 @@ class AuditPool:
         return self.work / f'{self.serial:02d}-{label}.log'
 
     def execute(self, path, args, *, env=None, cwd=None):
+        if self.slot_script is not None:
+            args = ['bash', '-c', 'source "$1"; shift; gate_with_slot "$@"',
+                    'audit-slot', str(self.slot_script), *args]
         if self.time_args:
             args = [*self.time_args, '-o', str(path.with_suffix('.time')), *args]
         with path.open('w') as out:

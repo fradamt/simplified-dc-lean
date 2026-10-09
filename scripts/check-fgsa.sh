@@ -702,22 +702,20 @@ expect_fail "library glob removed (tests escape the build)" $code "$out" "MISSIN
 
 # C23 (lead 2026-10-01): a broken Tests/ module that the root does not import must
 # fail the build step (`lake build AvailableChainFGSA` builds the glob). The module
-# is in the REAL tree for the control only, so the control holds the gate build
-# lock for its whole life and always removes the file and its build outputs.
+# is in a private copy of the current tree and all stable Lake data. The copy
+# uses file clones where supported; it never shares writable build outputs.
 control_glob_build() {
 local m=NegBuildC23 f=AvailableChainFGSA/Tests/NegBuildC23.lean
 [ ! -e "$f" ] || { echo "CONTROL SETUP FAIL: $f exists"; exit 1; }
+local tree=$neg/build-tree
+gate_copy_control_tree "$PWD" "$tree"
 local body='trap "rm -f $0; find .lake/build -path \"*AvailableChainFGSA/Tests/$1.*\" -delete 2>/dev/null; true" EXIT
 printf "module\n\npublic section\n\ntheorem negBuildC23 : False := rfl\n" > "$0"
 lake build AvailableChainFGSA'
-if command -v flock >/dev/null 2>&1; then
-  run flock .lake/gate-build.lock bash -c "$body" "$f" "$m"
-else
-  while ! mkdir .lake/gate-build.lock.d 2>/dev/null; do sleep 1; done
-  run bash -c "$body" "$f" "$m"
-  rmdir .lake/gate-build.lock.d
-fi
-[ ! -e "$f" ] || { rm -f "$f"; echo "CONTROL CLEANUP FAIL: $f was left behind"; exit 1; }
+run bash -c 'cd "$1" || exit; shift; exec bash -c "$@"' \
+  control-build "$tree" "$body" "$f" "$m"
+[ ! -e "$tree/$f" ] || { echo "CONTROL CLEANUP FAIL: $tree/$f was left behind"; exit 1; }
+[ ! -e "$f" ] || { echo "CONTROL CLEANUP FAIL: $f was left behind"; exit 1; }
 expect_fail "broken unimported test module fails the library build" $code "$out" \
   "AvailableChainFGSA.Tests.NegBuildC23"
 }

@@ -236,6 +236,25 @@ gate_build() (
   fi
 )
 
+# A build control can change any Lake output, including dependency outputs.
+# Copy only stable Lake inputs; never copy concurrent gate/control directories.
+# No hard links or writable package symlinks: a failed control cannot affect readers.
+gate_copy_control_tree() {
+  local source=$1 target=$2 part
+  rsync -a --exclude=/.lake --exclude=/.git "$source/" "$target/"
+  mkdir -p "$target/.lake"
+  for part in build config packages; do
+    [ -d "$source/.lake/$part" ] || continue
+    if [ "$(uname -s)" = Darwin ]; then
+      if cp -c -R "$source/.lake/$part" "$target/.lake/" 2>/dev/null; then continue; fi
+    else
+      if cp -a --reflink=auto "$source/.lake/$part" "$target/.lake/"; then continue; fi
+    fi
+    mkdir -p "$target/.lake/$part"
+    rsync -a "$source/.lake/$part/" "$target/.lake/$part/"
+  done
+}
+
 # Each control has one shared slot for its whole run, scratch directory and
 # log. JOBS bounds this script's jobs, including those waiting for a slot.
 # Poll without wait -n. Collect and print in submission order.

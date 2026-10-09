@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 # Run from the repository root. Freeze gates must use --tier full.
-# The three check scripts run in parallel and share one GATE_SLOTS cap.
-# check-fgsa-claims.sh runs alone after them: its lake calls are not slot-capped
-# (NUC 2026-10-01: 282 s, peak 4.3 GiB; merge tier NEG=0 skips its compiled controls).
+# Order: source precheck -> build -> cheap checks/audits -> one fail-fast heavy group.
+# Both tiers share GATE_SLOTS; FULL keeps every control, MERGE keeps NEG=0.
+# C23 uses private source/build/config/packages copies (CoW when supported, else copy).
+# Other controls already use private fixtures; claims/manifest children take separate slots.
+# NUC 2026-10-08..09: FULL 7025-8097 s (2 slots/12G), 10316 s (1 slot/7G);
+# MERGE 1573-1993 s (2 slots). At 318074ba/1 slot: build 22, check-build 1938,
+# FGSA 2154, run 1834, manifest 1497, claims 3321, compose 2830, coverage 116 s;
+# axioms ~2 s each, freeze/coverage 0 s, blueprint 84 s. Freeze failed LAST at 10553 s.
+# Old-read failures took ~300-500 s. Check them before heavy checks; keep controls later.
 # Defaults: Mac 3, Linux 3 (scripts/gate-common.sh); env wins. JOBS is only a per-script pool bound.
 # Linux requires a user scope with GATE_MEM (default 16G) and no swap; without it the gate refuses to run.
 set -euo pipefail
@@ -206,13 +212,14 @@ if [ "$tier" = merge ]; then NEG=0; fi
 run_check() {
   case "$1" in
     check-build|check-fgsa|check-fgsa-run) step "$1" bash "scripts/$1.sh" ;;
+    check-fg-compose) step "$1" gate_with_slot bash scripts/check-fg-compose.sh ;;
     catalog-lock) step "$1" gate_with_slot lake env lean --run scripts/CatalogLock.lean --check ;;
     v2-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --check ;;
     gen-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check ;;
     # Includes mandatory frame/deep checks at both tiers; NEG only selects controls.
-    fgsa-manifest) step "$1" gate_with_slot bash scripts/check-fgsa-manifest.sh ;;
+    fgsa-manifest) step "$1" bash scripts/check-fgsa-manifest.sh ;;
     pcsa-manifest) step "$1" gate_with_slot bash scripts/check-pcsa-manifest.sh ;;
-    fgsa-claims) step "$1" gate_with_slot bash scripts/check-fgsa-claims.sh ;;
+    fgsa-claims) step "$1" bash scripts/check-fgsa-claims.sh ;;
     *) echo "unknown gate step: $1" >&2; return 2 ;;
   esac
 }
@@ -226,27 +233,6 @@ run_group() {
   local name
   for name in "$@"; do summary "$name"; done
 }
-tail_steps=(catalog-lock v2-manifest gen-manifest fgsa-manifest pcsa-manifest fgsa-claims)
-if [ "$tier" = merge ]; then
-  # Merge tier (NEG=0): no step writes the real tree, so the tail joins the
-  # parallel group. The longest step goes first. Full tier: the controls write
-  # the real tree (check-fgsa NegBuildC23, then lake build), and fgsa-claims
-  # copies the built roots, so the tail stays sequential there. Claims controls
-  # exceeded 7 GiB on the Mac. No new memory evidence supports overlap or more
-  # than the measured two audit workers (U158/U160/U172).
-  run_group fgsa-claims fgsa-manifest pcsa-manifest check-build check-fgsa check-fgsa-run \
-    catalog-lock v2-manifest gen-manifest
-else
-  run_group check-build check-fgsa check-fgsa-run
-  for name in "${tail_steps[@]}"; do
-    run_check "$name"
-    summary "$name"
-    stop_if_failed
-  done
-fi
-step check-fg-compose gate_with_slot bash scripts/check-fg-compose.sh
-summary check-fg-compose
-stop_if_failed
 audit() {
   local path=$1 out=$2 rc=0 count
   gate_with_slot lake env lean "$path" > "$out" 2>&1 || rc=$?
@@ -268,6 +254,29 @@ audit_strict() {
   if [ "$got" != "$want" ]; then echo "AXIOM RESULTS: $got of $want commands"; return 1; fi
   echo "axioms: $got results; only propext, Classical.choice, Quot.sound"
 }
+# Cheap checks need no controls. Source-only FGSA/run/claims checks already passed
+# in gate_precheck, before build. Keep the receipt's exact top-level result set:
+# the extra early old-read pass has its log/result below early/, and the original
+# check-fgsa still runs the audit and all FULL controls without a skip flag.
+step fg-finality-freeze python3 -B scripts/check-fg-finality-freeze.py --check
+summary fg-finality-freeze
+stop_if_failed
+step fg-finality-coverage python3 -B scripts/check-fg-finality-coverage.py
+summary fg-finality-coverage
+stop_if_failed
+for name in catalog-lock v2-manifest gen-manifest; do
+  run_check "$name"
+  summary "$name"
+  stop_if_failed
+done
+early_old_reads() {
+  local logs=$logs/early
+  mkdir -p "$logs"
+  step fgsa-old-reads gate_with_slot lake env lean --run scripts/CheckFGSAOldReads.lean
+  summary fgsa-old-reads
+  stop_if_failed
+}
+early_old_reads
 # C14: keep required audit lines tied to their declaration's owning module.
 step proof-audit-coverage gate_with_slot python3 scripts/check-proof-coverage.py
 summary proof-audit-coverage
@@ -295,23 +304,20 @@ stop_if_failed
 step PCSASafety-axioms audit AvailableChainPCSAProofs/Tests/FGSafety.lean "$logs/PCSASafety.axioms"
 summary PCSASafety-axioms
 stop_if_failed
-# P13: the growth companion audit, the S0 freeze with its inherited-difference
-# record, the public-source audit coverage of the safety modules, and the
-# blueprint → Lean map (D10, compiled; FULL tier only).
+# P13: the growth companion audit and blueprint → Lean map (D10, FULL only).
 step FGSAGrowth-axioms audit_strict AvailableChainFGSAProofs/Tests/WeakContinuationGrowthAssemblyAxioms.lean \
   "$logs/FGSAGrowth.axioms"
 summary FGSAGrowth-axioms
-stop_if_failed
-step fg-finality-freeze python3 -B scripts/check-fg-finality-freeze.py --check
-summary fg-finality-freeze
-stop_if_failed
-step fg-finality-coverage python3 -B scripts/check-fg-finality-coverage.py
-summary fg-finality-coverage
 stop_if_failed
 if [ "$tier" = full ]; then
   step fgsa-blueprint gate_with_slot python3 -B scripts/check-fgsa-blueprint.py --check
   summary fgsa-blueprint
   stop_if_failed
 fi
+# Longest measured FULL steps first; PC-SA has no separate wall measurement.
+# No control writes the real source/build tree. Shared slots bound every child;
+# Linux's existing memory scope bounds the whole group, including private builds.
+run_group fgsa-claims check-fg-compose check-fgsa check-build check-fgsa-run \
+  fgsa-manifest pcsa-manifest
 finish
 exit "$failed"
