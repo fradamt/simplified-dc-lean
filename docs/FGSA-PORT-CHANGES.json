@@ -35625,7 +35625,7 @@
       "jobs": 3743,
       "failures": [
         "WP08: OutageContinuation.Export:30:31",
-        "WP15: Assembly.Outage:79:30 (WP08 frame inputs)",
+        "WP15: Assembly.Outage:25:30 (WP08 frame inputs)",
         "WP15: Assembly.WeakContinuationGrowth:689:59 (WP10 frame inputs)",
         "WP15: Assembly.WeakContinuation:720:61 (WP10 frame inputs)"
       ]
@@ -35633,7 +35633,7 @@
     {
       "command": "LEAN_SLOTS=2 lake env lean --run scripts/CheckFGSAOldReads.lean",
       "before": "Blocked: Outage.Close olean is missing",
-      "after": "Pending after canonical frame migration",
+      "after": "Blocked: OutageContinuation.Export olean is missing",
       "exit": 1
     },
     {
@@ -35657,6 +35657,46 @@
       "paths": 122,
       "differences": 18,
       "recorded_changes": 41
+    },
+    {
+      "command": "bash /Users/francesco/.claude/jobs/22f59f85/tmp/precheck.sh /Users/francesco/.claude/jobs/22f59f85/tmp/wt-pcsa-formation 318074ba",
+      "before": "FAIL: 2 missing facade imports",
+      "after": "FAIL: 11 exact guard-list removals",
+      "exit": 1,
+      "reason": "Required rename records are outside the 49 owned paths; patch awaits scope approval."
+    },
+    {
+      "command": "Supplementary gate_precheck without a base, for later source diagnostics",
+      "before": "Not run",
+      "after": "FAIL: WP12b engine boundary",
+      "exit": 1,
+      "limitation": "This is not a substitute for the required base/guard precheck."
+    },
+    {
+      "command": "python3 -B scripts/check-fg-finality-coverage.py",
+      "before": "PASS",
+      "after": "PASS",
+      "exit": 0,
+      "modules": 24,
+      "declarations": 221
+    },
+    {
+      "command": "python3 -B scripts/check-fgsa-port-owners.py",
+      "before": "Not run",
+      "after": "PASS",
+      "exit": 0
+    },
+    {
+      "command": "SOURCE_ONLY=1 bash scripts/check-fgsa-run.sh",
+      "before": "PASS",
+      "after": "PASS",
+      "exit": 0
+    },
+    {
+      "command": "SOURCE_ONLY=1 bash scripts/check-fgsa-claims.sh",
+      "before": "PASS",
+      "after": "PASS",
+      "exit": 0
     }
   ]
 }
