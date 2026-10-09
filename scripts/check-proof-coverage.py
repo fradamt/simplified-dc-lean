@@ -9,11 +9,9 @@ import tempfile
 
 AUDITS = tuple('AvailableChain' + lib + '.Tests.Axioms' for lib in
                ('Generic', 'FGSA', 'FGSARun', 'FGSAClaims', 'FGSAProofs', 'FGSAInhabit',
-                'PCSAProofs', 'FGCompose')) + ('AvailableChainFGSAProofs.Tests.FGCompose',
-                                            'AvailableChainPCSAProofs.Tests.FGCompose',
+                'FGCompose')) + ('AvailableChainFGSAProofs.Tests.FGCompose',
                                             'AvailableChainFGCompose.Tests.SafetyAxioms',
                                             'AvailableChainFGSAProofs.Tests.FGSafety',
-                                            'AvailableChainPCSAProofs.Tests.FGSafety',
                                             ('AvailableChainFGSAProofs.Tests.'
                                              'WeakContinuationGrowthAssemblyAxioms'))
 

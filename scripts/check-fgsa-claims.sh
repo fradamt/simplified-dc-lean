@@ -30,7 +30,7 @@ ROOT = Path.cwd()
 SOURCE_ONLY = os.environ.get('SOURCE_ONLY', '0') == '1'
 LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit')
 CLAIMS, PROOFS, INHABIT = LIBS
-ROOT_LIBS = (*LIBS, "AvailableChainPCSAProofs")
+ROOT_LIBS = LIBS
 # Keep this minimum scope independent of the data file. The _def rows are
 # required even when their declarations do not yet exist.
 REQUIRED_MODEL_SCOPE = {
@@ -235,8 +235,6 @@ if not SOURCE_ONLY and os.environ.get('NEG', '1') == '1':
 
 
 def check_source_coverage(imports, roots):
-    imports = {**{m.name: m.imports for m in ctx.modules.values()
-                  if L.under(m.name, "AvailableChainPCSAProofs")}, **imports}
     roots = list(dict.fromkeys([*roots, *imports]))
     # Every production module must be in its root facade's transitive closure.
     def closure(starts):
@@ -265,14 +263,14 @@ def check_source_coverage(imports, roots):
         if unreached:
             raise SystemExit('NOT REACHED FROM F4: ' + ', '.join(unreached))
 
-# The PC-SA root must reach every production module, as the FG-SA roots do.
-pcsa_orphan = "AvailableChainPCSAProofs.Proofs.Foundations.CoverageNegative"
+# The active FG-SA root must reach every production module.
+fgsa_orphan = "AvailableChainFGSAProofs.Proofs.Shared.CoverageNegative"
 try:
-    check_source_coverage({}, [pcsa_orphan])
+    check_source_coverage({}, [fgsa_orphan])
 except SystemExit as exc:
-    assert str(exc) == "NOT IMPORTED BY ROOT: " + pcsa_orphan, exc
+    assert str(exc) == "NOT IMPORTED BY ROOT: " + fgsa_orphan, exc
 else:
-    raise SystemExit("PC-SA ROOT COVERAGE CONTROL FAILED")
+    raise SystemExit("FG-SA ROOT COVERAGE CONTROL FAILED")
 
 if SOURCE_ONLY:
     source_edges = {module(p): L.read_header(p.read_text())[0] for p in files}

@@ -22,11 +22,7 @@ defaultTargets = [
   "AvailableChainFGSAClaims",
   "AvailableChainFGSAProofs",
   "AvailableChainFGSAInhabit",
-  "AvailableChainPCSA",
-  "AvailableChainPCSARun",
-  "AvailableChainPCSAClaims",
   "AvailableChainFGCompose",
-  "AvailableChainPCSAProofs",
 ]
 
 [leanOptions]

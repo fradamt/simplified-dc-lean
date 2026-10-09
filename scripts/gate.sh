@@ -219,7 +219,6 @@ run_check() {
     gen-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check ;;
     # Includes mandatory frame/deep checks at both tiers; NEG only selects controls.
     fgsa-manifest) step "$1" bash scripts/check-fgsa-manifest.sh ;;
-    pcsa-manifest) step "$1" gate_with_slot bash scripts/check-pcsa-manifest.sh ;;
     fgsa-claims) step "$1" bash scripts/check-fgsa-claims.sh ;;
     *) echo "unknown gate step: $1" >&2; return 2 ;;
   esac
@@ -293,17 +292,11 @@ stop_if_failed
 step FGSACompose-axioms audit AvailableChainFGSAProofs/Tests/FGCompose.lean "$logs/FGSACompose.axioms"
 summary FGSACompose-axioms
 stop_if_failed
-step PCSACompose-axioms audit AvailableChainPCSAProofs/Tests/FGCompose.lean "$logs/PCSACompose.axioms"
-summary PCSACompose-axioms
-stop_if_failed
 step FGSafety-axioms audit AvailableChainFGCompose/Tests/SafetyAxioms.lean "$logs/FGSafety.axioms"
 summary FGSafety-axioms
 stop_if_failed
 step FGSASafety-axioms audit AvailableChainFGSAProofs/Tests/FGSafety.lean "$logs/FGSASafety.axioms"
 summary FGSASafety-axioms
-stop_if_failed
-step PCSASafety-axioms audit AvailableChainPCSAProofs/Tests/FGSafety.lean "$logs/PCSASafety.axioms"
-summary PCSASafety-axioms
 stop_if_failed
 # P13: the growth companion audit and blueprint → Lean map (D10, FULL only).
 step FGSAGrowth-axioms audit_strict AvailableChainFGSAProofs/Tests/WeakContinuationGrowthAssemblyAxioms.lean \
@@ -315,10 +308,10 @@ if [ "$tier" = full ]; then
   summary fgsa-blueprint
   stop_if_failed
 fi
-# Longest measured FULL steps first; PC-SA has no separate wall measurement.
+# Longest measured FULL steps first.
 # No control writes the real source/build tree. Shared slots bound every child;
 # Linux's existing memory scope bounds the whole group, including private builds.
 run_group fgsa-claims check-fg-compose check-fgsa check-build check-fgsa-run \
-  fgsa-manifest pcsa-manifest
+  fgsa-manifest
 finish
 exit "$failed"

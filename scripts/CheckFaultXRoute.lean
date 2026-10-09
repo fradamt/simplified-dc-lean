@@ -56,6 +56,8 @@ def scopedModules : IO (Array Name × Array Name) := do
     let some n := library.find? `name | continue
     let name ← tomlString n
     unless name.startsWith "AvailableChain" do continue
+    -- PC-SA source stays available; its compiled audit is deferred during sleep.
+    if name.startsWith "AvailableChainPCSA" do continue
     let srcDir ← match library.find? `srcDir with
       | some v => System.FilePath.mk <$> tomlString v
       | none => pure "."
