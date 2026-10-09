@@ -97,11 +97,15 @@ class AuditPool:
         return self.work / f'{self.serial:02d}-{label}.log'
 
     def execute(self, path, args, *, env=None, cwd=None):
-        if self.slot_script is not None:
-            args = ['bash', '-c', 'source "$1"; shift; gate_with_slot "$@"',
-                    'audit-slot', str(self.slot_script), *args]
         if self.time_args:
             args = [*self.time_args, '-o', str(path.with_suffix('.time')), *args]
+        started = None
+        if self.slot_script is not None:
+            started = path.with_suffix('.started').resolve()
+            started.unlink(missing_ok=True)
+            args = ['bash', '-c', 'source "$1"; shift; gate_with_slot "$@"',
+                    'audit-slot', str(self.slot_script), 'bash', '-c',
+                    ': > "$1" || exit; shift; exec "$@"', 'audit-start', str(started), *args]
         with path.open('w') as out:
             # Only worker threads spawn commands. The main thread can safely
             # wait for this lock in a signal handler, with no spawn/register gap.
@@ -112,6 +116,10 @@ class AuditPool:
                                         env=env, cwd=cwd, start_new_session=True)
                 self.active.add(proc)
             try:
+                # Slot waits have no command budget, but remain in the active
+                # process group so cancellation can stop and reap them.
+                while started is not None and not started.exists() and proc.poll() is None:
+                    time.sleep(0.01)
                 code = proc.wait(timeout=self.timeout)
             except subprocess.TimeoutExpired:
                 self.terminate(proc)
@@ -123,6 +131,8 @@ class AuditPool:
             finally:
                 with self.lock:
                     self.active.discard(proc)
+                if started is not None:
+                    started.unlink(missing_ok=True)
         path.with_suffix('.rc').write_text(str(code) + '\n')
         return code
 

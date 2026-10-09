@@ -135,6 +135,71 @@ with tempfile.TemporaryDirectory(prefix='audit-pool-control-') as temp:
                 raise AssertionError('unsupported timer accepted')
     print('CONTROL timer preflight and output: PASS')
 
+    # A live slot owner must not consume a waiting command's one-second budget.
+    repo = Path(__file__).resolve().parents[1]
+    slots = Path(temp) / 'wait-slots'
+    owner = slots / 'slot.1' / f'owner.{os.getpid()}'
+    owner.mkdir(parents=True)
+    wait_env = dict(os.environ, GATE_SLOTS='1', GATE_SLOT_DIR=str(slots),
+                    GATE_SLOT_HELD='0')
+    waiting = AuditPool(Path(temp) / 'waiting', 1, timeout=1,
+                        slot_script=repo / 'scripts/gate-common.sh')
+    path = waiting.reserve_log('valid-after-wait')
+    with ThreadPoolExecutor(max_workers=1) as runner:
+        pending = runner.submit(waiting.execute, path,
+                                command('import time; time.sleep(0.6); print("PASS")'),
+                                env=wait_env)
+        try:
+            time.sleep(1.5)
+            assert not pending.done(), 'command used its budget before slot acquisition'
+            assert owner.is_dir(), 'waiting command removed a live owner'
+        finally:
+            owner.rmdir()
+            owner.parent.rmdir()
+        assert pending.result(timeout=10) == 0, path.read_text()
+    assert 'PASS' in path.read_text()
+    assert not list(slots.glob('slot.*'))
+    assert not list(waiting.work.glob('*.started'))
+    print('CONTROL one-second budget starts after live slot owner releases: PASS')
+    try:
+        waiting.run('slot-timeout', command(
+            'import time; print("CONTROL", flush=True); time.sleep(120)'),
+            expect='CONTROL', env=wait_env)
+    except SystemExit as exc:
+        assert exc.code == "STOP: negative control slot-timeout did not fail with 'CONTROL'"
+    else:
+        raise AssertionError('pool accepted slotted timeout')
+    assert (waiting.work / '02-slot-timeout.rc').read_text().strip() == '124'
+    assert not list(slots.glob('slot.*'))
+    assert not list(waiting.work.glob('*.started'))
+    print('CONTROL slotted timeout remains an invalid negative rejection: PASS')
+
+    # TERM must also cancel a command which has not acquired its slot.
+    owner.mkdir(parents=True)
+    marker = Path(temp) / 'wait-command-started'
+    waiting_command = command(f'from pathlib import Path; Path({str(marker)!r}).touch()')
+    driver = ("from audit_pool import AuditPool; from pathlib import Path; "
+              f"p = AuditPool(Path({str(Path(temp) / 'wait-term')!r}), 1, timeout=1, "
+              f"slot_script=Path({str(repo / 'scripts/gate-common.sh')!r})); "
+              f"p.run('wait', {waiting_command!r})")
+    child = subprocess.Popen(command(driver), cwd=repo / 'scripts', env=wait_env,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    try:
+        time.sleep(1.5)
+        assert child.poll() is None, 'waiting driver expired before acquiring its slot'
+        child.terminate()
+        output, _ = child.communicate(timeout=10)
+        assert child.returncode == 143, (child.returncode, output)
+        assert not marker.exists(), 'cancelled waiting command started'
+        assert owner.is_dir(), 'cancellation removed a live owner'
+    finally:
+        if child.poll() is None:
+            child.terminate()
+            child.wait(timeout=10)
+        owner.rmdir()
+        owner.parent.rmdir()
+    print('CONTROL TERM cancels slot wait and preserves live owner: PASS')
+
     # Run the real claims entry point. Stop its first Lake call without Lean.
     repo = Path(__file__).resolve().parents[1]
     claims_repo = Path(temp) / 'claims'
