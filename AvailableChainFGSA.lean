@@ -7,6 +7,10 @@ public import AvailableChainFGSA.Model.Resolution
 public import AvailableChainFGSA.Proofs.Port.Resolution
 public import AvailableChainFGSA.Proofs.Port.Tree
 public import AvailableChainFGSA.Model.ContestFrame
+public import AvailableChainFGSA.Model.VoteMerge
+public import AvailableChainFGSA.Model.FrameNext
+public import AvailableChainFGSA.Model.Legacy.Frame
+public import AvailableChainFGSA.Proofs.Port.VoteMerge
 public import AvailableChainFGSA.Proofs.Port.ContestFrame
 public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.Handlers
