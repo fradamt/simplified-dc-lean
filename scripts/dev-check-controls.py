@@ -42,12 +42,31 @@ def main():
                             cwd=ROOT, text=True, capture_output=True)
     assert result.returncode == 0, result.stdout + result.stderr
     print('CONTROL real finality source inventories: PASS (221 declarations)', flush=True)
-    active = {'module': 'AvailableChainFGSAProofs.Proofs.Assembly.Finality', 'theorem': 'ok'}
-    disabled = {'module': 'AvailableChainPCSAProofs.Proofs.Assembly.Finality', 'theorem': 'bad'}
-    assert B.compiled_clauses([active, disabled]) == [active]
+    data = B.fixture_map()
+    assert all(not where.startswith('safety PC-SA ') for where, _ in B.compiled_clauses(data))
     with patch.object(B.subprocess, 'run', side_effect=AssertionError('PC-SA Lean import')):
-        assert B.run_oracle(B.REPO, [disabled]) == {}
-    print('CONTROL blueprint compiled scope excludes PC-SA: PASS', flush=True)
+        assert B.run_oracle(B.REPO, []) == {}
+    print('CONTROL blueprint defers PC-SA safety section: PASS', flush=True)
+    with tempfile.TemporaryDirectory(prefix='blueprint-control-') as tmp:
+        root = Path(tmp)
+        B.make_fixture(root)
+        import contextlib
+        import io
+        import json
+        data = json.loads((root / B.MAP).read_text())
+        row = data['safety_package']['FG-SA'][0]
+        row.update(module='AvailableChainPCSAProofs.Proofs.ReviewStub',
+                   theorem='Fix.DoesNotExist')
+        stub = B.module_source(root, row['module'])
+        stub.parent.mkdir(parents=True)
+        stub.write_text('-- source exists; theorem does not\n')
+        (root / B.MAP).write_text(json.dumps(data))
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            rc = B.run(root, oracle=B.fixture_oracle(B.GOOD), oleans=False)
+        reason = 'MISSING CONSTANT: Fix.DoesNotExist (safety FG-SA accountable)'
+        assert rc == 1 and reason in output.getvalue(), output.getvalue()
+        print(f'CONTROL blueprint cross-section module: PASS (rc {rc}; {reason})', flush=True)
     graph = C.import_graph()
     scope = ROOT / 'scripts/dev-scope-s1.txt'
     original = scope.read_text()
