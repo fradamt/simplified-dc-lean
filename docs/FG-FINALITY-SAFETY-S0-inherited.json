@@ -7,7 +7,7 @@
   "s0_step1_manifest": "docs/FG-FINALITY-SAFETY-S0-step1-hashes.json",
   "s0_step1_manifest_sha256": "642fac24b050c80569be89ffd607d8d062660e79fba50f14909adeb7993340d8",
   "comparison_revision": "b7946b9b940098ae1800904177173f04fff8a507",
-  "main_revision": "6c36d4810cb070655f2f4aadb3346db6c76aa0a3",
+  "main_revision": "2bdd7dbd274a03fe6e9a32d2e298c3944cf0fab9",
   "main_revision_note": "gate-par merged onto post-port main 6c36d481; history only.",
   "differences": [
     {
