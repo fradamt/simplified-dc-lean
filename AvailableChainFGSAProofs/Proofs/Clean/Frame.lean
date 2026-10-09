@@ -52,7 +52,7 @@ theorem cleanFrame_of_state (b₀ : Time) :
   rw [CleanCertSources_def] at hcert
   simp only [certified_def, heightView_eq_simplex p,
     KitFG.simplexHeightView_def, KitFG.heightOf_def] at hcert
-  have hn : (FGSA.controls p st).contest = false := by
+  have hnOld : (KitFG.storeControlsView (heightView p) st.fg).contest = false := by
     apply KitFG.storeFrameView_noContest_of_crossed_of_inv
       p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv
         (fgJustificationLaws p)
@@ -68,6 +68,12 @@ theorem cleanFrame_of_state (b₀ : Time) :
       hcert v W e hv hW ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩ hg
     exact liftCompat st.fg.J e (cleanHist_belowLabel_compatible hh (hs.fOrigin v).2
       (belowLabel_of_preceq (eraseFG_preceq heC) hC))
+  have hn : (FGSA.controls p st).contest = false := by
+    apply Bool.eq_false_iff.mpr
+    intro ht
+    have ho := KitFG.treeStoreControlsView_contest_imp (heightView p) st.fg ht
+    rw [hnOld] at ho
+    cases ho
   have hZ : BelowLabel p c E rho i (labelBoundAt p c rho i)
       (eraseFG (FGSA.controls p st).Z) := by
     change BelowLabel p c E rho i _
@@ -79,7 +85,7 @@ theorem cleanFrame_of_state (b₀ : Time) :
   intro B hB hb
   have hrows := hs.sources.1
   rw [CleanRowSources_def] at hrows
-  have hcp := cpCompat_of_scopedFrame p c E rho hf.store hf.frame hf.strat i v B hv (by
+  have hcp := fgsa_cpCompat_of_scopedFrame p c E rho hf.store hf.strat i v B hv (by
     intro y r a e ha he heScope
     obtain ⟨j, hj, hrow⟩ := ha
     obtain ⟨C, hSource, heq, hpre, hc⟩ := hrows j y r a _ hj hrow he
@@ -101,8 +107,7 @@ theorem cleanFrame_of_state (b₀ : Time) :
         cases (FGSA.controls p st).rootIsJ
         · exact KitFG.preceq_refl _
         · exact hinv.FJ
-      · rw [(hf.frame i v hv).2]
-        exact hD
+      · exact hD
   · exact Or.inr (Or.inl (eraseFG_preceq hBF))
 
 end AvailableChain.FGSA.Run
