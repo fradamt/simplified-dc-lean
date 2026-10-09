@@ -1,5 +1,13 @@
 READY FOR FULL GATE
 
+**Historical record — superseded 2026-10-09.** This document records its
+original source basis. Freeze rules, port totals, ownership paths, and exact
+exception rows are not current acceptance data. Future changes use generated
+current snapshots and reviewed diffs. Open proof obligations remain open.
+The old API data remains in Git at
+`6c36d4810cb070655f2f4aadb3346db6c76aa0a3`. No checker reads this record.
+
+
 # port-w16d — final data closure
 
 Branch: `port-w16d`. Source base: `4924efecd4635740060126d4ac9946063ef65ad6`.

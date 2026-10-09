@@ -1,5 +1,12 @@
 # FG-SA Lean architecture
 
+**Current policy — 2026-10-09.** APIs and anchors can change. Generate the current
+snapshots, then review all additions, removals, statements, and dependency changes.
+Older freeze, append-only, no-widening, and zero-rename rules below are history.
+They do not set current acceptance rules. Kernel, proof, source, and import checks
+still apply. A snapshot update does not approve a changed claim.
+
+
 _Status: ADOPTED by the lead, 2026-09-29 (user: "don't block on me"; the
 user reviews afterwards). Owner: DC-simplify (lead). §4 and §7 come from
 lean-framework; §2 from fgsa-lean. Target: `docs/LEAN-ARCHITECTURE.md`.
@@ -82,13 +89,9 @@ P5. **Reuse class of every run-level lemma** (S3 §5): (ii) a generic
     (b2) wrapper route; transport only with a named step/handler
     correspondence; restatement only with a stated reason. An FG-SA run is
     not a Grid CO run, so no Grid CO run lemma transports.
-P6. **Frozen stays frozen.** A frozen declaration does not change. A more
-    general form is an internal lemma, and the frozen statement is derived
-    from it (KernelP → the FGood/FGood4 disjunction; SrcFrame → CPPrefix,
-    CPCompat). A generic form of a frozen lemma is a COROLLARY proved from
-    the frozen core, never a second proof (L33: the KitV2 induction and
-    record-fold cores, §4). A public wrapper of a public contract is a
-    corollary too (QualSearch → HTimeBestStatement).
+P6. **Review current interfaces.** Update the generated snapshots after a claim
+    or dependency change. Review the full diff. Keep one proof core and derive
+    public contract wrappers from it when a consumer needs them.
 P7. **Module system first** (the user's "import trick", confirmed
     2026-09-29). Statements and proofs are separate modules; a theorem's
     proof is not exported; `private` is for helper lemmas. An ordinary
@@ -99,10 +102,9 @@ P7. **Module system first** (the user's "import trick", confirmed
 P8. **Set reads only.** Claim-relevant reads use sets. No statement or proof
     compares roots, whole proposals or `fgBlock` values across two runs or
     two delivery orders (1c D5).
-P9. **Zero renames in F0–F2.** New names are additive; old names stay as
-    wrappers. Reasons: pin evidence names constants (`FGPinIds
-    --check-names`) and other plans cite them. The catalog lock covers
-    Framework modules only.
+P9. **Review public name changes.** The current API inventories record additions
+    and removals. Compile consumers after a rename. Keep wrappers when a consumer
+    needs them. Pin evidence checks remain independent.
 P10. **One cross-lane rule (written once here; S3 §4.2 and BUILD §7.4
     cite it; L37).** A lane `Proofs/<F>/*` and a `Proofs/Shared/*` module
     import only: statement modules, the Generic and KitFG layers, the
@@ -118,12 +120,10 @@ P10. **One cross-lane rule (written once here; S3 §4.2 and BUILD §7.4
     `Proofs.Assembly.Clean`, and the existing foundation imports. All global
     checks still apply. Other Assembly modules may import neither Assembly
     modules nor the claim facade. Library roots remain import lists.
-P11. **Producers before freeze.** A gate freezes a statement only after
-    the statements that it consumes exist and after each producer of its
-    premises has stated what it needs. A LAW with an instance obligation
-    freezes only after its generic proof and one instance proof exist in
-    Lean (L34; two laws failed on paper in A0). The order of §9 implements
-    this.
+P11. **Producers before claims.** A claim needs the statements that it consumes
+    and the stated inputs of each premise producer. A law with an instance
+    obligation needs its generic proof and one instance proof in Lean (L34).
+    The order of §9 implements this proof-quality rule.
 
 ## 2. Claim structure
 
@@ -359,10 +359,10 @@ Authority: **GLY r3.11** (r3.7 + the fixes of §11 and §12 + L29–L37). Summar
   wrappers and the E-14 restatement. The Grid CO and SA-PC relocations wait behind fixed facade
   names.
 
-## 5. Frozen interfaces
+## 5. Current interfaces
 
-A signature freezes only in its written form. No frozen signature contains
-`…` (review fix O4). GLY r3.8 writes each one in full.
+Write each signature in full. No current signature contains `…` (review fix O4).
+Generate its current snapshot and review the complete change.
 
 **Audit results (GLY r3.8 deviations).** A1 and A2 PASS in both A0
 audits; A3 FAILED and is replaced by L33 (§4). A1: AdmitSound without `wellFormed`,
@@ -687,9 +687,9 @@ restartFree consumers can.
 
 ## 9. Gates and order of work
 
-Gates (P3:242–247): **G-F0a** freezes the skeleton, reads, regimes,
+Historical gates (P3:242–247): **G-F0a** recorded the skeleton, reads, regimes,
 recurrence forms, window specs (with OD10), safety claims and safety channel
-tiers, and gates F2.0. **G-F0b** freezes HEALED, HEALING_INPUT, the
+tiers, and gates F2.0. **G-F0b** recorded HEALED, HEALING_INPUT, the
 finality claims, the finality and healing tiers, QualSearch and the Shared
 Fold/Phases statements, and gates F4 and F5.
 

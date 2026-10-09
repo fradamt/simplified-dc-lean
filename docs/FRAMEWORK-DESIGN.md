@@ -1,5 +1,12 @@
 # Protocol framework — design (v7, 2026-09-28)
 
+**Current policy — 2026-10-09.** APIs and anchors can change. Generate the current
+snapshots, then review all additions, removals, statements, and dependency changes.
+Older freeze, append-only, no-widening, and zero-rename rules below are history.
+They do not set current acceptance rules. Kernel, proof, source, and import checks
+still apply. A snapshot update does not approve a changed claim.
+
+
 _Status: v7 DRAFT. v6 answered the second Astra audit; v7 answers the
 third (`docs/audit/framework-v6-audit-report.md`: REVISE, 3 blocking,
 6 major, 0 minor; the framework items W01, W02, W04, W06, W08, W09). The exact FG
@@ -70,14 +77,14 @@ private record controls AP proposals needs a new isolation interface).
 │ L  │ Layer        │ Content                       │ Change policy      │
 ├────┼──────────────┼───────────────────────────────┼────────────────────┤
 │ L0 │ Engine       │ events, world, run, emission, │ versioned; content │
-│    │              │ restart, own-record step      │ hash frozen        │
-│ L1 │ Conditions   │ run predicates; regimes;      │ append-only        │
+│    │              │ restart, own-record step      │ current snapshot   │
+│ L1 │ Conditions   │ run predicates; regimes;      │ current snapshot   │
 │    │              │ execution-prefix predicates   │                    │
 │ LM │ Modules      │ fixed-component definitions:  │ versioned; content │
-│    │              │ Simplex FG, duty frames,      │ hash frozen        │
+│    │              │ Simplex FG, duty frames,      │ current snapshot   │
 │    │              │ policy type, AP template      │                    │
-│ L2 │ Facets       │ what an instance exposes      │ append-only        │
-│ L3 │ Catalog      │ claim specs, transports,      │ append-only;       │
+│ L2 │ Facets       │ what an instance exposes      │ current snapshot   │
+│ L3 │ Catalog      │ claim specs, transports,      │ current snapshot;  │
 │    │              │ relation lemmas               │ immutable ids      │
 │ L4 │ Instances    │ protocol + parameters +       │ free               │
 │    │              │ facets; certificates and      │                    │
@@ -359,10 +366,9 @@ correspondence for each event kind, and the claim transport.
 
 **As implemented in Phase 2a (2026-09-29).** This note does not change
 the text above. Plan: `docs/plans/2026-09-29-phase2a-engine-v2-core.md`.
-Frozen API: `docs/V2-API.md`. Report: `docs/PHASE2A-REPORT.md`. The
-shapes below are frozen (freeze rule, DC N6): a 2a structure never gains a
-field, a 2a inductive never gains a constructor, and a 2a definition never
-gains a parameter. Stages 2b and 2c only ADD declarations.
+Current API: `docs/V2-API.md`. Report: `docs/PHASE2A-REPORT.md`. The
+shapes below record Phase 2a. A current structure, inductive, or definition can
+change after review of its statement and dependency diff.
 
 - Libraries. Engine v2 is in `AvailableChainEngineV2` (`Engine`,
   `Conditions`, `Laws`; namespace `AvailableChain.V2`). Its lemmas are in
@@ -717,12 +723,12 @@ constants, the proof status (Lean certificate, paper, conditional),
 assumptions, output names and module versions. A paper result never
 appears as a Lean certificate.
 
-**Freeze.** `catalog.lock`: per L1, LM, L2, L3 declaration, a
+**Current snapshot.** `catalog.lock`: per L1, LM, L2, L3 declaration, a
 deterministic hash of the transitive dependency closure (types, bodies,
 inductives, opaque bodies via `getUsedConstantsAsSet`; fail if a body is
-unavailable). Per L0 and LM version, a frozen content hash. The
+unavailable). Per L0 and LM version, a recorded content hash. The
 toolchain and Lake manifest are pinned. Each certificate records its
-instance, constants and dependency hashes. The freeze is syntactic; it
+instance, constants and dependency hashes. The snapshot is syntactic; it
 does not replace kernel checking.
 
 **As implemented in plan 1a (2026-09-28).** This note does not change
@@ -1117,7 +1123,7 @@ when these land (after I9 and 2a).
   removed.
 - 2026-09-29, I9 Task 11 (derived roots, §12; user decisions
   2026-09-29): 91 `CHANGED` lines, 0 `ADDED`, 0 `REMOVED`, written with
-  `--write --allow-changes` on the tree with main merged in (`f756404`).
+  `--write` on the tree with main merged in (`f756404`).
   The old lock is git blob `6a4d14869c409efa92f1c27cf3ce7a7d2bebc773`
   (250 lines); the new lock has 250 lines. Reason: the closure of each
   line reaches `Block`. `Block.node` has no root field now, and
@@ -1160,7 +1166,7 @@ when these land (after I9 and 2a).
   93 CHANGED lock lines, no REMOVED or ADDED line. Cost/source base: `98a62cd`.
   W3b input: `027f2f1`; W3c input: `b4bf03f`. W3c changes are not committed.
   The expected set is the 91 I9 closure names plus `V2.anchor` and `V2.dutyAnchor`.
-  Set equality was checked before the W3b `--write --allow-changes`.
+  Set equality was checked before the W3b `--write`.
   The closure change comes from explicit Block roots, Params.digest, generated constructor
   helpers, and the two approved anchor-reference deletions. The BODY codec stays.
   Exact names, old/new hashes, frozen classifications, exceptions, and the W3c check summary
@@ -1183,7 +1189,7 @@ when these land (after I9 and 2a).
 - 2026-09-29, the port to Lean v4.34.1 and mathlib d13f23b7 (branch
   `port-v434`). Re-baseline approved by the user, 2026-09-29 (relayed by
   DC-simplify); the axiom-set change below accepted by DC-simplify,
-  2026-09-29. Written with `--write --allow-changes`: 193 `CHANGED` lines
+  2026-09-29. Written with `--write`: 193 `CHANGED` lines
   of 251, 0 `ADDED`, 0 `REMOVED`. The old lock is git blob
   `1626dc7494e8190bcb8e69c5c8369fe6e0902af7` (251 lines, `a6733c2`).
   Evidence files are in `docs/lock-log/v4.34.1/`:
