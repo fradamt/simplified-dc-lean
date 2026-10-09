@@ -122,7 +122,7 @@ theorem ownRecord_fold_interval_restart {β : Type} (proj : P.State → β) (g :
     (hrecord : ∀ st o, proj (P.recordOwn st o) = g (proj st) o)
     (E : Generic.Env V) (rho : Run V P) {i j : Nat} (hij : i ≤ j) (v : V)
     (hrestart : ∀ k t, i ≤ k → k < j → rho.events[k]? = some (.restart v t) →
-      proj (P.restore (P.durable (Run.stateBefore E rho k v))) =
+      proj (P.restore (P.durable (Run.stateBefore E rho k v)) t) =
         proj (Run.stateBefore E rho k v)) :
     proj (Run.stateBefore E rho j v) =
       (ownReleased E rho v i j).foldl g (proj (Run.stateBefore E rho i v)) := by
@@ -170,11 +170,11 @@ theorem ownRecord_fold_restore {β : Type} (proj : P.State → β) (g : β → P
     (hclock : ∀ st t, proj (P.clock st t) = proj st)
     (hprocess : ∀ st o, proj (P.process st o) = proj st)
     (hrecord : ∀ st o, proj (P.recordOwn st o) = g (proj st) o)
-    (hrestore : ∀ st, proj (P.restore (P.durable st)) = proj st)
+    (hrestore : ∀ st t, proj (P.restore (P.durable st) t) = proj st)
     (E : Generic.Env V) (rho : Run V P) (i : Nat) (v : V) :
     proj (Run.stateBefore E rho i v) = (ownReleased E rho v 0 i).foldl g (proj P.init) := by
   rw [ownRecord_fold_interval_restart proj g hclock hprocess hrecord E rho
-    (Nat.zero_le i) v (fun _ _ _ _ _ => hrestore _)]
+    (Nat.zero_le i) v (fun _ t _ _ _ => hrestore _ t)]
   rfl
 
 end AvailableChain.V2.D.Engine

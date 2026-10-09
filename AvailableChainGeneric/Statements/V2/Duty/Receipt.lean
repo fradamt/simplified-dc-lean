@@ -1,4 +1,6 @@
 module
+public import AvailableChainEngineV2.Conditions.Duty.DeliveryWindow
+public import AvailableChainEngineV2.Laws.Duty.Hooks
 public import AvailableChainEngineV2.Engine.Duty.Run
 public import AvailableChainEngineV2.Conditions.Duty.Schedule
 public import AvailableChainKitV2.DutyClockLaws
@@ -29,12 +31,9 @@ theorem Trigger_def (E : Generic.Env V) (rho : D.Run V P) (o : P.Object) (t : Ti
 structure DeliveryWithin (E : Generic.Env V) (rho : D.Run V P)
     (dl : Time → Time) (cut : Time) : Prop where
   broadcast : ∀ v ∈ rho.honest, ∀ o t, D.Run.emits E rho v o t → ∀ w ∈ rho.honest,
-    dl t ≤ cut → P.excludes (D.Run.stateBeforeTime E rho (dl t) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < dl t ∧ ∃ j, D.Run.handlesAt E rho j w o t'
+    D.DeliveryDemand E rho v w o t dl cut
   relay : ∀ v ∈ rho.honest, ∀ i o t, D.Run.acceptsAt E rho i v o t → ∀ w ∈ rho.honest,
-    P.processed (D.Run.stateBefore E rho (i + 1) w) o = false →
-    dl t ≤ cut → P.excludes (D.Run.stateBeforeTime E rho (dl t) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < dl t ∧ ∃ j, D.Run.handlesAt E rho j w o t'
+    D.DeliveryDemand E rho v w o t dl cut
 
 -- DC: additive (no DC counterpart); reason: Duty execution contract.
 -- Source: AvailableChainGeneric/Statements/V2/Receipt.lean:48.
@@ -59,6 +58,40 @@ structure AdmitSound (P : ProtocolSpecD In) {Timely : P.State → P.Object → P
     (C : TimelyClock P Timely) : Prop where
   timely : ∀ st o' o, 0 ≤ C.clockOf st → P.processed st o = false →
     P.processed (P.process st o') o = true → P.handles st o' o → Timely st o
+
+set_option linter.unusedVariables false in
+def ReadyTrigger (E : Generic.Env V) (rho : D.Run V P)
+    (o : P.Object) (send : Time) (w : V) (a d : Time) : Prop :=
+  ∃ v, v ∈ rho.honest ∧
+    (D.Run.emits E rho v o send ∨
+      ∃ i, D.Run.acceptsAt E rho i v o send) ∧
+    D.LinkReadyOn E rho v w a d
+
+def HistorySafeAt (E : Generic.Env V) (rho : D.Run V P)
+    (w : V) (o : P.Object) (a : Time) : Prop :=
+  D.ProcessedByActionCut E rho w o a →
+    P.processed (D.Run.stateAfterRestartsAt E rho a w) o = true
+
+set_option linter.unusedVariables false in
+def ProcessedByDeadlineOfServiceStatement : Prop :=
+  ∀ {V In : Type} [DecidableEq V] {P : ProtocolSpecD In}
+    (E : Generic.Env V) (rho : D.Run V P)
+    (Timely : P.State → P.Object → Prop) (Inv : P.State → Prop)
+    (w : V) (o : P.Object) (a d : Time),
+  ∀
+    (hS : D.ScheduleWellFormed E rho) (had : a < d)
+    (hService : D.DeliveryService E rho w o a d)
+    (hHistory : HistorySafeAt E rho w o a)
+    (hRF : D.restartFree rho w (D.Run.actionCut rho a) (D.Run.idxBefore rho d))
+    (hHooks : D.HooksSound P)
+    (hAccept : AcceptanceLaw P Timely Inv)
+    (hReady : ∀ j t', a ≤ t' → t' < d → D.Run.handlesAt E rho j w o t' →
+      Inv (D.Run.stateBefore E rho j w) ∧
+      P.wellFormed o = true ∧
+      P.depsPresent (D.Run.stateBefore E rho j w) o = true ∧
+      Timely (D.Run.stateBefore E rho j w) o)
+    (hNX : P.excludes (D.Run.stateBeforeTime E rho d w) o = false),
+    P.processed (D.Run.stateBeforeTime E rho d w) o = true
 
 set_option linter.unusedVariables false in
 -- DC: additive (no DC counterpart); reason: Duty execution contract.
@@ -138,7 +171,8 @@ def TimelyOfRelayStatement : Prop :=
   ∀ (C : TimelyClock P Timely),
   ∀ (hAS : AdmitSound P C),
   ∀ (hS : D.ScheduleWellFormed E rho),
-  ∀ (hrestore : ∀ d, C.clock.now (P.restore d) = 0),
+  ∀ (hrestore : ∀ d t, C.clock.now (P.restore d t) = t),
+  ∀ (hwake : ∀ u t, .restart u t ∈ rho.events → V2.PublicTime E t),
   ∀ (v : V),
   ∀ (i : Nat),
   ∀ (o : P.Object),
@@ -156,7 +190,8 @@ theorem TimelyOfRelayStatement_def :
       ∀ (C : TimelyClock P Timely),
       ∀ (hAS : AdmitSound P C),
       ∀ (hS : D.ScheduleWellFormed E rho),
-      ∀ (hrestore : ∀ d, C.clock.now (P.restore d) = 0),
+      ∀ (hrestore : ∀ d t, C.clock.now (P.restore d t) = t),
+      ∀ (hwake : ∀ u t, .restart u t ∈ rho.events → V2.PublicTime E t),
       ∀ (v : V),
       ∀ (i : Nat),
       ∀ (o : P.Object),
@@ -169,74 +204,49 @@ set_option linter.unusedVariables false in
 -- Source: AvailableChainGeneric/Statements/V2/Receipt.lean:180.
 def AcceptedByDeadlineStatement : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpecD In}
-    (E : Generic.Env V) (rho : D.Run V P),
-  ∀ {Timely : P.State → P.Object → Prop},
-  ∀ {Inv : P.State → Prop},
-  ∀ (dl : Time → Time),
-  ∀ (cut : Time),
-  ∀ (o : P.Object),
-  ∀ (t : Time),
-  ∀ (w : V),
-  ∀ (hD : DeliveryWithin E rho dl cut),
-  ∀ (hT : Trigger E rho o t),
-  ∀ (hw : w ∈ rho.honest),
-  ∀ (hcut : dl t ≤ cut),
-  ∀ (hlt : t < dl t),
-  ∀ (hS : D.ScheduleWellFormed E rho),
-  ∀ (hES : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-      P.excludes (D.Run.stateBefore E rho i v) o = true →
-      P.excludes (D.Run.stateBefore E rho j v) o = true),
-  ∀ (hPS : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-      P.processed (D.Run.stateBefore E rho i v) o = true →
-      P.processed (D.Run.stateBefore E rho j v) o = true),
-  ∀ (hReady : ∀ i t', i < D.Run.idxBefore rho (dl t) → D.Run.handlesAt E rho i w o t' →
-      P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho i w) o = true),
-  ∀ (hA : AcceptanceLaw P Timely Inv),
-  ∀ (C : TimelyClock P Timely),
-  ∀ (hInv : ∀ i, Inv (D.Run.stateBefore E rho i w)),
-  ∀ (hAdm : C.actTime o ≤ pubFloor E t),
-  ∀ (j : Nat),
-  ∀ (hj : rho.events[j]? = some (.tick w (pubFloor E t))),
-  ∀ (hrf : D.restartFree rho w j (D.Run.idxBefore rho (dl t))),
-  ∀ (hNX : P.excludes (D.Run.stateBeforeTime E rho (dl t) w) o = false),
-    P.processed (D.Run.stateBeforeTime E rho (dl t) w) o = true
+    (E : Generic.Env V) (rho : D.Run V P)
+    (Timely : P.State → P.Object → Prop) (Inv : P.State → Prop)
+    (dl : Time → Time) (cut : Time)
+    (o : P.Object) (send a : Time) (w : V),
+    DeliveryWithin E rho dl cut →
+    ReadyTrigger E rho o send w a (dl a) →
+    w ∈ rho.honest → send ≤ a → 0 ≤ a → a < dl a →
+    dl a ≤ cut → dl a ≤ rho.horizon →
+    HistorySafeAt E rho w o a →
+    D.ScheduleWellFormed E rho →
+    D.restartFree rho w (D.Run.actionCut rho a) (D.Run.idxBefore rho (dl a)) →
+    D.HooksSound P → AcceptanceLaw P Timely Inv →
+    (∀ j t', a ≤ t' → t' < dl a → D.Run.handlesAt E rho j w o t' →
+      Inv (D.Run.stateBefore E rho j w) ∧
+      P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho j w) o = true ∧
+      Timely (D.Run.stateBefore E rho j w) o) →
+    P.excludes (D.Run.stateBeforeTime E rho (dl a) w) o = false →
+    P.processed (D.Run.stateBeforeTime E rho (dl a) w) o = true
 
 set_option linter.unusedVariables false in
 -- Source: AvailableChainGeneric/Statements/V2/Receipt.lean:215.
 theorem AcceptedByDeadlineStatement_def :
     AcceptedByDeadlineStatement =
-      (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpecD In}
-        (E : Generic.Env V) (rho : D.Run V P),
-      ∀ {Timely : P.State → P.Object → Prop},
-      ∀ {Inv : P.State → Prop},
-      ∀ (dl : Time → Time),
-      ∀ (cut : Time),
-      ∀ (o : P.Object),
-      ∀ (t : Time),
-      ∀ (w : V),
-      ∀ (hD : DeliveryWithin E rho dl cut),
-      ∀ (hT : Trigger E rho o t),
-      ∀ (hw : w ∈ rho.honest),
-      ∀ (hcut : dl t ≤ cut),
-      ∀ (hlt : t < dl t),
-      ∀ (hS : D.ScheduleWellFormed E rho),
-      ∀ (hES : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-          P.excludes (D.Run.stateBefore E rho i v) o = true →
-          P.excludes (D.Run.stateBefore E rho j v) o = true),
-      ∀ (hPS : ∀ v o i j, i ≤ j → D.restartFree rho v i j →
-          P.processed (D.Run.stateBefore E rho i v) o = true →
-          P.processed (D.Run.stateBefore E rho j v) o = true),
-      ∀ (hReady : ∀ i t', i < D.Run.idxBefore rho (dl t) → D.Run.handlesAt E rho i w o t' →
-          P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho i w) o = true),
-      ∀ (hA : AcceptanceLaw P Timely Inv),
-      ∀ (C : TimelyClock P Timely),
-      ∀ (hInv : ∀ i, Inv (D.Run.stateBefore E rho i w)),
-      ∀ (hAdm : C.actTime o ≤ pubFloor E t),
-      ∀ (j : Nat),
-      ∀ (hj : rho.events[j]? = some (.tick w (pubFloor E t))),
-      ∀ (hrf : D.restartFree rho w j (D.Run.idxBefore rho (dl t))),
-      ∀ (hNX : P.excludes (D.Run.stateBeforeTime E rho (dl t) w) o = false),
-        P.processed (D.Run.stateBeforeTime E rho (dl t) w) o = true) := rfl
+  (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpecD In}
+    (E : Generic.Env V) (rho : D.Run V P)
+    (Timely : P.State → P.Object → Prop) (Inv : P.State → Prop)
+    (dl : Time → Time) (cut : Time)
+    (o : P.Object) (send a : Time) (w : V),
+    DeliveryWithin E rho dl cut →
+    ReadyTrigger E rho o send w a (dl a) →
+    w ∈ rho.honest → send ≤ a → 0 ≤ a → a < dl a →
+    dl a ≤ cut → dl a ≤ rho.horizon →
+    HistorySafeAt E rho w o a →
+    D.ScheduleWellFormed E rho →
+    D.restartFree rho w (D.Run.actionCut rho a) (D.Run.idxBefore rho (dl a)) →
+    D.HooksSound P → AcceptanceLaw P Timely Inv →
+    (∀ j t', a ≤ t' → t' < dl a → D.Run.handlesAt E rho j w o t' →
+      Inv (D.Run.stateBefore E rho j w) ∧
+      P.wellFormed o = true ∧ P.depsPresent (D.Run.stateBefore E rho j w) o = true ∧
+      Timely (D.Run.stateBefore E rho j w) o) →
+    P.excludes (D.Run.stateBeforeTime E rho (dl a) w) o = false →
+    P.processed (D.Run.stateBeforeTime E rho (dl a) w) o = true) := by
+  rfl
 
 set_option linter.unusedVariables false in
 -- DC: additive (no DC counterpart); reason: Duty execution contract.

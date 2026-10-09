@@ -18,7 +18,7 @@ theorem invariant_triple (Q : P.State → Prop)
     (hclock : ∀ st t, Q st → Q (P.clock st t))
     (hprocess : ∀ st o, Q st → Q (P.process st o))
     (hrecord : ∀ st o, Q st → Q (P.recordOwn st o))
-    (hrestore : ∀ st, Q st → Q (P.restore (P.durable st)))
+    (hrestore : ∀ st t, Q st → Q (P.restore (P.durable st) t))
     (E : Generic.Env V) (rho : Run V P) (j : Nat) (v : V) :
     Q (Run.stateBefore E rho j v) := by
   refine stateBefore_step_induction E rho Q (Nat.zero_le j) v ?_ ?_
@@ -29,7 +29,7 @@ theorem invariant_triple (Q : P.State → Prop)
         subst u
         change Q (Function.update (Run.stateBefore E rho k) v _ v)
         rw [Function.update_self]
-        exact hrestore _ hk
+        exact hrestore _ t hk
     | tick u t =>
         change u = v at hv
         subst u
@@ -54,7 +54,7 @@ theorem invariant_clock_free {β : Type} (proj : P.State → β) (Q : β → Pro
     (hclock : ∀ st t, proj (P.clock st t) = proj st)
     (hprocess : ∀ st o, Q (proj st) → Q (proj (P.process st o)))
     (hrecord : ∀ st o, Q (proj st) → Q (proj (P.recordOwn st o)))
-    (hrestore : ∀ st, Q (proj st) → Q (proj (P.restore (P.durable st))))
+    (hrestore : ∀ st t, Q (proj st) → Q (proj (P.restore (P.durable st) t)))
     (E : Generic.Env V) (rho : Run V P) (j : Nat) (v : V) :
     Q (proj (Run.stateBefore E rho j v)) := by
   refine stateBefore_step_induction E rho (fun st => Q (proj st))
@@ -66,7 +66,7 @@ theorem invariant_clock_free {β : Type} (proj : P.State → β) (Q : β → Pro
         subst u
         change Q (proj (Function.update (Run.stateBefore E rho k) v _ v))
         rw [Function.update_self]
-        exact hrestore _ hk
+        exact hrestore _ t hk
     | tick u t =>
         change u = v at hv
         subst u

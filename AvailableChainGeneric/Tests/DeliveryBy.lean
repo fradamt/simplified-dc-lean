@@ -76,7 +76,7 @@ abbrev toy : ProtocolSpecD Unit where
   selfVisible := fun _ => false
   recordOwn := fun st _ => st
   durable := id
-  restore := id
+  restore := fun d _ => d
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun st o => if o.payload then st else false
@@ -163,20 +163,52 @@ theorem relay_delivery (v : Fin 2) (i : Nat) (o : toy.Object) (t : Time)
       change (if o.payload then true else false) = false at hp <;>
       simp [ho] at hp
 
+private theorem relay_service {o : toy.Object} {a d : Time}
+    (ho : IsRow o) (w : Fin 2) (ha : 4 ≤ a) (hd : a + ΔF ≤ d) :
+    D.DeliveryService env run w o a d := by
+  have hw : w = 0 ∨ w = 1 := by
+    have hv : w.val = 0 ∨ w.val = 1 := by omega
+    exact hv.imp (fun h => Fin.ext h) (fun h => Fin.ext h)
+  rcases hw with rfl | rfl
+  · by_cases hlt : 4 < a
+    · refine Or.inl ⟨1, ?_, ?_⟩
+      · simp [D.Run.actionCut, Event.time, Event.phase, hlt]
+      · change (if o.payload then true else false) = true
+        simp [ho]
+    · refine Or.inr ⟨4, ?_, ?_, 0, block, rfl, Or.inr ⟨rfl, ho⟩⟩
+      · exact le_of_not_gt hlt
+      · dsimp [ΔF, Time] at *; omega
+  · by_cases hlt : 8 < a
+    · refine Or.inl ⟨2, ?_, ?_⟩
+      · have h4 : (4 : Time) < a := by dsimp [Time] at *; omega
+        simp [D.Run.actionCut, Event.time, Event.phase, hlt, h4]
+      · change (if o.payload then true else false) = true
+        simp [ho]
+    · refine Or.inr ⟨8, le_of_not_gt hlt, ?_, 1, row, rfl, Or.inl ho.symm⟩
+      dsimp [ΔF, Time] at *; omega
+
 theorem partial_by : PartialSynchronyBy env run delayOf := by
   constructor
   · intro v hv o t he
     exact (no_emission v o t he).elim
-  · intro v hv i o t ha w hw hp hc hx
-    obtain ⟨t', htt, htd, j, hj⟩ := relay_delivery v i o t ha w hp
-    exact ⟨t', htt, htd.trans_le (add_le_add (le_max_left t env.t_GST) le_rfl), j, hj⟩
+  · intro v hv i o t ha w hw a hta _ _ _ _ _ _
+    obtain ⟨ho, ht⟩ := acceptance_cases ha
+    have h4 : 4 ≤ a := by rcases ht with ⟨_, _, rfl⟩ | ⟨_, _, rfl⟩ <;>
+      dsimp [Time] at * <;> omega
+    apply relay_service ho w h4
+    rw [row_exact o ho]
+    exact add_le_add (le_max_left a env.t_GST) le_rfl
 
 theorem prefix_by : HealthyPrefixDeliveryBy env run delayOf 12 := by
   constructor
   · intro v hv o t he
     exact (no_emission v o t he).elim
-  · intro v hv i o t ha w hw hp hc hx
-    exact relay_delivery v i o t ha w hp
+  · intro v hv i o t ha w hw a hta _ _ _ _ _ _
+    obtain ⟨ho, ht⟩ := acceptance_cases ha
+    have h4 : 4 ≤ a := by rcases ht with ⟨_, _, rfl⟩ | ⟨_, _, rfl⟩ <;>
+      dsimp [Time] at * <;> omega
+    apply relay_service ho w h4
+    rw [row_exact o ho]
 
 theorem row_partial : DeliveryWithinOn env run IsRow
     (fun t => max t env.t_GST + ΔF) run.horizon :=
@@ -212,12 +244,20 @@ theorem block_facts_recovery : LabelFactsOn env run IsBlock 0 2 1 0 :=
 theorem row_accepted_through_block : D.Run.acceptsAt env run 0 0 row 4 := by
   exact ⟨⟨block, rfl, Or.inr ⟨rfl, rfl⟩⟩, rfl, rfl⟩
 
+private theorem row_fresh_at_four : ¬ D.ProcessedByActionCut env run 1 row 4 := by
+  rintro ⟨k, hk, hp⟩
+  have hk0 : k = 0 := by simpa [D.Run.actionCut, Event.time, Event.phase] using hk
+  subst k
+  contradiction
+
 /-- Relay is due at 4 + 5 = 9, from row acceptance, and arrives at 8. -/
 theorem row_relay_from_acceptance :
     ∃ t', 4 ≤ t' ∧ t' < 4 + ΔF ∧ ∃ j, D.Run.handlesAt env run j 1 row t' := by
-  simpa only [max_eq_left (by decide : env.t_GST ≤ 4), delayOf, row, ↓reduceIte] using
-    partial_by.relay_accepted 0 (by simp) 0 row 4 row_accepted_through_block
-      1 (by simp) rfl (by decide) rfl
+  have h := partial_by.relay_accepted 0 (by simp) 0 row 4 row_accepted_through_block
+    1 (by simp) 4 le_rfl (by decide) (by decide) (by decide) (by decide)
+    (fun _ _ _ => rfl) rfl
+  exact h.resolve_left row_fresh_at_four
+
 
 theorem row_relay_after_block_deadline :
     D.Run.handlesAt env run 1 1 row 8 ∧ 4 + env.Δ ≤ 8 ∧ 8 < 4 + ΔF := by
@@ -226,8 +266,10 @@ theorem row_relay_after_block_deadline :
 /-- The old all-object delay would require the row before time 6. -/
 theorem old_partial_rejected : ¬ D.PartialSynchrony env run := by
   intro h
-  obtain ⟨t', _, hlt, j, o', hj, _⟩ := h.relay_accepted 0 (by simp) 0 row 4
-    row_accepted_through_block 1 (by simp) rfl (by decide) rfl
+  have hs := h.relay_accepted 0 (by simp) 0 row 4 row_accepted_through_block
+    1 (by simp) 4 le_rfl (by decide) (by decide) (by decide) (by decide)
+    (fun _ _ _ => rfl) rfl
+  obtain ⟨t', _, hlt, j, o', hj, _⟩ := hs.resolve_left row_fresh_at_four
   have hm := List.mem_of_getElem? hj
   change Event.deliver (1 : Fin 2) o' t' ∈
     [Event.deliver 0 block 4, Event.deliver 1 row 8] at hm
@@ -236,6 +278,45 @@ theorem old_partial_rejected : ¬ D.PartialSynchrony env run := by
   · exact (by decide : (1 : Fin 2) ≠ 0) he
   · subst t'
     exact (by decide : ¬ (8 : Time) < max 4 env.t_GST + env.Δ) hlt
+
+-- The anchor deadline may equal the read cutoff. The handler is still strict.
+example : ∃ t', 4 ≤ t' ∧ t' < (9 : Time) ∧
+    ∃ j, D.Run.handlesAt env run j 1 row t' := by
+  exact ready_relay (dl := fun a => a + ΔF) (cut := 9)
+    ⟨fun v hv o ho t he w hw a hta ha had hc hh hr hx =>
+        row_prefix.broadcast v hv o ho t he w hw a hta ha had
+          (hc.trans (by decide)) hh hr hx,
+      fun v hv i o ho t he w hw a hta ha had hc hh hr hx =>
+        row_prefix.relay v hv i o ho t he w hw a hta ha had
+          (hc.trans (by decide)) hh hr hx⟩ (v := 0) (i := 0)
+    (by simp) rfl row_accepted_through_block (by simp) (by decide) (by decide)
+    (by decide) (by decide) (fun _ _ _ => rfl) row_fresh_at_four rfl
+
+-- Receipt history survives as a service witness even when restore erases the flag.
+abbrev erasing : ProtocolSpecD Unit := { toy with restore := fun _ _ => false }
+abbrev erased : D.Run (Fin 2) erasing :=
+  { run with events := [.deliver 0 block 4, .restart 0 5] }
+
+example : D.DeliveryService env erased 0 row 5 9 := by
+  left
+  exact ⟨1, by decide, rfl⟩
+
+example : erasing.processed (D.Run.stateAfterRestartsAt env erased 5 0) row = false := rfl
+
+-- A separate protocol refuses the post-wake handler. Past processing does not
+-- make the restored state safe, and a handler witness does not change that.
+abbrev refusing : ProtocolSpecD Unit :=
+  { toy with process := fun st _ => st, restore := fun _ _ => false, init := true }
+abbrev refused : D.Run (Fin 2) refusing :=
+  { run with events := [.restart 0 5, .deliver 0 row 5] }
+
+example : D.Run.handlesAt env refused 1 0 row 5 := ⟨row, rfl, Or.inl rfl⟩
+
+example : ¬ HistorySafeAt env refused 0 row 5 := by
+  intro h
+  have hh : D.ProcessedByActionCut env refused 0 row 5 := ⟨0, by decide, rfl⟩
+  have := h hh
+  contradiction
 
 end AvailableChain.Gen.V2.Duty.DeliveryByTests
 

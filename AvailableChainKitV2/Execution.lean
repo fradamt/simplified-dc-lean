@@ -208,6 +208,62 @@ theorem stateBefore_tick_eq_stateBeforeTime (hs : ScheduleWellFormed E rho)
   have : j = i := (List.Nodup.getElem_inj_iff hs.nodup).mp (by rw [hje, hie, he])
   omega
 
+omit [DecidableEq V] in
+/-- The action cut includes exactly earlier events and restarts at the anchor. -/
+theorem index_lt_actionCut_iff (hs : ScheduleWellFormed E rho)
+    {i : Nat} {e : Event V P.Object} (hi : rho.events[i]? = some e) (a : Time) :
+    i < Run.actionCut rho a ↔ e.time < a ∨ (e.time = a ∧ e.phase = 0) := by
+  let q := fun e : Event V P.Object =>
+    decide (e.time < a ∨ (e.time = a ∧ e.phase = 0))
+  have hd : ∀ e f, e.key ≤ f.key → q f = true → q e = true := by
+    intro e f hk hf
+    apply decide_eq_true
+    have hf' : f.time < a ∨ (f.time = a ∧ f.phase = 0) := of_decide_eq_true hf
+    have hk' := Prod.Lex.toLex_le_toLex.mp hk
+    dsimp only [Event.key] at hk'
+    dsimp [Time] at *
+    rcases hk' with h | ⟨h, hp⟩ <;> rcases hf' with ht | ⟨ht, hf⟩ <;> omega
+  change i < (rho.events.filter q).length ↔ _
+  constructor
+  · intro hl
+    have hm : e ∈ rho.events.filter q := by
+      rw [filter_eq_take hs q hd]
+      exact List.mem_of_getElem? (by rw [List.getElem?_take_of_lt hl]; exact hi)
+    exact of_decide_eq_true (List.mem_filter.mp hm).2
+  · intro ht
+    by_contra hn
+    have hf := filter_false_of_index_ge hs q hd (Nat.le_of_not_gt hn) hi
+    have htq : q e = true := decide_eq_true ht
+    rw [htq] at hf
+    cases hf
+
+/-- A tick reads the state after all restarts at its time. -/
+theorem stateBefore_tick_eq_stateAfterRestartsAt (hs : ScheduleWellFormed E rho)
+    {i : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t)) :
+    Run.stateBefore E rho i v = Run.stateAfterRestartsAt E rho t v := by
+  have hc : Run.actionCut rho t ≤ i := by
+    by_contra hn
+    have h := (index_lt_actionCut_iff hs hi t).mp (Nat.lt_of_not_ge hn)
+    simp [Event.time, Event.phase] at h
+  exact Run.stateBefore_eq_of_node_ne E rho hc (by
+    intro j e hj hji he hv
+    have hn := (index_lt_actionCut_iff hs he t).not.mp (Nat.not_lt.mpr hj)
+    obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
+    obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp he
+    have hk := (List.pairwise_iff_getElem.mp hs.sorted) j i hjl hil hji
+    rw [hje, hie] at hk
+    have ht := time_le_of_key_le _ _ hk
+    have het : e.time = t := by dsimp [Event.time, Time] at *; omega
+    have heq : e = .tick v t := by
+      cases e with
+      | restart u t' => exact False.elim (hn (Or.inr ⟨het, rfl⟩))
+      | tick u t' => change u = v at hv; change t' = t at het; rw [hv, het]
+      | deliver u o t' =>
+          change t' = t at het; subst t'
+          simp [Event.key, Event.time, Event.phase, Prod.Lex.toLex_le_toLex] at hk
+    have : j = i := (List.Nodup.getElem_inj_iff hs.nodup).mp (by rw [hje, hie, heq])
+    omega)
+
 end Schedule
 end AvailableChain.V2.Engine
 end

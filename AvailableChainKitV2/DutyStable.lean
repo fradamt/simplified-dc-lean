@@ -87,6 +87,31 @@ theorem stateBefore_stable (Q : P.State → Prop)
       subst u
       simpa only [World.step, Function.update_self] using hprocess _ o hk
 
+/-- A property kept by restore holds across the interval. -/
+theorem stateBefore_stable_restore (Q : P.State → Prop)
+    (hclock : ∀ st t, Q st → Q (P.clock st t))
+    (hprocess : ∀ st o, Q st → Q (P.process st o))
+    (hrecord : ∀ st o, Q st → Q (P.recordOwn st o))
+    (E : Generic.Env V) (rho : Run V P) {i j : Nat} (hij : i ≤ j) (v : V)
+    (hrestore : ∀ st t, Q st → Q (P.restore (P.durable st) t))
+    (hi : Q (Run.stateBefore E rho i v)) : Q (Run.stateBefore E rho j v) := by
+  refine stateBefore_step_induction E rho Q hij v ?_ hi
+  intro k e _ _ _ hv hk
+  cases e with
+  | restart u t =>
+      dsimp only [Event.node] at hv
+      subst u
+      simpa only [World.step, Function.update_self] using hrestore _ t hk
+  | tick u t =>
+      dsimp only [Event.node] at hv
+      subst u
+      simpa only [World.step, Function.update_self] using
+        tick_preserve E rho Q hrecord (hclock _ t hk)
+  | deliver u o t =>
+      dsimp only [Event.node] at hv
+      subst u
+      simpa only [World.step, Function.update_self] using hprocess _ o hk
+
 end AvailableChain.V2.D.Engine
 
 end

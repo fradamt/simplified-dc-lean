@@ -26,11 +26,11 @@ example {β : Type} (proj : P.State → β) (g : β → P.Object → β)
     (hclock : ∀ st t, proj (P.clock st t) = proj st)
     (hprocess : ∀ st o, proj (P.process st o) = proj st)
     (hrecord : ∀ st o, proj (P.recordOwn st o) = g (proj st) o)
-    (hrestore : ∀ st, proj (P.restore (P.durable st)) = proj st)
+    (hrestore : ∀ st t, proj (P.restore (P.durable st) t) = proj st)
     (E : Generic.Env V) (rho : Run V P) {i j : Nat} (hij : i ≤ j) (v : V) :
     proj (Run.stateBefore E rho j v) =
       (ownReleased E rho v i j).foldl g (proj (Run.stateBefore E rho i v)) :=
   ownRecord_fold_restart proj g hclock hprocess hrecord E rho hij v
-    fun _ _ _ _ _ => hrestore _
+    fun _ t _ _ _ => hrestore _ t
 
 end AvailableChain.Gen.V2

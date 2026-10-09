@@ -59,7 +59,7 @@ abbrev toy : ProtocolSpecD Unit where
   selfVisible := fun _ => true
   recordOwn := fun st o => o.payload :: st
   durable := id
-  restore := id
+  restore := fun d _ => d
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -204,12 +204,10 @@ theorem trigger_agrees (o : P.Object) (t : Time) :
 theorem deliveryWithin_agrees (dl : Time → Time) (cut : Time) :
     Duty.DeliveryWithin E rho.toD dl cut ↔ Gen.V2.DeliveryWithin E rho dl cut := by
   constructor <;> intro h
-  · exact ⟨by simpa only [D.emits_toD, D.stateBeforeTime_toD, D.handlesAt_toD] using h.broadcast,
-      by simpa only [D.acceptsAt_toD, D.stateBefore_toD, D.stateBeforeTime_toD,
-        D.handlesAt_toD] using h.relay⟩
-  · exact ⟨by simpa only [D.emits_toD, D.stateBeforeTime_toD, D.handlesAt_toD] using h.broadcast,
-      by simpa only [D.acceptsAt_toD, D.stateBefore_toD, D.stateBeforeTime_toD,
-        D.handlesAt_toD] using h.relay⟩
+  · exact ⟨by simpa only [D.emits_toD, D.deliveryDemand_toD_iff] using h.broadcast,
+      by simpa only [D.acceptsAt_toD, D.deliveryDemand_toD_iff] using h.relay⟩
+  · exact ⟨by simpa only [D.emits_toD, D.deliveryDemand_toD_iff] using h.broadcast,
+      by simpa only [D.acceptsAt_toD, D.deliveryDemand_toD_iff] using h.relay⟩
 
 omit [DecidableEq V] in
 theorem acceptanceLaw_agrees (T : P.State → P.Object → Prop) (Inv : P.State → Prop) :
@@ -453,18 +451,21 @@ theorem accepted_by_deadline_agrees {T : P.State → P.Object → Prop}
     {Inv : P.State → Prop} :
     statementOf (Duty.accepted_by_deadline E rho.toD (Timely := T) (Inv := Inv)) ↔
       statementOf (Gen.V2.accepted_by_deadline E rho (Timely := T) (Inv := Inv)) := by
-  simp only [statementOf, deliveryWithin_agrees, trigger_agrees,
+  have hready : ∀ o send w a d, Duty.ReadyTrigger E rho.toD o send w a d ↔
+      Gen.V2.ReadyTrigger E rho o send w a d := by
+    intros
+    simp only [Duty.ReadyTrigger, Gen.V2.ReadyTrigger, D.emits_toD,
+      D.acceptsAt_toD, D.linkReadyOn_toD_iff]
+  have hcut : ∀ a, D.Run.actionCut rho.toD a = V2.Run.actionCut rho a := fun _ => rfl
+  have hhist : ∀ w o a, Duty.HistorySafeAt E rho.toD w o a ↔
+      Gen.V2.HistorySafeAt E rho w o a := by
+    intros
+    simp only [Duty.HistorySafeAt, Gen.V2.HistorySafeAt, D.processedByActionCut_toD_iff,
+      D.Run.stateAfterRestartsAt, V2.Run.stateAfterRestartsAt, D.stateBefore_toD, hcut]
+  simp only [statementOf, deliveryWithin_agrees, hready, hhist, hcut,
     D.scheduleWellFormed_toD_iff, D.restartFree_toD_iff, D.stateBefore_toD,
     D.stateBeforeTime_toD, D.handlesAt_toD, idxBefore_agrees, acceptanceLaw_agrees,
-    pubFloor_agrees]
-  constructor
-  · intro h dl cut o t w hD hT hw hc ht hs he hp hr ha C
-    exact h dl cut o t w hD hT hw hc ht hs he hp hr ha (timelyLift C)
-  · intro h dl cut o t w hD hT hw hc ht hs he hp hr ha C
-    exact h dl cut o t w hD hT hw hc ht hs he hp hr ha
-      ⟨C.actTime, C.clockOf, C.timely_iff,
-        ⟨C.clock.now, C.clock.init, C.clock.clock, C.clock.process, C.clock.recordOwn_now⟩,
-        C.clockOf_eq⟩
+    D.hooksSound_toD_iff]
 
 end AvailableChain.Gen.V2.Duty.Tests.Lift
 
@@ -484,7 +485,7 @@ theorem twoDuty_schedule : D.ScheduleWellFormed env run where
     · exact ⟨0, rfl⟩
     · exact ⟨1, rfl⟩
   tick_total := by
-    intro v _ t _ h0 h1
+    intro v _ t _ h0 h1 _
     have hv : v = 0 := Subsingleton.elim _ _
     subst v
     have ht : t = 0 ∨ t = 1 := by
@@ -495,6 +496,10 @@ theorem twoDuty_schedule : D.ScheduleWellFormed env run where
 
 theorem twoDuty_executionValid : D.ExecutionValid env run where
   toScheduleWellFormed := twoDuty_schedule
+  tick_awake := fun _ _ _ => rfl
+  deliver_awake := fun _ _ _ _ => rfl
+  restart_awake := fun _ _ _ => rfl
+  wake_restart := fun _ _ _ _ _ hw => by cases hw.2
   wire := by intros; rfl
   deps := by intros; rfl
   fresh := by intros; rfl

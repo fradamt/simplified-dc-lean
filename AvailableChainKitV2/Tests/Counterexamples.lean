@@ -17,7 +17,7 @@ them.
 `restartFree` on the interval does not help.
 (c) `stateBefore_stable_clock` needs `restartFree` (or the restore form):
 `hrestore_now` holds, but a restart clears `Q` (DC N1 check).
-(d) With `restore := fun _ => init` (for example `Durable := Unit`),
+(d) With `restore := fun _ _ => init` (for example `Durable := Unit`),
 `hrestore`, `hrestore_now` and `hrestore_field` hold (FG-SA T7). -/
 
 namespace AvailableChain.V2.Engine.Tests
@@ -54,7 +54,7 @@ abbrev specFlag : ProtocolSpec Unit where
   selfVisible := fun _ => true
   recordOwn := fun _ _ => false
   durable := fun _ => ()
-  restore := fun _ => true
+  restore := fun _ _ => true
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -108,7 +108,7 @@ abbrev specClock100 : ProtocolSpec Unit where
   selfVisible := fun _ => false
   recordOwn := fun s _ => s
   durable := fun _ => ()
-  restore := fun _ => 100
+  restore := fun _ _ => 100
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -156,7 +156,7 @@ theorem rhoClock100_wf : ScheduleWellFormed (env2 _) rhoClock100 where
     · exact ⟨0, by simp⟩
     · exact ⟨1, by simp [env2]⟩
   tick_total := by
-    intro v _ t ht h0 h2
+    intro v _ t ht h0 h2 _
     rcases publicTime_env2 ht h0 h2 with rfl | rfl <;> simp [rhoClock100]
 
 /-- `hrestore_now` fails for this `restore`, and the conclusion of
@@ -166,14 +166,14 @@ index 2 (time 2), the clock is 100. The conclusion of
 clock goes from 100 to 2. So `restartFree` does not replace
 `hrestore_now`. -/
 theorem check_b_restore_now_needed :
-    ¬ (∀ d, clock100.now (specClock100.restore d) ≤ 0) ∧
+    ¬ (∀ d t, clock100.now (specClock100.restore d t) ≤ 0) ∧
       ScheduleWellFormed (env2 _) rhoClock100 ∧
       rhoClock100.events[2]? = some (.tick () 2) ∧
       ¬ clock100.now (Run.stateBefore (env2 _) rhoClock100 2 ()) ≤ 2 ∧
       restartFree rhoClock100 () 2 3 ∧
       clock100.now (Run.stateBefore (env2 _) rhoClock100 3 ()) <
         clock100.now (Run.stateBefore (env2 _) rhoClock100 2 ()) := by
-  refine ⟨fun h => absurd (h ()) (by decide), rhoClock100_wf, rfl, by decide, ?_, by decide⟩
+  refine ⟨fun h => absurd (h () 1) (by decide), rhoClock100_wf, rfl, by decide, ?_, by decide⟩
   intro k t hk hk'
   rw [show k = 2 by omega]
   simp [rhoClock100]
@@ -200,7 +200,7 @@ abbrev specReset : ProtocolSpec Unit where
   selfVisible := fun _ => false
   recordOwn := fun s _ => s
   durable := fun _ => ()
-  restore := fun _ => (0, false)
+  restore := fun _ _ => (0, false)
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -238,7 +238,7 @@ theorem rhoReset_wf : ScheduleWellFormed (env2 _) rhoReset where
     · exact ⟨0, by simp⟩
     · exact ⟨1, by simp [env2]⟩
   tick_total := by
-    intro v _ t ht h0 h2
+    intro v _ t ht h0 h2 _
     rcases publicTime_env2 ht h0 h2 with rfl | rfl <;> simp [rhoReset]
 
 /-- With `Q st := st.2 = true`: `hrestore_now`, `hclock`, `hprocess` and
@@ -247,43 +247,43 @@ fails before index 3, after the restart in `[2, 3)`. So
 `stateBefore_stable_clock` needs `restartFree`; its restore form needs
 `hrestore`, which fails here. -/
 theorem check_c_restartFree_needed :
-    (∀ d, clockReset.now (specReset.restore d) ≤ 0) ∧
+    (∀ d t, clockReset.now (specReset.restore d t) ≤ 0) ∧
       (∀ st t, clockReset.now st ≤ t → st.2 = true → (specReset.clock st t).2 = true) ∧
       (∀ st o, st.2 = true → (specReset.process st o).2 = true) ∧
       (∀ st o, st.2 = true → (specReset.recordOwn st o).2 = true) ∧
-      ¬ (∀ st, st.2 = true → (specReset.restore (specReset.durable st)).2 = true) ∧
+      ¬ (∀ st t, st.2 = true → (specReset.restore (specReset.durable st) t).2 = true) ∧
       ScheduleWellFormed (env2 _) rhoReset ∧
       (Run.stateBefore (env2 _) rhoReset 2 ()).2 = true ∧
       (Run.stateBefore (env2 _) rhoReset 3 ()).2 = false ∧
       ¬ restartFree rhoReset () 2 3 :=
-  ⟨fun _ => le_rfl, fun _ _ _ h => h, fun _ _ _ => rfl, fun _ _ h => h,
-    fun h => absurd (h (0, true) rfl) (by decide), rhoReset_wf, rfl, rfl,
+  ⟨fun _ _ => le_rfl, fun _ _ _ h => h, fun _ _ _ => rfl, fun _ _ h => h,
+    fun h => absurd (h (0, true) 1 rfl) (by decide), rhoReset_wf, rfl, rfl,
     (not_restartFree_succ_iff rhoReset () 2).mpr ⟨1, rfl⟩⟩
 
-/-! ### (d) `restore := fun _ => init` discharges the restore premises -/
+/-! ### (d) `restore := fun _ _ => init` discharges the restore premises -/
 
-/-- For FG-SA T7 (`Durable := Unit`, `restore := fun _ => init`): `hrestore`
+/-- For FG-SA T7 (`Durable := Unit`, `restore := fun _ _ => init`): `hrestore`
 holds for every `Q` with `Q init`, `hrestore_now` holds by
 `ClockLaws.init`, and `hrestore_field` holds when `field init = []`. -/
 theorem check_d_unit_restore {In : Type} (P : ProtocolSpec In) (C : ClockLaws P)
-    (hR : ∀ d, P.restore d = P.init) (Q : P.State → Prop) (hQ : Q P.init)
+    (hR : ∀ d t, P.restore d t = P.init) (Q : P.State → Prop) (hQ : Q P.init)
     {α : Type} (field : P.State → List α) (hfield : field P.init = []) :
-    (∀ st, Q st → Q (P.restore (P.durable st))) ∧
-      (∀ d, C.now (P.restore d) ≤ 0) ∧
-      (∀ st x, x ∈ field (P.restore (P.durable st)) → x ∈ field st) :=
-  ⟨fun _ _ => by rw [hR]; exact hQ, fun d => by rw [hR, C.init],
-    fun _ _ h => by rw [hR, hfield] at h; exact absurd h List.not_mem_nil⟩
+    (∀ st t, Q st → Q (P.restore (P.durable st) t)) ∧
+      (∀ d t, C.now (P.restore d t) ≤ 0) ∧
+      (∀ st t x, x ∈ field (P.restore (P.durable st) t) → x ∈ field st) :=
+  ⟨fun _ _ _ => by rw [hR]; exact hQ, fun d t => by rw [hR, C.init],
+    fun _ _ _ h => by rw [hR, hfield] at h; exact absurd h List.not_mem_nil⟩
 
 /-- The same with the concrete spec `specReset` (`Durable := Unit`,
-`restore := fun _ => init`): `stateBefore_invariant` applies to
+`restore := fun _ _ => init`): `stateBefore_invariant` applies to
 `Q st := 0 ≤ st.1` on every run with a well-formed schedule, restarts
 included. -/
 theorem check_d_unit_invariant (rho : Run Unit specReset)
     (hs : ScheduleWellFormed (env2 _) rho) (i : Nat) :
     0 ≤ (Run.stateBefore (env2 _) rho i ()).1 :=
-  stateBefore_invariant clockReset (fun _ => le_rfl) (env2 _) rho hs (fun st => 0 ≤ st.1)
+  stateBefore_invariant clockReset (fun _ _ => le_rfl) (env2 _) rho hs (fun st => 0 ≤ st.1)
     le_rfl (fun _ _ h hst => le_trans hst h) (fun _ _ h => h) (fun _ _ h => h)
-    (fun _ _ => le_rfl) i ()
+    (fun _ _ _ => le_rfl) i ()
 
 end AvailableChain.V2.Engine.Tests
 

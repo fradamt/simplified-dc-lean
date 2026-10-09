@@ -5571,6 +5571,7 @@
         ),
         'AvailableChainGeneric.Proofs.V2.Duty.Reads': (
             'AvailableChain.Gen.V2.Duty.holdsBefore_iff_exists_idx',
+            'AvailableChain.Gen.V2.Duty.holdsBefore_iff_exists_idx_restore',
             'AvailableChain.Gen.V2.Duty.holdsBefore_iff_exists_idx_statement',
             'AvailableChain.Gen.V2.Duty.index_lt_idxBefore_iff',
             'AvailableChain.Gen.V2.Duty.pubFloor_le',
@@ -5585,6 +5586,12 @@
             'AvailableChain.Gen.V2.Duty.deliveryWithin_of_partialSynchrony',
             'AvailableChain.Gen.V2.Duty.firstAccept_of_processed',
             'AvailableChain.Gen.V2.Duty.firstAccept_of_processed_statement',
+            'AvailableChain.Gen.V2.Duty.historySafeAt_of_fresh',
+            'AvailableChain.Gen.V2.Duty.historySafeAt_of_processed_mono',
+            'AvailableChain.Gen.V2.Duty.processed_by_deadline_of_service',
+            'AvailableChain.Gen.V2.Duty.ready_broadcast',
+            'AvailableChain.Gen.V2.Duty.ready_relay',
+            'AvailableChain.Gen.V2.Duty.service_of_readyTrigger',
             'AvailableChain.Gen.V2.Duty.timely_of_clock',
             'AvailableChain.Gen.V2.Duty.timely_of_clock_statement',
             'AvailableChain.Gen.V2.Duty.timely_of_emit',
@@ -5609,6 +5616,10 @@
             'AvailableChain.Gen.V2.Duty.mem_tick_singleDuty_iff',
             'AvailableChain.Gen.V2.Duty.singleDuty_toD',
         ),
+        'AvailableChainGeneric.Proofs.V2.Duty.Sleep': (
+            'AvailableChain.Gen.V2.Duty.actionCut_le_idxBefore',
+            'AvailableChain.Gen.V2.Duty.restartFree_actionCut_idxBefore',
+        ),
         'AvailableChainGeneric.Proofs.V2.Fields': (
             'AvailableChain.Gen.V2.ownRecord_fold_restart',
         ),
@@ -5627,6 +5638,7 @@
         ),
         'AvailableChainGeneric.Proofs.V2.Reads': (
             'AvailableChain.Gen.V2.holdsBefore_iff_exists_idx',
+            'AvailableChain.Gen.V2.holdsBefore_iff_exists_idx_restore',
             'AvailableChain.Gen.V2.holdsBefore_iff_exists_idx_statement',
             'AvailableChain.Gen.V2.index_lt_idxBefore_iff',
             'AvailableChain.Gen.V2.pubFloor_le',
@@ -5641,6 +5653,12 @@
             'AvailableChain.Gen.V2.deliveryWithin_of_partialSynchrony',
             'AvailableChain.Gen.V2.firstAccept_of_processed',
             'AvailableChain.Gen.V2.firstAccept_of_processed_statement',
+            'AvailableChain.Gen.V2.historySafeAt_of_fresh',
+            'AvailableChain.Gen.V2.historySafeAt_of_processed_mono',
+            'AvailableChain.Gen.V2.processed_by_deadline_of_service',
+            'AvailableChain.Gen.V2.ready_broadcast',
+            'AvailableChain.Gen.V2.ready_relay',
+            'AvailableChain.Gen.V2.service_of_readyTrigger',
             'AvailableChain.Gen.V2.timely_of_clock',
             'AvailableChain.Gen.V2.timely_of_clock_statement',
             'AvailableChain.Gen.V2.timely_of_emit',
@@ -5661,6 +5679,10 @@
             'AvailableChain.Gen.V2.emitted_unique_per_label_statement',
             'AvailableChain.Gen.V2.honest_unique_per_label',
             'AvailableChain.Gen.V2.honest_unique_per_label_statement',
+        ),
+        'AvailableChainGeneric.Proofs.V2.Sleep': (
+            'AvailableChain.Gen.V2.actionCut_le_idxBefore',
+            'AvailableChain.Gen.V2.restartFree_actionCut_idxBefore',
         ),
         'AvailableChainGeneric.Statements.AC.History': (
             'AvailableChain.Gen.AC.GenuineContinues_def',
@@ -6118,6 +6140,8 @@
             'AvailableChain.V2.Run.nthIdx?_def',
         ),
         'AvailableChainGeneric.Statements.V2.Receipt': (
+            'AvailableChain.Gen.V2.AcceptedByDeadlineStatement_def',
+            'AvailableChain.Gen.V2.TimelyOfRelayStatement_def',
             'AvailableChain.Gen.V2.Trigger_def',
         ),
         'AvailableChainGeneric.Statements.V2.Regimes': (
@@ -6130,6 +6154,18 @@
         ),
         'AvailableChainGeneric.Statements.V2.Slashing': (
             'AvailableChain.Gen.V2.HonestNeverSlashed_def',
+        ),
+        'AvailableChainGeneric.Tests.DeliveryBy': (
+            'AvailableChain.Gen.V2.Duty.DeliveryByTests.old_partial_rejected',
+            'AvailableChain.Gen.V2.Duty.DeliveryByTests.partial_by',
+            'AvailableChain.Gen.V2.Duty.DeliveryByTests.prefix_by',
+            'AvailableChain.Gen.V2.Duty.DeliveryByTests.row_relay_from_acceptance',
+        ),
+        'AvailableChainGeneric.Tests.Duties': (
+            'AvailableChain.Gen.V2.Duty.Tests.Lift.accepted_by_deadline_agrees',
+            'AvailableChain.Gen.V2.Duty.Tests.Lift.deliveryWithin_agrees',
+            'AvailableChain.Gen.V2.Duty.Tests.twoDuty_executionValid',
+            'AvailableChain.Gen.V2.Duty.Tests.twoDuty_schedule',
         ),
         'AvailableChainModel.Objects.CommonAncestor': (
             'AvailableChain.Block.meet',

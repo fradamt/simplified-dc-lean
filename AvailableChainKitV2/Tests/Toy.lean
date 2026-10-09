@@ -1,4 +1,5 @@
 module
+public import AvailableChainKitV2.Execution
 public import AvailableChainEngineV2.Conditions.Delivery
 public import AvailableChainEngineV2.Laws.Outputs
 public import AvailableChainEngineV2.Laws.SelfDelivery
@@ -133,7 +134,7 @@ abbrev toyP : ProtocolSpec Nat where
   selfVisible := ToyLabel.isRow
   recordOwn := fun st o => { st with own := o :: st.own }
   durable := id
-  restore := id
+  restore := fun d _ => d
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun st o => decide (o ∈ st.rcpt)
@@ -343,7 +344,10 @@ theorem toyRun_signed :
 /-- The whole run is valid. -/
 theorem toyRun_valid : ExecutionValid toyEnv toyRun := by
   refine { toScheduleWellFormed := ?_, toDeliveryWellFormed := ?_,
-           toUnforgeableSignatures := ?_ }
+           toUnforgeableSignatures := ?_,
+           tick_awake := fun _ _ _ => rfl, deliver_awake := fun _ _ _ _ => rfl,
+           restart_awake := fun _ _ _ => rfl,
+           wake_restart := fun _ _ _ _ _ hw => by cases hw.2 }
   · refine ⟨by decide, by decide +kernel, by decide +kernel, by decide +kernel,
       fun _ _ => Finset.mem_univ _, ?_, ?_⟩
     · intro v t h
@@ -351,7 +355,7 @@ theorem toyRun_valid : ExecutionValid toyEnv toyRun := by
       exact ⟨t.toNat, by
         change t = (t.toNat : Time) * 1
         rw [mul_one]; exact (Int.toNat_of_nonneg h0).symm⟩
-    · intro v _ t _ h0 h1
+    · intro v _ t _ h0 h1 _
       change t ≤ 1 at h1
       have hv : ∀ u : Fin 2, Event.tick u 0 ∈ toyRun.events ∧ Event.tick u 1 ∈ toyRun.events := by
         decide +kernel
@@ -422,13 +426,16 @@ theorem pre_signed :
 /-- The prefix is valid. -/
 theorem pre_valid : ExecutionValid toyEnv pre := by
   refine { toScheduleWellFormed := ?_, toDeliveryWellFormed := ?_,
-           toUnforgeableSignatures := ?_ }
+           toUnforgeableSignatures := ?_,
+           tick_awake := fun _ _ _ => rfl, deliver_awake := fun _ _ _ _ => rfl,
+           restart_awake := fun _ _ _ => rfl,
+           wake_restart := fun _ _ _ _ _ hw => by cases hw.2 }
   · refine ⟨by decide, by decide +kernel, by decide +kernel, by decide +kernel,
       fun _ _ => Finset.mem_univ _, ?_, ?_⟩
     · intro v t h
       have h0 := ((by decide +kernel : ∀ e ∈ pre.events, e.time = 0) _ h)
       exact ⟨0, by change t = ((0 : Nat) : Time) * 1; simpa using! h0⟩
-    · intro v _ t _ h0 h1
+    · intro v _ t _ h0 h1 _
       change t ≤ 0 at h1
       have ht : t = 0 := le_antisymm h1 h0
       subst ht
@@ -512,31 +519,43 @@ theorem handles_accepted {i : Nat} {v : Fin 2} {o : toyP.Object} {t : Time}
   have h := allDeliveries_spec toyRun_relay_check hi
   exact handlesAt_of_mem (by simpa using List.all_eq_true.mp h w (List.mem_finRange w))
 
-/-- `HealthyPrefixDelivery` holds at every cut. -/
-theorem toyRun_healthy (cut : Time) : HealthyPrefixDelivery toyEnv toyRun cut where
-  broadcast := fun _ _ _ t he w _ _ _ =>
-    ⟨t, le_rfl, lt_add_of_pos_right t toyEnv.Δ_pos, handles_emitted he w⟩
-  relay := fun _ _ _ _ t ha w _ _ _ _ =>
-    ⟨t, le_rfl, lt_add_of_pos_right t toyEnv.Δ_pos, handles_accepted ha w⟩
+private theorem service_of_handled {w : Fin 2} {o : toyP.Object} {t a d : Time}
+    (h : ∃ j, Run.handlesAt toyEnv toyRun j w o t) (hta : t ≤ a) (had : a < d) :
+    DeliveryService toyEnv toyRun w o a d := by
+  by_cases heq : a = t
+  · subst a
+    exact Or.inr ⟨t, le_rfl, had, h⟩
+  · obtain ⟨j, o', hj, hh⟩ := h
+    have ho : o' = o := hh
+    subst o'
+    have hjc := (index_lt_actionCut_iff toyRun_valid.toScheduleWellFormed hj a).mpr
+      (Or.inl (lt_of_le_of_ne hta (Ne.symm heq)))
+    refine Or.inl ⟨j + 1, Nat.succ_le_of_lt hjc, ?_⟩
+    rw [Run.stateBefore_succ toyEnv toyRun hj]
+    simp [World.step]
 
-/-- `PartialSynchrony` holds too; its obligations at time 0 are not vacuous
-(`max 0 0 + 1 ≤ 1`, the horizon). -/
+/-- The prefix demand keeps all anchor and horizon guards. -/
+theorem toyRun_healthy (cut : Time) : HealthyPrefixDelivery toyEnv toyRun cut where
+  broadcast := fun _ _ _ _ he w _ _ hta _ had _ _ _ _ =>
+    service_of_handled (handles_emitted he w) hta had
+  relay := fun _ _ _ _ _ ha w _ _ hta _ had _ _ _ _ =>
+    service_of_handled (handles_accepted ha w) hta had
+
+/-- The full-run demand also permits the historical processing branch. -/
 theorem toyRun_partialSynchrony : PartialSynchrony toyEnv toyRun where
-  broadcast := fun _ _ _ t he w _ _ _ =>
-    ⟨t, le_rfl, lt_of_le_of_lt (le_max_left _ _) (lt_add_of_pos_right _ toyEnv.Δ_pos),
-      handles_emitted he w⟩
-  relay := fun _ _ _ _ t ha w _ _ _ _ =>
-    ⟨t, le_rfl, lt_of_le_of_lt (le_max_left _ _) (lt_add_of_pos_right _ toyEnv.Δ_pos),
-      handles_accepted ha w⟩
+  broadcast := fun _ _ _ _ he w _ _ hta _ had _ _ _ _ =>
+    service_of_handled (handles_emitted he w) hta had
+  relay := fun _ _ _ _ _ ha w _ _ hta _ had _ _ _ _ =>
+    service_of_handled (handles_accepted ha w) hta had
 
 -- An honest emitter: validator 0 emits its row at time 0, and at the cut 2,
 -- past `0 + Δ`, validator 1 handles it before the deadline 1.
 example : (0 : Fin 2) ∈ toyRun.honest ∧ Run.emits toyEnv toyRun 0 (rowObj 0) 0 :=
   ⟨Finset.mem_univ _, 0, rfl, by decide +kernel⟩
-example : ∃ t', 0 ≤ t' ∧ t' < 0 + 1 ∧ ∃ j, Run.handlesAt toyEnv toyRun j 1 (rowObj 0) t' :=
+example : DeliveryService toyEnv toyRun 1 (rowObj 0) 0 1 :=
   (toyRun_healthy 2).broadcast 0 (Finset.mem_univ _) (rowObj 0) 0
-    ⟨0, rfl, by decide +kernel⟩ 1 (Finset.mem_univ _) (by decide)
-    (by decide +kernel)
+    ⟨0, rfl, by decide +kernel⟩ 1 (Finset.mem_univ _) 0 le_rfl le_rfl
+    (by decide) (by decide) (by decide) (fun _ _ _ => rfl) rfl
 
 -- The relay case: validator 1 accepts the row of validator 0 at index 2.
 -- Validator 0 has not processed it after index 2, and it handles it at index
@@ -546,9 +565,10 @@ theorem accepts_row0 : Run.acceptsAt toyEnv toyRun 2 1 (rowObj 0) 0 :=
 example : toyP.processed (Run.stateBefore toyEnv toyRun (2 + 1) 0) (rowObj 0) = false := by
   decide +kernel
 example : Run.handlesAt toyEnv toyRun 3 0 (rowObj 0) 0 := ⟨rowObj 0, rfl, rfl⟩
-example : ∃ t', 0 ≤ t' ∧ t' < 0 + 1 ∧ ∃ j, Run.handlesAt toyEnv toyRun j 0 (rowObj 0) t' :=
+example : DeliveryService toyEnv toyRun 0 (rowObj 0) 0 1 :=
   (toyRun_healthy 1).relay 1 (Finset.mem_univ _) 2 (rowObj 0) 0 accepts_row0 0
-    (Finset.mem_univ _) (by decide +kernel) (by decide) (by decide +kernel)
+    (Finset.mem_univ _) 0 le_rfl le_rfl (by decide) (by decide) (by decide)
+    (fun _ _ _ => rfl) rfl
 
 end AvailableChain.V2.Tests.Toy
 
