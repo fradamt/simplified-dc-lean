@@ -31,6 +31,14 @@ run() {  # run <id> <name> <command...>
 }
 skip() { echo "=== ($1) $2"; echo "SKIPPED: $3"; RESULTS+=("($1) $2: SKIPPED: $3"); }
 
+checks_only=0; selftests_only=0
+case "${1:-}" in
+  --selftests-only) selftests_only=1 ;;
+  --checks-only) checks_only=1 ;;
+  '') ;;
+  *) echo "unknown option: $1" >&2; exit 2 ;;
+esac
+if [ "$selftests_only" = 0 ]; then
 run a check-module-headers python3 scripts/check-module-headers.py
 run b check-expose python3 scripts/check-expose.py
 if [ "${SKIP_CONE:-0}" = 1 ]; then skip c rebuild-cone-test "SKIP_CONE=1"
@@ -46,6 +54,7 @@ echo "=== (g) chain-depth"
 if python3 scripts/chain-depth.py; then RESULTS+=("(g) chain-depth: REPORT"); else RESULTS+=("(g) chain-depth: FAIL (could not run)"); FAILED=1; fi
 run h check-transparency python3 scripts/check-transparency.py
 run i check-gly-rules gate_with_slot bash -c 'source scripts/gate-common.sh; targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries) && gate_build $targets && bash scripts/check-gly-rules.sh'
+fi
 timed_selftest() {
   local start=$SECONDS rc
   "$@"; rc=$?
@@ -53,6 +62,7 @@ timed_selftest() {
   return "$rc"
 }
 checker_selftests() {
+  python3 -B scripts/gate-neg-selftest.py &&
   bash scripts/check-layers-selftest.sh &&
   bash scripts/shake-report-selftest.sh &&
   bash scripts/precheck-selftest.sh &&
@@ -62,7 +72,7 @@ checker_selftests() {
   timed_selftest gate_with_slot python3 scripts/check-proof-eqns-controls.py &&
   p13_selftests
 }
-# P13 isolated selftests: FULL tier only (NEG=1). The package history check
+# P13 isolated selftests: checker changes or override (NEG=1). The package history check
 # (--packages) reads old revisions; it is not a gate check.
 p13_selftests() {
   [ "${NEG:-1}" = 0 ] && { echo "P13 selftests: SKIPPED (NEG=0)"; return 0; }
@@ -70,7 +80,9 @@ p13_selftests() {
   timed_selftest python3 -B scripts/check-fg-finality-coverage.py --selftest &&
   timed_selftest gate_with_slot python3 -B scripts/check-fgsa-blueprint.py --selftest
 }
-run j checker-self-tests checker_selftests
+if [ "$checks_only" = 0 ] && [ "${NEG:-1}" = 1 ]; then
+  run j checker-self-tests checker_selftests
+else skip j checker-self-tests "controls not selected"; fi
 echo "=== summary"
 printf '%s\n' "${RESULTS[@]}"
 [ $FAILED -eq 0 ] && echo "check-build: PASS" || echo "check-build: FAIL"

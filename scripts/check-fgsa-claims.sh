@@ -570,7 +570,7 @@ if w1_bad:
     raise SystemExit(f'BAD W1 AXIOMS: {sorted(w1_bad)}')
 print('weak-continuation-w1 axioms: rc 0 (standard axioms only)', flush=True)
 
-# The gate's merge tier sets NEG=0: it skips the compiled negative controls
+# The gate sets NEG=0 when no checker path changed: skip compiled negative controls
 # below (about 135 s on the NUC), as the other check scripts do.
 if os.environ.get('NEG', '1') == '0':
     print('compiled negative controls: SKIPPED (NEG=0)', flush=True)

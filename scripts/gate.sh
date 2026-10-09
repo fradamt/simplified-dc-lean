@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run from the repository root. Freeze gates must use --tier full.
 # Order: source precheck -> build -> cheap checks/audits -> one fail-fast heavy group.
-# Both tiers share GATE_SLOTS; FULL keeps every control, MERGE keeps NEG=0.
+# Both tiers share GATE_SLOTS; checker changes or --neg select controls.
 # C23 uses private source/build/config/packages copies (CoW when supported, else copy).
 # Proof-equation controls use private source copies; other controls use private fixtures.
 # Claims/manifest children take separate slots.
@@ -17,8 +17,11 @@ export PYTHONDONTWRITEBYTECODE=1
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
 gate_args=("$@")
-tier=auto; base=; critical_path=0; attest_key=; attest_head=
-usage() { echo "usage: bash scripts/gate.sh [--tier merge|full|auto] [--base <ref>] [--jobs N] | --critical-path"; }
+tier=auto; base=; critical_path=0; attest_key=; attest_head=; force_neg=${NEG:-0}
+usage() {
+  echo 'usage: bash scripts/gate.sh [--tier merge|full|auto] [--base REF] [--jobs N] [--neg]'
+  echo '       bash scripts/gate.sh --critical-path'
+}
 while [ $# -gt 0 ]; do
   case "$1" in
     --attest-key)
@@ -28,6 +31,7 @@ while [ $# -gt 0 ]; do
       [ $# -ge 2 ] || { usage >&2; exit 2; }
       case "$1" in --tier) tier=$2 ;; --base) base=$2 ;; --jobs) JOBS=$2 ;; esac
       shift 2 ;;
+    --neg) force_neg=1; shift ;;
     --critical-path) critical_path=1; shift ;;
     --help|-h) usage; exit 0 ;;
     *) usage >&2; exit 2 ;;
@@ -49,9 +53,8 @@ if [ -n "$attest_key" ]; then
   }
   attest_head=$(git rev-parse HEAD)
 fi
-# Auto tier selection needs a base. Explicit tiers and critical-path mode
-# use a base when the caller supplies one.
-if [ -z "$base" ] && [ "$tier" = auto ] && [ "$critical_path" = 0 ]; then
+# Both tiers need BASE..HEAD for control selection.
+if [ -z "$base" ] && [ "$critical_path" = 0 ]; then
   base=$(git merge-base main HEAD) || {
     echo "PRECHECK FAIL base; build not started" >&2
     exit 2
@@ -61,6 +64,7 @@ fi
 if [ -n "$base" ]; then
   gate_precheck_step base gate_check_base "$base" || exit $?
 fi
+case "$force_neg" in 0|1) ;; *) echo 'NEG must be 0 or 1' >&2; exit 2 ;; esac
 gate_jobs
 export JOBS
 
@@ -83,6 +87,9 @@ if [ "$(uname -s)" = Linux ]; then
     memory_limit="$memory_limit, swap=0"
   fi
 fi
+if [ "$critical_path" = 0 ]; then
+  gate_select_neg "$base" "$force_neg"
+fi
 # FIRST gate step: no build, slot directory, logs or full-pass stamp yet.
 gate_precheck "$base" || exit $?
 # BUILD §7.7: the critical-path measurement is separate from the tiers (freeze gates and
@@ -97,6 +104,7 @@ GATE_SLOT_DIR=$(mktemp -d "$PWD/.lake/gate-slots.XXXXXX")
 gate_slots_init
 export AUDIT_WORKERS=${AUDIT_WORKERS:-$((GATE_SLOTS < 2 ? GATE_SLOTS : 2))}
 logs=$(mktemp -d "$PWD/.lake/gate-logs.XXXXXX")
+printf '%s\n' "$GATE_NEG_SCOPE" > "$logs/negative-controls.json"
 started=$(date +%s)
 failed=0
 
@@ -145,6 +153,7 @@ choose_tier() {
 choose_tier
 echo "tier: $(printf '%s' "$tier" | tr '[:lower:]' '[:upper:]') ($reason); slots=$GATE_SLOTS memory=$memory_limit"
 echo "logs: $logs"
+gate_neg_summary
 echo "reminder: run bash scripts/check-fg.sh on the Mac (research files required)"
 
 # Do not put the step in an if/|| test: preserve errexit inside its functions.
@@ -172,6 +181,7 @@ summary() {
 }
 finish() {
   local cg peak
+  gate_neg_summary
   # Peak memory of this gate's own cgroup (the MemoryMax scope on Linux).
   if [ -r /proc/self/cgroup ]; then
     cg=$(sed -n 's/^0:://p' /proc/self/cgroup)
@@ -206,13 +216,13 @@ step build build_all
 summary build
 if [ "$failed" -ne 0 ]; then finish; exit 1; fi
 export GATE_NO_BUILD=1
-# A caller's NEG/SKIP_CONE must not weaken the chosen tier or build checks.
-export NEG=1 SKIP_CONE=0
-if [ "$tier" = merge ]; then NEG=0; fi
+# Control selection applies to both tiers; build checks remain mandatory.
+export SKIP_CONE=0
 # Every check step by name. Heavy steps share the gate slots (GATE_SLOTS cap).
 run_check() {
   case "$1" in
-    check-build|check-fgsa|check-fgsa-run) step "$1" bash "scripts/$1.sh" ;;
+    check-build) step "$1" bash scripts/check-build.sh --checks-only ;;
+    check-fgsa|check-fgsa-run) step "$1" bash "scripts/$1.sh" ;;
     check-fg-compose) step "$1" gate_with_slot bash scripts/check-fg-compose.sh ;;
     catalog-lock) step "$1" gate_with_slot lake env lean --run scripts/CatalogLock.lean --check ;;
     v2-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --check ;;
@@ -313,6 +323,11 @@ stop_if_failed
 if [ "$tier" = full ]; then
   step fgsa-blueprint gate_with_slot python3 -B scripts/check-fgsa-blueprint.py --check
   summary fgsa-blueprint
+  stop_if_failed
+fi
+if [ "$NEG" = 1 ]; then
+  step checker-self-tests bash scripts/check-build.sh --selftests-only
+  summary checker-self-tests
   stop_if_failed
 fi
 # Longest measured FULL steps first; PC-SA has no separate wall measurement.

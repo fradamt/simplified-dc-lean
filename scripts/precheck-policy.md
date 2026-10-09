@@ -49,6 +49,11 @@ FULL step returns zero, including proof audit coverage. The JSON receipt and its
 a new target commit or a new main policy commit requires a new FULL run.
 The gate refuses an inherited nonzero `SOURCE_ONLY`. The signer requires exactly
 the FULL step set: empty, partial, extra, malformed, and failed results are refused.
+Both tiers select `NEG=1` only if `BASE..HEAD` matches `scripts/checker-paths.txt`.
+`--neg` or `NEG=1` forces controls. An absent base defaults to the merge base with main.
+The receipt records the decision and matched paths. Its `checker-self-tests` step is
+required with controls and absent without them. Signing and verification recompute
+the diff; a FULL receipt without controls is valid only if no checker path changed.
 
 The private key is the trust boundary. Keep it under the trusted gate operator's
 control and supply it only to reviewed gate code in a trusted execution environment.

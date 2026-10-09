@@ -576,7 +576,8 @@ def f23_controls():
 
 
 def rule_f23(x):
-    f23_controls()
+    if os.environ.get('NEG', '1') == '1':
+        f23_controls()
     out = []
     for lf in x.files:
         out += f23_findings(lf, x.decls[lf.path], new=x.new(lf))
@@ -709,7 +710,8 @@ def rule_f31(x):
     for line in output.splitlines():
         if line.startswith('CheckGenFirst: '):
             print(line)
-    genfirst_controls(output)
+    if os.environ.get('NEG', '1') == '1':
+        genfirst_controls(output)
     # new=True prevents any baseline from accepting a GEN-FIRST finding.
     return apply_exact_allow([C.Finding(key, key, new=True) for key in sorted(keys)], allow)
 

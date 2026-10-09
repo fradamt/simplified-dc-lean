@@ -12,7 +12,7 @@
 # JOBS bounds this script's pool (default Mac 3, Linux 6; env wins).
 # GATE_SLOTS caps shared controls and heavy steps (Mac 3, Linux 4; env wins).
 # JOBS alone does not set machine concurrency.
-# --no-negative or NEG=0 keeps all positive checks for the merge tier.
+# --no-negative or NEG=0 keeps all positive checks without negative controls.
 # SOURCE_ONLY=1 runs the static checks and exits before compiled checks or controls.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -587,7 +587,7 @@ gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # row validity or finality read of the old derive in the active FG-SA path except
 # the `allow` lines, and no height-only read of the old derive except the `height`
 # lines (ruling 7 named exceptions) of scripts/baselines/fgsa-old-reads.txt (DATA).
-# The full tier also runs the in-process negative controls (planted direct, KitFG-
+# NEG=1 also runs the in-process negative controls (planted direct, KitFG-
 # lemma, `(derive …).F` and height-only reads; dropped and extra data lines).
 echo "== old-read audit"
 gate_build --wfail AvailableChainFGSAClaims AvailableChainFGSAProofs AvailableChainFGSARun
@@ -627,7 +627,7 @@ gate_with_slot check_ext scripts/FGPinIds.lean
 # Keep each fixture private; only completed logs go to stdout.
 gate_pool_init "$neg/controls"
 if [ "$NEG" = 1 ]; then echo "== negative controls"
-else echo "negative controls: SKIPPED (merge tier)"; fi
+else echo "negative controls: SKIPPED (NEG=0)"; fi
 # expect_fail NAME CODE OUT PATTERN...: the check failed with CODE and printed
 # every PATTERN (fixed strings).
 expect_fail() {

@@ -36,8 +36,8 @@ gate_with_slot manifest_run main lake env lean --run scripts/V2Manifest.lean --s
 gate_with_slot manifest_run frame python3 scripts/fgsa-deep.py --frame-check
 gate_with_slot manifest_run deep lake env lean --run scripts/V2Manifest.lean \
   --scope fgsa --deep --check
-# The controls are negative controls: the merge tier (NEG=0) skips them (BUILD §7.7).
-if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0, merge tier)"; exit 0; fi
+# NEG=0 skips controls when no checker path changed.
+if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0)"; exit 0; fi
 mkdir -p .lake
 tmp=$(mktemp -d "$PWD/.lake/fgsa-manifest.XXXXXX")
 

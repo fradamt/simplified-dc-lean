@@ -54,6 +54,15 @@ sys.exit(9 if name == os.environ.get('STUB_FAIL') else 0)
 '''
 
 
+REAL_RUN = subprocess.run
+
+
+def signing_stub(args, **kwargs):
+    if args[0] == 'ssh-keygen':
+        return subprocess.CompletedProcess(args, 0)
+    return REAL_RUN(args, **kwargs)
+
+
 def write(path, text, executable=False):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text)
@@ -75,11 +84,11 @@ def peak(events, names):
     return maximum
 
 
-def graph(root, tier, slots, fail=''):
+def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
     scripts = root / 'scripts'
     scripts.mkdir(parents=True)
     (root / '.lake').mkdir()
-    for name in ('gate.sh', 'gate-common.sh'):
+    for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt'):
         shutil.copy2(REPO / 'scripts' / name, scripts / name)
     # Test the driver after precheck. Real source prechecks run separately.
     with (scripts / 'gate-common.sh').open('a') as out:
@@ -88,8 +97,11 @@ def graph(root, tier, slots, fail=''):
     for name in HEAVY:
         script = name if name.startswith('check-') else 'check-' + name
         write(scripts / (script + '.sh'),
-              '#!/usr/bin/env bash\nset -euo pipefail\nsource scripts/gate-common.sh\n'
-              f'gate_with_slot python3 scripts/stub.py {name}\n')
+              '#!/usr/bin/env bash\nset -euo pipefail\nsource scripts/gate-common.sh\n' +
+              ('if [ "${1:-}" = --selftests-only ]; then\n'
+               '  gate_with_slot python3 scripts/stub.py checker-self-tests\n'
+               'else\n'
+               f'  gate_with_slot python3 scripts/stub.py {name}\nfi\n'))
     for script, name in (('check-fg-finality-freeze.py', 'fg-finality-freeze'),
                          ('check-fg-finality-coverage.py', 'fg-finality-coverage'),
                          ('check-proof-coverage.py', 'proof-audit-coverage'),
@@ -113,18 +125,39 @@ def graph(root, tier, slots, fail=''):
           'sys.exit(subprocess.call([sys.executable,"scripts/stub.py",name]))\n', True)
     # Portable harness: no Linux scope is needed for these stub commands.
     write(root / 'bin/uname', '#!/usr/bin/env bash\necho Darwin\n', True)
+    subprocess.run(['git', 'init', '-q', str(root)], check=True)
+    subprocess.run(['git', 'add', '.'], cwd=root, check=True)
+    tree = subprocess.check_output(['git', 'write-tree'], cwd=root, text=True).strip()
+    base = subprocess.check_output(['git', '-c', 'user.name=Control', '-c',
+        'user.email=control@example.invalid', 'commit-tree', tree], cwd=root,
+        input='graph base\n', text=True).strip()
+    subprocess.run(['git', 'update-ref', 'HEAD', base], cwd=root, check=True)
+    if change:
+        write(root / change, 'changed\n')
+        subprocess.run(['git', 'add', '.'], cwd=root, check=True)
+        tree = subprocess.check_output(['git', 'write-tree'], cwd=root, text=True).strip()
+        head = subprocess.check_output(['git', '-c', 'user.name=Control', '-c',
+            'user.email=control@example.invalid', 'commit-tree', tree, '-p', base], cwd=root,
+            input='graph change\n', text=True).strip()
+        subprocess.run(['git', 'update-ref', 'HEAD', head], cwd=root, check=True)
+    else:
+        head = base
+    selected = force or env_neg == '1' or change.startswith(('scripts/', 'docs/'))
     events = root / 'events'
     env = dict(os.environ, PATH=str(root / 'bin') + os.pathsep + os.environ['PATH'],
                GATE_SLOTS=str(slots), LEAN_SLOTS=str(slots), GATE_FF_GRACE='2',
                STUB_EVENTS=str(events), STUB_HEAVY=json.dumps(HEAVY), STUB_FAIL=fail,
-               SOURCE_ONLY='0', NEG='0' if tier == 'full' else '1', SKIP_CONE='1')
+               SOURCE_ONLY='0', NEG=env_neg, SKIP_CONE='1')
     for key in ('GATE_SLOT_DIR', 'GATE_SLOT_HELD', 'GATE_NO_BUILD'):
         env.pop(key, None)
-    result = subprocess.run(['bash', 'scripts/gate.sh', '--tier', tier], cwd=root,
+    result = subprocess.run(['bash', 'scripts/gate.sh', '--tier', tier, '--base', base] +
+                            (['--neg'] if force else []), cwd=root,
                             env=env, capture_output=True, text=True)
     seen = records(events)
     starts = [e['name'] for e in seen if e['kind'] == 'start']
     expected = list(CHEAP if tier == 'full' else CHEAP[:-1])
+    if selected:
+        expected.append('checker-self-tests')
     early = fail in expected
     assert starts[:len(expected)] == (expected[:expected.index(fail) + 1]
                                     if early else expected), (starts, result)
@@ -153,16 +186,17 @@ def graph(root, tier, slots, fail=''):
         assert result.returncode == 0 and f'GATE PASS tier={tier}' in result.stdout, result
         assert set(starts[len(expected):]) == set(HEAVY), starts
         assert maximum == slots, (maximum, result)
-        assert all(e['neg'] == ('1' if tier == 'full' else '0')
+        assert all(e['neg'] == ('1' if selected else '0')
                    for e in seen if e['name'] in HEAVY)
         if tier == 'full':
             spec = importlib.util.spec_from_file_location('receipt', REPO / 'scripts/full-pass.py')
             receipt = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(receipt)
-            assert {p.stem for p in logs.glob('*.result')} == set(receipt.STEPS)
-            with patch.object(receipt, 'clean_head'), patch.object(receipt, 'git',
-                              return_value='policy'), patch.object(receipt.subprocess, 'run'):
-                receipt.sign(root, 'head', 'policy', logs, root / 'key', logs / 'receipt.json')
+            scope = json.loads((logs / 'negative-controls.json').read_text())
+            assert {p.stem for p in logs.glob('*.result')} == set(receipt.steps_for(scope))
+            with patch.object(receipt, 'clean_head'), \
+                    patch.object(receipt.subprocess, 'run', side_effect=signing_stub):
+                receipt.sign(root, head, base, logs, root / 'key', logs / 'receipt.json')
                 for bad in ('missing', 'extra'):
                     target = logs / ('build.result' if bad == 'missing' else 'extra.result')
                     if bad == 'missing':
@@ -171,7 +205,7 @@ def graph(root, tier, slots, fail=''):
                     else:
                         target.write_text('0 0\n')
                     try:
-                        receipt.sign(root, 'head', 'policy', logs, root / 'key', logs / 'bad.json')
+                        receipt.sign(root, head, base, logs, root / 'key', logs / 'bad.json')
                     except ValueError as exc:
                         assert 'STEP SET' in str(exc), exc
                     else:
@@ -262,7 +296,16 @@ with tempfile.TemporaryDirectory(prefix='gate-graph-') as temp:
     for tier, slots, fail in (('full', 1, ''), ('full', 2, ''), ('full', 2, 'build'),
                               ('full', 2, 'fg-finality-freeze'),
                               ('full', 2, 'fgsa-claims'), ('merge', 2, '')):
-        graph(root / f'{tier}-{slots}-{fail or "pass"}', tier, slots, fail)
+        graph(root / f'{tier}-{slots}-{fail or "pass"}', tier, slots, fail,
+              force=tier == 'full')
+    for tier in ('merge', 'full'):
+        for label, change, force, env_neg in (
+                ('proof', 'AvailableChainFGSAProofs/Proofs/Shared/Example.lean', False, '0'),
+                ('script', 'scripts/new-check-data.txt', False, '0'),
+                ('doc', 'docs/catalog.lock', False, '0'),
+                ('override', '', True, '0'), ('env-override', '', False, '1')):
+            graph(root / (tier + '-' + label), tier, 2, change=change, force=force,
+                  env_neg=env_neg)
     copy_control(root / 'copy')
     for slots in (1, 2):
         pool_slots(root / f'pool-{slots}', slots)

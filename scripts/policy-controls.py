@@ -79,7 +79,9 @@ for text in ('', 'ALLOWED_PATHS:\n```text\n\n```',
 
 
 def call(args, cwd=None):
-    return subprocess.check_output(args, cwd=cwd, stderr=subprocess.STDOUT)
+    result = subprocess.run(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    assert result.returncode == 0, result.stdout.decode()
+    return result.stdout
 
 
 with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
@@ -87,7 +89,7 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     # Exercise the gate entry point before any precheck, build or allocation.
     gate = root / 'gate/scripts'
     gate.mkdir(parents=True)
-    for name in ('gate.sh', 'gate-common.sh'):
+    for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt'):
         shutil.copy2(REPO / 'scripts' / name, gate / name)
     result = subprocess.run(['bash', str(gate / 'gate.sh'), '--tier', 'full'],
                             env=dict(os.environ, SOURCE_ONLY='1'), capture_output=True, text=True)
@@ -143,7 +145,7 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     repo.mkdir()
     call(['git', 'init', '-q', str(repo)])
     (repo / 'scripts').mkdir()
-    for name in ('precheck.sh', 'full-pass.py'):
+    for name in ('precheck.sh', 'full-pass.py', 'checker_scope.py', 'checker-paths.txt'):
         shutil.copy2(REPO / 'scripts' / name, repo / 'scripts' / name)
     (repo / 'allowed').mkdir()
     (repo / 'allowed/a').write_text('base\n')
@@ -182,13 +184,17 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     call(['git', 'checkout', '--', 'allowed/a'], repo)
     receipt = root / 'receipt'
     refused('missing receipt', 'MISSING', lambda: full.verify(repo, repo, receipt))
-    record = dict(version=1, head=head, policy=head, tier='full', result='PASS')
+    control_scope = full.validate(repo, head, head,
+        dict(neg=0, reason='no checker path changed', matched_paths=[]))
+    record = dict(version=2, head=head, policy=head, tier='full', result='PASS',
+                  controls=control_scope)
     receipt.write_text(json.dumps(record))
     refused('forged unsigned receipt', 'SIGNATURE REFUSED',
             lambda: full.verify(repo, repo, receipt))
     # Sign through the same producer as gate.sh. Missing/failed steps must refuse.
     logs = root / 'logs'
     logs.mkdir()
+    (logs / 'negative-controls.json').write_text(json.dumps(control_scope))
     refused('empty FULL step set', 'FAILED OR MISSING STEP SET',
             lambda: full.sign(repo, head, head, logs, key, receipt))
     (logs / 'build.result').write_text('0 1\n')
@@ -254,11 +260,16 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
     scripts = tree / 'scripts'
     scripts.mkdir()
     (tree / '.lake').mkdir()
-    for name in ('gate.sh', 'gate-common.sh'):
+    for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt'):
         shutil.copy2(REPO / 'scripts' / name, scripts / name)
     # Keep the real tier dispatch. The unrelated steps have local stub commands.
     with (scripts / 'gate-common.sh').open('a') as out:
-        out.write('\ngate_precheck() { return 0; }\n')
+        out.write('\ngate_precheck() { return 0; }\n'
+                  'gate_check_base() { return 0; }\n'
+                  f'gate_select_neg() {{ cd {str(REPO)!r}; '
+                  'local force=$2; GATE_NEG_SCOPE=$(python3 scripts/checker_scope.py '
+                  '"$PWD" HEAD HEAD $([ "$force" = 0 ] || echo --force)); '
+                  'NEG=$force; export NEG; cd - >/dev/null; }\n')
     for name in ('check-build.sh', 'check-fgsa.sh', 'check-fgsa-run.sh',
                  'check-fgsa-manifest.sh', 'check-pcsa-manifest.sh', 'check-fgsa-claims.sh'):
         (scripts / name).write_text('#!/bin/bash\nexit 0\n')
@@ -281,8 +292,9 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
     fake.chmod(0o755)
     env = dict(os.environ, PATH=str(bindir) + os.pathsep + os.environ['PATH'])
     for tier, neg in [('merge', '0'), ('full', '1')]:
-        result = subprocess.run(['bash', 'scripts/gate.sh', '--tier', tier], cwd=tree,
-                                env=env, text=True, capture_output=True)
+        result = subprocess.run(['bash', 'scripts/gate.sh', '--tier', tier,
+                                 '--base', 'HEAD'], cwd=tree,
+                                env=dict(env, NEG=neg), text=True, capture_output=True)
         assert result.returncode == 0, (tier, result.stdout, result.stderr)
         calls = (tree / 'calls').read_text()
         assert 'build --wfail @ AvailableChainCheckSupport AvailableChainFGCompose' in calls, calls
@@ -302,7 +314,8 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
             ('missing result', {}, '#print axioms x\n#print axioms y\n',
              'AXIOM RESULTS: 1 of 2 commands')]:
         growth.write_text(text)
-        result = subprocess.run(['bash', 'scripts/gate.sh', '--tier', 'merge'], cwd=tree,
+        result = subprocess.run(['bash', 'scripts/gate.sh', '--tier', 'merge',
+                                 '--base', 'HEAD'], cwd=tree,
                                 env=dict(env, **extra), text=True, capture_output=True)
         logs = sorted((tree / '.lake').glob('gate-logs.*/FGSAGrowth-axioms*'))
         output = result.stdout + ''.join(path.read_text() for path in logs)
