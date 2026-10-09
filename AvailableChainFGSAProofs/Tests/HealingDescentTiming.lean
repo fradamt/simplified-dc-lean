@@ -192,7 +192,7 @@ example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (held_chain_row_origin_before p c E rho hv.toUnforgeableSignatures hv.toScheduleWellFormed)
     (fgsa_finalityCap p c E rho hL hv hQ) (cap_finality_head p c E rho) xing w h0 i x hx hi
 
--- A restart can clear the clock after a receipt on a well-formed schedule.
+-- A restart retains the last tick clock after a receipt on a well-formed schedule.
 -- The reader sleeps throughout. Delivery and public ticks still occur.
 private def restartEnv : Generic.Env Unit :=
   ⟨1, by decide, 0, by decide, fun _ _ => false⟩
@@ -236,14 +236,17 @@ private theorem restartSchedule : V2.D.ScheduleWellFormed restartEnv restartRun 
     have hk7 : k ≤ 7 := by exact_mod_cast hh
     interval_cases k <;> decide
 
-example : V2.D.ScheduleWellFormed restartEnv restartRun ∧
+private theorem healing_restart_retained_clock_fixture :
+    V2.D.ScheduleWellFormed restartEnv restartRun ∧
     restartRun.events[7]? = some (.deliver () restartObj 6) ∧
     restartRun.events[6]? = some (.tick () (params.actionTime 0)) ∧
     ¬ V2.D.NoRestart restartRun ∧
-    ¬ params.actionTime 0 ≤ (storeAt params unitCodec restartEnv restartRun 9 ()).base.now := by
+    (storeAt params unitCodec restartEnv restartRun 9 ()).base.now = params.actionTime 0 := by
   refine ⟨restartSchedule, rfl, rfl, ?_, ?_⟩
   · intro hnr
     exact hnr 8 () 7 rfl
   · decide +kernel
+
+#print axioms healing_restart_retained_clock_fixture
 
 end AvailableChain.FGSA.Run.Tests.HealingDescentTiming
