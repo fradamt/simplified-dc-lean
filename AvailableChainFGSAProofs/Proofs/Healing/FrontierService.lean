@@ -146,7 +146,8 @@ theorem frontier_seed_qSucc_exactService [Fintype V] (E : Generic.Env V)
         change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ ≤
           4 * p.Δ * ((q + 1 : Nat) : Int) + 6 * p.Δ
         linarith [p.deltaPos]) (by
-        simpa only [Nat.cast_add, Nat.cast_one] using frontier_seed_prior_cut hgst hseed)
+        have he : ((q + 1 : Nat) : Int) - 2 = (q : Int) - 1 := by push_cast; omega
+        simpa only [he] using frontier_seed_prior_cut hgst hseed)
         hx hip hem) hp)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

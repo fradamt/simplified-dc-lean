@@ -113,7 +113,8 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
   have hhor : SA.voteTime p.toParams (r + 1) ≤ rho.horizon := hvq.trans hphase.2.1
   obtain ⟨ip, x, N, heN, hx, hip, hseat, hem⟩ := repair_proposal_emission E rho hp
   have hHeads := services.heads (r + 1) ip x N (by
-    simpa only [Nat.cast_add, Nat.cast_one] using hPriorCut) hx hip hem hhor
+    have he : ((r + 1 : Nat) : Int) - 2 = (r : Int) - 1 := by push_cast; omega
+    simpa only [he] using hPriorCut) hx hip hem hhor
   have hPrior : ProposalSupportScope E rho ip x r := by
     simpa only [Nat.add_sub_cancel] using hHeads.prior
   have hGST : E.t_GST ≤ SA.proposalTime p.toParams (r + 1) - p.Δ := by
