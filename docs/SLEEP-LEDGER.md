@@ -2650,3 +2650,13 @@ The neutral ServedFromGateAt and JointGrowthAt bodies are checked against
 InclusionAt and AvailableGrowthConcl by equality. The first growth check
 caught a local edit error (deadline reader at t); it was corrected to d
 before the claim commit. Kernel commit: f560b7e8.
+
+P-Ou final committed-source validation (kernel PREPARED, package OPEN):
+DCK PASS on 479 GREEN modules, 37 strict sources, 2,882 axiom commands,
+and 24 default negative controls. Complete GREEN exports/coverage PASS:
+271 proof modules, 253 accepted exports, 0 unaccepted, 0 Gen exports;
+44 local audit commands. Layers: 72 accepted, 0 new. Both neutral claim
+body equalities and all 10 changed definition audits PASS. The 22
+EXPECTED-FAIL entries remain explicit (18 P-Ou, 4 suppliers). No full
+S1/S2/S3 gate or CLOSED family claim is asserted. Proof commits are
+f560b7e8 and 57022bd2; exact reports/fragments are under claude-files/.
