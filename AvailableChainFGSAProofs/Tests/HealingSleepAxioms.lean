@@ -40,6 +40,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
 
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
 
 set_option linter.privateModule false
 
@@ -193,3 +194,11 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_support_release_compat
 #print axioms AvailableChain.FGSA.Run.healing_first_transfer_core
 #print axioms AvailableChain.FGSA.Run.healing_first_transfer_fast
+
+#print axioms AvailableChain.FGSA.Run.healing_support_read_window
+#print axioms AvailableChain.FGSA.Run.healing_support_vote_kept_on
+#print axioms AvailableChain.FGSA.Run.healing_support_honest_batch_seat
+#print axioms AvailableChain.FGSA.Run.healing_support_head_frame
+#print axioms AvailableChain.FGSA.Run.healing_next_transfer_core
+#print axioms AvailableChain.FGSA.Run.healing_heads_transfer
+#print axioms AvailableChain.FGSA.Run.healing_fast_heads_transfer

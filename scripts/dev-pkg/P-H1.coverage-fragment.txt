@@ -187,6 +187,15 @@
             'AvailableChain.FGSA.Run.healing_support_honest_emits',
             'AvailableChain.FGSA.Run.healing_support_vote_tick',
         ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportHeads': (
+            'AvailableChain.FGSA.Run.healing_support_read_window',
+            'AvailableChain.FGSA.Run.healing_support_vote_kept_on',
+            'AvailableChain.FGSA.Run.healing_support_honest_batch_seat',
+            'AvailableChain.FGSA.Run.healing_support_head_frame',
+            'AvailableChain.FGSA.Run.healing_next_transfer_core',
+            'AvailableChain.FGSA.Run.healing_heads_transfer',
+            'AvailableChain.FGSA.Run.healing_fast_heads_transfer',
+        ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer': (
             'AvailableChain.FGSA.Run.healing_support_honest_head',
             'AvailableChain.FGSA.Run.healing_support_release_compat',

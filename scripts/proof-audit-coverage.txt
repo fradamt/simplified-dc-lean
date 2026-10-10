@@ -6990,3 +6990,6 @@
 # P-H1 Round 3: eight additional local strict commands (140 total).
 # First transfer, raw reverse receipt, anchor service and frozen receiver epoch.
 # Merge scripts/dev-pkg/P-H1.coverage-fragment.txt under the existing full audit key.
+
+# P-H1 Round 3 HEAD consumers: seven further strict commands (147 total).
+# The same serial fragment has the exact service and later HEAD induction rows.

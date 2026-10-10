@@ -101,6 +101,8 @@ AvailableChainFGSAProofs.Tests.HealingSupport
 AvailableChainFGSAProofs.Tests.HealingTime
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
+AvailableChainFGSAProofs.Tests.HealingBase
 AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 AvailableChainFGSAProofs.Proofs.Shared.Regimes
@@ -650,13 +652,11 @@ AvailableChainFGSAProofs.Proofs.Healing.RepairH6S P-H1
 AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer P-H1
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SourceTiming P-H1
-AvailableChainFGSAProofs.Proofs.Healing.SupportHeads P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SupportLease P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SupportOutput P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SupportPerm P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SupportProposal P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SupportSlow P-H1
-AvailableChainFGSAProofs.Tests.HealingBase P-H1
 AvailableChainFGSAProofs.Tests.HealingDelivery P-H1
 AvailableChainFGSAProofs.Tests.HealingDescent P-H1
 AvailableChainFGSAProofs.Tests.HealingDescentLoss P-H1

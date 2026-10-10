@@ -4548,3 +4548,12 @@ Strict audit: eight new commands in Tests/HealingSleepAxioms.
 The serial coverage fragment has the corresponding rows. No public statement changed.
 SupportHeads, SupportSlow and FrontierSupportHeads must thread these services.
 Full package closure is still open until every assigned consumer builds.
+
+P-H1 Round 3 HEAD consumers: SupportHeads uses NextTransferScope at the exact
+later HEAD read. The scope supplies joined honest voters, fresh HEAD service,
+retained HEAD read provenance, carrier services and the receiver's event-index epoch.
+The induction asks for these scopes only at labels inside its interval.
+Membership and FG bounds use durable storage; vote and block stamps use the local epoch.
+Batch cardinality follows from CStar and the recovery fault bound.
+HealingBase's legacy row receipt test now supplies the receiver awake service.
+Public statements and conclusions stay unchanged; these are exact internal input forms.
