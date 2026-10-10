@@ -374,3 +374,8 @@ from claude-files/sleep-pwc-round4-audit-fragment.txt into Tests.Axioms
 under its existing canonical key. Use the matching coverage fragment.
 Keep WeakContinuationSleepAxioms and the Proposal test audit registered
 through the test glob. No test-module import or allowance is needed.
+
+Round 4 final validation PASS: DCK 532 GREEN, 40 strict roots, 3,613
+results, 24 controls. Local exports 200 modules / 252 exports / zero
+unaccepted. Layers zero new. Status remains PREPARED with nine local
+P-WC expected failures. Implementation head: 16e578fb.

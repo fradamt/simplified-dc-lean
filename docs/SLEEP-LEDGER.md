@@ -5106,3 +5106,11 @@ plus three Proposal test commands. Only propext, Classical.choice, and
 Quot.sound. Exports: 200 proof modules, 252 exports, zero unaccepted.
 Layers: 72 inherited, zero new. Final package DCK is running.
 Evidence: .lake/sleep-pwc-r4/. Round 4 fragments are in claude-files/.
+
+P-WC Round 4 final validation: DCK PASS. 532 GREEN modules, 40 strict
+roots, 3,613 results, and 24 controls PASS. Exports: 200 proof modules,
+252 exports, zero unaccepted. All 214 prior inventory rows remain in
+the 285-row local inventory. Source scopes PASS: 1,361 active / 337
+deferred PC-SA modules. Layers: 72 inherited / zero new. Nine targets
+remain EXPECTED-FAIL P-WC. Public claims unchanged; no public meaning STOP.
+Implementation head: 16e578fb. Tracked implementation tree is clean.
