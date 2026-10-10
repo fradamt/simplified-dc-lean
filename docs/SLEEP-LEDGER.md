@@ -2159,3 +2159,48 @@ Finality rows/frame/receipt consumers. Do not replace their interfaces locally.
 P-Fi still owns the CoreServices, Rows, MiddleSupport, and later family ports.
 S-Ap/Run audit inputs retain the map owners from the P-ShA handoff. The package
 report carries the audit inventory and root-import fragments for lead integration.
+
+
+## P-Fi second prepared group — exact current services and joined reads
+
+The P-Fi map now has 43 TARGETS, 480 GREEN, and 31 EXPECTED-FAIL modules.
+Frozen DCK PASS (170.53 s), default controls; 41 complete audit commands pass.
+Compiled exports: 143 proof modules, 251 exports, 0 unaccepted (10.48 s).
+Layers remain 72 accepted findings and 0 new. CLOSED is not claimed.
+
+Internal false statement: fgsa_tVote previously took Base₂ alone and returned TVote.
+The kernel-checked Tests/FinalityEpochs.base_not_tVote proves Base₂ and not TVote:
+Δ=2, n=1, R=2, δt=4, events tick(0), tick(2), restart(7), tick(8).
+The honest node sleeps on [3,7), emits HEAD-0 at 2, and has an unjoined proposal
+read at 8. The vote pool is empty. LabelSyncOn uses dl(a)=max(a,2)+2 and cut=8;
+its receiver-link premises are false on every demanded window. Receipt root scope
+is only named genesis. This is a Base₂ counterexample, not a full counterexample
+to KernelACSideClaim_W with RecoverySleep₂ and HealingInput.
+
+Exact internal replacement: FinalityVoteReceipts records the current raw vote
+membership at each exact batch and post-clock read. core_full_vote, fgsa_tVote,
+and fgsa_coreServices require it and keep the full service conclusions. The
+resolved-head filter is proved from those receipts. Consumers: Finality/Joined
+and Finality/Export. Their supplier obligation remains open; do not infer it from
+historical processing or from Base₂. No public claim was weakened or redefined.
+
+JOINED-VOTER ports: kmid_honest_proposal_exists and kmid_head_held take joinedAt
+for the exact proposer/voter, label, and time. kmid_source_of_exact takes the
+confirmed gate reader. kmid_window_proposal derives its joined proposer from
+Recovery₂, the full witness bounds, and the inclusive cutoff. The current HEAD
+chain and held-target suppliers use that exact read and durable TF, not global
+NoRestart. TickRead proves read equality from no restart at that same node/time;
+the joined HEAD guard supplies this exclusion. Consumers: Middle, Kernel,
+TailOpening, TailMixed, RowsPrem, and TailFrame; their call ports stay P-Fi-owned.
+
+Finality/action source uses recoveryStart, joined HEAD readers, and the exact
+confirmed gate reader. The full source/height/entry conclusion is unchanged.
+The row-action proof now handles the joined branches of HEAD and proposal duties.
+The other valid fixture proves a fresh honest HEAD can be processed, then erased
+at restart while its receiver is awake. It does not use old processed history as
+safe history. Both fixture validity proofs and all changed declarations have
+strict checks with only propext, Classical.choice, and Quot.sound.
+
+Serial audit fragment: claude-files/sleep-pfi-audit-fragment.txt. Add production
+commands to the existing Proofs.Tests.Axioms key at integration; keep fixture
+checks in their own module. Do not create an S1 key or import a test into a test.

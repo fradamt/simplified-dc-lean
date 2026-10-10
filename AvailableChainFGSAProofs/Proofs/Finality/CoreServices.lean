@@ -207,97 +207,37 @@ private theorem core_head_form (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact ⟨k, rfl⟩
   all_goals cases hw
 
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 01 A.7 T-VOTE:235–242; 22:1233–1234.
-DC: Generic/Conditions.lean:110,134, delivery within the label window. -/
-private theorem core_vote_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
-    (s : Slot) (D : Time) (x : V)
-    (hD : D ≤ SA.voteTime p.toParams s + p.Δ) :
-    (V2.D.Run.stateBeforeTime E rho D x).st.slot p ≤ s + 1 := by
-  have hn : (V2.D.Run.stateBeforeTime E rho D x).st.base.now ≤
-      SA.voteTime p.toParams s + p.Δ := by
-    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho D hS]
-    rcases V2.D.Engine.stateBefore_now_source_noRestart (fgsaClock p c) E rho hN
-      (V2.D.Run.idxBefore rho D) x with hz | ⟨j, hj, he⟩
-    · rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) x)] at hz
-      rw [hz]
-      change 0 ≤ 4 * p.Δ * (s : Int) + p.Δ + p.Δ
-      nlinarith [p.deltaPos, Int.natCast_nonneg s]
-    · have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hS he D).mp hj
-      change (fgsaClock p c).now (V2.D.Run.stateBefore E rho _ x) < D at ht
-      rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) x)] at ht
-      exact le_trans (le_of_lt ht) hD
-  have hm := Int.toNat_le_toNat (Int.ediv_le_ediv (c := 4 * p.Δ)
-    (by have hΔ : (0 : Int) < p.Δ := p.deltaPos; omega) hn)
-  have heq : SA.voteTime p.toParams s + p.Δ = 4 * p.Δ * (s : Int) + 2 * p.Δ := by
-    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ = _
-    ring
-  rw [heq] at hm
-  change _ ≤ p.slotOf (4 * p.Δ * (s : Int) + 2 * p.Δ) at hm
-  rw [slotOf_offset p s (2 * p.Δ) (by have hΔ : (0 : Int) < p.Δ := p.deltaPos; omega)
-    (by have hΔ : (0 : Int) < p.Δ := p.deltaPos; omega)] at hm
-  exact hm.trans (Nat.le_succ s)
+/-- Current receiver receipts for the exact batch and post-clock read.
+Label synchrony alone does not preserve a HEAD across a receiver restart. -/
+structure FinalityVoteReceipts (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
+  receipt : ∀ s x t nd, x ∈ rho.honest →
+    Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
+      (SA.voteTime p.toParams s) t →
+    postClock E rho x t = some nd →
+    ∀ y (a : HeadWire p.n), y ∈ rho.honest →
+      V2.D.Run.emits E rho y (ofHead p a) (SA.voteTime p.toParams s) →
+      GridCO.headLabel? (baseVote a) = some s → baseVote a ∈ nd.st.base.votes
 
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 01 A.7 T-VOTE:235–242; 22:1233–1234.
-DC: Protocol/Handlers/GoldfishVotePool.lean:320.
-INTENTIONAL: non-row receipts persist to the FG-SA post-clock read. -/
+/-- Exact current receipts supply the full vote service and its resolved-head filter. -/
 private theorem core_full_vote
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hb : Base₂ p c E rho)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hR : FinalityVoteReceipts E rho)
     (s : Slot) (x : V) (t : Time) (nd : Node p) (hx : x ∈ rho.honest)
     (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.voteTime p.toParams s) t)
     (hread : postClock E rho x t = some nd) : FullVoteService p c E rho nd.st s := by
-  rw [postClock_def, preTick_def] at hread
-  cases hi : V2.D.Run.tickIdx? rho x t with
-  | none =>
-    simp only [hi, Option.map_none] at hread
-    cases hread
-  | some i =>
-    simp only [hi, Option.map_some] at hread
-    have hnd := Option.some.inj hread
-    subst nd
-    intro y a hy he hl
-    obtain ⟨k, ha⟩ := core_head_form E rho hb.valid y s a hy he
-    rw [ha] at he hl ⊢
-    obtain ⟨dl, cut, hd, _, hlt, hbound, htime, hcut, _⟩ := hSync
-    have hdl : dl (SA.voteTime p.toParams s) ≤ SA.voteTime p.toParams s + p.Δ := by
-      simpa only [max_self, hb.delta] using hbound (SA.voteTime p.toParams s)
-    rw [hb.delta] at htime
-    have hdlt := hdl.trans htime
-    have hr := (fgsa_honest_head_receipt E rho hb.delta hb.valid hb.noRestart hb.cstar
-      dl cut s k a.payload (SA.voteTime p.toParams s) y x hd hy he hx
-      (hdlt.trans hcut) (hlt _) (core_vote_window E rho hb.valid.toScheduleWellFormed
-        hb.noRestart s _ x hdl)).1
-    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hb.valid.toScheduleWellFormed] at hr
-    have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams s)) ≤ i := by
-      by_contra hn
-      have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hb.valid.toScheduleWellFormed
-        (V2.D.Run.tickIdx?_spec hi) _).mp (Nat.lt_of_not_ge hn)
-      change t < dl (SA.voteTime p.toParams s) at ht
-      exact (not_lt_of_ge hdlt) ht
-    have hp : (fgsa p c).processed (V2.D.Run.stateBefore E rho
-        (V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams s))) x)
-        (ofHead p ⟨.seat (.head s) k, a.payload⟩) = true := decide_eq_true hr
-    have hp' := processed_stable E rho hb.valid.toScheduleWellFormed x _ _ _ hidx
-      (hb.noRestart.restartFree x _ _) hp
-    have hm : baseVote (⟨.seat (.head s) k, a.payload⟩ : HeadWire p.n) ∈
-        ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) t).st.base.votes := by
-      change _ ∈ (FGSA.clock p (V2.D.Run.stateBefore E rho i x).st t).base.votes
-      rw [(clock_vn _ _).1]
-      exact of_decide_eq_true hp'
-    have hv : baseVote (⟨.seat (.head s) k, a.payload⟩ : HeadWire p.n) ∈
-        GridCO.votesAt ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) t).st.base s :=
-      List.mem_filter.mpr ⟨hm, by exact beq_self_eq_true _⟩
-    refine ⟨hv, ?_⟩
-    intro H hknown hslot
-    apply List.mem_filter.mpr
-    refine ⟨hv, ?_⟩
-    change (match GridCO.resolvedHead? _ _ with
-      | some K => decide (K.slot ≤ s) | none => false) = true
-    rw [hknown]
-    exact decide_eq_true hslot
+  intro y a hy he hl
+  have hm := hR.receipt s x t nd hx hSync hread y a hy he hl
+  have hv : baseVote a ∈ GridCO.votesAt nd.st.base s :=
+    List.mem_filter.mpr ⟨hm, by simp only [hl, beq_self_eq_true]⟩
+  refine ⟨hv, ?_⟩
+  intro H hknown hslot
+  apply List.mem_filter.mpr
+  refine ⟨hv, ?_⟩
+  change (match GridCO.resolvedHead? _ _ with
+    | some K => decide (K.slot ≤ s) | none => false) = true
+  rw [hknown]
+  exact decide_eq_true hslot
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 01 A.7 T-VOTE:235–242; 22:1233–1234 (S14). Class (ii).
@@ -305,15 +245,15 @@ DC: Generic/Conditions.lean:110,134 and
 Protocol/Handlers/GoldfishVotePool.lean:320.
 INTENTIONAL: FG-SA uses non-row delivery and the post-clock active view. -/
 theorem fgsa_tVote (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hb : Base₂ p c E rho) : TVote p c E rho := by
+    (hb : Base₂ p c E rho) (hR : FinalityVoteReceipts E rho) : TVote p c E rho := by
   refine ⟨?_, ?_, ?_⟩
   · intro v st hv hSync hst
     change (postClock E rho (V2.D.proposerOf rho (fgsaInterface p c) v)
       (SA.proposalTime p.toParams v)).map (·.st) = some st at hst
     obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hst
-    exact core_full_vote E rho hb (v - 1) _ _ nd hv.2 hSync hnd
+    exact core_full_vote E rho hR (v - 1) _ _ nd hv.2 hSync hnd
   · intro r x nd hx hSync hnd
-    exact core_full_vote E rho hb (r * p.R + 1) x _ nd hx hSync hnd
+    exact core_full_vote E rho hR (r * p.R + 1) x _ nd hx hSync hnd
   · intro y s a hy he
     obtain ⟨k, ha⟩ := core_head_form E rho hb.valid y s a hy he
     rw [ha] at he ⊢
@@ -323,7 +263,7 @@ theorem fgsa_tVote (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     refine ⟨(fgsa p c).clock (V2.D.Run.stateBefore E rho j y)
       (SA.voteTime p.toParams s),
       headVote p (FGSA.clock p (rho.stateBefore E j y).st (SA.voteTime p.toParams s)) s,
-      ?_, ?_, hhead.2.2.2.symm⟩
+      ?_, ?_, hhead.2.2.2.2.symm⟩
     · rw [postClock_def, preTick_def,
         fgsa_tickIdx_of_event p c E rho hb.valid.toScheduleWellFormed hj]
       rfl
@@ -334,8 +274,9 @@ Blueprint 01:126–199; 22:1228–1254. Class (iii).
 DC: INTENTIONAL: assembly of the three FG-SA composition services. -/
 theorem fgsa_coreServices
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hb : Base₂ p c E rho) (w : HealingWitness) : CoreServices p c E rho w :=
-  ⟨fgsa_tStart E rho, fgsa_tVote E rho hb, fgsa_tWalk E rho⟩
+    (hb : Base₂ p c E rho) (w : HealingWitness) (hR : FinalityVoteReceipts E rho) :
+    CoreServices p c E rho w :=
+  ⟨fgsa_tStart E rho, fgsa_tVote E rho hb hR, fgsa_tWalk E rho⟩
 
 
 end AvailableChain.FGSA.Run

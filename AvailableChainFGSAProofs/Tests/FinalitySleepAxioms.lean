@@ -2,6 +2,9 @@ module
 public import AvailableChainFGSAProofs.Proofs.Finality.RestoreReads
 public import AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept
+public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
+public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
+public import AvailableChainFGSAProofs.Proofs.Finality.Rows
 
 #print axioms AvailableChain.FGSA.Run.finality_restore_preceq_F
 #print axioms AvailableChain.FGSA.Run.finality_acceptsFinalBefore_of_idx
@@ -13,3 +16,16 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Accept
 #print axioms AvailableChain.FGSA.Run.finality_recovery_restart_bound
 #print axioms AvailableChain.FGSA.Run.finality_recovery_restartFree
 #print axioms AvailableChain.FGSA.Run.finality_recovery_joined
+#print axioms AvailableChain.FGSA.Run.FinalityVoteReceipts
+#print axioms AvailableChain.FGSA.Run.fgsa_tVote
+#print axioms AvailableChain.FGSA.Run.fgsa_coreServices
+#print axioms AvailableChain.FGSA.Run.finality_tick_read
+#print axioms AvailableChain.FGSA.Run.finality_joined_tick_read
+#print axioms AvailableChain.FGSA.Run.kmid_honest_proposal_exists
+#print axioms AvailableChain.FGSA.Run.kmid_source_of_exact
+#print axioms AvailableChain.FGSA.Run.kmid_row_action
+#print axioms AvailableChain.FGSA.Run.kmid_head_held
+#print axioms AvailableChain.FGSA.Run.kmid_chainRows_of_head
+#print axioms AvailableChain.FGSA.Run.kmid_head_held_from
+#print axioms AvailableChain.FGSA.Run.kmid_window_proposal
+#print axioms AvailableChain.FGSA.Run.finality_action_source

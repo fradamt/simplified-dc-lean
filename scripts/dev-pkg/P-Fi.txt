@@ -41,7 +41,10 @@ AvailableChainFGSAProofs.Tests.FinalitySleepAxioms
 AvailableChainFGSAProofs.Tests.FrontierBound
 AvailableChainFGSAProofs.Tests.Joined
 AvailableChainFGSAProofs.Tests.Local
+AvailableChainFGSAProofs.Proofs.Finality.TickRead
+AvailableChainFGSAProofs.Tests.FinalityEpochs
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Finality.Rows
 AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
@@ -515,9 +518,14 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGSAProofs.Proofs.Finality.TickRead
+AvailableChainFGSAProofs.Tests.FinalityEpochs
+AvailableChainFGSAProofs.Proofs.Finality.CoreServices
+AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
+AvailableChainFGSAProofs.Proofs.Finality.TailRows
+AvailableChainFGSAProofs.Proofs.Finality.TailRetention
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.Finality.Above P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.CoreServices P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.Export P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.Forward P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.FrontierBound P-Fi
@@ -525,10 +533,8 @@ AvailableChainFGSAProofs.Proofs.Finality.Joined P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.Kernel P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.Local P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.Middle P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.Proposal P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.Receipt P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.Rows P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.RowsBatch P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.RowsFrame P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.RowsPrem P-Fi
@@ -540,8 +546,6 @@ AvailableChainFGSAProofs.Proofs.Finality.TailKernel P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.TailMixed P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.TailOpening P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.TailReceipt P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.TailRetention P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.TailRows P-Fi
 AvailableChainFGSAProofs.Proofs.Finality.TailSplit P-Fi
 AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit P-ShA
