@@ -132,5 +132,13 @@ theorem fgsa_weakContinuationGrowthClaim (p : Params) (G : Time) :
       (wcg_retainedSeed hS hc hne hseed hcut.beforeEnd.le)
   · exact wcg_emptyLive hS hc heq.symm hseed hcut.beforeEnd.le
 
+/-- OUTPUT-DIRECT §§1–10. DC: INTENTIONAL; the additive outage continuation
+claim under (V), with all foundation and healthy-cut suppliers discharged. -/
+theorem fgsa_outageContinuationClaim (p : Params) : OutageContinuationClaim p :=
+  outageContinuation_claim_of p
+    (fgsa_storeClaim p) (fgsa_activeViewClaim p) (fgsa_frameClaim p)
+    (fgsa_srcFrameAboveClaim p) (fgsa_sourceDisciplineClaim p) (fgsa_cleanCutClaim p)
+
+
 end AvailableChain.FGSA.Run
 end
