@@ -3073,3 +3073,46 @@ Full canonical Proofs.Tests.Axioms coverage generation remains blocked by
 Shared.Regimes; the new P21 row is integrated from compiled generator evidence.
 These are recorded limits, not full API or family closure. No generator scope,
 public statement, baseline or allowance was weakened to bypass them.
+
+## P-Fd Round 2 — CLOSED (2026-10-10)
+
+Base: fabc390e on sleep-pfd2. It includes the S-Ap Round 3 public P8 claims
+and four Foundations export fragments. P-ShA closure 80b08ce3 is not on this base;
+the interfaces needed by P-Fd are present in rounds 1–5. This entry closes P-Fd only.
+
+- P8 base: Foundations/Export.lean:160 applies RowService.lean:317 to the installed
+  RowServiceBaseClaim, including NoRestart and the exact all-honest awake suffix.
+- P8 recovery: Export.lean:166 applies fgsa_tRows_recovery to h.toRecovery₂.
+  Recovery supplies the awake suffix and the receiver epoch after GST. It needs
+  no global NoRestart. Public RowServiceClaim keeps RecoverySleep₂.
+- Export.lean:139 assembles the durable/epoch store, RMonoAll, and epoch frame tuple.
+  Export.lean:200 supplies the P21(a) retained-store restart monotonicity claim.
+  All four installed fragments compile against their installed public claim types.
+- Register all 37 exports in FoundationsAxioms through Assembly.Foundations.
+  Move the four temporary production audit commands to that test audit.
+  Append 28 missing supplier commands to Tests.Axioms and 28 matching rows under
+  its existing canonical coverage key. All 151 local declarations have canonical
+  commands and owner rows. The root already exposes Assembly.Foundations.
+- Owned consumers: Tests.RowService uses fgsa_rowService_receipt_sleep with the
+  exact receiver epoch; Tests.FinalityApi uses restart monotonicity without NoRestart.
+  No public meaning change, new STOP, allowance, baseline, or coverage key.
+- Map: 30 TARGETS, 497 GREEN, 2 EXPECTED-FAIL. Six inherited failures now compile.
+  Add the inherited S1 RegimesService entry. The remaining failures keep their owners:
+  Shared.Regimes (P-ShA) and the canonical Tests.Axioms root (P-As). Shared.Regimes
+  still projects removed Base₂.noRestart at ten legacy sites; its closed-branch fix
+  must be integrated. It does not block the P-Fd suppliers, exports, or local audit.
+
+Validation: DCK PASS (223.32 s), lake build --wfail on all 497 GREEN modules,
+40 strict sources / 3,436 results, and 24 default controls PASS. Only propext,
+Classical.choice, and Quot.sound occur. Complete GREEN export scan: 283 proof modules,
+253 exports, 0 unaccepted (5.94 s), complete local coverage of 151 commands,
+and export checker controls PASS. Inventory generation: 4.95 s. Canonical FGSafety
+coverage: PASS (15.92 s). Layers: 72 accepted findings, 0 new (0.47 s).
+Diff whitespace check PASS. No gate tier, review, agent, or dependency update.
+
+The broader all-audit inventory attempt found the unrelated namespace-local
+WindowLiveness name window_bit_add_of_row. The final export check uses complete
+FoundationsAxioms coverage and scans all GREEN roots; DCK strictly checks every
+GREEN audit source. Full canonical-root validation remains assembly integration work.
+Report and validation evidence: claude-files/sleep-pfd-report.md (Round 2),
+claude-files/sleep-pfd2/. Earlier PREPARED rows remain as session history.

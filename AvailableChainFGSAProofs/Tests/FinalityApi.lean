@@ -45,11 +45,11 @@ example (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
     FinalitySlashableBound p c E rho :=
   fgsa_apiFaultCountSlashableBoundClaim_body p c E rho hL hcar hC hbot
 
-example (hs : rho.events.Pairwise (fun a b => a.key ≤ b.key)) (hnr : V2.D.NoRestart rho)
+example (hs : rho.events.Pairwise (fun a b => a.key ≤ b.key))
     (x : V) (hx : x ∈ rho.honest) (t t' : Time) (htt : t ≤ t') :
     Block.Preceq (finalizedOut (V2.D.Run.readAt E rho t x))
       (finalizedOut (V2.D.Run.readAt E rho t' x)) :=
-  fgsa_apiFinalizedMonotonicityClaim_body p c E rho hs hnr x hx t t' htt
+  fgsa_apiFinalizedMonotonicityRestartClaim_body p c E rho hs x hx t t' htt
 
 example (hp : FinalizedSafetyPrem p c E rho ()) :
     Gen.Pure.CompatOn (· ∈ rho.honest) (F_at p c E rho) (· ≤ rho.events.length) ∧
