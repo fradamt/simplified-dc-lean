@@ -63,7 +63,7 @@ def check_wiring(root=Path('.'), shell=None):
     gate = (root / 'scripts/gate.sh').read_text()
     assert 'fgsa-manifest) step "$1" bash scripts/check-fgsa-manifest.sh ;;' in gate
     group = ('run_group fgsa-claims check-fg-compose check-fgsa check-build check-fgsa-run '
-             '\\\n  fgsa-manifest pcsa-manifest')
+             '\\\n  fgsa-manifest\n')
     assert group in gate
     assert gate.index(group) > gate.index('fi\n# Longest measured FULL steps first;')
     print('CONTROL merge/full mandatory current shallow and deep wiring: PASS')
