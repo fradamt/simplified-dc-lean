@@ -1,4 +1,5 @@
-# P-H2 package map: Round 3 at 91bf0f7a; H1 pin 615d203b.
+# P-H2 package map: Round 5 from f79343fc; requested H1 pin f1798112 is unmerged.
+# 93 assigned targets: 22 GREEN, 71 EXPECTED-FAIL. All open targets retain P-H2.
 # GREEN source is verified; service scope producers remain explicit.
 
 [TARGETS]

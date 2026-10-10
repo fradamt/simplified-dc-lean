@@ -212,7 +212,8 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
     rwa [clock_base_blocks] at hm
   have hQstamp : GridCO.stampBlock (storeAt p c E rho j x).base Q <
       SA.earlyTime p.toParams v := by
-    have hnow := V2.D.Engine.stateBefore_now_le_event_noRestart (fgsaClock p c) E rho hs hN hjtick x
+    have hnow := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hs hjtick x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hnow
     refine lt_of_le_of_lt ((healing_block_stamp_le_now p c E rho hs hN hQstore).trans hnow) ?_
     change 4 * p.Δ * (v : Int) + p.Δ < 4 * p.Δ * (v : Int) + 2 * p.Δ

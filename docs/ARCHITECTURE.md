@@ -991,8 +991,9 @@ and uses RegimesService _on APIs. Original proposal ReceiverService and fresh
 HEAD transport keep their send time, handler window, history and receiver epoch.
 CommonEntry obtains SameLabelServiceScope from its selected fast-write source.
 FrontierSearchFull uses RMonoAll and durable membership. Its service factories,
-the indexed H1 permanence/carrier/reset/settlement requests, and the mixed
-Assembly tests remain open. The complete H2 critical path is not closed.
+the indexed H1 permanence/carrier/reset/settlement requests, the bounded
+confirmed-reader supplier at suffix prefixes, and the mixed Assembly tests remain open.
+The complete H2 critical path is not closed.
 
 HealingH2RecoveryAxioms and HealingH2ResetRiseAxioms import production modules only.
 Their active command inventories have 38 and 24 entries. HealingH2ServiceAxioms

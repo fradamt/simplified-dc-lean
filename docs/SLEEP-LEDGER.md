@@ -5953,3 +5953,31 @@ import, the recoveryStart reset/search boundary, selected receipt records, and
 the guarded opening/repair/frontier interfaces. It records 38 recovery and 24
 reset/Rise audit commands. The 130-command service audit stays OPEN, as do
 the lower H1 producers and mixed Assembly tests. Public statements are unchanged.
+
+### P-H2 Round 5 — independent restart and reader ports (2026-10-10)
+
+Internal sleep forms, no public statement change. PostResetJoint/Joint2 use
+the restart-safe fProv supplier without NoRestart. The mixed frozen-membership
+check uses durable storage. The RiseOne mixed check uses RMonoAll and the
+existing sleep row-receipt supplier with suffixNoRestart and awake bounds.
+PostResetOpening, H2Prime and LeaseMove use the wake-time event clock bound.
+The frontier mixed cap check uses RMonoAll and frontier_cap_before_on.
+
+PostResetHealed's selected high source is after the reset cut by durable height
+and frontier bounds. Its positive clock after GST comes from a tick, since a
+recovery restart cannot occur after GST. The cross-below and reconcile helpers
+use RecoverySleep₂ and the actual confirmedReaderIdx required by H2A. Their
+complete isolated bodies compile. The output induction excludes only restarts
+in its healing suffix. The full H4 producer still needs the named bounded
+reader supplier healing_recovery_suffix_readers, OPEN P-H2, and same-label
+object services. P-As has its exact changed consumer type and three sites.
+
+PostResetConeReceipts uses RMonoAll. Its HEAD receipt selects the source K/W
+pair and proves the receiver floor before service at the actual joined read.
+The two batch-seat consumers now take that exact scoped source factory and
+read guard. Original object service and the remaining fresh/stamp ports stay
+OPEN. The assigned NoRestart census is 18, down from 30; all are in open targets.
+
+Isolated evidence: eight independent checks, six complete helper-body audits,
+and one selected receipt audit. All 15 results use only propext, Classical.choice
+and Quot.sound. These checks do not compile the containing open modules.

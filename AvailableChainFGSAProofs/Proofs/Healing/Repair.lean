@@ -137,7 +137,12 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
     (fun _ => hheadQ)
     (fun _ _ hx ht => repair_gate_geometry E rho hrec mono crossing qc
       writes hgst hphase hus hgate hQs hheadQ hx ht hGates)
-    (fun _ x hReader ht => hGates.gates _ x hReader.1 ht) hhor
+    (fun i x hReader ht => (hGates.gates i x hReader.1 ht
+      (healing_scope_enabled_gate hrec hReader.1 ht (by
+        change E.t_GST ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
+        have hb := hcut
+        change E.t_GST ≤ 4 * p.Δ * (((r + 1 : Nat) : Int) - 1) at hb
+        linarith [p.deltaPos]) (hgate.trans hphase.2.1))).toGateReceiptScope) hhor
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:749–756 (RepairAfter); plan H-REPAIR step 10. DC: INTENTIONAL every

@@ -402,7 +402,8 @@ theorem frontier_opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     refine ⟨?_, Bool.or_eq_true_iff.mpr (Or.inr ?_)⟩
     · rwa [(clockPre_fields p _ _).2.1]
     · rwa [clockPre_fg]
-  exact fgsa_gate_of_coveringBatch E rho hS i s x Q ht (hScope.gates i x hx ht (healing_scope_enabled_gate hrec hx ht (by
+  exact fgsa_gate_of_coveringBatch E rho hS i s x Q ht
+    (hScope.gates i x hx ht (healing_scope_enabled_gate hrec hx ht (by
         change E.t_GST ≤ 4 * p.Δ * (s : Int)
         have hb := hScope.cut
         change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hb
