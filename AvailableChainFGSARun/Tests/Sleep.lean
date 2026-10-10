@@ -159,6 +159,105 @@ theorem retained_not_fresh : ¬ V2.D.DeliveryWellFormed env
   rw [ht] at hf
   contradiction
 
+/-- Node 0 owns the FG seat, emits before sleep on [31,35), and wakes at 35. -/
+def ownEnv : Generic.Env (Fin 2) :=
+  ⟨2, by decide, 0, by decide, fun v t => decide (v = 1 ∨ t < 31 ∨ 35 ≤ t)⟩
+
+def ownHead : Obj p := ⟨.seat (.base (.head 2)) ⟨0, by decide⟩, .head ⟨2⟩⟩
+
+def ownRun : V2.D.Run (Fin 2) P where
+  honest := {0}
+  horizon := 38
+  events := [.tick 0 0, .tick 0 2, .tick 0 4, .tick 0 6, .tick 0 8,
+    .deliver 0 proposal 8, .tick 0 10, .tick 0 12, .tick 0 14, .tick 0 16,
+    .tick 0 18, .deliver 0 ownHead 18, .tick 0 20, .tick 0 22, .tick 0 24,
+    .tick 0 26, .tick 0 28, .tick 0 30, .restart 0 35, .tick 0 36, .tick 0 38]
+  seatOf := fun l _ => match l with | .base .fg => 0 | _ => 1
+  input := fun _ _ => ()
+
+/-- Full validity includes the honest own-row emission and exact non-public wake. -/
+theorem own_valid : V2.D.ExecutionValid ownEnv ownRun := by
+  refine { toSleepWellFormed := ?_, toScheduleWellFormed := ?_,
+           toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
+  · refine ⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩
+    · intro e h
+      simp [ownRun] at h
+      rcases h with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
+        rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide
+    · intro e h
+      simp [ownRun] at h
+      rcases h with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
+        rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide
+    · intro v t h
+      simp [ownRun] at h
+      refine ⟨(t / 2).toNat, ?_⟩
+      simp [ownEnv]; dsimp [Time] at *; omega
+    · intro v hv t ⟨k, hk⟩ ht hh ha
+      have hv0 : v = 0 := Finset.mem_singleton.mp hv
+      subst v
+      change t ≤ 38 at hh
+      simp [ownEnv] at hk ha
+      simp [ownRun]; dsimp [Time] at *; omega
+  · refine ⟨?_, ?_, ?_⟩
+    all_goals intro i v o t hi
+    all_goals have he := List.mem_of_getElem? hi
+    all_goals simp [ownRun] at he
+    all_goals rcases he with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+    all_goals have hib := (List.getElem?_eq_some_iff.mp hi).1
+    all_goals simp [ownRun] at hib
+    all_goals interval_cases i <;> first | contradiction | decide +kernel
+  · refine ⟨?_, ?_⟩
+    · intro v o t hp u hu hh
+      obtain ⟨i, hi⟩ := hp
+      have he := List.mem_of_getElem? hi
+      simp [ownRun] at he
+      rcases he with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+      all_goals have hu0 : u = 0 := Finset.mem_singleton.mp hu
+      all_goals subst u
+      all_goals simp [V2.D.Run.holder, proposal, ownHead, ownRun] at hh
+    · intro v o t hp o' hc u hu hh
+      obtain ⟨i, hi⟩ := hp
+      have he := List.mem_of_getElem? hi
+      simp [ownRun] at he
+      rcases he with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+      · change carriesS p proposal o' at hc
+        change o' ∈ ([] : List (Obj p)) ∨ o' ∈ [] ∨ o' ∈ [] at hc
+        simp at hc
+        cases hc
+      · change carriesS p ownHead o' at hc
+        simp [carriesS, ownHead] at hc
+  · refine ⟨?_, ?_, ?_, ?_⟩
+    · intro v t h
+      simp [ownRun] at h
+      have hv : v = 0 := by tauto
+      subst v
+      simp [ownEnv]; dsimp [Time] at *; omega
+    · intro v o t h
+      simp [ownRun] at h
+      rcases h with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;> decide
+    · intro v t h
+      simp [ownRun] at h
+      rcases h with ⟨rfl, rfl⟩; decide
+    · intro v hv t _ _ h
+      have hv0 : v = 0 := Finset.mem_singleton.mp hv
+      subst v
+      have ht : t = 35 := by simp [V2.D.Wakes, ownEnv] at h; dsimp [Time] at *; omega
+      subst t; simp [ownRun]
+
+/-- An own FG row makes Λ nonempty before sleep; wake keeps the same sent entries. -/
+theorem own_record_retained :
+    (∃ a, Msg.row a ∈ (V2.D.Run.emitsAt ownEnv ownRun 16).map (·.payload)) ∧
+    (V2.D.Run.stateBefore ownEnv ownRun 18 0).record.sent ≠ [] ∧
+    (V2.D.Run.stateBefore ownEnv ownRun 19 0).record.sent =
+      (V2.D.Run.stateBefore ownEnv ownRun 18 0).record.sent ∧
+    (V2.D.Run.stateBefore ownEnv ownRun 19 0).record =
+      (V2.D.Run.stateBefore ownEnv ownRun 18 0).record := by
+  refine ⟨?_, by decide +kernel, by decide +kernel, ?_⟩
+  · exact ⟨.vote ⟨.vote 1 genesisRoot false, none⟩, by decide +kernel⟩
+  · rw [V2.D.Run.stateBefore_succ ownEnv ownRun (show ownRun.events[18]? =
+      some (.restart 0 35) from by rfl)]
+    exact fgsa_restore_record p unitCodec _ 35
+
 /-- Sleep starts at 1; equality wakes at 8, and the late case wakes at 9. -/
 def joinEnv (w : Time) : Generic.Env (Fin 2) :=
   ⟨2, by decide, 0, by decide, fun v t => decide (v = 1 ∨ t < 1 ∨ w ≤ t)⟩
@@ -315,3 +414,6 @@ end
 #print axioms AvailableChain.FGSA.Run.SleepTests.join_duties
 #print axioms AvailableChain.FGSA.Run.SleepTests.wake_at_tick
 #print axioms AvailableChain.FGSA.Run.SleepTests.initial_duties
+
+#print axioms AvailableChain.FGSA.Run.SleepTests.own_valid
+#print axioms AvailableChain.FGSA.Run.SleepTests.own_record_retained

@@ -60,7 +60,7 @@ theorem wake_epoch_equiv :
   intro h
   exact (lt_irrefl (8 : Time)) (h 1 8 (by decide) (by decide))
 
-/-- The late wake suppresses the next gate and records an empty confirmation. -/
+/-- API coverage for the unjoined companion; the raw fixture result is also empty. -/
 theorem gate_empty :
     GridCO.savedGenuine (FGSA.clock p
       (V2.D.Run.stateBefore (joinEnv 9) (joinRun 9) 7 0).st

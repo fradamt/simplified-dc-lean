@@ -5,10 +5,12 @@
 AvailableChainFGSARun
 AvailableChainFGSARun.Model.Protocol
 AvailableChainFGSARun.Proofs.ClockLaws
+AvailableChainFGSARun.Proofs.NamedDelivery
 AvailableChainFGSARun.Proofs.NamedOrigins
 AvailableChainFGSARun.Proofs.Protocol
 AvailableChainFGSARun.Proofs.Reachable
 AvailableChainFGSARun.Proofs.Restore
+AvailableChainFGSARun.Proofs.RetainedClock
 AvailableChainFGSARun.Proofs.Schedule
 AvailableChainFGSARun.Tests.RestoreAxioms
 AvailableChainFGSARun.Tests.Sleep
@@ -453,7 +455,7 @@ AvailableChainFGSARun.Proofs.Slashing W3
 AvailableChainFGSARun.Proofs.Spec.Simulation W3
 AvailableChainFGSARun.Proofs.Spec.Transfer W3
 AvailableChainFGSARun.Proofs.WindowExclusion W3
-AvailableChainFGSARun.Statements.ReceiptCoverage W3
+AvailableChainFGSARun.Statements.ReceiptCoverage S-Ap
 AvailableChainFGSARun.Tests.Axioms W3
 AvailableChainFGSARun.Tests.DigestScope W3
 AvailableChainFGSARun.Tests.HeadRoots W3

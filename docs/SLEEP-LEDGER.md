@@ -643,8 +643,8 @@ All three reset modules are now GREEN. W3 and the family owners keep their integ
   `AvailableChainFGSAProofs/Proofs/Shared/ScoreRun.lean:1127`;
 - `fgsa_tick_total` — internal statement, lead ruling 10-10.
   Tick existence is conditional on the honest node being awake at the public time, exactly as P1
-  and ScheduleWellFormed.tick_total require. The unique-index conclusion is kept; family owners
-  supply awake from their approved participation premise.
+  and ScheduleWellFormed.tick_total require. The unique-index conclusion is kept. The review
+  handoff below identifies each exact awake source and each missing consumer premise.
   Consumers (proof calls; strict audits also cover each replacement):
   `AvailableChainFGSAProofs/Proofs/Assembly/WeakContinuation.lean:538`;
   `AvailableChainFGSAProofs/Proofs/Assembly/WeakContinuationGrowth.lean:377`;
@@ -715,7 +715,8 @@ All three reset modules are now GREEN. W3 and the family owners keep their integ
   `AvailableChainFGSAProofs/Proofs/Shared/OpeningSource.lean:49`;
 - `fgsa_release_clockPre` — internal statement, lead ruling 10-10.
   The release equation is conditional on the approved joined release guard. The active input and
-  release body are unchanged. Healing/SupportTransfer must supply that join test.
+  release body are unchanged. SupportTransfer.release_rows has no source for that join test;
+  its arbitrary-store type needs the conditional repair in the review handoff below.
   Consumers (proof calls; strict audits also cover each replacement):
   `AvailableChainFGSAProofs/Proofs/Healing/DescentLossUnanimous.lean:291`;
   `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:72`;
@@ -782,3 +783,621 @@ the five added W1b sleep modules, both new tests, and all three reset sites as G
 - `SleepContinuationTests.retained_origin`, `joined_strict`, `same_time_bound`,
   `retained_block_bound`, `wake_epoch_equiv`, `gate_empty`, `admission_public` —
   P1, P3, P24, approved. Consumers: strict audit and W2b GREEN/DCK acceptance.
+
+## W2b review fixes — consumer handoff
+
+### W3/P-ShA handoff: review use classifications
+
+This replaces the earlier claim that every consumer needs only an argument repair.
+Keep all W2b conditions. This is a source handoff; EXPECTED-FAIL consumers are not verified.
+References use review base `4b697a95`. Run paths start at `AvailableChainFGSARun/`;
+other paths start at `AvailableChainFGSAProofs/`. Each row is one direct proof/test use.
+Audit references are proof-only repairs of the print command; they add no premise.
+The four NamedOrigins guard splits at :77, :86, :146 and :160 are proof-only repairs.
+They unfold the approved actS guard (P24, packet :8204), without changing an emission type.
+These audit/guard references are separate from the 170 direct-use counts below.
+
+P = proof-only repair. A = approved change of read/scope. F = false internal consumer type.
+M = premise source missing; this is an extra flag, not a fourth classification.
+The Owner column applies plan §14.6, with the family split in §8.1/§8.3.
+For M rows the owner must trace the new condition through callers to the public boundary.
+An added internal premise is a repair specification, not approval to add a public premise.
+M records a missing receiver/time or branch source. It remains open with that owner.
+No blanket participation inference applies.
+
+Condition/source keys:
+
+- K: keep the used origin/bound projections. No new condition is needed.
+- Z: split joinedNow in act_prop_zero. Both branches give none; no new condition is needed.
+- S: supply the restart subset law. Leases:323 uses acRestart_obligations equality;
+  Leases:494 uses acRestart_fastWrite = []; the other saved-pair uses acRestart_genuine = [].
+  Schedule:222 already supplies acRestart_genuine and nil_subset.
+- L: use fgsa_preTick_now_le. Preserve the consumer conclusion: now ≤ tick, then slot
+  monotonicity, or now ≤ tick < the live deadline. No awake/join condition is needed.
+- E: keep strict now < tick with hEpoch = ∀ j w, j < i →
+  rho.events[j]? = some (.restart v w) → w < t. Current NoRestart contradicts the event.
+  For a sleep interface, derive hEpoch from joinedAtTime at this same tick; no inference
+  from awake alone is valid. That sleep change must obtain its scope from the family packet.
+- I: the Run caller already passes hEpoch, derives it from joinedAtTime, or proves the iff.
+- J: the strict late-pool helper keeps its existing conclusion with hEpoch at its gate tick
+  as an added premise (or joinedAtTime p pre.restartTime gateTime = true).
+  No source exists inside its schedule-only type. Its callers have hN : NoRestart rho;
+  pass hEpoch by contradicting each restart event. No new public premise is needed there.
+- G: use the executed gate read from P11/D015, approved packet :4265–4274.
+  Exact equation: savedGenuine post.base s = some (if joinedAtTime p pre.restartTime
+  (SA.gateTime p.toParams s) then rawConfirmation else none). The same guard controls fastSet.
+  Split the guard and use fgsa_gate_saved_result / fgsa_gate_saved_unjoined.
+  A nonempty executed gateResult, gateResultAt, or GateService result implies this guard.
+  A raw confirmation or a gate event alone does not. P11/D016 :4293 uses enabledGateAt;
+  its exact definition at :4594–4598 supplies the marker bound w ≤ slotStartZ p s.
+- GF: healing_support_fastWrite must require joinedAtTime at its gate and then keep
+  its raw fastSet equality; alternatively give fastWriteAt post s = some
+  (if joinedAtTime p pre.restartTime gateTime then fastSet p anchor view s else []).
+  Its current schedule + gate type has no source for the joined branch. Its callers
+  with a nonempty executed result/fast-write use G; the guarded equation needs no new premise.
+- GR: clean_gate_raw must require the same gate guard for its raw equation, or state
+  the guarded G equation. Its current schedule + gate type has no joined source:
+  premise source missing. The approved guarded read does not prove an unconditional raw equality.
+- RR: healing_support_release_rows must require joinedAtTime p st.restartTime
+  (SA.releaseTime p.toParams s) = true. Then keep row ∈ (actView st1).obligations and
+  releaseCount ... s row.1 < row.2.1. Without the guard the exact conclusion is conditional:
+  row survives expiry and (joinedAtTime ... = true → releaseCount ... < row.2.1).
+  An arbitrary store plus a surviving lease supplies no guard. Its three current callers
+  can pass the guard from hrec.base.noRestart or hN (see caller checks below).
+  Under sleep, use the conditional form for callers that need only expiry membership;
+  a caller that needs the strict count must prove the release guard, as specified in RN.
+- RN: current NoRestart gives pre.restartTime = none and thus the release guard.
+  DescentLossUnanimous:291 uses hrec.base.noRestart; SupportTransfer:306 uses hN.
+  The sleep form uses P8 RecoverySleep₂.suffixNoRestart (packet :2935–2941), bounds
+  all earlier restarts by GST, and needs GST ≤ slotStartZ p v at releaseTime v.
+  P8's τ scope (:2284) supplies that cutoff after recoveryStart; the old bound
+  GST ≤ voteTime v alone is not that cutoff. Pass the guard also to release_rows.
+- C: Schedule:888 passes its hEpoch without change.
+- RT: Receipts uses fgsaRestoreTimeLaw for its aligned TimelyClock and
+  fgsa_admissionTime_public with E.Δ = p.Δ. Keep actTime ≤ pubFloor(receiptTime).
+  No public-wake premise is used. This is W3 integration with unchanged consumer conclusions.
+
+`stored_proposal_delivered`:
+
+```text
+┌────────────────────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base                    │ Type │ Source │ Owner │ Open │
+├────────────────────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Finality/Receipt.lean:50                   │ P    │ K      │ P-Fi  │ —    │
+│ Foundations/Accountable.lean:531           │ P    │ K      │ P-Fd  │ —    │
+│ Foundations/Carrier.lean:39                │ P    │ K      │ P-Fd  │ —    │
+│ Foundations/Sources.lean:252               │ P    │ K      │ P-Fd  │ —    │
+│ Shared/ScoreRun.lean:105                   │ P    │ K      │ P-ShA │ —    │
+│ Shared/ScoreRun.lean:218                   │ P    │ K      │ P-ShA │ —    │
+│ Tests/NonVacuity/FinalityClaims.lean:1012  │ P    │ K      │ P-As  │ —    │
+│ Tests/NonVacuity/HealingClaims.lean:1008   │ P    │ K      │ P-As  │ —    │
+│ Tests/NonVacuity/HealingPackages.lean:1003 │ P    │ K      │ P-As  │ —    │
+│ Tests/NonVacuity/HealingRun.lean:1007      │ P    │ K      │ P-As  │ —    │
+│ Run/Proofs/NamedDelivery.lean:50           │ P    │ K      │ W3    │ —    │
+│ Run/Proofs/NamedDelivery.lean:63           │ P    │ K      │ W3    │ —    │
+│ Run/Proofs/Roots.lean:107                  │ P    │ K      │ W3    │ —    │
+│ Run/Proofs/Schedule.lean:1008              │ P    │ K      │ W3    │ —    │
+│ Run/Tests/SleepContinuation.lean:18        │ P    │ K      │ W3    │ —    │
+└────────────────────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:171; Run/Tests/SleepContinuationAxioms.lean:9.
+
+`act_prop`:
+
+```text
+┌──────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base      │ Type │ Source │ Owner │ Open │
+├──────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Run/Proofs/Protocol.lean:154 │ P    │ Z      │ W3    │ —    │
+└──────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:72; Run/Tests/SleepContinuationAxioms.lean:5.
+
+`act_prop_zero`:
+
+No direct proof/test use. The audit is a proof-only repair.
+
+Audit (proof-only): Run/Tests/Axioms.lean:73; Run/Tests/SleepContinuationAxioms.lean:6.
+
+`fgsa_hrestore_retained`:
+
+No direct proof/test use. The audit is a proof-only repair.
+
+Audit (proof-only): Run/Tests/Axioms.lean:48; Run/Tests/SleepContinuationAxioms.lean:7.
+
+`fgsa_hrestore_field_retained`:
+
+```text
+┌──────────────────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base                  │ Type │ Source │ Owner │ Open │
+├──────────────────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Assembly/WeakContinuation.lean:237       │ P    │ S      │ P-As  │ —    │
+│ Foundations/Leases.lean:323              │ P    │ S      │ P-Fd  │ —    │
+│ Foundations/Leases.lean:494              │ P    │ S      │ P-Fd  │ —    │
+│ WeakContinuation/StepFacts.lean:199      │ P    │ S      │ P-WC  │ —    │
+│ WeakContinuationGrowth/Dynamics.lean:379 │ P    │ S      │ P-WC  │ —    │
+│ Run/Proofs/Schedule.lean:222             │ P    │ S      │ W3    │ —    │
+└──────────────────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:49; Run/Tests/SleepContinuationAxioms.lean:8.
+
+`fgsa_preTick_now_lt`:
+
+```text
+┌───────────────────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base                   │ Type │ Source │ Owner │ Open │
+├───────────────────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Clean/StepGate.lean:511                   │ P    │ E      │ P-Cl1 │ —    │
+│ Healing/DescentLossNext.lean:289          │ P    │ L      │ P-H1  │ —    │
+│ Healing/DescentLossUnanimous.lean:158     │ P    │ L      │ P-H1  │ —    │
+│ Healing/FrontierSupportHeads.lean:153     │ P    │ L      │ P-H1  │ —    │
+│ Healing/FrontierSupportProposal.lean:98   │ P    │ L      │ P-H1  │ —    │
+│ Healing/OpeningServiceGate.lean:152       │ P    │ L      │ P-H2  │ —    │
+│ Healing/PostResetConeReceipts.lean:125    │ P    │ L      │ P-H2  │ —    │
+│ Healing/PostResetConeReceipts.lean:286    │ P    │ L      │ P-H2  │ —    │
+│ Healing/PostResetRaw.lean:901             │ P    │ L      │ P-H1  │ —    │
+│ Healing/PostResetRaw.lean:1383            │ P    │ L      │ P-H1  │ —    │
+│ Healing/RepairGate.lean:504               │ P    │ L      │ P-H1  │ —    │
+│ Healing/SupportHeads.lean:216             │ P    │ L      │ P-H1  │ —    │
+│ Healing/SupportOutput.lean:198            │ P    │ L      │ P-H1  │ —    │
+│ Healing/SupportProposal.lean:149          │ P    │ L      │ P-H1  │ —    │
+│ Healing/SupportRelay.lean:92              │ F    │ J      │ P-H1  │ —    │
+│ Outage/ContinuationReceipt.lean:283       │ P    │ E      │ P-Ou  │ —    │
+│ Shared/GateReceipt.lean:131               │ P    │ E      │ P-ShA │ —    │
+│ Shared/Relay.lean:144                     │ F    │ J      │ P-ShA │ —    │
+│ Shared/Relay.lean:576                     │ P    │ E      │ P-ShA │ —    │
+│ Shared/RetainedEndpoint.lean:26           │ P    │ L      │ P-ShA │ —    │
+│ Shared/RetainedReflect.lean:328           │ P    │ L      │ P-ShA │ —    │
+│ Shared/SameLabel.lean:206                 │ F    │ J      │ P-ShA │ —    │
+│ WeakContinuation/Inclusion.lean:206       │ P    │ L      │ P-WC  │ —    │
+│ WeakContinuation/Proposal.lean:297        │ P    │ E      │ P-WC  │ —    │
+│ WeakContinuation/Proposal.lean:493        │ P    │ L      │ P-WC  │ —    │
+│ WeakContinuation/StepGateBatch.lean:242   │ P    │ E      │ P-WC  │ —    │
+│ WeakContinuationGrowth/Dynamics.lean:1425 │ P    │ E      │ P-WC  │ —    │
+│ Run/Proofs/Schedule.lean:544              │ P    │ I      │ W3    │ —    │
+│ Run/Proofs/Schedule.lean:568              │ P    │ I      │ W3    │ —    │
+│ Run/Proofs/Schedule.lean:610              │ P    │ I      │ W3    │ —    │
+│ Run/Proofs/Schedule.lean:778              │ P    │ I      │ W3    │ —    │
+└───────────────────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:226; Run/Tests/SleepContinuationAxioms.lean:16.
+
+`fgsa_release_votes_stamped`:
+
+No direct proof/test use. The audit is a proof-only repair.
+
+Audit (proof-only): Run/Tests/Axioms.lean:227; Run/Tests/SleepContinuationAxioms.lean:21.
+
+`fgsa_stateBefore_bounds`:
+
+```text
+┌───────────────────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base                   │ Type │ Source │ Owner │ Open │
+├───────────────────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Clean/StepGate.lean:647                   │ P    │ K      │ P-Cl1 │ —    │
+│ Healing/DescentLossNext.lean:285          │ P    │ K      │ P-H1  │ —    │
+│ Healing/DescentLossUnanimous.lean:154     │ P    │ K      │ P-H1  │ —    │
+│ Healing/FrameZero.lean:106                │ P    │ K      │ P-H1  │ —    │
+│ Healing/FrontierSupportHeads.lean:149     │ P    │ K      │ P-H1  │ —    │
+│ Healing/FrontierSupportProposal.lean:94   │ P    │ K      │ P-H1  │ —    │
+│ Healing/OpeningServiceGate.lean:146       │ P    │ K      │ P-H2  │ —    │
+│ Healing/PostResetConeReceipts.lean:121    │ P    │ K      │ P-H2  │ —    │
+│ Healing/PostResetConeReceipts.lean:282    │ P    │ K      │ P-H2  │ —    │
+│ Healing/PostResetRaw.lean:1379            │ P    │ K      │ P-H1  │ —    │
+│ Healing/RepairGate.lean:498               │ P    │ K      │ P-H1  │ —    │
+│ Healing/SupportHeads.lean:212             │ P    │ K      │ P-H1  │ —    │
+│ Healing/SupportProposal.lean:145          │ P    │ K      │ P-H1  │ —    │
+│ Healing/SupportRelay.lean:93              │ P    │ K      │ P-H1  │ —    │
+│ Outage/ContinuationReceipt.lean:556       │ P    │ K      │ P-Ou  │ —    │
+│ Outage/ContinuationReceipt.lean:724       │ P    │ K      │ P-Ou  │ —    │
+│ Shared/GateReceipt.lean:363               │ P    │ K      │ P-ShA │ —    │
+│ Shared/HeadAdmit.lean:214                 │ P    │ K      │ P-ShA │ —    │
+│ Shared/OutputGrowthCausal.lean:47         │ P    │ K      │ P-ShA │ —    │
+│ Shared/Relay.lean:145                     │ P    │ K      │ P-ShA │ —    │
+│ Shared/Relay.lean:577                     │ P    │ K      │ P-ShA │ —    │
+│ Shared/RetainedEndpoint.lean:35           │ P    │ K      │ P-ShA │ —    │
+│ Shared/RetainedReflect.lean:337           │ P    │ K      │ P-ShA │ —    │
+│ Shared/SameLabel.lean:207                 │ P    │ K      │ P-ShA │ —    │
+│ WeakContinuation/StepGateBatch.lean:379   │ P    │ K      │ P-WC  │ —    │
+│ WeakContinuationGrowth/Dynamics.lean:1564 │ P    │ K      │ P-WC  │ —    │
+│ Run/Proofs/Schedule.lean:586              │ P    │ K      │ W3    │ —    │
+│ Run/Proofs/Schedule.lean:613              │ P    │ K      │ W3    │ —    │
+│ Run/Proofs/Schedule.lean:783              │ P    │ K      │ W3    │ —    │
+│ Run/Proofs/Schedule.lean:843              │ P    │ K      │ W3    │ —    │
+└───────────────────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:225; Run/Tests/SleepContinuationAxioms.lean:14.
+
+`fgsa_stored_block_origin`:
+
+```text
+┌─────────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base         │ Type │ Source │ Owner │ Open │
+├─────────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Finality/MiddleSupport.lean:757 │ P    │ K      │ P-Fi  │ —    │
+│ Healing/Promotion.lean:35       │ P    │ K      │ P-H1  │ —    │
+│ Shared/RetainedEndpoint.lean:47 │ P    │ K      │ P-ShA │ —    │
+│ Shared/ScoreRun.lean:897        │ P    │ K      │ P-ShA │ —    │
+│ Shared/ScoreRun.lean:1127       │ P    │ K      │ P-ShA │ —    │
+└─────────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:236; Run/Tests/SleepContinuationAxioms.lean:29.
+
+`fgsa_tick_total`:
+
+```text
+┌──────────────────────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base                      │ Type │ Source │ Owner │ Open │
+├──────────────────────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Assembly/WeakContinuation.lean:538           │ F    │ T01    │ P-As  │ M    │
+│ Assembly/WeakContinuationGrowth.lean:377     │ F    │ T02    │ P-As  │ M    │
+│ Assembly/WeakContinuationGrowth.lean:572     │ F    │ T03    │ P-As  │ M    │
+│ Assembly/WeakContinuationGrowthSeed.lean:195 │ F    │ T04    │ P-As  │ M    │
+│ Clean/Closure.lean:200                       │ F    │ T05    │ P-Cl1 │ M    │
+│ Clean/Closure.lean:298                       │ F    │ T06    │ P-Cl1 │ M    │
+│ Clean/Safety.lean:197                        │ F    │ T07    │ P-Cl1 │ M    │
+│ Clean/StepGate.lean:212                      │ F    │ T08    │ P-Cl1 │ M    │
+│ Clean/StepGate.lean:257                      │ P    │ T09    │ P-Cl1 │ —    │
+│ Clean/StepGate.lean:447                      │ F    │ T10    │ P-Cl1 │ M    │
+│ Clean/StepGate.lean:566                      │ P    │ T11    │ P-Cl1 │ —    │
+│ Clean/StepGate.lean:569                      │ F    │ T12    │ P-Cl1 │ M    │
+│ Finality/RowsPrem.lean:91                    │ P    │ T13    │ P-Fi  │ —    │
+│ Finality/TailFrame.lean:383                  │ P    │ T14    │ P-Fi  │ —    │
+│ Healing/FrontierSearchTasks.lean:211         │ P    │ T15    │ P-H2  │ —    │
+│ Healing/OpeningServiceBody.lean:197          │ P    │ T16    │ P-H2  │ —    │
+│ Healing/OpeningServiceOne.lean:29            │ F    │ T17    │ P-H2  │ M    │
+│ Healing/PostResetGate.lean:265               │ P    │ T18    │ P-H2  │ —    │
+│ Healing/PostResetOpening.lean:163            │ P    │ T19    │ P-H2  │ —    │
+│ Healing/PostResetRaw.lean:592                │ P    │ T20    │ P-H1  │ —    │
+│ Healing/PostResetRaw.lean:811                │ P    │ T21    │ P-H1  │ —    │
+│ Healing/PostResetService.lean:235            │ P    │ T22    │ P-H2  │ —    │
+│ Healing/SupportHeads.lean:110                │ F    │ T23    │ P-H1  │ M    │
+│ Healing/SupportOutput.lean:261               │ P    │ T24    │ P-H1  │ —    │
+│ Outage/ArmingBatch.lean:63                   │ F    │ T25    │ P-Ou  │ M    │
+│ Outage/ContinuationReceipt.lean:462          │ P    │ T26    │ P-Ou  │ —    │
+│ Outage/ContinuationReceipt.lean:465          │ F    │ T27    │ P-Ou  │ M    │
+│ Outage/ContinuationReceipt.lean:626          │ P    │ T28    │ P-Ou  │ —    │
+│ Outage/ContinuationReceipt.lean:629          │ F    │ T29    │ P-Ou  │ M    │
+│ Outage/ContinuationReceipt.lean:820          │ F    │ T30    │ P-Ou  │ M    │
+│ Outage/ExactProposalRetained.lean:299        │ F    │ T31    │ P-Ou  │ M    │
+│ Outage/ExactProposalRetained.lean:513        │ P    │ T32    │ P-Ou  │ —    │
+│ Outage/ExactProposalRetained.lean:519        │ F    │ T33    │ P-Ou  │ M    │
+│ Outage/ExactProposalRetained.lean:581        │ F    │ T34    │ P-Ou  │ M    │
+│ Outage/ExactProposalRetained.lean:726        │ F    │ T35    │ P-Ou  │ M    │
+│ Outage/InclusionGate.lean:55                 │ F    │ T36    │ P-Ou  │ M    │
+│ Outage/InclusionGate.lean:119                │ F    │ T37    │ P-Ou  │ M    │
+│ Outage/InclusionGateBody.lean:55             │ F    │ T38    │ P-Ou  │ M    │
+│ Shared/ExactHead.lean:193                    │ F    │ T39    │ P-ShA │ M    │
+│ Shared/ExactService.lean:462                 │ F    │ T40    │ P-ShA │ M    │
+│ Shared/GateReceipt.lean:269                  │ P    │ T41    │ P-ShA │ —    │
+│ Shared/GateReceipt.lean:272                  │ F    │ T42    │ P-ShA │ M    │
+│ Shared/HeadAdmit.lean:387                    │ P    │ T43    │ P-ShA │ —    │
+│ Shared/OutputGrowthProposal.lean:32          │ P    │ T44    │ P-ShA │ —    │
+│ Shared/RetainedEndpoint.lean:293             │ F    │ T45    │ P-ShA │ M    │
+│ WeakContinuation/ExactProposal.lean:214      │ F    │ T46    │ P-WC  │ M    │
+│ WeakContinuation/Inclusion.lean:78           │ F    │ T47    │ P-WC  │ M    │
+│ WeakContinuation/Inclusion.lean:332          │ F    │ T48    │ P-WC  │ M    │
+│ WeakContinuation/Proposal.lean:203           │ F    │ T49    │ P-WC  │ M    │
+│ WeakContinuation/Proposal.lean:750           │ F    │ T50    │ P-WC  │ M    │
+│ WeakContinuation/StepGateBatch.lean:305      │ P    │ T51    │ P-WC  │ —    │
+│ WeakContinuation/StepGateBatch.lean:308      │ F    │ T52    │ P-WC  │ M    │
+│ WeakContinuation/StepInputs.lean:155         │ F    │ T53    │ P-WC  │ M    │
+│ WeakContinuation/StepService.lean:201        │ F    │ T54    │ P-WC  │ M    │
+│ WeakContinuation/StepTransfer.lean:44        │ F    │ T55    │ P-WC  │ M    │
+│ WeakContinuationGrowth/Dynamics.lean:811     │ F    │ T56    │ P-WC  │ M    │
+│ WeakContinuationGrowth/Dynamics.lean:1015    │ F    │ T57    │ P-WC  │ M    │
+│ WeakContinuationGrowth/Dynamics.lean:1488    │ P    │ T58    │ P-WC  │ —    │
+│ WeakContinuationGrowth/Dynamics.lean:1491    │ F    │ T59    │ P-WC  │ M    │
+│ WeakContinuationGrowth/Dynamics.lean:3074    │ F    │ T60    │ P-WC  │ M    │
+│ Tests/InclusionGate.lean:71                  │ F    │ T61    │ P-Ou  │ M    │
+└──────────────────────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:215; Run/Tests/SleepContinuationAxioms.lean:12.
+
+`fgsa_gate_clock_bridge`:
+
+```text
+┌──────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base      │ Type │ Source │ Owner │ Open │
+├──────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Healing/SupportWrite.lean:75 │ F    │ GF     │ P-H1  │ —    │
+│ Shared/ExactService.lean:218 │ A    │ G      │ P-ShA │ —    │
+│ Shared/OpeningSource.lean:49 │ A    │ G      │ P-ShA │ —    │
+└──────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:224; Run/Tests/SleepContinuationAxioms.lean:13.
+
+`fgsa_release_clockPre`:
+
+```text
+┌───────────────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base               │ Type │ Source │ Owner │ Open │
+├───────────────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Healing/DescentLossUnanimous.lean:291 │ P    │ RN     │ P-H1  │ —    │
+│ Healing/SupportTransfer.lean:72       │ F    │ RR     │ P-H1  │ —    │
+│ Healing/SupportTransfer.lean:306      │ P    │ RN     │ P-H1  │ —    │
+└───────────────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:229; Run/Tests/SleepContinuationAxioms.lean:23.
+
+`fgsa_release_input_votes_stamped`:
+
+```text
+┌──────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base      │ Type │ Source │ Owner │ Open │
+├──────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Run/Proofs/Schedule.lean:888 │ P    │ C      │ W3    │ —    │
+└──────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:230; Run/Tests/SleepContinuationAxioms.lean:24.
+
+`fgsa_release_count_bridge`:
+
+No direct proof/test use. The audit is a proof-only repair.
+
+Audit (proof-only): Run/Tests/Axioms.lean:232; Run/Tests/SleepContinuationAxioms.lean:26.
+
+`fgsa_gate_saved_result`:
+
+```text
+┌────────────────────────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base                        │ Type │ Source │ Owner │ Open │
+├────────────────────────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Clean/StateGate.lean:32                        │ F    │ GR     │ P-Cl1 │ M    │
+│ Shared/Reads.lean:161                          │ A    │ G      │ P-ShA │ —    │
+│ WeakContinuation/StepGateHistory.lean:139      │ A    │ G      │ P-WC  │ —    │
+│ WeakContinuation/StepOutput.lean:29            │ A    │ G      │ P-WC  │ —    │
+│ WeakContinuation/StepService.lean:30           │ A    │ G      │ P-WC  │ —    │
+│ WeakContinuation/StepTransfer.lean:91          │ A    │ G      │ P-WC  │ —    │
+│ WeakContinuation/StepTransferReceipts.lean:415 │ A    │ G      │ P-WC  │ —    │
+│ WeakContinuationGrowth/Dynamics.lean:639       │ A    │ G      │ P-WC  │ —    │
+│ WeakContinuationGrowth/Dynamics.lean:1877      │ A    │ G      │ P-WC  │ —    │
+│ WeakContinuationGrowth/Dynamics.lean:2153      │ A    │ G      │ P-WC  │ —    │
+│ WeakContinuationGrowth/Dynamics.lean:2965      │ A    │ G      │ P-WC  │ —    │
+│ WeakContinuationGrowth/Dynamics.lean:3121      │ A    │ G      │ P-WC  │ —    │
+└────────────────────────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/Axioms.lean:235; Run/Tests/SleepContinuationAxioms.lean:27.
+
+`timely_of_relay_retained`:
+
+```text
+┌──────────────────────────────┬──────┬────────┬───────┬──────┐
+│ Consumer at review base      │ Type │ Source │ Owner │ Open │
+├──────────────────────────────┼──────┼────────┼───────┼──────┤
+│ Run/Proofs/Receipts.lean:883 │ P    │ RT     │ W3    │ —    │
+│ Run/Proofs/Receipts.lean:985 │ P    │ RT     │ W3    │ —    │
+└──────────────────────────────┴──────┴────────┴───────┴──────┘
+```
+
+Audit (proof-only): Run/Tests/SleepContinuationAxioms.lean:10.
+
+Exact awake obligations (T01–T61):
+
+A(v,t) means `E.awake v t = true`. The true tick consumer form is the existing
+schedule, honesty, public-time and horizon premises plus A(v,t), giving
+`∃! i, rho.events[i]? = some (.tick v t)`. Each T row supplies the exact v and t.
+For an F row, this is the required replacement of the false unconditional tick subclaim;
+the owner must propagate it through the enclosing helper and callers. It does not certify
+all other sleep obligations of that enclosing theorem. Public premise changes need a ruling.
+The three generic helpers keep their current existential conclusions after adding:
+opening_action_tick: A(x,a(r)); healing_support_vote_tick: A(z,v(i));
+arming_tick_exists: A(y,t), where t=mΔ. None currently has a public source for A.
+
+Here a(r)=p.actionTime r, v(s)=SA.voteTime p.toParams s,
+d(s)=SA.gateTime p.toParams s, e(s)=SA.earlyTime p.toParams s,
+f(s)=SA.freezeTime p.toParams s, q(s)=SA.releaseTime p.toParams s,
+t(s)=SA.proposalTime p.toParams s, and R=p.R. All times use p.Δ.
+`seat(head s,k)` means rho.seatOf (.base (.head s)) k;
+`proposer(s)` means V2.D.proposerOf rho (fgsaInterface p c) s.
+Recovery sources use the unchanged Recovery₂.awake (approved P8, packet :2288–2325).
+The cited H0Reset sources use synchronous and label (P8/D041, packet :2571–2597).
+
+- T01: A(x,v(w.u+1)). Source: premise source missing; P-As must supply A at this exact time or
+  avoid this tick.
+- T02: A(x,v(pt.s)). Source: premise source missing; P-As must supply A at this exact time or
+  avoid this tick.
+- T03: A(x,d(pt.s)). Source: premise source missing; P-As must supply A at this exact time or
+  avoid this tick.
+- T04: A(x,v(w.u+1)). Source: premise source missing; P-As must supply A at this exact time or
+  avoid this tick.
+- T05: A(x,d(s)). Source: premise source missing; P-Cl1 must supply A at this exact time or avoid
+  this tick.
+- T06: A(y,v(s+1)). Source: premise source missing; P-Cl1 must supply A at this exact time or
+  avoid this tick.
+- T07: A(x,d(l)). Source: premise source missing; P-Cl1 must supply A at this exact time or avoid
+  this tick.
+- T08: A(x,2Δ). Source: premise source missing; P-Cl1 must supply A at this exact time or avoid
+  this tick.
+- T09: A(seat(head0,k),v(0)). Source: hka from (hH k).mp hk, at voteTime 0.
+- T10: A(x,d(s)). Source: premise source missing; P-Cl1 must supply A at this exact time or avoid
+  this tick.
+- T11: A(y,v(s+1)). Source: the explicit hawake for selected voter y, at voteTime (s+1).
+- T12: A(x,e(s+1)). Source: premise source missing; P-Cl1 must supply A at this exact time or
+  avoid this tick.
+- T13: A(y,v((pt.r+2)R)). Source: hK.set.awake y hy _ hGSTq (kmid_slot_horizon hK le_rfl).2.1.
+- T14: A(y,v((pt.r+1)R)). Source: hT.set.awake y hy _ hGST hhorZ.2.1.
+- T15: A(x,a(rG+2)). Source: hrec.awake x hx u₀ (hdelay implies GST ≤ u₀) hhor; hu₀ fixes a(rG+2).
+- T16: A(y,a(r)). Source: hrec.awake y hy a(r); GST ≤ u ≤ proposalTime q ≤ a(r); har.trans hvh.
+- T17: A(x,a(r)). Source: premise source missing; P-H2 must supply A at this exact time or avoid
+  this tick.
+- T18: A(x,d(s)). Source: hrec.awake x hx d(s); hgst bounds voteTime s, which is ≤ d(s);
+  hGateHorizon.
+- T19: A(x,v(v)). Source: hrec.awake x hx v(v); H0Reset.synchronous and w.sStar+2 ≤ v give GST ≤
+  v(v); hh.
+- T20: A(y,d(s+1)). Source: hrec.awake y hy d(s+1); hgst ≤ voteTime s ≤ d(s+1); hguard.
+- T21: A(x,q(w.sStar)). Source: hrec.awake x hx q(w.sStar); h0r.synchronous ≤ q(w.sStar);
+  hqg.trans hhor.
+- T22: A(x,d(v)). Source: hrec.awake x hx d(v); postReset_synchronous_window hreset hv ≤ d(v);
+  hGateHorizon.
+- T23: A(z,v(i)). Source: premise source missing; P-H1 must supply A at this exact time or avoid
+  this tick.
+- T24: A(y,d(s+1)). Source: hrec.awake y hy d(s+1); hgst1 ≤ voteTime(s+1) ≤ d(s+1); hhor.
+- T25: A(y,t=mΔ). Source: premise source missing; P-Ou must supply A at this exact time or avoid
+  this tick.
+- T26: A(y,v(s)). Source: the explicit hawake for selected voter y, at voteTime s.
+- T27: A(x,e(s)). Source: premise source missing; P-Ou must supply A at this exact time or avoid
+  this tick.
+- T28: A(y,v(s)). Source: the explicit hawake for selected voter y, at voteTime s.
+- T29: A(x,e(s)). Source: premise source missing; P-Ou must supply A at this exact time or avoid
+  this tick.
+- T30: A(x,f(s)). Source: premise source missing; P-Ou must supply A at this exact time or avoid
+  this tick.
+- T31: A(x0,d(q)). Source: premise source missing; P-Ou must supply A at this exact time or avoid
+  this tick.
+- T32: A(seat(head(q+1),w),v(q+1)). Source: (hH w).mp hw: selected honest awake voter at voteTime
+  (q+1).
+- T33: A(x,e(q+1)). Source: premise source missing; P-Ou must supply A at this exact time or avoid
+  this tick.
+- T34: A(y,e(q+1)). Source: premise source missing; P-Ou must supply A at this exact time or avoid
+  this tick.
+- T35: A(x,v(pt.s)). Source: premise source missing; P-Ou must supply A at this exact time or
+  avoid this tick.
+- T36: A(y,v(pt.s)). Source: premise source missing; P-Ou must supply A at this exact time or
+  avoid this tick.
+- T37: A(y,d(s-1)). Source: premise source missing; P-Ou must supply A at this exact time or avoid
+  this tick.
+- T38: A(x,d(pt.s)). Source: premise source missing; P-Ou must supply A at this exact time or
+  avoid this tick.
+- T39: A(y,v(s)). Source: premise source missing; P-ShA must supply A at this exact time or avoid
+  this tick.
+- T40: A(x,d(v)). Source: premise source missing; P-ShA must supply A at this exact time or avoid
+  this tick.
+- T41: A(y,v(s)). Source: the explicit hawake for selected voter y, at voteTime s.
+- T42: A(x,e(s)). Source: premise source missing; P-ShA must supply A at this exact time or avoid
+  this tick.
+- T43: A(seat(head s,a),v(s)). Source: hawake _ hy, from the caller's all-selected-voters awake
+  premise, at voteTime s.
+- T44: A(proposer(s),t(s)). Source: ha for the chosen proposer at proposalTime s; he identifies
+  this time.
+- T45: A(y,v(s)). Source: premise source missing; P-ShA must supply A at this exact time or avoid
+  this tick.
+- T46: A(x,v(pt.s)). Source: premise source missing; P-WC must supply A at this exact time or
+  avoid this tick.
+- T47: A(x,v(pt.s)). Source: premise source missing; P-WC must supply A at this exact time or
+  avoid this tick.
+- T48: A(x,d(pt.s)). Source: premise source missing; P-WC must supply A at this exact time or
+  avoid this tick.
+- T49: A(y,d(s-2)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T50: A(x,e(q+1)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T51: A(y,v(s)). Source: the explicit hawake for selected voter y, at voteTime s.
+- T52: A(x,e(s)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T53: A(y,d(s-1)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T54: A(y,d(s+1)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T55: A(y,v(s+1)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T56: A(y,d(s+1)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T57: A(y,d(s-1)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T58: A(y,v(s)). Source: the explicit hawake for selected voter y, at voteTime s.
+- T59: A(x,e(s)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T60: A(y,v(s+1)). Source: premise source missing; P-WC must supply A at this exact time or avoid
+  this tick.
+- T61: A(x,d(pt.s)). Source: premise source missing; P-Ou must supply A at this exact time or
+  avoid this tick.
+
+P6 joined participation (packet :2080–2082, :2094–2097, :2110–2112) counts
+joinedHonest at a specified time. Membership gives A at that time via joinedAt
+(packet :4092–4097); it does not give A for an arbitrary honest receiver or another time.
+Where a proof needs only an existential honest tick, choose its witness from a nonempty
+counted awake/joined set at that requested time. Where it names a receiver, retain that
+receiver and require its approved Ready/receiver window. No listed M row currently contains
+that exact receiver/time premise, so this handoff does not claim that P6 closes it.
+
+
+Tick existence also does not prove a duty emission. The approved HEAD target is
+`∀ x ∈ rho.honest, joinedAt p E rho x s (SA.voteTime p.toParams s) → Q x`,
+where Q is the kept HEAD/receipt conclusion (P10, packet :3876–3887).
+A joinedAt witness supplies A at that vote time and both wake/restart bounds
+(:4092–4097). A proposal emission needs the proposer's joinedDuty at proposalTime s
+(P7, packet :2238), not only its awake premise. An executed gate conclusion uses
+`enabledGateAt j x s → Q j x s` (P11, packet :4379–4381); its gate event supplies
+that tick directly, and its marker bound supplies G. These are approved scope forms.
+They do not supply earlier early/freeze ticks for a receiver. Those calls still need
+A at the exact earlier times in T01–T61, or a proof that does not require those ticks.
+No M row is closed by merely substituting an awake or counted-set fact at another time.
+
+For G rows in WC/WCG, the current NoRestart also proves the marker is none.
+The sleep port must instead use enabledGateAt or a nonempty executed result, with the
+P11 guard above. In StepGateHistory:139, a raw nonempty confirmation is not an executed
+result; establish enabledGateAt first. If its future sleep premises do not establish it,
+that family owner must mark the premise source missing rather than infer it from raw data.
+For Shared/ExactService:218 and OpeningSource:49, unfold GateService's executed result
+through fgsaAC and guarded gateResult; the nonempty result is the source of the gate guard.
+S-Ap writes the guarded public read; P-ShA proves the read bridge. The raw read remains diagnostic.
+
+False helper caller checks (source only; these caller files stay with their owners):
+
+- SupportTransfer.release_rows: DescentLossUnanimous:292, SupportTransfer:307,
+  PostResetRawStep:205. Pass the same release guard. Recovery + τ or an executed joined
+  receiver window can supply it; arbitrary survival cannot. DescentLossUnanimous:292
+  and PostResetRawStep:205 have hrec.base.noRestart; SupportTransfer:307 has hN.
+  PostResetRawStep:205 uses only the expiry-membership projection, so the conditional
+  release_rows form also suffices. Owner P-H1/P-H2 (§14.6/§8.3).
+- SupportWrite.fastWrite: SupportWrite:117, FrontierSupportTransfer:55, FrontierRead:81,
+  SupportLease:273. Keep an unconditional equation only with the guard on fastSet.
+  SupportWrite:117 and FrontierRead:81 have hres = some(some C), so G supplies joinedness.
+  FrontierSupportTransfer:55 has hrec.base.noRestart; SupportLease:273 has hB in the
+  actual fastWrite row. Gate freshness + the unjoined empty-row law makes that a joined witness.
+  A raw fs equation cannot supply it. Owners P-H1/P-H2 must trace each premise (§14.6).
+- StateGate.clean_gate_raw: StateGate:79,96,134,147,192; Transfer:63; GateOutput:41;
+  StepGate:74,298,740; TransferFrame:133,320. Executed result some(some B) gives G.
+  Calls that construct a result from raw confirmation must first establish enabledGateAt.
+  P-Cl1 owns that source check (§14.6); a gate event alone leaves the premise source missing.
+- OpeningServiceOne.opening_action_tick: OpeningServiceOne:86, FrontierOpen:172,
+  Require A(x,a(r)); the applicable Recovery.awake plus
+  GST ≤ a(r) ≤ horizon must be passed at each call. P-H2 owns these checks (§8.3/§14.6).
+- SupportHeads.vote_tick: all callers in Healing must pass A at their requested voteTime.
+  A counted voter supplies its own awake membership; Recovery/H0Reset must prove the
+  exact lower and horizon bounds for other receivers. Owners P-H1/P-H2 (§14.6).
+- ArmingBatch.arming_tick_exists: ArmingBatch:181,183 and ArmingGate:316.
+  Require A(y,earlyTime(l+1)), A(q,voteTime(l+1)), A(y,gateTime(l+1)), respectively.
+  Awake counted voter membership can supply the middle call only for that selected q;
+  receiver readiness at one time does not cover the two other times. P-Ou owns the
+  missing receiver/window sources (§14.6, family owner).
+- Strict gate-late helpers: SupportRelay:92, Shared/Relay:144, Shared/SameLabel:206.
+  Keep their strict lateVotes conclusion with J. Relay callers :626,628,629 use current
+  NoRestart; SupportRelay:171,173,174 and SameLabel:295,297,298 must prove hEpoch
+  or use an approved joined gate scope. P-H1 and P-ShA own those checks (§14.6).
+
+Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits are excluded.
+
+```text
+┌───────────────────────────────┬───────┐
+│ Classification                │ Count │
+├───────────────────────────────┼───────┤
+│ proof-only repair             │ 110   │
+│ approved change of read/scope │ 13    │
+│ false internal consumer type  │ 47    │
+│ premise source missing        │ 42    │
+└───────────────────────────────┴───────┘
+```
+
+### Other W2b review fixes
+
+- P1/P3 valid-run test: Sleep.own_valid (:179) proves full ExecutionValid for ownRun.
+  Sleep.own_record_retained (:248) checks an own FG row at time 28, nonempty sent entries
+  before sleep on [31,35), and equal sent entries and full Λ after wake 35.
+  Both new theorem audits use only propext, Classical.choice and Quot.sound.
+- SleepContinuation.gate_empty (:64) is API coverage. Its raw fixture result is also empty;
+  no discriminating skipped-versus-executed confirmation claim is made.
+- Package map (§1.4/§8.1/§8.2): NamedDelivery and RetainedClock are TARGETS.
+  ReceiptCoverage Statements is S-Ap; owners are W3 52, P-ShA 45, S-Ap 14.
