@@ -1,6 +1,6 @@
-# P-H1 Round 9 PREPARED. P1/P2 HEAD relay and P5/TPerm production remain open.
+# P-H1 Round 10: P1/P2 produced; P5/TPerm production follows in the next group.
 # H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
-# 111 TARGETS; 561 GREEN; 19 EXPECTED-FAIL.
+# 115 TARGETS; 564 GREEN; 19 EXPECTED-FAIL.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
 AvailableChainFGSAProofs.Tests.HealingRecoveryProducersAxioms
@@ -113,6 +113,10 @@ AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Tests.HealingJoinedStartAxioms
 AvailableChainFGSAProofs.Tests.HealingJoinedStart
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
+AvailableChainFGSAProofs.Proofs.Shared.Relay
+AvailableChainFGSAProofs.Proofs.Healing.HeadRelay
+AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
+AvailableChainFGSAProofs.Tests.HealingHeadCap
 
 [GREEN]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
@@ -676,6 +680,9 @@ AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Tests.HealingJoinedStartAxioms
 AvailableChainFGSAProofs.Tests.HealingJoinedStart
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
+AvailableChainFGSAProofs.Proofs.Healing.HeadRelay
+AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
+AvailableChainFGSAProofs.Tests.HealingHeadCap
 
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs P-As

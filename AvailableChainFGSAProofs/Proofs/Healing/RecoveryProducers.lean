@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
+public import AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
@@ -100,14 +101,14 @@ theorem healing_first_transfer_scope_of_services {G ΔF : Time}
         GridCO.cleanSupport p.toParams.engine
           (actView (clockPre p (storeAt p c E rho ix x)
             (SA.gateTime p.toParams s))) s →
-      HeadRelayServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y)
+      HeadRelayReceiptScope E rho s q b (SA.freezeTime p.toParams s) iy y)
     (backward : ∀ q b,
       ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
           GridCO.votesAt (storeAt p c E rho iy y).base s ∨
         (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
           headVotes p (clock p (storeAt p c E rho iy y)
             (SA.voteTime p.toParams (s + 1))) (s + 1)) →
-      HeadRelayServiceScope E rho s q b (SA.gateTime p.toParams s) ix x)
+      HeadRelayReceiptScope E rho s q b (SA.gateTime p.toParams s) ix x)
     (targets : ∀ K, K ∈ (storeAt p c E rho ix x).base.blocks →
       GridCO.stampBlock (storeAt p c E rho ix x).base K <
         SA.earlyTime p.toParams s →
@@ -145,7 +146,7 @@ theorem healing_next_transfer_scope_of_services {G ΔF : Time}
       (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         headVotes p (clock p (storeAt p c E rho iy y)
           (SA.voteTime p.toParams (s + 1))) (s + 1) →
-      HeadRelayServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y)
+      HeadRelayReceiptScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y)
     (carriers : HealingCarriersAt E rho s iy y
       (SA.voteTime p.toParams (s + 1))) : NextTransferScope E rho iy y s := by
   have hhor := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
@@ -168,6 +169,45 @@ theorem healing_next_transfer_scope_of_services {G ΔF : Time}
     exact healing_recovery_seat_rivals E rho hrec hCut hh _
   · apply healing_recovery_epoch_after_vote E rho hrec hy hCut.sync _ iy
     exact lt_add_of_pos_right _ p.deltaPos
+
+/-- P1 has a recovery producer for stored and carried HEADs, including cap witnesses. -/
+theorem healing_first_transfer_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {ix iy : Nat} {x y : V}
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams s) (hx : x ∈ rho.honest)
+    (hy : y ∈ rho.honest) (_hix : IsGateTick p c rho ix x s)
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hG : enabledGateAt p c E rho ix x s)
+    (hJ : joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1))) :
+    FirstTransferScope E rho ix iy x y s := by
+  apply healing_first_transfer_scope_of_services E rho hrec hSync hy hiy hG hJ
+  · exact healing_head_forward_receipt E rho hrec hSync hx hy hG hiy hJ
+  · exact healing_head_backward_receipt E rho hrec hSync hx hy hG hiy hJ
+  · intro K hK hStamp hFloor
+    exact healing_first_target_receipt_recovery E rho hrec mono hSync hx hy hiy
+      hK hStamp hFloor
+  · exact healing_carriers_recovery E rho hrec s iy y _
+
+/-- P2 uses local stamped read evidence, with no invented late-object delivery window. -/
+theorem healing_next_transfer_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} {iy : Nat} {y : V}
+    (hCut : HealingWindow p E 1 s) (hy : y ∈ rho.honest)
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hJ : joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1))) :
+    NextTransferScope E rho iy y s := by
+  have hh := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
+  apply healing_next_transfer_scope_of_services E rho hrec hCut hy hiy
+  · intro q K hq hem
+    apply healing_fresh_head_service E rho hrec hy hq hem hCut.sync
+    · change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
+      linarith [p.deltaPos]
+    · apply le_trans _ hh
+      change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤
+        4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+      push_cast
+      linarith [p.deltaPos]
+  · exact healing_head_local_receipt hrec.base.valid hrec.base.delta hy hiy hJ
+  · exact healing_carriers_recovery E rho hrec s iy y _
 
 /-- Proposal and late-gate support share the same proved seat counts and epoch.
 The actual tick remains the read; no proposal event is invented at a gate. -/

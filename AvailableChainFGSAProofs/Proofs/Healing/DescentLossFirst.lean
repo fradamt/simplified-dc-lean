@@ -177,7 +177,7 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
         change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
         linarith [p.deltaPos])) le_rfl) K'
       (hScope.targets K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB0 hBK'))
-    exact fgsa_cleanSupport_forward_relay_on E rho hE s hx hy hix hiy o' ho'
+    exact fgsa_cleanSupport_forward_relay_on_receipt E rho hE s hx hy hix hiy o' ho'
       seat hs' (fun b he => hScope.forward seat b (he ▸ ho')) Kfg' (hKe' ▸ hK')
       (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
   have htr := Gen.AC.Root.transfer src.blocks dst.base.blocks
@@ -185,7 +185,7 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) (eraseFG B)
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
-    (fgsa_headVotes_backward_relay_on E rho hE s ix iy xs y hx
+    (fgsa_headVotes_backward_relay_on_receipt E rho hE s ix iy xs y hx
       (fun q b hb => hScope.backward q b (Or.inr hb)))
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at htr

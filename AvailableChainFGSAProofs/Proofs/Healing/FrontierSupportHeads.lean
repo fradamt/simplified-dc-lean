@@ -244,7 +244,7 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
   | true =>
     exfalso
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
-    have hprov := fgsa_headVotes_provenance_on E rho hE i iy y hy hScope.reads
+    have hprov := fgsa_headVotes_provenance_on_receipt E rho hE i iy y hy hScope.reads
     have hone : ∀ w ∈ FGSA.headVotes p dst (i + 1), GridCO.headSeat? w = some k → w = o := by
       intro w hw hwk
       rcases hprov w hw k hwk with hm | heq
@@ -542,7 +542,7 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
         change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
         linarith)) le_rfl) K'
       (hScope.targets K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB0 hBK'))
-    exact fgsa_cleanSupport_forward_relay_on E rho hE s hx hy hix hiy o' ho'
+    exact fgsa_cleanSupport_forward_relay_on_receipt E rho hE s hx hy hix hiy o' ho'
       seat hs' (fun b he => hScope.forward seat b (he ▸ ho')) Kfg' (hKe' ▸ hK') B
       (hKe' ▸ hBK') hpath' hFB
   have hc := Gen.AC.Root.transfer src.blocks dst.base.blocks
@@ -550,7 +550,7 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) B
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
-    (fgsa_headVotes_backward_relay_on E rho hE s ix iy x y hx
+    (fgsa_headVotes_backward_relay_on_receipt E rho hE s ix iy x y hx
       (fun q b hb => hScope.backward q b (Or.inr hb)))
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at hc

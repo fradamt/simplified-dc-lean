@@ -26,3 +26,23 @@ public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
 #print axioms AvailableChain.FGSA.Run.healing_retained_service_scope_recovery
 #print axioms AvailableChain.FGSA.Run.healing_repair_head_services_recovery
 #print axioms AvailableChain.FGSA.Run.healing_source_before_receipt_recovery
+
+#print axioms AvailableChain.FGSA.Run.HeadRelayServiceScope.toReceiptScope
+#print axioms AvailableChain.FGSA.Run.fgsa_headVotes_provenance_on_receipt
+#print axioms AvailableChain.FGSA.Run.fgsa_headVotes_backward_relay_on_receipt
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_vote_forward_on_receipt
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_forward_relay_on_receipt
+#print axioms AvailableChain.FGSA.Run.healing_head_vote_restart_bound
+#print axioms AvailableChain.FGSA.Run.healing_head_gate_restart_bound
+#print axioms AvailableChain.FGSA.Run.healing_head_support_accepted
+#print axioms AvailableChain.FGSA.Run.healing_head_proposal_tick
+#print axioms AvailableChain.FGSA.Run.healing_head_provenance_on
+#print axioms AvailableChain.FGSA.Run.healing_head_read_provenance
+#print axioms AvailableChain.FGSA.Run.healing_head_read_stamp
+#print axioms AvailableChain.FGSA.Run.healing_head_local_receipt
+#print axioms AvailableChain.FGSA.Run.healing_head_accepted_receipt
+#print axioms AvailableChain.FGSA.Run.healing_head_forward_receipt
+#print axioms AvailableChain.FGSA.Run.healing_head_stored_backward_receipt
+#print axioms AvailableChain.FGSA.Run.healing_head_backward_receipt
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_scope_recovery
+#print axioms AvailableChain.FGSA.Run.healing_next_transfer_scope_recovery

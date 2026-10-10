@@ -1091,3 +1091,19 @@ is proved from named suppliers; W suffix preservation and lease compatibility at
 actual post-handover W gate are proved; the continuation exporter still needs
 OutageWSeed (Outage/ScopedCatchUp, O11-W-SEED); P-As assembly and the global audit
 integration remain pending.
+
+P-H1 Round 10 HEAD boundary:
+Shared/Relay adds HeadRelayReceiptScope and four receipt consumers. The scope
+requires a stamped stored HEAD or two stamped equivocation witnesses at the
+actual read. HeadRelayServiceScope.toReceiptScope adapts the older sufficient
+object service. Clean and continuation retain their existing object interfaces.
+Healing/HeadRelay proves local carried provenance through the actual restart
+model, with the joined reader's label cutoff. A carried third HEAD can be refused
+without an acceptance or a relay for that object. Healing/RelayProducers relays
+its two stored witnesses instead. P1 and P2 use the narrower receipt scope;
+RecoveryProducers supplies their complete recovery factories. Honest late HEAD
+reads no longer need an artificial object delivery window before their own read.
+Tests/HealingHeadCap replays the actual local handlers: a proposal carries a
+third HEAD after the first two votes capped the seat. The proposal and raw HEAD
+remain present, but the third HEAD is absent from the vote pool and clean support.
+This local handler check is not a complete ExecutionValid adversarial fixture.
