@@ -113,7 +113,18 @@ theorem fgsa_cleanInclusionPostGateClaim_of_clean
       exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.2.2.1)
     (hmono := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)
+      exact (cleanSafety_of_cut p hcut (by
+        intro V _ _ In c E rho ΔF h
+        have hc := h.sleepPre.sleepPre
+        have hq := h.pre.faultQ
+        have hp : SourceDisciplinePrem p c E rho () := ⟨hc.base, hq⟩
+        have hf := fgsa_fgFoundationClaim p c E rho () hp
+        have hf' : FGFoundation p c E rho :=
+          ⟨hf.store, hf.cumul, hf.mono, hf.frame, hf.geo, hf.strat, hf.reconcile⟩
+        have hsrc := fgsa_srcFrameAboveClaim p c E rho () hp
+        refine ⟨clean_sCompatible p c E rho hc hq hf' hsrc, ?_⟩
+        intro i j x _ hj hij _
+        exact sExtends p c E rho hc hq hf' hsrc x i j hij hj) c E rho (ΔF := ΔF) pt hc).2.1)
 
 /-- ROOT-DIGEST W2b. Blueprint 03 §5. The Clean claims supply history and monotonicity.
 The E1 Export proves the frozen inclusion claim. -/
