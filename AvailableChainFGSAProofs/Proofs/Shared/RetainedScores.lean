@@ -166,7 +166,6 @@ structure RetainedServiceScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 theorem fgsa_score_eq_on_candidates_on_run_on
     (E) (rho)
     (hE : V2.D.ExecutionValid (V := V) (P := fgsa p c) E rho)
-
     (s : Slot)
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))

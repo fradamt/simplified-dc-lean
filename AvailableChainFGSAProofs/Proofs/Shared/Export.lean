@@ -52,3 +52,8 @@ theorem fgsa_headReachesLoClaim (p : Params) : HeadReachesLoClaim p := by
 
 end AvailableChain.FGSA.Run
 end
+
+#print axioms AvailableChain.FGSA.Run.fgsa_sameLabelClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_releaseStoreClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_releaseClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_headReachesLoClaim

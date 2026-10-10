@@ -14,11 +14,11 @@ LabelSyncOn. The public `Export.fgsa_sameLabelClaim` compiles with its old type.
 in both directions. New ScoreRun and ExactHead forms prove support incidence,
 score equality, walk reflection, ghost transfer and exact joined HEAD output.
 
-`HeadRelayServiceScope` supplies candidate-local Relay receipts and epochs.
+`HeadRelayServiceScope` supplies Relay receipts for each candidate and epochs.
 The joined HEAD read supplies network provenance from its local restart bound.
 HeldReceipt has an exact target-service form.
 
-`RetainedServiceScope` supplies proposal service and candidate-local score service.
+`RetainedServiceScope` supplies proposal service and score service for each candidate.
 `RetainedExactHeadRunGeometryOn` guards every reader by joinedAt. New retained
 path, reflection and geometry forms build that record. H6/H6S/H17/L4R/HG1/L2
 read suppliers have `_joined` forms with the same reader guard.

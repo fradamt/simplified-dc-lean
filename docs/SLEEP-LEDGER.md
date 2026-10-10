@@ -2368,8 +2368,7 @@ SameLabelPrem or to the public claim.
 
 ### Round 5: retained geometry and read services
 
-`RetainedServiceScope` supplies the named proposal service and candidate-local
-ScoreServiceScope whenever both endpoint floors apply. Candidate services keep
+`RetainedServiceScope` supplies the named proposal service and ScoreServiceScope for each candidate whenever both endpoint floors apply. Candidate services keep
 HistorySafeAt per object; old processing is not used to fill that field.
 `RetainedExactHeadRunGeometryOn` restricts admission, walk and endpoint suppliers
 to joined readers. The new retained geometry theorem constructs those fields;

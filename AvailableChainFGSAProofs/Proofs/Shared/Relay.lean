@@ -6,6 +6,9 @@ public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 
 -- ROOT-DIGEST-2: a private unfolding fact avoids a public equation export (BUILD B3).
 namespace AvailableChain.FGSA.Run
+private theorem relay_slotStartZ_unfold (p : Params) (s : Int) :
+    slotStartZ p s = 4 * p.Δ * s := rfl
+
 private theorem hygiene_resolvedTarget_eq {n : Nat} (tree : List Block)
     (o : GridCO.Wire n .root) : Gen.AC.Root.resolvedTarget? tree o =
       (GridCO.headTarget? o).bind (Block.findByRoot? tree) := rfl
@@ -1214,7 +1217,7 @@ theorem fgsa_vote_accepted_before_head_read_on (E : Generic.Env V) (rho : V2.D.R
     have hr := hJ.2.2 w (hS.in_horizon _ (List.mem_of_getElem? hj)).1 ht
       (List.mem_of_getElem? hj)
     change w ≤ 4 * p.Δ * (s : Int)
-    simpa only [slotStartZ, Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hr
+    simpa only [relay_slotStartZ_unfold, Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hr
   have hpubP : V2.PublicTime E (SA.proposalTime p.toParams s) := by
     refine ⟨4 * s, ?_⟩
     rw [hDelta]
@@ -1230,7 +1233,9 @@ theorem fgsa_vote_accepted_before_head_read_on (E : Generic.Env V) (rho : V2.D.R
     push_cast
     linarith [p.deltaPos]
   have ha := fgsa_awake_of_joinedAt E rho y (s + 1) _ _ hJ hp0
-    (by simp only [slotStartZ, Nat.cast_add, Nat.cast_one, add_sub_cancel_right]; exact le_rfl) hpq
+    (by
+      simp only [relay_slotStartZ_unfold, Nat.cast_add, Nat.cast_one, add_sub_cancel_right]
+      exact le_rfl) hpq
   obtain ⟨it, hit⟩ := List.mem_iff_getElem?.mp (hS.tick_total y hy
     (SA.proposalTime p.toParams s) hpubP hp0
     (hpq.trans (hS.in_horizon _ (List.mem_of_getElem? htick)).2) ha)

@@ -1,4 +1,4 @@
-# P-ShA round 4 at 1c777e97; three owned targets remain open.
+# P-ShA round 5; additive service ports green; preserved Regimes legacy target open.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Tests.RestartEpochs
