@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPrefix
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 
 public section
@@ -30,6 +31,31 @@ theorem post_e_count_window (p : Params) (hk : p.k = 2) :
     ¬ ((6 : Slot) ≤ 2 + p.k + 1) := by
   norm_num [hk]
 
+/-- A gate after handover can still read a HEAD label inside E.
+Its gate time does not supply the healthy joined count at that earlier vote. -/
+theorem caught_gate_count_boundary (p : Params) (hd : p.Δ = 1) (hk : p.k = 2) :
+    OutageEnd p 2 ≤ SA.gateTime p.toParams 4 ∧
+      SA.voteTime p.toParams 4 < OutageEnd p 2 := by
+  norm_num [OutageEnd, slotStartZ, arming_gate_eq, arming_vote_eq, hd, hk]
+
+/-- The finite prefix for an early marker ends after a HEAD used by the next gate.
+The seed must therefore contain source history before its own cut. -/
+theorem early_marker_prefix_order (p : Params) (hd : p.Δ = 1) (hk : p.k = 2) :
+    SA.voteTime p.toParams 5 < SA.gateTime p.toParams (max 3 (2 + p.k)) := by
+  norm_num [arming_vote_eq, arming_gate_eq, hd, hk]
+
+/-- An asleep deterministic read cannot be selected as an actual regression. -/
+theorem asleep_not_scoped_regression {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (fast : Bool) (b₀ b₁ : Time) (B : Block) (k : Nat) (s : Slot)
+    (hAsleep : ∀ q, E.awake (rho.seatOf (.base (.head s)) q)
+      (SA.voteTime p.toParams s) = false) :
+    ¬ OutageScopedRegression (p := p) (c := c) (E := E) (rho := rho) fast b₀ b₁ B k s := by
+  rintro ⟨_, q, _, _, hReader, _, _⟩
+  have hAwake := hReader.1.2.1
+  rw [hAsleep q] at hAwake
+  contradiction
+
 /-- The marker service consumes the actual Foundation monotonicity producer.
 The remaining facts name this source marker and this joined read only. -/
 theorem marker_service_from_foundation {p : Params} {In V : Type} [DecidableEq V]
@@ -55,4 +81,7 @@ end AvailableChain.FGSA.Run.Tests.OutageLaterHeads
 #print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.pre_gst_marker_anchor
 #print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.post_gst_marker_anchor
 #print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.post_e_count_window
+#print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.caught_gate_count_boundary
+#print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.early_marker_prefix_order
+#print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.asleep_not_scoped_regression
 #print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.marker_service_from_foundation

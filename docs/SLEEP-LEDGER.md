@@ -6857,3 +6857,36 @@ Exact remaining finite prefix and first-marker goals are in P-Ou.round9-handoff.
 Evidence: .lake/sleep-pou-r9/dck.log, exports.log, coverage.log, serial-strict.log,
 first-group.log, later-tests.log, headers-final.log and layers-final.log.
 - Lead 2026-10-10 15:22: merged sleep-pas5 cc0ccf1d (P-As r5) as PREPARED, 44/66 GREEN; review rev-pas5-astra MERGE-AS-PREPARED. OutageContinuationInhabit stays OPEN (fixture not sleep-valid; r6 replaces it). FAST port in r6.
+
+### P-Ou Round 10 — restored seed and actual first-regression prefix
+
+ScopedInduction:28/:102 adds the bounded vote-cut forms. The previous APIs are
+wrappers, with their statements unchanged. ScopedPrefix:93 derives the auxiliary
+arming regime by W-set inclusion. :151 constructs the initial seed at earlyTime r
+from the actual arming certificate. :235 proves the no-regression continuation
+without source, stable, result or service seeds. :55/:298 selects the first actual
+regression event and produces its causal prefix, including same-label event order.
+Global source and F facts stay global. Stable coverage stays G-only.
+
+ScopedPrefix:338 replaces the frozen-path helper's global NoRestart premise with
+an actual joined read and its exact receipt/freeze window. P-Fd durable TF and
+RStoreEpoch preserve the selected body and stamp. :394 produces a durable marker
+from an actual contested named frame. :415 consumes local retained scores and
+uncontested filtered-path witnesses to prove contest. Their regime producers
+remain P-Ou O10-2. No service is requested at an arbitrary sleeper or before GST.
+
+ScopedContinuation:157 is the actual later HEAD producer. :194 permits early
+markers by placing its finite start after gate max(m,r+k); it uses :157 directly.
+The prefix after the first regression through that cut remains P-Ou O10-3.
+No future HEAD, result or service callback is introduced.
+
+ScopedCatchUp:16 produces the public W reader's actual post-End gate, batch at
+its early cut, awake suffix and receipt epoch. The boundary gate can still use
+an E-window HEAD; its time is not a healthy-count proof. :54 closes the finalized
+output branch. The other actual W output seed is P-Ou O10-4.
+
+Global hHeads, the early bridge and public consumer ports remain OPEN. The six
+P-Ou and two S-Ap EXPECTED-FAIL entries remain. P-Ou is PREPARED, not CLOSED.
+The complete Round 10 task is incomplete. Public claims and protocol declarations
+are unchanged. No new cross-package supplier request or public STOP is claimed.
+Exact goals and the 124-row scope table: scripts/dev-pkg/P-Ou.round10-handoff.md.

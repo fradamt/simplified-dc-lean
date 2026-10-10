@@ -152,8 +152,44 @@ theorem outage_head_rows_after_handover
     of_decide_eq_true (List.mem_filter.mp (outage_clockPre_expired_rows _ _ hr)).2
   exact (not_lt_of_ge (hd.trans hEnd)) hl
 
+/-- An actual joined HEAD after handover uses only the earlier event invariant.
+The marker's old receipt deadline is not used at this later reader. -/
+theorem outage_marker_head_at_read [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    (hf : FGFoundation p c E rho) {B P : FGBlock (Fin p.n)}
+    {k i : Nat} {y x : V} {m s : Slot}
+    (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams m)))
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
+    (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
+    (hJ : joinedAt p E rho x s (SA.voteTime p.toParams s))
+    (hrm : restoredLabel p b₁ ≤ m) (hms : m < s)
+    (hLate : restoredLabel p b₁ + p.k + 1 ≤ s)
+    (hP : P ∈ (storeAt p c E rho k y).fg.TF)
+    (hBJ : FGBlock.Preceq B (heightView p P).J) (hnz : (heightView p P).h_j ≠ 0)
+    (hNames : OutageNamedHistory p c E rho B i)
+    (hResults : ∀ j q C, j < i → restoredLabel p b₁ < q →
+      enabledGateAt p c E rho j x q → gateResultAt p c E rho j = some (some C) →
+      Block.Compatible C (eraseFG B)) :
+    Block.Compatible (headVote p (clock p (storeAt p c E rho i x)
+      (SA.voteTime p.toParams s)) s) (eraseFG B) := by
+  have hEnd : OutageEnd p (restoredLabel p b₁) ≤ SA.voteTime p.toParams s := by
+    rw [(outage_handover_time p _).1, arming_vote_eq, arming_vote_eq]
+    have hcast := Int.ofNat_le.mpr hLate
+    nlinarith [p.deltaPos]
+  have hlocks := outage_head_rows_after_handover h.pre.base.valid.toScheduleWellFormed
+    hEnd hResults
+  have heq : s - 1 + 1 = s := Nat.sub_add_cancel (by dsimp only [Slot] at hms ⊢; omega)
+  have hHead := outage_later_marker_head h.pre.base h.sync hf hk
+    (by simpa only [heq] using hi) hy hx (by simpa only [heq] using hJ)
+    (show m ≤ s - 1 by dsimp only [Slot] at hms ⊢; omega)
+    (h.gst.trans (outage_restored_vote_cut p b₁ hrm)) hP hBJ hnz hNames
+    (by simpa only [heq] using fun row hr _ => hlocks row hr)
+  simpa only [heq] using hHead
+
 /-- Once an actual marker and the finite prefix are established, the healthy
 suffix produces its HEAD and gate compatibility together with source names.
+The prefix ends after gate max(m,r+k), so a marker before r+k is allowed.
 There is no future HEAD, result, receipt, or all-honest stable seed input. -/
 theorem outage_marker_continuation_induction [Fintype V]
     {fast : Bool} {T b₀ b₁ ΔF : Time}
@@ -170,8 +206,9 @@ theorem outage_marker_continuation_induction [Fintype V]
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams m)))
     (hy : y ∈ rho.honest) (hP : P ∈ (storeAt p c E rho k y).fg.TF)
     (hBJ : FGBlock.Preceq B (heightView p P).J) (hnz : (heightView p P).h_j ≠ 0)
-    (hm : restoredLabel p b₁ + p.k ≤ m)
-    (hStart : afterTicksIdx rho (SA.gateTime p.toParams m) ≤ I)
+    (hm : restoredLabel p b₁ ≤ m)
+    (hStart : afterTicksIdx rho
+      (SA.gateTime p.toParams (max m (restoredLabel p b₁ + p.k))) ≤ I)
     (hSeed : OutageSourceHistory p c E rho (eraseFG B) I)
     (hCover : ∀ x ∈ coveredNodes p E rho fast b₀,
       Block.Preceq (eraseFG B) (S_at p c E rho I x))
@@ -191,10 +228,10 @@ theorem outage_marker_continuation_induction [Fintype V]
         row.2.2 ≤ OutageEnd p (restoredLabel p b₁) := by
   classical
   have hs := h.pre.base.valid.toScheduleWellFormed
-  have hrm : restoredLabel p b₁ ≤ m := (Nat.le_add_right _ _).trans hm
+  have hrm : restoredLabel p b₁ ≤ m := hm
   have hStartR : afterTicksIdx rho (SA.gateTime p.toParams (restoredLabel p b₁)) ≤ I :=
-    (afterTicksIdx_mono rho ((arming_gate_le_iff p _ _).mpr hrm)).trans hStart
-  have hGST := h.gst.trans (outage_restored_vote_cut p b₁ hrm)
+    (afterTicksIdx_mono rho ((arming_gate_le_iff p _ _).mpr
+      (hrm.trans (le_max_left _ _)))).trans hStart
   induction i, hI using Nat.le_induction with
   | base =>
     have hNames := outage_named_of_source_history h.pre.base.idealization rfl hSeed hnamed
@@ -213,8 +250,12 @@ theorem outage_marker_continuation_induction [Fintype V]
       rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hj) with hjn | hjn
       · exact hResults j x s C hjn hx hrs hG hC
       subst j
-      have hms : m < s := (arming_gate_lt_iff p m s).mp
-        (outage_tick_after_cut hs hG.1 (hStart.trans hIn))
+      have hCut : max m (restoredLabel p b₁ + p.k) < s :=
+        (arming_gate_lt_iff p _ s).mp
+          (outage_tick_after_cut hs hG.1 (hStart.trans hIn))
+      have hms : m < s := (le_max_left _ _).trans_lt hCut
+      have hLate : restoredLabel p b₁ + p.k < s :=
+        (le_max_right _ _).trans_lt hCut
       apply outage_continuation_result_of_head_history h hx hrs hG hC
       intro q K hReader hK
       have hKeep := hK
@@ -224,29 +265,17 @@ theorem outage_marker_continuation_induction [Fintype V]
       have hHist : OutageSourceHistory p c E rho (eraseFG B) a :=
         ⟨fun z v r D hza hv hz hD => hSource.history z v r D (hza.trans han) hv hz hD⟩
       have hNames := outage_named_of_source_history h.pre.base.idealization rfl hHist hnamed
-      have hEnd : OutageEnd p (restoredLabel p b₁) ≤ SA.voteTime p.toParams s := by
-        rw [(outage_handover_time p _).1, arming_vote_eq, arming_vote_eq]
-        have hcast : ((restoredLabel p b₁ + p.k + 1 : Nat) : Int) ≤ (s : Int) := by
-          exact_mod_cast (show restoredLabel p b₁ + p.k + 1 ≤ s by
-            dsimp only [Slot] at hm hms ⊢; omega)
-        nlinarith [p.deltaPos]
-      have hlocks := outage_head_rows_after_handover hs hEnd
-        (fun z r D hza hrr hZ hD =>
-          hResults z _ r D (hza.trans han) hReader.1.1 hrr hZ hD)
       have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
         slotOf_offset p s p.Δ p.deltaPos.le
           (by have := p.deltaPos; dsimp [Time] at *; omega)
       have hJ : joinedAt p E rho (rho.seatOf (.base (.head s)) q) s
           (SA.voteTime p.toParams s) := by
         simpa only [hslot] using hReader.1.2
-      have heq : s - 1 + 1 = s := Nat.sub_add_cancel (by dsimp only [Slot] at hms ⊢; omega)
-      have hHead := outage_later_marker_head h.pre.base h.sync hf hk
-        (by simpa only [heq] using ha) hy hReader.1.1
-        (by simpa only [heq] using hJ)
-        (show m ≤ s - 1 by dsimp only [Slot] at hms ⊢; omega) hGST hP hBJ hnz hNames
-        (by simpa only [heq] using fun row hr _ => hlocks row hr)
+      have hHead := outage_marker_head_at_read h hf hk ha hy hReader.1.1 hJ hm hms
+        (Nat.succ_le_of_lt hLate) hP hBJ hnz hNames
+        (fun z r D hza hrr hZ hD =>
+          hResults z _ r D (hza.trans han) hReader.1.1 hrr hZ hD)
       have hEq := headTargetAtEmission_at_tick E rho hs hKeep ha rfl
-      rw [heq] at hHead
       exact hEq.symm ▸ hHead
     have hState := outage_continuation_event_induction h.pre.base hf htsrc hnamed rfl hStartR
       hSeed hCover (fun j x s C _ hj hx hrs hG hC => hNew j x s C hj hx hrs hG hC)
