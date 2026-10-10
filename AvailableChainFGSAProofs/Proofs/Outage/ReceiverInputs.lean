@@ -1094,18 +1094,19 @@ theorem outage_first_restored_label (p : Params) (b₁ : Time) :
 
 /-- All enabled gates after r use E inside its window and the healthy set after handover.
 The only invariant input is compatibility of actual scoped HEADs. -/
-theorem outage_continuation_results_of_head_history [Fintype V]
+theorem outage_continuation_result_of_head_history [Fintype V]
     {fast : Bool} {T b₀ b₁ ΔF : Time}
     (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF) {B : Block}
-    (hHeads : ∀ s q K, restoredLabel p b₁ < s →
+    {i : Nat} {x : V} {s : Slot} {C : Block}
+    (hx : x ∈ rho.honest) (hrs : restoredLabel p b₁ < s)
+    (hG : enabledGateAt p c E rho i x s)
+    (hC : gateResultAt p c E rho i = some (some C))
+    (hHeads : ∀ q K,
       outageHeadReader p E rho fast b₀ b₁ (rho.seatOf (.base (.head s)) q)
         (SA.voteTime p.toParams s) →
       HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
         (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
-      Block.Compatible K B) :
-    ∀ i x s C, x ∈ rho.honest → restoredLabel p b₁ < s →
-      enabledGateAt p c E rho i x s → gateResultAt p c E rho i = some (some C) →
-      Block.Compatible C B := by
+      Block.Compatible K B) : Block.Compatible C B := by
   classical
   obtain ⟨r, hr, hCount⟩ := h.protection
   have hrCanon := outage_first_restored_label p b₁
@@ -1115,7 +1116,6 @@ theorem outage_continuation_results_of_head_history [Fintype V]
     · exact (hrCanon _).mp ((hr _).mpr le_rfl)
   subst r
   have hs := h.pre.base.valid.toScheduleWellFormed
-  intro i x s C hx hrs hG hC
   have hGST := h.gst.trans ((hr s).mpr hrs.le)
   have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
     slotOf_offset p s p.Δ p.deltaPos.le
@@ -1135,7 +1135,7 @@ theorem outage_continuation_results_of_head_history [Fintype V]
       have hcast : (restoredLabel p b₁ : Int) + 1 ≤ (s : Int) := by
         dsimp only [Slot] at hrs; omega
       push_cast; nlinarith [p.deltaPos]
-    exact hHeads s q K hrs hReader hK
+    exact hHeads q K hReader hK
   · have hAfter : restoredLabel p b₁ + p.k + 1 ≤ s := by
       dsimp only [Slot] at hWindow ⊢; omega
     have hHor := (fgsa_vote_lt_gate p s).le.trans
@@ -1148,11 +1148,29 @@ theorem outage_continuation_results_of_head_history [Fintype V]
         4 * p.Δ * (s : Int) + p.Δ
       have hcast := Int.ofNat_le.mpr hAfter
       push_cast at hcast ⊢; nlinarith [p.deltaPos]
-    apply hHeads s q K hrs _ hK
+    apply hHeads q K _ hK
     refine ⟨?_, Or.inr (Or.inr hEnd)⟩
     change _ ∈ rho.honest ∧ joinedAt p E rho _ (slotAt p (SA.voteTime p.toParams s)) _
     rw [hslot]
     exact hGood
+
+/-- All enabled gates after r use E inside its window and the healthy set after handover.
+The only invariant input is compatibility of actual scoped HEADs. -/
+theorem outage_continuation_results_of_head_history [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF) {B : Block}
+    (hHeads : ∀ s q K, restoredLabel p b₁ < s →
+      outageHeadReader p E rho fast b₀ b₁ (rho.seatOf (.base (.head s)) q)
+        (SA.voteTime p.toParams s) →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Block.Compatible K B) :
+    ∀ i x s C, x ∈ rho.honest → restoredLabel p b₁ < s →
+      enabledGateAt p c E rho i x s → gateResultAt p c E rho i = some (some C) →
+      Block.Compatible C B := by
+  intro i x s C hx hrs hG hC
+  exact outage_continuation_result_of_head_history h hx hrs hG hC
+    (fun q K hReader hK => hHeads s q K hrs hReader hK)
 
 end AvailableChain.FGSA.Run
 end

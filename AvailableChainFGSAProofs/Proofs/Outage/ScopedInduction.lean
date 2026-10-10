@@ -25,16 +25,16 @@ structure OutageCoveredDutyHistory (fast : Bool) (b₀ : Time) (B : Block)
 
 /-- The actual good HEAD before restoration is covered, or is the in-flight seed.
 The index bound is at the current release or source tick. -/
-theorem outage_good_head_before_restored
-    {fast : Bool} {b₀ b₁ : Time} {r j : Slot}
-    (hr : FirstRestored p b₁ r) (hcut : b₀ < SA.gateTime p.toParams j)
+theorem outage_good_head_through_restored
+    {fast : Bool} {b₀ : Time} {r j : Slot}
+    (hcut : b₀ < SA.gateTime p.toParams j)
     {B : Block} {i : Nat}
     (hDuty : OutageCoveredDutyHistory (p := p) (c := c) (E := E) (rho := rho)
       fast b₀ B j i)
     (hSeed : ∀ y o t (q : Fin p.n) H, y ∈ rho.honest → V2.D.Run.emits E rho y o t →
       o.auth = .seat (.base (.head (j + 1))) q →
       HeadTargetAtEmission p c E rho y o t H → Block.Preceq B H)
-    {s : Slot} (hjs : j < s) (hvb : SA.voteTime p.toParams s < b₁)
+    {s : Slot} (hjs : j < s) (hsr : s ≤ r)
     {q : Fin p.n} {K : Block}
     (hGood : rho.seatOf (.base (.head s)) q ∈
       outageH p E rho s \ outageW p E rho fast b₀ r)
@@ -57,12 +57,33 @@ theorem outage_good_head_before_restored
       dsimp only [Slot] at hjs hsj ⊢
       omega
     nlinarith [p.deltaPos]
+  have hyG := outage_good_covered E rho hGood (hcut.le.trans htime.le) hsr
+  exact (hDuty.history k _ _ _ (hBefore k hk) hyG htime.le hk hem).1 K hKkeep
+
+/-- The public restored cut supplies the label bound for the local good HEAD. -/
+theorem outage_good_head_before_restored
+    {fast : Bool} {b₀ b₁ : Time} {r j : Slot}
+    (hr : FirstRestored p b₁ r) (hcut : b₀ < SA.gateTime p.toParams j)
+    {B : Block} {i : Nat}
+    (hDuty : OutageCoveredDutyHistory (p := p) (c := c) (E := E) (rho := rho)
+      fast b₀ B j i)
+    (hSeed : ∀ y o t (q : Fin p.n) H, y ∈ rho.honest → V2.D.Run.emits E rho y o t →
+      o.auth = .seat (.base (.head (j + 1))) q →
+      HeadTargetAtEmission p c E rho y o t H → Block.Preceq B H)
+    {s : Slot} (hjs : j < s) (hvb : SA.voteTime p.toParams s < b₁)
+    {q : Fin p.n} {K : Block}
+    (hGood : rho.seatOf (.base (.head s)) q ∈
+      outageH p E rho s \ outageW p E rho fast b₀ r)
+    (hK : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K)
+    (hBefore : ∀ k, rho.events[k]? = some
+      (.tick (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s)) → k < i) :
+    Block.Preceq B K := by
   have hsr : s ≤ r := by
     by_contra hn
     have hv := (hr s).mpr (by dsimp only [Slot] at hn ⊢; omega)
     exact (not_lt_of_ge hv) hvb
-  have hyG := outage_good_covered E rho hGood (hcut.le.trans htime.le) hsr
-  exact (hDuty.history k _ _ _ (hBefore k hk) hyG htime.le hk hem).1 K hKkeep
+  exact outage_good_head_through_restored hcut hDuty hSeed hjs hsr hGood hK hBefore
 
 /-- Named source history gives current F compatibility at every honest receiver.
 No local protection or receiver join is required for this frame conclusion. -/
@@ -78,7 +99,7 @@ theorem outage_source_frame_compatible
 /-- The full pre-restoration joint induction includes restart events. Sources and
 names are global; protection and new duties are limited to covered receivers.
 Release uses the fixed A union W bound. The endpoint can equal lease expiry. -/
-theorem outage_event_induction_scoped [Fintype V]
+theorem outage_event_induction_before_vote_cut [Fintype V]
     (hBase : Base₂ p c E rho) (hf : FGFoundation p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) (htsrc : TSrc p c E rho)
     (hnamed : ∀ k x r (a : RowWire p.n) e,
@@ -89,7 +110,7 @@ theorem outage_event_induction_scoped [Fintype V]
         gateResult p c E rho x (r * p.R) = some (some G) ∧
         Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
     {fast : Bool} {b₀ b₁ : Time} {r j : Slot} {B : Block} {β : FGBlock (Fin p.n)}
-    (hr : FirstRestored p b₁ r) (hcut : b₀ < SA.gateTime p.toParams j)
+    (hVotes : ∀ s, SA.voteTime p.toParams s < b₁ → s ≤ r) (hcut : b₀ < SA.gateTime p.toParams j)
     (hBound : (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r).card <
       SA.releaseThreshold p.toParams)
     (hβ : eraseFG β = B) (hend : b₁ ≤ SA.gateTime p.toParams j + L p)
@@ -195,8 +216,8 @@ theorem outage_event_induction_scoped [Fintype V]
             (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
           Block.Preceq B K := by
         intro q K hGood hK
-        exact outage_good_head_before_restored hr hcut hduty hSeed hjs
-          (hvs.trans htb) hGood hK (fun k hk =>
+        exact outage_good_head_through_restored hcut hduty hSeed hjs
+          (hVotes _ (hvs.trans htb)) hGood hK (fun k hk =>
             V2.D.Engine.eventIndex_lt_of_time_lt hs hk he hvs)
       have hsource' : OutageSourceHistory p c E rho B (i + 1) := by
         constructor
@@ -345,6 +366,41 @@ theorem outage_event_induction_scoped [Fintype V]
           rw [rho.stateBefore_succ E he]
           simp only [V2.D.World.step, Function.update_of_ne (Ne.symm hxy)]
           exact hlocal y hyG
+
+/-- The scoped outage induction is the vote-cut induction at the public restore cut. -/
+theorem outage_event_induction_scoped [Fintype V]
+    (hBase : Base₂ p c E rho) (hf : FGFoundation p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho) (htsrc : TSrc p c E rho)
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    {fast : Bool} {b₀ b₁ : Time} {r j : Slot} {B : Block} {β : FGBlock (Fin p.n)}
+    (hr : FirstRestored p b₁ r) (hcut : b₀ < SA.gateTime p.toParams j)
+    (hBound : (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r).card <
+      SA.releaseThreshold p.toParams)
+    (hβ : eraseFG β = B) (hend : b₁ ≤ SA.gateTime p.toParams j + L p)
+    (hSource : OutageSourceHistory p c E rho B (afterTicksIdx rho (SA.gateTime p.toParams j)))
+    (hLocal : ∀ y ∈ coveredNodes p E rho fast b₀, OutageProtection p B j
+      (storeAt p c E rho (afterTicksIdx rho (SA.gateTime p.toParams j)) y))
+    (hSeed : ∀ y o t (q : Fin p.n) H, y ∈ rho.honest → V2.D.Run.emits E rho y o t →
+      o.auth = .seat (.base (.head (j + 1))) q →
+      HeadTargetAtEmission p c E rho y o t H → Block.Preceq B H)
+    {i : Nat} (hI : afterTicksIdx rho (SA.gateTime p.toParams j) ≤ i)
+    (hK : i ≤ rho.idxBefore b₁) :
+    OutageSourceHistory p c E rho B i ∧
+      OutageCoveredDutyHistory (p := p) (c := c) (E := E) (rho := rho) fast b₀ B j i ∧
+      OutageNamedHistory p c E rho β i ∧
+      ∀ y ∈ coveredNodes p E rho fast b₀,
+        OutageProtection p B j (storeAt p c E rho i y) := by
+  exact outage_event_induction_before_vote_cut hBase hf hsrc htsrc hnamed
+    (fun s hv => by
+      by_contra hn
+      exact (not_lt_of_ge ((hr s).mpr (by dsimp only [Slot] at hn ⊢; omega))) hv)
+    hcut hBound hβ hend hSource hLocal hSeed hI hK
 
 /-- The sleep certificate, Clean duty producers, and P-Fd source discipline supply
 all seeds of the scoped induction. No local seed or HEAD invariant is assumed. -/
