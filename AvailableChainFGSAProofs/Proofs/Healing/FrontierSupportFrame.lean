@@ -43,6 +43,23 @@ theorem frontier_cap_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   exact ((mono hN i (timeIdx rho v) x hx hi).2.2).trans
     (hCap _ x huv' le_rfl hx)
 
+/-- The closed cap also bounds earlier stores through kept-state restarts. -/
+theorem frontier_cap_before_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (mono : RMonoAll p c E rho) {u v : Time} {m : Nat}
+    (huv : u ≤ v)
+    (hCap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+      (storeAt p c E rho i x).fg.h_max ≤ m) :
+    ∀ i x, i ≤ timeIdx rho v → x ∈ rho.honest → (storeAt p c E rho i x).fg.h_max ≤ m := by
+  have huv' : timeIdx rho u ≤ timeIdx rho v := by
+    change (rho.events.filter (fun e => decide (e.time ≤ u))).length ≤
+      (rho.events.filter (fun e => decide (e.time ≤ v))).length
+    rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+    exact List.countP_mono_left (fun e _ he =>
+      decide_eq_true ((of_decide_eq_true he).trans huv))
+  intro i x hi hx
+  exact ((mono i (timeIdx rho v) x hx hi).2.2).trans
+    (hCap _ x huv' le_rfl hx)
+
 /-- Blueprint 21 HG.1:1521–1528; plan §3.1 step 2. DC: INTENTIONAL a held block above the
 height-m pivot has height m, and so does the holder's cache, under the cap. -/
 theorem frontier_height_eq (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

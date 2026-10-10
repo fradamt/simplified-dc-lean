@@ -6999,3 +6999,6 @@
 
 # P-H1 Round 3 slow/permanence/frontier: 26 further strict commands (188 total).
 # The serial fragment records saved-window provenance and bounded capped service consumers.
+
+# P-H1 Round 3 retained/source/moving-frame inventory: 269 local strict commands.
+# The serial fragment includes RepairHeadServices consumers and bounded FrontierReadScope.

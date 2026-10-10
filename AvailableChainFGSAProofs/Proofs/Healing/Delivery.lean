@@ -18,7 +18,18 @@ Assembly supplies `sourceDiscipline_tSrc` as `source` and `fgsa_rMono` as `mono`
 The consumers prove compatibility; this producer keeps its frozen antecedent. -/
 theorem healing_tDel [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (source : TSrc p c E rho) (mono : RMono p c E rho) : TDel p c E rho := by
+    (source : TSrc p c E rho) (mono : RMonoAll p c E rho)
+    (hServices : ∀ y r K, y ∈ rho.honest →
+      actionSourceFG p c E rho y r = some (some K) →
+      E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
+      SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
+      ∀ x ∈ rho.honest, FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F K →
+      ∀ j z W, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
+      W ∈ (storeAt p c E rho j z).fg.TF →
+      TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x) :
+    TDel p c E rho := by
   intro y r K hy hK hgst hhor x hx
   rw [Gen.V2.Duty.HoldsBefore_def]
   intro hcompat
@@ -32,7 +43,7 @@ theorem healing_tDel [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
         4 * p.Δ * ((r * p.R : Nat) : Int) + 3 * p.Δ
       linarith [p.deltaPos]
     exact healing_source_body_relay E rho hrec source mono hy hx hK hgst heD hhor
-      (delivery_lift hFK)
+      (delivery_lift hFK) (hServices y r K hy hK hgst hhor x hx (delivery_lift hFK))
 
 end AvailableChain.FGSA.Run
 end

@@ -13,6 +13,19 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+/-- Exact gate, release and retained carrier services for one repaired label. -/
+structure RepairGateScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (s : Slot) : Prop where
+  cut : E.t_GST ≤ slotStartZ p ((s : Int) - 1)
+  gates : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x s → GateReceiptScope E rho i x s
+  first : ∀ i iq x, x ∈ rho.honest → IsGateTick p c rho i x s →
+    rho.events[iq]? = some (.tick x (SA.voteTime p.toParams (s + 1))) →
+    FirstTransferScope E rho i iq x x s
+  carriers : ∀ j x, x ∈ rho.honest →
+    rho.events[j]? = some (.tick x (SA.voteTime p.toParams s)) →
+    ∀ W ∈ (storeAt p c E rho j x).fg.TF, ∀ y ∈ rho.honest,
+      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 03:367–373 (valid parent slots); plan H-REPAIR step 9.
 DC: SAME along the stored ancestor path of a stored block, slots do not decrease. -/
@@ -150,7 +163,7 @@ theorem repair_proposal_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   obtain ⟨ip, x, N, heN, _, hip, _, hem⟩ := repair_proposal_emission E rho hp
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hem
   have hpr := (fgsa_emits_proposal E rho _ x _ s _).mp hem
-  simpa only [heN] using (fgsa_scoreRun_proposal_pools p _ s _ N hpr.2.2.2).1
+  simpa only [heN] using (fgsa_scoreRun_proposal_pools p _ s _ N hpr.2.2.2.2).1
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 01 §6.6, 21 H.3:769–775, H.6:965–973; plan H-REPAIR step 9 (a).
@@ -158,18 +171,19 @@ DC: INTENTIONAL at an honest gate of an exact-HEAD slot s inside the phase, the 
 below the HEAD: the HEAD witness reaches the gate store, so F and the HEAD are comparable
 (RXing or common J), and F cannot strictly pass a slot-s block (01 §6.6). -/
 theorem repair_gate_finality_le [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} (hus : u ≤ SA.voteTime p.toParams s) (hgate : SA.gateTime p.toParams s ≤ v)
     {Q : Block} (hQs : Q.slot = s)
-    (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s) :
+    (hhead : ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some Q)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
+    (hScope : RepairGateScope E rho s) :
     Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) Q := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   have hvd : SA.voteTime p.toParams s + p.Δ ≤ SA.gateTime p.toParams s := by
@@ -179,15 +193,19 @@ theorem repair_gate_finality_le [Fintype V] (E : Generic.Env V)
     (le_add_of_nonneg_right hd.le).trans hvd
   have hhor : SA.voteTime p.toParams s ≤ rho.horizon := (hvg.trans hgate).trans hphase.2.1
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hx s hhor
+    (hrec.awake x hx _ (hgst.trans hus) hhor)
   have hhl : headAtLabel p c E rho x s = some (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jz x).st (SA.voteTime p.toParams s)) s) := by
     unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjz]
     rfl
-  have hQK := Option.some.inj ((hhead x hx).symm.trans hhl)
-  obtain ⟨W, hW, hQW, _, hFW, _⟩ := healing_support_frame_at (hroots := hrec.base.idealization)
-    E rho mono crossing hE hN hDelta
-    hrec.sync hgst hphase hus (hvd.trans hgate) hx hjz (B := Q) (hQK ▸ block_preceq_refl _) hx
+  have hQK := Option.some.inj ((hhead x hx (hrec.toRecovery₂.joinedAt_of_slotStart_le E rho s
+      hScope.cut hhor x hx)).symm.trans hhl)
+  obtain ⟨W, hW, hQW, _, hFW, _⟩ := healing_support_frame_at
+    (hroots := hrec.base.receiptIdealization)
+    E rho (fun _ => mono) crossing hE hDelta
+    hrec.sync hgst hphase hus (hvd.trans hgate) hx hjz
+    (hScope.carriers jz x hx hjz) (B := Q) (hQK ▸ block_preceq_refl _) hx
     (healing_support_idxBefore_le p c E rho hS ht hvd)
     (healing_support_idxBefore_le p c E rho hS ht (hus.trans hvg))
     (healing_phase_lt_timeIdx p c E rho hS ht hgate).le
@@ -212,24 +230,31 @@ Blueprint 21 H.6:965–973 (fields (a), (b)); plan H-REPAIR step 9.
 DC: INTENTIONAL the gate receipt geometry of an exact-HEAD slot: every emitted honest HEAD
 of label s is the exact HEAD Q, and the gate F is below Q. -/
 theorem repair_gate_receipt [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} (hus : u ≤ SA.voteTime p.toParams s) (hgate : SA.gateTime p.toParams s ≤ v)
     {Q : Block} (hQs : Q.slot = s)
-    (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s) :
+    (hhead : ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some Q)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
+    (hScope : RepairGateScope E rho s) :
     GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q := by
   have hS := hrec.base.valid.toScheduleWellFormed
   have hFQ := repair_gate_finality_le E rho hrec mono crossing qc hgst hphase hus hgate hQs
-    hhead hx ht
+    hhead hx ht hScope
   have hK (q : Fin p.n) (hq : rho.seatOf (.base (.head s)) q ∈ rho.honest) (K : Block)
       (he : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
         (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K) : K = Q := by
     have h := healing_support_emitted_head E rho hS s q K _ he
-    exact Option.some.inj (h.symm.trans (hhead _ hq))
+    exact Option.some.inj (h.symm.trans (hhead _ hq
+      (hrec.toRecovery₂.joinedAt_of_slotStart_le E rho s
+      hScope.cut (by
+        refine (show SA.voteTime p.toParams s ≤ SA.gateTime p.toParams s by
+          change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+          linarith [p.deltaPos]).trans (hgate.trans hphase.2.1)) _ hq)))
   refine ⟨?_, ?_⟩
   · intro q hq _ K he
     rw [hK q hq K he, clockPre_fg]
@@ -245,73 +270,60 @@ DC: INTENTIONAL the fast count at an honest gate of an exact-HEAD slot: the hone
 HEAD seats are clean early supporters of Q, and their number reaches the release
 threshold under the Recovery fault bound. -/
 theorem repair_gate_fast_count [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     {s : Slot} (hgsts : E.t_GST ≤ SA.voteTime p.toParams s)
     (hgh : SA.gateTime p.toParams s ≤ rho.horizon) {Q : Block}
-    (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
+    (hhead : ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some Q)
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s)
+    (hScope : RepairGateScope E rho s)
     (hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q) :
     SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s Q := by
   classical
   have hE := hrec.base.valid
-  have hN := hrec.base.noRestart
+  have hx : x ∈ rho.honest := hE.honest_only _ (List.mem_of_getElem? ht)
   have hDelta := hrec.base.delta
-  have hd := p.deltaPos
   have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
     rw [hDelta]
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
-    linarith
+    linarith [p.deltaPos]
   have hvh : SA.voteTime p.toParams s ≤ rho.horizon := by
-    have h : (0 : Int) < E.Δ := hDelta.symm ▸ hd
+    have hd : 0 < E.Δ := hDelta.symm ▸ p.deltaPos
     linarith
+  have hJoined := hrec.toRecovery₂.joinedAt_of_slotStart_le E rho s hScope.cut hvh
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd hgh
-  let H : Finset (Fin p.n) := Finset.univ.filter (fun q =>
-    rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
-      E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
+  let H : Finset (Fin p.n) := Finset.univ.filter
+    (fun q => rho.seatOf (.base (.head s)) q ∈ rho.honest)
   have hH (q : Fin p.n) : q ∈ H ↔ rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
-      E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true := by
+      joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s) := by
     simp only [H, Finset.mem_filter, Finset.mem_univ, true_and]
+    exact ⟨fun h => ⟨h, hJoined _ h⟩, And.left⟩
   have hbij : Function.Bijective (fun q : Fin p.n => rho.seatOf (.base (.head s)) q) :=
     hrec.base.cstar (.base (.head s)) trivial
-  have hHcard : H.card = rho.honest.card := by
-    rw [← Finset.card_image_of_injective H hbij.1]
-    congr 1
-    ext z
-    simp only [Finset.mem_image]
+  have hImage : H.image (rho.seatOf (.base (.head s))) = rho.honest := by
+    apply Finset.ext
+    intro z
     constructor
-    · rintro ⟨q, hq, rfl⟩
+    · intro hz
+      obtain ⟨q, hq, rfl⟩ := Finset.mem_image.mp hz
       exact ((hH q).mp hq).1
     · intro hz
-      obtain ⟨q, rfl⟩ := hbij.2 z
-      exact ⟨q, (hH q).mpr ⟨hz, hrec.awake _ hz _ hgsts hvh⟩, rfl⟩
-  have hawk : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s) = rho.honest := by
-    rw [Gen.V2.Duty.awakeHonest_def]
-    exact Finset.filter_eq_self.mpr (fun z hz => hrec.awake z hz _ hgsts hvh)
-  have hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card := by
-    have h := (hrec.batch hgsts hvh).lt
-    rw [hawk] at h
-    exact ⟨hHcard ▸ h⟩
-  obtain ⟨_, hcount, _, _⟩ := exactService_gate_raw_of_head (hroots := hrec.base.idealization)
-    E rho hE hN hDelta hrec.base.cstar
-    s Q hhead hSync ht hgeom H hH hbatch
-  have hn : Fintype.card V = p.n :=
-    (V2.D.CStar.seats_eq (ℓ := .base (.head s)) hrec.base.cstar trivial).symm
-  have hcard : (Gen.V2.Duty.faulty rho).card + rho.honest.card = p.n := by
-    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
-      Finset.card_univ, hn]
-    have hc := Finset.card_le_univ rho.honest
-    rw [hn] at hc
-    omega
-  have hf := hrec.fault
-  have hp := p.nPos
-  have hτ : SA.releaseThreshold p.toParams ≤ H.card := by
-    rw [hHcard]
-    change (p.n + 1) / 2 ≤ rho.honest.card
-    omega
-  exact hτ.trans hcount
+      obtain ⟨q, hq⟩ := hbij.2 z
+      have hh : rho.seatOf (.base (.head s)) q ∈ rho.honest :=
+        (congrArg (fun a : V => a ∈ rho.honest) hq.symm).mp hz
+      exact Finset.mem_image.mpr ⟨q, (hH q).mpr ⟨hh, hJoined _ hh⟩, hq⟩
+  have hHcard : H.card = rho.honest.card :=
+    (Finset.card_image_of_injective H hbij.1).symm.trans (congrArg Finset.card hImage)
+  obtain ⟨hfast, hbatch⟩ := healing_recovery_joined_counts E rho hrec s hScope.cut hgsts hvh
+  rw [healing_recovery_joinedHonest E rho hrec s hScope.cut hgsts hvh, ← hHcard]
+    at hfast hbatch
+  obtain ⟨_, hcount, _, _⟩ := exactService_gate_raw_of_head_on
+    (hroots := hrec.base.receiptIdealization) E rho hE hDelta hrec.base.cstar s Q hhead hSync
+    ht hgeom (hScope.gates i x hx ht) H hH hbatch
+  exact hfast.trans hcount
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 H.6:965–970 (release at q_s; no gate in (q_s, d_s)); plan H-REPAIR
@@ -321,8 +333,8 @@ with Q. Its last write is a gate w < s before q_s = v_(s+1); the q_s release, co
 the clean early votes for Q at this gate, removes every target that conflicts with Q.
 `writes` is the inline last-write premise (ruling B27). -/
 theorem repair_gate_guard [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -333,6 +345,7 @@ theorem repair_gate_guard [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -343,13 +356,14 @@ theorem repair_gate_guard [Fintype V] (E : Generic.Env V)
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} (hus : u ≤ SA.voteTime p.toParams s) (hgate : SA.gateTime p.toParams s ≤ v)
     {Q : Block} (hQs : Q.slot = s)
-    (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s) :
+    (hhead : ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some Q)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
+    (hScope : RepairGateScope E rho s) :
     ∀ lease ∈ ((fgsaAC E rho).gateView i x s).obligations,
       Block.Compatible (Gen.AC.Lease.target lease) Q := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   have hgh : SA.gateTime p.toParams s ≤ rho.horizon := hgate.trans hphase.2.1
@@ -361,15 +375,20 @@ theorem repair_gate_guard [Fintype V] (E : Generic.Env V)
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd hgh
   have hgeom := repair_gate_receipt E rho hrec mono crossing qc hgst hphase hus hgate hQs
-    hhead hx ht
-  have hτ := repair_gate_fast_count E rho hrec hgsts hgh hhead ht hgeom
+    hhead hx ht hScope
+  have hτ := repair_gate_fast_count E rho hrec hgsts hgh hhead ht hScope hgeom
   have hFQ := repair_gate_finality_le E rho hrec mono crossing qc hgst hphase hus hgate hQs
-    hhead hx ht
+    hhead hx ht hScope
   have hqd : SA.voteTime p.toParams (s + 1) < SA.gateTime p.toParams s := by
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
     push_cast
     linarith
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hDelta hx (s + 1) (hqd.le.trans hgh)
+    (hrec.awake x hx _ (by
+      refine hgsts.trans ?_
+      change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+      push_cast
+      nlinarith [p.deltaPos]) (hqd.le.trans hgh))
   have hqi : iq < i := repair_idx_lt E rho hS hiq ht hqd
   have hv : { actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) with
       early := (storeAt p c E rho i x).base.early } = (fgsaAC E rho).gateView i x s :=
@@ -399,18 +418,61 @@ theorem repair_gate_guard [Fintype V] (E : Generic.Env V)
     exact tick_st (c := c) E rho _ x _
   rw [hpost] at hkeep
   have hFiq : Block.Preceq (eraseFG (storeAt p c E rho iq x).fg.F) Q :=
-    block_preceq_trans (eraseFG_preceq (mono hN iq i x hx hqi.le).1) hFQ
-  exact healing_support_release_compat (hroots := hrec.base.idealization)
-    E rho hE hN hDelta s hSync hx hx ht hiq hτ hFiq lease hkeep
+    block_preceq_trans (eraseFG_preceq (mono iq i x hx hqi.le).1) hFQ
+  exact healing_support_release_compat (hroots := hrec.base.receiptIdealization)
+    E rho hE hDelta s hSync hx hx ht hiq (hScope.first i iq x hx ht hiq) hτ hFiq lease hkeep
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:965–973 (old output); 01 §6.6, §7; plan H-REPAIR step 9 (d).
 DC: INTENTIONAL before an honest gate of label s, the output is below the gate F or a
 stored block of slot at most s: a gate before it has a label w < s and its result is the
 anchor or a stored block of slot at most w + 1; a reconciliation moves S to an earlier F. -/
+private theorem repair_gate_label (s : Slot) :
+    ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat = s := by
+  have he : SA.gateTime p.toParams s - 6 * p.Δ = 4 * p.Δ * (s : Int) := by
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ = _
+    ring
+  have hd : (4 * p.Δ : Int) ≠ 0 := by
+    have hp : (0 : Int) < p.Δ := p.deltaPos
+    omega
+  rw [he, Int.mul_ediv_cancel_left _ hd, Int.toNat_natCast]
+
+private theorem repair_gate_suppressed (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {j : Nat} {x : V} {w : Slot}
+    (hw : IsGateTick p c rho j x w)
+    (hj : joinedNow p (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams w)) = false) :
+    (fgsaAC E rho).output (j + 1) x = (fgsaAC E rho).output j x := by
+  let st := storeAt p c E rho j x
+  let pre := clockPre p st (SA.gateTime p.toParams w)
+  have hpreS : pre.base.stableRecord = st.base.stableRecord := by
+    unfold pre clockPre
+    dsimp only
+    split_ifs <;> rfl
+  have hnew : GridCO.savedGenuine pre.base w = none := by
+    rw [savedGenuine_congr (clockPre_genuine p st _)]
+    exact fgsa_gate_fresh E rho hs hw
+  have hNest : NestOK pre := by
+    change Block.Preceq (eraseFG pre.fg.F) pre.base.stableRecord
+    rw [clockPre_fg, hpreS]
+    exact (storeBundle_stateBefore E rho j x).nest
+  have hkeep := ((gateStep_unjoined p pre w hnew hj).2.2 hNest).2.2
+  change (rho.stateBefore E (j + 1) x).st.base.stableRecord = _
+  rw [V2.D.Run.stateBefore_succ E rho hw]
+  simp only [V2.D.World.step, Function.update_self]
+  have he : FGSA.clock p st (SA.gateTime p.toParams w) = gateStep p pre w := by
+    change (if isGateTime p (SA.gateTime p.toParams w) then
+      gateStep p pre ((SA.gateTime p.toParams w - 6 * p.Δ) / (4 * p.Δ)).toNat else pre) = _
+    rw [(isGateTime_iff p _).mpr ⟨w, rfl⟩, ite_eq_left rfl, repair_gate_label]
+  have hClock : (FGSA.clock p st (SA.gateTime p.toParams w)).base.stableRecord =
+      st.base.stableRecord := by rw [he, hkeep, hpreS]
+  exact (congrArg (fun u : State p.n => u.base.stableRecord)
+    (tick_st (c := c) E rho (rho.stateBefore E j x) x (SA.gateTime p.toParams w))).trans hClock
+
 theorem repair_output_bound (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (mono : RMono p c E rho)
-    {s : Slot} {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s) :
+    (hE : V2.D.ExecutionValid E rho) (mono : RMonoAll p c E rho)
+    {s : Slot} {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
+ :
     ∀ j, j ≤ i →
       Block.Preceq ((fgsaAC E rho).output j x) (eraseFG (storeAt p c E rho i x).fg.F) ∨
         ((fgsaAC E rho).output j x ∈ (storeAt p c E rho j x).base.blocks ∧
@@ -418,10 +480,10 @@ theorem repair_output_bound (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hS := hE.toScheduleWellFormed
   have hFi (j : Nat) (hj : j ≤ i) :
       Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) (eraseFG (storeAt p c E rho i x).fg.F) :=
-    eraseFG_preceq (mono hN j i x hx hj).1
+    eraseFG_preceq (mono j i x hx hj).1
   have hblk (j : Nat) (b : Block) (hb : b ∈ (storeAt p c E rho j x).base.blocks) :
       b ∈ (storeAt p c E rho (j + 1) x).base.blocks :=
-    (fgsa_store_cumulative p c E rho hN (Nat.le_succ j) x).2.1.subset hb
+    (fgsa_store_durable p c E rho (Nat.le_succ j) x).2.1.subset hb
   have hkeep (j : Nat) (hj : j + 1 ≤ i)
       (h : Block.Preceq ((fgsaAC E rho).output j x) (eraseFG (storeAt p c E rho i x).fg.F) ∨
         ((fgsaAC E rho).output j x ∈ (storeAt p c E rho j x).base.blocks ∧
@@ -452,7 +514,12 @@ theorem repair_output_bound (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         ⟨t, hr, _⟩
     · rw [he]
       exact hkeep j hj hprev _ (Or.inl rfl)
-    · have spec := fgsaAC_gate_write E rho j w x hw
+    · by_cases hJ : joinedNow p (clockPre p (storeAt p c E rho j x)
+          (SA.gateTime p.toParams w)) = true
+      swap
+      · rw [repair_gate_suppressed E rho hS hw (Bool.eq_false_of_ne_true hJ)]
+        exact hkeep j hj hprev _ (Or.inl rfl)
+      have spec := fgsaAC_gate_write E rho j w x hJ hw
       have hwlt : w < s := by
         have hlt := fgsa_tick_time_strict E rho hS hw ht hj
         change 4 * p.Δ * (w : Int) + 6 * p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ at hlt
@@ -501,7 +568,8 @@ theorem repair_output_bound (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
                 change 0 < 4 * p.Δ * (w : Int) + 6 * p.Δ
                 have := Int.natCast_nonneg w
                 positivity
-              have hn := fgsa_preTick_now_lt E rho hS hw hpos
+              have hn := fgsa_preTick_now_lt_joined E rho hS hw hpos
+                ((clockPre_joined p _ _).symm ▸ hJ)
               have hsl := Internal.slotOf_mono (p := p) (le_of_lt hn)
               have he : p.slotOf (SA.gateTime p.toParams w) = w + 1 :=
                 (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho j x) _).2.symm.trans
@@ -521,26 +589,34 @@ theorem repair_output_bound (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       split
       · exact hkeep j hj hprev _ (Or.inl rfl)
       · exact hkeep j hj hprev _ (Or.inr (Or.inr rfl))
-    · exact absurd hr (hN j x t)
+    · have he : (fgsaAC E rho).output (j + 1) x = (fgsaAC E rho).output j x := by
+        change (rho.stateBefore E (j + 1) x).st.base.stableRecord = _
+        rw [V2.D.Run.stateBefore_succ E rho hr]
+        simp only [V2.D.World.step, Function.update_self]
+        exact acRestart_stableRecord p _ t
+      rw [he]
+      exact hkeep j hj hprev _ (Or.inl rfl)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:965–973; 01 §7; plan H-REPAIR step 9 (d). DC: INTENTIONAL the old output
 at an honest gate of an exact-HEAD slot is not a strict descendant of Q. -/
 theorem repair_gate_old_output [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} (hus : u ≤ SA.voteTime p.toParams s) (hgate : SA.gateTime p.toParams s ≤ v)
     {Q : Block} (hQs : Q.slot = s)
-    (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s) :
+    (hhead : ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some Q)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
+    (hScope : RepairGateScope E rho s) :
     Block.Preceq Q ((fgsaAC E rho).output i x) → (fgsaAC E rho).output i x = Q := by
   intro hQo
   have hE := hrec.base.valid
   have hFQ := repair_gate_finality_le E rho hrec mono crossing qc hgst hphase hus hgate hQs
-    hhead hx ht
-  rcases repair_output_bound E rho hE hrec.base.noRestart mono hx ht i le_rfl with h | ⟨hm, hsl⟩
+    hhead hx ht hScope
+  rcases repair_output_bound E rho hE mono hx ht i le_rfl with h | ⟨hm, hsl⟩
   · exact block_preceq_antisymm (block_preceq_trans h hFQ) hQo
   · by_contra hne
     have hlt := repair_stored_slot_lt E rho hE i x hm hQo (Ne.symm hne)
@@ -558,21 +634,22 @@ representative in the full filtered domain of the action read: the HEAD witness 
 stored path at the floor; F is below Q (01 §6.6) and, in a top-J phase, J is below the
 HEAD by H.3. -/
 theorem repair_gate_opening [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} (hus : u ≤ SA.voteTime p.toParams s) (hgate : SA.gateTime p.toParams s ≤ v)
     {Q : Block} (hQs : Q.slot = s)
-    (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s) :
+    (hhead : ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some Q)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
+    (hScope : RepairGateScope E rho s) :
     ∀ r, s = r * p.R →
       let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
       ∃ D, eraseFG D = Q ∧ D ∈ domainR p st (treeT p st) := by
   intro r _
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   have hvd : SA.voteTime p.toParams s + p.Δ ≤ SA.gateTime p.toParams s := by
@@ -582,20 +659,24 @@ theorem repair_gate_opening [Fintype V] (E : Generic.Env V)
     (le_add_of_nonneg_right hd.le).trans hvd
   have hhor : SA.voteTime p.toParams s ≤ rho.horizon := (hvg.trans hgate).trans hphase.2.1
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hx s hhor
+    (hrec.awake x hx _ (hgst.trans hus) hhor)
   have hhl : headAtLabel p c E rho x s = some (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jz x).st (SA.voteTime p.toParams s)) s) := by
     unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjz]
     rfl
-  have hQK := Option.some.inj ((hhead x hx).symm.trans hhl)
-  obtain ⟨W, hW, hQW, hZW, _, hloW⟩ := healing_support_frame_at (hroots := hrec.base.idealization)
-    E rho mono crossing hE hN hDelta
-    hrec.sync hgst hphase hus (hvd.trans hgate) hx hjz (B := Q) (hQK ▸ block_preceq_refl _) hx
+  have hQK := Option.some.inj ((hhead x hx (hrec.toRecovery₂.joinedAt_of_slotStart_le E rho s
+      hScope.cut hhor x hx)).symm.trans hhl)
+  obtain ⟨W, hW, hQW, hZW, _, hloW⟩ := healing_support_frame_at
+    (hroots := hrec.base.receiptIdealization)
+    E rho (fun _ => mono) crossing hE hDelta
+    hrec.sync hgst hphase hus (hvd.trans hgate) hx hjz
+    (hScope.carriers jz x hx hjz) (B := Q) (hQK ▸ block_preceq_refl _) hx
     (healing_support_idxBefore_le p c E rho hS ht hvd)
     (healing_support_idxBefore_le p c E rho hS ht (hus.trans hvg))
     (healing_phase_lt_timeIdx p c E rho hS ht hgate).le
   have hFQ := repair_gate_finality_le E rho hrec mono crossing qc hgst hphase hus hgate hQs
-    hhead hx ht
+    hhead hx ht hScope
   have hinv := cstoreInv_stateBefore E rho i x
   obtain ⟨D, hD, heD, hDW⟩ := eraseFG_ancestor_preceq hinv.fg.closed hW hQW
   -- The root is below Q.
@@ -643,8 +724,8 @@ DC: INTENTIONAL all five ExactServiceGateGeometry fields at every honest gate ti
 exact-HEAD slot s inside the phase (u ≤ v_s, d_s ≤ v). Hypotheses: Recovery₂ (standing),
 RMono, RXing, RQCOrigin (FGFoundation field), and the inline last-write premise (B27). -/
 theorem repair_gate_geometry [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -655,6 +736,7 @@ theorem repair_gate_geometry [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -665,17 +747,19 @@ theorem repair_gate_geometry [Fintype V] (E : Generic.Env V)
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} (hus : u ≤ SA.voteTime p.toParams s) (hgate : SA.gateTime p.toParams s ≤ v)
     {Q : Block} (hQs : Q.slot = s)
-    (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s) :
+    (hhead : ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some Q)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
+    (hScope : RepairGateScope E rho s) :
     ExactServiceGateGeometry E rho i x s Q :=
   { toGateReceiptGeometry := repair_gate_receipt E rho hrec mono crossing qc hgst hphase hus
-      hgate hQs hhead hx ht
+      hgate hQs hhead hx ht hScope
     guard := repair_gate_guard E rho hrec mono crossing qc writes hgst hphase hus hgate hQs
-      hhead hx ht
+      hhead hx ht hScope
     old_output := repair_gate_old_output E rho hrec mono crossing qc hgst hphase hus hgate
-      hQs hhead hx ht
+      hQs hhead hx ht hScope
     opening_domain := repair_gate_opening E rho hrec mono crossing qc hgst hphase hus hgate
-      hQs hhead hx ht }
+      hQs hhead hx ht hScope }
 
 end AvailableChain.FGSA.Run
 end

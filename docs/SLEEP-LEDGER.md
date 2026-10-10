@@ -4591,3 +4591,26 @@ P-Fd's fgsa_tRows_recovery producer. HealingSupport uses the same exact local in
 Its all-asleep tick trace was an invalid positive execution fixture under the new
 ExecutionValid awake laws. It is now a negative execution test; structural frame
 facts stay as structural facts. No public claim text or protocol rule changed.
+
+P-H1 Round 3 retained repair, source and moving-frame ports:
+RepairHeadServices keeps the prior proposal scope, target receipt service and
+RetainedServiceScope explicit for each emitted repaired proposal. H6/H6S inputs
+are proved from the frame and bounded proposal services. HEAD conclusions apply
+to joined receivers. repair_head_exact_legacy keeps its existing spelling; its
+internal statement now uses the receiver-local form through SupportRecovery.
+The canonical sleep supplier remains SupportRecovery.repair_head_exact.
+
+RepairGateScope supplies the actual enabled gate, joined release and retained
+carrier services. Exact gate counts use joined voters and the recovery fault bound.
+Suppressed gates and wake restarts keep the stable record in repair_output_bound.
+FrontierReadScope bounds seed, later fast/slow, proposal, HEAD and carrier services
+by the same cap endpoint. Its seed consumes the actual confirmed-reader guard.
+Retained cone fields are proved from these scopes, not from earlier processing.
+
+SourceTiming has all-restart durable retention helpers. Source delivery uses each
+supporter carrier's TargetReceiptService; pre-GST delivery keeps ReceiverService
+explicit, including HistorySafeAt. The moving-frame first/later transfer and lease
+consumers use the same exact read epochs and object services. High-source same-label
+compatibility uses SameLabelServiceScope. The old-row height set is cut at
+recoveryStart on this base; recoveryStart ≥ GST supplies the original GST conclusion.
+No public Claims statement changed. Remaining reset and descent callers need these inputs.

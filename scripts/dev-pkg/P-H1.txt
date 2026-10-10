@@ -101,6 +101,18 @@ AvailableChainFGSAProofs.Tests.HealingSupport
 AvailableChainFGSAProofs.Tests.HealingTime
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal
+AvailableChainFGSAProofs.Proofs.Healing.RepairH6
+AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
+AvailableChainFGSAProofs.Proofs.Healing.SourceTiming
+AvailableChainFGSAProofs.Proofs.Healing.Delivery
+AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
+AvailableChainFGSAProofs.Proofs.Healing.DescentLoss
+AvailableChainFGSAProofs.Proofs.Healing.DescentLossFirst
+AvailableChainFGSAProofs.Proofs.Healing.DescentLossNext
+AvailableChainFGSAProofs.Proofs.Healing.DescentLossLease
+AvailableChainFGSAProofs.Proofs.Healing.RepairGate
+AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
 AvailableChainFGSARun
 AvailableChainFGSARun.Tests.Axioms
 AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
@@ -639,28 +651,16 @@ AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Healing.Delivery P-H1
-AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset P-H1
-AvailableChainFGSAProofs.Proofs.Healing.DescentLoss P-H1
 AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause P-H1
-AvailableChainFGSAProofs.Proofs.Healing.DescentLossFirst P-H1
-AvailableChainFGSAProofs.Proofs.Healing.DescentLossLease P-H1
-AvailableChainFGSAProofs.Proofs.Healing.DescentLossNext P-H1
 AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous P-H1
-AvailableChainFGSAProofs.Proofs.Healing.FrontierRead P-H1
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal P-H1
 AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat P-H1
 AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh P-H1
 AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep P-H1
 AvailableChainFGSAProofs.Proofs.Healing.PostResetLease P-H1
 AvailableChainFGSAProofs.Proofs.Healing.PostResetProject P-H1
 AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw P-H1
-AvailableChainFGSAProofs.Proofs.Healing.RepairGate P-H1
-AvailableChainFGSAProofs.Proofs.Healing.RepairH6 P-H1
-AvailableChainFGSAProofs.Proofs.Healing.RepairH6S P-H1
 AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer P-H1
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance P-H1
-AvailableChainFGSAProofs.Proofs.Healing.SourceTiming P-H1
 AvailableChainFGSAProofs.Tests.HealingDelivery P-H1
 AvailableChainFGSAProofs.Tests.HealingDescent P-H1
 AvailableChainFGSAProofs.Tests.HealingDescentLoss P-H1
