@@ -5038,6 +5038,7 @@
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt': (
             'AvailableChain.FGSA.Run.healing_held_block_receipt',
+            'AvailableChain.FGSA.Run.healing_held_block_receipt_on',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum': (
             'AvailableChain.FGSA.Run.kmid_honestSeats_mem',
@@ -5131,13 +5132,18 @@
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.Relay': (
             'AvailableChain.FGSA.Run.fgsa_cleanSupport_forward_relay',
+            'AvailableChain.FGSA.Run.fgsa_cleanSupport_forward_relay_on',
             'AvailableChain.FGSA.Run.fgsa_cleanSupport_seat_clean_late',
             'AvailableChain.FGSA.Run.fgsa_cleanSupport_vote_forward',
+            'AvailableChain.FGSA.Run.fgsa_cleanSupport_vote_forward_on',
             'AvailableChain.FGSA.Run.fgsa_headSupport_subset_headVotes',
             'AvailableChain.FGSA.Run.fgsa_headVotes_backward_relay',
+            'AvailableChain.FGSA.Run.fgsa_headVotes_backward_relay_on',
             'AvailableChain.FGSA.Run.fgsa_headVotes_provenance',
+            'AvailableChain.FGSA.Run.fgsa_headVotes_provenance_on',
             'AvailableChain.FGSA.Run.fgsa_voteSupports_of_path',
             'AvailableChain.FGSA.Run.fgsa_vote_accepted_before_head_read',
+            'AvailableChain.FGSA.Run.fgsa_vote_accepted_before_head_read_on',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.Release': (
             'AvailableChain.FGSA.Run.fgsa_releaseCount_antitone',
@@ -5261,6 +5267,7 @@
             'AvailableChain.FGSA.Run.fgsa_sameLabel',
             'AvailableChain.FGSA.Run.fgsa_sameLabel_on',
             'AvailableChain.FGSA.Run.fgsa_sameLabel_serviceScope',
+            'AvailableChain.FGSA.Run.fgsa_vote_accepted_before_local',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.ScoreRun': (
             'AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_run',
@@ -5291,6 +5298,7 @@
             'AvailableChain.FGSA.Run.fgsa_walkRun_current_block_eq',
             'AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff',
             'AvailableChain.FGSA.Run.fgsa_walkRun_frozen_block',
+            'AvailableChain.FGSA.Run.fgsa_walkRun_frozen_block_on',
             'AvailableChain.FGSA.Run.fgsa_walkRun_full_domain',
             'AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_filtered',
             'AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_of_top_retained',

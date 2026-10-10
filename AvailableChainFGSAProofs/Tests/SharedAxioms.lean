@@ -557,3 +557,19 @@ end
 #print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L4R_joined
 
 #print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L2_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_accepted_before_local
+
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_forward_relay_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_vote_forward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_headVotes_backward_relay_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_headVotes_provenance_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_accepted_before_head_read_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_frozen_block_on
+
+#print axioms AvailableChain.FGSA.Run.healing_held_block_receipt_on

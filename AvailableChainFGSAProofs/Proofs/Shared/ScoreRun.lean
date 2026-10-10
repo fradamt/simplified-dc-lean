@@ -2204,5 +2204,9 @@ theorem fgsa_ghost_transfer_sfx_on_run_on
   rw [htRe]
   exact hresult
 
+/-- The frozen walk target uses the exact named backward target service. -/
+theorem fgsa_walkRun_frozen_block_on : type_of% (@fgsa_scoreRun_block_backward_on) :=
+  @fgsa_scoreRun_block_backward_on
+
 end AvailableChain.FGSA.Run
 end

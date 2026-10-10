@@ -2420,3 +2420,21 @@ input, TargetReceiptService, and read-premise conclusion has the same joinedAt
 guard at the actual HEAD tick. Tests.RetainedConsumers uses these forms and its
 RetainedServiceScope input has that same guard. The earlier additive `_on`
 forms remain unchanged for callers that supply all-reader service.
+
+### Round 5: Relay and held-carrier inventory
+
+`HeadRelayServiceScope` has one HEAD object, a strict freeze, its reader index,
+its epoch, and a conditional ReceiverService. Scope suppliers are guarded by
+membership of the actual HEAD candidate, or by equality with the actual clean
+support wire. They do not require service for every possible payload.
+New Relay forms cover provenance, backward late-pool relay, frozen clean-support
+vote relay and forward support incidence. The existing path read input remains
+explicit in the support-incidence form.
+
+`fgsa_vote_accepted_before_local` excludes replay-only origins with a local
+restart bound and the earlier label tick. Relay's joined HEAD-read supplier
+constructs that tick and bound from joinedAt. No global NoRestart is needed.
+The new frozen walk alias uses the named backward block service.
+`healing_held_block_receipt_on` obtains the exact held FG carrier from its
+TargetReceiptService. These forms cover the Relay and HeldReceipt entries in
+round 4's legacy-only inventory. Legacy conditional APIs remain unchanged.

@@ -1102,5 +1102,42 @@ theorem fgsa_sameLabel_serviceScope
         (fgsa_clock_now p c (rho.stateBefore E k y)) ▸ hb
       exact hn
 
+/-- A local restart bound before the HEAD label rules out a replay-only origin.
+This supplies a network acceptance without requiring global NoRestart. -/
+theorem fgsa_vote_accepted_before_local
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hV : V2.D.ExecutionValid E rho) (hR : V2.D.RestartsAtWakes E rho)
+    {k it : Nat} {x : V} (s : Slot)
+    (hit : rho.events[it]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hBound : ∀ j w, j < k → rho.events[j]? = some (.restart x w) →
+      w ≤ SA.proposalTime p.toParams s)
+    (q : Fin p.n) (b : BlockId) (X : Time)
+    (hpub : V2.PublicTime E X) (hzero : 0 ≤ X)
+    (hm : (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
+      (rho.stateBefore E k x).st.base.votes)
+    (ht : GridCO.stampVote (rho.stateBefore E k x).st.base ⟨.seat s q, .head b⟩ < X) :
+    ∃ j < k, ∃ t, rho.acceptsAt E j x (ofHead p ⟨.seat (.head s) q, b⟩) t ∧ t < X := by
+  rcases fgsa_vote_stamp_source_or_restart E rho k x s q b _
+      (sl_vote_stamp_mem E rho k x _ hm) with ⟨j, hj, t, ha, he⟩ | ⟨j, hj, w, hw, _, hrep⟩
+  · refine ⟨j, hj, t, ha, ?_⟩
+    by_contra hn
+    obtain ⟨parent, hd, _⟩ := ha.1
+    have hb := V2.D.Engine.delivery_now_ge_public_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hV hd hpub hzero (le_of_not_gt hn)
+    have hnow : X ≤ (rho.stateBefore E j x).st.base.now :=
+      (fgsa_clock_now p c (rho.stateBefore E j x)) ▸ hb
+    exact (not_lt.mpr hnow) (he ▸ ht)
+  · have hwp := hBound j w hj hw
+    have hji := V2.D.Engine.restart_index_lt_event hV.toScheduleWellFormed hw hit hwp
+      (show 0 < 1 from by decide)
+    by_cases hs : 0 < s
+    · exact (sl_replay_before_proposal_absent E rho hV hit hs j hji.le w q b hrep).elim
+    · have hs0 := Nat.eq_zero_of_not_pos hs
+      have hw0 := (hR x w (List.mem_of_getElem? hw)).1
+      change w ≤ 4 * p.Δ * (s : Int) at hwp
+      rw [hs0] at hwp
+      norm_num at hwp
+      exact ((not_lt.mpr hwp) hw0).elim
+
 end AvailableChain.FGSA.Run
 end
