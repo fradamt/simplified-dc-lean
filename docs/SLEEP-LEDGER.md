@@ -4212,3 +4212,22 @@ FoundationsAxioms coverage and scans all GREEN roots; DCK strictly checks every
 GREEN audit source. Full canonical-root validation remains assembly integration work.
 Report and validation evidence: claude-files/sleep-pfd-report.md (Round 2),
 claude-files/sleep-pfd2/. Earlier PREPARED rows remain as session history.
+
+### Lead note after the P-Cl2 review (2026-10-10 08:35)
+
+Review rev-pcl2-astra: MERGE-AS-PREPARED (not CLOSED). Merged at sleep-int.
+- The "wait for the anchor-relative design" item in scripts/dev-pkg/P-Cl2.ledger-fragment.md:48-55 is stale.
+  DECISION ANCHOR-DL applies: ReceiptCoverageAnchorPremises and its Count proof are internal to P-ShA's
+  Shared layer. Do not wait for S-Ap to repair ReceiptCoverageSleepPremises; public P23 is unchanged.
+- Caller route for the P-Cl1 dependencies: Clean/StepGate.lean:562 anchor v_s, deadline e_s, with the
+  receiver's enabled-gate guard through gate_batch_of_history:644 and gate_active_heads:462 (s + 1 for
+  the successor-label call). Clean/TransferFrame.lean:379 and :474 anchor e_s, deadline f_s, with the
+  receiving node y's joined guard through :335 and :397. Bind readiness, handler interval, HistorySafeAt,
+  restartFree and path deadlines to the same anchor.
+- P-Ou applies the exact growth handoff (ledger fragment :61-122) with its Claims/Outage port. The
+  section-wide include lists at Outage/Export.lean:85 and :117 must not carry old all-honest
+  hmono/history suppliers into the new theorem.
+- DECISION P15-CUT is separate (S-Ap round 4). Record both decisions separately.
+- Before CLOSED: P-Cl1 and S-Ap closure, the P-ShA anchor caller ports, proofs of both growth suppliers
+  (proposal/history compatibility; scoped inclusion), the actual P-Ou consumer build, production
+  Clean/Export compilation, canonical strict/export audits.
