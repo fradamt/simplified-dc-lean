@@ -97,7 +97,7 @@ private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
       exact ⟨fun _ _ _ => Subsingleton.elim _ _, fun v => ⟨0, Subsingleton.elim _ _⟩⟩
     · exact hℓ.elim
     · exact hℓ.elim
-  noRestart := by intro i v t; cases i <;> simp
+  restartsAtWakes := by intro v t h; simp at h
   delta := rfl
 
 private def smokeHealthy : V2.D.HealthyPrefixDelivery smokeEnv smokeRun 0 where

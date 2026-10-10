@@ -266,9 +266,8 @@ private def s45b_base : Base₂ s45b_p unitCodec s45b_E s45b_rho where
       exact ⟨fun _ _ _ => Subsingleton.elim _ _, fun v => ⟨0, Subsingleton.elim _ _⟩⟩
     · exact hl.elim
     · exact hl.elim
-  noRestart := by
-    intro i v t hi
-    have hm := List.mem_of_getElem? hi
+  restartsAtWakes := by
+    intro v t hm
     have cert : ∀ e ∈ s45b_rho.events,
         (match e with | .restart _ _ => true | _ => false) = false := by
       decide +kernel

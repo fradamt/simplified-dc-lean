@@ -1797,3 +1797,21 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
 Updated all 253 stale exact-hash pins to the current `docs/FGSA-API.md`.
 The allow-name set and frozen baseline are unchanged. The frozen manifest
 check passes (6.04 s). This closes review finding 1 before DECISION P23-A.
+
+## S-Ap Round 2 — public fixture classification (2026-10-10)
+
+Replaced the removed `Base₂.noRestart` field in Claims tests Regimes,
+HealingW, and FinalitySafety with `restartsAtWakes`.
+The fixture probe still fails: sleep-validity fields and the P2 delivery
+contract need repair; FinalitySafety also needs `CleanSleep₂`.
+Regimes and HealingW have horizon zero, so they do not prove useful read
+inhabitation. Their replacement sleep generator belongs to P-Fx. The
+FinalitySafety run and receipt-scope table witness belong to P-As.
+
+All three modules are now EXPECTED-FAIL in S-Ap with those owners.
+The FGSAInhabit witness modules and tests, OutageContinuationInhabit, and
+RowPermission are also classified with P-Fx/P-As. Positive inhabitants for
+HealthyPrefixSleep₂, CleanPrefixSleep₂, CleanSleep₂, RecoverySleep₂,
+OutageSleep₂, OutageContinuationSleepPrem, and both continuation companions
+remain OPEN until the owner evidence is available. A type audit is not an
+inhabitation proof. No premise was weakened to make a fixture pass.

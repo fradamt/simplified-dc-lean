@@ -1,5 +1,16 @@
 # S-Ap part 1. P23 remains with W3 until the part 2 handoff.
 [TARGETS]
+AvailableChainFGSAClaims.Tests.Regimes
+AvailableChainFGSAClaims.Tests.HealingW
+AvailableChainFGSAClaims.Tests.FinalitySafety
+AvailableChainFGSAInhabit.WeakContinuationWitness
+AvailableChainFGSAInhabit.WeakContinuationW1
+AvailableChainFGSAInhabit.WitnessPositive
+AvailableChainFGSAInhabit.Tests.Axioms
+AvailableChainFGSAInhabit.Tests.WeakContinuationW1
+AvailableChainFGSAInhabit.Tests.WitnessPositive
+AvailableChainFGSAProofs.Tests.OutageContinuationInhabit
+AvailableChainFGSAProofs.Tests.RowPermission
 AvailableChainFGSAClaims.Tests.OutageAlignment
 AvailableChainFGCompose.Proofs.SafetyClient
 AvailableChainFGCompose.Proofs.SafetyMonotone
@@ -512,6 +523,17 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
+AvailableChainFGSAClaims.Tests.Regimes P-Fx
+AvailableChainFGSAClaims.Tests.HealingW P-Fx
+AvailableChainFGSAClaims.Tests.FinalitySafety P-As
+AvailableChainFGSAInhabit.WeakContinuationWitness P-Fx
+AvailableChainFGSAInhabit.WeakContinuationW1 P-As
+AvailableChainFGSAInhabit.WitnessPositive P-As
+AvailableChainFGSAInhabit.Tests.Axioms P-As
+AvailableChainFGSAInhabit.Tests.WeakContinuationW1 P-As
+AvailableChainFGSAInhabit.Tests.WitnessPositive P-As
+AvailableChainFGSAProofs.Tests.OutageContinuationInhabit P-Fx
+AvailableChainFGSAProofs.Tests.RowPermission P-As
 AvailableChainFGSAClaims.Tests.OutageAlignment P-Ou
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Channels P-ShA
