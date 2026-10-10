@@ -2588,3 +2588,51 @@ three permitted logical axioms. Complete GREEN exports: 262 proof modules /
 253 exports / zero unaccepted. Complete local coverage: 37 entries PASS.
 Layers: 72 inherited / zero new. Kernel PREPARED; full P-Ar and the public
 prefix receipt theorem remain OPEN on the closure inputs listed above.
+
+## P-Ou — sleep wave 3 local kernel (2026-10-10)
+
+Base: sleep-pou 15744443. Local kernel PREPARED; package OPEN.
+No owned repair with a failing changed target is marked CLOSED.
+
+- P15 local interface: RestoredReceipt.outage_restored_service uses
+  max(send,wake), a strict receipt deadline, deadline <= cutoff, checked
+  dependencies, history safety, finality exclusion, and the receiver epoch.
+  Joined readers supply awake and restart freedom at the required times.
+  outage_restored_receipt_with_service composes all three restored cuts;
+  its service inputs and P-Ar prefix must still be derived from the regime.
+  The public outage_restored_batch_receipt remains OPEN. No receipt field
+  is added to Outage premises.
+- P16: PersistenceSleep.outage_e1_of_e proves the approved E-to-E1 claim.
+  outage_good_bad_disjoint isolates U=A union W. The strict release bound
+  reuses outage_fault_lt_release. No good-vote premise is needed for E1.
+- P12/P17: restart keeps coverage of B, the lock, and its deadline.
+  outage_restart_live_lock limits the exception to wake < deadline.
+  No extension of an old tip or newcomer record is asserted.
+- Internal repair: a restarted block is traced to its original network
+  acceptance by inclusion_acceptance_before_index. A replay is not used
+  as a new acceptance. inclusion_receipt_of_compatible and
+  inclusion_proposal_receipt now use joined reader scope and explicit N4
+  service data. Their public Clean producer ports remain OPEN.
+- ExactProposalHistory consumes the cleanResults enabled-gate conjunct.
+- GateCount holds the four existing pure continuation count declarations.
+  ContinuationGate imports it. The latter's remaining repairs are OPEN.
+
+Ledger-use closure: P/E at ContinuationReceipt:283; P/K at :556 and :724;
+T26-T30; T31-T38; and T61 remain OPEN pending the regime/consumer ports.
+T25 belongs to P-Ar and waits on its closed handoff. The named reader
+window/epoch lemmas are prepared inputs, not closure of those use sites.
+
+Supplier closure inputs: P-Ar prefix and receiver arming, P-Cl1
+clean_epoch_saved_row, P-ShA scoped Clean service adapters, S-Ap D013
+OutageContinuationConcl, and P-Cl2 Growth/export fragments. Own closure
+work: good votes, opponent denominator, late writes, joint induction,
+handover, public receipts, exports, and the approved reader tests.
+
+Package map and local complete audit inventory are in scripts/dev-pkg/P-Ou*.
+Serial full audit/root/inventory fragments accompany the package report.
+No allow entry, existing shared scope row, or foreign source is changed.
+
+P-Ou prepared validation: the first DCK run passed with default controls.
+The final map adds the compiled PersistenceHistory, PersistenceFrame, and
+ContinuationFrame support modules. The complete local strict audit has
+44 commands. Final export/coverage checks and a final DCK run follow.

@@ -34,16 +34,16 @@ theorem inclusion_comparison_prefix
   let pool := insert Block.genesis genuine
   have hmem {s : Slot} {B : Block} (hB : (s, B) ∈ cleanResults p c E rho i)
       (hsr : s ≤ r) : B ∈ genuine := by
-    obtain ⟨j, hj, x, htick, hresult⟩ := hB
+    obtain ⟨j, hj, x, htick, hguard, hresult⟩ := hB
     apply Finset.mem_filter.mpr
     refine ⟨Finset.mem_image.mpr ⟨j, Finset.mem_range.mpr hj, ?_⟩,
-      s, ⟨j, hj, x, htick, hresult⟩, hsr⟩
+      s, ⟨j, hj, x, htick, hguard, hresult⟩, hsr⟩
     simp only [hresult, Option.getD_some]
   have hcompatible {s t : Slot} {B C : Block}
       (hB : (s, B) ∈ cleanResults p c E rho i)
       (hC : (t, C) ∈ cleanResults p c E rho i) : Block.Compatible B C := by
-    obtain ⟨j, _, x, hx, hB⟩ := hB
-    obtain ⟨k, _, y, hy, hC⟩ := hC
+    obtain ⟨j, _, x, hx, _, hB⟩ := hB
+    obtain ⟨k, _, y, hy, _, hC⟩ := hC
     have hmj := List.mem_of_getElem? hx
     have hmk := List.mem_of_getElem? hy
     have hxy := hordered x y s t B C (hs.honest_only _ hmj) (hs.honest_only _ hmk)

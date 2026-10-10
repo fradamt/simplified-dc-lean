@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSAClaims.Statements.Channels
 public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 
 public section
 
@@ -11,10 +12,30 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+/-- A durable block has a network acceptance before the index. A restart
+restamps the block but does not create its original acceptance. -/
+theorem inclusion_acceptance_before_index
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (k : Nat) (x : V)
+    (b : Block) (hne : b ≠ .genesis)
+    (hm : b ∈ (V2.D.Run.stateBefore E rho k x).st.base.blocks) :
+    ∃ i < k, ∃ t o, blockOf? p o = some b ∧ V2.D.Run.acceptsAt E rho i x o t := by
+  induction k using Nat.strong_induction_on with
+  | h k ih =>
+    rw [← (metaInv_stateBefore E rho k x).stampKeys] at hm
+    obtain ⟨⟨b', stamp⟩, hm, he⟩ := List.mem_map.mp hm
+    dsimp only at he
+    subst b'
+    rcases fgsa_block_stamp_source_or_restart E rho k x b stamp hm with
+      hg | ⟨i, hi, t, o, ho, ha, _⟩ | ⟨j, hj, _, _, _, hb, _⟩
+    · exact (hne hg.1).elim
+    · exact ⟨i, hi, t, o, ho, ha⟩
+    · obtain ⟨i, hi, t, o, ho, ha⟩ := ih j hj hb
+      exact ⟨i, hi.trans hj, t, o, ho, ha⟩
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (acceptance step).
 Class (iii). DC: INTENTIONAL; a non-genesis block in the strict read has an
-earlier acceptance. The block stamp supplies the acceptance event. -/
+earlier acceptance. The original acceptance survives every restart. -/
 theorem inclusion_acceptance_of_stored
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (b : Block) (u : Time) (x : V)
@@ -23,79 +44,63 @@ theorem inclusion_acceptance_of_stored
     ∃ o i t, (fgsaInterface p c).block o.payload = some b ∧ t < u ∧
       V2.D.Run.acceptsAt E rho i x o t := by
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho u hs] at hm
-  rw [← (metaInv_stateBefore E rho (V2.D.Run.idxBefore rho u) x).stampKeys] at hm
-  obtain ⟨⟨b', stamp⟩, hm, he⟩ := List.mem_map.mp hm
-  dsimp only at he
-  subst b'
-  rcases fgsa_block_stamp_source E rho _ x b stamp hm with
-    hg | ⟨i, hi, t, o, ho, ha, _⟩
-  · exact (hne hg.1).elim
-  · obtain ⟨parent, hd, _⟩ := ha.1
-    refine ⟨o, i, t, ?_,
-      (Gen.V2.Duty.index_lt_idxBefore_iff hs hd u).mp hi, ha⟩
-    rcases o with ⟨auth, payload⟩
-    cases auth with
-    | none => cases payload <;> cases ho
-    | seat l j =>
-      cases l with
-      | base l => cases l <;> cases payload <;> cases ho
-      | prop s =>
-          cases payload with
-          | head => cases ho
-          | row => cases ho
-          | proposal => exact ho
+  obtain ⟨i, hi, t, o, ho, ha⟩ := inclusion_acceptance_before_index E rho _ x b hne hm
+  obtain ⟨parent, hd, _⟩ := ha.1
+  refine ⟨o, i, t, ?_, (Gen.V2.Duty.index_lt_idxBefore_iff hs hd u).mp hi, ha⟩
+  rcases o with ⟨auth, payload⟩
+  cases auth with
+  | none => cases payload <;> cases ho
+  | seat l j =>
+    cases l with
+    | base l => cases l <;> cases payload <;> cases ho
+    | prop s =>
+        cases payload with
+        | head => cases ho
+        | row => cases ho
+        | proposal => exact ho
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (receipt step).
 Class (iii). DC: INTENTIONAL; non-row traffic uses Delta independently of
 the row delay. This is the receipt consumer; Clean compatibility must be
-produced before it can discharge X1. No awake-receiver premise is used. -/
+produced with receiver service before it can discharge X1. Readers are joined. -/
 theorem inclusion_receipt_of_compatible [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
     (s : Slot) (N : NamedProposal p.n)
     (hne : N.erase ≠ .genesis)
-    (htrigger : Gen.V2.Duty.Trigger E rho
-      (ofWire p ⟨.proposer s, .proposal N⟩) (SA.proposalTime p.toParams s))
-    (hhor : SA.voteTime p.toParams s ≤ rho.horizon)
-    (hcompat : ∀ x ∈ rho.honest, Block.Compatible N.erase
-      (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams s) x).st.fg.F)) :
-    ∀ x ∈ rho.honest, ∃ o i t, (fgsaInterface p c).block o.payload = some N.erase ∧
-      t < SA.voteTime p.toParams s ∧ V2.D.Run.acceptsAt E rho i x o t := by
+    (hService : ∀ x, headReader p E rho x s (SA.voteTime p.toParams s) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.voteTime p.toParams s) x)) :
+    ∀ x, headReader p E rho x s (SA.voteTime p.toParams s) →
+      ∃ o i t, (fgsaInterface p c).block o.payload = some N.erase ∧
+        t < SA.voteTime p.toParams s ∧ V2.D.Run.acceptsAt E rho i x o t := by
   intro x hx
-  have hD := Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy E rho rho.horizon
-    hset.pre.healthy (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ ΔF)
-  have hdeadline : SA.proposalTime p.toParams s + E.Δ = SA.voteTime p.toParams s := by
-    rw [hset.pre.base.delta]
-    rfl
-  obtain ⟨Y, hY, heY⟩ := fgsa_proposal_receipt E rho hset.pre.base.idealization
-    hset.pre.base.delta
-    hset.pre.base.valid hset.pre.base.noRestart (fun t => t + E.Δ) rho.horizon
-    s N (SA.proposalTime p.toParams s) x hD htrigger hx
-    (hdeadline ▸ hhor) (lt_add_of_pos_right _ E.Δ_pos)
-    (hdeadline.symm ▸ hcompat x hx)
-  rw [hdeadline] at hY
-  have hm := ((cstoreInv_stateBefore E rho (V2.D.Run.idxBefore rho
-    (SA.voteTime p.toParams s)) x).baseTree N.erase).mpr
-  rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hset.pre.base.valid.toScheduleWellFormed]
-    at hm
+  obtain ⟨h⟩ := hService x hx
+  obtain ⟨Y, hY, heY⟩ := h.proposal hset.pre.base.valid.toScheduleWellFormed hx.1
+    hset.pre.base.receiptIdealization
+  have hm := ((storeBundle_stateBeforeTime E rho (SA.voteTime p.toParams s) x).cstore.baseTree
+    N.erase).mpr ⟨Y, hY, heY⟩
   exact inclusion_acceptance_of_stored E rho hset.pre.base.valid.toScheduleWellFormed
-    N.erase (SA.voteTime p.toParams s) x hne (hm ⟨Y, hY, heY⟩)
+    N.erase (SA.voteTime p.toParams s) x hne hm
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (honest input).
 Class (iii). DC: INTENTIONAL; the supplied honest proposal produces the
-trigger and non-genesis facts. Compatibility is the remaining Clean
-producer obligation, kept explicit in this receipt helper. -/
+non-genesis fact. The Clean joint induction must supply receiver service
+with checked dependencies, finality compatibility, and the current epoch. -/
 theorem inclusion_proposal_receipt [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
     (hset : CleanSet p c E rho ΔF) (pt : PtSP)
     (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
-    (hhor : SA.voteTime p.toParams pt.s ≤ rho.horizon)
-    (hcompat : ∀ x ∈ rho.honest, Block.Compatible pt.P
-      (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams pt.s) x).st.fg.F)) :
-    ∀ x ∈ rho.honest, ∃ o i t, (fgsaInterface p c).block o.payload = some pt.P ∧
-      t < SA.voteTime p.toParams pt.s ∧ V2.D.Run.acceptsAt E rho i x o t := by
+    (hService : ∀ N, V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) pt.s)
+      (ofWire p ⟨.proposer pt.s, .proposal N⟩) (SA.proposalTime p.toParams pt.s) →
+      ∀ x, headReader p E rho x pt.s (SA.voteTime p.toParams pt.s) →
+        Nonempty (ReceiverService E rho (ofWire p ⟨.proposer pt.s, .proposal N⟩)
+          (SA.proposalTime p.toParams pt.s) (SA.voteTime p.toParams pt.s) x)) :
+    ∀ x, headReader p E rho x pt.s (SA.voteTime p.toParams pt.s) →
+      ∃ o i t, (fgsaInterface p c).block o.payload = some pt.P ∧
+        t < SA.voteTime p.toParams pt.s ∧ V2.D.Run.acceptsAt E rho i x o t := by
   obtain ⟨hslot, o, ⟨ip, hip, hem⟩, hb⟩ := hprop
   have hx : V2.D.proposerOf rho (fgsaInterface p c) pt.s ∈ rho.honest := hslot.2
   have haw : E.awake (V2.D.proposerOf rho (fgsaInterface p c) pt.s)
@@ -141,8 +146,7 @@ theorem inclusion_proposal_receipt [Fintype V]
           change false = true at hw
           cases hw
         have hresult := inclusion_receipt_of_compatible E rho ΔF hset pt.s N hne
-          (Or.inl ⟨_, hx, ip, hip, hem⟩) hhor
-          (by simpa only [hbp] using hcompat)
+          (hService N ⟨ip, hip, hem⟩)
         simpa only [hbp] using hresult
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
