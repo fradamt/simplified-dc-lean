@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPending
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
 public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
+public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
+public import AvailableChainFGSARun.Proofs.Interface
 
 public section
 
@@ -250,6 +252,178 @@ theorem arming_tick_store_on {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     change u = t at ht
     subst u
     simp [V2.Event.key, V2.Event.time, V2.Event.phase, Prod.Lex.toLex_le_toLex] at hk
+
+/-- The healthy non-row law is the sleep prefix's a + Δ service law. -/
+theorem arming_nonrow_delivery [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c fast E rho T b₀ b₁ ΔF) :
+    Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o)
+      (fun a => a + p.Δ) b₀ := by
+  have hp := h.sleepPre.toHealthyPrefix₂
+  have hd := Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy E rho b₀
+    hp.healthy (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ ΔF)
+  rwa [hp.base.delta] at hd
+
+/-- A protected receiver supplies readiness for an honest emitted fresh HEAD. -/
+theorem arming_head_ready {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {fast : Bool} {b₀ : Time} {x y : V} (hx : x ∈ coveredNodes p E rho fast b₀)
+    {s : Slot} (hs : (if fast then s = coverLabel p b₀
+      else (coverLabel p b₀ : Int) - (p.k : Int) + 1 ≤ (s : Int) ∧ s ≤ coverLabel p b₀))
+    {o : Obj p} (hy : y ∈ rho.honest)
+    (he : V2.D.Run.emits E rho y o (SA.voteTime p.toParams s)) :
+    Gen.V2.Duty.ReadyTrigger E rho o (SA.voteTime p.toParams s) x
+      (SA.voteTime p.toParams s) (SA.voteTime p.toParams s + p.Δ) := by
+  obtain ⟨_, hA, _⟩ := arming_receiver_window hx hs
+  have hsj : s ≤ coverLabel p b₀ := by cases fast <;> simp_all
+  have hd := p.deltaPos
+  refine ⟨y, hy, Or.inl he, ?_⟩
+  intro t hv ht
+  apply hA t
+  · rw [arming_vote_eq] at hv
+    have hn : (0 : Time) ≤ 4 * p.Δ * (s : Int) := by positivity
+    dsimp [Time] at *
+    omega
+  · change 4 * p.Δ * (s : Int) ≤ t
+    rw [arming_vote_eq] at hv
+    dsimp [Time] at *
+    omega
+  · have heg : SA.earlyTime p.toParams s ≤ SA.gateTime p.toParams s := by
+      rw [arming_early_eq, arming_gate_eq]
+      dsimp [Time] at *
+      omega
+    rw [arming_vote_add] at ht
+    exact ht.le.trans (heg.trans ((arming_gate_le_iff p s _).mpr hsj))
+
+/-- Transport, readiness and epoch come from the regime and protected receiver.
+Handler acceptance and exclusion remain local proof obligations. -/
+theorem arming_fresh_head_service [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c fast E rho T b₀ b₁ ΔF)
+    {x y : V} (hx : x ∈ coveredNodes p E rho fast b₀) {s : Slot}
+    (hs : (if fast then s = coverLabel p b₀
+      else (coverLabel p b₀ : Int) - (p.k : Int) + 1 ≤ (s : Int) ∧ s ≤ coverLabel p b₀))
+    (hcut : SA.earlyTime p.toParams s ≤ b₀) {q : Fin p.n} {b : BlockId}
+    (hy : y ∈ rho.honest)
+    (he : V2.D.Run.emits E rho y (ofHead p ⟨.seat (.head s) q, b⟩)
+      (SA.voteTime p.toParams s))
+    (hhandlers : ∀ j t, SA.voteTime p.toParams s ≤ t → t < SA.earlyTime p.toParams s →
+      V2.D.Run.handlesAt E rho j x (ofHead p ⟨.seat (.head s) q, b⟩) t →
+      (fgsa p c).wellFormed (ofHead p ⟨.seat (.head s) q, b⟩) = true ∧
+      (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x)
+        (ofHead p ⟨.seat (.head s) q, b⟩) = true ∧
+      fgsaTimely p (V2.D.Run.stateBefore E rho j x) (ofHead p ⟨.seat (.head s) q, b⟩))
+    (hnx : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho
+      (SA.earlyTime p.toParams s) x) (ofHead p ⟨.seat (.head s) q, b⟩) = false) :
+    Nonempty (FreshHeadService E rho s q b (SA.earlyTime p.toParams s) x) := by
+  have hp := h.sleepPre.toHealthyPrefix₂
+  have hsj : s ≤ coverLabel p b₀ := by cases fast <;> simp_all
+  have heg : SA.earlyTime p.toParams s ≤ SA.gateTime p.toParams (coverLabel p b₀) := by
+    apply le_trans _ ((arming_gate_le_iff p s _).mpr hsj)
+    rw [arming_early_eq, arming_gate_eq]
+    have hd := p.deltaPos
+    dsimp [Time] at *
+    omega
+  refine ⟨{
+    dl := fun a => a + p.Δ
+    cut := b₀
+    within := arming_nonrow_delivery h
+    ready := arming_head_ready hx hs hy he
+    later := lt_add_of_pos_right _ p.deltaPos
+    cut_le := by rw [arming_vote_add]; exact hcut
+    horizon := by rw [arming_vote_add]; exact hcut.trans hp.cut.2
+    freeze_le := (arming_vote_add p s).le
+    epoch := (arming_receiver_epoch hp.base.valid.toScheduleWellFormed hx hs).mono
+      le_rfl (fgsa_idxBefore_mono rho heg)
+    handlers := by simpa only [arming_vote_add] using hhandlers
+    not_excluded := by simpa only [arming_vote_add] using hnx }⟩
+
+/-- A proposal service uses the healthy prefix and this receiver's current epoch.
+Safe replay history, dependencies, timely handling and exclusion need local proofs. -/
+theorem arming_proposal_service [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c fast E rho T b₀ b₁ ΔF)
+    {x y : V} (hx : x ∈ coveredNodes p E rho fast b₀) {s : Slot}
+    (hs : (if fast then s = coverLabel p b₀
+      else (coverLabel p b₀ : Int) - (p.k : Int) + 1 ≤ (s : Int) ∧ s ≤ coverLabel p b₀))
+    (hcut : SA.earlyTime p.toParams s ≤ b₀) {q : Slot} {N : NamedProposal p.n}
+    {send a : Time} (hy : y ∈ rho.honest)
+    (he : V2.D.Run.emits E rho y (ofWire p ⟨.proposer q, .proposal N⟩) send)
+    (hsa : send ≤ a) (hstart : slotStartZ p (s : Int) ≤ a)
+    (hav : a ≤ SA.voteTime p.toParams s)
+    (hhistory : Gen.V2.Duty.HistorySafeAt E rho x
+      (ofWire p ⟨.proposer q, .proposal N⟩) a)
+    (hhandlers : ∀ j t, a ≤ t → t < a + p.Δ → V2.D.Run.handlesAt E rho j x
+      (ofWire p ⟨.proposer q, .proposal N⟩) t →
+      (fgsa p c).wellFormed (ofWire p ⟨.proposer q, .proposal N⟩) = true ∧
+      (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x)
+        (ofWire p ⟨.proposer q, .proposal N⟩) = true ∧
+      fgsaTimely p (V2.D.Run.stateBefore E rho j x) (ofWire p ⟨.proposer q, .proposal N⟩))
+    (hnx : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho (a + p.Δ) x)
+      (ofWire p ⟨.proposer q, .proposal N⟩) = false) :
+    Nonempty (ReceiverService E rho (ofWire p ⟨.proposer q, .proposal N⟩)
+      send (SA.earlyTime p.toParams s) x) := by
+  have hp := h.sleepPre.toHealthyPrefix₂
+  obtain ⟨_, hA, hR⟩ := arming_receiver_window hx hs
+  have hsj : s ≤ coverLabel p b₀ := by cases fast <;> simp_all
+  have hdeadline : a + p.Δ ≤ SA.earlyTime p.toParams s := by
+    rw [← arming_vote_add]
+    exact add_le_add hav le_rfl
+  have heg : SA.earlyTime p.toParams s ≤ SA.gateTime p.toParams (coverLabel p b₀) := by
+    apply le_trans _ ((arming_gate_le_iff p s _).mpr hsj)
+    rw [arming_early_eq, arming_gate_eq]
+    have hd := p.deltaPos
+    dsimp [Time] at *
+    omega
+  have ha : 0 ≤ a := le_trans (by unfold slotStartZ; have hd := p.deltaPos; positivity) hstart
+  have hready : Gen.V2.Duty.ReadyTrigger E rho (ofWire p ⟨.proposer q, .proposal N⟩)
+      send x a (a + p.Δ) := by
+    refine ⟨y, hy, Or.inl he, ?_⟩
+    intro t hat htd
+    exact hA t (ha.trans hat) (hstart.trans hat) (htd.le.trans (hdeadline.trans heg))
+  have hepoch : V2.D.restartFree rho x (V2.D.Run.actionCut rho a)
+      (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) := by
+    apply Gen.V2.Duty.restartFree_actionCut_idxBefore hp.base.valid.toScheduleWellFormed
+      (hav.trans_lt (arming_vote_lt_early p s).1)
+    intro k w hw haw hwe
+    exact hR w (hstart.trans_lt haw) (hwe.le.trans heg) (List.mem_of_getElem? hw)
+  exact ⟨{
+    dl := fun t => t + p.Δ
+    cut := b₀
+    anchor := a
+    within := arming_nonrow_delivery h
+    ready := hready
+    send_le := hsa
+    nonneg := ha
+    later := lt_add_of_pos_right _ p.deltaPos
+    cut_le := hdeadline.trans hcut
+    horizon := (hdeadline.trans hcut).trans hp.cut.2
+    freeze_le := hdeadline
+    history := hhistory
+    epoch := hepoch
+    handlers := hhandlers
+    not_excluded := hnx }⟩
+
+/-- P-Cl1's intended cut rows pass to the actual pending gate in the same epoch. -/
+theorem arming_pending_rows_on {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) {b₀ : Time} {l : Slot} {B D : Block}
+    (hl : SA.gateTime p.toParams l ≤ b₀) (hcut : b₀ < SA.gateTime p.toParams (l + 1))
+    {x : V} {i : Nat} (hi : IsGateTick p c rho i x (l + 1))
+    (hCutEpoch : V2.D.restartFree rho x (timeIdx rho b₀)
+      (V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1))))
+    (hTickEpoch : V2.D.restartFree rho x
+      (V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1))) i)
+    (hF : ∀ k, k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
+      Block.Preceq (F_at p c E rho k x) D)
+    (hrows : ∀ a < p.k - 1, ∃ Ca,
+      GridCO.savedGenuine (storeAt p c E rho (timeIdx rho b₀) x).base
+        (l + 1 - (a + 1)) = some (some Ca) ∧ Block.Preceq B Ca ∧ Block.Preceq Ca D) :
+    ∀ a < p.k - 1, ∃ Ca,
+      GridCO.savedGenuine (FGSA.clockPre p (storeAt p c E rho i x)
+        (SA.gateTime p.toParams (l + 1))).base (l + 1 - (a + 1)) = some (some Ca) ∧
+      Block.Preceq B Ca := by
+  rw [arming_tick_store_on hs hi hTickEpoch]
+  exact arming_slow_saved_on hs hl (arming_timeIdx_le_idxBefore rho hcut)
+    le_rfl hCutEpoch hF hrows
 
 end AvailableChain.FGSA.Run
 end

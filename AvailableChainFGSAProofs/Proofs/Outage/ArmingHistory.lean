@@ -58,6 +58,27 @@ theorem arming_enabled_of_pass {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   subst q
   exact ⟨hi, hEpoch⟩
 
+/-- A nonempty executed gate result proves the inclusive join marker bound. -/
+theorem arming_enabled_of_result {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {y : V} {s : Slot} {C : Block}
+    (hi : IsGateTick p c rho i y s)
+    (hres : gateResultAt p c E rho i = some (some C)) :
+    enabledGateAt p c E rho i y s := by
+  have hresult : gateResult p c E rho y s = some (some C) := by
+    rwa [← gateResultAt_eq_gateResult p c E rho hs hi]
+  have hJ := (fgsa_gate_raw_of_nonempty p c E rho hs hi hresult).1
+  have hslot : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+    (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i y) _).2.symm.trans
+      (fgsa_gate_slot (c := c) (V2.D.Run.stateBefore E rho i y) s)
+  refine ⟨hi, ?_⟩
+  cases hr : (storeAt p c E rho i y).restartTime with
+  | none => trivial
+  | some w =>
+    change (V2.D.Run.stateBefore E rho i y).st.restartTime = some w at hr
+    simp only [joinedAtTime, hr, hslot, Nat.cast_add, Nat.cast_one,
+      add_sub_cancel_right, decide_eq_true_eq] at hJ
+    exact hJ
+
 /-- Plan O-ARM §6.1, §11 obligation 1. Class (iii). DC: INTENTIONAL; an
 actual honest gate tick at or before the cut is a clean result of the cut. -/
 theorem arming_clean_of_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}

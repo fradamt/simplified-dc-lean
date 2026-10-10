@@ -19,6 +19,8 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingStep
 AvailableChainFGSAProofs.Tests.OutageArming
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Outage.ArmingOutput
+AvailableChainFGSAProofs.Proofs.Outage.ArmingPrefix
 AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
@@ -499,8 +501,6 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty P-Ar
 AvailableChainFGSAProofs.Proofs.Outage.ArmingGate P-Ar
 AvailableChainFGSAProofs.Proofs.Outage.ArmingInput P-Ar
 AvailableChainFGSAProofs.Proofs.Outage.ArmingMain P-Ar
-AvailableChainFGSAProofs.Proofs.Outage.ArmingOutput P-Ar
-AvailableChainFGSAProofs.Proofs.Outage.ArmingPrefix P-Ar
 AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSARun S-Ap

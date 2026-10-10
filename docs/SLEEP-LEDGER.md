@@ -2387,3 +2387,43 @@ arming_healthy_batch uses that helper and passes its selected voter's hJoined.
 arming_head_ge remains a separate legacy helper with its old type.
 The T25 receiver and service scopes remain explicit. P-Ou must use the joined
 transfer premise; no all-honest vHead premise is required by the fixed batch.
+
+### P-Ar Round 2 — regime sources, receiver ports and public STOP
+
+Astra item 2: hp := OutageSleep₂.sleepPre.toHealthyPrefix₂ supplies healthy,
+cut and base. hp.base supplies valid, delta, cstar, linked and
+receiptIdealization. arming_nonrow_delivery derives the healthy non-row
+law with deadline a + p.Δ. arming_head_ready derives the fresh HEAD trigger
+from honest emission and the protected receiver's awake window.
+arming_fresh_head_service and arming_proposal_service derive transport,
+readiness, timing and the receiver epoch. They still need local handler
+acceptance, non-exclusion and proposal replay history proofs. No regime
+field directly supplies these proof conclusions or TargetReceiptService.
+The complete source map is claude-files/sleep-par-receipt-sources.md.
+
+ArmingPrefix and ArmingOutput are GREEN. Existing names/types are kept.
+The executed nonempty gate result supplies the enabled marker via
+arming_enabled_of_result. Passed source and lease gates supply it via
+arming_enabled_of_pass. arming_leases_interval_on and arming_S_interval_on
+use one receiver's event-index epoch beside their legacy NoRestart forms.
+arming_pending_rows_on consumes P-Cl1's intended current cut rows and
+transfers them to the actual pending tick. clean_epoch_saved_row is absent
+on this base and at the inspected sleep-pcl1 commit 075a92d6.
+
+PUBLIC STOP: OutagePrefixReceiptDerivedClaim is false as currently approved.
+Tests.OutageArming.EarlyCut.regime proves every OutageSleep₂ premise for
+Δ = 2, T = 0, b₀ = b₁ = horizon = 8 and ΔF = 2. The sole honest node is
+always awake and joined. Its slot-1 proposal is emitted at time 8 and is not
+delivered. The healthy cut is 8, so its first deadline 10 is outside that
+cut. coverLabel is 1 and the public claim requires this proposal processed
+at earlyTime 1 = 12. It is not excluded, and it is absent at that read.
+Tests.OutageArming.EarlyCut.prefix_claim_false proves the negation of the
+approved claim. The run is valid, has the receipt collision idealization,
+and meets all prefix, participation, protection, order, lag and budget
+fields. This is not a missing service proof.
+
+No public statement was changed. The lead must select an approved public
+repair (for example the first-gate cut bound, or an early-cut scope repair).
+The five remaining certificate consumers stay P-Ar EXPECTED-FAIL. Full
+P-Ar remains NOT CLOSED; the joined T25 kernel is PREPARED. P-Ou must not
+assume that the public receipt claim is available from this handoff.
