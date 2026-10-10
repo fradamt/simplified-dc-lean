@@ -42,14 +42,16 @@ theorem fgsa_rowBitPersist (target : Bool) (i : Nat) (x : V)
     ⟨hPB.1.trans hstate.1, hPB.2.trans hstate.2⟩
 
 private theorem rowService_receipt_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hExecution : V2.D.ExecutionValid E rho) (hNoRestart : V2.D.NoRestart rho)
+    (hExecution : V2.D.ExecutionValid E rho)
     (dl : Time → Time) (cut : Time) (i : Fin p.n) (body : RowPayload)
     (send a : Time) (w : V)
     (hD : Gen.V2.Duty.DeliveryWithinOn E rho isRowObject dl cut)
     (hT : Gen.V2.Duty.Trigger E rho (ofRow p ⟨.seat .fg i, body⟩) send)
     (hw : w ∈ rho.honest) (hsa : send ≤ a) (ha : 0 ≤ a)
     (hcut : dl a ≤ cut) (hlt : a < dl a) (hhor : dl a ≤ rho.horizon)
-    (hAwake : V2.D.AwakeOn E w a (dl a)) :
+    (hAwake : V2.D.AwakeOn E w a (dl a))
+    (hRF : V2.D.restartFree rho w (V2.D.Run.actionCut rho a)
+      (V2.D.Run.idxBefore rho (dl a))) :
     (⟨.seat .fg i, body⟩ : RowWire p.n) ∈
       (V2.D.Run.stateBeforeTime E rho (dl a) w).st.rowPool := by
   let o := ofRow p (⟨.seat .fg i, body⟩ : RowWire p.n)
@@ -58,10 +60,14 @@ private theorem rowService_receipt_on (E : Generic.Env V) (rho : V2.D.Run V (fgs
     rcases hT with ⟨v, hv, he⟩ | ⟨v, hv, k, he⟩
     · exact ⟨v, hv, Or.inl he, hAwake⟩
     · exact ⟨v, hv, Or.inr ⟨k, he⟩, hAwake⟩
+  have hHistory : Gen.V2.Duty.HistorySafeAt E rho w o a := by
+    apply Gen.V2.Duty.historySafeAt_of_processed_mono (E := E) (rho := rho)
+    intro k l hkl _ hp
+    exact decide_eq_true ((fgsa_store_durable p c E rho hkl w).2.2.2.subset
+      (of_decide_eq_true hp))
   have hprocessed := Gen.V2.Duty.accepted_by_deadline_on E rho (fgsaTimely p)
     (fgsaAcceptanceInv p) isRowObject dl cut o send a w (by trivial) hD hReady hw hsa ha
-    hlt hcut hhor (fgsa_historySafeAt_noRestart E rho hS hNoRestart w o a) hS
-    (hNoRestart.restartFree w _ _) (fgsaHooks p c) (fgsaAcceptance p c) ?_ rfl
+    hlt hcut hhor hHistory hS hRF (fgsaHooks p c) (fgsaAcceptance p c) ?_ rfl
   · exact of_decide_eq_true hprocessed
   intro j t' hat htd hh
   have hidx : j < V2.D.Run.idxBefore rho (dl a) := by
@@ -70,31 +76,19 @@ private theorem rowService_receipt_on (E : Generic.Env V) (rho : V2.D.Run V (fgs
   have hdeps := fgsa_hReady_of_not_block (by intro s N h; cases h)
     (fgsa_hWF_of_delivery hExecution.wire) j t' hidx hh
   refine ⟨cstoreInv_stateBefore E rho j w, hdeps.1, hdeps.2, ?_⟩
-  let floor := Gen.V2.Duty.pubFloor E a
-  have hf0 : 0 ≤ floor :=
-    mul_nonneg (Int.ediv_nonneg ha (le_of_lt E.Δ_pos)) (le_of_lt E.Δ_pos)
-  have hfa : floor ≤ a := Gen.V2.Duty.pubFloor_le E a
-  have hpub : V2.PublicTime E floor := by
-    refine ⟨(a / E.Δ).toNat, ?_⟩
-    rw [Int.toNat_of_nonneg (Int.ediv_nonneg ha (le_of_lt E.Δ_pos))]
-    rfl
-  have haw := fgsa_awake_before_noRestart E rho hExecution hNoRestart w hw a
-    (hlt.le.trans hhor) (hAwake a le_rfl hlt) floor hf0 hfa
-  obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp
-    (hS.tick_total w hw floor hpub hf0 (hfa.trans (hlt.le.trans hhor)) haw)
-  obtain ⟨parent, he, _⟩ := hh
-  have hkj := V2.D.Engine.tick_index_lt_delivery E rho hS hk he (hfa.trans hat)
-  have hm := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hS hNoRestart
-    (Nat.succ_le_of_lt hkj) w
-  rw [(V2.D.Run.step_tick_eq E rho hk).1, V2.D.Engine.ClockLaws.now_tick,
-    fgsa_clock_now p c (V2.D.Run.stateBefore E rho j w)] at hm
-  exact hf0.trans hm
+  have hz : (fgsaClock p c).now (V2.D.Run.stateBefore E rho 0 w) = 0 :=
+    (fgsaClock p c).init
+  have hm := V2.D.Engine.stateBefore_now_mono_atRestart (fgsaClock p c)
+    (fgsaRestoreTimeLaw p c) E rho hS (Nat.zero_le j) w
+  rw [hz, fgsa_clock_now p c (V2.D.Run.stateBefore E rho j w)] at hm
+  exact hm
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Strict receipt for every emitted row and every receiver awake from GST.
 DC: SAME max deadline and horizon; INTENTIONAL FG adapter with bound ΔF. -/
-theorem fgsa_rowService_receipt (ΔF : Time) (_hΔ : E.Δ = p.Δ)
-    (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+theorem fgsa_rowService_receipt_sleep (ΔF : Time) (_hΔ : E.Δ = p.Δ)
+    (hv : V2.D.ExecutionValid E rho)
+    (hEpoch : ∀ x ∈ rho.honest, V2.D.NoRestartOn rho x E.t_GST (rho.horizon + 1))
     (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
     (hΔF : E.Δ ≤ ΔF)
     (hAwake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon →
@@ -119,15 +113,45 @@ theorem fgsa_rowService_receipt (ΔF : Time) (_hΔ : E.Δ = p.Δ)
     have := p.deltaPos
     positivity)).trans (le_max_left _ _)
   have hmax : max a E.t_GST = a := max_eq_left (le_max_right _ _)
-  have hheld := rowService_receipt_on p c E rho hv hnr _ rho.horizon i body
+  have hRF : V2.D.restartFree rho x (V2.D.Run.actionCut rho a)
+      (V2.D.Run.idxBefore rho (max a E.t_GST + ΔF)) := by
+    intro k w hka hkd he
+    have hwa : a < w := by
+      have hn := (V2.D.Engine.index_lt_actionCut_iff hv.toScheduleWellFormed he a).not.mp
+        (Nat.not_lt.mpr hka)
+      change ¬ (w < a ∨ (w = a ∧ (0 : Nat) = 0)) at hn
+      rcases lt_trichotomy w a with hlt | heq | hgt
+      · exact (hn (Or.inl hlt)).elim
+      · exact (hn (Or.inr ⟨heq, rfl⟩)).elim
+      · exact hgt
+    have hwd := (Gen.V2.Duty.index_lt_idxBefore_iff hv.toScheduleWellFormed he _).mp hkd
+    exact hEpoch x hx k w he ((le_max_right _ _).trans_lt hwa)
+      ((hwd.le.trans (by simpa only [hmax] using hhor)).trans_lt
+        (lt_add_of_pos_right _ (by decide)))
+  have hheld := rowService_receipt_on p c E rho hv _ rho.horizon i body
     (p.actionTime r) a x hD (Or.inl ⟨y, ha.1, j, ha.2⟩) hx (le_max_left _ _) ha0
     (by simpa only [hmax] using hhor)
     (by simpa only [hmax] using lt_add_of_pos_right a (E.Δ_pos.trans_le hΔF))
     (by simpa only [hmax] using hhor) (by
       intro u hau hud
       exact hAwake x hx u ((le_max_right _ _).trans hau)
-        (hud.le.trans (by simpa only [hmax] using hhor)))
+        (hud.le.trans (by simpa only [hmax] using hhor))) hRF
   exact Or.inl (by simpa only [hmax] using hheld)
+
+/-- The approved base interface keeps NoRestart and the awake suffix. -/
+theorem fgsa_rowService_receipt (ΔF : Time) (hΔ : E.Δ = p.Δ)
+    (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hΔF : E.Δ ≤ ΔF)
+    (hAwake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon →
+      E.awake x t = true)
+    {j : Nat} {y : V} {r : Nat} {a : RowWire p.n}
+    (ha : HonestRowAt p c E rho j y r a)
+    (hhor : max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon)
+    (x : V) (hx : x ∈ rho.honest) :
+    HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF) :=
+  fgsa_rowService_receipt_sleep p c E rho ΔF hΔ hv
+    (fun x _ k w he _ _ => hnr k x w he) hsync hΔF hAwake ha hhor x hx
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 R6W and a row height at least the parent height imply current-height matching.
@@ -298,6 +322,69 @@ theorem fgsa_tRows (ΔF : Time) (hΔ : E.Δ = p.Δ)
       E.awake x t = true) : TRows p c E rho ΔF :=
   ⟨fgsa_tRowsSelect p c E rho hv, fgsa_tRowsSync p c E rho ΔF hΔ hv hnr hsync hΔF hAwake,
     fgsa_tRowsReceipt p c E rho ΔF hΔ hv hnr hsync hΔF hAwake⟩
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+T-ROWS receipt under the bound row family, including pre-GST sends.
+DC: SAME strict max deadline and finite horizon; INTENTIONAL row family. -/
+theorem fgsa_tRowsReceipt_sleep (ΔF : Time) (hΔ : E.Δ = p.Δ)
+    (hv : V2.D.ExecutionValid E rho)
+    (hEpoch : ∀ x ∈ rho.honest, V2.D.NoRestartOn rho x E.t_GST (rho.horizon + 1))
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hΔF : E.Δ ≤ ΔF)
+    (hAwake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon →
+      E.awake x t = true) : TRowsReceipt p c E rho ΔF := by
+  intro j y r a ha hhor x hx
+  exact fgsa_rowService_receipt_sleep p c E rho ΔF hΔ hv hEpoch hsync hΔF hAwake ha hhor x hx
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Post-GST receipt and carriage at one row delay.
+DC: SAME strict receipt; INTENTIONAL R6 selector and independent row delay. -/
+theorem fgsa_tRowsSync_sleep (ΔF : Time) (hΔ : E.Δ = p.Δ)
+    (hv : V2.D.ExecutionValid E rho)
+    (hEpoch : ∀ x ∈ rho.honest, V2.D.NoRestartOn rho x E.t_GST (rho.horizon + 1))
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hΔF : E.Δ ≤ ΔF)
+    (hAwake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon →
+      E.awake x t = true) : TRowsSync p c E rho ΔF := by
+  intro j y r a ha hg
+  have receipt := fgsa_tRowsReceipt_sleep p c E rho ΔF hΔ hv hEpoch hsync hΔF hAwake j y r a ha
+  rw [max_eq_left hg] at receipt
+  refine ⟨receipt, ?_⟩
+  intro s Q rows hc hvalid htime
+  obtain ⟨k, hk, _⟩ := rowService_carrier_read p c E rho hv.toScheduleWellFormed hc
+  have hhor := htime.trans (hv.toScheduleWellFormed.in_horizon _ (List.mem_of_getElem? hk)).2
+  exact fgsa_rowsReceipt_carriage p c E rho hv hc ha hvalid
+    (receipt hhor _ hc.1.1.2) htime
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The three T-ROWS clauses share one bound row family.
+DC: INTENTIONAL FG transport adapter; SAME receipt and storage premises. -/
+theorem fgsa_tRows_sleep (ΔF : Time) (hΔ : E.Δ = p.Δ)
+    (hv : V2.D.ExecutionValid E rho)
+    (hEpoch : ∀ x ∈ rho.honest, V2.D.NoRestartOn rho x E.t_GST (rho.horizon + 1))
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hΔF : E.Δ ≤ ΔF)
+    (hAwake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon →
+      E.awake x t = true) : TRows p c E rho ΔF :=
+  ⟨fgsa_tRowsSelect p c E rho hv, fgsa_tRowsSync_sleep p c E rho ΔF hΔ hv hEpoch hsync hΔF hAwake,
+    fgsa_tRowsReceipt_sleep p c E rho ΔF hΔ hv hEpoch hsync hΔF hAwake⟩
+
+/-- The awake recovery suffix excludes a later wake restart at each honest receiver. -/
+theorem rowService_epoch_of_recovery [Fintype V] {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) :
+    ∀ x ∈ rho.honest, V2.D.NoRestartOn rho x E.t_GST (rho.horizon + 1) := by
+  intro x hx k w he hgw _
+  have hh := (h.base.valid.in_horizon _ (List.mem_of_getElem? he)).2
+  change w ≤ rho.horizon at hh
+  have hw := (h.base.restartsAtWakes x w (List.mem_of_getElem? he)).2.2
+  have ha := h.awake x hx (w - 1) (by dsimp [Time] at *; omega) (by dsimp [Time] at *; omega)
+  exact Bool.noConfusion (ha.symm.trans hw)
+
+/-- Recovery supplies the service, awake suffix, and local epoch for all three row clauses. -/
+theorem fgsa_tRows_recovery [Fintype V] {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) : TRows p c E rho ΔF :=
+  fgsa_tRows_sleep p c E rho ΔF h.base.delta h.base.valid
+    (rowService_epoch_of_recovery p c E rho h) h.sync h.deltaF h.awake
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The R6 invariant is available at the exact carrier read.

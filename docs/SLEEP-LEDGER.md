@@ -2184,3 +2184,34 @@ coverage: 147 proof modules, 251 exports, 0 unaccepted (6.23 s).
 Layers: 72 baseline findings, 0 new (0.38 s). No allowance or baseline changed.
 CLOSED still waits for the S-Ap Claims/Foundations transfer and P-ShA round 4.
 The remaining owned RowService restart adapter is continued after this checkpoint.
+
+### P-Fd — restart-safe row service follow-up
+
+fgsa_rowService_receipt_sleep, fgsa_tRowsReceipt_sleep, fgsa_tRowsSync_sleep,
+and fgsa_tRows_sleep use the exact receiver epoch from actionCut(max(send, GST))
+to idxBefore(deadline). A restart at the anchor is already in the action cut.
+Safe row history follows from durable rowPool prefixes, not from a claim about
+retained HEAD processing. The valid run's exact wake clock proves row timeliness.
+The prepared NoRestart interfaces remain wrappers with the approved awake suffix.
+
+rowService_epoch_of_recovery derives the post-GST epoch from Recovery₂.awake
+and Base₂.restartsAtWakes. Thus fgsa_tRows_recovery proves all three row clauses
+from Recovery₂, with no global NoRestart assumption. RecoverySleep₂ can use it
+through toRecovery₂.
+
+The unchanged Foundations.Export target has three remaining ports: the
+FGFoundationNext companion tuple, the approved P8 awake suffix, and the
+RowServiceClaim call to fgsa_tRows_recovery. Four serial export fragments,
+including the P21 public restart companion and the exact P8 predicate, compile
+in isolation with strict permitted axioms (12.64 s). They are handed to the lead;
+Claims/Foundations remains S-Ap-owned. No public meaning change is requested.
+Final package validation is recorded below after the DCK finishes.
+
+P-Fd follow-up validation: DCK PASS, 490 GREEN / 7 EXPECTED-FAIL, 38 strict
+roots, 114 local audit commands, all default controls PASS (168.53 s).
+Complete exports and complete local coverage: 147 proof modules, 251 exports,
+0 unaccepted (5.19 s). Layers: 72 baseline findings, 0 new (0.46 s).
+The package remains PREPARED. CLOSED requires the S-Ap claim transfer and
+P-ShA closure. Archived P-ShA round 4 (8384eb34) is NOT CLOSED: Shared.Export,
+Shared.Regimes and Tests.RetainedConsumers remain open. That supplier commit
+is not installed here; this branch keeps its base classifications and interfaces.

@@ -123,6 +123,12 @@ namespace AvailableChain.FGSA.Run
 #print axioms sourceDiscipline_srcFrameAbove
 #print axioms openingCovered_frontier_gate
 #print axioms openingCovered_lower_gate
+#print axioms fgsa_rowService_receipt_sleep
+#print axioms fgsa_tRowsReceipt_sleep
+#print axioms fgsa_tRowsSync_sleep
+#print axioms fgsa_tRows_sleep
+#print axioms rowService_epoch_of_recovery
+#print axioms fgsa_tRows_recovery
 
 end AvailableChain.FGSA.Run
 end
