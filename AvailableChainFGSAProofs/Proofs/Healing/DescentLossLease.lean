@@ -70,7 +70,10 @@ theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
     {B : FGBlock (Fin p.n)} {sB : Slot} {x : V} {l : Slot}
     (hB : HighSrcN p c E rho B sB) (hx : x ∈ rho.honest) (hl : sB + 2 ≤ l)
     (hk : rho.events[k]? = some (.tick x (SA.voteTime p.toParams l)))
-    (hScopes : ∀ y ∈ rho.honest, FastSupportScope E rho sB (SA.voteTime p.toParams l) y)
+    (hScopes : ∀ y nd, y ∈ rho.honest →
+      postClock E rho y (SA.gateTime p.toParams sB) = some nd →
+      eraseFG B ∈ (fastWriteAt nd.st sB).getD [] →
+      FastSupportScope E rho sB (SA.voteTime p.toParams l) y)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho k x).fg.F) (eraseFG B)) :
     ∀ row ∈ (FGSA.clock p (storeAt p c E rho k x) (SA.voteTime p.toParams l)).base.obligations,
       Block.Compatible row.1 (eraseFG B) := by
@@ -149,7 +152,7 @@ theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
     rw [hje, hke] at hkey
     exact V2.D.Engine.time_le_of_key_le _ _ hkey
   have hrows := healing_fast_lease_at E rho hrec mono writes hgst hgs hy hnd hfw hvl
-    (hScopes y hy) hcov
+    (hScopes y _ hy hnd hfw) hcov
     hx hiq hqa hT hFB
   intro row hrow
   rw [lease_vote_clock p] at hrow

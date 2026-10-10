@@ -18,7 +18,8 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 structure SlowSupportScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (s : Slot) (v : Time) (x : V) : Prop where
   phase : FastSupportScope E rho s v x
-  late : ∀ j, IsGateTick p c rho j x s → ProposalSupportScope E rho j x s
+  late : ∀ j, IsGateTick p c rho j x s → enabledGateAt p c E rho j x s →
+    ProposalSupportScope E rho j x s
   window : ∀ w, s + 1 - p.k ≤ w → w ≤ s → SameLabelServiceScope E rho w
 
 theorem SlowSupportScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -175,7 +176,9 @@ theorem healing_support_honest_late [Fintype V] (E : Generic.Env V)
     (ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
     (hScope : ProposalSupportScope E rho j x s)
     (hG : enabledGateAt p c E rho j x s)
-    (k : Fin p.n) (hk : rho.seatOf (.base (.head s)) k ∈ rho.honest) :
+    (k : Fin p.n) (hk : rho.seatOf (.base (.head s)) k ∈ rho.honest)
+    (hJoin : joinedAt p E rho (rho.seatOf (.base (.head s)) k) s
+      (SA.voteTime p.toParams s)) :
     k ∈ (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s)).toFinset := by
   have hE := hrec.base.valid
@@ -191,7 +194,7 @@ theorem healing_support_honest_late [Fintype V] (E : Generic.Env V)
   have hawake := hrec.awake z hk _ hgst hvh
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk s hvh hawake
   obtain ⟨hem, _⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
-    (fgsa_head_joined_of_joinedAt E rho hS hjz (hScope.joined z hk))
+    (fgsa_head_joined_of_joinedAt E rho hS hjz hJoin)
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams s)) s
   obtain ⟨hFresh⟩ := hScope.fresh k K.root hk hem
@@ -244,10 +247,8 @@ theorem healing_slow_honest_seat [Fintype V] (E : Generic.Env V)
   let L := (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine src s)).toFinset
   let T := (GridCO.seats p.n P).toFinset.filter
     (fun i => Gen.AC.Root.poolSupports src.blocks P i B = true)
-  let Hon : Finset (Fin p.n) := Finset.univ.filter
-    (fun k => rho.seatOf (.base (.head s)) k ∈ rho.honest)
-  have hHmem (k : Fin p.n) : k ∈ Hon ↔ rho.seatOf (.base (.head s)) k ∈ rho.honest := by
-    simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
+  let Hon : Finset (Fin p.n) := healingJoinedSeats E rho s
+  have hHmem := healingJoinedSeats_mem E rho s
   have hscore : GridCO.goldfishScore src.blocks P P B = T.card := by
     rw [Gen.AC.Root.vote_pool_score_card]
     apply congrArg Finset.card
@@ -264,49 +265,18 @@ theorem healing_slow_honest_seat [Fintype V] (E : Generic.Env V)
     intro k hkT hkH
     obtain ⟨_, hs⟩ := Finset.mem_filter.mp hkT
     obtain ⟨o, ho, hk', hsup⟩ := (Gen.AC.Root.vote_pool_support_witness _ _ k B).mp hs
-    exact hn ⟨k, o, (hHmem k).mp hkH, ho, hk', hsup⟩
+    exact hn ⟨k, o, ((hHmem k).mp hkH).1, ho, hk', hsup⟩
   have hTL : T ⊆ L := fun k hk =>
     fgsa_cleanSupport_seats_subset_late p src s (Finset.mem_filter.mp hk).1
   have hHL : Hon ⊆ L := fun k hk =>
-    healing_support_honest_late E rho hrec hgst hhor hx ht hScope hG k ((hHmem k).mp hk)
+    healing_support_honest_late E rho hrec hgst hhor hx ht hScope hG k
+      ((hHmem k).mp hk).1 ((hHmem k).mp hk).2
   have hTf : T.card ≤ (Gen.V2.Duty.faulty rho).card := by
-    apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head s)))
-    · intro k hk
-      rw [Finset.mem_coe, Gen.V2.Duty.faulty_def]
-      refine Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, ?_⟩
-      intro hh
-      exact Finset.disjoint_left.mp hTH hk ((hHmem k).mpr hh)
-    · intro k _ i _ he
-      exact (hC (.base (.head s)) trivial).injective he
-  have hbij : Function.Bijective (fun k : Fin p.n => rho.seatOf (.base (.head s)) k) :=
-    hC (.base (.head s)) trivial
-  have hHon : Hon.card = rho.honest.card := by
-    rw [← Finset.card_image_of_injective Hon hbij.1]
-    congr 1
-    ext z
-    simp only [Finset.mem_image]
-    constructor
-    · rintro ⟨k, hk, rfl⟩
-      exact (hHmem k).mp hk
-    · intro hz
-      obtain ⟨k, rfl⟩ := hbij.2 z
-      exact ⟨k, (hHmem k).mpr hz, rfl⟩
-  have hvh : SA.voteTime p.toParams s ≤ rho.horizon := by
-    refine le_trans ?_ hhor
-    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
-    linarith
-  have hn : Fintype.card V = p.n :=
-    (V2.D.CStar.seats_eq (ℓ := .base .fg) hrec.base.linked.toCStar trivial).symm
-  have hf : (Gen.V2.Duty.faulty rho).card = p.n - rho.honest.card := by
-    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
-      Finset.card_univ, hn]
-  have hb : (Gen.V2.Duty.faulty rho).card < Hon.card := by
-    have hfault := hrec.fault
-    have hHonLe : rho.honest.card ≤ p.n := hn ▸ Finset.card_le_univ rho.honest
-    have hpos := p.nPos
-    rw [hf] at hfault
-    rw [hf, hHon]
-    omega
+    apply le_trans (Finset.card_le_card (show T ⊆ L \ Hon from ?_))
+      hScope.lateRivals
+    intro k hk
+    exact Finset.mem_sdiff.mpr ⟨hTL hk, fun hh => Finset.disjoint_left.mp hTH hk hh⟩
+  have hb : (Gen.V2.Duty.faulty rho).card < Hon.card := hScope.batch.lt
   have hunion : T.card + Hon.card ≤ L.card := by
     rw [← Finset.card_union_of_disjoint hTH]
     exact Finset.card_le_card (Finset.union_subset hTL hHL)
@@ -459,11 +429,13 @@ theorem healing_slow_lease_at [Fintype V] (E : Generic.Env V)
       rw [clockPre_fg]
       exact hFmono hj.le hFB
     obtain ⟨C', hC', hBC'⟩ := healing_support_gate_cover E rho hrec hgw'
-      (hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT).1 (hwT.trans hTh)
-      (hcov w hws hwT) ht ((hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT).2 j y hy ht) hFw
+      (hwT.trans hTh)
+      (hcov w hws hwT) ht ((hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT) j y hy ht
+        (healing_gate_enabled_of_result E rho hS ht hres')) hFw
     have hDC : D = C' := by
       have h2 := slow_gate_result (c := c) E rho hS ht
-        ((hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT).2 j y hy ht).enabled hC'
+        ((hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT) j y hy ht
+        (healing_gate_enabled_of_result E rho hS ht hres')).enabled hC'
       rw [hres'] at h2
       exact Option.some.inj (Option.some.inj h2)
     subst hDC
@@ -603,7 +575,7 @@ theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
   have hmaj := healing_slow_majority E rho hS hjx hres hBC
   obtain ⟨k, o, hkh, ho, hko, hsup⟩ :=
     healing_slow_honest_seat E rho hrec (hgst.trans hhead) hhor hx hjx
-      (hScopes.late jx hjx) (hScopes.phase.source jx hjx) hmaj
+      (hScopes.late jx hjx (hScopes.phase.source jx hjx)) (hScopes.phase.source jx hjx) hmaj
   unfold headAtLabel at hH
   rw [postClock_def, preTick_def] at hH
   cases hiy' : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams (s + 1)) with
@@ -618,7 +590,7 @@ theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
     (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho jx x) _) o hK hsup
   exact healing_first_transfer_core (hroots := hrec.base.receiptIdealization)
     E rho (fun _ => mono) crossing hE hDelta hrec.sync hgst hphase
-    hhead hgate hx hjx hkh ho hko hsupD hmaj hy hiy (hScopes.phase.first jx iy y hy hjx hiy) hv
+    hhead hgate hx hjx hkh ho hko hsupD hmaj hy hiy (hScopes.phase.firstOn jx iy y hy hjx hiy) hv
     (healing_slow_lease E rho hrec mono writes (hgst.trans hhead) hhor hx hgw hst hres hBC
       hel le_rfl (hv.trans hphase.2.1) (hScopes.mono hv)
       (fun w hw1 hw2 => absurd (hw1.trans hw2) (Nat.not_succ_le_self s)) hy hiy)

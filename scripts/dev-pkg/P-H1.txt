@@ -1,4 +1,4 @@
-# P-H1 CLOSED, Round 3; 99 targets GREEN, no EXPECTED-FAIL.
+# P-H1 PREPARED, Round 4; scope producers open. Compilation is checked separately.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
 AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget

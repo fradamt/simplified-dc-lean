@@ -48,13 +48,16 @@ structure LossServiceScope (p : Params) {In V : Type} [DecidableEq V]
   first : ∀ B sB (iy : Nat) (y : V), HighSrcN p c E rho B sB → y ∈ rho.honest →
     rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (sB + 1))) →
     ∀ ix xs, xs ∈ rho.honest → IsGateTick p c rho ix xs sB →
+    (∃ C, gateResultAt p c E rho ix = some (some C) ∧ Block.Preceq (eraseFG B) C) →
     FirstTransferScope E rho ix iy xs y sB
   next : ∀ B sB i (iy : Nat) (y : V), HighSrcN p c E rho B sB → sB + 1 ≤ i → y ∈ rho.honest →
     rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))) →
     NextTransferScope E rho iy y i
   fast : ∀ B sB l (k : Nat) (x : V), HighSrcN p c E rho B sB → sB + 2 ≤ l → x ∈ rho.honest →
     rho.events[k]? = some (.tick x (SA.voteTime p.toParams l)) →
-    ∀ y ∈ rho.honest, FastSupportScope E rho sB (SA.voteTime p.toParams l) y
+    ∀ y nd, y ∈ rho.honest → postClock E rho y (SA.gateTime p.toParams sB) = some nd →
+    eraseFG B ∈ (fastWriteAt nd.st sB).getD [] →
+    FastSupportScope E rho sB (SA.voteTime p.toParams l) y
   receipts : ∀ i K s u (k : Nat) (x : V), SourceBefore p c E rho i K s → s ≤ u →
     E.t_GST ≤ SA.voteTime p.toParams u → x ∈ rho.honest →
     rho.events[k]? = some (.tick x (SA.voteTime p.toParams (u + 1))) →

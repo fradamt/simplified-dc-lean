@@ -45,30 +45,43 @@ structure FastSupportScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (s : Slot) (v : Time) (x : V) : Prop where
   source : ∀ ix, rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) →
     enabledGateAt p c E rho ix x s
+  firstReaders : ∀ iy y, y ∈ rho.honest →
+    rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    joinedAtTime p (storeAt p c E rho iy y).restartTime (SA.releaseTime p.toParams s) = true
   first : ∀ ix iy y, y ∈ rho.honest →
     rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) →
     rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    enabledGateAt p c E rho ix x s →
+    joinedAtTime p (storeAt p c E rho iy y).restartTime (SA.releaseTime p.toParams s) = true →
     FirstTransferScope E rho ix iy x y s
   next : ∀ w, s + 1 ≤ w → SA.voteTime p.toParams (w + 1) ≤ v →
     ∀ iy y, y ∈ rho.honest →
     rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (w + 1))) →
     NextTransferScope E rho iy y w
   gates : ∀ w, s + 1 ≤ w → SA.gateTime p.toParams w ≤ v →
-    E.t_GST ≤ slotStartZ p ((w : Int) - 1) ∧
-    ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y w → GateReceiptScope E rho j y w
+    ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y w →
+      enabledGateAt p c E rho j y w → SupportGateScope E rho j y w
   carriers : ∀ w, s + 1 ≤ w → SA.voteTime p.toParams w + p.Δ ≤ v →
     ∀ j z, z ∈ rho.honest → rho.events[j]? = some (.tick z (SA.voteTime p.toParams w)) →
-    ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ y ∈ rho.honest,
-      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams w + p.Δ) y
+    ∀ y ∈ rho.honest, HeadCarrierScope E rho j z w y
   sameLabel : SameLabelServiceScope E rho s
 
 /-- Restricting the interval keeps the same object services and exact epochs. -/
 theorem FastSupportScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {s : Slot} {u v : Time} {x : V} (h : FastSupportScope E rho s v x) (huv : u ≤ v) :
     FastSupportScope E rho s u x :=
-  ⟨h.source, h.first, fun w hw ht => h.next w hw (ht.trans huv),
+  ⟨h.source, h.firstReaders, h.first, fun w hw ht => h.next w hw (ht.trans huv),
     fun w hw ht => h.gates w hw (ht.trans huv),
     fun w hw ht => h.carriers w hw (ht.trans huv), h.sameLabel⟩
+
+/-- A consumer at the selected first read supplies the actor and reader guards. -/
+theorem FastSupportScope.firstOn {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {s : Slot} {v : Time} {x : V} (h : FastSupportScope E rho s v x)
+    (ix iy : Nat) (y : V) (hy : y ∈ rho.honest)
+    (hi : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hj : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
+    FirstTransferScope E rho ix iy x y s :=
+  h.first ix iy y hy hi hj (h.source ix hi) (h.firstReaders iy y hy hj)
 
 private def lease_source (st : State p.n) (t : Time) (row : Block × Nat × Time) : Prop :=
   ∃ s B, t = SA.gateTime p.toParams s ∧
@@ -405,7 +418,7 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
     rw [hpost] at hkeep
     obtain ⟨ix, h, hix, _, _, hτ⟩ := healing_fast_source (c := c) E rho hS hnd hB hScopes.source
     exact healing_support_release_compat (hroots := hrec.base.receiptIdealization)
-      E rho hE hDelta s hSync hx hy hix hiq (hScopes.first ix iq y hy hix hiq) hτ
+      E rho hE hDelta s hSync hx hy hix hiq (hScopes.firstOn ix iq y hy hix hiq) hτ
       (hFmono hqa.le hFB) row hkeep
   · -- The same label as the source gate.
     have hws' : w = s := hws
@@ -434,12 +447,14 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
       have : (s : Int) < (w : Int) := by exact_mod_cast hws
       omega
     obtain ⟨C', hC', hBC'⟩ := healing_support_gate_cover E rho hrec hgw
-      (hScopes.gates w (by exact_mod_cast hw1) hwT).1 (hwT.trans hTh)
+      (hwT.trans hTh)
       (hcov w (by exact_mod_cast hw1) hwT) ht
-      ((hScopes.gates w (by exact_mod_cast hw1) hwT).2 j y hy ht) hFw
+      ((hScopes.gates w (by exact_mod_cast hw1) hwT) j y hy ht
+        (healing_gate_enabled_of_result E rho hS ht hres)) hFw
     have hCC : C = C' := by
       have h2 := lease_gate_result (c := c) E rho hS ht
-        ((hScopes.gates w (by exact_mod_cast hw1) hwT).2 j y hy ht).enabled hC'
+        ((hScopes.gates w (by exact_mod_cast hw1) hwT) j y hy ht
+        (healing_gate_enabled_of_result E rho hS ht hres)).enabled hC'
       rw [hres] at h2
       exact Option.some.inj (Option.some.inj h2)
     subst hCC
@@ -581,7 +596,7 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
     subst hi'
     exact healing_first_transfer_fast E rho hrec.toRecovery₂ (fun _ => mono) crossing
       hgst hphase hhead hgate hx hnd hB hz hv
-      (fun ix iy hi hj => hScopes.first ix iy z hz hi hj) hK
+      (fun ix iy hi hj => hScopes.firstOn ix iy z hz hi hj) hK
   | succ n ih =>
     intro i hi hin hv z hz K hK
     have hiI : (s : Int) + 1 ≤ (i : Int) := by exact_mod_cast hi

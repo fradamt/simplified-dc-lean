@@ -38,18 +38,17 @@ example (_mono : RMono p c E rho) (crossing : RXing p c E rho)
     (m : Nat) (J : Option (FGBlock (Fin p.n))) (contested : Bool)
     {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
     (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
-    (hServices : ∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ y ∈ rho.honest,
-      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y)
+    {y : V} (hy : y ∈ rho.honest) (hServices : HeadCarrierScope E rho i x s y)
     (_hgst : E.t_GST ≤ SA.voteTime p.toParams s)
     (_hphase : PhaseInterval p c E rho (SA.voteTime p.toParams s)
       (SA.voteTime p.toParams s + p.Δ) m J contested) :
     let st := ((fgsa p c).clock (rho.stateBefore E i x) (SA.voteTime p.toParams s)).st
     ∃ K ∈ fullTree p st, eraseFG K = headVote p st s ∧
       ∃ W ∈ st.fg.TF, FGBlock.Preceq K W ∧ (controls p st).lo ≤ (heightView p W).h ∧
-        ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+        Gen.V2.Duty.HoldsBefore E rho
           (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
           (SA.voteTime p.toParams s + p.Δ) y :=
-  healing_head_witness_relay_on (hroots := hroots) p c E rho crossing hv hx hi hServices
+  healing_head_witness_relay_on (hroots := hroots) p c E rho crossing hv hx hi hy hServices
 
 -- S3: a written key has the release level and the slow or fast admission test.
 example (hs : V2.D.ExecutionValid E rho) {j : Nat} {x : V} {w : Slot} {B : Block}
@@ -106,7 +105,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {y : V} (hy : y ∈ rho.honest) {H : Block}
     (hH : headAtLabel p c E rho y i = some H) : Block.Preceq B H :=
   healing_fast_heads_transfer E rho hrec mono crossing hgst hphase hhead hgate hx hnd hB
-    hFast.first hFast.next hlease
+    hFast.firstOn hFast.next hlease
     i ((Nat.le_succ _).trans hi) hv y hy H hH
 
 -- G5: the release is a lower bound; a fast-supported block forces every conflicting

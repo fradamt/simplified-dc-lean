@@ -23,8 +23,7 @@ structure RepairGateScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     FirstTransferScope E rho i iq x x s
   carriers : ∀ j x, x ∈ rho.honest →
     rho.events[j]? = some (.tick x (SA.voteTime p.toParams s)) →
-    ∀ W ∈ (storeAt p c E rho j x).fg.TF, ∀ y ∈ rho.honest,
-      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y
+    ∀ y ∈ rho.honest, HeadCarrierScope E rho j x s y
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 03:367–373 (valid parent slots); plan H-REPAIR step 9.

@@ -93,7 +93,9 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
     (hScope : NextTransferScope E rho iy y i)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B)
     (row : Block × Nat × Time) (hbad : ¬ Block.Compatible row.1 B)
-    (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest) :
+    (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest)
+    (hJoin : joinedAt p E rho (rho.seatOf (.base (.head i)) k) i
+      (SA.voteTime p.toParams i)) :
     k ∈ unanimousReleaseSeats p.toParams.engine
       (actView (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1)))) i row.1 := by
@@ -114,25 +116,23 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
   have hawake := hrec.awake z hk _ hgsti hhori
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
-    (fgsa_head_joined_of_joinedAt E rho hS hjz (hScope.joined z hk))
+    (fgsa_head_joined_of_joinedAt E rho hS hjz hJoin)
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams i)) i
   have heQ : K = B := Option.some.inj (hhl.symm.trans (hbatch z hk))
   have hBK : Block.Preceq B K := heQ ▸ Gen.Pure.block_preceq_refl B
   -- The HEAD block is stored at z before e_i.
-  have hzinv := cstoreInv_clock p _ (cstoreInv_stateBefore E rho jz z) (SA.voteTime p.toParams i)
+  have hzinv := cstoreInv_clock p _ (cstoreInv_stateBefore E rho jz z)
+    (SA.voteTime p.toParams i)
   have hKz : K ∈ (storeAt p c E rho jz z).base.blocks := by
     have hm := headVote_stored p _ hzinv i
     rwa [clock_base_blocks] at hm
-  obtain ⟨Kfg, hKfg, hKe⟩ := ((cstoreInv_stateBefore E rho jz z).baseTree K).mp hKz
   have hve : SA.voteTime p.toParams i + p.Δ = SA.earlyTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ = 4 * p.Δ * (i : Int) + 2 * p.Δ
     ring
-  have hService : TargetReceiptService E rho K (SA.earlyTime p.toParams i) y := by
-    rw [← hKe, ← hve]
-    exact hScope.carriers jz z hk hjz Kfg hKfg y hy
-  have hBase := fgsa_target_receipt_on E rho hS hrec.base.receiptIdealization K
-    (SA.earlyTime p.toParams i) y hy hService
+  have hBase := healing_head_carrier_receipt p c E rho hE hy
+    (hScope.carriers jz z hk hjz y hy) hrec.base.receiptIdealization
+  rw [hve] at hBase
   obtain ⟨Y, hY, hYe⟩ := ((storeBundle_stateBeforeTime E rho _ y).cstore.baseTree K).mp hBase
   have hef : SA.earlyTime p.toParams i ≤ SA.freezeTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + 2 * p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
@@ -280,12 +280,12 @@ theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
   have hcount := (healing_support_release_rows st0 v hJoined row hrow).2
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hlevel : row.2.1 = SA.releaseThreshold p.toParams := hinv.leaseKeys.2 _ hrow
-  let Hon : Finset (Fin p.n) := Finset.univ.filter
-    (fun k => rho.seatOf (.base (.head v)) k ∈ rho.honest)
+  let Hon : Finset (Fin p.n) := healingJoinedSeats E rho v
   have hsub : Hon ⊆ unanimousReleaseSeats p.toParams.engine (actView dst) v row.1 := by
     intro k hk
     exact unanimous_seat_release p c E rho hrec hgst hbatch hy hiy hScope hFQ row hbad k
-      (Finset.mem_filter.mp hk).2
+      ((healingJoinedSeats_mem E rho v k).mp hk).1
+      ((healingJoinedSeats_mem E rho v k).mp hk).2
   have hle := Finset.card_le_card hsub
   rw [← unanimous_release_card] at hle
   have heq : GridCO.releaseCount p.toParams.engine (actView dst) v row.1 =
@@ -293,33 +293,7 @@ theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
     rw [hdst]
     rfl
   rw [heq] at hle
-  have hbij : Function.Bijective (fun k : Fin p.n => rho.seatOf (.base (.head v)) k) :=
-    hrec.base.cstar (.base (.head v)) trivial
-  have hHon : Hon.card = rho.honest.card := by
-    rw [← Finset.card_image_of_injective Hon hbij.1]
-    congr 1
-    ext z
-    simp only [Hon, Finset.mem_image, Finset.mem_filter, Finset.mem_univ, true_and]
-    constructor
-    · rintro ⟨k, hk, rfl⟩
-      exact hk
-    · intro hz
-      obtain ⟨k, rfl⟩ := hbij.2 z
-      exact ⟨k, hz, rfl⟩
-  have hn : Fintype.card V = p.n := by
-    have h := Fintype.card_congr (Equiv.ofBijective _ hbij)
-    simpa only [Fintype.card_fin] using h.symm
-  have hf : (Gen.V2.Duty.faulty rho).card = p.n - rho.honest.card := by
-    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
-      Finset.card_univ, hn]
-  have hhonLe : rho.honest.card ≤ p.n := by
-    rw [← hn]
-    exact Finset.card_le_univ _
-  have hb := hrec.fault
-  rw [hf] at hb
-  have hp := p.nPos
-  have ht : SA.releaseThreshold p.toParams = (p.n + 1) / 2 := rfl
-  rw [hHon] at hle
+  have hselected : SA.releaseThreshold p.toParams ≤ Hon.card := hScope.release
   dsimp only [dst, st1, st0] at hle hcount
   omega
 

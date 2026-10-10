@@ -24,9 +24,13 @@ structure FrontierReadScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (afterTicksIdx rho (SA.gateTime p.toParams q)) (SA.gateTime p.toParams q)
   seed : ∀ x ∈ rho.honest, FastSupportScope E rho q v x
   fast : ∀ w, q + 1 ≤ w → SA.gateTime p.toParams w ≤ v →
-    ∀ x ∈ rho.honest, FastSupportScope E rho w v x
+    ∀ x nd B, x ∈ rho.honest → postClock E rho x (SA.gateTime p.toParams w) = some nd →
+    B ∈ (fastWriteAt nd.st w).getD [] → FastSupportScope E rho w v x
   slow : ∀ w, q + 1 ≤ w → SA.gateTime p.toParams w ≤ v →
-    ∀ x ∈ rho.honest, SlowSupportScope E rho w v x
+    ∀ x st C B j, x ∈ rho.honest → gateIn p c E rho x w = some st →
+    gateResult p c E rho x w = some (some C) → Block.Preceq B C →
+    GridCO.slowEligible p.toParams.engine (actView st) w B = true →
+    IsGateTick p c rho j x w → SlowSupportScope E rho w v x
   prior : ∀ r, q + 1 ≤ r → SA.proposalTime p.toParams (r + 1) ≤ v →
     ∀ ip x, x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))) →
@@ -37,15 +41,15 @@ structure FrontierReadScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     NextTransferScope E rho ih y r
   carriers : ∀ r, q + 1 ≤ r → SA.voteTime p.toParams r + p.Δ ≤ v →
     ∀ j z, z ∈ rho.honest → rho.events[j]? = some (.tick z (SA.voteTime p.toParams r)) →
-    ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ y ∈ rho.honest,
-      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams r + p.Δ) y
+    ∀ y ∈ rho.honest, HeadCarrierScope E rho j z r y
 
 theorem FrontierReadScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {q : Slot} {u v : Time} (h : FrontierReadScope E rho q v) (huv : u ≤ v) :
     FrontierReadScope E rho q u :=
   ⟨h.readers, fun x hx => (h.seed x hx).mono huv,
-    fun w hw ht x hx => (h.fast w hw (ht.trans huv) x hx).mono huv,
-    fun w hw ht x hx => (h.slow w hw (ht.trans huv) x hx).mono huv,
+    fun w hw ht x nd B hx hnd hB => (h.fast w hw (ht.trans huv) x nd B hx hnd hB).mono huv,
+    fun w hw ht x st C B j hx hs hc hb hel hj =>
+      (h.slow w hw (ht.trans huv) x st C B j hx hs hc hb hel hj).mono huv,
     fun r hr ht => h.prior r hr (ht.trans huv),
     fun r hr ht => h.next r hr (ht.trans huv),
     fun r hr ht => h.carriers r hr (ht.trans huv)⟩
@@ -284,7 +288,8 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
     · obtain ⟨nd, hnd, hB⟩ := fread_fast_write E rho hS hjt hpass hres hkey hfast
       exact frontier_fast_heads E rho hrec mono crossing lastWrite hHeight hvh hcap hgstw hgate
         hQw hz hnd hB
-        (hScopes.fast w (Nat.succ_le_of_lt hqw) hgate z0 hz) (s - 1) (Nat.le_sub_one_of_lt hws) hvs1
+        (hScopes.fast w (Nat.succ_le_of_lt hqw) hgate z0 nd row.1 hz hnd hB)
+        (s - 1) (Nat.le_sub_one_of_lt hws) hvs1
     · obtain ⟨hin, _⟩ := healing_support_gate_reads p c E rho hS hjt
       have hgr' : gateResult p c E rho z0 w = some (some B) :=
         (gateResultAt_eq_gateResult p c E rho hS hjt).symm.trans hres
@@ -297,7 +302,8 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
           nlinarith
         exact frontier_slow_heads E rho hrec mono crossing lastWrite hHeight hvh hcap hgstw
           hgate hQw hz hgw hin hgr' hrowB hslow hjt
-          (hScopes.slow w (Nat.succ_le_of_lt hqw) hgate z0 hz)
+          (hScopes.slow w (Nat.succ_le_of_lt hqw) hgate z0 _ B row.1 _
+            hz hin hgr' hrowB hslow hjt)
           (s - 1) (Nat.le_sub_one_of_lt hws) hvs1
       · -- The slow window reaches label q: the saved q-result Q covers the target.
         obtain ⟨C, hC, hrC⟩ := healing_slow_window E rho hS hin hslow
@@ -324,8 +330,7 @@ theorem frontier_pivot_held [Fintype V] (E : Generic.Env V)
     (hrt : SA.voteTime p.toParams r + p.Δ ≤ t) (htv : t ≤ v)
     (hServices : ∀ j z, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams r)) →
-      ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ x ∈ rho.honest,
-        TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams r + p.Δ) x) :
+      ∀ x ∈ rho.honest, HeadCarrierScope E rho j z r x) :
     Qfg ∈ (storeAt p c E rho i y).fg.TF ∧
       FGBlock.Preceq (storeAt p c E rho i y).fg.F Qfg ∧
       FGBlock.Preceq (R_at p c E rho i y).Z Qfg ∧

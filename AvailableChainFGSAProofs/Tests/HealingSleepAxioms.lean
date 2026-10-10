@@ -589,3 +589,12 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_tDelReset_of_reset
 
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_advance
+
+-- Round 4: actual joins and selected per-receiver carrier receipts.
+#print axioms AvailableChain.FGSA.Run.healing_head_carrier_receipt
+#print axioms AvailableChain.FGSA.Run.healing_gate_enabled_of_joined
+#print axioms AvailableChain.FGSA.Run.healing_gate_enabled_of_result
+#print axioms AvailableChain.FGSA.Run.healing_recovery_later_gate
+#print axioms AvailableChain.FGSA.Run.healingJoinedSeats_mem
+#print axioms AvailableChain.FGSA.Run.FastSupportScope.firstOn
+#print axioms AvailableChain.FGSA.Run.healing_support_gate_scope_of_cut

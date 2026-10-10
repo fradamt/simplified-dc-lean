@@ -19,8 +19,9 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 Every retained score and history obligation stays in its own object service scope. -/
 structure RepairHeadServices (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (s : Slot) : Prop where
-  prior : ∀ (ip : Nat) (x : V), x ∈ rho.honest →
+  prior : ∀ (ip : Nat) (x : V) (N : NamedProposal p.n), x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip →
     ProposalSupportScope E rho ip x (s - 1)
   targets : ∀ (ip : Nat) (x : V) (N : NamedProposal p.n), x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
@@ -144,51 +145,15 @@ theorem repair_prior_support [Fintype V] (E : Generic.Env V)
     exact Gen.Pure.block_preceq_trans hLF (eraseFG_preceq (repair_F_preceq_Z src hinv))
   right
   have hFL0 : Block.Preceq (eraseFG (storeAt p c E rho ip x).fg.F) L := hdfg ▸ hFL
-  -- The honest batch of label r in the actual proposer pool.
-  let Hon : Finset (Fin p.n) := Finset.univ.filter
-    (fun k => rho.seatOf (.base (.head r)) k ∈ rho.honest)
-  have hbij : Function.Bijective (fun k : Fin p.n => rho.seatOf (.base (.head r)) k) :=
-    hrec.base.cstar (.base (.head r)) trivial
-  have hHmem (k : Fin p.n) : k ∈ Hon ↔ rho.seatOf (.base (.head r)) k ∈ rho.honest := by
-    simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
+  -- The selected joined batch in the actual proposer pool.
+  let Hon : Finset (Fin p.n) := healingJoinedSeats E rho r
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := healing_proposal_batch_seat E rho hrec mono
-    crossing hgst hphase hhead hcover hx hip hScope hv hFL0 k ((hHmem k).mp hk)
-  have hHon : Hon.card = rho.honest.card := by
-    rw [← Finset.card_image_of_injective Hon hbij.1]
-    congr 1
-    ext z
-    simp only [Finset.mem_image]
-    constructor
-    · rintro ⟨k, hk, rfl⟩
-      exact (hHmem k).mp hk
-    · intro hz
-      obtain ⟨k, rfl⟩ := hbij.2 z
-      exact ⟨k, (hHmem k).mpr hz, rfl⟩
-  have hn : Fintype.card V = p.n := by
-    have hc := Fintype.card_congr (Equiv.ofBijective _ hbij)
-    simpa only [Fintype.card_fin] using hc.symm
-  have hf : (Gen.V2.Duty.faulty rho).card = p.n - rho.honest.card := by
-    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
-      Finset.card_univ, hn]
-  have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := by
-    have hfault := hrec.fault
-    have hHonLe : rho.honest.card ≤ p.n := hn ▸ Finset.card_le_univ rho.honest
-    have hpos := p.nPos
-    rw [hf] at hfault
-    rw [hHon, hf]
-    constructor
-    omega
+    crossing hgst hphase hhead hcover hx hip hScope hv hFL0 k
+    ((healingJoinedSeats_mem E rho r k).mp hk).1
+    ((healingJoinedSeats_mem E rho r k).mp hk).2
+  have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
   have hother : ((GridCO.seats p.n (proposerVotes src (r + 1))).toFinset \ Hon).card ≤
-      (Gen.V2.Duty.faulty rho).card := by
-    apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head r)))
-    · intro k hk
-      obtain ⟨_, hn⟩ := Finset.mem_sdiff.mp hk
-      rw [Finset.mem_coe, Gen.V2.Duty.faulty_def]
-      refine Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, ?_⟩
-      intro hh
-      exact hn ((hHmem k).mpr hh)
-    · intro k _ j _ he
-      exact hbij.1 he
+      (Gen.V2.Duty.faulty rho).card := hScope.rivals
   obtain ⟨_, _, hpath, hconflict, _⟩ := Gen.AC.Root.batch_counts src.base.blocks
     (proposerVotes src (r + 1)) (proposerVotes src (r + 1)) (proposerSupport src (r + 1))
     Hon Hon.card (Gen.V2.Duty.faulty rho).card L (fun _ h => h)
@@ -607,7 +572,7 @@ theorem repair_head_exact_legacy [Fintype V] (E : Generic.Env V)
     linarith
   have hhor : SA.voteTime p.toParams (r + 1) ≤ rho.horizon := hvq.trans hphase.2.1
   have hPrior : ProposalSupportScope E rho ip x r := by
-    simpa only [Nat.add_sub_cancel] using hServices.prior ip x hx hip
+    simpa only [Nat.add_sub_cancel] using hServices.prior ip x N hx hip hem
   have h := repair_head_exact E rho hrec.toRecovery₂ (r + 1) hGST hx hip hseat N hem
     (fun y hy ih hih _ => repair_h6_input E rho hrec mono crossing hgst hphase hhead hvq
       hlease hx hip hPrior hy hih)

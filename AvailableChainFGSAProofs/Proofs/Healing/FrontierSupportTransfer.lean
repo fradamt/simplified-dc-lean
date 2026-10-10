@@ -116,9 +116,9 @@ theorem frontier_first_transfer_fast [Fintype V] (E : Generic.Env V)
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd (hgate.trans hvh)
   exact frontier_first_transfer_core (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hDelta hrec.sync hQm hvh hcap hgsts
-    hgate hcoverQ hx hix hkh ho hko hsup hmaj hy hiy (hScope.first ix iy y hy hix hiy) hv
+    hgate hcoverQ hx hix hkh ho hko hsup hmaj hy hiy (hScope.firstOn ix iy y hy hix hiy) hv
     (fun hFB => healing_support_release_compat (hroots := hrec.base.receiptIdealization)
-      E rho hE hDelta s hSync hx hy hix hiy (hScope.first ix iy y hy hix hiy) hτ hFB)
+      E rho hE hDelta s hSync hx hy hix hiy (hScope.firstOn ix iy y hy hix hiy) hτ hFB)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 HG.1:1546–1556, H.4-S:650–680; plan §3.1 step 3 (restates
@@ -169,7 +169,7 @@ theorem frontier_first_transfer_slow [Fintype V] (E : Generic.Env V)
   have hmaj := healing_slow_majority E rho hS hjx hres hBC
   obtain ⟨k, o, hkh, ho, hko, hsup⟩ :=
     healing_slow_honest_seat E rho hrec hgsts hhor hx hjx
-      (hScope.late jx hjx) (hScope.phase.source jx hjx) hmaj
+      (hScope.late jx hjx (hScope.phase.source jx hjx)) (hScope.phase.source jx hjx) hmaj
   unfold headAtLabel at hH
   rw [postClock_def, preTick_def] at hH
   cases hiy' : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams (s + 1)) with
@@ -184,7 +184,7 @@ theorem frontier_first_transfer_slow [Fintype V] (E : Generic.Env V)
     (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho jx x) _) o hK hsup
   exact frontier_first_transfer_core (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hDelta hrec.sync hQm hvh hcap hgsts
-    hgate hcoverQ hx hjx hkh ho hko hsupD hmaj hy hiy (hScope.phase.first jx iy y hy hjx hiy) hv
+    hgate hcoverQ hx hjx hkh ho hko hsupD hmaj hy hiy (hScope.phase.firstOn jx iy y hy hjx hiy) hv
     (healing_slow_lease E rho hrec mono lastWrite hgsts hhor hx hgw hst hres hBC
       hel le_rfl (hv.trans hvh) (hScope.mono hv)
       (fun w hw1 hw2 => absurd (hw1.trans hw2) (Nat.not_succ_le_self s)) hy hiy)
@@ -325,7 +325,7 @@ theorem frontier_Q_heads [Fintype V] (E : Generic.Env V)
     obtain ⟨nd, hnd, hQnd⟩ := hfast z hz
     exact healing_first_transfer_fast E rho hrec.toRecovery₂ (fun _ => mono) crossing hGST hPhase
       (hu.trans htv) le_rfl hz hnd hQnd hz hv1
-      (fun ix iy hi hj => (hScopes z hz).first ix iy z hz hi hj) hK
+      (fun ix iy hi hj => (hScopes z hz).firstOn ix iy z hz hi hj) hK
   · intro i hi hv ih iy y hy hiy hFB
     obtain ⟨nd, hnd, hQnd⟩ := hfast y hy
     exact healing_fast_lease E rho hrec mono lastWrite hgstq hy hnd hQnd hi (hv.trans hvh)

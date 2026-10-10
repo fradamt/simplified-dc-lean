@@ -92,7 +92,9 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hScope : NextTransferScope E rho iy y i)
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
-    (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest) :
+    (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest)
+    (hJoin : joinedAt p E rho (rho.seatOf (.base (.head i)) k) i
+      (SA.voteTime p.toParams i)) :
     Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1))).base.blocks
       (FGSA.headSupport p (FGSA.clock p (storeAt p c E rho iy y)
@@ -115,7 +117,7 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
   have hawake := hrec.awake z hk _ hgsti hhori
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
-    (fgsa_head_joined_of_joinedAt E rho hS hjz (hScope.joined z hk))
+    (fgsa_head_joined_of_joinedAt E rho hS hjz hJoin)
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams i)) i
   have hBK : Block.Preceq B K := hcover z hk K hhl
@@ -358,50 +360,13 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
   have hkeep := kept.1
   have hanchor := kept.2
   -- The honest batch of label i.
-  let Hon : Finset (Fin p.n) := Finset.univ.filter
-    (fun k => rho.seatOf (.base (.head i)) k ∈ rho.honest)
-  have hbij : Function.Bijective (fun k : Fin p.n => rho.seatOf (.base (.head i)) k) :=
-    hrec.base.cstar (.base (.head i)) trivial
-  have hHmem (k : Fin p.n) : k ∈ Hon ↔ rho.seatOf (.base (.head i)) k ∈ rho.honest := by
-    simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
+  let Hon : Finset (Fin p.n) := healingJoinedSeats E rho i
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := frontier_head_batch_seat E rho hrec crossing hQm
-    hvh hcap hgsti hcoverQ hcover hy hiy hScope hv k ((hHmem k).mp hk)
-  have hHon : Hon.card = rho.honest.card := by
-    rw [← Finset.card_image_of_injective Hon hbij.1]
-    congr 1
-    ext z
-    simp only [Hon, Finset.mem_image, Finset.mem_filter, Finset.mem_univ, true_and]
-    constructor
-    · rintro ⟨k, hk, rfl⟩
-      exact hk
-    · intro hz
-      obtain ⟨k, rfl⟩ := hbij.2 z
-      exact ⟨k, hz, rfl⟩
-  have hn : Fintype.card V = p.n := by
-    have hc := Fintype.card_congr (Equiv.ofBijective _ hbij)
-    simpa only [Fintype.card_fin] using hc.symm
-  have hf : (Gen.V2.Duty.faulty rho).card = p.n - rho.honest.card := by
-    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
-      Finset.card_univ, hn]
-  have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := by
-    have hfault := hrec.fault
-    have hHonLe : rho.honest.card ≤ p.n := hn ▸ Finset.card_le_univ rho.honest
-    have hpos := p.nPos
-    rw [hf] at hfault
-    rw [hHon, hf]
-    constructor
-    omega
+    hvh hcap hgsti hcoverQ hcover hy hiy hScope hv k ((healingJoinedSeats_mem E rho i k).mp hk).1
+    ((healingJoinedSeats_mem E rho i k).mp hk).2
+  have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
   have hother : ((GridCO.seats p.n (FGSA.headVotes p dst (i + 1))).toFinset \ Hon).card ≤
-      (Gen.V2.Duty.faulty rho).card := by
-    apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head i)))
-    · intro k hk
-      obtain ⟨_, hn⟩ := Finset.mem_sdiff.mp hk
-      rw [Finset.mem_coe, Gen.V2.Duty.faulty_def]
-      refine Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, ?_⟩
-      intro hh
-      exact hn ((hHmem k).mpr hh)
-    · intro k _ j _ he
-      exact hbij.1 he
+      (Gen.V2.Duty.faulty rho).card := hScope.rivals
   have hcov := batch_head_covers p dst X (FGSA.headVotes p dst (i + 1))
     (FGSA.headSupport p dst (i + 1)) Hon Hon.card (Gen.V2.Duty.faulty rho).card B
     (fgsa_headSupport_subset_headVotes E rho hE iy y i) rfl

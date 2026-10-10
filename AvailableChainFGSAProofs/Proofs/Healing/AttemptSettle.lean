@@ -15,7 +15,10 @@ variable (mono : RMonoAll p c E rho)
 variable (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
   rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
   E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+  (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
   ev.time + p.Δ ≤ rho.horizon →
+  Block.Compatible (eraseFG W)
+    (eraseFG (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.F) →
   TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
 
 include mono heldServices

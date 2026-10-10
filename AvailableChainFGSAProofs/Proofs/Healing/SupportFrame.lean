@@ -107,28 +107,53 @@ theorem healing_head_witness_relay (mono : RMono p c E rho) (crossing : RXing p 
   · exact hR ▸ KitFG.preceq_trans hZK hKW
   · exact hR ▸ hlo
 
-/-- A HEAD carrier relays through per-object local services, including retained history. -/
-theorem healing_head_witness_relay_on (crossing : RXing p c E rho)
+/-- One selected HEAD witness, with its source frame and this receiver's floor.
+Old durable blocks outside this witness create no receipt obligation. -/
+structure HeadCarrierScope {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (i : Nat) (x : V) (s : Slot)
+    (y : V) : Prop where
+  carrier :
+    let st := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
+    ∃ K ∈ fullTree p st, eraseFG K = headVote p st s ∧
+      ∃ W ∈ st.fg.TF, FGBlock.Preceq K W ∧ (controls p st).lo ≤ (heightView p W).h ∧
+        Block.Compatible (eraseFG W)
+          (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.fg.F) ∧
+        TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y
+
+/-- The selected ancestor, rather than every cached block, reaches the receiver. -/
+theorem healing_head_carrier_receipt (hvalid : V2.D.ExecutionValid E rho)
+    {i : Nat} {x y : V} {s : Slot} (hy : y ∈ rho.honest)
+    (hServices : HeadCarrierScope E rho i x s y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    headVote p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) s ∈
+      (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.base.blocks := by
+  obtain ⟨K, _, he, W, _, hKW, _, _, hs⟩ := hServices.carrier
+  have hW := healing_held_block_receipt_on p c E rho hvalid hroots W
+    (SA.voteTime p.toParams s + p.Δ) y hy hs
+  have hK := KitFG.ancestor_closed_of_parent_closed _
+    (storeBundle_stateBeforeTime E rho (SA.voteTime p.toParams s + p.Δ) y).cstore.fg.closed
+    W hW K hKW
+  rw [← he]
+  exact ((storeBundle_stateBeforeTime E rho _ y).cstore.baseTree _).mpr ⟨K, hK, rfl⟩
+
+/-- The selected carrier supplies its ancestors at this receiver's deadline. -/
+theorem healing_head_witness_relay_on (_crossing : RXing p c E rho)
     (hvalid : V2.D.ExecutionValid E rho)
-    {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
-    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
-    (hServices : ∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ y ∈ rho.honest,
-      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y)
+    {i : Nat} {x : V} {s : Slot} (_hx : x ∈ rho.honest)
+    (_hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
+    {y : V} (hy : y ∈ rho.honest) (hServices : HeadCarrierScope E rho i x s y)
     (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let st := ((fgsa p c).clock (rho.stateBefore E i x) (SA.voteTime p.toParams s)).st
     ∃ K ∈ fullTree p st, eraseFG K = headVote p st s ∧
       ∃ W ∈ st.fg.TF, FGBlock.Preceq K W ∧ (controls p st).lo ≤ (heightView p W).h ∧
-        ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+        Gen.V2.Duty.HoldsBefore E rho
           (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
           (SA.voteTime p.toParams s + p.Δ) y := by
   intro st
-  obtain ⟨K, hK, hk, W, hW, hKW, hlo⟩ :=
-    healing_full_witness_all p c E rho hvalid.toScheduleWellFormed crossing hx hi
-  have hfg : st.fg = (storeAt p c E rho i x).fg := clock_fg p _ _
+  obtain ⟨K, hK, hk, W, hW, hKW, hlo, _, hs⟩ := hServices.carrier
   refine ⟨K, hK, hk, W, hW, hKW, hlo, ?_⟩
-  intro y hy
   have hheld := healing_held_block_receipt_on p c E rho hvalid hroots W
-    (SA.voteTime p.toParams s + p.Δ) y hy (hServices W (hfg ▸ hW) y hy)
+    (SA.voteTime p.toParams s + p.Δ) y hy hs
   change W ∈ (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.fg.TF at hheld
   intro B hBW
   exact KitFG.ancestor_closed_of_parent_closed _

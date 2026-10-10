@@ -5473,3 +5473,68 @@ receipt wiring; current-epoch continuation service; 39 open with owner contracts
 (aa4b6c3d; proofs accepted by rev-ph2b-astra). Its canonical fragment scripts/dev-pkg/P-H2.audit-fragment.txt:9/:55-65 and
 P-H2.coverage-fragment.txt:54 still import Tests.HealingOpeningSupport: DO NOT APPLY (RULING AUDIT-FRAGMENT); P-H2 round 3
 removes them (codex/jobs/sleep-ph2-pending-fixes.md item 1). The six commands stay in Tests/HealingOpeningSupport.lean:136.
+
+## P-H1 — Round 4 scope and carrier repair (2026-10-10)
+
+Base 37beb806, branch sleep-ph1e. The Round 3 CLOSED claim is withdrawn after
+FIX-FIRST in rev-ph1d/review.md. Status is PREPARED. Compilation does not prove
+that a scope can be constructed from RecoverySleep₂. Public Claims/Statements
+are unchanged. No public statement was weakened and no public STOP occurred.
+
+RawServiceScope.gates and FastSupportScope.gates now take the actual enabled
+actor guard and SupportGateScope. They no longer demand the false sufficient
+GST cutoff from a post-GST vote. SupportGateScope uses a selected joined-voter
+batch; its cut-based partial producer requires the cut as an actual caller
+input. A nonempty result supplies its source enabledness. Later gate actors
+use their own slot cutoff. Suppressed gates create no service demand.
+
+NextTransferScope and ProposalSupportScope no longer assert that every honest
+voter is joined. They carry selected joined-seat batches and actual read-pool
+rival bounds. Raw late/proposal factories take real source cutoffs; generic raw
+consumers expose those cutoffs. The reset consumer derives the cutoff from its
+shifted H0Reset cut and actual fresh row. The unused universal raw next factory
+was removed. First factories take actual source/receiver guards. Fast's
+firstReaders at the selected first read remains an explicit producer obligation.
+
+All six reviewed carrier fields now use HeadCarrierScope. It selects one HEAD
+K and carrier W per receiver, with fullTree membership, identity, ancestry,
+source floor and compatibility with receiver finality. It does not demand service
+for every durable TF block. The relay consumes this selected W; the capped
+relay obtains K's membership per receiver. The W/C exclusion run does not force
+an old conflicting W into the receiver's cache. Such W cannot supply the selected
+ancestry and receiver-floor facts.
+
+RepairHeadServices.prior is guarded by actual proposal emission. FrontierRead's
+fast/slow factories take the actual written or eligible source arm. Loss's
+first/fast factories take the actual nonempty result or fastWriteAt membership.
+Settlement services now select only a carrier at the actual frontier height
+and use its receiver-finality compatibility. The consumer proves this floor
+fact from RXing, the cap and durable source membership.
+
+Every aggregate producer below is OPEN. All ten rows are P-H1 obligations;
+none is counted as accepted H2 assembly work. H2's ports remain separate.
+Full context, fields, named partial suppliers and exact goals are in
+scripts/dev-pkg/P-H1.round4-producers.md. Healing/ below means
+AvailableChainFGSAProofs/Proofs/Healing/. Common variables are p,c,E,rho and
+RecoverySleep₂ p c E rho G DeltaF, with the actual source/reset/phase/read guards.
+
+```text
+┌─────────┬──────────────────────────┬──────────────────────────────────────────┬───────┐
+│ ID      │ Healing record site      │ Exact open goal                          │ Owner │
+├─────────┼──────────────────────────┼──────────────────────────────────────────┼───────┤
+│ H1e-P1  │ SupportTransfer:22       │ FirstTransferScope E rho ix iy x y s      │ P-H1  │
+│ H1e-P2  │ SupportHeads:22          │ NextTransferScope E rho iy y s            │ P-H1  │
+│ H1e-P3  │ SupportLease:44          │ FastSupportScope E rho s v x              │ P-H1  │
+│ H1e-P4  │ SupportSlow:18           │ SlowSupportScope E rho s v x              │ P-H1  │
+│ H1e-P5  │ SupportPerm:16           │ SupportPermanenceServices E rho           │ P-H1  │
+│ H1e-P6  │ RepairH6:20              │ RepairHeadServices E rho s                │ P-H1  │
+│ H1e-P7  │ RepairGate:17            │ RepairGateScope E rho s                   │ P-H1  │
+│ H1e-P8  │ FrontierRead:21          │ FrontierReadScope E rho q v               │ P-H1  │
+│ H1e-P9  │ DescentLossCause:43      │ LossServiceScope p c E rho                │ P-H1  │
+│ H1e-P10 │ PostResetRaw:22          │ RawServiceScope p c E rho                 │ P-H1  │
+└─────────┴──────────────────────────┴──────────────────────────────────────────┴───────┘
+```
+
+H1e-HDR, OPEN, owner P-Ar: full check-module-headers finds inherited import-all
+errors in Outage/ArmingKernel:2,3. Both lines exist at 37beb806. P-H1 does not
+edit another package's files. No checker, baseline or allowance was changed.
