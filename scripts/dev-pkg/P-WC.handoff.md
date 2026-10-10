@@ -283,7 +283,9 @@ WC/StepTransferReceipts, WCG/StepGateBatch, and WCG/StepTransferReceipts.
 Dynamics imports its family suppliers. The pinned Dynamics caller lines
 1531 and 2817 map to these two WCG modules.
 
-Serial integration: add the package audit import and commands from
+Serial integration: add the production imports and audit commands from
 claude-files/sleep-pwc-round2-audit-fragment.txt to the existing
 FGSAProofs audit key. The corresponding coverage fragment uses that same key.
-No new canonical coverage key is needed.
+Import these production modules directly into Tests.Axioms.
+Do not import Tests.WeakContinuationSleepAxioms there. Keep that standalone
+audit registered through the test glob. No new canonical coverage key is needed.
