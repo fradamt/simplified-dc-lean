@@ -752,5 +752,85 @@ theorem outage_source_of_good_heads [Fintype V]
     exact Finset.mem_filter.mpr ⟨hh, hJ⟩
   exact Gen.Pure.block_compatible_of_preceq_compatible hCK (hHeads q K hGood hKkeep)
 
+/-- Restored result compatibility needs fresh HEAD service only. A target below
+receiver F can remain unresolved; its received HEAD still counts in the late pool. -/
+theorem outage_restored_result_of_compatible_heads [Fintype V] {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {fast : Bool} {b₀ : Time} {r s : Slot} {i : Nat} {x : V} {B C : Block}
+    (hx : x ∈ rho.honest) (hG : enabledGateAt p c E rho i x s)
+    (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hCount : (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r).card <
+      (outageH p E rho s \ outageW p E rho fast b₀ r).card)
+    (hHeads : ∀ q K, rho.seatOf (.base (.head s)) q ∈
+      outageH p E rho s \ outageW p E rho fast b₀ r →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Block.Compatible K B)
+    (hresult : gateResultAt p c E rho i = some (some C)) : Block.Compatible C B := by
+  classical
+  have hs := hBase.valid.toScheduleWellFormed
+  obtain ⟨H, hH, hCard⟩ := outage_good_seats E rho hBase.cstar fast b₀ r s
+  have hJ := outage_enabled_gate_joined hBase.valid hx hG
+  have heg : SA.earlyTime p.toParams s < SA.gateTime p.toParams s := by
+    rw [arming_early_eq, arming_gate_eq]; linarith [p.deltaPos]
+  have hhor := (hs.in_horizon _ (List.mem_of_getElem? hG.1)).2
+  have hid : rho.idxBefore (SA.earlyTime p.toParams s) ≤ i := by
+    by_contra hn
+    exact (not_lt_of_ge heg.le)
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hs hG.1 _).mp (lt_of_not_ge hn))
+  have hRF := outage_enabled_gate_read_epoch hs hG (D := SA.earlyTime p.toParams s)
+    (by rw [arming_early_eq]; change 4 * p.Δ * (s : Int) < _; linarith [p.deltaPos])
+  apply outageV_gate_of_emitted_heads E rho hBase i x s B C H
+    (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r).card (hCard.symm ▸ hCount)
+    (outage_late_opponent_bound E rho hBase.valid hBase.cstar i x s fast b₀ r H hH)
+    ?_ hresult hG
+  intro q hq
+  have hGood := (hH q).mp hq
+  have hm := (Finset.mem_sdiff.mp hGood).1
+  have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
+    slotOf_offset p s p.Δ p.deltaPos.le
+      (by have := p.deltaPos; dsimp [Time] at *; omega)
+  change _ ∈ rho.honest.filter _ at hm
+  obtain ⟨hy, hyJ⟩ := Finset.mem_filter.mp hm
+  rw [hslot] at hyJ
+  have he : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
+    rw [arming_vote_nat]
+  obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs hBase.delta _ hy (4 * s + 1)
+    (he ▸ (fgsa_vote_lt_gate p s).le.trans hhor) (he ▸ hyJ.1)
+  rw [he] at hk
+  let K := headVote p (clock p (rho.stateBefore E k
+    (rho.seatOf (.base (.head s)) q)).st (SA.voteTime p.toParams s)) s
+  have hem : ofHead p ⟨.seat (.head s) q, K.root⟩ ∈ rho.emitsAt E k := by
+    rw [(rho.step_tick_eq E hk).2]
+    exact (fgsa_emits_head E rho _ _ _ s q K.root).mpr
+      ⟨hyJ.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hk hyJ, rfl⟩
+  have hK : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K :=
+    ⟨k, s, q, hk, hem, rfl, rfl⟩
+  obtain ⟨hHead⟩ := outage_joined_head_service hBase hSync hx hy hJ le_rfl heg.le
+    (heg.le.trans hhor) hGST ⟨k, hk, hem⟩
+  have hrec := hHead.receipt hBase.valid hx hk hem
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hrec
+  have hv := fgsa_votes_cumulative_on p c E rho hid x hRF hrec.1
+  have hkey : baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
+      (storeAt p c E rho (rho.idxBefore (SA.earlyTime p.toParams s)) x).base.voteStamp.map
+        Prod.fst := by
+    change _ ∈ (rho.stateBefore E _ x).st.base.voteStamp.map Prod.fst
+    rw [fgsa_vote_stamp_keys E rho]
+    exact hrec.1
+  have hstamp := inclusion_stampVote_of_prefix
+    (fgsa_store_cumulative_on p c E rho hid x hRF).2.2.2.1 hkey
+  refine ⟨K, hy, hK, hv, ?_, hHeads q K hGood hK⟩
+  change GridCO.stampVote (clockPre p (storeAt p c E rho i x)
+    (SA.gateTime p.toParams s)).base _ < _
+  rw [inclusion_stampVote_of_prefix (st := (storeAt p c E rho i x).base)
+    (st' := (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)).base)
+    (by rw [(clockPre_stamps p _ _).2]) (by
+    change _ ∈ (rho.stateBefore E i x).st.base.voteStamp.map Prod.fst
+    rw [fgsa_vote_stamp_keys E rho]
+    exact hv), hstamp]
+  exact hrec.2.trans heg
+
 end AvailableChain.FGSA.Run
 end

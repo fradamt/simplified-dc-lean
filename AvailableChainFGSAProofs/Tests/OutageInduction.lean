@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.Close -- shake: keep (expanded body audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.Induction -- shake: keep (privacy audit)
 
 set_option linter.privateModule false
@@ -32,7 +31,7 @@ example (x y : V) (o : Obj p) :
   exact ⟨rfl, rfl⟩
 
 /-- A same-time honest row is already in the all-ticks seed, before the delivery. -/
-theorem same_time_disclosure (hs : V2.D.ScheduleWellFormed E rho)
+public theorem same_time_disclosure (hs : V2.D.ScheduleWellFormed E rho)
     {k i : Nat} {x y : V} {r : Nat} {a : RowWire p.n} {o : Obj p}
     (ha : HonestRowAt p c E rho k y r a)
     (hi : rho.events[i]? = some (.deliver x o (p.actionTime r))) :
@@ -45,7 +44,7 @@ theorem same_time_disclosure (hs : V2.D.ScheduleWellFormed E rho)
 
 /-- A newly stored W can finalize an older target while its latest J differs.
 The retained target is identified through the prior justification carrier. -/
-theorem delayed_old_W_finalization (hroots : NamedRootCollisionFree p c E rho)
+public theorem delayed_old_W_finalization (hroots : NamedRootCollisionFree p c E rho)
     (hqc : RQCOrigin p c E rho)
     {i : Nat} {x : V} {o : Obj p} {t : Time}
     (hi : rho.events[i]? = some (.deliver x o t)) (hx : x ∈ rho.honest)
@@ -80,7 +79,7 @@ example (hqc : RQCOrigin p c E rho) {i : Nat} {x : V} {o : Obj p} {t : Time}
   (outage_disclosed_crossing (hroots := hroots) hqc hi hx hβ hist hW hm hlt hX hheight hQ hr).2
 
 /-- A raised contested frame uses every old source, not the old receiver's visible certificates. -/
-theorem delayed_contested_frame (hroots : NamedRootCollisionFree p c E rho)
+public theorem delayed_contested_frame (hroots : NamedRootCollisionFree p c E rho)
     (hstrat : RStrat p c E rho)
     (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho)
@@ -142,8 +141,8 @@ example :
   decide
 
 /-- A raw conflicting result is saved but creates no fast-write source. -/
-theorem raw_conflicting_saved (p : Params) (st : State p.n) (s : Slot) {B C : Block}
-    (hnew : GridCO.savedGenuine st.base s = none)
+public theorem raw_conflicting_saved (p : Params) (st : State p.n) (s : Slot) {B C : Block}
+    (hnew : GridCO.savedGenuine st.base s = none) (hjoined : joinedNow p st = true)
     (hraw : SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s = some C)
     {dl : Time} (hrow : (B, SA.releaseThreshold p.toParams, dl) ∈ st.base.obligations)
     (hconflict : ¬ Block.Compatible B C) :
@@ -157,7 +156,7 @@ theorem raw_conflicting_saved (p : Params) (st : State p.n) (s : Slot) {B C : Bl
     rw [hf]
     rfl
   refine ⟨?_, ?_⟩
-  · rw [(gateStep_fresh p st s hnew).1, hraw]
+  · rw [(gateStep_fresh p st s hnew hjoined).1, hraw]
   · unfold FGSA.fastSet
     rw [hraw]
     change (if (FGSA.actView st).obligations.any (fun row => !Block.compatible row.1 C)
@@ -184,14 +183,14 @@ example : 1 < 2 ∧ 2 ≤ 5 - 1 ∧ 2 < (5 + 1) / 2 ∧
 /-- Equality expires; a strict earlier time retains the selected row. -/
 example :
     let B := Block.node .genesis 1 ⟨1⟩ 0
-    let st : GridCO.State 1 := { GridCO.initial 1 with obligations := [(B, 1, 10)] }
+    let st : GridCO.State 1 .root := { GridCO.initial 1 .root with obligations := [(B, 1, 10)] }
     (GridCO.expire st 10).obligations = [] ∧
       (B, 1, 10) ∈ (GridCO.expire st 9).obligations := by decide
 
 /-- A shorter renewal keeps the greater deadline. -/
 example :
     let B := Block.node .genesis 1 ⟨1⟩ 0
-    let st : GridCO.State 1 := { GridCO.initial 1 with obligations := [(B, 1, 20)] }
+    let st : GridCO.State 1 .root := { GridCO.initial 1 .root with obligations := [(B, 1, 20)] }
     (B, 1, 20) ∈ (GridCO.writeObligation st B 1 10).obligations := by decide
 
 /-- Pending beyond the endpoint, equality, and an empty interval need no gate evaluation. -/
@@ -223,25 +222,32 @@ example (p : Params) (st : State p.n) : FGSA.headVote p st 0 = .genesis := rfl
 example (h : Nat) (root : BlockId) :
     namedEntry (.vote h root true) = namedEntry (.vote h root false) := rfl
 
-/-- Restart clears the store even though the durable own record is retained. -/
-example (nd : Node p) :
-    ((fgsa p c).restore ((fgsa p c).durable nd)).st.base.obligations = [] := rfl
+/-- Restart keeps durable obligations at the exact wake time. -/
+public theorem restart_keeps_obligations (nd : Node p) (w : Time) :
+    ((fgsa p c).restore ((fgsa p c).durable nd) w).st.base.obligations =
+      nd.st.base.obligations := by
+  change (acRestart p nd.st w).base.obligations = _
+  exact acRestart_obligations p nd.st w
 
-#print axioms same_time_disclosure
-#print axioms delayed_old_W_finalization
-#print axioms delayed_contested_frame
-#print axioms raw_conflicting_saved
-#print axioms outage_disclosed_crossing
-#print axioms outage_disclosed_finalization
-#print axioms outage_liveRoot_covers
-#print axioms outage_release_bound
-#print axioms outage_event_induction
-#print axioms outage_armed_induction
-#print axioms outage_source_history
-#print axioms lease_or_F_persists
-#print axioms duties_and_outputs
-#print axioms outage_compat_body
-#print axioms fast_p1_body
-#print axioms slow_p1_body
+/-- A restart event preserves the selected covering lock without a NoRestart input. -/
+public theorem restart_keeps_protection {B : Block} {j : Slot} {i : Nat} {x : V} {w : Time}
+    (he : rho.events[i]? = some (.restart x w))
+    (hp : OutageProtection p B j (storeAt p c E rho i x)) :
+    OutageProtection p B j (storeAt p c E rho (i + 1) x) :=
+  outage_restart_protection_at he hp
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageInduction.same_time_disclosure
+#print axioms AvailableChain.FGSA.Run.Tests.OutageInduction.delayed_old_W_finalization
+#print axioms AvailableChain.FGSA.Run.Tests.OutageInduction.delayed_contested_frame
+#print axioms AvailableChain.FGSA.Run.Tests.OutageInduction.raw_conflicting_saved
+#print axioms AvailableChain.FGSA.Run.outage_disclosed_crossing
+#print axioms AvailableChain.FGSA.Run.outage_disclosed_finalization
+#print axioms AvailableChain.FGSA.Run.outage_liveRoot_covers
+#print axioms AvailableChain.FGSA.Run.outage_good_release_bound
+#print axioms AvailableChain.FGSA.Run.outage_event_induction_scoped
+#print axioms AvailableChain.FGSA.Run.outage_armed_induction_scoped
+#print axioms AvailableChain.FGSA.Run.outage_armed_read_scoped
+#print axioms AvailableChain.FGSA.Run.Tests.OutageInduction.restart_keeps_obligations
+#print axioms AvailableChain.FGSA.Run.Tests.OutageInduction.restart_keeps_protection
 
 end AvailableChain.FGSA.Run.Tests.OutageInduction

@@ -6151,3 +6151,66 @@ allowance, dependency, or shared inventory file was edited.
 No P-Ar closure input remains. The merged P-Ou hRows producer supersedes the
 old Round 6 hRows note. Handoff: scripts/dev-pkg/P-Ar.round7-handoff.md.
 Evidence: .lake/sleep-par-r7/.
+### P-Ou Round 7 — public release count API
+
+GoodVotes uses the public fgsa_releaseCount_le_senders lemma appended to Shared/Release.
+The lemma bounds the actual release witnesses by an explicit sender set. The A union W
+proof and its conclusion are unchanged. The last P-Ou import-all is removed.
+Headers have no P-Ou failure; three inherited P-Ar findings remain.
+
+### P-Ou Round 7 — scoped pre-restoration joint induction
+
+ScopedInduction:81 proves the full event induction before restoration, at an endpoint
+at or before lease expiry. Sources and named history cover all honest nodes, including W.
+Protection and post-pending duties cover G. Restart keeps durable protection and adds no
+source or duty. Releases use the fixed A union W bound; good HEADs are covered before r.
+ScopedInduction:351 supplies the seeds from the scoped certificate, P-Ar in-flight duties,
+and the P-Fd source suppliers. Tests/OutageServices:155 uses the actual Clean and P-Fd
+producers. ScopedInduction:386 gives the inclusive F and covered lease-or-F read.
+
+Induction now imports the scoped implementation. Its former all-honest ArmingCert seed
+and NoRestart lane were removed. The true empty duty seed remains. The old downstream
+continuation and Close consumers still need a port to the scoped interface. This is an
+internal proof replacement; public claims and protocol declarations are unchanged.
+
+GoodVotes:559 and ReceiverInputs:757 prove restored result compatibility from fresh
+HEAD service and compatible good targets. A good target below receiver F needs no body
+receipt: its fresh HEAD enters the late denominator. Resolved targets are identified
+with actual emitted bodies using named roots. The existing F <= B / B <= F split remains.
+The good-HEAD history and counts outside the E window remain explicit P-Ou obligations.
+This conditional result producer is not global hResults or full continuation closure.
+
+Induction is GREEN; eight P-Ou consumer roots remain EXPECTED-FAIL. P-Ou is PREPARED.
+
+### P-Ou Round 7 — export repair
+
+337c0238 replaces fullTree and controls unfolds with explicit frame/control view
+equalities. Complete GREEN exports have 325 proof modules, 253 exports, zero unaccepted
+and zero Gen exports. No checker baseline or allowance changed. The complete local
+212-command inventory and its coverage control pass.
+
+### P-Ou Round 7 — independent induction tests
+
+Tests/OutageInduction now audits the compiled scoped kernel through its production
+import. The independent disclosure, contested-frame, lease, count, and phase tests
+remain. The raw saved-result test has the actual joined-gate guard. Restart tests
+check retained obligations and protection at the exact wake time. The old empty-lock
+restart assertion was false under the approved retained-store restart. No public
+claim changes. The test module is GREEN as a kernel test; Close and the public
+exporters remain EXPECTED-FAIL and were checked separately.
+The complete local inventory now has 225 commands.
+
+### P-Ou Round 7 — final validation
+
+Proof source 181f601e. DCK P-Ou PASS: 507 GREEN roots, 42 strict audit sources,
+3,189 axiom results and all 24 default controls. Complete GREEN exports: 325 proof
+modules, 253 exports, zero unaccepted and zero Gen exports. Complete local coverage
+and its control pass for 225 commands. Layers: 72 inherited findings, zero new.
+Headers: three inherited P-Ar failures, zero P-Ou failure. No checker, baseline,
+allowance, toolchain, protocol declaration, or public claim changed.
+
+Induction and the independent Tests/OutageInduction kernel audit are GREEN.
+Seven P-Ou and two S-Ap roots remain EXPECTED-FAIL. P-Ou remains PREPARED.
+The later good-HEAD invariant, global hResults, full InclusionReceiverInputs,
+full continuation, handover and final public consumers remain open.
+Handoff: scripts/dev-pkg/P-Ou.round7-handoff.md. Evidence: .lake/sleep-pou-r7/.

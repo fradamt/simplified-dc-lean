@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
+public import AvailableChainFGSAProofs.Proofs.Outage.Induction
 public import AvailableChainFGSAProofs.Proofs.Clean.Closure
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 
@@ -149,6 +150,35 @@ theorem pending_protection_of_source_discipline {p : Params} {In V : Type}
         using sourceDiscipline_emittedName p c E rho h.base.valid.toScheduleWellFormed ha he)
     hgate
 
+/-- The full pre-restoration induction consumes the actual Clean state and duty
+producers. Restarts are allowed; no local seed or good-target callback is supplied. -/
+theorem pre_restored_joint_of_clean_history {p : Params} {In V : Type}
+    [DecidableEq V] [Fintype V] {c : AppCodec In} {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c fast E rho T b₀ b₁ ΔF)
+    (hq : FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block} {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh)
+    (hβ : eraseFG β = B) (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon) :
+    ∀ i, afterTicksIdx rho (SA.gateTime p.toParams (l + 1)) ≤ i → i ≤ rho.idxBefore b₁ →
+      OutageSourceHistory p c E rho B i ∧
+      OutageCoveredDutyHistory (p := p) (c := c) (E := E) (rho := rho)
+        fast b₀ B (l + 1) i ∧ OutageNamedHistory p c E rho β i ∧
+      ∀ y ∈ coveredNodes p E rho fast b₀,
+        OutageProtection p B (l + 1) (storeAt p c E rho i y) := by
+  have hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i := by
+    intro i hi
+    exact cleanState_of_hist h.sleepPre hq hf hsrc (clean_actionStep p c E rho) hi
+      (clean_invariant p c E rho h.sleepPre hq hf hsrc i hi)
+  exact outage_armed_induction_scoped h hf hsrc
+    (sourceDiscipline_tSrc p c E rho h.pre.base.valid.toScheduleWellFormed)
+    (fun _ _ _ _ _ ha he => by
+      simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def, hOf]
+        using sourceDiscipline_emittedName p c E rho h.pre.base.valid.toScheduleWellFormed ha he)
+    hState
+    (joined_provenance_producer h.pre.base.valid h.pre.base.delta) hne hc hβ hgate
+
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.restored_receipt_consumer
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.good_release_consumer
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.handover_expiry_equality
@@ -161,6 +191,8 @@ theorem pending_protection_of_source_discipline {p : Params} {In V : Type}
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.fast_seed_of_clean_history
 
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.pending_protection_of_source_discipline
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageServices.pre_restored_joint_of_clean_history
 
 end AvailableChain.FGSA.Run.Tests.OutageServices
 end
