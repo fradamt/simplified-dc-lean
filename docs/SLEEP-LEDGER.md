@@ -2475,3 +2475,22 @@ The existing spec_prune_restart_mem and spec_prune_sleep checks keep their names
 import Proofs.Spec.Simulation so the audit can resolve them.
 Run facade --wfail PASS (10.79 s). Regenerated the existing Run audit
 coverage key (8.54 s); mark the Run facade and audit GREEN in S-Ap.
+
+## S-Ap Round 3 — P8 claim transfer
+
+D140: RowServiceBaseClaim now has the exact approved all-honest awake suffix
+from GST through the horizon. NoRestart remains. A permanent honest sleeper
+satisfies the old receiver demands vacuously but need not receive an emitted row.
+P8 public route: RowServiceClaim now takes RecoverySleep₂. The compiled P-Fd
+supplier fgsa_tRows_recovery accepts its toRecovery₂ projection. The base
+supplier fgsa_tRows accepts the new awake suffix. No new premise is invented.
+The P8 declarations and aggregate compile with --wfail (1.29 s). The broader
+Claims build also checked inherited fixtures: FinalityGST, FinalityW,
+HealedBest, WeakContinuation, OutageAlignment, and the kernel adapter example
+in Claims.Tests.Axioms fail on prior sleep changes. They are not P8 failures.
+The FGSA shallow/deep generator includes eight inherited P-Fi claim hashes.
+The auxiliary API generator stops on the missing Claims.Tests.Axioms artifact;
+its full source scope is kept. No generated entry is edited by hand.
+The Run inventory generator now succeeds (791 entries, 25.01 s) and removes
+the stale fgsa_receiptCoverage entry retired under DECISION P23-A.
+FGSA shallow/deep regeneration PASS (243.02 s, 1,357 roots).

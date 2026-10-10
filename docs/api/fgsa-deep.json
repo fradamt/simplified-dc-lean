@@ -181,7 +181,7 @@
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
     "AvailableChain.FGSA.Run.AboveFrontierGSTClaim_W": {
-      "digest": "0d2ef673e43fb7bc3bfcb2503c1e7184dacbde59ad9230f3cbe81cf8a0f85250",
+      "digest": "db375a1a20761e41df3e7e8c80a2d4de8d6d52caf48bf5d61a886ac4d099ad04",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
@@ -1676,122 +1676,122 @@
       "module": "AvailableChainFGSAClaims.Statements.ComposeNext"
     },
     "AvailableChain.FGSA.Run.FGSAClaims": {
-      "digest": "0925fbc6917202a41dab0f906c72b254c58930e5fbf4a943612846b99907fad3",
+      "digest": "61f8f706274b059acda967f75e1a90ac31f846f52d8399cb45ff5c819ad70854",
       "kind": "structure",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecF4": {
-      "digest": "0dd68c2789c2c3be34e62f90ac413a39be2a0475a29ff26e69bf394379c977a8",
+      "digest": "19bf910340aa217d52e0c901bd8ec324d06f65c37eb51071e3cb678101f732ea",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecFE": {
-      "digest": "c55a55ca1d3e5781d2757bd0b35860b115f01df7029f6d1bd0be554c1bfdf14c",
+      "digest": "5688ae27d24d6fbcd7f2b2c269ea232b6f62c387992e6407fe9ddf0dcd893233",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.availableGST": {
-      "digest": "ed4584192878f17a02a0967e68b79d36e8141099d30f42a15b71feff3748e342",
+      "digest": "64834f704008381ef9bf33abe7247d7e0988df13760db3b298f9cf5f3b5195cd",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST": {
-      "digest": "989face3101c2b5378929d8000bd2f0a39cf09686da5b3b9b8177c0376b8c683",
+      "digest": "83b9620f789e1cce454949a868f585d3a5b889a72962a2384ee5a9efb1234384",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.cleanGrowth": {
-      "digest": "758a732142d1840d70a0636301e224df67c77f684d8cb914f9da595d41dd866b",
+      "digest": "5fbfcc2566addca9f0117ef72bb40cbae2fb52a1216ca48e8cf41a0024e3dead",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.cleanInclusion": {
-      "digest": "8b133b411788104d563f310b6f55dec848d255e65cd1923f1d3e0b86fed14b20",
+      "digest": "508d6b64a45b559ac2ca590a98ad004da22c528550a7bce071d7a1e5afa86a9f",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.cleanInclusionPostGate": {
-      "digest": "d1ad57806a548697fbb58a754caed8b23aa2dde7640793dc7f6e70b6f875cbc5",
+      "digest": "53ade9304a2b13d3a73981d7bb556f64a73d267522179c26fdeffa0c232ac63a",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.exactProposal": {
-      "digest": "4ed38af2b042f3db6af9781c5126cc5251f873228b424b2a465058bb629af7c1",
+      "digest": "f78d8f0993fe9bca47950b8bc726e8f696e6cc081b99cbc5701745edbd0d7217",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.fastP1": {
-      "digest": "b0b8417d04545148fdec7d3bdb9417992c75b6299355eaebca2c1b10765c1750",
+      "digest": "0e2a5567b73e5f9364a108bbc4fe2ab76f8144fd8a970853779d9c81e77fc9fe",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finalLock": {
-      "digest": "e008295b1a2b3d0106b3e6396558cc53ce824272dcad239076c2556a0872345c",
+      "digest": "051f0e7ba8de29f61abc4069ea4e1a06bef4b78f310f666c7fb51aca5079fa6f",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finality": {
-      "digest": "cddd7e869cba443be3adff01cd634415263e33c2ad6daac85e1a981491cebc1c",
+      "digest": "d535b13341bcf2c7d72ad8c8a82592e2a1aed7c2b922bd59aa754fbab43fa2a0",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finalityLivenessGSTRecF4": {
-      "digest": "f2fd2159ac8a90fbc6018d8709a61a5d6d4529f84dfaf3f464899b5d67bfb3ab",
+      "digest": "e68006a8e62647198734c47d31124e28555a881792ee7888f8a203cf056493e2",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finalityLivenessGSTRecFE": {
-      "digest": "c08331779274f719b39868ef067fa898d0215a81bfc8f0db39ddad0cb26a96a8",
+      "digest": "98a00bba5fa235ff4cc327b81d1866946308af91f99d76ee359c56f58372c694",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finalizedSafety": {
-      "digest": "7bd8b697349d9041165e7b6f14901892ef85a3e96ab685fc0dbcbf0f3ecd5501",
+      "digest": "53fe04de3258be03821e07f8c92b1879ca92a38531d49445e2232f945a113e1a",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecF4": {
-      "digest": "6e50b87cd10858c3c6126a0b153bb6e34ff3c9fb0f62a36464f9a84c9a9f5be9",
+      "digest": "d434aa25dfd60819edb08a0c8bfafb5a465a066e8c232b4aa854373cf51db761",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecFE": {
-      "digest": "5efb05c49dc9e2954fd75ef40a6865a19e49b8c0745ed68d0420323b4685eab9",
+      "digest": "0b4529ddffd48a52274ec46ddaa41b65a91f87debe55e09d39bdc5ea9af20c83",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.mk": {
-      "digest": "0925fbc6917202a41dab0f906c72b254c58930e5fbf4a943612846b99907fad3",
+      "digest": "61f8f706274b059acda967f75e1a90ac31f846f52d8399cb45ff5c819ad70854",
       "kind": "ctor",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.outageCompat": {
-      "digest": "66e775571c79f97b0db808dc6a456fec77ee45c2ff71cf868c31ee03b597a69b",
+      "digest": "458e2fb1b17b41eb354c0711d326e0f165dbf1e7e2864aa8903f6c3c03c83e33",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.proposalFinalGSTRecF4": {
-      "digest": "9be49870be7a16ab0cab1b04dad668b30134a14b8df123c94ec25bf6a89e1217",
+      "digest": "34c47dd91683b92d2d3e669888cb332ed4a404447c6e729ba75c9c8ee7e42740",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.proposalFinalGSTRecFE": {
-      "digest": "e08b965489b1d40b26780d613b3f92631b94f0b193f736b731b2bab6c7c882ee",
+      "digest": "4597de17a40459632c1d006b024218623649b5a345ac8124c278377d947d112b",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.slowP1": {
-      "digest": "696c09ffdc62d08e3a3a0a0bcedf69e80c3485102798e1824fcec934edc8bb84",
+      "digest": "38904fd2ced65d4a0cd243faad23d851d58c86f4607a8dfad35b88bce9ee39e5",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.toFGSASafetyClaims": {
-      "digest": "de3ea3a4010280aafc52ae8bad07342b6b0a2548b1d50596cb9cf125a11cac1d",
+      "digest": "99f5d7133f857d4a2d52994655a88e9f6bbc3a4969a34e73d53dcd4ee1581b85",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.weakContinuationLive": {
-      "digest": "27e943525049147b0e6b644520ccb0c8b0dda02a4c747c1d88bf5a74919da993",
+      "digest": "d8166dd176b9a5f5d42b0b972b4b36313d21a4542b20da7c3933d820dbfa9edf",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
@@ -2201,12 +2201,12 @@
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
     "AvailableChain.FGSA.Run.FinalityLivenessConcl_W": {
-      "digest": "e4bb511c47b62fcae3a95c820ef25dac0ff5fa54690d9fb241e75ff9b4a7dc43",
+      "digest": "1f09acd8474c1951627ce47d3c85aef231a26b3210ec5aa97f7b39ed8e26163c",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
     "AvailableChain.FGSA.Run.FinalityLivenessGSTClaim_W": {
-      "digest": "3e008aacd0af374257f976f16ba60011c422708b1e8bfbedb0b396154b450a0a",
+      "digest": "267b04f4735efd69df0089601f3e629c72fecec3bcfc35648489cb0764aaadea",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
@@ -2266,12 +2266,12 @@
       "module": "AvailableChainFGSAClaims.Statements.Packages.Finality"
     },
     "AvailableChain.FGSA.Run.FinalityLivenessRecF4Claim_W": {
-      "digest": "b5a934810878e681d724a07e64b6b6cfcc6b7cb92a9e9f2fac4da66448d0c199",
+      "digest": "fa4f375d805f08ccb8816d9fa31d526d14de8df5e5fa6591ee6945a7cea5f0d2",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
     "AvailableChain.FGSA.Run.FinalityLivenessRecFEClaim_W": {
-      "digest": "496155e426c82958e58d32b1e61883d3deee562b36e8edee35c7d8556035a138",
+      "digest": "7a52094eca5930eb5a702897834c6e516cf021cb3338f466d1c74bbcfff1eb46",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
@@ -2421,7 +2421,7 @@
       "module": "AvailableChainFGSAClaims.Statements.Packages.Safety"
     },
     "AvailableChain.FGSA.Run.FirstFinalityConcl_W": {
-      "digest": "c09e4568be35731a3a41448eeb9a5397c440fef6294fcdf88d7f4ca76085ad49",
+      "digest": "16203bb7c432f5b9a5e942ce411b0e10213efc233e5ecd30dfcbbc72d1f3740d",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
@@ -2446,12 +2446,12 @@
       "module": "AvailableChainFGSAClaims.Statements.Packages.Finality"
     },
     "AvailableChain.FGSA.Run.FirstFinalityRecF4Claim_W": {
-      "digest": "fb30d9a95bdf59e239cbd33d5d8a022667f0d3ce0656ff917e28719cb0a38596",
+      "digest": "deee714f93cb3ad164d94cc2e746e457b537fcec6d0721718c533ef8c51bc720",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
     "AvailableChain.FGSA.Run.FirstFinalityRecFEClaim_W": {
-      "digest": "6cedf4039a96ede20e2084e99494b963c0d93c126e002f8e211008f94f159fa6",
+      "digest": "0587750859d5122dcc5a113eb84f9d12201656f83bca5f1c245c6e51e068c526",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
@@ -3336,7 +3336,7 @@
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
     "AvailableChain.FGSA.Run.KernelACSideClaim_W": {
-      "digest": "a69d4dcd3ff93f657e6634d0f81dce22ddfc445994d2417fdb2475dc5b789363",
+      "digest": "24baae4ffb60b9bbca9004afeed56b18f0ea70c3d3b9d2ed32d8f06626d09a21",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
@@ -4041,7 +4041,7 @@
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
     "AvailableChain.FGSA.Run.ProposalFinalGSTClaim_W": {
-      "digest": "67772840f60fc38eccc18527e37b1b603165fe8105edb5f9378b6e4208478b95",
+      "digest": "d43e8730dea7689235c7ad59e21e39f6aee4301a7689410a16695a22c0971939",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
@@ -4971,12 +4971,12 @@
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
     "AvailableChain.FGSA.Run.RowServiceBaseClaim": {
-      "digest": "5562c3b7f6e5486455949a6fbc214cac7024f1edd3fc85c2ff78b7cfe66b409d",
+      "digest": "2a156c7168d4ccb1b8ef97233bef77b352da49b86957a4896f5032ddc6ca1a39",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Foundations"
     },
     "AvailableChain.FGSA.Run.RowServiceClaim": {
-      "digest": "acb2b9bf2a8f9c110688e1051c1727d2564227e5a0a16cc1de61ddf1672a2784",
+      "digest": "336057c774c32245e66275911b06442512f981f2ad51179398724967538143d3",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Foundations"
     },
@@ -17095,7 +17095,8 @@
         "            And (AvailableChain.FGSA.Run.HealingInput p c E rho w ΔF)",
         "              (And",
         "                (Int.instLTInt.lt (AvailableChain.FGSA.Run.tstar p w)",
-        "                  (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
+        "                  (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                    (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
         "                (AvailableChain.FGSA.Run.AboveFrontierConcl_W p c E rho pt.t",
         "                  (instHAdd.hAdd pt.t",
         "                    (instHMul.hMul 2 (AvailableChain.FGSA.Run.W_W p ΔF g)))))"
@@ -17116,9 +17117,9 @@
         "AvailableChain.FGSA.Run.PtT.t",
         "AvailableChain.FGSA.Run.W_W",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.tstar",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "DecidableEq",
@@ -17139,7 +17140,7 @@
         "instOfNat",
         "instOfNatNat"
       ],
-      "digest": "657e99c76e4fda2e28fe41844a145ac0b59d6109549cd9189c9f1ffb7ddbde79",
+      "digest": "2291be31c92863e694e963d0cff0886cc1b415910838fc79b309125d0546b565",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run23:AboveFrontierGSTClaim_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -32931,7 +32932,7 @@
         "  Exists fun U =>",
         "    And",
         "      (∀ (x : V),",
-        "        SetLike.instMembership.mem rho.honest x →",
+        "        AvailableChain.FGSA.Run.confirmedReader p c E rho x t →",
         "          (AvailableChain.V2.D.Run.readAt E rho t x).st.base.stableRecord.Prec",
         "            (AvailableChain.FGSA.eraseFG U))",
         "      (And",
@@ -32956,6 +32957,7 @@
         "AvailableChain.FGSA.Run.AcceptsFinalBefore",
         "AvailableChain.FGSA.Run.AppCodec",
         "AvailableChain.FGSA.Run.Node.st",
+        "AvailableChain.FGSA.Run.confirmedReader",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.State.base",
         "AvailableChain.FGSA.State.fg",
@@ -32989,7 +32991,7 @@
         "SetLike.instMembership",
         "instLTNat"
       ],
-      "digest": "2c8a29f6ae79a84c5efc0c03f9a4c678455a4b92e5aa70a2c764b69715ed5fc8",
+      "digest": "d87f71cb12915ee2be4d0590c27bd1a32f139d5d447c83fab06cb2f7a3ecef97",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run23:FinalityLivenessConcl_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -33017,7 +33019,8 @@
         "            And (AvailableChain.FGSA.Run.HealingInput p c E rho w ΔF)",
         "              (And",
         "                (Int.instLTInt.lt (AvailableChain.FGSA.Run.tstar p w)",
-        "                  (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
+        "                  (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                    (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
         "                (And",
         "                  (AvailableChain.FGSA.Run.FinalityLivenessConcl_W p c E rho pt.t",
         "                    (instHAdd.hAdd pt.t (AvailableChain.FGSA.Run.W_W p ΔF g)))",
@@ -33047,9 +33050,9 @@
         "AvailableChain.FGSA.Run.W_W",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.liveDCDeadline_W",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.tstar",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "AvailableChain.V2.D.Run.horizon",
@@ -33071,7 +33074,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "102017b508f3cee4b4f6efde99d8b8f44784b7d935e1f0db05b2aaee15d67350",
+      "digest": "b041f14e02e4aa1f4291f5a50990718d2ced4dd5209925658f72d27618365607",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run26:FinalityLivenessGSTClaim_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -33572,7 +33575,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "9806130cac52157cf4a7cda259aca8a600b1588b6d14a0b647fdb77a89120030",
+      "digest": "7052895203777f950d27014e923daa71f86a7b58882bdf84a1ca2ebf0e7b45d6",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run28:FinalityLivenessRecF4Claim_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -33623,7 +33626,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "8a861701c3e2f7a6c77eeafe7c41af8edc5c34d9e0eec4bc88ea2136bd74abff",
+      "digest": "3b80634f102883dcd888c8448af6f9d36842efab128615bc6bb958564c371d2b",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run28:FinalityLivenessRecFEClaim_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -34907,7 +34910,8 @@
         "    And (AvailableChain.FGSA.Run.HealingInput p c E rho w ΔF)",
         "      (And",
         "        (Int.instLTInt.lt (AvailableChain.FGSA.Run.tstar p w)",
-        "          (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
+        "          (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "            (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
         "        (AvailableChain.FGSA.Run.FinalityLivenessConcl_W p c E rho",
         "          (AvailableChain.FGSA.Run.tstar p w) deadline))"
       ],
@@ -34920,9 +34924,9 @@
         "AvailableChain.FGSA.Run.HealingInput",
         "AvailableChain.FGSA.Run.HealingWitness",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.tstar",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "DecidableEq",
@@ -34933,7 +34937,7 @@
         "LT.lt",
         "instHAdd"
       ],
-      "digest": "bcfcafa1ce0160ea9184d0b7acf78ed692d831f65f6014ea97cedd124ba0aa10",
+      "digest": "cd1b5348de0c48ae8a74d00eaee1236a96db43b658f4d8516da0afbc87313f1b",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run20:FirstFinalityConcl_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -35125,7 +35129,9 @@
         "        AvailableChain.FGSA.Run.FirstFinalityPrem_W p c G ΔF",
         "            AvailableChain.FGSA.Run.FinFormW.recF4 g E rho pt →",
         "          AvailableChain.FGSA.Run.FirstFinalityConcl_W p c E rho ΔF G",
-        "            (instHAdd.hAdd (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G))",
+        "            (instHAdd.hAdd",
+        "              (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                (AvailableChain.FGSA.Run.B_HF p ΔF G))",
         "              (AvailableChain.FGSA.Run.W_W p ΔF g))"
       ],
       "dependencies": [
@@ -35139,8 +35145,8 @@
         "AvailableChain.FGSA.Run.FirstFinalityPrem_W",
         "AvailableChain.FGSA.Run.W_W",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "DecidableEq",
@@ -35157,7 +35163,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "e7a678bc5a2334db6e767bffd5ef7c6fb51029ad3c2ae9be217b5b8560d18ddc",
+      "digest": "9c84ca10d57d06b94e6c454788f3987999bb246e418d71064924b11402ac096b",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run25:FirstFinalityRecF4Claim_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -35177,7 +35183,9 @@
         "        AvailableChain.FGSA.Run.FirstFinalityPrem_W p c G ΔF",
         "            AvailableChain.FGSA.Run.FinFormW.recFE g E rho pt →",
         "          AvailableChain.FGSA.Run.FirstFinalityConcl_W p c E rho ΔF G",
-        "            (instHAdd.hAdd (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G))",
+        "            (instHAdd.hAdd",
+        "              (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                (AvailableChain.FGSA.Run.B_HF p ΔF G))",
         "              (AvailableChain.FGSA.Run.W_W p ΔF g))"
       ],
       "dependencies": [
@@ -35191,8 +35199,8 @@
         "AvailableChain.FGSA.Run.FirstFinalityPrem_W",
         "AvailableChain.FGSA.Run.W_W",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "DecidableEq",
@@ -35209,7 +35217,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "4be8131e452767a32289d81e30ed39eb345cdeb5b9fb5f245901d49f2f4a80fb",
+      "digest": "4ec0ea52cdea8ac76642510e5e6ac76cbf902349fe54a177a872fb4d56cfd03b",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run25:FirstFinalityRecFEClaim_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -43004,7 +43012,7 @@
         "        (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)",
         "        (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))",
         "        (w : AvailableChain.FGSA.Run.HealingWitness),",
-        "        AvailableChain.FGSA.Run.Recovery₂ p c E rho G ΔF →",
+        "        AvailableChain.FGSA.Run.RecoverySleep₂ p c E rho G ΔF →",
         "          AvailableChain.FGSA.Run.LivenessBoundW p ΔF →",
         "            AvailableChain.FGSA.Run.HealingInput p c E rho w ΔF →",
         "              AvailableChain.FGSA.Run.CoreServices p c E rho w"
@@ -43018,7 +43026,7 @@
         "AvailableChain.FGSA.Run.HealingInput",
         "AvailableChain.FGSA.Run.HealingWitness",
         "AvailableChain.FGSA.Run.LivenessBoundW",
-        "AvailableChain.FGSA.Run.Recovery₂",
+        "AvailableChain.FGSA.Run.RecoverySleep₂",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.Generic.Env",
         "AvailableChain.Time",
@@ -43033,7 +43041,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "64a44e949c10585e3227d04efc91172e2faf3357117ba8c34ef1d00a954ca37d",
+      "digest": "904f95421880b8c33e605c0f1e9d936300165ee56f91b25128d9de1aef6dd08b",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run19:KernelACSideClaim_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -49922,7 +49930,8 @@
         "            And (AvailableChain.FGSA.Run.HealingInput p c E rho w ΔF)",
         "              (And",
         "                (Int.instLTInt.lt (AvailableChain.FGSA.Run.tstar p w)",
-        "                  (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
+        "                  (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                    (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
         "                (AvailableChain.FGSA.Run.ProposalFinalConcl_W p c E rho pt.X",
         "                  (instHAdd.hAdd",
         "                    (AvailableChain.V2.D.proposalTime",
@@ -49947,9 +49956,9 @@
         "AvailableChain.FGSA.Run.W_W",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.fgsaInterface",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.tstar",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "AvailableChain.V2.D.proposalTime",
@@ -49969,7 +49978,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "8a683e3582593f5c6dd97b5cff3c525a08c5bb0516aec5055312d7a6b27618d1",
+      "digest": "f8801b8da774c1c50141a2718e736d2028e25db130729e3436dee4817ad3742c",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run23:ProposalFinalGSTClaim_W",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Finality",
@@ -63121,7 +63130,13 @@
         "        AvailableChain.V2.D.NoRestart rho →",
         "          AvailableChain.Gen.V2.Duty.PartialSynchronyBy E rho",
         "              (AvailableChain.FGSA.Run.fgsaDelay E.Δ ΔF) →",
-        "            Int.instLEInt.le E.Δ ΔF → AvailableChain.FGSA.Run.TRows p c E rho ΔF"
+        "            Int.instLEInt.le E.Δ ΔF →",
+        "              (∀ (x : V),",
+        "                  SetLike.instMembership.mem rho.honest x →",
+        "                    ∀ (t : AvailableChain.Time),",
+        "                      Int.instLEInt.le E.t_GST t →",
+        "                        Int.instLEInt.le t rho.horizon → Eq (E.awake x t) Bool.true) →",
+        "                AvailableChain.FGSA.Run.TRows p c E rho ΔF"
       ],
       "dependencies": [
         "AvailableChain.FGSA.Params",
@@ -63132,19 +63147,29 @@
         "AvailableChain.FGSA.Run.fgsaDelay",
         "AvailableChain.Gen.V2.Duty.PartialSynchronyBy",
         "AvailableChain.Generic.Env",
+        "AvailableChain.Generic.Env.awake",
+        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Generic.Env.Δ",
         "AvailableChain.SA.Params.Δ",
         "AvailableChain.Time",
         "AvailableChain.V2.D.ExecutionValid",
         "AvailableChain.V2.D.NoRestart",
         "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.D.Run.horizon",
+        "Bool",
+        "Bool.true",
         "DecidableEq",
         "Eq",
+        "Finset",
+        "Finset.instSetLike",
         "Fintype",
         "Int.instLEInt",
-        "LE.le"
+        "LE.le",
+        "Membership.mem",
+        "SetLike.instMembership"
       ],
-      "digest": "a9ddf79273c50af36d11f2c67d0319a96c500552251381fbef089d4dcff10a88",
+      "digest": "73b867e147ca3e53acf60c1dae87bdd604fdc3210ca3b704c4ed69782ab12493",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run19:RowServiceBaseClaim",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Foundations",
@@ -63161,7 +63186,7 @@
         "        (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)",
         "        (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))",
         "        (_pt : Unit),",
-        "        AvailableChain.FGSA.Run.Recovery₂ p c E rho G ΔF →",
+        "        AvailableChain.FGSA.Run.RecoverySleep₂ p c E rho G ΔF →",
         "          AvailableChain.FGSA.Run.TRows p c E rho ΔF"
       ],
       "dependencies": [
@@ -63169,7 +63194,7 @@
         "AvailableChain.FGSA.Params.R",
         "AvailableChain.FGSA.Params.δt",
         "AvailableChain.FGSA.Run.AppCodec",
-        "AvailableChain.FGSA.Run.Recovery₂",
+        "AvailableChain.FGSA.Run.RecoverySleep₂",
         "AvailableChain.FGSA.Run.TRows",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.Generic.Env",
@@ -63186,7 +63211,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "a67a54b2b723bec3c81e88693552f26b54c92ca9806acb897a6e9daec0e5002d",
+      "digest": "f00e9dfb17c38a8a8b4ac0a2eb58c338b88367590a06a223d01283cb16709b6c",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run15:RowServiceClaim",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Foundations",
