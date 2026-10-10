@@ -2560,3 +2560,97 @@ output and rendered into the existing Foundations.Export owner block with
 check-proof-coverage.py's section writer. All other rows and keys are kept.
 The canonical source registration check passes: 24 modules, 227 declarations.
 This fragment integration is not a full canonical-audit build or regeneration.
+
+## S-Ap Round 3 — Count restriction, LEAD DECISION
+
+ReceiptCoverageSleepPremises.slotWindow has t <= a and dl(a) <= dl(t).
+Its deadline field makes dl monotone. Therefore dl(a) = dl(t).
+For Clean dl(t) = t + Δ, a = t. For WC/WCG
+ dl(t) = max(t, GST) + Δ, a <= max(t, GST).
+The Lean evidence is count-restriction.lean and count-restriction.log.
+
+The current Count handoff needs this correction: its hReady premise is over
+[t, dl(t)), not only [a, dl(a)). An anchor-scoped internal companion can fix
+that excess premise but cannot remove the public record's deadline restriction.
+The exact handler premise is:
+
+```lean
+∀ o t, required o t → ∀ j u, t ≤ u → u < dl t →
+  V2.D.Run.handlesAt E rho j x o u →
+  (fgsa p c).wellFormed o = true ∧
+  (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x) o = true ∧
+  fgsaTimely p (V2.D.Run.stateBefore E rho j x) o
+```
+
+An approved consumer needs a later-anchor route: P19/P20
+SourcePendingReceipt, used by PendingSourceDelivery₂ and
+CleanGrowthContinuationSleep₂, quantifies over all a >= send. It uses
+max(a, GST) + delay, including wakes in the continuation after GST.
+The joined participation count does not forbid an individual receiver's wake.
+The old source trigger cannot in general be replaced by a new emission or relay
+at the wake. This affects the proposed Count ports of
+WeakContinuationGrowth.Dynamics.growthStepGateBatch_gate_active_heads and
+WeakContinuationGrowth.Dynamics.growthStepTransferReceipts_prefreeze_path.
+The Clean and WC historical-path ports have the same restriction when an old
+object must be supplied after a receiver wake. Fresh HEADs may instead use their
+own current emission anchor; durable stored paths need no new receipt.
+
+Concrete restriction witness: send = 0, GST = 1, wake/anchor = 3, Δ = 2.
+The approved pending service can use deadline 5. The existing Count record
+requires 5 <= 3. This is impossible. This arithmetic example refutes a general
+adapter from later-anchor service to the old Count record; it is not a
+counterexample to the full public continuation claim.
+
+Proposed exact additive change: keep ReceiptCoverageSleepPremises and
+ReceiptCoverageSleepStatement unchanged. Add
+ReceiptCoverageAnchoredSleepPremises with the same parameters and four field
+names. Copy within, compat and deadline byte for byte. Replace only slotWindow
+by the following type. In this companion, required o a and paths refer to the
+service anchor a; send is the original trigger time.
+
+```lean
+  slotWindow : ∀ o a, required o a →
+    ∃ send, send ≤ a ∧ 0 ≤ a ∧ a < dl a ∧
+    Gen.V2.Duty.ReadyTrigger E rho o send x a (dl a) ∧
+    Gen.V2.Duty.HistorySafeAt E rho x o a ∧
+    V2.D.restartFree rho x (V2.D.Run.actionCut rho a) (V2.D.Run.idxBefore rho D) ∧
+    first ≤ V2.D.Run.actionCut rho a ∧
+    (fgsa p c).wellFormed o = true ∧
+    (∀ s signer K, (toWire p o).decode = some (.vote s signer K) →
+      ((V2.D.Run.stateBeforeTime E rho (dl a) x).st.slot p ≤ s + 1) ∧
+      ∀ i t', V2.D.Run.actionCut rho a ≤ i → i < V2.D.Run.idxBefore rho (dl a) → a ≤ t' →
+        V2.D.Run.handlesAt E rho i x o t' →
+        s ≤ (V2.D.Run.stateBefore E rho i x).st.slot p ∧
+          (V2.D.Run.stateBefore E rho i x).st.slot p ≤ s + 1)
+```
+
+Add ReceiptCoverageAnchoredSleepStatement and
+ReceiptCoverageAnchoredSleepStatement_def by copying the existing statement
+and equation and changing only the record name and declaration names. Thus every dl t in the copied conclusion is the anchor deadline because
+the required predicate is now indexed by anchors. The original send is kept
+explicitly in ReadyTrigger. No old-send deadline is silently weakened.
+Any internal producer must still take or derive exact handler readiness on
+[a, dl(a)), safe history, and the receiver epoch. This proposal does not assert
+that the current bare public receipt statement has a proof.
+
+Decision needed: approve this additive anchor-indexed public contract, or require
+families to use direct receiver-service proofs when a exceeds max(send, GST).
+No public record, Count theorem, or consumer proof was changed for this item.
+
+### S-Ap Round 3 final validation
+
+DCK S-Ap PASS (169.98 s): 471 GREEN modules, 41 strict sources, 4,017 commands,
+and all default controls. Only propext, Classical.choice and Quot.sound occur.
+FGSA shallow API PASS (167.03 s): 1,357 entries, complete matching hashes.
+FGSA deep API PASS (118.80 s): 1,357 roots, 3,818 dependency nodes.
+All 55 deep-snapshot controls PASS (164.59 s). Complete GREEN exports PASS:
+279 proof modules, 253 exports, zero unaccepted. Layers: 72 accepted, zero new.
+All eight changed public definition bodies match the approved packet tokens.
+
+Full claims inventory/API generation and the auxiliary check remain blocked by
+Tests.FinalityGST. Snapshot controls pass V2/GEN/FGSA shallow, catalog-lock and
+source-scope checks, then stop on that artifact at the mapped-root control.
+Full canonical Proofs.Tests.Axioms coverage generation remains blocked by
+Shared.Regimes; the new P21 row is integrated from compiled generator evidence.
+These are recorded limits, not full API or family closure. No generator scope,
+public statement, baseline or allowance was weakened to bypass them.
