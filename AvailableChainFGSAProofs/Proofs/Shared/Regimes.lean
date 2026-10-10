@@ -392,9 +392,10 @@ DC: Goldfish/ProposalSnapshotBridge.lean:210,225; Conditions.lean:134.
 INTENTIONAL: the Clean wrapper uses the healthy prefix through v_s and
 Gen LabelSync at (t_s - Δ, v_s); geometry remains a separate consumer input.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem fgsa_score_eq_on_clean_of_retained_proposal
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     (s : Slot) (hcut : SA.voteTime p.toParams s ≤ b₀)
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
@@ -429,7 +430,7 @@ theorem fgsa_score_eq_on_clean_of_retained_proposal
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
   exact fgsa_score_eq_on_run (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta s hsync
+    E rho h.base.valid hNR h.base.delta s hsync
     hx hy hip hih hseat N hem hadm hFN D hgeom
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -438,9 +439,10 @@ DC: Goldfish/ProposalSnapshotBridge.lean:210,225; Conditions.lean:110.
 INTENTIONAL: Recovery requires GST ≤ t_s - Δ, not merely GST ≤ v_s.
 The actual HEAD tick supplies the horizon bound for Gen LabelSync.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem fgsa_score_eq_on_recovery_of_retained_proposal
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (G : Time) (h : Recovery₂ p c E rho G ΔF)
     (s : Slot) (hGST : E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ)
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
@@ -476,7 +478,7 @@ theorem fgsa_score_eq_on_recovery_of_retained_proposal
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hvd hhorizon
   exact fgsa_score_eq_on_run (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta s hsync
+    E rho h.base.valid hNR h.base.delta s hsync
     hx hy hip hih hseat N hem hadm hFN D hgeom
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -485,9 +487,10 @@ DC: Goldfish/ProposalWalkTransportCore.lean:162–191; Conditions.lean:134.
 INTENTIONAL: the Clean healthy prefix ends no earlier than v_s. Both N1
 LabelSync records come from the same healthy prefix.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem fgsa_ghost_transfer_sfx_on_clean
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     (s : Slot) (hcut : SA.voteTime p.toParams s ≤ b₀)
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
@@ -519,7 +522,7 @@ theorem fgsa_ghost_transfer_sfx_on_clean
     (fgsaDelay_nonrow E.Δ _)
     hpt (htv.trans hcut) h.cut.2
   exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta s
+    E rho h.base.valid hNR h.base.delta s
     hscore hwalk hx hy hip hih hseat N hem hadm D hgeom
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -528,9 +531,10 @@ DC: Goldfish/ProposalWalkTransportCore.lean:162–191; Conditions.lean:110.
 INTENTIONAL: Recovery requires GST ≤ t_s - Δ. The actual proposal and
 HEAD ticks supply the horizons for the two N1 LabelSync records.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem fgsa_ghost_transfer_sfx_on_recovery
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (G : Time) (h : Recovery₂ p c E rho G ΔF)
     (s : Slot) (hGST : E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ)
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
@@ -560,7 +564,7 @@ theorem fgsa_ghost_transfer_sfx_on_recovery
   have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hvh)
   exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta s
+    E rho h.base.valid hNR h.base.delta s
     hscore hwalk hx hy hip hih hseat N hem hadm D hgeom
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -569,9 +573,10 @@ DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:134
 INTENTIONAL: the Clean record supplies both G25/G11 synchronization intervals.
 The consumer supplies the same per-reader geometry as the Shared producer.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem exactService_head_of_proposal_clean
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     (s : Slot) (hcut : SA.voteTime p.toParams s ≤ b₀)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -599,7 +604,7 @@ theorem exactService_head_of_proposal_clean
     (fgsaDelay_nonrow E.Δ _)
     hpt (htv.trans hcut) h.cut.2
   exact exactService_head_of_proposal (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta s
+    E rho h.base.valid hNR h.base.delta s
     hscore hwalk hx hip hseat N hem D hgeom
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -608,9 +613,10 @@ DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:110
 INTENTIONAL: GST precedes t_s - Δ, and the HEAD horizon supplies both
 G25/G11 synchronization intervals. Geometry remains a consumer obligation.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem exactService_head_of_proposal_recovery
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (G : Time) (h : Recovery₂ p c E rho G ΔF)
     (s : Slot) (hGST : E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -635,7 +641,7 @@ theorem exactService_head_of_proposal_recovery
   have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
   exact exactService_head_of_proposal (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta s
+    E rho h.base.valid hNR h.base.delta s
     hscore hwalk hx hip hseat N hem D hgeom hhorizon
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -645,9 +651,10 @@ INTENTIONAL: the Clean record supplies both G25/G11 synchronization intervals.
 Class (iii). The Shared supplier constructs walk and endpoint geometry
 from the same per-reader elementary premises. Gate service stays separate.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem exactService_head_of_retained_proposal_clean
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     (s : Slot) (hcut : SA.voteTime p.toParams s ≤ b₀)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -680,7 +687,7 @@ theorem exactService_head_of_retained_proposal_clean
     (fgsaDelay_nonrow E.Δ _)
     hpt (htv.trans hcut) h.cut.2
   have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart
+    E rho h.base.valid hNR
     h.base.delta s hwalk hscore hx hip hseat N hem D hreads
   exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
     hip N hem D hgeom
@@ -692,9 +699,10 @@ INTENTIONAL: GST precedes t_s - Δ, and the HEAD horizon supplies both
 G25/G11 synchronization intervals. Class (iii). The Shared supplier
 constructs geometry from per-reader premises. Gate service stays separate.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem exactService_head_of_retained_proposal_recovery
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (G : Time) (h : Recovery₂ p c E rho G ΔF)
     (s : Slot) (hGST : E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -724,7 +732,7 @@ theorem exactService_head_of_retained_proposal_recovery
   have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
   have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart
+    E rho h.base.valid hNR
     h.base.delta s hwalk hscore hx hip hseat N hem D hreads
   exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
     hip N hem D hgeom hhorizon
@@ -735,9 +743,10 @@ DC: Generic/Conditions.lean:134–156; UserConfirmationRecovery.lean:235.
 INTENTIONAL: healthy-prefix delivery supplies LabelSync. Clean participation
 alone need not reach the fast threshold, so that count stays explicit.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem exactService_of_head_clean
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     (v : Slot) (Q : Block) (hne : Q ≠ .genesis)
     (hcut : SA.gateTime p.toParams v ≤ b₀)
@@ -758,7 +767,7 @@ theorem exactService_of_head_clean
     have hd : 0 < E.Δ := h.base.delta.symm ▸ p.deltaPos
     linarith
   apply exactService_of_head_and_gate (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta
+    E rho h.base.valid hNR h.base.delta
     h.base.cstar v Q hne hhead
     (fun _ => Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
@@ -774,9 +783,10 @@ DC: Generic/Conditions.lean:110–132; UserConfirmationRecovery.lean:235.
 INTENTIONAL: post-GST waking and the one-third fault bound supply the SA
 fast count. Cardinality uses only the fresh HEAD-seat bijection.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
+non-row traffic keeps Δ.
+legacy: sleep consumers use the _on form in RegimesService -/
 theorem exactService_of_head_recovery
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hNR : V2.D.NoRestart rho)
     (G : Time) (h : Recovery₂ p c E rho G ΔF)
     (v : Slot) (Q : Block) (hne : Q ≠ .genesis)
     (hGST : E.t_GST ≤ SA.voteTime p.toParams v)
@@ -789,7 +799,7 @@ theorem exactService_of_head_recovery
     change 4 * p.Δ * (v : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
     linarith [p.deltaPos]
   apply exactService_of_head_and_gate (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta
+    E rho h.base.valid hNR h.base.delta
     h.base.cstar v Q hne hhead
     (fun hh => Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hvd hh) _ hgeometry
