@@ -5369,3 +5369,13 @@ All 16 explicit new production declarations have direct commands. Layers:
 Exact P-Ou types and open inputs: scripts/dev-pkg/P-Ar.round4-handoff.md.
 Evidence: .lake/sleep-par-r4/par-{dck,exports,generate,fragment-final,types}.log,
 par-coverage.txt and layers-final.log.
+
+## P-Ou Round 4 — FIX-FIRST
+
+Base: 0c836aac. The round 3 review items 1–2 are repaired.
+InclusionReceiverInputs.early requires a ≤ rho.horizon. The retained calls
+supply the actual proposal and vote horizon bounds. The relay field requires
+the actual vote tick at ih. The retained score call supplies hih.
+Export uses the corrected internal record; the handoff has the same scope.
+No public statement or protocol declaration changed. The affected retained
+consumer and both inclusion tests build with --wfail.

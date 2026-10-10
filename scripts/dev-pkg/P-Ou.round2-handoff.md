@@ -115,8 +115,9 @@ P-Ou's service inputs remain closure work:
 
 - ExactProposalReceipts:229, InclusionReceiverInputs. Derive the early
   FreshHeadService and TargetReceiptService at e(q), for the actual proposer
-  at t(q+1) or joined reader at v(q+1). Derive the exact HeadRelayServiceScope
-  at the reader vote. Derive RetainedServiceScope.proposal and .scores for
+  at t(q+1) or joined reader at v(q+1), with the read time at most rho.horizon.
+  Derive the exact HeadRelayServiceScope at the actual reader vote tick.
+  The relay input must include rho.events[ih]? = some (.tick y (v(q+1))). Derive RetainedServiceScope.proposal and .scores for
   each actual emitted proposal and joined reader.
 - InclusionGateBody:115, hScopes: derive GateReceiptScope at each actual
   enabled or post-gate confirmed reader. This includes enabledness, the
@@ -248,3 +249,10 @@ Complete GREEN exports: 285 proof modules, 253 accepted, zero unaccepted.
 Local complete coverage: 123 commands. Layers: 72 inherited, zero new.
 Both owned inclusion tests build with --wfail. Only the three standard
 axioms occur. Public-meaning STOPs: none.
+
+## Round 4 — FIX-FIRST
+
+The early field now requires a ≤ rho.horizon. The two retained calls supply
+the proposal bound t(s) ≤ v(s) ≤ rho.horizon and the vote bound v(s) ≤ rho.horizon.
+The relay field requires the actual vote tick at ih; the retained call supplies hih.
+Export consumes this corrected internal record. Public statements are unchanged.

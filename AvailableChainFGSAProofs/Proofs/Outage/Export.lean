@@ -88,6 +88,7 @@ variable
         ∃ C, actionSourceFG p c E rho x r = some (some C) ∧ EntryBelow p e C ∧
           BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
 
+-- The internal services cover in-horizon early reads and actual relay vote ticks.
 variable
     (hInputs : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : Unit),

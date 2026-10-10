@@ -228,13 +228,15 @@ theorem inclusion_joined_rest_bound [Fintype V]
 derive these fields at each cut; they are not public claim premises. -/
 structure InclusionReceiverInputs (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
   early : ∀ r a x, a = SA.proposalTime p.toParams (r + 1) ∨
-      a = SA.voteTime p.toParams (r + 1) → headReader p E rho x (r + 1) a →
+      a = SA.voteTime p.toParams (r + 1) → a ≤ rho.horizon →
+    headReader p E rho x (r + 1) a →
     ∀ q K, rho.seatOf (.base (.head r)) q ∈ rho.honest →
       HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head r)) q)
         (ofHead p ⟨.seat (.head r) q, K.root⟩) (SA.voteTime p.toParams r) K →
       Nonempty (FreshHeadService E rho r q K.root (SA.earlyTime p.toParams r) x) ∧
         TargetReceiptService E rho K (SA.earlyTime p.toParams r) x
   relay : ∀ r ih y, headReader p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
+    rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))) →
     ∀ q b, (⟨.seat r q, .head b⟩ : GridCO.Wire p.n .root) ∈
       headVotes p (clock p (rho.stateBefore E ih y).st
         (SA.voteTime p.toParams (r + 1))) (r + 1) →

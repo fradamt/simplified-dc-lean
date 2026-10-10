@@ -559,7 +559,7 @@ theorem inclusion_retained_reads [Fintype V]
       exact (fgsa_emits_head E rho _ _ _ (q + 1) w K.root).mpr
         ⟨haw.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hkk haw,
           congrArg Block.root hK.symm⟩
-    obtain ⟨hHS, hBS⟩ := hInputs.early (q + 1) _ x (Or.inl rfl) ⟨hx, hJP⟩
+    obtain ⟨hHS, hBS⟩ := hInputs.early (q + 1) _ x (Or.inl rfl) (htv.trans hhor) ⟨hx, hJP⟩
       w K hyw ⟨kk, q + 1, w, hkk, hemK, rfl, hK.symm⟩
     obtain ⟨hem', hv, _, hKb, _, hslot⟩ :=
       inclusion_head_receipt_early_on E rho hE (q + 1) hjx w hyw haw hkk K hK
@@ -646,7 +646,7 @@ theorem inclusion_retained_reads [Fintype V]
       exact (fgsa_emits_head E rho _ _ _ (q + 1) w K.root).mpr
         ⟨haw.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hkk haw,
           congrArg Block.root hK.symm⟩
-    obtain ⟨hHS, hBS⟩ := hInputs.early (q + 1) _ y (Or.inr rfl) ⟨hy, hJ⟩
+    obtain ⟨hHS, hBS⟩ := hInputs.early (q + 1) _ y (Or.inr rfl) hhor ⟨hy, hJ⟩
       w K hyw ⟨kk, q + 1, w, hkk, hemK, rfl, hK.symm⟩
     obtain ⟨hem', hv, hvs, hKb, hbs, hslot⟩ :=
       inclusion_head_receipt_early_on E rho hE (q + 1) hjy w hyw haw hkk K hK
@@ -705,7 +705,7 @@ theorem inclusion_retained_reads [Fintype V]
       decide (GridCO.stampBlock (actView dst) K < SA.freezeTime p.toParams (q + 1))) = true
     simp only [hslot, hvsd, hbsd, decide_true, Bool.and_self]
   have hRS := inclusion_reader_scores_on E rho hE hC (q + 1) hih H hH hbatch D0 hrecR hy
-    (hInputs.relay (q + 1) ih y ⟨hy, hJ⟩)
+    (hInputs.relay (q + 1) ih y ⟨hy, hJ⟩ hih)
   refine ⟨Or.inr (hRPS _ hap), Or.inr (Or.inl (hRPS _ hay)), Or.inr (hRPS _ hDD),
     hsfloor, htfloor, ?_⟩
   intro L hL _
