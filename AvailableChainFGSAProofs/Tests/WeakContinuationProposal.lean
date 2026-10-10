@@ -45,5 +45,9 @@ theorem pivotContract [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar : Nat
     WCProposalPivotStatement p c E rho ΔF w iStar :=
   wc_proposalPivot ΔF w iStar hframe
 
+#print axioms firstEligibleMaximum
+#print axioms firstEligibleHeads
+#print axioms pivotContract
+
 end AvailableChain.FGSA.Run.Tests.WeakContinuationProposal
 end

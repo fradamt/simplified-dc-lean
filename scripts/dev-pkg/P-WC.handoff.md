@@ -337,3 +337,40 @@ Empty's local restart replay now passes the exact wake time to restore.
 The internal wcg_empty_live_of_finalBelow adapter no longer takes NoRestart source.
 Its remaining source-reader scope repairs are local P-WC work; keep it
 EXPECTED-FAIL. No participation or half-cap input was added to the empty route.
+
+## Round 4 suppliers
+
+Status: PREPARED. Eight of the 17 original open targets now compile; nine
+remain EXPECTED-FAIL P-WC. No open target was reassigned to P-As.
+
+WC StepTransfer now returns WCRetrospectiveStatement with the joined
+next-slot reader guard. WCG Dynamics supplies the matching retrospective
+statement. WC Step and WCG Dynamics supply the complete event step and
+seeded induction. WC Induction also supplies the sleep safety adapter.
+The event proof handles kept, gate, and received-finality output origins.
+Next-event finality compatibility follows from the earlier target action
+in the prior bounded history. Restart remains full WCInv preservation.
+
+WC Proposal supplies WCProposalPivotStatement. WC ExactProposal supplies
+WCProposalAdmissionStatement and WCExactProposalStatement. These existing
+Statements are unchanged. Their internal Count and retained-read helpers
+now take the all-time joined count, durable/epoch stores, and the actual
+joined consuming reader. Import the production modules directly.
+
+New production modules: WC/HeadRelay, WCG/HeadRelay, WC/ProposalService,
+WC/ExactReceipts, and WC/InclusionGate. StepGateBatch exposes
+wc_gate_active_heads. InclusionGate supplies wc_exact_gate_raw; the full
+Inclusion consumer is still open. WCG HeadRelay has no WC proof import.
+
+The old WC headRead_stamped, headRead_laterPath, and previous-path helpers
+state NoRestart explicitly. They are legacy interfaces. Sleep adapters
+use wc_duty_head_path and the current receiver's joined duty scope.
+Assembly/WeakContinuationGrowth callers of those old helpers are P-As
+port items; do not infer NoRestart from a sleep regime. Exact new supplier
+types and file:line anchors are in the Round 4 report artifacts.
+
+Serial integration: import production modules and copy the 285 commands
+from claude-files/sleep-pwc-round4-audit-fragment.txt into Tests.Axioms
+under its existing canonical key. Use the matching coverage fragment.
+Keep WeakContinuationSleepAxioms and the Proposal test audit registered
+through the test glob. No test-module import or allowance is needed.

@@ -1,4 +1,4 @@
-# P-WC r4: PREPARED; finite origins and local output cases pass; joint closure remains open.
+# P-WC r4: PREPARED; event induction, Proposal and exact adoption pass; nine targets open.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
@@ -69,6 +69,8 @@ AvailableChainFGSAProofs.Tests.WeakContinuationSleepAxioms
 AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.HeadRelay
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
+AvailableChainFGSAProofs.Proofs.WeakContinuation.InclusionGate
 [GREEN]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
@@ -598,15 +600,17 @@ AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Dynamics
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
 AvailableChainFGSAProofs.Tests.WeakContinuationProposal
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal
+AvailableChainFGSAProofs.Tests.WeakContinuationExactProposal
+AvailableChainFGSAProofs.Proofs.WeakContinuation.InclusionGate
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Export P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Live P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationExactProposal P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowth P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthEmptyAxioms P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationInclusion P-WC

@@ -5078,3 +5078,31 @@ Local strict audit passes. Complete export check: 189 proof modules,
 252 exports, zero unaccepted. Layers: 72 inherited, zero new. Eleven
 original targets remain EXPECTED-FAIL P-WC. Exact adoption and Empty are
 still local work. Evidence: proposal-audit2.log, proposal-exports2.log.
+
+### P-WC Round 4 — exact adoption and enabled gate suppliers
+
+ExactProposal and its contract test now compile. ExactReceipts supplies
+proposal service at a public receiver anchor, accepted-target service,
+both retained score directions, and fresh emitted proposal service.
+The retained score proof carries the source epoch, original frozen HEAD
+acceptances, and forward/backward block service. Admission keeps the exact
+named body and its strict original delivery, then retains it through the
+joined consuming read. No global NoRestart is supplied.
+
+StepGateBatch now exposes wc_gate_active_heads. InclusionGate proves the
+raw exact gate result from joined receipt evidence. This supplier is
+GREEN; the full Inclusion consumer remains EXPECTED-FAIL. The existing
+public exact-adoption and admission Statements are unchanged.
+
+Eight of the 17 original open targets are now GREEN. Nine remain
+EXPECTED-FAIL, all owner P-WC: WC Inclusion, Growth, Live, Export; WCG
+Empty and Export; the Inclusion, Growth, and GrowthEmptyAxioms tests.
+The remaining failures are local P-WC work. None is only a P-As bridge.
+Empty was not changed; no participation or half-cap premise was added.
+
+Map: 71 targets, 62 GREEN / 9 EXPECTED-FAIL. Required union targets:
+532 GREEN / 9 EXPECTED-FAIL. Strict audit: 285 local commands/results,
+plus three Proposal test commands. Only propext, Classical.choice, and
+Quot.sound. Exports: 200 proof modules, 252 exports, zero unaccepted.
+Layers: 72 inherited, zero new. Final package DCK is running.
+Evidence: .lake/sleep-pwc-r4/. Round 4 fragments are in claude-files/.

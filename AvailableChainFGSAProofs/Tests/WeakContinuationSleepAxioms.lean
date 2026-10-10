@@ -1,4 +1,7 @@
 module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.InclusionGate
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
@@ -383,3 +386,15 @@ open AvailableChain.FGSA.Run
 #print axioms AvailableChain.FGSA.Run.wc_proposalPivot
 #print axioms AvailableChain.FGSA.Run.wc_head_source_path
 #print axioms AvailableChain.FGSA.Run.wc_relay_head_emission_scope
+
+#print axioms AvailableChain.FGSA.Run.wc_local_proposal_service
+#print axioms AvailableChain.FGSA.Run.wc_accepted_target_service
+#print axioms AvailableChain.FGSA.Run.wc_retained_score_scope
+#print axioms AvailableChain.FGSA.Run.wc_emitted_proposal_service
+#print axioms AvailableChain.FGSA.Run.wc_retainedReads
+#print axioms AvailableChain.FGSA.Run.wc_exactProposal
+#print axioms AvailableChain.FGSA.Run.wc_proposalAdmission
+
+#print axioms AvailableChain.FGSA.Run.wc_gate_active_heads
+
+#print axioms AvailableChain.FGSA.Run.wc_exact_gate_raw
