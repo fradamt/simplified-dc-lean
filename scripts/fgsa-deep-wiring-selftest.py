@@ -19,11 +19,12 @@ with tempfile.TemporaryDirectory(prefix='fgsa-wiring-') as scratch:
     for label, path, before, after in (
         ('missing dispatch', paths[0],
          'fgsa-manifest) step "$1" bash scripts/check-fgsa-manifest.sh ;;', ''),
-        ('missing group member', paths[0], '  fgsa-manifest pcsa-manifest', '  pcsa-manifest'),
+        ('missing group member', paths[0], '  fgsa-manifest\n', '\n'),
         ('shallow after NEG exit', paths[1], '--scope fgsa --check', 'shallow-disabled'),
         ('deep after NEG exit', paths[1], '--scope fgsa --deep --check', 'deep-disabled'),
         ('legacy after NEG exit', paths[1], '--scope legacy --check', 'legacy-disabled'),
     ):
+        assert original[path].count(before) == 1, (label, before)
         text = original[path].replace(before, after)
         if 'after NEG' in label:
             text += '\n' + before + '\n'
