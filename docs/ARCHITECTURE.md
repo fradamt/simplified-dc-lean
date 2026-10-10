@@ -220,6 +220,13 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 └──────────────────────────┴──────────────────────────────────────────────┘
 ```
 
+PC-SA is UNPORTED for the sleep wake-time restore interface (decision 2026-10-10).
+`scripts/unported-libraries.txt` excludes its five libraries from compiled gates,
+manifests, API snapshots and DCK targets. Source checks still apply. The PC-SA API
+and deep snapshot are retained; `docs/PCSA-API.md` is STALE-UNPORTED. After the port,
+remove all five list entries, restore PC-SA build and audit inputs, update its
+snapshots, remove the stale header, and run the full gate.
+
 - PC-SA PC layer (2026-10-05; `pcsa-decisions.md`, 3n/4 version and R-g):
   `PCQuorum` (thresholds `qN`, `qA`; two `qN` sets share `qA` seats; honest
   seat in a `qA` set; one block per slot with a `qN` exact-HEAD set),

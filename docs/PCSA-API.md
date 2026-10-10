@@ -1,5 +1,8 @@
 # PC-SA API manifest
 
+_STALE-UNPORTED: last PC-SA snapshot from main `b3d56790`. See
+`scripts/unported-libraries.txt`. Compiled checks resume after the sleep port._
+
 _Statement manifest of the PC-SA claim surface (roadmap item 7). Not frozen._
 
 This file lists every public declaration under the Statements prefixes of
