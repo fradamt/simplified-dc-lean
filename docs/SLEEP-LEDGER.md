@@ -3561,3 +3561,69 @@ The S-Ap round 3 proposal of a PUBLIC anchor-indexed receipt contract is SUPERSE
 (sleep-join-port-notes.md): an additive internal ReceiptCoverageAnchorPremises with one explicit anchor function, in
 the P-ShA proof layer; public P23 text unchanged. DECISION P15-CUT amends OutagePrefixReceipt (S-Ap round 4).
 Open at integration (rev-sap3-sol finding 7): the Recovery₂ → RecoverySleep₂ supplier for the kernel adapter (P-Fi).
+
+
+## S-Ap Round 4 — DECISION P15-CUT (2026-10-10)
+
+Amend packet P15, “Additive: new declaration OutagePrefixReceipt”, with
+`SA.earlyTime p.toParams q ≤ b₀` immediately before the BatchReceiptAt conclusion.
+The bound applies to each selected label; equality is allowed. P15 now means:
+
+> Derive receipt for the selected prefix arming labels whose early receipt
+> cut is at most b₀, and for the restored batches q ≥ r.
+
+The additive claim types and theorem signatures keep their written Lean text.
+Their prefix conclusion refers to the corrected definition.
+OutageContinuationReceipt's first conjunct inherits this correction. D109's
+Outage₂ and D110's OutageContinuationPrem text stay unchanged. This amendment
+adds no public service record or acceptance assumption.
+
+The local `arming_prefix_batch_receipt_on` service input takes the same cut
+premise. `outage_restored_receipt_with_service` passes hPrefix unchanged.
+EarlyCut.regime still constructs the early-cut run. Its `missing` and
+`prefix_claim_false` tests are replaced by the positive `prefix_receipt` test:
+the selected q = 1 has earlyTime 1 = 12 > b₀ = 8. Thus this run does not refute
+the corrected claim. The test does not assert general regime-derived receipt.
+P-Ar still owns the joint-induction service proofs; P-Ou still owns the restored
+service proofs. This amendment does not close those family obligations.
+
+Source: DECISION P15-CUT in sleep-join-port-notes.md (08:21) and
+outage-cut/outage-cut.md §§2–3, 5–6. No other public meaning changes.
+
+The S-Ap package map adds the two direct receipt consumers and OutageArming to
+TARGETS/GREEN. It also classifies Shared.RegimesService as GREEN: the integrated
+required scope includes this module, but the inherited S-Ap map omitted it.
+This changes validation data only.
+
+Validation limit: full auxiliary API and claims inventory write/check commands
+stop at the missing compiled Claims.Tests.FinalityGST fixture (EXPECTED-FAIL,
+owner P-Fi). Their generated products remain unchanged. No generator scope or
+baseline is changed. This inherited limit does not block the targeted receipt
+build or complete S-Ap GREEN export check. The latter covers 293 proof modules
+and 253 exports, with zero unaccepted exports and zero non-exposed Statements
+predicates. The focused six-declaration receipt audit uses only permitted axioms.
+
+The standard FGSA generator also refreshes 13 shallow hashes from the integrated
+Claims.Outage source. That source is byte-for-byte unchanged from d825ed30 in
+this job. The only new public source change is OutagePrefixReceipt. No manifest
+names are added or removed, and no generated hash is edited by hand.
+
+DCK S-Ap passes in 325.25 s: 475 GREEN modules, 42 strict audit sources,
+4,227 permitted-axiom results, and 24 controls. The package has 126 TARGETS and
+57 explicitly owned EXPECTED-FAIL modules. The targeted receipt build passes;
+check-layers reports 72 accepted findings and zero new findings. The generated
+FGSA shallow/deep write passes (1,357 roots, 3,817 dependency nodes). Complete
+exports and strict receipt audits pass. Full auxiliary products have the limit
+recorded above; no full family or canonical-audit closure is claimed.
+
+FGSA generated checks pass: shallow 1,357 entries in 59 modules (163.66 s),
+deep 1,357 entries (116.44 s). Isolated deep controls pass (104.69 s).
+The final EarlyCut comment now records DECISION P15-CUT; its --wfail rebuild
+passes (4.68 s). The DCK result above precedes this comment-only correction.
+
+Snapshot controls pass V2/GEN/FGSA shallow, catalog-lock, and source-scope
+checks, then stop at the mapped-root control because FinalityGST is missing
+(262.83 s). This is the same inherited auxiliary-product limit above.
+Task 3 needs no edit: the lead note at the Round 3 merge already marks the
+public anchor proposal SUPERSEDED by DECISION ANCHOR-DL at base d825ed30.
+No new LEAD DECISION item is needed.

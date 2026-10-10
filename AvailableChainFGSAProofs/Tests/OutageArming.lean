@@ -181,7 +181,7 @@ end AvailableChain.FGSA.Run.Tests.OutageArming
 namespace AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut
 
 open AvailableChain.SimplexFG
-/-! STOP: the public receipt claim includes a batch after an early healthy cut. -/
+/-! DECISION P15-CUT excludes a batch after an early healthy cut. -/
 
 abbrev p : Params :=
   { Δ := 2, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
