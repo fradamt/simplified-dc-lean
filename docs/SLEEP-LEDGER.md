@@ -1727,3 +1727,63 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
 │ Complete export/audit coverage     │ PASS   │ 38.20     │
 └────────────────────────────────────┴────────┴───────────┘
 ```
+
+## P-ShA — independent core and S-Ap handoff (2026-10-10)
+
+- R6: Shared/StoreRun.fgsa_store_durable keeps TF, blocks, proposals and rowPool
+  across restarts. fgsa_store_cumulative_on keeps the complete six-field tuple
+  on restartFree rho x i j. The legacy fgsa_store_cumulative statement stays
+  fixed and follows from the epoch form. Index endpoints are i ≤ k < j.
+- N4 core: Shared/CatchUp.fgsa_catchUp_before_freeze uses the exact ReadyTrigger,
+  HistorySafeAt, service law and receiver epoch. Its deadline is at or before
+  freeze. Processing at the strict-before deadline persists to the strict-before
+  freeze. The ready handler branch has a receipt strictly before the deadline.
+  The retained-history branch needs HistorySafeAt; wake alone supplies no history.
+  A fresh post-join anchor can use historySafeAt_of_fresh instead.
+  Count, HeadAdmit and retained-proposal adapters remain open until the S-Ap slice.
+- N7 supplier: fgsa_gate_joined_of_joinedEnv takes the approved environment
+  restart bound at this exact gate and returns joinedAtTime on its pre-tick store.
+  Consumers P-Cl1, P-Ou and P-WC can pass the restart projection of joinedAt.
+  fgsa_joinedNow_noRestart keeps the legacy callers working at an existing tick.
+- P11 bridge: fgsa_gate_saved_guarded proves the saved equation in both join
+  branches. Its unjoined result is some none. Shared/Reads remains EXPECTED-FAIL
+  until S-Ap installs the guarded executed read. The candidate adapter is in
+  claude-files/psha-reads-after-sap.patch; it has not been compiled.
+- internal statement, lead ruling 10-10: Relay.relay_gate_late and
+  SameLabel.sl_gate_late were false with schedule alone. They now require hEpoch
+  at their gate and keep the same strict late-pool conclusion. Every current
+  caller supplies hEpoch from its existing NoRestart premise. Consumers:
+  Relay.relay_head_witness and SameLabel.sl_relay (private).
+- internal statement, lead ruling 10-10: fgsa_vote_accepted_before_head_read now
+  takes ExecutionValid, since the exact receipt clock uses the awake delivery
+  and wake laws. Its consumer relay_head_witness already has that premise.
+- internal statement, lead ruling 10-10: the two OutputGrowthProposal helpers
+  ending in _of_awake_slot need the approved joined proposer restart bound.
+  Awake alone allows a restart at the proposal tick, which gates the emission.
+  The conclusion is fixed. Sources are the joined proposer clauses in P6 and
+  the family packet. Consumers: Shared/Claims; Outage/Growth;
+  WeakContinuation/Growth; WeakContinuationGrowth/Empty; Finality/MiddleSupport;
+  Healing/PromotionCarrier, LiveDC and Repair. Those family ports remain open.
+- P23-A: GateReceipt and ScoreRun now use NamedReceiptRootCollisionFree for
+  proposal receipts. Their callers pass the same receipt premise. A safety-only
+  equality in ScoreRun projects toNamedRootCollisionFree. No hScope is added.
+- Receipt caller repair: GateReceipt, Relay, SameLabel and ScoreRun supply the
+  exact receiver awake interval and horizon bound. In the legacy NoRestart
+  route, ExecutionValid at the existing receiver tick gives the interval.
+  GateReceipt T41 uses its explicit selected-voter hawake. Its early actor tick
+  follows from the existing gate tick and NoRestart. This does not close the
+  sleep T42 route; that route must use the enabled-gate source below.
+- Proof-only K/L repairs keep origin fields and use the exact wake clock law.
+  OutputGrowthCausal splits tick and restart clock sources. Slot bounds use
+  non-strict now ≤ tick where strictness is unnecessary.
+- Validation scope: 14 former P-ShA failures are GREEN, together with the new
+  CatchUp module, five support modules, Tests/BoundsW and Tests/SharedAxioms.
+  No remaining owned EXPECTED-FAIL repair is closed. Package inputs retain the
+  W3-owned and S-Ap-owned classifications. Default heartbeats are unchanged.
+- Core validation: the 22-module green build passed --wfail (3.880 s).
+  P-ShA DCK passed with all controls (259.627 s). The complete export check
+  scanned 138 proof modules / 251 exports: 0 unaccepted (4.556 s).
+  The green proof audit checked 149/149 results: only propext, Classical.choice
+  and Quot.sound (3.224 s). SharedAxioms has 20 strict results.
+  check-layers reports 0 new findings. The broad transparency check still has
+  two inherited ClientTrace findings; W3 owns that file and its review fix.

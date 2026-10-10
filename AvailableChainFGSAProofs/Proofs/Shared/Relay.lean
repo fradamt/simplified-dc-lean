@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.RootResolution
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 
 -- ROOT-DIGEST-2: a private unfolding fact avoids a public equation export (BUILD B3).
 namespace AvailableChain.FGSA.Run
@@ -126,6 +127,8 @@ private theorem relay_read_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
 private theorem relay_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hEpoch : ∀ j w, j < i → rho.events[j]? = some (.restart x w) →
+      w < SA.gateTime p.toParams s)
     (o : GridCO.Wire p.n .root) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
     (hl : GridCO.headLabel? o = some s) :
     o ∈ GridCO.lateVotes p.toParams.engine
@@ -141,7 +144,7 @@ private theorem relay_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
       change 0 < 4 * p.Δ * (s : Int) + 6 * p.Δ
       have hd := p.deltaPos
       positivity
-    have hn := fgsa_preTick_now_lt E rho hS hi hpos
+    have hn := fgsa_preTick_now_lt E rho hS hi hpos hEpoch
     have hb := (fgsa_stateBefore_bounds E rho hS i x).2
     unfold GridCO.stampVote
     cases hf : (V2.D.Run.stateBefore E rho i x).st.base.voteStamp.find?
@@ -163,8 +166,8 @@ private theorem relay_read_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho d hS,
     Gen.V2.Duty.stateBefore_idxBefore E rho _ hS,
     ← fgsa_preTick_eq_timeRead E rho hS hN hi] at hm
-  have hb := stateBefore_now_le_event_retained (fgsaClock p c)
-    (fgsa_hrestore_now_retained p c)
+  have hb := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
     E rho hS hi x
   rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho i x)] at hb
   have hs := Internal.slotOf_mono (p := p) (hm.trans hb)
@@ -230,7 +233,10 @@ private theorem relay_proposals_wf (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     | restart v t =>
       change v = x at hx; subst v
       simp only [V2.D.World.step, Function.update_self]
-      exact fun _ h => (List.not_mem_nil h).elim
+      intro o ho
+      change o ∈ (acRestart p _ t).proposals at ho
+      rw [acRestart_proposals] at ho
+      exact hj o ho
     | tick v t =>
       change v = x at hx; subst v
       simp only [V2.D.World.step, Function.update_self]
@@ -471,8 +477,8 @@ private theorem relay_carried_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     RelayCarried (V2.D.Run.stateBefore E rho k y).st s := by
   have hu (j : Nat) (hj : j ≤ k) : (V2.D.Run.stateBefore E rho j y).st.slot p ≤ s + 1 := by
     have hm := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hS hN hj y
-    have hb := stateBefore_now_le_event_retained (fgsaClock p c)
-      (fgsa_hrestore_now_retained p c)
+    have hb := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
       E rho hS htick y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j y),
       fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hm
@@ -488,7 +494,7 @@ private theorem relay_carried_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     | restart v t =>
       change v = y at hy; subst v
       simp only [V2.D.World.step, Function.update_self]
-      exact fun _ h => (List.not_mem_nil h).elim
+      exact (hN j y t he).elim
     | tick v t =>
       change v = y at hy; subst v
       simp only [V2.D.World.step, Function.update_self]
@@ -554,7 +560,7 @@ DC: Handlers/GoldfishVotePool.lean:755,791, strict stored witness stamps.
 The actual q_s tick bounds each retained witness stamp; T7.8 recovers its
 own earlier acceptance, including witnesses that capped a carried vote. -/
 theorem fgsa_vote_accepted_before_head_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (hS : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (k : Nat) (y : V) (s : Slot)
     (htick : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
     (seat : Fin p.n) (B : BlockId)
@@ -573,8 +579,9 @@ theorem fgsa_vote_accepted_before_head_read (E : Generic.Env V) (rho : V2.D.Run 
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ = _
     push_cast
     ring
-  · have hn := fgsa_preTick_now_lt E rho hS htick hpos
-    have hb := (fgsa_stateBefore_bounds E rho hS k y).2
+  · have hn := fgsa_preTick_now_lt E rho hS.toScheduleWellFormed htick hpos
+      (fun j w _ he => False.elim (hN j _ w he))
+    have hb := (fgsa_stateBefore_bounds E rho hS.toScheduleWellFormed k y).2
     unfold GridCO.stampVote
     cases hf : (V2.D.Run.stateBefore E rho k y).st.base.voteStamp.find?
         (fun row => row.1 == ⟨.seat s seat, .head B⟩) with
@@ -600,7 +607,7 @@ private theorem relay_head_witness (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
   have hl' : GridCO.headLabel? o = some s := by simpa only [beq_iff_eq] using hl
   obtain ⟨B, rfl⟩ := relay_vote_shape o s seat hl' hk
   obtain ⟨j, _, t, ha, ht⟩ :=
-    fgsa_vote_accepted_before_head_read E rho hE.toScheduleWellFormed hN hDelta iy y s hiy seat B hm
+    fgsa_vote_accepted_before_head_read E rho hE hN hDelta iy y s hiy seat B hm
   obtain ⟨dl, cut, hD, _, hlt, hb, _, hcut, _⟩ := hSync
   have hd : dl t < SA.gateTime p.toParams s := by
     have hb := hb t
@@ -613,9 +620,15 @@ private theorem relay_head_witness (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     have hh : max t (4 * p.Δ * (s : Int) + p.Δ) <
         4 * p.Δ * (s : Int) + 5 * p.Δ := max_lt (by linarith) (by linarith)
     linarith
+  have hT : Gen.V2.Duty.Trigger E rho
+      (ofHead p ⟨.seat (.head s) seat, B⟩) t :=
+    Or.inr ⟨y, hy, j, ha⟩
   have hr := fgsa_head_receipt E rho hDelta hE hN dl cut s seat B t x hD
-    (Or.inr ⟨y, hy, j, ha⟩) hx ((le_of_lt hd).trans hcut) (hlt t)
+    hT hx ((le_of_lt hd).trans hcut) (hlt t)
     (relay_read_window E rho hE.toScheduleWellFormed hN hix (dl t) (le_of_lt hd))
+    (hd.le.trans (hE.in_horizon _ (List.mem_of_getElem? hix)).2)
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hix hx
+      (fgsa_trigger_nonneg E rho hE.toScheduleWellFormed hT) hd.le)
   have hkeep : (V2.D.Run.stateBeforeTime E rho (dl t) x).st.base.votes ⊆
       (V2.D.Run.stateBefore E rho ix x).st.base.votes := by
     rw [fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hix,
@@ -623,10 +636,13 @@ private theorem relay_head_witness (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
       ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
     exact relay_votes_mono E rho hN x (relay_idx_mono rho (le_of_lt hd))
   rcases hr with hr | ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, _, _⟩
-  · exact Or.inl (relay_gate_late E rho hE.toScheduleWellFormed hix _ (hkeep hr.1) rfl)
+  · exact Or.inl (relay_gate_late E rho hE.toScheduleWellFormed hix
+        (fun j w _ he => False.elim (hN j _ w he)) _ (hkeep hr.1) rfl)
   · exact Or.inr ((cap_pair _ seat).mpr ⟨u,
-      relay_gate_late E rho hE.toScheduleWellFormed hix u (hkeep hu) hlu, v,
-      relay_gate_late E rho hE.toScheduleWellFormed hix v (hkeep hv) hlv, hne, hku, hkv⟩)
+      relay_gate_late E rho hE.toScheduleWellFormed hix
+        (fun j w _ he => False.elim (hN j _ w he)) u (hkeep hu) hlu, v,
+      relay_gate_late E rho hE.toScheduleWellFormed hix
+        (fun j w _ he => False.elim (hN j _ w he)) v (hkeep hv) hlv, hne, hku, hkv⟩)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 P3 §4.4.3 C6; bp02 §4.2 backward receipt, Gen.AC.Root.transfer item 5.
@@ -751,7 +767,7 @@ theorem fgsa_cleanSupport_vote_forward (E : Generic.Env V) (rho : V2.D.Run V (fg
     change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
     have hd := p.deltaPos
     positivity
-  obtain ⟨j, _, t, ha, ht⟩ := fgsa_vote_accepted_before E rho hE.toScheduleWellFormed hN
+  obtain ⟨j, _, t, ha, ht⟩ := fgsa_vote_accepted_before E rho hE hN
     ix x s seat K _ hpub hz hmem ht
   obtain ⟨dl, cut, hD, _, hlt, hb, _, hcut, _⟩ := hSync
   have hd : dl t < SA.freezeTime p.toParams s := by
@@ -784,16 +800,22 @@ theorem fgsa_cleanSupport_vote_forward (E : Generic.Env V) (rho : V2.D.Run V (fg
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed,
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed,
       ← fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hiy] at hm
-    have hb := stateBefore_now_le_event_retained (fgsaClock p c)
-      (fgsa_hrestore_now_retained p c)
+    have hb := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
       E rho hE.toScheduleWellFormed hiy y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho iy y)] at hb
     have he : p.slotOf (SA.voteTime p.toParams (s + 1)) = s + 1 :=
       (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho iy y) _).2.symm.trans
         (fgsa_vote_slot (c := c) _ (s + 1))
     exact (Internal.slotOf_mono (p := p) (hm.trans hb)).trans_eq he
+  have hT : Gen.V2.Duty.Trigger E rho
+      (ofHead p ⟨.seat (.head s) seat, K⟩) t :=
+    Or.inr ⟨x, hx, j, ha⟩
   have hr := fgsa_head_receipt E rho hDelta hE hN dl cut s seat K t y hD
-    (Or.inr ⟨x, hx, j, ha⟩) hy (hdq.trans (hqd.trans hcut)) (hlt t) hwindow
+    hT hy (hdq.trans (hqd.trans hcut)) (hlt t) hwindow
+    (hdq.trans (hE.in_horizon _ (List.mem_of_getElem? hiy)).2)
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hiy hy
+      (fgsa_trigger_nonneg E rho hE.toScheduleWellFormed hT) hdq)
   have hkeep : (V2.D.Run.stateBeforeTime E rho (dl t) y).st.base.votes ⊆ dst.base.votes ∧
       (V2.D.Run.stateBeforeTime E rho (dl t) y).st.base.voteStamp <+: dst.base.voteStamp := by
     change _ ⊆ (clock p _ _).base.votes ∧ _ <+: (clock p _ _).base.voteStamp

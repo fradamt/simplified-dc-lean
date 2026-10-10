@@ -145,7 +145,7 @@ theorem fgsa_release_bound (p : Params) {In V : Type} [DecidableEq V] [Fintype V
           have := p.deltaPos
           positivity
         obtain ⟨j, _, t, ha, _⟩ := fgsa_vote_accepted_before E rho
-          hE.toScheduleWellFormed hN i x s k C (SA.releaseTime p.toParams s)
+          hE hN i x s k C (SA.releaseTime p.toParams s)
           hpub hzero hstored hv
         obtain ⟨parent, hd, hh⟩ := ha.1
         have hholder : V2.D.Run.holder rho (ofHead p ⟨.seat (.head s) k, C⟩).auth =

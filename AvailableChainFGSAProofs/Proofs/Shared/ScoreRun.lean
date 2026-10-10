@@ -7,6 +7,8 @@ public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSARun.Proofs.ReadFacts
 
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -190,7 +192,7 @@ theorem fgsa_scoreRun_raw_subset
   have hmem := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
-  have pools := fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2
+  have pools := fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2.2
   have heq := fgsa_scoreRun_stored_proposal_eq E rho hE ia y s M
     hadm (hx ▸ hh) _ rfl ⟨_, by rw [hx]; exact ⟨ip, hip, hem⟩⟩
   have hw : (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
@@ -281,8 +283,8 @@ private theorem scoreRun_proposal_window (E : Generic.Env V) (rho : V2.D.Run V (
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho d hS,
     Gen.V2.Duty.stateBefore_idxBefore E rho _ hS,
     ← fgsa_preTick_eq_timeRead E rho hS hN hi] at hm
-  have hb := stateBefore_now_le_event_retained (fgsaClock p c)
-    (fgsa_hrestore_now_retained p c)
+  have hb := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
     E rho hS hi x
   rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho i x)] at hb
   have hs := Internal.slotOf_mono (p := p) (hm.trans hb)
@@ -330,7 +332,7 @@ theorem fgsa_scoreRun_frozen_vote_relay
     change 0 ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
     have hp := p.deltaPos
     positivity
-  obtain ⟨j, -, t, ha, htz⟩ := fgsa_vote_accepted_before E rho hE.toScheduleWellFormed
+  obtain ⟨j, -, t, ha, htz⟩ := fgsa_vote_accepted_before E rho hE
     hN k y s seat B _ hpub hzero hm ht
   obtain ⟨dl, cut, hD, -, hlt, hb, -, hcut, -⟩ := hSync
   have hd : dl t ≤ SA.proposalTime p.toParams (s + 1) := by
@@ -340,9 +342,15 @@ theorem fgsa_scoreRun_frozen_vote_relay
   have hpv : SA.proposalTime p.toParams (s + 1) ≤ SA.voteTime p.toParams (s + 1) := by
     change 4 * p.Δ * ((s + 1 : Nat) : Int) ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
     linarith [p.deltaPos]
+  have hT : Gen.V2.Duty.Trigger E rho
+      (ofHead p ⟨.seat (.head s) seat, B⟩) t :=
+    Or.inr ⟨y, hy, j, ha⟩
   have hr := fgsa_head_receipt E rho hDelta hE hN dl cut s seat B t x hD
-    (Or.inr ⟨y, hy, j, ha⟩) hx (hd.trans (hpv.trans hcut)) (hlt t)
+    hT hx (hd.trans (hpv.trans hcut)) (hlt t)
     (scoreRun_proposal_window E rho hE.toScheduleWellFormed hN hip (dl t) hd)
+    (hd.trans (hE.in_horizon _ (List.mem_of_getElem? hip)).2)
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hip hx
+      (fgsa_trigger_nonneg E rho hE.toScheduleWellFormed hT) hd)
   have hkeep : (V2.D.Run.stateBeforeTime E rho (dl t) x).st.base.votes ⊆
       (V2.D.Run.stateBefore E rho ip x).st.base.votes := by
     rw [fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hip,
@@ -421,7 +429,7 @@ theorem fgsa_scoreRun_raw_extra
   have hmem := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hmem
-  have pools := fgsa_scoreRun_proposal_pools p _ (s + 1) _ N hp.2.2.2
+  have pools := fgsa_scoreRun_proposal_pools p _ (s + 1) _ N hp.2.2.2.2
   have hpairs : ∀ q ∈ proposalsAt dst (s + 1), q = (N.raw, N.support) := by
     have h := fgsa_scoreRun_proposalsAt_eq E rho hE ih y (s + 1) N
       (hseat ▸ hx) ⟨_, by rw [hseat]; exact ⟨ip, hip, hem⟩⟩
@@ -474,7 +482,7 @@ private theorem scoreRun_block_receipt_to_tick
     {ih : Nat} {y : V} {u : Time} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y u)) (hd : dl t ≤ u)
     (hF : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st u).fg.F) B)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     B ∈ (clock p (V2.D.Run.stateBefore E rho ih y).st u).base.blocks := by
   let a := V2.D.Run.idxBefore rho (dl t)
   let z := V2.D.Run.idxBefore rho u
@@ -496,6 +504,9 @@ private theorem scoreRun_block_receipt_to_tick
   obtain ⟨s, N, rfl, heN⟩ := scoreRun_block_decode ho
   obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut
     s N t y hD hT hy hc hlt (by simpa only [heN] using hcompat)
+    (hd.trans (hE.in_horizon _ (List.mem_of_getElem? hih)).2)
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hih hy
+      (fgsa_trigger_nonneg E rho hE.toScheduleWellFormed hT) hd)
   have hkeep := (fgsa_store_cumulative p c E rho hN haz y).1
   change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl t)) y).st.fg.TF ⊆
     (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho u) y).st.fg.TF at hkeep
@@ -518,7 +529,7 @@ private theorem scoreRun_block_before_tick
   obtain ⟨⟨b, stamp⟩, hm, he⟩ := List.mem_map.mp hm
   dsimp only at he
   subst b
-  rcases fgsa_block_stamp_source E rho _ x B stamp hm with hg | ⟨j, hj, t, o, ho, ha, -⟩
+  rcases fgsa_block_stamp_source E rho hN _ x B stamp hm with hg | ⟨j, hj, t, o, ho, ha, -⟩
   · exact (hgen hg.1).elim
   · obtain ⟨parent, hd, -⟩ := ha.1
     exact ⟨j, t, o, ho, ha,
@@ -548,7 +559,7 @@ theorem fgsa_scoreRun_block_forward
     (hDB : Block.Preceq D B)
     (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams s)).base.blocks)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     B ∈ (clock p (V2.D.Run.stateBefore E rho ih y).st
       (SA.voteTime p.toParams s)).base.blocks := by
   rw [clock_base_blocks] at hm
@@ -592,7 +603,7 @@ theorem fgsa_scoreRun_block_backward
     (hm : B ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (ht : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base B <
       SA.freezeTime p.toParams s)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     B ∈ (actView (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1)))).blocks := by
   have hFB := Gen.Pure.block_preceq_trans hgeom.source_floor hDB
@@ -617,7 +628,7 @@ theorem fgsa_scoreRun_block_backward
     change 0 ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
     have hp := p.deltaPos
     positivity
-  obtain ⟨j, -, t, o, ho, ha, htz⟩ := fgsa_block_accepted_before E rho hE.toScheduleWellFormed
+  obtain ⟨j, -, t, o, ho, ha, htz⟩ := fgsa_block_accepted_before E rho hE
     ih y B _ hg hpub hzero hm ht
   obtain ⟨dl, cut, hD, -, hlt, hb, -, hc, -⟩ := hSync
   have hd : dl t ≤ SA.proposalTime p.toParams (s + 1) := by
@@ -678,7 +689,7 @@ theorem fgsa_scoreRun_support_forward
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     ∀ X, Block.Preceq D X → ∀ i,
@@ -702,7 +713,7 @@ theorem fgsa_scoreRun_support_forward
   have hmem := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
-  have pools := fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2
+  have pools := fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2.2
   have hadm' := fgsa_scoreRun_metadata_retained E rho hN (Nat.le_refl ih) y _ hadm s
   have hMeta := metaInv_clock p _ (metaInv_stateBefore E rho ih y)
     (SA.voteTime p.toParams s)
@@ -741,7 +752,7 @@ theorem fgsa_scoreRun_support_backward
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
     ∀ X, Block.Preceq D X → ∀ i, GridCO.equivocates (proposerVotes src (s + 1)) i = false →
@@ -752,7 +763,7 @@ theorem fgsa_scoreRun_support_backward
   have hmem := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hmem
-  have pools := fgsa_scoreRun_proposal_pools p _ (s + 1) _ N hp.2.2.2
+  have pools := fgsa_scoreRun_proposal_pools p _ (s + 1) _ N hp.2.2.2.2
   have hpairs : ∀ q ∈ proposalsAt dst (s + 1), q = (N.raw, N.support) := by
     have h := fgsa_scoreRun_proposalsAt_eq E rho hE ih y (s + 1) N
       (hseat ▸ hx) ⟨_, by rw [hseat]; exact ⟨ip, hip, hem⟩⟩
@@ -776,7 +787,8 @@ theorem fgsa_scoreRun_support_backward
     | none => simp only [hc, Bool.false_eq_true] at hr
     | some C =>
       have hm := (List.mem_filter.mp (resolvedHead_mem _ o hc)).1
-      have he : C = K := clock_stored_block_eq E rho hroots ip ih x y _ _ hm hKdst
+      have he : C = K := clock_stored_block_eq E rho
+        (hroots.toNamedRootCollisionFree E rho) ip ih x y _ _ hm hKdst
         (Option.some.inj ((resolvedHead_root _ o hc).symm.trans ht))
       subst C
       apply (Gen.AC.Root.vote_pool_support_witness _ _ _ _).mpr
@@ -866,7 +878,7 @@ theorem fgsa_score_eq_on_run
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     let U := proposerVotes src s
@@ -881,10 +893,10 @@ theorem fgsa_score_eq_on_run
   have hmem := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
-  have pools := fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2
+  have pools := fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2.2
   cases s with
   | zero =>
-    have he := hp.2.2.2
+    have he := hp.2.2.2.2
     change (none : Option (Msg p.n)) = some (.proposal N) at he
     cases he
   | succ s =>
@@ -941,7 +953,7 @@ theorem fgsa_walkRun_frozen_block
     (hm : B ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (ht : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base B <
       SA.freezeTime p.toParams s)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     B ∈ (actView (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1)))).blocks := by
   have hFB := Gen.Pure.block_preceq_trans hgeom.source_floor hDB
@@ -966,7 +978,7 @@ theorem fgsa_walkRun_frozen_block
     change 0 ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
     have hp := p.deltaPos
     positivity
-  obtain ⟨j, -, t, o, ho, ha, htz⟩ := fgsa_block_accepted_before E rho hE.toScheduleWellFormed
+  obtain ⟨j, -, t, o, ho, ha, htz⟩ := fgsa_block_accepted_before E rho hE
     ih y B _ hg hpub hzero hm ht
   obtain ⟨dl, cut, hD, -, hlt, hb, -, hc, -⟩ := hSync
   have hd : dl t ≤ SA.proposalTime p.toParams (s + 1) := by
@@ -1204,7 +1216,7 @@ private theorem walkRun_reflected_voter_block
       (voterBlocks p
         (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1)))
         (s + 1)))
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     C ∈ (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1))).base.blocks := by
   let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
@@ -1239,7 +1251,7 @@ private theorem walkRun_reflected_voter_block
     have hmem := hem
     rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
     have hem' := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hmem
-    have hparent := fgsa_walkRun_proposal_parent p src (s + 1) _ N hem'.2.2.2
+    have hparent := fgsa_walkRun_proposal_parent p src (s + 1) _ N hem'.2.2.2.2
     have hne : X ≠ N.erase.parent := by
       intro he
       have hn := (Bool.and_eq_true_iff.mp hXQ).1
@@ -1281,7 +1293,7 @@ theorem fgsa_walkRun_reflected_block
         (voterBlocks p
           (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1)))
           (s + 1))))
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     C ∈ (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1))).base.blocks := by
   apply walkRun_reflected_voter_block (hroots := hroots)
@@ -1386,7 +1398,7 @@ theorem fgsa_ghost_transfer_sfx_on_run
     (hgeom : WalkRunGeometry p
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     Block.Preceq N.erase.parent (headVote p dst s) := by
   intro dst
@@ -1394,8 +1406,8 @@ theorem fgsa_ghost_transfer_sfx_on_run
   have hmem := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
-  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2
-  have pools := fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have pools := fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2.2
   have hsInv : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have htInv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
   have hsrcslot : src.slot p = s := fgsa_proposal_slot (c := c) _ s

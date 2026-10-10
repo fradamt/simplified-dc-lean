@@ -4726,6 +4726,14 @@
         ),
     },
     'AvailableChainFGSAProofs.Tests.SharedAxioms': {
+        'AvailableChainFGSAProofs.Proofs.Shared.CatchUp': (
+            'AvailableChain.FGSA.Run.fgsa_awakeOn_before_tick_noRestart',
+            'AvailableChain.FGSA.Run.fgsa_catchUp_before_freeze',
+            'AvailableChain.FGSA.Run.fgsa_gate_joined_of_joinedEnv',
+            'AvailableChain.FGSA.Run.fgsa_gate_saved_guarded',
+            'AvailableChain.FGSA.Run.fgsa_joinedNow_noRestart',
+            'AvailableChain.FGSA.Run.fgsa_trigger_nonneg',
+        ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyReads',
@@ -4745,6 +4753,8 @@
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.StoreRun': (
             'AvailableChain.FGSA.Run.fgsa_store_cumulative',
+            'AvailableChain.FGSA.Run.fgsa_store_cumulative_on',
+            'AvailableChain.FGSA.Run.fgsa_store_durable',
         ),
     },
     'AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms': {

@@ -4,8 +4,18 @@ public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope -- shake: keep (#print axioms)
 
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp -- shake: keep (audit)
+
 public section
 
+#print axioms AvailableChain.FGSA.Run.fgsa_trigger_nonneg
+#print axioms AvailableChain.FGSA.Run.fgsa_awakeOn_before_tick_noRestart
+#print axioms AvailableChain.FGSA.Run.fgsa_joinedNow_noRestart
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_saved_guarded
+#print axioms AvailableChain.FGSA.Run.fgsa_store_durable
+#print axioms AvailableChain.FGSA.Run.fgsa_store_cumulative_on
+#print axioms AvailableChain.FGSA.Run.fgsa_catchUp_before_freeze
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_joined_of_joinedEnv
 #print axioms AvailableChain.FGSA.Run.fgsa_store_cumulative
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyReads
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyReads_def

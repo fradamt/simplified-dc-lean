@@ -3,6 +3,7 @@ public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSA.Proofs.NamedReachable
 public import AvailableChainFGSAClaims.Statements.Counts
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 
 public section
 
@@ -11,7 +12,7 @@ namespace AvailableChain.FGSA.Run
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Plan A2: a scheduled awake positive-slot proposer emits an actual
+ROOT-DIGEST W2b. Plan A2: a scheduled joined positive-slot proposer emits an actual
 proposal. The block includes the application value and keeps slot s. -/
 theorem fgsa_proposal_emission_exists_of_awake_slot (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (hs : V2.D.ScheduleWellFormed E rho)
@@ -19,6 +20,9 @@ theorem fgsa_proposal_emission_exists_of_awake_slot (E : Generic.Env V)
     (hh : Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s)
     (ha : E.awake (V2.D.proposerOf rho (fgsaInterface p c) s)
       (V2.D.proposalTime (fgsaInterface p c) s) = true)
+    (hJ : ∀ w, 0 ≤ w → w ≤ V2.D.proposalTime (fgsaInterface p c) s →
+      V2.Event.restart (V2.D.proposerOf rho (fgsaInterface p c) s) w ∈ rho.events →
+      w ≤ 4 * p.Δ * ((s : Int) - 1))
     (hhor : V2.D.proposalTime (fgsaInterface p c) s ≤ rho.horizon) :
     ∃ o B, V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
       (V2.D.proposalTime (fgsaInterface p c) s) ∧
@@ -30,6 +34,7 @@ theorem fgsa_proposal_emission_exists_of_awake_slot (E : Generic.Env V)
     push_cast
     ring
   obtain ⟨i, hi, _⟩ := fgsa_tick_total E rho hs hΔ v hh.2 (4 * s) (he ▸ hhor)
+    (by simpa only [he] using ha)
   rw [he] at hi
   let st := FGSA.clock p (V2.D.Run.stateBefore E rho i v).st t
   let raw := proposerVotes st s
@@ -44,10 +49,17 @@ theorem fgsa_proposal_emission_exists_of_awake_slot (E : Generic.Env V)
   let o : Obj p := ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, m⟩
   have hm : o ∈ (V2.D.tick E rho (V2.D.Run.stateBefore E rho i v) v t).2 := by
     apply (fgsa_emits_proposal E rho _ v t s m).mpr
-    refine ⟨ha, rfl, rfl, ?_⟩
-    delta propose
-    simp only [Nat.ne_of_gt hh.1, ↓reduceIte, hP, Option.map_some]
-    rfl
+    refine ⟨ha, rfl, rfl, ?_, ?_⟩
+    · apply fgsa_joinedNow_of_joinedEnv E rho hs hi
+      intro w hw ht hr
+      have hslot : p.slotOf t = s :=
+        (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i v) _).2.symm.trans
+          (fgsa_proposal_slot (c := c) (V2.D.Run.stateBefore E rho i v) s)
+      rw [hslot]
+      exact hJ w hw ht hr
+    · delta propose
+      simp only [Nat.ne_of_gt hh.1, ↓reduceIte, hP, Option.map_some]
+      rfl
   refine ⟨o, N.erase, ⟨i, hi, ?_⟩, rfl, rfl⟩
   rw [(V2.D.Run.step_tick_eq E rho hi).2]
   exact hm
@@ -60,10 +72,13 @@ theorem fgsa_honestProposal_exists_of_awake_slot (E : Generic.Env V)
     (hh : Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s)
     (ha : E.awake (V2.D.proposerOf rho (fgsaInterface p c) s)
       (V2.D.proposalTime (fgsaInterface p c) s) = true)
+    (hJ : ∀ w, 0 ≤ w → w ≤ V2.D.proposalTime (fgsaInterface p c) s →
+      V2.Event.restart (V2.D.proposerOf rho (fgsaInterface p c) s) w ∈ rho.events →
+      w ≤ 4 * p.Δ * ((s : Int) - 1))
     (hhor : V2.D.proposalTime (fgsaInterface p c) s ≤ rho.horizon) :
     ∃ B, HonestProposal E rho (fgsaInterface p c) s B ∧ B.slot = s := by
   obtain ⟨o, B, ho, hb, hslot⟩ :=
-    fgsa_proposal_emission_exists_of_awake_slot E rho hs hΔ hh ha hhor
+    fgsa_proposal_emission_exists_of_awake_slot E rho hs hΔ hh ha hJ hhor
   exact ⟨B, ⟨hh, o, ho, hb⟩, hslot⟩
 
 end AvailableChain.FGSA.Run

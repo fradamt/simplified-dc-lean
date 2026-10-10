@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSARun.Proofs.Receipts
 
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -119,7 +121,7 @@ theorem fgsa_gateReceipt_block_stamp_lt
     contradiction
   | some row =>
     change row.2 < t
-    rcases fgsa_block_stamp_source E rho j x row.1 row.2 (List.mem_of_find?_eq_some he) with
+    rcases fgsa_block_stamp_source E rho hN j x row.1 row.2 (List.mem_of_find?_eq_some he) with
       hg | ⟨l, hl, _, _, _, _, hs⟩
     · rw [hg.2]
       exact ht
@@ -128,7 +130,8 @@ theorem fgsa_gateReceipt_block_stamp_lt
         (Nat.le_of_lt hl) x
       rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l x),
         fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hb
-      exact hb.trans_lt (fgsa_preTick_now_lt E rho hsch hj ht)
+      exact hb.trans_lt (fgsa_preTick_now_lt E rho hsch hj ht
+        (fun j w _ he => False.elim (hN j _ w he)))
 
 private theorem gateReceipt_floor_mono
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hN : V2.D.NoRestart rho)
@@ -181,7 +184,7 @@ theorem fgsa_gateReceipt_block_to_tick
     {j : Nat} {x : V} {u : Time} (hx : x ∈ rho.honest)
     (hj : rho.events[j]? = some (.tick x u)) (hd : dl t ≤ u)
     (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) K)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     K ∈ (storeAt p c E rho j x).base.blocks := by
   have hsch := hE.toScheduleWellFormed
   have hidx := gateReceipt_idx_mono rho hd
@@ -197,6 +200,9 @@ theorem fgsa_gateReceipt_block_to_tick
   obtain ⟨s, N, rfl, heN⟩ := gateReceipt_block_decode ho
   obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut
     s N t x hD hT hx hc hlt (by simpa only [heN] using hcompat)
+    (hd.trans (hE.in_horizon _ (List.mem_of_getElem? hj)).2)
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hj hx
+      (fgsa_trigger_nonneg E rho hsch hT) hd)
   have hkeep := (fgsa_store_cumulative p c E rho hN hidx x).1
   change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl t)) x).st.fg.TF ⊆
     (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho u) x).st.fg.TF at hkeep
@@ -222,7 +228,7 @@ theorem fgsa_gateReceipt
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
     (hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true →
       ∃ K t,
@@ -266,11 +272,17 @@ theorem fgsa_gateReceipt
     ring
   rw [Gen.V2.Duty.LabelSyncOn_def] at hSync
   obtain ⟨dl, cut, hD, _, hlt, hbound, _, hcut, hhorizon⟩ := hSync
+  have hxearly : E.awake x (SA.earlyTime p.toParams s) = true := by
+    exact fgsa_awake_before_noRestart E rho hE hN x hx (SA.gateTime p.toParams s)
+      (hsch.in_horizon _ (List.mem_of_getElem? ht)).2
+      (hE.tick_awake x _ (List.mem_of_getElem? ht)) _
+      (by change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ; positivity) hearly.le
   obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hsch hDelta y hy (4 * s + 1)
     (hvt ▸ (hvote.le.trans (hearly.le.trans hhorizon)))
+    (by simpa only [hvt] using hawake)
   rw [hvt] at hk
   obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hsch hDelta x hx (4 * s + 2)
-    (het ▸ (hearly.le.trans hhorizon))
+    (het ▸ (hearly.le.trans hhorizon)) (by simpa only [het] using hxearly)
   rw [het] at hj
   have hji := (V2.D.Engine.eventIndex_lt_of_time_lt hsch hj ht hearly).le
   let K := headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y)
@@ -284,12 +296,14 @@ theorem fgsa_gateReceipt
       (SA.voteTime p.toParams s) := by
     refine ⟨k, hk, ?_⟩
     rw [(V2.D.Run.step_tick_eq E rho hk).2]
-    exact (fgsa_emits_head E rho _ y _ s q K.root).mpr ⟨hawake, rfl, rfl, rfl⟩
+    exact (fgsa_emits_head E rho _ y _ s q K.root).mpr
+      ⟨hawake, rfl, rfl, fgsa_joinedNow_noRestart E rho hsch hN hk, rfl⟩
   have hTarget : HeadTargetAtEmission p c E rho y
       (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K := by
     refine ⟨k, s, q, hk, ?_, rfl, rfl⟩
     rw [(V2.D.Run.step_tick_eq E rho hk).2]
-    exact (fgsa_emits_head E rho _ y _ s q K.root).mpr ⟨hawake, rfl, rfl, rfl⟩
+    exact (fgsa_emits_head E rho _ y _ s q K.root).mpr
+      ⟨hawake, rfl, rfl, fgsa_joinedNow_noRestart E rho hsch hN hk, rfl⟩
   have hF := hgeom.target_floor q hy hawake K hTarget
   have hFpre : Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) K := by
     simpa only [clockPre_fg] using hF
@@ -314,7 +328,7 @@ theorem fgsa_gateReceipt
       obtain ⟨⟨b, stamp⟩, hm, he⟩ := List.mem_map.mp hm
       dsimp only at he
       subst b
-      rcases fgsa_block_stamp_source E rho _ y K stamp hm with hgen |
+      rcases fgsa_block_stamp_source E rho hN _ y K stamp hm with hgen |
         ⟨l, hl, t, o, ho, ha, _⟩
       · exact (hg hgen.1).elim
       · obtain ⟨parent, hdel, _⟩ := ha.1
@@ -334,8 +348,8 @@ theorem fgsa_gateReceipt
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch,
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch,
       ← fgsa_preTick_eq_timeRead E rho hsch hN hj] at hn
-    have hb := stateBefore_now_le_event_retained (fgsaClock p c)
-      (fgsa_hrestore_now_retained p c)
+    have hb := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
       E rho hsch hj x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hb
     exact ((Internal.slotOf_mono (p := p) (hn.trans hb)).trans_eq
@@ -343,6 +357,9 @@ theorem fgsa_gateReceipt
   have hr := fgsa_honest_head_receipt E rho hDelta hE hN hC dl cut s q K.root
     (SA.voteTime p.toParams s) y x hD hy hem hx (hdl.trans (hearly.le.trans hcut))
     (hlt _) hwindow
+    (hdl.trans (hsch.in_horizon _ (List.mem_of_getElem? hj)).2)
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hj hx
+      (by change 0 ≤ 4 * p.Δ * (s : Int) + p.Δ; positivity) hdl)
   have hid : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams s)) ≤ j := by
     by_contra hn
     exact (not_lt.mpr hdl)
@@ -361,8 +378,8 @@ theorem fgsa_gateReceipt
       Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFpre⟩
   have hslot : K.slot ≤ s := by
     have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
-    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
-      (fgsa_hrestore_now_retained p c)
+    have hn := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
       E rho hsch hk y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq

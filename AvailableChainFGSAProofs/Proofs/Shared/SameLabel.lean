@@ -3,6 +3,8 @@ public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSAClaims.Statements.Reads
 
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -188,6 +190,8 @@ private theorem sl_gate_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 private theorem sl_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hEpoch : ∀ j w, j < i → rho.events[j]? = some (.restart x w) →
+      w < SA.gateTime p.toParams s)
     (o : GridCO.Wire p.n .root) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
     (hl : GridCO.headLabel? o = some s) :
     o ∈ GridCO.lateVotes p.toParams.engine
@@ -203,7 +207,7 @@ private theorem sl_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       change 0 < 4 * p.Δ * (s : Int) + 6 * p.Δ
       have hd := p.deltaPos
       positivity
-    have hn := fgsa_preTick_now_lt E rho hS hi hpos
+    have hn := fgsa_preTick_now_lt E rho hS hi hpos hEpoch
     have hb := (fgsa_stateBefore_bounds E rho hS i x).2
     unfold GridCO.stampVote
     cases hf : (V2.D.Run.stateBefore E rho i x).st.base.voteStamp.find?
@@ -225,8 +229,8 @@ private theorem sl_read_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho d hS,
     Gen.V2.Duty.stateBefore_idxBefore E rho _ hS,
     ← fgsa_preTick_eq_timeRead E rho hS hN hi] at hm
-  have hb := stateBefore_now_le_event_retained (fgsaClock p c)
-    (fgsa_hrestore_now_retained p c)
+  have hb := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
     E rho hS hi x
   rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho i x)] at hb
   have hs := Internal.slotOf_mono (p := p) (hm.trans hb)
@@ -269,7 +273,7 @@ private theorem sl_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
     have hd := p.deltaPos
     positivity
-  obtain ⟨j, _, t, ha, ht⟩ := fgsa_vote_accepted_before E rho hE.toScheduleWellFormed hN
+  obtain ⟨j, _, t, ha, ht⟩ := fgsa_vote_accepted_before E rho hE hN
     ix x s k B _ hpub hz hmem ht
   obtain ⟨dl, cut, hD, _, hlt, hb, _, hcut, _⟩ := hSync
   have hd : dl t ≤ SA.gateTime p.toParams s := by
@@ -282,9 +286,15 @@ private theorem sl_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     have hh : max t (4 * p.Δ * (s : Int) + p.Δ) ≤
         4 * p.Δ * (s : Int) + 2 * p.Δ := max_le (le_of_lt ht) (by linarith)
     linarith
+  have hT : Gen.V2.Duty.Trigger E rho
+      (ofHead p ⟨.seat (.head s) k, B⟩) t :=
+    Or.inr ⟨x, hx, j, ha⟩
   have hr := fgsa_head_receipt E rho hDelta hE hN dl cut s k B t y hD
-    (Or.inr ⟨x, hx, j, ha⟩) hy (hd.trans hcut) (hlt t)
+    hT hy (hd.trans hcut) (hlt t)
     (sl_read_window E rho hE.toScheduleWellFormed hN hiy (dl t) hd)
+    (hd.trans (hE.in_horizon _ (List.mem_of_getElem? hiy)).2)
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hiy hy
+      (fgsa_trigger_nonneg E rho hE.toScheduleWellFormed hT) hd)
   have hkeep : (V2.D.Run.stateBeforeTime E rho (dl t) y).st.base.votes ⊆
       (V2.D.Run.stateBefore E rho iy y).st.base.votes := by
     rw [fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hiy,
@@ -292,10 +302,13 @@ private theorem sl_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
     exact sl_votes_mono E rho hN y (sl_idx_mono rho hd)
   rcases hr with hr | ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, _, _⟩
-  · exact Or.inl (sl_gate_late E rho hE.toScheduleWellFormed hiy _ (hkeep hr.1) rfl)
+  · exact Or.inl (sl_gate_late E rho hE.toScheduleWellFormed hiy
+        (fun j w _ he => False.elim (hN j _ w he)) _ (hkeep hr.1) rfl)
   · exact Or.inr ((cap_pair _ k).mpr ⟨u,
-      sl_gate_late E rho hE.toScheduleWellFormed hiy u (hkeep hu) hlu, v,
-      sl_gate_late E rho hE.toScheduleWellFormed hiy v (hkeep hv) hlv, hne, hku, hkv⟩)
+      sl_gate_late E rho hE.toScheduleWellFormed hiy
+        (fun j w _ he => False.elim (hN j _ w he)) u (hkeep hu) hlu, v,
+      sl_gate_late E rho hE.toScheduleWellFormed hiy
+        (fun j w _ he => False.elim (hN j _ w he)) v (hkeep hv) hlv, hne, hku, hkv⟩)
 
 private theorem sl_gate_input (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (x : V) (s : Slot) (B : Block) (h : gateResult p c E rho x s = some (some B)) :

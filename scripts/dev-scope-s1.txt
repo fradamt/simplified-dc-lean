@@ -266,6 +266,7 @@ AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 AvailableChainFGSAProofs.Proofs.Shared.ScoreRun
 AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery
 AvailableChainFGSAProofs.Proofs.Shared.StoreRun
+AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 AvailableChainFGSAProofs.Tests.SharedAxioms
 AvailableChainFGSARun
