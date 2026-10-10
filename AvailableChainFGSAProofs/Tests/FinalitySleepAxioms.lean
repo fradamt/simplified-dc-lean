@@ -5,6 +5,8 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Accept
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
+public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
+public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt
 
 #print axioms AvailableChain.FGSA.Run.finality_restore_preceq_F
 #print axioms AvailableChain.FGSA.Run.finality_acceptsFinalBefore_of_idx
@@ -29,3 +31,18 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Rows
 #print axioms AvailableChain.FGSA.Run.kmid_head_held_from
 #print axioms AvailableChain.FGSA.Run.kmid_window_proposal
 #print axioms AvailableChain.FGSA.Run.finality_action_source
+#print axioms AvailableChain.FGSA.Run.receipt_kernel_fields
+#print axioms AvailableChain.FGSA.Run.receipt_finalized_of_carriage
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp_of_block
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp
+#print axioms AvailableChain.FGSA.Run.receipt_cap
+#print axioms AvailableChain.FGSA.Run.receipt_receiver_finalityLag
+#print axioms AvailableChain.FGSA.Run.receipt_jPath_of_cached_anchor
+#print axioms AvailableChain.FGSA.Run.receipt_ready_of_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_jPath
+#print axioms AvailableChain.FGSA.Run.receipt_acceptPrem_W
+#print axioms AvailableChain.FGSA.Run.ktail_acceptPrem_W
+#print axioms AvailableChain.FGSA.Run.ktail_jPath
+#print axioms AvailableChain.FGSA.Run.ktail_hj_floor
+#print axioms AvailableChain.FGSA.Run.ktail_acceptPrem_two_W

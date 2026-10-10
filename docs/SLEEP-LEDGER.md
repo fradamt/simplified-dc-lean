@@ -2204,3 +2204,42 @@ strict checks with only propext, Classical.choice, and Quot.sound.
 Serial audit fragment: claude-files/sleep-pfi-audit-fragment.txt. Add production
 commands to the existing Proofs.Tests.Axioms key at integration; keep fixture
 checks in their own module. Do not create an S1 key or import a test into a test.
+
+
+## P-Fi final prepared handoff — receipt core
+
+P-Fi remains PREPARED, not CLOSED. The final map has 43 TARGETS, 482 GREEN,
+and 29 EXPECTED-FAIL modules: 23 P-Fi, 3 P-ShA, 3 S-Ap. All remaining P-Fi
+import closures reach Shared/HeadAdmit or Shared/Regimes. No supplier file was
+changed. The new current-scope caller obligations remain P-Fi-owned.
+
+Final DCK PASS with --wfail, 39 strict audit sources, 2,866 commands, and
+24 default controls (747.67 s, including global throttle waits). Complete
+compiled exports: 152 proof modules, 251 exports, 0 unaccepted; 56 complete
+coverage commands (63.68 s). Layers: 72 accepted, 0 new (0.50 s).
+Receipt and TailReceipt build with --wfail (16.39 s). Default resource values
+and all allow/baseline entries are unchanged.
+
+Receipt/receipt_ready_of_delivery uses delivery_now_ge_public_atRestart and
+the exported clock equation. It proves admission from the checked delivery,
+public action time, dependency, freshness, parent, row, and finality facts.
+No handler event is treated as acceptance by itself, and no public-wake
+premise or global NoRestart is added.
+
+Receipt/receipt_delivery consumes P23-A: the processed-root alternative gives
+NamedProposalInRun through emitted_proposal_history_in_scope and the receipt
+idealization. Scoped fresh emission excludes prior processing at the action
+cut, so the demand supplies an actual handler strictly before the deadline.
+The receiver's named awake suffix supplies its link window. Both F comparisons
+use durable restore preservation. All receipt conclusion types are unchanged.
+Consumers: receipt_acceptPrem_W and TailReceipt's four compiled suppliers.
+The inherited receipt_stored_block already consumes the retained-content
+stored_proposal_delivered interface; its durable historical origin was kept.
+
+The lead receives 17 new production audit inventory entries in
+claude-files/sleep-pfi-audit-fragment.txt for the existing Proofs.Tests.Axioms
+key. Fixture checks stay in their own test file and package targets. No new
+S1 key or test-to-test import is needed. Final report and declaration census:
+claude-files/sleep-pfi-report.md; claude-files/sleep-pfi-declarations.txt.
+No new public-meaning STOP was established. The Base₂-only TVote STOP and
+exact current-receipt replacement remain recorded in the preceding P-Fi block.
