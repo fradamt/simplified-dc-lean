@@ -18,30 +18,38 @@ Nonempty and continuation refer to actual ticks, including at the cut. -/
 def CleanHistoryAt (b₀ : Time) : Prop :=
   (∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams r ≤ b₀ → SA.gateTime p.toParams s ≤ b₀ →
+    confirmedReader p c E rho x (SA.gateTime p.toParams r) →
+    confirmedReader p c E rho y (SA.gateTime p.toParams s) →
     gateResult p c E rho x r = some (some B) →
     gateResult p c E rho y s = some (some C) →
     (r < s → Block.Preceq B C) ∧ (r = s → Block.Compatible B C)) ∧
-  (∀ j x s, j < timeIdx rho b₀ → x ∈ rho.honest → IsGateTick p c rho j x s →
+  (∀ j x s, j < timeIdx rho b₀ → x ∈ rho.honest →
+    enabledGateAt p c E rho j x s →
     ∃ B, gateResultAt p c E rho j = some (some B) ∧ (s = 0 → B = .genesis)) ∧
   (∀ x y s B H, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams s ≤ b₀ → gateResult p c E rho x s = some (some B) →
+    joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
     vHead p c E rho y s = some H → Block.Preceq B H) ∧
   (∀ i v, i ≤ timeIdx rho b₀ → v ∈ rho.honest →
     let st := storeAt p c E rho i v
     let below := BelowLabel p c E rho i (labelBoundAt p c rho i)
     below (F_at p c E rho i v) ∧ below (J_at p c E rho i v) ∧ below (S_at p c E rho i v) ∧
     (∀ row ∈ st.base.obligations, below row.1 ∧
-      ∃ j < i, ∃ s B, IsGateTick p c rho j v s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, ∃ s B, enabledGateAt p c E rho j v s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B) ∧
     (∀ s C, GridCO.savedGenuine st.base s = some (some C) → below C ∧
-      ∃ j < i, IsGateTick p c rho j v s ∧ gateResultAt p c E rho j = some (some C)) ∧
-    (∀ j s C, j < i → IsGateTick p c rho j v s →
+      ∃ j < i, V2.D.restartFree rho v j i ∧
+        enabledGateAt p c E rho j v s ∧ gateResultAt p c E rho j = some (some C)) ∧
+    (∀ j s C, j < i → enabledGateAt p c E rho j v s →
+      V2.D.restartFree rho v j i →
+      FGSA.activeCompatible st C = true →
       gateResultAt p c E rho j = some (some C) → GridCO.savedGenuine st.base s = some (some C)) ∧
     (∀ s X, X ∈ (FGSA.fastWriteAt st s).getD [] → below X ∧
-      ∃ j < i, IsGateTick p c rho j v s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho v j i ∧ enabledGateAt p c E rho j v s
+        ∧ gatePassedAt p c E rho j ∧
         ∃ C, gateResultAt p c E rho j = some (some C) ∧ Block.Preceq X C ∧ fastAt p c E rho v s X) ∧
     (S_at p c E rho i v = .genesis ∨
-      (∃ j < i, ∃ s, IsGateTick p c rho j v s ∧
+      (∃ j < i, ∃ s, enabledGateAt p c E rho j v s ∧
         gateResultAt p c E rho j = some (some (S_at p c E rho i v))) ∨
       (∃ j ≤ i, S_at p c E rho i v = F_at p c E rho j v))) ∧
   (∀ i j x r C, i ≤ timeIdx rho b₀ → j < i → x ∈ rho.honest →
@@ -62,19 +70,23 @@ def CleanHistoryAt (b₀ : Time) : Prop :=
 F3 (03 §6 origin argument). Producer: F2.7. -/
 def CleanGateAt (b₀ : Time) : Prop :=
   ∀ l x, SA.gateTime p.toParams l ≤ b₀ → x ∈ rho.honest →
+    confirmedReaderAtIdx p c E rho x
+      (afterTicksIdx rho (SA.gateTime p.toParams l)) (SA.gateTime p.toParams l) →
     ∃ B, gateResult p c E rho x l = some (some B) ∧
-      (∃ j, IsGateTick p c rho j x l ∧ gatePassedAt p c E rho j) ∧
+      (∃ j, enabledGateAt p c E rho j x l ∧ gatePassedAt p c E rho j) ∧
       Block.Preceq B (S_at p c E rho (afterTicksIdx rho (SA.gateTime p.toParams l)) x) ∧
       ∀ l' < l, ∀ B', gateResult p c E rho x l' = some (some B') → Block.Preceq B' B
 
 /-- bp.cleanPrefixTruncation.v1 (00:795–802). All event states at the
 inclusive cut and all public reads in [0,b₀] have the Clean properties. -/
 def CleanTruncAt (b₀ : Time) : Prop :=
-  CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧
-  MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧
+  ScopedCompat (confirmedReaderIdx p c E rho) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧
+  ScopedMono (confirmedReaderIdx p c E rho) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧
   (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀) ∧
-    MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀)) ∧
+    ScopedCompat (confirmedReader p c E rho) (fun t x => V2.D.outputAt E rho g x t)
+      (fun t => 0 ≤ t ∧ t ≤ b₀) ∧
+    ScopedMono (confirmedReader p c E rho) (fun t x => V2.D.outputAt E rho g x t)
+      (fun t => 0 ≤ t ∧ t ≤ b₀)) ∧
   CleanHistoryAt p c E rho b₀ ∧
   (∀ i v, i ≤ timeIdx rho b₀ → v ∈ rho.honest →
     let st := storeAt p c E rho i v
@@ -90,11 +102,12 @@ def CleanTruncAt (b₀ : Time) : Prop :=
 
 /-- FS20 named conclusion of bp.cleanSafety.v1, using the Gen property kernel. -/
 def CleanSafetyAt : Prop :=
-  CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) ∧
-  MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) ∧
+  ScopedCompat (confirmedReaderIdx p c E rho) (S_at p c E rho) (· ≤ rho.events.length) ∧
+  ScopedMono (confirmedReaderIdx p c E rho) (S_at p c E rho) (· ≤ rho.events.length) ∧
   (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) ∧
-    MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True))
+    ScopedCompat (confirmedReader p c E rho) (fun t x => V2.D.outputAt E rho g x t)
+      (fun _ => True) ∧
+    ScopedMono (confirmedReader p c E rho) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True))
 
 /-- Blueprint cut form. Assembly of its two lanes is deferred.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
