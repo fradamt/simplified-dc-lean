@@ -6223,3 +6223,63 @@ Tests/OutageServices consumes this regime-only producer. The P-Ar prefix
 request is discharged. Its earlyTime q <= b₀ guard is kept by the producer.
 Public claims and protocol declarations are unchanged. No new receipt input.
 Headers PASS with zero failures. Evidence: .lake/sleep-pou-r8/prefix-build.log.
+
+### P-Ou Round 8 — scoped inclusion producers and restored counts
+
+The complete InclusionReceiverInputs producer is ReceiverInputs:982/:1059.
+Early service requires the vote-time GST cut, an actual early tick, and
+F_receiver <= K. Retained service requires the prior-label GST cut and the
+actual proposal floor. Score service is produced for every selected floor D.
+ExactProposalRetained:325 separates the cone proof from proposal service;
+:820 proves the receiver floor before that service is requested.
+
+The old relay field requested global receipt service for local pool entries.
+A late local receipt does not imply a cross-node Delta deadline. Run sketch:
+Delta=2, r=1, GST=0; joined y receives a faulty label-1 HEAD at time 17,
+just before v(2)=18. No honest node processed it earlier. A joined peer
+receives it at 19. Both receipts meet the model's Delta bound from the first
+honest acceptance. The local HEAD pool can contain it at 18. The old record
+still requests a cross-node service before 18. The new local provenance proof
+uses the actual joined HEAD tick and its epoch. This is an internal scope
+repair under SCOPE-NARROW rules 1 and 5. No public statement changes or STOP.
+
+RelayKernel and InclusionServices port the needed merged P-WC proof kernels
+inside the Outage lane. Direct cross-family imports fail the layer check.
+No Shared or P-WC source was edited and no layer exception was added.
+InclusionGateService produces gate scope from the actual enabled gate and
+proved target floors. InclusionGateBody:16 derives the enabled gate from
+the caught-up post-tick reader. The hInputs and hScopes export callbacks
+are removed. The three changed Clean exporters pass an isolated exact compile.
+The complete Outage exporter remains EXPECTED-FAIL on its older closure inputs.
+
+ReceiverInputs:837 supplies the healthy result route with the faulty set only.
+:1064 produces counts beyond E from joinedPartAfter. :1078 identifies the
+canonical first restored label. :1097 covers every enabled gate after r:
+E's A union W count inside its window; the healthy joined count after handover.
+Its scoped actual HEAD history is still an OPEN P-Ou invariant input.
+This conditional theorem is not an unconditional global hResults producer.
+Later good HEAD compatibility and conditional hTargets remain OPEN.
+
+### P-Ou Round 8 — P-Cl2 growth handoff
+
+GrowthSuppliers:15 produces the gate witness, O-GROWTH-COMPAT and
+O-GROWTH-INCLUSION from the closed Clean and Foundation field interfaces.
+It constructs all receiver services and gate services itself. No hInputs
+or hScopes callback remains. Tests/OutageGrowthSuppliers supplies every
+field from the actual P-Cl2 and P-Fd producers and compiles the exact
+unfolded P20 consumer with no compatibility or inclusion assumption.
+P-As must apply the checked composition in its assembly file; it was not edited.
+The public CleanGrowthClaim predicate and its deadline are unchanged.
+Public assembly closure is not claimed from the independent test.
+
+Proof group: 9fdada2a. Partition: 51 targets, 511 GREEN,
+seven P-Ou and two S-Ap EXPECTED-FAIL. P-Ou remains PREPARED, not CLOSED.
+DCK PASS: 43 strict sources, 3,221 results, all 24 controls PASS.
+Complete GREEN exports: 331 proof modules, 253 exports, zero unaccepted.
+Local coverage: 257 commands; its control PASS; zero unaccepted.
+Production-only serial fragment: 231 strict results.
+Layers: 72 inherited findings, zero new. Headers PASS: zero failures.
+Only propext, Classical.choice and Quot.sound occur in the strict audits.
+Evidence: .lake/sleep-pou-r8/. Handoff: P-Ou.round8-handoff.md.
+The full continuation induction, handover closure, Close and both complete
+exporters remain owned work. No future invariant is declared proved.
