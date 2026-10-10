@@ -14,6 +14,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
 
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
 public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 
 public section
@@ -686,3 +687,131 @@ end AvailableChain.FGSA.Run.Tests.OutageArming
 #print axioms AvailableChain.FGSA.Run.arming_lift
 
 #print axioms AvailableChain.FGSA.Run.ArmingBatchReceiptService
+
+namespace AvailableChain.FGSA.Run.Tests.OutageArming
+
+open AvailableChain.SimplexFG
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+/-- The general slow producer consumes the actual Clean induction and saved-row theorem. -/
+theorem slow_certificate_consumer [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c false E rho T b₀ b₁ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho) {x : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
+    (hne : B ≠ .genesis)
+    {y : V} (hyG : y ∈ coveredNodes p E rho false b₀) :
+    ∃ D Dh, ArmingSleepCert p c E rho false T b₀ B
+      (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat) D Dh := by
+  have hh := clean_invariant p c E rho h.sleepPre hq hf hsrc (timeIdx rho b₀) le_rfl
+  have hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i := by
+    intro i hi
+    exact cleanState_of_hist h.sleepPre hq hf hsrc (clean_actionStep p c E rho) hi
+      (clean_invariant p c E rho h.sleepPre hq hf hsrc i hi)
+  have htransfer := (cleanHistoryAt_body p c E rho h.sleepPre hq hf hsrc).2.2.1
+  exact slow_arming_on h hf hsrc htsrc hState hh
+    (fun y z s C H hy hz hJ hcut hRes hHead => htransfer y z s C H hy hz hcut hRes hJ hHead)
+    (clean_epoch_saved_row h.sleepPre hq hf hsrc) hread hne hyG
+
+/-- Strict-before-cut participation supplies the fast producer's actual last result. -/
+theorem fast_certificate_consumer [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c true E rho T b₀ b₁ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho) {x : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
+    (hne : B ≠ .genesis)
+    (hStrict : SA.gateTime p.toParams (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat) < b₀) :
+    ∃ D Dh, ArmingSleepCert p c E rho true T b₀ B
+      (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat) D Dh := by
+  have hh := clean_invariant p c E rho h.sleepPre hq hf hsrc (timeIdx rho b₀) le_rfl
+  have hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i := by
+    intro i hi
+    exact cleanState_of_hist h.sleepPre hq hf hsrc (clean_actionStep p c E rho) hi
+      (clean_invariant p c E rho h.sleepPre hq hf hsrc i hi)
+  have htransfer := (cleanHistoryAt_body p c E rho h.sleepPre hq hf hsrc).2.2.1
+  let l := ((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat
+  obtain ⟨z, j, _, hG, _⟩ := clean_joined_gate_witness h.sleepPre l hStrict
+  have hji := arming_lt_of_tick h.pre.base.valid.toScheduleWellFormed hG.1 hStrict.le
+  obtain ⟨C, hC, _⟩ := hh.nonempty j z l hji hG
+  exact fast_arming_on h hf hsrc htsrc hState hh
+    (fun y z s C H hy hz hJ hcut hRes hHead => htransfer y z s C H hy hz hcut hRes hJ hHead)
+    hread hne
+    ⟨C, j, hji, z, hG.1, hG.2, hC⟩
+
+end AvailableChain.FGSA.Run.Tests.OutageArming
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.slow_certificate_consumer
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.fast_certificate_consumer
+
+#print axioms AvailableChain.FGSA.Run.ArmingGateInput
+
+#print axioms AvailableChain.FGSA.Run.arming_joined_batch_at
+
+#print axioms AvailableChain.FGSA.Run.arming_sleep_pending_input
+
+#print axioms AvailableChain.FGSA.Run.arming_comparison_prefix_on
+
+#print axioms AvailableChain.FGSA.Run.ArmingSleepCert
+
+#print axioms AvailableChain.FGSA.Run.arming_last_max_on
+
+#print axioms AvailableChain.FGSA.Run.arming_joined_head_card
+
+#print axioms AvailableChain.FGSA.Run.arming_sleep_entry_below
+
+#print axioms AvailableChain.FGSA.Run.arming_pending_epochs
+
+#print axioms AvailableChain.FGSA.Run.arming_sleep_comparison_lift
+
+#print axioms AvailableChain.FGSA.Run.arming_sleep_cert_of_last
+
+#print axioms AvailableChain.FGSA.Run.arming_sleep_gate_core
+
+#print axioms AvailableChain.FGSA.Run.pending_gate_lease_or_F_on
+
+#print axioms AvailableChain.FGSA.Run.fast_arming_on
+
+#print axioms AvailableChain.FGSA.Run.slow_arming_on
+
+namespace AvailableChain.FGSA.Run.Tests.OutageArming
+
+open AvailableChain.SimplexFG
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+/-- The actual slow certificate feeds the executed gate and the scoped frame consumer. -/
+theorem slow_gate_consumer [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c false E rho T b₀ b₁ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho) {x : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
+    (hne : B ≠ .genesis) {y : V} (hyG : y ∈ coveredNodes p E rho false b₀)
+    (hgate : SA.gateTime p.toParams (coverLabel p b₀) ≤ rho.horizon)
+    (hRows : ∀ z r (a : RowWire p.n) (e Bh : FGBlock (Fin p.n)), eraseFG Bh = B →
+      HonestRowBefore p c E rho (afterTicksIdx rho (SA.gateTime p.toParams
+        (coverLabel p b₀))) z r a →
+      namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+      RootBlockInRun p c E rho (eraseFG e) → FGBlock.Preceq e Bh ∨ FGBlock.Preceq Bh e) :
+    let j := coverLabel p b₀
+    let I := afterTicksIdx rho (SA.gateTime p.toParams j)
+    let st := storeAt p c E rho I y
+    Block.Preceq B (S_at p c E rho I y) ∧
+    (Block.Preceq B (F_at p c E rho I y) ∨
+      (Block.Preceq (F_at p c E rho I y) B ∧ F_at p c E rho I y ≠ B ∧
+        ∃ dl, FGSA.leaseOf st B = some dl ∧ SA.gateTime p.toParams j < dl ∧
+          SA.gateTime p.toParams j + L p ≤ dl ∧
+          ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
+            Block.Preceq B (eraseFG (FGSA.controls p st).Z)))) := by
+  obtain ⟨D, Dh, hc⟩ := slow_certificate_consumer h hq hf hsrc htsrc hread hne hyG
+  exact pending_gate_lease_or_F_on h.pre.base.valid h.pre.base.delta hf hne hc
+    hgate hRows y hyG
+
+end AvailableChain.FGSA.Run.Tests.OutageArming
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.slow_gate_consumer
+#print axioms AvailableChain.FGSA.Run.arming_genesis_on

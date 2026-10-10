@@ -1,6 +1,7 @@
-# P-Ar round 3, base sleep-int d60ff01d. P-Cl1 audit completion CLOSED.
+# P-Ar round 4, base sleep-int 36781bff. Scoped gate ports PREPARED; P-Cl1 CLOSED.
 # GREEN and EXPECTED-FAIL cover S1 REQUIRED union TARGETS exactly.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
 AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
 AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
 AvailableChainFGSAProofs.Proofs.Outage.Arming
@@ -20,6 +21,7 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingStep
 AvailableChainFGSAProofs.Tests.OutageArming
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
 AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
 AvailableChainFGSAProofs.Proofs.Outage.ArmingMain
 AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
