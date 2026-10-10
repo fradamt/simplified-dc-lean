@@ -14,7 +14,7 @@ def HealingInputOfH0Statement (p : Params) (G ΔF : Time) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-    E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+    recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
     ∀ w, H0 p c E rho w →
       HealingInput p c E rho w ΔF ∧
         tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ
@@ -25,7 +25,7 @@ theorem HealingInputOfH0Statement_def (p : Params) (G ΔF : Time) :
       ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
         (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
         HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-        E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+        recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
         ∀ w, H0 p c E rho w →
           HealingInput p c E rho w ΔF ∧
             tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ) := by
@@ -74,14 +74,12 @@ theorem healing_hTime_of (p : Params) (G ΔF : Time)
     (hReset : ResetArrivalFullStatement p G ΔF)
     (hInput : HealingInputOfH0Statement p G ΔF) : HTimeStatement p G ΔF := by
   intro hClock V _ _ In c E rho hSet hLive hHorizon
-  have hstart := healing_recoveryStart_ge p E
-  have hOldHorizon : E.t_GST + B_HF p ΔF G ≤ rho.horizon := by linarith
-  have hFull := healing_resetFull_horizon p G ΔF E.t_GST rho.horizon hOldHorizon
+  have hFull := healing_resetFull_horizon p G ΔF (recoveryStart p E) rho.horizon hHorizon
   obtain ⟨w, h0, hResetTime⟩ := hReset hClock c E rho hSet hLive hFull
   obtain ⟨hHealing, hTime⟩ := hInput hClock c E rho hSet hLive hFull w h0
   exact ⟨w, hHealing, hTime,
-    (healing_time_strict_of_reset p G ΔF E.t_GST
-      (p.actionTime w.rStar) hResetTime).trans_le (by linarith)⟩
+    (healing_time_strict_of_reset p G ΔF (recoveryStart p E)
+      (p.actionTime w.rStar) hResetTime)⟩
 
 end AvailableChain.FGSA.Run
 end

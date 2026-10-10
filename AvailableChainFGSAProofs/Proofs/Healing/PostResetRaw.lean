@@ -44,25 +44,8 @@ structure RawServiceScope (p : Params) {In V : Type} [DecidableEq V]
     SameLabelServiceScope E rho s
 
 private theorem raw_reset_vote_cutoff {w : HealingWitness} (h0r : H0Reset p c E rho w) :
-    E.t_GST ≤ slotStartZ p ((w.sStar : Int) - 1) := by
-  obtain ⟨j, y, a, C, ha, he, _, _, _⟩ := h0r.fresh
-  have hafter : w.u₀ < p.actionTime w.rStar := by
-    by_contra hn
-    have hc := h0r.rowCap j y w.rStar a (w.M + 1) (heightView p C).T_h.root
-      (p.actionTime w.rStar) ha ha.2.1 (le_of_not_gt hn) he
-    change w.M + 1 ≤ w.M at hc
-    omega
-  have ht : p.actionTime w.rStar = slotStartZ p (w.sStar : Int) + 6 * p.Δ := by
-    rw [h0r.label]
-    rfl
-  have hR : (2 : Int) ≤ p.R := by exact_mod_cast p.RLarge
-  have hgap : 10 * p.Δ ≤ 2 * P p := by
-    change 10 * p.Δ ≤ 2 * (4 * (p.R : Int) * p.Δ)
-    nlinarith [p.deltaPos]
-  rw [ht] at hafter
-  change E.t_GST ≤ 4 * p.Δ * ((w.sStar : Int) - 1)
-  change w.u₀ < 4 * p.Δ * (w.sStar : Int) + 6 * p.Δ at hafter
-  nlinarith [h0r.cut_lower, healing_recoveryStart_ge p E]
+    E.t_GST ≤ slotStartZ p ((w.sStar : Int) - 1) :=
+  healing_ready_vote_cutoff E (healing_reset_source_ready h0r)
 
 private theorem raw_reset_later_cutoff {w : HealingWitness} (h0r : H0Reset p c E rho w)
     {s : Slot} (hs : w.sStar ≤ s) : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by

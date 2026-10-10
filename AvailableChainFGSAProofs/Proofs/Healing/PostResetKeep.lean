@@ -239,7 +239,7 @@ theorem postReset_tDel [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) (source : TSrc p c E rho)
     (hServices : ∀ y r K, y ∈ rho.honest →
       actionSourceFG p c E rho y r = some (some K) →
-      E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
+      recoveryStart p E ≤ SA.voteTime p.toParams (r * p.R) →
       SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
       ∀ x ∈ rho.honest, FGBlock.Preceq
         (rho.stateBeforeTime E (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F K →
@@ -247,19 +247,33 @@ theorem postReset_tDel [Fintype V] {G ΔF : Time}
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
       W ∈ (storeAt p c E rho j z).fg.TF →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x)
+    (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
+      HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
+    (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e.1 = (heightView p C).h ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (h0r : H0Reset p c E rho w)
     {y x : V} {r l : Nat} {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest) (hsrc : actionSourceFG p c E rho y r = some (some K))
     (hK : SourceBefore p c E rho l K (r * p.R)) (hhK : high p w K)
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R))
     (hhor : SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon) (hx : x ∈ rho.honest) :
     Gen.V2.Duty.HoldsBefore E rho (fun nd =>
       (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x := by
+  have hready := healing_high_source_recoveryStart p c E rho
+    emittedNonempty emittedName hK (by
+      have := h0r.mu_le
+      have := hhK
+      change w.M + 1 ≤ (heightView p K).h at this
+      omega)
   have hCompat := postReset_receiver_compatible (hroots := hrec.base.idealization) p c E rho
     mono origin
     lowFinality highCompat resetCompat (j := V2.D.Run.idxBefore rho
       (SA.freezeTime p.toParams (r * p.R))) hx hK hhK
-  have hdel := healing_tDel E rho hrec source mono hServices y r K hy hsrc hgst hhor x hx
+  have hdel := healing_tDel E rho hrec source mono hServices y r K hy hsrc hready hhor x hx
   rw [Gen.V2.Duty.HoldsBefore_def] at hdel ⊢
   apply hdel
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hrec.base.valid.toScheduleWellFormed]
