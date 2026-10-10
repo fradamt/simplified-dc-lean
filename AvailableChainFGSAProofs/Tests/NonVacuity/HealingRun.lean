@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm -- shake: keep (TPerm)
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery -- shake: keep (TPerm)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (RXing)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (RMono)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (writes)
@@ -1343,6 +1343,55 @@ theorem joined_start_body : ∃ B, B ≠ Block.genesis ∧
     · decide +kernel
   exact ⟨B, by decide +kernel, by decide, hbody, nvRecovery⟩
 
+/-- The positive finite execution has both the recovery regime and a real source body. -/
+theorem positive_run : RecoverySleep₂ params unitCodec env run gap deltaF ∧
+    TPerm params unitCodec env run ∧
+    ∃ B, B ≠ Block.genesis ∧ recoveryStart params env ≤
+      SA.voteTime params.toParams 2 ∧ PhaseBody params unitCodec env run 2 B := by
+  obtain ⟨B, hB, hready, hbody, _⟩ := joined_start_body
+  exact ⟨nvRecovery, nvPerm, B, hB, hready, hbody⟩
+
+theorem positive_phase_services {u v : Time} {m : Nat}
+    {J : Option (FGBlock (Fin params.n))} {contested : Bool}
+    (hready : recoveryStart params env ≤ u)
+    (hphase : PhaseInterval params unitCodec env run u v m J contested) :
+    SupportPermanenceServices env run u v m J contested :=
+  healing_support_permanence_recovery env run nvRecovery
+    (fgsa_rMonoAll params unitCodec env run) hready hphase
+
+theorem positive_two_cover {u v : Time} {m : Nat}
+    {J : Option (FGBlock (Fin params.n))} {contested : Bool}
+    (hready : recoveryStart params env ≤ u)
+    (hphase : PhaseInterval params unitCodec env run u v m J contested)
+    {β s : Slot} (hβ : u < SA.proposalTime params.toParams β)
+    (hls : SA.proposalTime params.toParams (β + 2 * params.k - 1) <
+      SA.proposalTime params.toParams s)
+    (hvs : SA.voteTime params.toParams s ≤ v) : RepairLeaseCover env run s :=
+  repair_lease_cover_two_at env run nvRecovery
+    (fgsa_rMonoAll params unitCodec env run)
+    (fgsa_rXing (hroots := nvRoots) params unitCodec env run
+      nvRecovery.base.linked (fgsa_faultX_count_rec params nvRecovery.fault)
+      nvExecution.toUnforgeableSignatures)
+    (fgsa_leaseOrigins_lastWrite params unitCodec env run nvSchedule)
+    hready hphase (positive_phase_services hready hphase) hβ hls hvs
+
+theorem positive_one_cover {u v : Time} {m : Nat}
+    {J : Option (FGBlock (Fin params.n))} {contested : Bool}
+    (hready : recoveryStart params env ≤ u)
+    (hphase : PhaseInterval params unitCodec env run u v m J contested)
+    {b s : Slot} (hb : u ≤ SA.voteTime params.toParams b)
+    (hSync : env.t_GST ≤ SA.voteTime params.toParams (b + 1 - params.k))
+    (hls : SA.proposalTime params.toParams (b + params.k) <
+      SA.proposalTime params.toParams s)
+    (hvs : SA.voteTime params.toParams s ≤ v) : RepairLeaseCover env run s :=
+  repair_lease_cover_one_at env run nvRecovery
+    (fgsa_rMonoAll params unitCodec env run)
+    (fgsa_rXing (hroots := nvRoots) params unitCodec env run
+      nvRecovery.base.linked (fgsa_faultX_count_rec params nvRecovery.fault)
+      nvExecution.toUnforgeableSignatures)
+    (fgsa_leaseOrigins_lastWrite params unitCodec env run nvSchedule)
+    hready hphase (positive_phase_services hready hphase) hb hSync hls hvs
+
 end AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun
 end
 
@@ -1376,3 +1425,8 @@ end
   AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.joined_start_body
 
 #print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nvPerm
+
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.positive_run
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.positive_phase_services
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.positive_two_cover
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.positive_one_cover
