@@ -339,3 +339,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
 #print axioms AvailableChain.FGSA.Run.outage_early_head_reader_covered
 #print axioms AvailableChain.FGSA.Run.outage_early_scoped_head
 #print axioms AvailableChain.FGSA.Run.outage_early_scoped_duties
+
+#print axioms AvailableChain.FGSA.Run.outage_gateStep_stable_compatible
+#print axioms AvailableChain.FGSA.Run.outage_stable_compatible_suffix
+#print axioms AvailableChain.FGSA.Run.outage_caught_up_public_read_from_seed
