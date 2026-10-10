@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Proofs.Head
+public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceHistory
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
