@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -324,20 +326,27 @@ theorem healing_rPhase (mono : RMono p c E rho) (crossing : RXing p c E rho)
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · intro a b m hab hb hm hfixed
     exact healing_phase_order_of_crossing p c E rho crossing mono hnr a b m hab hb hm hfixed
-  · intro i ev x W m hi hx hgst hm hfront hbefore hafter hh
+  · intro i ev x W m hi hx hready hm hfront hbefore hafter hh
+    have hgst : E.t_GST ≤ ev.time := by
+      have := healing_recovery_start_lower (p := p) E
+      linarith [p.deltaPos]
     have he := healing_evidence_spread (hroots := hroots)
       p c E rho crossing hvalid hnr hdelta hsync i ev x W m
       hi hx hgst hm hfront hbefore hafter hh
     exact ⟨fun hhor y hy => he.1 hhor y hy
       (hAwake y hy _ (hgst.trans (le_add_of_nonneg_right p.deltaPos.le)) hhor), he.2⟩
-  · intro i ev v m kind hi heff hgst hu hv hm hfront hkind hquiet
+  · intro i ev v m kind hi heff hready hu hv hm hfront hkind hquiet
+    have hgst : E.t_GST ≤ ev.time := by
+      have := healing_recovery_start_lower (p := p) E
+      linarith [p.deltaPos]
     obtain ⟨J, h⟩ := healing_settle_event (hroots := hroots)
       p c E rho crossing hvalid hnr hdelta hsync hAwake
       i ev v m kind hi heff hgst hu hv hm hfront hkind hquiet
     refine ⟨J, ?_⟩
     cases kind <;> exact h
-  · intro u v m J contested hgst hp i x hui hiv hx
-    exact healing_settled_frame p c E rho crossing u v m J contested hgst hp i x hui hiv hx
+  · intro u v m J contested hready hp i x hui hiv hx
+    exact healing_settled_frame_ready p c E rho crossing u v m J contested hready hp
+      i x hui hiv hx
   · intro i x m X B hx hi hm hH hX hB hpath hh
     exact healing_frontier_mem p c E rho crossing i x m X B hx hi hm hH hX hB hpath hh
 
@@ -375,17 +384,16 @@ theorem healing_phase_window_all (mono : RMonoAll p c E rho) {i m : Nat} {v : Ti
 /-- Retained settlement uses per-object local services and durable storage. -/
 theorem healing_settle_start_on (crossing : RXing p c E rho)
     (hvalid : V2.D.ExecutionValid E rho) (mono : RMonoAll p c E rho)
-    (hServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
-      ev.time + p.Δ ≤ rho.horizon →
-      Block.Compatible (eraseFG W)
-        (eraseFG (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.F) →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
+    {G ΔF : Time} [Fintype V] (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (readyCut : ∀ t, recoveryStart p E ≤ t →
+      E.t_GST ≤ slotStartZ p (((slotAt p t : Slot) : Int) - 1))
+    (hServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∀ i ev v m kind, rho.events[i]? = some ev →
-      E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
+      recoveryStart p E ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
       (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
       ∃ J,
@@ -396,10 +404,13 @@ theorem healing_settle_start_on (crossing : RXing p c E rho)
           SA.voteTime p.toParams s ≤ v →
           postClock E rho y (SA.voteTime p.toParams s) = some nd →
           SettledPhaseFrame p nd.st m root contested) := by
-  intro i (ev : V2.Event V (Obj p)) v m kind hi hgst hu hv hm hfront hkind hquiet
+  intro i (ev : V2.Event V (Obj p)) v m kind hi hready hu hv hm hfront hkind hquiet
   -- Restate the event times at the object type of the relay lemmas.
+  have hready : recoveryStart p E ≤ ev.time := hready
   have hu : ev.time + 3 * p.Δ ≤ v := hu
-  have hgst : E.t_GST ≤ ev.time := hgst
+  have hgst : E.t_GST ≤ ev.time := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hs := hvalid.toScheduleWellFormed
   have hpos := p.deltaPos
   have hij0 : i < V2.D.Run.idxBefore rho (ev.time + p.Δ) :=
@@ -416,7 +427,8 @@ theorem healing_settle_start_on (crossing : RXing p c E rho)
       frontierAtIdx p c E rho k = m := (hwin k (by omega) hkv).1
   -- Every carrier held at i + 1 is held by every honest node in the window.
   have relay {x : V} {W : FGBlock (Fin p.n)} (hW : HeldAt p c E rho (i + 1) x W)
-      (hh : (heightView p W).h = m) {k : Nat} {y : V}
+      (hh : (heightView p W).h = m)
+      (hReceipt : WitnessReceiptScope E rho W (ev.time + p.Δ)) {k : Nat} {y : V}
       (hk : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ k) (hy : y ∈ rho.honest) :
       W ∈ (storeAt p c E rho k y).fg.TF := by
     let d := V2.D.Run.idxBefore rho (ev.time + p.Δ)
@@ -435,26 +447,46 @@ theorem healing_settle_start_on (crossing : RXing p c E rho)
       rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
       exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl (eraseFG W))
         (eraseFG_preceq hFW)
+    let n := ((ev.time + p.Δ) / p.Δ).toNat + 1
+    let t := (n : Time) * p.Δ
+    have hnonneg : 0 ≤ ev.time + p.Δ := by linarith [E.t_GST_nonneg]
+    have hquot := Int.ediv_nonneg hnonneg p.deltaPos.le
+    have hrem := Int.emod_nonneg (ev.time + p.Δ) (ne_of_gt p.deltaPos)
+    have hremLt := Int.emod_lt_of_pos (ev.time + p.Δ) p.deltaPos
+    have he := Int.mul_ediv_add_emod (ev.time + p.Δ) p.Δ
+    have ht : ev.time + p.Δ ≤ t ∧ t ≤ ev.time + 2 * p.Δ := by
+      dsimp [t, n]
+      rw [Int.toNat_of_nonneg hquot]
+      constructor <;> nlinarith
+    have hth : t ≤ rho.horizon := by linarith [p.deltaPos]
+    obtain ⟨iy, hiy, _⟩ := fgsa_tick_total E rho hs hrec.base.delta y hy n hth
+      (hrec.awake y hy t (by linarith [p.deltaPos]) hth)
+    have hjoin := healing_recovery_joinedNow hrec hy hiy hth
+      (readyCut t (by linarith [p.deltaPos]))
+    have hFloor' : Block.Preceq
+        (eraseFG (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.F) (eraseFG W) := by
+      rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
+      exact eraseFG_preceq hFW
     have h0 := healing_held_block_receipt_on p c E rho hvalid hroots W
-      (ev.time + p.Δ) y hy (hServices i ev x W y hi hW.1 hy hgst hW.2
-        (hh.trans hfront.symm) hhor hFloor)
+      (ev.time + p.Δ) y hy (hReceipt.atRead iy y t hy hiy hjoin ht.1 hFloor')
     change W ∈ (V2.D.Run.stateBeforeTime E rho (ev.time + p.Δ) y).st.fg.TF at h0
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at h0
     exact (fgsa_store_durable p c E rho hk y).1 h0
   have hH {x : V} {W : FGBlock (Fin p.n)} (hW : HeldAt p c E rho (i + 1) x W)
-      (hh : (heightView p W).h = m) {k : Nat} {y : V}
+      (hh : (heightView p W).h = m)
+      (hReceipt : WitnessReceiptScope E rho W (ev.time + p.Δ)) {k : Nat} {y : V}
       (hk : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ k) (hkv : k ≤ timeIdx rho v)
       (hy : y ∈ rho.honest) : (R_at p c E rho k y).H = m :=
     le_antisymm ((healing_phase_local_le_frontier p c E rho hy).trans_eq (hcap k hk hkv))
-      (hh ▸ healing_phase_height_le p c E rho (relay hW hh hk hy))
-  have wit := healing_phaseWitness p c E rho hm hfront
+      (hh ▸ healing_phase_height_le p c E rho (relay hW hh hReceipt hk hy))
+  have wit := hServices i ev m hi hready hm hfront hhor
   cases kind with
   | gap =>
     obtain ⟨hnt, _⟩ := hkind
-    obtain ⟨x, W, hW, hh⟩ := wit.frontier
+    obtain ⟨x, W, hW, hh, hReceipt⟩ := wit.frontier
     refine ⟨.genesis, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
     intro k y hk hkv hy
-    have hHk := hH hW hh hk hkv hy
+    have hHk := hH hW hh hReceipt hk hkv hy
     have hnj : (storeAt p c E rho k y).fg.h_j + 1 ≠ m :=
       fun ht => hnt ((hwin k (by omega) hkv).2.1 ⟨y, hy, ht⟩)
     change (storeAt p c E rho k y).fg.h_max = m at hHk
@@ -472,10 +504,10 @@ theorem healing_settle_start_on (crossing : RXing p c E rho)
     simp only [Ne.symm hnj, decide_false, Bool.false_and]
   | topJ =>
     obtain ⟨ht, hnc⟩ := hkind
-    obtain ⟨x, C, hC, hh, hj, _⟩ := wit.top ht
+    obtain ⟨x, C, hC, hh, hj, _, hReceipt⟩ := wit.top ht
     refine ⟨(heightView p C).J, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
     intro k y hk hkv hy
-    have hCk := relay hC hh hk hy
+    have hCk := relay hC hh hReceipt hk hy
     obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hCk hh hj
       (hcap k hk hkv).le
     have hc : (R_at p c E rho k y).contest = false := by
@@ -501,11 +533,11 @@ theorem healing_settle_start_on (crossing : RXing p c E rho)
     rw [hc, hmax, htop]
     simp only [decide_true, Bool.not_false, Bool.and_self]
   | contest =>
-    obtain ⟨x, C, W, hC, hW, hhC, hhW, hj, hoff⟩ := wit.contest hkind
+    obtain ⟨x, C, W, hC, hW, hhC, hhW, hj, hoff, hReceiptC, hReceiptW⟩ := wit.contest hkind
     refine ⟨.genesis, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
     intro k y hk hkv hy
-    have hCk := relay hC hhC hk hy
-    have hWk := relay hW hhW hk hy
+    have hCk := relay hC hhC hReceiptC hk hy
+    have hWk := relay hW hhW hReceiptW hk hy
     obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hCk hhC hj
       (hcap k hk hkv).le
     have hc : (R_at p c E rho k y).contest = true := by

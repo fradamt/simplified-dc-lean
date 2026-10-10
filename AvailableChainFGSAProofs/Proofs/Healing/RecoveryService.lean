@@ -3,6 +3,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 
+public import AvailableChainFGSAProofs.Proofs.Healing.Frame
+public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -10,6 +14,13 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {G ΔF : Time}
+
+/-- The joined recurrence supplies the proposal gap on the healing start domain. -/
+theorem healing_proposal_gap (hrec : RecoverySleep₂ p c E rho G ΔF) :
+    ProposalGap p c E rho G := by
+  intro t hready hhor
+  obtain ⟨s, hlo, hhi, hs, _⟩ := hrec.joinedGap t hready hhor
+  exact ⟨s, hlo, hhi, hs⟩
 
 /-- An original proposal acceptance gives receiver service in the recovery epoch.
 The acceptance keeps its source index and time. The local anchor can be later.
@@ -110,6 +121,91 @@ theorem healing_fresh_head_service (hrec : RecoverySleep₂ p c E rho G ΔF)
     hd.symm ▸ haf.trans hfh, hd.symm ▸ haf,
     healing_recovery_action_epoch hrec hx hgst _, hd.symm ▸ hhandlers,
     hd.symm ▸ hexclude⟩⟩
+
+omit [Fintype V] in
+/-- A proposal parent in the fixed phase is above each receiver's current F.
+The selected parent is retained at its source. RXing uses the receiver's actual
+certificate; this does not assume that the parent is already held at the receiver. -/
+theorem healing_proposal_phase_reader_floor (hvalid : V2.D.ExecutionValid E rho)
+    (crossing : RXing p c E rho) {u v : Time} {m : Nat}
+    {J : Option (FGBlock (Fin p.n))} {contested : Bool} {s : Slot} {Q : Block}
+    (hp : PhaseInterval p c E rho u v m J contested)
+    (hQ : HonestProposal E rho (fgsaInterface p c) s Q)
+    (hu : u ≤ SA.proposalTime p.toParams s) (hv : SA.voteTime p.toParams s ≤ v)
+    {y : V} (hy : y ∈ rho.honest) :
+    Block.Preceq (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s) y).st.fg.F) Q := by
+  have hs := hvalid.toScheduleWellFormed
+  obtain ⟨j, N, heN, hj, hem, hst, _⟩ := proposal_read_named p c E rho hs hQ
+  let x := V2.D.proposerOf rho (fgsaInterface p c) s
+  let st := ((fgsa p c).clock (rho.stateBefore E j x) (SA.proposalTime p.toParams s)).st
+  have hx : x ∈ rho.honest := hQ.1.2
+  have ht : SA.proposalTime p.toParams s < SA.voteTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) < 4 * p.Δ * (s : Int) + p.Δ
+    linarith [p.deltaPos]
+  let iy := V2.D.Run.idxBefore rho (SA.voteTime p.toParams s)
+  have hji : j ≤ iy :=
+    ((Gen.V2.Duty.index_lt_idxBefore_iff hs hj _).mpr ht).le
+  have hjv : j ≤ timeIdx rho v :=
+    (healing_phase_lt_timeIdx p c E rho hs hj (ht.le.trans hv)).le
+  have hjU : V2.D.Run.idxBefore rho u ≤ j :=
+    by
+      by_contra hn
+      have hb := (Gen.V2.Duty.index_lt_idxBefore_iff hs hj u).mp (Nat.lt_of_not_ge hn)
+      exact (not_lt_of_ge hu) hb
+  have hiU : V2.D.Run.idxBefore rho u ≤ iy := hjU.trans hji
+  have hiV : iy ≤ timeIdx rho v :=
+    (fgsa_idxBefore_mono rho hv).trans (idxBefore_le_timeIdx rho v)
+  have hfg : st.fg = (storeAt p c E rho j x).fg := clock_fg p _ _
+  have hcontrols : controls p st = controls p (storeAt p c E rho j x) := by
+    change KitFG.treeStoreControlsView (heightView p) st.fg =
+      KitFG.treeStoreControlsView (heightView p) (storeAt p c E rho j x).fg
+    rw [hfg]
+  have hne : (fullTree p st).Nonempty := by
+    change (KitFG.treeStoreFrameView (heightView p) st.fg st.fg.TF).Nonempty
+    rw [hfg]
+    obtain ⟨W, hW, hh⟩ := healing_phase_frontier_witness p c E rho j x
+    obtain ⟨hF, hZ⟩ := healing_phase_frontier_root p c E rho crossing hx hW hh
+    exact ⟨W, (KitFG.mem_filteredFromView _ _ _ _).mpr
+      ⟨hW, hF, hZ, W, hW, KitFG.preceq_refl _, hh ▸ KitFG.Controls.lo_le_H _⟩⟩
+  obtain ⟨B, hB, heB, hlo⟩ := healing_proposer_floor p c E rho hs s Q st hQ hst hne
+  obtain ⟨hBT, _, hZB, _⟩ := (KitFG.mem_filteredFromView _ _ _ _).mp hB
+  have hB0 : B ∈ (storeAt p c E rho j x).fg.TF := hfg ▸ hBT
+  have hB1 : B ∈ (storeAt p c E rho iy x).fg.TF :=
+    (fgsa_store_durable p c E rho hji x).1 hB0
+  have hsFrame := healing_phase_frame p c E rho crossing hx hp.2.2.1
+    (hp.2.2.2 j x hjU hjv hx).1 (hp.2.2.2 j x hjU hjv hx).2.1
+    (hp.2.2.2 j x hjU hjv hx).2.2
+  have hyFrame := healing_phase_frame p c E rho crossing hy hp.2.2.1
+    (hp.2.2.2 iy y hiU hiV hy).1 (hp.2.2.2 iy y hiU hiV hy).2.1
+    (hp.2.2.2 iy y hiU hiV hy).2.2
+  have hF : FGBlock.Preceq (storeAt p c E rho iy y).fg.F B := by
+    cases J with
+    | some A =>
+      obtain ⟨_, _, hZ, _, _, _⟩ := hsFrame.2.2.2.1
+      obtain ⟨_, _, _, _, _, hFA⟩ := hyFrame.2.2.2.1
+      have hZB0 : FGBlock.Preceq (controls p (storeAt p c E rho j x)).Z B := by
+        change FGBlock.Preceq (controls p st).Z B at hZB
+        rw [hcontrols] at hZB
+        exact hZB
+      rw [hZ] at hZB0
+      exact KitFG.preceq_trans hFA hZB0
+    | none =>
+      obtain ⟨_, _, ⟨K, hK, hKF, hKh⟩, _⟩ := hyFrame.2.2.2.1
+      have hlo0 : (if contested then m else m - 1) ≤ (heightView p B).h := by
+        change (controls p st).lo ≤ _ at hlo
+        have hloEq : (controls p st).lo = (if contested then m else m - 1) := by
+          rw [hcontrols]
+          exact hsFrame.2.2.1
+        exact hloEq ▸ hlo
+      rw [hyFrame.2.2.1] at hKh
+      exact crossing iy iy y x K B hy le_rfl hK hKF ⟨hx, hB1⟩ (hKh.trans_le hlo0)
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
+  have hF' := eraseFG_preceq hF
+  rw [heB] at hF'
+  apply Gen.Pure.block_preceq_trans hF'
+  cases Q with
+  | genesis => exact Gen.Pure.block_preceq_refl _
+  | node P s root body => exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_preceq_refl P))
 
 end AvailableChain.FGSA.Run
 end

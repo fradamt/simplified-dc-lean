@@ -182,5 +182,16 @@ theorem healing_settled_frame (crossing : RXing p c E rho)
   obtain ⟨hH, hc, hr⟩ := hp.2.2.2 i x hui' hiv hx
   exact healing_phase_frame p c E rho crossing hx hp.2.2.1 hH hc hr
 
+/-- The fourth RPhase clause uses the joined healing phase domain. -/
+theorem healing_settled_frame_ready (crossing : RXing p c E rho)
+    (u v : Time) (m : Nat) (J : Option (FGBlock (Fin p.n))) (contested : Bool)
+    (_hready : recoveryStart p E ≤ u) (hp : PhaseInterval p c E rho u v m J contested)
+    (i : Nat) (x : V) (hui : timeIdx rho u ≤ i) (hiv : i ≤ timeIdx rho v)
+    (hx : x ∈ rho.honest) :
+    SettledPhaseFrame p (storeAt p c E rho i x) m J contested := by
+  have hui' : V2.D.Run.idxBefore rho u ≤ i := (idxBefore_le_timeIdx rho u).trans hui
+  obtain ⟨hH, hc, hr⟩ := hp.2.2.2 i x hui' hiv hx
+  exact healing_phase_frame p c E rho crossing hx hp.2.2.1 hH hc hr
+
 end AvailableChain.FGSA.Run
 end

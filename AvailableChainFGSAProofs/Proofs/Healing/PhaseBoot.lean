@@ -128,7 +128,7 @@ theorem healing_phase_first_rise (hne : rho.honest.Nonempty) {n : Nat}
 DC: INTENTIONAL an effective event after GST starts a raise attempt at its
 resulting frontier (B21: 1 ≤ m). The phase and served flag are read from the actual run. -/
 theorem healing_attemptValid_of_event {i : Nat} {ev : V2.Event V (Obj p)}
-    (hi : rho.events[i]? = some ev) (hgst : E.t_GST ≤ ev.time)
+    (hi : rho.events[i]? = some ev) (hready : recoveryStart p E ≤ ev.time)
     (heff : EffectiveEvent p c E rho i) (hm : 1 ≤ frontierAtIdx p c E rho (i + 1)) :
     ∃ k : AttemptKey, k.start = i ∧ k.frontier = frontierAtIdx p c E rho (i + 1) ∧
       k.task = .raise ∧ AttemptValid p c E rho k := by
@@ -142,7 +142,7 @@ theorem healing_attemptValid_of_event {i : Nat} {ev : V2.Event V (Obj p)}
       · exact ⟨.gap, ht, hc⟩
   obtain ⟨kind, hkind⟩ := hphase
   refine ⟨⟨i, m, kind, .raise, decide (ServedFrontier p c E rho m ev.time)⟩,
-    rfl, rfl, rfl, ev, hi, hgst, Or.inl heff, rfl, hm, hkind, decide_eq_true_iff, ?_⟩
+    rfl, rfl, rfl, ev, hi, hready, Or.inl heff, rfl, hm, hkind, decide_eq_true_iff, ?_⟩
   intro h
   cases h
 
