@@ -1,11 +1,8 @@
 module
 public import Mathlib.Tactic.FinCases
 public import Mathlib.Tactic.IntervalCases
-public import AvailableChainEngineV2.Tests.Engine
-public import AvailableChainEngineV2.Tests.Duties
+public import AvailableChainEngineV2.TestSupport.Sleep
 public import AvailableChainEngineV2.Conditions.Duty.Lift
-public import AvailableChainKitV2.ClockLaws
-public import AvailableChainKitV2.DutyClockLaws
 
 @[expose] public section
 
@@ -13,26 +10,6 @@ namespace AvailableChain.V2.Tests.Sleep
 
 open AvailableChain
 
-/-- A clock and a receipt list. Restart clears receipts and sets the exact time. -/
-abbrev toy : ProtocolSpec Unit :=
-  { Tests.specA with
-    State := Time × List Nat
-    Durable := Unit
-    init := (0, [])
-    clock := fun st t => (t, st.2)
-    act := fun _ _ _ => none
-    gossip := fun st _ =>
-      if st.1 = 0 then [1] else if st.1 = 4 then [2] else []
-    process := fun st o => (st.1, o.payload :: st.2)
-    recordOwn := fun st _ => st
-    durable := fun _ => ()
-    restore := fun _ t => (t, [])
-    processed := fun st o => decide (o.payload ∈ st.2)
-    depsPresent := fun _ _ => true
-    excludes := fun _ _ => false
-    handles := fun _ o o' => o = o' }
-
-def first : toy.Object := ⟨.none, 1⟩
 def second : toy.Object := ⟨.none, 2⟩
 
 /-- Both nodes sleep before zero. Node 0 also sleeps on [2,5) and [7,10). -/
@@ -537,16 +514,6 @@ example : 10 < lateRestart.toD.horizon ∧ D.ExecutionValid env lateRestart.toD 
 
 example : AwakeOnClosed env 0 5 6 ∧ D.AwakeOnClosed env 0 5 6 := by
   constructor <;> intro t ha hb <;> simp [env] <;> dsimp [Time] at * <;> omega
-
-private def clocks : Engine.ClockLaws toy := ⟨Prod.fst, rfl, by intros; rfl,
-  by intros; rfl, by intros; rfl⟩
-
-example : Engine.RestoreTimeLaw clocks := ⟨by intros; rfl⟩
-
-private def dutyClocks : D.Engine.ClockLaws toy.toD := ⟨Prod.fst, rfl, by intros; rfl,
-  by intros; rfl, by intros; rfl⟩
-
-example : D.Engine.RestoreTimeLaw dutyClocks := ⟨by intros; rfl⟩
 
 end AvailableChain.V2.Tests.Sleep
 

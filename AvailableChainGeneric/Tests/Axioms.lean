@@ -1,8 +1,6 @@
 module
 public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
 public import AvailableChainGeneric.Proofs.V2.Sleep
-public import AvailableChainGeneric.Tests.DeliveryBy
-public import AvailableChainGeneric.Tests.Duties
 public import AvailableChainGeneric.Proofs.AC.RootVotes
 public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainGeneric.Proofs.AC.RootBatch
@@ -1071,14 +1069,6 @@ end AvailableChain.Gen.AC.Root
 #print axioms AvailableChain.Gen.V2.actionCut_le_idxBefore
 #print axioms AvailableChain.Gen.V2.TimelyOfRelayStatement_def
 #print axioms AvailableChain.Gen.V2.AcceptedByDeadlineStatement_def
-#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.partial_by
-#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.prefix_by
-#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.row_relay_from_acceptance
-#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.old_partial_rejected
-#print axioms AvailableChain.Gen.V2.Duty.Tests.Lift.deliveryWithin_agrees
-#print axioms AvailableChain.Gen.V2.Duty.Tests.Lift.accepted_by_deadline_agrees
-#print axioms AvailableChain.Gen.V2.Duty.Tests.twoDuty_schedule
-#print axioms AvailableChain.Gen.V2.Duty.Tests.twoDuty_executionValid
 
 -- W1b review companions.
 #print axioms AvailableChain.Gen.V2.timely_of_relay_public_actTime

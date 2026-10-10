@@ -31,8 +31,6 @@ public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Proofs.Fields
 public import AvailableChainFGSA.Proofs.Restart
 public import AvailableChainFGSA.Proofs.Join
-public import AvailableChainFGSA.Tests.Restart
-public import AvailableChainFGSA.Tests.Join
 public import AvailableChainFGSA.Proofs.ActView
 public import AvailableChainFGSA.Proofs.Nesting
 public import AvailableChainFGSA.Proofs.Reconcile
@@ -1019,12 +1017,5 @@ end AvailableChain.FGSA.instReprNamedProposal
 #print axioms AvailableChain.FGSA.gateStep_fresh_cases
 #print axioms AvailableChain.FGSA.storeBundleInvariant
 #print axioms AvailableChain.FGSA.base_headDomain_none
-#print axioms AvailableChain.FGSA.JoinTests.join_boundary
-#print axioms AvailableChain.FGSA.JoinTests.join_slot_zero
-#print axioms AvailableChain.FGSA.JoinTests.release_unjoined
-#print axioms AvailableChain.FGSA.JoinTests.gate_unjoined
-#print axioms AvailableChain.FGSA.RestartTests.wipe_fields
-#print axioms AvailableChain.FGSA.RestartTests.replay_sources
 #print axioms AvailableChain.FGSA.acRestart_replay_order
 #print axioms AvailableChain.FGSA.acRestart_block_stamp
-#print axioms AvailableChain.FGSA.RestartTests.replay_cap_and_labels

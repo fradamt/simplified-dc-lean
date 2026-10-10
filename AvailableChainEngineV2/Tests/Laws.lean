@@ -238,3 +238,5 @@ example : specA.processed (Run.stateBefore (envAwake _) rhoVSD 2 0) oSD = false 
 end AvailableChain.V2.Tests
 
 end
+
+#print axioms AvailableChain.V2.Tests.rhoV_valid

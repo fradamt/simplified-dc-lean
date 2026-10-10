@@ -71,3 +71,8 @@ theorem gate_unjoined :
 
 end AvailableChain.FGSA.JoinTests
 end
+
+#print axioms AvailableChain.FGSA.JoinTests.join_boundary
+#print axioms AvailableChain.FGSA.JoinTests.join_slot_zero
+#print axioms AvailableChain.FGSA.JoinTests.release_unjoined
+#print axioms AvailableChain.FGSA.JoinTests.gate_unjoined

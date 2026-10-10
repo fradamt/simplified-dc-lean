@@ -1,4 +1,5 @@
 module
+public import AvailableChainKitV2.RunCheck
 public import AvailableChainKitV2.DutyExecution
 public import AvailableChainKitV2.DutySleep
 public import AvailableChainKitV2.DutyStable
@@ -6,9 +7,6 @@ public import AvailableChainKitV2.Emission
 public import AvailableChainKitV2.Execution
 public import AvailableChainKitV2.Sleep
 public import AvailableChainKitV2.Stable
-public import AvailableChainKitV2.Tests.Counterexamples
-public import AvailableChainKitV2.Tests.Duties
-public import AvailableChainKitV2.Tests.Toy
 public import AvailableChainKitV2.DutyEmission
 public import AvailableChainKitV2.DutyLinked
 public import AvailableChainKitV2.EngineClock
@@ -122,21 +120,6 @@ public import AvailableChainKitV2.DutyRecord
 #print axioms AvailableChain.V2.Engine.noRestartAfter_of_awakeOnClosed
 #print axioms AvailableChain.V2.Engine.wake_between
 #print axioms AvailableChain.V2.Engine.stateBefore_stable_restore
-#print axioms AvailableChain.V2.Engine.Tests.rhoClock100_wf
-#print axioms AvailableChain.V2.Engine.Tests.check_b_restore_now_needed
-#print axioms AvailableChain.V2.Engine.Tests.rhoReset_wf
-#print axioms AvailableChain.V2.Engine.Tests.check_c_restartFree_needed
-#print axioms AvailableChain.V2.Engine.Tests.check_d_unit_restore
-#print axioms AvailableChain.V2.Engine.Tests.check_d_unit_invariant
-#print axioms AvailableChain.V2.D.Engine.Tests.Duties.Lift.ownRecord_fold_interval_restart_agrees
-#print axioms AvailableChain.V2.D.Engine.Tests.Duties.Lift.ownRecord_fold_restore_agrees
-#print axioms AvailableChain.V2.D.Engine.Tests.Duties.restartRun_schedule
-#print axioms AvailableChain.V2.D.Engine.Tests.Duties.restart_record_fold
-#print axioms AvailableChain.V2.Tests.Toy.toyRun_valid
-#print axioms AvailableChain.V2.Tests.Toy.pre_valid
-#print axioms AvailableChain.V2.Tests.Toy.toyRun_healthy
-#print axioms AvailableChain.V2.Tests.Toy.toyRun_partialSynchrony
-#print axioms AvailableChain.V2.Tests.Toy.accepts_row0
 
 -- Exact-time restore, restart-free interval companions.
 #print axioms AvailableChain.V2.Engine.stateBefore_stable_clock_restartFree

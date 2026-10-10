@@ -92,5 +92,3 @@ public import AvailableChainFGSA.Proofs.Spec.Locks
 public import AvailableChainFGSA.Model.Restart
 public import AvailableChainFGSA.Proofs.Restart
 public import AvailableChainFGSA.Proofs.Join
-public import AvailableChainFGSA.Tests.Restart
-public import AvailableChainFGSA.Tests.Join

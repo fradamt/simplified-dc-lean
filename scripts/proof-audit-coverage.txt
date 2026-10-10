@@ -1093,17 +1093,6 @@
             'AvailableChain.FGSA.Window.EntryBitW_def',
             'AvailableChain.FGSA.Window.RetainedW_def',
         ),
-        'AvailableChainFGSA.Tests.Join': (
-            'AvailableChain.FGSA.JoinTests.gate_unjoined',
-            'AvailableChain.FGSA.JoinTests.join_boundary',
-            'AvailableChain.FGSA.JoinTests.join_slot_zero',
-            'AvailableChain.FGSA.JoinTests.release_unjoined',
-        ),
-        'AvailableChainFGSA.Tests.Restart': (
-            'AvailableChain.FGSA.RestartTests.replay_cap_and_labels',
-            'AvailableChain.FGSA.RestartTests.replay_sources',
-            'AvailableChain.FGSA.RestartTests.wipe_fields',
-        ),
         'AvailableChainGridCO.Model.StoreKeys': (
             'AvailableChain.GridCO.gateWriteKeys_def',
             'AvailableChain.GridCO.writeKeys_def',
@@ -6222,18 +6211,6 @@
         ),
         'AvailableChainGeneric.Statements.V2.Slashing': (
             'AvailableChain.Gen.V2.HonestNeverSlashed_def',
-        ),
-        'AvailableChainGeneric.Tests.DeliveryBy': (
-            'AvailableChain.Gen.V2.Duty.DeliveryByTests.old_partial_rejected',
-            'AvailableChain.Gen.V2.Duty.DeliveryByTests.partial_by',
-            'AvailableChain.Gen.V2.Duty.DeliveryByTests.prefix_by',
-            'AvailableChain.Gen.V2.Duty.DeliveryByTests.row_relay_from_acceptance',
-        ),
-        'AvailableChainGeneric.Tests.Duties': (
-            'AvailableChain.Gen.V2.Duty.Tests.Lift.accepted_by_deadline_agrees',
-            'AvailableChain.Gen.V2.Duty.Tests.Lift.deliveryWithin_agrees',
-            'AvailableChain.Gen.V2.Duty.Tests.twoDuty_executionValid',
-            'AvailableChain.Gen.V2.Duty.Tests.twoDuty_schedule',
         ),
         'AvailableChainModel.Objects.CommonAncestor': (
             'AvailableChain.Block.meet',

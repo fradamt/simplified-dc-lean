@@ -1,6 +1,9 @@
 # Fixed G-S1 scope. Entries are module names, not Lake library targets.
 # REQUIRED compiles; DEFERRED has an owner; STABLE lists unchanged library prefixes.
 [REQUIRED]
+AvailableChainEngineV2.TestSupport.Engine
+AvailableChainEngineV2.TestSupport.Sleep
+AvailableChainKitV2.TestSupport.Sleep
 AvailableChainFGSARun.Tests.SleepContinuation
 AvailableChainFGSARun.Tests.SleepContinuationAxioms
 AvailableChainFGSARun.Proofs.Restore

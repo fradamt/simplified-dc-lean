@@ -1,7 +1,8 @@
 module
+public import Mathlib.Tactic.IntervalCases
 public import AvailableChainKitV2.EngineClock
 public import AvailableChainKitV2.DutyEngineClock
-public import AvailableChainEngineV2.Tests.Sleep
+public import AvailableChainKitV2.TestSupport.Sleep
 
 @[expose] public section
 
@@ -259,5 +260,25 @@ example : ¬ D.ExecutionValid frozenEnv asleepTick.toD := by
 #print axioms wakeTickValid
 
 end AvailableChain.V2.Engine.Tests.Sleep
+
+end
+
+@[expose] public section
+
+namespace AvailableChain.V2.Tests.Sleep
+
+open AvailableChain
+
+private def clocks : Engine.ClockLaws toy := ⟨Prod.fst, rfl, by intros; rfl,
+  by intros; rfl, by intros; rfl⟩
+
+example : Engine.RestoreTimeLaw clocks := ⟨by intros; rfl⟩
+
+private def dutyClocks : D.Engine.ClockLaws toy.toD := ⟨Prod.fst, rfl, by intros; rfl,
+  by intros; rfl, by intros; rfl⟩
+
+example : D.Engine.RestoreTimeLaw dutyClocks := ⟨by intros; rfl⟩
+
+end AvailableChain.V2.Tests.Sleep
 
 end
