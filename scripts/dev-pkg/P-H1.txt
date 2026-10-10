@@ -1,4 +1,4 @@
-# P-H1 PREPARED, Round 4; scope producers open. Compilation is checked separately.
+# P-H1 PREPARED, Round 6; local producers and public TPerm link remain open.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
 AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
