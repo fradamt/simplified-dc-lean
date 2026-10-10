@@ -429,26 +429,12 @@ theorem regime : OutageSleep₂ p unitCodec true env run 0 8 8 2 := by
       rw [hw]
       decide
 
-theorem missing : ¬ OutagePrefixReceipt p unitCodec env run true 0 8 := by
-  classical
-  intro h
-  have hx : (0 : Fin 1) ∈ coveredNodes p env run true 8 := by
-    simp only [coveredNodes, ite_true, Finset.mem_filter]
-    exact ⟨by decide, joined_all 0 _ _⟩
-  have hb := (h 0 hx 1 (by decide) (by decide)).2 0 proposal 1 (by decide)
-    ⟨5, rfl, by change proposal ∈ [proposal]; exact List.mem_singleton_self _⟩
-    (by decide) (by decide +kernel) 1 body rfl
-  have hp := hb.1
-  have hf : P.processed (V2.D.Run.stateBeforeTime env run 12 0) proposal = false := by
-    decide +kernel
-  change P.processed (V2.D.Run.stateBeforeTime env run 12 0) proposal = true at hp
-  rw [hf] at hp
-  cases hp
-
-/-- The approved prefix receipt claim is false for a cut before the first gate. -/
-theorem prefix_claim_false : ¬ OutagePrefixReceiptDerivedClaim p := by
-  intro h
-  exact missing (h unitCodec env run true 0 8 8 2 regime)
+/-- The corrected prefix receipt claim excludes the batch beyond this early cut. -/
+theorem prefix_receipt : OutagePrefixReceipt p unitCodec env run true 0 8 := by
+  intro x hx q hq hT hCut
+  have hq1 : q = 1 := by simpa [coverLabel, p] using hq
+  rw [hq1] at hCut
+  exact False.elim ((by decide : ¬ SA.earlyTime p.toParams 1 ≤ 8) hCut)
 
 end AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut
 
@@ -459,5 +445,4 @@ end AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.joined_all
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.base
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.regime
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.missing
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.prefix_claim_false
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.prefix_receipt

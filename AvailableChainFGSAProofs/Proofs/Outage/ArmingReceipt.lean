@@ -176,9 +176,10 @@ theorem arming_prefix_batch_receipt_on {E : Generic.Env V}
       (if fast then q = coverLabel p b₀
        else (coverLabel p b₀ : Int) - (p.k : Int) + 1 ≤ (q : Int) ∧ q ≤ coverLabel p b₀) →
       T ≤ SA.gateTime p.toParams q →
+      SA.earlyTime p.toParams q ≤ b₀ →
       ArmingBatchReceiptService E rho x q (SA.earlyTime p.toParams q)) :
     OutagePrefixReceipt p c E rho fast T b₀ := by
-  intro x hx q hq hT
+  intro x hx q hq hT hCut
   have hxH : x ∈ rho.honest := by
     classical
     change x ∈ rho.honest.filter _ at hx
@@ -188,7 +189,7 @@ theorem arming_prefix_batch_receipt_on {E : Generic.Env V}
       rw [arming_early_eq]
       have hd := p.deltaPos
       positivity)
-  exact hService x hx q hq hT
+  exact hService x hx q hq hT hCut
 
 end AvailableChain.FGSA.Run
 end

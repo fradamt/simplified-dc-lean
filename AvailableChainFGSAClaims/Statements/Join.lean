@@ -206,6 +206,7 @@ def OutagePrefixReceipt (fast : Bool) (T b₀ : Time) : Prop :=
      else (coverLabel p b₀ : Int) - (p.k : Int) + 1 ≤ (q : Int) ∧
        q ≤ coverLabel p b₀) →
     T ≤ SA.gateTime p.toParams q →
+    SA.earlyTime p.toParams q ≤ b₀ →
     BatchReceiptAt p c E rho x q (SA.earlyTime p.toParams q)
 
 variable {c}
