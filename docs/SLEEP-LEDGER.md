@@ -2391,3 +2391,32 @@ Named downstream suppliers (other families, not edited here):
 
 The Clean and Recovery retained `_on` adapters pass these inputs for each joined
 reader. No caller may infer retained HistorySafeAt from a past processed result.
+
+### Round 5: preserved original Regimes bodies — STOP on NoRestart
+
+False required implication:
+`ExecutionValid E rho ∧ RestartsAtWakes E rho → NoRestart rho`.
+Counterexample: Run.Tests.Sleep `joinEnv 9` / `joinRun 9` is ExecutionValid and
+restarts at wakes (`SleepTests.join_valid 9 (Or.inr rfl)`). Its event at index 1
+is `.restart 0 9`. Thus NoRestart fails at exactly that index. The receiver is
+awake at the slot-1 HEAD tick 10 but its wake exceeds the previous slot start 0;
+Tests.RestartEpochs `awake_head_tick_not_joined` checks the suppressed duty.
+The historical processing → HistorySafeAt implication is also false at wake 35
+in `retained_head_history_not_safe` in that test module.
+
+The ten original Regimes declarations still request `h.base.noRestart`. That
+projection does not exist and cannot be restored under the approved model.
+All their names and types are preserved as requested. This is a STOP on supplying
+the false legacy premise, not a kernel refutation of all ten full conclusions.
+Their new true forms are the ten `_on` declarations in RegimesService. They use
+joined participation, per-receiver gate scope, ScoreServiceScope, or
+RetainedServiceScope. No public FGSAClaims statement change is requested.
+The original module remains EXPECTED-FAIL; its legacy bodies are not certified.
+
+### Round 5: joined read suppliers
+
+H6/H6S/H17/L4R/HG1/L2 now also have `_joined` forms. Every elementary reader
+input, TargetReceiptService, and read-premise conclusion has the same joinedAt
+guard at the actual HEAD tick. Tests.RetainedConsumers uses these forms and its
+RetainedServiceScope input has that same guard. The earlier additive `_on`
+forms remain unchanged for callers that supply all-reader service.

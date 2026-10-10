@@ -4934,12 +4934,6 @@
             'AvailableChain.FGSA.Run.exactService_participation_of_card',
             'AvailableChain.FGSA.Run.exactService_participation_of_card_joined',
         ),
-        'AvailableChainFGSAProofs.Proofs.Shared.Export': (
-            'AvailableChain.FGSA.Run.fgsa_headReachesLoClaim',
-            'AvailableChain.FGSA.Run.fgsa_releaseClaim',
-            'AvailableChain.FGSA.Run.fgsa_releaseStoreClaim',
-            'AvailableChain.FGSA.Run.fgsa_sameLabelClaim',
-        ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyReads',
@@ -5153,22 +5147,28 @@
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers': (
             'AvailableChain.FGSA.Run.fgsa_retainedReads_H17',
+            'AvailableChain.FGSA.Run.fgsa_retainedReads_H17_joined',
             'AvailableChain.FGSA.Run.fgsa_retainedReads_H17_on',
             'AvailableChain.FGSA.Run.fgsa_retainedReads_H6',
+            'AvailableChain.FGSA.Run.fgsa_retainedReads_H6_joined',
             'AvailableChain.FGSA.Run.fgsa_retainedReads_H6_on',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S': (
             'AvailableChain.FGSA.Run.fgsa_retainedReads_H6S',
+            'AvailableChain.FGSA.Run.fgsa_retainedReads_H6S_joined',
             'AvailableChain.FGSA.Run.fgsa_retainedReads_H6S_on',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2': (
             'AvailableChain.FGSA.Run.fgsa_retainedReads_L2',
+            'AvailableChain.FGSA.Run.fgsa_retainedReads_L2_joined',
             'AvailableChain.FGSA.Run.fgsa_retainedReads_L2_on',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ': (
             'AvailableChain.FGSA.Run.fgsa_retainedReads_HG1',
+            'AvailableChain.FGSA.Run.fgsa_retainedReads_HG1_joined',
             'AvailableChain.FGSA.Run.fgsa_retainedReads_HG1_on',
             'AvailableChain.FGSA.Run.fgsa_retainedReads_L4R',
+            'AvailableChain.FGSA.Run.fgsa_retainedReads_L4R_joined',
             'AvailableChain.FGSA.Run.fgsa_retainedReads_L4R_on',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint': (

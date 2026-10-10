@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.Export -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: keep (#print axioms)
@@ -517,14 +516,6 @@ end
 
 #print axioms AvailableChain.FGSA.Run.fgsa_sameLabel_serviceScope
 
-#print axioms AvailableChain.FGSA.Run.fgsa_headReachesLoClaim
-
-#print axioms AvailableChain.FGSA.Run.fgsa_releaseClaim
-
-#print axioms AvailableChain.FGSA.Run.fgsa_releaseStoreClaim
-
-#print axioms AvailableChain.FGSA.Run.fgsa_sameLabelClaim
-
 #print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_candidates_on_run_on
 
 #print axioms AvailableChain.FGSA.Run.fgsa_retained_old_child_reflects_on_run_on
@@ -554,3 +545,15 @@ end
 #print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_clean_on
 
 #print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_recovery_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H17_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6S_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_HG1_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L4R_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L2_joined

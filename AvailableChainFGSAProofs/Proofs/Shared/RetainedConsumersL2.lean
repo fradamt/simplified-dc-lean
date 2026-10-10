@@ -126,5 +126,46 @@ theorem fgsa_retainedReads_L2_on
   exact consumer_l2_cone p _ _ s J
     (hinput y hy ih hih ⟨hinherited, hevidence, hstop⟩)
 
+/-- Joined reader form; service is required only for that reader. -/
+theorem fgsa_retainedReads_L2_joined
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (J : FGBlock (Fin p.n))
+    (rd w stop : Time)
+    (hinherited : rd ≤ SA.gateTime p.toParams s)
+    (hevidence : w + 2 * p.Δ ≤ SA.proposalTime p.toParams s)
+    (hstop : SA.gateTime p.toParams s < stop)
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      (rd ≤ SA.gateTime p.toParams s ∧
+        w + 2 * p.Δ ≤ SA.proposalTime p.toParams s ∧ SA.gateTime p.toParams s < stop) →
+      RetainedL2Input p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s J)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s J N.erase Kc := by
+  apply fgsa_retainedReads_H17_joined (hroots := hroots) (hServices := hServices)
+    E rho hE s hx hip hseat N hem J
+  intro y hy ih hih hjoined
+  exact consumer_l2_cone p _ _ s J
+    (hinput y hy ih hih hjoined ⟨hinherited, hevidence, hstop⟩)
+
 end AvailableChain.FGSA.Run
 end

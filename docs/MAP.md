@@ -1,23 +1,31 @@
 # Contract to Lean map
 
-## FG-SA sleep services (P-ShA round 4, 2026-10-10)
+## FG-SA sleep services (P-ShA round 5, 2026-10-10)
 
-`FGSAProofs/Proofs/Shared/CatchUp` owns the N4 bridge and the exact receiver
-service records. `ReceiverService` names the object, sender time, ready anchor,
-deadline, freeze, safe history, handler checks and receiver epoch.
-`FreshHeadService` uses the exact emitted HEAD at `voteTime`; its receipt theorem
-proves safe history from that emission. `TargetReceiptService` uses a named
-proposal service for a retained target. Historical processing alone is insufficient.
+`CatchUp` supplies ready receiver service, exact fresh HEAD service, named target
+service, and a constructor for proposal target service. Each retained object has
+its own ready anchor, HistorySafeAt, handler window and receiver epoch.
 
-`Count.fgsa_receiptCoverage_on` and `fgsa_active_path_of_coverage_on` use local
-ready anchors. `GateReceiptScope` passes the enabled actor, exact gate join guard,
-early-to-gate epoch and object services to the new ExactService `_on` forms.
-`SameLabelServiceScope` gives cross-reader HEAD service and each enabled read epoch.
-The explicit legacy forms still require `NoRestart`.
+`Count` and `GateReceiptScope` keep their local sleep interfaces. `SameLabel`
+now derives SameLabelServiceScope from Base execution, restarts at wakes and
+LabelSyncOn. The public `Export.fgsa_sameLabelClaim` compiles with its old type.
 
-These are compiled proof interfaces. P-ShA remains open: Export lacks a supplier
-for the SameLabel service scope, and ten Regimes adapters still call legacy score
-or retained-geometry routes. See `docs/SLEEP-LEDGER.md`, P-ShA round 4.
+`ScoreServiceScope` supplies frozen HEAD service and named support block service
+in both directions. New ScoreRun and ExactHead forms prove support incidence,
+score equality, walk reflection, ghost transfer and exact joined HEAD output.
+
+`RetainedServiceScope` supplies proposal service and candidate-local score service.
+`RetainedExactHeadRunGeometryOn` guards every reader by joinedAt. New retained
+path, reflection and geometry forms build that record. H6/H6S/H17/L4R/HG1/L2
+read suppliers have `_joined` forms with the same reader guard.
+Tests.RetainedConsumers checks these guarded forms.
+
+`RegimesService` provides ten additive Clean/Recovery adapters. Existing names
+and types stay in their original files. The original Regimes target is still
+EXPECTED-FAIL: its ten legacy bodies request the removed global NoRestart field.
+That field cannot be reconstructed for an honest run with a wake restart.
+No public claim statement, baseline or exception changed.
+See `docs/SLEEP-LEDGER.md`, P-ShA round 5, for scopes and named family suppliers.
 
 ## Receipt relay update (2026-09-28)
 
