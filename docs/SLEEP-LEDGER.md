@@ -5104,3 +5104,62 @@ Full auxiliary API remains blocked by Healing.SupportTransfer (P-H2); its
 read-only build fails on inherited proof obligations. OutageAlignment now
 compiles. This supersedes the earlier missing-OutageAlignment note.
 No other public source change, protocol change, baseline change or STOP.
+
+### P-WC Round 3 — audit imports and finite event suppliers (2026-10-10)
+
+- RULING AUDIT-FRAGMENT: the round-2 serial fragment imports production modules.
+  It keeps the same 196 commands, coverage rows, and Tests.Axioms key. The
+  standalone WeakContinuationSleepAxioms audit remains registered by the test glob.
+- Internal statement, sleep port: wc_receiptOrigins and wcg_receiptOrigins
+  keep original network acceptances or the exact last local replay stamp.
+  Each replay origin carries restartFree from the post-restart index to the read.
+- WC StepFacts proves saved-result origins by event induction. Restart clears
+  saved rows. A suppressed gate appends none. Nonempty rows have an enabled
+  gate origin and an epoch from that gate to the current read.
+- WCG StepFacts extracts the same family-local suppliers from Dynamics.
+  wcg_finiteFacts and wcg_finiteStep need no WC proof import.
+- wc_reconcileBound now scopes the later output reader by confirmedReaderIdx.
+  This is an internal statement repair. Unconfirmed readers can expose received
+  finality above their retained output, so wc_outputStep includes that third case.
+- wc_outputStep handles restart, delivery, off-gate, enabled gate, and suppressed
+  gate output cases. Its explicit finality-compatibility input remains a local
+  obligation of the joint induction. The joint WCInv producer is still open.
+- wc_finalBelow uses receipt collision freedom through its safety projection.
+  Public Claims/Statements and public P23 remain unchanged.
+
+### P-WC Round 3 — full restart preservation and T49 history (2026-10-10)
+
+- wc_stepRestart and wcg_stepRestart prove their complete preservation statements.
+  A wake keeps FG data, obligations, and outputs. Each historical result precedes
+  the restart. Finite facts reestablish exact receipt and volatile-row origins.
+  Both families keep the scoped served and transition fields. The original Step
+  and Dynamics restart cases now use these proofs and no longer eliminate False.
+- T49: wc_history_previousHeads keeps all-time joined participation until it
+  selects z at the earlier gate. The original y stays the joined HEAD reader.
+  wc_historyMax takes ScheduleWellFormed before it derives enabled results.
+  Supplier module: WC/ProposalHistory. Proposal's path and Count work stays open.
+- WCG StepOutput, StepReconcile, and FinalBelow are separate family suppliers.
+  Their statements use the same local output cases and approved reader scopes
+  as WC. Dynamics imports them. Its joint-induction body remains EXPECTED-FAIL.
+- Copied private helper names are distinct by family. Private unfolding lemmas
+  prevent imported storeAt equation exports. No baseline or allowance changed.
+- Four original targets are GREEN. The remaining 17 original targets have owner
+  P-WC. All five open family tests still have local owned proof dependencies;
+  none is classified as waiting only for a P-As bridge.
+
+### P-WC Round 3 — final prepared validation (2026-10-10)
+
+- Final source DCK PASS: 519 GREEN modules, 39 strict roots, 3,539 results,
+  and all 24 controls. The map has 66 targets: 49 GREEN and 17 EXPECTED-FAIL.
+- Complete local exports/coverage PASS: 165 proof modules, 251 exports,
+  zero unaccepted, and 214 audit rows. All 196 round-2 serial rows remain
+  under the existing Tests.Axioms key. No coverage key or allowance was added.
+- Layers: 72 inherited findings, zero new. Source scopes and whitespace pass.
+  All added Lean lines are at most 100 characters. Public claims are unchanged.
+- Empty's local restart step now supplies the exact wake time to restore.
+  Its joined proposer supplies the awake and restart-cutoff projections.
+  The stale source NoRestart argument was removed from the internal live adapter.
+  Empty still has local reader-scope failures. Its no-participation/no-half-cap
+  route was not strengthened. The full 21-target closure is not complete.
+- Declarations, exact types, audit/coverage/architecture fragments, and remaining
+  compiler diagnostics are listed in the P-WC Round 3 report and handoff.

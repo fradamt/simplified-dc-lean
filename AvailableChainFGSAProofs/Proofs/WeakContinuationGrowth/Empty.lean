@@ -163,7 +163,7 @@ theorem wcg_growthOfOutputs (hb : Base₂ p c E' rho) (u : Slot)
   obtain ⟨s, hfuture, hupper, hh, ha⟩ := hrecurrence t ht hwindow
   have hs := hb.valid.toScheduleWellFormed
   obtain ⟨B, hprop, hslot⟩ := fgsa_honestProposal_exists_of_awake_slot E' rho hs
-    hb.delta hh ha (hupper.trans hwindow)
+    hb.delta hh ha.1 ha.2.2 (hupper.trans hwindow)
   have hstart : u + 2 ≤ s := by
     by_contra h
     have hsu : s ≤ u + 1 := by
@@ -205,7 +205,7 @@ variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
     {E E' : Generic.Env V} {source rho : V2.D.Run V (fgsa p c)}
 private def localStep (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (x : V) (st : (fgsa p c).State) : V2.Event V (fgsa p c).Object → (fgsa p c).State
-  | .restart v _ => if v = x then (fgsa p c).restore ((fgsa p c).durable st) else st
+  | .restart v t => if v = x then (fgsa p c).restore ((fgsa p c).durable st) t else st
   | .tick v t => if v = x then (V2.D.tick E rho st v t).1 else st
   | .deliver v o _ => if v = x then (fgsa p c).process st o else st
 
@@ -481,7 +481,7 @@ bridge is supplied. The bridge is a proof obligation, not a public premise. -/
 theorem wcg_empty_live_of_finalBelow
     (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (hb : Base₂ p c E' rho) (hs : V2.D.ScheduleWellFormed E source)
-    (hns : V2.D.NoRestart source) (hend : rho.horizon = source.horizon)
+    (hend : rho.horizon = source.horizon)
     {w : HealingWitness} {iSource : Nat} {ΔF : Time}
     (hseed : WCSeed p c E source w iSource)
     (hgate : SA.gateTime p.toParams w.u ≤ source.horizon)
@@ -493,8 +493,8 @@ theorem wcg_empty_live_of_finalBelow
       (afterTicksIdx rho (SA.gateTime p.toParams w.u)) ΔF := by
   have hr := hb.valid.toScheduleWellFormed
   have hsafety := hlive.safety hgate
-  have hout := wcg_empty_outputDomain ha hs hr hns hb.noRestart hend hseed hgate hsafety
-  have hincl := wcg_empty_inclusion ha hs hr hns hb.noRestart hend hgate hlive
+  have hout := wcg_empty_outputDomain ha hs hr hend hseed hgate hsafety
+  have hincl := wcg_empty_inclusion ha hs hr hend hgate hlive
   have hsafety' := hsafety
   rw [hseed.cut] at hsafety'
   obtain ⟨hc, hm, hserved⟩ := wcg_empty_stateSafety ha hs hr hend hsafety'
