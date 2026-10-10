@@ -5060,3 +5060,16 @@ unaccepted, Gen zero exports, coverage control PASS. Layers: 72 inherited, zero
 new. No proof, public claim, protocol, allowance or baseline changed.
 The lead note after the P-Ar round 3 review is CLOSED for P-Cl1.
 Evidence: .lake/sleep-par-r4/pcl1-{dck,generate,exports}.log and pcl1-coverage.txt.
+
+
+### P-Ar Round 4 — canonical fragment repair (2026-10-10)
+
+This block belongs to P-Ar. Removed all 14 Tests.OutageArming declarations from
+the canonical audit fragment and its owner group from the coverage fragment.
+All 14 direct commands remain in Tests/OutageArming. The production fragment
+has 145 commands and exactly 145 owner rows. Added its missing production
+ArmingGate import. The production-only import closure compiles, and all strict
+results use only the permitted standard axioms. No canonical test import, key,
+allowance or baseline was added. Evidence: .lake/sleep-par-r4/ParFragment.lean
+and par-fragment.log. The round-3 fragment defect is CLOSED.
+General sleep certificate construction remains OPEN.

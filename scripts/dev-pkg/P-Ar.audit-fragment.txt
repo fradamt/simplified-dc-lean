@@ -9,13 +9,9 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ArmingOutput
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
 public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.cut_at_gate
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.pending_after_horizon
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.saved_rows_erased_at_restart
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.gate_reads_after_wake
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.asleep_has_no_tick
 #print axioms AvailableChain.FGSA.Run.arming_tick_exists
 #print axioms AvailableChain.FGSA.Run.arming_block_early
 #print axioms AvailableChain.FGSA.Run.arming_head_ge
@@ -66,14 +62,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 #print axioms AvailableChain.FGSA.Run.arming_fresh_head_service
 #print axioms AvailableChain.FGSA.Run.arming_proposal_service
 #print axioms AvailableChain.FGSA.Run.arming_pending_rows_on
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.emitted_cases
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.valid
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.roots
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.healthy
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.joined_all
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.base
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.regime
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.prefix_receipt
 #print axioms AvailableChain.FGSA.Run.arming_gate_ne_vote
 #print axioms AvailableChain.FGSA.Run.arming_gate_ne_proposal
 #print axioms AvailableChain.FGSA.Run.arming_F_mono
@@ -164,7 +152,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 #print axioms AvailableChain.FGSA.Run.arming_slow_current_rows_on
 #print axioms AvailableChain.FGSA.Run.arming_receiver_read_epoch
 #print axioms AvailableChain.FGSA.Run.arming_healthy_batch_protected
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.current_row_consumer
 #print axioms AvailableChain.FGSA.Run.arming_tick_store
 #print axioms AvailableChain.FGSA.Run.arming_head_seats
 #print axioms AvailableChain.FGSA.Run.arming_saved_map

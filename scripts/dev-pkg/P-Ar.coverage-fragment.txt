@@ -161,18 +161,3 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingStep
   AvailableChain.FGSA.Run.arming_writeKeys_stable
   AvailableChain.FGSA.Run.arming_write_keep
   AvailableChain.FGSA.Run.arming_write_row
-AvailableChainFGSAProofs.Tests.OutageArming
-  AvailableChain.FGSA.Run.Tests.OutageArming.asleep_has_no_tick
-  AvailableChain.FGSA.Run.Tests.OutageArming.current_row_consumer
-  AvailableChain.FGSA.Run.Tests.OutageArming.cut_at_gate
-  AvailableChain.FGSA.Run.Tests.OutageArming.gate_reads_after_wake
-  AvailableChain.FGSA.Run.Tests.OutageArming.pending_after_horizon
-  AvailableChain.FGSA.Run.Tests.OutageArming.saved_rows_erased_at_restart
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.base
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.emitted_cases
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.healthy
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.joined_all
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.prefix_receipt
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.regime
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.roots
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.valid
