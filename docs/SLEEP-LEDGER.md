@@ -2129,3 +2129,33 @@ its proposed status change. The P-ShA map adds the required merged P23 audit inp
 
 Validation and exact source locations are in claude-files/sleep-psha-report.md,
 Round 3. Only compiled green modules are covered by the successful checks.
+
+
+## P-Fi prepared core — sleep-pfi at base 1c777e97
+
+The P-Fi prepared set is in scripts/dev-pkg/P-Fi.txt. It has 473 GREEN modules
+and 36 EXPECTED-FAIL modules. No package closure or full gate pass is claimed.
+DCK PASS: --wfail, strict audits, and default negative controls (317.69 s).
+Complete compiled exports: 104 proof modules, 251 exports, 0 unaccepted (15.16 s).
+Layers: 72 accepted findings, 0 new. No heartbeat or baseline value changed.
+
+- P-Fi / P9 / D045-D047, D051: Claims/Finality uses recoveryStart in first/GST
+  deadlines, RecoverySleep₂ for KernelACSideClaim_W, and confirmedReader for
+  record growth. These are the approved packet replacements, not new meanings.
+  Strict checks are at the end of the owning claim module; no foreign audit
+  import or new coverage key is needed.
+- P-Fi / durable finality: Finality/RestoreReads proves strict-before acceptance
+  from an index witness, deadline monotonicity, and ancestor monotonicity through
+  restore. Finality/Accept uses the new index bridge. Consumer: fgsa_acceptBefore_W
+  and fgsa_finalizePending_W. F remains durable; no global NoRestart is inferred.
+- P-Fi / exact receiver scope: Finality/RecoveryScope bounds honest restarts by
+  GST, derives restartFree on the specified event-index interval, and supplies
+  joinedAt only when GST is below the inclusive join cutoff. Consumers: later
+  Finality middle, tail, proposal, and receipt ports. These internal suppliers
+  preserve all receiver, label, time, and horizon conditions.
+
+P-ShA open imports: Shared/HeadAdmit and Shared/Regimes prevent validation of
+Finality rows/frame/receipt consumers. Do not replace their interfaces locally.
+P-Fi still owns the CoreServices, Rows, MiddleSupport, and later family ports.
+S-Ap/Run audit inputs retain the map owners from the P-ShA handoff. The package
+report carries the audit inventory and root-import fragments for lead integration.

@@ -26,7 +26,7 @@ def KernelACSideClaim_W : Prop :=
   ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (w : HealingWitness),
-    Recovery₂ p c E rho G ΔF → LivenessBoundW p ΔF →
+    RecoverySleep₂ p c E rho G ΔF → LivenessBoundW p ΔF →
     HealingInput p c E rho w ΔF → CoreServices p c E rho w
 
 /-- Blueprint 22:1171–1180. DC: INTENTIONAL joined W kernel contract. -/
@@ -51,7 +51,7 @@ Compare each accepted carrier K of the current F with H(U), not with H(F). -/
 def FinalityLivenessConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (t deadline : Time) : Prop :=
   ∃ U : FGBlock (Fin p.n),
-    (∀ x ∈ rho.honest,
+    (∀ x, confirmedReader p c E rho x t →
       Block.Prec (V2.D.Run.readAt E rho t x).st.base.stableRecord (eraseFG U)) ∧
     (∀ x ∈ rho.honest, ∀ K ∈ (V2.D.Run.readAt E rho t x).st.fg.TF,
       (finalityView p K).F = (V2.D.Run.readAt E rho t x).st.fg.F →
@@ -62,7 +62,7 @@ def FinalityLivenessConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
 def FirstFinalityConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time) (G : Time)
     (deadline : Time) : Prop :=
-  ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
+  ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < recoveryStart p E + B_HF p ΔF G ∧
     FinalityLivenessConcl_W p c E rho (tstar p w) deadline
 
 /-- Blueprint 22:1421–1430. DC: INTENTIONAL specified proposal prefix coverage. -/
@@ -84,7 +84,7 @@ def FirstFinalityRecFEClaim_W : Prop :=
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     FirstFinalityPrem_W p c G ΔF .recFE g E rho pt →
-    FirstFinalityConcl_W p c E rho ΔF G (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
+    FirstFinalityConcl_W p c E rho ΔF G (recoveryStart p E + B_HF p ΔF G + W_W p ΔF g)
 
 /-- Blueprint 22:1382–1384. DC: INTENTIONAL FirstFinality W contract; full finite horizon.
 The conclusion supplies a HealingInput witness from H-time. -/
@@ -93,7 +93,7 @@ def FirstFinalityRecF4Claim_W : Prop :=
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     FirstFinalityPrem_W p c G ΔF .recF4 g E rho pt →
-    FirstFinalityConcl_W p c E rho ΔF G (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
+    FirstFinalityConcl_W p c E rho ΔF G (recoveryStart p E + B_HF p ΔF G + W_W p ΔF g)
 
 /-- Blueprint 22:1371–1380. DC: INTENTIONAL FinalityLiveness W contract; full finite horizon.
 The package supplies one common HealingInput witness. -/
@@ -160,7 +160,7 @@ def FinalityLivenessGSTClaim_W (form : FinFormW) : Prop :=
     (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (pt : PtT),
     FinalityLivenessGSTPrem_W p c G ΔF form g E rho pt →
-    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < recoveryStart p E + B_HF p ΔF G ∧
       FinalityLivenessConcl_W p c E rho pt.t
         (pt.t + W_W p ΔF g) ∧
       (pt.t + liveDCDeadline_W p ΔF G g ≤ rho.horizon →
@@ -174,7 +174,7 @@ def ProposalFinalGSTClaim_W (form : FinFormW) : Prop :=
     (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (pt : PtSX),
     ProposalFinalGSTPrem_W p c G ΔF form g E rho pt →
-    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < recoveryStart p E + B_HF p ΔF G ∧
       ProposalFinalConcl_W p c E rho pt.X
         (V2.D.proposalTime (fgsaInterface p c) pt.s +
           W_W p ΔF g)
@@ -187,9 +187,18 @@ def AboveFrontierGSTClaim_W (form : FinFormW) : Prop :=
     (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (pt : PtT),
     AboveFrontierGSTPrem_W p c G ΔF form g E rho pt →
-    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < recoveryStart p E + B_HF p ΔF G ∧
       AboveFrontierConcl_W p c E rho pt.t
         (pt.t + 2 * W_W p ΔF g)
 
 end AvailableChain.FGSA.Run
 end
+
+#print axioms AvailableChain.FGSA.Run.KernelACSideClaim_W
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessConcl_W
+#print axioms AvailableChain.FGSA.Run.FirstFinalityConcl_W
+#print axioms AvailableChain.FGSA.Run.FirstFinalityRecFEClaim_W
+#print axioms AvailableChain.FGSA.Run.FirstFinalityRecF4Claim_W
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTClaim_W
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTClaim_W
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTClaim_W
