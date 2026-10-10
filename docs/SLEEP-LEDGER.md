@@ -5841,3 +5841,34 @@ the local audit consumers use those names. No public claim changed.
 Production build: ArmingConstruction dependency cone PASS with --wfail.
 Headers: no P-Ar failure; two P-Ou findings remain in GoodVotes/RestoredBatch.
 Layers: 72 inherited findings, zero new. P-Ou owns both header repairs.
+
+### P-Ar Round 6 — finite certificates and closure (2026-10-10)
+
+P-Ar CLOSED. Both Round 5 review fixes now pass in the P-Ar scope.
+All 22 owned targets are GREEN. Public claims and the principal arming
+constructor/history/gate export types are unchanged. No public STOP.
+Import repair commit: 244016e1. Final source: Tests/OutageArming.lean.
+Finite.positive_fast:1363 and Finite.positive_slow:1375 have no proof inputs.
+Both prove ExecutionValid, a non-genesis stable read, a protected receiver,
+an arming certificate, and the executed pending-gate lease conclusion.
+Fast: b0=earlyTime(3)=14, no label-2 result; the comparison result has label 1.
+It inhabits ArmingSleepGateCert. ArmingSleepCert.max_mem at label 2 cannot
+coexist with no_last; the slow witness inhabits that record instead.
+Slow: label-2 result and current-epoch saved row; both gate proofs consume
+the production exports and require an active lease, since F is genesis.
+Parameters: Delta=1, n=1, k=2, R=2, eta=0; 25 events, horizon 18.
+These are direct finite record/export witnesses, not full OutageSleep2
+inhabitation claims. The sparse fast trace's late HEAD 2 violates healthy
+prefix delivery; no healthy premise is assumed or fabricated. Existing
+regime/Clean producer consumers and the negative EarlyCut tests still pass.
+Default heartbeats are retained. The fixture has maxRecDepth=2048 for the
+finite state reduction stack. No proof or project axiom was added.
+DCK PASS: 22 targets / 490 GREEN; 38 strict roots / 3,225 results; 24 controls.
+Local strict audit: 261 results; production fragment: 207 results.
+Complete GREEN export check: 294 modules / 253 exports / zero unaccepted.
+Complete local coverage: 261 commands / 170 modules / zero unaccepted.
+Only propext, Classical.choice, Quot.sound occur. Layers: zero new.
+Headers: no P-Ar failure; GoodVotes/RestoredBatch failures remain with P-Ou.
+hRows remains the exact OPEN P-Ou source-history input at the pending cut.
+No P-Ou, P-As, P-H1, P-H2, P-WC, Shared, or Model source was edited.
+Handoff: scripts/dev-pkg/P-Ar.round6-handoff.md. Evidence: .lake/sleep-par-r6/.
