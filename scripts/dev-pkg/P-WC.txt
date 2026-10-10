@@ -1,4 +1,4 @@
-# P-WC r5: PREPARED; all 71 targets GREEN; P-As caller ports remain.
+# P-WC r6: PREPARED; all 71 targets GREEN; P-As caller ports remain.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput

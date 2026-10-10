@@ -5175,3 +5175,16 @@ fgsa_target_service_of_proposal. Genesis uses fgsa_target_service_genesis,
 the one Shared addition authorized by sleep-pwc-pending-fixes.md item 1.
 No public claim or existing statement changes. The module-header check passes.
 The standalone sleep audit and serial fragments include the new theorem.
+
+## P-WC Round 6 — SCOPE-NARROW audit (2026-10-10)
+
+Audited 265 exported family theorem signatures and their full interfaces.
+The report and handoff contain 79 grouped rows with producer anchors, open
+owners, and finite-sleep truth. The exact 2,065 explicit binder entries are
+in claude-files/sleep-pwc-round6-input-inventory.json. No false universal
+receipt/gate/join/time-cut shape was found in the repaired owned service
+routes. No public statement or claim changes. The recovered source snapshot
+and four conditional NoRestart legacy helpers are not arbitrary-run facts.
+The P-As source/epoch/cached-coverage caller ports remain open. PREPARED.
+Headers PASS; layers zero new; exports zero unaccepted; DCK PASS (43 strict
+roots, 3,663 results, 24 controls); strict local production audit 314 results.

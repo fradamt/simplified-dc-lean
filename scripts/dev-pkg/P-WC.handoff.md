@@ -475,3 +475,418 @@ Only propext, Classical.choice, and Quot.sound occur. Layers: 72 inherited /
 zero new; source scopes PASS. git diff --check and added-line bounds PASS.
 Proof commits: 54542242 and 9d6e4742. No new module or allowance is needed.
 All owned work is GREEN. Status: PREPARED for serial integration and P-As ports.
+
+## Round 6 — import repair and input audit
+
+Base ef79e7cf; source commit c914737e. PREPARED. All 71 targets remain GREEN.
+ExactReceipts uses the public CatchUp import and target-service constructors.
+One authorized theorem: fgsa_target_service_genesis, Shared/CatchUp:417.
+Its type is TargetReceiptService E rho Block.genesis freeze x; proof Or.inl rfl.
+Public claims and existing statement types are unchanged.
+
+Validation PASS: DCK (43 strict roots, 3,663 results, 24 controls); headers;
+layers (72 inherited / zero new); complete local exports (207 proof modules /
+252 exports / zero unaccepted); 314 local coverage commands; source scopes;
+git diff --check. All 265 public family theorem types print without truncation.
+
+Serial integration: use the Round 6 audit, coverage, and architecture fragments
+in claude-files/. They retain all Round 5 rows and add the genesis theorem
+under the existing Tests.Axioms key. Production imports only. Do not copy
+the standalone sleep audit as an import into Tests.Axioms.
+
+The Round 5 exact component types and unowned caller anchors still apply.
+The next table names true scoped producers and exact open obligations.
+Each of 2,065 explicit binder entries is classified in
+claude-files/sleep-pwc-round6-input-inventory.json. Full source telescopes and
+record fields are in sleep-pwc-round6-input-signatures.txt; compiled types
+are in sleep-pwc-round6-supplier-types.txt. No anonymous premise is omitted
+from the full type evidence. The table groups repeated fields once.
+
+## Round 6 — SCOPE-NARROW input audit
+
+Scope: all 265 public theorems declared in the two owned proof directories,
+plus their WC statement and WCG interface telescopes. Both Export facades
+contain imports only. The audit includes local suppliers visible through those
+imports; it does not claim closure of imported unowned family packages.
+
+Abbreviations: WC = Proofs/WeakContinuation; WCG = Proofs/WeakContinuationGrowth;
+Foundations, Shared, and Assembly = the corresponding FGSAProofs/Proofs paths;
+Regimes = FGSAClaims/Statements/Regimes. Full paths and exact hypotheses are in
+claude-files/sleep-pwc-round6-input-signatures.txt. Compiled types are in
+claude-files/sleep-pwc-round6-supplier-types.txt. Repeated telescope inputs are
+listed once below; 2,065 explicit named binder occurrences are classified in
+claude-files/sleep-pwc-round6-input-inventory.json; each occurrence retains its
+full quantifiers in those files.
+Rows 66 and 67 cover individual selected facts and data parameters. They
+are conditional inputs, not unproduced universal service records.
+
+TRUE means true in the stated regime and selected scope. A valid finite run
+alone does not imply synchrony, hash idealization, fault/participation bounds,
+recovery, a seed, or agreement with another run. These public conditional
+premises are not hidden new assumptions. No record is claimed true at arbitrary
+cuts. Named unowned declarations with open ports are not certified by this
+package DCK. A consumer, restriction, or conversion is not counted as producer.
+
+Producer anchor: wc_finalBelow at
+  AvailableChainFGSAProofs/Proofs/WeakContinuation/FinalBelow.lean:17.
+Producer anchor: wc_finiteFacts at
+  AvailableChainFGSAProofs/Proofs/Assembly/WeakContinuation.lean:412.
+Producer anchor: wc_relay_head_relay_scope at
+  AvailableChainFGSAProofs/Proofs/WeakContinuation/HeadRelay.lean:429.
+Producer anchor: wc_relay_head_emission_scope at
+  AvailableChainFGSAProofs/Proofs/WeakContinuation/HeadRelay.lean:1065.
+Producer anchor: wc_transfer_path_coverage at
+  AvailableChainFGSAProofs/Proofs/WeakContinuation/AnchorCoverage.lean:162.
+Producer anchor: wcg_transfer_path_coverage at
+  AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/AnchorCoverage.lean:162.
+Producer anchor: wcg_retrospective at
+  AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:256.
+Producer anchor: wc_retained_score_scope at
+  AvailableChainFGSAProofs/Proofs/WeakContinuation/ExactReceipts.lean:125.
+Producer anchor: wc_local_proposal_service at
+  AvailableChainFGSAProofs/Proofs/WeakContinuation/ExactReceipts.lean:13.
+Producer anchor: wc_accepted_target_service at
+  AvailableChainFGSAProofs/Proofs/WeakContinuation/ExactReceipts.lean:90.
+Producer anchor: wc_emitted_proposal_service at
+  AvailableChainFGSAProofs/Proofs/WeakContinuation/ExactReceipts.lean:250.
+Producer anchor: fgsa_storedTargetsBelowOutput at
+  AvailableChainFGSAProofs/Proofs/Foundations/Leases.lean:58.
+
+```text
+┌───────────────────────────────┬───────────────────────────────┬───────────────────────────────┐
+│ Explicit input                │ Status / named producer /     │ Ordinary finite sleep run     │
+│                               │ open owner                    │                               │
+├───────────────────────────────┼───────────────────────────────┼───────────────────────────────┤
+│ 01 valid; schedule;           │ Named: Base₂.valid; Execution │ TRUE for valid finite runs.   │
+│ hV/hE/hS/hschedule            │ Valid.toScheduleWellFormed.   │ Schedule is a projection.     │
+│                               │ Regimes:20.                   │                               │
+│ 02 linked; cstar              │ Input: Base₂.linked/cstar,    │ Conditional setup law;        │
+│                               │ Regimes:21-22. Owner: regime  │ validation alone does not     │
+│                               │ caller.                       │ imply it.                     │
+│ 03 RestartsAtWakes;           │ Input: Base₂.restartsAtWakes, │ TRUE in approved finite sleep │
+│ hwakes/hnr                    │ Regimes:23. Owner: regime     │ runs; no global NoRestart     │
+│                               │ caller.                       │ inference.                    │
+│ 04 delta; deltaF; ΔF; G and   │ Input: Base₂.delta and        │ Conditional parameter laws;   │
+│ gapPos                        │ synchrony regime. Owner:      │ not arbitrary run facts.      │
+│                               │ regime caller.                │                               │
+│ 05                            │ Input:                        │ Conditional digest            │
+│ NamedReceiptRootCollisionFree │ Base₂.receiptIdealization,    │ idealization on named receipt │
+│                               │ Regimes:27. Owner: regime     │ scope; not all values.        │
+│                               │ caller.                       │                               │
+│ 06 NamedRootCollisionFree     │ Named: Base₂.idealization,    │ TRUE under receipt            │
+│                               │ Regimes:32. Safety-only       │ idealization; conditional     │
+│                               │ projection.                   │ otherwise.                    │
+│ 07 PartialSynchronyBy; hsync  │ Input: Recovery₂.sync,        │ Conditional delivery regime;  │
+│                               │ Regimes:98;                   │ bounds only ready,            │
+│                               │ continuation.sync. Owner:     │ non-excluded objects.         │
+│                               │ caller.                       │                               │
+│ 08 fault count; FaultQ;       │ Named:                        │ Conditional WC bound. No      │
+│ FaultX                        │ Foundations/Counts:14,19.     │ FaultX required by WCG.       │
+│                               │ Input fault count: regime     │                               │
+│                               │ caller.                       │                               │
+│ 09 joined participation;      │ Input: continuation           │ Conditional count at all      │
+│ hpart/hP                      │ joinedParticipation;          │ covered times. Does not       │
+│                               │ source/suffix join port.      │ require all honest joined.    │
+│                               │ Open: P-As.                   │                               │
+│ 10 WCG FaultQ / half cap      │ Proved: WCG/Counts:32,49,57   │ TRUE on the nonempty route.   │
+│                               │ from nonempty suffix          │ Empty suffix has no half-cap  │
+│                               │ participation.                │ premise.                      │
+│ 11 FinalitySlashableBound;    │ Input: WCG                    │ Conditional public            │
+│ haccountable                  │ continuation.accountable.     │ accountability bound, permits │
+│                               │ Owner: regime caller.         │ retained-set shrink.          │
+│ 12 RStore; hstore             │ Named: Foundations/Store:19   │ TRUE for protocol stores,     │
+│                               │ fgsa_rStore.                  │ also through restart.         │
+│ 13 RStoreDurable              │ Named: Foundations/Store:35   │ TRUE across restarts; durable │
+│                               │ fgsa_rStoreDurable.           │ trees and signed rows only.   │
+│ 14 RStoreEpoch                │ Named: Foundations/Store:39   │ TRUE for the exact receiver   │
+│                               │ fgsa_rStoreEpoch.             │ restart-free index interval.  │
+│ 15 RMonoAll; hmono            │ Named: Foundations/Store:46   │ TRUE through restart; FG      │
+│                               │ fgsa_rMonoAll.                │ state bounds, not raw vote    │
+│                               │                               │ stamps.                       │
+│ 16 RActive; hactive           │ Named: Foundations/Store:84   │ TRUE for active views. No     │
+│                               │ fgsa_rActive.                 │ receipt request for all       │
+│                               │                               │ durable TF blocks.            │
+│ 17 RFrameExactNext; hframe    │ Named: Foundations/Store:78   │ TRUE structural frame         │
+│                               │ fgsa_rFrameExactNext.         │ identity at the actual store. │
+│ 18 RFrameNextEpoch; hmeta     │ Named: Foundations/Store:153  │ TRUE with the field's         │
+│                               │ fgsa_rFrameNextEpoch.         │ receiver epoch. No all-run    │
+│                               │                               │ stamp persistence.            │
+│ 19 RRec; hrec                 │ Named:                        │ TRUE store reconcile law.     │
+│                               │ Foundations/Reconcile:80      │                               │
+│                               │ fgsa_rRec.                    │                               │
+│ 20 RGeo; hgeo; RCert; hcert   │ Named: Foundations/Certificat │ TRUE certificate geometry and │
+│                               │ es:15,30.                     │ validity laws.                │
+│ 21 TSrc; hsrc; LabelBound;    │ Named:                        │ TRUE scheduled source-time    │
+│ hlabel                        │ Foundations/Sources:35,131.   │ and label bounds.             │
+│ 22 RQCOrigin; hqc; RStrat;    │ Named:                        │ TRUE under valid linked setup │
+│ hstrat                        │ Foundations/Sources:316,428.  │ and FaultQ; not universal     │
+│                               │ Exact BasePrem caller port    │ receipt scopes.               │
+│                               │ open: P-As.                   │                               │
+│ 23 EmittedRowsNoSlash;        │ Named: Foundations/Client:17  │ TRUE under Linked; honest     │
+│ hnoslash                      │ fgsa_clientSafeAll.           │ emitted rows only.            │
+│ 24 hemitted                   │ Named:                        │ TRUE for the actual honest    │
+│ height/action/gate callback   │ Foundations/Sources:180       │ named row. Original source    │
+│                               │ sourceDiscipline_emittedName. │ gate and ancestry kept.       │
+│ 25 htargets stored obligation │ Named:                        │ TRUE for stored obligations   │
+│ callback                      │ FGSA/Proofs/LeaseOutput:35;   │ below cached output. Not TF   │
+│                               │ Foundations/Leases:58.        │ receipt service.              │
+│ 26 hlease origin and          │ Named:                        │ TRUE for actual writes; later │
+│ last-write callback           │ Foundations/Leases:500.       │ tests use enabledGateAt.      │
+│                               │ Enabled-guard adapter open:   │ Suppressed gates write no     │
+│                               │ P-As.                         │ lease.                        │
+│ 27 hfast epoch/origin         │ Named partial:                │ TRUE for volatile current     │
+│ callback                      │ Foundations/Leases:541. Exact │ fast writes; reset erases     │
+│                               │ restartFree adapter open:     │ them. Adapter is still        │
+│                               │ P-As.                         │ needed.                       │
+│ 28 hdeadlines protection      │ Named: Foundations/Leases:592 │ TRUE for actual obligation    │
+│ callback                      │ fgsa_leaseOrigins_ancestorDea │ ancestry and its stored       │
+│                               │ dlines.                       │ deadline.                     │
+│ 29 hheldRows carriage         │ Named:                        │ TRUE for actual HeldAt        │
+│ callback                      │ Foundations/Carrier:125       │ carriers, their rows, and     │
+│                               │ held_chain_row_origin_before. │ earlier delivery occurrences. │
+│ 30 hscopeRows callback        │ Named:                        │ TRUE for named in-run scope   │
+│                               │ Assembly/WeakContinuation:47  │ and honest signers, not       │
+│                               │ wc_scopedRowOrigins. Assembly │ emitted-only receipt scope.   │
+│                               │ port open: P-As.              │                               │
+│ 31 hfinalHead target-QC       │ Named: Foundations/Cap:293    │ TRUE for the actual honest    │
+│ callback                      │ cap_finality_head.            │ finality row and its exact    │
+│                               │                               │ target.                       │
+│ 32 WCSeed; hseed/hs           │ Named candidate:              │ Selected recovered source     │
+│                               │ Assembly/WC:480;              │ snapshot only. FALSE at an    │
+│                               │ Assembly/WCGSeed:137,283.     │ arbitrary finite cut.         │
+│                               │ Exact sleep port open: P-As.  │ RecoverySleep₂ keeps all      │
+│                               │                               │ honest awake after GST; no    │
+│                               │                               │ extra continuation join       │
+│                               │                               │ premise.                      │
+│ 33 WCFiniteFacts; finite      │ Proved suffix:                │ TRUE for bounded actual       │
+│ input                         │ WC/StepFacts:298;             │ stores and original           │
+│                               │ WCG/StepFacts:297. Source     │ occurrences under the lane    │
+│                               │ seed port open: P-As.         │ inputs.                       │
+│ 34 WCInv; hi/hinv/inv         │ Proved: WC/Induction:18;      │ TRUE after the selected       │
+│                               │ WCG/Dynamics:885 plus WC      │ WCSeed under lane inputs; not │
+│                               │ causal producer.              │ before that seed.             │
+│ 35 WCResult; hr/hresult       │ Proved existence:             │ TRUE for an actual nonempty   │
+│                               │ WC/StepGateHistory:19;        │ suffix result. FALSE for a    │
+│                               │ WCG/StepGateHistory:19.       │ suppressed gate result.       │
+│                               │ Enabled: WC/Epoch:142;        │                               │
+│                               │ WCG/Epoch:186.                │                               │
+│ 36 WCBelowHistory; hb/history │ Proved: WC/Safety:34,66;      │ TRUE for selected seed        │
+│                               │ WCG/Safety:34,66; invariant   │ prefixes or actual completed  │
+│                               │ origins.                      │ result origins.               │
+│ 37 WCFinalizedOccurrence; hf  │ Proved: WC/Origins:30 and     │ TRUE for scoped actual        │
+│                               │ WCG/Origins:111, from exact   │ carriers; no receipt required │
+│                               │ finality fields and row       │ for all TF members.           │
+│                               │ origins.                      │                               │
+│ 38 WCFinalityTargetEarlierSta │ Proved: WC/StepFinality:18    │ TRUE under exact held-row/QC  │
+│ tement; hcausal               │ wc_finalityTargetEarlier. WCG │ origin inputs. WCG producer   │
+│                               │ consumes that same additive   │ port open: P-As.              │
+│                               │ supplier.                     │                               │
+│ 39 WCDutyInput; hd/h          │ Proved selection:             │ TRUE only for actual enabled  │
+│                               │ WC/ProposalService:42, actual │ duties. FALSE for arbitrary   │
+│                               │ joined clock; gate pre-join:  │ suppressed duty inputs.       │
+│                               │ WC/Epoch:158; WCG/Epoch:41.   │                               │
+│ 40 WCHeadRead; h/read         │ Proved: WC/StepTransfer:23;   │ TRUE for selected joined      │
+│                               │ WCG/Dynamics:256;             │ next-slot reads. Prior-slot   │
+│                               │ WC/ProposalHistory:149.       │ request has its own join      │
+│                               │                               │ guard.                        │
+│ 41 WCControllingRow           │ Selected certificate witness: │ TRUE only for an actual       │
+│                               │ WC/Frame:30 and WCG/Frame:30. │ controlling certificate row;  │
+│                               │                               │ preserves frame and ancestry. │
+│ 42 WCUsableHighSourcesBelow;  │ Open construction at selected │ Conditional selected source   │
+│ hhigh                         │ duty: caller P-WC; from WCInv │ bound, not receipt for every  │
+│                               │ high-source fields. Frame:30  │ W at every receiver.          │
+│                               │ consumes it.                  │                               │
+│ 43 WCFrameBelow / LiveBelow / │ Proved: WC/Frame:30,257,282;  │ TRUE at the selected duty     │
+│ PathBelow / DutyView          │ WCG/Frame:30,257,282.         │ under lane inputs; duty view  │
+│                               │ Requires actual duty and      │ is frozen for HEAD.           │
+│                               │ high-source evidence.         │                               │
+│ 44 WCProposalPivot; hpivot    │ Proved: WC/Proposal:860       │ TRUE for a selected honest    │
+│                               │ wc_proposalPivot.             │ proposal; previousHeads asks  │
+│                               │                               │ joined at the prior vote.     │
+│ 45                            │ Proved: WC/ExactProposal:260  │ TRUE for the exact emitted    │
+│ WCProposalAdmittedBeforeVote  │ wc_proposalAdmission.         │ proposal and an actual joined │
+│                               │                               │ consuming HEAD reader.        │
+│ 46 WCCachedSafety;            │ Proved: WC/Safety:285;        │ TRUE from seeded induction    │
+│ hcache/hsafe                  │ WCG/Safety:286. Source caller │ through finite horizon,       │
+│                               │ construction open: P-As.      │ including sleeping cached     │
+│                               │                               │ outputs.                      │
+│ 47 SeededInduction /          │ Proved: WC/Induction:18;      │ TRUE under their explicit     │
+│ FrameLive / Safety /          │ Frame:257; Safety:361;        │ lane telescopes. A callback   │
+│ FinalBelow callbacks          │ FinalBelow. WCG analogues use │ value is not an extra regime  │
+│                               │ Dynamics:885.                 │ fact.                         │
+│ 48 HeadRelayServiceScope;     │ Proved:                       │ TRUE for selected             │
+│ hScope                        │ WC/HeadRelay:429,928,1065;    │ accepted/emitted HEAD and     │
+│                               │ WCG equivalents. Exact        │ joined/enabled receiver;      │
+│                               │ anchors and receiver epoch.   │ service is guarded by         │
+│                               │                               │ non-exclusion.                │
+│ 49 ReceiverService /          │ Proved:                       │ TRUE for the selected         │
+│ TargetReceiptService          │ WC/ExactReceipts:13,90,250;   │ admissible target; receiver   │
+│                               │ Shared/CatchUp:417,422. No    │ floor F <= target is          │
+│                               │ input universal receipt       │ explicit. Genesis             │
+│                               │ bundle.                       │ unconditional.                │
+│ 50                            │ Proved:                       │ TRUE for selected             │
+│ ReceiptCoverageAnchorPremises │ WC/AnchorCoverage:47,162; WCG │ paths/receiver. Gate          │
+│                               │ counterparts;                 │ anchor=vote, deadline=early;  │
+│                               │ WC/ProposalService:138.       │ transfer anchor=early,        │
+│                               │                               │ deadline=freeze.              │
+│ 51 ScoreServiceScope;         │ Proved scopes:                │ TRUE only for exact           │
+│ RetainedServiceScope;         │ WC/ExactReceipts:125;         │ source/target joined duties,  │
+│ ScoreRunGeometry              │ ExactProposal:181. Geometry   │ target floors, actual frozen  │
+│                               │ selected by retained read     │ histories.                    │
+│                               │ suppliers.                    │                               │
+│ 52 IsGateTick; enabledGateAt; │ Selected event input. Enabled │ IsGateTick alone does not     │
+│ gatePassedAt                  │ producer:                     │ imply enabled. Nonempty gate  │
+│                               │ WC/Epoch:16,121,142;          │ result gives enabled. Raw     │
+│                               │ WCG/Epoch:16,186,192.         │ gate formula has no write     │
+│                               │                               │ claim.                        │
+│ 53 joinedAt / headReader /    │ Selected read guards;         │ TRUE only at the actual       │
+│ caughtUp / confirmedReaderIdx │ WC/ProposalService:14,42.     │ reader tick.                  │
+│                               │ Current epoch:                │ WakesAppliedAtIdx preserves   │
+│                               │ WC/Epoch:275,357,413;         │ same-time restart order.      │
+│                               │ WCG/Epoch:130.                │                               │
+│ 54 hH selected joined seats;  │ Proved local construction:    │ TRUE for selected joined seat │
+│ hL pool provenance            │ WC/StepGateBatch:91;          │ set and actual pool objects;  │
+│                               │ ProposalService:333; WCG gate │ no every-honest join          │
+│                               │ batch.                        │ requirement.                  │
+│ 55 hrec exact gate receipts;  │ Proved: WC/StepGateBatch:91;  │ TRUE for selected joined      │
+│ hbatch; hhead; hprior         │ Inclusion:170 constructs      │ cohort and enabled gate.      │
+│                               │ hhead/hprior for              │ Suppressed gates treated by   │
+│                               │ Inclusion:69.                 │ Epoch:165.                    │
+│ 56 hgate callback on current  │ Proved:                       │ TRUE for enabled gates only,  │
+│ enabled tick                  │ WC/Step:388,399,410,421 gate  │ after seed label. No write    │
+│                               │ cases; WCG/Dynamics:479.      │ requested at suppressed       │
+│                               │ StepOutput:92 is its          │ gates.                        │
+│                               │ consumer.                     │                               │
+│ 57 hservice later-reader      │ Proved: WC/StepService:284;   │ TRUE for confirmedReaderIdx   │
+│ callback                      │ WCG/StepService:283.          │ in current epoch; not all     │
+│                               │ Empty:682 consumes scoped     │ honest receivers.             │
+│                               │ source service.               │                               │
+│ 58 hcover cached exact        │ Proved WC: Growth:219-232     │ TRUE for selected honest      │
+│ proposal coverage             │ from Inclusion:170 and cached │ proposal whose gate fits      │
+│                               │ monotonicity. Source assembly │ horizon. Witness may be       │
+│                               │ port open: P-As.              │ outside retained honest set.  │
+│ 59 Empty hlive / hfinal /     │ Named: WC/Live:16;            │ TRUE on equal-horizon         │
+│ hincl / hproposals / hout     │ WCG/Empty:672,119,600. Growth │ retained replay from selected │
+│                               │ callbacks constructed in      │ source inputs. Empty needs no │
+│                               │ Empty:600.                    │ continuation count.           │
+│ 60 AgreesThrough₂ /           │ Input: continuation.agrees.   │ Conditional exact prefix or   │
+│ RetainedAgreesThrough₂; ha    │ Owner: caller; replay         │ per-retained-node             │
+│                               │ producers WC/Replay:19;       │ event/awake/input agreement.  │
+│                               │ WCG/EventReplay:13.           │ Never a consequence of        │
+│                               │                               │ validity alone.               │
+│ 61                            │ Input public regime. Owner:   │ Conditional regime; permits   │
+│ CleanGrowthContinuationSleep₂ │ caller; WCG/Counts:57         │ empty suffix and honest-set   │
+│ / Base₂; hb                   │ consumes it.                  │ shrink. No all-honest join    │
+│                               │                               │ field.                        │
+│ 62 hno directional            │ Proved: WCG/Origins:44 from   │ TRUE on scoped directional    │
+│ no-slashing callback          │ FinalitySlashableBound;       │ carriers under                │
+│                               │ lowFinalized:98 uses it.      │ accountability; no extra      │
+│                               │                               │ fault-count premise.          │
+│ 63                            │ Input public growth regime.   │ Conditional honest joined     │
+│ AwakeProposerRecurrenceFrom;  │ Owner: caller; Regimes:140.   │ proposer recurrence in        │
+│ hrecurrence                   │ Growth:35 and Empty:145       │ horizon windows.              │
+│                               │ consume it.                   │                               │
+│ 64 NoRestart legacy hnr       │ Open input: legacy-only       │ FALSE in finite runs with     │
+│                               │ caller.                       │ wakes/restarts. Not inferred  │
+│                               │ WC/Proposal:58,101,142,165.   │ or used by repaired WC/Live,  │
+│                               │ Owner: P-As caller port.      │ Inclusion, or exact service   │
+│                               │                               │ route.                        │
+│ 65 GST/read cuts; hGST;       │ Explicit selected timing      │ Conditional exact bounds.     │
+│ send/anchor/deadline bounds   │ inputs; WC/ExactProposal:22   │ GST<=vote never gives         │
+│                               │ window producer;              │ GST<=slotStart of same/prior  │
+│                               │ WC/Epoch:470,480 anchor       │ slot.                         │
+│                               │ checks.                       │                               │
+│ 66 Local event/member/decode/ │ Selected facts supplied by    │ Conditional on stated         │
+│ root/ancestry/floor/interval  │ the calling proof; exact      │ object/index. No assertion    │
+│ hypotheses                    │ per-theorem source in         │ for arbitrary inputs. Receipt │
+│                               │ input-signatures.txt. Owner:  │ service keeps actual          │
+│                               │ caller P-WC, or P-As at       │ F<=target or non-exclusion.   │
+│                               │ integration.                  │                               │
+│ 67 Parameters and data (E/rho │ Inputs, not proof             │ No truth value. Output        │
+│ /p/c/w/indices/blocks/slots/o │ obligations. Exact            │ selectors must name the two   │
+│ utputs)                       │ declarations and implicit     │ public getters when that      │
+│                               │ contexts in compiled          │ premise occurs.               │
+│                               │ supplier-types.txt.           │                               │
+│ 68 WCReceiptOrigins;          │ Proved:                       │ TRUE for actual stores.       │
+│ hreceipts                     │ WC/ReceiptOrigins:415;        │ Restored stamps equal the     │
+│                               │ WCG/ReceiptOrigins:415.       │ exact wake time; original     │
+│                               │ Replay ports preserve each    │ acceptance remains a trigger. │
+│                               │ original occurrence.          │                               │
+│ 69 RetainedReadPremises       │ Proved: WC/ExactProposal:40   │ TRUE for the exact            │
+│                               │ wc_retainedReads; Shared      │ proposal/HEAD pair and        │
+│                               │ retained-read suppliers.      │ selected comparison cone.     │
+│                               │                               │ Every receiver request has    │
+│                               │                               │ the actual joined guard.      │
+│ 70 WCLeaseOrigin /            │ Proved bounded suffix fields: │ TRUE for the actual stored    │
+│ WCTargetOrigin                │ WC/StepFacts:298;             │ lease or certified target,    │
+│                               │ WCG/StepFacts:297. Source     │ with the original source row  │
+│                               │ seed construction open: P-As. │ and enabled write. These are  │
+│                               │                               │ provenance, not remote        │
+│                               │                               │ receipt requests.             │
+│ 71                            │ Proved: WC/Origins:20 via     │ TRUE pure certificate/order   │
+│ WCFinalizedCrossingStatement; │ KitFG finalizedCrossing.      │ law under its explicit        │
+│ certificate-law callbacks     │ Instance: fgCertificateLaws.  │ certificate hypotheses; no    │
+│                               │                               │ run-wide delivery or join     │
+│                               │                               │ premise.                      │
+│ 72 hAw / hBound / hmarker     │ Proved at selected duty:      │ TRUE only for the actual      │
+│ local epoch callbacks         │ WC/ProposalService:58;        │ awake receiver interval and   │
+│                               │ enabled gate:                 │ restart marker. Not global    │
+│                               │ WC/Epoch:81,104. WCG          │ restart freedom.              │
+│                               │ analogues.                    │                               │
+│ 73 hB / hfinal joined-reader  │ Proved selected history/frame │ TRUE at the requested joined  │
+│ floor callbacks               │ comparison:                   │ vote tick, with the selected  │
+│                               │ WC/Proposal:329,399,521;      │ target floor; not every       │
+│                               │ WCInv. WCG transfer           │ honest receiver.              │
+│                               │ counterparts.                 │                               │
+│ 74 hF bounded receiver-floor  │ Proved from RMonoAll and      │ Conditional F<=selected       │
+│ callback                      │ selected F<=K bound;          │ target through the exact      │
+│                               │ WC/ProposalService:254 and    │ prefix. No all-TF target      │
+│                               │ both AnchorCoverage path      │ service requirement.          │
+│                               │ constructors.                 │                               │
+│ 75 hbefore / hcompleted /     │ Proved: WC/Proposal:234;      │ Conditional exact cut, label, │
+│ htest order callbacks         │ WC/ProposalHistory:84,133;    │ event, or replay filter.      │
+│                               │ WCG/EventReplay:13 and        │ These are order facts, not    │
+│                               │ Seed:62,76.                   │ enabled-gate existence        │
+│                               │                               │ claims.                       │
+│ 76 hclosed / hpath view-path  │ Named path producer:          │ TRUE on the selected          │
+│ callbacks                     │ WC/Frame:282;                 │ frame-to-target ancestry      │
+│                               │ WC/ProposalService:254.       │ path. No receipt request for  │
+│                               │ Caller must select the stated │ arbitrary durable TF          │
+│                               │ closed view.                  │ contents.                     │
+│ 77 hmax / hprev prior-result  │ Proved:                       │ TRUE for the bounded result   │
+│ callbacks                     │ WC/ProposalHistory:21,149;    │ maximum and prior joined      │
+│                               │ WC/Proposal:860.              │ reader. The prior vote needs  │
+│                               │                               │ its own join, not current     │
+│                               │                               │ join alone.                   │
+│ 78 hfinal next-event output   │ Proved local construction:    │ TRUE for the actual next      │
+│ compatibility callback        │ WC/Step:252; WCG/Dynamics     │ event from bounded history.   │
+│                               │ event induction.              │ Does not ask for service at   │
+│                               │ StepOutput:90 consumes it.    │ suppressed gates.             │
+│ 79 awake participation legacy │ Proved arithmetic consumer:   │ Conditional awake count gives │
+│ arithmetic input              │ WCG/Counts:15. Explicit count │ a half cap; it does not prove │
+│                               │ input belongs to caller.      │ duty join. Sleep production   │
+│                               │                               │ route uses joined             │
+│                               │                               │ participation at Counts:32.   │
+└───────────────────────────────┴───────────────────────────────┴───────────────────────────────┘
+```
+
+Audit result: no false universal receipt, gate, join, or time-cut requirement
+was found in the repaired P-WC service routes. No scope statement changes are
+needed in this round. Suppressed gates remain separate. Historical TF fields
+in WCSeed/WCInv preserve one selected recovered carrier; they request no
+receiver service for arbitrary durable carriers. RecoverySleep₂.awake and
+suffixNoRestart support the recovered source snapshot after the join window.
+They are not continuation premises. The exact WCSeed producer port remains
+P-As work. Its all-honest source snapshot is not asserted at arbitrary cuts.
+
+The four legacy NoRestart helpers remain conditional exports. They are false
+as unconditional sleep suppliers. Repaired production routes use receiver-local
+joined duty service. P-As must port its legacy callers; it must not synthesize
+NoRestart from RecoverySleep₂. This is an open integration obligation.
+
+Open producer ports: P-As must build the exact WC/WCG source seed and finite
+facts; supply the enabled last-write and fast-write epoch adapters; join the
+source cached safety and cached proposal coverage producers; and pass the
+proved WC finality-causality supplier to WCG. Existing Round 5 unowned caller
+anchors remain. No P-H1, P-H2, P-Ou, Assembly, Inhabit, public Claim, or public
+Statement file changes. Status remains PREPARED until these ports are closed.
