@@ -5231,3 +5231,31 @@ All 16 explicit new production declarations have direct commands. Layers:
 Exact P-Ou types and open inputs: scripts/dev-pkg/P-Ar.round4-handoff.md.
 Evidence: .lake/sleep-par-r4/par-{dck,exports,generate,fragment-final,types}.log,
 par-coverage.txt and layers-final.log.
+
+### P-Ar Round 5 — general fast comparison construction (2026-10-10)
+
+The equal-cut fast construction uses an earlier comparison result when no
+label-l gate executes. ArmingSleepGateCert keeps an actual result at q <= l,
+the comparison maximum, its FG lift, and the actual joined HEAD bounds.
+The previous joined batch supplies the next HEAD through its receiver epoch.
+It does not assume participation at the cut or an executed label-l result.
+The actual Clean retained-history supplier supplies joined HEAD provenance.
+The earlier gate witness follows from strict-before-cut joined participation.
+
+The new fast_arming_scoped_on constructs this certificate at every cut.
+pending_gate_lease_or_F_scoped_on returns the same full gate result and keeps
+the explicit named-row compatibility boundary for P-Ou. slow_arming_scoped_on
+converts the actual slow producer and includes its joined HEAD bounds.
+The five Round 4 export names and types are unchanged.
+
+Validation for this group: strict builds of ArmingConstruction and
+Tests.OutageArming PASS; actual Clean-to-fast-to-full-gate consumer PASS.
+All added production commands are in the standalone test and canonical
+production-only fragment. No public claim or protocol declaration changed.
+The duty-history group and full package checks remain in progress.
+P-Ar remains PREPARED until those checks pass.
+
+Round 5 first-group complete local audit: 218 commands, 168 proof modules,
+252 accepted exports, zero unaccepted, Gen zero exports; coverage control PASS.
+Layers: 72 inherited findings, zero new. Added Lean lines stay within 100 columns.
+The receiver service and scoring modules are registered as owned P-Ar targets.

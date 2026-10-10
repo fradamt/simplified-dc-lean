@@ -175,3 +175,40 @@ public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 #print axioms AvailableChain.FGSA.Run.fast_arming_on
 #print axioms AvailableChain.FGSA.Run.slow_arming_on
 #print axioms AvailableChain.FGSA.Run.arming_genesis_on
+
+# Round 5 production additions.
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingScores
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+
+#print axioms AvailableChain.FGSA.Run.arming_rest_bound_joined
+#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior_of_F_prefix_on
+#print axioms AvailableChain.FGSA.Run.inclusion_reader_scores_on
+#print axioms AvailableChain.FGSA.Run.ArmingReadWindow
+#print axioms AvailableChain.FGSA.Run.arming_fresh_head_service_window
+#print axioms AvailableChain.FGSA.Run.arming_proposal_service_trigger_window
+#print axioms AvailableChain.FGSA.Run.arming_proposal_anchor_service_window
+#print axioms AvailableChain.FGSA.Run.arming_target_service_window
+#print axioms AvailableChain.FGSA.Run.arming_head_not_excluded_window
+#print axioms AvailableChain.FGSA.Run.arming_window_epoch
+#print axioms AvailableChain.FGSA.Run.arming_window_read_epoch
+#print axioms AvailableChain.FGSA.Run.arming_healthy_batch_window
+#print axioms AvailableChain.FGSA.Run.arming_joined_window
+#print axioms AvailableChain.FGSA.Run.arming_window_mono
+#print axioms AvailableChain.FGSA.Run.arming_joined_gate_before
+#print axioms AvailableChain.FGSA.Run.ArmingJoinedProvenance
+#print axioms AvailableChain.FGSA.Run.arming_prefix_before_cut
+#print axioms AvailableChain.FGSA.Run.arming_joined_head_from_previous
+#print axioms AvailableChain.FGSA.Run.ArmingSleepGateCert
+#print axioms AvailableChain.FGSA.Run.arming_sleep_gate_cert_of_last
+#print axioms AvailableChain.FGSA.Run.arming_sleep_gate_core_scoped
+#print axioms AvailableChain.FGSA.Run.pending_gate_lease_or_F_scoped_on
+#print axioms AvailableChain.FGSA.Run.arming_fast_cert_of_comparison
+#print axioms AvailableChain.FGSA.Run.fast_arming_scoped_on
+#print axioms AvailableChain.FGSA.Run.arming_healthy_batch_heads
+#print axioms AvailableChain.FGSA.Run.ArmingJoinedBatchState
+#print axioms AvailableChain.FGSA.Run.arming_batch_at_on
+#print axioms AvailableChain.FGSA.Run.arming_head_covers_on
+#print axioms AvailableChain.FGSA.Run.arming_proposal_covers_on
+
+#print axioms AvailableChain.FGSA.Run.slow_arming_scoped_on
