@@ -99,10 +99,6 @@ theorem wc_dischargeL {ΔF : Time} {w : HealingWitness} {Result : Prop}
     (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
     (hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
       (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (consume : ∀
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
@@ -209,7 +205,7 @@ theorem wc_dischargeL {ΔF : Time} {w : HealingWitness} {Result : Prop}
     intro k w C hjk hki hEnabled
     exact hlast k w C hjk hki hEnabled.1
       (by rw [clockPre_joined]; exact fgsa_gate_joined_of_enabled E rho hEnabled)
-  · exact hfast
+  · exact fgsa_leaseOrigins_fastWrites_epoch p c E rho hs
   · exact fgsa_leaseOrigins_ancestorDeadlines p c E rho
   · exact held_chain_row_origin_before p c E rho hb.valid.toUnforgeableSignatures hs
   · exact wc_scopedRowOrigins hb.valid
@@ -236,7 +232,8 @@ theorem wc_sourceParticipation {G ΔF : Time} {w : HealingWitness}
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
     nlinarith [Nat.cast_nonneg (α := Int) (w.u + 1)]
   have hslot : (w.u : Int) + 1 ≤ (slotAt p t : Int) := by
-    rw [slotAt, Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
+    change (w.u : Int) + 1 ≤ ((t / (4 * p.Δ)).toNat : Int)
+    rw [Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
     have he := Int.mul_ediv_add_emod t (4 * p.Δ)
     have hr := Int.emod_lt_of_pos t hden
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
@@ -285,7 +282,8 @@ theorem wc_participation {E' : Generic.Env V} {source : V2.D.Run V (fgsa p c)}
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
     nlinarith [p.deltaPos, Nat.cast_nonneg (α := Int) (w.u + 1)]
   have hslot : (w.u : Int) + 1 ≤ (slotAt p t : Int) := by
-    rw [slotAt, Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
+    change (w.u : Int) + 1 ≤ ((t / (4 * p.Δ)).toNat : Int)
+    rw [Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
     have he := Int.mul_ediv_add_emod t (4 * p.Δ)
     have hr := Int.emod_lt_of_pos t hden
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
@@ -346,10 +344,6 @@ theorem wc_sourceJoinCut {w : HealingWitness} (h : H0 p c E rho w) :
 
 theorem wc_finiteFacts (hb : Base₂ p c E rho)
     (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (i : Nat) :
     WCFiniteFacts p c E rho i := by
   have hsch := hb.valid.toScheduleWellFormed
@@ -365,7 +359,7 @@ theorem wc_finiteFacts (hb : Base₂ p c E rho)
       intro k w C hjk hki hEnabled
       exact hlast k w C hjk hki hEnabled.1
         (by rw [clockPre_joined]; exact fgsa_gate_joined_of_enabled E rho hEnabled))
-    hfast
+    (fgsa_leaseOrigins_fastWrites_epoch p c E rho hsch)
     (fgsa_leaseOrigins_ancestorDeadlines p c E rho) i
 
 private def wc_seedHeadAtIdx (p : Params) {In : Type} (c : AppCodec In)
@@ -533,15 +527,11 @@ theorem wc_heightSeed_of_finite {G ΔF : Time} {w : HealingWitness}
 /-- The source seed consumes the family's finite-facts producer. -/
 theorem wc_heightSeed {G ΔF : Time} {w : HealingWitness}
     (hS : StrongRecoverySearchPrefix₂ p c E rho G ΔF)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (hinput : HealingInput p c E rho w ΔF) (hend : tstar p w < rho.horizon) :
     let i := afterTicksIdx rho (tstar p w)
     BoundedHealingCut₂ p c E rho w.u w.QStar i ΔF ∧ WCSeed p c E rho w i :=
   wc_heightSeed_of_finite hS hinput hend
-    (wc_finiteFacts hS.base hS.fault hfast)
+    (wc_finiteFacts hS.base hS.fault)
 
 /-- WC J1; DC continuation assembly: all [L] inputs, including the first suffix batch.
 The finite source seed is sufficient for the split at the inclusive source endpoint. -/
@@ -551,10 +541,6 @@ theorem wc_dischargeContinuation {E' : Generic.Env V} {source : V2.D.Run V (fgsa
     (hc : CleanContinuationSleep₂ p c E source E' rho ΔF)
     (_hs : WCSeed p c E source w iStar)
     (hjoin : E.t_GST ≤ slotStartZ p (w.u : Int))
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E' rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E' rho j x s ∧
-        gatePassedAt p c E' rho j ∧ ∃ B, gateResultAt p c E' rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E' rho x s X)
     (consume : ∀
   (_hvalid : V2.D.ExecutionValid E' rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
@@ -637,17 +623,11 @@ theorem wc_dischargeContinuation {E' : Generic.Env V} {source : V2.D.Run V (fgsa
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
       TargetQCAt p.E B fp.height (heightView p B).J), Result) : Result :=
   wc_dischargeL hc.base hc.sync hc.deltaF (wc_faultTransfer hS hc.toCleanContinuation₂)
-    (wc_participation hS hc hjoin) hfast consume
+    (wc_participation hS hc hjoin) consume
 
 /-- WC plan §8 Job 4 and r2.1; DC source witness before every continuation.
 Select H-time once, build the source seed once, then replay and discharge [L]. -/
-theorem fgsa_weakContinuationLiveClaim_of_hTime (hH : HTimeClaim p) (G : Time)
-    (hfast : ∀ (V : Type) [DecidableEq V] [Fintype V] (In : Type) (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), Base₂ p c E rho →
-      ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X) :
+theorem fgsa_weakContinuationLiveClaim_of_hTime (hH : HTimeClaim p) (G : Time) :
     WeakContinuationLiveClaim p G := by
   intro V _ _ In c ΔF hδ E source hS
   obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E source ()
@@ -655,12 +635,11 @@ theorem fgsa_weakContinuationLiveClaim_of_hTime (hH : HTimeClaim p) (G : Time)
   have hend : tstar p w < source.horizon := by
     rw [hS.endpoint]
     exact start.trans_lt bound
-  obtain ⟨cut, hs⟩ := wc_heightSeed hS (hfast V In c E source hS.base) input hend
+  obtain ⟨cut, hs⟩ := wc_heightSeed hS input hend
   refine ⟨w.u, w.QStar, afterTicksIdx source (tstar p w), cut, ?_⟩
   intro E' rho hc
   have hs' := wc_seedReplay hc.agrees hS.base.valid hs cut.beforeEnd
   apply wc_dischargeContinuation hS hc hs (wc_sourceJoinCut input.wit)
-    (hfast V In c E' rho hc.base)
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows

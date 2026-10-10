@@ -53,8 +53,9 @@ The open fields are firstFinalityRecFE, firstFinalityRecF4,
 finalityLivenessGSTRecFE, finalityLivenessGSTRecF4, proposalFinalGSTRecFE,
 proposalFinalGSTRecF4, aboveFrontierGSTRecFE, aboveFrontierGSTRecF4,
 availableGST, and availableGrowthGST. Each open field is a separate premise.
-All ten reduce to HTimeClaim through Shared/Claims; see `fgsaClaims_of_hTime`. -/
+HTimeClaim supplies weak continuation and the ten liveness fields through Shared/Claims. -/
 theorem fgsaClaims_of_open
+    (hH : HTimeClaim p)
     (hFirstFinalityRecFE : FirstFinalityRecFEClaim_W p)
     (hFirstFinalityRecF4 : FirstFinalityRecF4Claim_W p)
     (hFinalityLivenessGSTRecFE : FinalityLivenessGSTClaim_W p .recFE)
@@ -95,13 +96,13 @@ theorem fgsaClaims_of_open
   availableGST := hAvailableGST
   availableGrowthGST := hAvailableGrowthGST
   cleanGrowth := fgsa_cleanGrowthClaim_of_clean p (fgsa_cleanCutClaim p)
-  weakContinuationLive := fgsa_weakContinuationLiveClaim_of_hTime (healing_hTimeClaim p)
+  weakContinuationLive := fgsa_weakContinuationLiveClaim_of_hTime hH
 
 /-- SYN L58: the root from HTimeClaim alone. The FirstFinality, GST liveness and
 availability fields come from HTimeClaim and the closed local Rec claims
 (Shared/Claims adapters); every other field is as in `fgsaClaims_of_open`. -/
 theorem fgsaClaims_of_hTime (hH : HTimeClaim p) : FGSAClaims p :=
-  fgsaClaims_of_open p
+  fgsaClaims_of_open p hH
     (fgsa_firstFinality_recFE hH (fgsa_finalityLivenessRecFE_W p))
     (fgsa_firstFinality_recF4 hH (fgsa_finalityLivenessRecF4_W p))
     (fgsa_finalityLivenessGST_recFE hH (fgsa_finalityLivenessRecFE_W p)
@@ -124,13 +125,43 @@ both retained continuation branches. The frozen FGSAClaims field is unchanged. -
 theorem fgsa_weakContinuationGrowthClaim (p : Params) (G : Time) :
     WeakContinuationGrowthClaim p G := by
   intro V _ _ In c ΔF hδ E source hS
-  obtain ⟨w, hcut, hseed⟩ := wcg_sourceWitness (healing_hTimeClaim p) hδ hS
+  obtain ⟨w, hcut, hseed, hjoin⟩ := wcg_sourceWitness_joined (healing_hTimeClaim p) hδ hS
+    (wcg_finiteSeed hS.base (fgsa_faultQ_of_count p hS.fault))
   refine ⟨w.u, w.QStar, afterTicksIdx source (SA.gateTime p.toParams w.u), hcut, ?_⟩
   intro E' rho hc
   rcases hc.covered.lt_or_eq with hne | heq
-  · exact wcg_nonemptyLive hS hc hne
+  · exact wcg_nonemptyLive hS hc hne hjoin
       (wcg_retainedSeed hS hc hne hseed hcut.beforeEnd.le)
-  · exact wcg_emptyLive hS hc heq.symm hseed hcut.beforeEnd.le
+  · exact wcg_emptyLive hS hc hjoin heq.symm hseed hcut.beforeEnd.le
+
+/-- The Root caller keeps the source join cutoff and uses FAST in the exact run.
+The receiver-epoch FAST origin comes from the run schedule; H-time stays explicit. -/
+theorem assembly_weakContinuationGrowth (p : Params) (hH : HTimeClaim p)
+    (G : Time) : WeakContinuationGrowthClaim p G := by
+  intro V _ _ In c ΔF hδ E source hS
+  obtain ⟨w, hcut, hseed, hjoin⟩ := wcg_sourceWitness_joined hH hδ hS
+    (wcg_finiteSeed hS.base (fgsa_faultQ_of_count p hS.fault))
+  refine ⟨w.u, w.QStar, afterTicksIdx source (SA.gateTime p.toParams w.u), hcut, ?_⟩
+  intro E' rho hc
+  rcases hc.covered.lt_or_eq with hne | heq
+  · exact wcg_nonemptyLive hS hc hne hjoin
+      (wcg_retainedSeed hS hc hne hseed hcut.beforeEnd.le)
+  · exact wcg_emptyLive hS hc hjoin heq.symm hseed hcut.beforeEnd.le
+
+/-- The two Root continuation fields use the current-run FAST producer. -/
+theorem assembly_weakContinuationClaims (p : Params) (hH : HTimeClaim p)
+    (G : Time) :
+    WeakContinuationLiveClaim p G ∧ WeakContinuationGrowthClaim p G :=
+  ⟨fgsa_weakContinuationLiveClaim_of_hTime hH G,
+    assembly_weakContinuationGrowth p hH G⟩
+
+/-- OUTPUT-DIRECT §§1–10. DC: INTENTIONAL; the additive outage continuation
+claim under (V), with all foundation and healthy-cut suppliers discharged. -/
+theorem fgsa_outageContinuationClaim (p : Params) : OutageContinuationClaim p :=
+  outageContinuation_claim_of p
+    (fgsa_storeClaim p) (fgsa_activeViewClaim p) (fgsa_frameClaim p)
+    (fgsa_srcFrameAboveClaim p) (fgsa_sourceDisciplineClaim p) (fgsa_cleanCutClaim p)
+
 
 end AvailableChain.FGSA.Run
 end

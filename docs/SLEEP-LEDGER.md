@@ -6898,3 +6898,7 @@ Only propext, Classical.choice and Quot.sound occur in the strict audits.
 Evidence: .lake/sleep-pou-r8/. Handoff: P-Ou.round8-handoff.md.
 The full continuation induction, handover closure, Close and both complete
 exporters remain owned work. No future invariant is declared proved.
+
+- Lead 2026-10-10 15:22: merged sleep-pas5 cc0ccf1d (P-As r5) as PREPARED, 44/66 GREEN; review rev-pas5-astra MERGE-AS-PREPARED. OutageContinuationInhabit stays OPEN (fixture not sleep-valid; r6 replaces it). FAST port in r6.
+
+- Lead 2026-10-10 15:51: merged sleep-pas6 18d690c2 (P-As r6) as PREPARED, 45/66 GREEN; FAST CLOSED; outage fixture sleep-valid; review rev-pas6-astra MERGE-AS-PREPARED. Open: P-Ou closure/export (incl. Outage/Export → GrowthSuppliers), HTimeClaim (healing).

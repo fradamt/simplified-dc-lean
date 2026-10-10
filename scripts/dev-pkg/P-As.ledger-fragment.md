@@ -64,3 +64,39 @@ WC checkpoint and feed growth and the empty route. No public claim changed.
 FAST remains P-Fd-owned and explicit. Root/GrowthAssemblyAxioms remain OPEN with
 WCROOT and inherited family imports. Healing is excluded. W1 now uses 253/269;
 SleepPositive keeps its actual wake-restart evidence. Full P-As is not CLOSED.
+
+## Round 5 — closed Clean caller and exact Root preparation
+
+Base: 7a30ce82. Full P-As remains OPEN; healing stays OUT OF SCOPE.
+Assembly/Clean:53 produces the all-node state pair from CleanSet, clean_sCompatible,
+sExtends and the existing foundation/source exports. cleanSafety_of_cut consumes it.
+Both Zero fixtures retain their positive witnesses and use current sleep/receipt fields.
+The unchanged fgsa_outageContinuationClaim moves to Root:171 to separate Clean from
+P-Ou's unfinished continuation import. No public name or statement changes.
+Tests/OutageAssemblyAxioms:10 composes the concrete P-Ar continuation prefix producer
+with the actual P-Ou restored receipt consumer. Prefix receipt is CLOSED, not assumed.
+Root:137/:158 keeps the selected source join cutoff and exact source/continuation FAST.
+The exact Root bodies pass strict extraction; full Root acceptance is still OPEN.
+The two old rw [slotAt] calls use direct unfolding; no equation-export allowance is added.
+P-Ou continuation/Close/inclusion/growth and P-Fd FAST remain exact producer requests.
+The inherited outage fixture is not SleepWellFormed: asleep tick 8, missing wake restart 13.
+STOP that fixture item; no invalid premise or public counterexample is supplied.
+Current counts: 44/66 targets GREEN; full map 504 GREEN and 24 EXPECTED-FAIL.
+Headers PASS; layers 72 inherited, zero new; GREEN exports zero unaccepted.
+Evidence: .lake/sleep-pas-r5/. Current requests: P-As.blocker-types.md / P-As.remaining.md.
+
+## Round 6 — FAST producer and valid outage sleep fixture
+
+Base: ef1b0e43. Full P-As remains OPEN; healing remains OUT OF SCOPE.
+FAST uses fgsa_leaseOrigins_fastWrites_epoch with each actual run's schedule.
+All WC/WCG assembly and test callers drop the explicit FAST obligation.
+Root keeps HTimeClaim explicit in its conditional callers and aggregate wrapper.
+The outage fixture now proves OutageContinuationSleepPrem in both modes: covering
+gate 14, sleep 15, phase-zero restart 16, restored vote 21, OutageEnd/horizon 37.
+The public claim is unchanged; the old outage budget still fails.
+P-Ou Round 8 supplies inclusion services, enabled gate scopes and Clean growth.
+Assembly/Outage consumes its growth producer; no hWitness/hInclusion callback remains.
+Exact Root and Clean exporter bodies pass strict audits. Their full modules stay OPEN
+through P-Ou continuation/Close and deferred healing imports. No new layer route is added.
+45/66 targets are GREEN; full map 505 GREEN and 23 EXPECTED-FAIL.
+Current obligations: P-As.blocker-types.md and P-As.remaining.md.

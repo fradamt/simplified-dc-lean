@@ -17,14 +17,10 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 
 /-- WC J1; DC source seed: no extra source or foundation hypothesis is required. -/
 theorem sourceSeed (hS : StrongRecoverySearchPrefix₂ p c E source G ΔF)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E source i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree source x j i ∧ enabledGateAt p c E source j x s ∧
-        gatePassedAt p c E source j ∧ ∃ B, gateResultAt p c E source j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E source x s X)
     (hinput : HealingInput p c E source w ΔF) (hend : tstar p w < source.horizon) :
     BoundedHealingCut₂ p c E source w.u w.QStar (afterTicksIdx source (tstar p w)) ΔF ∧
       WCSeed p c E source w (afterTicksIdx source (tstar p w)) :=
-  wc_heightSeed hS hfast hinput hend
+  wc_heightSeed hS hinput hend
 
 omit [Fintype V] in
 /-- WC J1; DC finite replay: agreement and source validity transfer the complete seed. -/
@@ -46,15 +42,11 @@ theorem firstBatch (hS : StrongRecoverySearchPrefix₂ p c E source G ΔF)
 theorem stepPorts (hS : StrongRecoverySearchPrefix₂ p c E source G ΔF)
     (hc : CleanContinuationSleep₂ p c E source E' rho ΔF) (_hs : WCSeed p c E source w iStar)
     (hjoin : E.t_GST ≤ slotStartZ p (w.u : Int))
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E' rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E' rho j x s ∧
-        gatePassedAt p c E' rho j ∧ ∃ B, gateResultAt p c E' rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E' rho x s X)
     (step : WCStepStatement p c E' rho ΔF w iStar) :
     WCSeed p c E' rho w iStar → ∀ i, iStar ≤ i → i < rho.events.length →
       WCInv p c E' rho w iStar i → ∀ e, rho.events[i]? = some e →
         WCInv p c E' rho w iStar (i + 1) :=
-  wc_dischargeContinuation hS hc _hs hjoin hfast step
+  wc_dischargeContinuation hS hc _hs hjoin step
 
 omit [Fintype V] in
 /-- WC J1; DC retrospective I2: the receipt index is strictly before the completed gate. -/

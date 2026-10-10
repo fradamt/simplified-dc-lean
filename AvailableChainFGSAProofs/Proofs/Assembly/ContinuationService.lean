@@ -21,10 +21,6 @@ theorem assembly_wcg_dischargeL {ΔF : Time} {w : HealingWitness} {Result : Prop
     (haccountable : FinalitySlashableBound p c E rho)
     (hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
       (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
       rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
         HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
@@ -135,7 +131,7 @@ theorem assembly_wcg_dischargeL {ΔF : Time} {w : HealingWitness} {Result : Prop
     intro hn hc hg
     exact hlast k w C hjk hki hEnabled.1
       (by rw [clockPre_joined]; exact fgsa_gate_joined_of_enabled E rho hEnabled) hn hc hg
-  · exact hfast
+  · exact fgsa_leaseOrigins_fastWrites_epoch p c E rho hs
   · exact fgsa_leaseOrigins_ancestorDeadlines p c E rho
   · exact held_chain_row_origin_before p c E rho hb.valid.toUnforgeableSignatures hs
   · exact hscopeRows
@@ -153,10 +149,6 @@ theorem wcg_service4OfSeed {ΔF : Time} {w : HealingWitness} {iStar : Nat}
     (ha : FinalitySlashableBound p c E rho)
     (hp : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
       (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
       rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
         HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
@@ -169,7 +161,7 @@ theorem wcg_service4OfSeed {ΔF : Time} {w : HealingWitness} {iStar : Nat}
       ∀ i y, afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i →
         i ≤ rho.events.length → confirmedReaderIdx p c E rho y i →
           Block.Preceq B (S_at p c E rho i y) := by
-  apply assembly_wcg_dischargeL hb hsync hdeltaF hq ha hp hfast hscopeRows
+  apply assembly_wcg_dischargeL hb hsync hdeltaF hq ha hp hscopeRows
   intro hvalid hlinked hcstar hwakes hdelta hroots hsync hdeltaF
     hfaultQ haccountable hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
