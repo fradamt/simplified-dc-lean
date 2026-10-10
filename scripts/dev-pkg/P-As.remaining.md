@@ -1,7 +1,7 @@
 # P-As round 2 — remaining targets
 
 Full P-As is OPEN. Every remaining target is listed below. P means
-AvailableChainFGSAProofs; I means AvailableChainFGSAInhabit. 
+AvailableChainFGSAProofs; I means AvailableChainFGSAInhabit.
 The request count refers to the entries below. Each B key gives
 file:line, exact current type and owner in [P-As.blocker-types.md](P-As.blocker-types.md).
 This is the failed import closure. It does not claim that all code in that module is false.
