@@ -215,6 +215,7 @@ AvailableChainFGSAClaims.Statements.Recurrence
 AvailableChainFGSAClaims.Statements.Regimes
 AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 AvailableChainFGSAProofs.Proofs.Shared.Channels
 AvailableChainFGSAProofs.Proofs.Shared.Compose
