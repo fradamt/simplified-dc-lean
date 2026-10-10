@@ -4576,3 +4576,56 @@ both callers derive F≤K from their existing common-prefix bounds.
 The initial full Tests.Axioms build fails in inherited other-family ports.
 No P-Fi proof failure remains in the focused build. The merged audit has
 not been proved compilable; it remains P-As EXPECTED-FAIL.
+
+
+## P-Fi Round 3 — exact suppliers, internal replacements and handoffs
+
+The current Round 3 report supersedes the initial queue above. ReceiptSuppliers
+proves fresh honest HEAD services, named target proposal services, the exact
+action and Tail records, and FinalityScopedVoteReceipts. Action/Tail record
+construction has only the explicit Shared genesis-constructor input left.
+Both proposal routes use AnchorService's durable history and original acceptance
+handlers, with vote/early anchors for action and action/+Δ anchors for Tail.
+No Count deadline restriction or whole-run NoRestart is introduced.
+
+Internal replacement: FinalityVoteReceipts now has exactly TVote's proposal
+and action read shapes. The former arbitrary s,x,t scope is removed. The true
+scoped form requires GST≤slotStart(s−1), earlyTime(s)≤read≤horizon and the actual
+receiver postClock. Recovery proves it and the full resolved support filter.
+The unchanged public TVote still requests pre-GST and unjoined reads. Its
+compatibility supplier remains an explicit P-Fi design obligation. Export
+requests it only with the consumer's actual witness, bound and HealingInput.
+No public field or predicate is weakened. S-Ap owns any public scope decision;
+P-As owns assembly. The report lists every exact consumer and current line.
+
+Kernel counterexample: Tests/FinalityEpochs.short_recovery_sleep and
+recovery_sleep_not_vote_receipts prove RecoverySleep₂ and failure of the exact
+compatibility record. GST=7, Δ=2, events tick0,tick2,restart7,tick8, horizon8.
+The proposal read is awake but unjoined and has no HEAD-0. Recovery starts at
+the wake and satisfies its suffix; its joined start is beyond this horizon.
+This refutes a Recovery-only receipt producer. It has no HealingInput and is
+not a counterexample to the full public KernelACSideClaim_W.
+
+Exact P-ShA API handoff: add fgsa_target_service_genesis in Shared/CatchUp.lean,
+after TargetReceiptService (:410), with statement
+TargetReceiptService E rho .genesis D x and body Or.inl rfl.
+The definition is opaque to external modules and the named-proposal constructor
+does not cover genesis. No new regime assumption is needed. P-Fi leaves
+hGenesis explicit. Export removes the former hServices/hReceipts requests and
+uses the proved records. P-As ports Assembly/Finality:113/:200 to this API input.
+
+The FinalityGST fixture is GREEN after six recoveryStart bound ports. S-Ap can
+refresh its blocked auxiliary products. P-Fi map has 46 targets / 513 GREEN /
+three inherited failures with their original owners. These are map counts.
+The serial audit adds 14 production commands, including 11 new-module theorems,
+and retains all old inventory keys. Public vote adapter and full assembly remain
+open. P-Fi is PREPARED; CLOSED is not claimed.
+
+Round 3 validation: DCK PASS in 169.78 s, 513 GREEN modules, all 24 controls,
+41 strict audit roots / 3,186 permitted results. Complete compiled exports:
+209 proof modules / 252 exports / zero unaccepted; complete local coverage:
+223 commands, controls PASS. Layers: 72 inherited findings / zero new.
+The stable full Tests.Axioms build fails in 18 other-family/assembly producers
+(26.45 s), with no Finality-family proof failure. It retains P-As ownership.
+See .lake/sleep-pfi3/final-axioms.log and the final Round 3 report for exact names.
+Added Lean lines are at most 100 characters; git diff --check passes.

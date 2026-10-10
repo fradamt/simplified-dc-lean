@@ -7,6 +7,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.TailBatch
 public import AvailableChainFGSAProofs.Proofs.Finality.RestoreReads
 public import AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept
+public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
@@ -193,3 +194,19 @@ public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt
 #print axioms AvailableChain.FGSA.Run.finality_healing_recoveryStart
 #print axioms AvailableChain.FGSA.Run.finality_input_suffix_confirmed
 #print axioms AvailableChain.FGSA.Run.finality_window_nonneg
+
+-- P-Fi round 3: exact suppliers and scoped vote adapter.
+#print axioms AvailableChain.FGSA.Run.FinalityScopedVoteReceipts
+#print axioms AvailableChain.FGSA.Run.finality_emitted_head_form
+#print axioms AvailableChain.FGSA.Run.finality_full_vote_of_receipts
+#print axioms AvailableChain.FGSA.Run.finality_proposal_receiver_service
+#print axioms AvailableChain.FGSA.Run.finality_honest_head_pool_unique
+#print axioms AvailableChain.FGSA.Run.finality_fresh_head_service
+#print axioms AvailableChain.FGSA.Run.finality_target_service_of_held
+#print axioms AvailableChain.FGSA.Run.finality_postClock_tick
+#print axioms AvailableChain.FGSA.Run.finality_F_mono_idx
+#print axioms AvailableChain.FGSA.Run.finality_F_before_postClock
+#print axioms AvailableChain.FGSA.Run.finality_action_receipts
+#print axioms AvailableChain.FGSA.Run.finality_tail_head_receipts
+#print axioms AvailableChain.FGSA.Run.finality_scoped_vote_receipts
+#print axioms AvailableChain.FGSA.Run.finality_full_vote_at_scoped_read

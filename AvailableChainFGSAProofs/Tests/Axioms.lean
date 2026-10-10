@@ -51,6 +51,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.Close -- shake: keep (O-IND
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (I-GATE/I-READ axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
@@ -2351,3 +2352,19 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_tRows_sleep
 #print axioms AvailableChain.FGSA.Run.rowPermission_confirmedReader_gate
 #print axioms AvailableChain.FGSA.Run.rowService_epoch_of_recovery
+
+-- P-Fi round 3: exact suppliers and scoped vote adapter.
+#print axioms AvailableChain.FGSA.Run.FinalityScopedVoteReceipts
+#print axioms AvailableChain.FGSA.Run.finality_emitted_head_form
+#print axioms AvailableChain.FGSA.Run.finality_full_vote_of_receipts
+#print axioms AvailableChain.FGSA.Run.finality_proposal_receiver_service
+#print axioms AvailableChain.FGSA.Run.finality_honest_head_pool_unique
+#print axioms AvailableChain.FGSA.Run.finality_fresh_head_service
+#print axioms AvailableChain.FGSA.Run.finality_target_service_of_held
+#print axioms AvailableChain.FGSA.Run.finality_postClock_tick
+#print axioms AvailableChain.FGSA.Run.finality_F_mono_idx
+#print axioms AvailableChain.FGSA.Run.finality_F_before_postClock
+#print axioms AvailableChain.FGSA.Run.finality_action_receipts
+#print axioms AvailableChain.FGSA.Run.finality_tail_head_receipts
+#print axioms AvailableChain.FGSA.Run.finality_scoped_vote_receipts
+#print axioms AvailableChain.FGSA.Run.finality_full_vote_at_scoped_read

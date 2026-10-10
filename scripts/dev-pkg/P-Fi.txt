@@ -1,5 +1,6 @@
-# P-Fi round 2, base 381bd3df: all mapped owned targets GREEN; receipt suppliers remain open.
+# P-Fi round 3: scoped suppliers proved; public vote adapter and Shared genesis API open.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 AvailableChainFGSAClaims.Tests.FinalityGST
 AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
 AvailableChainFGSAClaims.Claims.Finality
@@ -46,6 +47,8 @@ AvailableChainFGSAProofs.Proofs.Finality.TickRead
 AvailableChainFGSAProofs.Tests.FinalityEpochs
 AvailableChainFGSAProofs.Tests.Axioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAClaims.Tests.FinalityGST
 AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Proofs.Finality.Suppliers

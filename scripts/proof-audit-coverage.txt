@@ -2694,6 +2694,9 @@
             'AvailableChain.FGSA.Run.terminalCarriage_general_W',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.CoreServices': (
+            'AvailableChain.FGSA.Run.FinalityScopedVoteReceipts',
+            'AvailableChain.FGSA.Run.finality_emitted_head_form',
+            'AvailableChain.FGSA.Run.finality_full_vote_of_receipts',
             'AvailableChain.FGSA.Run.fgsa_coreServices',
             'AvailableChain.FGSA.Run.fgsa_tStart',
             'AvailableChain.FGSA.Run.fgsa_tVote',
@@ -4833,6 +4836,19 @@
         'AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal': (
             'AvailableChain.FGSA.Run.wc_proposer_prior_of_F_prefix',
             'AvailableChain.FGSA.Run.wc_treeFrameAncestry',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers': (
+            'AvailableChain.FGSA.Run.finality_proposal_receiver_service',
+            'AvailableChain.FGSA.Run.finality_honest_head_pool_unique',
+            'AvailableChain.FGSA.Run.finality_fresh_head_service',
+            'AvailableChain.FGSA.Run.finality_target_service_of_held',
+            'AvailableChain.FGSA.Run.finality_postClock_tick',
+            'AvailableChain.FGSA.Run.finality_F_mono_idx',
+            'AvailableChain.FGSA.Run.finality_F_before_postClock',
+            'AvailableChain.FGSA.Run.finality_action_receipts',
+            'AvailableChain.FGSA.Run.finality_tail_head_receipts',
+            'AvailableChain.FGSA.Run.finality_scoped_vote_receipts',
+            'AvailableChain.FGSA.Run.finality_full_vote_at_scoped_read',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope': (
             'AvailableChain.FGSA.Run.FinalityActionReceipts',
