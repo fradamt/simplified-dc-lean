@@ -13,9 +13,10 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     {w : HealingWitness} {iStar : Nat}
 
 /-- WC J3, plan §6.9; DC first eligible proposal: its maximum is exactly the seed. -/
-theorem firstEligibleMaximum (hi : WCInv p c E rho w iStar rho.events.length) :
+theorem firstEligibleMaximum (hS : V2.D.ScheduleWellFormed E rho)
+    (hi : WCInv p c E rho w iStar rho.events.length) :
     ∃ D, D = w.QStar ∧ Block.Preceq w.QStar D := by
-  obtain ⟨D, hD, hQD, _⟩ := wc_historyMax hi ((w.u + 2) - 2)
+  obtain ⟨D, hD, hQD, _⟩ := wc_historyMax hS hi ((w.u + 2) - 2)
   refine ⟨D, ?_, hQD⟩
   rcases hD with h | ⟨j, x, s, hresult, hs⟩
   · exact h
@@ -25,12 +26,18 @@ theorem firstEligibleMaximum (hi : WCInv p c E rho w iStar rho.events.length) :
 
 /-- WC J3, plan §6.9; DC first HEAD batch: the seed supplies the previous-label read. -/
 theorem firstEligibleHeads
-    (hs : V2.D.ScheduleWellFormed E rho) (hdelta : E.Δ = p.Δ)
+    (_hs : V2.D.ScheduleWellFormed E rho) (_hdelta : E.Δ = p.Δ)
     (hseed : WCSeed p c E rho w iStar)
-    (hi : WCInv p c E rho w iStar rho.events.length)
-    (hgate : SA.gateTime p.toParams (w.u + 2) ≤ rho.horizon) :
+    (_hi : WCInv p c E rho w iStar rho.events.length)
+    (_hgate : SA.gateTime p.toParams (w.u + 2) ≤ rho.horizon) :
     ∀ y ∈ rho.honest, ∃ k, WCHeadRead p c E rho k y ((w.u + 2) - 1) w.QStar :=
-  wc_history_previousHeads hs hdelta hseed hi (w.u + 2) w.QStar le_rfl hgate (Or.inl rfl)
+by
+  intro y hy
+  obtain ⟨k, _, hk⟩ := hseed.nextHeads y hy
+  refine ⟨k, ?_⟩
+  have he : w.u + 2 - 1 = w.u + 1 := by simp only [Slot]; omega
+  rw [he]
+  exact hk
 
 /-- WC J3, plan §6.9; DC pivot contract: all path and walk fields are present. -/
 theorem pivotContract [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar : Nat)

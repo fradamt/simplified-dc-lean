@@ -68,6 +68,7 @@ AvailableChainFGSAProofs.Tests.WeakContinuationProposal
 AvailableChainFGSAProofs.Tests.WeakContinuationSleepAxioms
 AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.HeadRelay
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
 [GREEN]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
@@ -594,17 +595,18 @@ AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransfer
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Step
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Dynamics
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
+AvailableChainFGSAProofs.Tests.WeakContinuationProposal
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Export P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Live P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationExactProposal P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowth P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthEmptyAxioms P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationInclusion P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationProposal P-WC

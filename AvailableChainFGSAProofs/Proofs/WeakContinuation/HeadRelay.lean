@@ -1061,5 +1061,60 @@ theorem wc_relay_headVotes_backward {ΔF : Time}
       · exact Or.inr he
     · exact Or.inr he
 
+/-- A bounded awake receiver has HEAD service and retention at its consuming tick. -/
+theorem wc_relay_head_emission_scope {ΔF : Time}
+    (hV : V2.D.ExecutionValid E rho) (hR : V2.D.RestartsAtWakes E rho)
+    (hDelta : E.Δ = p.Δ)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) {i : Nat} {x v : V} {s
+      : Slot} {T : Time}
+    (hx : x ∈ rho.honest) (hv : v ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x T))
+    (hBound : ∀ j w, j < i → rho.events[j]? = some (.restart x w) →
+      w ≤ SA.proposalTime p.toParams s)
+    (hAw : AwakeClosed E x (SA.proposalTime p.toParams s) T)
+    (hslot : p.slotOf T ≤ s + 1) (q : Fin p.n) (b : BlockId) {send a D : Time}
+    (hem : rho.emits E v (ofHead p ⟨.seat (.head s) q, b⟩) send)
+    (hsa : send ≤ a) (hpa : SA.proposalTime p.toParams s < a)
+    (had : a + p.Δ ≤ D) (hDT : D ≤ T) (hcut : D ≤ rho.horizon) (hGST : E.t_GST ≤ a) :
+    HeadRelayServiceScope E rho s q b D i x := by
+  have hS := hV.toScheduleWellFormed
+  have hp0 : 0 ≤ SA.proposalTime p.toParams s := by
+    change 0 ≤ 4 * p.Δ * (s : Int)
+    have := p.deltaPos
+    positivity
+  have hpt := hpa.le.trans ((le_add_of_nonneg_right p.deltaPos.le).trans (had.trans hDT))
+  have hpub : V2.PublicTime E (SA.proposalTime p.toParams s) := by
+    refine ⟨4 * s, ?_⟩
+    rw [hDelta]
+    change 4 * p.Δ * (s : Int) = _
+    push_cast
+    ring
+  obtain ⟨it, hit⟩ := List.mem_iff_getElem?.mp (hV.tick_total x hx _ hpub hp0
+    (hpt.trans (hS.in_horizon _ (List.mem_of_getElem? hi)).2) (hAw _ hp0 le_rfl hpt))
+  have hdi : V2.D.Run.idxBefore rho D ≤ i := by
+    by_contra hn
+    exact (not_lt_of_ge hDT) ((Gen.V2.Duty.index_lt_idxBefore_iff hS hi D).mp
+      (Nat.lt_of_not_ge hn))
+  have had' : a < D := (lt_add_of_pos_right _ p.deltaPos).trans_le had
+  have hai := (Gen.V2.Duty.actionCut_le_idxBefore hS had').trans hdi
+  have hitD : it ≤ V2.D.Run.idxBefore rho D :=
+    ((Gen.V2.Duty.index_lt_idxBefore_iff hS hit D).mpr (hpa.trans had')).le
+  refine ⟨hdi, (wc_relay_head_epoch hS hit hBound).mono hitD le_rfl, ?_, ?_⟩
+  · have hm := V2.D.Engine.stateBefore_now_mono_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hS hdi x
+    rw [fgsa_clock_now p c (rho.stateBefore E _ x),
+      fgsa_clock_now p c (rho.stateBefore E i x),
+      Gen.V2.Duty.stateBefore_idxBefore E rho D hS] at hm
+    exact (Internal.slotOf_mono (p := p)
+      (hm.trans (fgsa_preTick_now_le E rho hS hi))).trans hslot
+  · intro hNX
+    refine ⟨send, wc_relay_head_receiver_service hV hR hDelta hSync hx hv hit hBound q b
+      (Or.inl hem)
+      hsa hpa hai hdi had hcut hGST ?_ hNX⟩
+    intro u hau hud
+    exact hAw u (hp0.trans (hpa.le.trans hau)) (hpa.le.trans hau)
+      (hud.le.trans (had.trans hDT))
+
+
 end AvailableChain.FGSA.Run
 end

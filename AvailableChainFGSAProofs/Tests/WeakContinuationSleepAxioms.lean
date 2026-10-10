@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.HeadRelay
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction
@@ -355,3 +357,29 @@ open AvailableChain.FGSA.Run
 #print axioms AvailableChain.FGSA.Run.wcg_stepNoGateTick
 #print axioms AvailableChain.FGSA.Run.wcg_stepGateTick
 #print axioms AvailableChain.FGSA.Run.wcg_seededInduction
+
+#print axioms AvailableChain.FGSA.Run.wc_tick_joinedAt
+#print axioms AvailableChain.FGSA.Run.wc_duty_joinedAt
+#print axioms AvailableChain.FGSA.Run.wc_duty_receiver
+#print axioms AvailableChain.FGSA.Run.wc_duty_path_coverage
+#print axioms AvailableChain.FGSA.Run.wc_duty_head_path
+#print axioms AvailableChain.FGSA.Run.wc_joined_rest_bound
+#print axioms AvailableChain.FGSA.Run.wc_proposalInput
+#print axioms AvailableChain.FGSA.Run.wc_headInput
+#print axioms AvailableChain.FGSA.Run.wc_headRead_stamped
+#print axioms AvailableChain.FGSA.Run.wc_headRead_laterPath
+#print axioms AvailableChain.FGSA.Run.wc_frameMember
+#print axioms AvailableChain.FGSA.Run.wc_proposalPath_of_previous
+#print axioms AvailableChain.FGSA.Run.wc_headPath_of_previous
+#print axioms AvailableChain.FGSA.Run.wc_history_beforeVote
+#print axioms AvailableChain.FGSA.Run.wc_clock_offProposalHead
+#print axioms AvailableChain.FGSA.Run.wc_comparisonInputs
+#print axioms AvailableChain.FGSA.Run.wc_proposer_prior_of_F_prefix
+#print axioms AvailableChain.FGSA.Run.wc_reader_scores
+#print axioms AvailableChain.FGSA.Run.wc_previousReceipts
+#print axioms AvailableChain.FGSA.Run.wc_proposalCounts
+#print axioms AvailableChain.FGSA.Run.wc_headCounts
+#print axioms AvailableChain.FGSA.Run.wc_treeFrameAncestry
+#print axioms AvailableChain.FGSA.Run.wc_proposalPivot
+#print axioms AvailableChain.FGSA.Run.wc_head_source_path
+#print axioms AvailableChain.FGSA.Run.wc_relay_head_emission_scope

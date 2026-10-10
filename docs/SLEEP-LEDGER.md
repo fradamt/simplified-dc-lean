@@ -5034,3 +5034,47 @@ Tests.WeakContinuationSleepAxioms into Tests.Axioms (forbidden TEST-USE). Apply 
   route was not strengthened. The full 21-target closure is not complete.
 - Declarations, exact types, audit/coverage/architecture fragments, and remaining
   compiler diagnostics are listed in the P-WC Round 3 report and handoff.
+
+## P-WC Round 4 — event induction, 2026-10-10
+
+Status: PREPARED. Base e4fafd7b, branch sleep-pwc3.
+The joint WC and WCG event proofs now preserve WCInv for delivery, off-gate
+ticks, enabled gates, suppressed gates, and restart. Next-event finality has
+an earlier target-action origin in the prior bounded history. This proves
+compatibility before the local output update. All three output origins are
+handled: retained output, gate result, and received finality.
+
+Retrospective transfer uses joined next-slot readers and local HEAD service.
+New family HeadRelay modules prove fresh or original accepted HEAD service,
+strict receipt stamps, receiver epochs, and carried-pool provenance. No
+global NoRestart premise is inferred. Saved and fast origins retain their
+exact epochs. The full WC safety adapter now has the sleep telescope.
+Internal adapter repair under the lead ruling of 2026-10-10; public claims
+and Statements are unchanged. Consumers: StepTransfer, Step, Induction,
+and WCG Dynamics.
+
+New GREEN original targets: StepTransfer, Step, Induction, WCG Dynamics.
+The two new HeadRelay modules are GREEN. Thirteen original targets remain
+EXPECTED-FAIL with owner P-WC. Strict local audit passes; only propext,
+Classical.choice, and Quot.sound. Complete export check: 173 proof modules,
+251 exports, zero unaccepted. Layers: 72 inherited findings, zero new.
+Serial audit and coverage fragments: claude-files/sleep-pwc-round4-*.txt.
+Evidence: .lake/sleep-pwc-r4/event-*.log and induction.log.
+
+### P-WC Round 4 — Proposal current-duty service
+
+Proposal and its first eligible-slot test now compile. The current proposer
+or HEAD reader can have no previous HEAD of its own. A joined earlier
+source supplies the comparison path through the current receiver's duty
+epoch. Count uses joined seats and exact original HEAD emissions. Receipt
+stamps are before the previous early and freeze times.
+
+The old retained path/stamp helpers now state NoRestart explicitly. They
+are legacy helpers; no repaired sleep consumer uses them. The current
+Proposal pivot uses the new current-duty path. Assembly callers are P-As
+port items. No public Claims/Statements declaration changed.
+
+Local strict audit passes. Complete export check: 189 proof modules,
+252 exports, zero unaccepted. Layers: 72 inherited, zero new. Eleven
+original targets remain EXPECTED-FAIL P-WC. Exact adoption and Empty are
+still local work. Evidence: proposal-audit2.log, proposal-exports2.log.
