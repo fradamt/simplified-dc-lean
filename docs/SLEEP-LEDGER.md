@@ -7413,3 +7413,18 @@ Remaining all-cut opening/cone/raw/lease adapters stay OPEN/P-H2. In particular,
 PostResetOpening still calls legacy global-epoch geometry; it requires a separate
 port to selected retained services. No H1 module, public claim, constant, checker
 allowance or baseline was changed.
+
+Final P-H2 Round 7 checks: DCK PASS, 531 GREEN roots, 43 strict sources / 3,400
+results, all 24 default controls. Complete GREEN exports: 398 proof modules,
+253 accepted exports, zero unaccepted and zero Gen exports. Layers: 72 inherited,
+zero new. Headers PASS. Evidence: .lake/sleep-ph2h/dck-final.log, exports-final.log,
+layers-final.log, headers-final.log. The map has 114 assigned / 61 GREEN / 53 OPEN.
+The required three repair/frontier signature adapters pass with --wfail.
+
+The full manifest does not pass: its Claims API import stops at missing
+Healing.PostResetOpening.olean. That H2 source remains unported at its legacy
+global-epoch geometry. FG-SA shallow/deep, legacy, V2, generic and compose snapshots
+pass. Separate P-Ou proof and legacy test probes pass on this base; no expected
+P-Ou legacy failure was reproduced. See manifest-final.log, service-probe.log,
+pou-legacy-all.log and pou-legacy-tests.log. H1 aggregate and H2 all-cut source
+closure remain open. Exact types and ownership: P-H2.round7-handoff.md.
