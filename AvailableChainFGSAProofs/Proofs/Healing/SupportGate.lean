@@ -47,7 +47,8 @@ theorem healing_gate_enabled_of_joined (E : Generic.Env V)
   cases hr : (storeAt p c E rho i x).restartTime with
   | none => trivial
   | some t =>
-    simpa only [joinedAtTime, slotStartZ, hr, hs, Nat.cast_add, Nat.cast_one,
+    change t ≤ 4 * p.Δ * (s : Int)
+    simpa only [joinedAtTime, hr, hs, Nat.cast_add, Nat.cast_one,
       add_sub_cancel_right, decide_eq_true_eq] using hj
 
 /-- A nonempty saved result was produced by an enabled gate. -/
@@ -149,7 +150,11 @@ theorem healing_support_gate_cover [Fintype V] (E : Generic.Env V)
       rho.seatOf (.base (.head w)) k ∈ rho.honest ∧
       joinedAt p E rho (rho.seatOf (.base (.head w)) k) w
         (SA.voteTime p.toParams w) := by
-    simp only [H, Finset.mem_filter, Finset.mem_univ, true_and, joinedHonest, hslot]
+    simp only [H, Finset.mem_filter, Finset.mem_univ, true_and]
+    change rho.seatOf (.base (.head w)) k ∈ rho.honest.filter (fun z =>
+      joinedAt p E rho z (slotAt p (SA.voteTime p.toParams w))
+        (SA.voteTime p.toParams w)) ↔ _
+    simp only [Finset.mem_filter, hslot]
   have hbij : Function.Bijective (fun k : Fin p.n => rho.seatOf (.base (.head w)) k) :=
     hC (.base (.head w)) trivial
   have hHcard : H.card = (joinedHonest p E rho (SA.voteTime p.toParams w)).card := by
@@ -164,7 +169,10 @@ theorem healing_support_gate_cover [Fintype V] (E : Generic.Env V)
     · intro hz
       obtain ⟨k, rfl⟩ := hbij.2 z
       exact ⟨k, (hHmem k).mpr (by
-        simpa only [joinedHonest, Finset.mem_filter, hslot] using hz), rfl⟩
+        change rho.seatOf (.base (.head w)) k ∈ rho.honest.filter (fun z =>
+          joinedAt p E rho z (slotAt p (SA.voteTime p.toParams w))
+            (SA.voteTime p.toParams w)) at hz
+        simpa only [Finset.mem_filter, hslot] using hz), rfl⟩
   have hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card :=
     hHcard ▸ hScope.batch
   have receipts := fgsa_gateReceipt_on (hroots := hrec.base.receiptIdealization)

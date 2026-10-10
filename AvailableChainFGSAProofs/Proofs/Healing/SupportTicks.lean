@@ -10,7 +10,7 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- The selected honest seats whose HEAD duty is enabled at label s. -/
-noncomputable def healingJoinedSeats (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+noncomputable abbrev healingJoinedSeats (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (s : Slot) : Finset (Fin p.n) := by
   classical
   exact Finset.univ.filter (fun q => rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
@@ -23,7 +23,8 @@ theorem healingJoinedSeats_mem (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
     joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s) := by
   classical
-  simp only [healingJoinedSeats, Finset.mem_filter, Finset.mem_univ, true_and]
+  delta healingJoinedSeats
+  simp only [Finset.mem_filter, Finset.mem_univ, true_and]
 
 omit [DecidableEq V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

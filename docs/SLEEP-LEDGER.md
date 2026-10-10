@@ -5548,3 +5548,10 @@ non-genesis network service or inhabit an aggregate RecoverySleep₂ scope.
 The negative all-asleep validity test remains. The label-2 gate at 14 is
 suppressed, saves no result and adds no lease or stable record. The label-0
 no-restart actor passes the actual join guard while 0 <= slotStart(-1) fails.
+
+P-H1 Round 4 equation export repair: the first export check found
+joinedHonest.eq_1 and slotStartZ.eq_1 in SupportGate, plus the private
+healingJoinedSeats.eq_1 in SupportTicks. Direct definition reduction and
+kernel conversions remove these three exports. No baseline or allowance
+changed. The selector is now a reducible abbreviation with the same type.
+The repaired module cone checks with zero unaccepted exports.
