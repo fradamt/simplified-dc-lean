@@ -39,3 +39,15 @@ public section
 #print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
 
 end
+
+#print axioms AvailableChain.FGSA.Run.WitnessReceiptScope.atRead
+
+#print axioms AvailableChain.FGSA.Run.WitnessHeldScope.atRead
+
+#print axioms AvailableChain.FGSA.Run.HeadWitnessReceiptScope.witness
+
+#print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.frontier
+
+#print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.top
+
+#print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.contest

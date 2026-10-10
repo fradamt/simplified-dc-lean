@@ -128,11 +128,10 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF D : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
-      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
-      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
-      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ))
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (origin : RQCOrigin p c E rho)
     {i m : Nat} {ev : V2.Event V (Obj p)} {J : FGBlock (Fin p.n)}
     (hstart : FrontierSearchStart p c E rho i ev m .topJ)
@@ -146,7 +145,6 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
   have hs := hrec.base.valid.toScheduleWellFormed
   obtain ⟨hi, hgst, _, hfront, hm, ht, hnc⟩ :=
     (frontierSearchStart_iff p c E rho i ev m .topJ).mp hstart
-  obtain ⟨x, C, ⟨hx, hC⟩, hh, hj, hJ⟩ := (healing_phaseWitness p c E rho hm hfront).top ht
   have hwin := healing_phase_window_all p c E rho mono hfront hquiet
   obtain ⟨j, N, _, hq, hem, _, _, _, _⟩ :=
     healing_promotion_proposal_read p c E rho hs hQ
@@ -172,13 +170,14 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
       (SA.proposalTime p.toParams q)) = true := by
     rw [(V2.D.Run.step_tick_eq E rho hq).2] at hem
     exact ((fgsa_emits_proposal E rho _ y _ q _).mp hem).2.2.2.1
+  obtain ⟨x, C, ⟨hx, hC⟩, hh, hj, hJ, hReceipt⟩ :=
+    (heldServices i ev m hi hgst hm hfront hreceiptHor).top ht
   have hFcut : FGBlock.Preceq
       (storeAt p c E rho (V2.D.Run.idxBefore rho (ev.time + p.Δ)) y).fg.F C :=
     frontier_F_below_all E rho crossing hy
       ((healing_phase_local_le_frontier p c E rho hy).trans_eq
         (hwin _ hiCut hcutD).1) hx hiCut hC hh.ge
-  have hservice := (heldServices i ev x C hi hx hgst hC (hh.trans hfront.symm)
-    hreceiptHor).atRead j y (SA.proposalTime p.toParams q) hy hq hjoin
+  have hservice := hReceipt.atRead j y (SA.proposalTime p.toParams q) hy hq hjoin
       (by linarith only [huq, p.deltaPos]) (by
         rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
         exact eraseFG_preceq hFcut)
@@ -423,11 +422,10 @@ theorem frontier_hg3_topJ [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho) (monoAll : RMonoAll p
       c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
-      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
-      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
-      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ))
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (origin : RQCOrigin p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)

@@ -5860,3 +5860,19 @@ claude-files/sleep-ph2d/noRestart-remaining.tsv. No global NoRestart premise is 
 The Assembly legacy ResetArrivalStatement adapter still has its old GST boundary;
 P-As must use the approved shifted conclusion. The exact internal request is in
 claude-files/sleep-ph2c/P-As-requests.md, Round 4 appendix.
+
+### P-H2 Round 4 — final witness selection (2026-10-10)
+
+The final callbacks select existential witnesses. A height or ancestry filter
+alone would still request receipt for more blocks than the consumer selects.
+PhaseWitnessReceiptScope selects the frontier/top/contest witnesses together
+with their scoped services. HeadWitnessReceiptScope selects one K/W pair with
+its full-tree, HEAD, ancestry and floor facts. Source HEAD factories also require
+the actual joined source tick. Receiver service requires the actual joined read
+and its strict-deadline floor. No all-cache receipt obligation remains in H2's
+heldServices or opening carrier factory.
+
+WitnessHeldScope is the guarded ancestor receipt result of a consumer. It is not
+an object-service producer. FrontierServiceGate retains Kfg's source membership
+and height, proves its receiver floor before receipt, and applies the scope only
+at the actual joined gate. The exact H1 handoff has these final types.

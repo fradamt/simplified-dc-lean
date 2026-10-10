@@ -258,11 +258,36 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
     healing_support_idxBefore_le p c E rho hS ht (hu.trans hgsu)
   have hiv : i ≤ timeIdx rho (p.actionTime (r + 1)) :=
     (healing_phase_lt_timeIdx p c E rho hS ht le_rfl).le
+  have hSourceCut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+    have hqs : q + 1 ≤ s := by
+      dsimp [s]
+      rw [Nat.add_mul, Nat.one_mul]
+      have hR := p.RLarge
+      omega
+    have hqsI : (q : Int) + 1 ≤ (s : Int) := by exact_mod_cast hqs
+    change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+    change u ≤ 4 * p.Δ * (q : Int) at hu
+    nlinarith [p.deltaPos]
+  have hSourceJoined := healing_vote_joined_of_recovery hrec.toRecovery₂ hx hjz
+    (hvs.trans hvh) hSourceCut
+  have hReadJoined : joinedNow p (clock p (storeAt p c E rho i x)
+      (p.actionTime (r + 1))) = true := by
+    apply healing_recovery_joinedNow hrec hx ht hvh
+    have hslot : p.slotOf (p.actionTime (r + 1)) = s + 1 :=
+      (fgsa_postClock_slot (c := c) (rho.stateBefore E i x) _).2.symm.trans
+        (fgsa_gate_slot (c := c) _ s)
+    simp only [hslot, Nat.cast_add, Nat.cast_one, add_sub_cancel_right]
+    have hqs : (q : Int) ≤ (s : Int) := by
+      have hRS : r * p.R ≤ (r + 1) * p.R := Nat.mul_le_mul_right p.R (Nat.le_succ r)
+      exact_mod_cast hqr.trans hRS
+    change E.t_GST ≤ 4 * p.Δ * (s : Int)
+    change u ≤ 4 * p.Δ * (q : Int) at hu
+    nlinarith [p.deltaPos]
   obtain ⟨W, hW, hKW, _⟩ := healing_support_frame_at (hroots := hrec.base.receiptIdealization)
     E rho (fun _ => mono) crossing hE hDelta hrec.sync
     hgst hphase hvsu hev hx hjz
-    (fun K W hKfull hKe hW hKW hlo => services.carriers jz x s K W hx hjz
-      hKfull hKe hW hKW hlo (hgst.trans hvsu) (hev.trans hvh)) (hcov x hx _ hhl) hx
+    (services.carriers jz x s hx hjz hSourceJoined (hgst.trans hvsu) (hev.trans hvh))
+    (hcov x hx _ hhl) hx ht hReadJoined
     (healing_support_idxBefore_le p c E rho hS ht hev) hui hiv
   have hinv := cstoreInv_stateBefore E rho i x
   have hKT : K ∈ (storeAt p c E rho i x).fg.TF := by

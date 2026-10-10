@@ -261,3 +261,15 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_accept
 
 #print axioms AvailableChain.FGSA.Run.frontier_seed_prior_cut
+
+#print axioms AvailableChain.FGSA.Run.WitnessReceiptScope.atRead
+
+#print axioms AvailableChain.FGSA.Run.WitnessHeldScope.atRead
+
+#print axioms AvailableChain.FGSA.Run.HeadWitnessReceiptScope.witness
+
+#print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.frontier
+
+#print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.top
+
+#print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.contest

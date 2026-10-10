@@ -23,6 +23,44 @@ structure WitnessReceiptScope {p : Params} {In V : Type} [DecidableEq V]
     Block.Preceq (eraseFG (rho.stateBeforeTime E deadline y).st.fg.F) (eraseFG W) →
     TargetReceiptService E rho (eraseFG W) deadline y
 
+/-- The scoped receipt result for the selected ancestor of a serviced witness.
+This is a consumer result, not an object-service producer. -/
+structure WitnessHeldScope {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (W : FGBlock (Fin p.n)) (deadline : Time) : Prop where
+  atRead : ∀ iy y t, y ∈ rho.honest → rho.events[iy]? = some (.tick y t) →
+    joinedNow p (clock p (storeAt p c E rho iy y) t) = true → deadline ≤ t →
+    Block.Preceq (eraseFG (rho.stateBeforeTime E deadline y).st.fg.F) (eraseFG W) →
+    W ∈ (rho.stateBeforeTime E deadline y).st.fg.TF
+
+/-- One HEAD witness and its serviced height witness are selected together. -/
+structure HeadWitnessReceiptScope {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (i : Nat) (x : V) (s : Slot) : Prop where
+  witness :
+    let st := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
+    ∃ K ∈ fullTree p st, eraseFG K = headVote p st s ∧
+      ∃ W ∈ (storeAt p c E rho i x).fg.TF, FGBlock.Preceq K W ∧
+        (R_at p c E rho i x).lo ≤ (heightView p W).h ∧
+        WitnessReceiptScope E rho W (SA.voteTime p.toParams s + p.Δ)
+
+/-- Select only the frontier/top/contest witnesses used by settlement. -/
+structure PhaseWitnessReceiptScope {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (i m : Nat) (deadline : Time) : Prop where
+  frontier : ∃ x W, HeldAt p c E rho i x W ∧ (heightView p W).h = m ∧
+    WitnessReceiptScope E rho W deadline
+  top : TopEvidence p c E rho i m →
+    ∃ x C, HeldAt p c E rho i x C ∧ (heightView p C).h = m ∧
+      (heightView p C).h_j + 1 = m ∧
+      (heightView p C).J = (storeAt p c E rho i x).fg.J ∧
+      WitnessReceiptScope E rho C deadline
+  contest : ContestEvidence p c E rho i m →
+    ∃ x C W, HeldAt p c E rho i x C ∧ HeldAt p c E rho i x W ∧
+      (heightView p C).h = m ∧ (heightView p W).h = m ∧
+      (heightView p C).h_j + 1 = m ∧ ¬ FGBlock.Preceq (heightView p C).J W ∧
+      WitnessReceiptScope E rho C deadline ∧ WitnessReceiptScope E rho W deadline
+
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {G ΔF : Time}
 

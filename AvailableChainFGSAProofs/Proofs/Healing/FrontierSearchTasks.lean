@@ -60,11 +60,10 @@ DC: SAME HG.3 reaches a saved seed or advances phase; HG.4 finishes the rise. -/
 theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
-      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
-      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
-      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ)) (crossing : RXing p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
     (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
@@ -136,11 +135,10 @@ DC: SAME HG.3 plus the HG.4 row tail keeps exact height m and the frozen row bud
 theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
-      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
-      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
-      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ)) (crossing : RXing p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
     (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
       SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)

@@ -19,11 +19,10 @@ RCap supplies a skipped row; otherwise the event at M+1 starts the row task. -/
 theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
-      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
-      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
-      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ)) (crossing : RXing p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (cap : RCap p c E rho)
     (origin : RQCOrigin p c E rho) (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →

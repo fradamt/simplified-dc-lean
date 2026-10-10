@@ -197,19 +197,11 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
     rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
     exact List.countP_mono_left (fun e _ he =>
       decide_eq_true ((of_decide_eq_true he).le.trans (hvd.trans hgate)))
+  have hSourceJoined := healing_vote_joined_of_recovery hrec.toRecovery₂ hx hjz
+    (hvs.trans hvh) hScope.cut
   obtain ⟨Kfg, hKT, hKe, hKm, hReceipt⟩ := frontier_head_relay_on
     E rho crossing hE hHeight hcap hx hjz (hErase ▸ hcovQ x hx _ hhl) hcut
-    (fun Kfg hKfull hKe hKm => by
-      have hKT : Kfg ∈ (storeAt p c E rho jz x).fg.TF := by
-        have h := ((KitFG.mem_filteredFromView _ _ _ _).mp hKfull).1
-        change Kfg ∈ (clock p (storeAt p c E rho jz x)
-          (SA.voteTime p.toParams s)).fg.TF at h
-        rwa [clock_fg] at h
-      have hjzv : jz ≤ timeIdx rho v :=
-        (healing_phase_lt_timeIdx p c E rho hS hjz (hvd.trans hgate)).le
-      exact hRead.carriers s (Nat.succ_le_of_lt hqs) (hvd.trans hgate)
-        jz x Kfg Kfg hx hjz hKfull hKe hKT (KitFG.preceq_refl _)
-        ((KitFG.Controls.lo_le_H _).trans ((hcap jz x hjzv hx).trans_eq hKm.symm)))
+    (hRead.carriers s (Nat.succ_le_of_lt hqs) (hvd.trans hgate) jz x hx hjz hSourceJoined)
     hrec.base.receiptIdealization
   have hjzd : jz ≤ V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ) :=
     ((Gen.V2.Duty.index_lt_idxBefore_iff hS hjz _).mpr
@@ -227,13 +219,9 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
     change E.t_GST ≤ 4 * p.Δ * (s : Int)
     change u ≤ 4 * p.Δ * (q : Int) at hu
     nlinarith [p.deltaPos]
-  have hHeld := healing_held_block_receipt_on p c E rho hE
-    hrec.base.receiptIdealization Kfg (SA.voteTime p.toParams s + p.Δ) x hx
-    (hReceipt.atRead i x (SA.gateTime p.toParams s) hx ht hJoined hvd (by
-      rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
-      exact eraseFG_preceq hFd))
-  change Kfg ∈ (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) x).st.fg.TF
-    at hHeld
+  have hHeld := hReceipt.atRead i x (SA.gateTime p.toParams s) hx ht hJoined hvd (by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+    exact eraseFG_preceq hFd)
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hHeld
   have hKi : Kfg ∈ (storeAt p c E rho i x).fg.TF :=
     (fgsa_store_durable p c E rho

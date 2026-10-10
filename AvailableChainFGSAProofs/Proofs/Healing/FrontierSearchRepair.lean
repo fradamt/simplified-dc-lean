@@ -191,11 +191,10 @@ theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho) (monoAll : RMonoAll p
       c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
-      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
-      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
-      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ))
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (repair : TRepair p c E rho)
     {i m : Nat} {ev : V2.Event V (Obj p)}
     (hstart : FrontierSearchStart p c E rho i ev m .contest)

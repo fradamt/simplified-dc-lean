@@ -29,16 +29,11 @@ structure OpeningServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   gates : ∀ i x s, x ∈ rho.honest → IsGateTick p c rho i x s → enabledGateAt p c E rho i x s →
     E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
     SA.gateTime p.toParams s ≤ rho.horizon → GateReceiptScope E rho i x s
-  carriers : ∀ j x s K W, x ∈ rho.honest →
+  carriers : ∀ j x s, x ∈ rho.honest →
     rho.events[j]? = some (.tick x (SA.voteTime p.toParams s)) →
-    K ∈ fullTree p (clock p (storeAt p c E rho j x) (SA.voteTime p.toParams s)) →
-    eraseFG K = headVote p (clock p (storeAt p c E rho j x)
-      (SA.voteTime p.toParams s)) s →
-    W ∈ (storeAt p c E rho j x).fg.TF → FGBlock.Preceq K W →
-    (R_at p c E rho j x).lo ≤ (heightView p W).h →
+    joinedNow p (clock p (storeAt p c E rho j x) (SA.voteTime p.toParams s)) = true →
     E.t_GST ≤ SA.voteTime p.toParams s →
-    SA.voteTime p.toParams s + p.Δ ≤ rho.horizon →
-    WitnessReceiptScope E rho W (SA.voteTime p.toParams s + p.Δ)
+    SA.voteTime p.toParams s + p.Δ ≤ rho.horizon → HeadWitnessReceiptScope E rho j x s
   transfers : ∀ ix iy x s, x ∈ rho.honest → enabledGateAt p c E rho ix x s →
     rho.events[iy]? = some (.tick x (SA.voteTime p.toParams (s + 1))) →
     joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)) →
