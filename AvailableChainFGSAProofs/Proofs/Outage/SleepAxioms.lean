@@ -113,3 +113,6 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
 #print axioms AvailableChain.FGSA.Run.inclusion_ordered_of_scoped
 #print axioms AvailableChain.FGSA.Run.outage_gate_path_proposal_service
 #print axioms AvailableChain.FGSA.Run.outage_transfer_path_proposal_service
+#print axioms AvailableChain.FGSA.Run.outage_good_heads_at_gate
+#print axioms AvailableChain.FGSA.Run.outageV_gate_of_good_service
+#print axioms AvailableChain.FGSA.Run.outage_all_honest_late_gate_keys

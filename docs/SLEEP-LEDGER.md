@@ -4541,3 +4541,18 @@ The two constructors build with --wfail. They do not establish the full
 regime-only restored or prefix receipts. Fresh HEAD services, target
 dependencies, finality bounds, the retained score scopes and the P-Ar
 prefix remain closure work. No public receipt premise is added.
+
+### P-Ou Round 3 — good receipts and all honest late keys
+
+outage_good_heads_at_gate derives authentic target membership and strict
+early stamps in the actual gate view from GateReceiptScope. It applies to
+every honest enabled receiver, including W. The target-prefix and finality
+floor bounds remain exact joint-invariant inputs.
+outageV_gate_of_good_service connects these receipts to the actual
+compatible-batch count with the A union W opponent bound.
+
+outage_all_honest_late_gate_keys quantifies over all honest writers at all
+late labels. It excludes conflicting targets from new write keys when
+each enabled late result is compatible. It permits old conflicting rows.
+Deriving that result invariant from E and the joint induction is still OPEN.
+The three kernels build with --wfail; no regime closure is claimed.

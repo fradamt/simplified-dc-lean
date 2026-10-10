@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.GateCount
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceSleep
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
 
 public section
 
@@ -129,6 +130,84 @@ theorem outage_good_covered (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   change y ∈ rho.honest.filter _
   exact Finset.mem_filter.mpr ⟨hHonest, hn, s, hb, hsr, hJ.1⟩
 
+/-- Selected good voters supply authentic targets and strict receipt stamps
+at the actual gate. The receiver can be in W. The joint invariant must
+supply the target and finality bounds; local receipt service supplies membership. -/
+theorem outage_good_heads_at_gate (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hBase : Base₂ p c E rho) (i : Nat) (x : V) (s : Slot) (B : Block)
+    (hx : x ∈ rho.honest) (hScope : GateReceiptScope E rho i x s)
+    (H : Finset (Fin p.n))
+    (hSelected : ∀ q ∈ H, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s))
+    (hTargets : ∀ q ∈ H, ∀ K, HeadTargetAtEmission p c E rho
+      (rho.seatOf (.base (.head s)) q) (ofHead p ⟨.seat (.head s) q, K.root⟩)
+        (SA.voteTime p.toParams s) K →
+      Block.Preceq B K ∧ Block.Preceq (F_at p c E rho i x) K) :
+    ∀ q ∈ H, ∃ K t,
+      rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) t ∧
+      baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
+        (storeAt p c E rho i x).base.votes ∧
+      K ∈ (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))).blocks ∧
+      K.slot ≤ s ∧
+      GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
+        (SA.gateTime p.toParams s))) (baseVote ⟨.seat (.head s) q, K.root⟩) <
+          GridCO.earlyTime p.toParams.engine s ∧
+      GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
+        (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
+      Block.Compatible K B := by
+  have hs := hBase.valid.toScheduleWellFormed
+  have ht := hScope.enabled.1
+  intro q hq
+  obtain ⟨hy, hJ⟩ := hSelected q hq
+  let y := rho.seatOf (.base (.head s)) q
+  have hvh : SA.voteTime p.toParams s ≤ rho.horizon :=
+    (fgsa_vote_lt_gate p s).le.trans (hs.in_horizon _ (List.mem_of_getElem? ht)).2
+  have he : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
+    change ((4 * s + 1 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + p.Δ
+    push_cast
+    ring
+  obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs hBase.delta y hy (4 * s + 1)
+    (he ▸ hvh) (he ▸ hJ.1)
+  rw [he] at hk
+  let K := headVote p (clock p (rho.stateBefore E k y).st (SA.voteTime p.toParams s)) s
+  have hem : ofHead p ⟨.seat (.head s) q, K.root⟩ ∈ rho.emitsAt E k := by
+    rw [(V2.D.Run.step_tick_eq E rho hk).2]
+    exact (fgsa_emits_head E rho _ y _ s q K.root).mpr
+      ⟨hJ.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hk hJ, rfl⟩
+  have hTarget : HeadTargetAtEmission p c E rho y
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K :=
+    ⟨k, s, q, hk, hem, rfl, rfl⟩
+  obtain ⟨hBK, hFK⟩ := hTargets q hq K hTarget
+  obtain ⟨⟨hHead⟩, hBody⟩ := hScope.services q K hy hTarget
+  have hrec := hHead.receipt hBase.valid hx hk hem
+  have hblock := fgsa_target_receipt_on E rho hs hBase.receiptIdealization K
+    (SA.earlyTime p.toParams s) x hx hBody
+  have hstamp := fgsa_block_stamp_before_read E rho hs x (SA.earlyTime p.toParams s)
+    (by change 0 < 4 * p.Δ * (s : Int) + 2 * p.Δ; have hd := p.deltaPos; positivity) K hblock
+  have heg : SA.earlyTime p.toParams s < SA.gateTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hid : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ i := by
+    by_contra hn
+    exact (not_lt_of_ge heg.le)
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hs ht _).mp (Nat.lt_of_not_ge hn))
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (SA.earlyTime p.toParams s) hs]
+    at hrec hblock hstamp
+  have hkeep := fgsa_gateReceipt_stamps_on E rho hid x hScope.readEpoch s
+    (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) K hrec.1 hblock
+  have hKg : K ∈ (actView (clockPre p (storeAt p c E rho i x)
+      (SA.gateTime p.toParams s))).blocks := by
+    apply (actView_blocks _ K).mpr
+    rw [(clockPre_fields p _ _).2.1, clockPre_fg]
+    exact ⟨(fgsa_store_durable p c E rho hid x).2.1.subset hblock,
+      Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFK⟩
+  refine ⟨K, SA.voteTime p.toParams s, hy, ⟨k, hk, hem⟩, hkeep.1, hKg,
+    (arming_emitted_head_fields hs hTarget (by rw [toWire_ofHead]; rfl)).2,
+    hkeep.2.1.trans_lt hrec.2, hkeep.2.2.trans_lt hstamp, ?_⟩
+  exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hBK
+
 /-- OUTPUT-DIRECT §7. DC: INTENTIONAL; instantiate the compatible-batch
 count at the actual pre-gate active view. The sleep caller bounds the
 complement by A union W. Authenticity gives resolved targets. Receipts stay explicit. -/
@@ -195,6 +274,28 @@ theorem outageV_gate_of_receipts {p : Params} {In V : Type} [DecidableEq V]
     have hXK : X = K := Option.some.inj (hX.symm.trans hresolve)
     exact hXK.symm ▸ hKB
 
+/-- Compatible good targets and exact local service instantiate the actual
+gate count. The opponent bound is supplied by outage_late_opponent_bound. -/
+theorem outageV_gate_of_good_service (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hBase : Base₂ p c E rho) (i : Nat) (x : V) (s : Slot) (B C : Block)
+    (hx : x ∈ rho.honest) (hScope : GateReceiptScope E rho i x s)
+    (H : Finset (Fin p.n)) (a : Nat) (hpart : a < H.card)
+    (hrest : ((GridCO.seats p.n (GridCO.lateVotes p.toParams.engine
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s)).toFinset
+        \ H).card ≤ a)
+    (hSelected : ∀ q ∈ H, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s))
+    (hTargets : ∀ q ∈ H, ∀ K, HeadTargetAtEmission p c E rho
+      (rho.seatOf (.base (.head s)) q) (ofHead p ⟨.seat (.head s) q, K.root⟩)
+        (SA.voteTime p.toParams s) K →
+      Block.Preceq B K ∧ Block.Preceq (F_at p c E rho i x) K)
+    (hresult : SA.Root.confirmationFrom p.toParams
+      (eraseFG (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)).fg.F)
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s = some C) :
+    Block.Compatible C B :=
+  outageV_gate_of_receipts E rho hBase.valid i x s B C H a hpart hrest
+    (outage_good_heads_at_gate E rho hBase i x s B hx hScope H hSelected hTargets) hresult
+
 /-- A write can only add one of its supplied targets. Old rows can remain
 incompatible; this lemma promises compatibility only for new rows. -/
 theorem outage_writeKeys_new_compatible {n : Nat} (keys : List (Block × Nat))
@@ -234,6 +335,27 @@ theorem outage_gate_writeKeys_compatible {n : Nat} (params : GridCO.Params)
   subst key
   have hXC := (Bool.and_eq_true_iff.mp (List.mem_filter.mp hX).2).2
   exact Gen.Pure.block_compatible_of_preceq_compatible hXC hCB
+
+/-- The late-write exclusion quantifies over every honest writer, including W.
+Its remaining joint input is compatibility of each enabled late result. Old
+rows can remain; this statement excludes conflicting targets in new write keys. -/
+theorem outage_all_honest_late_gate_keys (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (r : Slot) (B : Block)
+    (hResults : ∀ i x s C, x ∈ rho.honest → r < s →
+      enabledGateAt p c E rho i x s → gateResultAt p c E rho i = some (some C) →
+      Block.Compatible C B) :
+    ∀ i x s C, x ∈ rho.honest → r < s → enabledGateAt p c E rho i x s →
+      gateResultAt p c E rho i = some (some C) →
+      ∀ key ∈ GridCO.gateWriteKeys p.toParams.engine
+        (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s C,
+        Block.Compatible key.1 B := by
+  intro i x s C hx hrs hG hC key hk
+  rw [GridCO.gateWriteKeys_def] at hk
+  obtain ⟨X, hX, hk⟩ := List.mem_flatMap.mp hk
+  obtain ⟨g, _, he⟩ := List.mem_map.mp hk
+  subst key
+  have hXC := (Bool.and_eq_true_iff.mp (List.mem_filter.mp hX).2).2
+  exact Gen.Pure.block_compatible_of_preceq_compatible hXC (hResults i x s C hx hrs hG hC)
 
 end AvailableChain.FGSA.Run
 end
