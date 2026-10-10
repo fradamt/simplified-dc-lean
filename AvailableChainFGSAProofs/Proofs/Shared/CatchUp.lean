@@ -412,6 +412,14 @@ def TargetReceiptService (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   K = .genesis ∨ ∃ s N send, N.erase = K ∧
     Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩) send freeze x)
 
+/-- A ready named proposal is a service for its exact erased target. -/
+theorem fgsa_target_service_of_proposal
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (s : Slot) (N : NamedProposal p.n) (send freeze : Time) (x : V)
+    (h : Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+      send freeze x)) : TargetReceiptService E rho N.erase freeze x :=
+  Or.inr ⟨s, N, send, rfl, h⟩
+
 /-- Target service gives exact base membership without a global epoch assumption. -/
 theorem fgsa_target_receipt_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (hRoots : NamedReceiptRootCollisionFree p c E rho)

@@ -205,5 +205,85 @@ theorem exactService_head_of_proposal
     (SA.voteTime p.toParams s)) s) = some N.erase
   exact congrArg some he
 
+theorem exactHead_of_proposal_on_run_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (hadm : N.erase ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (D : FGBlock (Fin p.n))
+    (hgeom : WalkRunGeometry p
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D)
+    (hterminal : ExactHeadGeometry p
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s N.erase)
+    (hScope : ScoreServiceScope E rho ip ih x y s (eraseFG D))
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
+    headVote p dst s = N.erase := by
+  intro dst
+  let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
+  have hmem := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hDP : Block.Preceq (eraseFG D) N.erase.parent := by
+    rw [hparent.2.2]
+    exact walk_covers_of_dominated_suffix _ _ _ _ _
+      (block_compatible_of_common hgeom.source_anchor (block_preceq_refl _))
+      hgeom.source_prefix
+  have hcover := fgsa_ghost_transfer_sfx_on_run_on (hroots := hroots)
+    E rho hE s hx hy hip hih hseat N hem hadm D hgeom hScope
+  exact fgsa_headVote_exact_of_covered_parent p dst s (Nat.ne_of_gt hparent.1)
+    (eraseFG D) N.erase
+    (erasedList_rootInj p dst (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _) _)
+    (Or.inl ⟨hgeom.target_anchor, by
+      simpa only [fgsa_domainR_eq_filtered] using hgeom.target_prefix⟩)
+    hDP hcover hterminal
+
+theorem exactService_head_of_proposal_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D N.erase)
+    (hScopes : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      ScoreServiceScope E rho ip ih x y s (eraseFG D))
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    SA.voteTime p.toParams s ≤ rho.horizon →
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho y s = some N.erase := by
+  intro hhorizon y hy hjoined
+  have hvt : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
+    change ((4 * s + 1 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + p.Δ
+    push_cast
+    ring
+  obtain ⟨ih, hih, _⟩ := fgsa_tick_total E rho hE.toScheduleWellFormed hDelta y hy
+    (4 * s + 1) (hvt ▸ hhorizon)
+    (by simpa only [hvt] using hjoined.1)
+  rw [hvt] at hih
+  have he := exactHead_of_proposal_on_run_on (hroots := hroots) E rho hE s
+    hx hy hip hih hseat N hem (hgeom.admitted y hy ih hih) D
+    (hgeom.walk y hy ih hih) (hgeom.terminal y hy ih hih) (hScopes y hy ih hih hjoined)
+  have ht := fgsa_tickIdx_of_event p c E rho hE.toScheduleWellFormed hih
+  change (postClock E rho y (SA.voteTime p.toParams s)).map _ = some N.erase
+  rw [postClock_def, preTick_def, ht]
+  change some (headVote p (clock p (V2.D.Run.stateBefore E rho ih y).st
+    (SA.voteTime p.toParams s)) s) = some N.erase
+  exact congrArg some he
+
 end AvailableChain.FGSA.Run
 end

@@ -475,3 +475,29 @@ end
 
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_clean_on
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_target_service_of_proposal
+
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_block_backward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_block_forward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_frozen_vote_relay_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_raw_extra_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_backward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_forward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_target_receipt_at_tick_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_reflected_block_on
+
+#print axioms AvailableChain.FGSA.Run.exactHead_of_proposal_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_on

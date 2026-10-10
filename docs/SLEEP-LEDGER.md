@@ -2334,3 +2334,18 @@ release counts, and `GateReceiptScope` for each confirmed receiver at the same g
 The Clean and Recovery consumer must supply these local scopes. Their old awake
 counts do not prove a joined count. Recovery needs its join window after GST.
 No `NoRestart` premise or restored Base field is used by these forms.
+
+### Round 5: proposal HEAD, score and walk ports
+
+Additive `ScoreServiceScope` supplies frozen HEAD ReceiverService and exact named
+block TargetReceiptService in both directions. It also supplies the source epoch
+from the strict proposal read to its tick. Each ReceiverService has its own
+HistorySafeAt and handler window. No theorem takes the final score equality,
+walk cover, or exact HEAD as a new service premise.
+
+The score and support proofs use durable proposal metadata after restart.
+The walk proof keeps both the frozen and authenticated proposal-path reflection
+arms. `exactService_head_of_proposal_on` keeps the joined-reader guard.
+Its Clean and Recovery consumers are the corresponding `_clean_on` and
+`_recovery_on` adapters in RegimesService. Those consumers supply the scopes.
+All previously compiled declarations remain unchanged.
