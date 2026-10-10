@@ -3,7 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.LiveDC -- shake: keep (LIV
 public import AvailableChainFGSAClaims.Claims.Healing
 public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (H.11 reset supplier)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (TPerm supplier boundary)
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm -- shake: keep (TPerm supplier)
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (H.10 supplier)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep (HG.5 supplier)
 public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport -- shake: keep (J11)
@@ -46,7 +46,7 @@ theorem healing_renewedPromotionClaim_of
       Recovery₂ p c E rho G ΔF → RXing p c E rho)
     (hperm : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
-      Recovery₂ p c E rho G ΔF → TPerm p c E rho)
+      RecoverySleep₂ p c E rho G ΔF → TPerm p c E rho)
     (hrowsReceipt : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
       Recovery₂ p c E rho G ΔF → TRowsReceipt p c E rho ΔF)
@@ -61,7 +61,7 @@ theorem healing_renewedPromotionClaim_of
     RenewedPromotionClaim p := by
   intro G ΔF hδ V _ _ In c E rho pt h
   exact healing_renewedPromotion E rho h.set (hproposalServices c E rho h.set) hδ h.bound
-    (hmono c E rho) (hcrossing c E rho h.set.toRecovery₂) (hperm c E rho h.set.toRecovery₂)
+    (hmono c E rho) (hcrossing c E rho h.set.toRecovery₂) (hperm c E rho h.set)
     (hrowsReceipt c E rho h.set.toRecovery₂) (hprogressCoverage ΔF c E rho)
     hfold (hfaultQ c E rho h.set.toRecovery₂) (hhonestQuorum c E rho h.set.toRecovery₂) pt.r h.hhor
 
