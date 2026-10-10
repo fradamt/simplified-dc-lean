@@ -5945,3 +5945,11 @@ differences. H1's per-receiver selected carrier still lacks the actual joined
 read and floor guards. Its permanence input is still global. Its reset and
 settlement service callbacks still differ from the selected H2 contracts.
 Those requests remain OPEN; none is silently declared supplied.
+
+### P-H2 Round 5 — architecture boundary (2026-10-10)
+
+ARCHITECTURE.md now records FrontierSeedDefs, the independent search-definition
+import, the recoveryStart reset/search boundary, selected receipt records, and
+the guarded opening/repair/frontier interfaces. It records 38 recovery and 24
+reset/Rise audit commands. The 130-command service audit stays OPEN, as do
+the lower H1 producers and mixed Assembly tests. Public statements are unchanged.
