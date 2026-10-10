@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep 
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -181,24 +183,36 @@ Assembly supplies `sourceDiscipline_tSrc` and `fgsa_rMono` as the named inputs.
 Finality is compared at the target read, so it can change during transport. -/
 theorem healing_source_body_relay [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (source : TSrc p c E rho) (_mono : RMonoAll p c E rho)
+    (source : TSrc p c E rho) (mono : RMonoAll p c E rho)
     {y x : V} {r : Nat} {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
     (hK : actionSourceFG p c E rho y r = some (some K))
     (_hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R))
     {D : Time} (heD : SA.earlyTime p.toParams (r * p.R) ≤ D) (_hhor : D ≤ rho.horizon)
-    (_hF : FGBlock.Preceq (V2.D.Run.stateBeforeTime E rho D x).st.fg.F K)
+    (hF : FGBlock.Preceq (V2.D.Run.stateBeforeTime E rho D x).st.fg.F K)
     (hServices : ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      FGBlock.Preceq K W →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams (r * p.R)) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x) :
     Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) D x := by
   obtain ⟨j, z, W, hz, hj, hW, hKW⟩ := healing_source_supporter_head E rho hrec source hy hK
   have hs := hrec.base.valid.toScheduleWellFormed
+  have hFloor : FGBlock.Preceq
+      (rho.stateBeforeTime E (SA.earlyTime p.toParams (r * p.R)) x).st.fg.F W := by
+    have hm := (mono (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams (r * p.R)))
+      (V2.D.Run.idxBefore rho D) x hx (source_idx_mono rho heD)).1
+    change FGBlock.Preceq (rho.stateBefore E _ x).st.fg.F
+      (rho.stateBefore E _ x).st.fg.F at hm
+    rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hs,
+      Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hm
+    exact KitFG.preceq_trans hm (KitFG.preceq_trans hF hKW)
   have hreceipt := healing_held_block_receipt_on p c E rho hrec.base.valid
     hrec.base.receiptIdealization W (SA.earlyTime p.toParams (r * p.R)) x hx
-    (hServices j z W hz hj hW)
+    (hServices j z W hz hj hW hKW hFloor)
   have hpath : Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF)
       (SA.earlyTime p.toParams (r * p.R)) x := by
@@ -231,6 +245,9 @@ theorem healing_source_body_stamps [Fintype V] (E : Generic.Env V)
     (hServices : ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      FGBlock.Preceq K W →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams (r * p.R)) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x) :
     Gen.V2.Duty.HoldsBefore E rho (fun nd => ∀ B, FGBlock.Preceq B K →
       B ∈ nd.st.fg.TF ∧ GridCO.stampBlock nd.st.base (eraseFG B) < D) D x := by
@@ -273,6 +290,32 @@ theorem healing_source_old_body [Fintype V] (E : Generic.Env V) (rho : V2.D.Run 
   intro B hBK
   exact KitFG.ancestor_closed_of_parent_closed _
     (storeBundle_stateBeforeTime E rho D x).cstore.fg.closed K hY B hBK
+
+/-- Recovery produces delivery for the selected source body at its actual vote tick. -/
+theorem healing_source_delivery_service [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {j : Nat} {z x : V} {s : Slot}
+    {W : FGBlock (Fin p.n)} (hz : z ∈ rho.honest) (hx : x ∈ rho.honest)
+    (hj : rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)))
+    (hW : W ∈ (storeAt p c E rho j z).fg.TF)
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hhor : SA.earlyTime p.toParams s ≤ rho.horizon)
+    (hFloor : FGBlock.Preceq (rho.stateBeforeTime E
+      (SA.earlyTime p.toParams s) x).st.fg.F W) :
+    TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams s) x := by
+  have he : SA.voteTime p.toParams s + p.Δ = SA.earlyTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 2 * p.Δ
+    ring
+  have hpub : V2.PublicTime E (SA.voteTime p.toParams s) := by
+    refine ⟨4 * s + 1, ?_⟩
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ = ((4 * s + 1 : Nat) : Int) * p.Δ
+    push_cast
+    ring
+  rw [← he] at hhor hFloor ⊢
+  exact healing_target_service_of_tick E rho hrec hz hx hj
+    (((storeBundle_stateBefore E rho j z).cstore.baseTree _).mpr ⟨W, hW, rfl⟩)
+    hpub hSync hhor (Bool.or_eq_true_iff.mpr (Or.inr (eraseFG_preceq hFloor)))
 
 end AvailableChain.FGSA.Run
 end

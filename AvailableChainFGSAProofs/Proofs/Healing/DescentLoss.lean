@@ -130,8 +130,8 @@ theorem healing_source_decode
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B `same` step 2; blueprint 21:1579–1582 (H.11 μ).
-DC: INTENTIONAL μ excludes pre-GST sources. A source of height above μ votes
-at or after GST: otherwise its emitted name is an old row height, at most μ. -/
+DC: INTENTIONAL μ excludes sources before recoveryStart. A source above μ votes
+at or after recoveryStart: otherwise its emitted name is an old row height, at most μ. -/
 theorem healing_high_source_recoveryStart
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)

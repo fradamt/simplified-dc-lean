@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Join
@@ -163,6 +164,58 @@ theorem healing_recovery_joined (E : Generic.Env V)
   · intro u _ _ hu
     obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp hu
     exact (healing_recovery_restart_bound E rho hrec hx hk).trans hcut
+
+/-- The finite recovery suffix is joined at every read after recoveryStart. -/
+theorem healing_joined_at_or_after_start (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {x : V} (hx : x ∈ rho.honest)
+    {t : Time} (hready : recoveryStart p E ≤ t) (hhor : t ≤ rho.horizon) :
+    joinedAt p E rho x (slotAt p t) t := by
+  have hlo := healing_recovery_start_lower (p := p) E
+  exact healing_recovery_joined E rho hrec hx (healing_ready_read_cutoff E hready)
+    (by linarith [p.deltaPos]) hhor
+
+omit [DecidableEq V] [Fintype V] in
+/-- A proposal after recoveryStart supplies the exact prior-batch window. -/
+theorem healing_ready_proposal_window (E : Generic.Env V) {s : Slot}
+    (hready : recoveryStart p E ≤ SA.proposalTime p.toParams s) :
+    HealingWindow p E 2 s :=
+  healing_window_of_cut E (healing_ready_proposal_cutoff E hready)
+
+/-- At an actual bounded tick, the environmental join enables the duty guard. -/
+theorem healing_joinedNow_at_or_after_start (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {i : Nat} {x : V} {t : Time}
+    (hx : x ∈ rho.honest) (hi : rho.events[i]? = some (.tick x t))
+    (hready : recoveryStart p E ≤ t) (hhor : t ≤ rho.horizon) :
+    joinedNow p (clock p (storeAt p c E rho i x) t) = true := by
+  apply healing_recovery_joinedNow hrec hx hi hhor
+  exact healing_ready_read_cutoff E hready
+
+/-- The actual bounded HEAD tick executes the joined duty after recoveryStart. -/
+theorem healing_ready_head_guard (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {i : Nat} {x : V} {s : Slot}
+    (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
+    (hready : recoveryStart p E ≤ SA.voteTime p.toParams s)
+    (hhor : SA.voteTime p.toParams s ≤ rho.horizon) :
+    joinedNow p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) = true :=
+  healing_joinedNow_at_or_after_start E rho hrec hx hi hready hhor
+
+/-- Readiness enables this actual bounded gate; a scheduled label is insufficient. -/
+theorem healing_ready_gate_enabled (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {i : Nat} {x : V} {s : Slot}
+    (hx : x ∈ rho.honest) (hi : IsGateTick p c rho i x s)
+    (hready : recoveryStart p E ≤ SA.gateTime p.toParams s)
+    (hhor : SA.gateTime p.toParams s ≤ rho.horizon) : enabledGateAt p c E rho i x s := by
+  have hcut := healing_ready_read_cutoff E hready
+  have hs : slotAt p (SA.gateTime p.toParams s) = s + 1 :=
+    (fgsa_postClock_slot (c := c) (rho.stateBefore E i x) _).2.symm.trans
+      (fgsa_gate_slot (c := c) _ s)
+  apply healing_scope_enabled_gate hrec hx hi _ hhor
+  simpa only [hs, Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hcut
 
 /-- The joined suffix includes every honest HEAD voter after the previous-slot cutoff. -/
 theorem healing_recovery_joinedHonest (E : Generic.Env V)

@@ -24,13 +24,16 @@ example (w : HealingWitness) : PostResetProtectedKept p c E rho w 0 := by
 private def DeliveryServices : Prop :=
   ∀ y r K, y ∈ rho.honest →
     actionSourceFG p c E rho y r = some (some K) →
-    E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
+    recoveryStart p E ≤ SA.voteTime p.toParams (r * p.R) →
     SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
     ∀ x ∈ rho.honest, FGBlock.Preceq
       (rho.stateBeforeTime E (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F K →
     ∀ j z W, z ∈ rho.honest →
     rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
     W ∈ (storeAt p c E rho j z).fg.TF →
+    FGBlock.Preceq K W →
+    FGBlock.Preceq
+      (rho.stateBeforeTime E (SA.earlyTime p.toParams (r * p.R)) x).st.fg.F W →
     TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x
 
 -- conditional package: consume the A wrapper's conclusion for the source body itself.
@@ -44,16 +47,24 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       (finalityView p D).h_F ≤ w.M → Block.Preceq (F_at p c E rho j x) w.CStar)
     (highCompat : ∀ j, PostResetHighCompatible p c E rho w j)
     (resetCompat : ∀ j, PostResetResetCompatible p c E rho w j)
+    (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
+      HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
+    (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e.1 = (heightView p C).h ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (h0r : H0Reset p c E rho w)
     {y x : V} {r l : Nat} {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest) (hsrc : actionSourceFG p c E rho y r = some (some K))
     (hK : SourceBefore p c E rho l K (r * p.R)) (hhK : high p w K)
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R))
     (hhor : SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon) (hx : x ∈ rho.honest) :
     Gen.V2.Duty.HoldsBefore E rho (fun nd =>
       K ∈ nd.st.fg.TF ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x := by
   have h := postReset_tDel p c E rho mono origin lowFinality highCompat resetCompat
-    hrec source hServices hy hsrc hK hhK hgst hhor hx
+    hrec source hServices emittedNonempty emittedName h0r hy hsrc hK hhK hhor hx
   rw [Gen.V2.Duty.HoldsBefore_def] at h ⊢
   exact h.imp (fun path => path K (KitFG.preceq_refl K)) id
 

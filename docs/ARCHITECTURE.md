@@ -1028,3 +1028,73 @@ early one-lease cleanup is used. Saved-window transport retains GST. Settlement
 selects its witnesses, proves the receiver floor, and uses an actual bounded
 joined tick. The phase factory and remaining frontier/post-reset producers stay
 open; see scripts/dev-pkg/P-H2.round6-handoff.md.
+
+JOINED START (lead ruling, P-H1 Rounds 7-8): every healing intermediate statement
+(TDel, TPerm, ProposalGap, TRepair, TCommon, TFrontier, ResetArrival*, AttemptValid,
+RPhase, RenewedPromotionConcl) starts at Jst = recoveryStart p E, not at GST.
+Jst - GST lies in [6Δ, 10Δ-1] and depends only on GST mod 4Δ. Saved-window
+transport premises stay at GST. RowPermissionAt/Claim stay at GST (proved without
+a healing contract). Top-level Claims/Healing* deadlines and constants are unchanged.
+From Jst every honest reader and every source-label voter is joined, so there is
+one joined-phase permanence API; no early fast-only supplier and no early one-lease
+cleanup exist. Fast first transfer: relay rule plus the reader joined at release(s).
+Slow arm: lease expiry plus same-label uniqueness. A pre-GST lease that is still live
+at release(sStar) (k > 2R+3) is released by a later full post-Jst batch.
+Plan: tip-stability codex/jobs/joined-start-plan.md; ruling in sleep-join-port-notes.md.
+
+- FG-SA sleep continuation, P-Ou Round 10: `Outage/ScopedPrefix` selects
+  regressions only at actual joined emitted HEADs. Its no-regression branch
+  constructs the restored seed from the arming certificate, then produces
+  bounded results and the event state. Its first-event selection also produces
+  the causal prefix at the actual first regression read.
+  It also proves frozen-path membership at an actual joined read, using durable
+  trees and the local stamp epoch. The first-regression retained score and
+  uncontested path producers remain P-Ou obligations.
+  `Outage/ScopedContinuation` starts the marker suffix after gate `max(m,r+k)`.
+  An early marker does not provide the intervening finite prefix.
+  Its later HEAD producer uses actual joined readers and prior event history.
+  `Outage/ScopedCatchUp` produces the W reader's actual gate, batch and epoch;
+  it proves the finalized output branch. The other W output branch and the
+  complete public exporters remain open. Public claims are unchanged.
+
+P-Ou Round 11: ScopedScores, ScopedRoots and ScopedPaths construct the first
+actual regression marker from the regime, arming certificate and causal prefix.
+Selected path service uses the current receiver floor, actual joined read and
+post-GST prior label. The crossing source uses P-Fd sourceDiscipline_qcOrigin.
+The finite bridge after that marker and the complete public exporters remain open.
+
+P-Ou ScopedBridge now constructs the finite bridge and global restored scoped
+HEADs. Same-label readers use their own frame, and subsequent labels use the
+first marker. Both event branches reach inclusive covered public reads after the
+seed. Earlier read assembly, W stable catch-up and legacy public ports remain open.
+
+P-H1 joined-start boundary, Rounds 7-9:
+Healing intermediate contracts start at recoveryStart p E. It is the single
+protocol-parameter start Jst; saved-window transport still starts at GST.
+RowPermissionAt and RowPermissionClaim keep their proved GST form. Top-level
+Healing deadlines and constants are unchanged. Permanence services are indexed
+by one actual bounded phase. The universal TPerm wrapper consumes that phase
+factory; P5 production closure remains open. No early fast-only permanence or
+early one-lease cleanup producer is used in the joined-start route.
+
+ReceiptProducers constructs selected original proposal and HEAD services from
+RecoverySleep₂, with public anchors, finite deadlines and local receiver epochs.
+RecoveryProducers supplies selected carriers, geometry-guarded gates, complete
+RepairHeadServices.scopes and selected prior-source receipts. Ordinary and reset
+delivery have recovery adapters that construct their services. P1/P2 HEAD relay
+factories remain open, including their carried cap cases.
+No conditional assembly or fixture is a producer for those fields.
+The positive execution fixture now preserves its old event prefix and extends
+to horizon 310, beyond the complete joined-start H-time budget of 309.
+
+P-Ou Rounds 12-13 (sleep-pou12/13): ScopedEarly proves the early reads, HEADs, F and
+duties at finite cuts; ScopedClose gives the protected Outage result under Close's own
+OutagePrem (no NoRestart, no duties_and_outputs). The finite Clean history/output
+suppliers stay at the lane boundary. ScopedArming selects fast, slow and empty-G
+certificates; ScopedJoint joins the early reads, the covered suffix and the actual W
+gate. Assembly/OutagePublicInputs builds every finite Clean field from a named
+producer; its audit module prints their axioms. Dependency order: protected Outage
+is proved from named suppliers; W suffix preservation and lease compatibility at the
+actual post-handover W gate are proved; the continuation exporter still needs
+OutageWSeed (Outage/ScopedCatchUp, O11-W-SEED); P-As assembly and the global audit
+integration remain pending.

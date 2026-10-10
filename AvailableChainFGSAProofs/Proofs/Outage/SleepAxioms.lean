@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedClose
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
 public import AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths
@@ -25,6 +27,19 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
 public import AvailableChainFGSAProofs.Proofs.Outage.Induction
+
+public import AvailableChainFGSAProofs.Proofs.Outage.LaterHeads
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
+
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPrefix
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
+
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedScores
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedRoots
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
+
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
 
 #print axioms AvailableChain.FGSA.Run.outage_restored_service
 #print axioms AvailableChain.FGSA.Run.outage_restored_proposal_receipt
@@ -245,3 +260,98 @@ public import AvailableChainFGSAProofs.Proofs.Outage.Induction
 #print axioms AvailableChain.FGSA.Run.outage_post_e_joined_count
 #print axioms AvailableChain.FGSA.Run.outage_first_restored_label
 #print axioms AvailableChain.FGSA.Run.outage_continuation_results_of_head_history
+
+
+#print axioms AvailableChain.FGSA.Run.outage_received_marker_head_scoped
+#print axioms AvailableChain.FGSA.Run.outage_clocked_root_compatible_scoped
+#print axioms AvailableChain.FGSA.Run.outage_clocked_contested_head_scoped
+#print axioms AvailableChain.FGSA.Run.outage_later_marker_receipt
+#print axioms AvailableChain.FGSA.Run.outage_later_marker_head
+#print axioms AvailableChain.FGSA.Run.outage_head_target_of_protection
+#print axioms AvailableChain.FGSA.Run.outage_conditional_target_of_protection
+#print axioms AvailableChain.FGSA.Run.outageV_write_and_normalize
+#print axioms AvailableChain.FGSA.Run.outageV_gateStep_covers
+#print axioms AvailableChain.FGSA.Run.outageV_fastSet_compatible
+#print axioms AvailableChain.FGSA.Run.outageV_live_locks
+#print axioms AvailableChain.FGSA.Run.outageV_source_compatible
+#print axioms AvailableChain.FGSA.Run.outageV_result_extends
+#print axioms AvailableChain.FGSA.Run.outageV_restored_gate
+#print axioms AvailableChain.FGSA.Run.outage_continuation_result_of_head_history
+
+#print axioms AvailableChain.FGSA.Run.outage_continuation_event_induction
+#print axioms AvailableChain.FGSA.Run.outage_head_rows_after_handover
+#print axioms AvailableChain.FGSA.Run.outage_marker_continuation_induction
+#print axioms AvailableChain.FGSA.Run.outage_continuation_inclusive_read
+
+#print axioms AvailableChain.FGSA.Run.OutageScopedRegression_def
+#print axioms AvailableChain.FGSA.Run.outage_first_scoped_regression
+#print axioms AvailableChain.FGSA.Run.outage_results_before_regression
+#print axioms AvailableChain.FGSA.Run.outage_no_regression_prefix
+#print axioms AvailableChain.FGSA.Run.outage_contested_marker_of_names
+#print axioms AvailableChain.FGSA.Run.outage_regression_contested_of_retained_batch
+#print axioms AvailableChain.FGSA.Run.outage_caught_up_gate_scope
+#print axioms AvailableChain.FGSA.Run.outage_marker_head_at_read
+#print axioms AvailableChain.FGSA.Run.outage_frozen_path_at_joined_read
+#print axioms AvailableChain.FGSA.Run.outage_finalized_continuation_read
+#print axioms AvailableChain.FGSA.Run.outage_good_head_through_restored
+#print axioms AvailableChain.FGSA.Run.outage_event_induction_before_vote_cut
+#print axioms AvailableChain.FGSA.Run.outage_first_scoped_regression_event
+#print axioms AvailableChain.FGSA.Run.outage_continuation_arming_regime
+#print axioms AvailableChain.FGSA.Run.outage_restored_vote_seed
+#print axioms AvailableChain.FGSA.Run.outage_no_regression_continuation
+#print axioms AvailableChain.FGSA.Run.outage_first_regression_prefix
+
+#print axioms AvailableChain.FGSA.Run.outage_pool_opponent_bound
+#print axioms AvailableChain.FGSA.Run.outage_receiver_scores_of_bound
+#print axioms AvailableChain.FGSA.Run.outage_prior_good_receipts
+#print axioms AvailableChain.FGSA.Run.outage_prior_covering_source
+#print axioms AvailableChain.FGSA.Run.outage_pending_gate_cert_receipt
+#print axioms AvailableChain.FGSA.Run.outage_pending_gate_cert_result
+#print axioms AvailableChain.FGSA.Run.outage_enabled_old_gate_covered
+#print axioms AvailableChain.FGSA.Run.outage_scoped_head_root
+#print axioms AvailableChain.FGSA.Run.outage_first_regression_retained_frame
+#print axioms AvailableChain.FGSA.Run.outage_source_gate_before_early
+#print axioms AvailableChain.FGSA.Run.outage_source_held_at_action
+#print axioms AvailableChain.FGSA.Run.outage_crossing_source_at_read
+#print axioms AvailableChain.FGSA.Run.outage_frozen_selected_ancestor
+#print axioms AvailableChain.FGSA.Run.outage_uncontested_frozen_path
+#print axioms AvailableChain.FGSA.Run.outage_first_regression_marker
+#print axioms AvailableChain.FGSA.Run.outage_first_regression_scores
+
+#print axioms AvailableChain.FGSA.Run.outage_continuation_of_results
+#print axioms AvailableChain.FGSA.Run.outage_no_lower_of_first_event
+#print axioms AvailableChain.FGSA.Run.outage_regression_prefix_no_lower
+#print axioms AvailableChain.FGSA.Run.outage_regression_scores_no_lower
+#print axioms AvailableChain.FGSA.Run.outage_scoped_head_rows
+#print axioms AvailableChain.FGSA.Run.outage_contested_head_of_names
+#print axioms AvailableChain.FGSA.Run.outage_regression_marker_no_lower
+#print axioms AvailableChain.FGSA.Run.outage_marker_head_on_scoped_prefix
+#print axioms AvailableChain.FGSA.Run.outage_regression_continuation
+#print axioms AvailableChain.FGSA.Run.outage_continuation_scoped_heads
+#print axioms AvailableChain.FGSA.Run.outage_first_marker_finite_prefix
+#print axioms AvailableChain.FGSA.Run.outage_continuation_event_state
+#print axioms AvailableChain.FGSA.Run.outage_covered_public_read_after_seed
+#print axioms AvailableChain.FGSA.Run.outage_caught_up_gate_result_history
+
+#print axioms AvailableChain.FGSA.Run.outage_early_event_state
+#print axioms AvailableChain.FGSA.Run.outage_early_finalized_read
+#print axioms AvailableChain.FGSA.Run.outage_early_public_read
+#print axioms AvailableChain.FGSA.Run.outage_early_head_reader_covered
+#print axioms AvailableChain.FGSA.Run.outage_early_scoped_head
+#print axioms AvailableChain.FGSA.Run.outage_early_scoped_duties
+
+#print axioms AvailableChain.FGSA.Run.outage_gateStep_stable_compatible
+#print axioms AvailableChain.FGSA.Run.outage_stable_compatible_suffix
+#print axioms AvailableChain.FGSA.Run.outage_caught_up_public_read_from_seed
+
+#print axioms AvailableChain.FGSA.Run.outage_confirmed_reader_before_restore
+#print axioms AvailableChain.FGSA.Run.outage_joined_provenance
+#print axioms AvailableChain.FGSA.Run.outage_protected_initial_lift
+#print axioms AvailableChain.FGSA.Run.outage_empty_covered_certificate
+#print axioms AvailableChain.FGSA.Run.outage_protected_scoped
+
+#print axioms AvailableChain.FGSA.Run.outage_continuation_public_reads
+#print axioms AvailableChain.FGSA.Run.outage_continuation_public_heads_and_finality
+
+#print axioms AvailableChain.FGSA.Run.outage_caught_up_gate_rows
+#print axioms AvailableChain.FGSA.Run.OutageWSeed_def

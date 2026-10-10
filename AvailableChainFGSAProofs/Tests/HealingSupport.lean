@@ -188,15 +188,15 @@ example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     (hServices : SupportPermanenceServices E rho u v m J contested)
-    {s : Slot} {B : Block} (hCut : HealingWindow p E 1 s) (hhead : u ≤ SA.voteTime p.toParams s)
+    {s : Slot} {B : Block} (hhead : u ≤ SA.voteTime p.toParams s)
     (hgate : SA.gateTime p.toParams s ≤ v) (hbody : PhaseBody p c E rho s B)
     {x : V} (hx : x ∈ rho.honest) (hguard : SA.gateTime p.toParams s + 4 * p.Δ ≤ v)
     {i : Nat} (hai : afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i)
     (hiv : i ≤ timeIdx rho v) : Block.Preceq B (S_at p c E rho i x) :=
   (healing_phase_transfers E rho hrec mono crossing writes
-    hgst hphase hServices hCut hhead hgate hbody).2.2
+    hready hphase hServices hhead hgate hbody).2.2
     i x hx hguard hai hiv
 
 -- S4: the phase adapter returns Transfers after its source-window argument.
@@ -220,12 +220,12 @@ example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     (hServices : SupportPermanenceServices E rho u v m J contested)
-    {s : Slot} {B : Block} (hCut : HealingWindow p E 1 s)
+    {s : Slot} {B : Block}
     (hhead : u ≤ SA.voteTime p.toParams s) (hgate : SA.gateTime p.toParams s ≤ v)
     (hbody : PhaseBody p c E rho s B) : Transfers p c E rho s B v :=
-  healing_tPerm_at E rho hrec mono crossing writes hgst hphase hServices hCut hhead hgate hbody
+  healing_tPerm_at E rho hrec mono crossing writes hready hphase hServices hhead hgate hbody
 
 /- B31 sketch (comment only). Without the guard the old S3 clause failed at the horizon edge.
 Take v = horizon with d_s ≤ v < d_s + 4Δ = d_(s+1), two honest nodes x and y, and a fast

@@ -4961,12 +4961,12 @@
       "module": "AvailableChainFGSAClaims.Statements.Fold"
     },
     "AvailableChain.FGSA.Run.RowPermissionAt": {
-      "digest": "814e3132fbcd8909f2d960ba2fd888ffe50903ddc0e891cec59d6316b004b033",
+      "digest": "6f6634a9a2ee7c9d127278973757244ce5e90029c0b51561955d33d6f67bbe4b",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
     "AvailableChain.FGSA.Run.RowPermissionClaim": {
-      "digest": "70928070ac4d6221fa7c116cecff3ac152e69bbbbf3bc6bdf82e021e833a1140",
+      "digest": "ea92002b789605882af2a931c75c73cb0b807fcea1da9096e387dedb61c0ed7c",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
@@ -63052,7 +63052,7 @@
         "    (J : Option (AvailableChain.SimplexFG.FGBlock (Fin p.n))) (contested : Bool)",
         "    (r : Nat) (x : V) (C : AvailableChain.SimplexFG.FGBlock (Fin p.n))",
         "    (nd : (AvailableChain.FGSA.Run.fgsa p c).State),",
-        "    Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) u →",
+        "    Int.instLEInt.le E.t_GST u →",
         "      AvailableChain.FGSA.Run.PhaseInterval p c E rho u v m J contested →",
         "        Int.instLEInt.le u (p.actionTime r) →",
         "          Int.instLEInt.le (p.actionTime r) v →",
@@ -63099,11 +63099,11 @@
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.namedEntry",
         "AvailableChain.FGSA.Run.postClock",
-        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.controls",
         "AvailableChain.FGSA.fullTree",
         "AvailableChain.FGSA.heightView",
         "AvailableChain.Generic.Env",
+        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.KitFG.FGHeight.T_h",
         "AvailableChain.KitFG.FGHeight.h",
         "AvailableChain.SA.Params.n",
@@ -63135,7 +63135,7 @@
         "SetLike.instMembership",
         "instLENat"
       ],
-      "digest": "6989986137af5e8002bfc5c05afaa5ee89c40f1bbdd3bd37ff530dd10ad6038d",
+      "digest": "88448bed6e71d47e68f7542344d2d91d46ba78f6a1f2d6de43a01698050d4337",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run15:RowPermissionAt",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing",

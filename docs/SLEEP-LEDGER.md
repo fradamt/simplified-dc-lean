@@ -6899,8 +6899,127 @@ Evidence: .lake/sleep-pou-r8/. Handoff: P-Ou.round8-handoff.md.
 The full continuation induction, handover closure, Close and both complete
 exporters remain owned work. No future invariant is declared proved.
 
+### P-Ou Round 9 — actual later HEADs and local result adapter
+
+Base afc304e6. Protocol and public claim declarations are unchanged.
+LaterHeads supplies durable marker persistence, clocked contested HEAD compatibility,
+and the protected actual target before its lease expiry. The conditional target
+adapter keeps the low receiver-F branch and derives its floor by transitivity.
+
+outage_later_marker_receipt serves one actual stored carrier at the later joined HEAD
+read. Its public anchor is that slot start; GST comes from the earlier marker label.
+The receiver floor is derived only in the F-below-B branch. It uses retained acceptance
+origins, exact local history and epoch, and the actual tick horizon. It requests no
+joined-seat count and no universal receiver join or pre-GST deadline.
+
+ReceiverInputs.outage_continuation_result_of_head_history takes only the actual gate
+label's HEAD history. The existing global adapter now calls this local theorem.
+ContinuationGate.outageV_restored_gate uses that scoped interface and the regime's
+E-window or post-E joined count; its old NoRestart/awake batch lane is removed.
+The local gate-step proof now handles the suppressed branch with normalization.
+
+These are internal proof ports. Consumers: ContinuationJoint and the new scoped
+continuation induction. A first marker and the finite restored prefix are still
+P-Ou proof work; no unconditional public continuation closure is claimed here.
+LaterHeads and ContinuationGate pass exact builds with default heartbeats.
+The package map, local coverage and production-only audit fragment are updated.
+
+### P-Ou Round 9 — causal marker suffix and expiry
+
+ScopedContinuation.outage_continuation_event_induction handles kept-stable restarts,
+delivery reconciliation, enabled gates, and suppressed gates. It carries global
+source names and F compatibility, with stable inclusion only at covered receivers.
+Its result input is bounded by the actual event prefix.
+
+outage_marker_continuation_induction produces the healthy suffix's HEAD and gate
+compatibility, source names, G stable inclusion and all-honest F compatibility.
+The inputs name one actual marker and the finite prefix after its gate, with m>=r+k.
+Earlier gate results give exact conflicting-row deadlines. The post-E HEAD expires
+those rows; source names give the compatible frame; the actual joined marker service
+then gives that HEAD's compatibility. The current gate consumes an earlier HEAD index.
+No future result/HEAD/service callback or all-honest stable seed is assumed here.
+
+The finite prefix and first marker are still OPEN P-Ou work. The no-marker branch and
+restored labels before that cut remain OPEN. ContinuationJoint, Close and both complete
+exporters are not closed by this conditional suffix. Their EXPECTED-FAIL status is kept.
+
+Tests/OutageLaterHeads checks wake=9, GST=20 and the E-window boundary at delta=1,
+r=2, k=2. The gate at 18 can be joined while the HEAD at 13 is suppressed. The marker
+anchor 12 is pre-GST; anchor 24 is post-GST. The actual Foundation RMonoAll composition
+also compiles. These are exact guard tests, not complete run counterexamples.
+
+Map: 54 TARGETS, 515 GREEN, eight EXPECTED-FAIL (six P-Ou, two S-Ap).
+New modules and the scoped gate port compile at default heartbeats. Headers PASS;
+layers zero new; complete GREEN export check zero unaccepted. Final DCK and strict
+results are in the Round 9 report. The 107-row SCOPE-NARROW table and exact finite
+producer goals are in scripts/dev-pkg/P-Ou.round9-handoff.md. P-Ou remains PREPARED.
+
+### P-Ou Round 9 — final validation
+
+DCK P-Ou PASS: 44 strict sources, 3,245 axiom results, all 24 default controls PASS.
+Map: 54 TARGETS, 515 GREEN, eight EXPECTED-FAIL (six P-Ou, two S-Ap).
+Complete GREEN exports: 334 proof modules, 253 exports, zero unaccepted, zero Gen exports.
+Complete local coverage: 281 commands; home-equation control PASS; zero unaccepted.
+The serial production-only fragment has 250 strict results and imports no test module.
+Only propext, Classical.choice and Quot.sound occur in the strict audits.
+Headers PASS with zero failures. Layers: 72 inherited findings, zero new.
+Whitespace, new Lean line lengths, placeholder scan and ownership checks pass.
+Public claim/protocol declarations and all checker/baseline/allowance files are unchanged.
+No heartbeat increase, throttle override, toolchain update, agent, review job, push,
+rebase, merge or ssh was used. Only my sandbox-blocked build processes were stopped.
+
+The entire requested Round 9 closure remains incomplete. P-Ou is PREPARED, not CLOSED.
+Exact remaining finite prefix and first-marker goals are in P-Ou.round9-handoff.md.
+Evidence: .lake/sleep-pou-r9/dck.log, exports.log, coverage.log, serial-strict.log,
+first-group.log, later-tests.log, headers-final.log and layers-final.log.
 - Lead 2026-10-10 15:22: merged sleep-pas5 cc0ccf1d (P-As r5) as PREPARED, 44/66 GREEN; review rev-pas5-astra MERGE-AS-PREPARED. OutageContinuationInhabit stays OPEN (fixture not sleep-valid; r6 replaces it). FAST port in r6.
 
+### P-Ou Round 10 — restored seed and actual first-regression prefix
+
+ScopedInduction:28/:102 adds the bounded vote-cut forms. The previous APIs are
+wrappers, with their statements unchanged. ScopedPrefix:93 derives the auxiliary
+arming regime by W-set inclusion. :151 constructs the initial seed at earlyTime r
+from the actual arming certificate. :235 proves the no-regression continuation
+without source, stable, result or service seeds. :55/:298 selects the first actual
+regression event and produces its causal prefix, including same-label event order.
+Global source and F facts stay global. Stable coverage stays G-only.
+
+ScopedPrefix:338 replaces the frozen-path helper's global NoRestart premise with
+an actual joined read and its exact receipt/freeze window. P-Fd durable TF and
+RStoreEpoch preserve the selected body and stamp. :394 produces a durable marker
+from an actual contested named frame. :415 consumes local retained scores and
+uncontested filtered-path witnesses to prove contest. Their regime producers
+remain P-Ou O10-2. No service is requested at an arbitrary sleeper or before GST.
+
+ScopedContinuation:157 is the actual later HEAD producer. :194 permits early
+markers by placing its finite start after gate max(m,r+k); it uses :157 directly.
+The prefix after the first regression through that cut remains P-Ou O10-3.
+No future HEAD, result or service callback is introduced.
+
+ScopedCatchUp:16 produces the public W reader's actual post-End gate, batch at
+its early cut, awake suffix and receipt epoch. The boundary gate can still use
+an E-window HEAD; its time is not a healthy-count proof. :54 closes the finalized
+output branch. The other actual W output seed is P-Ou O10-4.
+
+Global hHeads, the early bridge and public consumer ports remain OPEN. The six
+P-Ou and two S-Ap EXPECTED-FAIL entries remain. P-Ou is PREPARED, not CLOSED.
+The complete Round 10 task is incomplete. Public claims and protocol declarations
+are unchanged. No new cross-package supplier request or public STOP is claimed.
+Exact goals and the 124-row scope table: scripts/dev-pkg/P-Ou.round10-handoff.md.
+
+### P-Ou Round 10 — final validation
+
+Proof group: dada200f, base aef1dd45, branch sleep-pou10.
+DCK P-Ou PASS: 44 strict sources, 3,265 results, all 24 default controls PASS.
+Map: 56 TARGETS, 517 GREEN, eight EXPECTED-FAIL (six P-Ou, two S-Ap).
+Headers PASS, zero failures. Layers: 72 inherited findings, zero new.
+Complete GREEN exports: 336 proof modules, 253 exports, zero unaccepted, zero Gen exports.
+Local coverage: 301 commands, home-equation control PASS, zero unaccepted.
+Serial production-only audit: 267 strict results, standard axioms only.
+The public consumers were attempted; Close and ContinuationInduction still fail
+at removed NoRestart projections and old all-honest induction calls.
+No complete exporter or public claim is marked closed. P-Ou remains PREPARED.
+Evidence: .lake/sleep-pou-r10/. Exact remaining goals: P-Ou.round10-handoff.md.
 - Lead 2026-10-10 15:51: merged sleep-pas6 18d690c2 (P-As r6) as PREPARED, 45/66 GREEN; FAST CLOSED; outage fixture sleep-valid; review rev-pas6-astra MERGE-AS-PREPARED. Open: P-Ou closure/export (incl. Outage/Export → GrowthSuppliers), HTimeClaim (healing).
 
 ## P-H1 Round 7 — JOINED-START statements (2026-10-10)
@@ -6916,8 +7035,9 @@ The changed shallow entries are pinned in docs/api/fgsa-joined-start-pins.json.
 Each reason is "JOINED-START (lead ruling 2026-10-10)". Current snapshots
 replace the old freeze gate on this base (4f134e83); no frozen baseline or
 checker allowance is changed. The shallow manifest uses the required
-V2Manifest --scope fgsa --write command. The current deep and auxiliary
-review products are regenerated for the current checker.
+V2Manifest --scope fgsa --write command. The current deep product is
+regenerated. The auxiliary write is blocked by missing compiled roots from
+the full proof/Inhabit scope; no auxiliary allowance is introduced.
 
 Claims builds with its tests. Three inherited test adapters required the
 existing RecoverySleep₂ and recoveryStart forms; HealingW now consumes
@@ -7030,3 +7150,218 @@ The remaining selected source/capped-target plumbing stays OPEN/P-H2.
 Validation: layers zero new; headers PASS; GREEN exports zero unaccepted.
 DCK is blocked by the inherited ComposeStmt line warning. Full manifest is blocked
 by missing Outage.ArmingDuty. No owner source or public statement was edited.
+### P-H1 Round 7 — bounded consumers and source service
+
+The single phase-indexed permanence API derives its source Window 1 from
+recoveryStart <= u <= vote(s). healing_tPerm consumes RecoverySleep₂ and the
+exact ready-phase SupportPermanenceServices factory. P5 remains OPEN/P-H1.
+Both last-write splits use that same TPerm. repair_lease_cover_one/two now
+construct RepairLeaseCover from those splits, with no assumed hCover.
+Repaired proposal reads derive Window 2 and their prior Window 1.
+
+General reads, actual HEAD/gate guards, the CStar seat counts, selected
+carrier reads, fresh reset source readiness and high-source readiness are
+proved. FastSupportScope.firstReaders was already absent at this base.
+No other guarded contract-B field is removed. Source delivery callbacks
+now keep K <= W (or CStar <= eraseFG W) and the receiver floor at early(s).
+RMonoAll pulls that floor back from the actual consumer read. No arbitrary
+all-TF receiver service is requested by these callbacks.
+
+The positive finite HealingRun proves ExecutionValid, P23-A receipt roots,
+per-anchor synchrony, RecoverySleep₂ and a nonempty actual ready PhaseBody.
+It does not supply the open phase-service factory. Four separate kernel
+clock regressions exclude the listed old sources and check the new split
+thresholds. Full adversarial ExecutionValid replays remain OPEN/P-H1 with
+exact obligations in P-H1.round7-fixtures.md.
+
+D3 handoff: P-H1.round7-handoff.md lists all H2 sites and their new premises.
+Promotion, AttemptStop, PhaseSettle and PhaseBoot fail directly after the
+public start change. Their 18-module closure is EXPECTED-FAIL/P-H2 in the
+P-H1 map. The strict local audit covers the compiled slice. Public closure
+is not inferred from that slice; P-H1 remains PREPARED.
+
+### P-H1 Round 7 — final validation
+
+P-H1 DCK PASS: 3,736 build jobs, 44 strict sources, 3,730 permitted results,
+all 24 controls PASS. Map: 104 assigned, 556 GREEN, 18 EXPECTED-FAIL/P-H2.
+All GREEN exports: 345 proof modules, 253 exports, zero unaccepted, Gen zero.
+Local complete coverage: 376 commands, control PASS, zero unaccepted.
+Layers: 72 inherited findings, zero new. Module headers PASS.
+Changed Lean source has no proof placeholder, project axiom, native_decide,
+import all, new heartbeat option or new line above 100 columns.
+
+check-fgsa-manifest.sh: shallow/deep FG-SA and legacy/V2/GEN/Compose products
+PASS. The full checker exits 1 at the missing Outage/ArmingDuty.olean in the
+auxiliary Claims/proof scope. No partial auxiliary snapshot was written.
+Separate deep controls: all 55 PASS. API snapshot controls pass 11 cases,
+then stop at the same missing Outage root. The remaining auxiliary write and
+full control are exact P-As integration obligations after P-Ou/P-H2 builds.
+The P-H1 package result is not a full manifest or healing closure result.
+Evidence: /private/tmp/ph1h-dck-final.log, ph1h-manifest-final.log,
+ph1h-coverage-final.log, ph1h-snapshot-controls.log and ph1h-deep-controls.log.
+### P-Ou Round 11 — first actual regression marker
+
+ScopedScores supplies the A union W bound for carried pools with actual stored
+provenance. Selected prior good HEADs are received at the early tick, with their
+votes and stamps retained through the current joined read. ScopedPrefix produces
+those scores and an actual held covering source at the first regression. It uses
+E in its fixed window and the healthy joined count after that window.
+
+ScopedRoots supplies pending results from the general arming gate certificate.
+The live root is compatible at G, outside-W, and post-End actual scoped readers.
+Outside-W readers cannot have an enabled outage write after the pending label:
+that write would put them in W. The pending result and old Clean maximum supply
+the remaining row branches. No all-honest stable invariant is requested.
+
+ScopedPaths serves each selected ancestor above the current receiver F before
+freeze, using the actual joined reader, post-GST prior label and exact epoch.
+An honest crossing source supplies any higher uncontested height witness.
+outage_first_regression_marker produces the stored marker, B <= J(P), and
+nonzero h_j(P). Scores, root and path are outputs. RQCOrigin is the named P-Fd
+sourceDiscipline_qcOrigin supplier; its caller uses the existing FaultQ input.
+
+O10-2 is proved. The post-marker finite bridge and public ports remain open.
+Public claims and protocol declarations are unchanged. New scope checks include
+restart-at-GST=20 and restart-at-9 with GST=20; these are guard checks, not full
+ExecutionValid counterexample fixtures. P-Ou remains PREPARED.
+
+### P-Ou Round 11 — finite bridge and global restored HEADs
+
+ScopedPrefix.outage_continuation_of_results produces source and G stable seeds
+from the arming certificate. Its only invariant input is the exact bounded result
+history. The original no-regression API remains a wrapper with the same type.
+The new no-lower-label forms handle all readers at the first regressed label.
+Event-first selection proves this absence guard without assuming a marker in all runs.
+
+ScopedRoots.outage_scoped_head_rows produces compatible live rows before or after
+handover. ScopedPaths.outage_regression_marker_no_lower also proves compatibility
+at the regressed reader itself. ScopedBridge.outage_regression_continuation uses
+these local reads at the first label and exact marker receipt at subsequent labels.
+Its event induction supplies the complete finite bridge with no future callbacks.
+outage_first_marker_finite_prefix returns the exact seed after gate max(m,r+k).
+O10-3 is proved, including early markers and same-label read order.
+
+outage_continuation_scoped_heads joins the no-marker branch, first-label reads and
+causal continuation. It produces global hHeads for actual emitted scoped joined
+readers after r. O10-5's hHeads producer is proved; its legacy consumer ports remain open.
+outage_continuation_event_state joins both first-event branches. The inclusive
+public-read adapter proves G inclusion after the early-r seed. Public read assembly
+before that seed remains open. ScopedCatchUp produces raw result compatibility at
+the actual W gate, with its batch, awake suffix and receipt epoch. Post-gate W stable
+compatibility remains open; raw result compatibility is not that stable seed.
+
+The six P-Ou EXPECTED-FAIL consumers and two S-Ap entries remain. P-Ou is PREPARED.
+Public claims, protocol declarations and healing files are unchanged.
+
+### P-Ou Round 11 — P-As GrowthSuppliers visibility
+
+Outage/Export now publicly imports Outage/GrowthSuppliers. Assembly/Outage keeps
+its existing Outage/Export route to clean_growth_suppliers. This closes the P-As
+round 6 visibility request and rev-pou10 item 2 without a new lane import or proof.
+GrowthSuppliers compiles. The complete Export still waits on the P-Ou legacy ports.
+
+### P-Ou Round 11 — exact remaining contracts and validation
+
+P-Ou.round11-handoff.md gives the complete non-regression common context, the
+regression-only selection guard, exact earlier public read/HEAD/F types, exact
+W seed at j+1 and its continuation to timeIdx(t), and Close's separate OutagePrem
+context. Every failed P-Ou consumer is mapped. The global hHeads and max-gate
+finite prefix are proved declaration links. Later general covering-target callbacks
+are removed from the active route, which uses actual target compatibility instead.
+This resolves the exact-type findings in rev-pou9 and rev-pou10 item 1.
+
+DCK PASS: 44 strict sources, 3,297 results, all 24 default controls PASS.
+Map: 60 TARGETS, 521 GREEN, eight EXPECTED-FAIL. Headers PASS; layers zero new.
+Complete GREEN exports: 340 proof modules, 253 exports, zero unaccepted.
+Local coverage: 333 commands; serial production audit: 297 standard-axiom results.
+The joinedHonest equation export was repaired by a local type conversion; no
+checker, baseline or allowance changed. Public consumers were built and still
+fail at legacy ports. P-Ou is PREPARED; the complete Round 11 task is incomplete.
+No public claim, protocol declaration or healing file changed. No public STOP.
+
+- Lead 2026-10-10 17:24: merged sleep-pou11 1b245e9e (P-Ou rounds 9-11) as PREPARED. Reviews rev-pou9/10/11-astra: proofs pass; rev-pou10 items 1-2 fixed. CORRECTION (rev-pou11 item 1): scripts/dev-pkg/P-Ou.round11-handoff.md:285 and the round 11 report claim every remaining contract elaborates in OpenTypes.lean; the saved log shows the O11-OUTAGE check FAILED (missing Claims imports; unknown FCompatBefore, LeaseOrFFrom). The six continuation goal types did elaborate. P-Ou r12 corrects the handoff.
+### P-Ou Round 12 — finite early cuts and scoped outage protection
+
+Base 1b245e9e; branch sleep-pou12. Proof commits: 88a2634c, 696b63f6,
+a0d5801e and 41483e69. P-Ou remains PREPARED; the complete task is incomplete.
+
+ScopedEarly proves O11-EARLY-READ/HEAD/F/DUTY at current finite cuts, including
+runs whose restored seed lies after the horizon. Its early read takes the actual
+CleanHist and enabled gate-output facts produced by P-Cl1. ScopedClose proves
+O11-OUTAGE's protected-B result under OutagePrem, with no continuation premise.
+It also produces joined duty provenance, the actual protected FG lift and a
+certificate when G is empty. These inputs retain sleep and actual read scopes.
+
+ScopedCatchUp proves O11-W-READ from S at j+1 through the inclusive timeIdx(t).
+Its complete HEAD/F consumers use the early proofs and ScopedBridge's global
+scoped HEAD/state producers. Its complete read consumer takes exactly the open
+O11-W-SEED goal. Raw result compatibility does not supply that stable seed.
+No new all-honest stable, NoRestart, pre-GST service or prior-label join input is added.
+
+O11-W-SEED and complete public assembly remain P-Ou. The six P-Ou modules remain
+EXPECTED-FAIL. Both complete exporters were built and fail at legacy ports in
+Close and ContinuationInduction. The handoff states O12-PUBLIC-CONT and
+O12-PUBLIC-OUTAGE with their exact unchanged types and caller contexts.
+GrowthSuppliers remains visible through Outage/Export for P-As.
+
+DCK PASS: 44 strict sources, 3,313 results, all 24 controls PASS.
+Map: 62 targets, 523 GREEN, eight EXPECTED-FAIL (six P-Ou, two S-Ap).
+Headers PASS; layers zero new. Exports: 342 proof modules, 253 exports, zero
+unaccepted. Local coverage: 349 commands, zero unaccepted. Serial production
+audit: 313 standard-axiom results. Exact original solved contracts are proved in
+.lake/sleep-pou-r12/Contracts.lean. No protocol, public claim or Healing change.
+Handoff: scripts/dev-pkg/P-Ou.round12-handoff.md, with the current scope table.
+Report: claude-files/sleep-pou-report.md, Round 12. No public STOP.
+
+- Lead 2026-10-10 17:59: merged sleep-pou12 de637290 (P-Ou r12) as PREPARED. rev-pou12-astra: proofs pass; open record items (round 13): finish the round 11 validation-record correction; architecture note for the new Scoped* modules and boundary. Open proofs: W-SEED, both public exporters.
+
+- Lead 2026-10-10 18:09: merged P-H1 rounds 7-8 (ebbe73cc) as PREPARED: JOINED-START statements (4ad808d4, 396d90cc; RowPermission kept at GST by b021cfa3), Jst lemmas, joined-phase permanence, H6 floors, guarded assemblies, N4 release. Reviews rev-ph1h/rev-ph1i-astra: all PASS except the architecture note, added by the lead in this merge. Open: leaf factories, P5, TPerm wrapper, object services, ExecutionValid replays (P-H1 r9). Full manifest validation waits on the expected-fail Outage exporters.
+### P-Ou Round 13 — actual W gate lease input
+
+ScopedCatchUp proves outage_caught_up_gate_rows at each actual enabled gate
+with s >= restoredLabel(b1) + k. Old incompatible rows expire by handover;
+later enabled results come from the scoped event producer. No future cut,
+all-honest join or pre-GST service is required. OutageWSeed records the exact
+unchanged O11-W-SEED goal. This goal is still OPEN, P-Ou; the row proof does
+not prove stable compatibility at j+1. Build evidence: .lake/sleep-pou-r13/w-rows-tests.log.
+
+### P-Ou Round 13 — public Outage on the scoped interface
+
+ScopedArming selects fast, slow and empty-G certificates. Close uses its own
+OutagePrem and the proved protected result. Outage.Export returns the unchanged
+OutageCompatAt and P1 types. Its named Clean input record has an actual producer
+in Assembly/OutagePublicInputs; outage_public_suppliers proves OutageCompatClaim
+without a new claim premise. Clean.Export exposes two existing producer modules.
+No noRestart or duties_and_outputs call remains in Close or the public exporters.
+Producer evidence: .lake/sleep-pou-r13/assembly-suppliers.log. W seed remains OPEN.
+
+### P-Ou Round 13 — scoped continuation exporter and consumer ports
+
+ScopedJoint selects arming for each actual initial read and joins the produced
+public read, HEAD and F consumers. OutageContinuation.Export has the unchanged
+OutageContinuationClaim result and the exact OPEN O11-W-SEED input. It is GREEN
+and conditional. This is not public continuation closure.
+The six P-Ou failed consumer entries are GREEN. ContinuationJoint, Induction
+and Receipt route to the scoped producers. Retired all-honest helpers had no
+current production caller. Their original sources are retained at de637290
+and in .lake/sleep-pou-r13/legacy/. Current typed audits check the scoped types.
+P-As still must update its three Assembly/Outage callers and the Root seed call.
+Public claims, protocol and Healing files are unchanged. The package is PREPARED.
+
+### P-Ou Round 13 — validation and remaining producer
+
+Proof groups: d65236ae and b35a3548. DCK P-Ou PASS: 48 strict sources,
+3,401 results; all 24 default controls PASS. Map: 69 targets, 536 GREEN,
+two S-Ap EXPECTED-FAIL entries. Headers PASS: 1,744 library files.
+Layers: 72 inherited findings, zero new. Complete GREEN exports: 375 proof
+modules, 253 exports, zero unaccepted. Local coverage: 367 rows, zero unaccepted.
+Production-only serial audit: 329 results; standard axioms only.
+All cited evidence is saved in .lake/sleep-pou-r13/.
+The OpenTypes claim from Round 11 is corrected. The exact Contracts rerun passes
+with Claims imports; it checks the unproved W seed only as a Prop.
+Handoff: scripts/dev-pkg/P-Ou.round13-handoff.md. Report: Round 13.
+Both exporters are GREEN. O11-W-SEED remains OPEN, P-Ou; the continuation exporter
+is conditional. P-As has three Outage caller repairs and the Root seed port.
+The full Round 13 task is incomplete. P-Ou is PREPARED; no public STOP is asserted.
+
+- Lead 2026-10-10 18:40: merged sleep-pou13 8bd2d9d7 (P-Ou r13) as PREPARED: outage supplier proved, both public exporters GREEN, continuation exporter conditional only on OutageWSeed. rev-pou13-astra: all pass except the architecture record (added by the lead in this merge). OutageWSeed truth check: wseed-derisk-astra.

@@ -1180,5 +1180,25 @@ theorem fgsa_gate_batch_premises_joined [Fintype V] (E : Generic.Env V)
     (storeBundle_stateBefore E rho i x).cstore (SA.gateTime p.toParams s)
   exact actView_ancestor_closed p pre hstore hK (Gen.Pure.block_preceq_trans hXB hBK)
 
+/-- An actual honest emitted HEAD cannot be excluded in its label window.
+Stored or replayed copies have the same signed target. -/
+theorem fgsa_honest_head_not_excluded (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    {s : Slot} {q : Fin p.n} {b : BlockId} {send d : Time} {x : V}
+    (hh : rho.seatOf (.base (.head s)) q ∈ rho.honest)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+      (ofHead p ⟨.seat (.head s) q, b⟩) send)
+    (hWindow : (rho.stateBeforeTime E d x).st.slot p ≤ s + 1) :
+    (fgsa p c).excludes (rho.stateBeforeTime E d x)
+      (ofHead p ⟨.seat (.head s) q, b⟩) = false := by
+  by_contra hn
+  obtain ⟨u, hu, v, hv, hne, hlu, hlv, hqu, hqv, _, _⟩ :=
+    fgsa_head_excluded_before E rho hE.toScheduleWellFormed x d s q b hWindow
+      (Bool.eq_true_of_ne_false hn)
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hE.toScheduleWellFormed] at hu hv
+  have hU := fgsa_honest_head_eq_of_stored E rho hE _ x s q b send hh he u hu hlu hqu
+  have hV := fgsa_honest_head_eq_of_stored E rho hE _ x s q b send hh he v hv hlv hqv
+  exact hne (hU.trans hV.symm)
+
 end AvailableChain.FGSA.Run
 end

@@ -569,12 +569,7 @@ theorem repair_head_exact_legacy [Fintype V] (E : Generic.Env V)
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))) →
       (⟨.seat (.prop (r + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip →
       RepairHeadServices E rho (r + 1) ip x N)
-    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) (r + 1) Q)
-    (hFloors : ∀ y ∈ rho.honest, ∀ (ih : Nat),
-      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))) →
-      joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
-      Block.Preceq (eraseFG (rho.stateBeforeTime E
-        (SA.voteTime p.toParams (r + 1)) y).st.fg.F) Q) :
+    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) (r + 1) Q) :
     ∀ y ∈ rho.honest, joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
       headAtLabel p c E rho y (r + 1) = some Q := by
   have hE := hrec.base.valid
@@ -588,13 +583,20 @@ theorem repair_head_exact_legacy [Fintype V] (E : Generic.Env V)
   have hhor : SA.voteTime p.toParams (r + 1) ≤ rho.horizon := hvq.trans hphase.2.1
   have hPrior : ProposalSupportScope E rho ip x r (SA.proposalTime p.toParams (r + 1)) := by
     simpa only [Nat.add_sub_cancel] using (hServices ip x N hx hip hem).prior
+  have hFloors (y : V) (hy : y ∈ rho.honest) (ih : Nat)
+      (hi : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1)))) :
+      Block.Preceq (eraseFG (rho.stateBeforeTime E
+        (SA.voteTime p.toParams (r + 1)) y).st.fg.F) Q := by
+    have hinput := repair_h6_input E rho hrec mono crossing hgst hphase hhead hvq
+      hlease hx hip hPrior hCut hy hi
+    simpa only [heN] using fgsa_retainedH6_time_floor E rho hE mono hy hip hi N hem hinput
   have h := repair_head_exact E rho hrec.toRecovery₂ (r + 1) hGST hx hip hseat N hem
     (fun y hy ih hih _ => repair_h6_input E rho hrec mono crossing hgst hphase hhead hvq
       hlease hx hip hPrior hCut hy hih)
     (fun y hy ih hi hj => (hServices ip x N hx hip hem).target hy hi hj
-      (by simpa only [heN] using hFloors y hy ih hi hj))
+      (by simpa only [heN] using hFloors y hy ih hi))
     (fun y hy ih hi hj => (hServices ip x N hx hip hem).scopes y hy ih hi hj
-      (by simpa only [heN] using hFloors y hy ih hi hj)) hhor
+      (by simpa only [heN] using hFloors y hy ih hi)) hhor
   simpa only [heN] using h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -653,12 +655,12 @@ theorem repair_lease_cover_of_split (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     exact htr.1 y (s - 1) K hy hws hv hK
 
 /-- The repair adapter consumes the local lease cover at this actual label.
-The production proof remains open until the permanence boundary is resolved.
-This adapter does not construct the cover from recovery. -/
+The joined-start TPerm input supplies both branches of the last-write split.
+The phase-service producer of TPerm remains OPEN/P-H1. -/
 theorem repair_lease_cover_two [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (_hrec : RecoverySleep₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (_mono : RMonoAll p c E rho) (_crossing : RXing p c E rho)
-    (_writes : ∀ i x (row : Block × Nat × Time),
+    (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
@@ -675,12 +677,16 @@ theorem repair_lease_cover_two [Fintype V] (E : Generic.Env V)
           (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
               p.toParams.engine p.n
             (actView pre) w C)
+    (perm : TPerm p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (_hgst : E.t_GST ≤ u) (_hphase : PhaseInterval p c E rho u v m J contested)
-    {β : Slot} (_hβ : u < SA.proposalTime p.toParams β) {s : Slot}
-    (_hls : SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s)
-    (_hvs : SA.voteTime p.toParams s ≤ v)
-    (hCover : RepairLeaseCover E rho s) : RepairLeaseCover E rho s := hCover
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    {β : Slot} (hβ : u < SA.proposalTime p.toParams β) {s : Slot}
+    (hls : SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s)
+    (hvs : SA.voteTime p.toParams s ≤ v)
+ : RepairLeaseCover E rho s := by
+  exact repair_lease_cover_of_split E rho hrec.base.valid.toScheduleWellFormed
+    (healing_last_write_two_lease p c E rho
+      hrec.base.valid.toScheduleWellFormed perm writes hready hphase hβ) hls hvs
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan H-REPAIR step 3. DC: SAME a slot after β + 2k − 1, with u < t_β, has its preceding
@@ -720,26 +726,33 @@ theorem retainedH6Input_on_repaired_reads [Fintype V] (E : Generic.Env V)
           (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
               p.toParams.engine p.n
             (actView pre) w C)
+    (perm : TPerm p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {β : Slot} (hβ : u < SA.proposalTime p.toParams β) {s : Slot}
     (hls : SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s)
     (hvs : SA.voteTime p.toParams s ≤ v)
-    (hCover : RepairLeaseCover E rho s)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hScope : ProposalSupportScope E rho ip x (s - 1) (SA.proposalTime p.toParams s))
-    (hCut : HealingWindow p E 1 (s - 1))
     {ih : Nat} {y : V} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s))) :
     RetainedH6Input p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s := by
+  have hgst : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   obtain ⟨r, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero
     (Nat.ne_zero_of_lt (repair_slot_lt_of_time hls))
+  have hWindow : HealingWindow p E 2 (r + 1) :=
+    healing_ready_proposal_window E ((hready.trans (repair_head_after_two hβ hls)).trans (by
+      change 4 * p.Δ * (r : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
+      push_cast
+      linarith [p.deltaPos]))
   exact repair_h6_input E rho hrec mono crossing hgst hphase (repair_head_after_two hβ hls) hvs
-    (repair_lease_cover_two E rho hrec mono crossing writes hgst hphase hβ hls hvs hCover)
+    (repair_lease_cover_two E rho hrec mono crossing writes perm hready hphase hβ hls hvs)
     hx hip (by simpa only [Nat.add_sub_cancel] using hScope)
-    (by simpa only [Nat.add_sub_cancel] using hCut) hy hih
+    (by simpa only [Nat.add_sub_cancel] using hWindow.prior) hy hih
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:915–963 (H.6 unanimous HEAD); plan H-REPAIR G-H6 (R1), step 8.
@@ -765,30 +778,33 @@ theorem repair_head_two [Fintype V] (E : Generic.Env V)
           (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
               p.toParams.engine p.n
             (actView pre) w C)
+    (perm : TPerm p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {β : Slot} (hβ : u < SA.proposalTime p.toParams β) {s : Slot}
     (hls : SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s)
     (hvs : SA.voteTime p.toParams s ≤ v)
-    (hCover : RepairLeaseCover E rho s)
-    (hWindow : HealingWindow p E 2 s)
     (hServices : ∀ (ip : Nat) (x : V) (N : NamedProposal p.n), x ∈ rho.honest →
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
       (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip →
       RepairHeadServices E rho s ip x N)
-    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) s Q)
-    (hFloors : ∀ y ∈ rho.honest, ∀ (ih : Nat),
-      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
-      joinedAt p E rho y s (SA.voteTime p.toParams s) →
-      Block.Preceq (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s) y).st.fg.F) Q) :
+    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) s Q) :
     ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
       headAtLabel p c E rho y s = some Q := by
+  have hgst : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   obtain ⟨r, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero
     (Nat.ne_zero_of_lt (repair_slot_lt_of_time hls))
+  have hWindow : HealingWindow p E 2 (r + 1) :=
+    healing_ready_proposal_window E ((hready.trans (repair_head_after_two hβ hls)).trans (by
+      change 4 * p.Δ * (r : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
+      push_cast
+      linarith [p.deltaPos]))
   exact repair_head_exact_legacy E rho hrec mono crossing hgst hphase
     (repair_head_after_two hβ hls) hvs
-    (repair_lease_cover_two E rho hrec mono crossing writes hgst hphase hβ hls hvs hCover)
-    (by simpa only [Nat.add_sub_cancel] using hWindow.prior) hServices hp hFloors
+    (repair_lease_cover_two E rho hrec mono crossing writes perm hready hphase hβ hls hvs)
+    (by simpa only [Nat.add_sub_cancel] using hWindow.prior) hServices hp
 
 end AvailableChain.FGSA.Run
 end

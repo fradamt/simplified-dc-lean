@@ -29,6 +29,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportLease
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSaved

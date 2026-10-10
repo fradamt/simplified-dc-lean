@@ -1,6 +1,18 @@
 # P-H1 serial integration fragment; merge into the existing full audit key.
 {
     'AvailableChainFGSAProofs.Tests.Axioms': {
+        'AvailableChainFGSAProofs.Proofs.Healing.ResetScope': (
+            'AvailableChain.FGSA.Run.healing_recovery_start_lower',
+            'AvailableChain.FGSA.Run.healing_recovery_delay_bounds',
+            'AvailableChain.FGSA.Run.healing_ready_vote_cutoff',
+            'AvailableChain.FGSA.Run.healing_ready_read_cutoff',
+            'AvailableChain.FGSA.Run.healing_ready_proposal_cutoff',
+            'AvailableChain.FGSA.Run.healing_reset_action_after_cut',
+            'AvailableChain.FGSA.Run.healing_reset_source_ready',
+            'AvailableChain.FGSA.Run.healing_reset_slot_cutoff',
+            'AvailableChain.FGSA.Run.healing_reset_gate_cutoff',
+            'AvailableChain.FGSA.Run.healing_reset_vote_cutoff',
+        ),
         'AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle': (
             'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle',
             'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle',
@@ -148,6 +160,7 @@
             'AvailableChain.FGSA.Run.healing_renewedPromotion_terminal',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportFrame': (
+            'AvailableChain.FGSA.Run.healing_joined_tick_of_ready',
             'AvailableChain.FGSA.Run.HealingJoinedTick',
             'AvailableChain.FGSA.Run.HealingCarriersAt',
             'AvailableChain.FGSA.Run.healing_joined_tick_of_guard',
@@ -175,6 +188,11 @@
             'AvailableChain.FGSA.Run.healing_support_gate_cover',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery': (
+            'AvailableChain.FGSA.Run.healing_ready_head_guard',
+            'AvailableChain.FGSA.Run.healing_ready_gate_enabled',
+            'AvailableChain.FGSA.Run.healing_joined_at_or_after_start',
+            'AvailableChain.FGSA.Run.healing_ready_proposal_window',
+            'AvailableChain.FGSA.Run.healing_joinedNow_at_or_after_start',
             'AvailableChain.FGSA.Run.HealingWindow',
             'AvailableChain.FGSA.Run.StrongHealingWindow',
             'AvailableChain.FGSA.Run.StrongHealingWindow.window',
@@ -221,6 +239,7 @@
             'AvailableChain.FGSA.Run.healing_saved_origin_on',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportTicks': (
+            'AvailableChain.FGSA.Run.healing_ready_seat_counts',
             'AvailableChain.FGSA.Run.healingJoinedSeats_card',
             'AvailableChain.FGSA.Run.healing_recovery_seat_counts',
             'AvailableChain.FGSA.Run.healing_recovery_seat_rivals',
@@ -267,6 +286,7 @@
             'AvailableChain.FGSA.Run.healing_slow_output',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportPerm': (
+            'AvailableChain.FGSA.Run.healing_tPerm',
             'AvailableChain.FGSA.Run.healing_phase_transfers',
             'AvailableChain.FGSA.Run.healing_tPerm_at',
         ),
