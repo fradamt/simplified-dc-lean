@@ -203,3 +203,5 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
 #print axioms AvailableChain.FGSA.Run.outage_fast_supporting_head_outside
 #print axioms AvailableChain.FGSA.Run.outage_e1_release_bound
 #print axioms AvailableChain.FGSA.Run.outage_source_of_good_heads
+
+#print axioms AvailableChain.FGSA.Run.fgsa_releaseCount_le_senders

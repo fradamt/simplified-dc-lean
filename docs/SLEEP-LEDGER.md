@@ -5801,3 +5801,10 @@ prefix adapter remains a P-Ar request. No public STOP was established.
 Handoff: scripts/dev-pkg/P-Ou.round6-handoff.md. Its SCOPE-NARROW table
 records every input role, named producer, and open owner. Report: Round 6
 in claude-files/sleep-pou-report.md. Evidence: .lake/sleep-pou-r6/.
+
+### P-Ou Round 7 — public release count API
+
+GoodVotes uses the public fgsa_releaseCount_le_senders lemma appended to Shared/Release.
+The lemma bounds the actual release witnesses by an explicit sender set. The A union W
+proof and its conclusion are unchanged. The last P-Ou import-all is removed.
+Headers have no P-Ou failure; three inherited P-Ar findings remain.
