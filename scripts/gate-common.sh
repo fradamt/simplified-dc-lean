@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 # Shared gate functions. Bash 3.2 is sufficient. Source from the repo root.
 
+gate_select_neg() {
+  local base=$1 force=$2 args=()
+  [ "$force" = 0 ] || args+=(--force)
+  GATE_NEG_SCOPE=$(python3 -B scripts/checker_scope.py "$PWD" "$base" HEAD "${args[@]}")
+  NEG=$(printf '%s' "$GATE_NEG_SCOPE" |
+    python3 -c 'import json,sys; print(json.load(sys.stdin)["neg"])')
+  export NEG
+}
+
+gate_neg_summary() {
+  python3 -B scripts/checker_scope.py "$PWD" "$base" HEAD --summary "$logs/negative-controls.json"
+}
+
 # Source checks run in order, before any build or gate log directory.
 # Use explicit returns: callers may test the function with if or ||.
 gate_check_base() {

@@ -28,6 +28,7 @@ sys.modules['layers'] = L
 spec.loader.exec_module(L)
 ROOT = Path.cwd()
 SOURCE_ONLY = os.environ.get('SOURCE_ONLY', '0') == '1'
+NEG = os.environ.get('NEG', '1') == '1'
 LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit')
 CLAIMS, PROOFS, INHABIT = LIBS
 ROOT_LIBS = LIBS
@@ -264,13 +265,14 @@ def check_source_coverage(imports, roots):
             raise SystemExit('NOT REACHED FROM F4: ' + ', '.join(unreached))
 
 # The active FG-SA root must reach every production module.
-fgsa_orphan = "AvailableChainFGSAProofs.Proofs.Shared.CoverageNegative"
-try:
-    check_source_coverage({}, [fgsa_orphan])
-except SystemExit as exc:
-    assert str(exc) == "NOT IMPORTED BY ROOT: " + fgsa_orphan, exc
-else:
-    raise SystemExit("FG-SA ROOT COVERAGE CONTROL FAILED")
+if NEG:
+    fgsa_orphan = "AvailableChainFGSAProofs.Proofs.Shared.CoverageNegative"
+    try:
+        check_source_coverage({}, [fgsa_orphan])
+    except SystemExit as exc:
+        assert str(exc) == "NOT IMPORTED BY ROOT: " + fgsa_orphan, exc
+    else:
+        raise SystemExit("FG-SA ROOT COVERAGE CONTROL FAILED")
 
 if SOURCE_ONLY:
     source_edges = {module(p): L.read_header(p.read_text())[0] for p in files}
@@ -289,7 +291,7 @@ for pair in sorted(REQUIRED_MODEL_SCOPE):
         'missing-model-scope-' + pair[1],
         '\n'.join(' '.join(row) for row in MODEL_SCOPE if row != pair),
         'MISSING MODEL AUDIT SCOPE: ' + ' '.join(pair)))
-for label, raw, reason in scope_controls:
+for label, raw, reason in (scope_controls if NEG else ()):
     try:
         read_model_scope(raw)
     except SystemExit as exc:
@@ -352,7 +354,7 @@ controls = (
     ('assembly-root-phases-internal', L.ASSEMBLY_ROOT,
      'public import ' + CLAIMS + '.Statements.PhasesInternal\n', 'INTERNAL STATEMENT'),
 )
-for label, m, body, expected in controls:
+for label, m, body, expected in (controls if NEG else ()):
     hits = source_findings(m, 'module\n' + body)
     if not any(expected in f for f in hits):
         raise SystemExit(f'STOP: negative control passed: {label}: {hits}')
@@ -378,14 +380,16 @@ phase_internal = CLAIMS + '.Statements.PhasesInternal'
 finality_control = PROOFS + '.Proofs.Finality.Control'
 coverage_edges = {CLAIMS: (), PROOFS: (finality_control,), INHABIT: (),
                   phase_internal: (), finality_control: ()}
-try:
-    check_source_coverage(coverage_edges, list(coverage_edges))
-except SystemExit as exc:
-    if not str(exc).startswith('NOT REACHED FROM F4: '):
-        raise
-    print('missing-f4-reach: rc 1, rejected as expected (NOT REACHED FROM F4)', flush=True)
-else:
-    raise SystemExit('STOP: missing F4 reach control passed')
+if NEG:
+    try:
+        check_source_coverage(coverage_edges, list(coverage_edges))
+    except SystemExit as exc:
+        if not str(exc).startswith('NOT REACHED FROM F4: '):
+            raise
+        print('missing-f4-reach: rc 1, rejected as expected (NOT REACHED FROM F4)', flush=True)
+    else:
+        raise SystemExit('STOP: missing F4 reach control passed')
+
 coverage_edges[finality_control] = (phase_internal,)
 check_source_coverage(coverage_edges, list(coverage_edges))
 print('f4-reach-twin: rc 0', flush=True)
@@ -568,7 +572,7 @@ if w1_bad:
     raise SystemExit(f'BAD W1 AXIOMS: {sorted(w1_bad)}')
 print('weak-continuation-w1 axioms: rc 0 (standard axioms only)', flush=True)
 
-# The gate's merge tier sets NEG=0: it skips the compiled negative controls
+# The gate sets NEG=0 when no checker path changed: skip compiled negative controls
 # below (about 135 s on the NUC), as the other check scripts do.
 if os.environ.get('NEG', '1') == '0':
     print('compiled negative controls: SKIPPED (NEG=0)', flush=True)
