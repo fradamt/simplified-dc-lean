@@ -288,5 +288,26 @@ theorem healing_stored_head_service (E : Generic.Env V)
   exact hrec.awake x hx t ((hSync.trans hpa).trans hat)
     (htd.le.trans (he ▸ hdf.trans hhor))
 
+/-- A selected target held at an earlier actual tick uses a later recovery anchor. -/
+theorem healing_target_service_of_earlier_tick (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {i : Nat} {v x : V} {K : Block} {t a : Time}
+    (hv : v ∈ rho.honest) (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick v t))
+    (hK : K ∈ (storeAt p c E rho i v).base.blocks) (hta : t < a)
+    (hpub : V2.PublicTime E a) (hSync : E.t_GST ≤ a)
+    (hhor : a + p.Δ ≤ rho.horizon)
+    (hCompat : Block.Compatible K (eraseFG (rho.stateBeforeTime E (a + p.Δ) x).st.fg.F)) :
+    TargetReceiptService E rho K (a + p.Δ) x := by
+  have hS := hrec.base.valid.toScheduleWellFormed
+  have hid := ((Gen.V2.Duty.index_lt_idxBefore_iff hS hi a).mpr hta).le
+  have hm := (fgsa_store_durable p c E rho hid v).2.1.subset hK
+  change K ∈ (rho.stateBefore E (V2.D.Run.idxBefore rho a) v).st.base.blocks at hm
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho a hS] at hm
+  have hStamp := fgsa_block_stamp_before_read E rho hS v a
+    ((hrec.base.valid.in_horizon _ (List.mem_of_getElem? hi)).1.trans_lt hta) K hm
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho a hS] at hm hStamp
+  exact healing_target_service_of_stored E rho hrec hv hx hm hStamp hpub hSync hhor hCompat
+
 end AvailableChain.FGSA.Run
 end
