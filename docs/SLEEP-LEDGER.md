@@ -4618,3 +4618,9 @@ Round 2 validation on the final proof sources:
   This result is not replaced by the GREEN GrowthConsumer build.
 - Logs: .lake/sleep-pou-r2/dck-final.log, exports-final.log, coverage.log,
   layers-final.log and consumer-build.log. No push, merge, rebase or supplier edit.
+
+### G-S1 PASS (2026-10-10 09:24)
+
+`bash scripts/dev-check.sh --stage s1` on sleep-int 8e12a02f: DCK PASS (stage s1), DCK controls PASS, wall 324 s.
+Run on the NUC (tree wt-impl2, systemd scope MemoryMax=16G, lane-1 lock). Log nuc:/tmp/gs1-8e12a02.out.
+Later merges (P-H1 r2, P-Ou r2) are not covered by this run; G-S2 checks the integrated tree.
