@@ -30,6 +30,7 @@
             'AvailableChain.FGSA.Run.healing_recovery_restartFree',
             'AvailableChain.FGSA.Run.healing_recovery_restart_cutoff',
             'AvailableChain.FGSA.Run.healing_scope_durable',
+            'AvailableChain.FGSA.Run.healing_scope_enabled_gate',
             'AvailableChain.FGSA.Run.healing_scope_restart_bound',
             'AvailableChain.FGSA.Run.healing_scope_stamps',
             'AvailableChain.FGSA.Run.healing_recovery_gate_reader',

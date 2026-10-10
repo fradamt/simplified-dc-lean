@@ -4,11 +4,24 @@ public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Join
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
+public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
 
 public section
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
+
+/-- Receipt for one selected witness at an actual joined read.
+The receiver floor is read at the strict service deadline. The target service
+keeps the original object history, anchor, and receiver epoch. Producer: OPEN,
+P-H2 with P-ShA's object service constructors; this record is an input. -/
+structure WitnessReceiptScope {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (W : FGBlock (Fin p.n)) (deadline : Time) : Prop where
+  atRead : ∀ iy y t, y ∈ rho.honest → rho.events[iy]? = some (.tick y t) →
+    joinedNow p (clock p (storeAt p c E rho iy y) t) = true → deadline ≤ t →
+    Block.Preceq (eraseFG (rho.stateBeforeTime E deadline y).st.fg.F) (eraseFG W) →
+    TargetReceiptService E rho (eraseFG W) deadline y
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {G ΔF : Time}
@@ -41,6 +54,27 @@ theorem healing_recovery_joinedNow (hrec : RecoverySleep₂ p c E rho G ΔF)
     joinedNow p (FGSA.clock p (V2.D.Run.stateBefore E rho i x).st t) = true := by
   exact fgsa_joinedNow_of_joinedEnv E rho hrec.base.valid.toScheduleWellFormed hi
     (healing_recovery_restart_cutoff hrec hx hh hb)
+
+/-- The caller's gate cutoff proves the actual enabled gate guard. -/
+theorem healing_scope_enabled_gate (hrec : RecoverySleep₂ p c E rho G ΔF)
+    {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
+    (hi : IsGateTick p c rho i x s) (hcut : E.t_GST ≤ slotStartZ p (s : Int))
+    (_hhor : SA.gateTime p.toParams s ≤ rho.horizon) : enabledGateAt p c E rho i x s := by
+  refine ⟨hi, ?_⟩
+  have hb := fgsa_restartTime_bound E rho i x (slotStartZ p (s : Int)) (by
+    intro k t _ hk
+    have ht : t ≤ rho.horizon :=
+      (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hk)).2
+    have hb : t ≤ E.t_GST := by
+      by_contra hn
+      exact hrec.suffixNoRestart x hx k t hk (lt_of_not_ge hn)
+        (Int.lt_add_one_iff.mpr ht)
+    exact hb.trans hcut)
+  change (match (storeAt p c E rho i x).restartTime with
+    | none => True | some t => t ≤ slotStartZ p (s : Int))
+  cases hr : (storeAt p c E rho i x).restartTime with
+  | none => trivial
+  | some t => exact hb t hr
 
 /-- The actual enabled gate catches up every honest recovery reader.
 The post-tick cut includes the gate and its preceding same-time wake. -/

@@ -120,11 +120,11 @@ All repair labels and phase advances are proved from the standing inputs. -/
 theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      ev.time + p.Δ ≤ rho.horizon →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y) (crossing : RXing p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
+      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
+      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
+      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (perm : TPerm p c E rho)

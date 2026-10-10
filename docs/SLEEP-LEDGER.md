@@ -5788,3 +5788,28 @@ joint inductions, the continuation joint/receipt/gate modules, Close, both
 Exports and Tests/OutageInduction. hTargets (GoodVotes:143/289) stays a
 conditional local count premise; its producer must keep the F ⪯ B / B ⪯ F
 split and must not become an unconditional assertion.
+
+### P-H2 Round 4 — selected-witness service (sleep-ph2d, 2026-10-10)
+
+RULING SCOPE-NARROW applies to the H2 carriers and heldServices inputs.
+WitnessReceiptScope retains the actual tick, its joined guard, and the receiver
+floor at the strict deadline. The held callback accepts a frontier-height witness.
+The opening callback retains full-tree membership, HEAD equality, ancestry and lo.
+No full-TF receipt factory is added. The selected services have an OPEN P-H2
+producer obligation; healing_accepted_target_service supplies the object route
+once original acceptance and handler/non-exclusion facts are available.
+
+H1's current healing_support_frame_at and healing_settle_start_on still accept
+full-TF callbacks. Their narrower contracts are in
+claude-files/sleep-ph2d/H1-narrow-requests.md. H1 files are unchanged. The affected
+H2 callers stay OPEN; their previous GREEN classification is withdrawn until
+the narrower H1 APIs land. Compilation does not prove a producer exists.
+
+Review evidence correction: round 3 had 183 canonical serial audits and six
+separate HealingOpeningSupport audits, total 189. The new enabled-gate helper
+adds one canonical audit. service-coverage-final.log reported 225 modules and
+four unaccepted H1 exports; it did not prove the earlier claimed 236-module
+zero-error coverage result. The frozen-exports log held the 236-module count.
+The five truncated H1 telescopes and four empty consumer lists are corrected.
+The four Foundations requests now bind p, In/V, DecidableEq V, c, E and rho.
+The refuted reset full-TF and RequestedDescentServices.next proposals are withdrawn.

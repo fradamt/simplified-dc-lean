@@ -24,14 +24,19 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 structure OpeningServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
     Prop where
   permanence : SupportPermanenceServices E rho
-  gates : ∀ i x s, x ∈ rho.honest → IsGateTick p c rho i x s →
+  gates : ∀ i x s, x ∈ rho.honest → IsGateTick p c rho i x s → enabledGateAt p c E rho i x s →
     E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
     SA.gateTime p.toParams s ≤ rho.horizon → GateReceiptScope E rho i x s
-  carriers : ∀ i (ev : V2.Event V (Obj p)) x W y,
-    rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-    E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-    ev.time + p.Δ ≤ rho.horizon →
-    TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y
+  carriers : ∀ j x s K W, x ∈ rho.honest →
+    rho.events[j]? = some (.tick x (SA.voteTime p.toParams s)) →
+    K ∈ fullTree p (clock p (storeAt p c E rho j x) (SA.voteTime p.toParams s)) →
+    eraseFG K = headVote p (clock p (storeAt p c E rho j x)
+      (SA.voteTime p.toParams s)) s →
+    W ∈ (storeAt p c E rho j x).fg.TF → FGBlock.Preceq K W →
+    (R_at p c E rho j x).lo ≤ (heightView p W).h →
+    E.t_GST ≤ SA.voteTime p.toParams s →
+    SA.voteTime p.toParams s + p.Δ ≤ rho.horizon →
+    WitnessReceiptScope E rho W (SA.voteTime p.toParams s + p.Δ)
   transfers : ∀ ix iy x s, x ∈ rho.honest → enabledGateAt p c E rho ix x s →
     rho.events[iy]? = some (.tick x (SA.voteTime p.toParams (s + 1))) →
     joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)) →
@@ -158,7 +163,10 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
     change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
     change u ≤ 4 * p.Δ * (q : Int) at hu
     nlinarith [p.deltaPos]
-  have hScope := services.gates i x s hx ht hcut hsh
+  have hScope := services.gates i x s hx ht
+    (healing_scope_enabled_gate hrec hx ht (hcut.trans (by
+      change 4 * p.Δ * ((s : Int) - 1) ≤ 4 * p.Δ * (s : Int)
+      linarith [p.deltaPos])) hsh) hcut hsh
   have hcovQ := opening_heads_cover E rho hrec mono crossing services writes
     hgst hphase hexact hu hgq hx
     hqs hvs
@@ -419,7 +427,10 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
     change u ≤ 4 * p.Δ * (q : Int) at hu
     nlinarith [p.deltaPos]
-  have hScope := services.gates i x s hx ht hcut hsh
+  have hScope := services.gates i x s hx ht
+    (healing_scope_enabled_gate hrec hx ht (hcut.trans (by
+      change 4 * p.Δ * ((s : Int) - 1) ≤ 4 * p.Δ * (s : Int)
+      linarith [p.deltaPos])) hsh) hcut hsh
   have hgsts : E.t_GST ≤ SA.voteTime p.toParams s := by
     refine hgst.trans (hu.trans ?_)
     have hqsI : (q : Int) + 1 ≤ (s : Int) := by exact_mod_cast hqs

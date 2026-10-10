@@ -5,6 +5,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
 
 public section
 
+#print axioms AvailableChain.FGSA.Run.healing_scope_enabled_gate
 #print axioms AvailableChain.FGSA.Run.healing_scope_restart_bound
 #print axioms AvailableChain.FGSA.Run.healing_recovery_restart_cutoff
 #print axioms AvailableChain.FGSA.Run.healing_recovery_joinedNow

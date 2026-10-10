@@ -19,11 +19,11 @@ RCap supplies a skipped row; otherwise the event at M+1 starts the row task. -/
 theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      ev.time + p.Δ ≤ rho.horizon →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y) (crossing : RXing p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
+      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
+      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
+      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (cap : RCap p c E rho)
     (origin : RQCOrigin p c E rho) (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
@@ -79,6 +79,7 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
   apply (frontierSearchStatement_iff p c E rho G ΔF).mpr
   intro hδ hbound rG u₀ M hgst hfirst hu₀ hdelay hM _rowCap
   have hs := hrec.base.valid.toScheduleWellFormed
+  have hstartLower := healing_recovery_start_lower (p := p) E
   have frontier := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage
   have rise : ∀ ρbar,
       (ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1)) →
@@ -93,7 +94,9 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
     have hcutHor : u₀ ≤ rho.horizon := by linarith only [hhor, hb]
     obtain ⟨i, ev, kind, hstart, ht, hidx⟩ :=
       frontierSearch_cut_start E rho hrec hgst hfirst hu₀ hdelay hM hcutHor
-    have hdelayEv : E.t_GST + 2 * P p ≤ ev.time := by rw [ht]; exact hdelay
+    have hdelayEv : E.t_GST + 2 * P p ≤ ev.time := by
+      rw [ht]
+      linarith only [hdelay, hstartLower, p.deltaPos]
     have hhorEv : ev.time + frontierSearchRiseBudget p G ΔF ρbar ≤ rho.horizon := by
       rw [ht]
       exact hhor
@@ -146,7 +149,8 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
         exact frontierSearch_row_task E rho hrec mono heldServices crossing origin
           scopeProducer repair common hδ hbound
           perm cap writes rowCoverage rowsReceipt progressCoverage hfold faultQ honestQuorum
-          hstart (hdelay.trans hlow) hmode hrowHor
+          hstart (by linarith only [hdelay, hlow, healing_recovery_start_lower (p := p) E,
+            p.deltaPos]) hmode hrowHor
       · obtain ⟨x, W, hW, hWh⟩ :=
           (healing_phaseWitness p c E rho (i := j + 1)
             (m := frontierAtIdx p c E rho (j + 1)) (by omega) rfl).frontier

@@ -259,9 +259,8 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
   obtain ⟨W, hW, hKW, _⟩ := healing_support_frame_at (hroots := hrec.base.receiptIdealization)
     E rho (fun _ => mono) crossing hE hDelta hrec.sync
     hgst hphase hvsu hev hx hjz
-    (fun W hW y hy => services.carriers jz _ x W y hjz hx hy
-      (hgst.trans hvsu) ((fgsa_store_durable p c E rho (Nat.le_succ jz) x).1 hW)
-      (hev.trans hvh)) (hcov x hx _ hhl) hx
+    (fun K W hKfull hKe hW hKW hlo => services.carriers jz x s K W hx hjz
+      hKfull hKe hW hKW hlo (hgst.trans hvsu) (hev.trans hvh)) (hcov x hx _ hhl) hx
     (healing_support_idxBefore_le p c E rho hS ht hev) hui hiv
   have hinv := cstoreInv_stateBefore E rho i x
   have hKT : K ∈ (storeAt p c E rho i x).fg.TF := by

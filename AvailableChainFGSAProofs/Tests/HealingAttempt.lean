@@ -260,11 +260,11 @@ example (p : Params) (G ΔF : Time)
 -- The non-effective cut start in the raise / contest row.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      ev.time + p.Δ ≤ rho.horizon →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
+      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
+      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
+      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ))
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
     (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
     {ev : V2.Event V (Obj p)} {v : Time}
@@ -295,11 +295,11 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 -- The non-effective cut start in the raise / other row.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      ev.time + p.Δ ≤ rho.horizon →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
+      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
+      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
+      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ))
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
     (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
     {ev : V2.Event V (Obj p)} {v : Time}
@@ -330,11 +330,11 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 -- The non-effective cut start in the firstRow / contest row.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      ev.time + p.Δ ≤ rho.horizon →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
+      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
+      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
+      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ))
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
     (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
     {ev : V2.Event V (Obj p)} {v : Time}
@@ -365,11 +365,11 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 -- The non-effective cut start in the firstRow / other row.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      ev.time + p.Δ ≤ rho.horizon →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
+      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
+      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
+      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ))
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
     (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
     {ev : V2.Event V (Obj p)} {v : Time}

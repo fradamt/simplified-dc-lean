@@ -60,11 +60,11 @@ DC: SAME HG.3 reaches a saved seed or advances phase; HG.4 finishes the rise. -/
 theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      ev.time + p.Δ ≤ rho.horizon →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y) (crossing : RXing p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
+      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
+      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
+      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
     (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
@@ -136,11 +136,11 @@ DC: SAME HG.3 plus the HG.4 row tail keeps exact height m and the frozen row bud
 theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      ev.time + p.Δ ≤ rho.horizon →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y) (crossing : RXing p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W,
+      rho.events[i]? = some ev → x ∈ rho.honest → E.t_GST ≤ ev.time →
+      W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
+      ev.time + p.Δ ≤ rho.horizon → WitnessReceiptScope E rho W (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
     (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
       SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
@@ -214,9 +214,9 @@ Blueprint 21:1744–1800; S5 F3, inclusive cut.
 DC: SAME Recovery₂ gives an honest node and a cut event under the task's horizon. -/
 theorem frontierSearch_cut_start [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
-    {rG M : Nat} {u₀ : Time} (hgst : E.t_GST ≤ p.actionTime rG)
-    (hfirst : ∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r)
-    (hu₀ : u₀ = p.actionTime (rG + 2)) (hdelay : E.t_GST + 2 * P p ≤ u₀)
+    {rG M : Nat} {u₀ : Time} (hgst : recoveryStart p E ≤ p.actionTime rG)
+    (hfirst : ∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r)
+    (hu₀ : u₀ = p.actionTime (rG + 2)) (hdelay : recoveryStart p E + 2 * P p ≤ u₀)
     (hM : M = honestFrontier p c E rho u₀) (hhor : u₀ ≤ rho.horizon) :
     ∃ i ev kind, FrontierSearchStart p c E rho i ev M kind ∧
       ev.time = u₀ ∧ timeIdx rho u₀ = i + 1 := by
@@ -232,6 +232,7 @@ theorem frontierSearch_cut_start [Fintype V] (E : Generic.Env V)
     omega
   obtain ⟨x, hx⟩ := hne
   have hs := hrec.base.valid.toScheduleWellFormed
+  have hstart := healing_recovery_start_lower (p := p) E
   have hgrid : u₀ = ((4 * ((rG + 2) * p.R) + 6 : Nat) : Time) * p.Δ := by
     rw [hu₀]
     change 4 * p.Δ * (((rG + 2) * p.R : Nat) : Time) + 6 * p.Δ = _
