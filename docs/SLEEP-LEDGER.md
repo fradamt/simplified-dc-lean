@@ -7329,3 +7329,8 @@ The saved writer and source-build failures are the validation limit for Round 15
 - Lead 2026-10-10 20:26: merged P-H1 r11 82ad01bb (P-H2 phase-local lease-cover adapters repair_lease_cover_two_at/_one_at; local regression replays; full ExecutionValid replay goals OPEN). P-H1 stays CLOSED. rev-ph1l-astra item 1 OPEN (fixture goal): the full-run goal for the k=4 run must keep all three k=4 failures (clause 1 HEAD, clause 2 proposal, clause 3 output), not one.
 
 - Lead 2026-10-10 20:40: merged sleep-pas7 aaa4dac0 (P-As r7) as PREPARED, 51/68; rev-pas7-astra MERGE-AS-PREPARED. INTEGRATION TODO (lead/P-Da): docs/api/legacy-api.json is stale for AvailableChain.KitFG.pins (AvailableChainKitFG/Pins.lean:182-183 say "unsaved joined gate"/"joined tick" since sleep dd102b06; main 4f134e83 snapshot has the old words; mismatch came in with merge 61769868). Regenerate and review the legacy snapshot and its digest; do not undo the wording or add an allowance.
+
+- Lead (P-Da, 2026-10-10): regenerated docs/api/legacy-api.json for AvailableChain.KitFG.pins
+  ("joined" wording from dd102b06; stale snapshot came in with merge 61769868). Only the
+  pins entry/node bodies and their two digests change (cc1a3d43… → 20497544…), as
+  rev-pas7-astra item 4 predicted. No allowance added.
