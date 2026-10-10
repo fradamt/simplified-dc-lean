@@ -1,4 +1,13 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentTiming
 public import AvailableChainFGSAProofs.Proofs.Healing.Frame
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths
@@ -440,3 +449,143 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.retainedHG1Input_before_first_rise
 
 #print axioms AvailableChain.FGSA.Run.frontier_cap_before_on
+
+#print axioms AvailableChain.FGSA.Run.healing_domain_filter_F
+
+#print axioms AvailableChain.FGSA.Run.healing_head_covers_root
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_late_source
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_single_cause
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_cause_of_view
+
+#print axioms AvailableChain.FGSA.Run.healing_noLoss_heads
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_F_below
+
+#print axioms AvailableChain.FGSA.Run.healing_source_receipt
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_domain
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_cause
+
+#print axioms AvailableChain.FGSA.Run.healing_high_source_compat
+
+#print axioms AvailableChain.FGSA.Run.healing_high_source_compat_reset
+
+#print axioms AvailableChain.FGSA.Run.healing_unanimous_release_compat
+
+#print axioms AvailableChain.FGSA.Run.healing_unanimous_next_transfer_kept
+
+#print axioms AvailableChain.FGSA.Run.healing_delivery_clock_on
+
+#print axioms AvailableChain.FGSA.Run.healing_finality_source_clock_on
+
+#print axioms AvailableChain.FGSA.Run.healing_justified_source_clock_on
+
+#print axioms AvailableChain.FGSA.Run.postReset_high_compatible_all
+
+#print axioms AvailableChain.FGSA.Run.postReset_high_compatible_succ
+
+#print axioms AvailableChain.FGSA.Run.postReset_reset_compatible_all
+
+#print axioms AvailableChain.FGSA.Run.postReset_reset_compatible_succ
+
+#print axioms AvailableChain.FGSA.Run.postReset_descent_kept
+
+#print axioms AvailableChain.FGSA.Run.postReset_descent_kept_of_compat
+
+#print axioms AvailableChain.FGSA.Run.postReset_general_kept_of_compat
+
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body_of_compat
+
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body_reset
+
+#print axioms AvailableChain.FGSA.Run.postReset_selected_label_above
+
+#print axioms AvailableChain.FGSA.Run.postReset_selected_label
+
+#print axioms AvailableChain.FGSA.Run.SelectedBefore_def
+
+#print axioms AvailableChain.FGSA.Run.selectedBefore_of_sourceBefore
+
+#print axioms AvailableChain.FGSA.Run.postReset_selected_reset_compatible
+
+#print axioms AvailableChain.FGSA.Run.postReset_general_kept
+
+#print axioms AvailableChain.FGSA.Run.postReset_receiver_compatible
+
+#print axioms AvailableChain.FGSA.Run.postReset_tDel
+
+#print axioms AvailableChain.FGSA.Run.postReset_keep_height
+
+#print axioms AvailableChain.FGSA.Run.postReset_keep_contest
+
+#print axioms AvailableChain.FGSA.Run.postReset_keep_floor
+
+#print axioms AvailableChain.FGSA.Run.postReset_keep_roots
+
+#print axioms AvailableChain.FGSA.Run.postReset_keep_witness
+
+#print axioms AvailableChain.FGSA.Run.postReset_keep_body
+
+#print axioms AvailableChain.FGSA.Run.postReset_protected_kept_succ
+
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body
+
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_antecedent_of_lastWrite
+
+#print axioms AvailableChain.FGSA.Run.postReset_fProv_all
+
+#print axioms AvailableChain.FGSA.Run.postReset_rFProv_reset
+
+#print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
+
+#print axioms AvailableChain.FGSA.Run.healing_gate_result_supporter
+
+#print axioms AvailableChain.FGSA.Run.postReset_delivery_no_obligation
+
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_preserve
+
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_base
+
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_raw_domain
+
+#print axioms AvailableChain.FGSA.Run.postReset_slow_window_sync
+
+#print axioms AvailableChain.FGSA.Run.postReset_raw_reset_compatible
+
+#print axioms AvailableChain.FGSA.Run.postReset_noRewrite
+
+#print axioms AvailableChain.FGSA.Run.healing_output_moving_suffix
+
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_at_reset
+
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ
+
+#print axioms AvailableChain.FGSA.Run.postReset_raw_release_compatible
+
+#print axioms AvailableChain.FGSA.Run.postReset_raw_moving_lease_compat
+
+#print axioms AvailableChain.FGSA.Run.healing_proposal_moving_domain
+
+#print axioms AvailableChain.FGSA.Run.healing_proposal_moving_parent
+
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_zero
+
+#print axioms AvailableChain.FGSA.Run.postReset_rawTransfer_before_reset
+
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_step
+
+#print axioms AvailableChain.FGSA.Run.healing_low_finality_after_reset
+
+#print axioms AvailableChain.FGSA.Run.healing_low_finality_after_reset_on
+
+#print axioms AvailableChain.FGSA.Run.healing_low_finality_at_reset_reset
+
+#print axioms AvailableChain.FGSA.Run.healing_resetTransferCore
+
+#print axioms AvailableChain.FGSA.Run.healing_tDelReset_of_reset
+
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_advance

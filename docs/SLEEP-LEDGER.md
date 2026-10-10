@@ -4614,3 +4614,40 @@ consumers use the same exact read epochs and object services. High-source same-l
 compatibility uses SameLabelServiceScope. The old-row height set is cut at
 recoveryStart on this base; recoveryStart ≥ GST supplies the original GST conclusion.
 No public Claims statement changed. Remaining reset and descent callers need these inputs.
+
+P-H1 Round 3 reset and descent closure:
+LossServiceScope supplies high-source same-label, first/later HEAD, fast lease and
+per-target receipt services. The original no-loss and compatibility conclusions
+stay unchanged. Loss unanimity has the exact joined release-reader input.
+DescentTiming adds clock bounds through RestoreTimeLaw and durable clock monotonicity.
+The original explicit-NoRestart clock helpers remain available for legacy callers.
+PostResetCompat/High use RecoverySleep₂, RMonoAll and LossServiceScope. A selected
+source without an emitted row also uses the reset label's SameLabelServiceScope.
+PostResetKeep/ResetTransfer require per-carrier TargetReceiptService at the source
+vote's early deadline. Pre-GST source receipt keeps ReceiverService explicit.
+PostResetLease uses restart-safe provenance clocks and the joined renewal guard.
+RiseOneAdvance threads SupportPermanenceServices and durable monotonicity.
+
+RawServiceScope supplies services only at the actual guarded source, release,
+HEAD, proposal and gate reads. First/later replay uses receipt root collision
+freedom. Reads use event-index restartFree from the exact strict-before time cut;
+the reset suffix obtains the GST+1 epoch from RecoverySleep₂. Suppressed gates
+write no lease; wake clears the cache and preserves existing lock deadlines.
+The proposal proof uses prior vote provenance, fresh receipt, carrier receipt and
+the receiver's own epoch. No HistorySafeAt is inferred from previous processing.
+The raw-transfer conclusion keeps its existing honest-reader form; H5/H2A projection
+fixtures use their existing headReader and confirmedReaderIdx guards.
+
+All 99 assigned P-H1 targets are now in GREEN; final package validation follows.
+The local audit root has 339 commands. The full-key serial fragment registers each
+new declaration. No public Claims text, exception, baseline or allowance changed.
+
+P-H1 CLOSED (Round 3, 2026-10-10): all 99 assigned targets GREEN; 569 total GREEN
+map entries; no EXPECTED-FAIL or supplier blocker. Final DCK PASS in 170.25 s,
+including the --wfail build, 41 strict sources / 3,666 results and negative controls.
+Layers: 72 inherited findings, 0 new (0.51 s). Export check: 363 proof modules,
+253 exports, 0 unaccepted (8.71 s). Complete local coverage: 339 commands,
+0 unaccepted (5.08 s). The earlier six gate-proof matcher exports were removed
+by use of the guarded saved-result supplier; no baseline entry was added.
+The exact H2 handoff and owned declaration inventory are in the Round 3 report
+and claude-files/sleep-ph1-round3-inventory.md. Public Claims are unchanged.

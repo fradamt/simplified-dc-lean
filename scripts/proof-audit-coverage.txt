@@ -7002,3 +7002,6 @@
 
 # P-H1 Round 3 retained/source/moving-frame inventory: 269 local strict commands.
 # The serial fragment includes RepairHeadServices consumers and bounded FrontierReadScope.
+
+# P-H1 Round 3 reset/descent closure: 339 local strict commands.
+# The same full-key serial fragment registers all newly ported H1 consumers.

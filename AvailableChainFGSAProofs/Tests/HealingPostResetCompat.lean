@@ -31,7 +31,8 @@ example (w : HealingWitness) : PostResetResetCompatible p c E rho w 0 := by
 
 section Compatibility
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hScopes : LossServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -50,6 +51,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -59,12 +61,12 @@ variable [Fintype V] {G ΔF : Time}
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r
+include hrec hScopes mono emittedNonempty emittedName writes xing origin h0r
 
 -- conditional package: the high field is produced at the successor cut.
 example {i : Nat} (hinv : PostResetInv p c E rho w i) :
     PostResetHighCompatible p c E rho w (i + 1) :=
-  postReset_high_compatible_succ p c E rho hrec mono emittedNonempty emittedName
+  postReset_high_compatible_succ p c E rho hrec hScopes mono emittedNonempty emittedName
     writes xing origin h0r hinv
 
 -- conditional package, anti-vacuity: consume the successor reset conclusion
@@ -74,7 +76,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     (_hC : C ∈ X) (_hK : K ∈ X) (he : eraseFG C = w.CStar)
     (hsrc : SourceBefore p c E rho (i + 1) K s) (hh : high p w K) :
     Block.Compatible (eraseFG C) (eraseFG K) := by
-  have h := postReset_reset_compatible_succ p c E rho hrec mono emittedNonempty
+  have h := postReset_reset_compatible_succ p c E rho hrec hScopes mono emittedNonempty
     emittedName writes xing origin h0r hinv
   rw [PostResetResetCompatible_def] at h
   rw [he]
@@ -82,7 +84,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
 
 -- conditional package: reset compatibility has no reset-row-before-i guard.
 example (i : Nat) : PostResetResetCompatible p c E rho w i :=
-  postReset_reset_compatible_all p c E rho hrec mono emittedNonempty emittedName
+  postReset_reset_compatible_all p c E rho hrec hScopes mono emittedNonempty emittedName
     writes xing origin h0r i
 
 end Compatibility

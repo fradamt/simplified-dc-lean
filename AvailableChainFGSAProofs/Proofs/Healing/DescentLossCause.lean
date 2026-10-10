@@ -39,6 +39,40 @@ theorem healing_domain_filter_F (st : State p.n) (X : Finset (FGBlock (Fin p.n))
       ⟨Finset.mem_filter.mpr ⟨hB, hFB⟩, hFB, hZB, W,
         Finset.mem_filter.mpr ⟨hW, KitFG.preceq_trans hFB hBW⟩, hBW, hlo⟩
 
+/-- Object services at actual high-source and moving-frame reads. -/
+structure LossServiceScope (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
+  same : ∀ i K K' s, SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s →
+    muOf p c E rho + 1 ≤ (heightView p K).h →
+    muOf p c E rho + 1 ≤ (heightView p K').h → SameLabelServiceScope E rho s
+  first : ∀ B sB (iy : Nat) (y : V), HighSrcN p c E rho B sB → y ∈ rho.honest →
+    rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (sB + 1))) →
+    ∀ ix xs, xs ∈ rho.honest → IsGateTick p c rho ix xs sB →
+    FirstTransferScope E rho ix iy xs y sB
+  next : ∀ B sB i (iy : Nat) (y : V), HighSrcN p c E rho B sB → sB + 1 ≤ i → y ∈ rho.honest →
+    rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))) →
+    NextTransferScope E rho iy y i
+  fast : ∀ B sB l (k : Nat) (x : V), HighSrcN p c E rho B sB → sB + 2 ≤ l → x ∈ rho.honest →
+    rho.events[k]? = some (.tick x (SA.voteTime p.toParams l)) →
+    ∀ y ∈ rho.honest, FastSupportScope E rho sB (SA.voteTime p.toParams l) y
+  receipts : ∀ i K s u (k : Nat) (x : V), SourceBefore p c E rho i K s → s ≤ u →
+    E.t_GST ≤ SA.voteTime p.toParams u → x ∈ rho.honest →
+    rho.events[k]? = some (.tick x (SA.voteTime p.toParams (u + 1))) →
+    FGBlock.Preceq (storeAt p c E rho k x).fg.F K →
+    TargetReceiptService E rho (eraseFG K) (SA.freezeTime p.toParams u) x
+
+private theorem loss_freeze_epoch [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {x : V} (hx : x ∈ rho.honest) {u : Slot}
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams u) (k : Nat) :
+    V2.D.restartFree rho x (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams u)) k := by
+  have hTime : E.t_GST + 1 ≤ SA.freezeTime p.toParams u := by
+    have hp : (0 : Int) < p.Δ := p.deltaPos
+    have hd : (1 : Int) ≤ p.Δ := by omega
+    change E.t_GST ≤ 4 * p.Δ * (u : Int) + p.Δ at hgst
+    change E.t_GST + 1 ≤ 4 * p.Δ * (u : Int) + 3 * p.Δ
+    linarith
+  exact healing_recovery_epoch E rho hrec hx (fgsa_idxBefore_mono rho hTime)
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B `cause` (finality coverage first); blueprint
 21:2689–2716. DC: SAME HEAD walk from the live root above Z. A block below the
@@ -96,7 +130,8 @@ B unless an earlier loss exists. Label below sB: the supporter of B at v_sB
 loses C. Label sB: `same`. Label above sB: the supporter of C loses B before
 v_l. No row of B before the loss is used, so l = sB + 1 is included. -/
 theorem healing_loss_single_cause [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (hScopes : LossServiceScope p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -135,15 +170,16 @@ theorem healing_loss_single_cause [Fintype V] {G ΔF : Time}
       nlinarith
     exact_mod_cast hlt
   rcases lt_trichotomy s' sB with hlt | rfl | hgt
-  · obtain ⟨k₀, hL, hord⟩ := healing_loss_of_supporter p c E rho hrec emittedNonempty
+  · obtain ⟨k₀, hL, hord⟩ := healing_loss_of_supporter p c E rho hrec.toRecovery₂ emittedNonempty
       emittedName hB'.1 hCh hlt (fun h => hn (by
         change (Block.preceq _ _ || Block.preceq _ _) = true at h ⊢
         rw [Bool.or_comm]
         exact h))
     exact noLoss k₀ (hord k _ hk (hvote sB hl)) C s' hL
-  · exact hn (healing_loss_same p c E rho hrec emittedNonempty emittedName _ B C s' hB'.1
+  · exact hn (healing_loss_same p c E rho hrec.toRecovery₂ emittedNonempty emittedName
+      hScopes.same _ B C s' hB'.1
       ((SrcN_def p c E rho C s') ▸ healing_srcN_of_source p c E rho hC) hB'.2 hcC)
-  · obtain ⟨k₀, hL, hord⟩ := healing_loss_of_supporter p c E rho hrec emittedNonempty
+  · obtain ⟨k₀, hL, hord⟩ := healing_loss_of_supporter p c E rho hrec.toRecovery₂ emittedNonempty
       emittedName hC hB hgt hn
     exact noLoss k₀ (hord k _ hk (hvote s' hCl)) B sB hL
 
@@ -155,7 +191,8 @@ gives the incompatible high pair of earlier sources. The F and Z keep cases
 contradict the loss by root coverage; the single-source cause contradicts
 `noLoss`. `domain` is the H.1/H.2 HEAD coverage of a kept domain block. -/
 theorem healing_loss_cause_of_view [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (hScopes : LossServiceScope p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -186,7 +223,7 @@ theorem healing_loss_cause_of_view [Fintype V] {G ΔF : Time}
   · exact absurd (healing_head_covers_root p c E rho hk hl0 (Or.inl hZ)) hn
   · exact absurd (domain hD) hn
   · exact absurd (healing_head_covers_root p c E rho hk hl0 (Or.inr hF)) hn
-  · exact (healing_loss_single_cause p c E rho hrec emittedNonempty emittedName noLoss hB hl
+  · exact (healing_loss_single_cause p c E rho hrec hScopes emittedNonempty emittedName noLoss hB hl
       hk hC hnC hh).elim
   · have hc₁ : muOf p c E rho + 1 ≤ (heightView p C₁).h := by
       have := ((HighSrcN_def p c E rho B sB) ▸ hB).2
@@ -243,7 +280,8 @@ B is above the certificate height of F, and R-XING (B is held by its source
 node) puts F below B; or the target source of F is as high as B and conflicts
 with B, which gives an earlier loss; or B is below F and the HEAD covers B. -/
 theorem healing_loss_F_below [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (hScopes : LossServiceScope p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -261,7 +299,6 @@ theorem healing_loss_F_below [Fintype V] {G ΔF : Time}
     FGBlock.Preceq (storeAt p c E rho k x).fg.F B := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hl0 : l ≠ 0 := Nat.ne_of_gt (Nat.lt_of_lt_of_le (Nat.succ_pos sB) hl)
   have hBF : ¬ FGBlock.Preceq B (storeAt p c E rho k x).fg.F := fun h =>
     hn (healing_head_covers_root p c E rho hk hl0 (Or.inr h))
@@ -288,7 +325,7 @@ theorem healing_loss_F_below [Fintype V] {G ΔF : Time}
       change B ∈ (FGSA.clock p (storeAt p c E rho j y) (p.actionTime r)).fg.TF at hT
       rwa [clock_fg] at hT
     have hheld : HeldAt p c E rho (k + j) y B :=
-      ⟨ha.1, (fgsa_store_cumulative p c E rho hN (Nat.le_add_left j k) y).1 hBTF⟩
+      ⟨ha.1, (fgsa_store_durable p c E rho (Nat.le_add_left j k) y).1 hBTF⟩
     exact xing k (k + j) x y D B hx (Nat.le_add_right k j) hD hDF hheld hh
   · have hhK : (heightView p B).h ≤ (heightView p K).h := by
       rw [hKh]
@@ -299,7 +336,8 @@ theorem healing_loss_F_below [Fintype V] {G ΔF : Time}
         · exact h
         · exact absurd h hBF
       · exact KitFG.preceq_trans hFK hKB
-    · exact (healing_loss_single_cause p c E rho hrec emittedNonempty emittedName noLoss hB hl
+    · exact (healing_loss_single_cause p c E rho hrec hScopes emittedNonempty emittedName
+        noLoss hB hl
         hk hK hc hhK).elim
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -310,10 +348,11 @@ finality of an honest node x that ticks at v_(u+1), is in the store of x before
 z_u: a clean early supporter target of the source gate, stamped before e_s,
 reaches x by the per-block relay on [v_u, v_(u+1)], with its ancestors. -/
 theorem healing_source_receipt [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
-    (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (hScopes : LossServiceScope p c E rho)
+    (_emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
-    (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
+    (_emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
       HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
       ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
         e.1 = (heightView p C).h ∧
@@ -325,58 +364,15 @@ theorem healing_source_receipt [Fintype V] {G ΔF : Time}
     (hk : rho.events[k]? = some (.tick x (SA.voteTime p.toParams (u + 1))))
     (hF : FGBlock.Preceq (storeAt p c E rho k x).fg.F K) :
     K ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams u)) x).fg.TF := by
-  have hE := hrec.base.valid
-  have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
-  have hDelta := hrec.base.delta
-  have hd := p.deltaPos
-  obtain ⟨j, y, r, a, -, ha, hKs, rfl⟩ := hK
-  obtain ⟨-, -, -, -, -, st, hst, hτ⟩ :=
-    healing_source_decode p c E rho emittedNonempty emittedName ha hKs
-  rw [gateIn_def, preTick_def] at hst
-  cases hix' : V2.D.Run.tickIdx? rho y (SA.gateTime p.toParams (r * p.R)) with
-  | none => rw [hix'] at hst; cases hst
-  | some ix =>
-  rw [hix'] at hst
-  have hst' := Option.some.inj hst
-  subst hst'
-  obtain ⟨-, o, -, ho, -, hsup⟩ :=
-    healing_support_honest_seat rho hrec.base.cstar hrec.fault _ _ _ hτ
-  obtain ⟨K', hK', hKm', hKst', -, -, -⟩ := healing_support_clean_target E rho o ho
-  have hKK' : Block.Preceq (eraseFG K) K' := by
-    change Gen.AC.Root.voteSupports
-      (GridCO.resolutionTree (actView (clockPre p (storeAt p c E rho ix y)
-        (SA.gateTime p.toParams (r * p.R))))) (eraseFG K) o = true at hsup
-    rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hK'] at hsup
-    exact (Bool.and_eq_true_iff.mp hsup).2
-  have hvh : SA.voteTime p.toParams (u + 1) ≤ rho.horizon :=
-    (hS.in_horizon _ (List.mem_of_getElem? hk)).2
-  have hvu : SA.voteTime p.toParams u + E.Δ ≤ SA.voteTime p.toParams (u + 1) := by
-    rw [hDelta]
-    change 4 * p.Δ * (u : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * ((u + 1 : Nat) : Int) + p.Δ
-    push_cast
-    linarith
-  have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
-    hrec.sync (fgsaDelay_nonrow E.Δ _) hgst hvu hvh
-  have hstamp : GridCO.stampBlock (storeAt p c E rho ix y).base K' <
-      SA.earlyTime p.toParams u := by
-    refine lt_of_lt_of_le hKst' ?_
-    have hsu' : ((r * p.R : Nat) : Int) ≤ (u : Int) := by exact_mod_cast hsu
-    change 4 * p.Δ * ((r * p.R : Nat) : Int) + 2 * p.Δ ≤ 4 * p.Δ * (u : Int) + 2 * p.Δ
-    nlinarith
-  have hF' : Block.Preceq (eraseFG (((fgsa p c).clock (V2.D.Run.stateBefore E rho k x)
-      (SA.voteTime p.toParams (u + 1))).st).fg.F) K' := by
-    change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho k x) _).fg.F) K'
-    rw [clock_fg]
-    exact Gen.Pure.block_preceq_trans (eraseFG_preceq hF) hKK'
-  obtain ⟨Y, hYK, hY⟩ := healing_block_receipt_sync (hroots := hrec.base.idealization)
-    p c E rho hE hN hDelta u hSync ha.1 hx hk
-    K' hKm' hstamp hF'
-  have hinv := (storeBundle_stateBeforeTime E rho (SA.freezeTime p.toParams u) x).cstore
-  obtain ⟨A, hA, hAe⟩ := eraseFG_ancestor_mem hinv.fg.closed hY (hYK ▸ hKK')
-  change K ∈ (V2.D.Run.stateBefore E rho _ x).st.fg.TF
+  have hS := hrec.base.valid.toScheduleWellFormed
+  have hb := fgsa_target_receipt_on E rho hS hrec.base.receiptIdealization (eraseFG K)
+    (SA.freezeTime p.toParams u) x hx (hScopes.receipts i K s u k x hK hsu hgst hx hk hF)
+  obtain ⟨Y, hY, heY⟩ := ((storeBundle_stateBeforeTime E rho _ x).cstore.baseTree _).mp hb
+  have he : Y = K := eraseFG_injective heY
+  subst Y
+  change K ∈ (rho.stateBefore E (V2.D.Run.idxBefore rho _) x).st.fg.TF
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
-  exact (eraseFG_injective hAe) ▸ hA
+  exact hY
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B `cause` (moving-frame keep: path, leases and scores
@@ -385,7 +381,8 @@ At a loss read of label i + 1 with no earlier loss, let X be the store of the
 reader before z_i. If B is in the domain of X, the HEAD covers B: by H.1 at
 i = sB, by H.2 with the lease bound at i ≥ sB + 1. -/
 theorem healing_loss_domain [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hScopes : LossServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -404,6 +401,7 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -420,7 +418,6 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
     Block.Preceq (eraseFG B) (headAtIdx p c E rho k (i + 1)) := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hd := p.deltaPos
   let D := SA.freezeTime p.toParams i
   classical
@@ -446,11 +443,25 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
     linarith
   have hdfreeze : D ≤ SA.freezeTime p.toParams (i + 1 - 1) := by
     rw [Nat.add_sub_cancel]
+  have hBSource := ((HighSrcN_def p c E rho B sB) ▸ hB).1
+  have hgst0 := healing_high_source_sync p c E rho emittedNonempty emittedName
+    ((SrcN_def p c E rho B sB) ▸ hBSource) (((HighSrcN_def p c E rho B sB) ▸ hB).2)
+  have hgsti0 : E.t_GST ≤ SA.voteTime p.toParams i := by
+    refine hgst0.trans ?_
+    have hsi : (sB : Int) ≤ (i : Int) := by exact_mod_cast hl
+    change 4 * p.Δ * (sB : Int) + p.Δ ≤ 4 * p.Δ * (i : Int) + p.Δ
+    nlinarith [p.deltaPos]
+  have hEpoch := loss_freeze_epoch p c E rho hrec hx hgsti0 k
   have hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho k x)
       (SA.voteTime p.toParams (i + 1))) (i + 1) := by
     intro W hW
     obtain ⟨hW, hFW⟩ := Finset.mem_filter.mp hW
-    exact healing_frozen_path p c E rho hS hN hdpos hdvote hdfreeze hW hread W
+    exact healing_frozen_path_on p c E rho hS hdpos hdvote hdfreeze hW hread (by
+      intro j hj
+      have he : j = k := Option.some.inj
+        ((fgsa_tickIdx_of_event p c E rho hS hj).symm.trans
+          (fgsa_tickIdx_of_event p c E rho hS hk))
+      exact he.symm ▸ hEpoch) W
       (by change FGBlock.Preceq (FGSA.clock p _ _).fg.F W; rw [clock_fg]; exact hFW)
       (KitFG.preceq_refl W)
   have hXc : ∀ W ∈ X, ∀ A, FGBlock.Preceq (storeAt p c E rho k x).fg.F A →
@@ -461,8 +472,8 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
     obtain ⟨A', hA', he⟩ := eraseFG_ancestor_mem hinv.fg.closed hW (eraseFG_preceq hAW)
     exact Finset.mem_filter.mpr ⟨(eraseFG_injective he) ▸ hA', hFA⟩
   rcases Nat.eq_or_lt_of_le hl with rfl | hlt
-  · exact healing_first_transfer_domain p c E rho hrec emittedNonempty emittedName hB hx hk
-      hXv hXc hDX
+  · exact healing_first_transfer_domain p c E rho hrec.toRecovery₂ emittedNonempty emittedName
+      hB hx hk (hScopes.first B sB k x hB hx hk) hXv hXc hDX
   · have hB' := hB
     rw [HighSrcN_def] at hB'
     have hgst := healing_high_source_sync p c E rho emittedNonempty emittedName
@@ -478,8 +489,10 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
       linarith)
     have hlease := healing_loss_lease_late p c E rho hrec mono emittedNonempty emittedName
       writes noLoss hB hx (show sB + 2 ≤ i + 1 from Nat.succ_le_succ hlt) hk
+      (hScopes.fast B sB (i + 1) k x hB (Nat.succ_le_succ hlt) hx hk)
       (eraseFG_preceq hFB)
-    exact healing_next_transfer_domain p c E rho hrec hgsti hcover hx hk hXv hXc hDX hlease
+    exact healing_next_transfer_domain p c E rho hrec.toRecovery₂ hgsti hcover hx hk
+      (hScopes.next B sB i k x hB hlt hx hk) hXv hXc hDX hlease
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B `cause`; blueprint 21:2677–2741, 2767–2813
@@ -491,7 +504,8 @@ and every source above F are in the view (`healing_source_receipt`); the
 descent then gives a cause (`healing_loss_cause_of_view`). The first transfer
 l = sB + 1 needs no row of B before the loss (blocker B2). -/
 theorem healing_loss_cause [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hScopes : LossServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -510,6 +524,7 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -524,13 +539,12 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
   intro k B sB noLoss hL
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   rw [Lost_def] at hL
   obtain ⟨hB, x, l, hx, hl, hk, hn⟩ := hL
   obtain ⟨i, rfl⟩ : ∃ i, l = i + 1 :=
     ⟨l - 1, (Nat.sub_add_cancel (le_trans (Nat.succ_pos sB) hl)).symm⟩
   have hsi : sB ≤ i := Nat.le_of_succ_le_succ hl
-  have hFB := healing_loss_F_below p c E rho hrec emittedNonempty emittedName xing origin
+  have hFB := healing_loss_F_below p c E rho hrec hScopes emittedNonempty emittedName xing origin
     noLoss hB hx hl hk hn
   have hB' := hB
   rw [HighSrcN_def] at hB'
@@ -547,12 +561,13 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
     push_cast
     linarith [p.deltaPos])
   have hX : (storeAt p c E rho (V2.D.Run.idxBefore rho D) x).fg.TF ⊆
-      (storeAt p c E rho k x).fg.TF := (fgsa_store_cumulative p c E rho hN hDk x).1
-  have hBX := healing_source_receipt p c E rho hrec emittedNonempty emittedName hsrc hsi hgsti
+      (storeAt p c E rho k x).fg.TF := (fgsa_store_durable p c E rho hDk x).1
+  have hBX := healing_source_receipt p c E rho hrec hScopes
+    emittedNonempty emittedName hsrc hsi hgsti
     hx hk hFB
-  refine healing_loss_cause_of_view p c E rho hrec emittedNonempty emittedName xing origin
+  refine healing_loss_cause_of_view p c E rho hrec hScopes emittedNonempty emittedName xing origin
     noLoss hB hx hl hk hn hX hBX ?_
-    (healing_loss_domain p c E rho hrec mono emittedNonempty emittedName writes noLoss hB hx
+    (healing_loss_domain p c E rho hrec hScopes mono emittedNonempty emittedName writes noLoss hB hx
       hsi hk hFB)
   intro K s hK hFK _ _
   left
@@ -565,7 +580,8 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
       have : (i : Int) + 1 ≤ s := by omega
       nlinarith [p.deltaPos]
     exact_mod_cast hlt
-  exact healing_source_receipt p c E rho hrec emittedNonempty emittedName hK hsl hgsti hx hk hFK
+  exact healing_source_receipt p c E rho hrec hScopes
+    emittedNonempty emittedName hK hsl hgsti hx hk hFK
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B; blueprint 21:2677–2741 (fj.descent.v3).
@@ -574,7 +590,8 @@ at c₀ = μ + 1 with the concrete `Lost`, `same` (IF.6), the corrected `support
 and `cause`: no high source is lost, and all high sources with rows before any
 index are pairwise compatible. -/
 theorem healing_high_source_compat [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hScopes : LossServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -593,6 +610,7 @@ theorem healing_high_source_compat [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -605,16 +623,17 @@ theorem healing_high_source_compat [Fintype V] {G ΔF : Time}
         muOf p c E rho + 1 ≤ (heightView p K).h → muOf p c E rho + 1 ≤ (heightView p K').h →
         Block.Compatible (eraseFG K) (eraseFG K') :=
   healing_high_source_first_failure p c E rho (muOf p c E rho + 1) (Lost p c E rho)
-    (healing_loss_same p c E rho hrec emittedNonempty emittedName)
-    (healing_loss_support p c E rho hrec emittedNonempty emittedName)
-    (healing_loss_cause p c E rho hrec mono emittedNonempty emittedName writes xing origin)
+    (healing_loss_same p c E rho hrec.toRecovery₂ emittedNonempty emittedName hScopes.same)
+    (healing_loss_support p c E rho hrec.toRecovery₂ emittedNonempty emittedName)
+    (healing_loss_cause p c E rho hrec hScopes mono emittedNonempty emittedName writes xing origin)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B (the H0Reset.mu_le specialization); blueprint
 21:3002–3004 (high), 1579–1582 (μ ≤ M). DC: SAME high threshold M + 1.
 Sources of height at least M + 1 are pairwise compatible: μ ≤ M. -/
 theorem healing_high_source_compat_reset [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hScopes : LossServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -633,6 +652,7 @@ theorem healing_high_source_compat_reset [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -647,7 +667,8 @@ theorem healing_high_source_compat_reset [Fintype V] {G ΔF : Time}
   have hμ := h0.mu_le
   have hc0 : muOf p c E rho + 1 ≤ (heightView p K).h := le_trans (Nat.succ_le_succ hμ) hc
   have hc0' : muOf p c E rho + 1 ≤ (heightView p K').h := le_trans (Nat.succ_le_succ hμ) hc'
-  exact (healing_high_source_compat p c E rho hrec mono emittedNonempty emittedName writes xing
+  exact (healing_high_source_compat p c E rho hrec hScopes mono
+    emittedNonempty emittedName writes xing
     origin).2 i K K' s s' hK hK' hc0 hc0'
 
 end AvailableChain.FGSA.Run

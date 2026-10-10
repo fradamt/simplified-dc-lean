@@ -35,7 +35,8 @@ example {x : V} {s : Slot} {H : Block} (hx : x ∈ rho.honest)
 
 -- conditional package, anti-vacuity: concrete result tick and live release-state lease.
 example {x : V} {nd : Node p} {lease : Block × Nat × Time}
-    (hx : x ∈ rho.honest) (hcut : timeIdx rho (SA.releaseTime p.toParams j) ≤ i)
+    (hx : x ∈ rho.honest)
+    (hcut : timeIdx rho (SA.releaseTime p.toParams j) ≤ i)
     (hnd : postClock E rho x (SA.releaseTime p.toParams j) = some nd)
     (hlease : lease ∈ nd.st.base.obligations) (hlive : nd.st.base.now < lease.2.2) :
     Block.Compatible lease.1 C := by
@@ -49,7 +50,8 @@ example {w : HealingWitness} (h0r : H0Reset p c E rho w)
     (raw : ∀ i, PostResetRawTransfer p c E rho w i)
     {y x : V} {j a : Nat} {C : Block} (hy : y ∈ rho.honest)
     (hj : w.sStar ≤ j) (hC : gateResult p c E rho y j = some (some C))
-    (hx : x ∈ rho.honest) (hhor : SA.gateTime p.toParams j + 4 * p.Δ ≤ rho.horizon)
+    (hx : confirmedReaderIdx p c E rho x a)
+    (hhor : SA.gateTime p.toParams j + 4 * p.Δ ≤ rho.horizon)
     (ha : HealSuffix p c rho (SA.gateTime p.toParams j + 4 * p.Δ) a) :
     Block.Preceq C (S_at p c E rho a x) := by
   have h := postReset_h5RawTransfer_body p c E rho h0r raw

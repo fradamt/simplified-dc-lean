@@ -1,4 +1,4 @@
-# P-H1 Round 3; local transfer scopes on sleep-ph1d.
+# P-H1 CLOSED, Round 3; 99 targets GREEN, no EXPECTED-FAIL.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
 AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
@@ -101,6 +101,27 @@ AvailableChainFGSAProofs.Tests.HealingSupport
 AvailableChainFGSAProofs.Tests.HealingTime
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
+AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous
+AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
+AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
+AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
+AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
+AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
+AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
+AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
+AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance
+AvailableChainFGSAProofs.Tests.HealingDelivery
+AvailableChainFGSAProofs.Tests.HealingDescent
+AvailableChainFGSAProofs.Tests.HealingDescentLoss
+AvailableChainFGSAProofs.Tests.HealingFrontierRead
+AvailableChainFGSAProofs.Tests.HealingPostResetCompat
+AvailableChainFGSAProofs.Tests.HealingPostResetHigh
+AvailableChainFGSAProofs.Tests.HealingPostResetKeep
+AvailableChainFGSAProofs.Tests.HealingPostResetLease
+AvailableChainFGSAProofs.Tests.HealingPostResetProject
+AvailableChainFGSAProofs.Tests.HealingPostResetRaw
+AvailableChainFGSAProofs.Tests.HealingResetTransfer
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal
 AvailableChainFGSAProofs.Proofs.Healing.RepairH6
 AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
@@ -651,24 +672,3 @@ AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause P-H1
-AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous P-H1
-AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat P-H1
-AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh P-H1
-AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep P-H1
-AvailableChainFGSAProofs.Proofs.Healing.PostResetLease P-H1
-AvailableChainFGSAProofs.Proofs.Healing.PostResetProject P-H1
-AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw P-H1
-AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer P-H1
-AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance P-H1
-AvailableChainFGSAProofs.Tests.HealingDelivery P-H1
-AvailableChainFGSAProofs.Tests.HealingDescent P-H1
-AvailableChainFGSAProofs.Tests.HealingDescentLoss P-H1
-AvailableChainFGSAProofs.Tests.HealingFrontierRead P-H1
-AvailableChainFGSAProofs.Tests.HealingPostResetCompat P-H1
-AvailableChainFGSAProofs.Tests.HealingPostResetHigh P-H1
-AvailableChainFGSAProofs.Tests.HealingPostResetKeep P-H1
-AvailableChainFGSAProofs.Tests.HealingPostResetLease P-H1
-AvailableChainFGSAProofs.Tests.HealingPostResetProject P-H1
-AvailableChainFGSAProofs.Tests.HealingPostResetRaw P-H1
-AvailableChainFGSAProofs.Tests.HealingResetTransfer P-H1
