@@ -417,7 +417,7 @@ theorem inclusion_proposer_prior_of_F_prefix_cover [Fintype V]
   exact lt_of_le_of_lt (hrival B hDB) (lt_of_lt_of_le hbatch.lt (hprefix L hL).1)
 
 /-- Joined proposer counts use authentic receipts and cover all joined honest seats. -/
-theorem inclusion_proposer_prior_of_F_prefix_on [Fintype V]
+theorem inclusion_receiver_proposer_prior_on [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (s : Slot) (i : Nat) (x : V)
     (st : State p.n) (hvotes : st.base.votes = (storeAt p c E rho i x).base.votes)
@@ -472,7 +472,7 @@ G1 steps 4 and 6. Class (iii). DC: Goldfish/Confirmation:494,508,567;
 INTENTIONAL: the batch count is read in the actual HEAD pools, carried votes
 included. Provenance maps each pooled seat to a stored vote. Every prefix L
 of D0 gets a strict majority, and no conflicting block gets one. -/
-theorem inclusion_reader_scores_on [Fintype V]
+theorem inclusion_receiver_scores_on [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (r : Slot)
     {ih : Nat} {y : V}
@@ -576,7 +576,7 @@ theorem inclusion_reader_scores_on [Fintype V]
   contradiction
 
 /-- Legacy score count with explicit global restart freedom.
-Sleep consumers use inclusion_reader_scores_on and exact relay service. -/
+Sleep consumers use inclusion_receiver_scores_on and exact relay service. -/
 theorem inclusion_reader_scores [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (hN : V2.D.NoRestart rho) (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (r : Slot)

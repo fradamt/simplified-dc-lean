@@ -121,7 +121,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
 #print axioms AvailableChain.FGSA.Run.inclusion_gate_exact
 #print axioms AvailableChain.FGSA.Run.clean_inclusion_post_gate_body
 #print axioms AvailableChain.FGSA.Run.clean_inclusion_body
-#print axioms AvailableChain.FGSA.Run.inclusion_reader_scores_on
+#print axioms AvailableChain.FGSA.Run.inclusion_receiver_scores_on
 #print axioms AvailableChain.FGSA.Run.inclusion_gate_origin_of_result
 #print axioms AvailableChain.FGSA.Run.inclusion_ordered_of_scoped
 #print axioms AvailableChain.FGSA.Run.outage_gate_path_proposal_service
@@ -134,7 +134,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
 #print axioms AvailableChain.FGSA.Run.clean_growth_compatible_from_history
 #print axioms AvailableChain.FGSA.Run.outage_supplier_history
 #print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior_of_F_prefix_cover
-#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior_of_F_prefix_on
+#print axioms AvailableChain.FGSA.Run.inclusion_receiver_proposer_prior_on
 #print axioms AvailableChain.FGSA.Run.OutageRestoredServices
 #print axioms AvailableChain.FGSA.Run.outage_restored_receipt_on
 #print axioms AvailableChain.FGSA.Run.outage_prefix_receipt_of_protected_read

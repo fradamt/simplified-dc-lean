@@ -5728,3 +5728,12 @@ stable read, protected receivers, fast equal-cut branch, slow instance).
 hRows (ArmingConstruction:270) stays an OPEN P-Ou source-history obligation,
 including actions at the pending time; do not project the old all-honest
 pending_input.
+
+### P-Ou Round 6 — integration name collision
+
+Base 4b561a23 combines P-Ou round 5 and P-Ar round 5. ArmingScores
+redeclared two P-Ou theorem names from ExactProposalReceipts. Rename the
+owned copies to inclusion_receiver_proposer_prior_on and
+inclusion_receiver_scores_on. Update ExactProposalRetained, the local
+strict audit, and the complete coverage fragment. The two bodies and
+all public claims stay unchanged. ArmingScores now compiles.
