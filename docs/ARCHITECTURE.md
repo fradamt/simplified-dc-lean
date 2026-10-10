@@ -518,8 +518,9 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `ContinuationGate`, and `ContinuationJoint` prove the continuation body.
   `Proofs/OutageContinuation/Export` exports `outageContinuation_claim_of`.
   `Proofs/Shared/Claims` uses `outageContinuation_of_body` to bridge the body
-  to `OutageContinuationClaim`. `Proofs/Assembly/Clean` supplies the interfaces
-  and proves `fgsa_outageContinuationClaim`. The exact lane import exception
+  to the amended `OutageContinuationClaim`. `Assembly/Root` must use the named
+  foundation and finite Clean producers (P-As request in the Round 15 handoff).
+  The exact lane import exception
   in `scripts/check-layers.py` permits `OutageContinuation.Export` to import
   exactly the six `Outage/Continuation*` modules listed above. No other lane
   import allowance changes. `FGSAClaims` is unchanged; this is a companion claim.
@@ -1068,6 +1069,32 @@ HEADs. Same-label readers use their own frame, and subsequent labels use the
 first marker. Both event branches reach inclusive covered public reads after the
 seed. Earlier read assembly, W stable catch-up and legacy public ports remain open.
 
+P-Ou Rounds 12-13 (sleep-pou12/13): ScopedEarly proves the early reads, HEADs, F and
+duties at finite cuts; ScopedClose gives the protected Outage result under Close's own
+OutagePrem (no NoRestart, no duties_and_outputs). The finite Clean history/output
+suppliers stay at the lane boundary. ScopedArming selects fast, slow and empty-G
+certificates; ScopedJoint joins the early reads, the covered suffix and the actual W
+gate. Assembly/OutagePublicInputs builds every finite Clean field from a named
+producer; its audit module prints their axioms. Dependency order: protected Outage
+is proved from named suppliers; W suffix preservation and lease compatibility at the
+actual post-handover W gate are proved.
+
+P-Ou Round 15 adopts OUTAGE-CONT-REPAIRED. The old OutageWSeed is false: a
+common-ancestor result can retain a conflicting S (node 7 at 106 in wseed-run).
+Statements/OutageContinuation adds OutageRepairReady only to continuation output
+reads. Covered readers use inclusion; a reader with B below F uses finality; any
+other qualified reader supplies an actual post-handover gate with an already
+compatible S or a genuine result that is not below old S. ScopedCatchUp proves
+outage_repair_gate_seed at that supplied gate and applies outage_stable_compatible_suffix
+through the inclusive read, including restarts and same-time deliveries.
+ScopedJoint and OutageContinuation/Export have no W-seed callback. The complete
+outage_continuation_public_suppliers theorem uses named foundation and finite Clean
+producers. HEAD and F safety, Join readers, protocol declarations and FGSAClaims
+fields are unchanged. This is an INTENTIONAL FG-SA sleep adaptation: conditional
+safety after a repairing gate, not SAME as DC stableAsynchronyResilient. No fixed
+repair deadline is asserted. P-As owns the Root call and global audit integration;
+the exact replacement is scripts/dev-pkg/P-Ou.round15-handoff.md.
+
 P-H1 joined-start boundary, Rounds 7-9:
 Healing intermediate contracts start at recoveryStart p E. It is the single
 protocol-parameter start Jst; saved-window transport still starts at GST.
@@ -1122,3 +1149,83 @@ Equal-label high sources use the restart-aware same-label service producer.
 The selected HEAD receipt producer also exists; OpeningServiceScopes no longer
 requests an unused carrier field. All-cut opening, cone, raw-transfer and lease
 assemblies are still OPEN/P-H2. Their legacy consumers are not sleep producers.
+
+P-H1 Round 10 HEAD boundary:
+Shared/Relay adds HeadRelayLocalServiceScope, HeadRelayReceiptScope and four
+receipt consumers. The local service keeps the original index, epoch and window.
+Under non-exclusion at the strict deadline, its service field permits either
+local processing or an exact remote ReceiverService. The receipt adapter uses
+fgsa_head_stamp_before_read and keeps votes and stamps through the same epoch.
+The receipt evidence is a stored HEAD or two stamped cap witnesses at the read.
+The older object-only scope remains a compatibility interface for other lanes;
+healing P1/P2 no longer request it for every raw object.
+Healing/HeadRelay proves local carried provenance through the actual restart
+model, with the joined reader's label cutoff. A carried third HEAD can be refused
+without an acceptance or a relay for that object. Healing/RelayProducers relays
+its two stored witnesses instead. P1 and P2 use the narrower receipt scope;
+RecoveryProducers supplies their complete recovery factories. Honest late HEAD
+reads no longer need an artificial object delivery window before their own read.
+Tests/HealingHeadCap replays the actual local handlers: a proposal carries a
+third HEAD after the first two votes capped the seat. The proposal and raw HEAD
+remain present, but the third HEAD is absent from the vote pool and clean support.
+This local handler check is not a complete ExecutionValid adversarial fixture.
+
+P-H1 Round 10 phase production:
+RecoveryProducers now supplies P1-P10 from RecoverySleep₂ and named Foundations,
+with each actual source, reader, finite deadline and receiver floor guard kept.
+P5 is healing_support_permanence_recovery; both PhaseBody arms use produced
+services. SlowSupportScope.late keeps the full joined batch. Its saved window
+uses GST synchrony, lease expiry and same-label uniqueness. Fast transfer uses
+the actual joined release reader and its clean threshold support.
+Healing/RecoveryPerm proves healing_tPerm_recovery for every bounded phase after
+Jst, with no phase-service callback. P-As supplies fgsa_rMonoAll, fgsa_rXing and
+fgsa_leaseOrigins_lastWrite across the existing Foundation boundary. No new
+public Claims premise, deadline, constant, or early-case producer is added.
+Healing/RepairLeaseRecovery supplies repair_lease_cover_two_at and
+repair_lease_cover_one_at with P-H2's exact phase-service signatures. Round 11
+uses the matching P5 record through healing_tPerm_at. A private last-write split
+proves expiry for old rows and phase-local Transfers for later rows. Neither
+adapter needs a whole-run TPerm step. P-H2 owns its caller imports.
+The N4 adapter healing_ready_batch_release_compat_recovery constructs its first
+and gate scopes. A later full batch releases incompatible leases of every age;
+there is no bound on k and no claim that Jst expires every earlier lease.
+Tests/HealingRecoveryPermAxioms audits the new producers. The actual finite
+NonVacuity/HealingRun fixture has nvPerm from the universal producer and named
+Foundations. The four complete adversarial replays still have exact P-H1
+obligations; local handlers and clock regressions are not execution certificates.
+
+P-H1 Round 11 regression boundary:
+Tests/HealingStaleLeaseReplay checks actual process/clock/acRestart folds for k=3
+and k=4. It checks the retained old lease and failed HEAD, parent and S reads.
+Tests/HealingSlowLeaseReplay admits parent-first height certificates through
+handlers, then checks the saved B result, incompatible joined HEAD and slow write.
+Tests/HealingSplitBatchReplay admits the contested height-3 certificate prefix.
+It checks the strict WB stamps, 2/3 joined batch, release count 3<4, live B root
+at proposal 254 and expiry before the incompatible label-254 HEAD.
+Healing/RegressionFixture holds the common data and local handler folds. It has
+no service producer or full-run certificate. The tests import this P-H1 module.
+These are local folds, not full ExecutionValid or signature-origin certificates.
+Tests/HealingReplayObligations names the exact remaining full-run existential
+goals, including same-prefix extensions to horizons 2070 and 2080. Those goals
+remain OPEN/P-H1. NonVacuity/HealingRun applies both local adapters to the actual
+positive horizon-310 RecoverySleep₂ execution with produced P5 services.
+
+P-As Round 7 Assembly boundary (sleep-pas7):
+Assembly/Outage constructs assembly_outage_clean_cut_supplier from the finite
+healthy sleep prefix and named Foundation and Clean producers. Root uses the
+amended unconditional P-Ou exporter with that supplier. The fast and slow claims
+use the current OutageCompat projections. Root's finalizedMonotone field uses
+fgsa_finalizedMonotonicityRestartClaim, including retained-store restarts.
+
+Assembly/Healing uses RecoverySleep₂, RMonoAll and healing_tPerm_recovery.
+Its local proposal service keeps the actual emission, GST anchor, finite deadline,
+receiver history and restart epoch. Healing.Export must expose RecoveryPerm; P-H2
+must finish the joined-start promotion body and its complete lane export.
+Assembly/ResetArrival keeps HG.5 as an explicit result for the bounded healing run.
+The full-H0 extension changes only u and QStar, so the strict reset bound stays at
+recoveryStart. H-time composition uses that same witness and the Jst horizon.
+P-H2 still owns HG.5, the selected full-H0 extension, local HealingInput and the
+post-reset induction. The checked conditional adapters are consumers of these
+exact inputs. They do not close their producers. Full Root acceptance stays open.
+The canonical P-Ou audit fragment uses production imports only. No public Claims
+or Statements definition, protocol declaration, or family source changes here.

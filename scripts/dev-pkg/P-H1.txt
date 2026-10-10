@@ -1,6 +1,8 @@
-# P-H1 Round 9 PREPARED. P1/P2 HEAD relay and P5/TPerm production remain open.
+# P-H1 Round 11: production CLOSED; phase-local adapters and handler replays checked.
+# Four full ExecutionValid certificates retain exact OPEN/P-H1 obligations.
+# HealingReplayObligations names their goals; local handler folds are GREEN.
 # H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
-# 111 TARGETS; 561 GREEN; 19 EXPECTED-FAIL.
+# 123 TARGETS; 572 GREEN; 19 EXPECTED-FAIL.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
 AvailableChainFGSAProofs.Tests.HealingRecoveryProducersAxioms
@@ -113,6 +115,19 @@ AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Tests.HealingJoinedStartAxioms
 AvailableChainFGSAProofs.Tests.HealingJoinedStart
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
+AvailableChainFGSAProofs.Proofs.Shared.Relay
+AvailableChainFGSAProofs.Proofs.Healing.HeadRelay
+AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
+AvailableChainFGSAProofs.Tests.HealingHeadCap
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
+AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
+AvailableChainFGSAProofs.Tests.HealingRecoveryPermAxioms
+
+AvailableChainFGSAProofs.Tests.HealingStaleLeaseReplay
+AvailableChainFGSAProofs.Tests.HealingSlowLeaseReplay
+AvailableChainFGSAProofs.Tests.HealingSplitBatchReplay
+AvailableChainFGSAProofs.Proofs.Healing.RegressionFixture
+AvailableChainFGSAProofs.Tests.HealingReplayObligations
 
 [GREEN]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
@@ -676,6 +691,18 @@ AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Tests.HealingJoinedStartAxioms
 AvailableChainFGSAProofs.Tests.HealingJoinedStart
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
+AvailableChainFGSAProofs.Proofs.Healing.HeadRelay
+AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
+AvailableChainFGSAProofs.Tests.HealingHeadCap
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
+AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
+AvailableChainFGSAProofs.Tests.HealingRecoveryPermAxioms
+
+AvailableChainFGSAProofs.Tests.HealingStaleLeaseReplay
+AvailableChainFGSAProofs.Tests.HealingSlowLeaseReplay
+AvailableChainFGSAProofs.Tests.HealingSplitBatchReplay
+AvailableChainFGSAProofs.Proofs.Healing.RegressionFixture
+AvailableChainFGSAProofs.Tests.HealingReplayObligations
 
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs P-As

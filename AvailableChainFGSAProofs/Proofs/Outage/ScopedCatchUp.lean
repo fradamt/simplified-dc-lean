@@ -104,6 +104,112 @@ theorem outage_caught_up_gate_result_history [Fintype V]
     (fun q K hR hK => outage_continuation_scoped_heads h hf origin htsrc hnamed hsrc
       hState hprov hne hc hβ s q K hrs hR hK)
 
+/-- If old S conflicts with B, each lease below S and compatible with B is
+also compatible with every compatible result. Thus no such lease vetoes it. -/
+theorem outage_conflicting_stable_no_lease_veto {n : Nat}
+    (v : GridCO.State n .root) {B C : Block}
+    (hBad : ¬ Block.Compatible v.stableRecord B)
+    (hBelow : ∀ row ∈ v.obligations, Block.Preceq row.1 v.stableRecord)
+    (hRows : ∀ row ∈ v.obligations, Block.Compatible row.1 B)
+    (hC : Block.Compatible C B) :
+    v.obligations.any (fun row => !Block.compatible row.1 C) = false := by
+  apply List.any_eq_false.mpr
+  intro row hr
+  have hAB : Block.Preceq row.1 B := by
+    rcases Bool.or_eq_true_iff.mp (hRows row hr) with hAB | hBA
+    · exact hAB
+    · exact (hBad (Bool.or_eq_true_iff.mpr
+        (Or.inr (block_preceq_trans hBA (hBelow row hr))))).elim
+  have hBC : Block.Compatible B C := by
+    simpa only [Block.Compatible, block_compatible_comm C B] using hC
+  have hAC := block_compatible_of_preceq_compatible hAB hBC
+  simp only [show Block.compatible row.1 C = true from hAC, Bool.not_true,
+    Bool.false_eq_true, not_false_eq_true]
+
+/-- For a conflicting old S, a compatible result corrects S exactly when
+the result is not below old S. A common-ancestor result retains the conflict. -/
+theorem outage_conflicting_stable_advance_iff {S B C F : Block}
+    (hBad : ¬ Block.Compatible S B) (hC : Block.Compatible C B)
+    (hFS : Block.Preceq F S) (hFC : Block.Preceq F C) :
+    Block.Compatible (Gen.AC.normalizeOutput F (GridCO.advance S C)) B ↔
+      ¬ Block.Preceq C S := by
+  unfold GridCO.advance
+  change Block.Compatible (Gen.AC.normalizeOutput F (if Block.Preceq C S then S else C)) B ↔
+    ¬ Block.Preceq C S
+  by_cases hCS : Block.Preceq C S
+  · rw [ite_eq_left hCS, Gen.AC.normalizeOutput_def]
+    change Block.Compatible (if Block.Preceq F S then S else F) B ↔ ¬ Block.Preceq C S
+    rw [ite_eq_left hFS]
+    exact iff_of_false hBad (not_not_intro hCS)
+  · rw [ite_eq_right hCS, Gen.AC.normalizeOutput_def]
+    change Block.Compatible (if Block.Preceq F C then C else F) B ↔ ¬ Block.Preceq C S
+    rw [ite_eq_left hFC]
+    exact iff_of_true hC hCS
+
+/-- At a fresh joined gate, the residual correction condition is exact.
+Compatible live rows remove the veto. Normalization cannot correct an old
+conflict while F remains below old S. -/
+theorem outage_gateStep_conflicting_stable_iff (st : State p.n) (s : Slot) (B : Block)
+    (hinv : CStoreInv p st)
+    (hFresh : GridCO.savedGenuine st.base s = none) (hJ : joinedNow p st = true)
+    (hFS : Block.Preceq (eraseFG st.fg.F) st.base.stableRecord)
+    (hBad : ¬ Block.Compatible st.base.stableRecord B)
+    (hBelow : ∀ row ∈ st.base.obligations, Block.Preceq row.1 st.base.stableRecord)
+    (hRows : ∀ row ∈ st.base.obligations, Block.Compatible row.1 B)
+    (hResults : ∀ C, SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F)
+      (actView st) s = some C → Block.Compatible C B) :
+    Block.Compatible (gateStep p st s).base.stableRecord B ↔
+      ∃ C, SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s = some C ∧
+        ¬ Block.Preceq C st.base.stableRecord := by
+  let Q : State p.n := { onView
+    (fun v => SA.Root.gateFrom p.toParams (eraseFG st.fg.F) v s) st with
+    fastWrite := st.fastWrite ++ [(s, fastSet p (eraseFG st.fg.F) (actView st) s)] }
+  have hStep : (gateStep p st s).base.stableRecord =
+      Gen.AC.normalizeOutput (eraseFG st.fg.F) Q.base.stableRecord := by
+    unfold gateStep
+    rw [hFresh, hJ]
+    simp only [Option.isSome_none, Bool.not_true, Bool.false_eq_true, ite_false]
+    rw [normalizeS_fields]
+    rfl
+  rw [hStep]
+  cases hRaw : SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s with
+  | none =>
+    have hQ : Q.base.stableRecord = st.base.stableRecord := by
+      change (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).stableRecord = _
+      unfold SA.Root.gateFrom GridCO.gateFrom
+      rw [show GridCO.confirmationFrom p.toParams.engine (eraseFG st.fg.F)
+        (actView st) s = none from hRaw]
+      rfl
+    rw [hQ, Gen.AC.normalizeOutput_def]
+    change Block.Compatible (if Block.Preceq (eraseFG st.fg.F) st.base.stableRecord
+      then st.base.stableRecord else eraseFG st.fg.F) B ↔ _
+    rw [ite_eq_left hFS]
+    exact iff_of_false hBad (by rintro ⟨C, hC, _⟩; cases hC)
+  | some C =>
+    have hC := hResults C hRaw
+    have hVeto := outage_conflicting_stable_no_lease_veto (actView st) hBad hBelow hRows hC
+    have hQ : Q.base.stableRecord = GridCO.advance st.base.stableRecord C := by
+      have he := @GridCO.gateFrom_eq_writeKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n (eraseFG st.fg.F) (actView st) s C hRaw hVeto
+      change SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s = _ at he
+      change (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).stableRecord = _
+      rw [he]
+      exact (writeKeys_keys { actView st with
+        goldfishRecord := GridCO.advance (actView st).goldfishRecord C
+        genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy p.n .root
+          (actView st) s (some C)
+        stableRecord := GridCO.advance (actView st).stableRecord C } _ _
+        (SA.releaseThreshold p.toParams) hinv.leaseKeys.1 hinv.leaseKeys.2
+        (saGateWriteKeys_level p.toParams (actView st) s C)).2.2.1
+    rw [hQ, outage_conflicting_stable_advance_iff hBad hC hFS
+      (outageV_result_extends_anchor p.toParams.engine (actView st) _ C s hRaw)]
+    constructor
+    · intro hCS
+      exact ⟨C, rfl, hCS⟩
+    · rintro ⟨D, hD, hDS⟩
+      cases Option.some.inj hD
+      exact hDS
+
 /-- A gate preserves stable compatibility when the old record and its result are compatible. -/
 theorem outage_gateStep_stable_compatible (p : Params) (st : State p.n)
     (hinv : CStoreInv p st) (s : Slot) (B : Block)
@@ -284,7 +390,7 @@ theorem outage_caught_up_public_read_from_seed [Fintype V]
 
 /-- At each actual post-E enabled gate, every live row is compatible with B.
 An incompatible old write cannot survive its handover deadline. This proves the
-lease input at O11-W-SEED; it does not supply the old stable-record seed. -/
+live-row input for a repairing gate; it does not assert that a repair occurs. -/
 theorem outage_caught_up_gate_rows [Fintype V]
     {fast : Bool} {T b₀ b₁ ΔF : Time}
     (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
@@ -336,37 +442,166 @@ theorem outage_caught_up_gate_rows [Fintype V]
     of_decide_eq_true (List.mem_filter.mp (outage_clockPre_expired_rows _ _ hr)).2
   exact (not_lt_of_ge (hd.trans hEnd)) hl
 
-/-- O11-W-SEED at the caller's actual enabled W gate. This definition records
-an open producer goal; it does not assert that the goal has been proved. -/
-@[expose] def OutageWSeed (fast : Bool) (b₀ b₁ : Time) (B : Block) : Prop :=
-  ∀ x t s j, outageConfirmedReader p c E rho fast b₀ b₁ x t →
-    x ∉ coveredNodes p E rho fast b₀ → t ≤ rho.horizon →
-    restoredLabel p b₁ + p.k ≤ s → j < timeIdx rho t →
-    enabledGateAt p c E rho j x s →
-    BatchReceiptAt p c E rho x s (SA.earlyTime p.toParams s) →
-    AwakeClosed E x (SA.gateTime p.toParams s) t →
-    RestartFreeTime rho x (SA.gateTime p.toParams s) t →
-    V2.D.restartFree rho x (V2.D.Run.actionCut rho (SA.voteTime p.toParams s))
-      (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) →
-    ¬ Block.Preceq B (F_at p c E rho j x) →
-    Block.Compatible B (S_at p c E rho (j + 1) x)
+/-- At the actual W gate, all existing producers reduce the conflicting-S
+branch to a genuine result that is not below old S. No correction is assumed. -/
+theorem outage_caught_up_gate_seed_iff [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    (hf : FGFoundation p c E rho) (origin : RQCOrigin p c E rho) (htsrc : TSrc p c E rho)
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+    {x : V} {s : Slot} {j : Nat}
+    (hLabel : restoredLabel p b₁ + p.k ≤ s) (hG : enabledGateAt p c E rho j x s)
+    (hBad : ¬ Block.Compatible (S_at p c E rho j x) B) :
+    Block.Compatible B (S_at p c E rho (j + 1) x) ↔
+      ∃ C, gateResultAt p c E rho j = some (some C) ∧
+        ¬ Block.Preceq C (S_at p c E rho j x) := by
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  have hx := hs.honest_only _ (List.mem_of_getElem? hG.1)
+  let P := clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)
+  have hRows := outage_caught_up_gate_rows h hf origin htsrc hnamed hsrc hState hprov
+    hne hc hβ hLabel hG
+  have hBelow : ∀ row ∈ P.base.obligations, Block.Preceq row.1 P.base.stableRecord := by
+    intro row hr
+    have hLive : SA.gateTime p.toParams s < row.2.2 :=
+      of_decide_eq_true (List.mem_filter.mp (outage_clockPre_expired_rows _ _ hr)).2
+    have hb := leaseBelowOutput_stateBefore E rho j x row
+      ((clockPre_obligations_sublist p _ _).subset hr)
+      ((fgsa_preTick_now_le E rho hs hG.1).trans_lt hLive)
+    simpa only [P, clockPre_stable, storeAt] using hb
+  have hRaw := inclusion_gate_raw_at_tick E rho hs hG
+  have hFresh : GridCO.savedGenuine P.base s = none := by
+    rw [savedGenuine_congr (clockPre_genuine p _ _) s]
+    exact fgsa_gate_fresh E rho hs hG.1
+  have hJoined : joinedNow p P = true := by
+    rw [clockPre_joined]
+    exact fgsa_gate_joined_of_enabled E rho hG
+  have hFS : Block.Preceq (eraseFG P.fg.F) P.base.stableRecord := by
+    have hn := nestOK_stateBefore E rho j x
+    change Block.Preceq (eraseFG (rho.stateBefore E j x).st.fg.F)
+      (rho.stateBefore E j x).st.base.stableRecord at hn
+    simpa only [P, clockPre_fg, clockPre_stable, storeAt] using hn
+  have hBadP : ¬ Block.Compatible P.base.stableRecord B := by
+    simpa only [P, clockPre_stable, S_at_def] using hBad
+  have hIff := outage_gateStep_conflicting_stable_iff P s B
+    (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho j x) _) hFresh hJoined hFS
+    hBadP hBelow hRows (by
+      intro C hC
+      have hrs : restoredLabel p b₁ < s := by
+        have := p.kLarge; dsimp only [Slot] at *; omega
+      exact outage_continuation_result_of_head_history h hx hrs hG
+        (hRaw.trans (congrArg some hC))
+        (fun q K hR hK => outage_continuation_scoped_heads h hf origin htsrc hnamed hsrc
+          hState hprov hne hc hβ s q K hrs hR hK))
+  have hPost : S_at p c E rho (j + 1) x = (gateStep p P s).base.stableRecord := by
+    have post : storeAt p c E rho (j + 1) x =
+        clock p (storeAt p c E rho j x) (SA.gateTime p.toParams s) := by
+      change (rho.stateBefore E (j + 1) x).st = _
+      rw [(rho.step_tick_eq E hG.1).1]
+      exact tick_st (c := c) E rho _ x _
+    rw [S_at_def, post, arming_clock_gate]
+  rw [hPost]
+  change Block.compatible B _ = true ↔ _
+  rw [block_compatible_comm]
+  refine hIff.trans ?_
+  apply exists_congr
+  intro C
+  dsimp only [P]
+  rw [clockPre_stable]
+  exact and_congr (by
+    rw [hRaw]
+    exact ⟨congrArg some, Option.some.inj⟩) Iff.rfl
 
-theorem OutageWSeed_def (fast : Bool) (b₀ b₁ : Time) (B : Block) :
-    OutageWSeed (p := p) (c := c) (E := E) (rho := rho) fast b₀ b₁ B =
-      (∀ x t s j, outageConfirmedReader p c E rho fast b₀ b₁ x t →
-    x ∉ coveredNodes p E rho fast b₀ → t ≤ rho.horizon →
-    restoredLabel p b₁ + p.k ≤ s → j < timeIdx rho t →
-    enabledGateAt p c E rho j x s →
-    BatchReceiptAt p c E rho x s (SA.earlyTime p.toParams s) →
-    AwakeClosed E x (SA.gateTime p.toParams s) t →
-    RestartFreeTime rho x (SA.gateTime p.toParams s) t →
-    V2.D.restartFree rho x (V2.D.Run.actionCut rho (SA.voteTime p.toParams s))
-      (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) →
-    ¬ Block.Preceq B (F_at p c E rho j x) →
-    Block.Compatible B (S_at p c E rho (j + 1) x)) := rfl
+/-- The gate named by repair readiness supplies a compatible post-gate S.
+Freshness, compatible results and live rows are proved at this exact witness. -/
+theorem outage_repair_gate_seed [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    (hf : FGFoundation p c E rho) (origin : RQCOrigin p c E rho) (htsrc : TSrc p c E rho)
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+    {x : V} {s : Slot} {j : Nat}
+    (hLabel : restoredLabel p b₁ + p.k ≤ s) (hG : enabledGateAt p c E rho j x s)
+    (hReady :
+      let st := clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)
+      Block.Compatible B st.base.stableRecord ∨
+        ∃ C, SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s = some C ∧
+          ¬ Block.Preceq C st.base.stableRecord) :
+    Block.Compatible B (S_at p c E rho (j + 1) x) := by
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  let P := clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)
+  have hRaw := inclusion_gate_raw_at_tick E rho hs hG
+  by_cases hBad : ¬ Block.Compatible (S_at p c E rho j x) B
+  · apply (outage_caught_up_gate_seed_iff h hf origin htsrc hnamed hsrc hState hprov
+      hne hc hβ hLabel hG hBad).mpr
+    rcases hReady with hOld | ⟨C, hC, hCS⟩
+    · exact (hBad (by
+        simpa only [clockPre_stable, S_at_def, Block.Compatible, block_compatible_comm]
+          using hOld)).elim
+    · refine ⟨C, hRaw.trans (congrArg some hC), ?_⟩
+      simpa only [clockPre_stable, S_at_def] using hCS
+  have hOld : Block.Compatible P.base.stableRecord B := by
+    simpa only [P, clockPre_stable, S_at_def] using not_not.mp hBad
+  have hrs : restoredLabel p b₁ < s := by
+    have := p.kLarge; dsimp only [Slot] at *; omega
+  have hEarly : SA.earlyTime p.toParams (restoredLabel p b₁) <
+      SA.gateTime p.toParams s := by
+    rw [arming_early_eq, arming_gate_eq]
+    have hc := Int.ofNat_le.mpr hrs.le
+    nlinarith [p.deltaPos]
+  have hHor := hEarly.le.trans (hs.in_horizon _ (List.mem_of_getElem? hG.1)).2
+  have hStart : afterTicksIdx rho (SA.earlyTime p.toParams (restoredLabel p b₁)) ≤ j :=
+    le_of_not_gt (fun hn => (not_lt_of_ge (arming_tick_le hs hG.1
+      (hn.trans_le (preIdx_le_afterTicksIdx E rho hs _).2))) hEarly)
+  have current := outage_continuation_event_state h hf origin htsrc hnamed hsrc hState
+    hprov hne hc hβ hHor hStart
+    (Nat.le_of_lt (List.getElem?_eq_some_iff.mp hG.1).1)
+  have hx := hs.honest_only _ (List.mem_of_getElem? hG.1)
+  have hF : Block.Compatible (eraseFG P.fg.F) B := by
+    dsimp only [P]
+    rw [clockPre_fg]
+    exact current.2.2.2.1 x hx
+  have hPost : S_at p c E rho (j + 1) x = (gateStep p P s).base.stableRecord := by
+    have post : storeAt p c E rho (j + 1) x =
+        clock p (storeAt p c E rho j x) (SA.gateTime p.toParams s) := by
+      change (rho.stateBefore E (j + 1) x).st = _
+      rw [(rho.step_tick_eq E hG.1).1]
+      exact tick_st (c := c) E rho _ x _
+    rw [S_at_def, post, arming_clock_gate]
+  rw [hPost]
+  change Block.compatible B _ = true
+  rw [block_compatible_comm]
+  apply outage_gateStep_stable_compatible p P
+    (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho j x) _) s B hOld hF
+  intro _ C hC
+  exact outage_continuation_result_of_head_history h hx hrs hG
+    (hRaw.trans (congrArg some hC))
+    (fun q K hR hK => outage_continuation_scoped_heads h hf origin htsrc hnamed hsrc
+      hState hprov hne hc hβ s q K hrs hR hK)
 
-/-- Join the finite early reads, covered suffix and actual W gate.
-The W seed is the exact remaining P-Ou obligation, not a supplied public premise. -/
+/-- Join covered inclusion, finality inclusion and the qualified repair-gate suffix. -/
 theorem outage_continuation_public_reads [Fintype V]
     {fast : Bool} {T b₀ b₁ ΔF : Time}
     (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
@@ -387,20 +622,10 @@ theorem outage_continuation_public_reads [Fintype V]
     (hHist : CleanHist p c E rho (timeIdx rho b₀))
     (hOutput : ∀ j y s, j < timeIdx rho b₀ → enabledGateAt p c E rho j y s →
       ∃ C, gateResultAt p c E rho j = some (some C) ∧
-        Block.Preceq C (S_at p c E rho (j + 1) y))
-    (hWSeed : ∀ x t s j, outageConfirmedReader p c E rho fast b₀ b₁ x t →
-      x ∉ coveredNodes p E rho fast b₀ → t ≤ rho.horizon →
-      restoredLabel p b₁ + p.k ≤ s → j < timeIdx rho t →
-      enabledGateAt p c E rho j x s →
-      BatchReceiptAt p c E rho x s (SA.earlyTime p.toParams s) →
-      AwakeClosed E x (SA.gateTime p.toParams s) t →
-      RestartFreeTime rho x (SA.gateTime p.toParams s) t →
-      V2.D.restartFree rho x (V2.D.Run.actionCut rho (SA.voteTime p.toParams s))
-        (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) →
-      ¬ Block.Preceq B (F_at p c E rho j x) →
-      Block.Compatible B (S_at p c E rho (j + 1) x)) :
+        Block.Preceq C (S_at p c E rho (j + 1) y)) :
     ∀ x t, b₀ ≤ t → t ≤ rho.horizon →
       outageConfirmedReader p c E rho fast b₀ b₁ x t →
+      OutageRepairReady p c E rho fast b₀ b₁ B x t →
       Block.Compatible B (S_at p c E rho (timeIdx rho t) x) ∧
       Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).stable x t) ∧
       Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).confirmed x t) ∧
@@ -409,7 +634,7 @@ theorem outage_continuation_public_reads [Fintype V]
         Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x t) ∧
         Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).confirmed x t)) := by
   classical
-  intro x t hb hhor hReader
+  intro x t hb hhor hReader hReady
   have hs := h.pre.base.valid.toScheduleWellFormed
   by_cases hEarly : t < SA.earlyTime p.toParams (restoredLabel p b₁)
   · exact outage_early_public_read h hf htsrc hnamed hsrc hState hprov hne hc hβ
@@ -427,18 +652,14 @@ theorem outage_continuation_public_reads [Fintype V]
   have hRead : Block.Compatible B (S_at p c E rho (timeIdx rho t) x) ∧
       Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).stable x t) ∧
       Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).confirmed x t) := by
-    by_cases hBF : Block.Preceq B (F_at p c E rho (timeIdx rho t) x)
+    rcases hReady with hx | hBF | ⟨s, j, hLabel, hj, hG, hRepair⟩
+    · exact (hxG hx).elim
     · obtain ⟨hS, hStable, hConfirmed, _⟩ := outage_finalized_continuation_read hs hBF
       exact ⟨block_compatible_of_common hS (block_preceq_refl _),
         block_compatible_of_common hStable (block_preceq_refl _),
         block_compatible_of_common hConfirmed (block_preceq_refl _)⟩
-    · obtain ⟨s, j, hLabel, hj, hG, hBatch, hAw, hRF, hEpoch⟩ :=
-        outage_caught_up_gate_scope h hReader hxG hhor
-      have hLow : ¬ Block.Preceq B (F_at p c E rho j x) := by
-        intro hBj
-        exact hBF (block_preceq_trans hBj (eraseFG_preceq
-          (hf.mono j (timeIdx rho t) x hReader.1.1 hj.le).1))
-      have hSeed := hWSeed x t s j hReader hxG hhor hLabel hj hG hBatch hAw hRF hEpoch hLow
+    · have hSeed := outage_repair_gate_seed h hf origin htsrc hnamed hsrc hState hprov
+        hne hc hβ hLabel hG hRepair
       obtain ⟨hS, hStable, hConfirmed, _⟩ := outage_caught_up_public_read_from_seed h hf origin
         htsrc hnamed hsrc hState hprov hne hc hβ hReader hhor hLabel hj hG hSeed
       exact ⟨hS, hStable, hConfirmed⟩

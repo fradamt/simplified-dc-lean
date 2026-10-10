@@ -469,59 +469,38 @@ theorem healing_support_target_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     exact hc hY
   exact healing_support_prefreeze_path E rho hsch hN hiy hYD
 
+private theorem support_gate_late_receipt (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (ix : Nat) (x : V) (s : Slot)
+    (o : GridCO.Wire p.n .root) (hm : o ∈ (rho.stateBefore E ix x).st.base.votes)
+    (hl : GridCO.headLabel? o = some s)
+    (ht : GridCO.stampVote (rho.stateBefore E ix x).st.base o < SA.gateTime p.toParams s) :
+    o ∈ GridCO.lateVotes p.toParams.engine
+      (actView (clockPre p (rho.stateBefore E ix x).st (SA.gateTime p.toParams s))) s := by
+  refine List.mem_filter.mpr ⟨List.mem_filter.mpr ⟨?_, ?_⟩, ?_⟩
+  · change o ∈ (clockPre p _ _).base.votes
+    rwa [(Internal.clockPre_vn _ _).1]
+  · simpa only [hl] using beq_self_eq_true (some s)
+  · rw [support_read_stamp E rho ix x _ o hm]
+    exact decide_eq_true ht
+
 /-- Exact raw HEAD service at the source gate gives late-pool membership or a cap.
 The service keeps its own history premise, including after replay. -/
 theorem healing_support_raw_backward_on (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     {ix : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
     (q : Fin p.n) (b : BlockId)
-    (hScope : HeadRelayServiceScope E rho s q b (SA.gateTime p.toParams s) ix x) :
+    (hScope : HeadRelayLocalServiceScope E rho s q b (SA.gateTime p.toParams s) ix x) :
     let late := GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (rho.stateBefore E ix x).st (SA.gateTime p.toParams s))) s
     (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈ late ∨
       GridCO.equivocates late q = true := by
   intro late
-  let D := SA.gateTime p.toParams s
-  have hS := hE.toScheduleWellFormed
-  have hc := fgsa_store_cumulative_on p c E rho hScope.index x hScope.epoch
-  have keep (o : GridCO.Wire p.n .root)
-      (hm : o ∈ (rho.stateBeforeTime E D x).st.base.votes)
-      (ht : GridCO.stampVote (rho.stateBeforeTime E D x).st.base o < D)
-      (hl : GridCO.headLabel? o = some s) : o ∈ late := by
-    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho D hS] at hm ht
-    have hk : o ∈ (rho.stateBefore E (V2.D.Run.idxBefore rho D) x).st.base.voteStamp.map
-        Prod.fst := by
-      rw [fgsa_vote_stamp_keys E rho _ x]
-      exact hm
-    have hm' := fgsa_votes_cumulative_on p c E rho hScope.index x hScope.epoch hm
-    apply List.mem_filter.mpr
-    refine ⟨List.mem_filter.mpr ⟨?_, by simp only [hl, beq_self_eq_true]⟩, ?_⟩
-    · change o ∈ (clockPre p _ _).base.votes
-      rwa [(Internal.clockPre_vn _ _).1]
-    · rw [support_read_stamp E rho ix x _ o hm']
-      change decide (GridCO.stampVote (storeAt p c E rho ix x).base o < D) = true
-      change GridCO.stampVote (storeAt p c E rho (V2.D.Run.idxBefore rho D) x).base o < D
-        at ht
-      unfold GridCO.stampVote at ht ⊢
-      rw [support_stamp_kept hc.2.2.2.1 o hk]
-      cases hf : (storeAt p c E rho (V2.D.Run.idxBefore rho D) x).base.voteStamp.find?
-          (fun row => row.1 == o) with
-      | none =>
-        obtain ⟨row, hr, he⟩ := List.mem_map.mp hk
-        have hn := List.find?_eq_none.mp hf row hr
-        simp only [he, beq_self_eq_true] at hn
-        contradiction
-      | some row => simpa only [hf, Option.map_some, Option.getD_some] using decide_eq_true ht
-  by_cases hn : (fgsa p c).excludes (rho.stateBeforeTime E D x)
-      (ofHead p ⟨.seat (.head s) q, b⟩) = false
-  · obtain ⟨send, ⟨hs⟩⟩ := hScope.service hn
-    have hm := of_decide_eq_true (hs.processed hS hx (by change ¬ False; exact not_false))
-    exact Or.inl (keep _ hm (fgsa_head_stamp_before_read E rho hS x D s q b hm) rfl)
-  · obtain ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, htu, htv⟩ :=
-      fgsa_head_excluded_before E rho hS x D s q b hScope.window
-        (Bool.eq_true_of_ne_false hn)
+  rcases (hScope.toReceiptScope E rho hE s q b _ ix x hx).service with hm | hc
+  · exact Or.inl (support_gate_late_receipt E rho ix x s _ hm.1 rfl hm.2)
+  · obtain ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, htu, htv⟩ := hc
     exact Or.inr ((cap_pair late q).mpr
-      ⟨u, keep u hu htu hlu, v, keep v hv htv hlv, hne, hku, hkv⟩)
+      ⟨u, support_gate_late_receipt E rho ix x s u hu hlu htu,
+        v, support_gate_late_receipt E rho ix x s v hv hlv htv, hne, hku, hkv⟩)
 
 /-- Exact target service and the receiver epoch supply the frozen ancestor path. -/
 theorem healing_support_target_path_on (E : Generic.Env V)

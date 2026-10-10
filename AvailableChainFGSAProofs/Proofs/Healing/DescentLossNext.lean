@@ -288,7 +288,7 @@ theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : RecoverySleep
   | true =>
     exfalso
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
-    have hprov := fgsa_headVotes_provenance_on E rho hE i iy y hy hScope.reads
+    have hprov := fgsa_headVotes_provenance_on_receipt E rho hE i iy y hy hScope.reads
     have hone : ∀ w ∈ FGSA.headVotes p dst (i + 1), GridCO.headSeat? w = some k → w = o := by
       intro w hw hwk
       rcases hprov w hw k hwk with hm | heq

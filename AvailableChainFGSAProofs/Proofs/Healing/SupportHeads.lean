@@ -38,7 +38,7 @@ structure NextTransferScope (E : Generic.Env V)
     (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
       headVotes p (clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (s + 1))) (s + 1) →
-    HeadRelayServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y
+    HeadRelayLocalServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y
   carriers : HealingCarriersAt E rho s iy y
     (SA.voteTime p.toParams (s + 1))
 
@@ -324,7 +324,7 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
   | true =>
     exfalso
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
-    have hprov := fgsa_headVotes_provenance_on E rho hE i iy y hy hScope.reads
+    have hprov := fgsa_headVotes_provenance_on_receipt E rho hE i iy y hy hScope.reads
     have hone : ∀ w ∈ FGSA.headVotes p dst (i + 1), GridCO.headSeat? w = some k → w = o := by
       intro w hw hwk
       rcases hprov w hw k hwk with hm | heq

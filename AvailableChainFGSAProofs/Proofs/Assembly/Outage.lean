@@ -11,6 +11,30 @@ namespace AvailableChain.FGSA.Run
 
 variable (p : Params)
 
+/-- The actual finite Clean producers supply every field of the outage input record. -/
+theorem assembly_outage_clean_cut_supplier
+    {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {b₀ ΔF : Time}
+    (h : HealthyPrefixSleep₂ p c E rho b₀ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
+    OutageCleanCutInputs (p := p) (c := c) E rho b₀ := by
+  have hh := clean_invariant p c E rho h hq hf hsrc
+  refine ⟨?_, hh _ le_rfl, ?_, ?_, ?_⟩
+  · intro i hi
+    exact cleanState_of_hist h hq hf hsrc
+      (clean_actionStep p c E rho) hi (hh i hi)
+  · intro j y s hj hG
+    have hy := h.base.valid.toScheduleWellFormed.honest_only _ (List.mem_of_getElem? hG.1)
+    obtain ⟨C, hC, _, hS⟩ := clean_gateOutput_body p c E rho b₀ h hq hf hsrc
+      _ le_rfl (hh _ le_rfl) j y s hj hy hG
+    exact ⟨C, hC, hS⟩
+  · intro y z s C H hy hz hJ hs hC hH
+    exact (cleanHistoryAt_body p c E rho h hq hf hsrc).2.2.1 y z s C H
+      hy hz hs hC hJ hH
+  · exact clean_epoch_saved_row h hq hf hsrc
+
+
 private theorem clean_history_supplier (hcut : CleanCutClaim p)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀)
@@ -240,48 +264,24 @@ The earlyTime(q) <= b₀ guard stays in the public per-label predicate. -/
 theorem fgsa_outagePrefixReceiptClaim : OutagePrefixReceiptDerivedClaim p :=
   arming_prefix_batch_receipt p
 
-/-- ROOT-DIGEST W2b. Blueprint 03 §9. Foundation Exports supply the source facts.
-One Clean cut result supplies all nine Clean inputs at b₀. -/
+/-- Blueprint 03 §9. Named foundation and finite Clean producers supply the outage claim. -/
 theorem fgsa_outageCompatClaim_of_clean
-    (hcut : CleanCutClaim p) : OutageCompatClaim p := by
-  intro V _ _ In c E rho fast pt ΔF h
-  have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
-  have hs := fgsa_sourceDisciplineBaseClaim p c E rho () hb
-  exact outage_compat_body_of_cut p
-    (hstore := (fgsa_activeViewAt p c E rho).1)
-    (hframe := (fgsa_frameAt p c E rho).1)
-    (hsrc := fgsa_srcFrameAboveClaim p c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
-    (hstrat := (fgsa_fgFoundationClaim p c E rho () ⟨h.set.pre.base, h.set.faultQ⟩).strat)
-    (htsrc := hs.1) (hnamed := hs.2.2)
-    (hcut := hcut c E rho (ΔF := ΔF) ⟨pt.b₀⟩ ⟨h.set.sleepPre⟩) h
+    (_hcut : CleanCutClaim p) : OutageCompatClaim p :=
+  outage_outageCompatClaim_of p
+    (fgsa_fgFoundationClaim p) (fgsa_srcFrameAboveClaim p)
+    (fgsa_sourceDisciplineClaim p) (assembly_outage_clean_cut_supplier p)
 
-/-- ROOT-DIGEST W2b. Blueprint 03 §9.1. The fast claim uses the P1 part of the cut wrapper. -/
+/-- Blueprint 03 §9.1. The true-mode P1 projection supplies the fast claim. -/
 theorem fgsa_fastP1Claim_of_clean
     (hcut : CleanCutClaim p) : FastP1Claim p := by
   intro V _ _ In c E rho pt ΔF h
-  have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
-  have hs := fgsa_sourceDisciplineBaseClaim p c E rho () hb
-  exact (outage_compat_body_of_cut p
-    (hstore := (fgsa_activeViewAt p c E rho).1)
-    (hframe := (fgsa_frameAt p c E rho).1)
-    (hsrc := fgsa_srcFrameAboveClaim p c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
-    (hstrat := (fgsa_fgFoundationClaim p c E rho () ⟨h.set.pre.base, h.set.faultQ⟩).strat)
-    (htsrc := hs.1) (hnamed := hs.2.2)
-    (hcut := hcut c E rho (ΔF := ΔF) ⟨pt.b₀⟩ ⟨h.set.sleepPre⟩) h).1
+  exact (fgsa_outageCompatClaim_of_clean p hcut c E rho true pt ΔF h).1
 
-/-- ROOT-DIGEST W2b. Blueprint 03 §9.2. The slow claim also keeps the pending-gate lease clause. -/
+/-- Blueprint 03 §9.2. The false-mode claim keeps the pending-gate lease clause. -/
 theorem fgsa_slowP1Claim_of_clean
     (hcut : CleanCutClaim p) : SlowP1Claim p := by
   intro V _ _ In c E rho pt ΔF h
-  have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
-  have hs := fgsa_sourceDisciplineBaseClaim p c E rho () hb
-  exact outage_compat_body_of_cut p
-    (hstore := (fgsa_activeViewAt p c E rho).1)
-    (hframe := (fgsa_frameAt p c E rho).1)
-    (hsrc := fgsa_srcFrameAboveClaim p c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
-    (hstrat := (fgsa_fgFoundationClaim p c E rho () ⟨h.set.pre.base, h.set.faultQ⟩).strat)
-    (htsrc := hs.1) (hnamed := hs.2.2)
-    (hcut := hcut c E rho (ΔF := ΔF) ⟨pt.b₀⟩ ⟨h.set.sleepPre⟩) h
+  exact fgsa_outageCompatClaim_of_clean p hcut c E rho false pt ΔF h
 
 end AvailableChain.FGSA.Run
 end

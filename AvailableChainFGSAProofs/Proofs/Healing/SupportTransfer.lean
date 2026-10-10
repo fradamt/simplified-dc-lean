@@ -32,14 +32,14 @@ structure FirstTransferScope (E : Generic.Env V)
       GridCO.cleanSupport p.toParams.engine
         (actView (clockPre p (storeAt p c E rho ix x)
           (SA.gateTime p.toParams s))) s →
-    HeadRelayServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y
+    HeadRelayLocalServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y
   backward : ∀ q b,
     ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         GridCO.votesAt (storeAt p c E rho iy y).base s ∨
       (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         headVotes p (clock p (storeAt p c E rho iy y)
           (SA.voteTime p.toParams (s + 1))) (s + 1)) →
-    HeadRelayServiceScope E rho s q b (SA.gateTime p.toParams s) ix x
+    HeadRelayLocalServiceScope E rho s q b (SA.gateTime p.toParams s) ix x
   targets : ∀ K, K ∈ (storeAt p c E rho ix x).base.blocks →
     GridCO.stampBlock (storeAt p c E rho ix x).base K <
       SA.earlyTime p.toParams s →
@@ -423,7 +423,7 @@ theorem healing_support_release_compat (E : Generic.Env V)
       E rho hE.toScheduleWellFormed hy hiy (transfer_freeze_epoch E rho hScope) K
       (hScope.targets K hKm hKst hFK)
     have hcl := fgsa_cleanSupport_seat_clean_late p src s o ho k hko
-    rcases fgsa_cleanSupport_vote_forward_on E rho hE s ix iy x y hy o ho k hko
+    rcases fgsa_cleanSupport_vote_forward_on_receipt E rho hE s ix iy x y hy o ho k hko
       (fun b he => hScope.forward k b (he ▸ ho))
       with ⟨hod, hst⟩ | heq
     · have hod' : o ∈ st0.base.votes := by
@@ -499,7 +499,7 @@ theorem healing_support_release_compat (E : Generic.Env V)
               (Gen.Pure.block_preceq_total_of_common h hBK)
     · exfalso
       have hL := healing_support_equiv_back _ _ k
-        (fgsa_headVotes_backward_relay_on E rho hE s ix iy x y hx
+        (fgsa_headVotes_backward_relay_on_receipt E rho hE s ix iy x y hx
           (fun q b hb => hScope.backward q b (Or.inr hb))) heq
       change GridCO.equivocates (GridCO.lateVotes p.toParams.engine src s) k = true at hL
       rw [hcl] at hL
@@ -749,7 +749,7 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path_on (hroots := hroots)
       E rho hS hy hiy (transfer_freeze_epoch E rho hScope) K'
       (hScope.targets K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB0 hBK'))
-    exact fgsa_cleanSupport_forward_relay_on E rho hE s hx hy hix hiy o' ho'
+    exact fgsa_cleanSupport_forward_relay_on_receipt E rho hE s hx hy hix hiy o' ho'
       seat hs' (fun b he => hScope.forward seat b (he ▸ ho')) Kfg' (hKe' ▸ hK') B
       (hKe' ▸ hBK') hpath' hFB
   have hc := Gen.AC.Root.transfer src.blocks dst.base.blocks
@@ -757,7 +757,7 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) B
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
-    (fgsa_headVotes_backward_relay_on E rho hE s ix iy x y hx
+    (fgsa_headVotes_backward_relay_on_receipt E rho hE s ix iy x y hx
           (fun q b hb => hScope.backward q b (Or.inr hb)))
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at hc

@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
+public import AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
@@ -100,14 +101,14 @@ theorem healing_first_transfer_scope_of_services {G ΔF : Time}
         GridCO.cleanSupport p.toParams.engine
           (actView (clockPre p (storeAt p c E rho ix x)
             (SA.gateTime p.toParams s))) s →
-      HeadRelayServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y)
+      HeadRelayLocalServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y)
     (backward : ∀ q b,
       ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
           GridCO.votesAt (storeAt p c E rho iy y).base s ∨
         (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
           headVotes p (clock p (storeAt p c E rho iy y)
             (SA.voteTime p.toParams (s + 1))) (s + 1)) →
-      HeadRelayServiceScope E rho s q b (SA.gateTime p.toParams s) ix x)
+      HeadRelayLocalServiceScope E rho s q b (SA.gateTime p.toParams s) ix x)
     (targets : ∀ K, K ∈ (storeAt p c E rho ix x).base.blocks →
       GridCO.stampBlock (storeAt p c E rho ix x).base K <
         SA.earlyTime p.toParams s →
@@ -145,7 +146,7 @@ theorem healing_next_transfer_scope_of_services {G ΔF : Time}
       (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         headVotes p (clock p (storeAt p c E rho iy y)
           (SA.voteTime p.toParams (s + 1))) (s + 1) →
-      HeadRelayServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y)
+      HeadRelayLocalServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y)
     (carriers : HealingCarriersAt E rho s iy y
       (SA.voteTime p.toParams (s + 1))) : NextTransferScope E rho iy y s := by
   have hhor := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
@@ -168,6 +169,45 @@ theorem healing_next_transfer_scope_of_services {G ΔF : Time}
     exact healing_recovery_seat_rivals E rho hrec hCut hh _
   · apply healing_recovery_epoch_after_vote E rho hrec hy hCut.sync _ iy
     exact lt_add_of_pos_right _ p.deltaPos
+
+/-- P1 has a recovery producer for stored and carried HEADs, including cap witnesses. -/
+theorem healing_first_transfer_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {ix iy : Nat} {x y : V}
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams s) (hx : x ∈ rho.honest)
+    (hy : y ∈ rho.honest) (_hix : IsGateTick p c rho ix x s)
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hG : enabledGateAt p c E rho ix x s)
+    (hJ : joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1))) :
+    FirstTransferScope E rho ix iy x y s := by
+  apply healing_first_transfer_scope_of_services E rho hrec hSync hy hiy hG hJ
+  · exact healing_head_forward_receipt E rho hrec hSync hx hy hG hiy hJ
+  · exact healing_head_backward_receipt E rho hrec hSync hx hy hG hiy hJ
+  · intro K hK hStamp hFloor
+    exact healing_first_target_receipt_recovery E rho hrec mono hSync hx hy hiy
+      hK hStamp hFloor
+  · exact healing_carriers_recovery E rho hrec s iy y _
+
+/-- P2 uses local stamped read evidence, with no invented late-object delivery window. -/
+theorem healing_next_transfer_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} {iy : Nat} {y : V}
+    (hCut : HealingWindow p E 1 s) (hy : y ∈ rho.honest)
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hJ : joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1))) :
+    NextTransferScope E rho iy y s := by
+  have hh := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
+  apply healing_next_transfer_scope_of_services E rho hrec hCut hy hiy
+  · intro q K hq hem
+    apply healing_fresh_head_service E rho hrec hy hq hem hCut.sync
+    · change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
+      linarith [p.deltaPos]
+    · apply le_trans _ hh
+      change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤
+        4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+      push_cast
+      linarith [p.deltaPos]
+  · exact healing_head_local_service_recovery E rho hrec hCut.sync hy hiy hJ
+  · exact healing_carriers_recovery E rho hrec s iy y _
 
 /-- Proposal and late-gate support share the same proved seat counts and epoch.
 The actual tick remains the read; no proposal event is invented at a gate. -/
@@ -784,6 +824,161 @@ theorem healing_loss_service_scope_of_factories {G ΔF : Time}
     exact healing_fast_support_scope_of_factories E rho first next gates carriers hrec hCut hy
 
 end Factories
+
+/-- P3: all fast phase services have recovery producers, including the cap branches. -/
+theorem healing_fast_support_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {v : Time} {x : V} (hCut : HealingWindow p E 1 s)
+    (hx : x ∈ rho.honest) : FastSupportScope E rho s v x := by
+  apply healing_fast_support_scope_of_factories E rho
+    (first := fun _ _ _ _ _ hSync hx hy hi hj hg hJ =>
+      healing_first_transfer_scope_recovery E rho hrec mono hSync hx hy hi hj hg hJ)
+    (next := fun _ _ _ hCut hy hi hJ =>
+      healing_next_transfer_scope_recovery E rho hrec hCut hy hi hJ)
+    (gates := fun _ _ _ hCut hx _ hg _ hgeom =>
+      healing_support_gate_scope_recovery E rho hrec mono hCut hx hg hgeom)
+    (carriers := fun s iy y t => healing_carriers_recovery E rho hrec s iy y t)
+    hrec hCut hx
+
+/-- P4: slow phase services use the full saved window and same-label uniqueness. -/
+theorem healing_slow_support_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {v : Time} {x : V} (hCut : HealingWindow p E 1 s)
+    (hWindow : E.t_GST ≤ SA.voteTime p.toParams (s + 1 - p.k))
+    (hx : x ∈ rho.honest) : SlowSupportScope E rho s v x := by
+  refine ⟨healing_fast_support_scope_recovery E rho hrec mono hCut hx, ?_, ?_⟩
+  · intro j hi hg
+    have hguard := fgsa_gate_joined_of_enabled E rho hg
+    have hread := healing_joined_tick_of_guard p c E rho hrec.base.valid hx hi
+      (by simpa only [joinedNow, fgsa_clock_restartTime, (clock_vn _ _).2, storeAt] using hguard)
+    exact healing_proposal_support_scope_recovery E rho hrec hCut hread (Or.inr rfl)
+  · intro w hw _
+    apply healing_recovery_same_label E rho hrec w
+    apply le_trans hWindow
+    change 4 * p.Δ * ((s + 1 - p.k : Nat) : Int) + p.Δ ≤
+      4 * p.Δ * (w : Int) + p.Δ
+    have h : ((s + 1 - p.k : Nat) : Int) ≤ w := by exact_mod_cast hw
+    nlinarith [p.deltaPos]
+
+/-- P5: recovery produces both body arms and every bounded proposal service.
+There is no service callback in this producer. -/
+theorem healing_support_permanence_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    (_hready : recoveryStart p E ≤ u)
+    (_hphase : PhaseInterval p c E rho u v m J contested) :
+    SupportPermanenceServices E rho u v m J contested := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro s x nd B hCut _ _ hx _ _
+    exact healing_fast_support_scope_recovery E rho hrec mono hCut hx
+  · intro s x st C B j hCut _ _ hx hWindow _ _ _ _ _
+    exact healing_slow_support_scope_recovery E rho hrec mono hCut hWindow hx
+  · intro s B hCut _ _ _ r hr _ ip x hx hip hjoin
+    have hread : HealingJoinedTick E rho ip x (SA.proposalTime p.toParams (r + 1)) := by
+      refine ⟨hx, hip, ?_⟩
+      have hs : slotAt p (SA.proposalTime p.toParams (r + 1)) = r + 1 :=
+        (fgsa_postClock_slot (c := c) (rho.stateBefore E ip x) _).2.symm.trans
+          (fgsa_proposal_slot (c := c) _ (r + 1))
+      simpa only [hs] using hjoin
+    exact healing_proposal_support_scope_recovery E rho hrec
+      (hCut.mono ((Nat.le_succ s).trans hr)) hread (Or.inl rfl)
+
+/-- P7: selected repair gate services have complete recovery factories. -/
+theorem healing_repair_gate_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} (hCut : HealingWindow p E 1 s) : RepairGateScope E rho s := by
+  apply healing_repair_gate_scope_of_factories E rho
+    (first := fun _ _ _ _ _ hSync hx hy hi hj hg hJ =>
+      healing_first_transfer_scope_recovery E rho hrec mono hSync hx hy hi hj hg hJ)
+    (gates := fun _ _ _ hCut hx _ hg _ hgeom =>
+      healing_support_gate_scope_recovery E rho hrec mono hCut hx hg hgeom)
+    (carriers := fun s iy y t => healing_carriers_recovery E rho hrec s iy y t)
+    hCut
+
+/-- P8: the bounded frontier read services are produced from recovery. -/
+theorem healing_frontier_read_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {q : Slot} {v : Time} (hCut : HealingWindow p E 1 q)
+    (hGate : SA.gateTime p.toParams q ≤ v) (hHor : v ≤ rho.horizon) :
+    FrontierReadScope E rho q v := by
+  apply healing_frontier_read_scope_of_factories E rho
+    (first := fun _ _ _ _ _ hSync hx hy hi hj hg hJ =>
+      healing_first_transfer_scope_recovery E rho hrec mono hSync hx hy hi hj hg hJ)
+    (next := fun _ _ _ hCut hy hi hJ =>
+      healing_next_transfer_scope_recovery E rho hrec hCut hy hi hJ)
+    (gates := fun _ _ _ hCut hx _ hg _ hgeom =>
+      healing_support_gate_scope_recovery E rho hrec mono hCut hx hg hgeom)
+    (carriers := fun s iy y t => healing_carriers_recovery E rho hrec s iy y t)
+    (proposal := fun _ _ _ _ hCut hRead hTime =>
+      healing_proposal_support_scope_recovery E rho hrec hCut hRead hTime)
+    hrec hCut hGate hHor
+
+/-- P10: enabled raw gates keep their actual geometry and GST vote-time cut. -/
+theorem healing_raw_service_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho) :
+    RawServiceScope p c E rho := by
+  apply healing_raw_service_scope_of_factories E rho
+    (first := fun _ _ _ _ _ hSync hx hy hi hj hg hJ =>
+      healing_first_transfer_scope_recovery E rho hrec mono hSync hx hy hi hj hg hJ)
+    (proposal := fun _ _ _ _ hCut hRead hTime =>
+      healing_proposal_support_scope_recovery E rho hrec hCut hRead hTime)
+    (rawGates := fun _ _ _ hSync hx _ hg _ hgeom =>
+      healing_gate_receipt_scope_recovery E rho hrec mono hSync hx hg hgeom) hrec
+
+/-- P9: selected high-source loss services use the named source-origin Foundations. -/
+theorem healing_loss_service_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    (source : TSrc p c E rho)
+    (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
+      HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
+    (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e.1 = (heightView p C).h ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+ : LossServiceScope p c E rho := by
+  apply healing_loss_service_scope_of_factories E rho
+    (first := fun _ _ _ _ _ hSync hx hy hi hj hg hJ =>
+      healing_first_transfer_scope_recovery E rho hrec mono hSync hx hy hi hj hg hJ)
+    (next := fun _ _ _ hCut hy hi hJ =>
+      healing_next_transfer_scope_recovery E rho hrec hCut hy hi hJ)
+    (gates := fun _ _ _ hCut hx _ hg _ hgeom =>
+      healing_support_gate_scope_recovery E rho hrec mono hCut hx hg hgeom)
+    (carriers := fun s iy y t => healing_carriers_recovery E rho hrec s iy y t)
+    emittedNonempty emittedName
+    (receipts := fun _ _ _ _ _ _ hSource hsu hSync hx hk _ hFloor =>
+      healing_source_before_receipt_recovery E rho hrec mono source hSource hsu hSync hx hk
+        hFloor) hrec
+
+/-- N4: a full batch after Jst releases incompatible leases, with all services produced.
+The result has no lease-age assumption and no upper bound on k. -/
+theorem healing_ready_batch_release_compat_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {ix iy : Nat} {x y : V} {B : Block}
+    (hready : recoveryStart p E ≤ SA.voteTime p.toParams s)
+    (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hix : IsGateTick p c rho ix x s)
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hgeom : GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s)) s B)
+    (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B) :
+    ∀ row ∈ (clock p (storeAt p c E rho iy y)
+      (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B := by
+  have hCut := healing_window_of_cut E (healing_ready_vote_cutoff E hready)
+  have hG := healing_recovery_gate_enabled E rho hrec hx hix
+    (healing_gate_cut_of_batch_cut E s hCut.2)
+  have hhor := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
+  have hJ := healing_recovery_joined E rho hrec hy (s := s + 1)
+    (hCut.mono (Nat.le_succ s)).2 (hCut.sync.trans ?_) hhor
+  · exact healing_ready_batch_release_compat E rho hrec hready hx hy hix hiy
+      (healing_support_gate_scope_recovery E rho hrec mono hCut hx hG hgeom) hgeom
+      (healing_first_transfer_scope_recovery E rho hrec mono hCut.sync hx hy hix hiy hG hJ) hFB
+  · change SA.voteTime p.toParams s ≤ SA.voteTime p.toParams (s + 1)
+    change 4 * p.Δ * (s : Int) + p.Δ ≤
+      4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]
 
 end AvailableChain.FGSA.Run
 end

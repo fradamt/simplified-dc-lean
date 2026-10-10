@@ -1,5 +1,5 @@
-# P-Ou round 13; both scoped exporters compile. Package PREPARED.
-# GREEN means compiled; the exact O11-W-SEED producer remains OPEN.
+# P-Ou round 15: OUTAGE-CONT-REPAIRED.
+# Both exporters use named producers; no W-seed obligation remains.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Outage.ScopedClose
 AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
