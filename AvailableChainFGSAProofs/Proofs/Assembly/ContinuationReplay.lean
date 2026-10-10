@@ -15,38 +15,25 @@ theorem assembly_tickReplay_atWake (ha : RetainedAgreesThrough₂ p c E source E
     {j : Nat} {x : V} {t : Time} (hx : x ∈ rho.honest) (ht : t ≤ source.horizon)
     (hj : source.events[j]? = some (.tick x t)) :
     ∃ k, rho.events[k]? = some (.tick x t) ∧
-      rho.stateBefore E' k x = source.stateBefore E j x := by
-  have hf := congrArg (fun es => V2.Event.tick x t ∈ es) (ha.events x hx)
-  have hm : V2.Event.tick x t ∈ rho.events := by
-    have he : V2.Event.tick x t ∈ source.events := List.mem_of_getElem? hj
-    have hf' : V2.Event.tick x t ∈ rho.events ↔ V2.Event.tick x t ∈ source.events := by
-      simpa only [List.mem_filter, decide_eq_true_eq, ht, eq_self_iff_true,
-        true_and, and_true, V2.Event.node, V2.Event.time] using Iff.of_eq hf
-    exact hf'.mpr he
-  obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp hm
-  refine ⟨k, hk, ?_⟩
-  rw [V2.D.Engine.stateBefore_tick_eq_stateAfterRestartsAt hr hk,
-    V2.D.Engine.stateBefore_tick_eq_stateAfterRestartsAt hs hj]
-  let test := fun e : V2.Event V (fgsa p c).Object =>
-    decide (e.time < t ∨ (e.time = t ∧ e.phase = 0))
-  have down : ∀ e f, e.key ≤ f.key → test f = true → test e = true := by
-    intro e f hef hf
-    have hf' : f.time < t ∨ (f.time = t ∧ f.phase = 0) := of_decide_eq_true hf
-    rcases hf' with h | ⟨h, hp⟩
-    · exact decide_eq_true (Or.inl ((V2.D.Engine.time_le_of_key_le e f hef).trans_lt h))
-    · rcases Prod.Lex.toLex_le_toLex.mp hef with he | ⟨he, hep⟩
-      · exact decide_eq_true (Or.inl (he.trans_eq h))
-      · exact decide_eq_true (Or.inr ⟨he.trans h, Nat.eq_zero_of_le_zero (hep.trans_eq hp)⟩)
-  change ((rho.events.take (rho.events.filter test).length).foldl
-    (V2.D.World.step E' rho) V2.D.World.init) x =
-      ((source.events.take (source.events.filter test).length).foldl
-        (V2.D.World.step E source) V2.D.World.init) x
-  rw [← V2.D.Engine.filter_eq_take hr test down, ← V2.D.Engine.filter_eq_take hs test down]
-  apply wcg_filtered_replay ha x hx
-  intro e he
-  rcases of_decide_eq_true he with h | ⟨h, _⟩
-  · exact h.le.trans ht
-  · exact h.le.trans ht
+      rho.stateBefore E' k x = source.stateBefore E j x :=
+  wcg_tickEventReplay ha hs hr hx ht hj
+
+/-- A retained reader keeps the source join guard through the inclusive endpoint. -/
+theorem assembly_joinedReplay [Fintype V]
+    (ha : RetainedAgreesThrough₂ p c E source E' rho)
+    {x : V} {s : Slot} {t : Time} (hx : x ∈ rho.honest) (ht : t ≤ source.horizon)
+    (hj : joinedAt p E source x s t) : joinedAt p E' rho x s t := by
+  refine ⟨(ha.awake x hx t ht).trans hj.1, ?_, ?_⟩
+  · intro u hu hut hw
+    apply hj.2.1 u hu hut
+    change E.awake x u = true ∧ E.awake x (u - 1) = false
+    change E'.awake x u = true ∧ E'.awake x (u - 1) = false at hw
+    rw [← ha.awake x hx u (hut.trans ht),
+      ← ha.awake x hx (u - 1) ((sub_le_self _ (by decide)).trans (hut.trans ht))]
+    exact hw
+  · intro u hu hut he
+    exact hj.2.2 u hu hut
+      ((wcg_eventReplay ha (.restart x u) hx (hut.trans ht)).mp he)
 
 end AvailableChain.FGSA.Run
 end

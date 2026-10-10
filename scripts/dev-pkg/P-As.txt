@@ -1,4 +1,4 @@
-# P-As round 1: supplier slice; full assembly OPEN.
+# P-As round 2: TVOTE-CUT and current service ports; full assembly OPEN.
 [TARGETS]
 
 AvailableChainFGSA.Model.Store
@@ -19,6 +19,7 @@ AvailableChainFGSAInhabit.WitnessPositive
 AvailableChainFGSAProofs
 AvailableChainFGSAProofs.Proofs.Assembly.Clean
 AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay
+AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService
 AvailableChainFGSAProofs.Proofs.Assembly.Finality
 AvailableChainFGSAProofs.Proofs.Assembly.Foundations
 AvailableChainFGSAProofs.Proofs.Assembly.Healing
@@ -562,6 +563,7 @@ AvailableChainFGSAInhabit.WitnessPositive P-As
 AvailableChainFGSAProofs P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Clean P-As
 AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay P-As
+AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Healing P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Outage P-As
 AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival P-As
