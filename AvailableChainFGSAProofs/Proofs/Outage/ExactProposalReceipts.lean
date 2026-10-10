@@ -263,22 +263,14 @@ theorem inclusion_gate_raw_at_tick
     gateResultAt p c E rho j = some (SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)).fg.F)
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s) := by
-  rw [gateResultAt_eq_gateResult p c E rho hs hG.1, gateResult_def, gateIn_def,
-    preTick_def, fgsa_tickIdx_of_event p c E rho hs hG.1]
-  simp only [Option.map_some]
-  have hg : (match (clockPre p (storeAt p c E rho j x)
-      (SA.gateTime p.toParams s)).restartTime with
-    | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) := by
-    have he : (clockPre p (storeAt p c E rho j x)
-        (SA.gateTime p.toParams s)).restartTime = (storeAt p c E rho j x).restartTime := by
-      unfold clockPre
-      dsimp only
-      split_ifs <;> rfl
-    rw [he]
-    exact hG.2
-  split
-  · rfl
-  · contradiction
+  rw [gateResultAt_eq_gateResult p c E rho hs hG.1, gateResult_eq_saved p c E rho hs hG.1]
+  have h := fgsa_gate_saved_result E rho hs hG.1 (fgsa_gate_joined_of_enabled E rho hG)
+  change GridCO.savedGenuine (clock p (rho.stateBefore E j x).st
+    (SA.gateTime p.toParams s)).base s = some (SA.Root.confirmationFrom p.toParams
+      (eraseFG (clockPre p (rho.stateBefore E j x).st (SA.gateTime p.toParams s)).fg.F)
+      (actView (clockPre p (rho.stateBefore E j x).st (SA.gateTime p.toParams s))) s)
+  rw [clockPre_fg]
+  exact h
 
 /-- A nonempty gate result has an actual enabled gate origin. -/
 theorem inclusion_gate_origin_of_result
@@ -286,26 +278,42 @@ theorem inclusion_gate_origin_of_result
     (hs : V2.D.ScheduleWellFormed E rho) (x : V) (s : Slot) (B : Block)
     (hB : gateResult p c E rho x s = some (some B)) :
     ∃ i, enabledGateAt p c E rho i x s ∧ gateResultAt p c E rho i = some (some B) := by
-  classical
-  have hB0 := hB
-  rw [gateResult_def, gateIn_def, preTick_def] at hB
   cases hi : V2.D.Run.tickIdx? rho x (SA.gateTime p.toParams s) with
-  | none => simp only [hi, Option.map_none] at hB; cases hB
+  | none =>
+    have hn : gateResult p c E rho x s = none := by
+      rw [gateResult_def, gateIn_def, preTick_def, hi]
+      rfl
+    rw [hn] at hB
+    cases hB
   | some i =>
-    simp only [hi, Option.map_some] at hB
     have ht := V2.D.Run.tickIdx?_spec hi
-    split_ifs at hB with hg
-    · have hpre : (clockPre p (storeAt p c E rho i x)
-          (SA.gateTime p.toParams s)).restartTime = (storeAt p c E rho i x).restartTime := by
-        unfold clockPre
-        dsimp only
-        split_ifs <;> rfl
-      change (match (clockPre p (storeAt p c E rho i x)
-          (SA.gateTime p.toParams s)).restartTime with
-        | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hg
-      rw [hpre] at hg
-      exact ⟨i, ⟨ht, hg⟩, (gateResultAt_eq_gateResult p c E rho hs ht).trans hB0⟩
-    · cases hB
+    have hSaved := (gateResult_eq_saved p c E rho hs ht).symm.trans hB
+    change GridCO.savedGenuine (clock p (rho.stateBefore E i x).st
+      (SA.gateTime p.toParams s)).base s = some (some B) at hSaved
+    have hJ : joinedAtTime p (rho.stateBefore E i x).st.restartTime
+        (SA.gateTime p.toParams s) = true := by
+      cases hj : joinedAtTime p (rho.stateBefore E i x).st.restartTime
+        (SA.gateTime p.toParams s) with
+      | true => rfl
+      | false =>
+        rw [fgsa_gate_saved_unjoined E rho hs ht hj] at hSaved
+        cases hSaved
+    have hslot : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+      (fgsa_postClock_slot (c := c) (rho.stateBefore E i x) _).2.symm.trans
+        (fgsa_gate_slot (c := c) (rho.stateBefore E i x) s)
+    have hG : enabledGateAt p c E rho i x s := by
+      refine ⟨ht, ?_⟩
+      cases hm : (storeAt p c E rho i x).restartTime with
+      | none => trivial
+      | some w =>
+        change (rho.stateBefore E i x).st.restartTime = some w at hm
+        rw [hm] at hJ
+        change decide (w ≤ 4 * p.Δ * ((p.slotOf (SA.gateTime p.toParams s) : Int) - 1)) =
+          true at hJ
+        change w ≤ 4 * p.Δ * (s : Int)
+        simpa only [hslot, Nat.cast_add, Nat.cast_one, add_sub_cancel_right,
+          decide_eq_true_eq] using hJ
+    exact ⟨i, hG, (gateResultAt_eq_gateResult p c E rho hs ht).trans hB⟩
 
 /-- Scoped Clean result ordering applies to every nonempty executed result:
 each result supplies its own enabled gate and confirmed-reader guard. -/

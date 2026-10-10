@@ -4603,3 +4603,13 @@ producer and the P-Ar closure here; this package does not copy them.
 Final map for this group: 36 TARGETS, 494 GREEN, 12 EXPECTED-FAIL
 (10 P-Ou, two S-Ap). Public closure remains OPEN. No public claim,
 checker, scope, exception, allowance, baseline or toolchain is changed.
+
+### P-Ou Round 3 — export-safe gate observation
+
+The final export check found private equation copies from the gate guard's
+decision instance. ExactProposalReceipts now observes the gate through the
+existing gateResult_eq_saved and fgsa_gate_saved_result/unjoined API.
+Its missing-tick branch uses direct reduction. The guard statements and
+their meanings are unchanged. No new equation allowance is added.
+The focused check passes: 129 proof modules, 252 accepted exports,
+zero unaccepted and zero Gen exports. Full final checks follow this repair.
