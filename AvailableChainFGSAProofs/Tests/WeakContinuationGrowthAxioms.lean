@@ -64,6 +64,8 @@ open AvailableChain.FGSA.Run
 #print axioms wcg_exactProposal
 #print axioms wcg_proposalAdmission
 #print axioms wcg_inclusion6
+#print axioms wcg_inclusion6_result
+#print axioms wcg_sourceParticipation
 #print axioms wcg_inclusion6_proved
 #print axioms wcg_seededLiveAt
 #print axioms wcg_finiteSeed
