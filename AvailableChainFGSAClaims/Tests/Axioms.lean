@@ -82,6 +82,7 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.awakeHonestIn
 #print axioms AvailableChain.FGSA.Run.HonestProposal
 #print axioms AvailableChain.FGSA.Run.Base₂
+#print axioms AvailableChain.FGSA.Run.Base₂.idealization
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂
 #print axioms AvailableChain.FGSA.Run.CleanPrefix₂
 #print axioms AvailableChain.FGSA.Run.CleanCut₂

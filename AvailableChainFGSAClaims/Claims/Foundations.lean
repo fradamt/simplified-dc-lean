@@ -32,10 +32,9 @@ def ClientSafetyBaseClaim (p : Params) : Prop :=
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     BasePrem p c E rho pt → ClientSafeAll p c E rho
 
-/- bp.receiptCoverage.v2 cites AvailableChain.FGSA.Run.ReceiptCoverageStatement
-in AvailableChainFGSARun/Statements/ReceiptCoverage.lean (FROZEN 364d837e),
-proved by fgsa_receiptCoverage. Its within, slotWindow, compat and deadline
-premises remain unchanged. There is no second K8 statement here. -/
+/- DECISION P23-A: bp.receiptCoverage.v2 uses ReceiptCoverageSleepStatement.
+The legacy statement, equation, and fgsa_receiptCoverage are retired.
+Internal no-restart consumers use fgsa_receiptCoverage_ready. -/
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 P3 App. A.10: all seven F1 foundation channels. BaseSet and FaultQ are in the package. -/

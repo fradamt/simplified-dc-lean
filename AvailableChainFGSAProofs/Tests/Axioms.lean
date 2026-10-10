@@ -2196,8 +2196,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.contentAgree_run
 #check AvailableChain.FGSA.Run.fgsa_proposal_receipt
 #print axioms AvailableChain.FGSA.Run.fgsa_proposal_receipt
-#check AvailableChain.FGSA.Run.fgsa_receiptCoverage
-#print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage
 #check AvailableChain.FGSA.Run.finalityRun_parent_scope
 #print axioms AvailableChain.FGSA.Run.finalityRun_parent_scope
 #check AvailableChain.FGSA.Run.fgsa_runAccountable

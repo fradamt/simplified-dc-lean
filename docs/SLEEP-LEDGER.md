@@ -1592,6 +1592,70 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
 - Package map (§1.4/§8.1/§8.2): NamedDelivery and RetainedClock are TARGETS.
   ReceiptCoverage Statements is S-Ap; owners are W3 52, P-ShA 45, S-Ap 14.
 
+## S-Ap part 1 — public statement slice (2026-10-10)
+
+- Approved P5–P7, P10–P16, P18, P21/P22 vocabulary: Join, executed gate reads,
+  joined participation and recurrence, recovery readiness, and store/frame companions.
+- P23 and DECISION P23-A changes wait for part 2 and W3's new root definitions.
+- Import routing: gatePassedAt moves from Reads to Join with the exact P11 body.
+  Join needs Reads for IsGateTick/storeAt; the reverse import would form a cycle.
+  Channels imports Join. Public names and predicate meanings stay as approved.
+- Packet elaboration context: schedule-only parameters p/c are implicit when they
+  occur only in rho's type. Read predicates keep the explicit packet arguments.
+  Reads supplies a local Decidable instance for the optional restart cutoff.
+- Packet typo, r9 form (P10/P11 slot-labelled caught-up gate): caughtUpAtIdx's `∃ s j` infers s : Int
+  from `(s : Int)` before gateTime requires Slot. Use `∃ (s : Slot) (j : Nat)`.
+  This is a type annotation; its gate label, cutoff and quantifiers are unchanged.
+- Slice validation: all 58 manifest source modules build with --wfail; layers have
+  zero new findings. Claims.Tests.Axioms builds with the added statement audits.
+- Manifest generation uses an untracked copy of V2Manifest.lean with only the
+  facade-import loop omitted. Every source module in all four public prefixes
+  and FGSAClaims.FGSAClaims is still scanned; hashing and entry selection are unchanged.
+  The full facades import unfinished fixtures/P23. No checker or baseline is changed.
+  The regenerated document also records inherited W1–W3 changes. Allow pins change
+  only for entries in S-Ap source files; P-Da owns the remaining baseline reconciliation.
+
+### S-Ap part 1 — remaining public companions
+
+- P8/P9: recoveryStart routes the ready windows, old-row cap, H0Reset,
+  healing/reset horizons, finality premises and WC recovery endpoint through tauC.
+- P10/P20: output service, growth, LiveDC and healed statement readers use the
+  approved joined/confirmed scopes. The family Claims conclusions stay with their owners.
+- P12–P18: OutageContinuationSleepPrem and the derived receipt/E1 contracts are added.
+  OutageContinuationConcl and its Claims wrapper stay with P-Ou as family conclusion text.
+- P19: CleanContinuationSleep₂, CleanGrowthContinuationSleep₂ and SourcePendingReceipt
+  route the public WC/WCG regime, delivery and bounded-recovery types as approved.
+- P21(a): FinalizedMonotonicityRestartClaim replaces the aggregate field type.
+  FinalizedMonotonicityClaim and its NoRestart premise are retained byte for byte.
+- P22: FGFoundation and FGFoundationNext use RStoreDurable/RStoreEpoch, RMonoAll,
+  and RFrameNextEpoch. Old R6 definitions and equations are unchanged.
+- Source check: all 121 packet blocks marked to keep old text are present unchanged.
+  P23, all DECISION P23-A root-premise changes, and the two W3-owned files are deferred.
+- Structural test transfer (02:45 ruling): the two unchanged Axioms equality examples
+  for ServedFromGateAt/InclusionAt and JointGrowthAt/AvailableGrowthConcl move to
+  Tests.OutageAlignment. The production aggregate supplies their family claims.
+  P-Ou owns their EXPECTED-FAIL until its approved P10/P20 claim text lands.
+  Their statements and rfl proofs are unchanged. No exception/baseline is added.
+- P7/P8 rename the obsolete gapWin and formWinAt exports to gapWinReady and
+  formWinAtReady as approved. The matching audit commands use the new names.
+- Claims.Tests.Axioms inventory regenerated from 813 compiled command owners.
+  Only that audit key changes in scripts/proof-audit-coverage.txt.
+  Complete compiled coverage: zero unaccepted exports; the equation baseline is unchanged.
+
+### S-Ap part 1 — validation result
+
+- GREEN: 432 modules, lake build --wfail PASS (4.76 s final run).
+- S-Ap DCK: PASS (151.89 s), 35 strict audits / 3,276 results and all 24 controls.
+  Only propext, Classical.choice and Quot.sound appear.
+- Complete export/coverage check: PASS (6.73 s), zero unaccepted exports.
+  Tracked Claims coverage check: PASS (4.67 s), 813 command/owner rows.
+- Layers: 72 accepted findings, zero new (0.61 s).
+- Source checks: 113 selected Statements blocks match, 121 fixed blocks unchanged;
+  new Lean lines at most 100; no sorry/admit/axiom; W3-owned files unchanged.
+- EXPECTED-FAIL: 50 modules with explicit owners. The only new test handoff is
+  OutageAlignment to P-Ou (unchanged equality examples; failure confirmed in 7.25 s).
+- Manifest generation: 58-module slice 84.64 s; 59-module companion surface 104.32 s.
+  No package-full or G-S3 claim is made; P23 and family work remain with their owners.
 ## W3 — P23-A receipt scope and bridge (2026-10-10)
 
 - DECISION P23-A, lead 04:05: keep P23 option (a). The receipt idealization includes
@@ -1826,55 +1890,21 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
   visible until each target passes. No approved public meaning change was made.
 ## S-Ap part 1 — public statement slice (2026-10-10)
 
-- Approved P5–P7, P10–P16, P18, P21/P22 vocabulary: Join, executed gate reads,
-  joined participation and recurrence, recovery readiness, and store/frame companions.
-- P23 and DECISION P23-A changes wait for part 2 and W3's new root definitions.
-- Import routing: gatePassedAt moves from Reads to Join with the exact P11 body.
-  Join needs Reads for IsGateTick/storeAt; the reverse import would form a cycle.
-  Channels imports Join. Public names and predicate meanings stay as approved.
-- Packet elaboration context: schedule-only parameters p/c are implicit when they
-  occur only in rho's type. Read predicates keep the explicit packet arguments.
-  Reads supplies a local Decidable instance for the optional restart cutoff.
-- Packet typo, r9 form (P10/P11 slot-labelled caught-up gate): caughtUpAtIdx's `∃ s j` infers s : Int
-  from `(s : Int)` before gateTime requires Slot. Use `∃ (s : Slot) (j : Nat)`.
-  This is a type annotation; its gate label, cutoff and quantifiers are unchanged.
-- Slice validation: all 58 manifest source modules build with --wfail; layers have
-  zero new findings. Claims.Tests.Axioms builds with the added statement audits.
-- Manifest generation uses an untracked copy of V2Manifest.lean with only the
-  facade-import loop omitted. Every source module in all four public prefixes
-  and FGSAClaims.FGSAClaims is still scanned; hashing and entry selection are unchanged.
-  The full facades import unfinished fixtures/P23. No checker or baseline is changed.
-  The regenerated document also records inherited W1–W3 changes. Allow pins change
-  only for entries in S-Ap source files; P-Da owns the remaining baseline reconciliation.
+## S-Ap Round 2 — review pin repair (2026-10-10)
 
-### S-Ap part 1 — remaining public companions
+Updated all 253 stale exact-hash pins to the current `docs/FGSA-API.md`.
+The allow-name set and frozen baseline are unchanged. The frozen manifest
+check passes (6.04 s). This closes review finding 1 before DECISION P23-A.
 
-- P8/P9: recoveryStart routes the ready windows, old-row cap, H0Reset,
-  healing/reset horizons, finality premises and WC recovery endpoint through tauC.
-- P10/P20: output service, growth, LiveDC and healed statement readers use the
-  approved joined/confirmed scopes. The family Claims conclusions stay with their owners.
-- P12–P18: OutageContinuationSleepPrem and the derived receipt/E1 contracts are added.
-  OutageContinuationConcl and its Claims wrapper stay with P-Ou as family conclusion text.
-- P19: CleanContinuationSleep₂, CleanGrowthContinuationSleep₂ and SourcePendingReceipt
-  route the public WC/WCG regime, delivery and bounded-recovery types as approved.
-- P21(a): FinalizedMonotonicityRestartClaim replaces the aggregate field type.
-  FinalizedMonotonicityClaim and its NoRestart premise are retained byte for byte.
-- P22: FGFoundation and FGFoundationNext use RStoreDurable/RStoreEpoch, RMonoAll,
-  and RFrameNextEpoch. Old R6 definitions and equations are unchanged.
-- Source check: all 121 packet blocks marked to keep old text are present unchanged.
-  P23, all DECISION P23-A root-premise changes, and the two W3-owned files are deferred.
-- Structural test transfer (02:45 ruling): the two unchanged Axioms equality examples
-  for ServedFromGateAt/InclusionAt and JointGrowthAt/AvailableGrowthConcl move to
-  Tests.OutageAlignment. The production aggregate supplies their family claims.
-  P-Ou owns their EXPECTED-FAIL until its approved P10/P20 claim text lands.
-  Their statements and rfl proofs are unchanged. No exception/baseline is added.
-- P7/P8 rename the obsolete gapWin and formWinAt exports to gapWinReady and
-  formWinAtReady as approved. The matching audit commands use the new names.
-- Claims.Tests.Axioms inventory regenerated from 813 compiled command owners.
-  Only that audit key changes in scripts/proof-audit-coverage.txt.
-  Complete compiled coverage: zero unaccepted exports; the equation baseline is unchanged.
+## S-Ap Round 2 — public fixture classification (2026-10-10)
 
-### S-Ap part 1 — validation result
+Replaced the removed `Base₂.noRestart` field in Claims tests Regimes,
+HealingW, and FinalitySafety with `restartsAtWakes`.
+The fixture probe still fails: sleep-validity fields and the P2 delivery
+contract need repair; FinalitySafety also needs `CleanSleep₂`.
+Regimes and HealingW have horizon zero, so they do not prove useful read
+inhabitation. Their replacement sleep generator belongs to P-Fx. The
+FinalitySafety run and receipt-scope table witness belong to P-As.
 
 - GREEN: 432 modules, lake build --wfail PASS (4.76 s final run).
 - S-Ap DCK: PASS (151.89 s), 35 strict audits / 3,276 results and all 24 controls.
@@ -1960,3 +1990,82 @@ Base₂ stays with S-Ap. The receiptIdealization field is not in this tree yet.
 - No approved public statement was found false by this run. No new public STOP was
   asserted. N4's generic bridge is compiled, but threading it through restarted
   Count, HeadAdmit and retained proposal families is not closed.
+All three modules are now EXPECTED-FAIL in S-Ap with those owners.
+The FGSAInhabit witness modules and tests, OutageContinuationInhabit, and
+RowPermission are also classified with P-Fx/P-As. Positive inhabitants for
+HealthyPrefixSleep₂, CleanPrefixSleep₂, CleanSleep₂, RecoverySleep₂,
+OutageSleep₂, OutageContinuationSleepPrem, and both continuation companions
+remain OPEN until the owner evidence is available. A type audit is not an
+inhabitation proof. No premise was weakened to make a fixture pass.
+
+## S-Ap Round 2 — DECISION P23-A (2026-10-10)
+
+- DECISION P23-A: retired `ReceiptCoverageStatement`,
+  `ReceiptCoverageStatement_def`, and `fgsa_receiptCoverage`. Removed both
+  theorem audit commands and their inventory rows. The old proof module is
+  an import-only compatibility path to `ReceiptCoverageReady`.
+- DECISION P23-A: installed the approved `ReceiptCoverageSleepPremises`,
+  `ReceiptCoverageSleepStatement`, and its home equation. The statement and
+  equation use `NamedReceiptRootCollisionFree`; neither has a per-required
+  `NamedProposalInRun` premise. `ReceiptCoveragePremises` is unchanged.
+- DECISION P23-A: `Base₂` has one `receiptIdealization` field.
+  `Base₂.idealization` is now a theorem with the old safety result. Its local
+  ancestor proof keeps Claims independent of proof-module imports.
+- DECISION P23-A: all 17 full emission-supplier telescopes in each of WC
+  and WCG use the receipt premise, from Init through SeededFramePath.
+  This keeps the shared validity/delivery/receipt assumptions consistent
+  across the intermediate supplier stages. Standalone LowFinalized and
+  WCFinalityTargetEarlier interfaces retain the old root premise.
+  Safety-only Claims text is unchanged. Clean/ExactProposal, HealingInput/
+  HTime, GST availability and growth, and finality-liveness public premises
+  obtain the stronger field through Base₂. Family owners must update proof
+  caller arguments; those proof implementations are outside this edit.
+- DECISION P23-A: docstrings state why a global premise over all values is
+  false (root is a free field), and why the P2/DC difference is intentional.
+- DECISION P23-A: ReceiptAlias keeps the exact retired contract under the
+  test-only name `ReceiptAliasTests.legacyReceiptCoverageStatement`.
+  Its kernel counterexample remains. No production code imports that test.
+- DECISION P23-A: regenerated all 59 public manifest modules. Updated three
+  existing pins (two retirements and Base₂.mk); all 919 existing allow pins
+  match. No allow name or frozen/deep/frame/layer baseline changed.
+- DECISION P23-A: added separate Run and proof-interface P23 axiom audits.
+  The full Run audit has five inherited stale names and remains assigned to
+  W2b-audit. This does not hide those failures in the package map.
+
+### DECISION P23-A — fixture evidence and remaining owners
+
+FinalitySafety now constructs receipt collision freedom from a kernel-checked
+emission/store table. Its P2 delivery proof uses a handler before receipt and
+processed history after receipt. The concrete run has horizon 17, a non-genesis
+proposal, an enabled proposal gate before the horizon, and an audited confirmed
+reader at time 11. It constructs HealthyPrefixSleep₂, CleanPrefixSleep₂,
+CleanSleep₂, and RecoverySleep₂, with joined recurrence. It is GREEN.
+
+Regimes and HealingW now compile with the receipt field, sleep validity, P2
+anchors, and sleep regime constructors. Their horizon-zero evidence remains
+insufficient for useful-read validation, so their package classification stays
+EXPECTED-FAIL/P-Fx until the sleep generator replaces it. This classification
+records missing validation, even though the current modules compile.
+
+OutageSleep₂ and OutageContinuationSleepPrem need the P-Fx sleep generator;
+OutageContinuationInhabit is EXPECTED-FAIL/P-Fx. The two continuation companions
+need the W1 witness and remain OPEN/P-As through the FGSAInhabit modules.
+RowPermission remains EXPECTED-FAIL/P-As. No public premise was weakened.
+
+### DECISION P23-A — final validation
+
+S-Ap DCK PASS in 169.90 s: 440 GREEN modules, 39 strict audits,
+3,342 axiom results, and all 24 controls. Only propext, Classical.choice,
+and Quot.sound occur. The separate GREEN build passed in 26.91 s.
+The standard frozen manifest check passed in 24.01 s; all 919 pins match.
+Complete Claims, Run P23, WC, and WCG export checks have zero unaccepted
+exports. check-layers reports 72 accepted findings and zero new (0.32 s).
+The three changed fixtures build with --wfail (18.10 s); strict smoke audits
+also pass, without claiming useful reads from their horizon-zero runs.
+Default heartbeats, no proof placeholders, no baseline changes.
+
+The full supplier telescope changes cover these suffixes under both WC and
+WCG, each ending in Statement: Init, StepDelivery, StepNoGateTick, StepGateTick,
+StepRestart, Step, SeededInduction, Service4, SeededFrame, FinalBelow,
+ProposalPivot, ProposalAdmission, ExactProposal, Inclusion6, Retrospective,
+SeededFrameLive, and SeededFramePath.

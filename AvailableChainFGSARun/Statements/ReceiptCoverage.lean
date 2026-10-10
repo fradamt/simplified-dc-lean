@@ -53,49 +53,52 @@ structure ReceiptCoveragePremises {p : Params} {In V : Type} [DecidableEq V]
       (toWire p o).decode = some (.block s N) →
       ∃ K d, paths K d ∧ Block.Preceq N.erase K)
 
-/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-`bp.receiptCoverage.v1` (K8), one statement for Clean, P1 and Recovery.
-Source: bp00:700–713; bp01 §10:858–930; plan T7.12a.
+/-- DECISION P23-A: receiver-local sleep receipt premises.
+The legacy ReceiptCoveragePremises record remains unchanged. -/
+structure ReceiptCoverageSleepPremises {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
+    (required : Obj p → Time → Prop) (paths : Block → Time → Prop) : Prop where
+  within : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut
+  slotWindow : ∀ o t, required o t →
+    ∃ a, t ≤ a ∧ 0 ≤ a ∧ a < dl a ∧
+    Gen.V2.Duty.ReadyTrigger E rho o t x a (dl a) ∧
+    Gen.V2.Duty.HistorySafeAt E rho x o a ∧
+    V2.D.restartFree rho x (V2.D.Run.actionCut rho a) (V2.D.Run.idxBefore rho D) ∧
+    first ≤ V2.D.Run.actionCut rho a ∧ dl a ≤ dl t ∧
+    (fgsa p c).wellFormed o = true ∧
+    (∀ s signer K, (toWire p o).decode = some (.vote s signer K) →
+      ((V2.D.Run.stateBeforeTime E rho (dl t) x).st.slot p ≤ s + 1) ∧
+      ∀ i t', V2.D.Run.actionCut rho a ≤ i → i < V2.D.Run.idxBefore rho (dl a) → a ≤ t' →
+        V2.D.Run.handlesAt E rho i x o t' →
+        s ≤ (V2.D.Run.stateBefore E rho i x).st.slot p ∧
+          (V2.D.Run.stateBefore E rho i x).st.slot p ≤ s + 1)
+  compat : ∀ i, first ≤ i → i ≤ V2.D.Run.idxBefore rho D →
+    Block.Compatible B (eraseFG (V2.D.Run.stateBefore E rho i x).st.fg.F)
+  deadline : Monotone dl ∧ D ≤ cut ∧ cut ≤ rho.horizon ∧
+    first ≤ V2.D.Run.idxBefore rho D ∧
+    (∀ o t, required o t → first ≤ V2.D.Run.idxBefore rho t ∧
+      0 ≤ t ∧ t < dl t ∧ dl t ≤ D) ∧
+    (∀ K d, paths K d → Block.Preceq B K ∧ d ≤ D ∧
+      ∀ b, Block.Preceq b K → b ≠ .genesis →
+        ∃ o t s N, N.erase = b ∧ required o t ∧
+          (toWire p o).decode = some (.block s N) ∧ dl t ≤ d) ∧
+    (∀ o t s N, required o t →
+      (toWire p o).decode = some (.block s N) →
+      ∃ K d, paths K d ∧ Block.Preceq N.erase K)
 
-The split is at the strict deadline read. Coverage includes the output,
-all positive-slot HEAD votes, every `getHead` view, the finality head, and
-absence of conflicting leases. Otherwise each required proposal is stored
-at its original receipt deadline, and each required path is stored at its
-specified cutoff. This includes vertices already stored or below finality.
-Vote retention or stamped same-seat evidence holds in both branches, at
-the final read, with stamps strictly before the vote's original deadline.
-
-Readiness check for T7.12 (no extra premise):
-
-* `hWF` is `fgsa_hWF_of_delivery hExecution.wire`.
-* HEAD/row: their decoders cannot be `.block`; use
-  `fgsa_hReady_of_not_block` with `hWF`.
-* Proposal decoded as `.block s N`: use
-  `fgsa_hReady_of_parentStored` with `hWF` and EXACTLY
-
-  `hParent : ∀ i t', i < V2.D.Run.idxBefore rho (dl t) →
-    V2.D.Run.handlesAt E rho i w o t' →
-    (parentFG (V2.D.Run.stateBefore E rho i w).st b).isSome = true`.
-
-  T7.12 derives this from the checked dependencies of base receipt:
-  a proposal cannot be a carried child in `handlesS` (children are only
-  HEADs/rows). Thus its handler call is a direct delivery; `hExecution.deps`
-  gives `depsS`, which the block decoder identifies with `parentFG.isSome`.
-  This applies to ALL earlier handler calls, including those before `t`;
-  no restriction to a selected delivery witness is needed. Path admission
-  in parent order uses the vertex receipts named in `deadline`. Neither
-  `hParent` nor the reconciliation store premise `hL` is a field here.
-
-`hNoRestart` supplies every `restartFree` interval. `hDelta` aligns the
-generic clock with the instance clock. No bound `dl t ≤ t + p.Δ` is used. -/
-def ReceiptCoverageStatement : Prop :=
+/-- DECISION P23-A: receipt coverage with receiver readiness and receipt-scope roots.
+No per-required named-scope premise is needed. A global root premise over all
+values is false: root is a free field. DC divergence is intentional because
+P2 permits root-keyed processing history instead of a new handler call. -/
+def ReceiptCoverageSleepStatement : Prop :=
   ∀ {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
     (required : Obj p → Time → Prop) (paths : Block → Time → Prop),
-    NamedRootCollisionFree p c E rho → E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart rho
+    NamedReceiptRootCollisionFree p c E rho → E.Δ = p.Δ → V2.D.ExecutionValid E rho
       → x ∈ rho.honest →
-    ReceiptCoveragePremises E rho dl cut D first x B required paths →
+    ReceiptCoverageSleepPremises E rho dl cut D first x B required paths →
     let st := (V2.D.Run.stateBeforeTime E rho D x).st
     ((Block.Preceq B (eraseFG st.fg.F) ∧
       Block.Preceq B st.base.stableRecord ∧
@@ -117,15 +120,15 @@ def ReceiptCoverageStatement : Prop :=
         GridCO.headSeat? v₁ = some a ∧ GridCO.headSeat? v₂ = some a ∧
         GridCO.stampVote st.base v₁ < dl t ∧ GridCO.stampVote st.base v₂ < dl t)
 
-theorem ReceiptCoverageStatement_def :
-    ReceiptCoverageStatement =
+theorem ReceiptCoverageSleepStatement_def :
+    ReceiptCoverageSleepStatement =
       (∀ {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
         (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
         (required : Obj p → Time → Prop) (paths : Block → Time → Prop),
-        NamedRootCollisionFree p c E rho → E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart
-          rho → x ∈ rho.honest →
-        ReceiptCoveragePremises E rho dl cut D first x B required paths →
+        NamedReceiptRootCollisionFree p c E rho → E.Δ = p.Δ → V2.D.ExecutionValid E rho
+          → x ∈ rho.honest →
+        ReceiptCoverageSleepPremises E rho dl cut D first x B required paths →
         let st := (V2.D.Run.stateBeforeTime E rho D x).st
         ((Block.Preceq B (eraseFG st.fg.F) ∧
           Block.Preceq B st.base.stableRecord ∧
@@ -146,7 +149,7 @@ theorem ReceiptCoverageStatement_def :
             v₁ ≠ v₂ ∧ GridCO.headLabel? v₁ = some s ∧ GridCO.headLabel? v₂ = some s ∧
             GridCO.headSeat? v₁ = some a ∧ GridCO.headSeat? v₂ = some a ∧
             GridCO.stampVote st.base v₁ < dl t ∧ GridCO.stampVote st.base v₂ < dl t)) := by
-  rw [ReceiptCoverageStatement]
+  rw [ReceiptCoverageSleepStatement]
 
 end AvailableChain.FGSA.Run
 end

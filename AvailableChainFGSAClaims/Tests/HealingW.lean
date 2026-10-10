@@ -36,7 +36,7 @@ private def smokeSchedule : V2.D.ScheduleWellFormed smokeEnv smokeRun where
     cases he
     exact ⟨0, rfl⟩
   tick_total := by
-    intro v _ t _ ht hh
+    intro v _ t _ ht hh _
     have he : t = 0 := le_antisymm hh ht
     subst t
     have hv : v = 0 := Subsingleton.elim _ _
@@ -49,7 +49,7 @@ private def smokeNoDelivery (i : Nat) (v : Fin 1) (o : (fgsa smokeParams smokeCo
 
 /-- Horizon zero with no faulty validator and GST zero. This is only a smoke test. -/
 private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
-  idealization := by
+  receiptIdealization := by
     have scope (B : NamedProposal smokeParams.n)
         (h : NamedProposalInRun smokeParams smokeCodec smokeEnv smokeRun B) :
         B = .genesis := by
@@ -68,14 +68,26 @@ private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
           exact List.mem_singleton.mp hm
       rw [hc] at hBC
       exact of_decide_eq_true hBC
-    constructor
-    intro B C hB hC A D hA hD _
-    rw [scope B hB, scope C hC] at hA hD
-    have ha : A = .genesis := of_decide_eq_true (hA.elim id id)
-    have hd : D = .genesis := of_decide_eq_true (hD.elim id id)
-    exact ha.trans hd.symm
+    have receiptScope (B : NamedProposal smokeParams.n)
+        (h : NamedProposalReceiptScope smokeParams smokeCodec smokeEnv smokeRun B) :
+        B = .genesis := by
+      rcases h with h | ⟨v, _, o, t, N, ⟨i, hi, hem⟩, _, _⟩
+      · exact scope B h
+      · cases i with
+        | zero =>
+          have he : 0 = v ∧ 0 = t := by simpa using hi
+          rcases he with ⟨rfl, rfl⟩
+          change o ∈ [] at hem
+          exact (List.not_mem_nil hem).elim
+        | succ i => simp at hi
+    intro A B hA hB _
+    exact (receiptScope A hA).trans (receiptScope B hB).symm
   valid := {
     toScheduleWellFormed := smokeSchedule
+    tick_awake := by intros; rfl
+    deliver_awake := by intros; rfl
+    restart_awake := by intros; rfl
+    wake_restart := by intro v hv t ht hh hw; cases hw.2
     wire := by intro i v o t h; exact (smokeNoDelivery i v o t h).elim
     deps := by intro i v o t h; exact (smokeNoDelivery i v o t h).elim
     fresh := by intro i v o t h; exact (smokeNoDelivery i v o t h).elim
@@ -95,7 +107,7 @@ private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
       exact ⟨fun _ _ _ => Subsingleton.elim _ _, fun v => ⟨0, Subsingleton.elim _ _⟩⟩
     · exact hℓ.elim
     · exact hℓ.elim
-  noRestart := by intro i v t; cases i <;> simp
+  restartsAtWakes := by intro v t h; simp at h
   delta := rfl
 
 /-- A concrete finite run, with all validators honest and awake.
@@ -105,15 +117,15 @@ private def healingSet (ΔF : Time) (hF : 1 ≤ ΔF) :
   deltaF := hF
   sync := by
     refine { broadcast_emitted := ?_, relay_accepted := ?_ }
-    · rintro v _ o t _ w _ hd _
+    · rintro v _ o t _ w _ a _ _ _ hd _ _ _
       have hdelay : 0 < fgsaDelay (p := smokeParams) smokeEnv.Δ ΔF o := by
         cases o with
         | mk a m =>
           cases m <;> simp only [fgsaDelay]
           all_goals first | exact (by decide) | exact lt_of_lt_of_le (by decide) hF
-      change max t 0 + fgsaDelay smokeEnv.Δ ΔF o ≤ 0 at hd
+      change max a 0 + fgsaDelay smokeEnv.Δ ΔF o ≤ 0 at hd
       exact (not_le_of_gt
-        (lt_add_of_le_of_pos (le_max_right t (0 : Time)) hdelay) hd).elim
+        (lt_add_of_le_of_pos (le_max_right a (0 : Time)) hdelay) hd).elim
     · rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
       exact (smokeNoDelivery i v o' t hi).elim
   gap := by
@@ -125,6 +137,13 @@ private def healingSet (ΔF : Time) (hF : 1 ≤ ΔF) :
   fault := by rw [Gen.V2.Duty.faulty_def]; decide
   awake := by intros; rfl
   gapPos := le_rfl
+  suffixNoRestart := by intro v hv i t hi; cases i <;> simp at hi
+  joinedGap := by
+    intro t ht hh
+    change 0 + 6 ≤ t at ht
+    change t + 4 ≤ 0 at hh
+    dsimp [Time] at ht hh
+    omega
 
 example : 2 * smokeParams.Δ < (6 : Time) ∧ kappaF smokeParams 6 = 3 := by decide
 example : kappaF smokeParams smokeEnv.Δ = 2 := by decide
@@ -139,6 +158,12 @@ example : HealingPrem smokeParams smokeCodec 4 6 smokeEnv smokeRun () :=
 example : HealingPrem smokeParams smokeCodec 4 smokeEnv.Δ smokeEnv smokeRun () :=
   ⟨healingSet smokeEnv.Δ (by decide), ⟨by decide⟩⟩
 
+private theorem smoke_recoveryStart_ge {V : Type} (E : Generic.Env V) :
+    E.t_GST ≤ recoveryStart smokeParams E := by
+  simp only [recoveryStart, tauC, firstUpdateLabel, slotStartZ]
+  dsimp [Time]
+  omega
+
 -- Apply a reset contract at ΔF = 6 > 2Δ to a package with the same delay.
 -- This checks the statement interface. It does not prove the reset contract.
 example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
@@ -147,7 +172,11 @@ example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (prem : ResetArrivalPrem smokeParams c 4 6 E rho ()) :
     ∃ w, H0Reset smokeParams c E rho w ∧
       smokeParams.actionTime w.rStar < E.t_GST + B'_resetF smokeParams 6 4 :=
-  h (by decide) c E rho prem.set prem.bound prem.hhor
+  h (by decide) c E rho prem.set prem.bound (by
+    have ht := smoke_recoveryStart_ge E
+    have hh := prem.hhor
+    dsimp [Time] at ht hh ⊢
+    omega)
 
 example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa smokeParams c))
@@ -155,7 +184,11 @@ example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (prem : ResetArrivalFullPrem smokeParams c 4 6 E rho ()) :
     ∃ w, H0 smokeParams c E rho w ∧
       smokeParams.actionTime w.rStar < E.t_GST + B'_resetF smokeParams 6 4 :=
-  h (by decide) c E rho prem.set prem.bound prem.hhor
+  h (by decide) c E rho prem.set prem.bound (by
+    have ht := smoke_recoveryStart_ge E
+    have hh := prem.hhor
+    dsimp [Time] at ht hh ⊢
+    omega)
 
 -- The attempt contract consumes the horizon after the actual start event.
 example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)

@@ -109,6 +109,10 @@ private def s45b_lsync_schedule : V2.D.ScheduleWellFormed s45b_E s45b_rho where
 
 private def s45b_lsync_execution : V2.D.ExecutionValid s45b_E s45b_rho where
   toScheduleWellFormed := s45b_lsync_schedule
+  tick_awake := by intros; rfl
+  deliver_awake := by intros; rfl
+  restart_awake := by intros; rfl
+  wake_restart := by intro v hv t ht hh hw; cases hw.2
   wire := by
     intro i v o t hi
     obtain ⟨hil, he⟩ := List.getElem?_eq_some_iff.mp hi
@@ -161,23 +165,72 @@ private def s45b_lsync_delivered :
     ∀ i : Fin s45b_rho.events.length, s45b_Delivered i s45b_rho.events[i.val] := by
   decide +kernel
 
+private theorem s45b_before_actionCut {i : Nat}
+    {e : V2.Event (Fin 1) (fgsa s45b_p unitCodec).Object} {a : Time}
+    (hi : s45b_rho.events[i]? = some e) (ht : e.time < a) :
+    i < V2.D.Run.actionCut s45b_rho a := by
+  have cert : ∀ j : Fin s45b_rho.events.length,
+      j.val < V2.D.Run.actionCut s45b_rho (s45b_rho.events[j.val].time + 1) := by
+    decide +kernel
+  have mono : Monotone (V2.D.Run.actionCut s45b_rho) := by
+    intro x y hxy
+    unfold V2.D.Run.actionCut
+    rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+    apply List.countP_mono_left
+    intro ev _ hx
+    apply decide_eq_true
+    have hx' := of_decide_eq_true hx
+    dsimp [Time] at hxy hx' ⊢
+    omega
+  obtain ⟨hil, he⟩ := List.getElem?_eq_some_iff.mp hi
+  have hc := cert ⟨i, hil⟩
+  rw [he] at hc
+  exact hc.trans_le (mono (by dsimp [Time] at ht ⊢; omega))
+
+private def s45b_processedChecks : ∀ i : Fin s45b_rho.events.length,
+    (match s45b_rho.events[i.val] with
+    | .deliver v o _ =>
+      (fgsa s45b_p unitCodec).processed (V2.D.Run.stateBefore s45b_E s45b_rho (i + 1) v) o
+    | _ => true) = true := by
+  decide +kernel
+
+private theorem s45b_processed {i : Nat} {v : Fin 1}
+    {o : (fgsa s45b_p unitCodec).Object} {t : Time}
+    (hi : s45b_rho.events[i]? = some (.deliver v o t)) :
+    (fgsa s45b_p unitCodec).processed (V2.D.Run.stateBefore s45b_E s45b_rho (i + 1) v) o =
+      true := by
+  obtain ⟨hil, he⟩ := List.getElem?_eq_some_iff.mp hi
+  have hc := s45b_processedChecks ⟨i, hil⟩
+  simpa only [he] using hc
+
 private def s45b_slowPrefix :
     Gen.V2.Duty.HealthyPrefixDeliveryBy s45b_E s45b_rho (fgsaDelay s45b_E.Δ 3) 17 where
   broadcast_emitted := by
-    rintro v _ o t ⟨i, hi, hem⟩ w _ hd _
+    rintro v _ o t ⟨i, hi, hem⟩ w _ a hta _ _ hd _ _ _
     obtain ⟨hil, he⟩ := List.getElem?_eq_some_iff.mp hi
     have hc := s45b_lsync_delivered ⟨i, hil⟩
     simp only [s45b_Delivered, he] at hc
-    obtain ⟨j, ht, hd, hj⟩ := hc o hem hd
+    have htcut : t + fgsaDelay s45b_E.Δ 3 o ≤ 17 :=
+      (Int.add_le_add_right hta _).trans hd
+    obtain ⟨j, ht, hdeadline, hj⟩ := hc o hem htcut
     have hvw : v = w := Subsingleton.elim _ _
     subst w
-    exact ⟨_, ht, hd, j, o, List.getElem?_eq_some_iff.mpr ⟨j.isLt, hj⟩, Or.inl rfl⟩
+    have hj' := List.getElem?_eq_some_iff.mpr ⟨j.isLt, hj⟩
+    by_cases hja : a ≤ s45b_rho.events[j.val].time
+    · exact Or.inr ⟨_, hja, hdeadline.trans_le (Int.add_le_add_right hta _),
+        j, o, hj', Or.inl rfl⟩
+    · have hjc := s45b_before_actionCut hj' (lt_of_not_ge hja)
+      exact Or.inl ⟨j + 1, Nat.succ_le_of_lt hjc, s45b_processed hj'⟩
   relay_accepted := by
-    intro v _ i o t ha w _ hp
+    intro v _ i o t ha w _ a hta _ had _ _ _ _
     have hvw : v = w := Subsingleton.elim _ _
     subst w
-    rw [ha.2.2] at hp
-    contradiction
+    by_cases heq : a = t
+    · subst a
+      exact Or.inr ⟨t, le_rfl, had, i, ha.1⟩
+    · obtain ⟨o', hi, _⟩ := ha.1
+      have hic := s45b_before_actionCut hi (lt_of_le_of_ne hta (Ne.symm heq))
+      exact Or.inl ⟨i + 1, Nat.succ_le_of_lt hic, ha.2.2⟩
 
 /-- ROOT-DIGEST W3b/W3c. The finite run gives the table of stored proposal bodies. -/
 private abbrev s45b_rootTable : List (NamedProposal s45b_p.n) :=
@@ -249,9 +302,32 @@ private def s45b_rootPremise : NamedRootCollisionFree s45b_p unitCodec s45b_E s4
       (s45b_ancestorTable C (s45b_scopeTable C hC) X)
     exact s45b_tableChecks.2 A (ancestor A hA) D (ancestor D hD) he
 
+/-- DECISION P23-A: every emitted proposal and its ancestors enter the table. -/
+private def s45b_emittedTable : ∀ i : Fin s45b_rho.events.length,
+    ∀ o ∈ V2.D.Run.emitsAt s45b_E s45b_rho i,
+      (match o.payload with
+      | .proposal B => s45b_rootTable.contains B
+      | _ => true) = true := by
+  decide +kernel
+
+private def s45b_receiptScopeTable (B : NamedProposal s45b_p.n)
+    (hB : NamedProposalReceiptScope s45b_p unitCodec s45b_E s45b_rho B) :
+    B ∈ s45b_rootTable := by
+  rcases hB with hB | ⟨v, _, o, t, N, ⟨i, hi, hem⟩, hp, hBN⟩
+  · exact s45b_scopeTable B hB
+  · have hc := s45b_emittedTable ⟨i, (List.getElem?_eq_some_iff.mp hi).1⟩ o hem
+    rw [hp] at hc
+    exact s45b_ancestorTable N (List.contains_iff_mem.mp hc) B hBN
+
+private def s45b_receiptRootPremise :
+    NamedReceiptRootCollisionFree s45b_p unitCodec s45b_E s45b_rho := by
+  intro A B hA hB he
+  exact s45b_tableChecks.2 A (s45b_receiptScopeTable A hA)
+    B (s45b_receiptScopeTable B hB) he
+
 private def s45b_base : Base₂ s45b_p unitCodec s45b_E s45b_rho where
   valid := s45b_lsync_execution
-  idealization := s45b_rootPremise
+  receiptIdealization := s45b_receiptRootPremise
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩
     intro l hl
@@ -266,9 +342,8 @@ private def s45b_base : Base₂ s45b_p unitCodec s45b_E s45b_rho where
       exact ⟨fun _ _ _ => Subsingleton.elim _ _, fun v => ⟨0, Subsingleton.elim _ _⟩⟩
     · exact hl.elim
     · exact hl.elim
-  noRestart := by
-    intro i v t hi
-    have hm := List.mem_of_getElem? hi
+  restartsAtWakes := by
+    intro v t hm
     have cert : ∀ e ∈ s45b_rho.events,
         (match e with | .restart _ _ => true | _ => false) = false := by
       decide +kernel
@@ -282,6 +357,98 @@ private def s45b_slow_clean : Clean₂ s45b_p unitCodec s45b_E s45b_rho 3 := by
     decide
   · change 0 < 1
     decide
+
+private theorem s45b_joined (v : Fin 1) (t : Time) :
+    joinedAt s45b_p s45b_E s45b_rho v (slotAt s45b_p t) t := by
+  refine ⟨rfl, ?_, ?_⟩
+  · intro u hu hut hw
+    cases hw.2
+  · intro u hu hut hr
+    have hf := (s45b_base.restartsAtWakes v u hr).2.2
+    cases hf
+
+private theorem s45b_joinedPart (t : Time) :
+    (Gen.V2.Duty.faulty s45b_rho).card < (joinedHonest s45b_p s45b_E s45b_rho t).card := by
+  classical
+  simp [joinedHonest, s45b_joined, Gen.V2.Duty.faulty]
+
+private def s45b_sleepClean : CleanSleep₂ s45b_p unitCodec s45b_E s45b_rho 3 :=
+  ⟨s45b_slow_clean, ⟨s45b_slow_clean.pre,
+    ⟨s45b_slow_clean.pre.toHealthyPrefix₂, fun t _ _ => s45b_joinedPart t⟩,
+    s45b_joinedPart _⟩⟩
+
+private theorem s45b_gap (t : Time) (ht : 0 ≤ t) :
+    ∃ s, t < V2.D.proposalTime (fgsaInterface s45b_p unitCodec) s ∧
+      V2.D.proposalTime (fgsaInterface s45b_p unitCodec) s ≤ t + 4 ∧
+      Gen.V2.Duty.HonestSlot s45b_rho (fgsaInterface s45b_p unitCodec) s ∧
+      joinedAt s45b_p s45b_E s45b_rho
+        (V2.D.proposerOf s45b_rho (fgsaInterface s45b_p unitCodec) s) s
+        (V2.D.proposalTime (fgsaInterface s45b_p unitCodec) s) := by
+  let s := (t / 4).toNat + 1
+  have hb : t < (4 * s : Time) ∧ (4 * s : Time) ≤ t + 4 := by
+    dsimp [s, Time] at *
+    omega
+  refine ⟨s, hb.1, hb.2, ?_, ?_⟩
+  · rw [Gen.V2.Duty.HonestSlot_def]
+    exact ⟨Nat.zero_lt_succ _, Finset.mem_univ _⟩
+  · have hj := s45b_joined (V2.D.proposerOf s45b_rho (fgsaInterface s45b_p unitCodec) s)
+      (V2.D.proposalTime (fgsaInterface s45b_p unitCodec) s)
+    have he : slotAt s45b_p (V2.D.proposalTime (fgsaInterface s45b_p unitCodec) s) = s := by
+      change ((4 * (s : Int)) / 4).toNat = s
+      omega
+    rwa [he] at hj
+
+private def s45b_recovery : RecoverySleep₂ s45b_p unitCodec s45b_E s45b_rho 4 3 where
+  base := s45b_base
+  deltaF := by decide
+  fault := by decide
+  awake := by intros; rfl
+  gapPos := le_rfl
+  sync := {
+    broadcast_emitted := by
+      intro v hv o t he w hw a hta ha had hc hh hl hx
+      simp only [max_eq_left ha] at *
+      exact s45b_slowPrefix.broadcast_emitted v hv o t he w hw a hta ha had hc hh hl hx
+    relay_accepted := by
+      intro v hv i o t he w hw a hta ha had hc hh hl hx
+      simp only [max_eq_left ha] at *
+      exact s45b_slowPrefix.relay_accepted v hv i o t he w hw a hta ha had hc hh hl hx }
+  gap := by
+    intro t ht _
+    obtain ⟨s, hlt, hle, hhon, _⟩ := s45b_gap t ht
+    exact ⟨s, hlt, hle, hhon⟩
+  suffixNoRestart := by
+    intro v _ i t hi _ _
+    have hf := (s45b_base.restartsAtWakes v t (List.mem_of_getElem? hi)).2.2
+    cases hf
+  joinedGap := by
+    intro t ht _
+    apply s45b_gap t
+    change (6 : Time) ≤ t at ht
+    dsimp [Time] at ht ⊢
+    omega
+
+example : recoveryStart s45b_p s45b_E ≤ 11 ∧ (11 : Time) < s45b_rho.horizon := by decide
+
+/-- Concrete epoch certificate at time 11, inside the horizon of 17. -/
+private theorem s45b_readEpoch :
+    (storeAt s45b_p unitCodec s45b_E s45b_rho (timeIdx s45b_rho 11) 0).restartTime = none := by
+  decide +kernel
+
+/-- The approved reader predicate permits an awake node in its initial epoch. -/
+private theorem s45b_confirmedReader :
+    confirmedReader s45b_p unitCodec s45b_E s45b_rho 0 11 := by
+  refine ⟨Finset.mem_univ _, rfl, ?_⟩
+  rw [s45b_readEpoch]
+  trivial
+
+-- The proposal gate and its strict read both lie inside the finite horizon.
+example : SA.gateTime s45b_p.toParams 1 < s45b_rho.horizon := by decide
+example : HealthyPrefixSleep₂ s45b_p unitCodec s45b_E s45b_rho 17 3 :=
+  s45b_sleepClean.sleepPre.sleepPre
+example : CleanPrefixSleep₂ s45b_p unitCodec s45b_E s45b_rho 17 3 :=
+  s45b_sleepClean.sleepPre
+
 
 
 private abbrev s45b_propIdx : Nat :=
@@ -304,11 +471,11 @@ private def s45b_honestProposal :
 
 private def s45b_cleanInclusion :
     CleanInclusionPrem s45b_p unitCodec s45b_E s45b_rho ⟨1, s45b_block⟩ 3 :=
-  ⟨s45b_slow_clean, s45b_honestProposal, by decide⟩
+  ⟨s45b_sleepClean, s45b_honestProposal, by decide⟩
 
 private def s45b_exactProposal :
     ExactProposalPrem s45b_p unitCodec s45b_E s45b_rho ⟨1, s45b_block⟩ 3 :=
-  ⟨s45b_slow_clean, s45b_honestProposal, by decide⟩
+  ⟨s45b_sleepClean, s45b_honestProposal, by decide⟩
 
 -- The packages have inhabited premises and a non-genesis, honestly emitted block.
 example : s45b_block ≠ .genesis ∧ (1 : Time) < 3 := by decide +kernel
@@ -324,6 +491,11 @@ example : FinalityFinalizedAt s45b_p .genesis .genesis 0 := by
   decide +kernel
 
 #print axioms s45b_rootPremise
+#print axioms s45b_receiptRootPremise
+#print axioms s45b_sleepClean
+#print axioms s45b_recovery
+#print axioms s45b_readEpoch
+#print axioms s45b_confirmedReader
 #print axioms s45b_cleanInclusion
 #print axioms s45b_exactProposal
 
