@@ -18,7 +18,8 @@ The namespaces are AvailableChain.FGSA.Run and AvailableChain.SimplexFG.
 Each `theorem` below states an OPEN goal; it is not a source declaration.
 Each actor, event index, source label, signed object, phase and read is actual.
 The window is a local factory domain. At a ready source it follows from
-healing_ready_vote_cutoff. An arbitrary post-GST vote is still insufficient. All deadlines are bounded by actual ticks or v.
+healing_ready_vote_cutoff. An arbitrary post-GST vote is still insufficient.
+All deadlines are bounded by actual ticks or v.
 The source/receiver floors and selected witness geometry remain in each record.
 
 ```text

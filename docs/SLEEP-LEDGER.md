@@ -6954,3 +6954,23 @@ Promotion, AttemptStop, PhaseSettle and PhaseBoot fail directly after the
 public start change. Their 18-module closure is EXPECTED-FAIL/P-H2 in the
 P-H1 map. The strict local audit covers the compiled slice. Public closure
 is not inferred from that slice; P-H1 remains PREPARED.
+
+### P-H1 Round 7 — final validation
+
+P-H1 DCK PASS: 3,736 build jobs, 44 strict sources, 3,730 permitted results,
+all 24 controls PASS. Map: 104 assigned, 556 GREEN, 18 EXPECTED-FAIL/P-H2.
+All GREEN exports: 345 proof modules, 253 exports, zero unaccepted, Gen zero.
+Local complete coverage: 376 commands, control PASS, zero unaccepted.
+Layers: 72 inherited findings, zero new. Module headers PASS.
+Changed Lean source has no proof placeholder, project axiom, native_decide,
+import all, new heartbeat option or new line above 100 columns.
+
+check-fgsa-manifest.sh: shallow/deep FG-SA and legacy/V2/GEN/Compose products
+PASS. The full checker exits 1 at the missing Outage/ArmingDuty.olean in the
+auxiliary Claims/proof scope. No partial auxiliary snapshot was written.
+Separate deep controls: all 55 PASS. API snapshot controls pass 11 cases,
+then stop at the same missing Outage root. The remaining auxiliary write and
+full control are exact P-As integration obligations after P-Ou/P-H2 builds.
+The P-H1 package result is not a full manifest or healing closure result.
+Evidence: /private/tmp/ph1h-dck-final.log, ph1h-manifest-final.log,
+ph1h-coverage-final.log, ph1h-snapshot-controls.log and ph1h-deep-controls.log.
