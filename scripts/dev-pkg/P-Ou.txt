@@ -1,5 +1,5 @@
-# P-Ou round 11, base 9b372883. Kernel PREPARED; public closure remains OPEN.
-# GREEN means compiled; conditional suppliers do not close public claims.
+# P-Ou round 13; both scoped exporters compile. Package PREPARED.
+# GREEN means compiled; the exact O11-W-SEED producer remains OPEN.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Outage.ScopedClose
 AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
@@ -63,6 +63,13 @@ AvailableChainFGSAProofs.Proofs.OutageContinuation.Export
 AvailableChainFGSAProofs.Tests.InclusionExact
 AvailableChainFGSAProofs.Tests.InclusionGate
 AvailableChainFGSAProofs.Tests.OutageInduction
+AvailableChainFGSAProofs.Proofs.Outage.ScopedArming
+AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs
+AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicAxioms
+AvailableChainFGSAProofs.Tests.OutageExport
+AvailableChainFGSAProofs.Proofs.Clean.Export
+AvailableChainFGSAProofs.Proofs.Outage.ScopedJoint
+AvailableChainFGSAProofs.Tests.OutageContinuationAxioms
 
 [GREEN]
 AvailableChainFGSAProofs.Proofs.Outage.ScopedClose
@@ -580,7 +587,6 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
-
 AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 AvailableChainFGSAProofs.Proofs.Outage.InclusionGate
 AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBounds
@@ -588,15 +594,21 @@ AvailableChainFGSAProofs.Proofs.Outage.InclusionGateService
 AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
 AvailableChainFGSAProofs.Tests.InclusionExact
 AvailableChainFGSAProofs.Tests.InclusionGate
-
 AvailableChainFGSAProofs.Proofs.Outage.Suppliers
+AvailableChainFGSAProofs.Proofs.Outage.ScopedArming
+AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs
+AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicAxioms
+AvailableChainFGSAProofs.Tests.OutageExport
+AvailableChainFGSAProofs.Proofs.Clean.Export
+AvailableChainFGSAProofs.Proofs.Outage.Close
+AvailableChainFGSAProofs.Proofs.Outage.Export
+AvailableChainFGSAProofs.Proofs.Outage.ScopedJoint
+AvailableChainFGSAProofs.Tests.OutageContinuationAxioms
+AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction
+AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint
+AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt
+AvailableChainFGSAProofs.Proofs.OutageContinuation.Export
 
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Outage.Close P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.Export P-Ou
-AvailableChainFGSAProofs.Proofs.OutageContinuation.Export P-Ou
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

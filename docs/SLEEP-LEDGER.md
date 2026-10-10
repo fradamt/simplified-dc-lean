@@ -7027,3 +7027,26 @@ later enabled results come from the scoped event producer. No future cut,
 all-honest join or pre-GST service is required. OutageWSeed records the exact
 unchanged O11-W-SEED goal. This goal is still OPEN, P-Ou; the row proof does
 not prove stable compatibility at j+1. Build evidence: .lake/sleep-pou-r13/w-rows-tests.log.
+
+### P-Ou Round 13 — public Outage on the scoped interface
+
+ScopedArming selects fast, slow and empty-G certificates. Close uses its own
+OutagePrem and the proved protected result. Outage.Export returns the unchanged
+OutageCompatAt and P1 types. Its named Clean input record has an actual producer
+in Assembly/OutagePublicInputs; outage_public_suppliers proves OutageCompatClaim
+without a new claim premise. Clean.Export exposes two existing producer modules.
+No noRestart or duties_and_outputs call remains in Close or the public exporters.
+Producer evidence: .lake/sleep-pou-r13/assembly-suppliers.log. W seed remains OPEN.
+
+### P-Ou Round 13 — scoped continuation exporter and consumer ports
+
+ScopedJoint selects arming for each actual initial read and joins the produced
+public read, HEAD and F consumers. OutageContinuation.Export has the unchanged
+OutageContinuationClaim result and the exact OPEN O11-W-SEED input. It is GREEN
+and conditional. This is not public continuation closure.
+The six P-Ou failed consumer entries are GREEN. ContinuationJoint, Induction
+and Receipt route to the scoped producers. Retired all-honest helpers had no
+current production caller. Their original sources are retained at de637290
+and in .lake/sleep-pou-r13/legacy/. Current typed audits check the scoped types.
+P-As still must update its three Assembly/Outage callers and the Root seed call.
+Public claims, protocol and Healing files are unchanged. The package is PREPARED.
