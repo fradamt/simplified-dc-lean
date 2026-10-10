@@ -1,4 +1,4 @@
-P-Ar Round 3. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
+P-Ar Round 4. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
 Merge missing names into their owners; do not add a coverage key.
 Move the six lease-write helpers and arming_gateResult_tick from ArmingGate to ArmingStep.
 
@@ -161,18 +161,20 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingStep
   AvailableChain.FGSA.Run.arming_writeKeys_stable
   AvailableChain.FGSA.Run.arming_write_keep
   AvailableChain.FGSA.Run.arming_write_row
-AvailableChainFGSAProofs.Tests.OutageArming
-  AvailableChain.FGSA.Run.Tests.OutageArming.asleep_has_no_tick
-  AvailableChain.FGSA.Run.Tests.OutageArming.current_row_consumer
-  AvailableChain.FGSA.Run.Tests.OutageArming.cut_at_gate
-  AvailableChain.FGSA.Run.Tests.OutageArming.gate_reads_after_wake
-  AvailableChain.FGSA.Run.Tests.OutageArming.pending_after_horizon
-  AvailableChain.FGSA.Run.Tests.OutageArming.saved_rows_erased_at_restart
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.base
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.emitted_cases
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.healthy
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.joined_all
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.prefix_receipt
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.regime
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.roots
-  AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.valid
+AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
+  AvailableChain.FGSA.Run.ArmingGateInput
+  AvailableChain.FGSA.Run.ArmingSleepCert
+  AvailableChain.FGSA.Run.arming_comparison_prefix_on
+  AvailableChain.FGSA.Run.arming_genesis_on
+  AvailableChain.FGSA.Run.arming_joined_batch_at
+  AvailableChain.FGSA.Run.arming_joined_head_card
+  AvailableChain.FGSA.Run.arming_last_max_on
+  AvailableChain.FGSA.Run.arming_pending_epochs
+  AvailableChain.FGSA.Run.arming_sleep_cert_of_last
+  AvailableChain.FGSA.Run.arming_sleep_comparison_lift
+  AvailableChain.FGSA.Run.arming_sleep_entry_below
+  AvailableChain.FGSA.Run.arming_sleep_gate_core
+  AvailableChain.FGSA.Run.arming_sleep_pending_input
+  AvailableChain.FGSA.Run.fast_arming_on
+  AvailableChain.FGSA.Run.pending_gate_lease_or_F_on
+  AvailableChain.FGSA.Run.slow_arming_on

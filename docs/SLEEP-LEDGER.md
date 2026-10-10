@@ -5163,3 +5163,71 @@ No other public source change, protocol change, baseline change or STOP.
   route was not strengthened. The full 21-target closure is not complete.
 - Declarations, exact types, audit/coverage/architecture fragments, and remaining
   compiler diagnostics are listed in the P-WC Round 3 report and handoff.
+
+### P-Cl1 Round 2c — fixture audit CLOSED (sleep-par4, 2026-10-10)
+
+This block belongs to the assigned P-Cl1 audit repair. Tests/CleanSuppressed now
+has direct strict commands for p, env, head and run in its own module. Production
+commands remain in CleanEpochAxioms; no test import enters Tests/Axioms.
+The isolated inventory has 190 rows: 183 production commands and seven fixture
+commands. DCK P-Cl1 PASS, with 39 strict roots and all 24 controls. Complete local
+export/coverage PASS with both roots: 137 proof modules, 251 exports, zero
+unaccepted, Gen zero exports, coverage control PASS. Layers: 72 inherited, zero
+new. No proof, public claim, protocol, allowance or baseline changed.
+The lead note after the P-Ar round 3 review is CLOSED for P-Cl1.
+Evidence: .lake/sleep-par-r4/pcl1-{dck,generate,exports}.log and pcl1-coverage.txt.
+
+
+### P-Ar Round 4 — canonical fragment repair (2026-10-10)
+
+This block belongs to P-Ar. Removed all 14 Tests.OutageArming declarations from
+the canonical audit fragment and its owner group from the coverage fragment.
+All 14 direct commands remain in Tests/OutageArming. The production fragment
+has 145 commands and exactly 145 owner rows. Added its missing production
+ArmingGate import. The production-only import closure compiles, and all strict
+results use only the permitted standard axioms. No canonical test import, key,
+allowance or baseline was added. Evidence: .lake/sleep-par-r4/ParFragment.lean
+and par-fragment.log. The round-3 fragment defect is CLOSED.
+General sleep certificate construction remains OPEN.
+
+
+### P-Ar Round 4 — scoped certificates and gate consumers PREPARED (2026-10-10)
+
+This block belongs to P-Ar. New ArmingSleep supplies a protected pending-gate
+certificate. It uses the joined batch denominator, the actual Clean origin and
+comparison, current saved rows, and the receiver's three local epochs.
+The current-F alternative from P-Cl1 reaches the post-gate S/F result.
+Genesis uses direct prefix order. Existing public claims and protocol
+declarations are unchanged; no NoRestart premise enters the new module.
+
+slow_arming_on derives its last-label gate from a named slow protected receiver,
+including equality at b₀. fast_arming_on still takes an actual last-label result;
+the compiled fast consumer derives it when gateTime(l) < b₀. Both test consumers
+use the actual clean_invariant, cleanState_of_hist, cleanHistoryAt_body and
+clean_epoch_saved_row. They import Clean proofs only in the standalone test.
+
+arming_sleep_gate_core consumes the enabled executed gate and returns stable
+coverage plus a lease or current finality. pending_gate_lease_or_F_on also
+returns the fullTree/frame-root alternative through the scoped frame theorem.
+Its hRows input remains explicit: P-Ou must supply compatibility of all earlier
+honest named rows from its source history. slow_gate_consumer applies the actual
+slow producer and this gate consumer. No P-Ou file was edited.
+
+Full P-Ar remains PREPARED. OPEN: fast construction at gateTime(l) = b₀ without
+an actual label-l result, and the pre-pending HEAD/proposal and duty-history
+ports. joinedPartBefore does not supply a count at b₀. A fast protected receiver
+need not have an enabled previous-label gate. The legacy ArmingData and its
+NoRestart producers are unchanged. The new scoped certificate does not supply
+the legacy all-honest healthy_batch or pending_duties fields. No public STOP.
+
+DCK P-Ar PASS: 18 targets, 486 GREEN, 38 strict roots, 3,148 axiom results,
+24 controls. The two S-Ap EXPECTED-FAIL modules remain with their owner.
+Complete GREEN exports/coverage PASS: 289 proof modules, 253 exports, zero
+unaccepted, Gen zero exports, 185 local commands and coverage control PASS.
+Canonical fragment: 161 production commands, exact owner rows, strict PASS.
+All 16 explicit new production declarations have direct commands. Layers:
+72 inherited findings, zero new. No checker, baseline, allowance or scope edit.
+
+Exact P-Ou types and open inputs: scripts/dev-pkg/P-Ar.round4-handoff.md.
+Evidence: .lake/sleep-par-r4/par-{dck,exports,generate,fragment-final,types}.log,
+par-coverage.txt and layers-final.log.
