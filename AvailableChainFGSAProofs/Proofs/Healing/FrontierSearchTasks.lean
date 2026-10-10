@@ -210,6 +210,12 @@ theorem frontierSearch_cut_start [Fintype V] (E : Generic.Env V)
     ring
   obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hs hrec.base.delta x hx
     (4 * ((rG + 2) * p.R) + 6) (hgrid ▸ hhor)
+    (hgrid ▸ hrec.awake x hx u₀ (by
+      have hP : 0 ≤ P p := by
+        have := p.deltaPos
+        change 0 ≤ 4 * (p.R : Time) * p.Δ
+        positivity
+      linarith) hhor)
   rw [← hgrid] at hj
   have hcut : ∃ (i : Nat) (ev : V2.Event V (Obj p)), rho.events[i]? = some ev ∧
       ev.time = u₀ ∧ timeIdx rho u₀ = i + 1 :=

@@ -2883,3 +2883,88 @@ The new frozen walk alias uses the named backward block service.
 `healing_held_block_receipt_on` obtains the exact held FG carrier from its
 TargetReceiptService. These forms cover the Relay and HeldReceipt entries in
 round 4's legacy-only inventory. Legacy conditional APIs remain unchanged.
+### P-H2 — sleep wave 3 prepared scope
+
+Base: sleep-ph2 at 60cdcf652308640f3fadc39360e2b2042879f633.
+P-H1 and P-Fd are PREPARED inputs. P-H2 is PREPARED; CLOSED stays open.
+
+Internal T17 replacement: opening_action_tick requires awake at the exact opening.
+An honest node that stays asleep has no tick there. Recovery supplies awake from
+GST through the exact horizon. OpeningTicks holds the scheduled-run helper;
+OpeningServiceOne and FrontierOpen pass their existing time bounds.
+
+GF consumers: a nonempty scheduled fast write proves the exact gate join guard.
+OpeningGateRead uses freshness, the unjoined empty row, and fast-label uniqueness.
+It derives enabledGateAt before constructing GateService. An executed nonempty
+result supplies its raw branch through fgsa_gate_raw_of_nonempty. The direct W3
+clockPre gate-view bridge keeps its type. The slot bound uses non-strict pre-tick
+clock order; it does not need a join premise merely to compare slots.
+
+RR consumer: PostResetRawStep needs expiry membership only. ReleaseScope proves
+that membership in both join branches. It does not infer a strict release count
+from an unjoined clock. Strict release consumers still need their exact guard.
+
+T23: all 19 H2 calls now pass awake at the exact node and vote. T15, T16, T18,
+T19 and T22 also pass their exact recovery awake witnesses. These blocked high-depth
+files remain EXPECTED-FAIL; source edits alone do not close their proofs.
+
+H1 handoff: the held-receipt caller passes deadline awake and receipt idealization.
+The three slot-proposal callers derive the exact proposer restart cutoff from
+RecoverySleep₂.suffixNoRestart and their lower proposal bounds. RiseOneRise also
+uses RecoverySleep₂. Named receipt callers use receiptIdealization where required.
+Legacy NoRestart receipt and transfer suppliers remain explicit open inputs.
+
+RecoveryScope consumes RStoreDurable, RMonoAll and RStoreEpoch as supplied channels.
+Its proofs use exact event indices from actionCut to idxBefore for the receiver
+stamp epoch. A restart at GST is permitted. No global NoRestart is inferred.
+The direct Foundations.Store import was removed to keep the Healing layer valid.
+P-Fd supplies the concrete producers through the package assembly interface.
+
+Prepared validation: 85 TARGETS; 468 GREEN; 85 EXPECTED-FAIL. The target split is
+6 GREEN and 79 open. Six REQUIRED supplier failures retain P-ShA/S-Ap ownership.
+DCK PASS: 37 strict roots, 2,812 results, all 24 controls PASS.
+Complete compiled exports: 111 proof modules, 251 exports, 0 unaccepted.
+Layers: 72 baseline findings, 0 new. No public statement, protocol declaration,
+checker, baseline, or allowance changed. The canonical audit fragment is in
+scripts/dev-pkg/P-H2.coverage-fragment.txt for serial integration at close.
+
+### P-H2 — reset join and durable retention follow-up
+
+ResetScope proves GST + 6Δ ≤ τ, and 6Δ ≤ τ - GST ≤ 10Δ - 1 for nonnegative
+integer GST. The first reset row is after the inclusive u₀ cut: otherwise
+H0Reset.rowCap would give M+1 ≤ M. With cut_lower, this places GST before
+slotStartZ(sStar). Later vote and gate cutoffs follow by slot order.
+No bound is taken from the synchronous vote alone.
+
+JOINED-VOTER internal replacement: the generic cone batch-seat helpers take
+GST ≤ slotStartZ(label-1). An awake voter at GST need not be joined at that
+vote. Recovery's closed awake interval supplies the exact joinedNow guard.
+PostResetConePool passes the cutoff; PostResetConeInput derives it from
+H0Reset and the shifted reset cut. Both honest_emits consumers pass joinedNow.
+The generic helper's old vote-time-only scope was insufficient under sleep.
+
+GF follow-up: the two PostResetLeaseStep fast-write consumers derive gate join
+from the executed nonempty result. OpeningServiceGate supplies enabledGateAt
+from its proposal lower bound and recovery interval. PostResetGate derives
+its exact cutoff from H6's existing τ ≤ voteTime premise; no new H0 premise
+or public meaning change is needed. The H6 signature test uses that approved
+τ premise. These high-depth files remain EXPECTED-FAIL while suppliers are open.
+
+Durable follow-up: opening_exact_stored no longer requires global NoRestart.
+OpeningGateRead proves it with fgsa_store_durable; OpeningService and FrontierOpen
+consume it. Reset/cone tree retention uses the same durable producer.
+RecoveryScope also consumes the RFrameNextEpoch wire/stamp companion with the
+exact receiver event interval. Assembly must supply the concrete P-Fd channels.
+The generic channel lemmas do not close a blocked high-depth consumer.
+
+Final validation and commit IDs are recorded in claude-files/sleep-ph2-report.md.
+The final map has 86 TARGETS, with 7 GREEN and 79 open. Six other REQUIRED
+supplier failures remain P-ShA/S-Ap-owned. The local audit has 27 commands.
+The full audit import/command fragment is scripts/dev-pkg/P-H2.audit-fragment.txt.
+No new canonical coverage key, allowance, or baseline is added.
+
+P-H2 final follow-up validation: 469 GREEN --wfail PASS (1.77 s), DCK PASS,
+37 strict roots, 2,822 permitted-axiom results, all 24 default controls PASS.
+Complete compiled exports: 112 proof modules, 251 exports, 0 unaccepted.
+Layers: 72 baseline findings, 0 new. The package remains PREPARED.
+The 79 assigned open targets and six REQUIRED suppliers prevent CLOSED.

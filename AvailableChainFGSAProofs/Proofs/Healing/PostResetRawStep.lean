@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
+public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint
 
 public section
@@ -202,7 +204,7 @@ theorem postReset_raw_first_head_above
       (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 C := by
     intro row hr
     apply hrows row hr
-    have hm := (healing_support_release_rows (storeAt p c E rho iy y) s row hr).1
+    have hm := healing_release_rows_expiry (storeAt p c E rho iy y) s row hr
     change row ∈ (GridCO.expire { (storeAt p c E rho iy y).base with
       now := SA.releaseTime p.toParams s } (SA.releaseTime p.toParams s)).obligations at hm
     change (clock p (storeAt p c E rho iy y)
@@ -780,8 +782,11 @@ theorem postReset_raw_finality_compatible_above
         by_contra hn
         have ht := (V2.D.Engine.index_lt_read_length_iff hs _ hj).mp (Nat.lt_of_not_ge hn)
         exact (not_lt_of_ge ht) htime
-      obtain ⟨a, ha⟩ := healing_support_vote_tick E rho hs hrec.base.delta hx (r + 1)
+      have hawake := healing_vote_awake_of_recovery hrec hx h0r.synchronous
+        (by omega : w.sStar ≤ r + 1)
         (htime.le.trans ((hs.in_horizon _ (List.mem_of_getElem? hj)).2))
+      obtain ⟨a, ha⟩ := healing_support_vote_tick E rho hs hrec.base.delta hx (r + 1)
+        (htime.le.trans ((hs.in_horizon _ (List.mem_of_getElem? hj)).2)) hawake
       have hBH := hheads x (r + 1) _ hx (Nat.succ_le_succ (Nat.le_of_not_lt hr))
         (hcut.trans (hjb.le.trans (hbi.trans (Nat.le_succ i))))
         (rawStep_head_label p c E rho hrec ha)
@@ -820,8 +825,11 @@ theorem postReset_raw_gate_lease_compat
       4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
     push_cast
     linarith [p.deltaPos]
-  obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hs hrec.base.delta hy (s + 1 + 1)
+  have hawake := healing_vote_awake_of_recovery hrec hy h0r.synchronous
+    (by omega : w.sStar ≤ s + 1 + 1)
     (htime.le.trans (hs.in_horizon _ (List.mem_of_getElem? hj)).2)
+  obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hs hrec.base.delta hy (s + 1 + 1)
+    (htime.le.trans (hs.in_horizon _ (List.mem_of_getElem? hj)).2) hawake
   have hqj := healing_idx_lt_of_time_lt p c E rho hs hiq hj htime
   have hafter : SA.freezeTime p.toParams (s + 1) < SA.voteTime p.toParams (s + 1 + 1) := by
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + 3 * p.Δ <

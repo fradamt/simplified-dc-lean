@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchGap
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent
 
 public section
@@ -21,7 +22,7 @@ private theorem frontierSearch_top_lift {A B : FGBlock (Fin p.n)}
 actual earlier honest source; its slot is at least 6Δ before the start. -/
 theorem frontierSearch_initial_J_age [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (origin : RQCOrigin p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (origin : RQCOrigin p c E rho)
     {i : Nat} {ev : V2.Event V (Obj p)} {x : V}
     (hi : rho.events[i]? = some ev) (hx : x ∈ rho.honest)
     (hj : (storeAt p c E rho (i + 1) x).fg.h_j ≠ 0) :
@@ -54,7 +55,7 @@ theorem frontierSearch_initial_J_age [Fintype V] (E : Generic.Env V)
 has the current top J as its height entry. This is a path-plateau proof. -/
 private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF u D : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     {m q : Nat} {J Qfg : FGBlock (Fin p.n)} {Q : Block}
     (hp : PhaseInterval p c E rho u D m (some J) false)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q) (he : eraseFG Qfg = Q)
@@ -125,7 +126,7 @@ private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
 accepted top carrier's J at the start. Its earlier row fixes the entry age. -/
 private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF D : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     (origin : RQCOrigin p c E rho)
     {i m : Nat} {ev : V2.Event V (Obj p)} {J : FGBlock (Fin p.n)}
     (hstart : FrontierSearchStart p c E rho i ev m .topJ)
@@ -158,11 +159,13 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
   have hjD : j ≤ timeIdx rho D :=
     (healing_phase_lt_timeIdx p c E rho hs hq (hqg.trans hgate)).le
   have hcutD : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ timeIdx rho D := hcut.trans hjD
-  have hCcut := healing_phase_held_receipt (hroots := hrec.base.idealization)
+  have hreceiptHor : ev.time + p.Δ ≤ rho.horizon := by
+    linarith [p.deltaPos, hp.1, hp.2.1]
+  have hawake := hrec.awake y hy (ev.time + p.Δ) (by linarith [p.deltaPos]) hreceiptHor
+  have hCcut := healing_phase_held_receipt (hroots := hrec.base.receiptIdealization)
     p c E rho crossing hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync hi hx hgst hC
-    (by linarith [p.deltaPos, hp.1, hp.2.1])
-    (by rw [(hwin _ hiCut hcutD).1, hh]) hy
+    hreceiptHor (by rw [(hwin _ hiCut hcutD).1, hh]) hy hawake
   have hCj := (fgsa_store_cumulative p c E rho hrec.base.noRestart hcut y).1 hCcut
   obtain ⟨hHj, htopj, hJj⟩ := healing_phase_top_node p c E rho crossing hy hCj hh hj
     (hwin j (hiCut.trans hcut) hjD).1.le
@@ -198,7 +201,7 @@ The entry-age input is local to this helper. The public producer must prove it
 from the actual start carrier and RQCOrigin. -/
 private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar w u D : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (perm : TPerm p c E rho)
@@ -236,7 +239,7 @@ private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
   have hgateD := hgate.trans hbudget0
   obtain ⟨iq, Qfg, hiq, hQmem, hErase⟩ := healing_rise_one_gate_copy p c E rho
     hrec.base.valid.toScheduleWellFormed hexact (hgateD.trans hp.2.1) hQ.1.2
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec crossing hp huq hgateD
+  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec.toRecovery₂ crossing hp huq hgateD
     hQ hErase hexact
   by_cases hhigh : (heightView p Qfg).h = m
   · exact ⟨_, huq.trans hqg, hgateD,
@@ -292,7 +295,8 @@ private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
       have ha := actionTime_periodW p r
       linarith [p.deltaPos]
     have hs := hrepair _ hps s _ hls le_rfl hnew
-    have hheights := frontierSearch_proposal_heights E rho hrec crossing hp hut hsD hnew rfl hs
+    have hheights := frontierSearch_proposal_heights E rho hrec.toRecovery₂ crossing hp hut
+      hsD hnew rfl hs
     have hh' : (heightView p X).h = m := Nat.le_antisymm hheights.2 hh
     have htq : SA.proposalTime p.toParams q < SA.proposalTime p.toParams s := by
       linarith
@@ -348,8 +352,15 @@ private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
     have hsHor : SA.proposalTime p.toParams s ≤ rho.horizon := by
       change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hsD
       linarith [p.deltaPos, hp.2.1]
-    obtain ⟨X, hnew, hXs, _⟩ := healing_promotion_slot_proposal E rho hrec hslotS
-      (hbGST.trans hloS.le) hsHor
+    have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+      have hlo := hloS
+      dsimp only [b] at hlo
+      change (r : Time) * P p + 4 * p.Δ < 4 * p.Δ * (s : Int) at hlo
+      change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+      nlinarith [p.deltaPos]
+    have hjoin := healing_recovery_restart_cutoff hrec hslotS.2 hsHor hcut
+    obtain ⟨X, hnew, hXs, _⟩ := healing_promotion_slot_proposal E rho hrec.toRecovery₂ hslotS
+      (hbGST.trans hloS.le) hsHor hjoin
     have hslabel : r * p.R + 2 ≤ s := by
       dsimp only [b] at hloS
       change (r : Time) * (4 * (p.R : Time) * p.Δ) + 4 * p.Δ <
@@ -385,7 +396,7 @@ DC: SAME keep both E_jF branches. The actual accepted J supplies its age;
 no ExactService-to-seed reconstruction or E_jF collapse is used. -/
 theorem frontier_hg3_topJ [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     (origin : RQCOrigin p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)

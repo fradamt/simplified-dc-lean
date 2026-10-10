@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep J6
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 
@@ -51,7 +52,7 @@ theorem postReset_head_receipt_at_cut [Fintype V]
       (V2.D.Run.idxBefore rho (SA.voteTime p.toParams r + p.Δ)) x).fg.F Kfg :=
     KitFG.preceq_trans (mono hrec.base.noRestart _ _ x hx hidx).1
       (cone_pool_lift (by rwa [heK]))
-  have hreceipt := healing_held_block_receipt (hroots := hrec.base.idealization)
+  have hreceipt := healing_held_block_receipt (hroots := hrec.base.receiptIdealization)
     p c E rho mono hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync hjz hz hx hKz hgstr
     (hdeadline.trans (hS.in_horizon _ (List.mem_of_getElem? ht)).2) hFearly
@@ -69,6 +70,7 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     (mono : RMono p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
     {r : Slot} {B : Block} (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
+    (hcut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq B K)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
@@ -97,8 +99,9 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     ((le_add_of_nonneg_right hd.le).trans hvp).trans hv
   have hhorr : SA.voteTime p.toParams r ≤ rho.horizon := hvv.trans hvh
   have hawake := hrec.awake z hk _ hgstr hhorr
-  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr
-  obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
+  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr hawake
+  have hjoined := healing_vote_joined_of_recovery hrec hk hjz hhorr hcut
+  obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake hjoined
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams r)) r
   have hBK : Block.Preceq B K := hcover z hk K hhl
@@ -106,7 +109,7 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     hx hip hgstr hvp (hFHeads z hk K hhl)
   have hKe' : eraseFG Kfg = K := hKe0
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF :=
-    (fgsa_store_cumulative p c E rho hN
+    (fgsa_store_durable p c E rho
       (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 hrelay
   have hinv : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hKb : K ∈ st.base.blocks := by
@@ -222,6 +225,7 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     (mono : RMono p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
     {i : Slot} {B : Block} (hgsti : E.t_GST ≤ SA.voteTime p.toParams i)
+    (hcut : E.t_GST ≤ slotStartZ p ((i : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
@@ -250,8 +254,9 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     ((le_add_of_nonneg_right hd.le).trans hvi).trans hv
   have hhori : SA.voteTime p.toParams i ≤ rho.horizon := hvv.trans hvh
   have hawake := hrec.awake z hk _ hgsti hhori
-  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori
-  obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
+  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori hawake
+  have hjoined := healing_vote_joined_of_recovery hrec hk hjz hhori hcut
+  obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake hjoined
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams i)) i
   have hBK : Block.Preceq B K := hcover z hk K hhl
@@ -263,7 +268,7 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     linarith
   have hWf : Kfg ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams i) y).st.fg.TF := by
     have h := hrelay
-    have hc := (fgsa_store_cumulative p c E rho hN
+    have hc := (fgsa_store_durable p c E rho
       (healing_phase_idxBefore_mono p c rho hfz) y).1 h
     change Kfg ∈ (V2.D.Run.stateBefore E rho _ y).st.fg.TF at hc
     rwa [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hc

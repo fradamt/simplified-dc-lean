@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
 
@@ -74,7 +75,7 @@ DC: SAME reuse healing_promotion_age_gap (PromotionArithmetic:257).
 GUP r2: the rounded bound supplies the full G window from the terminal guard.
 This produces an honest slot; it does not assert promotion or receipt. -/
 theorem frontierSearch_hg2a_gap [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (r : Nat) (U : FGBlock (Fin p.n)) (hgst : E.t_GST ≤ (r : Time) * P p)
     (hhor : max (p.actionTime r + Γ p G - p.Δ + epsF p ΔF)
       (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G - 3 * p.Δ) ≤ rho.horizon) :
@@ -97,14 +98,14 @@ theorem frontierSearch_hg2a_gap [Fintype V] (E : Generic.Env V)
     obtain ⟨ha, hU⟩ := max_le_iff.mp hhor
     rw [actionTime_periodW, epsF_def] at ha
     apply max_le <;> linarith [p.deltaPos]
-  exact healing_promotion_age_gap E rho hrec r U.slot hgst hwin
+  exact healing_promotion_age_gap E rho hrec.toRecovery₂ r U.slot hgst hwin
 
 /-- ROOT-DIGEST W2b. Blueprint 21:1592–1640; S5 H2, route steps 1–8.
 DC: SAME the saved seed supplies source transfer only through the proposal read.
 The strict cap supplies receipt compatibility through t_X+Δ.
 The seed binders are the frozen StrongServed fields; r is an opening after q. -/
 theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (crossing : RXing p c E rho) (frontier : TFrontier p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
@@ -163,8 +164,16 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
       rw [actionTime_periodW]
       linarith [p.deltaPos]
     have hgsts : E.t_GST ≤ SA.proposalTime p.toParams s := hstartAction.trans hat
-    obtain ⟨X, hnew, hXslot, _⟩ := healing_promotion_slot_proposal E rho hrec
-      hslot hgsts hshor
+    have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+      have hcs := hc
+      rw [carrierTimeW_def, betaF_def] at hcs
+      change (r : Time) * P p + 4 * (kappaF p ΔF : Time) * p.Δ ≤
+        4 * p.Δ * (s : Int) at hcs
+      change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+      nlinarith [p.deltaPos]
+    have hjoin := healing_recovery_restart_cutoff hrec hslot.2 hshor hcut
+    obtain ⟨X, hnew, hXslot, _⟩ := healing_promotion_slot_proposal E rho hrec.toRecovery₂
+      hslot hgsts hshor hjoin
     have hf := frontier u (SA.proposalTime p.toParams s) m J contested q Q Qfg
       hgst hQ he hQm hexact ((frontierSeedQualification_iff p E u q).mp hseed) hu hp
       hqgate hshor (fun k x _ hkt hx => hcap k x

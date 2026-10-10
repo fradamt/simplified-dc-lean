@@ -196,6 +196,8 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
     ring
   obtain ⟨jy, hjy, _⟩ := fgsa_tick_total E rho hS hDelta y hy (4 * (r * p.R) + 6)
     (hktime ▸ har.trans hvh)
+    (hktime ▸ hrec.awake y hy (p.actionTime r) (hgst.trans (hu.trans hpq))
+      (har.trans hvh))
   rw [hktime] at hjy
   obtain ⟨hsrcK, _, _, hfwK⟩ := opening_source_body E rho hS hjy hK
   obtain ⟨K', hsrcK', hQK'⟩ := later_opening_source_extends E rho hrec mono crossing writes hgst
@@ -220,16 +222,18 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
       Block.Preceq (eraseFG K) H :=
     fun z hz H hH => hcovK z s H hz hrs hvs hH
   -- The HEAD relay puts K in the store of x at a_(r+1).
+  have hvsu : u ≤ SA.voteTime p.toParams s := by
+    refine hurR.trans ?_
+    change 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ ≤
+      4 * p.Δ * ((s : Nat) : Int) + p.Δ
+    nlinarith
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hx s (hvs.trans hvh)
+    (hrec.awake x hx _ (hgst.trans hvsu) (hvs.trans hvh))
   have hhl : headAtLabel p c E rho x s = some (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jz x).st (SA.voteTime p.toParams s)) s) := by
     unfold headAtLabel
     rw [opening_postClock_of_tick E rho hS hjz]
     rfl
-  have hvsu : u ≤ SA.voteTime p.toParams s := by
-    refine hurR.trans ?_
-    change 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ ≤ 4 * p.Δ * ((s : Nat) : Int) + p.Δ
-    nlinarith
   have hev : SA.voteTime p.toParams s + p.Δ ≤ p.actionTime (r + 1) := by
     change 4 * p.Δ * ((s : Nat) : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * ((s : Nat) : Int) + 6 * p.Δ
     linarith
