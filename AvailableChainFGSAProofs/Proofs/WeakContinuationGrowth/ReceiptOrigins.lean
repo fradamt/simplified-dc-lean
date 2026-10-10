@@ -228,7 +228,7 @@ private theorem wcg_replay_vote_stamp_time (st : State p.n) (w : Time)
     rw [hf, heq] at hs
     exact hs
 
-private theorem epoch_vote_stamp_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+private theorem wcg_epoch_vote_stamp_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (k : Nat) (x : V) (s : Slot) (i : Fin p.n) (b : BlockId) (stamp : Time)
     (hm : ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n .root), stamp) ∈
       (V2.D.Run.stateBefore E rho k x).st.base.voteStamp) :
@@ -311,7 +311,7 @@ private theorem epoch_vote_stamp_origin (E : Generic.Env V) (rho : V2.D.Run V (f
         rwa [V2.D.World.step_apply_of_node_ne E rho _ hx] at hm
 
 
-private theorem epoch_block_stamp_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+private theorem wcg_epoch_block_stamp_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (k : Nat) (x : V) (b : Block) (stamp : Time)
     (hm : (b, stamp) ∈ (V2.D.Run.stateBefore E rho k x).st.base.blockStamp) :
     (b = .genesis ∧ stamp = 0) ∨
@@ -407,27 +407,31 @@ private theorem epoch_block_stamp_origin (E : Generic.Env V) (rho : V2.D.Run V (
         rwa [V2.D.World.step_apply_of_node_ne E rho _ hx] at hm
 
 
+private theorem wcg_receipt_storeAt (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (i : Nat) (x : V) :
+    storeAt p c E rho i x = (rho.stateBefore E i x).st := rfl
+
 /-- Receipt stamps keep network origins or the latest local replay epoch. -/
 theorem wcg_receiptOrigins (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) : WCReceiptOrigins p c E rho i x (storeAt p c E rho i x) := by
   constructor
   · intro B stamp hm
-    rcases epoch_block_stamp_origin E rho i x B stamp hm with hg | hd |
+    rcases wcg_epoch_block_stamp_origin E rho i x B stamp hm with hg | hd |
       ⟨j, hj, w, he, hne, hb, ht, hRF⟩
     · exact Or.inl hg
     · exact Or.inr (Or.inl hd)
     · refine Or.inr (Or.inr ⟨hne, j, hj, w, he, ?_, ht, hRF⟩)
-      unfold storeAt
+      rw [wcg_receipt_storeAt]
       rw [V2.D.Engine.state_after_restart he]
       change (B, stamp) ∈ (acRestart p (storeAt p c E rho j x) w).base.blockStamp
       rw [acRestart_blockStamp]
       exact List.mem_map.mpr ⟨B, hb, by simp only [hne, ite_false, ht]⟩
   · intro s k b stamp hm
-    rcases epoch_vote_stamp_origin E rho i x s k b stamp hm with hd |
+    rcases wcg_epoch_vote_stamp_origin E rho i x s k b stamp hm with hd |
       ⟨j, hj, w, he, ht, hv, hRF⟩
     · exact Or.inl hd
     · refine Or.inr ⟨j, hj, w, he, ?_, ht, hRF⟩
-      unfold storeAt
+      rw [wcg_receipt_storeAt]
       rw [V2.D.Engine.state_after_restart he]
       change (_, stamp) ∈ (acRestart p (storeAt p c E rho j x) w).base.voteStamp
       rw [← acRestart_voteStamp_keys] at hv
@@ -435,7 +439,11 @@ theorem wcg_receiptOrigins (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       dsimp only at hv
       subst v
       have ha := wcg_replay_vote_stamp_time (storeAt p c E rho j x) w _ a hm
-      simpa only [storeAt, ha, ht] using hm
+      have hm' : ((⟨.seat s k, .head b⟩ : GridCO.Wire p.n .root), a) ∈
+          (acRestart p (storeAt p c E rho j x) w).base.voteStamp := by
+        rw [wcg_receipt_storeAt]
+        exact hm
+      simpa only [ha, ht] using hm'
 
 end AvailableChain.FGSA.Run
 end

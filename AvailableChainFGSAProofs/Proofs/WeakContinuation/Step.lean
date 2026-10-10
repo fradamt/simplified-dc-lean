@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepOutput
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepRestart
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransfer
 
 public section
@@ -330,14 +331,6 @@ theorem wc_stepGateTick : WCStepGateTickStatement p c E rho ΔF w iStar := by
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
     hscopeRows hfinalHead hs i hi hilen inv (.tick x (SA.gateTime p.toParams s)) he
 
-/-- WC plan §6.5; DC the explicit no-restart field excludes the restart branch. -/
-theorem wc_stepRestart : WCStepRestartStatement p c E rho ΔF w iStar := by
-  intro _hvalid _hlinked _hcstar hnr _hdelta _hroots _hsync _hdeltaF _hfault _hfaultQ
-    _hfaultX _hpart _hstore _hcumul _hmono _hactive _hframe _hmeta _hrec _hgeo _hcert
-    _hsrc _hlabel _hqc _hstrat _hnoslash _hemitted _htargets _hlease _hfast _hdeadlines
-    _hheldRows _hscopeRows _hfinalHead _hs i _hi _hilen _inv x t he
-  exact hnr i x t he
-
 /-- WC plan §6.5; DC split the actual event into the proved delivery, tick and restart cases. -/
 theorem wc_step : WCStepStatement p c E rho ΔF w iStar := by
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
@@ -354,7 +347,7 @@ theorem wc_step : WCStepStatement p c E rho ΔF w iStar := by
     exact (wc_stepRestart hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
         hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
         hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-        hscopeRows hfinalHead hs i hi hilen inv x t he).elim
+        hscopeRows hfinalHead hs i hi hilen inv x t he)
   | tick x t =>
     by_cases hg : isGateTime p t = true
     · obtain ⟨s, rfl⟩ := (isGateTime_iff p t).mp hg

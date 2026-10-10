@@ -1,5 +1,11 @@
 # P-WC r3: PREPARED; finite origins and local output cases pass; joint closure remains open.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepReconcile
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.FinalBelow
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepRestart
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepRestart
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrigins
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepFacts
@@ -61,6 +67,12 @@ AvailableChainFGSAProofs.Tests.WeakContinuationInclusion
 AvailableChainFGSAProofs.Tests.WeakContinuationProposal
 AvailableChainFGSAProofs.Tests.WeakContinuationSleepAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepReconcile
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.FinalBelow
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepRestart
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepRestart
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrigins
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepFacts

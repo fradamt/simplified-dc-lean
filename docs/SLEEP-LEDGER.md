@@ -4997,3 +4997,23 @@ Tests.WeakContinuationSleepAxioms into Tests.Axioms (forbidden TEST-USE). Apply 
   obligation of the joint induction. The joint WCInv producer is still open.
 - wc_finalBelow uses receipt collision freedom through its safety projection.
   Public Claims/Statements and public P23 remain unchanged.
+
+### P-WC Round 3 — full restart preservation and T49 history (2026-10-10)
+
+- wc_stepRestart and wcg_stepRestart prove their complete preservation statements.
+  A wake keeps FG data, obligations, and outputs. Each historical result precedes
+  the restart. Finite facts reestablish exact receipt and volatile-row origins.
+  Both families keep the scoped served and transition fields. The original Step
+  and Dynamics restart cases now use these proofs and no longer eliminate False.
+- T49: wc_history_previousHeads keeps all-time joined participation until it
+  selects z at the earlier gate. The original y stays the joined HEAD reader.
+  wc_historyMax takes ScheduleWellFormed before it derives enabled results.
+  Supplier module: WC/ProposalHistory. Proposal's path and Count work stays open.
+- WCG StepOutput, StepReconcile, and FinalBelow are separate family suppliers.
+  Their statements use the same local output cases and approved reader scopes
+  as WC. Dynamics imports them. Its joint-induction body remains EXPECTED-FAIL.
+- Copied private helper names are distinct by family. Private unfolding lemmas
+  prevent imported storeAt equation exports. No baseline or allowance changed.
+- Four original targets are GREEN. The remaining 17 original targets have owner
+  P-WC. All five open family tests still have local owned proof dependencies;
+  none is classified as waiting only for a P-As bridge.

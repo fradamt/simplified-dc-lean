@@ -9,7 +9,7 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrig
 namespace AvailableChain.FGSA
 open AvailableChain.SimplexFG
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
-private def step_admitBlock (p : Params) (st : State p.n) (s : Slot)
+private def wcg_step_admitBlock (p : Params) (st : State p.n) (s : Slot)
     (N : NamedProposal p.n) : State p.n :=
   if !namedParentHeld st N then st else
   match parentFG st N.erase with
@@ -26,7 +26,7 @@ private def step_admitBlock (p : Params) (st : State p.n) (s : Slot)
       else st
 
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
-private theorem step_admitBlock_eq : @admitBlock = @step_admitBlock := rfl
+private theorem wcg_step_admitBlock_eq : @admitBlock = @wcg_step_admitBlock := rfl
 
 end AvailableChain.FGSA
 
@@ -41,18 +41,21 @@ open AvailableChain.SimplexFG KitFG
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
+private theorem wcg_step_storeAt (i : Nat) (x : V) :
+    storeAt p c E rho i x = (rho.stateBefore E i x).st := rfl
+
 /-- WC plan §6.5; DC receipt replay: retain the original trigger and acceptance index. -/
-private theorem step_receiptOrigins (i : Nat) (x : V) :
+private theorem wcg_step_receiptOrigins (i : Nat) (x : V) :
     WCReceiptOrigins p c E rho i x (storeAt p c E rho i x) :=
   wcg_receiptOrigins E rho i x
 
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
-private def step_savedPairs (st : State p.n) : List (Slot × Block) :=
+private def wcg_step_savedPairs (st : State p.n) : List (Slot × Block) :=
   st.base.genuine.filterMap (fun row => row.2.map (fun B => (row.1, B)))
 
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
-private theorem step_savedPairs_mem (st : State p.n) (s : Slot) (B : Block) :
-    (s, B) ∈ step_savedPairs st ↔ (s, some B) ∈ st.base.genuine := by
+private theorem wcg_step_savedPairs_mem (st : State p.n) (s : Slot) (B : Block) :
+    (s, B) ∈ wcg_step_savedPairs st ↔ (s, some B) ∈ st.base.genuine := by
   constructor
   · intro h
     obtain ⟨row, hr, hb⟩ := List.mem_filterMap.mp h
@@ -64,20 +67,20 @@ private theorem step_savedPairs_mem (st : State p.n) (s : Slot) (B : Block) :
     exact List.mem_filterMap.mpr ⟨(s, some B), h, rfl⟩
 
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
-private theorem step_savedPairs_reconcile (st : State p.n) :
-    step_savedPairs (reconcile st) ⊆ step_savedPairs st := by
+private theorem wcg_step_savedPairs_reconcile (st : State p.n) :
+    wcg_step_savedPairs (reconcile st) ⊆ wcg_step_savedPairs st := by
   rintro ⟨s, B⟩ hm
-  rw [step_savedPairs_mem, reconcile_genuine] at hm
+  rw [wcg_step_savedPairs_mem, reconcile_genuine] at hm
   obtain ⟨row, hr, he⟩ := List.mem_map.mp hm
   have hk := congrArg Prod.fst he
   have hb := (Option.filter_eq_some_iff.mp (congrArg Prod.snd he)).1
-  rw [step_savedPairs_mem]
+  rw [wcg_step_savedPairs_mem]
   have hrow : row = (s, some B) := Prod.ext hk hb
   rwa [hrow] at hr
 
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
-private theorem step_savedPairs_admitRows (rows : List (RowWire p.n)) (st : State p.n) :
-    step_savedPairs (rows.foldl (admitRow p) st) = step_savedPairs st := by
+private theorem wcg_step_savedPairs_admitRows (rows : List (RowWire p.n)) (st : State p.n) :
+    wcg_step_savedPairs (rows.foldl (admitRow p) st) = wcg_step_savedPairs st := by
   induction rows generalizing st with
   | nil => rfl
   | cons a rows ih =>
@@ -89,7 +92,7 @@ private theorem step_savedPairs_admitRows (rows : List (RowWire p.n)) (st : Stat
 
 -- WC plan §6.5; DC handler order. The upstream Schedule helper is private.
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
-private theorem step_proposal_genuine (q : GridCO.Params) {n : Nat}
+private theorem wcg_step_proposal_genuine (q : GridCO.Params) {n : Nat}
     (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block)
     (raw : List (GridCO.HeadWire n .root)) :
     (GridCO.admitProposal q st o b raw).genuine = st.genuine := by
@@ -98,19 +101,19 @@ private theorem step_proposal_genuine (q : GridCO.Params) {n : Nat}
   all_goals first | rfl | exact (foldVotes_fields q raw _).2.2.2.2.1
 
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
-private theorem step_savedPairs_process (st : State p.n) (o : Wire p.n) :
-    step_savedPairs (process p st o) ⊆ step_savedPairs st := by
-  change step_savedPairs (match o.decode with
+private theorem wcg_step_savedPairs_process (st : State p.n) (o : Wire p.n) :
+    wcg_step_savedPairs (process p st o) ⊆ wcg_step_savedPairs st := by
+  change wcg_step_savedPairs (match o.decode with
     | some (.vote s i b) => admitHead p st s i b
     | some (.row _ body) => admitRow p st ⟨o.auth, body⟩
     | some (.block s N) => admitBlock p st s N
-    | none => st) ⊆ step_savedPairs st
+    | none => st) ⊆ wcg_step_savedPairs st
   cases o.decode with
   | none => exact List.Subset.refl _
   | some a =>
     cases a <;> dsimp only
     case vote s i b =>
-      unfold step_savedPairs
+      unfold wcg_step_savedPairs
       rw [admitHead_genuine]
     case row i body =>
       rcases admitRow_eq p st ⟨o.auth, body⟩ with h | h <;> rw [h]
@@ -126,34 +129,34 @@ private theorem step_savedPairs_process (st : State p.n) (o : Wire p.n) :
           | false =>
             rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
           | true =>
-            rw [step_admitBlock_eq]
-            unfold step_admitBlock
+            rw [wcg_step_admitBlock_eq]
+            unfold wcg_step_admitBlock
             simp only [hn, Bool.not_true, Bool.false_eq_true, ite_false]
             rw [hp]
             dsimp only
-            rw [ha, ite_eq_left rfl, step_savedPairs_admitRows]
+            rw [ha, ite_eq_left rfl, wcg_step_savedPairs_admitRows]
             split
-            · unfold step_savedPairs
+            · unfold wcg_step_savedPairs
               dsimp only
-              rw [step_proposal_genuine]
-            · apply List.Subset.trans (step_savedPairs_reconcile _)
-              unfold step_savedPairs
+              rw [wcg_step_proposal_genuine]
+            · apply List.Subset.trans (wcg_step_savedPairs_reconcile _)
+              unfold wcg_step_savedPairs
               dsimp only
-              rw [step_proposal_genuine]
+              rw [wcg_step_proposal_genuine]
 
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
-private theorem step_savedPairs_clock (st : State p.n) (t : Time) (pair : Slot × Block)
-    (hm : pair ∈ step_savedPairs (clock p st t)) :
-    pair ∈ step_savedPairs st ∨
+private theorem wcg_step_savedPairs_clock (st : State p.n) (t : Time) (pair : Slot × Block)
+    (hm : pair ∈ wcg_step_savedPairs (clock p st t)) :
+    pair ∈ wcg_step_savedPairs st ∨
       (t = SA.gateTime p.toParams pair.1 ∧
        joinedNow p (clockPre p st t) = true ∧
        SA.Root.confirmationFrom p.toParams (eraseFG (clockPre p st t).fg.F)
          (actView (clockPre p st t)) pair.1 = some pair.2) := by
-  change pair ∈ step_savedPairs (if isGateTime p t then
+  change pair ∈ wcg_step_savedPairs (if isGateTime p t then
     gateStep p (clockPre p st t) ((t - 6 * p.Δ) / (4 * p.Δ)).toNat
     else clockPre p st t) at hm
-  have hpre : step_savedPairs (clockPre p st t) = step_savedPairs st := by
-    unfold step_savedPairs
+  have hpre : wcg_step_savedPairs (clockPre p st t) = wcg_step_savedPairs st := by
+    unfold wcg_step_savedPairs
     rw [clockPre_genuine]
   split at hm
   · rename_i ht
@@ -164,7 +167,7 @@ private theorem step_savedPairs_clock (st : State p.n) (t : Time) (pair : Slot �
     cases hs : GridCO.savedGenuine pre.base s with
     | some saved =>
       rw [gateStep_saved p pre s (by rw [hs]; rfl)] at hm
-      unfold step_savedPairs at hm
+      unfold wcg_step_savedPairs at hm
       rw [normalizeS_fields] at hm
       exact Or.inl (hpre ▸ hm)
     | none =>
@@ -177,9 +180,9 @@ private theorem step_savedPairs_clock (st : State p.n) (t : Time) (pair : Slot �
             Bool.not_true]
           exact saGate_genuine p.toParams (eraseFG pre.fg.F) (actView pre) s hs
         rcases pair with ⟨v, B⟩
-        rw [step_savedPairs_mem, hg, List.mem_append] at hm
+        rw [wcg_step_savedPairs_mem, hg, List.mem_append] at hm
         rcases hm with hm | hm
-        · exact Or.inl (hpre ▸ (step_savedPairs_mem pre v B).mpr hm)
+        · exact Or.inl (hpre ▸ (wcg_step_savedPairs_mem pre v B).mpr hm)
         · obtain ⟨rfl, hC⟩ := Prod.mk.inj (List.mem_singleton.mp hm)
           exact Or.inr ⟨htime, hJ, hC.symm⟩
       · have hg : (gateStep p pre s).base.genuine = pre.base.genuine ++ [(s, none)] := by
@@ -189,20 +192,20 @@ private theorem step_savedPairs_clock (st : State p.n) (t : Time) (pair : Slot �
             hJ]
           rfl
         rcases pair with ⟨v, B⟩
-        rw [step_savedPairs_mem, hg, List.mem_append] at hm
+        rw [wcg_step_savedPairs_mem, hg, List.mem_append] at hm
         rcases hm with hm | hm
-        · exact Or.inl (hpre ▸ (step_savedPairs_mem pre v B).mpr hm)
+        · exact Or.inl (hpre ▸ (wcg_step_savedPairs_mem pre v B).mpr hm)
         · have he := congrArg Prod.snd (List.mem_singleton.mp hm)
           cases he
   · exact Or.inl (hpre ▸ hm)
 
 /-- WC plan §6.5; DC actual saved origin: a retained value still has its original gate result. -/
-private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
+private theorem wcg_step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (s : Slot) (B : Block)
     (hb : GridCO.savedGenuine (storeAt p c E rho i x).base s = some (some B)) :
     ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
       gateResultAt p c E rho j = some (some B) := by
-  have origin : ∀ n, (s, B) ∈ step_savedPairs (storeAt p c E rho n x) →
+  have origin : ∀ n, (s, B) ∈ wcg_step_savedPairs (storeAt p c E rho n x) →
       ∃ j < n, V2.D.restartFree rho x j n ∧ IsGateTick p c rho j x s ∧
         joinedNow p (clockPre p (storeAt p c E rho j x)
           (SA.gateTime p.toParams s)) = true ∧
@@ -216,7 +219,7 @@ private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
     | zero => exact (List.not_mem_nil hm).elim
     | succ n ih =>
       have carry (hn : ∀ t, rho.events[n]? ≠ some (.restart x t))
-          (hm : (s, B) ∈ step_savedPairs (storeAt p c E rho n x)) :
+          (hm : (s, B) ∈ wcg_step_savedPairs (storeAt p c E rho n x)) :
           ∃ j < n + 1, V2.D.restartFree rho x j (n + 1) ∧ IsGateTick p c rho j x s ∧
             joinedNow p (clockPre p (storeAt p c E rho j x)
               (SA.gateTime p.toParams s)) = true ∧
@@ -234,7 +237,7 @@ private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
       cases he : rho.events[n]? with
       | none =>
         apply carry (by intro t; rw [he]; simp)
-        simpa [storeAt, V2.D.Run.stateBefore, List.take_add_one, he] using hm
+        simpa [wcg_step_storeAt, V2.D.Run.stateBefore, List.take_add_one, he] using hm
       | some e =>
         have hp := V2.D.Run.stateBefore_succ E rho he
         unfold storeAt at hm
@@ -245,21 +248,23 @@ private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
             change v = x at hx
             subst v
             simp only [V2.D.World.step, Function.update_self] at hm
-            change (s, B) ∈ step_savedPairs (acRestart p (storeAt p c E rho n x) t) at hm
-            simp only [step_savedPairs, acRestart_genuine, List.filterMap_nil] at hm
+            change (s, B) ∈ wcg_step_savedPairs (acRestart p (storeAt p c E rho n x) t) at hm
+            unfold wcg_step_savedPairs at hm
+            rw [acRestart_genuine] at hm
+            simp only [List.filterMap_nil] at hm
             exact (List.not_mem_nil hm).elim
           | deliver v o t =>
             change v = x at hx
             subst v
             apply carry (by intro u; rw [he]; simp)
             simp only [V2.D.World.step, Function.update_self] at hm
-            exact step_savedPairs_process _ (toWire p o) hm
+            exact wcg_step_savedPairs_process _ (toWire p o) hm
           | tick v t =>
             change v = x at hx
             subst v
             simp only [V2.D.World.step, Function.update_self] at hm
             rw [tick_st (c := c) E rho (V2.D.Run.stateBefore E rho n x) x t] at hm
-            rcases step_savedPairs_clock _ t (s, B) hm with hm | ⟨ht, hJ, hC⟩
+            rcases wcg_step_savedPairs_clock _ t (s, B) hm with hm | ⟨ht, hJ, hC⟩
             · exact carry (by intro u; rw [he]; simp) hm
             · subst t
               refine ⟨n, Nat.lt_succ_self n, ?_, he, hJ, hC⟩
@@ -274,8 +279,8 @@ private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
           rwa [V2.D.World.step_apply_of_node_ne E rho _ hx] at hm
   obtain ⟨row, hr, he⟩ := Option.map_eq_some_iff.mp hb
   have hk : row.1 = s := by simpa using List.find?_some hr
-  have hm : (s, B) ∈ step_savedPairs (storeAt p c E rho i x) := by
-    rw [step_savedPairs_mem]
+  have hm : (s, B) ∈ wcg_step_savedPairs (storeAt p c E rho i x) := by
+    rw [wcg_step_savedPairs_mem]
     simpa only [← hk, ← he] using List.mem_of_find?_eq_some hr
   obtain ⟨j, hj, hRF, ht, hJ, hC⟩ := origin i hm
   have hraw : gateResultAt p c E rho j = some (some B) := by
@@ -336,14 +341,14 @@ theorem wcg_finiteFacts :
   refine ⟨fun x _ => cstoreInv_stateBefore E rho n x,
     fun x _ => nestOK_stateBefore E rho n x,
     fun x _ => metaInv_stateBefore E rho n x,
-    fun x _ => step_receiptOrigins n x,
+    fun x _ => wcg_step_receiptOrigins n x,
     fun x _ row hr => by
       obtain ⟨j, hj, s, B, ht, hp, hB, hrest⟩ := hlease n x row hr
       exact ⟨j, hj, s, B, wcg_gate_enabled_of_result hvalid.toScheduleWellFormed ht hB,
         hp, hB, hrest⟩,
     fun x _ => hdeadlines n x,
     fun x _ => hfast n x,
-    fun x _ s C hc => step_savedOrigin hvalid.toScheduleWellFormed n x s C hc,
+    fun x _ s C hc => wcg_step_savedOrigin hvalid.toScheduleWellFormed n x s C hc,
       ?_, ?_⟩
   · intro x hx W hW X hX hne
     obtain ⟨y, r, wire, ⟨j, hj, hrow⟩, hname⟩ := hstrat n x W hx hW X hX hne
@@ -451,14 +456,14 @@ theorem wcg_finiteStep (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   refine ⟨fun x _ => cstoreInv_stateBefore E rho n x,
     fun x _ => nestOK_stateBefore E rho n x,
     fun x _ => metaInv_stateBefore E rho n x,
-    fun x _ => step_receiptOrigins n x,
+    fun x _ => wcg_step_receiptOrigins n x,
     fun x _ row hr => by
       obtain ⟨j, hj, s, B, ht, hp, hB, hrest⟩ := hlease n x row hr
       exact ⟨j, hj, s, B, wcg_gate_enabled_of_result hvalid.toScheduleWellFormed ht hB,
         hp, hB, hrest⟩,
     fun x _ => hdeadlines n x,
     fun x _ => hfast n x,
-    fun x _ s C hc => step_savedOrigin hvalid.toScheduleWellFormed n x s C hc, ?_, ?_⟩
+    fun x _ s C hc => wcg_step_savedOrigin hvalid.toScheduleWellFormed n x s C hc, ?_, ?_⟩
   · intro x hx W hW X hX hne
     obtain ⟨y, r, wire, ⟨j, hj, hrow⟩, hname⟩ := hstrat n x W hx hW X hX hne
     obtain ⟨K, B, hK, hpair, hentry, hB, hKB, _⟩ := hemitted j y r wire _ hrow hname
