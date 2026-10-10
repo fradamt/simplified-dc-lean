@@ -14,7 +14,7 @@ DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
 def RowPermissionAt {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop :=
   ∀ u v m J contested r x C nd,
-    recoveryStart p E ≤ u → PhaseInterval p c E rho u v m J contested →
+    E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
     u ≤ p.actionTime r → p.actionTime r ≤ v → x ∈ rho.honest →
     postClock E rho x (p.actionTime r) = some nd →
     actionSourceFG p c E rho x r = some (some C) →

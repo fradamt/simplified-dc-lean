@@ -66,12 +66,6 @@
     "reason": "JOINED-START (lead ruling 2026-10-10)"
   },
   {
-    "name": "AvailableChain.FGSA.Run.RowPermissionAt",
-    "before": "fd668652dc5be121",
-    "after": "2aa3e7597c75a529",
-    "reason": "JOINED-START (lead ruling 2026-10-10)"
-  },
-  {
     "name": "AvailableChain.FGSA.Run.TCommon",
     "before": "e8084a92584fc66a",
     "after": "44717970edca5fc2",
