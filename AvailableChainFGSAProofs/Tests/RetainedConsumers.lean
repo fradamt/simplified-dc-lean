@@ -23,17 +23,19 @@ private def Composes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     RetainedExactHeadRunGeometry E rho ip x s D b) ∧
   (∀ (b₀ ΔF : Time), CleanCut₂ p c E rho b₀ ΔF → SA.voteTime p.toParams s ≤ b₀ →
     SA.voteTime p.toParams s ≤ rho.horizon →
-    ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b) ∧
+    ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some b) ∧
   (∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
     E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ →
     SA.voteTime p.toParams s ≤ rho.horizon →
-    ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b)
+    ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some b)
 
 /-- Blueprint 21 H.6, H.6-S, H.17, L4-R, HG.1, L2; design job 7 K6.
 Class (iii). DC: INTENTIONAL; derive the consumer's LabelSyncOn from each regime. -/
 private theorem compose
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot) {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
@@ -77,7 +79,7 @@ private theorem compose
 DC: INTENTIONAL; H6 produces the exact hreads type for all three endpoints. -/
 private theorem check_H6
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -103,7 +105,7 @@ private theorem check_H6
 DC: INTENTIONAL; H6S produces the exact hreads type for all three endpoints. -/
 private theorem check_H6S
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -129,7 +131,7 @@ private theorem check_H6S
 DC: INTENTIONAL; H17 produces the exact hreads type for all three endpoints. -/
 private theorem check_H17
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -154,7 +156,7 @@ private theorem check_H17
 DC: INTENTIONAL; L4R produces the exact hreads type for all three endpoints. -/
 private theorem check_L4R
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -184,7 +186,7 @@ private theorem check_L4R
 DC: INTENTIONAL; HG1 produces the exact hreads type for all three endpoints. -/
 private theorem check_HG1
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -214,7 +216,7 @@ private theorem check_HG1
 DC: INTENTIONAL; L2 produces the exact hreads type for all three endpoints. -/
 private theorem check_L2
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -255,7 +257,7 @@ private theorem q1_before_gate (p : Params) (q : Slot) :
 DC: INTENTIONAL; the boundary uses H6, with no post-d_q lease premise. -/
 private theorem q1_H6
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (q : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -283,7 +285,7 @@ private theorem q1_H6
 DC: INTENTIONAL; the boundary uses H6S, with no post-d_q lease premise. -/
 private theorem q1_H6S
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (q : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)

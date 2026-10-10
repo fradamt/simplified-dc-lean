@@ -196,6 +196,47 @@ H.17:3008–3011
 spec 1555–1581. Class (iii). DC: INTENTIONAL; S8
 composes the existing R6-aware trigger-to-tick receipt and S3. The chain
 uses fgsa_trigger_rowsValid and invalidForParent exclusion inside receipt. -/
+theorem fgsa_retained_proposal_mem_on_run_epoch
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip ih : Nat} {x y : V} (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (D : FGBlock (Fin p.n)) (Kc : Block)
+    (h : RetainedReadPremises p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc)
+    (hService : ReceiverService E rho
+      (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p)
+      (SA.proposalTime p.toParams s) (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    N.erase ∈ (rho.stateBefore E ih y).st.base.blocks ∧
+      N.erase ∈ T p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hslot := (fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2.2).1
+  obtain ⟨Y, hY, he⟩ := hService.proposal hE.toScheduleWellFormed hy hroots
+  have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ ih := by
+    by_contra hn
+    have hlt := (Gen.V2.Duty.index_lt_idxBefore_iff hE.toScheduleWellFormed hih _).mp
+      (Nat.lt_of_not_ge hn)
+    exact (lt_irrefl _ hlt).elim
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed] at hY
+  have hY' := (fgsa_store_durable p c E rho hcut y).1 hY
+  have hadm' : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks :=
+    ((cstoreInv_stateBefore E rho ih y).baseTree _).mpr ⟨Y, hY', he⟩
+  refine ⟨hadm', fgsa_retained_proposal_mem p src dst ht.baseTree ht.fg.closed
+    (F_preceq_liveRoot p dst ht) s N.erase ?_ hslot h.target_parent h.parent_height⟩
+  simpa only [dst, clock_base_blocks] using hadm'
+
 theorem fgsa_retained_proposal_mem_on_run
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)

@@ -1,5 +1,24 @@
 # Contract to Lean map
 
+## FG-SA sleep services (P-ShA round 4, 2026-10-10)
+
+`FGSAProofs/Proofs/Shared/CatchUp` owns the N4 bridge and the exact receiver
+service records. `ReceiverService` names the object, sender time, ready anchor,
+deadline, freeze, safe history, handler checks and receiver epoch.
+`FreshHeadService` uses the exact emitted HEAD at `voteTime`; its receipt theorem
+proves safe history from that emission. `TargetReceiptService` uses a named
+proposal service for a retained target. Historical processing alone is insufficient.
+
+`Count.fgsa_receiptCoverage_on` and `fgsa_active_path_of_coverage_on` use local
+ready anchors. `GateReceiptScope` passes the enabled actor, exact gate join guard,
+early-to-gate epoch and object services to the new ExactService `_on` forms.
+`SameLabelServiceScope` gives cross-reader HEAD service and each enabled read epoch.
+The explicit legacy forms still require `NoRestart`.
+
+These are compiled proof interfaces. P-ShA remains open: Export lacks a supplier
+for the SameLabel service scope, and ten Regimes adapters still call legacy score
+or retained-geometry routes. See `docs/SLEEP-LEDGER.md`, P-ShA round 4.
+
 ## Receipt relay update (2026-09-28)
 
 The dated relay note in `CONTRACT.md` supersedes references below to

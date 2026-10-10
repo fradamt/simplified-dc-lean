@@ -122,6 +122,16 @@ P3 F1b.4b G25; blueprint 03:279–283.
 DC: Goldfish/ProposalSnapshotBridge.lean:144, `raw_subset`.
 INTENTIONAL: the admitted proposal metadata persists to the actual
 post-clock HEAD read, even if an individual carried vote was refused. -/
+theorem fgsa_scoreRun_metadata_retained_restart
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {i j : Nat} (hij : i ≤ j) (x : V)
+    (w : Wire p.n) (hw : w ∈ (V2.D.Run.stateBefore E rho i x).st.proposals)
+    (s : Slot) :
+    w ∈ (FGSA.clock p (V2.D.Run.stateBefore E rho j x).st
+      (SA.voteTime p.toParams s)).proposals := by
+  rw [clock_proposals]
+  exact (fgsa_store_durable p c E rho hij x).2.2.1.subset hw
+
 theorem fgsa_scoreRun_metadata_retained
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hN : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) (x : V)
@@ -170,6 +180,48 @@ DC: Goldfish/ProposalSnapshotBridge.lean:144, `raw_subset`.
 INTENTIONAL: authenticate an admitted slot-s proposal against the actual
 proposal tick, retain its metadata, and project its original N.raw pool.
 All proposal row lists are opaque. No delivery premise is needed for this arm. -/
+theorem fgsa_scoreRun_raw_subset_restart
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot) {ip ia ih : Nat} {x y : V}
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hx : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (hh : x ∈ rho.honest) (horder : ia ≤ ih)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (M : NamedProposal p.n)
+    (hadm : (⟨.proposer s, .proposal M⟩ : Wire p.n) ∈
+      (V2.D.Run.stateBefore E rho ia y).st.proposals)
+    (hFN : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st
+      (SA.voteTime p.toParams s)).fg.F) N.erase) :
+    proposerVotes (FGSA.clock p (V2.D.Run.stateBefore E rho ip x).st
+      (SA.proposalTime p.toParams s)) s ⊆
+    headVotes p (FGSA.clock p (V2.D.Run.stateBefore E rho ih y).st
+      (SA.voteTime p.toParams s)) s := by
+  have hmem := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
+  have pools := fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2.2
+  have heq := fgsa_scoreRun_stored_proposal_eq E rho hE ia y s M
+    hadm (hx ▸ hh) _ rfl ⟨_, by rw [hx]; exact ⟨ip, hip, hem⟩⟩
+  have hw : (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
+      (V2.D.Run.stateBefore E rho ia y).st.proposals := by
+    rw [heq] at hadm
+    exact hadm
+  have hkeep := fgsa_scoreRun_metadata_retained_restart E rho horder y _ hw s
+  rw [← pools.2.1]
+  have hInv := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y)
+    (SA.voteTime p.toParams s)
+  have hMeta := metaInv_clock p _ (metaInv_stateBefore E rho ih y)
+    (SA.voteTime p.toParams s)
+  have hheld := wire_block_mem p _ hInv hMeta hkeep (block?_proposal s N)
+  apply fgsa_scoreRun_carried_raw_subset p _ s N hkeep pools.1
+    (scoreRun_retained_tree p _ hInv _ hheld hFN)
+  intro o ho
+  rw [pools.2.1] at ho
+  exact beq_iff_eq.mp (List.mem_filter.mp ho).2
+
 theorem fgsa_scoreRun_raw_subset
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho)
@@ -259,15 +311,8 @@ theorem fgsa_scoreRun_proposalsAt_eq
 private theorem scoreRun_votes_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hN : V2.D.NoRestart rho) (x : V) {i j : Nat} (hij : i ≤ j) :
     (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆
-      (V2.D.Run.stateBefore E rho j x).st.base.votes := by
-  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
-    (fun nd => (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆ nd.st.base.votes)
-    ?_ ?_ (fun _ _ h => h) E rho hij x (hN.restartFree x i j) (List.Subset.refl _)
-  · intro nd t h
-    change _ ⊆ (clock p nd.st t).base.votes
-    rwa [(clock_vn nd.st t).1]
-  · intro nd o h
-    exact List.Subset.trans h (process_votes_subset nd.st (toWire p o))
+      (V2.D.Run.stateBefore E rho j x).st.base.votes :=
+  fgsa_votes_cumulative_on p c E rho hij x (hN.restartFree x i j)
 
 private theorem scoreRun_proposal_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)

@@ -92,15 +92,8 @@ private theorem relay_idx_mono (rho : V2.D.Run V (fgsa p c)) :
 private theorem relay_votes_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hN : V2.D.NoRestart rho) (x : V) {i j : Nat} (hij : i ≤ j) :
     (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆
-      (V2.D.Run.stateBefore E rho j x).st.base.votes := by
-  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
-    (fun nd => (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆ nd.st.base.votes)
-    ?_ ?_ (fun _ _ h => h) E rho hij x (hN.restartFree x i j) (List.Subset.refl _)
-  · intro nd t h
-    change _ ⊆ (clock p nd.st t).base.votes
-    rwa [(clock_vn nd.st t).1]
-  · intro nd o h
-    exact List.Subset.trans h (process_votes_subset nd.st (toWire p o))
+      (V2.D.Run.stateBefore E rho j x).st.base.votes :=
+  fgsa_votes_cumulative_on p c E rho hij x (hN.restartFree x i j)
 
 private theorem relay_read_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) (readTime : Time) (o : GridCO.Wire p.n .root)

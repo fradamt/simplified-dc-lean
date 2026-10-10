@@ -1,4 +1,4 @@
-# P-ShA round 3 at 46a95cad; remaining failures have exact owners.
+# P-ShA round 4 at 1c777e97; three owned targets remain open.
 [TARGETS]
 AvailableChainFGSAProofs.Tests.RestartEpochs
 AvailableChainFGSAClaims.Tests.Reads
@@ -66,6 +66,8 @@ AvailableChainFGSAProofs.Tests.RetainedScores
 AvailableChainFGSAProofs.Tests.RetainedWalk
 AvailableChainFGSAProofs.Tests.SharedAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
+AvailableChainFGSARun.Proofs.ReceiptCoverage
 AvailableChainFGSARun.Tests.P23Axioms
 AvailableChainFGSAProofs.Tests.RestartEpochs
 AvailableChainEngineV2
@@ -542,9 +544,7 @@ AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSAProofs.Tests.RetainedConsumers P-ShA
 AvailableChainFGSARun S-Ap
-AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

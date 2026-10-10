@@ -7,10 +7,10 @@ public import AvailableChainFGSARun.Proofs.Receipts
 public section
 
 /-! Plan O-ARM §4 field 6, §6.2 steps 1–2 and 4, §11 obligation 3. The last
-healthy label-`(l + 1)` batch. Each honest awake HEAD of label `l + 1` extends
+healthy label-`(l + 1)` batch. Each honest joined HEAD of label `l + 1` extends
 `D` by `htransfer`, and the healthy cut delivers it, with its block and every
-stored ancestor, before e(l + 1) = d(l) ≤ b₀. NoRestart keeps the votes, the
-blocks and their original stamps at every later index. -/
+stored ancestor, before e(l + 1) = d(l) ≤ b₀. The receiver epoch keeps the
+votes, blocks, and stamps through the named read. -/
 
 namespace AvailableChain.FGSA.Run
 
@@ -54,13 +54,14 @@ theorem arming_gate_nat (p : Params) (r : Slot) :
 omit [DecidableEq V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan O-ARM §6.2 step 1. Class (iii). DC: INTENTIONAL; an honest node ticks
-at every public multiple of Δ in the horizon, also asleep. -/
+at each public multiple of Δ where it is awake, inside the horizon. -/
 theorem arming_tick_exists {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) (hΔ : E.Δ = p.Δ) {y : V} (hy : y ∈ rho.honest)
-    (m : Nat) {t : Time} (ht : (m : Time) * p.Δ = t) (hh : t ≤ rho.horizon) :
+    (m : Nat) {t : Time} (ht : (m : Time) * p.Δ = t) (hh : t ≤ rho.horizon)
+    (hawake : E.awake y t = true) :
     ∃ k : Nat, rho.events[k]? = some (.tick y t) := by
   subst ht
-  obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs hΔ y hy m hh
+  obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs hΔ y hy m hh hawake
   exact ⟨k, hk⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -78,7 +79,7 @@ theorem arming_block_early {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hk : rho.events[k]? = some (.tick z (SA.voteTime p.toParams r)))
     (a : Block) (hne : a ≠ .genesis) (ha : a ∈ (storeAt p c E rho k z).base.blocks)
     (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) a)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     a ∈ (storeAt p c E rho j x).base.blocks ∧
       GridCO.stampBlock (storeAt p c E rho j x).base a < SA.earlyTime p.toParams r := by
   have hsch := hE.toScheduleWellFormed
@@ -101,7 +102,7 @@ theorem arming_block_early {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   dsimp only at he
   subst b
   have hmem : a ∈ (storeAt p c E rho j x).base.blocks := by
-    rcases fgsa_block_stamp_source E rho _ z a stamp hm with hgen |
+    rcases fgsa_block_stamp_source E rho hN _ z a stamp hm with hgen |
       ⟨l, hl, t, o, ho, hacc, _⟩
     · exact (hne hgen.1).elim
     · obtain ⟨parent, hdel, _⟩ := hacc.1
@@ -141,26 +142,35 @@ theorem arming_head_ge {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Plan O-ARM §4 field 6, §6.2 steps 1–2, §11 obligation 3. Class (iii).
-DC: INTENTIONAL; the last healthy batch at every honest receiver, asleep or
-awake. Its window v(l + 1) < e(l + 1) = d(l) ≤ b₀ is inside the healthy cut. -/
+DC: INTENTIONAL; the last healthy batch at each awake honest receiver, from joined voters.
+The window v(l + 1) < e(l + 1) = d(l) ≤ b₀ is inside the healthy cut. -/
 theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
-    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) {b₀ ΔF : Time}
+    (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
+    {b₀ : Time}
     (hcut : 0 ≤ b₀ ∧ b₀ ≤ rho.horizon)
-    (hhealthy : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (fgsaDelay E.Δ ΔF) b₀)
     (htransfer : ∀ y z s C H, y ∈ rho.honest → z ∈ rho.honest →
       SA.gateTime p.toParams s ≤ b₀ →
       gateResult p c E rho y s = some (some C) →
       vHead p c E rho z s = some H → Block.Preceq C H)
     {l : Slot} {D : Block} (hl : SA.gateTime p.toParams l ≤ b₀)
-    (hcutl : b₀ < SA.gateTime p.toParams (l + 1))
     (hDmem : (l, D) ∈ cleanResults p c E rho (timeIdx rho b₀))
-    (hF : ∀ k y, k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
-      y ∈ rho.honest → Block.Preceq (F_at p c E rho k y) D)
-    (hroots : NamedRootCollisionFree p c E rho) :
-    ∀ y (q : Fin p.n), y ∈ rho.honest →
+    (y : V) (hy : y ∈ rho.honest)
+    (hReceiver : E.awake y (SA.earlyTime p.toParams (l + 1)) = true)
+    (hEpoch : ∀ k, rho.events[k]? = some (.tick y (SA.earlyTime p.toParams (l + 1))) →
+      V2.D.restartFree rho y (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams (l + 1))) k)
+    (hServices : ∀ q K,
       rho.seatOf (.base (.head (l + 1))) q ∈ rho.honest →
-      E.awake (rho.seatOf (.base (.head (l + 1))) q) (SA.voteTime p.toParams (l + 1)) = true →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head (l + 1))) q)
+        (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩)
+        (SA.voteTime p.toParams (l + 1)) K →
+      Nonempty (FreshHeadService E rho (l + 1) q K.root
+        (SA.earlyTime p.toParams (l + 1)) y) ∧
+      TargetReceiptService E rho K (SA.earlyTime p.toParams (l + 1)) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ q : Fin p.n,
+      rho.seatOf (.base (.head (l + 1))) q ∈ rho.honest →
+      joinedAt p E rho (rho.seatOf (.base (.head (l + 1))) q) (l + 1)
+        (SA.voteTime p.toParams (l + 1)) →
       ∃ K k, rho.events[k]? = some (.tick y (SA.earlyTime p.toParams (l + 1))) ∧
         V2.D.Run.emits E rho (rho.seatOf (.base (.head (l + 1))) q)
           (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩) (SA.voteTime p.toParams (l + 1)) ∧
@@ -172,27 +182,29 @@ theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
           (baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n)) <
           SA.earlyTime p.toParams (l + 1) ∧
         GridCO.stampBlock (storeAt p c E rho k y).base K < SA.earlyTime p.toParams (l + 1) := by
-  intro y q hy hq hawake
+  intro q hq hJoined
   have hs := hE.toScheduleWellFormed
-  have hd := p.deltaPos
   have he : SA.earlyTime p.toParams (l + 1) ≤ b₀ := (arming_early_next p l).trans_le hl
   have hv : SA.voteTime p.toParams (l + 1) < SA.earlyTime p.toParams (l + 1) :=
     (arming_vote_lt_early p (l + 1)).1
   obtain ⟨k, hk⟩ := arming_tick_exists hs hDelta hy (4 * (l + 1) + 2)
-    (arming_early_nat p (l + 1)) (he.trans hcut.2)
+    (arming_early_nat p (l + 1)) (he.trans hcut.2) hReceiver
   obtain ⟨kk, hkk⟩ := arming_tick_exists hs hDelta hq (4 * (l + 1) + 1)
-    (arming_vote_nat p (l + 1)) ((hv.trans_le he).le.trans hcut.2)
-  have hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
-      (SA.voteTime p.toParams (l + 1)) (SA.earlyTime p.toParams (l + 1)) :=
-    Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho (fun o => ¬ isRowObject o) b₀ _ _
-      hhealthy (fgsaDelay_nonrow E.Δ ΔF)
-      (by rw [hDelta, arming_vote_add]) he hcut.2
+    (arming_vote_nat p (l + 1)) ((hv.trans_le he).le.trans hcut.2) hJoined.1
   have hDK := arming_head_ge hs htransfer hDmem hq hkk
-  have hkI : k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) :=
-    ((Gen.V2.Duty.index_lt_idxBefore_iff hs hk _).mpr (he.trans_lt hcutl)).le
-  obtain ⟨hem, hvm, hvs, hKm, hbs, hslot⟩ := inclusion_head_receipt_early (hroots := hroots)
-    E rho hE hN hDelta hC
-    (l + 1) hSync hk q hq hawake hkk _ rfl (block_preceq_trans (hF k y hkI hy) hDK)
+  let K := headVote p ((fgsa p c).clock
+    (V2.D.Run.stateBefore E rho kk (rho.seatOf (.base (.head (l + 1))) q))
+      (SA.voteTime p.toParams (l + 1))).st (l + 1)
+  have hEmit : ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩ ∈ V2.D.Run.emitsAt E rho kk := by
+    rw [(V2.D.Run.step_tick_eq E rho hkk).2]
+    exact (fgsa_emits_head E rho _ _ _ (l + 1) q K.root).mpr
+      ⟨hJoined.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hkk hJoined, rfl⟩
+  have hTarget : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head (l + 1))) q)
+      (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩) (SA.voteTime p.toParams (l + 1)) K :=
+    ⟨kk, l + 1, q, hkk, hEmit, rfl, rfl⟩
+  obtain ⟨⟨hHead⟩, hBlock⟩ := hServices q K hq hTarget
+  obtain ⟨hem, hvm, hvs, hKm, hbs, hslot⟩ := inclusion_head_receipt_early_on
+    E rho hE (l + 1) hk q hq hJoined hkk K rfl hHead hBlock (hEpoch k hk) hroots
   exact ⟨_, k, hk, hem, hDK, hslot, hvm, hKm, hvs, hbs⟩
 
 end AvailableChain.FGSA.Run
