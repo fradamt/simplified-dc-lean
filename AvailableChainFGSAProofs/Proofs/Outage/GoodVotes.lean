@@ -515,10 +515,12 @@ theorem outage_finalized_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     (hresult : gateResultAt p c E rho i = some (some C)) : Block.Preceq B C := by
   have hraw := inclusion_gate_raw_at_tick E rho hs hG
   have hC := Option.some.inj (hraw.symm.trans hresult)
+  rw [clockPre_fg] at hC
+  change GridCO.confirmationFrom p.toParams.engine (F_at p c E rho i x)
+    (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s = some C at hC
   have hext := outageV_result_extends_anchor p.toParams.engine
     (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)))
-    (F_at p c E rho i x) C s (by
-      simpa only [clockPre_fg, F_at, SA.Root.confirmationFrom] using hC)
+    (F_at p c E rho i x) C s hC
   exact Gen.Pure.block_preceq_trans hBF hext
 
 /-- A finalized receiver uses the walk anchor. Otherwise good targets must cover B.

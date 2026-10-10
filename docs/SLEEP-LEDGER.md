@@ -5774,3 +5774,10 @@ source, including a source in W. The caller must prove compatibility of
 the selected good HEADs in the joint induction. This callback is an open
 P-Ou obligation; it is not a producer and does not close the package.
 All three declarations pass the strict local audit.
+
+### P-Ou Round 6 — export repair
+
+The complete export check found F_at.eq_1 in GoodVotes. The new proof
+used simp on the imported predicate. Replace that step with change on
+the exact confirmation type. The strict local roots compile after this
+repair. No allowance, baseline, public declaration, or protocol changed.
