@@ -20,7 +20,8 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 /-- Bounded retained objects and read epochs used by one frontier service interval. -/
 structure FrontierServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (q : Slot) (v : Time) : Prop where
-  read : FrontierReadScope E rho q v
+  read : E.t_GST ≤ SA.proposalTime p.toParams q →
+    SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierReadScope E rho q v
   permanence : ∀ u t m J contested, E.t_GST ≤ u →
     PhaseInterval p c E rho u t m J contested → t ≤ v →
     SupportPermanenceScope E rho u t m J contested
@@ -83,7 +84,8 @@ theorem frontier_exactService_of_heads [Fintype V] (E : Generic.Env V)
     have hqsI : (q : Int) < (s : Int) := by exact_mod_cast hqs
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
     nlinarith
-  have hScope := frontier_repair_gate_scope E rho services.read hgst hu hqs hgate
+  have hRead := services.read (hgst.trans hu) hqv hvh
+  have hScope := frontier_repair_gate_scope E rho hRead hgst hu hqs hgate
   have hhor : SA.voteTime p.toParams s ≤ rho.horizon := by
     apply le_trans ?_ (hgate.trans hvh)
     change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
@@ -92,7 +94,7 @@ theorem frontier_exactService_of_heads [Fintype V] (E : Generic.Env V)
     fun y hy => hhead y hy
       (healing_recovery_joined E rho hrec hy hScope.cut hgsts hhor)
   exact repair_exact_service_on E rho hrec s B hne hScope.cut hgsts (fun _ => hhead)
-    (fun _ _ hx ht => frontier_gate_geometry E rho hrec mono crossing writes services.read
+    (fun _ _ hx ht => frontier_gate_geometry E rho hrec mono crossing writes hRead
       hgst hErase hHeight hService hu hPhase hqv hvh hcap hqs hgate hBs hheadAll hx ht)
     (fun i x hReader ht => hScope.gates i x hReader.1 ht) hhor
 
@@ -220,9 +222,10 @@ theorem frontier_later_head [Fintype V] (E : Generic.Env V)
     change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 2)
     change u ≤ 4 * p.Δ * (q : Int) at hu
     nlinarith [p.deltaPos]
+  have hRead := services.read (hgst.trans hu) hqv hvh
   have hHeads := services.heads s ip x N hqs hvs hPriorCut hx hip hem
   have hinput := retainedHG1Input_through E rho hrec mono crossing writes hgst hQ hErase
-    hHeight hService services.read hu hPhase hqv hvh hCap hx hip hseat N hem hafter hgate
+    hHeight hService hRead hu hPhase hqv hvh hCap hx hip hseat N hem hafter hgate
   have hreads := fgsa_retainedReads_HG1_joined (hroots := hrec.base.receiptIdealization)
     E rho hE s hx hip hseat N hem Qfg q (v + 1) hafter
     (lt_of_le_of_lt hgate (lt_add_of_pos_right v (show (0 : Int) < 1 by decide)))
@@ -332,6 +335,7 @@ theorem frontier_service_core [Fintype V] (E : Generic.Env V)
   intro u v m J contested q Q Qfg hgst hQ hErase hHeight hService hseed hu hPhase hqv hvh hCap
   have hseed := (frontierSeedQualification_iff p E u q).mpr hseed
   have services := scopeProducer q v (frontier_seed_vote_cutoff p E hseed hgst) hqv hvh
+  have hRead := services.read (hgst.trans hu) hqv hvh
   have hd := p.deltaPos
   have huv : u ≤ v := (hu.trans (by
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
@@ -341,14 +345,14 @@ theorem frontier_service_core [Fintype V] (E : Generic.Env V)
   · refine ⟨?_, ?_, ?_⟩
     · intro x i H hx hi hiv hH
       exact frontier_Q_heads E rho hrec mono crossing writes hgst hErase hHeight hService
-        services.read.readers services.read.seed hu hPhase hqv hvh hcap i hi hiv x hx H hH
+        hRead.readers hRead.seed hu hPhase hqv hvh hcap i hi hiv x hx H hH
     · intro i B hi hiv hp
-      exact frontier_proposals_cover E rho hrec mono crossing writes services.read hgst
+      exact frontier_proposals_cover E rho hrec mono crossing writes hRead hgst
         hErase hHeight
         hService hu hPhase hqv hvh hcap hi hiv hp
     · intro i x hx hguard hai hiv
-      exact frontier_output_cover E rho hrec mono crossing writes services.read
-        (fun s hs ht => frontier_repair_gate_scope E rho services.read hgst hu
+      exact frontier_output_cover E rho hrec mono crossing writes hRead
+        (fun s hs ht => frontier_repair_gate_scope E rho hRead hgst hu
           (Nat.lt_of_succ_le hs) ht) hgst hErase hHeight
         hService hu hPhase hqv hvh hcap hguard hx hai hiv
   · intro s B htime hgate hp
@@ -409,6 +413,7 @@ theorem frontier_service [Fintype V] (E : Generic.Env V)
   intro u v m J contested q Q Qfg hgst hQ hErase hHeight hService hseed hu hPhase hqv hvh hCap
   have hseedQ := (frontierSeedQualification_iff p E u q).mpr hseed
   have services := scopeProducer q v (frontier_seed_vote_cutoff p E hseedQ hgst) hqv hvh
+  have hRead := services.read (hgst.trans hu) hqv hvh
   have hcore := frontier_service_core E rho hrec mono crossing scopeProducer writes u v m J
     contested
     q Q Qfg hgst hQ hErase hHeight hService hseed hu hPhase hqv hvh hCap
@@ -421,7 +426,7 @@ theorem frontier_service [Fintype V] (E : Generic.Env V)
   intro r hqr hav
   apply frontierOpeningServed_intro E rho
   intro i x hx ht
-  exact frontier_opening_gateService_of_cover E rho hrec mono crossing writes services.read hgst hQ
+  exact frontier_opening_gateService_of_cover E rho hrec mono crossing writes hRead hgst hQ
     hErase hHeight hService hu hPhase hqv hvh hcap hqr hav hx ht
 
 end AvailableChain.FGSA.Run

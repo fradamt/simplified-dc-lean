@@ -5896,3 +5896,22 @@ The final canonical fragment has 205 unique commands and 205 coverage rows.
 The six HealingOpeningSupport regression audits remain separate. Production-only
 imports are preserved; serial integration remains with its assigned editor.
 Public claims are unchanged. No complete production closure is claimed.
+
+### P-H2 Round 5 — synchronous service factories (2026-10-10)
+
+Internal scope repair, SCOPE-NARROW rule 5. OpeningServiceScopes.transfers now
+takes the actual phase, selected fast-written B, source label bounds, the
+post-GST vote bound, and LabelSyncOn. OpeningServiceGate passes its existing
+hSync and phase facts. With delta = 1, s = 2 and GST = 20, the required
+20 <= voteTime(2) = 9 is false. Joinedness and enabledness cannot enter this
+factory in that run. This is an arithmetic exclusion, not a checked run fixture.
+
+FrontierServiceScopes.read now takes the seed proposal's GST bound, interval
+and horizon. All four consumers pass their phase/source bounds. Opening gates
+and carriers already have their actual label cuts. Repair heads require the
+prior-label cutoff; repair gates require their label cutoff. Permanence requests
+use a post-GST phase. heldServices uses GST <= the actual source event time.
+The accepted/emitted proposal and fresh HEAD service helpers keep their anchor
+or send bound. Reset service uses H0Reset's recoveryStart qualification.
+Lower H1 factories still need the exact rule-5 contracts in the Round 5 handoff;
+this change does not prove those records. Public statements are unchanged.

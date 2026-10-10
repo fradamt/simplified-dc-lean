@@ -34,7 +34,15 @@ structure OpeningServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     joinedNow p (clock p (storeAt p c E rho j x) (SA.voteTime p.toParams s)) = true →
     E.t_GST ≤ SA.voteTime p.toParams s →
     SA.voteTime p.toParams s + p.Δ ≤ rho.horizon → HeadWitnessReceiptScope E rho j x s
-  transfers : ∀ ix iy x s, x ∈ rho.honest → enabledGateAt p c E rho ix x s →
+  transfers : ∀ u v m J contested, E.t_GST ≤ u →
+    PhaseInterval p c E rho u v m J contested → ∀ ix iy x s B,
+    u ≤ SA.voteTime p.toParams s → SA.gateTime p.toParams s ≤ v →
+    E.t_GST ≤ SA.voteTime p.toParams s →
+    Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
+      (SA.voteTime p.toParams s) (SA.gateTime p.toParams s) →
+    B ∈ (fastWriteAt (clock p (storeAt p c E rho ix x)
+      (SA.gateTime p.toParams s)) s).getD [] →
+    x ∈ rho.honest → enabledGateAt p c E rho ix x s →
     rho.events[iy]? = some (.tick x (SA.voteTime p.toParams (s + 1))) →
     joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)) →
     FirstTransferScope E rho ix iy x x s
@@ -258,7 +266,10 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
       hrec.sync (fgsaDelay_nonrow E.Δ _) hgstq hvdq (hgq.trans hvh)
     have hcq := healing_support_release_compat (hroots := hrec.base.receiptIdealization)
       E rho hE hDelta q hSync hx hx hjqt hiq
-      (services.transfers jq iq x q hx
+      (services.transfers u v m J contested hgst hphase jq iq x q Q
+        (hu.trans (by
+          change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + p.Δ
+          linarith [p.deltaPos])) hgq hgstq hSync hQw' hx
         (healing_enabledGate_of_fastWrite E rho hS hjqt hQw') hiq
         (healing_recovery_joined E rho hrec hx
           (by
