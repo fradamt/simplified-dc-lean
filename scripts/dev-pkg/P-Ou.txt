@@ -1,5 +1,5 @@
-# P-Ou kernel, base 15744443. Kernel PREPARED; package closure remains OPEN.
-# GREEN covers each compiled target; EXPECTED-FAIL preserves open repair owners.
+# P-Ou round 2, base babc0460. Kernel PREPARED; public closure remains OPEN.
+# GREEN means compiled; conditional suppliers do not close public claims.
 [TARGETS]
 AvailableChainFGSAClaims.Claims.Outage
 AvailableChainFGSAClaims.Claims.OutageContinuation
@@ -8,6 +8,7 @@ AvailableChainFGSAProofs.Proofs.Outage.ContinuationFrame
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint
+AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
@@ -16,6 +17,8 @@ AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
 AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 AvailableChainFGSAProofs.Proofs.Outage.Export
 AvailableChainFGSAProofs.Proofs.Outage.GateCount
+AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
+AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
 AvailableChainFGSAProofs.Proofs.Outage.InclusionGate
 AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
 AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBounds
@@ -224,11 +227,14 @@ AvailableChainFGSAClaims.Statements.Regimes
 AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationFrame
+AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory
 AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
 AvailableChainFGSAProofs.Proofs.Outage.GateCount
+AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
+AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
 AvailableChainFGSAProofs.Proofs.Outage.PersistenceDefs
 AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
 AvailableChainFGSAProofs.Proofs.Outage.PersistenceHistory
@@ -236,6 +242,7 @@ AvailableChainFGSAProofs.Proofs.Outage.PersistenceRelease
 AvailableChainFGSAProofs.Proofs.Outage.PersistenceSleep
 AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
 AvailableChainFGSAProofs.Proofs.Outage.SleepAxioms
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 AvailableChainFGSAProofs.Proofs.Shared.Channels
@@ -243,6 +250,7 @@ AvailableChainFGSAProofs.Proofs.Shared.Compose
 AvailableChainFGSAProofs.Proofs.Shared.Count
 AvailableChainFGSAProofs.Proofs.Shared.ExactHead
 AvailableChainFGSAProofs.Proofs.Shared.ExactService
+AvailableChainFGSAProofs.Proofs.Shared.Export
 AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
@@ -269,6 +277,8 @@ AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 AvailableChainFGSAProofs.Proofs.Shared.Reads
 AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 AvailableChainFGSAProofs.Proofs.Shared.Recurrence
+AvailableChainFGSAProofs.Proofs.Shared.Regimes
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Proofs.Shared.Relay
 AvailableChainFGSAProofs.Proofs.Shared.Release
 AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
@@ -532,8 +542,6 @@ AvailableChainFGSAProofs.Proofs.Outage.Induction P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.Suppliers P-Ou
 AvailableChainFGSAProofs.Proofs.OutageContinuation.Export P-Ou
-AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSAProofs.Tests.InclusionExact P-Ou
 AvailableChainFGSAProofs.Tests.InclusionGate P-Ou
 AvailableChainFGSAProofs.Tests.OutageInduction P-Ou

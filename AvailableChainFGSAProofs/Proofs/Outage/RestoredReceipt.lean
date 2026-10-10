@@ -94,6 +94,45 @@ theorem outage_restored_reader_epoch (hS : V2.D.ScheduleWellFormed E rho)
   rw [hEq] at hBound
   exact (not_lt.mpr hBound) (hStart.trans_lt haw)
 
+/-- P15-CUT: a protected non-genesis block's origin gate gives the cut
+bound. The origin producer must supply the actual gate; no regime field or
+receipt at an early cut is assumed. -/
+theorem outage_prefix_cut_of_origin {b₀ : Time}
+    (hOrigin : ∃ s, SA.gateTime p.toParams s ≤ b₀) : 6 * p.Δ ≤ b₀ := by
+  obtain ⟨s, hs⟩ := hOrigin
+  rw [arming_gate_eq] at hs
+  have hn : 0 ≤ 4 * p.Δ * (s : Time) :=
+    mul_nonneg (mul_nonneg (by decide) p.deltaPos.le) (Int.natCast_nonneg s)
+  linarith
+
+/-- P15-CUT: every selected label lies in the healthy prefix once an origin
+has given 6Δ ≤ b₀. Equality at the early cut is allowed. -/
+theorem outage_prefix_label_cut {b₀ : Time} (hCut : 6 * p.Δ ≤ b₀)
+    {q : Slot} (hq : q ≤ coverLabel p b₀) : SA.earlyTime p.toParams q ≤ b₀ := by
+  have hlast := (arming_label p b₀ hCut).1
+  rw [← arming_early_next] at hlast
+  have hq' : (q : Time) ≤ (coverLabel p b₀ : Time) := by exact_mod_cast hq
+  change 4 * p.Δ * (q : Time) + 2 * p.Δ ≤ b₀
+  change 4 * p.Δ * (coverLabel p b₀ : Time) + 2 * p.Δ ≤ b₀ at hlast
+  nlinarith [p.deltaPos]
+
+/-- The protected-block consumer uses the corrected prefix predicate.
+For genesis, inclusion follows from block_genesis_preceq and needs no batch. -/
+theorem outage_prefix_receipt_of_origin {fast : Bool} {T b₀ : Time}
+    (hPrefix : OutagePrefixReceipt p c E rho fast T b₀)
+    (hOrigin : ∃ s, SA.gateTime p.toParams s ≤ b₀)
+    {x : V} (hx : x ∈ coveredNodes p E rho fast b₀) {q : Slot}
+    (hq : if fast then q = coverLabel p b₀
+      else (coverLabel p b₀ : Int) - (p.k : Int) + 1 ≤ (q : Int) ∧
+        q ≤ coverLabel p b₀) (hT : T ≤ SA.gateTime p.toParams q) :
+    BatchReceiptAt p c E rho x q (SA.earlyTime p.toParams q) := by
+  have hle : q ≤ coverLabel p b₀ := by
+    cases fast with
+    | false => exact hq.2
+    | true => exact hq.le
+  exact hPrefix x hx q hq hT
+    (outage_prefix_label_cut (outage_prefix_cut_of_origin hOrigin) hle)
+
 /-- Compose the three approved restored read cuts. The public regime theorem
 must derive these services and the P-Ar prefix; they are local proof inputs. -/
 theorem outage_restored_receipt_with_service {fast : Bool} {T b₀ b₁ : Time}

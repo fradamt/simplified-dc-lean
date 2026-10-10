@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Outage.Suppliers
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
-public import AvailableChainFGSAProofs.Proofs.Outage.Growth
+public import AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
 public import AvailableChainFGSAProofs.Proofs.Outage.Close
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims
 -- shake: keep (Clean cut statement boundary)
@@ -158,31 +158,33 @@ theorem outage_cleanInclusionClaim_of : CleanInclusionClaim p := by
     (hstore c E rho) (hframe c E rho)
     hs ho hn ht hbelow hr pt h.prop h.hhor (hmono c E rho () ⟨h.set⟩)
 
-/-- ROOT-DIGEST W2b. Blueprint 03 §5. The suppliers prove growth in the finite Clean horizon.
-The recurrence, gap, trigger, and deadline come from the claim binders. -/
-theorem outage_cleanGrowthClaim_of : CleanGrowthClaim p := by
-  intro G ΔF V _ _ In c E rho t hset hrec hgap ht hhor
-  have hG : 0 ≤ G :=
-    (mul_nonneg (by decide : (0 : Time) ≤ 4) p.deltaPos.le).trans hgap
-  have hpos : 0 < t + G + 6 * p.Δ := by
-    have hd := p.deltaPos
-    positivity
-  have hq := hset.pre.toCleanCut.faultQ_of_pos (hpos.trans_le hhor)
-  have hs := hsrc c E rho () ⟨hset.pre.base, hq⟩
-  have ho := hordered c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
-  have hn := hnonempty c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
-  have htransfer' := htransfer c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
-  have hl := hleases c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
-  have hr := hrows c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
-  have hbelow : ∀ i v, i ≤ timeIdx rho rho.horizon → v ∈ rho.honest →
-      ∀ row ∈ (storeAt p c E rho i v).base.obligations,
-        BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
-    fun i v hi hv row hrow => ((hl i v hi hv).2.2.2.1 row hrow).1
-  exact clean_growth_body (hstrat := hstrat c E rho () ⟨hset.pre.base, hq⟩) E rho G ΔF hset
-    (hstore c E rho) (hframe c E rho)
-    hs ho hn htransfer' hbelow hr (hmono c E rho () ⟨hset⟩) hrec hgap t ht hhor
 
 end CleanClaims
+
+/-- P20: only the two scoped growth suppliers are parameters. The preceding
+CleanClaims include lists do not apply outside that section. -/
+theorem outage_cleanGrowthClaim_of (p : Params)
+    (hcompatible : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time),
+      CleanSet p c E rho ΔF →
+      ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
+      SA.gateTime p.toParams s ≤ rho.horizon →
+      ∀ u x g, 0 ≤ u → u < V2.D.proposalTime (fgsaInterface p c) s →
+        confirmedReader p c E rho x u →
+        g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed] →
+        Block.Compatible (V2.D.outputAt E rho g x u) B)
+    (hinclusion : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time),
+      CleanSet p c E rho ΔF →
+      ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
+      SA.gateTime p.toParams s ≤ rho.horizon →
+      ∀ u x g, SA.gateTime p.toParams s ≤ u → u ≤ rho.horizon →
+        confirmedReader p c E rho x u →
+        g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed] →
+        Block.Preceq B (V2.D.outputAt E rho g x u)) :
+    CleanGrowthClaim p := by
+  exact clean_growth_claim_body p hcompatible hinclusion
+
 
 section OutageClaims
 

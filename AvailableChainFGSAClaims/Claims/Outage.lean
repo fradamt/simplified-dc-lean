@@ -191,7 +191,7 @@ def AvailableFromConcl (t₀ : Time) : Prop :=
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 DC confirmedLive/stableLive: SAME joint strict-prefix growth conclusion.
-The actual proposal and both output reads share one deadline. -/
+The trigger and deadline have independent confirmed-reader scopes. -/
 def AvailableGrowthConcl (t d : Time) : Prop :=
   ∃ s B,
     t < V2.D.proposalTime (fgsaInterface p c) s ∧
