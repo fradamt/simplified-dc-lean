@@ -31,7 +31,7 @@ P-Cl1 core, Shared proof, Outage/Export or Claims/Outage file was edited.
    Keep the proposal, time and getter binders and CleanGrowthClaim unchanged.
 2. Outage/Export: replace the clean-growth call by
    `clean_growth_body E rho G ΔF hset hcompatible hinclusion hrec hgap t ht hhor`.
-   Both inputs have the exact types printed in Outage/Growth.lean:24 and :31.
+   Both inputs have the exact types printed in Outage/Growth.lean:23 and :30.
    Prove hcompatible from the Clean/proposal chain suppliers; prove hinclusion
    from the scoped clean_inclusion_body. Do not add either to CleanGrowthClaim.
    An exact internal exporter with both inputs is in the P-Cl2 report.
@@ -46,7 +46,8 @@ P-Cl1 core, Shared proof, Outage/Export or Claims/Outage file was edited.
 - P-Cl1 must close TransferFrame, StepGate, Transfer, Closure and Safety. The
   unfolded history/truncation/gate/safety body types must match D018–D021.
 - S-Ap must close its receipt record and audit/facade. Claims/Tests/Axioms:678
-  currently omits the new anchor/readiness inputs; this is a supplier port item.
+  passes Recovery₂ to KernelACSideClaim_W, which now needs RecoverySleep₂.
+  This is a S-Ap/P-Fi finality test supplier port item.
 - Count still forces dl(anchor) = dl(send). Wake 24, old acceptance 8, Δ = 2
   cannot meet deadline 10. The current S-Ap record is unchanged. No false old
   deadline is supplied. Wait for the anchor-relative design and caller ports.
@@ -56,3 +57,64 @@ P-Cl1 core, Shared proof, Outage/Export or Claims/Outage file was edited.
   then rebuilds Clean/Export and checks canonical audits before CLOSED.
 
 Approved public meaning changes beyond the packet: none. Public STOPs: none.
+
+P-Ou sole-editor handoff. No P-Ou file was edited.
+
+Replace only AvailableGrowthConcl in Claims/Outage with the approved P20 form:
+
+```lean
+def AvailableGrowthConcl (t d : Time) : Prop :=
+  ∃ s B,
+    t < V2.D.proposalTime (fgsaInterface p c) s ∧
+    HonestProposal E rho (fgsaInterface p c) s B ∧
+    ∀ g ∈ [(fgsaInterface p c).stable,
+           (fgsaInterface p c).confirmed],
+      (∀ x, confirmedReader p c E rho x t →
+        Block.Prec (V2.D.outputAt E rho g x t) B) ∧
+      (∀ x, confirmedReader p c E rho x d →
+        Block.Preceq B (V2.D.outputAt E rho g x d))
+```
+
+Replace the clean-growth exporter with this exact conditional internal supplier form.
+Keep the public CleanGrowthClaim binders unchanged. Prove both suppliers from the
+ported Clean/proposal/inclusion cores before CLOSED. Their proof remains open.
+
+```lean
+theorem outage_cleanGrowthClaim_of (p : Params)
+    (hcompatible : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time),
+      CleanSet p c E rho ΔF →
+      ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
+      SA.gateTime p.toParams s ≤ rho.horizon →
+      ∀ u x g, 0 ≤ u → u < V2.D.proposalTime (fgsaInterface p c) s →
+        confirmedReader p c E rho x u →
+        g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed] →
+        Block.Compatible (V2.D.outputAt E rho g x u) B)
+    (hinclusion : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time),
+      CleanSet p c E rho ΔF →
+      ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
+      SA.gateTime p.toParams s ≤ rho.horizon →
+      ∀ u x g, SA.gateTime p.toParams s ≤ u → u ≤ rho.horizon →
+        confirmedReader p c E rho x u →
+        g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed] →
+        Block.Preceq B (V2.D.outputAt E rho g x u)) :
+    CleanGrowthClaim p := by
+  intro G ΔF V _ _ In c E rho t hset hrec hgap ht hhor
+  exact clean_growth_body E rho G ΔF hset
+    (hcompatible c E rho ΔF hset) (hinclusion c E rho ΔF hset) hrec hgap t ht hhor
+```
+
+Use the current Growth module. Its join guard comes from hrec, including hjoined.2.2.
+Use the sleep cut hset.sleepPre.sleepPre in the remaining Clean-history callers.
+Use the approved scoped ordering, enabled gate, joined voter and epoch projections.
+
+### Prepared validation
+
+- P-Cl2 DCK PASS: 466 GREEN, 8 EXPECTED-FAIL; default negative controls PASS.
+- GREEN lake build --wfail PASS. Strict audits: 38 roots, 2799 results.
+- Exact four-definition audit, three zero adapters and P-Ou handoff audit PASS.
+- Complete green-root exports: 95 proof modules, 250 exports, 0 unaccepted.
+- Layers: 72 baseline findings, 0 new. Approved-form comparison PASS.
+- Clean/Export EXPECTED-FAIL: Shared/Regimes and P-Cl1/TransferFrame suppliers.
+- Diff and all changed-file line lengths PASS. CLOSED remains open.
