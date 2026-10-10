@@ -1791,3 +1791,9 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
 │ Complete export/audit coverage     │ PASS   │ 38.20     │
 └────────────────────────────────────┴────────┴───────────┘
 ```
+
+## S-Ap Round 2 — review pin repair (2026-10-10)
+
+Updated all 253 stale exact-hash pins to the current `docs/FGSA-API.md`.
+The allow-name set and frozen baseline are unchanged. The frozen manifest
+check passes (6.04 s). This closes review finding 1 before DECISION P23-A.
