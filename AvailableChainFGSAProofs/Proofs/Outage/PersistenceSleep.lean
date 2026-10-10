@@ -1,5 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDefs
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
+public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceRelease
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAClaims.Statements.OutageSleep
@@ -75,6 +77,43 @@ theorem outage_restart_protection_at {B : Block} {j : Slot} {i : Nat} {x : V} {w
   simp only [V2.D.World.step, Function.update_self]
   exact outage_restart_protection w h
 
+/-- A restart adds no source or duty. These two histories are global;
+protection is preserved only on the selected receiver scope. This is the
+restart case shared by the pre-expiry and continuation joint inductions. -/
+theorem outage_joint_restart {B : Block} {j : Slot} {i : Nat} {x : V} {w : Time}
+    (he : rho.events[i]? = some (.restart x w)) (R : V → Prop)
+    (hSource : OutageSourceHistory p c E rho B i)
+    (hDuty : OutageDutyHistory p c E rho B j i)
+    (hProtected : ∀ y, R y → OutageProtection p B j (storeAt p c E rho i y)) :
+    OutageSourceHistory p c E rho B (i + 1) ∧
+      OutageDutyHistory p c E rho B j (i + 1) ∧
+      ∀ y, R y → OutageProtection p B j (storeAt p c E rho (i + 1) y) := by
+  refine ⟨⟨?_⟩, ⟨?_⟩, ?_⟩
+  · intro k y r C hk hy ht hC
+    have hki : k < i := by
+      rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with h | rfl
+      · exact h
+      · rw [he] at ht
+        cases ht
+    exact hSource.history k y r C hki hy ht hC
+  · intro k y t o hk hy hj ht ho
+    have hki : k < i := by
+      rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with h | rfl
+      · exact h
+      · rw [he] at ht
+        cases ht
+    exact hDuty.history k y t o hki hy hj ht ho
+  · intro y hy
+    by_cases hxy : x = y
+    · subst y
+      exact outage_restart_protection_at he (hProtected x hy)
+    · have hs : storeAt p c E rho (i + 1) y = storeAt p c E rho i y := by
+        unfold storeAt
+        rw [V2.D.Run.stateBefore_succ E rho he]
+        simp only [V2.D.World.step, Function.update_of_ne (Ne.symm hxy)]
+      rw [hs]
+      exact hProtected y hy
+
 /-- P17: the covering-lock exception is limited to the live deadline. -/
 theorem outage_restart_live_lock {B : Block} {g : Nat} {dl : Time} {st : State p.n}
     {w : Time} (hRow : (B, g, dl) ∈ st.base.obligations) (hLive : w < dl) :
@@ -82,6 +121,99 @@ theorem outage_restart_live_lock {B : Block} {g : Nat} {dl : Time} {st : State p
       (acRestart p st w).base.now < dl := by
   rw [acRestart_obligations, acRestart_now]
   exact ⟨hRow, hLive⟩
+
+/-- P-Ar's scoped pending gate seeds protection only for covered receivers.
+The current-finality branch is retained; no all-honest seed is constructed. -/
+theorem outage_arming_local_on
+    (hvalid : V2.D.ExecutionValid E rho) (hdelta : E.Δ = p.Δ)
+    {fast : Bool} {T b₀ : Time} {B : Block} (hne : B ≠ .genesis)
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh)
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon) :
+    ∀ y ∈ coveredNodes p E rho fast b₀,
+      OutageProtection p B (l + 1)
+        (storeAt p c E rho (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) y) := by
+  intro y hy
+  obtain ⟨hS, hF | ⟨_, _, dl, hlease, _, hlong, _⟩⟩ :=
+    arming_sleep_gate_core hvalid hdelta hne hc hgate y hy
+  · exact ⟨hS, Or.inl hF⟩
+  exact ⟨hS, Or.inr ⟨dl, outage_row_of_lease p _
+    (cstoreInv_stateBefore E rho _ y) hlease, hlong⟩⟩
+
+/-- The global source history supplies P-Ar's exact named-row boundary.
+The certificate does not assume this boundary. -/
+theorem outage_arming_domain_on
+    (hvalid : V2.D.ExecutionValid E rho) (hdelta : E.Δ = p.Δ)
+    (hf : FGFoundation p c E rho) (hroots : NamedRootCollisionFree p c E rho)
+    {fast : Bool} {T b₀ : Time} {B : Block} (hne : B ≠ .genesis)
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh)
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon)
+    (hSource : OutageSourceHistory p c E rho B
+      (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))))
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C)) :
+    ∀ y ∈ coveredNodes p E rho fast b₀,
+      let I := afterTicksIdx rho (SA.gateTime p.toParams (l + 1))
+      let st := storeAt p c E rho I y
+      Block.Preceq B (F_at p c E rho I y) ∨
+        ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
+          Block.Preceq B (eraseFG (FGSA.controls p st).Z)) := by
+  have hRows : ∀ y r (a : RowWire p.n) (e Bh : FGBlock (Fin p.n)), eraseFG Bh = B →
+      HonestRowBefore p c E rho (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) y r a →
+      namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+      RootBlockInRun p c E rho (eraseFG e) → FGBlock.Preceq e Bh ∨ FGBlock.Preceq Bh e := by
+    intro y r a e Bh hBh ha he hScope
+    exact (outage_named_of_source_history hroots hBh hSource hnamed).history y r a e
+      ha he hScope
+  intro y hy I st
+  obtain ⟨_, hF | ⟨_, _, _, _, _, _, hdom⟩⟩ :=
+    pending_gate_lease_or_F_on hvalid hdelta hf hne hc hgate hRows y hy
+  · exact Or.inl hF
+  · exact Or.inr hdom
+
+/-- The scoped certificate supplies the strict pre-pending global source seed. -/
+theorem outage_arming_sources_before_on
+    (hs : V2.D.ScheduleWellFormed E rho) {fast : Bool} {T b₀ : Time} {B : Block}
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh) :
+    OutageSourceHistory p c E rho B (rho.idxBefore (SA.gateTime p.toParams (l + 1))) := by
+  constructor
+  intro k y r C hk hy ht hC
+  have htime := (Gen.V2.Duty.index_lt_idxBefore_iff hs ht _).mp hk
+  exact block_compatible_of_common (hc.source_below y r C hy htime hC) hc.max_read
+
+/-- Only the actual pending action sources remain at the all-ticks seed boundary.
+This field is P-Ou's joint-induction obligation, not a public claim premise. -/
+theorem outage_arming_sources_on
+    (hs : V2.D.ScheduleWellFormed E rho) {fast : Bool} {T b₀ : Time} {B : Block}
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh)
+    (hPending : ∀ y r C, y ∈ rho.honest →
+      p.actionTime r = SA.gateTime p.toParams (l + 1) →
+      actionSource p c E rho y r = some (some C) → Block.Compatible C B) :
+    OutageSourceHistory p c E rho B (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) := by
+  constructor
+  intro k y r C hk hy ht hC
+  have htime := arming_tick_le hs ht
+    (hk.trans_le (preIdx_le_afterTicksIdx E rho hs _).2)
+  rcases htime.lt_or_eq with hlt | heq
+  · exact block_compatible_of_common (hc.source_below y r C hy hlt hC) hc.max_read
+  · exact hPending y r C hy heq hC
+
+/-- Rows whose deadlines are at or before handover are absent from the expired view.
+The joint induction must bound the deadlines of the old conflicting rows. -/
+theorem outage_handover_expired {n : Nat} (st : GridCO.State n .root) (r : Slot)
+    (row : Block × Nat × Time) (hOld : row.2.2 ≤ OutageEnd p r) :
+    row ∉ (GridCO.expire { st with now := OutageEnd p r } (OutageEnd p r)).obligations := by
+  intro hm
+  have hLive : OutageEnd p r < row.2.2 := of_decide_eq_true (List.mem_filter.mp hm).2
+  exact (not_lt_of_ge hOld) hLive
 
 end AvailableChain.FGSA.Run
 end
