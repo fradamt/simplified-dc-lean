@@ -112,5 +112,30 @@ theorem outageV_gate_of_compatible_batch {n : Nat} (p : GridCO.Params)
   rw [hcount]
   exact (Nat.mul_le_mul_left 2 hle).trans hc.le
 
+/-- OUTPUT-DIRECT §7. DC: INTENTIONAL; a genuine result extends F even
+when the terminal result equals the walk anchor. -/
+theorem outageV_result_extends_anchor {n : Nat} (p : GridCO.Params) (st : GridCO.State n .root)
+    (anchor C : Block) (s : Slot)
+    (hresult : GridCO.confirmationFrom p anchor st s = some C) : Block.Preceq anchor C := by
+  let score := GridCO.goldfishScoreOn (GridCO.resolutionTree st) st.blocks
+    (GridCO.cleanSupport p st s) (GridCO.cleanSupport p st s)
+  let eligible := fun b => 2 * score b > GridCO.voterCount (GridCO.lateVotes p st s)
+  let result := GridCO.ghost anchor st.blocks score (fun b => decide (eligible b))
+  change (if eligible result then some result else none) = some C at hresult
+  split at hresult
+  · have he : result = C := Option.some.inj hresult
+    rw [← he]
+    apply Gen.Pure.walk_covers_of_dominated_suffix
+    · exact Gen.Pure.block_compatible_of_common
+        (Gen.Pure.block_preceq_refl anchor) (Gen.Pure.block_preceq_refl anchor)
+    · rw [Gen.Pure.DominatedSuffix_def]
+      intro A hA hAF
+      change ((!decide (anchor = A)) && Block.preceq anchor A) = true at hA
+      obtain ⟨hne, hpre⟩ := Bool.and_eq_true_iff.mp hA
+      have he := Gen.Pure.block_preceq_antisymm hpre hAF
+      simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hne
+  · contradiction
+
+
 end AvailableChain.FGSA.Run
 end

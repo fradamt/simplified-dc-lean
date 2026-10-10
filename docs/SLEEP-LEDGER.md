@@ -5641,6 +5641,72 @@ are unchanged. There is no public STOP. No checker, baseline, allowance,
 heartbeat increase or toolchain change was added.
 Logs: .lake/sleep-pou-r4/. Exact closure types: P-Ou.round4-handoff.md.
 
+## P-Ou Round 5 — pending source seed (2026-10-10)
+
+Public claims and protocol declarations are unchanged. This group closes the
+all-honest pending-source input at PersistenceSleep.outage_arming_sources_on.
+It does not close the full outage or continuation joint induction.
+
+- PersistenceSleep.outage_enabled_gate_read_epoch and
+  outage_enabled_gate_tick_epoch derive the actual receiver epoch from the
+  enabled gate. outage_enabled_gate_joined derives the environment join guard.
+- PersistenceSleep.outage_pending_frame_below extends the certificate's
+  strict-cut F bound to every actual enabled pending tick, including W.
+- GoodVotes.outage_pending_head_targets derives B and receiver-F prefixes
+  for honest pending HEAD targets from the actual joined emission and the
+  existing Clean transfer projection. Later labels remain joint proof work.
+- ReceiverInputs.outage_prefix_head_service, outage_prefix_proposal_service
+  and outage_prefix_batch_service use prefix transport with an explicit cut.
+  These services need no GST bound. Retained targets use their original
+  acceptance and durable proposal history.
+- ReceiverInputs.outage_pending_receipt_scope and
+  outage_pending_result_compatible cover every enabled pending receiver.
+  The early deadline is d(l), at or before b₀; the gate itself can be after b₀.
+- ReceiverInputs.outage_pending_sources_compatible discharges hPending for
+  all honest actions, including W. outage_arming_sources_from_prefix gives
+  the full all-ticks source seed from the sleep prefix, TSrc, the scoped
+  certificate and the existing joined Clean transfer projection.
+- Tests.OutageServices.pending_seed_consumer checks this exact producer call.
+
+Still owned by P-Ou: the full InclusionReceiverInputs record; later-label
+hTargets and hResults; both joint inductions; scoped continuation closure.
+No false producer or public STOP was found in this group.
+
+### P-Ou Round 5 — exact old-row deadlines and handover
+
+- PersistenceDeadlines.outage_row_deadline_origin proves an actual enabled
+  gate origin for every retained row and its exact deadline d(s)+L.
+  Its event induction includes restart and replay. Renewal either retains
+  an existing row or uses the new gate deadline; no NoRestart input is used.
+- outage_conflicting_row_deadline uses compatibility of actual later
+  results to show that a conflicting retained row has label at most r.
+  Hence its deadline is at most OutageEnd(r) = v(r+k+1).
+- outage_handover_rows_compatible and outage_handover_tick_rows combine
+  that bound with the actual clock expiry filter. Deadline equality removes
+  the row. An unjoined handover tick still runs expiry before its duty guard.
+- The later-result input is bounded by j < i at this receiver. The global
+  later-result producer remains P-Ou work; these conditional handover
+  theorems do not close the public continuation claim.
+- Tests.OutageServices.pending_seed_of_clean_history instantiates the
+  actual Clean/Closure.cleanHistoryAt_body transfer projection.
+  Tests.OutageServices.handover_rows_consumer checks the actual tick adapter.
+
+The map retains the same nine P-Ou and two S-Ap EXPECTED-FAIL modules.
+The two new production modules are registered GREEN after their own builds.
+No public statement, protocol declaration, checker or allowance changed.
+
+### P-Ou Round 5 — final validation
+
+Proof source 9ff21cea. DCK P-Ou PASS: 504 GREEN modules, 41 strict audit sources,
+3,145 axiom results and all 24 controls. Complete GREEN export check:
+316 proof modules, 253 exports, zero unaccepted and zero Gen exports.
+Complete local coverage and its control PASS for 182 commands.
+Layers retain 72 inherited findings with zero new. Whitespace, ownership,
+new prose/code line length and placeholder checks pass.
+The actual remaining consumer roots still fail in Induction,
+ContinuationReceipt and Shared/Claims. Nine P-Ou and two S-Ap modules remain
+EXPECTED-FAIL. P-Ou remains PREPARED, not CLOSED. No public STOP was established.
+Handoff: scripts/dev-pkg/P-Ou.round5-handoff.md. Report: Round 5 in the local report.
 ### Lead note after the P-Ou round 4 review (2026-10-10 12:24)
 
 rev-pou4-astra: MERGE-AS-PREPARED for P-Ou rounds 3 and 4 together. Both
@@ -5909,3 +5975,86 @@ pending fixes item 3). (2) B18's fixture proves StrongRecoverySearchPrefix₂ �
 CleanGrowthContinuation₂, not CleanGrowthContinuationSleep₂ (no
 joinedParticipation adapter); complete non-vacuity of the public sleep claim
 stays OPEN. Healing targets are out of P-As scope until P-H1 r4 lands.
+
+### P-Ou Round 6 — integration name collision
+
+Base 4b561a23 combines P-Ou round 5 and P-Ar round 5. ArmingScores
+redeclared two P-Ou theorem names from ExactProposalReceipts. Rename the
+owned copies to inclusion_receiver_proposer_prior_on and
+inclusion_receiver_scores_on. Update ExactProposalRetained, the local
+strict audit, and the complete coverage fragment. The two bodies and
+all public claims stay unchanged. ArmingScores now compiles.
+
+### P-Ou Round 6 — general pending seed and selected gate service
+
+- ReceiverInputs.outage_arming_sources_scoped proves the all-ticks
+  source history from ArmingSleepGateCert. Pending-time sources use
+  fast support, the strict release bound from joined participation, and
+  an actual honest joined HEAD above D. Sources in W are included.
+- outage_arming_named_scoped converts this seed with P-Fd emitted names.
+  outage_arming_protection_scoped discharges the full P-Ar row boundary
+  and returns protection and domain on coveredNodes.
+- outage_fast_seed_scoped consumes fast_arming_scoped_on. The hLast
+  request is satisfied. OutageServices supplies the actual Clean state,
+  history, transfer, provenance, and P-Fd named-source producers.
+- OutageGateReceiptScope requests only selected HEADs. The restored
+  producer uses actual enabled join, the receiver epoch, and F below B.
+  outageV_gate_of_good_service_scoped keeps the B below F / F below B
+  split. The finalized branch needs no receipt or count premise.
+- outage_restored_result_of_good_targets produces every receiver
+  service from transport and E's actual count. Its conditional good-HEAD
+  target input and current F compatibility remain P-Ou joint obligations.
+- Public claims and protocol declarations are unchanged. Both full
+  scoped joint inductions and InclusionReceiverInputs remain open.
+- ReceiverInputs and RestoredBatch now use public CatchUp imports and
+  its public target-service constructors. Two inherited header findings
+  are removed. Layers: 72 findings, zero new.
+
+### P-Ou Round 6 — A union W source transition
+
+ReceiverInputs.outage_fast_supporting_head_outside selects an actual
+joined HEAD outside any bad set that contains the faults and has count
+below the release level. The original faulty-only helper is its wrapper.
+outage_e1_release_bound proves the fixed A union W bound before recovery.
+outage_source_of_good_heads uses this bound for every actual honest
+source, including a source in W. The caller must prove compatibility of
+the selected good HEADs in the joint induction. This callback is an open
+P-Ou obligation; it is not a producer and does not close the package.
+All three declarations pass the strict local audit.
+
+### P-Ou Round 6 — export repair
+
+The complete export check found F_at.eq_1 in GoodVotes. The new proof
+used simp on the imported predicate. Replace that step with change on
+the exact confirmation type. The strict local roots compile after this
+repair. No allowance, baseline, public declaration, or protocol changed.
+
+### P-Ou Round 6 — final validation and closure status
+
+Proof source 84255dd4. DCK P-Ou PASS: 504 GREEN modules, 41 strict
+sources, 3,165 axiom results, and all 24 controls. Complete GREEN
+exports: 321 proof modules, 253 exports, zero unaccepted and zero Gen
+exports. Complete local coverage and its control PASS for 201 commands.
+Layers retain 72 inherited findings with zero new. Module headers have
+four inherited failures and no new failure; two owned failures were
+removed. New prose/code line lengths and whitespace pass.
+
+The actual consumer roots still fail in Induction and ContinuationReceipt.
+All nine P-Ou and two S-Ap EXPECTED-FAIL entries remain. P-Ou is PREPARED,
+not CLOSED. The full scoped joint inductions, later good-HEAD invariant,
+global late-result producer, InclusionReceiverInputs, and final exports
+remain P-Ou work. The fast hLast request is satisfied; the continuation
+prefix adapter remains a P-Ar request. No public STOP was established.
+Handoff: scripts/dev-pkg/P-Ou.round6-handoff.md. Its SCOPE-NARROW table
+records every input role, named producer, and open owner. Report: Round 6
+in claude-files/sleep-pou-report.md. Evidence: .lake/sleep-pou-r6/.
+
+### Lead note after the P-Ou round 6 review (2026-10-10 13:33)
+
+rev-pou6-astra: MERGE-AS-PREPARED for P-Ou rounds 5 and 6. hRows is
+discharged by named source history at afterTicksIdx (gateTime (l+1)),
+including pending-time sources in W, without the old all-honest
+pending_input. The P-Ou score-theorem copies are renamed
+(inclusion_receiver_proposer_prior_on, inclusion_receiver_scores_on), which
+removes the ArmingScores duplicate-name build break on sleep-int. Header
+residue: GoodVotes:2 (P-Ou r7) and ArmingKernel:2/3, ArmingLocal:2 (P-Ar r6).

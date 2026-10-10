@@ -579,7 +579,7 @@ theorem inclusion_retained_reads [Fintype V]
         change Block.Preceq (eraseFG (clock p (storeAt p c E rho ip x) _).fg.F) K
         rw [clock_fg]
         exact block_preceq_trans (hD ▸ eraseFG_preceq hFx) hDK
-  have hPP := inclusion_proposer_prior_of_F_prefix_on E rho hE hC (q + 2) ip x src (by
+  have hPP := inclusion_receiver_proposer_prior_on E rho hE hC (q + 2) ip x src (by
       change (clock p (storeAt p c E rho ip x) _).base.votes = _
       exact (clock_vn _ _).1) H hH hbatch D0 (by
         change Block.Preceq (eraseFG (clock p (storeAt p c E rho ip x) _).fg.F) D0
@@ -704,7 +704,7 @@ theorem inclusion_retained_reads [Fintype V]
       decide (GridCO.stampVote (actView dst) o < SA.freezeTime p.toParams (q + 1)) &&
       decide (GridCO.stampBlock (actView dst) K < SA.freezeTime p.toParams (q + 1))) = true
     simp only [hslot, hvsd, hbsd, decide_true, Bool.and_self]
-  have hRS := inclusion_reader_scores_on E rho hE hC (q + 1) hih H hH hbatch D0 hrecR hy
+  have hRS := inclusion_receiver_scores_on E rho hE hC (q + 1) hih H hH hbatch D0 hrecR hy
     (hInputs.relay (q + 1) ih y ⟨hy, hJ⟩ hih)
   refine ⟨Or.inr (hRPS _ hap), Or.inr (Or.inl (hRPS _ hay)), Or.inr (hRPS _ hDD),
     hsfloor, htfloor, ?_⟩

@@ -188,6 +188,75 @@ theorem outage_arming_sources_before_on
   have htime := (Gen.V2.Duty.index_lt_idxBefore_iff hs ht _).mp hk
   exact block_compatible_of_common (hc.source_below y r C hy htime hC) hc.max_read
 
+/-- An enabled gate keeps each strict read after its label start in the same epoch. -/
+theorem outage_enabled_gate_read_epoch (hs : V2.D.ScheduleWellFormed E rho)
+    {i : Nat} {x : V} {s : Slot} (hG : enabledGateAt p c E rho i x s)
+    {D : Time} (hD : slotStartZ p (s : Int) < D) :
+    V2.D.restartFree rho x (rho.idxBefore D) i := by
+  intro j w hcut hji hj
+  have hw : D ≤ w := by
+    by_contra hn
+    exact (Nat.not_lt.mpr hcut)
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hs hj _).mpr (lt_of_not_ge hn))
+  obtain ⟨u, hu, hwu⟩ := fgsa_restartTime_ge E rho hs hj hji
+  have hb := hG.2
+  change (match (rho.stateBefore E i x).st.restartTime with
+    | none => True | some t => t ≤ slotStartZ p (s : Int)) at hb
+  rw [hu] at hb
+  exact (not_lt_of_ge (hw.trans (hwu.trans hb)) hD).elim
+
+/-- An enabled gate has no receiver restart between its strict cut and its tick. -/
+theorem outage_enabled_gate_tick_epoch (hs : V2.D.ScheduleWellFormed E rho)
+    {i : Nat} {x : V} {s : Slot} (hG : enabledGateAt p c E rho i x s) :
+    V2.D.restartFree rho x (rho.idxBefore (SA.gateTime p.toParams s)) i := by
+  apply outage_enabled_gate_read_epoch hs hG
+  change 4 * p.Δ * (s : Int) < 4 * p.Δ * (s : Int) + 6 * p.Δ
+  linarith [p.deltaPos]
+
+/-- The actual enabled honest tick supplies the environment join guard.
+Its last restart bounds all earlier restarts and all wakes through this tick. -/
+theorem outage_enabled_gate_joined (hvalid : V2.D.ExecutionValid E rho)
+    {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
+    (hG : enabledGateAt p c E rho i x s) :
+    joinedAt p E rho x (s + 1) (SA.gateTime p.toParams s) := by
+  have hs := hvalid.toScheduleWellFormed
+  have hslot : slotStartZ p (((s + 1 : Nat) : Int) - 1) = slotStartZ p (s : Int) := by
+    congr 1
+    omega
+  have hBound : ∀ w, 0 ≤ w → w ≤ SA.gateTime p.toParams s →
+      V2.Event.restart x w ∈ rho.events → w ≤ slotStartZ p (s : Int) := by
+    intro w _ hw hr
+    obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hr
+    have hji := V2.D.Engine.restart_index_lt_event hs hj hG.1 hw
+      (by change (0 : Nat) < 1; decide)
+    obtain ⟨u, hu, hwu⟩ := fgsa_restartTime_ge E rho hs hj hji
+    have hb := hG.2
+    change (match (rho.stateBefore E i x).st.restartTime with
+      | none => True | some t => t ≤ slotStartZ p (s : Int)) at hb
+    rw [hu] at hb
+    exact hwu.trans hb
+  refine ⟨hvalid.tick_awake x _ (List.mem_of_getElem? hG.1), ?_, ?_⟩
+  · intro w hw hwt hW
+    rw [hslot]
+    exact hBound w hw.le hwt (hvalid.wake_restart x hx w hw
+      (hwt.trans (hs.in_horizon _ (List.mem_of_getElem? hG.1)).2) hW)
+  · intro w hw hwt hr
+    rw [hslot]
+    exact hBound w hw hwt hr
+
+/-- The certificate's strict-cut F bound holds at every enabled pending tick,
+including a receiver in W. Same-time restart is excluded by the enabled guard. -/
+theorem outage_pending_frame_below
+    (hs : V2.D.ScheduleWellFormed E rho) {fast : Bool} {T b₀ : Time} {B : Block}
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hG : enabledGateAt p c E rho i x (l + 1)) :
+    Block.Preceq (F_at p c E rho i x) D := by
+  change Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) D
+  rw [arming_tick_store_on hs hG.1 (outage_enabled_gate_tick_epoch hs hG)]
+  exact hc.f_below _ x le_rfl hx
+
 /-- Only the actual pending action sources remain at the all-ticks seed boundary.
 This field is P-Ou's joint-induction obligation, not a public claim premise. -/
 theorem outage_arming_sources_on
