@@ -259,6 +259,12 @@ example (p : Params) (G ΔF : Time)
 
 -- The non-effective cut start in the raise / contest row.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (mono : RMonoAll p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      ev.time + p.Δ ≤ rho.horizon →
+      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
     (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
     {ev : V2.Event V (Obj p)} {v : Time}
@@ -281,12 +287,19 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     healing_attempt_inclusive_start E rho hvalid hne
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_attempt_raise_contest_settle p c E rho crossing hrec
+  obtain ⟨J, hsettled⟩ := healing_attempt_raise_contest_settle p c E rho mono heldServices
+    crossing hrec
     hvalid hstart hu hv hquiet htask hphase
   exact ⟨rG, J, ht, hcut, hsettled⟩
 
 -- The non-effective cut start in the raise / other row.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (mono : RMonoAll p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      ev.time + p.Δ ≤ rho.horizon →
+      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
     (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
     {ev : V2.Event V (Obj p)} {v : Time}
@@ -309,12 +322,19 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     healing_attempt_inclusive_start E rho hvalid hne
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_attempt_raise_other_settle p c E rho crossing hrec
+  obtain ⟨J, hsettled⟩ := healing_attempt_raise_other_settle p c E rho mono heldServices
+    crossing hrec
     hvalid hstart hu hv hquiet htask hphase
   exact ⟨rG, J, ht, hcut, hsettled⟩
 
 -- The non-effective cut start in the firstRow / contest row.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (mono : RMonoAll p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      ev.time + p.Δ ≤ rho.horizon →
+      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
     (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
     {ev : V2.Event V (Obj p)} {v : Time}
@@ -337,12 +357,19 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     healing_attempt_inclusive_start E rho hvalid hne
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_contest_settle p c E rho crossing hrec
+  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_contest_settle p c E rho mono heldServices
+    crossing hrec
     hvalid hstart hu hv hquiet htask hphase
   exact ⟨rG, J, ht, hcut, hsettled⟩
 
 -- The non-effective cut start in the firstRow / other row.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (mono : RMonoAll p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      ev.time + p.Δ ≤ rho.horizon →
+      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
     (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
     {ev : V2.Event V (Obj p)} {v : Time}
@@ -365,7 +392,8 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     healing_attempt_inclusive_start E rho hvalid hne
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_other_settle p c E rho crossing hrec
+  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_other_settle p c E rho mono heldServices
+    crossing hrec
     hvalid hstart hu hv hquiet htask hphase
   exact ⟨rG, J, ht, hcut, hsettled⟩
 

@@ -5357,3 +5357,18 @@ Exact H1 and P-As requests are in claude-files/sleep-ph2c/H1-requests.md and P-A
 They include declaration names, file:line and complete current/proposed telescopes. H1
 proposals are marked uncompiled. ResetArrival's two direct HealingReset calls are included.
 Public claims unchanged. No public STOP. H2 production and final closure remain OPEN.
+
+### P-H2 Round 3 — settlement and Assembly call-site handoff (2026-10-10)
+
+AttemptRows threads RMonoAll and per-carrier TargetReceiptService into settlement.
+HealingAttempt threads the same inputs through all four inclusive-cut adapters. All four
+exact examples pass in the isolated settlement check. The handoff's listed “11” sites
+contain 12 individual calls; every listed call is ported, including canonical retained
+repair and the capped frontier relay. AttemptRows and the containing mixed test still
+have open production/import dependencies; this is not a module closure claim.
+
+Export's AS1 composition now takes RMonoAll and the full original-emission ReceiverService
+producer. Its Recovery₂ callbacks use the exact RecoverySleep₂ projection. AS1 and AS2
+bodies pass separately with permitted axioms only; their full telescopes are in the P-As
+handoff. The containing Export remains OPEN through the post-reset cone. No public claim
+meaning changed. No unconditional public claim producer is claimed by these _of wrappers.

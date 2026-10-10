@@ -28,7 +28,19 @@ Assembly must discharge every supplier port of these composition wrappers.
 DC: SAME fixed action, effective-event alternative, and three deadlines. -/
 theorem healing_renewedPromotionClaim_of
     (hmono : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RMono p c E rho)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RMonoAll p c E rho)
+    (hproposalServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
+      RecoverySleep₂ p c E rho G ΔF →
+      ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hcrossing : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
       Recovery₂ p c E rho G ΔF → RXing p c E rho)
@@ -48,10 +60,10 @@ theorem healing_renewedPromotionClaim_of
       Recovery₂ p c E rho G ΔF → p.E.q ≤ p.E.weightOf (honestSeats p c rho)) :
     RenewedPromotionClaim p := by
   intro G ΔF hδ V _ _ In c E rho pt h
-  exact healing_renewedPromotion E rho h.set hδ h.bound
-    (hmono c E rho) (hcrossing c E rho h.set) (hperm c E rho h.set)
-    (hrowsReceipt c E rho h.set) (hprogressCoverage ΔF c E rho)
-    hfold (hfaultQ c E rho h.set) (hhonestQuorum c E rho h.set) pt.r h.hhor
+  exact healing_renewedPromotion E rho h.set (hproposalServices c E rho h.set) hδ h.bound
+    (hmono c E rho) (hcrossing c E rho h.set.toRecovery₂) (hperm c E rho h.set.toRecovery₂)
+    (hrowsReceipt c E rho h.set.toRecovery₂) (hprogressCoverage ΔF c E rho)
+    hfold (hfaultQ c E rho h.set.toRecovery₂) (hhonestQuorum c E rho h.set.toRecovery₂) pt.r h.hhor
 
 /-- Blueprint 21:1120–1137 and SO-COV. The supplier keeps the local
 earlier-or-current row conclusion. HealingPrem supplies Base₂, the fault
