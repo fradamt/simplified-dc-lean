@@ -7575,3 +7575,621 @@ entry. `claude-files/sleep-pcsa-off-report.md`, Round 2, lists every changed roo
 The blueprint check reports 181 remaining findings outside the corrected receipt row.
 Layers: 0 new. Headers and UNPORTED controls: PASS. Export: six unaccepted findings.
 No full manifest, 19-package DCK, aggregate self-test or NUC gate PASS is claimed.
+
+## P-Da Round 3 — approved Claims API migration delta (2026-10-11)
+
+Lead rulings A and A' approve this first refresh after the sleep migration.
+The candidate has 1,617 roots and 4,250 nodes. The delta has 17 removed roots,
+171 added roots and 1,188 changed roots. A changed digest can include reached
+definitions; it does not by itself mean that the declaration type changed.
+
+Names below use these prefixes:
+- `F` = `AvailableChain.FGSA`.
+- `R` = `AvailableChain.FGSA.Run`.
+- `P` = `AvailableChain.PCSA.Run`.
+Module names keep their library prefix.
+
+### Removed roots and reasons
+
+- `F.Reachable.reset`:
+  A': reset is now the prior reachable wipe; use Reachable.restart.
+- `R.Base₂.noRestart`:
+  A': the sleep base permits restarts at wakes.
+- `R.ReceiptCoverageStatement`:
+  A' / DECISION P23-A: old receipt contract retired.
+- `R.ReceiptCoverageStatement_def`:
+  A' / DECISION P23-A: old receipt contract equation retired.
+- `R.StrongRecoverySearchPrefix₂.toRecovery₂`:
+  A' / 7538ca0f: structure now extends RecoverySleep₂.
+- `R.fgsa_receiptCoverage`:
+  A / DECISION P23-A: old receipt producer retired.
+- `R.formWinAt`:
+  A': renamed formWinAtReady; ledger ready-window record.
+- `R.gapWin`:
+  A': renamed gapWinReady; ledger ready-window record.
+- `P.pcsaSafetyFinalityClaims`:
+  A: PC-SA compiled roots are UNPORTED; retained sources and snapshots.
+- `P.pcsa_safety_eventPrefixAgreementClaim`:
+  A: PC-SA compiled roots are UNPORTED; retained sources and snapshots.
+- `P.pcsa_safety_faultCountSlashableBoundClaim`:
+  A: PC-SA compiled roots are UNPORTED; retained sources and snapshots.
+- `P.pcsa_safety_finalizedMonotoneClaim`:
+  A: PC-SA compiled roots are UNPORTED; retained sources and snapshots.
+- `P.pcsa_safety_honestNeverSlashedClaim`:
+  A: PC-SA compiled roots are UNPORTED; retained sources and snapshots.
+- `P.pcsa_safety_pureAccountableClaim`:
+  A: PC-SA compiled roots are UNPORTED; retained sources and snapshots.
+- `P.pcsa_safety_pureAgreementClaim`:
+  A: PC-SA compiled roots are UNPORTED; retained sources and snapshots.
+- `P.pcsa_safety_wholeRunAccountableClaim`:
+  A: PC-SA compiled roots are UNPORTED; retained sources and snapshots.
+- `P.pcsa_safety_wholeRunAgreementClaim`:
+  A: PC-SA compiled roots are UNPORTED; retained sources and snapshots.
+
+### Added roots, grouped by module
+
+`AvailableChainFGSA.Statements.Invariants` (1):
+
+- `F.Reachable.restart`.
+
+`AvailableChainFGSAClaims.Claims.Foundations` (1):
+
+- `R.FinalizedMonotonicityRestartClaim`.
+
+`AvailableChainFGSAClaims.Statements.ChannelProps` (6):
+
+- `R.RMonoAll`.
+- `R.RMonoAll_def`.
+- `R.RStoreDurable`.
+- `R.RStoreDurable_def`.
+- `R.RStoreEpoch`.
+- `R.RStoreEpoch_def`.
+
+`AvailableChainFGSAClaims.Statements.FrameNext` (2):
+
+- `R.RFrameNextEpoch`.
+- `R.RFrameNextEpoch_def`.
+
+`AvailableChainFGSAClaims.Statements.Join` (48):
+
+- `R.AwakeClosed`.
+- `R.B_FW_sleep`.
+- `R.B_HF_sleep`.
+- `R.B_resetF_sleep`.
+- `R.BatchReceiptAt`.
+- `R.DutiesExtendScoped`.
+- `R.FirstRestored`.
+- `R.OutageContinuationReceipt`.
+- `R.OutageE`.
+- `R.OutageE1`.
+- `R.OutageEnd`.
+- `R.OutagePrefixReceipt`.
+- `R.OutageVoteMember`.
+- `R.ReceiptObjectAt`.
+- `R.RestartFreeTime`.
+- `R.ScopedCompat`.
+- `R.ScopedMono`.
+- `R.ScopedServed`.
+- `R.WakesAppliedAtIdx`.
+- `R.caughtUpAt`.
+- `R.caughtUpAtIdx`.
+- `R.confirmedReader`.
+- `R.confirmedReaderAtIdx`.
+- `R.confirmedReaderIdx`.
+- `R.coverDeadline`.
+- `R.coverLabel`.
+- `R.coveredNodes`.
+- `R.enabledGateAt`.
+- `R.fastCoveredSchedule`.
+- `R.firstUpdateLabel`.
+- `R.headReader`.
+- `R.joinedAt`.
+- `R.joinedDuty`.
+- `R.joinedHonest`.
+- `R.outageConfirmedReader`.
+- `R.outageH`.
+- `R.outageHeadReader`.
+- `R.outageW`.
+- `R.prefixTime`.
+- `R.recoveryDelay`.
+- `R.recoveryStart`.
+- `R.restoredLabel`.
+- `R.sleepyBad`.
+- `R.slotAt`.
+- `R.slotStartZ`.
+- `R.slowCoveredSchedule`.
+- `R.tauC`.
+- `R.voteZ`.
+
+`AvailableChainFGSAClaims.Statements.OutageContinuation` (10):
+
+- `R.OutageContinuationSleepPrem`.
+- `R.OutageContinuationSleepPrem.joinedFastPart`.
+- `R.OutageContinuationSleepPrem.joinedPartAfter`.
+- `R.OutageContinuationSleepPrem.joinedSleepy`.
+- `R.OutageContinuationSleepPrem.mk`.
+- `R.OutageContinuationSleepPrem.protection`.
+- `R.OutageContinuationSleepPrem.sleepPre`.
+- `R.OutageContinuationSleepPrem.sleepyAfter`.
+- `R.OutageContinuationSleepPrem.toOutageContinuationPrem`.
+- `R.OutageRepairReady`.
+
+`AvailableChainFGSAClaims.Statements.OutageSleep` (3):
+
+- `R.OutageContinuationReceiptDerivedClaim`.
+- `R.OutageE1DerivedClaim`.
+- `R.OutagePrefixReceiptDerivedClaim`.
+
+`AvailableChainFGSAClaims.Statements.Reads` (1):
+
+- `R.diagnosticGateResult`.
+
+`AvailableChainFGSAClaims.Statements.Regimes` (28):
+
+- `R.Base₂.receiptIdealization`.
+- `R.Base₂.restartsAtWakes`.
+- `R.CleanPrefixSleep₂`.
+- `R.CleanPrefixSleep₂.joinedPartAt`.
+- `R.CleanPrefixSleep₂.mk`.
+- `R.CleanPrefixSleep₂.sleepPre`.
+- `R.CleanPrefixSleep₂.toCleanPrefix₂`.
+- `R.CleanSleep₂`.
+- `R.CleanSleep₂.mk`.
+- `R.CleanSleep₂.sleepPre`.
+- `R.CleanSleep₂.toClean₂`.
+- `R.HealthyPrefixSleep₂`.
+- `R.HealthyPrefixSleep₂.joinedPartBefore`.
+- `R.HealthyPrefixSleep₂.mk`.
+- `R.HealthyPrefixSleep₂.toHealthyPrefix₂`.
+- `R.OutageSleep₂`.
+- `R.OutageSleep₂.joinedFastPart`.
+- `R.OutageSleep₂.joinedSleepy`.
+- `R.OutageSleep₂.mk`.
+- `R.OutageSleep₂.protection`.
+- `R.OutageSleep₂.sleepPre`.
+- `R.OutageSleep₂.toOutage₂`.
+- `R.RecoveryReadinessClaim`.
+- `R.RecoverySleep₂`.
+- `R.RecoverySleep₂.joinedGap`.
+- `R.RecoverySleep₂.mk`.
+- `R.RecoverySleep₂.suffixNoRestart`.
+- `R.RecoverySleep₂.toRecovery₂`.
+
+`AvailableChainFGSAClaims.Statements.WeakContinuation` (5):
+
+- `R.CleanContinuationSleep₂`.
+- `R.CleanContinuationSleep₂.joinedParticipation`.
+- `R.CleanContinuationSleep₂.mk`.
+- `R.CleanContinuationSleep₂.toCleanContinuation₂`.
+- `R.StrongRecoverySearchPrefix₂.toRecoverySleep₂`.
+
+`AvailableChainFGSAClaims.Statements.WeakContinuationGrowth` (5):
+
+- `R.CleanGrowthContinuationSleep₂`.
+- `R.CleanGrowthContinuationSleep₂.joinedParticipation`.
+- `R.CleanGrowthContinuationSleep₂.mk`.
+- `R.CleanGrowthContinuationSleep₂.toCleanGrowthContinuation₂`.
+- `R.SourcePendingReceipt`.
+
+`AvailableChainFGSAClaims.Statements.Windows` (2):
+
+- `R.formWinAtReady`.
+- `R.gapWinReady`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.Clean` (1):
+
+- `R.assembly_clean_state`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay` (2):
+
+- `R.assembly_joinedReplay`.
+- `R.assembly_tickReplay_atWake`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService` (3):
+
+- `R.assembly_wcg_dischargeL`.
+- `R.wcg_service4OfSeed`.
+- `R.wcg_service_outputs`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.Foundations` (2):
+
+- `R.assembly_rows_of_healingSet`.
+- `R.assembly_sleep_channels`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.Healing` (1):
+
+- `R.assembly_healing_proposal_service`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.Outage` (2):
+
+- `R.assembly_outage_clean_cut_supplier`.
+- `R.fgsa_outagePrefixReceiptClaim`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs` (3):
+
+- `R.outage_clean_cut_supplier`.
+- `R.outage_continuation_public_suppliers`.
+- `R.outage_public_suppliers`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt` (6):
+
+- `R.ProgressAttemptRows`.
+- `R.ProgressAttemptRows.firstRow_contest`.
+- `R.ProgressAttemptRows.firstRow_other`.
+- `R.ProgressAttemptRows.mk`.
+- `R.ProgressAttemptRows.raise_contest`.
+- `R.ProgressAttemptRows.raise_other`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival` (14):
+
+- `R.assembly_hTimeClaim_of_reset_input`.
+- `R.assembly_hTimeClaim_of_statement`.
+- `R.assembly_hTime_at`.
+- `R.assembly_healingInputClaim_of_input`.
+- `R.assembly_healingInput_at`.
+- `R.assembly_healingInput_of_inv`.
+- `R.assembly_healing_extension_of_set`.
+- `R.assembly_healing_fullInput_of_set`.
+- `R.assembly_healing_inv_of_set`.
+- `R.assembly_healing_localInput_of_set`.
+- `R.assembly_healing_suffix_reader`.
+- `R.assembly_healing_tPerm_of_set`.
+- `R.assembly_resetArrivalFull_at`.
+- `R.assembly_resetArrivalFull_of_extension`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.ResetSource` (1):
+
+- `R.assembly_reset_emittedName`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.Root` (2):
+
+- `R.assembly_weakContinuationClaims`.
+- `R.assembly_weakContinuationGrowth`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation` (3):
+
+- `R.wc_heightSeed_of_finite`.
+- `R.wc_sourceJoinCut`.
+- `R.wc_sourceParticipation`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth` (3):
+
+- `R.AssemblyWCGInclusion6ResultStatement`.
+- `R.wcg_inclusion6_result`.
+- `R.wcg_sourceParticipation`.
+
+`AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed` (4):
+
+- `R.wcg_heightSeed_of_finite`.
+- `R.wcg_retainedSeed_of_finite`.
+- `R.wcg_sourceJoinCut`.
+- `R.wcg_sourceWitness_joined`.
+
+`AvailableChainFGSAProofs.Proofs.Foundations.Export` (1):
+
+- `R.fgsa_finalizedMonotonicityRestartClaim`.
+
+`AvailableChainFGSARun.Proofs.ReceiptCoverageReady` (1):
+
+- `R.fgsa_receiptCoverage_ready`.
+
+`AvailableChainFGSARun.Statements.ReceiptCoverage` (8):
+
+- `R.ReceiptCoverageSleepPremises`.
+- `R.ReceiptCoverageSleepPremises.compat`.
+- `R.ReceiptCoverageSleepPremises.deadline`.
+- `R.ReceiptCoverageSleepPremises.mk`.
+- `R.ReceiptCoverageSleepPremises.slotWindow`.
+- `R.ReceiptCoverageSleepPremises.within`.
+- `R.ReceiptCoverageSleepStatement`.
+- `R.ReceiptCoverageSleepStatement_def`.
+
+`AvailableChainFGSARun.Statements.Roots` (2):
+
+- `R.NamedProposalReceiptScope`.
+- `R.NamedReceiptRootCollisionFree`.
+
+### Changed root counts, grouped by current module
+
+- `AvailableChainFGSA.Proofs.Head.Walk`: 1.
+- `AvailableChainFGSA.Proofs.Reconcile`: 1.
+- `AvailableChainFGSA.Statements.Invariants`: 32.
+- `AvailableChainFGSA.Statements.Store`: 12.
+- `AvailableChainFGSAClaims.Claims.Clean`: 10.
+- `AvailableChainFGSAClaims.Claims.Finality`: 19.
+- `AvailableChainFGSAClaims.Claims.Foundations`: 37.
+- `AvailableChainFGSAClaims.Claims.FrameNext`: 2.
+- `AvailableChainFGSAClaims.Claims.Healing`: 11.
+- `AvailableChainFGSAClaims.Claims.Outage`: 19.
+- `AvailableChainFGSAClaims.Claims.OutageContinuation`: 1.
+- `AvailableChainFGSAClaims.Claims.Shared`: 8.
+- `AvailableChainFGSAClaims.Claims.WeakContinuation`: 2.
+- `AvailableChainFGSAClaims.Claims.WeakContinuationGrowth`: 1.
+- `AvailableChainFGSAClaims.FGSAClaims`: 65.
+- `AvailableChainFGSAClaims.Statements.ChannelProps`: 77.
+- `AvailableChainFGSAClaims.Statements.Channels`: 48.
+- `AvailableChainFGSAClaims.Statements.ComposeNext`: 9.
+- `AvailableChainFGSAClaims.Statements.ComposeStmt`: 87.
+- `AvailableChainFGSAClaims.Statements.Counts`: 2.
+- `AvailableChainFGSAClaims.Statements.FinalityApi`: 12.
+- `AvailableChainFGSAClaims.Statements.Fold`: 45.
+- `AvailableChainFGSAClaims.Statements.FrameNext`: 16.
+- `AvailableChainFGSAClaims.Statements.Healed`: 32.
+- `AvailableChainFGSAClaims.Statements.HealedBest`: 2.
+- `AvailableChainFGSAClaims.Statements.Join`: 1.
+- `AvailableChainFGSAClaims.Statements.LiveDC`: 4.
+- `AvailableChainFGSAClaims.Statements.OutageContinuation`: 12.
+- `AvailableChainFGSAClaims.Statements.OutputReads`: 4.
+- `AvailableChainFGSAClaims.Statements.Packages.Finality`: 29.
+- `AvailableChainFGSAClaims.Statements.Packages.FinalityGST`: 16.
+- `AvailableChainFGSAClaims.Statements.Packages.Healing`: 40.
+- `AvailableChainFGSAClaims.Statements.Packages.Inclusion`: 10.
+- `AvailableChainFGSAClaims.Statements.Packages.Outage`: 3.
+- `AvailableChainFGSAClaims.Statements.Packages.Safety`: 28.
+- `AvailableChainFGSAClaims.Statements.Phases`: 64.
+- `AvailableChainFGSAClaims.Statements.Reads`: 34.
+- `AvailableChainFGSAClaims.Statements.Regimes`: 47.
+- `AvailableChainFGSAClaims.Statements.WeakContinuation`: 37.
+- `AvailableChainFGSAClaims.Statements.WeakContinuationGrowth`: 25.
+- `AvailableChainFGSAClaims.Statements.WeakContinuationLive`: 7.
+- `AvailableChainFGSAClaims.Statements.Windows`: 8.
+- `AvailableChainFGSAClaims.Statements.Witness`: 29.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Clean`: 5.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Finality`: 9.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Healing`: 2.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Outage`: 7.
+- `AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt`: 1.
+- `AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival`: 19.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Root`: 7.
+- `AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation`: 9.
+- `AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth`: 14.
+- `AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed`: 9.
+- `AvailableChainFGSAProofs.Proofs.Clean.Action`: 1.
+- `AvailableChainFGSAProofs.Proofs.Clean.Export`: 9.
+- `AvailableChainFGSAProofs.Proofs.Clean.Transfer`: 1.
+- `AvailableChainFGSAProofs.Proofs.Finality.CoreServices`: 1.
+- `AvailableChainFGSAProofs.Proofs.Finality.Export`: 10.
+- `AvailableChainFGSAProofs.Proofs.Foundations.Accountable`: 1.
+- `AvailableChainFGSAProofs.Proofs.Foundations.Export`: 34.
+- `AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge`: 5.
+- `AvailableChainFGSAProofs.Proofs.Foundations.Sources`: 2.
+- `AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight`: 3.
+- `AvailableChainFGSAProofs.Proofs.Healing.Descent`: 1.
+- `AvailableChainFGSAProofs.Proofs.Healing.Export`: 2.
+- `AvailableChainFGSAProofs.Proofs.Healing.Phase`: 1.
+- `AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder`: 1.
+- `AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed`: 1.
+- `AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint`: 1.
+- `AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw`: 2.
+- `AvailableChainFGSAProofs.Proofs.Healing.PostResetService`: 1.
+- `AvailableChainFGSAProofs.Proofs.Healing.Repair`: 2.
+- `AvailableChainFGSAProofs.Proofs.Healing.SupportPerm`: 1.
+- `AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts`: 1.
+- `AvailableChainFGSAProofs.Proofs.Outage.Export`: 8.
+- `AvailableChainFGSAProofs.Proofs.OutageContinuation.Export`: 1.
+- `AvailableChainFGSAProofs.Proofs.Shared.Claims`: 11.
+- `AvailableChainFGSAProofs.Proofs.Shared.Export`: 4.
+- `AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry`: 1.
+- `AvailableChainFGSAProofs.Proofs.Shared.Release`: 1.
+- `AvailableChainFGSAProofs.Proofs.Shared.ScoreRun`: 1.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal`: 1.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow`: 1.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.Frame`: 1.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion`: 1.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction`: 1.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.Live`: 1.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins`: 2.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal`: 1.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins`: 1.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay`: 3.
+- `AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety`: 1.
+- `AvailableChainFGSARun.Statements.AC`: 1.
+- `AvailableChainFGSARun.Statements.Acceptance`: 3.
+- `AvailableChainFGSARun.Statements.Client`: 4.
+- `AvailableChainFGSARun.Statements.Emission`: 4.
+- `AvailableChainFGSARun.Statements.Excludes`: 5.
+- `AvailableChainFGSARun.Statements.Interface`: 3.
+- `AvailableChainFGSARun.Statements.ReceiptCoverage`: 6.
+- `AvailableChainFGSARun.Statements.Roots`: 7.
+- `AvailableChainFGSARun.Statements.Slashing`: 2.
+
+### Public Statements/Claims types
+
+64 existing public roots have a different direct kernel type.
+Constructors and fields are included. The source commits below are the changes
+to each owning source module since snapshot commit 4f134e83. The exact before/after
+types and source history are saved in Round 3 `public-type-sources.json`.
+A' approves the migration delta. This list records provenance for lead review.
+
+`AvailableChainFGSAClaims.Claims.Outage`:
+
+- `R.LeaseOrFFrom`:
+  Source commits: `e3b119dd`, `7969754d`, `57022bd2`.
+- `R.OutageCompatAt`:
+  Source commits: `e3b119dd`, `7969754d`, `57022bd2`.
+- `R.P1Concl`:
+  Source commits: `e3b119dd`, `7969754d`, `57022bd2`.
+
+`AvailableChainFGSAClaims.FGSAClaims`:
+
+- `R.FGSAFinalityClaims.finalizedMonotone`:
+  Source commits: `7538ca0f`.
+- `R.FGSAFinalityClaims.mk`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.ChannelProps`:
+
+- `R.RActive_def`:
+  Source commits: `4ad808d4`, `ef361de0`.
+- `R.RRec_def`:
+  Source commits: `4ad808d4`, `ef361de0`.
+
+`AvailableChainFGSAClaims.Statements.ComposeNext`:
+
+- `R.FGFoundationNext.cumul`:
+  Source commits: `7538ca0f`.
+- `R.FGFoundationNext.frame`:
+  Source commits: `7538ca0f`.
+- `R.FGFoundationNext.mk`:
+  Source commits: `7538ca0f`.
+- `R.FGFoundationNext.mono`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.ComposeStmt`:
+
+- `R.FGFoundation.cumul`:
+  Source commits: `396d90cc`, `4ad808d4`, `b3155000`, `7538ca0f`.
+- `R.FGFoundation.frame`:
+  Source commits: `396d90cc`, `4ad808d4`, `b3155000`, `7538ca0f`.
+- `R.FGFoundation.mk`:
+  Source commits: `396d90cc`, `4ad808d4`, `b3155000`, `7538ca0f`.
+- `R.FGFoundation.mono`:
+  Source commits: `396d90cc`, `4ad808d4`, `b3155000`, `7538ca0f`.
+- `R.RPhase_def`:
+  Source commits: `396d90cc`, `4ad808d4`, `b3155000`, `7538ca0f`.
+- `R.ResetArrivalFullStatement_def`:
+  Source commits: `396d90cc`, `4ad808d4`, `b3155000`, `7538ca0f`.
+- `R.ResetArrivalStatement_def`:
+  Source commits: `396d90cc`, `4ad808d4`, `b3155000`, `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.Healed`:
+
+- `R.HTimeStatement_def`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.HealedBest`:
+
+- `R.HTimeBestConcl_def`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.Join`:
+
+- `R.gatePassedAt`:
+  Source commits: `4ad808d4`, `ac7ad87f`, `ef361de0`.
+
+`AvailableChainFGSAClaims.Statements.LiveDC`:
+
+- `R.LiveDCConcl_W_def`:
+  Source commits: `7538ca0f`.
+- `R.LiveDCFromWindowsStatement_def`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.OutageContinuation`:
+
+- `R.OutageContinuationConcl`:
+  Source commits: `2bf83b53`, `8695c4e2`, `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.OutputReads`:
+
+- `R.JointGrowthAt_def`:
+  Source commits: `7538ca0f`.
+- `R.ServedFromGateAt_def`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.Packages.Finality`:
+
+- `R.FinalitySet_W.core`:
+  Source commits: `7538ca0f`.
+- `R.FinalitySet_W.mk`:
+  Source commits: `7538ca0f`.
+- `R.FinalitySet_W.recur`:
+  Source commits: `7538ca0f`.
+- `R.FirstFinalityPrem_W.hhor`:
+  Source commits: `7538ca0f`.
+- `R.FirstFinalityPrem_W.mk`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.Packages.FinalityGST`:
+
+- `R.AboveFrontierGSTPrem_W.late`:
+  Source commits: `7538ca0f`.
+- `R.AboveFrontierGSTPrem_W.mk`:
+  Source commits: `7538ca0f`.
+- `R.FinalityLivenessGSTPrem_W.late`:
+  Source commits: `7538ca0f`.
+- `R.FinalityLivenessGSTPrem_W.mk`:
+  Source commits: `7538ca0f`.
+- `R.ProposalFinalGSTPrem_W.late`:
+  Source commits: `7538ca0f`.
+- `R.ProposalFinalGSTPrem_W.mk`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.Packages.Healing`:
+
+- `R.HealingTimePrem.hhor`:
+  Source commits: `7538ca0f`.
+- `R.HealingTimePrem.mk`:
+  Source commits: `7538ca0f`.
+- `R.ResetArrivalFullPrem.hhor`:
+  Source commits: `7538ca0f`.
+- `R.ResetArrivalFullPrem.mk`:
+  Source commits: `7538ca0f`.
+- `R.ResetArrivalPrem.hhor`:
+  Source commits: `7538ca0f`.
+- `R.ResetArrivalPrem.mk`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.Reads`:
+
+- `R.gateResult_def`:
+  Source commits: `ef361de0`.
+
+`AvailableChainFGSAClaims.Statements.Regimes`:
+
+- `R.Base₂.idealization`:
+  Source commits: `04e0a138`, `ef361de0`.
+- `R.Base₂.mk`:
+  Source commits: `04e0a138`, `ef361de0`.
+
+`AvailableChainFGSAClaims.Statements.WeakContinuation`:
+
+- `R.SSafeFromCut₂.compatible`:
+  Source commits: `7538ca0f`.
+- `R.SSafeFromCut₂.finalBelow`:
+  Source commits: `7538ca0f`.
+- `R.SSafeFromCut₂.mk`:
+  Source commits: `7538ca0f`.
+- `R.SSafeFromCut₂.monotone`:
+  Source commits: `7538ca0f`.
+- `R.SSafeFromCut₂.outputs`:
+  Source commits: `7538ca0f`.
+- `R.SSafeFromCut₂.seed`:
+  Source commits: `7538ca0f`.
+- `R.StrongRecoverySearchPrefix₂.endpoint`:
+  Source commits: `7538ca0f`.
+- `R.StrongRecoverySearchPrefix₂.mk`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.WeakContinuationGrowth`:
+
+- `R.BoundedGrowthRecovery₂_def`:
+  Source commits: `7538ca0f`.
+- `R.PendingSourceDelivery₂.mk`:
+  Source commits: `7538ca0f`.
+- `R.PendingSourceDelivery₂.sourceBroadcast`:
+  Source commits: `7538ca0f`.
+- `R.PendingSourceDelivery₂.sourceRelay`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.WeakContinuationLive`:
+
+- `R.BoundedSafetyLivenessRecovery₂_def`:
+  Source commits: `7538ca0f`.
+
+`AvailableChainFGSAClaims.Statements.Witness`:
+
+- `R.H0Reset.cut_lower`:
+  Source commits: `4ad808d4`, `7538ca0f`.
+- `R.H0Reset.cut_upper`:
+  Source commits: `4ad808d4`, `7538ca0f`.
+- `R.H0Reset.mk`:
+  Source commits: `4ad808d4`, `7538ca0f`.
+- `R.H0Reset.rG_after`:
+  Source commits: `4ad808d4`, `7538ca0f`.
+- `R.H0Reset.rG_first`:
+  Source commits: `4ad808d4`, `7538ca0f`.
+
+### UNSOURCED
+
+None among the 64 direct public type changes. Owning-module commit sources are
+listed above; lead review must confirm each semantic adaptation.
