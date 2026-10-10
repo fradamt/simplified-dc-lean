@@ -11,6 +11,41 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
+/-- The joined batch cutoff uses integer labels and requires a real predecessor. -/
+@[expose] def HealingWindow (p : Params) {V : Type} (E : Generic.Env V)
+    (back : Nat) (s : Slot) : Prop :=
+  back ≤ s ∧ E.t_GST ≤ slotStartZ p ((s : Int) - (back : Int))
+
+/-- A stronger cutoff also puts the saved labels after the recovery start. -/
+@[expose] def StrongHealingWindow (p : Params) {V : Type} (E : Generic.Env V)
+    (back : Nat) (s : Slot) : Prop :=
+  back ≤ s ∧ max E.t_GST (recoveryStart p E) ≤
+    slotStartZ p ((s : Int) - (back : Int))
+
+/-- The stronger cutoff supplies the batch cutoff. -/
+theorem StrongHealingWindow.window {p : Params} {V : Type} {E : Generic.Env V}
+    {back : Nat} {s : Slot} (h : StrongHealingWindow p E back s) :
+    HealingWindow p E back s :=
+  ⟨h.1, (le_max_left _ _).trans h.2⟩
+
+/-- Later labels keep the same batch cutoff. -/
+theorem HealingWindow.mono {p : Params} {V : Type} {E : Generic.Env V}
+    {back : Nat} {s w : Slot} (h : HealingWindow p E back s) (hsw : s ≤ w) :
+    HealingWindow p E back w := by
+  refine ⟨h.1.trans hsw, h.2.trans ?_⟩
+  have hi : (s : Int) ≤ w := by exact_mod_cast hsw
+  unfold slotStartZ
+  nlinarith [p.deltaPos]
+
+/-- A batch window includes the source vote's transport anchor. -/
+theorem HealingWindow.sync {p : Params} {V : Type} {E : Generic.Env V}
+    {back : Nat} {s : Slot} (h : HealingWindow p E back s) :
+    E.t_GST ≤ SA.voteTime p.toParams s := by
+  refine h.2.trans ?_
+  change 4 * p.Δ * ((s : Int) - (back : Int)) ≤ 4 * p.Δ * (s : Int) + p.Δ
+  have hb : (0 : Int) ≤ back := by positivity
+  nlinarith [p.deltaPos]
+
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
 
 /-- Recovery permits a restart at GST and excludes later honest restarts. -/
@@ -141,6 +176,30 @@ theorem healing_recovery_joined_counts (E : Generic.Env V)
   · constructor
     rw [hf]
     omega
+
+/-- A late source window supplies every honest voter in its current batch. -/
+theorem healing_recovery_joined_window (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} {x : V}
+    (h : HealingWindow p E 1 s) (hx : x ∈ rho.honest)
+    (hh : SA.voteTime p.toParams s ≤ rho.horizon) :
+    joinedAt p E rho x s (SA.voteTime p.toParams s) :=
+  healing_recovery_joined E rho hrec hx h.2 h.sync hh
+
+/-- A late source also supplies the actual next-label reader's join. -/
+theorem healing_recovery_joined_next (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} {x : V} {t : Time}
+    (h : HealingWindow p E 1 s) (hx : x ∈ rho.honest)
+    (ht : SA.voteTime p.toParams s ≤ t) (hh : t ≤ rho.horizon) :
+    joinedAt p E rho x (s + 1) t := by
+  apply healing_recovery_joined E rho hrec hx _ (h.sync.trans ht) hh
+  have hd := p.deltaPos
+  have hc := h.2
+  change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hc
+  simp only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right]
+  change E.t_GST ≤ 4 * p.Δ * (s : Int)
+  linarith
 
 /-- Recovery derives the enabled gate and its index epoch; object services stay local. -/
 theorem healing_recovery_gate_scope (E : Generic.Env V)
