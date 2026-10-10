@@ -96,6 +96,7 @@ namespace AvailableChain.FGSA.Run
 #print axioms fgsa_leaseOrigins_lastWrite
 #print axioms fgsa_leaseOrigins_origins
 #print axioms fgsa_leaseOrigins_fastWrites
+#print axioms fgsa_leaseOrigins_fastWrites_epoch
 #print axioms fgsa_leaseOrigins_chain
 #print axioms fgsa_leaseOrigins_ancestorDeadlines
 #print axioms rowPermission_confirmedReader_gate

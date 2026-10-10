@@ -6214,3 +6214,12 @@ Seven P-Ou and two S-Ap roots remain EXPECTED-FAIL. P-Ou remains PREPARED.
 The later good-HEAD invariant, global hResults, full InclusionReceiverInputs,
 full continuation, handover and final public consumers remain open.
 Handoff: scripts/dev-pkg/P-Ou.round7-handoff.md. Evidence: .lake/sleep-pou-r7/.
+
+### P-Fd fast-write receiver epoch — 2026-10-10
+
+Added fgsa_leaseOrigins_fastWrites_epoch in Foundations/Leases.lean:642.
+Current fast writes have an enabled, passed gate origin in the receiver's
+current epoch. Restart clears the cache; event induction supplies restartFree.
+The existing origin theorem and public claims are unchanged. Consumer: P-As hfast.
+P-Fd remains CLOSED. DCK PASS; strict audit PASS; exports zero unaccepted;
+layers zero new; headers PASS. Report: claude-files/sleep-pfd-fast-report.md.
