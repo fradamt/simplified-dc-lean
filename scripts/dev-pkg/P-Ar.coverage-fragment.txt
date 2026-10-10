@@ -1,4 +1,4 @@
-P-Ar Round 6. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
+P-Ar Round 7. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
 Merge missing names into their owners; do not add a coverage key.
 Move the six lease-write helpers and arming_gateResult_tick from ArmingGate to ArmingStep.
 
@@ -91,6 +91,15 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingHistory
 AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
   AvailableChain.FGSA.Run.arming_pending_input
 AvailableChainFGSAProofs.Proofs.Outage.ArmingKernel
+  AvailableChain.FGSA.Run.arming_nonrow_delivery_of_prefix
+  AvailableChain.FGSA.Run.arming_fresh_head_service_of_prefix
+  AvailableChain.FGSA.Run.arming_proposal_service_trigger_of_prefix
+  AvailableChain.FGSA.Run.arming_proposal_anchor_service_of_prefix
+  AvailableChain.FGSA.Run.arming_target_service_of_prefix
+  AvailableChain.FGSA.Run.arming_head_not_excluded_of_prefix
+  AvailableChain.FGSA.Run.arming_batch_service_of_prefix
+  AvailableChain.FGSA.Run.arming_prefix_receipt_of_healthy_prefix
+  AvailableChain.FGSA.Run.arming_continuation_prefix_receipt
   AvailableChain.FGSA.Run.arming_batch_service
   AvailableChain.FGSA.Run.arming_cut_saved_on
   AvailableChain.FGSA.Run.arming_fast_awake

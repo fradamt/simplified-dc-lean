@@ -1409,3 +1409,27 @@ end AvailableChain.FGSA.Run.Tests.OutageArming.Finite
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.equal_cut
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.positive_fast
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.positive_slow
+
+namespace AvailableChain.FGSA.Run.Tests.OutageArming
+
+/-- The continuation prefix input needs no outage budget or OutageE1 assumption. -/
+theorem continuation_prefix_consumer {p : Params} {In V : Type}
+    [DecidableEq V] [Fintype V] {c : AppCodec In} {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF) :
+    OutagePrefixReceipt p c E rho fast T b₀ := by
+  exact arming_continuation_prefix_receipt h
+
+end AvailableChain.FGSA.Run.Tests.OutageArming
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.continuation_prefix_consumer
+
+#print axioms AvailableChain.FGSA.Run.arming_nonrow_delivery_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_fresh_head_service_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_proposal_service_trigger_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_proposal_anchor_service_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_target_service_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_head_not_excluded_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_batch_service_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_prefix_receipt_of_healthy_prefix
+#print axioms AvailableChain.FGSA.Run.arming_continuation_prefix_receipt

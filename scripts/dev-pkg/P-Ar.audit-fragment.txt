@@ -1,4 +1,4 @@
-P-Ar Round 6. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
+P-Ar Round 7. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
 Append missing commands only. Keep existing commands and the existing key.
 
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingArith
@@ -232,3 +232,13 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDutySleep
 #print axioms AvailableChain.FGSA.Run.arming_cover_sleep
 #print axioms AvailableChain.FGSA.Run.ArmingSleepHistoryCert
 #print axioms AvailableChain.FGSA.Run.arming_sleep_history_on
+
+#print axioms AvailableChain.FGSA.Run.arming_nonrow_delivery_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_fresh_head_service_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_proposal_service_trigger_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_proposal_anchor_service_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_target_service_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_head_not_excluded_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_batch_service_of_prefix
+#print axioms AvailableChain.FGSA.Run.arming_prefix_receipt_of_healthy_prefix
+#print axioms AvailableChain.FGSA.Run.arming_continuation_prefix_receipt
