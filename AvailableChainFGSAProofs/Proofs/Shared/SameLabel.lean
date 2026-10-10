@@ -156,15 +156,8 @@ private theorem sl_idx_mono (rho : V2.D.Run V (fgsa p c)) : Monotone (V2.D.Run.i
 private theorem sl_votes_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hN : V2.D.NoRestart rho) (x : V) {i j : Nat} (hij : i ≤ j) :
     (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆
-      (V2.D.Run.stateBefore E rho j x).st.base.votes := by
-  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
-    (fun nd => (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆ nd.st.base.votes)
-    ?_ ?_ (fun _ _ h => h) E rho hij x (hN.restartFree x i j) (List.Subset.refl _)
-  · intro nd t h
-    change _ ⊆ (clock p nd.st t).base.votes
-    rwa [(clock_vn nd.st t).1]
-  · intro nd o h
-    exact List.Subset.trans h (process_votes_subset nd.st (toWire p o))
+      (V2.D.Run.stateBefore E rho j x).st.base.votes :=
+  fgsa_votes_cumulative_on p c E rho hij x (hN.restartFree x i j)
 
 private theorem sl_gate_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) (s : Slot) (o : GridCO.Wire p.n .root)
@@ -395,6 +388,178 @@ theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
   obtain ⟨v, hv, hkv, hCv⟩ := (sl_support_mem p vy s C k).mp hkC
   have hn := sl_clean_no_equiv p vx s u hu k hku
   have hrelay := sl_relay E rho hE hN hDelta s hSync hy hx hix v hv k hkv
+  have hvx : v ∈ GridCO.lateVotes p.toParams.engine vx s := by
+    rcases hrelay with h | h
+    · exact h
+    · rw [hn] at h
+      contradiction
+  have hu' := sl_clean_mem p vx s u hu
+  have hv' := sl_clean_mem p vy s v hv
+  have he : v = u := hu'.2.2.2 v hvx
+    (sl_same_seat v u s k hv'.2.1 hu'.2.1 hkv hku)
+  subst v
+  obtain ⟨K, hK, hmK, _, hBK⟩ := (vote_support_body _ _ _).mp hBu
+  obtain ⟨L, hL, hmL, _, hCL⟩ := (vote_support_body _ _ _).mp hCv
+  have hxK : K ∈ (rho.stateBefore E ix x).st.base.blocks := by
+    have hm := (List.mem_filter.mp hmK).1
+    change K ∈ (clockPre p _ _).base.blocks at hm
+    rwa [(clockPre_fields p _ _).2.1] at hm
+  have hyL : L ∈ (rho.stateBefore E iy y).st.base.blocks := by
+    have hm := (List.mem_filter.mp hmL).1
+    change L ∈ (clockPre p _ _).base.blocks at hm
+    rwa [(clockPre_fields p _ _).2.1] at hm
+  have hKL := stored_block_eq_of_root_eq E rho hroots ix iy x y hxK hyL
+    (Option.some.inj ((resolvedTarget_root _ u hK).symm.trans (resolvedTarget_root _ u hL)))
+  exact Gen.Pure.block_compatible_of_common hBK (hKL.symm ▸ hCL)
+
+/-- Service windows for each cross-reader HEAD, and epochs at the enabled gate reads.
+A retained relay must supply its own safe history; a past receipt is insufficient. -/
+structure SameLabelServiceScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (s : Slot) : Prop where
+  epochs : ∀ i x, enabledGateAt p c E rho i x s →
+    V2.D.restartFree rho x (V2.D.Run.idxBefore rho (SA.gateTime p.toParams s)) i
+  restartBound : ∀ i x, enabledGateAt p c E rho i x s →
+    ∀ j w, j < i → rho.events[j]? = some (.restart x w) → w < SA.gateTime p.toParams s
+  services : ∀ ia ib x y, x ∈ rho.honest → y ∈ rho.honest →
+    enabledGateAt p c E rho ia x s → enabledGateAt p c E rho ib y s →
+    ∀ q b, baseVote (⟨.seat (.head s) q, b⟩ : HeadWire p.n) ∈
+      GridCO.cleanSupport p.toParams.engine
+        (actView (clockPre p (storeAt p c E rho ia x) (SA.gateTime p.toParams s))) s →
+    (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho (SA.gateTime p.toParams s) y)
+      (ofHead p ⟨.seat (.head s) q, b⟩) = false →
+    ∃ send, Nonempty (ReceiverService E rho (ofHead p ⟨.seat (.head s) q, b⟩) send
+      (SA.gateTime p.toParams s) y)
+
+private theorem sl_relay_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (s : Slot) (hScope : SameLabelServiceScope E rho s)
+    {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hix : enabledGateAt p c E rho ix x s) (hiy : enabledGateAt p c E rho iy y s)
+    (o : GridCO.Wire p.n .root)
+    (ho : o ∈ GridCO.cleanSupport p.toParams.engine
+      (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
+    (k : Fin p.n) (hk : GridCO.headSeat? o = some k) :
+    let late := GridCO.lateVotes p.toParams.engine
+      (actView (clockPre p (V2.D.Run.stateBefore E rho iy y).st (SA.gateTime p.toParams s))) s
+    o ∈ late ∨ GridCO.equivocates late k = true := by
+  dsimp only
+  have hc := sl_clean_mem p _ s o ho
+  obtain ⟨B, rfl⟩ := sl_vote_shape o s k hc.2.1 hk
+  have hS := hE.toScheduleWellFormed
+  have hid : V2.D.Run.idxBefore rho (SA.gateTime p.toParams s) ≤ iy := by
+    by_contra hn
+    have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hS hiy.1 _).mp (Nat.lt_of_not_ge hn)
+    exact (lt_irrefl _ ht).elim
+  have hkeep : (V2.D.Run.stateBeforeTime E rho (SA.gateTime p.toParams s) y).st.base.votes ⊆
+      (V2.D.Run.stateBefore E rho iy y).st.base.votes := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+    exact fgsa_votes_cumulative_on p c E rho hid y (hScope.epochs iy y hiy)
+  have hwindow : (V2.D.Run.stateBeforeTime E rho (SA.gateTime p.toParams s) y).st.slot p ≤
+      s + 1 := by
+    have hm := V2.D.Engine.stateBefore_now_mono_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hS hid y
+    rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho _ y),
+      fgsa_clock_now p c (V2.D.Run.stateBefore E rho iy y),
+      Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hm
+    have hs : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+      (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho iy y) _).2.symm.trans
+        (fgsa_gate_slot (c := c) _ s)
+    exact (Internal.slotOf_mono (p := p)
+      (hm.trans (fgsa_preTick_now_le E rho hS hiy.1))).trans_eq hs
+  by_cases hNX : (fgsa p c).excludes
+      (V2.D.Run.stateBeforeTime E rho (SA.gateTime p.toParams s) y)
+        (ofHead p ⟨.seat (.head s) k, B⟩) = false
+  · obtain ⟨send, ⟨hService⟩⟩ := hScope.services ix iy x y hx hy hix hiy k B ho hNX
+    have hp := hService.processed hS hy (by change ¬ False; exact not_false)
+    have hmem : (⟨.seat s k, .head B⟩ : GridCO.Wire p.n .root) ∈
+        (V2.D.Run.stateBeforeTime E rho (SA.gateTime p.toParams s) y).st.base.votes :=
+      of_decide_eq_true hp
+    exact Or.inl (sl_gate_late E rho hS hiy.1 (hScope.restartBound iy y hiy) _ (hkeep hmem) rfl)
+  · have hn : excludesS p _ (ofHead p ⟨.seat (.head s) k, B⟩) = true :=
+      Bool.eq_true_of_ne_false hNX
+    obtain ⟨u, hu, v, hv, hn, hlu, hlv, hku, hkv, _, _⟩ :=
+      fgsa_head_excluded_before E rho hS y (SA.gateTime p.toParams s) s k B hwindow hn
+    exact Or.inr ((cap_pair _ k).mpr ⟨u,
+      sl_gate_late E rho hS hiy.1 (hScope.restartBound iy y hiy) u (hkeep hu) hlu, v,
+      sl_gate_late E rho hS hiy.1 (hScope.restartBound iy y hiy) v (hkeep hv) hlv, hn, hku, hkv⟩)
+
+/-- Local ready relay services preserve compatibility at one enabled gate label. -/
+theorem fgsa_sameLabel_on (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot) (hScope : SameLabelServiceScope E rho s)
+    (hroots : NamedRootCollisionFree p c E rho) :
+    ∀ x y B C, x ∈ rho.honest → y ∈ rho.honest →
+      gateResult p c E rho x s = some (some B) →
+      gateResult p c E rho y s = some (some C) → Block.Compatible B C := by
+  intro x y B C hx hy hB hC
+  have hBx := hB
+  have hCy := hC
+  obtain ⟨ix, hix, hB⟩ := sl_gate_input E rho hE.toScheduleWellFormed x s B hB
+  obtain ⟨iy, hiy, hC⟩ := sl_gate_input E rho hE.toScheduleWellFormed y s C hC
+  have enabled (i : Nat) (z : V) (D : Block) (hi : IsGateTick p c rho i z s)
+      (hr : gateResult p c E rho z s = some (some D)) : enabledGateAt p c E rho i z s := by
+    refine ⟨hi, ?_⟩
+    have hg := (fgsa_gate_raw_of_nonempty p c E rho hE.toScheduleWellFormed hi hr).1
+    have hs : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+      (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i z) _).2.symm.trans
+        (fgsa_gate_slot (c := c) _ s)
+    change (match (storeAt p c E rho i z).restartTime with
+      | none => True | some w => w ≤ 4 * p.Δ * (s : Int))
+    cases hw : (storeAt p c E rho i z).restartTime with
+    | none => trivial
+    | some w =>
+      change joinedAtTime p (storeAt p c E rho i z).restartTime _ = true at hg
+      rw [hw] at hg
+      change decide (w ≤ 4 * p.Δ * ((p.slotOf (SA.gateTime p.toParams s) : Int) - 1)) = true
+        at hg
+      rw [hs] at hg
+      simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right, decide_eq_true_eq] using hg
+  have hixEnabled := enabled ix x B hix hBx
+  have hiyEnabled := enabled iy y C hiy hCy
+  let vx := actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))
+  let vy := actView (clockPre p (V2.D.Run.stateBefore E rho iy y).st (SA.gateTime p.toParams s))
+  let Lx := (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine vx s)).toFinset
+  let Ly := (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine vy s)).toFinset
+  have own (v : GridCO.State p.n .root) (D : Block) : sl_support p v s D ⊆
+      (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine v s)).toFinset := by
+    intro k hk
+    obtain ⟨o, ho, hko, _⟩ := (sl_support_mem p v s D k).mp hk
+    exact (vote_pool_mem_seats _ k).mpr ⟨o, sl_clean_late p v s ho, hko⟩
+  have cross {ia ib : Nat} {a b : V} (ha : a ∈ rho.honest) (hb : b ∈ rho.honest)
+      (hia : enabledGateAt p c E rho ia a s)
+      (hib : enabledGateAt p c E rho ib b s) (D : Block) :
+      sl_support p (actView (clockPre p (V2.D.Run.stateBefore E rho ia a).st
+        (SA.gateTime p.toParams s))) s D ⊆
+      (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine
+        (actView (clockPre p (V2.D.Run.stateBefore E rho ib b).st
+          (SA.gateTime p.toParams s))) s)).toFinset := by
+    intro k hk
+    obtain ⟨o, ho, hko, _⟩ := (sl_support_mem p _ s D k).mp hk
+    rcases sl_relay_on E rho hE s hScope ha hb hia hib o ho k hko with hm | he
+    · exact (vote_pool_mem_seats _ k).mpr ⟨o, hm, hko⟩
+    · exact vote_pool_equivocates_participant _ k he
+  have hLx : sl_support p vx s B ∪ sl_support p vy s C ⊆ Lx :=
+    Finset.union_subset (own vx B) (cross hy hx hiyEnabled hixEnabled C)
+  have hLy : sl_support p vx s B ∪ sl_support p vy s C ⊆ Ly :=
+    Finset.union_subset (cross hx hy hixEnabled hiyEnabled B) (own vy C)
+  have score (i : Nat) (z : V) (D : Block) :
+      let pre := clockPre p (rho.stateBefore E i z).st (SA.gateTime p.toParams s)
+      let v := actView pre
+      SA.Root.prefixSupport p.toParams v s D =
+        GridCO.goldfishScore v.blocks (GridCO.cleanSupport p.toParams.engine v s)
+          (GridCO.cleanSupport p.toParams.engine v s) D := by
+    intro pre v
+    exact actView_score p pre (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho i z) _)
+      (by rw [clockPre_headDomain]; exact base_headDomain_none p (reachable_stateBefore E rho i z))
+      _ _ D
+  obtain ⟨k, hk⟩ := Gen.Pure.two_majorities_intersect hLx hLy
+    (sl_result_majority p _ s _ B hB (score ix x))
+    (sl_result_majority p _ s _ C hC (score iy y))
+  obtain ⟨hkB, hkC⟩ := Finset.mem_inter.mp hk
+  obtain ⟨u, hu, hku, hBu⟩ := (sl_support_mem p vx s B k).mp hkB
+  obtain ⟨v, hv, hkv, hCv⟩ := (sl_support_mem p vy s C k).mp hkC
+  have hn := sl_clean_no_equiv p vx s u hu k hku
+  have hrelay := sl_relay_on E rho hE s hScope hy hx hiyEnabled hixEnabled v hv k hkv
   have hvx : v ∈ GridCO.lateVotes p.toParams.engine vx s := by
     rcases hrelay with h | h
     · exact h

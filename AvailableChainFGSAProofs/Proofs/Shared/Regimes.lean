@@ -231,6 +231,90 @@ theorem fgsa_gateReceipt_clean
     (s : Slot) (hcut : SA.gateTime p.toParams s ≤ b₀)
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
     (hgeom : GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B)
+    (hScope : GateReceiptScope E rho i x s) :
+    ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+      joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s) →
+      ∃ K t,
+        rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+        V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+          (ofHead p ⟨.seat (.head s) q, K.root⟩) t ∧
+        baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
+          (storeAt p c E rho i x).base.votes ∧
+        K ∈ (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))).blocks ∧
+        K.slot ≤ s ∧
+        GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)))
+          (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) <
+            GridCO.earlyTime p.toParams.engine s ∧
+        GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
+        Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)).fg.F) K ∧ Block.Preceq B K := by
+  have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
+    rw [h.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
+      (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
+    (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
+  exact (fgsa_gateReceipt_on (hroots := h.base.receiptIdealization)
+    E rho h.base.valid h.base.delta h.base.cstar s hsync ht B hgeom hScope).2.2
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.22:3100–3120; P3 erratum 13, Recovery wrapper.
+DC: Generic/Conditions.lean:110–132 and Goldfish/Confirmation.lean:434–441.
+INTENTIONAL: post-GST delivery supplies the vote-to-gate LabelSync.
+GST ≤ voteTime s suffices; no earlier synchrony pair is used.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem fgsa_gateReceipt_recovery
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (G : Time) (h : Recovery₂ p c E rho G ΔF)
+    (s : Slot) (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
+    {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
+    (hgeom : GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B)
+    (hScope : GateReceiptScope E rho i x s) :
+    ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+      joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s) →
+      ∃ K t,
+        rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+        V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+          (ofHead p ⟨.seat (.head s) q, K.root⟩) t ∧
+        baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
+          (storeAt p c E rho i x).base.votes ∧
+        K ∈ (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))).blocks ∧
+        K.slot ≤ s ∧
+        GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)))
+          (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) <
+            GridCO.earlyTime p.toParams.engine s ∧
+        GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
+        Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)).fg.F) K ∧ Block.Preceq B K := by
+  have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
+    rw [h.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hhorizon : SA.gateTime p.toParams s ≤ rho.horizon :=
+    (h.base.valid.in_horizon _ (List.mem_of_getElem? ht)).2
+  have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
+    (fgsaDelay_nonrow E.Δ _) hGST hvd hhorizon
+  exact (fgsa_gateReceipt_on (hroots := h.base.receiptIdealization)
+    E rho h.base.valid h.base.delta h.base.cstar s hsync ht B hgeom hScope).2.2
+
+/-- Explicit legacy regime adapter; receiver service follows from NoRestart. -/
+theorem fgsa_gateReceipt_clean_legacy
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
+    (hN : V2.D.NoRestart rho)
+    (s : Slot) (hcut : SA.gateTime p.toParams s ≤ b₀)
+    {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
+    (hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B) :
     ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true →
@@ -259,19 +343,14 @@ theorem fgsa_gateReceipt_clean
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
   exact fgsa_gateReceipt (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
+    E rho h.base.valid hN h.base.delta h.base.cstar
     s hsync ht B hgeom
 
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. Blueprint 21 H.22:3100–3120; P3 erratum 13, Recovery wrapper.
-DC: Generic/Conditions.lean:110–132 and Goldfish/Confirmation.lean:434–441.
-INTENTIONAL: post-GST delivery supplies the vote-to-gate LabelSync.
-GST ≤ voteTime s suffices; no earlier synchrony pair is used.
-DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
-non-row traffic keeps Δ. -/
-theorem fgsa_gateReceipt_recovery
+/-- Explicit legacy regime adapter; receiver service follows from NoRestart. -/
+theorem fgsa_gateReceipt_recovery_legacy
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (G : Time) (h : Recovery₂ p c E rho G ΔF)
+    (hN : V2.D.NoRestart rho)
     (s : Slot) (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
     (hgeom : GateReceiptGeometry E rho
@@ -304,7 +383,7 @@ theorem fgsa_gateReceipt_recovery
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hvd hhorizon
   exact fgsa_gateReceipt (hroots := h.base.receiptIdealization)
-    E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
+    E rho h.base.valid hN h.base.delta h.base.cstar
     s hsync ht B hgeom
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
