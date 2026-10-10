@@ -7050,3 +7050,19 @@ current production caller. Their original sources are retained at de637290
 and in .lake/sleep-pou-r13/legacy/. Current typed audits check the scoped types.
 P-As still must update its three Assembly/Outage callers and the Root seed call.
 Public claims, protocol and Healing files are unchanged. The package is PREPARED.
+
+### P-Ou Round 13 — validation and remaining producer
+
+Proof groups: d65236ae and b35a3548. DCK P-Ou PASS: 48 strict sources,
+3,401 results; all 24 default controls PASS. Map: 69 targets, 536 GREEN,
+two S-Ap EXPECTED-FAIL entries. Headers PASS: 1,744 library files.
+Layers: 72 inherited findings, zero new. Complete GREEN exports: 375 proof
+modules, 253 exports, zero unaccepted. Local coverage: 367 rows, zero unaccepted.
+Production-only serial audit: 329 results; standard axioms only.
+All cited evidence is saved in .lake/sleep-pou-r13/.
+The OpenTypes claim from Round 11 is corrected. The exact Contracts rerun passes
+with Claims imports; it checks the unproved W seed only as a Prop.
+Handoff: scripts/dev-pkg/P-Ou.round13-handoff.md. Report: Round 13.
+Both exporters are GREEN. O11-W-SEED remains OPEN, P-Ou; the continuation exporter
+is conditional. P-As has three Outage caller repairs and the Root seed port.
+The full Round 13 task is incomplete. P-Ou is PREPARED; no public STOP is asserted.
