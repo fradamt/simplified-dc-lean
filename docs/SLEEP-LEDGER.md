@@ -7534,3 +7534,44 @@ The saved writer and source-build failures are the validation limit for Round 15
   (AvailableChainPCSARun/Model/Protocol.lean:449, restore now takes the wake time). A least-change
   port is impossible (two PC-SA theorems lack NoRestart; see the PC-SA blocker report). User
   2026-10-10: land the sleep migration with PC-SA unbuilt; PC-SA needs its own port later.
+
+## sleep-pcsa-off Round 2 — snapshot STOP (2026-10-10)
+
+- Lead ruling A permits the retired fgsa_receiptCoverage root and nine PC-SA roots.
+- bp.receiptCoverage.v2 now names ReceiptCoverageSleepStatement_def in its statement
+  module and fgsa_receiptCoverage_ready in ReceiptCoverageReady. The sleep producer
+  and paper alignment stay OPEN. Both mapped constants pass the kernel owner check.
+- Candidate extraction passes: 1,617 roots and 4,250 nodes. Comparison with the
+  committed snapshot finds 17 removals, 171 additions and 1,188 changed entries.
+- STOP: seven removals and the changed FG-SA entries exceed the allowed delta.
+  The candidate is not installed. No committed snapshot entry is removed or changed.
+  Export fixes and remaining full-tier/DCK checks are pending under this STOP.
+
+Candidate removals allowed by ruling A (not applied):
+
+- `AvailableChain.FGSA.Run.fgsa_receiptCoverage`.
+- `AvailableChain.PCSA.Run.pcsaSafetyFinalityClaims`.
+- `AvailableChain.PCSA.Run.pcsa_safety_eventPrefixAgreementClaim`.
+- `AvailableChain.PCSA.Run.pcsa_safety_faultCountSlashableBoundClaim`.
+- `AvailableChain.PCSA.Run.pcsa_safety_finalizedMonotoneClaim`.
+- `AvailableChain.PCSA.Run.pcsa_safety_honestNeverSlashedClaim`.
+- `AvailableChain.PCSA.Run.pcsa_safety_pureAccountableClaim`.
+- `AvailableChain.PCSA.Run.pcsa_safety_pureAgreementClaim`.
+- `AvailableChain.PCSA.Run.pcsa_safety_wholeRunAccountableClaim`.
+- `AvailableChain.PCSA.Run.pcsa_safety_wholeRunAgreementClaim`.
+
+Additional candidate removals that require a lead ruling (not applied):
+
+- `AvailableChain.FGSA.Reachable.reset`.
+- `AvailableChain.FGSA.Run.Base₂.noRestart`.
+- `AvailableChain.FGSA.Run.ReceiptCoverageStatement`.
+- `AvailableChain.FGSA.Run.ReceiptCoverageStatement_def`.
+- `AvailableChain.FGSA.Run.StrongRecoverySearchPrefix₂.toRecovery₂`.
+- `AvailableChain.FGSA.Run.formWinAt`.
+- `AvailableChain.FGSA.Run.gapWin`.
+
+Evidence: `.lake/sleep-pcsa-off/round2/claims-diff.json` records every before/after
+entry. `claude-files/sleep-pcsa-off-report.md`, Round 2, lists every changed root.
+The blueprint check reports 181 remaining findings outside the corrected receipt row.
+Layers: 0 new. Headers and UNPORTED controls: PASS. Export: six unaccepted findings.
+No full manifest, 19-package DCK, aggregate self-test or NUC gate PASS is claimed.
