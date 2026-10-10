@@ -8244,3 +8244,18 @@ compiled names. Other four audit inventories are byte-identical. The exact name
 delta is saved in Round 3 inventory-delta.json. Source inventory covers 6,578
 explicit declarations. Source guard and its positive/negative controls pass.
 The inventory comparison, compiled audit and every existing control remain required.
+
+## P-Da Round 3 — all current API products (2026-10-11)
+
+Ruling D: scripts/write-api-snapshots.py --write completes every active scope.
+Only docs/api/fgsa-claims-api.json differs from the Round 3 base (group A').
+The final compiled extraction confirms that same 1,617-root / 4,250-node candidate.
+Every other written product is byte-identical: V2-API.md, GEN-API.md, FGSA-API.md,
+v2-deep.json, gen-deep.json, fgsa-deep.json, legacy-api.json and compose-api.json.
+PCSA-API.md and pcsa-deep.json are skipped by the single UNPORTED switch.
+The two FG-SA ruling pin files and frozen baselines are unchanged.
+Writer log: .lake/sleep-pcsa-off/round3/snapshots-write.log.
+
+Generated snapshots and audit inventories keep their writer format. Their long
+kernel-name strings can exceed 100 columns. New source and ledger lines stay
+within 100 columns; no generated value is shortened or reflowed to hide that limit.
