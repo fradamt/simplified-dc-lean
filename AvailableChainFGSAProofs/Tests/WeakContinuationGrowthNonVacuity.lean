@@ -11,6 +11,28 @@ namespace AvailableChain.FGSA.Run.Tests.GrowthGenerator
 variable {count : Nat} [NeZero count] {p : Params}
 open AvailableChain.SimplexFG
 
+/-- An emitted HEAD has passed the join test. -/
+theorem nvGen_head_action {p : Params} {In : Type} {c : AppCodec In}
+    {nd : Node p} {s : Slot} {x : In} {m : Msg p.n}
+    (ha : act p c nd (.headAction s) x = some m) :
+    some (.head (headVote p nd.st s).root) = some m := by
+  change (if joinedNow p nd.st then some (.head (headVote p nd.st s).root) else none) =
+    some m at ha
+  split at ha
+  · exact ha
+  · cases ha
+
+/-- An emitted proposal has passed the join test. -/
+theorem nvGen_proposal_action {p : Params} {In : Type} {c : AppCodec In}
+    {nd : Node p} {s : Slot} {x : In} {m : Msg p.n}
+    (ha : act p c nd (.propAction s) x = some m) :
+    (propose p nd.st s).map (withApp p (c.app x)) = some m := by
+  change (if joinedNow p nd.st then
+    (propose p nd.st s).map (withApp p (c.app x)) else none) = some m at ha
+  split at ha
+  · exact ha
+  · cases ha
+
 def params : Params where
   Δ := 1
   n := count
@@ -749,6 +771,7 @@ theorem nvGen_gen_tick_nonproposal_wire (st : Node (params (count := count))) (v
   obtain ⟨l, i, m, rfl, _, ha⟩ := (nvGen_gen_tick_seat (count := count)) st v t o ho
   cases l with
   | headAction s =>
+      have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
       have he : .head (headVote (params (count := count)) (FGSA.clock (params (count := count))
         st.st t) s).root = m := Option.some.inj ha
       subst m
@@ -761,6 +784,7 @@ theorem nvGen_gen_tick_nonproposal_wire (st : Node (params (count := count))) (v
       subst m
       exact (nvGen_gen_attest_valid (count := count)) _ _ _ _ hb
   | propAction s =>
+      have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
       change (propose (params (count := count)) (FGSA.clock (params (count := count)) st.st t)
         s).map
         (withApp (params (count := count)) 0) = some m at ha
@@ -790,7 +814,7 @@ theorem nvGen_i7_clock_fields (st : State (params (count := count)).n) (t : Time
         (gateStep (params (count := count)) st s).rowPool = st.rowPool := by
     unfold gateStep
     rw [(hn _).1, (hn _).2]
-    split <;> exact ⟨rfl, rfl⟩
+    split <;> (try split) <;> exact ⟨rfl, rfl⟩
   have hc : (clockPre (params (count := count)) st t).proposals = st.proposals ∧
       (clockPre (params (count := count)) st t).rowPool = st.rowPool := by
     unfold clockPre
@@ -870,6 +894,7 @@ theorem nvGen_gen_tick_proposal_rows (st : Node (params (count := count))) (v : 
   obtain ⟨l, i, m, rfl, _, ha⟩ := (nvGen_gen_tick_seat (count := count)) st v t o ho
   cases l with
   | headAction s =>
+    have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
     have hm : .head (headVote (params (count := count)) (FGSA.clock (params (count := count))
       st.st t) s).root = m := Option.some.inj ha
     subst m
@@ -882,6 +907,7 @@ theorem nvGen_gen_tick_proposal_rows (st : Node (params (count := count))) (v : 
     subst m
     cases he
   | propAction s =>
+    have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
     have hv : v = 0 := (Option.some.inj hh).symm
     change (propose (params (count := count)) (FGSA.clock (params (count := count)) st.st t) s).map
         (withApp (params (count := count)) 0) = some m at ha
@@ -929,7 +955,9 @@ theorem nvGen_i7_clock_votes (st : State (params (count := count)).n) (t : Time)
     rw [hn]
     split
     · rfl
-    · exact hg _ _ _
+    · split
+      · rfl
+      · exact hg _ _ _
   have hc : (clockPre (params (count := count)) st t).base.votes = st.base.votes := by
     unfold clockPre
     dsimp only
@@ -1169,6 +1197,7 @@ theorem nvGen_gen_tick_children_known (P : Obj (params (count := count)) → Pro
   obtain ⟨l, i, m, rfl, _, ha⟩ := (nvGen_gen_tick_seat (count := count)) st v t o ho
   cases l with
   | headAction s =>
+    have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
     have hm : .head (headVote (params (count := count)) (FGSA.clock (params (count := count))
       st.st t) s).root = m := Option.some.inj ha
     subst m
@@ -1181,6 +1210,7 @@ theorem nvGen_gen_tick_children_known (P : Obj (params (count := count)) → Pro
     subst m
     exact fun _ h => h.elim
   | propAction s =>
+    have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
     change (propose (params (count := count)) (FGSA.clock (params (count := count)) st.st t) s).map
         (withApp (params (count := count)) 0) = some m at ha
     unfold propose at ha
@@ -1478,6 +1508,7 @@ theorem nvGen_w1_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
 theorem nvGen_w1_known_fold (P : Obj (params (count := count)) → Prop) (w : (World (count :=
   count)))
   (es : List (Event (count := count)))
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es)
     (hw : ∀ v, (GenKnown (count := count)) P (w v).st)
     (he : ∀ v o t, V2.Event.deliver v o t ∈ es →
       P o ∧ ∀ o', carriesS (params (count := count)) o o' → P o') :
@@ -1486,16 +1517,10 @@ theorem nvGen_w1_known_fold (P : Obj (params (count := count)) → Prop) (w : (W
   | nil => exact hw
   | cons e es ih =>
     apply ih
+    · exact fun v t hm => hnr v t (List.mem_cons_of_mem _ hm)
     · intro u
       cases e with
-      | restart v t =>
-        by_cases hu : u = v
-        · subst u
-          simp only [V2.D.World.step, Function.update_self]
-          exact ⟨by simp [fgsa, initialAt, initial],
-            by simp [GenStoredRows, fgsa, initialAt, initial],
-            by simp [fgsa, initialAt, initial, GridCO.initial]⟩
-        · simpa only [V2.D.World.step, Function.update_of_ne hu] using hw u
+      | restart v t => exact (hnr v t (List.mem_cons_self ..)).elim
       | tick v t =>
         by_cases hu : u = v
         · subst u
@@ -1517,13 +1542,14 @@ theorem nvGen_w1_known_fold (P : Obj (params (count := count)) → Prop) (w : (W
 
 theorem nvGen_w1_rows_at_index (h : Time) (es : List (Event (count := count)))
     (ho : (GenOrigin (count := count)) V2.D.World.init es) (hc : (GenCarried (count := count))
-      es) (i : Nat) (v : (Validator (count := count))) :
+      es) (hnr : ∀ v t, V2.Event.restart v t ∉ es) (i : Nat) (v : (Validator (count := count))) :
     EmissionRowsValid (V2.D.Run.stateBefore (weakEnv (count := count)) ((runData (count :=
       count)) h es) i v).st := by
   let P := fun o => ∃ t, (GenPast (count := count)) es t o
   have hk : (GenKnown (count := count)) P ((genFold (count := count)) V2.D.World.init (es.take
     i) v).st := by
     apply (nvGen_w1_known_fold (count := count))
+    · exact fun v t hm => hnr v t (List.mem_of_mem_take hm)
     · intro u
       exact ⟨by simp [V2.D.World.init, fgsa, initial],
         by simp [GenStoredRows, V2.D.World.init, fgsa, initial],
@@ -1544,6 +1570,7 @@ theorem nvGen_w1_emit_wire (h : Time) (es : List (Event (count := count)))
     (hs : V2.D.ScheduleWellFormed (weakEnv (count := count)) ((runData (count := count)) h es))
     (horigin : (GenOrigin (count := count)) V2.D.World.init es) (hcarried : (GenCarried (count
       := count)) es)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es)
     (v : (Validator (count := count))) (o : Obj (params (count := count))) (t : Time)
     (hem : V2.D.Run.emits (weakEnv (count := count)) ((runData (count := count)) h es) v o t) :
     (fgsa (params (count := count)) unitCodec).wellFormed o = true := by
@@ -1553,6 +1580,7 @@ theorem nvGen_w1_emit_wire (h : Time) (es : List (Event (count := count)))
     (V2.D.Run.stateBefore (weakEnv (count := count)) ((runData (count := count)) h es) i v) v t o ho
   cases l with
   | headAction s =>
+    have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote (params (count := count))
         (FGSA.clock (params (count := count)) (V2.D.Run.stateBefore (weakEnv (count := count))
           ((runData (count := count)) h es) i v).st t) s).root = m :=
@@ -1569,6 +1597,7 @@ theorem nvGen_w1_emit_wire (h : Time) (es : List (Event (count := count)))
     subst m
     exact (nvGen_gen_attest_valid (count := count)) _ _ _ _ hb
   | propAction s =>
+    have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
     have ht : SA.proposalTime (params (count := count)).toParams s = t :=
       ((fgsa (params (count := count)) unitCodec).duties_spec (.propAction s) t).1 hl
     subst t
@@ -1583,7 +1612,7 @@ theorem nvGen_w1_emit_wire (h : Time) (es : List (Event (count := count)))
       subst s
       change none = some m at hm
       cases hm
-    have hv := (nvGen_w1_rows_at_index (count := count)) h es horigin hcarried i v
+    have hv := (nvGen_w1_rows_at_index (count := count)) h es horigin hcarried hnr i v
     have hv' : EmissionRowsValid
         (FGSA.clock (params (count := count)) (V2.D.Run.stateBefore (weakEnv (count := count))
           ((runData (count := count)) h es) i v).st
@@ -1791,6 +1820,7 @@ theorem nvGen_w1_tick_deps (st : Node (params (count := count))) (v : (Validator
   obtain ⟨l, j, m, rfl, _, ha⟩ := (nvGen_gen_tick_seat (count := count)) st v t o ho
   cases l with
   | headAction s =>
+    have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote (params (count := count)) (FGSA.clock (params (count := count))
       st.st t) s).root = m := Option.some.inj ha
     subst m
@@ -1802,6 +1832,7 @@ theorem nvGen_w1_tick_deps (st : Node (params (count := count))) (v : (Validator
     subst m
     rfl
   | propAction s =>
+    have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
     change (propose (params (count := count)) (FGSA.clock (params (count := count)) st.st t)
       s).map (withApp (params (count := count)) 0) = some m at ha
     unfold propose at ha
@@ -1979,7 +2010,7 @@ theorem nvGen_w1_prefix_schedule (steps : Nat) :
     change 0 ≤ t at ht
     change t = (t.toNat : Int) * 1
     rw [Int.toNat_of_nonneg ht, mul_one]⟩
-  tick_total v _ t _ ht hh := by
+  tick_total v _ t _ ht hh _ := by
     change t ≤ (steps : Int) at hh
     change (0 : Int) ≤ t at ht
     have hn : t.toNat < steps + 1 := by
@@ -2185,6 +2216,7 @@ theorem nvGen_w1_nonproposal_accept (P : Obj (params (count := count)) → Prop)
   have ht := ((fgsa (params (count := count)) unitCodec).duties_spec l t).1 hl
   cases l with
   | headAction s =>
+    have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote (params (count := count)) (FGSA.clock (params (count := count))
       nd.st t) s).root = m := Option.some.inj ha
     subst m
@@ -2201,6 +2233,7 @@ theorem nvGen_w1_nonproposal_accept (P : Obj (params (count := count)) → Prop)
     subst m
     exact (nvGen_w1_row_accept (count := count)) st j body
   | propAction s =>
+    have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
     change (propose (params (count := count)) (FGSA.clock (params (count := count)) nd.st t)
       s).map (withApp (params (count := count)) 0) = some m at ha
     unfold propose at ha
@@ -2287,6 +2320,7 @@ theorem nvGen_w1_proposal_singleton (t : Time) (w : (World (count := count))) (o
     obtain ⟨l, j, m, rfl, _, ha⟩ := (nvGen_gen_tick_seat (count := count)) (w v) v t o hv
     cases l with
     | headAction s =>
+      have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
       have he : .head (headVote (params (count := count)) (FGSA.clock (params (count := count))
         (w v).st t) s).root = m :=
         Option.some.inj ha
@@ -2300,6 +2334,7 @@ theorem nvGen_w1_proposal_singleton (t : Time) (w : (World (count := count))) (o
       subst m
       cases hp
     | propAction s =>
+        have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
         intro o' ho'
         exact nvGen_w1_proposal_only (count := count) t w v s j m hv o' ho'
   have hn := (nvGen_tickBatch_nodup (count := count)) t w
@@ -2332,6 +2367,7 @@ private theorem nvGen_w1_proposal_admit (nd : Node (params (count := count))) (v
   obtain ⟨l, j, m, rfl, hl, ha⟩ := (nvGen_gen_tick_seat (count := count)) nd v t o ho
   cases l with
   | headAction s =>
+    have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote (params (count := count)) (FGSA.clock (params (count := count))
       nd.st t) s).root = m :=
       Option.some.inj ha
@@ -2345,6 +2381,7 @@ private theorem nvGen_w1_proposal_admit (nd : Node (params (count := count))) (v
     subst m
     cases hp
   | propAction s =>
+    have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
     have ht : SA.proposalTime (params (count := count)).toParams s = t :=
       ((fgsa (params (count := count)) unitCodec).duties_spec (.propAction s) t).1 hl
     change (propose (params (count := count)) (FGSA.clock (params (count := count)) nd.st t)
@@ -2543,7 +2580,8 @@ theorem nvGen_w1_prefix_complete (steps : Nat) (v : (Validator (count := count))
     exact (nvGen_w1_emit_wire (count := count)) steps _ ((nvGen_w1_prefix_schedule (count :=
       count)) steps)
       ((nvGen_prefix_origin (count := count)) (steps + 1))
-      ((nvGen_gen_prefix_carried (count := count)) (steps + 1)).2 u a steps
+      ((nvGen_gen_prefix_carried (count := count)) (steps + 1)).2
+      (nvGen_prefix_no_restart (steps + 1)) u a steps
         ((nvGen_genEmits_runData (count
         := count)) steps _ u a steps hu)
   exact (nvGen_w1_batch_complete (count := count)) P ((nvGen_w1_emits_unique (count := count)) _
@@ -2627,7 +2665,8 @@ theorem nvGen_w1_clock_processed (st : State (params (count := count)).n) (t : T
 theorem nvGen_w1_known_fold_local (P : (Validator (count := count)) → Obj (params (count :=
   count)) →
   Prop) (w : (World (count := count)))
-    (es : List (Event (count := count))) (hk : ∀ v, (GenKnown (count := count)) (P v) (w v).st)
+    (es : List (Event (count := count)))
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es) (hk : ∀ v, (GenKnown (count := count)) (P v) (w v).st)
     (he : ∀ v o t, V2.Event.deliver v o t ∈ es →
       P v o ∧ ∀ a, carriesS (params (count := count)) o a → P v a) :
     ∀ v, (GenKnown (count := count)) (P v) ((genFold (count := count)) w es v).st := by
@@ -2635,16 +2674,10 @@ theorem nvGen_w1_known_fold_local (P : (Validator (count := count)) → Obj (par
   | nil => exact hk
   | cons e es ih =>
     apply ih
+    · exact fun v t hm => hnr v t (List.mem_cons_of_mem _ hm)
     · intro u
       cases e with
-      | restart v t =>
-        by_cases hu : u = v
-        · subst u
-          simp only [V2.D.World.step, Function.update_self]
-          exact ⟨by simp [fgsa, initialAt, initial],
-            by simp [GenStoredRows, fgsa, initialAt, initial],
-            by simp [fgsa, initialAt, initial, GridCO.initial]⟩
-        · simpa only [V2.D.World.step, Function.update_of_ne hu] using hk u
+      | restart v t => exact (hnr v t (List.mem_cons_self ..)).elim
       | tick v t =>
         by_cases hu : u = v
         · subst u
@@ -2674,6 +2707,7 @@ theorem nvGen_w1_batch_known_receipt (steps : Nat) (v : (Validator (count := cou
     ((buildPrefix (count := count)) steps).2 steps o ∨
     V2.Event.deliver u o steps ∈ ((timeBatch (count := count)) steps ((buildPrefix (count :=
       count)) steps).1).2)
+  · exact nvGen_timeBatch_no_restart steps (buildPrefix steps).1
   · intro u
     exact (nvGen_gen_known_mono (count := count)) _ _ _ (((nvGen_gen_prefix_carried (count :=
       count))
@@ -2705,6 +2739,7 @@ theorem nvGen_w1_nonproposal_receipt (steps : Nat) (v : (Validator (count := cou
     count)) steps).1 u) u steps o hu
   cases l with
   | headAction s =>
+    have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote (params (count := count))
         (FGSA.clock (params (count := count)) (((buildPrefix (count := count)) steps).1 u).st
           steps) s).root = m := Option.some.inj ha
@@ -2721,6 +2756,7 @@ theorem nvGen_w1_nonproposal_receipt (steps : Nat) (v : (Validator (count := cou
     subst m
     exact (hk.1 _ (of_decide_eq_true hp)).resolve_left hn
   | propAction s =>
+    have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
     change (propose (params (count := count)) (FGSA.clock (params (count := count))
       (((buildPrefix (count := count)) steps).1 u).st steps) s).map
       (withApp (params (count := count)) 0) = some m at ha
@@ -2822,6 +2858,7 @@ theorem nvGen_w1_proposal_fresh_start (steps : Nat) (v : (Validator (count := co
     count)) steps).1 0) 0 steps o hu
   cases l with
   | headAction s =>
+    have ha := nvGen_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote (params (count := count))
         (FGSA.clock (params (count := count)) (((buildPrefix (count := count)) steps).1 0).st
           steps) s).root = m := Option.some.inj ha
@@ -2836,6 +2873,7 @@ theorem nvGen_w1_proposal_fresh_start (steps : Nat) (v : (Validator (count := co
     subst m
     cases hp
   | propAction s =>
+    have ha := nvGen_proposal_action (c := unitCodec) (x := ()) ha
     have ht : SA.proposalTime (params (count := count)).toParams s = steps :=
       ((fgsa (params (count := count)) unitCodec).duties_spec (.propAction s) steps).1 hl
     have hs0 : 0 < s := by
@@ -3181,23 +3219,60 @@ theorem nvGen_w1_direct_handle (E : Generic.Env (Validator (count := count))) (h
   obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hm
   exact ⟨i, o, hi, Or.inl rfl⟩
 
+/-- The generated batch supplies every later delivery anchor from its real receipt. -/
+theorem nvGen_w1_service (steps : Nat) (v w : Validator (count := count))
+    (o : Obj (params (count := count))) (t a d : Time)
+    (he : V2.D.Run.emits weakEnv (runData steps (buildPrefix (steps + 1)).2) v o t)
+    (hta : t ≤ a) (had : a < d) :
+    V2.D.DeliveryService weakEnv (runData steps (buildPrefix (steps + 1)).2) w o a d := by
+  obtain ⟨i, hi, ho⟩ := he
+  rw [(V2.D.Run.step_tick_eq weakEnv _ hi).2] at ho
+  obtain ⟨n, hn, rfl, hm⟩ := nvGen_w1_locate_emission (steps + 1) i v t o hi ho
+  rcases hta.eq_or_lt with rfl | hlt
+  · right
+    exact ⟨n, le_rfl, had, nvGen_w1_direct_handle weakEnv _ _ w o n
+      (nvGen_w1_prefix_broadcast steps v o n ⟨i, hi, by
+        rw [(V2.D.Run.step_tick_eq weakEnv _ hi).2]
+        exact ho⟩ w)⟩
+  · left
+    refine ⟨(buildPrefix (count := count) (n + 1)).2.length, ?_, ?_⟩
+    · have hp := (nvGen_w1_prefix_prefix (count := count) (n + 1) (steps + 1) hn).sublist.filter
+        (fun e => decide (e.time < a ∨ (e.time = a ∧ e.phase = 0)))
+      have hfilter : ((buildPrefix (count := count) (n + 1)).2.filter
+          (fun e => decide (e.time < a ∨ (e.time = a ∧ e.phase = 0)))) =
+          (buildPrefix (count := count) (n + 1)).2 := by
+        apply List.filter_eq_self.mpr
+        intro e he
+        have ht := (nvGen_witness_prefix_times (n + 1) e he).2
+        exact decide_eq_true (Or.inl (lt_of_le_of_lt (by
+          change e.time < (n + 1 : Nat) at ht
+          simp only [Time] at *
+          omega) hlt))
+      rw [hfilter] at hp
+      exact hp.length_le
+    · rw [nvGen_runData_stateBefore]
+      have hp := nvGen_w1_prefix_prefix (count := count) (n + 1) (steps + 1) hn
+      obtain ⟨ds, hd⟩ := hp
+      rw [← hd, List.take_append_length, ← (nvGen_prefix_replay_fresh (n + 1)).1]
+      exact nvGen_w1_prefix_complete n w o hm
+
 theorem nvGen_w1_prefix_sync (steps : Nat) :
-    V2.D.PartialSynchrony (weakEnv (count := count)) ((runData (count := count)) steps
-      ((buildPrefix (count := count)) (steps + 1)).2) where
-  broadcast_emitted v _ o t he u _ _ _ := by
-    refine ⟨t, le_rfl, ?_, (nvGen_w1_direct_handle (count := count)) (weakEnv (count := count))
-      _ _ u o t
-      ((nvGen_w1_prefix_broadcast (count := count)) steps v o t he u)⟩
-    change t < max t 0 + 1
-    exact Int.lt_add_one_iff.mpr (le_max_left _ _)
-  relay_accepted v _ i o t ha u _ hp _ _ := by
-    obtain ⟨⟨a, hi, hh⟩, _, _⟩ := ha
-    have hc := (nvGen_w1_handles_carries (count := count)) _ a o hh
-    refine ⟨t, le_rfl, ?_, (nvGen_w1_direct_handle (count := count)) (weakEnv (count := count))
-      _ _ u o t
-      ((nvGen_w1_prefix_relay (count := count)) steps i v u a o t hi hc hp)⟩
-    change t < max t 0 + 1
-    exact Int.lt_add_one_iff.mpr (le_max_left _ _)
+    V2.D.PartialSynchrony (weakEnv (count := count))
+      (runData steps (buildPrefix (steps + 1)).2) where
+  broadcast_emitted := by
+    intro v _ o t he w _ a hta _ had _ _ _ _
+    exact nvGen_w1_service steps v w o t a _ he hta had
+  relay_accepted := by
+    intro v _ i o t ha w _ a hta _ had _ _ _ _
+    obtain ⟨obj, hi, hh⟩ := ha.1
+    rcases nvGen_w1_handles_carries _ obj o hh with rfl | hc
+    · obtain ⟨u, hu⟩ := nvGen_prefix_origin (steps + 1) v obj t (List.mem_of_getElem? hi)
+      exact nvGen_w1_service steps u w obj t a _
+        (nvGen_genEmits_runData steps _ u obj t hu) hta had
+    · obtain ⟨u, send, hsend, hem⟩ :=
+        (nvGen_gen_prefix_carried (steps + 1)).2 v obj t (List.mem_of_getElem? hi) o hc
+      exact nvGen_w1_service steps u w o send a _
+        (nvGen_genEmits_runData steps _ u o send hem) (hsend.trans hta) had
 
 private theorem nvGen_w1_fold_blocks (w : (World (count := count))) (es : List (Event (count :=
   count))) (v : (Validator (count := count)))
@@ -3255,7 +3330,8 @@ private theorem nvGen_w1_prefix_body (n : Nat) (o : Obj (params (count := count)
   have hw := (nvGen_w1_emit_wire (count := count)) n _ ((nvGen_w1_prefix_schedule (count :=
     count)) n)
     ((nvGen_prefix_origin (count := count)) (n + 1))
-    ((nvGen_gen_prefix_carried (count := count)) (n + 1)).2 x o n ((nvGen_genEmits_runData
+    ((nvGen_gen_prefix_carried (count := count)) (n + 1)).2
+    (nvGen_prefix_no_restart (n + 1)) x o n ((nvGen_genEmits_runData
       (count := count))
       n _ x o n hx)
   have hb := ((nvGen_w1_proposal_admit (count := count)) _ u n o hr hu hw B hp).2
@@ -3364,10 +3440,21 @@ private theorem nvGen_w1_tableRootPremise (steps : Nat) (E : Generic.Env (Valida
       steps) ((nvGen_w1_tableMeta (count := count)) steps)
       (ancestor A hA) (ancestor D hD) he
 
+theorem nvGen_prefix_sleep (steps : Nat) :
+    V2.D.SleepWellFormed (weakEnv (count := count))
+      (runData steps (buildPrefix (steps + 1)).2) where
+  tick_awake := fun _ _ _ => rfl
+  deliver_awake := fun _ _ _ _ => rfl
+  restart_awake := fun _ _ _ => rfl
+  wake_restart := by
+    intro v _ t _ _ hw
+    exact Bool.noConfusion hw.2
+
 theorem nvGen_prefix_execution (steps : Nat) :
     V2.D.ExecutionValid (weakEnv (count := count)) ((runData (count := count)) steps
       ((buildPrefix (count := count)) (steps + 1)).2) where
   toScheduleWellFormed := (nvGen_w1_prefix_schedule (count := count)) steps
+  toSleepWellFormed := nvGen_prefix_sleep steps
   wire := by
     intro i v o t hi
     obtain ⟨u, hu⟩ := (nvGen_prefix_origin (count := count)) (steps + 1) v o t
@@ -3375,7 +3462,8 @@ theorem nvGen_prefix_execution (steps : Nat) :
     exact (nvGen_w1_emit_wire (count := count)) steps _ ((nvGen_w1_prefix_schedule (count :=
       count)) steps)
       ((nvGen_prefix_origin (count := count)) (steps + 1))
-      ((nvGen_gen_prefix_carried (count := count)) (steps + 1)).2 u o t ((nvGen_genEmits_runData
+      ((nvGen_gen_prefix_carried (count := count)) (steps + 1)).2
+      (nvGen_prefix_no_restart (steps + 1)) u o t ((nvGen_genEmits_runData
         (count :=
         count)) steps _ u o t hu)
   deps := by
@@ -3405,6 +3493,23 @@ theorem nvGen_prefix_roots (steps : Nat) :
     exact (nvGen_w1_deliveredTable (count := count)) (steps + 1) v o t hd B hp
   · intro i v B hB
     exact (nvGen_w1_storedTable (count := count)) (steps + 1) steps i v B hB
+
+theorem nvGen_prefix_receiptRoots (steps : Nat) :
+    NamedReceiptRootCollisionFree (params (count := count)) unitCodec weakEnv
+      (runData steps (buildPrefix (steps + 1)).2) := by
+  have hscope (A : NamedProposal (params (count := count)).n)
+      (hA : NamedProposalReceiptScope (params (count := count)) unitCodec weakEnv
+        (runData steps (buildPrefix (steps + 1)).2) A) :
+      NamedProposalInRun (params (count := count)) unitCodec weakEnv
+        (runData steps (buildPrefix (steps + 1)).2) A := by
+    rcases hA with hA | ⟨v, _, o, t, N, hem, hp, hAN⟩
+    · exact hA
+    · exact ⟨N, Or.inl ⟨v, o, t, nvGen_w1_prefix_broadcast steps v o t hem v, hp⟩, hAN⟩
+  have hrefl (A : NamedProposal (params (count := count)).n) : NamedProposal.Preceq A A := by
+    cases A <;> simp [NamedProposal.Preceq, NamedProposal.preceq]
+  intro A B hA hB he
+  exact (nvGen_prefix_roots steps).root_injective A B (hscope A hA) (hscope B hB)
+    A B (Or.inl (hrefl A)) (Or.inr (hrefl B)) he
 
 theorem nvGen_prefix_sync (steps : Nat) :
     Gen.V2.Duty.PartialSynchronyBy (weakEnv (count := count)) ((runData (count := count)) steps
@@ -3473,7 +3578,15 @@ theorem nvGen_prefix_no_delivery (steps : Nat) (v : Validator (count := count))
         obtain ⟨u, _, hu⟩ := List.mem_map.mp he
         cases hu
 
+#print axioms nvGen_head_action
+#print axioms nvGen_proposal_action
 #print axioms nvGen_prefix_execution
+#print axioms nvGen_gen_tick_nonproposal_wire
+#print axioms nvGen_w1_known_fold
+#print axioms nvGen_w1_known_fold_local
+#print axioms nvGen_prefix_sleep
+#print axioms nvGen_prefix_receiptRoots
+#print axioms nvGen_w1_service
 #print axioms nvGen_prefix_roots
 #print axioms nvGen_prefix_sync
 #print axioms nvGen_prefix_accountable
@@ -3538,7 +3651,7 @@ variable {In V : Type} [DecidableEq V] {P : V2.ProtocolSpecD In}
     (E : Generic.Env V) (rho : V2.D.Run V P)
 
 private def localStep (v : V) (st : P.State) : V2.Event V P.Object → P.State
-  | .restart u _ => if u = v then P.restore (P.durable st) else st
+  | .restart u t => if u = v then P.restore (P.durable st) t else st
   | .tick u t => if u = v then (V2.D.tick E rho st u t).1 else st
   | .deliver u o _ => if u = v then P.process st o else st
 
@@ -3697,9 +3810,9 @@ theorem nvRestrict_schedule_restrict (kept : Finset V) (hsub : kept ⊆ rho.hone
   honest_only := fun e he => of_decide_eq_true (List.mem_filter.mp he).2
   tick_public := fun v t he => hs.tick_public v t (List.mem_filter.mp he).1
   tick_total := by
-    intro v hv t hp ht hh
+    intro v hv t hp ht hh ha
     apply List.mem_filter.mpr
-    exact ⟨hs.tick_total v (hsub hv) t hp ht hh, by
+    exact ⟨hs.tick_total v (hsub hv) t hp ht hh ha, by
       change decide (v ∈ kept) = true
       exact decide_eq_true hv⟩
 
@@ -3707,6 +3820,14 @@ theorem nvRestrict_schedule_restrict (kept : Finset V) (hsub : kept ⊆ rho.hone
 theorem nvRestrict_execution_restrict (kept : Finset V) (hsub : kept ⊆ rho.honest)
     (hs : V2.D.ExecutionValid E rho) : V2.D.ExecutionValid E (restrictRun rho kept) where
   toScheduleWellFormed := nvRestrict_schedule_restrict E rho kept hsub hs.toScheduleWellFormed
+  toSleepWellFormed := {
+    tick_awake := fun v t hm => hs.tick_awake v t (List.mem_filter.mp hm).1
+    deliver_awake := fun v o t hm => hs.deliver_awake v o t (List.mem_filter.mp hm).1
+    restart_awake := fun v t hm => hs.restart_awake v t (List.mem_filter.mp hm).1
+    wake_restart := by
+      intro v hv t ht hh hw
+      exact List.mem_filter.mpr ⟨hs.wake_restart v (hsub hv) t ht hh hw,
+        decide_eq_true hv⟩ }
   wire := by
     intro j v o t hj
     obtain ⟨i, hi, _, _⟩ := nvRestrict_index_filter (fun e : V2.Event V P.Object => decide
@@ -3744,39 +3865,73 @@ theorem nvRestrict_execution_restrict (kept : Finset V) (hsub : kept ⊆ rho.hon
     obtain ⟨s, ht, he⟩ := hs.carried v o t ⟨i, hi⟩ a hc u (hsub hu) hh
     exact ⟨s, ht, (nvRestrict_emits_restrict E rho kept u hu a s).mpr he⟩
 
+/-- Retention preserves both alternatives of service at the same action anchor. -/
+theorem nvRestrict_service_restrict (kept : Finset V) (w : V) (hw : w ∈ kept)
+    (hs : V2.D.ScheduleWellFormed E rho) (o : P.Object) (a d : Time)
+    (h : V2.D.DeliveryService E rho w o a d) :
+    V2.D.DeliveryService E (restrictRun rho kept) w o a d := by
+  rcases h with ⟨k, hk, hp⟩ | ⟨t, ht, hd, j, hj⟩
+  · left
+    let keep := fun e : V2.Event V P.Object => decide (e.node ∈ kept)
+    let cut := fun e : V2.Event V P.Object =>
+      decide (e.time < a ∨ (e.time = a ∧ e.phase = 0))
+    have hc : rho.events.filter cut = rho.events.take (V2.D.Run.actionCut rho a) := by
+      apply V2.D.Engine.filter_eq_take hs cut
+      intro e f hef hf
+      have hkey := Prod.Lex.toLex_le_toLex'.mp hef
+      have hcf := of_decide_eq_true hf
+      apply decide_eq_true
+      rcases hcf with hlt | ⟨heq, hz⟩
+      · exact Or.inl (lt_of_le_of_lt hkey.1 hlt)
+      · by_cases he : e.time = f.time
+        · exact Or.inr ⟨he.trans heq, Nat.eq_zero_of_le_zero (hz ▸ hkey.2 he)⟩
+        · exact Or.inl (lt_of_lt_of_le (lt_of_le_of_ne hkey.1 he) heq.le)
+    let j := ((rho.events.take k).filter keep).length
+    refine ⟨j, ?_, ?_⟩
+    · have hh := ((List.take_prefix_take_left (l := rho.events) hk).filter keep).length_le
+      rw [← hc] at hh
+      change j ≤ ((rho.events.filter keep).filter cut).length
+      simpa only [List.filter_filter, Bool.and_comm] using hh
+    · have htake := (List.prefix_iff_eq_take.mp ((List.take_prefix k rho.events).filter keep)).symm
+      rw [nvRestrict_state_restrict E rho kept w hw k j htake]
+      exact hp
+  · right
+    exact ⟨t, ht, hd, (nvRestrict_handles_restrict E rho kept w hw o t).mpr ⟨j, hj⟩⟩
+
 /-- Family synchrony keeps the same deadline and receiver guards after retention. -/
 theorem nvRestrict_sync_restrict (kept : Finset V) (hsub : kept ⊆ rho.honest) (delay : P.Object
   → Time)
-    (hs : Gen.V2.Duty.PartialSynchronyBy E rho delay) :
+    (hs : Gen.V2.Duty.PartialSynchronyBy E rho delay)
+    (hsch : V2.D.ScheduleWellFormed E rho) :
     Gen.V2.Duty.PartialSynchronyBy E (restrictRun rho kept) delay where
   broadcast_emitted := by
-    intro v hv o t he w hw hh hx
+    intro v hv o t he w hw a hta ha had hh hhor hlink hx
     have he' := (nvRestrict_emits_restrict E rho kept v hv o t).mp he
-    have hx' : P.excludes (V2.D.Run.stateBeforeTime E rho (max t E.t_GST + delay o) w) o
+    have hx' : P.excludes (V2.D.Run.stateBeforeTime E rho (max a E.t_GST + delay o) w) o
         = false := by rwa [nvRestrict_beforeTime_restrict E rho kept w hw] at hx
-    obtain ⟨s, ht, hd, j, hj⟩ := hs.broadcast_emitted v (hsub hv) o t he' w (hsub hw) hh hx'
-    exact ⟨s, ht, hd, (nvRestrict_handles_restrict E rho kept w hw o s).mpr ⟨j, hj⟩⟩
+    exact nvRestrict_service_restrict E rho kept w hw hsch o a _
+      (hs.broadcast_emitted v (hsub hv) o t he' w (hsub hw)
+        a hta ha had hh hhor hlink hx')
   relay_accepted := by
-    intro v hv j o t ha w hw hp hh hx
-    obtain ⟨a, hj, hhandle⟩ := ha.1
+    intro v hv j o t hacc w hw a hta ha had hh hhor hlink hx
+    obtain ⟨obj, hj, hhandle⟩ := hacc.1
     obtain ⟨i, hi, hk, hpre⟩ := nvRestrict_index_filter
-      (fun e : V2.Event V P.Object => decide (e.node ∈ kept)) rho.events j (.deliver v a t) hj
+      (fun e : V2.Event V P.Object => decide (e.node ∈ kept)) rho.events j (.deliver v obj t) hj
     have hpost := nvRestrict_filter_prefix_succ
       (fun e : V2.Event V P.Object => decide (e.node ∈ kept)) rho.events i j
-      (.deliver v a t) hi hj hk hpre
+      (.deliver v obj t) hi hj hk hpre
     have ha' : V2.D.Run.acceptsAt E rho i v o t := by
-      refine ⟨⟨a, hi, ?_⟩, ?_, ?_⟩
+      refine ⟨⟨obj, hi, ?_⟩, ?_, ?_⟩
       · rwa [nvRestrict_state_restrict E rho kept v hv i j hpre] at hhandle
-      · have hp0 := ha.2.1
+      · have hp0 := hacc.2.1
         rwa [nvRestrict_state_restrict E rho kept v hv i j hpre] at hp0
-      · have hp' := ha.2.2
+      · have hp' := hacc.2.2
         rwa [nvRestrict_state_restrict E rho kept v hv (i + 1) (j + 1) hpost] at hp'
-    have hp' : P.processed (V2.D.Run.stateBefore E rho (i + 1) w) o = false := by
-      rwa [nvRestrict_state_restrict E rho kept w hw (i + 1) (j + 1) hpost] at hp
-    have hx' : P.excludes (V2.D.Run.stateBeforeTime E rho (max t E.t_GST + delay o) w) o
+    have hx' : P.excludes (V2.D.Run.stateBeforeTime E rho (max a E.t_GST + delay o) w) o
         = false := by rwa [nvRestrict_beforeTime_restrict E rho kept w hw] at hx
-    obtain ⟨s, ht, hd, k, hk⟩ := hs.relay_accepted v (hsub hv) i o t ha' w (hsub hw) hp' hh hx'
-    exact ⟨s, ht, hd, (nvRestrict_handles_restrict E rho kept w hw o s).mpr ⟨k, hk⟩⟩
+    exact nvRestrict_service_restrict E rho kept w hw hsch o a _
+      (hs.relay_accepted v (hsub hv) i o t ha' w (hsub hw)
+        a hta ha had hh hhor hlink hx')
 
 end Local
 
@@ -3825,6 +3980,10 @@ theorem nvRestrict_accountable_restrict (kept : Finset V)
     (nvRestrict_finalityBlock_restrict p c E rho kept hs W hW)
 
 end FGSA
+#print axioms nvRestrict_service_restrict
+#print axioms nvRestrict_execution_restrict
+#print axioms nvRestrict_sync_restrict
+
 end AvailableChain.FGSA.Run.Tests.GrowthRestriction
 end
 
@@ -3837,7 +3996,7 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationGrowthNonVacuity
 /-! Closed partial witness for the corruption-growth companion.
 The W1 generator supplies the model for this five-validator test.
 TEST-SCOPE prevents an import of the Inhabit fixture or another Tests module.
-The source ends at 247 and three honest validators continue at 248.
+The source ends at 253 and three honest validators continue at 254.
 MissingFields states the exact fields needed to close both regime records. -/
 
 def params : Params where
@@ -3913,7 +4072,7 @@ def buildPrefix : Nat → World × List Event
       (batch.1, previous.2 ++ batch.2)
 
 def continuationData (es ds : List Event) : V2.D.Run Validator (fgsa params unitCodec) :=
-  { runData 248 [] with
+  { runData 254 [] with
     honest := retainedSet
     events := es.filter (fun e => decide (e.node ∈ retainedSet)) ++ ds }
 
@@ -4013,8 +4172,8 @@ theorem nvGrowth_prefix_tick (steps t : Nat) (ht : t < steps) (v : Validator) :
       · exact List.mem_append_left _ (ih (by omega))
 
 theorem nvGrowth_agreement_of_suffix (es ds : List Event)
-    (hds : ∀ e ∈ ds, (247 : Time) < e.time) :
-    RetainedAgreesThrough₂ params unitCodec env (runData 247 es) env
+    (hds : ∀ e ∈ ds, (253 : Time) < e.time) :
+    RetainedAgreesThrough₂ params unitCodec env (runData 253 es) env
       (continuationData es ds) where
   honest := fun _ _ => Finset.mem_univ _
   gst := rfl
@@ -4026,10 +4185,10 @@ theorem nvGrowth_agreement_of_suffix (es ds : List Event)
     intro v hv
     change v ∈ retainedSet at hv
     change (es.filter (fun e => decide (e.node ∈ retainedSet)) ++ ds).filter
-      (fun e => decide (e.node = v ∧ e.time ≤ (247 : Time))) =
-        es.filter (fun e => decide (e.node = v ∧ e.time ≤ (247 : Time)))
+      (fun e => decide (e.node = v ∧ e.time ≤ (253 : Time))) =
+        es.filter (fun e => decide (e.node = v ∧ e.time ≤ (253 : Time)))
     rw [List.filter_append]
-    have hs : ds.filter (fun e => decide (e.node = v ∧ e.time ≤ (247 : Time))) = [] := by
+    have hs : ds.filter (fun e => decide (e.node = v ∧ e.time ≤ (253 : Time))) = [] := by
       apply List.filter_eq_nil_iff.mpr
       intro e he
       have ht := hds e he
@@ -4053,15 +4212,15 @@ theorem nvGrowth_prefix_no_restart (steps : Nat) (v : Validator) (t : Time) :
 
 theorem nvGrowth_no_restart_of (es : List Event) (w : World)
     (hnr : ∀ v t, V2.Event.restart v t ∉ es) :
-    V2.D.NoRestart (runData 247 es) ∧
-    V2.D.NoRestart (continuationData es (timeBatch retained 248 w).2) := by
+    V2.D.NoRestart (runData 253 es) ∧
+    V2.D.NoRestart (continuationData es (timeBatch retained 254 w).2) := by
   constructor
   · intro i v t he
     exact hnr v t (List.mem_of_getElem? he)
   · intro i v t he
     rcases List.mem_append.mp (List.mem_of_getElem? he) with he | he
     · exact hnr v t (List.mem_filter.mp he).1
-    · rcases (nvGrowth_batch_shape retained 248 w _ he).2.2 with
+    · rcases (nvGrowth_batch_shape retained 254 w _ he).2.2 with
         ⟨u, hu⟩ | ⟨u, o, hu⟩ <;> cases hu
 
 theorem nvGrowth_delivery_nodup (t : Time) (xs : List (Validator × Obj params))
@@ -4215,6 +4374,8 @@ structure ValidPrefixFacts (endpoint : Nat) (data : World × List Event) : Prop
     extends PrefixFacts (endpoint + 1) data.2 where
   valid : V2.D.ExecutionValid env (runData (endpoint : Time) data.2)
   roots : NamedRootCollisionFree params unitCodec env (runData (endpoint : Time) data.2)
+  receiptRoots : NamedReceiptRootCollisionFree params unitCodec env
+    (runData (endpoint : Time) data.2)
   sync : Gen.V2.Duty.PartialSynchronyBy env (runData (endpoint : Time) data.2)
     (fgsaDelay env.Δ 1)
   nextAccountable : FinalitySlashableBound params unitCodec env (runData (endpoint + 1 : Nat)
@@ -4226,6 +4387,9 @@ structure ValidPrefixFacts (endpoint : Nat) (data : World × List Event) : Prop
     (fgsaDelay env.Δ 1)
   nextRoots : NamedRootCollisionFree params unitCodec env (runData (endpoint + 1 : Nat)
     (data.2 ++ (show List Event from
+      (GrowthGenerator.timeBatch (count := 5) (endpoint + 1 : Nat) data.1).2)))
+  nextReceiptRoots : NamedReceiptRootCollisionFree params unitCodec env
+    (runData (endpoint + 1 : Nat) (data.2 ++ (show List Event from
       (GrowthGenerator.timeBatch (count := 5) (endpoint + 1 : Nat) data.1).2)))
   nextValid : V2.D.ExecutionValid env (runData (endpoint + 1 : Nat)
     (data.2 ++ (show List Event from
@@ -4247,6 +4411,9 @@ def certifiedValidPrefix (endpoint : Nat) :
     roots := by
       rw [nvGrowth_generator_env, nvGrowth_generator_run]
       exact GrowthGenerator.nvGen_prefix_roots (count := 5) endpoint
+    receiptRoots := by
+      rw [nvGrowth_generator_env, nvGrowth_generator_run]
+      exact GrowthGenerator.nvGen_prefix_receiptRoots (count := 5) endpoint
     sync := by
       rw [nvGrowth_generator_env, nvGrowth_generator_run]
       exact GrowthGenerator.nvGen_prefix_sync (count := 5) endpoint
@@ -4259,31 +4426,34 @@ def certifiedValidPrefix (endpoint : Nat) :
     nextSync := by
       rw [nvGrowth_generator_env, nvGrowth_generator_run]
       exact GrowthGenerator.nvGen_prefix_sync (count := 5) (endpoint + 1)
+    nextReceiptRoots := by
+      rw [nvGrowth_generator_env, nvGrowth_generator_run]
+      exact GrowthGenerator.nvGen_prefix_receiptRoots (count := 5) (endpoint + 1)
     nextAccountable := by
       rw [nvGrowth_generator_env, nvGrowth_generator_run]
       exact GrowthGenerator.nvGen_prefix_accountable (count := 5) (endpoint + 1) }⟩
 
 /-- A checked opaque value keeps the long trace out of kernel conversion.
 The value is the real generator paired with its symbolic schedule proofs. -/
-opaque generatedPrefix : { data : World × List Event // ValidPrefixFacts 247 data } :=
-  certifiedValidPrefix 247
+opaque generatedPrefix : { data : World × List Event // ValidPrefixFacts 253 data } :=
+  certifiedValidPrefix 253
 
-def source : V2.D.Run Validator (fgsa params unitCodec) := runData 247 generatedPrefix.val.2
+def source : V2.D.Run Validator (fgsa params unitCodec) := runData 253 generatedPrefix.val.2
 
 def endWorld : World := generatedPrefix.val.1
 
-def fullSuffix : List Event := (GrowthGenerator.timeBatch (count := 5) 248 endWorld).2
+def fullSuffix : List Event := (GrowthGenerator.timeBatch (count := 5) 254 endWorld).2
 
 def suffix : List Event := fullSuffix.filter (fun e => decide (e.node ∈ retainedSet))
 
 def reference : V2.D.Run Validator (fgsa params unitCodec) :=
-  runData 248 (source.events ++ fullSuffix)
+  runData 254 (source.events ++ fullSuffix)
 
 def continuation : V2.D.Run Validator (fgsa params unitCodec) :=
   continuationData source.events suffix
 
 theorem nvGrowth_numbers :
-    source.horizon = env.t_GST + B_HF params 1 4 ∧
+    source.horizon = recoveryStart params env + B_HF params 1 4 ∧
     0 < source.horizon ∧ source.horizon < continuation.horizon ∧
     (Gen.V2.Duty.faulty source).card = 0 ∧
     (Gen.V2.Duty.faulty continuation).card = 2 ∧
@@ -4313,16 +4483,16 @@ theorem nvGrowth_participation (t : Time) :
   simp only [env, Finset.filter_true]
   decide
 
-theorem nvGrowth_suffix_nonempty : V2.Event.tick 0 248 ∈ suffix := by
+theorem nvGrowth_suffix_nonempty : V2.Event.tick 0 254 ∈ suffix := by
   apply List.mem_filter.mpr
-  exact ⟨GrowthGenerator.nvGen_timeBatch_tick (count := 5) 248 endWorld 0, by decide⟩
+  exact ⟨GrowthGenerator.nvGen_timeBatch_tick (count := 5) 254 endWorld 0, by decide⟩
 
 theorem nvGrowth_agreement :
     RetainedAgreesThrough₂ params unitCodec env source env continuation := by
   apply nvGrowth_agreement_of_suffix source.events suffix
   intro e he
-  have ht : e.time = (248 : Time) :=
-    GrowthGenerator.nvGen_timeBatch_time (count := 5) 248 endWorld e
+  have ht : e.time = (254 : Time) :=
+    GrowthGenerator.nvGen_timeBatch_time (count := 5) 254 endWorld e
       (List.mem_filter.mp he).1
   rw [ht]
   decide
@@ -4334,13 +4504,13 @@ theorem nvGrowth_no_restart : V2.D.NoRestart source ∧ V2.D.NoRestart continuat
   · intro i v t hi
     rcases List.mem_append.mp (List.mem_of_getElem? hi) with he | he
     · exact generatedPrefix.property.noRestart v t (List.mem_filter.mp he).1
-    · exact GrowthGenerator.nvGen_timeBatch_no_restart (count := 5) 248 endWorld v t
+    · exact GrowthGenerator.nvGen_timeBatch_no_restart (count := 5) 254 endWorld v t
         (List.mem_filter.mp he).1
 
 theorem nvGrowth_source_in_horizon (e : Event) (he : e ∈ source.events) :
     0 ≤ e.time ∧ e.time ≤ source.horizon := by
   have ht := generatedPrefix.property.times e he
-  change 0 ≤ e.time ∧ e.time ≤ 247
+  change 0 ≤ e.time ∧ e.time ≤ 253
   simp only [Time] at *
   omega
 
@@ -4349,7 +4519,7 @@ theorem nvGrowth_source_tick_total (v : Validator) (t : Time)
     V2.Event.tick v t ∈ source.events := by
   rw [← Int.toNat_of_nonneg ht]
   apply generatedPrefix.property.ticks
-  change t ≤ 247 at hh
+  change t ≤ 253 at hh
   simp only [Time] at *
   omega
 
@@ -4363,65 +4533,65 @@ theorem nvGrowth_source_schedule : V2.D.ScheduleWellFormed env source where
     intro v t ht
     have hn : 0 ≤ t := (nvGrowth_source_in_horizon _ ht).1
     exact ⟨t.toNat, by simpa [env] using (Int.toNat_of_nonneg hn).symm⟩
-  tick_total := fun v _ t _ ht hh => nvGrowth_source_tick_total v t ht hh
+  tick_total := fun v _ t _ ht hh _ => nvGrowth_source_tick_total v t ht hh
 
 theorem nvGrowth_continuation_schedule_of (es : List Event) (w : World)
-    (hs : V2.D.ScheduleWellFormed env (runData 247 es)) :
-    V2.D.ScheduleWellFormed env (continuationData es (timeBatch retained 248 w).2) where
-  horizon_nonneg := by change (0 : Time) ≤ 248; decide
+    (hs : V2.D.ScheduleWellFormed env (runData 253 es)) :
+    V2.D.ScheduleWellFormed env (continuationData es (timeBatch retained 254 w).2) where
+  horizon_nonneg := by change (0 : Time) ≤ 254; decide
   sorted := by
-    change (es.filter _ ++ (timeBatch retained 248 w).2).Pairwise _
+    change (es.filter _ ++ (timeBatch retained 254 w).2).Pairwise _
     rw [List.pairwise_append]
     refine ⟨hs.sorted.filter _, nvGrowth_batch_sorted _ _ _, ?_⟩
     intro e he f hf
-    have ht : e.time ≤ 247 := (hs.in_horizon e (List.mem_filter.mp he).1).2
+    have ht : e.time ≤ 253 := (hs.in_horizon e (List.mem_filter.mp he).1).2
     apply Prod.Lex.toLex_le_toLex'.mpr
     dsimp only
-    rw [(nvGrowth_batch_shape retained 248 w f hf).1]
-    have hlt : e.time < (248 : Time) := lt_of_le_of_lt ht (by decide)
+    rw [(nvGrowth_batch_shape retained 254 w f hf).1]
+    have hlt : e.time < (254 : Time) := lt_of_le_of_lt ht (by decide)
     exact ⟨hlt.le, fun h => False.elim (ne_of_lt hlt h)⟩
   nodup := by
     apply (hs.nodup.filter _).append (nvGrowth_batch_nodup retained (by decide) _ _)
     intro e he hf
-    have ht : e.time ≤ 247 := (hs.in_horizon e (List.mem_filter.mp he).1).2
-    rw [(nvGrowth_batch_shape retained 248 w e hf).1] at ht
+    have ht : e.time ≤ 253 := (hs.in_horizon e (List.mem_filter.mp he).1).2
+    rw [(nvGrowth_batch_shape retained 254 w e hf).1] at ht
     simp only [Time] at ht
     omega
   in_horizon := by
     intro e he
     rcases List.mem_append.mp he with he | he
     · have ht := hs.in_horizon e (List.mem_filter.mp he).1
-      change 0 ≤ e.time ∧ e.time ≤ 248
-      change 0 ≤ e.time ∧ e.time ≤ 247 at ht
+      change 0 ≤ e.time ∧ e.time ≤ 254
+      change 0 ≤ e.time ∧ e.time ≤ 253 at ht
       exact ⟨ht.1, ht.2.trans (by decide)⟩
-    · rw [(nvGrowth_batch_shape retained 248 w e he).1]
+    · rw [(nvGrowth_batch_shape retained 254 w e he).1]
       exact ⟨by decide, le_rfl⟩
   honest_only := by
     intro e he
     rcases List.mem_append.mp he with he | he
     · exact of_decide_eq_true (List.mem_filter.mp he).2
-    · have hv := (nvGrowth_batch_shape retained 248 w e he).2.1
+    · have hv := (nvGrowth_batch_shape retained 254 w e he).2.1
       simpa [retained, retainedSet, continuationData] using hv
   tick_public := by
     intro v t ht
     rcases List.mem_append.mp ht with ht | ht
     · exact hs.tick_public v t (List.mem_filter.mp ht).1
-    · have heq : t = 248 := (nvGrowth_batch_shape retained 248 w _ ht).1
+    · have heq : t = 254 := (nvGrowth_batch_shape retained 254 w _ ht).1
       subst t
-      exact ⟨248, rfl⟩
+      exact ⟨254, rfl⟩
   tick_total := by
-    intro v hv t hp ht hh
+    intro v hv t hp ht hh _
     change v ∈ retainedSet at hv
-    change t ≤ 248 at hh
-    change V2.Event.tick v t ∈ es.filter _ ++ (timeBatch retained 248 w).2
-    by_cases hbefore : t ≤ 247
+    change t ≤ 254 at hh
+    change V2.Event.tick v t ∈ es.filter _ ++ (timeBatch retained 254 w).2
+    by_cases hbefore : t ≤ 253
     · apply List.mem_append_left
-      exact List.mem_filter.mpr ⟨hs.tick_total v (Finset.mem_univ _) t hp ht hbefore,
+      exact List.mem_filter.mpr ⟨hs.tick_total v (Finset.mem_univ _) t hp ht hbefore rfl,
         by change decide (v ∈ retainedSet) = true; exact decide_eq_true hv⟩
-    · have heq : t = 248 := by simp only [Time] at *; omega
+    · have heq : t = 254 := by simp only [Time] at *; omega
       subst t
       apply List.mem_append_right
-      exact nvGrowth_batch_tick retained 248 w v (by simpa [retained, retainedSet] using hv)
+      exact nvGrowth_batch_tick retained 254 w v (by simpa [retained, retainedSet] using hv)
 
 theorem nvGrowth_source_valid : V2.D.ExecutionValid env source :=
   generatedPrefix.property.valid
@@ -4463,6 +4633,7 @@ theorem nvGrowth_continuation_sync :
   rw [nvGrowth_reference_restrict]
   exact GrowthRestriction.nvRestrict_sync_restrict env reference retainedSet
     (by intro v _; exact Finset.mem_univ v) (fgsaDelay env.Δ 1) nvGrowth_reference_sync
+    nvGrowth_reference_valid.toScheduleWellFormed
 
 theorem nvGrowth_reference_accountable : FinalitySlashableBound params unitCodec env reference :=
   generatedPrefix.property.nextAccountable
@@ -4474,47 +4645,99 @@ theorem nvGrowth_continuation_accountable :
     (by rw [← nvGrowth_reference_restrict]; exact nvGrowth_continuation_valid.toScheduleWellFormed)
     nvGrowth_reference_accountable
 
+theorem nvGrowth_source_receiptRoots :
+    NamedReceiptRootCollisionFree params unitCodec env source :=
+  generatedPrefix.property.receiptRoots
+
+theorem nvGrowth_continuation_receiptRoots :
+    NamedReceiptRootCollisionFree params unitCodec env continuation := by
+  rw [nvGrowth_reference_restrict]
+  intro A B hA hB he
+  have hscope (N : NamedProposal params.n)
+      (hN : NamedProposalReceiptScope params unitCodec env
+        (GrowthRestriction.restrictRun reference retainedSet) N) :
+      NamedProposalReceiptScope params unitCodec env reference N := by
+    rcases hN with hN | ⟨v, hv, o, t, C, hem, hp, hNC⟩
+    · left
+      obtain ⟨C, hC, hNC⟩ := hN
+      refine ⟨C, ?_, hNC⟩
+      rcases hC with ⟨v, o, t, hd, hp⟩ | ⟨v, hv, j, hC⟩
+      · exact Or.inl ⟨v, o, t, (List.mem_filter.mp hd).1, hp⟩
+      · obtain ⟨i, hi⟩ := GrowthRestriction.nvRestrict_state_restrict_any env reference
+          retainedSet v hv j
+        exact Or.inr ⟨v, Finset.mem_univ v, i, by rwa [hi] at hC⟩
+    · exact Or.inr ⟨v, Finset.mem_univ v, o, t, C,
+        (GrowthRestriction.nvRestrict_emits_restrict env reference retainedSet v hv o t).mp hem,
+        hp, hNC⟩
+  exact generatedPrefix.property.nextReceiptRoots A B (hscope A hA) (hscope B hB) he
+
 theorem nvGrowth_continuation_schedule : V2.D.ScheduleWellFormed env continuation :=
   nvGrowth_continuation_valid.toScheduleWellFormed
 
-/-- The endpoint round has no network trigger. Both original pending guards remain. -/
+theorem nvGrowth_reference_state (i : Nat) (hi : i ≤ source.events.length) :
+    V2.D.Run.stateBefore env reference i = V2.D.Run.stateBefore env source i := by
+  unfold V2.D.Run.stateBefore
+  change ((source.events ++ fullSuffix).take i).foldl _ _ = (source.events.take i).foldl _ _
+  rw [List.take_append_of_le_length hi]
+  rfl
+
+theorem nvGrowth_reference_emits {v : Validator} {o : Obj params} {t : Time}
+    (hem : V2.D.Run.emits env source v o t) : V2.D.Run.emits env reference v o t := by
+  obtain ⟨i, hi, ho⟩ := hem
+  have hil := (List.getElem?_eq_some_iff.mp hi).1
+  have hi' : reference.events[i]? = some (.tick v t) :=
+    (List.getElem?_append_left hil).trans hi
+  refine ⟨i, hi', ?_⟩
+  rw [(V2.D.Run.step_tick_eq env reference hi').2]
+  rw [(V2.D.Run.step_tick_eq env source hi).2] at ho
+  rw [nvGrowth_reference_state i hil.le]
+  exact ho
+
+/-- Pending duties retain their original trigger and use the actual reference service. -/
 theorem nvGrowth_pending :
     PendingSourceDelivery₂ params unitCodec env source env continuation 1 where
   sourceBroadcast := by
-    intro v _ o t hem hh w _ hcross _ _
-    obtain ⟨i, hi, ho⟩ := hem
-    have ht := (nvGrowth_source_in_horizon _ (List.mem_of_getElem? hi)).1
-    have hd : fgsaDelay (p := params) env.Δ 1 o = 1 := by
-      cases o with | mk a m => cases m <;> rfl
-    rw [hd] at hcross
-    change 247 < max t 0 + 1 at hcross
-    change t ≤ 247 at hh
-    have he : t = 247 := by simp only [Time] at *; omega
-    subst t
-    rw [(V2.D.Run.step_tick_eq env source hi).2,
-      nvGrowth_tick_empty unitCodec env source _ v 247 (by decide)] at ho
-    cases ho
+    intro v _ o t hem _ w hw
+    unfold SourcePendingReceipt
+    intro a hta ha
+    dsimp only
+    intro had _ hh hlink hx
+    have hem' := nvGrowth_reference_emits hem
+    rw [nvGrowth_reference_restrict] at hx ⊢
+    have hx' := hx
+    rw [GrowthRestriction.nvRestrict_beforeTime_restrict env reference retainedSet w hw] at hx'
+    exact GrowthRestriction.nvRestrict_service_restrict env reference retainedSet w hw
+      nvGrowth_reference_valid.toScheduleWellFormed o a _
+      (nvGrowth_reference_sync.broadcast_emitted v (Finset.mem_univ _) o t hem' w
+        (Finset.mem_univ _) a hta ha had hh hh hlink hx')
   sourceRelay := by
-    intro v _ i o t ha hh w _ _ hcross _ _
-    obtain ⟨a, hi, _⟩ := ha.1
-    have ht := (nvGrowth_source_in_horizon _ (List.mem_of_getElem? hi)).1
-    have hd : fgsaDelay (p := params) env.Δ 1 o = 1 := by
-      cases o with | mk a m => cases m <;> rfl
-    rw [hd] at hcross
-    change 247 < max t 0 + 1 at hcross
-    change t ≤ 247 at hh
-    have he : t = 247 := by simp only [Time] at *; omega
-    subst t
-    exact (generatedPrefix.property.noDelivery v a 247 (by decide)
-      (List.mem_of_getElem? hi)).elim
+    intro v _ i o t hacc _ w hw _
+    unfold SourcePendingReceipt
+    intro a hta ha
+    dsimp only
+    intro had _ hh hlink hx
+    have hacc' : V2.D.Run.acceptsAt env reference i v o t := by
+      obtain ⟨obj, hi, hhandle⟩ := hacc.1
+      have hil := (List.getElem?_eq_some_iff.mp hi).1
+      refine ⟨⟨obj, (List.getElem?_append_left hil).trans hi, ?_⟩, ?_, ?_⟩
+      · rwa [nvGrowth_reference_state i hil.le]
+      · rw [nvGrowth_reference_state i hil.le]; exact hacc.2.1
+      · rw [nvGrowth_reference_state (i + 1) (Nat.succ_le_of_lt hil)]; exact hacc.2.2
+    rw [nvGrowth_reference_restrict] at hx ⊢
+    have hx' := hx
+    rw [GrowthRestriction.nvRestrict_beforeTime_restrict env reference retainedSet w hw] at hx'
+    exact GrowthRestriction.nvRestrict_service_restrict env reference retainedSet w hw
+      nvGrowth_reference_valid.toScheduleWellFormed o a _
+      (nvGrowth_reference_sync.relay_accepted v (Finset.mem_univ _) i o t hacc' w
+        (Finset.mem_univ _) a hta ha had hh hh hlink hx')
 
 theorem nvGrowth_partialWitness :
     V2.D.ScheduleWellFormed env source ∧
     V2.D.ScheduleWellFormed env continuation ∧
     RetainedAgreesThrough₂ params unitCodec env source env continuation ∧
-    source.horizon = env.t_GST + B_HF params 1 4 ∧
+    source.horizon = recoveryStart params env + B_HF params 1 4 ∧
     0 < source.horizon ∧ source.horizon < continuation.horizon ∧
-    V2.Event.tick 0 248 ∈ suffix ∧
+    V2.Event.tick 0 254 ∈ suffix ∧
     params.n < 3 * (Gen.V2.Duty.faulty continuation).card ∧
     2 * (Gen.V2.Duty.faulty continuation).card < params.n :=
   ⟨nvGrowth_source_schedule, nvGrowth_continuation_schedule, nvGrowth_agreement, nvGrowth_numbers.1,
@@ -4551,15 +4774,33 @@ theorem nvGrowth_complete_of_missing (h : MissingFields) :
       gap := nvGrowth_source_gap
       base := ⟨h.sourceValid, (nvGrowth_committees source rfl).1,
         (nvGrowth_committees source rfl).2,
-        nvGrowth_no_restart.1, rfl, h.sourceRoots⟩
+        (by intro v t hm; exact (nvGrowth_no_restart.1 _ v t
+          (List.mem_iff_getElem?.mp hm).choose_spec).elim), rfl, nvGrowth_source_receiptRoots⟩
       fault := by decide
       awake := fun _ _ _ _ _ => rfl
       gapPos := by decide
       liveness := nvGrowth_liveness
+      suffixNoRestart := by
+        intro v _ i t hi _ _
+        exact nvGrowth_no_restart.1 i v t hi
+      joinedGap := by
+        intro t ht hh
+        obtain ⟨s, hs, hsg, hv⟩ := nvGrowth_source_gap t (by
+          have h0 : (0 : Time) ≤ recoveryStart params env := by decide
+          exact h0.trans ht) hh
+        refine ⟨s, hs, hsg, hv, rfl, ?_, ?_⟩
+        · intro u _ _ hw; exact Bool.noConfusion hw.2
+        · intro u _ _ hm
+          obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hm
+          exact (nvGrowth_no_restart.1 i _ u hi).elim
       endpoint := nvGrowth_numbers.1 }
   · exact {
       base := ⟨h.continuationValid, (nvGrowth_committees continuation rfl).1,
-        (nvGrowth_committees continuation rfl).2, nvGrowth_no_restart.2, rfl, h.continuationRoots⟩
+        (nvGrowth_committees continuation rfl).2, (by
+          intro v t hm
+          obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hm
+          exact (nvGrowth_no_restart.2 i v t hi).elim),
+        rfl, nvGrowth_continuation_receiptRoots⟩
       agrees := nvGrowth_agreement
       covered := nvGrowth_numbers.2.2.1.le
       sync := h.continuationSync
@@ -4574,6 +4815,10 @@ theorem nvGrowth_complete :
   nvGrowth_complete_of_missing nvGrowth_missing
 
 #print axioms nvGrowth_continuation_accountable
+#print axioms nvGrowth_source_receiptRoots
+#print axioms nvGrowth_continuation_receiptRoots
+#print axioms nvGrowth_reference_state
+#print axioms nvGrowth_reference_emits
 #print axioms nvGrowth_missing
 #print axioms nvGrowth_complete
 
