@@ -6,6 +6,8 @@ public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 public import AvailableChainFGSAProofs.Proofs.Healing.Frame
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
+public import AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportFrame
 
 public section
 
@@ -14,6 +16,35 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {G ΔF : Time}
+
+/-- Recovery serves the jointly selected HEAD carrier and its actual direct target. -/
+theorem healing_selected_carriers_recovery (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (s : Slot) (iy : Nat) (y : V) (t : Time) :
+    HealingCarriersAt E rho s iy y t := by
+  intro hSync hRead hDeadline hhor j z hz hj hJoin
+  have hpub : V2.PublicTime E (SA.voteTime p.toParams s) := by
+    refine ⟨4 * s + 1, ?_⟩
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ = ((4 * s + 1 : Nat) : Int) * p.Δ
+    push_cast
+    ring
+  have service (W : FGBlock (Fin p.n)) (hW : W ∈ (storeAt p c E rho j z).fg.TF)
+      (hCompat : Block.Compatible (eraseFG W)
+        (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.fg.F)) :
+      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y :=
+    healing_target_service_of_tick E rho hrec hz hRead.1 hj
+      (((storeBundle_stateBefore E rho j z).cstore.baseTree _).mpr ⟨W, hW, rfl⟩)
+      hpub hSync (hDeadline.trans hhor) hCompat
+  constructor
+  · intro demand
+    obtain ⟨K, hK, he, W, hW, hKW, hlo, hCompat⟩ := demand.witness
+    have hW0 : W ∈ (storeAt p c E rho j z).fg.TF := by
+      change W ∈ (clock p (storeAt p c E rho j z) _).fg.TF at hW
+      rwa [clock_fg] at hW
+    exact ⟨⟨K, hK, he, W, hW, hKW, hlo, hCompat, service W hW0 hCompat⟩⟩
+  · intro K hK he hFloor
+    exact service K hK (Bool.or_eq_true_iff.mpr (Or.inr hFloor))
 
 /-- The joined recurrence supplies the proposal gap on the healing start domain. -/
 theorem healing_proposal_gap (hrec : RecoverySleep₂ p c E rho G ΔF) :
@@ -88,7 +119,7 @@ theorem healing_emitted_proposal_service (hrec : RecoverySleep₂ p c E rho G Δ
 
 /-- A fresh HEAD uses its original vote time and the receiver's action-cut epoch.
 Its receipt proof replays HistorySafeAt from this exact emission. -/
-theorem healing_fresh_head_service (hrec : RecoverySleep₂ p c E rho G ΔF)
+theorem healing_emitted_head_service (hrec : RecoverySleep₂ p c E rho G ΔF)
     {i : Nat} {v x : V} {s : Slot} {q : Fin p.n} {b : BlockId} {freeze : Time}
     (hv : v ∈ rho.honest) (hx : x ∈ rho.honest)
     (hi : rho.events[i]? = some (.tick v (SA.voteTime p.toParams s)))
@@ -121,6 +152,33 @@ theorem healing_fresh_head_service (hrec : RecoverySleep₂ p c E rho G ΔF)
     hd.symm ▸ haf.trans hfh, hd.symm ▸ haf,
     healing_recovery_action_epoch hrec hx hgst _, hd.symm ▸ hhandlers,
     hd.symm ▸ hexclude⟩⟩
+
+/-- Recovery serves the actual emitted proposal at its own honest receiver. -/
+theorem healing_self_proposal_service (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (s : Slot) (ip : Nat) (x : V) (N : NamedProposal p.n) (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hem : (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip)
+    (hSync : E.t_GST ≤ SA.proposalTime p.toParams s)
+    (hhor : SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon)
+    (hCompat : Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+      (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F)) :
+    Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+      (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x) := by
+  have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
+    (fun o => ¬ isRowObject o) p.Δ (fun o hn => by
+      rw [fgsaDelay_nonrow E.Δ ΔF o hn, hrec.base.delta])
+  have he : max (SA.proposalTime p.toParams s) E.t_GST + p.Δ =
+      SA.proposalTime p.toParams s + p.Δ := by rw [max_eq_left hSync]
+  apply fgsa_proposal_service_of_emission hrec.base.valid hrec.base.delta
+    (fun t => max t E.t_GST + p.Δ) rho.horizon hx hip hem hD
+  · rw [he]; exact lt_add_of_pos_right _ p.deltaPos
+  · simpa only [he] using hhor
+  · simpa only [he] using hhor
+  · exact he.le
+  · intro t hlo hhi
+    exact hrec.awake x hx t (hSync.trans hlo) (hhi.le.trans (he ▸ hhor))
+  · exact healing_recovery_restartFree hrec hx hSync hhor
+  · simpa only [he] using hCompat
 
 omit [Fintype V] in
 /-- A proposal parent in the fixed phase is above each receiver's current F.

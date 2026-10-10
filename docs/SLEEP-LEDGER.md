@@ -7365,3 +7365,26 @@ is conditional. P-As has three Outage caller repairs and the Root seed port.
 The full Round 13 task is incomplete. P-Ou is PREPARED; no public STOP is asserted.
 
 - Lead 2026-10-10 18:40: merged sleep-pou13 8bd2d9d7 (P-Ou r13) as PREPARED: outage supplier proved, both public exporters GREEN, continuation exporter conditional only on OutageWSeed. rev-pou13-astra: all pass except the architecture record (added by the lead in this merge). OutageWSeed truth check: wseed-derisk-astra.
+
+## P-H2 Round 7 — selected receipts and bounded core ports
+
+PhaseService proves selected retained receipt service at a recovery anchor, including
+a non-public anchor. It keeps the original honest acceptance, public admission tick,
+finite deadline, receiver floor, durable history and local receiver epoch. Its phase
+witness producer selects the frontier/top/contest objects. Its strict spread and
+frozen HEAD proof permit restarts. healing_rPhase_recovery produces all five clauses
+from RecoverySleep₂, RMonoAll and RXing, with no service callback or NoRestart.
+
+RepairCover closes the local one/two cover requests of Round 6 using the selected
+phase's permanence services. FrontierGateScope bounds carriers by v. The later
+frontier selects its source parent and proves the current receiver floor under the
+cap before indexed .target/.scopes calls. The opening body consumes ReceiptProducers
+for its selected HEAD carrier. No read factory is extended beyond v.
+
+Core validation: .lake/sleep-ph2h/rphase-final.log and core-audit-build.log. The new
+strict audit has 15 results, all with only propext, Classical.choice and Quot.sound.
+Layers: 72 inherited, zero new (layers-core.log). Headers PASS (headers-core.log).
+The aggregate H1 RecoveryProducers fails at 528/531 on this base; indexed heads and
+phase/relay factories remain explicit named obligations. The package is PREPARED,
+not CLOSED. Search and post-reset validation continues in the following group.
+Public statements, attempt sums and GST saved-window bounds are unchanged.

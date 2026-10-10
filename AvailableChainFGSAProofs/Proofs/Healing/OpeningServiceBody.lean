@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningService
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
@@ -292,9 +293,11 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
     nlinarith [p.deltaPos]
   obtain ⟨W, hW, hKW, _⟩ := healing_support_frame_at (hroots := hrec.base.receiptIdealization)
     E rho (fun _ => mono) crossing hE hDelta hrec.sync
-    hready hphase hvsu hev hx hjz
-    (services.carriers jz x s hx hjz hSourceJoined (hGST.trans hvsu) (hev.trans hvh))
-    (hcov x hx _ hhl) hx ht hReadJoined
+    hGST hphase hvsu hev hx hjz x
+    (healing_carriers_cut_at p c E rho hrec hSourceCut
+      (healing_selected_carriers_recovery E rho hrec s i x (p.actionTime (r + 1)))
+      hx ht hev jz x hx hjz)
+    (hcov x hx _ hhl) hx
     (healing_support_idxBefore_le p c E rho hS ht hev) hui hiv
   have hinv := cstoreInv_stateBefore E rho i x
   have hKT : K ∈ (storeAt p c E rho i x).fg.TF := by

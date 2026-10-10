@@ -1098,3 +1098,16 @@ is proved from named suppliers; W suffix preservation and lease compatibility at
 actual post-handover W gate are proved; the continuation exporter still needs
 OutageWSeed (Outage/ScopedCatchUp, O11-W-SEED); P-As assembly and the global audit
 integration remain pending.
+
+P-H2 Round 7: RepairCover gives each lease split the services of its selected
+joined-start phase. FrontierGateScope bounds carriers by the capped endpoint v.
+FrontierService selects the proposal parent at its source and bounds the current
+receiver certificate before it calls indexed RepairHeadServices.target and .scopes.
+RecoveryService consumes ReceiptProducers for the selected HEAD carrier and constructs
+service for the actual self proposal. PhaseService constructs selected witness receipts
+from their original acceptance at a recovery anchor, including a non-public anchor.
+Its strict event spread and frozen HEAD proof permit restarts. healing_rPhase_recovery
+produces all five RPhase clauses from RecoverySleep₂, RMonoAll and RXing. The attempt
+and search consumers use the named phase receipt producer. Budget constants and
+GST saved-window transport bounds stay unchanged. H1 phase/relay factories and H2
+all-cut post-reset source closure remain separate obligations until their checks pass.

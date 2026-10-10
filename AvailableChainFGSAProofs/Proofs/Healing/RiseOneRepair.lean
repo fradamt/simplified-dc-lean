@@ -144,7 +144,7 @@ is an arithmetic bound, not a recurrence or future-run premise. -/
 theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
-    (services : RepairServiceScopes E rho)
+    (_services : RepairServiceScopes E rho)
     (opening : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
@@ -217,7 +217,7 @@ inside the bounded stopped phase, and use the height-one entry theorem. -/
 theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
-    (services : RepairServiceScopes E rho)
+    (_services : RepairServiceScopes E rho)
     (opening : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →

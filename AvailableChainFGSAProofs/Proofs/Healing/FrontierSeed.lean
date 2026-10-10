@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairCover
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
@@ -38,7 +39,8 @@ theorem tfSeed_two_from_tRepair (h : TRepair p c E rho)
     linarith [p.deltaPos]
   obtain ⟨q, Q, hlt, hgate, hp, hs⟩ :=
     (h G u v m J contested hgap hG hready hphase).1 β hβ hmin |>.2 hbudget
-  exact ⟨q, Q, Or.inl ⟨β, hβ, hmin, hlt⟩, hgate, hp, hs⟩
+  exact ⟨q, Q, (frontierSeedQualification_iff p E u q).mpr
+    (Or.inl ⟨β, hβ, hmin, hlt⟩), hgate, hp, hs⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6-S:988–1033; TF-SEED Q1.
@@ -59,7 +61,8 @@ theorem tfSeed_one_from_tRepair (h : TRepair p c E rho)
     linarith [p.deltaPos]
   obtain ⟨q, Q, hlt, hgate, hp, hs⟩ :=
     (h G u v m J contested hgap hG hready hphase).2 b hb hmin hkb hwindow |>.2 hbudget
-  exact ⟨q, Q, Or.inr ⟨b, hb, hmin, hkb, hwindow, hlt⟩, hgate, hp, hs⟩
+  exact ⟨q, Q, (frontierSeedQualification_iff p E u q).mpr
+    (Or.inr ⟨b, hb, hmin, hkb, hwindow, hlt⟩), hgate, hp, hs⟩
 
 omit [DecidableEq V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -68,9 +71,12 @@ DC: SAME later proposals keep the repair threshold and phase-start qualification
 theorem tfSeed_later {u : Time} {q s : Slot} (hseed : FrontierSeedQualification p E u q)
     (hlater : SA.proposalTime p.toParams q < SA.proposalTime p.toParams s) :
     FrontierSeedQualification p E u s := by
-  rcases hseed with ⟨β, hβ, hmin, hlt⟩ | ⟨b, hb, hmin, hkb, hwindow, hlt⟩
-  · exact Or.inl ⟨β, hβ, hmin, hlt.trans hlater⟩
-  · exact Or.inr ⟨b, hb, hmin, hkb, hwindow, hlt.trans hlater⟩
+  rcases (frontierSeedQualification_iff p E u q).mp hseed with
+    ⟨β, hβ, hmin, hlt⟩ | ⟨b, hb, hmin, hkb, hwindow, hlt⟩
+  · exact (frontierSeedQualification_iff p E u s).mpr
+      (Or.inl ⟨β, hβ, hmin, hlt.trans hlater⟩)
+  · exact (frontierSeedQualification_iff p E u s).mpr
+      (Or.inr ⟨b, hb, hmin, hkb, hwindow, hlt.trans hlater⟩)
 
 omit [DecidableEq V] in
 /-- Both repaired seed branches put GST before the seed voters' previous-slot cutoff. -/
@@ -81,7 +87,8 @@ theorem frontier_seed_vote_cutoff {u : Time} {q : Slot}
     have := healing_recovery_start_lower (p := p) E
     linarith [p.deltaPos]
   change E.t_GST ≤ 4 * p.Δ * ((q : Int) - 1)
-  rcases hseed with ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, _, hlt⟩
+  rcases (frontierSeedQualification_iff p E u q).mp hseed with
+    ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, _, hlt⟩
   · have hslots := repair_slot_lt_of_time hlt
     have key : ∀ b k z : Nat, 2 ≤ k → b + 2 * k - 1 < z → b + 1 ≤ z := by
       intro b k z hk hz
@@ -149,7 +156,8 @@ theorem tfSeed_qSucc_lease_cover [Fintype V] {G ΔF : Time}
     change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
     push_cast
     linarith
-  rcases hseed with ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, hwindow, hlt⟩
+  rcases (frontierSeedQualification_iff p E u q).mp hseed with
+    ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, hwindow, hlt⟩
   · exact twoCover β hβ (hlt.trans hlater) hvs
   · exact oneCover b hb hwindow (hlt.trans hlater) hvs
 
@@ -200,7 +208,8 @@ theorem frontier_seed_qSucc_input [Fintype V] {G ΔF : Time}
     push_cast
     linarith
   have hhead : u ≤ SA.voteTime p.toParams q := by
-    rcases tfSeed_later p E hseed hlater with ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, _, hlt⟩
+    rcases (frontierSeedQualification_iff p E u (q + 1)).mp
+      (tfSeed_later p E hseed hlater) with ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, _, hlt⟩
     · exact repair_head_after_two hβ hlt
     · exact repair_head_after_one hb hlt
   have hvs : SA.voteTime p.toParams (q + 1) ≤ SA.gateTime p.toParams q := by
@@ -263,7 +272,8 @@ theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
     push_cast
     linarith
   have hhead : u ≤ SA.voteTime p.toParams q := by
-    rcases tfSeed_later p E hseed hlater with ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, _, hlt⟩
+    rcases (frontierSeedQualification_iff p E u (q + 1)).mp
+      (tfSeed_later p E hseed hlater) with ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, _, hlt⟩
     · exact repair_head_after_two hβ hlt
     · exact repair_head_after_one hb hlt
   have hvs : SA.voteTime p.toParams (q + 1) ≤ SA.gateTime p.toParams q := by

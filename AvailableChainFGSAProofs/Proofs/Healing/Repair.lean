@@ -26,7 +26,7 @@ structure RepairServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) 
   permanence : ∀ u v m J contested, recoveryStart p E ≤ u →
     PhaseInterval p c E rho u v m J contested →
     SupportPermanenceServices E rho u v m J contested
-  heads : ∀ s ip x N, E.t_GST ≤ slotStartZ p ((s : Int) - 2) → x ∈ rho.honest →
+  heads : ∀ (s : Slot) ip x N, E.t_GST ≤ slotStartZ p ((s : Int) - 2) → x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
     SA.voteTime p.toParams s ≤ rho.horizon → RepairHeadServices E rho s ip x N
@@ -163,7 +163,7 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
         change E.t_GST ≤ 4 * p.Δ * (((r + 1 : Nat) : Int) - 1) at hb
         linarith [p.deltaPos]) (hgate.trans hphase.2.1)) Q
         (repair_gate_geometry E rho hrec mono crossing qc writes hGST hphase hus hgate
-          hQs hheadQ hReader.1 ht hGates)).toGateReceiptScope) hhor
+          hQs hheadQ hReader.1 ht hGates).toGateReceiptGeometry)) hhor
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:749–756 (RepairAfter); plan H-REPAIR step 10. DC: INTENTIONAL every

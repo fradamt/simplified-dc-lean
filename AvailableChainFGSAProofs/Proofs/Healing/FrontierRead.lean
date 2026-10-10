@@ -257,7 +257,7 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
   have hHQ := frontier_Q_heads E rho hrec mono crossing lastWrite hGST hErase hHeight hService
-    (frontier_seed_readers hrec (hready.trans hu) (hqv.trans hHorizon)) hScopes.seed
+    (frontier_seed_readers hrec (hready.trans hu) (hqv.trans hvh)) hScopes.seed
     hu hPhase hqv hvh hcap
   have hqs : q + 2 ≤ s := fread_gate_prop hafter
   have hvs1 : SA.voteTime p.toParams (s - 1) ≤ v := by
@@ -275,7 +275,7 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
   have hws : w + 2 ≤ s := fread_gate_vote (hdwt.trans_le ht2)
   have hqh : SA.gateTime p.toParams q ≤ rho.horizon := hqv.trans hvh
   obtain ⟨hgr, ⟨jq, hjq, _⟩, _, _, _⟩ := hService.2 hqh z0 hz ((frontier_seed_readers hrec
-    (hready.trans hu) (hqv.trans hHorizon)) z0 hz)
+    (hready.trans hu) (hqv.trans hvh)) z0 hz)
   have hdqt : SA.gateTime p.toParams q < t := by
     refine lt_of_lt_of_le ?_ ht1
     exact lt_of_le_of_ne hafter (fread_gate_ne_prop q s)
@@ -289,7 +289,7 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
     have hjqi : jq < i := repair_idx_lt E rho hS hjq.1 hi hdqt
     have hpers := healing_lease_persist E rho hS hjt (Nat.lt_succ_of_lt hjjq) hjqi row hdl hrow
     obtain ⟨_, _, hle⟩ := frontier_seed_leases E rho hS hService hqh hz hjq.1
-      ((frontier_seed_readers hrec (hready.trans hu) (hqv.trans hHorizon)) z0 hz)
+      ((frontier_seed_readers hrec (hready.trans hu) (hqv.trans hvh)) z0 hz)
     have hlt : SA.gateTime p.toParams q < row.2.2 := hdqt.trans hlive
     exact hbelowQ (hle row hpers hlt)
   · -- A write at q is below its gate result, Q.
@@ -502,7 +502,7 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
       rcases ht with rfl | rfl
       · exact htv
       · exact le_rfl
-    exact frontier_lease_cover E rho hrec mono crossing lastWrite hGST hErase hHeight
+    exact frontier_lease_cover E rho hrec mono crossing lastWrite hready hErase hHeight
       hService hScopes
       hu hPhase hqv hHorizon hcap hafter hvs hz hi ht1 ht2 hrow' hlive
   -- Rename the slot as r + 1.

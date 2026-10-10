@@ -15,7 +15,7 @@ The q+1 read uses the initial phase. Later reads use the closed capped endpoint.
 Both routes use capped gate geometry. INLINE writes: `fgsa_leaseOrigins_lastWrite`. -/
 
 namespace AvailableChain.FGSA.Run
-open AvailableChain.SimplexFG Gen.Pure
+open AvailableChain.SimplexFG Gen.Pure RetainedWalk
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
@@ -101,7 +101,14 @@ theorem frontier_exactService_of_heads [Fintype V] (E : Generic.Env V)
   exact repair_exact_service_on E rho hrec s B hne hScope.cut hgsts (fun _ => hhead)
     (fun _ _ hx ht => frontier_gate_geometry E rho hrec mono crossing writes hRead
       hready hErase hHeight hService hu hPhase hqv hvh hcap hqs hgate hBs hheadAll hx ht)
-    (fun i x hReader ht => hScope.gates i x hReader.1 ht) hhor
+    (fun i x hReader ht => by
+      have hgeom := frontier_gate_geometry E rho hrec mono crossing writes hRead
+        hready hErase hHeight hService hu hPhase hqv hvh hcap hqs hgate hBs hheadAll
+        hReader.1 ht
+      exact (hScope.gates i x hReader.1 ht
+        (healing_scope_enabled_gate hrec hReader.1 ht
+          (healing_gate_cut_of_batch_cut E s hScope.cut) (hgate.trans hvh)) B
+        hgeom.toGateReceiptGeometry).toGateReceiptScope) hhor
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1570–1574; TF-SEED Q4 step 4.
@@ -160,6 +167,123 @@ theorem frontier_seed_qSucc_exactService [Fintype V] (E : Generic.Env V)
         have he : ((q + 1 : Nat) : Int) - 2 = (q : Int) - 1 := by push_cast; omega
         simpa only [he] using frontier_seed_prior_cut hready hseed)
         hx hip hem) hp)
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:932–944. Class (iii).
+DC: INTENTIONAL; a stored height witness supplies the supported source path. -/
+private theorem frontier_source_path (p : Params) (src : State p.n)
+    (hs : CStoreInv p src) (L W : FGBlock (Fin p.n)) (hW : W ∈ src.fg.TF)
+    (hLW : FGBlock.Preceq L W) (hZL : FGBlock.Preceq (controls p src).Z L)
+    (hlo : (controls p src).lo ≤ (heightView p W).h) : eraseFG L ∈ S p src := by
+  have hFL : FGBlock.Preceq src.fg.F L := by
+    have hFZ := fgsa_F_preceq_Z p src hs
+    exact KitFG.preceq_trans hFZ hZL
+  obtain ⟨Q, hQ, heQ⟩ := eraseFG_ancestor_mem hs.fg.closed hW (eraseFG_preceq hLW)
+  have hL : L ∈ src.fg.TF := (eraseFG_injective heQ) ▸ hQ
+  exact List.mem_filter.mpr ⟨(hs.baseTree _).mpr ⟨L, hL, rfl⟩,
+    decide_eq_true ⟨L, (KitFG.mem_filteredFromView (heightView p) (controls p src)
+      src.fg.TF L).mpr ⟨hL, hFL, hZL, W, hW, hLW, hlo⟩, rfl⟩⟩
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:937–942; H.6-S:1027–1029. Class (iii).
+DC: INTENTIONAL; prior support covers a lease target from the ordinary root. -/
+private theorem frontier_supported_cover (p : Params) (src : State p.n)
+    (hs : CStoreInv p src) (s : Slot) (L : Block)
+    (h : RetainedPriorSupport p src s L) :
+    Block.Preceq L (GridCO.ghost (z p src) (S p src) (ss src s) (es p src s)) := by
+  let bare : State p.n := { src with base := { src.base with obligations := [] } }
+  have ha : liveRoot p bare = z p src := by rfl
+  have hpath : ∀ C, Block.Prec (liveRoot p bare) C → Block.Preceq C L →
+      C ∈ S p src := by
+    intro C hZC hCL
+    obtain ⟨W, hW, hLW, hlo⟩ := h.witness
+    obtain ⟨B, hB, heB⟩ := eraseFG_ancestor_mem hs.fg.closed hW
+      (block_preceq_trans hCL hLW)
+    rw [← heB]
+    apply frontier_source_path p src hs B W hW
+    · exact eraseFG_preceq_iff.mp (heB ▸ block_preceq_trans hCL hLW)
+    · apply eraseFG_preceq_iff.mp
+      rw [heB]
+      exact (Bool.and_eq_true_iff.mp hZC).2
+    · exact hlo
+  have hc := fgsa_headInTree_covers_of_transfer p bare (S p src)
+    (proposerVotes src s) (proposerSupport src s) L
+    (ha ▸ h.root_compatible) hpath h.majority h.rivals
+  exact hc
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:932–944. Class (iii).
+DC: INTENTIONAL; a covered target needs no fresh support below the root. -/
+private theorem frontier_prior_cover (p : Params) (src : State p.n)
+    (hs : CStoreInv p src) (s : Slot) (L : Block)
+    (h : Block.Preceq L (z p src) ∨ RetainedPriorSupport p src s L) :
+    Block.Preceq L (GridCO.ghost (z p src) (S p src) (ss src s) (es p src s)) := by
+  rcases h with h | h
+  · apply walk_covers_of_dominated_suffix _ _ _ _ _ (Bool.or_eq_true_iff.mpr (Or.inr h))
+    rw [DominatedSuffix_def]
+    intro C hZC hCL
+    have he := block_preceq_antisymm (Bool.and_eq_true_iff.mp hZC).2
+      (block_preceq_trans hCL h)
+    have hn := (Bool.and_eq_true_iff.mp hZC).1
+    simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hn
+  · exact frontier_supported_cover p src hs s L h
+
+/-- The cap bounds the receiver's current certificate by the selected source parent.
+The parent stays at its source. No receiver receipt is used to establish this floor. -/
+theorem frontier_retained_reader_floor (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (crossing : RXing p c E rho) {s : Slot} {ip ih : Nat} {x y : V}
+    {N : NamedProposal p.n} {Qfg : FGBlock (Fin p.n)} {v : Time}
+    (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (_hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hem : (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip)
+    (hvs : SA.voteTime p.toParams s ≤ v)
+    (hcap : ∀ i z, i ≤ timeIdx rho v → z ∈ rho.honest →
+      (storeAt p c E rho i z).fg.h_max ≤ (heightView p Qfg).h)
+    (hi : RetainedConeInput p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg) :
+    Block.Preceq (eraseFG (rho.stateBeforeTime E
+      (SA.voteTime p.toParams s) y).st.fg.F) N.erase := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hc := frontier_prior_cover p src hs s (ap p src) hi.proposer_prior
+  have hprefix := walk_best_ancestry_of_cover _ _ _ _ _ hc
+  have ho := (walk_reanchor_of_best_ancestry _ _ _ _ _
+    (erasedList_rootInj p src hs _) (fgsa_Z_preceq_liveRoot p src) hprefix).trans
+      hparent.2.2.symm
+  have hQP := frontier_prior_cover p src hs s (eraseFG Qfg) hi.pivot_prior
+  rw [ho] at hQP
+  have hP : N.erase.parent ∈ src.base.blocks := by
+    rw [← hparent.2.2.symm]
+    rcases fgsa_headInTree_mem_or_anchor p src (S p src)
+      (proposerVotes src s) (proposerSupport src s) with he | hm
+    · rw [show getHead p src (proposerVotes src s) (proposerSupport src s) = ap p src from he]
+      exact liveRoot_stored p src hs
+    · exact (List.mem_filter.mp hm).1
+  obtain ⟨A, hA, heA⟩ := (hs.baseTree _).mp hP
+  have hQA : FGBlock.Preceq Qfg A := eraseFG_preceq_iff.mp (heA.symm ▸ hQP)
+  have hheight : (heightView p Qfg).h ≤ (heightView p A).h :=
+    (fgCertificateLaws p).height.h_mono hQA
+  have hji : ip ≤ V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) :=
+    ((Gen.V2.Duty.index_lt_idxBefore_iff hE.toScheduleWellFormed hip _).mpr
+      (by
+        change 4 * p.Δ * (s : Int) < 4 * p.Δ * (s : Int) + p.Δ
+        linarith [p.deltaPos])).le
+  have hA0 : A ∈ (storeAt p c E rho ip x).fg.TF := by
+    simpa only [src, clock_fg, storeAt] using hA
+  have hiv := (fgsa_idxBefore_mono rho hvs).trans (idxBefore_le_timeIdx rho v)
+  have hFA := healing_capped_witness_reader_floor crossing hx hy hji hA0
+    ((hcap _ y hiv hy).trans hheight)
+  change FGBlock.Preceq (rho.stateBefore E
+    (V2.D.Run.idxBefore rho (SA.voteTime p.toParams s)) y).st.fg.F A at hFA
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed] at hFA
+  exact block_preceq_trans (heA ▸ eraseFG_preceq hFA) (fgsa_parent_preceq N.erase)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:1500–1574; plan §3.1 step 6.
@@ -242,10 +366,19 @@ theorem frontier_later_head [Fintype V] (E : Generic.Env V)
     E rho hE s hx hip hseat N hem Qfg q (v + 1) hafter
     (lt_of_le_of_lt hgate (lt_add_of_pos_right v (show (0 : Int) < 1 by decide)))
     (fun y hy ih hih _ _ => hinput y hy ih hih)
-    (hHeads.targets ip x N hx hip hem)
+    (fun y hy ih hih hj => hHeads.target hy hih hj
+      (frontier_retained_reader_floor E rho hE crossing hx hy hip hih hem hvs
+        (fun i z hiv hz => by
+          simpa only [hHeight] using frontier_cap_before_on E rho mono
+            (hPhase.1.trans hqv) hCap i z hiv hz) (hinput y hy ih hih)))
   have hgeom : RetainedExactHeadRunGeometryOn E rho ip x s Qfg N.erase :=
     fgsa_retainedExactHead_geometry_on_run_on E rho hE s hx hip hseat N hem Qfg hreads
-      (hHeads.scopes ip x N hx hip hem) hrec.base.receiptIdealization
+      (fun y hy ih hih hj => hHeads.scopes y hy ih hih hj
+      (frontier_retained_reader_floor E rho hE crossing hx hy hip hih hem hvs
+        (fun i z hiv hz => by
+          simpa only [hHeight] using frontier_cap_before_on E rho mono
+            (hPhase.1.trans hqv) hCap i z hiv hz) (hinput y hy ih hih)))
+    hrec.base.receiptIdealization
   exact exactService_head_of_retained_proposal_on E rho hE hDelta s hip N hem
     Qfg hgeom (hvs.trans hvh)
 
@@ -365,7 +498,7 @@ theorem frontier_service_core [Fintype V] (E : Generic.Env V)
   · refine ⟨?_, ?_, ?_⟩
     · intro x i H hx hi hiv hH
       exact frontier_Q_heads E rho hrec mono crossing writes hSync hErase hHeight hService
-        (frontier_seed_readers hrec (hready.trans hu) (hqv.trans hvh)) hRead.seed hu hPhase hqv
+        (frontier_seed_readers hrec (hgst.trans hu) (hqv.trans hvh)) hRead.seed hu hPhase hqv
           hvh hcap i hi hiv x hx H hH
     · intro i B hi hiv hp
       exact frontier_proposals_cover E rho hrec mono crossing writes hRead hgst

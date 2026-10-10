@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
@@ -123,7 +123,7 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
   have hlease : ∀ row ∈ (storeAt p c E rho ip x).base.obligations,
       Block.Compatible row.1 Q := by
     refine healing_fast_lease_at E rho hrec mono writes hgstq (hqv.trans hvh) hx hnd hfast
-      hvh (hRead.seed x hx) ?_ hx hiq hqip ?_ ?_
+      hvh (hRead.seed x hx) (hGST.trans hu) ?_ hx hiq hqip ?_ ?_
     · intro w hw hwv
       have hvw : SA.voteTime p.toParams w ≤ v := by
         refine le_trans ?_ hwv
@@ -160,9 +160,20 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
     refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
     rw [domainR_def, frameR_def]
     exact (KitFG.mem_filteredFromView _ _ _ _).mpr ⟨hA, hFA, hZA, Qfg, hQst, hAQ, hlo⟩
-  have hprior := frontier_prior_support E rho hrec.toRecovery₂ crossing hHeight hvh hcap
+  have hprior := frontier_prior_support E rho hrec crossing hHeight hvh hcap
     hgstr hcover
-    (hheads r hqr hvr) hx hip (hRead.prior r hqr hv ip x hx hip) hv
+    (hheads r hqr hvr) hx hip (hRead.prior r hqr hv ip x hx hip
+      (healing_recovery_joined E rho hrec hx (by
+        have hc := healing_ready_proposal_cutoff E (hready.trans (hu.trans (by
+          change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
+          push_cast; nlinarith)))
+        exact hc.trans (by
+          change 4 * p.Δ * (((r + 1 : Nat) : Int) - 2) ≤
+            4 * p.Δ * (((r + 1 : Nat) : Int) - 1)
+          linarith [p.deltaPos])) (hGST.trans (hu.trans (by
+            change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
+            push_cast; nlinarith))) (hv.trans hvh)))
+    (HealingWindow.after (hGST.trans hu) hqr) hv
   have hhead : Block.Preceq Q (proposerHead p st (r + 1)) := by
     have he : proposerHead p st (r + 1) = headInTree p st
         (erasedList st (domainR p st st.fg.TF)) (proposerVotes st (r + 1))
@@ -207,7 +218,7 @@ theorem frontier_output_cover [Fintype V] (E : Generic.Env V)
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
     (hRead : FrontierReadScope E rho q v)
     (hGates : ∀ s, q + 1 ≤ s → SA.gateTime p.toParams s ≤ v →
-      RepairGateScope E rho s)
+      FrontierGateScope E rho s v)
     (hready : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -302,10 +313,21 @@ theorem frontier_output_cover [Fintype V] (E : Generic.Env V)
         have hqwI : (q : Int) < (w : Int) := by exact_mod_cast hqw
         change 4 * p.Δ * (q : Int) + p.Δ ≤ 4 * p.Δ * (w : Int) + p.Δ
         nlinarith
+      have hScope := hGates w (Nat.succ_le_of_lt hqw) hwv
+      have hgeom : GateReceiptGeometry E rho
+          (clockPre p (storeAt p c E rho b y) (SA.gateTime p.toParams w)) w Q := by
+        constructor
+        · intro a ha _ K he
+          rw [clockPre_fg]
+          exact block_preceq_trans hFb (hheads w (Nat.succ_le_of_lt hqw) hvw _ ha K
+            (healing_support_emitted_head E rho hS w a K _ he))
+        · intro a ha _ K he
+          exact hheads w (Nat.succ_le_of_lt hqw) hvw _ ha K
+            (healing_support_emitted_head E rho hS w a K _ he)
       exact healing_output_gate_step E rho hrec hgw (hwv.trans hvh)
         (hheads w (Nat.succ_le_of_lt hqw) hvw) hy hw
-        (hGates w (Nat.succ_le_of_lt hqw) hwv).cut
-        ((hGates w (Nat.succ_le_of_lt hqw) hwv).gates b y hy hw) hFb (Or.inl hIH)
+        (hScope.gates b y hy hw (healing_recovery_gate_enabled E rho hrec hy hw
+          (healing_gate_cut_of_batch_cut E w hScope.cut)) Q hgeom) hFb (Or.inl hIH)
     · obtain ⟨_, _, _, _, _, _, hout⟩ := hrc
       rw [S_at_def]
       change Block.Preceq Q ((fgsaAC E rho).output (b + 1) y)

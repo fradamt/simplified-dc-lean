@@ -38,6 +38,7 @@ theorem honest_qSucc [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -49,7 +50,7 @@ theorem honest_qSucc [Fintype V] (E : Generic.Env V)
     (hgate : SA.gateTime p.toParams (q + 1) ≤ v)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 1) B) :
     ExactService p c E rho (q + 1) B :=
-  frontier_seed_qSucc_exactService E rho hrec mono crossing writes hgst hErase hHeight
+  frontier_seed_qSucc_exactService E rho hrec mono crossing writes services hgst hErase hHeight
     hService hu hPhase hqv hvh hCap hseed hgate hp
 
 /-- Blueprint 21:1500–1574. DC: INTENTIONAL the first later HG.1 label has full service. -/
@@ -75,6 +76,7 @@ theorem first_later [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -90,7 +92,7 @@ theorem first_later [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * (q : Int) + 6 * p.Δ ≤ 4 * p.Δ * ((q + 2 : Nat) : Int)
     push_cast
     linarith [p.deltaPos]
-  exact frontier_later_exactService E rho hrec mono crossing writes hgst hQ hErase hHeight
+  exact frontier_later_exactService E rho hrec mono crossing writes services hgst hQ hErase hHeight
     hService hu hPhase hqv hvh hCap hafter hgate hp
 
 /-- Blueprint 21:1570–1574; plan §4. DC: INTENTIONAL a gate exactly at the horizon is included. -/
@@ -116,6 +118,7 @@ theorem closed_horizon [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -129,9 +132,17 @@ theorem closed_horizon [Fintype V] (E : Generic.Env V)
     ExactService p c E rho (q + 1) B ∧
       ∀ x ∈ rho.honest, gateResult p c E rho x (q + 1) = some (some B) := by
   have hgv : SA.gateTime p.toParams (q + 1) ≤ v := by rw [hgate, hend]
-  have hs := frontier_seed_qSucc_exactService E rho hrec mono crossing writes hgst hErase
+  have hs := frontier_seed_qSucc_exactService E rho hrec mono crossing writes services hgst hErase
     hHeight hService hu hPhase hqv hvh hCap hseed hgv hp
-  exact ⟨hs, fun x hx => (hs.2 hgate.le x hx).1⟩
+  exact ⟨hs, fun x hx => (hs.2 hgate.le x hx
+    (healing_recovery_gate_reader hrec hx (by
+      have hGST : E.t_GST ≤ u := by
+        have := healing_recovery_start_lower (p := p) E
+        linarith [p.deltaPos]
+      have hcut := hGST.trans hu
+      change E.t_GST ≤ 4 * p.Δ * (q : Int) at hcut
+      change E.t_GST ≤ 4 * p.Δ * (q + 1 : Int)
+      nlinarith [p.deltaPos]) hgate.le)).1⟩
 
 /-- Blueprint 21:1467–1468, 1570–1574; plan §4. DC: INTENTIONAL no positive J-height premise. -/
 theorem height_one [Fintype V] (E : Generic.Env V)
@@ -156,6 +167,7 @@ theorem height_one [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -170,7 +182,8 @@ theorem height_one [Fintype V] (E : Generic.Env V)
     ExactService p c E rho (q + 1) B := by
   cases hm
   cases hJ
-  exact frontier_seed_qSucc_exactService E rho hrec mono crossing writes hgst hErase hHeight
+  exact frontier_seed_qSucc_exactService E rho hrec mono crossing writes services hgst hErase
+    hHeight
     hService hu hPhase hqv hvh hCap hseed hgate hp
 
 /-- Plan §4. DC: INTENTIONAL row delay ΔF can be greater than Δ. -/
@@ -196,6 +209,7 @@ theorem row_delay [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -207,7 +221,7 @@ theorem row_delay [Fintype V] (E : Generic.Env V)
     (hgate : SA.gateTime p.toParams (q + 1) ≤ v)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 1) B) :
     ExactService p c E rho (q + 1) B :=
-  frontier_seed_qSucc_exactService E rho hrec mono crossing writes hgst hErase hHeight
+  frontier_seed_qSucc_exactService E rho hrec mono crossing writes services hgst hErase hHeight
     hService hu hPhase hqv hvh hCap hseed hgate hp
 
 /-- Blueprint 21:925–944. DC: INTENTIONAL the literal H.6 seed arm supplies full q+1 service. -/
@@ -233,6 +247,7 @@ theorem seed_H6 [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -246,7 +261,7 @@ theorem seed_H6 [Fintype V] (E : Generic.Env V)
     (hgate : SA.gateTime p.toParams (q + 1) ≤ v)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 1) B) :
     ExactService p c E rho (q + 1) B :=
-  frontier_seed_qSucc_exactService E rho hrec mono crossing writes hgst hErase hHeight
+  frontier_seed_qSucc_exactService E rho hrec mono crossing writes services hgst hErase hHeight
     hService hu hPhase hqv hvh hCap
     ((frontierSeedQualification_iff p E u q).mpr (Or.inl ⟨β, hβ, hmin, hcut⟩)) hgate hp
 
@@ -273,6 +288,7 @@ theorem seed_H6S [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -287,7 +303,7 @@ theorem seed_H6S [Fintype V] (E : Generic.Env V)
     (hgate : SA.gateTime p.toParams (q + 1) ≤ v)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 1) B) :
     ExactService p c E rho (q + 1) B :=
-  frontier_seed_qSucc_exactService E rho hrec mono crossing writes hgst hErase hHeight
+  frontier_seed_qSucc_exactService E rho hrec mono crossing writes services hgst hErase hHeight
     hService hu hPhase hqv hvh hCap
     ((frontierSeedQualification_iff p E u q).mpr
       (Or.inr ⟨b, hb, hmin, hkb, hwindow, hcut⟩)) hgate hp
@@ -316,6 +332,7 @@ theorem covering_gate [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -331,7 +348,8 @@ theorem covering_gate [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
     linarith [p.deltaPos])).trans hqv
   have hcap := frontier_cap_before_on E rho mono huv hCap
-  exact frontier_opening_gateService_of_cover E rho hrec mono crossing writes hgst hQ
+  exact frontier_opening_gateService_of_cover E rho hrec mono crossing writes
+    (services.read (hgst.trans hu) hqv hvh) hgst hQ
     hErase hHeight hService hu hPhase hqv hvh hcap hqs hgate hx ht
 
 -- The q+1 read is in the initial phase; its gate is later than the seed gate.
@@ -355,6 +373,9 @@ section FullService
 variable [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (scopeProducer : ∀ (q : Slot) (v : Time),
+      recoveryStart p E ≤ SA.proposalTime p.toParams q →
+      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -382,11 +403,11 @@ variable [Fintype V] (E : Generic.Env V)
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
 
-include hrec mono crossing writes rowCoverage
+include hrec mono crossing scopeProducer writes rowCoverage
 
 /-- Blueprint 21 HG.1:1500–1583. DC: SAME the full seeded statement is available. -/
 theorem full_statement : TFrontier p c E rho :=
-  frontier_service E rho hrec mono crossing writes rowCoverage
+  frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage
 
 variable {u v : Time} {m q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -406,7 +427,8 @@ theorem full_H6 {β : Slot} (hβ : u < SA.proposalTime p.toParams β)
     (hmin : ∀ b, u < SA.proposalTime p.toParams b → β ≤ b)
     (hcut : SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams q) :
     Transfers p c E rho q Q v ∧ RepairAfter p c E rho q v := by
-  have h := frontier_service E rho hrec mono crossing writes rowCoverage u v m J contested
+  have h := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage u v m J
+    contested
     q Q Qfg hgst hQ hErase hHeight hService (Or.inl ⟨β, hβ, hmin, hcut⟩)
     hu hPhase hqv hvh hCap
   exact ⟨h.1, h.2.1⟩
@@ -417,7 +439,8 @@ theorem full_H6S {b : Slot} (hb : u ≤ SA.voteTime p.toParams b)
     (hkb : p.k ≤ b + 1) (hwindow : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k))
     (hcut : SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams q) :
     Transfers p c E rho q Q v ∧ RepairAfter p c E rho q v := by
-  have h := frontier_service E rho hrec mono crossing writes rowCoverage u v m J contested
+  have h := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage u v m J
+    contested
     q Q Qfg hgst hQ hErase hHeight hService (Or.inr ⟨b, hb, hmin, hkb, hwindow, hcut⟩)
     hu hPhase hqv hvh hCap
   exact ⟨h.1, h.2.1⟩
@@ -430,7 +453,8 @@ include hseed
 theorem full_qSucc (hgate : SA.gateTime p.toParams (q + 1) ≤ v)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 1) B) :
     ExactService p c E rho (q + 1) B := by
-  have h := frontier_service E rho hrec mono crossing writes rowCoverage u v m J contested
+  have h := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage u v m J
+    contested
     q Q Qfg hgst hQ hErase hHeight hService
     ((frontierSeedQualification_iff p E u q).mp hseed) hu hPhase hqv hvh hCap
   apply h.2.1 (q + 1) B _ hgate hp
@@ -442,7 +466,8 @@ theorem full_qSucc (hgate : SA.gateTime p.toParams (q + 1) ≤ v)
 theorem full_qAddTwo (hgate : SA.gateTime p.toParams (q + 2) ≤ v)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 2) B) :
     ExactService p c E rho (q + 2) B := by
-  have h := frontier_service E rho hrec mono crossing writes rowCoverage u v m J contested
+  have h := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage u v m J
+    contested
     q Q Qfg hgst hQ hErase hHeight hService
     ((frontierSeedQualification_iff p E u q).mp hseed) hu hPhase hqv hvh hCap
   apply h.2.1 (q + 2) B _ hgate hp
@@ -456,7 +481,8 @@ theorem full_gate_horizon (hend : v = rho.horizon) {s : Slot}
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) s B) :
     ExactService p c E rho s B ∧
       ∀ x ∈ rho.honest, gateResult p c E rho x s = some (some B) := by
-  have h := frontier_service E rho hrec mono crossing writes rowCoverage u v m J contested
+  have h := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage u v m J
+    contested
     q Q Qfg hgst hQ hErase hHeight hService
     ((frontierSeedQualification_iff p E u q).mp hseed) hu hPhase hqv hvh hCap
   have htime : SA.proposalTime p.toParams q < SA.proposalTime p.toParams s := by
@@ -464,7 +490,16 @@ theorem full_gate_horizon (hend : v = rho.horizon) {s : Slot}
     change 4 * p.Δ * (q : Int) < 4 * p.Δ * (s : Int)
     nlinarith [p.deltaPos]
   have hs := h.2.1 s B htime (by rw [hgate, hend]) hp
-  exact ⟨hs, fun x hx => (hs.2 hgate.le x hx).1⟩
+  exact ⟨hs, fun x hx => (hs.2 hgate.le x hx
+    (healing_recovery_gate_reader hrec hx (by
+      have hGST : E.t_GST ≤ u := by
+        have := healing_recovery_start_lower (p := p) E
+        linarith [p.deltaPos]
+      have hcut := hGST.trans hu
+      change E.t_GST ≤ 4 * p.Δ * (q : Int) at hcut
+      change E.t_GST ≤ 4 * p.Δ * (s : Int)
+      have hqsI : (q : Int) < (s : Int) := by exact_mod_cast hqs
+      nlinarith [p.deltaPos]) hgate.le)).1⟩
 
 /-- Plan §4. DC: INTENTIONAL a closed opening needs no honest proposal at its label. -/
 theorem full_opening_horizon (hend : v = rho.horizon) {r : Nat}
@@ -474,7 +509,8 @@ theorem full_opening_horizon (hend : v = rho.horizon) {r : Nat}
         (heightView p K).T_h = (heightView p Qfg).T_h) ∧
       ((∀ r', q ≤ r' * p.R → r ≤ r') →
         p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ) := by
-  have h := frontier_service E rho hrec mono crossing writes rowCoverage u v m J contested
+  have h := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage u v m J
+    contested
     q Q Qfg hgst hQ hErase hHeight hService
     ((frontierSeedQualification_iff p E u q).mp hseed) hu hPhase hqv hvh hCap
   exact h.2.2 r hqr (by rw [ha, hend])
@@ -488,7 +524,7 @@ theorem full_height_one_row_delay
       (storeAt p c E rho i x).fg.h_max ≤ 1)
     (_hdelay : p.Δ < ΔF) {r : Nat} (hqr : q ≤ r * p.R) (hav : p.actionTime r ≤ v) :
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 := by
-  have h := frontier_service E rho hrec mono crossing writes rowCoverage u v 1
+  have h := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage u v 1
     (some .genesis) false q Q Qfg hgst hQ hErase hHeightOne hService
     ((frontierSeedQualification_iff p E u q).mp hseed) hu hPhaseOne hqv hvh hCapOne
   have hopen := h.2.2 r hqr hav
