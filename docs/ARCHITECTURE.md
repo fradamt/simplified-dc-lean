@@ -633,12 +633,30 @@ Engine v2 decisions (design §2), one line each:
 - E5 own-signature record: `selfVisible`, `recordOwn`, atomic tick;
   `Isolation` factors the AP part through `base`, so AC facts transport to
   the AP projection.
-- E6 restart: `restart v t`, `st ↦ restore (durable st)`. Ruling Y keeps
+- E6 restart (superseded by the sleep port below):
+  `restart v t`, `st ↦ restore (durable st)`. Ruling Y keeps
   the last local tick value and the anti-slashing record. Restore resets
   the other store fields, adds no tick or duty, and ignores restart time `t`.
   The six restart-permitting claims remain proved: ClientSafetyClaim,
   WholeRunAccountableClaim, WholeRunAgreementClaim, EventPrefixAgreementClaim,
   FaultCountSlashableBoundClaim, and HonestNeverSlashedClaim.
+
+
+FG-SA sleep restart, P-Cl1 Round 2 (2026-10-10): restore uses the exact wake
+time and keeps the FG store, block tree, proposals, obligations and stable
+record. Saved genuine rows, fast-write rows, HEAD votes and stamps belong to
+the current receiver epoch. A wake can erase those rows. Clean proofs do not
+obtain `NoRestart` from `Base₂`.
+
+`Clean/GateEpoch` proves the executed gate guard, the backward awake interval
+and the joined witness. `Clean/StateEpoch` proves kept-state restart facts,
+current-epoch state facts and the earlier joined gate used by T10.
+`Clean/Service` supplies HEAD history, readiness and stamp retention in the
+receiver's own epoch. `Clean/EpochSaved` constructs the current saved row
+needed by arming. The Count callers use one explicit receiver anchor for all
+service and path obligations. The P-Cl1 core is CLOSED; P-Cl2 owns the public
+wrappers and the Safety transport handoff. See [SLEEP-LEDGER.md](SLEEP-LEDGER.md)
+and [P-Cl1.handoff.md](../scripts/dev-pkg/P-Cl1.handoff.md).
 
 ## 4. Constraints
 

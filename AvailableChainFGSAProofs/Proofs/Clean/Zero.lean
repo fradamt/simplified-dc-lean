@@ -198,7 +198,7 @@ participation permits false FaultQ at zero. Admission requires 4Δ ≤ now;
 gates and actions require at least 6Δ. The time-zero event prefix can be
 nonempty, but its FG tree and all Clean origins stay initial. No F1 channel
 or extra honesty premise is used. There is no UNMOTIVATED or UNCLEAR change.
-NoRestart is inherited from the supplied healthy prefix.
+At the zero cut, positive wake restarts are outside the event prefix.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem cleanCut_zero_body (h : HealthyPrefix₂ p c E rho 0 ΔF) :
