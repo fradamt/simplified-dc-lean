@@ -7325,3 +7325,5 @@ passes only GST <= u; this inherited Healing caller must be repaired by its owne
 The saved writer and source-build failures are the validation limit for Round 15.
 
 - Lead 2026-10-10 20:02: merged P-Ou 2d1ba450 — P-Ou CLOSED (rev-pou15-astra MERGE-AS-CLOSED) on RULING OUTAGE-CONT-REPAIRED: the public companion OutageContinuationConcl qualifies continuation output reads by OutageRepairReady (INTENTIONAL FG-SA sleep adaptation; old W seed refuted by codex/jobs/wseed-run). Both exporters unconditional. Open: P-As Root wiring (request in the P-Ou round 15 handoff).
+
+- Lead 2026-10-10 20:26: merged P-H1 r11 82ad01bb (P-H2 phase-local lease-cover adapters repair_lease_cover_two_at/_one_at; local regression replays; full ExecutionValid replay goals OPEN). P-H1 stays CLOSED. rev-ph1l-astra item 1 OPEN (fixture goal): the full-run goal for the k=4 run must keep all three k=4 failures (clause 1 HEAD, clause 2 proposal, clause 3 output), not one.
