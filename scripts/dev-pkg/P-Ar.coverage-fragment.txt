@@ -1,4 +1,4 @@
-P-Ar Round 4. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
+P-Ar Round 5. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
 Merge missing names into their owners; do not add a coverage key.
 Move the six lease-write helpers and arming_gateResult_tick from ArmingGate to ArmingStep.
 
@@ -241,3 +241,21 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 
 AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
   AvailableChain.FGSA.Run.slow_arming_scoped_on
+
+AvailableChainFGSAProofs.Proofs.Outage.ArmingDutySleep
+  AvailableChain.FGSA.Run.arming_leases_interval_sleep
+  AvailableChain.FGSA.Run.arming_prefix_sleep_on
+  AvailableChain.FGSA.Run.arming_duty_epochs
+  AvailableChain.FGSA.Run.arming_duty_batch
+  AvailableChain.FGSA.Run.arming_head_covers_sleep
+  AvailableChain.FGSA.Run.arming_proposal_covers_sleep
+  AvailableChain.FGSA.Run.arming_joined_of_tick_guard
+  AvailableChain.FGSA.Run.arming_emit_proposal_on
+  AvailableChain.FGSA.Run.arming_pending_duties_sleep
+  AvailableChain.FGSA.Run.arming_inflight_heads_sleep
+  AvailableChain.FGSA.Run.arming_S_interval_sleep
+  AvailableChain.FGSA.Run.arming_confirmed_restart_bound
+  AvailableChain.FGSA.Run.arming_confirmed_pre_pending_gate
+  AvailableChain.FGSA.Run.arming_cover_sleep
+  AvailableChain.FGSA.Run.ArmingSleepHistoryCert
+  AvailableChain.FGSA.Run.arming_sleep_history_on

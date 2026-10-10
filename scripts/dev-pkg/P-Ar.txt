@@ -1,6 +1,7 @@
-# P-Ar round 4, base sleep-int 36781bff. Scoped gate ports PREPARED; P-Cl1 CLOSED.
+# P-Ar Round 5 CLOSED, base sleep-int b1c840a5. All owned targets and consumers verified.
 # GREEN and EXPECTED-FAIL cover S1 REQUIRED union TARGETS exactly.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Outage.ArmingDutySleep
 AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
 AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
 AvailableChainFGSAProofs.Proofs.Outage.ArmingScores
@@ -24,6 +25,7 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingStep
 AvailableChainFGSAProofs.Tests.OutageArming
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Outage.ArmingDutySleep
 AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
 AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
 AvailableChainFGSAProofs.Proofs.Outage.ArmingScores
