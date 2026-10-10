@@ -4525,3 +4525,26 @@ checks, then stop at the mapped-root control because FinalityGST is missing
 Task 3 needs no edit: the lead note at the Round 3 merge already marks the
 public anchor proposal SUPERSEDED by DECISION ANCHOR-DL at base d825ed30.
 No new LEAD DECISION item is needed.
+
+## P-H1 — Round 3, first transfer scopes (2026-10-10)
+
+Shared/Regimes and Shared/Export build on the joined base. Their two P-ShA rows
+move to GREEN in the P-H1 map. The legacy Regimes names remain explicit NoRestart forms.
+
+Internal replacement: SupportTransfer no longer projects Base₂.noRestart.
+FirstTransferScope supplies the exact enabled source gate, joined release guard,
+receiver event-index epoch, and per-object forward, backward, target and carrier services.
+The release lower bound and the first transfer conclusions stay the same.
+Receipt proofs use NamedReceiptRootCollisionFree. Safety root equality uses its projection.
+
+The stored honest HEAD supplier handles both acceptance and restart replay origins.
+It extracts the earlier carried delivery before it applies signature provenance.
+HistorySafeAt is a ReceiverService input; earlier processing does not supply it.
+SupportRelay adds raw reverse receipt, target path and transfer proposal service helpers.
+The proposal service uses ANCHOR-DL: earlyTime is the anchor, freezeTime is the strict read.
+FramePaths adds the frozen path theorem with the receiver's exact read epoch.
+
+Strict audit: eight new commands in Tests/HealingSleepAxioms.
+The serial coverage fragment has the corresponding rows. No public statement changed.
+SupportHeads, SupportSlow and FrontierSupportHeads must thread these services.
+Full package closure is still open until every assigned consumer builds.

@@ -39,6 +39,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
 
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
+
 set_option linter.privateModule false
 
 #print axioms AvailableChain.FGSA.Run.healing_row_delivery
@@ -182,3 +184,12 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_promotion_age_service
 #print axioms AvailableChain.FGSA.Run.healing_renewedPromotion
 #print axioms AvailableChain.FGSA.Run.healing_renewedPromotion_terminal
+
+#print axioms AvailableChain.FGSA.Run.healing_frozen_path_on
+#print axioms AvailableChain.FGSA.Run.healing_support_raw_backward_on
+#print axioms AvailableChain.FGSA.Run.healing_support_target_path_on
+#print axioms AvailableChain.FGSA.Run.healing_transfer_proposal_service
+#print axioms AvailableChain.FGSA.Run.healing_support_honest_head
+#print axioms AvailableChain.FGSA.Run.healing_support_release_compat
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_core
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_fast

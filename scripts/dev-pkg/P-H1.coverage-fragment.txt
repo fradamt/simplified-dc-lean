@@ -26,6 +26,7 @@
         'AvailableChainFGSAProofs.Proofs.Healing.FramePaths': (
             'AvailableChain.FGSA.Run.healing_carried_path',
             'AvailableChain.FGSA.Run.healing_frozen_path',
+            'AvailableChain.FGSA.Run.healing_frozen_path_on',
             'AvailableChain.FGSA.Run.healing_retained_path',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.FrameRelay': (
@@ -171,6 +172,9 @@
             'AvailableChain.FGSA.Run.healing_support_prefreeze_path_on',
             'AvailableChain.FGSA.Run.healing_support_target_path',
             'AvailableChain.FGSA.Run.healing_support_vote_backward',
+            'AvailableChain.FGSA.Run.healing_support_raw_backward_on',
+            'AvailableChain.FGSA.Run.healing_support_target_path_on',
+            'AvailableChain.FGSA.Run.healing_transfer_proposal_service',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportRelease': (
             'AvailableChain.FGSA.Run.healing_support_release_rows',
@@ -182,6 +186,12 @@
         'AvailableChainFGSAProofs.Proofs.Healing.SupportTicks': (
             'AvailableChain.FGSA.Run.healing_support_honest_emits',
             'AvailableChain.FGSA.Run.healing_support_vote_tick',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer': (
+            'AvailableChain.FGSA.Run.healing_support_honest_head',
+            'AvailableChain.FGSA.Run.healing_support_release_compat',
+            'AvailableChain.FGSA.Run.healing_first_transfer_core',
+            'AvailableChain.FGSA.Run.healing_first_transfer_fast',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportWrite': (
             'AvailableChain.FGSA.Run.healing_last_write_one_lease',

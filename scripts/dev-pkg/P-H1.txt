@@ -1,4 +1,4 @@
-# P-H1 Round 2; base eb5c6b65. Local services and durable phase suppliers.
+# P-H1 Round 3; local transfer scopes on sleep-ph1d.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
 AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
@@ -101,6 +101,10 @@ AvailableChainFGSAProofs.Tests.HealingSupport
 AvailableChainFGSAProofs.Tests.HealingTime
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
+AvailableChainFGSAProofs.Proofs.Shared.Regimes
+AvailableChainFGSAProofs.Proofs.Shared.Export
 AvailableChainFGSAProofs.Tests.HealingAttemptTerminal
 AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
 AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
@@ -652,9 +656,6 @@ AvailableChainFGSAProofs.Proofs.Healing.SupportOutput P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SupportPerm P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SupportProposal P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SupportSlow P-H1
-AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer P-H1
-AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSAProofs.Tests.HealingBase P-H1
 AvailableChainFGSAProofs.Tests.HealingDelivery P-H1
 AvailableChainFGSAProofs.Tests.HealingDescent P-H1

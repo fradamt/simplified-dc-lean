@@ -150,5 +150,94 @@ theorem healing_frozen_path (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoR
     (eraseFG_injective he) ▸ hA
   exact frame_frozen_mem p c E rho hs hnr hdpos hdvote hdfreeze hB hread hFB
 
+/-- Frozen membership uses the exact receiver epoch through its scheduled read. -/
+private theorem frame_frozen_mem_on (hs : V2.D.ScheduleWellFormed E rho)
+    {y : V} {W : FGBlock (Fin p.n)} {d : Time}
+    (hdpos : 0 < d) {s : Slot} {nd : Node p}
+    (hdt : d ≤ SA.voteTime p.toParams s) (hdf : d ≤ SA.freezeTime p.toParams (s - 1))
+    (hW : W ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho d) y).fg.TF)
+    (hpost : postClock E rho y (SA.voteTime p.toParams s) = some nd)
+    (hEpoch : ∀ i, rho.events[i]? = some (.tick y (SA.voteTime p.toParams s)) →
+      V2.D.restartFree rho y (V2.D.Run.idxBefore rho d) i)
+    (hFW : FGBlock.Preceq nd.st.fg.F W) :
+    W ∈ voterBlocks p nd.st s := by
+  rw [postClock_def, preTick_def] at hpost
+  cases hk : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams s) with
+  | none => simp only [hk, Option.map_none, reduceCtorEq] at hpost
+  | some k =>
+    rw [hk] at hpost
+    have hnd := Option.some.inj hpost
+    subst nd
+    have htick := V2.D.Run.tickIdx?_spec hk
+    have hjk : V2.D.Run.idxBefore rho d ≤ k := by
+      by_contra hn
+      have hlt := (Gen.V2.Duty.index_lt_idxBefore_iff hs htick d).mp (by omega)
+      exact (not_lt.mpr hdt) hlt
+    let st := storeAt p c E rho (V2.D.Run.idxBefore rho d) y
+    let st' := storeAt p c E rho k y
+    have hc := fgsa_store_cumulative_on p c E rho hjk y (hEpoch k htick)
+    have hb : eraseFG W ∈ st.base.blocks :=
+      (storeBundle_stateBefore E rho _ y).cstore.baseTree _ |>.mpr ⟨W, hW, rfl⟩
+    have hkeys := (storeBundle_stateBefore E rho (V2.D.Run.idxBefore rho d) y).«meta».stampKeys
+    have hfind : ∃ stamp, st.base.blockStamp.find? (fun row => row.1 == eraseFG W) =
+        some (eraseFG W, stamp) := by
+      have hm : eraseFG W ∈ st.base.blockStamp.map Prod.fst := hkeys ▸ hb
+      cases hf : st.base.blockStamp.find? (fun row => row.1 == eraseFG W) with
+      | none =>
+        obtain ⟨row, hr, he⟩ := List.mem_map.mp hm
+        have hn := List.find?_eq_none.mp hf row hr
+        rw [he, beq_self_eq_true] at hn
+        contradiction
+      | some row =>
+        have he : row.1 = eraseFG W := by simpa only [beq_iff_eq] using List.find?_some hf
+        exact ⟨row.2, by simp only [← he]⟩
+    obtain ⟨stamp, hf⟩ := hfind
+    have hstamp : stamp < d := by
+      have ht := fgsa_block_stamp_before_read E rho hs y d hdpos (eraseFG W) (by
+        rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs]
+        exact hb)
+      rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs] at ht
+      change GridCO.stampBlock st.base (eraseFG W) < d at ht
+      unfold GridCO.stampBlock at ht
+      simpa only [hf, Option.map_some, Option.getD_some] using ht
+    have hkept : st'.base.blockStamp.find? (fun row => row.1 == eraseFG W) =
+        some (eraseFG W, stamp) := by
+      obtain ⟨tail, htail⟩ := hc.2.2.1
+      change (storeAt p c E rho k y).base.blockStamp.find? _ = _
+      rw [← htail, List.find?_append, hf]
+      rfl
+    change W ∈ voterBlocks p (clock p st' (SA.voteTime p.toParams s)) s
+    apply Finset.mem_filter.mpr
+    refine ⟨?_, Bool.or_eq_true_iff.mpr (Or.inl (decide_eq_true ?_))⟩
+    · apply Finset.mem_filter.mpr
+      exact ⟨by rw [(clock_cumulative p _ _).1]; exact hc.1 hW, hFW⟩
+    · have he : GridCO.stampBlock (clock p st' (SA.voteTime p.toParams s)).base (eraseFG W) =
+          stamp := by
+        unfold GridCO.stampBlock
+        rw [(clock_cumulative p _ _).2.2.1, hkept]
+        rfl
+      rw [he]
+      exact hstamp.trans_le hdf
+
+/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F4.
+DC: INTENTIONAL strict receipt enters a later frozen arm only after its own cut.
+Equality between the receipt deadline and the freeze is valid: each stamp is strict. -/
+theorem healing_frozen_path_on (hs : V2.D.ScheduleWellFormed E rho)
+    {y : V} {q : Slot} {d : Time} {nd : Node p} {W : FGBlock (Fin p.n)}
+    (hdpos : 0 < d) (hdvote : d ≤ SA.voteTime p.toParams q)
+    (hdfreeze : d ≤ SA.freezeTime p.toParams (q - 1))
+    (hW : W ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho d) y).fg.TF)
+    (hread : postClock E rho y (SA.voteTime p.toParams q) = some nd)
+    (hEpoch : ∀ i, rho.events[i]? = some (.tick y (SA.voteTime p.toParams q)) →
+      V2.D.restartFree rho y (V2.D.Run.idxBefore rho d) i) :
+    ∀ B, FGBlock.Preceq nd.st.fg.F B → FGBlock.Preceq B W →
+      B ∈ voterBlocks p nd.st q := by
+  intro B hFB hBW
+  have hi := (storeBundle_stateBefore E rho (V2.D.Run.idxBefore rho d) y).cstore
+  obtain ⟨A, hA, he⟩ := eraseFG_ancestor_mem hi.fg.closed hW (eraseFG_preceq hBW)
+  have hB : B ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho d) y).fg.TF :=
+    (eraseFG_injective he) ▸ hA
+  exact frame_frozen_mem_on p c E rho hs hdpos hdvote hdfreeze hB hread hEpoch hFB
+
 end AvailableChain.FGSA.Run
 end

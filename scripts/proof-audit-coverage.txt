@@ -6986,3 +6986,7 @@
 # P-H2 follow-up: Tests.HealingH2SleepAxioms now checks 27 owned declarations.
 # The same full-key fragment adds ResetScope and the durable opening/frame consumers.
 # Use scripts/dev-pkg/P-H2.audit-fragment.txt in the serial close window.
+
+# P-H1 Round 3: eight additional local strict commands (140 total).
+# First transfer, raw reverse receipt, anchor service and frozen receiver epoch.
+# Merge scripts/dev-pkg/P-H1.coverage-fragment.txt under the existing full audit key.
