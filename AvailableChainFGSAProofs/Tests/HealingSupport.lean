@@ -410,3 +410,218 @@ example : PhaseInterval p1 unitCodec env1 rho1 1 2 1 (some .genesis) false := by
 
 end AvailableChain.FGSA.Run.Tests.HealingSupport
 end
+
+public section
+namespace AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep
+open AvailableChain.SimplexFG
+
+abbrev p : Params :=
+  { Δ := 1, n := 2, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
+    kLarge := by decide, etaNonneg := by decide, R := 2, δt := 0, RLarge := by decide,
+    digest := fun d => ⟨d.slot + 1⟩ }
+
+def env : Generic.Env (Fin 2) :=
+  ⟨1, by decide, 9, by decide, fun v t => decide (v = 1 ∨ t < 1 ∨ 9 ≤ t)⟩
+
+def run : V2.D.Run (Fin 2) (fgsa p unitCodec) where
+  honest := {0}
+  horizon := 18
+  events := [.tick 0 0, .restart 0 9, .tick 0 9, .tick 0 10, .tick 0 11, .tick 0 12,
+    .tick 0 13, .tick 0 14, .tick 0 15, .tick 0 16, .tick 0 17, .tick 0 18]
+  seatOf := fun l q => match l with | .base _ => q | _ => 1
+  input := fun _ _ => ()
+
+private theorem no_delivery (v : Fin 2) (o : Obj p) (t : Time) :
+    ¬ V2.D.Run.processes run v o t := by
+  rintro ⟨i, hi⟩
+  have hm := List.mem_of_getElem? hi
+  simp [run] at hm
+
+/-- A finite valid sleep execution restarts at GST, then has an enabled HEAD read. -/
+theorem valid : V2.D.ExecutionValid env run := by
+  refine { toSleepWellFormed := ?_, toScheduleWellFormed := ?_,
+           toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
+  · refine ⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩
+    · intro e h
+      simp [run] at h
+      rcases h with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
+        rfl <;> decide
+    · intro e h
+      simp [run] at h
+      rcases h with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
+        rfl <;> decide
+    · intro v t h
+      simp [run] at h
+      refine ⟨t.toNat, ?_⟩
+      simp [env]; dsimp [Time] at *; omega
+    · intro v hv t ⟨k, hk⟩ ht hh ha
+      have hv0 : v = 0 := Finset.mem_singleton.mp hv
+      subst v
+      change t ≤ 18 at hh
+      simp [env] at hk ha
+      simp [run]; dsimp [Time] at *; omega
+  · refine ⟨?_, ?_, ?_⟩ <;> intro i v o t hi <;> exact (no_delivery v o t ⟨i, hi⟩).elim
+  · refine ⟨?_, ?_⟩
+    · intro v o t hp; exact (no_delivery v o t hp).elim
+    · intro v o t hp; exact (no_delivery v o t hp).elim
+  · refine ⟨?_, ?_, ?_, ?_⟩
+    · intro v t h
+      simp [run] at h
+      have hv : v = 0 := by tauto
+      subst v
+      simp [env]; dsimp [Time] at *; omega
+    · intro v o t h; simp [run] at h
+    · intro v t h
+      simp [run] at h
+      rcases h with ⟨rfl, rfl⟩; decide
+    · intro v hv t _ _ h
+      have hv0 : v = 0 := Finset.mem_singleton.mp hv
+      subst v
+      have ht : t = 9 := by simp [V2.D.Wakes, env] at h; dsimp [Time] at *; omega
+      subst t; simp [run]
+
+private theorem bodies_genesis (i : Nat) :
+    (run.stateBefore env i 0).st.namedBodies = [.genesis] := by
+  by_cases hi : i < run.events.length
+  · change i < 12 at hi
+    interval_cases i <;> decide +kernel
+  · unfold V2.D.Run.stateBefore
+    rw [List.take_of_length_le (le_of_not_gt hi)]
+    decide +kernel
+
+private theorem proposals_absent (i : Nat) : (run.emitsAt env i).all (fun o =>
+    match o.payload with | .proposal _ => false | _ => true) = true := by
+  by_cases hi : i < run.events.length
+  · change i < 12 at hi
+    interval_cases i <;> decide +kernel
+  · unfold V2.D.Run.emitsAt
+    rw [List.getElem?_eq_none (le_of_not_gt hi)]
+    rfl
+
+private theorem scope_genesis (N : NamedProposal p.n)
+    (h : NamedProposalReceiptScope p unitCodec env run N) : N = .genesis := by
+  rcases h with h | ⟨v, hv, o, t, M, ⟨i, _, ho⟩, he, _⟩
+  · obtain ⟨B, hB, hNB⟩ := h
+    rcases hB with ⟨v, o, t, hm, _⟩ | ⟨v, hv, i, hm⟩
+    · simp [run] at hm
+    · have hv0 : v = 0 := Finset.mem_singleton.mp hv
+      subst v
+      rw [bodies_genesis, List.mem_singleton] at hm
+      subst B
+      simpa only [NamedProposal.Preceq, NamedProposal.preceq, decide_eq_true_eq] using hNB
+  · have hh := List.all_eq_true.mp (proposals_absent i) o ho
+    rw [he] at hh
+    cases hh
+
+private theorem roots : NamedReceiptRootCollisionFree p unitCodec env run := by
+  intro A B hA hB _
+  exact (scope_genesis A hA).trans (scope_genesis B hB).symm
+
+private theorem finality_genesis (i : Nat) : (run.stateBefore env i 0).st.fg.F = .genesis := by
+  by_cases hi : i < run.events.length
+  · change i < 12 at hi
+    interval_cases i <;> decide +kernel
+  · unfold V2.D.Run.stateBefore
+    rw [List.take_of_length_le (le_of_not_gt hi)]
+    decide +kernel
+
+private theorem crossing : RXing p unitCodec env run := by
+  intro i _ x _ _ W hx _ _ _ _ _
+  have hx0 : x = 0 := Finset.mem_singleton.mp hx
+  subst x
+  change FGBlock.Preceq (run.stateBefore env i 0).st.fg.F W
+  rw [finality_genesis]
+  exact KitFG.genesis_preceq W
+
+/-- The HEAD and FG committees have bijective seat assignments. -/
+theorem base_seats_bijective :
+    (∀ s, Function.Bijective (run.seatOf (.base (.head s)))) ∧
+    Function.Bijective (run.seatOf (.base .fg)) := by
+  constructor
+  · intro s
+    exact Function.bijective_id
+  · exact Function.bijective_id
+
+/-- The read is nonempty and its HEAD duty executes after the join delay. -/
+theorem read_nonempty :
+    fullTree p (clock p (storeAt p unitCodec env run 10 0) 17) ≠ ∅ ∧
+    ofHead p ⟨.seat (.head 4) 0, genesisRoot⟩ ∈ run.emitsAt env 10 := by
+  constructor
+  · decide +kernel
+  · rw [(V2.D.Run.step_tick_eq env run (show run.events[10]? =
+        some (.tick 0 17) from rfl)).2]
+    exact (fgsa_emits_head env run _ _ _ 4 (⟨0, by decide⟩ : Fin p.n) genesisRoot).mpr
+      ⟨by decide, rfl, rfl, by decide +kernel, by decide +kernel⟩
+
+/-- The selected genesis witness has real frame, ancestry and receiver-floor facts. -/
+theorem carrier : HeadCarrierScope env run 10 0 4 0 := by
+  constructor
+  refine ⟨.genesis, ?_, ?_, .genesis, ?_, ?_, ?_, ?_,
+    fgsa_target_service_genesis env run _ 0⟩
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · exact KitFG.preceq_refl _
+  · decide +kernel
+  · have hf : (run.stateBeforeTime env 18 0).st.fg.F = .genesis := by decide +kernel
+    change Block.Compatible .genesis (eraseFG (run.stateBeforeTime env 18 0).st.fg.F)
+    rw [hf]
+    exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl .genesis)
+      (Gen.Pure.block_preceq_refl .genesis)
+
+/-- The repaired relay consumes these services on a valid, nonempty executed read. -/
+theorem relay_positive :
+    ∃ K ∈ fullTree p (clock p (storeAt p unitCodec env run 10 0) 17),
+      eraseFG K = headVote p (clock p (storeAt p unitCodec env run 10 0) 17) 4 ∧
+      ∃ W ∈ (clock p (storeAt p unitCodec env run 10 0) 17).fg.TF,
+        FGBlock.Preceq K W ∧
+        (controls p (clock p (storeAt p unitCodec env run 10 0) 17)).lo ≤
+          (heightView p W).h ∧
+        Gen.V2.Duty.HoldsBefore env run
+          (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF) 18 0 := by
+  exact healing_head_witness_relay_on p unitCodec env run crossing valid
+    (i := 10) (x := (0 : Fin 2)) (s := 4) (y := (0 : Fin 2))
+    (by decide) (by rfl) (by decide) carrier roots
+
+/-- The review's restart-at-9 gate is suppressed; its false cutoff is not needed. -/
+theorem early_gate_suppressed :
+    IsGateTick p unitCodec run 7 0 2 ∧ ¬ enabledGateAt p unitCodec env run 7 0 2 ∧
+    ¬ env.t_GST ≤ slotStartZ p ((2 : Int) - 1) := by
+  constructor
+  · rfl
+  constructor
+  · intro he
+    have hc := he.2
+    change (9 : Time) ≤ 8 at hc
+    exact (by decide : ¬ ((9 : Time) ≤ 8)) hc
+  · decide
+
+/-- The suppressed gate saves no result and adds no lease or stable record. -/
+theorem suppressed_writes :
+    GridCO.savedGenuine (clock p (storeAt p unitCodec env run 7 0) 14).base 2 = some none ∧
+    (run.stateBefore env 8 0).st.base.obligations =
+      (run.stateBefore env 7 0).st.base.obligations ∧
+    (run.stateBefore env 8 0).st.base.stableRecord =
+      (run.stateBefore env 7 0).st.base.stableRecord := by
+  constructor
+  · exact fgsa_gate_saved_unjoined env run valid.toScheduleWellFormed
+      (show run.events[7]? = some (.tick 0 14) from rfl) (by decide +kernel)
+  constructor <;> decide +kernel
+
+/-- A label-0 actor without a restart is joined even though the sufficient GST cut fails. -/
+theorem label_zero_guard :
+    joinedAtTime p none (SA.gateTime p.toParams 0) = true ∧
+    ¬ (0 : Time) ≤ slotStartZ p (-1) := by
+  constructor <;> decide
+
+end AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep
+end
+
+#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.valid
+#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.read_nonempty
+#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.carrier
+#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.relay_positive
+#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.early_gate_suppressed
+#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.suppressed_writes
+#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.label_zero_guard
+#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.base_seats_bijective

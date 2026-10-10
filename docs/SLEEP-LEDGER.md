@@ -5538,3 +5538,13 @@ RecoverySleep₂ p c E rho G DeltaF, with the actual source/reset/phase/read gua
 H1e-HDR, OPEN, owner P-Ar: full check-module-headers finds inherited import-all
 errors in Outage/ArmingKernel:2,3. Both lines exist at 37beb806. P-H1 does not
 edit another package's files. No checker, baseline or allowance was changed.
+
+P-H1 Round 4 positive evidence: Tests/HealingSupport.PositiveSleep has a finite
+ExecutionValid run with Delta=1, GST=9, restart at 9, and an enabled HEAD at 17.
+The base HEAD/FG seat maps are bijective. Its fullTree read is nonempty and its
+HEAD is actually emitted. A concrete HeadCarrierScope and the repaired relay
+application both pass. The selected target is genesis; this does not establish
+non-genesis network service or inhabit an aggregate RecoverySleep₂ scope.
+The negative all-asleep validity test remains. The label-2 gate at 14 is
+suppressed, saves no result and adds no lease or stable record. The label-0
+no-restart actor passes the actual join guard while 0 <= slotStart(-1) fails.
