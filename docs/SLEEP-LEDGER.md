@@ -5507,3 +5507,16 @@ No false producer or public STOP was found in this group.
 The map retains the same nine P-Ou and two S-Ap EXPECTED-FAIL modules.
 The two new production modules are registered GREEN after their own builds.
 No public statement, protocol declaration, checker or allowance changed.
+
+### P-Ou Round 5 — final validation
+
+Proof source 9ff21cea. DCK P-Ou PASS: 504 GREEN modules, 41 strict audit sources,
+3,145 axiom results and all 24 controls. Complete GREEN export check:
+316 proof modules, 253 exports, zero unaccepted and zero Gen exports.
+Complete local coverage and its control PASS for 182 commands.
+Layers retain 72 inherited findings with zero new. Whitespace, ownership,
+new prose/code line length and placeholder checks pass.
+The actual remaining consumer roots still fail in Induction,
+ContinuationReceipt and Shared/Claims. Nine P-Ou and two S-Ap modules remain
+EXPECTED-FAIL. P-Ou remains PREPARED, not CLOSED. No public STOP was established.
+Handoff: scripts/dev-pkg/P-Ou.round5-handoff.md. Report: Round 5 in the local report.
