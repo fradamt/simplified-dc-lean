@@ -81,7 +81,7 @@ theorem healing_postReset_headGeometry_at [Fintype V]
   have hScoreSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
     (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hGST
     hScoreDeadline hHeadHorizon
-  obtain ⟨D, hreads⟩ := healing_postReset_retainedReads_at (hroots := hrec.base.idealization)
+  obtain ⟨D, hreads⟩ := healing_postReset_retainedReads_at (hroots := hrec.base.receiptIdealization)
     p c E rho hrec.base.valid
     hrec.base.noRestart hDelta w v hcone hv hHeadHorizon hScoreSync hx hip hseat
     N hem
@@ -162,6 +162,11 @@ theorem healing_postReset_opening_stored_at [Fintype V]
     ring
   obtain ⟨ih, hih, _⟩ := fgsa_tick_total E rho hs hrec.base.delta x hx
     (4 * v + 1) (htime ▸ hh)
+    (htime ▸ hrec.awake x hx (SA.voteTime p.toParams v) (by
+      apply hreset.synchronous.trans
+      have hl : (w.sStar : Int) ≤ (v : Int) := by exact_mod_cast (by omega : w.sStar ≤ v)
+      change 4 * p.Δ * (w.sStar : Int) + p.Δ ≤ 4 * p.Δ * (v : Int) + p.Δ
+      nlinarith [p.deltaPos]) hh)
   rw [htime] at hih
   have hik : ih ≤ k := by
     by_contra hn

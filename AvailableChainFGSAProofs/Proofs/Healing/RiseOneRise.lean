@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept
 
@@ -19,7 +20,7 @@ The terminal bound is rhoGamma + 3P + Gamma - 13Delta. The separate horizon
 bound keeps r3's full window through rhoGamma + 3P + Gamma - 8Delta.
 Assembly supplies only the existing M5 and exact r3 INLINE ports. -/
 theorem healing_rise_one_rise (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),

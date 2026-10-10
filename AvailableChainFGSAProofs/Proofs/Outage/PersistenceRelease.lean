@@ -149,7 +149,7 @@ theorem outage_clockPre_row (p : Params) (st : State p.n) (t : Time)
       refine ⟨hrow, decide_eq_true ?_⟩
       have hr : (decide (0 ≤ t - 5 * p.Δ) &&
           t == SA.releaseTime p.toParams ((t - 5 * p.Δ) / (4 * p.Δ)).toNat) = true := by
-        assumption
+        simp_all only [Bool.and_eq_true, and_true]
       exact hcounts _ (beq_iff_eq.mp (Bool.and_eq_true_iff.mp hr).2).symm
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

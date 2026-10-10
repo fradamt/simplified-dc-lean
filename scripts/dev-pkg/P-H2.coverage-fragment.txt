@@ -1,0 +1,42 @@
+# P-H2 serial fragment; merge into the existing full audit key.
+{
+    'AvailableChainFGSAProofs.Tests.Axioms': {
+        'AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead': (
+            'AvailableChain.FGSA.Run.healing_enabledGate_of_fastWrite',
+            'AvailableChain.FGSA.Run.healing_fastWrite_joined',
+            'AvailableChain.FGSA.Run.opening_exact_stored',
+            'AvailableChain.FGSA.Run.opening_fastWrite_spec',
+            'AvailableChain.FGSA.Run.opening_gateService_of_fastWrite',
+            'AvailableChain.FGSA.Run.opening_gate_level',
+            'AvailableChain.FGSA.Run.opening_phaseBody_of_fast_key',
+            'AvailableChain.FGSA.Run.opening_result_slot',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks': (
+            'AvailableChain.FGSA.Run.healing_vote_awake_of_recovery',
+            'AvailableChain.FGSA.Run.opening_action_tick',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope': (
+            'AvailableChain.FGSA.Run.healing_recovery_durable',
+            'AvailableChain.FGSA.Run.healing_recovery_finality',
+            'AvailableChain.FGSA.Run.healing_recovery_frame_prefixes',
+            'AvailableChain.FGSA.Run.healing_recovery_joinedNow',
+            'AvailableChain.FGSA.Run.healing_recovery_restartFree',
+            'AvailableChain.FGSA.Run.healing_recovery_restart_bound',
+            'AvailableChain.FGSA.Run.healing_recovery_restart_cutoff',
+            'AvailableChain.FGSA.Run.healing_recovery_stamps',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope': (
+            'AvailableChain.FGSA.Run.healing_release_rows_expiry',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.ResetScope': (
+            'AvailableChain.FGSA.Run.healing_gate_enabled_of_recovery',
+            'AvailableChain.FGSA.Run.healing_recovery_delay_bounds',
+            'AvailableChain.FGSA.Run.healing_recovery_start_lower',
+            'AvailableChain.FGSA.Run.healing_reset_action_after_cut',
+            'AvailableChain.FGSA.Run.healing_reset_gate_cutoff',
+            'AvailableChain.FGSA.Run.healing_reset_slot_cutoff',
+            'AvailableChain.FGSA.Run.healing_reset_vote_cutoff',
+            'AvailableChain.FGSA.Run.healing_vote_joined_of_recovery',
+        ),
+    },
+}

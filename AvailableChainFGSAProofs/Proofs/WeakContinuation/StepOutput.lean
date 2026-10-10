@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFacts
@@ -27,6 +28,7 @@ private theorem gate_output {j : Nat} {x : V} {s : Slot} {B : Block}
     rw [gateResultAt_eq_gateResult p c E rho hsch ht,
       gateResult_eq_saved p c E rho hsch ht, clockPre_fg]
     exact fgsa_gate_saved_result E rho hsch ht
+      (fgsa_gate_joined_of_enabled E rho (wc_gate_enabled_of_result hsch ht hB))
   have hraw := Option.some.inj (hrawAt.symm.trans hB)
   obtain ⟨y, r, he, _, G, hG, hguard⟩ := hpass
   have hevent := V2.Event.tick.inj (Option.some.inj (he.symm.trans ht))
@@ -66,7 +68,8 @@ private theorem gate_output {j : Nat} {x : V} {s : Slot} {B : Block}
       rcases Bool.or_eq_true_iff.mp hc with h | h
       · exact h
       · exact (hn h).elim
-  rcases (fgsaAC_gate_write E rho j s x ht).effects with hskip | hrun
+  rcases (fgsaAC_gate_write E rho j s x
+      (wc_gate_pre_joined (wc_gate_enabled_of_result hsch ht hB)) ht).effects with hskip | hrun
   · obtain ⟨result, hsaved⟩ := hskip.1
     have hfresh := fgsa_gate_fresh E rho hsch ht
     change GridCO.savedGenuine (storeAt p c E rho j x).base s = some result at hsaved

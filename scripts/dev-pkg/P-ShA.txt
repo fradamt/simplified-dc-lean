@@ -1,5 +1,6 @@
-# P-ShA round 5; additive service ports green; preserved Regimes legacy target open.
+# P-ShA round 7; all owned targets GREEN; legacy Regimes inputs explicit.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Tests.RestartEpochs
 AvailableChainFGSAClaims.Tests.Reads
@@ -67,8 +68,11 @@ AvailableChainFGSAProofs.Tests.RetainedScores
 AvailableChainFGSAProofs.Tests.RetainedWalk
 AvailableChainFGSAProofs.Tests.SharedAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+AvailableChainFGSAProofs.Proofs.Shared.Regimes
 AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
+# ReceiptCoverage is an import-only compatibility path; no sleep-contract proof.
 AvailableChainFGSARun.Proofs.ReceiptCoverage
 AvailableChainFGSARun.Tests.P23Axioms
 AvailableChainFGSAProofs.Tests.RestartEpochs
@@ -547,6 +551,5 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

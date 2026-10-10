@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDefs
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPrefix
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingHistory
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
+public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 
 public section
 
@@ -54,8 +56,8 @@ theorem outage_named_of_source_history (hroots : NamedRootCollisionFree p c E rh
   have hCB := hist.history k y r _ hk ha.1 ha.2.1 hsource
   have heB := block_compatible_of_preceq_compatible (eraseFG_preceq (heC ▸ hTC)) hCB
   rcases Bool.or_eq_true_iff.mp heB with h | h
-  · exact Or.inl (arming_lift (hβ ▸ h))
-  · exact Or.inr (arming_lift (hβ ▸ h))
+  · exact Or.inl (eraseFG_preceq_iff.mp (hβ ▸ h))
+  · exact Or.inr (eraseFG_preceq_iff.mp (hβ ▸ h))
 
 /-- ROOT-DIGEST W2b. Blueprint 03 §8.3; O-INDUCT plan §6 steps 2–3. Class (iii).
 DC: INTENTIONAL; a newly disclosed honest QC row uses the old source
@@ -88,8 +90,8 @@ theorem outage_disclosed_name_compatible (hroots : NamedRootCollisionFree p c E 
     (hist.history k y r _ hk hrow.1 hrow.2.1 hsource)
   refine ⟨⟨k, hk, hrow⟩, ?_⟩
   rcases Bool.or_eq_true_iff.mp hcompat with h | h
-  · exact Or.inl (arming_lift (hβ ▸ h))
-  · exact Or.inr (arming_lift (hβ ▸ h))
+  · exact Or.inl (eraseFG_preceq_iff.mp (hβ ▸ h))
+  · exact Or.inr (eraseFG_preceq_iff.mp (hβ ▸ h))
 
 private theorem named_of_matches {pair : NamedHeightPair} {h : Nat} {root : BlockId}
     (hm : pair.matchesEntry h root = true) : namedEntry pair = some (h, root) := by

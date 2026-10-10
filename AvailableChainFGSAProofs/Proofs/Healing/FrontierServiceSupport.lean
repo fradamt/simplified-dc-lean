@@ -95,7 +95,13 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
     push_cast
     nlinarith
-  obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hrec.base.delta hx (q + 1) hq1h
+  have hawake := hrec.awake x hx (SA.voteTime p.toParams (q + 1)) (by
+    apply hgst.trans (hu.trans _)
+    change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]) hq1h
+  obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hrec.base.delta hx (q + 1)
+    hq1h hawake
   have hqip : iq < ip := repair_idx_lt E rho hS hiq hip (by
     change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * ((r + 1 : Nat) : Int)
     push_cast

@@ -5,14 +5,13 @@ public import AvailableChainFGSAClaims.Statements.OutageContinuation
 
 namespace AvailableChain.FGSA.Run
 
-/-- OUTPUT-DIRECT §§1–10. DC: INTENTIONAL; additive continuation companion.
-The frozen finite outage claims retain their original contracts. -/
+/-- P17: continuation uses the sleep premises and the scoped conclusion. -/
 def OutageContinuationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (fast : Bool)
     (T b₀ b₁ ΔF : Time),
-    OutageContinuationPrem p c fast E rho T b₀ b₁ ΔF →
-      OutageContinuationConcl p c E rho T b₀
+    OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF →
+      OutageContinuationConcl p c E rho fast T b₀ b₁
 
 end AvailableChain.FGSA.Run
 end

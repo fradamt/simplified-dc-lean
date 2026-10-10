@@ -54,6 +54,8 @@ AvailableChainFGSARun.Tests.Protocol
 AvailableChainFGSARun.Tests.ReceiptAlias
 AvailableChainFGSARun.Tests.W3Axioms
 [GREEN]
+# Import-only compatibility path; ReceiptCoverageSleepStatement is not proved here.
+AvailableChainFGSARun.Proofs.ReceiptCoverage
 AvailableChainFGSARun.Proofs.ReceiptCoverageReady
 AvailableChainFGSARun.Tests.ReceiptReady
 AvailableChainEngineV2
@@ -520,5 +522,4 @@ AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.StoreRun P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal P-ShA
 AvailableChainFGSARun S-Ap
-AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

@@ -38,21 +38,57 @@ theorem arming_clean_mem {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     ∃ j x, j < i ∧ x ∈ rho.honest ∧ IsGateTick p c rho j x s ∧
       SA.gateTime p.toParams s ≤ b ∧ gateResultAt p c E rho j = some (some X) ∧
       gateResult p c E rho x s = some (some X) := by
-  obtain ⟨j, hj, x, htick, hres⟩ := hX
+  obtain ⟨j, hj, x, htick, hEnabled, hres⟩ := hX
   refine ⟨j, x, hj, hs.honest_only _ (List.mem_of_getElem? htick), htick,
     arming_tick_le hs htick (lt_of_lt_of_le hj hi), hres, ?_⟩
   rw [← gateResultAt_eq_gateResult p c E rho hs htick]
   exact hres
 
+/-- A passed gate identifies the enabled receiver and label at that event. -/
+theorem arming_enabled_of_pass {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {i : Nat} {y : V} {s : Slot} (hi : IsGateTick p c rho i y s)
+    (hpass : gatePassedAt p c E rho i) : enabledGateAt p c E rho i y s := by
+  obtain ⟨z, q, ⟨hq, hEpoch⟩, _⟩ := hpass
+  have he := Option.some.inj (hq.symm.trans hi)
+  have hz : z = y := (V2.Event.tick.inj he).1
+  have htime := (V2.Event.tick.inj he).2
+  have hqs : q = s := le_antisymm ((arming_gate_le_iff p q s).mp htime.le)
+    ((arming_gate_le_iff p s q).mp htime.symm.le)
+  subst z
+  subst q
+  exact ⟨hi, hEpoch⟩
+
+/-- A nonempty executed gate result proves the inclusive join marker bound. -/
+theorem arming_enabled_of_result {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {y : V} {s : Slot} {C : Block}
+    (hi : IsGateTick p c rho i y s)
+    (hres : gateResultAt p c E rho i = some (some C)) :
+    enabledGateAt p c E rho i y s := by
+  have hresult : gateResult p c E rho y s = some (some C) := by
+    rwa [← gateResultAt_eq_gateResult p c E rho hs hi]
+  have hJ := (fgsa_gate_raw_of_nonempty p c E rho hs hi hresult).1
+  have hslot : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+    (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i y) _).2.symm.trans
+      (fgsa_gate_slot (c := c) (V2.D.Run.stateBefore E rho i y) s)
+  refine ⟨hi, ?_⟩
+  cases hr : (storeAt p c E rho i y).restartTime with
+  | none => trivial
+  | some w =>
+    change (V2.D.Run.stateBefore E rho i y).st.restartTime = some w at hr
+    simp only [joinedAtTime, hr, hslot, Nat.cast_add, Nat.cast_one,
+      add_sub_cancel_right, decide_eq_true_eq] at hJ
+    exact hJ
+
 /-- Plan O-ARM §6.1, §11 obligation 1. Class (iii). DC: INTENTIONAL; an
 actual honest gate tick at or before the cut is a clean result of the cut. -/
 theorem arming_clean_of_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) {b : Time} {j : Nat} {x : V} {s : Slot}
-    {X : Block} (hj : IsGateTick p c rho j x s) (hb : SA.gateTime p.toParams s ≤ b)
+    {X : Block} (hEnabled : enabledGateAt p c E rho j x s) (hb : SA.gateTime p.toParams s ≤ b)
     (hX : gateResult p c E rho x s = some (some X)) :
     j < timeIdx rho b ∧ (s, X) ∈ cleanResults p c E rho (timeIdx rho b) := by
+  have hj := hEnabled.1
   have hlt := arming_lt_of_tick hs hj hb
-  refine ⟨hlt, j, hlt, x, hj, ?_⟩
+  refine ⟨hlt, j, hlt, x, hj, hEnabled.2, ?_⟩
   rw [gateResultAt_eq_gateResult p c E rho hs hj]
   exact hX
 
@@ -137,7 +173,7 @@ theorem arming_max_label {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       gateResult p c E rho y r = some (some C) →
       gateResult p c E rho z s = some (some D) →
       (r < s → Block.Preceq C D) ∧ (r = s → Block.Compatible C D))
-    {l : Slot} {x : V} {Cl : Block} {k : Nat} (hk : IsGateTick p c rho k x l)
+    {l : Slot} {x : V} {Cl : Block} {k : Nat} (hk : enabledGateAt p c E rho k x l)
     (hl : SA.gateTime p.toParams l ≤ b₀) (hCl : gateResult p c E rho x l = some (some Cl)) :
     ∃ D, (l, D) ∈ cleanResults p c E rho (timeIdx rho b₀) ∧
       ∀ r X, (r, X) ∈ cleanResults p c E rho (timeIdx rho b₀) → r ≤ l →
@@ -242,8 +278,12 @@ theorem arming_origin {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   rcases hsOrigin (timeIdx rho T) x hTb hx with hgen | ⟨q, hq, s, htick, hres⟩ |
       ⟨q, hq, hF⟩
   · exact absurd hgen (hnotgen hread)
-  · exact arming_origin_of_clean hs hT hnonempty hcleanGate hne le_rfl
-      ⟨q, hq, x, htick, hres⟩ hread
+  · have hsT := arming_tick_le hs htick hq
+    obtain ⟨_, _, ⟨k, hk, hpass⟩, _⟩ := hcleanGate s x (hsT.trans hT) hx
+    have hkq : k = q := fgsa_tick_unique E rho hs hk htick
+    subst k
+    exact arming_origin_of_clean hs hT hnonempty hcleanGate hne le_rfl
+      ⟨q, hq, x, htick, (arming_enabled_of_pass htick hpass).2, hres⟩ hread
   · have hb := (hbelow q x (hq.trans hTb) hx).1
     rw [hF] at hread
     rcases hb with hgen | ⟨s, X, hX, _, hFX⟩
