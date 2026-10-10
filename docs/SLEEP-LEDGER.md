@@ -6985,3 +6985,36 @@ The joinedHonest equation export was repaired by a local type conversion; no
 checker, baseline or allowance changed. Public consumers were built and still
 fail at legacy ports. P-Ou is PREPARED; the complete Round 11 task is incomplete.
 No public claim, protocol declaration or healing file changed. No public STOP.
+
+### P-Ou Round 12 — finite early cuts and scoped outage protection
+
+Base 1b245e9e; branch sleep-pou12. Proof commits: 88a2634c, 696b63f6,
+a0d5801e and 41483e69. P-Ou remains PREPARED; the complete task is incomplete.
+
+ScopedEarly proves O11-EARLY-READ/HEAD/F/DUTY at current finite cuts, including
+runs whose restored seed lies after the horizon. Its early read takes the actual
+CleanHist and enabled gate-output facts produced by P-Cl1. ScopedClose proves
+O11-OUTAGE's protected-B result under OutagePrem, with no continuation premise.
+It also produces joined duty provenance, the actual protected FG lift and a
+certificate when G is empty. These inputs retain sleep and actual read scopes.
+
+ScopedCatchUp proves O11-W-READ from S at j+1 through the inclusive timeIdx(t).
+Its complete HEAD/F consumers use the early proofs and ScopedBridge's global
+scoped HEAD/state producers. Its complete read consumer takes exactly the open
+O11-W-SEED goal. Raw result compatibility does not supply that stable seed.
+No new all-honest stable, NoRestart, pre-GST service or prior-label join input is added.
+
+O11-W-SEED and complete public assembly remain P-Ou. The six P-Ou modules remain
+EXPECTED-FAIL. Both complete exporters were built and fail at legacy ports in
+Close and ContinuationInduction. The handoff states O12-PUBLIC-CONT and
+O12-PUBLIC-OUTAGE with their exact unchanged types and caller contexts.
+GrowthSuppliers remains visible through Outage/Export for P-As.
+
+DCK PASS: 44 strict sources, 3,313 results, all 24 controls PASS.
+Map: 62 targets, 523 GREEN, eight EXPECTED-FAIL (six P-Ou, two S-Ap).
+Headers PASS; layers zero new. Exports: 342 proof modules, 253 exports, zero
+unaccepted. Local coverage: 349 commands, zero unaccepted. Serial production
+audit: 313 standard-axiom results. Exact original solved contracts are proved in
+.lake/sleep-pou-r12/Contracts.lean. No protocol, public claim or Healing change.
+Handoff: scripts/dev-pkg/P-Ou.round12-handoff.md, with the current scope table.
+Report: claude-files/sleep-pou-report.md, Round 12. No public STOP.
