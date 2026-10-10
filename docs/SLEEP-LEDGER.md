@@ -5781,3 +5781,23 @@ The complete export check found F_at.eq_1 in GoodVotes. The new proof
 used simp on the imported predicate. Replace that step with change on
 the exact confirmation type. The strict local roots compile after this
 repair. No allowance, baseline, public declaration, or protocol changed.
+
+### P-Ou Round 6 — final validation and closure status
+
+Proof source 84255dd4. DCK P-Ou PASS: 504 GREEN modules, 41 strict
+sources, 3,165 axiom results, and all 24 controls. Complete GREEN
+exports: 321 proof modules, 253 exports, zero unaccepted and zero Gen
+exports. Complete local coverage and its control PASS for 201 commands.
+Layers retain 72 inherited findings with zero new. Module headers have
+four inherited failures and no new failure; two owned failures were
+removed. New prose/code line lengths and whitespace pass.
+
+The actual consumer roots still fail in Induction and ContinuationReceipt.
+All nine P-Ou and two S-Ap EXPECTED-FAIL entries remain. P-Ou is PREPARED,
+not CLOSED. The full scoped joint inductions, later good-HEAD invariant,
+global late-result producer, InclusionReceiverInputs, and final exports
+remain P-Ou work. The fast hLast request is satisfied; the continuation
+prefix adapter remains a P-Ar request. No public STOP was established.
+Handoff: scripts/dev-pkg/P-Ou.round6-handoff.md. Its SCOPE-NARROW table
+records every input role, named producer, and open owner. Report: Round 6
+in claude-files/sleep-pou-report.md. Evidence: .lake/sleep-pou-r6/.
