@@ -2257,3 +2257,88 @@ The optional SupportRecovery module is not present: automatic approval review
 rejected it as outside the prepared scope, and the text approval request is pending.
 No FGSAClaims statement, protocol declaration, checker, baseline, allowance, or
 heartbeat changed. Report: claude-files/sleep-ph1-report.md.
+## P-Fd — durable and epoch Foundations suppliers (2026-10-10)
+
+Base: 1c777e97, with sleep-int 8c838f3b and P-ShA rounds 1–3.
+Only P-Fd proof, test, map, and ledger files are changed. S-Ap retains
+Claims/Foundations.lean until its serial transfer. Public meaning STOP: none.
+
+- RStoreDurable: fgsa_rStoreDurable uses Shared.fgsa_store_durable for TF,
+  blocks, proposal wires, and signed rows across all restarts.
+- RStoreEpoch: fgsa_rStoreEpoch uses fgsa_store_cumulative_on on the exact
+  restartFree rho x i j interval for block and vote stamp prefixes.
+- RMonoAll: fgsa_rMonoAll keeps F, (h_j, J), and h_max through acRestart_fg.
+  RMono stays as the legacy NoRestart wrapper.
+- RFrameNextEpoch: fgsa_rFrameNextEpoch keeps the existing local frame equations,
+  uses durable proposal/row prefixes, and scopes stamp prefixes to the local epoch.
+- Finalized monotonicity: the P21 restart companion uses the W3 kept-F restart law.
+  FinalizedSafety uses RMonoAll and keeps the public conclusion.
+- Lease K/S uses: retained obligations keep their actual gate source and deadlines;
+  restart fast pairs are empty by acRestart_fastWrite. No empty-lock assumption
+  remains. The target bound and ancestor deadlines survive retained-store replay.
+- K origins in Accountable, Carrier, and Sources retain origin and bound projections.
+  Emitted carriage/source proofs split the joined duty guard; no premise is added.
+- RowPermission: lock carriers use durable TF membership. The actual RecoverySleep₂
+  suffix supplies confirmedReaderAtIdx at an exact gate after its join cutoff;
+  OpeningCovered and OpeningCoveredLower consume that evidence.
+- Tests.RowPermission: the one-validator tick fixture supplies SleepWellFormed,
+  RestartsAtWakes, and NamedReceiptRootCollisionFree. Its receipt scope has only
+  genesis: there is no delivered proposal and no emitted object.
+
+Internal statement replacement: fgsa_leaseOrigins_lastWrite now restricts the later
+key exclusion to a joined pre-gate state. At an unjoined gate the retained view can
+have raw confirmationFrom and gateWriteKeys, but the executed gate writes no lease.
+The old raw-key exclusion does not follow. The source, deadline, chain, fast-write,
+and ancestor conclusions are kept. Consumers: Healing SupportWrite/PostReset/Frontier/
+RiseOne, Assembly Healing/ResetArrival, their tests, and NonVacuity.HealingRun.
+They must pass the joined guard when they reason about the later executed gate.
+
+Internal statement replacement: fgsa_rowService_receipt and T-ROWS producers use
+P8's all-honest awake suffix. A permanent sleeper satisfies the old NoRestart and
+vacuous P2 demand, but has no row at the deadline. Pre-GST sends use max(send, GST).
+fgsa_rowsReceipt_carriage has the same conclusion and no NoRestart requirement;
+it uses durable row and proposal prefixes.
+
+The package-local FoundationsAxioms root checks all changed public theorem bodies.
+The complete audit inventory and canonical-root registration are handed to the lead
+as a fragment; no new canonical coverage key or allowance is installed.
+Preparation validation and status are recorded below after the checks finish.
+
+P-Fd PREPARED: DCK PASS on 490 GREEN modules and 7 EXPECTED-FAIL modules
+(174.82 s), with 38 strict audit roots and the default controls PASS.
+The local root has 108 audit commands. Complete exports and complete local
+coverage: 147 proof modules, 251 exports, 0 unaccepted (6.23 s).
+Layers: 72 baseline findings, 0 new (0.38 s). No allowance or baseline changed.
+CLOSED still waits for the S-Ap Claims/Foundations transfer and P-ShA round 4.
+The remaining owned RowService restart adapter is continued after this checkpoint.
+
+### P-Fd — restart-safe row service follow-up
+
+fgsa_rowService_receipt_sleep, fgsa_tRowsReceipt_sleep, fgsa_tRowsSync_sleep,
+and fgsa_tRows_sleep use the exact receiver epoch from actionCut(max(send, GST))
+to idxBefore(deadline). A restart at the anchor is already in the action cut.
+Safe row history follows from durable rowPool prefixes, not from a claim about
+retained HEAD processing. The valid run's exact wake clock proves row timeliness.
+The prepared NoRestart interfaces remain wrappers with the approved awake suffix.
+
+rowService_epoch_of_recovery derives the post-GST epoch from Recovery₂.awake
+and Base₂.restartsAtWakes. Thus fgsa_tRows_recovery proves all three row clauses
+from Recovery₂, with no global NoRestart assumption. RecoverySleep₂ can use it
+through toRecovery₂.
+
+The unchanged Foundations.Export target has three remaining ports: the
+FGFoundationNext companion tuple, the approved P8 awake suffix, and the
+RowServiceClaim call to fgsa_tRows_recovery. Four serial export fragments,
+including the P21 public restart companion and the exact P8 predicate, compile
+in isolation with strict permitted axioms (12.64 s). They are handed to the lead;
+Claims/Foundations remains S-Ap-owned. No public meaning change is requested.
+Final package validation is recorded below after the DCK finishes.
+
+P-Fd follow-up validation: DCK PASS, 490 GREEN / 7 EXPECTED-FAIL, 38 strict
+roots, 114 local audit commands, all default controls PASS (168.53 s).
+Complete exports and complete local coverage: 147 proof modules, 251 exports,
+0 unaccepted (5.19 s). Layers: 72 baseline findings, 0 new (0.46 s).
+The package remains PREPARED. CLOSED requires the S-Ap claim transfer and
+P-ShA closure. Archived P-ShA round 4 (8384eb34) is NOT CLOSED: Shared.Export,
+Shared.Regimes and Tests.RetainedConsumers remain open. That supplier commit
+is not installed here; this branch keeps its base classifications and interfaces.

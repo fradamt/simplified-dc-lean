@@ -101,7 +101,10 @@ private theorem source_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     have hp : m = .row a.payload := congrArg V2.Signed.payload ho
     subst m
     cases d with
-    | headAction s => cases hm
+    | headAction s =>
+      change (if joinedNow p _ then some (Msg.head _) else none) =
+        some (Msg.row a.payload) at hm
+      split at hm <;> cases hm
     | fgAction r' =>
       change (attest p _ _ _).1.map Msg.row = some (.row a.payload) at hm
       obtain ⟨payload, hb, he⟩ := Option.map_eq_some_iff.mp hm
@@ -110,7 +113,14 @@ private theorem source_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
       dsimp only [fgsa] at hb ⊢
       exact hb
     | propAction s =>
-      change (propose p _ s).map (withApp p _) = some (.row a.payload) at hm
+      change (if joinedNow p _ then (propose p _ s).map (withApp p _) else none) =
+        some (Msg.row a.payload) at hm
+      have hm : (propose p ((fgsa p c).clock
+          (V2.D.Run.stateBefore E rho j x) (p.actionTime r)).st s).map
+          (withApp p (c.app (rho.input x (p.actionTime r)))) = some (Msg.row a.payload) := by
+        split at hm
+        · exact hm
+        · cases hm
       obtain ⟨m, hm, he⟩ := Option.map_eq_some_iff.mp hm
       obtain ⟨_, _, _, _, heq, _, _⟩ := rowsOk_withApp _ _ _ (by rw [hm]; exact congrArg some he)
       cases heq

@@ -41,7 +41,7 @@ private theorem schedule0 : V2.D.ScheduleWellFormed env0 rho0 where
     cases he
     exact ⟨0, rfl⟩
   tick_total := by
-    intro v hv t _ ht hh
+    intro v hv t _ ht hh _
     have he : t = 0 := le_antisymm hh ht
     subst t
     have hv : v = 0 := Finset.mem_singleton.mp hv
@@ -52,16 +52,35 @@ private theorem noDelivery0 (i : Nat) (v : Fin 1) (o : (fgsa p1 unitCodec).Objec
     (t : Time) : rho0.events[i]? ≠ some (.deliver v o t) := by
   cases i <;> simp
 
+private theorem noEmission0 (x : Fin 1) (o : Obj p1) (t : Time) :
+    ¬ V2.D.Run.emits env0 rho0 x o t := by
+  rintro ⟨i, hi, ho⟩
+  cases i with
+  | zero =>
+    change some (V2.Event.tick 0 0) = some (.tick x t) at hi
+    have he : V2.Event.tick x t = .tick 0 0 := Option.some.inj hi.symm
+    cases he
+    change o ∈ [] at ho
+    exact List.not_mem_nil ho
+  | succ i => simp only [List.getElem?_cons_succ, List.getElem?_nil] at hi; cases hi
+
 -- One honest validator at a real scheduled tick; no delivery is required.
 private theorem base0 : Base₂ p1 unitCodec env0 rho0 where
   valid := {
     toScheduleWellFormed := schedule0
+    tick_awake := by intros; rfl
+    deliver_awake := by intros; rfl
+    restart_awake := by intros; rfl
+    wake_restart := by
+      intro v hv t ht hhor _
+      change t ≤ 0 at hhor
+      exact ((not_lt_of_ge hhor) ht).elim
     wire := by intro i v o t h; exact (noDelivery0 i v o t h).elim
     deps := by intro i v o t h; exact (noDelivery0 i v o t h).elim
     fresh := by intro i v o t h; exact (noDelivery0 i v o t h).elim
     unforgeable := by rintro v o t ⟨i, hi⟩; exact (noDelivery0 i v o t hi).elim
     carried := by rintro v o t ⟨i, hi⟩; exact (noDelivery0 i v o t hi).elim }
-  idealization := by
+  receiptIdealization := by
     have hnone : ∀ x o t, V2.Event.deliver x o t ∉ rho0.events := by
       intro x o t hd
       obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
@@ -73,15 +92,13 @@ private theorem base0 : Base₂ p1 unitCodec env0 rho0 where
       · exact h
       · obtain ⟨x, o, t, hd, _⟩ := hd
         exact (hnone x o t hd).elim
-    refine ⟨?_⟩
-    intro B C hB hC A D hA hD _
-    have scopeX {X : NamedProposal p1.n} (hX : NamedProposal.Preceq X B ∨
-        NamedProposal.Preceq X C) :
-        NamedProposalInRun p1 unitCodec env0 rho0 X := by
-      rcases hX with hX | hX
-      · exact namedScope_ancestor env0 rho0 hB hX
-      · exact namedScope_ancestor env0 rho0 hC hX
-    exact (hg (scopeX hA)).trans (hg (scopeX hD)).symm
+    have scopeX {X : NamedProposal p1.n}
+        (hX : NamedProposalReceiptScope p1 unitCodec env0 rho0 X) : X = .genesis := by
+      rcases hX with hX | ⟨v, _, o, t, N, he, _, _⟩
+      · exact hg hX
+      · exact (noEmission0 v o t he).elim
+    intro A D hA hD _
+    exact (scopeX hA).trans (scopeX hD).symm
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩
     intro ℓ hℓ
@@ -96,7 +113,10 @@ private theorem base0 : Base₂ p1 unitCodec env0 rho0 where
       exact Function.bijective_id
     · exact hℓ.elim
     · exact hℓ.elim
-  noRestart := by intro i v t; cases i <;> simp
+  restartsAtWakes := by
+    intro v t he
+    have he : V2.Event.restart v t = .tick 0 0 := List.mem_singleton.mp he
+    cases he
   delta := rfl
 
 
