@@ -1,4 +1,5 @@
-# P-H1 PREPARED, Round 6; local producers and public TPerm link remain open.
+# P-H1 Round 7 PREPARED. H2 start ports and their imports retain P-H2 ownership.
+# 104 assigned; 556 total GREEN; 18 EXPECTED-FAIL.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
 AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
@@ -99,6 +100,11 @@ AvailableChainFGSAProofs.Tests.HealingResetTransfer
 AvailableChainFGSAProofs.Tests.HealingSleepAxioms
 AvailableChainFGSAProofs.Tests.HealingSupport
 AvailableChainFGSAProofs.Tests.HealingTime
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
+AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+AvailableChainFGSAProofs.Tests.HealingJoinedStartAxioms
+AvailableChainFGSAProofs.Tests.HealingJoinedStart
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
 
 [GREEN]
 AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
@@ -110,7 +116,6 @@ AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
 AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
 AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
 AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
-AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance
 AvailableChainFGSAProofs.Tests.HealingDelivery
 AvailableChainFGSAProofs.Tests.HealingDescent
 AvailableChainFGSAProofs.Tests.HealingDescentLoss
@@ -140,7 +145,6 @@ AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
 AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
-AvailableChainFGSAProofs.Tests.HealingPromotion
 AvailableChainFGSAProofs.Tests.HealingSupport
 AvailableChainFGSAProofs.Proofs.Healing.SupportLease
 AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
@@ -151,17 +155,8 @@ AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 AvailableChainFGSAProofs.Proofs.Shared.Regimes
 AvailableChainFGSAProofs.Proofs.Shared.Export
-AvailableChainFGSAProofs.Tests.HealingAttemptTerminal
-AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
-AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
-AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
 AvailableChainFGSAProofs.Proofs.Healing.SupportGate
-AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance
-AvailableChainFGSAProofs.Proofs.Healing.PromotionSource
 AvailableChainFGSAProofs.Proofs.Healing.PromotionReceipt
-AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
-AvailableChainFGSAProofs.Tests.HealingPhaseSettle
-AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
 AvailableChainFGSAProofs.Tests.HealingPhase
 AvailableChainEngineV2
@@ -351,8 +346,6 @@ AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
 AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
 AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
-AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
-AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
 AvailableChainFGSAProofs.Proofs.Healing.Base
 AvailableChainFGSAProofs.Proofs.Healing.Descent
 AvailableChainFGSAProofs.Proofs.Healing.DescentTiming
@@ -362,7 +355,6 @@ AvailableChainFGSAProofs.Proofs.Healing.FramePaths
 AvailableChainFGSAProofs.Proofs.Healing.FrameRelay
 AvailableChainFGSAProofs.Proofs.Healing.FrameSource
 AvailableChainFGSAProofs.Proofs.Healing.FrameZero
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget
 AvailableChainFGSAProofs.Proofs.Healing.LiveDC
 AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds
@@ -372,12 +364,9 @@ AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder
 AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
 AvailableChainFGSAProofs.Proofs.Healing.PostResetRead
-AvailableChainFGSAProofs.Proofs.Healing.Promotion
 AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
 AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic
 AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
-AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
-AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
 AvailableChainFGSAProofs.Proofs.Healing.SupportFrame
 AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 AvailableChainFGSAProofs.Proofs.Healing.SupportRelay
@@ -442,7 +431,6 @@ AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 AvailableChainFGSAProofs.Tests.HealingDescentTiming
 AvailableChainFGSAProofs.Tests.HealingFrame
-AvailableChainFGSAProofs.Tests.HealingSleepAxioms
 AvailableChainFGSAProofs.Tests.HealingTime
 AvailableChainFGSAProofs.Tests.SharedAxioms
 AvailableChainFGSARun.Model.Families
@@ -670,5 +658,28 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
+AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+AvailableChainFGSAProofs.Tests.HealingJoinedStartAxioms
+AvailableChainFGSAProofs.Tests.HealingJoinedStart
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
 
 [EXPECTED-FAIL]
+AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle P-H2
+AvailableChainFGSAProofs.Proofs.Healing.AttemptStop P-H2
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge P-H2
+AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot P-H2
+AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle P-H2
+AvailableChainFGSAProofs.Proofs.Healing.Promotion P-H2
+AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance P-H2
+AvailableChainFGSAProofs.Proofs.Healing.PromotionAge P-H2
+AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase P-H2
+AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed P-H2
+AvailableChainFGSAProofs.Proofs.Healing.PromotionRows P-H2
+AvailableChainFGSAProofs.Proofs.Healing.PromotionSource P-H2
+AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal P-H2
+AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance P-H2
+AvailableChainFGSAProofs.Tests.HealingAttemptTerminal P-H2
+AvailableChainFGSAProofs.Tests.HealingPhaseSettle P-H2
+AvailableChainFGSAProofs.Tests.HealingPromotion P-H2
+AvailableChainFGSAProofs.Tests.HealingSleepAxioms P-H2

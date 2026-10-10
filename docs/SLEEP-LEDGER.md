@@ -6916,10 +6916,41 @@ The changed shallow entries are pinned in docs/api/fgsa-joined-start-pins.json.
 Each reason is "JOINED-START (lead ruling 2026-10-10)". Current snapshots
 replace the old freeze gate on this base (4f134e83); no frozen baseline or
 checker allowance is changed. The shallow manifest uses the required
-V2Manifest --scope fgsa --write command. The current deep and auxiliary
-review products are regenerated for the current checker.
+V2Manifest --scope fgsa --write command. The current deep product is
+regenerated. The auxiliary write is blocked by missing compiled roots from
+the full proof/Inhabit scope; no auxiliary allowance is introduced.
 
 Claims builds with its tests. Three inherited test adapters required the
 existing RecoverySleep₂ and recoveryStart forms; HealingW now consumes
 the corrected reset interfaces directly. Proof-family callers stay with
 P-H1/P-H2/P-As according to the package map and the Round 7 handoff.
+
+### P-H1 Round 7 — bounded consumers and source service
+
+The single phase-indexed permanence API derives its source Window 1 from
+recoveryStart <= u <= vote(s). healing_tPerm consumes RecoverySleep₂ and the
+exact ready-phase SupportPermanenceServices factory. P5 remains OPEN/P-H1.
+Both last-write splits use that same TPerm. repair_lease_cover_one/two now
+construct RepairLeaseCover from those splits, with no assumed hCover.
+Repaired proposal reads derive Window 2 and their prior Window 1.
+
+General reads, actual HEAD/gate guards, the CStar seat counts, selected
+carrier reads, fresh reset source readiness and high-source readiness are
+proved. FastSupportScope.firstReaders was already absent at this base.
+No other guarded contract-B field is removed. Source delivery callbacks
+now keep K <= W (or CStar <= eraseFG W) and the receiver floor at early(s).
+RMonoAll pulls that floor back from the actual consumer read. No arbitrary
+all-TF receiver service is requested by these callbacks.
+
+The positive finite HealingRun proves ExecutionValid, P23-A receipt roots,
+per-anchor synchrony, RecoverySleep₂ and a nonempty actual ready PhaseBody.
+It does not supply the open phase-service factory. Four separate kernel
+clock regressions exclude the listed old sources and check the new split
+thresholds. Full adversarial ExecutionValid replays remain OPEN/P-H1 with
+exact obligations in P-H1.round7-fixtures.md.
+
+D3 handoff: P-H1.round7-handoff.md lists all H2 sites and their new premises.
+Promotion, AttemptStop, PhaseSettle and PhaseBoot fail directly after the
+public start change. Their 18-module closure is EXPECTED-FAIL/P-H2 in the
+P-H1 map. The strict local audit covers the compiled slice. Public closure
+is not inferred from that slice; P-H1 remains PREPARED.
