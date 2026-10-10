@@ -2175,3 +2175,61 @@ The full Clean induction and the arming export are still open.
   The 48 core audit commands and three regression commands use only propext,
   Classical.choice and Quot.sound. Complete export/coverage check: 0 unaccepted
   (7.04 s). Layer check: 72 baseline findings, 0 new (0.30 s).
+
+### P-Cl1 — current epoch invariant and joined batch (2026-10-10)
+
+The prepared set now includes State, Action, GateOutput and Zero. The package
+remains PREPARED, not CLOSED. Five P-Cl1 targets remain EXPECTED-FAIL.
+
+- Internal statement, lead ruling 10-10: CleanHist.nonempty now requires
+  enabledGateAt, including label 0. CleanHist.continues requires the joined
+  voter at the exact next vote tick. CleanGateOutputStmt requires an enabled
+  gate. These are the P6/P11 forms; no FGSAClaims file was edited.
+- Internal statement, lead ruling 10-10: CleanState.saved requires the local
+  restartFree interval and activeCompatible at the read. savedOnly and
+  fastWrite origins include restartFree and an enabled origin gate. Durable
+  S and lease origins still use completed event history from all epochs.
+- Internal statement, lead ruling 10-10: CleanRestartStep no longer eliminates
+  a restart. It states preservation of CleanState after the kept-state restart,
+  under the existing foundation and source premises. State.clean_restartStateStep
+  proves it. cleanState_of_hist now handles that event. Closure's restart branch
+  uses cleanHist_step_restart; the full Closure module still waits for StepGate.
+- R7: clean_gateInputs_from_rows uses the kept FG equality at the strict time
+  cut. No whole-store equality or global NoRestart is used. The state proof
+  uses RMonoAll and the durable/epoch foundation split. Zero excludes a restart
+  at time 0 from RestartsAtWakes, rather than from global NoRestart.
+- T07 source: clean_enabledGate_of_confirmedReader gives this gate's enabled
+  guard from the exact confirmed reader at afterTicksIdx. Safety is still open.
+- T10 core: clean_gate_head_prefixes_joined orders older results through z's
+  earlier joined gate, then uses Continues for the joined voter y. The current
+  actor x is used only for the F/frame part. It compiles with default heartbeats.
+  StepGate.clean_gate_head_prefixes delegates to this exact interface.
+- P6/T09/T11/T12 sender source: clean_gate_batch_joined counts joinedHonest at
+  the vote tick. clean_joinedNow_of_joined_vote supplies the stored duty guard.
+  StepGate now selects joined voters and keeps that guard in the HEAD emission.
+  Its gate-zero and nonempty types require the enabled gate. N5 is still open.
+
+P-ShA request: Shared/Count.lean:242 fgsa_late_rest_bound, :277
+fgsa_gate_batch_premises, and :351 fgsa_gate_zero_of_receipts still require
+all awake honest seats to be in H. The P6 joined set cannot satisfy that premise
+when a voter wakes at its vote and has a suppressed duty. Add a joined-voter or
+actual-emitter companion, with the same count conclusions and receipt outputs.
+The joined-voter form replaces awake in hH by joinedAt at this exact vote tick.
+Its proof must obtain joinedness from the actual honest emission; receiver
+receipt callers still need ReadyTrigger, HistorySafeAt and their local epoch.
+P-Cl1 did not edit Count or any other P-ShA file. The existing local stamp
+supplier fgsa_gateReceipt_stamps_on is available and needs no replacement.
+
+Open targets: TransferFrame needs receipt/root/epoch caller ports; Transfer,
+StepGate, Closure and Safety then need their guarded consumer ports. These
+remain P-Cl1 work after the needed Shared interfaces are available. No owned
+repair with an EXPECTED-FAIL target is marked closed. clean_epoch_saved_row is
+not yet supplied; P-Ar must not close against this checkpoint.
+
+Validation: DCK PASS with default controls (250.37 s), including lake build
+--wfail of all 475 GREEN modules. The local core audit has 112 commands; the
+regression has three. All use only propext, Classical.choice and Quot.sound.
+Complete export/coverage check on the prepared roots: 0 unaccepted (8.74 s).
+Layer check: 72 baseline findings, 0 new. The expected-failure build fails in
+TransferFrame and blocks its four dependent targets (5.81 s). Thus full-scope
+export/audit closure remains open. No approved public meaning STOP occurred.

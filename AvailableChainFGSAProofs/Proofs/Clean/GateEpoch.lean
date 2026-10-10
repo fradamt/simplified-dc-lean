@@ -73,20 +73,17 @@ theorem clean_gate_nonempty_raw {j : Nat} {v : V} {s : Slot} {C : Block}
     ((gateResultAt_eq_gateResult p c E rho hsch ht).symm.trans hC)
   exact ⟨clean_gate_enabled_of_result hsch ht hC, h.2⟩
 
-/-- A suppressed gate has an empty executed result. -/
-theorem clean_gate_unjoined {j : Nat} {v : V} {s : Slot}
-    (hsch : V2.D.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s)
-    (hJ : ¬ enabledGateAt p c E rho j v s) :
-    gateResultAt p c E rho j = some none := by
-  rw [clean_gate_executed hsch ht]
-  cases hj : joinedAtTime p (storeAt p c E rho j v).restartTime
-      (SA.gateTime p.toParams s) with
-  | false => rfl
-  | true =>
+/-- The stored gate-time join test is equivalent to the enabled-gate guard. -/
+theorem clean_gate_join_test_iff {j : Nat} {v : V} {s : Slot}
+    (ht : IsGateTick p c rho j v s) :
+    joinedAtTime p (storeAt p c E rho j v).restartTime (SA.gateTime p.toParams s) = true ↔
+      enabledGateAt p c E rho j v s := by
+  constructor
+  · intro hj
     have hs : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
       (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho j v) _).2.symm.trans
         (fgsa_gate_slot (c := c) (V2.D.Run.stateBefore E rho j v) s)
-    apply (hJ ⟨ht, ?_⟩).elim
+    refine ⟨ht, ?_⟩
     change (match (storeAt p c E rho j v).restartTime with
       | none => True | some w => w ≤ slotStartZ p (s : Int))
     cases hr : (storeAt p c E rho j v).restartTime with
@@ -98,6 +95,18 @@ theorem clean_gate_unjoined {j : Nat} {v : V} {s : Slot}
       change w ≤ 4 * p.Δ * (s : Int)
       simpa only [hs, Nat.cast_add, Nat.cast_one, add_sub_cancel_right,
         decide_eq_true_eq] using hj
+  · exact fgsa_gate_joined_of_enabled E rho
+
+/-- A suppressed gate has an empty executed result. -/
+theorem clean_gate_unjoined {j : Nat} {v : V} {s : Slot}
+    (hsch : V2.D.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s)
+    (hJ : ¬ enabledGateAt p c E rho j v s) :
+    gateResultAt p c E rho j = some none := by
+  have hj : joinedAtTime p (storeAt p c E rho j v).restartTime
+      (SA.gateTime p.toParams s) = false :=
+    Bool.eq_false_iff.mpr (fun h => hJ ((clean_gate_join_test_iff ht).mp h))
+  rw [clean_gate_executed hsch ht]
+  simp only [hj, Bool.false_eq_true, ite_false]
 
 /-- A restart leaves a marker at least as late as that restart until this event cut. -/
 theorem clean_restart_marker_after (hS : V2.D.ScheduleWellFormed E rho)

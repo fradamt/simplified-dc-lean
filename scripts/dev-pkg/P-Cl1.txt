@@ -19,6 +19,10 @@ AvailableChainFGSAProofs.Proofs.Clean.Zero
 AvailableChainFGSAProofs.Statements.CleanInvariant
 AvailableChainFGSAProofs.Tests.CleanEpochAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Clean.Zero
+AvailableChainFGSAProofs.Proofs.Clean.GateOutput
+AvailableChainFGSAProofs.Proofs.Clean.Action
+AvailableChainFGSAProofs.Proofs.Clean.State
 AvailableChainFGSAProofs.Tests.CleanSuppressed
 AvailableChainFGSAProofs.Proofs.Clean.Frame
 AvailableChainFGSAProofs.Proofs.Clean.StateEpoch
@@ -491,15 +495,11 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Clean.Action P-Cl1
 AvailableChainFGSAProofs.Proofs.Clean.Closure P-Cl1
-AvailableChainFGSAProofs.Proofs.Clean.GateOutput P-Cl1
 AvailableChainFGSAProofs.Proofs.Clean.Safety P-Cl1
-AvailableChainFGSAProofs.Proofs.Clean.State P-Cl1
 AvailableChainFGSAProofs.Proofs.Clean.StepGate P-Cl1
 AvailableChainFGSAProofs.Proofs.Clean.Transfer P-Cl1
 AvailableChainFGSAProofs.Proofs.Clean.TransferFrame P-Cl1
-AvailableChainFGSAProofs.Proofs.Clean.Zero P-Cl1
 AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA

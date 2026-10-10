@@ -89,10 +89,10 @@ theorem clean_actionStep [Fintype V] {b₀ : Time} : CleanActionStep (ΔF := ΔF
       exact tick_st (p := p) (c := c) E rho _ _ _
     have ht : IsGateTick p c rho i x (r * p.R) := hj
     rw [← hst] at hfw
-    obtain ⟨k, hk, hkt, _, G, hG, hCG, _⟩ :=
+    obtain ⟨k, hk, hRF, hkt, _, G, hG, hCG, _⟩ :=
       clean_gate_fastWrite hs (Nat.lt_succ_self i) hh hstate ht _ _ hfw
     exact ⟨C, hread, heq, KitFG.entry_preceq p.E p.cfg C,
-      belowLabel_of_preceq hCG (belowLabel_of_gateResultAt hk hkt hG (Nat.le_refl _))⟩
+      belowLabel_of_preceq hCG (belowLabel_of_gateResultAt hs hk hkt.1 hG (Nat.le_refl _))⟩
 
 /-- P3 §8.4; bp02 §§5.5–5.6. Class B, frozen gate state step.
 DC counterpart: none; the FG-SA gate and action share one tick.
@@ -108,7 +108,7 @@ form uses all nodes and event indices under a fixed completed history.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem sExtends_upTo [Fintype V] {b₀ : Time} {i : Nat}
-    (h : CleanCut₂ p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (h : CleanCutSet p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     (hi : i ≤ timeIdx rho b₀) (hh : CleanHist p c E rho i) :
     ∀ v j k, j ≤ k → k ≤ i →

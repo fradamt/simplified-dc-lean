@@ -48,7 +48,10 @@ private theorem zero_state (h : HealthyPrefix₂ p c E rho 0 ΔF)
     have ht := zero_event_time h (lt_of_lt_of_le hki hi) he
     have hnext : ZeroState (storeAt p c E rho (k + 1) v) := by
       cases e with
-      | restart u t => exact (h.base.noRestart k u t he).elim
+      | restart u t =>
+        have hp := (h.base.restartsAtWakes u t (List.mem_of_getElem? he)).1
+        change t = 0 at ht
+        exact (ne_of_gt hp) ht |>.elim
       | tick u t =>
         change u = v at hv
         subst u

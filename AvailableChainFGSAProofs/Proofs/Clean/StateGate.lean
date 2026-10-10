@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain
+public import AvailableChainFGSAProofs.Proofs.Clean.StateEpoch
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.AC
 
@@ -70,14 +71,14 @@ A scheduled gate under the fixed history passes the whole-result guard. -/
 theorem clean_gate_passed {i j : Nat} {v : V} {s : Slot}
     (hsch : V2.D.ScheduleWellFormed E rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
-    (ht : IsGateTick p c rho j v s) : gatePassedAt p c E rho j := by
+    (ht : enabledGateAt p c E rho j v s) : gatePassedAt p c E rho j := by
   obtain ⟨C, hC, _⟩ := hh.nonempty j v s hji ht
-  refine ⟨v, s, clean_gate_enabled_of_result hsch ht hC, ?_, C, ?_,
-    clean_state_gate_guard hsch hji hh hs ht hC⟩
+  refine ⟨v, s, ht, ?_, C, ?_,
+    clean_state_gate_guard hsch hji hh hs ht.1 hC⟩
   · change ((clockPre p (storeAt p c E rho j v) _).base.genuine.find? _).map _ = none
     rw [clockPre_genuine]
-    exact fgsa_gate_fresh E rho hsch ht
-  · exact (clean_gate_nonempty_raw hsch ht hC).2
+    exact fgsa_gate_fresh E rho hsch ht.1
+  · exact (clean_gate_nonempty_raw hsch ht.1 hC).2
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 A fresh gate saves its event result and appends the exact fast-write row. -/
@@ -109,6 +110,36 @@ theorem clean_gate_writes {j : Nat} {v : V} {s : Slot}
     rw [clockPre_genuine]
     rfl
   · rw [clean_gate_store ht, hw.2, clockPre_fastWrite]
+
+/-- A suppressed gate keeps S and adds no lease or nonempty fast-write row. -/
+theorem clean_gate_suppressed_fields {j : Nat} {v : V} {s : Slot}
+    (hsch : V2.D.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s)
+    (hN : ¬ enabledGateAt p c E rho j v s) :
+    S_at p c E rho (j + 1) v = S_at p c E rho j v ∧
+    (storeAt p c E rho (j + 1) v).base.obligations.Sublist
+      (storeAt p c E rho j v).base.obligations ∧
+    (storeAt p c E rho (j + 1) v).fastWrite =
+      (storeAt p c E rho j v).fastWrite ++ [(s, [])] := by
+  let pre := clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s)
+  have hf : GridCO.savedGenuine pre.base s = none := by
+    change ((clockPre p (storeAt p c E rho j v) _).base.genuine.find? _).map _ = none
+    rw [clockPre_genuine]
+    exact fgsa_gate_fresh E rho hsch ht
+  have hj : joinedNow p pre = false := by
+    rw [clockPre_joined]
+    exact Bool.eq_false_iff.mpr (fun h => hN ((clean_gate_join_test_iff ht).mp h))
+  have hn : NestOK pre := by
+    change Block.Preceq (eraseFG (clockPre p (storeAt p c E rho j v) _).fg.F)
+      (clockPre p (storeAt p c E rho j v) _).base.stableRecord
+    rw [clockPre_fg, clockPre_stable]
+    exact nestOK_stateBefore E rho j v
+  have hg := gateStep_unjoined p pre s hf hj
+  have hk := hg.2.2 hn
+  refine ⟨?_, ?_, ?_⟩
+  · rw [S_at_def, S_at_def, clean_gate_store ht, hk.2.2, clockPre_stable]
+  · rw [clean_gate_store ht, hk.2.1]
+    exact clockPre_obligations_sublist p _ _
+  · rw [clean_gate_store ht, hg.2.1, clockPre_fastWrite]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 A new lease target is old or is a prefix of this gate's result. -/
@@ -200,58 +231,62 @@ private theorem clean_gate_output_step {i j : Nat} {v : V} {s : Slot}
     Block.Preceq (S_at p c E rho j v) (S_at p c E rho (j + 1) v) ∧
       (S_at p c E rho (j + 1) v = S_at p c E rho j v ∨
         gateResultAt p c E rho j = some (some (S_at p c E rho (j + 1) v))) := by
-  obtain ⟨C, hC, _⟩ := hh.nonempty j v s hji ht
-  have hc := (clean_gate_nonempty_raw hsch ht hC).2
-  rw [clockPre_fg] at hc
-  have hview := fgsa_clockPre_gateView p (storeAt p c E rho j v) s
-  have hraw : (fgsaAC E rho).raw j s v = some C := by
-    have hb := congrArg (fun w => SA.Root.confirmationFrom p.toParams
-      (eraseFG (storeAt p c E rho j v).fg.F) w s) hview
-    exact hb.symm.trans hc
-  have hguard : ∀ lease ∈ ((fgsaAC E rho).gateView j v s).obligations,
-      Block.Compatible (Gen.AC.Lease.target lease) C := by
-    intro lease hm
-    have he : (clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s)).base.obligations =
-        ((fgsaAC E rho).gateView j v s).obligations := by
-      have he' := congrArg GridCO.State.obligations hview
-      exact he'
-    rw [← he] at hm
-    have hg := List.any_eq_false.mp (clean_state_gate_guard hsch hji hh hs ht hC) lease hm
-    simpa only [Gen.AC.Lease.target, Block.Compatible, Bool.not_eq_true',
-      Bool.not_eq_false] using hg
-  have hcompat := clean_gate_output_compatible hsch hji hh hs ht hC
-  have hadv : Block.Preceq (S_at p c E rho j v)
-      (GridCO.advance (S_at p c E rho j v) C) := by
-    unfold GridCO.advance
-    split
-    · exact block_preceq_refl _
-    · next hn =>
-      rcases Bool.or_eq_true_iff.mp hcompat with hSC | hCS
-      · exact hSC
-      · exact (hn hCS).elim
-  have hjpre : joinedNow p (clockPre p (storeAt p c E rho j v)
-      (SA.gateTime p.toParams s)) = true := by
-    rw [clockPre_joined]
-    exact fgsa_gate_joined_of_enabled E rho (clean_gate_enabled_of_result hsch ht hC)
-  rcases (fgsaAC_gate_write E rho j s v hjpre ht).effects with hskip | hrun
-  · have he : S_at p c E rho (j + 1) v = S_at p c E rho j v := hskip.2.1
+  by_cases hE : enabledGateAt p c E rho j v s
+  · obtain ⟨C, hC, _⟩ := hh.nonempty j v s hji hE
+    have hc := (clean_gate_nonempty_raw hsch ht hC).2
+    rw [clockPre_fg] at hc
+    have hview := fgsa_clockPre_gateView p (storeAt p c E rho j v) s
+    have hraw : (fgsaAC E rho).raw j s v = some C := by
+      have hb := congrArg (fun w => SA.Root.confirmationFrom p.toParams
+        (eraseFG (storeAt p c E rho j v).fg.F) w s) hview
+      exact hb.symm.trans hc
+    have hguard : ∀ lease ∈ ((fgsaAC E rho).gateView j v s).obligations,
+        Block.Compatible (Gen.AC.Lease.target lease) C := by
+      intro lease hm
+      have he : (clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s)).base.obligations =
+          ((fgsaAC E rho).gateView j v s).obligations := by
+        have he' := congrArg GridCO.State.obligations hview
+        exact he'
+      rw [← he] at hm
+      have hg := List.any_eq_false.mp (clean_state_gate_guard hsch hji hh hs ht hC) lease hm
+      simpa only [Gen.AC.Lease.target, Block.Compatible, Bool.not_eq_true',
+        Bool.not_eq_false] using hg
+    have hcompat := clean_gate_output_compatible hsch hji hh hs ht hC
+    have hadv : Block.Preceq (S_at p c E rho j v)
+        (GridCO.advance (S_at p c E rho j v) C) := by
+      unfold GridCO.advance
+      split
+      · exact block_preceq_refl _
+      · next hn =>
+        rcases Bool.or_eq_true_iff.mp hcompat with hSC | hCS
+        · exact hSC
+        · exact (hn hCS).elim
+    have hjpre : joinedNow p (clockPre p (storeAt p c E rho j v)
+        (SA.gateTime p.toParams s)) = true := by
+      rw [clockPre_joined]
+      exact fgsa_gate_joined_of_enabled E rho (clean_gate_enabled_of_result hsch ht hC)
+    rcases (fgsaAC_gate_write E rho j s v hjpre ht).effects with hskip | hrun
+    · have he : S_at p c E rho (j + 1) v = S_at p c E rho j v := hskip.2.1
+      rw [he]
+      exact ⟨block_preceq_refl _, Or.inl rfl⟩
+    · have hw := (hrun.accept C hraw hguard).1
+      change (storeAt p c E rho (j + 1) v).base.stableRecord =
+        Gen.AC.normalizeOutput (F_at p c E rho j v)
+          (GridCO.advance (storeAt p c E rho j v).base.stableRecord C) at hw
+      rw [← S_at_def p c E rho (j + 1) v, ← S_at_def p c E rho j v] at hw
+      rw [hw, Gen.AC.normalizeOutput_def]
+      have hnest : Block.Preceq (F_at p c E rho j v) (S_at p c E rho j v) :=
+        nestOK_stateBefore E rho j v
+      rw [ite_eq_left (show Block.preceq (F_at p c E rho j v)
+        (GridCO.advance (S_at p c E rho j v) C) = true from block_preceq_trans hnest hadv)]
+      refine ⟨hadv, ?_⟩
+      unfold GridCO.advance
+      split
+      · exact Or.inl rfl
+      · exact Or.inr hC
+  · have he := (clean_gate_suppressed_fields hsch ht hE).1
     rw [he]
     exact ⟨block_preceq_refl _, Or.inl rfl⟩
-  · have hw := (hrun.accept C hraw hguard).1
-    change (storeAt p c E rho (j + 1) v).base.stableRecord =
-      Gen.AC.normalizeOutput (F_at p c E rho j v)
-        (GridCO.advance (storeAt p c E rho j v).base.stableRecord C) at hw
-    rw [← S_at_def p c E rho (j + 1) v, ← S_at_def p c E rho j v] at hw
-    rw [hw, Gen.AC.normalizeOutput_def]
-    have hnest : Block.Preceq (F_at p c E rho j v) (S_at p c E rho j v) :=
-      nestOK_stateBefore E rho j v
-    rw [ite_eq_left (show Block.preceq (F_at p c E rho j v)
-      (GridCO.advance (S_at p c E rho j v) C) = true from block_preceq_trans hnest hadv)]
-    refine ⟨hadv, ?_⟩
-    unfold GridCO.advance
-    split
-    · exact Or.inl rfl
-    · exact Or.inr hC
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The gate advances S under the fixed completed history; normalization is inert. -/
@@ -289,38 +324,49 @@ theorem clean_gate_leases {i j : Nat} {v : V} {s : Slot}
     ∀ row ∈ (storeAt p c E rho (j + 1) v).base.obligations,
       ∃ k < j + 1, ∃ r C, IsGateTick p c rho k v r ∧ gatePassedAt p c E rho k ∧
         gateResultAt p c E rho k = some (some C) ∧ Block.Preceq row.1 C := by
-  obtain ⟨C, hC, _⟩ := hh.nonempty j v s hji ht
-  intro row hr
-  rcases clean_gate_lease_targets hsch ht hC row hr with ⟨g, d, hm⟩ | hrow
-  · obtain ⟨k, hk, r, B, hkt, hp, hB, htarget⟩ := hs.leases v (row.1, g, d) hm
-    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, B, hkt, hp, hB, htarget⟩
-  · exact ⟨j, Nat.lt_succ_self j, s, C, ht, clean_gate_passed hsch hji hh hs ht, hC, hrow⟩
+  by_cases hE : enabledGateAt p c E rho j v s
+  · obtain ⟨C, hC, _⟩ := hh.nonempty j v s hji hE
+    intro row hr
+    rcases clean_gate_lease_targets hsch ht hC row hr with ⟨g, d, hm⟩ | hrow
+    · obtain ⟨k, hk, r, B, hkt, hp, hB, htarget⟩ := hs.leases v (row.1, g, d) hm
+      exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, B, hkt, hp, hB, htarget⟩
+    · exact ⟨j, Nat.lt_succ_self j, s, C, ht, clean_gate_passed hsch hji hh hs hE, hC, hrow⟩
+  · intro row hr
+    obtain ⟨k, hk, r, C, hkt, hp, hC, hpre⟩ := hs.leases v row
+      ((clean_gate_suppressed_fields hsch ht hE).2.1.subset hr)
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, C, hkt, hp, hC, hpre⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-A gate preserves all older saved event values of this node. -/
+A gate keeps older saved values in the receiver epoch. -/
 theorem clean_gate_saved {j : Nat} {v : V} {s : Slot}
     (hsch : V2.D.ScheduleWellFormed E rho) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
-    ∀ k r C, k < j + 1 → IsGateTick p c rho k v r →
+    ∀ k r C, k < j + 1 → enabledGateAt p c E rho k v r →
+      V2.D.restartFree rho v k (j + 1) →
+      activeCompatible (storeAt p c E rho (j + 1) v) C = true →
       gateResultAt p c E rho k = some (some C) →
       GridCO.savedGenuine (storeAt p c E rho (j + 1) v).base r = some (some C) := by
-  intro k r C hk hkt hC
+  intro k r C hk hkt hRF hActive hC
   by_cases hrs : r = s
   · subst r
-    have hkj := fgsa_tick_unique E rho hsch hkt ht
+    have hkj := fgsa_tick_unique E rho hsch hkt.1 ht
     subst k
     exact (clean_gate_writes hsch ht).1.trans hC
   · have hkj : k < j := by
       rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with h | rfl
       · exact h
-      · have htime := (V2.Event.tick.inj (Option.some.inj (hkt.symm.trans ht))).2
+      · have htime := (V2.Event.tick.inj (Option.some.inj (hkt.1.symm.trans ht))).2
         have hlabel : r = s := by
           have hr := clean_gate_label (p := p) r
           rw [htime] at hr
           exact hr.symm.trans (clean_gate_label s)
         exact (hrs hlabel).elim
     rw [(clean_gate_writes hsch ht).2.1 r hrs]
-    exact hs.saved v k r C hkj hkt hC
+    have hA : activeCompatible (storeAt p c E rho j v) C = true := by
+      change Block.compatible C (eraseFG (storeAt p c E rho (j + 1) v).fg.F) = true at hActive
+      rw [clean_gate_fg_eq ht] at hActive
+      exact hActive
+    exact hs.saved v k r C hkj hkt (hRF.mono le_rfl (Nat.le_succ j)) hA hC
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Every nonempty saved value after a gate has its exact event origin. -/
@@ -328,14 +374,18 @@ theorem clean_gate_savedOnly {j : Nat} {v : V} {s : Slot}
     (hsch : V2.D.ScheduleWellFormed E rho) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     ∀ r C, GridCO.savedGenuine (storeAt p c E rho (j + 1) v).base r = some (some C) →
-      ∃ k < j + 1, IsGateTick p c rho k v r ∧ gateResultAt p c E rho k = some (some C) := by
+      ∃ k < j + 1, V2.D.restartFree rho v k (j + 1) ∧
+        enabledGateAt p c E rho k v r ∧ gateResultAt p c E rho k = some (some C) := by
   intro r C hC
   by_cases hrs : r = s
   · subst r
-    exact ⟨j, Nat.lt_succ_self j, ht, (clean_gate_writes hsch ht).1.symm.trans hC⟩
+    have hR := (clean_gate_writes hsch ht).1.symm.trans hC
+    exact ⟨j, Nat.lt_succ_self j, clean_gate_restartFree ht,
+      clean_gate_enabled_of_result hsch ht hR, hR⟩
   · rw [(clean_gate_writes hsch ht).2.1 r hrs] at hC
-    obtain ⟨k, hk, hkt, hresult⟩ := hs.savedOnly v r C hC
-    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hresult⟩
+    obtain ⟨k, hk, hRF, hkt, hresult⟩ := hs.savedOnly v r C hC
+    have hRF' := clean_restartFree_succ hRF (by intro t hn; rw [ht] at hn; cases hn)
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hRF', hkt, hresult⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 A member of the new fast-write row satisfies the event's fast test. -/
@@ -389,7 +439,8 @@ theorem clean_gate_fastWrite {i j : Nat} {v : V} {s : Slot}
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     ∀ r X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho (j + 1) v) r).getD [] →
-      ∃ k < j + 1, IsGateTick p c rho k v r ∧ gatePassedAt p c E rho k ∧
+      ∃ k < j + 1, V2.D.restartFree rho v k (j + 1) ∧
+        enabledGateAt p c E rho k v r ∧ gatePassedAt p c E rho k ∧
         ∃ C, gateResultAt p c E rho k = some (some C) ∧
           Block.Preceq X C ∧ fastAt p c E rho v r X := by
   intro r X hX
@@ -403,21 +454,29 @@ theorem clean_gate_fastWrite {i j : Nat} {v : V} {s : Slot}
       change X ∈ (((storeAt p c E rho j v).fastWrite.find? _).map Prod.snd).getD []
       rw [ho]
       exact hX
-    obtain ⟨k, hk, hkt, hp, C, hC, hXC, hf⟩ := hs.fastWrite v r X hold
-    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hp, C, hC, hXC, hf⟩
+    obtain ⟨k, hk, hRF, hkt, hp, C, hC, hXC, hf⟩ := hs.fastWrite v r X hold
+    have hRF' := clean_restartFree_succ hRF (by intro t hn; rw [ht] at hn; cases hn)
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hRF', hkt, hp, C, hC, hXC, hf⟩
   | none =>
     rw [ho] at hX
     by_cases hsr : s = r
     · subst r
       simp only [Option.none_or, List.find?_cons, beq_self_eq_true,
         Option.map_some, Option.getD_some] at hX
-      obtain ⟨C, hC, _⟩ := hh.nonempty j v s hji ht
-      have hj : joinedAtTime p (storeAt p c E rho j v).restartTime
-          (SA.gateTime p.toParams s) = true :=
-        fgsa_gate_joined_of_enabled E rho (clean_gate_enabled_of_result hsch ht hC)
-      simp only [hj, ite_true] at hX
-      exact ⟨j, Nat.lt_succ_self j, ht, clean_gate_passed hsch hji hh hs ht,
-        C, hC, clean_gate_fast_prefix hsch ht hC hX, clean_gate_fastAt hsch ht hX⟩
+      by_cases hE : enabledGateAt p c E rho j v s
+      · obtain ⟨C, hC, _⟩ := hh.nonempty j v s hji hE
+        have hj : joinedAtTime p (storeAt p c E rho j v).restartTime
+            (SA.gateTime p.toParams s) = true :=
+          fgsa_gate_joined_of_enabled E rho (hE)
+        simp only [hj, ite_true] at hX
+        exact ⟨j, Nat.lt_succ_self j, clean_gate_restartFree ht, hE,
+            clean_gate_passed hsch hji hh hs hE,
+          C, hC, clean_gate_fast_prefix hsch ht hC hX, clean_gate_fastAt hsch ht hX⟩
+      · have hj : joinedAtTime p (storeAt p c E rho j v).restartTime
+            (SA.gateTime p.toParams s) = false :=
+          Bool.eq_false_iff.mpr (fun h => hE ((clean_gate_join_test_iff ht).mp h))
+        simp only [hj, Bool.false_eq_true, ite_false] at hX
+        exact (List.not_mem_nil hX).elim
     · simp only [Option.none_or, List.find?_cons,
         show (s == r) = false from beq_eq_false_iff_ne.mpr hsr,
         List.find?_nil, Option.map_none, Option.getD_none] at hX
@@ -442,13 +501,17 @@ theorem clean_gate_fields_all {i j : Nat} {v : V} {s : Slot}
     (∀ w row, row ∈ (storeAt p c E rho (j + 1) w).base.obligations →
       ∃ k < j + 1, ∃ r C, IsGateTick p c rho k w r ∧ gatePassedAt p c E rho k ∧
         gateResultAt p c E rho k = some (some C) ∧ Block.Preceq row.1 C) ∧
-    (∀ w k r C, k < j + 1 → IsGateTick p c rho k w r →
+    (∀ w k r C, k < j + 1 → enabledGateAt p c E rho k w r →
+      V2.D.restartFree rho w k (j + 1) →
+      activeCompatible (storeAt p c E rho (j + 1) w) C = true →
       gateResultAt p c E rho k = some (some C) →
       GridCO.savedGenuine (storeAt p c E rho (j + 1) w).base r = some (some C)) ∧
     (∀ w r C, GridCO.savedGenuine (storeAt p c E rho (j + 1) w).base r = some (some C) →
-      ∃ k < j + 1, IsGateTick p c rho k w r ∧ gateResultAt p c E rho k = some (some C)) ∧
+      ∃ k < j + 1, V2.D.restartFree rho w k (j + 1) ∧
+        enabledGateAt p c E rho k w r ∧ gateResultAt p c E rho k = some (some C)) ∧
     (∀ w r X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho (j + 1) w) r).getD [] →
-      ∃ k < j + 1, IsGateTick p c rho k w r ∧ gatePassedAt p c E rho k ∧
+      ∃ k < j + 1, V2.D.restartFree rho w k (j + 1) ∧
+        enabledGateAt p c E rho k w r ∧ gatePassedAt p c E rho k ∧
         ∃ C, gateResultAt p c E rho k = some (some C) ∧
           Block.Preceq X C ∧ fastAt p c E rho w r X) ∧
     (∀ w, S_at p c E rho (j + 1) w = .genesis ∨
@@ -467,27 +530,30 @@ theorem clean_gate_fields_all {i j : Nat} {v : V} {s : Slot}
     · rw [other w hw] at hr
       obtain ⟨k, hk, r, C, hkt, hp, hC, hpre⟩ := hs.leases w row hr
       exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, C, hkt, hp, hC, hpre⟩
-  · intro w k r C hk hkt hC
+  · intro w k r C hk hkt hRF hActive hC
     by_cases hw : w = v
-    · subst w; exact clean_gate_saved hsch hs ht k r C hk hkt hC
+    · subst w; exact clean_gate_saved hsch hs ht k r C hk hkt hRF hActive hC
     · rw [other w hw]
       have hkj : k < j := by
         rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
         · exact hk
-        · exact (hw (V2.Event.tick.inj (Option.some.inj (hkt.symm.trans ht))).1).elim
-      exact hs.saved w k r C hkj hkt hC
+        · exact (hw (V2.Event.tick.inj (Option.some.inj (hkt.1.symm.trans ht))).1).elim
+      rw [other w hw] at hActive
+      exact hs.saved w k r C hkj hkt (hRF.mono le_rfl (Nat.le_succ j)) hActive hC
   · intro w r C hC
     by_cases hw : w = v
     · subst w; exact clean_gate_savedOnly hsch hs ht r C hC
     · rw [other w hw] at hC
-      obtain ⟨k, hk, hkt, hresult⟩ := hs.savedOnly w r C hC
-      exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hresult⟩
+      obtain ⟨k, hk, hRF, hkt, hresult⟩ := hs.savedOnly w r C hC
+      have hRF' := clean_restartFree_succ hRF (by intro t hn; rw [ht] at hn; cases hn)
+      exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hRF', hkt, hresult⟩
   · intro w r X hX
     by_cases hw : w = v
     · subst w; exact clean_gate_fastWrite hsch hji hh hs ht r X hX
     · rw [other w hw] at hX
-      obtain ⟨k, hk, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite w r X hX
-      exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hp, C, hC, hpre, hfast⟩
+      obtain ⟨k, hk, hRF, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite w r X hX
+      have hRF' := clean_restartFree_succ hRF (by intro t hn; rw [ht] at hn; cases hn)
+      exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hRF', hkt, hp, C, hC, hpre, hfast⟩
   · intro w
     by_cases hw : w = v
     · subst w; exact clean_gate_sOrigin hsch hji hh hs ht
