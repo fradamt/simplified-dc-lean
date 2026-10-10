@@ -1,4 +1,4 @@
-P-Ar Round 3. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
+P-Ar Round 4. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
 Append missing commands only. Keep existing commands and the existing key.
 
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingArith
@@ -10,6 +10,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
 public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 
 #print axioms AvailableChain.FGSA.Run.arming_tick_exists
@@ -157,3 +158,20 @@ public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 #print axioms AvailableChain.FGSA.Run.arming_saved_map
 #print axioms AvailableChain.FGSA.Run.arming_lift
 #print axioms AvailableChain.FGSA.Run.ArmingBatchReceiptService
+
+#print axioms AvailableChain.FGSA.Run.ArmingGateInput
+#print axioms AvailableChain.FGSA.Run.arming_joined_batch_at
+#print axioms AvailableChain.FGSA.Run.arming_sleep_pending_input
+#print axioms AvailableChain.FGSA.Run.arming_comparison_prefix_on
+#print axioms AvailableChain.FGSA.Run.ArmingSleepCert
+#print axioms AvailableChain.FGSA.Run.arming_last_max_on
+#print axioms AvailableChain.FGSA.Run.arming_joined_head_card
+#print axioms AvailableChain.FGSA.Run.arming_sleep_entry_below
+#print axioms AvailableChain.FGSA.Run.arming_pending_epochs
+#print axioms AvailableChain.FGSA.Run.arming_sleep_comparison_lift
+#print axioms AvailableChain.FGSA.Run.arming_sleep_cert_of_last
+#print axioms AvailableChain.FGSA.Run.arming_sleep_gate_core
+#print axioms AvailableChain.FGSA.Run.pending_gate_lease_or_F_on
+#print axioms AvailableChain.FGSA.Run.fast_arming_on
+#print axioms AvailableChain.FGSA.Run.slow_arming_on
+#print axioms AvailableChain.FGSA.Run.arming_genesis_on
