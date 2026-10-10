@@ -4075,6 +4075,107 @@ The new frozen walk alias uses the named backward block service.
 TargetReceiptService. These forms cover the Relay and HeldReceipt entries in
 round 4's legacy-only inventory. Legacy conditional APIs remain unchanged.
 
+
+## P-H1 — Round 2, local recovery and retained service (2026-10-10)
+
+Base eb5c6b65 on sleep-ph1b. Resume after login-token loss; all prior source
+changes are retained. NEW-OWNED-MODULES approves Healing/SupportRecovery.lean.
+No Claims statement, protocol rule, checker, baseline, or allowance changes.
+
+Correction to the Round 1 summary: its committed map has 38 GREEN targets,
+60 open targets, and six REQUIRED supplier failures. This Round 2 map has
+99 targets: 54 GREEN and 45 open. Four REQUIRED suppliers remain open:
+Shared/Regimes and Shared/Export (P-ShA), Run facade and Run audit (S-Ap).
+P-Fd durable/epoch producers are present and checked in HealingPhaseSettle.
+
+Internal replacements and consumers:
+- PhaseOrder adds all-restart top, contest, and phase-order proofs using RMonoAll.
+  PhaseRelay adds healing_frontier_mono_all. PhaseSettle adds a durable quiet
+  window and healing_settle_start_on with per-carrier TargetReceiptService.
+  AttemptSettle consumes those services instead of Base₂.noRestart. Its four
+  row adapters keep their settlement conclusions. H2 must pass the same services.
+- PromotionPhase uses RMonoAll and durable TF through quiet phase extensions.
+  PromotionReceipt uses exact ReceiverService for the emitted proposal after
+  proving its compatibility. The service contains object history, readiness,
+  handler prerequisites, and the local event-index epoch. PromotionSource and
+  PromotionAdvance now compile. Age/Renewed/Terminal thread the same service.
+- FrontierSupportFrame adds frontier_F_below_all using durable TF; its original
+  frontier_F_below is an explicit legacy wrapper. The legacy relay helpers take
+  receiver awake at their exact deadline and receipt-scope root idealization.
+- SupportRecovery bounds honest restarts by GST. It excludes later restarts on
+  [idxBefore(GST + 1), j), while permitting a restart at GST. Its stamp and frame
+  adapters use RStoreEpoch and RFrameNextEpoch on those exact indices. Durable
+  TF, blocks, and finality use RStoreDurable and RMonoAll.
+- SupportRecovery derives joinedAt from the previous-slot cutoff. It proves
+  joinedHonest = honest and the batch/fast counts in that suffix.
+  repair_exact_service_on consumes the P-ShA local gate geometry and receiver
+  scopes. It does not reconstruct NoRestart from a recovery regime.
+- repair_head_exact is the retained H6 supplier named by P-ShA Round 5. It uses
+  fgsa_retainedReads_H6_joined and the retained Recovery _on service adapter.
+  Each object retains its own HistorySafeAt inside TargetReceiptService; each
+  actual reader has the same joinedAt guard in input, service, and conclusion.
+  Elementary RetainedH6Input and RetainedServiceScope remain explicit inputs.
+- PostResetRead adds healing_postReset_retainedReads_at_on using H17_joined.
+  It keeps the common pivot and each reader's actual state. Retained cone inputs
+  and exact object services are guarded by joinedAt at that reader's HEAD tick.
+
+Scope limits and open suppliers:
+- The base still contains ten invalid Base₂.noRestart projections in P-ShA's
+  legacy Regimes. Their correction is on 80b08ce3 and is not in this base.
+  This writer does not edit or merge that owned supplier.
+- SupportTransfer still blocks the later support, repair, and reset modules.
+  Its release/fast-write guards, receipt root form, and local relay scopes need
+  further ports. No OPEN target is marked CLOSED by this ledger entry.
+- RepairH6 reserves repair_head_exact for SupportRecovery and renames its old
+  producer to repair_head_exact_legacy. RepairH6 remains EXPECTED-FAIL; its
+  later lease/input proofs still need suffix epochs and local object services.
+- No public STOP or public meaning change was introduced. Retained history
+  cannot be inferred from past processing; JOINED-VOTER still applies.
+
+Audit integration uses the existing full FGSAProofs audit key. The complete
+132-row local inventory is in scripts/dev-pkg/P-H1.coverage-fragment.txt.
+The lead must merge that fragment and its root import during serial integration.
+P-H1 remains PREPARED on the certified set; full CLOSED is pending.
+
+Round 2 gate/relay extension:
+- SupportGate consumes fgsa_gateReceipt_on and the joined batch theorem.
+  healing_support_gate_cover now takes RecoverySleep₂, the previous-slot
+  cutoff covering GST, and GateReceiptScope at its actual receiver gate.
+  The unchanged conclusion covers the raw confirmation. Awake alone cannot
+  supply the former all-honest HEAD batch (JOINED-VOTER).
+- healing_recovery_gate_scope derives enabledGateAt, receiver joinedAt and
+  the early-read-to-gate index epoch from the recovery suffix. Its fresh HEAD
+  and retained target services remain explicit, per object.
+- SupportFrame adds healing_head_witness_relay_on. The source's actual HEAD
+  carrier and height witness are unchanged. Each carrier's ready target
+  service gives its ancestor path at the exact receiver deadline.
+- SupportRelay adds healing_support_prefreeze_path_on. Strict read stamps use
+  fgsa_block_stamp_before_read; their prefixes use fgsa_store_cumulative_on
+  on [idxBefore(freezeTime s), receiver HEAD index). No global NoRestart.
+- H2 must pass the cutoff and local GateReceiptScope at all gate-cover calls.
+  SupportLease, SupportSlow and SupportOutput remain owned P-H1 port items.
+
+Round 2 promotion extension:
+- PromotionAge, PromotionRenewed and PromotionTerminal now use RecoverySleep₂
+  at their emitted-proposal paths. The selected proposer restart bound follows
+  from GST, the carrier/period budget and suffixNoRestart. A wake at GST is allowed.
+- Age/renewed/terminal receipts thread the same per-proposal ReceiverService.
+  Quiet extensions use RMonoAll. All three modules compile with --wfail.
+- Terminal recurrence rounding is private arithmetic over Recovery₂.gap. It
+  removes this module's import of the broken legacy Regimes alignment adapter.
+  Its budget and conclusion are unchanged; no public alignment premise was added.
+
+HealingAttemptTerminal now checks the terminal supplier with RecoverySleep₂,
+RMonoAll and the same exact proposal service producer. Its inclusive grid and
+maturity boundary test is unchanged. The test compiles with --wfail.
+
+Round 2 final validation: DCK P-H1 PASS, 174.47 s; 519 GREEN roots, 39 strict
+sources and 3,023 axiom results; only propext, Classical.choice and Quot.sound.
+All 24 default controls and DCK controls pass. Complete GREEN exports: 316
+proof modules, 253 exports, zero unaccepted (8.58 s). Complete local coverage:
+132 rows PASS (6.51 s). Layers: 72 inherited findings, zero new. The all-target
+build still fails in owned SupportTransfer and P-ShA legacy Regimes; all other
+open targets remain classified under their actual owners. Full P-H1 NOT CLOSED.
 ## S-Ap Round 3 — Run facade audit
 
 P3 wake-clock successors: replace the retired audit names
@@ -4522,59 +4623,60 @@ public anchor proposal SUPERSEDED by DECISION ANCHOR-DL at base d825ed30.
 No new LEAD DECISION item is needed.
 ## P-H1 — Round 2, local recovery and retained service (2026-10-10)
 
-Base eb5c6b65 on sleep-ph1b. Resume after login-token loss; all prior source
-changes are retained. NEW-OWNED-MODULES approves Healing/SupportRecovery.lean.
-No Claims statement, protocol rule, checker, baseline, or allowance changes.
 
-Correction to the Round 1 summary: its committed map has 38 GREEN targets,
-60 open targets, and six REQUIRED supplier failures. This Round 2 map has
-99 targets: 54 GREEN and 45 open. Four REQUIRED suppliers remain open:
-Shared/Regimes and Shared/Export (P-ShA), Run facade and Run audit (S-Ap).
-P-Fd durable/epoch producers are present and checked in HealingPhaseSettle.
+## P-H2 Round 2 — opening support and receiver action epochs
 
-Internal replacements and consumers:
-- PhaseOrder adds all-restart top, contest, and phase-order proofs using RMonoAll.
-  PhaseRelay adds healing_frontier_mono_all. PhaseSettle adds a durable quiet
-  window and healing_settle_start_on with per-carrier TargetReceiptService.
-  AttemptSettle consumes those services instead of Base₂.noRestart. Its four
-  row adapters keep their settlement conclusions. H2 must pass the same services.
-- PromotionPhase uses RMonoAll and durable TF through quiet phase extensions.
-  PromotionReceipt uses exact ReceiverService for the emitted proposal after
-  proving its compatibility. The service contains object history, readiness,
-  handler prerequisites, and the local event-index epoch. PromotionSource and
-  PromotionAdvance now compile. Age/Renewed/Terminal thread the same service.
-- FrontierSupportFrame adds frontier_F_below_all using durable TF; its original
-  frontier_F_below is an explicit legacy wrapper. The legacy relay helpers take
-  receiver awake at their exact deadline and receipt-scope root idealization.
-- SupportRecovery bounds honest restarts by GST. It excludes later restarts on
-  [idxBefore(GST + 1), j), while permitting a restart at GST. Its stamp and frame
-  adapters use RStoreEpoch and RFrameNextEpoch on those exact indices. Durable
-  TF, blocks, and finality use RStoreDurable and RMonoAll.
-- SupportRecovery derives joinedAt from the previous-slot cutoff. It proves
-  joinedHonest = honest and the batch/fast counts in that suffix.
-  repair_exact_service_on consumes the P-ShA local gate geometry and receiver
-  scopes. It does not reconstruct NoRestart from a recovery regime.
-- repair_head_exact is the retained H6 supplier named by P-ShA Round 5. It uses
-  fgsa_retainedReads_H6_joined and the retained Recovery _on service adapter.
-  Each object retains its own HistorySafeAt inside TargetReceiptService; each
-  actual reader has the same joinedAt guard in input, service, and conclusion.
-  Elementary RetainedH6Input and RetainedServiceScope remain explicit inputs.
-- PostResetRead adds healing_postReset_retainedReads_at_on using H17_joined.
-  It keeps the common pivot and each reader's actual state. Retained cone inputs
-  and exact object services are guarded by joinedAt at that reader's HEAD tick.
+Base: `4c6289ce`, branch `sleep-ph2b`. P-H1 round 2 types and closed P-ShA/P-Fd
+suppliers are consumed. Public recovery statements and protocol files are unchanged.
+The validated helper slice does not close the 79 original H2 proof/test targets.
 
-Scope limits and open suppliers:
-- The base still contains ten invalid Base₂.noRestart projections in P-ShA's
-  legacy Regimes. Their correction is on 80b08ce3 and is not in this base.
-  This writer does not edit or merge that owned supplier.
-- SupportTransfer still blocks the later support, repair, and reset modules.
-  Its release/fast-write guards, receipt root form, and local relay scopes need
-  further ports. No OPEN target is marked CLOSED by this ledger entry.
-- RepairH6 reserves repair_head_exact for SupportRecovery and renames its old
-  producer to repair_head_exact_legacy. RepairH6 remains EXPECTED-FAIL; its
-  later lease/input proofs still need suffix epochs and local object services.
-- No public STOP or public meaning change was introduced. Retained history
-  cannot be inferred from past processing; JOINED-VOTER still applies.
+- OPENING-SUPPORT: internal statement repair, as requested in the closure map §6.
+  `opening_gate_support` moves from OpeningServiceGate to OpeningGateSupport.
+  It requires RecoverySleep₂, an honest receiver, GST at or before the selected
+  voter's previous slot start, and that receiver's GateReceiptScope. Joined
+  participation supplies releaseThreshold and Batch; `fgsa_gateReceipt_on` supplies
+  the exact receipts; the denominator uses `fgsa_late_rest_bound_joined`.
+  The source body compiles independently of the open RepairGate import.
+- OPENING-RESET: `opening_gate_support_of_reset` derives the previous-slot cutoff
+  from H0Reset, and constructs the receiver's enabled gate and read epoch with
+  `healing_recovery_gate_scope`. Per-object fresh HEAD and target services stay
+  explicit. `healing_ready_vote_cutoff` derives the same voter cutoff from τ.
+  Original high-depth callers still need these object-service producers.
+- WAKE-AT-VOTE: Tests/HealingOpeningSupport proves an ExecutionValid run with
+  Δ=1, GST=5, wake/restart before the label-1 vote at 5, and gate at 10. The node
+  is awake at the vote but unjoined; no HEAD is emitted; joinedHonest is empty;
+  the gate is suppressed; genesis prefix support is zero. Genesis HEAD coverage
+  holds. This is a kernel-checked mechanism regression, not a full RecoverySleep₂
+  counterexample: its linked/base/partial-synchrony fields are not packaged.
+- RECEIVER-ACTION: `healing_recovery_action_epoch` keeps the receiver's epoch
+  through any consuming action index. A restart at GST or the anchor remains
+  before actionCut. `healing_recovery_action_stamps` consumes RStoreEpoch;
+  `healing_recovery_action_frame` consumes RFrameNextEpoch, keeping wires durable
+  and stamps local. Neither derives global NoRestart.
+- ACCEPTED-TARGET: RecoveryService constructs ReceiverService and TargetReceiptService
+  from the original proposal acceptance, its source index/time, a public awake
+  anchor, the exact horizon and non-exclusion. AnchorService derives handlers and
+  durable proposal HistorySafeAt. It does not infer retained HEAD history from
+  past processing. Retained HEAD witnesses and the frontier ports remain open.
+- H1-NAMES: RecoveryScope's three helper names that conflict with the landed H1
+  SupportRecovery API now have the `healing_scope_` prefix: restart_bound, durable,
+  and stamps. Local audits and canonical fragments name these exact declarations.
+- MAP: six copied Shared/Run failures are now GREEN; AnchorService and RegimesService
+  are added to the current REQUIRED domain. All 79 original H2 failures are retained.
+  Three new targets compile. Map: 89 TARGETS, 480 GREEN, 79 EXPECTED-FAIL;
+  target split: 10 GREEN, 79 open. No allowance or baseline changes.
+- BLOCKER: a fresh OpeningServiceGate build stops in H1 SupportTransfer, including
+  its removed Base₂.noRestart field and legacy receipt/release calls. All 79 original
+  H2 targets import this module transitively. The report lists exact H1 requests,
+  P-As ProgressAttempt/ResetArrival requests and concrete P-Fd channel types.
+  Signature edits in those high-depth files are not counted as proof completion.
+- AUDIT: local strict roots and full local coverage retain every new declaration.
+  Canonical fragments use the existing Tests.Axioms key and move the opening support
+  owner row to its new module. Full canonical integration and the default global
+  export check remain open with the Assembly/Inhabit suppliers.
+
+Round 2 evidence and final validation: `claude-files/sleep-ph2-report.md`, Round 2;
+checked full helper types: `claude-files/sleep-ph2b/export-types.log`.
 
 Audit integration uses the existing full FGSAProofs audit key. The complete
 132-row local inventory is in scripts/dev-pkg/P-H1.coverage-fragment.txt.
@@ -4896,3 +4998,9 @@ The stable full Tests.Axioms build fails in 18 other-family/assembly producers
 (26.45 s), with no Finality-family proof failure. It retains P-As ownership.
 See .lake/sleep-pfi3/final-axioms.log and the final Round 3 report for exact names.
 Added Lean lines are at most 100 characters; git diff --check passes.
+
+Final frozen-source validation for this slice: DCK P-H2 PASS (480 GREEN roots,
+40 strict audit sources, 3,366 axiom results, 24 controls); local complete coverage
+PASS (41 commands); all-GREEN-root export check PASS (270 proof modules, 253 exports,
+zero unaccepted); check-layers PASS (72 accepted, zero new); diff --check PASS.
+These results validate the checked helper slice, not the 79 original open targets.
