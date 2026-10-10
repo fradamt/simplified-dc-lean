@@ -4,6 +4,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! HG.1 Transfers (blueprint 21:1500–1574; plan §3.1 steps 3–6).
@@ -48,7 +50,7 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
     (hRead : FrontierReadScope E rho q v)
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
@@ -57,6 +59,9 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
     {s : Slot} (hqs : q + 2 ≤ s) (hv : SA.proposalTime p.toParams s ≤ v)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) s B) :
     Block.Preceq Q B.parent := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
   have hd := p.deltaPos
@@ -70,15 +75,16 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
   have hvr : SA.voteTime p.toParams r ≤ v :=
     ((le_add_of_nonneg_right hd.le).trans hvp).trans hv
   have hgstq : E.t_GST ≤ SA.voteTime p.toParams q := by
-    refine hgst.trans (hu.trans ?_)
+    refine hGST.trans (hu.trans ?_)
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + p.Δ
     linarith
   have hgstr : E.t_GST ≤ SA.voteTime p.toParams r := by
     refine hgstq.trans ?_
     change 4 * p.Δ * (q : Int) + p.Δ ≤ 4 * p.Δ * (r : Int) + p.Δ
     nlinarith
-  have hheads := frontier_Q_heads E rho hrec mono crossing writes hgst hErase hHeight
-    hexact hRead.readers hRead.seed hu hphase hqv hvh hcap
+  have hheads := frontier_Q_heads E rho hrec mono crossing writes hGST hErase hHeight
+    hexact (frontier_seed_readers hrec (hready.trans hu) (hqv.trans hvh)) hRead.seed hu hphase
+      hqv hvh hcap
   have hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K →
       Block.Preceq (eraseFG Qfg) K := hErase ▸ hheads r hqr hvr
   obtain ⟨ip, x, N, heN, hx, hip, _, hem⟩ := repair_proposal_emission E rho hp
@@ -86,22 +92,25 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
   let st := clock p (storeAt p c E rho ip x) (SA.proposalTime p.toParams (r + 1))
   have hinv : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hfg : st.fg = (storeAt p c E rho ip x).fg := clock_fg p _ _
-  obtain ⟨hQfg, _, hZQ, hloQ⟩ := frontier_pivot_held E rho hrec crossing hHeight hvh hcap
-    hgstr hcover hx hip hvp hv (hRead.carriers r hqr (hvp.trans hv))
+  obtain ⟨hQfg, hFQ, hZQ, hloQ⟩ := frontier_pivot_held E rho hrec crossing hHeight hvh hcap
+    hgstr (HealingWindow.after (hGST.trans hu) hqr) hcover hx hip hvp hv
+    (healing_carriers_window_at p c E rho hrec (HealingWindow.after (hGST.trans hu) hqr)
+      (hRead.carriers r hqr ip x _ hv) hx hip hvp)
   have hQst : Qfg ∈ st.fg.TF := hfg ▸ hQfg
   have hc : controls p st = R_at p c E rho ip x := repair_controls_clock _ _
   have hlo : (controls p st).lo ≤ (heightView p Qfg).h := hc ▸ hloQ
   have hZ : Block.Preceq (eraseFG (controls p st).Z) Q := by
     rw [hc, ← hErase]
     exact eraseFG_preceq hZQ
-  obtain ⟨_, _, ⟨nd, hnd, hfast⟩, _, _⟩ := hexact.2 (hqv.trans hvh) x hx (hRead.readers x hx)
+  obtain ⟨_, _, ⟨nd, hnd, hfast⟩, _, _⟩ := hexact.2 (hqv.trans hvh) x hx ((frontier_seed_readers
+    hrec (hready.trans hu) (hqv.trans hvh)) x hx)
   have hq1h : SA.voteTime p.toParams (q + 1) ≤ rho.horizon := by
     refine le_trans ?_ (hv.trans hvh)
     change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
     push_cast
     nlinarith
   have hawake := hrec.awake x hx (SA.voteTime p.toParams (q + 1)) (by
-    apply hgst.trans (hu.trans _)
+    apply hGST.trans (hu.trans _)
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ
     push_cast
     linarith [p.deltaPos]) hq1h
@@ -124,8 +133,7 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
     · intro j t hj ht
       exact (fgsa_tick_time_strict E rho hS ht hip hj).le.trans hv
     · rw [← hErase]
-      exact eraseFG_preceq (frontier_pivot_held E rho hrec crossing hHeight hvh hcap
-        hgstr hcover hx hip hvp hv (hRead.carriers r hqr (hvp.trans hv))).2.1
+      exact eraseFG_preceq hFQ
   have hanchor : Block.Compatible (liveRoot p st) Q := by
     rcases repair_liveRoot_cases st with he | ⟨row, hr, _, _, he⟩
     · rw [he]
@@ -200,7 +208,7 @@ theorem frontier_output_cover [Fintype V] (E : Generic.Env V)
     (hRead : FrontierReadScope E rho q v)
     (hGates : ∀ s, q + 1 ≤ s → SA.gateTime p.toParams s ≤ v →
       RepairGateScope E rho s)
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
@@ -210,18 +218,22 @@ theorem frontier_output_cover [Fintype V] (E : Generic.Env V)
     {i : Nat} {y : V} (hy : y ∈ rho.honest)
     (hai : afterTicksIdx rho (SA.gateTime p.toParams q + 4 * p.Δ) ≤ i)
     (hiv : i ≤ timeIdx rho v) : Block.Preceq Q (S_at p c E rho i y) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
   have hd := p.deltaPos
   obtain ⟨_, ⟨jq, ⟨hjq, _⟩, _⟩, ⟨nd, hnd, hfast⟩, hstable, _⟩ :=
-    hexact.2 (hqv.trans hvh) y hy (hRead.readers y hy)
+    hexact.2 (hqv.trans hvh) y hy ((frontier_seed_readers hrec (hready.trans hu) (hqv.trans hvh))
+      y hy)
   have hpost := (healing_support_gate_reads p c E rho hS hjq).2
   rw [hpost] at hnd
   have he := Option.some.inj hnd
   subst he
   obtain ⟨_, hQjq, _⟩ := opening_exact_stored E rho hS hErase hjq hfast le_rfl
   have hgstq : E.t_GST ≤ SA.voteTime p.toParams q := by
-    refine hgst.trans (hu.trans ?_)
+    refine hGST.trans (hu.trans ?_)
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + p.Δ
     linarith
   have hF (a : Nat) (ha : jq ≤ a) (hav : a ≤ timeIdx rho v) :
@@ -244,8 +256,9 @@ theorem frontier_output_cover [Fintype V] (E : Generic.Env V)
       (SA.gateTime p.toParams q + 4 * p.Δ)).1
     change V2.D.Run.idxBefore rho _ ≤ _ at hpre
     exact (Nat.succ_le_of_lt hlt).trans (hpre.trans hai)
-  have hheads := frontier_Q_heads E rho hrec mono crossing writes hgst hErase hHeight
-    hexact hRead.readers hRead.seed hu hphase hqv hvh hcap
+  have hheads := frontier_Q_heads E rho hrec mono crossing writes hGST hErase hHeight
+    hexact (frontier_seed_readers hrec (hready.trans hu) (hqv.trans hvh)) hRead.seed hu hphase
+      hqv hvh hcap
   suffices hn : ∀ n, jq + 1 + n ≤ timeIdx rho v →
       Block.Preceq Q (S_at p c E rho (jq + 1 + n) y) by
     have h := hn (i - (jq + 1)) (by omega)

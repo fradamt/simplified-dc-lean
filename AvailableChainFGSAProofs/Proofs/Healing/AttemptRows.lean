@@ -85,7 +85,7 @@ variable [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
       PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (crossing : RXing p c E rho)
@@ -186,7 +186,7 @@ private theorem attempt_repair_opening
       let u := ev.time + 3 * p.Δ
       PhaseInterval p c E rho u (ev.time + budget) k.frontier root contested ∧
       (contested = true ↔ k.phase = .contest) ∧
-      E.t_GST ≤ u ∧ u ≤ SA.proposalTime p.toParams q ∧
+      recoveryStart p E ≤ u ∧ u ≤ SA.proposalTime p.toParams q ∧
       SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams q ∧
       SA.gateTime p.toParams q ≤ u + ρΓ p G ∧
       HonestProposal E rho (fgsaInterface p c) q Q ∧ ExactService p c E rho q Q ∧
@@ -208,7 +208,8 @@ private theorem attempt_repair_opening
       change 0 ≤ 2 * ((4 * (p.k : Time) - 1) * p.Δ) + Γ p G + 8 * p.Δ
       nlinarith [p.deltaPos]
     linarith [p.deltaPos]
-  obtain ⟨J, hp, _hframe⟩ := healing_attempt_settle_start p c E rho mono heldServices crossing hrec
+  obtain ⟨J, hp, _hframe⟩ := healing_attempt_settle_start p c E rho mono
+    (healing_ready_read_cutoff E) heldServices crossing hrec
     hvalid hstart huD hhor (attempt_quiet E rho hS hstart hstop)
   let u := ev.time + 3 * p.Δ
   have hsettled : ∃ (root : Option (FGBlock (Fin p.n))) (contested : Bool),
@@ -220,16 +221,18 @@ private theorem attempt_repair_opening
     | topJ => constructor <;> intro h <;> cases h
     | contest => exact ⟨fun _ => rfl, fun _ => rfl⟩
   obtain ⟨root, contested, hp, hcont⟩ := hsettled
-  have hgst0 : E.t_GST ≤ ev.time := by
+  have hgst0 : recoveryStart p E ≤ ev.time := by
     obtain ⟨ev0, hi0, hgst0, _⟩ := hvalid
     have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
     exact he ▸ hgst0
-  have hgst : E.t_GST ≤ u := by dsimp only [u]; linarith [p.deltaPos]
+  have hgst : recoveryStart p E ≤ u := by dsimp only [u]; linarith [p.deltaPos]
   obtain ⟨β, hβ, hmin⟩ := healing_rise_one_grid p u
   have hrepair := healing_tRepair E rho hrec mono crossing qc writes
-  have hafter := ((hrepair G u _ _ root contested hrec.gap hrec.gapPos hgst hp).1 β hβ hmin).1
+  have hafter := ((hrepair G u _ _ root contested
+      (healing_proposal_gap hrec) hrec.gapPos hgst hp).1 β hβ hmin).1
   obtain ⟨q, Q, hq, hgate, hQ, hexact⟩ :=
-    ((hrepair G u _ _ root contested hrec.gap hrec.gapPos hgst hp).1 β hβ hmin).2
+    ((hrepair G u _ _ root contested
+      (healing_proposal_gap hrec) hrec.gapPos hgst hp).1 β hβ hmin).2
       (by dsimp only [u]; linarith [p.deltaPos])
   have hβl : β ≤ β + 2 * p.k - 1 := by
     have hk : 1 ≤ 2 * p.k := by have := p.kLarge; omega
@@ -265,7 +268,8 @@ private theorem attempt_repair_opening
   refine ⟨β, q, Q, Qfg, r, root, contested, hp, hcont, hgst, huq, hq, hgate, hQ, hexact,
     heq, hlo, hhi, hqr, har, hc, ?_⟩
   intro v hv
-  exact ((hrepair G u v _ root contested hrec.gap hrec.gapPos hgst hv).1 β hβ hmin).1
+  exact ((hrepair G u v _ root contested
+    (healing_proposal_gap hrec) hrec.gapPos hgst hv).1 β hβ hmin).1
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 H.10 firstRow / contest, with the standing ports and exact INLINE bodies.
@@ -454,7 +458,7 @@ private theorem attempt_terminal_contradiction
     (hstart : rho.events[k.start]? = some ev)
     (hstop : ¬ AttemptEndsBy p c E rho k budget)
     (hp : PhaseInterval p c E rho u (ev.time + budget) k.frontier root contested)
-    (hu : ev.time + 3 * p.Δ ≤ u) (hgst : E.t_GST ≤ u)
+    (hu : ev.time + 3 * p.Δ ≤ u) (hgst : recoveryStart p E ≤ u)
     (huq : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (he : OpeningEntry p c E rho r k.frontier)
     (hc : OpeningCovered p c E rho r Q)

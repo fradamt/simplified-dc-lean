@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! H-COMMON height branches and the second opening (plan §3F.3–4).
@@ -44,18 +46,21 @@ its own height is capped by the first-opening phase. -/
 theorem common_sources_extend_and_cap
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested) :
     ∀ x K, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) →
       FGBlock.Preceq Qfg K ∧ (heightView p K).h ≤ m := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   intro x K hx hK
   have hS := hrec.base.valid.toScheduleWellFormed
   obtain ⟨i, ht⟩ := common_source_tick E rho hK
   obtain ⟨hsrc, _, _, _⟩ := opening_source_body E rho hS ht hK
   obtain ⟨L, hL, hQL⟩ := later_opening_source_extends E rho hrec mono crossing services
-    writes hgst hQ
+    writes hready hQ
     hQfg hexact hu hqr hphase hx ht
   have he : L = K := Option.some.inj (hL.symm.trans hsrc)
   exact ⟨he ▸ hQL, common_source_height_le E rho hS hphase hx hK⟩
@@ -66,13 +71,13 @@ height and T_h.root by the plateau. -/
 theorem common_entry_at_high
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested)
     (hh : (heightView p Qfg).h = m) : OpeningEntry p c E rho r m :=
   common_entry_of_plateau E rho r m Qfg hh
-    (common_sources_extend_and_cap E rho hrec mono crossing services writes hgst hQ hQfg
+    (common_sources_extend_and_cap E rho hrec mono crossing services writes hready hQ hQfg
       hexact hu hqr
       hphase)
 
@@ -83,7 +88,7 @@ comes from next_opening_body_service; K needs no HonestProposal. -/
 theorem common_next_sources_extend_and_cap
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime (r + 1)) m J contested)
@@ -91,12 +96,15 @@ theorem common_next_sources_extend_and_cap
     (hK : actionSourceFG p c E rho y r = some (some K)) :
     ∀ x L, x ∈ rho.honest → actionSourceFG p c E rho x (r + 1) = some (some L) →
       FGBlock.Preceq K L ∧ (heightView p L).h ≤ m := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   intro x L hx hL
   have hS := hrec.base.valid.toScheduleWellFormed
   obtain ⟨i, ht⟩ := common_source_tick E rho hL
   obtain ⟨D, hserv, hdom, hKD, _⟩ := next_opening_body_service E rho hrec mono crossing
     services writes
-    hgst hQ hQfg hexact hu hqr hphase hy hK hx ht
+    hready hQ hQfg hexact hu hqr hphase hy hK hx ht
   have hcut : E.t_GST ≤ slotStartZ p (((r + 1) * p.R : Nat) : Int) := by
     have hqrI : (q : Int) ≤ ((r * p.R : Nat) : Int) := by exact_mod_cast hqr
     have hrr : ((r * p.R : Nat) : Int) ≤ (((r + 1) * p.R : Nat) : Int) := by
@@ -118,7 +126,7 @@ fixes the next opening's entry only under the phase through a_(r+1). -/
 theorem common_next_entry
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     {y : V} {K : FGBlock (Fin p.n)} (hy : y ∈ rho.honest)
@@ -126,7 +134,8 @@ theorem common_next_entry
     (hphase : PhaseInterval p c E rho u (p.actionTime (r + 1)) m J contested) :
     OpeningEntry p c E rho (r + 1) m :=
   common_entry_of_plateau E rho (r + 1) m K hh
-    (common_next_sources_extend_and_cap E rho hrec mono crossing services writes hgst hQ hQfg hexact
+    (common_next_sources_extend_and_cap E rho hrec mono crossing services writes hready hQ hQfg
+      hexact
       hu hqr hphase hy hK)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -135,7 +144,7 @@ one low entry or an actual high source with the conditional second-opening entry
 theorem common_entry_at_low
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested)
@@ -145,14 +154,17 @@ theorem common_entry_at_low
           (heightView p K).h = m) ∧
         (PhaseInterval p c E rho u (p.actionTime (r + 1)) m J contested →
           OpeningEntry p c E rho (r + 1) m)) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   rcases common_low_or_high E rho r m Qfg hh
-      (common_sources_extend_and_cap E rho hrec mono crossing services writes hgst hQ hQfg
+      (common_sources_extend_and_cap E rho hrec mono crossing services writes hready hQ hQfg
         hexact hu hqr
         hphase) with hlow | hhigh
   · exact Or.inl hlow
   · obtain ⟨x, K, hx, hK, hhK⟩ := hhigh
     exact Or.inr ⟨⟨x, K, hx, hK, hhK⟩, common_next_entry E rho hrec mono crossing services
-      writes hgst
+      writes hready
       hQ hQfg hexact hu hqr hx hK hhK⟩
 
 end Service

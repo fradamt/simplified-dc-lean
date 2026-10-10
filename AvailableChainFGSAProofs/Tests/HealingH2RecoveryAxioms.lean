@@ -51,3 +51,9 @@ end
 #print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.top
 
 #print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.contest
+
+#print axioms AvailableChain.FGSA.Run.healing_proposal_gap
+#print axioms AvailableChain.FGSA.Run.healing_proposal_phase_reader_floor
+#print axioms AvailableChain.FGSA.Run.healing_settled_frame_ready
+
+#print axioms AvailableChain.FGSA.Run.healing_capped_witness_reader_floor

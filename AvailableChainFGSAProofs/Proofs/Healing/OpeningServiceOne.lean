@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! H-GATE consumers at one opening (plan fgsa-s5-hgate-hcommon §3E, §3F step 1, §4
@@ -56,7 +58,7 @@ theorem later_opening_covered [Fintype V] (E : Generic.Env V)
           some ((heightView p C).h, (heightView p C).T_h.root))
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -64,6 +66,9 @@ theorem later_opening_covered [Fintype V] (E : Generic.Env V)
     (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested) :
     OpeningCovered p c E rho r Q := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
   have hvh : p.actionTime r ≤ rho.horizon := hphase.2.1
@@ -72,19 +77,20 @@ theorem later_opening_covered [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
     nlinarith
   intro x hx
-  have hawake := hrec.awake x hx (p.actionTime r) (hgst.trans (hu.trans hpq)) hvh
+  have hawake := hrec.awake x hx (p.actionTime r) (hGST.trans (hu.trans hpq)) hvh
   obtain ⟨i, ht⟩ := opening_action_tick E rho hS hrec.base.delta hx r hvh hawake
   let nd := (fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)
   have hnd : postClock E rho x (p.actionTime r) = some nd := opening_postClock_of_tick E rho hS ht
   obtain ⟨K, hsrc, hQK⟩ := later_opening_source_extends E rho hrec mono crossing services
-    writes hgst hQ
+    writes hready hQ
     hQfg hexact hu hqr hphase hx ht
   have hK : actionSourceFG p c E rho x r = some (some K) := by
     rw [actionSourceFG_def, hnd]
     exact congrArg some hsrc
   obtain ⟨_, hdom, _, _⟩ := opening_source_body E rho hS ht hK
   have hfull : K ∈ FGSA.fullTree p nd.st := hdom
-  obtain ⟨_, _, hlo⟩ := later_opening_service E rho hrec mono crossing services writes hgst hQ hQfg
+  obtain ⟨_, _, hlo⟩ := later_opening_service E rho hrec mono crossing services writes hready hQ
+    hQfg
     hexact hu hqr hphase hx ht
   have hband : (FGSA.controls p nd.st).lo ≤ (heightView p K).h := by
     change (frameR p nd.st).lo ≤ _
@@ -194,7 +200,7 @@ theorem opening_height_one [Fintype V] (E : Generic.Env V)
           some ((heightView p C).h, (heightView p C).T_h.root))
     {u : Time} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -205,9 +211,12 @@ theorem opening_height_one [Fintype V] (E : Generic.Env V)
     0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
     p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   obtain ⟨h0, h1⟩ := opening_first_time_bound (p := p) q r hqr hfirst
   exact ⟨h0, h1, later_opening_covered E rho hrec mono crossing services writes rowCoverage
-    hgst hQ hQfg
+    hready hQ hQfg
     hexact hu hqr hphase, opening_entry_one E rho hrec.base.valid.toScheduleWellFormed hphase
     hphase.1⟩
 

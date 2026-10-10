@@ -20,7 +20,7 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
       PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (cap : RCap p c E rho)
@@ -35,7 +35,8 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
       Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
         (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (perm : TPerm p c E rho)
-    (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
+    (scopeProducer : ∀ (q : Slot) (v : Time),
+      recoveryStart p E ≤ SA.proposalTime p.toParams q →
       SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
@@ -93,7 +94,7 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
     have hcutHor : u₀ ≤ rho.horizon := by linarith only [hhor, hb]
     obtain ⟨i, ev, kind, hstart, ht, hidx⟩ :=
       frontierSearch_cut_start E rho hrec hgst hfirst hu₀ hdelay hM hcutHor
-    have hdelayEv : E.t_GST + 2 * P p ≤ ev.time := by
+    have hdelayEv : recoveryStart p E + 2 * P p ≤ ev.time := by
       rw [ht]
       linarith only [hdelay, hstartLower, p.deltaPos]
     have hhorEv : ev.time + frontierSearchRiseBudget p G ΔF ρbar ≤ rho.horizon := by
@@ -131,7 +132,7 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
       have hRiseHor : u₀ + frontierSearchRiseBudget p G ΔF ρbar ≤ rho.horizon := by
         linarith only [hhor, hb]
       obtain ⟨j, ev, hjcut, hj, hlow, ht, hh, hcap⟩ := rise ρbar hmode hRiseHor
-      have hgstCut : E.t_GST ≤ u₀ := by
+      have hgstCut : recoveryStart p E ≤ u₀ := by
         have hP := frontierSearch_period_bound p
         linarith [p.deltaPos]
       have hrowHor : ev.time + frontierSearchRowBudget p G ΔF ρbar ≤ rho.horizon := by

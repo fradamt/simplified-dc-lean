@@ -16,9 +16,15 @@ omit [DecidableEq V] in
 /-- Blueprint 21:1722–1800; S5 F3, allowance geometry.
 DC: SAME both frozen first labels exist. The one-lease window follows from the cut delay. -/
 theorem frontierSearch_repair_start (E : Generic.Env V) (G : Time) {t ρbar : Time}
-    (hdelay : E.t_GST + 2 * P p ≤ t)
+    (hdelay : recoveryStart p E + 2 * P p ≤ t)
     (hmode : ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1)) :
-    FrontierRepairStart p E G (t + 3 * p.Δ) ρbar := by
+    FrontierRepairStart p E G (t + 3 * p.Δ) ρbar  := by
+  have hsyncDelay : E.t_GST + 2 * P p ≤ t := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
+  have hsyncDelay : E.t_GST + 2 * P p ≤ t := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
   let u := t + 3 * p.Δ
   have hΔ : 1 ≤ p.Δ := p.deltaPos
@@ -40,7 +46,7 @@ theorem frontierSearch_repair_start (E : Generic.Env V) (G : Time) {t ρbar : Ti
     have hb : u ≤ SA.voteTime p.toParams b := Nat.find_spec hex
     have hbi : (2 : Time) * p.R < b := by
       change u ≤ 4 * p.Δ * (b : Time) + p.Δ at hb
-      change E.t_GST + 2 * (4 * (p.R : Time) * p.Δ) ≤ t at hdelay
+      change E.t_GST + 2 * (4 * (p.R : Time) * p.Δ) ≤ t at hsyncDelay
       dsimp only [u] at hb
       nlinarith [E.t_GST_nonneg]
     have hbn : 2 * p.R < b := by exact_mod_cast hbi
@@ -54,7 +60,7 @@ theorem frontierSearch_repair_start (E : Generic.Env V) (G : Time) {t ρbar : Ti
       change E.t_GST ≤ 4 * p.Δ * ((b + 1 - p.k : Nat) : Time) + p.Δ
       rw [hshift]
       change u ≤ 4 * p.Δ * (b : Time) + p.Δ at hb
-      change E.t_GST + 2 * (4 * (p.R : Time) * p.Δ) ≤ t at hdelay
+      change E.t_GST + 2 * (4 * (p.R : Time) * p.Δ) ≤ t at hsyncDelay
       dsimp only [u] at hb
       nlinarith
     exact .one b hb (fun i hi => Nat.find_min' hex hi) hwindow hsync
@@ -121,7 +127,7 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
       PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
@@ -140,7 +146,7 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
     (hmode : ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1))
     {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind}
     (hstart : FrontierSearchStart p c E rho i ev m kind)
-    (hdelay : E.t_GST + 2 * P p ≤ ev.time)
+    (hdelay : recoveryStart p E + 2 * P p ≤ ev.time)
     (hhor : ev.time + frontierSearch_remaining p G ΔF ρbar tail kind ≤ rho.horizon) :
     FrontierRiseBy p c E rho i m
       (ev.time + frontierSearch_remaining p G ΔF ρbar tail kind) ∨
@@ -166,7 +172,7 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
     linarith [p.deltaPos]
   have go : ∀ n, ∀ {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind},
       2 - frontierSearch_phaseRank kind = n →
-      FrontierSearchStart p c E rho i ev m kind → E.t_GST + 2 * P p ≤ ev.time →
+      FrontierSearchStart p c E rho i ev m kind → recoveryStart p E + 2 * P p ≤ ev.time →
       ev.time + frontierSearch_remaining p G ΔF ρbar tail kind ≤ rho.horizon →
       FrontierRiseBy p c E rho i m
         (ev.time + frontierSearch_remaining p G ΔF ρbar tail kind) ∨

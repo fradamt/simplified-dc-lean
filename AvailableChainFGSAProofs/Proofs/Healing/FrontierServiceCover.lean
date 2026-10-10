@@ -80,9 +80,11 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
     linarith
   have hsh : SA.gateTime p.toParams s ≤ rho.horizon := hsv.trans hvh
   have hcovQ := frontier_Q_heads E rho hrec mono crossing writes hgst hErase hHeight hexact
-    hRead.readers hRead.seed hu hphase hqv hvh hcap s (Nat.succ_le_of_lt hqs) hvs
+    (frontier_seed_readers hrec (hgst.trans hu) (hqv.trans hvh)) hRead.seed hu hphase hqv hvh
+      hcap s (Nat.succ_le_of_lt hqs) hvs
   obtain ⟨hgr, ⟨jq, ⟨hjqt, _⟩, _⟩, ⟨ndq, hndq, hQw⟩, _, _⟩ :=
-    hexact.2 (hgq.trans hvh) x hx (hRead.readers x hx)
+    hexact.2 (hgq.trans hvh) x hx ((frontier_seed_readers hrec (hgst.trans hu) (hqv.trans hvh)) x
+      hx)
   have hQw' : Q ∈ (fastWriteAt ((fgsa p c).clock (rho.stateBefore E jq x)
       (SA.gateTime p.toParams q)).st q).getD [] := by
     have hpost := (healing_support_gate_reads p c E rho hS hjqt).2
@@ -265,7 +267,8 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
         intro l hl hlv z hz K hK
         rw [hErase]
         exact frontier_Q_heads E rho hrec mono crossing writes hgst hErase hHeight hexact
-          hRead.readers hRead.seed hu hphase hqv hvh hcap l (hwq.trans_le hl) hlv z hz K hK
+          (frontier_seed_readers hrec (hgst.trans hu) (hqv.trans hvh)) hRead.seed hu hphase hqv
+            hvh hcap l (hwq.trans_le hl) hlv z hz K hK
       have hcb : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z s = some K →
           Block.Preceq lease.1 K := by
         obtain ⟨z, hz, hfast | hslow⟩ := hbody
@@ -348,9 +351,11 @@ theorem frontier_opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     linarith
   have hsh : SA.gateTime p.toParams s ≤ rho.horizon := hsv.trans hvh
   have hcov := frontier_Q_heads E rho hrec mono crossing writes hgst hErase hHeight hexact
-    hRead.readers hRead.seed hu hphase hqv hvh hcap s (Nat.succ_le_of_lt hqs) hvs
+    (frontier_seed_readers hrec (hgst.trans hu) (hqv.trans hvh)) hRead.seed hu hphase hqv hvh
+      hcap s (Nat.succ_le_of_lt hqs) hvs
   obtain ⟨_, ⟨jq, ⟨hjq, _⟩, _⟩, ⟨nd, hnd, hfw⟩, _, _⟩ :=
-    hexact.2 (hqv.trans hvh) x hx (hRead.readers x hx)
+    hexact.2 (hqv.trans hvh) x hx ((frontier_seed_readers hrec (hgst.trans hu) (hqv.trans hvh)) x
+      hx)
   rw [(healing_support_gate_reads p c E rho hS hjq).2] at hnd
   have he := Option.some.inj hnd
   subst he

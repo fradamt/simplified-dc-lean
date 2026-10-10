@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! H-GATE supplier at a later opening (plan fgsa-s5-hgate-hcommon §2.3, §3 A–D; brief S5
@@ -187,7 +189,7 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -199,6 +201,9 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
     Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x Q ∧
       Qfg ∈ domainR p (storeAt p c E rho i x) (treeT p (storeAt p c E rho i x)) ∧
       (frameR p (storeAt p c E rho i x)).lo ≤ (heightView p Qfg).h := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
   have hvh : p.actionTime r ≤ rho.horizon := hphase.2.1
@@ -217,7 +222,7 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
     (healing_phase_lt_timeIdx p c E rho hS ht le_rfl).le
   obtain ⟨_, ⟨jq, ⟨hjq, _⟩, _⟩, ⟨nd, hnd, hQnd⟩, _, _⟩ :=
     hexact.2 (hgq.trans hvh) x hx
-      (healing_recovery_gate_reader hrec hx (hgst.trans hu) (hgq.trans hvh))
+      (healing_recovery_gate_reader hrec hx (hGST.trans hu) (hgq.trans hvh))
   have hpost := (healing_support_gate_reads p c E rho hS hjq).2
   rw [hpost] at hnd
   have hnd' := Option.some.inj hnd
@@ -244,10 +249,11 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
       change 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ ≤
         4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
       linarith
-    have hcov := opening_heads_cover E rho hrec mono crossing services writes hgst hphase hexact hu
+    have hcov := opening_heads_cover E rho hrec mono crossing services writes hready hphase
+      hexact hu
       hgq hx hlt hvs
     exact opening_gateService_of_cover E rho hrec mono crossing services writes
-      hgst hphase hQ hexact
+      hready hphase hQ hexact
       hu hlt le_rfl hx htg hFQe hcov hFQe hQb hne
   · have he : q = r * p.R := le_antisymm hqr hge
     subst he
@@ -285,7 +291,7 @@ theorem later_opening_gateService_domain [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -301,9 +307,12 @@ theorem later_opening_gateService_domain [Fintype V] (E : Generic.Env V)
       D ∈ domainR p st (treeT p st) ∧
       FGBlock.Preceq Qfg D ∧
       (frameR p st).lo ≤ (heightView p D).h := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   intro st
   obtain ⟨hserv, hdom, hlo⟩ := later_opening_service E rho hrec mono crossing services writes
-    hgst hQ hQfg
+    hready hQ hQfg
     hexact hu hqr hphase hx ht
   have hclock := opening_domain_clock (c := c) (V2.D.Run.stateBefore E rho i x) (p.actionTime r)
   refine ⟨Qfg, hQfg ▸ hserv, ?_, KitFG.preceq_refl _, ?_⟩
@@ -346,7 +355,7 @@ theorem opening_transfer [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -359,6 +368,9 @@ theorem opening_transfer [Fintype V] (E : Generic.Env V)
       Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x Q ∧
       Q ∈ (fastWriteAt ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x)
         (p.actionTime r)).st (r * p.R)).getD [] := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
   have hqI : (q : Int) + 1 ≤ ((r * p.R : Nat) : Int) := by exact_mod_cast hqr
@@ -369,11 +381,13 @@ theorem opening_transfer [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ ≤
       4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
     linarith
-  refine ⟨fun z hz K hK => opening_heads_cover E rho hrec mono crossing services writes hgst hphase
+  refine ⟨fun z hz K hK => opening_heads_cover E rho hrec mono crossing services writes hready
+    hphase
     hexact hu hgq hz hqr hvs z hz K hK, ?_⟩
   intro i x hx ht
   have htg : IsGateTick p c rho i x (r * p.R) := ht
-  have hD := (later_opening_service E rho hrec mono crossing services writes hgst hQ hQfg hexact hu
+  have hD := (later_opening_service E rho hrec mono crossing services writes hready hQ hQfg
+    hexact hu
     hqr.le hphase hx ht).1
   have hcut : E.t_GST ≤ slotStartZ p ((r * p.R : Nat) : Int) := by
     change E.t_GST ≤ 4 * p.Δ * ((r * p.R : Nat) : Int)

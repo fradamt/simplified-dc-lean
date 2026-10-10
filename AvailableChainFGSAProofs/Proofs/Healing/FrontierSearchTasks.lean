@@ -61,7 +61,7 @@ theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
       PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
@@ -88,7 +88,7 @@ theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
     {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind}
     (hstart : FrontierSearchStart p c E rho i ev m kind)
-    (hdelay : E.t_GST + 2 * P p ≤ ev.time)
+    (hdelay : recoveryStart p E + 2 * P p ≤ ev.time)
     (hmode : ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1))
     (hhor : ev.time + frontierSearchRiseBudget p G ΔF ρbar ≤ rho.horizon) :
     FrontierRiseBy p c E rho i m (ev.time + frontierSearchRiseBudget p G ΔF ρbar) := by
@@ -136,11 +136,12 @@ theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
       PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
-    (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
+    (scopeProducer : ∀ (q : Slot) (v : Time),
+      recoveryStart p E ≤ SA.proposalTime p.toParams q →
       SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (perm : TPerm p c E rho)
@@ -183,7 +184,7 @@ theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
     {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind}
     (hstart : FrontierSearchStart p c E rho i ev m kind)
-    (hdelay : E.t_GST + 2 * P p ≤ ev.time)
+    (hdelay : recoveryStart p E + 2 * P p ≤ ev.time)
     (hmode : ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1))
     (hhor : ev.time + frontierSearchRowBudget p G ΔF ρbar ≤ rho.horizon) :
     FirstHeightRowBy p c E rho m (ev.time + frontierSearchRowBudget p G ΔF ρbar) := by

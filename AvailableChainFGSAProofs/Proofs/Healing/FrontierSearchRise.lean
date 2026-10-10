@@ -62,7 +62,9 @@ theorem healing_frontierTail_rise_of_seed [Fintype V] (E : Generic.Env V)
   have hs := hrec.base.valid.toScheduleWellFormed
   obtain ⟨iq, W, _, hW, hWe⟩ := healing_rise_one_gate_copy p c E rho hs hexact
     (hqt.trans hth) hQ.1.2
-    (healing_recovery_gate_reader hrec hQ.1.2 (hgst.trans hu) (hqt.trans hth))
+    (healing_recovery_gate_reader hrec hQ.1.2 ((by
+      have := healing_recovery_start_lower (p := p) E
+      linarith [p.deltaPos] : E.t_GST ≤ u).trans hu) (hqt.trans hth))
   have hWQ : W = Qfg := eraseFG_injective (hWe.trans he.symm)
   subst W
   have hQbase : Q ∈
@@ -142,7 +144,8 @@ theorem healing_frontierTail [Fintype V] (E : Generic.Env V)
         (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
       Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
         (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
-    (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
+    (scopeProducer : ∀ (q : Slot) (v : Time),
+      recoveryStart p E ≤ SA.proposalTime p.toParams q →
       SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →

@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! H-COMMON arithmetic, raw-result compatibility, and entry laws (plan §3F.1–3).
@@ -105,17 +107,20 @@ theorem common_sources_compatible [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {q r : Nat}
     (hScope : SameLabelServiceScope E rho (r * p.R))
-    (hgst : E.t_GST ≤ u) (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
+    (hready : recoveryStart p E ≤ u) (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested) :
     ∀ x y K K', x ∈ rho.honest → y ∈ rho.honest →
       actionSourceFG p c E rho x r = some (some K) →
       actionSourceFG p c E rho y r = some (some K') →
       Block.Compatible (eraseFG K) (eraseFG K') := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have hqI : (q : Int) ≤ ((r * p.R : Nat) : Int) := by exact_mod_cast hqr
   have hd := p.deltaPos
   have hvgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R) := by
-    refine hgst.trans (hu.trans ?_)
+    refine hGST.trans (hu.trans ?_)
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ
     nlinarith
   have hvd : SA.voteTime p.toParams (r * p.R) + E.Δ ≤ SA.gateTime p.toParams (r * p.R) := by

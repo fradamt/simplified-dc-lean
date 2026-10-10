@@ -193,3 +193,6 @@ public section
 #print axioms AvailableChain.FGSA.Run.healing_frontierSearch
 
 end
+
+#print axioms AvailableChain.FGSA.Run.frontier_seed_readers
+#print axioms AvailableChain.FGSA.Run.FrontierReadScope.first

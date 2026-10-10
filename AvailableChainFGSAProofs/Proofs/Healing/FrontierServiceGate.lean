@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! HG.1 gate service (blueprint 21:1551–1574; plan §3.1 steps 6–7).
@@ -17,9 +19,12 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 /-- A bounded frontier read supplies each actual later gate's local service scope. -/
 theorem frontier_repair_gate_scope (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {u v : Time} {q s : Slot}
-    (hRead : FrontierReadScope E rho q v) (hgst : E.t_GST ≤ u)
+    (hRead : FrontierReadScope E rho q v) (hready : recoveryStart p E ≤ u)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqs : q < s)
     (hgate : SA.gateTime p.toParams s ≤ v) : RepairGateScope E rho s := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hs := Nat.succ_le_of_lt hqs
   have hqsI : (q : Int) + 1 ≤ (s : Int) := by exact_mod_cast hqs
   have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
@@ -177,7 +182,7 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q B : Block} {Qfg : FGBlock (Fin p.n)}
     (hRead : FrontierReadScope E rho q v)
-    (hgst : E.t_GST ≤ u) (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
+    (hready : recoveryStart p E ≤ u) (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hPhase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
     (hqv : SA.gateTime p.toParams q ≤ v) (hvh : v ≤ rho.horizon)
@@ -186,13 +191,16 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some B)
     {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s) :
     ExactServiceGateGeometry E rho i x s B := by
-  have hScope := frontier_repair_gate_scope E rho hRead hgst hu hqs hgate
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
+  have hScope := frontier_repair_gate_scope E rho hRead hready hu hqs hgate
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
   have hd := p.deltaPos
   have hqsI : (q : Int) < (s : Int) := by exact_mod_cast hqs
   have hgsts : E.t_GST ≤ SA.voteTime p.toParams s := by
-    refine hgst.trans (hu.trans ?_)
+    refine hGST.trans (hu.trans ?_)
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
     nlinarith
   have hvd : SA.voteTime p.toParams s + p.Δ ≤ SA.gateTime p.toParams s := by
@@ -201,8 +209,9 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
   have hvs : SA.voteTime p.toParams s ≤ v :=
     ((le_add_of_nonneg_right hd.le).trans hvd).trans hgate
   have hgh : SA.gateTime p.toParams s ≤ rho.horizon := hgate.trans hvh
-  have hcovQ := frontier_Q_heads E rho hrec mono crossing writes hgst hErase hHeight
-    hService hRead.readers hRead.seed hu hPhase hqv hvh hcap s (Nat.succ_le_of_lt hqs) hvs
+  have hcovQ := frontier_Q_heads E rho hrec mono crossing writes hready hErase hHeight
+    hService (frontier_seed_readers hrec (hgst.trans hu) (hqv.trans hvh)) hRead.seed hu hPhase
+      hqv hvh hcap s (Nat.succ_le_of_lt hqs) hvs
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hrec.base.delta hx s
     (hvs.trans hvh) (hrec.awake x hx _ hgsts (hvs.trans hvh))
   have hhl : headAtLabel p c E rho x s = some (headVote p (FGSA.clock p

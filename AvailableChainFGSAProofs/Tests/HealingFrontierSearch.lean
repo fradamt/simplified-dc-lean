@@ -78,8 +78,8 @@ example {m r : Nat} (hr : HeightRow p c E rho r m)
 
 -- At m=1, HG.4 row service applies when the complete tail ends at the horizon.
 example [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -90,6 +90,7 @@ example [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -119,7 +120,7 @@ example [Fintype V] (E : Generic.Env V)
     healing_frontierTail_row E rho hrec mono crossing cap writes rowCoverage hserved hhor.le
 
 -- Same-frontier stops advance the phase under the actual phase-order producer.
-example (crossing : RXing p c E rho) (mono : RMono p c E rho)
+example (crossing : RXing p c E rho) (mono : RMonoAll p c E rho)
     (hnr : V2.D.NoRestart rho)
     (hs : V2.D.ScheduleWellFormed E rho) {i m : Nat} {kind : PhaseKind}
     {ev : V2.Event V (Obj p)} {deadline : Time}
@@ -132,7 +133,7 @@ example (crossing : RXing p c E rho) (mono : RMono p c E rho)
 
 section PhaseApplications
 variable [Fintype V] {G ΔF ρbar : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (perm : TPerm p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
@@ -174,14 +175,14 @@ example (hF : 0 ≤ ΔF) : E_j p G ρbar ≤ E_jF p ΔF G ρbar ∧
     E_jF p ΔF G ρbar ≤ E_j p G ρbar + epsF p ΔF := E_jF_bounds p ΔF G ρbar hF
 end PhaseApplications
 
-example [Fintype V] {ΔF : Time} (_hrec : Recovery₂ p c E rho (8 * p.Δ) ΔF) :
+example [Fintype V] {ΔF : Time} (_hrec : RecoverySleep₂ p c E rho (8 * p.Δ) ΔF) :
     Γ p (8 * p.Δ) = 8 * p.Δ := fgsa_gamma_eq_of_dvd p ⟨2, by ring⟩
 
-example [Fintype V] {ΔF : Time} (_hrec : Recovery₂ p c E rho (12 * p.Δ) ΔF) :
+example [Fintype V] {ΔF : Time} (_hrec : RecoverySleep₂ p c E rho (12 * p.Δ) ΔF) :
     Γ p (12 * p.Δ) = 12 * p.Δ := fgsa_gamma_eq_of_dvd p ⟨3, by ring⟩
 
 -- GUP r2: every unaligned recovery regime supplies the internal aligned regime.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) :
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) :
     Recovery₂Aligned p c E rho (Γ p G) ΔF := recovery₂_roundUp hrec
 
 example : ¬ (∀ d a horizon : Int, d ≤ a → a ≤ d + (8 - 4) →
@@ -215,7 +216,7 @@ section HG2aGap
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
 
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (r : Nat) (U : FGBlock (Fin p.n))
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (r : Nat) (U : FGBlock (Fin p.n))
     (hgst : E.t_GST ≤ (r : Time) * P p)
     (hhor : max (p.actionTime r + Γ p G - p.Δ + epsF p ΔF)
       (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G - 3 * p.Δ) = rho.horizon) :
@@ -281,9 +282,9 @@ open AvailableChain.SimplexFG
 section CappedReceiptApplications
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
     (origin : RQCOrigin p c E rho) (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (perm : TPerm p c E rho) (frontier : TFrontier p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
@@ -296,6 +297,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -340,7 +342,7 @@ example {m : Nat} {s : Slot} {Qfg X : FGBlock (Fin p.n)}
 
 example {u : Time} {i m r q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {Q : Block} {Qfg U : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hgst : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (he : eraseFG Qfg = Q) (hQm : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hseed : FrontierSeedQualification p E u q)
     (hu : u ≤ SA.proposalTime p.toParams q)
