@@ -1,5 +1,6 @@
 # S-Ap Round 2: DECISION P23-A and public fixture owner partition.
 [TARGETS]
+AvailableChainFGSAClaims.Claims.OutageContinuation
 AvailableChainFGSAProofs.Tests.P23Axioms
 AvailableChainFGCompose.Proofs.SafetyClient
 AvailableChainFGCompose.Proofs.SafetyMonotone
@@ -97,6 +98,7 @@ AvailableChainFGSARun.Tests.ReceiptAlias
 AvailableChainFGSARun.Tests.ReceiptReady
 AvailableChainFGSARun.Tests.W3Axioms
 [GREEN]
+AvailableChainFGSAClaims.Claims.OutageContinuation
 AvailableChainFGSARun
 AvailableChainFGSARun.Tests.Axioms
 AvailableChainFGSAClaims.Tests.FinalitySafety

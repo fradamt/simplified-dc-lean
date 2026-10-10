@@ -2494,3 +2494,18 @@ its full source scope is kept. No generated entry is edited by hand.
 The Run inventory generator now succeeds (791 entries, 25.01 s) and removes
 the stale fgsa_receiptCoverage entry retired under DECISION P23-A.
 FGSA shallow/deep regeneration PASS (243.02 s, 1,357 roots).
+
+## S-Ap Round 3 — P17 D013/D014 continuation supplier
+
+OutageContinuationConcl is the exact approved D013 body: scoped record/output
+compatibility; inclusion only for coveredNodes; scoped emitted HEAD compatibility;
+durable F compatibility for every honest receiver. It takes fast, T, b₀, b₁
+and Fintype V. No proposal-parent extension is added.
+OutageContinuationClaim is the exact D014 wrapper with
+OutageContinuationSleepPrem and all four conclusion arguments. P-Ou's report
+at lines 43, 92 and 145 requests this supplier; its family proof remains P-Ou-owned.
+The two docstrings now describe the approved scopes.
+D013/D014 and the claim aggregate compile with --wfail (3.47 s).
+The claims inventory and auxiliary API writers stop on the inherited missing
+Claims.Tests.Axioms artifact; their source scopes are unchanged.
+FGSA shallow/deep regeneration PASS (238.12 s, 1,357 roots).
