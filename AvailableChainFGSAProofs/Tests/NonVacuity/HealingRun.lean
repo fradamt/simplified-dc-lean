@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (TPerm)
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm -- shake: keep (TPerm)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (RXing)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (RMono)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (writes)
@@ -1318,6 +1318,13 @@ theorem nvRecovery : RecoverySleep₂ params unitCodec env run gap deltaF where
 
 theorem healingSet : HealingSet params unitCodec env run gap deltaF := nvRecovery
 
+/-- The universal recovery producer proves permanence for this actual finite execution. -/
+theorem nvPerm : TPerm params unitCodec env run :=
+  healing_tPerm_recovery env run nvRecovery (fgsa_rMonoAll params unitCodec env run)
+    (fgsa_rXing (hroots := nvRoots) params unitCodec env run nvRecovery.base.linked
+      (fgsa_faultX_count_rec params nvRecovery.fault) nvExecution.toUnforgeableSignatures)
+    (fgsa_leaseOrigins_lastWrite params unitCodec env run nvSchedule)
+
 -- The sleep regime and a nonempty source after recoveryStart have real witnesses.
 theorem joined_start_body : ∃ B, B ≠ Block.genesis ∧
     recoveryStart params env ≤ SA.voteTime params.toParams 2 ∧
@@ -1367,3 +1374,5 @@ end
   AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.healingSet
 #print axioms
   AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.joined_start_body
+
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nvPerm

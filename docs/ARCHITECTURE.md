@@ -1091,3 +1091,46 @@ factories remain open, including their carried cap cases.
 No conditional assembly or fixture is a producer for those fields.
 The positive execution fixture now preserves its old event prefix and extends
 to horizon 310, beyond the complete joined-start H-time budget of 309.
+
+P-H1 Round 10 HEAD boundary:
+Shared/Relay adds HeadRelayLocalServiceScope, HeadRelayReceiptScope and four
+receipt consumers. The local service keeps the original index, epoch and window.
+Under non-exclusion at the strict deadline, its service field permits either
+local processing or an exact remote ReceiverService. The receipt adapter uses
+fgsa_head_stamp_before_read and keeps votes and stamps through the same epoch.
+The receipt evidence is a stored HEAD or two stamped cap witnesses at the read.
+The older object-only scope remains a compatibility interface for other lanes;
+healing P1/P2 no longer request it for every raw object.
+Healing/HeadRelay proves local carried provenance through the actual restart
+model, with the joined reader's label cutoff. A carried third HEAD can be refused
+without an acceptance or a relay for that object. Healing/RelayProducers relays
+its two stored witnesses instead. P1 and P2 use the narrower receipt scope;
+RecoveryProducers supplies their complete recovery factories. Honest late HEAD
+reads no longer need an artificial object delivery window before their own read.
+Tests/HealingHeadCap replays the actual local handlers: a proposal carries a
+third HEAD after the first two votes capped the seat. The proposal and raw HEAD
+remain present, but the third HEAD is absent from the vote pool and clean support.
+This local handler check is not a complete ExecutionValid adversarial fixture.
+
+P-H1 Round 10 phase production:
+RecoveryProducers now supplies P1-P10 from RecoverySleep₂ and named Foundations,
+with each actual source, reader, finite deadline and receiver floor guard kept.
+P5 is healing_support_permanence_recovery; both PhaseBody arms use produced
+services. SlowSupportScope.late keeps the full joined batch. Its saved window
+uses GST synchrony, lease expiry and same-label uniqueness. Fast transfer uses
+the actual joined release reader and its clean threshold support.
+Healing/RecoveryPerm proves healing_tPerm_recovery for every bounded phase after
+Jst, with no phase-service callback. P-As supplies fgsa_rMonoAll, fgsa_rXing and
+fgsa_leaseOrigins_lastWrite across the existing Foundation boundary. No new
+public Claims premise, deadline, constant, or early-case producer is added.
+Healing/RepairLeaseRecovery supplies repair_lease_cover_two_at and
+repair_lease_cover_one_at with P-H2's exact phase-service signatures. They use
+the proved universal recovery producer, so the matching local P5 input is
+redundant proof data. P-H2 can import this module without a new assumed supplier.
+The N4 adapter healing_ready_batch_release_compat_recovery constructs its first
+and gate scopes. A later full batch releases incompatible leases of every age;
+there is no bound on k and no claim that Jst expires every earlier lease.
+Tests/HealingRecoveryPermAxioms audits the new producers. The actual finite
+NonVacuity/HealingRun fixture has nvPerm from the universal producer and named
+Foundations. The four complete adversarial replays still have exact P-H1
+obligations; local handlers and clock regressions are not execution certificates.

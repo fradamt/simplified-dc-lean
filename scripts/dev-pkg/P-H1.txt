@@ -1,6 +1,7 @@
-# P-H1 Round 9 PREPARED. P1/P2 HEAD relay and P5/TPerm production remain open.
+# P-H1 Round 10 CLOSED for P1-P10 and universal TPerm production.
+# Four complete adversarial replay fixtures retain exact OPEN/P-H1 obligations.
 # H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
-# 111 TARGETS; 561 GREEN; 19 EXPECTED-FAIL.
+# 118 TARGETS; 567 GREEN; 19 EXPECTED-FAIL.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
 AvailableChainFGSAProofs.Tests.HealingRecoveryProducersAxioms
@@ -113,6 +114,13 @@ AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Tests.HealingJoinedStartAxioms
 AvailableChainFGSAProofs.Tests.HealingJoinedStart
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
+AvailableChainFGSAProofs.Proofs.Shared.Relay
+AvailableChainFGSAProofs.Proofs.Healing.HeadRelay
+AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
+AvailableChainFGSAProofs.Tests.HealingHeadCap
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
+AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
+AvailableChainFGSAProofs.Tests.HealingRecoveryPermAxioms
 
 [GREEN]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
@@ -676,6 +684,12 @@ AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Tests.HealingJoinedStartAxioms
 AvailableChainFGSAProofs.Tests.HealingJoinedStart
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
+AvailableChainFGSAProofs.Proofs.Healing.HeadRelay
+AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
+AvailableChainFGSAProofs.Tests.HealingHeadCap
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
+AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
+AvailableChainFGSAProofs.Tests.HealingRecoveryPermAxioms
 
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs P-As
