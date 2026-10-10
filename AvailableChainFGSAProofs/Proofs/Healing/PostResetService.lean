@@ -234,6 +234,11 @@ theorem healing_postReset_service_step_at (i : Nat)
     ring
   obtain ⟨k, ht, _⟩ := fgsa_tick_total E rho hs hrec.base.delta x hx
     (4 * v + 6) (htime ▸ hGateHorizon)
+    (htime ▸ hrec.awake x hx (SA.gateTime p.toParams v) (by
+      have hg := postReset_synchronous_window p c E rho w hreset hv
+      change E.t_GST ≤ 4 * p.Δ * (v : Int) - p.Δ at hg
+      change E.t_GST ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
+      linarith [p.deltaPos]) hGateHorizon)
   rw [htime] at ht
   have hk := healing_postReset_tick_lt_cut E rho hs ht hGateCut
   have hgeom := healing_postReset_gate_geometry_at E rho hrec w hreset cap rowCovered

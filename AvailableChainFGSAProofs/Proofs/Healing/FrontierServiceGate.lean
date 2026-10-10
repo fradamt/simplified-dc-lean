@@ -61,7 +61,13 @@ theorem frontier_gate_guard_of_receipts [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
     push_cast
     linarith
-  obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hDelta hx (s + 1) (hqd.le.trans hgh)
+  have hawake := hrec.awake x hx (SA.voteTime p.toParams (s + 1)) (by
+    apply hgsts.trans
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]) (hqd.le.trans hgh)
+  obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hDelta hx (s + 1)
+    (hqd.le.trans hgh) hawake
   have hqi : iq < i := repair_idx_lt E rho hS hiq ht hqd
   have hv : { actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) with
       early := (storeAt p c E rho i x).base.early } = (fgsaAC E rho).gateView i x s :=
@@ -147,7 +153,8 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
   have hgh : SA.gateTime p.toParams s ≤ rho.horizon := hgate.trans hvh
   have hcovQ := frontier_Q_heads E rho hrec mono crossing writes hgst hErase hHeight
     hService hu hPhase hqv hvh hcap s (Nat.succ_le_of_lt hqs) hvs
-  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hrec.base.delta hx s (hvs.trans hvh)
+  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hrec.base.delta hx s
+    (hvs.trans hvh) (hrec.awake x hx _ hgsts (hvs.trans hvh))
   have hhl : headAtLabel p c E rho x s = some (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jz x).st (SA.voteTime p.toParams s)) s) := by
     unfold headAtLabel

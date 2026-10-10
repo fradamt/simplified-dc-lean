@@ -140,8 +140,13 @@ theorem healing_postReset_gate_guard_at_cut [Fintype V]
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ = 4 * p.Δ * (s : Int) + 5 * p.Δ
     push_cast
     ring
+  have hawake := hrec.awake x hx (SA.voteTime p.toParams (s + 1)) (by
+    apply hgst.trans
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]) (hqd.le.trans hGateHorizon)
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hrec.base.delta hx (s + 1)
-    (hqd.le.trans hGateHorizon)
+    (hqd.le.trans hGateHorizon) hawake
   have hqj : iq < j := repair_idx_lt E rho hS hiq ht hqd
   intro C hC lease hl
   have hresult : gateResult p c E rho x s = some (some C) := by
@@ -264,6 +269,10 @@ theorem healing_postReset_h6GateService [Fintype V]
     ring
   obtain ⟨j, ht, _⟩ := fgsa_tick_total E rho hS hrec.base.delta x hx (4 * s + 6)
     (htime ▸ hGateHorizon)
+    (htime ▸ hrec.awake x hx (SA.gateTime p.toParams s) (by
+      apply hgst.trans
+      change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+      linarith [p.deltaPos]) hGateHorizon)
   rw [htime] at ht
   let pre := clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)
   have hidx := fgsa_tickIdx_of_event p c E rho hS ht

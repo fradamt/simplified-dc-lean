@@ -1,0 +1,30 @@
+# P-H2 serial fragment; merge into the existing full audit key.
+{
+    'AvailableChainFGSAProofs.Tests.Axioms': {
+        'AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead': (
+            'AvailableChain.FGSA.Run.healing_enabledGate_of_fastWrite',
+            'AvailableChain.FGSA.Run.healing_fastWrite_joined',
+            'AvailableChain.FGSA.Run.opening_fastWrite_spec',
+            'AvailableChain.FGSA.Run.opening_gateService_of_fastWrite',
+            'AvailableChain.FGSA.Run.opening_gate_level',
+            'AvailableChain.FGSA.Run.opening_phaseBody_of_fast_key',
+            'AvailableChain.FGSA.Run.opening_result_slot',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks': (
+            'AvailableChain.FGSA.Run.healing_vote_awake_of_recovery',
+            'AvailableChain.FGSA.Run.opening_action_tick',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope': (
+            'AvailableChain.FGSA.Run.healing_recovery_durable',
+            'AvailableChain.FGSA.Run.healing_recovery_finality',
+            'AvailableChain.FGSA.Run.healing_recovery_joinedNow',
+            'AvailableChain.FGSA.Run.healing_recovery_restartFree',
+            'AvailableChain.FGSA.Run.healing_recovery_restart_bound',
+            'AvailableChain.FGSA.Run.healing_recovery_restart_cutoff',
+            'AvailableChain.FGSA.Run.healing_recovery_stamps',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope': (
+            'AvailableChain.FGSA.Run.healing_release_rows_expiry',
+        ),
+    },
+}

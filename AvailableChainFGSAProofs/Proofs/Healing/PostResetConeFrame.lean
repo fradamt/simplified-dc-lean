@@ -107,8 +107,14 @@ theorem postReset_cone_reset_held {s : Slot} (hs : w.sStar + 2 ≤ s)
       4 * p.Δ * (w.sStar : Int) + 5 * p.Δ
     push_cast
     ring
+  have hawake := hrec.awake x hx (SA.voteTime p.toParams (w.sStar + 1)) (by
+    apply h0r.synchronous.trans
+    change 4 * p.Δ * (w.sStar : Int) + p.Δ ≤
+      4 * p.Δ * ((w.sStar + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]) (heq ▸ hhor)
   obtain ⟨jq, hjq⟩ := healing_support_vote_tick E rho hS hrec.base.delta hx (w.sStar + 1)
-    (heq ▸ hhor)
+    (heq ▸ hhor) hawake
   rw [heq] at hjq
   have hjqj : jq ≤ j := (repair_idx_lt E rho hS hjq ht hqt).le
   have htransfer := healing_resetTransferCore E rho hrec xing cap source mono w h0r

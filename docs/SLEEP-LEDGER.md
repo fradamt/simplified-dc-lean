@@ -2342,3 +2342,48 @@ The package remains PREPARED. CLOSED requires the S-Ap claim transfer and
 P-ShA closure. Archived P-ShA round 4 (8384eb34) is NOT CLOSED: Shared.Export,
 Shared.Regimes and Tests.RetainedConsumers remain open. That supplier commit
 is not installed here; this branch keeps its base classifications and interfaces.
+
+### P-H2 — sleep wave 3 prepared scope
+
+Base: sleep-ph2 at 60cdcf652308640f3fadc39360e2b2042879f633.
+P-H1 and P-Fd are PREPARED inputs. P-H2 is PREPARED; CLOSED stays open.
+
+Internal T17 replacement: opening_action_tick requires awake at the exact opening.
+An honest node that stays asleep has no tick there. Recovery supplies awake from
+GST through the exact horizon. OpeningTicks holds the scheduled-run helper;
+OpeningServiceOne and FrontierOpen pass their existing time bounds.
+
+GF consumers: a nonempty scheduled fast write proves the exact gate join guard.
+OpeningGateRead uses freshness, the unjoined empty row, and fast-label uniqueness.
+It derives enabledGateAt before constructing GateService. An executed nonempty
+result supplies its raw branch through fgsa_gate_raw_of_nonempty. The direct W3
+clockPre gate-view bridge keeps its type. The slot bound uses non-strict pre-tick
+clock order; it does not need a join premise merely to compare slots.
+
+RR consumer: PostResetRawStep needs expiry membership only. ReleaseScope proves
+that membership in both join branches. It does not infer a strict release count
+from an unjoined clock. Strict release consumers still need their exact guard.
+
+T23: all 19 H2 calls now pass awake at the exact node and vote. T15, T16, T18,
+T19 and T22 also pass their exact recovery awake witnesses. These blocked high-depth
+files remain EXPECTED-FAIL; source edits alone do not close their proofs.
+
+H1 handoff: the held-receipt caller passes deadline awake and receipt idealization.
+The three slot-proposal callers derive the exact proposer restart cutoff from
+RecoverySleep₂.suffixNoRestart and their lower proposal bounds. RiseOneRise also
+uses RecoverySleep₂. Named receipt callers use receiptIdealization where required.
+Legacy NoRestart receipt and transfer suppliers remain explicit open inputs.
+
+RecoveryScope consumes RStoreDurable, RMonoAll and RStoreEpoch as supplied channels.
+Its proofs use exact event indices from actionCut to idxBefore for the receiver
+stamp epoch. A restart at GST is permitted. No global NoRestart is inferred.
+The direct Foundations.Store import was removed to keep the Healing layer valid.
+P-Fd supplies the concrete producers through the package assembly interface.
+
+Prepared validation: 85 TARGETS; 468 GREEN; 85 EXPECTED-FAIL. The target split is
+6 GREEN and 79 open. Six REQUIRED supplier failures retain P-ShA/S-Ap ownership.
+DCK PASS: 37 strict roots, 2,812 results, all 24 controls PASS.
+Complete compiled exports: 111 proof modules, 251 exports, 0 unaccepted.
+Layers: 72 baseline findings, 0 new. No public statement, protocol declaration,
+checker, baseline, or allowance changed. The canonical audit fragment is in
+scripts/dev-pkg/P-H2.coverage-fragment.txt for serial integration at close.

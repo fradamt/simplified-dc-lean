@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4-A input)
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J4-A input)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J4-A input)
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
@@ -224,7 +225,8 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
           (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix x) _) o' hK'
       rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
-    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hrec.base.idealization)
+    obtain ⟨Kfg', hKe', hpath'⟩ :=
+      healing_support_target_path (hroots := hrec.base.receiptIdealization)
       E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB' hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
@@ -425,7 +427,7 @@ theorem postReset_written_domain
       (SA.voteTime p.toParams (s + 1))).fg.F) K := by
     rw [clock_fg]
     exact Gen.Pure.block_preceq_trans (eraseFG_preceq hFB) hBKt
-  obtain ⟨Y, heY, hY⟩ := healing_block_receipt_sync (hroots := hrec.base.idealization)
+  obtain ⟨Y, heY, hY⟩ := healing_block_receipt_sync (hroots := hrec.base.receiptIdealization)
     p c E rho hrec.base.valid hN
     hrec.base.delta s hSync hx hy hiy K hKm hstamp hFK
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
@@ -968,8 +970,10 @@ theorem postReset_moving_lease_compat
     push_cast
     change 4 * p.Δ * (l : Int) + 3 * p.Δ < t at hafter
     nlinarith [p.deltaPos]
+  have hawake := healing_vote_awake_of_recovery hrec hy h0r.synchronous
+    (by omega : w.sStar ≤ s + 1) (hqt.le.trans hhor)
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hs hrec.base.delta hy (s + 1)
-    (hqt.le.trans hhor)
+    (hqt.le.trans hhor) hawake
   have hqa := healing_idx_lt_of_time_lt p c E rho hs hiq hiy hqt
   have hT : ∀ j u, j < iy → rho.events[j]? = some (.tick y u) → u ≤ t := by
     intro j u hj ht
@@ -1425,8 +1429,11 @@ theorem postReset_written_finality_compatible
         by_contra hn
         have ht := (V2.D.Engine.index_lt_read_length_iff hs _ hj).mp (Nat.lt_of_not_ge hn)
         exact (not_lt_of_ge ht) htime
-      obtain ⟨a, ha⟩ := healing_support_vote_tick E rho hs hrec.base.delta hx (r + 1)
+      have hawake := healing_vote_awake_of_recovery hrec hx h0r.synchronous
+        (by omega : w.sStar ≤ r + 1)
         (htime.le.trans ((hs.in_horizon _ (List.mem_of_getElem? hj)).2))
+      obtain ⟨a, ha⟩ := healing_support_vote_tick E rho hs hrec.base.delta hx (r + 1)
+        (htime.le.trans ((hs.in_horizon _ (List.mem_of_getElem? hj)).2)) hawake
       have hBH := hheads x (r + 1) _ hx (Nat.succ_le_succ (Nat.le_of_not_lt hr))
         (hcut.trans (hjb.le.trans (hbi.trans (Nat.le_succ i))))
         (written_head_label p c E rho hrec ha)
@@ -1496,8 +1503,10 @@ theorem postReset_written_gate_lease_compat
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
       4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
     linarith [p.deltaPos]
+  have hawake := healing_vote_awake_of_recovery hrec hy h0r.synchronous
+    (by omega : w.sStar ≤ s + 1) (hqt.le.trans hhor)
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hs hrec.base.delta hy (s + 1)
-    (hqt.le.trans hhor)
+    (hqt.le.trans hhor) hawake
   have hqa := healing_idx_lt_of_time_lt p c E rho hs hiq hiy hqt
   have hT : ∀ j t, j < iy → rho.events[j]? = some (.tick y t) →
       t ≤ SA.gateTime p.toParams (s + 1) := by

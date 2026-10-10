@@ -51,7 +51,7 @@ theorem postReset_head_receipt_at_cut [Fintype V]
       (V2.D.Run.idxBefore rho (SA.voteTime p.toParams r + p.Δ)) x).fg.F Kfg :=
     KitFG.preceq_trans (mono hrec.base.noRestart _ _ x hx hidx).1
       (cone_pool_lift (by rwa [heK]))
-  have hreceipt := healing_held_block_receipt (hroots := hrec.base.idealization)
+  have hreceipt := healing_held_block_receipt (hroots := hrec.base.receiptIdealization)
     p c E rho mono hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync hjz hz hx hKz hgstr
     (hdeadline.trans (hS.in_horizon _ (List.mem_of_getElem? ht)).2) hFearly
@@ -97,7 +97,7 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     ((le_add_of_nonneg_right hd.le).trans hvp).trans hv
   have hhorr : SA.voteTime p.toParams r ≤ rho.horizon := hvv.trans hvh
   have hawake := hrec.awake z hk _ hgstr hhorr
-  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr
+  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams r)) r
@@ -250,7 +250,7 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     ((le_add_of_nonneg_right hd.le).trans hvi).trans hv
   have hhori : SA.voteTime p.toParams i ≤ rho.horizon := hvv.trans hvh
   have hawake := hrec.awake z hk _ hgsti hhori
-  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori
+  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams i)) i

@@ -62,6 +62,7 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
     exact block_preceq_trans (eraseFG_preceq
       (repair_F_preceq_Z _ (cstoreInv_stateBefore E rho ip x))) (hZHeads z hz K hK)
   obtain ⟨jx, hjx⟩ := healing_support_vote_tick E rho hS hDelta hx r hhorr
+    (hrec.awake x hx _ hgstr hhorr)
   have hhl : headAtLabel p c E rho x r = some (headVote p (clock p
       (storeAt p c E rho jx x) (SA.voteTime p.toParams r)) r) := by
     unfold headAtLabel

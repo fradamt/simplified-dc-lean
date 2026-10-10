@@ -6768,3 +6768,7 @@
 # SupportTicks and SupportRelease now own the moved tick/emission/release helpers.
 # P-H1 consumer extension: local strict root now has 81 commands.
 # The same P-H1.coverage-fragment.txt contains the expanded serial fragment.
+
+# P-H2 prepared audit: Tests.HealingH2SleepAxioms checks 17 owned declarations.
+# Merge scripts/dev-pkg/P-H2.coverage-fragment.txt into the existing full key at close.
+# Blocked H2 consumers remain EXPECTED-FAIL and are not closed by this fragment.

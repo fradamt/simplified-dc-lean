@@ -169,7 +169,13 @@ theorem frontier_open_of_served
     exact ⟨he ▸ hQL, (healing_phase_height_le p c E rho hKT).trans (hcap i x hui hiv hx)⟩
   refine ⟨?_, common_entry_of_plateau E rho r m Qfg hh hsources, ?_⟩
   · intro x hx
-    obtain ⟨i, ht⟩ := opening_action_tick E rho hS hrec.base.delta hx r (hav.trans hvh)
+    have hqI : (q : Int) ≤ ((r * p.R : Nat) : Int) := by exact_mod_cast hqr
+    have hpa : SA.proposalTime p.toParams q ≤ p.actionTime r := by
+      have hd := p.deltaPos
+      change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
+      nlinarith
+    have hawake := hrec.awake x hx (p.actionTime r) (hgst.trans (hu.trans hpa)) (hav.trans hvh)
+    obtain ⟨i, ht⟩ := opening_action_tick E rho hS hrec.base.delta hx r (hav.trans hvh) hawake
     let nd := (fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)
     have hnd := opening_postClock_of_tick E rho hS ht
     obtain ⟨hdom, hlo⟩ := frontier_open_domain E rho hrec crossing hQfg hh hexact hu hqr hav hvh
@@ -182,12 +188,6 @@ theorem frontier_open_of_served
     obtain ⟨_, hfull, _, _⟩ := opening_source_body E rho hS ht hK
     have hband : (FGSA.controls p nd.st).lo ≤ (heightView p K).h :=
       hlo.trans (hh ▸ (fgCertificateLaws p).height.h_mono hQK)
-    have hpa : SA.proposalTime p.toParams q ≤ p.actionTime r := by
-      have hqI : (q : Int) ≤ ((r * p.R : Nat) : Int) := by exact_mod_cast hqr
-      have hd := p.deltaPos
-      change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
-      nlinarith
-    have hawake := hrec.awake x hx (p.actionTime r) (hgst.trans (hu.trans hpa)) (hav.trans hvh)
     obtain ⟨j, rSent, a, hr, hrow, hentry⟩ := rowCoverage x hx r nd hnd K hK hfull hband hawake
     exact ⟨K, nd, j, rSent, a, hnd, hK, hfull, hQfg ▸ eraseFG_preceq hQK, hr, hrow, hentry⟩
   · intro x K hx hK

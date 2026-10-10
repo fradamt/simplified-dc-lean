@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
 
@@ -30,7 +31,7 @@ theorem frontierSearch_period_bound (p : Params) : 8 * p.Δ ≤ P p := by
 The initial seed and every later seed keep the frozen first-label qualification. -/
 theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar u D : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (perm : TPerm p c E rho)
@@ -62,7 +63,7 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
   have hgateD := hgate.trans hbudget0
   obtain ⟨iq, Qfg, hiq, hQmem, hErase⟩ := healing_rise_one_gate_copy p c E rho
     hrec.base.valid.toScheduleWellFormed hexact (hgateD.trans hp.2.1) hQ.1.2
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec crossing hp huq hgateD
+  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec.toRecovery₂ crossing hp huq hgateD
     hQ hErase hexact
   by_cases hhigh : (heightView p Qfg).h = m
   · exact ⟨_, huq.trans hqg, hgateD,
@@ -113,7 +114,8 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
       have ha := actionTime_periodW p r
       linarith [p.deltaPos]
     have hs := hrepair _ hps s _ hls le_rfl hnew
-    have hheights := frontierSearch_proposal_heights E rho hrec crossing hp hut hsD hnew rfl hs
+    have hheights := frontierSearch_proposal_heights E rho hrec.toRecovery₂ crossing hp hut
+      hsD hnew rfl hs
     have hh' : (heightView p X).h = m := Nat.le_antisymm hheights.2 hh
     have htq : SA.proposalTime p.toParams q < SA.proposalTime p.toParams s := by
       linarith
@@ -179,8 +181,15 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
     have hsHor : SA.proposalTime p.toParams s ≤ rho.horizon := by
       change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hsD
       linarith [p.deltaPos, hp.2.1]
-    obtain ⟨X, hnew, hXs, _⟩ := healing_promotion_slot_proposal E rho hrec hslotS
-      (hbGST.trans hloS.le) hsHor
+    have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+      have hlo := hloS
+      dsimp only [b] at hlo
+      change (r : Time) * P p + 4 * p.Δ < 4 * p.Δ * (s : Int) at hlo
+      change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+      nlinarith [p.deltaPos]
+    have hjoin := healing_recovery_restart_cutoff hrec hslotS.2 hsHor hcut
+    obtain ⟨X, hnew, hXs, _⟩ := healing_promotion_slot_proposal E rho hrec.toRecovery₂ hslotS
+      (hbGST.trans hloS.le) hsHor hjoin
     have hslabel : r * p.R + 2 ≤ s := by
       dsimp only [b] at hloS
       change (r : Time) * (4 * (p.R : Time) * p.Δ) + 4 * p.Δ <
@@ -215,7 +224,7 @@ DC: SAME finite first stop or the complete seed by the frozen gap deadline.
 E_gF_eq is used only under LivenessBoundW. The horizon is closed. -/
 theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (perm : TPerm p c E rho)
