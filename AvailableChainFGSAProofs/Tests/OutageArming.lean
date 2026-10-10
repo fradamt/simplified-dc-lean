@@ -1,7 +1,10 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingArith
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate -- shake: keep (slow admission)
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain -- shake: keep (axiom lines)
+public import AvailableChainFGSAProofs.Proofs.Outage.Arming
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingKernel
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingBatch
+
+public section
 
 set_option linter.privateModule false
 
@@ -80,13 +83,73 @@ example (p : Params) {n : Nat} (v : GridCO.State n .root) (r : Slot) (B : Block)
     (hslow : GridCO.slowEligible p.toParams.engine v r B = true) :
     SA.releaseThreshold p.toParams ∈
       @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine n .root v r B :=
-  arming_admission p v r B (Or.inr hslow)
+  by
+    simp only [GridCO.admissionLevels]
+    change SA.releaseThreshold p.toParams ∈
+      (if decide (SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams v r B) ||
+        GridCO.slowEligible p.toParams.engine v r B then [SA.releaseThreshold p.toParams] else [])
+    simp [hslow]
 
-#print axioms cut_at_gate
-#print axioms pending_after_horizon
-#print axioms ArmingData_def
-#print axioms fast_arming
-#print axioms slow_arming
-#print axioms pending_gate_lease_or_F
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.cut_at_gate
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.pending_after_horizon
+#print axioms AvailableChain.FGSA.Run.ArmingData_def
+/-- Restart clears saved rows. A prior epoch cannot supply the slow window. -/
+theorem saved_rows_erased_at_restart (p : Params) (st : State p.n) (w : Time) (s : Slot) :
+    GridCO.savedGenuine (acRestart p st w).base s = none := by
+  unfold GridCO.savedGenuine
+  rw [acRestart_genuine]
+  rfl
+
+/-- Same-time wake precedes the gate's read. The strict-before read is insufficient. -/
+theorem gate_reads_after_wake {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
+    (hi : IsGateTick p c rho i x s) :
+    storeAt p c E rho i x = (V2.D.Run.stateAfterRestartsAt E rho
+      (SA.gateTime p.toParams s) x).st := by
+  exact congrArg Node.st (V2.D.Engine.stateBefore_tick_eq_stateAfterRestartsAt hs hi)
+
+/-- Full sleep excludes the old all-honest tick conclusion. -/
+theorem asleep_has_no_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hE : V2.D.ExecutionValid E rho) {x : V} {t : Time} (ha : E.awake x t = false) :
+    V2.Event.tick x t ∉ rho.events := by
+  intro ht
+  have hw := hE.tick_awake x t ht
+  rw [ha] at hw
+  cases hw
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.saved_rows_erased_at_restart
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.gate_reads_after_wake
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.asleep_has_no_tick
+#print axioms AvailableChain.FGSA.Run.arming_tick_exists
+#print axioms AvailableChain.FGSA.Run.arming_block_early
+#print axioms AvailableChain.FGSA.Run.arming_healthy_batch
+#print axioms AvailableChain.FGSA.Run.arming_enabled_of_pass
+#print axioms AvailableChain.FGSA.Run.arming_clean_mem
+#print axioms AvailableChain.FGSA.Run.arming_clean_of_tick
+#print axioms AvailableChain.FGSA.Run.arming_max_label
+#print axioms AvailableChain.FGSA.Run.arming_origin_of_clean
+#print axioms AvailableChain.FGSA.Run.arming_origin
+#print axioms AvailableChain.FGSA.Run.arming_store_succ_on
+#print axioms AvailableChain.FGSA.Run.arming_store_succ
+#print axioms AvailableChain.FGSA.Run.arming_clock_offGate_fields
+#print axioms AvailableChain.FGSA.Run.arming_saved_interval_on
+#print axioms AvailableChain.FGSA.Run.arming_saved_interval
+#print axioms AvailableChain.FGSA.Run.arming_slow_saved_on
+#print axioms AvailableChain.FGSA.Run.arming_slow_eligible_on
+#print axioms AvailableChain.FGSA.Run.arming_slow_saved
+#print axioms AvailableChain.FGSA.Run.arming_fast_awake
+#print axioms AvailableChain.FGSA.Run.arming_fast_restart_free
+#print axioms AvailableChain.FGSA.Run.arming_receiver_window
+#print axioms AvailableChain.FGSA.Run.arming_receiver_times
+#print axioms AvailableChain.FGSA.Run.arming_receiver_start_epoch
+#print axioms AvailableChain.FGSA.Run.arming_receiver_epoch
+#print axioms AvailableChain.FGSA.Run.arming_receiver_enabled
+#print axioms AvailableChain.FGSA.Run.arming_receiver_gate_epoch
+#print axioms AvailableChain.FGSA.Run.arming_tick_store_on
+#print axioms AvailableChain.FGSA.Run.arming_emitted_head_fields
+#print axioms AvailableChain.FGSA.Run.arming_proposal_receipt_on
+#print axioms AvailableChain.FGSA.Run.arming_head_receipt_on
+#print axioms AvailableChain.FGSA.Run.arming_batch_receipt_on
+#print axioms AvailableChain.FGSA.Run.arming_prefix_batch_receipt_on
 
 end AvailableChain.FGSA.Run.Tests.OutageArming

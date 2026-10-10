@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingStep
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingHistory
 
 public section
 
@@ -92,26 +93,28 @@ theorem arming_saved_map {n : Nat} {v w : GridCO.State n .root} {F C : Block} {u
 Plan O-ARM §6.4. Class (iii). DC: INTENTIONAL; between the cut and the
 pending gate a saved Clean result below `D` stays saved: off-gate ticks keep
 the saved list, and a delivery keeps it or filters it by an F below `D`. -/
-theorem arming_saved_interval {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
-    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+theorem arming_saved_interval_on {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho)
     {b₀ : Time} {l : Slot} {D : Block} (hl : SA.gateTime p.toParams l ≤ b₀)
     (y : V) (u : Slot) {Cu : Block} (hCuD : Block.Preceq Cu D)
     (hF : ∀ k, k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
       Block.Preceq (F_at p c E rho k y) D)
     (h₀ : GridCO.savedGenuine (storeAt p c E rho (timeIdx rho b₀) y).base u = some (some Cu))
     {i : Nat} (hi₀ : timeIdx rho b₀ ≤ i)
-    (hi : i ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1))) :
+    (hi : i ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)))
+    (hEpoch : V2.D.restartFree rho y (timeIdx rho b₀) i) :
     GridCO.savedGenuine (storeAt p c E rho i y).base u = some (some Cu) := by
   induction i, hi₀ using Nat.le_induction with
   | base => exact h₀
   | succ k hk ih =>
     have hkd : k < V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) :=
       lt_of_lt_of_le (Nat.lt_succ_self k) hi
-    have hprev := ih hkd.le
+    have hprev := ih hkd.le (hEpoch.mono le_rfl (Nat.le_succ k))
     have hkl : k < rho.events.length :=
       lt_of_lt_of_le hkd (arming_idxBefore_le_length rho _)
     have he : rho.events[k]? = some rho.events[k] := List.getElem?_eq_getElem hkl
-    rcases arming_store_succ (E := E) hnr he y with heq | ⟨t, het, heq⟩ | ⟨o, t, het, heq⟩
+    rcases arming_store_succ_on (E := E) he y
+        (hEpoch.mono hk (Nat.le_refl (k + 1))) with heq | ⟨t, het, heq⟩ | ⟨o, t, het, heq⟩
     · rw [heq]
       exact hprev
     · obtain ⟨hb, hd⟩ := arming_event_window hs he hk hkd
@@ -129,6 +132,70 @@ theorem arming_saved_interval {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
         change Block.Preceq (eraseFG (storeAt p c E rho (k + 1) y).fg.F) D at hFk
         rw [heq] at hFk
         exact block_compatible_of_common hCuD hFk
+
+/-- The old no-restart helper follows from the exact receiver epoch helper. -/
+theorem arming_saved_interval {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+    {b₀ : Time} {l : Slot} {D : Block} (hl : SA.gateTime p.toParams l ≤ b₀)
+    (y : V) (u : Slot) {Cu : Block} (hCuD : Block.Preceq Cu D)
+    (hF : ∀ k, k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
+      Block.Preceq (F_at p c E rho k y) D)
+    (h₀ : GridCO.savedGenuine (storeAt p c E rho (timeIdx rho b₀) y).base u = some (some Cu))
+    {i : Nat} (hi₀ : timeIdx rho b₀ ≤ i)
+    (hi : i ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1))) :
+    GridCO.savedGenuine (storeAt p c E rho i y).base u = some (some Cu) :=
+  arming_saved_interval_on hs hl y u hCuD hF h₀ hi₀ hi
+    (hnr.restartFree y (timeIdx rho b₀) i)
+
+/-- Only the current receiver's saved rows are read by the pending slow test.
+P-Cl1 supplies each row at the cut. No row from a prior epoch is used. -/
+theorem arming_slow_saved_on {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) {b₀ : Time} {l : Slot} {B D : Block}
+    (hl : SA.gateTime p.toParams l ≤ b₀) {y : V} {i : Nat}
+    (hi₀ : timeIdx rho b₀ ≤ i)
+    (hi : i ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)))
+    (hEpoch : V2.D.restartFree rho y (timeIdx rho b₀) i)
+    (hF : ∀ k, k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
+      Block.Preceq (F_at p c E rho k y) D)
+    (hrows : ∀ a < p.k - 1, ∃ Ca,
+      GridCO.savedGenuine (storeAt p c E rho (timeIdx rho b₀) y).base
+        (l + 1 - (a + 1)) = some (some Ca) ∧
+      Block.Preceq B Ca ∧ Block.Preceq Ca D) :
+    ∀ a < p.k - 1, ∃ Ca,
+      GridCO.savedGenuine (FGSA.clockPre p (storeAt p c E rho i y)
+        (SA.gateTime p.toParams (l + 1))).base (l + 1 - (a + 1)) = some (some Ca) ∧
+      Block.Preceq B Ca := by
+  intro a ha
+  obtain ⟨Ca, hCa, hBCa, hCaD⟩ := hrows a ha
+  refine ⟨Ca, ?_, hBCa⟩
+  rw [savedGenuine_congr (clockPre_genuine p _ _)]
+  exact arming_saved_interval_on hs hl y _ hCaD hF hCa hi₀ hi hEpoch
+
+/-- The current epoch's k-1 rows make the pending slow test pass. -/
+theorem arming_slow_eligible_on {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) {b₀ : Time} {l : Slot} {B D : Block}
+    (hl : SA.gateTime p.toParams l ≤ b₀) {y : V} {i : Nat}
+    (hi₀ : timeIdx rho b₀ ≤ i)
+    (hi : i ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)))
+    (hEpoch : V2.D.restartFree rho y (timeIdx rho b₀) i) (hk : p.k ≤ l + 2)
+    (hF : ∀ k, k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
+      Block.Preceq (F_at p c E rho k y) D)
+    (hrows : ∀ a < p.k - 1, ∃ Ca,
+      GridCO.savedGenuine (storeAt p c E rho (timeIdx rho b₀) y).base
+        (l + 1 - (a + 1)) = some (some Ca) ∧
+      Block.Preceq B Ca ∧ Block.Preceq Ca D) :
+    GridCO.slowEligible p.toParams.engine
+      (FGSA.actView (FGSA.clockPre p (storeAt p c E rho i y)
+        (SA.gateTime p.toParams (l + 1)))) (l + 1) B = true := by
+  have hwin := arming_slow_saved_on hs hl hi₀ hi hEpoch hF hrows
+  apply Bool.and_eq_true_iff.mpr
+  refine ⟨decide_eq_true hk, List.all_eq_true.mpr ?_⟩
+  intro a ha
+  obtain ⟨Ca, hCa, hBCa⟩ := hwin a (List.mem_range.mp ha)
+  change GridCO.savedGenuine (FGSA.actView (FGSA.clockPre p (storeAt p c E rho i y)
+    (SA.gateTime p.toParams (l + 1)))) (l + 1 - (a + 1)) = some (some Ca) at hCa
+  rw [hCa]
+  exact hBCa
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan O-ARM §4 field 9 (slow clause), §6.4. Class (iii). DC: INTENTIONAL;
@@ -172,7 +239,7 @@ theorem arming_slow_saved {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     ((arming_gate_le_iff p _ _).mpr hul).trans hl
   have hsb : SA.gateTime p.toParams s ≤ b₀ :=
     ((arming_gate_le_iff p _ _).mpr (by simp only [Slot] at hsu ⊢; omega)).trans hub
-  obtain ⟨Cu, hCu, ⟨q, hq, _⟩, _, _⟩ := hcleanGate _ y hub hy
+  obtain ⟨Cu, hCu, ⟨q, hq, hpass⟩, _, _⟩ := hcleanGate _ y hub hy
   have hqI : q < timeIdx rho b₀ := (arming_lt_timeIdx_iff hs b₀ hq).mpr hub
   have hresq : gateResultAt p c E rho q = some (some Cu) :=
     (gateResultAt_eq_gateResult p c E rho hs hq).trans hCu
@@ -181,7 +248,8 @@ theorem arming_slow_saved {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   have hBCu : Block.Preceq B Cu :=
     block_preceq_trans hBC ((hordered u₀ y s _ C₀ Cu hu₀ hy hsb hub hC₀ hCu).1
       (by simp only [Slot] at hsu ⊢; omega))
-  have hCuD : Block.Preceq Cu D := hmax _ Cu ⟨q, hqI, y, hq, hresq⟩ hul
+  have hCuD : Block.Preceq Cu D :=
+    hmax _ Cu ⟨q, hqI, y, hq, (arming_enabled_of_pass hq hpass).2, hresq⟩ hul
   have hkeep := hsavedKeep (timeIdx rho b₀) y le_rfl hy q _ Cu hqI hq hresq
   have hsaved := arming_saved_interval hs hnr hl y _ hCuD (fun k hk => hF k y hk hy) hkeep
     (arming_timeIdx_le_idxBefore rho hcut) le_rfl
