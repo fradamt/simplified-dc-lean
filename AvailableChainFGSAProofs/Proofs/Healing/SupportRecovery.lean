@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Join
@@ -163,6 +164,33 @@ theorem healing_recovery_joined (E : Generic.Env V)
   · intro u _ _ hu
     obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp hu
     exact (healing_recovery_restart_bound E rho hrec hx hk).trans hcut
+
+/-- The finite recovery suffix is joined at every read after recoveryStart. -/
+theorem healing_joined_at_or_after_start (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {x : V} (hx : x ∈ rho.honest)
+    {t : Time} (hready : recoveryStart p E ≤ t) (hhor : t ≤ rho.horizon) :
+    joinedAt p E rho x (slotAt p t) t := by
+  have hlo := healing_recovery_start_lower (p := p) E
+  exact healing_recovery_joined E rho hrec hx (healing_ready_read_cutoff E hready)
+    (by linarith [p.deltaPos]) hhor
+
+omit [DecidableEq V] [Fintype V] in
+/-- A proposal after recoveryStart supplies the exact prior-batch window. -/
+theorem healing_ready_proposal_window (E : Generic.Env V) {s : Slot}
+    (hready : recoveryStart p E ≤ SA.proposalTime p.toParams s) :
+    HealingWindow p E 2 s :=
+  healing_window_of_cut E (healing_ready_proposal_cutoff E hready)
+
+/-- At an actual bounded tick, the environmental join enables the duty guard. -/
+theorem healing_joinedNow_at_or_after_start (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {i : Nat} {x : V} {t : Time}
+    (hx : x ∈ rho.honest) (hi : rho.events[i]? = some (.tick x t))
+    (hready : recoveryStart p E ≤ t) (hhor : t ≤ rho.horizon) :
+    joinedNow p (clock p (storeAt p c E rho i x) t) = true := by
+  apply healing_recovery_joinedNow hrec hx hi hhor
+  exact healing_ready_read_cutoff E hready
 
 /-- The joined suffix includes every honest HEAD voter after the previous-slot cutoff. -/
 theorem healing_recovery_joinedHonest (E : Generic.Env V)
