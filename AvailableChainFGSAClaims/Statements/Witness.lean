@@ -17,7 +17,7 @@ namespace AvailableChain.FGSA.Run
 `b` is `sStar`; μ is a run function, not a field (21:3006–3009; 22:188–191).
 The H0 constraints on these data are added in F0.8b. -/
 structure HealingWitness where
-  /-- First action round at or after GST (21 H.22:3046–3047; 22 §1:228–229). -/
+  /-- First action round at or after recoveryStart (21 H.22:3046–3047; 22 §1:228–229). -/
   rG : Nat
   /-- Inclusive cut a_(r_G+2) (21 H.22:3047; 22 §1:229). -/
   u₀ : Time
@@ -47,7 +47,7 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- H.11 (21:1579–1582), L6: heights of NONEMPTY signed honest rows
-whose source vote precedes GST. Consumers: muOf, H0Reset, H.13. -/
+whose source vote precedes recoveryStart. Consumers: muOf, H0Reset, H.13. -/
 def oldRowHeights : Set Nat := {h | ∃ j y r, ∃ (a : RowWire p.n) (e : BlockId),
   HonestRowAt p c E rho j y r a ∧ namedEntry a.payload.height_pair = some (h, e) ∧
     SA.voteTime p.toParams (r * p.R) < recoveryStart p E}

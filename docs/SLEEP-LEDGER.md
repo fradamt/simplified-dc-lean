@@ -6902,3 +6902,24 @@ exporters remain owned work. No future invariant is declared proved.
 - Lead 2026-10-10 15:22: merged sleep-pas5 cc0ccf1d (P-As r5) as PREPARED, 44/66 GREEN; review rev-pas5-astra MERGE-AS-PREPARED. OutageContinuationInhabit stays OPEN (fixture not sleep-valid; r6 replaces it). FAST port in r6.
 
 - Lead 2026-10-10 15:51: merged sleep-pas6 18d690c2 (P-As r6) as PREPARED, 45/66 GREEN; FAST CLOSED; outage fixture sleep-valid; review rev-pas6-astra MERGE-AS-PREPARED. Open: P-Ou closure/export (incl. Outage/Export → GrowthSuppliers), HTimeClaim (healing).
+
+## P-H1 Round 7 — JOINED-START statements (2026-10-10)
+
+Approval: RULING JOINED-START, lead 2026-10-10 16:45; Appendix 1 of
+joined-start-plan.md. Delivery, phase services, proposal gap, attempts,
+phase settlement, row permission and renewed promotion start at recoveryStart.
+ResetArrival and its full companion use that origin with the existing budgets.
+Saved-window GST bounds, structural reads, witness fields and top-level
+healing deadlines and constants keep their text.
+
+The changed shallow entries are pinned in docs/api/fgsa-joined-start-pins.json.
+Each reason is "JOINED-START (lead ruling 2026-10-10)". Current snapshots
+replace the old freeze gate on this base (4f134e83); no frozen baseline or
+checker allowance is changed. The shallow manifest uses the required
+V2Manifest --scope fgsa --write command. The current deep and auxiliary
+review products are regenerated for the current checker.
+
+Claims builds with its tests. Three inherited test adapters required the
+existing RecoverySleep₂ and recoveryStart forms; HealingW now consumes
+the corrected reset interfaces directly. Proof-family callers stay with
+P-H1/P-H2/P-As according to the package map and the Round 7 handoff.
