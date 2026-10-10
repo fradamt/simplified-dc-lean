@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Finality.Kernel
-public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
+public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 public import AvailableChainFGSAClaims.Statements.Packages.Healing
 
 public section
@@ -15,7 +15,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL same-witness join.
 One witness supplies the input, start and core services. -/
 theorem finality_kernel_prem_W_of_joined
-    (hR : FinalityVoteReceipts E rho) (G ΔF : Time) (pt : PtR)
+    (G ΔF : Time) (pt : PtR)
     (h : KernelJoinedPrem p c G ΔF E rho pt) :
     ∃ w : HealingWitness, KernelPrem_W p c G ΔF E rho ⟨w, pt.r⟩ := by
   obtain ⟨w, input, start⟩ := h.start
@@ -26,13 +26,13 @@ theorem finality_kernel_prem_W_of_joined
     start := start
     hhor := h.hhor
     input := input
-    services := fgsa_coreServices E rho h.set.base w hR }⟩
+    services := fgsa_coreServices E rho h.set.base w (finality_vote_receipts h.set) }⟩
 
 /-- Paper 00:1119–1134, 22:1171–1305; plan §4: join the W kernel.
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention and receipt.
 One witness supplies the input, start and services; the round is unchanged. -/
 theorem finality_kernel_joined_W_of
-    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (hServices : FinalityActionReceipts p c E rho)
     (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt : PtR)
     (h : KernelJoinedPrem p c G ΔF E rho pt)
     (hsel : TRowsSelect p c E rho)
@@ -65,7 +65,7 @@ theorem finality_kernel_joined_W_of
         RowWire.toRow? a = some row → row.height_pair = .vote h T timeout →
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     KernelConclusion_W p c E rho ΔF pt.r := by
-  obtain ⟨w, hK⟩ := finality_kernel_prem_W_of_joined p c E rho hR G ΔF pt h
+  obtain ⟨w, hK⟩ := finality_kernel_prem_W_of_joined p c E rho G ΔF pt h
   exact finality_kernel_W_of p c E rho hServices G ΔF hδ ⟨w, pt.r⟩ hK
     hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore
 

@@ -33,7 +33,7 @@ DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 The same healing input and first kernel deadline select the second window.
 Strict growth follows at its honest opening proposer, including first-window equality. -/
 theorem above_frontier_FE_W_of
-    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (hServices : FinalityActionReceipts p c E rho)
     (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : AboveFrontierPrem_W p c G ΔF .recFE g w E rho pt)
@@ -84,7 +84,7 @@ theorem above_frontier_FE_W_of
   obtain ⟨_, r₁, A₁, Afg₁, U₁, d₁, D₁, _, _, _, _, htr₁, hA₁, heA₁, _, _, hd₁,
     high₁, _, _, hU₁, eqD₁, hD₁, _, _, _, _, hacc₁⟩ :=
     (ForwardWitness_W_def p c E rho ΔF g w pt.t).mp
-      (forward_witness_FE_of p c E rho hR hServices G ΔF g w hδ pt first
+      (forward_witness_FE_of p c E rho hServices G ΔF g w hδ pt first
         hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore)
   have hcut : pt.t < p.actionTime r₁ := by
     rw [kmid_period_eq] at htr₁
@@ -109,7 +109,7 @@ theorem above_frontier_FE_W_of
   obtain ⟨_, r₂, A₂, Afg₂, U₂, _, D₂, _, _, _, _, _, hA₂, heA₂, _, _, hd₂,
     _, _, _, hU₂, _, hD₂, _, _, _, hSA₂, hacc₂⟩ :=
     (ForwardWitness_W_def p c E rho ΔF g w D₁).mp
-      (forward_witness_FE_of p c E rho hR hServices G ΔF g w hδ ⟨D₁⟩ second
+      (forward_witness_FE_of p c E rho hServices G ΔF g w hδ ⟨D₁⟩ second
         hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore)
   have hs := h.set.core.base.valid.toScheduleWellFormed
   let x := V2.D.proposerOf rho (fgsaInterface p c) (r₂ * p.R)
@@ -149,7 +149,7 @@ DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 The same healing input and first kernel deadline select the second window.
 Strict growth follows at its honest opening proposer, including first-window equality. -/
 theorem above_frontier_F4_W_of
-    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (hServices : FinalityActionReceipts p c E rho)
     (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : AboveFrontierPrem_W p c G ΔF .recF4 g w E rho pt)
@@ -200,7 +200,7 @@ theorem above_frontier_F4_W_of
       core := h.set.core, bound := h.set.bound
       recur := F4_W_implies_FE_W h.set.recur }
     input := h.input, start := h.start, firstHorizon := h.firstHorizon, hhor := h.hhor }
-  exact above_frontier_FE_W_of p c E rho hR hServices G ΔF g w hδ pt hFE
+  exact above_frontier_FE_W_of p c E rho hServices G ΔF g w hδ pt hFE
     hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore hNames hOrigin
 
 end AvailableChain.FGSA.Run

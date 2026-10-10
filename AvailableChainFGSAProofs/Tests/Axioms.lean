@@ -2368,3 +2368,5 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.finality_tail_head_receipts
 #print axioms AvailableChain.FGSA.Run.finality_scoped_vote_receipts
 #print axioms AvailableChain.FGSA.Run.finality_full_vote_at_scoped_read
+
+#print axioms AvailableChain.FGSA.Run.finality_vote_receipts

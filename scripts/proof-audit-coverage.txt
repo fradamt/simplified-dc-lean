@@ -4848,6 +4848,7 @@
             'AvailableChain.FGSA.Run.finality_action_receipts',
             'AvailableChain.FGSA.Run.finality_tail_head_receipts',
             'AvailableChain.FGSA.Run.finality_scoped_vote_receipts',
+            'AvailableChain.FGSA.Run.finality_vote_receipts',
             'AvailableChain.FGSA.Run.finality_full_vote_at_scoped_read',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope': (

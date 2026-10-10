@@ -1,5 +1,6 @@
-# P-Fi round 3: scoped suppliers proved; public vote adapter and Shared genesis API open.
+# P-Fi round 4: TVOTE-CUT receipts and public kernel AC service proved.
 [TARGETS]
+AvailableChainFGSAProofs.Tests.TVoteCut
 AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 AvailableChainFGSAClaims.Tests.FinalityGST
 AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
@@ -47,6 +48,7 @@ AvailableChainFGSAProofs.Proofs.Finality.TickRead
 AvailableChainFGSAProofs.Tests.FinalityEpochs
 AvailableChainFGSAProofs.Tests.Axioms
 [GREEN]
+AvailableChainFGSAProofs.Tests.TVoteCut
 AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAClaims.Tests.FinalityGST

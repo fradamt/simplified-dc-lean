@@ -78,7 +78,7 @@ theorem finality_liveness_of_forward_W {G ΔF : Time} {g : Nat} {w : HealingWitn
 /-- Paper 22:1371–1400; firstfin plan §5 B. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL local W liveness; the inherited kernel inputs remain inline. -/
 theorem finality_liveness_FE_W_of
-    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (hServices : FinalityActionReceipts p c E rho)
     (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt)
@@ -119,13 +119,13 @@ theorem finality_liveness_FE_W_of
         (finalityView p K).h_F < (heightView p U).h) ∧
       ∀ x ∈ rho.honest, AcceptsFinalBefore p c E rho x U (pt.t + W_W p ΔF g) := by
   exact finality_liveness_of_forward_W p c E rho h
-    (forward_witness_FE_of p c E rho hR hServices G ΔF g w hδ pt h
+    (forward_witness_FE_of p c E rho hServices G ΔF g w hδ pt h
       hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore)
 
 /-- Paper 22:1371–1400; firstfin plan §5 B. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL local W liveness; the inherited kernel inputs remain inline. -/
 theorem finality_liveness_F4_W_of
-    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (hServices : FinalityActionReceipts p c E rho)
     (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : FinalityLivenessPrem_W p c G ΔF .recF4 g w E rho pt)
@@ -171,7 +171,7 @@ theorem finality_liveness_F4_W_of
       bound := h.set.bound
       recur := F4_W_implies_FE_W h.set.recur }
     input := h.input, start := h.start, hhor := h.hhor }
-  exact finality_liveness_FE_W_of p c E rho hR hServices G ΔF g w hδ pt hFE
+  exact finality_liveness_FE_W_of p c E rho hServices G ΔF g w hδ pt hFE
     hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore
 
 end AvailableChain.FGSA.Run
