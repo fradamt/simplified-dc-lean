@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed -- shake: keep (terminal promotion suppliers)
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate -- shake: keep (Recovery₂Aligned.gamma_eq supplier)
 
 public section
 
@@ -15,7 +14,8 @@ private theorem promotion_terminal_grid_upper (p : Params) (G z : Time) (s : Slo
   linarith [(fgsa_gamma_bounds p G).1]
 
 private theorem promotion_terminal_gap_aligned (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂Aligned p c E rho G ΔF) (r : Nat)
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (haligned : Γ p G = G)
+    (r : Nat)
     (hgst : E.t_GST ≤ p.actionTime r)
     (hhor : p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ ≤ rho.horizon) :
     (r : Time) * P p + 2 * P p - 4 * p.Δ + G ≤ rho.horizon ∧
@@ -25,7 +25,7 @@ private theorem promotion_terminal_gap_aligned (E : Generic.Env V) (rho : V2.D.R
       Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s ∧
       SA.gateTime p.toParams s ≤
         p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ := by
-  have hclass0 : G = Γ p G := hrec.gamma_eq.symm
+  have hclass0 : G = Γ p G := haligned.symm
   have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
   have hP : 8 * p.Δ ≤ P p := by change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ; nlinarith [p.deltaPos]
   have ha := actionTime_periodW p r
@@ -69,19 +69,35 @@ private theorem promotion_terminal_gap (E : Generic.Env V) (rho : V2.D.Run V (fg
       Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s ∧
       SA.gateTime p.toParams s ≤
         p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ := by
-  have h := promotion_terminal_gap_aligned E rho (recovery₂_roundUp hrec) r hgst
+  have hle := (fgsa_gamma_bounds p G).1
+  have hround : Recovery₂ p c E rho (Γ p G) ΔF := by
+    refine ⟨hrec.sync, hrec.deltaF, ?_, hrec.base, hrec.fault, hrec.awake,
+      hrec.gapPos.trans hle⟩
+    intro t hstart hhor
+    obtain ⟨s, hlo, hhi, hs⟩ := hrec.gap t hstart (by linarith)
+    exact ⟨s, hlo, by linarith, hs⟩
+  have h := promotion_terminal_gap_aligned E rho hround (fgsa_gamma_idem p G) r hgst
     (by simpa only [fgsa_gamma_idem] using hhor)
   rw [fgsa_gamma_idem] at h
   exact ⟨by linarith [h.1, (fgsa_gamma_bounds p G).1], h.2⟩
 
 /-- Blueprint 21 H.10:1356–1419; plan item S5 PA-ASSEMBLY N(1).
 DC: INTENTIONAL the terminal horizon supplies promotion and the strict first
-receipt. Recovery₂Aligned.gamma_eq supplies internal alignment. Assembly supplies RMono, RXing,
+receipt. The private rounded recurrence supplies alignment. Assembly supplies RMonoAll, RXing,
 TPerm, the progress fold, and the standing INLINE row/coverage/quorum facts. -/
 theorem healing_renewedPromotion_terminal (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (services : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (perm : TPerm p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (perm : TPerm p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
       max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
       ∀ x ∈ rho.honest, HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF))
@@ -114,7 +130,7 @@ theorem healing_renewedPromotion_terminal (E : Generic.Env V)
   · exact Or.inl ⟨i, ev, hi, hev, heff, htime⟩
   have har : E.t_GST ≤ p.actionTime r := hgst.trans hp.1
   obtain ⟨_, s, hlo, hhi, hslot0, _hgate⟩ :=
-    promotion_terminal_gap E rho hrec r har hhor
+    promotion_terminal_gap E rho hrec.toRecovery₂ r har hhor
   have hproposalHor : SA.proposalTime p.toParams s ≤ rho.horizon := by
     linarith [p.deltaPos]
   have hproposalGST : E.t_GST ≤ SA.proposalTime p.toParams s := by
@@ -124,8 +140,23 @@ theorem healing_renewedPromotion_terminal (E : Generic.Env V)
       change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
       nlinarith [p.deltaPos]
     linarith [p.deltaPos]
-  obtain ⟨X, hnew, hslot, _⟩ := healing_promotion_slot_proposal E rho hrec hslot0
-    hproposalGST hproposalHor
+  have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+    unfold slotStartZ
+    have ha := actionTime_periodW p r
+    have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
+    have hP : 8 * p.Δ ≤ P p := by
+      change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
+      nlinarith [p.deltaPos]
+    change (r : Time) * P p + 2 * P p ≤ 4 * p.Δ * (s : Int) at hlo
+    nlinarith [p.deltaPos]
+  have hjoin : ∀ w, 0 ≤ w → w ≤ SA.proposalTime p.toParams s →
+      V2.Event.restart (V2.D.proposerOf rho (fgsaInterface p c) s) w ∈ rho.events →
+      w ≤ slotStartZ p ((s : Int) - 1) := by
+    intro w _ _ hw
+    obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp hw
+    exact (healing_recovery_restart_bound E rho hrec hslot0.2 hk).trans hcut
+  obtain ⟨X, hnew, hslot, _⟩ := healing_promotion_slot_proposal E rho hrec.toRecovery₂ hslot0
+    hproposalGST hproposalHor hjoin
   have ha := actionTime_periodW p r
   have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
   have hP : 8 * p.Δ ≤ P p := by
@@ -135,7 +166,7 @@ theorem healing_renewedPromotion_terminal (E : Generic.Env V)
   have hdD : SA.proposalTime p.toParams s + p.Δ ≤ D := by dsimp only [D]; linarith
   have hdhor : SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon := hdD.trans hhor
   have hpD : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) m J contested := by
-    apply healing_phase_extend_of_no_effective p c E rho hrec mono crossing hp
+    apply healing_phase_extend_of_no_effective p c E rho hrec.toRecovery₂ mono crossing hp
       (by linarith [p.deltaPos]) hdhor
     intro j hj hjd
     apply hquiet j
@@ -163,9 +194,11 @@ theorem healing_renewedPromotion_terminal (E : Generic.Env V)
       exact mul_le_mul_of_nonneg_left (by exact_mod_cast hq) (by linarith [p.deltaPos])
     change u ≤ SA.proposalTime p.toParams (r * p.R) + p.Δ
     linarith [p.deltaPos]
-  have hh := healing_promotion_advance E rho hrec hδ hbound perm rowsReceipt progressCoverage
+  have hh := healing_promotion_advance E rho hrec.toRecovery₂ hδ hbound perm rowsReceipt
+    progressCoverage
     hfold faultQ honestQuorum hentry hcovered hgst hpts huvote hlo hnew hslot
-  have hreceipt := healing_promotion_first_receipt E rho hrec crossing hnew (hp.1.trans hats)
+  have hreceipt := healing_promotion_first_receipt E rho hrec.toRecovery₂ crossing (services s) hnew
+    (hp.1.trans hats)
     hgst hpD
   exact Or.inr ⟨s, X, hnew, hslot, hlo, hhi, hh, hreceipt⟩
 

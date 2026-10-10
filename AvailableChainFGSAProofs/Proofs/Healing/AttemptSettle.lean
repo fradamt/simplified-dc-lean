@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 
 public section
 
@@ -8,6 +9,16 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+
+variable (mono : RMonoAll p c E rho)
+
+variable (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+  rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+  E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+  ev.time + p.Δ ≤ rho.horizon →
+  TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
+
+include mono heldServices
 
 /-! H-ATTEMPT-2 CUT. These lemmas supply settlement for each budget row.
 They retain the RXing input of H.8. They do not assert a complete row bound.
@@ -33,11 +44,10 @@ theorem healing_attempt_settle_start
   obtain ⟨ev0, hi0, hgst, _hstart, hfront, hm, hkind, _⟩ := hvalid
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_settle_start (hroots := hrec.base.idealization)
-    p c E rho crossing hrec.base.valid
-    hrec.base.noRestart hrec.base.delta hrec.sync k.start ev v k.frontier k.phase hstart hgst
-    hu hv hm
-    hfront.symm hkind hquiet
+  obtain ⟨J, hsettled⟩ := healing_settle_start_on
+    (hroots := hrec.base.receiptIdealization) p c E rho crossing hrec.base.valid
+    mono heldServices k.start ev v k.frontier k.phase hstart hgst
+    hu hv hm hfront.symm hkind hquiet
   dsimp only [fgsa] at hsettled ⊢
   refine ⟨J, ?_⟩
   cases hphase : k.phase <;> simpa only [hphase] using hsettled
@@ -59,7 +69,7 @@ theorem healing_attempt_raise_contest_settle
         SA.voteTime p.toParams s ≤ v →
         postClock E rho y (SA.voteTime p.toParams s) = some nd →
         SettledPhaseFrame p nd.st k.frontier root contested) :=
-  healing_attempt_settle_start p c E rho crossing hrec hvalid hstart hu hv hquiet
+  healing_attempt_settle_start p c E rho mono heldServices crossing hrec hvalid hstart hu hv hquiet
 
 /-- Settlement for the raise / other row, including the cut start. -/
 theorem healing_attempt_raise_other_settle
@@ -78,7 +88,7 @@ theorem healing_attempt_raise_other_settle
         SA.voteTime p.toParams s ≤ v →
         postClock E rho y (SA.voteTime p.toParams s) = some nd →
         SettledPhaseFrame p nd.st k.frontier root contested) :=
-  healing_attempt_settle_start p c E rho crossing hrec hvalid hstart hu hv hquiet
+  healing_attempt_settle_start p c E rho mono heldServices crossing hrec hvalid hstart hu hv hquiet
 
 /-- Settlement for the firstRow / contest row, including the cut start. -/
 theorem healing_attempt_firstRow_contest_settle
@@ -97,7 +107,7 @@ theorem healing_attempt_firstRow_contest_settle
         SA.voteTime p.toParams s ≤ v →
         postClock E rho y (SA.voteTime p.toParams s) = some nd →
         SettledPhaseFrame p nd.st k.frontier root contested) :=
-  healing_attempt_settle_start p c E rho crossing hrec hvalid hstart hu hv hquiet
+  healing_attempt_settle_start p c E rho mono heldServices crossing hrec hvalid hstart hu hv hquiet
 
 /-- Settlement for the firstRow / other row, including the cut start. -/
 theorem healing_attempt_firstRow_other_settle
@@ -116,7 +126,7 @@ theorem healing_attempt_firstRow_other_settle
         SA.voteTime p.toParams s ≤ v →
         postClock E rho y (SA.voteTime p.toParams s) = some nd →
         SettledPhaseFrame p nd.st k.frontier root contested) :=
-  healing_attempt_settle_start p c E rho crossing hrec hvalid hstart hu hv hquiet
+  healing_attempt_settle_start p c E rho mono heldServices crossing hrec hvalid hstart hu hv hquiet
 
 end AvailableChain.FGSA.Run
 end

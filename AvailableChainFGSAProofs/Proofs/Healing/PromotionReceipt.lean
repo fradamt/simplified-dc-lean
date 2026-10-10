@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Frame
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 
 public section
 
@@ -14,7 +15,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:1410–1419; r3 A4.
-DC: SAME first receipt uses the already-held parent and the strict deadline read.
+DC: INTENTIONAL first receipt uses an exact local service at the strict deadline read.
 RXing is applied to the parent, with its own proposer-floor bound.
 At top J, the walk extends the fixed J, including genesis at m = 1. -/
 theorem healing_promotion_first_receipt (E : Generic.Env V)
@@ -22,6 +23,15 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
     (crossing : RXing p c E rho) {u : Time} {m : Nat}
     {J : Option (FGBlock (Fin p.n))} {contested : Bool} {s : Slot}
     {X : FGBlock (Fin p.n)}
+    (services : ∀ ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
     (hafter : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
     (hp : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) m J contested) :
@@ -65,7 +75,7 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
   have hjdhi : jd ≤ timeIdx rho d := healing_phase_idx_le_time p c rho le_rfl
   obtain ⟨hHd, hcd, hrd⟩ := hp.2.2.2 jd x hujd hjdhi hx
   have frameD := healing_phase_frame p c E rho crossing hx hp.2.2.1 hHd hcd hrd
-  have hPjd := (fgsa_store_cumulative p c E rho hrec.base.noRestart hipd.le x).1 hPip
+  have hPjd := (fgsa_store_durable p c E rho hipd.le x).1 hPip
   have hfloorD : (R_at p c E rho jd x).lo ≤ (heightView p X.parent).h := by
     have hfi : (frameR p st).lo = if contested then m else m - 1 := by
       change (if (controls p st).contest then st.fg.h_max else st.fg.h_max - 1) = _
@@ -113,35 +123,31 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs]
     exact Bool.or_eq_true_iff.mpr (Or.inr
       (Gen.Pure.block_preceq_trans hparent (eraseFG_preceq hPX)))
-  have delay (o : Obj p) (hn : ¬ isRowObject o) : fgsaDelay E.Δ ΔF o = p.Δ := by
-    cases he : o.payload <;> simp only [fgsaDelay_def, he, hrec.base.delta]
-    exact (hn (by
-      change (match o.payload with | .row _ => True | _ => False)
-      rw [he]
-      trivial)).elim
-  have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
-    (fun o => ¬ isRowObject o) p.Δ delay
-  have hT : Gen.V2.Duty.Trigger E rho
-      (ofWire p ⟨.proposer s, .proposal N⟩) t :=
-    Or.inl ⟨x, hx, ip, hip, hem⟩
-  have hdline : max t E.t_GST + p.Δ = d := by rw [max_eq_left (hgst.trans hafter)]
-  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
-    hrec.base.delta hrec.base.valid
-    hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s N t x hD hT hx (hdline ▸
-        hp.2.1)
-    (hdline ▸ lt_add_of_pos_right t p.deltaPos) (by simpa only [heN, hdline] using hcompat)
+  obtain ⟨service⟩ := services ip x N hx hip hem
+    (hgst.trans hafter) hp.2.1 (by simpa only [heN] using hcompat)
+  obtain ⟨Y, hY, he⟩ := service.proposal hs hx hrec.base.receiptIdealization
   have heq : Y = X := eraseFG_injective (he.trans heN)
-  rw [hdline, heq] at hY
+  rw [heq] at hY
+  change Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ nd.st.fg.TF) d x at hY
   exact ⟨x, hx, hY⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:1592–1638; S5 H1, route step 7.
-DC: SAME the strict frontier cap makes the emitted proposal compatible at receipt.
+DC: INTENTIONAL the strict frontier cap proves compatibility for a local receipt service.
 The saved height-m block is below the parent. No phase after its gate is required. -/
 theorem healing_promotion_first_receipt_of_frontierCap (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (crossing : RXing p c E rho) {m : Nat} {s : Slot}
     {Qfg X : FGBlock (Fin p.n)}
+    (services : ∀ ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
     (hgst : E.t_GST ≤ SA.proposalTime p.toParams s)
     (hQX : FGBlock.Preceq Qfg X.parent)
@@ -174,7 +180,7 @@ theorem healing_promotion_first_receipt_of_frontierCap (E : Generic.Env V)
       (lt_add_of_pos_right t p.deltaPos)).le
   have hPm : m ≤ (heightView p X.parent).h :=
     hQm ▸ (fgCertificateLaws p).height.h_mono hQX
-  have hFP := frontier_F_below E rho crossing hrec.base.noRestart hx
+  have hFP := frontier_F_below_all E rho crossing hx
     (hcap _ x le_rfl hx) hx hipd hparent hPm
   have hPX : FGBlock.Preceq X.parent X := by
     cases X with
@@ -185,24 +191,12 @@ theorem healing_promotion_first_receipt_of_frontierCap (E : Generic.Env V)
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs]
     exact Bool.or_eq_true_iff.mpr (Or.inr
       (eraseFG_preceq (KitFG.preceq_trans hFP hPX)))
-  have delay (o : Obj p) (hn : ¬ isRowObject o) : fgsaDelay E.Δ ΔF o = p.Δ := by
-    cases he : o.payload <;> simp only [fgsaDelay_def, he, hrec.base.delta]
-    exact (hn (by
-      change (match o.payload with | .row _ => True | _ => False)
-      rw [he]
-      trivial)).elim
-  have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
-    (fun o => ¬ isRowObject o) p.Δ delay
-  have hT : Gen.V2.Duty.Trigger E rho
-      (ofWire p ⟨.proposer s, .proposal N⟩) t :=
-    Or.inl ⟨x, hx, ip, hip, hem⟩
-  have hdline : max t E.t_GST + p.Δ = d := by rw [max_eq_left hgst]
-  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
-    hrec.base.delta hrec.base.valid
-    hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s N t x hD hT hx (hdline ▸ hhor)
-    (hdline ▸ lt_add_of_pos_right t p.deltaPos) (by simpa only [heN, hdline] using hcompat)
+  obtain ⟨service⟩ := services ip x N hx hip hem
+    hgst hhor (by simpa only [heN] using hcompat)
+  obtain ⟨Y, hY, he⟩ := service.proposal hs hx hrec.base.receiptIdealization
   have heq : Y = X := eraseFG_injective (he.trans heN)
-  rw [hdline, heq] at hY
+  rw [heq] at hY
+  change Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ nd.st.fg.TF) d x at hY
   exact ⟨x, hx, hY⟩
 
 omit [Fintype V] in
@@ -211,7 +205,7 @@ Blueprint 21:1592–1638; S5 H2, route step 8.
 DC: SAME a strict block receipt persists to a later strict cut by cumulative store. -/
 theorem healing_promotion_block_held_mono (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho) {d d' : Time} (hdd : d ≤ d')
+    (_hnr : V2.D.NoRestart rho) {d d' : Time} (hdd : d ≤ d')
     {x : V} {X : FGBlock (Fin p.n)}
     (hheld : Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ nd.st.fg.TF) d x) :
     Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ nd.st.fg.TF) d' x := by
@@ -219,7 +213,7 @@ theorem healing_promotion_block_held_mono (E : Generic.Env V)
     ← Gen.V2.Duty.stateBefore_idxBefore E rho d hs] at hheld
   rw [Gen.V2.Duty.HoldsBefore_def,
     ← Gen.V2.Duty.stateBefore_idxBefore E rho d' hs]
-  exact (fgsa_store_cumulative p c E rho hnr
+  exact (fgsa_store_durable p c E rho
     (healing_phase_idxBefore_mono p c rho hdd) x).1 hheld
 
 end AvailableChain.FGSA.Run

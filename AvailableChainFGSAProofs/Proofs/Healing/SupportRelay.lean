@@ -289,6 +289,64 @@ theorem healing_support_prefreeze_path (E : Generic.Env V) (rho : V2.D.Run V (fg
       contradiction
     | some row => simpa only [hfind, Option.map_some, Option.getD_some] using hAstamp
 
+/-- Frozen paths keep stamps on the exact receiver epoch through the actual read. -/
+theorem healing_support_prefreeze_path_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hsch : V2.D.ScheduleWellFormed E rho)
+    {iy : Nat} {y : V} {s : Slot}
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hEpoch : V2.D.restartFree rho y
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) iy)
+    {K : FGBlock (Fin p.n)}
+    (hK : K ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st.fg.TF) :
+    let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
+      (SA.voteTime p.toParams (s + 1))).st
+    ∀ A : FGBlock (Fin p.n), FGBlock.Preceq A K →
+      A ∈ st.fg.TF ∧ GridCO.stampBlock st.base (eraseFG A) < SA.freezeTime p.toParams s := by
+  intro st A hA
+  let D := SA.freezeTime p.toParams s
+  let j := V2.D.Run.idxBefore rho D
+  have hjk : j ≤ iy := by
+    by_contra hn
+    have htime := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hiy D).mp (Nat.lt_of_not_ge hn)
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
+      4 * p.Δ * (s : Int) + 3 * p.Δ at htime
+    push_cast at htime
+    have hd := p.deltaPos
+    nlinarith
+  have hc := fgsa_store_cumulative_on p c E rho hjk y hEpoch
+  have hread : storeAt p c E rho j y = (V2.D.Run.stateBeforeTime E rho D y).st := by
+    change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st = _
+    rw [Gen.V2.Duty.stateBefore_idxBefore E rho D hsch]
+  have hAm := KitFG.ancestor_closed_of_parent_closed _
+    (storeBundle_stateBeforeTime E rho D y).cstore.fg.closed K hK A hA
+  have hAb := ((storeBundle_stateBeforeTime E rho D y).cstore.baseTree (eraseFG A)).mpr
+    ⟨A, hAm, rfl⟩
+  have hAstamp := fgsa_block_stamp_before_read E rho hsch y D (by
+    change 0 < 4 * p.Δ * (s : Int) + 3 * p.Δ
+    have hd := p.deltaPos
+    positivity) (eraseFG A) hAb
+  rw [← hread] at hAm hAb hAstamp
+  have hkeys : eraseFG A ∈ (storeAt p c E rho j y).base.blockStamp.map Prod.fst := by
+    change eraseFG A ∈ (V2.D.Run.stateBefore E rho j y).st.base.blockStamp.map Prod.fst
+    rw [(storeBundle_stateBefore E rho j y).«meta».stampKeys]
+    exact hAb
+  constructor
+  · change A ∈ (FGSA.clock p (storeAt p c E rho iy y) _).fg.TF
+    rw [(clock_cumulative p _ _).1]
+    exact hc.1 hAm
+  · have heq := support_stamp_kept hc.2.2.1 (eraseFG A) hkeys
+    change (((FGSA.clock p (storeAt p c E rho iy y) _).base.blockStamp.find? _).map
+      Prod.snd).getD _ < D
+    rw [(clock_cumulative p _ _).2.2.1, heq]
+    unfold GridCO.stampBlock at hAstamp
+    cases hfind : (storeAt p c E rho j y).base.blockStamp.find? (fun row => row.1 == eraseFG A) with
+    | none =>
+      obtain ⟨row, hr, hh⟩ := List.mem_map.mp hkeys
+      have hn := List.find?_eq_none.mp hfind row hr
+      rw [hh, beq_self_eq_true] at hn
+      contradiction
+    | some row => simpa only [hfind, Option.map_some, Option.getD_some] using hAstamp
+
 private theorem support_decode {o : Obj p} {b : Block} (h : blockOf? p o = some b) :
     ∃ u N, o = ofWire p ⟨.proposer u, .proposal N⟩ ∧ N.erase = b := by
   unfold blockOf? at h

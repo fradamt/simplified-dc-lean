@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
-public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 
 public section
 
@@ -38,11 +38,13 @@ DC: INTENTIONAL the covering-batch gate read. If every honest HEAD of label w co
 and the gate floor is at or below B, the raw confirmation of an honest gate at w covers
 B. The per-seat HEADs may differ (`fgsa_gate_batch_premises`); no exact HEAD is needed. -/
 theorem healing_support_gate_cover [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     {w : Slot} {B : Block} (hgst : E.t_GST ≤ SA.voteTime p.toParams w)
+    (hcut : E.t_GST ≤ slotStartZ p ((w : Int) - 1))
     (hhor : SA.gateTime p.toParams w ≤ rho.horizon)
     (hcov : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z w = some K → Block.Preceq B K)
     {j : Nat} {y : V} (ht : IsGateTick p c rho j y w)
+    (hScope : GateReceiptScope E rho j y w)
     (hFB : Block.Preceq (eraseFG (clockPre p (storeAt p c E rho j y)
       (SA.gateTime p.toParams w)).fg.F) B) :
     ∃ C, SA.Root.confirmationFrom p.toParams
@@ -52,7 +54,6 @@ theorem healing_support_gate_cover [Fintype V] (E : Generic.Env V)
   classical
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hC := hrec.base.cstar
   have hvg : SA.voteTime p.toParams w ≤ SA.gateTime p.toParams w := by
@@ -90,22 +91,17 @@ theorem healing_support_gate_cover [Fintype V] (E : Generic.Env V)
     · intro hz
       obtain ⟨k, rfl⟩ := hbij.2 z
       exact ⟨k, (hHmem k).mpr hz, rfl⟩
-  have hawk : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams w) = rho.honest := by
-    rw [Gen.V2.Duty.awakeHonest_def]
-    exact Finset.filter_eq_self.mpr (fun z hz => hrec.awake z hz _ hgst hhorv)
   have hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card := by
-    have h := (hrec.batch hgst hhorv).lt
-    rw [hawk] at h
-    exact ⟨hHcard ▸ h⟩
-  have hcover := fgsa_gate_batch_premises E rho hE hC j y w B H hbatch
+    have h := (healing_recovery_joined_counts E rho hrec w hcut hgst hhorv).2
+    rw [healing_recovery_joinedHonest E rho hrec w hcut hgst hhorv] at h
+    exact ⟨hHcard ▸ h.lt⟩
+  have receipts := fgsa_gateReceipt_on (hroots := hrec.base.receiptIdealization)
+    E rho hE hDelta hC w hSync ht B hgeom hScope
+  have hcover := fgsa_gate_batch_premises_joined E rho hE hC j y w B H hbatch
     (fun k hk _ => (hHmem k).mpr hk) (by
       intro k hk
       have hq := (hHmem k).mp hk
-      obtain ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, hF, hBK⟩ :=
-        fgsa_gateReceipt (hroots := hrec.base.idealization)
-          E rho hE hN hDelta hC w hSync ht B hgeom k hq
-          (hrec.awake _ hq _ hgst hhorv)
-      exact ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, hF, hBK⟩)
+      exact receipts.2.2 k hq (healing_recovery_joined E rho hrec hq hcut hgst hhorv))
   exact fgsa_confirmationFrom_covers_majority p _ _ B w B.root
     (Bool.or_eq_true_iff.mpr (Or.inl hFB)) hcover.1 hcover.2.1 hcover.2.2
 

@@ -12,9 +12,18 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 
 -- Apply terminal promotion with only the terminal horizon.
 example (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (services : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (perm : TPerm p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (perm : TPerm p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
       max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
       ∀ x ∈ rho.honest, HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF))
@@ -39,7 +48,7 @@ example (E : Generic.Env V)
         height + 1 ≤ (heightView p X).h ∧
         (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
           (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y)) :=
-  healing_renewedPromotion_terminal E rho hrec hδ hbound mono crossing perm rowsReceipt
+  healing_renewedPromotion_terminal E rho hrec services hδ hbound mono crossing perm rowsReceipt
     progressCoverage hfold faultQ honestQuorum r hhor
 
 -- The inclusive lower boundary is a real grid proposal and is mature.
