@@ -124,13 +124,14 @@ frame. An honest label-i HEAD that covers B is, at the receiver's v_(i+1) read,
 a clean resolved frozen vote that supports B. The vote arrives by e_i, and the
 HEAD block arrives with strict stamps by the per-block relay
 (`healing_block_path_sync`), not by a phase witness relay. -/
-theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     {i : Slot} {B : Block} (hgsti : E.t_GST ≤ SA.voteTime p.toParams i)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hScope : NextTransferScope E rho iy y i)
+    (hCut : HealingWindow p E 1 i)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest)
     (hJoin : joinedAt p E rho (rho.seatOf (.base (.head i)) k) i
@@ -179,7 +180,9 @@ theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
       (eraseFG_preceq (mono _ _ y hy
         (healing_support_idxBefore_le p c E rho hS hiy hvi)).1)
       (Gen.Pure.block_preceq_trans hFB hBK)
-  have hService := (hScope.carriers jz z hk hjz y hy).direct Kfg hKfg hKe
+  have hService := (healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hy hiy hvi
+    jz z hk hjz).direct Kfg hKfg hKe
     (hKe ▸ hFloor)
   have hBase := fgsa_target_receipt_on E rho hS hrec.base.receiptIdealization K
     (SA.voteTime p.toParams i + p.Δ) y hy (hKe ▸ hService)
@@ -304,7 +307,7 @@ v_(i+1), and the live leases of that read are compatible with B, then the HEAD
 of y at label i + 1 covers B. The honest batch of label i gives the majority
 and rival bounds (`batch_head_covers`); the domain gives the kept path. -/
 theorem healing_next_transfer_domain [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     {i : Slot} {B : FGBlock (Fin p.n)} (hgsti : E.t_GST ≤ SA.voteTime p.toParams i)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K →
@@ -312,6 +315,7 @@ theorem healing_next_transfer_domain [Fintype V] {G ΔF : Time}
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hScope : NextTransferScope E rho iy y i)
+    (hCut : HealingWindow p E 1 i)
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (i + 1))) (i + 1))
@@ -386,7 +390,7 @@ theorem healing_next_transfer_domain [Fintype V] {G ΔF : Time}
   -- The honest batch of label i.
   let Hon : Finset (Fin p.n) := healingJoinedSeats E rho i
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := healing_batch_seat_sync p c E rho hrec mono hgsti
-    hcover hy hiy hScope hFB0 k ((healingJoinedSeats_mem E rho i k).mp hk).1
+    hcover hy hiy hScope hCut hFB0 k ((healingJoinedSeats_mem E rho i k).mp hk).1
     ((healingJoinedSeats_mem E rho i k).mp hk).2
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
   have hother : ((GridCO.seats p.n (FGSA.headVotes p dst (i + 1))).toFinset \ Hon).card ≤

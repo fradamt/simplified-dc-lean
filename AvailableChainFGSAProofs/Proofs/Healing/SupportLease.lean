@@ -87,6 +87,31 @@ theorem FastSupportScope.firstOn {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c
     FirstTransferScope E rho ix iy x y s :=
   h.first ix iy y hy hi hj ht (h.source ix hi) hJoin
 
+/-- Recovery produces label-local service, including a prefix with no gate demand. -/
+theorem healing_recovery_same_label [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (s : Slot)
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams s) : SameLabelServiceScope E rho s := by
+  have hV := hrec.base.valid
+  by_cases hh : SA.gateTime p.toParams s ≤ rho.horizon
+  · apply fgsa_sameLabel_serviceScope E rho hV hrec.base.restartsAtWakes hrec.base.delta
+    have hd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
+      rw [hrec.base.delta]
+      change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+      linarith [p.deltaPos]
+    exact Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
+      hrec.sync (fgsaDelay_nonrow E.Δ _) hSync hd hh
+  · have noGate : ∀ i x, ¬ enabledGateAt p c E rho i x s := by
+      intro i x hg
+      exact hh (hV.in_horizon _ (List.mem_of_getElem? hg.1)).2
+    refine ⟨?_, ?_, ?_⟩
+    · intro i x hg
+      exact (noGate i x hg).elim
+    · intro i x hg
+      exact (noGate i x hg).elim
+    · intro ia ib x y hx hy hia
+      exact (noGate ia x hia).elim
+
 private def lease_source (st : State p.n) (t : Time) (row : Block × Nat × Time) : Prop :=
   ∃ s B, t = SA.gateTime p.toParams s ∧
     let pre := clockPre p st t

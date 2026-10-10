@@ -84,6 +84,7 @@ theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
   have hB' := hB
   rw [HighSrcN_def, SrcN_def] at hB'
   obtain ⟨hsrc, hc⟩ := hB'
+  have hCut := healing_high_source_window p c E rho emittedNonempty emittedName hsrc hc
   have hgst := healing_high_source_sync p c E rho emittedNonempty emittedName hsrc hc
   obtain ⟨j, y, r, a, -, ha, hBs, rfl⟩ := hsrc
   have hy := ha.1
@@ -152,7 +153,8 @@ theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
     rw [hje, hke] at hkey
     exact V2.D.Engine.time_le_of_key_le _ _ hkey
   have hrows := healing_fast_lease_at E rho hrec mono writes hgst hgs hy hnd hfw hvl
-    (hScopes y _ hy hnd hfw) hcov
+    (hScopes y _ hy hnd hfw)
+    (healing_gate_cut_of_batch_cut E (r * p.R) hCut.2) hcov
     hx hiq hqa hT hFB
   intro row hrow
   rw [lease_vote_clock p] at hrow

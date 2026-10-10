@@ -14,16 +14,21 @@ open AvailableChain.SimplexFG Gen.Pure
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- Exact gate, release and retained carrier services for one repaired label. -/
-structure RepairGateScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (s : Slot) : Prop where
+structure RepairGateScope (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (s : Slot) : Prop where
   cut : E.t_GST ≤ slotStartZ p ((s : Int) - 1)
-  gates : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x s → GateReceiptScope E rho i x s
+  gates : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x s →
+    enabledGateAt p c E rho i x s →
+    ∀ B, GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B →
+    GateReceiptScope E rho i x s
   first : ∀ i iq x, x ∈ rho.honest → IsGateTick p c rho i x s →
     rho.events[iq]? = some (.tick x (SA.voteTime p.toParams (s + 1))) →
+    enabledGateAt p c E rho i x s →
+    joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)) →
     FirstTransferScope E rho i iq x x s
-  carriers : ∀ j x, x ∈ rho.honest →
-    rho.events[j]? = some (.tick x (SA.voteTime p.toParams s)) →
-    ∀ y ∈ rho.honest, HeadCarrierServices E rho j x s y
+  carriers : ∀ iy y t, SA.voteTime p.toParams s + p.Δ ≤ t →
+    t ≤ rho.horizon → HealingCarriersAt E rho s iy y t
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 03:367–373 (valid parent slots); plan H-REPAIR step 9.
@@ -204,7 +209,9 @@ theorem repair_gate_finality_le [Fintype V] (E : Generic.Env V)
     (hroots := hrec.base.receiptIdealization)
     E rho (fun _ => mono) crossing hE hDelta
     hrec.sync hgst hphase hus (hvd.trans hgate) hx hjz
-    (hScope.carriers jz x hx hjz) (B := Q) (hQK ▸ block_preceq_refl _) hx
+    x (healing_carriers_cut_at p c E rho hrec hScope.cut
+      (hScope.carriers i x _ hvd (hgate.trans hphase.2.1)) hx ht hvd jz x hx hjz)
+    (B := Q) (hQK ▸ block_preceq_refl _) hx
     (healing_support_idxBefore_le p c E rho hS ht hvd)
     (healing_support_idxBefore_le p c E rho hS ht (hus.trans hvg))
     (healing_phase_lt_timeIdx p c E rho hS ht hgate).le
@@ -321,7 +328,9 @@ theorem repair_gate_fast_count [Fintype V] (E : Generic.Env V)
     at hfast hbatch
   obtain ⟨_, hcount, _, _⟩ := exactService_gate_raw_of_head_on
     (hroots := hrec.base.receiptIdealization) E rho hE hDelta hrec.base.cstar s Q hhead hSync
-    ht hgeom (hScope.gates i x hx ht) H hH hbatch
+    ht hgeom (hScope.gates i x hx ht
+      (healing_recovery_gate_enabled E rho hrec hx ht
+        (healing_gate_cut_of_batch_cut E s hScope.cut)) Q hgeom) H hH hbatch
   exact hfast.trans hcount
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -419,7 +428,17 @@ theorem repair_gate_guard [Fintype V] (E : Generic.Env V)
   have hFiq : Block.Preceq (eraseFG (storeAt p c E rho iq x).fg.F) Q :=
     block_preceq_trans (eraseFG_preceq (mono iq i x hx hqi.le).1) hFQ
   exact healing_support_release_compat (hroots := hrec.base.receiptIdealization)
-    E rho hE hDelta s hSync hx hx ht hiq (hScope.first i iq x hx ht hiq) hτ hFiq lease hkeep
+    E rho hE hDelta s hSync hx hx ht hiq (hScope.first i iq x hx ht hiq
+      (healing_recovery_gate_enabled E rho hrec hx ht
+        (healing_gate_cut_of_batch_cut E s hScope.cut))
+      (healing_recovery_joined E rho hrec hx
+        (by simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using
+          healing_gate_cut_of_batch_cut E s hScope.cut)
+        (by exact (hgst.trans hus).trans (by
+          change 4 * p.Δ * (s : Int) + p.Δ ≤
+            4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+          push_cast; linarith [p.deltaPos]))
+        ((hS.in_horizon _ (List.mem_of_getElem? hiq)).2))) hτ hFiq lease hkeep
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:965–973 (old output); 01 §6.6, §7; plan H-REPAIR step 9 (d).
@@ -670,7 +689,9 @@ theorem repair_gate_opening [Fintype V] (E : Generic.Env V)
     (hroots := hrec.base.receiptIdealization)
     E rho (fun _ => mono) crossing hE hDelta
     hrec.sync hgst hphase hus (hvd.trans hgate) hx hjz
-    (hScope.carriers jz x hx hjz) (B := Q) (hQK ▸ block_preceq_refl _) hx
+    x (healing_carriers_cut_at p c E rho hrec hScope.cut
+      (hScope.carriers i x _ hvd (hgate.trans hphase.2.1)) hx ht hvd jz x hx hjz)
+    (B := Q) (hQK ▸ block_preceq_refl _) hx
     (healing_support_idxBefore_le p c E rho hS ht hvd)
     (healing_support_idxBefore_le p c E rho hS ht (hus.trans hvg))
     (healing_phase_lt_timeIdx p c E rho hS ht hgate).le

@@ -20,26 +20,28 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
 
 /-- Exact services for each active source and moving read. -/
 structure RawServiceScope (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
-  late : ∀ (s : Slot) ix x, E.t_GST ≤ slotStartZ p ((s : Int) - 1) → x ∈ rho.honest →
+    (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) : Prop where
+  late : ∀ (s : Slot) (ix : Nat) (x : V), HealingWindow p E 1 s → x ∈ rho.honest →
     IsGateTick p c rho ix x s → enabledGateAt p c E rho ix x s →
-    ProposalSupportScope E rho ix x s
-  first : ∀ s ix (iy : Nat) x (y : V), E.t_GST ≤ SA.voteTime p.toParams s →
+    ProposalSupportScope E rho ix x s (SA.gateTime p.toParams s)
+  first : ∀ (s : Slot) (ix iy : Nat) (x y : V), E.t_GST ≤ SA.voteTime p.toParams s →
     x ∈ rho.honest → y ∈ rho.honest → IsGateTick p c rho ix x s →
     rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
     enabledGateAt p c E rho ix x s →
-    joinedAtTime p (storeAt p c E rho iy y).restartTime (SA.releaseTime p.toParams s) = true →
+    joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
     FirstTransferScope E rho ix iy x y s
-  proposal : ∀ (r : Slot) (ip : Nat) (x : V), E.t_GST ≤ slotStartZ p ((r : Int) - 1) →
-    x ∈ rho.honest →
+  proposal : ∀ (r : Slot) (ip : Nat) (x : V), HealingWindow p E 1 r → x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))) →
-    ProposalSupportScope E rho ip x r
+    joinedAt p E rho x (r + 1) (SA.proposalTime p.toParams (r + 1)) →
+    ProposalSupportScope E rho ip x r (SA.proposalTime p.toParams (r + 1))
   gates : ∀ s i x, E.t_GST ≤ SA.voteTime p.toParams s → x ∈ rho.honest →
-    IsGateTick p c rho i x s →
-    enabledGateAt p c E rho i x s → ∀ B,
-    GateReceiptGeometry E rho (clockPre p (storeAt p c E rho i x)
-      (SA.gateTime p.toParams s)) s B → GateReceiptScope E rho i x s
-  same : ∀ s, E.t_GST ≤ SA.voteTime p.toParams s → SameLabelServiceScope E rho s
+    IsGateTick p c rho i x s → enabledGateAt p c E rho i x s →
+    ∀ B, GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B →
+    GateReceiptScope E rho i x s
+  same : ∀ s, E.t_GST ≤ SA.voteTime p.toParams s →
+    SameLabelServiceScope E rho s
 
 private theorem raw_reset_vote_cutoff {w : HealingWitness} (h0r : H0Reset p c E rho w) :
     E.t_GST ≤ slotStartZ p ((w.sStar : Int) - 1) := by
@@ -205,7 +207,7 @@ theorem healing_gate_result_supporter [Fintype V] {G ΔF : Time}
   have hhor := (hS.in_horizon _ (List.mem_of_getElem? hix)).2
   obtain ⟨seat, o, hh, ho, hs, hsup⟩ :=
     healing_slow_honest_seat E rho hrec hgst hhor hx hix
-      (hServices.late s ix x hJoinCut hx hix
+      (hServices.late s ix x (healing_window_of_cut E hJoinCut) hx hix
         (healing_gate_enabled_of_result E rho hS hix hres))
       (healing_gate_enabled_of_result E rho hS hix hres) hmaj
   obtain ⟨H, hH, hHm, _, _, hom, hol⟩ := healing_support_clean_target E rho o ho
@@ -351,7 +353,16 @@ theorem healing_first_transfer_raw_domain [Fintype V] {G ΔF : Time}
   have hS := hE.toScheduleWellFormed
   have hDelta := hrec.base.delta
   have hScope := hServices.first s ix iy x y hgst hx hy hix hiy
-    (healing_gate_enabled_of_result E rho hS hix hres) hJoined
+    (healing_gate_enabled_of_result E rho hS hix hres)
+    (by have htime : SA.voteTime p.toParams (s + 1) = SA.releaseTime p.toParams s := by
+          change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ = 4 * p.Δ * (s : Int) + 5 * p.Δ
+          push_cast; ring
+        have hread := healing_joined_tick_of_guard p c E rho hE hy hiy
+          (by simpa only [htime] using hJoined)
+        have hs : slotAt p (SA.voteTime p.toParams (s + 1)) = s + 1 := by
+          exact (fgsa_postClock_slot (c := c) (rho.stateBefore E iy y) _).2.symm.trans
+            (fgsa_vote_slot (c := c) _ (s + 1))
+        simpa only [hs] using hread.2.2)
   have hhor := (hS.in_horizon _ (List.mem_of_getElem? hix)).2
   have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
     rw [hDelta]
@@ -1021,7 +1032,7 @@ theorem postReset_resetLease_at_reset {w : HealingWitness} (h0r : H0Reset p c E 
     E rho hrec.base.valid hrec.base.delta w.sStar hSync ha.1 hx hix (hqv ▸ hiy)
     (hServices.first w.sStar ix iy y0 x h0r.synchronous ha.1 hx hix (hqv ▸ hiy)
       (healing_gate_enabled_of_result E rho hs hix
-        ((gateResultAt_eq_gateResult p c E rho hs hix).trans hG0)) hRead) hτ hF
+        ((gateResultAt_eq_gateResult p c E rho hs hix).trans hG0)) hJoined) hτ hF
   have hstore : storeAt p c E rho (afterTicksIdx rho (SA.releaseTime p.toParams w.sStar)) x =
       FGSA.clock p (storeAt p c E rho iy x) (SA.releaseTime p.toParams w.sStar) := by
     change (V2.D.Run.stateBefore E rho _ x).st = _
@@ -1503,7 +1514,9 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
     ((le_add_of_nonneg_right hd.le).trans hvp).trans hhorp
   have hawake := hrec.awake z hk _ hgstr hhorr
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr hawake
-  have hScope := hServices.proposal r ip x hJoinCut hx hip
+  have hScope := hServices.proposal r ip x (healing_window_of_cut E hJoinCut) hx hip
+    (healing_recovery_joined_proposal_next E rho hrec
+      (healing_window_of_cut E hJoinCut) hx hip)
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
     (fgsa_head_joined_of_joinedAt E rho hS hjz hJoin)
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
@@ -1525,7 +1538,9 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
       (eraseFG_preceq (mono _ _ x hx
         (healing_support_idxBefore_le p c E rho hS hip hvp)).1)
       (Gen.Pure.block_preceq_trans hFB hBK)
-  have hService := (hScope.carriers jz z hk hjz x hx).direct Kfg hKfg hKe
+  have hService := (healing_carriers_window_at p c E rho hrec
+    (healing_window_of_cut E hJoinCut) hScope.carriers hx hip hvp
+    jz z hk hjz).direct Kfg hKfg hKe
     (hKe ▸ hFloor)
   have hBase := fgsa_target_receipt_on E rho hS hrec.base.receiptIdealization K
     (SA.voteTime p.toParams r + p.Δ) x hx (hKe ▸ hService)
@@ -1719,7 +1734,9 @@ theorem healing_proposal_moving_domain [Fintype V] {G ΔF : Time}
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := raw_proposal_seat p c E rho hrec hServices mono
     hgst hJoinCut hcover hx hip hFB0 k ((healingJoinedSeats_mem E rho r k).mp hk).1
     ((healingJoinedSeats_mem E rho r k).mp hk).2
-  have hScope := hServices.proposal r ip x hJoinCut hx hip
+  have hScope := hServices.proposal r ip x (healing_window_of_cut E hJoinCut) hx hip
+    (healing_recovery_joined_proposal_next E rho hrec
+      (healing_window_of_cut E hJoinCut) hx hip)
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
   have hother : ((GridCO.seats p.n (FGSA.proposerVotes st (r + 1))).toFinset \ Hon).card ≤
       (Gen.V2.Duty.faulty rho).card := hScope.rivals

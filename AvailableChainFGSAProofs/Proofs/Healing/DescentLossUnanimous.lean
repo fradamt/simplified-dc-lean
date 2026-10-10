@@ -85,13 +85,14 @@ private theorem unanimous_release_mem {n : Nat} (q : GridCO.Params) (v : GridCO.
     ⟨o, List.mem_filter.mpr ⟨ho, hr⟩, hk⟩)
 
 private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     {i : Slot} {B : Block} (hgsti : E.t_GST ≤ SA.voteTime p.toParams i)
     (hbatch : ∀ z ∈ rho.honest, headAtLabel p c E rho z i = some B)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hScope : NextTransferScope E rho iy y i)
+    (hCut : HealingWindow p E 1 i)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B)
     (row : Block × Nat × Time) (hbad : ¬ Block.Compatible row.1 B)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest)
@@ -139,7 +140,9 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
       (eraseFG_preceq (mono _ _ y hy
         (healing_support_idxBefore_le p c E rho hS hiy hvi)).1)
       (Gen.Pure.block_preceq_trans hFB hBK)
-  have hService := (hScope.carriers jz z hk hjz y hy).direct Kfg hKfg hKe
+  have hService := (healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hy hiy hvi
+    jz z hk hjz).direct Kfg hKfg hKe
     (hKe ▸ hFloor)
   have hBase := fgsa_target_receipt_on E rho hS hrec.base.receiptIdealization K
     (SA.voteTime p.toParams i + p.Δ) y hy (hKe ▸ hService)
@@ -266,13 +269,14 @@ Blueprint 21 H.1:689–692, H2′:3382–3391; Centaur gate-free count;
 B1/B15/B17/B18. DC: SAME honest opposition releases each conflicting lease.
 The next HEAD tick bounds synchrony. No gate tick or fast-support input is used. -/
 theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     {v : Slot} {Q : Block} (hgst : E.t_GST ≤ SA.voteTime p.toParams v)
     (hbatch : ∀ z ∈ rho.honest, headAtLabel p c E rho z v = some Q)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (v + 1))))
     (hScope : NextTransferScope E rho iy y v)
+    (hCut : HealingWindow p E 1 v)
     (hJoined : joinedAtTime p (storeAt p c E rho iy y).restartTime
       (SA.releaseTime p.toParams v) = true)
     (hFQ : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) Q) :
@@ -295,7 +299,7 @@ theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
   let Hon : Finset (Fin p.n) := healingJoinedSeats E rho v
   have hsub : Hon ⊆ unanimousReleaseSeats p.toParams.engine (actView dst) v row.1 := by
     intro k hk
-    exact unanimous_seat_release p c E rho hrec mono hgst hbatch hy hiy hScope hFQ row hbad k
+    exact unanimous_seat_release p c E rho hrec mono hgst hbatch hy hiy hScope hCut hFQ row hbad k
       ((healingJoinedSeats_mem E rho v k).mp hk).1
       ((healingJoinedSeats_mem E rho v k).mp hk).2
   have hle := Finset.card_le_card hsub
@@ -314,7 +318,7 @@ Blueprint 21 H2′:3382–3391, H.2:709–715; Centaur proposed adapter;
 B1/B15/B17/B18. DC: SAME next transfer from the unanimous prior batch.
 Kept root cases use finality coverage; the domain case uses the gate-free count. -/
 theorem healing_unanimous_next_transfer_kept [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
     {v : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
     (hgst : E.t_GST ≤ SA.voteTime p.toParams v) (heQ : eraseFG Qfg = Q)
@@ -322,6 +326,7 @@ theorem healing_unanimous_next_transfer_kept [Fintype V] {G ΔF : Time}
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (v + 1))))
     (hScope : NextTransferScope E rho iy y v)
+    (hCut : HealingWindow p E 1 v)
     (hJoined : joinedAtTime p (storeAt p c E rho iy y).restartTime
       (SA.releaseTime p.toParams v) = true)
     {X : Finset (FGBlock (Fin p.n))}
@@ -337,7 +342,7 @@ theorem healing_unanimous_next_transfer_kept [Fintype V] {G ΔF : Time}
   · have hFQ := (KitFG.mem_filteredFromView (heightView p)
         (R_at p c E rho iy y) X Qfg).mp hD
     have hlease := healing_unanimous_release_compat p c E rho hrec mono hgst hbatch
-      hy hiy hScope hJoined
+      hy hiy hScope hCut hJoined
       (heQ ▸ eraseFG_preceq hFQ.2.1)
     exact healing_next_transfer_domain p c E rho hrec mono hgst
       (fun z hz K hK => by
@@ -345,7 +350,7 @@ theorem healing_unanimous_next_transfer_kept [Fintype V] {G ΔF : Time}
         cases hK
         rw [heQ]
         exact Gen.Pure.block_preceq_refl _)
-      hy hiy hScope hXv hXc hD (by simpa only [heQ] using hlease)
+      hy hiy hScope hCut hXv hXc hD (by simpa only [heQ] using hlease)
   · exact healing_head_covers_root p c E rho hiy (Nat.succ_ne_zero v) (Or.inr hF)
 
 end AvailableChain.FGSA.Run

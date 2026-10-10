@@ -12,13 +12,12 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1385–1410, 1467–1468; S5 M5b B1.
 DC: SAME apply r3 at height one to the actual later proposal.
-Assembly supplies the exact r3 INLINE ports. Healing supplies TPerm from
-RMono, RXing and the existing last-write port. -/
+Assembly supplies the exact r3 INLINE ports. The selected source-parent service
+uses the window and the services of this actual phase. -/
 theorem healing_rise_one_advance (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
-    (hServices : SupportPermanenceServices E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -50,13 +49,36 @@ theorem healing_rise_one_advance (E : Generic.Env V)
     (hgst : E.t_GST ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) 1
       (some .genesis) false)
+    (hServices : SupportPermanenceServices E rho u (SA.proposalTime p.toParams s)
+      1 (some .genesis) false)
+    (hCut : HealingWindow p E 1 (r * p.R))
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s)
-    (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X)) (hslot : X.slot = s) :
+    (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X)) (hslot : X.slot = s)
+    :
     2 ≤ (heightView p X).h := by
-  exact healing_promotion_advance E rho hrec.toRecovery₂ hδ hbound
-    (healing_tPerm E rho hrec mono crossing hServices writes) rowsReceipt progressCoverage
-    hfold faultQ honestQuorum hentry hcovered hgst hphase hu hs hnew hslot
+  have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
+  have hP : 8 * p.Δ ≤ P p := by
+    change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
+    nlinarith [p.deltaPos]
+  have hgate : p.actionTime r ≤ SA.proposalTime p.toParams s := by
+    rw [actionTime_periodW]
+    linarith [p.deltaPos]
+  have hafter : r * p.R + 2 ≤ s := by
+    change (r : Time) * (4 * (p.R : Time) * p.Δ) +
+      2 * (4 * (p.R : Time) * p.Δ) ≤ 4 * p.Δ * (s : Int) at hs
+    have hri : (r * p.R : Int) + 2 ≤ (s : Int) := by
+      nlinarith [p.deltaPos]
+    exact_mod_cast hri
+  have hParents : ∀ x ∈ rho.honest, ∀ K,
+      actionSourceFG p c E rho x r = some (some K) →
+      Block.Preceq (eraseFG K) (eraseFG X).parent := by
+    intro x hx K hK
+    have htr := healing_tPerm_at E rho hrec mono crossing writes hgst hphase hServices
+      hCut hu hgate (healing_promotion_source_body E rho hx hK)
+    exact htr.2.1 s (eraseFG X) hafter le_rfl hnew
+  exact healing_promotion_advance_on E rho hrec.toRecovery₂ hδ hbound rowsReceipt progressCoverage
+    hfold faultQ honestQuorum hentry hcovered hgst hphase hu hs hnew hslot hParents
 
 end AvailableChain.FGSA.Run
 end

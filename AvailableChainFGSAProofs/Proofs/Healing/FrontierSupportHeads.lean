@@ -79,7 +79,7 @@ ROOT-DIGEST W2b. Blueprint 21 HG.1:1529–1534, H.2 S1:709–715; plan §3.1 ste
 HEAD that covers the pivot and B is, at the receiver's v_(i+1) read, a clean resolved
 frozen vote that supports B. The HEAD block itself is the relayed witness. -/
 theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -91,6 +91,7 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hScope : NextTransferScope E rho iy y i)
+    (hCut : HealingWindow p E 1 i)
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest)
     (hJoin : joinedAt p E rho (rho.seatOf (.base (.head i)) k) i
@@ -127,7 +128,9 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
   obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay_on
     (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hk hjz (hcoverQ z hk K hhl) hcut
-    hy (hScope.carriers jz z hk hjz y hy)
+    hy (healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hy hiy hvi
+      jz z hk hjz)
   have hKe' : eraseFG Kfg = K := hKe0
   have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
@@ -259,7 +262,7 @@ label-i HEAD covers the pivot and B, every honest HEAD at label i+1 under the ca
 The receiver's own label-i HEAD block is the witness; it has height m, so F and Z are below
 it and the floor is at most m at either frame. `hlease` is the lease premise at this read. -/
 theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -271,6 +274,7 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hScope : NextTransferScope E rho iy y i)
+    (hCut : HealingWindow p E 1 i)
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
     (hlease : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B →
       ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
@@ -302,7 +306,9 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     fheads_idxBefore_le_timeIdx rho (hvi.trans hv)
   obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hy hjy (hcoverQ y hy _ hhl) hcut
-    hy (hScope.carriers jy y hy hjy y hy)
+    hy (healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hy hiy hvi
+      jy y hy hjy)
   have hWd := hrelay
   have hBW : Block.Preceq B (eraseFG W) := by
     rw [hWe]
@@ -362,7 +368,8 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
   -- The honest batch of label i.
   let Hon : Finset (Fin p.n) := healingJoinedSeats E rho i
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := frontier_head_batch_seat E rho hrec crossing hQm
-    hvh hcap hgsti hcoverQ hcover hy hiy hScope hv k ((healingJoinedSeats_mem E rho i k).mp hk).1
+    hvh hcap hgsti hcoverQ hcover hy hiy hScope hCut hv k
+    ((healingJoinedSeats_mem E rho i k).mp hk).1
     ((healingJoinedSeats_mem E rho i k).mp hk).2
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
   have hother : ((GridCO.seats p.n (FGSA.headVotes p dst (i + 1))).toFinset \ Hon).card ≤
@@ -431,7 +438,7 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   have hBK : Block.Preceq B K := by
     rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hK] at hsup
     exact (Bool.and_eq_true_iff.mp hsup).2
-  obtain ⟨jz, hjz, hKz⟩ := healing_support_honest_head E rho hE hom hol hko hkh
+  obtain ⟨jz, hjz, hKz, hSourceJoin⟩ := healing_support_honest_head_joined E rho hE hom hol hko hkh
   have hKeq := stored_eq_headVote E rho (hroots.toNamedRootCollisionFree E rho) ix x hKm jz
     (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) s
     (Option.some.inj ((resolvedHead_root _ o hK).symm.trans hKz))
@@ -452,7 +459,8 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     fheads_idxBefore_le_timeIdx rho (hes.trans hv)
   have hQK := hcoverQ _ hkh _ hhlz
   obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hroots) E rho crossing hE hQm
-    hcap hkh hjz hQK hcut hy (hScope.carriers jz _ hkh hjz y hy)
+    hcap hkh hjz hQK hcut hy (hScope.carriersOn hE hy hiy _hgsts
+      jz _ hkh hjz hSourceJoin)
   have hKe2 : eraseFG W = K := hWe.trans hKeq.symm
   have hBW : Block.Preceq B (eraseFG W) := by
     rw [hKe2]

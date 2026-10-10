@@ -34,7 +34,7 @@ label-r HEAD that covers the pivot and B is, at the proposer's slot-(r+1) read, 
 resolved non-equivocating proposer-support vote that supports B. The HEAD block is the
 relayed witness; F is below it by RXing, so no F ⪯ B premise is needed. -/
 theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -45,7 +45,8 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq B K)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
-    (hScope : ProposalSupportScope E rho ip x r)
+    (hScope : ProposalSupportScope E rho ip x r (SA.proposalTime p.toParams (r + 1)))
+    (hCut : HealingWindow p E 1 r)
     (hv : SA.proposalTime p.toParams (r + 1) ≤ v)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head r)) k ∈ rho.honest)
     (hJoin : joinedAt p E rho (rho.seatOf (.base (.head r)) k) r
@@ -80,7 +81,10 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay_on
     (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hk hjz (hcoverQ z hk K hhl)
-    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) hx (hScope.carriers jz z hk hjz x hx)
+    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) hx
+    (healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hx hip hvp
+      jz z hk hjz)
   have hKe' : eraseFG Kfg = K := hKe0
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF :=
     (fgsa_store_durable p c E rho
@@ -191,7 +195,7 @@ retained prior support at the honest proposer read of slot r+1 under the cap: th
 proposer's own label-r HEAD block is the height-m witness, and the honest batch of label r
 gives the strict majority and the rival bound in the ACTUAL proposer pool. -/
 theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -202,7 +206,8 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq L K)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
-    (hScope : ProposalSupportScope E rho ip x r)
+    (hScope : ProposalSupportScope E rho ip x r (SA.proposalTime p.toParams (r + 1)))
+    (hCut : HealingWindow p E 1 r)
     (hv : SA.proposalTime p.toParams (r + 1) ≤ v) :
     RetainedPriorSupport p (clock p (rho.stateBefore E ip x).st
       (SA.proposalTime p.toParams (r + 1))) (r + 1) L := by
@@ -234,7 +239,10 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
     rfl
   obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hx hjx (hcoverQ x hx _ hhl)
-    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) hx (hScope.carriers jx x hx hjx x hx)
+    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) hx
+    (healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hx hip hvp
+      jx x hx hjx)
   have hW : W ∈ (storeAt p c E rho ip x).fg.TF :=
     (fgsa_store_durable p c E rho
       (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 (hrelay)
@@ -248,7 +256,7 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
   let Hon : Finset (Fin p.n) := healingJoinedSeats E rho r
   have hseat (k : Fin p.n) (hk : k ∈ Hon) :=
     frontier_proposal_batch_seat E rho hrec crossing
-    hQm hvh hcap hgstr hcoverQ hcover hx hip hScope hv k
+    hQm hvh hcap hgstr hcoverQ hcover hx hip hScope hCut hv k
     ((healingJoinedSeats_mem E rho r k).mp hk).1
     ((healingJoinedSeats_mem E rho r k).mp hk).2
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
@@ -283,7 +291,7 @@ DC: INTENTIONAL a target L that every honest label-r HEAD covers has, at an hone
 read of label r+1 under the cap, a strict majority in the ACTUAL HEAD pool, and every
 conflicting block has at most half of the raw voters (the non-strict target rival bound). -/
 theorem frontier_target_scores [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -295,6 +303,7 @@ theorem frontier_target_scores [Fintype V] (E : Generic.Env V)
     {ih : Nat} {y : V} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))))
     (hScope : NextTransferScope E rho ih y r)
+    (hCut : HealingWindow p E 1 r)
     (hv : SA.voteTime p.toParams (r + 1) ≤ v) :
     RetainedTargetScores p (clock p (rho.stateBefore E ih y).st
       (SA.voteTime p.toParams (r + 1))) (r + 1) L := by
@@ -310,7 +319,8 @@ theorem frontier_target_scores [Fintype V] (E : Generic.Env V)
   have hhorr : SA.voteTime p.toParams r ≤ rho.horizon := hvi.trans hvh
   let Hon : Finset (Fin p.n) := healingJoinedSeats E rho r
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := frontier_head_batch_seat E rho hrec crossing hQm
-    hvh hcap hgstr hcoverQ hcover hy hih hScope hv k ((healingJoinedSeats_mem E rho r k).mp hk).1
+    hvh hcap hgstr hcoverQ hcover hy hih hScope hCut hv k
+    ((healingJoinedSeats_mem E rho r k).mp hk).1
     ((healingJoinedSeats_mem E rho r k).mp hk).2
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
   have hother : ((GridCO.seats p.n (FGSA.headVotes p dst (r + 1))).toFinset \ Hon).card ≤

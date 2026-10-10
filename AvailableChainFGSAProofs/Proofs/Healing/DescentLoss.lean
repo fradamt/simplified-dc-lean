@@ -195,6 +195,21 @@ theorem healing_high_source_sync
   (healing_recoveryStart_ge p E).trans
     (healing_high_source_recoveryStart p c E rho emittedNonempty emittedName hK hc)
 
+theorem healing_high_source_window
+    (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
+      HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
+    (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e.1 = (heightView p C).h ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    {i : Nat} {K : FGBlock (Fin p.n)} {s : Slot}
+    (hK : SourceBefore p c E rho i K s) (hc : muOf p c E rho + 1 ≤ (heightView p K).h) :
+    HealingWindow p E 1 s :=
+  healing_window_of_recoveryStart p E
+    (healing_high_source_recoveryStart p c E rho emittedNonempty emittedName hK hc)
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B `same` step 3. DC: SAME label-local synchrony.
 A source label of a high source is synchronized on [v_s, d_s]: its action

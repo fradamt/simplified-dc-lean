@@ -39,7 +39,7 @@ structure SupportPermanenceServices (E : Generic.Env V)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:620–715 (H.4, H.4-S, H.2 S1–S3); plan H-SUPPORT §6, ruling B31.
-DC: INTENTIONAL the TPerm conclusion for one phase and one body, with the S3 output
+DC: INTENTIONAL Transfers for one late source in one phase, with the S3 output
 clause under the B31 guard d_s + 4Δ ≤ v. -/
 theorem healing_phase_transfers [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
