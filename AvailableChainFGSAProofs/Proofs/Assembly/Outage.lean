@@ -98,33 +98,35 @@ theorem fgsa_cleanInclusionClaim_of_clean
       intro V _ _ In c E rho ΔF pt hc
       exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)
 
-/-- ROOT-DIGEST W2b. Blueprint 03 §5. The Clean claims supply history and monotonicity.
-The Outage Export proves the frozen growth claim. -/
+/-- ROOT-DIGEST W2b. Blueprint 03 §5. Clean supplies scoped output compatibility.
+P-Ou supplies one confirmed gate witness and inclusion at each later confirmed reader. -/
 theorem fgsa_cleanGrowthClaim_of_clean
-    (hcut : CleanCutClaim p) : CleanGrowthClaim p := by
-  exact outage_cleanGrowthClaim_of p
-    (hstore := fun c E rho => (fgsa_activeViewAt p c E rho).1)
-    (hframe := fun c E rho => (fgsa_frameAt p c E rho).1)
-    (hsrc := fgsa_srcFrameAboveClaim p)
-    (hstrat := fun c E rho pt hb => (fgsa_fgFoundationClaim p c E rho pt hb).strat)
-    (hordered := by
-      intro V _ _ In c E rho ΔF pt hc
-      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).1)
-    (hnonempty := by
-      intro V _ _ In c E rho ΔF pt hc
-      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.1)
-    (htransfer := by
-      intro V _ _ In c E rho ΔF pt hc
-      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.1)
-    (hleases := by
-      intro V _ _ In c E rho ΔF pt hc
-      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.1)
-    (hrows := by
-      intro V _ _ In c E rho ΔF pt hc
-      exact (clean_history_supplier p hcut c E rho (ΔF := ΔF) pt hc).2.2.2.2.2.1)
-    (hmono := by
-      intro V _ _ In c E rho ΔF pt hc
-      exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)
+    (hcut : CleanCutClaim p)
+    (hWitness : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time),
+      CleanSet p c E rho ΔF → ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
+      SA.gateTime p.toParams s ≤ rho.horizon →
+      ∃ y, confirmedReader p c E rho y (SA.gateTime p.toParams s) ∧
+        Block.Preceq B (S_at p c E rho (timeIdx rho (SA.gateTime p.toParams s)) y))
+    (hInclusion : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time),
+      CleanSet p c E rho ΔF → ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
+      SA.gateTime p.toParams s ≤ rho.horizon → ∀ u x g,
+      SA.gateTime p.toParams s ≤ u → u ≤ rho.horizon → confirmedReader p c E rho x u →
+      g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed] →
+      Block.Preceq B (V2.D.outputAt E rho g x u)) : CleanGrowthClaim p := by
+  apply outage_cleanGrowthClaim_of p
+  · intro V _ _ In c E rho ΔF hs s B hprop hgate u x g hu hup hx hg
+    have ht := (hcut c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hs.sleepPre.sleepPre⟩).2
+    exact clean_growth_compatible_of_outputs E rho hs
+      (fun g hg => (ht.2.2.1 g hg).1) hgate (hWitness c E rho ΔF hs s B hprop hgate)
+      hu hup hx hg
+  · exact hInclusion
+
+/-- P15-CUT: P-Ar derives every in-cut prefix receipt from OutageSleep₂.
+The earlyTime(q) <= b₀ guard stays in the public per-label predicate. -/
+theorem fgsa_outagePrefixReceiptClaim : OutagePrefixReceiptDerivedClaim p :=
+  arming_prefix_batch_receipt p
 
 /-- ROOT-DIGEST W2b. Blueprint 03 §9. Foundation Exports supply the source facts.
 One Clean cut result supplies all nine Clean inputs at b₀. -/
