@@ -6,6 +6,7 @@ source scripts/gate-common.sh
 gate_options "$@"
 python3 -B - <<'PY'
 from pathlib import Path
+from importlib import import_module
 import re
 import sys
 sys.path.insert(0, 'scripts')
@@ -17,6 +18,7 @@ found = set()
 files = [lf for lf in C.library_files() if lf.lib == 'AvailableChainFGCompose']
 if not files or not Path('AvailableChainFGCompose.lean').is_file():
     raise SystemExit('MISSING COMPOSE SOURCE SCOPE')
+found.update(import_module('current-inventory').source_names('compose'))
 for lf in files:
     raw = C.strip(Path(lf.path).read_text())
     # Statements expose their definitions. No other extension is permitted.
@@ -33,6 +35,7 @@ for lf in files:
                     found.add(d.full)
         for name, body in re.findall(r'^structure (\w+).*?where\n(.*?)(?=^(?:variable|structure|def|theorem)|\Z)',
                                      raw, re.M | re.S):
+            found.add('AvailableChain.FGCompose.' + name + '.mk')
             for field in re.findall(r'^  (\w+) :', body, re.M):
                 found.add('AvailableChain.FGCompose.' + name + '.' + field)
 for path in (Path('AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean'),
@@ -43,7 +46,8 @@ for path in (Path('AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean'),
                      r'initialize|register_option|elab|builtin_initialize|declare_syntax_cat|export|alias|'
                  r'register_simp_attr|declare_aesop_rule_sets)\b', raw):
             raise SystemExit('FORBIDDEN GLOBAL EXTENSION: ' + str(path))
-if found - expected:
+if found != expected:
+    print('COMPOSE INVENTORY MISSING:', sorted(expected - found))
     print('COMPOSE INVENTORY UNLISTED:', sorted(found - expected))
     raise SystemExit(2)
 print(f'Compose source coverage: {len(files)} modules; {len(expected)} public declarations/projections')
