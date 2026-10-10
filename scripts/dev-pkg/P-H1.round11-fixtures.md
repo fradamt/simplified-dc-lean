@@ -49,6 +49,11 @@ that the honest signers actually emitted them in a network run.
 ## Exact remaining goals
 
 HealingReplayObligations declares k3Replay, k4Replay, slowReplay and splitReplay.
+Each goal fixes the honest set and the source specification's sleeping environment.
+The clock-only always-awake environments are not full-run inputs. Each full-run
+goal also chooses a digest for the complete finite receipt domain. prefixDigest
+keeps its values on the checked local certificate bodies. The local app+1 digest
+cannot be used for a full execution with different honest app=0 proposals.
 Each goal requires RecoverySleep₂ for a real V2.D.Run, the specified fixed phase,
 and the actual PhaseBody/Transfers failure or honest proposal/ExactService failure.
 RecoverySleep₂ includes ExecutionValid, Linked, CStar, RestartsAtWakes, receipt
