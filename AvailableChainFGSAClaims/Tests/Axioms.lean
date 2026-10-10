@@ -665,17 +665,23 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.AboveFrontierRecFEClaim_W
 #print axioms AvailableChain.FGSA.Run.AboveFrontierRecF4Claim_W
 
--- Check the small adapter through the Claims import permitted in this audit.
+-- Check the adapter with an explicit recovery supplier; public records stay fixed.
 example (p : AvailableChain.FGSA.Params)
     (split : AvailableChain.FGSA.Run.FinalityKernelClaim_W p)
-    (ac : AvailableChain.FGSA.Run.KernelACSideClaim_W p) :
+    (ac : AvailableChain.FGSA.Run.KernelACSideClaim_W p)
+    (ready : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+      (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+      (G ΔF : AvailableChain.Time),
+      AvailableChain.FGSA.Run.Recovery₂ p c E rho G ΔF →
+      AvailableChain.FGSA.Run.RecoverySleep₂ p c E rho G ΔF) :
     AvailableChain.FGSA.Run.FinalityKernelJoinedClaim_W p :=
 by
   intro G ΔF hδ V _ _ In c E rho pt prem
   obtain ⟨w, input, start⟩ := prem.start
   exact split G ΔF hδ c E rho ⟨w, pt.r⟩
     ⟨prem.set, prem.bound, prem.window, start, prem.hhor, input,
-      ac G ΔF hδ c E rho w prem.set prem.bound input⟩
+      ac G ΔF hδ c E rho w (ready c E rho G ΔF prem.set) prem.bound input⟩
 
 -- S4.5b: each new public contract, support equation, field, and adapter.
 #print axioms AvailableChain.FGSA.Run.FinalityFinalizedAt
@@ -771,16 +777,16 @@ variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In
 example (h : HTimeBestClaim p) (hδ : p.δt = 2 * p.R)
     (hs : HealingSet p c E rho G ΔF) (hb : LivenessBoundW p ΔF)
     (hr : Gen.Pure.FinForm.recS.holds (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
-      p.R (P p) p.Δ E.t_GST rho.horizon g)
-    (hh : E.t_GST + B_bestF p ΔF G g ≤ rho.horizon) :
+      p.R (P p) p.Δ (recoveryStart p E) rho.horizon g)
+    (hh : recoveryStart p E + B_bestF p ΔF G g ≤ rho.horizon) :
     HTimeBestConcl p c E rho G ΔF g :=
   h G ΔF g hδ c E rho hs hb hr hh
 
 example (h : HTimeSearchClaim p) (hδ : p.δt = 2 * p.R) (hg : 1 ≤ g)
     (hs : HealingSet p c E rho G ΔF) (hb : LivenessBoundW p ΔF)
     (hq : Gen.Pure.QualSearch (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
-      p.R (P p) p.Δ E.t_GST rho.horizon g)
-    (hh : E.t_GST + B_bestF p ΔF G g ≤ rho.horizon) :
+      p.R (P p) p.Δ (recoveryStart p E) rho.horizon g)
+    (hh : recoveryStart p E + B_bestF p ΔF G g ≤ rho.horizon) :
     HTimeBestConcl p c E rho G ΔF g :=
   h G ΔF g hδ c E rho hg hs hb hq hh
 

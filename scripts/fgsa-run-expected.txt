@@ -460,7 +460,6 @@
     'AvailableChain.FGSA.Run.fgsa_proposal_slot',
     'AvailableChain.FGSA.Run.fgsa_propose_parent_lt',
     'AvailableChain.FGSA.Run.fgsa_reachable_stateBefore',
-    'AvailableChain.FGSA.Run.fgsa_receiptCoverage',
     'AvailableChain.FGSA.Run.fgsa_receiptCoverage_ready',
     'AvailableChain.FGSA.Run.fgsa_release_clockPre',
     'AvailableChain.FGSA.Run.fgsa_release_count_bridge',

@@ -3365,3 +3365,199 @@ The map now has 48 targets, 478 GREEN and 38 EXPECTED-FAIL modules (32 owned).
 - PREPARED only. Thirty-two owned targets stay EXPECTED-FAIL. Closure needs
   the remaining P-WC proofs, the receipt/count supplier interfaces, closed
   P-Cl1 and S-Ap inputs, and the assembly/test integration window.
+
+## S-Ap Round 3 — Run facade audit
+
+P3 wake-clock successors: replace the retired audit names
+fgsa_restore_now_retained, fgsa_hrestore_now_retained, and restore_st_retained
+with fgsa_restore_now, fgsaRestoreTimeLaw, and restore_st. The exact wake time
+replaces the old retained clock. No production statement changes.
+The existing spec_prune_restart_mem and spec_prune_sleep checks keep their names;
+import Proofs.Spec.Simulation so the audit can resolve them.
+Run facade --wfail PASS (10.79 s). Regenerated the existing Run audit
+coverage key (8.54 s); mark the Run facade and audit GREEN in S-Ap.
+
+## S-Ap Round 3 — P8 claim transfer
+
+D140: RowServiceBaseClaim now has the exact approved all-honest awake suffix
+from GST through the horizon. NoRestart remains. A permanent honest sleeper
+satisfies the old receiver demands vacuously but need not receive an emitted row.
+P8 public route: RowServiceClaim now takes RecoverySleep₂. The compiled P-Fd
+supplier fgsa_tRows_recovery accepts its toRecovery₂ projection. The base
+supplier fgsa_tRows accepts the new awake suffix. No new premise is invented.
+The P8 declarations and aggregate compile with --wfail (1.29 s). The broader
+Claims build also checked inherited fixtures: FinalityGST, FinalityW,
+HealedBest, WeakContinuation, OutageAlignment, and the kernel adapter example
+in Claims.Tests.Axioms fail on prior sleep changes. They are not P8 failures.
+The FGSA shallow/deep generator includes eight inherited P-Fi claim hashes.
+The auxiliary API generator stops on the missing Claims.Tests.Axioms artifact;
+its full source scope is kept. No generated entry is edited by hand.
+The Run inventory generator now succeeds (791 entries, 25.01 s) and removes
+the stale fgsa_receiptCoverage entry retired under DECISION P23-A.
+FGSA shallow/deep regeneration PASS (243.02 s, 1,357 roots).
+
+## S-Ap Round 3 — P17 D013/D014 continuation supplier
+
+OutageContinuationConcl is the exact approved D013 body: scoped record/output
+compatibility; inclusion only for coveredNodes; scoped emitted HEAD compatibility;
+durable F compatibility for every honest receiver. It takes fast, T, b₀, b₁
+and Fintype V. No proposal-parent extension is added.
+OutageContinuationClaim is the exact D014 wrapper with
+OutageContinuationSleepPrem and all four conclusion arguments. P-Ou's report
+at lines 43, 92 and 145 requests this supplier; its family proof remains P-Ou-owned.
+The two docstrings now describe the approved scopes.
+D013/D014 and the claim aggregate compile with --wfail (3.47 s).
+The claims inventory and auxiliary API writers stop on the inherited missing
+Claims.Tests.Axioms artifact; their source scopes are unchanged.
+FGSA shallow/deep regeneration PASS (238.12 s, 1,357 roots).
+
+## S-Ap Round 3 — remaining public wrappers
+
+P8 D034/D037/D048: HTimeConcl, ResetArrivalConcl, HTimeBestClaim, and
+HTimeSearchClaim now use the exact approved recoveryStart bounds and search
+origins. Their numerical budgets do not change. These supply P-H1's public route.
+
+Serial P-Fd fragment: fgsa_fgFoundationClaim uses the durable/epoch companions
+and RMonoAll; fgsa_rowServiceBaseClaim passes the approved awake suffix;
+fgsa_rowServiceClaim uses fgsa_tRows_recovery with toRecovery₂; the new P21(a)
+fgsa_finalizedMonotonicityRestartClaim exports its compiled Foundations body.
+All four wrappers have local strict audit commands. No family proof is replaced.
+
+The anonymous kernel adapter example in Claims.Tests.Axioms now takes an
+explicit Recovery₂-to-RecoverySleep₂ supplier. P-Fi must prove that supplier;
+the example checks only the composition with its new AC interface. No public
+claim, KernelPrem_W, or KernelJoinedPrem changes. The attempted move to
+FinalityW was discarded because CLAIM-USE forbids that import. No layer
+exception is added. The two best/search audit examples use the approved τ
+premises. Observed inherited fixture failures have family owners in S-Ap's map.
+
+P-Fi's eight approved public changes are already present. P-Ar's derived receipt
+claim type already exists. Neither report requests another S-Ap statement change.
+Their current receipt producers remain family proof obligations. P-Ou's other
+Claims.Outage replacements are prepared on sleep-pou; lead integration retains
+that package's work. D013/D014 are supplied in this branch.
+The serial Foundations wrappers compile. The final package --wfail build
+passes (3,675 jobs). Claims audit coverage regeneration keeps the existing
+814-entry key. Layer check: 72 accepted findings, zero new.
+The full claims inventory and auxiliary API writers now reach the inherited
+missing Tests.FinalityGST artifact. No failed family module is removed from
+the generators' scope, and no generated entry is edited by hand.
+Complete export check: all 471 GREEN roots, 279 proof modules, 253 exports,
+zero unaccepted; zero non-exposed Statements predicates (5.39 s). Complete
+coverage of the three changed audit sources also passes. DCK checks every
+GREEN audit with Lean. The broader source-parser coverage probe cannot resolve
+the inherited open-namespace command window_bit_add_of_row in WindowLiveness;
+that probe is not reported as a complete package coverage pass.
+Final FGSA shallow/deep regeneration PASS (243.60 s, 1,357 roots).
+
+Validation correction: the first DCK passes its build and 41 strict sources
+(4,017 commands), then the finality coverage control detects the missing
+canonical audit command for fgsa_finalizedMonotonicityRestartClaim. Add that
+command to Proofs.Tests.Axioms as required by the serial P-Fd handoff. The
+local strict command remains. No coverage allowance changes.
+The full canonical coverage writer is blocked by missing Shared.Regimes.
+The new P21 row is instead taken from CheckProofEqns' compiled local coverage
+output and rendered into the existing Foundations.Export owner block with
+check-proof-coverage.py's section writer. All other rows and keys are kept.
+The canonical source registration check passes: 24 modules, 227 declarations.
+This fragment integration is not a full canonical-audit build or regeneration.
+
+## S-Ap Round 3 — Count restriction, LEAD DECISION
+
+ReceiptCoverageSleepPremises.slotWindow has t <= a and dl(a) <= dl(t).
+Its deadline field makes dl monotone. Therefore dl(a) = dl(t).
+For Clean dl(t) = t + Δ, a = t. For WC/WCG
+ dl(t) = max(t, GST) + Δ, a <= max(t, GST).
+The Lean evidence is count-restriction.lean and count-restriction.log.
+
+The current Count handoff needs this correction: its hReady premise is over
+[t, dl(t)), not only [a, dl(a)). An anchor-scoped internal companion can fix
+that excess premise but cannot remove the public record's deadline restriction.
+The exact handler premise is:
+
+```lean
+∀ o t, required o t → ∀ j u, t ≤ u → u < dl t →
+  V2.D.Run.handlesAt E rho j x o u →
+  (fgsa p c).wellFormed o = true ∧
+  (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x) o = true ∧
+  fgsaTimely p (V2.D.Run.stateBefore E rho j x) o
+```
+
+An approved consumer needs a later-anchor route: P19/P20
+SourcePendingReceipt, used by PendingSourceDelivery₂ and
+CleanGrowthContinuationSleep₂, quantifies over all a >= send. It uses
+max(a, GST) + delay, including wakes in the continuation after GST.
+The joined participation count does not forbid an individual receiver's wake.
+The old source trigger cannot in general be replaced by a new emission or relay
+at the wake. This affects the proposed Count ports of
+WeakContinuationGrowth.Dynamics.growthStepGateBatch_gate_active_heads and
+WeakContinuationGrowth.Dynamics.growthStepTransferReceipts_prefreeze_path.
+The Clean and WC historical-path ports have the same restriction when an old
+object must be supplied after a receiver wake. Fresh HEADs may instead use their
+own current emission anchor; durable stored paths need no new receipt.
+
+Concrete restriction witness: send = 0, GST = 1, wake/anchor = 3, Δ = 2.
+The approved pending service can use deadline 5. The existing Count record
+requires 5 <= 3. This is impossible. This arithmetic example refutes a general
+adapter from later-anchor service to the old Count record; it is not a
+counterexample to the full public continuation claim.
+
+Proposed exact additive change: keep ReceiptCoverageSleepPremises and
+ReceiptCoverageSleepStatement unchanged. Add
+ReceiptCoverageAnchoredSleepPremises with the same parameters and four field
+names. Copy within, compat and deadline byte for byte. Replace only slotWindow
+by the following type. In this companion, required o a and paths refer to the
+service anchor a; send is the original trigger time.
+
+```lean
+  slotWindow : ∀ o a, required o a →
+    ∃ send, send ≤ a ∧ 0 ≤ a ∧ a < dl a ∧
+    Gen.V2.Duty.ReadyTrigger E rho o send x a (dl a) ∧
+    Gen.V2.Duty.HistorySafeAt E rho x o a ∧
+    V2.D.restartFree rho x (V2.D.Run.actionCut rho a) (V2.D.Run.idxBefore rho D) ∧
+    first ≤ V2.D.Run.actionCut rho a ∧
+    (fgsa p c).wellFormed o = true ∧
+    (∀ s signer K, (toWire p o).decode = some (.vote s signer K) →
+      ((V2.D.Run.stateBeforeTime E rho (dl a) x).st.slot p ≤ s + 1) ∧
+      ∀ i t', V2.D.Run.actionCut rho a ≤ i → i < V2.D.Run.idxBefore rho (dl a) → a ≤ t' →
+        V2.D.Run.handlesAt E rho i x o t' →
+        s ≤ (V2.D.Run.stateBefore E rho i x).st.slot p ∧
+          (V2.D.Run.stateBefore E rho i x).st.slot p ≤ s + 1)
+```
+
+Add ReceiptCoverageAnchoredSleepStatement and
+ReceiptCoverageAnchoredSleepStatement_def by copying the existing statement
+and equation and changing only the record name and declaration names. Thus every dl t in the copied conclusion is the anchor deadline because
+the required predicate is now indexed by anchors. The original send is kept
+explicitly in ReadyTrigger. No old-send deadline is silently weakened.
+Any internal producer must still take or derive exact handler readiness on
+[a, dl(a)), safe history, and the receiver epoch. This proposal does not assert
+that the current bare public receipt statement has a proof.
+
+Decision needed: approve this additive anchor-indexed public contract, or require
+families to use direct receiver-service proofs when a exceeds max(send, GST).
+No public record, Count theorem, or consumer proof was changed for this item.
+
+### S-Ap Round 3 final validation
+
+DCK S-Ap PASS (169.98 s): 471 GREEN modules, 41 strict sources, 4,017 commands,
+and all default controls. Only propext, Classical.choice and Quot.sound occur.
+FGSA shallow API PASS (167.03 s): 1,357 entries, complete matching hashes.
+FGSA deep API PASS (118.80 s): 1,357 roots, 3,818 dependency nodes.
+All 55 deep-snapshot controls PASS (164.59 s). Complete GREEN exports PASS:
+279 proof modules, 253 exports, zero unaccepted. Layers: 72 accepted, zero new.
+All eight changed public definition bodies match the approved packet tokens.
+
+Full claims inventory/API generation and the auxiliary check remain blocked by
+Tests.FinalityGST. Snapshot controls pass V2/GEN/FGSA shallow, catalog-lock and
+source-scope checks, then stop on that artifact at the mapped-root control.
+Full canonical Proofs.Tests.Axioms coverage generation remains blocked by
+Shared.Regimes; the new P21 row is integrated from compiled generator evidence.
+These are recorded limits, not full API or family closure. No generator scope,
+public statement, baseline or allowance was weakened to bypass them.
+
+### Lead note at the S-Ap round 3 merge (2026-10-10)
+The S-Ap round 3 proposal of a PUBLIC anchor-indexed receipt contract is SUPERSEDED by DECISION ANCHOR-DL
+(sleep-join-port-notes.md): an additive internal ReceiptCoverageAnchorPremises with one explicit anchor function, in
+the P-ShA proof layer; public P23 text unchanged. DECISION P15-CUT amends OutagePrefixReceipt (S-Ap round 4).
+Open at integration (rev-sap3-sol finding 7): the Recovery₂ → RecoverySleep₂ supplier for the kernel adapter (P-Fi).
