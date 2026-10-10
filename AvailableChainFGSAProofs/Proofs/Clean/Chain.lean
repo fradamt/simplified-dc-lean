@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Statements.CleanInvariant
+public import AvailableChainFGSAProofs.Proofs.Clean.GateEpoch
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section
@@ -54,10 +55,11 @@ theorem belowLabel_of_mem {i : Nat} {s r : Slot} {B : Block}
 
 /-- A completed gate result supplies a labelled origin. -/
 theorem belowLabel_of_gateResultAt {j i : Nat} {x : V} {s r : Slot} {B : Block}
+    (hsch : V2.D.ScheduleWellFormed E rho)
     (hji : j < i) (hx : IsGateTick p c rho j x s)
     (hB : gateResultAt p c E rho j = some (some B)) (hsr : s ≤ r) :
     BelowLabel p c E rho i r B :=
-  belowLabel_of_mem ⟨j, hji, x, hx, hB⟩ hsr
+  belowLabel_of_mem ⟨j, hji, x, hx, (clean_gate_enabled_of_result hsch hx hB).2, hB⟩ hsr
 
 /-- All four history fields restrict to an earlier index. -/
 theorem cleanHist_restrict {j i : Nat} (hji : j ≤ i) (hh : CleanHist p c E rho i) :
@@ -69,8 +71,8 @@ theorem cleanHist_restrict {j i : Nat} (hji : j ≤ i) (hh : CleanHist p c E rho
     exact hh.same s B C (cleanResults_mono hji hB) (cleanResults_mono hji hC)
   · intro k x s hk hx
     exact hh.nonempty k x s (Nat.lt_of_lt_of_le hk hji) hx
-  · intro k l x y s B hk hl hx hy hB
-    exact hh.continues k l x y s B (Nat.lt_of_lt_of_le hk hji) hl hx hy hB
+  · intro k l x y s B hk hl hx hy hJ hB
+    exact hh.continues k l x y s B (Nat.lt_of_lt_of_le hk hji) hl hx hy hJ hB
 
 /-- Only the ordered and same-label fields are used. -/
 theorem cleanHist_results_compatible {i : Nat} (hh : CleanHist p c E rho i)
@@ -123,15 +125,15 @@ theorem cleanHist_zero : CleanHist p c E rho 0 := by
 theorem cleanResults_mem_succ_iff {i : Nat} {s : Slot} {B : Block} :
     (s, B) ∈ cleanResults p c E rho (i + 1) ↔
       (s, B) ∈ cleanResults p c E rho i ∨
-        ∃ x, IsGateTick p c rho i x s ∧ gateResultAt p c E rho i = some (some B) := by
+        ∃ x, enabledGateAt p c E rho i x s ∧ gateResultAt p c E rho i = some (some B) := by
   constructor
   · rintro ⟨j, hj, x, hx, hB⟩
     rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hj) with hji | rfl
     · exact Or.inl ⟨j, hji, x, hx, hB⟩
-    · exact Or.inr ⟨x, hx, hB⟩
+    · exact Or.inr ⟨x, ⟨hx, hB.1⟩, hB.2⟩
   · rintro (hB | ⟨x, hx, hB⟩)
     · exact cleanResults_mono (Nat.le_succ i) hB
-    · exact ⟨i, Nat.lt_succ_self i, x, hx, hB⟩
+    · exact ⟨i, Nat.lt_succ_self i, x, hx.1, hx.2, hB⟩
 
 end AvailableChain.FGSA.Run
 end

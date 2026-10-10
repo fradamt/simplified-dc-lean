@@ -129,7 +129,7 @@ NoRestart is inherited from Base₂.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_sCompatible [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀ ΔF)
+    (h : CleanCutSet p c E rho b₀ ΔF)
     (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) := by
@@ -146,7 +146,7 @@ The time domain is the bounded inclusive Clean cut. NoRestart is in Base₂.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_outputsAt [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀ ΔF)
+    (h : CleanCutSet p c E rho b₀ ΔF)
     (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
@@ -180,7 +180,7 @@ before same-time deliveries. NoRestart is inherited from Base₂.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem cleanGateAt_body [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀ ΔF)
+    (h : CleanCutSet p c E rho b₀ ΔF)
     (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
   ∀ l x, SA.gateTime p.toParams l ≤ b₀ → x ∈ rho.honest →
@@ -230,12 +230,12 @@ theorem cleanGateAt_body [Fintype V] {b₀ : Time}
 
 /-- P3 §8.5, bp02 §§5.4–6; DC Legacy/Definitions/SafetyRegimes:53–80.
 INTENTIONAL difference: six finite-cut clauses use raw SA gates and exact
-FG-SA state origins. NoRestart is inherited from CleanCut₂ through Base₂.
+FG-SA state origins. NoRestart is inherited from CleanCutSet through Base₂.
 The conclusion is the unfolded frozen body; Claims stays in Export.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem cleanTruncAt_body [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀ ΔF)
+    (h : CleanCutSet p c E rho b₀ ΔF)
     (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
   CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧

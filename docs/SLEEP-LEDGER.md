@@ -2464,3 +2464,115 @@ exact current-receipt replacement remain recorded in the preceding P-Fi block.
 - docs/ARCHITECTURE.md:629 still describes the old restart model (keep last tick, ignore restart time). One docs
   pass updates ARCHITECTURE.md and MAP.md after the P-ShA supplier surface is final (rev-psha3 finding 8,
   rev-pfi-astra finding 3): RecoveryScope, RestoreReads, TickRead, CatchUp, CoreServices, joined middle reads.
+## P-Cl1 — prepared gate and epoch suppliers (2026-10-10)
+
+Base: 1c777e97 on sleep-pcl1. This block belongs to P-Cl1.
+The package is PREPARED on the gate/epoch set. It is not CLOSED.
+The full Clean induction and the arming export are still open.
+
+- GR, internal statement, lead ruling 10-10: StateGate.clean_gate_raw now takes
+  enabledGateAt. GateEpoch.clean_gate_executed gives the exact guarded equation.
+  clean_gate_nonempty_raw extracts the enabled/raw branch from an executed result;
+  clean_gate_unjoined gives some none for a suppressed gate. Consumers:
+  StateGate, StepGate, TransferFrame, GateOutput. The last three remain open.
+- GF, internal statement, lead ruling 10-10: clean_gate_writes appends fastSet only
+  in the joined branch. Its suppressed row is empty. Lease and fast-write proofs
+  derive the guard from the nonempty executed result. No raw-result premise was added.
+- The Chain bridges include the guard required by S-Ap's cleanResults. The
+  index-result bridges take ScheduleWellFormed, which their run consumers have.
+- T08/T12 supplier: clean_enabledGate_awakeClosed proves the exact receiver's
+  closed interval from t_s through gate(s). It uses the valid tick, wake restart,
+  and the current stored marker. This includes label 0 and its early cutoff.
+  The StepGate consumers are still open; these rows are not closed as use sites.
+- T10 supplier: clean_joined_gate_witness chooses z from joinedHonest at the
+  earlier gate time. It gives z's actual enabled gate and its awake interval.
+  It does not claim that the later actor x had an enabled earlier gate.
+  The ordering/transfer use in StepGate is still open.
+- S/R7 supplier: clean_restart_fields keeps FG, blocks, leases and stableRecord,
+  and starts empty genuine/fastWrite caches. cleanHist_step_restart preserves
+  completed event history. clean_gate_fg_before_time compares only the kept FG
+  fields with the strict time read; it does not assert whole-store equality.
+  State/Closure still need their current-epoch induction port.
+- N4 receiver supplier: clean_enabledGate_service_epoch returns restartFree on
+  [actionCut a, idxBefore freeze] inside this gate's receiver interval.
+  HistorySafeAt remains a separate input. Past processing does not supply it.
+- Regression: Tests/CleanSuppressed has a well-formed schedule with wake 9 and
+  a fresh HEAD at 10. At gate label 1 (time 20), raw confirmation is some genesis;
+  the executed result is some none. This refutes the old unconditional raw equation.
+- Public FGSAClaims statements and other owners' files were not edited.
+  STOPs for approved public meaning changes: none.
+- Audit/root inventory changes are in the P-Cl1 report and its audit fragment.
+  The existing shared inventory and fixed S1 scope were not changed. These new
+  Clean modules are outside the fixed S1 domain and are explicit package targets.
+- Prepared validation: package DCK PASS with default controls (164.99 s; first
+  cold package run 458.04 s). Prepared audit-root build --wfail PASS (4.78 s).
+  The 48 core audit commands and three regression commands use only propext,
+  Classical.choice and Quot.sound. Complete export/coverage check: 0 unaccepted
+  (7.04 s). Layer check: 72 baseline findings, 0 new (0.30 s).
+
+### P-Cl1 — current epoch invariant and joined batch (2026-10-10)
+
+The prepared set now includes State, Action, GateOutput and Zero. The package
+remains PREPARED, not CLOSED. Five P-Cl1 targets remain EXPECTED-FAIL.
+
+- Internal statement, lead ruling 10-10: CleanHist.nonempty now requires
+  enabledGateAt, including label 0. CleanHist.continues requires the joined
+  voter at the exact next vote tick. CleanGateOutputStmt requires an enabled
+  gate. These are the P6/P11 forms; no FGSAClaims file was edited.
+- Internal statement, lead ruling 10-10: CleanState.saved requires the local
+  restartFree interval and activeCompatible at the read. savedOnly and
+  fastWrite origins include restartFree and an enabled origin gate. Durable
+  S and lease origins still use completed event history from all epochs.
+- Internal statement, lead ruling 10-10: CleanRestartStep no longer eliminates
+  a restart. It states preservation of CleanState after the kept-state restart,
+  under the existing foundation and source premises. State.clean_restartStateStep
+  proves it. cleanState_of_hist now handles that event. Closure's restart branch
+  uses cleanHist_step_restart; the full Closure module still waits for StepGate.
+- R7: clean_gateInputs_from_rows uses the kept FG equality at the strict time
+  cut. No whole-store equality or global NoRestart is used. The state proof
+  uses RMonoAll and the durable/epoch foundation split. Zero excludes a restart
+  at time 0 from RestartsAtWakes, rather than from global NoRestart.
+- T07 source: clean_enabledGate_of_confirmedReader gives this gate's enabled
+  guard from the exact confirmed reader at afterTicksIdx. Safety is still open.
+- T10 core: clean_gate_head_prefixes_joined orders older results through z's
+  earlier joined gate, then uses Continues for the joined voter y. The current
+  actor x is used only for the F/frame part. It compiles with default heartbeats.
+  StepGate.clean_gate_head_prefixes delegates to this exact interface.
+- P6/T09/T11/T12 sender source: clean_gate_batch_joined counts joinedHonest at
+  the vote tick. clean_joinedNow_of_joined_vote supplies the stored duty guard.
+  StepGate now selects joined voters and keeps that guard in the HEAD emission.
+  Its gate-zero and nonempty types require the enabled gate. N5 is still open.
+
+P-ShA request: Shared/Count.lean:242 fgsa_late_rest_bound, :277
+fgsa_gate_batch_premises, and :351 fgsa_gate_zero_of_receipts still require
+all awake honest seats to be in H. The P6 joined set cannot satisfy that premise
+when a voter wakes at its vote and has a suppressed duty. Add a joined-voter or
+actual-emitter companion, with the same count conclusions and receipt outputs.
+The joined-voter form replaces awake in hH by joinedAt at this exact vote tick.
+Its proof must obtain joinedness from the actual honest emission; receiver
+receipt callers still need ReadyTrigger, HistorySafeAt and their local epoch.
+P-Cl1 did not edit Count or any other P-ShA file. The existing local stamp
+supplier fgsa_gateReceipt_stamps_on is available and needs no replacement.
+
+Open targets: TransferFrame needs receipt/root/epoch caller ports; Transfer,
+StepGate, Closure and Safety then need their guarded consumer ports. These
+remain P-Cl1 work after the needed Shared interfaces are available. No owned
+repair with an EXPECTED-FAIL target is marked closed. clean_epoch_saved_row is
+not yet supplied; P-Ar must not close against this checkpoint.
+
+Validation: DCK PASS with default controls (250.37 s), including lake build
+--wfail of all 475 GREEN modules. The local core audit has 112 commands; the
+regression has three. All use only propext, Classical.choice and Quot.sound.
+Complete export/coverage check on the prepared roots: 0 unaccepted (8.74 s).
+Layer check: 72 baseline findings, 0 new. The expected-failure build fails in
+TransferFrame and blocks its four dependent targets (5.81 s). Thus full-scope
+export/audit closure remains open. No approved public meaning STOP occurred.
+
+### Lead note after the P-Cl1 review (2026-10-10): Count deadline obstruction
+rev-pcl1-astra finding 1: ReceiptCoverageSleepPremises (R/Statements/ReceiptCoverage.lean:64, :68, :78) forces
+dl(a) = dl(t). Clean callers (C/StepGate.lean:562-564, C/TransferFrame.lean:379-382, :474-477) require objects
+accepted at old times t with dl(t) = t + Δ, so a = t; a receiver that woke later (wake 24, acceptance 8, Δ = 2)
+cannot meet deadline 10, and no Clean regime field supplies readiness/restartFree from t. WC/WCG
+(dl(t) = max(t, GST) + Δ) force a = t after GST. These callers stay EXPECTED-FAIL. Choosing a = max(send, wake)
+with the old deadline cannot work. Open: an anchor-relative deadline form (design check anchor-dl-sol running).
+TransferFrame path interfaces (:335, :397) still need the joined receiver argument.

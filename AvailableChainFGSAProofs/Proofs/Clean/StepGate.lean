@@ -84,39 +84,14 @@ DC: Goldfish/Confirmation.lean:494; same honest participation count.
 The label-seat bijection converts the Clean participation bound to Batch.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
-theorem clean_gate_batch (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
+theorem clean_gate_batch (b₀ : Time) (h : CleanCutSet p c E rho b₀ ΔF)
     {i : Nat} {x : V} {s : Slot} (hi : i < timeIdx rho b₀)
     (ht : IsGateTick p c rho i x s) :
     ∃ H : Finset (Fin p.n),
       (∀ k, k ∈ H ↔ rho.seatOf (.base (.head s)) k ∈ rho.honest ∧
-        E.awake (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) = true) ∧
-      Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card := by
-  classical
-  let A := Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)
-  let e : Fin p.n ≃ V := Equiv.ofBijective _ (h.base.cstar (.base (.head s)) trivial)
-  let H := A.image e.symm
-  refine ⟨H, ?_, ?_⟩
-  · intro k
-    have he : k ∈ H ↔ e k ∈ A := by
-      change k ∈ A.image e.symm ↔ e k ∈ A
-      simp only [Finset.mem_image, e.symm_apply_eq]
-      exact ⟨fun ⟨_, hy, he⟩ => he ▸ hy, fun hk => ⟨e k, hk, rfl⟩⟩
-    rw [he]
-    change rho.seatOf (.base (.head s)) k ∈
-      Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s) ↔ _
-    rw [Gen.V2.Duty.awakeHonest_def]
-    exact Finset.mem_filter
-  have htime : SA.gateTime p.toParams s ≤ b₀ :=
-    (V2.D.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed b₀ ht).mp hi
-  have hv : 0 ≤ SA.voteTime p.toParams s ∧ SA.voteTime p.toParams s < b₀ := by
-    change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ b₀ at htime
-    change 0 ≤ 4 * p.Δ * (s : Int) + p.Δ ∧ 4 * p.Δ * (s : Int) + p.Δ < b₀
-    have hd : (0 : Int) < p.Δ := p.deltaPos
-    have hsn : 0 ≤ (s : Int) := Nat.cast_nonneg s
-    constructor <;> nlinarith
-  have hcard : H.card = (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card :=
-    Finset.card_image_of_injective A e.symm.injective
-  exact ⟨hcard ▸ h.partBefore _ hv.1 hv.2⟩
+        joinedAt p E rho (rho.seatOf (.base (.head s)) k) s (SA.voteTime p.toParams s)) ∧
+      Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card :=
+  clean_gate_batch_joined h hi ht
 
 private theorem stamp_find_kept {α : Type} [BEq α] [LawfulBEq α]
     {xs ys : List (α × Time)} (hp : xs <+: ys) (a : α)
@@ -195,11 +170,12 @@ INTENTIONAL: the F-anchored optional raw result is exactly genesis
 (spec/fgsa-protocol.tex:2506–2513). No successor history is used.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
-theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
+theorem clean_gate_zero (b₀ : Time) (h : CleanCutSet p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) {i : Nat} {x : V}
-    (hi : i < timeIdx rho b₀) (ht : IsGateTick p c rho i x 0)
+    (hi : i < timeIdx rho b₀) (hG : enabledGateAt p c E rho i x 0)
     (hs : CleanState p c E rho i) :
     gateResultAt p c E rho i = some (some .genesis) := by
+  have ht := hG.1
   have hsch := h.base.valid.toScheduleWellFormed
   have hx : x ∈ rho.honest := hsch.honest_only _ (List.mem_of_getElem? ht)
   have hil : i ≤ rho.events.length := Nat.le_of_lt (List.getElem?_eq_some_iff.mp ht).1
@@ -209,7 +185,12 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     simpa only [mul_zero, zero_add] using hh
   have hd : (0 : Int) < p.Δ := p.deltaPos
   have h2 : (2 : Time) * p.Δ ≤ rho.horizon := by linarith [h.cut.2]
-  obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hsch h.base.delta x hx 2 h2
+  have hEarly : E.awake x ((2 : Time) * p.Δ) = true :=
+    clean_enabledGate_awakeClosed h.base.valid hx hG _
+      (by have := p.deltaPos; positivity)
+      (by change 4 * p.Δ * (0 : Int) ≤ 2 * p.Δ; nlinarith [p.deltaPos])
+      (by change 2 * p.Δ ≤ 4 * p.Δ * (0 : Int) + 6 * p.Δ; nlinarith [p.deltaPos])
+  obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hsch h.base.delta x hx 2 h2 hEarly
   change rho.events[j]? = some (.tick x (2 * p.Δ)) at hj
   have hji : j < i := V2.D.Engine.eventIndex_lt_of_time_lt hsch hj ht (by
     change 2 * p.Δ < 4 * p.Δ * (0 : Int) + 6 * p.Δ
@@ -252,22 +233,31 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
         (baseVote (⟨.seat (.head 0) k, genesisRoot⟩ : HeadWire p.n)) <
           GridCO.earlyTime p.toParams.engine 0 := by
     intro k hk
-    obtain ⟨hkh, hka⟩ := (hH k).mp hk
+    obtain ⟨hkh, hkJ⟩ := (hH k).mp hk
+    have hka := hkJ.1
+    change E.awake _ (4 * p.Δ * (0 : Int) + p.Δ) = true at hka
     have h1 : (1 : Time) * p.Δ ≤ rho.horizon := by linarith [h.cut.2]
     obtain ⟨l, hl, _⟩ := fgsa_tick_total E rho hsch h.base.delta _ hkh 1 h1
+      (by simpa only [mul_zero, zero_add, Nat.cast_one, one_mul] using hka)
     have hem : V2.D.Run.emits E rho (rho.seatOf (.base (.head 0)) k)
         (ofHead p ⟨.seat (.head 0) k, genesisRoot⟩) p.Δ := by
       have hl' : rho.events[l]? = some (.tick (rho.seatOf (.base (.head 0)) k) p.Δ) := by
         simpa only [Nat.cast_one, one_mul] using hl
       refine ⟨l, hl', ?_⟩
       rw [(V2.D.Run.step_tick_eq E rho hl').2]
-      apply (fgsa_emits_head E rho _ _ _ 0 k genesisRoot).mpr
-      refine ⟨?_, ?_, rfl, ?_⟩
-      · change E.awake _ (4 * p.Δ * (0 : Int) + p.Δ) = true at hka
-        simpa only [mul_zero, zero_add] using hka
-      · change 4 * p.Δ * (0 : Int) + p.Δ = p.Δ
+      have hv : SA.voteTime p.toParams 0 = p.Δ := by
+        change 4 * p.Δ * (0 : Int) + p.Δ = p.Δ
         ring
-      · exact congrArg Block.root (headVote_zero p _).symm
+      have hl0 : rho.events[l]? = some
+          (.tick (rho.seatOf (.base (.head 0)) k) (SA.voteTime p.toParams 0)) := by
+        rw [hv]
+        exact hl'
+      have hj := clean_joinedNow_of_joined_vote hsch hl0 hkJ
+      rw [hv] at hj
+      apply (fgsa_emits_head E rho _ _ _ 0 k genesisRoot).mpr
+      refine ⟨?_, hv, rfl, hj, congrArg Block.root (headVote_zero p _).symm⟩
+      change E.awake _ (4 * p.Δ * (0 : Int) + p.Δ) = true at hka
+      simpa only [mul_zero, zero_add] using hka
     have hr := fgsa_honest_head_receipt E rho h.base.delta h.base.valid h.base.noRestart
       h.base.cstar (fun t => t + p.Δ) b₀ 0 k genesisRoot p.Δ _ x
       (by
@@ -295,7 +285,7 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     simpa only [mul_zero, zero_add] using hrstamp
   have hraw := (fgsa_gate_zero_of_receipts E rho h.base.valid h.base.cstar i x H hbatch
     (fun k hk ha => (hH k).mpr ⟨hk, ha⟩) hF hreceipts hgen).2
-  exact (clean_gate_raw hsch ht).trans (congrArg some hraw)
+  exact (clean_gate_raw hsch hG).trans (congrArg some hraw)
 
 omit [Fintype V] in
 private theorem gate_source_path (hsch : V2.D.ScheduleWellFormed E rho)
@@ -428,58 +418,17 @@ P3 F2.5a:4921–4945; bp02 §5.4. Class B, old-history head prefixes.
 DC: SafetyRegimes.lean:69–75; successive selection/HEAD order analogue.
 INTENTIONAL: retrospective event reads and every intervening F are explicit
 (spec/fgsa-protocol.tex:2506–2513). Only old Continues is used. -/
-theorem clean_gate_head_prefixes (hsch : V2.D.ScheduleWellFormed E rho)
-    (hn : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ) (hf : FGFoundation p c E rho)
-    {i k : Nat} {x y : V} {s : Slot}
+theorem clean_gate_head_prefixes {b₀ : Time}
+    (h : CleanCutSet p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
+    {i k : Nat} {x y : V} {s : Slot} (hi : i < timeIdx rho b₀)
     (ht : IsGateTick p c rho i x (s + 1))
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hJ : joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)))
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho i) :
     (∀ r B, (r, B) ∈ cleanResults p c E rho i → r < s + 1 →
       Block.Preceq B (headAtIdx p c E rho k (s + 1))) ∧
-    (∀ j, j ≤ i → Block.Preceq (F_at p c E rho j x) (headAtIdx p c E rho k (s + 1))) := by
-  have hd : (0 : Int) < p.Δ := p.deltaPos
-  have hx : x ∈ rho.honest := hsch.honest_only _ (List.mem_of_getElem? ht)
-  have htime := (hsch.in_horizon _ (List.mem_of_getElem? ht)).2
-  have hprev : ((4 * s + 6 : Nat) : Time) * p.Δ ≤ rho.horizon := by
-    change 4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ ≤ rho.horizon at htime
-    push_cast at htime ⊢
-    nlinarith
-  obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hsch hDelta x hx (4 * s + 6) hprev
-  have he : ((4 * s + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams s := by
-    change ((4 * s + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + 6 * p.Δ
-    push_cast
-    ring
-  rw [he] at hj
-  have hji : j < i := V2.D.Engine.eventIndex_lt_of_time_lt hsch hj ht (by
-    change 4 * p.Δ * (s : Int) + 6 * p.Δ <
-      4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
-    push_cast
-    nlinarith)
-  have hbefore : ∀ j z, IsGateTick p c rho j z s → k < j := by
-    intro j z hz
-    exact V2.D.Engine.eventIndex_lt_of_time_lt hsch hk hz (by
-      change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
-        4 * p.Δ * (s : Int) + 6 * p.Δ
-      push_cast
-      nlinarith)
-  obtain ⟨D, hD, _⟩ := hh.nonempty j x s hji hj
-  have hDK := hh.continues j k x y s D hji (hbefore j x hj) hj hk hD
-  have hresults : ∀ r B, (r, B) ∈ cleanResults p c E rho i → r < s + 1 →
-      Block.Preceq B (headAtIdx p c E rho k (s + 1)) := by
-    intro r B hB hr
-    rcases (Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hr)) with hrs | heq
-    · exact block_preceq_trans (hh.ordered r s B D hB ⟨j, hji, x, hj, hD⟩ hrs) hDK
-    · subst r
-      obtain ⟨l, hl, z, hz, hB⟩ := hB
-      exact hh.continues l k z y s B hl (hbefore l z hz) hz hk hB
-  refine ⟨hresults, ?_⟩
-  have hF : Block.Preceq (F_at p c E rho i x) (headAtIdx p c E rho k (s + 1)) := by
-    rcases (hs.gateInputs x (s + 1) ht).1 with hg | ⟨r, B, hB, hr, hFB⟩
-    · rw [hg]
-      exact block_genesis_preceq _
-    · exact block_preceq_trans hFB (hresults r B hB hr)
-  intro l hl
-  exact block_preceq_trans (eraseFG_preceq (hf.mono hn l i x hx hl).1) hF
+    (∀ j, j ≤ i → Block.Preceq (F_at p c E rho j x) (headAtIdx p c E rho k (s + 1))) :=
+  clean_gate_head_prefixes_joined h hf hi ht hk hJ hh hs
 
 omit [Fintype V] in
 private theorem gate_block_stamp_lt (hsch : V2.D.ScheduleWellFormed E rho)
@@ -510,7 +459,7 @@ private theorem gate_block_stamp_lt (hsch : V2.D.ScheduleWellFormed E rho)
         fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hm
       exact hm.trans_lt (fgsa_preTick_now_lt E rho hsch hj ht)
 
-private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
+private theorem gate_active_heads (b₀ : Time) (h : CleanCutSet p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) {i : Nat} {x : V} {s : Slot}
     (hi : i < timeIdx rho b₀) (ht : IsGateTick p c rho i x (s + 1))
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho i)
@@ -518,7 +467,8 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
     (hB : ∀ k y, rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
       Block.Preceq B (headAtIdx p c E rho k (s + 1))) :
     ∀ q : Fin p.n, rho.seatOf (.base (.head (s + 1))) q ∈ rho.honest →
-      E.awake (rho.seatOf (.base (.head (s + 1))) q) (SA.voteTime p.toParams (s + 1)) = true →
+      joinedAt p E rho (rho.seatOf (.base (.head (s + 1))) q) (s + 1)
+        (SA.voteTime p.toParams (s + 1)) →
       ∃ K t,
         rho.seatOf (.base (.head (s + 1))) q ∈ rho.honest ∧
         V2.D.Run.emits E rho (rho.seatOf (.base (.head (s + 1))) q)
@@ -536,7 +486,8 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
           (SA.gateTime p.toParams (s + 1)))) K < GridCO.earlyTime p.toParams.engine (s + 1) ∧
         Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams (s + 1))).fg.F) K ∧ Block.Preceq B K := by
-  intro q hy hawake
+  intro q hy hJ
+  have hawake := hJ.1
   let y := rho.seatOf (.base (.head (s + 1))) q
   have hsch := h.base.valid.toScheduleWellFormed
   have hd : (0 : Int) < p.Δ := p.deltaPos
@@ -595,10 +546,9 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
       (SA.voteTime p.toParams (s + 1)) := by
     refine ⟨k, hk, ?_⟩
     rw [(V2.D.Run.step_tick_eq E rho hk).2]
-    exact (fgsa_emits_head E rho _ y _ (s + 1) q K.root).mpr ⟨hawake, rfl, rfl, congrArg
-        Block.root hKeq⟩
-  have hprefix := clean_gate_head_prefixes p c E rho hsch h.base.noRestart h.base.delta hf
-    ht hk hh hs
+    exact (fgsa_emits_head E rho _ y _ (s + 1) q K.root).mpr
+      ⟨hawake, rfl, rfl, clean_joinedNow_of_joined_vote hsch hk hJ, congrArg Block.root hKeq⟩
+  have hprefix := clean_gate_head_prefixes p c E rho h hf hi ht hk hJ hh hs
   obtain ⟨required, paths, hcov, hp⟩ := gate_path_coverage p c E rho h.base.valid
     h.base.noRestart h.base.delta b₀ h.healthy h.cut.2 ht hcut hy hk hKsource hprefix.2
   have hidx : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams (s + 1)) ≤ i := by
@@ -669,7 +619,7 @@ INTENTIONAL: actual optional F-anchored reads (spec/fgsa-protocol.tex:2496–251
 This covers old/new and new/new pairs without a successor Continues premise.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
-theorem clean_gate_same (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
+theorem clean_gate_same (b₀ : Time) (h : CleanCutSet p c E rho b₀ ΔF)
     {i : Nat} (hi : i < timeIdx rho b₀) :
     ∀ s B C, (s, B) ∈ cleanResults p c E rho (i + 1) →
       (s, C) ∈ cleanResults p c E rho (i + 1) → Block.Compatible B C := by
@@ -691,7 +641,7 @@ theorem clean_gate_same (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     ((gateResultAt_eq_gateResult p c E rho hsch hx).symm.trans hB)
     ((gateResultAt_eq_gateResult p c E rho hsch hy).symm.trans hC)
 
-private theorem gate_batch_of_history (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
+private theorem gate_batch_of_history (b₀ : Time) (h : CleanCutSet p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) {i : Nat} {x : V} {s : Slot}
     (hi : i < timeIdx rho b₀) (ht : IsGateTick p c rho i x (s + 1))
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho i)
@@ -721,14 +671,15 @@ INTENTIONAL: the optional F-anchored raw result must pass the anchor test
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_gate_nonempty (b₀ : Time) :
-    CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+    CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
     FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
-    ∀ i x s, i < timeIdx rho b₀ → IsGateTick p c rho i x s →
+    ∀ i x s, i < timeIdx rho b₀ → enabledGateAt p c E rho i x s →
       CleanHist p c E rho i → (∀ k, k ≤ i → CleanState p c E rho k) →
       ∃ B, gateResultAt p c E rho i = some (some B) ∧ (s = 0 → B = .genesis) := by
-  intro h _ hf _ i x s hi ht hh hall
+  intro h _ hf _ i x s hi hG hh hall
+  have ht := hG.1
   cases s with
-  | zero => exact ⟨.genesis, clean_gate_zero p c E rho b₀ h hf hi ht (hall i le_rfl), fun _ => rfl⟩
+  | zero => exact ⟨.genesis, clean_gate_zero p c E rho b₀ h hf hi hG (hall i le_rfl), fun _ => rfl⟩
   | succ s =>
     have hb := gate_batch_of_history p c E rho b₀ h hf hi ht hh (hall i le_rfl)
       .genesis (fun _ _ _ => block_genesis_preceq _)
@@ -737,7 +688,7 @@ theorem clean_gate_nonempty (b₀ : Time) :
       (eraseFG pre.fg.F) .genesis (s + 1) genesisRoot
       (block_compatible_of_common (block_preceq_refl _) (block_genesis_preceq _))
       hb.1 hb.2.1 hb.2.2
-    refine ⟨B, (clean_gate_raw h.base.valid.toScheduleWellFormed ht).trans (congrArg some hB), ?_⟩
+    refine ⟨B, (clean_gate_raw h.base.valid.toScheduleWellFormed hG).trans (congrArg some hB), ?_⟩
     intro hn
     exact (Nat.succ_ne_zero s hn).elim
 
@@ -750,7 +701,7 @@ The first conjunct supplies the Ordered premise of clean_transfer_frame.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_gate_history_osn (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i < timeIdx rho b₀ → CleanGateTick p c rho i → CleanHist p c E rho i →
     (∀ k, k ≤ i → CleanState p c E rho k) →
