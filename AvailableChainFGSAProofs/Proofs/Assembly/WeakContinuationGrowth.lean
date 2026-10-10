@@ -1247,7 +1247,8 @@ theorem wcg_sourceParticipation {G ΔF : Time} {w : HealingWitness}
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
     nlinarith [Nat.cast_nonneg (α := Int) (w.u + 1)]
   have hslot : (w.u : Int) + 1 ≤ (slotAt p t : Int) := by
-    rw [slotAt, Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
+    change (w.u : Int) + 1 ≤ ((t / (4 * p.Δ)).toNat : Int)
+    rw [Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
     have he := Int.mul_ediv_add_emod t (4 * p.Δ)
     have hr := Int.emod_lt_of_pos t hden
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
@@ -1309,7 +1310,8 @@ private theorem wcg_continuationParticipation {E₀ : Generic.Env V}
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
     nlinarith [Nat.cast_nonneg (α := Int) (w.u + 1)]
   have hslot : (w.u : Int) + 1 ≤ (slotAt p t : Int) := by
-    rw [slotAt, Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
+    change (w.u : Int) + 1 ≤ ((t / (4 * p.Δ)).toNat : Int)
+    rw [Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
     have he := Int.mul_ediv_add_emod t (4 * p.Δ)
     have hr := Int.emod_lt_of_pos t hden
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
