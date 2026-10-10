@@ -4691,3 +4691,19 @@ CleanEpochAxioms.lean lacks strict commands for clean_gate_batch (Clean/StepGate
 (:539), clean_gate_nonempty (:749, changed in this round) and sExtends (Clean/Closure:380). Merged as PREPARED.
 P-Cl1 becomes CLOSED after a short audit round adds the four commands, regenerates the isolated inventory and
 reruns DCK P-Cl1 and the local export/coverage check. P-Cl2 Safety wrapper repair: scripts/dev-pkg/P-Cl1.handoff.md.
+
+
+### P-Cl1 Round 2b — audit completion (sleep-par3, 2026-10-10)
+
+The lead note after the P-Cl1 round 2 review is CLOSED. Tests/CleanEpochAxioms
+now audits clean_gate_batch, clean_gate_head_prefixes, clean_gate_nonempty and
+sExtends directly. A scan of all 20 owned modules also added direct commands
+for CleanInterface, FGPart and the public CleanInvariant predicates. The local
+root has 183 commands; CleanSuppressed retains its three commands.
+
+DCK P-Cl1 PASS: 39 strict roots, 3,149 results and 24 default controls.
+The regenerated isolated inventory has 186 entries. Both local audit roots pass
+--roots-only --complete-coverage and the home-equation/audit control: 137 proof
+modules, 251 exports, zero unaccepted, Gen zero exports. Layers: 72 inherited
+findings, zero new. No canonical audit command, key, allowance or baseline changed.
+Evidence: .lake/sleep-par-r3/pcl1-{dck,exports,exports-generate,layers}.log.
