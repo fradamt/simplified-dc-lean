@@ -2069,3 +2069,63 @@ WCG, each ending in Statement: Init, StepDelivery, StepNoGateTick, StepGateTick,
 StepRestart, Step, SeededInduction, Service4, SeededFrame, FinalBelow,
 ProposalPivot, ProposalAdmission, ExactProposal, Inclusion6, Retrospective,
 SeededFrameLive, and SeededFramePath.
+
+
+## P-ShA round 3 — local receiver receipt APIs, with open targets
+
+Base: 46a95cad (S-Ap parts 1 and 2; P-Fx). P-ShA is not closed.
+The Base₂ receipt field now exists. No FGSAClaims statement or S-Ap proof was edited.
+
+- Shared/SelfDelivery: Base₂.snoc_ownRow and Base₂.cutAt preserve the single
+  receiptIdealization field. Delivered and held scope use the existing named-scope
+  restrictions. Honest emitted scope uses emits_snoc_deliver_iff and emits_cut_iff.
+- Shared/Release: fgsa_release_bound_restart uses the network signature source of
+  an accepted or replayed HEAD. Replay obtains the earlier carried delivery from
+  fgsa_replayed_head_delivery_origin. No receipt deadline or NoRestart is needed.
+  The legacy API remains as a wrapper. Shared/Export's ReleaseClaim uses this core.
+- Shared/CatchUp: fgsa_historySafeAt_of_emitted_head supplies safe history for the
+  exact fresh emitted HEAD at its action cut. fgsa_head_receipt_on threads the
+  exact ReadyTrigger, HistorySafeAt and restartFree from actionCut a to idxBefore
+  freeze through N4. It returns current processing at the deadline and freeze.
+- Shared/GateReceipt: fgsa_gateReceipt_stamps_on preserves vote and block stamps
+  under restartFree rho x j i. The legacy wrapper derives that local interval.
+- Tests/RestartEpochs: two kernel checks use local copies of the existing valid
+  SleepTests fixtures. A bare HEAD processed before sleep need not be processed
+  after restart; an awake HEAD tick need not pass joinedNow. The original full
+  validity proofs remain in Run/Tests/Sleep, with no cross-test import added.
+
+STOP: fgsa_action_walk_batch still concludes a WalkBatch over all honest selected
+HEAD seats from hawake alone. Let the single honest validator wake and restart at
+voteTime s, with horizon earlyTime s and no retained proposal or received HEAD.
+Choose s = q * R + 1, Q = genesis, and the initial finalized floor. The two public
+awake ticks exist, Base₂ and LabelSyncOn hold, and the batch count exceeds zero.
+The HEAD duty is suppressed by joinedNow; the HEAD pool is empty. The WalkBatch
+membership conclusion is false. This target needs joined selected voters and the
+receiver's exact service scope. No changed public statement was installed.
+
+STOP: fgsa_gateReceipt_clean and fgsa_gateReceipt_recovery quantify awake selected
+HEAD voters and conclude their actual HEAD emission. A selected voter waking at
+voteTime s has joinedNow = false and emits no HEAD. For Clean, keep other honest
+validators awake so the strict prefix participation bound holds. For Recovery,
+choose GST = voteTime s and wake the selected voter at GST; keep it awake thereafter.
+Take genesis floors and covered prefix so the geometry implications hold. Delivery
+cannot supply a nonexistent emission. Both adapters need the joined voter scope.
+
+No false conclusion was established for the other ten Regimes adapters or for
+SameLabelClaim. Their local receiver epoch and service ports remain unfinished.
+Their current calls still request the removed Base₂.noRestart field. Do not infer
+safe history for arbitrary retained HEADs: the tested valid ownRun fixture processes
+ownHead at state index 12, but loses it at the restart action cut at time 35.
+The exact retained service/history obligations must be discharged, not assumed.
+Tests.RetainedConsumers still waits for a compiled Regimes module; its local
+Composes statement also retains the old unguarded honest-reader quantifiers.
+
+S-Ap input status: the retired ReceiptCoverage import path compiles in this merge.
+Run.Tests.Axioms fails on fgsa_restore_now_retained, fgsa_hrestore_now_retained,
+restore_st_retained, spec_prune_restart_mem and spec_prune_sleep. Run's facade
+imports that audit. P23Axioms compiles. No S-Ap file was edited. The ReceiptCoverage
+EXPECTED-FAIL map entry remains under S-Ap ownership after automatic review rejected
+its proposed status change. The P-ShA map adds the required merged P23 audit input.
+
+Validation and exact source locations are in claude-files/sleep-psha-report.md,
+Round 3. Only compiled green modules are covered by the successful checks.

@@ -17,8 +17,8 @@ variable {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 /-- [own-row Option 1; DC N3] `Base₂` survives the same-time self-delivery of a released FG
 row, appended after the last event of the sender. `valid` is the engine append law with
-`EmitOk` from `fgsa_emitOk_row`; the committee fields read only `seatOf`; `NoRestart`
-and `NamedRootCollisionFree` do not see a row delivery. Scope: `hkey` restricts the run to
+`EmitOk` from `fgsa_emitOk_row`; the committee fields read only `seatOf`; `RestartsAtWakes`
+and the receipt scope are preserved by a row delivery. Scope: `hkey` restricts the run to
 events at or before `(t, 2)`, so the run ends at the action time `t`; `Base₂.ownRow_run`
 removes the restriction through the cut. -/
 theorem Base₂.snoc_ownRow (h : Base₂ p c E rho) {i : Nat} {v : V} {t : Time}
@@ -37,11 +37,19 @@ theorem Base₂.snoc_ownRow (h : Base₂ p c E rho) {i : Nat} {v : V} {t : Time}
     apply h.restartsAtWakes x u
     simpa only [List.mem_append, List.mem_singleton, reduceCtorEq, or_false] using hu
   delta := h.delta
-  idealization := namedRootCollisionFree_snoc_row h.idealization
+  receiptIdealization := by
+    have scope (A : NamedProposal p.n)
+        (ha : NamedProposalReceiptScope p c E
+          ({ rho with events := rho.events ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t] }) A) :
+        NamedProposalReceiptScope p c E rho A := by
+      rcases ha with ha | ⟨u, hu, o, time, N, he, hp, hAN⟩
+      · exact Or.inl (namedProposalInRun_snoc_row ha)
+      · exact Or.inr ⟨u, hu, o, time, N, emits_snoc_deliver_iff.mp he, hp, hAN⟩
+    exact fun A B hA hB he => h.receiptIdealization A B (scope A hA) (scope B hB) he
 
 /-- [own-row Option 1; DC N3] `Base₂` survives the cut after the ticks at `t` (horizon `t`):
-`executionValid_cut`, the committee fields, `noRestart_cut` and
-`namedRootCollisionFree_cut`. -/
+`executionValid_cut`, the committee fields, the wake restriction and
+the receipt-scope restriction. -/
 theorem Base₂.cutAt (h : Base₂ p c E rho) {n i : Nat} {v : V} {t : Time}
     (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
     (hi : rho.events[i]? = some (.tick v t)) :
@@ -55,7 +63,15 @@ theorem Base₂.cutAt (h : Base₂ p c E rho) {n i : Nat} {v : V} {t : Time}
     intro x u hu
     exact h.restartsAtWakes x u ((List.take_sublist n _).subset hu)
   delta := h.delta
-  idealization := namedRootCollisionFree_cut h.idealization
+  receiptIdealization := by
+    have scope (A : NamedProposal p.n)
+        (ha : NamedProposalReceiptScope p c E
+          ({ rho with events := rho.events.take n, horizon := t }) A) :
+        NamedProposalReceiptScope p c E rho A := by
+      rcases ha with ha | ⟨u, hu, o, time, N, he, hp, hAN⟩
+      · exact Or.inl (namedProposalInRun_cut ha)
+      · exact Or.inr ⟨u, hu, o, time, N, ((emits_cut_iff hcut).mp he).2, hp, hAN⟩
+    exact fun A B hA hB he => h.receiptIdealization A B (scope A hA) (scope B hB) he
 
 /-- [own-row Option 1; DC N3] The spec-like run of an arbitrary `Base₂` run: cut after the
 ticks at the action time `t`, then the same-time self-delivery of the row released by the

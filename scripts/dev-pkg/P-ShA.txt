@@ -1,5 +1,6 @@
-# P-ShA round 2 at da94c7c2; remaining failures have exact owners.
+# P-ShA round 3 at 46a95cad; remaining failures have exact owners.
 [TARGETS]
+AvailableChainFGSAProofs.Tests.RestartEpochs
 AvailableChainFGSAClaims.Tests.Reads
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 AvailableChainFGSAProofs.Proofs.Shared.CatchUp
@@ -65,6 +66,8 @@ AvailableChainFGSAProofs.Tests.RetainedScores
 AvailableChainFGSAProofs.Tests.RetainedWalk
 AvailableChainFGSAProofs.Tests.SharedAxioms
 [GREEN]
+AvailableChainFGSARun.Tests.P23Axioms
+AvailableChainFGSAProofs.Tests.RestartEpochs
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery

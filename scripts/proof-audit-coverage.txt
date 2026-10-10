@@ -4842,6 +4842,8 @@
             'AvailableChain.FGSA.Run.fgsa_gate_joined_of_enabled',
             'AvailableChain.FGSA.Run.fgsa_gate_joined_of_joinedEnv',
             'AvailableChain.FGSA.Run.fgsa_gate_saved_guarded',
+            'AvailableChain.FGSA.Run.fgsa_head_receipt_on',
+            'AvailableChain.FGSA.Run.fgsa_historySafeAt_of_emitted_head',
             'AvailableChain.FGSA.Run.fgsa_joinedNow_noRestart',
             'AvailableChain.FGSA.Run.fgsa_trigger_nonneg',
         ),
@@ -4934,6 +4936,7 @@
             'AvailableChain.FGSA.Run.fgsa_gateReceipt_block_stamp_lt',
             'AvailableChain.FGSA.Run.fgsa_gateReceipt_block_to_tick',
             'AvailableChain.FGSA.Run.fgsa_gateReceipt_stamps',
+            'AvailableChain.FGSA.Run.fgsa_gateReceipt_stamps_on',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.GridSchedule': (
             'AvailableChain.FGSA.Run.fgsa_grid_action_delivery_bounds',
@@ -5084,6 +5087,7 @@
         'AvailableChainFGSAProofs.Proofs.Shared.Release': (
             'AvailableChain.FGSA.Run.fgsa_releaseCount_antitone',
             'AvailableChain.FGSA.Run.fgsa_release_bound',
+            'AvailableChain.FGSA.Run.fgsa_release_bound_restart',
             'AvailableChain.FGSA.Run.fgsa_release_store',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers': (

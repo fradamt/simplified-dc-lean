@@ -34,7 +34,7 @@ theorem fgsa_releaseClaim (p : Params) : ReleaseClaim p := by
   intro V _ _ In c E rho pt h
   refine ⟨fgsa_releaseStoreClaim p, ?_⟩
   intro i x s B _ _ hheads
-  exact ⟨fgsa_release_bound (hroots := h.set.idealization) p c E rho h.set.valid h.set.noRestart
+  exact ⟨fgsa_release_bound_restart (hroots := h.set.idealization) p c E rho h.set.valid
     h.set.cstar h.set.delta i x s B hheads, h.lt⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

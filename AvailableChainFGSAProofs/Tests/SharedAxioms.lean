@@ -377,3 +377,9 @@ public section
 #print axioms AvailableChain.FGSA.Run.fgsa_terminalRetentionW
 
 end
+
+#print axioms AvailableChain.FGSA.Run.fgsa_historySafeAt_of_emitted_head
+#print axioms AvailableChain.FGSA.Run.fgsa_head_receipt_on
+#print axioms AvailableChain.FGSA.Run.fgsa_release_bound_restart
+
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_stamps_on

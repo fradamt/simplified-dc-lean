@@ -49,10 +49,10 @@ private theorem gateReceipt_find_kept {α : Type} [BEq α] [LawfulBEq α]
 Blueprint 02:537–539, original early stamps remain.
 DC: Handlers/GoldfishVotePool.lean:810, admittedBefore_ancestor_mem_and_stamp_at.
 INTENTIONAL: FG-SA keeps first-receipt lists through clockPre and actView;
-this equality needs only NoRestart, not a Clean foundation or honest reader. -/
-theorem fgsa_gateReceipt_stamps
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hN : V2.D.NoRestart rho)
-    {j i : Nat} (hji : j ≤ i) (x : V) (s : Slot)
+this equality needs the receiver epoch, not a Clean foundation or honest reader. -/
+theorem fgsa_gateReceipt_stamps_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {j i : Nat} (hji : j ≤ i) (x : V) (hRF : V2.D.restartFree rho x j i) (s : Slot)
     (o : GridCO.Wire p.n .root) (K : Block)
     (ho : o ∈ (storeAt p c E rho j x).base.votes)
     (hK : K ∈ (storeAt p c E rho j x).base.blocks) :
@@ -61,7 +61,7 @@ theorem fgsa_gateReceipt_stamps
       GridCO.stampVote v o = GridCO.stampVote (storeAt p c E rho j x).base o ∧
       GridCO.stampBlock v K = GridCO.stampBlock (storeAt p c E rho j x).base K := by
   intro v
-  have hc := fgsa_store_cumulative p c E rho hN hji x
+  have hc := fgsa_store_cumulative_on p c E rho hji x hRF
   have hv : o ∈ (storeAt p c E rho j x).base.voteStamp.map Prod.fst := by
     change o ∈ (V2.D.Run.stateBefore E rho j x).st.base.voteStamp.map Prod.fst
     rw [fgsa_vote_stamp_keys E rho j x]
@@ -97,6 +97,19 @@ theorem fgsa_gateReceipt_stamps
       rw [ho, beq_self_eq_true] at hn
       contradiction
     | some row => rfl
+
+/-- The legacy stamp API follows from the local receiver epoch API. -/
+theorem fgsa_gateReceipt_stamps
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hN : V2.D.NoRestart rho)
+    {j i : Nat} (hji : j ≤ i) (x : V) (s : Slot)
+    (o : GridCO.Wire p.n .root) (K : Block)
+    (ho : o ∈ (storeAt p c E rho j x).base.votes)
+    (hK : K ∈ (storeAt p c E rho j x).base.blocks) :
+    let v := actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))
+    o ∈ (storeAt p c E rho i x).base.votes ∧
+      GridCO.stampVote v o = GridCO.stampVote (storeAt p c E rho j x).base o ∧
+      GridCO.stampBlock v K = GridCO.stampBlock (storeAt p c E rho j x).base K :=
+  fgsa_gateReceipt_stamps_on E rho hji x (hN.restartFree x j i) s o K ho hK
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 02:537–539, strict early block stamps.

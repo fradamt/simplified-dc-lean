@@ -4,6 +4,7 @@ public import AvailableChainFGSAClaims.Statements.Join
 public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.ReadyAcceptance
 public import AvailableChainFGSARun.Proofs.Join
+public import AvailableChainFGSARun.Proofs.HeadHistory
 public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainGeneric.Proofs.V2.Duty.Receipt
 
@@ -73,6 +74,57 @@ theorem fgsa_catchUp_before_freeze (E : Generic.Env V)
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (dl a) hS] at hp
   exact (fgsaHooks p c).processed_stable E rho hS x o _ _ hidx
     (hRF.mono (Gen.V2.Duty.actionCut_le_idxBefore hS had) le_rfl) hp
+
+/-- A fresh honest HEAD has no historical processing at its emission action cut.
+The scope is the exact emitted object, sender tick and receiver. -/
+theorem fgsa_historySafeAt_of_emitted_head (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hV : V2.D.ExecutionValid E rho)
+    {i : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t))
+    (s : Slot) (q : Fin p.n) (b : BlockId)
+    (ho : ofHead p ⟨.seat (.head s) q, b⟩ ∈ V2.D.Run.emitsAt E rho i) (x : V) :
+    Gen.V2.Duty.HistorySafeAt E rho x (ofHead p ⟨.seat (.head s) q, b⟩) t := by
+  apply Gen.V2.Duty.historySafeAt_of_fresh
+  rintro ⟨k, hk, hp⟩
+  have hcut : V2.D.Run.actionCut rho t ≤ i := by
+    by_contra hn
+    have h := (V2.D.Engine.index_lt_actionCut_iff hV.toScheduleWellFormed hi t).mp
+      (Nat.lt_of_not_ge hn)
+    simp [V2.Event.time, V2.Event.phase] at h
+  have hf := fgsa_emitted_head_no_prior_processed E rho hV hi s q b ho k
+    (hk.trans hcut) x
+  rw [hp] at hf
+  cases hf
+
+/-- N4 HEAD receipt with an exact ready anchor, safe history and a local receiver epoch.
+The handler premises are at the service window, not at every earlier event. -/
+theorem fgsa_head_receipt_on (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hS : V2.D.ScheduleWellFormed E rho)
+    (dl : Time → Time) (cut : Time) (s : Slot) (q : Fin p.n) (b : BlockId)
+    (send a freeze : Time) (x : V)
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
+    (hT : Gen.V2.Duty.ReadyTrigger E rho (ofHead p ⟨.seat (.head s) q, b⟩)
+      send x a (dl a))
+    (hx : x ∈ rho.honest) (hsa : send ≤ a) (ha : 0 ≤ a) (had : a < dl a)
+    (hc : dl a ≤ cut) (hh : dl a ≤ rho.horizon) (hfreeze : dl a ≤ freeze)
+    (hHistory : Gen.V2.Duty.HistorySafeAt E rho x (ofHead p ⟨.seat (.head s) q, b⟩) a)
+    (hRF : V2.D.restartFree rho x (V2.D.Run.actionCut rho a)
+      (V2.D.Run.idxBefore rho freeze))
+    (hReady : ∀ j t', a ≤ t' → t' < dl a →
+      V2.D.Run.handlesAt E rho j x (ofHead p ⟨.seat (.head s) q, b⟩) t' →
+      (fgsa p c).wellFormed (ofHead p ⟨.seat (.head s) q, b⟩) = true ∧
+      (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x)
+        (ofHead p ⟨.seat (.head s) q, b⟩) = true ∧
+      fgsaTimely p (V2.D.Run.stateBefore E rho j x) (ofHead p ⟨.seat (.head s) q, b⟩))
+    (hNX : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho (dl a) x)
+      (ofHead p ⟨.seat (.head s) q, b⟩) = false) :
+    baseVote (⟨.seat (.head s) q, b⟩ : HeadWire p.n) ∈
+      (V2.D.Run.stateBeforeTime E rho (dl a) x).st.base.votes ∧
+    baseVote (⟨.seat (.head s) q, b⟩ : HeadWire p.n) ∈
+      (V2.D.Run.stateBeforeTime E rho freeze x).st.base.votes := by
+  have hp := fgsa_catchUp_before_freeze E rho hS dl cut
+    (ofHead p ⟨.seat (.head s) q, b⟩) send a freeze x hD
+    (by change ¬ False; exact not_false) hT hx hsa ha had hc hh hfreeze hHistory hRF hReady hNX
+  exact ⟨of_decide_eq_true hp.1, of_decide_eq_true hp.2⟩
 
 /-- N7 supplier: a joined reader at a gate gives the exact store guard.
 The caller supplies the approved environment restart bound at this same tick. -/
