@@ -8836,7 +8836,7 @@
       "module": "AvailableChainKitFG.Pins"
     },
     "AvailableChain.KitFG.pins": {
-      "digest": "cc1a3d43eac603a7a79725ccc98b5d8a07169d56cd7b500fa76f4a9286e064ad",
+      "digest": "204975449392c095835b4b6344c09db46d7a07245e1f353879ba7f38ae3dd1ad",
       "kind": "def",
       "module": "AvailableChainKitFG.Pins"
     },
@@ -102165,7 +102165,7 @@
         "                (List.cons",
         "                  {",
         "                    label :=",
-        "                      \"Trees 3a: the confirmation walk starts at Σ.F in act(Σ); it returns a block only if that block passes the strict-majority test, also when the block is Σ.F (fgsa3 511–513, 1289–1306): gateStep_fresh states that the saved result of an unsaved gate is SA.confirmationFrom (an AvailableChainSA constant, the anchor) from Σ.F on the active view; clock_eq_saClockFrom_gate is the tick\",",
+        "                      \"Trees 3a: the confirmation walk starts at Σ.F in act(Σ); it returns a block only if that block passes the strict-majority test, also when the block is Σ.F (fgsa3 511–513, 1289–1306): gateStep_fresh states that the saved result of an unsaved joined gate is SA.confirmationFrom (an AvailableChainSA constant, the anchor) from Σ.F on the active view; clock_eq_saClockFrom_gate is the joined tick\",",
         "                    cov :=",
         "                      AvailableChain.KitFG.Cov.leanIn \"AvailableChainFGSA\"",
         "                        (List.cons `AvailableChain.FGSA.gateStep",
@@ -103088,7 +103088,7 @@
         "List.cons",
         "List.nil"
       ],
-      "digest": "d5964c782636945f9ba86910b1ec0d9b6005c4dc6c2e3a0269980a4c34a8b387",
+      "digest": "ae729ed9931ca87be642e66862f60e19c0e9939fe37728a59ce13b834762eeb7",
       "kernel_name": "str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG4:pins",
       "kind": "def",
       "module": "AvailableChainKitFG.Pins",
