@@ -33,7 +33,7 @@ theorem healing_reset_emittedName (p : Params) {In V : Type} [DecidableEq V]
   exact ⟨C, G, hC, hh, hG, hCG, hf⟩
 
 /-- P-H1 supplies permanence for this sleep healing run. Foundations supply all run channels.
-Healing.Export must expose RecoveryPerm; that route is an exact P-H2 boundary request. -/
+Healing.Export exposes the proved RecoveryPerm producer. -/
 theorem assembly_healing_tPerm_of_set (p : Params) {V : Type}
     [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
@@ -58,35 +58,35 @@ theorem healing_resetArrival (p : Params) (G ΔF : Time)
     (healing_reset_emittedName p c E rho hset.base)
     hset hδ hbound (hsearch c E rho hset hbound) hhor
 
-/-- Blueprint 21 HG.5. P-H2 owns the bounded joined-start search producer.
-This adapter consumes its exact result, without an assumed service record. -/
+/-- Blueprint 21 HG.5. Recovery supplies the selected scopes. Foundations supply
+all run inputs. The rise and row horizon guards stay in the returned statement. -/
 theorem healing_frontierSearch_of_set (p : Params) {V : Type} [DecidableEq V] [Fintype V]
     {In : Type} (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (_hset : HealingSet p c E rho G ΔF)
-    (hsearch : FrontierSearchStatement p c E rho G ΔF) :
-    FrontierSearchStatement p c E rho G ΔF := hsearch
+    {G ΔF : Time} (hset : HealingSet p c E rho G ΔF) :
+    FrontierSearchStatement p c E rho G ΔF := by
+  have faultQ := fgsa_faultQ_of_count p hset.fault
+  exact healing_frontierSearch_recovery E rho hset (fgsa_rMonoAll p c E rho)
+    (fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
+      (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures)
+    (fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ)
+    (sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
+      (fgsa_rStore p c E rho))
+    (fgsa_leaseOrigins_lastWrite p c E rho hset.base.valid.toScheduleWellFormed)
+    (rowPermission_covered E rho hset.base hset.fault)
+    (fgsa_tRows_recovery p c E rho hset.toRecovery₂).receipt
+    (fgsa_batchCoverage p ΔF .progress c E rho) (fgsa_foldTrichotomy_progress p)
+    faultQ (kmid_honest_quorum p c rho hset.base.linked hset.fault)
 
-section SearchInput
-variable (search : ∀ (p : Params) (G ΔF : Time),
-    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-      HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      FrontierSearchStatement p c E rho G ΔF)
-
-include search in
-/-- Blueprint 21 H.11:1572–1595; plan S5 HG5-BRIDGE. Frozen ResetArrivalStatement.
-DC: SAME R2 with the exact P-H2 HG.5 request. -/
+/-- Blueprint 21 H.11:1572–1595. The named HG.5 producer supplies reset arrival. -/
 theorem healing_resetArrivalStatement (p : Params) (G ΔF : Time) :
     ResetArrivalStatement p G ΔF :=
-  healing_resetArrival p G ΔF fun c E rho hset hbound =>
-    healing_frontierSearch_of_set p c E rho hset (search p G ΔF c E rho hset hbound)
+  healing_resetArrival p G ΔF fun c E rho hset _hbound =>
+    healing_frontierSearch_of_set p c E rho hset
 
-include search in
-/-- Blueprint 21 H.11:1572–1595; the reset-only claim from the frozen statement.
-DC: SAME reset-only conclusion; ResetArrivalPrem supplies the set, bound and horizon. -/
+/-- Blueprint 21 H.11:1572–1595. The reset-only claim retains its finite horizon. -/
 theorem healing_resetArrivalClaim (p : Params) : ResetArrivalClaim p := by
   intro G ΔF hδ V _ _ In c E rho _ h
-  exact healing_resetArrivalStatement search p G ΔF hδ c E rho h.set h.bound h.hhor
+  exact healing_resetArrivalStatement p G ΔF hδ c E rho h.set h.bound h.hhor
 
 /-- ROOT-DIGEST W2b. Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2.
 DC: SAME cone step at every event cut. HealingSet supplies each run port. -/
@@ -96,7 +96,7 @@ theorem healing_postReset_coneStep_of_set (p : Params) {V : Type}
     (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
     (h0r : H0Reset p c E rho w) : ∀ i, PostResetConeStep p c E rho w i := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
-  have mono := fgsa_rMono p c E rho
+  have mono := fgsa_rMonoAll p c E rho
   have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
@@ -109,6 +109,103 @@ theorem healing_postReset_coneStep_of_set (p : Params) {V : Type}
     crossing origin h0r cap
     (sourceDiscipline_tSrc p c E rho hset.base.valid.toScheduleWellFormed)
     (rowPermission_covered E rho)
+
+/-- The selected healing gate catches up each honest suffix reader. The proof
+uses actual cuts, applied wakes, and the recovery epoch through the finite horizon. -/
+theorem assembly_healing_suffix_reader (p : Params) {V : Type}
+    [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : HealingSet p c E rho G ΔF) {w : HealingWitness} (h0 : H0 p c E rho w)
+    (hhor : tstar p w ≤ rho.horizon) {i : Nat} {x : V}
+    (hi : HealSuffix p c rho (tstar p w) i) (hx : x ∈ rho.honest) :
+    confirmedReaderIdx p c E rho x i := by
+  have hs := hrec.base.valid.toScheduleWellFormed
+  have hcut : E.t_GST ≤ slotStartZ p (w.u : Int) :=
+    healing_reset_slot_cutoff h0.toH0Reset |>.trans (by
+      have hu : (w.sStar : Int) ≤ w.u := by
+        exact_mod_cast (Nat.le_add_right w.sStar 2 |>.trans h0.proposal_lower)
+      change 4 * p.Δ * (w.sStar : Int) ≤ 4 * p.Δ * (w.u : Int)
+      nlinarith [p.deltaPos])
+  have hgate : healStart p c rho (tstar p w) = afterTicksIdx rho (tstar p w) := by
+    have hg : isGateTime p (tstar p w) = true := (isGateTime_iff p _).mpr ⟨w.u, rfl⟩
+    rw [healStart_def, hg]
+    rfl
+  have htime : ((4 * w.u + 6 : Nat) : Time) * p.Δ = tstar p w := by
+    rw [tstar_def]
+    change ((4 * w.u + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (w.u : Int) + 6 * p.Δ
+    push_cast
+    ring
+  obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hs hrec.base.delta x hx (4 * w.u + 6)
+    (htime ▸ hhor) (htime ▸ hrec.awake x hx _ h0.after_gst hhor)
+  rw [htime] at hj
+  have hji : j < i := by
+    have hlt : j < afterTicksIdx rho (tstar p w) := by
+      by_contra hn
+      have hf := V2.D.Engine.filter_false_of_index_ge hs (cutPred (P := fgsa p c) _)
+        (fun _ _ hk hf => decide_eq_true (hk.trans (of_decide_eq_true hf)))
+        (Nat.le_of_not_gt hn) hj
+      have ht : cutPred (P := fgsa p c) (tstar p w)
+          (.tick x (tstar p w) : V2.Event V (Obj p)) = true := by
+        change decide (toLex (_, 1) ≤ toLex (_, 1)) = true
+        exact decide_eq_true le_rfl
+      exact Bool.noConfusion (ht.symm.trans hf)
+    exact hlt.trans_le (hgate ▸ hi.1)
+  have hile : i ≤ rho.events.length := hi.2
+  have hl : i - 1 < rho.events.length := by omega
+  have he : (rho.events.take i).getLast? = some rho.events[i - 1] := by
+    rw [List.getLast?_eq_getElem?]
+    simp only [List.length_take, min_eq_left hi.2]
+    rw [List.getElem?_take_of_lt (by omega), List.getElem?_eq_getElem hl]
+  have hp : prefixTime rho i = rho.events[i - 1].time := by
+    change ((rho.events.take i).getLast?.map (fun e => e.time)).getD 0 = _
+    rw [he]
+    rfl
+  have hlow : tstar p w ≤ prefixTime rho i := by
+    rw [hp]
+    rcases (show j ≤ i - 1 by omega).lt_or_eq with hjl | rfl
+    · obtain ⟨hjl', hje⟩ := List.getElem?_eq_some_iff.mp hj
+      have hm := List.pairwise_iff_getElem.mp hs.sorted j (i - 1) hjl' hl hjl
+      rw [hje] at hm
+      exact V2.D.Engine.time_le_of_key_le _ _ hm
+    · have heq := Option.some.inj ((List.getElem?_eq_getElem hl).symm.trans hj)
+      rw [heq]
+      exact le_rfl
+  have hhigh : prefixTime rho i ≤ rho.horizon := by
+    rw [hp]
+    exact (hs.in_horizon _ (List.getElem_mem hl)).2
+  have hb (k : Nat) : ∀ t, (storeAt p c E rho k x).restartTime = some t →
+      t ≤ slotStartZ p (w.u : Int) := by
+    apply fgsa_restartTime_bound E rho k x _
+    intro q t _ ht
+    exact (healing_scope_restart_bound hrec hx
+      (hs.in_horizon _ (List.mem_of_getElem? ht)).2 le_rfl
+      (List.mem_of_getElem? ht)).trans hcut
+  have hg : enabledGateAt p c E rho j x w.u := by
+    refine ⟨hj, ?_⟩
+    cases hr : (storeAt p c E rho j x).restartTime with
+    | none => trivial
+    | some t => exact hb j t hr
+  refine ⟨⟨hx, hrec.awake x hx _ (h0.after_gst.trans hlow) hhigh, ?_⟩, ?_⟩
+  · cases hr : (storeAt p c E rho i x).restartTime with
+    | none => trivial
+    | some t =>
+      refine ⟨w.u, j, hb i t hr, hlow, hji, hg, ?_, ?_⟩
+      · intro u _ hu hup
+        exact hrec.awake x hx u (hcut.trans hu) (hup.trans hhigh)
+      · intro u hu hup hm
+        exact (not_lt.mpr ((healing_scope_restart_bound hrec hx hhigh hup hm).trans hcut)) hu
+  · intro u hu0 hup hW
+    obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp
+      (hrec.base.valid.wake_restart x hx u hu0 (hup.trans hhigh) hW)
+    have hub := healing_scope_restart_bound hrec hx hhigh hup (List.mem_of_getElem? hk)
+    have hut : u < tstar p w := by
+      have hgt : slotStartZ p (w.u : Int) < tstar p w := by
+        change 4 * p.Δ * (w.u : Int) < 4 * p.Δ * (w.u : Int) + 6 * p.Δ
+        linarith [p.deltaPos]
+      exact (hub.trans hcut).trans_lt hgt
+    have hkj := (Gen.V2.Duty.index_lt_idxBefore_iff hs hk (tstar p w)).mpr hut
+    exact ⟨k, hkj.trans_le ((preIdx_le_afterTicksIdx E rho hs (tstar p w)).1.trans
+      (hgate ▸ hi.1)), hk⟩
 
 /-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W2/W4.
 DC: SAME all-cut invariant. HealingSet supplies each standing run port.
@@ -124,7 +221,7 @@ private theorem healing_postReset_inv_of_open (p : Params) {V : Type}
     (hcone : PostResetRetainedCone p c E rho w) :
     ∀ i, PostResetInv p c E rho w i := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
-  have mono := fgsa_rMono p c E rho
+  have mono := fgsa_rMonoAll p c E rho
   have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
@@ -134,7 +231,7 @@ private theorem healing_postReset_inv_of_open (p : Params) {V : Type}
   -- O-CONE: the only use site is this pair of J6-3 step producers.
   have steps := fun i => And.intro
     (healing_postReset_openingDomainStep E rho hset w h0r hcone cap
-      (rowPermission_covered E rho) crossing origin i)
+      (rowPermission_covered E rho) mono crossing origin i)
     (healing_postReset_serviceStep E rho hset w h0r hcone cap
       (rowPermission_covered E rho) mono writes i)
   exact postReset_inv_all p c E rho hset mono
@@ -167,7 +264,7 @@ variable (p : Params)
       HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
       PostResetRetainedCone p c E rho w)
 
-include search stepRL stepLease stepRaw hcone
+include stepRL stepLease stepRaw hcone
 
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W2.
 DC: SAME strict reset arrival. J7 changes only u and QStar for full H0.
@@ -178,20 +275,20 @@ theorem healing_resetArrivalFull_of_open (G ΔF : Time) :
   have hΓ := (fgsa_gamma_bounds p G).1
   have hG := hset.gapPos
   have hd := p.deltaPos
-  obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement search p G ΔF hClock c E rho
+  obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
     hset hbound (by linarith)
   have inv := healing_postReset_inv_of_open p c E rho hset h0r
     (stepRL c E rho hset h0r) (stepLease c E rho hset h0r)
     (stepRaw c E rho hset h0r) (hcone c E rho hset h0r)
   have faultQ := fgsa_faultQ_of_count p hset.fault
-  have carrier := postReset_tCarrier_reset p c E rho hset
+  have carrier := postReset_tCarrier_reset p c E rho hset.toRecovery₂
     (fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ)
     (sourceDiscipline_tSrc p c E rho hset.base.valid.toScheduleWellFormed)
     (rowPermission_covered E rho) h0r inv
   obtain ⟨u, Q, h0, _⟩ := healing_h0_of p c E rho hset carrier h0r (by linarith)
   exact ⟨{w with u := u, QStar := Q}, h0, harrival⟩
 
-omit search stepRL stepLease stepRaw hcone in
+omit stepRL stepLease stepRaw hcone in
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W3.
 DC: SAME statement under HealingTimePrem. The package supplies HealingSet,
 LivenessBoundW, and the healing horizon at the original G and ΔF. -/
@@ -207,7 +304,7 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
   apply healing_hTimeClaim_of_statement p
   intro G ΔF
   have timeBound := healing_timeBound_of_resetArrival p G ΔF
-    (healing_resetArrivalStatement search p G ΔF)
+    (healing_resetArrivalStatement p G ΔF)
   have hInput : HealingInputOfH0Statement p G ΔF := by
     apply healing_healingInputOfH0 p G ΔF
     case timeBound => exact timeBound
@@ -223,7 +320,7 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
         (stepRL c E rho hset h0.toH0Reset) (stepLease c E rho hset h0.toH0Reset)
         (stepRaw c E rho hset h0.toH0Reset) (hcone c E rho hset h0.toH0Reset)
       have faultQ := fgsa_faultQ_of_count p hset.fault
-      have mono := fgsa_rMono p c E rho
+      have mono := fgsa_rMonoAll p c E rho
       have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
         (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
       have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
@@ -235,17 +332,17 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
         (sourceDiscipline_emittedNonempty p c E rho)
         (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
         crossing origin h0.toH0Reset cap source (rowPermission_covered E rho) inv
-      have carrier := postReset_tCarrier_reset p c E rho hset cap source
+      have carrier := postReset_tCarrier_reset p c E rho hset.toRecovery₂ cap source
         (rowPermission_covered E rho) h0.toH0Reset inv
-      have h2a := postReset_h2A_reset p c E rho hset cap source
+      have h2a := postReset_h2A_reset p c E rho hset.toRecovery₂ cap source
         (rowPermission_covered E rho) h0.toH0Reset inv
-      have h2p := postReset_h2Prime_reset p c E rho hset cap source
+      have h2p := postReset_h2Prime_reset p c E rho hset mono cap source
         (rowPermission_covered E rho) h0.toH0Reset crossing origin inv
       have h3 := healing_postReset_exactService E rho w rho.events.length le_rfl
         (inv rho.events.length).service
       have h5 := postReset_h5RawTransfer_body p c E rho h0.toH0Reset
         (fun i => (inv i).raw_transfer)
-      have h6 := healing_postReset_h6GateService E rho hset w rho.events.length le_rfl
+      have h6 := healing_postReset_h6GateService E rho hset mono w rho.events.length le_rfl
         (inv rho.events.length).raw_transfer writes
       first
       | exact high
@@ -259,17 +356,19 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
         have hΓ := (fgsa_gamma_bounds p G).1
         have hG := hset.gapPos
         have hd := p.deltaPos
-        obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement search p G ΔF hClock c E rho
+        obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
           hset hbound (by linarith)
         have hr := healing_reset_rStar_unique p c E rho h0.toH0Reset h0r
         rw [hr] at ht
         have start := healing_postResetStart_of_h0 p c E rho h0
         have h4 := healing_h4 p c E rho hset start h2a h3 h5 inv (by linarith)
+          (fun _ _ hi hx => assembly_healing_suffix_reader p c E rho hset h0
+            (by linarith) hi hx)
         first
         | exact h4
-        | exact healing_healed p c E rho start h4 h3
+        | exact healing_healed p c E rho hset start h4 h3
   exact healing_hTime_of p G ΔF
-    (healing_resetArrivalFull_of_open search p stepRL stepLease stepRaw hcone G ΔF) hInput
+    (healing_resetArrivalFull_of_open p stepRL stepLease stepRaw hcone G ΔF) hInput
 
 end HTime
 
@@ -287,7 +386,7 @@ private theorem healing_postReset_inv_cone_of_open₂ (p : Params) {V : Type}
     (stepCone : ∀ i, PostResetConeStep p c E rho w i) :
     (∀ i, PostResetInv p c E rho w i) ∧ PostResetRetainedCone p c E rho w := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
-  have mono := fgsa_rMono p c E rho
+  have mono := fgsa_rMonoAll p c E rho
   have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
@@ -296,7 +395,7 @@ private theorem healing_postReset_inv_cone_of_open₂ (p : Params) {V : Type}
   have cap := fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ
   have steps := fun i => And.intro
     (healing_postReset_openingDomainStep₂ E rho hset w h0r cap
-      (rowPermission_covered E rho) crossing origin i)
+      (rowPermission_covered E rho) mono crossing origin i)
     (healing_postReset_serviceStep₂ E rho hset w h0r cap
       (rowPermission_covered E rho) mono writes i)
   -- Both projections use postReset_joint₂_all with the same run ports and steps.
@@ -340,7 +439,7 @@ variable (p : Params)
       HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
       ∀ i, PostResetConeStep p c E rho w i)
 
-include search stepRL stepLease stepRaw stepCone
+include stepRL stepLease stepRaw stepCone
 
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3 W2.
 DC: SAME strict reset arrival. J7 changes only u and QStar for full H0.
@@ -351,13 +450,13 @@ theorem healing_resetArrivalFull_of_open₂ (G ΔF : Time) :
   have hΓ := (fgsa_gamma_bounds p G).1
   have hG := hset.gapPos
   have hd := p.deltaPos
-  obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement search p G ΔF hClock c E rho
+  obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
     hset hbound (by linarith)
   have inv := (healing_postReset_inv_cone_of_open₂ p c E rho hset h0r
     (stepRL c E rho hset h0r) (stepLease c E rho hset h0r)
     (stepRaw c E rho hset h0r) (stepCone c E rho hset h0r)).1
   have faultQ := fgsa_faultQ_of_count p hset.fault
-  have carrier := postReset_tCarrier_reset p c E rho hset
+  have carrier := postReset_tCarrier_reset p c E rho hset.toRecovery₂
     (fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ)
     (sourceDiscipline_tSrc p c E rho hset.base.valid.toScheduleWellFormed)
     (rowPermission_covered E rho) h0r inv
@@ -372,7 +471,7 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
   apply healing_hTimeClaim_of_statement p
   intro G ΔF
   have timeBound := healing_timeBound_of_resetArrival p G ΔF
-    (healing_resetArrivalStatement search p G ΔF)
+    (healing_resetArrivalStatement p G ΔF)
   have hInput : HealingInputOfH0Statement p G ΔF := by
     apply healing_healingInputOfH0 p G ΔF
     case timeBound => exact timeBound
@@ -388,7 +487,7 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
         (stepRL c E rho hset h0.toH0Reset) (stepLease c E rho hset h0.toH0Reset)
         (stepRaw c E rho hset h0.toH0Reset) (stepCone c E rho hset h0.toH0Reset)).1
       have faultQ := fgsa_faultQ_of_count p hset.fault
-      have mono := fgsa_rMono p c E rho
+      have mono := fgsa_rMonoAll p c E rho
       have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
         (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
       have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
@@ -400,17 +499,17 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
         (sourceDiscipline_emittedNonempty p c E rho)
         (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
         crossing origin h0.toH0Reset cap source (rowPermission_covered E rho) inv
-      have carrier := postReset_tCarrier_reset p c E rho hset cap source
+      have carrier := postReset_tCarrier_reset p c E rho hset.toRecovery₂ cap source
         (rowPermission_covered E rho) h0.toH0Reset inv
-      have h2a := postReset_h2A_reset p c E rho hset cap source
+      have h2a := postReset_h2A_reset p c E rho hset.toRecovery₂ cap source
         (rowPermission_covered E rho) h0.toH0Reset inv
-      have h2p := postReset_h2Prime_reset p c E rho hset cap source
+      have h2p := postReset_h2Prime_reset p c E rho hset mono cap source
         (rowPermission_covered E rho) h0.toH0Reset crossing origin inv
       have h3 := healing_postReset_exactService E rho w rho.events.length le_rfl
         (inv rho.events.length).service
       have h5 := postReset_h5RawTransfer_body p c E rho h0.toH0Reset
         (fun i => (inv i).raw_transfer)
-      have h6 := healing_postReset_h6GateService E rho hset w rho.events.length le_rfl
+      have h6 := healing_postReset_h6GateService E rho hset mono w rho.events.length le_rfl
         (inv rho.events.length).raw_transfer writes
       first
       | exact high
@@ -424,17 +523,19 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
         have hΓ := (fgsa_gamma_bounds p G).1
         have hG := hset.gapPos
         have hd := p.deltaPos
-        obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement search p G ΔF hClock c E rho
+        obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
           hset hbound (by linarith)
         have hr := healing_reset_rStar_unique p c E rho h0.toH0Reset h0r
         rw [hr] at ht
         have start := healing_postResetStart_of_h0 p c E rho h0
         have h4 := healing_h4 p c E rho hset start h2a h3 h5 inv (by linarith)
+          (fun _ _ hi hx => assembly_healing_suffix_reader p c E rho hset h0
+            (by linarith) hi hx)
         first
         | exact h4
-        | exact healing_healed p c E rho start h4 h3
+        | exact healing_healed p c E rho hset start h4 h3
   exact healing_hTime_of p G ΔF
-    (healing_resetArrivalFull_of_open₂ search p stepRL stepLease stepRaw stepCone G ΔF) hInput
+    (healing_resetArrivalFull_of_open₂ p stepRL stepLease stepRaw stepCone G ΔF) hInput
 
 
 omit stepCone in
@@ -442,7 +543,7 @@ omit stepCone in
 DC: SAME HTimeClaim with the cone step supplied by HealingSet.
 The three inputs keep the exact types from healing_hTimeClaim_of_open₂. -/
 theorem healing_hTimeClaim_of_steps : HTimeClaim p :=
-  healing_hTimeClaim_of_open₂ search p stepRL stepLease stepRaw
+  healing_hTimeClaim_of_open₂ p stepRL stepLease stepRaw
     (healing_postReset_coneStep_of_set p)
 
 end HTime₂
@@ -471,7 +572,7 @@ theorem healing_postReset_leaseStep_of_set (p : Params) {V : Type}
     (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
     (h0r : H0Reset p c E rho w) : ∀ i, PostResetLeaseStep p c E rho w i := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
-  have mono := fgsa_rMono p c E rho
+  have mono := fgsa_rMonoAll p c E rho
   have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
@@ -490,7 +591,7 @@ theorem healing_postReset_rawStep_of_set (p : Params) {V : Type}
     (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
     (h0r : H0Reset p c E rho w) : ∀ i, PostResetRawStep p c E rho w i := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
-  have mono := fgsa_rMono p c E rho
+  have mono := fgsa_rMonoAll p c E rho
   have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
@@ -501,41 +602,34 @@ theorem healing_postReset_rawStep_of_set (p : Params) {V : Type}
     (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
     mono crossing origin h0r
 
-include search in
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H2.
-DC: SAME HTimeClaim. P-H2 supplies search; the all-cut family APIs remain open. -/
+DC: SAME HTimeClaim. Search is produced; the all-cut family APIs remain open. -/
 theorem healing_hTimeClaim (p : Params) : HTimeClaim p :=
-  healing_hTimeClaim_of_steps search p (healing_postReset_resetLeaseStep_of_set p)
+  healing_hTimeClaim_of_steps p (healing_postReset_resetLeaseStep_of_set p)
     (healing_postReset_leaseStep_of_set p) (healing_postReset_rawStep_of_set p)
 
-include search in
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H2 all parameters.
-DC: SAME HTimeClaim for each Params value, conditional on the P-H2 search factory. -/
-theorem healing_hTimeClaim_all : ∀ p, HTimeClaim p := healing_hTimeClaim search
+DC: SAME HTimeClaim for each Params value, with the named HG.5 producer. -/
+theorem healing_hTimeClaim_all : ∀ p, HTimeClaim p := healing_hTimeClaim
 
-include search in
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H3.
 DC: SAME full reset arrival. HealingSet supplies each of the four steps. -/
 theorem healing_resetArrivalFull (p : Params) (G ΔF : Time) :
     ResetArrivalFullStatement p G ΔF :=
-  healing_resetArrivalFull_of_open₂ search p (healing_postReset_resetLeaseStep_of_set p)
+  healing_resetArrivalFull_of_open₂ p (healing_postReset_resetLeaseStep_of_set p)
     (healing_postReset_leaseStep_of_set p) (healing_postReset_rawStep_of_set p)
     (healing_postReset_coneStep_of_set p) G ΔF
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H4.
-DC: SAME HealingInputClaim. The J9 packages use the original H0 witness.
-The claim's local horizon supplies H4; no reset budget premise is required. -/
-theorem healing_healingInputClaim (p : Params) : HealingInputClaim p := by
-  intro G ΔF _hClock V _ _ In c E rho pt h
-  have hset := h.set
-  have h0 := h.h0
-  have inv := (healing_postReset_inv_cone_of_open₂ p c E rho hset h0.toH0Reset
-    (healing_postReset_resetLeaseStep_of_set p c E rho hset h0.toH0Reset)
-    (healing_postReset_leaseStep_of_set p c E rho hset h0.toH0Reset)
-    (healing_postReset_rawStep_of_set p c E rho hset h0.toH0Reset)
-    (healing_postReset_coneStep_of_set p c E rho hset h0.toH0Reset)).1
+/-- P-H2 owns the joint invariant for this selected witness. Every other input
+has a named producer. The local horizon is the public HealingInput horizon. -/
+theorem assembly_healingInput_of_inv (p : Params) {V : Type}
+    [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
+    (h0 : H0 p c E rho w) (hhor : tstar p w ≤ rho.horizon)
+    (inv : ∀ i, PostResetInv p c E rho w i) : HealingInput p c E rho w ΔF := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
-  have mono := fgsa_rMono p c E rho
+  have mono := fgsa_rMonoAll p c E rho
   have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
@@ -547,27 +641,91 @@ theorem healing_healingInputClaim (p : Params) : HealingInputClaim p := by
     (sourceDiscipline_emittedNonempty p c E rho)
     (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
     crossing origin h0.toH0Reset cap source (rowPermission_covered E rho) inv
-  have carrier := postReset_tCarrier_reset p c E rho hset cap source
+  have carrier := postReset_tCarrier_reset p c E rho hset.toRecovery₂ cap source
     (rowPermission_covered E rho) h0.toH0Reset inv
-  have h2a := postReset_h2A_reset p c E rho hset cap source
+  have h2a := postReset_h2A_reset p c E rho hset.toRecovery₂ cap source
     (rowPermission_covered E rho) h0.toH0Reset inv
-  have h2p := postReset_h2Prime_reset p c E rho hset cap source
+  have h2p := postReset_h2Prime_reset p c E rho hset mono cap source
     (rowPermission_covered E rho) h0.toH0Reset crossing origin inv
-  have h3 := healing_postReset_exactService E rho pt.w rho.events.length le_rfl
+  have h3 := healing_postReset_exactService E rho w rho.events.length le_rfl
     (inv rho.events.length).service
   have h5 := postReset_h5RawTransfer_body p c E rho h0.toH0Reset
     (fun i => (inv i).raw_transfer)
-  have h6 := healing_postReset_h6GateService E rho hset pt.w rho.events.length le_rfl
+  have h6 := healing_postReset_h6GateService E rho hset mono w rho.events.length le_rfl
     (inv rho.events.length).raw_transfer writes
   have start := healing_postResetStart_of_h0 p c E rho h0
-  have h4 := healing_h4 p c E rho hset start h2a h3 h5 inv h.hhor
-  exact healing_healingInput_of p c E rho (healing_healed p c E rho start h4 h3)
+  have h4 := healing_h4 p c E rho hset start h2a h3 h5 inv hhor
+    (fun _ _ hi hx => assembly_healing_suffix_reader p c E rho hset h0 hhor hi hx)
+  exact healing_healingInput_of p c E rho (healing_healed p c E rho hset start h4 h3)
     start h0.source_prefix
     (healing_healT_of p c E rho high carrier
       (fgsa_tRows_recovery p c E rho hset.toRecovery₂))
     (healing_healAC_of p c E rho h2a h2p h3 h4 h5 h6)
 
-end SearchInput
+/-- Blueprint 21 H.18–H.22. The claim uses the selected all-cut producer.
+The local horizon remains independent of the full reset budget. -/
+theorem healing_healingInputClaim (p : Params) : HealingInputClaim p := by
+  intro G ΔF _hClock V _ _ In c E rho pt h
+  have inv := (healing_postReset_inv_cone_of_open₂ p c E rho h.set h.h0.toH0Reset
+    (healing_postReset_resetLeaseStep_of_set p c E rho h.set h.h0.toH0Reset)
+    (healing_postReset_leaseStep_of_set p c E rho h.set h.h0.toH0Reset)
+    (healing_postReset_rawStep_of_set p c E rho h.set h.h0.toH0Reset)
+    (healing_postReset_coneStep_of_set p c E rho h.set h.h0.toH0Reset)).1
+  exact assembly_healingInput_of_inv p c E rho h.set h.h0 h.hhor inv
+
+section SelectedResults
+variable (p : Params) {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) (hbound : LivenessBoundW p ΔF)
+include hset hbound
+
+/-- P-H2 owns extension for this run. Only u and QStar change in the reset witness. -/
+theorem assembly_resetArrivalFull_at
+    (extension : p.δt = 2 * p.R → ∀ w, H0Reset p c E rho w →
+      p.actionTime w.rStar + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      ∃ u Q, H0 p c E rho {w with u := u, QStar := Q})
+    (hClock : p.δt = 2 * p.R)
+    (hhor : recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon) :
+    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar <
+      recoveryStart p E + B'_resetF p ΔF G := by
+  have hΓ := (fgsa_gamma_bounds p G).1
+  have hd := p.deltaPos
+  have hG := hset.gapPos
+  obtain ⟨w, hreset, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
+    hset hbound (by linarith)
+  obtain ⟨u, Q, h0⟩ := extension hClock w hreset (by linarith)
+  exact ⟨{w with u := u, QStar := Q}, h0, harrival⟩
+
+omit hset hbound [Fintype V] in
+/-- P-H2 owns localInput at this witness's own horizon. No reset budget is required. -/
+theorem assembly_healingInput_at
+    (localInput : p.δt = 2 * p.R → ∀ w, H0 p c E rho w →
+      tstar p w ≤ rho.horizon → HealingInput p c E rho w ΔF)
+    (hClock : p.δt = 2 * p.R) (w : HealingWitness) (h0 : H0 p c E rho w)
+    (hhor : tstar p w ≤ rho.horizon) : HealingInput p c E rho w ΔF :=
+  localInput hClock w h0 hhor
+
+/-- P-H2 owns extension and fullInput in this finite run. The selected witness
+and the complete Jst horizon are used in both time bounds. -/
+theorem assembly_hTime_at
+    (extension : p.δt = 2 * p.R → ∀ w, H0Reset p c E rho w →
+      p.actionTime w.rStar + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      ∃ u Q, H0 p c E rho {w with u := u, QStar := Q})
+    (fullInput : p.δt = 2 * p.R →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      ∀ w, H0 p c E rho w → HealingInput p c E rho w ΔF ∧
+        tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ)
+    (hClock : p.δt = 2 * p.R)
+    (hhor : recoveryStart p E + B_HF p ΔF G ≤ rho.horizon) :
+    HTimeConcl p c E rho G ΔF := by
+  have hfull := healing_resetFull_horizon p G ΔF (recoveryStart p E) rho.horizon hhor
+  obtain ⟨w, h0, harrival⟩ := assembly_resetArrivalFull_at p c E rho hset hbound
+    extension hClock hfull
+  obtain ⟨hinput, ht⟩ := fullInput hClock hfull w h0
+  exact ⟨w, hinput, ht, healing_time_strict_of_reset p G ΔF (recoveryStart p E)
+    (p.actionTime w.rStar) harrival⟩
+
+end SelectedResults
 
 /-- Blueprint 21 H.18. P-H2 owns the full-H0 extension at this selected reset witness.
 It changes only u and QStar. The strict arrival bound therefore stays at Jst. -/

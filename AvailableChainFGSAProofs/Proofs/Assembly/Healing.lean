@@ -46,7 +46,7 @@ theorem assembly_healing_proposal_service {In V : Type} [DecidableEq V] [Fintype
   · simpa only [he] using hCompat
 
 /-- Blueprint 21:1356–1425. The sleep regime and named Foundations supply promotion.
-P-H2 owns the joined-start promotion body. P-H1 owns the proved permanence producer. -/
+P-H2 supplies joined-start promotion. P-H1 supplies the proved permanence producer. -/
 theorem fgsa_renewedPromotionClaim : RenewedPromotionClaim p := by
   intro G ΔF hδ V _ _ In c E rho pt h
   have hrec := h.set
@@ -65,7 +65,7 @@ theorem fgsa_renewedPromotionClaim : RenewedPromotionClaim p := by
     (fgsa_batchCoverage p ΔF .progress c E rho) (fgsa_foldTrichotomy_progress p)
     (fgsa_faultQ_of_count p hrec.fault)
     (kmid_honest_quorum p c rho hrec.base.linked hrec.fault) pt.r h.hhor
-    u m J contested l q Q height (healing_recoveryStart_ge p E |>.trans hstart)
+    u m J contested l q Q height hstart
     hphase hu hq hl hQ hservice hentry hcovered hrepair
 
 /-- Blueprint 21:1120–1137 and SO-COV. The local producer supplies complete
