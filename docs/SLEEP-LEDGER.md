@@ -6923,3 +6923,110 @@ Claims builds with its tests. Three inherited test adapters required the
 existing RecoverySleep₂ and recoveryStart forms; HealingW now consumes
 the corrected reset interfaces directly. Proof-family callers stay with
 P-H1/P-H2/P-As according to the package map and the Round 7 handoff.
+
+## P-H2 Round 6 — joined-start consumers (2026-10-10)
+
+Status: PREPARED / OPEN. Independent proofs: 12aa13e0 and c5bb6663.
+The promotion, selected-witness settlement, joined-gap and selected parent-floor
+proofs compile. The phase and event starts use recoveryStart. Saved-window
+transport uses GST. Claims, Statements and numeric constants were not edited.
+
+P-H1 r7 merge is pending. The arithmetic producer consumed as readyCut by
+healing_settle_start_on has the exact type:
+
+```lean
+∀ t, recoveryStart p E ≤ t →
+  E.t_GST ≤ slotStartZ p (((slotAt p t : Slot) : Int) - 1)
+```
+
+Named producer: healing_ready_read_cutoff, ResetScope:68 at 4e506874, P-H1.
+The actual reader tick and horizon are proved in the consumer.
+
+P-H1's remaining local lease-cover obligations, consumed as explicit qualified
+callbacks by tfSeed_qSucc_lease_cover, are exactly:
+
+```lean
+namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+theorem repair_lease_cover_two_at [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
+          GridCO.savedGenuine pre.base w = none →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
+            (actView pre) w C)
+    {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hServices : SupportPermanenceServices E rho u v m J contested)
+    {β : Slot} (hβ : u < SA.proposalTime p.toParams β) {s : Slot}
+    (hls : SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s)
+    (hvs : SA.voteTime p.toParams s ≤ v) : RepairLeaseCover E rho s
+
+theorem repair_lease_cover_one_at [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
+          GridCO.savedGenuine pre.base w = none →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
+            (actView pre) w C)
+    {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hServices : SupportPermanenceServices E rho u v m J contested)
+    {b : Slot} (hb : u ≤ SA.voteTime p.toParams b)
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k)) {s : Slot}
+    (hls : SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams s)
+    (hvs : SA.voteTime p.toParams s ≤ v) : RepairLeaseCover E rho s
+
+end AvailableChain.FGSA.Run
+```
+
+The callbacks stop at the selected q+1 read and seed gate. They are not record
+fields or whole-run services. The joined source domain keeps both adapters true
+in finite sleep runs, including the four plan replays. No early cleanup is used.
+P5 is still OPEN/P-H1; its ready phase factory is not proved by a consumer.
+
+The later capped receiver floor, bounded frontier gate conversion, complete
+RPhase producer, remaining post-reset scopes and full run fixtures are OPEN/P-H2.
+See [the exact handoff](../scripts/dev-pkg/P-H2.round6-handoff.md).
+
+P-H2 final proof update: ae971fff proves healing_capped_witness_reader_floor from
+RXing, a selected held source witness, source retention and the current receiver
+cap. It permits receiver F movement. No receipt or universal carrier premise is
+added. The final local audit has 14 permitted results. Forty GREEN audit sources
+passed with 3,345 results before this extra result; all 24 package controls pass.
+The remaining selected source/capped-target plumbing stays OPEN/P-H2.
+Validation: layers zero new; headers PASS; GREEN exports zero unaccepted.
+DCK is blocked by the inherited ComposeStmt line warning. Full manifest is blocked
+by missing Outage.ArmingDuty. No owner source or public statement was edited.

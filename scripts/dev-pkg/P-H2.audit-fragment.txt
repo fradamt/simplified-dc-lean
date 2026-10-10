@@ -273,3 +273,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
 #print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.top
 
 #print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.contest
+
+-- The joined-start regression audit stays in Tests.HealingH2JoinedStartAxioms.
+-- Do not import that test into Tests.Axioms (TEST-USE).

@@ -1021,3 +1021,10 @@ Repair gates take enabledness and GateReceiptGeometry. Suppressed gates create
 no receipt demand. Frontier slow factories take the saved-window sync bound.
 The local repair lease covers and all ten aggregate producers remain OPEN/P-H1.
 See scripts/dev-pkg/P-H1.round6-producers.md and P-H1.round6-handoff.md.
+
+P-H2 Round 6 uses recoveryStart for phase and attempt entry. The per-phase
+SupportPermanenceServices API serves both body arms. No local fast dispatcher or
+early one-lease cleanup is used. Saved-window transport retains GST. Settlement
+selects its witnesses, proves the receiver floor, and uses an actual bounded
+joined tick. The phase factory and remaining frontier/post-reset producers stay
+open; see scripts/dev-pkg/P-H2.round6-handoff.md.

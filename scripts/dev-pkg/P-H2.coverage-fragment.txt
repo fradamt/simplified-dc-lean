@@ -292,4 +292,44 @@
             'AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.wake_at_vote',
         ),
     },
+    'AvailableChainFGSAProofs.Tests.HealingH2JoinedStartAxioms': {
+        'AvailableChainFGSAProofs.Proofs.Healing.RecoveryService': (
+            'AvailableChain.FGSA.Run.healing_proposal_gap',
+            'AvailableChain.FGSA.Run.healing_proposal_phase_reader_floor',
+            'AvailableChain.FGSA.Run.healing_capped_witness_reader_floor',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame': (
+            'AvailableChain.FGSA.Run.healing_settled_frame_ready',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle': (
+            'AvailableChain.FGSA.Run.healing_settle_start_on',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle': (
+            'AvailableChain.FGSA.Run.healing_attempt_settle_start',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.Promotion': (
+            'AvailableChain.FGSA.Run.healing_promotion_source_parent',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed': (
+            'AvailableChain.FGSA.Run.healing_renewedPromotion',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal': (
+            'AvailableChain.FGSA.Run.healing_renewedPromotion_terminal',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a': (
+            'AvailableChain.FGSA.Run.frontier_hg2a_receipt',
+        ),
+        'AvailableChainFGSAProofs.Tests.HealingH2JoinedStartAxioms': (
+            'AvailableChain.FGSA.Run.Tests.HealingH2JoinedStart.old_source_21',
+            'AvailableChain.FGSA.Run.Tests.HealingH2JoinedStart.old_source_1001',
+            'AvailableChain.FGSA.Run.Tests.HealingH2JoinedStart.split_source',
+            'AvailableChain.FGSA.Run.Tests.HealingH2JoinedStart.before_start',
+        ),
+    },
+    'AvailableChainFGSAProofs.Tests.HealingH2ServiceAxioms': {
+        'AvailableChainFGSAProofs.Proofs.Healing.FrontierRead': (
+            'AvailableChain.FGSA.Run.frontier_seed_readers',
+            'AvailableChain.FGSA.Run.FrontierReadScope.first',
+        ),
+    },
 }
