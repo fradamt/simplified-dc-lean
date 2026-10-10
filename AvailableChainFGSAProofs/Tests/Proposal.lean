@@ -58,10 +58,6 @@ example : SA.proposalTime p.toParams 1000 + W_W p 2 2 = 4073 ∧
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {G ΔF : Time} {g : Nat} {w : HealingWitness} {pt : PtSX}
-    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
-      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho)
 
 /-- Conditional package, paper 22:1421–1430; firstfin plan §6.
 DC: INTENTIONAL supplied Forward record, retaining its one Afg/U selection.
@@ -80,7 +76,7 @@ example (hδ : p.δt = 2 * p.R)
     (h : ProposalFinalPrem_W p c G ΔF .recFE g w E rho pt) :
     ProposalFinalConcl_W p c E rho pt.X
       (V2.D.proposalTime (fgsaInterface p c) pt.s + W_W p ΔF g) :=
-  fgsa_proposalFinalRecFE_W p hR G ΔF g w hδ c E rho pt h
+  fgsa_proposalFinalRecFE_W p G ΔF g w hδ c E rho pt h
 
 /-- Conditional package, paper 22:1421–1430; firstfin plan §6.
 DC: INTENTIONAL F4 closure through the FE conversion with the same local deadline.
@@ -89,7 +85,7 @@ example (hδ : p.δt = 2 * p.R)
     (h : ProposalFinalPrem_W p c G ΔF .recF4 g w E rho pt) :
     ProposalFinalConcl_W p c E rho pt.X
       (V2.D.proposalTime (fgsaInterface p c) pt.s + W_W p ΔF g) :=
-  fgsa_proposalFinalRecF4_W p hR G ΔF g w hδ c E rho pt h
+  fgsa_proposalFinalRecF4_W p G ΔF g w hδ c E rho pt h
 
 /-- Conditional package, paper 22:1424–1428; firstfin plan §6.
 DC: INTENTIONAL missing X in every honest proposal-time output is compatible
@@ -102,7 +98,7 @@ example (hδ : p.δt = 2 * p.R)
       (V2.D.proposalTime (fgsaInterface p c) pt.s + W_W p ΔF g) ∧
     ∀ x ∈ rho.honest, ¬ Block.Preceq pt.X
       (V2.D.Run.readAt E rho (V2.D.proposalTime (fgsaInterface p c) pt.s) x).st.base.stableRecord :=
-  ⟨fgsa_proposalFinalRecFE_W p hR G ΔF g w hδ c E rho pt h, hmiss⟩
+  ⟨fgsa_proposalFinalRecFE_W p G ΔF g w hδ c E rho pt h, hmiss⟩
 
 end AvailableChain.FGSA.Run.Tests.Proposal
 end
