@@ -24,16 +24,18 @@ example [Fintype V] {G ΔF : Time} (h : HealingSet p c E rho G ΔF) : RCap p c E
   apply fgsa_rCap p c E rho h.base.linked h.base.valid h.faultQ y i x W hW
   simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using hh
 
--- A pre-GST row reaches the common cut. No awake-receiver premise is required.
+-- A pre-GST row reaches the common cut under the receiver awake service.
 example (ΔF : Time) (hΔ : E.Δ = p.Δ) (hv : V2.D.ExecutionValid E rho)
     (hnr : V2.D.NoRestart rho)
     (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    (hΔF : E.Δ ≤ ΔF) {j r : Nat} {y x : V} {a : RowWire p.n}
+    (hΔF : E.Δ ≤ ΔF)
+    (hawake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake x t = true)
+    {j r : Nat} {y x : V} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j y r a) (hpre : p.actionTime r < E.t_GST)
     (hhor : E.t_GST + ΔF ≤ rho.horizon) (hx : x ∈ rho.honest) :
     HeldBefore p c E rho x a (E.t_GST + ΔF) :=
   healing_phase_receipt p c E rho ΔF hv.toScheduleWellFormed hnr
-    (fgsa_tRowsReceipt p c E rho ΔF hΔ hv hnr hsync hΔF) ha hpre.le le_rfl hhor hx
+    (fgsa_tRowsReceipt p c E rho ΔF hΔ hv hnr hsync hΔF hawake) ha hpre.le le_rfl hhor hx
 
 -- A delivery exactly at the deadline is outside the strict receipt read.
 example (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {o : Obj p} {d : Time}

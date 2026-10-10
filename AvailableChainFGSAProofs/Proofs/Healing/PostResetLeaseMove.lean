@@ -350,7 +350,8 @@ theorem postReset_moving_domain
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgst hvu hhor
   have hHstamp : GridCO.stampBlock (storeAt p c E rho jy y).base
       (headAtIdx p c E rho jy l) < SA.earlyTime p.toParams l := by
-    have hnow := V2.D.Engine.stateBefore_now_le_event_noRestart (fgsaClock p c) E rho hs hN hjy y
+    have hnow := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hs hjy y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho jy y)] at hnow
     refine lt_of_le_of_lt ((healing_block_stamp_le_now p c E rho hs hN hHstore).trans hnow) ?_
     change 4 * p.Δ * (l : Int) + p.Δ < 4 * p.Δ * (l : Int) + 2 * p.Δ

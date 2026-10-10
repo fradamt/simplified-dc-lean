@@ -203,7 +203,7 @@ private theorem cone_source_held (source : TSrc p c E rho)
       D ∈ (storeAt p c E rho a y).fg.TF →
       (finalityView p D).F = (storeAt p c E rho a y).fg.F →
       (finalityView p D).h_F ≤ w.M → Block.Preceq (F_at p c E rho a y) w.CStar :=
-    healing_low_finality_after_reset E rho hS hrec.base.noRestart xing w h0r
+    healing_low_finality_after_reset E rho hS xing w h0r
   obtain ⟨k, y, r, a, hk, ha, hsrc, hu⟩ := hK
   have hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R) := by
     apply h0r.synchronous.trans

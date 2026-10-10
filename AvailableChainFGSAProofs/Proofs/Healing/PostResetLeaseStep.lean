@@ -69,7 +69,7 @@ theorem postReset_written_sync [Fintype V] {G ΔF : Time}
     by_contra hn
     have hi : i ≤ timeIdx rho w.u₀ :=
       ((V2.D.Engine.index_lt_read_length_iff hs w.u₀ ht).mpr (le_of_not_gt hn)).le
-    have hBcut := (fgsa_store_cumulative p c E rho hrec.base.noRestart hi y).1 hBfg
+    have hBcut := (fgsa_store_durable p c E rho hi y).1 hBfg
     have hheight := healing_phase_height_le p c E rho hBcut
     have hfront : (storeAt p c E rho (timeIdx rho w.u₀) y).fg.h_max ≤ w.M := by
       rw [h0r.frontier]
@@ -387,7 +387,7 @@ theorem postReset_written_domain
       healing_finality_source (hroots := hrec.base.idealization) p c E rho hs origin hy hFg
     by_cases hl : (finalityView p D).h_F < (heightView p B).h
     · exact xing iy (iy + ix) y x D B hy (Nat.le_add_right iy ix) hD hDF
-        ⟨hx, (fgsa_store_cumulative p c E rho hN (Nat.le_add_left ix iy) x).1 hBstore⟩ hl
+        ⟨hx, (fgsa_store_durable p c E rho (Nat.le_add_left ix iy) x).1 hBstore⟩ hl
     · have hhighK : high p w K := by
         rw [high_def, hhK]
         rw [high_def] at hhB
@@ -442,7 +442,7 @@ theorem postReset_written_domain
       push_cast
       linarith [p.deltaPos])
   have hX : X ⊆ (storeAt p c E rho iy y).fg.TF :=
-    (fgsa_store_cumulative p c E rho hN hcut y).1
+    (fgsa_store_durable p c E rho hcut y).1
   have hcover : ∀ K r, SourceBefore p c E rho iy K r →
       FGBlock.Preceq (storeAt p c E rho iy y).fg.F K → FGBlock.Preceq B K →
       (heightView p B).h < (heightView p K).h →
@@ -778,7 +778,7 @@ theorem postReset_written_later_result
       healing_finality_source (hroots := hrec.base.idealization) p c E rho hs origin hy hFg
     by_cases hl : (finalityView p DF).h_F < (heightView p B).h
     · exact xing i (i + k) y x DF B hy (Nat.le_add_right i k) hDF heF
-        ⟨hx, (fgsa_store_cumulative p c E rho hrec.base.noRestart
+        ⟨hx, (fgsa_store_durable p c E rho
           (Nat.le_add_left k i) x).1 hBstore⟩ hl
     · have hhighK : high p w K := by
         rw [high_def, hhK]
@@ -893,7 +893,6 @@ theorem postReset_moving_lease_compat
       Block.Compatible row.1 (eraseFG B) := by
   classical
   have hs := hrec.base.valid.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hhor := (hs.in_horizon _ (List.mem_of_getElem? hiy)).2
   obtain ⟨hmem, hgen, hBC, -, harm⟩ := healing_support_key_cases p hkey
   have hgsts := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
@@ -960,7 +959,7 @@ theorem postReset_moving_lease_compat
         · exact KitFG.preceq_refl _
       exact (KitFG.preceq_total_of_common hFZ hBZ).resolve_right hBF
     have hc := healing_support_idxBefore_le p c E rho hs hiy hafter.le
-    have hfrozen := (fgsa_store_cumulative p c E rho hN hc y).1
+    have hfrozen := (fgsa_store_durable p c E rho hc y).1
     have hD := postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName
       writes xing origin h0r hinv hgstl hCB hbatch hy hiy hyi hafter hupper le_rfl hfrozen hBZ hBF
     exact (KitFG.mem_filteredFromView (heightView p) (R_at p c E rho iy y) _ B).mp hD |>.2.1
@@ -1084,7 +1083,7 @@ theorem postReset_written_next_head
     linarith [p.deltaPos]
   have hcut := healing_support_idxBefore_le p c E rho
     hrec.base.valid.toScheduleWellFormed hiy hafter.le
-  have hX := (fgsa_store_cumulative p c E rho hrec.base.noRestart hcut y).1
+  have hX := (fgsa_store_durable p c E rho hcut y).1
   have hD := postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName
     writes xing origin h0r hinv hgst hCB hbatch hy hiy hyi hafter le_rfl hX le_rfl hZ hF
   have hlease := postReset_moving_lease_compat p c E rho hrec mono emittedNonempty emittedName
@@ -1208,7 +1207,7 @@ theorem postReset_written_moving_parent
     change 4 * p.Δ * ((l + 1 : Nat) : Int) ≤ 4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ
     linarith [p.deltaPos]
   have hfroz := healing_support_idxBefore_le p c E rho hs hip hafter.le
-  have hX := (fgsa_store_cumulative p c E rho hrec.base.noRestart hfroz y).1
+  have hX := (fgsa_store_durable p c E rho hfroz y).1
   have hD := postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName writes
     xing origin h0r hinv hgst hCB hbatch hy hip hpi hafter hupper le_rfl hX hZ hF
   apply healing_proposal_moving_parent p c E rho hrec hgst hbatch hp
@@ -1390,7 +1389,7 @@ theorem postReset_written_finality_compatible
     healing_finality_source (hroots := hrec.base.idealization) p c E rho hs origin hy hFg
   by_cases hl : (finalityView p DF).h_F < (heightView p B).h
   · have hFB := xing b (b + ix) y x DF B hy (Nat.le_add_right b ix) hDF heF
-      ⟨hx, (fgsa_store_cumulative p c E rho hrec.base.noRestart
+      ⟨hx, (fgsa_store_durable p c E rho
         (Nat.le_add_left ix b) x).1 hBstore⟩ hl
     exact Bool.or_eq_true_iff.mpr (Or.inl (eraseFG_preceq hFB))
   have hhighK : high p w K := by

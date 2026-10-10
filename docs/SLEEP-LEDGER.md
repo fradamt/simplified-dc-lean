@@ -4621,6 +4621,132 @@ checks, then stop at the mapped-root control because FinalityGST is missing
 Task 3 needs no edit: the lead note at the Round 3 merge already marks the
 public anchor proposal SUPERSEDED by DECISION ANCHOR-DL at base d825ed30.
 No new LEAD DECISION item is needed.
+
+## P-H1 — Round 3, first transfer scopes (2026-10-10)
+
+Shared/Regimes and Shared/Export build on the joined base. Their two P-ShA rows
+move to GREEN in the P-H1 map. The legacy Regimes names remain explicit NoRestart forms.
+
+Internal replacement: SupportTransfer no longer projects Base₂.noRestart.
+FirstTransferScope supplies the exact enabled source gate, joined release guard,
+receiver event-index epoch, and per-object forward, backward, target and carrier services.
+The release lower bound and the first transfer conclusions stay the same.
+Receipt proofs use NamedReceiptRootCollisionFree. Safety root equality uses its projection.
+
+The stored honest HEAD supplier handles both acceptance and restart replay origins.
+It extracts the earlier carried delivery before it applies signature provenance.
+HistorySafeAt is a ReceiverService input; earlier processing does not supply it.
+SupportRelay adds raw reverse receipt, target path and transfer proposal service helpers.
+The proposal service uses ANCHOR-DL: earlyTime is the anchor, freezeTime is the strict read.
+FramePaths adds the frozen path theorem with the receiver's exact read epoch.
+
+Strict audit: eight new commands in Tests/HealingSleepAxioms.
+The serial coverage fragment has the corresponding rows. No public statement changed.
+SupportHeads, SupportSlow and FrontierSupportHeads must thread these services.
+Full package closure is still open until every assigned consumer builds.
+
+P-H1 Round 3 HEAD consumers: SupportHeads uses NextTransferScope at the exact
+later HEAD read. The scope supplies joined honest voters, fresh HEAD service,
+retained HEAD read provenance, carrier services and the receiver's event-index epoch.
+The induction asks for these scopes only at labels inside its interval.
+Membership and FG bounds use durable storage; vote and block stamps use the local epoch.
+Batch cardinality follows from CStar and the recovery fault bound.
+HealingBase's legacy row receipt test now supplies the receiver awake service.
+Public statements and conclusions stay unchanged; these are exact internal input forms.
+
+P-H1 Round 3 fast lease, output and proposal consumers:
+SupportLease uses RecoverySleep₂ and RMonoAll. FastSupportScope names only its
+source label and bounded interval. It supplies first/later transfer services,
+same-label local service, joined gate receipt scopes and per-carrier services.
+A suppressed gate writes no lease. Restart keeps existing lock rows and deadlines.
+SupportOutput preserves the stable record in the restart induction branch.
+Gate effects require the exact joined guard; source and target frame membership is durable.
+SupportProposal uses ProposalSupportScope at each required proposal read.
+It keeps joined source votes, fresh receipt and the exact receiver epoch explicit.
+An emitted proposal supplies its duty guard through the executable guarded branch.
+The public Transfers/TPerm definitions and all public claim text stay unchanged.
+Fifteen further strict commands and their serial coverage rows cover these ports.
+
+P-H1 Round 3 slow, permanence and frontier consumers:
+SupportSaved adds wake-safe saved-result origin: restart clears the cache, so a
+surviving nonempty result has the actual gate origin. SlowSupportScope preserves
+per-label same-label service over its saved window. Its later services are bounded
+by the same interval as FastSupportScope. SupportPermanenceServices supplies the
+exact object scopes only for active PhaseBody arms and their proposal reads.
+The Transfers/TPerm conclusions remain unchanged; services are explicit internal inputs.
+
+The inline last-write input now includes joinedNow at each candidate renewal gate,
+matching P-Fd's actual last-write producer. Suppressed gates cannot renew a lock.
+Capped frontier HEAD relay uses TargetReceiptService and durable membership.
+The capped first/later transfer induction consumes FirstTransferScope/NextTransferScope.
+ExactService callers keep the confirmed-reader guard at the actual gate cut.
+
+HealingPromotion ports the renewed/age tests to RecoverySleep₂, RMonoAll,
+SupportPermanenceServices, and per-emitted-proposal ReceiverService. Row receipt uses
+P-Fd's fgsa_tRows_recovery producer. HealingSupport uses the same exact local inputs.
+Its all-asleep tick trace was an invalid positive execution fixture under the new
+ExecutionValid awake laws. It is now a negative execution test; structural frame
+facts stay as structural facts. No public claim text or protocol rule changed.
+
+P-H1 Round 3 retained repair, source and moving-frame ports:
+RepairHeadServices keeps the prior proposal scope, target receipt service and
+RetainedServiceScope explicit for each emitted repaired proposal. H6/H6S inputs
+are proved from the frame and bounded proposal services. HEAD conclusions apply
+to joined receivers. repair_head_exact_legacy keeps its existing spelling; its
+internal statement now uses the receiver-local form through SupportRecovery.
+The canonical sleep supplier remains SupportRecovery.repair_head_exact.
+
+RepairGateScope supplies the actual enabled gate, joined release and retained
+carrier services. Exact gate counts use joined voters and the recovery fault bound.
+Suppressed gates and wake restarts keep the stable record in repair_output_bound.
+FrontierReadScope bounds seed, later fast/slow, proposal, HEAD and carrier services
+by the same cap endpoint. Its seed consumes the actual confirmed-reader guard.
+Retained cone fields are proved from these scopes, not from earlier processing.
+
+SourceTiming has all-restart durable retention helpers. Source delivery uses each
+supporter carrier's TargetReceiptService; pre-GST delivery keeps ReceiverService
+explicit, including HistorySafeAt. The moving-frame first/later transfer and lease
+consumers use the same exact read epochs and object services. High-source same-label
+compatibility uses SameLabelServiceScope. The old-row height set is cut at
+recoveryStart on this base; recoveryStart ≥ GST supplies the original GST conclusion.
+No public Claims statement changed. Remaining reset and descent callers need these inputs.
+
+P-H1 Round 3 reset and descent closure:
+LossServiceScope supplies high-source same-label, first/later HEAD, fast lease and
+per-target receipt services. The original no-loss and compatibility conclusions
+stay unchanged. Loss unanimity has the exact joined release-reader input.
+DescentTiming adds clock bounds through RestoreTimeLaw and durable clock monotonicity.
+The original explicit-NoRestart clock helpers remain available for legacy callers.
+PostResetCompat/High use RecoverySleep₂, RMonoAll and LossServiceScope. A selected
+source without an emitted row also uses the reset label's SameLabelServiceScope.
+PostResetKeep/ResetTransfer require per-carrier TargetReceiptService at the source
+vote's early deadline. Pre-GST source receipt keeps ReceiverService explicit.
+PostResetLease uses restart-safe provenance clocks and the joined renewal guard.
+RiseOneAdvance threads SupportPermanenceServices and durable monotonicity.
+
+RawServiceScope supplies services only at the actual guarded source, release,
+HEAD, proposal and gate reads. First/later replay uses receipt root collision
+freedom. Reads use event-index restartFree from the exact strict-before time cut;
+the reset suffix obtains the GST+1 epoch from RecoverySleep₂. Suppressed gates
+write no lease; wake clears the cache and preserves existing lock deadlines.
+The proposal proof uses prior vote provenance, fresh receipt, carrier receipt and
+the receiver's own epoch. No HistorySafeAt is inferred from previous processing.
+The raw-transfer conclusion keeps its existing honest-reader form; H5/H2A projection
+fixtures use their existing headReader and confirmedReaderIdx guards.
+
+All 99 assigned P-H1 targets are now in GREEN; final package validation follows.
+The local audit root has 339 commands. The full-key serial fragment registers each
+new declaration. No public Claims text, exception, baseline or allowance changed.
+
+P-H1 CLOSED (Round 3, 2026-10-10): all 99 assigned targets GREEN; 569 total GREEN
+map entries; no EXPECTED-FAIL or supplier blocker. Final DCK PASS in 170.25 s,
+including the --wfail build, 41 strict sources / 3,666 results and negative controls.
+Layers: 72 inherited findings, 0 new (0.51 s). Export check: 363 proof modules,
+253 exports, 0 unaccepted (8.71 s). Complete local coverage: 339 commands,
+0 unaccepted (5.08 s). The earlier six gate-proof matcher exports were removed
+by use of the guarded saved-result supplier; no baseline entry was added.
+The exact H2 handoff and owned declaration inventory are in the Round 3 report
+and claude-files/sleep-ph1-round3-inventory.md. Public Claims are unchanged.
 ## P-H1 — Round 2, local recovery and retained service (2026-10-10)
 
 
@@ -5345,6 +5471,13 @@ read-only build fails on inherited proof obligations. OutageAlignment now
 compiles. This supersedes the earlier missing-OutageAlignment note.
 No other public source change, protocol change, baseline change or STOP.
 
+Final frozen-source validation for this slice: DCK P-H2 PASS (480 GREEN roots,
+40 strict audit sources, 3,366 axiom results, 24 controls); local complete coverage
+PASS (41 commands); all-GREEN-root export check PASS (270 proof modules, 253 exports,
+zero unaccepted); check-layers PASS (72 accepted, zero new); diff --check PASS.
+These results validate the checked helper slice, not the 79 original open targets.
+
+
 ### P-WC Round 3 — audit imports and finite event suppliers (2026-10-10)
 
 - RULING AUDIT-FRAGMENT: the round-2 serial fragment imports production modules.
@@ -5431,6 +5564,83 @@ and par-fragment.log. The round-3 fragment defect is CLOSED.
 General sleep certificate construction remains OPEN.
 
 
+SourceTiming has all-restart durable retention helpers. Source delivery uses each
+supporter carrier's TargetReceiptService; pre-GST delivery keeps ReceiverService
+explicit, including HistorySafeAt. The moving-frame first/later transfer and lease
+consumers use the same exact read epochs and object services. High-source same-label
+compatibility uses SameLabelServiceScope. The old-row height set is cut at
+recoveryStart on this base; recoveryStart ≥ GST supplies the original GST conclusion.
+No public Claims statement changed. Remaining reset and descent callers need these inputs.
+
+### P-H2 Round 3 — audit fragment repair (sleep-ph2c, 2026-10-10)
+
+The serial production fragment imports production modules only. The six HealingOpeningSupport regression audits stay in their own module; the coverage fragment registers that owner as its audit root. All 41 declarations remain in scope. Layers: 72 inherited, zero new. No allowance or public claim change. Exact supplier contracts are in claude-files/sleep-ph2c/exact-handoff.md; source contracts do not claim closure.
+
+### P-H2 Round 3 — recovery service and shifted reset cut (2026-10-10)
+
+RecoveryScope proves the confirmed-reader guard at the actual enabled recovery gate,
+including its post-tick cut. RecoveryService constructs ReceiverService from original
+proposal emission and FreshHeadService from original HEAD emission. The exact handler
+window and receiver exclusion remain explicit inputs. Proposal HistorySafeAt uses durable
+history; fresh HEAD receipts use the exact emission history. Neither constructor derives
+retained HEAD history from prior processing.
+
+ResetCut now selects the first action at or after recoveryStart, as required by the
+approved public H0Reset type. Row caps use durable tree membership and need no NoRestart.
+HealingResetCut checks the shifted bounds (GST=10, delta=1: tau=18), simultaneous cuts,
+empty runs, and the awake time-zero fixture. Public claims are unchanged.
+
+Validation: --wfail passes for RecoveryScope, RecoveryService, ResetCut and both audit/test
+roots. HealingH2RecoveryAxioms has 31 strict commands with permitted axioms only. Layers:
+72 inherited, zero new. This group does not close the remaining H2 service producers.
+
+### P-H2 Round 3 — opening, retained frontier and full search (2026-10-10)
+
+The critical path compiles through FrontierSearchFull on H1 pin 615d203b. Opening gate
+support at the original q gate comes from its saved fast write. Later gates retain the
+exact selected-voter cutoff, enabled actor, GateReceiptScope and local release scope.
+The opening/body/CommonEntry proofs use RMonoAll and durable store facts. CommonEntry
+gets same-label service from its actual opening fast-write source.
+
+FrontierServiceGate builds RepairGateScope from bounded FrontierReadScope object services.
+FrontierService builds RetainedExactHeadRunGeometryOn and uses joined retained-read and
+RegimesService _on APIs. Repair consumes the actual proposal tick/emission, retained H6
+input, target service and RetainedServiceScope. Source, receiver and consuming read indices
+remain explicit. No historical processing fact is used to infer retained HEAD HistorySafeAt.
+
+Search settlement uses healing_settle_start_on, receipt idealization, RMonoAll and exact
+carrier services. The gap/top-J arithmetic passes with default heartbeats after narrowing
+its local arithmetic facts. The full search proof keeps carrier, original proposal and
+bounded frontier scope producers as explicit inputs. Those inputs still need general H2
+production suppliers. Source GREEN does not close those unconditional family obligations.
+
+Validation: the 130-command service audit and three ready local boundary tests pass --wfail.
+The four isolated inclusive-cut settlement examples pass, with permitted axioms only.
+The AS1/AS2 composition bodies pass in an isolated check. Export's containing module and
+mixed Assembly tests remain OPEN. Complete local coverage has zero errors. Export checking
+has four unaccepted H1 matcher equations (SupportLease/SupportSlow); zero new H2 exports.
+No allowance or baseline change. Layers: 72 inherited, zero new. DCK P-H2 passes on the
+checked map; the final map/test extension is checked again below.
+
+Exact H1 and P-As requests are in claude-files/sleep-ph2c/H1-requests.md and P-As-requests.md.
+They include declaration names, file:line and complete current/proposed telescopes. H1
+proposals are marked uncompiled. ResetArrival's two direct HealingReset calls are included.
+Public claims unchanged. No public STOP. H2 production and final closure remain OPEN.
+
+### P-H2 Round 3 — settlement and Assembly call-site handoff (2026-10-10)
+
+AttemptRows threads RMonoAll and per-carrier TargetReceiptService into settlement.
+HealingAttempt threads the same inputs through all four inclusive-cut adapters. All four
+exact examples pass in the isolated settlement check. The handoff's listed “11” sites
+contain 12 individual calls; every listed call is ported, including canonical retained
+repair and the capped frontier relay. AttemptRows and the containing mixed test still
+have open production/import dependencies; this is not a module closure claim.
+
+Export's AS1 composition now takes RMonoAll and the full original-emission ReceiverService
+producer. Its Recovery₂ callbacks use the exact RecoverySleep₂ projection. AS1 and AS2
+bodies pass separately with permitted axioms only; their full telescopes are in the P-As
+handoff. The containing Export remains OPEN through the post-reset cone. No public claim
+meaning changed. No unconditional public claim producer is claimed by these _of wrappers.
 ### P-Ar Round 4 — scoped certificates and gate consumers PREPARED (2026-10-10)
 
 This block belongs to P-Ar. New ArmingSleep supplies a protected pending-gate
@@ -6223,3 +6433,220 @@ current epoch. Restart clears the cache; event induction supplies restartFree.
 The existing origin theorem and public claims are unchanged. Consumer: P-As hfast.
 P-Fd remains CLOSED. DCK PASS; strict audit PASS; exports zero unaccepted;
 layers zero new; headers PASS. Report: claude-files/sleep-pfd-fast-report.md.
+
+### P-H2 Round 4 — selected-witness service (sleep-ph2d, 2026-10-10)
+
+RULING SCOPE-NARROW applies to the H2 carriers and heldServices inputs.
+WitnessReceiptScope retains the actual tick, its joined guard, and the receiver
+floor at the strict deadline. The held callback accepts a frontier-height witness.
+The opening callback retains full-tree membership, HEAD equality, ancestry and lo.
+No full-TF receipt factory is added. The selected services have an OPEN P-H2
+producer obligation; healing_accepted_target_service supplies the object route
+once original acceptance and handler/non-exclusion facts are available.
+
+H1's current healing_support_frame_at and healing_settle_start_on still accept
+full-TF callbacks. Their narrower contracts are in
+claude-files/sleep-ph2d/H1-narrow-requests.md. H1 files are unchanged. The affected
+H2 callers stay OPEN; their previous GREEN classification is withdrawn until
+the narrower H1 APIs land. Compilation does not prove a producer exists.
+
+Review evidence correction: round 3 had 183 canonical serial audits and six
+separate HealingOpeningSupport audits, total 189. The new enabled-gate helper
+adds one canonical audit. service-coverage-final.log reported 225 modules and
+four unaccepted H1 exports; it did not prove the earlier claimed 236-module
+zero-error coverage result. The frozen-exports log held the 236-module count.
+The five truncated H1 telescopes and four empty consumer lists are corrected.
+The four Foundations requests now bind p, In/V, DecidableEq V, c, E and rho.
+The refuted reset full-TF and RequestedDescentServices.next proposals are withdrawn.
+
+### P-H2 Round 4 — aggregate scope handoff (2026-10-10)
+
+Opening/Repair permanence is indexed by the actual phase. Frontier permanence
+also has the frontier endpoint bound. Repair and frontier head factories are
+keyed to the original emitted proposal ip/x/N. The old heads factory's sufficient
+cutoff at s-1 is removed; it cannot prove a join at the prior label s-1.
+The requested H1 prior record must use the actual earlier emitted voters and
+handle the genesis/empty-cohort case separately. That obligation remains OPEN.
+
+The H2 projections use requested indexed H1 APIs, not the old global factories.
+Exact complete types, source sites and owners are in
+claude-files/sleep-ph2d/H1-narrow-requests.md. SupportPermanenceScope,
+healing_tPerm_at, repair_lease_cover_one_at/two_at, and
+healing_rise_one_advance_at are requests, not declarations on this base.
+Affected modules are EXPECTED-FAIL. No compilation or producer closure is claimed
+for this handoff. FrontierServiceCover/Support still need the lower H1 shapes.
+
+The repair head factory now requires GST ≤ slotStart(s-2), at the earlier label.
+Repair thresholds and the qualified frontier seed supply this bound. The saved
+Δ=1, GST=4, s=2 review run does not meet the guard. frontier_seed_prior_cut proves
+the seed bound by grid arithmetic. Per-reader joined guards stay in the lower API.
+This corrects the earlier handoff note: the later cutoff is not merely removed;
+it is replaced by the exact earlier cutoff, proved at the actual callers.
+
+### P-H2 Round 4 — reset clock and durable ports (2026-10-10)
+
+The internal reset/search cut, deadline and budget use recoveryStart. This matches
+the approved ResetArrivalConcl; no public Claims/Statements file changes.
+Reset rowCap/mu and fields use durable membership. The two base.noRestart reset
+projections are gone. Reset compiles with --wfail and its ten strict audits pass.
+FrontierSeedDefs holds the unchanged seed predicate independently of service APIs.
+FrontierSearchStop now imports its phase proof helpers explicitly.
+
+RiseOne uses RMonoAll for stopped-frontier/phase facts. RiseOneAccept uses the
+original emitted proposal, its compatibility premise and ReceiverService.
+The independently compiled Reset/RiseOne slice has 24 strict audit commands,
+with only propext, Classical.choice and Quot.sound. The source-dependent
+RiseOneRepair/RiseOneRise ports remain OPEN on the indexed H1 requests.
+
+Durable post-reset membership ports also remove stale NoRestart arguments.
+The assigned projection census is now 30, down from 52. The remaining 30 are
+OPEN H2 repairs, not hidden prerequisites or transferred ownership. Exact sites:
+claude-files/sleep-ph2d/noRestart-remaining.tsv. No global NoRestart premise is added.
+The Assembly legacy ResetArrivalStatement adapter still has its old GST boundary;
+P-As must use the approved shifted conclusion. The exact internal request is in
+claude-files/sleep-ph2c/P-As-requests.md, Round 4 appendix.
+
+### P-H2 Round 4 — final witness selection (2026-10-10)
+
+The final callbacks select existential witnesses. A height or ancestry filter
+alone would still request receipt for more blocks than the consumer selects.
+PhaseWitnessReceiptScope selects the frontier/top/contest witnesses together
+with their scoped services. HeadWitnessReceiptScope selects one K/W pair with
+its full-tree, HEAD, ancestry and floor facts. Source HEAD factories also require
+the actual joined source tick. Receiver service requires the actual joined read
+and its strict-deadline floor. No all-cache receipt obligation remains in H2's
+heldServices or opening carrier factory.
+
+WitnessHeldScope is the guarded ancestor receipt result of a consumer. It is not
+an object-service producer. FrontierServiceGate retains Kfg's source membership
+and height, proves its receiver floor before receipt, and applies the scope only
+at the actual joined gate. The exact H1 handoff has these final types.
+
+### P-H2 Round 4 — final validation and open inventory (2026-10-10)
+
+Status is PARTIAL / OPEN. The compiled reset/recovery/independent RiseOne slice
+is PREPARED. The complete H2 critical path and all service producers are not closed.
+The map has 93 assigned targets: 22 GREEN and 71 EXPECTED-FAIL, all with owner P-H2.
+There are 492 GREEN roots. The 30 remaining NoRestart projections are open H2 work.
+The local report has every open target and exact H1/P-As requested telescope.
+
+DCK P-H2 passes: 42 strict sources, 3,429 permitted results, 24 controls.
+All GREEN roots plus the three e9536241 H1 suppliers have 335 proof modules,
+253 exports and zero unaccepted. The suppliers compile without source edits.
+Layers have 72 inherited findings and zero new. Headers still fail on the same
+four Outage import-all findings as c9e71fa5; there are zero H2 header failures.
+No other owner's file, checker, baseline or allowance was changed.
+
+The final canonical fragment has 205 unique commands and 205 coverage rows.
+The six HealingOpeningSupport regression audits remain separate. Production-only
+imports are preserved; serial integration remains with its assigned editor.
+Public claims are unchanged. No complete production closure is claimed.
+
+### P-H2 Round 5 — synchronous service factories (2026-10-10)
+
+Internal scope repair, SCOPE-NARROW rule 5. OpeningServiceScopes.transfers now
+takes the actual phase, selected fast-written B, source label bounds, the
+post-GST vote bound, and LabelSyncOn. OpeningServiceGate passes its existing
+hSync and phase facts. With delta = 1, s = 2 and GST = 20, the required
+20 <= voteTime(2) = 9 is false. Joinedness and enabledness cannot enter this
+factory in that run. This is an arithmetic exclusion, not a checked run fixture.
+
+FrontierServiceScopes.read now takes the seed proposal's GST bound, interval
+and horizon. All four consumers pass their phase/source bounds. Opening gates
+and carriers already have their actual label cuts. Repair heads require the
+prior-label cutoff; repair gates require their label cutoff. Permanence requests
+use a post-GST phase. heldServices uses GST <= the actual source event time.
+The accepted/emitted proposal and fresh HEAD service helpers keep their anchor
+or send bound. Reset service uses H0Reset's recoveryStart qualification.
+Lower H1 factories still need the exact rule-5 contracts in the Round 5 handoff;
+this change does not prove those records. Public statements are unchanged.
+
+### P-H2 Round 5 — complete H1 contract types (2026-10-10)
+
+The healing_tPerm_at request now takes the explicit phase/body arguments and
+SupportPermanenceScope after hphase, as its two opening consumers require.
+Its conclusion is Transfers for that body and endpoint, not the global TPerm.
+healing_rise_one_advance_at now has Fintype V. The local H1 handoff gives full
+FirstTransferScope, NextTransferScope, ProposalSupportScope, FastSupportScope,
+SlowSupportScope, SupportGateScope, RepairGateScope and FrontierReadScope types.
+The joined-seat count and actual pool rival bounds are explicit. No undefined
+“r4 shapes” remain as a type specification. The contracts are checked as
+Prop-valued type declarations in .lake/sleep-ph2f/RequestContracts.lean.
+This checks their telescopes; it does not prove their conclusions or producers.
+The lower types and their consumers remain OPEN with the recorded owners.
+
+### P-H2 Round 5 — committed H1 API reconciliation (2026-10-10)
+
+The H1 interface pin is f1798112, after b1723ebf and fdf689c8. No merge or H1
+source edit was made. RepairHeadServices uses the committed slot record; all
+three consumers pass the actual proposal and emission to its projections.
+Opening gate-cover consumers construct the committed SupportGateScope from
+their real cut and GateReceiptScope. Frontier fast/slow projections now pass
+the committed actual-source arguments. All affected bodies remain open until
+the required lower interfaces land and their full proofs compile.
+
+The local H1-r4-reconcile.md lists all 23 contract decisions and exact remaining
+differences. H1's per-receiver selected carrier still lacks the actual joined
+read and floor guards. Its permanence input is still global. Its reset and
+settlement service callbacks still differ from the selected H2 contracts.
+Those requests remain OPEN; none is silently declared supplied.
+
+### P-H2 Round 5 — architecture boundary (2026-10-10)
+
+ARCHITECTURE.md now records FrontierSeedDefs, the independent search-definition
+import, the recoveryStart reset/search boundary, selected receipt records, and
+the guarded opening/repair/frontier interfaces. It records 38 recovery and 24
+reset/Rise audit commands. The 130-command service audit stays OPEN, as do
+the lower H1 producers and mixed Assembly tests. Public statements are unchanged.
+
+### P-H2 Round 5 — independent restart and reader ports (2026-10-10)
+
+Internal sleep forms, no public statement change. PostResetJoint/Joint2 use
+the restart-safe fProv supplier without NoRestart. The mixed frozen-membership
+check uses durable storage. The RiseOne mixed check uses RMonoAll and the
+existing sleep row-receipt supplier with suffixNoRestart and awake bounds.
+PostResetOpening, H2Prime and LeaseMove use the wake-time event clock bound.
+The frontier mixed cap check uses RMonoAll and frontier_cap_before_on.
+
+PostResetHealed's selected high source is after the reset cut by durable height
+and frontier bounds. Its positive clock after GST comes from a tick, since a
+recovery restart cannot occur after GST. The cross-below and reconcile helpers
+use RecoverySleep₂ and the actual confirmedReaderIdx required by H2A. Their
+complete isolated bodies compile. The output induction excludes only restarts
+in its healing suffix. The full H4 producer still needs the named bounded
+reader supplier healing_recovery_suffix_readers, OPEN P-H2, and same-label
+object services. P-As has its exact changed consumer type and three sites.
+
+PostResetConeReceipts uses RMonoAll. Its HEAD receipt selects the source K/W
+pair and proves the receiver floor before service at the actual joined read.
+The two batch-seat consumers now take that exact scoped source factory and
+read guard. Original object service and the remaining fresh/stamp ports stay
+OPEN. The assigned NoRestart census is 18, down from 30; all are in open targets.
+
+Isolated evidence: eight independent checks, six complete helper-body audits,
+and one selected receipt audit. All 15 results use only propext, Classical.choice
+and Quot.sound. These checks do not compile the containing open modules.
+
+### P-H2 Round 5 — final validation (2026-10-10)
+
+Proof source: 7a5632d3. DCK P-H2 PASS: 3,696 jobs, 42 strict sources,
+3,429 permitted results, all 24 controls. Layers: 72 inherited, zero new.
+Headers: zero H2 failures; the four inherited Outage failures remain.
+All GREEN exports: 320 proof modules, 253 exports, zero unaccepted, Gen zero.
+The 15 isolated proof results pass the strict DCK parser. Complete helper
+bodies and selected receipt compile in isolation; containing modules stay OPEN.
+The map retains 93 assigned targets, 22 GREEN and 71 open, all owned by P-H2.
+The remaining NoRestart census is 18. Canonical coverage remains 205 commands
+plus the six separate opening regression audits. Public statements are unchanged.
+No H1 merge or source edit was made. The compiled slice remains PREPARED;
+full critical-path, bounded reader and object-service producers remain OPEN.
+
+### Lead note after the P-H2 round 5 review (2026-10-10 15:06)
+
+rev-ph2f-astra: MERGE-AS-PREPARED for P-H2 rounds 3-5 (22 GREEN, 71 open).
+This merge also brings P-H1 round 3 (e9536241) through the P-H2 base. Its
+scope records are KNOWN FALSE in valid sleep runs (rev-ph1d, rev-ph1e): they
+are explicit hypotheses of conditional theorems, not claims, and they are
+superseded by the healing record contract (design job healing-contract-astra)
+that the next P-H1 writer implements. No public statement depends on them.
+Neither P-H1 nor P-H2 is CLOSED.

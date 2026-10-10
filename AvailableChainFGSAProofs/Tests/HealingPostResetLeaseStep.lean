@@ -245,7 +245,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     linarith [p.deltaPos]
   have hcut := healing_support_idxBefore_le p c E rho
     hrec.base.valid.toScheduleWellFormed hiy hafter.le
-  have hfrozen := (fgsa_store_cumulative p c E rho hrec.base.noRestart hcut y).1
+  have hfrozen := (fgsa_store_durable p c E rho hcut y).1
   exact ⟨postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName writes
     xing origin h0r hinv hgst hCB hbatch hy hiy hyi hafter hupper le_rfl hfrozen hnZ hnF,
     (postReset_moving_head_cut p c E rho hrec.base.valid.toScheduleWellFormed hiy hafter).trans hyi,

@@ -17,7 +17,8 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
 
 section Compatibility
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hScopes : LossServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -36,6 +37,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -45,7 +47,7 @@ variable [Fintype V] {G ΔF : Time}
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r
+include hrec hScopes mono emittedNonempty emittedName writes xing origin h0r
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.13:2668–2674; plan J2 A; B1/B13/B15/B17.
@@ -54,7 +56,7 @@ existing H.13 theorem apply at every event-prefix cut. -/
 theorem postReset_high_compatible_all (i : Nat) :
     PostResetHighCompatible p c E rho w i := by
   rw [PostResetHighCompatible_def]
-  exact healing_high_source_compat_reset p c E rho hrec mono emittedNonempty emittedName
+  exact healing_high_source_compat_reset p c E rho hrec hScopes mono emittedNonempty emittedName
     writes xing origin h0r i
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -63,7 +65,7 @@ B1/B13/B15/B17. DC: SAME compatibility. The all-cut result supplies the
 successor field; no other field of the prior record is needed. -/
 theorem postReset_high_compatible_succ {i : Nat} (_hinv : PostResetInv p c E rho w i) :
     PostResetHighCompatible p c E rho w (i + 1) :=
-  postReset_high_compatible_all p c E rho hrec mono emittedNonempty emittedName
+  postReset_high_compatible_all p c E rho hrec hScopes mono emittedNonempty emittedName
     writes xing origin h0r (i + 1)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -82,7 +84,7 @@ theorem postReset_reset_compatible_all (i : Nat) :
   have hK' : SourceBefore p c E rho (max i (j + 1)) K s :=
     ⟨k, z, r, b, lt_of_lt_of_le hk (le_max_left _ _), hb, hsrcK, hs⟩
   have hhC : high p w C := by rw [high_def, hh]
-  have hcompat := postReset_high_compatible_all p c E rho hrec mono emittedNonempty
+  have hcompat := postReset_high_compatible_all p c E rho hrec hScopes mono emittedNonempty
     emittedName writes xing origin h0r (max i (j + 1))
   rw [PostResetHighCompatible_def] at hcompat
   simpa only [he] using hcompat C K w.sStar s hC hK' hhC hhK
@@ -93,7 +95,7 @@ reset_compatible; B1/B13/B15/B17. DC: SAME reset compatibility.
 The all-cut result supplies this separate successor field. -/
 theorem postReset_reset_compatible_succ {i : Nat} (_hinv : PostResetInv p c E rho w i) :
     PostResetResetCompatible p c E rho w (i + 1) :=
-  postReset_reset_compatible_all p c E rho hrec mono emittedNonempty emittedName
+  postReset_reset_compatible_all p c E rho hrec hScopes mono emittedNonempty emittedName
     writes xing origin h0r (i + 1)
 
 end Compatibility

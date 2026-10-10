@@ -77,14 +77,13 @@ include emittedName
 
 /-- Blueprint 21 H.11:1755–1756; S5 J8 R1 rowCap.
 DC: SAME the closed cap. INLINE producer: sourceDiscipline_emittedName. -/
-theorem healing_reset_rowCap (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho) :
+theorem healing_reset_rowCap (hs : V2.D.ScheduleWellFormed E rho) :
     ∀ j y r a h e t, HonestRowAt p c E rho j y r a →
       rho.events[j]? = some (.tick y t) → t ≤ resetCutTime p E →
       namedEntry a.payload.height_pair = some (h, e) → h ≤ resetCutFrontier p c E rho := by
   intro j y r a h e t ha hj ht he
   rw [reset_frontier]
-  apply reset_row_cap p c E rho hs hnr _ ha hj ht he
+  apply reset_row_cap p c E rho hs _ ha hj ht he
   intro j x r a e ha he
   obtain ⟨C, G, hC, hh, hG, hCG, hf⟩ := emittedName ha he
   exact ⟨C, G, hC, congrArg Prod.fst hh, hG, hCG, hf⟩
@@ -92,9 +91,9 @@ theorem healing_reset_rowCap (hs : V2.D.ScheduleWellFormed E rho)
 /-- Blueprint 21 H.11:1754–1756,1772–1777; S5 J8 R1 mu_le.
 DC: SAME an actual HG.5 row supplies a nonempty honest set. -/
 theorem healing_reset_mu_le (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho) {r h : Nat} (hrow : HeightRow p c E rho r h) :
+    {r h : Nat} (hrow : HeightRow p c E rho r h) :
     muOf p c E rho ≤ resetCutFrontier p c E rho := by
-  refine (reset_mu_le_iff p c E rho hs hnr ?_).mpr ?_
+  refine (reset_mu_le_iff p c E rho hs ?_).mpr ?_
   · intro j x r a e ha he
     obtain ⟨C, G, hC, hh, hG, hCG, hf⟩ := emittedName ha he
     exact ⟨C, G, hC, congrArg Prod.fst hh, hG, hCG, hf⟩
@@ -137,6 +136,7 @@ theorem healing_reset_synchronous {r : Nat}
       4 * p.Δ * ((r * p.R : Nat) : Time) + p.Δ + 5 * p.Δ
     ring
   have hc := reset_cut_lower p E
+  have hstart := healing_recovery_start_lower (p := p) E
   have hp := reset_period_lower p
   rw [ht] at hafter
   linarith [p.deltaPos]
@@ -174,8 +174,7 @@ theorem healing_reset_fields [Fintype V] {G ΔF deadline : Time}
     (firstRow : FirstHeightRowBy p c E rho (resetCutFrontier p c E rho + 1) deadline) :
     ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar ≤ deadline := by
   have hs := hset.base.valid.toScheduleWellFormed
-  have hnr := hset.base.noRestart
-  have hcap := healing_reset_rowCap p c E rho emittedName hs hnr
+  have hcap := healing_reset_rowCap p c E rho emittedName hs
   obtain ⟨rStar, hrow, hfirst, htime⟩ :=
     healing_reset_reset_first p c E rho firstRow
   obtain ⟨CStar, hfresh⟩ := healing_reset_fresh p c E rho emittedName hrow
@@ -190,7 +189,7 @@ theorem healing_reset_fields [Fintype V] {G ΔF deadline : Time}
       cut := reset_cut p E
       frontier := reset_frontier p c E rho
       rowCap := hcap
-      mu_le := healing_reset_mu_le p c E rho emittedName hs hnr hrow
+      mu_le := healing_reset_mu_le p c E rho emittedName hs hrow
       cut_lower := reset_cut_lower p E
       cut_upper := reset_cut_upper p E
       reset_row := hrow
@@ -200,19 +199,19 @@ theorem healing_reset_fields [Fintype V] {G ΔF deadline : Time}
       synchronous := healing_reset_synchronous p c E rho hcap hrow }
 
 /-- Blueprint 21 H.11:1744–1800, H.22:3229–3241; S5 J8 R1.
-DC: INTENTIONAL reset-only witness, strict reset deadline GST + B'_reset^F.
+DC: INTENTIONAL reset-only witness, strict reset deadline recoveryStart + B'_reset^F.
 Named HG.5 input `hsearch`: producer HG2A-RECEIPT F3 (lf-hg2a); it gives reset_row/first.
 INLINE producer: the frozen SourceDisciplineBaseAt (Assembly/ResetArrival.lean). -/
 theorem healing_resetWitness [Fintype V] {G ΔF : Time}
     (hset : HealingSet p c E rho G ΔF) (hδ : p.δt = 2 * p.R)
     (hbound : LivenessBoundW p ΔF) (hsearch : FrontierSearchStatement p c E rho G ΔF)
-    (hhor : E.t_GST + B'_resetF p ΔF G ≤ rho.horizon) :
-    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G := by
+    (hhor : recoveryStart p E + B'_resetF p ΔF G ≤ rho.horizon) :
+    ∃ w, H0Reset p c E rho w ∧
+      p.actionTime w.rStar < recoveryStart p E + B'_resetF p ΔF G := by
   have hs := hset.base.valid.toScheduleWellFormed
-  have hnr := hset.base.noRestart
-  have hcap := healing_reset_rowCap p c E rho emittedName hs hnr
+  have hcap := healing_reset_rowCap p c E rho emittedName hs
   obtain ⟨ρbar, hallow, hlt⟩ :=
-    healing_reset_budget_lt p G ΔF E.t_GST (resetCutTime p E) (reset_cut_upper p E)
+    healing_reset_budget_lt p G ΔF (recoveryStart p E) (resetCutTime p E) (reset_cut_upper p E)
   rw [← frontierSearchRiseBudget_eq, ← frontierSearchRowBudget_eq] at hlt
   have hguard : resetCutTime p E + frontierSearchRiseBudget p G ΔF ρbar +
       frontierSearchRowBudget p G ΔF ρbar ≤ rho.horizon := by linarith

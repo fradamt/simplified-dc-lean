@@ -46,7 +46,6 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (r + 1))
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   have hvp : SA.voteTime p.toParams r + p.Δ ≤ SA.proposalTime p.toParams (r + 1) := by
@@ -72,7 +71,7 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
   obtain ⟨W, _, hWe, hrelay⟩ := postReset_head_receipt_at_cut E rho hrec mono crossing hx hjx hx hip
     hgstr hvp (hFHeads x hx _ hhl)
   have hW : W ∈ (storeAt p c E rho ip x).fg.TF :=
-    (fgsa_store_cumulative p c E rho hN
+    (fgsa_store_durable p c E rho
       (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 hrelay
   have hLW : Block.Preceq L (eraseFG W) := hWe ▸ hcover x hx _ hhl
   have hZW : Block.Preceq (z p src) (eraseFG W) := by

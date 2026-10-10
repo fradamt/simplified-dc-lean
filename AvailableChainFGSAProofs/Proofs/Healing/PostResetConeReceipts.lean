@@ -27,22 +27,24 @@ The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_head_receipt_at_cut [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (_crossing : RXing p c E rho)
     {r : Slot} {jz j : Nat} {z x : V} {t : Time}
-    (hz : z ∈ rho.honest)
-    (hjz : rho.events[jz]? = some (.tick z (SA.voteTime p.toParams r)))
+    (_hz : z ∈ rho.honest)
+    (_hjz : rho.events[jz]? = some (.tick z (SA.voteTime p.toParams r)))
     (hx : x ∈ rho.honest) (ht : rho.events[j]? = some (.tick x t))
-    (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
+    (_hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
     (hdeadline : SA.voteTime p.toParams r + p.Δ ≤ t)
     (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F)
-      (headVote p (clock p (storeAt p c E rho jz z) (SA.voteTime p.toParams r)) r)) :
+      (headVote p (clock p (storeAt p c E rho jz z) (SA.voteTime p.toParams r)) r))
+    (hJoined : joinedNow p (clock p (storeAt p c E rho j x) t) = true)
+    (hServices : HeadWitnessReceiptScope E rho jz z r) :
     ∃ Kfg, Kfg ∈ (storeAt p c E rho jz z).fg.TF ∧
       eraseFG Kfg = headVote p (clock p (storeAt p c E rho jz z)
         (SA.voteTime p.toParams r)) r ∧
       Kfg ∈ (storeAt p c E rho
         (V2.D.Run.idxBefore rho (SA.voteTime p.toParams r + p.Δ)) x).fg.TF := by
   have hS := hrec.base.valid.toScheduleWellFormed
-  obtain ⟨Kfg, hKfull, heK, _⟩ := healing_full_witness_all p c E rho hS crossing hz hjz
+  obtain ⟨Kfg, hKfull, heK, W, _hW, hKW, _hlo, hReceipt⟩ := hServices.witness
   have hKclock := ((KitFG.mem_filteredFromView _ _ _ _).mp hKfull).1
   have hKz : Kfg ∈ (storeAt p c E rho jz z).fg.TF := by
     change Kfg ∈ (clock p (storeAt p c E rho jz z) (SA.voteTime p.toParams r)).fg.TF at hKclock
@@ -50,15 +52,19 @@ theorem postReset_head_receipt_at_cut [Fintype V]
   have hidx := healing_support_idxBefore_le p c E rho hS ht hdeadline
   have hFearly : FGBlock.Preceq (storeAt p c E rho
       (V2.D.Run.idxBefore rho (SA.voteTime p.toParams r + p.Δ)) x).fg.F Kfg :=
-    KitFG.preceq_trans (mono hrec.base.noRestart _ _ x hx hidx).1
+    KitFG.preceq_trans (mono _ _ x hx hidx).1
       (cone_pool_lift (by rwa [heK]))
-  have hreceipt := healing_held_block_receipt (hroots := hrec.base.receiptIdealization)
-    p c E rho mono hrec.base.valid
-    hrec.base.noRestart hrec.base.delta hrec.sync hjz hz hx hKz hgstr
-    (hdeadline.trans (hS.in_horizon _ (List.mem_of_getElem? ht)).2) hFearly
-  rw [Gen.V2.Duty.HoldsBefore_def,
-    ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hreceipt
-  exact ⟨Kfg, hKz, heK, hreceipt⟩
+  have hService := hReceipt.atRead j x t hx ht hJoined hdeadline (by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+    exact eraseFG_preceq (KitFG.preceq_trans hFearly hKW))
+  have hWheld := healing_held_block_receipt_on p c E rho hrec.base.valid
+    hrec.base.receiptIdealization W (SA.voteTime p.toParams r + p.Δ) x hx hService
+  change W ∈ (rho.stateBeforeTime E (SA.voteTime p.toParams r + p.Δ) x).st.fg.TF at hWheld
+  have hKheld := KitFG.ancestor_closed_of_parent_closed _
+    (storeBundle_stateBeforeTime E rho (SA.voteTime p.toParams r + p.Δ) x).cstore.fg.closed
+    W hWheld Kfg hKW
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hKheld
+  exact ⟨Kfg, hKz, heK, hKheld⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
@@ -67,14 +73,22 @@ The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
-    (mono : RMono p c E rho)
+    (mono : RMonoAll p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
-    {r : Slot} {B : Block} (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
+    {r : Slot}
+    (services : ∀ jz z, z ∈ rho.honest →
+      rho.events[jz]? = some (.tick z (SA.voteTime p.toParams r)) →
+      joinedNow p (clock p (storeAt p c E rho jz z)
+        (SA.voteTime p.toParams r)) = true →
+      E.t_GST ≤ SA.voteTime p.toParams r → HeadWitnessReceiptScope E rho jz z r)
+    {B : Block} (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
     (hcut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq B K)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
     (hv : SA.proposalTime p.toParams (r + 1) ≤ v)
+    (hReadJoined : joinedNow p (clock p (storeAt p c E rho ip x)
+      (SA.proposalTime p.toParams (r + 1))) = true)
     (hFHeads : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K →
       Block.Preceq (eraseFG (storeAt p c E rho ip x).fg.F) K)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head r)) k ∈ rho.honest) :
@@ -106,7 +120,8 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     (SA.voteTime p.toParams r)) r
   have hBK : Block.Preceq B K := hcover z hk K hhl
   obtain ⟨Kfg, hKz, hKe0, hrelay⟩ := postReset_head_receipt_at_cut E rho hrec mono crossing hk hjz
-    hx hip hgstr hvp (hFHeads z hk K hhl)
+    hx hip hgstr hvp (hFHeads z hk K hhl) hReadJoined
+    (services jz z hk hjz hjoined hgstr)
   have hKe' : eraseFG Kfg = K := hKe0
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF :=
     (fgsa_store_durable p c E rho
@@ -222,14 +237,22 @@ The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
-    (mono : RMono p c E rho)
+    (mono : RMonoAll p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
-    {i : Slot} {B : Block} (hgsti : E.t_GST ≤ SA.voteTime p.toParams i)
+    {i : Slot}
+    (services : ∀ jz z, z ∈ rho.honest →
+      rho.events[jz]? = some (.tick z (SA.voteTime p.toParams i)) →
+      joinedNow p (clock p (storeAt p c E rho jz z)
+        (SA.voteTime p.toParams i)) = true →
+      E.t_GST ≤ SA.voteTime p.toParams i → HeadWitnessReceiptScope E rho jz z i)
+    {B : Block} (hgsti : E.t_GST ≤ SA.voteTime p.toParams i)
     (hcut : E.t_GST ≤ slotStartZ p ((i : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
+    (hReadJoined : joinedNow p (clock p (storeAt p c E rho iy y)
+      (SA.voteTime p.toParams (i + 1))) = true)
     (hFHeads : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K →
       Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) K)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest) :
@@ -261,7 +284,8 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     (SA.voteTime p.toParams i)) i
   have hBK : Block.Preceq B K := hcover z hk K hhl
   obtain ⟨Kfg, hKz, hKe0, hrelay⟩ := postReset_head_receipt_at_cut E rho hrec mono crossing hk hjz
-    hy hiy hgsti hvi (hFHeads z hk K hhl)
+    hy hiy hgsti hvi (hFHeads z hk K hhl) hReadJoined
+    (services jz z hk hjz hjoined hgsti)
   have hKe' : eraseFG Kfg = K := hKe0
   have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ

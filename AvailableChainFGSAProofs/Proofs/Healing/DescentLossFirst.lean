@@ -40,6 +40,8 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
     {B : FGBlock (Fin p.n)} {sB : Slot} (hB : HighSrcN p c E rho B sB)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (sB + 1))))
+    (hScopes : ∀ ix xs, xs ∈ rho.honest → IsGateTick p c rho ix xs sB →
+      FirstTransferScope E rho ix iy xs y sB)
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (sB + 1))) (sB + 1))
@@ -49,7 +51,6 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
     Block.Preceq (eraseFG B) (headAtIdx p c E rho iy (sB + 1)) := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   rw [HighSrcN_def, SrcN_def] at hB
   obtain ⟨hsrc, hc⟩ := hB
@@ -60,23 +61,19 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
   let s := r * p.R
   obtain ⟨-, Gr, -, hG, hBG, st, hst, hτ⟩ :=
     healing_source_decode p c E rho emittedNonempty emittedName ha hBs
-  rw [gateResult_def] at hG
-  rw [gateIn_def, preTick_def] at hst hG
+  rw [gateIn_def, preTick_def] at hst
   cases hix' : V2.D.Run.tickIdx? rho xs (SA.gateTime p.toParams s) with
   | none => rw [hix'] at hst; cases hst
   | some ix =>
-  rw [hix'] at hst hG
+  rw [hix'] at hst
   have hix := V2.D.Run.tickIdx?_spec hix'
   have hst' := Option.some.inj hst
   subst hst'
   let src := actView (clockPre p (storeAt p c E rho ix xs) (SA.gateTime p.toParams s))
   let dst := FGSA.clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (s + 1))
   -- The genuine result Gr ⪰ B gives the majority for B.
-  have hconf : SA.Root.confirmationFrom p.toParams
-      (eraseFG (clockPre p (storeAt p c E rho ix xs) (SA.gateTime p.toParams s)).fg.F)
-      src s = some Gr := by
-    simp only [Option.map_some, Option.some.injEq] at hG
-    exact hG
+  have hScope := hScopes ix xs hx hix
+  have hconf := (fgsa_gate_raw_of_nonempty p c E rho hS hix hG).2
   have hmaj : GridCO.voterCount (GridCO.lateVotes p.toParams.engine src s) <
       2 * GridCO.goldfishScore src.blocks (GridCO.cleanSupport p.toParams.engine src s)
         (GridCO.cleanSupport p.toParams.engine src s) (eraseFG B) := by
@@ -140,8 +137,8 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
     exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p dst) _ A).mpr
       ⟨hXv (hXc W hWX A (hdfg ▸ hFA) hAW), hFA, hZA, W, hvW, hAW, hRd ▸ hloW⟩
   -- The live root is compatible with B: every surviving lease passed the release.
-  have hrows := healing_support_release_compat (hroots := hrec.base.idealization) E rho hE hN
-    hDelta s hSync hx hy hix hiy hτ hFB0
+  have hrows := healing_support_release_compat (hroots := hrec.base.receiptIdealization)
+    E rho hE hDelta s hSync hx hy hix hiy hScope hτ hFB0
   have hanchor : Block.Compatible (liveRoot p dst) (eraseFG B) := by
     have hselect := Gen.Pure.foldl_select_mem (fun (best b : Block) =>
       best.depth < b.depth || (best.depth == b.depth && best.root < b.root))
@@ -172,17 +169,22 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
           (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix xs) _) o' hK'
       rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
-    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hrec.base.idealization)
-      E rho hE hN hDelta s hSync
-      hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB' hBK')
-    exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
-      seat hs' Kfg' (hKe' ▸ hK') (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
+    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path_on
+      (hroots := hrec.base.receiptIdealization) E rho hS hy hiy
+      (hScope.epoch.mono (fgsa_idxBefore_mono rho (by
+        change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
+        linarith [p.deltaPos])) le_rfl) K'
+      (hScope.targets K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB0 hBK'))
+    exact fgsa_cleanSupport_forward_relay_on E rho hE s hx hy hix hiy o' ho'
+      seat hs' (fun b he => hScope.forward seat b (he ▸ ho')) Kfg' (hKe' ▸ hK')
+      (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
   have htr := Gen.AC.Root.transfer src.blocks dst.base.blocks
     (GridCO.cleanSupport p.toParams.engine src s) (GridCO.lateVotes p.toParams.engine src s)
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) (eraseFG B)
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
-    (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
+    (fgsa_headVotes_backward_relay_on E rho hE s ix iy xs y hx
+      (fun q b hb => hScope.backward q b (Or.inr hb)))
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at htr
   rw [healing_headAtIdx_tick p c E rho hiy]

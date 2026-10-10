@@ -27,7 +27,8 @@ example {i : Nat} {C : FGBlock (Fin p.n)} {s : Slot}
 
 section Consumers
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hScopes : LossServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -46,6 +47,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -55,7 +57,7 @@ variable [Fintype V] {G ΔF : Time}
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r
+include hrec hScopes mono emittedNonempty emittedName writes xing origin h0r
 
 variable (cap : RCap p c E rho) (source : TSrc p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
@@ -69,14 +71,16 @@ variable (cap : RCap p c E rho) (source : TSrc p c E rho)
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
 
-include cap source rowCovered
+variable (hSame : SameLabelServiceScope E rho w.sStar)
+
+include cap source hSame rowCovered
 
 -- conditional package: A supplies the label bound; the no-row clause restates hnoRow.
 example {x : V} {r : Nat} {C : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hsrc : actionSourceFG p c E rho x r = some (some C)) (hh : high p w C)
     (hnoRow : ∀ j a, ¬ HonestRowAt p c E rho j x r a) :
     w.sStar ≤ r * p.R ∧ ¬ ∃ j a, HonestRowAt p c E rho j x r a := by
-  refine ⟨postReset_selected_label p c E rho rowCovered hrec cap h0r hx hsrc hh, ?_⟩
+  refine ⟨postReset_selected_label p c E rho rowCovered hrec.toRecovery₂ cap h0r hx hsrc hh, ?_⟩
   rintro ⟨j, a, ha⟩
   exact hnoRow j a ha
 
@@ -84,8 +88,8 @@ example {x : V} {r : Nat} {C : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
 example {x : V} {r : Nat} {C : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hsrc : actionSourceFG p c E rho x r = some (some C)) (hh : high p w C) :
     Block.Compatible (eraseFG C) w.CStar :=
-  postReset_selected_reset_compatible p c E rho hrec mono emittedNonempty emittedName
-    writes xing origin h0r cap source rowCovered hx hsrc hh
+  postReset_selected_reset_compatible p c E rho hrec hScopes mono emittedNonempty emittedName
+    writes xing origin h0r hSame cap source rowCovered hx hsrc hh
 
 -- conditional package: D0 supplies general keep without the seven-field carrier.
 example {i : Nat} {x : V} {X : Finset (FGBlock (Fin p.n))} {C B : FGBlock (Fin p.n)}
@@ -103,7 +107,7 @@ example {i : Nat} {x : V} {X : Finset (FGBlock (Fin p.n))} {C B : FGBlock (Fin p
     (hBK : ∀ K s, SourceBefore p c E rho i K s → high p w K →
       Block.Compatible (eraseFG B) (eraseFG K)) : Kept p c E rho i x X B := by
   obtain ⟨-, -, -, -, -, hk⟩ := postReset_rKeep_body_reset p c E rho
-    hrec mono emittedNonempty emittedName writes xing origin h0r
+    hrec hScopes mono emittedNonempty emittedName writes xing origin h0r
     i x X C hx hX htick hC he cover hreset hhigh
   exact hk B path hBC hBK
 
