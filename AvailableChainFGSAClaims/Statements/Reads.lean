@@ -69,6 +69,9 @@ end AvailableChain.FGSA.Run
 namespace AvailableChain.FGSA.Run
 
 open AvailableChain.SimplexFG
+local instance (w : Option Time) (cut : Time) :
+    Decidable (match w with | none => True | some t => t ≤ cut) := by
+  cases w <;> dsimp <;> infer_instance
 
 variable (p : Params) {In : Type} (c : AppCodec In)
     {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -99,14 +102,22 @@ theorem gateIn_def (x : V) (s : Slot) :
 The raw genuine result, before the guard, with the walk anchored at F. -/
 def gateResult (x : V) (s : Slot) : Option (Option Block) :=
   (gateIn p c E rho x s).map (fun st =>
-    SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s)
+    if (match st.restartTime with
+        | none => True
+        | some w => w ≤ (4 * p.Δ * (s : Int))) then
+      SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s
+    else none)
 
 -- equation export required by BUILD §7.2 B3a
 theorem gateResult_def (x : V) (s : Slot) :
     gateResult p c E rho x s =
-      (gateIn p c E rho x s).map (fun st =>
-        SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s) := by
-  rw [gateResult]
+  ((gateIn p c E rho x s).map (fun st =>
+    if (match st.restartTime with
+        | none => True
+        | some w => w ≤ (4 * p.Δ * (s : Int))) then
+      SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s
+    else none)) := by
+  rfl
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 The clock's decidable gate-time test. -/
@@ -131,19 +142,13 @@ def gateResultAt (j : Nat) : Option (Option Block) :=
   | some (.tick x t) =>
       if isGateTime p t then
         let st := FGSA.clockPre p (V2.D.Run.stateBefore E rho j x).st t
-        some (SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st)
-          ((t - 6 * p.Δ) / (4 * p.Δ)).toNat)
+        some (if (match st.restartTime with
+          | none => True
+          | some w => w ≤ (4 * p.Δ * (((t - 6 * p.Δ) / (4 * p.Δ)).toNat : Int)))
+        then SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st)
+          ((t - 6 * p.Δ) / (4 * p.Δ)).toNat else none)
       else none
   | _ => none
-
-/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-A new label, a nonempty raw result, and no conflicting obligation. -/
-def gatePassedAt (j : Nat) : Prop :=
-  ∃ x s, IsGateTick p c rho j x s ∧
-    let st := FGSA.clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)
-    GridCO.savedGenuine st.base s = none ∧
-    ∃ h, SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s = some h ∧
-      ((FGSA.actView st).obligations.any (fun row => !Block.compatible row.1 h)) = false
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 The fast test on the active view before the gate. -/
@@ -209,6 +214,9 @@ def AcceptsFinalBefore (x : V) (X : FGBlock (Fin p.n)) (d : Time) : Prop :=
 Labelled raw results of gate ticks before index `i` (P3 §8.2). -/
 def cleanResults (i : Nat) : Set (Slot × Block) :=
   {sB | ∃ j < i, ∃ x, IsGateTick p c rho j x sB.1 ∧
+    (match (storeAt p c E rho j x).restartTime with
+     | none => True
+     | some w => w ≤ 4 * p.Δ * (sB.1 : Int)) ∧
     gateResultAt p c E rho j = some (some sB.2)}
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
@@ -219,6 +227,10 @@ def BelowLabel (i : Nat) (r : Slot) (X : Block) : Prop :=
 -- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
 theorem S_at_def (i : Nat) (x : V) :
     S_at p c E rho i x = (storeAt p c E rho i x).base.stableRecord := rfl
+
+def diagnosticGateResult (x : V) (s : Slot) : Option (Option Block) :=
+  (gateIn p c E rho x s).map (fun st =>
+    SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s)
 
 end AvailableChain.FGSA.Run
 

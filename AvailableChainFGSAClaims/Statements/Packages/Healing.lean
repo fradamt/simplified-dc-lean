@@ -43,21 +43,21 @@ DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 structure HealingTimePrem (G ΔF : Time)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit) : Prop
     extends HealingPrem p c G ΔF E rho pt where
-  hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon
+  hhor : recoveryStart p E + B_HF p ΔF G ≤ rho.horizon
 /-- Reset-only horizon (21 H.11:1572–1595), P3 A.10 with lead ruling.
 Consumer: ResetArrivalStatement. Does not promise Q*.
 DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 structure ResetArrivalPrem (G ΔF : Time)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit) : Prop
     extends HealingPrem p c G ΔF E rho pt where
-  hhor : E.t_GST + B'_resetF p ΔF G ≤ rho.horizon
+  hhor : recoveryStart p E + B'_resetF p ΔF G ≤ rho.horizon
 /-- Full-H0 horizon (21 H.18:2868–2876), lead ruling 2026-09-30.
 Consumer: ResetArrivalFullStatement.
 DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 structure ResetArrivalFullPrem (G ΔF : Time)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit) : Prop
     extends HealingPrem p c G ΔF E rho pt where
-  hhor : E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon
+  hhor : recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon
 /-- Joined kernel (00:1119–1134), P3 A.10 D44.
 Consumer: F0.6b kernel claim. Located after PtR to preserve module order.
 The input and start use the same witness; the horizon includes carrier receipt.

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Statements.Join
 -- shake: keep-all (F0.5 imports must remain unchanged in this append-only job)
 public import Mathlib.Order.Lattice.Nat
 public import AvailableChainFGSAClaims.Statements.Bounds
@@ -49,7 +50,7 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
 whose source vote precedes GST. Consumers: muOf, H0Reset, H.13. -/
 def oldRowHeights : Set Nat := {h | ∃ j y r, ∃ (a : RowWire p.n) (e : BlockId),
   HonestRowAt p c E rho j y r a ∧ namedEntry a.payload.height_pair = some (h, e) ∧
-    SA.voteTime p.toParams (r * p.R) < E.t_GST}
+    SA.voteTime p.toParams (r * p.R) < recoveryStart p E}
 /-- H.11 μ (21:1579–1582), P3 §4.6 and A.8. Consumers: H0Reset and H.13. -/
 noncomputable def muOf : Nat := max 1 (sSup (oldRowHeights p c E rho))
 /-- H.22 (21:3002–3004), P3 A.6. Consumers: H1, H2, H2.A, F9 and HP. -/
@@ -68,16 +69,16 @@ def HeightRow (r h : Nat) : Prop := ∃ j y, ∃ (a : RowWire p.n) (e : BlockId)
 Consumers: reset arrival, H.12–H.17, and H0. This contains no Q* service.
 Full H0 requires ResetArrivalFullStatement at the H.18 horizon (21:2868–2876). -/
 structure H0Reset (w : HealingWitness) : Prop where
-  rG_after : E.t_GST ≤ p.actionTime w.rG
-  rG_first : ∀ r, E.t_GST ≤ p.actionTime r → w.rG ≤ r
+  rG_after : recoveryStart p E ≤ p.actionTime w.rG
+  rG_first : ∀ r, recoveryStart p E ≤ p.actionTime r → w.rG ≤ r
   cut : w.u₀ = p.actionTime (w.rG + 2)
   frontier : w.M = honestFrontier p c E rho w.u₀
   rowCap : ∀ j y r a h e t, HonestRowAt p c E rho j y r a →
     rho.events[j]? = some (.tick y t) → t ≤ w.u₀ →
     namedEntry a.payload.height_pair = some (h, e) → h ≤ w.M
   mu_le : muOf p c E rho ≤ w.M
-  cut_lower : E.t_GST + 2 * P p ≤ w.u₀
-  cut_upper : w.u₀ < E.t_GST + 3 * P p
+  cut_lower : recoveryStart p E + 2 * P p ≤ w.u₀
+  cut_upper : w.u₀ < recoveryStart p E + 3 * P p
   reset_row : HeightRow p c E rho w.rStar (w.M + 1)
   reset_first : ∀ r, HeightRow p c E rho r (w.M + 1) → w.rStar ≤ r
   label : w.sStar = w.rStar * p.R

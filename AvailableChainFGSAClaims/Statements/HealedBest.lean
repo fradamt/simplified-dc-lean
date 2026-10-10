@@ -11,12 +11,13 @@ Consumers: none (companion).
 DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def HTimeBestConcl (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time) (g : Nat) : Prop :=
-  ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_bestF p ΔF G g
+  ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < recoveryStart p E + B_bestF p ΔF G g
 
 theorem HTimeBestConcl_def (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time) (g : Nat) :
     HTimeBestConcl p c E rho G ΔF g =
-      (∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_bestF p ΔF G g) := by rfl
+  (∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < recoveryStart p E + B_bestF p ΔF G g) := by
+  rfl
 
 end AvailableChain.FGSA.Run
 end

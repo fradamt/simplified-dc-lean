@@ -66,7 +66,7 @@ def BoundedSafetyLivenessRecovery₂ (G ΔF : Time) : Prop :=
     ∃ (u : Slot) (Q : Block) (iStar : Nat),
       BoundedHealingCut₂ p c E source u Q iStar ΔF ∧
       ∀ (E' : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-        CleanContinuation₂ p c E source E' rho ΔF →
+        CleanContinuationSleep₂ p c E source E' rho ΔF →
         WeakContinuationLiveAt₂ p c E' rho u Q iStar ΔF
 
 -- Equation export required by BUILD §7.2 B3a.
@@ -78,7 +78,7 @@ theorem BoundedSafetyLivenessRecovery₂_def (G ΔF : Time) :
         ∃ (u : Slot) (Q : Block) (iStar : Nat),
           BoundedHealingCut₂ p c E source u Q iStar ΔF ∧
           ∀ (E' : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-            CleanContinuation₂ p c E source E' rho ΔF →
+            CleanContinuationSleep₂ p c E source E' rho ΔF →
             WeakContinuationLiveAt₂ p c E' rho u Q iStar ΔF) := by
   rw [BoundedSafetyLivenessRecovery₂]
 

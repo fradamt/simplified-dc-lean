@@ -305,5 +305,125 @@ def FrameAtNext (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop :=
   RFrameExactNext p c E rho ∧ RFrameNext p c E rho
 
+def RFrameNextEpoch : Prop := ∀ i x, x ∈ rho.honest →
+  let st := storeAt p c E rho i x
+  (∀ s N P, namedParentHeld st N = true → parentFG st N.erase = some P →
+    blockAccepted p st s N P = true →
+    (admitBlock p st s N).fg = Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)) ∧
+  ((∀ f : GridCO.State p.n .root → GridCO.State p.n .root, (onView f st).fg = st.fg) ∧
+    (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
+    (∀ a, (admitRow p st a).fg = st.fg) ∧
+    (∀ t, (FGSA.clock p st t).fg = st.fg) ∧
+    (∀ s N,
+      (namedParentHeld st N = false ∨ parentFG st N.erase = none ∨
+        ∃ P, parentFG st N.erase = some P ∧ blockAccepted p st s N P = false) →
+      (admitBlock p st s N).fg = st.fg) ∧
+    (∀ o, o.decode = none → (FGSA.process p st o).fg = st.fg)) ∧
+  (FGSA.Next.controls p (FGSA.reconcile st) = FGSA.Next.controls p st ∧
+    ∀ X, domainRNext p (FGSA.reconcile st) X = domainRNext p st X) ∧
+  (MetaInv p st ∧
+    (∀ s, FGSA.Next.proposalsAtNext p st s = st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ N) =>
+        if N.slot = s ∧ ∃ B ∈ FGSA.Next.tree p st, eraseFG B = N.erase then
+          some (N.raw, N.support) else none
+      | _ => none)) ∧
+    (∀ H, FGSA.Next.chainWireRowsNext st H = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ N) => if Block.preceq N.erase H then some N.rows else none
+      | _ => none)).flatten) ∧
+    (FGSA.Next.blockWireRowsNext st = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ N) => some N.rows
+      | _ => none)).flatten) ∧
+    (∀ s, FGSA.Next.voterBlocksNext p st s = (FGSA.Next.tree p st).filter (fun B =>
+      decide (GridCO.stampBlock st.base (eraseFG B) < SA.freezeTime p.toParams (s - 1)) ||
+      decide (∃ P ∈ FGSA.Next.tree p st, P.slot = s ∧ FGBlock.Preceq B P))) ∧
+    (∀ s, FGSA.Next.headVotesNext p st s =
+      (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
+        decide (GridCO.stampVote st.base o < SA.freezeTime p.toParams (s - 1)))) ++
+        (((FGSA.Next.proposalsAtNext p st s).flatMap (fun row => row.1.map baseVote)).filter
+          (fun o => GridCO.headLabel? o == some (s - 1)))).eraseDups) ∧
+    (∀ s, FGSA.Next.headSupportNext p st s =
+      (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
+        GridCO.resolvedBefore (FGSA.actView st) o (SA.freezeTime p.toParams (s - 1)))) ++
+        (((FGSA.Next.proposalsAtNext p st s).flatMap (fun row => row.2.map baseVote)).filter
+          (fun o =>
+          GridCO.headLabel? o == some (s - 1) && match GridCO.resolvedHead? st.base o with
+          | some h => decide (∃ B ∈ FGSA.Next.tree p st, eraseFG B = h) &&
+              decide (h.slot ≤ s - 1)
+          | none => false))).eraseDups) ∧
+    (∀ H, FGSA.Next.proposalRowsNext p st H =
+      match FGSA.Next.fgBlockOfNext st H with
+      | none => []
+      | some P =>
+          (st.rowPool ++ FGSA.Next.blockWireRowsNext st).eraseDups.filter (fun a =>
+            Window.rowValidW (parentFoldState p (st.slot p) P) a &&
+              !decide (a ∈ FGSA.Next.chainWireRowsNext st H))) ∧
+    (∀ j, i ≤ j → j ≤ rho.events.length →
+      let st' := storeAt p c E rho j x
+      st.proposals <+: st'.proposals ∧ st.rowPool <+: st'.rowPool ∧
+      (V2.D.restartFree rho x i j →
+        st.base.blockStamp <+: st'.base.blockStamp ∧
+        st.base.voteStamp <+: st'.base.voteStamp)))
+
+
+theorem RFrameNextEpoch_def : RFrameNextEpoch p c E rho =
+  (∀ i x, x ∈ rho.honest →
+  let st := storeAt p c E rho i x
+  (∀ s N P, namedParentHeld st N = true → parentFG st N.erase = some P →
+    blockAccepted p st s N P = true →
+    (admitBlock p st s N).fg = Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)) ∧
+  ((∀ f : GridCO.State p.n .root → GridCO.State p.n .root, (onView f st).fg = st.fg) ∧
+    (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
+    (∀ a, (admitRow p st a).fg = st.fg) ∧
+    (∀ t, (FGSA.clock p st t).fg = st.fg) ∧
+    (∀ s N,
+      (namedParentHeld st N = false ∨ parentFG st N.erase = none ∨
+        ∃ P, parentFG st N.erase = some P ∧ blockAccepted p st s N P = false) →
+      (admitBlock p st s N).fg = st.fg) ∧
+    (∀ o, o.decode = none → (FGSA.process p st o).fg = st.fg)) ∧
+  (FGSA.Next.controls p (FGSA.reconcile st) = FGSA.Next.controls p st ∧
+    ∀ X, domainRNext p (FGSA.reconcile st) X = domainRNext p st X) ∧
+  (MetaInv p st ∧
+    (∀ s, FGSA.Next.proposalsAtNext p st s = st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ N) =>
+        if N.slot = s ∧ ∃ B ∈ FGSA.Next.tree p st, eraseFG B = N.erase then
+          some (N.raw, N.support) else none
+      | _ => none)) ∧
+    (∀ H, FGSA.Next.chainWireRowsNext st H = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ N) => if Block.preceq N.erase H then some N.rows else none
+      | _ => none)).flatten) ∧
+    (FGSA.Next.blockWireRowsNext st = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ N) => some N.rows
+      | _ => none)).flatten) ∧
+    (∀ s, FGSA.Next.voterBlocksNext p st s = (FGSA.Next.tree p st).filter (fun B =>
+      decide (GridCO.stampBlock st.base (eraseFG B) < SA.freezeTime p.toParams (s - 1)) ||
+      decide (∃ P ∈ FGSA.Next.tree p st, P.slot = s ∧ FGBlock.Preceq B P))) ∧
+    (∀ s, FGSA.Next.headVotesNext p st s =
+      (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
+        decide (GridCO.stampVote st.base o < SA.freezeTime p.toParams (s - 1)))) ++
+        (((FGSA.Next.proposalsAtNext p st s).flatMap (fun row => row.1.map baseVote)).filter
+          (fun o => GridCO.headLabel? o == some (s - 1)))).eraseDups) ∧
+    (∀ s, FGSA.Next.headSupportNext p st s =
+      (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
+        GridCO.resolvedBefore (FGSA.actView st) o (SA.freezeTime p.toParams (s - 1)))) ++
+        (((FGSA.Next.proposalsAtNext p st s).flatMap (fun row => row.2.map baseVote)).filter
+          (fun o =>
+          GridCO.headLabel? o == some (s - 1) && match GridCO.resolvedHead? st.base o with
+          | some h => decide (∃ B ∈ FGSA.Next.tree p st, eraseFG B = h) &&
+              decide (h.slot ≤ s - 1)
+          | none => false))).eraseDups) ∧
+    (∀ H, FGSA.Next.proposalRowsNext p st H =
+      match FGSA.Next.fgBlockOfNext st H with
+      | none => []
+      | some P =>
+          (st.rowPool ++ FGSA.Next.blockWireRowsNext st).eraseDups.filter (fun a =>
+            Window.rowValidW (parentFoldState p (st.slot p) P) a &&
+              !decide (a ∈ FGSA.Next.chainWireRowsNext st H))) ∧
+    (∀ j, i ≤ j → j ≤ rho.events.length →
+      let st' := storeAt p c E rho j x
+      st.proposals <+: st'.proposals ∧ st.rowPool <+: st'.rowPool ∧
+      (V2.D.restartFree rho x i j →
+        st.base.blockStamp <+: st'.base.blockStamp ∧
+        st.base.voteStamp <+: st'.base.voteStamp)))) := rfl
+
 end AvailableChain.FGSA.Run
 end

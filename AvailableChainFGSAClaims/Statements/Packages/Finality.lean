@@ -30,10 +30,10 @@ The existing Recovery₂ supplies validity, row delivery and finite proposer gap
 S4.6: the Regimes move needs an out-of-scope WeakContinuation import fix. -/
 structure FinalitySet_W (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (G ΔF : Time) (form : FinFormW) (g : Nat) : Prop where
-  core : Recovery₂ p c E rho G ΔF
+  core : RecoverySleep₂ p c E rho G ΔF
   bound : LivenessBoundW p ΔF
   recur : form.holdsW p ΔF (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
-    E.t_GST rho.horizon g
+    (recoveryStart p E) rho.horizon g
 
 /-- Plan §1.7. DC: INTENTIONAL FE/F4 share W_W; no strong dispatch. -/
 def finalityWindow_W (ΔF : Time) (_form : FinFormW) (g : Nat) : Time := W_W p ΔF g
@@ -46,7 +46,7 @@ HTime supplies input and start. This package does not use best/search healing. -
 structure FirstFinalityPrem_W (G ΔF : Time) (form : FinFormW) (g : Nat)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (_pt : Unit) : Prop where
   set : FinalitySet_W p c E rho G ΔF form g
-  hhor : E.t_GST + B_HF p ΔF G + W_W p ΔF g ≤ rho.horizon
+  hhor : recoveryStart p E + B_HF p ΔF G + W_W p ΔF g ≤ rho.horizon
 
 /-- Local FF5 (22:1371–1380). DC: INTENTIONAL common input and receipt horizon.
 The trigger is at or after t*, with no GST healing-bound restriction. -/

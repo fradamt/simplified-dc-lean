@@ -390,5 +390,13 @@ def FinalLockClaim (p : Params) : Prop :=
 
 end
 
+def FinalizedMonotonicityRestartClaim : Prop :=
+  ∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+    rho.events.Pairwise (fun a b => a.key ≤ b.key) →
+    ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →
+      Block.Preceq (finalizedOut (V2.D.Run.readAt E rho t x))
+        (finalizedOut (V2.D.Run.readAt E rho t' x))
+
 end AvailableChain.FGSA.Run
 end

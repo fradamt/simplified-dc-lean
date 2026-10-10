@@ -16,7 +16,7 @@ structure FinalityLivenessGSTPrem_W
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (pt : PtT) : Prop where
   set : FinalitySet_W p c E rho G ΔF form g
-  late : E.t_GST + B_HF p ΔF G ≤ pt.t
+  late : recoveryStart p E + B_HF p ΔF G ≤ pt.t
   hhor : pt.t + W_W p ΔF g ≤ rho.horizon
 
 /-- Blueprint 22:1421–1430. DC: INTENTIONAL GST form; no healing output as premise;
@@ -27,7 +27,7 @@ structure ProposalFinalGSTPrem_W
     (pt : PtSX) : Prop where
   set : FinalitySet_W p c E rho G ΔF form g
   prop : HonestProposal E rho (fgsaInterface p c) pt.s pt.X
-  late : E.t_GST + B_HF p ΔF G ≤
+  late : recoveryStart p E + B_HF p ΔF G ≤
     V2.D.proposalTime (fgsaInterface p c) pt.s
   hhor : V2.D.proposalTime (fgsaInterface p c) pt.s +
     W_W p ΔF g ≤ rho.horizon
@@ -39,7 +39,7 @@ structure AboveFrontierGSTPrem_W
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (pt : PtT) : Prop where
   set : FinalitySet_W p c E rho G ΔF form g
-  late : E.t_GST + B_HF p ΔF G ≤ pt.t
+  late : recoveryStart p E + B_HF p ΔF G ≤ pt.t
   hhor : pt.t + 2 * W_W p ΔF g ≤ rho.horizon
 
 end AvailableChain.FGSA.Run

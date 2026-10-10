@@ -206,6 +206,7 @@ AvailableChainFGSAClaims.Statements.Counts
 AvailableChainFGSAClaims.Statements.Fold
 AvailableChainFGSAClaims.Statements.FrameNext
 AvailableChainFGSAClaims.Statements.Healed
+AvailableChainFGSAClaims.Statements.Join
 AvailableChainFGSAClaims.Statements.Packages.Safety
 AvailableChainFGSAClaims.Statements.Phases
 AvailableChainFGSAClaims.Statements.Reads

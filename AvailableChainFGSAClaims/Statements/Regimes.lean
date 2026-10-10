@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Statements.Join
 public import AvailableChainFGSARun.Statements.Roots
 public import AvailableChainFGSAClaims.Statements.Counts
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
@@ -19,7 +20,7 @@ structure Base₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
   valid : V2.D.ExecutionValid E rho
   linked : V2.D.Linked (fgsaFamilies p c).linked rho
   cstar : V2.D.CStar (fgsaFamilies p c).fresh rho
-  noRestart : V2.D.NoRestart rho
+  restartsAtWakes : V2.D.RestartsAtWakes E rho
   delta : E.Δ = p.Δ
   /-- [ROOT-DIGEST W1; DC NamedRootCollisionFree] Run body collision freedom. -/
   idealization : NamedRootCollisionFree p c E rho
@@ -74,21 +75,30 @@ structure Recovery₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Tim
   awake : ∀ v ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake v t = true
   gapPos : 4 * p.Δ ≤ G
 
+structure HealthyPrefixSleep₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (b₀ : Time) (ΔF : Time := E.Δ) : Prop extends HealthyPrefix₂ p c E rho b₀ ΔF where
+  joinedPartBefore : ∀ t : Time, 0 ≤ t → t < b₀ →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card
+
+structure CleanPrefixSleep₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (b₀ : Time) (ΔF : Time := E.Δ) : Prop extends CleanPrefix₂ p c E rho b₀ ΔF where
+  sleepPre : HealthyPrefixSleep₂ p c E rho b₀ ΔF
+  joinedPartAt : (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho b₀).card
+
+structure CleanSleep₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (ΔF : Time := E.Δ) : Prop extends Clean₂ p c E rho ΔF where
+  sleepPre : CleanPrefixSleep₂ p c E rho rho.horizon ΔF
+
 abbrev BaseSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop := Base₂ p c E rho
 abbrev CleanSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (ΔF : Time := E.Δ) : Prop := Clean₂ p c E rho ΔF
+    (ΔF : Time := E.Δ) : Prop := CleanSleep₂ p c E rho ΔF
 abbrev CleanCutSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (b₀ : Time) (ΔF : Time := E.Δ) : Prop :=
-  CleanCut₂ p c E rho b₀ ΔF
+  HealthyPrefixSleep₂ p c E rho b₀ ΔF
 abbrev CleanPrefixSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (b₀ : Time) (ΔF : Time := E.Δ) : Prop :=
-  CleanPrefix₂ p c E rho b₀ ΔF
-/-- DC: INTENTIONAL family delivery with an explicit row bound.
-Every caller supplies the row delay explicitly.
-HealingPrem carries LivenessBoundW for the active healing claims. -/
-abbrev HealingSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
-    (ΔF : Time) : Prop :=
-  Recovery₂ p c E rho G ΔF
+  CleanPrefixSleep₂ p c E rho b₀ ΔF
+
 
 /-- Awake proposer recurrence from t₀: every window (t, t + G] with t₀ ≤ t that ends within
 the horizon holds an honest slot whose proposer is awake at its proposal time.
@@ -101,8 +111,29 @@ def AwakeProposerRecurrenceFrom (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     ∃ s, t < V2.D.proposalTime (fgsaInterface p c) s ∧
       V2.D.proposalTime (fgsaInterface p c) s ≤ t + G ∧
       HonestSlot rho (fgsaInterface p c) s ∧
-      E.awake (V2.D.proposerOf rho (fgsaInterface p c) s)
-        (V2.D.proposalTime (fgsaInterface p c) s) = true
+      joinedAt p E rho (V2.D.proposerOf rho (fgsaInterface p c) s) s
+        (V2.D.proposalTime (fgsaInterface p c) s)
+
+structure RecoverySleep₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (G : Time) (ΔF : Time := E.Δ) : Prop extends Recovery₂ p c E rho G ΔF where
+  suffixNoRestart : ∀ v ∈ rho.honest,
+    V2.D.NoRestartOn rho v E.t_GST (rho.horizon + 1)
+  joinedGap : AwakeProposerRecurrenceFrom p c E rho (recoveryStart p E) G
+
+def RecoveryReadinessClaim (p : Params) : Prop :=
+  ∀ {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF t : Time),
+    RecoverySleep₂ p c E rho G ΔF →
+    recoveryStart p E ≤ t → t ≤ rho.horizon →
+    ∀ v ∈ rho.honest,
+      joinedAt p E rho v (slotAt p t) t ∧ caughtUpAt p c E rho v t
+
+/-- DC: INTENTIONAL family delivery with an explicit row bound.
+Every caller supplies the row delay explicitly.
+HealingPrem carries LivenessBoundW for the active healing claims. -/
+abbrev HealingSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
+    (ΔF : Time) : Prop :=
+  RecoverySleep₂ p c E rho G ΔF
 
 /-- Final outage fields for G-F0a. Participation is strict before the cut;
 the sleep witness is in `outWin`. -/
@@ -117,8 +148,18 @@ structure Outage₂ (fast : Bool) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   fastPart : fast = true → ∀ t, 0 ≤ t → t < b₀ →
     (p.n + 1) / 2 ≤ (awakeHonest E rho t).card
 
+structure OutageSleep₂ (fast : Bool) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (T b₀ b₁ : Time) (ΔF : Time := E.Δ) : Prop
+    extends Outage₂ p c fast E rho T b₀ b₁ ΔF where
+  sleepPre : HealthyPrefixSleep₂ p c E rho b₀ ΔF
+  joinedSleepy : ∀ t, 0 ≤ t → t < b₀ →
+    (sleepyBad p E rho t).card < 2 * (joinedHonest p E rho t).card
+  joinedFastPart : fast = true → ∀ t, 0 ≤ t → t < b₀ →
+    (p.n + 1) / 2 ≤ (joinedHonest p E rho t).card
+  protection : OutageE1 p E rho fast b₀ b₁
+
 abbrev OutageSet (fast : Bool) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (T b₀ b₁ : Time) (ΔF : Time := E.Δ) : Prop := Outage₂ p c fast E rho T b₀ b₁ ΔF
+    (T b₀ b₁ : Time) (ΔF : Time := E.Δ) : Prop := OutageSleep₂ p c fast E rho T b₀ b₁ ΔF
 
 end AvailableChain.FGSA.Run
 end
