@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (#print axioms)
@@ -627,3 +628,24 @@ end
 #print axioms AvailableChain.FGSA.Run.Clean₂.ownRow_run
 #print axioms AvailableChain.FGSA.Run.Outage₂.ownRow_run
 #print axioms AvailableChain.FGSA.Run.Outage₂.ownRow_run_mid
+
+#print axioms AvailableChain.FGSA.Run.fgsa_historySafeAt_of_proposal
+#print axioms AvailableChain.FGSA.Run.fgsa_proposal_handlers_at_anchor
+#print axioms AvailableChain.FGSA.Run.fgsa_enabledGate_awakeClosed
+#print axioms AvailableChain.FGSA.Run.fgsa_enabledGate_anchor_epoch
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_path_anchor_service
+#print axioms AvailableChain.FGSA.Run.fgsa_transfer_path_anchor_service
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorPremises
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorStatement
+#print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage_anchor
+#print axioms AvailableChain.FGSA.Run.fgsa_active_path_of_coverage_anchor
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorPremises.within
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorPremises.service
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorPremises.slotWindow
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorPremises.handlers
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorPremises.compat
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorPremises.deadline
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorPremises.pathCoverage
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageAnchorPremises.proposalPaths
+
+#print axioms AvailableChain.FGSA.Run.fgsa_proposal_acceptance_facts
