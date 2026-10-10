@@ -2576,3 +2576,132 @@ Final Round 6 validation: DCK PASS (218.795 s),
 466 entries PASS. Complete GREEN exports: 258 proof modules / 253 exports /
 zero unaccepted. Layers: 72 inherited / zero new. Expose and sleep scopes PASS.
 The two inherited W3 transparency findings and five S-Ap audit names are unchanged.
+
+## P-ShA Round 7 — DECISION ANCHOR-DL internal supplier
+
+The lead's 2026-10-10 08:12 decision permits this additive internal interface.
+`Shared/Count.lean` now defines `ReceiptCoverageAnchorPremises` and
+`ReceiptCoverageAnchorStatement`, with `anchor : Obj p → Time → Time`.
+The fields match anchor-dl §1. The statement closes the final HEAD quantifier
+with `)`; the design text omitted that delimiter. This is a syntax repair.
+`fgsa_receiptCoverage_anchor` and `fgsa_active_path_of_coverage_anchor` use
+`dl (anchor o t)` for every receipt, strict HEAD stamp, and path vertex bound.
+They keep the requested path/read time D. No `dl(a) ≤ dl(t)` input is required.
+The proposal branch uses `ReceiverService.proposal`, whose proof uses N4.
+The HEAD branch uses the N4 receipt theorem or the cap alternative at dl(a).
+The record includes handlers on exactly `[a, dl(a))` and the receiver epoch
+from `actionCut(a)` to `idxBefore(D)`. The anchor need not be monotone.
+
+This interface is in the P-ShA proof layer. The old Count interfaces and all
+FGSARun/Statements and FGSAClaims declarations remain unchanged. The bare public
+`ReceiptCoverageSleepStatement` is still open. No public P23 amendment is made.
+
+The resume check found a missing required S1 scope entry for AnchorService.
+`scripts/dev-scope-s1.txt` now registers the module as REQUIRED. The package map
+and audit inventory already included it. No allowance or baseline was added.
+
+### Common proposal suppliers and record construction
+
+Import `AvailableChainFGSAProofs.Proofs.Shared.AnchorService` for service inputs
+and `AvailableChainFGSAProofs.Proofs.Shared.Count` for the coverage result.
+
+- `fgsa_historySafeAt_of_proposal` transfers each historical root witness through
+  durable TF, including across restart. It needs the proposal decode, not roots.
+- `fgsa_proposal_acceptance_facts` uses the original acceptance and validity for
+  send nonnegativity and well-formedness.
+- `fgsa_proposal_handlers_at_anchor` uses the original source acceptance, the
+  delay equation, and a public awake receiver anchor. Its tick precedes every
+  handler, including a same-time delivery. The source admission bound and the
+  local receiver epoch give timeliness. Valid direct delivery gives dependencies.
+- `fgsa_gate_path_anchor_service` takes THIS receiver's `enabledGateAt` hG,
+  validity, RestartsAtWakes, the delay equation, and each honest original proposal
+  acceptance before v_s. It derives ReadyTrigger at v_s through e_s, proposal
+  HistorySafeAt at v_s, the epoch through idxBefore(e_s), and proposal handlers
+  on `[v_s,e_s)`. `fgsa_enabledGate_anchor_epoch` supplies later strict reads up
+  to the gate. Honesty or selected-voter joinedness does not replace receiver hG.
+- `fgsa_transfer_path_anchor_service` takes
+  `joinedAt p E rho y (s+1) (voteTime (s+1))`, the next-vote horizon bound,
+  validity, the delay equation, and each honest original proposal acceptance
+  before e_s. It derives ReadyTrigger at e_s through f_s, proposal HistorySafeAt
+  at e_s, the epoch through idxBefore(v_(s+1)), and handlers on `[e_s,f_s)`.
+  Restrict its epoch to idxBefore(f_s) by `fgsa_idxBefore_mono` and `.mono`.
+
+Keep `first = 0` in all seven records. For gate paths select
+`anchor := fun _ _ => v_s`; for transfer paths select
+`anchor := fun _ _ => e_s`. Clean uses `dl(a) = a + Δ`. WC/WCG use
+`dl(a) = max(a,GST) + Δ`; their GST bound at v_s makes the chosen deadlines
+exactly e_s and f_s. Rewrite these equations in the supplier results.
+Use the regime's healthy/sync field for `within`. Use base.valid, base.delta,
+and base.receiptIdealization for validity, the delay equation, and receipt roots.
+The acceptance remains at the original t; do not invent a trigger at the anchor.
+
+The seven required predicates contain only proposals. Their `slotWindow` field
+is vacuous: the block decode cannot also be a vote decode. Construct `service`
+from the suppliers, the public time inequalities, `Nat.zero_le actionCut`, and
+well-formedness from `fgsa_proposal_acceptance_facts`. Keep the callers' existing
+compatibility, pathCoverage, proposalPaths, horizon/cut, ancestor, and F-below-target
+proofs. Each path vertex now requires `dl(anchor o t) ≤ d`, not `dl(t) ≤ d`.
+Call `fgsa_active_path_of_coverage_anchor` with the SAME anchor function.
+No general retained-HEAD history claim follows from these proposal suppliers.
+
+### Exact seven-caller owner port plan
+
+The source lines below are the pinned anchor-dl §3 references, not moving lines
+in this worktree. P-ShA has not edited Clean, WC, or WCG files.
+
+```text
+┌─────────────────────────────────────┬───────┬─────┬───────┬─────────┐
+│ Count call                          │ Owner │ Node│ Anchor│ Read D  │
+├─────────────────────────────────────┼───────┼─────┼───────┼─────────┤
+│ Clean/StepGate.lean:562              │ P-Cl1 │ x   │ v_s+1 │ e_s+1   │
+│ Clean/TransferFrame.lean:379         │ P-Cl1 │ y   │ e_s   │ f_s     │
+│ Clean/TransferFrame.lean:474         │ P-Cl1 │ y   │ e_s   │ f_s     │
+│ WC/StepGateBatch.lean:344            │ P-WC  │ x   │ v_s   │ e_s     │
+│ WC/StepTransferReceipts.lean:260      │ P-WC  │ y   │ e_s   │ f_s     │
+│ WCG/Dynamics.lean:1529               │ P-WC  │ x   │ v_s   │ e_s     │
+│ WCG/Dynamics.lean:2810               │ P-WC  │ y   │ e_s   │ f_s     │
+└─────────────────────────────────────┴───────┴─────┴───────┴─────────┘
+```
+
+Here `v_s+1` and `e_s+1` mean v_(s+1) and e_(s+1).
+
+1. Clean StepGate: pass the existing nonempty theorem's exact receiver hG at
+   :676 through `gate_batch_of_history` :644 and `gate_active_heads` :462.
+   Use the gate supplier with label s+1. Acceptances at :337/:350 precede v_(s+1).
+   Do not derive hG from the nonemptiness result that this proof establishes.
+2. Clean TransferFrame :379: add the joined y guard to the interface at :335.
+   Thread it from `CleanHist.continues`. Acceptances at :260/:267 precede e_s.
+   Use the transfer supplier; restrict its longer epoch to f_s for Count.
+3. Clean TransferFrame :474: add the same joined y guard at :397. Use the same
+   transfer supplier. Keep the support-head path geometry and source e_s stamp
+   at :468. A gate guard for source x does not supply receiver y's epoch.
+4. WC StepGateBatch: split suppressed gates in the helper at :250. In the enabled
+   branch pass THIS receiver's hG. Keep hGST at :251 and the acceptance cutoff
+   at :130. Use the gate supplier and sync. Selected-voter joinedParticipation
+   supplies selected voters; it does not join arbitrary receiver x.
+5. WC StepTransferReceipts: add joined y to `prefreeze_path` :228 and its call
+   at :473. Source it from P10's HEAD reader scope or the joined selected voter
+   route. Keep hGST :225/:229, acceptances :231/:253, the source frame, and F bound.
+   Use the transfer supplier and sync.
+6. WCG Dynamics :1529: pass receiver hG through the enabled gate branch at
+   :1434/:1441. Keep GST ≤ v_s and the source acceptance cutoff. Use the gate
+   supplier and sync. Retained-set agreement does not make every receiver awake.
+7. WCG Dynamics :2810: pass the exact joined y guard through
+   `growthStepTransferReceipts_prefreeze_path` :2770. Keep GST :2777 and the source
+   e_s stamp :2779. Use the transfer supplier and sync with the current honest
+   source acceptances. SourcePendingReceipt for a removed original source is a
+   separate route; it cannot supply a ReadyTrigger with a current honest source.
+
+Count ends at a strict read. For stamps used at the consuming gate or next vote,
+keep the receiver epoch through that action index as a separate owner obligation.
+The enabled guard or joined guard supplies the receiver scope for that extension.
+Do not infer an action-index epoch only from the Count record's idxBefore(D).
+The family ports remain open with P-Cl1/P-WC until their own builds pass.
+
+Final Round 7 validation: DCK PASS (262.407 s), 43 strict audits / 3016
+results, 24 controls. All 481 GREEN modules passed --wfail. SharedAxioms
+complete coverage: 485 entries PASS. Complete GREEN exports: 259 proof modules /
+253 exports / zero unaccepted. Layers: 72 inherited / zero new. Expose and
+sleep scopes PASS. The two inherited W3 transparency findings remain unchanged.
+The two S-Ap EXPECTED-FAIL targets are unchanged. P-ShA is CLOSED; the public
+P23 statement and the seven family-owner ports retain their stated open scope.
