@@ -375,13 +375,15 @@ theorem outage_arming_sources_from_prefix [Fintype V] {fast : Bool} {T b₀ ΔF 
   outage_arming_sources_on h.base.valid.toScheduleWellFormed hc
     (outage_pending_sources_compatible h htsrc hc htransfer)
 
-/-- A fast source has an honest supporting HEAD when faults are below the release level.
-The stored vote can come from an earlier epoch; its signature still has an emission. -/
-theorem outage_fast_supporting_head [Fintype V]
+/-- Fast support above the bad-set count has an actual HEAD outside that set.
+The bad set includes faults and can include W. The source itself can belong to W. -/
+theorem outage_fast_supporting_head_outside [Fintype V]
     (hBase : Base₂ p c E rho)
-    (hfault : (Gen.V2.Duty.faulty rho).card < SA.releaseThreshold p.toParams)
+    (bad : Finset V) (hfault : Gen.V2.Duty.faulty rho ⊆ bad)
+    (hbad : bad.card < SA.releaseThreshold p.toParams)
     {x : V} {s : Slot} {C : Block} (hfast : fastAt p c E rho x s C) :
     ∃ q K, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      rho.seatOf (.base (.head s)) q ∉ bad ∧
       HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
         (ofHead p ⟨.seat (.head s) q, K.root⟩)
         (SA.voteTime p.toParams s) K ∧ Block.Preceq C K := by
@@ -405,22 +407,23 @@ theorem outage_fast_supporting_head [Fintype V]
       intro k _
       rw [fgsa_cleanSupport_no_equivocation p v s k, Bool.false_or]
     have hex : ∃ q o, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
-        o ∈ pool ∧ GridCO.headSeat? o = some q ∧
+        rho.seatOf (.base (.head s)) q ∉ bad ∧ o ∈ pool ∧ GridCO.headSeat? o = some q ∧
         Gen.AC.Root.voteSupports (GridCO.resolutionTree v) C o = true := by
       by_contra hn
-      have hle : seats.card ≤ (Gen.V2.Duty.faulty rho).card := by
+      have hle : seats.card ≤ bad.card := by
         apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head s)))
         · intro q hq
-          rw [Gen.V2.Duty.faulty_def]
-          refine Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, ?_⟩
-          intro hh
+          by_contra hnot
+          have hh : rho.seatOf (.base (.head s)) q ∈ rho.honest := by
+            by_contra hn
+            exact hnot (hfault (Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, hn⟩))
           obtain ⟨_, hs⟩ := Finset.mem_filter.mp hq
           obtain ⟨o, ho, hk, hv⟩ := (Gen.AC.Root.vote_pool_support_witness _ _ q C).mp hs
-          exact hn ⟨q, o, hh, ho, hk, hv⟩
+          exact hn ⟨q, o, hh, hnot, ho, hk, hv⟩
         · intro q _ k _ he
           exact (hBase.cstar (.base (.head s)) trivial).injective he
-      exact (not_lt_of_ge (hτ.trans (hcard ▸ hle))) hfault
-    obtain ⟨q, o, hh, ho, hq, hsup⟩ := hex
+      exact (not_lt_of_ge (hτ.trans (hcard ▸ hle))) hbad
+    obtain ⟨q, o, hh, hnot, ho, hq, hsup⟩ := hex
     obtain ⟨K, hresolve, hK, _, hCK⟩ := (Gen.AC.Root.vote_support_body _ _ _).mp hsup
     have hKb : K ∈ (storeAt p c E rho i x).base.blocks := by
       dsimp only [v] at hK
@@ -463,9 +466,22 @@ theorem outage_fast_supporting_head [Fintype V]
     have hroot : K.root = H.root := (Option.some.inj (resolvedTarget_root _ _ hresolve)).symm
     have hKH := stored_eq_headVote E rho hBase.idealization i x hKb j _
       (SA.voteTime p.toParams s) s hroot
-    refine ⟨q, K, hh, ?_, hCK⟩
+    refine ⟨q, K, hh, hnot, ?_, hCK⟩
     rw [hKH]
     exact ⟨j, s, q, hj, hem, rfl, rfl⟩
+
+/-- The pending source route uses the faulty set alone. -/
+theorem outage_fast_supporting_head [Fintype V]
+    (hBase : Base₂ p c E rho)
+    (hfault : (Gen.V2.Duty.faulty rho).card < SA.releaseThreshold p.toParams)
+    {x : V} {s : Slot} {C : Block} (hfast : fastAt p c E rho x s C) :
+    ∃ q K, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K ∧
+      Block.Preceq C K := by
+  obtain ⟨q, K, hh, _, hK, hCK⟩ := outage_fast_supporting_head_outside hBase
+    (Gen.V2.Duty.faulty rho) (fun _ h => h) hfault hfast
+  exact ⟨q, K, hh, hK, hCK⟩
 
 /-- The pre-cut joined majority puts the faulty count below the release level. -/
 theorem outage_prefix_fault_lt_release [Fintype V] {b₀ ΔF : Time}
@@ -687,6 +703,54 @@ theorem outage_restored_result_of_good_targets [Fintype V] {ΔF : Time}
       (fun q hq K hK => hTargets hlow q K ((hH q).mp hq) hK)
   · exact fun hlow q hq K hK => hTargets hlow q K ((hH q).mp hq) hK
   · exact hresult
+
+/-- E1 supplies the fixed A union W release bound, also before recovery starts. -/
+theorem outage_e1_release_bound [Fintype V] {fast : Bool} {b₀ b₁ : Time}
+    (h : OutageE1 p E rho fast b₀ b₁) :
+    ∃ r, FirstRestored p b₁ r ∧
+      (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r).card <
+        SA.releaseThreshold p.toParams := by
+  obtain ⟨r, hr, hc⟩ := h
+  refine ⟨r, hr, ?_⟩
+  change _ < (p.n + 1) / 2
+  omega
+
+/-- The A union W bound selects a joined good HEAD for every actual honest source.
+This supplies the source transition of the scoped joint induction. No row seed is assumed. -/
+theorem outage_source_of_good_heads [Fintype V]
+    (hBase : Base₂ p c E rho) (htsrc : TSrc p c E rho)
+    {fast : Bool} {b₀ : Time} {r s : Slot}
+    (hBound : (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r).card <
+      SA.releaseThreshold p.toParams)
+    {x : V} {a : Nat} {C B : Block} (hx : x ∈ rho.honest) (ha : a * p.R = s)
+    (hC : actionSource p c E rho x a = some (some C))
+    (hHeads : ∀ q K, rho.seatOf (.base (.head s)) q ∈
+      outageH p E rho s \ outageW p E rho fast b₀ r →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Block.Compatible K B) : Block.Compatible C B := by
+  classical
+  obtain ⟨X, G, _, hCX, _, _, hfast, _⟩ := htsrc x a C hx hC
+  rw [ha] at hfast
+  obtain ⟨q, K, hh, hnot, hK, hCK⟩ := outage_fast_supporting_head_outside hBase
+    (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r)
+    (fun _ h => Finset.mem_union_left _ h) hBound
+    (hfast C hCX)
+  have hKkeep := hK
+  obtain ⟨j, _, _, hj, hem, _, _⟩ := hK
+  have hJ := fgsa_joinedAt_of_emitted_head E rho hBase.valid hj hem
+  have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
+    slotOf_offset p s p.Δ p.deltaPos.le
+      (by have := p.deltaPos; dsimp [Time] at *; omega)
+  have hGood : rho.seatOf (.base (.head s)) q ∈
+      outageH p E rho s \ outageW p E rho fast b₀ r := by
+    apply Finset.mem_sdiff.mpr
+    refine ⟨?_, fun hw => hnot (Finset.mem_union_right _ hw)⟩
+    change _ ∈ rho.honest.filter (fun y => joinedAt p E rho y
+      (slotAt p (SA.voteTime p.toParams s)) (SA.voteTime p.toParams s))
+    rw [hslot]
+    exact Finset.mem_filter.mpr ⟨hh, hJ⟩
+  exact Gen.Pure.block_compatible_of_preceq_compatible hCK (hHeads q K hGood hKkeep)
 
 end AvailableChain.FGSA.Run
 end

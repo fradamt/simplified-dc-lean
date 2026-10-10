@@ -5762,3 +5762,15 @@ all public claims stay unchanged. ArmingScores now compiles.
 - ReceiverInputs and RestoredBatch now use public CatchUp imports and
   its public target-service constructors. Two inherited header findings
   are removed. Layers: 72 findings, zero new.
+
+### P-Ou Round 6 — A union W source transition
+
+ReceiverInputs.outage_fast_supporting_head_outside selects an actual
+joined HEAD outside any bad set that contains the faults and has count
+below the release level. The original faulty-only helper is its wrapper.
+outage_e1_release_bound proves the fixed A union W bound before recovery.
+outage_source_of_good_heads uses this bound for every actual honest
+source, including a source in W. The caller must prove compatibility of
+the selected good HEADs in the joint induction. This callback is an open
+P-Ou obligation; it is not a producer and does not close the package.
+All three declarations pass the strict local audit.
