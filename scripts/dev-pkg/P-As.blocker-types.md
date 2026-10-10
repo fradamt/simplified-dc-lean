@@ -184,3 +184,22 @@ premises and unchanged joined-start endpoints. No forbidden universal service re
 whole-run NoRestart, future delivery, early join or phase-service factory is supplied.
 All new adapter bodies retain their true scoped inputs; no conditional check closes
 an unproduced family result. Full healing assembly and Root acceptance stay OPEN.
+
+## Final manifest result
+
+The required full script FAILS at the inherited legacy snapshot entry
+AvailableChain.KitFG.pins. Its type is unchanged. Its descriptive Trees 3a label
+now says "unsaved joined gate" and "joined tick"; the checked legacy snapshot
+still has the earlier text. Pins.lean, the snapshot and extractor are unchanged
+since da788502. This is a lead/P-Da serial snapshot item, not a P-H2 proof failure.
+No snapshot or checker is changed to hide it. The exact diagnostic is saved in
+.lake/sleep-pas-r7/legacy-pin-diff.log and legacy-pin-scope.log.
+
+The current FG-SA shallow and deep checks PASS: 1,358 entries in 59 modules;
+1,358 deep roots and 3,818 dependency nodes. Separate V2, Generic and Compose
+snapshot checks PASS. The separate Claims check is EXPECTED-FAIL through P-H2:
+Healing/Promotion.olean is missing after its source fails at Promotion:194.
+All public Claims source prerequisites do build. The full manifest script stops
+before its snapshot controls; the 24 standalone DCK controls do PASS.
+Evidence: manifest-final.log, manifest-v2.log, manifest-gen.log,
+manifest-compose.log, manifest-claims-final.log and manifest-claims-prereqs-final.log.

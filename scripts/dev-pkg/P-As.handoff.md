@@ -31,7 +31,10 @@ reached through Assembly/Outage, so no new EXPORT-USE allowance is needed.
 The independent full P-Ou serial fragment passes all 335 strict commands.
 DCK PASS: 51 strict sources, 4,444 results, 24 controls. Exports: 547 proof modules,
 253 exports, zero unaccepted; Gen zero. Layers: 72 inherited, zero new. Headers PASS.
-Full manifest results are in .lake/sleep-pas-r7/manifest-final.log and the Round 7 report.
+Full manifest: FG-SA shallow/deep PASS; script FAILS at inherited KitFG.pins label metadata.
+Separate V2/Gen/Compose PASS. Separate Claims is EXPECTED-FAIL on P-H2 Promotion.olean.
+Snapshot controls were not reached; DCK's 24 controls PASS. No snapshot changes.
+Exact logs and the label-only diagnostic are in .lake/sleep-pas-r7/ and the Round 7 report.
 Public Claims/Statements, Healing/*, Outage/* and protocol sources are unchanged.
 No snapshot baseline, checker or allowance changes. No merge or push.
 

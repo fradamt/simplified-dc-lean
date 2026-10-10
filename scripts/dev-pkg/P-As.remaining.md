@@ -52,3 +52,8 @@ The public FGSAClaims structure builds. Public Claims/Statements and all
 Healing/* and Outage/* sources are unchanged here. Body audits do not close mixed
 modules or unproduced family results. The required full manifest check must pass
 with its controls after P-H2 integration; an inherited failure is reported separately.
+
+The full manifest script stops at the inherited KitFG.pins descriptive label
+mismatch. The FG-SA shallow/deep and separate V2/Gen/Compose checks pass.
+The separate Claims check fails on P-H2 Promotion.olean. The lead/P-Da owns the
+legacy snapshot refresh; P-H2 owns its proof closure. No checked snapshot is changed.
