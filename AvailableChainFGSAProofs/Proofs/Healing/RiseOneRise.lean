@@ -4,6 +4,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -70,7 +72,7 @@ theorem healing_rise_one_rise (E : Generic.Env V)
     (hfold : foldTrichotomy p .progress)
     (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hbudget : u + ρΓ p G + (P p - 4 * p.Δ) + (2 * P p + Γ p G - 9 * p.Δ) ≤ D)
     (hhor : u + ρΓ p G + (P p - 4 * p.Δ) +
       (2 * P p + Γ p G - 4 * p.Δ) ≤ rho.horizon) :
@@ -82,6 +84,9 @@ theorem healing_rise_one_rise (E : Generic.Env V)
         2 ≤ (heightView p X).h ∧ SA.proposalTime p.toParams s + p.Δ ≤ D ∧
         ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
           (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
   by_cases hrise : RiseOneBy p c E rho D
   · exact Or.inl hrise
@@ -96,7 +101,7 @@ theorem healing_rise_one_rise (E : Generic.Env V)
     linarith [p.deltaPos]
   rcases healing_rise_one_repair_opening E rho hrec mono crossing qc services opening
     writes rowCoverage
-    hgst huD hD hopeningBudget with hdone | hw
+    hready huD hD hopeningBudget with hdone | hw
   · exact Or.inl hdone
   obtain ⟨β, q, Q, Qfg, r, hp, hβ, _hmin, _hrepair, hq, hgate, _hQ, _hexact,
     _heq, _hh, _he, hqr, _hfirst, _hrD, _h0, h1, hc, hentry⟩ := hw
@@ -121,7 +126,7 @@ theorem healing_rise_one_rise (E : Generic.Env V)
       change 4 * p.Δ * ((r * p.R : Nat) : Time) + p.Δ ≤
         4 * p.Δ * ((r * p.R : Nat) : Time) + 6 * p.Δ
       linarith [p.deltaPos]
-    exact hgst.trans (huvote.trans hav)
+    exact hGST.trans (huvote.trans hav)
   have hwindow : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon := by linarith
   obtain ⟨_, s, X, hnew, hslot, hlo, hhi, _hgate, _hcarrier⟩ :=
     healing_promotion_gap_proposal E rho hrec r hgstr hwindow
@@ -144,13 +149,13 @@ theorem healing_rise_one_rise (E : Generic.Env V)
       (some .genesis) false :=
     ⟨hafter, le_trans (by linarith [p.deltaPos]) hD, hp.2.2.1,
       fun i x hui hi hx => hp.2.2.2 i x hui (hi.trans hcut) hx⟩
-  have hheight := healing_rise_one_advance_at E rho hrec hδ hbound mono crossing writes
-    rowsReceipt progressCoverage hfold faultQ honestQuorum hentry hc hgst hphase
+  have hheight := healing_rise_one_advance E rho hrec hδ hbound mono crossing writes
+    rowsReceipt progressCoverage hfold faultQ honestQuorum hentry hc hready hphase
     (services.permanence u (SA.proposalTime p.toParams s) 1
-      (some .genesis) false hgst hphase)
+      (some .genesis) false hready hphase)
     huvote hlo hnew hslot
   rcases healing_rise_one_accept p c E rho hrec.toRecovery₂ mono crossing
-    (proposalServices s) hnew hafter hgst hd hD with
+    (proposalServices s) hnew hafter hready hd hD with
     hdone | hreceipt
   · exact Or.inl hdone
   exact Or.inr ⟨r, s, X, har, hnew, hslot, hlo, hhi, hheight, hd, hreceipt⟩

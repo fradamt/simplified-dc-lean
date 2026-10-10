@@ -66,7 +66,7 @@ public theorem frontier_open_domain [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {u v : Time} {m q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
+    (hready : recoveryStart p E ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hqr : q ≤ r * p.R) (hav : p.actionTime r ≤ v) (hvh : v ≤ rho.horizon)
     (hcap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -75,6 +75,9 @@ public theorem frontier_open_domain [Fintype V] (E : Generic.Env V)
     (ht : rho.events[i]? = some (.tick x (p.actionTime r))) :
     let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
     Qfg ∈ domainR p st (treeT p st) ∧ (frameR p st).lo ≤ m := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   intro st
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
@@ -83,7 +86,7 @@ public theorem frontier_open_domain [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * (q : Int) + 6 * p.Δ ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
     nlinarith
   have hqh := hga.trans (hav.trans hvh)
-  have hReader := healing_recovery_gate_reader hrec hx (hgst.trans hu) hqh
+  have hReader := healing_recovery_gate_reader hrec hx (hGST.trans hu) hqh
   obtain ⟨nd, hnd, hwrite⟩ := (hexact.2 hqh x hx hReader).2.2.1
   have htime : ((4 * q + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams q := by
     change ((4 * q + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (q : Int) + 6 * p.Δ
@@ -150,7 +153,7 @@ gives candidate membership. The cap gives full-domain membership and source heig
 the selector gives Qfg ⪯ K. INLINE rowCoverage gives an earlier-or-current row. -/
 public theorem frontier_open_of_served
     {u v : Time} {m q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
+    (hready : recoveryStart p E ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hqr : q ≤ r * p.R) (hav : p.actionTime r ≤ v) (hvh : v ≤ rho.horizon)
     (hcap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -159,6 +162,9 @@ public theorem frontier_open_of_served
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r m ∧
       (∀ x K, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) →
         (heightView p K).T_h = (heightView p Qfg).T_h) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have hcut : E.t_GST ≤ slotStartZ p ((r * p.R : Nat) : Int) := by
     have hqrI : (q : Int) ≤ ((r * p.R : Nat) : Int) := by exact_mod_cast hqr
@@ -169,7 +175,8 @@ public theorem frontier_open_of_served
       FGBlock.Preceq Qfg K ∧ (heightView p K).h ≤ m := by
     intro x K hx hK
     obtain ⟨i, ht⟩ := common_source_tick E rho hK
-    obtain ⟨hdom, _⟩ := frontier_open_domain E rho hrec crossing hgst hQfg hh hexact hu hqr hav hvh
+    obtain ⟨hdom, _⟩ := frontier_open_domain E rho hrec crossing hready hQfg hh hexact hu hqr hav
+      hvh
       hcap hx ht
     have hcand := openingSource_candidate_of_gateService E rho hS i x r Q ht
       (healing_gate_enabled_of_recovery hrec.toRecovery₂ hx ht (hav.trans hvh) hcut)
@@ -190,11 +197,11 @@ public theorem frontier_open_of_served
       have hd := p.deltaPos
       change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
       nlinarith
-    have hawake := hrec.awake x hx (p.actionTime r) (hgst.trans (hu.trans hpa)) (hav.trans hvh)
+    have hawake := hrec.awake x hx (p.actionTime r) (hGST.trans (hu.trans hpa)) (hav.trans hvh)
     obtain ⟨i, ht⟩ := opening_action_tick E rho hS hrec.base.delta hx r (hav.trans hvh) hawake
     let nd := (fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)
     have hnd := opening_postClock_of_tick E rho hS ht
-    obtain ⟨hdom, hlo⟩ := frontier_open_domain E rho hrec crossing hgst hQfg hh hexact
+    obtain ⟨hdom, hlo⟩ := frontier_open_domain E rho hrec crossing hready hQfg hh hexact
       hu hqr hav hvh
       hcap hx ht
     have hcand := openingSource_candidate_of_gateService E rho hS i x r Q ht
@@ -218,7 +225,7 @@ ExactService fast write gives GateService at the atomic gate/action clock.
 No later-opening service hypothesis is needed. -/
 public theorem frontier_open_q_eq
     {u v : Time} {m q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
+    (hready : recoveryStart p E ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hqr : q = r * p.R) (hav : p.actionTime r ≤ v) (hvh : v ≤ rho.horizon)
     (hcap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -226,7 +233,10 @@ public theorem frontier_open_q_eq
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r m ∧
       (∀ x K, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) →
         (heightView p K).T_h = (heightView p Qfg).T_h) := by
-  apply frontier_open_of_served E rho hrec crossing rowCoverage hgst hQfg hh hexact hu hqr.le
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
+  apply frontier_open_of_served E rho hrec crossing rowCoverage hready hQfg hh hexact hu hqr.le
     hav hvh hcap
   intro i x hx ht
   have hS := hrec.base.valid.toScheduleWellFormed
@@ -234,7 +244,7 @@ public theorem frontier_open_q_eq
     rw [hqr]
     exact hav.trans hvh
   obtain ⟨_, _, ⟨nd, hnd, hwrite⟩, _, _⟩ := hexact.2 hqh x hx
-    (healing_recovery_gate_reader hrec hx (hgst.trans hu) hqh)
+    (healing_recovery_gate_reader hrec hx (hGST.trans hu) hqh)
   rw [hqr] at hnd
   change postClock E rho x (p.actionTime r) = some nd at hnd
   rw [opening_postClock_of_tick E rho hS ht] at hnd
@@ -247,7 +257,7 @@ public theorem frontier_open_q_eq
 use one FrontierOpeningServed input. CAP replaces any later phase premise. -/
 public theorem frontier_open_later
     {u v : Time} {m q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
+    (hready : recoveryStart p E ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hqr : q < r * p.R) (hav : p.actionTime r ≤ v) (hvh : v ≤ rho.horizon)
     (hcap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -256,7 +266,7 @@ public theorem frontier_open_later
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r m ∧
       (∀ x K, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) →
         (heightView p K).T_h = (heightView p Qfg).T_h) :=
-  frontier_open_of_served E rho hrec crossing rowCoverage hgst hQfg hh hexact hu hqr.le
+  frontier_open_of_served E rho hrec crossing rowCoverage hready hQfg hh hexact hu hqr.le
     hav hvh hcap hserved
 
 end Coverage

@@ -21,7 +21,7 @@ public section
 #print axioms AvailableChain.FGSA.Run.healing_accepted_proposal_service
 #print axioms AvailableChain.FGSA.Run.healing_accepted_target_service
 #print axioms AvailableChain.FGSA.Run.healing_emitted_proposal_service
-#print axioms AvailableChain.FGSA.Run.healing_fresh_head_service
+#print axioms AvailableChain.FGSA.Run.healing_emitted_head_service
 #print axioms AvailableChain.FGSA.Run.reset_period_lower
 #print axioms AvailableChain.FGSA.Run.reset_action_exists
 #print axioms AvailableChain.FGSA.Run.reset_rG_after
@@ -51,3 +51,9 @@ end
 #print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.top
 
 #print axioms AvailableChain.FGSA.Run.PhaseWitnessReceiptScope.contest
+
+#print axioms AvailableChain.FGSA.Run.healing_proposal_gap
+#print axioms AvailableChain.FGSA.Run.healing_proposal_phase_reader_floor
+#print axioms AvailableChain.FGSA.Run.healing_settled_frame_ready
+
+#print axioms AvailableChain.FGSA.Run.healing_capped_witness_reader_floor

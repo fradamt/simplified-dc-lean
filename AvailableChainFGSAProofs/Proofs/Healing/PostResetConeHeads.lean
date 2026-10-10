@@ -15,7 +15,7 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
 
 section Sources
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (cap : RCap p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (cap : RCap p c E rho)
     (source : TSrc p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
       (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
@@ -46,7 +46,7 @@ theorem postReset_source_heads_at_cut (i : Nat)
   rw [SelectedBefore_def] at hD
   obtain ⟨j, x, a, hj, hx, ht, hsrc, rfl⟩ := hD
   obtain ⟨C, hC, hDC, hlower⟩ :=
-    postReset_source_gate_result p c E rho hrec cap source rowCovered h0r hx hsrc hhD
+    postReset_source_gate_result p c E rho hrec.toRecovery₂ cap source rowCovered h0r hx hsrc hhD
   have hgate : IsGateTick p c rho j x (a * p.R) := ht
   rw [PostResetRawTransfer_def] at hraw
   intro y hy H hH
@@ -71,6 +71,7 @@ theorem postReset_liveLease_heads_at_cut (i : Nat)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -136,8 +137,8 @@ theorem postReset_liveLease_heads_at_cut (i : Nat)
       exact decide_eq_true (htime.trans_lt hqt)
     exact hpre.trans (healing_support_idxBefore_le p c E rho hS ht le_rfl)
   have hnow : (storeAt p c E rho j z).base.now ≤ t := by
-    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
-      (fgsa_hrestore_now_retained p c) E rho hS ht z
+    have hn := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hS ht z
     rw [fgsa_clock_now p c (rho.stateBefore E j z)] at hn
     exact hn
   have hcompat := hrl j hji z hz hrelease row hrow (hnow.trans_lt hlive)

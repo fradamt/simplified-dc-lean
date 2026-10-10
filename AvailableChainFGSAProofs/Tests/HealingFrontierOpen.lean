@@ -29,7 +29,7 @@ variable [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 include hrec crossing rowCoverage
 
 variable {u v : Time} {m q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
+    (hgst : recoveryStart p E ≤ u) (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hvh : v ≤ rho.horizon)
     (hcap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -112,7 +112,7 @@ variable [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 -- Height one, genesis top J, and q = 1 at R = 2 all use the same full theorem.
 example {u v : Time} {Q : Block} {Qfg : FGBlock (Fin p.n)} (hR : p.R = 2)
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) 1 Q)
+    (hgst : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) 1 Q)
     (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = 1)
     (hexact : ExactService p c E rho 1 Q) (hu : u ≤ SA.proposalTime p.toParams 1)
     (hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams 1) 1 (some .genesis) false)

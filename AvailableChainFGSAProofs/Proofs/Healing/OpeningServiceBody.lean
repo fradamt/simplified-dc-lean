@@ -1,5 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningService
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
+
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 
@@ -96,7 +99,7 @@ theorem later_opening_source_extends [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -107,10 +110,13 @@ theorem later_opening_source_extends [Fintype V] (E : Generic.Env V)
     (hj : rho.events[j]? = some (.tick y (p.actionTime r))) :
     let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho j y) (p.actionTime r)).st
     ∃ K, FGSA.fgSource p st = some K ∧ FGBlock.Preceq Qfg K := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   intro st
   have hS := hrec.base.valid.toScheduleWellFormed
   obtain ⟨hserv, hdom, _⟩ := later_opening_service E rho hrec mono crossing services writes
-    hgst hQ hQfg
+    hready hQ hQfg
     hexact hu hqr hphase hy hj
   have hcut : E.t_GST ≤ slotStartZ p ((r * p.R : Nat) : Int) := by
     have hqrI : (q : Int) ≤ ((r * p.R : Nat) : Int) := by exact_mod_cast hqr
@@ -161,7 +167,7 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -179,6 +185,9 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
       D ∈ domainR p st (treeT p st) ∧
       FGBlock.Preceq K D ∧
       (frameR p st).lo ≤ (heightView p D).h := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   intro st
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
@@ -208,12 +217,12 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
     ring
   obtain ⟨jy, hjy, _⟩ := fgsa_tick_total E rho hS hDelta y hy (4 * (r * p.R) + 6)
     (hktime ▸ har.trans hvh)
-    (hktime ▸ hrec.awake y hy (p.actionTime r) (hgst.trans (hu.trans hpq))
+    (hktime ▸ hrec.awake y hy (p.actionTime r) (hGST.trans (hu.trans hpq))
       (har.trans hvh))
   rw [hktime] at hjy
   obtain ⟨hsrcK, _, _, hfwK⟩ := opening_source_body E rho hS hjy hK
   obtain ⟨K', hsrcK', hQK'⟩ := later_opening_source_extends E rho hrec mono crossing
-    services writes hgst
+    services writes hready
     hQ hQfg hexact hu hqr hphr hy hjy
   have hKK : K' = K := Option.some.inj (hsrcK'.symm.trans hsrcK)
   have hQK : FGBlock.Preceq Qfg K := hKK ▸ hQK'
@@ -227,9 +236,8 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ
     nlinarith
   have hcovK := (healing_tPerm_at E rho hrec mono crossing writes
-    u (p.actionTime (r + 1)) m J
-    contested (r * p.R) (eraseFG K) hgst hphase
-    (services.permanence u (p.actionTime (r + 1)) m J contested hgst hphase)
+    hready hphase
+    (services.permanence u (p.actionTime (r + 1)) m J contested hready hphase)
     hurR har hbody).1
   have hvs : SA.voteTime p.toParams s ≤ p.actionTime (r + 1) := by
     change 4 * p.Δ * ((s : Nat) : Int) + p.Δ ≤ 4 * p.Δ * ((s : Nat) : Int) + 6 * p.Δ
@@ -244,7 +252,7 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
       4 * p.Δ * ((s : Nat) : Int) + p.Δ
     nlinarith
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hx s (hvs.trans hvh)
-    (hrec.awake x hx _ (hgst.trans hvsu) (hvs.trans hvh))
+    (hrec.awake x hx _ (hGST.trans hvsu) (hvs.trans hvh))
   have hhl : headAtLabel p c E rho x s = some (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jz x).st (SA.voteTime p.toParams s)) s) := by
     unfold headAtLabel
@@ -285,9 +293,11 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
     nlinarith [p.deltaPos]
   obtain ⟨W, hW, hKW, _⟩ := healing_support_frame_at (hroots := hrec.base.receiptIdealization)
     E rho (fun _ => mono) crossing hE hDelta hrec.sync
-    hgst hphase hvsu hev hx hjz
-    (services.carriers jz x s hx hjz hSourceJoined (hgst.trans hvsu) (hev.trans hvh))
-    (hcov x hx _ hhl) hx ht hReadJoined
+    hGST hphase hvsu hev hx hjz x
+    (healing_carriers_cut_at p c E rho hrec hSourceCut
+      (healing_selected_carriers_recovery E rho hrec s i x (p.actionTime (r + 1)))
+      hx ht hev jz x hx hjz)
+    (hcov x hx _ hhl) hx
     (healing_support_idxBefore_le p c E rho hS ht hev) hui hiv
   have hinv := cstoreInv_stateBefore E rho i x
   have hKT : K ∈ (storeAt p c E rho i x).fg.TF := by
@@ -305,7 +315,8 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
   have hFQe : Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) Q :=
     hQfg ▸ eraseFG_preceq hFQ
   have hqs : q < s := by omega
-  have hserv := opening_gateService_of_cover E rho hrec mono crossing services writes hgst hphase hQ
+  have hserv := opening_gateService_of_cover E rho hrec mono crossing services writes hready
+    hphase hQ
     hexact hu hqs le_rfl hx htg hFQe hcov (eraseFG_preceq hFK)
     ((hinv.baseTree _).mpr ⟨K, hKT, rfl⟩) hneK
   have hclock := opening_domain_clock (c := c) (V2.D.Run.stateBefore E rho i x)

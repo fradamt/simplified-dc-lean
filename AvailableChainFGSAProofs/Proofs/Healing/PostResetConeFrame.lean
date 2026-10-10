@@ -69,7 +69,7 @@ private theorem cone_cross_source (hroots : NamedRootCollisionFree p c E rho) (o
 
 section Frame
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (cap : RCap p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (cap : RCap p c E rho)
     (source : TSrc p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
       (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
@@ -83,7 +83,7 @@ variable [Fintype V] {G ΔF : Time}
           some ((heightView p C).h, (heightView p C).T_h.root))
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-variable (mono : RMono p c E rho) (xing : RXing p c E rho)
+variable (mono : RMonoAll p c E rho) (xing : RXing p c E rho)
     (origin : RQCOrigin p c E rho)
 include hrec cap source rowCovered h0r mono xing origin
 
@@ -117,7 +117,7 @@ theorem postReset_cone_reset_held {s : Slot} (hs : w.sStar + 2 ≤ s)
     (heq ▸ hhor) hawake
   rw [heq] at hjq
   have hjqj : jq ≤ j := (repair_idx_lt E rho hS hjq ht hqt).le
-  have htransfer := healing_resetTransferCore E rho hrec xing cap source mono w h0r
+  have htransfer := healing_resetTransferCore_recovery p c E rho hrec mono xing cap source w h0r
   rw [ResetTransferCore_def] at htransfer
   obtain ⟨C, hC, he⟩ := (htransfer hhor jq x hx hjq).1
   exact ⟨C, (fgsa_store_durable p c E rho hjqj x).1 hC, he⟩
@@ -157,7 +157,7 @@ theorem postReset_root_heads_at_cut (i : Nat)
 end Frame
 section Pivot
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -176,6 +176,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -189,33 +190,38 @@ include hrec mono emittedNonempty emittedName writes xing origin h0r
 private theorem cone_source_held (source : TSrc p c E rho)
     {K : FGBlock (Fin p.n)} {u : Slot} {l j : Nat} {x : V} {t : Time}
     (hK : SourceBefore p c E rho l K u) (hhK : high p w K)
-    (hlower : w.sStar ≤ u) (hx : x ∈ rho.honest)
+    (_hlower : w.sStar ≤ u) (hx : x ∈ rho.honest)
     (ht : rho.events[j]? = some (.tick x t))
     (hdeadline : SA.freezeTime p.toParams u ≤ t) :
     K ∈ (storeAt p c E rho j x).fg.TF := by
   have hS := hrec.base.valid.toScheduleWellFormed
-  have highCompat := postReset_high_compatible_all p c E rho hrec mono
+  have hLoss := healing_loss_service_scope_recovery E rho hrec mono source
+    emittedNonempty emittedName
+  have highCompat := postReset_high_compatible_all p c E rho hrec hLoss mono
     emittedNonempty emittedName writes xing origin h0r
-  have resetCompat := postReset_reset_compatible_all p c E rho hrec mono
+  have resetCompat := postReset_reset_compatible_all p c E rho hrec hLoss mono
     emittedNonempty emittedName writes xing origin h0r
   have lowFinality : ∀ {a : Nat} {y : V} {D : FGBlock (Fin p.n)}, y ∈ rho.honest →
       afterTicksIdx rho (p.actionTime w.rStar) ≤ a →
       D ∈ (storeAt p c E rho a y).fg.TF →
       (finalityView p D).F = (storeAt p c E rho a y).fg.F →
       (finalityView p D).h_F ≤ w.M → Block.Preceq (F_at p c E rho a y) w.CStar :=
-    healing_low_finality_after_reset E rho hS xing w h0r
+    healing_low_finality_after_reset_on E rho hS xing w h0r
   obtain ⟨k, y, r, a, hk, ha, hsrc, hu⟩ := hK
-  have hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R) := by
-    apply h0r.synchronous.trans
-    have hI : (w.sStar : Int) ≤ ((r * p.R : Nat) : Int) := by exact_mod_cast hu ▸ hlower
-    change 4 * p.Δ * (w.sStar : Int) + p.Δ ≤
-      4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ
-    nlinarith [p.deltaPos]
   have hhor : SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon :=
     (hu ▸ hdeadline).trans (hS.in_horizon _ (List.mem_of_getElem? ht)).2
-  have hdel := postReset_tDel p c E rho hrec.base.noRestart mono origin lowFinality
-    highCompat resetCompat hrec source ha.1 hsrc
-    ⟨k, y, r, a, hk, ha, hsrc, rfl⟩ hhK hgst hhor hx
+  have hdel := postReset_tDel p c E rho mono origin lowFinality
+    highCompat resetCompat hrec.toRecovery₂ source
+    (fun y r K hy hK hready hhor x hx _ j z W hz hj hW _ hFloor => by
+      apply healing_source_delivery_service E rho hrec hz hx hj hW
+      · have := healing_recovery_start_lower (p := p) E
+        linarith [p.deltaPos]
+      · apply le_trans _ hhor
+        change 4 * p.Δ * ((r * p.R : Nat) : Int) + 2 * p.Δ ≤
+          4 * p.Δ * ((r * p.R : Nat) : Int) + 3 * p.Δ
+        linarith [p.deltaPos]
+      · exact hFloor) emittedNonempty emittedName h0r ha.1 hsrc
+    ⟨k, y, r, a, hk, ha, hsrc, rfl⟩ hhK hhor hx
   rw [Gen.V2.Duty.HoldsBefore_def,
     ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hdel
   have hheld : K ∈ (storeAt p c E rho
@@ -296,9 +302,11 @@ theorem postReset_commonPivot_at_cut
       (storeAt p c E rho q.1 q.2).fg.h_max ≤ m := by
     rw [hmax]
     exact Finset.le_sup (f := fun q => (storeAt p c E rho q.1 q.2).fg.h_max) hq
-  have highCompat := postReset_high_compatible_all p c E rho hrec mono
+  have hLoss := healing_loss_service_scope_recovery E rho hrec mono source
+    emittedNonempty emittedName
+  have highCompat := postReset_high_compatible_all p c E rho hrec hLoss mono
     emittedNonempty emittedName writes xing origin h0r
-  have resetCompat := postReset_reset_compatible_all p c E rho hrec mono
+  have resetCompat := postReset_reset_compatible_all p c E rho hrec hLoss mono
     emittedNonempty emittedName writes xing origin h0r
   obtain ⟨q, hq, hsup⟩ := Finset.exists_mem_eq_sup reads
     (Finset.insert_nonempty _ _) (fun q => (storeAt p c E rho q.1 q.2).fg.h_max)
@@ -350,7 +358,8 @@ theorem postReset_commonPivot_at_cut
   obtain ⟨D, u, hD, hhD, hheight, hgap⟩ := pivot_source
   have hDSource := hD
   obtain ⟨k, z, r, a, hkp, ha, hsrc, hu⟩ := hD
-  have hlower := postReset_selected_label p c E rho rowCovered hrec cap h0r ha.1 hsrc hhD
+  have hlower :=
+    postReset_selected_label p c E rho rowCovered hrec.toRecovery₂ cap h0r ha.1 hsrc hhD
   have hdeadline : SA.freezeTime p.toParams u ≤ SA.proposalTime p.toParams s := by
     have hI : (u : Int) + 2 ≤ (s : Int) := by exact_mod_cast hgap
     change 4 * p.Δ * (u : Int) + 3 * p.Δ ≤ 4 * p.Δ * (s : Int)
@@ -378,7 +387,7 @@ theorem postReset_commonPivot_at_cut
         have hhK : high p w K := by rw [high_def] at hhD ⊢; exact hhD.trans hlt.le
         obtain ⟨kk, zz, rr, aa, hkk, hrow, hsource, hv⟩ := hK
         have hgapK := healing_source_row_label E rho hS ht ⟨kk, hkk, hrow⟩ htype
-        have hlowerK := postReset_selected_label p c E rho rowCovered hrec cap h0r
+        have hlowerK := postReset_selected_label p c E rho rowCovered hrec.toRecovery₂ cap h0r
           hrow.1 hsource hhK
         have hdK : SA.freezeTime p.toParams v ≤ t := by
           have hI : ((rr * p.R : Nat) : Int) + 2 ≤ (s : Int) := by exact_mod_cast hgapK

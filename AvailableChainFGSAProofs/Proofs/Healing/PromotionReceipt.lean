@@ -6,6 +6,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -33,10 +35,13 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
       Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
         (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
-    (hafter : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
+    (hafter : u ≤ SA.proposalTime p.toParams s) (hready : recoveryStart p E ≤ u)
     (hp : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) m J contested) :
     ∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
       (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y := by
+  have hsync : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   let t := SA.proposalTime p.toParams s
   let d := t + p.Δ
   let x := V2.D.proposerOf rho (fgsaInterface p c) s
@@ -124,7 +129,7 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
     exact Bool.or_eq_true_iff.mpr (Or.inr
       (Gen.Pure.block_preceq_trans hparent (eraseFG_preceq hPX)))
   obtain ⟨service⟩ := services ip x N hx hip hem
-    (hgst.trans hafter) hp.2.1 (by simpa only [heN] using hcompat)
+    (hsync.trans hafter) hp.2.1 (by simpa only [heN] using hcompat)
   obtain ⟨Y, hY, he⟩ := service.proposal hs hx hrec.base.receiptIdealization
   have heq : Y = X := eraseFG_injective (he.trans heN)
   rw [heq] at hY

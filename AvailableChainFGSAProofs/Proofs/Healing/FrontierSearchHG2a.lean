@@ -4,6 +4,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! Blueprint 21 HG.2a_F:1592--1640 and HG.4:1695--1720; HG4-RISE F1.
@@ -108,15 +110,6 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (mono : RMonoAll p c E rho)
-    (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
-      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
-      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-      E.t_GST ≤ SA.proposalTime p.toParams s →
-      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
-      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
-        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
-      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
-        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (crossing : RXing p c E rho) (frontier : TFrontier p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
       max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
@@ -129,7 +122,7 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
     {u : Time} {i m r q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {Q : Block} {Qfg U : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (he : eraseFG Qfg = Q) (hQm : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hseed : FrontierSeedQualification p E u q)
     (hu : u ≤ SA.proposalTime p.toParams q)
@@ -139,6 +132,9 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
     (hhor : max (p.actionTime r + Γ p G - p.Δ + epsF p ΔF)
       (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G - 3 * p.Δ) ≤ rho.horizon) :
     FrontierHG2aResult E rho G ΔF i m r U := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
   let D := max (p.actionTime r + Γ p G - p.Δ + epsF p ΔF)
     (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G - 3 * p.Δ)
@@ -151,7 +147,7 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
       have hc : (q : Time) ≤ (r : Time) * p.R := by exact_mod_cast hqr
       change 4 * p.Δ * (q : Time) ≤ (r : Time) * (4 * (p.R : Time) * p.Δ)
       nlinarith [p.deltaPos]
-    have hsync : E.t_GST ≤ (r : Time) * P p := hgst.trans (hu.trans hqT)
+    have hsync : E.t_GST ≤ (r : Time) * P p := hGST.trans (hu.trans hqT)
     obtain ⟨_, s, hlo, hhi, hslot, hterminal, _⟩ :=
       frontierSearch_hg2a_gap E rho hrec r U hsync hhor
     have htD : SA.proposalTime p.toParams s < D := by linarith [p.deltaPos]
@@ -185,7 +181,7 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
     obtain ⟨X, hnew, hXslot, _⟩ := healing_promotion_slot_proposal E rho hrec.toRecovery₂
       hslot hgsts hshor hjoin
     have hf := frontier u (SA.proposalTime p.toParams s) m J contested q Q Qfg
-      hgst hQ he hQm hexact ((frontierSeedQualification_iff p E u q).mp hseed) hu hp
+      hready hQ he hQm hexact ((frontierSeedQualification_iff p E u q).mp hseed) hu hp
       hqgate hshor (fun k x _ hkt hx => hcap k x
         (hkt.trans (frontierSearch_timeIdx_le_idxBefore p c rho htD)) hx)
     obtain ⟨hcovered, hentry, hentryEq, _⟩ := hf.2.2 r hqr hat
@@ -217,7 +213,7 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
     have hh := promotion_age_advance_of_source E rho hrec.toRecovery₂ src hδ hbound
       rowsReceipt progressCoverage hfold faultQ honestQuorum
     obtain ⟨y, hy, hheld⟩ := healing_promotion_first_receipt_of_frontierCap E rho hrec.toRecovery₂
-      crossing (proposalServices s) hnew hgsts hQX
+      crossing (healing_self_proposal_service hrec s) hnew hgsts hQX
       (fun k x hk hx => hcap k x
         (hk.trans (healing_phase_idxBefore_mono p c rho hterminal)) hx)
       hQm (hterminal.trans hhor)

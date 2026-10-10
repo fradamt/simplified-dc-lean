@@ -5,6 +5,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
+
 public section
 
 /-! H-GATE gate service at a later honest gate (plan fgsa-s5-hgate-hcommon §2.3, §3 B–C;
@@ -23,18 +25,15 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 /-- Exact object services used by opening gates and their release readers. -/
 structure OpeningServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
     Prop where
-  permanence : ∀ u v m J contested, E.t_GST ≤ u →
+  permanence : ∀ u v m J contested, recoveryStart p E ≤ u →
     PhaseInterval p c E rho u v m J contested →
-    SupportPermanenceScope E rho u v m J contested
+    SupportPermanenceServices E rho u v m J contested
   gates : ∀ i x s, x ∈ rho.honest → IsGateTick p c rho i x s → enabledGateAt p c E rho i x s →
     E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
-    SA.gateTime p.toParams s ≤ rho.horizon → GateReceiptScope E rho i x s
-  carriers : ∀ j x s, x ∈ rho.honest →
-    rho.events[j]? = some (.tick x (SA.voteTime p.toParams s)) →
-    joinedNow p (clock p (storeAt p c E rho j x) (SA.voteTime p.toParams s)) = true →
-    E.t_GST ≤ SA.voteTime p.toParams s →
-    SA.voteTime p.toParams s + p.Δ ≤ rho.horizon → HeadWitnessReceiptScope E rho j x s
-  transfers : ∀ u v m J contested, E.t_GST ≤ u →
+    SA.gateTime p.toParams s ≤ rho.horizon → ∀ B, GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B →
+    GateReceiptScope E rho i x s
+  transfers : ∀ u v m J contested, recoveryStart p E ≤ u →
     PhaseInterval p c E rho u v m J contested → ∀ ix iy x s B,
     u ≤ SA.voteTime p.toParams s → SA.gateTime p.toParams s ≤ v →
     E.t_GST ≤ SA.voteTime p.toParams s →
@@ -46,6 +45,20 @@ structure OpeningServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rho.events[iy]? = some (.tick x (SA.voteTime p.toParams (s + 1))) →
     joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)) →
     FirstTransferScope E rho ix iy x x s
+
+/-- Recovery produces opening services for the selected gate geometry. -/
+theorem healing_opening_service_scopes_recovery [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) : OpeningServiceScopes E rho := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro u v m J contested hready hphase
+    exact healing_support_permanence_recovery E rho hrec mono hready hphase
+  · intro i x s hx _ hg hcut _ B hgeom
+    exact healing_gate_receipt_scope_recovery E rho hrec mono
+      (healing_window_of_cut E hcut).sync hx hg hgeom
+  · intro u v m J contested _ _ ix iy x s B _ _ hsync _ _ hx hg hiy hj
+    exact healing_first_transfer_scope_recovery E rho hrec mono hsync hx hx
+      hg.1 hiy hg hj
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.2 S1 (permanence at later HEADs); plan H-GATE §3B (q < rR), gap 3.
@@ -75,22 +88,25 @@ theorem opening_heads_cover [Fintype V] (E : Generic.Env V)
               p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {q : Slot} {Q : Block} (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqv : SA.gateTime p.toParams q ≤ v)
     {x : V} (hx : x ∈ rho.honest) {s : Slot} (hqs : q < s)
     (hvs : SA.voteTime p.toParams s ≤ v) :
     ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z s = some K → Block.Preceq Q K := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hd := p.deltaPos
   have huq : u ≤ SA.voteTime p.toParams q := by
     refine hu.trans ?_
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + p.Δ
     linarith
   obtain ⟨_, _, ⟨nd, hnd, hQnd⟩, _, _⟩ := hexact.2 (hqv.trans hphase.2.1) x hx
-    (healing_recovery_gate_reader hrec hx (hgst.trans hu) (hqv.trans hphase.2.1))
+    (healing_recovery_gate_reader hrec hx (hGST.trans hu) (hqv.trans hphase.2.1))
   have hbody : PhaseBody p c E rho q Q := ⟨x, hx, Or.inl ⟨nd, hnd, hQnd⟩⟩
   have htr := healing_tPerm_at E rho hrec mono crossing writes
-    u v m J contested q Q hgst hphase (services.permanence u v m J contested hgst hphase)
+    hready hphase (services.permanence u v m J contested hready hphase)
     huq hqv hbody
   intro z hz K hK
   exact htr.1 z s K hz hqs hvs hK
@@ -130,7 +146,7 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
               p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {q : Slot} {Q : Block} (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     {s : Slot} (hqs : q < s) (hsv : SA.gateTime p.toParams s ≤ v)
@@ -139,6 +155,9 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
     ∀ C, (fgsaAC E rho).raw i s x = some C →
       ∀ lease ∈ ((fgsaAC E rho).gateView i x s).obligations,
         Block.Compatible (Gen.AC.Lease.target lease) C := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
   have hDelta := hrec.base.delta
@@ -153,7 +172,7 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
     refine hu.trans ?_
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + p.Δ
     linarith
-  have hgstq : E.t_GST ≤ SA.voteTime p.toParams q := hgst.trans hvq
+  have hgstq : E.t_GST ≤ SA.voteTime p.toParams q := hGST.trans hvq
   have hvqs : SA.voteTime p.toParams q ≤ SA.voteTime p.toParams s := by
     change 4 * p.Δ * (q : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + p.Δ
     nlinarith
@@ -168,16 +187,17 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
     change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
     change u ≤ 4 * p.Δ * (q : Int) at hu
     nlinarith [p.deltaPos]
+  have hcovQ := opening_heads_cover E rho hrec mono crossing services writes
+    hready hphase hexact hu hgq hx
+    hqs hvs
   have hScope := services.gates i x s hx ht
     (healing_scope_enabled_gate hrec hx ht (hcut.trans (by
       change 4 * p.Δ * ((s : Int) - 1) ≤ 4 * p.Δ * (s : Int)
-      linarith [p.deltaPos])) hsh) hcut hsh
-  have hcovQ := opening_heads_cover E rho hrec mono crossing services writes
-    hgst hphase hexact hu hgq hx
-    hqs hvs
+      linarith [p.deltaPos])) hsh) hcut hsh Q
+    (healing_support_gate_geometry E rho hS hcovQ (by rwa [clockPre_fg]))
   obtain ⟨hgr, ⟨jq, ⟨hjqt, _⟩, _⟩, ⟨ndq, hndq, hQw⟩, _, _⟩ :=
     hexact.2 (hgq.trans hvh) x hx
-      (healing_recovery_gate_reader hrec hx (hgst.trans hu) (hgq.trans hvh))
+      (healing_recovery_gate_reader hrec hx (hGST.trans hu) (hgq.trans hvh))
   have hQw' : Q ∈ (fastWriteAt ((fgsa p c).clock (rho.stateBefore E jq x)
       (SA.gateTime p.toParams q)).st q).getD [] := by
     have hpost := (healing_support_gate_reads p c E rho hS hjqt).2
@@ -229,7 +249,7 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
       push_cast
       linarith
     have hawake := hrec.awake x hx (SA.voteTime p.toParams (q + 1)) (by
-      apply hgst.trans (hu.trans _)
+      apply hGST.trans (hu.trans _)
       change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ
       push_cast
       linarith [p.deltaPos]) ((hq1v.trans hgq).trans hvh)
@@ -270,7 +290,7 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
       hrec.sync (fgsaDelay_nonrow E.Δ _) hgstq hvdq (hgq.trans hvh)
     have hcq := healing_support_release_compat (hroots := hrec.base.receiptIdealization)
       E rho hE hDelta q hSync hx hx hjqt hiq
-      (services.transfers u v m J contested hgst hphase jq iq x q Q
+      (services.transfers u v m J contested hready hphase jq iq x q Q
         (hu.trans (by
           change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + p.Δ
           linarith [p.deltaPos])) hgq hgstq hSync hQw' hx
@@ -280,9 +300,9 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
             change E.t_GST ≤ 4 * p.Δ * (((q + 1 : Nat) : Int) - 1)
             rw [Nat.cast_add, Nat.cast_one, add_sub_cancel_right]
             change u ≤ 4 * p.Δ * (q : Int) at hu
-            exact hgst.trans hu)
+            exact hGST.trans hu)
           (by
-            refine hgst.trans (hu.trans ?_)
+            refine hGST.trans (hu.trans ?_)
             change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ
             push_cast
             linarith)
@@ -371,8 +391,7 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
               exact hj
     rcases hbody with hbody | hlQ
     · have hcovb := (healing_tPerm_at E rho hrec mono crossing writes
-        u v m J contested w lease.1
-        hgst hphase (services.permanence u v m J contested hgst hphase) huw hwv hbody).1
+        hready hphase (services.permanence u v m J contested hready hphase) huw hwv hbody).1
       have hcb : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z s = some K →
           Block.Preceq lease.1 K :=
         fun z hz K hK => hcovb z s K hz (by exact_mod_cast (show (w : Int) + 1 ≤ (s : Int) by
@@ -421,7 +440,7 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
               p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {q : Slot} {Q : Block} (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     {s : Slot} (hqs : q < s) (hsv : SA.gateTime p.toParams s ≤ v)
@@ -431,6 +450,9 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) B)
     (hB : B ∈ (storeAt p c E rho i x).base.blocks) (hne : B ≠ .genesis) :
     Gen.AC.Duty.GateService (fgsaAC E rho) i s x B := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
   have hsh : SA.gateTime p.toParams s ≤ rho.horizon := hsv.trans hphase.2.1
@@ -442,9 +464,10 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
   have hScope := services.gates i x s hx ht
     (healing_scope_enabled_gate hrec hx ht (hcut.trans (by
       change 4 * p.Δ * ((s : Int) - 1) ≤ 4 * p.Δ * (s : Int)
-      linarith [p.deltaPos])) hsh) hcut hsh
+      linarith [p.deltaPos])) hsh) hcut hsh B
+    (healing_support_gate_geometry E rho hS hcov (by rwa [clockPre_fg]))
   have hgsts : E.t_GST ≤ SA.voteTime p.toParams s := by
-    refine hgst.trans (hu.trans ?_)
+    refine hGST.trans (hu.trans ?_)
     have hqsI : (q : Int) + 1 ≤ (s : Int) := by exact_mod_cast hqs
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
     nlinarith
@@ -487,7 +510,7 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     nlinarith [p.deltaPos]
   have hEnabled := healing_gate_enabled_of_recovery hrec.toRecovery₂ hx ht hsh hcut
   exact fgsa_gate_of_coveringBatch E rho hS i s x B ht hEnabled ⟨C, hraw, hBC⟩
-    (opening_gate_guard E rho hrec mono crossing services writes hgst hphase hQ hexact
+    (opening_gate_guard E rho hrec mono crossing services writes hready hphase hQ hexact
       hu hqs hsv hx ht
       hFQ) hne hmemw hsupport (opening_gate_level E rho i x s B hsupport)
 

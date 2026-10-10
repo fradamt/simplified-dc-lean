@@ -52,7 +52,7 @@ example : TCommon p c E rho := healing_tCommon E rho hrec mono crossing services
 
 variable {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hgst : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q)
 

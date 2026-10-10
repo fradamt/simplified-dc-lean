@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
@@ -84,12 +85,10 @@ section Rows
 variable [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
-      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
-      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (crossing : RXing p c E rho)
     (qc : RQCOrigin p c E rho)
+    (repairScopes : RepairServiceScopes E rho)
+    (openingScopes : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -100,6 +99,7 @@ variable [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -117,12 +117,13 @@ variable [Fintype V] (E : Generic.Env V)
           some ((heightView p C).h, (heightView p C).T_h.root))
 
 
-include hrec mono heldServices crossing qc writes rowCoverage
+include hrec mono crossing qc repairScopes openingScopes writes rowCoverage
 
-omit mono heldServices qc writes rowCoverage in
+omit mono qc repairScopes openingScopes writes rowCoverage in
 private theorem attempt_proposal_heights
     {u D : Time} {m q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (hready : recoveryStart p E ≤ u)
     (hp : PhaseInterval p c E rho u D m J contested)
     (hu : u ≤ SA.proposalTime p.toParams q)
     (hgate : SA.gateTime p.toParams q ≤ D)
@@ -130,6 +131,9 @@ private theorem attempt_proposal_heights
     (heq : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q) :
     (if contested then m else m - 1) ≤ (heightView p Qfg).h ∧
       (heightView p Qfg).h ≤ m := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   obtain ⟨j, N, _, hj, _hem, hst, _hslot, _hb, _hrows⟩ :=
     healing_promotion_proposal_read p c E rho hS hQ
@@ -168,6 +172,9 @@ private theorem attempt_proposal_heights
   refine ⟨hlo.trans ((fgCertificateLaws p).height.h_mono hparent), ?_⟩
   obtain ⟨i, K, hi, hK, heK⟩ := healing_rise_one_gate_copy p c E rho hS hexact
     (hgate.trans hp.2.1) hx
+    (healing_recovery_gate_reader hrec hx (by
+      change E.t_GST ≤ SA.proposalTime p.toParams q
+      exact hGST.trans hu) (hgate.trans hp.2.1))
   have hKe : K = Qfg := eraseFG_injective (heK.trans heq.symm)
   subst K
   have hui' := healing_support_idxBefore_le p c E rho hS hi (hu.trans hqg)
@@ -186,7 +193,7 @@ private theorem attempt_repair_opening
       let u := ev.time + 3 * p.Δ
       PhaseInterval p c E rho u (ev.time + budget) k.frontier root contested ∧
       (contested = true ↔ k.phase = .contest) ∧
-      E.t_GST ≤ u ∧ u ≤ SA.proposalTime p.toParams q ∧
+      recoveryStart p E ≤ u ∧ u ≤ SA.proposalTime p.toParams q ∧
       SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams q ∧
       SA.gateTime p.toParams q ≤ u + ρΓ p G ∧
       HonestProposal E rho (fgsaInterface p c) q Q ∧ ExactService p c E rho q Q ∧
@@ -208,7 +215,9 @@ private theorem attempt_repair_opening
       change 0 ≤ 2 * ((4 * (p.k : Time) - 1) * p.Δ) + Γ p G + 8 * p.Δ
       nlinarith [p.deltaPos]
     linarith [p.deltaPos]
-  obtain ⟨J, hp, _hframe⟩ := healing_attempt_settle_start p c E rho mono heldServices crossing hrec
+  obtain ⟨J, hp, _hframe⟩ := healing_attempt_settle_start p c E rho mono
+    (fun _ ht => healing_ready_read_cutoff E ht)
+    (healing_phase_witness_receipts_recovery E rho hrec) crossing hrec
     hvalid hstart huD hhor (attempt_quiet E rho hS hstart hstop)
   let u := ev.time + 3 * p.Δ
   have hsettled : ∃ (root : Option (FGBlock (Fin p.n))) (contested : Bool),
@@ -220,16 +229,18 @@ private theorem attempt_repair_opening
     | topJ => constructor <;> intro h <;> cases h
     | contest => exact ⟨fun _ => rfl, fun _ => rfl⟩
   obtain ⟨root, contested, hp, hcont⟩ := hsettled
-  have hgst0 : E.t_GST ≤ ev.time := by
+  have hgst0 : recoveryStart p E ≤ ev.time := by
     obtain ⟨ev0, hi0, hgst0, _⟩ := hvalid
     have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
     exact he ▸ hgst0
-  have hgst : E.t_GST ≤ u := by dsimp only [u]; linarith [p.deltaPos]
+  have hgst : recoveryStart p E ≤ u := by dsimp only [u]; linarith [p.deltaPos]
   obtain ⟨β, hβ, hmin⟩ := healing_rise_one_grid p u
-  have hrepair := healing_tRepair E rho hrec mono crossing qc writes
-  have hafter := ((hrepair G u _ _ root contested hrec.gap hrec.gapPos hgst hp).1 β hβ hmin).1
+  have hrepair := healing_tRepair E rho hrec mono crossing qc repairScopes writes
+  have hafter := ((hrepair G u _ _ root contested
+      (healing_proposal_gap hrec) hrec.gapPos hgst hp).1 β hβ hmin).1
   obtain ⟨q, Q, hq, hgate, hQ, hexact⟩ :=
-    ((hrepair G u _ _ root contested hrec.gap hrec.gapPos hgst hp).1 β hβ hmin).2
+    ((hrepair G u _ _ root contested
+      (healing_proposal_gap hrec) hrec.gapPos hgst hp).1 β hβ hmin).2
       (by dsimp only [u]; linarith [p.deltaPos])
   have hβl : β ≤ β + 2 * p.k - 1 := by
     have hk : 1 ≤ 2 * p.k := by have := p.kLarge; omega
@@ -245,8 +256,14 @@ private theorem attempt_repair_opening
     linarith [p.deltaPos]
   obtain ⟨_i, Qfg, _hi, _hK, heq⟩ := healing_rise_one_gate_copy p c E rho hS hexact
     (hgateD.trans hhor) hQ.1.2
+    (healing_recovery_gate_reader hrec hQ.1.2 (by
+      change E.t_GST ≤ SA.proposalTime p.toParams q
+      have hGST : E.t_GST ≤ u := by
+        have := healing_recovery_start_lower (p := p) E
+        linarith [p.deltaPos]
+      exact hGST.trans huq) (hgateD.trans hhor))
   obtain ⟨hlo, hhi⟩ := attempt_proposal_heights E rho hrec crossing
-    hp huq hgateD hQ heq hexact
+    hgst hp huq hgateD hQ heq hexact
   have hex : ∃ r, q ≤ r * p.R := by
     refine ⟨q, le_mul_of_one_le_right (Nat.zero_le q) ?_⟩
     exact le_trans (by decide : 1 ≤ (2 : Nat)) p.RLarge
@@ -260,12 +277,13 @@ private theorem attempt_repair_opening
     linarith [p.deltaPos]
   have hur : u ≤ p.actionTime r := by linarith
   have hpr := opening_phase_restrict E rho hp hur (har.trans hbudget)
-  have hc := common_opening_covered E rho hrec mono crossing writes rowCoverage hgst
+  have hc := common_opening_covered E rho hrec mono crossing openingScopes writes rowCoverage hgst
     hQ heq hexact huq hqr hpr
   refine ⟨β, q, Q, Qfg, r, root, contested, hp, hcont, hgst, huq, hq, hgate, hQ, hexact,
     heq, hlo, hhi, hqr, har, hc, ?_⟩
   intro v hv
-  exact ((hrepair G u v _ root contested hrec.gap hrec.gapPos hgst hv).1 β hβ hmin).1
+  exact ((hrepair G u v _ root contested
+    (healing_proposal_gap hrec) hrec.gapPos hgst hv).1 β hβ hmin).1
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 H.10 firstRow / contest, with the standing ports and exact INLINE bodies.
@@ -280,8 +298,10 @@ theorem healing_attempt_firstRow_contest
   by_contra hstop
   have hbudget := healing_attempt_firstRow_contest_budget p G k htask hphase
   obtain ⟨β, q, Q, Qfg, r, root, contested, hp, hcont, hgst, huq, _hq, _hgate, hQ, hexact, heq,
-    hlo, hhi, hqr, har, hc, _hrepair⟩ := attempt_repair_opening E rho hrec mono crossing qc
-      writes rowCoverage hvalid hstart hstop hhor (by rw [hbudget]; ring_nf; rfl)
+    hlo, hhi, hqr, har, hc, _hrepair⟩ := attempt_repair_opening E rho hrec mono
+      crossing qc
+      repairScopes openingScopes writes rowCoverage hvalid hstart hstop hhor (by
+        rw [hbudget]; ring_nf; rfl)
   have hctrue : contested = true := hcont.mpr hphase
   rw [hctrue] at hp hlo
   have hh : (heightView p Qfg).h = k.frontier := Nat.le_antisymm hhi hlo
@@ -294,12 +314,13 @@ theorem healing_attempt_firstRow_contest
     change ev.time + 3 * p.Δ ≤ 4 * p.Δ * (q : Time) at huq
     nlinarith [p.deltaPos]
   have hpr := opening_phase_restrict E rho hp hur (by rw [hbudget]; linarith)
-  have he := common_entry_at_high E rho hrec mono crossing writes hgst hQ heq hexact huq
+  have he := common_entry_at_high E rho hrec mono crossing openingScopes writes
+    hgst hQ heq hexact huq
     hqr hpr hh
   exact hstop (attempt_row_of_covered E rho hrec hvalid hstart htask
     (by rw [hbudget]; linarith) hc he)
 
-omit [Fintype V] hrec mono heldServices crossing qc writes rowCoverage in
+omit [Fintype V] hrec mono crossing qc repairScopes openingScopes writes rowCoverage in
 private theorem attempt_row_of_high_source
     {k : AttemptKey} {ev : V2.Event V (Obj p)} {budget : Time} {r : Nat} {Q : Block}
     (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
@@ -354,8 +375,10 @@ theorem healing_attempt_firstRow_other
     have := (fgsa_gamma_bounds p G).1
     linarith [hrec.gapPos, p.deltaPos]
   obtain ⟨β, q, Q, Qfg, r, root, contested, hp, hcont, hgst, huq, hq, hgate, hQ, hexact, heq,
-    hlo, hhi, hqr, har, hc, hrepair⟩ := attempt_repair_opening E rho hrec mono crossing qc
-      writes rowCoverage hvalid hstart hstop hhor (by rw [hbudget]; linarith [p.deltaPos])
+    hlo, hhi, hqr, har, hc, hrepair⟩ := attempt_repair_opening E rho hrec mono
+      crossing qc
+      repairScopes openingScopes writes rowCoverage hvalid hstart hstop hhor (by
+        rw [hbudget]; linarith [p.deltaPos])
   let u := ev.time + 3 * p.Δ
   have hcfalse : contested = false := Bool.eq_false_iff.mpr (fun ht => hphase (hcont.mp ht))
   rw [hcfalse] at hp hlo hrepair
@@ -372,20 +395,23 @@ theorem healing_attempt_firstRow_other
     rw [hbudget]; linarith [p.deltaPos]
   have hpr := opening_phase_restrict E rho hp hur hrD
   by_cases hh : (heightView p Qfg).h = k.frontier
-  · have he := common_entry_at_high E rho hrec mono crossing writes hgst hQ heq hexact huq
+  · have he := common_entry_at_high E rho hrec mono crossing openingScopes writes
+      hgst hQ heq hexact huq
       hqr hpr hh
     exact hstop (attempt_row_of_covered E rho hrec hvalid hstart htask hrD hc he)
   have hlow : (heightView p Qfg).h = k.frontier - 1 := by
     simp only [Bool.false_eq_true, ↓reduceIte, Height] at hlo hhi hh ⊢
     omega
-  rcases common_entry_at_low E rho hrec mono crossing writes hgst hQ heq hexact huq hqr
+  rcases common_entry_at_low E rho hrec mono crossing openingScopes writes
+    hgst hQ heq hexact huq hqr
       hpr hlow with he | ⟨⟨x, K, hx, hK, hhigh⟩, _hnext⟩
   · have hpromotionHor : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon := by
       apply le_trans _ hhor
       rw [hbudget]
       linarith [p.deltaPos]
-    have perm := healing_tPerm E rho hrec mono crossing writes
-    rcases healing_renewedPromotion E rho hrec hδ hbound mono crossing perm rowsReceipt
+    have perm := healing_tPerm E rho hrec mono crossing writes openingScopes.permanence
+    rcases healing_renewedPromotion E rho hrec (healing_self_proposal_service hrec)
+        hδ hbound mono crossing perm rowsReceipt
         progressCoverage hfold faultQ honestQuorum r hpromotionHor u k.frontier root false
         (β + 2 * p.k - 1) q Q (k.frontier - 1) hgst hpr huq hqr hq hQ hexact he hc
         hrepair with hevent | hcarrier
@@ -419,7 +445,7 @@ theorem healing_attempt_firstRow_other
         (by change u ≤ SA.proposalTime p.toParams s + 6 * p.Δ; linarith [p.deltaPos]) hsD
       obtain ⟨hexactS, _⟩ := hservice hps
       have hheights := attempt_proposal_heights E rho hrec crossing
-        hp hurS hsD hnew rfl hexactS
+        hgst hp hurS hsD hnew rfl hexactS
       have hm : 1 ≤ k.frontier := by obtain ⟨_, _, _, _, _, hm, _⟩ := hvalid; exact hm
       have hhS : (heightView p X).h = k.frontier := by
         have hXhigh : k.frontier ≤ (heightView p X).h := by
@@ -439,22 +465,25 @@ theorem healing_attempt_firstRow_other
         rw [hsg] at h0
         linarith [p.deltaPos]
       have hpr' := opening_phase_restrict E rho hp hur' hr'D
-      have hc' := common_opening_covered E rho hrec mono crossing writes rowCoverage hgst
+      have hc' := common_opening_covered E rho hrec mono crossing openingScopes writes
+        rowCoverage hgst
         hnew rfl hexactS hurS hsr hpr'
-      have he' := common_entry_at_high E rho hrec mono crossing writes hgst hnew rfl hexactS
+      have he' := common_entry_at_high E rho hrec mono crossing openingScopes writes hgst hnew
+        rfl hexactS
         hurS hsr hpr' hhS
       exact hstop (attempt_row_of_covered E rho hrec hvalid hstart htask hr'D hc' he')
   · exact hstop (attempt_row_of_high_source E rho
       hvalid hstart htask hrD hc hx hK hhigh)
 
 omit qc rowCoverage in
+omit repairScopes qc rowCoverage in
 private theorem attempt_terminal_contradiction
     {k : AttemptKey} {ev : V2.Event V (Obj p)} {budget u : Time}
     {root : Option (FGBlock (Fin p.n))} {contested : Bool} {q r : Nat} {Q : Block}
     (hstart : rho.events[k.start]? = some ev)
     (hstop : ¬ AttemptEndsBy p c E rho k budget)
     (hp : PhaseInterval p c E rho u (ev.time + budget) k.frontier root contested)
-    (hu : ev.time + 3 * p.Δ ≤ u) (hgst : E.t_GST ≤ u)
+    (hu : ev.time + 3 * p.Δ ≤ u) (hgst : recoveryStart p E ≤ u)
     (huq : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (he : OpeningEntry p c E rho r k.frontier)
     (hc : OpeningCovered p c E rho r Q)
@@ -472,8 +501,9 @@ private theorem attempt_terminal_contradiction
     nlinarith [p.deltaPos]
   have hrD : p.actionTime r ≤ ev.time + budget := by linarith [p.deltaPos]
   have hpr := opening_phase_restrict E rho hp hur hrD
-  have perm := healing_tPerm E rho hrec mono crossing writes
-  rcases healing_renewedPromotion_terminal E rho hrec hδ hbound mono crossing perm
+  have perm := healing_tPerm E rho hrec mono crossing writes openingScopes.permanence
+  rcases healing_renewedPromotion_terminal E rho hrec (healing_self_proposal_service hrec)
+      hδ hbound mono crossing perm
       rowsReceipt progressCoverage hfold faultQ honestQuorum r (hterminal.trans hp.2.1)
       u k.frontier root contested q Q k.frontier hgst hpr huq hqr he hc
       with hevent | hcarrier
@@ -518,8 +548,10 @@ theorem healing_attempt_raise_contest
     have := (fgsa_gamma_bounds p G).1
     linarith [hrec.gapPos, p.deltaPos]
   obtain ⟨β, q, Q, Qfg, r, root, contested, hp, hcont, hgst, huq, hq, _hgate, hQ, hexact,
-    heq, hlo, hhi, hqr, har, hc, hrepair⟩ := attempt_repair_opening E rho hrec mono crossing
-      qc writes rowCoverage hvalid hstart hstop hhor (by rw [hbudget]; linarith [p.deltaPos])
+    heq, hlo, hhi, hqr, har, hc, hrepair⟩ := attempt_repair_opening E rho hrec mono
+      crossing
+      qc repairScopes openingScopes writes rowCoverage hvalid hstart hstop hhor (by
+        rw [hbudget]; linarith [p.deltaPos])
   have hctrue : contested = true := hcont.mpr hphase
   rw [hctrue] at hp hlo hrepair
   have hh : (heightView p Qfg).h = k.frontier := Nat.le_antisymm hhi hlo
@@ -529,9 +561,11 @@ theorem healing_attempt_raise_contest
     change ev.time + 3 * p.Δ ≤ 4 * p.Δ * (q : Time) at huq
     nlinarith [p.deltaPos]
   have hpr := opening_phase_restrict E rho hp hur (by rw [hbudget]; linarith [p.deltaPos])
-  have he := common_entry_at_high E rho hrec mono crossing writes hgst hQ heq hexact huq
+  have he := common_entry_at_high E rho hrec mono crossing openingScopes writes
+    hgst hQ heq hexact huq
     hqr hpr hh
-  exact attempt_terminal_contradiction E rho hrec mono crossing writes hδ
+  exact attempt_terminal_contradiction E rho hrec mono crossing openingScopes
+      writes hδ
     hbound rowsReceipt progressCoverage hfold faultQ honestQuorum hstart hstop hp
     le_rfl hgst huq hqr he hc (by rw [hbudget]; linarith only [har])
 
@@ -552,8 +586,10 @@ theorem healing_attempt_raise_other
     have := (fgsa_gamma_bounds p G).1
     linarith [hrec.gapPos, p.deltaPos]
   obtain ⟨β, q, Q, Qfg, r, root, contested, hp, hcont, hgst, huq, hq, _hgate, hQ, hexact,
-    heq, hlo, hhi, hqr, har, hc, hrepair⟩ := attempt_repair_opening E rho hrec mono crossing
-      qc writes rowCoverage hvalid hstart hstop hhor (by rw [hbudget]; linarith [p.deltaPos])
+    heq, hlo, hhi, hqr, har, hc, hrepair⟩ := attempt_repair_opening E rho hrec mono
+      crossing
+      qc repairScopes openingScopes writes rowCoverage hvalid hstart hstop hhor (by
+        rw [hbudget]; linarith [p.deltaPos])
   let u := ev.time + 3 * p.Δ
   have hcfalse : contested = false := Bool.eq_false_iff.mpr (fun ht => hphase (hcont.mp ht))
   rw [hcfalse] at hp hlo hrepair
@@ -567,22 +603,26 @@ theorem healing_attempt_raise_other
     rw [hbudget]; linarith [p.deltaPos]
   have hpr := opening_phase_restrict E rho hp hur hrD
   by_cases hh : (heightView p Qfg).h = k.frontier
-  · have he := common_entry_at_high E rho hrec mono crossing writes hgst hQ heq hexact huq
+  · have he := common_entry_at_high E rho hrec mono crossing openingScopes writes
+      hgst hQ heq hexact huq
       hqr hpr hh
-    exact attempt_terminal_contradiction E rho hrec mono crossing writes hδ
+    exact attempt_terminal_contradiction E rho hrec mono crossing openingScopes
+      writes hδ
       hbound rowsReceipt progressCoverage hfold faultQ honestQuorum hstart hstop hp
       le_rfl hgst huq hqr he hc (by rw [hbudget]; linarith [p.deltaPos])
   have hlow : (heightView p Qfg).h = k.frontier - 1 := by
     simp only [Bool.false_eq_true, ↓reduceIte, Height] at hlo hhi hh ⊢
     omega
-  rcases common_entry_at_low E rho hrec mono crossing writes hgst hQ heq hexact huq hqr
+  rcases common_entry_at_low E rho hrec mono crossing openingScopes writes
+    hgst hQ heq hexact huq hqr
       hpr hlow with he | ⟨⟨x, K, hx, hK, hhigh⟩, hnext⟩
   · have hpromotionHor : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon := by
       apply le_trans _ hhor
       rw [hbudget]
       linarith [p.deltaPos]
-    have perm := healing_tPerm E rho hrec mono crossing writes
-    rcases healing_renewedPromotion E rho hrec hδ hbound mono crossing perm rowsReceipt
+    have perm := healing_tPerm E rho hrec mono crossing writes openingScopes.permanence
+    rcases healing_renewedPromotion E rho hrec (healing_self_proposal_service hrec)
+        hδ hbound mono crossing perm rowsReceipt
         progressCoverage hfold faultQ honestQuorum r hpromotionHor u k.frontier root false
         (β + 2 * p.k - 1) q Q (k.frontier - 1) hgst hpr huq hqr hq hQ hexact he hc
         hrepair with hevent | hcarrier
@@ -611,7 +651,8 @@ theorem healing_attempt_raise_other
       have hps := opening_phase_restrict E rho hp
         (by change u ≤ SA.proposalTime p.toParams s + 6 * p.Δ; linarith [p.deltaPos]) hsD
       obtain ⟨hexactS, _⟩ := hservice hps
-      have hheights := attempt_proposal_heights E rho hrec crossing hp hurS hsD hnew rfl hexactS
+      have hheights := attempt_proposal_heights E rho hrec crossing hgst hp hurS hsD hnew rfl
+        hexactS
       have hm : 1 ≤ k.frontier := by obtain ⟨_, _, _, _, _, hm, _⟩ := hvalid; exact hm
       have hhS : (heightView p X).h = k.frontier := by
         have hXhigh : k.frontier ≤ (heightView p X).h := by
@@ -631,11 +672,14 @@ theorem healing_attempt_raise_other
         rw [hsg] at h0
         linarith [p.deltaPos]
       have hpr' := opening_phase_restrict E rho hp hur' hr'D
-      have hc' := common_opening_covered E rho hrec mono crossing writes rowCoverage hgst
+      have hc' := common_opening_covered E rho hrec mono crossing openingScopes writes
+        rowCoverage hgst
         hnew rfl hexactS hurS hsr hpr'
-      have he' := common_entry_at_high E rho hrec mono crossing writes hgst hnew rfl hexactS
+      have he' := common_entry_at_high E rho hrec mono crossing openingScopes writes hgst hnew
+        rfl hexactS
         hurS hsr hpr' hhS
-      exact attempt_terminal_contradiction E rho hrec mono crossing writes hδ
+      exact attempt_terminal_contradiction E rho hrec mono crossing openingScopes
+        writes hδ
         hbound rowsReceipt progressCoverage hfold faultQ honestQuorum hstart hstop hp
         le_rfl hgst hurS hsr he' hc'
         (by rw [hbudget]; linarith only [har, hsGate, h1])
@@ -648,9 +692,11 @@ theorem healing_attempt_raise_other
       rw [hanext, hbudget]; linarith [p.deltaPos]
     have hpr' := opening_phase_restrict E rho hp hur' hr'D
     have hqr' : q ≤ (r + 1) * p.R := hqr.trans (Nat.mul_le_mul_right _ (Nat.le_succ r))
-    have hc' := common_opening_covered E rho hrec mono crossing writes rowCoverage hgst
+    have hc' := common_opening_covered E rho hrec mono crossing openingScopes writes
+      rowCoverage hgst
       hQ heq hexact huq hqr' hpr'
-    exact attempt_terminal_contradiction E rho hrec mono crossing writes hδ
+    exact attempt_terminal_contradiction E rho hrec mono crossing openingScopes
+      writes hδ
       hbound rowsReceipt progressCoverage hfold faultQ honestQuorum hstart hstop hp
       le_rfl hgst huq hqr' (hnext hpr') hc'
       (by rw [hanext, hbudget]; linarith [p.deltaPos])

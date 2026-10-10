@@ -1,5 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed -- shake: keep (terminal promotion suppliers)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
+-- shake: keep (terminal promotion suppliers)
+
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 
@@ -110,7 +113,7 @@ theorem healing_renewedPromotion_terminal (E : Generic.Env V)
     (r : Nat)
     (hhor : p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ ≤ rho.horizon) :
     ∀ u m J contested q Q height,
-      E.t_GST ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
+      recoveryStart p E ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
       u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
       OpeningEntry p c E rho r height → OpeningCovered p c E rho r Q →
       (∃ i ev, afterTicksIdx rho (p.actionTime r) ≤ i ∧
@@ -122,13 +125,16 @@ theorem healing_renewedPromotion_terminal (E : Generic.Env V)
         height + 1 ≤ (heightView p X).h ∧
         (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
           (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y)) := by
-  intro u m J contested q Q height hgst hp hu hq hentry hcovered
+  intro u m J contested q Q height hready hp hu hq hentry hcovered
+  have hsync : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hsched := hrec.base.valid.toScheduleWellFormed
   let D := p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ
   rcases healing_promotion_event_split p c E rho hsched (p.actionTime r) D with
     ⟨i, ev, hi, hev, heff, htime, _⟩ | hquiet
   · exact Or.inl ⟨i, ev, hi, hev, heff, htime⟩
-  have har : E.t_GST ≤ p.actionTime r := hgst.trans hp.1
+  have har : E.t_GST ≤ p.actionTime r := hsync.trans hp.1
   obtain ⟨_, s, hlo, hhi, hslot0, _hgate⟩ :=
     promotion_terminal_gap E rho hrec.toRecovery₂ r har hhor
   have hproposalHor : SA.proposalTime p.toParams s ≤ rho.horizon := by
@@ -196,10 +202,10 @@ theorem healing_renewedPromotion_terminal (E : Generic.Env V)
     linarith [p.deltaPos]
   have hh := healing_promotion_advance E rho hrec.toRecovery₂ hδ hbound perm rowsReceipt
     progressCoverage
-    hfold faultQ honestQuorum hentry hcovered hgst hpts huvote hlo hnew hslot
+    hfold faultQ honestQuorum hentry hcovered hready hpts huvote hlo hnew hslot
   have hreceipt := healing_promotion_first_receipt E rho hrec.toRecovery₂ crossing (services s) hnew
     (hp.1.trans hats)
-    hgst hpD
+    hready hpD
   exact Or.inr ⟨s, X, hnew, hslot, hlo, hhi, hh, hreceipt⟩
 
 end AvailableChain.FGSA.Run

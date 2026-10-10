@@ -161,9 +161,42 @@ theorem PostResetServiceStep_def (w : HealingWitness) (i : Nat) :
   PostResetOpeningDomain p c E rho w (i + 1) →
   PostResetService p c E rho w (i + 1)) := by rfl
 
+/-- The reset transfer service is produced only under its release horizon. -/
+theorem healing_resetTransferCore_recovery [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    (xing : RXing p c E rho) (cap : RCap p c E rho) (source : TSrc p c E rho)
+    (w : HealingWitness) (h0r : H0Reset p c E rho w) :
+    ResetTransferCore p c E rho w := by
+  rw [ResetTransferCore_def]
+  intro hhor
+  have hearly : SA.earlyTime p.toParams w.sStar ≤ rho.horizon := by
+    apply le_trans _ hhor
+    change 4 * p.Δ * (w.sStar : Int) + 2 * p.Δ ≤
+      4 * p.Δ * (w.sStar : Int) + 5 * p.Δ
+    linarith [p.deltaPos]
+  have hpub : V2.PublicTime E (SA.voteTime p.toParams w.sStar) := by
+    refine ⟨4 * w.sStar + 1, ?_⟩
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (w.sStar : Int) + p.Δ = _
+    push_cast
+    ring
+  have htime : SA.voteTime p.toParams w.sStar + p.Δ =
+      SA.earlyTime p.toParams w.sStar := by
+    change 4 * p.Δ * (w.sStar : Int) + p.Δ + p.Δ =
+      4 * p.Δ * (w.sStar : Int) + 2 * p.Δ
+    ring
+  have hcore := healing_resetTransferCore E rho hrec.toRecovery₂ xing cap source mono w h0r
+    (fun x hx j z W hz hj hW _ hF => by
+      rw [← htime] at hF ⊢
+      exact healing_target_service_of_tick E rho hrec hz hx hj
+        (((storeBundle_stateBefore E rho j z).cstore.baseTree _).mpr ⟨W, hW, rfl⟩)
+        hpub h0r.synchronous (htime ▸ hearly)
+        (Bool.or_eq_true_iff.mpr (Or.inr (eraseFG_preceq hF))))
+  exact (ResetTransferCore_def p c E rho w ▸ hcore) hhor
+
 section Induction
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -182,6 +215,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -242,14 +276,16 @@ theorem postReset_joint_all :
     have hraw := stepRaw i ih hrl hlease hfprov
     have hod := stepOD i ih hrl hlease hfprov hraw
     have hservice := stepService i ih hrl hlease hfprov hraw hod
-    have htransfer := healing_resetTransferCore E rho hrec xing cap source mono w h0r
+    have hLoss := healing_loss_service_scope_recovery E rho hrec mono source
+      emittedNonempty emittedName
+    have htransfer := healing_resetTransferCore_recovery p c E rho hrec mono xing cap source w h0r
     refine ⟨⟨?_, ?_, ?_, hlease, hfprov, hraw, hservice⟩, hrl, hod⟩
     · exact postReset_protected_kept_succ (hroots := hrec.base.idealization) p c E rho
         hrec.base.valid.toScheduleWellFormed
         xing origin h0r htransfer ih.1
-    · exact postReset_high_compatible_all p c E rho hrec mono emittedNonempty emittedName
+    · exact postReset_high_compatible_all p c E rho hrec hLoss mono emittedNonempty emittedName
         writes xing origin h0r (i + 1)
-    · exact postReset_reset_compatible_all p c E rho hrec mono emittedNonempty emittedName
+    · exact postReset_reset_compatible_all p c E rho hrec hLoss mono emittedNonempty emittedName
         writes xing origin h0r (i + 1)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

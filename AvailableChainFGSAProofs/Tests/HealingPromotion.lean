@@ -19,7 +19,6 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Height
 -- shake: keep (Assembly progress-fold supplier)
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 -- shake: keep (Assembly honest-seat quorum supplier)
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (scoped permanence)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (RMono supplier)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
 -- shake: keep (last-write supplier)
@@ -72,7 +71,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (perm : TPerm p c E 
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {r height : Nat} {s : Slot} {Q : Block} {X : FGBlock (Fin p.n)}
     (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hgate : p.actionTime r ≤ SA.proposalTime p.toParams s) (hs : r * p.R + 2 ≤ s)
@@ -87,7 +86,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (perm : TPerm p c E 
     (p := p) (c := c) (E := E) (rho := rho) (G := G) (ΔF := ΔF) (hrec := hrec)
     (perm := perm) (u := u) (m := m) (J := J) (contested := contested)
     (r := r) (height := height) (s := s) (Q := Q) (X := X)
-    (hentry := hentry) (hcovered := hcovered) (hgst := hgst) (hphase := hphase)
+    (hentry := hentry) (hcovered := hcovered) (hready := hready) (hphase := hphase)
     (hu := hu) (hgate := hgate) (hs := hs) (hnew := hnew) (hslot := hslot)
   refine ⟨U, hU, hUslot, ?_⟩
   intro x hx
@@ -142,24 +141,17 @@ example {x : V} {r : Nat} {K : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
   healing_promotion_source_body (p := p) (c := c) (E := E) (rho := rho)
     (x := x) (r := r) (K := K) (hx := hx) (hK := hK)
 
-example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
-    (crossing : RXing p c E rho) {u : Time} {m : Nat}
+example {u : Time} {m : Nat}
     {J : Option (FGBlock (Fin p.n))} {contested : Bool} {r : Nat} {s : Slot}
-    {x : V} {K : FGBlock (Fin p.n)} {Q : Block} (hgst : E.t_GST ≤ u)
+    {x : V} {K : FGBlock (Fin p.n)} {Q : Block} (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
-    (hPermanence : SupportPermanenceServices E rho u (SA.proposalTime p.toParams s)
-      m J contested)
-    (hCut : HealingWindow p E 1 (r * p.R))
+    (perm : TPerm p c E rho)
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hgate : p.actionTime r ≤ SA.proposalTime p.toParams s)
     (hx : x ∈ rho.honest) (hK : actionSourceFG p c E rho x r = some (some K))
     (hs : r * p.R + 2 ≤ s) (hQ : HonestProposal E rho (fgsaInterface p c) s Q) :
     Block.Preceq (eraseFG K) Q.parent := by
-  have htr := healing_tPerm_at E rho hrec (fgsa_rMonoAll p c E rho) crossing
-    (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
-    hgst hphase hPermanence hCut hu hgate
-    (healing_promotion_source_body E rho hx hK)
-  exact htr.2.1 s Q hs le_rfl hQ
+  exact healing_promotion_source_parent E rho perm hready hphase hu hgate hx hK hs hQ
 
 omit [Fintype V] in
 example {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -224,7 +216,7 @@ example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (r : Nat)
     (hhor : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon) :
   ∀ u m J contested l q Q height,
-    E.t_GST ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
+    recoveryStart p E ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
     u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
     SA.proposalTime p.toParams l < SA.proposalTime p.toParams q →
     HonestProposal E rho (fgsaInterface p c) q Q → ExactService p c E rho q Q →
@@ -268,7 +260,7 @@ example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {r height : Nat} {l : Slot} {Q : Block}
     (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
-    (hgst : E.t_GST ≤ u) (hstart : E.t_GST ≤ (r : Time) * P p)
+    (hready : recoveryStart p E ≤ u) (hstart : E.t_GST ≤ (r : Time) * P p)
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hl : SA.proposalTime p.toParams l < (r : Time) * P p)
     (hrepair : ∀ v, PhaseInterval p c E rho u v m J contested → RepairAfter p c E rho l v) :
@@ -290,7 +282,7 @@ example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (fgsa_batchCoverage p ΔF .progress c E rho)
     (fgsa_foldTrichotomy_progress p) (fgsa_faultQ_of_count p hrec.fault)
     (kmid_honest_quorum p c rho hrec.base.linked hrec.fault)
-    hentry hcovered hgst hstart hu hl hrepair
+    hentry hcovered hready hstart hu hl hrepair
   refine ⟨U, hU, hslot, ?_⟩
   intro v hp hwin hbudget
   obtain ⟨s, X, hnew, hXslot, _, _, hh, hreceipt, _⟩ := hgo v hp hwin hbudget
@@ -331,12 +323,12 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
         (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
-    (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
+    (hu : u ≤ SA.proposalTime p.toParams s) (hready : recoveryStart p E ≤ u)
     (hp : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) 1
       (some .genesis) false) :
     ∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
       (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y :=
-  healing_promotion_first_receipt E rho hrec crossing services hnew hu hgst hp
+  healing_promotion_first_receipt E rho hrec crossing services hnew hu hready hp
 
 end AvailableChain.FGSA.Run.Tests.HealingPromotion
 end

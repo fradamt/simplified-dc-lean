@@ -5,6 +5,12 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
+
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
+
 public section
 
 /-! H-REPAIR (plan steps 1, 7, 10–13; blueprint 21 H.6:910–986, H.6-S:988–1052). The two
@@ -19,15 +25,28 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- Bounded local services for repaired proposals and their enabled gates. -/
 structure RepairServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
-  permanence : ∀ u v m J contested, E.t_GST ≤ u →
+  permanence : ∀ u v m J contested, recoveryStart p E ≤ u →
     PhaseInterval p c E rho u v m J contested →
-    SupportPermanenceScope E rho u v m J contested
-  heads : ∀ s ip x N, E.t_GST ≤ slotStartZ p ((s : Int) - 2) → x ∈ rho.honest →
+    SupportPermanenceServices E rho u v m J contested
+  heads : ∀ (s : Slot) ip x N, E.t_GST ≤ slotStartZ p ((s : Int) - 2) → x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-    SA.voteTime p.toParams s ≤ rho.horizon → RepairHeadServices E rho s
+    SA.voteTime p.toParams s ≤ rho.horizon → RepairHeadServices E rho s ip x N
   gates : ∀ (s : Slot), E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
     SA.gateTime p.toParams s ≤ rho.horizon → RepairGateScope E rho s
+
+/-- Recovery produces the bounded repair services at each actual read. -/
+theorem healing_repair_service_scopes_recovery [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) : RepairServiceScopes E rho := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro u v m J contested hready hphase
+    exact healing_support_permanence_recovery E rho hrec mono hready hphase
+  · intro s ip x N hcut hx hip hem _
+    exact healing_repair_head_services_recovery E rho hrec mono
+      (healing_window_of_cut E hcut) hx hip hem
+  · intro s hcut _
+    exact healing_repair_gate_scope_recovery E rho hrec mono (healing_window_of_cut E hcut)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Plan H-REPAIR step 11 (HonestSlot → HonestProposal); Run/Emission.lean:72.
@@ -86,13 +105,16 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
               p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {r : Nat} (hhead : u ≤ slotStartZ p (r : Int))
     (hPriorCut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hlease : RepairLeaseCover E rho (r + 1))
     (hgate : SA.gateTime p.toParams (r + 1) ≤ v) {Q : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) (r + 1) Q) :
     ExactService p c E rho (r + 1) Q := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hd := p.deltaPos
   have hvq : SA.voteTime p.toParams (r + 1) ≤ v := by
     refine le_trans ?_ hgate
@@ -109,23 +131,35 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
     change u ≤ 4 * p.Δ * (r : Int) at hhead
     linarith
   have hcut : E.t_GST ≤ slotStartZ p (((r + 1 : Nat) : Int) - 1) := by
-    simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hgst.trans hhead
+    simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hGST.trans hhead
   have hhor : SA.voteTime p.toParams (r + 1) ≤ rho.horizon := hvq.trans hphase.2.1
   obtain ⟨ip, x, N, heN, hx, hip, hseat, hem⟩ := repair_proposal_emission E rho hp
   have hHeads := services.heads (r + 1) ip x N (by
     have he : ((r + 1 : Nat) : Int) - 2 = (r : Int) - 1 := by push_cast; omega
     simpa only [he] using hPriorCut) hx hip hem hhor
-  have hPrior : ProposalSupportScope E rho ip x r := by
-    simpa only [Nat.add_sub_cancel] using hHeads.prior ip x N hx hip hem
-  have hGST : E.t_GST ≤ SA.proposalTime p.toParams (r + 1) - p.Δ := by
-    refine hgst.trans (hheadVote.trans ?_)
+  have hPrior : ProposalSupportScope E rho ip x r (SA.proposalTime p.toParams (r + 1)) := by
+    simpa only [Nat.add_sub_cancel] using hHeads.prior
+  have hProposalSync : E.t_GST ≤ SA.proposalTime p.toParams (r + 1) - p.Δ := by
+    refine hGST.trans (hheadVote.trans ?_)
     change 4 * p.Δ * (r : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int) - p.Δ
     push_cast
     linarith
-  have hheadN := repair_head_exact E rho hrec.toRecovery₂ (r + 1) hGST hx hip hseat N hem
-    (fun y hy ih hih _ => repair_h6_input E rho hrec mono crossing hgst hphase hheadVote hvq
-      hlease hx hip hPrior hy hih)
-    (hHeads.targets ip x N hx hip hem) (hHeads.scopes ip x N hx hip hem) hhor
+  have hCut : HealingWindow p E 1 r :=
+    healing_window_of_cut E (healing_ready_vote_cutoff E (hready.trans hheadVote))
+  have hFloors : ∀ y ∈ rho.honest, Block.Preceq
+      (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams (r + 1)) y).st.fg.F)
+      N.erase := by
+    intro y hy
+    rw [heN]
+    exact healing_proposal_phase_reader_floor hrec.base.valid crossing hphase hp
+      (hhead.trans (by
+        change 4 * p.Δ * (r : Int) ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
+        push_cast; linarith [p.deltaPos])) hvq hy
+  have hheadN := repair_head_exact E rho hrec.toRecovery₂ (r + 1) hProposalSync hx hip hseat N hem
+    (fun y hy ih hih _ => repair_h6_input E rho hrec mono crossing hGST hphase hheadVote hvq
+      hlease hx hip hPrior hCut hy hih)
+    (fun y hy ih hi hj => hHeads.target hy hi hj (hFloors y hy))
+    (fun y hy ih hi hj => hHeads.scopes y hy ih hi hj (hFloors y hy)) hhor
   have hheadQ : ∀ y ∈ rho.honest,
       joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
       headAtLabel p c E rho y (r + 1) = some Q := by simpa only [heN] using hheadN
@@ -133,16 +167,18 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
     rintro rfl
     exact Nat.succ_ne_zero r hQs.symm
   have hGates := services.gates (r + 1) hcut (hgate.trans hphase.2.1)
-  exact repair_exact_service_on E rho hrec (r + 1) Q hne hcut (hgst.trans hus)
+  exact repair_exact_service_on E rho hrec (r + 1) Q hne hcut (hGST.trans hus)
     (fun _ => hheadQ)
     (fun _ _ hx ht => repair_gate_geometry E rho hrec mono crossing qc
-      writes hgst hphase hus hgate hQs hheadQ hx ht hGates)
+      writes hGST hphase hus hgate hQs hheadQ hx ht hGates)
     (fun i x hReader ht => (hGates.gates i x hReader.1 ht
       (healing_scope_enabled_gate hrec hReader.1 ht (by
         change E.t_GST ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
         have hb := hcut
         change E.t_GST ≤ 4 * p.Δ * (((r + 1 : Nat) : Int) - 1) at hb
-        linarith [p.deltaPos]) (hgate.trans hphase.2.1))).toGateReceiptScope) hhor
+        linarith [p.deltaPos]) (hgate.trans hphase.2.1)) Q
+        (repair_gate_geometry E rho hrec mono crossing qc writes hGST hphase hus hgate
+          hQs hheadQ hReader.1 ht hGates).toGateReceiptGeometry)) hhor
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:749–756 (RepairAfter); plan H-REPAIR step 10. DC: INTENTIONAL every
@@ -171,12 +207,15 @@ theorem repair_after_of_cover [Fintype V] (E : Generic.Env V)
               p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {l : Nat} (hlu : u ≤ slotStartZ p (l : Int))
     (hPriorCut : E.t_GST ≤ slotStartZ p ((l : Int) - 1))
     (hcover : ∀ s, SA.proposalTime p.toParams l < SA.proposalTime p.toParams s →
       SA.voteTime p.toParams s ≤ v → RepairLeaseCover E rho s) :
     RepairAfter p c E rho l v := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   intro s Q hls hgate hp
   have hlt := repair_slot_lt_of_time hls
   obtain ⟨r, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero (Nat.ne_zero_of_lt hlt)
@@ -194,7 +233,7 @@ theorem repair_after_of_cover [Fintype V] (E : Generic.Env V)
     refine hPriorCut.trans ?_
     change 4 * p.Δ * ((l : Int) - 1) ≤ 4 * p.Δ * ((r : Int) - 1)
     nlinarith
-  exact repair_exact_service E rho hrec mono crossing qc services writes hgst hphase hhead
+  exact repair_exact_service E rho hrec mono crossing qc services writes hready hphase hhead
     hPriorR (hcover _ hls hvs) hgate hp
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -226,7 +265,7 @@ theorem repair_two_lease [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {Gp : Time} (hgap : ProposalGap p c E rho Gp)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {β : Nat} (hβ : u < SA.proposalTime p.toParams β)
     (hmin : ∀ b, u < SA.proposalTime p.toParams b → β ≤ b) :
     RepairAfter p c E rho (β + 2 * p.k - 1) v ∧
@@ -234,9 +273,12 @@ theorem repair_two_lease [Fintype V] (E : Generic.Env V)
       SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s ∧
       SA.gateTime p.toParams s ≤ u + ρΓ p Gp ∧
       HonestProposal E rho (fgsaInterface p c) s Q ∧ ExactService p c E rho s Q) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hd := p.deltaPos
   have hk := p.kLarge
-  have hu0 : 0 ≤ u := E.t_GST_nonneg.trans hgst
+  have hu0 : 0 ≤ u := E.t_GST_nonneg.trans hGST
   have hβ1 : 1 ≤ β := by
     by_contra h0
     have hb0 : β = 0 := by omega
@@ -267,15 +309,15 @@ theorem repair_two_lease [Fintype V] (E : Generic.Env V)
     have hk' : (2 : Int) ≤ p.k := by exact_mod_cast hk
     nlinarith
   have hPriorCut : E.t_GST ≤ slotStartZ p (((β + 2 * p.k - 1 : Nat) : Int) - 1) := by
-    refine (hgst.trans hβ.le).trans ?_
+    refine (hGST.trans hβ.le).trans ?_
     change 4 * p.Δ * (β : Int) ≤ 4 * p.Δ * (((β + 2 * p.k - 1 : Nat) : Int) - 1)
     rw [hcl]
     have hk' : (2 : Int) ≤ p.k := by exact_mod_cast hk
     nlinarith
   have hafter : RepairAfter p c E rho (β + 2 * p.k - 1) v :=
-    repair_after_of_cover E rho hrec mono crossing qc services writes hgst hphase hlu hPriorCut
-      (fun _ hls hvs => repair_lease_cover_two_at E rho hrec mono crossing
-        writes hgst hphase (services.permanence u v m J contested hgst hphase) hβ
+    repair_after_of_cover E rho hrec mono crossing qc services writes hready hphase hlu hPriorCut
+      (fun _ hls hvs => repair_lease_cover_two E rho hrec mono crossing writes
+        (healing_tPerm E rho hrec mono crossing writes services.permanence) hready hphase hβ
         hls hvs)
   refine ⟨hafter, fun hbud => ?_⟩
   have hβl : SA.proposalTime p.toParams β ≤ SA.proposalTime p.toParams (β + 2 * p.k - 1) := by
@@ -284,13 +326,15 @@ theorem repair_two_lease [Fintype V] (E : Generic.Env V)
     have hk' : (2 : Int) ≤ p.k := by exact_mod_cast hk
     nlinarith
   have hGl : E.t_GST ≤ SA.proposalTime p.toParams (β + 2 * p.k - 1) :=
-    hgst.trans (hβ.le.trans hβl)
+    hGST.trans (hβ.le.trans hβl)
   have hlt := repair_lt_Γ (p := p) Gp
   have hhor : SA.proposalTime p.toParams (β + 2 * p.k - 1) + Gp ≤ rho.horizon := by
     refine le_trans ?_ (hbud.trans hphase.2.1)
     change _ ≤ u + (2 * ((4 * (p.k : Time) - 1) * p.Δ) + Γ p Gp + 8 * p.Δ)
     linarith
-  obtain ⟨s, hs1, hs2, hslot⟩ := hgap _ hGl hhor
+  have hReadyThreshold : recoveryStart p E ≤
+      SA.proposalTime p.toParams (β + 2 * p.k - 1) := hready.trans (hβ.le.trans hβl)
+  obtain ⟨s, hs1, hs2, hslot⟩ := hgap _ hReadyThreshold hhor
   rw [proposalTime_fgsa] at hs1 hs2
   have hsΓ := repair_grid_Γ (p := p) hs2
   have hds : SA.gateTime p.toParams s ≤ u + ρΓ p Gp := by
@@ -341,7 +385,7 @@ theorem repair_synchronous [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {Gp : Time} (hgap : ProposalGap p c E rho Gp)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {b : Nat} (hb : u ≤ SA.voteTime p.toParams b)
     (hmin : ∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i)
     (hwindow : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k)) :
@@ -350,10 +394,13 @@ theorem repair_synchronous [Fintype V] (E : Generic.Env V)
       SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams s ∧
       SA.gateTime p.toParams s < u + ρ₁ p Gp ∧
       HonestProposal E rho (fgsaInterface p c) s Q ∧ ExactService p c E rho s Q) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hd := p.deltaPos
   have hk := p.kLarge
   have hk' : (2 : Int) ≤ p.k := by exact_mod_cast hk
-  have hu0 : 0 ≤ u := E.t_GST_nonneg.trans hgst
+  have hu0 : 0 ≤ u := E.t_GST_nonneg.trans hGST
   have htb : SA.proposalTime p.toParams b < u + 3 * p.Δ := by
     rcases Nat.eq_zero_or_pos b with hb0 | hb0
     · subst hb0
@@ -375,15 +422,15 @@ theorem repair_synchronous [Fintype V] (E : Generic.Env V)
     push_cast
     nlinarith
   have hPriorCut : E.t_GST ≤ slotStartZ p (((b + p.k : Nat) : Int) - 1) := by
-    refine (hgst.trans hb).trans ?_
+    refine (hGST.trans hb).trans ?_
     change 4 * p.Δ * (b : Int) + p.Δ ≤ 4 * p.Δ * (((b + p.k : Nat) : Int) - 1)
     push_cast
     have hk' : (2 : Int) ≤ p.k := by exact_mod_cast p.kLarge
     nlinarith [p.deltaPos]
   have hafter : RepairAfter p c E rho (b + p.k) v :=
-    repair_after_of_cover E rho hrec mono crossing qc services writes hgst hphase hlu hPriorCut
-      (fun _ hls hvs => repair_lease_cover_one_at E rho hrec mono crossing
-        writes hgst hphase (services.permanence u v m J contested hgst hphase) hb
+    repair_after_of_cover E rho hrec mono crossing qc services writes hready hphase hlu hPriorCut
+      (fun _ hls hvs => repair_lease_cover_one E rho hrec mono crossing writes
+        (healing_tPerm E rho hrec mono crossing writes services.permanence) hready hphase hb
         hwindow hls hvs)
   refine ⟨hafter, fun hbud => ?_⟩
   have htl : SA.proposalTime p.toParams (b + p.k) < u + 4 * p.k * p.Δ + 3 * p.Δ := by
@@ -392,7 +439,7 @@ theorem repair_synchronous [Fintype V] (E : Generic.Env V)
     push_cast
     linarith
   have hGl : E.t_GST ≤ SA.proposalTime p.toParams (b + p.k) := by
-    refine hgst.trans (hb.trans ?_)
+    refine hGST.trans (hb.trans ?_)
     change 4 * p.Δ * (b : Int) + p.Δ ≤ 4 * p.Δ * ((b + p.k : Nat) : Int)
     push_cast
     nlinarith
@@ -401,7 +448,12 @@ theorem repair_synchronous [Fintype V] (E : Generic.Env V)
     refine le_trans ?_ (hbud.trans hphase.2.1)
     change _ ≤ u + ((4 * (p.k : Time) - 1) * p.Δ + Γ p Gp + 10 * p.Δ)
     linarith
-  obtain ⟨s, hs1, hs2, hslot⟩ := hgap _ hGl hhor
+  have hReadyThreshold : recoveryStart p E ≤ SA.proposalTime p.toParams (b + p.k) := by
+    refine hready.trans (hb.trans ?_)
+    change 4 * p.Δ * (b : Int) + p.Δ ≤ 4 * p.Δ * ((b + p.k : Nat) : Int)
+    push_cast
+    nlinarith
+  obtain ⟨s, hs1, hs2, hslot⟩ := hgap _ hReadyThreshold hhor
   rw [proposalTime_fgsa] at hs1 hs2
   have hsΓ := repair_grid_Γ (p := p) hs2
   have hds : SA.gateTime p.toParams s < u + ρ₁ p Gp := by

@@ -7044,6 +7044,112 @@ existing RecoverySleep₂ and recoveryStart forms; HealingW now consumes
 the corrected reset interfaces directly. Proof-family callers stay with
 P-H1/P-H2/P-As according to the package map and the Round 7 handoff.
 
+## P-H2 Round 6 — joined-start consumers (2026-10-10)
+
+Status: PREPARED / OPEN. Independent proofs: 12aa13e0 and c5bb6663.
+The promotion, selected-witness settlement, joined-gap and selected parent-floor
+proofs compile. The phase and event starts use recoveryStart. Saved-window
+transport uses GST. Claims, Statements and numeric constants were not edited.
+
+P-H1 r7 merge is pending. The arithmetic producer consumed as readyCut by
+healing_settle_start_on has the exact type:
+
+```lean
+∀ t, recoveryStart p E ≤ t →
+  E.t_GST ≤ slotStartZ p (((slotAt p t : Slot) : Int) - 1)
+```
+
+Named producer: healing_ready_read_cutoff, ResetScope:68 at 4e506874, P-H1.
+The actual reader tick and horizon are proved in the consumer.
+
+P-H1's remaining local lease-cover obligations, consumed as explicit qualified
+callbacks by tfSeed_qSucc_lease_cover, are exactly:
+
+```lean
+namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+theorem repair_lease_cover_two_at [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
+          GridCO.savedGenuine pre.base w = none →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
+            (actView pre) w C)
+    {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hServices : SupportPermanenceServices E rho u v m J contested)
+    {β : Slot} (hβ : u < SA.proposalTime p.toParams β) {s : Slot}
+    (hls : SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s)
+    (hvs : SA.voteTime p.toParams s ≤ v) : RepairLeaseCover E rho s
+
+theorem repair_lease_cover_one_at [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
+          GridCO.savedGenuine pre.base w = none →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
+            (actView pre) w C)
+    {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hServices : SupportPermanenceServices E rho u v m J contested)
+    {b : Slot} (hb : u ≤ SA.voteTime p.toParams b)
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k)) {s : Slot}
+    (hls : SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams s)
+    (hvs : SA.voteTime p.toParams s ≤ v) : RepairLeaseCover E rho s
+
+end AvailableChain.FGSA.Run
+```
+
+The callbacks stop at the selected q+1 read and seed gate. They are not record
+fields or whole-run services. The joined source domain keeps both adapters true
+in finite sleep runs, including the four plan replays. No early cleanup is used.
+P5 is still OPEN/P-H1; its ready phase factory is not proved by a consumer.
+
+The later capped receiver floor, bounded frontier gate conversion, complete
+RPhase producer, remaining post-reset scopes and full run fixtures are OPEN/P-H2.
+See [the exact handoff](../scripts/dev-pkg/P-H2.round6-handoff.md).
+
+P-H2 final proof update: ae971fff proves healing_capped_witness_reader_floor from
+RXing, a selected held source witness, source retention and the current receiver
+cap. It permits receiver F movement. No receipt or universal carrier premise is
+added. The final local audit has 14 permitted results. Forty GREEN audit sources
+passed with 3,345 results before this extra result; all 24 package controls pass.
+The remaining selected source/capped-target plumbing stays OPEN/P-H2.
+Validation: layers zero new; headers PASS; GREEN exports zero unaccepted.
+DCK is blocked by the inherited ComposeStmt line warning. Full manifest is blocked
+by missing Outage.ArmingDuty. No owner source or public statement was edited.
 ### P-H1 Round 7 — bounded consumers and source service
 
 The single phase-indexed permanence API derives its source Window 1 from
@@ -7260,6 +7366,68 @@ The full Round 13 task is incomplete. P-Ou is PREPARED; no public STOP is assert
 
 - Lead 2026-10-10 18:40: merged sleep-pou13 8bd2d9d7 (P-Ou r13) as PREPARED: outage supplier proved, both public exporters GREEN, continuation exporter conditional only on OutageWSeed. rev-pou13-astra: all pass except the architecture record (added by the lead in this merge). OutageWSeed truth check: wseed-derisk-astra.
 
+## P-H2 Round 7 — selected receipts and bounded core ports
+
+PhaseService proves selected retained receipt service at a recovery anchor, including
+a non-public anchor. It keeps the original honest acceptance, public admission tick,
+finite deadline, receiver floor, durable history and local receiver epoch. Its phase
+witness producer selects the frontier/top/contest objects. Its strict spread and
+frozen HEAD proof permit restarts. healing_rPhase_recovery produces all five clauses
+from RecoverySleep₂, RMonoAll and RXing, with no service callback or NoRestart.
+
+RepairCover closes the local one/two cover requests of Round 6 using the selected
+phase's permanence services. FrontierGateScope bounds carriers by v. The later
+frontier selects its source parent and proves the current receiver floor under the
+cap before indexed .target/.scopes calls. The opening body consumes ReceiptProducers
+for its selected HEAD carrier. No read factory is extended beyond v.
+
+Core validation: .lake/sleep-ph2h/rphase-final.log and core-audit-build.log. The new
+strict audit has 15 results, all with only propext, Classical.choice and Quot.sound.
+Layers: 72 inherited, zero new (layers-core.log). Headers PASS (headers-core.log).
+The aggregate H1 RecoveryProducers fails at 528/531 on this base; indexed heads and
+phase/relay factories remain explicit named obligations. The package is PREPARED,
+not CLOSED. Search and post-reset validation continues in the following group.
+Public statements, attempt sums and GST saved-window bounds are unchanged.
+
+P-H2 Round 7 search/attempt ports: the named selected phase receipt producer replaces
+the heldServices callback throughout the search and four attempt rows. The named
+self-proposal service replaces the search promotion callback. Attempt's outer
+assembler now passes the exact opening/repair scopes and the enabled last-write
+guard. The three required signature adapters compile. Evidence: core-audit-build.log,
+gate-search-probe7.log. The new audit gains two consumer commands. Post-reset work
+continues as a separate group; no new producer is claimed for all-cut induction.
+
+P-H2 Round 7 post-reset leaf ports: ordinary/reset delivery uses the named recovery
+adapters. The R-contract uses healing_rPhase_recovery and the durable provenance
+producer. H6 asks for the actual post-GST enabled gate receipt under its selected
+geometry. H2-prime uses the original accepted proposal at the early anchor, a
+freeze-to-read epoch, and the actual joined next reader. Equal-label high-source
+compatibility uses fgsa_sameLabel_serviceScope. Loss and next-transfer scopes stay
+explicit H1 primitive obligations. The selected HEAD receipt producer closes the
+standalone HeadWitnessReceiptScope request; the unused opening carrier field is removed.
+
+Validation: ports-final-build.log and receipt-final-probe.log pass with --wfail.
+The first DCK pass has 43 strict sources, 3,394 results, and all 24 controls. A final
+DCK follows the last audit/map update. No all-cut producer is claimed closed.
+Remaining all-cut opening/cone/raw/lease adapters stay OPEN/P-H2. In particular,
+PostResetOpening still calls legacy global-epoch geometry; it requires a separate
+port to selected retained services. No H1 module, public claim, constant, checker
+allowance or baseline was changed.
+
+Final P-H2 Round 7 checks: DCK PASS, 531 GREEN roots, 43 strict sources / 3,400
+results, all 24 default controls. Complete GREEN exports: 398 proof modules,
+253 accepted exports, zero unaccepted and zero Gen exports. Layers: 72 inherited,
+zero new. Headers PASS. Evidence: .lake/sleep-ph2h/dck-final.log, exports-final.log,
+layers-final.log, headers-final.log. The map has 114 assigned / 61 GREEN / 53 OPEN.
+The required three repair/frontier signature adapters pass with --wfail.
+
+The full manifest does not pass: its Claims API import stops at missing
+Healing.PostResetOpening.olean. That H2 source remains unported at its legacy
+global-epoch geometry. FG-SA shallow/deep, legacy, V2, generic and compose snapshots
+pass. Separate P-Ou proof and legacy test probes pass on this base; no expected
+P-Ou legacy failure was reproduced. See manifest-final.log, service-probe.log,
+pou-legacy-all.log and pou-legacy-tests.log. H1 aggregate and H2 all-cut source
+closure remain open. Exact types and ownership: P-H2.round7-handoff.md.
 - Lead 2026-10-10 18:51: merged sleep-ph1j 9bc92b14 (P-H1 r9) as PREPARED; rev-ph1j-astra MERGE-AS-PREPARED. Open: P1/P2 HEAD relay (relay-derisk-sol checks the refused-after-equivocation case), P5, universal TPerm, four replays (P-H1 r10).
 
 - Lead 2026-10-10 19:45: merged sleep-ph1k af55329c — P-H1 production CLOSED (rev-ph1k-astra MERGE-AS-CLOSED: P1-P10, RELAY-LOCAL incl. runs A/B, universal healing_tPerm_recovery from RecoverySleep₂; no false field). Remaining P-H1 item: four full ExecutionValid replays (fixture obligations, not producers).
@@ -7334,3 +7502,12 @@ The saved writer and source-build failures are the validation limit for Round 15
   ("joined" wording from dd102b06; stale snapshot came in with merge 61769868). Only the
   pins entry/node bodies and their two digests change (cc1a3d43… → 20497544…), as
   rev-pas7-astra item 4 predicted. No allowance added.
+
+- Lead (P-H2 rounds 7-8 merge, 2026-10-10): 105/114 P-H2 targets GREEN; 9 OPEN (post-reset
+  lock/raw successor chain, joint inv, Healing.Export, 4 tests), all owned by P-H2.
+  Correction (rev-ph2i-astra item 1): the RecoveryProducers P8 constructor failure was a P-H2
+  interface integration regression from 87270af2 (removed FrontierReadScope.readers, inserted
+  `first` after `seed`), inherited by round 7. The round 7 request that P-H1 repair its own
+  producer was incorrect. db0590e8 adapts the constructor body only; the closed H1 producer
+  statements are unchanged. Reviews: rev-ph2h-astra FIX-FIRST (both items fixed in round 8),
+  rev-ph2i-astra FIX-FIRST (report attribution only; corrected here).

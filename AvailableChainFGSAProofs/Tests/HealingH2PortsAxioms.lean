@@ -1,0 +1,54 @@
+module
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairCover
+public import AvailableChainFGSAProofs.Proofs.Healing.Attempt
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
+public import AvailableChainFGSAProofs.Proofs.Healing.PostReset
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
+
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2
+
+public section
+
+/-! Strict audit of the selected recovery services and bounded consumers. -/
+
+#print axioms AvailableChain.FGSA.Run.healing_selected_carriers_recovery
+#print axioms AvailableChain.FGSA.Run.healing_head_witness_receipts_recovery
+#print axioms AvailableChain.FGSA.Run.healing_self_proposal_service
+#print axioms AvailableChain.FGSA.Run.repair_lease_cover_two_at
+#print axioms AvailableChain.FGSA.Run.repair_lease_cover_one_at
+#print axioms AvailableChain.FGSA.Run.frontier_gate_scope_of_cover
+#print axioms AvailableChain.FGSA.Run.frontier_gate_fast_count
+#print axioms AvailableChain.FGSA.Run.frontier_retained_reader_floor
+#print axioms AvailableChain.FGSA.Run.frontier_service
+#print axioms AvailableChain.FGSA.Run.healing_retained_cone_reader_floor
+#print axioms AvailableChain.FGSA.Run.healing_frontierSearch_recovery
+#print axioms AvailableChain.FGSA.Run.healing_resetTransferCore_recovery
+#print axioms AvailableChain.FGSA.Run.healing_postReset_coneStep
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomainStep₂
+#print axioms AvailableChain.FGSA.Run.healing_postReset_serviceStep₂
+#print axioms AvailableChain.FGSA.Run.healing_frontier_service_scopes_recovery
+#print axioms AvailableChain.FGSA.Run.healing_repair_service_scopes_recovery
+#print axioms AvailableChain.FGSA.Run.healing_opening_service_scopes_recovery
+#print axioms AvailableChain.FGSA.Run.healing_proposal_service_at_recovery_anchor
+#print axioms AvailableChain.FGSA.Run.healing_target_receipt_at_event
+#print axioms AvailableChain.FGSA.Run.healing_witness_receipt_at_event
+#print axioms AvailableChain.FGSA.Run.healing_phase_witness_receipts_recovery
+#print axioms AvailableChain.FGSA.Run.healing_phase_block_receipt_recovery
+#print axioms AvailableChain.FGSA.Run.healing_evidence_spread_recovery
+#print axioms AvailableChain.FGSA.Run.healing_rPhase_recovery
+
+#print axioms AvailableChain.FGSA.Run.healing_progressAttempt
+#print axioms AvailableChain.FGSA.Run.healing_frontierSearch
+
+#print axioms AvailableChain.FGSA.Run.healing_healTContract_reset
+#print axioms AvailableChain.FGSA.Run.healing_healRContract_reset
+#print axioms AvailableChain.FGSA.Run.healing_postReset_h6GateService
+#print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset
+#print axioms AvailableChain.FGSA.Run.postReset_tHigh_reset
+
+end

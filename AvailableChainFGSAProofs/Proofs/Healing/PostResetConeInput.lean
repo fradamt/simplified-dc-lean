@@ -16,7 +16,7 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -35,6 +35,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -176,7 +177,9 @@ theorem postReset_coneInput_at_cut (i : Nat)
       hsucc.symm ▸ hip
     have hf' : (controls p (clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (s - 1 + 1)))).lo ≤ (heightView p D).h := hsucc.symm ▸ hfloor
-    have hjoinCut := healing_reset_vote_cutoff h0r (by omega : w.sStar + 1 ≤ s - 1)
+    have hjoinCut := healing_reset_vote_cutoff h0r (by
+      simp only [Slot] at *
+      omega : w.sStar + 1 ≤ s - 1)
     have h := postReset_priorSupport_at_cut E rho hrec xing mono hHeadHorizon hGST hjoinCut
       hL hx hip' (by rw [hsucc]; exact hpv) hZHeads D hDHeads hf'
     change RetainedPriorSupport p (clock p (storeAt p c E rho ip x)
@@ -213,7 +216,9 @@ theorem postReset_coneInput_at_cut (i : Nat)
       exact block_preceq_trans hF (Bool.and_eq_true_iff.mp hstrict).2
     have hih' : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s - 1 + 1))) :=
       hsucc.symm ▸ hih
-    have hjoinCut := healing_reset_vote_cutoff h0r (by omega : w.sStar + 1 ≤ s - 1)
+    have hjoinCut := healing_reset_vote_cutoff h0r (by
+      simp only [Slot] at *
+      omega : w.sStar + 1 ≤ s - 1)
     have h := postReset_targetScores_at_cut E rho hrec xing mono hHeadHorizon hGST hjoinCut
       hcover hy hih' (by rw [hsucc]) hFL
     simpa only [hsucc] using h

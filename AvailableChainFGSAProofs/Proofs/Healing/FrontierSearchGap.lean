@@ -1,8 +1,11 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
+
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 
@@ -44,18 +47,21 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
     (hfold : foldTrichotomy p .progress)
     (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
-    {m : Nat} (hgst : E.t_GST ≤ u)
+    {m : Nat} (hready : recoveryStart p E ≤ u)
     (hp : PhaseInterval p c E rho u D m none false)
     (mode : FrontierRepairStart p E G u ρbar)
     (hbudget : u + ρbar + (2 * P p + Γ p G - 4 * p.Δ) ≤ D) :
     ∃ t, u ≤ t ∧ t ≤ D ∧ StrongServed p c E rho m t := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
   simp only [Time, Height] at *
   have hP := frontierSearch_period_bound p
   have hΓ := (fgsa_gamma_bounds p G).1
   have hbudget0 : u + ρbar ≤ D := by linarith [hrec.gapPos, p.deltaPos]
   obtain ⟨q, Q, hseed, hgate, hQ, hexact⟩ := frontierSearch_repair_seed E rho repair
-    hrec.gap hrec.gapPos hgst hp mode hbudget0
+    (healing_proposal_gap hrec) hrec.gapPos hready hp mode hbudget0
   have huq := frontierSearch_seed_after E hseed
   have hqg : SA.proposalTime p.toParams q ≤ SA.gateTime p.toParams q := by
     change _ ≤ SA.proposalTime p.toParams q + 6 * p.Δ
@@ -63,12 +69,12 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
   have hgateD := hgate.trans hbudget0
   obtain ⟨iq, Qfg, hiq, hQmem, hErase⟩ := healing_rise_one_gate_copy p c E rho
     hrec.base.valid.toScheduleWellFormed hexact (hgateD.trans hp.2.1) hQ.1.2
-    (healing_recovery_gate_reader hrec hQ.1.2 (hgst.trans huq) (hgateD.trans hp.2.1))
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec crossing hgst hp huq hgateD
+    (healing_recovery_gate_reader hrec hQ.1.2 (hGST.trans huq) (hgateD.trans hp.2.1))
+  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec crossing hready hp huq hgateD
     hQ hErase hexact
   by_cases hhigh : (heightView p Qfg).h = m
   · exact ⟨_, huq.trans hqg, hgateD,
-      frontierSearch_save_seed E rho hgst hp hseed hQ hErase hhigh hexact hgateD⟩
+      frontierSearch_save_seed E rho hready hp hseed hQ hErase hhigh hexact hgateD⟩
   have hlow : (heightView p Qfg).h = m - 1 := by
     have hlo' : m - 1 ≤ (heightView p Qfg).h := by simpa using hlo
     exact Nat.le_antisymm (Nat.le_sub_one_of_lt (lt_of_le_of_ne hhi hhigh)) hlo'
@@ -83,10 +89,11 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
   have harD : p.actionTime r ≤ D := by linarith [hrec.gapPos, p.deltaPos]
   have hur : u ≤ p.actionTime r := by linarith
   have hpr := frontierSearch_phase_cut E rho hp hur harD
-  obtain ⟨_, _, hc, _, _, hlowOr⟩ := common u m none false q Q Qfg r hgst hQ hErase
+  obtain ⟨_, _, hc, _, _, hlowOr⟩ := common u m none false q Q Qfg r hready hQ hErase
     hexact huq hqr hfirst hpr
-  obtain ⟨l, hlq, hrepair⟩ := frontierSearch_seed_repair E rho repair hrec.gap hrec.gapPos
-    hgst hseed (m := m) (J := none) (contested := false)
+  obtain ⟨l, hlq, hrepair⟩ := frontierSearch_seed_repair E rho repair (healing_proposal_gap hrec)
+    hrec.gapPos
+    hready hseed (m := m) (J := none) (contested := false)
   have huvote : u ≤ SA.voteTime p.toParams (r * p.R) := by
     have hqrI : (q : Time) ≤ ((r * p.R : Nat) : Time) := by exact_mod_cast hqr
     change u ≤ 4 * p.Δ * ((r * p.R : Nat) : Time) + p.Δ
@@ -115,13 +122,13 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
       have ha := actionTime_periodW p r
       linarith [p.deltaPos]
     have hs := hrepair _ hps s _ hls le_rfl hnew
-    have hheights := frontierSearch_proposal_heights E rho hrec crossing hgst hp hut
+    have hheights := frontierSearch_proposal_heights E rho hrec crossing hready hp hut
       hsD hnew rfl hs
     have hh' : (heightView p X).h = m := Nat.le_antisymm hheights.2 hh
     have htq : SA.proposalTime p.toParams q < SA.proposalTime p.toParams s := by
       linarith
     exact ⟨_, by change u ≤ SA.proposalTime p.toParams s + 6 * p.Δ; linarith [p.deltaPos],
-      hsD, frontierSearch_save_seed E rho hgst hp (tfSeed_later p E hseed htq)
+      hsD, frontierSearch_save_seed E rho hready hp (tfSeed_later p E hseed htq)
         hnew rfl hh' hs hsD⟩
   rcases hlowOr hlow with he | ⟨⟨x, K, hx, hK, hKh⟩, _⟩
   · let x := V2.D.proposerOf rho (fgsaInterface p c) q
@@ -162,7 +169,7 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
       apply max_le <;> simp only [Time] at * <;> linarith [p.deltaPos]
     obtain ⟨s, X, hnew, _, hlater, hsD, hh⟩ := frontierSearch_age_service E rho hrec
       hδ hbound perm rowsReceipt progressCoverage hfold faultQ honestQuorum he hc
-      ⟨x, K, hx, hK, hKU⟩ hgst hstart huvote hp hwindow hgateBudget
+      ⟨x, K, hx, hK, hKU⟩ hready hstart huvote hp hwindow hgateBudget
     apply finish hnew hlater hsD
     simpa only [Nat.sub_add_cancel hp.2.2.1] using hh
   · let b := (r : Time) * P p + 4 * p.Δ
@@ -209,7 +216,7 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
     have hpts := frontierSearch_phase_cut E rho hp (hur.trans hat.le)
       (by change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hsD
           linarith only [hsD, p.deltaPos])
-    have hparent := healing_promotion_source_parent E rho perm hgst hpts huvote hat.le
+    have hparent := healing_promotion_source_parent E rho perm hready hpts huvote hat.le
       hx hK hslabel hnew
     have hpath : FGBlock.Preceq K X.parent := frontierSearch_lift
       ((eraseFG_parent X) ▸ hparent)
@@ -230,10 +237,6 @@ theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho) (monoAll : RMonoAll p
       c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
-      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
-      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (perm : TPerm p c E rho)
@@ -283,10 +286,12 @@ theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
     rw [← hbudget]
     exact (le_add_of_nonneg_right hρ).trans (le_add_of_nonneg_right htail0)
   obtain ⟨J, hp, _⟩ := healing_settle_start_on (hroots := hrec.base.receiptIdealization)
-    p c E rho crossing hrec.base.valid monoAll heldServices i ev _ m .gap hi hgst0
+    p c E rho crossing hrec.base.valid monoAll hrec
+    (fun _ ht => healing_ready_read_cutoff E ht)
+    (healing_phase_witness_receipts_recovery E rho hrec) i ev _ m .gap hi hgst0
     hsettle
     hhor hm hfront hkind hquiet
-  have hgst : E.t_GST ≤ ev.time + 3 * p.Δ := by linarith [p.deltaPos]
+  have hgst : recoveryStart p E ≤ ev.time + 3 * p.Δ := by linarith [p.deltaPos]
   obtain ⟨t, hut, htD, hs⟩ := frontierSearch_gap_phase E rho hrec crossing repair common
     hδ hbound perm rowsReceipt progressCoverage hfold faultQ honestQuorum hgst hp mode
     hbudget.le

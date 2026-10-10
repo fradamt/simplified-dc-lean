@@ -19,8 +19,9 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 -- R5: the exact frozen TRepair under the standing Recovery₂ and the R-contracts.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -31,6 +32,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -38,12 +40,13 @@ example
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     : TRepair p c E rho :=
-  healing_tRepair E rho hrec mono crossing qc writes
+  healing_tRepair E rho hrec mono crossing qc services writes
 
 -- R1: the retained H.6 input at an actual honest proposal/HEAD pair after β + 2k − 1.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (perm : TPerm p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -54,6 +57,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -61,23 +65,25 @@ example
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hgst : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {β : Slot} (hβ : u < SA.proposalTime p.toParams β) {s : Slot}
     (hls : SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s)
     (hvs : SA.voteTime p.toParams s ≤ v)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (scope : ProposalSupportScope E rho ip x (s - 1) (SA.proposalTime p.toParams s))
     {ih : Nat} {y : V} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s))) :
     RetainedH6Input p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s :=
-  retainedH6Input_on_repaired_reads E rho hrec mono crossing writes hgst hphase hβ hls hvs
-    hx hip hy hih
+  retainedH6Input_on_repaired_reads E rho hrec mono crossing writes perm hgst hphase hβ hls hvs
+    hx hip scope hy hih
 
 -- R2 at the boundary u = v_b: the H.6-S input with the b + k cut.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (perm : TPerm p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -88,6 +94,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -95,24 +102,26 @@ example
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     {v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {b : Slot}
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams b)
+    (hgst : recoveryStart p E ≤ SA.voteTime p.toParams b)
     (hphase : PhaseInterval p c E rho (SA.voteTime p.toParams b) v m J contested)
     (hwindow : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k)) {s : Slot}
     (hls : SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams s)
     (hvs : SA.voteTime p.toParams s ≤ v)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (scope : ProposalSupportScope E rho ip x (s - 1) (SA.proposalTime p.toParams s))
     {ih : Nat} {y : V} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s))) :
     RetainedH6Input p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s :=
-  retainedH6Input_on_synchronous_reads E rho hrec mono crossing writes hgst hphase le_rfl
-    hwindow hls hvs hx hip hy hih
+  retainedH6Input_on_synchronous_reads E rho hrec mono crossing writes perm hgst hphase le_rfl
+    hwindow hls hvs hx hip scope hy hih
 
 -- R2: the H.6-S HEAD equality at the boundary u = v_b.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (perm : TPerm p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -123,6 +132,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -130,19 +140,24 @@ example
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     {v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {b : Slot}
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams b)
+    (hgst : recoveryStart p E ≤ SA.voteTime p.toParams b)
     (hphase : PhaseInterval p c E rho (SA.voteTime p.toParams b) v m J contested)
     (hwindow : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k)) {s : Slot}
     (hls : SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams s)
     (hvs : SA.voteTime p.toParams s ≤ v) {Q : Block}
+    (heads : ∀ ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      RepairHeadServices E rho s ip x N)
     (hp : HonestProposal E rho (fgsaInterface p c) s Q) :
-    ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q :=
-  repair_head_one E rho hrec mono crossing writes hgst hphase le_rfl hwindow hls hvs hp
+    ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some Q :=
+  repair_head_one E rho hrec mono crossing writes perm hgst hphase le_rfl hwindow hls hvs heads hp
 
 -- R3: all five gate geometry fields, as a separate theorem.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -153,6 +168,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -160,19 +176,25 @@ example
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hgst : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} (hus : u ≤ SA.voteTime p.toParams s) (hgate : SA.gateTime p.toParams s ≤ v)
     {Q : Block} (hQs : Q.slot = s)
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s) :
-    ExactServiceGateGeometry E rho i x s Q :=
-  repair_gate_geometry E rho hrec mono crossing qc writes hgst hphase hus hgate hQs hhead
-    hx ht
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
+    (gates : RepairGateScope E rho s) :
+    ExactServiceGateGeometry E rho i x s Q := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
+  exact repair_gate_geometry E rho hrec mono crossing qc writes hGST hphase hus hgate
+    hQs (fun y hy _ => hhead y hy)
+    hx ht gates
 
 -- R4: the two-lease branch; the ρΓ budget is inclusive.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -183,6 +205,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -191,7 +214,7 @@ example
             (actView pre) w C)
     {Gp : Time} (hgap : ProposalGap p c E rho Gp)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hgst : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {β : Slot} (hβ : u < SA.proposalTime p.toParams β)
     (hmin : ∀ b, u < SA.proposalTime p.toParams b → β ≤ b) :
     RepairAfter p c E rho (β + 2 * p.k - 1) v ∧
@@ -199,12 +222,13 @@ example
       SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s ∧
       SA.gateTime p.toParams s ≤ u + ρΓ p Gp ∧
       HonestProposal E rho (fgsaInterface p c) s Q ∧ ExactService p c E rho s Q) :=
-  repair_two_lease E rho hrec mono crossing qc writes hgap hgst hphase hβ hmin
+  repair_two_lease E rho hrec mono crossing qc services writes hgap hgst hphase hβ hmin
 
 -- R4: the synchronous branch at u = v_b; the ρ₁ budget keeps the strict bound.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -215,6 +239,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -223,7 +248,7 @@ example
             (actView pre) w C)
     {Gp : Time} (hgap : ProposalGap p c E rho Gp)
     {v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {b : Slot}
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams b)
+    (hgst : recoveryStart p E ≤ SA.voteTime p.toParams b)
     (hphase : PhaseInterval p c E rho (SA.voteTime p.toParams b) v m J contested)
     (hmin : ∀ i, SA.voteTime p.toParams b ≤ SA.voteTime p.toParams i → b ≤ i)
     (hwindow : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k)) :
@@ -232,7 +257,8 @@ example
       SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams s ∧
       SA.gateTime p.toParams s < SA.voteTime p.toParams b + ρ₁ p Gp ∧
       HonestProposal E rho (fgsaInterface p c) s Q ∧ ExactService p c E rho s Q) :=
-  repair_synchronous E rho hrec mono crossing qc writes hgap hgst hphase le_rfl hmin hwindow
+  repair_synchronous E rho hrec mono crossing qc services writes hgap hgst hphase
+    le_rfl hmin hwindow
 
 end Signatures
 

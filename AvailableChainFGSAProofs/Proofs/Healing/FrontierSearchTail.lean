@@ -23,7 +23,8 @@ The closed horizon includes equality. No phase through this endpoint is assumed.
 theorem healing_frontierTail_row [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
-    (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
+    (scopeProducer : ∀ (q : Slot) (v : Time),
+      recoveryStart p E ≤ SA.proposalTime p.toParams q →
       SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →

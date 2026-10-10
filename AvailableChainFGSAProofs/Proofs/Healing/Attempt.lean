@@ -63,9 +63,11 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 section Lane
 variable [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (qc : RQCOrigin p c E rho)
+    (repairScopes : RepairServiceScopes E rho)
+    (openingScopes : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -76,6 +78,7 @@ variable [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -93,7 +96,8 @@ variable [Fintype V] (E : Generic.Env V)
           some ((heightView p C).h, (heightView p C).T_h.root))
 
 
-include hrec mono crossing qc writes rowCoverage
+include hrec mono crossing qc repairScopes openingScopes
+        writes rowCoverage
 
 variable
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
@@ -120,15 +124,19 @@ theorem healing_progressAttempt
   cases ht : k.task with
   | raise =>
     by_cases hp : k.phase = .contest
-    · exact healing_attempt_raise_contest E rho hrec mono crossing qc writes rowCoverage hδ
+    · exact healing_attempt_raise_contest E rho hrec mono crossing qc repairScopes openingScopes
+        writes rowCoverage hδ
         hbound rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor ht hp
-    · exact healing_attempt_raise_other E rho hrec mono crossing qc writes rowCoverage hδ
+    · exact healing_attempt_raise_other E rho hrec mono crossing qc repairScopes openingScopes
+        writes rowCoverage hδ
         hbound rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor ht hp
   | firstRow =>
     by_cases hp : k.phase = .contest
-    · exact healing_attempt_firstRow_contest E rho hrec mono crossing qc writes rowCoverage
+    · exact healing_attempt_firstRow_contest E rho hrec mono crossing qc repairScopes openingScopes
+        writes rowCoverage
         hvalid hstart hhor ht hp
-    · exact healing_attempt_firstRow_other E rho hrec mono crossing qc writes rowCoverage hδ
+    · exact healing_attempt_firstRow_other E rho hrec mono crossing qc repairScopes openingScopes
+        writes rowCoverage hδ
         hbound rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor ht hp
 
 end Lane

@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! G-HG1 retained cone input producer under a capped frontier (plan fgsa-s5-frontier §2.2,
@@ -20,9 +22,13 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 /-- Bounded service inputs for a capped frontier cone. No retained history is inferred. -/
 structure FrontierReadScope (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (q : Slot) (v : Time) : Prop where
-  readers : ∀ x ∈ rho.honest, confirmedReaderAtIdx p c E rho x
-    (afterTicksIdx rho (SA.gateTime p.toParams q)) (SA.gateTime p.toParams q)
   seed : ∀ x ∈ rho.honest, FastSupportScope E rho q v x
+  first : ∀ s, q + 1 ≤ s → SA.gateTime p.toParams s ≤ v →
+    E.t_GST ≤ SA.voteTime p.toParams s → ∀ i iq x,
+    x ∈ rho.honest → IsGateTick p c rho i x s → enabledGateAt p c E rho i x s →
+    rho.events[iq]? = some (.tick x (SA.voteTime p.toParams (s + 1))) →
+    joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)) →
+    FirstTransferScope E rho i iq x x s
   fast : ∀ w, q + 1 ≤ w → SA.gateTime p.toParams w ≤ v →
     ∀ x nd B, x ∈ rho.honest →
     postClock E rho x (SA.gateTime p.toParams w) = some nd →
@@ -49,13 +55,27 @@ structure FrontierReadScope (E : Generic.Env V)
 theorem FrontierReadScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {q : Slot} {u v : Time} (h : FrontierReadScope E rho q v) (huv : u ≤ v) :
     FrontierReadScope E rho q u :=
-  ⟨h.readers, fun x hx => (h.seed x hx).mono huv,
+  ⟨fun x hx => (h.seed x hx).mono huv,
+    fun s hs ht hSync => h.first s hs (ht.trans huv) hSync,
     fun w hw ht x nd B hx hnd hB => (h.fast w hw (ht.trans huv) x nd B hx hnd hB).mono huv,
     fun w hw ht hSync x st C B j hx hs hc hb hel hj =>
       (h.slow w hw (ht.trans huv) hSync x st C B j hx hs hc hb hel hj).mono huv,
     fun r hr ht => h.prior r hr (ht.trans huv),
     fun r hr ht => h.next r hr (ht.trans huv),
     fun r hr iy y t ht => h.carriers r hr iy y t (ht.trans huv)⟩
+
+/-- The inclusive seed-gate reader follows from the joined phase start. -/
+theorem frontier_seed_readers [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {q : Slot}
+    (hready : recoveryStart p E ≤ SA.proposalTime p.toParams q)
+    (hhor : SA.gateTime p.toParams q ≤ rho.horizon) :
+    ∀ x ∈ rho.honest, confirmedReaderAtIdx p c E rho x
+      (afterTicksIdx rho (SA.gateTime p.toParams q)) (SA.gateTime p.toParams q) := by
+  have hSync : E.t_GST ≤ SA.proposalTime p.toParams q := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
+  exact fun x hx => healing_recovery_gate_reader hrec hx hSync hhor
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1570–1574; plan §4 (q+1). DC: SAME grid arithmetic: a proposal at or after
@@ -217,7 +237,7 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hGST : E.t_GST ≤ u) (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
+    (hready : recoveryStart p E ≤ u) (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q)
     (hScopes : FrontierReadScope E rho q v) (hu : u ≤ SA.proposalTime p.toParams q)
     (hPhase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
@@ -231,10 +251,13 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
     (hrow : row ∈ (storeAt p c E rho i z0).base.obligations) (hlive : t < row.2.2) :
     ∀ y ∈ rho.honest, ∀ K, headAtLabel p c E rho y (s - 1) = some K →
       Block.Preceq row.1 K := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
   have hHQ := frontier_Q_heads E rho hrec mono crossing lastWrite hGST hErase hHeight hService
-    hScopes.readers hScopes.seed
+    (frontier_seed_readers hrec (hready.trans hu) (hqv.trans hvh)) hScopes.seed
     hu hPhase hqv hvh hcap
   have hqs : q + 2 ≤ s := fread_gate_prop hafter
   have hvs1 : SA.voteTime p.toParams (s - 1) ≤ v := by
@@ -251,7 +274,8 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
   have hdwt : SA.gateTime p.toParams w < t := fgsa_tick_time_strict E rho hS hjt hi hji
   have hws : w + 2 ≤ s := fread_gate_vote (hdwt.trans_le ht2)
   have hqh : SA.gateTime p.toParams q ≤ rho.horizon := hqv.trans hvh
-  obtain ⟨hgr, ⟨jq, hjq, _⟩, _, _, _⟩ := hService.2 hqh z0 hz (hScopes.readers z0 hz)
+  obtain ⟨hgr, ⟨jq, hjq, _⟩, _, _, _⟩ := hService.2 hqh z0 hz ((frontier_seed_readers hrec
+    (hready.trans hu) (hqv.trans hvh)) z0 hz)
   have hdqt : SA.gateTime p.toParams q < t := by
     refine lt_of_lt_of_le ?_ ht1
     exact lt_of_le_of_ne hafter (fread_gate_ne_prop q s)
@@ -265,7 +289,7 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
     have hjqi : jq < i := repair_idx_lt E rho hS hjq.1 hi hdqt
     have hpers := healing_lease_persist E rho hS hjt (Nat.lt_succ_of_lt hjjq) hjqi row hdl hrow
     obtain ⟨_, _, hle⟩ := frontier_seed_leases E rho hS hService hqh hz hjq.1
-      (hScopes.readers z0 hz)
+      ((frontier_seed_readers hrec (hready.trans hu) (hqv.trans hvh)) z0 hz)
     have hlt : SA.gateTime p.toParams q < row.2.2 := hdqt.trans hlive
     exact hbelowQ (hle row hpers hlt)
   · -- A write at q is below its gate result, Q.
@@ -331,6 +355,7 @@ theorem frontier_pivot_held [Fintype V] (E : Generic.Env V)
     {v : Time} (hvh : v ≤ rho.horizon)
     (hcap : ∀ i x, i ≤ timeIdx rho v → x ∈ rho.honest → (storeAt p c E rho i x).fg.h_max ≤ m)
     {r : Slot} (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
+    (hCut : HealingWindow p E 1 r)
     (hcoverQ : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K →
       Block.Preceq (eraseFG Qfg) K)
     {i : Nat} {y : V} {t : Time} (hy : y ∈ rho.honest) (hi : rho.events[i]? = some (.tick y t))
@@ -349,6 +374,7 @@ theorem frontier_pivot_held [Fintype V] (E : Generic.Env V)
     (((le_add_of_nonneg_right hd.le).trans hrt).trans htv).trans hvh
   obtain ⟨jy, hjy⟩ := healing_support_vote_tick E rho hS hrec.base.delta hy r hhorr
     (hrec.awake y hy _ hgstr hhorr)
+  have _hjoined := healing_recovery_joined_window E rho hrec hCut hy hhorr
   have hhl : headAtLabel p c E rho y r = some (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jy y).st (SA.voteTime p.toParams r)) r) := by
     unfold headAtLabel
@@ -408,7 +434,7 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip : Nat} {x : V}
-    (hGST : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q)
     (hHeight : (heightView p Qfg).h = m)
@@ -433,6 +459,9 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   intro y hy ih hih
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
@@ -441,7 +470,7 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
     linarith)).trans hqv
   have hcap := frontier_cap_before_on E rho mono huv hCap
   have hHQ := frontier_Q_heads E rho hrec mono crossing lastWrite hGST hErase hHeight hService
-    hScopes.readers hScopes.seed
+    (frontier_seed_readers hrec (hready.trans hu) (hqv.trans hHorizon)) hScopes.seed
     hu hPhase hqv hHorizon hcap
   have hqs : q + 2 ≤ s := fread_gate_prop hafter
   have hts : SA.proposalTime p.toParams s ≤ v := by
@@ -473,7 +502,7 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
       rcases ht with rfl | rfl
       · exact htv
       · exact le_rfl
-    exact frontier_lease_cover E rho hrec mono crossing lastWrite hGST hErase hHeight
+    exact frontier_lease_cover E rho hrec mono crossing lastWrite hready hErase hHeight
       hService hScopes
       hu hPhase hqv hHorizon hcap hafter hvs hz hi ht1 ht2 hrow' hlive
   -- Rename the slot as r + 1.
@@ -504,11 +533,11 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
   have hCut : HealingWindow p E 1 r :=
     HealingWindow.after (hGST.trans hu) (Nat.le_of_succ_le_succ hqs)
   obtain ⟨_, _, hZx, hlox⟩ := frontier_pivot_held E rho hrec crossing hHeight hHorizon hcap
-    hgstr hcovQ hx hip hrp hts
+    hgstr hCut hcovQ hx hip hrp hts
     (healing_carriers_window_at p c E rho hrec hCut
       (hScopes.carriers r (Nat.le_of_succ_le_succ hqs) ip x _ hts) hx hip hrp)
   obtain ⟨_, _, hZy, hloy⟩ := frontier_pivot_held E rho hrec crossing hHeight hHorizon hcap
-    hgstr hcovQ hy hih (hrp.trans htv) hvs
+    hgstr hCut hcovQ hy hih (hrp.trans htv) hvs
     (healing_carriers_window_at p c E rho hrec hCut
       (hScopes.carriers r (Nat.le_of_succ_le_succ hqs) ih y _ hvs) hy hih (hrp.trans htv))
   have hcs : controls p (clock p (rho.stateBefore E ip x).st
@@ -604,7 +633,7 @@ theorem retainedHG1Input_before_first_rise [Fintype V] (E : Generic.Env V)
     {u stop : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip : Nat} {x : V}
     {jStop : Nat} {evStop : V2.Event V (Obj p)}
-    (hGST : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q)
     (hHeight : (heightView p Qfg).h = m)
@@ -631,6 +660,9 @@ theorem retainedHG1Input_before_first_rise [Fintype V] (E : Generic.Env V)
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   intro y hy ih hih ⟨hafter, _⟩
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
@@ -656,7 +688,7 @@ theorem retainedHG1Input_before_first_rise [Fintype V] (E : Generic.Env V)
     · exact le_rfl
     · change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
       linarith
-  exact retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight
+  exact retainedHG1Input_through E rho hrec mono crossing lastWrite hready hQ hErase hHeight
     hService hScopes hu hPhase hqs (hsStop.le.trans hstoph)
     (fun i z hi1 hi2 hz => hCapStop i z hi1 (hi2.trans hcut) hz) hx hip hseat N hem
     hafter le_rfl y hy ih hih

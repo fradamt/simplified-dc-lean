@@ -563,12 +563,12 @@ theorem healing_frontier_read_scope_of_factories {G ΔF : Time}
     (hCut : HealingWindow p E 1 q)
     (hGate : SA.gateTime p.toParams q ≤ v) (hHor : v ≤ rho.horizon) :
     FrontierReadScope E rho q v := by
+  have _hBound : SA.gateTime p.toParams q ≤ rho.horizon := hGate.trans hHor
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro x hx
-    exact healing_recovery_gate_reader hrec hx
-      (healing_gate_cut_of_batch_cut E q hCut.2) (hGate.trans hHor)
-  · intro x hx
     exact healing_fast_support_scope_of_factories E rho first next gates carriers hrec hCut hx
+  · intro s _ _ hSync i iq x hx hi hg hq hj
+    exact first s i iq x x hSync hx hx hi hq hg hj
   · intro w hw _ x nd B hx _ _
     exact healing_fast_support_scope_of_factories E rho first next gates carriers
       hrec (hCut.mono ((Nat.le_succ q).trans hw)) hx

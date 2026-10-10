@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -25,7 +27,7 @@ private theorem frontierSearch_age_advance (E : Generic.Env V)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {r height : Nat} {s : Slot} {Q : Block} {X : FGBlock (Fin p.n)}
     (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     {U0 : FGBlock (Fin p.n)}
@@ -36,8 +38,11 @@ private theorem frontierSearch_age_advance (E : Generic.Env V)
     (hage : SA.proposalTime p.toParams U0.slot + 2 * P p ≤ SA.proposalTime p.toParams s)
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X)) (hslot : X.slot = s) :
     height + 1 ≤ (heightView p X).h := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
-  have hstart : E.t_GST ≤ p.actionTime r := hgst.trans (by
+  have hstart : E.t_GST ≤ p.actionTime r := hGST.trans (by
     have havote : SA.voteTime p.toParams (r * p.R) ≤ p.actionTime r := by
       rw [actionTime_periodW]
       change 4 * p.Δ * ((r * p.R : Nat) : Time) + p.Δ ≤
@@ -49,7 +54,7 @@ private theorem frontierSearch_age_advance (E : Generic.Env V)
     healing_promotion_row_deadline E rho hrec hbound (rSent := r) le_rfl hstart hc
   have hhor : SA.proposalTime p.toParams s ≤ rho.horizon := hphase.2.1
   obtain ⟨U, hU, hUslot, hUP, hrows⟩ := healing_promotion_same_rows E rho hrec perm
-    hentry hcovered hgst hphase hu hgate hafter hnew hslot
+    hentry hcovered hready hphase hu hgate hafter hnew hslot
   have hUU : U = U0 := by
     obtain ⟨x, K, hx, hK, hKU⟩ := hsource
     obtain ⟨K', _, _, _, _, _, hK', _, _, _, _, _, hKU', _⟩ := hrows x hx
@@ -179,7 +184,7 @@ theorem frontierSearch_age_service (E : Generic.Env V)
     (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
     (hsource : ∃ x K, x ∈ rho.honest ∧ actionSourceFG p c E rho x r = some (some K) ∧
       (heightView p K).T_h = U)
-    (hgst : E.t_GST ≤ u) (hstart : E.t_GST ≤ (r : Time) * P p)
+    (hready : recoveryStart p E ≤ u) (hstart : E.t_GST ≤ (r : Time) * P p)
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hp : PhaseInterval p c E rho u D m J contested)
     (hwin : max ((r : Time) * P p + betaF p ΔF - 4 * p.Δ)
@@ -189,6 +194,9 @@ theorem frontierSearch_age_service (E : Generic.Env V)
     ∃ s X, HonestProposal E rho (fgsaInterface p c) s (eraseFG X) ∧ X.slot = s ∧
       p.actionTime r < SA.proposalTime p.toParams s ∧
       SA.gateTime p.toParams s ≤ D ∧ height + 1 ≤ (heightView p X).h := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   obtain ⟨_, s, hlo, hhi, hslot, _, hgate⟩ :=
     healing_promotion_age_gap E rho hrec.toRecovery₂ r U.slot hstart hwin
   have hgateD : SA.gateTime p.toParams s ≤ D := hgate.trans hbudget
@@ -233,9 +241,9 @@ theorem frontierSearch_age_service (E : Generic.Env V)
         ((hws.trans hhor).trans_lt (lt_add_of_pos_right _ (by decide)))
     exact hwgst.trans hcut
   obtain ⟨X, hnew, hXslot, _⟩ := healing_promotion_slot_proposal E rho hrec.toRecovery₂
-    hslot (hgst.trans hut) hhor hjoin
+    hslot (hGST.trans hut) hhor hjoin
   have hh := frontierSearch_age_advance E rho hrec.toRecovery₂ hδ hbound perm rowsReceipt
-    progressCoverage hfold faultQ honestQuorum hentry hcovered hgst hpT hu hsource
+    progressCoverage hfold faultQ honestQuorum hentry hcovered hready hpT hu hsource
     hc hat.le hage hnew hXslot
   exact ⟨s, X, hnew, hXslot, hat, hgateD, hh⟩
 

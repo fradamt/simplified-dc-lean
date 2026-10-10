@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpen
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! TFrontier's per-opening conjunction, frontier plan §2.4 and §3.1 step 8.
@@ -31,7 +33,7 @@ theorem frontier_openings [Fintype V] (E : Generic.Env V)
           some ((heightView p C).h, (heightView p C).T_h.root))
     (u v : Time) (m : Nat) (J : Option (FGBlock (Fin p.n))) (contested : Bool)
     (q : Nat) (Q : Block) (Qfg : FGBlock (Fin p.n))
-    (hgst : E.t_GST ≤ u) (_hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (_hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (_hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
@@ -50,9 +52,9 @@ theorem frontier_openings [Fintype V] (E : Generic.Env V)
       (∀ x K, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) →
         (heightView p K).T_h = (heightView p Qfg).T_h) := by
     rcases lt_or_eq_of_le hqr with hlt | heq
-    · exact frontier_open_later E rho hrec crossing rowCoverage hgst hQfg hh hexact hu
+    · exact frontier_open_later E rho hrec crossing rowCoverage hready hQfg hh hexact hu
         hlt hav hvh hcap (hserved r hlt hav)
-    · exact frontier_open_q_eq E rho hrec crossing rowCoverage hgst hQfg hh hexact hu
+    · exact frontier_open_q_eq E rho hrec crossing rowCoverage hready hQfg hh hexact hu
         heq hav hvh hcap
   exact ⟨hopen.1, hopen.2.1, hopen.2.2, frontier_open_time q r hqr⟩
 

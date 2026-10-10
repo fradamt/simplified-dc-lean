@@ -3,6 +3,8 @@ public import AvailableChainFGSAClaims.Statements.Fold
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
+
 public section
 
 /-! Blueprint 21 HG.3--HG.5 and H.11; frontier plan §3.3.
@@ -22,7 +24,7 @@ DC: SAME all frozen seed premises, including both first-label proofs.
 The cap is at the current endpoint. A later endpoint needs its own cap. -/
 def StrongServed (m : Nat) (t : Time) : Prop :=
   ∃ u J contested q Q Qfg,
-    E.t_GST ≤ u ∧ HonestProposal E rho (fgsaInterface p c) q Q ∧
+    recoveryStart p E ≤ u ∧ HonestProposal E rho (fgsaInterface p c) q Q ∧
     eraseFG Qfg = Q ∧ (heightView p Qfg).h = m ∧ ExactService p c E rho q Q ∧
     FrontierSeedQualification p E u q ∧ u ≤ SA.proposalTime p.toParams q ∧
     PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested ∧
@@ -33,7 +35,7 @@ def StrongServed (m : Nat) (t : Time) : Prop :=
 /-- Blueprint 21 HG.1; plan §3.3. DC: SAME the complete internal witness interface. -/
 theorem strongServed_iff (m : Nat) (t : Time) : StrongServed p c E rho m t ↔
   ∃ u J contested q Q Qfg,
-    E.t_GST ≤ u ∧ HonestProposal E rho (fgsaInterface p c) q Q ∧
+    recoveryStart p E ≤ u ∧ HonestProposal E rho (fgsaInterface p c) q Q ∧
     eraseFG Qfg = Q ∧ (heightView p Qfg).h = m ∧ ExactService p c E rho q Q ∧
     FrontierSeedQualification p E u q ∧ u ≤ SA.proposalTime p.toParams q ∧
     PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested ∧
@@ -52,7 +54,7 @@ theorem StrongServed.toServedFrontier {m : Nat} {t : Time}
 DC: SAME an event start or the actual inclusive cut, without a served flag. -/
 def FrontierSearchStart (i : Nat) (ev : V2.Event V (Obj p)) (m : Nat)
     (kind : PhaseKind) : Prop :=
-  rho.events[i]? = some ev ∧ E.t_GST ≤ ev.time ∧
+  rho.events[i]? = some ev ∧ recoveryStart p E ≤ ev.time ∧
   (EffectiveEvent p c E rho i ∨
     ∃ rG, recoveryStart p E ≤ p.actionTime rG ∧
       (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) ∧
@@ -63,7 +65,7 @@ def FrontierSearchStart (i : Nat) (ev : V2.Event V (Obj p)) (m : Nat)
 /-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
 theorem frontierSearchStart_iff (i : Nat) (ev : V2.Event V (Obj p)) (m : Nat)
     (kind : PhaseKind) : FrontierSearchStart p c E rho i ev m kind ↔
-  rho.events[i]? = some ev ∧ E.t_GST ≤ ev.time ∧
+  rho.events[i]? = some ev ∧ recoveryStart p E ≤ ev.time ∧
   (EffectiveEvent p c E rho i ∨
     ∃ rG, recoveryStart p E ≤ p.actionTime rG ∧
       (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) ∧
@@ -151,7 +153,7 @@ def TerminalPromotionFact [Fintype V] (G ΔF : Time) : Prop :=
   p.E.q ≤ p.E.weightOf (honestSeats p c rho) →
   ∀ r, p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ ≤ rho.horizon →
     ∀ u m J contested l q Q height,
-      E.t_GST ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
+      recoveryStart p E ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
       u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
       SA.proposalTime p.toParams l < SA.proposalTime p.toParams q →
       HonestProposal E rho (fgsaInterface p c) q Q → ExactService p c E rho q Q →

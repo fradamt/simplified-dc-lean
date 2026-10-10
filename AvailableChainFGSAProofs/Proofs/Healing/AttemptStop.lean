@@ -47,9 +47,9 @@ theorem healing_attempt_no_event {k : AttemptKey} {budget : Time}
 This extracts that arm; it makes no settlement claim. -/
 theorem healing_attempt_inclusive_start {k : AttemptKey}
     (hvalid : AttemptValid p c E rho k) (hne : ¬ EffectiveEvent p c E rho k.start) :
-    ∃ ev rG, rho.events[k.start]? = some ev ∧ E.t_GST ≤ ev.time ∧
-      E.t_GST ≤ p.actionTime rG ∧
-      (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) ∧
+    ∃ ev rG, rho.events[k.start]? = some ev ∧ recoveryStart p E ≤ ev.time ∧
+      recoveryStart p E ≤ p.actionTime rG ∧
+      (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) ∧
       ev.time = p.actionTime (rG + 2) ∧
       timeIdx rho (p.actionTime (rG + 2)) = k.start + 1 := by
   obtain ⟨ev, hi, hgst, hstart, _⟩ := hvalid

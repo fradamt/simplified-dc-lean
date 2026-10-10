@@ -59,7 +59,8 @@ gate_finality below supplies the target floor at arbitrary labels.
 Blueprint 21 H.17:2946–3040; plan RE-BIND D2; DC: SAME per-label cone. -/
 theorem healing_postReset_opening_target_floor_at [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     {v : Slot} (hcone : PostResetConeAt p c E rho w v)
     (i : Nat) (hopening : PostResetOpeningDomain p c E rho w i)
@@ -75,7 +76,7 @@ theorem healing_postReset_opening_target_floor_at [Fintype V]
           (SA.gateTime p.toParams v)).fg.F) K := by
   have hGateHorizon := (hrec.base.valid.toScheduleWellFormed.in_horizon _
     (List.mem_of_getElem? ht)).2
-  have hhead := healing_postReset_exactHead_at E rho hrec w hreset hcone Q hp hv
+  have hhead := healing_postReset_exactHead_at E rho hrec mono w hreset hcone Q hp hv
     (postReset_head_horizon p c rho hGateHorizon)
   have hFQ := healing_postReset_opening_finality E rho w i hopening hk hx ht hp hv r hr
   intro q hy _ K he
@@ -89,14 +90,14 @@ DC: SAME old-output split and stored strict-slot order. Standing mono has
 producer fgsa_rMono. The current F bound is a derived gate fact. -/
 theorem healing_postReset_gate_old_output
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho)
-    (mono : RMono p c E rho) {k : Nat} {x : V} {v : Slot} {Q : Block}
+    (hE : V2.D.ExecutionValid E rho)
+    (mono : RMonoAll p c E rho) {k : Nat} {x : V} {v : Slot} {Q : Block}
     (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
     (hp : HonestProposal E rho (fgsaInterface p c) v Q)
     (hFQ : Block.Preceq (eraseFG (storeAt p c E rho k x).fg.F) Q) :
     Block.Preceq Q ((fgsaAC E rho).output k x) → (fgsaAC E rho).output k x = Q := by
   intro hQo
-  rcases repair_output_bound E rho hE hN mono hx ht k le_rfl with h | ⟨hm, hsl⟩
+  rcases repair_output_bound E rho hE mono hx ht k le_rfl with h | ⟨hm, hsl⟩
   · exact block_preceq_antisymm (block_preceq_trans h hFQ) hQo
   · by_contra hne
     have hlt := repair_stored_slot_lt E rho hE k x hm hQo (Ne.symm hne)
@@ -106,7 +107,7 @@ theorem healing_postReset_gate_old_output
 section CompleteService
 variable [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (cap : RCap p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
@@ -120,7 +121,7 @@ variable [Fintype V]
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
 
-variable (mono : RMono p c E rho)
+variable (mono : RMonoAll p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -131,6 +132,7 @@ variable (mono : RMono p c E rho)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -161,11 +163,11 @@ theorem healing_postReset_gate_geometry_at (i : Nat) {v : Slot}
   have hGateHorizon := (hs.in_horizon _ (List.mem_of_getElem? ht)).2
   have hFQ := healing_postReset_gate_finality E rho hrec w hreset cap rowCovered
     i hfp hraw hk hx ht hp hv hcut
-  have hhead := healing_postReset_exactHead_at E rho hrec w hreset hcone Q hp hv
+  have hhead := healing_postReset_exactHead_at E rho hrec mono w hreset hcone Q hp hv
     (postReset_head_horizon p c rho hGateHorizon)
   have hreceipt : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams v)) v Q := by
-    refine ⟨?_, healing_postReset_gate_covered_prefix_at E rho hrec w hreset hcone
+    refine ⟨?_, healing_postReset_gate_covered_prefix_at E rho hrec mono w hreset hcone
       hp hv hGateHorizon⟩
     intro q hy _ K he
     have heq := exactService_emitted_head E rho hs v Q hhead q hy K
@@ -177,23 +179,15 @@ theorem healing_postReset_gate_geometry_at (i : Nat) {v : Slot}
   have hReleaseCut : timeIdx rho (SA.releaseTime p.toParams v) ≤ i :=
     (healing_postReset_time_cut_le_tick E rho hs ht hrelease).trans hk.le
   have hlower : w.sStar ≤ v := (Nat.le_add_right w.sStar 2).trans hv
-  have hguardAll := healing_postReset_gate_guard_at_cut E rho hrec w i hraw writes
-    hlower hGateHorizon hx ht hk hReleaseCut
-  have hgsts : E.t_GST ≤ SA.voteTime p.toParams v := by
-    refine (postReset_synchronous_window p c E rho w hreset hv).trans ?_
-    change 4 * p.Δ * (v : Int) - p.Δ ≤ 4 * p.Δ * (v : Int) + p.Δ
-    linarith [p.deltaPos]
-  have hvd : SA.voteTime p.toParams v + E.Δ ≤ SA.gateTime p.toParams v := by
-    rw [hrec.base.delta]
-    change 4 * p.Δ * (v : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
-    linarith [p.deltaPos]
-  have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
-    (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd hGateHorizon
-  obtain ⟨H, hH, hbatch, _⟩ := healing_postReset_gate_participation E rho hrec
-    hgsts (postReset_head_horizon p c rho hGateHorizon)
-  obtain ⟨hr, _, _, _⟩ := exactService_gate_raw_of_head (hroots := hrec.base.idealization)
-    E rho hrec.base.valid
-    hrec.base.noRestart hrec.base.delta hrec.base.cstar v Q hhead hSync ht hreceipt H hH hbatch
+  have hBatchCut := healing_reset_vote_cutoff (s := v) hreset
+    ((Nat.le_succ (w.sStar + 1)).trans hv)
+  have hEnabled := healing_recovery_gate_enabled E rho hrec hx ht
+    (healing_gate_cut_of_batch_cut E v hBatchCut)
+  have hguardAll := healing_postReset_gate_guard_at_cut E rho hrec.toRecovery₂ w i hraw writes
+    hlower (healing_window_of_cut E hBatchCut).sync hGateHorizon hx ht hEnabled hk hReleaseCut
+  have hresult := healing_postReset_gate_raw_at E rho hrec mono w hreset cap rowCovered
+    i hcone hfp hraw hk hx ht hp hv hcut
+  have hr := (fgsa_gate_raw_of_nonempty p c E rho hs ht hresult).2
   have hrawQ : (fgsaAC E rho).raw k v x = some Q := by
     have he := fgsa_clockPre_gateView p (storeAt p c E rho k x) v
     have hr' := hr
@@ -203,7 +197,7 @@ theorem healing_postReset_gate_geometry_at (i : Nat) {v : Slot}
   exact { toGateReceiptGeometry := hreceipt
           guard := hguardAll Q hrawQ
           old_output := healing_postReset_gate_old_output E rho hrec.base.valid
-            hrec.base.noRestart mono hx ht hp hFQ
+            mono hx ht hp hFQ
           opening_domain := healing_postReset_gate_opening_domain E rho w i hopening
             hk hx ht hp hv }
 
@@ -222,7 +216,7 @@ theorem healing_postReset_service_step_at (i : Nat)
     PostResetService p c E rho w i := by
   rw [PostResetService_def]
   intro v Q hp hv hcut
-  refine ⟨fun hh hc => healing_postReset_exactHead_at E rho hrec w hreset
+  refine ⟨fun hh hc => healing_postReset_exactHead_at E rho hrec mono w hreset
     (hcone v hc) Q hp hv hh, ?_⟩
   intro hGateHorizon hGateCut x hx
   have hconeV := hcone v (healing_postReset_head_cut_le_afterTicks E rho
@@ -244,7 +238,7 @@ theorem healing_postReset_service_step_at (i : Nat)
   have hgeom := healing_postReset_gate_geometry_at E rho hrec w hreset cap rowCovered
     mono writes i hconeV hfp hraw hopening hk hx ht hp hv hcut
   have hh := postReset_head_horizon p c rho hGateHorizon
-  have hhead := healing_postReset_exactHead_at E rho hrec w hreset hconeV Q hp hv hh
+  have hhead := healing_postReset_exactHead_at E rho hrec mono w hreset hconeV Q hp hv hh
   have hgsts : E.t_GST ≤ SA.voteTime p.toParams v := by
     refine (postReset_synchronous_window p c E rho w hreset hv).trans ?_
     change 4 * p.Δ * (v : Int) - p.Δ ≤ 4 * p.Δ * (v : Int) + p.Δ
@@ -265,11 +259,29 @@ theorem healing_postReset_service_step_at (i : Nat)
       (by simpa only [Nat.add_assoc] using hv)
     rw [← hslot] at hvpos
     exact Nat.lt_irrefl 0 hvpos
+  have hEnabled := healing_recovery_gate_enabled E rho hrec hx ht
+    (healing_reset_slot_cutoff hreset |>.trans (by
+      have hl : (w.sStar : Int) ≤ (v : Int) := by
+        exact_mod_cast ((Nat.le_add_right w.sStar 2).trans hv)
+      change 4 * p.Δ * (w.sStar : Int) ≤ 4 * p.Δ * (v : Int)
+      nlinarith [p.deltaPos]))
+  have hHJoined q : q ∈ H ↔ rho.seatOf (.base (.head v)) q ∈ rho.honest ∧
+      joinedAt p E rho (rho.seatOf (.base (.head v)) q) v (SA.voteTime p.toParams v) := by
+    rw [hH q]
+    constructor
+    · rintro ⟨hy, _⟩
+      exact ⟨hy, healing_recovery_joined E rho hrec hy
+        (healing_reset_vote_cutoff (s := v) hreset
+          ((Nat.le_succ (w.sStar + 1)).trans hv)) hgsts hh⟩
+    · rintro ⟨hy, _⟩
+      exact ⟨hy, hrec.awake _ hy _ hgsts hh⟩
   obtain ⟨hresult, ⟨j, hj, hpass⟩, hwrite, hstable, hsource⟩ :=
-    exactService_gate_at_of_head (hroots := hrec.base.idealization)
-      E rho hrec.base.valid hrec.base.noRestart hrec.base.delta
-      hrec.base.cstar v Q hne hhead hSync hx ht hgeom H hH hbatch hfast
-  exact ⟨hresult, ⟨j, healing_postReset_tick_lt_cut E rho hs hj hGateCut, hj, hpass⟩,
+    exactService_gate_at_of_head_on (hroots := hrec.base.receiptIdealization)
+      E rho hrec.base.valid hrec.base.delta hrec.base.cstar v Q hne
+      (fun y hy _ => hhead y hy) hSync hx ht hgeom
+      (healing_gate_receipt_scope_recovery E rho hrec mono hgsts hx hEnabled
+        hgeom.toGateReceiptGeometry) H hHJoined hbatch hfast
+  exact ⟨hresult, ⟨j, healing_postReset_tick_lt_cut E rho hs hj.1 hGateCut, hj.1, hpass⟩,
     hwrite, hstable, hsource⟩
 
 end CompleteService
@@ -292,11 +304,20 @@ theorem healing_postReset_exactService_at_cut
     ExactService p c E rho v Q := by
   rw [PostResetService_def] at hservice
   obtain ⟨hhead, hgate⟩ := hservice v Q hp hv hProposalCut
-  refine ⟨fun hh => hhead hh (hHeadCut hh), ?_⟩
-  intro hg x hx
+  refine ⟨fun hh x hx _ => hhead hh (hHeadCut hh) x hx, ?_⟩
+  intro hg x hx _
   obtain ⟨hraw, ⟨j, _, ht, hpass⟩, hfast, hstable, hsource⟩ :=
     hgate hg (hGateCut hg) x hx
-  exact ⟨hraw, ⟨j, ht, hpass⟩, hfast, hstable, hsource⟩
+  have hEnabled : enabledGateAt p c E rho j x v := by
+    obtain ⟨y, s, hy, _⟩ := hpass
+    have he := Option.some.inj (ht.symm.trans hy.1)
+    obtain ⟨rfl, htime⟩ := V2.Event.tick.inj he
+    have hslot : s = v := by
+      change 4 * p.Δ * (v : Int) + 6 * p.Δ = 4 * p.Δ * (s : Int) + 6 * p.Δ at htime
+      exact_mod_cast (show (s : Int) = (v : Int) by nlinarith [p.deltaPos])
+    subst s
+    exact hy
+  exact ⟨hraw, ⟨j, hEnabled, hpass⟩, hfast, hstable, hsource⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.17:2946–3048; plan J6-2 S2; B1/B17.
@@ -321,7 +342,8 @@ theorem healing_postReset_exactService
 Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
 theorem healing_postReset_opening_target_floor [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w)
     (i : Nat) (hopening : PostResetOpeningDomain p c E rho w i)
@@ -335,14 +357,14 @@ theorem healing_postReset_opening_target_floor [Fintype V]
         (ofHead p ⟨.seat (.head v) q, K.root⟩) (SA.voteTime p.toParams v) K →
         Block.Preceq (eraseFG (clockPre p (storeAt p c E rho k x)
           (SA.gateTime p.toParams v)).fg.F) K := by
-  exact healing_postReset_opening_target_floor_at E rho hrec w hreset
+  exact healing_postReset_opening_target_floor_at E rho hrec mono w hreset
     ((postResetRetainedCone_iff_at p c E rho w).mp hcone v)
     i hopening hk hx ht hp hv r hr
 
 section RunConeWrappers
 variable [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w)
     (cap : RCap p c E rho)
@@ -356,7 +378,7 @@ variable [Fintype V]
       ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
-    (mono : RMono p c E rho)
+    (mono : RMonoAll p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -367,6 +389,7 @@ variable [Fintype V]
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →

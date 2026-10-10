@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! H-COMMON: the frozen TCommon conjunction (blueprint 21 H.9; plan §3F.5).
@@ -55,12 +57,12 @@ at every opening in the phase, including q = rR, with earlier-or-current signed 
 theorem common_opening_covered
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested) :
     OpeningCovered p c E rho r Q :=
-  later_opening_covered E rho hrec mono crossing services writes rowCoverage hgst hQ hQfg
+  later_opening_covered E rho hrec mono crossing services writes rowCoverage hready hQ hQfg
     hexact hu hqr
     hphase
 
@@ -69,11 +71,14 @@ omit rowCoverage in
 theorem common_sameLabel_scope
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested) :
     SameLabelServiceScope E rho (r * p.R) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hn := card_eq_n_of_linked hrec.base.linked
   have hc : (Gen.V2.Duty.faulty rho).card + rho.honest.card = p.n := by
     rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
@@ -95,16 +100,15 @@ theorem common_sameLabel_scope
     linarith [p.deltaPos]
   have hs := hrec.base.valid.toScheduleWellFormed
   obtain ⟨i, ht⟩ := opening_action_tick E rho hs hrec.base.delta hx r hphase.2.1
-    (hrec.awake x hx _ (hgst.trans (hur.trans har)) hphase.2.1)
+    (hrec.awake x hx _ (hGST.trans (hur.trans har)) hphase.2.1)
   obtain ⟨K, hsrc, _⟩ := later_opening_source_extends E rho hrec mono crossing services writes
-    hgst hQ hQfg hexact hu hqr hphase hx ht
+    hready hQ hQfg hexact hu hqr hphase hx ht
   have hnd := opening_postClock_of_tick E rho hs ht
   have hK : actionSourceFG p c E rho x r = some (some K) := by
     rw [actionSourceFG_def, hnd]
     exact congrArg some hsrc
   obtain ⟨_, _, _, hfw⟩ := opening_source_body E rho hs ht hK
-  exact ((services.permanence u (p.actionTime r) m J contested hgst hphase).fast
-    (r * p.R) x _ (eraseFG K) hur le_rfl hx hnd hfw).sameLabel
+  exact healing_recovery_same_label E rho hrec (r * p.R) (hGST.trans hur)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.9:1100–1144, bp.commonEntry.v1; plan §3F.5.
@@ -130,7 +134,7 @@ and one height-one entry in the exact TCommon premise shape. This reuses H-GATE.
 theorem common_height_one
     {u : Time} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q) (hexact : ExactService p c E rho q Q)
     (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r')
@@ -138,7 +142,8 @@ theorem common_height_one
     0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
       OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 :=
-  opening_height_one E rho hrec mono crossing services writes rowCoverage hgst hQ hQfg hexact hu hqr
+  opening_height_one E rho hrec mono crossing services writes rowCoverage hready hQ hQfg hexact
+    hu hqr
     hfirst hphase
 
 end Common

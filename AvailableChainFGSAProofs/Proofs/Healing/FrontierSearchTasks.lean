@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget
@@ -60,20 +61,8 @@ DC: SAME HG.3 reaches a saved seed or advances phase; HG.4 finishes the rise. -/
 theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
-      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
-      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
+    (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
-    (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
-      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
-      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-      E.t_GST ≤ SA.proposalTime p.toParams s →
-      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
-      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
-        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
-      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
-        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (perm : TPerm p c E rho)
     (frontier : TFrontier p c E rho)
@@ -88,7 +77,7 @@ theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
     {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind}
     (hstart : FrontierSearchStart p c E rho i ev m kind)
-    (hdelay : E.t_GST + 2 * P p ≤ ev.time)
+    (hdelay : recoveryStart p E + 2 * P p ≤ ev.time)
     (hmode : ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1))
     (hhor : ev.time + frontierSearchRiseBudget p G ΔF ρbar ≤ rho.horizon) :
     FrontierRiseBy p c E rho i m (ev.time + frontierSearchRiseBudget p G ΔF ρbar) := by
@@ -96,7 +85,7 @@ theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
   have hbudget : ev.time + frontierSearch_remaining p G ΔF ρbar
       (2 * P p + Γ p G - 9 * p.Δ) kind ≤ ev.time + frontierSearchRiseBudget p G ΔF ρbar := by
     linarith only [hb]
-  rcases frontierSearch_phase_tail E rho hrec mono heldServices crossing origin repair common
+  rcases frontierSearch_phase_tail E rho hrec mono crossing origin repair common
     hδ hbound
       perm rowsReceipt progressCoverage hfold faultQ honestQuorum
       (2 * P p + Γ p G - 9 * p.Δ) ht hmode hstart hdelay
@@ -104,7 +93,7 @@ theorem frontierSearch_rise_task [Fintype V] (E : Generic.Env V)
   · exact frontierSearch_rise_mono p c E rho (hbudget) hr
   · have hf := ((frontierSearchStart_iff p c E rho i ev m kind).mp hstart).2.2.2.1
     exact frontierSearch_rise_mono p c E rho (htail.trans (hbudget))
-      (healing_frontierTail_rise_of_seed E rho hrec hδ hbound mono proposalServices crossing
+      (healing_frontierTail_rise_of_seed E rho hrec hδ hbound mono crossing
         frontier
         rowsReceipt progressCoverage hfold faultQ honestQuorum hf.le hserved
         ((htail.trans (hbudget)).trans hhor))
@@ -135,12 +124,10 @@ DC: SAME HG.3 plus the HG.4 row tail keeps exact height m and the frozen row bud
 theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
-      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
-      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
+    (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
-    (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
+    (scopeProducer : ∀ (q : Slot) (v : Time),
+      recoveryStart p E ≤ SA.proposalTime p.toParams q →
       SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (perm : TPerm p c E rho)
@@ -183,7 +170,7 @@ theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
     {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind}
     (hstart : FrontierSearchStart p c E rho i ev m kind)
-    (hdelay : E.t_GST + 2 * P p ≤ ev.time)
+    (hdelay : recoveryStart p E + 2 * P p ≤ ev.time)
     (hmode : ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1))
     (hhor : ev.time + frontierSearchRowBudget p G ΔF ρbar ≤ rho.horizon) :
     FirstHeightRowBy p c E rho m (ev.time + frontierSearchRowBudget p G ΔF ρbar) := by
@@ -191,7 +178,7 @@ theorem frontierSearch_row_task [Fintype V] (E : Generic.Env V)
   have hbudget : ev.time + frontierSearch_remaining p G ΔF ρbar
       (P p - 4 * p.Δ) kind ≤ ev.time + frontierSearchRowBudget p G ΔF ρbar := by
     linarith only [hb]
-  rcases frontierSearch_phase_tail E rho hrec mono heldServices crossing origin repair common
+  rcases frontierSearch_phase_tail E rho hrec mono crossing origin repair common
     hδ hbound
       perm rowsReceipt progressCoverage hfold faultQ honestQuorum
       (P p - 4 * p.Δ) ht hmode hstart hdelay
@@ -243,7 +230,7 @@ theorem frontierSearch_cut_start [Fintype V] (E : Generic.Env V)
         have := p.deltaPos
         change 0 ≤ 4 * (p.R : Time) * p.Δ
         positivity
-      linarith) hhor)
+      linarith [hstart, p.deltaPos]) hhor)
   rw [← hgrid] at hj
   have hcut : ∃ (i : Nat) (ev : V2.Event V (Obj p)), rho.events[i]? = some ev ∧
       ev.time = u₀ ∧ timeIdx rho u₀ = i + 1 :=

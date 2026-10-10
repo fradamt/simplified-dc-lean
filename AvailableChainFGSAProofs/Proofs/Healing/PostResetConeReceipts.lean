@@ -26,7 +26,7 @@ DC: SAME held honest HEAD in the receiver store before its early deadline.
 The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_head_receipt_at_cut [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho) (_crossing : RXing p c E rho)
     {r : Slot} {jz j : Nat} {z x : V} {t : Time}
     (_hz : z ∈ rho.honest)
@@ -71,16 +71,11 @@ Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME resolved non-equivocating honest seat in the proposer pool.
 The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     (mono : RMonoAll p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
     {r : Slot}
-    (services : ∀ jz z, z ∈ rho.honest →
-      rho.events[jz]? = some (.tick z (SA.voteTime p.toParams r)) →
-      joinedNow p (clock p (storeAt p c E rho jz z)
-        (SA.voteTime p.toParams r)) = true →
-      E.t_GST ≤ SA.voteTime p.toParams r → HeadWitnessReceiptScope E rho jz z r)
     {B : Block} (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
     (hcut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq B K)
@@ -100,7 +95,6 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
       (SA.proposalTime p.toParams (r + 1))) (r + 1)) k = false := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   let st := FGSA.clock p (storeAt p c E rho ip x) (SA.proposalTime p.toParams (r + 1))
@@ -114,14 +108,15 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
   have hhorr : SA.voteTime p.toParams r ≤ rho.horizon := hvv.trans hvh
   have hawake := hrec.awake z hk _ hgstr hhorr
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr hawake
-  have hjoined := healing_vote_joined_of_recovery hrec hk hjz hhorr hcut
+  have hjoined := healing_vote_joined_of_recovery hrec.toRecovery₂ hk hjz hhorr hcut
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake hjoined
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams r)) r
   have hBK : Block.Preceq B K := hcover z hk K hhl
   obtain ⟨Kfg, hKz, hKe0, hrelay⟩ := postReset_head_receipt_at_cut E rho hrec mono crossing hk hjz
     hx hip hgstr hvp (hFHeads z hk K hhl) hReadJoined
-    (services jz z hk hjz hjoined hgstr)
+    (healing_head_witness_receipts_recovery E rho hrec crossing hk hjz
+      hgstr ((hvp.trans hv).trans hvh))
   have hKe' : eraseFG Kfg = K := hKe0
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF :=
     (fgsa_store_durable p c E rho
@@ -137,49 +132,37 @@ theorem postReset_proposal_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     have hm := ((cstoreInv_stateBefore E rho jz z).baseTree (eraseFG Kfg)).mpr ⟨Kfg, hKz, rfl⟩
     rw [hKe'] at hm
     have hb := (fgsa_stateBefore_bounds E rho hS jz z).1 K hm
-    have hpos : 0 < SA.voteTime p.toParams r := by
-      change 0 < 4 * p.Δ * (r : Int) + p.Δ
-      positivity
-    have hn := fgsa_preTick_now_lt E rho hS hjz hpos
-    have hsl := Internal.slotOf_mono (p := p) (le_of_lt hn)
+    have hn := fgsa_preTick_now_le E rho hS hjz
+    have hsl := Internal.slotOf_mono (p := p) hn
     have he : p.slotOf (SA.voteTime p.toParams r) = r :=
       (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho jz z) _).2.symm.trans
         (fgsa_vote_slot (c := c) _ r)
     exact hb.trans (hsl.trans_eq he)
-  -- The vote arrives by e_r and is kept at the proposal read.
-  have hvd : SA.voteTime p.toParams r + E.Δ ≤ SA.voteTime p.toParams r + E.Δ := le_rfl
-  have hdt : SA.voteTime p.toParams r + E.Δ ≤ rho.horizon := by
-    rw [hDelta]
-    exact (hvp.trans hv).trans hvh
-  obtain ⟨dl, cut, hD, _, hlt, hdl, _, hdcut, _⟩ :=
-    Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ hrec.sync
-      (fgsaDelay_nonrow E.Δ _) hgstr hvd hdt
-  have hdle : dl (SA.voteTime p.toParams r) ≤ SA.voteTime p.toParams r + p.Δ := by
-    have h := hdl (SA.voteTime p.toParams r)
-    rwa [max_self, hDelta] at h
-  have hwindow : (V2.D.Run.stateBeforeTime E rho (dl (SA.voteTime p.toParams r)) x).st.slot p ≤
-      r + 1 := by
-    have h := healing_support_read_window E rho hS hN hip _ (hdle.trans hvp)
-    have he : p.slotOf (SA.proposalTime p.toParams (r + 1)) = r + 1 := by
-      have h0 := slotOf_offset p (r + 1) 0 le_rfl (by positivity)
-      rw [add_zero] at h0
-      exact h0
-    exact h.trans_eq he
-  have hcut : dl (SA.voteTime p.toParams r) ≤ cut := by
-    refine hdle.trans (le_trans ?_ hdcut)
-    rw [hDelta]
-  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K.root
-    (SA.voteTime p.toParams r) z x hD hk hem hx hcut (hlt _) hwindow
+  have hEarly : SA.earlyTime p.toParams r ≤ SA.proposalTime p.toParams (r + 1) := by
+    change 4 * p.Δ * (r : Int) + 2 * p.Δ ≤ _
+    have h := hvp
+    change 4 * p.Δ * (r : Int) + p.Δ + p.Δ ≤ _ at h
+    linarith
+  have hemAt : ofHead p ⟨.seat (.head r) k, K.root⟩ ∈ rho.emitsAt E jz := by
+    rw [(V2.D.Run.step_tick_eq E rho hjz).2]
+    exact (fgsa_emits_head E rho _ z _ r k K.root).mpr
+      ⟨hawake, rfl, rfl, hjoined, rfl⟩
+  obtain ⟨hFresh⟩ := healing_fresh_head_service E rho hrec hx hk
+    hem hgstr le_rfl ((hEarly.trans hv).trans hvh)
+  obtain ⟨hom, hos⟩ := hFresh.receipt hE hx hjz hemAt
   let o := baseVote (⟨.seat (.head r) k, K.root⟩ : HeadWire p.n)
-  have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams r)) ≤ ip :=
-    healing_support_idxBefore_le p c E rho hS hip (hdle.trans hvp)
+  have hidx : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams r) ≤ ip :=
+    healing_support_idxBefore_le p c E rho hS hip hEarly
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
-      (dl (SA.voteTime p.toParams r))) x).base.votes := by
+      (SA.earlyTime p.toParams r)) x).base.votes := by
     change o ∈ (V2.D.Run.stateBefore E rho _ x).st.base.votes
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
     exact hom
-  obtain ⟨hod, _⟩ := healing_support_vote_kept E rho hN hidx x
-    (SA.proposalTime p.toParams (r + 1)) o hom'
+  obtain ⟨hod, hods⟩ := healing_support_vote_kept_on E rho hidx x
+    (SA.proposalTime p.toParams (r + 1))
+    (healing_recovery_epoch_after_vote E rho hrec hx hgstr
+      (by change 4 * p.Δ * (r : Int) + p.Δ <
+            4 * p.Δ * (r : Int) + 2 * p.Δ; linarith [p.deltaPos]) ip) o hom'
   have hFK : Block.Compatible K (eraseFG st.fg.F) := by
     rw [clock_fg]
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K)
@@ -235,16 +218,11 @@ Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME resolved non-equivocating honest seat in the frozen HEAD pool.
 The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     (mono : RMonoAll p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
     {i : Slot}
-    (services : ∀ jz z, z ∈ rho.honest →
-      rho.events[jz]? = some (.tick z (SA.voteTime p.toParams i)) →
-      joinedNow p (clock p (storeAt p c E rho jz z)
-        (SA.voteTime p.toParams i)) = true →
-      E.t_GST ≤ SA.voteTime p.toParams i → HeadWitnessReceiptScope E rho jz z i)
     {B : Block} (hgsti : E.t_GST ≤ SA.voteTime p.toParams i)
     (hcut : E.t_GST ≤ slotStartZ p ((i : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K)
@@ -264,7 +242,6 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
       (SA.voteTime p.toParams (i + 1))) (i + 1)) k = false := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   let dst := FGSA.clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (i + 1))
@@ -278,14 +255,15 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
   have hhori : SA.voteTime p.toParams i ≤ rho.horizon := hvv.trans hvh
   have hawake := hrec.awake z hk _ hgsti hhori
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori hawake
-  have hjoined := healing_vote_joined_of_recovery hrec hk hjz hhori hcut
+  have hjoined := healing_vote_joined_of_recovery hrec.toRecovery₂ hk hjz hhori hcut
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake hjoined
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams i)) i
   have hBK : Block.Preceq B K := hcover z hk K hhl
   obtain ⟨Kfg, hKz, hKe0, hrelay⟩ := postReset_head_receipt_at_cut E rho hrec mono crossing hk hjz
     hy hiy hgsti hvi (hFHeads z hk K hhl) hReadJoined
-    (services jz z hk hjz hjoined hgsti)
+    (healing_head_witness_receipts_recovery E rho hrec crossing hk hjz
+      hgsti ((hvi.trans hv).trans hvh))
   have hKe' : eraseFG Kfg = K := hKe0
   have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
@@ -296,7 +274,10 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
       (healing_phase_idxBefore_mono p c rho hfz) y).1 h
     change Kfg ∈ (V2.D.Run.stateBefore E rho _ y).st.fg.TF at hc
     rwa [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hc
-  have hpath := healing_support_prefreeze_path E rho hS hN hiy hWf Kfg (KitFG.preceq_refl _)
+  have hpath := healing_support_prefreeze_path_on E rho hS hiy
+    (healing_recovery_epoch_after_vote E rho hrec hy hgsti
+      (by change 4 * p.Δ * (i : Int) + p.Δ <
+            4 * p.Δ * (i : Int) + 3 * p.Δ; linarith [p.deltaPos]) iy) hWf Kfg (KitFG.preceq_refl _)
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hKb : K ∈ dst.base.blocks := by
     rw [← hKe']
@@ -309,54 +290,44 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
     have hm := ((cstoreInv_stateBefore E rho jz z).baseTree (eraseFG Kfg)).mpr ⟨Kfg, hKz, rfl⟩
     rw [hKe'] at hm
     have hb := (fgsa_stateBefore_bounds E rho hS jz z).1 K hm
-    have hpos : 0 < SA.voteTime p.toParams i := by
-      change 0 < 4 * p.Δ * (i : Int) + p.Δ
-      positivity
-    have hn := fgsa_preTick_now_lt E rho hS hjz hpos
-    have hsl := Internal.slotOf_mono (p := p) (le_of_lt hn)
+    have hn := fgsa_preTick_now_le E rho hS hjz
+    have hsl := Internal.slotOf_mono (p := p) hn
     have he : p.slotOf (SA.voteTime p.toParams i) = i :=
       (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho jz z) _).2.symm.trans
         (fgsa_vote_slot (c := c) _ i)
     exact hb.trans (hsl.trans_eq he)
-  -- The vote arrives by e_i and keeps its stamp at the v_(i+1) read.
-  have hvd : SA.voteTime p.toParams i + E.Δ ≤ SA.voteTime p.toParams i + E.Δ := le_rfl
-  have hdt : SA.voteTime p.toParams i + E.Δ ≤ rho.horizon := by
-    rw [hDelta]
-    exact (hvi.trans hv).trans hvh
-  obtain ⟨dl, cut, hD, _, hlt, hdl, _, hdcut, _⟩ :=
-    Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ hrec.sync
-      (fgsaDelay_nonrow E.Δ _) hgsti hvd hdt
-  have hdle : dl (SA.voteTime p.toParams i) ≤ SA.voteTime p.toParams i + p.Δ := by
-    have h := hdl (SA.voteTime p.toParams i)
-    rwa [max_self, hDelta] at h
-  have hwindow : (V2.D.Run.stateBeforeTime E rho (dl (SA.voteTime p.toParams i)) y).st.slot p ≤
-      i + 1 := by
-    have h := healing_support_read_window E rho hS hN hiy _ (hdle.trans hvi)
-    have he : p.slotOf (SA.voteTime p.toParams (i + 1)) = i + 1 :=
-      (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho iy y) _).2.symm.trans
-        (fgsa_vote_slot (c := c) _ (i + 1))
-    exact h.trans_eq he
-  have hcutd : dl (SA.voteTime p.toParams i) ≤ cut := by
-    refine hdle.trans (le_trans ?_ hdcut)
-    rw [hDelta]
-  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K.root
-    (SA.voteTime p.toParams i) z y hD hk hem hy hcutd (hlt _) hwindow
+  have hEarly : SA.earlyTime p.toParams i ≤ SA.voteTime p.toParams (i + 1) := by
+    change 4 * p.Δ * (i : Int) + 2 * p.Δ ≤ _
+    have h := hvi
+    change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ _ at h
+    linarith
+  have hemAt : ofHead p ⟨.seat (.head i) k, K.root⟩ ∈ rho.emitsAt E jz := by
+    rw [(V2.D.Run.step_tick_eq E rho hjz).2]
+    exact (fgsa_emits_head E rho _ z _ i k K.root).mpr
+      ⟨hawake, rfl, rfl, hjoined, rfl⟩
+  obtain ⟨hFresh⟩ := healing_fresh_head_service E rho hrec hy hk
+    hem hgsti le_rfl ((hEarly.trans hv).trans hvh)
+  obtain ⟨hom, hos⟩ := hFresh.receipt hE hy hjz hemAt
   let o := baseVote (⟨.seat (.head i) k, K.root⟩ : HeadWire p.n)
-  have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams i)) ≤ iy :=
-    healing_support_idxBefore_le p c E rho hS hiy (hdle.trans hvi)
+  have hidx : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams i) ≤ iy :=
+    healing_support_idxBefore_le p c E rho hS hiy hEarly
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
-      (dl (SA.voteTime p.toParams i))) y).base.votes := by
+      (SA.earlyTime p.toParams i)) y).base.votes := by
     change o ∈ (V2.D.Run.stateBefore E rho _ y).st.base.votes
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
     exact hom
-  obtain ⟨hod, hods⟩ := healing_support_vote_kept E rho hN hidx y
-    (SA.voteTime p.toParams (i + 1)) o hom'
+  obtain ⟨hod, hods⟩ := healing_support_vote_kept_on E rho hidx y
+    (SA.voteTime p.toParams (i + 1))
+    (healing_recovery_epoch_after_vote E rho hrec hy hgsti
+      (by change 4 * p.Δ * (i : Int) + p.Δ <
+            4 * p.Δ * (i : Int) + 2 * p.Δ; linarith [p.deltaPos]) iy) o hom'
   have hstampv : GridCO.stampVote dst.base o < SA.freezeTime p.toParams i := by
-    change GridCO.stampVote (FGSA.clock p _ _).base o < _
     rw [hods]
     change GridCO.stampVote (V2.D.Run.stateBefore E rho _ y).st.base o < _
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
-    exact lt_of_lt_of_le hos (hdle.trans hfz)
+    apply hos.trans_le
+    change 4 * p.Δ * (i : Int) + 2 * p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
+    linarith [p.deltaPos]
   have hFK : Block.Compatible K (eraseFG dst.fg.F) := by
     rw [clock_fg]
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K)
@@ -403,7 +374,13 @@ theorem postReset_head_batch_seat_at_cut [Fintype V] (E : Generic.Env V)
   | true =>
     exfalso
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (Gen.AC.Root.cap_pair _ k).mp he
-    have hprov := fgsa_headVotes_provenance E rho hE hN iy y i hiy
+    have hprov := fgsa_headVotes_provenance_on_receipt E rho hE i iy y hy
+      (fun q b ho => healing_head_local_service_recovery E rho hrec hgsti hy hiy
+        (healing_recovery_joined_next E rho hrec (healing_window_of_cut E hcut) hy
+          (by change 4 * p.Δ * (i : Int) + p.Δ ≤
+                4 * p.Δ * ((i + 1 : Nat) : Int) + p.Δ
+              push_cast
+              linarith [p.deltaPos]) ((hv.trans hvh))) q b ho)
     have hone : ∀ w ∈ FGSA.headVotes p dst (i + 1), GridCO.headSeat? w = some k → w = o := by
       intro w hw hwk
       rcases hprov w hw k hwk with hm | heq

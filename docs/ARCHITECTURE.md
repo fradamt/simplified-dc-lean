@@ -1023,6 +1023,13 @@ no receipt demand. Frontier slow factories take the saved-window sync bound.
 The local repair lease covers and all ten aggregate producers remain OPEN/P-H1.
 See scripts/dev-pkg/P-H1.round6-producers.md and P-H1.round6-handoff.md.
 
+P-H2 Round 6 uses recoveryStart for phase and attempt entry. The per-phase
+SupportPermanenceServices API serves both body arms. No local fast dispatcher or
+early one-lease cleanup is used. Saved-window transport retains GST. Settlement
+selects its witnesses, proves the receiver floor, and uses an actual bounded
+joined tick. The phase factory and remaining frontier/post-reset producers stay
+open; see scripts/dev-pkg/P-H2.round6-handoff.md.
+
 JOINED START (lead ruling, P-H1 Rounds 7-8): every healing intermediate statement
 (TDel, TPerm, ProposalGap, TRepair, TCommon, TFrontier, ResetArrival*, AttemptValid,
 RPhase, RenewedPromotionConcl) starts at Jst = recoveryStart p E, not at GST.
@@ -1107,6 +1114,42 @@ No conditional assembly or fixture is a producer for those fields.
 The positive execution fixture now preserves its old event prefix and extends
 to horizon 310, beyond the complete joined-start H-time budget of 309.
 
+P-Ou Rounds 12-13 (sleep-pou12/13): ScopedEarly proves the early reads, HEADs, F and
+duties at finite cuts; ScopedClose gives the protected Outage result under Close's own
+OutagePrem (no NoRestart, no duties_and_outputs). The finite Clean history/output
+suppliers stay at the lane boundary. ScopedArming selects fast, slow and empty-G
+certificates; ScopedJoint joins the early reads, the covered suffix and the actual W
+gate. Assembly/OutagePublicInputs builds every finite Clean field from a named
+producer; its audit module prints their axioms. Dependency order: protected Outage
+is proved from named suppliers; W suffix preservation and lease compatibility at the
+actual post-handover W gate are proved; the continuation exporter still needs
+OutageWSeed (Outage/ScopedCatchUp, O11-W-SEED); P-As assembly and the global audit
+integration remain pending.
+
+P-H2 Round 7: RepairCover gives each lease split the services of its selected
+joined-start phase. FrontierGateScope bounds carriers by the capped endpoint v.
+FrontierService selects the proposal parent at its source and bounds the current
+receiver certificate before it calls indexed RepairHeadServices.target and .scopes.
+RecoveryService consumes ReceiptProducers for the selected HEAD carrier and constructs
+service for the actual self proposal. PhaseService constructs selected witness receipts
+from their original acceptance at a recovery anchor, including a non-public anchor.
+Its strict event spread and frozen HEAD proof permit restarts. healing_rPhase_recovery
+produces all five RPhase clauses from RecoverySleep₂, RMonoAll and RXing. The attempt
+and search consumers use the named phase receipt producer. Budget constants and
+GST saved-window transport bounds stay unchanged. H1 phase/relay factories and H2
+all-cut post-reset source closure remain separate obligations until their checks pass.
+
+P-H2 Round 7 post-reset boundary: the outer T-contract uses the ordinary/reset
+recovery delivery adapters and passes the exact opening, repair and frontier
+factories. The R-contract uses the sleep-safe phase producer and the durable
+provenance leaves. The raw gate guard now requires its actual synchronous enabled
+gate. H6 consumes the geometry-guarded local gate factory. The H2-prime first
+reader uses the original accepted body and the receiver's freeze-to-read epoch.
+Equal-label high sources use the restart-aware same-label service producer.
+The selected HEAD receipt producer also exists; OpeningServiceScopes no longer
+requests an unused carrier field. All-cut opening, cone, raw-transfer and lease
+assemblies are still OPEN/P-H2. Their legacy consumers are not sleep producers.
+
 P-H1 Round 10 HEAD boundary:
 Shared/Relay adds HeadRelayLocalServiceScope, HeadRelayReceiptScope and four
 receipt consumers. The local service keeps the original index, epoch and window.
@@ -1186,3 +1229,34 @@ post-reset induction. The checked conditional adapters are consumers of these
 exact inputs. They do not close their producers. Full Root acceptance stays open.
 The canonical P-Ou audit fragment uses production imports only. No public Claims
 or Statements definition, protocol declaration, or family source changes here.
+
+P-H2 Round 8 (sleep-ph2i): RecoveryProducers now constructs FrontierReadScope
+with its seven current fields. Only its body changes. RepairCover imports the
+P-H1 RepairLeaseRecovery adapters and removes the duplicate local proofs.
+Healing.Export imports RecoveryPerm. Its promotion permanence callback uses
+RecoverySleep₂. The renewed promotion producer keeps its Jst conclusion and
+all three deadlines. The exact Export body passes a separate kernel probe.
+
+Recovery produces the repair, opening and frontier aggregate scopes. Opening
+gates require their selected GateReceiptGeometry. The callers prove this
+geometry from covering HEADs and the current receiver floor. The new retained
+cone floor proof uses the actual proposal parent before receipt service.
+healing_frontierSearch_recovery supplies HG.5 from the named Foundations and
+these produced scopes. Both finite rise and row horizon guards stay separate.
+
+Post-reset opening uses retained services and local recovery epochs. Its gate
+proofs use the saved-gate interface; they export no new matcher equations.
+Reset transfer is produced only under its release horizon. The joint induction
+produces P9 loss service, and its opening and service successors use RMonoAll
+and joined writes. Cone receipts use fresh HEAD service and exact stamp epochs.
+The cone successor is a guarded induction step. PostReset, H6, H2-prime and
+THigh now construct their former service-factory inputs from recovery.
+
+The H0 completion and healed consumer bodies compile at the selected witness.
+HealingInputExport retains explicit field obligations at the full Jst horizon.
+Full H0 extension, local HealingInput and the universal HealingInputOfH0 result
+remain OPEN through the unproduced joint invariant. The reset-lease, lease and
+raw successors still need their sleep ports. No all-cut source closure is
+claimed. The map has 105/114 GREEN targets; nine retain P-H2. Exact obligations:
+scripts/dev-pkg/P-H2.round8-handoff.md. No public claim, budget sum, GST saved
+window or GST RowPermissionAt bound changes.

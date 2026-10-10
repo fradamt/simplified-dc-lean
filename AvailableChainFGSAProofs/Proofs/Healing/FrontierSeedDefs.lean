@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! The seed predicate has no dependency on object-service proof inputs. -/
@@ -42,9 +44,12 @@ theorem frontierSeedQualification_iff (p : Params) {V : Type} (E : Generic.Env V
 
 /-- A qualified seed has the earlier cutoff needed by its prior-slot readers. -/
 theorem frontier_seed_prior_cut {p : Params} {V : Type} {E : Generic.Env V}
-    {u : Time} {q : Slot} (hgst : E.t_GST ≤ u)
+    {u : Time} {q : Slot} (hready : recoveryStart p E ≤ u)
     (hseed : FrontierSeedQualification p E u q) :
     E.t_GST ≤ slotStartZ p ((q : Int) - 1) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hk : (2 : Int) ≤ p.k := by exact_mod_cast p.kLarge
   have hd := p.deltaPos
   rcases hseed with ⟨β, hβ, _, hlate⟩ | ⟨b, hb, _, _, _, hlate⟩

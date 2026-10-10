@@ -29,84 +29,84 @@ variable (healed : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → Healed p c E rho (tstar p w))
 
 variable (sourcePrefix : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → Block.Preceq w.CStar w.QStar)
 
 variable (tHigh : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → THigh p c E rho w)
 
 variable (tCarrier : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → TCarrier p c E rho w)
 
 variable (rows : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       TRows p c E rho ΔF)
 
 variable (h2A : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → H2A p c E rho w)
 
 variable (h2Prime : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → H2Prime p c E rho w)
 
 variable (h3 : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → H3 p c E rho w)
 
 variable (h4 : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → H4 p c E rho w)
 
 variable (h5 : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → H5RawTransfer p c E rho w)
 
 variable (h6 : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → H6GateService p c E rho w)
 
 variable (timeBound : p.δt = 2 * p.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ)
 
 include healed sourcePrefix tHigh tCarrier rows h2A h2Prime h3 h4 h5 h6 timeBound
