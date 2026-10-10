@@ -42,6 +42,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
 
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportLease
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
+
 set_option linter.privateModule false
 
 #print axioms AvailableChain.FGSA.Run.healing_row_delivery
@@ -202,3 +206,19 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_next_transfer_core
 #print axioms AvailableChain.FGSA.Run.healing_heads_transfer
 #print axioms AvailableChain.FGSA.Run.healing_fast_heads_transfer
+
+#print axioms AvailableChain.FGSA.Run.FastSupportScope.mono
+#print axioms AvailableChain.FGSA.Run.healing_lease_clock_nongate
+#print axioms AvailableChain.FGSA.Run.healing_lease_persist
+#print axioms AvailableChain.FGSA.Run.healing_fast_source
+#print axioms AvailableChain.FGSA.Run.healing_fast_lease_at
+#print axioms AvailableChain.FGSA.Run.healing_fast_lease
+#print axioms AvailableChain.FGSA.Run.healing_fast_heads
+#print axioms AvailableChain.FGSA.Run.healing_support_frame_at
+#print axioms AvailableChain.FGSA.Run.healing_output_gate_step
+#print axioms AvailableChain.FGSA.Run.healing_output_cover
+#print axioms AvailableChain.FGSA.Run.healing_fast_output
+#print axioms AvailableChain.FGSA.Run.healing_proposal_batch_seat
+#print axioms AvailableChain.FGSA.Run.healing_proposal_core
+#print axioms AvailableChain.FGSA.Run.healing_proposals_cover
+#print axioms AvailableChain.FGSA.Run.healing_fast_proposals

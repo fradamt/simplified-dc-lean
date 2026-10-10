@@ -4557,3 +4557,16 @@ Membership and FG bounds use durable storage; vote and block stamps use the loca
 Batch cardinality follows from CStar and the recovery fault bound.
 HealingBase's legacy row receipt test now supplies the receiver awake service.
 Public statements and conclusions stay unchanged; these are exact internal input forms.
+
+P-H1 Round 3 fast lease, output and proposal consumers:
+SupportLease uses RecoverySleep₂ and RMonoAll. FastSupportScope names only its
+source label and bounded interval. It supplies first/later transfer services,
+same-label local service, joined gate receipt scopes and per-carrier services.
+A suppressed gate writes no lease. Restart keeps existing lock rows and deadlines.
+SupportOutput preserves the stable record in the restart induction branch.
+Gate effects require the exact joined guard; source and target frame membership is durable.
+SupportProposal uses ProposalSupportScope at each required proposal read.
+It keeps joined source votes, fresh receipt and the exact receiver epoch explicit.
+An emitted proposal supplies its duty guard through the executable guarded branch.
+The public Transfers/TPerm definitions and all public claim text stay unchanged.
+Fifteen further strict commands and their serial coverage rows cover these ports.

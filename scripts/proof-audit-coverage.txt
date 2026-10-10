@@ -6993,3 +6993,6 @@
 
 # P-H1 Round 3 HEAD consumers: seven further strict commands (147 total).
 # The same serial fragment has the exact service and later HEAD induction rows.
+
+# P-H1 Round 3 fast lease/output/proposal: 15 further strict commands (162 total).
+# Bounded FastSupportScope and per-read ProposalSupportScope remain explicit inputs.

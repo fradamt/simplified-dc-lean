@@ -14,6 +14,21 @@ open Gen.AC.Root
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+/-- Joined fresh HEADs and per-carrier services at one proposal read. -/
+structure ProposalSupportScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (ip : Nat) (x : V) (r : Slot) : Prop where
+  joined : ∀ z ∈ rho.honest, joinedAt p E rho z r (SA.voteTime p.toParams r)
+  epoch : V2.D.restartFree rho x
+    (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams r)) ip
+  fresh : ∀ q K, rho.seatOf (.base (.head r)) q ∈ rho.honest →
+    V2.D.Run.emits E rho (rho.seatOf (.base (.head r)) q)
+      (ofHead p ⟨.seat (.head r) q, K⟩) (SA.voteTime p.toParams r) →
+    Nonempty (FreshHeadService E rho r q K (SA.earlyTime p.toParams r) x)
+  carriers : ∀ j z, z ∈ rho.honest →
+    rho.events[j]? = some (.tick z (SA.voteTime p.toParams r)) →
+    ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ y ∈ rho.honest,
+      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams r + p.Δ) y
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The honest proposal's parent is the proposer head at the proposer's post-clock read. -/
 private theorem proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -50,7 +65,9 @@ private theorem proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       have he : m = .proposal N := congrArg V2.Signed.payload ho
       subst m
       cases d with
-      | headAction _ => cases hm
+      | headAction _ =>
+        change (if joinedNow p _ then some (Msg.head _) else none) = some (Msg.proposal N) at hm
+        split at hm <;> cases hm
       | fgAction _ =>
         change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
         obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hm
@@ -63,7 +80,11 @@ private theorem proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
           have he : (s' : Int) = s := by nlinarith
           exact_mod_cast he
         subst s'
-        exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
+        change (if joinedNow p _ then
+          (propose p _ s).map (withApp p _) else none) = some (.proposal N) at hm
+        split at hm
+        · exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
+        · cases hm
     · exact (List.not_mem_nil hem).elim
 
 private theorem proposal_lift {A B : FGBlock (Fin p.n)}
@@ -77,14 +98,15 @@ DC: INTENTIONAL an honest label-r HEAD that covers B is, at the proposer's slot-
 read, a resolved non-equivocating proposer-support vote that supports B: the vote arrives
 by e_r, and the HEAD block arrives through its HEAD witness W (F1 + F2). -/
 theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (_mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {r : Slot} {B : Block} (hhead : u ≤ SA.voteTime p.toParams r)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq B K)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
+    (hScope : ProposalSupportScope E rho ip x r)
     (hv : SA.proposalTime p.toParams (r + 1) ≤ v)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho ip x).fg.F) B)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head r)) k ∈ rho.honest) :
@@ -96,7 +118,6 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
       (SA.proposalTime p.toParams (r + 1))) (r + 1)) k = false := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   let st := FGSA.clock p (storeAt p c E rho ip x) (SA.proposalTime p.toParams (r + 1))
@@ -112,14 +133,14 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   have hawake := hrec.awake z hk _ hgstr hhorr
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
+    (fgsa_head_joined_of_joinedAt E rho hS hjz (hScope.joined z hk))
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams r)) r
   have hBK : Block.Preceq B K := hcover z hk K hhl
   -- The HEAD block reaches the proposer through its witness before e_r.
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, _, hrelay⟩ :=
-    healing_head_witness_relay (hroots := hrec.base.idealization)
-      p c E rho mono crossing hE hN hDelta hrec.sync u v m J contested
-      hgst hphase hk hjz hhead (hvp.trans hv)
+    healing_head_witness_relay_on (hroots := hrec.base.receiptIdealization)
+      p c E rho crossing hE hk hjz (hScope.carriers jz z hk hjz)
   have hKe' : eraseFG Kfg = K := hKe
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF := by
     have h := hrelay x hx Kfg hKW
@@ -128,7 +149,7 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
       change Kfg ∈ (V2.D.Run.stateBefore E rho _ x).st.fg.TF
       rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
       exact h
-    exact (fgsa_store_cumulative p c E rho hN
+    exact (fgsa_store_durable p c E rho
       (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 hW
   have hinv : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hKb : K ∈ st.base.blocks := by
@@ -143,49 +164,33 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     have hm := (hzinv.baseTree (eraseFG Kfg)).mpr ⟨Kfg, hKT, rfl⟩
     rw [clock_base_blocks, hKe'] at hm
     have hb := (fgsa_stateBefore_bounds E rho hS jz z).1 K hm
-    have hpos : 0 < SA.voteTime p.toParams r := by
-      change 0 < 4 * p.Δ * (r : Int) + p.Δ
-      positivity
-    have hn := fgsa_preTick_now_lt E rho hS hjz hpos
-    have hsl := Internal.slotOf_mono (p := p) (le_of_lt hn)
+    have hn := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hS hjz z
+    rw [fgsa_clock_now p c (rho.stateBefore E jz z)] at hn
+    have hsl := Internal.slotOf_mono (p := p) hn
     have he : p.slotOf (SA.voteTime p.toParams r) = r :=
       (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho jz z) _).2.symm.trans
         (fgsa_vote_slot (c := c) _ r)
     exact hb.trans (hsl.trans_eq he)
-  -- The vote arrives by e_r and is kept at the proposal read.
-  have hvd : SA.voteTime p.toParams r + E.Δ ≤ SA.voteTime p.toParams r + E.Δ := le_rfl
-  have hdt : SA.voteTime p.toParams r + E.Δ ≤ rho.horizon := by
-    rw [hDelta]
-    exact (hvp.trans hv).trans hphase.2.1
-  obtain ⟨dl, cut, hD, _, hlt, hdl, _, hdcut, _⟩ :=
-    Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ hrec.sync
-      (fgsaDelay_nonrow E.Δ _) hgstr hvd hdt
-  have hdle : dl (SA.voteTime p.toParams r) ≤ SA.voteTime p.toParams r + p.Δ := by
-    have h := hdl (SA.voteTime p.toParams r)
-    rwa [max_self, hDelta] at h
-  have hwindow : (V2.D.Run.stateBeforeTime E rho (dl (SA.voteTime p.toParams r)) x).st.slot p ≤
-      r + 1 := by
-    have h := healing_support_read_window E rho hS hN hip _ (hdle.trans hvp)
-    have he : p.slotOf (SA.proposalTime p.toParams (r + 1)) = r + 1 := by
-      have h0 := slotOf_offset p (r + 1) 0 le_rfl (by positivity)
-      rw [add_zero] at h0
-      exact h0
-    exact h.trans_eq he
-  have hcut : dl (SA.voteTime p.toParams r) ≤ cut := by
-    refine hdle.trans (le_trans ?_ hdcut)
-    rw [hDelta]
-  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K.root
-    (SA.voteTime p.toParams r) z x hD hk hem hx hcut (hlt _) hwindow
+  -- Fresh HEAD service reaches earlyTime; its receiver epoch keeps the vote.
+  obtain ⟨hFresh⟩ := hScope.fresh k K.root hk hem
+  obtain ⟨jem, hjEm, hoEm⟩ := hem
+  have hem : V2.D.Run.emits E rho z (ofHead p ⟨.seat (.head r) k, K.root⟩)
+      (SA.voteTime p.toParams r) := ⟨jem, hjEm, hoEm⟩
+  obtain ⟨hom, _⟩ := hFresh.receipt hE hx hjEm hoEm
   let o := baseVote (⟨.seat (.head r) k, K.root⟩ : HeadWire p.n)
-  have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams r)) ≤ ip :=
-    healing_support_idxBefore_le p c E rho hS hip (hdle.trans hvp)
+  have hidx : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams r) ≤ ip := by
+    apply healing_support_idxBefore_le p c E rho hS hip
+    change 4 * p.Δ * (r : Int) + 2 * p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
+    push_cast
+    linarith
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
-      (dl (SA.voteTime p.toParams r))) x).base.votes := by
-    change o ∈ (V2.D.Run.stateBefore E rho _ x).st.base.votes
+      (SA.earlyTime p.toParams r)) x).base.votes := by
+    change o ∈ (rho.stateBefore E _ x).st.base.votes
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
     exact hom
-  obtain ⟨hod, _⟩ := healing_support_vote_kept E rho hN hidx x
-    (SA.proposalTime p.toParams (r + 1)) o hom'
+  obtain ⟨hod, _⟩ := healing_support_vote_kept_on E rho hidx x
+    (SA.proposalTime p.toParams (r + 1)) hScope.epoch o hom'
   have hFK : Block.Compatible K (eraseFG st.fg.F) := by
     change Block.Compatible K (eraseFG (FGSA.clock p _ _).fg.F)
     rw [clock_fg]
@@ -245,14 +250,15 @@ majority and rival bounds (`batch_head_covers` on the full tree); a witness W of
 proposer's own label-r HEAD gives the full-tree path and the frame; `hlease` is the
 lease premise at this read. -/
 theorem healing_proposal_core [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {r : Slot} {B : Block} (hhead : u ≤ SA.voteTime p.toParams r)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq B K)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
+    (hScope : ProposalSupportScope E rho ip x r)
     (hv : SA.proposalTime p.toParams (r + 1) ≤ v)
     (hlease : Block.Preceq (eraseFG (storeAt p c E rho ip x).fg.F) B →
       ∀ row ∈ (storeAt p c E rho ip x).base.obligations, Block.Compatible row.1 B) :
@@ -261,7 +267,6 @@ theorem healing_proposal_core [Fintype V] (E : Generic.Env V)
   classical
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   let st := FGSA.clock p (storeAt p c E rho ip x) (SA.proposalTime p.toParams (r + 1))
@@ -281,14 +286,17 @@ theorem healing_proposal_core [Fintype V] (E : Generic.Env V)
     rw [hdfg]
   -- The frame witness of the proposer's own label-r HEAD.
   obtain ⟨jx, hjx⟩ := healing_support_vote_tick E rho hS hDelta hx r hhorr
+    (hrec.awake x hx _ hgstr hhorr)
   have hhl : headAtLabel p c E rho x r = some (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jx x).st (SA.voteTime p.toParams r)) r) := by
     unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjx]
     rfl
-  obtain ⟨W, hW, hBW, hZW, hFW, hloW⟩ := healing_support_frame_at (hroots := hrec.base.idealization)
-    E rho mono crossing hE hN
-    hDelta hrec.sync hgst hphase hhead (hvp.trans hv) hx hjx (hcover x hx _ hhl) hx
+  obtain ⟨W, hW, hBW, hZW, hFW, hloW⟩ := healing_support_frame_at
+    (hroots := hrec.base.receiptIdealization)
+    E rho (fun _ => mono) crossing hE
+    hDelta hrec.sync hgst hphase hhead (hvp.trans hv) hx hjx
+    (hScope.carriers jx x hx hjx) (hcover x hx _ hhl) hx
     (healing_support_idxBefore_le p c E rho hS hip hvp)
     (healing_support_idxBefore_le p c E rho hS hip
       (hhead.trans ((le_add_of_nonneg_right hd.le).trans hvp)))
@@ -357,7 +365,7 @@ theorem healing_proposal_core [Fintype V] (E : Generic.Env V)
   have hHmem (k : Fin p.n) : k ∈ Hon ↔ rho.seatOf (.base (.head r)) k ∈ rho.honest := by
     simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := healing_proposal_batch_seat E rho hrec mono
-    crossing hgst hphase hhead hcover hx hip hv hFB0 k ((hHmem k).mp hk)
+    crossing hgst hphase hhead hcover hx hip hScope hv hFB0 k ((hHmem k).mp hk)
   have hHon : Hon.card = rho.honest.card := by
     rw [← Finset.card_image_of_injective Hon hbij.1]
     congr 1
@@ -369,13 +377,20 @@ theorem healing_proposal_core [Fintype V] (E : Generic.Env V)
     · intro hz
       obtain ⟨k, rfl⟩ := hbij.2 z
       exact ⟨k, (hHmem k).mpr hz, rfl⟩
-  have hawk : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams r) = rho.honest := by
-    rw [Gen.V2.Duty.awakeHonest_def]
-    exact Finset.filter_eq_self.mpr (fun z hz => hrec.awake z hz _ hgstr hhorr)
+  have hn : Fintype.card V = p.n := by
+    have hc := Fintype.card_congr (Equiv.ofBijective _ hbij)
+    simpa only [Fintype.card_fin] using hc.symm
+  have hf : (Gen.V2.Duty.faulty rho).card = p.n - rho.honest.card := by
+    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
+      Finset.card_univ, hn]
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := by
-    have h := (hrec.batch hgstr hhorr).lt
-    rw [hawk] at h
-    exact ⟨hHon ▸ h⟩
+    have hfault := hrec.fault
+    have hHonLe : rho.honest.card ≤ p.n := hn ▸ Finset.card_le_univ rho.honest
+    have hpos := p.nPos
+    rw [hf] at hfault
+    rw [hHon, hf]
+    constructor
+    omega
   have hother : ((GridCO.seats p.n (FGSA.proposerVotes st (r + 1))).toFinset \ Hon).card ≤
       (Gen.V2.Duty.faulty rho).card := by
     apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head r)))
@@ -398,13 +413,17 @@ Blueprint 21:709–715 (H.2 S2); plan H-SUPPORT §4 step 7.
 DC: INTENTIONAL the S1 proposal clause of Transfers from the HEAD clause and the lease
 invariant at the honest proposal reads. -/
 theorem healing_proposals_cover [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} {B : Block} (hhead : u ≤ SA.voteTime p.toParams s)
     (hheads : ∀ i, s + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K)
+    (hScopes : ∀ r, s + 1 ≤ r → SA.proposalTime p.toParams (r + 1) ≤ v →
+      ∀ ip x, x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))) →
+      ProposalSupportScope E rho ip x r)
     (hlease : ∀ i, s + 2 ≤ i → SA.proposalTime p.toParams i ≤ v →
       ∀ ip x, x ∈ rho.honest → rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams i)) →
       Block.Preceq (eraseFG (storeAt p c E rho ip x).fg.F) B →
@@ -429,15 +448,16 @@ theorem healing_proposals_cover [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (r : Int) + p.Δ
     nlinarith
   exact healing_proposal_core E rho hrec mono crossing hgst hphase (hhead.trans hsr)
-    (hheads r (by exact_mod_cast hrI) (hvr.trans hv)) hxh hip hv
+    (hheads r (by exact_mod_cast hrI) (hvr.trans hv)) hxh hip
+    (hScopes r (by exact_mod_cast hrI) hv ip _ hxh hip) hv
     (hlease (r + 1) hi hv ip _ hxh hip)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:620–715 (H.1 + H.2 S2, fast arm); plan H-SUPPORT §4 steps 1–7.
 DC: INTENTIONAL the S1 proposal clause of Transfers for a fast PhaseBody arm. -/
 theorem healing_fast_proposals [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -460,15 +480,20 @@ theorem healing_fast_proposals [Fintype V] (E : Generic.Env V)
     (hgate : SA.gateTime p.toParams s ≤ v)
     {x : V} (hx : x ∈ rho.honest) {nd : Node p}
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
-    (hB : B ∈ (fastWriteAt nd.st s).getD []) :
+    (hB : B ∈ (fastWriteAt nd.st s).getD [])
+    (hFast : FastSupportScope E rho s v x)
+    (hScopes : ∀ r, s + 1 ≤ r → SA.proposalTime p.toParams (r + 1) ≤ v →
+      ∀ ip x, x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))) →
+      ProposalSupportScope E rho ip x r) :
     ∀ i Q, s + 2 ≤ i → SA.proposalTime p.toParams i ≤ v →
       HonestProposal E rho (fgsaInterface p c) i Q → Block.Preceq B Q.parent := by
   have hS := hrec.base.valid.toScheduleWellFormed
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   have hheads := healing_fast_heads E rho hrec mono crossing writes hgst hphase hhead hgate hx
-    hnd hB
-  refine healing_proposals_cover E rho hrec mono crossing hgst hphase hhead hheads ?_
+    hnd hB hFast
+  refine healing_proposals_cover E rho hrec mono crossing hgst hphase hhead hheads hScopes ?_
   intro i hi hv ip y hy hip hFB
   have hiI : (s : Int) + 2 ≤ (i : Int) := by exact_mod_cast hi
   have hq : SA.voteTime p.toParams (s + 1) < SA.proposalTime p.toParams i := by
@@ -476,7 +501,11 @@ theorem healing_fast_proposals [Fintype V] (E : Generic.Env V)
     push_cast
     nlinarith
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hDelta hy (s + 1)
-    ((hq.le.trans hv).trans hphase.2.1)
+    ((hq.le.trans hv).trans hphase.2.1) (hrec.awake y hy _ (by
+      refine (hgst.trans hhead).trans ?_
+      change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+      push_cast
+      nlinarith) ((hq.le.trans hv).trans hphase.2.1))
   have hqa : iq < ip := by
     rcases lt_trichotomy iq ip with h | h | h
     · exact h
@@ -486,7 +515,7 @@ theorem healing_fast_proposals [Fintype V] (E : Generic.Env V)
       exact absurd ht (ne_of_lt hq)
     · exact absurd (fgsa_tick_time_strict E rho hS hip hiq h) (not_lt.mpr hq.le)
   refine healing_fast_lease_at E rho hrec mono writes (hgst.trans hhead)
-    (hgate.trans hphase.2.1) hx hnd hB hphase.2.1 ?_ hy hiq hqa ?_ hFB
+    (hgate.trans hphase.2.1) hx hnd hB hphase.2.1 hFast ?_ hy hiq hqa ?_ hFB
   · intro w hw hwT
     refine hheads w hw (le_trans ?_ hwT)
     change 4 * p.Δ * (w : Int) + p.Δ ≤ 4 * p.Δ * (w : Int) + 6 * p.Δ

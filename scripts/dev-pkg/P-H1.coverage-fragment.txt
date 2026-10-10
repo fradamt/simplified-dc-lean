@@ -187,6 +187,27 @@
             'AvailableChain.FGSA.Run.healing_support_honest_emits',
             'AvailableChain.FGSA.Run.healing_support_vote_tick',
         ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportLease': (
+            'AvailableChain.FGSA.Run.FastSupportScope.mono',
+            'AvailableChain.FGSA.Run.healing_lease_clock_nongate',
+            'AvailableChain.FGSA.Run.healing_lease_persist',
+            'AvailableChain.FGSA.Run.healing_fast_source',
+            'AvailableChain.FGSA.Run.healing_fast_lease_at',
+            'AvailableChain.FGSA.Run.healing_fast_lease',
+            'AvailableChain.FGSA.Run.healing_fast_heads',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportOutput': (
+            'AvailableChain.FGSA.Run.healing_support_frame_at',
+            'AvailableChain.FGSA.Run.healing_output_gate_step',
+            'AvailableChain.FGSA.Run.healing_output_cover',
+            'AvailableChain.FGSA.Run.healing_fast_output',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportProposal': (
+            'AvailableChain.FGSA.Run.healing_proposal_batch_seat',
+            'AvailableChain.FGSA.Run.healing_proposal_core',
+            'AvailableChain.FGSA.Run.healing_proposals_cover',
+            'AvailableChain.FGSA.Run.healing_fast_proposals',
+        ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportHeads': (
             'AvailableChain.FGSA.Run.healing_support_read_window',
             'AvailableChain.FGSA.Run.healing_support_vote_kept_on',
