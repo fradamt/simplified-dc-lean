@@ -931,6 +931,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_eventPrefixAgreementClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_faultCountSlashableBoundClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityRestartClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_honestNeverSlashedClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_finalizedSafetyClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLockClaim

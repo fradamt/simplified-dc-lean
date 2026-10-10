@@ -138,8 +138,11 @@ theorem fgsa_srcFrameAboveClaim : SrcFrameAboveClaim p :=
 /-- The foundation package, with the F1.5 source input discharged. -/
 theorem fgsa_fgFoundationClaim : FGFoundationClaim p :=
   fun c E rho pt hb =>
-    ⟨fgsa_rStore p c E rho, fgsa_rStoreCumul p c E rho,
-      fgsa_rMono p c E rho, fgsa_rFrameExactNext p c E rho, fgsa_rGeo p c E rho,
+    ⟨fgsa_rStore p c E rho,
+      ⟨fgsa_rStoreDurable p c E rho, fgsa_rStoreEpoch p c E rho⟩,
+      fgsa_rMonoAll p c E rho,
+      ⟨fgsa_rFrameExactNext p c E rho, fgsa_rFrameNextEpoch p c E rho⟩,
+      fgsa_rGeo p c E rho,
       sourceDiscipline_strat p c E rho (pt := pt) hb (fgsa_rStore p c E rho),
       fgsa_rRec p c E rho⟩
 
@@ -152,17 +155,17 @@ theorem fgsa_outputNestingClaim : OutputNestingClaim p :=
   fun c E rho => fgsa_outputNestingAt p c E rho
 
 
-/-- The row-service base claim keeps execution, no restart, and synchrony explicit.
+/-- The row-service base claim keeps execution, no restart, synchrony, and awake scope explicit.
 DC: INTENTIONAL FG service adapter. -/
 theorem fgsa_rowServiceBaseClaim (ΔF : Time) : RowServiceBaseClaim p ΔF := by
-  intro V _ _ In c E rho hΔ hv hnr hsync hΔF
-  exact fgsa_tRows p c E rho ΔF hΔ hv hnr hsync hΔF
+  intro V _ _ In c E rho hΔ hv hnr hsync hΔF hAwake
+  exact fgsa_tRows p c E rho ΔF hΔ hv hnr hsync hΔF hAwake
 
 /-- The family regime binds the row delay used by the service.
-DC: INTENTIONAL FG service package; SAME execution and no-restart premises. -/
+DC: INTENTIONAL FG service package; the recovery awake suffix supplies its local epoch. -/
 theorem fgsa_rowServiceClaim (ΔF : Time) : RowServiceClaim p ΔF := by
   intro G _hδ V _ _ In c E rho _pt h
-  exact fgsa_tRows p c E rho ΔF h.base.delta h.base.valid h.base.noRestart h.sync h.deltaF
+  exact fgsa_tRows_recovery p c E rho h.toRecovery₂
 
 
 /-- Finality output claim from its Foundations body; no additional premise. -/
@@ -193,6 +196,10 @@ theorem fgsa_faultCountSlashableBoundClaim : FaultCountSlashableBoundClaim p :=
 theorem fgsa_finalizedMonotonicityClaim : FinalizedMonotonicityClaim p :=
   fgsa_apiFinalizedMonotonicityClaim_body p
 
+/-- P21(a): finalized output is monotone through retained-store restarts. -/
+theorem fgsa_finalizedMonotonicityRestartClaim : FinalizedMonotonicityRestartClaim p :=
+  fgsa_apiFinalizedMonotonicityRestartClaim_body p
+
 /-- Finality output claim from its Foundations body; no additional premise. -/
 theorem fgsa_honestNeverSlashedClaim : HonestNeverSlashedClaim p :=
   fgsa_apiHonestNeverSlashedClaim_body p
@@ -207,3 +214,9 @@ theorem fgsa_finalLockClaim : FinalLockClaim p :=
 
 end AvailableChain.FGSA.Run
 end
+
+-- Serial S-Ap/P-Fd wrappers; checked here while the full family audit is deferred.
+#print axioms AvailableChain.FGSA.Run.fgsa_fgFoundationClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_rowServiceBaseClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_rowServiceClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityRestartClaim

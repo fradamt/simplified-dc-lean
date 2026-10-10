@@ -228,13 +228,14 @@ def SourceDisciplineClaim : Prop :=
     SourceDisciplinePrem p c E rho pt → SourceDisciplineAt p c E rho
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-Row service with the four base premises and the bound on ΔF.
+Row service with the base premises, the bound on ΔF, and an awake suffix.
 DC: INTENTIONAL FG transport adapter; SAME execution and no-restart premises. -/
 def RowServiceBaseClaim (ΔF : Time) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart rho →
     Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF) → E.Δ ≤ ΔF →
+    (∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake x t = true) →
     TRows p c E rho ΔF
 
 
@@ -245,7 +246,7 @@ def RowServiceClaim (ΔF : Time) : Prop :=
   ∀ (G : Time) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (_pt : Unit),
-    Recovery₂ p c E rho G ΔF → TRows p c E rho ΔF
+    RecoverySleep₂ p c E rho G ΔF → TRows p c E rho ΔF
 
 
 section
