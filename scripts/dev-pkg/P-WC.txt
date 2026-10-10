@@ -1,5 +1,8 @@
-# P-WC r2: PREPARED; anchors and full service pass; event/assembly closure remains open.
+# P-WC r3: PREPARED; finite origins and local output cases pass; joint closure remains open.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrigins
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepFacts
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferReceipts
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferFrame
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepService
@@ -58,6 +61,13 @@ AvailableChainFGSAProofs.Tests.WeakContinuationInclusion
 AvailableChainFGSAProofs.Tests.WeakContinuationProposal
 AvailableChainFGSAProofs.Tests.WeakContinuationSleepAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrigins
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepFacts
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFacts
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepOutput
+AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Seed
 AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Shared.RegimesService
@@ -567,16 +577,12 @@ AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferReceipts
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Export P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Live P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Step P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFacts P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepOutput P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransfer P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Dynamics P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty P-WC

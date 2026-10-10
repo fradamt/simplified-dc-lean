@@ -4975,3 +4975,25 @@ rev-pwc2-astra: production changes support PREPARED (four Count callers on ANCHO
 targets open). Item 1: claude-files/sleep-pwc-round2-audit-fragment.txt:2 and scripts/dev-pkg/P-WC.handoff.md:286 import
 Tests.WeakContinuationSleepAxioms into Tests.Axioms (forbidden TEST-USE). Apply RULING AUDIT-FRAGMENT
 (codex/jobs/sleep-join-port-notes.md): import the production modules directly; the 196 coverage rows keep the existing key.
+
+### P-WC Round 3 — audit imports and finite event suppliers (2026-10-10)
+
+- RULING AUDIT-FRAGMENT: the round-2 serial fragment imports production modules.
+  It keeps the same 196 commands, coverage rows, and Tests.Axioms key. The
+  standalone WeakContinuationSleepAxioms audit remains registered by the test glob.
+- Internal statement, sleep port: wc_receiptOrigins and wcg_receiptOrigins
+  keep original network acceptances or the exact last local replay stamp.
+  Each replay origin carries restartFree from the post-restart index to the read.
+- WC StepFacts proves saved-result origins by event induction. Restart clears
+  saved rows. A suppressed gate appends none. Nonempty rows have an enabled
+  gate origin and an epoch from that gate to the current read.
+- WCG StepFacts extracts the same family-local suppliers from Dynamics.
+  wcg_finiteFacts and wcg_finiteStep need no WC proof import.
+- wc_reconcileBound now scopes the later output reader by confirmedReaderIdx.
+  This is an internal statement repair. Unconfirmed readers can expose received
+  finality above their retained output, so wc_outputStep includes that third case.
+- wc_outputStep handles restart, delivery, off-gate, enabled gate, and suppressed
+  gate output cases. Its explicit finality-compatibility input remains a local
+  obligation of the joint induction. The joint WCInv producer is still open.
+- wc_finalBelow uses receipt collision freedom through its safety projection.
+  Public Claims/Statements and public P23 remain unchanged.

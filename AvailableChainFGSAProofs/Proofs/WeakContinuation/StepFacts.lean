@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins -- shake:
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
 
 namespace AvailableChain.FGSA
 open AvailableChain.SimplexFG
@@ -42,10 +43,8 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- WC plan §6.5; DC receipt replay: retain the original trigger and acceptance index. -/
 private theorem step_receiptOrigins (i : Nat) (x : V) :
-    WCReceiptOrigins p c E rho i x (storeAt p c E rho i x) := by
-  constructor
-  · exact fgsa_block_stamp_source E rho i x
-  · exact fgsa_vote_stamp_source E rho i x
+    WCReceiptOrigins p c E rho i x (storeAt p c E rho i x) :=
+  wc_receiptOrigins E rho i x
 
 /-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
 private def step_savedPairs (st : State p.n) : List (Slot × Block) :=
@@ -147,6 +146,7 @@ private theorem step_savedPairs_clock (st : State p.n) (t : Time) (pair : Slot �
     (hm : pair ∈ step_savedPairs (clock p st t)) :
     pair ∈ step_savedPairs st ∨
       (t = SA.gateTime p.toParams pair.1 ∧
+       joinedNow p (clockPre p st t) = true ∧
        SA.Root.confirmationFrom p.toParams (eraseFG (clockPre p st t).fg.F)
          (actView (clockPre p st t)) pair.1 = some pair.2) := by
   change pair ∈ step_savedPairs (if isGateTime p t then
@@ -168,46 +168,123 @@ private theorem step_savedPairs_clock (st : State p.n) (t : Time) (pair : Slot �
       rw [normalizeS_fields] at hm
       exact Or.inl (hpre ▸ hm)
     | none =>
-      have hg : (gateStep p pre s).base.genuine = pre.base.genuine ++
-          [(s, SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s)] := by
-        unfold gateStep
-        rw [normalizeS_fields]
-        simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false]
-        exact saGate_genuine p.toParams (eraseFG pre.fg.F) (actView pre) s hs
-      rcases pair with ⟨v, B⟩
-      rw [step_savedPairs_mem, hg, List.mem_append] at hm
-      rcases hm with hm | hm
-      · exact Or.inl (hpre ▸ (step_savedPairs_mem pre v B).mpr hm)
-      · have he := List.mem_singleton.mp hm
-        obtain ⟨rfl, hC⟩ := Prod.mk.inj he
-        exact Or.inr ⟨htime, hC.symm⟩
+      by_cases hJ : joinedNow p pre = true
+      · have hg : (gateStep p pre s).base.genuine = pre.base.genuine ++
+            [(s, SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s)] := by
+          unfold gateStep
+          rw [normalizeS_fields]
+          simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false, hJ,
+            Bool.not_true]
+          exact saGate_genuine p.toParams (eraseFG pre.fg.F) (actView pre) s hs
+        rcases pair with ⟨v, B⟩
+        rw [step_savedPairs_mem, hg, List.mem_append] at hm
+        rcases hm with hm | hm
+        · exact Or.inl (hpre ▸ (step_savedPairs_mem pre v B).mpr hm)
+        · obtain ⟨rfl, hC⟩ := Prod.mk.inj (List.mem_singleton.mp hm)
+          exact Or.inr ⟨htime, hJ, hC.symm⟩
+      · have hg : (gateStep p pre s).base.genuine = pre.base.genuine ++ [(s, none)] := by
+          unfold gateStep
+          rw [normalizeS_fields]
+          simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false,
+            hJ]
+          rfl
+        rcases pair with ⟨v, B⟩
+        rw [step_savedPairs_mem, hg, List.mem_append] at hm
+        rcases hm with hm | hm
+        · exact Or.inl (hpre ▸ (step_savedPairs_mem pre v B).mpr hm)
+        · have he := congrArg Prod.snd (List.mem_singleton.mp hm)
+          cases he
   · exact Or.inl (hpre ▸ hm)
 
 /-- WC plan §6.5; DC actual saved origin: a retained value still has its original gate result. -/
 private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (s : Slot) (B : Block)
     (hb : GridCO.savedGenuine (storeAt p c E rho i x).base s = some (some B)) :
-    ∃ j < i, IsGateTick p c rho j x s ∧ gateResultAt p c E rho j = some (some B) := by
+    ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
+      gateResultAt p c E rho j = some (some B) := by
+  have origin : ∀ n, (s, B) ∈ step_savedPairs (storeAt p c E rho n x) →
+      ∃ j < n, V2.D.restartFree rho x j n ∧ IsGateTick p c rho j x s ∧
+        joinedNow p (clockPre p (storeAt p c E rho j x)
+          (SA.gateTime p.toParams s)) = true ∧
+        SA.Root.confirmationFrom p.toParams
+          (eraseFG (clockPre p (storeAt p c E rho j x)
+            (SA.gateTime p.toParams s)).fg.F)
+          (actView (clockPre p (storeAt p c E rho j x)
+            (SA.gateTime p.toParams s))) s = some B := by
+    intro n hm
+    induction n with
+    | zero => exact (List.not_mem_nil hm).elim
+    | succ n ih =>
+      have carry (hn : ∀ t, rho.events[n]? ≠ some (.restart x t))
+          (hm : (s, B) ∈ step_savedPairs (storeAt p c E rho n x)) :
+          ∃ j < n + 1, V2.D.restartFree rho x j (n + 1) ∧ IsGateTick p c rho j x s ∧
+            joinedNow p (clockPre p (storeAt p c E rho j x)
+              (SA.gateTime p.toParams s)) = true ∧
+            SA.Root.confirmationFrom p.toParams
+              (eraseFG (clockPre p (storeAt p c E rho j x)
+                (SA.gateTime p.toParams s)).fg.F)
+              (actView (clockPre p (storeAt p c E rho j x)
+                (SA.gateTime p.toParams s))) s = some B := by
+        obtain ⟨j, hj, hRF, ht, hJ, hC⟩ := ih hm
+        refine ⟨j, Nat.lt_succ_of_lt hj, ?_, ht, hJ, hC⟩
+        intro k t hjk hkn
+        rcases (Nat.le_of_lt_succ hkn).lt_or_eq with hk | rfl
+        · exact hRF k t hjk hk
+        · exact hn t
+      cases he : rho.events[n]? with
+      | none =>
+        apply carry (by intro t; rw [he]; simp)
+        simpa [storeAt, V2.D.Run.stateBefore, List.take_add_one, he] using hm
+      | some e =>
+        have hp := V2.D.Run.stateBefore_succ E rho he
+        unfold storeAt at hm
+        rw [hp] at hm
+        by_cases hx : e.node = x
+        · cases e with
+          | restart v t =>
+            change v = x at hx
+            subst v
+            simp only [V2.D.World.step, Function.update_self] at hm
+            change (s, B) ∈ step_savedPairs (acRestart p (storeAt p c E rho n x) t) at hm
+            simp only [step_savedPairs, acRestart_genuine, List.filterMap_nil] at hm
+            exact (List.not_mem_nil hm).elim
+          | deliver v o t =>
+            change v = x at hx
+            subst v
+            apply carry (by intro u; rw [he]; simp)
+            simp only [V2.D.World.step, Function.update_self] at hm
+            exact step_savedPairs_process _ (toWire p o) hm
+          | tick v t =>
+            change v = x at hx
+            subst v
+            simp only [V2.D.World.step, Function.update_self] at hm
+            rw [tick_st (c := c) E rho (V2.D.Run.stateBefore E rho n x) x t] at hm
+            rcases step_savedPairs_clock _ t (s, B) hm with hm | ⟨ht, hJ, hC⟩
+            · exact carry (by intro u; rw [he]; simp) hm
+            · subst t
+              refine ⟨n, Nat.lt_succ_self n, ?_, he, hJ, hC⟩
+              intro k t hnk hkn heq
+              have hk : k = n := by omega
+              subst k
+              rw [he] at heq
+              cases heq
+        · apply carry (by
+            intro t ht
+            exact hx (congrArg V2.Event.node (Option.some.inj (he.symm.trans ht))))
+          rwa [V2.D.World.step_apply_of_node_ne E rho _ hx] at hm
   obtain ⟨row, hr, he⟩ := Option.map_eq_some_iff.mp hb
   have hk : row.1 = s := by simpa using List.find?_some hr
   have hm : (s, B) ∈ step_savedPairs (storeAt p c E rho i x) := by
     rw [step_savedPairs_mem]
     simpa only [← hk, ← he] using List.mem_of_find?_eq_some hr
-  obtain ⟨j, hj, t, ht, htime, hC⟩ :=
-    V2.D.Engine.clock_field_origin_of_subset (P := fgsa p c)
-      (fun nd => step_savedPairs nd.st) rfl
-      (fun nd o pair h => step_savedPairs_process nd.st (toWire p o) h)
-      (fun _ _ _ h => h) (fgsa_hrestore_field_retained p c step_savedPairs (fun _ => rfl))
-      (fun nd t pair => t = SA.gateTime p.toParams pair.1 ∧
-        SA.Root.confirmationFrom p.toParams (eraseFG (clockPre p nd.st t).fg.F)
-          (actView (clockPre p nd.st t)) pair.1 = some pair.2)
-      (fun nd t pair h => step_savedPairs_clock nd.st t pair h) E rho i x (s, B) hm
-  change t = SA.gateTime p.toParams s at htime
-  subst t
-  refine ⟨j, hj, ht, ?_⟩
-  rw [gateResultAt_eq_gateResult p c E rho hs ht, gateResult_def, gateIn_def, preTick_def,
-    fgsa_tickIdx_of_event p c E rho hs ht]
-  exact congrArg some hC
+  obtain ⟨j, hj, hRF, ht, hJ, hC⟩ := origin i hm
+  have hraw : gateResultAt p c E rho j = some (some B) := by
+    rw [gateResultAt_eq_gateResult p c E rho hs ht,
+      gateResult_eq_saved p c E rho hs ht]
+    have hG := fgsa_gate_saved_result E rho hs ht (by rwa [clockPre_joined] at hJ)
+    rw [clockPre_fg] at hC
+    exact hG.trans (congrArg some hC)
+  exact ⟨j, hj, hRF, wc_gate_enabled_of_result hs ht hraw, hraw⟩
 
 
 variable [Fintype V]
@@ -218,23 +295,22 @@ theorem wc_finiteStep (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
   (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
+  (_hnr : V2.D.RestartsAtWakes E rho)
   (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hroots : NamedReceiptRootCollisionFree p c E rho)
   (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
+  (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+  (_hmono : RMonoAll p c E rho)
   (_hactive : RActive p c E rho)
   (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
+  (_hmeta : RFrameNextEpoch p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -262,7 +338,7 @@ theorem wc_finiteStep (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+      ∀ k w C, j < k → k < i → enabledGateAt p c E rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
@@ -273,7 +349,8 @@ theorem wc_finiteStep (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
   (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho x j i ∧
+        enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
   (_hdeadlines : ∀ i x,
@@ -307,14 +384,17 @@ theorem wc_finiteStep (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     fun x _ => nestOK_stateBefore E rho n x,
     fun x _ => metaInv_stateBefore E rho n x,
     fun x _ => step_receiptOrigins n x,
-    fun x _ row hr => ⟨hlease n x row hr⟩,
+    fun x _ row hr => by
+      obtain ⟨j, hj, s, B, ht, hp, hB, hrest⟩ := hlease n x row hr
+      exact ⟨j, hj, s, B, wc_gate_enabled_of_result hvalid.toScheduleWellFormed ht hB,
+        hp, hB, hrest⟩,
     fun x _ => hdeadlines n x,
     fun x _ => hfast n x,
     fun x _ s C hc => step_savedOrigin hvalid.toScheduleWellFormed n x s C hc, ?_, ?_⟩
   · intro x hx W hW X hX hne
     obtain ⟨y, r, wire, ⟨j, hj, hrow⟩, hname⟩ := hstrat n x W hx hW X hX hne
     obtain ⟨K, B, hK, hpair, hentry, hB, hKB, _⟩ := hemitted j y r wire _ hrow hname
-    have hXK : X = (derive p.E p.cfg K).T_h := rootScope_eq hroots
+    have hXK : X = (derive p.E p.cfg K).T_h := rootScope_eq (hroots.toNamedRootCollisionFree E rho)
       (rootScope_ancestor (rootScope_store hx hW) (certified_preceq hX))
       (rootScope_ancestor (rootScope_source hrow.1 hK) hentry) (congrArg Prod.snd hpair)
     exact ⟨j, y, r, wire, K, B, hj, hrow, hname, hK, hXK ▸ hentry, hB, hKB⟩

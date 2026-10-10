@@ -49,6 +49,20 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferRecei
 
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Seed
 
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrigins
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepFacts
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFacts
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepOutput
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow
+
 public section
 
 open AvailableChain.FGSA.Run
@@ -251,3 +265,19 @@ open AvailableChain.FGSA.Run
 #print axioms AvailableChain.FGSA.Run.wcg_tickPassed
 #print axioms AvailableChain.FGSA.Run.wcg_rowSourceReplay
 #print axioms AvailableChain.FGSA.Run.wcg_actionReads
+
+#print axioms AvailableChain.FGSA.Run.wc_receiptOrigins
+
+#print axioms AvailableChain.FGSA.Run.wcg_receiptOrigins
+
+#print axioms AvailableChain.FGSA.Run.wc_finiteStep
+
+#print axioms AvailableChain.FGSA.Run.wc_reconcileBound
+
+#print axioms AvailableChain.FGSA.Run.wc_outputStep
+
+#print axioms AvailableChain.FGSA.Run.wc_finalBelow
+
+#print axioms AvailableChain.FGSA.Run.wcg_finiteStep
+
+#print axioms AvailableChain.FGSA.Run.wcg_finiteFacts
