@@ -8259,3 +8259,15 @@ Writer log: .lake/sleep-pcsa-off/round3/snapshots-write.log.
 Generated snapshots and audit inventories keep their writer format. Their long
 kernel-name strings can exceed 100 columns. New source and ledger lines stay
 within 100 columns; no generated value is shortened or reflowed to hide that limit.
+
+## P-Da Round 3 — inherited transparency placement (2026-10-11)
+
+The first full Mac gate stops at the two inherited ClientTrace findings recorded
+in this ledger's W3 review. The source has the same transparency option before
+the theorem and as the first tactic. Remove only the redundant outer option.
+fgsa_tick_rows_of_seats keeps its exact statement and complete proof body,
+including the inner option and its reason. Compile with --wfail: PASS.
+The unchanged transparency checker passes; no allowance or baseline is changed.
+The initial manifest read overlapped this rebuild and could not find its olean;
+that attempt is retained as manifest-prebuild-fail.log. The final gate rebuilds
+before its compiled checks. The precheck failure is also retained in Round 3 logs.

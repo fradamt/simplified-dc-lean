@@ -23,7 +23,6 @@ private theorem visible_prop (s : Slot) (j : Fin 1) (m : Msg p.n) :
 private theorem visible_fg (j : Fin p.n) (m : Msg p.n) :
     (fgsa p c).objSelfVisible ⟨.seat (.base .fg) j, m⟩ = true := rfl
 
-set_option backward.isDefEq.respectTransparency false in
 /-- The complete self-visible output: zero or one FG row at an awake action tick. -/
 theorem fgsa_tick_rows_of_seats (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (e : Fin p.n ≃ V) (he : ∀ j, rho.seatOf (.base .fg) j = e j)
