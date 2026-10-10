@@ -20,32 +20,10 @@ private theorem kernel_held_at_proposal (base : BaseSet p c E rho)
     (a : RowWire p.n) (d : Time)
     (hheld : HeldBefore p c E rho (V2.D.proposerOf rho (fgsaInterface p c) s) a d)
     (hd : d ≤ SA.proposalTime p.toParams s) : heldAtProposal p c E rho s a := by
-  obtain ⟨k, _, _, hk, _, hread, _⟩ :=
+  obtain ⟨_, _, _, _, _, hread, _⟩ :=
     kmid_proposal_read p c E rho base.valid.toScheduleWellFormed hp
-  let x := V2.D.proposerOf rho (fgsaInterface p c) s
-  have hik : V2.D.Run.idxBefore rho d ≤ k := by
-    by_contra hn
-    have ht := (Gen.V2.Duty.index_lt_idxBefore_iff
-      base.valid.toScheduleWellFormed hk d).mp (Nat.lt_of_not_ge hn)
-    exact (not_lt.mpr hd) ht
-  change rowHeld p (V2.D.Run.stateBeforeTime E rho d x).st a at hheld
-  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d base.valid.toScheduleWellFormed] at hheld
-  have hcumul := fgsa_store_cumulative p c E rho base.noRestart hik x
-  refine ⟨_, hread, ?_⟩
-  rcases hheld with hp | hb
-  · left
-    change a ∈ (FGSA.clock p (V2.D.Run.stateBefore E rho k x).st _).rowPool
-    rw [clock_rowPool]
-    exact hcumul.2.2.2.2.2.subset hp
-  · right
-    change a ∈ allBlockRows _ at hb ⊢
-    change a ∈ allBlockRows (FGSA.clock p (V2.D.Run.stateBefore E rho k x).st _)
-    unfold allBlockRows at hb ⊢
-    rw [clock_proposals]
-    obtain ⟨xs, hxs, ha⟩ := List.mem_flatten.mp hb
-    obtain ⟨w, hw, hdec⟩ := List.mem_filterMap.mp hxs
-    exact List.mem_flatten.mpr ⟨xs,
-      List.mem_filterMap.mpr ⟨w, hcumul.2.2.2.2.1.subset hw, hdec⟩, ha⟩
+  exact finality_heldBefore_at_proposal p c E rho base.valid.toScheduleWellFormed
+    hread hheld hd
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1265–1304: emitted names bound rows through the final action.
@@ -115,7 +93,9 @@ Paper 22:1171–1305 (F1–F9): the forward W kernel gives a strict fresh
 extension accepted by every honest node before the kernel deadline.
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL: W retention, exact signed
 rows, the actual receipt and its guards replace the DC confirmation pin. -/
-theorem finality_kernel_W_of (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt : KernelPt)
+theorem finality_kernel_W_of
+    (hServices : FinalityActionReceipts p c E rho) (G ΔF : Time)
+    (hδ : p.δt = 2 * p.R) (pt : KernelPt)
     (hK : KernelPrem_W p c G ΔF E rho pt)
     (hsel : TRowsSelect p c E rho)
     (horigin : ∀ (i : Nat) (x : V) (B : FGBlock (Fin p.n)),
@@ -161,7 +141,7 @@ theorem finality_kernel_W_of (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt : Kernel
   obtain ⟨m⟩ := kernel_opening_and_middle p c E rho G ΔF pt hδ hK hNames horigin hBatch
     (fun x hx r C hsrc hhigh hawake => high_target_row_covered p c E rho pt.w
       hK.input.t.h1 hQC hNames hK.set.base.linked hs x hx r C hsrc hhigh hawake) A hA
-  obtain ⟨rows, hfresh, hentry, _⟩ := rowsPrem_fresh_rows p c E rho hK m hQC hXing hNames
+  obtain ⟨rows, hfresh, hentry, _⟩ := rowsPrem_fresh_rows p c E rho hK m hServices hQC hXing hNames
     (honestSeats p c rho) subset_rfl (kmid_honest_quorum p c rho hK.set.base.linked hK.set.fault)
   have ht := kernel_terminal_bounds p c E rho hK
   have hw := hK.window
@@ -170,7 +150,8 @@ theorem finality_kernel_W_of (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt : Kernel
   have hlo : pt.r * p.R ≤ (pt.r + 2) * p.R + kappaF p ΔF :=
     (Nat.mul_le_mul_right p.R (show pt.r ≤ pt.r + 2 by omega)).trans (Nat.le_add_right _ _)
   obtain ⟨b, hb⟩ := kmid_honest_proposal_exists p c E rho hs hK.set.base.delta _ hslot
-    (hK.set.awake _ hslot.2 _ (kmid_slot_gst hK hlo) ht.2.1) ht.2.1
+    (finality_recovery_joined p c E rho hK.set hslot.2
+      (kmid_window_join_cut hK hlo) (kmid_slot_gst hK hlo) ht.2.1) ht.2.1
   obtain ⟨X, heX, _, hXs, hcar, st, hst, hlook, hpar⟩ :=
     kmid_opening_carrier p c E rho hs hb
   subst b

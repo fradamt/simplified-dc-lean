@@ -143,7 +143,8 @@ theorem ktail_F_below_witness {G ΔF : Time} {pt : TailKernelPt p}
   have laws := (fgCertificateLaws p).height
   have hI := (cstoreInv_stateBefore E rho i x).fg
   have hFS : Block.Preceq (F_at p c E rho i x) (S_at p c E rho i x) :=
-    hT.input.ac.h4.2.2.2 i x x hsuf hx hx
+    hT.input.healed.2.2.1 i x x hsuf hx
+      (ktail_suffix_confirmed hT hx hsuf (ktail_start_horizon hT))
   rcases Gen.Pure.block_preceq_total_of_common hFS hS with h | h
   · exact kmid_lift_preceq p h
   · exfalso
@@ -219,7 +220,8 @@ theorem ktail_S_cover_after {G ΔF : Time} {pt : TailKernelPt p}
   have hhorG : SA.gateTime p.toParams pt.carrier ≤ rho.horizon :=
     (ktail_slot_horizon hT (s := pt.carrier) (le_trans hc2 (Nat.le_add_right _ _))).2.2
       (Nat.add_le_add hc2 hκ2)
-  have hstable := ((ow.serviceQ.2 hhorG x hx).2.2.2).1
+  have hstable := ((ow.serviceQ.2 hhorG x hx
+      (ktail_window_confirmed hT (by have hc := hT.carrier.1; omega) hhorG hx)).2.2.2).1
   rw [afterTicks_eq_stateBefore E rho hs] at hstable
   have hsuf₀ : HealSuffix p c rho (tstar p pt.w)
       (afterTicksIdx rho (SA.gateTime p.toParams pt.carrier)) := by
@@ -234,7 +236,9 @@ theorem ktail_S_cover_after {G ΔF : Time} {pt : TailKernelPt p}
     change tstar p pt.w ≤ 4 * p.Δ * (pt.carrier : Time) + 6 * p.Δ
     linarith
   have hmono := hT.input.ac.h4.2.2.1
-    (afterTicksIdx rho (SA.gateTime p.toParams pt.carrier)) i x hsuf₀ hsuf hi hx
+    (afterTicksIdx rho (SA.gateTime p.toParams pt.carrier)) i x hsuf₀ hsuf hi
+    (ktail_suffix_confirmed hT hx hsuf₀ (ktail_start_horizon hT))
+    (ktail_suffix_confirmed hT hx hsuf (ktail_start_horizon hT))
   have hS₀ : S_at p c E rho (afterTicksIdx rho (SA.gateTime p.toParams pt.carrier)) x =
       eraseFG ow.Q := hstable
   rw [← hS₀]
@@ -263,7 +267,8 @@ theorem ktail_action_S_cover {G ΔF : Time} {pt : TailKernelPt p}
   · have hhorG : SA.gateTime p.toParams pt.carrier ≤ rho.horizon :=
       (ktail_slot_horizon hT (s := pt.carrier) (le_trans hc2 (Nat.le_add_right _ _))).2.2
         (Nat.add_le_add hc2 hκ2)
-    have hstable := ((ow.serviceQ.2 hhorG x hx).2.2.2).1
+    have hstable := ((ow.serviceQ.2 hhorG x hx
+      (ktail_window_confirmed hT (by have hc := hT.carrier.1; omega) hhorG hx)).2.2.2).1
     have heq : (pt.carrier : Nat) = (pt.r + 1) * p.R := le_antisymm hc2 hge
     have hk' : rho.events[k]? = some (.tick x (SA.gateTime p.toParams pt.carrier)) := by
       rw [heq]
@@ -382,6 +387,7 @@ theorem ktail_action_source {G ΔF : Time} {pt : TailKernelPt p}
         ring
       obtain ⟨i, hi, -⟩ := fgsa_tick_total E rho hs hT.set.base.delta y hy
         (4 * ((pt.r + 1) * p.R) + 1) (hmul ▸ hhorZ.2.1)
+        (hmul ▸ hT.set.awake y hy _ hGST hhorZ.2.1)
       rw [← hmul] at hi
       have ht := fgsa_tickIdx_of_event p c E rho hs hi
       refine ⟨FGSA.headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho i y)
@@ -399,7 +405,32 @@ theorem ktail_action_source {G ΔF : Time} {pt : TailKernelPt p}
       omega
     exact finality_action_source p c E rho pt.w (pt.r + 1) ow.e pt.carrier ow.Q x hx
       hc2 (hs2.trans (le_trans (Nat.le_add_right _ _) hc1)) ow.honestQ
-      hT.input.ac.h2' hT.input.ac.h3 hT.input.ac.h6 hGST ow.actionInRun hne hheads
+      hT.input.ac.h2' hT.input.ac.h3 hT.input.ac.h6
+      (by
+        apply finality_recoveryStart_le_vote p E ((pt.r + 1) * p.R) (by
+          have hR2 := (ktail_bounds hT).2.2.2.1
+          have hle : p.R ≤ (pt.r + 1) * p.R := by rw [Nat.add_mul]; omega
+          exact hR2.trans hle)
+        have hsync := hT.input.wit.synchronous
+        have hstart := hT.start
+        rw [kmid_period_eq] at hstart
+        have hlow : (pt.w.sStar : Int) + 2 ≤ (pt.w.u : Int) := by
+          exact_mod_cast hT.input.wit.proposal_lower
+        have hR : 2 ≤ p.R := (ktail_bounds hT).2.2.2.1
+        have hle := kmid_slot_scale_le p (show pt.r * p.R + 2 ≤ (pt.r + 1) * p.R by
+          rw [Nat.succ_mul]; omega)
+        change E.t_GST ≤ 4 * p.Δ * (pt.w.sStar : Int) + p.Δ at hsync
+        change 4 * p.Δ * (pt.w.u : Int) + 6 * p.Δ ≤ _ at hstart
+        change E.t_GST ≤ 4 * p.Δ * (_ - 2)
+        push_cast at hle hstart ⊢
+        nlinarith [p.deltaPos]) ow.actionInRun hne hheads
+      (fun y hy => ktail_window_joined hT (by rw [Nat.succ_mul]; omega) hZT hy)
+      (ktail_window_confirmed hT (by omega) (by
+        have hle := kmid_slot_scale_le p hc2
+        have hh := ow.actionInRun
+        rw [kmid_actionTime_eq] at hh
+        change 4 * p.Δ * (pt.carrier : Int) + 6 * p.Δ ≤ rho.horizon
+        linarith) hx)
       (ktail_gate_finality hT ow hlt)
       (fun nd hnd => by
         obtain ⟨-, -, -, hQ, hFc, hZ, hlo, -, -, -⟩ := ktail_action_frame hT ow hx nd hnd
