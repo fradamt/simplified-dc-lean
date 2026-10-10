@@ -1,3 +1,40 @@
+# Round 5 status supplement
+
+Base: 7a30ce82; branch sleep-pas5. P-As remains OPEN; healing remains OUT OF SCOPE.
+Clean and Zero are GREEN. 44/66 targets are GREEN, with 22 open.
+assembly_clean_state supplies cleanSafety_of_cut from the closed P-Cl2 state producers.
+Clean no longer imports unfinished outage continuation. The unchanged continuation claim
+is now Root-owned, and its owning tests remain EXPECTED-FAIL.
+Tests/OutageAssemblyAxioms checks P-Ar's actual continuation-prefix receipt against the
+actual P-Ou RestoredBatch consumer. No P-Ar producer request remains.
+Root:137/:158 has the exact prepared WC caller bodies with source/continuation FAST,
+the selected H0 join cutoff and both suffix branches. Their extracted strict audit passes;
+the full Root module remains OPEN. FAST is still absent from this base and remains P-Fd-owned.
+P-Ou owns full continuation, Close, inclusion records, and Clean growth callbacks.
+The inherited outage continuation fixture fails SleepWellFormed; that fixture item is stopped.
+The complete current target/request list is P-As.remaining.md and P-As.blocker-types.md.
+No public claim, healing file, family proof, checker, baseline or allowance changes.
+Apply the audit/coverage fragments under their existing canonical keys at serial integration.
+The two new Root helper rows and moved continuation owner are installed in the active
+source coverage inventory because DCK's real source-inventory control requires them.
+
+# Round 4 status supplement
+
+Base: 3a538409; branch sleep-pas4. Full P-As remains OPEN.
+WC assembly, source/retained seed adapters and the full W1 fixture now build.
+Growth and empty suffix service use cached safety and exact original gate evidence.
+Source/suffix joined counts retain the selected H0 cutoff at the inclusive source endpoint.
+The exact fast-write receiver-epoch producer remains explicit, owner P-Fd (FAST).
+Root and GrowthAssemblyAxioms remain OPEN; WCROOT gives the required caller wiring.
+No public Claims/Statements or healing target changed. No healing scope record is passed.
+The W1 source ends at 253; its 16-step sleeping suffix ends at 269.
+The sleeping batch, receipt and cached delivery paths have exact receiver guards.
+ArmingScores collides with ExactProposalReceipts, visible through ArmingSleep imports.
+The exact names and build evidence are B19 in P-As.blocker-types.md.
+P-As.remaining.md and P-As.blocker-types.md supersede every older request below.
+Apply the audit/coverage fragments under the existing canonical audit keys at serial join.
+No test module is added as an import to a production audit.
+
 # Round 3 status supplement
 
 Base: f5c77257; branch sleep-pas3b. The current non-healing requests are in

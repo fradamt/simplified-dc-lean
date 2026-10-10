@@ -55,3 +55,32 @@ Base 888f6c5e; branch sleep-pas2. Full P-As OPEN.
   P-As.blocker-types.md. The map has 26 GREEN targets and 39 EXPECTED-FAIL targets.
 - initialAt stays. W1 and Adversarial consumers are still OPEN. No public claim, checker,
   baseline, allowance, or layer exception changes. No Root/G-S2 closure is claimed.
+
+## Round 4 — prepared non-healing ports
+
+WC assembly and the full W1 fixture build. Source/suffix joined counts keep the
+selected H0 cutoff. Cached safety and exact proposal coverage are produced at the
+WC checkpoint and feed growth and the empty route. No public claim changed.
+FAST remains P-Fd-owned and explicit. Root/GrowthAssemblyAxioms remain OPEN with
+WCROOT and inherited family imports. Healing is excluded. W1 now uses 253/269;
+SleepPositive keeps its actual wake-restart evidence. Full P-As is not CLOSED.
+
+## Round 5 — closed Clean caller and exact Root preparation
+
+Base: 7a30ce82. Full P-As remains OPEN; healing stays OUT OF SCOPE.
+Assembly/Clean:53 produces the all-node state pair from CleanSet, clean_sCompatible,
+sExtends and the existing foundation/source exports. cleanSafety_of_cut consumes it.
+Both Zero fixtures retain their positive witnesses and use current sleep/receipt fields.
+The unchanged fgsa_outageContinuationClaim moves to Root:171 to separate Clean from
+P-Ou's unfinished continuation import. No public name or statement changes.
+Tests/OutageAssemblyAxioms:10 composes the concrete P-Ar continuation prefix producer
+with the actual P-Ou restored receipt consumer. Prefix receipt is CLOSED, not assumed.
+Root:137/:158 keeps the selected source join cutoff and exact source/continuation FAST.
+The exact Root bodies pass strict extraction; full Root acceptance is still OPEN.
+The two old rw [slotAt] calls use direct unfolding; no equation-export allowance is added.
+P-Ou continuation/Close/inclusion/growth and P-Fd FAST remain exact producer requests.
+The inherited outage fixture is not SleepWellFormed: asleep tick 8, missing wake restart 13.
+STOP that fixture item; no invalid premise or public counterexample is supplied.
+Current counts: 44/66 targets GREEN; full map 504 GREEN and 24 EXPECTED-FAIL.
+Headers PASS; layers 72 inherited, zero new; GREEN exports zero unaccepted.
+Evidence: .lake/sleep-pas-r5/. Current requests: P-As.blocker-types.md / P-As.remaining.md.

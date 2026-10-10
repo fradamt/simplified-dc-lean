@@ -85,10 +85,11 @@ theorem frontierSearch_seed_after {V : Type} (E : Generic.Env V)
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
  ROOT-DIGEST W2b. Blueprint 21 HG.3. DC: SAME the proposer floor and exact-gate cap. -/
 theorem frontierSearch_proposal_heights [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {u D : Time} {m q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (hgst : E.t_GST ≤ u)
     (hp : PhaseInterval p c E rho u D m J contested)
     (hu : u ≤ SA.proposalTime p.toParams q)
     (hgate : SA.gateTime p.toParams q ≤ D)
@@ -134,6 +135,7 @@ theorem frontierSearch_proposal_heights [Fintype V] (E : Generic.Env V)
   refine ⟨hlo.trans ((fgCertificateLaws p).height.h_mono hparent), ?_⟩
   obtain ⟨i, K, hi, hK, heK⟩ := healing_rise_one_gate_copy p c E rho hS hexact
     (hgate.trans hp.2.1) hx
+    (healing_recovery_gate_reader hrec hx (hgst.trans hu) (hgate.trans hp.2.1))
   have hKe : K = Qfg := eraseFG_injective (heK.trans heq.symm)
   subst K
   have hui' := healing_support_idxBefore_le p c E rho hS hi (hu.trans hqg)
@@ -187,7 +189,12 @@ DC: SAME stop at the finite first event, or save the repaired height-m seed.
 The horizon is closed. TRepair has producer healing_tRepair. -/
 theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho) (monoAll : RMonoAll p
+      c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (repair : TRepair p c E rho)
     {i m : Nat} {ev : V2.Event V (Obj p)}
     (hstart : FrontierSearchStart p c E rho i ev m .contest)
@@ -210,12 +217,11 @@ theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
       nlinarith [p.deltaPos, hrec.gapPos]
   rcases frontierSearch_first_effective_split p c E rho hsched i
       (ev.time + (ρbar + 3 * p.Δ)) with hstop | hquiet
-  · rcases frontierSearch_classify_stop p c E rho hrec.base.noRestart hfront hstop with h | h
+  · rcases frontierSearch_classify_stop p c E rho monoAll hfront hstop with h | h
     · exact Or.inl h
     · exact Or.inr (Or.inl h)
-  obtain ⟨J, hp, _⟩ := healing_settle_start (hroots := hrec.base.idealization)
-    p c E rho crossing hrec.base.valid
-    hrec.base.noRestart hrec.base.delta hrec.sync i ev _ m .contest hi hgst0
+  obtain ⟨J, hp, _⟩ := healing_settle_start_on (hroots := hrec.base.receiptIdealization)
+    p c E rho crossing hrec.base.valid monoAll heldServices i ev _ m .contest hi hgst0
     (by change ev.time + 3 * p.Δ ≤ ev.time + (ρbar + 3 * p.Δ); linarith)
     hhor hm hfront hkind hquiet
   have hgst : E.t_GST ≤ ev.time + 3 * p.Δ := by linarith [p.deltaPos]
@@ -224,7 +230,9 @@ theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
   have hgateD : SA.gateTime p.toParams q ≤ ev.time + (ρbar + 3 * p.Δ) := by linarith
   obtain ⟨j, Qfg, _, _, hErase⟩ := healing_rise_one_gate_copy p c E rho hsched he
     (hgateD.trans hhor) hQ.1.2
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec crossing hp
+    (healing_recovery_gate_reader hrec hQ.1.2 (hgst.trans (frontierSearch_seed_after E
+      hseed)) (hgateD.trans hhor))
+  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec crossing hgst hp
     (frontierSearch_seed_after E hseed) hgateD hQ hErase he
   have hh : (heightView p Qfg).h = m := Nat.le_antisymm hhi hlo
   have hu := frontierSearch_seed_after E hseed

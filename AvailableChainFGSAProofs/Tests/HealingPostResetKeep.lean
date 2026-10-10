@@ -21,9 +21,21 @@ example (w : HealingWitness) : PostResetProtectedKept p c E rho w 0 := by
   intro j hj
   exact False.elim (Nat.not_lt_zero j hj)
 
+private def DeliveryServices : Prop :=
+  ∀ y r K, y ∈ rho.honest →
+    actionSourceFG p c E rho y r = some (some K) →
+    E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
+    SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
+    ∀ x ∈ rho.honest, FGBlock.Preceq
+      (rho.stateBeforeTime E (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F K →
+    ∀ j z W, z ∈ rho.honest →
+    rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
+    W ∈ (storeAt p c E rho j z).fg.TF →
+    TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x
+
 -- conditional package: consume the A wrapper's conclusion for the source body itself.
 example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (hnr : V2.D.NoRestart rho) (mono : RMono p c E rho)
+    (mono : RMonoAll p c E rho) (hServices : DeliveryServices p c E rho)
     (origin : RQCOrigin p c E rho) (source : TSrc p c E rho) {w : HealingWitness}
     (lowFinality : ∀ {j : Nat} {x : V} {D : FGBlock (Fin p.n)}, x ∈ rho.honest →
       afterTicksIdx rho (p.actionTime w.rStar) ≤ j →
@@ -40,8 +52,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     Gen.V2.Duty.HoldsBefore E rho (fun nd =>
       K ∈ nd.st.fg.TF ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x := by
-  have h := postReset_tDel p c E rho hnr mono origin lowFinality highCompat resetCompat
-    hrec source hy hsrc hK hhK hgst hhor hx
+  have h := postReset_tDel p c E rho mono origin lowFinality highCompat resetCompat
+    hrec source hServices hy hsrc hK hhK hgst hhor hx
   rw [Gen.V2.Duty.HoldsBefore_def] at h ⊢
   exact h.imp (fun path => path K (KitFG.preceq_refl K)) id
 

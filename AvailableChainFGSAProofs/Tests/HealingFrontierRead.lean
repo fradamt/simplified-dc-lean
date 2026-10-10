@@ -32,6 +32,7 @@ private def LastWrite : Prop :=
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
       ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+        joinedNow p pre = true →
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
         (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -39,14 +40,16 @@ private def LastWrite : Prop :=
           (actView pre) w C
 
 -- F1: the strict-stop adapter applied directly in the HG.1 consumer.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
     {u stop : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip : Nat} {x : V}
     {jStop : Nat} {evStop : V2.Event V (Obj p)}
     (hGST : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
-    (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
+    (hService : ExactService p c E rho q Q)
+    (hScopes : FrontierReadScope E rho q (SA.gateTime p.toParams s))
+    (hu : u ≤ SA.proposalTime p.toParams q)
     (hPhase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
     (hStopEv : rho.events[jStop]? = some evStop) (hStop : stop = evStop.time)
     (hRise : m < frontierAtIdx p c E rho (jStop + 1))
@@ -59,28 +62,32 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (N : NamedProposal p.n)
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
-    (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
-      (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
+    (hReceipt : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
     (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s) :
-    ∀ y ∈ rho.honest, ∀ ih,
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg N.erase Kc :=
-  fgsa_retainedReads_HG1 (hroots := hroots) E rho hrec.base.valid hrec.base.noRestart
-      hrec.base.delta s hSync hx
+  fgsa_retainedReads_HG1_on (hroots := hrec.base.receiptIdealization) E rho
+      hrec.base.valid s hx
     hip hseat N hem Qfg q stop hafter hsStop
     (retainedHG1Input_before_first_rise E rho hrec mono crossing lastWrite hGST hQ hErase
-      hHeight hService hu hPhase hStopEv hStop hRise hCapStop hqStop hsStop hx hip hseat N hem)
+      hHeight hService hScopes hu hPhase hStopEv hStop hRise hCapStop
+      hqStop hsStop hx hip hseat N hem)
+    hReceipt
 
 -- F2: m = 1 (height-one pivot; the frame may be top J with genesis).
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
     {u v : Time} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip : Nat} {x : V}
     (hGST : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = 1)
-    (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
+    (hService : ExactService p c E rho q Q)
+    (hScopes : FrontierReadScope E rho q v) (hu : u ≤ SA.proposalTime p.toParams q)
     (hPhase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) 1 J contested)
     (hqv : SA.gateTime p.toParams q ≤ v) (hHorizon : v ≤ rho.horizon)
     (hCap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -93,22 +100,24 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       rho.emitsAt E ip)
     (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
     (hgate : SA.gateTime p.toParams s ≤ v) :
-    ∀ y ∈ rho.honest, ∀ ih,
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg :=
-  retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight hService
+  retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight
+    hService hScopes
     hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate
 
 -- F3: unequal floors: the source and target floors are bounded separately by m.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip ih : Nat} {x y : V}
     (hGST : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
-    (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
+    (hService : ExactService p c E rho q Q)
+    (hScopes : FrontierReadScope E rho q v) (hu : u ≤ SA.proposalTime p.toParams q)
     (hPhase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
     (hqv : SA.gateTime p.toParams q ≤ v) (hHorizon : v ≤ rho.horizon)
     (hCap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -129,17 +138,18 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (controls p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))).lo ≤ m ∧
     (controls p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s))).lo ≤ m := by
   have h := retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight
-    hService hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate y hy ih hih
+    hService hScopes hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate y hy ih hih
   exact ⟨hne, hHeight ▸ h.source_floor, hHeight ▸ h.target_floor⟩
 
 -- F4: same-time reads: two HEAD ticks at v_s, in either index order, both get the input.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip i₁ i₂ : Nat} {x y₁ y₂ : V}
     (hGST : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
-    (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
+    (hService : ExactService p c E rho q Q)
+    (hScopes : FrontierReadScope E rho q v) (hu : u ≤ SA.proposalTime p.toParams q)
     (hPhase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
     (hqv : SA.gateTime p.toParams q ≤ v) (hHorizon : v ≤ rho.horizon)
     (hCap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -163,17 +173,18 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
       (clock p (rho.stateBefore E i₂ y₂).st (SA.voteTime p.toParams s)) s Qfg := by
   have h := retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight
-    hService hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate
+    hService hScopes hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate
   exact ⟨h12, h y₁ hy₁ i₁ hi₁, h y₂ hy₂ i₂ hi₂⟩
 
 -- F5: ΔF > Δ: the row delay is not used by the producer.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (hΔF : p.Δ < ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) (hΔF : p.Δ < ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip : Nat} {x : V}
     (hGST : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
-    (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
+    (hService : ExactService p c E rho q Q)
+    (hScopes : FrontierReadScope E rho q v) (hu : u ≤ SA.proposalTime p.toParams q)
     (hPhase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
     (hqv : SA.gateTime p.toParams q ≤ v) (hHorizon : v ≤ rho.horizon)
     (hCap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -186,23 +197,24 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (hΔF : 
       rho.emitsAt E ip)
     (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
     (hgate : SA.gateTime p.toParams s ≤ v) :
-    p.Δ < ΔF ∧ ∀ y ∈ rho.honest, ∀ ih,
+    p.Δ < ΔF ∧ ∀ y ∈ rho.honest, ∀ (ih : Nat),
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg :=
   ⟨hΔF, retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight
-    hService hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate⟩
+    hService hScopes hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate⟩
 
 -- F6: d_s = horizon: the closed endpoint v = horizon; the consumer takes the integer
 -- sentinel stop = horizon + 1, after all bounds are proved within the horizon.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (lastWrite : LastWrite p c E rho)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q s : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} {ip : Nat} {x : V}
     (hGST : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
-    (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
+    (hService : ExactService p c E rho q Q)
+    (hScopes : FrontierReadScope E rho q rho.horizon) (hu : u ≤ SA.proposalTime p.toParams q)
     (hPhase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
     (hCap : ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho rho.horizon → x ∈ rho.honest →
       (storeAt p c E rho i x).fg.h_max ≤ m)
@@ -212,11 +224,12 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (N : NamedProposal p.n)
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
-    (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
-      (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
+    (hReceipt : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
     (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
     (hds : SA.gateTime p.toParams s = rho.horizon) :
-    ∀ y ∈ rho.honest, ∀ ih,
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
@@ -230,12 +243,11 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
   have hstop : SA.gateTime p.toParams s < rho.horizon + 1 := by
     rw [hds]
     exact lt_add_one _
-  exact fgsa_retainedReads_HG1 (hroots := hroots) E rho hrec.base.valid hrec.base.noRestart
-      hrec.base.delta s hSync
-    hx hip hseat N hem Qfg q (rho.horizon + 1) hafter hstop
+  exact fgsa_retainedReads_HG1_on (hroots := hrec.base.receiptIdealization) E rho
+      hrec.base.valid s hx hip hseat N hem Qfg q (rho.horizon + 1) hafter hstop
     (fun y hy ih hih _ => retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ
-      hErase hHeight hService hu hPhase hqv le_rfl hCap hx hip hseat N hem hafter
-      hds.le y hy ih hih)
+      hErase hHeight hService hScopes hu hPhase hqv le_rfl hCap hx hip hseat N hem hafter
+      hds.le y hy ih hih) hReceipt
 
 end Signatures
 

@@ -445,7 +445,7 @@ theorem postReset_raw_moving_domain
       (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams l)) y).fg.TF := by
   have hcut := healing_support_idxBefore_le p c E rho hrec.base.valid.toScheduleWellFormed
     hiy hafter.le
-  have hX := (fgsa_store_cumulative p c E rho hrec.base.noRestart hcut y).1
+  have hX := (fgsa_store_durable p c E rho hcut y).1
   exact movingDomain hinv hgst hCB hbatch hy hiy hyi hafter hupper hX (Finset.Subset.refl _)
     hnZ hnF
 
@@ -679,7 +679,7 @@ theorem postReset_raw_proposals_succ_above
     change 4 * p.Δ * ((l + 1 : Nat) : Int) ≤ 4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ
     linarith [p.deltaPos]
   have hfroz := healing_support_idxBefore_le p c E rho hs hip hafter.le
-  have hX := (fgsa_store_cumulative p c E rho hrec.base.noRestart hfroz y).1
+  have hX := (fgsa_store_durable p c E rho hfroz y).1
   have hD := postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName writes
     xing origin h0r hinv hgst hCB hbatch hy hip hpi hafter hupper le_rfl hX hZ hF
   apply healing_proposal_moving_parent p c E rho hrec hgst hbatch hp
@@ -743,7 +743,7 @@ theorem postReset_raw_finality_compatible_above
     healing_finality_source (hroots := hrec.base.idealization) p c E rho hs origin hy hFg
   by_cases hl : (finalityView p DF).h_F < (heightView p B).h
   · have hFB := xing b (b + ix) y x DF B hy (Nat.le_add_right b ix) hDF heF
-      ⟨hx, (fgsa_store_cumulative p c E rho hrec.base.noRestart
+      ⟨hx, (fgsa_store_durable p c E rho
         (Nat.le_add_left ix b) x).1 hBstore⟩ hl
     exact Bool.or_eq_true_iff.mpr (Or.inl (eraseFG_preceq hFB))
   have hhighK : high p w K := by

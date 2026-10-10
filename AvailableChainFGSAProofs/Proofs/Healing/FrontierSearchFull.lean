@@ -17,20 +17,38 @@ Blueprint 21:1722–1800; S5 F3, full FrontierSearchStatement.
 DC: SAME rise from M, then first row at M+1. Both complete horizon guards are retained.
 RCap supplies a skipped row; otherwise the event at M+1 starts the row task. -/
 theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
+        (cap : RCap p c E rho)
     (origin : RQCOrigin p c E rho) (repair : TRepair p c E rho) (common : TCommon p c E rho)
+    (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (perm : TPerm p c E rho)
+    (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
+      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -60,7 +78,8 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
   apply (frontierSearchStatement_iff p c E rho G ΔF).mpr
   intro hδ hbound rG u₀ M hgst hfirst hu₀ hdelay hM _rowCap
   have hs := hrec.base.valid.toScheduleWellFormed
-  have frontier := frontier_service E rho hrec mono crossing writes rowCoverage
+  have hstartLower := healing_recovery_start_lower (p := p) E
+  have frontier := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage
   have rise : ∀ ρbar,
       (ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1)) →
       u₀ + frontierSearchRiseBudget p G ΔF ρbar ≤ rho.horizon →
@@ -74,11 +93,14 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
     have hcutHor : u₀ ≤ rho.horizon := by linarith only [hhor, hb]
     obtain ⟨i, ev, kind, hstart, ht, hidx⟩ :=
       frontierSearch_cut_start E rho hrec hgst hfirst hu₀ hdelay hM hcutHor
-    have hdelayEv : E.t_GST + 2 * P p ≤ ev.time := by rw [ht]; exact hdelay
+    have hdelayEv : E.t_GST + 2 * P p ≤ ev.time := by
+      rw [ht]
+      linarith only [hdelay, hstartLower, p.deltaPos]
     have hhorEv : ev.time + frontierSearchRiseBudget p G ΔF ρbar ≤ rho.horizon := by
       rw [ht]
       exact hhor
-    have hrise := frontierSearch_rise_task E rho hrec mono crossing origin repair common
+    have hrise := frontierSearch_rise_task E rho hrec mono heldServices crossing origin
+      proposalServices repair common
       hδ hbound perm frontier rowsReceipt progressCoverage hfold faultQ honestQuorum
       hstart hdelayEv hmode hhorEv
     obtain ⟨j, nextEv, hij, hj, htime, hh, hcap⟩ :=
@@ -123,9 +145,11 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
           (frontierSearchStart_iff p c E rho j ev (M + 1) kind).mpr
             ⟨hj, hgstCut.trans hlow,
               Or.inl heff, heq, by omega, hkind⟩
-        exact frontierSearch_row_task E rho hrec mono crossing origin repair common hδ hbound
+        exact frontierSearch_row_task E rho hrec mono heldServices crossing origin
+          scopeProducer repair common hδ hbound
           perm cap writes rowCoverage rowsReceipt progressCoverage hfold faultQ honestQuorum
-          hstart (hdelay.trans hlow) hmode hrowHor
+          hstart (by linarith only [hdelay, hlow, healing_recovery_start_lower (p := p) E,
+            p.deltaPos]) hmode hrowHor
       · obtain ⟨x, W, hW, hWh⟩ :=
           (healing_phaseWitness p c E rho (i := j + 1)
             (m := frontierAtIdx p c E rho (j + 1)) (by omega) rfl).frontier

@@ -299,6 +299,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain
 #print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines
 #print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites_epoch
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_tSrc
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_labelBound
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_emittedName
@@ -2370,3 +2371,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.finality_full_vote_at_scoped_read
 
 #print axioms AvailableChain.FGSA.Run.finality_vote_receipts
+
+#print axioms AvailableChain.FGSA.Run.assembly_clean_state
+
+
+#print axioms AvailableChain.FGSA.Run.assembly_weakContinuationGrowth
+#print axioms AvailableChain.FGSA.Run.assembly_weakContinuationClaims
+
+#print axioms AvailableChain.FGSA.Run.fgsa_outageContinuationClaim

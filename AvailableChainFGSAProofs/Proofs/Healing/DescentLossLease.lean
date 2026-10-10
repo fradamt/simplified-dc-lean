@@ -40,7 +40,7 @@ with no earlier loss and F of x below the high source B, every live lease of
 the post-clock state is compatible with B. Every HEAD that the lease bound
 reads is an earlier tick, so `noLoss` gives its coverage. -/
 theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -59,6 +59,7 @@ theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -69,6 +70,7 @@ theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
     {B : FGBlock (Fin p.n)} {sB : Slot} {x : V} {l : Slot}
     (hB : HighSrcN p c E rho B sB) (hx : x ∈ rho.honest) (hl : sB + 2 ≤ l)
     (hk : rho.events[k]? = some (.tick x (SA.voteTime p.toParams l)))
+    (hScopes : ∀ y ∈ rho.honest, FastSupportScope E rho sB (SA.voteTime p.toParams l) y)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho k x).fg.F) (eraseFG B)) :
     ∀ row ∈ (FGSA.clock p (storeAt p c E rho k x) (SA.voteTime p.toParams l)).base.obligations,
       Block.Compatible row.1 (eraseFG B) := by
@@ -131,7 +133,12 @@ theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
     push_cast at hl' ⊢
     nlinarith
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hDelta hx (r * p.R + 1)
-    (hvq.le.trans hvl)
+    (hvq.le.trans hvl) (hrec.awake x hx _ (by
+      refine hgst.trans ?_
+      change 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ ≤
+        4 * p.Δ * ((r * p.R + 1 : Nat) : Int) + p.Δ
+      push_cast
+      nlinarith) (hvq.le.trans hvl))
   have hqa : iq < k := healing_idx_lt_of_time_lt p c E rho hS hiq hk hvq
   have hT : ∀ j' t, j' < k → rho.events[j']? = some (.tick x t) →
       t ≤ SA.voteTime p.toParams l := by
@@ -141,7 +148,8 @@ theorem healing_loss_lease_late [Fintype V] {G ΔF : Time}
     have hkey := (List.pairwise_iff_getElem.mp hS.sorted) j' k hjl hkl hjk
     rw [hje, hke] at hkey
     exact V2.D.Engine.time_le_of_key_le _ _ hkey
-  have hrows := healing_fast_lease_at E rho hrec mono writes hgst hgs hy hnd hfw hvl hcov
+  have hrows := healing_fast_lease_at E rho hrec mono writes hgst hgs hy hnd hfw hvl
+    (hScopes y hy) hcov
     hx hiq hqa hT hFB
   intro row hrow
   rw [lease_vote_clock p] at hrow

@@ -15,9 +15,10 @@ DC: SAME apply r3 at height one to the actual later proposal.
 Assembly supplies the exact r3 INLINE ports. Healing supplies TPerm from
 RMono, RXing and the existing last-write port. -/
 theorem healing_rise_one_advance (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (hServices : SupportPermanenceServices E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -28,6 +29,7 @@ theorem healing_rise_one_advance (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -52,8 +54,8 @@ theorem healing_rise_one_advance (E : Generic.Env V)
     (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s)
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X)) (hslot : X.slot = s) :
     2 ≤ (heightView p X).h := by
-  exact healing_promotion_advance E rho hrec hδ hbound
-    (healing_tPerm E rho hrec mono crossing writes) rowsReceipt progressCoverage
+  exact healing_promotion_advance E rho hrec.toRecovery₂ hδ hbound
+    (healing_tPerm E rho hrec mono crossing hServices writes) rowsReceipt progressCoverage
     hfold faultQ honestQuorum hentry hcovered hgst hphase hu hs hnew hslot
 
 end AvailableChain.FGSA.Run

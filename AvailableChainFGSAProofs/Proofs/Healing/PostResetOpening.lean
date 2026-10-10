@@ -186,7 +186,7 @@ theorem healing_postReset_opening_stored_at [Fintype V]
     have hmem := Next.tree_subset_TF p _ (Finset.mem_filter.mp hm).1
     change D ∈ (clock p (storeAt p c E rho ih x) (SA.voteTime p.toParams v)).fg.TF at hmem
     rwa [clock_fg] at hmem
-  exact ⟨D, he, (fgsa_store_cumulative p c E rho hrec.base.noRestart hik x).1 hstored⟩
+  exact ⟨D, he, (fgsa_store_durable p c E rho hik x).1 hstored⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.17:3031–3040; plan J6-3 O1; B1/B17/B18.
@@ -341,8 +341,8 @@ theorem healing_postReset_gate_finality (i : Nat)
   rw [PostResetFProv_def] at hfp
   rcases (hfp k hk x hx hresetCut).1 with hlow | ⟨K, s, hK, hh, htime, hFK⟩
   · exact block_preceq_trans hlow (block_preceq_trans hCQp hparent)
-  · have hnow := V2.D.Engine.stateBefore_now_le_event_noRestart (fgsaClock p c)
-      E rho hs hrec.base.noRestart ht x
+  · have hnow := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hs ht x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k x)] at hnow
     have hbound : SA.gateTime p.toParams s + P p ≤ SA.gateTime p.toParams v :=
       htime.trans hnow

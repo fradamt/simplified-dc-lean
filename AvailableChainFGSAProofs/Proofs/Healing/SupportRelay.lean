@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
+public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 
 public section
 
@@ -467,6 +468,120 @@ theorem healing_support_target_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
       Gen.V2.Duty.stateBefore_idxBefore E rho D hsch] at hc
     exact hc hY
   exact healing_support_prefreeze_path E rho hsch hN hiy hYD
+
+/-- Exact raw HEAD service at the source gate gives late-pool membership or a cap.
+The service keeps its own history premise, including after replay. -/
+theorem healing_support_raw_backward_on (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    {ix : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
+    (q : Fin p.n) (b : BlockId)
+    (hScope : HeadRelayServiceScope E rho s q b (SA.gateTime p.toParams s) ix x) :
+    let late := GridCO.lateVotes p.toParams.engine
+      (actView (clockPre p (rho.stateBefore E ix x).st (SA.gateTime p.toParams s))) s
+    (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈ late ∨
+      GridCO.equivocates late q = true := by
+  intro late
+  let D := SA.gateTime p.toParams s
+  have hS := hE.toScheduleWellFormed
+  have hc := fgsa_store_cumulative_on p c E rho hScope.index x hScope.epoch
+  have keep (o : GridCO.Wire p.n .root)
+      (hm : o ∈ (rho.stateBeforeTime E D x).st.base.votes)
+      (ht : GridCO.stampVote (rho.stateBeforeTime E D x).st.base o < D)
+      (hl : GridCO.headLabel? o = some s) : o ∈ late := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho D hS] at hm ht
+    have hk : o ∈ (rho.stateBefore E (V2.D.Run.idxBefore rho D) x).st.base.voteStamp.map
+        Prod.fst := by
+      rw [fgsa_vote_stamp_keys E rho _ x]
+      exact hm
+    have hm' := fgsa_votes_cumulative_on p c E rho hScope.index x hScope.epoch hm
+    apply List.mem_filter.mpr
+    refine ⟨List.mem_filter.mpr ⟨?_, by simp only [hl, beq_self_eq_true]⟩, ?_⟩
+    · change o ∈ (clockPre p _ _).base.votes
+      rwa [(Internal.clockPre_vn _ _).1]
+    · rw [support_read_stamp E rho ix x _ o hm']
+      change decide (GridCO.stampVote (storeAt p c E rho ix x).base o < D) = true
+      change GridCO.stampVote (storeAt p c E rho (V2.D.Run.idxBefore rho D) x).base o < D
+        at ht
+      unfold GridCO.stampVote at ht ⊢
+      rw [support_stamp_kept hc.2.2.2.1 o hk]
+      cases hf : (storeAt p c E rho (V2.D.Run.idxBefore rho D) x).base.voteStamp.find?
+          (fun row => row.1 == o) with
+      | none =>
+        obtain ⟨row, hr, he⟩ := List.mem_map.mp hk
+        have hn := List.find?_eq_none.mp hf row hr
+        simp only [he, beq_self_eq_true] at hn
+        contradiction
+      | some row => simpa only [hf, Option.map_some, Option.getD_some] using decide_eq_true ht
+  by_cases hn : (fgsa p c).excludes (rho.stateBeforeTime E D x)
+      (ofHead p ⟨.seat (.head s) q, b⟩) = false
+  · obtain ⟨send, ⟨hs⟩⟩ := hScope.service hn
+    have hm := of_decide_eq_true (hs.processed hS hx (by change ¬ False; exact not_false))
+    exact Or.inl (keep _ hm (fgsa_head_stamp_before_read E rho hS x D s q b hm) rfl)
+  · obtain ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, htu, htv⟩ :=
+      fgsa_head_excluded_before E rho hS x D s q b hScope.window
+        (Bool.eq_true_of_ne_false hn)
+    exact Or.inr ((cap_pair late q).mpr
+      ⟨u, keep u hu htu hlu, v, keep v hv htv hlv, hne, hku, hkv⟩)
+
+/-- Exact target service and the receiver epoch supply the frozen ancestor path. -/
+theorem healing_support_target_path_on (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hS : V2.D.ScheduleWellFormed E rho)
+    {iy : Nat} {y : V} {s : Slot} (hy : y ∈ rho.honest)
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hEpoch : V2.D.restartFree rho y
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) iy)
+    (K : Block) (hService : TargetReceiptService E rho K (SA.freezeTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    let st := ((fgsa p c).clock (rho.stateBefore E iy y)
+      (SA.voteTime p.toParams (s + 1))).st
+    ∃ Kfg : FGBlock (Fin p.n), eraseFG Kfg = K ∧
+      ∀ A, FGBlock.Preceq A Kfg →
+        A ∈ st.fg.TF ∧ GridCO.stampBlock st.base (eraseFG A) < SA.freezeTime p.toParams s := by
+  intro st
+  have hBase := fgsa_target_receipt_on E rho hS hroots K
+    (SA.freezeTime p.toParams s) y hy hService
+  obtain ⟨Kfg, hK, he⟩ := ((storeBundle_stateBeforeTime E rho
+    (SA.freezeTime p.toParams s) y).cstore.baseTree K).mp hBase
+  exact ⟨Kfg, he, healing_support_prefreeze_path_on E rho hS hiy hEpoch hK⟩
+
+/-- A joined transfer receiver uses earlyTime as the proposal service anchor.
+The deadline and every N4 input refer to that same anchor. -/
+theorem healing_transfer_proposal_service (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (hDelta : E.Δ = p.Δ) {s r : Slot} {y v : V} {k : Nat} {N : NamedProposal p.n}
+    {t : Time} (hy : y ∈ rho.honest) (hv : v ∈ rho.honest)
+    (hJ : joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)))
+    (hhor : SA.voteTime p.toParams (s + 1) ≤ rho.horizon)
+    (hacc : V2.D.Run.acceptsAt E rho k v (ofWire p ⟨.proposer r, .proposal N⟩) t)
+    (ht : t < SA.earlyTime p.toParams s)
+    (dl : Time → Time) (cut : Time)
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
+    (hl : SA.earlyTime p.toParams s < dl (SA.earlyTime p.toParams s))
+    (hb : dl (SA.earlyTime p.toParams s) ≤ SA.freezeTime p.toParams s)
+    (hc : SA.freezeTime p.toParams s ≤ cut)
+    (hNX : (fgsa p c).excludes
+      (rho.stateBeforeTime E (dl (SA.earlyTime p.toParams s)) y)
+      (ofWire p ⟨.proposer r, .proposal N⟩) = false) :
+    Nonempty (ReceiverService E rho (ofWire p ⟨.proposer r, .proposal N⟩) t
+      (SA.freezeTime p.toParams s) y) := by
+  have hd : (toWire p (ofWire p ⟨.proposer r, .proposal N⟩)).decode =
+      some (.block r N) := by rw [toWire_ofWire]; rfl
+  obtain ⟨hT, hH, hRF, hReady⟩ := fgsa_transfer_path_anchor_service hE hDelta hy hv hJ hhor
+    hd hacc ht
+  have hfv : SA.freezeTime p.toParams s ≤ SA.voteTime p.toParams (s + 1) := by
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]
+  have h0 : 0 ≤ SA.earlyTime p.toParams s := by
+    change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
+    have := p.deltaPos
+    positivity
+  refine ⟨⟨dl, cut, SA.earlyTime p.toParams s, hD, ?_, ht.le, h0, hl,
+    hb.trans hc, hb.trans (hfv.trans hhor), hb, hH,
+    hRF.mono le_rfl (fgsa_idxBefore_mono rho hfv), ?_, hNX⟩⟩
+  · obtain ⟨z, hz, htr, hAw⟩ := hT
+    exact ⟨z, hz, htr, fun u hau hud => hAw u hau (hud.trans_le hb)⟩
+  · exact fun j u hau hud hh => hReady j u hau (hud.trans_le hb) hh
 
 end AvailableChain.FGSA.Run
 end

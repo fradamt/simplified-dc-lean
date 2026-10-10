@@ -22,7 +22,19 @@ Assembly supplies only the existing M5 and exact r3 INLINE ports. -/
 theorem healing_rise_one_rise (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
+    (opening : OpeningServiceScopes E rho)
+    (proposalServices : ∀ s ip v (N : NamedProposal p.n) x,
+      v ∈ rho.honest → x ∈ rho.honest →
+      rho.events[ip]? = some (.tick v (SA.proposalTime p.toParams s)) →
+      ofWire p ⟨.proposer s, .proposal N⟩ ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -33,6 +45,7 @@ theorem healing_rise_one_rise (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -81,7 +94,8 @@ theorem healing_rise_one_rise (E : Generic.Env V)
     linarith [hrec.gapPos, p.deltaPos]
   have hopeningBudget : u + ρΓ p G + (P p - 4 * p.Δ) ≤ D := by
     linarith [p.deltaPos]
-  rcases healing_rise_one_repair_opening E rho hrec mono crossing qc writes rowCoverage
+  rcases healing_rise_one_repair_opening E rho hrec mono crossing qc services opening
+    writes rowCoverage
     hgst huD hD hopeningBudget with hdone | hw
   · exact Or.inl hdone
   obtain ⟨β, q, Q, Qfg, r, hp, hβ, _hmin, _hrepair, hq, hgate, _hQ, _hexact,
@@ -130,10 +144,13 @@ theorem healing_rise_one_rise (E : Generic.Env V)
       (some .genesis) false :=
     ⟨hafter, le_trans (by linarith [p.deltaPos]) hD, hp.2.2.1,
       fun i x hui hi hx => hp.2.2.2 i x hui (hi.trans hcut) hx⟩
-  have hheight := healing_rise_one_advance E rho hrec hδ hbound mono crossing writes
+  have hheight := healing_rise_one_advance_at E rho hrec hδ hbound mono crossing writes
     rowsReceipt progressCoverage hfold faultQ honestQuorum hentry hc hgst hphase
+    (services.permanence u (SA.proposalTime p.toParams s) 1
+      (some .genesis) false hgst hphase)
     huvote hlo hnew hslot
-  rcases healing_rise_one_accept p c E rho hrec crossing hnew hafter hgst hd hD with
+  rcases healing_rise_one_accept p c E rho hrec.toRecovery₂ mono crossing
+    (proposalServices s) hnew hafter hgst hd hD with
     hdone | hreceipt
   · exact Or.inl hdone
   exact Or.inr ⟨r, s, X, har, hnew, hslot, hlo, hhi, hheight, hd, hreceipt⟩

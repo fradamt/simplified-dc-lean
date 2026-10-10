@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Finality -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (audit)
@@ -41,3 +42,6 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetSource -- shake: kee
 #print axioms AvailableChain.FGSA.Run.assembly_reset_emittedName
 
 #print axioms AvailableChain.FGSA.Run.fgsa_recovery_gate_readers
+
+#print axioms AvailableChain.FGSA.Run.assembly_clean_state
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSafetyClaim

@@ -2486,6 +2486,7 @@
             'AvailableChain.FGSA.Run.FGSAFinalityClaims.runAgreement',
         ),
         'AvailableChainFGSAProofs.Proofs.Assembly.Clean': (
+            'AvailableChain.FGSA.Run.assembly_clean_state',
             'AvailableChain.FGSA.Run.fgsa_cleanCutClaim',
             'AvailableChain.FGSA.Run.fgsa_cleanHistoryClaim',
             'AvailableChain.FGSA.Run.fgsa_cleanPrefixTruncationClaim',
@@ -2541,6 +2542,9 @@
             'AvailableChain.FGSA.Run.healing_reset_emittedName',
         ),
         'AvailableChainFGSAProofs.Proofs.Assembly.Root': (
+            'AvailableChain.FGSA.Run.assembly_weakContinuationGrowth',
+            'AvailableChain.FGSA.Run.assembly_weakContinuationClaims',
+            'AvailableChain.FGSA.Run.fgsa_outageContinuationClaim',
             'AvailableChain.FGSA.Run.fgsaClaims',
             'AvailableChain.FGSA.Run.fgsaClaims_of_hTime',
             'AvailableChain.FGSA.Run.fgsaClaims_of_open',
@@ -3110,6 +3114,7 @@
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites',
+            'AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites_epoch',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_lastWrite',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_origins',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_writeLabel',
@@ -7098,6 +7103,30 @@
 # The same full-key fragment adds ResetScope and the durable opening/frame consumers.
 # Use scripts/dev-pkg/P-H2.audit-fragment.txt in the serial close window.
 
+# P-H1 Round 2: HealingSleepAxioms has 132 strict commands.
+# Complete local inventory: scripts/dev-pkg/P-H1.coverage-fragment.txt.
+# SupportRecovery is a new owned supplier under NEW-OWNED-MODULES.
+# Merge into the existing FGSAProofs.Tests.Axioms key at serial integration.
+
+
+# P-H1 Round 3: eight additional local strict commands (140 total).
+# First transfer, raw reverse receipt, anchor service and frozen receiver epoch.
+# Merge scripts/dev-pkg/P-H1.coverage-fragment.txt under the existing full audit key.
+
+# P-H1 Round 3 HEAD consumers: seven further strict commands (147 total).
+# The same serial fragment has the exact service and later HEAD induction rows.
+
+# P-H1 Round 3 fast lease/output/proposal: 15 further strict commands (162 total).
+# Bounded FastSupportScope and per-read ProposalSupportScope remain explicit inputs.
+
+# P-H1 Round 3 slow/permanence/frontier: 26 further strict commands (188 total).
+# The serial fragment records saved-window provenance and bounded capped service consumers.
+
+# P-H1 Round 3 retained/source/moving-frame inventory: 269 local strict commands.
+# The serial fragment includes RepairHeadServices consumers and bounded FrontierReadScope.
+
+# P-H1 Round 3 reset/descent closure: 339 local strict commands.
+# The same full-key serial fragment registers all newly ported H1 consumers.
 # P-H1 Round 2: HealingSleepAxioms has 132 strict commands.
 # Complete local inventory: scripts/dev-pkg/P-H1.coverage-fragment.txt.
 # SupportRecovery is a new owned supplier under NEW-OWNED-MODULES.

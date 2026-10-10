@@ -19,8 +19,8 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 -- GST exactly on an action: the first round is that round, and the lower
 -- cut bound is attained. This also tests rG = 0.
-example (r : Nat) (hGST : E.t_GST = p.actionTime r) :
-    resetFirstRound p E = r ∧ resetCutTime p E = E.t_GST + 2 * P p := by
+example (r : Nat) (hGST : recoveryStart p E = p.actionTime r) :
+    resetFirstRound p E = r ∧ resetCutTime p E = recoveryStart p E + 2 * P p := by
   have hr : resetFirstRound p E = r := by
     apply le_antisymm
     · exact reset_rG_first p E r (by rw [hGST])
@@ -37,8 +37,8 @@ example (r : Nat) (hGST : E.t_GST = p.actionTime r) :
   ring
 
 -- GST strictly between consecutive actions: the next round is selected.
-example (r : Nat) (hlo : p.actionTime r < E.t_GST)
-    (hhi : E.t_GST < p.actionTime (r + 1)) : resetFirstRound p E = r + 1 := by
+example (r : Nat) (hlo : p.actionTime r < recoveryStart p E)
+    (hhi : recoveryStart p E < p.actionTime (r + 1)) : resetFirstRound p E = r + 1 := by
   have hu := reset_rG_first p E (r + 1) hhi.le
   have ha := reset_rG_after p E
   rw [actionTime_periodW] at ha hlo
@@ -49,22 +49,22 @@ example (r : Nat) (hlo : p.actionTime r < E.t_GST)
   have hl' : r < resetFirstRound p E := by exact_mod_cast hl
   omega
 
--- R = 2 gives P = 8Δ. At Δ = 1 and GST = 10 the cut bounds are [26, 34).
+-- R = 2 gives P = 8Δ. At Δ = 1 and GST = 10 the cut bounds are [34, 42).
 example (hR : p.R = 2) (hΔ : p.Δ = 1) (hGST : E.t_GST = 10) :
-    26 ≤ resetCutTime p E ∧ resetCutTime p E < 34 := by
+    34 ≤ resetCutTime p E ∧ resetCutTime p E < 42 := by
   have hp : P p = 8 := by simp [P, hR, hΔ]
   have hl := reset_cut_lower p E
   have hu := reset_cut_upper p E
-  norm_num [hGST, hp] at hl hu
+  norm_num [recoveryStart, tauC, firstUpdateLabel, slotStartZ, hGST, hp, hΔ] at hl hu
   exact ⟨hl, hu⟩
 
--- R = 3 gives P = 12Δ. At Δ = 1 and GST = 10 the cut bounds are [34, 46).
+-- R = 3 gives P = 12Δ. At Δ = 1 and GST = 10 the cut bounds are [42, 54).
 example (hR : p.R = 3) (hΔ : p.Δ = 1) (hGST : E.t_GST = 10) :
-    34 ≤ resetCutTime p E ∧ resetCutTime p E < 46 := by
+    42 ≤ resetCutTime p E ∧ resetCutTime p E < 54 := by
   have hp : P p = 12 := by simp [P, hR, hΔ]
   have hl := reset_cut_lower p E
   have hu := reset_cut_upper p E
-  norm_num [hGST, hp] at hl hu
+  norm_num [recoveryStart, tauC, firstUpdateLabel, slotStartZ, hGST, hp, hΔ] at hl hu
   exact ⟨hl, hu⟩
 
 -- Two actual ticks at u₀ are both included. The last event is selected by
@@ -86,18 +86,18 @@ example (hs : V2.D.ScheduleWellFormed E rho) {j k : Nat} {x y : V}
   rw [reset_frontier, reset_inclusive_frontier p c E rho hs, hi]
 
 -- C2 has the frozen rowCap binders, including equality at the cut.
-example (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho) :
+example (hs : V2.D.ScheduleWellFormed E rho) :
     ∀ j y r a h e t, HonestRowAt p c E rho j y r a →
       rho.events[j]? = some (.tick y t) → t ≤ resetCutTime p E →
       namedEntry a.payload.height_pair = some (h, e) → h ≤ resetCutFrontier p c E rho := by
   intro j y r a h e t ha hj ht he
   rw [reset_frontier]
-  exact reset_row_cap p c E rho hs hnr (emittedName_window p c E rho hs) ha hj ht he
+  exact reset_row_cap p c E rho hs (emittedName_window p c E rho hs) ha hj ht he
 
 -- C3 isolates the exact missing fact. No extra assumption closes the item.
-example (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho) :
+example (hs : V2.D.ScheduleWellFormed E rho) :
     muOf p c E rho ≤ resetCutFrontier p c E rho ↔ rho.honest.Nonempty :=
-  reset_mu_le_iff p c E rho hs hnr (emittedName_window p c E rho hs)
+  reset_mu_le_iff p c E rho hs (emittedName_window p c E rho hs)
 
 -- The supplied schedule and execution conditions permit this empty run.
 private def emptyRun (x : V) : V2.D.Run V (fgsa p c) where
@@ -113,6 +113,10 @@ private theorem empty_valid (x : V) : V2.D.ExecutionValid E (emptyRun p c rho x)
   nodup := List.nodup_nil
   in_horizon := by simp [emptyRun]
   honest_only := by simp [emptyRun]
+  tick_awake := by simp [emptyRun]
+  deliver_awake := by simp [emptyRun]
+  restart_awake := by simp [emptyRun]
+  wake_restart := by simp [emptyRun]
   tick_public := by simp [emptyRun]
   tick_total := by simp [emptyRun]
   wire := by simp [emptyRun]
@@ -159,12 +163,23 @@ private theorem short_no_delivery (x : V) {i : Nat} {v : V} {o : Obj p} {t : Tim
   have hm := List.mem_of_getElem? hi
   simp [shortRun] at hm
 
-private theorem short_valid (x : V) : V2.D.ExecutionValid E (shortRun p c rho x) where
+private theorem short_valid (x : V) (hawake : E.awake x 0 = true) :
+    V2.D.ExecutionValid E (shortRun p c rho x) where
   horizon_nonneg := le_rfl
   sorted := by simp [shortRun]
   nodup := by simp [shortRun]
   in_horizon := by simp [shortRun, V2.Event.time]
   honest_only := by simp [shortRun, V2.Event.node]
+  tick_awake := by
+    intro v t h
+    have he : v = x ∧ t = 0 := by simpa [shortRun] using h
+    simpa only [he.1, he.2] using hawake
+  deliver_awake := by simp [shortRun]
+  restart_awake := by simp [shortRun]
+  wake_restart := by
+    intro v hv t ht hh _
+    change t ≤ 0 at hh
+    exact ((not_lt.mpr hh) ht).elim
   tick_public := by
     intro v t h
     have ht : t = 0 := by simpa only [V2.Event.time] using (congrArg V2.Event.time
@@ -185,14 +200,14 @@ private theorem short_valid (x : V) : V2.D.ExecutionValid E (shortRun p c rho x)
     rintro v o t ⟨i, hi⟩
     exact (short_no_delivery p c rho x hi).elim
 
-example (x : V) : V2.D.ExecutionValid E (shortRun p c rho x) ∧
+example (x : V) (hawake : E.awake x 0 = true) : V2.D.ExecutionValid E (shortRun p c rho x) ∧
     (shortRun p c rho x).honest.Nonempty ∧
     ¬ ∃ ev ∈ (shortRun p c rho x).events, ev.time = resetCutTime p E := by
   have hcut : 0 < resetCutTime p E := by
     have hl := reset_cut_lower p E
     have hp := reset_period_lower p
-    linarith [p.deltaPos, E.t_GST_nonneg]
-  refine ⟨short_valid p c E rho x, by simp [shortRun], ?_⟩
+    linarith [p.deltaPos, E.t_GST_nonneg, healing_recovery_start_lower (p := p) E]
+  refine ⟨short_valid p c E rho x hawake, by simp [shortRun], ?_⟩
   simpa [shortRun, V2.Event.time] using (ne_of_gt hcut).symm
 
 -- A run that ends before u₀ cannot supply the frozen start event,

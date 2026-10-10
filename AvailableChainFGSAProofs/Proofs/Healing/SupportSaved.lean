@@ -135,6 +135,59 @@ theorem healing_saved_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       exact lt_irrefl _ (fgsa_tick_time_strict E rho hs hj he (by omega))
     exact hQk (saved_clock _ t w hne C h')
 
+/-- A wake clears saved results; a surviving nonempty result has its actual gate origin. -/
+theorem healing_saved_origin_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho)
+    {i : Nat} {x : V} {w : Slot} {C : Block}
+    (h : GridCO.savedGenuine (storeAt p c E rho i x).base w = some (some C)) :
+    ∃ j < i, IsGateTick p c rho j x w ∧ gateResult p c E rho x w = some (some C) := by
+  have hm : w ∈ (V2.D.Run.stateBefore E rho i x).st.base.genuine.map Prod.fst :=
+    List.mem_map.mpr ⟨_, mem_genuine_of_saved h, rfl⟩
+  obtain ⟨j, hji, hj⟩ := fgsa_saved_label_origin E rho i x w hm
+  refine ⟨j, hji, hj, ?_⟩
+  rw [gateResult_eq_saved p c E rho hs hj]
+  have hpost : ((fgsa p c).clock (V2.D.Run.stateBefore E rho j x)
+      (SA.gateTime p.toParams w)).st = storeAt p c E rho (j + 1) x := by
+    change _ = (V2.D.Run.stateBefore E rho (j + 1) x).st
+    rw [V2.D.Run.stateBefore_succ E rho hj]
+    simp only [V2.D.World.step, Function.update_self]
+    exact (tick_st (c := c) E rho _ x _).symm
+  rw [hpost]
+  let R := GridCO.savedGenuine (storeAt p c E rho (j + 1) x).base w = some (some C)
+  let Q := fun nd : Node p => GridCO.savedGenuine nd.st.base w = some (some C) → R
+  have hQ := V2.D.Engine.stateBefore_step_induction E rho Q (show j + 1 ≤ i by omega) x ?_
+    (fun h' => h')
+  · exact hQ h
+  intro k e hjk _ he hv hQk
+  cases e with
+  | restart y t =>
+    change y = x at hv
+    subst y
+    simp only [Q, V2.D.World.step, Function.update_self]
+    intro h'
+    change GridCO.savedGenuine (acRestart p (rho.stateBefore E k x).st t).base w =
+      some (some C) at h'
+    unfold GridCO.savedGenuine at h'
+    rw [acRestart_genuine] at h'
+    cases h'
+  | deliver y o t =>
+    change y = x at hv
+    subst y
+    simp only [Q, V2.D.World.step, Function.update_self]
+    intro h'
+    exact hQk (saved_process _ (toWire p o) w C h')
+  | tick y t =>
+    change y = x at hv
+    subst y
+    simp only [Q, V2.D.World.step, Function.update_self]
+    intro h'
+    rw [tick_st (c := c) E rho (V2.D.Run.stateBefore E rho k x) x t] at h'
+    have hne : t ≠ SA.gateTime p.toParams w := by
+      intro ht
+      subst ht
+      exact lt_irrefl _ (fgsa_tick_time_strict E rho hs hj he (by omega))
+    exact hQk (saved_clock _ t w hne C h')
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:689–699; plan H-SUPPORT §3.
 DC: SAME a row that survives the clock before a tick is live at that tick. -/

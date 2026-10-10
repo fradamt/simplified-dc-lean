@@ -18,7 +18,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 /-- Blueprint 21:1570–1574. DC: INTENTIONAL the honest q+1 proposal has all service fields. -/
 theorem honest_qSucc [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -54,7 +54,7 @@ theorem honest_qSucc [Fintype V] (E : Generic.Env V)
 /-- Blueprint 21:1500–1574. DC: INTENTIONAL the first later HG.1 label has full service. -/
 theorem first_later [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -94,7 +94,7 @@ theorem first_later [Fintype V] (E : Generic.Env V)
 /-- Blueprint 21:1570–1574; plan §4. DC: INTENTIONAL a gate exactly at the horizon is included. -/
 theorem closed_horizon [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -133,7 +133,7 @@ theorem closed_horizon [Fintype V] (E : Generic.Env V)
 /-- Blueprint 21:1467–1468, 1570–1574; plan §4. DC: INTENTIONAL no positive J-height premise. -/
 theorem height_one [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -172,7 +172,7 @@ theorem height_one [Fintype V] (E : Generic.Env V)
 /-- Plan §4. DC: INTENTIONAL row delay ΔF can be greater than Δ. -/
 theorem row_delay [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -208,7 +208,7 @@ theorem row_delay [Fintype V] (E : Generic.Env V)
 /-- Blueprint 21:925–944. DC: INTENTIONAL the literal H.6 seed arm supplies full q+1 service. -/
 theorem seed_H6 [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -247,7 +247,7 @@ theorem seed_H6 [Fintype V] (E : Generic.Env V)
 /-- Blueprint 21:1004–1025. DC: INTENTIONAL the literal H.6-S seed arm supplies q+1 service. -/
 theorem seed_H6S [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -289,7 +289,7 @@ theorem seed_H6S [Fintype V] (E : Generic.Env V)
 DC: INTENTIONAL the covering gate has no later honest proposer premise. -/
 theorem covering_gate [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -322,7 +322,7 @@ theorem covering_gate [Fintype V] (E : Generic.Env V)
   have huv : u ≤ v := (hu.trans (by
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
     linarith [p.deltaPos])).trans hqv
-  have hcap := frontier_cap_before E rho mono hrec.base.noRestart huv hCap
+  have hcap := frontier_cap_before_on E rho mono huv hCap
   exact frontier_opening_gateService_of_cover E rho hrec mono crossing writes hgst hQ
     hErase hHeight hService hu hPhase hqv hvh hcap hqs hgate hx ht
 
@@ -346,7 +346,7 @@ example : (4 * 12 + 6 : Int) = 54 ∧ (54 : Int) < 54 + 1 := by decide
 section FullService
 variable [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧

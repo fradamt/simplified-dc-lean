@@ -1,353 +1,54 @@
-# P-As round 3 — remaining targets
+# P-As Round 5 — remaining targets
 
-Base: f5c77257. Full P-As remains OPEN. The register contains all 38 open P-As targets.
-The package map also has two S-Ap roots outside TARGETS. GrowthNonVacuity is now GREEN.
-P means AvailableChainFGSAProofs; I means AvailableChainFGSAInhabit.
-Each B key links to the exact current file:line, declaration type and owner in
-[P-As.blocker-types.md](P-As.blocker-types.md). These are failed import boundaries,
-not assertions that every theorem in the importing target is false.
-Healing targets remain listed for completeness, but are OUT OF SCOPE in this round.
+Base: 7a30ce82. Full P-As remains OPEN; healing is OUT OF SCOPE.
+44/66 targets are GREEN; 22 remain OPEN. The full map has 504 GREEN and
+24 EXPECTED-FAIL entries, including two inherited S-Ap roots outside TARGETS.
+Exact types and source locations: [P-As.blocker-types.md](P-As.blocker-types.md).
 
-```text
-┌──────────────────────────────────────────────┬──────────┐
-│ Remaining target                             │ Requests │
-├──────────────────────────────────────────────┼──────────┤
-│ I                                            │ 2        │
-│ I.Tests.Axioms                               │ 2        │
-│ I.Tests.WeakContinuationW1                   │ 2        │
-│ I.Tests.WitnessPositive                      │ 2        │
-│ I.WeakContinuationW1                         │ 2        │
-│ I.WitnessPositive                            │ 2        │
-│ P                                            │ 9        │
-│ P.Proofs.Assembly.Clean                      │ 4        │
-│ P.Proofs.Assembly.ContinuationReplay         │ 2        │
-│ P.Proofs.Assembly.ContinuationService        │ 2        │
-│ P.Proofs.Assembly.Healing                    │ 1        │
-│ P.Proofs.Assembly.Outage                     │ 3        │
-│ P.Proofs.Assembly.ResetArrival               │ 1        │
-│ P.Proofs.Assembly.Root                       │ 9        │
-│ P.Proofs.Assembly.WeakContinuation           │ 2        │
-│ P.Proofs.Assembly.WeakContinuationGrowth     │ 4        │
-│ P.Proofs.Assembly.WeakContinuationGrowthSeed │ 2        │
-│ P.Tests.Axioms                               │ 9        │
-│ P.Tests.FGCompose                            │ 9        │
-│ P.Tests.HealingAttempt                       │ 1        │
-│ P.Tests.HealingHTime                         │ 1        │
-│ P.Tests.HealingReset                         │ 1        │
-│ P.Tests.LiveDC                               │ 9        │
-│ P.Tests.NonVacuity.Adversarial               │ 9        │
-│ P.Tests.NonVacuity.FinalityClaims            │ 9        │
-│ P.Tests.NonVacuity.HealingClaims             │ 1        │
-│ P.Tests.NonVacuity.HealingFirst              │ 1        │
-│ P.Tests.NonVacuity.HealingPackages           │ 1        │
-│ P.Tests.NonVacuity.HealingReset              │ 1        │
-│ P.Tests.NonVacuity.HealingRun                │ 1        │
-│ P.Tests.OutageContinuationAxioms             │ 4        │
-│ P.Tests.OutageContinuationInhabit            │ 4        │
-│ P.Tests.OutageExport                         │ 3        │
-│ P.Tests.WeakContinuationGrowthAssemblyAxioms │ 9        │
-│ P.Tests.WeakContinuationGrowthAxioms         │ 4        │
-│ P.Tests.WeakContinuationInterfaces           │ 2        │
-│ P.Tests.WeakContinuationSafety               │ 2        │
-│ P.Tests.Zero                                 │ 4        │
-└──────────────────────────────────────────────┴──────────┘
-```
+Clean assembly and Tests/Zero are now GREEN. The new independent
+Tests/OutageAssemblyAxioms consumer composes the produced P-Ar prefix receipt
+with P-Ou's restored receipt constructor. B02, B19, B20 and ZERO-BASE are retired.
+No P-Cl2, P-Ar or P-WC producer request remains. FAST stays the one exact P-Fd request.
 
-- `AvailableChainFGSAInhabit`: B21, B22.
-  B21 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:307` (`w1_tickBatch_st`).
-  B22 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:1882` (`w1_strongRecovery`).
-- `AvailableChainFGSAInhabit.Tests.Axioms`: B21, B22.
-  B21 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:307` (`w1_tickBatch_st`).
-  B22 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:1882` (`w1_strongRecovery`).
-- `AvailableChainFGSAInhabit.Tests.WeakContinuationW1`: B21, B22.
-  B21 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:307` (`w1_tickBatch_st`).
-  B22 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:1882` (`w1_strongRecovery`).
-- `AvailableChainFGSAInhabit.Tests.WitnessPositive`: B21, B22.
-  B21 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:307` (`w1_tickBatch_st`).
-  B22 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:1882` (`w1_strongRecovery`).
-- `AvailableChainFGSAInhabit.WeakContinuationW1`: B21, B22.
-  B21 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:307` (`w1_tickBatch_st`).
-  B22 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:1882` (`w1_strongRecovery`).
-- `AvailableChainFGSAInhabit.WitnessPositive`: B21, B22.
-  B21 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:307` (`w1_tickBatch_st`).
-  B22 P-As: `AvailableChainFGSAInhabit/WeakContinuationW1.lean:1882` (`w1_strongRecovery`).
-- `AvailableChainFGSAProofs`: B02, B03, B04, B09, B12, B13, B14, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.Clean`: B02, B04, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay`: B13, B14.
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService`: B13, B14.
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.Healing`: B03.
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.Outage`: B02, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival`: B03.
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.Root`: B02, B03, B04, B09, B12, B13, B14, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation`: B09, B12.
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth`: B09, B12, B13, B14.
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-- `AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed`: B13, B14.
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-- `AvailableChainFGSAProofs.Tests.Axioms`: B02, B03, B04, B09, B12, B13, B14, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Tests.FGCompose`: B02, B03, B04, B09, B12, B13, B14, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Tests.HealingAttempt`: B03.
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-- `AvailableChainFGSAProofs.Tests.HealingHTime`: B03.
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-- `AvailableChainFGSAProofs.Tests.HealingReset`: B03.
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-- `AvailableChainFGSAProofs.Tests.LiveDC`: B02, B03, B04, B09, B12, B13, B14, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial`: B02, B03, B04, B09, B12, B13, B14, B19,
-B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims`: B02, B03, B04, B09, B12, B13, B14,
-B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims`: B03.
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst`: B03.
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages`: B16.
-  B16 P-As: `AvailableChainFGSAProofs/Tests/NonVacuity/HealingPackages.lean:450` (`step_constant`).
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset`: B17.
-  B17 P-As: `AvailableChainFGSAProofs/Tests/NonVacuity/HealingReset.lean:199` (`step_constant`).
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun`: B03.
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-- `AvailableChainFGSAProofs.Tests.OutageContinuationAxioms`: B02, B04, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Tests.OutageContinuationInhabit`: B02, B04, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Tests.OutageExport`: B02, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms`: B02, B03, B04, B09, B12,
-B13, B14, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B03 P-H1: `AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226`
-  (`healing_support_honest_head`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
-- `AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAxioms`: B09, B12, B13, B14.
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-  B13 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254`
-  (`wcg_retrospective`).
-  B14 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55`
-  (`wcg_empty_outputDomain`).
-- `AvailableChainFGSAProofs.Tests.WeakContinuationInterfaces`: B09, B12.
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-- `AvailableChainFGSAProofs.Tests.WeakContinuationSafety`: B09, B12.
-  B09 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56`
-  (`wc_headRead_stamped`).
-  B12 P-WC: `AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21`
-  (`wc_retrospective`).
-- `AvailableChainFGSAProofs.Tests.Zero`: B02, B04, B19, B20.
-  B02 P-Cl2: `AvailableChainFGSAProofs/Proofs/Clean/Export.lean:107` (`cleanSafetyAt_of_trunc`).
-  B04 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19`
-  (`outageV_source_path`).
-  B19 P-Ar: `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40`
-  (`inclusion_proposer_prior_of_F_prefix_on`).
-  B20 P-Ou: `AvailableChainFGSAProofs/Proofs/Outage/Induction.lean:44` (`outage_arming_sources`).
+The following list is the complete EXPECTED-FAIL target set. HEAL means the deferred
+P-H1/P-H2 closure or fixture port, with B03/B16/B17 retained in the blocker register.
+ROOT means the full Root import (FAST, deferred H-time, and open P-Ou exports).
+No conditional assembly adapter is marked as a closed public claim.
 
-## Direct assembly ports after the import closures
+- `AvailableChainFGSAProofs`: ROOT.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Healing`: HEAL.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Outage`: OU-CLOSE, OU-INPUTS, OU-SCOPES, conditional growth callbacks; B04/OU-CONT import.
+- `AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival`: HEAL.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Root`: ROOT.
+- `AvailableChainFGSAProofs.Tests.Axioms`: ROOT.
+- `AvailableChainFGSAProofs.Tests.FGCompose`: ROOT.
+- `AvailableChainFGSAProofs.Tests.HealingAttempt`: HEAL.
+- `AvailableChainFGSAProofs.Tests.HealingHTime`: HEAL.
+- `AvailableChainFGSAProofs.Tests.HealingReset`: HEAL.
+- `AvailableChainFGSAProofs.Tests.LiveDC`: ROOT.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial`: ROOT, ROOT-TESTS.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims`: ROOT, ROOT-TESTS.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims`: HEAL.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst`: HEAL.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages`: B16 (HEAL).
+- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset`: B17 (HEAL).
+- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun`: HEAL.
+- `AvailableChainFGSAProofs.Tests.OutageContinuationAxioms`: B04, OU-CONT, ROOT.
+- `AvailableChainFGSAProofs.Tests.OutageContinuationInhabit`: OU-FIXTURE STOP (invalid inherited sleep trace); current premise port.
+- `AvailableChainFGSAProofs.Tests.OutageExport`: OU-CLOSE, OU-INPUTS, OU-SCOPES, conditional growth callbacks; B04/OU-CONT import.
+- `AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms`: ROOT.
 
-Assembly/Outage's ExactProposal and inclusion wrappers still need P-Ou's OU-INPUTS
-and OU-SCOPES producers. No universal receiver service is passed in this round.
-The later-reader gate and public monotonicity projections are now concrete P-As bodies.
-The legacy OutageCut/Induction body must consume the scoped P-Ar r5 history.
-The full fast/slow history construction remains a family integration obligation.
+The exact WC Root caller bodies are prepared in Root:137/:158 and pass strict extraction.
+They retain the selected H0 cutoff, source FAST and the actual continuation FAST.
+The empty suffix uses no added participation or fault cap. Root's unconditional
+callers stay open until P-Fd FAST is merged and deferred family closure is available.
+The two safety aggregate bodies pass the same extracted audit; this does not close Root.
 
-Assembly/Clean and Tests/Zero remain blocked by B02 and the continuation import closure.
-OutageContinuationAxioms and OutageContinuationInhabit remain blocked by B04/B20.
-The latter fixture still needs its awake-only schedule, real wake restarts and current
-receipt scope after those imports build. No invalid sleep record is assumed to close it.
-Shared/Claims already has the current sleep sets, confirmed readers and recoveryStart types;
-it builds on this base. No remaining request is assigned to its old lines 30/39.
+Clean no longer imports the outage continuation family. The unchanged
+fgsa_outageContinuationClaim is now Root-owned; its full audit remains EXPECTED-FAIL.
+The independent receipt check proves a complete receipt record, not continuation induction.
+P-Ou still owns full restored/after-E induction, Close, both Exports, and Clean inclusion/growth.
+No missing family proof is invented at assembly.
 
-Bare P23, full Root/FGSAClaims acceptance, G-S2 and final regeneration remain OPEN.
-initialAt and its live consumers remain; this round does not claim their cleanup.
-
-WCSEED remains a P-As caller port to the proved StepFacts finite-facts producer.
-FAST remains the exact P-Fd current-epoch companion request used by that caller and
-ContinuationService. WCIND, WCEMPTY, WCREADS and WCGATES retain their current exact
-types in the blocker register. The old Dynamics:337 finite-facts proof request is dropped.
-
-The count column covers current failed imports. ZERO-BASE and OU-FIXTURE record
-additional P-As fixture ports hidden by those imports, with exact current types.
-They remain local work; no family proof or public premise is added for them.
+Headers PASS. Layers have 72 inherited findings and zero new. Public Claims/Statements
+are unchanged. Bare P23, G-S2, final regeneration and deferred initialAt consumers remain OPEN.

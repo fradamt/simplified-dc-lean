@@ -24,7 +24,7 @@ ROOT-DIGEST W2b. Blueprint 21 HG.1:1546–1556, H.1:673–699 (fast case); plan 
 `healing_first_transfer_fast`). DC: INTENTIONAL a fast body B at an honest gate d_s whose
 label-s HEADs cover the pivot transfers to every honest HEAD at v_(s+1) under the cap. -/
 theorem frontier_first_transfer_fast [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -36,12 +36,12 @@ theorem frontier_first_transfer_fast [Fintype V] (E : Generic.Env V)
     {x : V} (hx : x ∈ rho.honest) {nd : Node p}
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
     (hB : B ∈ (fastWriteAt nd.st s).getD [])
+    (hScope : FastSupportScope E rho s v x)
     {y : V} (hy : y ∈ rho.honest) (hv : SA.voteTime p.toParams (s + 1) ≤ v)
     {H : Block} (hH : headAtLabel p c E rho y (s + 1) = some H) :
     Block.Preceq B H := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   -- The source gate tick.
   rw [postClock_def, preTick_def] at hnd
@@ -52,7 +52,8 @@ theorem frontier_first_transfer_fast [Fintype V] (E : Generic.Env V)
   have hix := V2.D.Run.tickIdx?_spec hix'
   have hnd' := Option.some.inj hnd
   subst hnd'
-  rw [healing_support_fastWrite p c E rho hS hix] at hB
+  rw [healing_support_fastWrite p c E rho hS hix
+    (fgsa_gate_joined_of_enabled E rho (hScope.source ix hix))] at hB
   let src := actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))
   -- The fast set: a genuine result h ⪰ B and the fast test at B.
   unfold fastSet at hB
@@ -113,11 +114,11 @@ theorem frontier_first_transfer_fast [Fintype V] (E : Generic.Env V)
     linarith [p.deltaPos]
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd (hgate.trans hvh)
-  exact frontier_first_transfer_core (hroots := hrec.base.idealization)
-    E rho crossing hE hN hDelta hrec.sync hQm hvh hcap hgsts
-    hgate hcoverQ hx hix hkh ho hko hsup hmaj hy hiy hv
-    (fun hFB => healing_support_release_compat (hroots := hrec.base.idealization)
-      E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB)
+  exact frontier_first_transfer_core (hroots := hrec.base.receiptIdealization)
+    E rho crossing hE hDelta hrec.sync hQm hvh hcap hgsts
+    hgate hcoverQ hx hix hkh ho hko hsup hmaj hy hiy (hScope.first ix iy y hy hix hiy) hv
+    (fun hFB => healing_support_release_compat (hroots := hrec.base.receiptIdealization)
+      E rho hE hDelta s hSync hx hy hix hiy (hScope.first ix iy y hy hix hiy) hτ hFB)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 HG.1:1546–1556, H.4-S:650–680; plan §3.1 step 3 (restates
@@ -125,8 +126,8 @@ ROOT-DIGEST W2b. Blueprint 21 HG.1:1546–1556, H.4-S:650–680; plan §3.1 step
 gate d_s whose label-s HEADs cover the pivot transfers to every honest HEAD at v_(s+1)
 under the cap. The slow source result is a strict late majority with an honest supporter. -/
 theorem frontier_first_transfer_slow [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (lastWrite : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -137,6 +138,7 @@ theorem frontier_first_transfer_slow [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -156,17 +158,18 @@ theorem frontier_first_transfer_slow [Fintype V] (E : Generic.Env V)
     (hres : gateResult p c E rho x s = some (some C)) (hBC : Block.Preceq B C)
     (hel : GridCO.slowEligible p.toParams.engine (actView st) s B = true)
     {jx : Nat} (hjx : IsGateTick p c rho jx x s)
+    (hScope : SlowSupportScope E rho s v x)
     {y : V} (hy : y ∈ rho.honest) (hv : SA.voteTime p.toParams (s + 1) ≤ v)
     {H : Block} (hH : headAtLabel p c E rho y (s + 1) = some H) :
     Block.Preceq B H := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hhor : SA.gateTime p.toParams s ≤ rho.horizon := hgate.trans hvh
   have hmaj := healing_slow_majority E rho hS hjx hres hBC
   obtain ⟨k, o, hkh, ho, hko, hsup⟩ :=
-    healing_slow_honest_seat E rho hrec hgsts hhor hx hjx hmaj
+    healing_slow_honest_seat E rho hrec hgsts hhor hx hjx
+      (hScope.late jx hjx) (hScope.phase.source jx hjx) hmaj
   unfold headAtLabel at hH
   rw [postClock_def, preTick_def] at hH
   cases hiy' : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams (s + 1)) with
@@ -179,11 +182,11 @@ theorem frontier_first_transfer_slow [Fintype V] (E : Generic.Env V)
   obtain ⟨K, hK, _⟩ := healing_support_clean_target E rho o ho
   have hsupD := actView_support_in_domain p _
     (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho jx x) _) o hK hsup
-  exact frontier_first_transfer_core (hroots := hrec.base.idealization)
-    E rho crossing hE hN hDelta hrec.sync hQm hvh hcap hgsts
-    hgate hcoverQ hx hjx hkh ho hko hsupD hmaj hy hiy hv
+  exact frontier_first_transfer_core (hroots := hrec.base.receiptIdealization)
+    E rho crossing hE hDelta hrec.sync hQm hvh hcap hgsts
+    hgate hcoverQ hx hjx hkh ho hko hsupD hmaj hy hiy (hScope.phase.first jx iy y hy hjx hiy) hv
     (healing_slow_lease E rho hrec mono lastWrite hgsts hhor hx hgw hst hres hBC
-      hel le_rfl (hv.trans hvh)
+      hel le_rfl (hv.trans hvh) (hScope.mono hv)
       (fun w hw1 hw2 => absurd (hw1.trans hw2) (Nat.not_succ_le_self s)) hy hiy)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -193,7 +196,7 @@ every honest HEAD at a label i ≥ s+1 with v_i ≤ v covers B. Each step uses t
 of the previous label and a HEAD block above the pivot as witness. The pivot cover and
 the lease premise may use the cover of B at the earlier labels. -/
 theorem frontier_heads_transfer [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -206,6 +209,10 @@ theorem frontier_heads_transfer [Fintype V] (E : Generic.Env V)
         Block.Preceq (eraseFG Qfg) K)
     (hbase : SA.voteTime p.toParams (s + 1) ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z (s + 1) = some K → Block.Preceq B K)
+    (hNext : ∀ i, s + 1 ≤ i → SA.voteTime p.toParams (i + 1) ≤ v →
+      ∀ iy y, y ∈ rho.honest →
+      rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))) →
+      NextTransferScope E rho iy y i)
     (hlease : ∀ i, s + 1 ≤ i → SA.voteTime p.toParams (i + 1) ≤ v →
       (∀ w, s + 1 ≤ w → w ≤ i → ∀ z ∈ rho.honest, ∀ K,
         headAtLabel p c E rho z w = some K → Block.Preceq B K) →
@@ -252,8 +259,8 @@ theorem frontier_heads_transfer [Fintype V] (E : Generic.Env V)
     subst hKeq
     have hsi : SA.voteTime p.toParams s ≤ SA.voteTime p.toParams i :=
       hvmono ((Nat.le_succ s).trans hi)
-    exact frontier_next_transfer_core E rho hrec crossing hQm hvh hcap (hgst.trans hsi)
-      (hQ i hi hv (ih hvi)) (ih hvi i hi le_rfl) hz hiz hv
+    exact frontier_next_transfer_core E rho hrec.toRecovery₂ crossing hQm hvh hcap (hgst.trans hsi)
+      (hQ i hi hv (ih hvi)) (ih hvi i hi le_rfl) hz hiz (hNext i hi hv iz z hz hiz) hv
       (hlease i hi hv (ih hvi) iz z hz hiz)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -263,8 +270,8 @@ after q with v_i ≤ v covers Q. Label q+1 is inside the persisting phase (v_(q+
 so it uses the fixed-phase H.1 step; later labels use the capped H.2 steps. The lease
 premise is the phase-free fast-body lease bound for the fast write of Q at d_q. -/
 theorem frontier_Q_heads [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (lastWrite : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -275,6 +282,7 @@ theorem frontier_Q_heads [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -284,7 +292,11 @@ theorem frontier_Q_heads [Fintype V] (E : Generic.Env V)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
     (hGST : E.t_GST ≤ u) (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
-    (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
+    (hService : ExactService p c E rho q Q)
+    (hReaders : ∀ x ∈ rho.honest, confirmedReaderAtIdx p c E rho x
+      (afterTicksIdx rho (SA.gateTime p.toParams q)) (SA.gateTime p.toParams q))
+    (hScopes : ∀ x ∈ rho.honest, FastSupportScope E rho q v x)
+    (hu : u ≤ SA.proposalTime p.toParams q)
     (hPhase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
     (hqv : SA.gateTime p.toParams q ≤ v) (hvh : v ≤ rho.horizon)
     (hcap : ∀ i x, i ≤ timeIdx rho v → x ∈ rho.honest → (storeAt p c E rho i x).fg.h_max ≤ m) :
@@ -298,23 +310,26 @@ theorem frontier_Q_heads [Fintype V] (E : Generic.Env V)
   have hfast (x : V) (hx : x ∈ rho.honest) : ∃ nd : Node p,
       postClock E rho x (SA.gateTime p.toParams q) = some nd ∧
         Q ∈ (fastWriteAt nd.st q).getD [] := by
-    obtain ⟨_, _, hfw, _, _⟩ := hService.2 (hqv.trans hvh) x hx
+    obtain ⟨_, _, hfw, _, _⟩ := hService.2 (hqv.trans hvh) x hx (hReaders x hx)
     exact hfw
   have hv1 : SA.voteTime p.toParams (q + 1) ≤ SA.gateTime p.toParams q := by
     change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
     push_cast
     linarith
-  refine frontier_heads_transfer E rho hrec crossing hHeight hvh hcap hgstq ?_ ?_ ?_
+  refine frontier_heads_transfer E rho hrec crossing hHeight hvh hcap hgstq ?_ ?_
+    (fun i hi ht iy y hy hj => (hScopes y hy).next i hi ht iy y hy hj) ?_
   · intro i hi _ ih
     rw [hErase]
     exact ih i hi le_rfl
   · intro _ z hz K hK
     obtain ⟨nd, hnd, hQnd⟩ := hfast z hz
-    exact healing_first_transfer_fast E rho hrec mono crossing hGST hPhase (hu.trans htv)
-      le_rfl hz hnd hQnd hz hv1 hK
+    exact healing_first_transfer_fast E rho hrec.toRecovery₂ (fun _ => mono) crossing hGST hPhase
+      (hu.trans htv) le_rfl hz hnd hQnd hz hv1
+      (fun ix iy hi hj => (hScopes z hz).first ix iy z hz hi hj) hK
   · intro i hi hv ih iy y hy hiy hFB
     obtain ⟨nd, hnd, hQnd⟩ := hfast y hy
-    exact healing_fast_lease E rho hrec mono lastWrite hgstq hy hnd hQnd hi (hv.trans hvh) ih
+    exact healing_fast_lease E rho hrec mono lastWrite hgstq hy hnd hQnd hi (hv.trans hvh)
+      ((hScopes y hy).mono hv) ih
       hy hiy hFB
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -323,8 +338,8 @@ fast body B at an honest gate d_w, whose label-w and later HEADs cover the pivot
 to every honest HEAD at a label after w with v_i ≤ v (its own honest supporter and the
 height-m self-witness, then the capped H.2 steps). -/
 theorem frontier_fast_heads [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (lastWrite : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -335,6 +350,7 @@ theorem frontier_fast_heads [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -350,7 +366,8 @@ theorem frontier_fast_heads [Fintype V] (E : Generic.Env V)
       headAtLabel p c E rho z i = some K → Block.Preceq (eraseFG Qfg) K)
     {x : V} (hx : x ∈ rho.honest) {nd : Node p}
     (hnd : postClock E rho x (SA.gateTime p.toParams w) = some nd)
-    (hB : B ∈ (fastWriteAt nd.st w).getD []) :
+    (hB : B ∈ (fastWriteAt nd.st w).getD [])
+    (hScope : FastSupportScope E rho w v x) :
     ∀ i, w + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K := by
   have hd := p.deltaPos
@@ -358,7 +375,7 @@ theorem frontier_fast_heads [Fintype V] (E : Generic.Env V)
     refine le_trans ?_ hgate
     change 4 * p.Δ * (w : Int) + p.Δ ≤ 4 * p.Δ * (w : Int) + 6 * p.Δ
     linarith
-  refine frontier_heads_transfer E rho hrec crossing hQm hvh hcap hgstw ?_ ?_ ?_
+  refine frontier_heads_transfer E rho hrec crossing hQm hvh hcap hgstw ?_ ?_ hScope.next ?_
   · intro i hi hv _
     refine hQ i ((Nat.le_succ w).trans hi) (le_trans ?_ hv)
     change 4 * p.Δ * (i : Int) + p.Δ ≤ 4 * p.Δ * ((i + 1 : Nat) : Int) + p.Δ
@@ -366,9 +383,10 @@ theorem frontier_fast_heads [Fintype V] (E : Generic.Env V)
     linarith
   · intro hv z hz K hK
     exact frontier_first_transfer_fast E rho hrec crossing hQm hvh hcap hgstw hgate
-      (hQ w le_rfl hvw) hx hnd hB hz hv hK
+      (hQ w le_rfl hvw) hx hnd hB hScope hz hv hK
   · intro i hi hv ih iy y hy hiy hFB
-    exact healing_fast_lease E rho hrec mono lastWrite hgstw hx hnd hB hi (hv.trans hvh) ih
+    exact healing_fast_lease E rho hrec mono lastWrite hgstw hx hnd hB hi (hv.trans hvh)
+      (hScope.mono hv) ih
       hy hiy hFB
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -376,8 +394,8 @@ Blueprint 21 HG.1:1552–1558 (slow lease above Q); plan §3.1 step 3. DC: INTEN
 synchronous-window slow body B at an honest gate d_w, whose label-w and later HEADs cover
 the pivot, transfers to every honest HEAD at a label after w with v_i ≤ v. -/
 theorem frontier_slow_heads [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (lastWrite : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -388,6 +406,7 @@ theorem frontier_slow_heads [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -406,7 +425,8 @@ theorem frontier_slow_heads [Fintype V] (E : Generic.Env V)
     (hst : gateIn p c E rho x w = some st) {C : Block}
     (hres : gateResult p c E rho x w = some (some C)) (hBC : Block.Preceq B C)
     (hel : GridCO.slowEligible p.toParams.engine (actView st) w B = true)
-    {jx : Nat} (hjx : IsGateTick p c rho jx x w) :
+    {jx : Nat} (hjx : IsGateTick p c rho jx x w)
+    (hScope : SlowSupportScope E rho w v x) :
     ∀ i, w + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K := by
   have hd := p.deltaPos
@@ -414,7 +434,7 @@ theorem frontier_slow_heads [Fintype V] (E : Generic.Env V)
     refine le_trans ?_ hgate
     change 4 * p.Δ * (w : Int) + p.Δ ≤ 4 * p.Δ * (w : Int) + 6 * p.Δ
     linarith
-  refine frontier_heads_transfer E rho hrec crossing hQm hvh hcap hgstw ?_ ?_ ?_
+  refine frontier_heads_transfer E rho hrec crossing hQm hvh hcap hgstw ?_ ?_ hScope.phase.next ?_
   · intro i hi hv _
     refine hQ i ((Nat.le_succ w).trans hi) (le_trans ?_ hv)
     change 4 * p.Δ * (i : Int) + p.Δ ≤ 4 * p.Δ * ((i + 1 : Nat) : Int) + p.Δ
@@ -422,10 +442,10 @@ theorem frontier_slow_heads [Fintype V] (E : Generic.Env V)
     linarith
   · intro hv z hz K hK
     exact frontier_first_transfer_slow E rho hrec mono crossing lastWrite hQm hvh hcap hgstw
-      hgate (hQ w le_rfl hvw) hx hgw hst hres hBC hel hjx hz hv hK
+      hgate (hQ w le_rfl hvw) hx hgw hst hres hBC hel hjx hScope hz hv hK
   · intro i hi hv ih iy y hy hiy hFB
     exact healing_slow_lease E rho hrec mono lastWrite hgstw (hgate.trans hvh) hx hgw hst hres
-      hBC hel ((Nat.le_succ w).trans hi) (hv.trans hvh) ih hy hiy hFB
+      hBC hel ((Nat.le_succ w).trans hi) (hv.trans hvh) (hScope.mono hv) ih hy hiy hFB
 
 end AvailableChain.FGSA.Run
 end

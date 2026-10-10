@@ -38,6 +38,7 @@ theorem postReset_leaseSafe_antecedent_of_lastWrite
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -68,7 +69,7 @@ theorem postReset_leaseSafe_antecedent_of_lastWrite
   exact ⟨j, hj, s, C, hx, ht, hp, hc, hCB, hne, hmem, hgen, hBC, hg⟩
 
 section Provenance
-variable (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+variable (hv : V2.D.ExecutionValid E rho)
     (origin : RQCOrigin p c E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
       ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
@@ -89,7 +90,7 @@ variable (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
         KitFG.TargetQCAt p.E H fp.height (heightView p H).J)
     (xing : RXing p c E rho) {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hv hnr origin heldRows cap hhead xing h0r
+include hv origin heldRows cap hhead xing h0r
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 H.17:2982–2987, H.18:3073–3095; plan J4 B;
@@ -107,11 +108,11 @@ theorem postReset_fProv_all (i : Nat)
       rw [hgen]
       exact Gen.Pure.block_genesis_preceq w.CStar
     obtain ⟨D, hD, hDF, K, s, hsrc, hh, hT, htime⟩ :=
-      healing_finality_source_clock (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead
+      healing_finality_source_clock_on (hroots := hroots) p c E rho hv origin heldRows cap hhead
         hx hgen
     by_cases hlow : (finalityView p D).h_F ≤ w.M
-    · exact Or.inl (healing_low_finality_after_reset E rho hv.toScheduleWellFormed
-        hnr xing w h0r hx hi hD hDF hlow)
+    · exact Or.inl (healing_low_finality_after_reset_on E rho hv.toScheduleWellFormed
+        xing w h0r hx hi hD hDF hlow)
     · right
       have hhigh : high p w K := by
         rw [high_def, hh]
@@ -146,7 +147,7 @@ theorem postReset_fProv_all (i : Nat)
       rw [hJW, hjW]
       exact (fgJustificationLaws p).J_height W (by rwa [← hjW])
     obtain ⟨K, s, hsrc, hh, hT, htime⟩ :=
-      healing_justified_source_clock (hroots := hroots) p c E rho hv hnr origin heldRows hx hnz
+      healing_justified_source_clock_on (hroots := hroots) p c E rho hv origin heldRows hx hnz
     have hhigh : high p w K := by
       rw [high_def] at hhighJ ⊢
       rwa [hh, ← hJh]
@@ -172,7 +173,7 @@ theorem postReset_rFProv_reset
         SA.gateTime p.toParams s ≤ t ∧
         Block.Preceq (J_at p c E rho i x) (eraseFG K)) := by
   intro i x hx hi
-  have h := postReset_fProv_all (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead xing
+  have h := postReset_fProv_all (hroots := hroots) p c E rho hv origin heldRows cap hhead xing
     h0r (i + 1)
   rw [PostResetFProv_def] at h
   exact h i (Nat.lt_succ_self i) x hx hi

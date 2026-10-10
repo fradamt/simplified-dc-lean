@@ -188,7 +188,8 @@ theorem postReset_rKeep_body_of_compat (xing : RXing p c E rho) (origin : RQCOri
 
 section KeepReset
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hScopes : LossServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -207,6 +208,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -216,7 +218,7 @@ variable [Fintype V] {G ΔF : Time}
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r
+include hrec hScopes mono emittedNonempty emittedName writes xing origin h0r
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J3 D0; B1/B13/B17/B18.
@@ -247,9 +249,9 @@ theorem postReset_rKeep_body_reset :
         Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho i x X B) :=
   postReset_rKeep_body_of_compat (hroots := hrec.base.idealization) p c E rho xing origin h0r
     hrec.base.valid.toScheduleWellFormed
-    (postReset_high_compatible_all p c E rho hrec mono emittedNonempty emittedName
+    (postReset_high_compatible_all p c E rho hrec hScopes mono emittedNonempty emittedName
       writes xing origin h0r)
-    (postReset_reset_compatible_all p c E rho hrec mono emittedNonempty emittedName
+    (postReset_reset_compatible_all p c E rho hrec hScopes mono emittedNonempty emittedName
       writes xing origin h0r)
 
 end KeepReset
@@ -375,7 +377,7 @@ private theorem high_label_out_of_band (hs : V2.D.ScheduleWellFormed E rho)
 
 omit [Fintype V] in
 private theorem high_selected_after_cut (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho) {w : HealingWitness} (h0r : H0Reset p c E rho w)
+    {w : HealingWitness} (h0r : H0Reset p c E rho w)
     {x : V} {r : Nat} {C : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hsrc : actionSourceFG p c E rho x r = some (some C)) (hh : high p w C) :
     w.u₀ < p.actionTime r := by
@@ -384,7 +386,7 @@ private theorem high_selected_after_cut (hs : V2.D.ScheduleWellFormed E rho)
   have hidx : i ≤ timeIdx rho w.u₀ :=
     ((V2.D.Engine.index_lt_read_length_iff hs w.u₀ hi).mpr (le_of_not_gt hn)).le
   have hheld := healing_action_source_held p c E rho hs hi hsrc
-  have hcut := (fgsa_store_cumulative p c E rho hnr hidx x).1 hheld
+  have hcut := (fgsa_store_durable p c E rho hidx x).1 hheld
   have hI : KitFG.FGStoreInvariant (heightView p) (finalityView p)
       (storeAt p c E rho (timeIdx rho w.u₀) x).fg :=
     (cstoreInv_stateBefore E rho (timeIdx rho w.u₀) x).fg
@@ -428,13 +430,13 @@ theorem postReset_selected_label {G ΔF : Time} (hrec : Recovery₂ p c E rho G 
     (hsrc : actionSourceFG p c E rho x r = some (some C)) (hh : high p w C)
     : w.sStar ≤ r * p.R := by
   have hs := hrec.base.valid.toScheduleWellFormed
-  have hcut := high_selected_after_cut p c E rho hs hrec.base.noRestart h0r hx hsrc hh
+  have hcut := high_selected_after_cut p c E rho hs h0r hx hsrc hh
   have hGST : E.t_GST ≤ p.actionTime r := by
     have hP : 0 ≤ P p := by
       change 0 ≤ 4 * (p.R : Int) * p.Δ
       have := p.deltaPos
       positivity
-    linarith [h0r.cut_lower]
+    linarith [h0r.cut_lower, healing_recoveryStart_ge p E]
   obtain ⟨i, hi⟩ := high_selected_tick p c E rho hsrc
   have hhor : p.actionTime r ≤ rho.horizon :=
     (hs.in_horizon _ (List.mem_of_getElem? hi)).2
@@ -544,7 +546,8 @@ private theorem high_selected_supporter [Fintype V] {G ΔF : Time}
 
 section SelectedReset
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hScopes : LossServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -563,6 +566,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -571,8 +575,9 @@ variable [Fintype V] {G ΔF : Time}
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
+    (hSame : SameLabelServiceScope E rho w.sStar)
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r
+include hrec hScopes mono emittedNonempty emittedName writes xing origin h0r hSame
 
 variable (cap : RCap p c E rho) (source : TSrc p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
@@ -599,7 +604,7 @@ theorem postReset_selected_reset_compatible {x : V} {r : Nat}
     {C : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hsrc : actionSourceFG p c E rho x r = some (some C)) (hh : high p w C) :
     Block.Compatible (eraseFG C) w.CStar := by
-  have hlabel := postReset_selected_label p c E rho rowCovered hrec cap h0r hx hsrc hh
+  have hlabel := postReset_selected_label p c E rho rowCovered hrec.toRecovery₂ cap h0r hx hsrc hh
   obtain ⟨j, y, a, C0, ha, -, hsrc0, he0, hh0⟩ := h0r.fresh
   have hsource0 : SourceBefore p c E rho (j + 1) C0 w.sStar :=
     ⟨j, y, w.rStar, a, Nat.lt_succ_self j, ha, hsrc0, h0r.label⟩
@@ -607,15 +612,12 @@ theorem postReset_selected_reset_compatible {x : V} {r : Nat}
     rw [hh0]
     exact Nat.succ_le_succ h0r.mu_le
   by_cases heq : w.sStar = r * p.R
-  · have hSync := healing_high_source_labelSync p c E rho hrec
-      emittedNonempty emittedName hsource0 hheight0
-    obtain ⟨B, hB, hCB⟩ := high_selected_gate p c E rho source hx hsrc
+  · obtain ⟨B, hB, hCB⟩ := high_selected_gate p c E rho source hx hsrc
     obtain ⟨B0, hB0, hC0B⟩ := high_selected_gate p c E rho source ha.1 hsrc0
     rw [← heq] at hB
     rw [← h0r.label] at hB0
-    have hc := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
-        hrec.base.noRestart
-      hrec.base.delta w.sStar hSync x y B B0 hx ha.1 hB hB0
+    have hc := fgsa_sameLabel_on p c E rho hrec.base.valid w.sStar hSame hrec.base.idealization
+      x y B B0 hx ha.1 hB hB0
     change (Block.preceq B B0 || Block.preceq B0 B) = true at hc
     have hcompat : Block.Compatible (eraseFG C) (eraseFG C0) := by
       rcases Bool.or_eq_true_iff.mp hc with hc | hc
@@ -624,13 +626,13 @@ theorem postReset_selected_reset_compatible {x : V} {r : Nat}
       · exact Gen.Pure.block_compatible_of_common hCB
           (Gen.Pure.block_preceq_trans hC0B hc)
     simpa only [he0] using hcompat
-  · obtain ⟨k, z, hz, hk, hCH⟩ := high_selected_supporter p c E rho hrec source hx hsrc
+  · obtain ⟨k, z, hz, hk, hCH⟩ := high_selected_supporter p c E rho hrec.toRecovery₂ source hx hsrc
     have hsrcN : SrcN p c E rho C0 w.sStar :=
       healing_srcN_of_source p c E rho hsource0
     have hhigh0 : HighSrcN p c E rho C0 w.sStar := by
       rw [HighSrcN_def]
       exact ⟨hsrcN, hheight0⟩
-    have hnoLoss := (healing_high_source_compat p c E rho hrec mono
+    have hnoLoss := (healing_high_source_compat p c E rho hrec hScopes mono
       emittedNonempty emittedName writes xing origin).1
     have hC0H : Block.Preceq (eraseFG C0) (headAtIdx p c E rho k (r * p.R)) := by
       by_contra hn
