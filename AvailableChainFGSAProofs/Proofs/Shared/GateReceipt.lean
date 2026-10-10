@@ -116,11 +116,13 @@ Blueprint 02:537–539, strict early block stamps.
 DC: Handlers/GoldfishVotePool.lean:810, admittedBefore_ancestor_mem_and_stamp_at.
 INTENTIONAL: an FG-SA stamp is the original local pre-process clock;
 the strict tick read bounds it, including genesis at positive times. -/
-theorem fgsa_gateReceipt_block_stamp_lt
+theorem fgsa_gateReceipt_block_stamp_lt_on
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hsch : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
+    (hsch : V2.D.ScheduleWellFormed E rho)
     {j : Nat} {x : V} {t : Time} (hj : rho.events[j]? = some (.tick x t))
-    (ht : 0 < t) (K : Block) (hK : K ∈ (storeAt p c E rho j x).base.blocks) :
+    (ht : 0 < t)
+    (hEpoch : ∀ k w, k < j → rho.events[k]? = some (.restart x w) → w < t)
+    (K : Block) (hK : K ∈ (storeAt p c E rho j x).base.blocks) :
     GridCO.stampBlock (storeAt p c E rho j x).base K < t := by
   have hm : K ∈ (V2.D.Run.stateBefore E rho j x).st.base.blockStamp.map Prod.fst := by
     rw [(storeBundle_stateBefore E rho j x).«meta».stampKeys]
@@ -134,17 +136,28 @@ theorem fgsa_gateReceipt_block_stamp_lt
     contradiction
   | some row =>
     change row.2 < t
-    rcases fgsa_block_stamp_source E rho hN j x row.1 row.2 (List.mem_of_find?_eq_some he) with
-      hg | ⟨l, hl, _, _, _, _, hs⟩
-    · rw [hg.2]
+    rcases fgsa_block_stamp_source_or_restart E rho j x row.1 row.2
+        (List.mem_of_find?_eq_some he) with
+      ⟨_, hs⟩ | ⟨l, hl, _, _, _, _, hs⟩ | ⟨l, hl, w, hr, _, _, hs⟩
+    · rw [hs]
       exact ht
     · rw [hs]
-      have hb := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hsch hN
-        (Nat.le_of_lt hl) x
+      have hb := V2.D.Engine.stateBefore_now_mono_atRestart (fgsaClock p c)
+        (fgsaRestoreTimeLaw p c) E rho hsch hl.le x
       rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l x),
         fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hb
-      exact hb.trans_lt (fgsa_preTick_now_lt E rho hsch hj ht
-        (fun j w _ he => False.elim (hN j _ w he)))
+      exact hb.trans_lt (fgsa_preTick_now_lt E rho hsch hj ht hEpoch)
+    · rw [hs]
+      exact hEpoch l w hl hr
+
+theorem fgsa_gateReceipt_block_stamp_lt
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hsch : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
+    {j : Nat} {x : V} {t : Time} (hj : rho.events[j]? = some (.tick x t))
+    (ht : 0 < t) (K : Block) (hK : K ∈ (storeAt p c E rho j x).base.blocks) :
+    GridCO.stampBlock (storeAt p c E rho j x).base K < t :=
+  fgsa_gateReceipt_block_stamp_lt_on E rho hsch hj ht
+    (fun k w _ he => (hN k x w he).elim) K hK
 
 private theorem gateReceipt_floor_mono
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hN : V2.D.NoRestart rho)
@@ -411,6 +424,139 @@ theorem fgsa_gateReceipt
     apply fgsa_gateReceipt_block_stamp_lt E rho hsch hN hj _ K hKearly
     change 0 < 4 * p.Δ * (s : Int) + 2 * p.Δ
     positivity
+
+/-- The enabled actor, exact receiver epoch and fresh/retained object services at one gate. -/
+structure GateReceiptScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (i : Nat) (x : V) (s : Slot) : Prop where
+  enabled : enabledGateAt p c E rho i x s
+  receiverJoined : joinedAt p E rho x (s + 1) (SA.gateTime p.toParams s)
+  readEpoch : V2.D.restartFree rho x (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) i
+  services : ∀ q K, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+    HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+    Nonempty (FreshHeadService E rho s q K.root (SA.earlyTime p.toParams s) x) ∧
+    TargetReceiptService E rho K (SA.earlyTime p.toParams s) x
+
+/-- Joined selected voters and exact receiver service give local gate receipts. -/
+theorem fgsa_gateReceipt_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
+    (_hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
+    (s : Slot) (_hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
+      (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
+    {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
+    (hgeom : GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B)
+    (hScope : GateReceiptScope E rho i x s)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    E.awake x (SA.earlyTime p.toParams s) = true ∧
+    joinedAtTime p (storeAt p c E rho i x).restartTime
+      (SA.gateTime p.toParams s) = true ∧
+    ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+      joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s) →
+      ∃ K t,
+        rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+        V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+          (ofHead p ⟨.seat (.head s) q, K.root⟩) t ∧
+        baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
+          (storeAt p c E rho i x).base.votes ∧
+        K ∈ (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))).blocks ∧
+        K.slot ≤ s ∧
+        GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)))
+          (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) <
+            GridCO.earlyTime p.toParams.engine s ∧
+        GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
+        Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)).fg.F) K ∧ Block.Preceq B K := by
+  have hsch := hE.toScheduleWellFormed
+  have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
+  have hd := p.deltaPos
+  have hawakeEarly := fgsa_awake_of_joinedAt E rho x (s + 1)
+    (SA.gateTime p.toParams s) (SA.earlyTime p.toParams s) hScope.receiverJoined
+    (by change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ; positivity)
+    (by unfold slotStartZ; push_cast; change _ ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ; linarith)
+    (by change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ; linarith)
+  refine ⟨hawakeEarly, fgsa_gate_joined_of_enabled E rho hScope.enabled, ?_⟩
+  intro q hy hJoined
+  let y := rho.seatOf (.base (.head s)) q
+  have hvt : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
+    change ((4 * s + 1 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + p.Δ
+    push_cast
+    ring
+  obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hsch hDelta y hy (4 * s + 1)
+    (hvt ▸ ((fgsa_vote_lt_gate p s).le.trans (hsch.in_horizon _ (List.mem_of_getElem? ht)).2))
+    (by simpa only [hvt] using hJoined.1)
+  rw [hvt] at hk
+  let K := headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y)
+    (SA.voteTime p.toParams s)).st s
+  have hem : ofHead p ⟨.seat (.head s) q, K.root⟩ ∈ V2.D.Run.emitsAt E rho k := by
+    rw [(V2.D.Run.step_tick_eq E rho hk).2]
+    exact (fgsa_emits_head E rho _ y _ s q K.root).mpr
+      ⟨hJoined.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hsch hk hJoined, rfl⟩
+  have hTarget : HeadTargetAtEmission p c E rho y
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K :=
+    ⟨k, s, q, hk, hem, rfl, rfl⟩
+  obtain ⟨⟨hHeadService⟩, hBlockService⟩ := hScope.services q K hy hTarget
+  have hrec := hHeadService.receipt hE hx hk hem
+  have hblock := fgsa_target_receipt_on E rho hsch hroots K (SA.earlyTime p.toParams s)
+    x hx hBlockService
+  have hstamp := fgsa_block_stamp_before_read E rho hsch x (SA.earlyTime p.toParams s)
+    (by change 0 < 4 * p.Δ * (s : Int) + 2 * p.Δ; positivity) K hblock
+  have htime : SA.earlyTime p.toParams s < SA.gateTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith
+  have hid : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ i := by
+    by_contra hn
+    exact (not_lt.mpr htime.le)
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hsch ht _).mp (Nat.lt_of_not_ge hn))
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (SA.earlyTime p.toParams s) hsch]
+    at hrec hblock hstamp
+  have hkeep := fgsa_gateReceipt_stamps_on E rho hid x hScope.readEpoch s
+    (baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n)) K hrec.1 hblock
+  have hF := hgeom.target_floor q hy hJoined.1 K hTarget
+  have hKg : K ∈ (actView (clockPre p (storeAt p c E rho i x)
+      (SA.gateTime p.toParams s))).blocks := by
+    apply (actView_blocks _ K).mpr
+    rw [(clockPre_fields p _ _).2.1, clockPre_fg]
+    have hFpre := hF
+    rw [clockPre_fg] at hFpre
+    exact ⟨(fgsa_store_durable p c E rho hid x).2.1.subset hblock,
+      Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFpre⟩
+  have hKsource : K ∈ (storeAt p c E rho k y).base.blocks := by
+    have hm := headVote_stored p _ (storeBundle_postClock E rho k y
+      (SA.voteTime p.toParams s)).cstore s
+    change K ∈ (clock p (storeAt p c E rho k y) _).base.blocks at hm
+    rwa [(clock_cumulative p _ _).2.1] at hm
+  have hslot : K.slot ≤ s := by
+    have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
+    exact hm.trans ((Internal.slotOf_mono (p := p) (fgsa_preTick_now_le E rho hsch hk)).trans_eq
+      (slotOf_offset p s p.Δ hd.le (by dsimp [Time] at *; omega)))
+  exact ⟨K, SA.voteTime p.toParams s, hy, ⟨k, hk, hem⟩, hkeep.1, hKg, hslot,
+    hkeep.2.1.trans_lt hrec.2, hkeep.2.2.trans_lt hstamp, hF,
+    hgeom.covered_prefix q hy hJoined.1 K hTarget⟩
+
+/-- Ready block service gives exact membership at an actual receiver tick.
+The named body persists in durable storage after the service freeze. -/
+theorem fgsa_gateReceipt_block_to_tick_on (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hS : V2.D.ScheduleWellFormed E rho)
+    (hRoots : NamedReceiptRootCollisionFree p c E rho)
+    (o : Obj p) (send freeze : Time) (K : Block) (ho : blockOf? p o = some K)
+    {j : Nat} {x : V} {t : Time} (hx : x ∈ rho.honest)
+    (hj : rho.events[j]? = some (.tick x t)) (hfreeze : freeze ≤ t)
+    (hService : ReceiverService E rho o send freeze x) :
+    K ∈ (storeAt p c E rho j x).base.blocks := by
+  obtain ⟨s, N, rfl, rfl⟩ := gateReceipt_block_decode ho
+  obtain ⟨Y, hY, he⟩ := hService.proposal hS hx hRoots
+  have hid : V2.D.Run.idxBefore rho freeze ≤ j := by
+    by_contra hn
+    exact (not_lt.mpr hfreeze)
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hS hj _).mp (Nat.lt_of_not_ge hn))
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho freeze hS] at hY
+  exact ((cstoreInv_stateBefore E rho j x).baseTree _).mpr
+    ⟨Y, (fgsa_store_durable p c E rho hid x).1 hY, he⟩
 
 end AvailableChain.FGSA.Run
 end

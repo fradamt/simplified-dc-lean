@@ -196,6 +196,47 @@ H.17:3008–3011
 spec 1555–1581. Class (iii). DC: INTENTIONAL; S8
 composes the existing R6-aware trigger-to-tick receipt and S3. The chain
 uses fgsa_trigger_rowsValid and invalidForParent exclusion inside receipt. -/
+theorem fgsa_retained_proposal_mem_on_run_epoch
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip ih : Nat} {x y : V} (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (D : FGBlock (Fin p.n)) (Kc : Block)
+    (h : RetainedReadPremises p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc)
+    (hService : ReceiverService E rho
+      (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p)
+      (SA.proposalTime p.toParams s) (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    N.erase ∈ (rho.stateBefore E ih y).st.base.blocks ∧
+      N.erase ∈ T p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hslot := (fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2.2).1
+  obtain ⟨Y, hY, he⟩ := hService.proposal hE.toScheduleWellFormed hy hroots
+  have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ ih := by
+    by_contra hn
+    have hlt := (Gen.V2.Duty.index_lt_idxBefore_iff hE.toScheduleWellFormed hih _).mp
+      (Nat.lt_of_not_ge hn)
+    exact (lt_irrefl _ hlt).elim
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed] at hY
+  have hY' := (fgsa_store_durable p c E rho hcut y).1 hY
+  have hadm' : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks :=
+    ((cstoreInv_stateBefore E rho ih y).baseTree _).mpr ⟨Y, hY', he⟩
+  refine ⟨hadm', fgsa_retained_proposal_mem p src dst ht.baseTree ht.fg.closed
+    (F_preceq_liveRoot p dst ht) s N.erase ?_ hslot h.target_parent h.parent_height⟩
+  simpa only [dst, clock_base_blocks] using hadm'
+
 theorem fgsa_retained_proposal_mem_on_run
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
@@ -378,6 +419,128 @@ theorem fgsa_retainedWalk_geometry_on_run
     · exact fgsa_walkRun_reflected_old_child (hroots := hroots) E rho hE hN hDelta s hWalkSync
         hx hy hip hih hseat N hem Kc X C h.source_cut hK hX hp hold hm
         (h.reflected_witness X C hK hX hm hp hold he)
+  exact scores.2 C ⟨hsrc, hm⟩
+
+theorem fgsa_retained_path_persists_on_run_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (hadm : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks)
+    (D : FGBlock (Fin p.n)) (Kc : Block)
+    (h : RetainedReadPremises p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D N.erase Kc)
+    (hScope : RetainedServiceScope E rho ip ih x y (s + 1) N)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
+    let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
+    SuffixPersists Kc N.erase.parent (S p src) (T p dst (s + 1))
+      (ss src (s + 1)) (es p src (s + 1)) (et p dst (s + 1)) := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
+  have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hm
+  have hbslot := (fgsa_scoreRun_proposal_pools p _ (s + 1) _ N hp.2.2.2.2).1
+  have scores := fgsa_score_eq_on_candidates_on_run_on (hroots := hroots) E rho hE (s + 1) hx
+    hy hip hih hseat N hem hadm
+    (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1))
+    (fgsa_score_geometry_of_retained_cuts p src dst hs ht (s + 1) D N.erase Kc h)
+    (fun C hm => fgsa_score_geometry_of_tree_domains p src dst src.fg.TF
+      (voterBlocks p dst (s + 1)) C hm.1 hm.2) hScope
+  apply fgsa_retained_persists_of_path
+  · intro X C hK _ hp hCA
+    have hXC : Block.Preceq X C := by
+      cases C with
+      | genesis => cases hp
+      | node P t root r =>
+        have heq : P = X := Option.some.inj hp
+        subst P
+        exact fgsa_parent_preceq (.node X t root r)
+    exact fgsa_retained_path_mem p src dst ht.baseTree ht.fg.closed
+      (F_preceq_liveRoot p dst ht) (s + 1) N.erase C
+      (by simpa only [dst, clock_base_blocks] using hadm) hbslot
+      (block_preceq_trans h.target_cut (block_preceq_trans hK hXC))
+      (block_preceq_trans hCA (fgsa_parent_preceq N.erase)) h.parent_height
+  · intro X C hK hX hp hm htC
+    have hold := (fgsa_stored_block_slots E rho hE.toScheduleWellFormed hip
+      (Nat.succ_pos s)).2.1 C (List.mem_filter.mp hm).1
+    exact fgsa_eligible_eq_of_retainedBand_score p src dst
+      (proposerVotes src (s + 1)) (proposerSupport src (s + 1))
+      (headVotes p dst (s + 1)) (headSupport p dst (s + 1)) C
+      (h.band_agrees X C hK (Bool.and_eq_true_iff.mp hX).2 hm htC hp hold)
+      scores.1 (scores.2 C ⟨hm, htC⟩)
+      ((fgsa_proposal_slot (c := c) _ (s + 1)).trans
+        (fgsa_vote_slot (c := c) _ (s + 1)).symm)
+
+theorem fgsa_retainedWalk_geometry_on_run_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (D : FGBlock (Fin p.n)) (Kc : Block)
+    (h : RetainedReadPremises p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D N.erase Kc)
+    (hScope : RetainedServiceScope E rho ip ih x y (s + 1) N)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
+    let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
+    RetainedWalkRunGeometry p src dst (s + 1) D N.erase Kc ∧
+      N.erase ∈ T p dst (s + 1) ∧
+      (∀ C ∈ T p dst (s + 1), C.parent? = some N.erase.parent → C.slot < s + 1 →
+        et p dst (s + 1) C = true → C ∈ S p src ∧ es p src (s + 1) C = true) := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
+  have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  obtain ⟨hadm, hmem⟩ := fgsa_retained_proposal_mem_on_run_epoch (hroots := hroots)
+    E rho hE (s + 1) hy hip hih N hem D Kc h hScope.proposal.some
+  have hr := fgsa_retained_old_child_reflects_on_run_on (hroots := hroots) E rho hE s
+    hx hy hip hih hseat N hem hadm D Kc h hScope
+  have hA := fgsa_score_geometry_of_retained_cuts p src dst hs ht (s + 1) D N.erase Kc h
+  have scores := fgsa_score_eq_on_candidates_on_run_on (hroots := hroots) E rho hE (s + 1) hx
+    hy hip hih hseat N hem hadm
+    (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1)) hA
+    (fun C hm => fgsa_score_geometry_of_tree_domains p src dst src.fg.TF
+      (voterBlocks p dst (s + 1)) C hm.1 hm.2) hScope
+  refine ⟨{
+    pivot_parent := h.pivot_parent
+    ordinary_start := fgsa_Z_preceq_liveRoot p src
+    ordinary_prefix := h.ordinary_prefix
+    target_parent := h.target_parent
+    source_cut := h.source_cut
+    target_cut := h.target_cut
+    cut_parent := h.cut_parent
+    target_prefix := h.target_prefix
+    persists := fgsa_retained_path_persists_on_run_on (hroots := hroots) E rho hE s
+      hx hy hip hih hseat N hem hadm D Kc h hScope
+    reflects := hr.1
+    scores := ?_ }, hmem, hr.2⟩
+  apply fgsa_retained_scores_of_candidates
+  intro C hC
+  obtain ⟨X, hK, hX, hm, hp, he, hcase⟩ := hC
+  have hsrc : C ∈ S p src := by
+    rcases hcase with hstrict | hold
+    · exact (hr.1 X C hK hstrict hm hp he).1
+    · exact fgsa_walkRun_reflected_old_child_on (hroots := hroots) E rho hE s
+        hx hy hip hih hseat N hem Kc X C h.source_cut hK hX hp hold hm
+        (h.reflected_witness X C hK hX hm hp hold he) hScope
   exact scores.2 C ⟨hsrc, hm⟩
 
 end AvailableChain.FGSA.Run

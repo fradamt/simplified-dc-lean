@@ -1,5 +1,6 @@
-# P-ShA round 3 at 46a95cad; remaining failures have exact owners.
+# P-ShA round 5; additive service ports green; preserved Regimes legacy target open.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Tests.RestartEpochs
 AvailableChainFGSAClaims.Tests.Reads
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
@@ -66,6 +67,9 @@ AvailableChainFGSAProofs.Tests.RetainedScores
 AvailableChainFGSAProofs.Tests.RetainedWalk
 AvailableChainFGSAProofs.Tests.SharedAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
+AvailableChainFGSARun.Proofs.ReceiptCoverage
 AvailableChainFGSARun.Tests.P23Axioms
 AvailableChainFGSAProofs.Tests.RestartEpochs
 AvailableChainEngineV2
@@ -261,6 +265,7 @@ AvailableChainFGSAProofs.Proofs.Shared.Compose
 AvailableChainFGSAProofs.Proofs.Shared.Count
 AvailableChainFGSAProofs.Proofs.Shared.ExactHead
 AvailableChainFGSAProofs.Proofs.Shared.ExactService
+AvailableChainFGSAProofs.Proofs.Shared.Export
 AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
@@ -311,6 +316,7 @@ AvailableChainFGSAProofs.Tests.Channels
 AvailableChainFGSAProofs.Tests.FGSafety
 AvailableChainFGSAProofs.Tests.FinalityW
 AvailableChainFGSAProofs.Tests.KeepExact
+AvailableChainFGSAProofs.Tests.RetainedConsumers
 AvailableChainFGSAProofs.Tests.RetainedEndpoint
 AvailableChainFGSAProofs.Tests.RetainedPersist
 AvailableChainFGSAProofs.Tests.RetainedReflect
@@ -541,10 +547,6 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
-AvailableChainFGSAProofs.Tests.RetainedConsumers P-ShA
 AvailableChainFGSARun S-Ap
-AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

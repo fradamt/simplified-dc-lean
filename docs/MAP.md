@@ -1,5 +1,36 @@
 # Contract to Lean map
 
+## FG-SA sleep services (P-ShA round 5, 2026-10-10)
+
+`CatchUp` supplies ready receiver service, exact fresh HEAD service, named target
+service, and a constructor for proposal target service. Each retained object has
+its own ready anchor, HistorySafeAt, handler window and receiver epoch.
+
+`Count` and `GateReceiptScope` keep their local sleep interfaces. `SameLabel`
+now derives SameLabelServiceScope from Base execution, restarts at wakes and
+LabelSyncOn. The public `Export.fgsa_sameLabelClaim` compiles with its old type.
+
+`ScoreServiceScope` supplies frozen HEAD service and named support block service
+in both directions. New ScoreRun and ExactHead forms prove support incidence,
+score equality, walk reflection, ghost transfer and exact joined HEAD output.
+
+`HeadRelayServiceScope` supplies Relay receipts for each candidate and epochs.
+The joined HEAD read supplies network provenance from its local restart bound.
+HeldReceipt has an exact target-service form.
+
+`RetainedServiceScope` supplies proposal service and score service for each candidate.
+`RetainedExactHeadRunGeometryOn` guards every reader by joinedAt. New retained
+path, reflection and geometry forms build that record. H6/H6S/H17/L4R/HG1/L2
+read suppliers have `_joined` forms with the same reader guard.
+Tests.RetainedConsumers checks these guarded forms.
+
+`RegimesService` provides ten additive Clean/Recovery adapters. Existing names
+and types stay in their original files. The original Regimes target is still
+EXPECTED-FAIL: its ten legacy bodies request the removed global NoRestart field.
+That field cannot be reconstructed for an honest run with a wake restart.
+No public claim statement, baseline or exception changed.
+See `docs/SLEEP-LEDGER.md`, P-ShA round 5, for scopes and named family suppliers.
+
 ## Receipt relay update (2026-09-28)
 
 The dated relay note in `CONTRACT.md` supersedes references below to

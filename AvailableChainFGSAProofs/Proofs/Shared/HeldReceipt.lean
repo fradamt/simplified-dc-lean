@@ -93,5 +93,19 @@ theorem healing_held_block_receipt (mono : RMono p c E rho)
     rw [hYeq, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
     exact (fgsa_store_cumulative p c E rho hnr hidx y).1 hY
 
+/-- An exact named target service supplies a held carrier after restart.
+Its receiver service keeps the retained object's safe history explicit. -/
+theorem healing_held_block_receipt_on
+    (hvalid : V2.D.ExecutionValid E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
+    (W : FGBlock (Fin p.n)) (D : Time) (y : V) (hy : y ∈ rho.honest)
+    (hService : TargetReceiptService E rho (eraseFG W) D y) :
+    Gen.V2.Duty.HoldsBefore E rho (fun nd => W ∈ nd.st.fg.TF) D y := by
+  change W ∈ (rho.stateBeforeTime E D y).st.fg.TF
+  have hm := fgsa_target_receipt_on E rho hvalid.toScheduleWellFormed hroots
+    (eraseFG W) D y hy hService
+  obtain ⟨Y, hY, he⟩ := ((storeBundle_stateBeforeTime E rho D y).cstore.baseTree _).mp hm
+  exact (eraseFG_injective he) ▸ hY
+
 end AvailableChain.FGSA.Run
 end

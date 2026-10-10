@@ -701,5 +701,301 @@ theorem fgsa_retainedReads_H17
   exact consumer_retainedReads_at E rho hE hN hDelta s hSync hx hip hseat N hem D
     hinput hroots y hy ih hih
 
+theorem fgsa_retainedReads_H6_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      RetainedH6Input p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s
+        (controls p (clock p (rho.stateBefore E ip x).st
+          (SA.proposalTime p.toParams s))).Z N.erase Kc := by
+  intro y hy ih hih
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have hi := hinput y hy ih hih
+  have hr : Reachable p src := Reachable.tick _ (reachable_stateBefore E rho ip x)
+  have hs := (storeBundle_of_reachable p src hr).cstore
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2.2).1
+  have hheight := consumer_parent_height p src hr s N.erase.parent hparent.2.2.symm
+    hi.frame.source_witness
+  have hcover := consumer_prior_cover p src hs s (ap p src) hi.proposer_prior
+  have hprefix := walk_best_ancestry_of_cover _ _ _ _ _ hcover
+  have hordinary := (walk_reanchor_of_best_ancestry _ _ _ _ _
+    (erasedList_rootInj p src hs _)
+    (fgsa_Z_preceq_liveRoot p src) hprefix).trans hparent.2.2.symm
+  have hay : Block.Preceq (ay p dst) N.erase.parent := by
+    rcases hi.reader_prior with h | h | h
+    · exact hordinary ▸ consumer_prior_cover p src hs s (ay p dst) (Or.inl h)
+    · exact hordinary ▸ consumer_prior_cover p src hs s (ay p dst) (Or.inr h)
+    · obtain ⟨W, hW, heW, hh⟩ := hheight
+      exact heW ▸ h W hW hh
+  have hadm := fgsa_target_receipt_at_tick_on E rho hE hy hih N.erase
+    (hServices y hy ih hih) hroots
+  have hadm' : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks := hadm
+  apply consumer_h6_fields p src dst hr ht s N.erase hparent.2.2.symm hslot
+    (by simpa only [dst, clock_base_blocks] using hadm') _
+    hi.proposer_prior hi.reader_prior hi.frame
+  intro P hP hsP
+  apply fgsa_walkRun_current_block_eq E rho hE s hparent.1 hx hip hseat N hem
+  · have hb := (ht.baseTree _).mpr ⟨P, hP, rfl⟩
+    simpa only [dst, clock_base_blocks] using hb
+  · exact (eraseFG_slot P).trans hsP
+
+private theorem consumer_retainedReads_at_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (D : FGBlock (Fin p.n))
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
+    (y : V) (hy : y ∈ rho.honest) (ih : Nat)
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s))) :
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have hi := hinput y hy ih hih
+  have hr : Reachable p src := Reachable.tick _ (reachable_stateBefore E rho ip x)
+  have hs := (storeBundle_of_reachable p src hr).cstore
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2.2).1
+  have hstarts := consumer_cone_starts p src dst hs s D N.erase hparent.2.2.symm hi
+  have hay := hstarts.2.2.1
+  have hadm := fgsa_target_receipt_at_tick_on E rho hE hy hih N.erase
+    (hServices y hy ih hih) hroots
+  have hadm' : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks := hadm
+  apply consumer_cone_fields p src dst hs ht s D N.erase hparent.2.2.symm hslot
+    (by simpa only [dst, clock_base_blocks] using hadm') _
+    hi
+  intro P hP hsP
+  apply fgsa_walkRun_current_block_eq E rho hE s hparent.1 hx hip hseat N hem
+  · have hb := (ht.baseTree _).mpr ⟨P, hP, rfl⟩
+    simpa only [dst, clock_base_blocks] using hb
+  · exact (eraseFG_slot P).trans hsP
+
+theorem fgsa_retainedReads_H17_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (D : FGBlock (Fin p.n))
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
+  intro y hy ih hih
+  exact consumer_retainedReads_at_on E rho hE s hx hip hseat N hem D
+    hinput hServices hroots y hy ih hih
+
+/-- Joined reader form; service is required only for that reader. -/
+theorem fgsa_retainedReads_H6_joined
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      RetainedH6Input p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s
+        (controls p (clock p (rho.stateBefore E ip x).st
+          (SA.proposalTime p.toParams s))).Z N.erase Kc := by
+  intro y hy ih hih hjoined
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have hi := hinput y hy ih hih hjoined
+  have hr : Reachable p src := Reachable.tick _ (reachable_stateBefore E rho ip x)
+  have hs := (storeBundle_of_reachable p src hr).cstore
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2.2).1
+  have hheight := consumer_parent_height p src hr s N.erase.parent hparent.2.2.symm
+    hi.frame.source_witness
+  have hcover := consumer_prior_cover p src hs s (ap p src) hi.proposer_prior
+  have hprefix := walk_best_ancestry_of_cover _ _ _ _ _ hcover
+  have hordinary := (walk_reanchor_of_best_ancestry _ _ _ _ _
+    (erasedList_rootInj p src hs _)
+    (fgsa_Z_preceq_liveRoot p src) hprefix).trans hparent.2.2.symm
+  have hay : Block.Preceq (ay p dst) N.erase.parent := by
+    rcases hi.reader_prior with h | h | h
+    · exact hordinary ▸ consumer_prior_cover p src hs s (ay p dst) (Or.inl h)
+    · exact hordinary ▸ consumer_prior_cover p src hs s (ay p dst) (Or.inr h)
+    · obtain ⟨W, hW, heW, hh⟩ := hheight
+      exact heW ▸ h W hW hh
+  have hadm := fgsa_target_receipt_at_tick_on E rho hE hy hih N.erase
+    (hServices y hy ih hih hjoined) hroots
+  have hadm' : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks := hadm
+  apply consumer_h6_fields p src dst hr ht s N.erase hparent.2.2.symm hslot
+    (by simpa only [dst, clock_base_blocks] using hadm') _
+    hi.proposer_prior hi.reader_prior hi.frame
+  intro P hP hsP
+  apply fgsa_walkRun_current_block_eq E rho hE s hparent.1 hx hip hseat N hem
+  · have hb := (ht.baseTree _).mpr ⟨P, hP, rfl⟩
+    simpa only [dst, clock_base_blocks] using hb
+  · exact (eraseFG_slot P).trans hsP
+
+/-- Joined reader form; service is required only for that reader. -/
+private theorem consumer_retainedReads_at_joined
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (D : FGBlock (Fin p.n))
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
+    (y : V) (hy : y ∈ rho.honest) (ih : Nat)
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hjoined : joinedAt p E rho y s (SA.voteTime p.toParams s)) :
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have hi := hinput y hy ih hih hjoined
+  have hr : Reachable p src := Reachable.tick _ (reachable_stateBefore E rho ip x)
+  have hs := (storeBundle_of_reachable p src hr).cstore
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2.2).1
+  have hstarts := consumer_cone_starts p src dst hs s D N.erase hparent.2.2.symm hi
+  have hay := hstarts.2.2.1
+  have hadm := fgsa_target_receipt_at_tick_on E rho hE hy hih N.erase
+    (hServices y hy ih hih hjoined) hroots
+  have hadm' : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks := hadm
+  apply consumer_cone_fields p src dst hs ht s D N.erase hparent.2.2.symm hslot
+    (by simpa only [dst, clock_base_blocks] using hadm') _
+    hi
+  intro P hP hsP
+  apply fgsa_walkRun_current_block_eq E rho hE s hparent.1 hx hip hseat N hem
+  · have hb := (ht.baseTree _).mpr ⟨P, hP, rfl⟩
+    simpa only [dst, clock_base_blocks] using hb
+  · exact (eraseFG_slot P).trans hsP
+
+/-- Joined reader form; service is required only for that reader. -/
+theorem fgsa_retainedReads_H17_joined
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (D : FGBlock (Fin p.n))
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
+  intro y hy ih hih hjoined
+  exact consumer_retainedReads_at_joined E rho hE s hx hip hseat N hem D
+    hinput hServices hroots y hy ih hih hjoined
+
 end AvailableChain.FGSA.Run
 end

@@ -2576,3 +2576,310 @@ cannot meet deadline 10, and no Clean regime field supplies readiness/restartFre
 (dl(t) = max(t, GST) + Δ) force a = t after GST. These callers stay EXPECTED-FAIL. Choosing a = max(send, wake)
 with the old deadline cannot work. Open: an anchor-relative deadline form (design check anchor-dl-sol running).
 TransferFrame path interfaces (:335, :397) still need the joined receiver argument.
+
+## P-ShA round 4 — joined voters and local services (2026-10-10)
+
+Status: NOT CLOSED. Base: `1c777e97`. The JOINED-VOTER ruling applies to the
+internal action-batch and two gate-receipt regime producers. No FGSAClaims
+statement, Base₂ field, baseline or allow entry changed. Base₂ has no NoRestart
+projection. Green is a compile status; it does not mean every legacy route is ported.
+
+### Compiled interfaces and completed obligations
+
+- `CatchUp.ReceiverService`: exact N4 inputs for one object and receiver. The
+  ready anchor can follow a wake. The epoch starts at actionCut(anchor) and ends
+  at idxBefore(freeze). Safe retained history remains an explicit input.
+- `CatchUp.FreshHeadService.receipt`: processing and a strict freeze stamp for
+  the exact emitted HEAD. History safety comes from
+  `fgsa_historySafeAt_of_emitted_head`, at that same emission tick.
+- `CatchUp.ReceiverService.proposal` and `fgsa_target_receipt_on`: exact named-body
+  equality under P23-A, plus durable target membership. They do not equate roots
+  without the named receipt scope.
+- `Count.fgsa_receiptCoverage_on`: the sleep coverage branches, path receipts,
+  vote-or-cap receipts, and strict stamps use receiver-local epochs. The exact
+  handler WF/dependency/timeliness input remains explicit. This is stronger than
+  the bare ReceiptCoverageSleepStatement input list; the Run sleep statement
+  still has no proof on this base. No old-send awake premise is used by this route.
+- `Count.fgsa_active_path_of_coverage_on`: the restarted active-path interface.
+  The old `fgsa_active_path_of_coverage` type stays unchanged and remains legacy.
+- `Count.fgsa_stored_honest_head_joined`, `fgsa_late_rest_bound_joined` and
+  `fgsa_gate_batch_premises_joined`: joined HEAD origin and joined denominator.
+- `GateReceipt.fgsa_gateReceipt_on`: joined selected voters, FreshHeadService,
+  named target service, and the enabled gate actor. `GateReceiptScope` supplies
+  the exact early-to-gate receiver epoch. The theorem also proves awake at the
+  exact early read and the executed gate join test (T42).
+- `GateReceipt.fgsa_gateReceipt_block_stamp_lt_on` and
+  `fgsa_gateReceipt_block_to_tick_on`: local strict stamp and ready named receipt.
+  The legacy stamp theorem is an explicit wrapper of the local form.
+- `HeadAdmit.inclusion_head_receipt_early_on`: joined HEAD service at the exact
+  early read, with a local read-to-tick epoch. `fgsa_action_walk_batch` now takes
+  joined voters and a joined participation count, plus the exact services.
+  `fgsa_action_walk_batch_legacy` keeps the awake form with explicit NoRestart.
+- `ExactService.exactService_emitted_head_joined`, the receipt/raw/at/gate `_on`
+  forms, `exactService_of_head_and_gate_on` and
+  `exactService_participation_of_card_joined`: joined HEAD readers and selected
+  voters. Gate service uses GateReceiptScope; the all-reader route keeps
+  confirmedReaderAtIdx at the exact gate (T40).
+- `SameLabel.fgsa_sameLabel_on`: local cross-reader service with a receipt-or-cap
+  split. SameLabelServiceScope contains ready object service and exact enabled
+  read epochs. It has no NoRestart field.
+- `Regimes.fgsa_gateReceipt_clean` and `_recovery`: joined guard and the exact
+  GateReceiptScope, under the internal ruling. Both compile in isolation.
+  `_clean_legacy` and `_recovery_legacy` require explicit NoRestart.
+- `ScoreRun.fgsa_scoreRun_metadata_retained_restart` and
+  `fgsa_scoreRun_raw_subset_restart`: proposal metadata and the raw subset use
+  durable storage across restarts.
+- `RetainedPersist.fgsa_retained_proposal_mem_on_run_epoch`: ready named proposal
+  service with explicit safe history. Membership persists to the actual HEAD
+  tick through durable storage. This does not port the full retained geometry.
+- `StoreRun.fgsa_votes_cumulative_on`: volatile vote persistence in one receiver
+  epoch. Relay, SameLabel and ScoreRun keep their private legacy names and types
+  as explicit wrappers of this local form.
+- `Release.fgsa_release_bound_restart` remains the completed round 3 route.
+  The explicit legacy release wrapper stays available.
+
+### Exact blockers at the three open targets
+
+`Export.fgsa_sameLabelClaim` still calls the legacy fgsa_sameLabel with the absent
+Base₂.noRestart field. It needs a proof that SameLabelPrem.set plus its LabelSyncOn
+supplies SameLabelServiceScope, or a direct proof with the same local obligations.
+The conditional internal core now compiles. No false public conclusion is proved;
+no extra public premise was added. Adding a NoRestart premise is not an accepted fix.
+
+The following ten Regimes adapters still call legacy cores. Each failed projection
+is from Base₂.noRestart. The two repaired gate-receipt adapters are not in this list.
+
+- `fgsa_score_eq_on_clean_of_retained_proposal` and
+  `fgsa_score_eq_on_recovery_of_retained_proposal`: port fgsa_score_eq_on_run through
+  local frozen-vote, target-block and support receipts at the proposer/HEAD reads.
+- `fgsa_ghost_transfer_sfx_on_clean` and `_recovery`: port the walk block/reflection
+  routes and score equality, with their exact receiver epochs and ready services.
+- `exactService_head_of_proposal_clean` and `_recovery` (T39): retain the joined
+  HEAD-reader guard; port exactHead_of_proposal_on_run and its walk supplier.
+- `exactService_head_of_retained_proposal_clean` and `_recovery` (T45): retain the
+  joined HEAD-reader guard; port fgsa_retainedExactHead_geometry_on_run and the
+  retained read suppliers. Each retained HEAD needs a replay object or explicit
+  HistorySafeAt at its ready anchor. Past processing cannot supply that field.
+- `exactService_of_head_clean` and `_recovery`: use exactService_of_head_and_gate_on
+  with GateReceiptScope for each exact confirmed receiver and joined participation.
+  The CleanSleep₂/HealthyPrefixSleep₂ companion contains joined count fields; the
+  legacy CleanCut₂ fields count awake nodes. Recovery needs the joined window
+  after GST. The old input HEAD premise also lacks the joined reader guard.
+
+`Tests.RetainedConsumers`: Composes now has joined honest-reader quantifiers and
+all test roots take NamedReceiptRootCollisionFree. Compilation still waits for
+Regimes. Its `compose`, `check_H6`, `check_H6S`, `check_H17`, `check_L4R`, `check_HG1`,
+`check_L2`, `q1_H6` and `q1_H6S` still test legacy read/geometry
+suppliers with explicit NoRestart. Replacing only the reader quantifiers does not
+finish their sleep path.
+
+### Green legacy cores: theorem-level remaining work
+
+The entries below still have only a legacy run-service proof on this base. Their
+NoRestart premises are explicit. They must not be called final sleep APIs.
+
+- `Shared/Relay.lean:509` — `fgsa_headVotes_provenance`.
+- `Shared/Relay.lean:555` — `fgsa_vote_accepted_before_head_read`.
+- `Shared/Relay.lean:649` — `fgsa_headVotes_backward_relay`.
+- `Shared/Relay.lean:727` — `fgsa_cleanSupport_vote_forward`.
+- `Shared/Relay.lean:887` — `fgsa_cleanSupport_forward_relay`.
+- `Shared/ScoreRun.lean:350` — `fgsa_scoreRun_frozen_vote_relay`.
+- `Shared/ScoreRun.lean:457` — `fgsa_scoreRun_raw_extra`.
+- `Shared/ScoreRun.lean:592` — `fgsa_scoreRun_block_forward`.
+- `Shared/ScoreRun.lean:636` — `fgsa_scoreRun_block_backward`.
+- `Shared/ScoreRun.lean:718` — `fgsa_scoreRun_support_forward`.
+- `Shared/ScoreRun.lean:785` — `fgsa_scoreRun_support_backward`.
+- `Shared/ScoreRun.lean:907` — `fgsa_score_eq_on_run`.
+- `Shared/ScoreRun.lean:986` — `fgsa_walkRun_frozen_block`.
+- `Shared/ScoreRun.lean:1317` — `fgsa_walkRun_reflected_block`.
+- `Shared/ScoreRun.lean:1427` — `fgsa_ghost_transfer_sfx_on_run`.
+- `Shared/ExactHead.lean:95` — `exactHead_of_proposal_on_run`.
+- `Shared/ExactHead.lean:171` — `exactService_head_of_proposal`.
+- `Shared/RetainedPersist.lean:290` — `fgsa_retained_path_persists_on_run`.
+- `Shared/RetainedPersist.lean:358` — `fgsa_retainedWalk_geometry_on_run`.
+- `Shared/RetainedReflect.lean:235` — `fgsa_walkRun_reflected_old_child`.
+- `Shared/RetainedReflect.lean:268` — `fgsa_retained_old_child_reflects_on_run`.
+- `Shared/RetainedEndpoint.lean:189` — `fgsa_retainedExactHead_geometry_on_run`.
+- `Shared/RetainedConsumers.lean:333` — `fgsa_retainedReads_H6`.
+- `Shared/RetainedConsumers.lean:676` — `fgsa_retainedReads_H17`.
+- `Shared/RetainedConsumersH6S.lean:19` — `fgsa_retainedReads_H6S`.
+- `Shared/RetainedConsumersQ.lean:21` — `fgsa_retainedReads_L4R`.
+- `Shared/RetainedConsumersQ.lean:60` — `fgsa_retainedReads_HG1`.
+- `Shared/RetainedConsumersL2.lean:56` — `fgsa_retainedReads_L2`.
+- `Shared/HeldReceipt.lean:22` — `healing_held_block_receipt`.
+
+Relay provenance needs the restart replay branch of RelayCarried at the joined
+HEAD read. The accepted-before-head-read supplier needs a strict local epoch and
+an acceptance/replay origin. Its backward/forward relays need ready receiver
+service for each vote or cap witness, with safe history and the exact freeze.
+
+ScoreRun frozen-vote relay/raw-extra need the receiver's ready anchor, signed
+object identity and frozen stamp bounds. Block forward/backward/frozen/reflected
+routes need named target/ancestor services and exact endpoint floor compatibility.
+Support forward/backward must convert those receipts into resolved vote support.
+The score equality and ghost-transfer cores depend on those ports; a stored
+proposal's durable metadata alone does not supply them.
+
+ExactHead and the retained geometry/read suppliers need those score/walk ports.
+The joined reader scopes in T39/T45 are already present; those guards do not prove
+the missing service or retained history fields. HeldReceipt needs the same exact
+ready service at its held-block cutoff.
+
+### Family handoff: do not edit other packages
+
+Use `fgsa_active_path_of_coverage_on E rho hvalid hdelta ... hcovSleep hpath hFK
+hroots hReady`. Construct ReceiptCoverageSleepPremises with a valid post-wake
+anchor per required object. Supply WF, dependencies and fgsaTimely only for the
+named handler windows. Supply HistorySafeAt explicitly for retained routes.
+
+The following caller theorems must replace the legacy Count call. Their owners
+must also use Base₂.receiptIdealization for receipt-body equality.
+
+- Clean/StepGate: `gate_active_heads`.
+- Clean/TransferFrame: `clean_transfer_receipt_path`,
+  `clean_transfer_receipt_path_of_head`.
+- WeakContinuation/StepTransferReceipts: `prefreeze_path`.
+- WeakContinuation/StepGateBatch: `gate_active_heads`.
+- WeakContinuationGrowth/Dynamics: `growthStepGateBatch_gate_active_heads`,
+  `growthStepTransferReceipts_prefreeze_path`.
+
+P-Fi consumers `Finality/RowsBatch.rowsPrem_action_walk_batch` and
+`Finality/TailBatch.ktail_action_walk_batch` must use the ruled joined action API:
+joined selected voters, joinedHonest Batch, exact FreshHeadService/target service,
+and the read-to-action receiver epoch. The old name is retained for the corrected
+internal producer. The explicit old form is fgsa_action_walk_batch_legacy.
+
+### Map and validation boundary
+
+P-ShA map: 65 targets, 62 green including two input tests, three expected failures.
+Owned targets: 60 green, three expected failures. Full map: 476 green, five
+expected failures. HeadAdmit is now green. Run.Proofs.ReceiptCoverage is green
+from its actual retired-import-path build; it does not prove the sleep statement.
+Run and Run.Tests.Axioms stay S-Ap expected failures due to the five missing audit
+names already recorded in round 3. No external source file was edited.
+
+The new Regimes gate adapters and legacy companions have an isolated strict
+Lean check. That check does not classify the full Regimes module as green.
+The final checks and exact source lines are in claude-files/sleep-psha-report.md,
+Round 4. Successful validation covers the green map only. Package closure still
+requires every theorem-level blocker above to be resolved.
+
+Final round 4 checks: DCK PASS (180.905 s), 42 strict
+audits / 2,891 results, all 24 controls PASS. Complete green exports: 255 proof
+modules / 253 exports / zero unaccepted. SharedAxioms coverage: 364 entries PASS.
+Layers: 72 inherited / zero new. Expose and sleep scopes PASS. Two inherited W3
+transparency findings remain. The open-target check confirms the ten Regimes
+projections, Export's legacy call and the five missing S-Ap Run audit names.
+
+## P-ShA round 5: exact gate service
+
+The old Regimes declarations remain unchanged. Additive forms are in
+`Proofs/Shared/RegimesService.lean`. `exactService_of_head_clean_on` and
+`exactService_of_head_recovery_on` use joined HEAD readers, joined Batch and
+release counts, and `GateReceiptScope` for each confirmed receiver at the same gate.
+The Clean and Recovery consumer must supply these local scopes. Their old awake
+counts do not prove a joined count. Recovery needs its join window after GST.
+No `NoRestart` premise or restored Base field is used by these forms.
+
+### Round 5: proposal HEAD, score and walk ports
+
+Additive `ScoreServiceScope` supplies frozen HEAD ReceiverService and exact named
+block TargetReceiptService in both directions. It also supplies the source epoch
+from the strict proposal read to its tick. Each ReceiverService has its own
+HistorySafeAt and handler window. No theorem takes the final score equality,
+walk cover, or exact HEAD as a new service premise.
+
+The score and support proofs use durable proposal metadata after restart.
+The walk proof keeps both the frozen and authenticated proposal-path reflection
+arms. `exactService_head_of_proposal_on` keeps the joined-reader guard.
+Its Clean and Recovery consumers are the corresponding `_clean_on` and
+`_recovery_on` adapters in RegimesService. Those consumers supply the scopes.
+All previously compiled declarations remain unchanged.
+
+### Round 5: SameLabel public Export
+
+`fgsa_sameLabel_serviceScope` supplies the entire SameLabelServiceScope from
+ExecutionValid, RestartsAtWakes, the delta equation and LabelSyncOn. Export uses
+BaseSet's existing fields. The public SameLabelClaim type is unchanged.
+
+The proof rejects future HEADs before the label's proposal tick. A replayed HEAD
+comes from a raw list in a retained proposal. The raw label plus that proposal's
+strict slot bound rules out a same-label replay before this tick. This also
+handles the zero label, because RestartsAtWakes requires a positive wake time.
+Enabled gates bound every prior local restart by the label's proposal time.
+Those bounds give awake service at the early anchor, safe HEAD history, and the
+exact epochs through the strict gate read. The receipt deadline uses the same
+LabelSyncOn delivery law. No per-reader scope or history premise was added to
+SameLabelPrem or to the public claim.
+
+### Round 5: retained geometry and read services
+
+`RetainedServiceScope` supplies the named proposal service and ScoreServiceScope for each candidate whenever both endpoint floors apply. Candidate services keep
+HistorySafeAt per object; old processing is not used to fill that field.
+`RetainedExactHeadRunGeometryOn` restricts admission, walk and endpoint suppliers
+to joined readers. The new retained geometry theorem constructs those fields;
+it does not accept an exact HEAD or final walk cover as a service premise.
+The old geometry record and all its compiled consumers remain unchanged.
+
+All six read suppliers have additive `_on` forms: H6, H6S, H17, L4R, HG1 and L2.
+They use TargetReceiptService for the proposal and durable block storage to the
+actual HEAD tick. The local service input is separate from elementary lane reads.
+
+Named downstream suppliers (other families, not edited here):
+- Healing `repair_head_exact` and `frontier_seed_qSucc_head`: H6/H6S object service.
+- Healing `frontier_later_head`: HG1 object service and retained candidate services.
+- WeakContinuation `wc_retainedReads` / `wc_exactProposal`: H17 object service,
+  candidate services and safe retained replay history at each ready anchor.
+- Assembly `wcg_exactProposal`: the analogous WCG retained object services.
+- L4R and L2 callers supply the same object scope within their stop intervals;
+  their private type checks in Tests.RetainedConsumers identify the complete input.
+
+The Clean and Recovery retained `_on` adapters pass these inputs for each joined
+reader. No caller may infer retained HistorySafeAt from a past processed result.
+
+### Round 5: preserved original Regimes bodies — STOP on NoRestart
+
+False required implication:
+`ExecutionValid E rho ∧ RestartsAtWakes E rho → NoRestart rho`.
+Counterexample: Run.Tests.Sleep `joinEnv 9` / `joinRun 9` is ExecutionValid and
+restarts at wakes (`SleepTests.join_valid 9 (Or.inr rfl)`). Its event at index 1
+is `.restart 0 9`. Thus NoRestart fails at exactly that index. The receiver is
+awake at the slot-1 HEAD tick 10 but its wake exceeds the previous slot start 0;
+Tests.RestartEpochs `awake_head_tick_not_joined` checks the suppressed duty.
+The historical processing → HistorySafeAt implication is also false at wake 35
+in `retained_head_history_not_safe` in that test module.
+
+The ten original Regimes declarations still request `h.base.noRestart`. That
+projection does not exist and cannot be restored under the approved model.
+All their names and types are preserved as requested. This is a STOP on supplying
+the false legacy premise, not a kernel refutation of all ten full conclusions.
+Their new true forms are the ten `_on` declarations in RegimesService. They use
+joined participation, per-receiver gate scope, ScoreServiceScope, or
+RetainedServiceScope. No public FGSAClaims statement change is requested.
+The original module remains EXPECTED-FAIL; its legacy bodies are not certified.
+
+### Round 5: joined read suppliers
+
+H6/H6S/H17/L4R/HG1/L2 now also have `_joined` forms. Every elementary reader
+input, TargetReceiptService, and read-premise conclusion has the same joinedAt
+guard at the actual HEAD tick. Tests.RetainedConsumers uses these forms and its
+RetainedServiceScope input has that same guard. The earlier additive `_on`
+forms remain unchanged for callers that supply all-reader service.
+
+### Round 5: Relay and held-carrier inventory
+
+`HeadRelayServiceScope` has one HEAD object, a strict freeze, its reader index,
+its epoch, and a conditional ReceiverService. Scope suppliers are guarded by
+membership of the actual HEAD candidate, or by equality with the actual clean
+support wire. They do not require service for every possible payload.
+New Relay forms cover provenance, backward late-pool relay, frozen clean-support
+vote relay and forward support incidence. The existing path read input remains
+explicit in the support-incidence form.
+
+`fgsa_vote_accepted_before_local` excludes replay-only origins with a local
+restart bound and the earlier label tick. Relay's joined HEAD-read supplier
+constructs that tick and bound from joinedAt. No global NoRestart is needed.
+The new frozen walk alias uses the named backward block service.
+`healing_held_block_receipt_on` obtains the exact held FG carrier from its
+TargetReceiptService. These forms cover the Relay and HeldReceipt entries in
+round 4's legacy-only inventory. Legacy conditional APIs remain unchanged.

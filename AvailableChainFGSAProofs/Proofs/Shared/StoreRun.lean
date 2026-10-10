@@ -3,6 +3,7 @@ public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSA.Proofs.Metadata
 public import AvailableChainKitV2.DutyStable
 public import AvailableChainFGSARun.Proofs.Restore
+public import AvailableChainFGSARun.Proofs.Excludes
 
 public section
 
@@ -80,6 +81,19 @@ theorem fgsa_store_cumulative (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i �
     a.base.blockStamp <+: b.base.blockStamp ∧ a.base.voteStamp <+: b.base.voteStamp ∧
     a.proposals <+: b.proposals ∧ a.rowPool <+: b.rowPool :=
   fgsa_store_cumulative_on p c E rho hij x (hnr.restartFree x i j)
+
+/-- Volatile HEAD votes persist only in the named receiver epoch. -/
+theorem fgsa_votes_cumulative_on {i j : Nat} (hij : i ≤ j) (x : V)
+    (hRF : V2.D.restartFree rho x i j) :
+    (storeAt p c E rho i x).base.votes ⊆ (storeAt p c E rho j x).base.votes := by
+  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
+    (fun nd => (storeAt p c E rho i x).base.votes ⊆ nd.st.base.votes)
+    ?_ ?_ (fun _ _ h => h) E rho hij x hRF (List.Subset.refl _)
+  · intro nd t h
+    change _ ⊆ (clock p nd.st t).base.votes
+    rwa [(clock_vn nd.st t).1]
+  · intro nd o h
+    exact List.Subset.trans h (process_votes_subset nd.st (toWire p o))
 
 end AvailableChain.FGSA.Run
 end

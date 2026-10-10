@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore -- shake: keep (#print axioms)
@@ -52,6 +53,8 @@ public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel -- shake: keep (a
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal -- shake: keep (audit)
+
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit -- shake: keep (audit)
 
 public section
 
@@ -383,3 +386,190 @@ end
 #print axioms AvailableChain.FGSA.Run.fgsa_release_bound_restart
 
 #print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_stamps_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_head_stamp_before_read
+
+#print axioms AvailableChain.FGSA.Run.fgsa_proposal_receipt_on
+
+#print axioms AvailableChain.FGSA.Run.ReceiverService.processed
+
+#print axioms AvailableChain.FGSA.Run.ReceiverService.proposal
+
+#print axioms AvailableChain.FGSA.Run.FreshHeadService.receipt
+
+#print axioms AvailableChain.FGSA.Run.fgsa_head_joined_of_joinedAt
+
+#print axioms AvailableChain.FGSA.Run.fgsa_target_receipt_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_block_stamp_before_read
+
+#print axioms AvailableChain.FGSA.Run.fgsa_awake_of_joinedAt
+
+#print axioms AvailableChain.FGSA.Run.fgsa_restartTime_ge
+
+#print axioms AvailableChain.FGSA.Run.fgsa_joinedAt_of_emitted_head
+
+#print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_active_path_of_coverage_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_stored_honest_head_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_late_rest_bound_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_batch_premises_joined
+
+#print axioms AvailableChain.FGSA.Run.exactService_emitted_head_joined
+
+#print axioms AvailableChain.FGSA.Run.exactService_gate_receipts_of_head_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_gate_raw_of_head_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_gate_at_of_head_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_gate_of_head_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_and_gate_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_participation_of_card_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_block_stamp_lt_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_block_to_tick_on
+
+#print axioms AvailableChain.FGSA.Run.inclusion_stampVote_of_prefix
+
+#print axioms AvailableChain.FGSA.Run.inclusion_stampBlock_of_prefix
+
+#print axioms AvailableChain.FGSA.Run.inclusion_stamps_kept
+
+#print axioms AvailableChain.FGSA.Run.inclusion_stamps_kept_on
+
+#print axioms AvailableChain.FGSA.Run.inclusion_head_receipt_early_on
+
+#print axioms AvailableChain.FGSA.Run.inclusion_head_receipt_early
+
+#print axioms AvailableChain.FGSA.Run.inclusion_no_equivocation
+
+#print axioms AvailableChain.FGSA.Run.inclusion_joined_head_seats
+
+#print axioms AvailableChain.FGSA.Run.inclusion_head_seats
+
+#print axioms AvailableChain.FGSA.Run.inclusion_rest_bound
+
+#print axioms AvailableChain.FGSA.Run.fgsa_action_walk_batch
+
+#print axioms AvailableChain.FGSA.Run.fgsa_action_walk_batch_legacy
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_proposal_mem_on_run_epoch
+
+#print axioms AvailableChain.FGSA.Run.fgsa_sameLabel_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_metadata_retained_restart
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_raw_subset_restart
+
+#print axioms AvailableChain.FGSA.Run.fgsa_votes_cumulative_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_clean_on
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_target_service_of_proposal
+
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_block_backward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_block_forward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_frozen_vote_relay_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_raw_extra_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_backward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_forward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_target_receipt_at_tick_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_reflected_block_on
+
+#print axioms AvailableChain.FGSA.Run.exactHead_of_proposal_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_clean_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_recovery_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_clean_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_recovery_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_clean_of_retained_proposal_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery_of_retained_proposal_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_sameLabel_serviceScope
+
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_candidates_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_old_child_reflects_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_reflected_old_child_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedWalk_geometry_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_path_persists_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedExactHead_geometry_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H17_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6S_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_HG1_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L4R_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L2_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_clean_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_recovery_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H17_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6S_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_HG1_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L4R_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L2_joined
+
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_accepted_before_local
+
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_forward_relay_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_vote_forward_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_headVotes_backward_relay_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_headVotes_provenance_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_accepted_before_head_read_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_frozen_block_on
+
+#print axioms AvailableChain.FGSA.Run.healing_held_block_receipt_on
