@@ -15,8 +15,9 @@ INTENTIONAL: optional F-anchored active-view results and label-local synchroniza
 (spec/fgsa-protocol.tex:2496–2513). Export boundary: SYN L50. -/
 theorem fgsa_sameLabelClaim (p : Params) : SameLabelClaim p := by
   intro V _ _ In c E rho pt h
-  exact fgsa_sameLabel (hroots := h.set.idealization) p c E rho h.set.valid h.set.noRestart
-      h.set.delta pt.s h.sync
+  exact fgsa_sameLabel_on p c E rho h.set.valid pt.s
+    (fgsa_sameLabel_serviceScope E rho h.set.valid h.set.restartsAtWakes
+      h.set.delta pt.s h.sync) h.set.idealization
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 P3 F1b.3, bp.release.v1(a,c), blueprint 01 §5.

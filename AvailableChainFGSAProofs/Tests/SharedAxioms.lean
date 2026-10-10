@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Export -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: keep (#print axioms)
@@ -513,3 +514,13 @@ end
 #print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_clean_of_retained_proposal_on
 
 #print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery_of_retained_proposal_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_sameLabel_serviceScope
+
+#print axioms AvailableChain.FGSA.Run.fgsa_headReachesLoClaim
+
+#print axioms AvailableChain.FGSA.Run.fgsa_releaseClaim
+
+#print axioms AvailableChain.FGSA.Run.fgsa_releaseStoreClaim
+
+#print axioms AvailableChain.FGSA.Run.fgsa_sameLabelClaim

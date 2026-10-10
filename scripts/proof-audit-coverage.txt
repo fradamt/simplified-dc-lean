@@ -4934,6 +4934,12 @@
             'AvailableChain.FGSA.Run.exactService_participation_of_card',
             'AvailableChain.FGSA.Run.exactService_participation_of_card_joined',
         ),
+        'AvailableChainFGSAProofs.Proofs.Shared.Export': (
+            'AvailableChain.FGSA.Run.fgsa_headReachesLoClaim',
+            'AvailableChain.FGSA.Run.fgsa_releaseClaim',
+            'AvailableChain.FGSA.Run.fgsa_releaseStoreClaim',
+            'AvailableChain.FGSA.Run.fgsa_sameLabelClaim',
+        ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyReads',
@@ -5239,6 +5245,7 @@
         'AvailableChainFGSAProofs.Proofs.Shared.SameLabel': (
             'AvailableChain.FGSA.Run.fgsa_sameLabel',
             'AvailableChain.FGSA.Run.fgsa_sameLabel_on',
+            'AvailableChain.FGSA.Run.fgsa_sameLabel_serviceScope',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.ScoreRun': (
             'AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_run',

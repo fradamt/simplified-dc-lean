@@ -2349,3 +2349,19 @@ arms. `exactService_head_of_proposal_on` keeps the joined-reader guard.
 Its Clean and Recovery consumers are the corresponding `_clean_on` and
 `_recovery_on` adapters in RegimesService. Those consumers supply the scopes.
 All previously compiled declarations remain unchanged.
+
+### Round 5: SameLabel public Export
+
+`fgsa_sameLabel_serviceScope` supplies the entire SameLabelServiceScope from
+ExecutionValid, RestartsAtWakes, the delta equation and LabelSyncOn. Export uses
+BaseSet's existing fields. The public SameLabelClaim type is unchanged.
+
+The proof rejects future HEADs before the label's proposal tick. A replayed HEAD
+comes from a raw list in a retained proposal. The raw label plus that proposal's
+strict slot bound rules out a same-label replay before this tick. This also
+handles the zero label, because RestartsAtWakes requires a positive wake time.
+Enabled gates bound every prior local restart by the label's proposal time.
+Those bounds give awake service at the early anchor, safe HEAD history, and the
+exact epochs through the strict gate read. The receipt deadline uses the same
+LabelSyncOn delivery law. No per-reader scope or history premise was added to
+SameLabelPrem or to the public claim.
