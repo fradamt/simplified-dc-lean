@@ -319,6 +319,27 @@ example {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
       htransfer hleases hrows pt hprop hhor,
     inclusion_sleep_silence E rho pt.s⟩
 
+/-- The last HEAD is at the horizon. Service for it cannot have a later deadline. -/
+public theorem horizon_head_has_no_early_service :
+    ¬ Nonempty (FreshHeadService env run 1 (0 : Fin 2) genesisRoot 6 0) := by
+  rintro ⟨h⟩
+  have hl := h.later
+  have hh := h.horizon
+  change 5 < h.dl 5 at hl
+  change h.dl 5 ≤ 5 at hh
+  exact (not_lt_of_ge hh) hl
+
+/-- A tick before the reader vote cannot satisfy the relay scope's index bound. -/
+public theorem early_tick_has_no_relay_scope {i : Nat}
+    (hi : run.events[i]? = some (.tick 0 2)) :
+    ¬ HeadRelayServiceScope env run 0 (0 : Fin 2) genesisRoot 5 i 0 := by
+  intro h
+  have hil := (Gen.V2.Duty.index_lt_idxBefore_iff iexact_schedule hi 5).mpr (by decide)
+  exact (not_lt_of_ge h.index) hil
+
+#print axioms AvailableChain.FGSA.Run.Tests.InclusionExact.horizon_head_has_no_early_service
+#print axioms AvailableChain.FGSA.Run.Tests.InclusionExact.early_tick_has_no_relay_scope
+
 #print axioms AvailableChain.FGSA.Run.Tests.InclusionExact.slot1_no_result
 #print axioms AvailableChain.FGSA.Run.inclusion_retained_reads
 #print axioms AvailableChain.FGSA.Run.inclusion_exact_compat

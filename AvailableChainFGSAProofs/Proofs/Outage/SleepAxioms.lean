@@ -17,6 +17,10 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep
 
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
 
+public import AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
+
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
+
 #print axioms AvailableChain.FGSA.Run.outage_restored_service
 #print axioms AvailableChain.FGSA.Run.outage_restored_proposal_receipt
 #print axioms AvailableChain.FGSA.Run.outage_restored_batch_receipt_on
@@ -144,3 +148,16 @@ public import AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
 #print axioms AvailableChain.FGSA.Run.inclusion_last_gate_label
 #print axioms AvailableChain.FGSA.Run.inclusion_last_gate_reader
 #print axioms AvailableChain.FGSA.Run.inclusion_later_reader_origin
+#print axioms AvailableChain.FGSA.Run.outage_fresh_head_not_excluded
+#print axioms AvailableChain.FGSA.Run.outage_joined_head_service
+#print axioms AvailableChain.FGSA.Run.outage_joined_proposal_service
+#print axioms AvailableChain.FGSA.Run.outage_joined_batch_service
+#print axioms AvailableChain.FGSA.Run.outage_restored_vote_cut
+#print axioms AvailableChain.FGSA.Run.outage_restored_services
+#print axioms AvailableChain.FGSA.Run.outage_continuation_receipt_of_prefix
+#print axioms AvailableChain.FGSA.Run.outage_good_release_bound
+#print axioms AvailableChain.FGSA.Run.outage_arming_sources_before_on
+#print axioms AvailableChain.FGSA.Run.outage_arming_sources_on
+#print axioms AvailableChain.FGSA.Run.outage_handover_expired
+#print axioms AvailableChain.FGSA.Run.outage_handover_time
+#print axioms AvailableChain.FGSA.Run.outage_supplier_later_origins

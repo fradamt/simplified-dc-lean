@@ -112,10 +112,10 @@ theorem outage_exactProposalClaim_of : ExactProposalClaim p := by
       ∀ row ∈ (storeAt p c E rho i v).base.obligations,
         BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
     fun i v hi hv row hrow => ((hl i v hi hv).2.2.2.1 row hrow).1
-  exact ⟨inclusion_exact_receipt (_hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩)
+  exact ⟨fun x hx hJ => inclusion_exact_receipt (_hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩)
     E rho ΔF h.set (hInputs c E rho () ⟨h.set⟩)
     (hstore c E rho) (hframe c E rho)
-      hs ho hn ht hbelow hr pt h.prop h.hhor,
+      hs ho hn ht hbelow hr pt h.prop h.hhor x ⟨hx, hJ⟩,
     inclusion_exact_head (hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩)
       E rho ΔF h.set (hInputs c E rho () ⟨h.set⟩) (hstore c E rho) (hframe c E rho)
       hs ho hn ht hbelow hr pt h.prop h.hhor,
@@ -165,14 +165,21 @@ theorem outage_cleanInclusionPostGateClaim_of : CleanInclusionPostGateClaim p :=
     (hScopes c E rho () ⟨h.set⟩ pt.s)
 
 variable
-    (hOrigins : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtSP),
-      CleanInclusionPrem p c E rho pt ΔF →
-      ∀ t x, SA.gateTime p.toParams pt.s ≤ t → t ≤ rho.horizon →
-        confirmedReader p c E rho x t →
-        ∃ q i B, pt.s ≤ q ∧ SA.gateTime p.toParams q ≤ t ∧
-          enabledGateAt p c E rho i x q ∧ gateResultAt p c E rho i = some (some B) ∧
-          Block.Preceq B (S_at p c E rho (timeIdx rho t) x))
+    (hReaderGate : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : Unit),
+      CleanPrem p c E rho pt ΔF →
+      ∀ q i x, x ∈ rho.honest → SA.gateTime p.toParams q ≤ rho.horizon →
+        enabledGateAt p c E rho i x q →
+        ∃ C, gateResultAt p c E rho i = some (some C) ∧
+          Block.Preceq C (S_at p c E rho (timeIdx rho (SA.gateTime p.toParams q)) x))
+    (hReaderMono : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : Unit),
+      CleanPrem p c E rho pt ΔF →
+      ScopedMono (confirmedReader p c E rho)
+        (fun t x => S_at p c E rho (timeIdx rho t) x)
+        (fun t => 0 ≤ t ∧ t ≤ rho.horizon))
+
+include hReaderGate hReaderMono
 
 omit hmono in
 /-- ROOT-DIGEST W2b. Blueprint 03 §5; DC available/stableIncludedFast: INTENTIONAL inclusive public
@@ -202,7 +209,8 @@ theorem outage_cleanInclusionClaim_of : CleanInclusionClaim p := by
     E rho ΔF h.set (hInputs c E rho () ⟨h.set⟩) hHistory
     (hstore c E rho) (hframe c E rho)
     hs ho hn ht hbelow hr pt h.prop h.hhor (hScopes c E rho () ⟨h.set⟩ pt.s)
-    (hOrigins c E rho pt h)
+    (outage_supplier_later_origins E rho h.set.pre.base
+      (hReaderGate c E rho () ⟨h.set⟩) (hReaderMono c E rho () ⟨h.set⟩) pt.s)
 
 
 end CleanClaims

@@ -177,5 +177,43 @@ theorem outage_arming_domain_on
   · exact Or.inl hF
   · exact Or.inr hdom
 
+/-- The scoped certificate supplies the strict pre-pending global source seed. -/
+theorem outage_arming_sources_before_on
+    (hs : V2.D.ScheduleWellFormed E rho) {fast : Bool} {T b₀ : Time} {B : Block}
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh) :
+    OutageSourceHistory p c E rho B (rho.idxBefore (SA.gateTime p.toParams (l + 1))) := by
+  constructor
+  intro k y r C hk hy ht hC
+  have htime := (Gen.V2.Duty.index_lt_idxBefore_iff hs ht _).mp hk
+  exact block_compatible_of_common (hc.source_below y r C hy htime hC) hc.max_read
+
+/-- Only the actual pending action sources remain at the all-ticks seed boundary.
+This field is P-Ou's joint-induction obligation, not a public claim premise. -/
+theorem outage_arming_sources_on
+    (hs : V2.D.ScheduleWellFormed E rho) {fast : Bool} {T b₀ : Time} {B : Block}
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh)
+    (hPending : ∀ y r C, y ∈ rho.honest →
+      p.actionTime r = SA.gateTime p.toParams (l + 1) →
+      actionSource p c E rho y r = some (some C) → Block.Compatible C B) :
+    OutageSourceHistory p c E rho B (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) := by
+  constructor
+  intro k y r C hk hy ht hC
+  have htime := arming_tick_le hs ht
+    (hk.trans_le (preIdx_le_afterTicksIdx E rho hs _).2)
+  rcases htime.lt_or_eq with hlt | heq
+  · exact block_compatible_of_common (hc.source_below y r C hy hlt hC) hc.max_read
+  · exact hPending y r C hy heq hC
+
+/-- Rows whose deadlines are at or before handover are absent from the expired view.
+The joint induction must bound the deadlines of the old conflicting rows. -/
+theorem outage_handover_expired {n : Nat} (st : GridCO.State n .root) (r : Slot)
+    (row : Block × Nat × Time) (hOld : row.2.2 ≤ OutageEnd p r) :
+    row ∉ (GridCO.expire { st with now := OutageEnd p r } (OutageEnd p r)).obligations := by
+  intro hm
+  have hLive : OutageEnd p r < row.2.2 := of_decide_eq_true (List.mem_filter.mp hm).2
+  exact (not_lt_of_ge hOld) hLive
+
 end AvailableChain.FGSA.Run
 end

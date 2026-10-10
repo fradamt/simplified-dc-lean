@@ -5406,3 +5406,36 @@ and receiver awake state. The later-origin adapter consumes Clean gate output
 and scoped public monotonicity; it does not assume an origin at the later read.
 The new production consumers and their strict audit build with --wfail.
 Layer check: 72 inherited findings, zero new. Public claims are unchanged.
+
+### P-Ou Round 4 — regime services, source boundaries and handover
+
+RestoredBatch derives all restored services from Base₂, full-run synchrony,
+GST ≤ b₁ and the joined read guards. Targets use original acceptance and durable
+proposal history. Incompatible targets retain the public finality alternative.
+The target/proposal anchors are v→e, e→f and f→t(next); fresh HEADs use v→e
+with survival through the read. The continuation consumer still needs P-Ar's
+separate continuation-prefix adapter. The public OutageSleep₂ prefix theorem
+is consumed directly when that exact regime is available. No prefix service
+is derived from a restored receipt.
+
+Suppliers and mixed Export now use the proved later-reader origin. They ask
+Clean assembly for gate output and bounded confirmed-reader monotonicity.
+Tests/InclusionOrigins checks both fields with the real P-Cl1 producers.
+The exact Clean section of Export checks with standard axioms after repair
+of the receipt's joined-reader binder and the supplier include list.
+The full mixed exporter still fails in the legacy outage lane and Shared/Claims.
+
+GoodVotes proves the A-union-W release bound from compatible good targets.
+PersistenceSleep proves the strict pre-pending global source seed and isolates
+actual pending action compatibility. ContinuationTiming proves the exact
+v(r+k+1) handover time. Expiry removes an old row at equality.
+The full good-target/late-result producers, both joint inductions, deadline
+bound on old conflicting rows and scoped handover remain P-Ou-owned OPEN work.
+No all-honest seed or NoRestart is derived from a sleep regime.
+
+The FIX-FIRST tests prove the finite-horizon service contradiction and the
+early-tick relay-index contradiction. The new standalone tests check real
+Clean origin assembly, restored receipt assembly, opponent release and expiry.
+No test import is added to a production or canonical audit module.
+Current map: 43 TARGETS, 502 GREEN, 11 EXPECTED-FAIL (nine P-Ou, two S-Ap).
+Current exact handoff: scripts/dev-pkg/P-Ou.round4-handoff.md.

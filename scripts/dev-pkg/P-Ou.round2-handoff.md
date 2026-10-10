@@ -117,7 +117,8 @@ P-Ou's service inputs remain closure work:
   FreshHeadService and TargetReceiptService at e(q), for the actual proposer
   at t(q+1) or joined reader at v(q+1), with the read time at most rho.horizon.
   Derive the exact HeadRelayServiceScope at the actual reader vote tick.
-  The relay input must include rho.events[ih]? = some (.tick y (v(q+1))). Derive RetainedServiceScope.proposal and .scores for
+  The relay input must include rho.events[ih]? = some (.tick y (v(q+1))).
+  Derive RetainedServiceScope.proposal and .scores for
   each actual emitted proposal and joined reader.
 - InclusionGateBody:115, hScopes: derive GateReceiptScope at each actual
   enabled or post-gate confirmed reader. This includes enabledness, the
@@ -274,3 +275,7 @@ adapter needs the Clean gate-output bound at that gate and scoped monotonicity
 on public reads in [0,horizon]. Those are Clean/assembly projections.
 The global source seed through the pending tick is still P-Ou closure work.
 Fast certificate construction at equality remains with P-Ar.
+
+The current full handoff is scripts/dev-pkg/P-Ou.round4-handoff.md.
+It supersedes the remaining-input lists above. Restored services and the
+later-reader origin producer are now proved. Full joint closure remains OPEN.

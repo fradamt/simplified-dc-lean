@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
+public import AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (read API)
 public import AvailableChainFGSAClaims.Statements.Packages.Finality -- shake: keep (W types)
 public import AvailableChainFGSAClaims.Statements.Packages.Inclusion -- shake: keep (cut types)
@@ -124,6 +125,26 @@ theorem outage_supplier_history (p : Params)
     (And.intro (htransfer c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.sleepPre.sleepPre⟩)
     (And.intro (hleases c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.sleepPre.sleepPre⟩)
       (hrows c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.sleepPre.sleepPre⟩)))))
+
+/-- The Clean assembly supplies gate output and bounded public monotonicity.
+P-Ou derives the later reader's enabled gate and result origin from those fields. -/
+theorem outage_supplier_later_origins {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hBase : Base₂ p c E rho)
+    (hGate : ∀ q i x, x ∈ rho.honest → SA.gateTime p.toParams q ≤ rho.horizon →
+      enabledGateAt p c E rho i x q →
+      ∃ C, gateResultAt p c E rho i = some (some C) ∧
+        Block.Preceq C (S_at p c E rho (timeIdx rho (SA.gateTime p.toParams q)) x))
+    (hMono : ScopedMono (confirmedReader p c E rho)
+      (fun t x => S_at p c E rho (timeIdx rho t) x)
+      (fun t => 0 ≤ t ∧ t ≤ rho.horizon)) (s : Slot) :
+    ∀ t x, SA.gateTime p.toParams s ≤ t → t ≤ rho.horizon →
+      confirmedReader p c E rho x t →
+      ∃ q i B, s ≤ q ∧ SA.gateTime p.toParams q ≤ t ∧
+        enabledGateAt p c E rho i x q ∧ gateResultAt p c E rho i = some (some B) ∧
+        Block.Preceq B (S_at p c E rho (timeIdx rho t) x) := by
+  intro t x hst hhor hx
+  exact inclusion_later_reader_origin E rho hBase.valid hBase.delta hGate hMono hst hhor hx
 
 end AvailableChain.FGSA.Run
 end

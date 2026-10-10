@@ -1,4 +1,5 @@
 module
+import all AvailableChainFGSAProofs.Proofs.Shared.Release
 public import AvailableChainFGSAProofs.Proofs.Outage.GateCount
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceSleep
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
@@ -356,6 +357,104 @@ theorem outage_all_honest_late_gate_keys (E : Generic.Env V)
   subst key
   have hXC := (Bool.and_eq_true_iff.mp (List.mem_filter.mp hX).2).2
   exact Gen.Pure.block_compatible_of_preceq_compatible hXC (hResults i x s C hx hrs hG hC)
+
+/-- Release opponents are in A union W. Every stored honest HEAD has an
+actual joined emission, including replayed votes after a receiver restart.
+Only the good senders need target compatibility. -/
+theorem outage_good_release_bound [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (fast : Bool) (b₀ : Time) (r s : Slot) (B : Block) (i : Nat) (x : V)
+    (hheads : ∀ y ∈ outageH p E rho s \ outageW p E rho fast b₀ r,
+      ∀ o t, V2.D.Run.emits E rho y o t →
+      ∀ q K, o.auth = .seat (.base (.head s)) q →
+        HeadTargetAtEmission p c E rho y o t K → Block.Compatible K B) :
+    GridCO.releaseCount p.toParams.engine (actView (storeAt p c E rho i x)) s B ≤
+      (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r).card := by
+  rw [release_card]
+  apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head s)))
+  · intro k hk
+    by_cases hW : rho.seatOf (.base (.head s)) k ∈ outageW p E rho fast b₀ r
+    · exact Finset.mem_union_right _ hW
+    apply Finset.mem_union_left
+    rw [Gen.V2.Duty.faulty_def]
+    apply Finset.mem_sdiff.mpr
+    refine ⟨Finset.mem_univ _, ?_⟩
+    intro hhonest
+    obtain ⟨_, o, ho, _, hseat, hconf⟩ := (release_mem _ _ _ _ _).mp hk
+    have hl : GridCO.headLabel? o = some s := by
+      simpa only [beq_iff_eq] using (List.mem_filter.mp ho).2
+    have hstored : o ∈ (storeAt p c E rho i x).base.votes :=
+      (List.mem_filter.mp ho).1
+    have hJ := fgsa_stored_honest_head_joined E rho hE i x s k o hstored hl hseat hhonest
+    have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
+      slotOf_offset p s p.Δ p.deltaPos.le
+        (by have := p.deltaPos; dsimp [Time] at *; omega)
+    have hGood : rho.seatOf (.base (.head s)) k ∈
+        outageH p E rho s \ outageW p E rho fast b₀ r := by
+      apply Finset.mem_sdiff.mpr
+      refine ⟨?_, hW⟩
+      change rho.seatOf (.base (.head s)) k ∈ joinedHonest p E rho _
+      simp only [outage_joinedHonest_unfold E rho, hslot, Finset.mem_filter]
+      exact ⟨hhonest, hJ⟩
+    obtain ⟨D, hresolve, hConflict⟩ : ∃ D,
+        GridCO.resolvedHead? (actView (storeAt p c E rho i x)) o = some D ∧
+        (!Block.compatible D B) = true := by
+      cases hR : GridCO.resolvedHead? (actView (storeAt p c E rho i x)) o with
+      | none => simp only [hR, Option.any_none, Bool.false_eq_true] at hconf
+      | some D => exact ⟨D, rfl, by simpa only [hR, Option.any_some] using hconf⟩
+    obtain ⟨auth, payload⟩ := o
+    cases auth with
+    | none => cases payload <;> change (none : Option Slot) = some s at hl <;> contradiction
+    | proposer r => cases payload <;> change (none : Option Slot) = some s at hl <;> contradiction
+    | seat r j =>
+      cases payload with
+      | proposal C raw support =>
+          change (none : Option Slot) = some s at hl
+          contradiction
+      | head C =>
+        have hrs : r = s := Option.some.inj hl
+        have hjk : j = k := Option.some.inj hseat
+        subst r; subst j
+        have hv := hstored
+        change _ ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes at hv
+        rw [← fgsa_vote_stamp_keys E rho i x] at hv
+        obtain ⟨⟨wire, stamp⟩, hv, he⟩ := List.mem_map.mp hv
+        dsimp only at he
+        subst wire
+        have horigin : ∃ (j : Nat) (parent : Obj p) (u : Time),
+            rho.events[j]? = some (.deliver x parent u) ∧
+            (parent = ofHead p ⟨.seat (.head s) k, C⟩ ∨
+              (fgsa p c).carries parent (ofHead p ⟨.seat (.head s) k, C⟩)) := by
+          rcases fgsa_vote_stamp_source_or_restart E rho i x s k C stamp hv with
+            ⟨j, _, u, ha, _⟩ | ⟨j, _, wake, _, _, hr⟩
+          · obtain ⟨parent, hd, hh⟩ := ha.1
+            exact ⟨j, parent, u, hd, (fgsaHooks p c).handles_carries _ parent _ hh⟩
+          · obtain ⟨j', _, parent, u, hd, hc⟩ :=
+              fgsa_replayed_head_delivery_origin E rho j x wake s k C hr
+            exact ⟨j', parent, u, hd, Or.inr hc⟩
+        obtain ⟨j, parent, u, hd, hc⟩ := horigin
+        have hem : ∃ t, t ≤ u ∧ V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
+            (ofHead p ⟨.seat (.head s) k, C⟩) t := by
+          rcases hc with rfl | hc
+          · exact hE.unforgeable x _ u ⟨j, hd⟩ _ hhonest rfl
+          · exact hE.carried x parent u ⟨j, hd⟩ _ hc _ hhonest rfl
+        obtain ⟨u, _, hem⟩ := hem
+        obtain ⟨H, hH⟩ := headTargetAtEmission_exists E rho hem rfl
+        have hcompat := hheads _ hGood _ u hem k H rfl hH
+        have hCH : C = H.root := by
+          obtain ⟨_, _, _, _, _, ho, _⟩ := hH
+          exact Msg.head.inj (congrArg (fun o : Obj p => o.payload) ho)
+        have hTarget : GridCO.headTarget? (⟨.seat s k, .head C⟩ : GridCO.Wire p.n .root) =
+            some H.root := congrArg some hCH
+        have hDH := headTargetAtEmission_receiver_eq E rho hroots hH i x
+          (actView (storeAt p c E rho i x)) ⟨.seat s k, .head C⟩
+          (fun _ h => (List.mem_filter.mp h).1) hTarget hresolve
+        rw [hDH, show Block.compatible H B = true from hcompat] at hConflict
+        contradiction
+  · intro k _ j _ he
+    exact (hC (.base (.head s)) trivial).injective he
 
 end AvailableChain.FGSA.Run
 end
