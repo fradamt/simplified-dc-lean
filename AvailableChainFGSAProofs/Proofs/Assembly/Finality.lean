@@ -152,14 +152,10 @@ theorem fgsa_finalityKernel_W (p : Params) : FinalityKernelClaim_W p := by
 
 /-- ROOT-DIGEST W2b. Paper 00:1119–1134, 22:1171–1305; plan §4: close the joined W kernel.
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention and receipt.
-Recovery₂ in the joined premise supplies every Foundations premise. -/
-theorem fgsa_finalityKernelJoined_W (p : Params)
-    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
-      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho) :
+Recovery₂ supplies every Foundations premise and the cutoff-scoped TVote receipts. -/
+theorem fgsa_finalityKernelJoined_W (p : Params) :
     FinalityKernelJoinedClaim_W p := by
-  apply fgsa_finalityKernelJoined_W_of p hR
+  apply fgsa_finalityKernelJoined_W_of p
     (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
   · intro V _ _ In c E rho hv
     exact fgsa_tRowsSelect p c E rho hv
@@ -258,62 +254,46 @@ theorem fgsa_tailKernel_W (p : Params) : TailKernelClaim_W p := by
 
 /-- ROOT-DIGEST W2b. Paper 22:1371–1400; firstfin plan §5 C.
 DC-CS/W4FKChainSecondCheckpoint.lean:43:
-INTENTIONAL closed local W liveness. The same K-JOIN producers use Recovery₂
-from the local package; no additional premise is supplied. -/
-theorem fgsa_finalityLivenessRecFE_W (p : Params)
-    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
-      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho) :
+INTENTIONAL local W liveness. Recovery₂ supplies the K-JOIN producers
+and the TVote receipts at both public per-read GST cutoffs. -/
+theorem fgsa_finalityLivenessRecFE_W (p : Params) :
     FinalityLivenessRecFEClaim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  exact fgsa_finalityLivenessRecFE_W_of p hR
+  exact fgsa_finalityLivenessRecFE_W_of p
     (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
     sel origin batch qc crossing safety strat emitted cap
 
 /-- ROOT-DIGEST W2b. Paper 22:1371–1400; firstfin plan §5 C.
 DC-CS/W4FKChainSecondCheckpoint.lean:43:
-INTENTIONAL closed local W liveness. The same K-JOIN producers use Recovery₂
-from the local package; no additional premise is supplied. -/
-theorem fgsa_finalityLivenessRecF4_W (p : Params)
-    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
-      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho) :
+INTENTIONAL local W liveness. Recovery₂ supplies the K-JOIN producers
+and the TVote receipts at both public per-read GST cutoffs. -/
+theorem fgsa_finalityLivenessRecF4_W (p : Params) :
     FinalityLivenessRecF4Claim_W p := by
   intro G ΔF g w hδ V _ _ In c E rho pt h
-  apply fgsa_finalityLivenessRecFE_W p hR G ΔF g w hδ c E rho pt
+  apply fgsa_finalityLivenessRecFE_W p G ΔF g w hδ c E rho pt
   exact ⟨⟨h.set.core, h.set.bound, F4_W_implies_FE_W h.set.recur⟩,
     h.input, h.start, h.hhor⟩
 
 /-- ROOT-DIGEST W2b. Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL closed specified proposal coverage with its proposal-relative deadline.
-The local package supplies the same Recovery₂ producers as local W liveness. -/
-theorem fgsa_proposalFinalRecFE_W (p : Params)
-    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
-      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho) :
+Recovery₂ supplies the same producers and cutoff-scoped receipts as local W liveness. -/
+theorem fgsa_proposalFinalRecFE_W (p : Params) :
     ProposalFinalRecFEClaim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  exact fgsa_proposalFinalRecFE_W_of p hR
+  exact fgsa_proposalFinalRecFE_W_of p
     (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
     sel origin batch qc crossing safety strat emitted cap
 
 /-- ROOT-DIGEST W2b. Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL closed specified proposal coverage with its proposal-relative deadline.
-The local package supplies the same Recovery₂ producers as local W liveness. -/
-theorem fgsa_proposalFinalRecF4_W (p : Params)
-    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
-      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho) :
+Recovery₂ supplies the same producers and cutoff-scoped receipts as local W liveness. -/
+theorem fgsa_proposalFinalRecF4_W (p : Params) :
     ProposalFinalRecF4Claim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  exact fgsa_proposalFinalRecF4_W_of p hR
+  exact fgsa_proposalFinalRecF4_W_of p
     (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
     sel origin batch qc crossing safety strat emitted cap
 
@@ -327,16 +307,12 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 /-- ROOT-DIGEST W2b. Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 Recovery supplies the same kernel producers; the package also supplies source discipline
-and timed held-row origin. No extra premise is required. -/
-theorem fgsa_aboveFrontierRecFE_W (p : Params)
-    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
-      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho) :
+and timed held-row origin. Recovery₂ supplies the cutoff-scoped TVote receipts. -/
+theorem fgsa_aboveFrontierRecFE_W (p : Params) :
     AboveFrontierRecFEClaim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  apply fgsa_aboveFrontierRecFE_W_of p hR
+  apply fgsa_aboveFrontierRecFE_W_of p
     (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
     sel origin batch qc crossing safety strat emitted cap
   · intro V _ _ In c E rho hb0 j x r a e ha he
@@ -350,16 +326,12 @@ theorem fgsa_aboveFrontierRecFE_W (p : Params)
 /-- ROOT-DIGEST W2b. Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 Recovery supplies the same kernel producers; the package also supplies source discipline
-and timed held-row origin. No extra premise is required. -/
-theorem fgsa_aboveFrontierRecF4_W (p : Params)
-    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
-      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho) :
+and timed held-row origin. Recovery₂ supplies the cutoff-scoped TVote receipts. -/
+theorem fgsa_aboveFrontierRecF4_W (p : Params) :
     AboveFrontierRecF4Claim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  apply fgsa_aboveFrontierRecF4_W_of p hR
+  apply fgsa_aboveFrontierRecF4_W_of p
     (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
     sel origin batch qc crossing safety strat emitted cap
   · intro V _ _ In c E rho hb0 j x r a e ha he

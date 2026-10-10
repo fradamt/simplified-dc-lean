@@ -45,14 +45,17 @@ Assembly/Foundations. The held-target producer remains a family obligation.
   TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y
 ```
 
-P-Fi, Finality/Export:20 and Assembly/Finality:156/:263/:293/:331: the vote producer
-must have this full input scope. The true scoped vote record does not replace it.
+TVOTE-CUT supersedes the unrestricted FinalityVoteReceipts supplier request.
+S-Ap's public TVote text and P-Fi's internal record, adapters, and exports are DONE
+at 4a42c596. Finality/Export:19 proves `fgsa_kernelACSide_W p : KernelACSideClaim_W p`
+without a supplier. Assembly/Finality consumes these revised exports without hR.
+Keep both public per-read GST cutoffs:
 
 ```lean
-∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-  (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-  (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
-  LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho
+-- Proposal read:
+E.t_GST ≤ slotStartZ p (((v - 1 : Slot) : Int) - 1)
+-- Action read:
+E.t_GST ≤ slotStartZ p (((r * p.R + 1 : Slot) : Int) - 1)
 ```
 
 P-Fi, ReceiptSuppliers:267: the checked held-target helper has an actual tick, original

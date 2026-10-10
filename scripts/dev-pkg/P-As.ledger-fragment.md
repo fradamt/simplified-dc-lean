@@ -13,9 +13,11 @@ Base a395a69d; branch sleep-pas1. Full assembly OPEN; CLOSED is not claimed.
   checked row service from HealingSet. No Base₂.noRestart projection is used by these bridges.
 - ProgressAttempt: checked composition of four exact H2 rows. The row producer remains OPEN.
   ResetSource supplies the checked emitted-name result. Full reset arrival remains OPEN.
-- Finality: the W kernel and Tail build with concrete genesis and Foundations producers.
-  Joined/liveness/proposal/frontier exports retain the exact full-input vote supplier.
-  P-Fi owns that proof. No unjoined/pre-GST read is supplied by the true scoped record.
+- Finality: TVOTE-CUT supersedes the unrestricted vote supplier request. S-Ap and P-Fi
+  completed the public text and internal exports at 4a42c596. Assembly consumes the
+  proved KernelACSideClaim_W and the revised exports without hR. The proposal cutoff is
+  `E.t_GST ≤ slotStartZ p (((v - 1 : Slot) : Int) - 1)`; the action cutoff is
+  `E.t_GST ≤ slotStartZ p (((r * p.R + 1 : Slot) : Int) - 1)`.
 - Inhabit/SleepPositive: a real four-node sleep/wake execution inhabits Base₂. It has
   exact phase-zero restores, awake events, real emissions/handlers, and receipt-scope roots.
   P-Fx table suppliers discharge both original and emitted proposal scope.
