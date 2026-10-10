@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Statements.Roots
-public import AvailableChainFGSARun.Proofs.NamedDelivery
+public import AvailableChainFGSARun.Proofs.NamedHistory
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSA.Proofs.Carrier
@@ -164,7 +164,7 @@ theorem emitted_proposal_parent_stored (E : Generic.Env V)
     (hem : ofWire p ⟨.proposer s, .proposal N⟩ ∈ rho.emitsAt E i) :
     N.parent ∈ (rho.stateBefore E i x).st.namedBodies := by
   rw [(V2.D.Run.step_tick_eq E rho hi).2] at hem
-  have hp := (fgsa_emits_proposal E rho _ x t s _).mp hem |>.2.2.2
+  have hp := (fgsa_emits_proposal E rho _ x t s _).mp hem |>.2.2.2.2
   unfold propose at hp
   split at hp
   · cases hp
@@ -190,7 +190,7 @@ theorem emitted_proposal_slot_root (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     (hem : ofWire p ⟨.proposer s, .proposal N⟩ ∈ rho.emitsAt E i) :
     N.root = ⟨N.slot + 1⟩ := by
   rw [(V2.D.Run.step_tick_eq E rho hi).2] at hem
-  have hp := (fgsa_emits_proposal E rho _ x t s _).mp hem |>.2.2.2
+  have hp := (fgsa_emits_proposal E rho _ x t s _).mp hem |>.2.2.2.2
   obtain ⟨H, raw, sup, rows, he, _, _⟩ := rowsOk_withApp _ _ _ hp
   cases Msg.proposal.inj he
   exact hdigest _

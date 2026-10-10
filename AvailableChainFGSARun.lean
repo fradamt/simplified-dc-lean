@@ -17,6 +17,7 @@ public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSARun.Proofs.Content
 public import AvailableChainFGSARun.Proofs.NamedOrigins
+public import AvailableChainFGSARun.Proofs.NamedHistory
 public import AvailableChainFGSARun.Proofs.NamedScope
 public import AvailableChainFGSARun.Statements.Acceptance
 public import AvailableChainFGSARun.Proofs.Hooks
@@ -26,6 +27,13 @@ public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.Schedule
+public import AvailableChainFGSARun.Proofs.FGSource
+public import AvailableChainFGSARun.Proofs.Join
+public import AvailableChainFGSARun.Proofs.RowHistory
+public import AvailableChainFGSARun.Proofs.HeadHistory
+public import AvailableChainFGSARun.Proofs.ProposalHistory
+public import AvailableChainFGSARun.Proofs.ReadyAcceptance
+public import AvailableChainFGSARun.Proofs.StampOrigins
 public import AvailableChainFGSARun.Statements.AC
 public import AvailableChainFGSARun.Statements.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.AC

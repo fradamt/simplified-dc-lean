@@ -561,5 +561,11 @@ theorem fgsa_trigger_of_accept (p : Params) (c : AppCodec In) {V : Type} [Decida
     (hv : v ∈ rho.honest) (ha : V2.D.Run.acceptsAt E rho i v o t) :
     fgsaTrigger p c E rho o t := Or.inr ⟨v, hv, i, ha⟩
 
+/-- The acceptance clock uses the FG-SA physical clock laws. -/
+theorem fgsaTimelyClock_clock (p : Params) (c : AppCodec In) :
+    (fgsaTimelyClock p c).clock = fgsaClock p c := by
+  unfold fgsaTimelyClock
+  rfl
+
 end AvailableChain.FGSA.Run
 end

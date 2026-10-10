@@ -383,7 +383,10 @@ private theorem fgsa_processList_bounds (st : State p.n) (xs : List (Wire p.n))
   | cons o xs ih =>
     have h := fgsa_process_bounds st o (storeBundle_of_reachable p st hr).cstore hb hv
     apply ih (FGSA.process p st o) (Reachable.deliver o hr)
-    · simpa only [State.slot, process_base_now] using h.1
+    · intro b hmem
+      change b.slot ≤ p.slotOf (FGSA.process p st o).base.now
+      rw [process_base_now]
+      exact h.1 b hmem
     · simpa only [process_base_now] using h.2
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

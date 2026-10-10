@@ -24,6 +24,12 @@ public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.Slashing
+public import AvailableChainFGSARun.Proofs.HeadHistory -- shake: keep (#print axioms)
+public import AvailableChainFGSARun.Proofs.ProposalHistory -- shake: keep (#print axioms)
+public import AvailableChainFGSARun.Proofs.ReadyAcceptance -- shake: keep (#print axioms)
+public import AvailableChainFGSARun.Proofs.FGSource -- shake: keep (#print axioms)
+public import AvailableChainFGSARun.Proofs.Join -- shake: keep (#print axioms)
+public import AvailableChainFGSARun.Proofs.RowHistory -- shake: keep (#print axioms)
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSARun.Proofs.Receipts
@@ -406,3 +412,29 @@ end AvailableChain.FGSA.Run
 #print axioms AvailableChain.FGSA.Run.actView_target_of_resolvedHead
 #print axioms AvailableChain.FGSA.Run.resolvedTarget_mem
 #print axioms AvailableChain.FGSA.Run.actView_support_in_domain
+
+#print axioms AvailableChain.FGSA.Run.fgsa_fgAction_unjoined_source_none
+#print axioms AvailableChain.FGSA.Run.fgsa_clock_restartTime
+#print axioms AvailableChain.FGSA.Run.fgsa_process_restartTime
+#print axioms AvailableChain.FGSA.Run.fgsa_restartTime_bound
+#print axioms AvailableChain.FGSA.Run.fgsa_joinedNow_of_joinedEnv
+#print axioms AvailableChain.FGSA.Run.fgsa_joinedNow_of_caughtUp
+#print axioms AvailableChain.FGSA.Run.fgsa_joinedNow_of_awakeClosed
+#print axioms AvailableChain.FGSA.Run.fgsa_emitted_row_no_prior_processed
+#print axioms AvailableChain.FGSA.Spec.spec_prune_restart_mem
+#print axioms AvailableChain.FGSA.Spec.spec_prune_sleep
+
+#print axioms AvailableChain.FGSA.Run.fgsaTimelyClock_clock
+#print axioms AvailableChain.FGSA.Run.fgsa_awake_before_noRestart
+#print axioms AvailableChain.FGSA.Run.fgsa_historySafeAt_noRestart
+#print axioms AvailableChain.FGSA.Run.fgsa_processed_by_deadline_ready
+#print axioms AvailableChain.FGSA.Run.fgsa_accepted_by_deadline_of_parentStored
+#print axioms AvailableChain.FGSA.Run.fgsa_replay_vote_stamp_time
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_stamp_source_or_restart
+#print axioms AvailableChain.FGSA.Run.fgsa_block_stamp_source_or_restart
+#print axioms AvailableChain.FGSA.Run.fgsa_block_accepted_origin
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_stamp_source
+#print axioms AvailableChain.FGSA.Run.fgsa_block_stamp_source
+#print axioms AvailableChain.FGSA.Run.fgsa_replayed_head_delivery_origin
+#print axioms AvailableChain.FGSA.Run.fgsa_emitted_head_no_prior_processed
+#print axioms AvailableChain.FGSA.Run.fgsa_emitted_proposal_no_prior_processed

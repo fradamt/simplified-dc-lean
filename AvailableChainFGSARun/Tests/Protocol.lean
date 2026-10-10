@@ -171,8 +171,8 @@ record suppresses the same content, including after restore. -/
 example : P1.act sourceNode (.fgAction 0) () = some (.row sourcePayload) ∧
     let recorded := P1.recordOwn sourceNode (baseObj .fg (.row sourcePayload))
     P1.act recorded (.fgAction 1) () = none ∧
-    (P1.restore (P1.durable recorded)).record.sent = recorded.record.sent ∧
-    P1.act { P1.restore (P1.durable recorded) with st := sourceNode.st }
+    (P1.restore (P1.durable recorded) 6).record.sent = recorded.record.sent ∧
+    P1.act { P1.restore (P1.durable recorded) 6 with st := sourceNode.st }
       (.fgAction 2) () = none := by decide +kernel
 
 /-- ROOT-DIGEST W3b. A well-formed row with the wrong parent height makes the entire proposal

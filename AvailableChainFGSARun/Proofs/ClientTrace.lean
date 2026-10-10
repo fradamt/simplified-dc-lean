@@ -23,6 +23,7 @@ private theorem visible_prop (s : Slot) (j : Fin 1) (m : Msg p.n) :
 private theorem visible_fg (j : Fin p.n) (m : Msg p.n) :
     (fgsa p c).objSelfVisible ⟨.seat (.base .fg) j, m⟩ = true := rfl
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The complete self-visible output: zero or one FG row at an awake action tick. -/
 theorem fgsa_tick_rows_of_seats (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (e : Fin p.n ≃ V) (he : ∀ j, rho.seatOf (.base .fg) j = e j)
@@ -42,12 +43,14 @@ theorem fgsa_tick_rows_of_seats (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
   rw [ht]
   dsimp only [duties]
   clear ht
+  cases hjoin : joinedNow p (FGSA.clock p nd.st t) <;>
   cases hprop : propose p (FGSA.clock p nd.st t) (p.slotOf t) <;>
   cases hrow : (attest p (FGSA.clock p nd.st t) nd.record ⟨0, p.nPos⟩).1 <;>
   split_ifs <;>
     simp_all only [List.flatMap_append, List.flatMap_cons, List.flatMap_nil,
       List.nil_append, List.append_nil] <;>
     (try dsimp only [act, actS, RunDuty.signLabel]) <;>
+    (try simp only [hjoin, Bool.false_eq_true, ite_false, ite_true]) <;>
     simp_all only [Option.map_none, Option.map_some, List.filterMap_none,
       List.filter_append, fg_seats rho e he, List.filter_nil] <;>
     (try dsimp only [ofRow, ofWire, ofAuth]) <;>

@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGCompose.Statements.CoreReads
-public import AvailableChainFGSAProofs.Proofs.Shared.Channels
+public import AvailableChainFGSAClaims.Statements.Fold
+public import AvailableChainFGSAClaims.Statements.Channels
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSA.Proofs.Head
 
@@ -59,7 +60,17 @@ theorem fgsaCoreLaws (p : Params) {In : Type} (c : AppCodec In) :
   source_mem nd C h := by
     change FGSA.fgSource p nd.st = some C at h
     change C ∈ nd.st.fg.TF
-    rw [fgSource_eq_jointSource, jointSource_def] at h
+    have hsource : FGSA.fgSource p nd.st = jointSource p nd.st := by
+      rw [jointSource_def, domainR_def, frameR_def, treeT_def]
+      change FGSA.deepest ((FGSA.fullTree p nd.st).filter _) =
+        FGSA.deepest ((FGSA.fullTree p nd.st).filter _)
+      apply congrArg (FGSA.deepest (n := p.n))
+      apply Finset.filter_congr
+      intro B _
+      rw [sourceCandidates_def, Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq,
+        Finset.mem_filter, List.mem_toFinset]
+      cases leaseOf nd.st (eraseFG B) <;> rfl
+    rw [hsource, jointSource_def] at h
     have hm := (Finset.mem_filter.mp (FGSA.pickPair_some_spec _ _ h).1).1
     rw [domainR_def, KitFG.mem_filteredFromView, treeT_def] at hm
     exact hm.1

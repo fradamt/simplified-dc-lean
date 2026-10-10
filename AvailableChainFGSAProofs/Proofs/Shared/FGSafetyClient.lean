@@ -104,7 +104,7 @@ theorem fgsaSafetyClientLaws (p : Params) {In : Type} (c : AppCodec In) :
   initial_record := rfl
   clock_record := by intro nd t; rfl
   process_record := by intro nd o; rfl
-  restart_record := by intro nd; rfl
+  restart_record := by intro nd t; rfl
   own_record := by
     intro nd o
     rcases o with ⟨auth, payload⟩

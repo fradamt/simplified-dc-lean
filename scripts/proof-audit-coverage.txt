@@ -89,6 +89,7 @@
         ),
         'AvailableChainFGCompose.Proofs.SafetyMonotone': (
             'AvailableChain.FGCompose.safety_F_mono',
+            'AvailableChain.FGCompose.safety_F_mono_all',
             'AvailableChain.FGCompose.safety_finalized_monotone',
             'AvailableChain.FGCompose.safety_readAt_prefix',
         ),
@@ -171,6 +172,8 @@
             'AvailableChain.FGCompose.FGSafetyOrderLaws.erase_prefix',
             'AvailableChain.FGCompose.FGSafetyOrderLaws.output_eq',
             'AvailableChain.FGCompose.FGSafetyOrderLaws.process_F',
+            'AvailableChain.FGCompose.FGSafetyRestartLaws',
+            'AvailableChain.FGCompose.FGSafetyRestartLaws.restart_F',
             'AvailableChain.FGCompose.FGSafetyScopeLaws',
             'AvailableChain.FGCompose.FGSafetyScopeLaws.delivered_scope',
             'AvailableChain.FGCompose.FGSafetyScopeLaws.genesis_scope',
@@ -4722,7 +4725,9 @@
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore': (
             'AvailableChain.FGSA.Run.fgsaSafetyOrderLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyRestartLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyStoreLaws',
+            'AvailableChain.FGSA.Run.fgsa_restore_finality_fields',
         ),
         'AvailableChainFGSARun.Model.Protocol': (
             'AvailableChain.FGSA.Run.fgsa_safetyProposalErase_def',
@@ -4745,7 +4750,9 @@
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore': (
             'AvailableChain.FGSA.Run.fgsaSafetyOrderLaws',
+            'AvailableChain.FGSA.Run.fgsaSafetyRestartLaws',
             'AvailableChain.FGSA.Run.fgsaSafetyStoreLaws',
+            'AvailableChain.FGSA.Run.fgsa_restore_finality_fields',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.StoreRun': (
             'AvailableChain.FGSA.Run.fgsa_store_cumulative',
@@ -4787,6 +4794,7 @@
             'AvailableChain.FGSA.Run.fgsaAdmitSound',
             'AvailableChain.FGSA.Run.fgsaTimelyClock',
             'AvailableChain.FGSA.Run.fgsaTimelyClock_actTime',
+            'AvailableChain.FGSA.Run.fgsaTimelyClock_clock',
             'AvailableChain.FGSA.Run.fgsaTimelyClock_clockOf',
             'AvailableChain.FGSA.Run.fgsaTrigger_def',
             'AvailableChain.FGSA.Run.fgsa_round_threshold_iff',
@@ -4829,9 +4837,9 @@
         'AvailableChainFGSARun.Proofs.ClockLaws': (
             'AvailableChain.FGSA.Run.fgsaClock',
             'AvailableChain.FGSA.Run.fgsa_clock_now',
-            'AvailableChain.FGSA.Run.fgsa_hrestore_retained',
             'AvailableChain.FGSA.Run.fgsa_hrestore_field_retained',
             'AvailableChain.FGSA.Run.fgsa_hrestore_now_retained',
+            'AvailableChain.FGSA.Run.fgsa_hrestore_retained',
             'AvailableChain.FGSA.Run.fgsa_monoAlong_preceq_F',
             'AvailableChain.FGSA.Run.fgsa_restore_now_retained',
         ),
@@ -4917,6 +4925,14 @@
             'AvailableChain.FGSA.Run.process_votes_subset',
             'AvailableChain.FGSA.Run.row_wire_roundtrip',
         ),
+        'AvailableChainFGSARun.Proofs.FGSource': (
+            'AvailableChain.FGSA.Run.fgsa_clock_restartTime',
+            'AvailableChain.FGSA.Run.fgsa_fgAction_unjoined_source_none',
+        ),
+        'AvailableChainFGSARun.Proofs.HeadHistory': (
+            'AvailableChain.FGSA.Run.fgsa_emitted_head_no_prior_processed',
+            'AvailableChain.FGSA.Run.fgsa_replayed_head_delivery_origin',
+        ),
         'AvailableChainFGSARun.Proofs.HeadIdentity': (
             'AvailableChain.FGSA.Run.headTargetAtEmission_at_tick',
             'AvailableChain.FGSA.Run.headTargetAtEmission_of_stored',
@@ -4938,7 +4954,17 @@
             'AvailableChain.FGSA.Run.propLabel_injective',
             'AvailableChain.FGSA.Run.proposalTime_fgsa',
         ),
+        'AvailableChainFGSARun.Proofs.Join': (
+            'AvailableChain.FGSA.Run.fgsa_joinedNow_of_awakeClosed',
+            'AvailableChain.FGSA.Run.fgsa_joinedNow_of_caughtUp',
+            'AvailableChain.FGSA.Run.fgsa_joinedNow_of_joinedEnv',
+            'AvailableChain.FGSA.Run.fgsa_process_restartTime',
+            'AvailableChain.FGSA.Run.fgsa_restartTime_bound',
+        ),
         'AvailableChainFGSARun.Proofs.NamedDelivery': (
+            'AvailableChain.FGSA.Run.proposal_trigger_in_root_scope',
+        ),
+        'AvailableChainFGSARun.Proofs.NamedHistory': (
             'AvailableChain.FGSA.Run.namedProposalInRun_genesis_or_delivered',
             'AvailableChain.FGSA.Run.namedProposalInRun_origin',
             'AvailableChain.FGSA.Run.namedScope_stored_proposal',
@@ -4951,7 +4977,6 @@
             'AvailableChain.FGSA.Run.headTargetAtEmission_exists',
             'AvailableChain.FGSA.Run.headTargetAtEmission_unique',
             'AvailableChain.FGSA.Run.namedOrigin_reachable',
-            'AvailableChain.FGSA.Run.proposal_trigger_in_root_scope',
         ),
         'AvailableChainFGSARun.Proofs.NamedScope': (
             'AvailableChain.FGSA.Run.contentAgree_of_namedScope',
@@ -4964,6 +4989,9 @@
             'AvailableChain.FGSA.Run.namedScope_erase_injective',
             'AvailableChain.FGSA.Run.namedScope_held',
             'AvailableChain.FGSA.Run.namedScope_preceq_iff',
+        ),
+        'AvailableChainFGSARun.Proofs.ProposalHistory': (
+            'AvailableChain.FGSA.Run.fgsa_emitted_proposal_no_prior_processed',
         ),
         'AvailableChainFGSARun.Proofs.Protocol': (
             'AvailableChain.FGSA.Run.act_fg',
@@ -5034,6 +5062,11 @@
             'AvailableChain.FGSA.Run.fgsa_hReady_of_parentStored',
             'AvailableChain.FGSA.Run.fgsa_hWF_of_delivery',
         ),
+        'AvailableChainFGSARun.Proofs.ReadyAcceptance': (
+            'AvailableChain.FGSA.Run.fgsa_awake_before_noRestart',
+            'AvailableChain.FGSA.Run.fgsa_historySafeAt_noRestart',
+            'AvailableChain.FGSA.Run.fgsa_processed_by_deadline_ready',
+        ),
         'AvailableChainFGSARun.Proofs.ReceiptCoverage': (
             'AvailableChain.FGSA.Run.fgsa_receiptCoverage',
         ),
@@ -5041,7 +5074,6 @@
             'AvailableChain.FGSA.Run.excludesS_honestRow_false',
             'AvailableChain.FGSA.Run.fgsa_accepted_rowsValid',
             'AvailableChain.FGSA.Run.fgsa_block_accepted_before',
-            'AvailableChain.FGSA.Run.fgsa_block_stamp_source',
             'AvailableChain.FGSA.Run.fgsa_clockOf_nonneg',
             'AvailableChain.FGSA.Run.fgsa_head_cap_sources',
             'AvailableChain.FGSA.Run.fgsa_head_excluded_before',
@@ -5051,9 +5083,7 @@
             'AvailableChain.FGSA.Run.fgsa_trigger_invalid_false',
             'AvailableChain.FGSA.Run.fgsa_trigger_rowsValid',
             'AvailableChain.FGSA.Run.fgsa_vote_accepted_before',
-            'AvailableChain.FGSA.Run.fgsa_vote_stamp_source',
             'AvailableChain.FGSA.Run.processed_stable',
-            'AvailableChain.FGSA.Run.rowPool_provenance',
         ),
         'AvailableChainFGSARun.Proofs.RootLease': (
             'AvailableChain.FGSA.RootLease.root_expire_protectsUntil',
@@ -5080,6 +5110,10 @@
             'AvailableChain.FGSA.Run.resolvedTarget_mem',
             'AvailableChain.FGSA.Run.resolvedTarget_of_mem',
             'AvailableChain.FGSA.Run.resolvedTarget_root',
+        ),
+        'AvailableChainFGSARun.Proofs.RowHistory': (
+            'AvailableChain.FGSA.Run.fgsa_emitted_row_no_prior_processed',
+            'AvailableChain.FGSA.Run.rowPool_provenance',
         ),
         'AvailableChainFGSARun.Proofs.Schedule': (
             'AvailableChain.FGSA.Run.fgsa_action_gate_time',
@@ -5111,6 +5145,18 @@
         'AvailableChainFGSARun.Proofs.Slashing': (
             'AvailableChain.FGSA.Run.fgsaSlashing_slashes_iff_of_linked',
             'AvailableChain.FGSA.Run.fgsaSlashing_slashes_iff_of_seats',
+        ),
+        'AvailableChainFGSARun.Proofs.Spec.Simulation': (
+            'AvailableChain.FGSA.Spec.spec_prune_restart_mem',
+            'AvailableChain.FGSA.Spec.spec_prune_sleep',
+        ),
+        'AvailableChainFGSARun.Proofs.StampOrigins': (
+            'AvailableChain.FGSA.Run.fgsa_block_accepted_origin',
+            'AvailableChain.FGSA.Run.fgsa_block_stamp_source',
+            'AvailableChain.FGSA.Run.fgsa_block_stamp_source_or_restart',
+            'AvailableChain.FGSA.Run.fgsa_replay_vote_stamp_time',
+            'AvailableChain.FGSA.Run.fgsa_vote_stamp_source',
+            'AvailableChain.FGSA.Run.fgsa_vote_stamp_source_or_restart',
         ),
         'AvailableChainFGSARun.Proofs.WindowExclusion': (
             'AvailableChain.FGSA.Run.exact_row_exclusionW',

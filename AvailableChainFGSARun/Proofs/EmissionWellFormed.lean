@@ -86,7 +86,7 @@ theorem decode_honest (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
   intro i v s hi _ _ _ N hm
   rw [(V2.D.Run.step_tick_eq E rho hi).2] at hm
   have ha := (fgsa_emits_proposal E rho _ v _ s _).mp hm
-  obtain ⟨H, raw', sup', rows', he, -, happ⟩ := rowsOk_withApp _ _ _ ha.2.2.2
+  obtain ⟨H, raw', sup', rows', he, -, happ⟩ := rowsOk_withApp _ _ _ ha.2.2.2.2
   cases he
   exact (congrArg c.unapp happ).trans (c.unapp_app _)
 
@@ -172,7 +172,7 @@ private theorem emission_rows_process (st : State p.n) (o : Obj p)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Delivery wire checks keep all pool and stored-proposal rows valid.
-Restarts empty both lists. No schedule or restart premise is needed. -/
+Restarts keep both lists. No schedule or restart premise is needed. -/
 theorem fgsa_emissionRowsValid (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hd : V2.D.DeliveryWellFormed E rho) (i : Nat) (v : V) :
     EmissionRowsValid (V2.D.Run.stateBefore E rho i v).st := by
@@ -186,7 +186,10 @@ theorem fgsa_emissionRowsValid (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   | restart u t =>
     change u = v at hv; subst u
     simp only [V2.D.World.step, Function.update_self]
-    exact ⟨fun _ h => (List.not_mem_nil h).elim, fun _ h => (List.not_mem_nil h).elim⟩
+    change EmissionRowsValid (acRestart p (V2.D.Run.stateBefore E rho k v).st t)
+    constructor
+    · rw [acRestart_rowPool]; exact h.1
+    · rw [acRestart_proposals]; exact h.2
   | tick u t =>
     change u = v at hv; subst u
     simp only [V2.D.World.step, Function.update_self]
@@ -361,6 +364,9 @@ theorem honest_emit_wellFormed (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     | headAction s =>
       change RunLabel.base (.head s) = l at hl
       subst l
+      change (if joinedNow p _ then (some (Msg.head _) : Option (Msg p.n)) else none) =
+        some m at ha
+      split at ha <;> try contradiction
       have he : .head (headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho i v).st t) s).root =
           m :=
         Option.some.inj ha
@@ -379,6 +385,9 @@ theorem honest_emit_wellFormed (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       subst l
       change SA.proposalTime p.toParams s = t at ht
       subst t
+      change (if joinedNow p _ then (propose p _ s).map (withApp p _) else none) =
+        some m at ha
+      split at ha <;> try contradiction
       have hm : (propose p (FGSA.clock p (V2.D.Run.stateBefore E rho i v).st
           (SA.proposalTime p.toParams s)) s).map
           (withApp p (c.app (rho.input v (SA.proposalTime p.toParams s)))) = some m := ha

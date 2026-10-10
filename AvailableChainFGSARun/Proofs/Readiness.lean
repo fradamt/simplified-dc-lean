@@ -109,26 +109,28 @@ theorem fgsa_accepted_by_deadline_of_parentStored
       namedParentHeld (V2.D.Run.stateBefore E rho i w).st N = true ∧
         (parentFG (V2.D.Run.stateBefore E rho i w).st N.erase).isSome = true)
     (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
-    (hT : Gen.V2.Duty.Trigger E rho o t)
-    (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)
+    (hT : Gen.V2.Duty.ReadyTrigger E rho o t w t (dl t))
+    (hw : w ∈ rho.honest) (ht0 : 0 ≤ t) (hcut : dl t ≤ cut) (hlt : t < dl t)
+    (hhor : dl t ≤ rho.horizon)
+    (hHistory : Gen.V2.Duty.HistorySafeAt E rho w o t)
     (hS : V2.D.ScheduleWellFormed E rho)
-    (hES : ∀ v o i j, i ≤ j → V2.D.restartFree rho v i j →
-      (fgsa p c).excludes (V2.D.Run.stateBefore E rho i v) o = true →
-      (fgsa p c).excludes (V2.D.Run.stateBefore E rho j v) o = true)
-    (hPS : ∀ v o i j, i ≤ j → V2.D.restartFree rho v i j →
-      (fgsa p c).processed (V2.D.Run.stateBefore E rho i v) o = true →
-      (fgsa p c).processed (V2.D.Run.stateBefore E rho j v) o = true)
+    (hrf : V2.D.restartFree rho w (V2.D.Run.actionCut rho t)
+      (V2.D.Run.idxBefore rho (dl t)))
+    (hHooks : V2.D.HooksSound (fgsa p c))
     (hA : Gen.V2.Duty.AcceptanceLaw (fgsa p c) Timely Inv)
-    (C : Gen.V2.Duty.TimelyClock (fgsa p c) Timely)
     (hInv : ∀ i, Inv (V2.D.Run.stateBefore E rho i w))
-    (hAdm : C.actTime o ≤ Gen.V2.Duty.pubFloor E t)
-    (j : Nat) (hj : rho.events[j]? = some (.tick w (Gen.V2.Duty.pubFloor E t)))
-    (hrf : V2.D.restartFree rho w j (V2.D.Run.idxBefore rho (dl t)))
+    (hTimely : ∀ i t', t ≤ t' → t' < dl t → V2.D.Run.handlesAt E rho i w o t' →
+      Timely (V2.D.Run.stateBefore E rho i w) o)
     (hNX : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho (dl t) w) o = false) :
-    (fgsa p c).processed (V2.D.Run.stateBeforeTime E rho (dl t) w) o = true :=
-  Gen.V2.Duty.accepted_by_deadline (P := fgsa p c) E rho dl cut o t w hD hT hw hcut hlt
-    hS hES hPS (hReady := fgsa_hReady_of_parentStored hBlock hWF hParent)
-    hA C hInv hAdm j hj hrf hNX
+    (fgsa p c).processed (V2.D.Run.stateBeforeTime E rho (dl t) w) o = true := by
+  apply Gen.V2.Duty.accepted_by_deadline E rho Timely Inv dl cut o t t w hD hT hw
+    (le_refl t) ht0 hlt hcut hhor hHistory hS hrf hHooks hA ?_ hNX
+  intro i t' htt htd hh
+  have hcall := hh
+  obtain ⟨parent, he, -⟩ := hh
+  have hi := (Gen.V2.Duty.index_lt_idxBefore_iff hS he (dl t)).2 htd
+  obtain ⟨hWF', hDeps⟩ := fgsa_hReady_of_parentStored hBlock hWF hParent i t' hi hcall
+  exact ⟨hInv i, hWF', hDeps, hTimely i t' htt htd hcall⟩
 
 end AvailableChain.FGSA.Run
 end

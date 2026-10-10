@@ -15,10 +15,11 @@ theorem ancestorDeadlines_recordOwn (nd : Node p) (o : Obj p)
   rw [recordOwn_st]
   exact h
 
-/-- [helper] Restore clears the obligations and retains the clock. -/
-theorem ancestorDeadlines_restore (d : Time × SimplexFG.RecordOnce) :
-    AncestorDeadlines (((fgsa p c).restore d).st) := by
-  exact ancestorDeadlines_initialAt p.n d.1
+/-- Restore keeps obligations and their ancestor deadlines at the wake time. -/
+theorem ancestorDeadlines_restore (d : State p.n × SimplexFG.RecordOnce) (w : Time)
+    (h : AncestorDeadlines d.1) :
+    AncestorDeadlines (((fgsa p c).restore d w).st) :=
+  ancestorDeadlines_acRestart p d.1 w h
 
 end AvailableChain.FGSA.Run
 end

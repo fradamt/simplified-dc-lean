@@ -411,7 +411,7 @@ theorem executionValid_cut (hvalid : V2.D.ExecutionValid E rho)
     obtain ⟨hkn, hk'⟩ := getElem?_cut_iff.mp hk
     exact (hcut k e hk').mp hkn
   refine { toScheduleWellFormed := ?_, toDeliveryWellFormed := ?_,
-           toUnforgeableSignatures := ?_ }
+           toUnforgeableSignatures := ?_, toSleepWellFormed := ?_ }
   · refine ⟨ht0, hvalid.sorted.sublist hsub, hvalid.nodup.sublist hsub, ?_, ?_, ?_, ?_⟩
     · intro e he
       exact ⟨(hvalid.in_horizon e (hsub.subset he)).1, cut_time_le_of_key_le (hmem e he)⟩
@@ -419,9 +419,9 @@ theorem executionValid_cut (hvalid : V2.D.ExecutionValid E rho)
       exact hvalid.honest_only e (hsub.subset he)
     · intro u s he
       exact hvalid.tick_public u s (hsub.subset he)
-    · intro u hu s hs h0 hh
+    · intro u hu s hs h0 hh ha
       obtain ⟨k, hk⟩ :=
-        List.mem_iff_getElem?.mp (hvalid.tick_total u hu s hs h0 (le_trans hh hth))
+        List.mem_iff_getElem?.mp (hvalid.tick_total u hu s hs h0 (le_trans hh hth) ha)
       have hkn : k < n := (hcut k _ hk).mpr (tick_key_le.mpr hh)
       exact List.mem_iff_getElem?.mpr ⟨k, getElem?_cut_iff.mpr ⟨hkn, hk⟩⟩
   · refine ⟨?_, ?_, ?_⟩
@@ -446,6 +446,23 @@ theorem executionValid_cut (hvalid : V2.D.ExecutionValid E rho)
       obtain ⟨t', ht', he⟩ := hvalid.carried u o s ⟨k, hk'⟩ o' hc w hw hhold
       have hst : s < t := deliver_key_le.mp ((hcut k _ hk').mp hkn)
       exact ⟨t', ht', (emits_cut_iff hcut).mpr ⟨le_trans ht' (le_of_lt hst), he⟩⟩
+  · refine ⟨?_, ?_, ?_, ?_⟩
+    · intro u time h
+      exact hvalid.tick_awake u time (hsub.subset h)
+    · intro u o time h
+      exact hvalid.deliver_awake u o time (hsub.subset h)
+    · intro u time h
+      exact hvalid.restart_awake u time (hsub.subset h)
+    · intro u hu time h0 hh hw
+      obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp
+        (hvalid.wake_restart u hu time h0 (hh.trans hth) hw)
+      have hkey : (V2.Event.restart u time : V2.Event V P.Object).key ≤ toLex (t, 1) := by
+        change toLex (time, 0) ≤ toLex (t, 1)
+        apply Prod.Lex.toLex_le_toLex.mpr
+        rcases lt_or_eq_of_le hh with h | rfl
+        · exact Or.inl h
+        · exact Or.inr ⟨rfl, by change (0 : Nat) ≤ 1; exact Nat.zero_le 1⟩
+      exact List.mem_of_getElem? (getElem?_cut_iff.mpr ⟨(hcut k _ hk).2 hkey, hk⟩)
 
 omit [DecidableEq V] in
 /-- [own-row Option 1; DC N3] The key bound `(t, 2)` survives an appended delivery at `t`:
@@ -479,10 +496,10 @@ theorem healthyPrefixDeliveryBy_of_le {delayOf : P.Object → Time} {b₀ b : Ti
     (hb : b ≤ b₀)
     (h : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho delayOf b₀) :
     Gen.V2.Duty.HealthyPrefixDeliveryBy E rho delayOf b where
-  broadcast_emitted u hu o s he w hw hdl hx :=
-    h.broadcast_emitted u hu o s he w hw (le_trans hdl hb) hx
-  relay_accepted u hu k o s hacc w hw hp hdl hx :=
-    h.relay_accepted u hu k o s hacc w hw hp (le_trans hdl hb) hx
+  broadcast_emitted u hu o t he w hw a hta ha had hc hh hr hx :=
+    h.broadcast_emitted u hu o t he w hw a hta ha had (hc.trans hb) hh hr hx
+  relay_accepted u hu k o t he w hw a hta ha had hc hh hr hx :=
+    h.relay_accepted u hu k o t he w hw a hta ha had (hc.trans hb) hh hr hx
 
 end Cut
 
@@ -672,6 +689,69 @@ theorem executionValid_snoc_selfDelivery (hvalid : V2.D.ExecutionValid E rho) {i
       ({ rho with events := rho.events ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t] }) :=
   hvalid.snoc_selfDelivery (fgsaHooks p c) hkey hi hlast ho (fgsa_emitOk_row hvalid hi ho)
 
+private theorem service_snoc {w : V} {o : Obj p} {a d : Time}
+    {u : V} {obj : Obj p} {time : Time}
+    (h : V2.D.DeliveryService E rho w o a d) :
+    V2.D.DeliveryService E ({ rho with events := rho.events ++ [.deliver u obj time] })
+      w o a d := by
+  rcases h with ⟨k, hk, hp⟩ | ⟨t', ha, hd, j, hj⟩
+  · left
+    have hlen : k ≤ rho.events.length := hk.trans (List.length_filter_le _ _)
+    refine ⟨k, ?_, ?_⟩
+    · exact hk.trans (by
+        change (rho.events.filter _).length ≤ ((rho.events ++ [_]).filter _).length
+        rw [List.filter_append, List.length_append]
+        omega)
+    · rwa [V2.D.Run.stateBefore_snoc_of_le hlen]
+  · right
+    exact ⟨t', ha, hd, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
+
+omit [DecidableEq V] in
+private theorem actionCut_cut_eq {n : Nat} {t a : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (ha : a < t) :
+    V2.D.Run.actionCut ({ rho with events := rho.events.take n, horizon := t }) a =
+      V2.D.Run.actionCut rho a := by
+  change ((rho.events.take n).filter _).length = (rho.events.filter _).length
+  conv_rhs => rw [← List.take_append_drop n rho.events]
+  rw [List.filter_append, List.length_append]
+  have hnil : (rho.events.drop n).filter
+      (fun e => decide (e.time < a ∨ (e.time = a ∧ e.phase = 0))) = [] := by
+    apply List.filter_eq_nil_iff.mpr
+    intro e he
+    obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp he
+    rw [List.getElem?_drop] at hj
+    have hn : ¬ e.key ≤ toLex (t, 1) := by
+      intro h
+      have := (hcut _ _ hj).2 h
+      omega
+    have ht := le_time_of_not_key_le hn
+    simp only [decide_eq_true_eq]
+    rintro (h | ⟨h, _⟩) <;> dsimp [Time] at * <;> omega
+  rw [hnil, List.length_nil, Nat.add_zero]
+
+private theorem service_cut {n : Nat} {t a d : Time}
+    (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
+    (had : a < d) (hdt : d ≤ t) {w : V} {o : Obj p}
+    (h : V2.D.DeliveryService E rho w o a d) :
+    V2.D.DeliveryService E ({ rho with events := rho.events.take n, horizon := t })
+      w o a d := by
+  rcases h with ⟨k, hk, hp⟩ | ⟨time, ha, hd, j, hj⟩
+  · left
+    have he := actionCut_cut_eq hcut (had.trans_le hdt)
+    have hlen : V2.D.Run.actionCut rho a ≤ n := by
+      rw [← he]
+      exact (List.length_filter_le _ _).trans (by
+        rw [List.length_take]
+        exact Nat.min_le_left _ _)
+    refine ⟨k, by rwa [he], ?_⟩
+    rwa [stateBefore_cut_of_le (hk.trans hlen)]
+  · right
+    have hcall := hj
+    obtain ⟨parent, he, _⟩ := hj
+    have hjn : j < n := (hcut j _ he).2 (deliver_key_le.mpr (hd.trans_le hdt))
+    exact ⟨time, ha, hd, j, handlesAt_cut_of_lt hjn hcall⟩
+
 /-! ### Delivery regimes survive the append -/
 
 /-- [own-row Option 1; DC Generic/Conditions.lean:110] `PartialSynchronyBy` survives the
@@ -685,23 +765,18 @@ theorem partialSynchronyBy_snoc_selfDelivery {delayOf : Obj p → Time}
     (hnc : ∀ o', (fgsa p c).carries o o' → False) :
     Gen.V2.Duty.PartialSynchronyBy E
       ({ rho with events := rho.events ++ [.deliver v o t] }) delayOf where
-  broadcast_emitted u hu o' t' he w hw hdl hx := by
-    obtain ⟨t'', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o' t'
-      (emits_snoc_deliver_iff.mp he) w hw hdl (excludes_stateBeforeTime_snoc_false hx)
-    exact ⟨t'', ht1, ht2, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
-  relay_accepted u hu k o' t' hacc w hw hp hdl hx := by
-    rcases acceptsAt_snoc_cases hacc with ⟨hlt, hacc'⟩ | ⟨rfl, o'', heq, hh⟩
-    · have hp' : (fgsa p c).processed (V2.D.Run.stateBefore E rho (k + 1) w) o' = false := by
-        rw [V2.D.Run.stateBefore_snoc_of_le hlt] at hp; exact hp
-      obtain ⟨t'', ht1, ht2, j, hj⟩ := h.relay_accepted u hu k o' t' hacc' w hw hp' hdl
-        (excludes_stateBeforeTime_snoc_false hx)
-      exact ⟨t'', ht1, ht2, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
+  broadcast_emitted u hu o' t' he w hw a hta ha had hc hh hr hx := by
+    exact service_snoc (h.broadcast_emitted u hu o' t' (emits_snoc_deliver_iff.mp he) w hw
+      a hta ha had hc hh hr (excludes_stateBeforeTime_snoc_false hx))
+  relay_accepted u hu k o' t' hacc w hw a hta ha had hc hh hr hx := by
+    rcases acceptsAt_snoc_cases hacc with ⟨hlt, hacc'⟩ | ⟨rfl, o'', heq, hcall⟩
+    · exact service_snoc (h.relay_accepted u hu k o' t' hacc' w hw a hta ha had hc hh hr
+        (excludes_stateBeforeTime_snoc_false hx))
     · obtain ⟨rfl, rfl, rfl⟩ := V2.Event.deliver.inj heq
-      rcases (fgsaHooks p c).handles_carries _ _ _ hh with rfl | hc
-      · obtain ⟨t'', ht1, ht2, j, hj⟩ := h.broadcast_emitted v hu o t ⟨i, hi, ho⟩ w hw hdl
-          (excludes_stateBeforeTime_snoc_false hx)
-        exact ⟨t'', ht1, ht2, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
-      · exact (hnc _ hc).elim
+      rcases (fgsaHooks p c).handles_carries _ _ _ hcall with rfl | hcarried
+      · exact service_snoc (h.broadcast_emitted v hu o t ⟨i, hi, ho⟩ w hw
+          a hta ha had hc hh hr (excludes_stateBeforeTime_snoc_false hx))
+      · exact (hnc _ hcarried).elim
 
 /-- [own-row Option 1; DC Generic/Conditions.lean:134] `HealthyPrefixDeliveryBy` survives
 the same-time self-delivery of a released object that carries nothing. Scope: as for
@@ -712,23 +787,18 @@ theorem healthyPrefixDeliveryBy_snoc_selfDelivery {delayOf : Obj p → Time} {cu
     (hnc : ∀ o', (fgsa p c).carries o o' → False) :
     Gen.V2.Duty.HealthyPrefixDeliveryBy E
       ({ rho with events := rho.events ++ [.deliver v o t] }) delayOf cut where
-  broadcast_emitted u hu o' t' he w hw hdl hx := by
-    obtain ⟨t'', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o' t'
-      (emits_snoc_deliver_iff.mp he) w hw hdl (excludes_stateBeforeTime_snoc_false hx)
-    exact ⟨t'', ht1, ht2, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
-  relay_accepted u hu k o' t' hacc w hw hp hdl hx := by
-    rcases acceptsAt_snoc_cases hacc with ⟨hlt, hacc'⟩ | ⟨rfl, o'', heq, hh⟩
-    · have hp' : (fgsa p c).processed (V2.D.Run.stateBefore E rho (k + 1) w) o' = false := by
-        rw [V2.D.Run.stateBefore_snoc_of_le hlt] at hp; exact hp
-      obtain ⟨t'', ht1, ht2, j, hj⟩ := h.relay_accepted u hu k o' t' hacc' w hw hp' hdl
-        (excludes_stateBeforeTime_snoc_false hx)
-      exact ⟨t'', ht1, ht2, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
+  broadcast_emitted u hu o' t' he w hw a hta ha had hc hh hr hx := by
+    exact service_snoc (h.broadcast_emitted u hu o' t' (emits_snoc_deliver_iff.mp he) w hw
+      a hta ha had hc hh hr (excludes_stateBeforeTime_snoc_false hx))
+  relay_accepted u hu k o' t' hacc w hw a hta ha had hc hh hr hx := by
+    rcases acceptsAt_snoc_cases hacc with ⟨hlt, hacc'⟩ | ⟨rfl, o'', heq, hcall⟩
+    · exact service_snoc (h.relay_accepted u hu k o' t' hacc' w hw a hta ha had hc hh hr
+        (excludes_stateBeforeTime_snoc_false hx))
     · obtain ⟨rfl, rfl, rfl⟩ := V2.Event.deliver.inj heq
-      rcases (fgsaHooks p c).handles_carries _ _ _ hh with rfl | hc
-      · obtain ⟨t'', ht1, ht2, j, hj⟩ := h.broadcast_emitted v hu o t ⟨i, hi, ho⟩ w hw hdl
-          (excludes_stateBeforeTime_snoc_false hx)
-        exact ⟨t'', ht1, ht2, j, handlesAt_snoc_of_lt (handlesAt_lt_length hj) hj⟩
-      · exact (hnc _ hc).elim
+      rcases (fgsaHooks p c).handles_carries _ _ _ hcall with rfl | hcarried
+      · exact service_snoc (h.broadcast_emitted v hu o t ⟨i, hi, ho⟩ w hw
+          a hta ha had hc hh hr (excludes_stateBeforeTime_snoc_false hx))
+      · exact (hnc _ hcarried).elim
 
 /-! ### The cut for FG-SA: scope and delivery regimes, and the spec-like run -/
 
@@ -760,49 +830,35 @@ theorem partialSynchronyBy_cut {n : Nat} {t : Time} {delayOf : Obj p → Time}
     (hth : t ≤ rho.horizon) (h : Gen.V2.Duty.PartialSynchronyBy E rho delayOf) :
     Gen.V2.Duty.PartialSynchronyBy E
       ({ rho with events := rho.events.take n, horizon := t }) delayOf where
-  broadcast_emitted u hu o s he w hw hdl hx := by
-    obtain ⟨-, he'⟩ := (emits_cut_iff hcut).mp he
-    rw [stateBeforeTime_cut hcut hdl] at hx
-    obtain ⟨t', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o s he' w hw (le_trans hdl hth) hx
-    have hjn : j < n := by
-      obtain ⟨o', hj', -⟩ := hj
-      exact (hcut j _ hj').mpr (deliver_key_le.mpr (lt_of_lt_of_le ht2 hdl))
-    exact ⟨t', ht1, ht2, j, handlesAt_cut_of_lt hjn hj⟩
-  relay_accepted u hu k o s hacc w hw hp hdl hx := by
-    obtain ⟨hkn, hacc'⟩ := acceptsAt_cut hacc
-    rw [stateBefore_cut_of_le hkn] at hp
-    rw [stateBeforeTime_cut hcut hdl] at hx
-    obtain ⟨t', ht1, ht2, j, hj⟩ :=
-      h.relay_accepted u hu k o s hacc' w hw hp (le_trans hdl hth) hx
-    have hjn : j < n := by
-      obtain ⟨o', hj', -⟩ := hj
-      exact (hcut j _ hj').mpr (deliver_key_le.mpr (lt_of_lt_of_le ht2 hdl))
-    exact ⟨t', ht1, ht2, j, handlesAt_cut_of_lt hjn hj⟩
+  broadcast_emitted u hu o time he w hw a hta ha had hc hh hr hx := by
+    obtain ⟨_, he'⟩ := (emits_cut_iff hcut).mp he
+    rw [stateBeforeTime_cut hcut hh] at hx
+    exact service_cut hcut had hh (h.broadcast_emitted u hu o time he' w hw a hta ha had
+      (hc.trans hth) (hh.trans hth) hr hx)
+  relay_accepted u hu k o time hacc w hw a hta ha had hc hh hr hx := by
+    obtain ⟨_, hacc'⟩ := acceptsAt_cut hacc
+    rw [stateBeforeTime_cut hcut hh] at hx
+    exact service_cut hcut had hh (h.relay_accepted u hu k o time hacc' w hw a hta ha had
+      (hc.trans hth) (hh.trans hth) hr hx)
 
 /-- [own-row Option 1; DC Generic/Conditions.lean:134] `HealthyPrefixDeliveryBy` survives
 the cut when the prefix cut is at most `t`. -/
 theorem healthyPrefixDeliveryBy_cut {n : Nat} {t : Time} {delayOf : Obj p → Time} {b₀ : Time}
     (hcut : ∀ k e, rho.events[k]? = some e → (k < n ↔ e.key ≤ toLex (t, 1)))
-    (hb : b₀ ≤ t) (h : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho delayOf b₀) :
+    (_hb : b₀ ≤ t) (hth : t ≤ rho.horizon)
+    (h : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho delayOf b₀) :
     Gen.V2.Duty.HealthyPrefixDeliveryBy E
       ({ rho with events := rho.events.take n, horizon := t }) delayOf b₀ where
-  broadcast_emitted u hu o s he w hw hdl hx := by
-    obtain ⟨-, he'⟩ := (emits_cut_iff hcut).mp he
-    rw [stateBeforeTime_cut hcut (le_trans hdl hb)] at hx
-    obtain ⟨t', ht1, ht2, j, hj⟩ := h.broadcast_emitted u hu o s he' w hw hdl hx
-    have hjn : j < n := by
-      obtain ⟨o', hj', -⟩ := hj
-      exact (hcut j _ hj').mpr (deliver_key_le.mpr (lt_of_lt_of_le ht2 (le_trans hdl hb)))
-    exact ⟨t', ht1, ht2, j, handlesAt_cut_of_lt hjn hj⟩
-  relay_accepted u hu k o s hacc w hw hp hdl hx := by
-    obtain ⟨hkn, hacc'⟩ := acceptsAt_cut hacc
-    rw [stateBefore_cut_of_le hkn] at hp
-    rw [stateBeforeTime_cut hcut (le_trans hdl hb)] at hx
-    obtain ⟨t', ht1, ht2, j, hj⟩ := h.relay_accepted u hu k o s hacc' w hw hp hdl hx
-    have hjn : j < n := by
-      obtain ⟨o', hj', -⟩ := hj
-      exact (hcut j _ hj').mpr (deliver_key_le.mpr (lt_of_lt_of_le ht2 (le_trans hdl hb)))
-    exact ⟨t', ht1, ht2, j, handlesAt_cut_of_lt hjn hj⟩
+  broadcast_emitted u hu o time he w hw a hta ha had hc hh hr hx := by
+    obtain ⟨_, he'⟩ := (emits_cut_iff hcut).mp he
+    rw [stateBeforeTime_cut hcut hh] at hx
+    exact service_cut hcut had hh (h.broadcast_emitted u hu o time he' w hw a hta ha had
+      hc (hh.trans hth) hr hx)
+  relay_accepted u hu k o time hacc w hw a hta ha had hc hh hr hx := by
+    obtain ⟨_, hacc'⟩ := acceptsAt_cut hacc
+    rw [stateBeforeTime_cut hcut hh] at hx
+    exact service_cut hcut had hh (h.relay_accepted u hu k o time hacc' w hw a hta ha had
+      hc (hh.trans hth) hr hx)
 
 /-- [own-row Option 1; DC N3] The spec-like run of an arbitrary valid run: cut after the
 ticks at the action time `t` (horizon `t`), then the same-time self-delivery of the row

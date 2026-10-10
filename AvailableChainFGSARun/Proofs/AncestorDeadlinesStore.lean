@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainFGSA.Proofs.Reconcile
+public import AvailableChainFGSA.Proofs.Restart
 public import AvailableChainFGSA.Proofs.LeaseOutput
 public import AvailableChainFGSARun.Proofs.RootLease
 public import AvailableChainGeneric.Proofs.AC.RootSupport
@@ -43,11 +44,16 @@ theorem ancestorDeadlines_init (n : Nat) : AncestorDeadlines (initial n) := by
   intro K g d hr
   exact (List.not_mem_nil hr).elim
 
-/-- Ruling Y: reset stores have no ancestor-deadline obligations. -/
+/-- The legacy initialAt store has no ancestor-deadline obligations. -/
 theorem ancestorDeadlines_initialAt (n : Nat) (t : Time) :
     AncestorDeadlines (initialAt n t) := by
   intro K g deadline hrow
   exact (List.not_mem_nil hrow).elim
+
+/-- Kept obligations retain every ancestor deadline through restart. -/
+theorem ancestorDeadlines_acRestart (p : Params) (st : State p.n) (w : Time)
+    (h : AncestorDeadlines st) : AncestorDeadlines (acRestart p st w) :=
+  ancestorDeadlines_of_obligations_eq (acRestart_obligations p st w) h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 [Proofs/Reconcile.lean:28] Compatibility with finality is closed under
@@ -446,52 +452,55 @@ theorem ancestorDeadlines_gateStep (p : Params) (st : State p.n) (s : Slot)
   apply hnorm
   split
   · exact h
-  · have hu : Gen.AC.Root.UniqueLeaseKeys (actView st) := by
-      intro x hx y hy he
-      exact List.inj_on_of_nodup_map hC.leaseKeys.1 hx hy (Prod.mk.inj he).1
-    cases hc : SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s with
-    | none =>
-      apply ancestorDeadlines_of_obligations_eq (st := st) _ h
-      change (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).obligations = _
-      unfold SA.Root.gateFrom GridCO.gateFrom
-      rw [show GridCO.confirmationFrom p.toParams.engine
-        (eraseFG st.fg.F) (actView st) s = none from hc]
-      rfl
-    | some C =>
-      cases hg : (actView st).obligations.any
-          (fun (target, _, _) => !Block.compatible target C) with
-      | true =>
+  · split
+    · exact h
+    · have hu : Gen.AC.Root.UniqueLeaseKeys (actView st) := by
+        intro x hx y hy he
+        exact List.inj_on_of_nodup_map hC.leaseKeys.1 hx hy (Prod.mk.inj he).1
+      cases hc : SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s with
+      | none =>
         apply ancestorDeadlines_of_obligations_eq (st := st) _ h
         change (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).obligations = _
         unfold SA.Root.gateFrom GridCO.gateFrom
         rw [show GridCO.confirmationFrom p.toParams.engine
-          (eraseFG st.fg.F) (actView st) s = some C from hc]
-        dsimp only
-        rw [hg, ite_eq_left rfl]
+          (eraseFG st.fg.F) (actView st) s = none from hc]
         rfl
-      | false =>
-        let v : GridCO.State p.n .root := { actView st with
-          goldfishRecord := GridCO.advance (actView st).goldfishRecord C
-          genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy p.n .root (actView st) s (some C)
-          stableRecord := GridCO.advance (actView st).stableRecord C }
-        let keys := @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
-          (actView st) s C
-        let limit := GridCO.gateTime p.toParams.engine s + GridCO.lifetime p.toParams.engine
-        have hw : AncestorDeadlines { st with base := GridCO.writeKeys v keys limit } :=
-          writeKeys_ancestorDeadlines { st with base := v } keys limit hu h
-            (gateWriteKeys_ancestor p st s C hC)
-        apply ancestorDeadlines_of_obligations_eq
-          (st := { st with base := GridCO.writeKeys v keys limit }) _ hw
-        change (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).obligations = _
-        -- Unfold the model gate as in the `true` branch (no GridCO proof constant).
-        unfold SA.Root.gateFrom GridCO.gateFrom
-        rw [show GridCO.confirmationFrom p.toParams.engine
-          (eraseFG st.fg.F) (actView st) s = some C from hc]
-        dsimp only
-        rw [hg]
-        simp [v, keys, limit, @GridCO.writeKeys_def GridCO.slowLeasePolicy,
-          @GridCO.gateWriteKeys_def GridCO.slowLeasePolicy .root,
-          List.foldl_flatMap, List.foldl_map]
+      | some C =>
+        cases hg : (actView st).obligations.any
+            (fun (target, _, _) => !Block.compatible target C) with
+        | true =>
+          apply ancestorDeadlines_of_obligations_eq (st := st) _ h
+          change (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).obligations = _
+          unfold SA.Root.gateFrom GridCO.gateFrom
+          rw [show GridCO.confirmationFrom p.toParams.engine
+            (eraseFG st.fg.F) (actView st) s = some C from hc]
+          dsimp only
+          rw [hg, ite_eq_left rfl]
+          rfl
+        | false =>
+          let v : GridCO.State p.n .root := { actView st with
+            goldfishRecord := GridCO.advance (actView st).goldfishRecord C
+            genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy p.n .root
+              (actView st) s (some C)
+            stableRecord := GridCO.advance (actView st).stableRecord C }
+          let keys := @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+            (actView st) s C
+          let limit := GridCO.gateTime p.toParams.engine s + GridCO.lifetime p.toParams.engine
+          have hw : AncestorDeadlines { st with base := GridCO.writeKeys v keys limit } :=
+            writeKeys_ancestorDeadlines { st with base := v } keys limit hu h
+              (gateWriteKeys_ancestor p st s C hC)
+          apply ancestorDeadlines_of_obligations_eq
+            (st := { st with base := GridCO.writeKeys v keys limit }) _ hw
+          change (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).obligations = _
+          -- Unfold the model gate as in the `true` branch (no GridCO proof constant).
+          unfold SA.Root.gateFrom GridCO.gateFrom
+          rw [show GridCO.confirmationFrom p.toParams.engine
+            (eraseFG st.fg.F) (actView st) s = some C from hc]
+          dsimp only
+          rw [hg]
+          simp [v, keys, limit, @GridCO.writeKeys_def GridCO.slowLeasePolicy,
+            @GridCO.gateWriteKeys_def GridCO.slowLeasePolicy .root,
+            List.foldl_flatMap, List.foldl_map]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 [Model/Clock.lean:57–62] Every tick keeps ancestor deadlines.

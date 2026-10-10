@@ -33,6 +33,32 @@ fi
 # The declarations that the axiom script must find and check (fail closed: a
 # scan that misses the library fails). Each task adds its main outputs.
 AX_OPTS=(--expect
+  AvailableChain.FGSA.Run.fgsaTimelyClock_clock
+  AvailableChain.FGSA.Run.fgsa_awake_before_noRestart
+  AvailableChain.FGSA.Run.fgsa_historySafeAt_noRestart
+  AvailableChain.FGSA.Run.fgsa_processed_by_deadline_ready
+  AvailableChain.FGSA.Run.fgsa_accepted_by_deadline_of_parentStored
+  AvailableChain.FGSA.Run.fgsa_replay_vote_stamp_time
+  AvailableChain.FGSA.Run.fgsa_vote_stamp_source_or_restart
+  AvailableChain.FGSA.Run.fgsa_block_stamp_source_or_restart
+  AvailableChain.FGSA.Run.fgsa_block_accepted_origin
+  AvailableChain.FGSA.Run.fgsa_vote_stamp_source
+  AvailableChain.FGSA.Run.fgsa_block_stamp_source
+  AvailableChain.FGSA.Run.fgsa_replayed_head_delivery_origin
+  AvailableChain.FGSA.Run.fgsa_emitted_head_no_prior_processed
+  AvailableChain.FGSA.Run.fgsa_emitted_proposal_no_prior_processed
+
+  AvailableChain.FGSA.Run.fgsa_fgAction_unjoined_source_none
+  AvailableChain.FGSA.Run.fgsa_clock_restartTime
+  AvailableChain.FGSA.Run.fgsa_process_restartTime
+  AvailableChain.FGSA.Run.fgsa_restartTime_bound
+  AvailableChain.FGSA.Run.fgsa_joinedNow_of_joinedEnv
+  AvailableChain.FGSA.Run.fgsa_joinedNow_of_caughtUp
+  AvailableChain.FGSA.Run.fgsa_joinedNow_of_awakeClosed
+  AvailableChain.FGSA.Run.fgsa_emitted_row_no_prior_processed
+  AvailableChain.FGSA.ancestorDeadlines_acRestart
+  AvailableChain.FGSA.Spec.spec_prune_restart_mem
+  AvailableChain.FGSA.Spec.spec_prune_sleep
   # ROOT-DIGEST-2 W2 producers.
   AvailableChain.FGSA.Run.process_namedBodies_subset
   AvailableChain.FGSA.Run.stored_block_eq_of_root_eq

@@ -821,3 +821,142 @@ the five added W1b sleep modules, both new tests, and all three reset sites as G
 - internal statement, W3: spec_restart_retained_block_trace used now = 8 after
   the restart at 9. Its exact clock equation is now = 9. Consumer:
   Spec/Transfer.spec_restart_matched_cut_agreement discards that clock field.
+
+## W3 — Sources, join bridges and provenance (2026-10-10)
+
+- N11: fgsa_fgAction_unjoined_source_none uses saved-label provenance, tick
+  uniqueness, and CStoreInv.fastDom. These give label freshness without a separate
+  latest-wake search. A fresh unjoined gate writes an empty fast set for rR.
+- N7: fgsa_joinedNow_of_joinedEnv uses the explicit restart clause in the approved
+  joinedAt text. fgsa_joinedNow_of_caughtUp uses its marker and gate-time clauses.
+  S-Ap can apply these without importing the future Claims/Statements/Join module
+  into Run. The awake-closed companion also requires RestartsAtWakes.
+- internal statement, W3: rowPool_provenance formerly concluded restartFree after
+  its handler. That is false when a durable row crosses a restart. The exact new
+  form keeps the handler origin and states row membership at every later index
+  through the read. Consumers: SelfDelivery.fgsa_emitted_row_fresh;
+  Foundations/Accountable; NonVacuity/HealingPackages. All discard the last field.
+  The proof and its store helpers move to Run/Proofs/RowHistory.lean.
+- N10 row core: fgsa_emitted_row_no_prior_processed covers every receiver and every
+  index at or before the emitting tick. Retained row origin, unforgeable signatures,
+  and durable send-once exclude an earlier occurrence.
+- STOP N10 proposal form under ExecutionValid alone: a constant digest is permitted
+  by Params. A valid run holds a slot-1 proposal of root 2 before the honest slot-2
+  proposal of root 2 is emitted. processedS tests only that root and returns true.
+  Evidence: Tests/EmissionFreshness.emitted_proposal_already_processed and its
+  full ExecutionValid proof. A true freshness form needs an additional root/scope
+  condition. Do not change an approved public statement to add it without a ruling.
+
+## W3 — Approved-core STOP and exact AC forms (2026-10-10)
+
+- STOP P23 fgsa_receiptCoverage_ready: receiver readiness does not fix the root-only
+  processing exemption. Tests/ReceiptAlias proves DeliveryWithinOn, every unchanged
+  ReceiptCoveragePremises field, full receiver readiness, ExecutionValid,
+  NamedRootCollisionFree, and NoRestart on a concrete trace. The new required body
+  is not stored at its deadline. The legacy coverage conclusion is false on that
+  same ready trace. The proposed ready core has exactly that conclusion, so it is
+  false too. This needs a lead decision about the approved public boundary. No
+  premise, conclusion, quantifier, public protocol function, or statement was changed.
+- The N10 proposal counterexample also satisfies NamedRootCollisionFree. Its scope
+  contains genesis and the delivered slot-1 body; it does not contain the emitted
+  slot-2 body. Changing named scope to include that emission changes public meaning.
+- The handler-only NamedDelivery trigger helpers depend on the same missing exact
+  body scope. Their old statement cannot be repaired from current P2 history alone.
+  Keep them as a visible stopped item. Unrelated, true named-origin proofs move
+  unchanged to Run/Proofs/NamedHistory. Roots and the safety adapter use that module.
+- internal statement, W3: fgsaAC_gate_write now takes joinedNow on clockPre. The old
+  unguarded gate equation is false for unjoined gates. Other-label preservation
+  uses gateStep_other. Consumers: AC slot reads; Shared/Gate; Clean/StateGate,
+  GateOutput; Healing/PostResetHealed, RepairGate, SupportOutput;
+  Outage/InclusionGateBounds; WeakContinuation/Inclusion, StepOutput, StepService;
+  WeakContinuationGrowth/Dynamics. Family owners use N7 at the read that they need.
+- internal statement, W3: fgsaAC_laws and fgsaAC_slot_gate_reads now take the join
+  clause at every gate in their returned aggregate. This is required by the
+  unchanged Generic ACLaws record. No proof consumer outside AC was found; the
+  audit commands keep their names. The old unconditional aggregate is false.
+- fgsaAC_output_step keeps its statement. Restart uses the preserved-output branch.
+- Shared/FGCompose now imports the needed Claims definitions directly and proves
+  its source selector equation locally. It does not import the later Shared
+  channel producers. Shared safety laws and their early audit now compile.
+
+## W3 — Final internal receipt and append forms (2026-10-10)
+
+- internal statement, W3: fgsa_vote_stamp_source and fgsa_block_stamp_source formerly
+  asserted only a network origin through restart. Their network-only forms now
+  take NoRestart. The exact general suppliers are fgsa_vote_stamp_source_or_restart
+  and fgsa_block_stamp_source_or_restart. They add local replay or restamp origins
+  with the actual wake time. They assert no network acceptance at restart.
+  Consumers: Receipts vote/read/cap/acceptance suppliers; Shared/ReceiptFacts,
+  GateReceipt, ScoreRun; WeakContinuation/ExactProposal and its family copies.
+  Restart consumers use the general supplier. NoRestart consumers use the wrapper.
+- R8: fgsa_block_accepted_origin keeps the original network acceptance through every
+  restart epoch. fgsa_replayed_head_delivery_origin supplies the original delivered
+  proposal and structural HEAD carriage, with no fabricated HEAD handler.
+- internal statement, W3: fgsa_vote_accepted_before and fgsa_block_accepted_before
+  now take ExecutionValid, rather than ScheduleWellFormed alone. An asleep raw
+  receiver may have a stale clock under ScheduleWellFormed. Full sleep validity
+  and RestoreTimeLaw give the exact public-time bound at a real delivery. The vote
+  form keeps its NoRestart premise; the block form still permits restarts.
+  Consumers: Shared/ReceiptFacts, GateReceipt, ScoreRun and family deadline readers.
+- internal statement, W3: fgsa_head_cap_sources takes NoRestart for its network-only
+  cap witnesses. Its only proof consumer in Run is fgsa_honest_head_receipt, which
+  already has that premise. General stamp/replay suppliers cover restart consumers.
+- internal statement, W3: fgsa_head_receipt and fgsa_honest_head_receipt take the
+  receiver's AwakeOn window and dl t ≤ horizon. The old within premise is vacuous
+  outside those guards. Their HEAD/stamp conclusions stay. Consumers: public
+  ReceiptCoverage wrapper (stopped P23), Shared and family HEAD receipt readers.
+- internal statement, W3: fgsa_proposal_receipt takes the same awake/horizon guards
+  and NamedProposalInRun of the exact required body. Root-only history does not
+  supply that body scope. The stored-body conclusion stays. Consumers: P23 core
+  (STOP), Shared proposal receipt readers and their Clean/Outage/WC/WCG copies.
+- internal statement, W3: proposal_trigger_in_scope and its root-scope projection
+  now use DeliveryService plus an exact historical-scope callback. A handled
+  service keeps the original handler origin; past root processing alone cannot
+  scope the new body. Consumers: WeakContinuation/ExactProposal and
+  Assembly/WeakContinuationGrowth must discharge that callback after the P23 ruling.
+- internal statement, W3: fgsa_accepted_by_deadline_of_parentStored now follows the
+  current generic core: ReadyTrigger, HistorySafeAt, actual horizon, action-cut
+  restartFree, HooksSound and a handler Timely callback. Its parent and wire facts
+  still supply dependencies. No proof consumer outside the Run audit was found.
+- N3: fgsa_processed_by_deadline_ready instantiates the P2 service/acceptance core.
+  History is current processing on NoRestart; full validity and the awake window
+  supply earlier public ticks. Relay time uses RestoreTimeLaw and public actTime;
+  no TimelyOfRelay hwake premise is used. fgsaTimelyClock_clock exposes the needed
+  equality to the physical FG-SA clock without changing the clock definition.
+- N10 HEAD: fgsa_emitted_head_no_prior_processed holds through sleep and replay.
+  A replayed HEAD comes from an earlier carried signature, and its fixed-label
+  action time excludes processing before the current scheduled emission.
+- internal statement, W3: the requested proposal no-prior-processing form needs
+  NamedProposalInRun for the emitted body as well as NamedRootCollisionFree and
+  ExecutionValid. fgsa_emitted_proposal_no_prior_processed proves that exact scoped
+  form. Consumers that need scope from P2 alone remain STOP under the proved alias.
+- Own-row append/cut producers keep both P2 service branches and all demand guards.
+  The cut carries full SleepWellFormed. internal statement, W3:
+  healthyPrefixDeliveryBy_cut also takes t ≤ rho.horizon; extending the cut horizon
+  would otherwise create obligations beyond the old demand domain. Consumers:
+  Shared/Regimes at the valid action-time cut. No declaration in that family changed.
+- Validation status: 399 GREEN modules compile with --wfail. The fixed package
+  domain retains 60 EXPECTED-FAIL entries, including three S-Ap-P23-STOP roots:
+  Run, Proofs/ReceiptCoverage and Tests/Axioms. No REQUIRED module is deferred.
+  This is not W3 close or a full-run PASS. The lead owns the public P23 ruling.
+
+## W3 — Audit and handoff limits (2026-10-10)
+
+- W3 equation exports were repaired in FGSource and ProposalHistory. Schedule's
+  process-bound caller uses a direct slot projection instead of exporting the
+  model State.slot equation. No theorem type changed for that caller.
+- STOP inherited W2b equation exports: Restore.lean is unchanged in W3, but the
+  complete W3 and Shared export checks report 17 unaccepted matcher equations
+  from that module (admitBlock, admitRow, process, headLabel?, resolvedBefore).
+  The baseline is unchanged. W2b/lead must provide the review fix. This is a checker
+  failure, not a project axiom or a failed kernel theorem.
+- Run inventory rows use actual compiled owners from W3Axioms generation. Only
+  the Run, SharedAxioms, SafetyAxioms and FGSafety sections changed. The late
+  FGSafety source audit repeats the two new safety producers, as its coverage
+  checker requires. That audit remains a P-Sa family target, not an S1 promotion.
+- The Claims read test is an explicit package target outside S1, as r8 permits.
+  New Run modules are S1 REQUIRED. No original REQUIRED or DEFERRED entry changed.
+- DCK uses all normal controls. No baseline exception or audit exception is used.
+  Full Run build remains stopped by the P23 wrapper; the exact ready core cannot
+  be written under the approved statement. Root freeze and package close remain
+  with the lead after both STOP items are resolved.

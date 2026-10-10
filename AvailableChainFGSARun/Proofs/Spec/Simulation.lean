@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.Spec.Clock
 public import AvailableChainFGSA.Proofs.Spec.Handlers
-public import AvailableChainFGSARun.Model.Protocol
+public import AvailableChainFGSARun.Proofs.Restore
 public import AvailableChainEngineV2.Conditions.Duty.Schedule
 
 public section
@@ -35,17 +35,23 @@ theorem spec_run_wire_check (p : Params) (assigned : Slot → Fin p.n) (o : Wire
   rw [hw]
   exact delivery_check_embedding p assigned o
 
-/-- Restart preserves the anti-slashing record and the last tick time (ruling Y). -/
-theorem spec_restart_durable_retained (p : Params) (nd : Run.Node p) :
-    ((Run.fgsa p Run.unitCodec).restore ((Run.fgsa p Run.unitCodec).durable nd)).record =
+/-- Restart keeps the anti-slashing record and sets the exact wake clock. -/
+theorem spec_restart_durable_retained (p : Params) (nd : Run.Node p) (w : Time) :
+    ((Run.fgsa p Run.unitCodec).restore ((Run.fgsa p Run.unitCodec).durable nd) w).record =
       nd.record ∧
-    ((Run.fgsa p Run.unitCodec).restore ((Run.fgsa p Run.unitCodec).durable nd)).st.base.now =
-      nd.st.base.now := ⟨rfl, rfl⟩
+    ((Run.fgsa p Run.unitCodec).restore ((Run.fgsa p Run.unitCodec).durable nd) w).st.base.now =
+      w := by
+  refine ⟨rfl, ?_⟩
+  change (acRestart p nd.st w).base.now = w
+  exact acRestart_now p nd.st w
 
-/-- Restore reads the retained last tick, without an extra clock step or duty. -/
-theorem spec_restart_clock_retained (p : Params) (lastTick : Time)
-    (record : SimplexFG.RecordOnce) :
-    ((Run.fgsa p Run.unitCodec).restore (lastTick, record)).st.base.now = lastTick := rfl
+/-- Restore sets the wake clock without an extra tick or duty. -/
+theorem spec_restart_clock_retained (p : Params) (st : FGSA.State p.n)
+    (record : SimplexFG.RecordOnce) (w : Time) :
+    ((Run.fgsa p Run.unitCodec).restore (st, record) w).st.base.now = w :=
+  by
+    change (acRestart p st w).base.now = w
+    exact acRestart_now p st w
 
 /-- Computable recursive proposer test, used only by the simulation. -/
 def specAssignedCheck {n : Nat} (assigned : Slot → Fin n) : Block n → Bool
@@ -526,6 +532,23 @@ theorem spec_prune_tick_mem {V : Type} [DecidableEq V] (p : Params)
         exact hk rfl
       simp only [List.mem_cons, he, false_or, ih]
 
+/-- No restart is removed. -/
+theorem spec_prune_restart_mem {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (events : List (V2.Event V (Run.fgsa p Run.unitCodec).Object))
+    (w : V2.D.World V (Run.fgsa p Run.unitCodec)) (v : V) (t : Time) :
+    .restart v t ∈ specPruneEvents p E rho w events ↔ .restart v t ∈ events := by
+  induction events generalizing w with
+  | nil => rfl
+  | cons e es ih =>
+    dsimp only [specPruneEvents]
+    split_ifs with hk
+    · simp only [List.mem_cons, ih]
+    · have he : (.restart v t : V2.Event V (Run.fgsa p Run.unitCodec).Object) ≠ e := by
+        rintro rfl
+        exact hk rfl
+      simp only [List.mem_cons, he, false_or, ih]
+
 /-- The revised target run keeps the fixed identities, inputs, honest set and horizon. -/
 def specPruneRun {V : Type} [DecidableEq V] (p : Params) (E : Generic.Env V)
     (rho : V2.D.Run V (Run.fgsa p Run.unitCodec)) :
@@ -545,9 +568,9 @@ theorem spec_prune_schedule {V : Type} [DecidableEq V] (p : Params)
     exact h.honest_only e (hs.subset he)
   · intro v t ht
     exact h.tick_public v t (hs.subset ht)
-  · intro v hv t ht h0 hh
+  · intro v hv t ht h0 hh hawake
     exact (spec_prune_tick_mem p E rho rho.events V2.D.World.init v t).mpr
-      (h.tick_total v hv t ht h0 hh)
+      (h.tick_total v hv t ht h0 hh hawake)
 
 /-- The construction preserves ruling W1's NoRestart scope. -/
 theorem spec_prune_no_restart {V : Type} [DecidableEq V] (p : Params)
@@ -640,17 +663,31 @@ theorem spec_prune_signatures {V : Type} [DecidableEq V] (p : Params)
     obtain ⟨t', ht, he⟩ := h.carried v q t (hp v q t hx) q' hc u hu hh
     exact ⟨t', ht, spec_prune_emits p E rho u q' t' he⟩
 
+/-- Delivery normalization keeps the full sleep conditions. -/
+theorem spec_prune_sleep {V : Type} [DecidableEq V] (p : Params)
+    (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
+    (h : V2.D.SleepWellFormed E rho) : V2.D.SleepWellFormed E (specPruneRun p E rho) := by
+  have hs := spec_prune_sublist p E rho rho.events V2.D.World.init
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro v t ht; exact h.tick_awake v t (hs.subset ht)
+  · intro v o t ht; exact h.deliver_awake v o t (hs.subset ht)
+  · intro v t ht; exact h.restart_awake v t (hs.subset ht)
+  · intro v hv t ht hh hw
+    exact (spec_prune_restart_mem p E rho rho.events V2.D.World.init v t).mpr
+      (h.wake_restart v hv t ht hh hw)
+
 /-- Complete target validity after dependency/freshness normalization. The input run may
 have missing-dependency and duplicate deliveries. This theorem does not supply the source
 schedule or signature correspondence; those are separate simulation obligations. -/
 theorem spec_prune_execution_valid {V : Type} [DecidableEq V] (p : Params)
     (E : Generic.Env V) (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
     (hs : V2.D.ScheduleWellFormed E rho) (ha : V2.D.UnforgeableSignatures E rho)
+    (hSleep : V2.D.SleepWellFormed E rho)
     (hw : ∀ v q t, .deliver v q t ∈ rho.events →
       (Run.fgsa p Run.unitCodec).wellFormed q = true) :
     V2.D.ExecutionValid E (specPruneRun p E rho) :=
   { spec_prune_schedule p E rho hs, spec_prune_delivery_valid p E rho hw,
-    spec_prune_signatures p E rho ha with }
+    spec_prune_signatures p E rho ha, spec_prune_sleep p E rho hSleep with }
 
 /-- The first-stage event list is valid on the wire, including arbitrary refused inputs. -/
 theorem spec_mapped_delivery_wire {V : Type} (p : Params) (assigned : Slot → Fin p.n)
@@ -682,7 +719,7 @@ theorem spec_revised_target_execution {V : Type} [DecidableEq V] (p : Params)
     (rho : V2.D.Run V (Run.fgsa p Run.unitCodec))
     (hm : rho.events = events.filterMap (specSimulationEvent p assigned))
     (hs : V2.D.ScheduleWellFormed E rho) (ha : V2.D.UnforgeableSignatures E rho)
-    (hn : V2.D.NoRestart rho) :
+    (hn : V2.D.NoRestart rho) (hSleep : V2.D.SleepWellFormed E rho) :
     V2.D.ExecutionValid E (specPruneRun p E rho) ∧
       V2.D.NoRestart (specPruneRun p E rho) ∧
       (specPruneRun p E rho).honest = rho.honest ∧
@@ -690,7 +727,7 @@ theorem spec_revised_target_execution {V : Type} [DecidableEq V] (p : Params)
       (specPruneRun p E rho).seatOf = rho.seatOf ∧
       (specPruneRun p E rho).input = rho.input ∧
       V2.D.Run.final E (specPruneRun p E rho) = V2.D.Run.final E rho := by
-  refine ⟨spec_prune_execution_valid p E rho hs ha ?_, spec_prune_no_restart p E rho hn,
+  refine ⟨spec_prune_execution_valid p E rho hs ha hSleep ?_, spec_prune_no_restart p E rho hn,
     rfl, rfl, rfl, rfl, spec_prune_final p E rho⟩
   intro v q t h
   rw [hm] at h
@@ -818,7 +855,7 @@ theorem spec_restart_retained_block_trace :
     blockAccepted specRestartParams specRestartCurrent 1 parentIdentityHeld.embed
       .genesis = true ∧
     (process specRestartParams specRestartCurrent specRestartWire.embed).proposals.length = 1 ∧
-    (V2.D.Run.stateBefore specRestartEnv specRestartRun 7 1).st.base.now = 8 ∧
+    (V2.D.Run.stateBefore specRestartEnv specRestartRun 7 1).st.base.now = 9 ∧
     (V2.D.Run.final specRestartEnv specRestartRun 1).st.proposals.length = 1 := by
   refine ⟨⟨rfl, trivial⟩, ?_⟩
   decide
@@ -915,7 +952,15 @@ theorem spec_restart_signatures :
 
 /-- The target trace is a valid execution, not only an arbitrary handler state. -/
 theorem spec_restart_execution_valid : V2.D.ExecutionValid specRestartEnv specRestartRun :=
-  { spec_restart_schedule, spec_restart_delivery_valid, spec_restart_signatures with }
+  { spec_restart_schedule, spec_restart_delivery_valid, spec_restart_signatures with
+    tick_awake := by intros; rfl
+    deliver_awake := by intros; rfl
+    restart_awake := by intros; rfl
+    wake_restart := by
+      intro v hv t ht hh hw
+      have hfalse := hw.2
+      change true = false at hfalse
+      cases hfalse }
 
 set_option maxRecDepth 4096 in
 /-- Every self-visible emission is delivered immediately, before the next tick. -/

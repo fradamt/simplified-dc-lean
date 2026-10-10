@@ -8,6 +8,10 @@ open AvailableChain.SimplexFG
 open AvailableChain.V2.D.Engine
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+private theorem emission_if_some {α : Type} (b : Bool) (o : Option α) (a : α) :
+    (if b then o else none) = some a ↔ b = true ∧ o = some a := by
+  cases b <;> simp
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The record fold includes all ticks before `i`, across restarts. -/
 theorem ownRecord_fold_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -16,7 +20,7 @@ theorem ownRecord_fold_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       (ownReleased E rho v 0 i).foldl (recordRow? p) RecordOnce.initial := by
   have h := Gen.V2.Duty.ownRecord_fold_restart (P := fgsa p c) Node.record (recordRow? p)
     clock_rec process_rec recordOwn_rec E rho (Nat.zero_le i) v
-    (fun k _ _ _ _ => restore_rec ((fgsa p c).durable (V2.D.Run.stateBefore E rho k v)))
+    (fun k t _ _ _ => restore_rec p c ((fgsa p c).durable (V2.D.Run.stateBefore E rho k v)) t)
   exact h
 
 /-- [ROOT-DIGEST-2 W2; DC HEAD] Exact identifier emission at a tick. -/
@@ -24,12 +28,15 @@ theorem fgsa_emits_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (nd : Node p) (v : V) (t : Time) (s : Slot) (j : Fin p.n) (b : BlockId) :
     (⟨.seat (.base (.head s)) j, .head b⟩ : Obj p) ∈ (V2.D.tick E rho nd v t).2 ↔
       E.awake v t = true ∧ SA.voteTime p.toParams s = t ∧
-      rho.seatOf (.base (.head s)) j = v ∧ b = (headVote p (FGSA.clock p nd.st t) s).root := by
+      rho.seatOf (.base (.head s)) j = v ∧
+      joinedNow p (FGSA.clock p nd.st t) = true ∧
+      b = (headVote p (FGSA.clock p nd.st t) s).root := by
   refine (Gen.V2.Duty.mem_tick_singleDuty_iff (P := fgsa p c) E rho nd v t
     (.base (.head s)) (fgsa_head_singleDuty s) (.headAction s) rfl j (.head b)).trans ?_
-  dsimp only [fgsa, act, actS]
-  simp only [Option.some.injEq, Msg.head.injEq]
-  exact and_congr_right fun _ => and_congr_right fun _ => and_congr_right fun _ => eq_comm
+  exact and_congr_right fun _ => and_congr_right fun _ => and_congr_right fun _ =>
+    (emission_if_some _ _ _).trans (and_congr_right fun _ => by
+      simp only [Option.some.injEq, Msg.head.injEq]
+      exact eq_comm)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Exact FG emission includes the scheduled action that produced the row. -/
@@ -78,9 +85,14 @@ theorem fgsa_emits_proposal (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, m⟩ : Obj p) ∈ (V2.D.tick E rho nd v t).2 ↔
       E.awake v t = true ∧ SA.proposalTime p.toParams s = t ∧
       rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = v ∧
+      joinedNow p (FGSA.clock p nd.st t) = true ∧
       (propose p (FGSA.clock p nd.st t) s).map (withApp p (c.app (rho.input v t))) = some m :=
-  Gen.V2.Duty.mem_tick_singleDuty_iff E rho nd v t (.prop s)
-    (fgsa_prop_singleDuty s) (.propAction s) rfl ⟨0, Nat.one_pos⟩ m
+  by
+    have h := Gen.V2.Duty.mem_tick_singleDuty_iff E rho nd v t (.prop s)
+      (fgsa_prop_singleDuty s) (.propAction s) rfl ⟨0, Nat.one_pos⟩ m
+    refine h.trans ?_
+    exact and_congr_right fun _ => and_congr_right fun _ => and_congr_right fun _ =>
+      emission_if_some _ _ _
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Sleep releases no object and keeps the record. -/

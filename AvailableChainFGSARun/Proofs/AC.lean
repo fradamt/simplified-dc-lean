@@ -35,7 +35,7 @@ theorem fgsa_clockPre_gateView (p : Params) (st : State p.n) (s : Slot) :
     exact Or.inr (beq_eq_false_iff_ne.mpr (ac_gate_ne_offset p s _ 5 (Or.inr rfl)))
   change { actView (clockPre p st t) with early := st.base.early } = _
   rw [clockPre_eq]
-  simp only [hf, hq, Bool.false_eq_true, ite_false]
+  simp only [hf, hq, Bool.false_and, Bool.false_eq_true, ite_false]
   by_cases he : (decide (0 ≤ t - 2 * p.Δ) &&
       t == SA.earlyTime p.toParams ((t - 2 * p.Δ) / (4 * p.Δ)).toNat) = true
   · simp only [he, ite_true]
@@ -165,7 +165,10 @@ set_option maxHeartbeats 1600000 in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Every gate tick satisfies the event-indexed gate law, including repeated ticks. -/
 theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (i s : Nat) (x : V) : Gen.AC.Duty.GateWriteSpec (fgsaAC E rho) i s x := by
+    (i s : Nat) (x : V)
+    (hj : joinedNow p (clockPre p (V2.D.Run.stateBefore E rho i x).st
+      (SA.gateTime p.toParams s)) = true) :
+    Gen.AC.Duty.GateWriteSpec (fgsaAC E rho) i s x := by
   intro ht
   let st := (V2.D.Run.stateBefore E rho i x).st
   let pre := clockPre p st (SA.gateTime p.toParams s)
@@ -227,7 +230,7 @@ theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   · intro r hr
     rw [hpost]
     cases hs : GridCO.savedGenuine pre.base s with
-    | none => exact ((gateStep_fresh p pre s hs).2.1 r hr).trans (hsav r)
+    | none => exact (gateStep_other p pre s r hr).trans (hsav r)
     | some result =>
       rw [gateStep_saved p pre s (by rw [hs]; rfl), hnorm]
       exact hsav r
@@ -235,7 +238,7 @@ theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rw [hpost, gateStep_saved p pre s (by rw [hsav, hs]; rfl), hnorm, hsav]
     exact hs
   · intro hs
-    rw [hpost, (gateStep_fresh p pre s ((hsav s).trans hs)).1, hraw]
+    rw [hpost, (gateStep_fresh p pre s ((hsav s).trans hs) hj).1, hraw]
   · cases hs : GridCO.savedGenuine pre.base s with
     | some result =>
       left
@@ -252,8 +255,9 @@ theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       have hgate : gateStep p pre s = normalizeS
           { onView (fun v => SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) v s) pre with
             fastWrite := pre.fastWrite ++ [(s, fastSet p (eraseFG pre.fg.F) v s)] } := by
-        change normalizeS (if _ then _ else _) = _
-        rw [hs]
+        unfold gateStep
+        simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false,
+          show joinedNow p pre = true from hj, Bool.not_true]
         rfl
       have hfastread : (fgsaAC E rho).fast i s x = fastSet p (eraseFG pre.fg.F) v s := by
         change (if (GridCO.savedGenuine pre.base s).isSome then _ else _) = _
@@ -419,12 +423,11 @@ theorem fgsaAC_output_step (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       | restart y t =>
         change y = x at hx
         subst y
-        right; right; right
-        refine ⟨t, rfl, ?_⟩
+        left
         change (V2.D.Run.stateBefore E rho (i + 1) x).st.base.stableRecord = _
         rw [V2.D.Run.stateBefore_succ E rho he]
         simp only [V2.D.World.step, Function.update_self]
-        rfl
+        exact acRestart_stableRecord p _ t
       | tick y t =>
         change y = x at hx
         subst y
@@ -475,12 +478,15 @@ theorem fgsaAC_output_step (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 FG-SA satisfies all AC laws on every run, including restarts. -/
-theorem fgsaAC_laws (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
+theorem fgsaAC_laws (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hjoin : ∀ i s x, rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)) →
+      joinedNow p (clockPre p (V2.D.Run.stateBefore E rho i x).st
+        (SA.gateTime p.toParams s)) = true) :
     Gen.AC.Duty.ACLaws (fgsaAC E rho) where
   anchor_le_output := fgsaAC_anchor_le_output E rho
   lease_le_output := fgsaAC_lease_le_output E rho
   output_step := fgsaAC_output_step E rho
-  gate_write := fgsaAC_gate_write E rho
+  gate_write := fun i s x ht => fgsaAC_gate_write E rho i s x (hjoin i s x ht) ht
 
 
 
@@ -516,7 +522,10 @@ private theorem ac_gate_reindex {In V : Type} {P : V2.ProtocolSpecD In}
 Under schedule uniqueness, the gate observations also have slot-only reads.
 This separate statement adds no schedule premise to `fgsaAC_laws`. -/
 theorem fgsaAC_slot_gate_reads (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho) :
+    (hs : V2.D.ScheduleWellFormed E rho)
+    (hjoin : ∀ i s x, rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)) →
+      joinedNow p (clockPre p (V2.D.Run.stateBefore E rho i x).st
+        (SA.gateTime p.toParams s)) = true) :
     ∃ (raw : Slot → V → Option Block) (fast : Slot → V → List Block),
       ∀ i s x, rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)) →
         (fgsaAC E rho).raw i s x = raw s x ∧ (fgsaAC E rho).fast i s x = fast s x ∧
@@ -536,7 +545,7 @@ theorem fgsaAC_slot_gate_reads (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hr : (fgsaAC E rho).raw i s x = raw s x := by dsimp only [raw]; rw [hi]
   have hf : (fgsaAC E rho).fast i s x = fast s x := by dsimp only [fast]; rw [hi]
   refine ⟨hr, hf, ?_⟩
-  have h := fgsaAC_gate_write E rho i s x ht
+  have h := fgsaAC_gate_write E rho i s x (hjoin i s x ht) ht
   exact ac_gate_reindex (fgsaAC E rho) raw fast i s x hr hf h
 
 end AvailableChain.FGSA.Run

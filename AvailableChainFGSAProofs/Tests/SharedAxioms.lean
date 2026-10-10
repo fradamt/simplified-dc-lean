@@ -17,4 +17,8 @@ public section
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyScopeLaws
 #print axioms AvailableChain.FGSA.Run.fgsa_safetyScopedRoots
 
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyRestartLaws
+
+#print axioms AvailableChain.FGSA.Run.fgsa_restore_finality_fields
+
 end

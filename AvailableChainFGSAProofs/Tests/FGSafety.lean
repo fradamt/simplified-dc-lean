@@ -47,3 +47,6 @@ example (p : Params) {In : Type} (c : AppCodec In) :
 end AvailableChain.FGSA.Run
 
 end
+
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyRestartLaws
+#print axioms AvailableChain.FGSA.Run.fgsa_restore_finality_fields
