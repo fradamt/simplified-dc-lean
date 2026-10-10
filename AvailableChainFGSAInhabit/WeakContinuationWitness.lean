@@ -7,7 +7,7 @@ public import AvailableChainFGSARun.Proofs.EmissionWellFormed -- shake: keep (IN
 /-! W1: concrete source and continuation on the window model.
 
 The generator uses the current duty engine and the real FG-SA handlers.
-It ticks all four nodes before it delivers each released object to every node.
+It ticks awake nodes before it delivers each released object to awake receivers.
 After time 247, only node zero is awake. The source ends at 247, and the
 continuation ends at 263. Proofs follow the generator without evaluating the
 complete encoded trace.
@@ -59,13 +59,24 @@ def runData (horizon : Time) (events : List Event) :
 
 def nodes : List Validator := [0, 1, 2, 3]
 
+/-- Only awake nodes take state steps or receive event records. -/
+def awakeNodes (t : Time) : List Validator := nodes.filter (weakEnv.awake · t)
+
+theorem awakeNodes_mem (v : Validator) (t : Time) :
+    v ∈ awakeNodes t ↔ weakEnv.awake v t = true := by
+  have hn : v ∈ nodes := by fin_cases v <;> simp [nodes]
+  simp [awakeNodes, hn]
+
+theorem awakeNodes_nodup (t : Time) : (awakeNodes t).Nodup :=
+  (show nodes.Nodup from by decide).filter _
+
 /-- Run all ticks first, and keep the actual objects that they release. -/
 def tickBatch (t : Time) (w : World) : World × List (Obj params) :=
-  nodes.foldl (fun acc v =>
+  (awakeNodes t).foldl (fun acc v =>
     let result := V2.D.tick weakEnv (runData 263 []) (acc.1 v) v t
     (Function.update acc.1 v result.1, acc.2 ++ (show List (Obj params) from result.2))) (w, [])
 
-/-- Deliver a fresh object with the real handler, including to sleepers. -/
+/-- Deliver a fresh object with the real handler, for the awake receiver. -/
 def deliverOne (t : Time) (acc : World × List Event) (vo : Validator × Obj params) :
     World × List Event :=
   if (fgsa params unitCodec).processed (acc.1 vo.1) vo.2 then acc else
@@ -75,8 +86,8 @@ def deliverOne (t : Time) (acc : World × List Event) (vo : Validator × Obj par
 /-- Every object is offered to every receiver before the next object. -/
 def timeBatch (t : Time) (w : World) : World × List Event :=
   let ticks := tickBatch t w
-  let deliveries := ticks.2.flatMap (fun o => nodes.map (fun v => (v, o)))
-  deliveries.foldl (deliverOne t) (ticks.1, nodes.map (fun v => .tick v t))
+  let deliveries := ticks.2.flatMap (fun o => (awakeNodes t).map (fun v => (v, o)))
+  deliveries.foldl (deliverOne t) (ticks.1, (awakeNodes t).map (fun v => .tick v t))
 
 /-- The first `steps` integer times, starting at zero. -/
 def buildPrefix : Nat → World × List Event
@@ -272,10 +283,11 @@ theorem timeBatch_no_restart (t : Time) (w : World) (v : Validator) (s : Time) :
 theorem nodes_complete (v : Validator) : v ∈ nodes := by
   fin_cases v <;> simp [nodes]
 
-theorem timeBatch_tick (t : Time) (w : World) (v : Validator) :
+theorem timeBatch_tick (t : Time) (w : World) (v : Validator)
+    (ha : weakEnv.awake v t = true) :
     V2.Event.tick v t ∈ (timeBatch t w).2 := by
   rw [timeBatch, delivery_fold_mem]
-  exact Or.inl (List.mem_map.mpr ⟨v, nodes_complete v, rfl⟩)
+  exact Or.inl (List.mem_map.mpr ⟨v, (awakeNodes_mem v t).mpr ha, rfl⟩)
 
 theorem witness_prefix_times (steps : Nat) (e : Event) (he : e ∈ (buildPrefix steps).2) :
     0 ≤ e.time ∧ e.time < steps := by
@@ -388,7 +400,8 @@ theorem recovery_awake : ∀ v ∈ source.honest, ∀ t,
     strongEnv.t_GST ≤ t → t ≤ source.horizon → strongEnv.awake v t = true :=
   fun _ _ _ _ _ => rfl
 
-theorem prefix_tick (steps t : Nat) (ht : t < steps) (v : Validator) :
+theorem prefix_tick (steps t : Nat) (ht : t < steps) (v : Validator)
+    (ha : weakEnv.awake v (t : Time) = true) :
     V2.Event.tick v (t : Time) ∈ (buildPrefix steps).2 := by
   induction steps with
   | zero => omega
@@ -397,10 +410,11 @@ theorem prefix_tick (steps t : Nat) (ht : t < steps) (v : Validator) :
         (timeBatch steps (buildPrefix steps).1).2
       by_cases he : t = steps
       · subst t
-        exact List.mem_append_right _ (timeBatch_tick _ _ v)
+        exact List.mem_append_right _ (timeBatch_tick _ _ v ha)
       · exact List.mem_append_left _ (ih (by omega))
 
-theorem suffix_tick (steps t : Nat) (ht : t < steps) (v : Validator) :
+theorem suffix_tick (steps t : Nat) (ht : t < steps) (v : Validator)
+    (ha : weakEnv.awake v ((248 + t : Nat) : Time) = true) :
     V2.Event.tick v ((248 + t : Nat) : Time) ∈ (buildSuffix steps).2 := by
   induction steps with
   | zero => omega
@@ -409,7 +423,7 @@ theorem suffix_tick (steps t : Nat) (ht : t < steps) (v : Validator) :
         (timeBatch (248 + steps : Nat) (buildSuffix steps).1).2
       by_cases he : t = steps
       · subst t
-        exact List.mem_append_right _ (timeBatch_tick _ _ v)
+        exact List.mem_append_right _ (timeBatch_tick _ _ v ha)
       · exact List.mem_append_left _ (ih (by omega))
 
 theorem source_horizon_nonneg : 0 ≤ source.horizon := by decide
@@ -458,12 +472,15 @@ theorem source_tick_total (v : Validator) (_hv : v ∈ source.honest) (t : Time)
   have he : (t.toNat : Int) = t := Int.toNat_of_nonneg ht
   rw [← he]
   apply prefix_tick
-  change t ≤ 247 at hh
-  simp only [Time] at *
-  omega
+  · change t ≤ 247 at hh
+    simp only [Time] at *
+    omega
+  · rw [he]
+    exact (weak_awake_iff v t).mpr (Or.inl hh)
 
 theorem continuation_tick_total (v : Validator) (_hv : v ∈ continuation.honest) (t : Time)
-    (_hp : V2.PublicTime weakEnv t) (ht : 0 ≤ t) (hh : t ≤ continuation.horizon) :
+    (_hp : V2.PublicTime weakEnv t) (ht : 0 ≤ t) (hh : t ≤ continuation.horizon)
+    (ha : weakEnv.awake v t = true) :
     V2.Event.tick v t ∈ continuation.events := by
   change V2.Event.tick v t ∈ source.events ++ (buildSuffix 16).2
   by_cases he : t ≤ 247
@@ -476,17 +493,18 @@ theorem continuation_tick_total (v : Validator) (_hv : v ∈ continuation.honest
       omega
     rw [← hcast]
     apply suffix_tick
-    change t ≤ 263 at hh
-    simp only [Time] at *
-    omega
+    · change t ≤ 263 at hh
+      simp only [Time] at *
+      omega
+    · rwa [hcast]
 
 theorem suffix_has_ticks : V2.Event.tick 0 248 ∈ continuation.events ∧
-    V2.Event.tick 1 263 ∈ continuation.events := by
+    V2.Event.tick 0 263 ∈ continuation.events := by
   constructor
   · exact continuation_tick_total 0 (Finset.mem_univ _) 248 ⟨248, rfl⟩
-      (by decide) (by decide)
-  · exact continuation_tick_total 1 (Finset.mem_univ _) 263 ⟨263, rfl⟩
-      (by decide) (by decide)
+      (by decide) (by decide) (by decide)
+  · exact continuation_tick_total 0 (Finset.mem_univ _) 263 ⟨263, rfl⟩
+      (by decide) (by decide) (by decide)
 
 theorem phase_le_two (e : Event) : e.phase ≤ 2 := by cases e <;> simp [V2.Event.phase]
 
@@ -520,7 +538,9 @@ theorem delivery_fold_sorted (t : Time) (xs : List (Validator × Obj params))
 theorem timeBatch_sorted (t : Time) (w : World) :
     (timeBatch t w).2.Pairwise (fun e f => e.key ≤ f.key) := by
   apply delivery_fold_sorted
-  · simp [nodes, V2.Event.key, V2.Event.time, V2.Event.phase]
+  · rw [List.pairwise_map]
+    exact List.Pairwise.imp_of_mem (fun _ _ _ => le_rfl)
+      (awakeNodes_nodup t)
   · intro e he
     obtain ⟨v, _, rfl⟩ := List.mem_map.mp he
     exact le_rfl
@@ -641,8 +661,8 @@ theorem tick_fold_replay (t : Time) (vs : List Validator)
       exact ih _ _
 
 theorem tickBatch_replay (t : Time) (w : World) :
-    (tickBatch t w).1 = genFold w (nodes.map (fun v => .tick v t)) :=
-  tick_fold_replay t nodes w []
+    (tickBatch t w).1 = genFold w ((awakeNodes t).map (fun v => .tick v t)) :=
+  tick_fold_replay t (awakeNodes t) w []
 
 theorem tick_list_fresh (t : Time) (vs : List Validator) (w : World) :
     GenFresh w (vs.map (fun v => .tick v t)) := by
@@ -671,7 +691,7 @@ theorem delivery_fold_replay_fresh (t : Time) (xs : List (Validator × Obj param
 theorem timeBatch_replay_fresh (t : Time) (w : World) :
     (timeBatch t w).1 = genFold w (timeBatch t w).2 ∧
       GenFresh w (timeBatch t w).2 :=
-  delivery_fold_replay_fresh t _ w _ (tickBatch_replay t w) (tick_list_fresh t nodes w)
+  delivery_fold_replay_fresh t _ w _ (tickBatch_replay t w) (tick_list_fresh t (awakeNodes t) w)
 
 theorem prefix_replay_fresh (steps : Nat) :
     (buildPrefix steps).1 = genFold V2.D.World.init (buildPrefix steps).2 ∧
@@ -830,8 +850,8 @@ theorem tick_fold_origin (t : Time) (vs : List Validator)
 
 theorem tickBatch_origin (t : Time) (w : World) (o : Obj params)
     (ho : o ∈ (tickBatch t w).2) :
-    ∃ v, GenEmits w (nodes.map (fun v => .tick v t)) v o t := by
-  rcases tick_fold_origin t nodes w [] o ho with h | h
+    ∃ v, GenEmits w ((awakeNodes t).map (fun v => .tick v t)) v o t := by
+  rcases tick_fold_origin t (awakeNodes t) w [] o ho with h | h
   · exact (List.not_mem_nil h).elim
   · exact h
 
@@ -853,12 +873,12 @@ theorem delivery_fold_sublist (t : Time) (xs : List (Validator × Obj params))
         simpa only [List.append_assoc, List.singleton_append] using he
 
 theorem timeBatch_block (t : Time) (w : World) :
-    ∃ ds, (timeBatch t w).2 = nodes.map (fun v => .tick v t) ++ ds ∧
+    ∃ ds, (timeBatch t w).2 = (awakeNodes t).map (fun v => .tick v t) ++ ds ∧
       ds.Sublist ((tickBatch t w).2.flatMap
-        (fun o => nodes.map (fun v => .deliver v o t))) := by
+        (fun o => (awakeNodes t).map (fun v => .deliver v o t))) := by
   obtain ⟨ds, he, hs⟩ := delivery_fold_sublist t
-    ((tickBatch t w).2.flatMap (fun o => nodes.map (fun v => (v, o))))
-    ((tickBatch t w).1, nodes.map (fun v => .tick v t))
+    ((tickBatch t w).2.flatMap (fun o => (awakeNodes t).map (fun v => (v, o))))
+    ((tickBatch t w).1, (awakeNodes t).map (fun v => .tick v t))
   refine ⟨ds, he, ?_⟩
   simp only [List.map_flatMap, List.map_map, Function.comp_def] at hs
   exact hs
@@ -1064,20 +1084,21 @@ theorem tick_fold_nodup (t : Time) (vs : List Validator) (hn : vs.Nodup)
           exact hn.1 (Option.some.inj he ▸ hum)
 
 theorem tickBatch_nodup (t : Time) (w : World) : (tickBatch t w).2.Nodup :=
-  tick_fold_nodup t nodes (by decide) w [] List.nodup_nil (by simp)
+  tick_fold_nodup t (awakeNodes t) (awakeNodes_nodup t) w [] List.nodup_nil (by simp)
 
 theorem timeBatch_nodup (t : Time) (w : World) : (timeBatch t w).2.Nodup := by
   obtain ⟨ds, he, hs⟩ := timeBatch_block t w
   rw [he]
   apply List.Nodup.append
-  · exact (show nodes.Nodup from by decide).map (by intro v u h; cases h; rfl)
+  · exact (awakeNodes_nodup t).map (by intro v u h; cases h; rfl)
   · apply List.Nodup.sublist hs
     change ((tickBatch t w).2.flatMap (fun (o : Obj params) =>
-      nodes.map (fun v => (V2.Event.deliver v o t : V2.Event Validator (Obj params))))).Nodup
+      (awakeNodes t).map (fun v =>
+        (V2.Event.deliver v o t : V2.Event Validator (Obj params))))).Nodup
     rw [List.nodup_flatMap]
     constructor
     · intro o _
-      exact (show nodes.Nodup from by decide).map (by intro v u h; cases h; rfl)
+      exact (awakeNodes_nodup t).map (by intro v u h; cases h; rfl)
     · apply (tickBatch_nodup t w).imp
       intro o o' hne e he he'
       obtain ⟨v, _, hv⟩ := List.mem_map.mp he
@@ -1126,7 +1147,7 @@ theorem source_schedule : V2.D.ScheduleWellFormed strongEnv source where
   in_horizon := source_in_horizon
   honest_only := source_honest_only
   tick_public := source_tick_public
-  tick_total := source_tick_total
+  tick_total := fun v hv t hp ht hh _ => source_tick_total v hv t hp ht hh
 
 theorem continuation_schedule : V2.D.ScheduleWellFormed weakEnv continuation where
   horizon_nonneg := continuation_horizon_nonneg
@@ -1242,6 +1263,10 @@ theorem gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) 
   obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
+      change (if joinedNow params (FGSA.clock params st.st t) then
+        some (Msg.head (headVote params (FGSA.clock params st.st t) s).root)
+        else none) = some m at ha
+      split at ha <;> try contradiction
       have he : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
       subst m
       rfl
@@ -1252,8 +1277,10 @@ theorem gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) 
       subst m
       exact gen_attest_valid _ _ _ _ hb
   | propAction s =>
-      change (propose params (FGSA.clock params st.st t) s).map
-        (withApp params 0) = some m at ha
+      change (if joinedNow params (FGSA.clock params st.st t) then
+        (propose params (FGSA.clock params st.st t) s).map (withApp params 0)
+        else none) = some m at ha
+      split at ha <;> try contradiction
       unfold propose at ha
       split at ha
       · cases ha
@@ -1299,12 +1326,12 @@ theorem delivery_fold_offered (t : Time) (xs : List (Validator × Obj params))
       · exact ih _ hnext.1 hnext.2 hm
 
 theorem timeBatch_offered (t : Time) (w : World) (v : Validator) (o : Obj params)
-    (ho : o ∈ (tickBatch t w).2) :
+    (ho : o ∈ (tickBatch t w).2) (ha : weakEnv.awake v t = true) :
     V2.Event.deliver v o t ∈ (timeBatch t w).2 ∨
       ∃ pre post, (timeBatch t w).2 = pre ++ post ∧
         (fgsa params unitCodec).processed (genFold w pre v) o = true := by
-  apply delivery_fold_offered t _ w _ (tickBatch_replay t w) (tick_list_fresh t nodes w)
-  exact List.mem_flatMap.mpr ⟨o, ho, List.mem_map.mpr ⟨v, nodes_complete v, rfl⟩⟩
+  apply delivery_fold_offered t _ w _ (tickBatch_replay t w) (tick_list_fresh t (awakeNodes t) w)
+  exact List.mem_flatMap.mpr ⟨o, ho, List.mem_map.mpr ⟨v, (awakeNodes_mem v t).mpr ha, rfl⟩⟩
 
 /-- Wire validity for the HEAD and row part of a trace with emission origin. -/
 theorem genOrigin_nonproposal_wire (w : World) (es : List Event) (horigin : GenOrigin w es)
@@ -1352,9 +1379,7 @@ theorem i7_clock_fields (st : State params.n) (t : Time) :
   have hg (st : State params.n) (s : Slot) :
       (gateStep params st s).proposals = st.proposals ∧
         (gateStep params st s).rowPool = st.rowPool := by
-    unfold gateStep
-    rw [(hn _).1, (hn _).2]
-    split <;> exact ⟨rfl, rfl⟩
+    exact ⟨gateStep_proposals params st s, gateStep_rowPool params st s⟩
   have hc : (clockPre params st t).proposals = st.proposals ∧
       (clockPre params st t).rowPool = st.rowPool := by
     unfold clockPre
@@ -1537,6 +1562,10 @@ theorem gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
   obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
+    change (if joinedNow params (FGSA.clock params st.st t) then
+      some (Msg.head (headVote params (FGSA.clock params st.st t) s).root)
+      else none) = some m at ha
+    split at ha <;> try contradiction
     have hm : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
     subst m
     cases he
@@ -1548,8 +1577,10 @@ theorem gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
     cases he
   | propAction s =>
     have hv : v = 0 := (Option.some.inj hh).symm
-    change (propose params (FGSA.clock params st.st t) s).map
-        (withApp params 0) = some m at ha
+    change (if joinedNow params (FGSA.clock params st.st t) then
+      (propose params (FGSA.clock params st.st t) s).map (withApp params 0)
+      else none) = some m at ha
+    split at ha <;> try contradiction
     unfold propose at ha
     split at ha
     · cases ha
@@ -1647,7 +1678,7 @@ theorem gen_delivery_fold_pool (t : Time) (xs : List (Validator × Obj params))
 
 theorem gen_timeBatch_pool (t : Time) (w : World) (hw : GenPoolWitness w) :
     GenPoolWitness (timeBatch t w).1 := by
-  obtain ⟨ht, ho⟩ := gen_tick_fold_pool t nodes w [] hw (by simp)
+  obtain ⟨ht, ho⟩ := gen_tick_fold_pool t (awakeNodes t) w [] hw (by simp)
   apply gen_delivery_fold_pool t _ _ ht
   intro vo hv b he a ha
   obtain ⟨o, hm, hv⟩ := List.mem_flatMap.mp hv
@@ -1724,7 +1755,9 @@ theorem i7_clock_votes (st : State params.n) (t : Time) :
     rw [hn]
     split
     · rfl
-    · exact hg _ _ _
+    · split
+      · rfl
+      · exact hg _ _ _
   have hc : (clockPre params st t).base.votes = st.base.votes := by
     unfold clockPre
     dsimp only
@@ -1940,6 +1973,10 @@ theorem gen_tick_children_known (P : Obj params → Prop) (st : Node params)
   obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
+    change (if joinedNow params (FGSA.clock params st.st t) then
+      some (Msg.head (headVote params (FGSA.clock params st.st t) s).root)
+      else none) = some m at ha
+    split at ha <;> try contradiction
     have hm : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
     subst m
     exact fun _ h => h.elim
@@ -1950,8 +1987,10 @@ theorem gen_tick_children_known (P : Obj params → Prop) (st : Node params)
     subst m
     exact fun _ h => h.elim
   | propAction s =>
-    change (propose params (FGSA.clock params st.st t) s).map
-        (withApp params 0) = some m at ha
+    change (if joinedNow params (FGSA.clock params st.st t) then
+      (propose params (FGSA.clock params st.st t) s).map (withApp params 0)
+      else none) = some m at ha
+    split at ha <;> try contradiction
     unfold propose at ha
     split at ha
     · cases ha
@@ -2028,7 +2067,7 @@ theorem gen_delivery_fold_known (P : Obj params → Prop) (t : Time)
 theorem gen_timeBatch_known (P : Obj params → Prop) (t : Time) (w : World)
     (hw : ∀ v, GenKnown P (w v).st) (ho : ∀ o ∈ (tickBatch t w).2, P o) :
     ∀ v, GenKnown P ((timeBatch t w).1 v).st := by
-  obtain ⟨ht, hc⟩ := gen_tick_fold_known P t nodes w [] hw (by simp)
+  obtain ⟨ht, hc⟩ := gen_tick_fold_known P t (awakeNodes t) w [] hw (by simp)
   apply gen_delivery_fold_known P t _ _ ht
   intro vo hv
   obtain ⟨o, hm, hv⟩ := List.mem_flatMap.mp hv
@@ -2068,7 +2107,6 @@ theorem gen_past_bound (es : List Event) (t u : Time) (o : Obj params)
   obtain ⟨v, s, ht, he⟩ := h
   exact ⟨v, s, ht.trans htu, he⟩
 
-set_option maxHeartbeats 1000000 in
 -- This proof unfolds nested world and event folds to transport emission witnesses.
 /-- One real batch preserves signature origin and adds valid carried-signature witnesses. -/
 theorem gen_batch_carried (es : List Event) (t : Time) (w : World)
@@ -2097,7 +2135,7 @@ theorem gen_batch_carried (es : List Event) (t : Time) (w : World)
     · exact gen_past_append es _ s o' (hc v o s hm o' hcarry)
     · obtain ⟨hs, ho⟩ := gen_timeBatch_delivered t w v o s hm
       subst s
-      have hk := (gen_tick_fold_known (GenPast es t) t nodes w [] hw (by simp)).2
+      have hk := (gen_tick_fold_known (GenPast es t) t (awakeNodes t) w [] hw (by simp)).2
       exact gen_past_append es _ t o' (hk o ho o' hcarry)
 
 /-- Symbolic signature-origin induction for the entire prefix generator. -/
@@ -2200,7 +2238,7 @@ theorem i7_batch_emitted_rows (t : Time) (w : World) (hw : GenPoolWitness w)
     (o : Obj params) (ho : o ∈ (tickBatch t w).2)
     (b : NamedProposal params.n)
     (he : o.payload = .proposal b) : ∀ a ∈ b.rows, a ∈ (w 0).st.rowPool := by
-  have hr := (gen_tick_fold_pool t nodes w [] hw (by simp)).2 o ho b he
+  have hr := (gen_tick_fold_pool t (awakeNodes t) w [] hw (by simp)).2 o ho b he
   simpa only [i7_tick_fold_pool_eq] using hr
 
 /-- H for the actual prefix emissions, for every generator length. -/
@@ -2283,6 +2321,989 @@ theorem i7_eight_in_both_runs (e : Event)
     rw [prefix_blocks]
     exact List.mem_flatMap.mpr ⟨8, by decide, he⟩
   exact ⟨hs, List.mem_append_left _ hs⟩
+
+
+/-! P-Fx: execution checks for the awake-only generator. -/
+
+section Wire
+variable {p : Params}
+
+theorem fx_proposal_rows (st : State p.n) (H : Block)
+    (hv : EmissionRowsValid st) : ∀ a ∈ proposalRows p st H, a.valid = true := by
+  intro a ha
+  rw [proposalRows_eq_proposalRowsFor] at ha
+  rcases proposalRowsFor_origin p st (st.slot p) H a ha with
+    hm | ⟨o, ho, s, b, hd, hm⟩
+  · exact hv.1 a hm
+  · exact hv.2 o ho s b hd a hm
+
+theorem fx_proposal_votes (st : State p.n) (s : Slot) :
+    (∀ a ∈ (proposerVotes st s).filterMap liftHead?,
+      ∃ j b, a.decode? = some (s - 1, j, b)) ∧
+    (∀ a ∈ (proposerSupport st s).filterMap liftHead?,
+      a ∈ (proposerVotes st s).filterMap liftHead?) := by
+  constructor
+  · intro a ha
+    obtain ⟨w, hw, hl⟩ := List.mem_filterMap.mp ha
+    have ht : GridCO.headLabel? w = some (s - 1) :=
+      beq_iff_eq.mp (List.mem_filter.mp hw).2
+    change (GridCO.headLabel? w >>= fun r => GridCO.headSeat? w >>= fun j =>
+      GridCO.headTarget? w >>= fun b => some ⟨.seat (.head r) j, b⟩) = some a at hl
+    rw [ht] at hl
+    obtain ⟨r, hr, hl⟩ := Option.bind_eq_some_iff.mp hl
+    have her := Option.some.inj hr
+    subst r
+    obtain ⟨j, _, hl⟩ := Option.bind_eq_some_iff.mp hl
+    obtain ⟨b, _, he⟩ := Option.bind_eq_some_iff.mp hl
+    cases he
+    exact ⟨j, b, rfl⟩
+  · intro a ha
+    obtain ⟨w, hw, he⟩ := List.mem_filterMap.mp ha
+    exact List.mem_filterMap.mpr ⟨w, (List.mem_filter.mp hw).1, he⟩
+
+theorem fx_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
+    (hv : EmissionRowsValid st)
+    (hp : (getHead p st (proposerVotes st s) (proposerSupport st s)).slot < s)
+    {m : Msg p.n} (hm : (propose p st s).map (withApp p a) = some m) :
+    FGSA.wellFormed p ⟨.proposer s, m⟩ = true := by
+  have hs0 : 0 < s := Nat.zero_lt_of_lt hp
+  let H := getHead p st (proposerVotes st s) (proposerSupport st s)
+  let rows := proposalRows p st H
+  let raw := (proposerVotes st s).filterMap liftHead?
+  let sup := (proposerSupport st s).filterMap liftHead?
+  unfold propose at hm
+  rw [ite_eq_right (Nat.ne_of_gt hs0)] at hm
+  simp only [Option.map_map] at hm
+  obtain ⟨P, hP, rfl⟩ := Option.map_eq_some_iff.mp hm
+  have heP : P.erase = H := (namedByErase?_sound st H P hP).2
+  change FGSA.wellFormed p ⟨.proposer s, .proposal (namedProposal p P s a raw sup rows)⟩ = true
+  simp only [FGSA.wellFormed, Wire.decode]
+  rw [namedProposal_erase, heP]
+  simp only [namedProposal, NamedProposal.raw, NamedProposal.support, NamedProposal.rows]
+  change (true && (s == s) && decide (H.slot < s) &&
+    raw.all (fun v => match v.decode? with
+      | some (r, _, _) => r + 1 == s | none => false) &&
+    sup.all (fun v => decide (v ∈ raw)) && rows.all RowWire.valid &&
+    contentOk p (proposalBlock p H s a raw sup rows) raw sup rows) = true
+  obtain ⟨hraw, hsup⟩ := fx_proposal_votes st s
+  have hr : rows.all RowWire.valid = true :=
+    List.all_eq_true.mpr (fx_proposal_rows st H hv)
+  have hvotes : ((proposerVotes st s).filterMap liftHead?).all (fun v => match v.decode? with
+      | some (r, _, _) => r + 1 == s | none => false) = true := by
+    apply List.all_eq_true.mpr
+    intro v hv
+    obtain ⟨j, b, hd⟩ := hraw v hv
+    rw [hd]
+    exact beq_iff_eq.mpr (Nat.sub_add_cancel hs0)
+  have hsupport : ((proposerSupport st s).filterMap liftHead?).all
+      (fun v => decide (v ∈ (proposerVotes st s).filterMap liftHead?)) = true :=
+    List.all_eq_true.mpr (fun v hv => decide_eq_true (hsup v hv))
+  have hc := contentOk_proposalBlock p H s a raw sup rows
+  rw [hvotes, hsupport, hr, hc]
+  simp only [beq_self_eq_true, Bool.true_and, Bool.and_true, decide_eq_true_eq]
+  exact hp
+
+end Wire
+
+/-- A list fold preserves knowledge when each delivery and its children have it. -/
+theorem fx_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es)
+    (hw : ∀ v, GenKnown P (w v).st)
+    (he : ∀ v o t, V2.Event.deliver v o t ∈ es →
+      P o ∧ ∀ o', carriesS params o o' → P o') :
+    ∀ v, GenKnown P (genFold w es v).st := by
+  induction es generalizing w with
+  | nil => exact hw
+  | cons e es ih =>
+    apply ih
+    · exact fun v t hm => hnr v t (List.mem_cons_of_mem _ hm)
+    · intro u
+      cases e with
+      | restart v t =>
+        exact (hnr v t (List.mem_cons_self ..)).elim
+      | tick v t =>
+        by_cases hu : u = v
+        · subst u
+          simp only [V2.D.World.step, Function.update_self]
+          exact (i7_tick_st (w v) v t).symm ▸ gen_known_clock P _ t (hw v)
+        · simpa only [V2.D.World.step, Function.update_of_ne hu] using hw u
+      | deliver v o t =>
+        by_cases hu : u = v
+        · subst u
+          simp only [V2.D.World.step, Function.update_self]
+          exact gen_known_process P _ o (hw v)
+            (he v o t (List.mem_cons_self ..)).1
+            (he v o t (List.mem_cons_self ..)).2
+        · simpa only [V2.D.World.step, Function.update_of_ne hu] using hw u
+    · intro v o t hm
+      exact he v o t (List.mem_cons_of_mem _ hm)
+
+/-- I3 and I7 give row validity at every event prefix, without delivery validity. -/
+theorem fx_rows_at_index (h : Time) (es : List Event)
+    (ho : GenOrigin V2.D.World.init es) (hc : GenCarried es)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es) (i : Nat) (v : Validator) :
+    EmissionRowsValid (V2.D.Run.stateBefore weakEnv (runData h es) i v).st := by
+  let P := fun o => ∃ t, GenPast es t o
+  have hk : GenKnown P (genFold V2.D.World.init (es.take i) v).st := by
+    apply fx_known_fold
+    · exact fun v t hm => hnr v t (List.mem_of_mem_take hm)
+    · intro u
+      exact ⟨by simp [V2.D.World.init, fgsa, initial],
+        by simp [GenStoredRows, V2.D.World.init, fgsa, initial],
+        by simp [V2.D.World.init, fgsa, initial, GridCO.initial]⟩
+    · intro u o t hm
+      have hm' := List.mem_of_mem_take hm
+      obtain ⟨x, hx⟩ := ho u o t hm'
+      exact ⟨⟨t, x, t, le_rfl, hx⟩, fun o' hcarry => ⟨t, hc u o t hm' o' hcarry⟩⟩
+  rw [runData_stateBefore]
+  exact ⟨fun a ha => by
+      obtain ⟨t, ht⟩ := hk.1 a ha
+      exact gen_past_row_valid es t a ht,
+    fun w hw s b hd a ha => by
+      obtain ⟨t, ht⟩ := hk.2.1 w hw s b hd a ha
+      exact gen_past_row_valid es t a ht⟩
+
+/-- Every release passes the wire check, using the symbolic row invariant. -/
+theorem fx_emit_wire (h : Time) (es : List Event)
+    (hs : V2.D.ScheduleWellFormed weakEnv (runData h es))
+    (horigin : GenOrigin V2.D.World.init es) (hcarried : GenCarried es)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es)
+    (v : Validator) (o : Obj params) (t : Time)
+    (hem : V2.D.Run.emits weakEnv (runData h es) v o t) :
+    (fgsa params unitCodec).wellFormed o = true := by
+  obtain ⟨i, hi, ho⟩ := hem
+  rw [(V2.D.Run.step_tick_eq weakEnv (runData h es) hi).2] at ho
+  obtain ⟨l, j, m, rfl, hl, ha⟩ := gen_tick_seat
+    (V2.D.Run.stateBefore weakEnv (runData h es) i v) v t o ho
+  cases l with
+  | headAction s =>
+    change (if joinedNow params _ then some (Msg.head (headVote params _ s).root)
+      else none) = some m at ha
+    split at ha <;> try contradiction
+    have he : .head (headVote params
+        (FGSA.clock params (V2.D.Run.stateBefore weakEnv (runData h es) i v).st t) s).root = m :=
+      Option.some.inj ha
+    subst m
+    rfl
+  | fgAction r =>
+    change (attest params (FGSA.clock params (V2.D.Run.stateBefore weakEnv (runData h es) i v).st t)
+      (V2.D.Run.stateBefore weakEnv (runData h es) i v).record ⟨0, params.nPos⟩).1.map Msg.row
+        = some m at ha
+    obtain ⟨body, hb, hm⟩ := Option.map_eq_some_iff.mp ha
+    subst m
+    exact gen_attest_valid _ _ _ _ hb
+  | propAction s =>
+    have ht : SA.proposalTime params.toParams s = t :=
+      ((fgsa params unitCodec).duties_spec (.propAction s) t).1 hl
+    subst t
+    change (if joinedNow params _ then (propose params _ s).map (withApp params 0)
+      else none) = some m at ha
+    split at ha <;> try contradiction
+    have hm : (propose params
+        (FGSA.clock params (V2.D.Run.stateBefore weakEnv (runData h es) i v).st
+          (SA.proposalTime params.toParams s)) s).map (withApp params 0) = some m := ha
+    have hs0 : 0 < s := by
+      by_contra hn
+      have he : s = 0 := Nat.eq_zero_of_not_pos hn
+      subst s
+      change none = some m at hm
+      cases hm
+    have hv := fx_rows_at_index h es horigin hcarried hnr i v
+    have hv' : EmissionRowsValid
+        (FGSA.clock params (V2.D.Run.stateBefore weakEnv (runData h es) i v).st
+          (SA.proposalTime params.toParams s)) := by
+      simpa only [EmissionRowsValid, i7_clock_rowPool, i7_clock_proposals] using hv
+    exact fx_proposal_wf _ s 0 hv'
+      (fgsa_propose_parent_lt weakEnv (runData h es) hs hi hs0) hm
+
+/-- The source schedule has the same public times in the weak environment. -/
+theorem fx_source_schedule : V2.D.ScheduleWellFormed weakEnv source :=
+  { source_schedule with
+    tick_public := source_schedule.tick_public
+    tick_total := fun v hv t hp ht hh _ => source_tick_total v hv t hp ht hh }
+
+/-- Proposal wire checks now hold for every source delivery. -/
+theorem fx_source_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
+    (hi : source.events[i]? = some (.deliver v o t)) :
+    (fgsa params unitCodec).wellFormed o = true := by
+  obtain ⟨u, hu⟩ := prefix_origin 248 v o t (List.mem_of_getElem? hi)
+  exact fx_emit_wire 247 _ fx_source_schedule (prefix_origin 248)
+    (gen_prefix_carried 248).2 (prefix_no_restart 248) u o t (genEmits_runData 247 _ u o t hu)
+
+/-- Proposal wire checks also hold for every continuation delivery. -/
+theorem fx_continuation_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
+    (hi : continuation.events[i]? = some (.deliver v o t)) :
+    (fgsa params unitCodec).wellFormed o = true := by
+  obtain ⟨u, hu⟩ := continuation_genOrigin v o t (List.mem_of_getElem? hi)
+  exact fx_emit_wire 263 _ continuation_schedule continuation_genOrigin
+    (gen_suffix_carried 16).2 (fun v t hm => by
+      rcases List.mem_append.mp hm with hm | hm
+      · exact prefix_no_restart 248 v t hm
+      · exact suffix_no_restart 16 v t hm) u o t (genEmits_runData 263 _ u o t hu)
+
+/-- A skipped offer has exactly the store effect of the real handler. -/
+theorem fx_process_inert (st : State params.n) (o : Obj params)
+    (hp : processedS params st o = true) :
+    FGSA.process params st (toWire params o) = st := by
+  unfold processedS at hp
+  unfold FGSA.process
+  cases hd : (toWire params o).decode with
+  | none => rw [hd] at hp
+  | some m =>
+    rw [hd] at hp
+    cases m with
+    | vote s i b =>
+      have hm := of_decide_eq_true hp
+      change (⟨.seat s i, .head b⟩ : GridCO.Wire params.n .root) ∈ st.base.votes at hm
+      simp [admitHead, GridCO.admitVote, hm]
+    | row i body =>
+      have hm := of_decide_eq_true hp
+      obtain rfl := i7_decode_row o i body hd
+      exact i7_admitRow_duplicate st i body hm
+    | block s b =>
+      have hm := of_decide_eq_true hp
+      apply admitBlock_refused
+      cases hP : parentFG st b.erase with
+      | none => exact Or.inr (Or.inl rfl)
+      | some P => exact Or.inr (Or.inr ⟨P, rfl, by simp [blockAccepted, hm]⟩)
+
+/-- The store update does not depend on whether the offer was skipped. -/
+theorem fx_deliver_st (t : Time) (acc : World × List Event)
+    (vo : Validator × Obj params) (u : Validator) :
+    ((deliverOne t acc vo).1 u).st =
+      if u = vo.1 then FGSA.process params (acc.1 u).st (toWire params vo.2)
+      else (acc.1 u).st := by
+  unfold deliverOne
+  split
+  · rename_i hp
+    by_cases hu : u = vo.1
+    · subst u
+      rw [ite_eq_left rfl, fx_process_inert _ _ hp]
+    · rw [ite_eq_right hu]
+  · dsimp only
+    by_cases hu : u = vo.1
+    · subst u
+      simp only [V2.D.World.step, Function.update_self]
+      rfl
+    · simp only [V2.D.World.step, Function.update_of_ne hu, ite_eq_right hu]
+
+/-- Each node receives one store update for one offered object. -/
+theorem fx_offer_st (t : Time) (acc : World × List Event) (o : Obj params)
+    (vs : List Validator) (hn : vs.Nodup) (u : Validator) :
+    (((vs.map (fun v => (v, o))).foldl (deliverOne t) acc).1 u).st =
+      if u ∈ vs then FGSA.process params (acc.1 u).st (toWire params o)
+      else (acc.1 u).st := by
+  induction vs generalizing acc with
+  | nil => simp
+  | cons v vs ih =>
+    rw [List.map_cons, List.foldl_cons, ih _ hn.of_cons, fx_deliver_st]
+    by_cases huv : u = v
+    · subst u
+      simp only [List.mem_cons, true_or, ↓reduceIte, hn.notMem]
+    · by_cases hu : u ∈ vs <;> simp [huv, hu]
+
+/-- An awake node's tick store is the clock of its input store. -/
+theorem fx_tickBatch_st (t : Time) (w : World) (u : Validator)
+    (hu : weakEnv.awake u t = true) :
+    ((tickBatch t w).1 u).st = FGSA.clock params (w u).st t := by
+  by_cases ht : t ≤ 247
+  · have he : awakeNodes t = nodes := by simp [awakeNodes, weakEnv, nodes, ht]
+    rw [tickBatch, he]
+    fin_cases u <;> simp [nodes, List.foldl_cons] <;> apply i7_tick_st
+  · have he : u = 0 := ((weak_awake_iff u t).mp hu).resolve_left ht
+    subst u
+    have he : awakeNodes t = [0] := by simp [awakeNodes, weakEnv, nodes, ht]
+    rw [tickBatch, he]
+    simp only [List.foldl_cons, List.foldl_nil, Function.update_self]
+    apply i7_tick_st
+
+/-- Awake stores agree at the time of the next generated batch. -/
+def FxUniformStores (t : Time) (w : World) : Prop :=
+  ∀ u v, weakEnv.awake u t = true → weakEnv.awake v t = true → (w u).st = (w v).st
+
+theorem fx_awake_mono (v : Validator) (a b : Time) (hab : a ≤ b)
+    (hb : weakEnv.awake v b = true) : weakEnv.awake v a = true := by
+  apply (weak_awake_iff v a).mpr
+  rcases (weak_awake_iff v b).mp hb with ht | hv
+  · exact Or.inl (hab.trans ht)
+  · exact Or.inr hv
+
+theorem fx_offer_uniform (t : Time) (acc : World × List Event) (o : Obj params)
+    (hw : FxUniformStores t acc.1) :
+    FxUniformStores t (((awakeNodes t).map (fun v => (v, o))).foldl (deliverOne t) acc).1 := by
+  intro u v hu hv
+  rw [fx_offer_st t acc o _ (awakeNodes_nodup t),
+    fx_offer_st t acc o _ (awakeNodes_nodup t),
+    ite_eq_left ((awakeNodes_mem u t).mpr hu),
+    ite_eq_left ((awakeNodes_mem v t).mpr hv), hw u v hu hv]
+
+theorem fx_objects_uniform (t : Time) (os : List (Obj params))
+    (acc : World × List Event) (hw : FxUniformStores t acc.1) :
+    FxUniformStores t ((os.flatMap (fun o => (awakeNodes t).map (fun v => (v, o)))).foldl
+      (deliverOne t) acc).1 := by
+  induction os generalizing acc with
+  | nil => exact hw
+  | cons o os ih =>
+    rw [List.flatMap_cons, List.foldl_append]
+    exact ih _ (fx_offer_uniform t acc o hw)
+
+theorem fx_batch_uniform (t : Time) (w : World) (hw : FxUniformStores t w) :
+    FxUniformStores t (timeBatch t w).1 := by
+  apply fx_objects_uniform
+  intro u v hu hv
+  rw [fx_tickBatch_st t w u hu, fx_tickBatch_st t w v hv, hw u v hu hv]
+
+theorem fx_prefix_uniform (steps : Nat) : FxUniformStores steps (buildPrefix steps).1 := by
+  induction steps with
+  | zero => exact fun _ _ _ _ => rfl
+  | succ steps ih =>
+    intro u v hu hv
+    exact fx_batch_uniform steps _ ih u v
+      (fx_awake_mono u _ _ (by exact_mod_cast Nat.le_succ steps) hu)
+      (fx_awake_mono v _ _ (by exact_mod_cast Nat.le_succ steps) hv)
+
+theorem fx_suffix_uniform (steps : Nat) :
+    FxUniformStores (248 + steps : Nat) (buildSuffix steps).1 := by
+  intro u v hu hv
+  have ht : ¬ ((248 + steps : Nat) : Time) ≤ 247 := by simp only [Time] at *; omega
+  have hu0 := ((weak_awake_iff u _).mp hu).resolve_left ht
+  have hv0 := ((weak_awake_iff v _).mp hv).resolve_left ht
+  rw [hu0, hv0]
+
+/-- A batch releases exactly the objects from its four independent ticks. -/
+theorem fx_tickBatch_emits (t : Time) (w : World) (o : Obj params) :
+    o ∈ (tickBatch t w).2 ↔
+      ∃ v, o ∈ (V2.D.tick weakEnv (runData 263 []) (w v) v t).2 := by
+  by_cases ht : t ≤ 247
+  · have he : awakeNodes t = nodes := by simp [awakeNodes, weakEnv, nodes, ht]
+    constructor
+    · intro ho
+      rw [tickBatch, he] at ho
+      simp [nodes] at ho
+      rcases List.mem_append.mp ho with h | h
+      · rcases List.mem_append.mp h with h | h
+        · rcases List.mem_append.mp h with h | h
+          · exact ⟨0, h⟩
+          · exact ⟨1, h⟩
+        · exact ⟨2, h⟩
+      · exact ⟨3, h⟩
+    · rintro ⟨v, hv⟩
+      rw [tickBatch, he]
+      simp [nodes]
+      fin_cases v
+      · exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ hv))
+      · exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ hv))
+      · exact List.mem_append_left _ (List.mem_append_right _ hv)
+      · exact List.mem_append_right _ hv
+  · have he : awakeNodes t = [0] := by simp [awakeNodes, nodes, weakEnv, ht]
+    rw [tickBatch, he, List.foldl_cons, List.foldl_nil]
+    dsimp only
+    constructor
+    · exact fun ho => ⟨0, ho⟩
+    · rintro ⟨v, hv⟩
+      have ha : weakEnv.awake v t = true := by
+        by_contra hn
+        have hf : weakEnv.awake v t = false := Bool.eq_false_iff.mpr hn
+        simp [V2.D.tick, hf] at hv
+        exact List.not_mem_nil hv
+      have hv0 := ((weak_awake_iff v t).mp ha).resolve_left ht
+      subst v
+      exact hv
+
+/-- Every replayed generator store is reachable. -/
+theorem fx_reachable (es : List Event) (u : Validator) :
+    Reachable params (genFold V2.D.World.init es u).st := by
+  have h := reachable_stateBefore weakEnv (runData 263 es) es.length u
+  rwa [runData_stateBefore, List.take_length] at h
+
+/-- An emitted proposal has a parent in the emitting store. -/
+theorem fx_tick_deps (st : Node params) (v : Validator) (t : Time)
+    (hr : Reachable params st.st) (o : Obj params)
+    (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2) :
+    depsS params (FGSA.clock params st.st t) o = true := by
+  obtain ⟨l, j, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
+  cases l with
+  | headAction s =>
+    change (if joinedNow params _ then some (Msg.head (headVote params _ s).root)
+      else none) = some m at ha
+    split at ha <;> try contradiction
+    have he : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
+    subst m
+    rfl
+  | fgAction r =>
+    change (attest params (FGSA.clock params st.st t)
+      st.record ⟨0, params.nPos⟩).1.map Msg.row = some m at ha
+    obtain ⟨body, hb, hm⟩ := Option.map_eq_some_iff.mp ha
+    subst m
+    rfl
+  | propAction s =>
+    change (if joinedNow params _ then
+      (propose params (FGSA.clock params st.st t) s).map (withApp params 0)
+      else none) = some m at ha
+    split at ha <;> try contradiction
+    unfold propose at ha
+    split at ha
+    · cases ha
+    · simp only [Option.map_map] at ha
+      obtain ⟨P, hP, rfl⟩ := Option.map_eq_some_iff.mp ha
+      let pre := FGSA.clock params st.st t
+      have hnamed := namedByErase?_sound pre _ P hP
+      have hinv := (storeBundle_of_reachable params _ (Reachable.tick t hr)).cstore
+      let H := getHead params pre (proposerVotes pre s) (proposerSupport pre s)
+      obtain ⟨Q, hQ, he⟩ := (hinv.baseTree H).mp (getHead_stored params _ hinv _ _)
+      have hlookup := (fgBlockOf_spec params pre hinv H Q).mpr ⟨hQ, he⟩
+      change (decide (P ∈ pre.namedBodies) && (fgBlockOf pre P.erase).isSome) = true
+      rw [hnamed.2, hlookup]
+      simp only [Option.isSome_some, Bool.and_true, decide_eq_true_eq]
+      exact hnamed.1
+
+/-- Store agreement supplies proposal dependencies at every receiver after the ticks. -/
+theorem fx_batch_deps_start (t : Time) (w : World) (hw : FxUniformStores t w)
+    (hr : ∀ v, Reachable params (w v).st) (o : Obj params)
+    (ho : o ∈ (tickBatch t w).2) (u : Validator) (hu : weakEnv.awake u t = true) :
+    depsS params ((tickBatch t w).1 u).st o = true := by
+  obtain ⟨v, hv⟩ := (fx_tickBatch_emits t w o).1 ho
+  have hvawake : weakEnv.awake v t = true := by
+    by_contra hn
+    have hf : weakEnv.awake v t = false := Bool.eq_false_iff.mpr hn
+    simp [V2.D.tick, hf] at hv
+    exact List.not_mem_nil hv
+  rw [fx_tickBatch_st t w u hu, hw u v hu hvawake]
+  exact fx_tick_deps _ v t (hr v) o hv
+
+/-- Dependencies persist when the FG store grows. -/
+theorem fx_deps_mono {st st' : State params.n} (hT : st.fg.TF ⊆ st'.fg.TF)
+    (hN : st.namedBodies ⊆ st'.namedBodies) (o : Obj params) (h : depsS params st o = true) :
+    depsS params st' o = true := by
+  unfold depsS at h ⊢
+  cases hd : (toWire params o).decode with
+  | none => rfl
+  | some m =>
+    cases m with
+    | vote s i b => rfl
+    | row i body => rfl
+    | block s b =>
+      rw [hd] at h
+      obtain ⟨hn, hp⟩ := Bool.and_eq_true_iff.mp h
+      apply Bool.and_eq_true_iff.mpr
+      refine ⟨decide_eq_true (hN (of_decide_eq_true hn)), ?_⟩
+      obtain ⟨P, hP⟩ := Option.isSome_iff_exists.mp hp
+      exact Option.isSome_iff_exists.mpr ⟨P,
+        (parentFG_spec st' b.erase P).2
+          ⟨hT ((parentFG_spec st b.erase P).1 hP).1,
+            ((parentFG_spec st b.erase P).1 hP).2⟩⟩
+
+/-- Any offered delivery preserves dependencies of every object. -/
+theorem fx_deliver_deps (t : Time) (acc : World × List Event)
+    (vo : Validator × Obj params) (u : Validator) (o : Obj params)
+    (h : depsS params (acc.1 u).st o = true) :
+    depsS params ((deliverOne t acc vo).1 u).st o = true := by
+  rw [fx_deliver_st]
+  split
+  · exact fx_deps_mono (process_cumulative params _ _).1
+      (process_namedBodies_subset _ _) o h
+  · exact h
+
+/-- Dependency checks at every delivery in a list. -/
+def FxDeps : World → List Event → Prop
+  | _, [] => True
+  | w, e :: es =>
+      (match e with
+        | .deliver v o _ => depsS params (w v).st o = true
+        | _ => True) ∧
+      FxDeps (V2.D.World.step weakEnv (runData 263 []) w e) es
+
+theorem fx_deps_append (w : World) (es ds : List Event) :
+    FxDeps w (es ++ ds) ↔ FxDeps w es ∧ FxDeps (genFold w es) ds := by
+  induction es generalizing w with
+  | nil => simp [FxDeps, genFold]
+  | cons e es ih =>
+    simp only [List.cons_append, FxDeps, ih, genFold, List.foldl_cons]
+    tauto
+
+/-- The delivery fold keeps the dependency checks in its accumulated trace. -/
+theorem fx_delivery_fold_deps (t : Time) (xs : List (Validator × Obj params))
+    (w : World) (acc : World × List Event) (hr : genFold w acc.2 = acc.1)
+    (hd : FxDeps w acc.2)
+    (hx : ∀ vo ∈ xs, depsS params (acc.1 vo.1).st vo.2 = true) :
+    FxDeps w (xs.foldl (deliverOne t) acc).2 := by
+  induction xs generalizing acc with
+  | nil => exact hd
+  | cons vo xs ih =>
+    rw [List.foldl_cons]
+    apply ih
+    · unfold deliverOne
+      split
+      · exact hr
+      · simp only [genFold_append, hr]
+        rfl
+    · unfold deliverOne
+      split
+      · exact hd
+      · apply (fx_deps_append w acc.2 _).2
+        exact ⟨hd, by simpa only [FxDeps, hr, and_true] using hx vo (List.mem_cons_self ..)⟩
+    · intro vo' hm
+      exact fx_deliver_deps t acc vo vo'.1 vo'.2 (hx vo' (List.mem_cons_of_mem _ hm))
+
+theorem fx_ticks_deps (w : World) (t : Time) (vs : List Validator) :
+    FxDeps w (vs.map (fun v => .tick v t)) := by
+  induction vs generalizing w with
+  | nil => trivial
+  | cons v vs ih => exact ⟨trivial, ih _⟩
+
+/-- I6 holds throughout a complete generated time block. -/
+theorem fx_batch_deps (t : Time) (w : World) (hw : FxUniformStores t w)
+    (hr : ∀ v, Reachable params (w v).st) : FxDeps w (timeBatch t w).2 := by
+  apply fx_delivery_fold_deps
+  · exact (tickBatch_replay t w).symm
+  · exact fx_ticks_deps w t (awakeNodes t)
+  · intro vo hm
+    obtain ⟨o, ho, hm⟩ := List.mem_flatMap.mp hm
+    obtain ⟨v, hv, rfl⟩ := List.mem_map.mp hm
+    exact fx_batch_deps_start t w hw hr o ho v ((awakeNodes_mem v t).mp hv)
+
+/-- I6 for the source generator, by induction over time blocks. -/
+theorem fx_prefix_deps (steps : Nat) : FxDeps V2.D.World.init (buildPrefix steps).2 := by
+  induction steps with
+  | zero => trivial
+  | succ steps ih =>
+    apply (fx_deps_append _ _ _).2
+    refine ⟨ih, ?_⟩
+    rw [← (prefix_replay_fresh steps).1]
+    exact fx_batch_deps _ _ (fx_prefix_uniform steps) (fun v => by
+      rw [(prefix_replay_fresh steps).1]
+      exact fx_reachable _ v)
+
+/-- I6 for the suffix generator, from the source's final store. -/
+theorem fx_suffix_deps (steps : Nat) : FxDeps (buildPrefix 248).1 (buildSuffix steps).2 := by
+  induction steps with
+  | zero => trivial
+  | succ steps ih =>
+    apply (fx_deps_append _ _ _).2
+    refine ⟨ih, ?_⟩
+    rw [← (suffix_replay_fresh steps).1]
+    exact fx_batch_deps _ _ (fx_suffix_uniform steps) (fun v => by
+      rw [(suffix_replay_fresh steps).1, (prefix_replay_fresh 248).1,
+        ← genFold_append]
+      exact fx_reachable _ v)
+
+/-- Read a dependency check at an indexed delivery. -/
+theorem fx_deps_get (w : World) (es : List Event) (hd : FxDeps w es)
+    (i : Nat) (v : Validator) (o : Obj params) (t : Time)
+    (he : es[i]? = some (.deliver v o t)) :
+    depsS params (genFold w (es.take i) v).st o = true := by
+  induction es generalizing w i with
+  | nil => simp at he
+  | cons e es ih =>
+    cases i with
+    | zero =>
+      simp only [List.getElem?_cons_zero, Option.some.injEq] at he
+      subst e
+      exact hd.1
+    | succ i => exact ih _ hd.2 i (by simpa using he)
+
+attribute [irreducible] FxDeps
+
+/-- The complete continuation has I6 at every delivery. -/
+theorem fx_continuation_genDeps : FxDeps V2.D.World.init continuation.events := by
+  change FxDeps V2.D.World.init ((buildPrefix 248).2 ++ (buildSuffix 16).2)
+  rw [fx_deps_append, ← (prefix_replay_fresh 248).1]
+  exact ⟨fx_prefix_deps 248, fx_suffix_deps 16⟩
+
+set_option maxRecDepth 4096 in
+/-- Proposal dependencies hold for the full continuation. -/
+theorem fx_continuation_deps (i : Nat) (v : Validator) (o : Obj params) (t : Time)
+    (hi : continuation.events[i]? = some (.deliver v o t)) :
+    (fgsa params unitCodec).depsPresent (V2.D.Run.stateBefore weakEnv continuation i v) o
+      = true := by
+  change depsS params (genFold V2.D.World.init (continuation.events.take i) v).st o = true
+  exact fx_deps_get V2.D.World.init continuation.events fx_continuation_genDeps i v o t hi
+
+/-- Proposal dependencies hold for the source in its strong environment. -/
+theorem fx_source_deps (i : Nat) (v : Validator) (o : Obj params) (t : Time)
+    (hi : source.events[i]? = some (.deliver v o t)) :
+    (fgsa params unitCodec).depsPresent (V2.D.Run.stateBefore strongEnv source i v) o = true := by
+  have hil := (List.getElem?_eq_some_iff.mp hi).1
+  have hi' : continuation.events[i]? = some (.deliver v o t) := by
+    change (source.events ++ (buildSuffix 16).2)[i]? = _
+    rw [List.getElem?_append_left hil]
+    exact hi
+  have h := fx_continuation_deps i v o t hi'
+  rw [source_replay (Nat.le_of_lt hil)] at h
+  exact h
+
+
+/-- Every batch event belongs to an awake node. -/
+theorem fx_batch_awake (t : Time) (w : World) (e : Event)
+    (he : e ∈ (timeBatch t w).2) : weakEnv.awake e.node e.time = true := by
+  obtain ⟨ds, hb, hs⟩ := timeBatch_block t w
+  rw [hb] at he
+  rcases List.mem_append.mp he with he | he
+  · obtain ⟨v, hv, rfl⟩ := List.mem_map.mp he
+    exact (awakeNodes_mem v t).mp hv
+  · obtain ⟨o, _, he⟩ := List.mem_flatMap.mp (hs.subset he)
+    obtain ⟨v, hv, rfl⟩ := List.mem_map.mp he
+    exact (awakeNodes_mem v t).mp hv
+
+theorem fx_prefix_awake (steps : Nat) (e : Event) (he : e ∈ (buildPrefix steps).2) :
+    weakEnv.awake e.node e.time = true := by
+  rw [prefix_blocks] at he
+  obtain ⟨t, _, he⟩ := List.mem_flatMap.mp he
+  exact fx_batch_awake _ _ e he
+
+theorem fx_suffix_awake (steps : Nat) (e : Event) (he : e ∈ (buildSuffix steps).2) :
+    weakEnv.awake e.node e.time = true := by
+  rw [suffix_blocks] at he
+  obtain ⟨t, _, he⟩ := List.mem_flatMap.mp he
+  exact fx_batch_awake _ _ e he
+
+/-- Nodes in this continuation sleep once and do not wake within its horizon. -/
+theorem fx_weak_no_wakes (v : Validator) (t : Time) : ¬ V2.D.Wakes weakEnv v t := by
+  rintro ⟨ha, hs⟩
+  have hb := fx_awake_mono v (t - 1) t (by simp only [Time] at *; omega) ha
+  rw [hs] at hb
+  contradiction
+
+theorem fx_source_sleep : V2.D.SleepWellFormed strongEnv source where
+  tick_awake := fun _ _ _ => rfl
+  deliver_awake := fun _ _ _ _ => rfl
+  restart_awake := fun _ _ _ => rfl
+  wake_restart := by
+    intro v _ t _ _ hw
+    have hf : strongEnv.awake v (t - 1) = true := rfl
+    unfold V2.D.Wakes at hw
+    rw [hf] at hw
+    exact Bool.noConfusion hw.2
+
+theorem fx_continuation_sleep : V2.D.SleepWellFormed weakEnv continuation where
+  tick_awake := by
+    intro v t he
+    rcases List.mem_append.mp he with he | he
+    · exact fx_prefix_awake 248 _ he
+    · exact fx_suffix_awake 16 _ he
+  deliver_awake := by
+    intro v o t he
+    rcases List.mem_append.mp he with he | he
+    · exact fx_prefix_awake 248 _ he
+    · exact fx_suffix_awake 16 _ he
+  restart_awake := by
+    intro v t he
+    rcases List.mem_append.mp he with he | he
+    · exact (prefix_no_restart 248 v t he).elim
+    · exact (suffix_no_restart 16 v t he).elim
+  wake_restart := fun v _ t _ _ hw => (fx_weak_no_wakes v t hw).elim
+
+/-- Complete execution validity, including the full-sleep parent. -/
+theorem fx_source_execution : V2.D.ExecutionValid strongEnv source where
+  toScheduleWellFormed := source_schedule
+  wire := fx_source_wire
+  deps := fx_source_deps
+  fresh := source_fresh
+  toUnforgeableSignatures := source_signatures
+  toSleepWellFormed := fx_source_sleep
+
+theorem fx_continuation_execution : V2.D.ExecutionValid weakEnv continuation where
+  toScheduleWellFormed := continuation_schedule
+  wire := fx_continuation_wire
+  deps := fx_continuation_deps
+  fresh := continuation_fresh
+  toUnforgeableSignatures := continuation_signatures
+  toSleepWellFormed := fx_continuation_sleep
+
+theorem fx_source_restarts : V2.D.RestartsAtWakes strongEnv source := by
+  intro v t he
+  exact (prefix_no_restart 248 v t he).elim
+
+theorem fx_continuation_restarts : V2.D.RestartsAtWakes weakEnv continuation := by
+  intro v t he
+  rcases List.mem_append.mp he with he | he
+  · exact (prefix_no_restart 248 v t he).elim
+  · exact (suffix_no_restart 16 v t he).elim
+
+/-- Exact proposal bodies from the finite event-index emission table. -/
+def fx_emittedTable (E : Generic.Env Validator)
+    (rho : V2.D.Run Validator (fgsa params unitCodec)) : List (NamedProposal params.n) :=
+  (List.range rho.events.length).flatMap (fun i =>
+    (V2.D.Run.emitsAt E rho i).filterMap (fun o => match o.payload with
+      | .proposal N => some N
+      | _ => none))
+
+/-- P23-A: an honest emission is a body in the generator's finite scope table. -/
+theorem fx_emitted_in_table (E : Generic.Env Validator)
+    (rho : V2.D.Run Validator (fgsa params unitCodec)) (v : Validator)
+    (o : Obj params) (t : Time) (N : NamedProposal params.n)
+    (hem : V2.D.Run.emits E rho v o t) (hp : o.payload = .proposal N) :
+    N ∈ fx_emittedTable E rho := by
+  obtain ⟨i, hi, ho⟩ := hem
+  apply List.mem_flatMap.mpr
+  refine ⟨i, List.mem_range.mpr (List.getElem?_eq_some_iff.mp hi).1, ?_⟩
+  apply List.mem_filterMap.mpr
+  exact ⟨o, ho, by rw [hp]⟩
+
+/-- P23-A: exact emitted bodies and their named ancestors belong to receipt scope. -/
+theorem fx_emitted_in_scope (E : Generic.Env Validator)
+    (rho : V2.D.Run Validator (fgsa params unitCodec)) (v : Validator)
+    (hv : v ∈ rho.honest) (o : Obj params) (t : Time) (N A : NamedProposal params.n)
+    (hem : V2.D.Run.emits E rho v o t) (hp : o.payload = .proposal N)
+    (ha : NamedProposal.Preceq A N) : NamedProposalReceiptScope params unitCodec E rho A :=
+  Or.inr ⟨v, hv, o, t, N, hem, hp, ha⟩
+
+/-- P23-A table interface for P-As: include emitted bodies before proving injectivity. -/
+theorem fx_receipt_roots_of_table (E : Generic.Env Validator)
+    (rho : V2.D.Run Validator (fgsa params unitCodec)) (table : List (NamedProposal params.n))
+    (hscope : ∀ N, NamedProposalInRun params unitCodec E rho N → N ∈ table)
+    (hemit : ∀ N ∈ fx_emittedTable E rho, N ∈ table)
+    (hancestor : ∀ N ∈ table, ∀ A, NamedProposal.Preceq A N → A ∈ table)
+    (hinjective : ∀ N ∈ table, ∀ M ∈ table, N.root = M.root → N = M) :
+    NamedReceiptRootCollisionFree params unitCodec E rho := by
+  have hmem (A : NamedProposal params.n)
+      (ha : NamedProposalReceiptScope params unitCodec E rho A) : A ∈ table := by
+    rcases ha with hs | ⟨v, _, o, t, N, hem, hp, hAN⟩
+    · exact hscope A hs
+    · exact hancestor N (hemit N (fx_emitted_in_table E rho v o t N hem hp)) A hAN
+  exact fun A B ha hb he => hinjective A (hmem A ha) B (hmem B hb) he
+
+-- P-Fx strict audit of the generator and its validity suppliers.
+#print axioms awakeNodes_mem
+#print axioms awakeNodes_nodup
+#print axioms design_numbers
+#print axioms delta_ratio
+#print axioms bounds
+#print axioms witness_window_bounds
+#print axioms horizons
+#print axioms endpoint
+#print axioms covered
+#print axioms environments
+#print axioms honest_sets
+#print axioms faulty_sets
+#print axioms fault_bound
+#print axioms strong_awake
+#print axioms weak_awake_iff
+#print axioms awake_agreement
+#print axioms strong_awake_set
+#print axioms weak_awake_set_before
+#print axioms weak_awake_set_after
+#print axioms awake_counts
+#print axioms witness_participation
+#print axioms strict_drop
+#print axioms later_sleep
+#print axioms cstar
+#print axioms linked
+#print axioms gap_positive
+#print axioms gap_aligned
+#print axioms source_gap
+#print axioms boundary_duties
+#print axioms delivery_fold_mem
+#print axioms timeBatch_shape
+#print axioms timeBatch_time
+#print axioms timeBatch_no_restart
+#print axioms nodes_complete
+#print axioms timeBatch_tick
+#print axioms witness_prefix_times
+#print axioms suffix_times
+#print axioms prefix_no_restart
+#print axioms suffix_no_restart
+#print axioms no_restart
+#print axioms event_prefix
+#print axioms suffix_after_endpoint
+#print axioms agreement_of_suffix
+#print axioms agreement
+#print axioms committees
+#print axioms recovery_awake
+#print axioms prefix_tick
+#print axioms suffix_tick
+#print axioms source_horizon_nonneg
+#print axioms continuation_horizon_nonneg
+#print axioms source_in_horizon
+#print axioms continuation_in_horizon
+#print axioms source_honest_only
+#print axioms continuation_honest_only
+#print axioms source_tick_public
+#print axioms continuation_tick_public
+#print axioms source_tick_total
+#print axioms continuation_tick_total
+#print axioms suffix_has_ticks
+#print axioms phase_le_two
+#print axioms key_le_delivery
+#print axioms delivery_fold_sorted
+#print axioms timeBatch_sorted
+#print axioms prefix_sorted
+#print axioms suffix_sorted
+#print axioms source_sorted
+#print axioms continuation_sorted
+#print axioms replay_of_agreement
+#print axioms source_replay
+#print axioms genFold_append
+#print axioms genFresh_append
+#print axioms tick_fold_replay
+#print axioms tickBatch_replay
+#print axioms tick_list_fresh
+#print axioms delivery_fold_replay_fresh
+#print axioms timeBatch_replay_fresh
+#print axioms prefix_replay_fresh
+#print axioms suffix_replay_fresh
+#print axioms genFresh_get
+#print axioms genFold_runData
+#print axioms genFresh_join
+#print axioms runData_fresh
+#print axioms continuation_events_eq
+#print axioms continuation_genFresh
+#print axioms continuation_fresh
+#print axioms source_fresh
+#print axioms genEmits_cons
+#print axioms genEmits_append_left
+#print axioms genEmits_append_right
+#print axioms genOrigin_append
+#print axioms tick_fold_origin
+#print axioms tickBatch_origin
+#print axioms delivery_fold_sublist
+#print axioms timeBatch_block
+#print axioms prefix_blocks
+#print axioms suffix_blocks
+#print axioms timeBatch_origin
+#print axioms prefix_origin
+#print axioms suffix_origin
+#print axioms genEmits_runData
+#print axioms gen_tick_holder
+#print axioms genOrigin_unforgeable
+#print axioms continuation_genOrigin
+#print axioms continuation_unforgeable
+#print axioms source_emits_weak_to_strong
+#print axioms source_unforgeable
+#print axioms tick_nodup_without_gossip
+#print axioms gen_tick_nodup
+#print axioms tick_fold_nodup
+#print axioms tickBatch_nodup
+#print axioms timeBatch_nodup
+#print axioms prefix_nodup
+#print axioms suffix_nodup
+#print axioms source_nodup
+#print axioms continuation_nodup
+#print axioms source_schedule
+#print axioms continuation_schedule
+#print axioms runData_stateBefore
+#print axioms genOrigin_runData
+#print axioms source_delivery_origin
+#print axioms continuation_delivery_origin
+#print axioms gen_nonproposal_deps
+#print axioms gen_derive_positive
+#print axioms gen_attest_valid
+#print axioms gen_tick_seat
+#print axioms gen_tick_nonproposal_wire
+#print axioms delivery_fold_offered
+#print axioms timeBatch_offered
+#print axioms genOrigin_nonproposal_wire
+#print axioms source_nonproposal_wire
+#print axioms continuation_nonproposal_wire
+#print axioms i7_admitRow_duplicate
+#print axioms i7_clock_fields
+#print axioms i7_clock_proposals
+#print axioms i7_clock_rowPool
+#print axioms i7_reconcile_fields
+#print axioms i7_admitRow_eq
+#print axioms i7_foldl_admitRow_eq
+#print axioms i7_tick_st
+#print axioms gen_proposalRows_origin
+#print axioms gen_storedRows_clock
+#print axioms gen_storedRows_fold
+#print axioms gen_storedRows_process
+#print axioms gen_process_pool_mono
+#print axioms gen_tick_proposal_rows
+#print axioms gen_tick_pool_fields
+#print axioms gen_tick_fold_pool
+#print axioms gen_deliver_pool
+#print axioms gen_delivery_fold_pool
+#print axioms gen_timeBatch_pool
+#print axioms gen_prefix_pool
+#print axioms gen_suffix_pool
+#print axioms i7_prefix_selected_rows
+#print axioms i7_suffix_selected_rows
+#print axioms i7_clock_votes
+#print axioms gen_known_mono
+#print axioms gen_known_clock
+#print axioms gen_known_row
+#print axioms gen_known_rows
+#print axioms gen_known_vote
+#print axioms i7_lift_baseVote
+#print axioms gen_known_base_proposal
+#print axioms i7_decode_vote
+#print axioms i7_decode_row
+#print axioms i7_decode_proposal
+#print axioms gen_known_reconcile
+#print axioms gen_known_process
+#print axioms gen_tick_children_known
+#print axioms gen_tick_fold_known
+#print axioms gen_delivery_fold_known
+#print axioms gen_timeBatch_known
+#print axioms gen_timeBatch_delivered
+#print axioms gen_past_append
+#print axioms gen_past_bound
+#print axioms gen_batch_carried
+#print axioms gen_prefix_carried
+#print axioms gen_suffix_carried
+#print axioms genCarried_runData
+#print axioms source_carried
+#print axioms continuation_carried
+#print axioms source_signatures
+#print axioms continuation_signatures
+#print axioms i7_tick_fold_pool_eq
+#print axioms i7_batch_emitted_rows
+#print axioms i7_prefix_emitted_rows
+#print axioms i7_suffix_emitted_rows
+#print axioms gen_past_row_valid
+#print axioms gen_prefix_rows_valid
+#print axioms gen_suffix_rows_valid
+#print axioms i7_prefix_proposal_rows_valid
+#print axioms i7_suffix_proposal_rows_valid
+#print axioms i7_eight_in_both_runs
+#print axioms fx_proposal_rows
+#print axioms fx_proposal_votes
+#print axioms fx_proposal_wf
+#print axioms fx_known_fold
+#print axioms fx_rows_at_index
+#print axioms fx_emit_wire
+#print axioms fx_source_schedule
+#print axioms fx_source_wire
+#print axioms fx_continuation_wire
+#print axioms fx_process_inert
+#print axioms fx_deliver_st
+#print axioms fx_offer_st
+#print axioms fx_tickBatch_st
+#print axioms fx_awake_mono
+#print axioms fx_offer_uniform
+#print axioms fx_objects_uniform
+#print axioms fx_batch_uniform
+#print axioms fx_prefix_uniform
+#print axioms fx_suffix_uniform
+#print axioms fx_tickBatch_emits
+#print axioms fx_reachable
+#print axioms fx_tick_deps
+#print axioms fx_batch_deps_start
+#print axioms fx_deps_mono
+#print axioms fx_deliver_deps
+#print axioms fx_deps_append
+#print axioms fx_delivery_fold_deps
+#print axioms fx_ticks_deps
+#print axioms fx_batch_deps
+#print axioms fx_prefix_deps
+#print axioms fx_suffix_deps
+#print axioms fx_deps_get
+#print axioms fx_continuation_genDeps
+#print axioms fx_continuation_deps
+#print axioms fx_source_deps
+#print axioms fx_batch_awake
+#print axioms fx_prefix_awake
+#print axioms fx_suffix_awake
+#print axioms fx_weak_no_wakes
+#print axioms fx_source_sleep
+#print axioms fx_continuation_sleep
+#print axioms fx_source_execution
+#print axioms fx_continuation_execution
+#print axioms fx_source_restarts
+#print axioms fx_continuation_restarts
+#print axioms fx_emitted_in_table
+#print axioms fx_emitted_in_scope
+#print axioms fx_receipt_roots_of_table
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 end
