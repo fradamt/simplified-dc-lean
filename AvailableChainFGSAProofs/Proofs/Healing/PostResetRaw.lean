@@ -687,12 +687,13 @@ B1/B13/B17/B18. DC: INTENTIONAL moving finality and SA leases.
 For any block covered by the preceding HEAD batches, the next gate
 establishes output coverage. Event induction preserves it on HealSuffix.
 Assembly supplies fgsa_rMono; service and PhaseInterval are not inputs. -/
-theorem healing_output_moving_suffix [Fintype V] {G ΔF : Time}
+theorem healing_output_moving_suffix_at [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (hServices : RawServiceScope p c E rho)
     (mono : RMonoAll p c E rho)
     {s : Slot} {B : Block} {cut : Nat}
     (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
     (hBatches : ∀ l, s + 1 ≤ l → timeIdx rho (SA.voteTime p.toParams l) ≤ cut →
+      SA.voteTime p.toParams l ≤ rho.horizon →
       Gen.Pure.Batch (joinedHonest p E rho (SA.voteTime p.toParams l)).card
         (Gen.V2.Duty.faulty rho).card)
     (hguard : SA.gateTime p.toParams s + 4 * p.Δ ≤ rho.horizon)
@@ -781,7 +782,11 @@ theorem healing_output_moving_suffix [Fintype V] {G ΔF : Time}
           (healing_recovery_later_gate E rho hrec hgst le_rfl hy hj1) B
           (healing_support_gate_geometry E rho hs (hheads (s + 1) le_rfl hread)
             (by rw [clockPre_fg]; exact hFB0)))
-        (hBatches (s + 1) le_rfl hread)) hFB0
+        (hBatches (s + 1) le_rfl hread (by
+          apply le_trans ?_ hguard
+          change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤
+            4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
+          linarith))) hFB0
       (Or.inr (hlease j1 y hy hj1 (by omega) hFB0))
   have h0 : Block.Preceq B (S_at p c E rho a0 y) := by
     rw [S_at_def]
@@ -832,7 +837,10 @@ theorem healing_output_moving_suffix [Fintype V] {G ΔF : Time}
           (hServices.gates l b y hgw hy hl
             (healing_recovery_later_gate E rho hrec hgst hlower hy hl) B
             (healing_support_gate_geometry E rho hs (hheads l hlower hread)
-              (by rw [clockPre_fg]; exact hFb))) (hBatches l hlower hread)) hFb
+              (by rw [clockPre_fg]; exact hFb))) (hBatches l hlower hread (by
+                apply le_trans ?_ (hs.in_horizon _ (List.mem_of_getElem? hl)).2
+                change 4 * p.Δ * (l : Int) + p.Δ ≤ 4 * p.Δ * (l : Int) + 6 * p.Δ
+                linarith))) hFb
         (Or.inl hIH)
     · obtain ⟨_, _, _, _, _, _, hout⟩ := hrc
       rw [S_at_def]
@@ -916,6 +924,30 @@ private theorem raw_clock_compatible (w : HealingWitness) (st : State p.n) (t : 
           · exact Gen.Pure.block_compatible_of_preceq_compatible
               (healing_support_key_cases p hkey).2.2.1 (hresult s C htime hJ hc)
   · exact hpre row hm
+/-- The original H1 consumer retains its exact batch callback type. -/
+theorem healing_output_moving_suffix [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (hServices : RawServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
+    {s : Slot} {B : Block} {cut : Nat}
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hBatches : ∀ l, s + 1 ≤ l → timeIdx rho (SA.voteTime p.toParams l) ≤ cut →
+      Gen.Pure.Batch (joinedHonest p E rho (SA.voteTime p.toParams l)).card
+        (Gen.V2.Duty.faulty rho).card)
+    (hguard : SA.gateTime p.toParams s + 4 * p.Δ ≤ rho.horizon)
+    (hheads : ∀ l, s + 1 ≤ l → timeIdx rho (SA.voteTime p.toParams l) ≤ cut →
+      ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z l = some K → Block.Preceq B K)
+    (hfinality : ∀ b, b ≤ cut → ∀ y, y ∈ rho.honest →
+      V2.D.Run.idxBefore rho (SA.gateTime p.toParams (s + 1)) ≤ b →
+      Block.Compatible (F_at p c E rho b y) B)
+    (hlease : ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y (s + 1) → j ≤ cut →
+      Block.Preceq (F_at p c E rho j y) B →
+      ∀ row ∈ (storeAt p c E rho j y).base.obligations, Block.Compatible row.1 B) :
+    ∀ a y, y ∈ rho.honest → a ≤ cut →
+      HealSuffix p c rho (SA.gateTime p.toParams s + 4 * p.Δ) a →
+      Block.Preceq B (S_at p c E rho a y) := by
+  exact healing_output_moving_suffix_at p c E rho hrec hServices mono hgst
+    (fun l hsl hcut _ => hBatches l hsl hcut) hguard hheads hfinality hlease
+
 
 section ResetLeaseStep
 variable [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)

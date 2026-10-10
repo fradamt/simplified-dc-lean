@@ -7511,3 +7511,13 @@ The saved writer and source-build failures are the validation limit for Round 15
   producer was incorrect. db0590e8 adapts the constructor body only; the closed H1 producer
   statements are unchanged. Reviews: rev-ph2h-astra FIX-FIRST (both items fixed in round 8),
   rev-ph2i-astra FIX-FIRST (report attribution only; corrected here).
+
+- Lead (P-H2 round 9 merge, 2026-10-10): P-H2 114/114 assigned targets GREEN (115 with the
+  bounded support target). Returned producers for P-As: healing_postReset_inv_recovery,
+  healing_h0_extension_recovery, healing_localInput_recovery, healing_fullInput_recovery.
+  H1 healing_output_moving_suffix is byte-identical; its body wraps the bounded companion
+  healing_output_moving_suffix_at (the old unbounded callback is false at the run horizon).
+  Correction (rev-ph2j-astra item 1): Tests/HealingPhaseSettle (:89, :139) stays P-H2-owned
+  (P-H1.txt:724), not H1; P-H2 round 10 ports it with Tests/HealingFrontierRead and the four
+  P-H1 hand-offs missing from P-H2.txt. Review otherwise PASS (guarded steps, pre-GST lock
+  covered by release, bounded companion, input producers).

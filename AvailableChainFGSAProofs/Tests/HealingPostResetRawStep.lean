@@ -55,8 +55,10 @@ example (w : HealingWitness) (st : State p.n)
   (postReset_resetLease_preserve p w st hlease 0 0 B g d hB).2.2.2 row hrow hlive
 
 section Raw
-variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+variable [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     {s : Slot} (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hCut : E.t_GST ≤ slotStartZ p ((s : Int) - 1))
     {ix : Nat} {x : V} {C : Block} (hx : x ∈ rho.honest)
     (hix : IsGateTick p c rho ix x s)
     (hres : gateResultAt p c E rho ix = some (some C))
@@ -65,7 +67,8 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
 example : ∃ k z, z ∈ rho.honest ∧
     rho.events[k]? = some (.tick z (SA.voteTime p.toParams s)) ∧
     Block.Preceq C (headAtIdx p c E rho k s) ∧ k < ix :=
-  healing_gate_result_supporter p c E rho hrec hgst hx hix hres
+  healing_gate_result_supporter p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) hgst hCut hx hix hres
 
 -- A2, conditional package, anti-vacuity: LOW-support or vetoed concrete raw result.
 example {B : FGBlock (Fin p.n)} (heB : eraseFG B = C)
@@ -74,6 +77,8 @@ example {B : FGBlock (Fin p.n)} (heB : eraseFG B = C)
         SA.releaseThreshold p.toParams ∨ ¬ gatePassedAt p c E rho ix)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hJoin : joinedAtTime p (storeAt p c E rho iy y).restartTime
+      (SA.releaseTime p.toParams s) = true)
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1))
@@ -82,22 +87,26 @@ example {B : FGBlock (Fin p.n)} (heB : eraseFG B = C)
     (hlease : ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 C) :
     Block.Preceq C (headAtIdx p c E rho iy (s + 1)) :=
-  healing_first_transfer_raw_domain p c E rho hrec hgst hx hix hres heB hy hiy hXv
+  healing_first_transfer_raw_domain p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) hgst hx hix hres heB hy hiy hJoin hXv
     (fun W hW A _hFA hAW => hXc W hW A hAW) hD hlease
 
 end Raw
 -- Shared slow-window helper, conditional package: an actual saved result covers a reset extension.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
     {i : Nat} {x : V} {j : Slot} {C : Block} {B : FGBlock (Fin p.n)}
     (hx : x ∈ rho.honest)
     (hsaved : GridCO.savedGenuine (storeAt p c E rho i x).base j = some (some C))
     (hB : Block.Preceq w.CStar (eraseFG B)) (hBC : Block.Preceq (eraseFG B) C) :
     E.t_GST < SA.voteTime p.toParams j :=
-  postReset_slow_window_sync p c E rho hrec h0r hx hsaved hB hBC
+  postReset_slow_window_sync p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) h0r hx hsaved hB hBC
 
 section ResetSteps
-variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+variable [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -116,7 +125,8 @@ example (xing : RXing p c E rho) (cap : RCap p c E rho) (source : TSrc p c E rho
     (hrow : row ∈ (storeAt p c E rho
       (afterTicksIdx rho (SA.releaseTime p.toParams w.sStar)) x).base.obligations) :
     Block.Compatible row.1 w.CStar :=
-  postReset_resetLease_at_reset p c E rho hrec emittedNonempty emittedName xing cap source
+  postReset_resetLease_at_reset p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName xing cap source
     h0r x hx row hrow
 
 -- C2, conditional package, anti-vacuity: consume the NEW stored instance j=i.
@@ -127,7 +137,8 @@ example (xing : RXing p c E rho) (cap : RCap p c E rho) (source : TSrc p c E rho
     (hcut : afterTicksIdx rho (SA.releaseTime p.toParams w.sStar) ≤ i)
     {row : Block × Nat × Time} (hrow : row ∈ (storeAt p c E rho i x).base.obligations)
     (hlive : (storeAt p c E rho i x).base.now < row.2.2) : Block.Compatible row.1 w.CStar := by
-  have h := postReset_resetLease_succ p c E rho hrec emittedNonempty emittedName
+  have h := postReset_resetLease_succ p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName
     xing cap source h0r hinv hreset
   rw [PostResetResetLeaseCompatible_def] at h
   exact h i (Nat.lt_succ_self i) x hx hcut row hrow hlive
@@ -137,7 +148,8 @@ example {w : HealingWitness} (h0r : H0Reset p c E rho w) {i : Nat}
     (hinv : PostResetInv p c E rho w i) {x : V} {j : Slot} {C : Block}
     (hx : x ∈ rho.honest) (hj : w.sStar ≤ j) (hi : IsGateTick p c rho i x j)
     (hres : gateResultAt p c E rho i = some (some C)) : Block.Compatible w.CStar C :=
-  postReset_raw_reset_compatible p c E rho hrec emittedNonempty emittedName h0r hinv
+  postReset_raw_reset_compatible p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName h0r hinv
     hx hj hi hres le_rfl
 
 -- P1, conditional package: a concrete passing write at event i has a compatible target.
@@ -148,13 +160,15 @@ example {w : HealingWitness} (h0r : H0Reset p c E rho w) {i : Nat}
     (hkey : (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams j))) j C) :
     Block.Compatible B w.CStar :=
-  postReset_noRewrite p c E rho hrec emittedNonempty emittedName h0r hinv
+  postReset_noRewrite p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName h0r hinv
     hx hj hi hpass hres le_rfl hkey
 
 end ResetSteps
 
 section Release
-variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+variable [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -173,6 +187,7 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -193,7 +208,8 @@ example {w : HealingWitness} (h0r : H0Reset p c E rho w) {i k : Nat}
     (hnd : postClock E rho x (SA.releaseTime p.toParams j) = some nd)
     (hrow : row ∈ nd.st.base.obligations) (hlive : nd.st.base.now < row.2.2) :
     Block.Compatible row.1 C :=
-  postReset_raw_release_compatible p c E rho hrec emittedNonempty emittedName writes
+  postReset_raw_release_compatible p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName writes
     h0r hinv hresetNext hleaseNext hy hj hk hres hki hx hnd row hrow hlive
 
 
@@ -214,16 +230,19 @@ example {w : HealingWitness} (h0r : H0Reset p c E rho w) {i : Nat}
     {row : Block × Nat × Time}
     (hrow : row ∈ (FGSA.clock p (storeAt p c E rho iy y) t).base.obligations) :
     Block.Compatible row.1 C :=
-  postReset_raw_moving_lease_compat p c E rho hrec emittedNonempty emittedName writes h0r
+  postReset_raw_moving_lease_compat p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName writes h0r
     hinv hresetNext hx hlabel hix hxi hres hsl hbatch hy hiy hyi hafter hupper row hrow
 
 end Release
 
 -- A3 domain and parent, conditional package: a concrete honest proposal consumes both wrappers.
 example [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     {r : Slot} {B : FGBlock (Fin p.n)} {Q : Block}
     (hgst : E.t_GST ≤ SA.voteTime p.toParams r)
+    (hCut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K →
       Block.Preceq (eraseFG B) K)
     (hp : HonestProposal E rho (fgsaInterface p c) (r + 1) Q)
@@ -241,13 +260,16 @@ example [Fintype V] {G ΔF : Time}
         (storeAt p c E rho ip (V2.D.proposerOf rho (fgsaInterface p c) (r + 1)))
         (SA.proposalTime p.toParams (r + 1))).base.obligations,
         Block.Compatible row.1 (eraseFG B)) : Block.Preceq (eraseFG B) Q.parent :=
-  healing_proposal_moving_parent p c E rho hrec hgst hcover hp hdomain hlease
+  healing_proposal_moving_parent p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) mono hgst hCut hcover hp hdomain hlease
 
 -- A4, conditional package: the concrete pre-event output index has the exact HealSuffix guard.
 example [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     {s : Slot} {B : Block} {cut : Nat}
     (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hCut : HealingWindow p E 1 s)
     (hguard : SA.gateTime p.toParams s + 4 * p.Δ ≤ rho.horizon)
     (hheads : ∀ l, s + 1 ≤ l → timeIdx rho (SA.voteTime p.toParams l) ≤ cut →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z l = some K → Block.Preceq B K)
@@ -260,7 +282,11 @@ example [Fintype V] {G ΔF : Time}
     ∀ a y, y ∈ rho.honest → a ≤ cut →
       HealSuffix p c rho (SA.gateTime p.toParams s + 4 * p.Δ) a →
       Block.Preceq B (S_at p c E rho a y) :=
-  healing_output_moving_suffix p c E rho hrec mono hgst hguard hheads hfinality hlease
+  healing_output_moving_suffix_at p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) mono hgst
+    (fun l hsl _ hhor => (healing_recovery_joined_counts E rho hrec l
+      (hCut.mono (Nat.le_of_succ_le hsl)).2 (hCut.mono (Nat.le_of_succ_le hsl)).sync hhor).2)
+    hguard hheads hfinality hlease
 
 -- Lead step range, conditional package: the public zero producer starts the joint induction.
 example {w : HealingWitness} (h0r : H0Reset p c E rho w) :
@@ -273,7 +299,8 @@ example (hs : V2.D.ScheduleWellFormed E rho) {w : HealingWitness} (h0r : H0Reset
 
 -- C2 joint adapter, conditional package: the exact published prior triple is sufficient.
 example [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -291,7 +318,9 @@ example [Fintype V] {G ΔF : Time}
           let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho k x) (p.actionTime r)).st
           ∃ D, eraseFG D = Q ∧ D ∈ domainR p st (treeT p st))) :
     PostResetResetLeaseCompatible p c E rho w (i + 1) :=
-  postReset_resetLease_step p c E rho hrec emittedNonempty emittedName xing cap source h0r hprev
+  postReset_resetLease_step p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName
+    xing cap source h0r hprev
 
 end AvailableChain.FGSA.Run.Tests.HealingPostResetRawStep
 end
@@ -302,7 +331,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+variable [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -321,13 +351,14 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
-    (mono : RMono p c E rho) (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
+    (source : TSrc p c E rho) (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
 
@@ -342,13 +373,13 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
     Block.Preceq C (headAtIdx p c E rho iy (s + 1)) :=
-  postReset_raw_first_head p c E rho hrec emittedNonempty emittedName writes mono xing
+  postReset_raw_first_head p c E rho hrec emittedNonempty emittedName writes mono source xing
     origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hy hiy
 
 -- C2-all, conditional package: the joint induction consumes the exact named step.
 example (cap : RCap p c E rho) (source : TSrc p c E rho) :
     ∀ i, PostResetResetLeaseStep p c E rho w i :=
-  postReset_resetLease_succ_all p c E rho hrec emittedNonempty emittedName xing h0r cap source
+  postReset_resetLease_succ_all p c E rho hrec emittedNonempty emittedName mono xing h0r cap source
 
 
 -- R4-all-cuts, conditional package: consume the exact joint successor, including terminal cuts.
@@ -360,7 +391,7 @@ example {i : Nat}
     (hfprovNext : PostResetFProv p c E rho w (i + 1)) :
     PostResetRawTransfer p c E rho w (i + 1) := by
   have hstep := postReset_rawTransfer_succ p c E rho hrec emittedNonempty emittedName writes
-    mono xing origin h0r i
+    mono source xing origin h0r i
   rw [PostResetRawStep_def] at hstep
   exact hstep hprev hresetNext hleaseNext hfprovNext
 

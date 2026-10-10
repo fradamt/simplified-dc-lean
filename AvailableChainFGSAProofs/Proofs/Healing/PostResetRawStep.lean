@@ -33,19 +33,17 @@ private theorem rawStep_result_mem (hs : V2.D.ScheduleWellFormed E rho)
     C ∈ (actView (clockPre p (storeAt p c E rho ix x)
       (SA.gateTime p.toParams s))).blocks := by
   have hconf := (gateResultAt_eq_gateResult p c E rho hs hix).symm.trans hres
-  rw [gateResult_def, (healing_support_gate_reads p c E rho hs hix).1] at hconf
-  have hc : SA.Root.confirmationFrom p.toParams
-      (eraseFG (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s)).fg.F)
-      (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s =
-        some C := Option.some.inj hconf
+  have hc := (fgsa_gate_raw_of_nonempty p c E rho hs hix hconf).2
   have hstore := cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix x)
     (SA.gateTime p.toParams s)
   have hm := compat_of_confirmation p _ hstore hc
   exact (actView_blocks _ C).mpr ⟨hm.2, hm.1⟩
 
 private theorem rawStep_frozen_geometry [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {iy : Nat} {y : V} {s : Slot}
-    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {iy : Nat} {y : V} {s : Slot}
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hEpoch : V2.D.restartFree rho y
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) iy) :
     let X := (storeAt p c E rho
       (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF.filter
         (fun A => FGBlock.Preceq (storeAt p c E rho iy y).fg.F A)
@@ -71,8 +69,9 @@ private theorem rawStep_frozen_geometry [Fintype V] {G ΔF : Time}
   constructor
   · intro W hW
     obtain ⟨hW, hFW⟩ := Finset.mem_filter.mp hW
-    exact healing_frozen_path p c E rho hs hrec.base.noRestart hdpos hdvote
-      (by rw [Nat.add_sub_cancel]) hW hread W
+    exact healing_frozen_path_on p c E rho hs hdpos hdvote
+      (by rw [Nat.add_sub_cancel]) hW hread
+      (fun j hj => (fgsa_tick_unique E rho hs hj hiy).symm ▸ hEpoch) W
       (by change FGBlock.Preceq (FGSA.clock p _ _).fg.F W; rw [clock_fg]; exact hFW)
       (KitFG.preceq_refl W)
   intro W hW A hFA hAW
@@ -122,7 +121,7 @@ private theorem rawStep_outputs_at_gate_cut (hs : V2.D.ScheduleWellFormed E rho)
   exact False.elim (Nat.not_lt_of_ge (Nat.le_of_lt_succ hacut)
     (hlt.trans_le (hpre.trans hsuffix.1)))
 
-variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+variable [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -141,16 +140,18 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
               p.toParams.engine p.n
             (actView pre) w C)
-    (mono : RMono p c E rho) (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
+    (mono : RMonoAll p c E rho) (source : TSrc p c E rho)
+    (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hrec emittedNonempty emittedName writes mono xing origin h0r
+include hrec emittedNonempty emittedName writes mono source xing origin h0r
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2938–2944, H.1:673–700; plan J5-A-2 R1;
@@ -181,10 +182,19 @@ theorem postReset_raw_first_head_above
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
     push_cast
     linarith [p.deltaPos])
-  have hD := postReset_written_domain p c E rho hrec mono emittedNonempty emittedName
+  have hD := postReset_written_domain p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv hx hix hres
     hCB hmem (heB ▸ Gen.Pure.block_preceq_refl C) hy hiy (hyx.le.trans hxi) hZ hF
   obtain ⟨hXv, hXc⟩ := rawStep_frozen_geometry p c E rho hrec hiy
+    (healing_recovery_epoch_after_vote E rho hrec hy
+      (by
+        have hh : (w.sStar : Int) ≤ s := by exact_mod_cast hlabel
+        have ht : SA.voteTime p.toParams w.sStar ≤ SA.voteTime p.toParams s := by
+          change 4 * p.Δ * (w.sStar : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + p.Δ
+          nlinarith [p.deltaPos]
+        exact h0r.synchronous.trans ht)
+      (by change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 3 * p.Δ
+          linarith [p.deltaPos]) _)
   have hgst := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
   have hq : SA.releaseTime p.toParams s = SA.voteTime p.toParams (s + 1) := by
     change 4 * p.Δ * (s : Int) + 5 * p.Δ = 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
@@ -197,7 +207,8 @@ theorem postReset_raw_first_head_above
     rfl
   have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
     exact hresetNext
-  have hrows := postReset_raw_release_compatible p c E rho hrec emittedNonempty emittedName
+  have hrows := postReset_raw_release_compatible p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName
     writes h0r hinv hreset hleaseNext hx hlabel hix
     ((gateResultAt_eq_gateResult p c E rho hs hix).symm.trans hres) hxi hy hread
   have hlease : ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
@@ -212,7 +223,17 @@ theorem postReset_raw_first_head_above
     rw [(clock_vn _ _).2, ← hq]
     exact of_decide_eq_true (List.mem_filter.mp hm).2
   rw [heB]
-  exact healing_first_transfer_raw_domain p c E rho hrec hgst.le hx hix hres heB hy hiy
+  exact healing_first_transfer_raw_domain p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) hgst.le hx hix hres heB hy hiy
+    (healing_first_transfer_scope_recovery E rho hrec mono hgst.le hx hy hix hiy
+      (healing_gate_enabled_of_result E rho hs hix hres)
+      (healing_recovery_joined E rho hrec hy
+        ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono
+          (Nat.le_succ s)).2
+        (by apply hgst.le.trans
+            change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+            push_cast; linarith [p.deltaPos])
+        (hs.in_horizon _ (List.mem_of_getElem? hiy)).2)).receiverGuard
     hXv hXc (by
       dsimp only [D_at] at hD ⊢
       simpa only [healing_domain_filter_F] using hD) hlease
@@ -243,12 +264,26 @@ private theorem rawStep_reset_first_head
   by_cases hF : FGBlock.Preceq B (storeAt p c E rho iy y).fg.F
   · exact healing_head_covers_root p c E rho hiy (l := w.sStar + 1)
       (Nat.succ_ne_zero w.sStar) (Or.inr hF)
-  have hD := postReset_written_domain p c E rho hrec mono emittedNonempty emittedName
+  have hD := postReset_written_domain p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv ha.1 hix hres
     (heB ▸ Gen.Pure.block_preceq_refl w.CStar) hmem hBC hy hiy hyi hZ hF
   obtain ⟨hXv, hXc⟩ := rawStep_frozen_geometry p c E rho hrec hiy
+    (healing_recovery_epoch_after_vote E rho hrec hy h0r.synchronous
+      (by change 4 * p.Δ * (w.sStar : Int) + p.Δ <
+            4 * p.Δ * (w.sStar : Int) + 3 * p.Δ
+          linarith [p.deltaPos]) _)
   exact healing_first_transfer_written p c E rho hrec mono writes ha.1 hix hres hBC
-    h0r.synchronous (Or.inl hτ) hy hiy hXv hXc (by
+    h0r.synchronous
+    (healing_window_of_cut E (healing_ready_vote_cutoff E (healing_reset_source_ready h0r)))
+    (Or.inl hτ) hy hiy (healing_gate_enabled_of_result E rho hs hix hres)
+    (healing_recovery_joined E rho hrec hy
+      (healing_window_of_cut E (healing_ready_vote_cutoff E
+        (healing_reset_source_ready h0r)) |>.mono (Nat.le_succ w.sStar)).2
+      (by apply h0r.synchronous.trans
+          change 4 * p.Δ * (w.sStar : Int) + p.Δ ≤
+            4 * p.Δ * ((w.sStar + 1 : Nat) : Int) + p.Δ
+          push_cast; linarith [p.deltaPos])
+      (hs.in_horizon _ (List.mem_of_getElem? hiy)).2) hXv hXc (by
       dsimp only [D_at] at hD ⊢
       simpa only [healing_domain_filter_F] using hD)
 
@@ -268,11 +303,12 @@ theorem postReset_raw_first_head
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
     Block.Preceq C (headAtIdx p c E rho iy (s + 1)) := by
   have hs := hrec.base.valid.toScheduleWellFormed
-  have hcompat := postReset_raw_reset_compatible p c E rho hrec emittedNonempty emittedName
+  have hcompat := postReset_raw_reset_compatible p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName
     h0r hinv hx hlabel hix hres hxi
   rcases Bool.or_eq_true_iff.mp hcompat with hbelow | habove
   · exact postReset_raw_first_head_above p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hbelow hy hiy
+      mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hbelow hy hiy
   · apply Gen.Pure.block_preceq_trans habove
     have hyx : iy < ix := healing_idx_lt_of_time_lt p c E rho hs hiy hix (by
       change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
@@ -280,7 +316,7 @@ theorem postReset_raw_first_head
       linarith [p.deltaPos])
     rcases eq_or_lt_of_le hlabel with he | hlt
     · subst s
-      exact rawStep_reset_first_head p c E rho hrec emittedNonempty emittedName writes mono
+      exact rawStep_reset_first_head p c E rho hrec emittedNonempty emittedName writes mono source
         xing origin h0r hinv hy hiy (hyx.le.trans hxi)
     · obtain ⟨_, x0, _, B0, ha, -, hsource, heB, -⟩ := h0r.fresh
       obtain ⟨-, C0, -, hG0, hBC, -⟩ :=
@@ -335,7 +371,7 @@ theorem postReset_raw_first_head_label
       rw [ht] at hhead
       exact Option.some.inj hhead
     rw [← heH]
-    exact postReset_raw_first_head p c E rho hrec emittedNonempty emittedName writes mono
+    exact postReset_raw_first_head p c E rho hrec emittedNonempty emittedName writes mono source
       xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hy hiy
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -355,7 +391,7 @@ theorem postReset_raw_heads_at_gate_cut
   intro y l H hy hsl hcut hhead
   rcases eq_or_lt_of_le hsl with rfl | hlt
   · exact postReset_raw_first_head_label p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hi le_rfl hres hy hhead
+      mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hi le_rfl hres hy hhead
   · delta headAtLabel at hhead
     rw [postClock_def, preTick_def] at hhead
     cases ht : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams l) with
@@ -401,29 +437,13 @@ theorem postReset_raw_at_gate_cut
   · intro y nd hy _hcut hnd
     have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
       exact hresetNext
-    exact postReset_raw_release_compatible p c E rho hrec emittedNonempty emittedName writes
+    exact postReset_raw_release_compatible p c E rho hrec
+      (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName writes
       h0r hinv hreset hleaseNext hx hlabel hi hres le_rfl hy hnd
   · exact postReset_raw_heads_at_gate_cut p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hi
+      mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hi
       ((gateResultAt_eq_gateResult p c E rho hs hi).trans hres)
 
-variable
-    (movingDomain : ∀ {i : Nat}, PostResetInv p c E rho w i →
-      ∀ {l : Slot} {B : FGBlock (Fin p.n)}, E.t_GST ≤ SA.voteTime p.toParams l →
-      Block.Preceq w.CStar (eraseFG B) →
-      (∀ z ∈ rho.honest, ∀ H, headAtLabel p c E rho z l = some H →
-        Block.Preceq (eraseFG B) H) →
-      ∀ {iy : Nat} {y : V} {t : Time}, y ∈ rho.honest →
-      rho.events[iy]? = some (.tick y t) → iy ≤ i →
-      SA.freezeTime p.toParams l < t → t ≤ SA.voteTime p.toParams (l + 1) →
-      ∀ {X : Finset (FGBlock (Fin p.n))}, X ⊆ (storeAt p c E rho iy y).fg.TF →
-      (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams l)) y).fg.TF ⊆ X →
-      ¬ FGBlock.Preceq B (R_at p c E rho iy y).Z →
-      ¬ FGBlock.Preceq B (storeAt p c E rho iy y).fg.F → B ∈ D_at p c E rho iy y X)
-
-include movingDomain
-
-omit emittedNonempty emittedName writes mono xing origin h0r in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.2:723–726,736–746; plan J5-A-2 R2 domain;
 B1/B13/B17/B18. DC: SAME moving reader's frozen-domain guard.
@@ -446,10 +466,11 @@ theorem postReset_raw_moving_domain
   have hcut := healing_support_idxBefore_le p c E rho hrec.base.valid.toScheduleWellFormed
     hiy hafter.le
   have hX := (fgsa_store_durable p c E rho hcut y).1
-  exact movingDomain hinv hgst hCB hbatch hy hiy hyi hafter hupper hX (Finset.Subset.refl _)
+  exact postReset_moving_domain p c E rho hrec mono source emittedNonempty emittedName
+    writes xing origin h0r hinv hgst hCB hbatch hy hiy hyi hafter hupper hX (Finset.Subset.refl _)
     hnZ hnF
 
-omit writes mono origin movingDomain in
+omit writes source origin in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2933–2938; plan J5-A-2 reset-lease adapter;
 B1/B13/B17/B18. DC: INTENTIONAL; DC has no leases.
@@ -462,12 +483,12 @@ theorem postReset_resetLease_succ_all (cap : RCap p c E rho) (source : TSrc p c 
   have hreset : PostResetResetLeaseCompatible p c E rho w i := by
     exact hprev.2.1
   rw [PostResetResetLeaseCompatible_def]
-  have hn := postReset_resetLease_succ p c E rho hrec emittedNonempty emittedName xing cap
+  have hn := postReset_resetLease_succ p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName xing cap
     source h0r hprev.1 hreset
   rwa [PostResetResetLeaseCompatible_def] at hn
 
 
-omit movingDomain in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2940–2944, H.2:723–726; plan J5-A-3 R6 HEAD;
 B1/B13/B17/B18. DC: SAME complete successor HEAD cut above CStar. -/
@@ -485,7 +506,7 @@ theorem postReset_raw_heads_succ_above
   have hs := hrec.base.valid.toScheduleWellFormed
   rcases eq_or_lt_of_le hsl with rfl | hsl
   · exact postReset_raw_first_head_label p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hy hhead
+      mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hy hhead
   obtain ⟨l, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt ((Nat.zero_lt_succ s).trans hsl))
   have hsl : s + 1 ≤ l := Nat.le_of_lt_succ hsl
   delta headAtLabel at hhead
@@ -540,20 +561,31 @@ theorem postReset_raw_heads_succ_above
       change 4 * p.Δ * (l : Int) + 3 * p.Δ < 4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ
       push_cast
       linarith [p.deltaPos]
-    have hD := postReset_raw_moving_domain p c E rho hrec
-      (postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName
-        writes xing origin h0r)
+    have hD := postReset_raw_moving_domain p c E rho hrec emittedNonempty emittedName writes
+      mono source xing origin h0r
       hinv hgst hCB hbatch hy hiy hyi hafter le_rfl hZ hF
     have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
       exact hresetNext
-    have hlease := postReset_raw_moving_lease_compat p c E rho hrec emittedNonempty emittedName
+    have hlease := postReset_raw_moving_lease_compat p c E rho hrec
+      (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName
       writes h0r hinv hreset hx hlabel hix hxi hres hsl (heB ▸ hbatch) hy hiy hyi hafter le_rfl
     obtain ⟨hXv, hXc⟩ := rawStep_frozen_geometry p c E rho hrec hiy
-    exact healing_next_transfer_domain p c E rho hrec hgst hbatch hy hiy hXv hXc (by
+      (healing_recovery_epoch_after_vote E rho hrec hy hgst
+        (by change 4 * p.Δ * (l : Int) + p.Δ < 4 * p.Δ * (l : Int) + 3 * p.Δ
+            linarith [p.deltaPos]) _)
+    have hCut := (healing_window_of_cut E (healing_ready_vote_cutoff E
+      (healing_reset_source_ready h0r))).mono (hlabel.trans (Nat.le_of_succ_le hsl))
+    have hJ := healing_recovery_joined E rho hrec hy (hCut.mono (Nat.le_succ l)).2
+      (by apply hgst.trans
+          change 4 * p.Δ * (l : Int) + p.Δ ≤ 4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ
+          push_cast; linarith [p.deltaPos])
+      (hs.in_horizon _ (List.mem_of_getElem? hiy)).2
+    exact healing_next_transfer_domain p c E rho hrec mono hgst hbatch hy hiy
+      (healing_next_transfer_scope_recovery E rho hrec hCut hy hiy hJ) hCut hXv hXc (by
       dsimp only [D_at] at hD ⊢
       simpa only [healing_domain_filter_F] using hD) (heB ▸ hlease)
 
-omit [Fintype V] hrec mono emittedNonempty emittedName writes xing origin h0r movingDomain in
+omit [Fintype V] hrec mono source emittedNonempty emittedName writes xing origin h0r in
 private theorem rawStep_proposal_read
     {s : Slot} {Q : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) s Q) :
@@ -588,7 +620,9 @@ private theorem rawStep_proposal_read
       have he : m = .proposal N := congrArg V2.Signed.payload ho
       subst m
       cases d with
-      | headAction _ => cases hm
+      | headAction _ =>
+        change (if joinedNow p _ then some (Msg.head _) else none) = some (.proposal N) at hm
+        split_ifs at hm; cases hm
       | fgAction _ =>
         change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
         obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hm
@@ -601,11 +635,13 @@ private theorem rawStep_proposal_read
           have he : (s' : Int) = s := by nlinarith
           exact_mod_cast he
         subst s'
+        change (if joinedNow p _ then (propose p _ s).map (withApp p _) else none) =
+          some (.proposal N) at hm
+        split_ifs at hm
         exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
     · exact (List.not_mem_nil hem).elim
 
 
-omit movingDomain in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2940–2944, H.2:736–746; plan J5-A-3 R6 proposal;
 B1/B13/B17/B18. DC: SAME successor proposal cut above CStar. -/
@@ -680,9 +716,13 @@ theorem postReset_raw_proposals_succ_above
     linarith [p.deltaPos]
   have hfroz := healing_support_idxBefore_le p c E rho hs hip hafter.le
   have hX := (fgsa_store_durable p c E rho hfroz y).1
-  have hD := postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName writes
+  have hD := postReset_moving_domain p c E rho hrec mono source emittedNonempty emittedName writes
     xing origin h0r hinv hgst hCB hbatch hy hip hpi hafter hupper le_rfl hX hZ hF
-  apply healing_proposal_moving_parent p c E rho hrec hgst hbatch hp
+  apply healing_proposal_moving_parent p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) mono hgst
+    (healing_window_of_cut E (healing_ready_vote_cutoff E
+      (healing_reset_source_ready h0r)) |>.mono
+        (hlabel.trans (Nat.le_of_succ_le hsl))).2 hbatch hp
   · intro j hj
     have he : j = ip := fgsa_tick_unique E rho hs hj hip
     subst j
@@ -696,10 +736,11 @@ theorem postReset_raw_proposals_succ_above
     subst j
     have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
       exact hresetNext
-    exact postReset_raw_moving_lease_compat p c E rho hrec emittedNonempty emittedName writes
+    exact postReset_raw_moving_lease_compat p c E rho hrec
+      (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName writes
       h0r hinv hreset hx hlabel hix hxi hres hsl hbatch hy hip hpi hafter hupper
 
-omit mono emittedNonempty emittedName writes xing origin h0r movingDomain in
+omit mono source emittedNonempty emittedName writes xing origin h0r in
 private theorem rawStep_head_label {a : Nat} {z : V} {j : Slot}
     (ha : rho.events[a]? = some (.tick z (SA.voteTime p.toParams j))) :
     headAtLabel p c E rho z j = some (headAtIdx p c E rho a j) := by
@@ -710,7 +751,6 @@ private theorem rawStep_head_label {a : Nat} {z : V} {j : Slot}
   rfl
 
 
-omit movingDomain in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 finality;
 B1/B13/B17/B18. DC: SAME provenance and crossing proof at every state cut. -/
@@ -755,10 +795,12 @@ theorem postReset_raw_finality_compatible_above
     rw [high_def] at hhighK
     exact ⟨healing_srcN_of_source p c E rho hK,
       (Nat.succ_le_succ h0r.mu_le).trans hhighK⟩
-  have noLoss := (healing_high_source_compat p c E rho hrec mono emittedNonempty
+  have noLoss := (healing_high_source_compat p c E rho hrec
+    (healing_loss_service_scope_recovery E rho hrec mono source emittedNonempty emittedName)
+    mono emittedNonempty
     emittedName writes xing origin).1
   have hheads := postReset_raw_heads_succ_above p c E rho hrec emittedNonempty emittedName
-    writes mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hCB
+    writes mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hCB
   obtain ⟨a, z, hz, ha, hBH, hrs⟩ : ∃ a z, z ∈ rho.honest ∧
       rho.events[a]? = some (.tick z (SA.voteTime p.toParams (if r < s then s else r + 1))) ∧
       Block.Preceq (eraseFG B)
@@ -768,7 +810,10 @@ theorem postReset_raw_finality_compatible_above
     · simp only [hr, ite_true]
       have hgst := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
       obtain ⟨a, z, hz, ha, hCH, -⟩ :=
-        healing_gate_result_supporter p c E rho hrec hgst.le hx hix hres
+        healing_gate_result_supporter p c E rho hrec
+          (healing_raw_service_scope_recovery E rho hrec mono) hgst.le
+          (healing_window_of_cut E (healing_ready_vote_cutoff E
+            (healing_reset_source_ready h0r)) |>.mono hlabel).2 hx hix hres
       exact ⟨a, z, hz, ha, hCH, hr⟩
     · simp only [hr, ite_false]
       obtain ⟨j, z, q, row, hjb, hrow, -, he⟩ := hK
@@ -782,8 +827,8 @@ theorem postReset_raw_finality_compatible_above
         by_contra hn
         have ht := (V2.D.Engine.index_lt_read_length_iff hs _ hj).mp (Nat.lt_of_not_ge hn)
         exact (not_lt_of_ge ht) htime
-      have hawake := healing_vote_awake_of_recovery hrec hx h0r.synchronous
-        (by omega : w.sStar ≤ r + 1)
+      have hawake := healing_vote_awake_of_recovery hrec.toRecovery₂ hx h0r.synchronous
+        (hlabel.trans ((Nat.le_of_not_lt hr).trans (Nat.le_succ r)))
         (htime.le.trans ((hs.in_horizon _ (List.mem_of_getElem? hj)).2))
       obtain ⟨a, ha⟩ := healing_support_vote_tick E rho hs hrec.base.delta hx (r + 1)
         (htime.le.trans ((hs.in_horizon _ (List.mem_of_getElem? hj)).2)) hawake
@@ -804,7 +849,6 @@ theorem postReset_raw_finality_compatible_above
     (Gen.Pure.block_preceq_trans (eraseFG_preceq hFK) hKH) hBH
 
 
-omit movingDomain in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 gate;
 B1/B13/B17/B18. DC: SAME stored leases at the first output gate.
@@ -825,8 +869,8 @@ theorem postReset_raw_gate_lease_compat
       4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
     push_cast
     linarith [p.deltaPos]
-  have hawake := healing_vote_awake_of_recovery hrec hy h0r.synchronous
-    (by omega : w.sStar ≤ s + 1 + 1)
+  have hawake := healing_vote_awake_of_recovery hrec.toRecovery₂ hy h0r.synchronous
+    (hlabel.trans ((Nat.le_succ s).trans (Nat.le_succ (s + 1))))
     (htime.le.trans (hs.in_horizon _ (List.mem_of_getElem? hj)).2)
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hs hrec.base.delta hy (s + 1 + 1)
     (htime.le.trans (hs.in_horizon _ (List.mem_of_getElem? hj)).2) hawake
@@ -838,11 +882,12 @@ theorem postReset_raw_gate_lease_compat
     linarith [p.deltaPos]
   have hbatch : ∀ z ∈ rho.honest, ∀ H, headAtLabel p c E rho z (s + 1) = some H →
       Block.Preceq C H := fun z hz H hH => postReset_raw_first_head_label p c E rho hrec
-    emittedNonempty emittedName writes mono xing origin h0r hinv hresetNext hleaseNext
+    emittedNonempty emittedName writes mono source xing origin h0r hinv hresetNext hleaseNext
     hx hlabel hix hxi hres hz hH
   have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
     exact hresetNext
-  have hcompat := postReset_raw_moving_lease_compat p c E rho hrec emittedNonempty emittedName
+  have hcompat := postReset_raw_moving_lease_compat p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName
     writes h0r hinv hreset hx hlabel hix hxi hres le_rfl hbatch hy hiq
     (hqj.le.trans hji) hafter le_rfl
   intro row hr
@@ -869,7 +914,6 @@ theorem postReset_raw_gate_lease_compat
     exact tick_st (c := c) E rho _ y _
   exact hcompat row (hpost ▸ hkeep)
 
-omit movingDomain in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 output;
 B1/B13/B17/B18. DC: SAME output suffix through the terminal state. -/
@@ -894,21 +938,31 @@ theorem postReset_raw_outputs_succ_above
     have hh : (w.sStar : Int) ≤ s := by exact_mod_cast hlabel
     change 4 * p.Δ * (w.sStar : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + p.Δ
     nlinarith [p.deltaPos]
-  apply healing_output_moving_suffix p c E rho hrec mono hgst hhor (cut := i)
+  have batches : ∀ l, s + 1 ≤ l → timeIdx rho (SA.voteTime p.toParams l) ≤ i →
+      SA.voteTime p.toParams l ≤ rho.horizon →
+      Gen.Pure.Batch (joinedHonest p E rho (SA.voteTime p.toParams l)).card
+        (Gen.V2.Duty.faulty rho).card := by
+    intro l hsl _hcut hhor
+    have hCut := (healing_window_of_cut E (healing_ready_vote_cutoff E
+      (healing_reset_source_ready h0r))).mono (hlabel.trans (Nat.le_of_succ_le hsl))
+    exact (healing_recovery_joined_counts E rho hrec l hCut.2 hCut.sync hhor).2
+  apply healing_output_moving_suffix_at p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) mono hgst batches hhor (cut := i)
     ?_ ?_ ?_ a y hy (Nat.le_of_lt_succ hacut) hsuffix
   · intro l hsl hcut z hz H hH
     exact postReset_raw_heads_succ_above p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hCB
+      mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hCB
       z l H hz hsl (hcut.trans (Nat.le_succ i)) hH
   · intro b hbi z hz _hstart
     exact postReset_raw_finality_compatible_above p c E rho hrec emittedNonempty emittedName
-      writes mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hCB hbi hz
+      writes mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hCB
+      hbi hz
   · intro j z hz hj hji _hF
     exact postReset_raw_gate_lease_compat p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hz hj hji
+      mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hz hj hji
 
 
-omit [Fintype V] hrec writes mono xing origin movingDomain in
+omit [Fintype V] hrec writes mono source xing origin in
 private theorem rawStep_reset_result :
     ∃ k x C, x ∈ rho.honest ∧ IsGateTick p c rho k x w.sStar ∧
       gateResult p c E rho x w.sStar = some (some C) ∧ Block.Preceq w.CStar C := by
@@ -919,7 +973,6 @@ private theorem rawStep_reset_result :
   obtain ⟨k, hk⟩ := rawStep_result_tick p c E rho hC
   exact ⟨k, x, C, ha.1, hk, hC, heB ▸ hBC⟩
 
-omit movingDomain in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2940–2944, H.2:723–726; plan J5-A-3 R6 HEAD;
 B1/B13/B17/B18. DC: SAME successor HEAD cut for every raw result. -/
@@ -933,15 +986,16 @@ theorem postReset_raw_heads_succ
     ∀ y l H, y ∈ rho.honest → s + 1 ≤ l →
       timeIdx rho (SA.voteTime p.toParams l) ≤ i + 1 →
       headAtLabel p c E rho y l = some H → Block.Preceq C H := by
-  have hc := postReset_raw_reset_compatible p c E rho hrec emittedNonempty emittedName
+  have hc := postReset_raw_reset_compatible p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName
     h0r hinv hx hlabel hix hres hxi
   rcases Bool.or_eq_true_iff.mp hc with habove | hbelow
   · exact postReset_raw_heads_succ_above p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres habove
+      mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres habove
   intro y l H hy hsl hcut hhead
   rcases eq_or_lt_of_le hsl with rfl | hsl
   · exact postReset_raw_first_head_label p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hy hhead
+      mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hy hhead
   have hs := hrec.base.valid.toScheduleWellFormed
   have hhead' : headAtLabel p c E rho y l = some H := hhead
   delta headAtLabel at hhead'
@@ -961,11 +1015,10 @@ theorem postReset_raw_heads_succ
       nlinarith [p.deltaPos])).le.trans hyi
     apply Gen.Pure.block_preceq_trans (Gen.Pure.block_preceq_trans hbelow hresetC0)
     exact postReset_raw_heads_succ_above p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx0 le_rfl hk0 hk0i
+      mono source xing origin h0r hinv hresetNext hleaseNext hx0 le_rfl hk0 hk0i
       ((gateResultAt_eq_gateResult p c E rho hs hk0).trans hC0) hresetC0 y l H hy
       ((Nat.succ_le_succ hlabel).trans hsl.le) hcut hhead
 
-omit movingDomain in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2940–2944, H.2:736–746; plan J5-A-3 R6 proposal;
 B1/B13/B17/B18. DC: SAME successor proposal cut for every raw result. -/
@@ -978,11 +1031,12 @@ theorem postReset_raw_proposals_succ
     (hres : gateResultAt p c E rho ix = some (some C)) :
     ∀ v Q, s + 2 ≤ v → timeIdx rho (SA.proposalTime p.toParams v) ≤ i + 1 →
       HonestProposal E rho (fgsaInterface p c) v Q → Block.Preceq C Q.parent := by
-  have hc := postReset_raw_reset_compatible p c E rho hrec emittedNonempty emittedName
+  have hc := postReset_raw_reset_compatible p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName
     h0r hinv hx hlabel hix hres hxi
   rcases Bool.or_eq_true_iff.mp hc with habove | hbelow
   · exact postReset_raw_proposals_succ_above p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hx hlabel hix hxi hres habove
+      mono source xing origin h0r hinv hresetNext hx hlabel hix hxi hres habove
   intro v Q hsv hcut hp
   have hs := hrec.base.valid.toScheduleWellFormed
   obtain ⟨ip, hip, -⟩ := rawStep_proposal_read p c E rho hp
@@ -997,11 +1051,10 @@ theorem postReset_raw_proposals_succ
     nlinarith [p.deltaPos])).le.trans hpi
   apply Gen.Pure.block_preceq_trans (Gen.Pure.block_preceq_trans hbelow hresetC0)
   exact postReset_raw_proposals_succ_above p c E rho hrec emittedNonempty emittedName writes
-    mono xing origin h0r hinv hresetNext hx0 le_rfl hk0 hk0i
+    mono source xing origin h0r hinv hresetNext hx0 le_rfl hk0 hk0i
     ((gateResultAt_eq_gateResult p c E rho hs hk0).trans hC0) hresetC0 v Q
     ((Nat.succ_le_succ (Nat.succ_le_succ hlabel)).trans hsv) hcut hp
 
-omit movingDomain in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 output;
 B1/B13/B17/B18. DC: SAME successor output cut for every raw result. -/
@@ -1015,11 +1068,12 @@ theorem postReset_raw_outputs_succ
     ∀ a y, a < i + 1 → y ∈ rho.honest → SA.gateTime p.toParams s + 4 * p.Δ ≤ rho.horizon →
       HealSuffix p c rho (SA.gateTime p.toParams s + 4 * p.Δ) a →
       Block.Preceq C (S_at p c E rho a y) := by
-  have hc := postReset_raw_reset_compatible p c E rho hrec emittedNonempty emittedName
+  have hc := postReset_raw_reset_compatible p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName
     h0r hinv hx hlabel hix hres hxi
   rcases Bool.or_eq_true_iff.mp hc with habove | hbelow
   · exact postReset_raw_outputs_succ_above p c E rho hrec emittedNonempty emittedName writes
-      mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres habove
+      mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres habove
   intro a y hacut hy hhor hsuffix
   have hs := hrec.base.valid.toScheduleWellFormed
   have ht : ∀ q : Slot, SA.gateTime p.toParams q + 4 * p.Δ = SA.gateTime p.toParams (q + 1) := by
@@ -1059,12 +1113,11 @@ theorem postReset_raw_outputs_succ
     exact ⟨(afterTicksIdx_mono rho htime).trans hsuf.1, hsuf.2⟩
   apply Gen.Pure.block_preceq_trans (Gen.Pure.block_preceq_trans hbelow hresetC0)
   exact postReset_raw_outputs_succ_above p c E rho hrec emittedNonempty emittedName writes
-    mono xing origin h0r hinv hresetNext hleaseNext hx0 le_rfl hk0 hk0i
+    mono source xing origin h0r hinv hresetNext hleaseNext hx0 le_rfl hk0 hk0i
     ((gateResultAt_eq_gateResult p c E rho hs hk0).trans hC0) hresetC0 a y hacut hy
     (by rw [ht]; exact htime.trans hhor) hsuffix0
 
 
-omit movingDomain in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2924–2945, H.2:723–746; plan J5-A-3 R4;
 B1/B13/B17/B18. DC: SAME raw-transfer successor for every event cut.
@@ -1084,24 +1137,25 @@ theorem postReset_rawTransfer_succ : ∀ i, PostResetRawStep p c E rho w i := by
     · intro y nd hy _hcut hnd
       have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
         exact hresetNext
-      exact postReset_raw_release_compatible p c E rho hrec emittedNonempty emittedName writes
+      exact postReset_raw_release_compatible p c E rho hrec
+        (healing_raw_service_scope_recovery E rho hrec mono) emittedNonempty emittedName writes
         h0r hinv hreset hleaseNext hx hlabel hgate hres hki.le hy hnd
     · exact postReset_raw_heads_succ p c E rho hrec emittedNonempty emittedName writes
-        mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hgate hki.le hresAt
+        mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hgate hki.le hresAt
     · exact postReset_raw_proposals_succ p c E rho hrec emittedNonempty emittedName writes
-        mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hgate hki.le hresAt
+        mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hgate hki.le hresAt
     · exact postReset_raw_outputs_succ p c E rho hrec emittedNonempty emittedName writes
-        mono xing origin h0r hinv hresetNext hleaseNext hx hlabel hgate hki.le hresAt
-  · exact postReset_raw_at_gate_cut p c E rho hrec emittedNonempty emittedName writes mono
+        mono source xing origin h0r hinv hresetNext hleaseNext hx hlabel hgate hki.le hresAt
+  · exact postReset_raw_at_gate_cut p c E rho hrec emittedNonempty emittedName writes mono source
       xing origin h0r hinv hresetNext hleaseNext hx hlabel hgate hres
 
-omit writes mono origin movingDomain in
+omit writes source origin in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.16:2933–2938; plan J5-A-3 reset-lease adapter;
 B1/B13/B17/B18. DC: INTENTIONAL; DC has no leases.
 The existing all-cut adapter supplies the requested successor name. -/
 theorem postReset_resetLease_succ' (cap : RCap p c E rho) (source : TSrc p c E rho) :
     ∀ i, PostResetResetLeaseStep p c E rho w i :=
-  postReset_resetLease_succ_all p c E rho hrec emittedNonempty emittedName xing h0r cap source
+  postReset_resetLease_succ_all p c E rho hrec emittedNonempty emittedName mono xing h0r cap source
 
 end AvailableChain.FGSA.Run

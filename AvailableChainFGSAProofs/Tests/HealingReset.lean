@@ -1,6 +1,15 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (R1–R3 tests)
-public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: keep (R2 tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
+public import AvailableChainFGSAProofs.Proofs.Foundations.Store
+public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing
+public import AvailableChainFGSAProofs.Proofs.Foundations.Cap
+public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowService
+public import AvailableChainFGSAProofs.Proofs.Finality.Height
+public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 
 set_option linter.privateModule false
 
@@ -14,6 +23,37 @@ The numeric tests cover both allowance choices and integer subtraction. -/
 namespace AvailableChain.FGSA.Run.Tests.HealingReset
 open AvailableChain.SimplexFG
 
+private theorem resetEmittedPairs (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {j : Nat} {x : V} {r : Nat}
+    {a : RowWire p.n} {e : Height × BlockId}
+    (ha : HonestRowAt p c E rho j x r a) (he : namedEntry a.payload.height_pair = some e) :
+    ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+      e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+      gateResult p c E rho x (r * p.R) = some (some G) ∧
+      Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C) := by
+  obtain ⟨C, G, hC, hh, _, hG, hCG, hf⟩ :=
+    sourceDiscipline_emittedName p c E rho hs ha he
+  refine ⟨C, G, hC, ?_, hG, hCG, hf⟩
+  rw [heightView_eq_simplex p]
+  exact hh
+
+private theorem resetSearchWithPorts (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) : FrontierSearchStatement p c E rho G ΔF := by
+  have faultQ := fgsa_faultQ_of_count p hset.fault
+  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
+    (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
+  have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
+    (fgsa_rStore p c E rho)
+  exact healing_frontierSearch_recovery E rho hset (fgsa_rMonoAll p c E rho) crossing
+    (fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ) origin
+    (fgsa_leaseOrigins_lastWrite p c E rho hset.base.valid.toScheduleWellFormed)
+    (rowPermission_covered E rho hset.base hset.fault)
+    (fgsa_tRows_recovery p c E rho hset.toRecovery₂).receipt
+    (fgsa_batchCoverage p ΔF .progress c E rho) (fgsa_foldTrichotomy_progress p) faultQ
+    (kmid_honest_quorum p c rho hset.base.linked hset.fault)
+
 -- All frozen H0Reset fields are built from the exported first-row contract.
 -- R1 (healing_resetWitness) derives this contract from the named HG.5 input.
 example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
@@ -22,7 +62,7 @@ example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (firstRow : FirstHeightRowBy p c E rho (resetCutFrontier p c E rho + 1) deadline) :
     ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar ≤ deadline :=
   healing_reset_fields p c E rho
-    (healing_reset_emittedName p c E rho hset.base) hset firstRow
+    (resetEmittedPairs p c E rho hset.base.valid.toScheduleWellFormed) hset firstRow
 
 private def resetParams (k : Nat) (hk : 2 ≤ k) : Params where
   Δ := 1
@@ -77,10 +117,10 @@ example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
     (hset : HealingSet p c E rho G ΔF) (hδ : p.δt = 2 * p.R)
     (hbound : LivenessBoundW p ΔF) (hsearch : FrontierSearchStatement p c E rho G ΔF)
-    (hhor : E.t_GST + B'_resetF p ΔF G ≤ rho.horizon) :
-    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G :=
+    (hhor : recoveryStart p E + B'_resetF p ΔF G ≤ rho.horizon) :
+    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < recoveryStart p E + B'_resetF p ΔF G :=
   healing_resetWitness p c E rho
-    (healing_reset_emittedName p c E rho hset.base)
+    (resetEmittedPairs p c E rho hset.base.valid.toScheduleWellFormed)
     hset hδ hbound hsearch hhor
 
 -- R2: the frozen reset-arrival statement from a hypothetical all-run HG.5 input.
@@ -90,17 +130,25 @@ example (p : Params) (G ΔF : Time)
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
       FrontierSearchStatement p c E rho G ΔF) :
     ResetArrivalStatement p G ΔF :=
-  healing_resetArrival p G ΔF hsearch
+  by
+    intro hδ V _ _ In c E rho hset hbound hhor
+    exact healing_resetWitness p c E rho
+      (resetEmittedPairs p c E rho hset.base.valid.toScheduleWellFormed)
+      hset hδ hbound (hsearch c E rho hset hbound) hhor
 
--- HG5-BRIDGE: the frozen reset-arrival statement holds with no named input.
+-- HG5-BRIDGE: the named recovery producer supplies all search services.
 example (p : Params) (G ΔF : Time) : ResetArrivalStatement p G ΔF :=
-  healing_resetArrivalStatement p G ΔF
+  by
+    intro hδ V _ _ In c E rho hset hbound hhor
+    exact healing_resetWitness p c E rho
+      (resetEmittedPairs p c E rho hset.base.valid.toScheduleWellFormed)
+      hset hδ hbound (resetSearchWithPorts p c E rho hset) hhor
 
 -- HG5-BRIDGE: HG.5 holds on every healing run.
 example (p : Params) {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
     (hset : HealingSet p c E rho G ΔF) : FrontierSearchStatement p c E rho G ΔF :=
-  healing_frontierSearch_of_set p c E rho hset
+  resetSearchWithPorts p c E rho hset
 
 end AvailableChain.FGSA.Run.Tests.HealingReset
 end
