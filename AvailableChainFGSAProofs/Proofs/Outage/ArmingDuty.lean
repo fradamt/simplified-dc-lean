@@ -119,7 +119,9 @@ theorem arming_emit_proposal {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   | seat l q =>
     obtain ⟨_, _, d, _, ht, ha⟩ := (V2.D.Engine.mem_tick_seat_iff E rho _ y t l q _).mp hem
     cases d with
-    | headAction s => cases ha
+    | headAction s =>
+      change (if joinedNow p _ then some (Msg.head _) else none) = some _ at ha
+      split at ha <;> cases ha
     | fgAction r =>
       change (attest p (FGSA.clock p (V2.D.Run.stateBefore E rho i y).st t)
         (V2.D.Run.stateBefore E rho i y).record ⟨0, p.nPos⟩).1.map Msg.row = some _ at ha
@@ -127,8 +129,10 @@ theorem arming_emit_proposal {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       cases hm
     | propAction s =>
       change SA.proposalTime p.toParams s = t at ht
-      change (propose p (FGSA.clock p (V2.D.Run.stateBefore E rho i y).st t) s).map
-        (withApp p (c.app (rho.input y t))) = some _ at ha
+      change (if joinedNow p _ then
+        (propose p (FGSA.clock p (V2.D.Run.stateBefore E rho i y).st t) s).map
+          (withApp p (c.app (rho.input y t))) else none) = some _ at ha
+      split at ha <;> try (cases ha)
       obtain ⟨m', hm', hw'⟩ := Option.map_eq_some_iff.mp ha
       by_cases hs0 : s = 0
       · subst hs0
@@ -170,7 +174,7 @@ theorem arming_ancestor_stamp {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (o : GridCO.Wire p.n .root) (ho : o ∈ (storeAt p c E rho k y).base.votes)
     (X : Block) (hne : X ≠ .genesis) (hXD : Block.Preceq X D)
     (hF : Block.Preceq (F_at p c E rho k y) X)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     X ∈ (storeAt p c E rho ih y).base.blocks ∧
       GridCO.stampBlock (storeAt p c E rho ih y).base X < SA.earlyTime p.toParams (l + 1) := by
   obtain ⟨i, hi, hKi⟩ := arming_emit_head_store hE hz hem

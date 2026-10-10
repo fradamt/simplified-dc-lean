@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPrefix
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
 
 public section
 
@@ -15,6 +16,36 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+private theorem arming_liveRoot_le (p : Params) (st : State p.n) (D : Block)
+    (hz : Block.Preceq (eraseFG (controls p st).Z) D)
+    (hobl : ∀ row ∈ st.base.obligations, Block.Preceq row.1 D) :
+    Block.Preceq (liveRoot p st) D := by
+  have key : ∀ (l : List Block) (init : Block), Block.Preceq init D →
+      (∀ b ∈ l, Block.Preceq b D) →
+      Block.Preceq (l.foldl (fun best b =>
+        if best.depth < b.depth || (best.depth == b.depth && best.root < b.root) then b
+        else best) init) D := by
+    intro l
+    induction l with
+    | nil => intro init h _; exact h
+    | cons a l ih =>
+      intro init h hl
+      rw [List.foldl_cons]
+      apply ih _ _ (fun b hb => hl b (List.mem_cons_of_mem a hb))
+      split
+      · exact hl a (by simp)
+      · exact h
+  unfold liveRoot
+  apply key _ _ hz
+  intro b hb
+  obtain ⟨row, hrow, hb⟩ := List.mem_filterMap.mp hb
+  split at hb
+  · cases hb
+    exact hobl row hrow
+  · cases hb
+
+/-! ### Honest HEADs above the comparison prefix -/
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; a strict ancestor
@@ -121,7 +152,7 @@ theorem arming_read_bounds {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   refine ⟨hiI, ?_, by rw [hctrl]; exact hlo, ?_⟩
   · rw [clock_fg]
     exact hF
-  · exact inclusion_liveRoot_le p _ D (by rw [hctrl]; exact hZ)
+  · exact arming_liveRoot_le p _ D (by rw [hctrl]; exact hZ)
       (fun row hrow => hobl row (hsub.subset hrow))
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -143,7 +174,8 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
     (hbatchF : ArmingBatchState p c E rho l D)
     {y : V} (hy : y ∈ rho.honest) {ih : Nat}
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (l + 2))))
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hReceipt : NamedReceiptRootCollisionFree p c E rho) :
     Block.Preceq D (headVote p (clock p (V2.D.Run.stateBefore E rho ih y).st
       (SA.voteTime p.toParams (l + 2))) (l + 2)) := by
   classical
@@ -238,7 +270,7 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
       Block.Preceq (eraseFG dst.fg.F) X →
       ∃ Xh ∈ voterBlocks p dst (l + 1 + 1), eraseFG Xh = X := by
     intro X hne hXD hFX hFXd
-    obtain ⟨hXm, hXs⟩ := arming_ancestor_stamp (hroots := hroots)
+    obtain ⟨hXm, hXs⟩ := arming_ancestor_stamp (hroots := hReceipt)
       hE hN hDelta hSync hk0 hyw0 hObserver hDK0
       hk0ih.le _ hv0 X hne hXD hFX
     have hXd : X ∈ dst.base.blocks := by

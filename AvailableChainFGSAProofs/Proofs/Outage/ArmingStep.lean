@@ -180,5 +180,95 @@ theorem arming_clock_offGate_fields (p : Params) (st : State p.n) (t : Time)
   exact ⟨clockPre_fg p st t, clockPre_stable p st t, clockPre_genuine p st t,
     clockPre_obligations_sublist p st t⟩
 
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; one lease write leaves a
+row of its key with at least the written deadline. -/
+theorem arming_write_row {n : Nat} (st : GridCO.State n .root) (b : Block) (g : Nat) (lim : Time) :
+    ∃ d, (b, g, d) ∈ (GridCO.writeObligation st b g lim).obligations ∧ lim ≤ d :=
+  ⟨max ((GridCO.deadlineOf st b g).getD lim) lim,
+    List.mem_append_right _ (List.mem_singleton_self _), le_max_right _ _⟩
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; a later lease write with the
+same deadline keeps a row of each key with at least that deadline. -/
+theorem arming_write_keep {n : Nat} (st : GridCO.State n .root) (b : Block) (g : Nat)
+    (lim : Time) (b' : Block) (g' : Nat) (d : Time) (hm : (b, g, d) ∈ st.obligations)
+    (hd : lim ≤ d) :
+    ∃ d', (b, g, d') ∈ (GridCO.writeObligation st b' g' lim).obligations ∧ lim ≤ d' := by
+  by_cases hk : b' = b ∧ g' = g
+  · obtain ⟨rfl, rfl⟩ := hk
+    exact arming_write_row st b' g' lim
+  · refine ⟨d, List.mem_append_left _ (List.mem_filter.mpr ⟨hm, ?_⟩), hd⟩
+    change (!(b == b' && g == g')) = true
+    cases h : (b == b' && g == g') with
+    | false => rfl
+    | true =>
+      obtain ⟨h1, h2⟩ := Bool.and_eq_true_iff.mp h
+      exact absurd ⟨(beq_iff_eq.mp h1).symm, (beq_iff_eq.mp h2).symm⟩ hk
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; a sequence of lease writes
+with one deadline keeps a row of each key with at least that deadline. -/
+theorem arming_writeKeys_keep {n : Nat} (keys : List (Block × Nat)) (lim : Time) :
+    ∀ (st : GridCO.State n .root) b g d, (b, g, d) ∈ st.obligations → lim ≤ d →
+      ∃ d', (b, g, d') ∈ (GridCO.writeKeys st keys lim).obligations ∧ lim ≤ d' := by
+  induction keys with
+  | nil => exact fun st b g d hm hd => ⟨d, hm, hd⟩
+  | cons k ks ih =>
+    intro st b g d hm hd
+    obtain ⟨d', hm', hd'⟩ := arming_write_keep st b g lim k.1 k.2 d hm hd
+    rw [@GridCO.writeKeys_def GridCO.slowLeasePolicy, List.foldl_cons,
+      ← @GridCO.writeKeys_def GridCO.slowLeasePolicy]
+    exact ih _ b g d' hm' hd'
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; every written key has a row
+with at least the written deadline. -/
+theorem arming_writeKeys_row {n : Nat} (lim : Time) (b : Block) (g : Nat) :
+    ∀ (keys : List (Block × Nat)) (st : GridCO.State n .root), (b, g) ∈ keys →
+      ∃ d, (b, g, d) ∈ (GridCO.writeKeys st keys lim).obligations ∧ lim ≤ d := by
+  intro keys
+  induction keys with
+  | nil => exact fun _ hk => absurd hk List.not_mem_nil
+  | cons k ks ih =>
+    intro st hk
+    rw [@GridCO.writeKeys_def GridCO.slowLeasePolicy, List.foldl_cons,
+      ← @GridCO.writeKeys_def GridCO.slowLeasePolicy]
+    rcases List.mem_cons.mp hk with he | hk
+    · subst he
+      obtain ⟨d, hm, hd⟩ := arming_write_row st b g lim
+      exact arming_writeKeys_keep ks lim _ b g d hm hd
+    · exact ih _ hk
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; lease writes keep S. -/
+theorem arming_writeKeys_stable {n : Nat} (lim : Time) :
+    ∀ (keys : List (Block × Nat)) (st : GridCO.State n .root),
+      (GridCO.writeKeys st keys lim).stableRecord = st.stableRecord := by
+  intro keys
+  induction keys with
+  | nil => exact fun _ => rfl
+  | cons k ks ih =>
+    intro st
+    rw [@GridCO.writeKeys_def GridCO.slowLeasePolicy, List.foldl_cons,
+      ← @GridCO.writeKeys_def GridCO.slowLeasePolicy, ih]
+    rfl
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; the raw result at an actual
+gate tick is the confirmation of its pre-gate clock. -/
+theorem arming_gateResult_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) {k : Nat} {y : V} {j : Slot}
+    (hk : enabledGateAt p c E rho k y j) :
+    gateResult p c E rho y j = some (SA.Root.confirmationFrom p.toParams
+      (eraseFG (FGSA.clockPre p (storeAt p c E rho k y) (SA.gateTime p.toParams j)).fg.F)
+      (FGSA.actView (FGSA.clockPre p (storeAt p c E rho k y) (SA.gateTime p.toParams j))) j) := by
+  rw [gateResult_eq_saved p c E rho hs hk.1]
+  change GridCO.savedGenuine (FGSA.clock p (V2.D.Run.stateBefore E rho k y).st
+    (SA.gateTime p.toParams j)).base j = _
+  rw [fgsa_gate_saved_guarded E rho hs hk.1, fgsa_gate_joined_of_enabled E rho hk,
+    ite_eq_left rfl, clockPre_fg]
+  rfl
+
 end AvailableChain.FGSA.Run
 end
