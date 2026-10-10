@@ -3107,3 +3107,105 @@ Final Round 6 validation: DCK PASS (218.795 s),
 466 entries PASS. Complete GREEN exports: 258 proof modules / 253 exports /
 zero unaccepted. Layers: 72 inherited / zero new. Expose and sleep scopes PASS.
 The two inherited W3 transparency findings and five S-Ap audit names are unchanged.
+## P-Ar wave 2 — receiver kernel (sleep-par, base 8384eb34)
+
+Scope: the 13 existing Arming modules, new ArmingKernel, and Tests/OutageArming.
+The package map is scripts/dev-pkg/P-Ar.txt. P-ShA files and public Claims
+statements are unchanged. This block belongs to P-Ar.
+
+T25, internal statement, exact sleep form: arming_tick_exists needs awake at
+that receiver's named public time. arming_healthy_batch takes one receiver,
+its early-time awake fact and exact read epoch, joined selected voters, and
+P-ShA FreshHeadService / TargetReceiptService. Sender participation does not
+supply receiver awake. Consumers at closure: ArmingMain and ArmingGate; P-Ou
+accepts this T25 repair through the P-Ar handoff.
+
+Internal statement, exact sleep form: arming_clean_of_tick and arming_max_label
+need an enabled gate. cleanResults already has the enabled marker condition.
+arming_enabled_of_pass gets this condition from an actual passed gate.
+Consumers at closure: ArmingPrefix, ArmingGate, and ArmingMain.
+
+The receiver kernel derives G-fast awake and restart-free on [t(j), g(j)].
+G-slow starts at t(q0), not vote(q0). The event-index epoch starts at actionCut,
+so a restart at t(q0) is before the epoch. arming_receiver_enabled proves the
+inclusive marker bound at each scoped gate. No global NoRestart is used by
+these sleep helpers.
+
+arming_saved_interval_on, arming_slow_saved_on, and arming_slow_eligible_on
+use only this receiver's current-epoch rows. The global no-restart wrappers
+remain for the old certificate until closure. The sleep kernel does not use
+hsavedKeep. Tests check erased saved rows, phase-zero wake reads, and no tick
+while asleep.
+
+arming_prefix_batch_receipt_on proves the exact prefix conclusion from local
+ArmingBatchReceiptService. Its HEAD branch has the approved finality
+alternative. Its proposal branch proves every ancestor and its strict stamp.
+The service record is internal proof data; it is not an outage premise.
+The public arming_prefix_batch_receipt : OutagePrefixReceiptDerivedClaim is
+still OPEN. Closure must derive this service record from OutageSleep₂ and the
+Clean joint induction, accept P-Cl1 clean_epoch_saved_row, port the seven
+remaining certificate consumers, and apply the serial facade/audit fragments.
+No public meaning change or public counterexample is asserted.
+
+ArmingReceipt holds the local receipt proofs. It does not import ArmingPending,
+so the public prefix theorem can consume it from ArmingPending at closure
+without an import cycle. ArmingKernel also supplies the actual gate-tick epoch
+and arming_tick_store_on for the exact receiver interval at equal-time phases.
+
+P-Ar kernel validation: DCK PASS with default controls (24 PASS). All 473 GREEN
+roots build with --wfail. Strict audits: 37 sources / 2,875 results, only the
+three permitted logical axioms. Complete GREEN exports: 262 proof modules /
+253 exports / zero unaccepted. Complete local coverage: 37 entries PASS.
+Layers: 72 inherited / zero new. Kernel PREPARED; full P-Ar and the public
+prefix receipt theorem remain OPEN on the closure inputs listed above.
+
+### P-Ar Round 2 — joined transfer repair
+
+Astra FIX-FIRST item 1: the T25 handoff at this block's first paragraph was
+not prepared at 71fa5c6c. Its transfer premise still covered every honest
+computed vHead read, including an unjoined node that emits no HEAD.
+arming_head_ge_on now restricts transfer to joinedAt at vote(s + 1).
+arming_healthy_batch uses that helper and passes its selected voter's hJoined.
+arming_head_ge remains a separate legacy helper with its old type.
+The T25 receiver and service scopes remain explicit. P-Ou must use the joined
+transfer premise; no all-honest vHead premise is required by the fixed batch.
+
+### P-Ar Round 2 — regime sources, receiver ports and public STOP
+
+Astra item 2: hp := OutageSleep₂.sleepPre.toHealthyPrefix₂ supplies healthy,
+cut and base. hp.base supplies valid, delta, cstar, linked and
+receiptIdealization. arming_nonrow_delivery derives the healthy non-row
+law with deadline a + p.Δ. arming_head_ready derives the fresh HEAD trigger
+from honest emission and the protected receiver's awake window.
+arming_fresh_head_service and arming_proposal_service derive transport,
+readiness, timing and the receiver epoch. They still need local handler
+acceptance, non-exclusion and proposal replay history proofs. No regime
+field directly supplies these proof conclusions or TargetReceiptService.
+The complete source map is claude-files/sleep-par-receipt-sources.md.
+
+ArmingPrefix and ArmingOutput are GREEN. Existing names/types are kept.
+The executed nonempty gate result supplies the enabled marker via
+arming_enabled_of_result. Passed source and lease gates supply it via
+arming_enabled_of_pass. arming_leases_interval_on and arming_S_interval_on
+use one receiver's event-index epoch beside their legacy NoRestart forms.
+arming_pending_rows_on consumes P-Cl1's intended current cut rows and
+transfers them to the actual pending tick. clean_epoch_saved_row is absent
+on this base and at the inspected sleep-pcl1 commit 075a92d6.
+
+PUBLIC STOP: OutagePrefixReceiptDerivedClaim is false as currently approved.
+Tests.OutageArming.EarlyCut.regime proves every OutageSleep₂ premise for
+Δ = 2, T = 0, b₀ = b₁ = horizon = 8 and ΔF = 2. The sole honest node is
+always awake and joined. Its slot-1 proposal is emitted at time 8 and is not
+delivered. The healthy cut is 8, so its first deadline 10 is outside that
+cut. coverLabel is 1 and the public claim requires this proposal processed
+at earlyTime 1 = 12. It is not excluded, and it is absent at that read.
+Tests.OutageArming.EarlyCut.prefix_claim_false proves the negation of the
+approved claim. The run is valid, has the receipt collision idealization,
+and meets all prefix, participation, protection, order, lag and budget
+fields. This is not a missing service proof.
+
+No public statement was changed. The lead must select an approved public
+repair (for example the first-gate cut bound, or an early-cut scope repair).
+The five remaining certificate consumers stay P-Ar EXPECTED-FAIL. Full
+P-Ar remains NOT CLOSED; the joined T25 kernel is PREPARED. P-Ou must not
+assume that the public receipt claim is available from this handoff.

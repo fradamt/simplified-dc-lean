@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingArith
-public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 
 public section
 
@@ -88,10 +88,11 @@ theorem arming_process_lease (p : Params) (st : State p.n) (w : Wire p.n) :
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; one event changes
 the store of `y` by nothing, by its own clock, or by one delivery. A restart
-is excluded by NoRestart. -/
-theorem arming_store_succ {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
-    (hnr : V2.D.NoRestart rho) {k : Nat} {e : V2.Event V (Obj p)}
-    (he : rho.events[k]? = some e) (y : V) :
+of this receiver is excluded by the exact index interval. -/
+theorem arming_store_succ_on {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {k : Nat} {e : V2.Event V (Obj p)}
+    (he : rho.events[k]? = some e) (y : V)
+    (hnr : V2.D.restartFree rho y k (k + 1)) :
     storeAt p c E rho (k + 1) y = storeAt p c E rho k y ∨
       (∃ t, e = .tick y t ∧ storeAt p c E rho (k + 1) y = clock p (storeAt p c E rho k y) t) ∨
       (∃ o t, e = .deliver y o t ∧
@@ -106,7 +107,7 @@ theorem arming_store_succ {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     | restart u t =>
       change u = y at hv
       subst u
-      exact absurd he (hnr k y t)
+      exact hnr k t le_rfl (Nat.lt_succ_self k) he |>.elim
     | tick u t =>
       change u = y at hv
       subst u
@@ -124,6 +125,15 @@ theorem arming_store_succ {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   · left
     rw [V2.D.World.step_apply_of_node_ne E rho _ hv]
     rfl
+/-- The global no-restart form follows from the receiver epoch form. -/
+theorem arming_store_succ {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hnr : V2.D.NoRestart rho) {k : Nat} {e : V2.Event V (Obj p)}
+    (he : rho.events[k]? = some e) (y : V) :
+    storeAt p c E rho (k + 1) y = storeAt p c E rho k y ∨
+      (∃ t, e = .tick y t ∧ storeAt p c E rho (k + 1) y = clock p (storeAt p c E rho k y) t) ∨
+      (∃ o t, e = .deliver y o t ∧
+        storeAt p c E rho (k + 1) y = FGSA.process p (storeAt p c E rho k y) (toWire p o)) :=
+  arming_store_succ_on he y (hnr.restartFree y k (k + 1))
 
 omit [DecidableEq V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -160,7 +170,13 @@ theorem arming_clock_offGate_fields (p : Params) (st : State p.n) (t : Time)
       (clock p st t).base.stableRecord = st.base.stableRecord ∧
       (clock p st t).base.genuine = st.base.genuine ∧
       (clock p st t).base.obligations.Sublist st.base.obligations := by
-  rw [inclusion_clock_offGate p st t h]
+  have hoff : clock p st t = clockPre p st t := by
+    unfold clock
+    rw [ite_eq_right (by
+      intro hg
+      obtain ⟨r, hr⟩ := (isGateTime_iff p t).mp hg
+      exact h r hr)]
+  rw [hoff]
   exact ⟨clockPre_fg p st t, clockPre_stable p st t, clockPre_genuine p st t,
     clockPre_obligations_sublist p st t⟩
 
