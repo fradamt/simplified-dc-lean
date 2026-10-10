@@ -4360,3 +4360,61 @@ complete coverage: 485 entries PASS. Complete GREEN exports: 259 proof modules /
 sleep scopes PASS. The two inherited W3 transparency findings remain unchanged.
 The two S-Ap EXPECTED-FAIL targets are unchanged. P-ShA is CLOSED; the public
 P23 statement and the seven family-owner ports retain their stated open scope.
+
+## P-Cl1 Round 2 — CLOSED Clean core and ANCHOR-DL callers (2026-10-10)
+
+Base: d2b00d72 on sleep-pcl1b. This block belongs to P-Cl1.
+All 20 owned targets are GREEN. The package map retains the Run facade and
+Run.Tests.Axioms as S-Ap EXPECTED-FAIL. Shared proof files, protocol declarations,
+FGSAClaims and Clean/Export are unchanged.
+
+- DECISION ANCHOR-DL: StepGate:644 uses anchor v_(s+1), deadline e_(s+1).
+  The receiver's enabled guard passes through gate_batch_of_history:718 and
+  gate_active_heads:551 into gate_path_coverage:424. Readiness, history,
+  handler interval, receiver epoch and each path deadline use that anchor.
+- TransferFrame:398/:497 use anchor e_s and deadline f_s. Both path interfaces
+  (:351/:417) take the receiving node y's joined guard. The guard passes
+  through the prefreeze and frame helpers from CleanHist.continues. The source
+  gate's nonempty result supplies only the source guard. Receipt roots use
+  base.receiptIdealization; the other root-resolution calls use its safety
+  projection. Original source acceptance times stay unchanged.
+- Internal statement, exact sleep form: clean_gate_stamps takes the local
+  receiver restartFree interval. Durable block origins use accepted_origin;
+  original early source acceptances survive restore. Strict-read stamps use
+  the receiver epoch through the consuming gate or vote, beyond Count's D.
+- JOINED-VOTER: gate batches use fgsa_gate_batch_premises_joined. The zero-label
+  count uses a local joined form of the zero receipt proof. Same-label ordering
+  uses fgsa_sameLabel_on with the supplied enabled-reader service scope.
+- Clean/Service provides HEAD history before the label, retained HEAD provenance,
+  local receiver service, the backward relay and the strict-freeze forward relay.
+  Its private history/merge proofs adapt the existing Shared proofs because those
+  suppliers are private. The restart branch rejects future-label retained raw
+  proposals before t_s. It does not infer safe retained history from acceptance.
+- N5 and R7 close through the actual Clean history/state induction. Closure has
+  the restart branch; saved and fast-write origins carry the receiver epoch.
+  T10 uses the earlier joined actor. Nonempty gates include label zero. The
+  history, gate and truncation body types now match approved D018–D021.
+- Clean/EpochSaved:15 exports clean_epoch_saved_row for P-Ar. It constructs a
+  nonempty enabled gate on the receiver's protected interval and saves C above
+  B, or current F covers B. Its source origin must have a strictly earlier label,
+  or be genesis. A restart at the receiver window's start is allowed. The caller
+  must derive that earlier-label bound from its arming origin and lag facts.
+- Internal Safety repair: Safety:25 needs only all-node compatibility and
+  monotonicity at the finite horizon. It drops unused history/frame/gate clauses
+  from the old input body and returns the approved reader-scoped result.
+  Safety:292 supplies that result from the completed Clean core. A scoped public
+  CleanTruncAt cannot be passed as the stronger all-node pair by projection.
+  P-Cl2 owns the exact wrapper repair in scripts/dev-pkg/P-Cl1.handoff.md.
+  This is an internal supplier handoff; public CleanSafetyClaim is unchanged.
+- Round-1 review finding 2: ARCHITECTURE marks the old Ruling Y restart account
+  as superseded and records the Clean epoch modules. Stale noRestart comments
+  in CleanInvariant, Zero, Closure and Safety are corrected.
+
+Validation: the final package DCK, strict audit totals, complete local export
+check, layer count and wall times are in claude-files/sleep-pcl1-report.md,
+Round 2. The canonical audit/inventory additions are in the two P-Cl1 fragments
+under scripts/dev-pkg. No audit key, baseline or allowance is added.
+
+Public STOPs: none. P-ShA Round 7 defect found: none. P-Cl1 has no owned
+EXPECTED-FAIL target. P-Cl2 public wrapper compilation and canonical serial
+integration remain with their owners; P-Ar must apply the exact saved-row type.

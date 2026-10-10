@@ -4,6 +4,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
 public import AvailableChainFGSAProofs.Proofs.Clean.StateEpoch
 public import AvailableChainFGSAProofs.Proofs.Clean.Zero
 
+public import AvailableChainFGSAProofs.Proofs.Clean.Safety
+public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
+
 public section
 
 #print axioms AvailableChain.FGSA.Run.cleanResults_mono
@@ -118,5 +121,48 @@ public section
 #print axioms AvailableChain.FGSA.Run.CleanActionStep_def
 #print axioms AvailableChain.FGSA.Run.CleanHist
 #print axioms AvailableChain.FGSA.Run.CleanState
+
+#print axioms AvailableChain.FGSA.Run.clean_transfer_source_acceptances
+#print axioms AvailableChain.FGSA.Run.clean_transfer_gate_acceptances
+#print axioms AvailableChain.FGSA.Run.clean_transfer_receipt_path
+#print axioms AvailableChain.FGSA.Run.clean_transfer_receipt_path_of_head
+#print axioms AvailableChain.FGSA.Run.clean_transfer_prefreeze_path
+#print axioms AvailableChain.FGSA.Run.clean_transfer_prefreeze_path_of_head
+#print axioms AvailableChain.FGSA.Run.clean_transfer_frame
+#print axioms AvailableChain.FGSA.Run.clean_epoch_saved_row
+#print axioms AvailableChain.FGSA.Run.cleanSafety_of_trunc_body
+#print axioms AvailableChain.FGSA.Run.clean_sCompatible
+#print axioms AvailableChain.FGSA.Run.clean_outputsAt
+#print axioms AvailableChain.FGSA.Run.cleanGateAt_body
+#print axioms AvailableChain.FGSA.Run.cleanTruncAt_body
+#print axioms AvailableChain.FGSA.Run.clean_actionSources_body
+#print axioms AvailableChain.FGSA.Run.clean_actionSources
+#print axioms AvailableChain.FGSA.Run.clean_invariant
+#print axioms AvailableChain.FGSA.Run.clean_agRule
+#print axioms AvailableChain.FGSA.Run.clean_restartStep
+#print axioms AvailableChain.FGSA.Run.cleanHistoryAt_body
+#print axioms AvailableChain.FGSA.Run.clean_gate_stamps
+#print axioms AvailableChain.FGSA.Run.clean_gate_zero
+#print axioms AvailableChain.FGSA.Run.clean_gate_same
+#print axioms AvailableChain.FGSA.Run.clean_gate_history_osn
+#print axioms AvailableChain.FGSA.Run.clean_gateHistStep
+#print axioms AvailableChain.FGSA.Run.cleanTransfer
+#print axioms AvailableChain.FGSA.Run.clean_head_epoch
+#print axioms AvailableChain.FGSA.Run.clean_head_history
+#print axioms AvailableChain.FGSA.Run.clean_head_handlers
+#print axioms AvailableChain.FGSA.Run.clean_gate_restart_bound
+#print axioms AvailableChain.FGSA.Run.clean_vote_restart_bound
+#print axioms AvailableChain.FGSA.Run.clean_head_receiver_service
+#print axioms AvailableChain.FGSA.Run.clean_head_relay_scope
+#print axioms AvailableChain.FGSA.Run.clean_headVotes_provenance
+#print axioms AvailableChain.FGSA.Run.clean_head_receipt_at_read
+#print axioms AvailableChain.FGSA.Run.clean_vote_proposal_tick
+#print axioms AvailableChain.FGSA.Run.clean_support_accepted
+#print axioms AvailableChain.FGSA.Run.clean_transfer_head_scope
+#print axioms AvailableChain.FGSA.Run.clean_gate_read_epoch
+#print axioms AvailableChain.FGSA.Run.clean_gate_head_receipt
+#print axioms AvailableChain.FGSA.Run.clean_headVotes_backward
+
+#print axioms AvailableChain.FGSA.Run.cleanSafety_body
 
 end

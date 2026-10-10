@@ -474,7 +474,7 @@ theorem CleanGateHistStep_def (b₀ : Time) :
       (CleanHistStep (ΔF := ΔF) p c E rho b₀ (CleanGateTick p c rho)) := by rfl
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
-A restart is excluded by Base₂.noRestart, P3 §8.4.
+A restart keeps durable state and begins empty receiver caches, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 def CleanRestartStep (b₀ : Time) : Prop :=
