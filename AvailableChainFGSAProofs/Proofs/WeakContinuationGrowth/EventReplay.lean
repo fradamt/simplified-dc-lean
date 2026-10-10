@@ -65,12 +65,12 @@ theorem wcg_tickSourceReplay (ha : RetainedAgreesThrough₂ p c E source E' rho)
     {k : Nat} {x : V} {t : Time} (hx : x ∈ rho.honest) (ht : t ≤ source.horizon)
     (hk : rho.events[k]? = some (.tick x t)) :
     ∃ j, source.events[j]? = some (.tick x t) ∧
-      source.stateBefore E j x = rho.stateBefore E' k x := by
+      rho.stateBefore E' k x = source.stateBefore E j x := by
   have hm := (wcg_eventReplay ha (.tick x t) hx ht).mp (List.mem_of_getElem? hk)
   obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hm
   obtain ⟨l, hl, he⟩ := wcg_tickEventReplay ha hs hr hx ht hj
   have hlk := fgsa_tick_unique E' rho hr hl hk
-  exact ⟨j, hj, hlk ▸ he.symm⟩
+  exact ⟨j, hj, hlk ▸ he⟩
 
 /-- A confirmed public reader replays its current gate and local restart interval. -/
 theorem wcg_confirmedReaderSourceReplay
@@ -101,7 +101,7 @@ theorem wcg_confirmedReaderSourceReplay
       have hg := hG.2
       change (match (storeAt p c E' rho k x).restartTime with
         | none => True | some w => w ≤ slotStartZ p (s : Int)) at hg
-      have heSt := congrArg (fun nd => nd.st) he
+      have heSt := congrArg (fun nd => nd.st) he.symm
       change storeAt p c E source j x = storeAt p c E' rho k x at heSt
       rwa [heSt]
     · intro u hu hau hut

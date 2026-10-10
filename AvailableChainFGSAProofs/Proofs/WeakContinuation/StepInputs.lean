@@ -46,7 +46,7 @@ theorem wc_gateHeads (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ t, SA.gateTime p.toParams w.u < t → t ≤ rho.horizon →
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
@@ -154,9 +154,11 @@ theorem wc_gateHeads (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     nlinarith [p.deltaPos]
   have hhor : SA.gateTime p.toParams (s - 1) ≤ rho.horizon :=
     hlt.le.trans (hvalid.in_horizon _ (List.mem_of_getElem? ht)).2
-  have hcutTime : SA.gateTime p.toParams w.u < SA.gateTime p.toParams (s - 1) := by
-    have hh : (w.u : Int) < (s - 1 : Nat) := Int.ofNat_lt.mpr hprev
-    change 4 * p.Δ * (w.u : Int) + 6 * p.Δ <
+  have hcutTime : SA.voteTime p.toParams (w.u + 1) ≤
+      SA.gateTime p.toParams (s - 1) := by
+    have hh : ((w.u + 1 : Nat) : Int) ≤ (s - 1 : Nat) :=
+      Int.ofNat_le.mpr (Nat.succ_le_of_lt hprev)
+    change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤
       4 * p.Δ * ((s - 1 : Nat) : Int) + 6 * p.Δ
     nlinarith [p.deltaPos]
   obtain ⟨z, l, hz, hG, _⟩ := wc_joined_gate_witness hvalid hdelta (s - 1)
@@ -202,7 +204,7 @@ theorem wc_gateFinalOrigin (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ t, SA.gateTime p.toParams w.u < t → t ≤ rho.horizon →
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)

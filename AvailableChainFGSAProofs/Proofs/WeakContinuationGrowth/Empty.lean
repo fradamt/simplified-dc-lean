@@ -55,7 +55,6 @@ A retained seed tick supplies the lower time bound for each honest reader. -/
 theorem wcg_empty_outputDomain
     (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
-    (hns : V2.D.NoRestart source) (hnr : V2.D.NoRestart rho)
     (hend : rho.horizon = source.horizon)
     {w : HealingWitness} {iSource : Nat} {ΔF : Time}
     (hseed : WCSeed p c E source w iSource)
@@ -71,7 +70,7 @@ theorem wcg_empty_outputDomain
       iSource ≤ timeIdx source t := by
     intro x hx t ht
     obtain ⟨j, _, hj, _⟩ := hseed.gates x (ha.honest hx)
-    obtain ⟨k, hk, _⟩ := wcg_tickEventReplay ha hs hr hns hnr hx hgate hj
+    obtain ⟨k, hk, _⟩ := wcg_tickEventReplay ha hs hr hx hgate hj
     have hdt := wcg_cut_read_time hr hk ht
     rw [hseed.cut]
     exact (preIdx_le_afterTicksIdx E source hs _).2.trans
@@ -94,7 +93,6 @@ theorem wcg_empty_outputDomain
 theorem wcg_proposalSourceReplay
     (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
-    (hns : V2.D.NoRestart source) (hnr : V2.D.NoRestart rho)
     {s : Slot} {B : Block}
     (hp : HonestProposal E' rho (fgsaInterface p c) s B)
     (ht : V2.D.proposalTime (fgsaInterface p c) s ≤ source.horizon) :
@@ -105,7 +103,7 @@ theorem wcg_proposalSourceReplay
     rw [ha.seats]
   obtain ⟨hh, o, ⟨k, hk, ho⟩, hb⟩ := hp
   have hx : V2.D.proposerOf rho (fgsaInterface p c) s ∈ rho.honest := hh.2
-  obtain ⟨j, hj, he⟩ := wcg_tickSourceReplay ha hs hr hns hnr hx ht hk
+  obtain ⟨j, hj, he⟩ := wcg_tickSourceReplay ha hs hr hx ht hk
   refine ⟨?_, o, ?_, hb⟩
   · rw [Gen.V2.Duty.HonestSlot_def]
     exact ⟨hh.1, hproposer ▸ ha.honest hx⟩
@@ -119,7 +117,6 @@ theorem wcg_proposalSourceReplay
 theorem wcg_empty_inclusion
     (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
-    (hns : V2.D.NoRestart source) (hnr : V2.D.NoRestart rho)
     (hend : rho.horizon = source.horizon)
     {u : Slot} {Q : Block} {iSource : Nat} {ΔF : Time}
     (hgate : SA.gateTime p.toParams u ≤ source.horizon)
@@ -134,7 +131,7 @@ theorem wcg_empty_inclusion
     change 4 * p.Δ * (pt.s : Time) + 6 * p.Δ ≤ source.horizon at hcovered'
     nlinarith [p.deltaPos]
   have hi := hlive.inclusion hgate pt hslot
-    (wcg_proposalSourceReplay ha hs hr hns hnr hprop htime) (hcovered.trans_eq hend)
+    (wcg_proposalSourceReplay ha hs hr hprop htime) (hcovered.trans_eq hend)
   intro g hg t x ht hx
   change Block.Preceq pt.P (V2.D.outputAt E' rho g x t)
   rw [wcg_empty_outputReplay ha hs hr hend g x hx]
