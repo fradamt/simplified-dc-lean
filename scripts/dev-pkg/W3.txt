@@ -1,6 +1,10 @@
-# W3 writer map. P23 remains STOP: the approved ready core is false.
-# No S1 REQUIRED module is deferred; the three stopped roots retain an explicit owner.
+# W3 writer map. P23-A core is green; public retirement remains with S-Ap.
+# No S1 REQUIRED module is deferred; public roots retain their owner.
 [TARGETS]
+AvailableChainFGSARun.Proofs.NamedScope
+AvailableChainFGSARun.Statements.Roots
+AvailableChainFGSARun.Proofs.ReceiptCoverageReady
+AvailableChainFGSARun.Tests.ReceiptReady
 AvailableChainFGSARun.TestSupport.EmissionFreshness
 AvailableChainFGSARun.TestSupport.Sleep
 AvailableChainFGSAProofs.Tests.FGSafety
@@ -50,6 +54,8 @@ AvailableChainFGSARun.Tests.Protocol
 AvailableChainFGSARun.Tests.ReceiptAlias
 AvailableChainFGSARun.Tests.W3Axioms
 [GREEN]
+AvailableChainFGSARun.Proofs.ReceiptCoverageReady
+AvailableChainFGSARun.Tests.ReceiptReady
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -513,6 +519,6 @@ AvailableChainFGSAProofs.Proofs.Shared.ScoreRun P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.StoreRun P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal P-ShA
-AvailableChainFGSARun S-Ap-P23-STOP
-AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap-P23-STOP
-AvailableChainFGSARun.Tests.Axioms S-Ap-P23-STOP
+AvailableChainFGSARun S-Ap
+AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap
+AvailableChainFGSARun.Tests.Axioms S-Ap

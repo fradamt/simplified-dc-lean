@@ -23,6 +23,37 @@ theorem namedScope_ancestor (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   obtain ⟨C, hC, hBC⟩ := hB
   exact ⟨C, hC, named_preceq_trans hAB hBC⟩
 
+/-- [P23-A] Old named scope is included in receipt scope. -/
+theorem namedReceiptScope_of_namedScope (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {N : NamedProposal p.n}
+    (hN : NamedProposalInRun p c E rho N) : NamedProposalReceiptScope p c E rho N :=
+  Or.inl hN
+
+/-- [P23-A] An honest emission scopes its exact body and every named ancestor. -/
+theorem namedReceiptScope_emitted (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {v : V} {o : Obj p} {t : Time} {A N : NamedProposal p.n}
+    (hv : v ∈ rho.honest) (hem : V2.D.Run.emits E rho v o t)
+    (ho : o.payload = .proposal N) (hAN : NamedProposal.Preceq A N) :
+    NamedProposalReceiptScope p c E rho A := Or.inr ⟨v, hv, o, t, N, hem, ho, hAN⟩
+
+/-- [P23-A] Receipt scope is closed under named ancestry. -/
+theorem namedReceiptScope_ancestor (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {A B : NamedProposal p.n} (hB : NamedProposalReceiptScope p c E rho B)
+    (hAB : NamedProposal.Preceq A B) : NamedProposalReceiptScope p c E rho A := by
+  rcases hB with hB | ⟨v, hv, o, t, N, hem, ho, hBN⟩
+  · exact Or.inl (namedScope_ancestor E rho hB hAB)
+  · exact Or.inr ⟨v, hv, o, t, N, hem, ho, named_preceq_trans hAB hBN⟩
+
+/-- [P23-A] Receipt collision freedom supplies the old two-tip ancestor clause. -/
+theorem NamedReceiptRootCollisionFree.toNamedRootCollisionFree (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hr : NamedReceiptRootCollisionFree p c E rho) :
+    NamedRootCollisionFree p c E rho := by
+  refine ⟨?_⟩
+  intro B C hB hC A D hA hD he
+  have hA' := hA.elim (namedScope_ancestor E rho hB) (namedScope_ancestor E rho hC)
+  have hD' := hD.elim (namedScope_ancestor E rho hB) (namedScope_ancestor E rho hC)
+  exact hr A D (Or.inl hA') (Or.inl hD') he
+
 /-- [ROOT-DIGEST-2 W1; DC NamedRootCollisionFree] Equal named ancestor occurrences are full
     values. -/
 theorem namedAncestor_eq (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

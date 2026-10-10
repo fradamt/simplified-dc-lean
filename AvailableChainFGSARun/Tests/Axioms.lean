@@ -438,3 +438,15 @@ end AvailableChain.FGSA.Run
 #print axioms AvailableChain.FGSA.Run.fgsa_replayed_head_delivery_origin
 #print axioms AvailableChain.FGSA.Run.fgsa_emitted_head_no_prior_processed
 #print axioms AvailableChain.FGSA.Run.fgsa_emitted_proposal_no_prior_processed
+
+#print axioms AvailableChain.FGSA.Run.NamedProposalReceiptScope
+#print axioms AvailableChain.FGSA.Run.NamedReceiptRootCollisionFree
+#print axioms AvailableChain.FGSA.Run.namedReceiptScope_of_namedScope
+#print axioms AvailableChain.FGSA.Run.namedReceiptScope_emitted
+#print axioms AvailableChain.FGSA.Run.namedReceiptScope_ancestor
+#print axioms AvailableChain.FGSA.Run.NamedReceiptRootCollisionFree.toNamedRootCollisionFree
+#print axioms AvailableChain.FGSA.Run.proposal_trigger_in_receipt_scope
+#print axioms AvailableChain.FGSA.Run.proposal_processed_in_scope
+#print axioms AvailableChain.FGSA.Run.emitted_proposal_history_in_scope
+#print axioms AvailableChain.FGSA.Run.proposal_trigger_service_in_scope
+#print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage_ready

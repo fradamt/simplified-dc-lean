@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.Roots
+public import AvailableChainFGSARun.Proofs.NamedDelivery
 public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.Readiness
@@ -544,7 +545,7 @@ This transports its block only; each carried HEAD uses its own trigger.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hRoots : NamedRootCollisionFree p c E rho)
+    (hRoots : NamedReceiptRootCollisionFree p c E rho)
     (hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
     (hNoRestart : V2.D.NoRestart rho) (dl : Time → Time) (cut : Time)
     (s : Slot) (N : NamedProposal p.n)
@@ -553,12 +554,12 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)
     (hCompat : Block.Compatible N.erase (eraseFG (V2.D.Run.stateBeforeTime E rho (dl t)
         w).st.fg.F))
-    (hhor : dl t ≤ rho.horizon) (hAwake : V2.D.AwakeOn E w t (dl t))
-    (hScope : NamedProposalInRun p c E rho N) :
+    (hhor : dl t ≤ rho.horizon) (hAwake : V2.D.AwakeOn E w t (dl t)) :
     ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) w).st.fg.TF, eraseFG Y = N.erase := by
   let o := ofWire p (⟨.proposer s, .proposal N⟩ : Wire p.n)
   let C := fgsaTimelyClock p c
   have hS := hExecution.toScheduleWellFormed
+  have hReceiptScope := proposal_trigger_in_receipt_scope E rho s N t hT
   have hd : (toWire p o).decode = some (.block s N) := by
     rw [toWire_ofWire]
     rfl
@@ -620,6 +621,9 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       have hj := (Gen.V2.Duty.index_lt_idxBefore_iff hS he (dl t)).2 htd
       exact fgsa_hReady_of_parentStored hd (fgsa_hWF_of_delivery hExecution.wire) hParent
         j t' hj hcall) hNX
+  have hScope : NamedProposalInRun p c E rho N := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hS] at hp
+    exact proposal_processed_in_scope E rho hRoots hw _ s N hReceiptScope hp
   change processedS p (V2.D.Run.stateBeforeTime E rho (dl t) w).st o = true at hp
   dsimp only [processedS] at hp
   rw [hd] at hp
@@ -631,7 +635,7 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       |>.mpr ⟨Y, hY, rfl⟩
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hS] at hm
     exact rootBlockInRun_held E rho hw _ hm
-  exact ⟨Y, hY, rootBlockInRun_eq E rho hRoots hYscope hbScope
+  exact ⟨Y, hY, rootBlockInRun_eq E rho (hRoots.toNamedRootCollisionFree E rho) hYscope hbScope
     (by simpa using (eraseFG_root Y).trans hroot)⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

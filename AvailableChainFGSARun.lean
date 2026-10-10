@@ -43,6 +43,7 @@ public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Statements.Emission
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSARun.Proofs.ReceiptCoverage
+public import AvailableChainFGSARun.Proofs.ReceiptCoverageReady
 public import AvailableChainFGSARun.Proofs.AncestorDeadlinesStore
 public import AvailableChainFGSARun.Proofs.AncestorDeadlines
 public import AvailableChainFGSARun.Proofs.Roots

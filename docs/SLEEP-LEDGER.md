@@ -1656,3 +1656,138 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
   OutageAlignment to P-Ou (unchanged equality examples; failure confirmed in 7.25 s).
 - Manifest generation: 58-module slice 84.64 s; 59-module companion surface 104.32 s.
   No package-full or G-S3 claim is made; P23 and family work remain with their owners.
+## W3 — P23-A receipt scope and bridge (2026-10-10)
+
+- DECISION P23-A, lead 04:05: keep P23 option (a). The receipt idealization includes
+  honest emitted bodies and their named ancestors. It replaces the old root premise
+  in receipt suppliers. No per-required NamedProposalInRun premise is added to P23.
+  This decision closes the W3 core stop recorded above. The old ReceiptAlias trace
+  remains a counterexample to the old form; it fails the new receipt idealization.
+- New internal statements, P23-A: NamedProposalReceiptScope and
+  NamedReceiptRootCollisionFree in Run/Statements/Roots. The old direct and ancestor
+  scopes are unchanged. The docstrings state that a global form over all values is
+  false because root is a free field. This is an idealization under valid execution.
+- New internal statements, P23-A: namedReceiptScope_of_namedScope embeds old scope;
+  namedReceiptScope_emitted includes each honest emitted body and its ancestors;
+  namedReceiptScope_ancestor closes that scope under ancestry.
+  NamedReceiptRootCollisionFree.toNamedRootCollisionFree supplies root_injective,
+  including both old tips' ancestor alternatives. Consumers: NamedDelivery,
+  Receipts, the ready core, and S-Ap's pending Base2.idealization projection.
+- New internal statements, P23-A: proposal_trigger_in_receipt_scope splits emission
+  from relay source acceptance. proposal_processed_in_scope extracts the exact
+  named body of a processed FG root (genesis or MetaInv.treeWire/wireTree), gives
+  that witness old scope, and identifies it with the receipt-scoped required body.
+  It needs an honest receiver; it needs no history persistence or deadline receipt.
+  emitted_proposal_history_in_scope applies this extraction to ProcessedByActionCut
+  for an honest emission. proposal_trigger_service_in_scope uses the history bridge
+  in DeliveryService's history arm, proposal_handle_in_scope in its handled arm,
+  and the source acceptance in the relay arm. The anchor may be after emission.
+  Consumers: Receipts, the ready core, WC/WCG scope readers, and family sleep readers.
+- Changed internal statement, P23-A: fgsa_proposal_receipt replaces hRoots with
+  NamedReceiptRootCollisionFree and drops hScope. Its Trigger supplies receipt scope;
+  processing at the deadline and proposal_processed_in_scope supply old scope.
+  AwakeOn, horizon, validity, NoRestart, deadlines, and the exact receipt remain.
+  The new ready core is its active in-package caller. The old ReceiptCoverage
+  wrapper is unchanged for S-Ap's explicit option (a) retirement.
+- Out-of-package proposal callers: replace the root argument with receipt collision
+  freedom, keep the approved readiness/horizon inputs, and remove any hScope input.
+  Base2 callers use receiptIdealization after S-Ap changes that field. Flat argument
+  lists must carry the stronger premise. These are family-owned argument swaps:
+
+```text
+┌────────┬─────────────────────────────────────────────────────────────────────┐
+│ Owner  │ AvailableChainFGSAProofs/Proofs caller                               │
+├────────┼─────────────────────────────────────────────────────────────────────┤
+│ P-ShA  │ Shared/HeldReceipt.lean:80; Shared/GateReceipt.lean:198                │
+│ P-ShA  │ Shared/ScoreRun.lean:497                                             │
+│ P-Ou   │ Outage/ExactProposal.lean:71                                         │
+│ P-WC   │ WeakContinuation/ExactProposal.lean:233                               │
+│ P-As   │ Assembly/WeakContinuationGrowth.lean:397                             │
+│ P-H1   │ Healing/PromotionReceipt.lean:128,200                                │
+│ P-H2   │ Healing/RiseOneAccept.lean:93                                        │
+│ P-H2   │ Healing/SupportRelay.lean:380; Healing/DescentLossNext.lean:128        │
+│ P-H2   │ Healing/PostResetRaw.lean:1291; Healing/PostResetLeaseMove.lean:102    │
+│ P-H2   │ Healing/SourceTiming.lean:293; Healing/PhaseRelay.lean:145,435         │
+└────────┴─────────────────────────────────────────────────────────────────────┘
+```
+
+- WC ExactProposal:254 and Assembly/WeakContinuationGrowth:418 can use
+  proposal_trigger_service_in_scope with the same ready service, or supply
+  emitted_proposal_history_in_scope to the existing scope callback. Relay readers
+  can still use proposal_handle_in_scope directly. Their old helpers stay available.
+- INTENTIONAL DC divergence: P2 permits a processed-root service instead of another
+  handler. Main's handler delivery excluded the alias trace only implicitly.
+  PC-SA has the same root-keyed processedS pattern. Its P2 receipt port remains an
+  open PC-SA-owned item; apply route A there. No PC-SA declaration changes here.
+- S-Ap owns Base2.receiptIdealization, its old idealization projection, the public
+  sleep statement/equation, public assumption lists, and retirement of the three
+  legacy P23 names. Safety-only statements retain NamedRootCollisionFree. Families
+  own stronger fixture evidence and their caller changes. No FGSAClaims statement
+  or Base2 declaration is changed by W3.
+
+## W3 — P23-A ready core, tests, and owners (2026-10-10)
+
+- New internal statement, P23-A: fgsa_receiptCoverage_ready in
+  Run/Proofs/ReceiptCoverageReady. It replaces NamedRootCollisionFree with
+  NamedReceiptRootCollisionFree and adds the approved awake receipt windows.
+  ReceiptCoveragePremises is unchanged. There is no per-required scope argument.
+  The full finality/output/HEAD/lease/path/stamp conclusion is unchanged. Proposal
+  receipt uses the exact processed-body bridge; the deadline and horizon bounds
+  follow from the unchanged record. New proofs use default heartbeats.
+- The core is in a separate module so S-Ap can retire the old wrapper and statement
+  files under option (a). The Run facade imports the new core, but its legacy import
+  remains until that retirement. The legacy files are unchanged by this job.
+- Family coverage argument swaps: Shared/Count.lean:169 (P-ShA) and
+  Outage/ContinuationReceipt.lean:128,178 (P-Ou) replace fgsa_receiptCoverage with the
+  ready core or the S-Ap sleep wrapper. Pass receipt collision freedom and the
+  approved readiness inputs; do not add per-required scope to the public form.
+  The concrete ReceiptCoveragePremises producers and their required predicates
+  stay unchanged. Their sleep migration remains with the family owners.
+- Kernel controls: Tests/EmissionFreshness.receipt_roots_false refutes the new
+  idealization on the original valid alias run. Tests/ReceiptAlias is unchanged
+  and retains the negative control for the old form. Tests/ReceiptReady supplies
+  full ExecutionValid and receipt collision freedom on a nonempty trace ending
+  before the colliding emission. Its nonempty required predicate names the accepted
+  slot-1 proposal. coverage_ready applies the new core and obtains its exact body
+  in the receiver's tree at deadline 9.
+- Registration: ReceiptCoverageReady and ReceiptReady are S1 REQUIRED and W3
+  TARGETS/GREEN. Roots and NamedScope are explicit W3 targets. W3Axioms prints every
+  new public theorem and both new definitions. The full Run audit and fixed owner
+  inventory contain the same new production declarations. Test-local audits print
+  the negative control and positive validity/root/premise/coverage results.
+- The three current S-Ap-P23-STOP map owners are replaced by S-Ap: Run,
+  Proofs/ReceiptCoverage, and Tests/Axioms remain EXPECTED-FAIL for public retirement.
+  The other S-Ap and family-owned EXPECTED-FAIL entries are unchanged. Historic STOP
+  records above describe the old boundary; P23-A closes the W3 scope/core item.
+- Restore export fix 672dbc93 is present through lead merge 2eba122b. The complete
+  export check will rerun against this fix and the new ready core, with no new
+  baseline, allow-list, or exception entry.
+
+## W3 — P23-A final validation (2026-10-10)
+
+- Implementation commits: 53112f9f (scope/bridge), 82bf0910 (ready core/tests/maps).
+- Final validation passes on 406 GREEN modules. The map retains 61 owned
+  EXPECTED-FAIL modules. No W3 P23-A STOP remains. S-Ap still owns the legacy
+  public retirement and full Run/audit roots; family argument swaps remain owned.
+- DCK PASS: 35 strict roots, 2,482 results, all 24 controls. Only propext,
+  Classical.choice, and Quot.sound occur. ReceiptReady prints all seven public laws.
+- Complete W3 export/audit coverage PASS: 116 proof modules, 250 exports,
+  0 unaccepted. The generated inventory has 97 entries across W3Axioms and the
+  three receipt controls. It uses the same explicit-root boundary as prior W3
+  checks, now including the ready core and controls. The default roots still
+  reach the S-Ap-owned legacy wrapper. The 17 Restore exports are removed.
+- No baseline, checker, protocol/model, FGSAClaims, Base2, or legacy P23 file
+  changed. Layer check: 72 findings, 0 new. New proofs use default heartbeats.
+
+```text
+┌────────────────────────────────────┬────────┬───────────┐
+│ Check                              │ Result │ Wall (s)  │
+├────────────────────────────────────┼────────┼───────────┤
+│ Focused core/tests/audit --wfail   │ PASS   │ 6.58      │
+│ Complete GREEN --wfail             │ PASS   │ 54.51     │
+│ Final GREEN --wfail                │ PASS   │ 10.91     │
+│ W3 DCK + strict audits + controls  │ PASS   │ 403.38    │
+│ Layers: 72 findings, 0 new         │ PASS   │ 0.39      │
+│ Complete export/audit coverage     │ PASS   │ 38.20     │
+└────────────────────────────────────┴────────┴───────────┘
+```
