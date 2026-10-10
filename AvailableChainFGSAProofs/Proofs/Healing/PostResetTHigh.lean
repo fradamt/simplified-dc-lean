@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
+
 public section
 
 /-! Blueprint 21 H.13:2677–2741, H.14:2826–2846, H.22 H1:3244–3250;
@@ -190,7 +192,7 @@ end Sources
 section Reset
 variable [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF)
-    (lossScopes : LossServiceScope p c E rho) (mono : RMonoAll p c E rho)
+    (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -219,7 +221,7 @@ variable [Fintype V] {G ΔF : Time}
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hrec lossScopes mono emittedNonempty emittedName writes xing origin h0r
+include hrec mono emittedNonempty emittedName writes xing origin h0r
 
 variable (cap : RCap p c E rho) (source : TSrc p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
@@ -246,6 +248,8 @@ fgsa_rXing, sourceDiscipline_qcOrigin, fgsa_rCap_channel, sourceDiscipline_tSrc
 and rowPermission_covered, with each producer's exact input type. -/
 theorem postReset_tHigh_reset (inv : ∀ i, PostResetInv p c E rho w i) :
     THigh p c E rho w := by
+  have lossScopes := healing_loss_service_scope_recovery E rho hrec mono source
+    emittedNonempty emittedName
   intro x y r r' C C' hx hy hC hC' hh hh'
   exact ⟨postReset_tHigh_pairwise p c E rho hrec cap source rowCovered h0r inv
       x y r r' C C' hx hy hC hC' hh hh',

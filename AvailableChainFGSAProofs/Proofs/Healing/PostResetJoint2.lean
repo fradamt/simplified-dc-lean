@@ -204,7 +204,7 @@ theorem postReset_serviceStep₂_of_old (w : HealingWitness) (i : Nat)
 
 section Induction
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -223,6 +223,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -300,14 +301,16 @@ theorem postReset_joint₂_all :
     have hcone := stepConeAt ih hrl hlease hfprov hraw
     have hod := stepODAt ih hrl hlease hfprov hraw hcone
     have hservice := stepServiceAt ih hrl hlease hfprov hraw hcone hod
-    have htransfer := healing_resetTransferCore E rho hrec xing cap source mono w h0r
+    have hLoss := healing_loss_service_scope_recovery E rho hrec mono source
+      emittedNonempty emittedName
+    have htransfer := healing_resetTransferCore_recovery p c E rho hrec mono xing cap source w h0r
     refine ⟨⟨?_, ?_, ?_, hlease, hfprov, hraw, hservice⟩, hrl, hod, hcone⟩
     · exact postReset_protected_kept_succ (hroots := hrec.base.idealization) p c E rho
         hrec.base.valid.toScheduleWellFormed
         xing origin h0r htransfer ih.1
-    · exact postReset_high_compatible_all p c E rho hrec mono emittedNonempty emittedName
+    · exact postReset_high_compatible_all p c E rho hrec hLoss mono emittedNonempty emittedName
         writes xing origin h0r (i + 1)
-    · exact postReset_reset_compatible_all p c E rho hrec mono emittedNonempty emittedName
+    · exact postReset_reset_compatible_all p c E rho hrec hLoss mono emittedNonempty emittedName
         writes xing origin h0r (i + 1)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

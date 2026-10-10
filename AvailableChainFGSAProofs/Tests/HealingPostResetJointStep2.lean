@@ -22,7 +22,7 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 variable [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (cap : RCap p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
@@ -39,13 +39,13 @@ variable [Fintype V]
 include hrec hreset cap rowCovered
 
 /-- Blueprint 21 H.17:2946–3040; plan RE-BIND T/D5 O1; DC: SAME every-cut producer. -/
-example (xing : RXing p c E rho) (origin : RQCOrigin p c E rho) :
+example (mono : RMonoAll p c E rho) (xing : RXing p c E rho) (origin : RQCOrigin p c E rho) :
     ∀ i, PostResetOpeningDomainStep₂ p c E rho w i :=
   fun i => healing_postReset_openingDomainStep₂ E rho hrec w hreset cap rowCovered
-    xing origin i
+    mono xing origin i
 
 /-- Blueprint 21 H.17:2946–3040; plan RE-BIND T/D5 O2; DC: SAME every-cut producer. -/
-example (mono : RMono p c E rho)
+example (mono : RMonoAll p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -56,6 +56,7 @@ example (mono : RMono p c E rho)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →

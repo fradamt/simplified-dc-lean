@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
 
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
+
 public section
 
 /-! J6-2 H6 gate service. The raw-transfer field is used at its complete
@@ -264,11 +266,7 @@ guard, saved fast write, and live lease. -/
 theorem healing_postReset_h6GateService [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
-    (gates : ∀ s j x, E.t_GST ≤ SA.voteTime p.toParams s → x ∈ rho.honest →
-      IsGateTick p c rho j x s → enabledGateAt p c E rho j x s →
-      ∀ B, GateReceiptGeometry E rho
-        (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)) s B →
-      GateReceiptScope E rho j x s)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (i : Nat) (hcomplete : rho.events.length ≤ i)
     (hrawTransfer : PostResetRawTransfer p c E rho w i)
     (writes : ∀ i x (row : Block × Nat × Time),
@@ -334,7 +332,7 @@ theorem healing_postReset_h6GateService [Fintype V]
         (healing_support_emitted_head E rho hS s a K _ he))
     · intro a ha _ K he
       exact hcov _ ha K (healing_support_emitted_head E rho hS s a K _ he)
-  have hReceipt := gates s j x hgst hx ht hEnabled D hgeom
+  have hReceipt := healing_gate_receipt_scope_recovery E rho hrec mono hgst hx hEnabled hgeom
   have hScope := healing_support_gate_scope_of_cut E rho hrec hBatchCut hgst
     (by
       apply le_trans ?_ hGateHorizon

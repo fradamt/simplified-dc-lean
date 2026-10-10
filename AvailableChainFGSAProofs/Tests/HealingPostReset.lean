@@ -17,7 +17,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 -- conditional package: A supplies reset delivery from the actual J1 producer.
 example [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (xing : RXing p c E rho) (cap : RCap p c E rho)
     (source : TSrc p c E rho) (origin : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
@@ -30,6 +30,7 @@ example [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -74,7 +75,7 @@ example (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
   exact h.2.2.2.2.2 B path hBC hBK
 
 -- conditional package, anti-vacuity: RFProv under H0 supplies both F and high-J arms.
-example (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+example (hv : V2.D.ExecutionValid E rho)
     (origin : RQCOrigin p c E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
       ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
@@ -104,7 +105,7 @@ example (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧
       SA.gateTime p.toParams s ≤ (storeAt p c E rho i x).base.now ∧
       Block.Preceq (J_at p c E rho i x) (eraseFG K)) := by
-  have h := healing_rFProv_of_reset (hroots := hroots) p c E rho hv hnr origin heldRows cap
+  have h := healing_rFProv_of_reset (hroots := hroots) p c E rho hv origin heldRows cap
       hhead xing w
     h0 i x hx hi
   exact ⟨h.1, h.2 hJ⟩

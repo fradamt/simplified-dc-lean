@@ -203,9 +203,9 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hnr : V2.D.NoRestart rho) {k : AttemptKey}
     (hvalid : AttemptValid p c E rho k) (hk : k.frontier = 1) :
-    ∃ ev rG, rho.events[k.start]? = some ev ∧ E.t_GST ≤ ev.time ∧
-      E.t_GST ≤ p.actionTime rG ∧
-      (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) ∧
+    ∃ ev rG, rho.events[k.start]? = some ev ∧ recoveryStart p E ≤ ev.time ∧
+      recoveryStart p E ≤ p.actionTime rG ∧
+      (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) ∧
       ev.time = p.actionTime (rG + 2) ∧
       timeIdx rho (p.actionTime (rG + 2)) = k.start + 1 := by
   have hf : frontierAtIdx p c E rho (k.start + 1) = 1 := by
@@ -261,7 +261,7 @@ example (p : Params) (G ΔF : Time)
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (mono : RMonoAll p c E rho)
     (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
       PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
@@ -286,7 +286,8 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     healing_attempt_inclusive_start E rho hvalid hne
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_attempt_raise_contest_settle p c E rho mono heldServices
+  obtain ⟨J, hsettled⟩ := healing_attempt_raise_contest_settle p c E rho mono
+    (fun t ht => healing_ready_read_cutoff (p := p) (t := t) E ht) heldServices
     crossing hrec
     hvalid hstart hu hv hquiet htask hphase
   exact ⟨rG, J, ht, hcut, hsettled⟩
@@ -295,7 +296,7 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (mono : RMonoAll p c E rho)
     (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
       PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
@@ -320,7 +321,8 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     healing_attempt_inclusive_start E rho hvalid hne
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_attempt_raise_other_settle p c E rho mono heldServices
+  obtain ⟨J, hsettled⟩ := healing_attempt_raise_other_settle p c E rho mono
+    (fun t ht => healing_ready_read_cutoff (p := p) (t := t) E ht) heldServices
     crossing hrec
     hvalid hstart hu hv hquiet htask hphase
   exact ⟨rG, J, ht, hcut, hsettled⟩
@@ -329,7 +331,7 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (mono : RMonoAll p c E rho)
     (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
       PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
@@ -354,7 +356,8 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     healing_attempt_inclusive_start E rho hvalid hne
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_contest_settle p c E rho mono heldServices
+  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_contest_settle p c E rho mono
+    (fun t ht => healing_ready_read_cutoff (p := p) (t := t) E ht) heldServices
     crossing hrec
     hvalid hstart hu hv hquiet htask hphase
   exact ⟨rG, J, ht, hcut, hsettled⟩
@@ -363,7 +366,7 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (mono : RMonoAll p c E rho)
     (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
       PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
@@ -388,15 +391,16 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     healing_attempt_inclusive_start E rho hvalid hne
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_other_settle p c E rho mono heldServices
+  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_other_settle p c E rho mono
+    (fun t ht => healing_ready_read_cutoff (p := p) (t := t) E ht) heldServices
     crossing hrec
     hvalid hstart hu hv hquiet htask hphase
   exact ⟨rG, J, ht, hcut, hsettled⟩
 
 section CompleteRows
 variable [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
@@ -408,6 +412,7 @@ variable [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -432,7 +437,9 @@ example {k : AttemptKey} {ev : V2.Event V (Obj p)}
     (hhor : ev.time + attemptBudget p G k ≤ rho.horizon)
     (htask : k.task = .firstRow) (hphase : k.phase = .contest) :
     AttemptEndsBy p c E rho k (attemptBudget p G k) :=
-  healing_attempt_firstRow_contest E rho hrec mono crossing qc writes rowCoverage
+  healing_attempt_firstRow_contest E rho hrec mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono)
+    (healing_opening_service_scopes_recovery E rho hrec mono) writes rowCoverage
     hvalid hstart hhor htask hphase
 
 variable
@@ -454,7 +461,9 @@ example {k : AttemptKey} {ev : V2.Event V (Obj p)}
     (hhor : ev.time + attemptBudget p G k ≤ rho.horizon)
     (htask : k.task = .firstRow) (hphase : k.phase ≠ .contest) :
     AttemptEndsBy p c E rho k (attemptBudget p G k) :=
-  healing_attempt_firstRow_other E rho hrec mono crossing qc writes rowCoverage hδ hbound
+  healing_attempt_firstRow_other E rho hrec mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono)
+    (healing_opening_service_scopes_recovery E rho hrec mono) writes rowCoverage hδ hbound
     rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor htask hphase
 
 -- Apply the complete raise / contest row at either AttemptValid start arm.
@@ -463,7 +472,9 @@ example {k : AttemptKey} {ev : V2.Event V (Obj p)}
     (hhor : ev.time + attemptBudget p G k ≤ rho.horizon)
     (htask : k.task = .raise) (hphase : k.phase = .contest) :
     AttemptEndsBy p c E rho k (attemptBudget p G k) :=
-  healing_attempt_raise_contest E rho hrec mono crossing qc writes rowCoverage hδ hbound
+  healing_attempt_raise_contest E rho hrec mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono)
+    (healing_opening_service_scopes_recovery E rho hrec mono) writes rowCoverage hδ hbound
     rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor htask hphase
 
 -- Apply the complete raise / gap or topJ row at either start arm.
@@ -472,7 +483,9 @@ example {k : AttemptKey} {ev : V2.Event V (Obj p)}
     (hhor : ev.time + attemptBudget p G k ≤ rho.horizon)
     (htask : k.task = .raise) (hphase : k.phase ≠ .contest) :
     AttemptEndsBy p c E rho k (attemptBudget p G k) :=
-  healing_attempt_raise_other E rho hrec mono crossing qc writes rowCoverage hδ hbound
+  healing_attempt_raise_other E rho hrec mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono)
+    (healing_opening_service_scopes_recovery E rho hrec mono) writes rowCoverage hδ hbound
     rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor htask hphase
 
 -- Apply the lane assembly without a row-result premise.
@@ -480,7 +493,9 @@ example {k : AttemptKey} {ev : V2.Event V (Obj p)}
     (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
     (hhor : ev.time + attemptBudget p G k ≤ rho.horizon) :
     AttemptEndsBy p c E rho k (attemptBudget p G k) :=
-  healing_progressAttempt E rho hrec mono crossing qc writes rowCoverage hδ hbound
+  healing_progressAttempt E rho hrec mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono)
+    (healing_opening_service_scopes_recovery E rho hrec mono) writes rowCoverage hδ hbound
     rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor
 
 end CompleteRows
@@ -521,12 +536,13 @@ example (k : AttemptKey) (htask : k.task = .firstRow) (hphase : k.phase ≠ .con
 
 -- Blueprint 21 H.10; plan item S5 PA-ASSEMBLY T; DC: SAME frozen inputs only.
 example [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (rows : ProgressAttemptRows p G ΔF)
     (hδ : p.δt = 2 * p.R) (hset : HealingSet p c E rho G ΔF)
     (hbound : LivenessBoundW p ΔF) (k : AttemptKey) (ev : V2.Event V (Obj p))
     (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
     (hhor : ev.time + attemptBudget p G k ≤ rho.horizon) :
     AttemptEndsBy p c E rho k (attemptBudget p G k) :=
-  healing_progressAttemptStatement p G ΔF hδ c E rho hset hbound k ev hvalid hstart hhor
+  healing_progressAttemptStatement p G ΔF rows hδ c E rho hset hbound k ev hvalid hstart hhor
 
 end AvailableChain.FGSA.Run.Tests.HealingAttempt
 end

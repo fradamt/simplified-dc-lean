@@ -149,7 +149,7 @@ theorem healing_rise_one_rise (E : Generic.Env V)
       (some .genesis) false :=
     ⟨hafter, le_trans (by linarith [p.deltaPos]) hD, hp.2.2.1,
       fun i x hui hi hx => hp.2.2.2 i x hui (hi.trans hcut) hx⟩
-  have hheight := healing_rise_one_advance_at E rho hrec hδ hbound mono crossing writes
+  have hheight := healing_rise_one_advance E rho hrec hδ hbound mono crossing writes
     rowsReceipt progressCoverage hfold faultQ honestQuorum hentry hc hready hphase
     (services.permanence u (SA.proposalTime p.toParams s) 1
       (some .genesis) false hready hphase)

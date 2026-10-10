@@ -16,7 +16,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 section JointSteps
 variable [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (cap : RCap p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
@@ -37,11 +37,11 @@ Blueprint 21 H.17:3031–3040; plan RE-BIND D5 O1; ruling R3.
 DC: SAME the opening-domain step, from the prior PostResetInv and opening cut.
 Producer: healing_postReset_openingDomain_step_at; cone from the successor cut. -/
 theorem healing_postReset_openingDomainStep₂
-    (xing : RXing p c E rho) (origin : RQCOrigin p c E rho) (i : Nat) :
+    (mono : RMonoAll p c E rho) (xing : RXing p c E rho) (origin : RQCOrigin p c E rho) (i : Nat) :
     PostResetOpeningDomainStep₂ p c E rho w i := by
   rw [PostResetOpeningDomainStep₂_def]
   rintro ⟨hinv, -, hod, -⟩ - - - - hcone
-  exact healing_postReset_openingDomain_step_at E rho hrec w hreset cap rowCovered
+  exact healing_postReset_openingDomain_step_at E rho hrec mono w hreset cap rowCovered
     xing origin i (fun v hv => postResetConeAt_of_cut p c E rho w hcone
       (hv.trans (Nat.le_succ i))) hinv.high_compatible hinv.fprov hinv.raw_transfer hod
 
@@ -50,7 +50,7 @@ Blueprint 21 H.17:3021–3040; plan RE-BIND D5 O2; ruling R3.
 DC: SAME the service step, from the successor F provenance, raw transfer and
 opening cut. Producer: healing_postReset_service_step_at at i + 1; cone from that cut. -/
 theorem healing_postReset_serviceStep₂
-    (mono : RMono p c E rho)
+    (mono : RMonoAll p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -61,6 +61,7 @@ theorem healing_postReset_serviceStep₂
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →

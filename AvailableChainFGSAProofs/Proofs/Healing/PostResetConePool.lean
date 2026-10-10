@@ -23,9 +23,9 @@ DC: SAME proposer majority and rivals from the preceding honest batch.
 C1/C2 supply target coverage, the root helper supplies root coverage,
 and C3 supplies the common pivot and its floor. -/
 theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
-    (mono : RMono p c E rho)
+    (mono : RMonoAll p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
     {r : Slot} {L : Block} (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
     (hcut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
@@ -68,8 +68,23 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
     unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjx]
     rfl
+  have hReadJoined : joinedNow p (clock p (storeAt p c E rho ip x)
+      (SA.proposalTime p.toParams (r + 1))) = true :=
+    (healing_recovery_joinedNow hrec hx hip (hv.trans hvh) (by
+      have hc := hcut
+      change E.t_GST ≤ 4 * p.Δ * ((r : Int) - 1) at hc
+      have he : p.slotOf (SA.proposalTime p.toParams (r + 1)) = r + 1 := by
+        exact (fgsa_postClock_slot (c := c) (rho.stateBefore E ip x) _).2.symm.trans
+          (fgsa_proposal_slot (c := c) _ (r + 1))
+      rw [he]
+      change E.t_GST ≤ 4 * p.Δ * (((r + 1 : Nat) : Int) - 1)
+      push_cast
+      nlinarith [p.deltaPos]))
   obtain ⟨W, _, hWe, hrelay⟩ := postReset_head_receipt_at_cut E rho hrec mono crossing hx hjx hx hip
     hgstr hvp (hFHeads x hx _ hhl)
+    hReadJoined
+    (healing_head_witness_receipts_recovery E rho hrec crossing hx hjx
+      hgstr ((hvp.trans hv).trans hvh))
   have hW : W ∈ (storeAt p c E rho ip x).fg.TF :=
     (fgsa_store_durable p c E rho
       (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 hrelay
@@ -95,7 +110,7 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
     simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
   have hseat (k : Fin p.n) (hk : k ∈ Hon) :=
     postReset_proposal_batch_seat_at_cut E rho hrec crossing mono
-    hvh hgstr hcut hcover hx hip hv hFHeads k ((hHmem k).mp hk)
+    hvh hgstr hcut hcover hx hip hv hReadJoined hFHeads k ((hHmem k).mp hk)
   have hHon : Hon.card = rho.honest.card := by
     rw [← Finset.card_image_of_injective Hon hbij.1]
     congr 1
@@ -107,12 +122,9 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
     · intro hz
       obtain ⟨k, rfl⟩ := hbij.2 z
       exact ⟨k, (hHmem k).mpr hz, rfl⟩
-  have hawk : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams r) = rho.honest := by
-    rw [Gen.V2.Duty.awakeHonest_def]
-    exact Finset.filter_eq_self.mpr (fun z hz => hrec.awake z hz _ hgstr hhorr)
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := by
-    have h := (hrec.batch hgstr hhorr).lt
-    rw [hawk] at h
+    have h := (healing_recovery_joined_counts E rho hrec r hcut hgstr hhorr).2.lt
+    rw [healing_recovery_joinedHonest E rho hrec r hcut hgstr hhorr] at h
     exact ⟨hHon ▸ h⟩
   have hother : ((GridCO.seats p.n (proposerVotes src (r + 1))).toFinset \ Hon).card ≤
       (Gen.V2.Duty.faulty rho).card := by
@@ -148,9 +160,9 @@ Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME HEAD majority and rival bound from the preceding honest batch.
 The strict target arm has F below the live root and then below L. -/
 theorem postReset_targetScores_at_cut [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
-    (mono : RMono p c E rho)
+    (mono : RMonoAll p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
     {r : Slot} {L : Block} (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
     (hcut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
@@ -163,6 +175,18 @@ theorem postReset_targetScores_at_cut [Fintype V] (E : Generic.Env V)
       (SA.voteTime p.toParams (r + 1))) (r + 1) L := by
   classical
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (r + 1))
+  have hReadJoined : joinedNow p (clock p (storeAt p c E rho ih y)
+      (SA.voteTime p.toParams (r + 1))) = true :=
+    healing_recovery_joinedNow hrec hy hih (hv.trans hvh) (by
+      have hc := hcut
+      have he : p.slotOf (SA.voteTime p.toParams (r + 1)) = r + 1 :=
+        (fgsa_postClock_slot (c := c) (rho.stateBefore E ih y) _).2.symm.trans
+          (fgsa_vote_slot (c := c) _ (r + 1))
+      rw [he]
+      change E.t_GST ≤ 4 * p.Δ * (((r + 1 : Nat) : Int) - 1)
+      change E.t_GST ≤ 4 * p.Δ * ((r : Int) - 1) at hc
+      push_cast
+      nlinarith [p.deltaPos])
   have hE := hrec.base.valid
   have hd := p.deltaPos
   have hvi : SA.voteTime p.toParams r ≤ v := by
@@ -179,7 +203,7 @@ theorem postReset_targetScores_at_cut [Fintype V] (E : Generic.Env V)
     simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
   have hseat (k : Fin p.n) (hk : k ∈ Hon) :=
     postReset_head_batch_seat_at_cut E rho hrec crossing mono
-    hvh hgstr hcut hcover hy hih hv (fun z hz K hK =>
+    hvh hgstr hcut hcover hy hih hv hReadJoined (fun z hz K hK =>
       block_preceq_trans hFL (hcover z hz K hK)) k ((hHmem k).mp hk)
   have hHon : Hon.card = rho.honest.card := by
     rw [← Finset.card_image_of_injective Hon hbij.1]
@@ -192,12 +216,9 @@ theorem postReset_targetScores_at_cut [Fintype V] (E : Generic.Env V)
     · intro hz
       obtain ⟨k, rfl⟩ := hbij.2 z
       exact ⟨k, (hHmem k).mpr hz, rfl⟩
-  have hawk : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams r) = rho.honest := by
-    rw [Gen.V2.Duty.awakeHonest_def]
-    exact Finset.filter_eq_self.mpr (fun z hz => hrec.awake z hz _ hgstr hhorr)
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := by
-    have h := (hrec.batch hgstr hhorr).lt
-    rw [hawk] at h
+    have h := (healing_recovery_joined_counts E rho hrec r hcut hgstr hhorr).2.lt
+    rw [healing_recovery_joinedHonest E rho hrec r hcut hgstr hhorr] at h
     exact ⟨hHon ▸ h⟩
   have hother : ((GridCO.seats p.n (FGSA.headVotes p dst (r + 1))).toFinset \ Hon).card ≤
       (Gen.V2.Duty.faulty rho).card := by

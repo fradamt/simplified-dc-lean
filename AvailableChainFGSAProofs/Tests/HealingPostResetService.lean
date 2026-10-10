@@ -87,18 +87,20 @@ example (w : HealingWitness) (hreset : H0Reset p c E rho w) :
 variable [Fintype V]
 
 -- A3: consume the HEAD conclusion as equality of a supplied HEAD with Q.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w)
     {v : Slot} {Q H : Block} (hp : HonestProposal E rho (fgsaInterface p c) v Q)
     (hv : w.sStar + 2 ≤ v)
     (hHeadHorizon : SA.voteTime p.toParams v ≤ rho.horizon)
     {y : V} (hy : y ∈ rho.honest) (hH : headAtLabel p c E rho y v = some H) : H = Q := by
-  have hQ := healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv hHeadHorizon y hy
+  have hQ := healing_postReset_exactHead E rho hrec mono w hreset hcone v Q hp hv hHeadHorizon y hy
   exact Option.some.inj (hH.symm.trans hQ)
 
 -- T: at v = sStar + 2, consume both exact HEAD and its retained carrier.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w) {Q : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) (w.sStar + 2) Q)
@@ -110,36 +112,39 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       C ∈ domainR p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (w.sStar + 2)))
         (voterBlocks p (clock p (rho.stateBefore E ih y).st
           (SA.voteTime p.toParams (w.sStar + 2))) (w.sStar + 2)) :=
-  ⟨healing_postReset_exactHead E rho hrec w hreset hcone _ Q hp le_rfl hHeadHorizon y hy,
-    healing_postReset_headCarrier E rho hrec w hreset hcone hp le_rfl hHeadHorizon hy hih⟩
+  ⟨healing_postReset_exactHead E rho hrec mono w hreset hcone _ Q hp le_rfl hHeadHorizon y hy,
+    healing_postReset_headCarrier E rho hrec mono w hreset hcone hp le_rfl hHeadHorizon hy hih⟩
 
 -- Risk 4: a closed HEAD deadline still works when the later gate is outside.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w) {v : Slot} {Q : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
     (hAtHead : rho.horizon = SA.voteTime p.toParams v) :
     rho.horizon < SA.gateTime p.toParams v ∧
       ∀ y ∈ rho.honest, headAtLabel p c E rho y v = some Q := by
-  refine ⟨?_, healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv hAtHead.ge⟩
+  refine ⟨?_, healing_postReset_exactHead E rho hrec mono w hreset hcone v Q hp hv hAtHead.ge⟩
   rw [hAtHead]
   change 4 * p.Δ * (v : Int) + p.Δ < 4 * p.Δ * (v : Int) + 6 * p.Δ
   linarith [p.deltaPos]
 
 -- Risk 4: use the named gate-to-HEAD guard when the gate is in the horizon.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w) {v : Slot} {Q : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
     (hGateHorizon : SA.gateTime p.toParams v ≤ rho.horizon) :
     ∀ y ∈ rho.honest, headAtLabel p c E rho y v = some Q :=
-  healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv
+  healing_postReset_exactHead E rho hrec mono w hreset hcone v Q hp hv
     (postReset_head_horizon p c rho hGateHorizon)
 
 
 -- S3: apply H6 at sStar. No cone or honest proposal is supplied at this label.
 -- The INLINE `writes` input is discharged by its producer fgsa_leaseOrigins_lastWrite.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness)
     (hrawTransfer : PostResetRawTransfer p c E rho w (rho.events.length + 1))
     (D : Block) (hgst : recoveryStart p E ≤ SA.voteTime p.toParams w.sStar)
@@ -154,14 +159,15 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (∃ nd d, postClock E rho x (SA.gateTime p.toParams w.sStar) = some nd ∧
       D ∈ (fastWriteAt nd.st w.sStar).getD [] ∧ leaseOf nd.st D = some d ∧
       SA.gateTime p.toParams w.sStar + L p ≤ d ∧ SA.gateTime p.toParams w.sStar < d) :=
-  healing_postReset_h6GateService E rho hrec w (rho.events.length + 1)
+  healing_postReset_h6GateService E rho hrec mono w (rho.events.length + 1)
     (Nat.le_succ _) hrawTransfer
     (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
     w.sStar D le_rfl hgst hGateHorizon hne
     hheads hfloor x hx
 
 -- J6-3 O1 partial: stored lift at the new tick of the cut, without service.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w) (i : Nat)
     {x : V} {v : Slot} {Q : Block} (hx : x ∈ rho.honest)
@@ -170,7 +176,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (r : Nat) (hr : v = r * p.R) :
     let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
     ∃ D : FGBlock (Fin p.n), eraseFG D = Q ∧ D ∈ st.fg.TF :=
-  healing_postReset_opening_clock_stored E rho hrec w hreset hcone hp hv hx ht r hr
+  healing_postReset_opening_clock_stored E rho hrec mono w hreset hcone hp hv hx ht r hr
 
 -- J6-3 O2 partial: opening_domain at cut i + 1 covers tick i.
 example (w : HealingWitness) (i : Nat)
@@ -185,7 +191,8 @@ example (w : HealingWitness) (i : Nat)
     (Nat.lt_succ_self i) hx ht hp hv
 
 -- J6-3 O2 partial: opening target_floor at a cut uses exact HEAD.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w) (i : Nat)
     (hopening : PostResetOpeningDomain p c E rho w (i + 1))
@@ -199,11 +206,12 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       (ofHead p ⟨.seat (.head v) q, K.root⟩) (SA.voteTime p.toParams v) K) :
     Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
       (SA.gateTime p.toParams v)).fg.F) K :=
-  healing_postReset_opening_target_floor E rho hrec w hreset hcone (i + 1) hopening
+  healing_postReset_opening_target_floor E rho hrec mono w hreset hcone (i + 1) hopening
     (Nat.lt_succ_self i) hx ht hp hv r hr q hy haw K he
 
 section J63CutApplication
-variable {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+variable {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w)
     (cap : RCap p c E rho)
@@ -218,7 +226,7 @@ variable {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
 
-variable (mono : RMono p c E rho)
+variable (mono : RMonoAll p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -229,6 +237,7 @@ variable (mono : RMono p c E rho)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -253,7 +262,8 @@ example : ∀ i, PostResetServiceStep p c E rho w i :=
 end J63CutApplication
 
 section J63OpeningCutApplication
-variable {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+variable {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w)
     (cap : RCap p c E rho)
@@ -269,7 +279,7 @@ variable {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
           some ((heightView p C).h, (heightView p C).T_h.root))
 
 variable (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
-include hrec hreset hcone cap rowCovered xing origin
+include hrec mono hreset hcone cap rowCovered xing origin
 
 -- J6-3 O1: apply the full successor at cut i, before service.
 example (i : Nat) (hhigh : PostResetHighCompatible p c E rho w i)
@@ -277,12 +287,12 @@ example (i : Nat) (hhigh : PostResetHighCompatible p c E rho w i)
     (hraw : PostResetRawTransfer p c E rho w i)
     (hopening : PostResetOpeningDomain p c E rho w i) :
     PostResetOpeningDomain p c E rho w (i + 1) :=
-  healing_postReset_openingDomain_step E rho hrec w hreset hcone cap rowCovered xing origin
+  healing_postReset_openingDomain_step E rho hrec mono w hreset hcone cap rowCovered xing origin
     i hhigh hfp hraw hopening
 
 -- JOINT-IND: the opening-domain step holds at every cut, pre-reset cuts included.
 example : ∀ i, PostResetOpeningDomainStep p c E rho w i :=
-  healing_postReset_openingDomainStep E rho hrec w hreset hcone cap rowCovered xing origin
+  healing_postReset_openingDomainStep E rho hrec w hreset hcone cap rowCovered mono xing origin
 
 end J63OpeningCutApplication
 

@@ -1229,3 +1229,34 @@ post-reset induction. The checked conditional adapters are consumers of these
 exact inputs. They do not close their producers. Full Root acceptance stays open.
 The canonical P-Ou audit fragment uses production imports only. No public Claims
 or Statements definition, protocol declaration, or family source changes here.
+
+P-H2 Round 8 (sleep-ph2i): RecoveryProducers now constructs FrontierReadScope
+with its seven current fields. Only its body changes. RepairCover imports the
+P-H1 RepairLeaseRecovery adapters and removes the duplicate local proofs.
+Healing.Export imports RecoveryPerm. Its promotion permanence callback uses
+RecoverySleep₂. The renewed promotion producer keeps its Jst conclusion and
+all three deadlines. The exact Export body passes a separate kernel probe.
+
+Recovery produces the repair, opening and frontier aggregate scopes. Opening
+gates require their selected GateReceiptGeometry. The callers prove this
+geometry from covering HEADs and the current receiver floor. The new retained
+cone floor proof uses the actual proposal parent before receipt service.
+healing_frontierSearch_recovery supplies HG.5 from the named Foundations and
+these produced scopes. Both finite rise and row horizon guards stay separate.
+
+Post-reset opening uses retained services and local recovery epochs. Its gate
+proofs use the saved-gate interface; they export no new matcher equations.
+Reset transfer is produced only under its release horizon. The joint induction
+produces P9 loss service, and its opening and service successors use RMonoAll
+and joined writes. Cone receipts use fresh HEAD service and exact stamp epochs.
+The cone successor is a guarded induction step. PostReset, H6, H2-prime and
+THigh now construct their former service-factory inputs from recovery.
+
+The H0 completion and healed consumer bodies compile at the selected witness.
+HealingInputExport retains explicit field obligations at the full Jst horizon.
+Full H0 extension, local HealingInput and the universal HealingInputOfH0 result
+remain OPEN through the unproduced joint invariant. The reset-lease, lease and
+raw successors still need their sleep ports. No all-cut source closure is
+claimed. The map has 105/114 GREEN targets; nine retain P-H2. Exact obligations:
+scripts/dev-pkg/P-H2.round8-handoff.md. No public claim, budget sum, GST saved
+window or GST RowPermissionAt bound changes.

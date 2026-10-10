@@ -71,7 +71,7 @@ DC: SAME first actual honest proposal, selected by Nat.find.
 The local horizon a_(r*)+Γ+4Δ ≤ horizon contains the full gap window and gate.
 Recovery₂ supplies the gap, awake proposer, valid schedule, and Γ=G. -/
 theorem healing_firstProposal [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
     (hreset : H0Reset p c E rho w)
     (hhor : p.actionTime w.rStar + Γ p G + 4 * p.Δ ≤ rho.horizon) :
     ∃ u Q, PostResetStart p c E rho {w with u := u, QStar := Q} ∧
@@ -81,10 +81,10 @@ theorem healing_firstProposal [Fintype V] {G ΔF : Time}
   have hd := p.deltaPos
   have ha : p.actionTime w.rStar = SA.gateTime p.toParams (w.rStar * p.R) := rfl
   rw [← hreset.label] at ha
-  have htrigger : E.t_GST ≤ SA.proposalTime p.toParams (w.sStar + 1) := by
-    have hsync := hreset.synchronous
-    change E.t_GST ≤ 4 * p.Δ * (w.sStar : Int) + p.Δ at hsync
-    change E.t_GST ≤ 4 * p.Δ * ((w.sStar + 1 : Nat) : Int)
+  have htrigger : recoveryStart p E ≤ SA.proposalTime p.toParams (w.sStar + 1) := by
+    have hsync := healing_reset_source_ready hreset
+    change recoveryStart p E ≤ 4 * p.Δ * (w.sStar : Int) + p.Δ at hsync
+    change recoveryStart p E ≤ 4 * p.Δ * ((w.sStar + 1 : Nat) : Int)
     push_cast
     linarith
   have hwindow : SA.proposalTime p.toParams (w.sStar + 1) + G ≤ rho.horizon := by
@@ -93,11 +93,16 @@ theorem healing_firstProposal [Fintype V] {G ΔF : Time}
     change 4 * p.Δ * ((w.sStar + 1 : Nat) : Int) + G ≤ rho.horizon
     push_cast
     linarith
-  obtain ⟨s, hlo, hhi, hs⟩ := hrec.gap _ htrigger hwindow
+  obtain ⟨s, hlo, hhi, hs⟩ := hrec.gap _ (by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]) hwindow
   rw [proposalTime_fgsa] at hlo hhi
   have hlower := healing_proposal_grid_lower p w hlo
   obtain ⟨Q, hQ⟩ := repair_honest_proposal E rho hrec hs
-    (htrigger.trans hlo.le) (hhi.trans hwindow)
+    (by have := healing_recovery_start_lower (p := p) E
+        linarith [p.deltaPos])
+    ((healing_ready_proposal_window E (htrigger.trans hlo.le)).prior.mono (Nat.sub_le s 1)).2
+    (hhi.trans hwindow)
   have hex : ∃ v, w.sStar + 2 ≤ v ∧
       ∃ B, HonestProposal E rho (fgsaInterface p c) v B := ⟨s, hlower, Q, hQ⟩
   let u := Nat.find hex
@@ -133,7 +138,7 @@ theorem healing_firstProposal [Fintype V] {G ΔF : Time}
 Blueprint 21 H0 proof:3371–3374, H.22:3229–3241; plan J7 C.
 DC: SAME reset data; only u and QStar change. Named TCarrier producer: J3 rest. -/
 theorem healing_h0_of [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
     (tCarrier : TCarrier p c E rho w) (hreset : H0Reset p c E rho w)
     (hhor : p.actionTime w.rStar + Γ p G + 4 * p.Δ ≤ rho.horizon) :
     ∃ u Q, H0 p c E rho {w with u := u, QStar := Q} ∧
@@ -146,23 +151,31 @@ theorem healing_h0_of [Fintype V] {G ΔF : Time}
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.18:3061, H.22 H4; plan J7 D, first clause.
 DC: SAME stable output at d_u. Named H3 producer: J6-3 PostResetService/opening_domain. -/
-theorem healing_h4_stable {w : HealingWitness} (start : PostResetStart p c E rho w)
+theorem healing_h4_stable [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness} (start : PostResetStart p c E rho w)
     (h3 : H3 p c E rho w) (hhor : tstar p w ≤ rho.horizon) :
     ∀ x ∈ rho.honest,
       (fgsaInterface p c).stable (afterTicks E rho (tstar p w) x) = w.QStar := by
   intro x hx
-  exact (h3 w.u w.QStar start.proposal start.proposal_lower).2 hhor x hx |>.2.2.2.1
+  have hReader := healing_recovery_gate_reader hrec hx
+    (healing_reset_slot_cutoff start.toH0Reset |>.trans (by
+      have hu : (w.sStar : Int) ≤ w.u := by
+        exact_mod_cast (Nat.le_add_right w.sStar 2 |>.trans start.proposal_lower)
+      change 4 * p.Δ * (w.sStar : Int) ≤ 4 * p.Δ * (w.u : Int)
+      nlinarith [p.deltaPos])) hhor
+  exact (h3 w.u w.QStar start.proposal start.proposal_lower).2 hhor x hx hReader |>.2.2.2.1
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.18:3061, H.22 H4; plan J7 D, first clause via carrier.
 DC: SAME service cut. Named PostResetService producer: J6-3/opening_domain. -/
-theorem healing_h4_stable_of_service {w : HealingWitness}
+theorem healing_h4_stable_of_service [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
     (start : PostResetStart p c E rho w)
     (service : PostResetService p c E rho w rho.events.length)
     (hhor : tstar p w ≤ rho.horizon) :
     ∀ x ∈ rho.honest,
       (fgsaInterface p c).stable (afterTicks E rho (tstar p w) x) = w.QStar :=
-  healing_h4_stable p c E rho start
+  healing_h4_stable p c E rho hrec start
     (healing_postReset_exactService E rho w rho.events.length le_rfl service) hhor
 
 omit [DecidableEq V] in
@@ -320,7 +333,7 @@ Blueprint 21 H.18:3062–3067; plan J7 D, different raw labels.
 DC: SAME low-support results have an honest supporter.
 Named H5RawTransfer producer: J5-A. Its HEAD clause covers the earlier result. -/
 private theorem healed_raw_later [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
     (hreset : H0Reset p c E rho w) (h5 : H5RawTransfer p c E rho w)
     {r s : Slot} {x y : V} {C D : Block} {i : Nat}
     (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) (hr : w.sStar ≤ r) (hrs : r < s)
@@ -336,8 +349,17 @@ private theorem healed_raw_later [Fintype V] {G ΔF : Time}
     nlinarith [p.deltaPos]
   have hhor := (hs.in_horizon _ (List.mem_of_getElem? ht)).2
   have hmajority := healing_slow_majority E rho hs ht hD (block_preceq_refl D)
+  have hEnabled := healing_gate_enabled_of_result E rho hs ht
+    ((gateResultAt_eq_gateResult p c E rho hs ht).trans hD)
+  have hRead := healing_joined_tick_of_guard p c E rho hrec.base.valid hy ht
+    (by simpa only [joinedNow, fgsa_clock_restartTime, (clock_vn _ _).2, storeAt] using
+      fgsa_gate_joined_of_enabled E rho hEnabled)
+  have hCut := healing_window_of_cut E (healing_reset_vote_cutoff (s := s) hreset
+    ((Nat.succ_le_succ hr).trans (Nat.succ_le_of_lt hrs)))
   obtain ⟨k, o, hk, ho, hseat, hsup⟩ :=
-    healing_slow_honest_seat E rho hrec hgst hhor hy ht hmajority
+    healing_slow_honest_seat E rho hrec hgst hhor hy ht
+      (healing_proposal_support_scope_recovery E rho hrec hCut hRead (Or.inr rfl))
+      hEnabled hmajority
   obtain ⟨K, hK, hKm, _, _, hvote, hlabel⟩ := healing_support_clean_target E rho o ho
   obtain ⟨j, hj, htarget⟩ :=
     healing_support_honest_head E rho hrec.base.valid hvote hlabel hseat hk
@@ -347,7 +369,9 @@ private theorem healed_raw_later [Fintype V] {G ΔF : Time}
     unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hj]
     rfl
-  have hCH := (h5 x r C hx hr hC).2.1 _ s H hk (Nat.succ_le_of_lt hrs) hhead
+  have hCH := (h5 x r C hx hr hC).2.1 _ s H
+    ⟨hk, healing_recovery_joined_window E rho hrec hCut hk
+      (postReset_head_horizon p c rho hhor)⟩ (Nat.succ_le_of_lt hrs) hhead
   have hDH : Block.Preceq D H := by
     have hlookup : Gen.AC.Root.resolvedTarget?
         (actView (clockPre p (storeAt p c E rho i y)
@@ -367,7 +391,7 @@ DC: SAME all nonempty honest raw results at post-reset labels are compatible.
 Named H5RawTransfer producer: J5-A. Equal labels use IF.6; different labels use
 the earlier result's protected HEAD at the later result's honest supporter. -/
 theorem healing_h4_rawCompatible [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
     (hreset : H0Reset p c E rho w) (h5 : H5RawTransfer p c E rho w)
     {r s : Slot} {x y : V} {C D : Block} {i j : Nat}
     (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
@@ -385,15 +409,8 @@ theorem healing_h4_rawCompatible [Fintype V] {G ΔF : Time}
       nlinarith [p.deltaPos]
     have hhor := (hrec.base.valid.toScheduleWellFormed.in_horizon _
       (List.mem_of_getElem? hti)).2
-    have hdeadline : SA.voteTime p.toParams r + E.Δ ≤ SA.gateTime p.toParams r := by
-      rw [hrec.base.delta]
-      change 4 * p.Δ * (r : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (r : Int) + 6 * p.Δ
-      linarith [p.deltaPos]
-    have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
-      (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hgst hdeadline hhor
-    exact fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
-        hrec.base.noRestart hrec.base.delta
-      r hsync x y C D hx hy hC hD
+    exact fgsa_sameLabel_on (hroots := hrec.base.idealization) p c E rho hrec.base.valid
+      r (healing_recovery_same_label E rho hrec r hgst) x y C D hx hy hC hD
   · have h := healed_raw_later p c E rho hrec hreset h5 hy hx hs hgt hD hti hC
     change (Block.preceq C D || Block.preceq D C) = true
     change (Block.preceq D C || Block.preceq C D) = true at h
@@ -403,7 +420,7 @@ theorem healing_h4_rawCompatible [Fintype V] {G ΔF : Time}
 Blueprint 21 H.18:3076–3093; plan J7 D, reset output coverage.
 DC: SAME C* is in every suffix output. Named H2A producer: J3 rest. -/
 private theorem healed_reset_below [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
     (start : PostResetStart p c E rho w) (h2A : H2A p c E rho w)
     (hhor : tstar p w ≤ rho.horizon) {i : Nat} {y : V}
     (hi : HealSuffix p c rho (tstar p w) i) (hReader : confirmedReaderIdx p c E rho y i) :
@@ -476,7 +493,7 @@ private theorem healed_reconcile_below [Fintype V] {G ΔF : Time}
   rw [PostResetFProv_def] at hf
   rcases (hf (i + 1) (by omega) x hx hidx).1 with hlo | hhi
   · exact block_preceq_trans hlo
-      (healed_reset_below p c E rho hrec.toRecovery₂ start h2A hhor hi hReader)
+      (healed_reset_below p c E rho hrec start h2A hhor hi hReader)
   · obtain ⟨C, s, hsource, hhigh, hwait, hFC⟩ := hhi
     rw [hnow] at hwait
     obtain ⟨k, z, r, a, _, hrow, hsource, hlabel⟩ := hsource
@@ -521,7 +538,7 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho
       confirmedReaderIdx p c E rho x i) : H4 p c E rho w := by
   classical
   have hsch := hrec.base.valid.toScheduleWellFormed
-  have hstable := healing_h4_stable p c E rho start h3 hhor
+  have hstable := healing_h4_stable p c E rho hrec start h3 hhor
   have hgate := (isGateTime_iff p (tstar p w)).mpr ⟨w.u, rfl⟩
   have hstart : healStart p c rho (tstar p w) = afterTicksIdx rho (tstar p w) := by
     rw [healStart_def, hgate]
@@ -532,12 +549,18 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho
     intro x hx
     obtain ⟨hraw, ⟨j, ht, _⟩, _, _, _⟩ :=
       (h3 w.u w.QStar start.proposal start.proposal_lower).2 hhor x hx
+        (healing_recovery_gate_reader hrec hx
+          (healing_reset_slot_cutoff start.toH0Reset |>.trans (by
+            have hu : (w.sStar : Int) ≤ w.u := by
+              exact_mod_cast (Nat.le_add_right w.sStar 2 |>.trans start.proposal_lower)
+            change 4 * p.Δ * (w.sStar : Int) ≤ 4 * p.Δ * (w.u : Int)
+            nlinarith [p.deltaPos])) hhor)
     have hS : S_at p c E rho (healStart p c rho (tstar p w)) x = w.QStar := by
       rw [hstart]
       change (fgsaInterface p c).stable (rho.stateBefore E (afterTicksIdx rho (tstar p w)) x) = _
       rw [← afterTicks_eq_stateBefore E rho hsch]
       exact hstable x hx
-    exact ⟨w.u, j, (Nat.le_add_right w.sStar 2).trans start.proposal_lower, ht, hS ▸ hraw⟩
+    exact ⟨w.u, j, (Nat.le_add_right w.sStar 2).trans start.proposal_lower, ht.1, hS ▸ hraw⟩
   have step (i : Nat) (hi : HealSuffix p c rho (tstar p w) i)
       (origin : ∀ x ∈ rho.honest, Origin i x) :
       ∀ x ∈ rho.honest, Block.Preceq (S_at p c E rho i x) (S_at p c E rho (i + 1) x) ∧
@@ -564,7 +587,13 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho
           nlinarith [p.deltaPos]
         have hu : w.u ≤ s := by exact_mod_cast hcast
         exact ((Nat.le_add_right w.sStar 2).trans start.proposal_lower).trans hu
-      have gate := fgsaAC_gate_write E rho i s x ht
+      have hEnabled := healing_recovery_gate_enabled E rho hrec hx ht
+        (healing_reset_slot_cutoff start.toH0Reset |>.trans (by
+          have hl : (w.sStar : Int) ≤ s := by exact_mod_cast hlabel
+          change 4 * p.Δ * (w.sStar : Int) ≤ 4 * p.Δ * (s : Int)
+          nlinarith [p.deltaPos]))
+      have gate := fgsaAC_gate_write E rho i s x
+        (by rw [clockPre_joined]; exact fgsa_gate_joined_of_enabled E rho hEnabled) ht
       rcases gate.effects with hskip | hrun
       · exact keep hskip.2.1
       · cases hraw : (fgsaAC E rho).raw i s x with
@@ -582,10 +611,14 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho
                 (fgsa_clockPre_gateView p (storeAt p c E rho i x) s)
               exact heq
             have hresult : gateResult p c E rho x s = some (some C) := by
-              rw [gateResult_def, (healing_support_gate_reads p c E rho hsch ht).1]
-              exact congrArg some (hrawEq.trans hraw)
+              apply (gateResult_eq_saved p c E rho hsch ht).trans
+              have hSaved := fgsa_gate_saved_result E rho hsch ht
+                (fgsa_gate_joined_of_enabled E rho hEnabled)
+              have hRaw := hrawEq.trans hraw
+              rw [clockPre_fg] at hRaw
+              exact hSaved.trans (congrArg some hRaw)
             obtain ⟨r, j, hr, hj, hresultOld⟩ := origin x hx
-            have hcompat := healing_h4_rawCompatible p c E rho hrec.toRecovery₂ start.toH0Reset h5
+            have hcompat := healing_h4_rawCompatible p c E rho hrec start.toH0Reset h5
               hx hx hr hlabel hj ht hresultOld hresult
             have hadv : Block.Preceq (S_at p c E rho i x)
                 (GridCO.advance (S_at p c E rho i x) C) := by
@@ -637,7 +670,7 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho
         (hbound.trans_lt hGSTstart)
       have hcut := (preIdx_le_afterTicksIdx E rho hsch (tstar p w)).1
       rw [← hstart] at hcut
-      exact (Nat.not_lt.mpr (hcut.trans hi.1)) hbefore
+      exact ((Nat.not_lt.mpr (hcut.trans hi.1)) hbefore).elim
   have allOrigin : ∀ i, HealSuffix p c rho (tstar p w) i →
       ∀ x ∈ rho.honest, Origin i x := by
     intro i hi
@@ -653,7 +686,7 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho
     have hy := hRy.1.1
     obtain ⟨r, k, hr, hk, hC⟩ := allOrigin i hi x hx
     obtain ⟨s, l, hs, hl, hD⟩ := allOrigin j hj y hy
-    exact healing_h4_rawCompatible p c E rho hrec.toRecovery₂ start.toH0Reset h5
+    exact healing_h4_rawCompatible p c E rho hrec start.toH0Reset h5
       hx hy hr hs hk hl hC hD
   · intro i j x hi hj hij hRx _hRj
     have hx := hRx.1.1
@@ -685,17 +718,23 @@ Blueprint 21 H.18:3049–3103; plan J7 E.
 DC: SAME safety suffix and later honest proposal service.
 Named H3 producer: J6-3 PostResetService/opening_domain. H4 is the J7 D input.
 PostResetStart supplies the label lower bound for H3 at all later proposal times. -/
-theorem healing_healed {w : HealingWitness} (start : PostResetStart p c E rho w)
+theorem healing_healed [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness} (start : PostResetStart p c E rho w)
     (h4 : H4 p c E rho w) (h3 : H3 p c E rho w) : Healed p c E rho (tstar p w) := by
   refine ⟨h4.2.1, h4.2.2.1, ?_, ?_⟩
-  · intro i x hi hx
-    exact h4.2.2.2 i x x hi hx hx
+  · exact h4.2.2.2
   · intro s B hafter hgate hp t x ht hx
     subst t
     have hs := start.proposal_lower.trans (healing_healed_proposal_lower p c w hafter)
     change Block.Preceq B ((fgsaInterface p c).stable
       (afterTicks E rho (SA.gateTime p.toParams s) x))
-    rw [(h3 s B hp hs).2 hgate x hx |>.2.2.2.1]
+    have hReader := healing_recovery_gate_reader hrec hx.1
+      (healing_reset_slot_cutoff start.toH0Reset |>.trans (by
+        have hl : (w.sStar : Int) ≤ s := by
+          exact_mod_cast (Nat.le_add_right w.sStar 2 |>.trans hs)
+        change 4 * p.Δ * (w.sStar : Int) ≤ 4 * p.Δ * (s : Int)
+        nlinarith [p.deltaPos])) hgate
+    rw [(h3 s B hp hs).2 hgate x hx.1 hReader |>.2.2.2.1]
     exact block_preceq_refl B
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -716,7 +755,7 @@ Blueprint 21 H.18:3097–3100; plan J7 B, ∀-w form (lead review nit 1).
 DC: SAME deadline for every full witness: by proposal_first its slot u is at most
 the first proposal that healing_firstProposal builds from the same reset data. -/
 theorem healing_tstar_le_of_h0 [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness} (h0 : H0 p c E rho w)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness} (h0 : H0 p c E rho w)
     (hhor : p.actionTime w.rStar + Γ p G + 4 * p.Δ ≤ rho.horizon) :
     tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ := by
   obtain ⟨u, Q, start, htime⟩ := healing_firstProposal p c E rho hrec h0.toH0Reset hhor
@@ -737,7 +776,7 @@ theorem healing_timeBound_of_resetArrival (G ΔF : Time)
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
       ∀ w, H0 p c E rho w → tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ := by
   intro hδ V _ _ In c E rho hset hbound hhor w h0
   have hd := p.deltaPos

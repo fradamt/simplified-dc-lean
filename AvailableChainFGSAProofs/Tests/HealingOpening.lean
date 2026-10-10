@@ -43,7 +43,7 @@ example
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hgst : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -87,7 +87,7 @@ example
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hgst : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -127,7 +127,7 @@ example
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hgst : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -169,7 +169,7 @@ example
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hgst : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)
@@ -223,7 +223,7 @@ example
           some ((heightView p C).h, (heightView p C).T_h.root))
     {u : Time} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
-    (hgst : E.t_GST ≤ u)
+    (hgst : recoveryStart p E ≤ u)
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q)

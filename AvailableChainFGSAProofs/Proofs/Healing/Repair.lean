@@ -9,6 +9,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
+
 public section
 
 /-! H-REPAIR (plan steps 1, 7, 10–13; blueprint 21 H.6:910–986, H.6-S:988–1052). The two
@@ -32,6 +34,19 @@ structure RepairServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) 
     SA.voteTime p.toParams s ≤ rho.horizon → RepairHeadServices E rho s ip x N
   gates : ∀ (s : Slot), E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
     SA.gateTime p.toParams s ≤ rho.horizon → RepairGateScope E rho s
+
+/-- Recovery produces the bounded repair services at each actual read. -/
+theorem healing_repair_service_scopes_recovery [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) : RepairServiceScopes E rho := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro u v m J contested hready hphase
+    exact healing_support_permanence_recovery E rho hrec mono hready hphase
+  · intro s ip x N hcut hx hip hem _
+    exact healing_repair_head_services_recovery E rho hrec mono
+      (healing_window_of_cut E hcut) hx hip hem
+  · intro s hcut _
+    exact healing_repair_gate_scope_recovery E rho hrec mono (healing_window_of_cut E hcut)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Plan H-REPAIR step 11 (HonestSlot → HonestProposal); Run/Emission.lean:72.

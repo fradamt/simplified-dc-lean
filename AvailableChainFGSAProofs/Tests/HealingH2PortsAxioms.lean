@@ -9,9 +9,12 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
 
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2
+
 public section
 
-/-! Strict audit of the round-seven selected services and bounded consumers. -/
+/-! Strict audit of the selected recovery services and bounded consumers. -/
 
 #print axioms AvailableChain.FGSA.Run.healing_selected_carriers_recovery
 #print axioms AvailableChain.FGSA.Run.healing_head_witness_receipts_recovery
@@ -22,6 +25,15 @@ public section
 #print axioms AvailableChain.FGSA.Run.frontier_gate_fast_count
 #print axioms AvailableChain.FGSA.Run.frontier_retained_reader_floor
 #print axioms AvailableChain.FGSA.Run.frontier_service
+#print axioms AvailableChain.FGSA.Run.healing_retained_cone_reader_floor
+#print axioms AvailableChain.FGSA.Run.healing_frontierSearch_recovery
+#print axioms AvailableChain.FGSA.Run.healing_resetTransferCore_recovery
+#print axioms AvailableChain.FGSA.Run.healing_postReset_coneStep
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomainStep₂
+#print axioms AvailableChain.FGSA.Run.healing_postReset_serviceStep₂
+#print axioms AvailableChain.FGSA.Run.healing_frontier_service_scopes_recovery
+#print axioms AvailableChain.FGSA.Run.healing_repair_service_scopes_recovery
+#print axioms AvailableChain.FGSA.Run.healing_opening_service_scopes_recovery
 #print axioms AvailableChain.FGSA.Run.healing_proposal_service_at_recovery_anchor
 #print axioms AvailableChain.FGSA.Run.healing_target_receipt_at_event
 #print axioms AvailableChain.FGSA.Run.healing_witness_receipt_at_event

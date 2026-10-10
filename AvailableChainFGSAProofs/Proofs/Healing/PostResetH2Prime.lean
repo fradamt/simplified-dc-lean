@@ -5,6 +5,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
+
 public section
 
 /-! Blueprint 21 H2′:3297–3300, proof:3382–3391; H.17 and H.2.
@@ -61,10 +63,7 @@ private theorem h2Prime_lift {A B : FGBlock (Fin p.n)}
 section Sources
 variable [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
-    (nextScopes : ∀ v iy x, HealingWindow p E 1 v → x ∈ rho.honest →
-      rho.events[iy]? = some (.tick x (SA.voteTime p.toParams (v + 1))) →
-      joinedAt p E rho x (v + 1) (SA.voteTime p.toParams (v + 1)) →
-      NextTransferScope E rho iy x v) (cap : RCap p c E rho)
+    (cap : RCap p c E rho)
     (source : TSrc p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
       (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
@@ -115,7 +114,7 @@ theorem postReset_cStar_below_proposal (inv : ∀ i, PostResetInv p c E rho w i)
     simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not]
     exact ⟨hne, Gen.Pure.block_preceq_trans hparent hp⟩
 
-include mono nextScopes
+include mono
 
 /-- ROOT-DIGEST W2b. Blueprint 21 H2′:3382–3391; Centaur first-reader route;
 B1/B13/B15/B17/B18. DC: SAME coverage before the proposal's gate.
@@ -315,7 +314,8 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
       push_cast; ring
     simpa only [he] using hJoined
   have hout := healing_unanimous_next_transfer_kept p c E rho hrec mono hgst hefg hbatch
-    hx hiy (nextScopes v iy x hCut hx hiy hReader.2) hCut hRelease hYv hYc (by
+    hx hiy (healing_next_transfer_scope_recovery E rho hrec hCut hx hiy hReader.2)
+    hCut hRelease hYv hYc (by
       dsimp only [Kept, D_at] at hkept ⊢
       simpa only [Y, healing_domain_filter_F] using hkept)
   rw [healing_headAtIdx_tick p c E rho hiy] at hout
@@ -329,7 +329,7 @@ theorem postReset_h2Prime_reset (xing : RXing p c E rho) (origin : RQCOrigin p c
   intro v Q hQ hv x i H hx hi hH
   rcases Nat.eq_or_lt_of_le hi with he | hl
   · subst i
-    exact postReset_h2Prime_first p c E rho hrec mono nextScopes cap source rowCovered
+    exact postReset_h2Prime_first p c E rho hrec mono cap source rowCovered
       h0r xing origin inv
       hQ hv hx hH
   · exact postReset_h2Prime_late p c E rho hrec.base.valid.toScheduleWellFormed inv

@@ -2,6 +2,9 @@
 # Regression commands remain in their test module.
 {
     'AvailableChainFGSAProofs.Tests.Axioms': {
+        'AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint': (
+            'AvailableChain.FGSA.Run.healing_resetTransferCore_recovery',
+        ),
         'AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept': (
             'AvailableChain.FGSA.Run.healing_rise_one_of_effective',
             'AvailableChain.FGSA.Run.healing_rise_one_of_receipt',
@@ -97,6 +100,7 @@
             'AvailableChain.FGSA.Run.reset_mu_le_iff',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate': (
+            'AvailableChain.FGSA.Run.healing_opening_service_scopes_recovery',
             'AvailableChain.FGSA.Run.opening_heads_cover',
             'AvailableChain.FGSA.Run.opening_gate_guard',
             'AvailableChain.FGSA.Run.opening_gateService_of_cover',
@@ -186,6 +190,8 @@
             'AvailableChain.FGSA.Run.frontier_opening_gateService_of_cover',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.FrontierService': (
+            'AvailableChain.FGSA.Run.healing_retained_cone_reader_floor',
+            'AvailableChain.FGSA.Run.healing_frontier_service_scopes_recovery',
             'AvailableChain.FGSA.Run.frontier_exactService_of_heads',
             'AvailableChain.FGSA.Run.frontier_seed_qSucc_exactService',
             'AvailableChain.FGSA.Run.frontier_later_head',
@@ -194,6 +200,7 @@
             'AvailableChain.FGSA.Run.frontier_service',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.Repair': (
+            'AvailableChain.FGSA.Run.healing_repair_service_scopes_recovery',
             'AvailableChain.FGSA.Run.repair_honest_proposal',
             'AvailableChain.FGSA.Run.repair_grid_Γ',
             'AvailableChain.FGSA.Run.repair_lt_Γ',
@@ -279,6 +286,7 @@
             'AvailableChain.FGSA.Run.frontierSearch_phase_exists',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull': (
+            'AvailableChain.FGSA.Run.healing_frontierSearch_recovery',
             'AvailableChain.FGSA.Run.healing_frontierSearch',
         ),
     },

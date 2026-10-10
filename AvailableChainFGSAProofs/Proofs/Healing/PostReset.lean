@@ -30,11 +30,6 @@ theorem healing_healTContract_reset [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (xing : RXing p c E rho) (cap : RCap p c E rho)
     (source : TSrc p c E rho) (origin : RQCOrigin p c E rho)
-    (repairScopes : RepairServiceScopes E rho)
-    (openingScopes : OpeningServiceScopes E rho)
-    (frontierScopes : ∀ (q : Slot) (v : Time),
-      recoveryStart p E ≤ SA.proposalTime p.toParams q →
-      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -62,6 +57,12 @@ theorem healing_healTContract_reset [Fintype V] {G ΔF : Time}
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
     {w : HealingWitness} (_h0r : H0Reset p c E rho w) : HealTContract p c E rho w := by
+  have repairScopes := healing_repair_service_scopes_recovery E rho hrec mono
+  have openingScopes := healing_opening_service_scopes_recovery E rho hrec mono
+  have frontierScopes : ∀ q v, recoveryStart p E ≤ SA.proposalTime p.toParams q →
+      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v :=
+    fun q v _ _ _ =>
+    healing_frontier_service_scopes_recovery E rho hrec mono q v
   exact
     { del := healing_tDel_recovery E rho hrec source mono
       delReset := healing_tDelReset_recovery E rho hrec source mono w

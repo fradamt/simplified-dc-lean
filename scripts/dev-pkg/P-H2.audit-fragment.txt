@@ -1,4 +1,6 @@
 # Add these imports and commands to the existing full audit root at close.
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
@@ -306,3 +308,13 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
 #print axioms AvailableChain.FGSA.Run.healing_postReset_h6GateService
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset
 #print axioms AvailableChain.FGSA.Run.postReset_tHigh_reset
+
+#print axioms AvailableChain.FGSA.Run.healing_frontier_service_scopes_recovery
+#print axioms AvailableChain.FGSA.Run.healing_repair_service_scopes_recovery
+#print axioms AvailableChain.FGSA.Run.healing_opening_service_scopes_recovery
+
+#print axioms AvailableChain.FGSA.Run.healing_retained_cone_reader_floor
+
+#print axioms AvailableChain.FGSA.Run.healing_frontierSearch_recovery
+
+#print axioms AvailableChain.FGSA.Run.healing_resetTransferCore_recovery

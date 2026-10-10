@@ -5,6 +5,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
+
 public section
 
 /-! H-GATE gate service at a later honest gate (plan fgsa-s5-hgate-hcommon §2.3, §3 B–C;
@@ -28,7 +30,9 @@ structure OpeningServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     SupportPermanenceServices E rho u v m J contested
   gates : ∀ i x s, x ∈ rho.honest → IsGateTick p c rho i x s → enabledGateAt p c E rho i x s →
     E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
-    SA.gateTime p.toParams s ≤ rho.horizon → GateReceiptScope E rho i x s
+    SA.gateTime p.toParams s ≤ rho.horizon → ∀ B, GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B →
+    GateReceiptScope E rho i x s
   transfers : ∀ u v m J contested, recoveryStart p E ≤ u →
     PhaseInterval p c E rho u v m J contested → ∀ ix iy x s B,
     u ≤ SA.voteTime p.toParams s → SA.gateTime p.toParams s ≤ v →
@@ -41,6 +45,20 @@ structure OpeningServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rho.events[iy]? = some (.tick x (SA.voteTime p.toParams (s + 1))) →
     joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)) →
     FirstTransferScope E rho ix iy x x s
+
+/-- Recovery produces opening services for the selected gate geometry. -/
+theorem healing_opening_service_scopes_recovery [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) : OpeningServiceScopes E rho := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro u v m J contested hready hphase
+    exact healing_support_permanence_recovery E rho hrec mono hready hphase
+  · intro i x s hx _ hg hcut _ B hgeom
+    exact healing_gate_receipt_scope_recovery E rho hrec mono
+      (healing_window_of_cut E hcut).sync hx hg hgeom
+  · intro u v m J contested _ _ ix iy x s B _ _ hsync _ _ hx hg hiy hj
+    exact healing_first_transfer_scope_recovery E rho hrec mono hsync hx hx
+      hg.1 hiy hg hj
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.2 S1 (permanence at later HEADs); plan H-GATE §3B (q < rR), gap 3.
@@ -169,13 +187,14 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
     change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
     change u ≤ 4 * p.Δ * (q : Int) at hu
     nlinarith [p.deltaPos]
-  have hScope := services.gates i x s hx ht
-    (healing_scope_enabled_gate hrec hx ht (hcut.trans (by
-      change 4 * p.Δ * ((s : Int) - 1) ≤ 4 * p.Δ * (s : Int)
-      linarith [p.deltaPos])) hsh) hcut hsh
   have hcovQ := opening_heads_cover E rho hrec mono crossing services writes
     hready hphase hexact hu hgq hx
     hqs hvs
+  have hScope := services.gates i x s hx ht
+    (healing_scope_enabled_gate hrec hx ht (hcut.trans (by
+      change 4 * p.Δ * ((s : Int) - 1) ≤ 4 * p.Δ * (s : Int)
+      linarith [p.deltaPos])) hsh) hcut hsh Q
+    (healing_support_gate_geometry E rho hS hcovQ (by rwa [clockPre_fg]))
   obtain ⟨hgr, ⟨jq, ⟨hjqt, _⟩, _⟩, ⟨ndq, hndq, hQw⟩, _, _⟩ :=
     hexact.2 (hgq.trans hvh) x hx
       (healing_recovery_gate_reader hrec hx (hGST.trans hu) (hgq.trans hvh))
@@ -445,7 +464,8 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
   have hScope := services.gates i x s hx ht
     (healing_scope_enabled_gate hrec hx ht (hcut.trans (by
       change 4 * p.Δ * ((s : Int) - 1) ≤ 4 * p.Δ * (s : Int)
-      linarith [p.deltaPos])) hsh) hcut hsh
+      linarith [p.deltaPos])) hsh) hcut hsh B
+    (healing_support_gate_geometry E rho hS hcov (by rwa [clockPre_fg]))
   have hgsts : E.t_GST ≤ SA.voteTime p.toParams s := by
     refine hGST.trans (hu.trans ?_)
     have hqsI : (q : Int) + 1 ≤ (s : Int) := by exact_mod_cast hqs

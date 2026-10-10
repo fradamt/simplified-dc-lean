@@ -2,6 +2,10 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
 
+public import AvailableChainFGSAProofs.Proofs.Healing.Repair
+public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
+
 public section
 
 /-! Blueprint 21 HG.5/H.11:1722–1800; S5 F3.
@@ -163,6 +167,59 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
     have heq : rStar = r := frontierSearch_first_row_unique p c E rho
       hrStar hfirstStar hr hfirst
     exact ⟨j, ev, hjcut, hj, ht, hh, hcap, heq.symm ▸ htime⟩
+
+/-- Recovery and the named Foundations supply HG.5 without service factories. -/
+theorem healing_frontierSearch_recovery [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : HealingSet p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
+    (crossing : RXing p c E rho)
+        (cap : RCap p c E rho)
+    (origin : RQCOrigin p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
+          GridCO.savedGenuine pre.base w = none →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
+            (actView pre) w C)
+    (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
+      postClock E rho x (p.actionTime r) = some nd → ∀ C,
+      actionSourceFG p c E rho x r = some (some C) →
+      C ∈ FGSA.fullTree p nd.st →
+      (FGSA.controls p nd.st).lo ≤ (heightView p C).h →
+      E.awake x (p.actionTime r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        namedEntry a.payload.height_pair =
+          some ((heightView p C).h, (heightView p C).T_h.root))
+    (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
+      max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
+      ∀ x ∈ rho.honest, HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF))
+    (progressCoverage : ∀ (r height : Nat) (U X : FGBlock (Fin p.n)),
+      BatchPrem p c E rho ΔF .progress r height U X →
+      (heightView p X.parent).h = height → CoveredByChild p .progress X U height)
+    (hfold : foldTrichotomy p .progress)
+    (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
+    : FrontierSearchStatement p c E rho G ΔF := by
+  have repair := healing_tRepair E rho hrec mono crossing origin
+    (healing_repair_service_scopes_recovery E rho hrec mono) writes
+  have common := healing_tCommon E rho hrec mono crossing
+    (healing_opening_service_scopes_recovery E rho hrec mono) writes rowCoverage
+  have perm := healing_tPerm_recovery E rho hrec mono crossing writes
+  exact healing_frontierSearch E rho hrec mono crossing cap origin repair common perm
+    (fun q v _ _ _ => healing_frontier_service_scopes_recovery E rho hrec mono q v)
+    writes rowCoverage rowsReceipt progressCoverage hfold faultQ honestQuorum
 
 end AvailableChain.FGSA.Run
 end

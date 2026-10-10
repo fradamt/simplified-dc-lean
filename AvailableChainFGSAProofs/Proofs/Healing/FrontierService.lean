@@ -8,6 +8,8 @@ public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
+
 public section
 
 /-! HG.1 exact service (blueprint 21:1500–1583; plan §3.1 steps 6–7).
@@ -32,6 +34,21 @@ structure FrontierServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     x ∈ rho.honest → rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
     RepairHeadServices E rho s ip x N
+
+/-- Recovery produces the selected bounded frontier services. -/
+theorem healing_frontier_service_scopes_recovery [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (q : Slot) (v : Time) :
+    FrontierServiceScopes E rho q v := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro hready hgate hhor
+    exact healing_frontier_read_scope_recovery E rho hrec mono
+      ((healing_ready_proposal_window E hready).prior.mono (Nat.sub_le q 1)) hgate hhor
+  · intro u t m J contested hready hphase _
+    exact healing_support_permanence_recovery E rho hrec mono hready hphase
+  · intro s ip x N _ _ hcut hx hip hem
+    exact healing_repair_head_services_recovery E rho hrec mono
+      (healing_window_of_cut E hcut) hx hip hem
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1551–1574; plan §3.1 step 6.
@@ -227,6 +244,66 @@ private theorem frontier_prior_cover (p : Params) (src : State p.n)
     have hn := (Bool.and_eq_true_iff.mp hZC).1
     simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hn
   · exact frontier_supported_cover p src hs s L h
+
+/-- The retained cone proves the current receiver floor before service is used. -/
+theorem healing_retained_cone_reader_floor (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (mono : RMonoAll p c E rho) {s : Slot} {ip ih : Nat} {x y : V}
+    (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip) (D : FGBlock (Fin p.n))
+    (hi : RetainedConeInput p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D) :
+    Block.Preceq (eraseFG (rho.stateBeforeTime E
+      (SA.voteTime p.toParams s) y).st.fg.F) N.erase := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hcover := frontier_prior_cover p src hs s (ap p src) hi.proposer_prior
+  have hprefix := walk_best_ancestry_of_cover _ _ _ _ _ hcover
+  have ho := (walk_reanchor_of_best_ancestry _ _ _ _ _
+    (erasedList_rootInj p src hs _) (fgsa_Z_preceq_liveRoot p src) hprefix).trans
+      hparent.2.2.symm
+  have hD := frontier_prior_cover p src hs s (eraseFG D) hi.pivot_prior
+  rw [ho] at hD
+  have hmem : N.erase.parent ∈ src.base.blocks := by
+    rw [← hparent.2.2.symm]
+    rcases fgsa_headInTree_mem_or_anchor p src (S p src)
+      (proposerVotes src s) (proposerSupport src s) with he | hb
+    · rw [show getHead p src (proposerVotes src s) (proposerSupport src s) = ap p src
+        from he]
+      exact liveRoot_stored p src hs
+    · exact (List.mem_filter.mp hb).1
+  obtain ⟨A, hA, heA⟩ := (hs.baseTree _).mp hmem
+  have hDA : FGBlock.Preceq D A := eraseFG_preceq_iff.mp (heA.symm ▸ hD)
+  have hfloor := hi.source_floor.trans ((fgCertificateLaws p).height.h_mono hDA)
+  have hay : Block.Preceq (ay p dst) N.erase.parent := by
+    rcases hi.reader_prior with h | h | h
+    · exact ho ▸ frontier_prior_cover p src hs s (ay p dst) (Or.inl h)
+    · exact ho ▸ frontier_prior_cover p src hs s (ay p dst) (Or.inr h)
+    · exact heA ▸ h A hA hfloor
+  have hFB := block_preceq_trans (F_preceq_liveRoot p dst ht)
+    (block_preceq_trans hay (fgsa_parent_preceq N.erase))
+  have hidx : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ ih := by
+    apply Nat.le_of_not_gt
+    intro hlt
+    have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hE.toScheduleWellFormed hih _).mp hlt
+    exact (lt_irrefl _ ht).elim
+  have hf := (mono _ ih y hy hidx).1
+  change FGBlock.Preceq (rho.stateBefore E (V2.D.Run.idxBefore rho
+    (SA.voteTime p.toParams s)) y).st.fg.F (storeAt p c E rho ih y).fg.F at hf
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed] at hf
+  apply block_preceq_trans (eraseFG_preceq hf)
+  simpa only [dst, clock_fg, storeAt] using hFB
 
 /-- The cap bounds the receiver's current certificate by the selected source parent.
 The parent stays at its source. No receiver receipt is used to establish this floor. -/
