@@ -132,22 +132,22 @@ example : firstRow ∈
 
 /-- The only earlier FG duty emits nothing at node zero. -/
 theorem positive_six_zero :
-    (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 0) 0 6).2 = [] := by
+    (V2.D.tick weakEnv (runData 269 []) ((buildPrefix 6).1 0) 0 6).2 = [] := by
   decide +kernel
 
 /-- The only earlier FG duty emits nothing at node one. -/
 theorem positive_six_one :
-    (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 1) 1 6).2 = [] := by
+    (V2.D.tick weakEnv (runData 269 []) ((buildPrefix 6).1 1) 1 6).2 = [] := by
   decide +kernel
 
 /-- The only earlier FG duty emits nothing at node two. -/
 theorem positive_six_two :
-    (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 2) 2 6).2 = [] := by
+    (V2.D.tick weakEnv (runData 269 []) ((buildPrefix 6).1 2) 2 6).2 = [] := by
   decide +kernel
 
 /-- The only earlier FG duty emits nothing at node three. -/
 theorem positive_six_three :
-    (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 3) 3 6).2 = [] := by
+    (V2.D.tick weakEnv (runData 269 []) ((buildPrefix 6).1 3) 3 6).2 = [] := by
   decide +kernel
 
 /-- The HEAD prefix ends at its last named receipt. -/
@@ -165,9 +165,9 @@ theorem positive_row_length : (positivePrefix 15 137).events.length = 137 := by 
 attribute [local irreducible] buildPrefix
 
 /-- A short prefix is a literal prefix of the source run. -/
-theorem positive_source_prefix (steps count : Nat) (hs : steps ≤ 248) :
+theorem positive_source_prefix (steps count : Nat) (hs : steps ≤ 254) :
     (positivePrefix steps count).events.IsPrefix source.events :=
-  (List.take_prefix count _).trans (w1_prefix_prefix steps 248 hs)
+  (List.take_prefix count _).trans (w1_prefix_prefix steps 254 hs)
 
 /-- A prefix event keeps its index when events are appended. -/
 theorem positive_get_extend {xs ys : List Event} (hp : xs.IsPrefix ys)
@@ -177,18 +177,18 @@ theorem positive_get_extend {xs ys : List Event} (hp : xs.IsPrefix ys)
   exact he
 
 /-- Each named prefix event is a source event at the same index and time. -/
-theorem positive_source_get {steps count i : Nat} (hs : steps ≤ 248) {e : Event}
+theorem positive_source_get {steps count i : Nat} (hs : steps ≤ 254) {e : Event}
     (he : (positivePrefix steps count).events[i]? = some e) : source.events[i]? = some e :=
   positive_get_extend (positive_source_prefix steps count hs) he
 
 /-- Each named prefix event is also a continuation event. -/
-theorem positive_continuation_get {steps count i : Nat} (hs : steps ≤ 248) {e : Event}
+theorem positive_continuation_get {steps count i : Nat} (hs : steps ≤ 254) {e : Event}
     (he : (positivePrefix steps count).events[i]? = some e) :
     continuation.events[i]? = some e :=
   positive_get_extend ⟨(buildSuffix 16).2, rfl⟩ (positive_source_get hs he)
 
 /-- Short-prefix replay is the source replay, in the source environment. -/
-theorem positive_source_state (steps count i : Nat) (hs : steps ≤ 248)
+theorem positive_source_state (steps count i : Nat) (hs : steps ≤ 254)
     (hi : i ≤ (positivePrefix steps count).events.length) :
     V2.D.Run.stateBefore strongEnv source i =
       V2.D.Run.stateBefore weakEnv (positivePrefix steps count) i := by
@@ -200,7 +200,7 @@ theorem positive_source_state (steps count i : Nat) (hs : steps ≤ 248)
   rw [← he, List.take_append_of_le_length hi]
 
 /-- Short-prefix replay is also the continuation replay. -/
-theorem positive_continuation_state (steps count i : Nat) (hs : steps ≤ 248)
+theorem positive_continuation_state (steps count i : Nat) (hs : steps ≤ 254)
     (hi : i ≤ (positivePrefix steps count).events.length) :
     V2.D.Run.stateBefore weakEnv continuation i =
       V2.D.Run.stateBefore weakEnv (positivePrefix steps count) i := by
@@ -208,7 +208,7 @@ theorem positive_continuation_state (steps count i : Nat) (hs : steps ≤ 248)
   exact positive_source_state steps count i hs hi
 
 /-- An indexed prefix output is a source output at the same tick. -/
-theorem positive_source_output {steps count i : Nat} (hs : steps ≤ 248)
+theorem positive_source_output {steps count i : Nat} (hs : steps ≤ 254)
     {v : Validator} {t : Time} {o : Obj params}
     (he : (positivePrefix steps count).events[i]? = some (.tick v t))
     (ho : o ∈ V2.D.Run.emitsAt weakEnv (positivePrefix steps count) i) :
@@ -228,7 +228,7 @@ theorem positive_source_output {steps count i : Nat} (hs : steps ≤ 248)
     (htick (V2.D.Run.stateBefore weakEnv (positivePrefix steps count) i v))).mp ho
 
 /-- An indexed prefix output is a continuation output at the same tick. -/
-theorem positive_continuation_output {steps count i : Nat} (hs : steps ≤ 248)
+theorem positive_continuation_output {steps count i : Nat} (hs : steps ≤ 254)
     {v : Validator} {t : Time} {o : Obj params}
     (he : (positivePrefix steps count).events[i]? = some (.tick v t))
     (ho : o ∈ V2.D.Run.emitsAt weakEnv (positivePrefix steps count) i) :
@@ -309,16 +309,18 @@ theorem positive_signer_honest : (0 : Validator) ∈ source.honest ∧
 /-- A row before time 14 can only come from the FG duty at time 6. -/
 theorem positive_early_row_time (st : Node params) (v : Validator) (t : Time)
     (o : Obj params) (body : RowPayload) (ht : t < 14)
-    (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2)
+    (ho : o ∈ (V2.D.tick weakEnv (runData 269 []) st v t).2)
     (hp : o.payload = .row body) : t = 6 := by
   obtain ⟨d, j, m, rfl, hd, ha⟩ := gen_tick_seat st v t o ho
   have htime := (duties_spec params d t).mp hd
   cases d with
   | headAction s =>
+      have ha := w1_head_action (c := unitCodec) (x := ()) ha
       change some (.head (headVote params (FGSA.clock params st.st t) s).root) = some m at ha
       cases ha
       cases hp
   | propAction s =>
+      have ha := w1_proposal_action (c := unitCodec) (x := ()) ha
       change (propose params (FGSA.clock params st.st t) s).map (withApp params 0) = some m at ha
       unfold propose at ha
       split at ha
@@ -343,16 +345,16 @@ theorem positive_no_earlier_row (steps : Nat) (ht : steps < 14) (o : Obj params)
   have hs' : steps = 6 := by exact_mod_cast hs
   subst steps
   fin_cases v
-  · change o ∈ (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 0) 0 6).2 at hv
+  · change o ∈ (V2.D.tick weakEnv (runData 269 []) ((buildPrefix 6).1 0) 0 6).2 at hv
     rw [positive_six_zero] at hv
     exact List.not_mem_nil hv
-  · change o ∈ (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 1) 1 6).2 at hv
+  · change o ∈ (V2.D.tick weakEnv (runData 269 []) ((buildPrefix 6).1 1) 1 6).2 at hv
     rw [positive_six_one] at hv
     exact List.not_mem_nil hv
-  · change o ∈ (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 2) 2 6).2 at hv
+  · change o ∈ (V2.D.tick weakEnv (runData 269 []) ((buildPrefix 6).1 2) 2 6).2 at hv
     rw [positive_six_two] at hv
     exact List.not_mem_nil hv
-  · change o ∈ (V2.D.tick weakEnv (runData 263 []) ((buildPrefix 6).1 3) 3 6).2 at hv
+  · change o ∈ (V2.D.tick weakEnv (runData 269 []) ((buildPrefix 6).1 3) 3 6).2 at hv
     rw [positive_six_three] at hv
     exact List.not_mem_nil hv
 
@@ -362,7 +364,7 @@ theorem positive_source_first_row (v : Validator) (o : Obj params) (t : Time)
     (he : V2.D.Run.emits strongEnv source v o t) : 14 ≤ t := by
   obtain ⟨i, hi, ho⟩ := w1_source_emits v o t he
   rw [(V2.D.Run.step_tick_eq weakEnv source hi).2] at ho
-  obtain ⟨n, _, rfl, hn⟩ := w1_locate_emission 248 i v t o hi ho
+  obtain ⟨n, _, rfl, hn⟩ := w1_locate_emission 254 i v t o hi ho
   by_contra ht
   have hn' : n < 14 := by exact_mod_cast (lt_of_not_ge ht)
   exact positive_no_earlier_row n hn' o body hp hn
@@ -374,7 +376,7 @@ example (v : Validator) (o : Obj params) (t : Time) (body : RowPayload)
   obtain ⟨i, hi, ho⟩ := he
   rw [(V2.D.Run.step_tick_eq weakEnv continuation hi).2] at ho
   rw [w1_continuation_eq] at hi ho
-  obtain ⟨n, _, rfl, hn⟩ := w1_locate_emission 264 i v t o hi ho
+  obtain ⟨n, _, rfl, hn⟩ := w1_locate_emission 270 i v t o hi ho
   by_contra ht
   have hn' : n < 14 := by exact_mod_cast (lt_of_not_ge ht)
   exact positive_no_earlier_row n hn' o body hp hn

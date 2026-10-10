@@ -24,18 +24,21 @@ H-GATE serves Q and the selector returns a source K above Qfg
 of Qfg, and the node is awake after GST (Recovery₂.awake). The inline SO-COV body then
 gives the earlier-or-current signed row. -/
 theorem later_opening_covered [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -73,14 +76,15 @@ theorem later_opening_covered [Fintype V] (E : Generic.Env V)
   obtain ⟨i, ht⟩ := opening_action_tick E rho hS hrec.base.delta hx r hvh hawake
   let nd := (fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)
   have hnd : postClock E rho x (p.actionTime r) = some nd := opening_postClock_of_tick E rho hS ht
-  obtain ⟨K, hsrc, hQK⟩ := later_opening_source_extends E rho hrec mono crossing writes hgst hQ
+  obtain ⟨K, hsrc, hQK⟩ := later_opening_source_extends E rho hrec mono crossing services
+    writes hgst hQ
     hQfg hexact hu hqr hphase hx ht
   have hK : actionSourceFG p c E rho x r = some (some K) := by
     rw [actionSourceFG_def, hnd]
     exact congrArg some hsrc
   obtain ⟨_, hdom, _, _⟩ := opening_source_body E rho hS ht hK
   have hfull : K ∈ FGSA.fullTree p nd.st := hdom
-  obtain ⟨_, _, hlo⟩ := later_opening_service E rho hrec mono crossing writes hgst hQ hQfg
+  obtain ⟨_, _, hlo⟩ := later_opening_service E rho hrec mono crossing services writes hgst hQ hQfg
     hexact hu hqr hphase hx ht
   have hband : (FGSA.controls p nd.st).lo ≤ (heightView p K).h := by
     change (frameR p nd.st).lo ≤ _
@@ -158,18 +162,21 @@ opening, OpeningCovered (H-GATE with SO-COV) and one common entry at height 1. I
 avoid fresh later service and retention: both come from H-GATE. It supplies no first rise,
 row receipt, gap search or horizon. -/
 theorem opening_height_one [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -199,7 +206,8 @@ theorem opening_height_one [Fintype V] (E : Generic.Env V)
     p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 := by
   obtain ⟨h0, h1⟩ := opening_first_time_bound (p := p) q r hqr hfirst
-  exact ⟨h0, h1, later_opening_covered E rho hrec mono crossing writes rowCoverage hgst hQ hQfg
+  exact ⟨h0, h1, later_opening_covered E rho hrec mono crossing services writes rowCoverage
+    hgst hQ hQfg
     hexact hu hqr hphase, opening_entry_one E rho hrec.base.valid.toScheduleWellFormed hphase
     hphase.1⟩
 

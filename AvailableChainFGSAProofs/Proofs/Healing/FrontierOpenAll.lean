@@ -18,7 +18,7 @@ including q = rR, height one, and a_r = v = horizon. The initial phase ends
 at d_q. Later fresh service is the only HG.1 input. No RMono or last-write
 binder is used here; their work belongs to the future service producer. -/
 theorem frontier_openings [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,

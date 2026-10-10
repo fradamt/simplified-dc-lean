@@ -59,7 +59,7 @@ example {w : HealingWitness} (start : PostResetStart p c E rho w)
 /-- Blueprint 21:3076–3093; plan J7 T/D. DC: SAME cross-node coverage at any suffix read.
 Named H2A producer: J3 rest. Named PostResetInv producer: the joint induction
 PostResetInv ∧ ResetLeaseCompatible ∧ OpeningDomain. -/
-example [Fintype V] {G ΔF : Time} (rec : Recovery₂ p c E rho G ΔF)
+example [Fintype V] {G ΔF : Time} (rec : RecoverySleep₂ p c E rho G ΔF)
     {w : HealingWitness} (start : PostResetStart p c E rho w) (h2A : H2A p c E rho w)
     (inv : ∀ i, PostResetInv p c E rho w i) (horizon : tstar p w ≤ rho.horizon)
     (i : Nat) (x y : V) (suffix : HealSuffix p c rho (tstar p w) i)
@@ -89,12 +89,14 @@ example {w : HealingWitness} (start : PostResetStart p c E rho w)
 Named H2A producer: J3 rest; H3/PostResetService/opening_domain: J6-3;
 H5RawTransfer: J5-A; PostResetInv: the joint induction
 PostResetInv ∧ ResetLeaseCompatible ∧ OpeningDomain. -/
-example [Fintype V] {G ΔF : Time} (rec : Recovery₂ p c E rho G ΔF)
+example [Fintype V] {G ΔF : Time} (rec : RecoverySleep₂ p c E rho G ΔF)
     {w : HealingWitness} (start : PostResetStart p c E rho w) (h2A : H2A p c E rho w)
     (h3 : H3 p c E rho w) (h5 : H5RawTransfer p c E rho w)
-    (inv : ∀ i, PostResetInv p c E rho w i) (horizon : tstar p w ≤ rho.horizon) :
+    (inv : ∀ i, PostResetInv p c E rho w i) (horizon : tstar p w ≤ rho.horizon)
+    (readers : ∀ i x, HealSuffix p c rho (tstar p w) i → x ∈ rho.honest →
+      confirmedReaderIdx p c E rho x i) :
     H4 p c E rho w ∧ Healed p c E rho (tstar p w) := by
-  have h4 := healing_h4 p c E rho rec start h2A h3 h5 inv horizon
+  have h4 := healing_h4 p c E rho rec start h2A h3 h5 inv horizon readers
   exact ⟨h4, healing_healed p c E rho start h4 h3⟩
 
 /-- Blueprint 21:3057–3059,3097–3100; plan J7 T/B. DC: SAME Δ=1, R=3 grid.

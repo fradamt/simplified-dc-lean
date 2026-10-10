@@ -16,3 +16,7 @@ public import AvailableChainFGSAInhabit.SleepPositive -- shake: keep (audit)
 #print axioms AvailableChain.FGSA.Run.Tests.SleepPositive.old_w1_endpoint_gap
 #print axioms AvailableChain.FGSA.Run.Tests.SleepPositive.wake_restore_clock
 #print axioms AvailableChain.FGSA.Run.Tests.SleepPositive.wake_base
+
+# Round 4: complete joined sleeping suffix.
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.w1_cleanContinuationSleep
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.w1_tickBatch_sleep_st

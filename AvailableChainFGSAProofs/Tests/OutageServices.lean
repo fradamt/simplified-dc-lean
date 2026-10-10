@@ -14,15 +14,13 @@ namespace AvailableChain.FGSA.Run.Tests.OutageServices
 
 open AvailableChain.SimplexFG Gen.Pure
 
-/-- The public receipt consumer needs no assumed restored service or NoRestart.
-P-Ar supplies the separate healthy-prefix field. Receivers in W are included. -/
+/-- The regime supplies both receipt services. Receivers in W are included. -/
 theorem restored_receipt_consumer {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {fast : Bool} {T b₀ b₁ ΔF : Time}
-    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
-    (hPrefix : OutagePrefixReceipt p c E rho fast T b₀) :
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF) :
     OutageContinuationReceipt p c E rho fast T b₀ b₁ :=
-  outage_continuation_receipt_of_prefix h hPrefix
+  outage_continuation_receipt h
 
 /-- The actual opponent release bound consumes E's strict good-set count. -/
 theorem good_release_consumer {p : Params} {In V : Type} [DecidableEq V] [Fintype V]

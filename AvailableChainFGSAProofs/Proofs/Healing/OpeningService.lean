@@ -164,18 +164,21 @@ the exact fast write covers every honest HEAD of rR, and the guard induction giv
 service at the actual gate (`opening_gateService_of_cover`). Retention uses the proposal
 band and the fixed phase frame (`opening_domain_of_band`). -/
 theorem later_opening_service [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -197,7 +200,6 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
       Qfg ∈ domainR p (storeAt p c E rho i x) (treeT p (storeAt p c E rho i x)) ∧
       (frameR p (storeAt p c E rho i x)).lo ≤ (heightView p Qfg).h := by
   have hS := hrec.base.valid.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hd := p.deltaPos
   have hvh : p.actionTime r ≤ rho.horizon := hphase.2.1
   have htg : IsGateTick p c rho i x (r * p.R) := ht
@@ -213,7 +215,9 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
     healing_support_idxBefore_le p c E rho hS ht (hu.trans hpq)
   have hiv : i ≤ timeIdx rho (p.actionTime r) :=
     (healing_phase_lt_timeIdx p c E rho hS ht le_rfl).le
-  obtain ⟨_, ⟨jq, hjq, _⟩, ⟨nd, hnd, hQnd⟩, _, _⟩ := hexact.2 (hgq.trans hvh) x hx
+  obtain ⟨_, ⟨jq, ⟨hjq, _⟩, _⟩, ⟨nd, hnd, hQnd⟩, _, _⟩ :=
+    hexact.2 (hgq.trans hvh) x hx
+      (healing_recovery_gate_reader hrec hx (hgst.trans hu) (hgq.trans hvh))
   have hpost := (healing_support_gate_reads p c E rho hS hjq).2
   rw [hpost] at hnd
   have hnd' := Option.some.inj hnd
@@ -240,9 +244,10 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
       change 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ ≤
         4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
       linarith
-    have hcov := opening_heads_cover E rho hrec mono crossing writes hgst hphase hexact hu
+    have hcov := opening_heads_cover E rho hrec mono crossing services writes hgst hphase hexact hu
       hgq hx hlt hvs
-    exact opening_gateService_of_cover E rho hrec mono crossing writes hgst hphase hQ hexact
+    exact opening_gateService_of_cover E rho hrec mono crossing services writes
+      hgst hphase hQ hexact
       hu hlt le_rfl hx htg hFQe hcov hFQe hQb hne
   · have he : q = r * p.R := le_antisymm hqr hge
     subst he
@@ -257,18 +262,21 @@ the opening read. The clock does not change the FG store (`opening_domain_clock`
 GateService at rR and domain retention are conclusions, never premises. RQCOrigin is not
 needed. -/
 theorem later_opening_gateService_domain [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -294,7 +302,8 @@ theorem later_opening_gateService_domain [Fintype V] (E : Generic.Env V)
       FGBlock.Preceq Qfg D ∧
       (frameR p st).lo ≤ (heightView p D).h := by
   intro st
-  obtain ⟨hserv, hdom, hlo⟩ := later_opening_service E rho hrec mono crossing writes hgst hQ hQfg
+  obtain ⟨hserv, hdom, hlo⟩ := later_opening_service E rho hrec mono crossing services writes
+    hgst hQ hQfg
     hexact hu hqr hphase hx ht
   have hclock := opening_domain_clock (c := c) (V2.D.Run.stateBefore E rho i x) (p.actionTime r)
   refine ⟨Qfg, hQfg ▸ hserv, ?_, KitFG.preceq_refl _, ?_⟩
@@ -314,18 +323,21 @@ DC: INTENTIONAL for q < rR, every honest HEAD of the opening label rR covers Q (
 from the exact fast write; the HEAD v_(q+1) before d_q is included), and every honest
 opening tick has fresh gate service for Q itself and saves Q in its fresh fast set. -/
 theorem opening_transfer [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -357,13 +369,18 @@ theorem opening_transfer [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ ≤
       4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
     linarith
-  refine ⟨fun z hz K hK => opening_heads_cover E rho hrec mono crossing writes hgst hphase
+  refine ⟨fun z hz K hK => opening_heads_cover E rho hrec mono crossing services writes hgst hphase
     hexact hu hgq hz hqr hvs z hz K hK, ?_⟩
   intro i x hx ht
   have htg : IsGateTick p c rho i x (r * p.R) := ht
-  have hD := (later_opening_service E rho hrec mono crossing writes hgst hQ hQfg hexact hu
+  have hD := (later_opening_service E rho hrec mono crossing services writes hgst hQ hQfg hexact hu
     hqr.le hphase hx ht).1
-  exact ⟨hD, exactService_fastWrite_of_gateService E rho hS i x (r * p.R) Q htg hD⟩
+  have hcut : E.t_GST ≤ slotStartZ p ((r * p.R : Nat) : Int) := by
+    change E.t_GST ≤ 4 * p.Δ * ((r * p.R : Nat) : Int)
+    change u ≤ 4 * p.Δ * (q : Int) at hu
+    nlinarith
+  have enabled := healing_gate_enabled_of_recovery hrec.toRecovery₂ hx htg hphase.2.1 hcut
+  exact ⟨hD, exactService_fastWrite_of_gateService E rho hS i x (r * p.R) Q htg enabled hD⟩
 
 end AvailableChain.FGSA.Run
 end

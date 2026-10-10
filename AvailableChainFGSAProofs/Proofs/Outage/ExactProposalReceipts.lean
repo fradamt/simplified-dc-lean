@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+public import AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
 
 public section
 
@@ -13,6 +14,15 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+/-- Clean services use the actual vote-time GST bound, including prior labels. -/
+theorem inclusion_clean_vote_gst [Fintype V]
+    {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {ΔF : Time}
+    (hset : CleanSet p c E rho ΔF) (s : Slot) : E.t_GST ≤ SA.voteTime p.toParams s := by
+  rw [hset.gst]
+  change 0 ≤ 4 * p.Δ * (s : Int) + p.Δ
+  have := p.deltaPos
+  positivity
 
 /-- The Clean count supplies a joined receiver at the exact time, including the horizon. -/
 theorem inclusion_joined_witness [Fintype V]
@@ -229,23 +239,22 @@ derive these fields at each cut; they are not public claim premises. -/
 structure InclusionReceiverInputs (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
   early : ∀ r a x, a = SA.proposalTime p.toParams (r + 1) ∨
       a = SA.voteTime p.toParams (r + 1) → a ≤ rho.horizon →
+    E.t_GST ≤ SA.voteTime p.toParams r →
     headReader p E rho x (r + 1) a →
+    ∀ ie, rho.events[ie]? = some (.tick x (SA.earlyTime p.toParams r)) →
     ∀ q K, rho.seatOf (.base (.head r)) q ∈ rho.honest →
       HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head r)) q)
         (ofHead p ⟨.seat (.head r) q, K.root⟩) (SA.voteTime p.toParams r) K →
+      Block.Preceq (F_at p c E rho ie x) K →
       Nonempty (FreshHeadService E rho r q K.root (SA.earlyTime p.toParams r) x) ∧
         TargetReceiptService E rho K (SA.earlyTime p.toParams r) x
-  relay : ∀ r ih y, headReader p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
-    rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))) →
-    ∀ q b, (⟨.seat r q, .head b⟩ : GridCO.Wire p.n .root) ∈
-      headVotes p (clock p (rho.stateBefore E ih y).st
-        (SA.voteTime p.toParams (r + 1))) (r + 1) →
-      HeadRelayServiceScope E rho r q b (SA.voteTime p.toParams (r + 1)) ih y
   retained : ∀ s ip x N, x ∈ rho.honest →
+    E.t_GST ≤ SA.voteTime p.toParams (s - 1) →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip →
     ∀ ih y, headReader p E rho y s (SA.voteTime p.toParams s) →
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      Block.Preceq (F_at p c E rho ih y) N.erase →
       RetainedServiceScope E rho ip ih x y s N
 
 /-- The field projection required from the Clean history supplier. -/
@@ -474,9 +483,9 @@ included. Provenance maps each pooled seat to a stored vote. Every prefix L
 of D0 gets a strict majority, and no conflicting block gets one. -/
 theorem inclusion_receiver_scores_on [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
-    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (r : Slot)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (hDelta : E.Δ = p.Δ) (r : Slot)
     {ih : Nat} {y : V}
-    (_hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))))
     (H : Finset (Fin p.n))
     (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head r)) q ∈ rho.honest ∧
       joinedAt p E rho (rho.seatOf (.base (.head r)) q) r (SA.voteTime p.toParams r))
@@ -489,11 +498,7 @@ theorem inclusion_receiver_scores_on [Fintype V]
         (SA.voteTime p.toParams (r + 1))).base.blocks ∧
       K.slot ≤ r ∧ Block.Preceq D0 K)
     (hy : y ∈ rho.honest)
-    (hScopes : ∀ q b,
-      (⟨.seat r q, .head b⟩ : GridCO.Wire p.n .root) ∈
-        headVotes p (clock p (rho.stateBefore E ih y).st
-          (SA.voteTime p.toParams (r + 1))) (r + 1) →
-      HeadRelayServiceScope E rho r q b (SA.voteTime p.toParams (r + 1)) ih y) :
+    (hJ : joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1))) :
     ∀ L, Block.Preceq L D0 → RetainedTargetScores p
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (r + 1)))
       (r + 1) L := by
@@ -501,7 +506,9 @@ theorem inclusion_receiver_scores_on [Fintype V]
   let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (r + 1))
   have hsub : headSupport p dst (r + 1) ⊆ headVotes p dst (r + 1) :=
     fgsa_headSupport_subset_headVotes E rho hE ih y r
-  have hprov := fgsa_headVotes_provenance_on E rho hE r ih y hy hScopes
+  obtain ⟨it, hit⟩ := inclusion_relay_vote_proposal_tick hE
+    hDelta hy hih hJ
+  have hprov := inclusion_relay_headVotes_provenance E rho hE ih y r hih hJ hit
   have hseat (q : Fin p.n) (hq : q ∈ H) : ∃ K t,
       V2.D.Run.emits E rho (rho.seatOf (.base (.head r)) q)
         (ofHead p ⟨.seat (.head r) q, K.root⟩) t ∧
@@ -576,7 +583,7 @@ theorem inclusion_receiver_scores_on [Fintype V]
   contradiction
 
 /-- Legacy score count with explicit global restart freedom.
-Sleep consumers use inclusion_receiver_scores_on and exact relay service. -/
+Sleep consumers use inclusion_receiver_scores_on and actual joined-tick provenance. -/
 theorem inclusion_reader_scores [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (hN : V2.D.NoRestart rho) (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (r : Slot)

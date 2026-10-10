@@ -4,11 +4,62 @@ public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Join
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
+public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
 
 public section
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
+
+/-- Receipt for one selected witness at an actual joined read.
+The receiver floor is read at the strict service deadline. The target service
+keeps the original object history, anchor, and receiver epoch. Producer: OPEN,
+P-H2 with P-ShA's object service constructors; this record is an input. -/
+structure WitnessReceiptScope {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (W : FGBlock (Fin p.n)) (deadline : Time) : Prop where
+  atRead : ∀ iy y t, y ∈ rho.honest → rho.events[iy]? = some (.tick y t) →
+    joinedNow p (clock p (storeAt p c E rho iy y) t) = true → deadline ≤ t →
+    Block.Preceq (eraseFG (rho.stateBeforeTime E deadline y).st.fg.F) (eraseFG W) →
+    TargetReceiptService E rho (eraseFG W) deadline y
+
+/-- The scoped receipt result for the selected ancestor of a serviced witness.
+This is a consumer result, not an object-service producer. -/
+structure WitnessHeldScope {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (W : FGBlock (Fin p.n)) (deadline : Time) : Prop where
+  atRead : ∀ iy y t, y ∈ rho.honest → rho.events[iy]? = some (.tick y t) →
+    joinedNow p (clock p (storeAt p c E rho iy y) t) = true → deadline ≤ t →
+    Block.Preceq (eraseFG (rho.stateBeforeTime E deadline y).st.fg.F) (eraseFG W) →
+    W ∈ (rho.stateBeforeTime E deadline y).st.fg.TF
+
+/-- One HEAD witness and its serviced height witness are selected together. -/
+structure HeadWitnessReceiptScope {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (i : Nat) (x : V) (s : Slot) : Prop where
+  witness :
+    let st := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
+    ∃ K ∈ fullTree p st, eraseFG K = headVote p st s ∧
+      ∃ W ∈ (storeAt p c E rho i x).fg.TF, FGBlock.Preceq K W ∧
+        (R_at p c E rho i x).lo ≤ (heightView p W).h ∧
+        WitnessReceiptScope E rho W (SA.voteTime p.toParams s + p.Δ)
+
+/-- Select only the frontier/top/contest witnesses used by settlement. -/
+structure PhaseWitnessReceiptScope {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (i m : Nat) (deadline : Time) : Prop where
+  frontier : ∃ x W, HeldAt p c E rho i x W ∧ (heightView p W).h = m ∧
+    WitnessReceiptScope E rho W deadline
+  top : TopEvidence p c E rho i m →
+    ∃ x C, HeldAt p c E rho i x C ∧ (heightView p C).h = m ∧
+      (heightView p C).h_j + 1 = m ∧
+      (heightView p C).J = (storeAt p c E rho i x).fg.J ∧
+      WitnessReceiptScope E rho C deadline
+  contest : ContestEvidence p c E rho i m →
+    ∃ x C W, HeldAt p c E rho i x C ∧ HeldAt p c E rho i x W ∧
+      (heightView p C).h = m ∧ (heightView p W).h = m ∧
+      (heightView p C).h_j + 1 = m ∧ ¬ FGBlock.Preceq (heightView p C).J W ∧
+      WitnessReceiptScope E rho C deadline ∧ WitnessReceiptScope E rho W deadline
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {G ΔF : Time}
@@ -41,6 +92,93 @@ theorem healing_recovery_joinedNow (hrec : RecoverySleep₂ p c E rho G ΔF)
     joinedNow p (FGSA.clock p (V2.D.Run.stateBefore E rho i x).st t) = true := by
   exact fgsa_joinedNow_of_joinedEnv E rho hrec.base.valid.toScheduleWellFormed hi
     (healing_recovery_restart_cutoff hrec hx hh hb)
+
+/-- The caller's gate cutoff proves the actual enabled gate guard. -/
+theorem healing_scope_enabled_gate (hrec : RecoverySleep₂ p c E rho G ΔF)
+    {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
+    (hi : IsGateTick p c rho i x s) (hcut : E.t_GST ≤ slotStartZ p (s : Int))
+    (_hhor : SA.gateTime p.toParams s ≤ rho.horizon) : enabledGateAt p c E rho i x s := by
+  refine ⟨hi, ?_⟩
+  have hb := fgsa_restartTime_bound E rho i x (slotStartZ p (s : Int)) (by
+    intro k t _ hk
+    have ht : t ≤ rho.horizon :=
+      (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hk)).2
+    have hb : t ≤ E.t_GST := by
+      by_contra hn
+      exact hrec.suffixNoRestart x hx k t hk (lt_of_not_ge hn)
+        (Int.lt_add_one_iff.mpr ht)
+    exact hb.trans hcut)
+  change (match (storeAt p c E rho i x).restartTime with
+    | none => True | some t => t ≤ slotStartZ p (s : Int))
+  cases hr : (storeAt p c E rho i x).restartTime with
+  | none => trivial
+  | some t => exact hb t hr
+
+/-- The actual enabled gate catches up every honest recovery reader.
+The post-tick cut includes the gate and its preceding same-time wake. -/
+theorem healing_recovery_gate_reader (hrec : RecoverySleep₂ p c E rho G ΔF)
+    {x : V} (hx : x ∈ rho.honest) {s : Slot}
+    (hcut : E.t_GST ≤ slotStartZ p (s : Int))
+    (hhor : SA.gateTime p.toParams s ≤ rho.horizon) :
+    confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams s))
+      (SA.gateTime p.toParams s) := by
+  have hs := hrec.base.valid.toScheduleWellFormed
+  have hsg : slotStartZ p (s : Int) ≤ SA.gateTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have awake := hrec.awake x hx _ (hcut.trans hsg) hhor
+  have htime : ((4 * s + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams s := by
+    change ((4 * s + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + 6 * p.Δ
+    push_cast
+    ring
+  obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hs hrec.base.delta x hx (4 * s + 6)
+    (htime ▸ hhor) (by simpa only [htime] using awake)
+  rw [htime] at hj
+  have hslot : p.slotOf (SA.gateTime p.toParams s) = s + 1 := by
+    exact (fgsa_postClock_slot (c := c) (rho.stateBefore E j x) _).2.symm.trans
+      (fgsa_gate_slot (c := c) _ s)
+  have hg := healing_recovery_joinedNow hrec hx hj hhor (by
+    simpa only [hslot, Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hcut)
+  have enabled : enabledGateAt p c E rho j x s := by
+    unfold enabledGateAt
+    refine ⟨hj, ?_⟩
+    unfold joinedNow at hg
+    rw [fgsa_clock_restartTime, (clock_vn _ _).2] at hg
+    change joinedAtTime p (storeAt p c E rho j x).restartTime
+      (SA.gateTime p.toParams s) = true at hg
+    unfold joinedAtTime at hg
+    cases hr : (storeAt p c E rho j x).restartTime with
+    | none => trivial
+    | some w =>
+      rw [hr, hslot] at hg
+      change w ≤ 4 * p.Δ * (s : Int)
+      simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using of_decide_eq_true hg
+  have hjcut : j < afterTicksIdx rho (SA.gateTime p.toParams s) := by
+    by_contra hn
+    have hn' := V2.D.Engine.filter_false_of_index_ge hs (cutPred (P := fgsa p c) _)
+      (by
+        intro e f hk hf
+        exact decide_eq_true (hk.trans (of_decide_eq_true hf)))
+      (Nat.le_of_not_gt hn) hj
+    have ht : cutPred (P := fgsa p c) (SA.gateTime p.toParams s)
+        (.tick x (SA.gateTime p.toParams s) : V2.Event V (Obj p)) = true :=
+      by change decide (toLex (_, 1) ≤ toLex (_, 1)) = true; exact decide_eq_true le_rfl
+    exact Bool.noConfusion (ht.symm.trans hn')
+  refine ⟨hx, awake, ?_⟩
+  cases hr : (storeAt p c E rho (afterTicksIdx rho (SA.gateTime p.toParams s)) x).restartTime
+    with
+  | none => trivial
+  | some w =>
+    refine ⟨s, j, ?_, le_rfl, hjcut, enabled, ?_, ?_⟩
+    · apply fgsa_restartTime_bound E rho _ x _ ?_ w hr
+      intro k t _ hk
+      exact (healing_scope_restart_bound hrec hx
+        (hs.in_horizon _ (List.mem_of_getElem? hk)).2 le_rfl
+        (List.mem_of_getElem? hk)).trans hcut
+    · intro t _ hlo hhi
+      exact hrec.awake x hx t (hcut.trans hlo) (hhi.trans hhor)
+    · intro t hlo hhi he
+      exact (not_lt.mpr ((healing_scope_restart_bound hrec hx hhor hhi he).trans hcut)) hlo
 
 /-- The receiver epoch starts after all restart events at the action anchor.
 Use event indices; a restart at the anchor is already inside actionCut. -/

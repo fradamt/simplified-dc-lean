@@ -15,12 +15,21 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 
 /-- WC plan §8 Job 2; DC the source producers and replay supply all five continuation fields. -/
 theorem continuationSafety (hS : StrongRecoverySearchPrefix₂ p c E source G ΔF)
+    (hfastSource : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E source i x) s).getD [] →
+      ∃ j < i, V2.D.restartFree source x j i ∧ enabledGateAt p c E source j x s ∧
+        gatePassedAt p c E source j ∧ ∃ B, gateResultAt p c E source j = some (some B) ∧
+          Block.Preceq X B ∧ fastAt p c E source x s X)
     (hinput : HealingInput p c E source w ΔF) (hend : tstar p w < source.horizon)
-    (hc : CleanContinuation₂ p c E source E' rho ΔF) :
+    (hc : CleanContinuationSleep₂ p c E source E' rho ΔF)
+    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E' rho i x) s).getD [] →
+      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E' rho j x s ∧
+        gatePassedAt p c E' rho j ∧ ∃ B, gateResultAt p c E' rho j = some (some B) ∧
+          Block.Preceq X B ∧ fastAt p c E' rho x s X)
+    :
     SSafeFromCut₂ p c E' rho (afterTicksIdx source (tstar p w)) w.QStar ΔF := by
-  obtain ⟨cut, hs⟩ := wc_heightSeed hS hinput hend
+  obtain ⟨cut, hs⟩ := wc_heightSeed hS hfastSource hinput hend
   have hs' := wc_seedReplay hc.agrees hS.base.valid hs cut.beforeEnd
-  apply wc_dischargeContinuation hS hc hs
+  apply wc_dischargeContinuation hS hc hs (wc_sourceJoinCut hinput.wit) hfast
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows

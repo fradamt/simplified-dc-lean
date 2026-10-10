@@ -234,6 +234,7 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #print axioms w1_deliver_st
 #print axioms w1_offer_st
 #print axioms w1_tickBatch_st
+#print axioms w1_tickBatch_sleep_st
 #print axioms GenUniformStores
 #print axioms w1_offer_uniform
 #print axioms w1_objects_uniform
@@ -313,6 +314,7 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #print axioms w1_continuation_sync
 #print axioms w1_strongRecovery
 #print axioms w1_cleanContinuation
+#print axioms w1_cleanContinuationSleep
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 

@@ -1,4 +1,4 @@
-# P-As round 3: growth witness repaired; non-healing assembly remains OPEN.
+# P-As round 4: joined WC assembly prepared; non-healing closure remains OPEN.
 [TARGETS]
 
 AvailableChainFGSA.Model.Store
@@ -555,24 +555,27 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
+AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay
+AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService
+AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation
+AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth
+AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAxioms
+AvailableChainFGSAProofs.Tests.WeakContinuationInterfaces
+AvailableChainFGSAProofs.Tests.WeakContinuationSafety
+AvailableChainFGSAInhabit
+AvailableChainFGSAInhabit.Tests.Axioms
+AvailableChainFGSAInhabit.Tests.WeakContinuationW1
+AvailableChainFGSAInhabit.Tests.WitnessPositive
+AvailableChainFGSAInhabit.WeakContinuationW1
+AvailableChainFGSAInhabit.WitnessPositive
 [EXPECTED-FAIL]
-AvailableChainFGSAInhabit P-As
-AvailableChainFGSAInhabit.Tests.Axioms P-As
-AvailableChainFGSAInhabit.Tests.WeakContinuationW1 P-As
-AvailableChainFGSAInhabit.Tests.WitnessPositive P-As
-AvailableChainFGSAInhabit.WeakContinuationW1 P-As
-AvailableChainFGSAInhabit.WitnessPositive P-As
 AvailableChainFGSAProofs P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Clean P-As
-AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay P-As
-AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Healing P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Outage P-As
 AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Root P-As
-AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation P-As
-AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth P-As
-AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed P-As
 AvailableChainFGSAProofs.Tests.Axioms P-As
 AvailableChainFGSAProofs.Tests.FGCompose P-As
 AvailableChainFGSAProofs.Tests.HealingAttempt P-H2
@@ -590,9 +593,6 @@ AvailableChainFGSAProofs.Tests.OutageContinuationAxioms P-As
 AvailableChainFGSAProofs.Tests.OutageContinuationInhabit P-As
 AvailableChainFGSAProofs.Tests.OutageExport P-As
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAxioms P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationInterfaces P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationSafety P-As
 AvailableChainFGSAProofs.Tests.Zero P-As
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

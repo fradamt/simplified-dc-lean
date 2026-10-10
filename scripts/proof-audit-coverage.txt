@@ -3110,6 +3110,7 @@
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites',
+            'AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites_epoch',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_lastWrite',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_origins',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_writeLabel',
@@ -7097,6 +7098,12 @@
 # P-H2 follow-up: Tests.HealingH2SleepAxioms now checks 27 owned declarations.
 # The same full-key fragment adds ResetScope and the durable opening/frame consumers.
 # Use scripts/dev-pkg/P-H2.audit-fragment.txt in the serial close window.
+
+# P-H1 Round 2: HealingSleepAxioms has 132 strict commands.
+# Complete local inventory: scripts/dev-pkg/P-H1.coverage-fragment.txt.
+# SupportRecovery is a new owned supplier under NEW-OWNED-MODULES.
+# Merge into the existing FGSAProofs.Tests.Axioms key at serial integration.
+
 
 # P-H1 Round 3: eight additional local strict commands (140 total).
 # First transfer, raw reverse receipt, anchor service and frozen receiver epoch.

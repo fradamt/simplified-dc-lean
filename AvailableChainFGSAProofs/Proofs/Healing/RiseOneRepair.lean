@@ -16,9 +16,10 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 private theorem rise_one_honest_nonempty [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) :
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) :
     rho.honest.Nonempty := by
-  have hn := card_eq_n_of_linked hrec.base.linked
+  have hn : Fintype.card V = p.n :=
+    (V2.D.CStar.seats_eq (ℓ := .base .fg) hrec.base.linked.toCStar trivial).symm
   have hc : (Gen.V2.Duty.faulty rho).card + rho.honest.card = p.n := by
     rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
       Finset.card_univ, hn]
@@ -51,8 +52,9 @@ theorem healing_rise_one_grid (p : Params) (u : Time) :
 Plan A step 2, rhoGamma arm. DC: SAME apply healing_tRepair with its
 own binders at (u,D,1,some genesis,false). Existence has its finite budget. -/
 theorem healing_rise_one_repair [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -63,6 +65,7 @@ theorem healing_rise_one_repair [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -81,9 +84,9 @@ theorem healing_rise_one_repair [Fintype V] (E : Generic.Env V)
         HonestProposal E rho (fgsaInterface p c) q Q ∧ ExactService p c E rho q Q) := by
   intro u D hgst huD hD hstop
   have hphase := healing_rise_one_phase p c E rho hrec.base.valid.toScheduleWellFormed
-    hrec.base.noRestart (rise_one_honest_nonempty E rho hrec) huD hD hstop
+    mono (rise_one_honest_nonempty E rho hrec) huD hD hstop
   obtain ⟨β, hβ, hmin⟩ := healing_rise_one_grid p u
-  have hrepair := (healing_tRepair E rho hrec mono crossing qc writes) G u D 1
+  have hrepair := (healing_tRepair E rho hrec mono crossing qc services writes) G u D 1
     (some .genesis) false hrec.gap hrec.gapPos hgst hphase
   obtain ⟨ha, hw⟩ := hrepair.1 β hβ hmin
   exact ⟨hphase, β, hβ, hmin, ha, hw⟩
@@ -92,8 +95,9 @@ theorem healing_rise_one_repair [Fintype V] (E : Generic.Env V)
 Plan A step 2, rhoOne arm. DC: SAME the shorter branch retains all
 explicit slow-window premises, including k <= b+1. It is not inferred at s=1. -/
 theorem healing_rise_one_repair_synchronous [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -104,6 +108,7 @@ theorem healing_rise_one_repair_synchronous [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -122,8 +127,8 @@ theorem healing_rise_one_repair_synchronous [Fintype V] (E : Generic.Env V)
         SA.gateTime p.toParams q < u + ρ₁ p G ∧
         HonestProposal E rho (fgsaInterface p c) q Q ∧ ExactService p c E rho q Q) := by
   have hphase := healing_rise_one_phase p c E rho hrec.base.valid.toScheduleWellFormed
-    hrec.base.noRestart (rise_one_honest_nonempty E rho hrec) huD hD hstop
-  exact ((healing_tRepair E rho hrec mono crossing qc writes) G u D 1
+    mono (rise_one_honest_nonempty E rho hrec) huD hD hstop
+  exact ((healing_tRepair E rho hrec mono crossing qc services writes) G u D 1
     (some .genesis) false hrec.gap hrec.gapPos hgst hphase).2 b hb hmin hkb hwindow
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -131,8 +136,10 @@ Plan A step 4. DC: SAME choose the first opening and apply H-GATE.
 The stopped phase gives height one for the accepted Qfg. The opening budget
 is an arithmetic bound, not a recurrence or future-run premise. -/
 theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : RepairServiceScopes E rho)
+    (opening : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -143,6 +150,7 @@ theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -170,9 +178,10 @@ theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
       OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 := by
   have hS := hrec.base.valid.toScheduleWellFormed
-  have hphase := healing_rise_one_phase p c E rho hS hrec.base.noRestart
+  have hphase := healing_rise_one_phase p c E rho hS mono
     (rise_one_honest_nonempty E rho hrec) huD hD hstop
-  rcases healing_rise_one_height p c E rho hS hrec.base.noRestart hQ hQfg hexact hgate hD
+  rcases healing_rise_one_height p c E rho hS mono hQ hQfg hexact hgate hD
+    (fun x hx => healing_recovery_gate_reader hrec hx (hgst.trans hu) (hgate.trans hD))
     with hrise | ⟨hh, hentry⟩
   · exact (hstop hrise).elim
   have hex : ∃ r, q ≤ r * p.R := by
@@ -189,7 +198,7 @@ theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
     linarith [p.deltaPos]
   have hur : u ≤ p.actionTime r := by linarith
   have hp := opening_phase_restrict E rho hphase hur hrD
-  obtain ⟨h0, h1, hc, he⟩ := opening_height_one E rho hrec mono crossing writes rowCoverage
+  obtain ⟨h0, h1, hc, he⟩ := opening_height_one E rho hrec mono crossing opening writes rowCoverage
     hgst hQ hQfg hexact hu hqr hfirst hp
   exact ⟨hh, hentry, r, hqr, hfirst, hrD, h0, h1, hc, he⟩
 
@@ -197,8 +206,10 @@ theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
 Plan A step 4. DC: SAME apply later_opening_covered at each opening
 inside the bounded stopped phase, and use the height-one entry theorem. -/
 theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : RepairServiceScopes E rho)
+    (opening : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -209,6 +220,7 @@ theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -231,7 +243,7 @@ theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
     (hqr : q ≤ r * p.R) (hrD : p.actionTime r ≤ D) :
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 := by
   have hS := hrec.base.valid.toScheduleWellFormed
-  have hphase := healing_rise_one_phase p c E rho hS hrec.base.noRestart
+  have hphase := healing_rise_one_phase p c E rho hS mono
     (rise_one_honest_nonempty E rho hrec) huD hD hstop
   have hqrI : (q : Int) ≤ ((r * p.R : Nat) : Int) := by exact_mod_cast hqr
   have hur : u ≤ p.actionTime r := by
@@ -239,7 +251,7 @@ theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
     change u ≤ 4 * p.Δ * (q : Int) at hu
     nlinarith [p.deltaPos]
   have hp := opening_phase_restrict E rho hphase hur hrD
-  exact ⟨later_opening_covered E rho hrec mono crossing writes rowCoverage hgst hQ hQfg
+  exact ⟨later_opening_covered E rho hrec mono crossing opening writes rowCoverage hgst hQ hQfg
     hexact hu hqr hp, opening_entry_one E rho hS hp hur⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -247,8 +259,10 @@ Plan A steps 1--4. DC: INTENTIONAL a bounded first rise or a repaired
 height-one proposal with its first covered opening. The budget ends at D.
 This theorem makes no height-two production or acceptance claim. -/
 theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
+    (opening : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -259,6 +273,7 @@ theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -301,7 +316,7 @@ theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
     nlinarith
   have hrepairBudget : u + ρΓ p G ≤ D := by linarith
   obtain ⟨hphase, β, hβ, hmin, hafter, hwitness⟩ :=
-    healing_rise_one_repair E rho hrec mono crossing qc writes hgst huD hD hstop
+    healing_rise_one_repair E rho hrec mono crossing qc services writes hgst huD hD hstop
   obtain ⟨q, Q, hq, hgate, hQ, hexact⟩ := hwitness hrepairBudget
   have hβl : β ≤ β + 2 * p.k - 1 := by
     have hk : 1 ≤ 2 * p.k := by have := p.kLarge; omega
@@ -315,9 +330,10 @@ theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
   have hgateD := hgate.trans hrepairBudget
   obtain ⟨j, Qfg, _hj, _hQfg, heq⟩ := healing_rise_one_gate_copy p c E rho
     hrec.base.valid.toScheduleWellFormed hexact (hgateD.trans hD) hQ.1.2
+    (healing_recovery_gate_reader hrec hQ.1.2 (hgst.trans hu) (hgateD.trans hD))
   have hopeningBudget : SA.gateTime p.toParams q + (P p - 4 * p.Δ) ≤ D := by linarith
   obtain ⟨hh, he, r, hqr, hfirst, hrD, h0, h1, hc, hentry⟩ :=
-    healing_rise_one_first_opening E rho hrec mono crossing writes rowCoverage
+    healing_rise_one_first_opening E rho hrec mono crossing services opening writes rowCoverage
       hgst huD hD hstop hQ heq hexact hu hgateD hopeningBudget
   exact ⟨β, q, Q, Qfg, r, hphase, hβ, hmin, hafter, hq, hgate, hQ, hexact,
     heq, hh, he, hqr, hfirst, hrD, h0, h1, hc, hentry⟩

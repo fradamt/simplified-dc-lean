@@ -1,11 +1,10 @@
-# P-As round 3 — current blocker types
-Base: f5c77257 on sleep-pas3b. These are current source declarations in failed import closures.
-Types are quoted with their source section variables. They are not added assumptions.
-Current checks: `.lake/sleep-pas-r3/targets-build.log` and `consumers-final.log`.
-The first log predates the final growth repair; that full target now builds with strict audits.
-B01, B05–B08, B10–B11 and B18 are removed as satisfied requests.
-B09 and B13 now name the current failing declarations. B16/B17 are deferred by the round scope.
-No public Claims/Statements file changed. No healing scope record is passed.
+# P-As Round 4 — current blocker types
+Base: 3a538409, including sleep-int dcdb4a06 and P-As Round 3 06b683de.
+Full P-As remains OPEN. These are source declarations and exact open producer requests.
+They are not new assumptions of public claims. Healing targets remain OUT OF SCOPE.
+B09/B12/B13/B14 and WCSEED/WCIND/WCEMPTY/WCREADS/WCGATES are satisfied by the P-WC
+exports and the compiled P-As caller ports. B21/B22 are satisfied by the full W1 fixture.
+Current evidence is in .lake/sleep-pas-r4/. Public Claims/Statements are unchanged.
 
 ## B02 — P-Cl2
 
@@ -57,71 +56,6 @@ theorem outageV_source_path (hsch : V2.D.ScheduleWellFormed E rho)
     ∀ b, Block.Preceq b K → b ≠ .genesis →
       ∃ l < k, ∃ t o, blockOf? p o = some b ∧
         V2.D.Run.acceptsAt E rho l y o t ∧ 0 ≤ t ∧ t ≤ u
-```
-
-## B09 — P-WC
-
-`AvailableChainFGSAProofs/Proofs/WeakContinuation/Proposal.lean:56` — `wc_headRead_stamped`.
-
-The current restarts-at-wakes law is TRUE under Base2. It does not imply an unchanged block stamp
-across restart. Exact receiver epochs must be proved at the read; no global stamp preservation is
-supplied.
-
-```lean
-theorem wc_headRead_stamped {k : Nat} {x : V} {r : Slot} {D : Block}
-    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.RestartsAtWakes E rho)
-    (h : WCHeadRead p c E rho k x r D) :
-    ∀ A, Block.Preceq A D →
-      A ∈ (storeAt p c E rho k x).base.blocks ∧
-      GridCO.stampBlock (storeAt p c E rho k x).base A < SA.voteTime p.toParams r
-```
-
-## B12 — P-WC
-
-`AvailableChainFGSAProofs/Proofs/WeakContinuation/StepTransfer.lean:21` — `wc_retrospective`.
-
-The body still applies the changed gate-result producer and requests an unguarded later tick.
-Awake-now or honest membership does not imply that tick under sleep. No such universal field is
-supplied.
-
-```lean
-theorem wc_retrospective : WCRetrospectiveStatement p c E rho ΔF w iStar
-```
-
-## B13 — P-WC
-
-`AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:254` — `wcg_retrospective`.
-
-The earlier receiptOrigins request is satisfied. This is the current first failing declaration. A
-later tick needs its awake/joined receiver scope; the old all-honest lane is not supplied.
-
-```lean
-theorem wcg_retrospective (hcausal : WCFinalityTargetEarlierStatement p c E rho) :
-  WCGRetrospectiveStatement p c E rho ΔF w iStar
-```
-
-## B14 — P-WC
-
-`AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:55` — `wcg_empty_outputDomain`.
-
-The legacy all-honest output telescope is not accepted as TRUE for sleepy endpoint readers. Port to
-the actual retained confirmed-reader scope. Do not add participation or a half-cap to the empty
-route.
-
-```lean
-theorem wcg_empty_outputDomain
-    (ha : RetainedAgreesThrough₂ p c E source E' rho)
-    (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
-    (hend : rho.horizon = source.horizon)
-    {w : HealingWitness} {iSource : Nat} {ΔF : Time}
-    (hseed : WCSeed p c E source w iSource)
-    (hgate : SA.gateTime p.toParams w.u ≤ source.horizon)
-    (hsafe : SSafeFromCut₂ p c E source iSource w.QStar ΔF) :
-    ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-      Gen.Pure.CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E' rho g x t)
-        (fun t => afterTicksIdx rho (SA.gateTime p.toParams w.u) ≤ timeIdx rho t) ∧
-      Gen.Pure.MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E' rho g x t)
-        (fun t => afterTicksIdx rho (SA.gateTime p.toParams w.u) ≤ timeIdx rho t)
 ```
 
 ## B15 — P-H1
@@ -178,8 +112,21 @@ theorem step_constant (nd : FixtureNode) (e : Event) :
 `AvailableChainFGSAProofs/Proofs/Outage/ArmingScores.lean:40` —
 `inclusion_proposer_prior_of_F_prefix_on`.
 
-INTEGRATION BLOCKER. The same public name is also declared in ArmingSleep. The imported module fails
-before assembly can consume it. This requests one definition, not a universal supplier.
+INTEGRATION BLOCKER, owner P-Ar. The exact duplicate names are:
+
+- `AvailableChain.FGSA.Run.inclusion_proposer_prior_of_F_prefix_on`
+- `AvailableChain.FGSA.Run.inclusion_reader_scores_on`
+
+ArmingScores declares them at :40/:110 after importing ExactProposalReceipts, which
+already declares them at :420/:475. ArmingSleep imports ArmingInput, which imports
+ArmingCover, which imports ArmingScores. Thus ArmingSleep receives this collision
+through its imports. The earlier Round 3 description placed the second declarations
+in ArmingSleep; that location was wrong.
+
+YES: sleep-int dcdb4a06 fails to build this import closure. The three declaration
+files are byte-for-byte unchanged from that pin. The build errors in
+.lake/sleep-pas-r4/ports5.log name both duplicate declarations. This is a name conflict,
+not an unproduced universal service field. P-As did not edit P-Ar files.
 
 ```lean
 theorem inclusion_proposer_prior_of_F_prefix_on [Fintype V]
@@ -218,32 +165,6 @@ theorem outage_arming_sources (hs : V2.D.ScheduleWellFormed E rho)
     {l : Slot} {u : V} {s : Slot} {C : Block} {iₛ : Nat} {D : Block}
     {Dh : FGBlock (Fin p.n)} (hc : ArmingCert p c E rho fast T b₀ b₁ B l u s C iₛ D Dh) :
     OutageSourceHistory p c E rho B (afterTicksIdx rho (SA.gateTime p.toParams (l + 1)))
-```
-
-## B21 — P-As
-
-`AvailableChainFGSAInhabit/WeakContinuationW1.lean:307` — `w1_tickBatch_st`.
-
-FALSE without an awake guard. At time 248, node 1 is asleep in weakEnv. Its batch store is
-unchanged; clock at 248 changes now. The later uniform-store and receipt consumers also need awake
-recipient scopes. The repaired B01 prefix does not close this module.
-
-```lean
-theorem w1_tickBatch_st (t : Time) (w : World) (u : Validator) :
-    ((tickBatch t w).1 u).st = FGSA.clock params (w u).st t
-```
-
-## B22 — P-As
-
-`AvailableChainFGSAInhabit/WeakContinuationW1.lean:1882` — `w1_strongRecovery`.
-
-FALSE for the current fixture endpoint: source.horizon is 247, but recoveryStart + B_HF is 253. The
-strict negative check is in .lake/sleep-pas-r3/W1Prefix.lean. Rebuild the local witness; do not
-change the public recovery claim.
-
-```lean
-theorem w1_strongRecovery : StrongRecoverySearchPrefix₂ params unitCodec strongEnv source 4 1 where
-  sync
 ```
 
 ## OU-INPUTS — P-Ou
@@ -319,9 +240,46 @@ hInclusion : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
 - Growth restriction schedule and kept-node membership: TRUE for ordinary valid finite
   runs at those scopes. The proof transports both service alternatives and exact action cuts.
 - Growth fixture execution, sleep law, receipt roots, pending service, suffixNoRestart and
-  joinedGap: proved for the actual always-awake source/retained continuation at 253/254.
+  joinedGap: proved for the separate always-awake growth fixture at 253/254.
   This fixture does not prove a universal all-awake law for arbitrary sleep runs.
 - NoHealing records: none. The healing targets and B16/B17 stay unchanged.
+
+
+- WC source join cutoff: TRUE for the selected H0 witness. Named producers are
+  wc_sourceJoinCut and wcg_sourceJoinCut. A seed's firstVoteAfterGST alone is weaker.
+- Source joined count: TRUE under StrongRecoverySearchPrefix2 plus that exact cutoff;
+  wc_sourceParticipation and wcg_sourceParticipation produce it at every covered time.
+- Combined source/suffix count: TRUE under CleanContinuationSleep2 or
+  CleanGrowthContinuationSleep2 plus the source cutoff. wc_participation and
+  wcg_participation keep the inclusive endpoint and strict suffix. No all-node join
+  law is asserted outside those intervals.
+- Source seed: TRUE from the selected HealingInput and finite facts. Producers are
+  wc_heightSeed_of_finite and wcg_heightSeed_of_finite. wc_finiteFacts/wcg_finiteSeed
+  still require FAST. wcg_sourceWitness_joined retains the selected cutoff with its seed.
+- Cached safety: TRUE from the finite seeded induction; wc_cachedSafety and
+  wcg_cachedSafety are the P-WC producers. Cached proposal coverage is produced from
+  the exact original WCResult and cached monotonicity, rather than assumed.
+- Inclusion: TRUE for actual enabled gates. wcg_inclusion6_result retains the exact
+  original gate evidence. Later endpoint readers use their own confirmed-reader scope.
+- Empty suffix: TRUE from source cached safety, exact source proposal coverage and
+  scoped source service. No continuation participation or half-cap is added.
+- Common internal lane inputs: TRUE in their stated public regimes. Base2 supplies
+  validity, links, CStar, wakes, delta and receipt idealization. Synchrony, fault bounds,
+  accountability and participation are existing conditional public premises.
+  Foundations supplies durable/epoch stores, all-run monotonicity, frame epochs,
+  recurrence, geometry, certificates, source discipline, labels, QC/stratification,
+  no slash, emitted names, targets, lease origins, deadlines and held-row origins.
+  wc_scopedRowOrigins/wcg_scopedRowOrigins supply actual root-scope row origins;
+  cap_finality_head supplies finality-head provenance. FAST is the one open producer.
+- Invariant, pivot, admission, frame-live and service inputs: TRUE under those same
+  lane premises and seed; the named P-WC producers supply them. Assembly only composes
+  those proofs. Data indices, selected memberships, horizon guards and exact read
+  facts remain conditional facts about the consumer's selected event.
+- W1: execution, sleep law, receipt roots, synchrony, recovery endpoint, suffixNoRestart,
+  joinedGap and joined suffix count are proved for source 253 / continuation 269.
+  Generic batch and receipt helpers use actual awake receivers. Sleeping stores stay
+  fixed. NoRestart is proved only for this concrete no-wake trace; the separate
+  SleepPositive fixture still checks an actual wake restart.
 
 ## Header blockers — family owners
 
@@ -367,130 +325,6 @@ OutageExport's explicit hstore, hframe, hsrc, htsrc and hnamed inputs are TRUE u
 its valid outage sleep regime and source fault bound. The actual Foundations exports
 supply those scoped facts. The test no longer takes unrestricted nonempty gates,
 saved-cache retention, all-node output monotonicity or all-honest clean gates.
-
-## WCSEED — P-As
-
-`AvailableChainFGSAProofs/Proofs/Assembly/WeakContinuationGrowthSeed.lean:156`.
-
-PORT. The family finite-facts producer is now proved in WeakContinuationGrowth/StepFacts:297. Its
-exact inputs use receiptIdealization and current-epoch fast writes. The old caller supplies the
-weaker root projection and the old fast-origin theorem. Receipt scope is TRUE under Base2. The fast
-epoch companion is still a P-Fd request; it is not assumed.
-
-```lean
-theorem wcg_finiteSeed (hb : Base₂ p c E rho)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card) (i : Nat) :
-    WCFiniteFacts p c E rho i
-```
-
-## WCIND — P-WC
-
-`AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Dynamics.lean:788`.
-
-Current seeded induction remains blocked by B13. RestartsAtWakes and joined participation are the
-proper finite sleep inputs; no global NoRestart is supplied.
-
-```lean
-theorem wcg_seededInduction (hcausal : WCFinalityTargetEarlierStatement p c E rho) :
-  WCGSeededInductionStatement p c E rho ΔF w iStar
-```
-
-## WCEMPTY — P-WC
-
-`AvailableChainFGSAProofs/Proofs/WeakContinuationGrowth/Empty.lean:481`.
-
-The NoRestart parameter has been removed. The all-honest hfinal input is still not accepted as TRUE
-for sleepy endpoint readers. Preserve the public confirmed-reader scope and the empty route.
-
-```lean
-theorem wcg_empty_live_of_finalBelow
-    (ha : RetainedAgreesThrough₂ p c E source E' rho)
-    (hb : Base₂ p c E' rho) (hs : V2.D.ScheduleWellFormed E source)
-    (hend : rho.horizon = source.horizon)
-    {w : HealingWitness} {iSource : Nat} {ΔF : Time}
-    (hseed : WCSeed p c E source w iSource)
-    (hgate : SA.gateTime p.toParams w.u ≤ source.horizon)
-    (hlive : WeakContinuationLiveAt₂ p c E source w.u w.QStar iSource ΔF)
-    (hfinal : ∀ i x y, afterTicksIdx rho (SA.gateTime p.toParams w.u) ≤ i →
-      i ≤ rho.events.length → x ∈ rho.honest → y ∈ rho.honest →
-      Block.Preceq (F_at p c E' rho i x) (S_at p c E' rho i y)) :
-    WeakContinuationLiveAt₂ p c E' rho w.u w.QStar
-      (afterTicksIdx rho (SA.gateTime p.toParams w.u)) ΔF
-```
-
-## WCREADS — P-WC
-
-`AvailableChainFGSAProofs/Proofs/WeakContinuation/ExactProposal.lean:39`.
-
-LEGACY. NoRestart is FALSE for ordinary finite runs with wakes. Unguarded reads across restart are
-not supplied. Port this consumer to joined receivers and retained exact epochs.
-
-```lean
-theorem wc_retainedReads
-    (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
-    (hdelta : E.Δ = p.Δ) (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-    (hroots : NamedRootCollisionFree p c E rho) (hmono : RMono p c E rho)
-    (ΔF : Time) (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-      (Gen.V2.Duty.faulty rho).card <
-        (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-    (hseed : WCSeed p c E rho w iStar) (pt : PtSP) (D0 : Block)
-    (hstart : w.u + 2 ≤ pt.s)
-    (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
-    (hgate : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    (hpivot : WCProposalPivot p c E rho w iStar pt D0) :
-    ∃ (ip : Nat) (N : NamedProposal p.n) (D : FGBlock (Fin p.n)), N.erase = pt.P ∧
-      rho.events[ip]? = some (.tick (V2.D.proposerOf rho (fgsaInterface p c) pt.s)
-        (SA.proposalTime p.toParams pt.s)) ∧
-      (⟨.seat (.prop pt.s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip ∧
-      ∀ y ∈ rho.honest, ∀ ih,
-        rho.events[ih]? = some (.tick y (SA.voteTime p.toParams pt.s)) →
-        ∃ Kc, RetainedReadPremises p
-          (clock p (rho.stateBefore E ip
-            (V2.D.proposerOf rho (fgsaInterface p c) pt.s)).st
-            (SA.proposalTime p.toParams pt.s))
-          (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams pt.s))
-          pt.s D N.erase Kc
-```
-
-## WCGATES — P-WC
-
-`AvailableChainFGSAProofs/Proofs/WeakContinuation/Inclusion.lean:131`.
-
-LEGACY. NoRestart and a nonempty result at every honest IsGateTick are not TRUE for ordinary finite
-sleep runs. A wake before the same-time gate can suppress the gate. No such fields are supplied.
-
-```lean
-theorem wc_proposal_gates [Fintype V]
-    (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
-    (hdelta : E.Δ = p.Δ) (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-    (hroots : NamedRootCollisionFree p c E rho)
-    (hseed : WCSeed p c E rho w iStar)
-    (hi : WCInv p c E rho w iStar rho.events.length)
-    (pt : PtSP) (hstart : w.u + 2 ≤ pt.s)
-    (hgate : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y pt.s = some pt.P)
-    (had : ∀ y ∈ rho.honest, WCProposalAdmittedBeforeVote p c E rho y pt)
-    (hQP : Block.Preceq w.QStar pt.P)
-    (hprior : ∀ j x r B, WCResult p c E rho w iStar rho.events.length j x r B →
-      r < pt.s → Block.Preceq B pt.P)
-    (hfl : ∀ i x phase st WStar (Bfg : FGBlock (Fin p.n)),
-      WCDutyInput p c E rho i x phase st → x ∈ rho.honest → iStar ≤ i →
-      WStar ∈ st.fg.TF → eraseFG WStar = w.CStar → (heightView p WStar).h = w.M + 1 →
-      Block.Preceq w.QStar (eraseFG Bfg) →
-      WCUsableHighSourcesBelow p c E rho w i x st (eraseFG Bfg) →
-      (∀ row ∈ st.base.obligations, st.base.now < row.2.2 →
-        Block.Preceq row.1 (eraseFG Bfg)) →
-      ∀ view, WCDutyView p st phase view → view ⊆ st.fg.TF →
-        WCFrameLiveBelow p st phase Bfg view)
-    (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
-      (SA.voteTime p.toParams pt.s) (SA.gateTime p.toParams pt.s))
-    (hpart : (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams pt.s)).card) :
-    ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x pt.s →
-      gateResultAt p c E rho i = some (some pt.P) ∧
-        Block.Preceq pt.P (S_at p c E rho (i + 1) x)
-```
 
 ## FAST — P-Fd
 
@@ -545,3 +379,28 @@ theorem outageContinuation_inhabited_sleep (fast : Bool) :
     OutageContinuationPrem p unitCodec fast E rho 4 8 13 3 where
   pre
 ```
+
+## WCROOT — P-As, dependent on FAST and deferred H-time closure
+
+`AvailableChainFGSAProofs/Proofs/Assembly/Root.lean:98/:123/:125/:131/:133`.
+`Tests/WeakContinuationGrowthAssemblyAxioms.lean:2` imports that Root and remains OPEN.
+Its local WC component audit passes through Tests/WeakContinuationGrowthAxioms.
+The full Root audit was not reclassified GREEN or bypassed.
+
+```lean
+-- Root:98, field of fgsaClaims_of_open:
+weakContinuationLive := fgsa_weakContinuationLiveClaim_of_hTime (healing_hTimeClaim p)
+
+-- Root:123:
+theorem fgsa_weakContinuationGrowthClaim (p : Params) (G : Time) :
+    WeakContinuationGrowthClaim p G
+```
+
+The internal live supplier now keeps the exact FAST producer explicit. Root needs a
+concrete P-Fd theorem with the FAST type for each Base2 run, including source and suffix.
+It must not add that supplier to FGSAClaims or WeakContinuationGrowthClaim.
+For growth, use wcg_sourceWitness_joined with wcg_finiteSeed and retain its H0 cutoff.
+Pass that cutoff and FAST to wcg_nonemptyLive; pass source FAST to wcg_emptyLive.
+The source and retained seed adapters already build with this exact obligation.
+No assembly family proof is invented. HTimeClaim closure is a separate, deferred
+P-H1/P-H2 obligation; no healing scope record is supplied in this round.

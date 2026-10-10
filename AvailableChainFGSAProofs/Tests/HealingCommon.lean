@@ -15,8 +15,9 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 section Signatures
 variable [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -27,6 +28,7 @@ variable [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -43,10 +45,10 @@ variable [Fintype V] (E : Generic.Env V)
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
 
-include hrec mono crossing writes rowCoverage
+include hrec mono crossing services writes rowCoverage
 
 -- C6: the exact frozen statement, with no repair provenance or circular contract.
-example : TCommon p c E rho := healing_tCommon E rho hrec mono crossing writes rowCoverage
+example : TCommon p c E rho := healing_tCommon E rho hrec mono crossing services writes rowCoverage
 
 variable {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -58,7 +60,7 @@ variable {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool
 example (hq : q = r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested) :
     OpeningCovered p c E rho r Q :=
-  common_opening_covered E rho hrec mono crossing writes rowCoverage hgst hQ hQfg hexact hu
+  common_opening_covered E rho hrec mono crossing services writes rowCoverage hgst hQ hQfg hexact hu
     (le_of_eq hq) hphase
 
 -- C2–C3: q + 1 = rR is the strict transfer boundary; sources remain compatible.
@@ -69,15 +71,18 @@ example (hq1 : q + 1 = r * p.R)
         actionSourceFG p c E rho x r = some (some K) →
         actionSourceFG p c E rho y r = some (some K') →
         Block.Compatible (eraseFG K) (eraseFG K')) :=
-  ⟨common_opening_covered E rho hrec mono crossing writes rowCoverage hgst hQ hQfg hexact hu
+  ⟨common_opening_covered E rho hrec mono crossing services writes rowCoverage hgst hQ hQfg
+    hexact hu
       (by omega) hphase,
-    common_sources_compatible E rho hrec hgst hu (by omega) hphase⟩
+    common_sources_compatible E rho hrec.toRecovery₂
+      (common_sameLabel_scope E rho hrec mono crossing services writes hgst hQ hQfg hexact
+        hu (by omega) hphase) hgst hu (by omega) hphase⟩
 
 -- C4: a high pivot fixes T_h.root at the first opening.
 example (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested)
     (hh : (heightView p Qfg).h = m) : OpeningEntry p c E rho r m :=
-  common_entry_at_high E rho hrec mono crossing writes hgst hQ hQfg hexact hu hqr hphase hh
+  common_entry_at_high E rho hrec mono crossing services writes hgst hQ hQfg hexact hu hqr hphase hh
 
 -- C4: low, uncontested, with all selected sources low, gives the low entry.
 example (hqr : q ≤ r * p.R)
@@ -87,7 +92,7 @@ example (hqr : q ≤ r * p.R)
       (heightView p K).h ≤ m - 1) : OpeningEntry p c E rho r (m - 1) := by
   apply common_entry_of_plateau E rho r (m - 1) Qfg hh
   intro x K hx hK
-  exact ⟨(common_sources_extend_and_cap E rho hrec mono crossing writes hgst hQ hQfg hexact
+  exact ⟨(common_sources_extend_and_cap E rho hrec mono crossing services writes hgst hQ hQfg hexact
     hu hqr hphase x K hx hK).1, hlow x K hx hK⟩
 
 -- C4–C5: actual low and high sources exclude either uniform first-opening height;
@@ -101,7 +106,7 @@ example (hqr : q ≤ r * p.R)
       (PhaseInterval p c E rho u (p.actionTime (r + 1)) m J contested →
         OpeningEntry p c E rho (r + 1) m) := by
   have hm : 1 ≤ m := hhK ▸ (fgCertificateLaws p).height.one_le_h K
-  refine ⟨?_, ?_, common_next_entry E rho hrec mono crossing writes hgst hQ hQfg hexact hu
+  refine ⟨?_, ?_, common_next_entry E rho hrec mono crossing services writes hgst hQ hQfg hexact hu
     hqr hy hK hhK⟩
   · rintro ⟨e, he⟩
     have hh := (he y K hy hK).1
@@ -118,7 +123,7 @@ example (hqr : q ≤ r * p.R) (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r')
     0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
       OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 :=
-  common_height_one E rho hrec mono crossing writes rowCoverage hgst hQ hQfg hexact hu hqr
+  common_height_one E rho hrec mono crossing services writes rowCoverage hgst hQ hQfg hexact hu hqr
     hfirst hphase
 
 -- C6: low branch, including its explicit phase implication, in the frozen conjunction.
@@ -130,7 +135,8 @@ example (hqr : q ≤ r * p.R) (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r')
           (heightView p K).h = m) ∧
         (PhaseInterval p c E rho u (p.actionTime (r + 1)) m J false →
           OpeningEntry p c E rho (r + 1) m)) :=
-  (healing_tCommon E rho hrec mono crossing writes rowCoverage u m J false q Q Qfg r hgst hQ
+  (healing_tCommon E rho hrec mono crossing services writes rowCoverage u m J false q Q Qfg r
+    hgst hQ
     hQfg hexact hu hqr hfirst hphase).2.2.2.2.2 hh
 
 end Signatures

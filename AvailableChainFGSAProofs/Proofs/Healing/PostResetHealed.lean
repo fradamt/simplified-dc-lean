@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 
@@ -184,16 +185,69 @@ private theorem healed_cut_lt {a b : Time} (hab : a < b) :
     exact decide_eq_true (hea.trans_lt hab)
   · exact decide_eq_true ((of_decide_eq_true he).trans_lt hab)
 
+/-- A selected high source is after the reset cut, by durable membership. -/
+private theorem healed_high_source_time (hs : V2.D.ScheduleWellFormed E rho)
+    {w : HealingWitness} (h0r : H0Reset p c E rho w)
+    {x : V} {r : Nat} {C : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
+    (hsrc : actionSourceFG p c E rho x r = some (some C)) (hh : high p w C) :
+    w.u₀ < p.actionTime r := by
+  have htick : ∃ i : Nat, rho.events[i]? = some (.tick x (p.actionTime r)) := by
+    rw [actionSourceFG_def, postClock_def, preTick_def] at hsrc
+    cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
+    | none => simp only [hi, Option.map_none] at hsrc; contradiction
+    | some i => exact ⟨i, V2.D.Run.tickIdx?_spec hi⟩
+  obtain ⟨i, hi⟩ := htick
+  by_contra hn
+  have hidx : i ≤ timeIdx rho w.u₀ :=
+    ((V2.D.Engine.index_lt_read_length_iff hs w.u₀ hi).mpr (le_of_not_gt hn)).le
+  have hheld := healing_action_source_held p c E rho hs hi hsrc
+  have hcut := (fgsa_store_durable p c E rho hidx x).1 hheld
+  have hI : KitFG.FGStoreInvariant (heightView p) (finalityView p)
+      (storeAt p c E rho (timeIdx rho w.u₀) x).fg :=
+    (cstoreInv_stateBefore E rho (timeIdx rho w.u₀) x).fg
+  have hheight : (heightView p C).h ≤
+      (storeAt p c E rho (timeIdx rho w.u₀) x).fg.h_max := by
+    rw [hI.hmax]
+    exact le_sup_of_le_left (Finset.le_sup (f := fun B => (heightView p B).h) hcut)
+  have hfront : honestFrontier p c E rho w.u₀ =
+      rho.honest.sup (fun y => (storeAt p c E rho (timeIdx rho w.u₀) y).fg.h_max) := by
+    unfold honestFrontier storeAt timeIdx
+    rw [V2.D.Engine.readAt_eq_stateBefore hs w.u₀]
+  have hmax := Finset.le_sup
+    (f := fun y => (storeAt p c E rho (timeIdx rho w.u₀) y).fg.h_max) hx
+  rw [← hfront, ← h0r.frontier] at hmax
+  rw [high_def] at hh
+  simp only [Height] at *
+  omega
+
+/-- A positive clock after GST comes from a tick in the recovery suffix. -/
+private theorem healed_now_tick [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {i : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hpos : 0 < (storeAt p c E rho i x).base.now)
+    (hgst : E.t_GST < (storeAt p c E rho i x).base.now) :
+    ∃ j < i, rho.events[j]? = some (.tick x (storeAt p c E rho i x).base.now) := by
+  rcases V2.D.Engine.stateBefore_now_source_atRestart (fgsaClock p c)
+    (fgsaRestoreTimeLaw p c) E rho i x with hzero | ⟨j, hj, ht | hr⟩
+  · rw [fgsa_clock_now p c (rho.stateBefore E i x)] at hzero
+    exact (ne_of_gt hpos hzero).elim
+  · rw [fgsa_clock_now p c (rho.stateBefore E i x)] at ht
+    exact ⟨j, hj, ht⟩
+  · rw [fgsa_clock_now p c (rho.stateBefore E i x)] at hr
+    have hbound := healing_scope_restart_bound hrec hx
+      (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hr)).2 le_rfl
+      (List.mem_of_getElem? hr)
+    exact (not_le.mpr hgst hbound).elim
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.18:3076–3093; plan J7 D, cross-node finality clause.
 DC: SAME coverage at every suffix event prefix, including old finalizations.
 Named H2A producer: J3 rest. Named PostResetInv producer: the joint induction
 PostResetInv ∧ ResetLeaseCompatible ∧ OpeningDomain. No standalone induction is used. -/
 theorem healing_h4_crossBelow [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
     (start : PostResetStart p c E rho w) (h2A : H2A p c E rho w)
     (inv : ∀ i, PostResetInv p c E rho w i) (hhor : tstar p w ≤ rho.horizon) :
-    ∀ i x y, HealSuffix p c rho (tstar p w) i → x ∈ rho.honest → y ∈ rho.honest →
+    ∀ i x y, HealSuffix p c rho (tstar p w) i → x ∈ rho.honest → confirmedReaderIdx p c E rho y i →
       Block.Preceq (F_at p c E rho i x) (S_at p c E rho i y) := by
   have hd := p.deltaPos
   have hs := hrec.base.valid.toScheduleWellFormed
@@ -221,10 +275,11 @@ theorem healing_h4_crossBelow [Fintype V] {G ΔF : Time}
     exact afterTicksIdx_mono rho (by linarith)
   obtain ⟨j, z, a, K, hrow, _, hK, heK, hhK⟩ := hreset.fresh
   have hhigh : high p w K := by rw [high_def, hhK]
-  intro i x y hi hx hy
+  intro i x y hi hx hReader
+  have hy := hReader.1.1
   have hC : Block.Preceq w.CStar (S_at p c E rho i y) := by
     rw [← heK]
-    apply (h2A z w.rStar K hrow.1 hK hhigh).2 i y hy
+    apply (h2A z w.rStar K hrow.1 hK hhigh).2 i y hReader
     · exact hlate.le.trans hhor
     · exact ⟨(healed_cut_lt p c rho hlate).trans
         ((preIdx_le_afterTicksIdx E rho hs (tstar p w)).1.trans
@@ -246,17 +301,19 @@ theorem healing_h4_crossBelow [Fintype V] {G ΔF : Time}
         have hnat : (0 : Int) ≤ (r * p.R : Nat) := Int.natCast_nonneg _
         nlinarith
       linarith
-    rcases V2.D.Engine.stateBefore_now_source_noRestart (fgsaClock p c) E rho
-        hrec.base.noRestart i x with hzero | ⟨kNow, hkNow, htick⟩
-    · rw [fgsa_clock_now p c (rho.stateBefore E i x)] at hzero
-      exact (ne_of_gt hnowPos hzero).elim
-    · rw [fgsa_clock_now p c (rho.stateBefore E i x)] at htick
-      have htime := (hs.in_horizon _ (List.mem_of_getElem? htick)).2
-      have hcut : healStart p c rho (p.actionTime r + 4 * p.Δ) ≤ i :=
-        (healed_cut_lt p c rho hdeadline).trans
-          ((healing_support_idxBefore_le p c E rho hs htick le_rfl).trans hkNow.le)
-      exact block_preceq_trans hFC
-        ((h2A z r C hrow.1 hsource hhigh).2 i y hy (hdeadline.le.trans htime) ⟨hcut, hi.2⟩)
+    have hSourceCut := healed_high_source_time p c E rho hs start.toH0Reset
+      hrow.1 hsource hhigh
+    have hGSTnow : E.t_GST < (storeAt p c E rho i x).base.now := by
+      have hstartLower := healing_recovery_start_lower (p := p) E
+      have hcutLower := start.toH0Reset.cut_lower
+      linarith
+    obtain ⟨kNow, hkNow, htick⟩ := healed_now_tick p c E rho hrec hx hnowPos hGSTnow
+    have htime := (hs.in_horizon _ (List.mem_of_getElem? htick)).2
+    have hcut : healStart p c rho (p.actionTime r + 4 * p.Δ) ≤ i :=
+      (healed_cut_lt p c rho hdeadline).trans
+        ((healing_support_idxBefore_le p c E rho hs htick le_rfl).trans hkNow.le)
+    exact block_preceq_trans hFC
+      ((h2A z r C hrow.1 hsource hhigh).2 i y hReader (hdeadline.le.trans htime) ⟨hcut, hi.2⟩)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.18:3062–3067; plan J7 D, different raw labels.
@@ -349,7 +406,7 @@ private theorem healed_reset_below [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
     (start : PostResetStart p c E rho w) (h2A : H2A p c E rho w)
     (hhor : tstar p w ≤ rho.horizon) {i : Nat} {y : V}
-    (hi : HealSuffix p c rho (tstar p w) i) (hy : y ∈ rho.honest) :
+    (hi : HealSuffix p c rho (tstar p w) i) (hReader : confirmedReaderIdx p c E rho y i) :
     Block.Preceq w.CStar (S_at p c E rho i y) := by
   have hreset := start.toH0Reset
   have ha : p.actionTime w.rStar = SA.gateTime p.toParams w.sStar := by
@@ -368,7 +425,7 @@ private theorem healed_reset_below [Fintype V] {G ΔF : Time}
   obtain ⟨j, z, a, K, hrow, _, hK, heK, hhK⟩ := hreset.fresh
   have hhigh : high p w K := by rw [high_def, hhK]
   rw [← heK]
-  apply (h2A z w.rStar K hrow.1 hK hhigh).2 i y hy (hlate.le.trans hhor)
+  apply (h2A z w.rStar K hrow.1 hK hhigh).2 i y hReader (hlate.le.trans hhor)
   exact ⟨(healed_cut_lt p c rho hlate).trans
     ((preIdx_le_afterTicksIdx E rho hrec.base.valid.toScheduleWellFormed (tstar p w)).1.trans
         (hstart ▸ hi.1)), hi.2⟩
@@ -379,11 +436,12 @@ DC: SAME a delivered finalization is below the output before its delivery.
 Named H2A producer: J3 rest. Named PostResetInv producer: the joint induction
 PostResetInv ∧ ResetLeaseCompatible ∧ OpeningDomain. -/
 private theorem healed_reconcile_below [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
     (start : PostResetStart p c E rho w) (h2A : H2A p c E rho w)
     (inv : ∀ i, PostResetInv p c E rho w i) (hhor : tstar p w ≤ rho.horizon)
     {i : Nat} {x : V} {o : Obj p} {t : Time}
     (hi : HealSuffix p c rho (tstar p w) i) (hx : x ∈ rho.honest)
+    (hReader : confirmedReaderIdx p c E rho x i)
     (he : rho.events[i]? = some (.deliver x o t)) :
     Block.Preceq (F_at p c E rho (i + 1) x) (S_at p c E rho i x) := by
   have hd := p.deltaPos
@@ -417,7 +475,8 @@ private theorem healed_reconcile_below [Fintype V] {G ΔF : Time}
   have hf := (inv (i + 2)).fprov
   rw [PostResetFProv_def] at hf
   rcases (hf (i + 1) (by omega) x hx hidx).1 with hlo | hhi
-  · exact block_preceq_trans hlo (healed_reset_below p c E rho hrec start h2A hhor hi hx)
+  · exact block_preceq_trans hlo
+      (healed_reset_below p c E rho hrec.toRecovery₂ start h2A hhor hi hReader)
   · obtain ⟨C, s, hsource, hhigh, hwait, hFC⟩ := hhi
     rw [hnow] at hwait
     obtain ⟨k, z, r, a, _, hrow, hsource, hlabel⟩ := hsource
@@ -432,17 +491,19 @@ private theorem healed_reconcile_below [Fintype V] {G ΔF : Time}
         have hnat : (0 : Int) ≤ (r * p.R : Nat) := Int.natCast_nonneg _
         nlinarith
       linarith
-    rcases V2.D.Engine.stateBefore_now_source_noRestart (fgsaClock p c) E rho
-        hrec.base.noRestart i x with hzero | ⟨kNow, hkNow, htick⟩
-    · rw [fgsa_clock_now p c (rho.stateBefore E i x)] at hzero
-      exact (ne_of_gt hnowPos hzero).elim
-    · rw [fgsa_clock_now p c (rho.stateBefore E i x)] at htick
-      have htime := (hs.in_horizon _ (List.mem_of_getElem? htick)).2
-      have hcut : healStart p c rho (p.actionTime r + 4 * p.Δ) ≤ i :=
-        (healed_cut_lt p c rho hdeadline).trans
-          ((healing_support_idxBefore_le p c E rho hs htick le_rfl).trans hkNow.le)
-      exact block_preceq_trans hFC
-        ((h2A z r C hrow.1 hsource hhigh).2 i x hx (hdeadline.le.trans htime) ⟨hcut, hi.2⟩)
+    have hSourceCut := healed_high_source_time p c E rho hs start.toH0Reset
+      hrow.1 hsource hhigh
+    have hGSTnow : E.t_GST < (storeAt p c E rho i x).base.now := by
+      have hstartLower := healing_recovery_start_lower (p := p) E
+      have hcutLower := start.toH0Reset.cut_lower
+      linarith
+    obtain ⟨kNow, hkNow, htick⟩ := healed_now_tick p c E rho hrec hx hnowPos hGSTnow
+    have htime := (hs.in_horizon _ (List.mem_of_getElem? htick)).2
+    have hcut : healStart p c rho (p.actionTime r + 4 * p.Δ) ≤ i :=
+      (healed_cut_lt p c rho hdeadline).trans
+        ((healing_support_idxBefore_le p c E rho hs htick le_rfl).trans hkNow.le)
+    exact block_preceq_trans hFC
+      ((h2A z r C hrow.1 hsource hhigh).2 i x hReader (hdeadline.le.trans htime) ⟨hcut, hi.2⟩)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.18:3049–3095; plan J7 D, full H4.
@@ -451,11 +512,13 @@ Named H2A producer: J3 rest; H3/PostResetService/opening_domain: J6-3;
 H5RawTransfer: J5-A; PostResetInv: the joint induction
 PostResetInv ∧ ResetLeaseCompatible ∧ OpeningDomain.
 The output induction consumes the all-cut carrier; it does not prove that carrier. -/
-theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     {w : HealingWitness} (start : PostResetStart p c E rho w)
     (h2A : H2A p c E rho w) (h3 : H3 p c E rho w)
     (h5 : H5RawTransfer p c E rho w) (inv : ∀ i, PostResetInv p c E rho w i)
-    (hhor : tstar p w ≤ rho.horizon) : H4 p c E rho w := by
+    (hhor : tstar p w ≤ rho.horizon)
+    (readers : ∀ i x, HealSuffix p c rho (tstar p w) i → x ∈ rho.honest →
+      confirmedReaderIdx p c E rho x i) : H4 p c E rho w := by
   classical
   have hsch := hrec.base.valid.toScheduleWellFormed
   have hstable := healing_h4_stable p c E rho start h3 hhor
@@ -522,7 +585,7 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G Δ
               rw [gateResult_def, (healing_support_gate_reads p c E rho hsch ht).1]
               exact congrArg some (hrawEq.trans hraw)
             obtain ⟨r, j, hr, hj, hresultOld⟩ := origin x hx
-            have hcompat := healing_h4_rawCompatible p c E rho hrec start.toH0Reset h5
+            have hcompat := healing_h4_rawCompatible p c E rho hrec.toRecovery₂ start.toH0Reset h5
               hx hx hr hlabel hj ht hresultOld hresult
             have hadv : Block.Preceq (S_at p c E rho i x)
                 (GridCO.advance (S_at p c E rho i x) C) := by
@@ -553,13 +616,28 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G Δ
               simpa only [not_forall, exists_prop] using hguard
             exact keep (hrun.veto C hraw hveto).1
     · obtain ⟨o, t, B, he, _, _, hout⟩ := hrc
-      have hbelow := healed_reconcile_below p c E rho hrec start h2A inv hhor hi hx he
+      have hbelow := healed_reconcile_below p c E rho hrec start h2A inv hhor hi hx
+        (readers i x hi hx) he
       change S_at p c E rho (i + 1) x =
         Gen.AC.normalizeOutput (F_at p c E rho (i + 1) x) (S_at p c E rho i x) at hout
       change Block.preceq (F_at p c E rho (i + 1) x) (S_at p c E rho i x) = true at hbelow
       rw [Gen.AC.normalizeOutput_def, ite_eq_left hbelow] at hout
       exact keep hout
-    · exact (hrec.base.noRestart i x t hr).elim
+    · have hGSTstart : E.t_GST < tstar p w := by
+        have hsync := start.toH0Reset.synchronous
+        have hu : (w.sStar : Int) + 2 ≤ (w.u : Int) := by
+          exact_mod_cast start.proposal_lower
+        change E.t_GST ≤ 4 * p.Δ * (w.sStar : Int) + p.Δ at hsync
+        change E.t_GST < 4 * p.Δ * (w.u : Int) + 6 * p.Δ
+        nlinarith [p.deltaPos]
+      have hbound := healing_scope_restart_bound hrec hx
+        (hsch.in_horizon _ (List.mem_of_getElem? hr)).2 le_rfl
+        (List.mem_of_getElem? hr)
+      have hbefore := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hr (tstar p w)).mpr
+        (hbound.trans_lt hGSTstart)
+      have hcut := (preIdx_le_afterTicksIdx E rho hsch (tstar p w)).1
+      rw [← hstart] at hcut
+      exact (Nat.not_lt.mpr (hcut.trans hi.1)) hbefore
   have allOrigin : ∀ i, HealSuffix p c rho (tstar p w) i →
       ∀ x ∈ rho.honest, Origin i x := by
     intro i hi
@@ -570,12 +648,15 @@ theorem healing_h4 [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G Δ
       have hprev : i ≤ rho.events.length := (Nat.le_succ i).trans hlen
       exact fun x hx => (step i ⟨hli, hprev⟩ (ih hprev) x hx).2
   refine ⟨hstable, ?_, ?_, healing_h4_crossBelow p c E rho hrec start h2A inv hhor⟩
-  · intro i j x y hi hj hx hy
+  · intro i j x y hi hj hRx hRy
+    have hx := hRx.1.1
+    have hy := hRy.1.1
     obtain ⟨r, k, hr, hk, hC⟩ := allOrigin i hi x hx
     obtain ⟨s, l, hs, hl, hD⟩ := allOrigin j hj y hy
-    exact healing_h4_rawCompatible p c E rho hrec start.toH0Reset h5
+    exact healing_h4_rawCompatible p c E rho hrec.toRecovery₂ start.toH0Reset h5
       hx hy hr hs hk hl hC hD
-  · intro i j x hi hj hij hx
+  · intro i j x hi hj hij hRx _hRj
+    have hx := hRx.1.1
     have mono : ∀ j, i ≤ j → j ≤ rho.events.length →
         Block.Preceq (S_at p c E rho i x) (S_at p c E rho j x) := by
       intro j hij
