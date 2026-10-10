@@ -1,5 +1,6 @@
-# P-As round 4: joined WC assembly prepared; non-healing closure remains OPEN.
+# P-As round 5: joined WC assembly prepared; non-healing closure remains OPEN.
 [TARGETS]
+AvailableChainFGSAProofs.Tests.OutageAssemblyAxioms
 
 AvailableChainFGSA.Model.Store
 AvailableChainFGSA.Proofs.LeaseOutput
@@ -67,6 +68,9 @@ AvailableChainFGSAProofs.Tests.Zero
 AvailableChainFGSARun.Proofs.AncestorDeadlinesStore
 AvailableChainFGSARun.Statements.ReceiptCoverage
 [GREEN]
+AvailableChainFGSAProofs.Tests.Zero
+AvailableChainFGSAProofs.Proofs.Assembly.Clean
+AvailableChainFGSAProofs.Tests.OutageAssemblyAxioms
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -571,7 +575,6 @@ AvailableChainFGSAInhabit.WeakContinuationW1
 AvailableChainFGSAInhabit.WitnessPositive
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs P-As
-AvailableChainFGSAProofs.Proofs.Assembly.Clean P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Healing P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Outage P-As
 AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival P-As
@@ -593,6 +596,5 @@ AvailableChainFGSAProofs.Tests.OutageContinuationAxioms P-As
 AvailableChainFGSAProofs.Tests.OutageContinuationInhabit P-As
 AvailableChainFGSAProofs.Tests.OutageExport P-As
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms P-As
-AvailableChainFGSAProofs.Tests.Zero P-As
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

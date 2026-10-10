@@ -132,5 +132,47 @@ theorem fgsa_weakContinuationGrowthClaim (p : Params) (G : Time) :
       (wcg_retainedSeed hS hc hne hseed hcut.beforeEnd.le)
   · exact wcg_emptyLive hS hc heq.symm hseed hcut.beforeEnd.le
 
+/-- The Root caller keeps the source join cutoff and uses FAST in the exact run.
+H-time and the receiver-epoch FAST producer remain explicit until their owners close them. -/
+theorem assembly_weakContinuationGrowth (p : Params) (hH : HTimeClaim p)
+    (hfast : ∀ (V : Type) [DecidableEq V] [Fintype V] (In : Type) (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), Base₂ p c E rho →
+      ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
+      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
+        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
+          Block.Preceq X B ∧ fastAt p c E rho x s X)
+    (G : Time) : WeakContinuationGrowthClaim p G := by
+  intro V _ _ In c ΔF hδ E source hS
+  have hsfast := hfast V In c E source hS.base
+  obtain ⟨w, hcut, hseed, hjoin⟩ := wcg_sourceWitness_joined hH hδ hS
+    (wcg_finiteSeed hS.base (fgsa_faultQ_of_count p hS.fault) hsfast)
+  refine ⟨w.u, w.QStar, afterTicksIdx source (SA.gateTime p.toParams w.u), hcut, ?_⟩
+  intro E' rho hc
+  rcases hc.covered.lt_or_eq with hne | heq
+  · have hfast' := hfast V In c E' rho hc.base
+    exact wcg_nonemptyLive hS hc hne hjoin hfast'
+      (wcg_retainedSeed hS hc hfast' hne hseed hcut.beforeEnd.le)
+  · exact wcg_emptyLive hS hc hjoin hsfast heq.symm hseed hcut.beforeEnd.le
+
+/-- The two Root continuation fields use the same exact producer obligation. -/
+theorem assembly_weakContinuationClaims (p : Params) (hH : HTimeClaim p)
+    (hfast : ∀ (V : Type) [DecidableEq V] [Fintype V] (In : Type) (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), Base₂ p c E rho →
+      ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
+      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
+        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
+          Block.Preceq X B ∧ fastAt p c E rho x s X) (G : Time) :
+    WeakContinuationLiveClaim p G ∧ WeakContinuationGrowthClaim p G :=
+  ⟨fgsa_weakContinuationLiveClaim_of_hTime hH G hfast,
+    assembly_weakContinuationGrowth p hH hfast G⟩
+
+/-- OUTPUT-DIRECT §§1–10. DC: INTENTIONAL; the additive outage continuation
+claim under (V), with all foundation and healthy-cut suppliers discharged. -/
+theorem fgsa_outageContinuationClaim (p : Params) : OutageContinuationClaim p :=
+  outageContinuation_claim_of p
+    (fgsa_storeClaim p) (fgsa_activeViewClaim p) (fgsa_frameClaim p)
+    (fgsa_srcFrameAboveClaim p) (fgsa_sourceDisciplineClaim p) (fgsa_cleanCutClaim p)
+
+
 end AvailableChain.FGSA.Run
 end

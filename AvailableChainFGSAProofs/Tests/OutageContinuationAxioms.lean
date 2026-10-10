@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
+public import AvailableChainFGSAProofs.Proofs.Assembly.Root -- shake: keep (claim audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationFrame

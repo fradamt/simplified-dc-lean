@@ -2486,6 +2486,7 @@
             'AvailableChain.FGSA.Run.FGSAFinalityClaims.runAgreement',
         ),
         'AvailableChainFGSAProofs.Proofs.Assembly.Clean': (
+            'AvailableChain.FGSA.Run.assembly_clean_state',
             'AvailableChain.FGSA.Run.fgsa_cleanCutClaim',
             'AvailableChain.FGSA.Run.fgsa_cleanHistoryClaim',
             'AvailableChain.FGSA.Run.fgsa_cleanPrefixTruncationClaim',
@@ -2541,6 +2542,9 @@
             'AvailableChain.FGSA.Run.healing_reset_emittedName',
         ),
         'AvailableChainFGSAProofs.Proofs.Assembly.Root': (
+            'AvailableChain.FGSA.Run.assembly_weakContinuationGrowth',
+            'AvailableChain.FGSA.Run.assembly_weakContinuationClaims',
+            'AvailableChain.FGSA.Run.fgsa_outageContinuationClaim',
             'AvailableChain.FGSA.Run.fgsaClaims',
             'AvailableChain.FGSA.Run.fgsaClaims_of_hTime',
             'AvailableChain.FGSA.Run.fgsaClaims_of_open',
