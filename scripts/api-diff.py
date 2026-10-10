@@ -17,8 +17,13 @@ def git(*args):
 
 def combine(graphs):
     result = dict(format_version=2, entries={}, nodes={}, node_order=[])
+    scope = deep.checkpoint_scope(graphs[0]) if graphs else None
+    if scope is not None:
+        result['checkpoint'] = scope
     for data in graphs:
         deep.validate_graph(data)
+        if deep.checkpoint_scope(data) != scope:
+            raise ValueError('INCONSISTENT SNAPSHOT CHECKPOINT SCOPE')
         result['node_order'] += [n for n in data['node_order']
                                  if n not in result['node_order']]
         for section in ('entries', 'nodes'):

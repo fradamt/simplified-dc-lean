@@ -77,7 +77,21 @@ def root_digest(data, name):
     return sha(pack('fgsa-deep-entry-v1', parts).encode())
 
 
+def checkpoint_scope(data):
+    if 'checkpoint' not in data:
+        return None
+    scope = data['checkpoint']
+    if (not isinstance(scope, dict) or set(scope) != {'name', 'modules'} or
+            scope['name'] != 'g-s1' or not isinstance(scope['modules'], list) or
+            not scope['modules'] or not all(isinstance(m, str) and
+                re.fullmatch(r"[^\W\d][\w'.?!]*", m) for m in scope['modules']) or
+            len(scope['modules']) != len(set(scope['modules']))):
+        raise ValueError('INVALID CHECKPOINT SCOPE')
+    return scope
+
+
 def validate_graph(data):
+    checkpoint_scope(data)
     if (type(data['format_version']) is not int or data['format_version'] != 2 or
             not isinstance(data['entries'], dict) or
             not data['entries'] or not isinstance(data['nodes'], dict) or not data['nodes']):

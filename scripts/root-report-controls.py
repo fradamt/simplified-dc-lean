@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Source-only controls for phase-aware root validation and graph reports."""
 import importlib.util
+from contextlib import redirect_stdout
+from copy import deepcopy
+import io
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
+from unittest.mock import patch
 
 
 def load(name):
@@ -33,7 +38,7 @@ def scoped_report_controls(tmp):
     scoped = graph({'A': ['B'], 'B': [], 'C': []})
     scoped['checkpoint'] = dict(name='g-s1', modules=['Control'])
     baseline, snapshot, manifest, roots, output = [tmp / n for n in
-        ('scoped-base.json', 'scoped-now.json', 'scoped.md', 'scoped-roots.json', 'scoped-out.json')]
+        ('scoped-base.json', 'scoped-now.json', 'scoped.md', 'scoped-roots.json', 'out.json')]
     for path in (baseline, snapshot):
         path.write_text(deep.render(scoped))
     manifest.write_text('### `Control`\n' + ''.join(
@@ -60,11 +65,79 @@ def scoped_report_controls(tmp):
     assert not failures, failures
 
 
+def committed_scope_controls(tmp):
+    diff = load('api-diff')
+    reference = graph({'A': ['D'], 'D': []})
+    for section in ('nodes', 'entries'):
+        reference[section]['D']['module'] = 'Deferred'
+    scoped = deepcopy(reference)
+    del scoped['entries']['D']
+    scoped['checkpoint'] = dict(name='g-s1', modules=['Control'])
+    deferred = graph({'A': []})
+    deferred['checkpoint'] = deepcopy(scoped['checkpoint'])
+    other = deepcopy(scoped)
+    other['checkpoint']['modules'].append('Deferred')
+    unscoped = deepcopy(scoped)
+    del unscoped['checkpoint']
+    cases = [('valid G-S1 deferral', [deferred], 'g-s1', 'pending', None),
+             ('G-S1 graph at G-S2', [scoped], 'g-s2', 'error', 'final checkpoint import scope'),
+             ('G-S1 graph at G-S3', [scoped], 'g-s3', 'error', 'final checkpoint import scope'),
+             ('different scope modules', [scoped, other], 'g-s1', None,
+              'INCONSISTENT SNAPSHOT CHECKPOINT SCOPE'),
+             ('mixed scoped and full graphs', [scoped, unscoped], 'g-s1', None,
+              'INCONSISTENT SNAPSHOT CHECKPOINT SCOPE')]
+    for label, scope in [('missing modules', dict(name='g-s1')),
+                         ('wrong checkpoint', dict(name='g-s2', modules=['Control'])),
+                         ('duplicate modules', dict(name='g-s1', modules=['Control', 'Control'])),
+                         ('invalid module list', dict(name='g-s1', modules='Control')),
+                         ('empty module list', dict(name='g-s1', modules=[])),
+                         ('invalid module identity', dict(name='g-s1', modules=[None]))]:
+        bad = deepcopy(scoped)
+        bad['checkpoint'] = scope
+        cases.append((label, [bad], 'g-s1', None, 'INVALID CHECKPOINT SCOPE'))
+    roots, output = tmp / 'committed-roots.json', tmp / 'committed-report.json'
+    roots.write_text(json.dumps([dict(name='D', status='existing', module='Deferred')]))
+    failures = []
+    for label, targets, checkpoint, state, reason in cases:
+        paths = ['fixture-' + str(i) + '.json' for i in range(len(targets))]
+        inputs = {commit + ':' + path: deep.render(data).encode()
+                  for commit, graphs in [('base', [reference] * len(targets)), ('target', targets)]
+                  for path, data in zip(paths, graphs)}
+        def git_read(command, **kwargs):
+            assert command[0] == 'git', command
+            if command[1] == 'show':
+                return inputs[command[2]]
+            assert command[1] == 'rev-parse', command
+            return command[2].split('^')[0] + '\n'
+        argv = ['api-diff', '--base', 'base', '--target', 'target', '--snapshots', *paths,
+                '--roots', str(roots), '--checkpoint', checkpoint, '--output', str(output)]
+        error = None
+        with patch.object(sys, 'argv', argv), patch.object(
+                diff.subprocess, 'check_output', side_effect=git_read), \
+                redirect_stdout(io.StringIO()):
+            try:
+                diff.main()
+            except ValueError as exc:
+                error = str(exc)
+        passed = (reason in (error or '')) if reason else error is None
+        if state is not None:
+            report = deep.strict_json(output)
+            passed = passed and len(report['unresolved']) == 1 and (
+                report['unresolved'][0]['state'] == state)
+            assert [r['sha256'] for r in report['source']['inputs']] == [
+                deep.sha(raw) for raw in inputs.values()]
+        print('CONTROL api-diff.main ' + label + ': ' + ('PASS' if passed else 'FAIL'))
+        if not passed:
+            failures.append((label, error))
+    assert not failures, failures
+
+
 def main():
     base = graph({'A': ['B'], 'B': [], 'C': []})
     with tempfile.TemporaryDirectory(prefix='root-report-controls-') as scratch:
         tmp = Path(scratch)
         scoped_report_controls(tmp)
+        committed_scope_controls(tmp)
         baseline, snapshot, manifest, roots, report = [tmp / n for n in
             ('base.json', 'now.json', 'manifest.md', 'roots.json', 'report.json')]
         for path in (baseline, snapshot):
