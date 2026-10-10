@@ -349,3 +349,6 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
 #print axioms AvailableChain.FGSA.Run.outage_protected_initial_lift
 #print axioms AvailableChain.FGSA.Run.outage_empty_covered_certificate
 #print axioms AvailableChain.FGSA.Run.outage_protected_scoped
+
+#print axioms AvailableChain.FGSA.Run.outage_continuation_public_reads
+#print axioms AvailableChain.FGSA.Run.outage_continuation_public_heads_and_finality

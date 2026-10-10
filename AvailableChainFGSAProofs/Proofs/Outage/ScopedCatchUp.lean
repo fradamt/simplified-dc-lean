@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
 
 public section
 
@@ -280,6 +281,144 @@ theorem outage_caught_up_public_read_from_seed [Fintype V]
     Bool.or_eq_true_iff.mpr (Or.symm (Bool.or_eq_true_iff.mp h))
   exact ⟨symm _ hS, hStable.symm ▸ symm _ hS, hConfirmed.symm ▸ symm _ hS,
     symm _ (current.2.2.2.1 x hReader.1.1)⟩
+
+/-- Join the finite early reads, covered suffix and actual W gate.
+The W seed is the exact remaining P-Ou obligation, not a supplied public premise. -/
+theorem outage_continuation_public_reads [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    (hf : FGFoundation p c E rho) (origin : RQCOrigin p c E rho) (htsrc : TSrc p c E rho)
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+    (hHist : CleanHist p c E rho (timeIdx rho b₀))
+    (hOutput : ∀ j y s, j < timeIdx rho b₀ → enabledGateAt p c E rho j y s →
+      ∃ C, gateResultAt p c E rho j = some (some C) ∧
+        Block.Preceq C (S_at p c E rho (j + 1) y))
+    (hWSeed : ∀ x t s j, outageConfirmedReader p c E rho fast b₀ b₁ x t →
+      x ∉ coveredNodes p E rho fast b₀ → t ≤ rho.horizon →
+      restoredLabel p b₁ + p.k ≤ s → j < timeIdx rho t →
+      enabledGateAt p c E rho j x s →
+      BatchReceiptAt p c E rho x s (SA.earlyTime p.toParams s) →
+      AwakeClosed E x (SA.gateTime p.toParams s) t →
+      RestartFreeTime rho x (SA.gateTime p.toParams s) t →
+      V2.D.restartFree rho x (V2.D.Run.actionCut rho (SA.voteTime p.toParams s))
+        (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) →
+      ¬ Block.Preceq B (F_at p c E rho j x) →
+      Block.Compatible B (S_at p c E rho (j + 1) x)) :
+    ∀ x t, b₀ ≤ t → t ≤ rho.horizon →
+      outageConfirmedReader p c E rho fast b₀ b₁ x t →
+      Block.Compatible B (S_at p c E rho (timeIdx rho t) x) ∧
+      Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).stable x t) ∧
+      Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).confirmed x t) ∧
+      (x ∈ coveredNodes p E rho fast b₀ →
+        Block.Preceq B (S_at p c E rho (timeIdx rho t) x) ∧
+        Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x t) ∧
+        Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).confirmed x t)) := by
+  classical
+  intro x t hb hhor hReader
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  by_cases hEarly : t < SA.earlyTime p.toParams (restoredLabel p b₁)
+  · exact outage_early_public_read h hf htsrc hnamed hsrc hState hprov hne hc hβ
+      hHist hOutput hb hhor hEarly hReader
+  have ht := le_of_not_gt hEarly
+  by_cases hxG : x ∈ coveredNodes p E rho fast b₀
+  · obtain ⟨hStable, hConfirmed, _⟩ := outage_covered_public_read_after_seed h hf origin
+      htsrc hnamed hsrc hState hprov hne hc hβ hxG ht hhor
+    have hS : Block.Preceq B (S_at p c E rho (timeIdx rho t) x) := by
+      rwa [arming_stable_read hs] at hStable
+    exact ⟨block_compatible_of_common hS (block_preceq_refl _),
+      block_compatible_of_common hStable (block_preceq_refl _),
+      block_compatible_of_common hConfirmed (block_preceq_refl _),
+      fun _ => ⟨hS, hStable, hConfirmed⟩⟩
+  have hRead : Block.Compatible B (S_at p c E rho (timeIdx rho t) x) ∧
+      Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).stable x t) ∧
+      Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).confirmed x t) := by
+    by_cases hBF : Block.Preceq B (F_at p c E rho (timeIdx rho t) x)
+    · obtain ⟨hS, hStable, hConfirmed, _⟩ := outage_finalized_continuation_read hs hBF
+      exact ⟨block_compatible_of_common hS (block_preceq_refl _),
+        block_compatible_of_common hStable (block_preceq_refl _),
+        block_compatible_of_common hConfirmed (block_preceq_refl _)⟩
+    · obtain ⟨s, j, hLabel, hj, hG, hBatch, hAw, hRF, hEpoch⟩ :=
+        outage_caught_up_gate_scope h hReader hxG hhor
+      have hLow : ¬ Block.Preceq B (F_at p c E rho j x) := by
+        intro hBj
+        exact hBF (block_preceq_trans hBj (eraseFG_preceq
+          (hf.mono j (timeIdx rho t) x hReader.1.1 hj.le).1))
+      have hSeed := hWSeed x t s j hReader hxG hhor hLabel hj hG hBatch hAw hRF hEpoch hLow
+      obtain ⟨hS, hStable, hConfirmed, _⟩ := outage_caught_up_public_read_from_seed h hf origin
+        htsrc hnamed hsrc hState hprov hne hc hβ hReader hhor hLabel hj hG hSeed
+      exact ⟨hS, hStable, hConfirmed⟩
+  exact ⟨hRead.1, hRead.2.1, hRead.2.2, fun hx => (hxG hx).elim⟩
+
+/-- The complete scoped HEAD and F consumers have no continuation callback.
+Early labels use covered duty history; later labels use ScopedBridge's global producer. -/
+theorem outage_continuation_public_heads_and_finality [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    (hf : FGFoundation p c E rho) (origin : RQCOrigin p c E rho) (htsrc : TSrc p c E rho)
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+ :
+    (∀ y t o H, b₀ ≤ t → t ≤ rho.horizon →
+      outageHeadReader p E rho fast b₀ b₁ y t →
+      V2.D.Run.emits E rho y o t → HeadTargetAtEmission p c E rho y o t H →
+      Block.Compatible B H) ∧
+    (∀ y t, y ∈ rho.honest → b₀ ≤ t → t ≤ rho.horizon →
+      Block.Compatible B (F_at p c E rho (timeIdx rho t) y)) := by
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  have symm (A : Block) (h : Block.Compatible A B) : Block.Compatible B A :=
+    Bool.or_eq_true_iff.mpr (Or.symm (Bool.or_eq_true_iff.mp h))
+  constructor
+  · intro y t o H hb hhor hReader hem hTarget
+    have hKeep := hTarget
+    obtain ⟨i, s, q, hi, hm, ho, _⟩ := hTarget
+    have hm' := hm
+    rw [ho, (rho.step_tick_eq E hi).2] at hm'
+    have hFields := (fgsa_emits_head E rho _ y t s q H.root).mp hm'
+    have ht : t = SA.voteTime p.toParams s := hFields.2.1.symm
+    have hy : y = rho.seatOf (.base (.head s)) q := hFields.2.2.1.symm
+    subst t; subst y
+    have hK : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, H.root⟩) (SA.voteTime p.toParams s) H := by
+      rwa [ho] at hKeep
+    by_cases hsr : s ≤ restoredLabel p b₁
+    · have hBH := outage_early_scoped_head h hf htsrc hnamed hsrc hState hprov hne hc hβ
+        hsr hb hhor hReader hK
+      exact block_compatible_of_common hBH (block_preceq_refl _)
+    · exact symm H (outage_continuation_scoped_heads h hf origin htsrc hnamed hsrc
+        hState hprov hne hc hβ s q H (Nat.lt_of_not_ge hsr) hReader hK)
+  · intro y t hy hb hhor
+    by_cases hEarly : t < SA.earlyTime p.toParams (restoredLabel p b₁)
+    · exact outage_early_finalized_read h hf htsrc hnamed hsrc hState hprov hne hc hβ
+        hy hb hhor hEarly
+    have ht := le_of_not_gt hEarly
+    have hI : afterTicksIdx rho (SA.earlyTime p.toParams (restoredLabel p b₁)) ≤
+        timeIdx rho t := (preIdx_le_afterTicksIdx E rho hs _).2.trans
+          (arming_timeIdx_mono rho ht)
+    exact symm _ ((outage_continuation_event_state h hf origin htsrc hnamed hsrc hState
+      hprov hne hc hβ (ht.trans hhor) hI (List.length_filter_le _ _)).2.2.2.1 y hy)
 
 end AvailableChain.FGSA.Run
 end
