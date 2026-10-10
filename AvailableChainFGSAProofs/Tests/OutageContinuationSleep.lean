@@ -308,16 +308,20 @@ private theorem ticks_certificate : (List.finRange 4).all (fun v =>
         (show List FixtureEvent from rho.events)) else true)) = true := by
   decide +kernel
 
-private theorem restart_certificate : rho.events.all (fun e =>
-    match e with | .restart _ t => decide (t = 21) | _ => true) = true := by
+private def restart_check : Bool := rho.events.all (fun e =>
+    match e with | .restart _ t => decide (t = 21) | _ => true)
+
+private theorem restart_certificate : restart_check = true := by
   decide +kernel
 
-private theorem delivery_certificate : (List.range rho.events.length).all (fun i =>
+private def delivery_check : Bool := (List.range rho.events.length).all (fun i =>
     match rho.events[i]? with
     | some (.deliver v o _) => (fgsa p unitCodec).wellFormed o &&
         (fgsa p unitCodec).depsPresent (V2.D.Run.stateBefore E rho i v) o &&
         !(fgsa p unitCodec).processed (V2.D.Run.stateBefore E rho i v) o
-    | _ => true) = true := by
+    | _ => true)
+
+private theorem delivery_certificate : delivery_check = true := by
   decide +kernel
 
 private theorem origin_certificate : (List.range rho.events.length).all (fun i =>
@@ -329,8 +333,10 @@ private theorem origin_certificate : (List.range rho.events.length).all (fun i =
     | _ => true) = true := by
   decide +kernel
 
-private theorem carriage_certificate : rho.events.all (fun e =>
-    match e with | .deliver _ o _ => decide (carriedObjects o = []) | _ => true) = true := by
+private def carriage_check : Bool := rho.events.all (fun e =>
+    match e with | .deliver _ o _ => decide (carriedObjects o = []) | _ => true)
+
+private theorem carriage_certificate : carriage_check = true := by
   decide +kernel
 
 private theorem wake_certificate : (List.finRange 4).all (fun v =>
@@ -429,12 +435,14 @@ theorem outageV_sleep_restarts : V2.D.RestartsAtWakes E rho := by
 
 def receiptBodies : List (NamedProposal 4) := [.genesis, B, C]
 
-private theorem delivered_body_certificate : rho.events.all (fun e =>
+private def delivered_body_check : Bool := rho.events.all (fun e =>
     match e with
     | .deliver _ o _ => match o.payload with
       | .proposal N => decide (N ∈ receiptBodies)
       | _ => true
-    | _ => true) = true := by decide +kernel
+    | _ => true)
+
+private theorem delivered_body_certificate : delivered_body_check = true := by decide +kernel
 
 private theorem held_body_certificate : (List.range (rho.events.length + 1)).all (fun i =>
     (List.finRange 4).all (fun v =>

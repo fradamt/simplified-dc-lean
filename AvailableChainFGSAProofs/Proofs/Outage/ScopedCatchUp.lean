@@ -189,8 +189,8 @@ theorem outage_gateStep_conflicting_stable_iff (st : State p.n) (s : Slot) (B : 
     have hC := hResults C hRaw
     have hVeto := outage_conflicting_stable_no_lease_veto (actView st) hBad hBelow hRows hC
     have hQ : Q.base.stableRecord = GridCO.advance st.base.stableRecord C := by
-      have he := @GridCO.gateFrom_eq_writeKeys GridCO.slowLeasePolicy .root
-        p.toParams.engine p.n (eraseFG st.fg.F) (actView st) s C hRaw hVeto
+      have he := @gateFrom_eq_writeKeys_fgsa p.toParams p.n
+        (eraseFG st.fg.F) (actView st) s C hRaw hVeto
       change SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s = _ at he
       change (SA.Root.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).stableRecord = _
       rw [he]

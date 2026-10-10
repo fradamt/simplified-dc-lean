@@ -16,17 +16,6 @@ variable {ΔF : Time}
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
-private theorem zero_export_no_gate (h : HealthyPrefix₂ p c E rho 0 ΔF)
-    {j : Nat} {v : V} {s : Slot} (hj : j < timeIdx rho 0)
-    (hg : IsGateTick p c rho j v s) : False := by
-  have ht := (V2.D.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed
-    0 hg).mp hj
-  change SA.gateTime p.toParams s ≤ 0 at ht
-  have hn : (0 : Time) ≤ s := Int.natCast_nonneg s
-  have hd := p.deltaPos
-  change 4 * p.Δ * (s : Time) + 6 * p.Δ ≤ 0 at ht
-  nlinarith
-
 /-- P10/P11: at the zero cut there is no gate origin in any epoch.
 The base supplies the exact positive wake-restart law; no NoRestart is used. -/
 theorem cleanHistoryAt_zero (h : HealthyPrefix₂ p c E rho 0 ΔF) :
