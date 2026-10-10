@@ -117,7 +117,7 @@ theorem fgsaClaims_of_hTime (hH : HTimeClaim p) : FGSAClaims p :=
 
 /-- Blueprint 21 H.18–H.22:3049–3176 and 22 §1; plan S5 NV7 L2.
 WC plan §8 Job 4 and r2.1; DC: SAME source-witness order for weak continuation.
-The closed HTimeClaim also supplies the ten existing liveness fields. -/
+The named HTimeClaim supplies the ten existing liveness fields after H2 induction. -/
 theorem fgsaClaims : FGSAClaims p := fgsaClaims_of_hTime p (healing_hTimeClaim p)
 
 /-- The corruption-growth companion follows from one source witness and

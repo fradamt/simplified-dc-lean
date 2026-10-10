@@ -7527,3 +7527,10 @@ The saved writer and source-build failures are the validation limit for Round 15
   HealingSleepAxioms registered in P-H2.txt. 120/120 P-H2 GREEN; DCK P-H1 and P-H2 PASS;
   695 non-Assembly modules build. Remaining before G-S2: P-As Assembly/NonVacuity ports
   (5 test roots, full build, full manifest). Review rev-ph2k-astra MERGE-AS-PREPARED.
+
+- Lead (P-As rounds 8-9 merge, 2026-10-10): ASSEMBLY CLOSED, 68/68 GREEN; Root, HTimeClaim and
+  FGSAClaims use only named producers (rev-pas9-astra MERGE-AS-PREPARED; rev-pas8 item 1 fixed).
+  All FG-SA libraries build. Known limit: PC-SA is not ported to the sleep generic interface
+  (AvailableChainPCSARun/Model/Protocol.lean:449, restore now takes the wake time). A least-change
+  port is impossible (two PC-SA theorems lack NoRestart; see the PC-SA blocker report). User
+  2026-10-10: land the sleep migration with PC-SA unbuilt; PC-SA needs its own port later.

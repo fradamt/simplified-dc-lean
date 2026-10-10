@@ -1514,18 +1514,10 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 #print axioms AvailableChain.FGSA.Run.outage_tick_after_cut
 #print axioms AvailableChain.FGSA.Run.outage_source_history_delivery
 #print axioms AvailableChain.FGSA.Run.outage_protected_read
-#print axioms AvailableChain.FGSA.Run.outage_finalized_read
 #print axioms AvailableChain.FGSA.Run.outage_compat_body
 #print axioms AvailableChain.FGSA.Run.fast_p1_body
 #print axioms AvailableChain.FGSA.Run.slow_p1_body
-#print axioms AvailableChain.FGSA.Run.outage_arming_sources
 #print axioms AvailableChain.FGSA.Run.outage_arming_duties
-#print axioms AvailableChain.FGSA.Run.outage_event_induction
-#print axioms AvailableChain.FGSA.Run.outage_arming_local
-#print axioms AvailableChain.FGSA.Run.outage_armed_induction
-#print axioms AvailableChain.FGSA.Run.outage_source_history
-#print axioms AvailableChain.FGSA.Run.lease_or_F_persists
-#print axioms AvailableChain.FGSA.Run.duties_and_outputs
 -- S5 M5: bounded stopped phase, repair gate, height one and H-GATE opening.
 #print axioms AvailableChain.FGSA.Run.boot_height_one
 #print axioms AvailableChain.FGSA.Run.boot_phase_one
@@ -2673,3 +2665,16 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 #print axioms AvailableChain.FGSA.Run.assembly_hTimeClaim_of_reset_input
 
 #print axioms AvailableChain.FGSA.Run.assembly_healingInputClaim_of_input
+
+-- Round 8: finite healing result and suffix-reader adapters.
+#print axioms AvailableChain.FGSA.Run.assembly_healing_suffix_reader
+#print axioms AvailableChain.FGSA.Run.assembly_healingInput_of_inv
+#print axioms AvailableChain.FGSA.Run.assembly_resetArrivalFull_at
+#print axioms AvailableChain.FGSA.Run.assembly_healingInput_at
+#print axioms AvailableChain.FGSA.Run.assembly_hTime_at
+
+-- Round 9: named recovery producers with all Foundation inputs supplied.
+#print axioms AvailableChain.FGSA.Run.assembly_healing_inv_of_set
+#print axioms AvailableChain.FGSA.Run.assembly_healing_extension_of_set
+#print axioms AvailableChain.FGSA.Run.assembly_healing_localInput_of_set
+#print axioms AvailableChain.FGSA.Run.assembly_healing_fullInput_of_set

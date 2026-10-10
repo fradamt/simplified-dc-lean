@@ -13,12 +13,12 @@ slot 0, sent at time 1, therefore arrive at time 7, after their Δ bound (`held_
 From GST on, every release goes to every honest node at its own time.
 
 The run inhabits `ExecutionValid` (`nvExecution`), partial synchrony (`run_sync`),
-`NamedRootCollisionFree` (`nvRoots`), `Base₂` (`base`) and `Recovery₂` with G = 4
+`NamedRootCollisionFree` (`nvRoots`), `Base₂` (`base`) and `RecoverySleep₂` with G = 4
 (`nvRecovery`). It inhabits the premise packages `HealingTimePrem`, `FinalitySet_W`,
 `FirstFinalityPrem_W`, `FinalityLivenessGSTPrem_W` and `ProposalFinalGSTPrem_W`. The aggregate
 `fgsaClaims` then gives availability with real inclusion of the slot-70 proposal
-(`nvAvailableService`), FF5 at time 254 (`nvFF5`), FirstFinality (`nvFirstFinality`) and the
-finality of the slot-64 proposal (`nvProposalFinal`).
+(`nvAvailableService`), FF5 at time 261 (`nvFF5`), FirstFinality (`nvFirstFinality`) and the
+finality of the slot-66 proposal (`nvProposalFinal`).
 
 The generator uses the real duty engine and the real FG-SA handlers, as the W1 generator in
 AvailableChainFGSAInhabit/WeakContinuationWitness.lean does. TEST-SCOPE forbids an import of
@@ -131,12 +131,12 @@ def buildPrefix : Nat → GenState
         prev.events ++ (timeBatch n prev.world prev.held).2,
         hold n prev.held (tickBatch n prev.world).2⟩
 
-/-- The horizon: GST + B_HF + W_W = 7 + 247 + 33 = 287 ≤ 290. -/
-def horizon : Time := 290
+/-- The horizon: Jst + B_HF + W_W = 14 + 247 + 33 = 294 ≤ 300. -/
+def horizon : Time := 300
 
-/-- The adversarial run: the times 0 to 290. -/
+/-- The adversarial run: the times 0 to 300. -/
 def run : V2.D.Run Validator (fgsa params unitCodec) :=
-  runData horizon (buildPrefix 291).events
+  runData horizon (buildPrefix 301).events
 
 theorem bp_world (n : Nat) :
     (buildPrefix (n + 1)).world = (timeBatch n (buildPrefix n).world (buildPrefix n).held).1 :=
@@ -150,9 +150,9 @@ theorem bp_held (n : Nat) :
     (buildPrefix (n + 1)).held =
       hold n (buildPrefix n).held (tickBatch n (buildPrefix n).world).2 := rfl
 
-theorem run_events : run.events = (buildPrefix 291).events := rfl
+theorem run_events : run.events = (buildPrefix 301).events := rfl
 
-theorem run_horizon : run.horizon = 290 := rfl
+theorem run_horizon : run.horizon = 300 := rfl
 
 theorem run_honest : run.honest = honestNodes := rfl
 
@@ -642,7 +642,7 @@ attribute [irreducible] GenFresh
 theorem run_fresh (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (he : run.events[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).processed (V2.D.Run.stateBefore env run i v) o = false :=
-  adv_genFresh_get V2.D.World.init _ (adv_prefix_replay_fresh 291).2 i v o t he
+  adv_genFresh_get V2.D.World.init _ (adv_prefix_replay_fresh 301).2 i v o t he
 
 
 
@@ -885,7 +885,7 @@ theorem prefix_schedule (steps : Nat) :
     change 0 ≤ t at ht
     change t = (t.toNat : Int) * 1
     rw [Int.toNat_of_nonneg ht, mul_one]⟩
-  tick_total v hv t _ ht hh := by
+  tick_total v hv t _ ht hh _ := by
     change t ≤ (steps : Int) at hh
     change (0 : Int) ≤ t at ht
     have hn : t.toNat < steps + 1 := by
@@ -895,11 +895,11 @@ theorem prefix_schedule (steps : Nat) :
     simpa only [Int.toNat_of_nonneg ht] using
       adv_prefix_tick (steps + 1) t.toNat hn v ((nodes_honest v).2 hv)
 
-theorem run_schedule : V2.D.ScheduleWellFormed env run := prefix_schedule 290
+theorem run_schedule : V2.D.ScheduleWellFormed env run := prefix_schedule 300
 
 theorem noRestart : V2.D.NoRestart run := by
   intro i v t he
-  exact adv_prefix_no_restart 291 v t (List.mem_of_getElem? he)
+  exact adv_prefix_no_restart 301 v t (List.mem_of_getElem? he)
 
 /-! ### Signatures -/
 
@@ -921,13 +921,19 @@ theorem adv_genOrigin_unforgeable (h : Time) (es : List Event)
 theorem run_delivery_origin (v : Validator) (o : Obj params) (t : Time)
     (hd : V2.Event.deliver v o t ∈ run.events) :
     ∃ u s, s ≤ t ∧ u ∈ nodes ∧ V2.D.Run.emits env run u o s := by
-  obtain ⟨u, s, hs, hu⟩ := (adv_prefix_origin 291).1 v o t hd
+  obtain ⟨u, s, hs, hu⟩ := (adv_prefix_origin 301).1 v o t hd
   refine ⟨u, s, hs, ?_, adv_genEmits_runData _ _ u o s hu⟩
   obtain ⟨pre, post, he, _⟩ := hu
-  have hm : V2.Event.tick u s ∈ (buildPrefix 291).events := by rw [he]; simp
-  exact prefix_nodes 291 _ hm
+  have hm : V2.Event.tick u s ∈ (buildPrefix 301).events := by rw [he]; simp
+  exact prefix_nodes 301 _ hm
 
 /-! ### Store invariants (copied from W1) -/
+
+private theorem joined_body {α : Type} {b : Prop} [Decidable b]
+    {o : Option α} {m : α} (h : (if b then o else none) = some m) : o = some m := by
+  split at h
+  · exact h
+  · cases h
 
 /-- A row that is already in the pool does not change the store. -/
 theorem adv_admitRow_duplicate (st : State params.n) (i : Fin params.n)
@@ -949,7 +955,9 @@ theorem adv_clock_fields (st : State params.n) (t : Time) :
         (gateStep params st s).rowPool = st.rowPool := by
     unfold gateStep
     rw [(hn _).1, (hn _).2]
-    split <;> exact ⟨rfl, rfl⟩
+    split
+    · exact ⟨rfl, rfl⟩
+    · split <;> exact ⟨rfl, rfl⟩
   have hc : (clockPre params st t).proposals = st.proposals ∧
       (clockPre params st t).rowPool = st.rowPool := by
     unfold clockPre
@@ -1126,6 +1134,7 @@ theorem adv_gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
   obtain ⟨l, i, m, rfl, _, ha⟩ := adv_gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
+    have ha := joined_body ha
     have hm : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
     subst m
     cases he
@@ -1136,6 +1145,7 @@ theorem adv_gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
     subst m
     cases he
   | propAction s =>
+    have ha := joined_body ha
     have hv : v = 0 := (Option.some.inj hh).symm
     change (propose params (FGSA.clock params st.st t) s).map
         (withApp params 0) = some m at ha
@@ -1300,7 +1310,9 @@ theorem adv_clock_votes (st : State params.n) (t : Time) :
     rw [hn]
     split
     · rfl
-    · exact hg _ _ _
+    · split
+      · rfl
+      · exact hg _ _ _
   have hc : (clockPre params st t).base.votes = st.base.votes := by
     unfold clockPre
     dsimp only
@@ -1518,6 +1530,7 @@ theorem adv_gen_tick_children_known (P : Obj params → Prop) (st : Node params)
   obtain ⟨l, i, m, rfl, _, ha⟩ := adv_gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
+    have ha := joined_body ha
     have hm : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
     subst m
     exact fun _ h => h.elim
@@ -1528,6 +1541,7 @@ theorem adv_gen_tick_children_known (P : Obj params → Prop) (st : Node params)
     subst m
     exact fun _ h => h.elim
   | propAction s =>
+    have ha := joined_body ha
     change (propose params (FGSA.clock params st.st t) s).map
         (withApp params 0) = some m at ha
     unfold propose at ha
@@ -1700,9 +1714,9 @@ theorem adv_genCarried_runData (h : Time) (es : List Event) (hc : GenCarried es)
 
 theorem run_signatures : V2.D.UnforgeableSignatures env run where
   unforgeable v o t hp u _ hh :=
-    adv_genOrigin_unforgeable horizon _ (adv_prefix_origin 291).1 v o t hp u hh
+    adv_genOrigin_unforgeable horizon _ (adv_prefix_origin 301).1 v o t hp u hh
   carried v o t hp o' hc u _ hh :=
-    adv_genCarried_runData horizon _ (adv_gen_prefix_carried 291).2 v o t hp o' hc u hh
+    adv_genCarried_runData horizon _ (adv_gen_prefix_carried 301).2 v o t hp o' hc u hh
 
 
 
@@ -1838,6 +1852,7 @@ theorem adv_gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Ti
   obtain ⟨l, i, m, rfl, _, ha⟩ := adv_gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
+      have ha := joined_body ha
       have he : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
       subst m
       rfl
@@ -1848,6 +1863,7 @@ theorem adv_gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Ti
       subst m
       exact adv_gen_attest_valid _ _ _ _ hb
   | propAction s =>
+      have ha := joined_body ha
       change (propose params (FGSA.clock params st.st t) s).map
         (withApp params 0) = some m at ha
       unfold propose at ha
@@ -1872,6 +1888,7 @@ theorem adv_gen_past_row_valid (es : List Event) (t : Time) (a : RowWire params.
 
 /-- A list fold preserves knowledge when each delivery and its children have it. -/
 theorem adv_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es)
     (hw : ∀ v, GenKnown P (w v).st)
     (he : ∀ v o t, V2.Event.deliver v o t ∈ es →
       P o ∧ ∀ o', carriesS params o o' → P o') :
@@ -1879,17 +1896,10 @@ theorem adv_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
   induction es generalizing w with
   | nil => exact hw
   | cons e es ih =>
-    apply ih
+    apply ih (hnr := fun v t h => hnr v t (List.mem_cons_of_mem _ h))
     · intro u
       cases e with
-      | restart v t =>
-        by_cases hu : u = v
-        · subst u
-          simp only [V2.D.World.step, Function.update_self]
-          exact ⟨by simp [fgsa, initialAt, initial],
-            by simp [GenStoredRows, fgsa, initialAt, initial],
-            by simp [fgsa, initialAt, initial, GridCO.initial]⟩
-        · simpa only [V2.D.World.step, Function.update_of_ne hu] using hw u
+      | restart v t => exact (hnr v t (List.mem_cons_self ..)).elim
       | tick v t =>
         by_cases hu : u = v
         · subst u
@@ -1909,11 +1919,12 @@ theorem adv_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
 
 /-- Row validity at every event prefix, without delivery validity. -/
 theorem adv_rows_at_index (h : Time) (es : List Event)
-    (ho : GenOrigin V2.D.World.init es) (hc : GenCarried es) (i : Nat) (v : Validator) :
+    (ho : GenOrigin V2.D.World.init es) (hc : GenCarried es)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es) (i : Nat) (v : Validator) :
     EmissionRowsValid (V2.D.Run.stateBefore env (runData h es) i v).st := by
   let P := fun o => ∃ t, GenPast es t o
   have hk : GenKnown P (genFold V2.D.World.init (es.take i) v).st := by
-    apply adv_known_fold
+    apply adv_known_fold (hnr := fun u t h => hnr u t (List.mem_of_mem_take h))
     · intro u
       exact gen_known_init P u
     · intro u o t hm
@@ -1932,6 +1943,7 @@ theorem adv_rows_at_index (h : Time) (es : List Event)
 theorem adv_emit_wire (h : Time) (es : List Event)
     (hs : V2.D.ScheduleWellFormed env (runData h es))
     (horigin : GenOrigin V2.D.World.init es) (hcarried : GenCarried es)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es)
     (v : Validator) (o : Obj params) (t : Time)
     (hem : V2.D.Run.emits env (runData h es) v o t) :
     (fgsa params unitCodec).wellFormed o = true := by
@@ -1941,6 +1953,7 @@ theorem adv_emit_wire (h : Time) (es : List Event)
     (V2.D.Run.stateBefore env (runData h es) i v) v t o ho
   cases l with
   | headAction s =>
+    have ha := joined_body ha
     have he : .head (headVote params
         (FGSA.clock params (V2.D.Run.stateBefore env (runData h es) i v).st t) s).root = m :=
       Option.some.inj ha
@@ -1954,6 +1967,7 @@ theorem adv_emit_wire (h : Time) (es : List Event)
     subst m
     exact adv_gen_attest_valid _ _ _ _ hb
   | propAction s =>
+    have ha := joined_body ha
     have ht : SA.proposalTime params.toParams s = t :=
       ((fgsa params unitCodec).duties_spec (.propAction s) t).1 hl
     subst t
@@ -1966,7 +1980,7 @@ theorem adv_emit_wire (h : Time) (es : List Event)
       subst s
       change none = some m at hm
       cases hm
-    have hv := adv_rows_at_index h es horigin hcarried i v
+    have hv := adv_rows_at_index h es horigin hcarried hnr i v
     have hv' : EmissionRowsValid
         (FGSA.clock params (V2.D.Run.stateBefore env (runData h es) i v).st
           (SA.proposalTime params.toParams s)) := by
@@ -1978,9 +1992,10 @@ theorem adv_emit_wire (h : Time) (es : List Event)
 theorem run_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (hi : run.events[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).wellFormed o = true := by
-  obtain ⟨u, s, _, hu⟩ := (adv_prefix_origin 291).1 v o t (List.mem_of_getElem? hi)
-  exact adv_emit_wire 290 _ (prefix_schedule 290) (adv_prefix_origin 291).1
-    (adv_gen_prefix_carried 291).2 u o s (adv_genEmits_runData 290 _ u o s hu)
+  obtain ⟨u, s, _, hu⟩ := (adv_prefix_origin 301).1 v o t (List.mem_of_getElem? hi)
+  exact adv_emit_wire 300 _ (prefix_schedule 300) (adv_prefix_origin 301).1
+    (adv_gen_prefix_carried 301).2 (adv_prefix_no_restart 301) u o s
+    (adv_genEmits_runData 300 _ u o s hu)
 
 /-! ### Dependencies -/
 
@@ -2158,6 +2173,7 @@ theorem adv_tick_deps (st : Node params) (v : Validator) (t : Time)
   obtain ⟨l, j, m, rfl, _, ha⟩ := adv_gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
+    have ha := joined_body ha
     have he : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
     subst m
     rfl
@@ -2168,6 +2184,7 @@ theorem adv_tick_deps (st : Node params) (v : Validator) (t : Time)
     subst m
     rfl
   | propAction s =>
+    have ha := joined_body ha
     change (propose params (FGSA.clock params st.st t) s).map (withApp params 0) = some m at ha
     unfold propose at ha
     split at ha
@@ -2321,10 +2338,14 @@ theorem run_deps (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (hi : run.events[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).depsPresent (V2.D.Run.stateBefore env run i v) o = true := by
   change depsS params (genFold V2.D.World.init (run.events.take i) v).st o = true
-  exact adv_deps_get V2.D.World.init _ (prefix_deps 291) i v o t hi
+  exact adv_deps_get V2.D.World.init _ (prefix_deps 301) i v o t hi
 
 /-- I-EXEC: every execution-validity field holds for the adversarial run. -/
 theorem nvExecution : V2.D.ExecutionValid env run where
+  tick_awake := by intros; rfl
+  deliver_awake := by intros; rfl
+  restart_awake := by intros; rfl
+  wake_restart := by intro v hv t ht hh hw; cases hw.2
   toScheduleWellFormed := run_schedule
   wire := run_wire
   deps := run_deps
@@ -2429,6 +2450,7 @@ theorem nonproposal_accept (P : Obj params → Prop) (hu : GenSingleDutyUnique P
   have ht := ((fgsa params unitCodec).duties_spec l t).1 hl
   cases l with
   | headAction s =>
+    have ha := joined_body ha
     have he : .head (headVote params (FGSA.clock params nd.st t) s).root = m := Option.some.inj ha
     subst m
     change (4 : Int) * s + 1 = t at ht
@@ -2444,6 +2466,7 @@ theorem nonproposal_accept (P : Obj params → Prop) (hu : GenSingleDutyUnique P
     subst m
     exact row_accept st j body
   | propAction s =>
+    have ha := joined_body ha
     change (propose params (FGSA.clock params nd.st t) s).map (withApp params 0) = some m at ha
     unfold propose at ha
     split at ha
@@ -2611,6 +2634,7 @@ theorem proposal_singleton (t : Time) (w : World) (o : Obj params)
     obtain ⟨l, j, m, rfl, _, ha⟩ := adv_gen_tick_seat (w v) v t o hv
     cases l with
     | headAction s =>
+      have ha := joined_body ha
       have he : .head (headVote params (FGSA.clock params (w v).st t) s).root = m :=
         Option.some.inj ha
       subst m
@@ -2647,6 +2671,7 @@ theorem proposal_admit (nd : Node params) (v : Validator) (t : Time) (o : Obj pa
   obtain ⟨l, j, m, rfl, hl, ha⟩ := adv_gen_tick_seat nd v t o ho
   cases l with
   | headAction s =>
+    have ha := joined_body ha
     have he : .head (headVote params (FGSA.clock params nd.st t) s).root = m :=
       Option.some.inj ha
     subst m
@@ -2658,6 +2683,7 @@ theorem proposal_admit (nd : Node params) (v : Validator) (t : Time) (o : Obj pa
     subst m
     cases hp
   | propAction s =>
+    have ha := joined_body ha
     have ht : SA.proposalTime params.toParams s = t :=
       ((fgsa params unitCodec).duties_spec (.propAction s) t).1 hl
     change (propose params (FGSA.clock params nd.st t) s).map (withApp params 0) = some m at ha
@@ -2870,7 +2896,8 @@ theorem prefix_complete (n : Nat) (v : Validator) (hv : v ∈ nodes) (o : Obj pa
       rw [hr]; exact List.mem_singleton_self o
     obtain ⟨u, hu⟩ := batch_release_emits n o hmem
     have hw := adv_emit_wire n _ (prefix_schedule n) (adv_prefix_origin (n + 1)).1
-      (adv_gen_prefix_carried (n + 1)).2 u o n (adv_genEmits_runData n _ u o n hu)
+      (adv_gen_prefix_carried (n + 1)).2 (adv_prefix_no_restart (n + 1)) u o n
+      (adv_genEmits_runData n _ u o n hu)
     exact batch_proposal_complete n _ _ (prefix_uniform n) (prefix_reachable n) o hmem hoff
       hw b hp v hv
   · have hnp : ∀ a ∈ offers n (buildPrefix n).held (tickBatch n (buildPrefix n).world).2,
@@ -2964,24 +2991,17 @@ theorem clock_processed (st : State params.n) (t : Time) (o : Obj params) :
 
 /-- Knowledge can be tracked separately for each receiver. -/
 theorem known_fold_local (P : Validator → Obj params → Prop) (w : World)
-    (es : List Event) (hk : ∀ v, GenKnown (P v) (w v).st)
+    (es : List Event) (hnr : ∀ v t, V2.Event.restart v t ∉ es) (hk : ∀ v, GenKnown (P v) (w v).st)
     (he : ∀ v o t, V2.Event.deliver v o t ∈ es →
       P v o ∧ ∀ a, carriesS params o a → P v a) :
     ∀ v, GenKnown (P v) (genFold w es v).st := by
   induction es generalizing w with
   | nil => exact hk
   | cons e es ih =>
-    apply ih
+    apply ih (hnr := fun v t h => hnr v t (List.mem_cons_of_mem _ h))
     · intro u
       cases e with
-      | restart v t =>
-        by_cases hu : u = v
-        · subst u
-          simp only [V2.D.World.step, Function.update_self]
-          exact ⟨by simp [fgsa, initialAt, initial],
-            by simp [GenStoredRows, fgsa, initialAt, initial],
-            by simp [fgsa, initialAt, initial, GridCO.initial]⟩
-        · simpa only [V2.D.World.step, Function.update_of_ne hu] using hk u
+      | restart v t => exact (hnr v t (List.mem_cons_self ..)).elim
       | tick v t =>
         by_cases hu : u = v
         · subst u
@@ -3007,6 +3027,7 @@ theorem batch_known_receipt (n : Nat) (K : Obj params → Prop)
   rw [(adv_timeBatch_replay_fresh _ _ _).1]
   apply known_fold_local (fun u o => K o ∨ V2.Event.deliver u o n ∈
     (timeBatch n (buildPrefix n).world (buildPrefix n).held).2)
+    (hnr := adv_timeBatch_no_restart n _ _)
   · intro u
     exact adv_gen_known_mono _ _ _ (hK u) (fun _ h => Or.inl h)
   · intro u o t hm
@@ -3025,6 +3046,7 @@ theorem processed_known (K : Obj params → Prop) (st : State params.n) (hk : Ge
   obtain ⟨l, j, m, rfl, _, ha⟩ := adv_gen_tick_seat nd u t o ho
   cases l with
   | headAction s =>
+    have ha := joined_body ha
     have he : .head (headVote params (FGSA.clock params nd.st t) s).root = m :=
       Option.some.inj ha
     subst m
@@ -3036,6 +3058,7 @@ theorem processed_known (K : Obj params → Prop) (st : State params.n) (hk : Ge
     subst m
     exact hk.1 _ (of_decide_eq_true hp)
   | propAction s =>
+    have ha := joined_body ha
     change (propose params (FGSA.clock params nd.st t) s).map (withApp params 0) = some m at ha
     unfold propose at ha
     split at ha
@@ -3116,6 +3139,7 @@ theorem proposal_fresh_start (steps : Nat) (v : Validator) (hv : v ∈ nodes) (o
   obtain ⟨l, j, m, rfl, hl, ha⟩ := adv_gen_tick_seat ((buildPrefix steps).world 0) 0 steps o hu
   cases l with
   | headAction s =>
+    have ha := joined_body ha
     have he : .head (headVote params
         (FGSA.clock params ((buildPrefix steps).world 0).st steps) s).root = m :=
       Option.some.inj ha
@@ -3128,6 +3152,7 @@ theorem proposal_fresh_start (steps : Nat) (v : Validator) (hv : v ∈ nodes) (o
     subst m
     cases hp
   | propAction s =>
+    have ha := joined_body ha
     have ht : SA.proposalTime params.toParams s = steps :=
       ((fgsa params unitCodec).duties_spec (.propAction s) steps).1 hl
     have hs0 : 0 < s := by
@@ -3361,7 +3386,7 @@ theorem direct_handle (h : Time) (es : List Event)
   obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hm
   exact ⟨i, o, hi, Or.inl rfl⟩
 
-theorem run_mem_batch (n : Nat) (hn : n < 291) (e : Event)
+theorem run_mem_batch (n : Nat) (hn : n < 301) (e : Event)
     (he : e ∈ (timeBatch n (buildPrefix n).world (buildPrefix n).held).2) :
     e ∈ run.events := by
   rw [run_events, adv_prefix_blocks]
@@ -3373,7 +3398,7 @@ theorem run_broadcast (v : Validator) (o : Obj params) (t : Time)
     ∃ t', t ≤ t' ∧ t' < max t 7 + 1 ∧ V2.Event.deliver w o t' ∈ run.events := by
   obtain ⟨i, hi, ho⟩ := he
   rw [(V2.D.Run.step_tick_eq env _ hi).2] at ho
-  obtain ⟨n, hn, rfl, hm⟩ := locate_emission 291 i v t o hi ho
+  obtain ⟨n, hn, rfl, hm⟩ := locate_emission 301 i v t o hi ho
   rcases released_offered n o hm with ⟨_, hoff⟩ | ⟨⟨_, hn7⟩, hoff⟩
   · exact ⟨n, le_rfl, Int.lt_add_one_iff.mpr (le_max_left _ _),
       run_mem_batch n hn _ (batch_receipt n w hw o hoff)⟩
@@ -3383,10 +3408,10 @@ theorem run_broadcast (v : Validator) (o : Obj params) (t : Time)
 
 /-- Relay in the run: an envelope and its carried objects are already handled. -/
 theorem run_relay (v : Validator) (i : Nat) (a o : Obj params) (t : Time)
-    (hi : (buildPrefix 291).events[i]? = some (.deliver v a t))
+    (hi : (buildPrefix 301).events[i]? = some (.deliver v a t))
     (hh : a = o ∨ carriesS params a o) (w : Validator) (hw : w ∈ nodes)
     (hp : (fgsa params unitCodec).processed
-      (genFold V2.D.World.init ((buildPrefix 291).events.take (i + 1)) w) o = false) :
+      (genFold V2.D.World.init ((buildPrefix 301).events.take (i + 1)) w) o = false) :
     V2.Event.deliver w o t ∈ run.events := by
   have hm := List.mem_of_getElem? hi
   rw [adv_prefix_blocks] at hm
@@ -3405,28 +3430,77 @@ theorem run_relay (v : Validator) (i : Nat) (a o : Obj params) (t : Time)
     · have hpast := (adv_gen_tick_fold_known (GenPast (buildPrefix n).events n) n nodes _ []
         (adv_gen_prefix_carried n).1 (by simp)).2 a hr o hc
       have hpc := past_complete n h8 o n hpast w hw
-      have hidx := index_after 291 n i (by omega) _ hi le_rfl
-      have ht := index_stable 291 n (i + 1) (by omega) (by omega) w o hpc
+      have hidx := index_after 301 n i (by omega) _ hi le_rfl
+      have ht := index_stable 301 n (i + 1) (by omega) (by omega) w o hpc
       exact Bool.noConfusion (hp.symm.trans ht)
     · have hk := (adv_gen_tick_fold_known (fun o => isProp o = true) n nodes _ []
         (early_known n (by omega)) (by simp)).2 a hr o hc
       rw [carried_nonprop hc] at hk
       exact Bool.noConfusion hk
 
-/-- I-SYNC: the run satisfies partial synchrony with GST = 7 and Δ = 1. -/
+/-- A delivered object is processed after its actual generator batch. A later
+anchor uses that history; an earlier anchor uses the recorded delivery. -/
+theorem service_of_delivery (w : Validator) (hw : w ∈ nodes) (o : Obj params)
+    (t a d : Time) (hm : V2.Event.deliver w o t ∈ run.events) (htd : t < d) :
+    V2.D.DeliveryService env run w o a d := by
+  rw [run_events, adv_prefix_blocks] at hm
+  obtain ⟨n, hn, hm⟩ := List.mem_flatMap.mp hm
+  have hn' : n < 301 := List.mem_range.mp hn
+  obtain ⟨rfl, _, ho⟩ := timeBatch_delivered n _ _ w o t hm
+  by_cases hna : (n : Time) < a
+  · obtain ⟨ds, he⟩ := prefix_prefix (n + 1) 301 (by omega)
+    have hlen : (buildPrefix (n + 1)).events.length ≤ V2.D.Run.actionCut run a := by
+      change _ ≤ (run.events.filter
+        (fun e => decide (e.time < a ∨ (e.time = a ∧ e.phase = 0)))).length
+      have hf : (buildPrefix (n + 1)).events.filter
+          (fun e => decide (e.time < a ∨ (e.time = a ∧ e.phase = 0))) =
+            (buildPrefix (n + 1)).events := by
+        apply List.filter_eq_self.mpr
+        intro e hem
+        have ht := (adv_prefix_times (n + 1) e hem).2
+        have hta : e.time < a := by dsimp [Time] at *; omega
+        exact decide_eq_true (Or.inl hta)
+      rw [run_events, ← he, List.filter_append, List.length_append, hf]
+      omega
+    left
+    refine ⟨(buildPrefix (n + 1)).events.length, hlen, ?_⟩
+    rw [show run = runData horizon (buildPrefix 301).events from rfl,
+      adv_runData_stateBefore, ← he]
+    simp only [List.take_append, List.take_length, Nat.sub_self, List.take_zero,
+      List.append_nil]
+    rw [← (adv_prefix_replay_fresh (n + 1)).1]
+    exact prefix_complete n w hw o ho
+  · right
+    exact ⟨n, le_of_not_gt hna, htd, direct_handle horizon _ w o n
+      (run_mem_batch n hn' _ hm)⟩
+
+/-- The demand is bounded at its actual anchor, including an old stored object. -/
+theorem service_of_emission (v : Validator) (o : Obj params) (t : Time)
+    (he : V2.D.Run.emits env run v o t) (w : Validator) (hw : w ∈ nodes)
+    (a : Time) (hta : t ≤ a) :
+    V2.D.DeliveryService env run w o a (max a env.t_GST + env.Δ) := by
+  obtain ⟨u, _, hud, hu⟩ := run_broadcast v o t he w hw
+  apply service_of_delivery w hw o u a _ hu
+  have hm : max t 7 + 1 ≤ max a env.t_GST + env.Δ := by
+    change max t 7 + 1 ≤ max a 7 + 1
+    dsimp only [Time] at *
+    omega
+  exact hud.trans_le hm
+
+/-- I-SYNC: finite delivery demands use real receipts or earlier processing. -/
 theorem run_sync : V2.D.PartialSynchrony env run where
-  broadcast_emitted v _ o t he w hw _ _ := by
-    obtain ⟨t', h1, h2, hm⟩ := run_broadcast v o t he w ((nodes_honest w).2 hw)
-    exact ⟨t', h1, h2, direct_handle horizon _ w o t' hm⟩
-  relay_accepted v _ i o t ha w hw hp _ _ := by
-    obtain ⟨⟨a, hi, hh⟩, _, _⟩ := ha
-    have hc := adv_handles_carries _ a o hh
-    rw [show run = runData horizon (buildPrefix 291).events from rfl] at hi hp
-    rw [adv_runData_stateBefore] at hp
-    exact ⟨t, le_rfl, Int.lt_add_one_iff.mpr (le_max_left _ _), direct_handle horizon _ w o t
-      (run_relay v i a o t hi hc w ((nodes_honest w).2 hw) hp)⟩
-
-
+  broadcast_emitted v _ o t he w hw a hta _ _ _ _ _ _ :=
+    service_of_emission v o t he w ((nodes_honest w).2 hw) a hta
+  relay_accepted v _ i o t ha w hw a hta _ _ _ _ _ _ := by
+    obtain ⟨⟨parent, hi, hh⟩, _, _⟩ := ha
+    have hm := List.mem_of_getElem? hi
+    have hc := adv_handles_carries _ parent o hh
+    obtain ⟨x, u, hut, hem⟩ : GenPast (buildPrefix 301).events t o := by
+      rcases hc with rfl | hc
+      · exact (adv_prefix_origin 301).1 v parent t hm
+      · exact (adv_gen_prefix_carried 301).2 v parent t hm o hc
+    exact service_of_emission x o u (adv_genEmits_runData horizon _ x o u hem)
+      w ((nodes_honest w).2 hw) a (hut.trans hta)
 
 /-! ### Roots -/
 
@@ -3454,13 +3528,14 @@ theorem delivered_proposal {x : Validator} {o : Obj params} {t : Time}
     (hd : V2.Event.deliver x o t ∈ run.events) (hp : o.payload = .proposal N) :
     ∃ i t', run.events[i]? = some (.tick 0 t') ∧ o ∈ V2.D.Run.emitsAt env run i ∧
       o = ofWire params ⟨.proposer N.slot, .proposal N⟩ := by
-  obtain ⟨u, s, _, he⟩ := (adv_prefix_origin 291).1 x o t hd
+  obtain ⟨u, s, _, he⟩ := (adv_prefix_origin 301).1 x o t hd
   obtain ⟨i, hi, hem⟩ := adv_genEmits_runData horizon _ u o s he
   obtain ⟨pre, post, _, ho⟩ := he
   have hh := adv_gen_tick_holder _ u s o ho
   obtain ⟨l, j, m, rfl, _, ha⟩ := adv_gen_tick_seat _ u s _ ho
   cases l with
   | headAction r =>
+    have ha := joined_body ha
     have he : .head (headVote params (FGSA.clock params (genFold V2.D.World.init pre u).st s)
       r).root = m := Option.some.inj ha
     subst m
@@ -3472,6 +3547,7 @@ theorem delivered_proposal {x : Validator} {o : Obj params} {t : Time}
     subst m
     cases hp
   | propAction s' =>
+    have ha := joined_body ha
     change m = .proposal N at hp
     subst m
     change (propose params (FGSA.clock params (genFold V2.D.World.init pre u).st s) s').map
@@ -3511,7 +3587,7 @@ theorem nv_delivery_unique {x y : Validator} {o o' : Obj params} {t u : Time}
     (hs : N.slot = M.slot) : N = M := by
   obtain ⟨i, t', hi, hem, he⟩ := delivered_proposal hd hp
   obtain ⟨i', u', hi', hem', he'⟩ := delivered_proposal hd' hp'
-  have hn : run.events.Nodup := adv_prefix_nodup 291
+  have hn : run.events.Nodup := adv_prefix_nodup 301
   have heq := (Gen.V2.Duty.emitted_unique_of_singleDuty env run hn (.prop N.slot)
     (fgsa_prop_singleDuty N.slot) ⟨0, Nat.one_pos⟩ 0 i i' t' u' o o' hi hi' hem hem'
     (by rw [he]; rfl) (by rw [he', ← hs]; rfl)).2
@@ -3555,14 +3631,30 @@ theorem nvRoots : NamedRootCollisionFree params unitCodec env run where
 
 open Gen.Pure
 
+/-- Every honest emitted proposal is directly received by node zero. -/
+theorem nvReceiptRoots : NamedReceiptRootCollisionFree params unitCodec env run := by
+  have scope (A : NamedProposal params.n)
+      (h : NamedProposalReceiptScope params unitCodec env run A) :
+      NamedProposalInRun params unitCodec env run A := by
+    rcases h with h | ⟨v, hv, o, t, N, hem, hp, hAN⟩
+    · exact h
+    · obtain ⟨u, _, _, hd⟩ := run_broadcast v o t hem 0 (by decide)
+      exact ⟨N, Or.inl ⟨0, o, u, hd, hp⟩, hAN⟩
+  intro A B hA hB he
+  exact nvRoots.root_injective A B (scope A hA) (scope B hB)
+    A B (Or.inl (named_preceq_refl _)) (Or.inr (named_preceq_refl _)) he
+
 /-- I-BASE: the adversarial run inhabits Base₂. -/
 theorem base : Base₂ params unitCodec env run where
   valid := nvExecution
   linked := adv_linked horizon _
   cstar := adv_cstar horizon _
-  noRestart := noRestart
+  restartsAtWakes := by
+    intro v t hm
+    obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hm
+    exact (noRestart i v t hi).elim
   delta := env_delta
-  idealization := nvRoots
+  receiptIdealization := nvReceiptRoots
 
 /-- Rows and other objects have the same delay, Δ = ΔF = 1. -/
 theorem delay_const : fgsaDelay (p := params) env.Δ 1 = fun _ => env.Δ := by
@@ -3575,7 +3667,7 @@ theorem sync : Gen.V2.Duty.PartialSynchronyBy env run (fgsaDelay env.Δ 1) := by
   exact (Gen.V2.Duty.partialSynchrony_iff_by_const env run).mp run_sync
 
 /-- I-REC: the adversarial run inhabits Recovery₂ with G = 4 and ΔF = 1. -/
-theorem nvRecovery : Recovery₂ params unitCodec env run 4 1 where
+theorem nvRecovery : RecoverySleep₂ params unitCodec env run 4 1 where
   sync := sync
   deltaF := by decide
   gap := by intro t ht _; exact proposer_gap horizon _ t ht
@@ -3583,13 +3675,24 @@ theorem nvRecovery : Recovery₂ params unitCodec env run 4 1 where
   fault := adv_fault_bound
   awake := by intros; rfl
   gapPos := adv_gap_positive
+  suffixNoRestart := by intro x hx i t hi; exact (noRestart i x t hi).elim
+  joinedGap := by
+    intro t ht hh
+    obtain ⟨s, hts, hst, hs⟩ := proposer_gap horizon _ t (by
+      have hlo : env.t_GST ≤ recoveryStart params env := by decide
+      exact hlo.trans ht)
+    refine ⟨s, hts, hst, hs, rfl, ?_, ?_⟩
+    · intro u _ _ hw; cases hw.2
+    · intro u _ _ hu
+      obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hu
+      exact (noRestart i _ u hi).elim
 
 theorem livenessBound : LivenessBoundW params 1 := ⟨by decide⟩
 
 theorem healingPrem : HealingPrem params unitCodec 4 1 env run () :=
   ⟨nvRecovery, livenessBound⟩
 
-/-- I-HEAL: GST + B_HF = 7 + 247 = 254 ≤ 290. -/
+/-- I-HEAL: Jst + B_HF = 14 + 247 = 261 ≤ 300. -/
 theorem healingTimePrem : HealingTimePrem params unitCodec 4 1 env run () :=
   ⟨healingPrem, by rw [run_horizon]; decide⟩
 
@@ -3608,7 +3711,8 @@ theorem nvGood (r : Nat) (hr : 1 ≤ r) :
   omega
 
 theorem nvRecFE : FE_W params 1
-    (Gen.V2.Duty.HonestSlot run (fgsaInterface params unitCodec)) env.t_GST run.horizon 1 := by
+    (Gen.V2.Duty.HonestSlot run (fgsaInterface params unitCodec))
+      (recoveryStart params env) run.horizon 1 := by
   rw [FE_W_def, RecFE_W_def]
   refine ⟨le_rfl, ?_⟩
   intro q hq _ _
@@ -3617,8 +3721,8 @@ theorem nvRecFE : FE_W params 1
 theorem nvFinalitySet : FinalitySet_W params unitCodec env run 4 1 .recFE 1 :=
   ⟨nvRecovery, livenessBound, by rw [FinFormW.holdsW_def]; exact nvRecFE⟩
 
-/-- I-FIN: FF5 at the GST bound, t = 254, with 254 + W_W = 287 ≤ 290. -/
-theorem nvGSTPrem : FinalityLivenessGSTPrem_W params unitCodec 4 1 .recFE 1 env run ⟨254⟩ :=
+/-- I-FIN: FF5 at the GST bound, t = 261, with 261 + W_W = 294 ≤ 300. -/
+theorem nvGSTPrem : FinalityLivenessGSTPrem_W params unitCodec 4 1 .recFE 1 env run ⟨261⟩ :=
   ⟨nvFinalitySet, by decide, by rw [run_horizon]; decide⟩
 
 theorem nvFirstFinalityPrem : FirstFinalityPrem_W params unitCodec 4 1 .recFE 1 env run () :=
@@ -3627,10 +3731,10 @@ theorem nvFirstFinalityPrem : FirstFinalityPrem_W params unitCodec 4 1 .recFE 1 
 /-! ### Claim applications -/
 
 /-- Node zero's tick is the first event of its time block. -/
-theorem tick_zero_emits (n : Nat) (hn : n < 291) (o : Obj params)
+theorem tick_zero_emits (n : Nat) (hn : n < 301) (o : Obj params)
     (ho : o ∈ (V2.D.tick env (runData 0 []) ((buildPrefix n).world 0) 0 n).2) :
     V2.D.Run.emits env run 0 o n := by
-  obtain ⟨ds, hds⟩ := prefix_prefix (n + 1) 291 (by omega)
+  obtain ⟨ds, hds⟩ := prefix_prefix (n + 1) 301 (by omega)
   obtain ⟨ds', hb, _⟩ := adv_timeBatch_block n (buildPrefix n).world (buildPrefix n).held
   apply adv_genEmits_runData horizon _ 0 o n
   refine ⟨(buildPrefix n).events,
@@ -3641,7 +3745,7 @@ theorem tick_zero_emits (n : Nat) (hn : n < 291) (o : Obj params)
     exact ho
 
 /-- Node 0 proposes at every positive slot of the run. -/
-theorem adv_honest_proposal_exists (s : Slot) (hs : 0 < s) (hn : 4 * s < 291) :
+theorem adv_honest_proposal_exists (s : Slot) (hs : 0 < s) (hn : 4 * s < 301) :
     ∃ B, HonestProposal env run (fgsaInterface params unitCodec) s B := by
   have hr : Reachable params
       (FGSA.clock params ((buildPrefix (4 * s)).world 0).st ((4 * s : Nat) : Time)) :=
@@ -3651,8 +3755,14 @@ theorem adv_honest_proposal_exists (s : Slot) (hs : 0 < s) (hn : 4 * s < 291) :
     change (4 : Int) * s = ((4 * s : Nat) : Int)
     push_cast
     rfl
+  have hg := fgsa_joinedNow_of_joinedEnv env
+    (runData ((4 * s : Nat) : Time) (buildPrefix (4 * s + 1)).events)
+    (prefix_schedule (4 * s)) (prefix_tick_zero (4 * s)).1 (by
+      intro u _ _ hm
+      exact (adv_prefix_no_restart (4 * s + 1) 0 u hm).elim)
+  rw [adv_runData_stateBefore, (prefix_tick_zero (4 * s)).2] at hg
   have ho := (fgsa_emits_proposal env (runData 0 []) ((buildPrefix (4 * s)).world 0) 0
-    ((4 * s : Nat) : Time) s _).mpr ⟨rfl, ht, rfl, by
+    ((4 * s : Nat) : Time) s _).mpr ⟨rfl, ht, rfl, hg, by
       delta propose
       simp only [Nat.ne_of_gt hs, ↓reduceIte, hP, Option.map_some]
       rfl⟩
@@ -3662,8 +3772,8 @@ theorem adv_honest_proposal_exists (s : Slot) (hs : 0 < s) (hn : 4 * s < 291) :
 
 /-- C-AVAIL: the aggregate availableGST claim on the adversarial run. -/
 theorem nvAvailableGST : ∃ w, HealingInput params unitCodec env run w 1 ∧
-    tstar params w < env.t_GST + B_HF params 1 4 ∧
-    AvailableFromConcl params unitCodec env run (env.t_GST + B_HF params 1 4) :=
+    tstar params w < recoveryStart params env + B_HF params 1 4 ∧
+    AvailableFromConcl params unitCodec env run (recoveryStart params env + B_HF params 1 4) :=
   (fgsaClaims params).availableGST 4 1 adv_delta_ratio unitCodec env run healingTimePrem
 
 /-- C-AVAIL: the slot-70 proposal (time 280, gate 286) is served to every honest reader. -/
@@ -3672,39 +3782,39 @@ theorem nvAvailableService : ∃ B, HonestProposal env run (fgsaInterface params
   obtain ⟨B, hB⟩ := adv_honest_proposal_exists 70 (by decide) (by decide)
   obtain ⟨_, _, _, h⟩ := nvAvailableGST
   refine ⟨B, hB, h.2 ⟨70, B⟩ ?_ hB ?_⟩
-  · change (7 : Time) + B_HF params 1 4 ≤ V2.D.proposalTime (fgsaInterface params unitCodec) 70
+  · change (14 : Time) + B_HF params 1 4 ≤ V2.D.proposalTime (fgsaInterface params unitCodec) 70
     decide
   · change SA.gateTime params.toParams 70 ≤ run.horizon
     rw [run_horizon]
     decide
 
-/-- C-FIN: FF5 from the aggregate GST claim, with deadline 287. -/
-theorem nvFF5 : FinalityLivenessConcl_W params unitCodec env run 254 287 := by
+/-- C-FIN: FF5 from the aggregate GST claim, with deadline 294. -/
+theorem nvFF5 : FinalityLivenessConcl_W params unitCodec env run 261 294 := by
   obtain ⟨_, _, _, h, _⟩ := (fgsaClaims params).finalityLivenessGSTRecFE 4 1 1
-    adv_delta_ratio unitCodec env run ⟨254⟩ nvGSTPrem
+    adv_delta_ratio unitCodec env run ⟨261⟩ nvGSTPrem
   exact h
 
-/-- C-FIN: FirstFinality from the aggregate claim, with deadline 7 + 247 + 33 = 287. -/
-theorem nvFirstFinality : FirstFinalityConcl_W params unitCodec env run 1 4 287 :=
+/-- C-FIN: FirstFinality from the aggregate claim, with deadline 14 + 247 + 33 = 294. -/
+theorem nvFirstFinality : FirstFinalityConcl_W params unitCodec env run 1 4 294 :=
   (fgsaClaims params).firstFinalityRecFE 4 1 1 adv_delta_ratio unitCodec env run ()
     nvFirstFinalityPrem
 
 theorem nvProposalGSTPrem (B : Block)
-    (hB : HonestProposal env run (fgsaInterface params unitCodec) 64 B) :
-    ProposalFinalGSTPrem_W params unitCodec 4 1 .recFE 1 env run ⟨64, B⟩ := by
+    (hB : HonestProposal env run (fgsaInterface params unitCodec) 66 B) :
+    ProposalFinalGSTPrem_W params unitCodec 4 1 .recFE 1 env run ⟨66, B⟩ := by
   refine ⟨nvFinalitySet, hB, ?_, ?_⟩
-  · change (7 : Time) + B_HF params 1 4 ≤ V2.D.proposalTime (fgsaInterface params unitCodec) 64
+  · change (14 : Time) + B_HF params 1 4 ≤ V2.D.proposalTime (fgsaInterface params unitCodec) 66
     decide
-  · change V2.D.proposalTime (fgsaInterface params unitCodec) 64 + W_W params 1 1 ≤ run.horizon
+  · change V2.D.proposalTime (fgsaInterface params unitCodec) 66 + W_W params 1 1 ≤ run.horizon
     rw [run_horizon]
     decide
 
-/-- C-FIN: the slot-64 proposal (time 256) is final at every honest node by time 289. -/
-theorem nvProposalFinal : ∃ B, HonestProposal env run (fgsaInterface params unitCodec) 64 B ∧
-    ProposalFinalConcl_W params unitCodec env run B 289 := by
-  obtain ⟨B, hB⟩ := adv_honest_proposal_exists 64 (by decide) (by decide)
+/-- C-FIN: the slot-66 proposal (time 264) is final at every honest node by time 297. -/
+theorem nvProposalFinal : ∃ B, HonestProposal env run (fgsaInterface params unitCodec) 66 B ∧
+    ProposalFinalConcl_W params unitCodec env run B 297 := by
+  obtain ⟨B, hB⟩ := adv_honest_proposal_exists 66 (by decide) (by decide)
   obtain ⟨_, _, _, h⟩ := (fgsaClaims params).proposalFinalGSTRecFE 4 1 1 adv_delta_ratio
-    unitCodec env run ⟨64, B⟩ (nvProposalGSTPrem B hB)
+    unitCodec env run ⟨66, B⟩ (nvProposalGSTPrem B hB)
   exact ⟨B, hB, h⟩
 
 /-! ### The asynchrony witness -/
@@ -3735,9 +3845,9 @@ theorem held_vote_delay : ∃ o : Obj params,
     · cases hp
     · exact Int.ofNat_le.mpr h7
 
-/-- Run parameters: four seats, one faulty seat, GST 7, Δ = ΔF = 1, horizon 290. -/
+/-- Run parameters: four seats, one faulty seat, GST 7, Δ = ΔF = 1, horizon 300. -/
 theorem nvParameters : params.n = 4 ∧ (Gen.V2.Duty.faulty run).card = 1 ∧ env.t_GST = 7 ∧
-    env.Δ = 1 ∧ run.horizon = 290 :=
+    env.Δ = 1 ∧ run.horizon = 300 :=
   ⟨rfl, faulty_card, rfl, rfl, rfl⟩
 
 #print axioms nvExecution

@@ -199,7 +199,7 @@ theorem prefix_mono {n m : Nat} (h : n ≤ m) :
 theorem step_constant (nd : FixtureNode) (e : Event) :
     V2.D.World.step env (mkRun []) (fun _ => nd) e =
       fun _ => match e with
-      | .restart _ _ => (fgsa params unitCodec).restore ((fgsa params unitCodec).durable nd)
+      | .restart _ t => (fgsa params unitCodec).restore ((fgsa params unitCodec).durable nd) t
       | .tick _ t => (V2.D.tick env (mkRun []) nd 0 t).1
       | .deliver _ o _ => (fgsa params unitCodec).process nd o := by
   funext v
@@ -332,7 +332,7 @@ theorem nvSchedule : V2.D.ScheduleWellFormed env run where
     obtain ⟨m, _, ht, _⟩ := prefix_events_time 305 (.tick v t) he
     exact ⟨m, by simpa only [V2.Event.time, env, Int.mul_one] using ht⟩
   tick_total := by
-    intro v _ t _ ht hh
+    intro v _ t _ ht hh _
     have hv : v = 0 := Subsingleton.elim _ _
     subst v
     change t ≤ 304 at hh
@@ -610,9 +610,17 @@ theorem nvRowCap : ∀ j y r a h e t,
 /-- With GST zero, no source vote is strictly before GST. -/
 theorem nvOldRowsEmpty : oldRowHeights params unitCodec env run = ∅ := by
   apply Set.eq_empty_iff_forall_notMem.mpr
-  rintro h ⟨j, y, r, a, e, _, _, ht⟩
-  change 4 * 1 * ((r * 3 : Nat) : Int) + 1 < 0 at ht
-  omega
+  rintro h ⟨j, y, r, a, e, ha, he, ht⟩
+  change 4 * 1 * ((r * 3 : Nat) : Int) + 1 < 6 at ht
+  have hr : r = 0 := by push_cast at ht; omega
+  subst r
+  have hy : y = 0 := Subsingleton.elim _ _
+  subst y
+  obtain ⟨C, _, hC, _, _⟩ := emittedName_window params unitCodec env run nvSchedule ha he
+  rw [source_read 0 (by decide)] at hC
+  have hn : sourceAtAction 0 = none := by decide +kernel
+  rw [hn] at hC
+  cases hC
 
 theorem nvMu : muOf params unitCodec env run = 1 := by
   rw [muOf_def, nvOldRowsEmpty]
@@ -646,7 +654,7 @@ set_option maxHeartbeats 2000000 in
 -- The assembly checks the concrete witness after the short-prefix source proof.
 /-- All 13 reset fields hold on the unchanged one-node run. -/
 theorem nvH0Reset : H0Reset params unitCodec env run w where
-  rG_after := by change 0 ≤ params.actionTime 0; decide
+  rG_after := by decide
   rG_first := by intro r _; exact Nat.zero_le r
   cut := by decide
   frontier := nvFrontier.symm

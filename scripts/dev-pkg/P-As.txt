@@ -1,4 +1,4 @@
-# P-As Round 7: outage Assembly closed; full Root remains OPEN/P-H2 and P-As.
+# P-As Round 9: all 68 assigned targets GREEN; returned producers close full Root.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs
 AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicAxioms
@@ -583,23 +583,23 @@ AvailableChainFGSAProofs.Proofs.Assembly.Outage
 AvailableChainFGSAProofs.Tests.OutageExport
 AvailableChainFGSAProofs.Tests.OutageContinuationAxioms
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst
+AvailableChainFGSAProofs.Tests.HealingAttempt
+AvailableChainFGSAProofs
+AvailableChainFGSAProofs.Proofs.Assembly.Healing
+AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
+AvailableChainFGSAProofs.Proofs.Assembly.Root
+AvailableChainFGSAProofs.Tests.Axioms
+AvailableChainFGSAProofs.Tests.FGCompose
+AvailableChainFGSAProofs.Tests.HealingHTime
+AvailableChainFGSAProofs.Tests.HealingReset
+AvailableChainFGSAProofs.Tests.LiveDC
+AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial
+AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms
+AvailableChainFGSARun
+AvailableChainFGSARun.Tests.Axioms
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs P-As
-AvailableChainFGSAProofs.Proofs.Assembly.Healing P-As
-AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival P-As
-AvailableChainFGSAProofs.Proofs.Assembly.Root P-As
-AvailableChainFGSAProofs.Tests.Axioms P-As
-AvailableChainFGSAProofs.Tests.FGCompose P-As
-AvailableChainFGSAProofs.Tests.HealingAttempt P-H2
-AvailableChainFGSAProofs.Tests.HealingHTime P-As
-AvailableChainFGSAProofs.Tests.HealingReset P-H2
-AvailableChainFGSAProofs.Tests.LiveDC P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms P-As
-AvailableChainFGSARun S-Ap
-AvailableChainFGSARun.Tests.Axioms S-Ap

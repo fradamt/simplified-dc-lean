@@ -4,7 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: ke
 public section
 
 /-! Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE T/W2–W4.
-DC: SAME HTimeClaim and its original run package, with four exact open inputs. -/
+DC: SAME HTimeClaim and its original run package, with named recovery producers. -/
 
 namespace AvailableChain.FGSA.Run.Tests.HealingHTime
 
@@ -215,5 +215,40 @@ example (p : Params) (G ΔF : Time) (hClock : p.δt = 2 * p.R)
 #print axioms healing_hTimeClaim_all
 #print axioms healing_resetArrivalFull
 #print axioms healing_healingInputClaim
+
+end AvailableChain.FGSA.Run.Tests.HealingHTime
+
+namespace AvailableChain.FGSA.Run.Tests.HealingHTime
+
+/-- The named time producers apply to this run and its selected witness. -/
+public theorem selectedTime (p : Params) {V In : Type}
+    [DecidableEq V] [Fintype V] (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) (hbound : LivenessBoundW p ΔF)
+    (hClock : p.δt = 2 * p.R)
+    (hhor : recoveryStart p E + B_HF p ΔF G ≤ rho.horizon) :
+    HTimeConcl p c E rho G ΔF :=
+  assembly_hTime_at p c E rho hset hbound hClock hhor
+
+/-- The local input result keeps the selected witness's own horizon. -/
+private theorem selectedInput (p : Params) {V In : Type}
+    [DecidableEq V] [Fintype V] (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF)
+    (hClock : p.δt = 2 * p.R) (w : HealingWitness) (h0 : H0 p c E rho w)
+    (hhor : tstar p w ≤ rho.horizon) : HealingInput p c E rho w ΔF :=
+  assembly_healingInput_at p c E rho hset hClock w h0 hhor
+
+/-- The named recovery producer supplies the selected joint invariant. -/
+private theorem selectedInv (p : Params) {V In : Type}
+    [DecidableEq V] [Fintype V] (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
+    (h0 : H0 p c E rho w) (hhor : tstar p w ≤ rho.horizon) : HealingInput p c E rho w ΔF :=
+  assembly_healingInput_of_inv p c E rho hset h0 hhor
+
+#print axioms selectedTime
+#print axioms selectedInput
+#print axioms selectedInv
 
 end AvailableChain.FGSA.Run.Tests.HealingHTime
