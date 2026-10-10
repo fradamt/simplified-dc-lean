@@ -50,6 +50,7 @@ AvailableChainFGSAProofs.Tests.InclusionGate
 AvailableChainFGSAProofs.Tests.OutageInduction
 
 [GREEN]
+AvailableChainFGSAProofs.Tests.OutageInduction
 AvailableChainFGSAProofs.Proofs.Outage.ScopedInduction
 AvailableChainFGSAProofs.Proofs.Outage.Induction
 AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
@@ -567,6 +568,5 @@ AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.Export P-Ou
 AvailableChainFGSAProofs.Proofs.OutageContinuation.Export P-Ou
-AvailableChainFGSAProofs.Tests.OutageInduction P-Ou
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

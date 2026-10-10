@@ -5815,9 +5815,9 @@ ScopedInduction:81 proves the full event induction before restoration, at an end
 at or before lease expiry. Sources and named history cover all honest nodes, including W.
 Protection and post-pending duties cover G. Restart keeps durable protection and adds no
 source or duty. Releases use the fixed A union W bound; good HEADs are covered before r.
-ScopedInduction:347 supplies the seeds from the scoped certificate, P-Ar in-flight duties,
+ScopedInduction:351 supplies the seeds from the scoped certificate, P-Ar in-flight duties,
 and the P-Fd source suppliers. Tests/OutageServices:155 uses the actual Clean and P-Fd
-producers. ScopedInduction:382 gives the inclusive F and covered lease-or-F read.
+producers. ScopedInduction:386 gives the inclusive F and covered lease-or-F read.
 
 Induction now imports the scoped implementation. Its former all-honest ArmingCert seed
 and NoRestart lane were removed. The true empty duty seed remains. The old downstream
@@ -5832,3 +5832,21 @@ The good-HEAD history and counts outside the E window remain explicit P-Ou oblig
 This conditional result producer is not global hResults or full continuation closure.
 
 Induction is GREEN; eight P-Ou consumer roots remain EXPECTED-FAIL. P-Ou is PREPARED.
+
+### P-Ou Round 7 — export repair
+
+337c0238 replaces fullTree and controls unfolds with explicit frame/control view
+equalities. Complete GREEN exports have 325 proof modules, 253 exports, zero unaccepted
+and zero Gen exports. No checker baseline or allowance changed. The complete local
+212-command inventory and its coverage control pass.
+
+### P-Ou Round 7 — independent induction tests
+
+Tests/OutageInduction now audits the compiled scoped kernel through its production
+import. The independent disclosure, contested-frame, lease, count, and phase tests
+remain. The raw saved-result test has the actual joined-gate guard. Restart tests
+check retained obligations and protection at the exact wake time. The old empty-lock
+restart assertion was false under the approved retained-store restart. No public
+claim changes. The test module is GREEN as a kernel test; Close and the public
+exporters remain EXPECTED-FAIL and were checked separately.
+The complete local inventory now has 225 commands.
