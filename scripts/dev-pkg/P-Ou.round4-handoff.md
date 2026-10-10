@@ -154,3 +154,16 @@ consumed P-Ar modules as dependency targets; P-Ou did not edit their sources.
 Local audit fragment: 161 commands. Production commands stay in SleepAxioms;
 test commands stay in their own standalone test roots. Canonical integration
 must import production modules, never these test modules, under the existing key.
+
+## Final validation
+
+Proof source: c8885bf3. DCK P-Ou PASS with 41 strict sources, 3,124 results
+and all 24 controls. Complete GREEN exports: 314 proof modules, 253 exports,
+zero unaccepted and zero Gen exports. Local complete coverage and its control
+PASS for 161 commands: 140 production, 17 InclusionExact, one InclusionOrigins
+and three OutageServices. Only propext, Classical.choice and Quot.sound occur.
+Layers: 72 inherited findings, zero new. Whitespace, ownership, new prose/code
+line length and placeholder checks PASS. Machine inventory rows keep their
+required three-token format. No checker, baseline, allowance or toolchain changed.
+Evidence: .lake/sleep-pou-r4/dck-final.log, exports-final.log, coverage-final.log,
+layers-final.log, clean-consumer-check2.log and consumer-final.log.

@@ -5439,3 +5439,17 @@ Clean origin assembly, restored receipt assembly, opponent release and expiry.
 No test import is added to a production or canonical audit module.
 Current map: 43 TARGETS, 502 GREEN, 11 EXPECTED-FAIL (nine P-Ou, two S-Ap).
 Current exact handoff: scripts/dev-pkg/P-Ou.round4-handoff.md.
+
+### P-Ou Round 4 — final validation
+
+Proof groups: 08e6ddf2 (FIX-FIRST), 27f63349 (P-Ar consumers and latest gate),
+c8885bf3 (restored services, origin assembly, release and handover boundaries).
+DCK P-Ou PASS: 502 GREEN roots, 41 strict audit sources, 3,124 axiom results
+and all 24 controls. Complete exports: 314 proof modules, 253 exports,
+zero unaccepted, Gen zero. Complete local coverage: 161 commands; control PASS.
+Layers: 72 inherited, zero new. The exact Clean section of mixed Export checks
+with standard axioms. The full module remains EXPECTED-FAIL.
+P-Ou remains PREPARED, not CLOSED. Public claims and protocol declarations
+are unchanged. There is no public STOP. No checker, baseline, allowance,
+heartbeat increase or toolchain change was added.
+Logs: .lake/sleep-pou-r4/. Exact closure types: P-Ou.round4-handoff.md.
