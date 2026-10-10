@@ -302,7 +302,7 @@ theorem wake_base : Base₂ params unitCodec sleepEnv sleepRun :=
 
 /-- The old W1 source endpoint needs the approved recovery delay. -/
 theorem old_w1_endpoint_gap :
-    source.horizon ≠ recoveryStart params strongEnv + B_HF params 1 4 := by decide +kernel
+    (247 : Time) ≠ recoveryStart params strongEnv + B_HF params 1 4 := by decide +kernel
 
 end AvailableChain.FGSA.Run.Tests.SleepPositive
 end

@@ -8,8 +8,8 @@ public import AvailableChainFGSARun.Proofs.EmissionWellFormed -- shake: keep (IN
 
 The generator uses the current duty engine and the real FG-SA handlers.
 It ticks awake nodes before it delivers each released object to awake receivers.
-After time 247, only node zero is awake. The source ends at 247, and the
-continuation ends at 263. Proofs follow the generator without evaluating the
+After time 253, only node zero is awake. The source ends at 253, and the
+continuation ends at 269. Proofs follow the generator without evaluating the
 complete encoded trace.
 -/
 
@@ -41,7 +41,7 @@ def strongEnv : Generic.Env Validator where
   awake _ _ := true
 
 def weakEnv : Generic.Env Validator :=
-  { strongEnv with awake := fun v t => decide (t ≤ 247 ∨ v = 0) }
+  { strongEnv with awake := fun v t => decide (t ≤ 253 ∨ v = 0) }
 
 /-- One holder per base seat; node zero proposes in every slot. -/
 def seatOf : (ℓ : RunLabel) → Fin (RunLabel.seats params ℓ) → Validator
@@ -73,14 +73,14 @@ theorem awakeNodes_nodup (t : Time) : (awakeNodes t).Nodup :=
 /-- Run all ticks first, and keep the actual objects that they release. -/
 def tickBatch (t : Time) (w : World) : World × List (Obj params) :=
   (awakeNodes t).foldl (fun acc v =>
-    let result := V2.D.tick weakEnv (runData 263 []) (acc.1 v) v t
+    let result := V2.D.tick weakEnv (runData 269 []) (acc.1 v) v t
     (Function.update acc.1 v result.1, acc.2 ++ (show List (Obj params) from result.2))) (w, [])
 
 /-- Deliver a fresh object with the real handler, for the awake receiver. -/
 def deliverOne (t : Time) (acc : World × List Event) (vo : Validator × Obj params) :
     World × List Event :=
   if (fgsa params unitCodec).processed (acc.1 vo.1) vo.2 then acc else
-    (V2.D.World.step weakEnv (runData 263 []) acc.1 (.deliver vo.1 vo.2 t),
+    (V2.D.World.step weakEnv (runData 269 []) acc.1 (.deliver vo.1 vo.2 t),
       acc.2 ++ [.deliver vo.1 vo.2 t])
 
 /-- Every object is offered to every receiver before the next object. -/
@@ -97,19 +97,24 @@ def buildPrefix : Nat → World × List Event
       let batch := timeBatch (steps : Time) previous.1
       (batch.1, previous.2 ++ batch.2)
 
+attribute [local irreducible] buildPrefix
+
 def source : V2.D.Run Validator (fgsa params unitCodec) :=
-  runData 247 (buildPrefix 248).2
+  runData 253 (buildPrefix 254).2
 
 /-- Append only the times strictly after the source endpoint. -/
-def buildSuffix : Nat → World × List Event
-  | 0 => ((buildPrefix 248).1, [])
+def buildSuffixFrom (first : Nat) (start : World) : Nat → World × List Event
+  | 0 => (start, [])
   | steps + 1 =>
-      let previous := buildSuffix steps
-      let batch := timeBatch ((248 + steps : Nat) : Time) previous.1
+      let previous := buildSuffixFrom first start steps
+      let batch := timeBatch ((first + steps : Nat) : Time) previous.1
       (batch.1, previous.2 ++ batch.2)
 
+def buildSuffix (steps : Nat) : World × List Event :=
+  buildSuffixFrom 254 (buildPrefix 254).1 steps
+
 def continuation : V2.D.Run Validator (fgsa params unitCodec) :=
-  runData 263 (source.events ++ (buildSuffix 16).2)
+  runData 269 (source.events ++ (buildSuffix 16).2)
 
 theorem design_numbers :
     params.n = 4 ∧ params.Δ = 1 ∧ params.k = 2 ∧ params.R = 2 ∧
@@ -126,9 +131,9 @@ theorem witness_window_bounds : kappaF params 1 = 2 ∧ betaF params 1 = 8 ∧
     B_H2F params 1 4 = 277 ∧ B_H1F params 1 4 = 247 ∧ B_HF params 1 4 = 247 := by
   decide
 
-theorem horizons : source.horizon = 247 ∧ continuation.horizon = 263 := ⟨rfl, rfl⟩
+theorem horizons : source.horizon = 253 ∧ continuation.horizon = 269 := ⟨rfl, rfl⟩
 
-theorem endpoint : source.horizon = strongEnv.t_GST + B_HF params 1 4 := by decide
+theorem endpoint : source.horizon = recoveryStart params strongEnv + B_HF params 1 4 := by decide
 
 theorem covered : source.horizon < continuation.horizon := by decide
 
@@ -149,29 +154,29 @@ theorem fault_bound : (Gen.V2.Duty.faulty source).card = 0 ∧
 theorem strong_awake (v : Validator) (t : Time) : strongEnv.awake v t = true := rfl
 
 theorem weak_awake_iff (v : Validator) (t : Time) :
-    weakEnv.awake v t = true ↔ t ≤ 247 ∨ v = 0 := by simp [weakEnv]
+    weakEnv.awake v t = true ↔ t ≤ 253 ∨ v = 0 := by simp [weakEnv]
 
 theorem awake_agreement (v : Validator) (t : Time) (ht : t ≤ source.horizon) :
     weakEnv.awake v t = strongEnv.awake v t := by
-  have ht' : t ≤ 247 := ht
+  have ht' : t ≤ 253 := ht
   simp [weakEnv, strongEnv, ht']
 
 theorem strong_awake_set (t : Time) :
     Gen.V2.Duty.awakeHonest strongEnv source t = Finset.univ := by
   simp [Gen.V2.Duty.awakeHonest, source, runData, strongEnv]
 
-theorem weak_awake_set_before (t : Time) (ht : t ≤ 247) :
+theorem weak_awake_set_before (t : Time) (ht : t ≤ 253) :
     Gen.V2.Duty.awakeHonest weakEnv continuation t = Finset.univ := by
   simp [Gen.V2.Duty.awakeHonest, continuation, runData, weakEnv, ht]
 
-theorem weak_awake_set_after (t : Time) (ht : 247 < t) :
+theorem weak_awake_set_after (t : Time) (ht : 253 < t) :
     Gen.V2.Duty.awakeHonest weakEnv continuation t = {0} := by
   ext v
   simp [Gen.V2.Duty.awakeHonest, continuation, runData, weakEnv, not_le.mpr ht]
 
 theorem awake_counts (t : Time) :
     (Gen.V2.Duty.awakeHonest strongEnv source t).card = 4 ∧
-    (Gen.V2.Duty.awakeHonest weakEnv continuation t).card = if t ≤ 247 then 4 else 1 := by
+    (Gen.V2.Duty.awakeHonest weakEnv continuation t).card = if t ≤ 253 then 4 else 1 := by
   rw [strong_awake_set]
   constructor
   · decide
@@ -186,13 +191,13 @@ theorem witness_participation (t : Time) (ht : source.horizon < t) :
   decide
 
 theorem strict_drop :
-    (Gen.V2.Duty.awakeHonest weakEnv continuation 248).card <
-      (Gen.V2.Duty.awakeHonest strongEnv source 247).card := by
-  rw [weak_awake_set_after 248 (by decide), strong_awake_set]
+    (Gen.V2.Duty.awakeHonest weakEnv continuation 254).card <
+      (Gen.V2.Duty.awakeHonest strongEnv source 253).card := by
+  rw [weak_awake_set_after 254 (by decide), strong_awake_set]
   decide
 
-theorem later_sleep : weakEnv.awake 1 248 = false ∧ weakEnv.awake 2 248 = false ∧
-    weakEnv.awake 3 248 = false := by decide
+theorem later_sleep : weakEnv.awake 1 254 = false ∧ weakEnv.awake 2 254 = false ∧
+    weakEnv.awake 3 254 = false := by decide
 
 theorem cstar (h : Time) (es : List Event) :
     V2.D.CStar (fgsaFamilies params unitCodec).fresh (runData h es) := by
@@ -294,7 +299,7 @@ theorem witness_prefix_times (steps : Nat) (e : Event) (he : e ∈ (buildPrefix 
   induction steps with
   | zero => simp [buildPrefix] at he
   | succ steps ih =>
-      change e ∈ (buildPrefix steps).2 ++ (timeBatch steps (buildPrefix steps).1).2 at he
+      simp only [buildPrefix] at he
       rcases List.mem_append.mp he with he | he
       · have := ih he
         simp only [Nat.cast_add, Nat.cast_one]
@@ -304,12 +309,12 @@ theorem witness_prefix_times (steps : Nat) (e : Event) (he : e ∈ (buildPrefix 
         exact ⟨Int.natCast_nonneg _, by simp⟩
 
 theorem suffix_times (steps : Nat) (e : Event) (he : e ∈ (buildSuffix steps).2) :
-    248 ≤ e.time ∧ e.time < 248 + steps := by
+    254 ≤ e.time ∧ e.time < 254 + steps := by
   induction steps with
-  | zero => simp [buildSuffix] at he
+  | zero => simp [buildSuffix, buildSuffixFrom] at he
   | succ steps ih =>
       change e ∈ (buildSuffix steps).2 ++
-        (timeBatch (248 + steps : Nat) (buildSuffix steps).1).2 at he
+        (timeBatch (254 + steps : Nat) (buildSuffix steps).1).2 at he
       rcases List.mem_append.mp he with he | he
       · have := ih he
         simp only [Nat.cast_add, Nat.cast_one]
@@ -325,29 +330,28 @@ theorem prefix_no_restart (steps : Nat) (v : Validator) (t : Time) :
   induction steps with
   | zero => simp [buildPrefix]
   | succ steps ih =>
-      change V2.Event.restart v t ∉ (buildPrefix steps).2 ++
-        (timeBatch steps (buildPrefix steps).1).2
+      simp only [buildPrefix]
       simp only [List.mem_append, not_or]
       exact ⟨ih, timeBatch_no_restart _ _ v t⟩
 
 theorem suffix_no_restart (steps : Nat) (v : Validator) (t : Time) :
     V2.Event.restart v t ∉ (buildSuffix steps).2 := by
   induction steps with
-  | zero => simp [buildSuffix]
+  | zero => simp [buildSuffix, buildSuffixFrom]
   | succ steps ih =>
       change V2.Event.restart v t ∉ (buildSuffix steps).2 ++
-        (timeBatch (248 + steps : Nat) (buildSuffix steps).1).2
+        (timeBatch (254 + steps : Nat) (buildSuffix steps).1).2
       simp only [List.mem_append, not_or]
       exact ⟨ih, timeBatch_no_restart _ _ v t⟩
 
 theorem no_restart : V2.D.NoRestart source ∧ V2.D.NoRestart continuation := by
   constructor
   · intro i v t he
-    exact prefix_no_restart 248 v t (List.mem_of_getElem? he)
+    exact prefix_no_restart 254 v t (List.mem_of_getElem? he)
   · intro i v t he
     have hm := List.mem_of_getElem? he
     change V2.Event.restart v t ∈ source.events ++ (buildSuffix 16).2 at hm
-    exact (List.mem_append.mp hm).elim (prefix_no_restart 248 v t) (suffix_no_restart 16 v t)
+    exact (List.mem_append.mp hm).elim (prefix_no_restart 254 v t) (suffix_no_restart 16 v t)
 
 theorem event_prefix : continuation.events.take source.events.length = source.events :=
   List.take_left
@@ -357,15 +361,15 @@ theorem suffix_after_endpoint (e : Event)
   change e ∈ (source.events ++ (buildSuffix 16).2).drop source.events.length at he
   rw [List.drop_left] at he
   have := (suffix_times 16 e he).1
-  change 247 < e.time
+  change 253 < e.time
   simp only [Time] at *
   omega
 
 /-- Prove agreement without expanding the concrete event lists. -/
 theorem agreement_of_suffix (es ds : List Event)
-    (hds : ∀ e ∈ ds, (247 : Time) < e.time) :
-    AgreesThrough₂ params unitCodec strongEnv (runData 247 es)
-      weakEnv (runData 263 (es ++ ds)) 1 where
+    (hds : ∀ e ∈ ds, (253 : Time) < e.time) :
+    AgreesThrough₂ params unitCodec strongEnv (runData 253 es)
+      weakEnv (runData 269 (es ++ ds)) 1 where
   honest := rfl
   gst := rfl
   delta := rfl
@@ -373,7 +377,7 @@ theorem agreement_of_suffix (es ds : List Event)
   inputs := fun _ _ _ => rfl
   awake := by
     intro v t ht
-    have ht' : t ≤ 247 := ht
+    have ht' : t ≤ 253 := ht
     simp [weakEnv, strongEnv, ht']
   events := List.take_left
   suffixTime := by
@@ -406,21 +410,20 @@ theorem prefix_tick (steps t : Nat) (ht : t < steps) (v : Validator)
   induction steps with
   | zero => omega
   | succ steps ih =>
-      change V2.Event.tick v (t : Time) ∈ (buildPrefix steps).2 ++
-        (timeBatch steps (buildPrefix steps).1).2
+      simp only [buildPrefix]
       by_cases he : t = steps
       · subst t
         exact List.mem_append_right _ (timeBatch_tick _ _ v ha)
       · exact List.mem_append_left _ (ih (by omega))
 
 theorem suffix_tick (steps t : Nat) (ht : t < steps) (v : Validator)
-    (ha : weakEnv.awake v ((248 + t : Nat) : Time) = true) :
-    V2.Event.tick v ((248 + t : Nat) : Time) ∈ (buildSuffix steps).2 := by
+    (ha : weakEnv.awake v ((254 + t : Nat) : Time) = true) :
+    V2.Event.tick v ((254 + t : Nat) : Time) ∈ (buildSuffix steps).2 := by
   induction steps with
   | zero => omega
   | succ steps ih =>
-      change V2.Event.tick v ((248 + t : Nat) : Time) ∈ (buildSuffix steps).2 ++
-        (timeBatch (248 + steps : Nat) (buildSuffix steps).1).2
+      change V2.Event.tick v ((254 + t : Nat) : Time) ∈ (buildSuffix steps).2 ++
+        (timeBatch (254 + steps : Nat) (buildSuffix steps).1).2
       by_cases he : t = steps
       · subst t
         exact List.mem_append_right _ (timeBatch_tick _ _ v ha)
@@ -432,18 +435,18 @@ theorem continuation_horizon_nonneg : 0 ≤ continuation.horizon := by decide
 
 theorem source_in_horizon (e : Event) (he : e ∈ source.events) :
     0 ≤ e.time ∧ e.time ≤ source.horizon := by
-  have ht := witness_prefix_times 248 e he
-  change 0 ≤ e.time ∧ e.time ≤ 247
+  have ht := witness_prefix_times 254 e he
+  change 0 ≤ e.time ∧ e.time ≤ 253
   simp only [Time] at *
   omega
 
 theorem continuation_in_horizon (e : Event) (he : e ∈ continuation.events) :
     0 ≤ e.time ∧ e.time ≤ continuation.horizon := by
   change e ∈ source.events ++ (buildSuffix 16).2 at he
-  change 0 ≤ e.time ∧ e.time ≤ 263
+  change 0 ≤ e.time ∧ e.time ≤ 269
   rcases List.mem_append.mp he with he | he
   · have ht := source_in_horizon e he
-    change 0 ≤ e.time ∧ e.time ≤ 247 at ht
+    change 0 ≤ e.time ∧ e.time ≤ 253 at ht
     simp only [Time] at *
     omega
   · have ht := suffix_times 16 e he
@@ -472,7 +475,7 @@ theorem source_tick_total (v : Validator) (_hv : v ∈ source.honest) (t : Time)
   have he : (t.toNat : Int) = t := Int.toNat_of_nonneg ht
   rw [← he]
   apply prefix_tick
-  · change t ≤ 247 at hh
+  · change t ≤ 253 at hh
     simp only [Time] at *
     omega
   · rw [he]
@@ -483,27 +486,27 @@ theorem continuation_tick_total (v : Validator) (_hv : v ∈ continuation.honest
     (ha : weakEnv.awake v t = true) :
     V2.Event.tick v t ∈ continuation.events := by
   change V2.Event.tick v t ∈ source.events ++ (buildSuffix 16).2
-  by_cases he : t ≤ 247
+  by_cases he : t ≤ 253
   · apply List.mem_append_left
     exact source_tick_total v (Finset.mem_univ _) t
       ⟨t.toNat, by simpa [strongEnv] using (Int.toNat_of_nonneg ht).symm⟩ ht he
   · apply List.mem_append_right
-    have hcast : (((248 + (t - 248).toNat : Nat)) : Time) = t := by
+    have hcast : (((254 + (t - 254).toNat : Nat)) : Time) = t := by
       simp only [Time] at *
       omega
     rw [← hcast]
     apply suffix_tick
-    · change t ≤ 263 at hh
+    · change t ≤ 269 at hh
       simp only [Time] at *
       omega
     · rwa [hcast]
 
-theorem suffix_has_ticks : V2.Event.tick 0 248 ∈ continuation.events ∧
-    V2.Event.tick 0 263 ∈ continuation.events := by
+theorem suffix_has_ticks : V2.Event.tick 0 254 ∈ continuation.events ∧
+    V2.Event.tick 0 269 ∈ continuation.events := by
   constructor
-  · exact continuation_tick_total 0 (Finset.mem_univ _) 248 ⟨248, rfl⟩
+  · exact continuation_tick_total 0 (Finset.mem_univ _) 254 ⟨254, rfl⟩
       (by decide) (by decide) (by decide)
-  · exact continuation_tick_total 0 (Finset.mem_univ _) 263 ⟨263, rfl⟩
+  · exact continuation_tick_total 0 (Finset.mem_univ _) 269 ⟨269, rfl⟩
       (by decide) (by decide) (by decide)
 
 theorem phase_le_two (e : Event) : e.phase ≤ 2 := by cases e <;> simp [V2.Event.phase]
@@ -548,9 +551,10 @@ theorem timeBatch_sorted (t : Time) (w : World) :
 theorem prefix_sorted (steps : Nat) :
     (buildPrefix steps).2.Pairwise (fun e f => e.key ≤ f.key) := by
   induction steps with
-  | zero => exact List.Pairwise.nil
+  | zero => simpa only [buildPrefix] using (List.Pairwise.nil
+      (R := fun e f : Event => e.key ≤ f.key))
   | succ steps ih =>
-      change ((buildPrefix steps).2 ++ (timeBatch steps (buildPrefix steps).1).2).Pairwise _
+      simp only [buildPrefix]
       rw [List.pairwise_append]
       refine ⟨ih, timeBatch_sorted _ _, ?_⟩
       intro e he f hf
@@ -567,7 +571,7 @@ theorem suffix_sorted (steps : Nat) :
   | zero => exact List.Pairwise.nil
   | succ steps ih =>
       change ((buildSuffix steps).2 ++
-        (timeBatch (248 + steps : Nat) (buildSuffix steps).1).2).Pairwise _
+        (timeBatch (254 + steps : Nat) (buildSuffix steps).1).2).Pairwise _
       rw [List.pairwise_append]
       refine ⟨ih, timeBatch_sorted _ _, ?_⟩
       intro e he f hf
@@ -579,14 +583,14 @@ theorem suffix_sorted (steps : Nat) :
       simp only [Nat.cast_add, Nat.cast_ofNat]
       exact ⟨le_of_lt he', fun h => False.elim (ne_of_lt he' h)⟩
 
-theorem source_sorted : source.events.Pairwise (fun e f => e.key ≤ f.key) := prefix_sorted 248
+theorem source_sorted : source.events.Pairwise (fun e f => e.key ≤ f.key) := prefix_sorted 254
 
 theorem continuation_sorted : continuation.events.Pairwise (fun e f => e.key ≤ f.key) := by
   change (source.events ++ (buildSuffix 16).2).Pairwise _
   rw [List.pairwise_append]
   refine ⟨source_sorted, suffix_sorted 16, ?_⟩
   intro e he f hf
-  have he' := (witness_prefix_times 248 e he).2
+  have he' := (witness_prefix_times 254 e he).2
   have hf' := (suffix_times 16 f hf).1
   exact Prod.Lex.toLex_le_toLex'.mpr
     ⟨le_trans (le_of_lt he') hf', fun h => False.elim (ne_of_lt (lt_of_lt_of_le he' hf') h)⟩
@@ -623,9 +627,11 @@ end
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
+attribute [local irreducible] buildPrefix
+
 /-- The event fold used by the generator. -/
 def genFold (w : World) (es : List Event) : World :=
-  es.foldl (V2.D.World.step weakEnv (runData 263 [])) w
+  es.foldl (V2.D.World.step weakEnv (runData 269 [])) w
 
 /-- Freshness at each delivery, with the state advanced at every event. -/
 def GenFresh : World → List Event → Prop
@@ -634,7 +640,7 @@ def GenFresh : World → List Event → Prop
       (match e with
         | .deliver v o _ => (fgsa params unitCodec).processed (w v) o = false
         | _ => True) ∧
-      GenFresh (V2.D.World.step weakEnv (runData 263 []) w e) es
+      GenFresh (V2.D.World.step weakEnv (runData 269 []) w e) es
 
 theorem genFold_append (w : World) (es ds : List Event) :
     genFold w (es ++ ds) = genFold (genFold w es) ds :=
@@ -651,7 +657,7 @@ theorem genFresh_append (w : World) (es ds : List Event) :
 theorem tick_fold_replay (t : Time) (vs : List Validator)
     (w : World) (os : List (Obj params)) :
     (vs.foldl (fun acc v =>
-      let result := V2.D.tick weakEnv (runData 263 []) (acc.1 v) v t
+      let result := V2.D.tick weakEnv (runData 269 []) (acc.1 v) v t
       (Function.update acc.1 v result.1, acc.2 ++ result.2)) (w, os)).1 =
       genFold w (vs.map (fun v => .tick v t)) := by
   induction vs generalizing w os with
@@ -697,37 +703,42 @@ theorem prefix_replay_fresh (steps : Nat) :
     (buildPrefix steps).1 = genFold V2.D.World.init (buildPrefix steps).2 ∧
       GenFresh V2.D.World.init (buildPrefix steps).2 := by
   induction steps with
-  | zero => exact ⟨rfl, trivial⟩
+  | zero => simp only [buildPrefix, genFold, GenFresh, List.foldl_nil, and_self]
   | succ steps ih =>
+      simp only [buildPrefix]
       have hb := timeBatch_replay_fresh (steps : Time) (buildPrefix steps).1
       constructor
-      · change (timeBatch steps (buildPrefix steps).1).1 =
-          genFold V2.D.World.init
-            ((buildPrefix steps).2 ++ (timeBatch steps (buildPrefix steps).1).2)
-        rw [genFold_append, ← ih.1]
+      · rw [genFold_append, ← ih.1]
         exact hb.1
-      · change GenFresh V2.D.World.init
-          ((buildPrefix steps).2 ++ (timeBatch steps (buildPrefix steps).1).2)
-        rw [genFresh_append, ← ih.1]
+      · rw [genFresh_append, ← ih.1]
         exact ⟨ih.2, hb.2⟩
 
-theorem suffix_replay_fresh (steps : Nat) :
-    (buildSuffix steps).1 = genFold (buildPrefix 248).1 (buildSuffix steps).2 ∧
-      GenFresh (buildPrefix 248).1 (buildSuffix steps).2 := by
+section
+private theorem suffixFrom_replay_fresh (start : World) (steps : Nat) :
+    (buildSuffixFrom 254 start steps).1 = genFold start (buildSuffixFrom 254 start steps).2 ∧
+      GenFresh start (buildSuffixFrom 254 start steps).2 := by
   induction steps with
   | zero => exact ⟨rfl, trivial⟩
   | succ steps ih =>
-      have hb := timeBatch_replay_fresh ((248 + steps : Nat) : Time) (buildSuffix steps).1
-      constructor
-      · change (timeBatch (248 + steps : Nat) (buildSuffix steps).1).1 =
-          genFold (buildPrefix 248).1
-            ((buildSuffix steps).2 ++ (timeBatch (248 + steps : Nat) (buildSuffix steps).1).2)
-        rw [genFold_append, ← ih.1]
-        exact hb.1
-      · change GenFresh (buildPrefix 248).1
-          ((buildSuffix steps).2 ++ (timeBatch (248 + steps : Nat) (buildSuffix steps).1).2)
-        rw [genFresh_append, ← ih.1]
-        exact ⟨ih.2, hb.2⟩
+    have hb := timeBatch_replay_fresh ((254 + steps : Nat) : Time)
+      (buildSuffixFrom 254 start steps).1
+    constructor
+    · change (timeBatch (254 + steps : Nat) (buildSuffixFrom 254 start steps).1).1 =
+        genFold start ((buildSuffixFrom 254 start steps).2 ++
+          (timeBatch (254 + steps : Nat) (buildSuffixFrom 254 start steps).1).2)
+      rw [genFold_append, ← ih.1]
+      exact hb.1
+    · change GenFresh start ((buildSuffixFrom 254 start steps).2 ++
+        (timeBatch (254 + steps : Nat) (buildSuffixFrom 254 start steps).1).2)
+      rw [genFresh_append, ← ih.1]
+      exact ⟨ih.2, hb.2⟩
+
+theorem suffix_replay_fresh (steps : Nat) :
+    (buildSuffix steps).1 = genFold (buildPrefix 254).1 (buildSuffix steps).2 ∧
+      GenFresh (buildPrefix 254).1 (buildSuffix steps).2 :=
+  suffixFrom_replay_fresh (buildPrefix 254).1 steps
+
+end
 
 theorem genFresh_get (w : World) (es : List Event) (hf : GenFresh w es)
     (i : Nat) (v : Validator) (o : Obj params) (t : Time)
@@ -762,20 +773,20 @@ theorem runData_fresh (h : Time) (es : List Event)
   exact genFresh_get V2.D.World.init es hf i v o t he
 
 theorem continuation_events_eq :
-    continuation.events = (buildPrefix 248).2 ++ (buildSuffix 16).2 := rfl
+    continuation.events = (buildPrefix 254).2 ++ (buildSuffix 16).2 := rfl
 
 attribute [irreducible] GenFresh
 
 theorem continuation_genFresh : GenFresh V2.D.World.init continuation.events :=
   Eq.mpr (congrArg (GenFresh V2.D.World.init) continuation_events_eq)
-    (genFresh_join V2.D.World.init (buildPrefix 248).1 (buildPrefix 248).2 (buildSuffix 16).2
-      (prefix_replay_fresh 248).1 (prefix_replay_fresh 248).2 (suffix_replay_fresh 16).2)
+    (genFresh_join V2.D.World.init (buildPrefix 254).1 (buildPrefix 254).2 (buildSuffix 16).2
+      (prefix_replay_fresh 254).1 (prefix_replay_fresh 254).2 (suffix_replay_fresh 16).2)
 
 set_option maxRecDepth 4096 in
 theorem continuation_fresh (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (he : continuation.events[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).processed (V2.D.Run.stateBefore weakEnv continuation i v) o = false :=
-  runData_fresh 263 _ continuation_genFresh i v o t he
+  runData_fresh 269 _ continuation_genFresh i v o t he
 
 theorem source_fresh (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (he : source.events[i]? = some (.deliver v o t)) :
@@ -793,10 +804,12 @@ end
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
+attribute [local irreducible] buildPrefix
+
 /-- A tick and its release, stated with the event prefix that it reads. -/
 def GenEmits (w : World) (es : List Event) (v : Validator) (o : Obj params) (t : Time) : Prop :=
   ∃ pre post, es = pre ++ .tick v t :: post ∧
-    o ∈ (V2.D.tick weakEnv (runData 263 []) (genFold w pre v) v t).2
+    o ∈ (V2.D.tick weakEnv (runData 269 []) (genFold w pre v) v t).2
 
 /-- Every direct delivery has a same-time emission in the same trace. -/
 def GenOrigin (w : World) (es : List Event) : Prop :=
@@ -804,7 +817,7 @@ def GenOrigin (w : World) (es : List Event) : Prop :=
 
 theorem genEmits_cons (w : World) (e : Event) (es : List Event)
     (v : Validator) (o : Obj params) (t : Time)
-    (h : GenEmits (V2.D.World.step weakEnv (runData 263 []) w e) es v o t) :
+    (h : GenEmits (V2.D.World.step weakEnv (runData 269 []) w e) es v o t) :
     GenEmits w (e :: es) v o t := by
   obtain ⟨pre, post, he, ho⟩ := h
   exact ⟨e :: pre, post, congrArg (e :: ·) he, ho⟩
@@ -836,7 +849,7 @@ theorem genOrigin_append (w w' : World) (es ds : List Event)
 theorem tick_fold_origin (t : Time) (vs : List Validator)
     (w : World) (os : List (Obj params)) (o : Obj params)
     (ho : o ∈ (vs.foldl (fun acc v =>
-      let result := V2.D.tick weakEnv (runData 263 []) (acc.1 v) v t
+      let result := V2.D.tick weakEnv (runData 269 []) (acc.1 v) v t
       (Function.update acc.1 v result.1, acc.2 ++ result.2)) (w, os)).2) :
     o ∈ os ∨ ∃ v, GenEmits w (vs.map (fun v => .tick v t)) v o t := by
   induction vs generalizing w os with
@@ -887,19 +900,19 @@ theorem prefix_blocks (steps : Nat) :
     (buildPrefix steps).2 = (List.range steps).flatMap
       (fun (s : Nat) => (timeBatch (s : Time) (buildPrefix s).1).2) := by
   induction steps with
-  | zero => rfl
+  | zero => simp [buildPrefix]
   | succ steps ih =>
-      change (buildPrefix steps).2 ++ (timeBatch steps (buildPrefix steps).1).2 = _
+      rw [buildPrefix]
       simp only [List.range_succ, List.flatMap_append, List.flatMap_singleton, ih]
 
 theorem suffix_blocks (steps : Nat) :
     (buildSuffix steps).2 = (List.range steps).flatMap
-      (fun s => (timeBatch ((248 + s : Nat) : Time) (buildSuffix s).1).2) := by
+      (fun s => (timeBatch ((254 + s : Nat) : Time) (buildSuffix s).1).2) := by
   induction steps with
   | zero => rfl
   | succ steps ih =>
       change (buildSuffix steps).2 ++
-        (timeBatch (248 + steps : Nat) (buildSuffix steps).1).2 = _
+        (timeBatch (254 + steps : Nat) (buildSuffix steps).1).2 = _
       simp only [List.range_succ, List.flatMap_append, List.flatMap_singleton, ih]
 
 theorem timeBatch_origin (t : Time) (w : World) : GenOrigin w (timeBatch t w).2 := by
@@ -917,11 +930,12 @@ theorem timeBatch_origin (t : Time) (w : World) : GenOrigin w (timeBatch t w).2 
 
 theorem prefix_origin (steps : Nat) : GenOrigin V2.D.World.init (buildPrefix steps).2 := by
   induction steps with
-  | zero => intro v o t hm; exact (List.not_mem_nil hm).elim
+  | zero => simp [buildPrefix, GenOrigin]
   | succ steps ih =>
+      rw [buildPrefix]
       exact genOrigin_append _ _ _ _ (prefix_replay_fresh steps).1 ih (timeBatch_origin _ _)
 
-theorem suffix_origin (steps : Nat) : GenOrigin (buildPrefix 248).1 (buildSuffix steps).2 := by
+theorem suffix_origin (steps : Nat) : GenOrigin (buildPrefix 254).1 (buildSuffix steps).2 := by
   induction steps with
   | zero => intro v o t hm; exact (List.not_mem_nil hm).elim
   | succ steps ih =>
@@ -944,13 +958,15 @@ end
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
+attribute [local irreducible] buildPrefix
+
 /-- Every emitted object is signed with a seat of its emitter. -/
 theorem gen_tick_holder (st : Node params) (v : Validator) (t : Time) (o : Obj params)
-    (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2) :
-    V2.D.Run.holder (runData 263 []) o.auth = some v := by
+    (ho : o ∈ (V2.D.tick weakEnv (runData 269 []) st v t).2) :
+    V2.D.Run.holder (runData 269 []) o.auth = some v := by
   change o ∈ (if weakEnv.awake v t then
     (duties params t).flatMap (fun l =>
-      ((runData 263 []).ownSeats (RunDuty.signLabel l) v).filterMap (fun i =>
+      ((runData 269 []).ownSeats (RunDuty.signLabel l) v).filterMap (fun i =>
         ((fgsa params unitCodec).act ((fgsa params unitCodec).clock st t) l ()).map
           (fun m => ⟨.seat (RunDuty.signLabel l) i, m⟩))) ++ [] else []) at ho
   split at ho
@@ -978,14 +994,14 @@ theorem genOrigin_unforgeable (h : Time) (es : List Event) (horigin : GenOrigin 
 
 theorem continuation_genOrigin : GenOrigin V2.D.World.init continuation.events :=
   Eq.mpr (congrArg (GenOrigin V2.D.World.init) continuation_events_eq)
-    (genOrigin_append V2.D.World.init (buildPrefix 248).1 (buildPrefix 248).2 (buildSuffix 16).2
-      (prefix_replay_fresh 248).1 (prefix_origin 248) (suffix_origin 16))
+    (genOrigin_append V2.D.World.init (buildPrefix 254).1 (buildPrefix 254).2 (buildSuffix 16).2
+      (prefix_replay_fresh 254).1 (prefix_origin 254) (suffix_origin 16))
 
 theorem continuation_unforgeable (v : Validator) (o : Obj params) (t : Time)
     (hp : V2.D.Run.processes continuation v o t) (u : Validator) (_hu : u ∈ continuation.honest)
     (hh : V2.D.Run.holder continuation o.auth = some u) :
     ∃ t', t' ≤ t ∧ V2.D.Run.emits weakEnv continuation u o t' :=
-  genOrigin_unforgeable 263 _ continuation_genOrigin v o t hp u hh
+  genOrigin_unforgeable 269 _ continuation_genOrigin v o t hp u hh
 
 /-- On the source, a tick and its releases agree in both environments. -/
 theorem source_emits_weak_to_strong (v : Validator) (o : Obj params) (t : Time)
@@ -1010,8 +1026,8 @@ theorem source_unforgeable (v : Validator) (o : Obj params) (t : Time)
     (hp : V2.D.Run.processes source v o t) (u : Validator) (_hu : u ∈ source.honest)
     (hh : V2.D.Run.holder source o.auth = some u) :
     ∃ t', t' ≤ t ∧ V2.D.Run.emits strongEnv source u o t' := by
-  obtain ⟨t', ht', he⟩ := genOrigin_unforgeable 247 (buildPrefix 248).2
-    (prefix_origin 248) v o t hp u hh
+  obtain ⟨t', ht', he⟩ := genOrigin_unforgeable 253 (buildPrefix 254).2
+    (prefix_origin 254) v o t hp u hh
   exact ⟨t', ht', source_emits_weak_to_strong u o t' he⟩
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
@@ -1019,6 +1035,8 @@ end
 
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
+
+attribute [local irreducible] buildPrefix
 
 /-- Without gossip, a tick releases at most one object for each duty seat. -/
 theorem tick_nodup_without_gossip {In V : Type} [DecidableEq V]
@@ -1057,15 +1075,15 @@ theorem tick_nodup_without_gossip {In V : Type} [DecidableEq V]
   · exact List.nodup_nil
 
 theorem gen_tick_nodup (st : Node params) (v : Validator) (t : Time) :
-    (V2.D.tick weakEnv (runData 263 []) st v t).2.Nodup :=
-  tick_nodup_without_gossip (fgsa params unitCodec) weakEnv (runData 263 []) st v t rfl
+    (V2.D.tick weakEnv (runData 269 []) st v t).2.Nodup :=
+  tick_nodup_without_gossip (fgsa params unitCodec) weakEnv (runData 269 []) st v t rfl
     (fgsa_dutiesInjectiveAt t)
 
 theorem tick_fold_nodup (t : Time) (vs : List Validator) (hn : vs.Nodup)
     (w : World) (os : List (Obj params)) (ho : os.Nodup)
-    (hh : ∀ o ∈ os, ∀ v ∈ vs, V2.D.Run.holder (runData 263 []) o.auth ≠ some v) :
+    (hh : ∀ o ∈ os, ∀ v ∈ vs, V2.D.Run.holder (runData 269 []) o.auth ≠ some v) :
     (vs.foldl (fun acc v =>
-      let result := V2.D.tick weakEnv (runData 263 []) (acc.1 v) v t
+      let result := V2.D.tick weakEnv (runData 269 []) (acc.1 v) v t
       (Function.update acc.1 v result.1, acc.2 ++ result.2)) (w, os)).2.Nodup := by
   induction vs generalizing w os with
   | nil => exact ho
@@ -1112,8 +1130,9 @@ theorem timeBatch_nodup (t : Time) (w : World) : (timeBatch t w).2.Nodup := by
 
 theorem prefix_nodup (steps : Nat) : (buildPrefix steps).2.Nodup := by
   induction steps with
-  | zero => exact List.nodup_nil
+  | zero => simp [buildPrefix]
   | succ steps ih =>
+      rw [buildPrefix]
       apply ih.append (timeBatch_nodup _ _)
       intro e he hb
       have hlt := (witness_prefix_times steps e he).2
@@ -1131,12 +1150,12 @@ theorem suffix_nodup (steps : Nat) : (buildSuffix steps).2.Nodup := by
       simp only [Nat.cast_add, Nat.cast_ofNat] at hlt
       exact (lt_irrefl _ hlt)
 
-theorem source_nodup : source.events.Nodup := prefix_nodup 248
+theorem source_nodup : source.events.Nodup := prefix_nodup 254
 
 theorem continuation_nodup : continuation.events.Nodup := by
   apply source_nodup.append (suffix_nodup 16)
   intro e he hd
-  have hlt := (witness_prefix_times 248 e he).2
+  have hlt := (witness_prefix_times 254 e he).2
   have hge := (suffix_times 16 e hd).1
   exact (not_lt_of_ge hge hlt)
 
@@ -1163,6 +1182,9 @@ end
 
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
+
+attribute [local irreducible] buildPrefix
+
 open AvailableChain.SimplexFG
 
 /-- Indexed replay for any run made from the generator's static data. -/
@@ -1180,19 +1202,22 @@ theorem genOrigin_runData (h : Time) (es : List Event) (ho : GenOrigin V2.D.Worl
 theorem source_delivery_origin (v : Validator) (o : Obj params) (t : Time)
     (hp : V2.D.Run.processes source v o t) :
     ∃ u, u ∈ source.honest ∧ V2.D.Run.emits strongEnv source u o t := by
-  obtain ⟨u, hu, he⟩ := genOrigin_runData 247 (buildPrefix 248).2 (prefix_origin 248) v o t hp
+  obtain ⟨u, hu, he⟩ := genOrigin_runData 253 (buildPrefix 254).2 (prefix_origin 254) v o t hp
   exact ⟨u, hu, source_emits_weak_to_strong u o t he⟩
 
 theorem continuation_delivery_origin (v : Validator) (o : Obj params) (t : Time)
     (hp : V2.D.Run.processes continuation v o t) :
     ∃ u, u ∈ continuation.honest ∧ V2.D.Run.emits weakEnv continuation u o t :=
-  genOrigin_runData 263 _ continuation_genOrigin v o t hp
+  genOrigin_runData 269 _ continuation_genOrigin v o t hp
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 end
 
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
+
+attribute [local irreducible] buildPrefix
+
 open AvailableChain.SimplexFG
 
 theorem gen_nonproposal_deps (st : Node params) (o : Obj params)
@@ -1239,12 +1264,12 @@ theorem gen_attest_valid (st : State params.n) (record : RecordOnce)
 
 /-- Describe each release without evaluating the state or its codec data. -/
 theorem gen_tick_seat (st : Node params) (v : Validator) (t : Time) (o : Obj params)
-    (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2) :
+    (ho : o ∈ (V2.D.tick weakEnv (runData 269 []) st v t).2) :
     ∃ l i m, o = ⟨.seat (RunDuty.signLabel l) i, m⟩ ∧ l ∈ duties params t ∧
       (fgsa params unitCodec).act ((fgsa params unitCodec).clock st t) l () = some m := by
   change o ∈ (if weakEnv.awake v t then
     (duties params t).flatMap (fun l =>
-      ((runData 263 []).ownSeats (RunDuty.signLabel l) v).filterMap (fun i =>
+      ((runData 269 []).ownSeats (RunDuty.signLabel l) v).filterMap (fun i =>
         ((fgsa params unitCodec).act ((fgsa params unitCodec).clock st t) l ()).map
           (fun m => ⟨.seat (RunDuty.signLabel l) i, m⟩))) ++ [] else []) at ho
   split at ho
@@ -1257,7 +1282,7 @@ theorem gen_tick_seat (st : Node params) (v : Validator) (t : Time) (o : Obj par
 
 /-- The wire check for non-proposal releases. WeakContinuationW1 proves proposal wire. -/
 theorem gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) (o : Obj params)
-    (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2)
+    (ho : o ∈ (V2.D.tick weakEnv (runData 269 []) st v t).2)
     (hn : ∀ b, o.payload ≠ .proposal b) :
     (fgsa params unitCodec).wellFormed o = true := by
   obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
@@ -1293,6 +1318,8 @@ end
 
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
+
+attribute [local irreducible] buildPrefix
 
 /-- Each offer either creates a delivery or finds the object processed at
 an event prefix. This lemma does not assert acceptance of a delivery. -/
@@ -1345,7 +1372,7 @@ theorem source_nonproposal_wire (i : Nat) (v : Validator) (o : Obj params) (t : 
     (he : source.events[i]? = some (.deliver v o t))
     (hn : ∀ b, o.payload ≠ .proposal b) :
     (fgsa params unitCodec).wellFormed o = true :=
-  genOrigin_nonproposal_wire V2.D.World.init _ (prefix_origin 248) v o t
+  genOrigin_nonproposal_wire V2.D.World.init _ (prefix_origin 254) v o t
     (List.mem_of_getElem? he) hn
 
 theorem continuation_nonproposal_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
@@ -1360,6 +1387,8 @@ end
 
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
+
+attribute [local irreducible] buildPrefix
 
 /-- A row that is already in the pool does not change the store. -/
 theorem i7_admitRow_duplicate (st : State params.n) (i : Fin params.n)
@@ -1428,7 +1457,7 @@ theorem i7_foldl_admitRow_eq (rows : List (RowWire params.n)) (st : State params
       exact ⟨pool, hp, fun _ hm => hpre (List.mem_append_left _ hm)⟩
 
 theorem i7_tick_st (st : Node params) (v : Validator) (t : Time) :
-    (V2.D.tick weakEnv (runData 263 []) st v t).1.st = FGSA.clock params st.st t := by
+    (V2.D.tick weakEnv (runData 269 []) st v t).1.st = FGSA.clock params st.st t := by
   have hf (os : List (Obj params)) (nd : Node params) :
       (os.foldl (fgsa params unitCodec).recordOwn nd).st = nd.st := by
     induction os generalizing nd with
@@ -1552,9 +1581,11 @@ end
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
+attribute [local irreducible] buildPrefix
+
 /-- Every generated proposal selects its rows at node zero. -/
 theorem gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
-    (o : Obj params) (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2)
+    (o : Obj params) (ho : o ∈ (V2.D.tick weakEnv (runData 269 []) st v t).2)
     (b : NamedProposal params.n)
     (he : o.payload = .proposal b) :
     v = 0 ∧ ∃ H, b.rows = proposalRows params (FGSA.clock params st.st t) H := by
@@ -1591,7 +1622,7 @@ theorem gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
 
 /-- Each tick keeps both fields used by the invariant. -/
 theorem gen_tick_pool_fields (w : World) (v : Validator) (t : Time) (u : Validator) :
-    let w' := Function.update w v (V2.D.tick weakEnv (runData 263 []) (w v) v t).1
+    let w' := Function.update w v (V2.D.tick weakEnv (runData 269 []) (w v) v t).1
     (w' u).st.rowPool = (w u).st.rowPool ∧
       (w' u).st.proposals = (w u).st.proposals := by
   dsimp only
@@ -1610,7 +1641,7 @@ theorem gen_tick_fold_pool (t : Time) (vs : List Validator) (w : World)
     (ho : ∀ o ∈ os, ∀ b, o.payload = .proposal b →
       ∀ a ∈ b.rows, a ∈ (w 0).st.rowPool) :
     let result := vs.foldl (fun acc v =>
-      let result := V2.D.tick weakEnv (runData 263 []) (acc.1 v) v t
+      let result := V2.D.tick weakEnv (runData 269 []) (acc.1 v) v t
       (Function.update acc.1 v result.1, acc.2 ++ result.2)) (w, os)
     GenPoolWitness result.1 ∧
       ∀ o ∈ result.2, ∀ b, o.payload = .proposal b →
@@ -1618,7 +1649,7 @@ theorem gen_tick_fold_pool (t : Time) (vs : List Validator) (w : World)
   induction vs generalizing w os with
   | nil => exact ⟨hw, ho⟩
   | cons v vs ih =>
-    let w' := Function.update w v (V2.D.tick weakEnv (runData 263 []) (w v) v t).1
+    let w' := Function.update w v (V2.D.tick weakEnv (runData 269 []) (w v) v t).1
     have hf := gen_tick_pool_fields w v t 0
     have hw' : GenPoolWitness w' := by
       simpa only [GenPoolWitness, GenStoredRows, w', hf.1, hf.2] using hw
@@ -1662,6 +1693,8 @@ end
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
+attribute [local irreducible] buildPrefix
+
 /-- All offers have rows already in the proposer's pool, which only grows. -/
 theorem gen_delivery_fold_pool (t : Time) (xs : List (Validator × Obj params))
     (acc : World × List Event) (hw : GenPoolWitness acc.1)
@@ -1688,13 +1721,25 @@ theorem gen_timeBatch_pool (t : Time) (w : World) (hw : GenPoolWitness w) :
 
 theorem gen_prefix_pool (steps : Nat) : GenPoolWitness (buildPrefix steps).1 := by
   induction steps with
-  | zero => intro w hw; exact (List.not_mem_nil hw).elim
-  | succ steps ih => exact gen_timeBatch_pool steps _ ih
+  | zero =>
+    rw [buildPrefix]
+    intro w hw
+    exact (List.not_mem_nil hw).elim
+  | succ steps ih =>
+    rw [buildPrefix]
+    exact gen_timeBatch_pool steps _ ih
 
-theorem gen_suffix_pool (steps : Nat) : GenPoolWitness (buildSuffix steps).1 := by
+section
+private theorem suffixFrom_pool (start : World) (hw : GenPoolWitness start) (steps : Nat) :
+    GenPoolWitness (buildSuffixFrom 254 start steps).1 := by
   induction steps with
-  | zero => exact gen_prefix_pool 248
-  | succ steps ih => exact gen_timeBatch_pool (248 + steps : Nat) _ ih
+  | zero => exact hw
+  | succ steps ih => exact gen_timeBatch_pool (254 + steps : Nat) _ ih
+
+theorem gen_suffix_pool (steps : Nat) : GenPoolWitness (buildSuffix steps).1 :=
+  suffixFrom_pool (buildPrefix 254).1 (gen_prefix_pool 254) steps
+
+end
 
 /-- H at every prefix batch: all selected rows are in the selecting node's pool. -/
 theorem i7_prefix_selected_rows (steps : Nat) (H : Block) (a : RowWire params.n)
@@ -1704,11 +1749,11 @@ theorem i7_prefix_selected_rows (steps : Nat) (H : Block) (a : RowWire params.n)
   rw [i7_clock_rowPool]
   exact gen_storedRows_clock _ _ _ (gen_prefix_pool steps)
 
-/-- H at every suffix batch, including the continuation through time 263. -/
+/-- H at every suffix batch, including the continuation through time 269. -/
 theorem i7_suffix_selected_rows (steps : Nat) (H : Block) (a : RowWire params.n)
     (ha : a ∈ proposalRows params
-      (FGSA.clock params ((buildSuffix steps).1 0).st (248 + steps : Nat)) H) :
-    a ∈ (FGSA.clock params ((buildSuffix steps).1 0).st (248 + steps : Nat)).rowPool := by
+      (FGSA.clock params ((buildSuffix steps).1 0).st (254 + steps : Nat)) H) :
+    a ∈ (FGSA.clock params ((buildSuffix steps).1 0).st (254 + steps : Nat)).rowPool := by
   apply gen_proposalRows_origin _ _ H (fun _ hm => hm) _ a ha
   rw [i7_clock_rowPool]
   exact gen_storedRows_clock _ _ _ (gen_suffix_pool steps)
@@ -1718,6 +1763,8 @@ end
 
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
+
+attribute [local irreducible] buildPrefix
 
 /-- The vote pool is also unchanged by the clock. -/
 theorem i7_clock_votes (st : State params.n) (t : Time) :
@@ -1864,6 +1911,8 @@ end
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
+attribute [local irreducible] buildPrefix
+
 theorem i7_decode_vote (o : Obj params) (s : Slot) (i : Fin params.n) (b : BlockId)
     (h : (toWire params o).decode = some (.vote s i b)) :
     o = ⟨.seat (.base (.head s)) i, .head b⟩ := by
@@ -1967,7 +2016,7 @@ theorem gen_known_process (P : Obj params → Prop) (st : State params.n) (o : O
 /-- A proposal takes every carried signature from the stored state. -/
 theorem gen_tick_children_known (P : Obj params → Prop) (st : Node params)
     (v : Validator) (t : Time) (o : Obj params) (h : GenKnown P st.st)
-    (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2) :
+    (ho : o ∈ (V2.D.tick weakEnv (runData 269 []) st v t).2) :
     ∀ o', carriesS params o o' → P o' := by
   have hs := gen_known_clock P st.st t h
   obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
@@ -2017,12 +2066,14 @@ end
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
+attribute [local irreducible] buildPrefix
+
 /-- Ticks preserve known signatures and select only known children. -/
 theorem gen_tick_fold_known (P : Obj params → Prop) (t : Time) (vs : List Validator)
     (w : World) (os : List (Obj params)) (hw : ∀ v, GenKnown P (w v).st)
     (ho : ∀ o ∈ os, ∀ o', carriesS params o o' → P o') :
     let result := vs.foldl (fun acc v =>
-      let result := V2.D.tick weakEnv (runData 263 []) (acc.1 v) v t
+      let result := V2.D.tick weakEnv (runData 269 []) (acc.1 v) v t
       (Function.update acc.1 v result.1, acc.2 ++ result.2)) (w, os)
     (∀ v, GenKnown P (result.1 v).st) ∧
       ∀ o ∈ result.2, ∀ o', carriesS params o o' → P o' := by
@@ -2144,37 +2195,57 @@ theorem gen_prefix_carried (steps : Nat) :
       GenCarried (buildPrefix steps).2 := by
   induction steps with
   | zero =>
+    rw [buildPrefix]
     constructor
     · intro v
-      exact ⟨by simp [buildPrefix, V2.D.World.init, fgsa, initial],
+      exact ⟨by simp [V2.D.World.init, fgsa, initial],
         by intro w hw; exact (List.not_mem_nil hw).elim,
-        by simp [buildPrefix, V2.D.World.init, fgsa, initial, GridCO.initial]⟩
+        by simp [V2.D.World.init, fgsa, initial, GridCO.initial]⟩
     · intro v o t hm; exact (List.not_mem_nil hm).elim
   | succ steps ih =>
-    simpa only [buildPrefix, Nat.cast_add, Nat.cast_one] using
+    rw [buildPrefix]
+    simpa only [Nat.cast_add, Nat.cast_one] using
       gen_batch_carried (buildPrefix steps).2 steps (buildPrefix steps).1
         (prefix_replay_fresh steps).1 ih.1 ih.2
 
+section
 /-- The suffix starts with the proved prefix state and retains all prefix emissions. -/
-theorem gen_suffix_carried (steps : Nat) :
-    (∀ v, GenKnown (GenPast ((buildPrefix 248).2 ++ (buildSuffix steps).2)
-      (248 + steps : Nat)) ((buildSuffix steps).1 v).st) ∧
-      GenCarried ((buildPrefix 248).2 ++ (buildSuffix steps).2) := by
+private theorem suffixFrom_carried (es : List Event) (start : World)
+    (hstart : start = genFold V2.D.World.init es)
+    (hw : ∀ v, GenKnown (GenPast es 254) (start v).st) (hc : GenCarried es)
+    (steps : Nat) :
+    (∀ v, GenKnown (GenPast (es ++ (buildSuffixFrom 254 start steps).2)
+      (254 + steps : Nat)) ((buildSuffixFrom 254 start steps).1 v).st) ∧
+      GenCarried (es ++ (buildSuffixFrom 254 start steps).2) := by
   induction steps with
-  | zero => simpa only [buildSuffix, List.append_nil, Nat.add_zero] using gen_prefix_carried 248
+  | zero =>
+    simpa only [buildSuffixFrom, List.append_nil, Nat.add_zero, Nat.cast_ofNat] using
+      And.intro hw hc
   | succ steps ih =>
-    have he : (buildSuffix steps).1 =
-        genFold V2.D.World.init ((buildPrefix 248).2 ++ (buildSuffix steps).2) := by
-      rw [genFold_append, ← (prefix_replay_fresh 248).1]
-      exact (suffix_replay_fresh steps).1
-    simpa only [buildSuffix, List.append_assoc, Nat.cast_add, Nat.cast_one, add_assoc] using
-      gen_batch_carried _ (248 + steps : Nat) (buildSuffix steps).1 he ih.1 ih.2
+    have he : (buildSuffixFrom 254 start steps).1 =
+        genFold V2.D.World.init (es ++ (buildSuffixFrom 254 start steps).2) := by
+      rw [genFold_append, ← hstart]
+      exact (suffixFrom_replay_fresh start steps).1
+    simpa only [buildSuffixFrom, List.append_assoc, Nat.cast_add, Nat.cast_one, add_assoc] using
+      gen_batch_carried _ (254 + steps : Nat) (buildSuffixFrom 254 start steps).1 he ih.1 ih.2
+
+
+theorem gen_suffix_carried (steps : Nat) :
+    (∀ v, GenKnown (GenPast ((buildPrefix 254).2 ++ (buildSuffix steps).2)
+      (254 + steps : Nat)) ((buildSuffix steps).1 v).st) ∧
+      GenCarried ((buildPrefix 254).2 ++ (buildSuffix steps).2) :=
+  suffixFrom_carried (buildPrefix 254).2 (buildPrefix 254).1
+    (prefix_replay_fresh 254).1 (gen_prefix_carried 254).1 (gen_prefix_carried 254).2 steps
+
+end
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 end
 
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
+
+attribute [local irreducible] buildPrefix
 
 /-- A carried-signature witness identifies the holder of its earlier emission. -/
 theorem genCarried_runData (h : Time) (es : List Event) (hc : GenCarried es)
@@ -2196,8 +2267,8 @@ theorem source_carried (v : Validator) (o : Obj params) (t : Time)
     (hc : (fgsa params unitCodec).carries o o') (u : Validator) (_hu : u ∈ source.honest)
     (hh : V2.D.Run.holder source o'.auth = some u) :
     ∃ t', t' ≤ t ∧ V2.D.Run.emits strongEnv source u o' t' := by
-  obtain ⟨s, ht, he⟩ := genCarried_runData 247 (buildPrefix 248).2
-    (gen_prefix_carried 248).2 v o t hp o' hc u hh
+  obtain ⟨s, ht, he⟩ := genCarried_runData 253 (buildPrefix 254).2
+    (gen_prefix_carried 254).2 v o t hp o' hc u hh
   exact ⟨s, ht, source_emits_weak_to_strong u o' s he⟩
 
 theorem continuation_carried (v : Validator) (o : Obj params) (t : Time)
@@ -2206,7 +2277,7 @@ theorem continuation_carried (v : Validator) (o : Obj params) (t : Time)
     (_hu : u ∈ continuation.honest)
     (hh : V2.D.Run.holder continuation o'.auth = some u) :
     ∃ t', t' ≤ t ∧ V2.D.Run.emits weakEnv continuation u o' t' :=
-  genCarried_runData 263 _ (gen_suffix_carried 16).2 v o t hp o' hc u hh
+  genCarried_runData 269 _ (gen_suffix_carried 16).2 v o t hp o' hc u hh
 
 theorem source_signatures : V2.D.UnforgeableSignatures strongEnv source where
   unforgeable := source_unforgeable
@@ -2222,11 +2293,13 @@ end
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
+attribute [local irreducible] buildPrefix
+
 /-- The full tick fold keeps each node's row pool. -/
 theorem i7_tick_fold_pool_eq (t : Time) (vs : List Validator) (w : World)
     (os : List (Obj params)) (u : Validator) :
     let result := vs.foldl (fun acc v =>
-      let result := V2.D.tick weakEnv (runData 263 []) (acc.1 v) v t
+      let result := V2.D.tick weakEnv (runData 269 []) (acc.1 v) v t
       (Function.update acc.1 v result.1, acc.2 ++ result.2)) (w, os)
     (result.1 u).st.rowPool = (w u).st.rowPool := by
   induction vs generalizing w os with
@@ -2251,17 +2324,19 @@ theorem i7_prefix_emitted_rows (steps : Nat) (o : Obj params)
 
 /-- H for the actual suffix emissions, without a bound on the generator length. -/
 theorem i7_suffix_emitted_rows (steps : Nat) (o : Obj params)
-    (ho : o ∈ (tickBatch (248 + steps : Nat) (buildSuffix steps).1).2)
+    (ho : o ∈ (tickBatch (254 + steps : Nat) (buildSuffix steps).1).2)
     (b : NamedProposal params.n)
     (he : o.payload = .proposal b) :
     ∀ a ∈ b.rows, a ∈ ((buildSuffix steps).1 0).st.rowPool :=
-  i7_batch_emitted_rows (248 + steps : Nat) _ (gen_suffix_pool steps) o ho b he
+  i7_batch_emitted_rows (254 + steps : Nat) _ (gen_suffix_pool steps) o ho b he
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 end
 
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
+
+attribute [local irreducible] buildPrefix
 
 /-- A row with a generated emission passes the row wire check. -/
 theorem gen_past_row_valid (es : List Event) (t : Time) (a : RowWire params.n)
@@ -2306,7 +2381,7 @@ theorem i7_prefix_proposal_rows_valid (steps : Nat) (v : Validator) (H : Block) 
 /-- Proposal row validity in the continuation uses the same invariant. -/
 theorem i7_suffix_proposal_rows_valid (steps : Nat) (v : Validator) (H : Block) :
     ∀ a ∈ proposalRows params
-      (FGSA.clock params ((buildSuffix steps).1 v).st (248 + steps : Nat)) H, a.valid = true := by
+      (FGSA.clock params ((buildSuffix steps).1 v).st (254 + steps : Nat)) H, a.valid = true := by
   have h := gen_suffix_rows_valid steps v
   apply gen_proposalRows_origin
   · simpa only [i7_clock_rowPool] using h.1
@@ -2317,7 +2392,7 @@ theorem i7_eight_in_both_runs (e : Event)
     (he : e ∈ (timeBatch 8 (buildPrefix 8).1).2) :
     e ∈ source.events ∧ e ∈ continuation.events := by
   have hs : e ∈ source.events := by
-    change e ∈ (buildPrefix 248).2
+    change e ∈ (buildPrefix 254).2
     rw [prefix_blocks]
     exact List.mem_flatMap.mpr ⟨8, by decide, he⟩
   exact ⟨hs, List.mem_append_left _ hs⟩
@@ -2526,20 +2601,20 @@ theorem fx_source_schedule : V2.D.ScheduleWellFormed weakEnv source :=
 theorem fx_source_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (hi : source.events[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).wellFormed o = true := by
-  obtain ⟨u, hu⟩ := prefix_origin 248 v o t (List.mem_of_getElem? hi)
-  exact fx_emit_wire 247 _ fx_source_schedule (prefix_origin 248)
-    (gen_prefix_carried 248).2 (prefix_no_restart 248) u o t (genEmits_runData 247 _ u o t hu)
+  obtain ⟨u, hu⟩ := prefix_origin 254 v o t (List.mem_of_getElem? hi)
+  exact fx_emit_wire 253 _ fx_source_schedule (prefix_origin 254)
+    (gen_prefix_carried 254).2 (prefix_no_restart 254) u o t (genEmits_runData 253 _ u o t hu)
 
 /-- Proposal wire checks also hold for every continuation delivery. -/
 theorem fx_continuation_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (hi : continuation.events[i]? = some (.deliver v o t)) :
     (fgsa params unitCodec).wellFormed o = true := by
   obtain ⟨u, hu⟩ := continuation_genOrigin v o t (List.mem_of_getElem? hi)
-  exact fx_emit_wire 263 _ continuation_schedule continuation_genOrigin
+  exact fx_emit_wire 269 _ continuation_schedule continuation_genOrigin
     (gen_suffix_carried 16).2 (fun v t hm => by
       rcases List.mem_append.mp hm with hm | hm
-      · exact prefix_no_restart 248 v t hm
-      · exact suffix_no_restart 16 v t hm) u o t (genEmits_runData 263 _ u o t hu)
+      · exact prefix_no_restart 254 v t hm
+      · exact suffix_no_restart 16 v t hm) u o t (genEmits_runData 269 _ u o t hu)
 
 /-- A skipped offer has exactly the store effect of the real handler. -/
 theorem fx_process_inert (st : State params.n) (o : Obj params)
@@ -2606,7 +2681,7 @@ theorem fx_offer_st (t : Time) (acc : World × List Event) (o : Obj params)
 theorem fx_tickBatch_st (t : Time) (w : World) (u : Validator)
     (hu : weakEnv.awake u t = true) :
     ((tickBatch t w).1 u).st = FGSA.clock params (w u).st t := by
-  by_cases ht : t ≤ 247
+  by_cases ht : t ≤ 253
   · have he : awakeNodes t = nodes := by simp [awakeNodes, weakEnv, nodes, ht]
     rw [tickBatch, he]
     fin_cases u <;> simp [nodes, List.foldl_cons] <;> apply i7_tick_st
@@ -2655,17 +2730,18 @@ theorem fx_batch_uniform (t : Time) (w : World) (hw : FxUniformStores t w) :
 
 theorem fx_prefix_uniform (steps : Nat) : FxUniformStores steps (buildPrefix steps).1 := by
   induction steps with
-  | zero => exact fun _ _ _ _ => rfl
+  | zero => simp [buildPrefix, FxUniformStores, V2.D.World.init]
   | succ steps ih =>
+    rw [buildPrefix]
     intro u v hu hv
     exact fx_batch_uniform steps _ ih u v
       (fx_awake_mono u _ _ (by exact_mod_cast Nat.le_succ steps) hu)
       (fx_awake_mono v _ _ (by exact_mod_cast Nat.le_succ steps) hv)
 
 theorem fx_suffix_uniform (steps : Nat) :
-    FxUniformStores (248 + steps : Nat) (buildSuffix steps).1 := by
+    FxUniformStores (254 + steps : Nat) (buildSuffix steps).1 := by
   intro u v hu hv
-  have ht : ¬ ((248 + steps : Nat) : Time) ≤ 247 := by simp only [Time] at *; omega
+  have ht : ¬ ((254 + steps : Nat) : Time) ≤ 253 := by simp only [Time] at *; omega
   have hu0 := ((weak_awake_iff u _).mp hu).resolve_left ht
   have hv0 := ((weak_awake_iff v _).mp hv).resolve_left ht
   rw [hu0, hv0]
@@ -2673,8 +2749,8 @@ theorem fx_suffix_uniform (steps : Nat) :
 /-- A batch releases exactly the objects from its four independent ticks. -/
 theorem fx_tickBatch_emits (t : Time) (w : World) (o : Obj params) :
     o ∈ (tickBatch t w).2 ↔
-      ∃ v, o ∈ (V2.D.tick weakEnv (runData 263 []) (w v) v t).2 := by
-  by_cases ht : t ≤ 247
+      ∃ v, o ∈ (V2.D.tick weakEnv (runData 269 []) (w v) v t).2 := by
+  by_cases ht : t ≤ 253
   · have he : awakeNodes t = nodes := by simp [awakeNodes, weakEnv, nodes, ht]
     constructor
     · intro ho
@@ -2713,13 +2789,13 @@ theorem fx_tickBatch_emits (t : Time) (w : World) (o : Obj params) :
 /-- Every replayed generator store is reachable. -/
 theorem fx_reachable (es : List Event) (u : Validator) :
     Reachable params (genFold V2.D.World.init es u).st := by
-  have h := reachable_stateBefore weakEnv (runData 263 es) es.length u
+  have h := reachable_stateBefore weakEnv (runData 269 es) es.length u
   rwa [runData_stateBefore, List.take_length] at h
 
 /-- An emitted proposal has a parent in the emitting store. -/
 theorem fx_tick_deps (st : Node params) (v : Validator) (t : Time)
     (hr : Reachable params st.st) (o : Obj params)
-    (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2) :
+    (ho : o ∈ (V2.D.tick weakEnv (runData 269 []) st v t).2) :
     depsS params (FGSA.clock params st.st t) o = true := by
   obtain ⟨l, j, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
   cases l with
@@ -2811,7 +2887,7 @@ def FxDeps : World → List Event → Prop
       (match e with
         | .deliver v o _ => depsS params (w v).st o = true
         | _ => True) ∧
-      FxDeps (V2.D.World.step weakEnv (runData 263 []) w e) es
+      FxDeps (V2.D.World.step weakEnv (runData 269 []) w e) es
 
 theorem fx_deps_append (w : World) (es ds : List Event) :
     FxDeps w (es ++ ds) ↔ FxDeps w es ∧ FxDeps (genFold w es) ds := by
@@ -2865,8 +2941,9 @@ theorem fx_batch_deps (t : Time) (w : World) (hw : FxUniformStores t w)
 /-- I6 for the source generator, by induction over time blocks. -/
 theorem fx_prefix_deps (steps : Nat) : FxDeps V2.D.World.init (buildPrefix steps).2 := by
   induction steps with
-  | zero => trivial
+  | zero => simp [buildPrefix, FxDeps]
   | succ steps ih =>
+    rw [buildPrefix]
     apply (fx_deps_append _ _ _).2
     refine ⟨ih, ?_⟩
     rw [← (prefix_replay_fresh steps).1]
@@ -2875,15 +2952,17 @@ theorem fx_prefix_deps (steps : Nat) : FxDeps V2.D.World.init (buildPrefix steps
       exact fx_reachable _ v)
 
 /-- I6 for the suffix generator, from the source's final store. -/
-theorem fx_suffix_deps (steps : Nat) : FxDeps (buildPrefix 248).1 (buildSuffix steps).2 := by
+theorem fx_suffix_deps (steps : Nat) : FxDeps (buildPrefix 254).1 (buildSuffix steps).2 := by
   induction steps with
   | zero => trivial
   | succ steps ih =>
+    change FxDeps (buildPrefix 254).1 ((buildSuffix steps).2 ++
+      (timeBatch (254 + steps : Nat) (buildSuffix steps).1).2)
     apply (fx_deps_append _ _ _).2
     refine ⟨ih, ?_⟩
     rw [← (suffix_replay_fresh steps).1]
     exact fx_batch_deps _ _ (fx_suffix_uniform steps) (fun v => by
-      rw [(suffix_replay_fresh steps).1, (prefix_replay_fresh 248).1,
+      rw [(suffix_replay_fresh steps).1, (prefix_replay_fresh 254).1,
         ← genFold_append]
       exact fx_reachable _ v)
 
@@ -2906,9 +2985,9 @@ attribute [irreducible] FxDeps
 
 /-- The complete continuation has I6 at every delivery. -/
 theorem fx_continuation_genDeps : FxDeps V2.D.World.init continuation.events := by
-  change FxDeps V2.D.World.init ((buildPrefix 248).2 ++ (buildSuffix 16).2)
-  rw [fx_deps_append, ← (prefix_replay_fresh 248).1]
-  exact ⟨fx_prefix_deps 248, fx_suffix_deps 16⟩
+  change FxDeps V2.D.World.init ((buildPrefix 254).2 ++ (buildSuffix 16).2)
+  rw [fx_deps_append, ← (prefix_replay_fresh 254).1]
+  exact ⟨fx_prefix_deps 254, fx_suffix_deps 16⟩
 
 set_option maxRecDepth 4096 in
 /-- Proposal dependencies hold for the full continuation. -/
@@ -2979,17 +3058,17 @@ theorem fx_continuation_sleep : V2.D.SleepWellFormed weakEnv continuation where
   tick_awake := by
     intro v t he
     rcases List.mem_append.mp he with he | he
-    · exact fx_prefix_awake 248 _ he
+    · exact fx_prefix_awake 254 _ he
     · exact fx_suffix_awake 16 _ he
   deliver_awake := by
     intro v o t he
     rcases List.mem_append.mp he with he | he
-    · exact fx_prefix_awake 248 _ he
+    · exact fx_prefix_awake 254 _ he
     · exact fx_suffix_awake 16 _ he
   restart_awake := by
     intro v t he
     rcases List.mem_append.mp he with he | he
-    · exact (prefix_no_restart 248 v t he).elim
+    · exact (prefix_no_restart 254 v t he).elim
     · exact (suffix_no_restart 16 v t he).elim
   wake_restart := fun v _ t _ _ hw => (fx_weak_no_wakes v t hw).elim
 
@@ -3012,12 +3091,12 @@ theorem fx_continuation_execution : V2.D.ExecutionValid weakEnv continuation whe
 
 theorem fx_source_restarts : V2.D.RestartsAtWakes strongEnv source := by
   intro v t he
-  exact (prefix_no_restart 248 v t he).elim
+  exact (prefix_no_restart 254 v t he).elim
 
 theorem fx_continuation_restarts : V2.D.RestartsAtWakes weakEnv continuation := by
   intro v t he
   rcases List.mem_append.mp he with he | he
-  · exact (prefix_no_restart 248 v t he).elim
+  · exact (prefix_no_restart 254 v t he).elim
   · exact (suffix_no_restart 16 v t he).elim
 
 /-- Exact proposal bodies from the finite event-index emission table. -/
