@@ -288,3 +288,18 @@ Bare P23, G-S2, final regeneration and the deferred initialAt consumers remain O
   nonempty results, saved-cache preservation across a restart, or the inherited outage fixture's
   SleepWellFormed record. No such value is passed to an assembly theorem.
 - Healing requests are historical and OUT OF SCOPE; their universal service shapes are not certified.
+
+## ROOT-TESTS — P-As, behind the open Root import
+
+`Tests/NonVacuity/Adversarial.lean:2327/:3559/:3578` — nvExecution, base, nvRecovery.
+`Tests/NonVacuity/FinalityClaims.lean:1128/:1149/:1194` — nvExecution, base, nvRecovery.
+Paths start with AvailableChainFGSAProofs/.
+
+Their actual Base₂ targets are `Base₂ params unitCodec env run`; the old builders still
+set removed noRestart/idealization fields. They need the concrete fixture's SleepWellFormed,
+RestartsAtWakes, NamedReceiptRootCollisionFree and joined recovery fields. They are local
+fixture ports, not new assumptions of public claims. The existing all-awake no-restart proofs
+may be used only for those traces; no universal NoRestart is requested.
+Adversarial's initialAt consumers at :1889-1891 and :2981-2983 remain deferred until these
+ports and the Root import compile. Neither fixture is repaired or certified by Round 5.
+No positive witness is removed or replaced by an assumed invalid record.

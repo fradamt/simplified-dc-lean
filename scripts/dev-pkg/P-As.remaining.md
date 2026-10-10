@@ -26,8 +26,8 @@ No conditional assembly adapter is marked as a closed public claim.
 - `AvailableChainFGSAProofs.Tests.HealingHTime`: HEAL.
 - `AvailableChainFGSAProofs.Tests.HealingReset`: HEAL.
 - `AvailableChainFGSAProofs.Tests.LiveDC`: ROOT.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial`: ROOT.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims`: ROOT.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial`: ROOT, ROOT-TESTS.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims`: ROOT, ROOT-TESTS.
 - `AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims`: HEAL.
 - `AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst`: HEAL.
 - `AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages`: B16 (HEAL).
