@@ -190,7 +190,7 @@ private theorem reflect_witness_on_run
     (hw : ReflectedDomainWitness p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) C)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     C ∈ S p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))) := by
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
@@ -254,7 +254,7 @@ theorem fgsa_walkRun_reflected_old_child
     (hw : ReflectedDomainWitness p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) C)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     C ∈ S p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))) :=
   reflect_witness_on_run (hroots := hroots)
     E rho hE hN hDelta s hSync hx hy hip Kc X C hcut hKX hp hm hw
@@ -285,7 +285,7 @@ theorem fgsa_retained_old_child_reflects_on_run
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D N.erase Kc)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
     SuffixReflects Kc N.erase.parent (S p src) (T p dst (s + 1))
@@ -325,12 +325,8 @@ theorem fgsa_retained_old_child_reflects_on_run
   · intro X C hKX hXA hm hp he
     have hCpre : C ∈ (rho.stateBefore E ih y).st.base.blocks := by
       simpa only [dst, clock_base_blocks] using (List.mem_filter.mp hm).1
-    have hn := fgsa_preTick_now_lt E rho hE.toScheduleWellFormed hih (by
-      change 0 < 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
-      have hd := p.deltaPos
-      have hs := Int.natCast_nonneg (s + 1)
-      positivity)
-    have hslot := Internal.slotOf_mono (p := p) (le_of_lt hn)
+    have hn := fgsa_preTick_now_le E rho hE.toScheduleWellFormed hih
+    have hslot := Internal.slotOf_mono (p := p) hn
     have htick : p.slotOf (SA.voteTime p.toParams (s + 1)) = s + 1 := by
       simpa only [(fgsa_postClock_slot (c := c) (rho.stateBefore E ih y) _).2] using
         fgsa_vote_slot (c := c) (rho.stateBefore E ih y) (s + 1)

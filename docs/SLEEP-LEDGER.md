@@ -1787,3 +1787,40 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
   and Quot.sound (3.224 s). SharedAxioms has 20 strict results.
   check-layers reports 0 new findings. The broad transparency check still has
   two inherited ClientTrace findings; W3 owns that file and its review fix.
+
+## P-ShA — prepared files, not closed (2026-10-10)
+
+- P23-A forwarding is prepared in Count, ExactHead, ExactService, HeadAdmit,
+  RetainedPersist, RetainedReflect, RetainedEndpoint and Regimes. Receipt routes
+  take NamedReceiptRootCollisionFree. Regimes forwards base.receiptIdealization.
+  These modules remain EXPECTED-FAIL and have not been compiled against S-Ap.
+- T39 RESTRUCTURE: exactService_head_of_proposal now has the approved joined HEAD
+  reader scope. Its two Regimes adapters keep that scope. There is no live public
+  caller on this tree. T45 is the active retained-proposal route.
+- T45 SOURCED: exactService_head_of_retained_proposal and its Regimes adapters
+  now require the approved joined HEAD reader at voteTime s. joinedAt.1 supplies
+  the exact awake tick. P10 ExactProposalAt and P11 ExactService supply this scope.
+  Recovery can also use its explicit awake clause. WC/WCG must retain this guard.
+- T40 SOURCED, still open: ExactService's gate reader must use confirmedReaderAtIdx
+  at gateTime v, whose first projection is awake there. Recovery's awake clause
+  supplies the same exact tick with the existing GST and horizon bounds.
+- T42 SOURCED, still open: recovery uses its explicit awake clause. Clean/WC/WCG
+  pass the actor's enabled gate at gateTime s; cutoff slotStartZ s and the awake
+  gate tick give the earlyTime s actor tick. Pass this source through
+  exactService_gate_receipts_of_head and exactService_gate_raw_of_head.
+  confirmed gate-reader scopes also produce this enabled gate. No universal
+  participation inference is permitted.
+- internal statement, lead ruling 10-10, prepared: healing_held_block_receipt
+  takes the receipt collision premise and the receiver's awake state at its
+  deadline. An arbitrary honest sleeping receiver is outside the delivery bound.
+  Its legacy NoRestart route derives the earlier exact awake interval from that
+  state. Consumers: Healing/PostResetConeReceipts, SourceTiming and FrameRelay;
+  Finality/TailMixed. Their public scoped sources still need verification.
+- RetainedReflect and RetainedEndpoint slot bounds now use now ≤ tick. Their
+  conclusions stay fixed. HeadAdmit's early receipt gets its horizon and awake
+  interval from the existing early tick; T43 keeps the selected voter's hawake.
+- Remaining work after S-Ap: compile these prepared files; apply and compile the
+  executed Reads and SameLabel extraction patches; port R1–R3/R7, exact gate
+  guards and epochs; thread the N4 service proof through Count, HeadAdmit and the
+  retained-proposal route. Keep all 31 owned proof failures and nine test failures
+  visible until each target passes. No approved public meaning change was made.

@@ -211,7 +211,7 @@ theorem fgsa_retained_proposal_mem_on_run
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     N.erase ∈ (rho.stateBefore E ih y).st.base.blocks ∧
       N.erase ∈ T p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s := by
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
@@ -220,7 +220,7 @@ theorem fgsa_retained_proposal_mem_on_run
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
-  have hslot := (fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2).1
+  have hslot := (fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2.2).1
   obtain ⟨dl, cut, hD, -, hlt, hb, -, hc, -⟩ := hSync
   have hd : dl (SA.proposalTime p.toParams s) ≤ SA.voteTime p.toParams s := by
     have hb := hb (SA.proposalTime p.toParams s)
@@ -264,7 +264,7 @@ theorem fgsa_retained_path_persists_on_run
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D N.erase Kc)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
     SuffixPersists Kc N.erase.parent (S p src) (T p dst (s + 1))
@@ -276,7 +276,7 @@ theorem fgsa_retained_path_persists_on_run
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hm
-  have hbslot := (fgsa_scoreRun_proposal_pools p _ (s + 1) _ N hp.2.2.2).1
+  have hbslot := (fgsa_scoreRun_proposal_pools p _ (s + 1) _ N hp.2.2.2.2).1
   have scores := fgsa_score_eq_on_candidates_on_run (hroots := hroots) E rho hE hN hDelta (s + 1)
     hScoreSync hx hy hip hih hseat N hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1))
@@ -333,7 +333,7 @@ theorem fgsa_retainedWalk_geometry_on_run
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D N.erase Kc)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
     RetainedWalkRunGeometry p src dst (s + 1) D N.erase Kc ∧

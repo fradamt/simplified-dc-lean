@@ -274,7 +274,7 @@ theorem fgsa_gateReceipt_clean
   have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
-  exact fgsa_gateReceipt (hroots := h.base.idealization)
+  exact fgsa_gateReceipt (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
     s hsync ht B hgeom
 
@@ -319,7 +319,7 @@ theorem fgsa_gateReceipt_recovery
     (h.base.valid.in_horizon _ (List.mem_of_getElem? ht)).2
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hvd hhorizon
-  exact fgsa_gateReceipt (hroots := h.base.idealization)
+  exact fgsa_gateReceipt (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
     s hsync ht B hgeom
 
@@ -365,7 +365,7 @@ theorem fgsa_score_eq_on_clean_of_retained_proposal
   have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
-  exact fgsa_score_eq_on_run (hroots := h.base.idealization)
+  exact fgsa_score_eq_on_run (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta s hsync
     hx hy hip hih hseat N hem hadm hFN D hgeom
 
@@ -412,7 +412,7 @@ theorem fgsa_score_eq_on_recovery_of_retained_proposal
     (h.base.valid.in_horizon _ (List.mem_of_getElem? hih)).2
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hvd hhorizon
-  exact fgsa_score_eq_on_run (hroots := h.base.idealization)
+  exact fgsa_score_eq_on_run (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta s hsync
     hx hy hip hih hseat N hem hadm hFN D hgeom
 
@@ -455,7 +455,7 @@ theorem fgsa_ghost_transfer_sfx_on_clean
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _)
     hpt (htv.trans hcut) h.cut.2
-  exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.idealization)
+  exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hy hip hih hseat N hem hadm D hgeom
 
@@ -496,7 +496,7 @@ theorem fgsa_ghost_transfer_sfx_on_recovery
     (fgsaDelay_nonrow E.Δ _) hGST (hpt.trans htv) hvh
   have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hvh)
-  exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.idealization)
+  exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hy hip hih hseat N hem hadm D hgeom
 
@@ -519,7 +519,8 @@ theorem exactService_head_of_proposal_clean
       V2.D.Run.emitsAt E rho ip)
     (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D N.erase) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho y s = some N.erase := by
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
     exact le_of_eq (sub_add_cancel _ _)
@@ -534,7 +535,7 @@ theorem exactService_head_of_proposal_clean
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _)
     hpt (htv.trans hcut) h.cut.2
-  exact exactService_head_of_proposal (hroots := h.base.idealization)
+  exact exactService_head_of_proposal (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hip hseat N hem D hgeom
 
@@ -557,7 +558,8 @@ theorem exactService_head_of_proposal_recovery
       V2.D.Run.emitsAt E rho ip)
     (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D N.erase) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho y s = some N.erase := by
   intro hhorizon
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
@@ -569,7 +571,7 @@ theorem exactService_head_of_proposal_recovery
     (fgsaDelay_nonrow E.Δ _) hGST (hpt.trans htv) hhorizon
   have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
-  exact exactService_head_of_proposal (hroots := h.base.idealization)
+  exact exactService_head_of_proposal (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hip hseat N hem D hgeom hhorizon
 
@@ -598,7 +600,8 @@ theorem exactService_head_of_retained_proposal_clean
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho y s = some N.erase := by
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
     exact le_of_eq (sub_add_cancel _ _)
@@ -613,7 +616,7 @@ theorem exactService_head_of_retained_proposal_clean
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _)
     hpt (htv.trans hcut) h.cut.2
-  have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.idealization)
+  have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart
     h.base.delta s hwalk hscore hx hip hseat N hem D hreads
   exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
@@ -644,7 +647,8 @@ theorem exactService_head_of_retained_proposal_recovery
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho y s = some N.erase := by
   intro hhorizon
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [h.base.delta]
@@ -656,7 +660,7 @@ theorem exactService_head_of_retained_proposal_recovery
     (fgsaDelay_nonrow E.Δ _) hGST (hpt.trans htv) hhorizon
   have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
-  have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.idealization)
+  have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart
     h.base.delta s hwalk hscore hx hip hseat N hem D hreads
   exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
@@ -690,7 +694,7 @@ theorem exactService_of_head_clean
   have hvcut : SA.voteTime p.toParams v < b₀ := by
     have hd : 0 < E.Δ := h.base.delta.symm ▸ p.deltaPos
     linarith
-  apply exactService_of_head_and_gate (hroots := h.base.idealization)
+  apply exactService_of_head_and_gate (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta
     h.base.cstar v Q hne hhead
     (fun _ => Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
@@ -721,7 +725,7 @@ theorem exactService_of_head_recovery
     rw [h.base.delta]
     change 4 * p.Δ * (v : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
     linarith [p.deltaPos]
-  apply exactService_of_head_and_gate (hroots := h.base.idealization)
+  apply exactService_of_head_and_gate (hroots := h.base.receiptIdealization)
     E rho h.base.valid h.base.noRestart h.base.delta
     h.base.cstar v Q hne hhead
     (fun hh => Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync

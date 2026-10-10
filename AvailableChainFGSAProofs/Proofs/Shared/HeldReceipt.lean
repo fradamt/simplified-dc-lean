@@ -4,6 +4,8 @@ public import AvailableChainFGSAClaims.Statements.ComposeStmt -- shake: keep (po
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -28,7 +30,8 @@ theorem healing_held_block_receipt (mono : RMono p c E rho)
     (hgst : E.t_GST ≤ t) (hhor : t + p.Δ ≤ rho.horizon)
     (hF : FGBlock.Preceq
       (storeAt p c E rho (V2.D.Run.idxBefore rho (t + p.Δ)) y).fg.F W)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hAwake : E.awake y (t + p.Δ) = true)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     Gen.V2.Duty.HoldsBefore E rho (fun nd => W ∈ nd.st.fg.TF) (t + p.Δ) y := by
   have hs := hvalid.toScheduleWellFormed
   change W ∈ (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st.fg.TF
@@ -42,7 +45,7 @@ theorem healing_held_block_receipt (mono : RMono p c E rho)
   obtain ⟨⟨b, stamp⟩, hb, he⟩ := List.mem_map.mp hb
   dsimp only at he
   subst b
-  rcases fgsa_block_stamp_source E rho i x (eraseFG W) stamp hb with
+  rcases fgsa_block_stamp_source E rho hnr i x (eraseFG W) stamp hb with
       hgen | ⟨k, hki, u, o, ho, ha, _⟩
   · exact (hg (eraseFG_eq_genesis.mp hgen.1)).elim
   obtain ⟨parent, hk, _⟩ := ha.1
@@ -80,7 +83,12 @@ theorem healing_held_block_receipt (mono : RMono p c E rho)
     obtain ⟨Y, hY, hYW⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr dl
       rho.horizon
       slot N u y hD (Or.inr ⟨x, hx, k, he ▸ ha⟩) hy
-      (hd.trans hhor) hu (by simpa only [ho] using hcompat)
+      (hd.trans hhor) hu (by simpa only [ho] using hcompat) (hd.trans hhor)
+      (by
+        intro v huv hvd
+        exact fgsa_awake_before_noRestart E rho hvalid hnr y hy (t + p.Δ)
+          hhor hAwake v ((hs.in_horizon _ (List.mem_of_getElem? hk)).1.trans huv)
+          (hvd.le.trans hd))
     have hYeq : Y = W := eraseFG_injective (hYW.trans ho)
     rw [hYeq, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
     exact (fgsa_store_cumulative p c E rho hnr hidx y).1 hY

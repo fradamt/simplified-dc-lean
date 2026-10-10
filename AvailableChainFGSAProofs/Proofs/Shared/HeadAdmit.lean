@@ -124,7 +124,7 @@ theorem inclusion_head_receipt_early
     (K : Block) (hK : headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k
       (rho.seatOf (.base (.head r)) q)) (SA.voteTime p.toParams r)).st r = K)
     (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) K)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     V2.D.Run.emits E rho (rho.seatOf (.base (.head r)) q) (ofHead p ⟨.seat (.head r) q, K.root⟩)
       (SA.voteTime p.toParams r) ∧
     baseVote (⟨.seat (.head r) q, K.root⟩ : HeadWire p.n) ∈ (storeAt p c E rho j x).base.votes ∧
@@ -152,8 +152,9 @@ theorem inclusion_head_receipt_early
       (SA.voteTime p.toParams r) := by
     refine ⟨k, hk, ?_⟩
     rw [(V2.D.Run.step_tick_eq E rho hk).2]
-    exact (fgsa_emits_head E rho _ y _ r q K.root).mpr ⟨hawake, rfl, rfl, congrArg Block.root
-        hK.symm⟩
+    exact (fgsa_emits_head E rho _ y _ r q K.root).mpr
+      ⟨hawake, rfl, rfl, fgsa_joinedNow_noRestart E rho hsch hN hk,
+        congrArg Block.root hK.symm⟩
   have hdeadline : ∀ t, t ≤ SA.voteTime p.toParams r → dl t ≤ SA.earlyTime p.toParams r := by
     intro t ht
     have hb := hbound t
@@ -173,7 +174,7 @@ theorem inclusion_head_receipt_early
       obtain ⟨⟨b, stamp⟩, hm, he⟩ := List.mem_map.mp hm
       dsimp only at he
       subst b
-      rcases fgsa_block_stamp_source E rho _ y K stamp hm with hgen |
+      rcases fgsa_block_stamp_source E rho hN _ y K stamp hm with hgen |
         ⟨l, hl, t, o, ho, ha, _⟩
       · exact (hg hgen.1).elim
       · obtain ⟨parent, hdel, _⟩ := ha.1
@@ -192,14 +193,17 @@ theorem inclusion_head_receipt_early
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch,
       Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch,
       ← fgsa_preTick_eq_timeRead E rho hsch hN hj] at hn
-    have hb := stateBefore_now_le_event_retained (fgsaClock p c)
-      (fgsa_hrestore_now_retained p c)
+    have hb := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
       E rho hsch hj x
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hb
     exact ((Internal.slotOf_mono (p := p) (hn.trans hb)).trans_eq
       (slotOf_offset p r (2 * p.Δ) (by omega) (by omega))).trans (Nat.le_succ _)
   have hr := fgsa_honest_head_receipt E rho hDelta hE hN hC dl cut r q K.root
     (SA.voteTime p.toParams r) y x hD hy hem hx (hdl.trans hcut) (hlt _) hwindow
+    (hdl.trans (hsch.in_horizon _ (List.mem_of_getElem? hj)).2)
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hj hx
+      (by change 0 ≤ 4 * p.Δ * (r : Int) + p.Δ; positivity) hdl)
   have hid : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams r)) ≤ j := by
     by_contra hn
     exact (not_lt.mpr hdl)
@@ -212,8 +216,8 @@ theorem inclusion_head_receipt_early
       ⟨.genesis, (cstoreInv_stateBefore E rho _ x).fg.gen, rfl⟩)
   have hslot : K.slot ≤ r := by
     have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
-    have hn := stateBefore_now_le_event_retained (fgsaClock p c)
-      (fgsa_hrestore_now_retained p c)
+    have hn := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
       E rho hsch hk y
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq
@@ -385,6 +389,7 @@ theorem fgsa_action_walk_batch [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V
       push_cast
       ring
     obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hsch hb.delta _ hy (4 * s + 1) (hvt ▸ hvthor)
+      (by simpa only [hvt] using hawake)
     rw [hvt] at hk
     let K := FGSA.headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k
       (rho.seatOf (.base (.head s)) a)) (SA.voteTime p.toParams s)).st s
@@ -395,7 +400,8 @@ theorem fgsa_action_walk_batch [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V
       rfl
     have hQK := hcover _ K hy hHL
     have hFK : Block.Preceq (eraseFG nd.st.fg.F) K := Gen.Pure.block_preceq_trans hFQ hQK
-    obtain ⟨hem, hv, _, hKb, _, hslot⟩ := inclusion_head_receipt_early (hroots := hb.idealization)
+    obtain ⟨hem, hv, _, hKb, _, hslot⟩ :=
+      inclusion_head_receipt_early (hroots := hb.receiptIdealization)
       E rho hb.valid
       hb.noRestart hb.delta hb.cstar s hSync hjE a hy hawake hk K rfl (by rwa [← hfg])
     have hKn : K ∈ nd.st.base.blocks := hblocks ▸ hKb

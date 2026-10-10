@@ -23,12 +23,8 @@ theorem fgsa_headRead_block_slots (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
       C.slot ≤ s := by
   intro C hm
   rw [clock_base_blocks] at hm
-  have hn := fgsa_preTick_now_lt E rho hs hi (by
-    change 0 < 4 * p.Δ * (s : Int) + p.Δ
-    have hd := p.deltaPos
-    have hs := Int.natCast_nonneg s
-    positivity)
-  have hslot := Internal.slotOf_mono (p := p) (le_of_lt hn)
+  have hn := fgsa_preTick_now_le E rho hs hi
+  have hslot := Internal.slotOf_mono (p := p) hn
   have ht : p.slotOf (SA.voteTime p.toParams s) = s := by
     simpa only [(fgsa_postClock_slot (c := c) (rho.stateBefore E i v) _).2] using
       fgsa_vote_slot (c := c) (rho.stateBefore E i v) s
@@ -151,9 +147,9 @@ theorem fgsa_retainedEndpoint_geometry_on_run
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
-  have hparent := fgsa_walkRun_proposal_parent p _ s _ N hp.2.2.2
+  have hparent := fgsa_walkRun_proposal_parent p _ s _ N hp.2.2.2.2
   refine ⟨hold, hmem, hparent.2.2 ▸ hparent.2.1,
-    (fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2).1,
+    (fgsa_scoreRun_proposal_pools p _ s _ N hp.2.2.2.2).1,
     fgsa_vote_slot (c := c) _ s, ?_, ?_, ?_⟩
   · intro C hm hs
     apply fgsa_walkRun_current_block_eq E rho hE s hparent.1 hx hip hseat N hem C
@@ -210,12 +206,12 @@ theorem fgsa_retainedExactHead_geometry_on_run
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     RetainedExactHeadRunGeometry E rho ip x s D N.erase := by
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
-  have hs := (fgsa_walkRun_proposal_parent p _ s _ N hp.2.2.2).1
+  have hs := (fgsa_walkRun_proposal_parent p _ s _ N hp.2.2.2.2).1
   obtain ⟨r, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hs)
   have supply : ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))) →
@@ -263,7 +259,7 @@ theorem fgsa_retained_source_stop (p : Params) (src : State p.n) (s : Slot)
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 00:126–142; 21 H.6:956–958, H.17:3006–3012,
 H.22:3109–3114 (design 812–814,2865–2872). Class (iii).
-DC: INTENTIONAL; scheduled honest readers include sleeping readers.
+DC: INTENTIONAL; the HEAD reader has the approved joined scope.
 Apply EH:57 at the local pivot ay. Timing and admission are already
 resolved by the geometry supplier; gate service remains separate. -/
 theorem exactService_head_of_retained_proposal
@@ -277,13 +273,14 @@ theorem exactService_head_of_retained_proposal
       V2.D.Run.emitsAt E rho ip)
     (D : FGBlock (Fin p.n)) (hgeom : RetainedExactHeadRunGeometry E rho ip x s D N.erase) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
-  intro hhorizon y hy
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho y s = some N.erase := by
+  intro hhorizon y hy hjoined
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
-  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
   have hstop := fgsa_retained_source_stop p src s
     (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _) N.erase hparent.2.2.symm
   have hvt : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
@@ -292,6 +289,7 @@ theorem exactService_head_of_retained_proposal
     ring
   obtain ⟨ih, hih, _⟩ := fgsa_tick_total E rho hE.toScheduleWellFormed hDelta y hy
     (4 * s + 1) (hvt ▸ hhorizon)
+    (by simpa only [hvt] using hjoined.1)
   rw [hvt] at hih
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
   obtain ⟨Kc, hw⟩ := hgeom.walk y hy ih hih

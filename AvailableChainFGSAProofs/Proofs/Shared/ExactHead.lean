@@ -113,7 +113,7 @@ theorem exactHead_of_proposal_on_run
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D)
     (hterminal : ExactHeadGeometry p
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s N.erase)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     headVote p dst s = N.erase := by
   intro dst
@@ -121,7 +121,7 @@ theorem exactHead_of_proposal_on_run
   have hmem := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
-  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
   have hDP : Block.Preceq (eraseFG D) N.erase.parent := by
     rw [hparent.2.2]
     exact walk_covers_of_dominated_suffix _ _ _ _ _
@@ -182,16 +182,18 @@ theorem exactService_head_of_proposal
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
     (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D N.erase)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
-  intro hhorizon y hy
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho y s = some N.erase := by
+  intro hhorizon y hy hjoined
   have hvt : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
     change ((4 * s + 1 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + p.Δ
     push_cast
     ring
   obtain ⟨ih, hih, _⟩ := fgsa_tick_total E rho hE.toScheduleWellFormed hDelta y hy
     (4 * s + 1) (hvt ▸ hhorizon)
+    (by simpa only [hvt] using hjoined.1)
   rw [hvt] at hih
   have he := exactHead_of_proposal_on_run (hroots := hroots) E rho hE hN hDelta s hScoreSync hSync
     hx hy hip hih hseat N hem (hgeom.admitted y hy ih hih) D

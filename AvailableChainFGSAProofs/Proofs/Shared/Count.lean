@@ -163,7 +163,7 @@ theorem fgsa_active_path_of_coverage (E : Generic.Env V)
     (hcov : ReceiptCoveragePremises E rho dl cut D first x K required paths)
     (hpath : paths K D)
     (hFK : Block.Preceq (eraseFG (V2.D.Run.stateBeforeTime E rho D x).st.fg.F) K)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∀ X, Block.Preceq X K → X ∈ (actView (V2.D.Run.stateBeforeTime E rho D x).st).blocks := by
   let st := (V2.D.Run.stateBeforeTime E rho D x).st
   have hc := (fgsa_receiptCoverage E rho dl cut D first x K required paths

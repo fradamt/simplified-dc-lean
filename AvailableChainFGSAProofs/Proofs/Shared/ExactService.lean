@@ -28,7 +28,7 @@ theorem exactService_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   obtain ⟨j, _, _, hj, hem, _, _⟩ := he
   have hK := headTargetAtEmission_at_tick E rho hs hObserver hj rfl
   rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-  obtain ⟨_, ht, _, _⟩ := (fgsa_emits_head E rho _ _ _ s q K.root).mp hem
+  obtain ⟨_, ht, _, _, _⟩ := (fgsa_emits_head E rho _ _ _ s q K.root).mp hem
   subst t
   have hr := hhead _ hy
   change (postClock E rho _ (SA.voteTime p.toParams s)).map
@@ -56,7 +56,7 @@ theorem exactService_gate_receipts_of_head
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q)
     (q : Fin p.n) (hy : rho.seatOf (.base (.head s)) q ∈ rho.honest)
     (hawake : E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∃ t, V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
       (ofHead p ⟨.seat (.head s) q, Q.root⟩) t ∧
       baseVote (⟨.seat (.head s) q, Q.root⟩ : HeadWire p.n) ∈
@@ -104,7 +104,7 @@ theorem exactService_gate_raw_of_head [Fintype V]
     (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
       E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
     (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)
     let v := actView pre
     SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) v s = some Q ∧
@@ -346,7 +346,7 @@ theorem exactService_gate_at_of_head [Fintype V]
       E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
     (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card)
     (hfast : SA.releaseThreshold p.toParams ≤ H.card)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     gateResult p c E rho x s = some (some Q) ∧
     (∃ j, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j) ∧
     (∃ nd, postClock E rho x (SA.gateTime p.toParams s) = some nd ∧
@@ -443,7 +443,7 @@ theorem exactService_gate_of_head [Fintype V]
         SA.releaseThreshold p.toParams ≤ H.card)
     (hgeometry : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x v →
       ExactServiceGateGeometry E rho i x v Q)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     SA.gateTime p.toParams v ≤ rho.horizon → ∀ x ∈ rho.honest,
       gateResult p c E rho x v = some (some Q) ∧
       (∃ j, IsGateTick p c rho j x v ∧ gatePassedAt p c E rho j) ∧
@@ -491,7 +491,7 @@ theorem exactService_of_head_and_gate [Fintype V]
         SA.releaseThreshold p.toParams ≤ H.card)
     (hgeometry : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x v →
       ExactServiceGateGeometry E rho i x v Q)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ExactService p c E rho v Q :=
   ⟨hhead, exactService_gate_of_head (hroots := hroots) E rho hE hN hDelta hC v Q hne hhead hSync
     hparticipation hgeometry⟩
