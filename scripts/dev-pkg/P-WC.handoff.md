@@ -379,3 +379,89 @@ Round 4 final validation PASS: DCK 532 GREEN, 40 strict roots, 3,613
 results, 24 controls. Local exports 200 modules / 252 exports / zero
 unaccepted. Layers zero new. Status remains PREPARED with nine local
 P-WC expected failures. Implementation head: 16e578fb.
+
+## Round 5 — 2026-10-10
+
+Status: PREPARED for serial integration. All nine original open owned targets
+compile with --wfail. There is no remaining on-map EXPECTED-FAIL target.
+Inclusion and cached safety commit: 54542242. Final check results follow below.
+
+The exact type inventory is claude-files/sleep-pwc-round5-supplier-types.txt.
+Its declaration anchors are in sleep-pwc-round5-declarations.txt. Both truncated
+Round 3 reconcile entries now contain their complete source types.
+
+Completed suppliers:
+
+- Inclusion.lean:21, wc_prior_below_proposal: pass a joined selected reader at
+  pt.s. Retrospective transfer receives that same next-vote guard.
+- Inclusion.lean:69, wc_proposal_gates: pass enabledGateAt for each gate actor,
+  receipt-root idealization, receiver epochs, and all-time joined service.
+  The gate result is exact; suppressed gates are outside this supplier's scope.
+- Inclusion.lean:170, wc_inclusion6_result: returns an exact original WCResult
+  as well as ServedFromGateAt. wc_inclusion6 keeps the existing scoped type.
+- Safety.lean:285, wc_cachedSafety, and WCG Safety.lean:286, wcg_cachedSafety:
+  finite seeded induction supplies WCCachedSafety. Stored outputs keep order
+  during sleep and restart. Existing scoped safety types are projections.
+- Empty.lean:452, wcg_empty_readerReplay: a matched local prefix preserves the
+  exact source confirmedReaderIdx. It transfers the enabled gate, local epochs,
+  awake interval, and applied wakes. Same-time wake ordering is retained.
+- Empty.lean:672, wcg_empty_finalBelow: the source service reader is confirmed,
+  and its matched prefix time is no later than the continuation prefix time.
+
+P-As caller ports (unowned files, left unchanged):
+
+Assembly/WeakContinuationGrowth.lean:543/:565/:578 still use the old Inclusion
+helper telescopes. Use the Round 5 joined reader and enabled gate forms.
+wc_suffix_mono also takes schedule and seed; its conclusion is unchanged.
+Use wc_inclusion6_result to retain the original result evidence.
+
+Assembly/WeakContinuationGrowth.lean:36 calls the internal growth implementation.
+Growth.lean:35 now takes these explicit component values before its existing
+WCGrowthStatement result. The existing statement and public claims are unchanged:
+
+```lean
+hcache : WCCachedSafety p c E rho iStar Q
+hcover : ∀ pt : PtSP, u + 2 ≤ pt.s →
+  HonestProposal E rho (fgsaInterface p c) pt.s pt.P →
+  SA.gateTime p.toParams pt.s ≤ rho.horizon →
+  ∃ x ∈ rho.honest,
+    Block.Preceq pt.P (S_at p c E rho rho.events.length x)
+```
+
+WC checkpoint proves both components from the seeded induction and exact
+original result. No new public assumption is required. The cached result at
+horizon orders a trigger output even if that trigger reader later sleeps.
+The deadline inclusion still uses the public confirmed-reader guard.
+
+Assembly/WeakContinuationGrowth.lean:990 must supply Empty.lean:608 cached source
+safety and Empty.lean:609 source proposal coverage before the finalBelow bridge:
+
+```lean
+hcache : WCCachedSafety p c E source iSource w.QStar
+hcover : ∀ pt : PtSP, w.u + 2 ≤ pt.s →
+  HonestProposal E source (fgsaInterface p c) pt.s pt.P →
+  SA.gateTime p.toParams pt.s ≤ source.horizon →
+  ∃ x ∈ source.honest, Block.Preceq pt.P
+    (V2.D.outputAt E source (fgsaInterface p c).stable x source.horizon)
+```
+
+Produce hcache with wcg_cachedSafety from the source seeded induction. Produce
+hcover with the source exact original-gate result and cached monotonicity.
+The source comparison witness need not remain honest in the continuation.
+Empty replays the trigger reader in the source before it makes this comparison.
+No continuation participation or half-cap premise is added to the empty route.
+
+Assembly/WeakContinuationGrowth.lean:1002 must pass that cached source safety to
+wcg_empty_finalBelow. Its existing source service supplier now has this final
+reader clause (Empty.lean:683); use the completed WCGService4Statement supplier:
+
+```lean
+∀ k y, afterTicksIdx source (SA.gateTime p.toParams s + 4 * p.Δ) ≤ k →
+  k ≤ source.events.length → confirmedReaderIdx p c E source y k →
+  Block.Preceq B (S_at p c E source k y)
+```
+
+The caller ports remain P-As work. All owned tests use explicit component
+contracts and compile; no owned test waits only on a P-As bridge.
+No P-As, public Claims/Statements, P23, dependency, checker, or baseline file
+was changed. No public meaning STOP occurred.

@@ -1,4 +1,4 @@
-# P-WC r5: PREPARED; Inclusion and cached-output safety pass; seven targets open.
+# P-WC r5: PREPARED; all 71 targets GREEN; P-As caller ports remain.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
@@ -606,11 +606,11 @@ AvailableChainFGSAProofs.Tests.WeakContinuationExactProposal
 AvailableChainFGSAProofs.Proofs.WeakContinuation.InclusionGate
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion
 AvailableChainFGSAProofs.Tests.WeakContinuationInclusion
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Export
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Live
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowth
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowthEmptyAxioms
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Export P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Live P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowth P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowthEmptyAxioms P-WC

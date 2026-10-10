@@ -5134,3 +5134,28 @@ Implementation head: 16e578fb. Tracked implementation tree is clean.
   from their full source types, including all premises and conclusions.
 - Inclusion and its two contract tests pass --wfail. The cached safety suppliers
   pass --wfail. Strict and full package checks follow in the final Round 5 block.
+
+### P-WC Round 5 — Empty, Growth, Live, and tests
+
+- Empty's finalBelow reader is confirmedReaderIdx. Local-prefix replay keeps its
+  exact enabled source gate, awake interval, restart interval, and applied wakes.
+  The least matching source occurrence has no later prefix time. Its source
+  service call keeps the confirmed-reader guard instead of an honest-only guard.
+- Empty's cached source safety supplies event and public output order, including
+  terminal reads. Source cached coverage supplies the future proposal comparison.
+  Retained honest identities can shrink; the source comparison witness is used
+  in the source, and is not assumed honest in the continuation.
+- The empty route has no continuation participation or half-cap premise. Its new
+  internal component inputs are cached source safety and cached source proposal
+  coverage. The source induction and exact original-gate result prove them.
+- Growth's old honest-only deadline comparison did not fit scoped public readers.
+  The internal implementation takes cached output safety and an original-result
+  coverage witness. WC checkpoint proves both from its finite induction and
+  wc_inclusion6_result. WCGrowthStatement and public JointGrowthAt are unchanged.
+- Live and checkpoint consume RestartsAtWakes, receipt-root idealization,
+  all-time joined participation, durable/epoch stores, RMonoAll, RFrameNextEpoch,
+  and enabled lease/fast origins. No sleep regime supplies global NoRestart.
+- All nine original EXPECTED-FAIL targets and all three remaining tests pass
+  --wfail. The full local audit passes with only the three permitted axioms.
+  No owned expected failure remains. P-As must port its unowned callers to the
+  precise component types in the Round 5 handoff. Final package checks follow.

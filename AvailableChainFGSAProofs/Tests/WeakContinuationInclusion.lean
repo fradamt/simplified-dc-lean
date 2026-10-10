@@ -28,3 +28,7 @@ theorem atGateEndpoint (pt : PtSP) (hserved : ServedFromGateAt p c E rho pt)
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationInclusion
 end
+
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationInclusion.inclusionContract
+
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationInclusion.atGateEndpoint
