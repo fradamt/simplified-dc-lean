@@ -53,9 +53,16 @@ theorem fgsa_cleanPrefixTruncationClaim : CleanPrefixTruncationClaim p :=
 /-- P3 §8.5, bp02 §6, S3 D43/D61; DC Generic/Properties:27,41,48 and
 Generic/Interface:64. Safety has the same meaning. INTENTIONAL difference:
 one generic property kernel covers all integer reads of the two S outputs.
-CleanPrem supplies the sleep regime; no new premise is added. -/
-theorem fgsa_cleanSafetyClaim : CleanSafetyClaim p :=
-  cleanSafety_of_cut p (fgsa_cleanCutClaim p)
+CleanPrem supplies the sleep regime. The core proves all-node state facts
+before it restricts the reader scope; scoped truncation is not an all-node input. -/
+theorem fgsa_cleanSafetyClaim : CleanSafetyClaim p := by
+  intro V _ _ In c E rho ΔF pt h
+  have hq := h.set.pre.faultQ
+  have hsource : SourceDisciplinePrem p c E rho () := ⟨h.set.pre.base, hq⟩
+  have hf := fgsa_fgFoundationClaim p c E rho () hsource
+  exact cleanSafety_body p c E rho h.set.sleepPre.sleepPre hq
+    ⟨hf.store, hf.cumul, hf.mono, hf.frame, hf.geo, hf.strat, hf.reconcile⟩
+    (fgsa_srcFrameAboveClaim p c E rho () hsource)
 
 /-- bp02 §6, S3 D43/D61; DC Generic/Properties:27,41,48 and Interface:64.
 INTENTIONAL difference: stable and confirmed both read S at all integer
