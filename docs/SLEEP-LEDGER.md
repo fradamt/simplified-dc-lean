@@ -5484,3 +5484,26 @@ It does not close the full outage or continuation joint induction.
 Still owned by P-Ou: the full InclusionReceiverInputs record; later-label
 hTargets and hResults; both joint inductions; scoped continuation closure.
 No false producer or public STOP was found in this group.
+
+### P-Ou Round 5 — exact old-row deadlines and handover
+
+- PersistenceDeadlines.outage_row_deadline_origin proves an actual enabled
+  gate origin for every retained row and its exact deadline d(s)+L.
+  Its event induction includes restart and replay. Renewal either retains
+  an existing row or uses the new gate deadline; no NoRestart input is used.
+- outage_conflicting_row_deadline uses compatibility of actual later
+  results to show that a conflicting retained row has label at most r.
+  Hence its deadline is at most OutageEnd(r) = v(r+k+1).
+- outage_handover_rows_compatible and outage_handover_tick_rows combine
+  that bound with the actual clock expiry filter. Deadline equality removes
+  the row. An unjoined handover tick still runs expiry before its duty guard.
+- The later-result input is bounded by j < i at this receiver. The global
+  later-result producer remains P-Ou work; these conditional handover
+  theorems do not close the public continuation claim.
+- Tests.OutageServices.pending_seed_of_clean_history instantiates the
+  actual Clean/Closure.cleanHistoryAt_body transfer projection.
+  Tests.OutageServices.handover_rows_consumer checks the actual tick adapter.
+
+The map retains the same nine P-Ou and two S-Ap EXPECTED-FAIL modules.
+The two new production modules are registered GREEN after their own builds.
+No public statement, protocol declaration, checker or allowance changed.

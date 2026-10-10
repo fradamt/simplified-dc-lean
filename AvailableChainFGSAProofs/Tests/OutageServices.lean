@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
 public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
+public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
+public import AvailableChainFGSAProofs.Proofs.Clean.Closure
 
 public section
 
@@ -58,10 +60,39 @@ theorem pending_seed_consumer {p : Params} {In V : Type} [DecidableEq V] [Fintyp
     OutageSourceHistory p c E rho B (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) :=
   outage_arming_sources_from_prefix h htsrc hc htransfer
 
+/-- The checked P-Cl1 Clean history supplies the exact transfer projection.
+This test derives the pending seed without a separate transfer or source premise. -/
+theorem pending_seed_of_clean_history {p : Params} {In V : Type}
+    [DecidableEq V] [Fintype V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {fast : Bool} {T b₀ ΔF : Time} (h : CleanCutSet p c E rho b₀ ΔF)
+    (hq : FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho) {B : Block} {l : Slot}
+    {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh) :
+    OutageSourceHistory p c E rho B (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) := by
+  have hTransfer := (cleanHistoryAt_body p c E rho h hq hf hsrc).2.2.1
+  exact outage_arming_sources_from_prefix h htsrc hc
+    (fun y z s C H hy hz hJ hcut hC hH => hTransfer y z s C H hy hz hcut hC hJ hH)
+
+/-- The handover consumer uses actual gate origins in all receiver epochs.
+It needs only the late-result projection of the joint invariant. -/
+theorem handover_rows_consumer {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (r : Slot) (B : Block) {i : Nat} {x : V}
+    (hi : rho.events[i]? = some (.tick x (OutageEnd p r)))
+    (hResults : ∀ j s C, j < i → r < s → enabledGateAt p c E rho j x s →
+      gateResultAt p c E rho j = some (some C) → Block.Compatible C B) :
+    ∀ row ∈ (storeAt p c E rho (i + 1) x).base.obligations, Block.Compatible row.1 B :=
+  outage_handover_tick_rows hs r B hi hResults
+
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.restored_receipt_consumer
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.good_release_consumer
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.handover_expiry_equality
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.pending_seed_consumer
+#print axioms AvailableChain.FGSA.Run.Tests.OutageServices.pending_seed_of_clean_history
+#print axioms AvailableChain.FGSA.Run.Tests.OutageServices.handover_rows_consumer
 
 end AvailableChain.FGSA.Run.Tests.OutageServices
 end

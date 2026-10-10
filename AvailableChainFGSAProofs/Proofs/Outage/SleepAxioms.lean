@@ -23,6 +23,8 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 
 public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 
+public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
+
 #print axioms AvailableChain.FGSA.Run.outage_restored_service
 #print axioms AvailableChain.FGSA.Run.outage_restored_proposal_receipt
 #print axioms AvailableChain.FGSA.Run.outage_restored_batch_receipt_on
@@ -177,3 +179,10 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 #print axioms AvailableChain.FGSA.Run.outage_pending_result_compatible
 #print axioms AvailableChain.FGSA.Run.outage_pending_sources_compatible
 #print axioms AvailableChain.FGSA.Run.outage_arming_sources_from_prefix
+
+#print axioms AvailableChain.FGSA.Run.outage_gate_row_deadline
+#print axioms AvailableChain.FGSA.Run.outage_row_deadline_origin
+#print axioms AvailableChain.FGSA.Run.outage_conflicting_row_deadline
+#print axioms AvailableChain.FGSA.Run.outage_clockPre_expired_rows
+#print axioms AvailableChain.FGSA.Run.outage_handover_rows_compatible
+#print axioms AvailableChain.FGSA.Run.outage_handover_tick_rows
