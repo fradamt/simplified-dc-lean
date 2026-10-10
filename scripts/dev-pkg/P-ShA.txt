@@ -316,6 +316,7 @@ AvailableChainFGSAProofs.Tests.Channels
 AvailableChainFGSAProofs.Tests.FGSafety
 AvailableChainFGSAProofs.Tests.FinalityW
 AvailableChainFGSAProofs.Tests.KeepExact
+AvailableChainFGSAProofs.Tests.RetainedConsumers
 AvailableChainFGSAProofs.Tests.RetainedEndpoint
 AvailableChainFGSAProofs.Tests.RetainedPersist
 AvailableChainFGSAProofs.Tests.RetainedReflect
@@ -547,6 +548,5 @@ AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
-AvailableChainFGSAProofs.Tests.RetainedConsumers P-ShA
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap
