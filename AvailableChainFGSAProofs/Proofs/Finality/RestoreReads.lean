@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
+public import AvailableChainFGSAProofs.Proofs.Shared.RowReads
 
 public section
 
@@ -48,6 +49,50 @@ theorem finality_acceptsFinalBefore_mono_ancestor
     (h : AcceptsFinalBefore p c E rho x U d) : AcceptsFinalBefore p c E rho x X d' := by
   have hU := finality_acceptsFinalBefore_mono_deadline p c E rho hs hdd h
   exact KitFG.preceq_trans hXU hU
+
+/-- Durable rows remain held at a later proposal read across restore. -/
+theorem finality_heldBefore_at_proposal (hs : V2.D.ScheduleWellFormed E rho)
+    {s : Slot} {a : RowWire p.n} {d : Time} {st : State p.n}
+    (hst : proposalStateAt p c E rho s = some st)
+    (hheld : HeldBefore p c E rho (V2.D.proposerOf rho (fgsaInterface p c) s) a d)
+    (hd : d ≤ SA.proposalTime p.toParams s) : heldAtProposal p c E rho s a := by
+  refine ⟨st, hst, ?_⟩
+  change (postClock E rho (V2.D.proposerOf rho (fgsaInterface p c) s)
+    (V2.D.proposalTime (fgsaInterface p c) s)).map (·.st) = some st at hst
+  rw [postClock_def, preTick_def] at hst
+  cases hj : V2.D.Run.tickIdx? rho (V2.D.proposerOf rho (fgsaInterface p c) s)
+      (V2.D.proposalTime (fgsaInterface p c) s) with
+  | none => rw [hj] at hst; cases hst
+  | some k =>
+    rw [hj] at hst
+    have hk := V2.D.Run.tickIdx?_spec hj
+    have hst' : ((fgsa p c).clock (V2.D.Run.stateBefore E rho k
+        (V2.D.proposerOf rho (fgsaInterface p c) s))
+        (V2.D.proposalTime (fgsaInterface p c) s)).st = st := Option.some.inj hst
+    have hik : V2.D.Run.idxBefore rho d ≤ k := by
+      by_contra hn
+      have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hs hk d).mp (Nat.lt_of_not_ge hn)
+      exact (not_lt.mpr hd) ht
+    change rowHeld p (V2.D.Run.stateBeforeTime E rho d
+      (V2.D.proposerOf rho (fgsaInterface p c) s)).st a at hheld
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs] at hheld
+    have hcumul := fgsa_store_durable p c E rho hik
+      (V2.D.proposerOf rho (fgsaInterface p c) s)
+    rw [← hst']
+    rcases hheld with hp | hb
+    · left
+      change a ∈ (FGSA.clock p (V2.D.Run.stateBefore E rho k _).st _).rowPool
+      rw [clock_rowPool]
+      exact hcumul.2.2.2.subset hp
+    · right
+      change a ∈ allBlockRows _ at hb
+      change a ∈ allBlockRows (FGSA.clock p (V2.D.Run.stateBefore E rho k _).st _)
+      unfold allBlockRows at hb ⊢
+      rw [clock_proposals]
+      obtain ⟨xs, hxs, ha⟩ := List.mem_flatten.mp hb
+      obtain ⟨w, hw, hdec⟩ := List.mem_filterMap.mp hxs
+      exact List.mem_flatten.mpr ⟨xs,
+        List.mem_filterMap.mpr ⟨w, hcumul.2.2.1.subset hw, hdec⟩, ha⟩
 
 end AvailableChain.FGSA.Run
 end

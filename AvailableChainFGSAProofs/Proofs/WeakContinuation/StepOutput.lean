@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFacts
 
 public section
@@ -31,7 +30,7 @@ private theorem gate_output {j : Nat} {x : V} {s : Slot} {B : Block}
       (fgsa_gate_joined_of_enabled E rho (wc_gate_enabled_of_result hsch ht hB))
   have hraw := Option.some.inj (hrawAt.symm.trans hB)
   obtain ⟨y, r, he, _, G, hG, hguard⟩ := hpass
-  have hevent := V2.Event.tick.inj (Option.some.inj (he.symm.trans ht))
+  have hevent := V2.Event.tick.inj (Option.some.inj (he.1.symm.trans ht))
   have hlabel : r = s := by
     have ht := hevent.2
     change 4 * p.Δ * (r : Int) + 6 * p.Δ = 4 * p.Δ * (s : Int) + 6 * p.Δ at ht
@@ -85,133 +84,110 @@ private theorem gate_output {j : Nat} {x : V} {s : Slot} {B : Block}
     rw [Gen.AC.normalizeOutput_def, ite_eq_left hn] at hw
     exact ⟨hw, hw ▸ hadv⟩
 
-/-- WC plan §6.5; DC expiry, duties, delivery and reconciliation keep S or take this gate. -/
-theorem wc_outputStep [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
-  ∀
-  (_hvalid : V2.D.ExecutionValid E rho)
-  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
-  (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
-  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (_hdeltaF : E.Δ ≤ ΔF)
-  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
-  (_hactive : RActive p c E rho)
-  (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
-  (_hrec : RRec p c E rho)
-  (_hgeo : RGeo p c E rho)
-  (_hcert : RCert p c E rho)
-  (_hsrc : TSrc p c E rho)
-  (_hlabel : LabelBound p c E rho)
-  (_hqc : RQCOrigin p c E rho)
-  (_hstrat : RStrat p c E rho)
-  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
-    namedEntry a.payload.height_pair = some e →
-    ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
-      e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
-      FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
-      gateResult p c E rho x (r * p.R) = some (some B) ∧
-      Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
-    Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
-    ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
-      gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-      (row.1, row.2.1) ∈
-      (let wcView := actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s));
-        (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b B)).flatMap
-          (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
-            p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
-      row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
-      row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
-        let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
-        GridCO.savedGenuine pre.base w = none →
-        SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
-        (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-        (row.1, row.2.1) ∉ (let wcView := actView pre;
-        (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
-          (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
-            p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (_hfast : ∀ i x,
-    ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
-        ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (_hdeadlines : ∀ i x,
-    ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
-      ∀ B, B ≠ .genesis → Block.Preceq B K →
-        Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
-    ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
-      wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
-        rho.events[k]? = some (.deliver x o t) ∧
-        ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
-          HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
-    rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
-      HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
-      wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
-    RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
-    u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
-      fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
-      TargetQCAt p.E B fp.height (heightView p B).J),
-  WCSeed p c E rho w iStar → ∀ i, iStar ≤ i → i < rho.events.length →
-    WCInv p c E rho w iStar i → ∀ e, rho.events[i]? = some e →
+/-- Each event keeps the output, writes its gate result, or exposes received finality. -/
+theorem wc_outputStep {i : Nat} {w : HealingWitness}
+    (hsch : V2.D.ScheduleWellFormed E rho)
+    (hfinal : ∀ x ∈ rho.honest,
+      Block.Compatible (S_at p c E rho i x) (F_at p c E rho (i + 1) x))
+    (hgate : ∀ x s, x ∈ rho.honest → enabledGateAt p c E rho i x s →
+      ∃ B, gateResultAt p c E rho i = some (some B) ∧ gatePassedAt p c E rho i ∧
+        w.u < s ∧ Block.Compatible (S_at p c E rho i x) B) :
     ∀ x ∈ rho.honest,
       Block.Preceq (S_at p c E rho i x) (S_at p c E rho (i + 1) x) ∧
       (S_at p c E rho (i + 1) x = S_at p c E rho i x ∨
-        ∃ s, IsGateTick p c rho i x s ∧ w.u < s ∧
-          gateResultAt p c E rho i = some (some (S_at p c E rho (i + 1) x))) := by
-  intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
-    hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
-    hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-    hscopeRows hfinalHead hs i hi hilen inv _e _he x hx
+        (∃ s, IsGateTick p c rho i x s ∧ w.u < s ∧
+          gateResultAt p c E rho i = some (some (S_at p c E rho (i + 1) x))) ∨
+        S_at p c E rho (i + 1) x = F_at p c E rho (i + 1) x) := by
+  intro x hx
   have keep (heq : S_at p c E rho (i + 1) x = S_at p c E rho i x) :
       Block.Preceq (S_at p c E rho i x) (S_at p c E rho (i + 1) x) ∧
       (S_at p c E rho (i + 1) x = S_at p c E rho i x ∨
-        ∃ s, IsGateTick p c rho i x s ∧ w.u < s ∧
-          gateResultAt p c E rho i = some (some (S_at p c E rho (i + 1) x))) := by
-    exact ⟨heq ▸ block_preceq_refl _, Or.inl heq⟩
+        (∃ s, IsGateTick p c rho i x s ∧ w.u < s ∧
+          gateResultAt p c E rho i = some (some (S_at p c E rho (i + 1) x))) ∨
+        S_at p c E rho (i + 1) x = F_at p c E rho (i + 1) x) :=
+    ⟨heq ▸ block_preceq_refl _, Or.inl heq⟩
   rcases fgsaAC_output_step E rho i x with hsame | ⟨s, ht⟩ | hrc | ⟨t, hr, _⟩
   · exact keep hsame
-  · have hslabel := (wc_gate_cut_iff hvalid.toScheduleWellFormed hs ht).mp hi
-    obtain ⟨B, hB, hpass, _, _, _, hcompat⟩ := wc_gateResult ΔF w iStar hvalid hlinked
-      hcstar hnr hdelta hroots hsync hdeltaF
-      hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
-      hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-      hscopeRows hfinalHead
-      hs i x s hi hilen inv ht hslabel
-    obtain ⟨heq, hmono⟩ := gate_output hvalid.toScheduleWellFormed ht hB hpass hcompat
-    refine ⟨hmono, ?_⟩
-    unfold GridCO.advance at heq
-    split at heq
-    · exact Or.inl heq
-    · exact Or.inr ⟨s, ht, hslabel, heq ▸ hB⟩
-  · obtain ⟨o, t, B, he, _, _, hout⟩ := hrc
-    have hbelow := wc_reconcileBound ΔF w iStar hvalid hlinked hcstar hnr hdelta hroots
-      hsync hdeltaF
-      hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
-      hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-      hscopeRows hfinalHead hs i hi hilen inv x o t he x x hx hx
+  · change IsGateTick p c rho i x s at ht
+    let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)
+    by_cases hJ : joinedNow p pre = true
+    · have hG : enabledGateAt p c E rho i x s := by
+        refine ⟨ht, ?_⟩
+        have hg : joinedAtTime p (storeAt p c E rho i x).restartTime
+            (SA.gateTime p.toParams s) = true := by
+          simpa only [pre, clockPre_joined] using hJ
+        have hslot : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+          (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i x) _).2.symm.trans
+            (fgsa_gate_slot (c := c) (V2.D.Run.stateBefore E rho i x) s)
+        change (match (storeAt p c E rho i x).restartTime with
+          | none => True | some w => w ≤ slotStartZ p (s : Int))
+        cases hw : (storeAt p c E rho i x).restartTime with
+        | none => trivial
+        | some w =>
+          rw [hw] at hg
+          change decide (w ≤ 4 * p.Δ *
+            ((p.slotOf (SA.gateTime p.toParams s) : Int) - 1)) = true at hg
+          change w ≤ 4 * p.Δ * (s : Int)
+          simpa only [hslot, Nat.cast_add, Nat.cast_one, add_sub_cancel_right,
+            decide_eq_true_eq] using hg
+      obtain ⟨B, hB, hp, hl, hc⟩ := hgate x s hx hG
+      obtain ⟨heq, hm⟩ := gate_output hsch ht hB hp hc
+      refine ⟨hm, ?_⟩
+      unfold GridCO.advance at heq
+      split at heq
+      · exact Or.inl heq
+      · exact Or.inr (Or.inl ⟨s, ht, hl, heq ▸ hB⟩)
+    · have hj : joinedNow p pre = false := Bool.eq_false_iff.mpr hJ
+      have hfresh : GridCO.savedGenuine pre.base s = none := by
+        rw [GridCO.savedGenuine, clockPre_genuine]
+        exact fgsa_gate_fresh E rho hsch ht
+      have hn : NestOK pre := by
+        change Block.Preceq (eraseFG pre.fg.F) pre.base.stableRecord
+        dsimp only [pre]
+        rw [clockPre_fg, clockPre_stable]
+        exact nestOK_stateBefore E rho i x
+      have hout := ((gateStep_unjoined p pre s hfresh hj).2.2 hn).2.2
+      have hclock : clock p (storeAt p c E rho i x) (SA.gateTime p.toParams s) =
+          gateStep p pre s := by
+        have hl : ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat = s := by
+          have hz : (4 * p.Δ : Int) ≠ 0 := by nlinarith [p.deltaPos]
+          change ((4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ) / (4 * p.Δ)).toNat = s
+          simp [hz]
+        unfold clock
+        rw [hl]
+        dsimp only
+        have h0 : 0 ≤ SA.gateTime p.toParams s - 6 * p.Δ := by
+          change 0 ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ
+          nlinarith [p.deltaPos, Int.natCast_nonneg s]
+        simp only [h0, decide_true, beq_self_eq_true, Bool.true_and, ite_true]
+        rfl
+      apply keep
+      change (V2.D.Run.stateBefore E rho (i + 1) x).st.base.stableRecord = _
+      rw [V2.D.Run.stateBefore_succ E rho ht]
+      simp only [V2.D.World.step, Function.update_self]
+      rw [tick_st (c := c) E rho (V2.D.Run.stateBefore E rho i x) x _]
+      change (clock p (storeAt p c E rho i x) _).base.stableRecord = _
+      rw [hclock, hout, clockPre_stable]
+      rfl
+  · obtain ⟨o, t, B, _he, _hb, _hf, hout⟩ := hrc
     change S_at p c E rho (i + 1) x = Gen.AC.normalizeOutput
       (F_at p c E rho (i + 1) x) (S_at p c E rho i x) at hout
-    change Block.preceq (F_at p c E rho (i + 1) x) (S_at p c E rho i x) = true at hbelow
-    rw [Gen.AC.normalizeOutput_def, ite_eq_left hbelow] at hout
-    exact keep hout
-  · exact (hnr i x t hr).elim
+    by_cases hbelow : Block.preceq (F_at p c E rho (i + 1) x)
+        (S_at p c E rho i x) = true
+    · rw [Gen.AC.normalizeOutput_def, ite_eq_left hbelow] at hout
+      exact keep hout
+    · rw [Gen.AC.normalizeOutput_def, ite_eq_right hbelow] at hout
+      refine ⟨hout ▸ ?_, Or.inr (Or.inr hout)⟩
+      rcases Bool.or_eq_true_iff.mp (hfinal x hx) with h | h
+      · exact h
+      · exact (hbelow h).elim
+  · apply keep
+    change rho.events[i]? = some (.restart x t) at hr
+    change (V2.D.Run.stateBefore E rho (i + 1) x).st.base.stableRecord = _
+    rw [V2.D.Run.stateBefore_succ E rho hr]
+    simp only [V2.D.World.step, Function.update_self]
+    change (acRestart p (storeAt p c E rho i x) t).base.stableRecord = _
+    exact acRestart_stableRecord p _ t
 
 end AvailableChain.FGSA.Run
 end

@@ -1,4 +1,4 @@
-# P-Cl1: prepared gate/epoch core; remaining Clean modules stay with P-Cl1.
+# P-Cl1 Round 2: Clean core, anchor-relative Count callers and arming export.
 [TARGETS]
 AvailableChainFGSAProofs.Tests.CleanSuppressed
 AvailableChainFGSAProofs.Proofs.Clean.StateEpoch
@@ -18,14 +18,9 @@ AvailableChainFGSAProofs.Proofs.Clean.TransferFrame
 AvailableChainFGSAProofs.Proofs.Clean.Zero
 AvailableChainFGSAProofs.Statements.CleanInvariant
 AvailableChainFGSAProofs.Tests.CleanEpochAxioms
+AvailableChainFGSAProofs.Proofs.Clean.Service
+AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 [GREEN]
-AvailableChainFGSAProofs.Proofs.Clean.Zero
-AvailableChainFGSAProofs.Proofs.Clean.GateOutput
-AvailableChainFGSAProofs.Proofs.Clean.Action
-AvailableChainFGSAProofs.Proofs.Clean.State
-AvailableChainFGSAProofs.Tests.CleanSuppressed
-AvailableChainFGSAProofs.Proofs.Clean.Frame
-AvailableChainFGSAProofs.Proofs.Clean.StateEpoch
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -211,10 +206,24 @@ AvailableChainFGSAClaims.Statements.Recurrence
 AvailableChainFGSAClaims.Statements.Regimes
 AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
+AvailableChainFGSAProofs.Proofs.Clean.Action
 AvailableChainFGSAProofs.Proofs.Clean.Chain
+AvailableChainFGSAProofs.Proofs.Clean.Closure
+AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
+AvailableChainFGSAProofs.Proofs.Clean.Frame
 AvailableChainFGSAProofs.Proofs.Clean.GateEpoch
+AvailableChainFGSAProofs.Proofs.Clean.GateOutput
 AvailableChainFGSAProofs.Proofs.Clean.Interface
+AvailableChainFGSAProofs.Proofs.Clean.Safety
+AvailableChainFGSAProofs.Proofs.Clean.Service
+AvailableChainFGSAProofs.Proofs.Clean.State
+AvailableChainFGSAProofs.Proofs.Clean.StateEpoch
 AvailableChainFGSAProofs.Proofs.Clean.StateGate
+AvailableChainFGSAProofs.Proofs.Clean.StepGate
+AvailableChainFGSAProofs.Proofs.Clean.Transfer
+AvailableChainFGSAProofs.Proofs.Clean.TransferFrame
+AvailableChainFGSAProofs.Proofs.Clean.Zero
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 AvailableChainFGSAProofs.Proofs.Shared.Channels
@@ -222,6 +231,7 @@ AvailableChainFGSAProofs.Proofs.Shared.Compose
 AvailableChainFGSAProofs.Proofs.Shared.Count
 AvailableChainFGSAProofs.Proofs.Shared.ExactHead
 AvailableChainFGSAProofs.Proofs.Shared.ExactService
+AvailableChainFGSAProofs.Proofs.Shared.Export
 AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
@@ -229,6 +239,7 @@ AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
 AvailableChainFGSAProofs.Proofs.Shared.Gate
 AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
 AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
+AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement
 AvailableChainFGSAProofs.Proofs.Shared.HeadCover
 AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
@@ -247,6 +258,8 @@ AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 AvailableChainFGSAProofs.Proofs.Shared.Reads
 AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 AvailableChainFGSAProofs.Proofs.Shared.Recurrence
+AvailableChainFGSAProofs.Proofs.Shared.Regimes
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Proofs.Shared.Relay
 AvailableChainFGSAProofs.Proofs.Shared.Release
 AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
@@ -269,6 +282,7 @@ AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 AvailableChainFGSAProofs.Statements.CleanInvariant
 AvailableChainFGSAProofs.Tests.CleanEpochAxioms
+AvailableChainFGSAProofs.Tests.CleanSuppressed
 AvailableChainFGSAProofs.Tests.SharedAxioms
 AvailableChainFGSARun.Model.Families
 AvailableChainFGSARun.Model.HealingFixture
@@ -299,6 +313,7 @@ AvailableChainFGSARun.Proofs.Reachable
 AvailableChainFGSARun.Proofs.ReadFacts
 AvailableChainFGSARun.Proofs.Readiness
 AvailableChainFGSARun.Proofs.ReadyAcceptance
+AvailableChainFGSARun.Proofs.ReceiptCoverage
 AvailableChainFGSARun.Proofs.ReceiptCoverageReady
 AvailableChainFGSARun.Proofs.Receipts
 AvailableChainFGSARun.Proofs.Restore
@@ -495,14 +510,5 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Clean.Closure P-Cl1
-AvailableChainFGSAProofs.Proofs.Clean.Safety P-Cl1
-AvailableChainFGSAProofs.Proofs.Clean.StepGate P-Cl1
-AvailableChainFGSAProofs.Proofs.Clean.Transfer P-Cl1
-AvailableChainFGSAProofs.Proofs.Clean.TransferFrame P-Cl1
-AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSARun S-Ap
-AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

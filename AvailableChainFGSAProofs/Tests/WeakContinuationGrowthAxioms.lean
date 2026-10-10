@@ -3,6 +3,9 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth --
 
 public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed -- shake: keep (seed axiom audit)
 
+public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay
+public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService
+
 public section
 
 open AvailableChain.FGSA.Run
@@ -81,4 +84,13 @@ open AvailableChain.FGSA.Run
 #print axioms wcg_rowSourceReplay
 #print axioms wcg_actionReads
 #print axioms wcg_retainedSeed
+#print axioms assembly_tickReplay_atWake
+#print axioms assembly_joinedReplay
+#print axioms assembly_wcg_dischargeL
+#print axioms wcg_service4OfSeed
+#print axioms wcg_service_outputs
+#print axioms wcg_sourceJoinCut
+#print axioms wcg_sourceWitness_joined
+#print axioms wcg_heightSeed_of_finite
+#print axioms wcg_retainedSeed_of_finite
 end

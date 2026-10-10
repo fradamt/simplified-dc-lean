@@ -149,15 +149,75 @@ theorem inclusion_proposal_receipt [Fintype V]
           (hService N ⟨ip, hip, hem⟩)
         simpa only [hbp] using hresult
 
+/-- A joined HEAD read excludes only a local restart at this vote time.
+Earlier restarts and other nodes' same-time restarts are allowed. -/
+theorem inclusion_preTick_eq_timeRead_joined
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
+    (hJ : joinedAt p E rho x s (SA.voteTime p.toParams s)) :
+    V2.D.Run.stateBefore E rho i x =
+      V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams s) x := by
+  let t := SA.voteTime p.toParams s
+  let q := fun e : V2.Event V (fgsa p c).Object => decide (e.time < t)
+  have hdown : ∀ e f : V2.Event V (fgsa p c).Object, e.key ≤ f.key → q f = true → q e = true := by
+    intro e f hk hf
+    exact decide_eq_true ((V2.D.Engine.time_le_of_key_le e f hk).trans_lt
+      (of_decide_eq_true hf))
+  have hf := V2.D.Engine.filter_eq_take hs q hdown
+  have hni : (rho.events.filter q).length ≤ i := by
+    by_contra hn
+    have hlt := Nat.lt_of_not_ge hn
+    have hm : V2.Event.tick x t ∈ rho.events.filter q := by
+      rw [hf]
+      exact List.mem_of_getElem? (by rw [List.getElem?_take_of_lt hlt]; exact hi)
+    exact lt_irrefl t (of_decide_eq_true (List.mem_filter.mp hm).2)
+  change _ = ((rho.events.filter q).foldl (V2.D.World.step E rho) V2.D.World.init) x
+  rw [hf]
+  apply V2.D.Engine.stateBefore_other_node E rho hni
+  intro j e hj hji hget hnode
+  have hl : t ≤ e.time := by
+    have hh := V2.D.Engine.filter_false_of_index_ge hs q hdown hj hget
+    simpa [q] using hh
+  obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hget
+  obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
+  have hk : e.key ≤ (V2.Event.tick x t : V2.Event V (fgsa p c).Object).key := by
+    simpa [hje, hie] using (List.pairwise_iff_getElem.mp hs.sorted) j i hjl hil hji
+  have ht : e.time = t := le_antisymm (V2.D.Engine.time_le_of_key_le _ _ hk) hl
+  have he : e = .tick x t := by
+    cases e with
+    | restart u w =>
+        change u = x at hnode
+        subst u
+        change w = t at ht
+        subst w
+        have hbound := hJ.2.2 t (hs.in_horizon _ (List.mem_of_getElem? hget)).1
+          le_rfl (List.mem_of_getElem? hget)
+        change 4 * p.Δ * (s : Time) + p.Δ ≤ 4 * p.Δ * ((s : Time) - 1) at hbound
+        nlinarith [p.deltaPos]
+    | tick u w =>
+        change u = x at hnode
+        change w = t at ht
+        rw [hnode, ht]
+    | deliver u o w =>
+        change w = t at ht
+        subst w
+        change toLex (t, (2 : Nat)) ≤ toLex (t, (1 : Nat)) at hk
+        simp [Prod.Lex.toLex_le_toLex] at hk
+  have hjiEq : j = i :=
+    (List.Nodup.getElem_inj_iff hs.nodup).mp (by rw [hje, hie, he])
+  omega
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X2 (read step).
 Class (iii). DC: INTENTIONAL; the strict-before clocked read equals the
-scheduled deterministic HEAD even for an asleep reader. The HEAD value
-must first be produced by the retained-walk proof. -/
+scheduled deterministic HEAD for a joined reader. The retained-walk proof
+supplies the HEAD value. Earlier restarts are allowed. -/
 theorem inclusion_head_read
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
-    (x : V) (s : Slot) (b : Block) (hh : headAtLabel p c E rho x s = some b) :
+    (hs : V2.D.ScheduleWellFormed E rho) (x : V) (s : Slot) (b : Block)
+    (hJ : joinedAt p E rho x s (SA.voteTime p.toParams s))
+    (hh : headAtLabel p c E rho x s = some b) :
     FGSA.headVote p ((fgsa p c).clock
       (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams s) x)
       (SA.voteTime p.toParams s)).st s = b := by
@@ -167,7 +227,7 @@ theorem inclusion_head_read
   | none => simp only [hi, Option.map_none, reduceCtorEq] at hh
   | some i =>
     simp only [hi, Option.map_some, Option.some.injEq] at hh
-    rw [fgsa_preTick_eq_timeRead E rho hs hnr (V2.D.Run.tickIdx?_spec hi)] at hh
+    rw [inclusion_preTick_eq_timeRead_joined E rho hs (V2.D.Run.tickIdx?_spec hi) hJ] at hh
     exact hh
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

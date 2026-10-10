@@ -478,6 +478,7 @@ end
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_clean_on
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery_on
 
+#print axioms AvailableChain.FGSA.Run.fgsa_target_service_genesis
 #print axioms AvailableChain.FGSA.Run.fgsa_target_service_of_proposal
 
 #print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_run_on

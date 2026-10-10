@@ -945,6 +945,114 @@ theorem kmid_slot_gst {G ΔF : Time} {pt : KernelPt}
   change E.t_GST ≤ 4 * p.Δ * ((pt.r * p.R : Nat) : Time) at hG
   linarith
 
+omit [Fintype V] in
+/-- The healing witness starts after the approved recovery start. -/
+theorem finality_healing_recoveryStart {ΔF : Time} {w : HealingWitness}
+    (input : HealingInput p c E rho w ΔF) : recoveryStart p E ≤ tstar p w := by
+  have hlow : (w.sStar : Int) + 2 ≤ (w.u : Int) := by
+    exact_mod_cast input.wit.proposal_lower
+  have hsync := input.wit.synchronous
+  have hrec := finality_recoveryStart_le_vote p E (w.u + 1)
+    ((Nat.le_add_left 2 w.sStar).trans
+      (input.wit.proposal_lower.trans (Nat.le_add_right w.u 1))) (by
+      change E.t_GST ≤ 4 * p.Δ * (w.sStar : Int) + p.Δ at hsync
+      change E.t_GST ≤ 4 * p.Δ * (((w.u + 1 : Nat) : Int) - 2)
+      push_cast
+      nlinarith [p.deltaPos])
+  apply hrec.trans
+  change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤
+    4 * p.Δ * (w.u : Int) + 6 * p.Δ
+  push_cast
+  linarith [p.deltaPos]
+
+/-- The healing gate supplies a confirmed reader at every index in its suffix. -/
+theorem finality_input_suffix_confirmed {G ΔF : Time} {w : HealingWitness}
+    (hrec : Recovery₂ p c E rho G ΔF) (input : HealingInput p c E rho w ΔF)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hsuf : HealSuffix p c rho (tstar p w) i) (hhor : tstar p w ≤ rho.horizon) :
+    confirmedReaderIdx p c E rho x i := by
+  apply finality_recovery_confirmedIdx p c E rho hrec hx w.u i
+    (by
+      have hsync := input.wit.synchronous
+      have hlow : (w.sStar : Int) + 2 ≤ (w.u : Int) := by
+        exact_mod_cast input.wit.proposal_lower
+      change E.t_GST ≤ 4 * p.Δ * (w.sStar : Int) + p.Δ at hsync
+      change E.t_GST ≤ 4 * p.Δ * (w.u : Int)
+      nlinarith [p.deltaPos]) hhor
+  intro j hj
+  have hjlt := kmid_tick_lt_afterTicks p c E rho hrec.base.valid.toScheduleWellFormed
+    hj le_rfl
+  have hg : isGateTime p (tstar p w) = true :=
+    (isGateTime_iff p _).mpr ⟨w.u, rfl⟩
+  have hstart : afterTicksIdx rho (tstar p w) ≤ i := by
+    simpa only [HealSuffix_def, healStart_def, hg, ite_true] using hsuf.1
+  exact hjlt.trans_le hstart
+
+variable {p c E rho} in
+/-- A window suffix contains the enabled healing gate and its wake events. -/
+theorem kmid_suffix_confirmed {G ΔF : Time} {pt : KernelPt}
+    (hK : KernelPrem_W p c G ΔF E rho pt)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hsuf : HealSuffix p c rho (tstar p pt.w) i)
+    (hhor : tstar p pt.w ≤ rho.horizon) : confirmedReaderIdx p c E rho x i := by
+  apply finality_recovery_confirmedIdx p c E rho hK.set hx pt.w.u i
+    (by
+      have hsync := hK.input.wit.synchronous
+      have hlow : (pt.w.sStar : Int) + 2 ≤ (pt.w.u : Int) := by
+        exact_mod_cast hK.input.wit.proposal_lower
+      change E.t_GST ≤ 4 * p.Δ * (pt.w.sStar : Int) + p.Δ at hsync
+      change E.t_GST ≤ 4 * p.Δ * (pt.w.u : Int)
+      nlinarith [p.deltaPos]) hhor
+  intro j hj
+  have hjlt := kmid_tick_lt_afterTicks p c E rho hK.set.base.valid.toScheduleWellFormed
+    hj le_rfl
+  have hstart : afterTicksIdx rho (tstar p pt.w) ≤ i := by
+    have hg : isGateTime p (tstar p pt.w) = true :=
+      (isGateTime_iff p _).mpr ⟨pt.w.u, rfl⟩
+    simpa only [HealSuffix_def, healStart_def, hg, ite_true] using hsuf.1
+  exact hjlt.trans_le hstart
+
+variable {p c E rho} in
+/-- The healing start supplies the full previous-slot join cutoff. -/
+theorem kmid_window_join_cut {G ΔF : Time} {pt : KernelPt}
+    (hK : KernelPrem_W p c G ΔF E rho pt) {s : Slot}
+    (hlo : pt.r * p.R ≤ s) : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+  have hstart := hK.start
+  rw [kmid_period_eq] at hstart
+  have hlow : (pt.w.sStar : Int) + 2 ≤ (pt.w.u : Int) := by
+    exact_mod_cast hK.input.wit.proposal_lower
+  have hsync := hK.input.wit.synchronous
+  have hle := kmid_slot_scale_le p hlo
+  change 4 * p.Δ * (pt.w.u : Int) + 6 * p.Δ ≤ _ at hstart
+  change E.t_GST ≤ 4 * p.Δ * (pt.w.sStar : Int) + p.Δ at hsync
+  change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+  nlinarith [p.deltaPos]
+
+variable {p c E rho} in
+/-- Every honest window voter has the duty join guard. -/
+theorem kmid_window_joined {G ΔF : Time} {pt : KernelPt}
+    (hK : KernelPrem_W p c G ΔF E rho pt) {s : Slot}
+    (hlo : pt.r * p.R ≤ s) (hhi : s ≤ (pt.r + 2) * p.R)
+    {x : V} (hx : x ∈ rho.honest) :
+    joinedAt p E rho x s (SA.voteTime p.toParams s) :=
+  finality_recovery_joined p c E rho hK.set hx (kmid_window_join_cut hK hlo)
+    ((kmid_slot_gst hK hlo).trans (by
+      change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
+      linarith [p.deltaPos])) (kmid_slot_horizon hK hhi).2.1
+
+variable {p c E rho} in
+/-- The window gate has run for each honest confirmed reader. -/
+theorem kmid_window_confirmed {G ΔF : Time} {pt : KernelPt}
+    (hK : KernelPrem_W p c G ΔF E rho pt) {s : Slot}
+    (hlo : pt.r * p.R ≤ s) (hhor : SA.gateTime p.toParams s ≤ rho.horizon)
+    {x : V} (hx : x ∈ rho.honest) :
+    confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams s))
+      (SA.gateTime p.toParams s) := by
+  apply finality_recovery_confirmed p c E rho hK.set hx s _ _
+    (kmid_slot_gst hK hlo) le_rfl hhor
+  intro j hj
+  exact kmid_tick_lt_afterTicks p c E rho hK.set.base.valid.toScheduleWellFormed hj le_rfl
+
 variable {p c E rho} in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 FINAL 22:1171–1180. An honest window slot has an actual honest proposal.
@@ -955,17 +1063,7 @@ theorem kmid_window_proposal {G ΔF : Time} {pt : KernelPt}
     (hlo : pt.r * p.R ≤ s) (hhi : s ≤ (pt.r + 2) * p.R) :
     ∃ b, HonestProposal E rho (fgsaInterface p c) s b := by
   have hh := (kmid_slot_horizon hK hhi).1
-  have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
-    have hstart := hK.start
-    rw [kmid_period_eq] at hstart
-    have hlow : (pt.w.sStar : Int) + 2 ≤ (pt.w.u : Int) := by
-      exact_mod_cast hK.input.wit.proposal_lower
-    have hsync := hK.input.wit.synchronous
-    have hle := kmid_slot_scale_le p hlo
-    change 4 * p.Δ * (pt.w.u : Int) + 6 * p.Δ ≤ _ at hstart
-    change E.t_GST ≤ 4 * p.Δ * (pt.w.sStar : Int) + p.Δ at hsync
-    change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
-    nlinarith [p.deltaPos]
+  have hcut := kmid_window_join_cut hK hlo
   exact kmid_honest_proposal_exists p c E rho hK.set.base.valid.toScheduleWellFormed
     hK.set.base.delta s hslot
     (finality_recovery_joined p c E rho hK.set hslot.2 hcut (kmid_slot_gst hK hlo) hh) hh

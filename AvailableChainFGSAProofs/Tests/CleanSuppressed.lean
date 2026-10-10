@@ -78,6 +78,10 @@ theorem executed_empty : gateResultAt p unitCodec env run 8 = some none := by
 
 end AvailableChain.FGSA.Run.Tests.CleanSuppressed
 
+#print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.p
+#print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.env
+#print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.head
+#print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.run
 #print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.schedule
 #print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.raw_nonempty
 #print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.executed_empty

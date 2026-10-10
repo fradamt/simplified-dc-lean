@@ -62,7 +62,8 @@ theorem wcg_seededFrame : WCGSeededFrameStatement p c E rho ΔF w iStar := by
       exact hp
     obtain ⟨K, G, hK, hpair, hpre, _⟩ := hemitted j y r wire _ hr hname
     have hKB := hhigh.below a hc j y r wire _ K hj hr hdecode hname hm hK
-    have heq : X = (derive p.E p.cfg K).T_h := rootScope_eq hroots hX
+    have heq : X = (derive p.E p.cfg K).T_h :=
+      rootScope_eq (hroots.toNamedRootCollisionFree E rho) hX
       (rootScope_ancestor (rootScope_source hr.1 hK) (entry_preceq p.E p.cfg K))
       (congrArg Prod.snd hpair)
     apply eraseFG_preceq_iff.mp
@@ -140,7 +141,7 @@ theorem wcg_seededFrame : WCGSeededFrameStatement p c E rho ΔF w iStar := by
   have hFB : FGBlock.Preceq st.fg.F Bfg := by
     obtain ⟨D, hD, hDF⟩ := hI.Fcar
     by_cases hlo : (finalityView p D).h_F ≤ w.M
-    · have hf := (wcg_lowFinalized hroots haccountable hs
+    · have hf := (wcg_lowFinalized (hroots.toNamedRootCollisionFree E rho) haccountable hs
         D st.fg.F _ (wcg_finalizedOccurrence hscopeRows hnoslash D st.fg.F _
           (scope D hD) hDF rfl) hlo).2
       exact eraseFG_preceq_iff.mp (hBe ▸ Gen.Pure.block_preceq_trans hf hQB)

@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.History
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
+public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 
 public section
 
@@ -136,7 +137,6 @@ theorem kernel_opening_and_middle
   classical
   obtain ⟨_hF0, hκ2, hκR, hR2, _hs2, hGST, hhorA⟩ := kmid_kernel_bounds hK
   have hs := hK.set.base.valid.toScheduleWellFormed
-  have hnr := hK.set.base.noRestart
   have faultQ := hK.set.faultQ
   have hΔ := p.deltaPos
   have laws := (fgCertificateLaws p).height
@@ -166,14 +166,20 @@ theorem kernel_opening_and_middle
   have hA' : HonestProposal E rho (fgsaInterface p c) (pt.r * p.R) (eraseFG A₀) := heA ▸ hA
   have exA := kmid_window_exact hK hA' le_rfl
   have hhA := kmid_slot_horizon hK (s := pt.r * p.R) n02
-  have sourceA := kmid_source_of_exact p c E rho exA hhA.2.2 pt.r rfl
+  have sourceA : ∀ x ∈ rho.honest,
+      actionSourceFG p c E rho x pt.r = some (some A₀) := fun x hx =>
+    kmid_source_of_exact p c E rho exA hhA.2.2 pt.r rfl x hx
+      (kmid_window_confirmed hK le_rfl hhA.2.2 hx)
   obtain ⟨b, hb⟩ := kmid_window_proposal hK hwB n01 n12
   obtain ⟨B, heB, carrierB, slotB, ⟨rowsB, hcarB, hrowsB⟩, stB, hstB, hlookB, hparTFB⟩ :=
     kmid_opening_carrier p c E rho hs hb
   subst heB
   have exB := kmid_window_exact hK hb n01
   have hhB := kmid_slot_horizon hK (s := (pt.r + 1) * p.R) n12
-  have sourceB := kmid_source_of_exact p c E rho exB hhB.2.2 (pt.r + 1) rfl
+  have sourceB : ∀ x ∈ rho.honest,
+      actionSourceFG p c E rho x (pt.r + 1) = some (some B) := fun x hx =>
+    kmid_source_of_exact p c E rho exB hhB.2.2 (pt.r + 1) rfl x hx
+      (kmid_window_confirmed hK n01 hhB.2.2 hx)
   obtain ⟨xd, hxd⟩ := kmid_window_proposal hK hwD n0D hcD2
   obtain ⟨X_D, heD, carrierD, slotD, ⟨rowsD, hcarD, hrowsD⟩, stD, hstD, hlookD, hparTFD⟩ :=
     kmid_opening_carrier p c E rho hs hxd
@@ -209,6 +215,7 @@ theorem kernel_opening_and_middle
       rowsBeforeB i x W hi hW
   -- Step 10: the middle height.
   obtain ⟨iB, hiB, hBTF⟩ := kmid_head_held p c E rho exB hhB.2.1 _ hwB.2
+    (kmid_window_joined hK n01 n12 hwB.2)
   have hBup : (heightView p B).h ≤ (heightView p A₀).h + 1 :=
     capB iB _ B ((kmid_tick_lt_afterTicks p c E rho hs hiB
       (kmid_vote_lt_action p (le_refl ((pt.r + 1) * p.R))).le).le) ⟨hwB.2, hBTF⟩
@@ -312,6 +319,7 @@ theorem kernel_opening_and_middle
   have parentBD := kmid_lift_preceq p hpBD
   have pathUD : FGBlock.Preceq (heightView p B).T_h X_D.parent := preceq_trans pathUB parentBD
   obtain ⟨iD, _hiD, hDTF⟩ := kmid_head_held p c E rho exD hhD.2.1 _ hwD.2
+    (kmid_window_joined hK n0D hcD2 hwD.2)
   have slotChainD := kmid_stored_slotChain p c E rho hK.set.base.valid iD _ X_D hDTF
   have hDne : X_D ≠ .genesis := by
     intro h
@@ -328,11 +336,14 @@ theorem kernel_opening_and_middle
     fgsa_noMixedMaturity p _ _ X_D slotChainD entryU pathUD hmat
   -- Step 17: raw chain rows through each carrier.
   have chainA : ChainRowsBefore p c E rho A₀ (p.actionTime pt.r) :=
-    kmid_chainRows_of_head p c E rho hs hnr exA hhA.2.1 _ hx₀ _ (kmid_vote_lt_action p le_rfl)
+    kmid_chainRows_of_head p c E rho hs exA hhA.2.1 _ hx₀
+      (kmid_window_joined hK le_rfl n02 hx₀) _ (kmid_vote_lt_action p le_rfl)
   have chainB : ChainRowsBefore p c E rho B (p.actionTime (pt.r + 1)) :=
-    kmid_chainRows_of_head p c E rho hs hnr exB hhB.2.1 _ hx₀ _ (kmid_vote_lt_action p le_rfl)
+    kmid_chainRows_of_head p c E rho hs exB hhB.2.1 _ hx₀
+      (kmid_window_joined hK n01 n12 hx₀) _ (kmid_vote_lt_action p le_rfl)
   have chainD : ChainRowsBefore p c E rho X_D (p.actionTime (pt.r + 2)) :=
-    kmid_chainRows_of_head p c E rho hs hnr exD hhD.2.1 _ hx₀ _ (kmid_vote_lt_action p hcD2)
+    kmid_chainRows_of_head p c E rho hs exD hhD.2.1 _ hx₀
+      (kmid_window_joined hK n0D hcD2 hx₀) _ (kmid_vote_lt_action p hcD2)
   -- Step 15: the early batch.
   have batchD : (heightView p X_D.parent).h = (heightView p A₀).h + 1 →
       BatchPrem p c E rho ΔF .target (pt.r + 1) ((heightView p A₀).h + 1)
@@ -410,10 +421,12 @@ theorem kernel_opening_and_middle
       kmid_held_finality_afterTicks p c E rho hOrigin hK.set.base faultQ _ _ (Nat.succ_pos _)
         finBeforeD i x W hi hW
     heldDAtFinalAction := fun x hx =>
-      kmid_head_held_from p c E rho hs hnr exD hhD.2.1 x hx _ _
+      kmid_head_held_from p c E rho hs exD hhD.2.1 x hx
+        (kmid_window_joined hK n0D hcD2 hx) _ _
         (kmid_vote_lt_action p hcD2).le le_rfl
     heldAAtEnd := fun x hx =>
-      kmid_head_held_from p c E rho hs hnr exA hhA.2.1 x hx _ _ le_rfl
+      kmid_head_held_from p c E rho hs exA hhA.2.1 x hx
+        (kmid_window_joined hK le_rfl n02 hx) _ _ le_rfl
         (List.length_filter_le _ _) }⟩
 
 /-- FINAL 22:1199–1206 (F2). The fresh entry of the middle block, as kept in the witness.

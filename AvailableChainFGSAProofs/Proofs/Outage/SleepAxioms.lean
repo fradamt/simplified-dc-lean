@@ -1,5 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
+public import AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths
+public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceSleep
 public import AvailableChainFGSAProofs.Proofs.Outage.GateCount
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
@@ -52,3 +55,18 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
 #print axioms AvailableChain.FGSA.Run.outage_liveRoot_covers
 #print axioms AvailableChain.FGSA.Run.outage_delivery_frame
 #print axioms AvailableChain.FGSA.Run.outage_frame_retains
+#print axioms AvailableChain.FGSA.Run.clean_growth_compatible_of_outputs
+#print axioms AvailableChain.FGSA.Run.clean_growth_claim_body
+#print axioms AvailableChain.FGSA.Run.outageV_active_path_of_coverage
+#print axioms AvailableChain.FGSA.Run.outageV_exact_carrier_receipt
+#print axioms AvailableChain.FGSA.Run.outage_good_seats
+#print axioms AvailableChain.FGSA.Run.outage_late_opponent_bound
+#print axioms AvailableChain.FGSA.Run.outage_good_batch_of_e
+#print axioms AvailableChain.FGSA.Run.outage_good_covered
+#print axioms AvailableChain.FGSA.Run.outageV_gate_of_receipts
+#print axioms AvailableChain.FGSA.Run.inclusion_preTick_eq_timeRead_joined
+#print axioms AvailableChain.FGSA.Run.outage_prefix_cut_of_origin
+#print axioms AvailableChain.FGSA.Run.outage_prefix_label_cut
+#print axioms AvailableChain.FGSA.Run.outage_prefix_receipt_of_origin
+#print axioms AvailableChain.FGSA.Run.outage_writeKeys_new_compatible
+#print axioms AvailableChain.FGSA.Run.outage_gate_writeKeys_compatible

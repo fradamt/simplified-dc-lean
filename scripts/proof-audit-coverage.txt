@@ -2694,10 +2694,14 @@
             'AvailableChain.FGSA.Run.terminalCarriage_general_W',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.CoreServices': (
+            'AvailableChain.FGSA.Run.FinalityScopedVoteReceipts',
+            'AvailableChain.FGSA.Run.finality_emitted_head_form',
+            'AvailableChain.FGSA.Run.finality_full_vote_of_receipts',
             'AvailableChain.FGSA.Run.fgsa_coreServices',
             'AvailableChain.FGSA.Run.fgsa_tStart',
             'AvailableChain.FGSA.Run.fgsa_tVote',
             'AvailableChain.FGSA.Run.fgsa_tWalk',
+            'AvailableChain.FGSA.Run.FinalityVoteReceipts',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.Export': (
             'AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W_of',
@@ -2714,6 +2718,7 @@
         'AvailableChainFGSAProofs.Proofs.Finality.Forward': (
             'AvailableChain.FGSA.Run.ForwardWitness_W_def',
             'AvailableChain.FGSA.Run.forward_witness_FE_of',
+            'AvailableChain.FGSA.Run.finality_window_nonneg',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.FrontierBound': (
             'AvailableChain.FGSA.Run.honestFrontier_le_opening',
@@ -2750,10 +2755,68 @@
             'AvailableChain.FGSA.Run.kernel_middle_fresh_U',
             'AvailableChain.FGSA.Run.kernel_middle_source_cap',
             'AvailableChain.FGSA.Run.kernel_opening_and_middle',
+            'AvailableChain.FGSA.Run.KernelMiddleWitness_W',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport': (
             'AvailableChain.FGSA.Run.kmid_rows_above_entry',
             'AvailableChain.FGSA.Run.kmid_source_held_at_tick',
+            'AvailableChain.FGSA.Run.kmid_actionTime_eq',
+            'AvailableChain.FGSA.Run.kmid_action_strictMono',
+            'AvailableChain.FGSA.Run.kmid_batchPrem',
+            'AvailableChain.FGSA.Run.kmid_batch_horizon',
+            'AvailableChain.FGSA.Run.kmid_chainRows_of_head',
+            'AvailableChain.FGSA.Run.kmid_delivery_before_afterTicks',
+            'AvailableChain.FGSA.Run.kmid_eraseFG_inj',
+            'AvailableChain.FGSA.Run.kmid_event_time',
+            'AvailableChain.FGSA.Run.kmid_faulty_weight',
+            'AvailableChain.FGSA.Run.kmid_fin_cut',
+            'AvailableChain.FGSA.Run.kmid_head_held',
+            'AvailableChain.FGSA.Run.kmid_head_held_from',
+            'AvailableChain.FGSA.Run.kmid_held_cap_afterTicks',
+            'AvailableChain.FGSA.Run.kmid_held_finality_afterTicks',
+            'AvailableChain.FGSA.Run.kmid_held_height_le',
+            'AvailableChain.FGSA.Run.kmid_honest_proposal_exists',
+            'AvailableChain.FGSA.Run.kmid_honest_seat',
+            'AvailableChain.FGSA.Run.kmid_kappa_cover',
+            'AvailableChain.FGSA.Run.kmid_kernel_bounds',
+            'AvailableChain.FGSA.Run.kmid_lift_preceq',
+            'AvailableChain.FGSA.Run.kmid_matching_height',
+            'AvailableChain.FGSA.Run.kmid_opening_carrier',
+            'AvailableChain.FGSA.Run.kmid_parentFold_height',
+            'AvailableChain.FGSA.Run.kmid_parent_preceq',
+            'AvailableChain.FGSA.Run.kmid_period_eq',
+            'AvailableChain.FGSA.Run.kmid_proposal_le_action',
+            'AvailableChain.FGSA.Run.kmid_proposal_reachable',
+            'AvailableChain.FGSA.Run.kmid_proposal_read',
+            'AvailableChain.FGSA.Run.kmid_rowHeight_entry',
+            'AvailableChain.FGSA.Run.kmid_row_action',
+            'AvailableChain.FGSA.Run.kmid_row_fin_lt',
+            'AvailableChain.FGSA.Run.kmid_row_source_height',
+            'AvailableChain.FGSA.Run.kmid_rows_at_source',
+            'AvailableChain.FGSA.Run.kmid_rows_below_opening',
+            'AvailableChain.FGSA.Run.kmid_rows_cut',
+            'AvailableChain.FGSA.Run.kmid_slot_gst',
+            'AvailableChain.FGSA.Run.kmid_slot_horizon',
+            'AvailableChain.FGSA.Run.kmid_slot_le_of_preceq',
+            'AvailableChain.FGSA.Run.kmid_slot_lt_of_strict',
+            'AvailableChain.FGSA.Run.kmid_slot_scale_le',
+            'AvailableChain.FGSA.Run.kmid_slot_scale_lt',
+            'AvailableChain.FGSA.Run.kmid_source_mem_TF',
+            'AvailableChain.FGSA.Run.kmid_source_of_exact',
+            'AvailableChain.FGSA.Run.kmid_stored_parent_slot',
+            'AvailableChain.FGSA.Run.kmid_stored_slotChain',
+            'AvailableChain.FGSA.Run.kmid_suffix_confirmed',
+            'AvailableChain.FGSA.Run.kmid_tick_lt_afterTicks',
+            'AvailableChain.FGSA.Run.kmid_vote_lt_action',
+            'AvailableChain.FGSA.Run.kmid_window_confirmed',
+            'AvailableChain.FGSA.Run.kmid_window_exact',
+            'AvailableChain.FGSA.Run.kmid_window_join_cut',
+            'AvailableChain.FGSA.Run.kmid_window_joined',
+            'AvailableChain.FGSA.Run.kmid_window_proposal',
+            'AvailableChain.FGSA.Run.kmid_wire_decode',
+            'AvailableChain.FGSA.Run.kmid_wire_toRow',
+            'AvailableChain.FGSA.Run.finality_healing_recoveryStart',
+            'AvailableChain.FGSA.Run.finality_input_suffix_confirmed',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.Proposal': (
             'AvailableChain.FGSA.Run.proposal_final_F4_W_of',
@@ -2855,6 +2918,7 @@
             'AvailableChain.FGSA.Run.ktail_mixed_final',
             'AvailableChain.FGSA.Run.ktail_r6w_transfer',
             'AvailableChain.FGSA.Run.tail_kernel_W_of_relay',
+            'AvailableChain.FGSA.Run.TailHeadReceipts',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.TailOpening': (
             'AvailableChain.FGSA.Run.TailOpeningWitness_W',
@@ -2865,6 +2929,11 @@
             'AvailableChain.FGSA.Run.ktail_window_exact',
             'AvailableChain.FGSA.Run.ktail_window_proposal',
             'AvailableChain.FGSA.Run.tail_opening_and_witness',
+            'AvailableChain.FGSA.Run.ktail_start_horizon',
+            'AvailableChain.FGSA.Run.ktail_suffix_confirmed',
+            'AvailableChain.FGSA.Run.ktail_window_confirmed',
+            'AvailableChain.FGSA.Run.ktail_window_join_cut',
+            'AvailableChain.FGSA.Run.ktail_window_joined',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.TailReceipt': (
             'AvailableChain.FGSA.Run.ktail_acceptPrem_W',
@@ -4768,6 +4837,46 @@
             'AvailableChain.FGSA.Run.wc_proposer_prior_of_F_prefix',
             'AvailableChain.FGSA.Run.wc_treeFrameAncestry',
         ),
+        'AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers': (
+            'AvailableChain.FGSA.Run.finality_proposal_receiver_service',
+            'AvailableChain.FGSA.Run.finality_honest_head_pool_unique',
+            'AvailableChain.FGSA.Run.finality_fresh_head_service',
+            'AvailableChain.FGSA.Run.finality_target_service_of_held',
+            'AvailableChain.FGSA.Run.finality_postClock_tick',
+            'AvailableChain.FGSA.Run.finality_F_mono_idx',
+            'AvailableChain.FGSA.Run.finality_F_before_postClock',
+            'AvailableChain.FGSA.Run.finality_action_receipts',
+            'AvailableChain.FGSA.Run.finality_tail_head_receipts',
+            'AvailableChain.FGSA.Run.finality_scoped_vote_receipts',
+            'AvailableChain.FGSA.Run.finality_vote_receipts',
+            'AvailableChain.FGSA.Run.finality_full_vote_at_scoped_read',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope': (
+            'AvailableChain.FGSA.Run.FinalityActionReceipts',
+            'AvailableChain.FGSA.Run.finality_prefixTime_bounds',
+            'AvailableChain.FGSA.Run.finality_recoveryStart_le_vote',
+            'AvailableChain.FGSA.Run.finality_recovery_confirmed',
+            'AvailableChain.FGSA.Run.finality_recovery_confirmedIdx',
+            'AvailableChain.FGSA.Run.finality_recovery_joined',
+            'AvailableChain.FGSA.Run.finality_recovery_joinedHonest',
+            'AvailableChain.FGSA.Run.finality_recovery_readEpoch',
+            'AvailableChain.FGSA.Run.finality_recovery_restartFree',
+            'AvailableChain.FGSA.Run.finality_recovery_restart_bound',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Finality.RestoreReads': (
+            'AvailableChain.FGSA.Run.finality_acceptsFinalBefore_mono_ancestor',
+            'AvailableChain.FGSA.Run.finality_acceptsFinalBefore_mono_deadline',
+            'AvailableChain.FGSA.Run.finality_acceptsFinalBefore_of_idx',
+            'AvailableChain.FGSA.Run.finality_heldBefore_at_proposal',
+            'AvailableChain.FGSA.Run.finality_restore_preceq_F',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Finality.Suppliers': (
+            'AvailableChain.FGSA.Run.finality_supplier_bundle',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Finality.TickRead': (
+            'AvailableChain.FGSA.Run.finality_joined_tick_read',
+            'AvailableChain.FGSA.Run.finality_tick_read',
+        ),
     },
     'AvailableChainFGSAProofs.Tests.FGCompose': {
         'AvailableChainFGSAProofs.Proofs.Assembly.Root': (
@@ -4898,6 +5007,7 @@
             'AvailableChain.FGSA.Run.fgsa_proposal_receipt_on',
             'AvailableChain.FGSA.Run.fgsa_restartTime_ge',
             'AvailableChain.FGSA.Run.fgsa_target_receipt_on',
+            'AvailableChain.FGSA.Run.fgsa_target_service_genesis',
             'AvailableChain.FGSA.Run.fgsa_target_service_of_proposal',
             'AvailableChain.FGSA.Run.fgsa_trigger_nonneg',
         ),
@@ -6974,6 +7084,7 @@
 # P-H1 consumer extension: local strict root now has 81 commands.
 # The same P-H1.coverage-fragment.txt contains the expanded serial fragment.
 
+
 # P-H1 Round 2: HealingSleepAxioms has 132 strict commands.
 # Complete local inventory: scripts/dev-pkg/P-H1.coverage-fragment.txt.
 # SupportRecovery is a new owned supplier under NEW-OWNED-MODULES.
@@ -7005,3 +7116,8 @@
 
 # P-H1 Round 3 reset/descent closure: 339 local strict commands.
 # The same full-key serial fragment registers all newly ported H1 consumers.
+# P-H1 Round 2: HealingSleepAxioms has 132 strict commands.
+# Complete local inventory: scripts/dev-pkg/P-H1.coverage-fragment.txt.
+# SupportRecovery is a new owned supplier under NEW-OWNED-MODULES.
+# Merge into the existing FGSAProofs.Tests.Axioms key at serial integration.
+

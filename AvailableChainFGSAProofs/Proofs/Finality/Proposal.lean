@@ -23,7 +23,6 @@ theorem proposal_final_of_forward_W {G ΔF : Time} {g : Nat} {w : HealingWitness
     hAU, _, _, _, hD, _, exA, hhA, _, hacc⟩ :=
       (ForwardWitness_W_def p c E rho ΔF g w _).mp hf
   have hs := h.set.core.base.valid.toScheduleWellFormed
-  have hnr := h.set.core.base.noRestart
   have hΔ := p.deltaPos
   have hslot : pt.s ≤ r * p.R := by
     rw [proposalTime_fgsa, kmid_period_eq] at htr
@@ -61,26 +60,46 @@ theorem proposal_final_of_forward_W {G ΔF : Time} {g : Nat} {w : HealingWitness
     ⟨hsX.1.trans (afterTicksIdx_mono rho hgate), List.length_filter_le _ _⟩
   let y := V2.D.proposerOf rho (fgsaInterface p c) (r * p.R)
   have hy : y ∈ rho.honest := hA.1.2
-  have hX := (exX.2 hhX y hy).2.2.2.1
-  have hAA := (exA.2 hhA y hy).2.2.2.1
+  have hcut : E.t_GST ≤ slotStartZ p (pt.s : Int) := by
+    have hsync := h.input.wit.synchronous
+    have hlow : (w.sStar : Int) + 2 ≤ (w.u : Int) := by
+      exact_mod_cast h.input.wit.proposal_lower
+    have hus : (w.u : Int) ≤ (pt.s : Int) := by exact_mod_cast hu.le
+    change E.t_GST ≤ 4 * p.Δ * (w.sStar : Int) + p.Δ at hsync
+    change E.t_GST ≤ 4 * p.Δ * (pt.s : Int)
+    nlinarith [p.deltaPos]
+  have hreaderX := finality_recovery_confirmed p c E rho h.set.core.toRecovery₂
+    hy pt.s _ _ hcut le_rfl hhX
+    (fun j hj => kmid_tick_lt_afterTicks p c E rho hs hj le_rfl)
+  have hreaderA := finality_recovery_confirmed p c E rho h.set.core.toRecovery₂
+    hy (r * p.R) _ _ (hcut.trans (kmid_slot_scale_le p hslot)) le_rfl hhA
+    (fun j hj => kmid_tick_lt_afterTicks p c E rho hs hj le_rfl)
+  have hX := (exX.2 hhX y hy hreaderX).2.2.2.1
+  have hAA := (exA.2 hhA y hy hreaderA).2.2.2.1
   rw [afterTicks_eq_stateBefore E rho hs] at hX hAA
   change S_at p c E rho (afterTicksIdx rho (SA.gateTime p.toParams pt.s)) y = pt.X at hX
   change S_at p c E rho (afterTicksIdx rho (SA.gateTime p.toParams (r * p.R))) y = A at hAA
   have hXA : Block.Preceq pt.X A := by
     have hmono := h.input.ac.h4.2.2.1 _ _ y hsX hsA
-      (afterTicksIdx_mono rho hgate) hy
+      (afterTicksIdx_mono rho hgate)
+      (finality_input_suffix_confirmed p c E rho h.set.core.toRecovery₂ h.input hy
+        hsX (hstartX.trans hhX))
+      (finality_input_suffix_confirmed p c E rho h.set.core.toRecovery₂ h.input hy
+        hsA (hstartX.trans hhX))
     rwa [hX, hAA] at hmono
   obtain ⟨Xfg, heX, _, _, _, _⟩ := kmid_opening_carrier p c E rho hs h.prop
   have hXU : FGBlock.Preceq Xfg U := KitFG.preceq_trans
     (kmid_lift_preceq p (by simpa only [heX, heA] using hXA)) hAU
   refine ⟨Xfg, heX, ?_⟩
   intro x hx
-  exact acceptsFinalBefore_mono_ancestor p c E rho hnr hs hXU hD.le (hacc x hx)
+  exact finality_acceptsFinalBefore_mono_ancestor p c E rho hs hXU hD.le (hacc x hx)
 
 /-- Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL proposal-relative W deadline. The frozen forward producer is called
 once, with its named inline kernel inputs unchanged. -/
-theorem proposal_final_FE_W_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
+theorem proposal_final_FE_W_of
+    (hServices : FinalityActionReceipts p c E rho)
+    (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtSX)
     (h : ProposalFinalPrem_W p c G ΔF .recFE g w E rho pt)
     (hsel : TRowsSelect p c E rho)
@@ -119,14 +138,16 @@ theorem proposal_final_FE_W_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
       ⟨V2.D.proposalTime (fgsaInterface p c) pt.s⟩ := {
     set := h.set, input := h.input, start := h.start, hhor := h.hhor }
   exact proposal_final_of_forward_W p c E rho h
-    (forward_witness_FE_of p c E rho G ΔF g w hδ
+    (forward_witness_FE_of p c E rho hServices G ΔF g w hδ
       ⟨V2.D.proposalTime (fgsaInterface p c) pt.s⟩ hlocal
       hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore)
 
 /-- Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL F4 conversion through F4_W_implies_FE_W; the FE proof and its
 proposal-relative deadline are reused. -/
-theorem proposal_final_F4_W_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
+theorem proposal_final_F4_W_of
+    (hServices : FinalityActionReceipts p c E rho)
+    (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtSX)
     (h : ProposalFinalPrem_W p c G ΔF .recF4 g w E rho pt)
     (hsel : TRowsSelect p c E rho)
@@ -166,7 +187,7 @@ theorem proposal_final_F4_W_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
       core := h.set.core, bound := h.set.bound
       recur := F4_W_implies_FE_W h.set.recur }
     input := h.input, prop := h.prop, start := h.start, hhor := h.hhor }
-  exact proposal_final_FE_W_of p c E rho G ΔF g w hδ pt hFE
+  exact proposal_final_FE_W_of p c E rho hServices G ΔF g w hδ pt hFE
     hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore
 
 end AvailableChain.FGSA.Run

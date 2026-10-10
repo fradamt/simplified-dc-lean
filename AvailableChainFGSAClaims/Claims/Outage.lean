@@ -191,7 +191,7 @@ def AvailableFromConcl (t₀ : Time) : Prop :=
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 DC confirmedLive/stableLive: SAME joint strict-prefix growth conclusion.
-The actual proposal and both output reads share one deadline. -/
+The trigger and deadline have independent confirmed-reader scopes. -/
 def AvailableGrowthConcl (t d : Time) : Prop :=
   ∃ s B,
     t < V2.D.proposalTime (fgsaInterface p c) s ∧
@@ -215,9 +215,9 @@ def AvailableGSTClaim (p : Params) : Prop :=
     (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)),
     HealingTimePrem p c G ΔF E rho () →
-    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < recoveryStart p E + B_HF p ΔF G ∧
       AvailableFromConcl p c E rho
-        (E.t_GST + B_HF p ΔF G)
+        (recoveryStart p E + B_HF p ΔF G)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 DC confirmedLive/stableLive: INTENTIONAL recovery contract.
@@ -231,9 +231,9 @@ def AvailableGrowthGSTClaim (p : Params) : Prop :=
     (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (t : Time),
     HealingTimePrem p c G ΔF E rho () →
-    E.t_GST + B_HF p ΔF G ≤ t →
+    recoveryStart p E + B_HF p ΔF G ≤ t →
     t + G + 6 * p.Δ ≤ rho.horizon →
-    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < recoveryStart p E + B_HF p ΔF G ∧
       AvailableGrowthConcl p c E rho t
         (t + G + 6 * p.Δ)
 

@@ -51,6 +51,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.Close -- shake: keep (O-IND
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (I-GATE/I-READ axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
@@ -2235,6 +2236,93 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.wc_treeFrameAncestry
 #print axioms AvailableChain.FGSA.Run.healing_domain_filter_F
 
+-- P-Fi round 2 serial integration: production helpers and supplier interfaces.
+#print axioms AvailableChain.FGSA.Run.FinalityActionReceipts
+#print axioms AvailableChain.FGSA.Run.FinalityVoteReceipts
+#print axioms AvailableChain.FGSA.Run.KernelMiddleWitness_W
+#print axioms AvailableChain.FGSA.Run.TailHeadReceipts
+#print axioms AvailableChain.FGSA.Run.finality_acceptsFinalBefore_mono_ancestor
+#print axioms AvailableChain.FGSA.Run.finality_acceptsFinalBefore_mono_deadline
+#print axioms AvailableChain.FGSA.Run.finality_acceptsFinalBefore_of_idx
+#print axioms AvailableChain.FGSA.Run.finality_heldBefore_at_proposal
+#print axioms AvailableChain.FGSA.Run.finality_joined_tick_read
+#print axioms AvailableChain.FGSA.Run.finality_prefixTime_bounds
+#print axioms AvailableChain.FGSA.Run.finality_recoveryStart_le_vote
+#print axioms AvailableChain.FGSA.Run.finality_recovery_confirmed
+#print axioms AvailableChain.FGSA.Run.finality_recovery_confirmedIdx
+#print axioms AvailableChain.FGSA.Run.finality_recovery_joined
+#print axioms AvailableChain.FGSA.Run.finality_recovery_joinedHonest
+#print axioms AvailableChain.FGSA.Run.finality_recovery_readEpoch
+#print axioms AvailableChain.FGSA.Run.finality_recovery_restartFree
+#print axioms AvailableChain.FGSA.Run.finality_recovery_restart_bound
+#print axioms AvailableChain.FGSA.Run.finality_restore_preceq_F
+#print axioms AvailableChain.FGSA.Run.finality_supplier_bundle
+#print axioms AvailableChain.FGSA.Run.finality_tick_read
+#print axioms AvailableChain.FGSA.Run.kmid_actionTime_eq
+#print axioms AvailableChain.FGSA.Run.kmid_action_strictMono
+#print axioms AvailableChain.FGSA.Run.kmid_batchPrem
+#print axioms AvailableChain.FGSA.Run.kmid_batch_horizon
+#print axioms AvailableChain.FGSA.Run.kmid_chainRows_of_head
+#print axioms AvailableChain.FGSA.Run.kmid_delivery_before_afterTicks
+#print axioms AvailableChain.FGSA.Run.kmid_eraseFG_inj
+#print axioms AvailableChain.FGSA.Run.kmid_event_time
+#print axioms AvailableChain.FGSA.Run.kmid_faulty_weight
+#print axioms AvailableChain.FGSA.Run.kmid_fin_cut
+#print axioms AvailableChain.FGSA.Run.kmid_head_held
+#print axioms AvailableChain.FGSA.Run.kmid_head_held_from
+#print axioms AvailableChain.FGSA.Run.kmid_held_cap_afterTicks
+#print axioms AvailableChain.FGSA.Run.kmid_held_finality_afterTicks
+#print axioms AvailableChain.FGSA.Run.kmid_held_height_le
+#print axioms AvailableChain.FGSA.Run.kmid_honest_proposal_exists
+#print axioms AvailableChain.FGSA.Run.kmid_honest_seat
+#print axioms AvailableChain.FGSA.Run.kmid_kappa_cover
+#print axioms AvailableChain.FGSA.Run.kmid_kernel_bounds
+#print axioms AvailableChain.FGSA.Run.kmid_lift_preceq
+#print axioms AvailableChain.FGSA.Run.kmid_matching_height
+#print axioms AvailableChain.FGSA.Run.kmid_opening_carrier
+#print axioms AvailableChain.FGSA.Run.kmid_parentFold_height
+#print axioms AvailableChain.FGSA.Run.kmid_parent_preceq
+#print axioms AvailableChain.FGSA.Run.kmid_period_eq
+#print axioms AvailableChain.FGSA.Run.kmid_proposal_le_action
+#print axioms AvailableChain.FGSA.Run.kmid_proposal_reachable
+#print axioms AvailableChain.FGSA.Run.kmid_proposal_read
+#print axioms AvailableChain.FGSA.Run.kmid_rowHeight_entry
+#print axioms AvailableChain.FGSA.Run.kmid_row_action
+#print axioms AvailableChain.FGSA.Run.kmid_row_fin_lt
+#print axioms AvailableChain.FGSA.Run.kmid_row_source_height
+#print axioms AvailableChain.FGSA.Run.kmid_rows_at_source
+#print axioms AvailableChain.FGSA.Run.kmid_rows_below_opening
+#print axioms AvailableChain.FGSA.Run.kmid_rows_cut
+#print axioms AvailableChain.FGSA.Run.kmid_slot_gst
+#print axioms AvailableChain.FGSA.Run.kmid_slot_horizon
+#print axioms AvailableChain.FGSA.Run.kmid_slot_le_of_preceq
+#print axioms AvailableChain.FGSA.Run.kmid_slot_lt_of_strict
+#print axioms AvailableChain.FGSA.Run.kmid_slot_scale_le
+#print axioms AvailableChain.FGSA.Run.kmid_slot_scale_lt
+#print axioms AvailableChain.FGSA.Run.kmid_source_mem_TF
+#print axioms AvailableChain.FGSA.Run.kmid_source_of_exact
+#print axioms AvailableChain.FGSA.Run.kmid_stored_parent_slot
+#print axioms AvailableChain.FGSA.Run.kmid_stored_slotChain
+#print axioms AvailableChain.FGSA.Run.kmid_suffix_confirmed
+#print axioms AvailableChain.FGSA.Run.kmid_tick_lt_afterTicks
+#print axioms AvailableChain.FGSA.Run.kmid_vote_lt_action
+#print axioms AvailableChain.FGSA.Run.kmid_window_confirmed
+#print axioms AvailableChain.FGSA.Run.kmid_window_exact
+#print axioms AvailableChain.FGSA.Run.kmid_window_join_cut
+#print axioms AvailableChain.FGSA.Run.kmid_window_joined
+#print axioms AvailableChain.FGSA.Run.kmid_window_proposal
+#print axioms AvailableChain.FGSA.Run.kmid_wire_decode
+#print axioms AvailableChain.FGSA.Run.kmid_wire_toRow
+#print axioms AvailableChain.FGSA.Run.ktail_start_horizon
+#print axioms AvailableChain.FGSA.Run.ktail_suffix_confirmed
+#print axioms AvailableChain.FGSA.Run.ktail_window_confirmed
+#print axioms AvailableChain.FGSA.Run.ktail_window_join_cut
+#print axioms AvailableChain.FGSA.Run.ktail_window_joined
+
+-- P-Fi round 2: additional recovery-start and scoped-reader helpers.
+#print axioms AvailableChain.FGSA.Run.finality_healing_recoveryStart
+#print axioms AvailableChain.FGSA.Run.finality_input_suffix_confirmed
+#print axioms AvailableChain.FGSA.Run.finality_window_nonneg
 -- P-Fd Round 2: restart-safe Foundations suppliers.
 #print axioms AvailableChain.FGSA.Run.fgsa_apiFinalizedMonotonicityRestartClaim_body
 #print axioms AvailableChain.FGSA.Run.fgsa_bridge_clientSafeAll
@@ -2264,3 +2352,21 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_tRows_sleep
 #print axioms AvailableChain.FGSA.Run.rowPermission_confirmedReader_gate
 #print axioms AvailableChain.FGSA.Run.rowService_epoch_of_recovery
+
+-- P-Fi round 3: exact suppliers and scoped vote adapter.
+#print axioms AvailableChain.FGSA.Run.FinalityScopedVoteReceipts
+#print axioms AvailableChain.FGSA.Run.finality_emitted_head_form
+#print axioms AvailableChain.FGSA.Run.finality_full_vote_of_receipts
+#print axioms AvailableChain.FGSA.Run.finality_proposal_receiver_service
+#print axioms AvailableChain.FGSA.Run.finality_honest_head_pool_unique
+#print axioms AvailableChain.FGSA.Run.finality_fresh_head_service
+#print axioms AvailableChain.FGSA.Run.finality_target_service_of_held
+#print axioms AvailableChain.FGSA.Run.finality_postClock_tick
+#print axioms AvailableChain.FGSA.Run.finality_F_mono_idx
+#print axioms AvailableChain.FGSA.Run.finality_F_before_postClock
+#print axioms AvailableChain.FGSA.Run.finality_action_receipts
+#print axioms AvailableChain.FGSA.Run.finality_tail_head_receipts
+#print axioms AvailableChain.FGSA.Run.finality_scoped_vote_receipts
+#print axioms AvailableChain.FGSA.Run.finality_full_vote_at_scoped_read
+
+#print axioms AvailableChain.FGSA.Run.finality_vote_receipts

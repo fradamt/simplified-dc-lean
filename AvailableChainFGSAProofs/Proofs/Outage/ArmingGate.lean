@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.Arming
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingBatch
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPrefix
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPending
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingKernel
 public import AvailableChainFGSARun.Proofs.AncestorDeadlinesStore
 
 public section
@@ -19,80 +20,6 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; one lease write leaves a
-row of its key with at least the written deadline. -/
-theorem arming_write_row {n : Nat} (st : GridCO.State n .root) (b : Block) (g : Nat) (lim : Time) :
-    ∃ d, (b, g, d) ∈ (GridCO.writeObligation st b g lim).obligations ∧ lim ≤ d :=
-  ⟨max ((GridCO.deadlineOf st b g).getD lim) lim,
-    List.mem_append_right _ (List.mem_singleton_self _), le_max_right _ _⟩
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; a later lease write with the
-same deadline keeps a row of each key with at least that deadline. -/
-theorem arming_write_keep {n : Nat} (st : GridCO.State n .root) (b : Block) (g : Nat)
-    (lim : Time) (b' : Block) (g' : Nat) (d : Time) (hm : (b, g, d) ∈ st.obligations)
-    (hd : lim ≤ d) :
-    ∃ d', (b, g, d') ∈ (GridCO.writeObligation st b' g' lim).obligations ∧ lim ≤ d' := by
-  by_cases hk : b' = b ∧ g' = g
-  · obtain ⟨rfl, rfl⟩ := hk
-    exact arming_write_row st b' g' lim
-  · refine ⟨d, List.mem_append_left _ (List.mem_filter.mpr ⟨hm, ?_⟩), hd⟩
-    change (!(b == b' && g == g')) = true
-    cases h : (b == b' && g == g') with
-    | false => rfl
-    | true =>
-      obtain ⟨h1, h2⟩ := Bool.and_eq_true_iff.mp h
-      exact absurd ⟨(beq_iff_eq.mp h1).symm, (beq_iff_eq.mp h2).symm⟩ hk
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; a sequence of lease writes
-with one deadline keeps a row of each key with at least that deadline. -/
-theorem arming_writeKeys_keep {n : Nat} (keys : List (Block × Nat)) (lim : Time) :
-    ∀ (st : GridCO.State n .root) b g d, (b, g, d) ∈ st.obligations → lim ≤ d →
-      ∃ d', (b, g, d') ∈ (GridCO.writeKeys st keys lim).obligations ∧ lim ≤ d' := by
-  induction keys with
-  | nil => exact fun st b g d hm hd => ⟨d, hm, hd⟩
-  | cons k ks ih =>
-    intro st b g d hm hd
-    obtain ⟨d', hm', hd'⟩ := arming_write_keep st b g lim k.1 k.2 d hm hd
-    rw [@GridCO.writeKeys_def GridCO.slowLeasePolicy, List.foldl_cons,
-      ← @GridCO.writeKeys_def GridCO.slowLeasePolicy]
-    exact ih _ b g d' hm' hd'
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; every written key has a row
-with at least the written deadline. -/
-theorem arming_writeKeys_row {n : Nat} (lim : Time) (b : Block) (g : Nat) :
-    ∀ (keys : List (Block × Nat)) (st : GridCO.State n .root), (b, g) ∈ keys →
-      ∃ d, (b, g, d) ∈ (GridCO.writeKeys st keys lim).obligations ∧ lim ≤ d := by
-  intro keys
-  induction keys with
-  | nil => exact fun _ hk => absurd hk List.not_mem_nil
-  | cons k ks ih =>
-    intro st hk
-    rw [@GridCO.writeKeys_def GridCO.slowLeasePolicy, List.foldl_cons,
-      ← @GridCO.writeKeys_def GridCO.slowLeasePolicy]
-    rcases List.mem_cons.mp hk with he | hk
-    · subst he
-      obtain ⟨d, hm, hd⟩ := arming_write_row st b g lim
-      exact arming_writeKeys_keep ks lim _ b g d hm hd
-    · exact ih _ hk
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; lease writes keep S. -/
-theorem arming_writeKeys_stable {n : Nat} (lim : Time) :
-    ∀ (keys : List (Block × Nat)) (st : GridCO.State n .root),
-      (GridCO.writeKeys st keys lim).stableRecord = st.stableRecord := by
-  intro keys
-  induction keys with
-  | nil => exact fun _ => rfl
-  | cons k ks ih =>
-    intro st
-    rw [@GridCO.writeKeys_def GridCO.slowLeasePolicy, List.foldl_cons,
-      ← @GridCO.writeKeys_def GridCO.slowLeasePolicy, ih]
-    rfl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; the clock at a gate time is
@@ -137,6 +64,7 @@ result passes the lease guard keeps F and the blocks, advances S to a block
 above B, and writes a release-level lease for every admitted non-genesis
 prefix of the result, with deadline at least d + L. -/
 theorem arming_gate_write (p : Params) (P : State p.n) (j : Slot) {Cj B : Block}
+    (hJoined : joinedNow p P = true)
     (hsv : GridCO.savedGenuine P.base j = none)
     (hraw : SA.Root.confirmationFrom p.toParams (eraseFG P.fg.F) (actView P) j = some Cj)
     (hguard : ∀ row ∈ (actView P).obligations, Block.Compatible row.1 Cj)
@@ -153,7 +81,8 @@ theorem arming_gate_write (p : Params) (P : State p.n) (j : Slot) {Cj B : Block}
         fastWrite := P.fastWrite ++ [(j, fastSet p (eraseFG P.fg.F) (actView P) j)] } := by
     change normalizeS (if _ then _ else _) = _
     rw [hsv]
-    rfl
+    simp only [Option.isSome_none, Bool.false_eq_true, ite_false, hJoined,
+      Bool.not_true]
   have hany : (actView P).obligations.any (fun row => !Block.compatible row.1 Cj) = false := by
     apply List.any_eq_false.mpr
     intro row hr
@@ -209,18 +138,6 @@ theorem arming_leaseOf (p : Params) (st : State p.n) (h : CStoreInv p st) {B : B
     rfl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; the raw result at an actual
-gate tick is the confirmation of its pre-gate clock. -/
-theorem arming_gateResult_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
-    (hs : V2.D.ScheduleWellFormed E rho) {k : Nat} {y : V} {j : Slot}
-    (hk : IsGateTick p c rho k y j) :
-    gateResult p c E rho y j = some (SA.Root.confirmationFrom p.toParams
-      (eraseFG (FGSA.clockPre p (storeAt p c E rho k y) (SA.gateTime p.toParams j)).fg.F)
-      (FGSA.actView (FGSA.clockPre p (storeAt p c E rho k y) (SA.gateTime p.toParams j))) j) := by
-  rw [gateResult_def, gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hk]
-  rfl
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; every named entry of an honest
 row before the post-tick read is on a chain with B. An action before d(l + 1)
 reads a gate of label at most `l`, below `D`; an action at d(l + 1) reads the
@@ -265,12 +182,14 @@ theorem arming_rows_compat {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     · have hrl : r * p.R ≤ l := Nat.lt_succ_iff.mp hlt
       have hgb : SA.gateTime p.toParams (r * p.R) ≤ b₀ :=
         ((arming_gate_le_iff p _ _).mpr hrl).trans hc.gate_le_cut
-      have hGD := hc.max_le _ G (arming_clean_of_tick hs htick hgb hG).2 hrl
+      have hGD := hc.max_le _ G (arming_clean_of_tick hs (arming_enabled_of_result hs htick
+        ((gateResultAt_eq_gateResult p c E rho hs htick).trans hG)) hgb hG).2 hrl
       exact ⟨D, block_preceq_trans heG hGD, hc.max_read⟩
     · rw [heq] at htick hG
       obtain ⟨_, ⟨Cj, hCj, hDCj⟩, _⟩ := hc.pending_input k y htick hrow.1
       have hGr : gateResult p c E rho y (l + 1) = some (some Cj) :=
-        (arming_gateResult_tick hs htick).trans (congrArg some hCj)
+        (arming_gateResult_tick hs (arming_enabled_of_result hs htick
+        ((gateResultAt_eq_gateResult p c E rho hs htick).trans hG))).trans (congrArg some hCj)
       rw [hGr] at hG
       have hGC : Cj = G := Option.some.inj (Option.some.inj hG)
       exact ⟨G, heG, block_preceq_trans hc.max_read (hGC ▸ hDCj)⟩
@@ -300,7 +219,7 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon)
     (hroots : NamedRootCollisionFree p c E rho)
     (hstrat : RStrat p c E rho) :
-    ∀ y ∈ rho.honest,
+    ∀ y ∈ rho.honest, E.awake y (SA.gateTime p.toParams (l + 1)) = true →
       let I := afterTicksIdx rho (SA.gateTime p.toParams (l + 1))
       let st := storeAt p c E rho I y
       Block.Preceq B (S_at p c E rho I y) ∧
@@ -311,12 +230,17 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
             ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
               Block.Preceq B (eraseFG (FGSA.controls p st).Z)))) := by
   have _hcanonicalFrame := hframe
-  intro y hy I st
+  intro y hy hAw I st
   have hs := hvalid.toScheduleWellFormed
   obtain ⟨i, hi⟩ := arming_tick_exists hs hdelta hy (4 * (l + 1) + 6)
-    (arming_gate_nat p (l + 1)) hgate
+    (arming_gate_nat p (l + 1)) hgate hAw
   obtain ⟨h9a, ⟨Cj, hCj, hDCj⟩, h9c, h9d, h9e, h9f, h9g⟩ := hc.pending_input i y hi hy
   let P := FGSA.clockPre p (storeAt p c E rho i y) (SA.gateTime p.toParams (l + 1))
+  have hEnabled := fgsa_enabledGate_noRestart E rho hnr hi
+  have hJoined : joinedNow p
+      (FGSA.clockPre p (storeAt p c E rho i y) (SA.gateTime p.toParams (l + 1))) = true := by
+    rw [clockPre_joined]
+    exact fgsa_gate_joined_of_enabled E rho hEnabled
   have hst := arming_tick_store hs hnr hi
   have hFD : Block.Preceq (F_at p c E rho i y) D := by
     have h := (hc.prefix_state _ y le_rfl (arming_idxBefore_le_length rho _) hy).1
@@ -342,7 +266,157 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       rw [show GridCO.savedGenuine (actView P) (l + 1 - (a + 1)) = some (some Ca) from hsv]
       exact hBCa
   have hBC : Block.Preceq B Cj := block_preceq_trans hc.max_read hDCj
-  obtain ⟨hfg, hblocks, hS, d, hrow, hd⟩ := arming_gate_write p P (l + 1) h9a hCj
+  obtain ⟨hfg, hblocks, hS, d, hrow, hd⟩ := arming_gate_write p P (l + 1) hJoined h9a hCj
+    (fun row hrow => block_compatible_of_common (block_preceq_trans (h9c row hrow) hDCj)
+      (block_preceq_refl Cj))
+    (hPF ▸ block_preceq_trans hFD hDCj) h9d hne hBC hlev
+  -- The post-tick store of y is the gate step of its pre-gate clock.
+  have hI : storeAt p c E rho I y = gateStep p P (l + 1) := by
+    change (V2.D.Run.stateBefore E rho I y).st = _
+    rw [← afterTicks_eq_stateBefore E rho hs, afterTicks_node E rho hs hi]
+    exact (tick_st (c := c) E rho _ y _).trans (arming_clock_gate p _ (l + 1))
+  have hFI : F_at p c E rho I y = F_at p c E rho i y := by
+    change eraseFG (storeAt p c E rho I y).fg.F = eraseFG (storeAt p c E rho i y).fg.F
+    rw [hI, hfg]
+    exact hPF
+  refine ⟨?_, ?_⟩
+  · change Block.Preceq B (storeAt p c E rho I y).base.stableRecord
+    rw [hI]
+    exact hS
+  by_cases hBF : Block.Preceq B (F_at p c E rho I y)
+  · exact Or.inl hBF
+  right
+  have hFB : Block.Preceq (F_at p c E rho I y) B := by
+    rw [hFI]
+    rcases Bool.or_eq_true_iff.mp h9e with h | h
+    · exact h
+    · exact absurd (hFI ▸ h) hBF
+  refine ⟨hFB, fun heq => hBF (heq ▸ block_preceq_refl _), d, ?_, ?_, hd, ?_⟩
+  · have hm : (B, SA.releaseThreshold p.toParams, d) ∈ st.base.obligations := by
+      change _ ∈ (storeAt p c E rho I y).base.obligations
+      rw [hI]
+      exact hrow
+    exact arming_leaseOf p st (cstoreInv_stateBefore E rho I y) hm
+  · exact lt_of_lt_of_le (lt_add_of_pos_right _ (arming_L_pos p)) hd
+  · have hinv : CStoreInv p st := cstoreInv_stateBefore E rho I y
+    have hBm : B ∈ st.base.blocks := by
+      change B ∈ (storeAt p c E rho I y).base.blocks
+      rw [hI, hblocks]
+      exact ((actView_blocks P B).mp h9d).1
+    obtain ⟨Bh, hBh, hBe⟩ := (hinv.baseTree B).1 hBm
+    have hFBh : FGBlock.Preceq st.fg.F Bh := arming_lift (hBe ▸ hFB)
+    have hcp := fgsa_cpCompat_of_scopedFrame p c E rho hstore hstrat
+    obtain ⟨_, _, hdom, _⟩ := (hcp I y Bh hy (arming_rows_compat (hroots := hroots) hs hnamed hc
+        hBe)).2
+    rcases hdom hBh hFBh with hZ | hD
+    · right
+      rw [← hBe]
+      exact eraseFG_preceq hZ
+    · left
+      refine ⟨Bh, ?_, hBe⟩
+      rw [fgsa_fullTree_eq_filtered, ← fgsa_domainR_eq_filtered]
+      exact hD
+
+/-- Pending lease closure uses the consuming receiver's enabled gate and epoch. -/
+theorem arming_gate_core_on {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hvalid : V2.D.ExecutionValid E rho) (hdelta : E.Δ = p.Δ)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
+    (_hsrc : SrcFrameAboveStmt p c E rho)
+    (hnamed : ∀ i y r a, HonestRowAt p c E rho i y r a →
+      ∃ e C G, namedEntry a.payload.height_pair = some e ∧
+        actionSourceFG p c E rho y r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho y (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧
+        fastAt p c E rho y (r * p.R) (eraseFG C))
+    {fast : Bool} {T b₀ b₁ : Time} {B : Block} (hne : B ≠ .genesis)
+    {l : Slot} {u : V} {s : Slot} {C : Block} {iₛ : Nat} {D : Block}
+    {Dh : FGBlock (Fin p.n)} (hc : ArmingCert p c E rho fast T b₀ b₁ B l u s C iₛ D Dh)
+    (hLabel : coverLabel p b₀ = l + 1)
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
+    ∀ y ∈ coveredNodes p E rho fast b₀,
+      let I := afterTicksIdx rho (SA.gateTime p.toParams (l + 1))
+      let st := storeAt p c E rho I y
+      Block.Preceq B (S_at p c E rho I y) ∧
+      (Block.Preceq B (F_at p c E rho I y) ∨
+        (Block.Preceq (F_at p c E rho I y) B ∧ F_at p c E rho I y ≠ B ∧
+          ∃ dl, FGSA.leaseOf st B = some dl ∧ SA.gateTime p.toParams (l + 1) < dl ∧
+            SA.gateTime p.toParams (l + 1) + L p ≤ dl ∧
+            ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
+              Block.Preceq B (eraseFG (FGSA.controls p st).Z)))) := by
+  have _hcanonicalFrame := hframe
+  intro y hyG I st
+  have hs := hvalid.toScheduleWellFormed
+  have hQ : (if fast then l + 1 = coverLabel p b₀
+      else (coverLabel p b₀ : Int) - (p.k : Int) + 1 ≤ ((l + 1 : Nat) : Int) ∧
+        l + 1 ≤ coverLabel p b₀) := by
+    rw [hLabel]
+    cases fast with
+    | true => exact rfl
+    | false =>
+      simp only [Bool.false_eq_true, ite_false]
+      have hk := p.kLarge
+      constructor
+      · have hk' : (1 : Int) ≤ (p.k : Int) := by exact_mod_cast (show 1 ≤ p.k by omega)
+        omega
+      · exact le_rfl
+  obtain ⟨hy, _, hR⟩ := arming_receiver_window hyG hQ
+  have hAw := (arming_receiver_times hyG hQ).2
+  obtain ⟨i, hi⟩ := arming_tick_exists hs hdelta hy (4 * (l + 1) + 6)
+    (arming_gate_nat p (l + 1)) hgate hAw
+  obtain ⟨h9a, ⟨Cj, hCj, hDCj⟩, h9c, h9d, h9e, h9f, h9g⟩ := hc.pending_input i y hi hy
+  let P := FGSA.clockPre p (storeAt p c E rho i y) (SA.gateTime p.toParams (l + 1))
+  have hEnabled := arming_receiver_enabled hs hyG hQ hi
+  have hTickEpoch : V2.D.restartFree rho y
+      (rho.idxBefore (SA.gateTime p.toParams (l + 1))) i := by
+    intro k w hstart hki he
+    have hw : SA.gateTime p.toParams (l + 1) ≤ w := by
+      by_contra hn
+      have hk := (Gen.V2.Duty.index_lt_idxBefore_iff hs he _).mpr (lt_of_not_ge hn)
+      omega
+    have hwg : w ≤ SA.gateTime p.toParams (l + 1) := by
+      by_contra hn
+      have hik := V2.D.Engine.eventIndex_lt_of_time_lt hs hi he (lt_of_not_ge hn)
+      omega
+    have hsg : slotStartZ p ((l + 1 : Nat) : Int) < SA.gateTime p.toParams (l + 1) := by
+      change 4 * p.Δ * ((l + 1 : Nat) : Int) <
+        4 * p.Δ * ((l + 1 : Nat) : Int) + 6 * p.Δ
+      linarith [p.deltaPos]
+    exact hR w (hsg.trans_le hw) (hwg.trans_eq (congrArg (SA.gateTime p.toParams)
+      hLabel.symm)) (List.mem_of_getElem? he)
+  have hJoined : joinedNow p
+      (FGSA.clockPre p (storeAt p c E rho i y) (SA.gateTime p.toParams (l + 1))) = true := by
+    rw [clockPre_joined]
+    exact fgsa_gate_joined_of_enabled E rho hEnabled
+  have hst := arming_tick_store_on hs hi hTickEpoch
+  have hFD : Block.Preceq (F_at p c E rho i y) D := by
+    have h := (hc.prefix_state _ y le_rfl (arming_idxBefore_le_length rho _) hy).1
+    change Block.Preceq (eraseFG (storeAt p c E rho i y).fg.F) D
+    rw [hst]
+    exact h
+  have hPF : eraseFG P.fg.F = F_at p c E rho i y := by
+    change eraseFG (clockPre p (storeAt p c E rho i y) _).fg.F =
+      eraseFG (storeAt p c E rho i y).fg.F
+    rw [clockPre_fg]
+  have hlev : SA.releaseThreshold p.toParams ≤
+      SA.Root.prefixSupport p.toParams (actView P) (l + 1) B ∨
+      GridCO.slowEligible p.toParams.engine (actView P) (l + 1) B = true := by
+    cases fast with
+    | true => exact Or.inl (h9f rfl)
+    | false =>
+      right
+      obtain ⟨hk2, hwin⟩ := h9g rfl
+      apply Bool.and_eq_true_iff.mpr
+      refine ⟨decide_eq_true hk2, List.all_eq_true.mpr ?_⟩
+      intro a ha
+      obtain ⟨Ca, hsv, hBCa⟩ := hwin a (List.mem_range.mp ha)
+      rw [show GridCO.savedGenuine (actView P) (l + 1 - (a + 1)) = some (some Ca) from hsv]
+      exact hBCa
+  have hBC : Block.Preceq B Cj := block_preceq_trans hc.max_read hDCj
+  obtain ⟨hfg, hblocks, hS, d, hrow, hd⟩ := arming_gate_write p P (l + 1) hJoined h9a hCj
     (fun row hrow => block_compatible_of_common (block_preceq_trans (h9c row hrow) hDCj)
       (block_preceq_refl Cj))
     (hPF ▸ block_preceq_trans hFD hDCj) h9d hne hBC hlev
@@ -419,6 +493,7 @@ theorem pending_gate_lease_or_F {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     (hroots : NamedRootCollisionFree p c E rho)
     (hstrat : RStrat p c E rho) :
     ∀ y ∈ rho.honest,
+      E.awake y (SA.gateTime p.toParams (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat + 1)) = true →
       let j := ((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat + 1
       let I := afterTicksIdx rho (SA.gateTime p.toParams j)
       let st := storeAt p c E rho I y

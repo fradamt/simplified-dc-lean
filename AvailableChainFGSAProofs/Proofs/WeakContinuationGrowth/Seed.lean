@@ -87,25 +87,9 @@ theorem wcg_time_before_cut (hs : V2.D.ScheduleWellFormed E rho)
   · exact le_of_lt h
   · exact le_of_eq h
 
-/-- A retained continuation tick maps back to its source occurrence. -/
-theorem wcg_tickSourceReplay (ha : RetainedAgreesThrough₂ p c E source E' rho)
-    (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
-    (hns : V2.D.NoRestart source) (hnr : V2.D.NoRestart rho)
-    {k : Nat} {x : V} {t : Time} (hx : x ∈ rho.honest) (ht : t ≤ source.horizon)
-    (hk : rho.events[k]? = some (.tick x t)) :
-    ∃ j, source.events[j]? = some (.tick x t) ∧
-      rho.stateBefore E' k x = source.stateBefore E j x := by
-  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp
-    ((wcg_eventReplay ha (.tick x t) hx ht).mp (List.mem_of_getElem? hk))
-  refine ⟨j, hj, ?_⟩
-  rw [V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hr hnr hk,
-    V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hs hns hj]
-  exact wcg_beforeReplay ha x hx ht
-
 /-- Optional pre-tick reads agree, including the case of an absent tick. -/
 theorem wcg_preTickReplay (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
-    (hns : V2.D.NoRestart source) (hnr : V2.D.NoRestart rho)
     (x : V) (hx : x ∈ rho.honest) {t : Time} (ht : t ≤ source.horizon) :
     preTick E' rho x t = preTick E source x t := by
   rw [preTick_def, preTick_def]
@@ -114,16 +98,20 @@ theorem wcg_preTickReplay (ha : RetainedAgreesThrough₂ p c E source E' rho)
     cases hj : source.tickIdx? x t with
     | none => rfl
     | some j =>
-      obtain ⟨k, he, _⟩ := wcg_tickEventReplay ha hs hr hns hnr hx ht
+      obtain ⟨k, he, _⟩ := wcg_tickEventReplay ha hs hr hx ht
         (V2.D.Run.tickIdx?_spec hj)
       have := fgsa_tickIdx_of_event p c E' rho hr he
       rw [hk] at this
       cases this
   | some k =>
-    obtain ⟨j, hj, he⟩ := wcg_tickSourceReplay ha hs hr hns hnr hx ht
+    obtain ⟨j, hj, he⟩ := wcg_tickSourceReplay ha hs hr hx ht
       (V2.D.Run.tickIdx?_spec hk)
     rw [fgsa_tickIdx_of_event p c E source hs hj]
     exact congrArg some he
+
+private def replay_guardDecidable (w : Option Time) (cut : Time) :
+    Decidable (match w with | none => True | some t => t ≤ cut) := by
+  cases w <;> dsimp <;> infer_instance
 
 private def replay_gateAt (p : Params) {In : Type} (c : AppCodec In)
     {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -132,8 +120,13 @@ private def replay_gateAt (p : Params) {In : Type} (c : AppCodec In)
   | some (.tick x t) =>
       if isGateTime p t then
         let st := FGSA.clockPre p (rho.stateBefore E j x).st t
-        some (SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st)
-          ((t - 6 * p.Δ) / (4 * p.Δ)).toNat)
+        letI := replay_guardDecidable st.restartTime
+          (4 * p.Δ * (((t - 6 * p.Δ) / (4 * p.Δ)).toNat : Int))
+        some (if (match st.restartTime with
+          | none => True
+          | some w => w ≤ (4 * p.Δ * (((t - 6 * p.Δ) / (4 * p.Δ)).toNat : Int)))
+          then SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st)
+            ((t - 6 * p.Δ) / (4 * p.Δ)).toNat else none)
       else none
   | _ => none
 
@@ -172,25 +165,26 @@ theorem wcg_tickPassed {j k : Nat} {x : V} {t : Time}
     (hp : gatePassedAt p c E source j) : gatePassedAt p c E' rho k := by
   obtain ⟨y, s, hy, hp⟩ := hp
   have hxy : y = x ∧ SA.gateTime p.toParams s = t := by
-    exact V2.Event.tick.inj (Option.some.inj (hy.symm.trans hj))
+    exact V2.Event.tick.inj (Option.some.inj (hy.1.symm.trans hj))
   obtain ⟨hxy, ht⟩ := hxy
   subst y
-  refine ⟨x, s, ?_, ?_⟩
+  have hstore : storeAt p c E' rho k x = storeAt p c E source j x :=
+    congrArg (fun st => st.st) he
+  refine ⟨x, s, ⟨?_, ?_⟩, ?_⟩
   · change rho.events[k]? = _
     rw [ht]
     exact hk
-  · have hstore : storeAt p c E' rho k x = storeAt p c E source j x :=
-      congrArg (fun st => st.st) he
-    simpa only [hstore] using hp
+  · rw [hstore]
+    exact hy.2
+  · simpa only [hstore] using hp
 
 /-- Signed action rows replay at the source index with the same wire. -/
 theorem wcg_rowSourceReplay (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
-    (hns : V2.D.NoRestart source) (hnr : V2.D.NoRestart rho)
     {k : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (hrow : HonestRowAt p c E' rho k x r a) (ht : p.actionTime r ≤ source.horizon) :
     ∃ j, HonestRowAt p c E source j x r a := by
-  obtain ⟨j, hj, he⟩ := wcg_tickSourceReplay ha hs hr hns hnr hrow.1 ht hrow.2.1
+  obtain ⟨j, hj, he⟩ := wcg_tickSourceReplay ha hs hr hrow.1 ht hrow.2.1
   refine ⟨j, ha.honest hrow.1, hj, ?_⟩
   have hem := hrow.2.2
   rw [(V2.D.Run.step_tick_eq E' rho hrow.2.1).2,
@@ -200,16 +194,15 @@ theorem wcg_rowSourceReplay (ha : RetainedAgreesThrough₂ p c E source E' rho)
 /-- Source and gate getters replay at the original action time. -/
 theorem wcg_actionReads (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
-    (hns : V2.D.NoRestart source) (hnr : V2.D.NoRestart rho)
     (x : V) (hx : x ∈ rho.honest) {r : Nat} (ht : p.actionTime r ≤ source.horizon) :
     actionSourceFG p c E' rho x r = actionSourceFG p c E source x r ∧
     gateResult p c E' rho x (r * p.R) = gateResult p c E source x (r * p.R) := by
   constructor
   · rw [actionSourceFG_def, actionSourceFG_def, postClock_def, postClock_def,
-      wcg_preTickReplay ha hs hr hns hnr x hx ht]
+      wcg_preTickReplay ha hs hr x hx ht]
   · have ht' : SA.gateTime p.toParams (r * p.R) ≤ source.horizon := ht
     rw [gateResult_def, gateResult_def, gateIn_def, gateIn_def,
-      wcg_preTickReplay ha hs hr hns hnr x hx ht']
+      wcg_preTickReplay ha hs hr x hx ht']
 
 end AvailableChain.FGSA.Run
 end

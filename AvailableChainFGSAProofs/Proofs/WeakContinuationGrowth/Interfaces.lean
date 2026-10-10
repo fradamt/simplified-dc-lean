@@ -25,9 +25,8 @@ abbrev WCGInitStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -112,9 +111,8 @@ abbrev WCGStepDeliveryStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) 
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -200,9 +198,8 @@ abbrev WCGStepNoGateTickStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -289,9 +286,8 @@ abbrev WCGStepGateTickStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) 
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -377,9 +373,8 @@ abbrev WCGStepRestartStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -465,9 +460,8 @@ abbrev WCGStepStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -553,9 +547,8 @@ abbrev WCGSeededInductionStatement (ΔF : Time) (w : HealingWitness) (iStar : Na
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -640,9 +633,8 @@ abbrev WCGService4Statement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Pr
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -733,9 +725,8 @@ abbrev WCGSeededFrameStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -824,9 +815,8 @@ abbrev WCGFinalBelowStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : 
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -913,9 +903,8 @@ abbrev WCGProposalPivotStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat)
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -1003,9 +992,8 @@ abbrev WCGProposalAdmissionStatement (ΔF : Time) (w : HealingWitness) (iStar : 
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -1094,9 +1082,8 @@ abbrev WCGExactProposalStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat)
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -1188,9 +1175,8 @@ abbrev WCGInclusion6Statement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : 
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -1276,9 +1262,8 @@ abbrev WCGRetrospectiveStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat)
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -1367,9 +1352,8 @@ abbrev WCGSeededFrameLiveStatement (ΔF : Time) (w : HealingWitness) (iStar : Na
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)
@@ -1460,9 +1444,8 @@ abbrev WCGSeededFramePathStatement (ΔF : Time) (w : HealingWitness) (iStar : Na
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_haccountable : FinalitySlashableBound p c E rho)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
   (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
   (_hmono : RMonoAll p c E rho)

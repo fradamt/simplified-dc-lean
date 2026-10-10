@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (WC tick API)
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFinality
 
 public section
@@ -37,23 +38,22 @@ theorem wc_gateHeads (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
   (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
+  (_hwakes : V2.D.RestartsAtWakes E rho)
   (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hroots : NamedReceiptRootCollisionFree p c E rho)
   (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
+  (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+  (_hmono : RMonoAll p c E rho)
   (_hactive : RActive p c E rho)
   (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
+  (_hmeta : RFrameNextEpoch p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -81,7 +81,7 @@ theorem wc_gateHeads (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+      ∀ k w C, j < k → k < i → enabledGateAt p c E rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
@@ -92,7 +92,8 @@ theorem wc_gateHeads (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
   (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho x j i ∧
+      enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
   (_hdeadlines : ∀ i x,
@@ -117,13 +118,14 @@ theorem wc_gateHeads (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   WCSeed p c E rho w iStar → ∀ i x s, iStar ≤ i → i < rho.events.length →
     WCInv p c E rho w iStar i → IsGateTick p c rho i x s → w.u < s →
     ∀ k y, y ∈ rho.honest → rho.events[k]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
       Block.Preceq w.QStar (headAtIdx p c E rho k s) ∧
       ∀ j z r B, WCResult p c E rho w iStar i j z r B → r < s →
         Block.Preceq B (headAtIdx p c E rho k s) := by
   intro hvalid _hlinked _hcstar _hnr hdelta _hroots _hsync _hdeltaF _hfault _hfaultQ
-    _hfaultX _hpart _hstore _hcumul _hmono _hactive _hframe _hmeta _hrec _hgeo _hcert
+    _hfaultX hpart _hstore _hcumul _hmono _hactive _hframe _hmeta _hrec _hgeo _hcert
     _hsrc _hlabel _hqc _hstrat _hnoslash _hemitted _htargets _hlease _hfast _hdeadlines
-    _hheldRows _hscopeRows _hfinalHead hs i x s _hi _hilen inv ht hlabel k y hy hk
+    _hheldRows _hscopeRows _hfinalHead hs i x s _hi _hilen inv ht hlabel k y hy hk hJ
   have hsch := hvalid.toScheduleWellFormed
   by_cases hfirst : s = w.u + 1
   · subst s
@@ -152,9 +154,16 @@ theorem wc_gateHeads (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     nlinarith [p.deltaPos]
   have hhor : SA.gateTime p.toParams (s - 1) ≤ rho.horizon :=
     hlt.le.trans (hvalid.in_horizon _ (List.mem_of_getElem? ht)).2
-  obtain ⟨l, hl, _⟩ := fgsa_tick_total E rho hsch hdelta y hy (4 * (s - 1) + 6)
-    (hclock ▸ hhor)
-  rw [hclock] at hl
+  have hcutTime : SA.voteTime p.toParams (w.u + 1) ≤
+      SA.gateTime p.toParams (s - 1) := by
+    have hh : ((w.u + 1 : Nat) : Int) ≤ (s - 1 : Nat) :=
+      Int.ofNat_le.mpr (Nat.succ_le_of_lt hprev)
+    change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤
+      4 * p.Δ * ((s - 1 : Nat) : Int) + 6 * p.Δ
+    nlinarith [p.deltaPos]
+  obtain ⟨z, l, hz, hG, _⟩ := wc_joined_gate_witness hvalid hdelta (s - 1)
+    (hpart _ hcutTime hhor) hhor
+  have hl := hG.1
   have hli : l < i := V2.D.Engine.eventIndex_lt_of_time_lt hsch hl ht hlt
   have hafter : iStar ≤ l := by
     by_contra hn
@@ -164,22 +173,22 @@ theorem wc_gateHeads (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     change 4 * p.Δ * ((s - 1 : Nat) : Int) + 6 * p.Δ ≤
       4 * p.Δ * (w.u : Int) + 6 * p.Δ at hh
     nlinarith [p.deltaPos]
-  obtain ⟨C, hC, hQC, _⟩ := inv.nonempty l y (s - 1) hafter hli hy hl hprev
-  have hresult : WCResult p c E rho w iStar i l y (s - 1) C :=
-    ⟨hy, hafter, hli, hprev, hl, hC⟩
-  have covers (j : Nat) (z : V) (B : Block)
-      (hr : WCResult p c E rho w iStar i j z (s - 1) B) :
+  obtain ⟨C, hC, hQC, _⟩ := inv.nonempty l z (s - 1) hafter hli hz hG hprev
+  have hresult : WCResult p c E rho w iStar i l z (s - 1) C :=
+    ⟨hz, hafter, hli, hprev, hl, hC⟩
+  have covers (j : Nat) (v : V) (B : Block)
+      (hr : WCResult p c E rho w iStar i j v (s - 1) B) :
       Block.Preceq B (headAtIdx p c E rho k s) := by
-    obtain ⟨q, _, hhead⟩ := inv.retrospective j z (s - 1) B hr y hy
+    obtain ⟨q, _, hhead⟩ := inv.retrospective j v (s - 1) B hr y hy (hsuc ▸ hJ)
     rw [hsuc] at hhead
     exact (fgsa_tick_unique E rho hsch hhead.event hk) ▸ hhead.covers
-  have hCH := covers l y C hresult
+  have hCH := covers l z C hresult
   refine ⟨block_preceq_trans hQC hCH, ?_⟩
-  intro j z r B hr hrs
+  intro j v r B hr hrs
   rcases lt_or_eq_of_le (Nat.le_sub_one_of_lt hrs) with hlt | heq
-  · exact block_preceq_trans (inv.ordered j l z y r (s - 1) B C hr hresult hlt) hCH
+  · exact block_preceq_trans (inv.ordered j l v z r (s - 1) B C hr hresult hlt) hCH
   · subst r
-    exact covers j z B hr
+    exact covers j v B hr
 
 /-- WC plan §6.5; DC the gate anchor comes from the seed or a strictly earlier result. -/
 theorem wc_gateFinalOrigin (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
@@ -187,23 +196,22 @@ theorem wc_gateFinalOrigin (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
   (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
+  (_hwakes : V2.D.RestartsAtWakes E rho)
   (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hroots : NamedReceiptRootCollisionFree p c E rho)
   (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
+  (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+  (_hmono : RMonoAll p c E rho)
   (_hactive : RActive p c E rho)
   (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
+  (_hmeta : RFrameNextEpoch p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -231,7 +239,7 @@ theorem wc_gateFinalOrigin (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+      ∀ k w C, j < k → k < i → enabledGateAt p c E rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
@@ -242,7 +250,8 @@ theorem wc_gateFinalOrigin (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
   (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho x j i ∧
+      enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
   (_hdeadlines : ∀ i x,
@@ -282,7 +291,8 @@ theorem wc_gateFinalOrigin (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   have hhigh : w.M + 1 ≤ (finalityView p D).h_F := by simp only [Height] at hlo ⊢; omega
   obtain ⟨jf, z, rf, af, uf, H, jt, v, rt, aT, ut, K, B, hjf, haf, _, _, _, _,
       _, _, _, _, hjt, haT, hdecode, _, htarget, hK, hXK, _hgate, _hKB, hgap⟩ :=
-    (wc_finalityTargetEarlier hvalid hlinked hfaultQ hroots hheldRows hfinalHead hqc
+    (wc_finalityTargetEarlier hvalid hlinked hfaultQ
+      (hroots.toNamedRootCollisionFree E rho) hheldRows hfinalHead hqc
       hemitted i x D _ _ ⟨hx, hD⟩ hpos hF rfl).finalityRow
   have hfields : aT.payload.height_pair = ut.height_pair := by
     rcases aT with ⟨auth, body⟩

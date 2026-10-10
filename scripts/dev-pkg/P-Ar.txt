@@ -1,6 +1,8 @@
-# P-Ar kernel, base sleep-par 8384eb34. Closure waits on P-Cl1.
+# P-Ar round 4, base sleep-int 36781bff. Scoped gate ports PREPARED; P-Cl1 CLOSED.
 # GREEN and EXPECTED-FAIL cover S1 REQUIRED union TARGETS exactly.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
+AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
 AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
 AvailableChainFGSAProofs.Proofs.Outage.Arming
 AvailableChainFGSAProofs.Proofs.Outage.ArmingArith
@@ -19,6 +21,17 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingStep
 AvailableChainFGSAProofs.Tests.OutageArming
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
+AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
+AvailableChainFGSAProofs.Proofs.Outage.ArmingMain
+AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
+AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+AvailableChainFGSAProofs.Proofs.Shared.Regimes
+AvailableChainFGSAProofs.Proofs.Shared.Export
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
+AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty
 AvailableChainFGSAProofs.Proofs.Outage.ArmingOutput
 AvailableChainFGSAProofs.Proofs.Outage.ArmingPrefix
 AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
@@ -496,12 +509,5 @@ AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Outage.ArmingCover P-Ar
-AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty P-Ar
-AvailableChainFGSAProofs.Proofs.Outage.ArmingGate P-Ar
-AvailableChainFGSAProofs.Proofs.Outage.ArmingInput P-Ar
-AvailableChainFGSAProofs.Proofs.Outage.ArmingMain P-Ar
-AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

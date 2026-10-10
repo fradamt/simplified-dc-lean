@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep
-public import AvailableChainFGSAProofs.Proofs.Outage.GateCount
+public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt
 
 public section
@@ -15,72 +15,6 @@ theorem outageV_write_and_normalize {S C F B : Block}
     (hBS : Block.Preceq B S) (hCB : Block.Compatible C B) (hFB : Block.Compatible F B) :
     Block.Preceq B (Gen.AC.normalizeOutput F (GridCO.advance S C)) :=
   outage_normalize_covers (outage_advance_covers hBS hCB) hFB
-
-/-- OUTPUT-DIRECT §7. DC: INTENTIONAL; instantiate the compatible-batch
-count at the actual pre-gate active view. Authenticity supplies the late
-complement and the resolved target identities. Receipt facts remain explicit. -/
-theorem outageV_gate_of_receipts {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
-    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hE : V2.D.ExecutionValid E rho) (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
-    (i : Nat) (x : V) (s : Slot) (B C : Block) (H : Finset (Fin p.n))
-    (hpart : (Gen.V2.Duty.faulty rho).card < H.card)
-    (hH : ∀ k, rho.seatOf (.base (.head s)) k ∈ rho.honest →
-      E.awake (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) = true → k ∈ H)
-    (hheads : ∀ k ∈ H, ∃ K t,
-      rho.seatOf (.base (.head s)) k ∈ rho.honest ∧
-      V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
-        (ofHead p ⟨.seat (.head s) k, K.root⟩) t ∧
-      baseVote (⟨.seat (.head s) k, K.root⟩ : HeadWire p.n) ∈
-        (storeAt p c E rho i x).base.votes ∧
-      K ∈ (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))).blocks ∧
-      K.slot ≤ s ∧
-      GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)))
-        (baseVote (⟨.seat (.head s) k, K.root⟩ : HeadWire p.n)) <
-          GridCO.earlyTime p.toParams.engine s ∧
-      GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)))
-        K < GridCO.earlyTime p.toParams.engine s ∧ Block.Compatible K B)
-    (hresult : SA.Root.confirmationFrom p.toParams
-      (eraseFG (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)).fg.F)
-      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s = some C) :
-    Block.Compatible C B := by
-  let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)
-  let v := actView pre
-  have hstore : CStoreInv p pre := cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho i x) _
-  have hd : pre.base.headDomain = none := by
-    rw [clockPre_headDomain]
-    exact base_headDomain_none p (reachable_stateBefore E rho i x)
-  have hraw : GridCO.cleanSupport p.toParams.engine v s ⊆ GridCO.lateVotes p.toParams.engine v s :=
-    fun _ ho => fgsa_early_subset_late p v s (List.mem_filter.mp ho).1
-  apply outageV_gate_of_compatible_batch p.toParams.engine v (eraseFG pre.fg.F) B C s H
-    (Gen.V2.Duty.faulty rho).card ?_ hraw
-    (fgsa_late_rest_bound E rho hC hE i x s H hH) hpart
-    (fun k _ => fgsa_cleanSupport_no_equivocation p v s k) ?_ hresult
-  · intro k hk
-    obtain ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, _⟩ := hheads k hk
-    have hsupp := fgsa_active_support_of_receipt E rho hE i x s k K K t
-      hh he hv hK hslot hvs hbs (Gen.Pure.block_preceq_refl K)
-    obtain ⟨o, ho, hseat, _⟩ := (Gen.AC.Root.vote_pool_support_witness _ _ k K).mp hsupp
-    exact (Gen.AC.Root.vote_pool_mem_seats _ k).mpr ⟨o, hraw ho, hseat⟩
-  · intro o ho k hk hseat X hX
-    obtain ⟨K, t, hh, he, _, hK, _, _, _, hKB⟩ := hheads k hk
-    have hl : GridCO.headLabel? o = some s :=
-      beq_iff_eq.mp (List.mem_filter.mp (List.mem_filter.mp (List.mem_filter.mp ho).1).1).2
-    have hm : o ∈ (storeAt p c E rho i x).base.votes := by
-      have hm := (List.mem_filter.mp (List.mem_filter.mp (List.mem_filter.mp ho).1).1).1
-      change o ∈ pre.base.votes at hm
-      rw [(Internal.clockPre_vn _ _).1] at hm
-      exact hm
-    have heq := fgsa_honest_head_eq_of_stored E rho hE i x s k K.root t hh he o hm hl hseat
-    rw [heq] at hX
-    have hresolve : Gen.AC.Root.resolvedTarget? (GridCO.resolutionTree v)
-        (baseVote (⟨.seat (.head s) k, K.root⟩ : HeadWire p.n)) = some K := by
-      rw [actView_resolutionTree]
-      change Gen.AC.Root.resolvedTarget? (pre.base.headDomain.getD pre.base.blocks) _ = _
-      rw [hd]
-      exact resolvedTarget_of_mem _ (baseBlocks_rootInj p pre hstore) _
-        (List.mem_filter.mp hK).1 rfl
-    have hXK : X = K := Option.some.inj (hX.symm.trans hresolve)
-    exact hXK.symm ▸ hKB
 
 /-- OUTPUT-DIRECT §§8,9. DC: INTENTIONAL; only the current genuine
 result can change S. Saved results can affect renewal but need no
@@ -210,8 +144,9 @@ theorem outageV_restored_gate {p : Params} {In V : Type} [DecidableEq V] [Fintyp
   obtain ⟨H, hH, hbatch⟩ := inclusion_head_seats E rho hC s ⟨hpart⟩
   have hrec := outageV_compatible_head_receipts hE hN hDelta hC hroots hsync
     hi hGST hhistory B hheads
-  exact outageV_gate_of_receipts E rho hE hC i x s B C H hbatch.lt
-    (fun q hh ha => (hH q).mpr ⟨hh, ha⟩)
+  exact outageV_gate_of_receipts E rho hE i x s B C H (Gen.V2.Duty.faulty rho).card
+    hbatch.lt (fgsa_late_rest_bound E rho hC hE i x s H
+      (fun q hh ha => (hH q).mpr ⟨hh, ha⟩))
     (fun q hq => hrec q ((hH q).mp hq).1 ((hH q).mp hq).2) hresult
 
 end AvailableChain.FGSA.Run
