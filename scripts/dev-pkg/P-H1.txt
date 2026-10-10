@@ -1,8 +1,8 @@
 # P-H1 Round 11: production CLOSED; phase-local adapters and handler replays checked.
 # Four full ExecutionValid certificates retain exact OPEN/P-H1 obligations.
 # HealingReplayObligations names their goals; local handler folds are GREEN.
-# H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
-# 123 TARGETS; 572 GREEN; 19 EXPECTED-FAIL.
+# All H2 start ports are GREEN; the full proof facade still needs P-As.
+# 123 TARGETS; 590 GREEN; 1 EXPECTED-FAIL.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
 AvailableChainFGSAProofs.Tests.HealingRecoveryProducersAxioms
@@ -703,24 +703,24 @@ AvailableChainFGSAProofs.Tests.HealingSlowLeaseReplay
 AvailableChainFGSAProofs.Tests.HealingSplitBatchReplay
 AvailableChainFGSAProofs.Proofs.Healing.RegressionFixture
 AvailableChainFGSAProofs.Tests.HealingReplayObligations
+AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
+AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge
+AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
+AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
+AvailableChainFGSAProofs.Proofs.Healing.Promotion
+AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance
+AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
+AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
+AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
+AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
+AvailableChainFGSAProofs.Proofs.Healing.PromotionSource
+AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
+AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance
+AvailableChainFGSAProofs.Tests.HealingAttemptTerminal
+AvailableChainFGSAProofs.Tests.HealingPhaseSettle
+AvailableChainFGSAProofs.Tests.HealingPromotion
+AvailableChainFGSAProofs.Tests.HealingSleepAxioms
 
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs P-As
-AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle P-H2
-AvailableChainFGSAProofs.Proofs.Healing.AttemptStop P-H2
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle P-H2
-AvailableChainFGSAProofs.Proofs.Healing.Promotion P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PromotionAge P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PromotionRows P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PromotionSource P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal P-H2
-AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance P-H2
-AvailableChainFGSAProofs.Tests.HealingAttemptTerminal P-H2
-AvailableChainFGSAProofs.Tests.HealingPhaseSettle P-H2
-AvailableChainFGSAProofs.Tests.HealingPromotion P-H2
-AvailableChainFGSAProofs.Tests.HealingSleepAxioms P-H2

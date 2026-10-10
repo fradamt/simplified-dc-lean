@@ -1,5 +1,5 @@
-# P-H2 Round 9: bounded lease/raw steps, joint invariant and complete HealingInput.
-# All 114 assigned targets and one bounded support companion have strict audit coverage.
+# P-H2 Round 10: H1 caller ports and complete non-Assembly healing build coverage.
+# 120 TARGETS; 590 GREEN; 0 EXPECTED-FAIL. Strict audits include HealingSleepAxioms.
 
 [TARGETS]
 AvailableChainFGSAClaims.Claims.Healing
@@ -117,6 +117,11 @@ AvailableChainFGSAProofs.Tests.HealingReset
 AvailableChainFGSAProofs.Tests.HealingResetCut
 AvailableChainFGSAProofs.Tests.HealingRiseOne
 AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
+AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
+AvailableChainFGSAProofs.Proofs.Healing.PromotionSource
+AvailableChainFGSAProofs.Tests.HealingPhaseSettle
+AvailableChainFGSAProofs.Tests.HealingSleepAxioms
+AvailableChainFGSAProofs.Tests.HealingFrontierRead
 
 [GREEN]
 AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
@@ -704,5 +709,10 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
+AvailableChainFGSAProofs.Proofs.Healing.PromotionSource
+AvailableChainFGSAProofs.Tests.HealingPhaseSettle
+AvailableChainFGSAProofs.Tests.HealingSleepAxioms
+AvailableChainFGSAProofs.Tests.HealingFrontierRead
 
 [EXPECTED-FAIL]

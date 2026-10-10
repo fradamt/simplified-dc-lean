@@ -7521,3 +7521,9 @@ The saved writer and source-build failures are the validation limit for Round 15
   (P-H1.txt:724), not H1; P-H2 round 10 ports it with Tests/HealingFrontierRead and the four
   P-H1 hand-offs missing from P-H2.txt. Review otherwise PASS (guarded steps, pre-GST lock
   covered by release, bounded companion, input producers).
+
+- Lead (P-H2 round 10 merge, 2026-10-10): H1 test callers HealingPhaseSettle and
+  HealingFrontierRead ported; PromotionPhase, PromotionSource, HealingPhaseSettle and
+  HealingSleepAxioms registered in P-H2.txt. 120/120 P-H2 GREEN; DCK P-H1 and P-H2 PASS;
+  695 non-Assembly modules build. Remaining before G-S2: P-As Assembly/NonVacuity ports
+  (5 test roots, full build, full manifest). Review rev-ph2k-astra MERGE-AS-PREPARED.

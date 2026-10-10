@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep (RPhase tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (bootstrap tests)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (foundation producer)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi
@@ -65,16 +66,8 @@ example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())
 -- Durable settlement uses the all-restart producer and actual retained object services.
 example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())
     {G ΔF : Time} (hrec : HealingSet p c E rho G ΔF)
-    (hServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
-      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
-      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
-      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
-      ev.time + p.Δ ≤ rho.horizon →
-      Block.Compatible (eraseFG W)
-        (eraseFG (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.F) →
-      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (i : Nat) (ev : V2.Event V (Obj p)) (v : Time) (m : Nat) (kind : PhaseKind)
-    (hi : rho.events[i]? = some ev) (hgst : E.t_GST ≤ ev.time)
+    (hi : rho.events[i]? = some ev) (hready : recoveryStart p E ≤ ev.time)
     (hu : ev.time + 3 * p.Δ ≤ v) (hv : v ≤ rho.horizon) (hm : 1 ≤ m)
     (hfront : frontierAtIdx p c E rho (i + 1) = m)
     (hkind : AttemptPhaseAt p c E rho (i + 1) m kind)
@@ -86,7 +79,9 @@ example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())
   cases kind <;> obtain ⟨J, hphase, _⟩ := healing_settle_start_on
     (hroots := hrec.base.receiptIdealization) p c E rho
     (fgsa_apiFinalLockClaim_body p c E rho () hp) hrec.base.valid
-    (fgsa_rMonoAll p c E rho) hServices i ev v m _ hi hgst hu hv hm hfront hkind hquiet
+    (fgsa_rMonoAll p c E rho) hrec (fun _ ht => healing_ready_read_cutoff E ht)
+    (healing_phase_witness_receipts_recovery E rho hrec)
+    i ev v m _ hi hready hu hv hm hfront hkind hquiet
   all_goals exact ⟨J, hphase⟩
 
 -- The suffix stamp supplier composes with the actual P-Fd epoch producer.
@@ -128,15 +123,15 @@ example (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {o : Obj p} {d : 
   ⟨fun hl => (lt_irrefl d) ((Gen.V2.Duty.index_lt_idxBefore_iff hs hi d).mp hl),
     healing_phase_lt_timeIdx p c E rho hs hi le_rfl⟩
 
--- If the first rise is after GST, it starts a valid attempt at frontier two or more.
+-- If the first rise is after recoveryStart, it starts a valid attempt at frontier two or more.
 example (hne : rho.honest.Nonempty) {n : Nat} (hn : 2 ≤ frontierAtIdx p c E rho n)
     (hlen : n ≤ rho.events.length)
-    (hgst : ∀ (i : Nat) ev, rho.events[i]? = some ev → E.t_GST ≤ ev.time) :
+    (hready : ∀ (i : Nat) ev, rho.events[i]? = some ev → recoveryStart p E ≤ ev.time) :
     ∃ k, AttemptValid p c E rho k := by
   obtain ⟨i, hin, _, h2, heff⟩ := healing_phase_first_rise p c E rho hne hn
   have hev : rho.events[i]? = some rho.events[i] := List.getElem?_eq_getElem (by omega)
   obtain ⟨k, -, -, -, hk⟩ :=
-    healing_attemptValid_of_event p c E rho hev (hgst i _ hev) heff (by omega)
+    healing_attemptValid_of_event p c E rho hev (hready i _ hev) heff (by omega)
   exact ⟨k, hk⟩
 
 end AvailableChain.FGSA.Run.Tests.HealingPhaseSettle
