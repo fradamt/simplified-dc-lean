@@ -13,31 +13,31 @@ namespace AvailableChain.FGSA.Run.Tests.InclusionExact
 open AvailableChain.SimplexFG
 
 -- Delta = 1; two honest nodes; node 1 sleeps only at the slot-1 HEAD time.
-private abbrev params : Params :=
+public abbrev params : Params :=
   ⟨⟨1, 2, 2, 0, by decide, by decide, by decide, by decide⟩,
     2, 0, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
-private abbrev env : Generic.Env (Fin 2) :=
+public abbrev env : Generic.Env (Fin 2) :=
   ⟨1, by decide, 0, le_rfl, fun x t => !decide (x = 1 ∧ t = 5)⟩
-private abbrev mkRun (es : List (V2.Event (Fin 2) (fgsa params unitCodec).Object)) :
+public abbrev mkRun (es : List (V2.Event (Fin 2) (fgsa params unitCodec).Object)) :
     V2.D.Run (Fin 2) (fgsa params unitCodec) where
   honest := Finset.univ
   horizon := 5
   events := es
   seatOf := fun l j => match l with | .base _ => j | .prop _ => 0
   input := fun _ _ => ()
-private abbrev events : List (V2.Event (Fin 2) (fgsa params unitCodec).Object) :=
+public abbrev events : List (V2.Event (Fin 2) (fgsa params unitCodec).Object) :=
   (List.range 6).foldl (fun es n =>
     let r := mkRun (es ++ [.tick 0 n, .tick 1 n])
     let objects := V2.D.Run.emitsAt env r es.length ++
       V2.D.Run.emitsAt env r (es.length + 1)
     es ++ [.tick 0 n, .tick 1 n] ++
       objects.flatMap (fun o => [.deliver 0 o n, .deliver 1 o n])) []
-private abbrev run := mkRun events
+public abbrev run := mkRun events
 
 /-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X4.
 Class (iii). DC: INTENTIONAL.
 The finite schedule keeps both same-time ticks before each delivery. -/
-private theorem iexact_schedule : V2.D.ScheduleWellFormed env run where
+public theorem iexact_schedule : V2.D.ScheduleWellFormed env run where
   horizon_nonneg := by decide
   sorted := by decide +kernel
   nodup := by decide +kernel
@@ -49,29 +49,29 @@ private theorem iexact_schedule : V2.D.ScheduleWellFormed env run where
     have hn : 0 ≤ t := hall _ ht
     exact ⟨t.toNat, by simp [Int.toNat_of_nonneg hn]⟩
   tick_total := by
-    intro x _ t _ ht hh
+    intro x _ t _ ht hh _
     change t ≤ 5 at hh
     interval_cases t <;> fin_cases x <;> decide +kernel
 
 /-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X4.
 Class (iii). DC: INTENTIONAL.
 The finite test run has no restart event. -/
-private theorem noRestart : V2.D.NoRestart run := by
+public theorem noRestart : V2.D.NoRestart run := by
   intro i x t hi
   have hall : ∀ e ∈ run.events,
       (match e with | .restart _ _ => true | _ => false) = false := by decide +kernel
   exact Bool.noConfusion (hall _ (List.mem_of_getElem? hi))
 
-private abbrev proposalIdx : Nat := run.events.findIdx (fun e => e == .tick 0 4)
-private abbrev proposal : (fgsa params unitCodec).Object :=
+public abbrev proposalIdx : Nat := run.events.findIdx (fun e => e == .tick 0 4)
+public abbrev proposal : (fgsa params unitCodec).Object :=
   (V2.D.Run.emitsAt env run proposalIdx)[0]'(by decide +kernel)
-private abbrev block : Block :=
+public abbrev block : Block :=
   ((fgsaInterface params unitCodec).block proposal.payload).getD .genesis
 
 /-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X4.
 Class (iii). DC: INTENTIONAL.
 The test block has an actual honest slot-1 proposal emission. -/
-private theorem honestProposal :
+public theorem honestProposal :
     HonestProposal env run (fgsaInterface params unitCodec) 1 block := by
   constructor
   · rw [Gen.V2.Duty.HonestSlot_def]
@@ -85,13 +85,13 @@ private theorem honestProposal :
 /-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X4.
 Class (iii). DC: INTENTIONAL.
 The emitted test proposal is a non-genesis block. -/
-private theorem proposal_nonGenesis : block ≠ .genesis := by decide +kernel
+public theorem proposal_nonGenesis : block ≠ .genesis := by decide +kernel
 
 -- Each node accepted the proposal at time 4, strictly before the vote at 5.
 /-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X4.
 Class (iii). DC: INTENTIONAL.
 Both honest nodes accept the test proposal strictly before vote time. -/
-private theorem receipt (x : Fin 2) :
+public theorem receipt (x : Fin 2) :
     ∃ o i t, (fgsaInterface params unitCodec).block o.payload = some block ∧
       t < SA.voteTime params.toParams 1 ∧ V2.D.Run.acceptsAt env run i x o t := by
   let i := run.events.findIdx (fun e => e == .deliver x proposal 4)
@@ -103,7 +103,7 @@ private theorem receipt (x : Fin 2) :
 /-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X4.
 Class (iii). DC: INTENTIONAL.
 Both scheduled readers compute the test proposal as their HEAD. -/
-private theorem headLabel (x : Fin 2) :
+public theorem headLabel (x : Fin 2) :
     headAtLabel params unitCodec env run x 1 = some block := by
   fin_cases x <;> decide +kernel
 
@@ -111,16 +111,16 @@ private theorem headLabel (x : Fin 2) :
 /-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X4.
 Class (iii). DC: INTENTIONAL.
 The strict-before clocked read includes the sleeping reader. -/
-private theorem strictHead (x : Fin 2) :
+public theorem strictHead (x : Fin 2) :
     FGSA.headVote params ((fgsa params unitCodec).clock
       (V2.D.Run.stateBeforeTime env run (SA.voteTime params.toParams 1) x)
       (SA.voteTime params.toParams 1)).st 1 = block :=
-  inclusion_head_read env run iexact_schedule noRestart x 1 block (headLabel x)
+  by fin_cases x <;> decide +kernel
 
 /-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X4.
 Class (iii). DC: INTENTIONAL.
 The sleeping honest reader emits no object at vote time. -/
-private theorem asleep_silent : ∀ o, ¬ V2.D.Run.emits env run 1 o
+public theorem asleep_silent : ∀ o, ¬ V2.D.Run.emits env run 1 o
     (SA.voteTime params.toParams 1) :=
   inclusion_sleep_silence env run 1 1 (Finset.mem_univ _) (by decide)
 
@@ -131,10 +131,10 @@ example : (Gen.V2.Duty.faulty run).card <
     (Gen.V2.Duty.awakeHonest env run (SA.voteTime params.toParams 1)).card := by decide
 
 -- A real HEAD delivery at vote time is after all same-time ticks.
-private abbrev voteIdx : Nat := run.events.findIdx (fun e => e == .tick 0 5)
-private abbrev headObject : (fgsa params unitCodec).Object :=
+public abbrev voteIdx : Nat := run.events.findIdx (fun e => e == .tick 0 5)
+public abbrev headObject : (fgsa params unitCodec).Object :=
   (V2.D.Run.emitsAt env run voteIdx)[0]'(by decide +kernel)
-private abbrev deliveryIdx : Nat := run.events.findIdx
+public abbrev deliveryIdx : Nat := run.events.findIdx
   (fun e => e == .deliver 1 headObject 5)
 example : run.events[deliveryIdx]? = some (.deliver 1 headObject 5) ∧
     V2.D.Run.idxBefore run 5 ≤ voteIdx ∧ voteIdx < deliveryIdx := by decide +kernel
@@ -179,7 +179,7 @@ example (body : RowPayload) :
 -- The old-child reflection route permits a rival at X = the stored parent Q.
 example {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.proposalTime p.toParams (s + 1)))
@@ -206,16 +206,16 @@ example {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     N hem Kc N.erase.parent C hcut hKQ (Gen.Pure.block_preceq_refl _)
     hp hold hm hw
 
-#print axioms receipt
-#print axioms strictHead
-#print axioms asleep_silent
-#print axioms honestProposal
-#print axioms inclusion_acceptance_of_stored
-#print axioms inclusion_receipt_of_compatible
-#print axioms inclusion_proposal_receipt
-#print axioms inclusion_head_read
-#print axioms inclusion_sleep_silence
-#print axioms inclusion_comparison_prefix
+#print axioms AvailableChain.FGSA.Run.Tests.InclusionExact.receipt
+#print axioms AvailableChain.FGSA.Run.Tests.InclusionExact.strictHead
+#print axioms AvailableChain.FGSA.Run.Tests.InclusionExact.asleep_silent
+#print axioms AvailableChain.FGSA.Run.Tests.InclusionExact.honestProposal
+#print axioms AvailableChain.FGSA.Run.inclusion_acceptance_of_stored
+#print axioms AvailableChain.FGSA.Run.inclusion_receipt_of_compatible
+#print axioms AvailableChain.FGSA.Run.inclusion_proposal_receipt
+#print axioms AvailableChain.FGSA.Run.inclusion_head_read
+#print axioms AvailableChain.FGSA.Run.inclusion_sleep_silence
+#print axioms AvailableChain.FGSA.Run.inclusion_comparison_prefix
 
 /-! ### r2: G1 producer, E1 compatibility, E2 -/
 
@@ -223,7 +223,7 @@ example {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 /-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT r2, R3.
 Class (iii). DC: INTENTIONAL.
 The test run has no genuine comparison result before the slot-1 vote. -/
-private theorem slot1_no_result {r : Slot} {B : Block}
+public theorem slot1_no_result {r : Slot} {B : Block}
     (h : (r, B) ∈ cleanResults params unitCodec env run
       (V2.D.Run.idxBefore run (SA.voteTime params.toParams 1))) : False := by
   have := (inclusion_results_before iexact_schedule 1 (fun j hj e he =>
@@ -274,10 +274,11 @@ example : GridCO.equivocates
   inclusion_no_equivocation _ 0 _ (fun _ ho _ => List.mem_singleton.mp ho)
 
 -- O-CLOSE shape: the ExactProposalPrem fields and the field-level Clean binders give E1, E2 and E3
--- inline, for every honest reader (asleep or awake).
+-- inline, for joined honest readers with local service.
 example {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time) (pt : PtSP)
-    (hset : CleanSet p c E rho ΔF) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
+    (hset : CleanSet p c E rho ΔF) (hInputs : InclusionReceiverInputs E rho)
+    (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.voteTime p.toParams pt.s ≤ rho.horizon)
     (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
@@ -288,10 +289,11 @@ example {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
       gateResult p c E rho y s = some (some C) →
       (r < s → Block.Preceq B C) ∧ (r = s → Block.Compatible B C))
     (hnonempty : ∀ j x s, j < timeIdx rho rho.horizon → x ∈ rho.honest →
-      IsGateTick p c rho j x s →
+      enabledGateAt p c E rho j x s →
       ∃ B, gateResultAt p c E rho j = some (some B) ∧ (s = 0 → B = .genesis))
     (htransfer : ∀ x y s B H, x ∈ rho.honest → y ∈ rho.honest →
       SA.gateTime p.toParams s ≤ rho.horizon → gateResult p c E rho x s = some (some B) →
+      joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
       vHead p c E rho y s = some H → Block.Preceq B H)
     (hleases : ∀ i v, i ≤ timeIdx rho rho.horizon → v ∈ rho.honest →
       ∀ row ∈ (storeAt p c E rho i v).base.obligations,
@@ -300,25 +302,27 @@ example {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
       HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧ EntryBelow p e C ∧
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C)) :
-    (∀ x ∈ rho.honest, ∃ o i t, (fgsaInterface p c).block o.payload = some pt.P ∧
+    (∀ x, headReader p E rho x pt.s (SA.voteTime p.toParams pt.s) →
+      ∃ o i t, (fgsaInterface p c).block o.payload = some pt.P ∧
       t < SA.voteTime p.toParams pt.s ∧ V2.D.Run.acceptsAt E rho i x o t) ∧
-    (∀ x ∈ rho.honest, FGSA.headVote p ((fgsa p c).clock
+    (∀ x ∈ rho.honest, joinedAt p E rho x pt.s (SA.voteTime p.toParams pt.s) →
+      FGSA.headVote p ((fgsa p c).clock
       (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams pt.s) x)
       (SA.voteTime p.toParams pt.s)).st pt.s = pt.P) ∧
     (∀ x ∈ rho.honest, E.awake x (SA.voteTime p.toParams pt.s) = false →
       ∀ o, ¬ V2.D.Run.emits E rho x o (SA.voteTime p.toParams pt.s)) :=
-  ⟨inclusion_exact_receipt (hstrat :=
-    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  ⟨inclusion_exact_receipt (_hstrat :=
+    hstrat) E rho ΔF hset hInputs hstore hframe hsrc hordered hnonempty
       htransfer hleases hrows pt hprop hhor,
     inclusion_exact_head (hstrat :=
-    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
+    hstrat) E rho ΔF hset hInputs hstore hframe hsrc hordered hnonempty
       htransfer hleases hrows pt hprop hhor,
     inclusion_sleep_silence E rho pt.s⟩
 
-#print axioms slot1_no_result
-#print axioms inclusion_retained_reads
-#print axioms inclusion_exact_compat
-#print axioms inclusion_exact_receipt
-#print axioms inclusion_exact_head
+#print axioms AvailableChain.FGSA.Run.Tests.InclusionExact.slot1_no_result
+#print axioms AvailableChain.FGSA.Run.inclusion_retained_reads
+#print axioms AvailableChain.FGSA.Run.inclusion_exact_compat
+#print axioms AvailableChain.FGSA.Run.inclusion_exact_receipt
+#print axioms AvailableChain.FGSA.Run.inclusion_exact_head
 
 end AvailableChain.FGSA.Run.Tests.InclusionExact

@@ -4496,3 +4496,33 @@ Round 2 validation on the final proof sources:
   This result is not replaced by the GREEN GrowthConsumer build.
 - Logs: .lake/sleep-pou-r2/dck-final.log, exports-final.log, coverage.log,
   layers-final.log and consumer-build.log. No push, merge, rebase or supplier edit.
+
+## P-Ou Round 3 — retained and inclusion cores
+
+Base bf0c024d, branch sleep-pou2. The public claims are unchanged.
+ExactProposalRetained and all four InclusionGate cores now build with --wfail.
+Both owned inclusion test modules build. The public package remains OPEN.
+
+T31 chooses an enabled joined gate receiver at d(q). T35 chooses a joined
+vote reader at v(s). T37 chooses an enabled joined receiver at d(s-1);
+its earlier vote uses the same restart bound. The witnesses include the
+horizon endpoint. T32/T33/T34/T36 use their exact joined or emission guards.
+T38 and T61 use confirmedReaderAtIdx at the post-gate cut.
+These tick repairs do not establish the missing regime service producers.
+
+Retained HEADs use InclusionReceiverInputs and receiver-local relay services.
+No sleep consumer obtains NoRestart from a regime. The legacy score count
+keeps explicit NoRestart for ContinuationFrame; the sleep caller uses _on.
+No earlier processing event is used to infer retained HistorySafeAt.
+The local proposal service must carry durable history at its exact anchor.
+
+InclusionHistoryBounds is the field projection required from P-Cl1.
+The old duplicate state induction in InclusionGateBounds is removed.
+The post-gate consumer has confirmed-reader scope and scoped monotonicity.
+The later-read consumer requires an actual enabled gate origin at or after s.
+That origin supplier is P-Ou work; it is not a new public claim premise.
+
+Classification for this group: 493 GREEN, 13 EXPECTED-FAIL, 36 TARGETS.
+Seven owned modules move to GREEN. GREEN denotes compilation only.
+Strict local audits cover the retained and gate kernels and the test fixtures.
+Layer check: 72 inherited findings, zero new. Full DCK follows the last group.
