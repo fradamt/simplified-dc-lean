@@ -1591,3 +1591,26 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
   no discriminating skipped-versus-executed confirmation claim is made.
 - Package map (§1.4/§8.1/§8.2): NamedDelivery and RetainedClock are TARGETS.
   ReceiptCoverage Statements is S-Ap; owners are W3 52, P-ShA 45, S-Ap 14.
+
+## S-Ap part 1 — public statement slice (2026-10-10)
+
+- Approved P5–P7, P10–P16, P18, P21/P22 vocabulary: Join, executed gate reads,
+  joined participation and recurrence, recovery readiness, and store/frame companions.
+- P23 and DECISION P23-A changes wait for part 2 and W3's new root definitions.
+- Import routing: gatePassedAt moves from Reads to Join with the exact P11 body.
+  Join needs Reads for IsGateTick/storeAt; the reverse import would form a cycle.
+  Channels imports Join. Public names and predicate meanings stay as approved.
+- Packet elaboration context: schedule-only parameters p/c are implicit when they
+  occur only in rho's type. Read predicates keep the explicit packet arguments.
+  Reads supplies a local Decidable instance for the optional restart cutoff.
+- Packet typo, intended slot-label form: caughtUpAtIdx's `∃ s j` infers s : Int
+  from `(s : Int)` before gateTime requires Slot. Use `∃ (s : Slot) (j : Nat)`.
+  This is a type annotation; its gate label, cutoff and quantifiers are unchanged.
+- Slice validation: all 58 manifest source modules build with --wfail; layers have
+  zero new findings. Claims.Tests.Axioms builds with the added statement audits.
+- Manifest generation uses an untracked copy of V2Manifest.lean with only the
+  facade-import loop omitted. Every source module in all four public prefixes
+  and FGSAClaims.FGSAClaims is still scanned; hashing and entry selection are unchanged.
+  The full facades import unfinished fixtures/P23. No checker or baseline is changed.
+  The regenerated document also records inherited W1–W3 changes. Allow pins change
+  only for entries in S-Ap source files; P-Da owns the remaining baseline reconciliation.

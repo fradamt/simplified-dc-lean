@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Statements.Join
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSA.Statements.FinalityView
 public import AvailableChainFGSAClaims.Statements.Counts

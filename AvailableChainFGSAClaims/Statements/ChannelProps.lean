@@ -896,10 +896,13 @@ Exact gate service (21 H.22:3109–3114), P3 A.9.
 Consumers: H3, TExact, and phase service. The gate is inside the finite horizon. -/
 def ExactService (v : Slot) (Q : Block) : Prop :=
   (SA.voteTime p.toParams v ≤ rho.horizon →
-    ∀ x ∈ rho.honest, headAtLabel p c E rho x v = some Q) ∧
+    ∀ x ∈ rho.honest, joinedAt p E rho x v (SA.voteTime p.toParams v) →
+      headAtLabel p c E rho x v = some Q) ∧
   (SA.gateTime p.toParams v ≤ rho.horizon → ∀ x ∈ rho.honest,
+    confirmedReaderAtIdx p c E rho x
+      (afterTicksIdx rho (SA.gateTime p.toParams v)) (SA.gateTime p.toParams v) →
     gateResult p c E rho x v = some (some Q) ∧
-    (∃ j, IsGateTick p c rho j x v ∧ gatePassedAt p c E rho j) ∧
+    (∃ j, enabledGateAt p c E rho j x v ∧ gatePassedAt p c E rho j) ∧
     (∃ nd, postClock E rho x (SA.gateTime p.toParams v) = some nd ∧
       Q ∈ (fastWriteAt nd.st v).getD []) ∧
     (fgsaInterface p c).stable (afterTicks E rho (SA.gateTime p.toParams v) x) = Q ∧
@@ -1081,6 +1084,56 @@ theorem FinalityRowCarriage_def (A : Finset (Row (Fin p.n))) :
         a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
         ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
           ∃ j r, HonestRowAt p c E rho j z r a) := by rfl
+
+def RMonoAll : Prop := ∀ i j x, x ∈ rho.honest → i ≤ j →
+  let st := storeAt p c E rho i x
+  let st' := storeAt p c E rho j x
+  FGBlock.Preceq st.fg.F st'.fg.F ∧
+  lexKey (st.fg.h_j, st.fg.J) ≤ lexKey (st'.fg.h_j, st'.fg.J) ∧
+  st.fg.h_max ≤ st'.fg.h_max
+
+
+theorem RMonoAll_def : RMonoAll p c E rho =
+  (∀ i j x, x ∈ rho.honest → i ≤ j →
+  let st := storeAt p c E rho i x
+  let st' := storeAt p c E rho j x
+  FGBlock.Preceq st.fg.F st'.fg.F ∧
+  lexKey (st.fg.h_j, st.fg.J) ≤ lexKey (st'.fg.h_j, st'.fg.J) ∧
+  st.fg.h_max ≤ st'.fg.h_max) := rfl
+
+
+def RStoreDurable : Prop := ∀ i j x, x ∈ rho.honest →
+  i ≤ j → j ≤ rho.events.length →
+  let st := storeAt p c E rho i x
+  let st' := storeAt p c E rho j x
+  st.fg.TF ⊆ st'.fg.TF ∧ st.base.blocks <+: st'.base.blocks ∧
+  st.proposals <+: st'.proposals ∧ st.rowPool <+: st'.rowPool
+
+
+theorem RStoreDurable_def : RStoreDurable p c E rho =
+  (∀ i j x, x ∈ rho.honest →
+  i ≤ j → j ≤ rho.events.length →
+  let st := storeAt p c E rho i x
+  let st' := storeAt p c E rho j x
+  st.fg.TF ⊆ st'.fg.TF ∧ st.base.blocks <+: st'.base.blocks ∧
+  st.proposals <+: st'.proposals ∧ st.rowPool <+: st'.rowPool) := rfl
+
+
+def RStoreEpoch : Prop := ∀ i j x, x ∈ rho.honest →
+  i ≤ j → j ≤ rho.events.length → V2.D.restartFree rho x i j →
+  let st := storeAt p c E rho i x
+  let st' := storeAt p c E rho j x
+  st.base.blockStamp <+: st'.base.blockStamp ∧
+  st.base.voteStamp <+: st'.base.voteStamp
+
+
+theorem RStoreEpoch_def : RStoreEpoch p c E rho =
+  (∀ i j x, x ∈ rho.honest →
+  i ≤ j → j ≤ rho.events.length → V2.D.restartFree rho x i j →
+  let st := storeAt p c E rho i x
+  let st' := storeAt p c E rho j x
+  st.base.blockStamp <+: st'.base.blockStamp ∧
+  st.base.voteStamp <+: st'.base.voteStamp) := rfl
 
 end AvailableChain.FGSA.Run
 end
