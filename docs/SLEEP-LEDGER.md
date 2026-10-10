@@ -4520,3 +4520,59 @@ checks, then stop at the mapped-root control because FinalityGST is missing
 Task 3 needs no edit: the lead note at the Round 3 merge already marks the
 public anchor proposal SUPERSEDED by DECISION ANCHOR-DL at base d825ed30.
 No new LEAD DECISION item is needed.
+
+
+## P-Fi Round 3 — review fixes and exact supplier queue (2026-10-10)
+
+The internal FinalityActionReceipts service now requires
+GST ≤ slotStart(s−1), s = qR+1. RowsBatch and TailBatch pass the cutoff from
+their common healing witness. The receiver, honest HEAD seat, exact target,
+action deadline and horizon remain explicit. Every action export inherits this
+scope through the same record. No public regime field changes.
+The rejected wider scope allowed Δ=2, q=0, vote=10, action=12, GST=wake=11.
+Recovery permits that wake; FreshHeadService requires an epoch from vote to
+action. This is an internal scope obstruction, not a public counterexample.
+
+Exact queue (F = Proofs/Finality, Sh = Proofs/Shared):
+- Universal current votes: P-Fi owns FinalityVoteReceipts and the service design;
+  P-As owns assembly. Direct consumers: F/CoreServices.core_full_vote,
+  fgsa_tVote, fgsa_coreServices; F/Joined.finality_kernel_prem_W_of_joined;
+  F/Forward.forward_witness_FE_of; F/Export.fgsa_kernelACSide_W. The current
+  universal form includes pre-GST and unjoined reads. ANCHOR-DL cannot restore
+  those volatile pools. This is an open service-scope design obligation.
+- Action fresh HEADs: P-Fi owns the producer, P-ShA owns FreshHeadService,
+  P-As owns assembly. Direct record reads: F/RowsBatch.rowsPrem_action_walk_batch
+  and F/TailBatch.ktail_action_walk_batch. F/Export threads the contract through
+  kernel, joined kernel, Tail, FE/F4 liveness, proposal and frontier exports.
+  Need exact emission, handlers, non-exclusion and vote-to-action epoch.
+- Action target proposals: same owners and consumers. Sh/AnchorService's
+  fgsa_historySafeAt_of_proposal gives durable history;
+  fgsa_proposal_handlers_at_anchor gives handlers from original acceptance.
+  Use anchor voteTime(s), deadline earlyTime(s)=actionTime(q), and ReceiverService.
+  Original trigger, roots, time bounds and target non-exclusion remain explicit.
+- Tail target proposals: P-Fi owns the producer, P-ShA owns ReceiverService and
+  target helpers, P-As owns assembly. Consumers: F/TailMixed.ktail_head_delivered
+  (healing_held_block_receipt_on), ktail_mixed_final, ktail_hmixed_of_relay,
+  tail_kernel_W_of_relay; F/TailBatch.tail_kernel_W_full_of;
+  F/Export.fgsa_tailKernel_W_of. Service anchor: actionTime(r+1); deadline: +Δ.
+  The requested object is a NAMED PROPOSAL. Its processed history survives
+  restore in durable TF. The erased-history warning applies to HEAD wires only.
+  Keep the actual terminal proposer and F≤H at that receiver's deadline.
+
+Direct single-target proofs use ReceiverService. Ancestor paths use
+ReceiptCoverageAnchorPremises / fgsa_active_path_of_coverage_anchor with one
+anchor for every bound. AnchorService gate/transfer wrappers are not generic
+Finality read adapters. Do not restore Count's old deadline restriction.
+
+The omitted P-Fi-owned Claims.Tests.FinalityGST fixture is now in this package
+map. Its six late bounds use recoveryStart as the existing package fields require.
+Round 2's all-GREEN statement covers only the 43 P-Fi targets in its map;
+it did not include this fixture. S-Ap owns the auxiliary product refresh after
+fixture validation. P-As still owns Assembly/Finality's supplier arguments.
+
+FIX-FIRST validation: Finality.Export and Claims.Tests.FinalityGST build
+with --wfail in 31.06 s. The action contract also names postClock and F≤K;
+both callers derive F≤K from their existing common-prefix bounds.
+The initial full Tests.Axioms build fails in inherited other-family ports.
+No P-Fi proof failure remains in the focused build. The merged audit has
+not been proved compilable; it remains P-As EXPECTED-FAIL.

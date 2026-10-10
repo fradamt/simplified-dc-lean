@@ -103,7 +103,12 @@ theorem rowsPrem_action_walk_batch
     hJoin hbatch
     (eraseFG m.X_D) x nd hnd ?_ (eraseFG_preceq hf.2.2.2.2.2.2.2.2.1)
     (fun j _ => finality_recovery_readEpoch p c E rho hK.set hx hact j)
-    (hServices.service (pt.r + 2) x hx hact m.actionsInRun)
+    (fun a K ha hhead => hServices.service (pt.r + 2) x hx hact hcut
+      m.actionsInRun nd hnd a K ha hhead
+      (Gen.Pure.block_preceq_trans (eraseFG_preceq hf.2.2.2.2.2.2.2.2.1)
+        (hK.input.ac.h2' m.cD
+        (eraseFG m.X_D) m.honestD (hs2.trans hrD) _ _ K
+        ⟨ha, hJoin _ ha⟩ (Nat.succ_le_succ m.earlySlot.2) hhead)))
   · intro y H hy hH
     exact hK.input.ac.h2' m.cD (eraseFG m.X_D) m.honestD (hs2.trans hrD) y _ H ⟨hy, hJoin y hy⟩
       (Nat.succ_le_succ m.earlySlot.2) hH

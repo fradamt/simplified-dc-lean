@@ -1,5 +1,6 @@
-# P-Fi round 2, base 381bd3df: all owned targets GREEN; receipt suppliers remain open.
+# P-Fi round 2, base 381bd3df: all mapped owned targets GREEN; receipt suppliers remain open.
 [TARGETS]
+AvailableChainFGSAClaims.Tests.FinalityGST
 AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
 AvailableChainFGSAClaims.Claims.Finality
 AvailableChainFGSAProofs.Proofs.Finality.Above
@@ -45,6 +46,7 @@ AvailableChainFGSAProofs.Proofs.Finality.TickRead
 AvailableChainFGSAProofs.Tests.FinalityEpochs
 AvailableChainFGSAProofs.Tests.Axioms
 [GREEN]
+AvailableChainFGSAClaims.Tests.FinalityGST
 AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Proofs.Finality.Suppliers
 AvailableChainFGSAProofs.Proofs.Shared.Regimes

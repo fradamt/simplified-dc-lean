@@ -31,18 +31,18 @@ theorem ktail_action_walk_batch {G ΔF : Time} {pt : TailKernelPt p}
     (by omega) E.t_GST E.Δ rho.horizon hGST hT.set.base.delta ow.actionInRun
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hT.set.sync (fgsaDelay_nonrow E.Δ _) hvGST hvte heh
-  have hcut := ktail_window_join_cut hT (s := (pt.r + 1) * p.R + 1)
+  have hJoinCut := ktail_window_join_cut hT (s := (pt.r + 1) * p.R + 1)
     (by rw [Nat.succ_mul]; omega)
   have hJoin : ∀ y ∈ rho.honest, joinedAt p E rho y
       ((pt.r + 1) * p.R + 1) (SA.voteTime p.toParams ((pt.r + 1) * p.R + 1)) :=
-    fun y hy => finality_recovery_joined p c E rho hT.set hy hcut hvGST hvthor
+    fun y hy => finality_recovery_joined p c E rho hT.set hy hJoinCut hvGST hvthor
   have hbatch := hT.set.batch hvGST hvthor
   have hawake : Gen.V2.Duty.awakeHonest E rho
       (SA.voteTime p.toParams ((pt.r + 1) * p.R + 1)) = rho.honest := by
     rw [Gen.V2.Duty.awakeHonest_def]
     exact Finset.filter_eq_self.mpr (fun y hy => hT.set.awake y hy _ hvGST hvthor)
   rw [hawake] at hbatch
-  have hjh := finality_recovery_joinedHonest p c E rho hT.set hcut hvthor
+  have hjh := finality_recovery_joinedHonest p c E rho hT.set hJoinCut hvthor
   rw [← hjh] at hbatch
   have hact : E.t_GST < p.actionTime (pt.r + 1) := by
     apply hvGST.trans_lt
@@ -69,7 +69,9 @@ theorem ktail_action_walk_batch {G ΔF : Time} {pt : TailKernelPt p}
     hJoin hbatch
     (eraseFG ow.Q) x nd hnd hcover (eraseFG_preceq hF)
     (fun j _ => finality_recovery_readEpoch p c E rho hT.set hx hact j)
-    (hServices.service (pt.r + 1) x hx hact ow.actionInRun)
+    (fun a K ha hhead => hServices.service (pt.r + 1) x hx hact hJoinCut
+      ow.actionInRun nd hnd a K ha hhead
+      (Gen.Pure.block_preceq_trans (eraseFG_preceq hF) (hcover _ K ha hhead)))
   exact ⟨_, _, _, _, hhead, hcount, hwalk⟩
 
 /-- Paper 22:1985–2009 (FT-Tail-W): the full tail kernel, with the action batch

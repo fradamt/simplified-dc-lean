@@ -14,10 +14,13 @@ variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
 This is an internal supplier contract, separate from Recovery and its join bounds. -/
 structure FinalityActionReceipts : Prop where
   service : ∀ q x, x ∈ rho.honest → E.t_GST < p.actionTime q →
-    p.actionTime q ≤ rho.horizon → ∀ a K,
+    E.t_GST ≤ slotStartZ p (((q * p.R + 1 : Nat) : Int) - 1) →
+    p.actionTime q ≤ rho.horizon → ∀ nd,
+    postClock E rho x (p.actionTime q) = some nd → ∀ a K,
     rho.seatOf (.base (.head (q * p.R + 1))) a ∈ rho.honest →
     headAtLabel p c E rho (rho.seatOf (.base (.head (q * p.R + 1))) a)
       (q * p.R + 1) = some K →
+    Block.Preceq (eraseFG nd.st.fg.F) K →
     Nonempty (FreshHeadService E rho (q * p.R + 1) a K.root (p.actionTime q) x) ∧
       TargetReceiptService E rho K (p.actionTime q) x
 
