@@ -6959,3 +6959,10 @@ compatibility remains open; raw result compatibility is not that stable seed.
 
 The six P-Ou EXPECTED-FAIL consumers and two S-Ap entries remain. P-Ou is PREPARED.
 Public claims, protocol declarations and healing files are unchanged.
+
+### P-Ou Round 11 — P-As GrowthSuppliers visibility
+
+Outage/Export now publicly imports Outage/GrowthSuppliers. Assembly/Outage keeps
+its existing Outage/Export route to clean_growth_suppliers. This closes the P-As
+round 6 visibility request and rev-pou10 item 2 without a new lane import or proof.
+GrowthSuppliers compiles. The complete Export still waits on the P-Ou legacy ports.
