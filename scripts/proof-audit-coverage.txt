@@ -2153,6 +2153,8 @@
             'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.w1_tickBatch_st',
             'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.w1_tick_deps',
             'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.w1_ticks_deps',
+            'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.w1_tickBatch_sleep_st',
+            'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.w1_cleanContinuationSleep',
         ),
         'AvailableChainFGSAInhabit.WeakContinuationWitness': (
             'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.Event',
@@ -3478,7 +3480,6 @@
             'AvailableChain.FGSA.Run.frontier_hg3_topJ',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed': (
-            'AvailableChain.FGSA.Run.frontierSeedQualification_iff',
             'AvailableChain.FGSA.Run.frontier_seed_qSucc_head',
             'AvailableChain.FGSA.Run.frontier_seed_qSucc_input',
             'AvailableChain.FGSA.Run.tfSeed_later',
@@ -3546,7 +3547,6 @@
             'AvailableChain.FGSA.Run.later_opening_service',
             'AvailableChain.FGSA.Run.opening_domain_clock',
             'AvailableChain.FGSA.Run.opening_domain_of_band',
-            'AvailableChain.FGSA.Run.opening_exact_stored',
             'AvailableChain.FGSA.Run.opening_postClock_of_tick',
             'AvailableChain.FGSA.Run.opening_proposal_band',
             'AvailableChain.FGSA.Run.opening_transfer',
@@ -3559,19 +3559,12 @@
             'AvailableChain.FGSA.Run.opening_timeIdx_mono',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate': (
-            'AvailableChain.FGSA.Run.opening_fastWrite_spec',
             'AvailableChain.FGSA.Run.opening_gateService_of_cover',
-            'AvailableChain.FGSA.Run.opening_gateService_of_fastWrite',
             'AvailableChain.FGSA.Run.opening_gate_guard',
-            'AvailableChain.FGSA.Run.opening_gate_level',
-            'AvailableChain.FGSA.Run.opening_gate_support',
             'AvailableChain.FGSA.Run.opening_heads_cover',
-            'AvailableChain.FGSA.Run.opening_phaseBody_of_fast_key',
-            'AvailableChain.FGSA.Run.opening_result_slot',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne': (
             'AvailableChain.FGSA.Run.later_opening_covered',
-            'AvailableChain.FGSA.Run.opening_action_tick',
             'AvailableChain.FGSA.Run.opening_entry_one',
             'AvailableChain.FGSA.Run.opening_first_time_bound',
             'AvailableChain.FGSA.Run.opening_height_one',
@@ -4003,7 +3996,6 @@
             'AvailableChain.FGSA.Run.repair_h6_frame',
             'AvailableChain.FGSA.Run.repair_h6_input',
             'AvailableChain.FGSA.Run.repair_head_after_two',
-            'AvailableChain.FGSA.Run.repair_head_exact',
             'AvailableChain.FGSA.Run.repair_head_two',
             'AvailableChain.FGSA.Run.repair_idx_lt',
             'AvailableChain.FGSA.Run.repair_lease_cover_of_split',
@@ -4118,10 +4110,8 @@
             'AvailableChain.FGSA.Run.healing_next_transfer_core',
             'AvailableChain.FGSA.Run.healing_support_head_frame',
             'AvailableChain.FGSA.Run.healing_support_honest_batch_seat',
-            'AvailableChain.FGSA.Run.healing_support_honest_emits',
             'AvailableChain.FGSA.Run.healing_support_read_window',
             'AvailableChain.FGSA.Run.healing_support_vote_kept',
-            'AvailableChain.FGSA.Run.healing_support_vote_tick',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportLease': (
             'AvailableChain.FGSA.Run.healing_fast_heads',
@@ -4179,7 +4169,6 @@
             'AvailableChain.FGSA.Run.healing_support_honest_head',
             'AvailableChain.FGSA.Run.healing_support_honest_seat',
             'AvailableChain.FGSA.Run.healing_support_release_compat',
-            'AvailableChain.FGSA.Run.healing_support_release_rows',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportWrite': (
             'AvailableChain.FGSA.Run.healing_last_write_one_lease',
@@ -4218,7 +4207,6 @@
         'AvailableChainFGSAProofs.Proofs.Outage.Close': (
             'AvailableChain.FGSA.Run.fast_p1_body',
             'AvailableChain.FGSA.Run.outage_compat_body',
-            'AvailableChain.FGSA.Run.outage_finalized_read',
             'AvailableChain.FGSA.Run.outage_protected_read',
             'AvailableChain.FGSA.Run.slow_p1_body',
         ),
@@ -4308,14 +4296,7 @@
             'AvailableChain.FGSA.Run.inclusion_gate_exact',
         ),
         'AvailableChainFGSAProofs.Proofs.Outage.Induction': (
-            'AvailableChain.FGSA.Run.duties_and_outputs',
-            'AvailableChain.FGSA.Run.lease_or_F_persists',
-            'AvailableChain.FGSA.Run.outage_armed_induction',
             'AvailableChain.FGSA.Run.outage_arming_duties',
-            'AvailableChain.FGSA.Run.outage_arming_local',
-            'AvailableChain.FGSA.Run.outage_arming_sources',
-            'AvailableChain.FGSA.Run.outage_event_induction',
-            'AvailableChain.FGSA.Run.outage_source_history',
         ),
         'AvailableChainFGSAProofs.Proofs.Outage.PersistenceDefs': (
             'AvailableChain.FGSA.Run.OutageDutyHistory_def',
@@ -4848,7 +4829,6 @@
             'AvailableChain.FGSA.Run.emitted_payload_parent_stored',
             'AvailableChain.FGSA.Run.proposal_handle_in_scope',
             'AvailableChain.FGSA.Run.proposal_handlesS_direct',
-            'AvailableChain.FGSA.Run.proposal_trigger_in_scope',
         ),
         'AvailableChainFGSARun.Proofs.NamedScope': (
             'AvailableChain.FGSA.Run.rootBlockInRun_ancestor',
@@ -5211,53 +5191,35 @@
         'AvailableChainFGSAProofs.Proofs.OutageContinuation.Export': (
             'AvailableChain.FGSA.Run.outageContinuation_claim_of',
         ),
-        'AvailableChainFGSAProofs.Tests.InclusionExact': (
-            'AvailableChain.FGSA.Run.Tests.InclusionExact.asleep_silent',
-            'AvailableChain.FGSA.Run.Tests.InclusionExact.early_tick_has_no_relay_scope',
-            'AvailableChain.FGSA.Run.Tests.InclusionExact.honestProposal',
-            'AvailableChain.FGSA.Run.Tests.InclusionExact.horizon_head_has_no_early_service',
-            'AvailableChain.FGSA.Run.Tests.InclusionExact.receipt',
-            'AvailableChain.FGSA.Run.Tests.InclusionExact.slot1_no_result',
-            'AvailableChain.FGSA.Run.Tests.InclusionExact.strictHead',
+        'AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs': (
+            'AvailableChain.FGSA.Run.frontierSeedQualification_iff',
         ),
-        'AvailableChainFGSAProofs.Tests.InclusionOrigins': (
-            'AvailableChain.FGSA.Run.Tests.InclusionOrigins.later_origin_consumer',
+        'AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead': (
+            'AvailableChain.FGSA.Run.opening_exact_stored',
+            'AvailableChain.FGSA.Run.opening_fastWrite_spec',
+            'AvailableChain.FGSA.Run.opening_gateService_of_fastWrite',
+            'AvailableChain.FGSA.Run.opening_gate_level',
+            'AvailableChain.FGSA.Run.opening_phaseBody_of_fast_key',
+            'AvailableChain.FGSA.Run.opening_result_slot',
         ),
-        'AvailableChainFGSAProofs.Tests.OutageGrowthSuppliers': (
-            'AvailableChain.FGSA.Run.Tests.OutageGrowthSuppliers.growth_claim_from_producers',
-            'AvailableChain.FGSA.Run.Tests.OutageGrowthSuppliers.growth_suppliers_from_clean',
+        'AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport': (
+            'AvailableChain.FGSA.Run.opening_gate_support',
         ),
-        'AvailableChainFGSAProofs.Tests.OutageInduction': (
-            'AvailableChain.FGSA.Run.Tests.OutageInduction.delayed_contested_frame',
-            'AvailableChain.FGSA.Run.Tests.OutageInduction.delayed_old_W_finalization',
-            'AvailableChain.FGSA.Run.Tests.OutageInduction.raw_conflicting_saved',
-            'AvailableChain.FGSA.Run.Tests.OutageInduction.restart_keeps_obligations',
-            'AvailableChain.FGSA.Run.Tests.OutageInduction.restart_keeps_protection',
-            'AvailableChain.FGSA.Run.Tests.OutageInduction.same_time_disclosure',
+        'AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks': (
+            'AvailableChain.FGSA.Run.opening_action_tick',
         ),
-        'AvailableChainFGSAProofs.Tests.OutageLaterHeads': (
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.asleep_not_scoped_regression',
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.caught_gate_count_boundary',
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.early_marker_prefix_order',
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.marker_service_from_foundation',
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.post_e_count_window',
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.post_gst_marker_anchor',
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.pre_gst_marker_anchor',
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.restart_at_gst_guard',
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.wake_nine_gst_twenty_batch',
-            'AvailableChain.FGSA.Run.Tests.OutageLaterHeads.wake_nine_guard',
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery': (
+            'AvailableChain.FGSA.Run.repair_head_exact',
         ),
-        'AvailableChainFGSAProofs.Tests.OutageServices': (
-            'AvailableChain.FGSA.Run.Tests.OutageServices.fast_seed_of_clean_history',
-            'AvailableChain.FGSA.Run.Tests.OutageServices.good_release_consumer',
-            'AvailableChain.FGSA.Run.Tests.OutageServices.handover_expiry_equality',
-            'AvailableChain.FGSA.Run.Tests.OutageServices.handover_rows_consumer',
-            'AvailableChain.FGSA.Run.Tests.OutageServices.joined_provenance_producer',
-            'AvailableChain.FGSA.Run.Tests.OutageServices.pending_protection_of_source_discipline',
-            'AvailableChain.FGSA.Run.Tests.OutageServices.pending_seed_consumer',
-            'AvailableChain.FGSA.Run.Tests.OutageServices.pending_seed_of_clean_history',
-            'AvailableChain.FGSA.Run.Tests.OutageServices.pre_restored_joint_of_clean_history',
-            'AvailableChain.FGSA.Run.Tests.OutageServices.restored_receipt_consumer',
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportRelease': (
+            'AvailableChain.FGSA.Run.healing_support_release_rows',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportTicks': (
+            'AvailableChain.FGSA.Run.healing_support_honest_emits',
+            'AvailableChain.FGSA.Run.healing_support_vote_tick',
+        ),
+        'AvailableChainFGSARun.Proofs.NamedDelivery': (
+            'AvailableChain.FGSA.Run.proposal_trigger_in_scope',
         ),
     },
     'AvailableChainFGSAProofs.Tests.FGCompose': {
@@ -5925,6 +5887,8 @@
     'AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms': {
         'AvailableChainFGSAProofs.Proofs.Assembly.Root': (
             'AvailableChain.FGSA.Run.fgsa_weakContinuationGrowthClaim',
+            'AvailableChain.FGSA.Run.assembly_weakContinuationClaims',
+            'AvailableChain.FGSA.Run.assembly_weakContinuationGrowth',
         ),
         'AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth': (
             'AvailableChain.FGSA.Run.wcg_emptyLive',
