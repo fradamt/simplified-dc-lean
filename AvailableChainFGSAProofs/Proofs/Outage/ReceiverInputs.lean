@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
 public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
+public import AvailableChainFGSAProofs.Proofs.Outage.InclusionServices
 
 public section
 
@@ -831,6 +832,327 @@ theorem outage_restored_result_of_compatible_heads [Fintype V] {ΔF : Time}
     rw [fgsa_vote_stamp_keys E rho]
     exact hv), hstamp]
   exact hrec.2.trans heg
+
+/-- Beyond E's count window the healthy joined set replaces A union W. -/
+theorem outage_healthy_result_of_compatible_heads [Fintype V] {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {s : Slot} {i : Nat} {x : V} {B C : Block}
+    (hx : x ∈ rho.honest) (hG : enabledGateAt p c E rho i x s)
+    (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hCount : (Gen.V2.Duty.faulty rho).card <
+      (joinedHonest p E rho (SA.voteTime p.toParams s)).card)
+    (hHeads : ∀ q K, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s) →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Block.Compatible K B)
+    (hresult : gateResultAt p c E rho i = some (some C)) : Block.Compatible C B := by
+  classical
+  have hs := hBase.valid.toScheduleWellFormed
+  obtain ⟨H, hH, hBatch⟩ := inclusion_joined_head_seats E rho hBase.cstar s ⟨hCount⟩
+  have hJ := outage_enabled_gate_joined hBase.valid hx hG
+  have heg : SA.earlyTime p.toParams s < SA.gateTime p.toParams s := by
+    rw [arming_early_eq, arming_gate_eq]; linarith [p.deltaPos]
+  have hhor := (hs.in_horizon _ (List.mem_of_getElem? hG.1)).2
+  have hid : rho.idxBefore (SA.earlyTime p.toParams s) ≤ i := by
+    by_contra hn
+    exact (not_lt_of_ge heg.le)
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hs hG.1 _).mp (lt_of_not_ge hn))
+  have hRF := outage_enabled_gate_read_epoch hs hG (D := SA.earlyTime p.toParams s)
+    (by rw [arming_early_eq]; change 4 * p.Δ * (s : Int) < _; linarith [p.deltaPos])
+  have hrest := inclusion_joined_rest_bound E rho hBase.cstar hBase.valid s H
+    (fun q hy hJ => (hH q).mpr ⟨hy, hJ⟩)
+    (GridCO.lateVotes p.toParams.engine
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s) (by
+      intro o ho q hq
+      obtain ⟨hv, hl⟩ := List.mem_filter.mp (List.mem_filter.mp ho).1
+      change o ∈ (clockPre p (storeAt p c E rho i x) _).base.votes at hv
+      rw [(Internal.clockPre_vn _ _).1] at hv
+      exact ⟨i, x, o, hv, beq_iff_eq.mp hl, hq⟩)
+  apply outageV_gate_of_emitted_heads E rho hBase i x s B C H
+    (Gen.V2.Duty.faulty rho).card hBatch.lt hrest ?_ hresult hG
+  intro q hq
+  obtain ⟨hy, hyJ⟩ := (hH q).mp hq
+  have he : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
+    rw [arming_vote_nat]
+  obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs hBase.delta _ hy (4 * s + 1)
+    (he ▸ (fgsa_vote_lt_gate p s).le.trans hhor) (he ▸ hyJ.1)
+  rw [he] at hk
+  let K := headVote p (clock p (rho.stateBefore E k
+    (rho.seatOf (.base (.head s)) q)).st (SA.voteTime p.toParams s)) s
+  have hem : ofHead p ⟨.seat (.head s) q, K.root⟩ ∈ rho.emitsAt E k := by
+    rw [(rho.step_tick_eq E hk).2]
+    exact (fgsa_emits_head E rho _ _ _ s q K.root).mpr
+      ⟨hyJ.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hk hyJ, rfl⟩
+  have hK : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K :=
+    ⟨k, s, q, hk, hem, rfl, rfl⟩
+  obtain ⟨hHead⟩ := outage_joined_head_service hBase hSync hx hy hJ le_rfl heg.le
+    (heg.le.trans hhor) hGST ⟨k, hk, hem⟩
+  have hrec := hHead.receipt hBase.valid hx hk hem
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hrec
+  have hv := fgsa_votes_cumulative_on p c E rho hid x hRF hrec.1
+  have hkey : baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
+      (storeAt p c E rho (rho.idxBefore (SA.earlyTime p.toParams s)) x).base.voteStamp.map
+        Prod.fst := by
+    change _ ∈ (rho.stateBefore E _ x).st.base.voteStamp.map Prod.fst
+    rw [fgsa_vote_stamp_keys E rho]
+    exact hrec.1
+  have hstamp := inclusion_stampVote_of_prefix
+    (fgsa_store_cumulative_on p c E rho hid x hRF).2.2.2.1 hkey
+  refine ⟨K, hy, hK, hv, ?_, hHeads q K ⟨hy, hyJ⟩ hK⟩
+  change GridCO.stampVote (clockPre p (storeAt p c E rho i x)
+    (SA.gateTime p.toParams s)).base _ < _
+  rw [inclusion_stampVote_of_prefix (st := (storeAt p c E rho i x).base)
+    (st' := (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)).base)
+    (by rw [(clockPre_stamps p _ _).2]) (by
+    change _ ∈ (rho.stateBefore E i x).st.base.voteStamp.map Prod.fst
+    rw [fgsa_vote_stamp_keys E rho]
+    exact hv), hstamp]
+  exact hrec.2.trans heg
+
+private theorem inclusion_frame_mono (p : Params) (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : RMonoAll p c E rho := by
+  intro i j x _ hij
+  let a := storeAt p c E rho i x
+  apply V2.D.Engine.stateBefore_stable_restore (P := fgsa p c)
+    (fun nd => FGBlock.Preceq a.fg.F nd.st.fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤ lexKey (nd.st.fg.h_j, nd.st.fg.J) ∧
+      a.fg.h_max ≤ nd.st.fg.h_max)
+    ?_ ?_ (fun _ _ h => h) E rho hij x ?_
+    ⟨KitFG.preceq_refl _, le_rfl, le_rfl⟩
+  · intro nd t h
+    change FGBlock.Preceq a.fg.F (clock p nd.st t).fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤ lexKey ((clock p nd.st t).fg.h_j, (clock p nd.st t).fg.J) ∧
+      a.fg.h_max ≤ (clock p nd.st t).fg.h_max
+    rw [clock_fg]
+    exact h
+  · intro nd o h
+    exact ⟨KitFG.preceq_trans h.1 (process_F_mono p nd.st (toWire p o)),
+      le_trans h.2.1 (process_pair_mono p nd.st (toWire p o)),
+      le_trans h.2.2 (process_hmax_mono p nd.st (toWire p o))⟩
+  · intro nd t h
+    change FGBlock.Preceq a.fg.F (acRestart p nd.st t).fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤
+        lexKey ((acRestart p nd.st t).fg.h_j, (acRestart p nd.st t).fg.J) ∧
+      a.fg.h_max ≤ (acRestart p nd.st t).fg.h_max
+    rwa [acRestart_fg]
+
+/-- An early request has an actual joined read and an admissible target at its early tick. -/
+theorem inclusion_early_services {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {r : Slot} {a : Time} {x : V}
+    (hEA : SA.earlyTime p.toParams r ≤ a)
+    (hhor : a ≤ rho.horizon) (hGST : E.t_GST ≤ SA.voteTime p.toParams r)
+    (hx : headReader p E rho x (r + 1) a)
+    {ie : Nat} (hie : rho.events[ie]? = some (.tick x (SA.earlyTime p.toParams r)))
+    {q : Fin p.n} {K : Block} (hy : rho.seatOf (.base (.head r)) q ∈ rho.honest)
+    (hK : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head r)) q)
+      (ofHead p ⟨.seat (.head r) q, K.root⟩) (SA.voteTime p.toParams r) K)
+    (hFloor : Block.Preceq (F_at p c E rho ie x) K) :
+    Nonempty (FreshHeadService E rho r q K.root (SA.earlyTime p.toParams r) x) ∧
+      TargetReceiptService E rho K (SA.earlyTime p.toParams r) x := by
+  have hs := hBase.valid.toScheduleWellFormed
+  have hIdx : rho.idxBefore (SA.earlyTime p.toParams r) ≤ ie := by
+    by_contra hn
+    exact (lt_irrefl _ ((Gen.V2.Duty.index_lt_idxBefore_iff hs hie _).mp
+      (lt_of_not_ge hn))).elim
+  have hFK := block_preceq_trans (eraseFG_preceq
+    (inclusion_frame_mono p c E rho _ ie x hx.1 hIdx).1) hFloor
+  have hCompat : Block.Compatible K
+      (eraseFG (rho.stateBeforeTime E (SA.earlyTime p.toParams r) x).st.fg.F) := by
+    change Block.Preceq (eraseFG (rho.stateBefore E _ x).st.fg.F) K at hFK
+    rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hFK
+    exact block_compatible_of_common (block_preceq_refl _) hFK
+  have hBatch := outage_joined_batch_service hBase hSync hx.1 hx.2 le_rfl hEA
+    (hEA.trans hhor) hGST le_rfl (by
+      refine ⟨4 * r + 1, ?_⟩
+      rw [hBase.delta, arming_vote_nat]) (arming_vote_add p r)
+  have hTarget := hK
+  obtain ⟨k, _, _, hk, hem, _, _⟩ := hK
+  obtain ⟨K', hK', hService⟩ := hBatch.heads _ _ q K.root hy ⟨k, hk, hem⟩ (by
+    rw [toWire_ofHead]; rfl)
+  have heq : K' = K := headTargetAtEmission_unique E rho hs hK' hTarget
+  subst K'
+  exact hService.resolve_left (not_not_intro hCompat)
+
+/-- All retained score floors have services; only the emitted proposal needs its own floor. -/
+theorem inclusion_receiver_inputs {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) :
+    InclusionReceiverInputs E rho := by
+  refine ⟨?_, ?_⟩
+  · intro r a x ha hhor hGST hx ie hie q K hy hK hFloor
+    apply inclusion_early_services hBase hSync _ hhor hGST hx hie hy hK hFloor
+    rcases ha with rfl | rfl <;> rw [arming_early_eq]
+    · rw [arming_proposal_eq]; push_cast; linarith [p.deltaPos]
+    · rw [arming_vote_eq]; push_cast; linarith [p.deltaPos]
+  · intro s ip x N hx hGST hip hem ih y hy hih hFloor
+    have hV := hBase.valid
+    have hp := hem
+    rw [(rho.step_tick_eq E hip).2] at hp
+    have hFields := (fgsa_emits_proposal E rho _ x _ s _).mp hp
+    have hpos := (fgsa_walkRun_proposal_parent p _ s _ N hFields.2.2.2.2).1
+    have hsucc : s - 1 + 1 = s := by dsimp only [Slot] at *; omega
+    have hX := inclusion_joinedAt_of_proposal E rho hV hip N hem
+    have hGSTs : E.t_GST ≤ SA.proposalTime p.toParams s := by
+      apply hGST.trans
+      rw [← hsucc, arming_vote_eq, arming_proposal_eq]
+      push_cast; linarith [p.deltaPos]
+    refine ⟨inclusion_service_emitted_proposal_service hV hBase.delta hSync
+      (inclusion_frame_mono p c E rho) hx hy.1 hip hih hem hy.2 hGSTs hFloor, ?_⟩
+    intro D hgeom
+    have hScope := inclusion_service_retained_score_scope hV hBase.restartsAtWakes hBase.delta hSync
+      (inclusion_frame_mono p c E rho) (r := s - 1) hx hy.1
+      (hsucc.symm ▸ hip) (hsucc.symm ▸ hih) (hsucc.symm ▸ hX) (hsucc.symm ▸ hy.2)
+      hGST D (by simpa only [hsucc, storeAt] using hgeom)
+    simpa only [hsucc] using hScope
+
+/-- Actual enabled gates need body receipt only for targets above their current F. -/
+theorem inclusion_gate_services
+    {ΔF : Time} (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
+    (hG : enabledGateAt p c E rho i x s) (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hTargets : ∀ q K, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Block.Preceq (F_at p c E rho i x) K) : GateReceiptScope E rho i x s := by
+  have hs := hBase.valid.toScheduleWellFormed
+  have hJ := outage_enabled_gate_joined hBase.valid hx hG
+  have hEG : SA.earlyTime p.toParams s < SA.gateTime p.toParams s := by
+    rw [arming_early_eq, arming_gate_eq]; linarith [p.deltaPos]
+  have hhor := (hs.in_horizon _ (List.mem_of_getElem? hG.1)).2
+  have hAw := outage_restored_reader_awake hJ
+    (by rw [arming_early_eq]; have := p.deltaPos; positivity)
+    (by rw [arming_early_eq]; change 4 * p.Δ * (s : Int) ≤ _; linarith [p.deltaPos])
+    hEG.le
+  obtain ⟨ie, hie, _⟩ := fgsa_tick_total E rho hs hBase.delta x hx (4 * s + 2)
+    (by rw [arming_early_nat]; exact hEG.le.trans hhor)
+    (by rw [arming_early_nat]; exact hAw)
+  rw [arming_early_nat] at hie
+  have hei := V2.D.Engine.eventIndex_lt_of_time_lt hs hie hG.1 hEG
+  refine ⟨hG, hJ, outage_enabled_gate_read_epoch hs hG (D := SA.earlyTime p.toParams s)
+    (by rw [arming_early_eq]; change 4 * p.Δ * (s : Int) < _; linarith [p.deltaPos]), ?_⟩
+  intro q K hy hK
+  exact inclusion_early_services hBase hSync hEG.le hhor hGST ⟨hx, hJ⟩ hie hy hK
+    (block_preceq_trans (eraseFG_preceq
+      (inclusion_frame_mono p c E rho ie i x hx hei.le).1) (hTargets q K hy hK))
+
+/-- The full Clean cut with GST zero supplies the full-run transport used by services. -/
+theorem inclusion_clean_synchrony [Fintype V] {ΔF : Time}
+    (hset : CleanSet p c E rho ΔF) :
+    Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF) := by
+  constructor
+  · intro v hv o t he w hw a hsend h0 hl hc hh hready hNX
+    simp only [hset.gst, max_eq_left h0] at hl hc hh hready hNX ⊢
+    exact hset.pre.healthy.broadcast_emitted v hv o t he w hw a hsend h0
+      hl hc hh hready hNX
+  · intro v hv i o t ha w hw a hsend h0 hl hc hh hready hNX
+    simp only [hset.gst, max_eq_left h0] at hl hc hh hready hNX ⊢
+    exact hset.pre.healthy.relay_accepted v hv i o t ha w hw a hsend h0
+      hl hc hh hready hNX
+
+/-- The complete receiver record has a named producer from the actual Clean sleep regime. -/
+theorem inclusion_receiver_inputs_of_clean [Fintype V] {ΔF : Time}
+    (hset : CleanSet p c E rho ΔF) : InclusionReceiverInputs E rho :=
+  inclusion_receiver_inputs hset.pre.base (inclusion_clean_synchrony hset)
+
+/-- The continuation supplies the joined majority from the handover, at actual labels. -/
+theorem outage_post_e_joined_count [Fintype V] {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    {s : Slot} (hs : restoredLabel p b₁ + p.k + 1 ≤ s)
+    (hhor : SA.voteTime p.toParams s ≤ rho.horizon) :
+    (Gen.V2.Duty.faulty rho).card <
+      (joinedHonest p E rho (SA.voteTime p.toParams s)).card := by
+  apply h.joinedPartAfter _ _ hhor
+  change 4 * p.Δ * ((restoredLabel p b₁ + p.k : Nat) : Int) + 5 * p.Δ ≤
+    4 * p.Δ * (s : Int) + p.Δ
+  have hcast := Int.ofNat_le.mpr hs
+  push_cast at hcast ⊢
+  nlinarith [p.deltaPos]
+
+/-- The canonical restored label is the least vote at or after the recovery cut. -/
+theorem outage_first_restored_label (p : Params) (b₁ : Time) :
+    FirstRestored p b₁ (restoredLabel p b₁) := by
+  intro s
+  have hd : 0 < 4 * p.Δ := by linarith [p.deltaPos]
+  have hdiv := Int.le_ediv_iff_mul_le hd (a := -(s : Int)) (b := p.Δ - b₁)
+  change b₁ ≤ 4 * p.Δ * (s : Int) + p.Δ ↔
+    (max 0 (- ((p.Δ - b₁) / (4 * p.Δ)))).toNat ≤ s
+  have hs0 : 0 ≤ (s : Int) := Int.natCast_nonneg s
+  constructor
+  · intro hv
+    have hq := hdiv.mpr (by nlinarith)
+    omega
+  · intro hr
+    have hq : -(s : Int) ≤ (p.Δ - b₁) / (4 * p.Δ) := by omega
+    have hm := hdiv.mp hq
+    nlinarith
+
+/-- All enabled gates after r use E inside its window and the healthy set after handover.
+The only invariant input is compatibility of actual scoped HEADs. -/
+theorem outage_continuation_results_of_head_history [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF) {B : Block}
+    (hHeads : ∀ s q K, restoredLabel p b₁ < s →
+      outageHeadReader p E rho fast b₀ b₁ (rho.seatOf (.base (.head s)) q)
+        (SA.voteTime p.toParams s) →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Block.Compatible K B) :
+    ∀ i x s C, x ∈ rho.honest → restoredLabel p b₁ < s →
+      enabledGateAt p c E rho i x s → gateResultAt p c E rho i = some (some C) →
+      Block.Compatible C B := by
+  classical
+  obtain ⟨r, hr, hCount⟩ := h.protection
+  have hrCanon := outage_first_restored_label p b₁
+  have heq : r = restoredLabel p b₁ := by
+    apply Nat.le_antisymm
+    · exact (hr _).mp ((hrCanon _).mpr le_rfl)
+    · exact (hrCanon _).mp ((hr _).mpr le_rfl)
+  subst r
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  intro i x s C hx hrs hG hC
+  have hGST := h.gst.trans ((hr s).mpr hrs.le)
+  have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
+    slotOf_offset p s p.Δ p.deltaPos.le
+      (by have := p.deltaPos; dsimp [Time] at *; omega)
+  by_cases hWindow : s ≤ restoredLabel p b₁ + p.k + 1
+  · apply outage_restored_result_of_compatible_heads h.pre.base h.sync hx hG hGST
+      (hCount s hrs.le hWindow) _ hC
+    intro q K hGood hK
+    have hH := (Finset.mem_sdiff.mp hGood).1
+    have hNW := (Finset.mem_sdiff.mp hGood).2
+    change _ ∈ rho.honest.filter _ at hH
+    obtain ⟨hy, hJ⟩ := Finset.mem_filter.mp hH
+    have hReader : outageHeadReader p E rho fast b₀ b₁
+        (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) := by
+      refine ⟨⟨hy, hJ⟩, Or.inr (Or.inl ⟨hNW, ?_⟩)⟩
+      rw [arming_vote_eq, arming_vote_eq]
+      have hcast : (restoredLabel p b₁ : Int) + 1 ≤ (s : Int) := by
+        dsimp only [Slot] at hrs; omega
+      push_cast; nlinarith [p.deltaPos]
+    exact hHeads s q K hrs hReader hK
+  · have hAfter : restoredLabel p b₁ + p.k + 1 ≤ s := by
+      dsimp only [Slot] at hWindow ⊢; omega
+    have hHor := (fgsa_vote_lt_gate p s).le.trans
+      (hs.in_horizon _ (List.mem_of_getElem? hG.1)).2
+    apply outage_healthy_result_of_compatible_heads h.pre.base h.sync hx hG hGST
+      (outage_post_e_joined_count h hAfter hHor) _ hC
+    intro q K hGood hK
+    have hEnd : OutageEnd p (restoredLabel p b₁) ≤ SA.voteTime p.toParams s := by
+      change 4 * p.Δ * ((restoredLabel p b₁ + p.k : Nat) : Int) + 5 * p.Δ ≤
+        4 * p.Δ * (s : Int) + p.Δ
+      have hcast := Int.ofNat_le.mpr hAfter
+      push_cast at hcast ⊢; nlinarith [p.deltaPos]
+    apply hHeads s q K hrs _ hK
+    refine ⟨?_, Or.inr (Or.inr hEnd)⟩
+    change _ ∈ rho.honest ∧ joinedAt p E rho _ (slotAt p (SA.voteTime p.toParams s)) _
+    rw [hslot]
+    exact hGood
 
 end AvailableChain.FGSA.Run
 end
