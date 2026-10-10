@@ -194,9 +194,9 @@ theorem wc_dutyReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
   have hs := wc_storeReplay ha hv (Nat.le_of_lt hi) x
   constructor
   · intro h
-    exact ⟨hi, by simpa only [he, hs] using h.input⟩
+    exact ⟨hi, h.joined, by simpa only [he, hs] using h.input⟩
   · intro h
-    refine ⟨?_, by simpa only [he, hs] using h.input⟩
+    refine ⟨?_, h.joined, by simpa only [he, hs] using h.input⟩
     obtain ⟨t, ht, _⟩ := h.input
     exact (List.getElem?_eq_some_iff.mp (he.trans ht)).1
 
@@ -233,7 +233,7 @@ theorem wc_gateAtReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
 theorem wc_passedReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
     (hv : V2.D.ExecutionValid E source) {i : Nat} (hi : i < source.events.length) :
     gatePassedAt p c E' rho i ↔ gatePassedAt p c E source i := by
-  unfold gatePassedAt IsGateTick
+  unfold gatePassedAt enabledGateAt IsGateTick
   simp only [wc_eventReplay ha hi, wc_storeReplay ha hv (Nat.le_of_lt hi)]
 
 /-- WC J1; DC PrefixAgreement: the post-clock HEAD retains all original pools. -/
@@ -247,6 +247,23 @@ theorem wc_headAtReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
 private theorem wc_action_gate (r : Nat) :
     p.actionTime r = SA.gateTime p.toParams (r * p.R) := rfl
 
+omit [DecidableEq V] in
+/-- Local event epochs replay exactly through the source prefix. -/
+private theorem wc_restartFreeReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
+    {a b : Nat} (hb : b ≤ source.events.length) (x : V) :
+    V2.D.restartFree rho x a b ↔ V2.D.restartFree source x a b := by
+  constructor <;> intro h j t haj hjb hj
+  · exact h j t haj hjb ((wc_eventReplay ha (hjb.trans_le hb)).trans hj)
+  · exact h j t haj hjb ((wc_eventReplay ha (hjb.trans_le hb)).symm.trans hj)
+
+/-- The enabled guard replays with its tick and stored restart marker. -/
+private theorem wc_enabledReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
+    (hv : V2.D.ExecutionValid E source) {i : Nat} (hi : i < source.events.length)
+    (x : V) (s : Slot) :
+    enabledGateAt p c E' rho i x s ↔ enabledGateAt p c E source i x s := by
+  unfold enabledGateAt IsGateTick
+  rw [wc_eventReplay ha hi, wc_storeReplay ha hv hi.le]
+
 /-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
 private theorem wc_receiptsReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
     (hv : V2.D.ExecutionValid E source) {i : Nat} (hi : i ≤ source.events.length)
@@ -254,17 +271,28 @@ private theorem wc_receiptsReplay (ha : AgreesThrough₂ p c E source E' rho ΔF
     WCReceiptOrigins p c E' rho i x st := by
   constructor
   · intro B stamp hm
-    rcases h.blocks B stamp hm with hz | ⟨j, hj, t, o, ho, ha', he⟩
+    rcases h.blocks B stamp hm with hz | hacc | ⟨hn, j, hj, w, he, hm, hs, hrf⟩
     · exact Or.inl hz
-    · refine Or.inr ⟨j, hj, t, o, ho, ?_, ?_⟩
-      · exact (wc_acceptsReplay ha hv (hj.trans_le hi) x o t).mpr ha'
-      · rw [wc_storeReplay ha hv (hj.le.trans hi)]
-        exact he
+    · obtain ⟨j, hj, t, o, ho, ha', he⟩ := hacc
+      refine Or.inr (Or.inl ⟨j, hj, t, o, ho,
+        (wc_acceptsReplay ha hv (hj.trans_le hi) x o t).mpr ha', ?_⟩)
+      rw [wc_storeReplay ha hv (hj.le.trans hi)]
+      exact he
+    · refine Or.inr (Or.inr ⟨hn, j, hj, w,
+        (wc_eventReplay ha (hj.trans_le hi)).trans he, ?_, hs,
+        (wc_restartFreeReplay ha hi x).mpr hrf⟩)
+      rw [wc_storeReplay ha hv ((Nat.succ_le_of_lt hj).trans hi)]
+      exact hm
   · intro s k b stamp hm
-    obtain ⟨j, hj, t, ha', he⟩ := h.votes s k b stamp hm
-    refine ⟨j, hj, t, (wc_acceptsReplay ha hv (hj.trans_le hi) _ _ _).mpr ha', ?_⟩
-    rw [wc_storeReplay ha hv (hj.le.trans hi)]
-    exact he
+    rcases h.votes s k b stamp hm with ⟨j, hj, t, ha', he⟩ | ⟨j, hj, w, he, hm, hs, hrf⟩
+    · refine Or.inl ⟨j, hj, t,
+        (wc_acceptsReplay ha hv (hj.trans_le hi) _ _ _).mpr ha', ?_⟩
+      rw [wc_storeReplay ha hv (hj.le.trans hi)]
+      exact he
+    · refine Or.inr ⟨j, hj, w, (wc_eventReplay ha (hj.trans_le hi)).trans he,
+        ?_, hs, (wc_restartFreeReplay ha hi x).mpr hrf⟩
+      rw [wc_storeReplay ha hv ((Nat.succ_le_of_lt hj).trans hi)]
+      exact hm
 
 /-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
 private theorem wc_headReadReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
@@ -315,7 +343,7 @@ private theorem wc_leaseReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
     WCLeaseOrigin p c E' rho i x row := by
   obtain ⟨j, hj, s, B, ht, hp, hb, hr, hk, hd, hrel, hlast⟩ := h.origin
   have hjL := hj.trans_le hi
-  refine ⟨j, hj, s, B, (wc_isGateReplay ha hjL x s).mpr ht,
+  refine ⟨j, hj, s, B, (wc_enabledReplay ha hv hjL x s).mpr ht,
     (wc_passedReplay ha hv hjL).mpr hp, ?_, hr, ?_, hd, hrel, ?_⟩
   · rw [wc_gateAtReplay ha hv hjL]
     exact hb
@@ -324,7 +352,7 @@ private theorem wc_leaseReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
   · intro k v C hjk hki htk
     dsimp only
     rw [wc_storeReplay ha hv (hki.le.trans hi)]
-    exact hlast k v C hjk hki ((wc_isGateReplay ha (hki.trans_le hi) x v).mp htk)
+    exact hlast k v C hjk hki ((wc_enabledReplay ha hv (hki.trans_le hi) x v).mp htk)
 
 /-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
 private theorem wc_targetReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
@@ -367,17 +395,19 @@ private theorem wc_finiteReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
     exact h.deadlines x (honest x hx) K g deadline hr B hB hBK
   · intro x hx s X hX
     rw [wc_storeReplay ha hv hi] at hX
-    obtain ⟨j, hj, ht, hp, B, hb, hXB, hf⟩ := h.fastWrites x (honest x hx) s X hX
+    obtain ⟨j, hj, hrf, ht, hp, B, hb, hXB, hf⟩ := h.fastWrites x (honest x hx) s X hX
     have hjL := hj.trans_le hi
-    refine ⟨j, hj, (wc_isGateReplay ha hjL x s).mpr ht,
+    refine ⟨j, hj, (wc_restartFreeReplay ha hi x).mpr hrf,
+      (wc_enabledReplay ha hv hjL x s).mpr ht,
       (wc_passedReplay ha hv hjL).mpr hp, B, ?_, hXB, ?_⟩
     · rw [wc_gateAtReplay ha hv hjL]
       exact hb
-    · exact (wc_fastReplay ha hv x X (hv.in_horizon _ (List.mem_of_getElem? ht)).2).mpr hf
+    · exact (wc_fastReplay ha hv x X (hv.in_horizon _ (List.mem_of_getElem? ht.1)).2).mpr hf
   · intro x hx s C hc
     rw [wc_storeReplay ha hv hi] at hc
-    obtain ⟨j, hj, ht, hb⟩ := h.saved x (honest x hx) s C hc
-    refine ⟨j, hj, (wc_isGateReplay ha (hj.trans_le hi) x s).mpr ht, ?_⟩
+    obtain ⟨j, hj, hrf, ht, hb⟩ := h.saved x (honest x hx) s C hc
+    refine ⟨j, hj, (wc_restartFreeReplay ha hi x).mpr hrf,
+      (wc_enabledReplay ha hv (hj.trans_le hi) x s).mpr ht, ?_⟩
     rw [wc_gateAtReplay ha hv (hj.trans_le hi)]
     exact hb
   · intro x hx W hW X hX hne

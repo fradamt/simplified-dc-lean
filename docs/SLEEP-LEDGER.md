@@ -2567,3 +2567,51 @@ Complete export/coverage check on the prepared roots: 0 unaccepted (8.74 s).
 Layer check: 72 baseline findings, 0 new. The expected-failure build fails in
 TransferFrame and blocks its four dependent targets (5.81 s). Thus full-scope
 export/audit closure remains open. No approved public meaning STOP occurred.
+
+### P-WC — prepared guard, epoch and replay core (2026-10-10)
+
+Base: sleep-pwc at 3939ba54, with P-Cl1 prepared at 075a92d6.
+This is a PREPARED slice, not a CLOSED package. No owned EXPECTED-FAIL target
+is closed. The package map has 47 targets, 477 GREEN and 38 EXPECTED-FAIL
+modules. Six expected failures keep their P-ShA or S-Ap owner.
+
+- Internal statements, approved P19/D116/D117: WCInv.nonempty requires an
+  enabled gate; retrospective requires the joined voter at the exact next
+  vote. Saved and fast origins use event-index restartFree. served and
+  transitions use confirmedReaderIdx. WCReceiptOrigins includes the current
+  restore stamp and its local epoch. WCDutyInput carries the stored duty guard.
+- WC and WCG proof telescopes use RestartsAtWakes, joined vote counts,
+  RStoreDurable with RStoreEpoch, RMonoAll and RFrameNextEpoch. The restart
+  targets conclude WCInv at i+1. Their full step proofs remain open.
+- T49/T53/T57 supplier: wc_joined_gate_witness selects the actor at the earlier
+  gate time. wc_joined_retrospective_witness orders through that actor, then
+  returns the HEAD read of the original joined voter. The all-time count is
+  kept until that selection. The three caller ports are not closed.
+- T48/T54/T56 supplier: wc_currentEpoch_result gets the later enabled gate
+  from the confirmed reader's caughtUpAtIdx witness. It orders the old result
+  below that result in the reader's current awake epoch. Output persistence
+  and the complete current-epoch service theorem remain open.
+- W3-G: wc_gate_raw_enabled calls the joined saved-result equation;
+  wc_gate_suppressed calls the unjoined equation. The older WC/WCG callers
+  remain open until each exact guard is supplied.
+- WC replay transfers enabled guards, local event epochs, restore receipt
+  origins, and guarded duty inputs. WCG local replay uses restore at the exact
+  restart time. Both initialization proofs preserve the approved scoped WCInv.
+- Receipt deadline constraint: wc_receipt_anchor_deadline proves equality
+  when send <= anchor <= max(send,GST). wc_receipt_anchor_late proves that an
+  anchor after that maximum cannot fit the old deadline. A later service copy
+  needs its own receiver deadline or a proof of retained receipt/stamp safety.
+  No S-Ap receipt record was changed.
+- Supplier gap at this base: fgsa_receiptCoverage_ready and
+  fgsa_active_path_of_coverage still take global NoRestart and the old
+  ReceiptCoveragePremises. Count has no sleep/anchor-scoped path companion.
+  Needed at StepGateBatch, StepTransferReceipts and the two Dynamics sites:
+  the ready/safe/local-epoch core over ReceiptCoverageSleepPremises, with
+  handler readiness on the same anchor interval. Joined count companions at
+  Count:242/277/351 are also absent. These are P-ShA/W3 supplier requests.
+- Prepared validation: the contract, epoch, replay and initialization targets
+  build with --wfail and default heartbeats. The local strict audit has 116
+  commands. The package DCK and complete export check are in progress.
+  Layers: 72 baseline findings, 0 new. No public meaning STOP has occurred.
+- Shared audit/root/scope integration is supplied as a P-WC fragment. No
+  shared inventory, root facade, S-Ap statement or other package file changed.

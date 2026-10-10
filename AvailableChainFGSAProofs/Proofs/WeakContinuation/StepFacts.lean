@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins -- shake: keep (WC interface)
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
@@ -208,51 +209,6 @@ private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
     fgsa_tickIdx_of_event p c E rho hs ht]
   exact congrArg some hC
 
-/-- WC plan §6.5; DC a gate is after the completed cut exactly when its label is later. -/
-theorem wc_gate_cut_iff (hsch : V2.D.ScheduleWellFormed E rho)
-    {w : HealingWitness} {iStar j : Nat} {x : V} {s : Slot}
-    (hs : WCSeed p c E rho w iStar) (ht : IsGateTick p c rho j x s) :
-    iStar ≤ j ↔ w.u < s := by
-  have hc := V2.D.Engine.filter_eq_take hsch (cutPred (SA.gateTime p.toParams w.u)) (by
-    intro e f hle hf
-    exact decide_eq_true (hle.trans (of_decide_eq_true hf)))
-  constructor
-  · intro hj
-    by_contra hn
-    have hle : (s : Int) ≤ w.u := Int.ofNat_le.mpr (Nat.le_of_not_gt hn)
-    have htime : SA.gateTime p.toParams s ≤ SA.gateTime p.toParams w.u := by
-      change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ 4 * p.Δ * (w.u : Int) + 6 * p.Δ
-      nlinarith [p.deltaPos]
-    have hf := V2.D.Engine.filter_false_of_index_ge hsch
-      (cutPred (SA.gateTime p.toParams w.u)) (by
-        intro e f hle hf
-        exact decide_eq_true (hle.trans (of_decide_eq_true hf)))
-      (show afterTicksIdx rho (SA.gateTime p.toParams w.u) ≤ j from hs.cut ▸ hj) ht
-    have hh : cutPred (SA.gateTime p.toParams w.u)
-        (.tick x (SA.gateTime p.toParams s) : V2.Event V (fgsa p c).Object) = true :=
-      decide_eq_true (Prod.Lex.toLex_le_toLex.mpr
-        (htime.lt_or_eq.imp id (fun he => ⟨he, le_rfl⟩)))
-    rw [hh] at hf
-    cases hf
-  · intro hslabel
-    by_contra hn
-    have hj : j < afterTicksIdx rho (SA.gateTime p.toParams w.u) :=
-      hs.cut ▸ Nat.lt_of_not_ge hn
-    have hm : V2.Event.tick x (SA.gateTime p.toParams s) ∈
-        rho.events.filter (cutPred (SA.gateTime p.toParams w.u)) := by
-      rw [hc]
-      apply List.mem_of_getElem? (i := j)
-      change (rho.events.take (afterTicksIdx rho (SA.gateTime p.toParams w.u)))[j]? = _
-      rw [List.getElem?_take_of_lt hj]
-      exact ht
-    have hk := of_decide_eq_true (List.mem_filter.mp hm).2
-    have hh : SA.gateTime p.toParams s ≤ SA.gateTime p.toParams w.u := by
-      rcases Prod.Lex.toLex_le_toLex.mp hk with h | ⟨h, _⟩
-      · exact h.le
-      · exact h.le
-    have hcast : (w.u : Int) < s := Int.ofNat_lt.mpr hslabel
-    change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ 4 * p.Δ * (w.u : Int) + 6 * p.Δ at hh
-    nlinarith [p.deltaPos]
 
 variable [Fintype V]
 
