@@ -37,7 +37,7 @@ theorem arming_rest_bound_joined [Fintype V]
     exact (hC (.base (.head r)) trivial).injective he
 
 /-- Proposal scores use joined voters and receipts in the actual proposal store. -/
-theorem inclusion_proposer_prior_of_F_prefix_on [Fintype V]
+theorem arming_inclusion_proposer_prior_of_F_prefix_on [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (s : Slot) (i : Nat) (x : V)
     (st : State p.n) (hvotes : st.base.votes = (storeAt p c E rho i x).base.votes)
@@ -107,7 +107,7 @@ theorem inclusion_proposer_prior_of_F_prefix_on [Fintype V]
   exact lt_of_le_of_lt (hrival B hDB) (lt_of_lt_of_le hbatch.lt (hprefix L hL).1)
 
 /-- HEAD scores use joined voters and local provenance in the consuming read. -/
-theorem inclusion_reader_scores_on [Fintype V]
+theorem arming_inclusion_reader_scores_on [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (r : Slot)
     {ih : Nat} {y : V}
