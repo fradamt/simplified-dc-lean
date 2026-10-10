@@ -194,6 +194,7 @@ theorem wcg_heightSeed {G ΔF : Time} {w : HealingWitness}
       ring
     obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs hS.base.delta x hx
       (4 * (w.u + 1) + 1) (heq ▸ hnext.trans hgate)
+      (heq ▸ hS.awake x hx _ hfirst (hnext.trans hgate))
     rw [heq] at hk
     let st := FGSA.clock p (storeAt p c E rho k x) (SA.voteTime p.toParams (w.u + 1))
     have hread : headAtLabel p c E rho x (w.u + 1) = some (headVote p st (w.u + 1)) := by
