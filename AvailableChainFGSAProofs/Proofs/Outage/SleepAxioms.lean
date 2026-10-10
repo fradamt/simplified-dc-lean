@@ -33,6 +33,10 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
 public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPrefix
 public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedScores
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedRoots
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
+
 #print axioms AvailableChain.FGSA.Run.outage_restored_service
 #print axioms AvailableChain.FGSA.Run.outage_restored_proposal_receipt
 #print axioms AvailableChain.FGSA.Run.outage_restored_batch_receipt_on
@@ -292,3 +296,20 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 #print axioms AvailableChain.FGSA.Run.outage_restored_vote_seed
 #print axioms AvailableChain.FGSA.Run.outage_no_regression_continuation
 #print axioms AvailableChain.FGSA.Run.outage_first_regression_prefix
+
+#print axioms AvailableChain.FGSA.Run.outage_pool_opponent_bound
+#print axioms AvailableChain.FGSA.Run.outage_receiver_scores_of_bound
+#print axioms AvailableChain.FGSA.Run.outage_prior_good_receipts
+#print axioms AvailableChain.FGSA.Run.outage_prior_covering_source
+#print axioms AvailableChain.FGSA.Run.outage_pending_gate_cert_receipt
+#print axioms AvailableChain.FGSA.Run.outage_pending_gate_cert_result
+#print axioms AvailableChain.FGSA.Run.outage_enabled_old_gate_covered
+#print axioms AvailableChain.FGSA.Run.outage_scoped_head_root
+#print axioms AvailableChain.FGSA.Run.outage_first_regression_retained_frame
+#print axioms AvailableChain.FGSA.Run.outage_source_gate_before_early
+#print axioms AvailableChain.FGSA.Run.outage_source_held_at_action
+#print axioms AvailableChain.FGSA.Run.outage_crossing_source_at_read
+#print axioms AvailableChain.FGSA.Run.outage_frozen_selected_ancestor
+#print axioms AvailableChain.FGSA.Run.outage_uncontested_frozen_path
+#print axioms AvailableChain.FGSA.Run.outage_first_regression_marker
+#print axioms AvailableChain.FGSA.Run.outage_first_regression_scores

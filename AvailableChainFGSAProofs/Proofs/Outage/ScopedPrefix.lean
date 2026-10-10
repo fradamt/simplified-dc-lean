@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedScores
 
 public section
 
@@ -330,6 +330,176 @@ theorem outage_first_regression_prefix
       (arming_timeIdx_le_idxBefore rho hEV)).trans hIdx)
     (Nat.le_of_lt (List.getElem?_eq_some_iff.mp hk).1)
     (fun j q hj => hFirst j hj q)
+
+include h hf htsrc hnamed in
+/-- The first regression has retained scores from the preceding actual good batch.
+E supplies its fixed good set; the healthy suffix supplies the full joined set.
+The receiver floor and both receipt epochs are produced at the actual read. -/
+theorem outage_first_regression_scores
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+    {k : Nat} {s : Slot}
+    (hReg : OutageScopedRegression (p := p) (c := c) (E := E) (rho := rho)
+      fast b₀ b₁ B k s)
+    (hFirst : ∀ j, j < k → ∀ q, ¬ OutageScopedRegression (p := p) (c := c) (E := E)
+      (rho := rho) fast b₀ b₁ B j q) :
+    ∃ q K, rho.events[k]? = some
+      (.tick (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s)) ∧
+      outageHeadReader p E rho fast b₀ b₁ (rho.seatOf (.base (.head s)) q)
+        (SA.voteTime p.toParams s) ∧
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K ∧
+      ¬ Block.Preceq B K ∧
+      RetainedTargetScores p (clock p (storeAt p c E rho k
+        (rho.seatOf (.base (.head s)) q)) (SA.voteTime p.toParams s)) s B ∧
+      ∃ j y P, rho.events[j]? = some (.tick y (SA.voteTime p.toParams (s - 1))) ∧
+        y ∈ rho.honest ∧ P ∈ (storeAt p c E rho j y).fg.TF ∧
+        Block.Preceq B (eraseFG P) := by
+  classical
+  have hRegKeep := hReg
+  obtain ⟨hrs, q, K, hk, hReader, hK, hBad⟩ := hReg
+  let x := rho.seatOf (.base (.head s)) q
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
+    slotOf_offset p s p.Δ p.deltaPos.le
+      (by have := p.deltaPos; dsimp [Time] at *; omega)
+  have hx := hReader.1.1
+  have hJ : joinedAt p E rho x s (SA.voteTime p.toParams s) := by
+    simpa only [hslot, x] using hReader.1.2
+  have hpos : 0 < s := (Nat.zero_le _).trans_lt hrs
+  have heq : s - 1 + 1 = s := Nat.sub_add_cancel hpos
+  have hF := (outage_first_regression_prefix h hf htsrc hnamed hsrc hState hprov
+    hne hc hβ hRegKeep hFirst).2.2.2.1 x hx
+  have hFB : Block.Preceq (F_at p c E rho k x) B := by
+    rcases Bool.or_eq_true_iff.mp hF with hlow | hhigh
+    · exact hlow
+    · apply False.elim
+      apply hBad
+      have hFK : Block.Preceq (F_at p c E rho k x) K := by
+        rw [headTargetAtEmission_at_tick E rho hs hK hk rfl]
+        let dst := clock p (storeAt p c E rho k x) (SA.voteTime p.toParams s)
+        have hinv := cstoreInv_clock p _ (cstoreInv_stateBefore E rho k x)
+          (SA.voteTime p.toParams s)
+        have hr := F_preceq_liveRoot p dst hinv
+        change Block.Preceq _ (if s = 0 then .genesis else headInTree p dst _ _ _)
+        rw [ite_eq_right (Nat.ne_of_gt hpos)]
+        apply block_preceq_trans ?_ (liveRoot_preceq_headInTree p dst _ _ _)
+        change Block.Preceq (eraseFG (storeAt p c E rho k x).fg.F) _
+        simpa only [dst, clock_fg] using hr
+      exact block_preceq_trans hhigh hFK
+  have hhor : SA.voteTime p.toParams s ≤ rho.horizon :=
+    (hs.in_horizon _ (List.mem_of_getElem? hk)).2
+  have hprev : restoredLabel p b₁ ≤ s - 1 := by dsimp only [Slot] at *; omega
+  have hGST := h.gst.trans ((outage_first_restored_label p b₁ _).mpr hprev)
+  have htime : SA.voteTime p.toParams (s - 1) < SA.voteTime p.toParams s := by
+    rw [arming_vote_eq, arming_vote_eq]
+    have hcast := Int.ofNat_lt.mpr (Nat.sub_lt hpos Nat.one_pos)
+    nlinarith [p.deltaPos]
+  have hEV : SA.earlyTime p.toParams (restoredLabel p b₁) ≤ rho.horizon := by
+    apply le_trans _ hhor
+    rw [arming_early_eq, arming_vote_eq]
+    have hcast := Int.ofNat_le.mpr (Nat.succ_le_of_lt hrs)
+    push_cast at hcast; nlinarith [p.deltaPos]
+  have hGood := (outage_restored_vote_seed h hf htsrc hnamed hsrc hState hprov
+    hne hc hβ hEV).2.2.2
+  have target (w : Fin p.n) (L : Block)
+      (hP : restoredLabel p b₁ < s - 1)
+      (hR : outageHeadReader p E rho fast b₀ b₁
+        (rho.seatOf (.base (.head (s - 1))) w) (SA.voteTime p.toParams (s - 1)))
+      (hL : HeadTargetAtEmission p c E rho
+        (rho.seatOf (.base (.head (s - 1))) w)
+        (ofHead p ⟨.seat (.head (s - 1)) w, L.root⟩) (SA.voteTime p.toParams (s - 1)) L) :
+      Block.Preceq B L := by
+    have hKeep := hL
+    obtain ⟨j, _, _, hj, _, _, _⟩ := hL
+    have hjk := V2.D.Engine.eventIndex_lt_of_time_lt hs hj hk htime
+    by_contra hn
+    exact hFirst j hjk (s - 1) ⟨hP, w, L, hj, hR, hKeep, hn⟩
+  refine ⟨q, K, hk, hReader, hK, hBad, ?_⟩
+  obtain ⟨r, hr, hCount⟩ := h.protection
+  have hrCanon := outage_first_restored_label p b₁
+  have hreq : r = restoredLabel p b₁ := Nat.le_antisymm
+    ((hr _).mp ((hrCanon _).mpr le_rfl)) ((hrCanon _).mp ((hr _).mpr le_rfl))
+  subst r
+  by_cases hWindow : s - 1 ≤ restoredLabel p b₁ + p.k + 1
+  · obtain ⟨H, hH, hCard⟩ := outage_good_seats E rho h.pre.base.cstar fast b₀
+      (restoredLabel p b₁) (s - 1)
+    have hSelected : ∀ w ∈ H, rho.seatOf (.base (.head (s - 1))) w ∈ rho.honest ∧
+        joinedAt p E rho (rho.seatOf (.base (.head (s - 1))) w) (s - 1)
+          (SA.voteTime p.toParams (s - 1)) := by
+      intro w hw
+      have hm := (Finset.mem_sdiff.mp ((hH w).mp hw)).1
+      change _ ∈ rho.honest.filter _ at hm
+      have hsl : slotAt p (SA.voteTime p.toParams (s - 1)) = s - 1 :=
+        slotOf_offset p _ p.Δ p.deltaPos.le
+          (by have := p.deltaPos; dsimp [Time] at *; omega)
+      simpa only [hsl] using Finset.mem_filter.mp hm
+    have hTargets : ∀ w ∈ H, ∀ L, HeadTargetAtEmission p c E rho
+        (rho.seatOf (.base (.head (s - 1))) w)
+        (ofHead p ⟨.seat (.head (s - 1)) w, L.root⟩)
+        (SA.voteTime p.toParams (s - 1)) L → Block.Preceq B L := by
+      intro w hw L hL
+      rcases hprev.lt_or_eq with hlt | he
+      · apply target w L hlt _ hL
+        refine ⟨⟨(hSelected w hw).1, ?_⟩, Or.inr (Or.inl ⟨?_, ?_⟩)⟩
+        · have hsl : slotAt p (SA.voteTime p.toParams (s - 1)) = s - 1 :=
+            slotOf_offset p _ p.Δ p.deltaPos.le
+              (by have := p.deltaPos; dsimp [Time] at *; omega)
+          simpa only [hsl] using (hSelected w hw).2
+        · exact (Finset.mem_sdiff.mp ((hH w).mp hw)).2
+        · rw [arming_vote_eq, arming_vote_eq]
+          have hcast := Int.ofNat_le.mpr (Nat.succ_le_of_lt hlt)
+          push_cast at hcast ⊢; nlinarith [p.deltaPos]
+      · have hGW := (hH w).mp hw
+        rw [← he] at hGW hL
+        exact hGood w L hGW hL
+    have hRec := outage_prior_good_receipts h.pre.base h.sync hf
+      (heq.symm ▸ hk) hx (heq.symm ▸ hJ) hGST hFB H hSelected hTargets
+    have hPart := hCard.symm ▸ hCount (s - 1) hprev hWindow
+    refine ⟨?_, outage_prior_covering_source h.pre.base (htime.le.trans hhor) H
+      (Finset.card_pos.mp ((Nat.zero_le _).trans_lt hPart)) hSelected hTargets⟩
+    simpa only [heq, storeAt, x] using outage_receiver_scores_of_bound E rho h.pre.base.valid
+      h.pre.base.delta (s - 1) (heq.symm ▸ hk) H (fun w hw => (hSelected w hw).1)
+      _ ⟨hPart⟩ (fun L => outage_pool_opponent_bound h.pre.base fast b₀
+        (restoredLabel p b₁) (s - 1) H hH L) B hRec hx (heq.symm ▸ hJ) B
+      (block_preceq_refl B)
+  · have hAfter : restoredLabel p b₁ + p.k + 1 ≤ s - 1 := by
+      dsimp only [Slot] at *; omega
+    obtain ⟨H, hH, hBatch⟩ := inclusion_joined_head_seats E rho h.pre.base.cstar (s - 1)
+      ⟨outage_post_e_joined_count h hAfter (htime.le.trans hhor)⟩
+    have hTargets : ∀ w ∈ H, ∀ L, HeadTargetAtEmission p c E rho
+        (rho.seatOf (.base (.head (s - 1))) w)
+        (ofHead p ⟨.seat (.head (s - 1)) w, L.root⟩)
+        (SA.voteTime p.toParams (s - 1)) L → Block.Preceq B L := by
+      intro w hw L hL
+      have hlt : restoredLabel p b₁ < s - 1 := by
+        dsimp only [Slot] at *; omega
+      apply target w L hlt _ hL
+      have hEnd : OutageEnd p (restoredLabel p b₁) ≤ SA.voteTime p.toParams (s - 1) := by
+        change 4 * p.Δ * ((restoredLabel p b₁ + p.k : Nat) : Int) + 5 * p.Δ ≤ _
+        rw [arming_vote_eq]
+        have hcast := Int.ofNat_le.mpr hAfter
+        push_cast at hcast ⊢; nlinarith [p.deltaPos]
+      refine ⟨?_, Or.inr (Or.inr hEnd)⟩
+      have hsl : slotAt p (SA.voteTime p.toParams (s - 1)) = s - 1 :=
+        slotOf_offset p _ p.Δ p.deltaPos.le
+          (by have := p.deltaPos; dsimp [Time] at *; omega)
+      change _ ∈ rho.honest ∧ joinedAt p E rho _ (slotAt p _) _
+      simpa only [hsl] using (hH w).mp hw
+    have hRec := outage_prior_good_receipts h.pre.base h.sync hf
+      (heq.symm ▸ hk) hx (heq.symm ▸ hJ) hGST hFB H (fun w hw => (hH w).mp hw) hTargets
+    refine ⟨?_, outage_prior_covering_source h.pre.base (htime.le.trans hhor) H
+      (Finset.card_pos.mp ((Nat.zero_le _).trans_lt hBatch.lt))
+      (fun w hw => (hH w).mp hw) hTargets⟩
+    simpa only [heq, storeAt, x] using outage_receiver_scores_of_bound E rho h.pre.base.valid
+      h.pre.base.delta (s - 1) (heq.symm ▸ hk) H (fun w hw => ((hH w).mp hw).1)
+      _ hBatch (fun L => inclusion_joined_rest_bound E rho h.pre.base.cstar
+        h.pre.base.valid (s - 1) H (fun w hh hJ => (hH w).mpr ⟨hh, hJ⟩) L)
+      B hRec hx (heq.symm ▸ hJ) B (block_preceq_refl B)
 
 end Prefix
 

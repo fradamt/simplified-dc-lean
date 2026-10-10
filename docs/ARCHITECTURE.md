@@ -1017,3 +1017,9 @@ No public Claims statement changed.
   `Outage/ScopedCatchUp` produces the W reader's actual gate, batch and epoch;
   it proves the finalized output branch. The other W output branch and the
   complete public exporters remain open. Public claims are unchanged.
+
+P-Ou Round 11: ScopedScores, ScopedRoots and ScopedPaths construct the first
+actual regression marker from the regime, arming certificate and causal prefix.
+Selected path service uses the current receiver floor, actual joined read and
+post-GST prior label. The crossing source uses P-Fd sourceDiscipline_qcOrigin.
+The finite bridge after that marker and the complete public exporters remain open.

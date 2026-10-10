@@ -6905,3 +6905,29 @@ at removed NoRestart projections and old all-honest induction calls.
 No complete exporter or public claim is marked closed. P-Ou remains PREPARED.
 Evidence: .lake/sleep-pou-r10/. Exact remaining goals: P-Ou.round10-handoff.md.
 - Lead 2026-10-10 15:51: merged sleep-pas6 18d690c2 (P-As r6) as PREPARED, 45/66 GREEN; FAST CLOSED; outage fixture sleep-valid; review rev-pas6-astra MERGE-AS-PREPARED. Open: P-Ou closure/export (incl. Outage/Export → GrowthSuppliers), HTimeClaim (healing).
+
+### P-Ou Round 11 — first actual regression marker
+
+ScopedScores supplies the A union W bound for carried pools with actual stored
+provenance. Selected prior good HEADs are received at the early tick, with their
+votes and stamps retained through the current joined read. ScopedPrefix produces
+those scores and an actual held covering source at the first regression. It uses
+E in its fixed window and the healthy joined count after that window.
+
+ScopedRoots supplies pending results from the general arming gate certificate.
+The live root is compatible at G, outside-W, and post-End actual scoped readers.
+Outside-W readers cannot have an enabled outage write after the pending label:
+that write would put them in W. The pending result and old Clean maximum supply
+the remaining row branches. No all-honest stable invariant is requested.
+
+ScopedPaths serves each selected ancestor above the current receiver F before
+freeze, using the actual joined reader, post-GST prior label and exact epoch.
+An honest crossing source supplies any higher uncontested height witness.
+outage_first_regression_marker produces the stored marker, B <= J(P), and
+nonzero h_j(P). Scores, root and path are outputs. RQCOrigin is the named P-Fd
+sourceDiscipline_qcOrigin supplier; its caller uses the existing FaultQ input.
+
+O10-2 is proved. The post-marker finite bridge and public ports remain open.
+Public claims and protocol declarations are unchanged. New scope checks include
+restart-at-GST=20 and restart-at-9 with GST=20; these are guard checks, not full
+ExecutionValid counterexample fixtures. P-Ou remains PREPARED.

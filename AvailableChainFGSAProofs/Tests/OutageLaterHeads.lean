@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPrefix
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
 public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 
@@ -75,6 +75,24 @@ theorem marker_service_from_foundation {p : Params} {In V : Type} [DecidableEq V
   outage_later_marker_receipt hBase hSync (fgsa_rMonoAll p c E rho)
     hk hi hy hx hJ hms hGST hP hBP hF
 
+/-- A restart at GST=20 suppresses the preceding HEAD but permits label 6.
+The label-5 batch and freeze are after GST and before that actual joined read. -/
+theorem restart_at_gst_guard (p : Params) (hd : p.Δ = 1) :
+    joinedAtTime p (some 20) (SA.voteTime p.toParams 5) = false ∧
+      joinedAtTime p (some 20) (SA.voteTime p.toParams 6) = true ∧
+      20 ≤ SA.voteTime p.toParams 5 ∧
+      SA.freezeTime p.toParams 5 < SA.voteTime p.toParams 6 := by
+  norm_num [joinedAtTime, Params.slotOf, slotStartZ, arming_vote_eq, arming_freeze_eq, hd]
+
+/-- The restart-at-9/GST=20 read has no transport request at label 3.
+The first post-GST prior-batch label is 5, whose next read is joined. -/
+theorem wake_nine_gst_twenty_batch (p : Params) (hd : p.Δ = 1) :
+    ¬ (20 ≤ SA.voteTime p.toParams 2) ∧
+      ¬ (20 ≤ SA.voteTime p.toParams 3) ∧
+      20 ≤ SA.voteTime p.toParams 5 ∧
+      joinedAtTime p (some 9) (SA.voteTime p.toParams 6) = true := by
+  norm_num [joinedAtTime, Params.slotOf, slotStartZ, arming_vote_eq, hd]
+
 end AvailableChain.FGSA.Run.Tests.OutageLaterHeads
 
 #print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.wake_nine_guard
@@ -85,3 +103,6 @@ end AvailableChain.FGSA.Run.Tests.OutageLaterHeads
 #print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.early_marker_prefix_order
 #print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.asleep_not_scoped_regression
 #print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.marker_service_from_foundation
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.restart_at_gst_guard
+#print axioms AvailableChain.FGSA.Run.Tests.OutageLaterHeads.wake_nine_gst_twenty_batch
