@@ -2673,3 +2673,10 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 #print axioms AvailableChain.FGSA.Run.assembly_hTimeClaim_of_reset_input
 
 #print axioms AvailableChain.FGSA.Run.assembly_healingInputClaim_of_input
+
+-- Round 8: finite healing result and suffix-reader adapters.
+#print axioms AvailableChain.FGSA.Run.assembly_healing_suffix_reader
+#print axioms AvailableChain.FGSA.Run.assembly_healingInput_of_inv
+#print axioms AvailableChain.FGSA.Run.assembly_resetArrivalFull_at
+#print axioms AvailableChain.FGSA.Run.assembly_healingInput_at
+#print axioms AvailableChain.FGSA.Run.assembly_hTime_at

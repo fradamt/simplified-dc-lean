@@ -1,4 +1,4 @@
-# P-As Round 7: outage Assembly closed; full Root remains OPEN/P-H2 and P-As.
+# P-As Round 8: returned healing producers wired; full Export and Root OPEN/P-H2.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs
 AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicAxioms
@@ -583,23 +583,27 @@ AvailableChainFGSAProofs.Proofs.Assembly.Outage
 AvailableChainFGSAProofs.Tests.OutageExport
 AvailableChainFGSAProofs.Tests.OutageContinuationAxioms
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst
+AvailableChainFGSAProofs.Tests.HealingAttempt
+# All 13 OPEN assigned targets import Healing.Export or the H2 lease/raw chain.
+# First exact blocker: PostResetLeaseMove:77/102/134/277 (old receipt API and
+# removed base.noRestart). Then PostResetLeaseStep, PostResetRawStep, ReleaseScope.
+# Each target's route and the four exact result obligations are in P-As.blocker-types.md.
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs P-As
-AvailableChainFGSAProofs.Proofs.Assembly.Healing P-As
-AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival P-As
-AvailableChainFGSAProofs.Proofs.Assembly.Root P-As
-AvailableChainFGSAProofs.Tests.Axioms P-As
-AvailableChainFGSAProofs.Tests.FGCompose P-As
-AvailableChainFGSAProofs.Tests.HealingAttempt P-H2
-AvailableChainFGSAProofs.Tests.HealingHTime P-As
+AvailableChainFGSAProofs P-H2
+AvailableChainFGSAProofs.Proofs.Assembly.Healing P-H2
+AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival P-H2
+AvailableChainFGSAProofs.Proofs.Assembly.Root P-H2
+AvailableChainFGSAProofs.Tests.Axioms P-H2
+AvailableChainFGSAProofs.Tests.FGCompose P-H2
+AvailableChainFGSAProofs.Tests.HealingHTime P-H2
 AvailableChainFGSAProofs.Tests.HealingReset P-H2
-AvailableChainFGSAProofs.Tests.LiveDC P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms P-As
+AvailableChainFGSAProofs.Tests.LiveDC P-H2
+AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial P-H2
+AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims P-H2
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims P-H2
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms P-H2
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

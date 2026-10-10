@@ -2548,6 +2548,11 @@
             'AvailableChain.FGSA.Run.assembly_healingInputClaim_of_input',
             'AvailableChain.FGSA.Run.assembly_healing_tPerm_of_set',
             'AvailableChain.FGSA.Run.assembly_resetArrivalFull_of_extension',
+            'AvailableChain.FGSA.Run.assembly_healing_suffix_reader',
+            'AvailableChain.FGSA.Run.assembly_healingInput_of_inv',
+            'AvailableChain.FGSA.Run.assembly_resetArrivalFull_at',
+            'AvailableChain.FGSA.Run.assembly_healingInput_at',
+            'AvailableChain.FGSA.Run.assembly_hTime_at',
         ),
         'AvailableChainFGSAProofs.Proofs.Assembly.Root': (
             'AvailableChain.FGSA.Run.assembly_weakContinuationGrowth',

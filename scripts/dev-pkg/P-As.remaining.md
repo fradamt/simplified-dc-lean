@@ -1,59 +1,43 @@
-# P-As Round 7 — remaining targets
+# P-As Round 8 — remaining work
 
-Base: da788502. Full P-As and Root acceptance remain OPEN.
-51/68 targets are GREEN; 17 remain OPEN. The map has 511 GREEN and
-19 EXPECTED-FAIL entries, including two inherited S-Ap roots outside TARGETS.
-Exact types, source locations and owners: [P-As.blocker-types.md](P-As.blocker-types.md).
-Evidence: .lake/sleep-pas-r7/.
+Status: PREPARED / OPEN-P-H2. Base 15ed93b9; branch sleep-pas8.
+Assigned map: 55/68 GREEN. The 13 OPEN targets and their exact H2 import blocker
+are listed in P-As.blocker-types.md and .lake/sleep-pas-r8/target-blockers.log.
 
-Outage Assembly, both claim projections, the amended companion caller and the
-continuation audit now build. P-H1's positive HealingRun fixture also builds.
-P-H1 production is CLOSED; no P1-P10 or universal permanence proof is requested.
-The Export route for RecoveryPerm remains an exact P-H2 boundary request.
+Closed P-As work:
+- Wire healing_frontierSearch_recovery and its named Foundation inputs.
+- Remove the final search factory and the promotion GST conversion.
+- Consume RecoveryPerm through Healing.Export's returned import route.
+- Port the returned cone, opening, service, H2-prime, H6 and healed callers.
+- Produce the selected finite suffix reader required by H4.
+- Leave extension, localInput, fullInput and inv as per-run lemma arguments.
+- Port HealingPackages, HealingReset and HealingFirst to the current APIs.
+- Port HealingClaims, FinalityClaims and Adversarial source callers.
+- Check actual Root, FGCompose, LiveDC and continuation-growth callers under
+  the exact pending H-time result. This is conditional caller evidence only.
 
-Eleven ready healing Assembly bodies pass through lower production imports.
-They use RecoverySleep₂, RMonoAll, actual source facts and Jst horizons.
-HG.5, the selected full-H0 extension, local/full-H0 input and the current all-cut
-post-reset APIs remain exact P-H2 obligations. No assumed service record is added.
-The conditional Root is checked with HTimeClaim explicit. Full Root and its
-actual importers remain open through P-H2 and their later P-As caller/fixture ports.
+P-H2 Round 9 must close the three guarded joint steps, joint invariant, selected
+full-H0 extension, local input, full input, ReleaseScope and Healing.Export.
+The named step wrappers are prepared against the current source API. Any type
+change must be forwarded by the lead. No service field is an Assembly request.
+After the return, build the 13 OPEN targets and the canonical Tests/Axioms audit;
+then run the full manifest and full coverage checks with their controls.
 
-The complete open target list follows:
+The facade probe also exposes stale P-H2 HealingPhaseSettle and HealingRiseOne
+callers. HealingFrontierRead is a separate P-H1-map caller failure on the returned
+API, for the lead to route. The errors are in assigned-build.log. P-As does not
+edit Proofs/Healing or test sources outside the assigned fixtures.
 
-- `AvailableChainFGSAProofs`.
-- `AvailableChainFGSAProofs.Proofs.Assembly.Healing`.
-- `AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival`.
-- `AvailableChainFGSAProofs.Proofs.Assembly.Root`.
-- `AvailableChainFGSAProofs.Tests.Axioms`.
-- `AvailableChainFGSAProofs.Tests.FGCompose`.
-- `AvailableChainFGSAProofs.Tests.HealingAttempt`.
-- `AvailableChainFGSAProofs.Tests.HealingHTime`.
-- `AvailableChainFGSAProofs.Tests.HealingReset`.
-- `AvailableChainFGSAProofs.Tests.LiveDC`.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial`.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims`.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims`.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst`.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages`.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset`.
-- `AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms`.
+The finite fixtures keep their prior event prefixes. Complete H-time fixtures
+use horizon 310; HealingReset remains at 304. FinalityClaims extends to 411 for
+Jst + B_HF + LIVE-DC, and Adversarial extends to 300. Their real post-budget
+proposal checks use slots 78 and 66. Budget constants and protocol sources stay.
+The delayed slot-0 HEAD votes in Adversarial still arrive at GST, time 7.
+Local replay no-restart conditions are proved by that fixture's event generator;
+they are not sleep-wide premises.
 
-P-As must wire the returned named P-H2 producers, restore an unconditional
-healing_hTimeClaim call, and port the actual Root importers. Preserve the positive
-fixtures. The known Adversarial Base₂/sleep/receipt and wake-time restart ports,
-HealingPackages/HealingReset adapters, bare P23, G-S2 and final regeneration stay open.
-
-The deferred initialAt order is unchanged: repair the Adversarial restart branches
-at 1889-1891 and 2981-2983, then remove obsolete StoreInv/Metadata/LeaseOutput and
-AncestorDeadlinesStore helpers, then remove the Model/Store definition last.
-No protocol helper or fixture is removed in this round.
-
-The public FGSAClaims structure builds. Public Claims/Statements and all
-Healing/* and Outage/* sources are unchanged here. Body audits do not close mixed
-modules or unproduced family results. The required full manifest check must pass
-with its controls after P-H2 integration; an inherited failure is reported separately.
-
-The full manifest script stops at the inherited KitFG.pins descriptive label
-mismatch. The FG-SA shallow/deep and separate V2/Gen/Compose checks pass.
-The separate Claims check fails on P-H2 Promotion.olean. The lead/P-Da owns the
-legacy snapshot refresh; P-H2 owns its proof closure. No checked snapshot is changed.
+DCK, export, layers, headers and strict available-body audits are separate from
+full Root closure. Full manifest and canonical coverage remain blocked by the
+missing P-H2 PostResetLeaseMove.olean. Legacy and V2/Gen/Compose snapshots pass.
+No snapshot, allowance, baseline or checker changes are made in this round.
+Bare P23, G-S2, remaining regeneration and global integration stay with the lead.

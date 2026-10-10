@@ -509,7 +509,8 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   safety, persistent inclusion, and growth at `t + G' + 6 * p.Δ`.
   `Proofs/Shared/Claims` projects the live claim to the safety claim.
   Root fills the appended `FGSAClaims.weakContinuationLive` field with the
-  closed `healing_hTimeClaim`. `fgsaClaims` has no additional hypothesis.
+  named `healing_hTimeClaim`. Its source has no search input. Full Root
+  compilation still needs the P-H2 joint induction and Healing.Export.
   Assembly/WeakContinuation imports WC Export and Shared/Claims; it imports
   no Assembly module.
 
@@ -518,8 +519,8 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `ContinuationGate`, and `ContinuationJoint` prove the continuation body.
   `Proofs/OutageContinuation/Export` exports `outageContinuation_claim_of`.
   `Proofs/Shared/Claims` uses `outageContinuation_of_body` to bridge the body
-  to the amended `OutageContinuationClaim`. `Assembly/Root` must use the named
-  foundation and finite Clean producers (P-As request in the Round 15 handoff).
+  to the amended `OutageContinuationClaim`. `Assembly/Root` uses the named
+  foundation and finite Clean producers from the Round 15 handoff.
   The exact lane import exception
   in `scripts/check-layers.py` permits `OutageContinuation.Export` to import
   exactly the six `Outage/Continuation*` modules listed above. No other lane
@@ -1210,25 +1211,42 @@ goals, including same-prefix extensions to horizons 2070 and 2080. Those goals
 remain OPEN/P-H1. NonVacuity/HealingRun applies both local adapters to the actual
 positive horizon-310 RecoverySleep₂ execution with produced P5 services.
 
-P-As Round 7 Assembly boundary (sleep-pas7):
+P-As Round 8 Assembly boundary (sleep-pas8):
 Assembly/Outage constructs assembly_outage_clean_cut_supplier from the finite
 healthy sleep prefix and named Foundation and Clean producers. Root uses the
-amended unconditional P-Ou exporter with that supplier. The fast and slow claims
-use the current OutageCompat projections. Root's finalizedMonotone field uses
-fgsa_finalizedMonotonicityRestartClaim, including retained-store restarts.
+P-Ou exporter and that supplier. Its finalizedMonotone field uses the producer
+fgsa_finalizedMonotonicityRestartClaim, which permits retained-store restarts.
 
-Assembly/Healing uses RecoverySleep₂, RMonoAll and healing_tPerm_recovery.
-Its local proposal service keeps the actual emission, GST anchor, finite deadline,
-receiver history and restart epoch. Healing.Export must expose RecoveryPerm; P-H2
-must finish the joined-start promotion body and its complete lane export.
-Assembly/ResetArrival keeps HG.5 as an explicit result for the bounded healing run.
-The full-H0 extension changes only u and QStar, so the strict reset bound stays at
-recoveryStart. H-time composition uses that same witness and the Jst horizon.
-P-H2 still owns HG.5, the selected full-H0 extension, local HealingInput and the
-post-reset induction. The checked conditional adapters are consumers of these
-exact inputs. They do not close their producers. Full Root acceptance stays open.
-The canonical P-Ou audit fragment uses production imports only. No public Claims
-or Statements definition, protocol declaration, or family source changes here.
+Assembly/Healing consumes healing_renewedPromotion at Jst. The former GST
+conversion is removed. RecoveryPerm is reached through Healing.Export.
+Assembly/ResetArrival consumes healing_frontierSearch_recovery with RMonoAll,
+RXing, RCap, RQCOrigin, joined last writes, row coverage, row receipt, progress
+coverage and fold, FaultQ, and honest quorum from their named producers.
+The returned producer constructs repair, opening and frontier scopes. Neither
+healing_resetArrivalStatement nor healing_hTimeClaim has a search-factory input.
+Both independent finite HG.5 horizon guards remain in the returned statement.
+
+Post-reset adapters use RMonoAll and the returned opening, service, cone, H2-prime,
+H6 and healed signatures. assembly_healing_suffix_reader proves the selected
+reader guard from the actual gate tick, applied wakes and the finite recovery
+epoch. It does not infer whole-run NoRestart from RecoverySleep₂.
+
+The remaining H2 results are explicit arguments of per-run Assembly lemmas:
+assembly_resetArrivalFull_at takes extension; assembly_healingInput_at takes
+localInput; assembly_hTime_at takes extension and fullInput; and
+assembly_healingInput_of_inv takes the selected all-cut invariant. They add no
+service field or public claim premise. Extension changes only u and QStar.
+Local input keeps tstar <= horizon. Full input keeps the complete Jst horizon.
+The older conditional joint-step adapters remain useful consumers, not producers.
+
+HealingPackages and HealingFirst extend their actual prefixes to horizon 310.
+HealingReset keeps horizon 304. FinalityClaims uses horizon 411 and its actual
+Jst budget 309; Adversarial uses horizon 300 and its actual Jst budget 261.
+The previous prefixes and delayed pre-GST messages remain. The concrete finality
+proposal tests select slot 78 and slot 66, after their respective Jst budgets.
+No protocol source, public Claims/Statements definition, or budget constant changes.
+Full Healing.Export, HTimeClaim, and Root remain OPEN through P-H2. The source
+checks under explicit H2 results establish caller compatibility only.
 
 P-H2 Round 8 (sleep-ph2i): RecoveryProducers now constructs FrontierReadScope
 with its seven current fields. Only its body changes. RepairCover imports the
