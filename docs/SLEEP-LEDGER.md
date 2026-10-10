@@ -5046,3 +5046,17 @@ rev-par3-astra: P-Ar round 3 proves the corrected public OutagePrefixReceiptDeri
   rerun DCK P-Cl1 and complete local coverage; then P-Cl1 is CLOSED.
 - P-Ar: scripts/dev-pkg/P-Ar.audit-fragment.txt:14-18, :69-76, :167 list 14 declarations defined only in
   Tests.OutageArming; keep those commands in that test module and drop them from the canonical fragment (AUDIT-FRAGMENT).
+
+
+### P-Cl1 Round 2c — fixture audit CLOSED (sleep-par4, 2026-10-10)
+
+This block belongs to the assigned P-Cl1 audit repair. Tests/CleanSuppressed now
+has direct strict commands for p, env, head and run in its own module. Production
+commands remain in CleanEpochAxioms; no test import enters Tests/Axioms.
+The isolated inventory has 190 rows: 183 production commands and seven fixture
+commands. DCK P-Cl1 PASS, with 39 strict roots and all 24 controls. Complete local
+export/coverage PASS with both roots: 137 proof modules, 251 exports, zero
+unaccepted, Gen zero exports, coverage control PASS. Layers: 72 inherited, zero
+new. No proof, public claim, protocol, allowance or baseline changed.
+The lead note after the P-Ar round 3 review is CLOSED for P-Cl1.
+Evidence: .lake/sleep-par-r4/pcl1-{dck,generate,exports}.log and pcl1-coverage.txt.
