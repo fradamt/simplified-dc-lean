@@ -189,7 +189,7 @@ def source_findings(m, raw):
     clean = C.strip(raw)
     if re.search(r'\b(native_decide|sorry|admit|axiom)\b|\+native|native\s*:=\s*true|\bofReduce(?:Bool|Nat)\b', clean):
         findings.append(f'FORBIDDEN EVALUATION/AXIOM: {m}')
-    if L.under(m, CLAIMS) and not L.is_test(m):
+    if L.under(m, CLAIMS):
         lf = C.LeanFile(owner, str(item.path), m)
         lf._raw = raw
         decls = C.declarations(lf)
@@ -198,7 +198,9 @@ def source_findings(m, raw):
             if d.kind in ('theorem', 'lemma') and not (
                 m.startswith(CLAIMS + '.Statements.') and
                 d.short.endswith('_def') and d.full[:-4] in defs
-            ) and not (  # DECISION P23-A / 04e0a138: exact old-safety projection.
+            ) and not (L.is_test(m) and
+                       d.full.startswith('AvailableChain.FGSA.Run.Tests.')) and not (
+                # DECISION P23-A / 04e0a138: exact old-safety projection.
                 m == CLAIMS + '.Statements.Regimes' and
                 d.full == 'AvailableChain.FGSA.Run.Base₂.idealization' and
                 hashlib.sha256(''.join(d.signature().split()).encode()).hexdigest() ==
@@ -362,6 +364,8 @@ controls = (
     ('proof-expose-attribute', PROOFS + '.Proofs.Healing.SupportFrame',
      'public section\ndef HealingJoinedTick : Prop := True\n'
      'attribute [expose] HealingJoinedTick\n', 'PROOF EXPOSE'),
+    ('claims-test-unscoped-theorem', CLAIMS + '.Tests.Axioms',
+     'theorem precheckForbiddenClaim : True := trivial\n', 'F-28'),
     ('receipt-projection-twin', CLAIMS + '.Statements.Regimes',
      'theorem Base₂.idealizationTwin : True := trivial\n', 'F-28'),
     ('receipt-projection-changed-type', CLAIMS + '.Statements.Regimes',

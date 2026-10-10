@@ -8271,3 +8271,18 @@ The unchanged transparency checker passes; no allowance or baseline is changed.
 The initial manifest read overlapped this rebuild and could not find its olean;
 that attempt is retained as manifest-prebuild-fail.log. The final gate rebuilds
 before its compiled checks. The precheck failure is also retained in Round 3 logs.
+
+## P-Da Round 3 — strict test and package scope repair (2026-10-11)
+
+The Claims source guard accepts test theorems only in the owning Tests module
+and the AvailableChain.FGSA.Run.Tests namespace. An unscoped theorem in
+Claims.Tests.Axioms still fails F-28, as the original precheck fixture requires.
+The added control, all source fixtures and the real source guard pass.
+The aggregate self-test remains blocked before that fixture by 54 inherited
+GLY findings (F-13: 42; F-23: 11; F-28: 1). Remaining self-tests run separately.
+
+P-Fx's old package map omitted five dependencies of its current targets:
+Statements.Join (Claims); Shared.AnchorService, CatchUp and RegimesService
+(Proofs); Tests.P23Axioms (Run). Add these to GREEN, keeping all existing targets
+and checks. The full build passes; the package rerun checks these exact modules
+and every strict audit. No module is marked EXPECTED-FAIL to bypass coverage.
