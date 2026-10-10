@@ -6985,3 +6985,5 @@ The joinedHonest equation export was repaired by a local type conversion; no
 checker, baseline or allowance changed. Public consumers were built and still
 fail at legacy ports. P-Ou is PREPARED; the complete Round 11 task is incomplete.
 No public claim, protocol declaration or healing file changed. No public STOP.
+
+- Lead 2026-10-10 17:24: merged sleep-pou11 1b245e9e (P-Ou rounds 9-11) as PREPARED. Reviews rev-pou9/10/11-astra: proofs pass; rev-pou10 items 1-2 fixed. CORRECTION (rev-pou11 item 1): scripts/dev-pkg/P-Ou.round11-handoff.md:285 and the round 11 report claim every remaining contract elaborates in OpenTypes.lean; the saved log shows the O11-OUTAGE check FAILED (missing Claims imports; unknown FCompatBefore, LeaseOrFFrom). The six continuation goal types did elaborate. P-Ou r12 corrects the handoff.
