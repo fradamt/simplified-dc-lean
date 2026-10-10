@@ -5166,3 +5166,12 @@ coverage PASS: 207 proof modules, 252 exports, zero unaccepted, 313 inventory
 rows. Layers: 72 inherited findings, zero new. Source scopes PASS. All nine
 original failures are GREEN; no owned EXPECTED-FAIL target remains. PREPARED
 for serial integration; the exact P-As caller ports remain in the handoff.
+
+## P-WC Round 6 — authorized import repair (2026-10-10)
+
+WC/ExactReceipts uses a public import of Shared.CatchUp. The private
+TargetReceiptService adapter is removed. Accepted targets use the existing
+fgsa_target_service_of_proposal. Genesis uses fgsa_target_service_genesis,
+the one Shared addition authorized by sleep-pwc-pending-fixes.md item 1.
+No public claim or existing statement changes. The module-header check passes.
+The standalone sleep audit and serial fragments include the new theorem.

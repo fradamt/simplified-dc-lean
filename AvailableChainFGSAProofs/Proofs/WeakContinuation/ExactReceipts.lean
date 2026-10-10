@@ -1,17 +1,7 @@
 module
-import all AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
-
-namespace AvailableChain.FGSA.Run
-private def wc_exact_target_service {p : Params} {In V : Type} [DecidableEq V]
-    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (K : Block) (freeze : Time) (x : V) : Prop :=
-  K = .genesis ∨ ∃ s N send, N.erase = K ∧
-    Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩) send freeze x)
-private theorem wc_exact_target_service_eq : @TargetReceiptService =
-    @wc_exact_target_service := rfl
-end AvailableChain.FGSA.Run
 
 public section
 namespace AvailableChain.FGSA.Run
@@ -126,11 +116,10 @@ theorem wc_accepted_target_service (hV : V2.D.ExecutionValid E rho)
     (fun obj => (fgsaTimelyClock_actTime p c obj).symm ▸
       fgsa_admissionTime_public p E hDelta obj) v j _ send hacc
   rw [fgsaTimelyClock_actTime] at hAct
-  rw [wc_exact_target_service_eq]
-  dsimp only [wc_exact_target_service]
-  exact Or.inr ⟨s, N, send, rfl, wc_local_proposal_service hV hDelta hsync hmono hx hv he hJ
+  exact fgsa_target_service_of_proposal E rho s N send (a + p.Δ) x
+    (wc_local_proposal_service hV hDelta hsync hmono hx hv he hJ
     (Or.inr ⟨j, hacc⟩) hsa h0 hpa hpub hGST hat
-    (hAct.trans ((Gen.V2.Duty.pubFloor_le E send).trans hsa)) hF⟩
+    (hAct.trans ((Gen.V2.Duty.pubFloor_le E send).trans hsa)) hF)
 
 /-- Receiver services cover all retained score inputs in their actual duty epochs. -/
 theorem wc_retained_score_scope (hV : V2.D.ExecutionValid E rho)
@@ -226,7 +215,7 @@ theorem wc_retained_score_scope (hV : V2.D.ExecutionValid E rho)
     simpa only [Nat.add_sub_cancel] using hScope.service hNX
   · intro B hDB hB
     by_cases hgen : B = .genesis
-    · rw [wc_exact_target_service_eq]; exact Or.inl hgen
+    · subst B; exact fgsa_target_service_genesis E rho _ _
     obtain ⟨j, hji, send, o, ho, ha⟩ := fgsa_block_accepted_origin E rho ip x B hgen hB
     have hsend : send < SA.proposalTime p.toParams (r + 1) := by
       obtain ⟨parent, hj, _⟩ := ha.1
@@ -245,7 +234,7 @@ theorem wc_retained_score_scope (hV : V2.D.ExecutionValid E rho)
       hzeroP hp hpubP hGSTP ht.le (block_preceq_trans hyf hDB)
   · intro B hDB hB hstamp
     by_cases hgen : B = .genesis
-    · rw [wc_exact_target_service_eq]; exact Or.inl hgen
+    · subst B; exact fgsa_target_service_genesis E rho _ _
     obtain ⟨j, _, send, o, ho, ha, hsend⟩ := fgsa_block_accepted_before E rho hV ih y B
       (SA.freezeTime p.toParams r) hgen hpubF hzeroF hB (by
         simpa only [Nat.add_sub_cancel] using hstamp)

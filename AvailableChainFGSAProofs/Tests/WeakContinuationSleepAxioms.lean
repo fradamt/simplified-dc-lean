@@ -458,3 +458,5 @@ open AvailableChain.FGSA.Run
 #print axioms AvailableChain.FGSA.Run.wcg_empty_live_of_finalBelow
 
 #print axioms AvailableChain.FGSA.Run.wcg_empty_finalBelow
+
+#print axioms AvailableChain.FGSA.Run.fgsa_target_service_genesis
