@@ -385,10 +385,10 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
          "example : safetyHolder swapReads seatRun 0 = 0 := by decide\n",
          'safetyHolder swapReads seatRun 0 = 0\nis false'),
         ('lost durable record',
-         "example : ∀ nd, keptReads.record (kept.restore (kept.durable nd)) =\n"
-         "    keptReads.record nd := fun _ => rfl\n",
-         "example : ∀ nd, lossyReads.record (lossy.restore (lossy.durable nd)) =\n"
-         "    lossyReads.record nd := fun _ => rfl\n",
+         "example : ∀ nd t, keptReads.record (kept.restore (kept.durable nd) t) =\n"
+         "    keptReads.record nd := fun _ _ => rfl\n",
+         "example : ∀ nd t, lossyReads.record (lossy.restore (lossy.durable nd) t) =\n"
+         "    lossyReads.record nd := fun _ _ => rfl\n",
          'lossyReads.record (lossy.restore (lossy.durable'),
         ('emitted-only tip scope',
          scope.replace('BLOCK', 'tip.parent'), scope.replace('BLOCK', 'tip'),
