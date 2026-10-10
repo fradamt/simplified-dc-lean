@@ -205,29 +205,21 @@ hInclusion : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       Block.Preceq B (V2.D.outputAt E rho g x u)
 ```
 
-## FAST — P-Fd
+## FAST — P-Fd, CLOSED in Round 6
 
-`AvailableChainFGSAProofs/Proofs/Foundations/Leases.lean:541`.
-
-The existing origin theorem builds. The requested receiver-epoch companion is TRUE for current fast
-writes, because restart clears that cache. Its proof is not supplied by this base. The exact
-stronger field used by P-As is quoted below.
-
-```lean
-theorem fgsa_leaseOrigins_fastWrites (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) :
-    ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
-        ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X
-```
-
-`AvailableChainFGSAProofs/Proofs/Assembly/ContinuationService.lean:156`.
+`AvailableChainFGSAProofs/Proofs/Foundations/Leases.lean:642` —
+`fgsa_leaseOrigins_fastWrites_epoch` is the named producer on ef1b0e43.
+WC/WCG assembly takes its ScheduleWellFormed input from the actual source or
+continuation Base₂.valid. No explicit FAST request remains at Root or a WC caller.
+Restart clears the fast cache, so the origin is in the receiver's current epoch.
+The finite-facts and discharge helpers pass the actual producer to the lane kernels.
 
 ```lean
-hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X
+(hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) :
+  ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
+    ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
+      gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
+        Block.Preceq X B ∧ fastAt p c E rho x s X
 ```
 
 ## OU-FIXTURE — P-As
