@@ -18,8 +18,8 @@ variable (p : Params)
 /-- P3 §§4.7, 8.5, SYN L39; DC Legacy/Definitions/SafetyRegimes:53–80
 and Generic/Conditions:134. INTENTIONAL difference: FG-SA has a finite
 inclusive cut and strict-before-cut participation. Only a positive cut
-supplies quorum for the two F1 channels. Both branches inherit NoRestart
-from CleanCutPrem.set.base. Assembly makes the single cut split.
+supplies quorum for the two F1 channels. Both branches use the sleep prefix
+from CleanCutPrem.set. Assembly makes the single cut split.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem fgsa_cleanCutClaim : CleanCutClaim p := by
@@ -40,26 +40,26 @@ theorem fgsa_cleanCutClaim : CleanCutClaim p := by
 
 /-- P3 §4.7 (OD16), bp02 §§5.4–6; DC Legacy/Definitions/SafetyRegimes:53–80.
 INTENTIONAL difference: finite inclusive event history. The frozen
-CleanPrefixPrem supplies NoRestart through its Base₂ field. -/
+CleanPrefixPrem supplies its joined sleep prefix. -/
 theorem fgsa_cleanHistoryClaim : CleanHistoryClaim p :=
   cleanHistory_of_cut (fgsa_cleanCutClaim p)
 
 /-- P3 §4.7 (OD16), bp02 §6; DC Legacy/Definitions/SafetyRegimes:53–80.
 INTENTIONAL difference: FG-SA truncation includes finite event states and
-public reads. NoRestart comes from CleanPrefixPrem.set.base. -/
+public reads at confirmed readers. -/
 theorem fgsa_cleanPrefixTruncationClaim : CleanPrefixTruncationClaim p :=
   cleanPrefixTruncation_of_cut (fgsa_cleanCutClaim p)
 
 /-- P3 §8.5, bp02 §6, S3 D43/D61; DC Generic/Properties:27,41,48 and
 Generic/Interface:64. Safety has the same meaning. INTENTIONAL difference:
 one generic property kernel covers all integer reads of the two S outputs.
-CleanPrem supplies NoRestart through set.pre.base; no new premise is added. -/
+CleanPrem supplies the sleep regime; no new premise is added. -/
 theorem fgsa_cleanSafetyClaim : CleanSafetyClaim p :=
   cleanSafety_of_cut p (fgsa_cleanCutClaim p)
 
 /-- bp02 §6, S3 D43/D61; DC Generic/Properties:27,41,48 and Interface:64.
 INTENTIONAL difference: stable and confirmed both read S at all integer
-times. This projection inherits NoRestart from hc.set.pre.base.
+times at confirmed readers.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem fgsa_cleanSafety_outputs
@@ -67,9 +67,9 @@ theorem fgsa_cleanSafety_outputs
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {pt : Unit}
     (hc : CleanPrem p c E rho pt ΔF) :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-      Gen.Pure.CompatOn (· ∈ rho.honest)
+      ScopedCompat (confirmedReader p c E rho)
         (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) ∧
-      Gen.Pure.MonoOn (· ∈ rho.honest)
+      ScopedMono (confirmedReader p c E rho)
         (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) :=
   cleanSafety_outputs (fgsa_cleanSafetyClaim p) hc
 

@@ -73,7 +73,19 @@ example : kappaF p 6 = p.R ∧ 2 * p.Δ < (6 : Time) ∧
   decide +kernel
 
 -- Conditional package: exact frozen FE/F4 heads, including both receipt horizons.
-example (p : Params) : AboveFrontierRecFEClaim_W p := fgsa_aboveFrontierRecFE_W p
-example (p : Params) : AboveFrontierRecF4Claim_W p := fgsa_aboveFrontierRecF4_W p
+example (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
+      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho) :
+    AboveFrontierRecFEClaim_W p :=
+  fgsa_aboveFrontierRecFE_W p hR
+example (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time) (w : HealingWitness), Recovery₂ p c E rho G ΔF →
+      LivenessBoundW p ΔF → HealingInput p c E rho w ΔF → FinalityVoteReceipts E rho) :
+    AboveFrontierRecF4Claim_W p :=
+  fgsa_aboveFrontierRecF4_W p hR
 
 end AvailableChain.FGSA.Run.Tests.Above
