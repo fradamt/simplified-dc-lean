@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Check the S0 frozen files of FG finality safety against their recorded history.
+"""Archival since 2026-10-09 (user decision); the S0 freeze is retired.
+
+Check the S0 frozen files of FG finality safety against their recorded history.
 
 The S0 manifest (docs/FG-FINALITY-SAFETY-S0-hashes.json) pins 122 files at
 88c616d1. docs/FG-FINALITY-SAFETY-S0-inherited.json records each later
@@ -7,7 +9,7 @@ change to one of them, with its exact commit, parent and byte hashes. The
 record is history only: it grants no permission to edit a listed path.
 
 Modes:
-  --check                   the gate mode. It reads no Git history: each S0
+  --check                   the archive mode. It reads no Git history: each S0
                             path in the working tree has its S0 bytes, or,
                             for a recorded difference, the recorded main
                             bytes. It also checks the record and the two
@@ -153,7 +155,7 @@ class Checker:
         self.main = self.repo.commit(r['main_revision'])
 
     def check_bytes(self):
-        """The gate mode: working-tree bytes only."""
+        """The archive mode: working-tree bytes only."""
         for p, v in self.manifest.items():
             want = self.diffs[p]['main_sha256'] if p in self.diffs else v
             got = self.repo.worktree(p)

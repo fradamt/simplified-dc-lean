@@ -12,8 +12,8 @@ trap 'rm -rf "$tmp"' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 lake env lean --run scripts/V2Manifest.lean --scope pcsa --check
-# The controls are negative controls: the merge tier (NEG=0) skips them (BUILD §7.7).
-if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0, merge tier)"; exit 0; fi
+# NEG=0 skips controls when no checker path changed.
+if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0)"; exit 0; fi
 tmp=$(mktemp -d "$PWD/.lake/pcsa-manifest.XXXXXX")
 
 # W: --write from code gives the entry sections of the committed doc byte for byte

@@ -70,3 +70,7 @@ theorem replay_cap_and_labels :
 
 end AvailableChain.FGSA.RestartTests
 end
+
+#print axioms AvailableChain.FGSA.RestartTests.wipe_fields
+#print axioms AvailableChain.FGSA.RestartTests.replay_sources
+#print axioms AvailableChain.FGSA.RestartTests.replay_cap_and_labels

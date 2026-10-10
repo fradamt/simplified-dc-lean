@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.Restore
-public import AvailableChainEngineV2.Conditions.Duty.Schedule
+public import AvailableChainFGSARun.Proofs.Schedule
 public import Mathlib.Tactic.FinCases
 public import Mathlib.Tactic.IntervalCases
 
@@ -159,6 +159,105 @@ theorem retained_not_fresh : ¬ V2.D.DeliveryWellFormed env
   rw [ht] at hf
   contradiction
 
+/-- Node 0 owns the FG seat, emits before sleep on [31,35), and wakes at 35. -/
+def ownEnv : Generic.Env (Fin 2) :=
+  ⟨2, by decide, 0, by decide, fun v t => decide (v = 1 ∨ t < 31 ∨ 35 ≤ t)⟩
+
+def ownHead : Obj p := ⟨.seat (.base (.head 2)) ⟨0, by decide⟩, .head ⟨2⟩⟩
+
+def ownRun : V2.D.Run (Fin 2) P where
+  honest := {0}
+  horizon := 38
+  events := [.tick 0 0, .tick 0 2, .tick 0 4, .tick 0 6, .tick 0 8,
+    .deliver 0 proposal 8, .tick 0 10, .tick 0 12, .tick 0 14, .tick 0 16,
+    .tick 0 18, .deliver 0 ownHead 18, .tick 0 20, .tick 0 22, .tick 0 24,
+    .tick 0 26, .tick 0 28, .tick 0 30, .restart 0 35, .tick 0 36, .tick 0 38]
+  seatOf := fun l _ => match l with | .base .fg => 0 | _ => 1
+  input := fun _ _ => ()
+
+/-- Full validity includes the honest own-row emission and exact non-public wake. -/
+theorem own_valid : V2.D.ExecutionValid ownEnv ownRun := by
+  refine { toSleepWellFormed := ?_, toScheduleWellFormed := ?_,
+           toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
+  · refine ⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩
+    · intro e h
+      simp [ownRun] at h
+      rcases h with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
+        rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide
+    · intro e h
+      simp [ownRun] at h
+      rcases h with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
+        rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide
+    · intro v t h
+      simp [ownRun] at h
+      refine ⟨(t / 2).toNat, ?_⟩
+      simp [ownEnv]; dsimp [Time] at *; omega
+    · intro v hv t ⟨k, hk⟩ ht hh ha
+      have hv0 : v = 0 := Finset.mem_singleton.mp hv
+      subst v
+      change t ≤ 38 at hh
+      simp [ownEnv] at hk ha
+      simp [ownRun]; dsimp [Time] at *; omega
+  · refine ⟨?_, ?_, ?_⟩
+    all_goals intro i v o t hi
+    all_goals have he := List.mem_of_getElem? hi
+    all_goals simp [ownRun] at he
+    all_goals rcases he with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+    all_goals have hib := (List.getElem?_eq_some_iff.mp hi).1
+    all_goals simp [ownRun] at hib
+    all_goals interval_cases i <;> first | contradiction | decide +kernel
+  · refine ⟨?_, ?_⟩
+    · intro v o t hp u hu hh
+      obtain ⟨i, hi⟩ := hp
+      have he := List.mem_of_getElem? hi
+      simp [ownRun] at he
+      rcases he with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+      all_goals have hu0 : u = 0 := Finset.mem_singleton.mp hu
+      all_goals subst u
+      all_goals simp [V2.D.Run.holder, proposal, ownHead, ownRun] at hh
+    · intro v o t hp o' hc u hu hh
+      obtain ⟨i, hi⟩ := hp
+      have he := List.mem_of_getElem? hi
+      simp [ownRun] at he
+      rcases he with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+      · change carriesS p proposal o' at hc
+        change o' ∈ ([] : List (Obj p)) ∨ o' ∈ [] ∨ o' ∈ [] at hc
+        simp at hc
+        cases hc
+      · change carriesS p ownHead o' at hc
+        simp [carriesS, ownHead] at hc
+  · refine ⟨?_, ?_, ?_, ?_⟩
+    · intro v t h
+      simp [ownRun] at h
+      have hv : v = 0 := by tauto
+      subst v
+      simp [ownEnv]; dsimp [Time] at *; omega
+    · intro v o t h
+      simp [ownRun] at h
+      rcases h with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;> decide
+    · intro v t h
+      simp [ownRun] at h
+      rcases h with ⟨rfl, rfl⟩; decide
+    · intro v hv t _ _ h
+      have hv0 : v = 0 := Finset.mem_singleton.mp hv
+      subst v
+      have ht : t = 35 := by simp [V2.D.Wakes, ownEnv] at h; dsimp [Time] at *; omega
+      subst t; simp [ownRun]
+
+/-- An own FG row makes Λ nonempty before sleep; wake keeps the same sent entries. -/
+theorem own_record_retained :
+    (∃ a, Msg.row a ∈ (V2.D.Run.emitsAt ownEnv ownRun 16).map (·.payload)) ∧
+    (V2.D.Run.stateBefore ownEnv ownRun 18 0).record.sent ≠ [] ∧
+    (V2.D.Run.stateBefore ownEnv ownRun 19 0).record.sent =
+      (V2.D.Run.stateBefore ownEnv ownRun 18 0).record.sent ∧
+    (V2.D.Run.stateBefore ownEnv ownRun 19 0).record =
+      (V2.D.Run.stateBefore ownEnv ownRun 18 0).record := by
+  refine ⟨?_, by decide +kernel, by decide +kernel, ?_⟩
+  · exact ⟨.vote ⟨.vote 1 genesisRoot false, none⟩, by decide +kernel⟩
+  · rw [V2.D.Run.stateBefore_succ ownEnv ownRun (show ownRun.events[18]? =
+      some (.restart 0 35) from by rfl)]
+    exact fgsa_restore_record p unitCodec _ 35
+
 /-- Sleep starts at 1; equality wakes at 8, and the late case wakes at 9. -/
 def joinEnv (w : Time) : Generic.Env (Fin 2) :=
   ⟨2, by decide, 0, by decide, fun v t => decide (v = 1 ∨ t < 1 ∨ w ≤ t)⟩
@@ -315,3 +414,87 @@ end
 #print axioms AvailableChain.FGSA.Run.SleepTests.join_duties
 #print axioms AvailableChain.FGSA.Run.SleepTests.wake_at_tick
 #print axioms AvailableChain.FGSA.Run.SleepTests.initial_duties
+
+#print axioms AvailableChain.FGSA.Run.SleepTests.own_valid
+#print axioms AvailableChain.FGSA.Run.SleepTests.own_record_retained
+
+public section
+
+namespace AvailableChain.FGSA.Run.SleepContinuationTests
+
+open SleepTests
+
+/-- The stored proposal has a delivery before the wake and is kept across it. -/
+theorem retained_origin :
+    ∃ j o t, j < 9 ∧ run.events[j]? = some (.deliver 0 o t) ∧
+      toWire p o = toWire p proposal ∧ j + 1 ≤ 8 ∧
+      ∀ k, j + 1 ≤ k → k ≤ 9 →
+        toWire p proposal ∈ (V2.D.Run.stateBefore env run k 0).st.proposals := by
+  obtain ⟨j, o, t, hj, hd, ho, -, hr⟩ :=
+    stored_proposal_delivered env run 9 0 (toWire p proposal) (by decide +kernel)
+  have he : o = proposal := toWire_injective ho
+  subst o
+  have hje : j = 5 := by
+    interval_cases j <;> simp [run] at hd ⊢
+    have he : row = proposal := (V2.Event.deliver.inj hd).2.1
+    have hm := congrArg (fun o : Obj p => o.payload) he
+    change Msg.row _ = Msg.proposal _ at hm
+    cases hm
+  exact ⟨j, proposal, t, hj, hd, ho, by omega, hr⟩
+
+/-- A joined node reads a strict clock bound after an exact-boundary wake. -/
+theorem joined_strict :
+    (V2.D.Run.stateBefore (joinEnv 8) (joinRun 8) 6 0).st.base.now < 16 := by
+  exact fgsa_preTick_now_lt_joined (joinEnv 8) (joinRun 8)
+    (join_valid 8 (Or.inl rfl)).1.toScheduleWellFormed (by decide) (by decide)
+    (by decide +kernel)
+
+/-- Same-time wake and tick have non-strict clock and vote-stamp bounds. -/
+theorem same_time_bound :
+    (V2.D.Run.stateBefore (joinEnv 8) (joinRun 8) 2 0).st.base.now ≤ 8 ∧
+    ∀ o : GridCO.Wire p.n .root,
+      GridCO.stampVote (V2.D.Run.stateBefore (joinEnv 8) (joinRun 8) 2 0).st.base o ≤ 8 := by
+  have hs := (join_valid 8 (Or.inl rfl)).1.toScheduleWellFormed
+  exact ⟨fgsa_preTick_now_le (joinEnv 8) (joinRun 8) hs (by decide),
+    fgsa_preTick_votes_stamped_le (joinEnv 8) (joinRun 8) hs (by decide)⟩
+
+/-- Kept blocks remain below the next proposal slot, even for an unjoined node. -/
+theorem retained_block_bound :
+    (∀ b ∈ (V2.D.Run.stateBefore env run 10 0).st.base.blocks, b.slot < 2) ∧
+    (namedProposal p .genesis 1 0 [] [] []).erase ∈
+      (V2.D.Run.stateBefore env run 10 0).st.base.blocks := by
+  exact ⟨(fgsa_stored_block_slots env run valid.toScheduleWellFormed
+    (by decide) (by decide : 0 < 2)).1, by decide +kernel⟩
+
+/-- The epoch condition fails exactly at the same-time wake boundary. -/
+theorem wake_epoch_equiv :
+    let epoch := ∀ j w, j < 2 → (joinRun 8).events[j]? = some (.restart 0 w) → w < 8
+    ((V2.D.Run.stateBefore (joinEnv 8) (joinRun 8) 2 0).st.base.now < 8 ↔ epoch) ∧
+      ¬ epoch := by
+  refine ⟨fgsa_preTick_now_lt_iff (joinEnv 8) (joinRun 8)
+    (join_valid 8 (Or.inl rfl)).1.toScheduleWellFormed (by decide) (by decide), ?_⟩
+  intro h
+  exact (lt_irrefl (8 : Time)) (h 1 8 (by decide) (by decide))
+
+/-- API coverage for the unjoined companion; the raw fixture result is also empty. -/
+theorem gate_empty :
+    GridCO.savedGenuine (FGSA.clock p
+      (V2.D.Run.stateBefore (joinEnv 9) (joinRun 9) 7 0).st
+      (SA.gateTime p.toParams 1)).base 1 = some none := by
+  exact fgsa_gate_saved_unjoined (joinEnv 9) (joinRun 9)
+    (join_valid 9 (Or.inr rfl)).1.toScheduleWellFormed (by decide) (by decide +kernel)
+
+/-- Public admission thresholds do not require public wakes. -/
+theorem admission_public (o : Obj p) : V2.PublicTime env (fgsaAdmissionTime p o) :=
+  fgsa_admissionTime_public p env rfl o
+
+end AvailableChain.FGSA.Run.SleepContinuationTests
+end
+
+#print axioms AvailableChain.FGSA.Run.SleepContinuationTests.retained_origin
+#print axioms AvailableChain.FGSA.Run.SleepContinuationTests.joined_strict
+#print axioms AvailableChain.FGSA.Run.SleepContinuationTests.same_time_bound
+#print axioms AvailableChain.FGSA.Run.SleepContinuationTests.retained_block_bound
+#print axioms AvailableChain.FGSA.Run.SleepContinuationTests.wake_epoch_equiv
+#print axioms AvailableChain.FGSA.Run.SleepContinuationTests.gate_empty
+#print axioms AvailableChain.FGSA.Run.SleepContinuationTests.admission_public

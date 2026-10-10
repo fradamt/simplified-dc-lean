@@ -14,6 +14,9 @@ AvailableChainFGSARun.Tests.FGSource
 AvailableChainFGSARun.Tests.History
 AvailableChainFGSARun.Tests.ReceiptAlias
 AvailableChainFGSARun.Tests.W3Axioms
+AvailableChainEngineV2.TestSupport.Engine
+AvailableChainEngineV2.TestSupport.Sleep
+AvailableChainKitV2.TestSupport.Sleep
 AvailableChainFGSARun.Tests.SleepContinuation
 AvailableChainFGSARun.Tests.SleepContinuationAxioms
 AvailableChainFGSARun.Proofs.Restore

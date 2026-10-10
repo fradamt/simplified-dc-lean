@@ -573,3 +573,9 @@ example : DeliveryService toyEnv toyRun 0 (rowObj 0) 0 1 :=
 end AvailableChain.V2.Tests.Toy
 
 end
+
+#print axioms AvailableChain.V2.Tests.Toy.toyRun_valid
+#print axioms AvailableChain.V2.Tests.Toy.pre_valid
+#print axioms AvailableChain.V2.Tests.Toy.toyRun_healthy
+#print axioms AvailableChain.V2.Tests.Toy.toyRun_partialSynchrony
+#print axioms AvailableChain.V2.Tests.Toy.accepts_row0

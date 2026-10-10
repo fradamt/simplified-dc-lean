@@ -288,3 +288,10 @@ theorem check_d_unit_invariant (rho : Run Unit specReset)
 end AvailableChain.V2.Engine.Tests
 
 end
+
+#print axioms AvailableChain.V2.Engine.Tests.rhoClock100_wf
+#print axioms AvailableChain.V2.Engine.Tests.check_b_restore_now_needed
+#print axioms AvailableChain.V2.Engine.Tests.rhoReset_wf
+#print axioms AvailableChain.V2.Engine.Tests.check_c_restartFree_needed
+#print axioms AvailableChain.V2.Engine.Tests.check_d_unit_restore
+#print axioms AvailableChain.V2.Engine.Tests.check_d_unit_invariant

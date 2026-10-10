@@ -20,7 +20,7 @@ gly_faultx_route() {
   [ -n "$targets" ] || { echo "CheckFaultXRoute returned no build targets" >&2; return 2; }
   gate_build $targets || return $?
   lake env lean --run scripts/CheckFaultXRoute.lean || return $?
-  python3 scripts/check-faultx-route-controls.py
+  if [ "${NEG:-1}" = 1 ]; then python3 scripts/check-faultx-route-controls.py; fi
 }
 
 gly_checks() {

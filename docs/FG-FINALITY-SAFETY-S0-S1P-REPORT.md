@@ -1,3 +1,5 @@
+Archival since 2026-10-09 (user decision); the S0 freeze is retired.
+
 # FG finality safety: S0, S1, S1P
 
 S0/S1 commit: `2ebd6523` (rebased from `78b736b`). All contracts are PROVISIONAL.
