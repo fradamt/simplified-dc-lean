@@ -24,6 +24,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
+public import AvailableChainFGSAProofs.Proofs.Outage.Induction
 
 #print axioms AvailableChain.FGSA.Run.outage_restored_service
 #print axioms AvailableChain.FGSA.Run.outage_restored_proposal_receipt
@@ -205,3 +206,13 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
 #print axioms AvailableChain.FGSA.Run.outage_source_of_good_heads
 
 #print axioms AvailableChain.FGSA.Run.fgsa_releaseCount_le_senders
+
+#print axioms AvailableChain.FGSA.Run.OutageCoveredDutyHistory
+#print axioms AvailableChain.FGSA.Run.outage_good_head_before_restored
+#print axioms AvailableChain.FGSA.Run.outage_source_frame_compatible
+#print axioms AvailableChain.FGSA.Run.outage_event_induction_scoped
+#print axioms AvailableChain.FGSA.Run.outage_armed_induction_scoped
+#print axioms AvailableChain.FGSA.Run.outage_armed_read_scoped
+#print axioms AvailableChain.FGSA.Run.outage_arming_duties
+#print axioms AvailableChain.FGSA.Run.outageV_gate_of_emitted_heads
+#print axioms AvailableChain.FGSA.Run.outage_restored_result_of_compatible_heads

@@ -5808,3 +5808,27 @@ GoodVotes uses the public fgsa_releaseCount_le_senders lemma appended to Shared/
 The lemma bounds the actual release witnesses by an explicit sender set. The A union W
 proof and its conclusion are unchanged. The last P-Ou import-all is removed.
 Headers have no P-Ou failure; three inherited P-Ar findings remain.
+
+### P-Ou Round 7 — scoped pre-restoration joint induction
+
+ScopedInduction:81 proves the full event induction before restoration, at an endpoint
+at or before lease expiry. Sources and named history cover all honest nodes, including W.
+Protection and post-pending duties cover G. Restart keeps durable protection and adds no
+source or duty. Releases use the fixed A union W bound; good HEADs are covered before r.
+ScopedInduction:347 supplies the seeds from the scoped certificate, P-Ar in-flight duties,
+and the P-Fd source suppliers. Tests/OutageServices:155 uses the actual Clean and P-Fd
+producers. ScopedInduction:382 gives the inclusive F and covered lease-or-F read.
+
+Induction now imports the scoped implementation. Its former all-honest ArmingCert seed
+and NoRestart lane were removed. The true empty duty seed remains. The old downstream
+continuation and Close consumers still need a port to the scoped interface. This is an
+internal proof replacement; public claims and protocol declarations are unchanged.
+
+GoodVotes:559 and ReceiverInputs:757 prove restored result compatibility from fresh
+HEAD service and compatible good targets. A good target below receiver F needs no body
+receipt: its fresh HEAD enters the late denominator. Resolved targets are identified
+with actual emitted bodies using named roots. The existing F <= B / B <= F split remains.
+The good-HEAD history and counts outside the E window remain explicit P-Ou obligations.
+This conditional result producer is not global hResults or full continuation closure.
+
+Induction is GREEN; eight P-Ou consumer roots remain EXPECTED-FAIL. P-Ou is PREPARED.

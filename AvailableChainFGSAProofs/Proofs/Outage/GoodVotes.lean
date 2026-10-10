@@ -554,5 +554,72 @@ theorem outageV_gate_of_good_service_scoped (E : Generic.Env V)
       ⟨hTargets hlow q hq K hK, Gen.Pure.block_preceq_trans hlow (hTargets hlow q hq K hK)⟩)
     hC
 
+/-- Fresh HEAD receipts supply the late denominator even when the target body is
+below the receiver floor. Only resolved good targets need compatibility. -/
+theorem outageV_gate_of_emitted_heads (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hBase : Base₂ p c E rho)
+    (i : Nat) (x : V) (s : Slot) (B C : Block) (H : Finset (Fin p.n))
+    (a : Nat) (hpart : a < H.card)
+    (hrest : ((GridCO.seats p.n (GridCO.lateVotes p.toParams.engine
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s)).toFinset
+        \ H).card ≤ a)
+    (hheads : ∀ q ∈ H, ∃ K,
+      rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K ∧
+      baseVote (⟨.seat (.head s) q, K.root⟩ : HeadWire p.n) ∈
+        (storeAt p c E rho i x).base.votes ∧
+      GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
+        (SA.gateTime p.toParams s))) (baseVote ⟨.seat (.head s) q, K.root⟩) <
+          GridCO.gateTime p.toParams.engine s ∧ Block.Compatible K B)
+    (hresult : gateResultAt p c E rho i = some (some C))
+    (hG : enabledGateAt p c E rho i x s) : Block.Compatible C B := by
+  let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)
+  let v := actView pre
+  have hraw : GridCO.cleanSupport p.toParams.engine v s ⊆
+      GridCO.lateVotes p.toParams.engine v s := fun _ ho =>
+    fgsa_early_subset_late p v s (List.mem_filter.mp ho).1
+  have hC := Option.some.inj
+    ((inclusion_gate_raw_at_tick E rho hBase.valid.toScheduleWellFormed hG).symm.trans hresult)
+  apply outageV_gate_of_compatible_batch p.toParams.engine v (eraseFG pre.fg.F) B C s H
+    a ?_ hraw hrest hpart
+    (fun q _ => fgsa_cleanSupport_no_equivocation p v s q) ?_ hC
+  · intro q hq
+    obtain ⟨K, _, _, hv, ht, _⟩ := hheads q hq
+    apply (Gen.AC.Root.vote_pool_mem_seats _ q).mpr
+    refine ⟨baseVote ⟨.seat (.head s) q, K.root⟩, ?_, rfl⟩
+    apply List.mem_filter.mpr
+    refine ⟨List.mem_filter.mpr ⟨?_, beq_self_eq_true _⟩, decide_eq_true ht⟩
+    change _ ∈ pre.base.votes
+    rw [(Internal.clockPre_vn _ _).1]
+    exact hv
+  · intro o ho q hq hseat X hX
+    obtain ⟨K, hh, hK, _, _, hKB⟩ := hheads q hq
+    obtain ⟨k, hk, hm⟩ : V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) := by
+      obtain ⟨k, _, _, hk, hm, _, _⟩ := hK
+      exact ⟨k, hk, hm⟩
+    have hl : GridCO.headLabel? o = some s :=
+      beq_iff_eq.mp (List.mem_filter.mp (List.mem_filter.mp (List.mem_filter.mp ho).1).1).2
+    have hv : o ∈ (storeAt p c E rho i x).base.votes := by
+      have hv := (List.mem_filter.mp (List.mem_filter.mp (List.mem_filter.mp ho).1).1).1
+      change o ∈ pre.base.votes at hv
+      rwa [(Internal.clockPre_vn _ _).1] at hv
+    have heq := fgsa_honest_head_eq_of_stored E rho hBase.valid i x s q K.root
+      (SA.voteTime p.toParams s) hh ⟨k, hk, hm⟩ o hv hl hseat
+    rw [heq, actView_resolutionTree] at hX
+    have hd : pre.base.headDomain = none := by
+      rw [clockPre_headDomain]
+      exact base_headDomain_none p (reachable_stateBefore E rho i x)
+    change Block.findByRoot? (pre.base.headDomain.getD pre.base.blocks) K.root = some X at hX
+    rw [hd] at hX
+    have hXm := Block.findByRoot?_mem hX
+    change X ∈ pre.base.blocks at hXm
+    rw [(clockPre_fields p _ _).2.1] at hXm
+    obtain ⟨j, hKm⟩ := headTargetAtEmission_stored E rho hK
+    have hXK := stored_block_eq_of_root_eq E rho hBase.idealization i j x
+      (rho.seatOf (.base (.head s)) q) hXm hKm (Block.findByRoot?_root hX)
+    exact hXK.symm ▸ hKB
+
 end AvailableChain.FGSA.Run
 end
