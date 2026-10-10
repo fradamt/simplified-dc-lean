@@ -4931,3 +4931,26 @@ the existing genesis target API and lane supplier inputs; this change does
 not close the whole Finality package or the P-As assembly.
 The old short-run TVote failure uses an explicit LegacyTVote predicate.
 The same short Recovery run now proves the amended receipts and TVote.
+
+TVOTE-CUT regression: Tests/TVoteCut.lean generates the repaired two-seat
+run through time 62 with the actual engine ticks, restore, and handlers.
+The HEAD and FG seat maps are bijective. Its kernel-checked action_sync,
+read_at, read_missing and unscoped_tVote_false prove the exact old TVote
+failure at time 6. amended_action_at_read proves the amended clause vacuous
+there. The module has its own 31 strict audit commands and P-Fi map entries;
+it is not imported by Tests/Axioms. It does not assert a proved full
+RecoverySleep₂/HealingInput witness for this generated run.
+
+Final validation: S-Ap DCK PASS (477 GREEN, all controls); P-Fi DCK PASS
+(514 GREEN, all controls). The strict audits have only the three permitted
+Lean axioms. Complete GREEN exports: 336 proof modules, 253 accepted exports,
+zero unaccepted; complete local coverage: 1,420 commands, controls PASS.
+Layers: 72 inherited findings, zero new. Shallow/deep API checks PASS.
+The final generators supersede the initial inherited artifact refresh: the
+base-to-final shallow diff is TVote plus five inherited Clean hashes;
+source in those modules is unchanged. Deep has 1,357 roots, 3,817 nodes,
+and 73 changed root digests. No generated hash is edited by hand.
+Full auxiliary API remains blocked by Healing.SupportTransfer (P-H2); its
+read-only build fails on inherited proof obligations. OutageAlignment now
+compiles. This supersedes the earlier missing-OutageAlignment note.
+No other public source change, protocol change, baseline change or STOP.
