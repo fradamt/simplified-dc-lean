@@ -1,6 +1,6 @@
 module
-import all AvailableChainFGSAProofs.Proofs.Shared.CatchUp
-import all AvailableChainFGSA.Model.Store
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+public import AvailableChainFGSA.Model.Store
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPending
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingBatch
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
@@ -584,15 +584,6 @@ private theorem arming_source_decode {o : Obj p} {K : Block}
     rw [toWire_ofWire]
     exact decode_eq_block.mp hd
 
-private theorem arming_target_def {E : Generic.Env V}
-    {rho : V2.D.Run V (fgsa p c)} (K : Block) (C : Time) (x : V) :
-    TargetReceiptService E rho K C x =
-      (K = .genesis ∨ ∃ q N send, N.erase = K ∧
-        Nonempty (ReceiverService E rho (ofWire p ⟨.proposer q, .proposal N⟩)
-          send C x)) := by
-  unfold TargetReceiptService
-  rfl
-
 /-- Retained targets use their original source acceptance, including across restart. -/
 theorem arming_target_service [Fintype V] {E : Generic.Env V}
     {rho : V2.D.Run V (fgsa p c)} {fast : Bool} {T b₀ b₁ ΔF : Time}
@@ -606,9 +597,9 @@ theorem arming_target_service [Fintype V] {E : Generic.Env V}
     (hCompat : Block.Compatible K
       (eraseFG (rho.stateBeforeTime E (SA.earlyTime p.toParams s) x).st.fg.F)) :
     TargetReceiptService E rho K (SA.earlyTime p.toParams s) x := by
-  rw [arming_target_def]
   by_cases hgen : K = .genesis
-  · exact Or.inl hgen
+  · subst K
+    exact fgsa_target_service_genesis E rho _ x
   obtain ⟨j, hji, send, o, ho, hacc⟩ := fgsa_block_accepted_origin E rho i y K hgen hK
   obtain ⟨q, N, rfl, hNK⟩ := arming_source_decode ho
   have hsend : send ≤ SA.voteTime p.toParams s := by
@@ -633,8 +624,9 @@ theorem arming_target_service [Fintype V] {E : Generic.Env V}
       exact hCompat
     rw [hc]
     rfl
-  exact Or.inr ⟨q, N, send, hNK,
-    arming_proposal_anchor_service h hx hs hcut hy (Or.inr ⟨j, hacc⟩) hsend hNX⟩
+  rw [← hNK]
+  exact fgsa_target_service_of_proposal E rho q N send _ x
+    (arming_proposal_anchor_service h hx hs hcut hy (Or.inr ⟨j, hacc⟩) hsend hNX)
 
 /-- An honest fresh HEAD cannot be excluded by an old label or by equivocation. -/
 theorem arming_head_not_excluded [Fintype V] {E : Generic.Env V}

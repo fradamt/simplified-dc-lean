@@ -549,7 +549,7 @@ theorem arming_head_covers_on [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V 
       decide (GridCO.stampVote (actView dst) o < SA.freezeTime p.toParams (l + 1)) &&
       decide (GridCO.stampBlock (actView dst) K < SA.freezeTime p.toParams (l + 1))) = true
     simp only [hslot, hvsd, hbsd, decide_true, Bool.and_self]
-  have hRS := inclusion_reader_scores_on E rho hE hC (l + 1) hih H hH hbatch D hrecR hprov
+  have hRS := arming_inclusion_reader_scores_on E rho hE hC (l + 1) hih H hH hbatch D hrecR hprov
   -- One batch HEAD fixes the reader e(l + 1) tick and an honest holder.
   obtain ⟨w0, hw0⟩ := Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) hbatch.lt)
   obtain ⟨hyw0, haw0⟩ := (hH w0).mp hw0
@@ -668,7 +668,7 @@ theorem arming_proposal_covers_on [Fintype V] {E : Generic.Env V}
       change K ∈ (clock p (storeAt p c E rho ip y) _).base.blocks
       rw [clock_base_blocks]
       exact hKb
-  have hPP := inclusion_proposer_prior_of_F_prefix_on E rho hE hC (l + 2) ip y src (by
+  have hPP := arming_inclusion_proposer_prior_of_F_prefix_on E rho hE hC (l + 2) ip y src (by
       change (clock p (storeAt p c E rho ip y) _).base.votes = _
       exact (clock_vn _ _).1) H hH hbatch D hFs (by
         intro seat hseat

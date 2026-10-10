@@ -6058,3 +6058,58 @@ pending_input. The P-Ou score-theorem copies are renamed
 (inclusion_receiver_proposer_prior_on, inclusion_receiver_scores_on), which
 removes the ArmingScores duplicate-name build break on sleep-int. Header
 residue: GoodVotes:2 (P-Ou r7) and ArmingKernel:2/3, ArmingLocal:2 (P-Ar r6).
+### P-Ar Round 6 — public imports and declaration collisions (2026-10-10)
+
+Base: dcdb4a06; branch sleep-par6. P-Ar remains PREPARED pending the
+positive finite-run witnesses and full package validation.
+ArmingKernel and ArmingLocal now use public CatchUp imports and the existing
+fgsa_target_service_genesis / fgsa_target_service_of_proposal constructors.
+The three P-Ar import-all findings are removed. No supplier module changed.
+The merged base has two conflicting inclusion_*_on declarations in
+ExactProposalReceipts and ArmingScores. The P-Ar copies now have distinct
+arming_ names; their types and proof bodies are unchanged. ArmingCover and
+the local audit consumers use those names. No public claim changed.
+Production build: ArmingConstruction dependency cone PASS with --wfail.
+Headers: no P-Ar failure; two P-Ou findings remain in GoodVotes/RestoredBatch.
+Layers: 72 inherited findings, zero new. P-Ou owns both header repairs.
+
+### P-Ar Round 6 — finite certificates and closure (2026-10-10)
+
+P-Ar CLOSED. Both Round 5 review fixes now pass in the P-Ar scope.
+All 22 owned targets are GREEN. Public claims and the principal arming
+constructor/history/gate export types are unchanged. No public STOP.
+Import repair commit: 244016e1. Final source: Tests/OutageArming.lean.
+Finite.positive_fast:1363 and Finite.positive_slow:1375 have no proof inputs.
+Both prove ExecutionValid, a non-genesis stable read, a protected receiver,
+an arming certificate, and the executed pending-gate lease conclusion.
+Fast: b0=earlyTime(3)=14, no label-2 result; the comparison result has label 1.
+It inhabits ArmingSleepGateCert. ArmingSleepCert.max_mem at label 2 cannot
+coexist with no_last; the slow witness inhabits that record instead.
+Slow: label-2 result and current-epoch saved row; both gate proofs consume
+the production exports and require an active lease, since F is genesis.
+Parameters: Delta=1, n=1, k=2, R=2, eta=0; 25 events, horizon 18.
+These are direct finite record/export witnesses, not full OutageSleep2
+inhabitation claims. The sparse fast trace's late HEAD 2 violates healthy
+prefix delivery; no healthy premise is assumed or fabricated. Existing
+regime/Clean producer consumers and the negative EarlyCut tests still pass.
+Default heartbeats are retained. The fixture has maxRecDepth=2048 for the
+finite state reduction stack. No proof or project axiom was added.
+DCK PASS: 22 targets / 490 GREEN; 38 strict roots / 3,225 results; 24 controls.
+Local strict audit: 261 results; production fragment: 207 results.
+Complete GREEN export check: 294 modules / 253 exports / zero unaccepted.
+Complete local coverage: 261 commands / 170 modules / zero unaccepted.
+Only propext, Classical.choice, Quot.sound occur. Layers: zero new.
+Headers: no P-Ar failure; GoodVotes/RestoredBatch failures remain with P-Ou.
+hRows remains the exact OPEN P-Ou source-history input at the pending cut.
+No P-Ou, P-As, P-H1, P-H2, P-WC, Shared, or Model source was edited.
+Handoff: scripts/dev-pkg/P-Ar.round6-handoff.md. Evidence: .lake/sleep-par-r6/.
+
+### Lead note after the P-Ar round 6 review (2026-10-10 13:44)
+
+rev-par6-astra: MERGE-AS-PREPARED. Headers clean in all 22 P-Ar targets;
+finite fast (equal cut) and slow certificate witnesses are hypothesis-free
+(V = Fin 1; not full OutageSleep₂). Open before CLOSED: a named producer
+OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF →
+OutagePrefixReceipt p c E rho fast T b₀ for RestoredBatch:377 (the existing
+arming_prefix_batch_receipt takes OutageSleep₂, whose η budget and E1 the
+continuation record does not supply); keep the per-label earlyTime q ≤ b₀ guard.
