@@ -774,9 +774,7 @@ private theorem inclusion_cone_prior_cover (p : Params) (src : State p.n)
 
 private theorem inclusion_cone_height_mono (p : Params) {D B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG D) (eraseFG B)) : (heightView p D).h ≤ (heightView p B).h := by
-  rw [(KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) D).1,
-    (KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) B).1]
-  exact KitFG.h_mono p.E p.cfg (eraseFG_preceq_iff.mp h)
+  exact (Window.windowHeightLaws p p.K_W p.kWLarge).h_mono (eraseFG_preceq_iff.mp h)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.17:2968–2985; HG.1:1557–1565; L4-R:2280–2290;
