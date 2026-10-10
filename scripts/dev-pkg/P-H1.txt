@@ -1,7 +1,9 @@
-# P-H1 Round 8 PREPARED. Conditional factories do not close object-service obligations.
+# P-H1 Round 9 PREPARED. P1/P2 HEAD relay and P5/TPerm production remain open.
 # H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
-# 109 TARGETS; 559 GREEN; 19 EXPECTED-FAIL.
+# 111 TARGETS; 561 GREEN; 19 EXPECTED-FAIL.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
+AvailableChainFGSAProofs.Tests.HealingRecoveryProducersAxioms
 AvailableChainFGSAClaims.Claims.Healing
 AvailableChainFGSAProofs
 AvailableChainFGSAClaims.Tests.HealingW
@@ -113,6 +115,8 @@ AvailableChainFGSAProofs.Tests.HealingJoinedStart
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
+AvailableChainFGSAProofs.Tests.HealingRecoveryProducersAxioms
 AvailableChainFGSAClaims.Claims.Healing
 AvailableChainFGSAClaims.Tests.HealingW
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers

@@ -1047,3 +1047,22 @@ P-Ou ScopedBridge now constructs the finite bridge and global restored scoped
 HEADs. Same-label readers use their own frame, and subsequent labels use the
 first marker. Both event branches reach inclusive covered public reads after the
 seed. Earlier read assembly, W stable catch-up and legacy public ports remain open.
+
+P-H1 joined-start boundary, Rounds 7-9:
+Healing intermediate contracts start at recoveryStart p E. It is the single
+protocol-parameter start Jst; saved-window transport still starts at GST.
+RowPermissionAt and RowPermissionClaim keep their proved GST form. Top-level
+Healing deadlines and constants are unchanged. Permanence services are indexed
+by one actual bounded phase. The universal TPerm wrapper consumes that phase
+factory; P5 production closure remains open. No early fast-only permanence or
+early one-lease cleanup producer is used in the joined-start route.
+
+ReceiptProducers constructs selected original proposal and HEAD services from
+RecoverySleep₂, with public anchors, finite deadlines and local receiver epochs.
+RecoveryProducers supplies selected carriers, geometry-guarded gates, complete
+RepairHeadServices.scopes and selected prior-source receipts. Ordinary and reset
+delivery have recovery adapters that construct their services. P1/P2 HEAD relay
+factories remain open, including their carried cap cases.
+No conditional assembly or fixture is a producer for those fields.
+The positive execution fixture now preserves its old event prefix and extends
+to horizon 310, beyond the complete joined-start H-time budget of 309.
