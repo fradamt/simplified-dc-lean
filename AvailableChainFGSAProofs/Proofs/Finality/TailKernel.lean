@@ -145,7 +145,7 @@ theorem ktail_terminal_final {G ΔF : Time} {pt : TailKernelPt p}
     obtain ⟨j, -, ha, -⟩ := hrows i hi
     have hrec := hT.input.t.rows.receipt j _ (pt.r + 1) (rows i) ha
       (hwin.1.trans hwin.2) _ hprop
-    exact heldBefore_at_proposal p c E rho hs hT.set.base.noRestart hst hrec hwin.1
+    exact finality_heldBefore_at_proposal p c E rho hs hst hrec hwin.1
 
 /-- Paper 22:1985–2009 (FT-Tail-W), plan §1 steps 1–7 and §4. The Tail composition: the
 opening and witness, the terminal carrier at (r+1)R+κ, its finalization of U, and the

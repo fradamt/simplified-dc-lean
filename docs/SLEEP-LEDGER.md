@@ -3107,6 +3107,101 @@ Final Round 6 validation: DCK PASS (218.795 s),
 466 entries PASS. Complete GREEN exports: 258 proof modules / 253 exports /
 zero unaccepted. Layers: 72 inherited / zero new. Expose and sleep scopes PASS.
 The two inherited W3 transparency findings and five S-Ap audit names are unchanged.
+
+
+## P-Fi — Round 2 resume (2026-10-10)
+
+Base 381bd3df, branch sleep-pfi2. The sleep-pfi3 job kept the uncommitted
+sleep-pfi2 work after the token_revoked error. All 23 former owned failures
+now compile. This closes their module ports; it does not prove the remaining
+receipt suppliers or close the unconditional public service contract.
+
+### Exact consumer repairs
+
+- RecoveryScope derives all-honest joined voters from continuous Recovery
+  awake time, RestartsAtWakes, and GST before the previous slot start. It
+  converts the joinedHonest batch to the same full honest seat set.
+- RowsBatch and TailBatch supply that join proof for every honest voter.
+  They pass exact HEAD and target services for each seat's headAtLabel,
+  plus restartFree from idxBefore(actionTime q) to the actual receiver tick.
+  The source of that interval is GST < actionTime q. Earlier wakes are allowed.
+- MiddleSupport and TailOpening supply confirmed readers at exact gate reads
+  and event-prefix reads. The healing gate has run; all wake events that can
+  affect the read are in its prefix. RowsFrame, TailFrame, Forward, Local,
+  Proposal, and Above pass these guards at both ends of each comparison.
+- Forward uses the approved recoveryStart recurrence. The common healing
+  witness proves recoveryStart <= tstar. RowsPrem and TailFrame use the
+  recoveryStart bound at their exact H6 vote times. T13 and T14 keep awake
+  at each selected node's exact vote tick. No count supplies arbitrary awake.
+- Kernel and TailKernel preserve held rows at proposal reads through durable
+  restore. Above, Local, and Proposal use restore-aware acceptance.
+- TailMixed uses healing_held_block_receipt_on for the exact retained target.
+  It retains the finality guard and named receipt root scope, then uses durable
+  TF at the terminal read. Historical processing is not used as safe history.
+- Sleep consumers use Shared/RegimesService. The explicit NoRestart legacy
+  Regimes functions are not supplied from a sleep regime.
+
+### Internal exact service forms and remaining suppliers
+
+The new forms are proof-layer supplier contracts. FGSAClaims statements and
+approved public meanings are unchanged. Each contract has a strict local audit.
+
+1. FinalityVoteReceipts still quantifies every slot, honest receiver, time,
+   matching postClock read, honest emitted HEAD, and matching label under
+   LabelSyncOn. It has no GST, joined-reader, or healing-start restriction.
+   CoreServices consumers are Joined, Forward, and Export. All now pass the
+   receipt argument. Recovery's suffix bounds do not supply pre-GST receipts.
+   The unconditional KernelACSideClaim_W producer remains open. Export makes
+   its receipt supplier explicit; a conditional proof is not service closure.
+2. FinalityActionReceipts supplies FreshHeadService and TargetReceiptService
+   for each exact honest HEAD seat and action receiver, after GST and within
+   the run horizon. RowsBatch and TailBatch consume it. Its deadline, epoch,
+   handler readiness, non-exclusion, acceptance, and safe-history fields still
+   need supplier proofs. Recovery supplies the local join/epoch bounds only.
+3. TailHeadReceipts supplies the exact held action head to the honest terminal
+   proposer at actionTime(r+1) + delta, with the derived finality guard.
+   Consumers: ktail_head_delivered, ktail_mixed_final, ktail_hmixed_of_relay,
+   tail_kernel_W_of_relay, tail_kernel_W_full_of, and fgsa_tailKernel_W_of.
+   The service includes safe retained history; mere earlier processing is
+   insufficient. Its producer remains open.
+
+These replace removed global NoRestart arguments in internal consumers.
+They are not added to Recovery, HealingInput, or any approved claim predicate.
+The existing epoch fixtures refute the old Base₂/LabelSync receipt argument;
+they do not prove the full RecoverySleep₂ + HealingInput claim false. No new
+public-false STOP or public amendment is asserted in this round.
+
+### Map and serial audit integration
+
+ReceiptCoverage is GREEN: it is a compiled retirement import.
+ReceiptCoverageSleepStatement remains a separate unproved contract.
+Shared.HeadAdmit, Regimes, Export, and RegimesService are GREEN on this base.
+The map has 44 TARGETS, 510 GREEN, and 3 EXPECTED-FAIL entries. No P-Fi entry
+remains EXPECTED-FAIL. The other entries keep their owners: Run and Run.Tests.Axioms
+are S-Ap; the full FGSAProofs.Tests.Axioms assembly audit is P-As. That audit is
+a new TARGET only because this round applied the required serial fragment.
+
+The local sleep audit has 175 commands. Export has 10 strict audit commands.
+The full audit source and its existing inventory key received only P-Fi
+production entries, including the Round 1 helpers. No old key or row was removed.
+No coverage key, baseline, allowance, heartbeat, or recursion limit was added.
+ARCHITECTURE and MAP now give the exact-wake design and helper roles.
+
+Final checks and status are recorded below after validation.
+
+### P-Fi Round 2 — final validation
+
+DCK PASS (package P-Fi), 181.35 s, with all 24 default controls. Its complete
+GREEN build uses --wfail. The 41 strict audit roots produced 3,148 results;
+only propext, Classical.choice, and Quot.sound occur. The final family build
+passed in 33.99 s. Complete exports and 204 audit commands passed in 13.41 s:
+207 proof modules, 252 accepted exports, 0 unaccepted. Layers: 72 inherited
+findings, 0 new, 0.42 s. git diff --check passed. Evidence: .lake/sleep-pfi2/.
+
+Status: PREPARED, all owned module ports GREEN; not CLOSED. The exact receipt
+producer obligations above and S-Ap/P-As assembly closure remain open.
+No full gate, review, integration, push, merge, rebase, or public amendment
+is claimed. The report is claude-files/sleep-pfi-report.md, Round 2.
 ## P-Ar wave 2 — receiver kernel (sleep-par, base 8384eb34)
 
 Scope: the 13 existing Arming modules, new ArmingKernel, and Tests/OutageArming.
@@ -4691,3 +4786,113 @@ CleanEpochAxioms.lean lacks strict commands for clean_gate_batch (Clean/StepGate
 (:539), clean_gate_nonempty (:749, changed in this round) and sExtends (Clean/Closure:380). Merged as PREPARED.
 P-Cl1 becomes CLOSED after a short audit round adds the four commands, regenerates the isolated inventory and
 reruns DCK P-Cl1 and the local export/coverage check. P-Cl2 Safety wrapper repair: scripts/dev-pkg/P-Cl1.handoff.md.
+
+
+
+## P-Fi Round 3 — review fixes and exact supplier queue (2026-10-10)
+
+The internal FinalityActionReceipts service now requires
+GST ≤ slotStart(s−1), s = qR+1. RowsBatch and TailBatch pass the cutoff from
+their common healing witness. The receiver, honest HEAD seat, exact target,
+action deadline and horizon remain explicit. Every action export inherits this
+scope through the same record. No public regime field changes.
+The rejected wider scope allowed Δ=2, q=0, vote=10, action=12, GST=wake=11.
+Recovery permits that wake; FreshHeadService requires an epoch from vote to
+action. This is an internal scope obstruction, not a public counterexample.
+
+Exact queue (F = Proofs/Finality, Sh = Proofs/Shared):
+- Universal current votes: P-Fi owns FinalityVoteReceipts and the service design;
+  P-As owns assembly. Direct consumers: F/CoreServices.core_full_vote,
+  fgsa_tVote, fgsa_coreServices; F/Joined.finality_kernel_prem_W_of_joined;
+  F/Forward.forward_witness_FE_of; F/Export.fgsa_kernelACSide_W. The current
+  universal form includes pre-GST and unjoined reads. ANCHOR-DL cannot restore
+  those volatile pools. This is an open service-scope design obligation.
+- Action fresh HEADs: P-Fi owns the producer, P-ShA owns FreshHeadService,
+  P-As owns assembly. Direct record reads: F/RowsBatch.rowsPrem_action_walk_batch
+  and F/TailBatch.ktail_action_walk_batch. F/Export threads the contract through
+  kernel, joined kernel, Tail, FE/F4 liveness, proposal and frontier exports.
+  Need exact emission, handlers, non-exclusion and vote-to-action epoch.
+- Action target proposals: same owners and consumers. Sh/AnchorService's
+  fgsa_historySafeAt_of_proposal gives durable history;
+  fgsa_proposal_handlers_at_anchor gives handlers from original acceptance.
+  Use anchor voteTime(s), deadline earlyTime(s)=actionTime(q), and ReceiverService.
+  Original trigger, roots, time bounds and target non-exclusion remain explicit.
+- Tail target proposals: P-Fi owns the producer, P-ShA owns ReceiverService and
+  target helpers, P-As owns assembly. Consumers: F/TailMixed.ktail_head_delivered
+  (healing_held_block_receipt_on), ktail_mixed_final, ktail_hmixed_of_relay,
+  tail_kernel_W_of_relay; F/TailBatch.tail_kernel_W_full_of;
+  F/Export.fgsa_tailKernel_W_of. Service anchor: actionTime(r+1); deadline: +Δ.
+  The requested object is a NAMED PROPOSAL. Its processed history survives
+  restore in durable TF. The erased-history warning applies to HEAD wires only.
+  Keep the actual terminal proposer and F≤H at that receiver's deadline.
+
+Direct single-target proofs use ReceiverService. Ancestor paths use
+ReceiptCoverageAnchorPremises / fgsa_active_path_of_coverage_anchor with one
+anchor for every bound. AnchorService gate/transfer wrappers are not generic
+Finality read adapters. Do not restore Count's old deadline restriction.
+
+The omitted P-Fi-owned Claims.Tests.FinalityGST fixture is now in this package
+map. Its six late bounds use recoveryStart as the existing package fields require.
+Round 2's all-GREEN statement covers only the 43 P-Fi targets in its map;
+it did not include this fixture. S-Ap owns the auxiliary product refresh after
+fixture validation. P-As still owns Assembly/Finality's supplier arguments.
+
+FIX-FIRST validation: Finality.Export and Claims.Tests.FinalityGST build
+with --wfail in 31.06 s. The action contract also names postClock and F≤K;
+both callers derive F≤K from their existing common-prefix bounds.
+The initial full Tests.Axioms build fails in inherited other-family ports.
+No P-Fi proof failure remains in the focused build. The merged audit has
+not been proved compilable; it remains P-As EXPECTED-FAIL.
+
+
+## P-Fi Round 3 — exact suppliers, internal replacements and handoffs
+
+The current Round 3 report supersedes the initial queue above. ReceiptSuppliers
+proves fresh honest HEAD services, named target proposal services, the exact
+action and Tail records, and FinalityScopedVoteReceipts. Action/Tail record
+construction has only the explicit Shared genesis-constructor input left.
+Both proposal routes use AnchorService's durable history and original acceptance
+handlers, with vote/early anchors for action and action/+Δ anchors for Tail.
+No Count deadline restriction or whole-run NoRestart is introduced.
+
+Internal replacement: FinalityVoteReceipts now has exactly TVote's proposal
+and action read shapes. The former arbitrary s,x,t scope is removed. The true
+scoped form requires GST≤slotStart(s−1), earlyTime(s)≤read≤horizon and the actual
+receiver postClock. Recovery proves it and the full resolved support filter.
+The unchanged public TVote still requests pre-GST and unjoined reads. Its
+compatibility supplier remains an explicit P-Fi design obligation. Export
+requests it only with the consumer's actual witness, bound and HealingInput.
+No public field or predicate is weakened. S-Ap owns any public scope decision;
+P-As owns assembly. The report lists every exact consumer and current line.
+
+Kernel counterexample: Tests/FinalityEpochs.short_recovery_sleep and
+recovery_sleep_not_vote_receipts prove RecoverySleep₂ and failure of the exact
+compatibility record. GST=7, Δ=2, events tick0,tick2,restart7,tick8, horizon8.
+The proposal read is awake but unjoined and has no HEAD-0. Recovery starts at
+the wake and satisfies its suffix; its joined start is beyond this horizon.
+This refutes a Recovery-only receipt producer. It has no HealingInput and is
+not a counterexample to the full public KernelACSideClaim_W.
+
+Exact P-ShA API handoff: add fgsa_target_service_genesis in Shared/CatchUp.lean,
+after TargetReceiptService (:410), with statement
+TargetReceiptService E rho .genesis D x and body Or.inl rfl.
+The definition is opaque to external modules and the named-proposal constructor
+does not cover genesis. No new regime assumption is needed. P-Fi leaves
+hGenesis explicit. Export removes the former hServices/hReceipts requests and
+uses the proved records. P-As ports Assembly/Finality:113/:200 to this API input.
+
+The FinalityGST fixture is GREEN after six recoveryStart bound ports. S-Ap can
+refresh its blocked auxiliary products. P-Fi map has 46 targets / 513 GREEN /
+three inherited failures with their original owners. These are map counts.
+The serial audit adds 14 production commands, including 11 new-module theorems,
+and retains all old inventory keys. Public vote adapter and full assembly remain
+open. P-Fi is PREPARED; CLOSED is not claimed.
+
+Round 3 validation: DCK PASS in 169.78 s, 513 GREEN modules, all 24 controls,
+41 strict audit roots / 3,186 permitted results. Complete compiled exports:
+209 proof modules / 252 exports / zero unaccepted; complete local coverage:
+223 commands, controls PASS. Layers: 72 inherited findings / zero new.
+The stable full Tests.Axioms build fails in 18 other-family/assembly producers
+(26.45 s), with no Finality-family proof failure. It retains P-As ownership.
+See .lake/sleep-pfi3/final-axioms.log and the final Round 3 report for exact names.
+Added Lean lines are at most 100 characters; git diff --check passes.

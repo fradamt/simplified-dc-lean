@@ -271,8 +271,19 @@ theorem rowsPrem_liveRoot_compatible (hQC : RQCOrigin p c E rho) (hXing : RXing 
           have := kmid_slot_scale_le p m.earlySlot.2
           change 4 * p.Δ * (m.cD : Time) + 6 * p.Δ ≤ _
           linarith)), List.length_filter_le _ _⟩
-      have hex := (m.serviceD.2 (kmid_slot_horizon hK m.earlySlot.2).2.2 x hx).2.2.2.1
-      have hout := hK.input.ac.h4.2.1 _ _ x x hsQ hsD hx hx
+      have hex := (m.serviceD.2 (kmid_slot_horizon hK m.earlySlot.2).2.2 x hx
+        (kmid_window_confirmed hK ((Nat.mul_le_mul_right p.R (Nat.le_succ pt.r)).trans
+          ((Nat.le_add_right _ _).trans m.earlySlot.1))
+          (kmid_slot_horizon hK m.earlySlot.2).2.2 hx)).2.2.2.1
+      have hhorStart : tstar p pt.w ≤ rho.horizon := by
+        have hh := (kmid_slot_horizon hK (s := (pt.r + 2) * p.R) le_rfl).1
+        have ht := hK.start
+        rw [kmid_period_eq] at ht
+        exact ht.trans ((kmid_slot_scale_le p
+          (Nat.mul_le_mul_right p.R (by omega : pt.r ≤ pt.r + 2))).trans hh)
+      have hout := hK.input.ac.h4.2.1 _ _ x x hsQ hsD
+        (kmid_suffix_confirmed hK hx hsQ hhorStart)
+        (kmid_suffix_confirmed hK hx hsD hhorStart)
       have heD : S_at p c E rho (afterTicksIdx rho (SA.gateTime p.toParams m.cD)) x =
           eraseFG m.X_D := by
         rw [afterTicks_eq_stateBefore E rho hK.set.base.valid.toScheduleWellFormed] at hex

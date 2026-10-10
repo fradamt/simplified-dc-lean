@@ -54,6 +54,14 @@ theorem ForwardWitness_W_def (p : Params) {In V : Type} [DecidableEq V] [Fintype
 variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
+/-- The local Finality window has nonnegative length. -/
+theorem finality_window_nonneg (ΔF : Time) (g : Nat) : 0 ≤ W_W p ΔF g := by
+  have hΔ : 0 ≤ p.Δ := p.deltaPos.le
+  rw [W_W_def, betaF_def]
+  change 0 ≤ ((g : Time) + 2) * (4 * (p.R : Time) * p.Δ) +
+    4 * (kappaF p ΔF : Time) * p.Δ + p.Δ
+  positivity
+
 omit [DecidableEq V] [Fintype V] in
 private theorem forward_timeIdx_le_gate {t a : Time} (hta : t < a) :
     timeIdx rho t ≤ afterTicksIdx rho a := by
@@ -65,8 +73,8 @@ private theorem forward_timeIdx_le_gate {t a : Time} (hta : t < a) :
   exact decide_eq_true (Prod.Lex.toLex_le_toLex.mpr
     (Or.inl (lt_of_le_of_lt (of_decide_eq_true he) hta)))
 
-omit [Fintype V] in
 private theorem forward_output_le {ΔF t : Time} {w : HealingWitness} {r : Nat} {A : Block}
+    (hrec : Recovery₂ p c E rho G ΔF)
     (hs : V2.D.ScheduleWellFormed E rho) (input : HealingInput p c E rho w ΔF)
     (start : tstar p w ≤ t) (htr : t ≤ (r : Time) * P p)
     (ex : ExactService p c E rho (r * p.R) A)
@@ -83,9 +91,29 @@ private theorem forward_output_le {ΔF t : Time} {w : HealingWitness} {r : Nat} 
     ⟨(fgsa_healSuffix_timeIdx E rho hs start).1.trans hidx,
       List.length_filter_le _ _⟩
   intro x hx
+  have hstartHor : tstar p w ≤ rho.horizon := start.trans (htr.trans (by
+    rw [kmid_period_eq]
+    change 4 * p.Δ * ((r * p.R : Nat) : Int) ≤ rho.horizon
+    change 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ ≤ rho.horizon at hhor
+    linarith [p.deltaPos]))
   have hmono := input.healed.2.1 _ _ x
-    (fgsa_healSuffix_timeIdx E rho hs start) hsuffix hidx hx
-  have hstable := (ex.2 hhor x hx).2.2.2.1
+    (fgsa_healSuffix_timeIdx E rho hs start) hsuffix hidx
+    (finality_input_suffix_confirmed p c E rho hrec input hx
+      (fgsa_healSuffix_timeIdx E rho hs start) hstartHor)
+    (finality_input_suffix_confirmed p c E rho hrec input hx hsuffix hstartHor)
+  have hreader := finality_recovery_confirmed p c E rho hrec hx (r * p.R) _ _
+    (by
+      have hsync := input.wit.synchronous
+      have hlow : (w.sStar : Int) + 2 ≤ (w.u : Int) := by
+        exact_mod_cast input.wit.proposal_lower
+      have hst := start.trans htr
+      rw [kmid_period_eq] at hst
+      change 4 * p.Δ * (w.u : Int) + 6 * p.Δ ≤ _ at hst
+      change E.t_GST ≤ 4 * p.Δ * (w.sStar : Int) + p.Δ at hsync
+      change E.t_GST ≤ 4 * p.Δ * _
+      nlinarith [p.deltaPos]) le_rfl hhor
+    (fun j hj => kmid_tick_lt_afterTicks p c E rho hs hj le_rfl)
+  have hstable := (ex.2 hhor x hx hreader).2.2.2.1
   rw [afterTicks_eq_stateBefore E rho hs] at hstable
   have hout := fgsa_outputAt_eq_S_at E rho hs (fgsaInterface p c).stable
     (by simp) x t
@@ -96,7 +124,9 @@ private theorem forward_output_le {ΔF t : Time} {w : HealingWitness} {r : Nat} 
 /-- Paper 22:1371–1400; firstfin plan §5 A. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL full FE guard and actual opening. K-JOIN is applied once; its Afg/U
 are retained with high-A, exact gate service and each inclusive output bound. -/
-theorem forward_witness_FE_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
+theorem forward_witness_FE_of
+    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt)
     (hsel : TRowsSelect p c E rho)
@@ -138,10 +168,10 @@ theorem forward_witness_FE_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
     have hs := h.start
     change 4 * p.Δ * (w.u : Time) + 6 * p.Δ ≤ pt.t at hs
     nlinarith
-  have hGST := h.input.wit.after_gst.trans h.start
+  have hstart := (finality_healing_recoveryStart p c E rho h.input).trans h.start
   have hrec : FE_W p ΔF (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
-      E.t_GST rho.horizon g := h.set.recur
-  obtain ⟨q, r, htq, hqt, hr, hgood⟩ := Gen.Pure.recFE_W_extract hrec hP ht hGST
+      (recoveryStart p E) rho.horizon g := h.set.recur
+  obtain ⟨q, r, htq, hqt, hr, hgood⟩ := Gen.Pure.recFE_W_extract hrec hP ht hstart
     (by simpa only [W_W_def, Int.add_assoc] using h.hhor)
   have htr : pt.t ≤ (r : Time) * P p := htq.trans
     (mul_le_mul_of_nonneg_right (Int.ofNat_le.mpr hr.1) hP.le)
@@ -151,17 +181,17 @@ theorem forward_witness_FE_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
   have hhor := hD.le.trans h.hhor
   let kpt : KernelPt := ⟨w, r⟩
   have hK : KernelPrem_W p c G ΔF E rho kpt := {
-    set := h.set.core, bound := h.set.bound, window := hgood
+    set := h.set.core.toRecovery₂, bound := h.set.bound, window := hgood
     start := h.start.trans htr, hhor := hhor, input := h.input
-    services := fgsa_coreServices E rho h.set.core.base w }
+    services := fgsa_coreServices E rho h.set.core.base w hR }
   have hs := h.set.core.base.valid.toScheduleWellFormed
   obtain ⟨A, hA⟩ := kmid_window_proposal hK hgood.1 le_rfl
     (Nat.mul_le_mul_right _ (by omega : r ≤ r + 2))
   have hJ : KernelJoinedPrem p c G ΔF E rho ⟨r⟩ := {
-    set := h.set.core, bound := h.set.bound, window := hgood
+    set := h.set.core.toRecovery₂, bound := h.set.bound, window := hgood
     start := ⟨w, h.input, h.start.trans htr⟩, hhor := hhor }
   obtain ⟨Afg, heA, hcA, _, U, hAU, hne, hU, hacc⟩ :=
-    finality_kernel_joined_W_of p c E rho G ΔF hδ ⟨r⟩ hJ
+    finality_kernel_joined_W_of p c E rho hR hServices G ΔF hδ ⟨r⟩ hJ
       hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore A hA
   obtain ⟨A₀, he₀, _, hslot, _⟩ := kmid_opening_carrier p c E rho hs hA
   have hsame : A₀ = Afg := kmid_eraseFG_inj p (he₀.trans heA.symm)
@@ -183,7 +213,7 @@ theorem forward_witness_FE_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
   exact ⟨q, r, A, Afg, U, (heightView p Afg).h, kernelDeadlineW p ΔF (r + 2),
     htq, hqt, hr, hgood, htr, hA, heA, hcA, hslot, rfl, highA, hAU, hne, hU,
     rfl, hD, hhor, exA, hhA.2.2,
-    forward_output_le p c E rho hs h.input h.start htr exA hhA.2.2, hacc⟩
+    forward_output_le p c E rho h.set.core.toRecovery₂ hs h.input h.start htr exA hhA.2.2, hacc⟩
 
 end AvailableChain.FGSA.Run
 end

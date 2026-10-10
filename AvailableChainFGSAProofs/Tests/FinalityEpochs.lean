@@ -139,7 +139,7 @@ namespace AvailableChain.FGSA.Run.Tests.FinalityEpochs
 
 abbrev q : Params := { p with δt := 4 }
 def shortEnv : Generic.Env (Fin 1) :=
-  ⟨2, by decide, 0, by decide, fun _ t => decide (t < 3 ∨ 7 ≤ t)⟩
+  ⟨2, by decide, 7, by decide, fun _ t => decide (t < 3 ∨ 7 ≤ t)⟩
 def shortRun : V2.D.Run (Fin 1) (fgsa q unitCodec) where
   honest := {0}
   horizon := 8
@@ -302,6 +302,80 @@ theorem base_not_tVote : Base₂ q unitCodec shortEnv shortRun ∧
   rw [hp] at hv
   exact List.not_mem_nil hv
 
+
+/-- The exact public read-shape supplier still fails at the unjoined proposal read. -/
+theorem base_not_vote_receipts : ¬ FinalityVoteReceipts shortEnv shortRun := by
+  intro h
+  exact base_not_tVote.2 (fgsa_tVote shortEnv shortRun short_base h)
+
+theorem short_recovery : Recovery₂ q unitCodec shortEnv shortRun 8 2 := by
+  refine {
+    sync := ⟨?_, ?_⟩
+    deltaF := by decide
+    gap := ?_
+    base := short_base
+    fault := by decide
+    awake := ?_
+    gapPos := by decide }
+  · intro v hv o t he w hw a hta ha hlt hc hh hlink hNX
+    have hd : fgsaDelay shortEnv.Δ 2 o = 2 := by
+      unfold fgsaDelay
+      split <;> rfl
+    rw [hd] at hc
+    change max a 7 + 2 ≤ 8 at hc
+    have hm := le_max_right a (7 : Time)
+    dsimp [Time] at *
+    omega
+  · intro v hv i o t he w hw a hta ha hlt hc hh hlink hNX
+    have hd : fgsaDelay shortEnv.Δ 2 o = 2 := by
+      unfold fgsaDelay
+      split <;> rfl
+    rw [hd] at hc
+    change max a 7 + 2 ≤ 8 at hc
+    have hm := le_max_right a (7 : Time)
+    dsimp [Time] at *
+    omega
+  · intro t ht hh
+    change 7 ≤ t at ht
+    change t + 8 ≤ 8 at hh
+    dsimp [Time] at *
+    omega
+  · intro v hv t ht hh
+    simp [shortEnv, shortEnv]
+    right
+    exact ht
+
+/-- Recovery alone cannot produce the compatibility supplier, even at exact read shapes. -/
+theorem recovery_not_vote_receipts :
+    Recovery₂ q unitCodec shortEnv shortRun 8 2 ∧
+      ¬ FinalityVoteReceipts shortEnv shortRun := by
+  refine ⟨short_recovery, ?_⟩
+  intro h
+  have hv := fgsa_tVote shortEnv shortRun short_base h
+  exact base_not_tVote.2 hv
+
+
+/-- The same run has the public Recovery sleep guards; its joined suffix is beyond horizon. -/
+theorem short_recovery_sleep : RecoverySleep₂ q unitCodec shortEnv shortRun 8 2 := by
+  refine { toRecovery₂ := short_recovery, suffixNoRestart := ?_, joinedGap := ?_ }
+  · intro v hv i t he ht hh
+    have hm := List.mem_of_getElem? he
+    simp [shortRun] at hm
+    rcases hm with ⟨rfl, rfl⟩
+    change 7 < (7 : Time) at ht
+    exact (lt_irrefl _ ht).elim
+  · intro t ht hh
+    change 20 ≤ t at ht
+    change t + 8 ≤ 8 at hh
+    dsimp [Time] at *
+    omega
+
+/-- The adapter's exact read shapes still exceed the permitted Recovery sleep scope. -/
+theorem recovery_sleep_not_vote_receipts :
+    RecoverySleep₂ q unitCodec shortEnv shortRun 8 2 ∧
+      ¬ FinalityVoteReceipts shortEnv shortRun :=
+  ⟨short_recovery_sleep, base_not_vote_receipts⟩
+
 end AvailableChain.FGSA.Run.Tests.FinalityEpochs
 
 #print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.short_valid
@@ -316,3 +390,10 @@ end AvailableChain.FGSA.Run.Tests.FinalityEpochs
 #print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.short_no_proposal
 
 #print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.short_scope_genesis
+
+#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.base_not_vote_receipts
+#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.short_recovery
+#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.recovery_not_vote_receipts
+
+#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.short_recovery_sleep
+#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.recovery_sleep_not_vote_receipts

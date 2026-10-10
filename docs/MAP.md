@@ -1735,3 +1735,16 @@ Paths omit `AvailableChainGeneric/` and `.lean`.
 │ Gen/Tests/WaveD2                        │ Zero, equality, skip, tag and negative cases │
 └─────────────────────────────────────────┴──────────────────────────────────────────────┘
 ```
+
+
+### P-Fi sleep consumers (2026-10-10)
+
+The current restart design is in `ARCHITECTURE.md`, E6, and `SLEEP-LEDGER.md`.
+`Finality/RecoveryScope.lean` derives honest join bounds, local event-index
+restart intervals, and confirmed readers. It also states the exact action
+receipt supplier. `Finality/RestoreReads.lean` preserves acceptance and held
+rows through durable restore. `Finality/TickRead.lean` connects joined tick
+reads to time cuts. `RowsBatch` and `TailBatch` keep all honest HEAD seats.
+`TailMixed` uses an exact retained-head receipt supplier. `Export` threads
+these suppliers explicitly. The universal CoreServices vote supplier and
+the safe receipt suppliers remain open; see the P-Fi Round 2 ledger entry.

@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
+public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 
 public section
 
@@ -84,6 +85,79 @@ theorem ktail_slot_gst {G ΔF : Time} {pt : TailKernelPt p}
   change E.t_GST ≤ 4 * p.Δ * ((pt.r * p.R : Nat) : Time) at hG
   linarith
 
+/-- The Tail receipt horizon contains the healing start. -/
+theorem ktail_start_horizon {G ΔF : Time} {pt : TailKernelPt p}
+    (hT : TailKernelPrem_W p c G ΔF E rho pt) : tstar p pt.w ≤ rho.horizon := by
+  have hh := (ktail_bounds hT).2.2.2.2.2.2
+  have ht := hT.start
+  rw [kmid_period_eq] at ht
+  have hle := kmid_slot_scale_le p
+    (show pt.r * p.R ≤ (pt.r + 1) * p.R + kappaF p ΔF by
+      rw [Nat.add_mul]; omega)
+  change 4 * p.Δ * (_ : Int) + p.Δ ≤ rho.horizon at hh
+  linarith [p.deltaPos]
+
+/-- A window suffix contains the enabled healing gate and its wake events. -/
+theorem ktail_suffix_confirmed {G ΔF : Time} {pt : TailKernelPt p}
+    (hT : TailKernelPrem_W p c G ΔF E rho pt)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hsuf : HealSuffix p c rho (tstar p pt.w) i)
+    (hhor : tstar p pt.w ≤ rho.horizon) : confirmedReaderIdx p c E rho x i := by
+  apply finality_recovery_confirmedIdx p c E rho hT.set hx pt.w.u i
+    (by
+      have hsync := hT.input.wit.synchronous
+      have hlow : (pt.w.sStar : Int) + 2 ≤ (pt.w.u : Int) := by
+        exact_mod_cast hT.input.wit.proposal_lower
+      change E.t_GST ≤ 4 * p.Δ * (pt.w.sStar : Int) + p.Δ at hsync
+      change E.t_GST ≤ 4 * p.Δ * (pt.w.u : Int)
+      nlinarith [p.deltaPos]) hhor
+  intro j hj
+  have hjlt := kmid_tick_lt_afterTicks p c E rho hT.set.base.valid.toScheduleWellFormed
+    hj le_rfl
+  have hstart : afterTicksIdx rho (tstar p pt.w) ≤ i := by
+    have hg : isGateTime p (tstar p pt.w) = true :=
+      (isGateTime_iff p _).mpr ⟨pt.w.u, rfl⟩
+    simpa only [HealSuffix_def, healStart_def, hg, ite_true] using hsuf.1
+  exact hjlt.trans_le hstart
+
+/-- The Tail healing start supplies the previous-slot join cutoff. -/
+theorem ktail_window_join_cut {G ΔF : Time} {pt : TailKernelPt p}
+    (hT : TailKernelPrem_W p c G ΔF E rho pt) {s : Slot}
+    (hlo : pt.r * p.R ≤ s) : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+  have hstart := hT.start
+  rw [kmid_period_eq] at hstart
+  have hlow : (pt.w.sStar : Int) + 2 ≤ (pt.w.u : Int) := by
+    exact_mod_cast hT.input.wit.proposal_lower
+  have hsync := hT.input.wit.synchronous
+  have hle := kmid_slot_scale_le p hlo
+  change 4 * p.Δ * (pt.w.u : Int) + 6 * p.Δ ≤ _ at hstart
+  change E.t_GST ≤ 4 * p.Δ * (pt.w.sStar : Int) + p.Δ at hsync
+  change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+  nlinarith [p.deltaPos]
+
+/-- Each honest Tail HEAD read has the joined duty guard. -/
+theorem ktail_window_joined {G ΔF : Time} {pt : TailKernelPt p}
+    (hT : TailKernelPrem_W p c G ΔF E rho pt) {s : Slot}
+    (hlo : pt.r * p.R ≤ s) (hhi : s ≤ (pt.r + 1) * p.R + kappaF p ΔF)
+    {x : V} (hx : x ∈ rho.honest) :
+    joinedAt p E rho x s (SA.voteTime p.toParams s) :=
+  finality_recovery_joined p c E rho hT.set hx (ktail_window_join_cut hT hlo)
+    ((ktail_slot_gst hT hlo).trans (by
+      change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
+      linarith [p.deltaPos])) (ktail_slot_horizon hT hhi).2.1
+
+/-- The Tail window gate has run for each honest confirmed reader. -/
+theorem ktail_window_confirmed {G ΔF : Time} {pt : TailKernelPt p}
+    (hT : TailKernelPrem_W p c G ΔF E rho pt) {s : Slot}
+    (hlo : pt.r * p.R ≤ s) (hhor : SA.gateTime p.toParams s ≤ rho.horizon)
+    {x : V} (hx : x ∈ rho.honest) :
+    confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams s))
+      (SA.gateTime p.toParams s) := by
+  apply finality_recovery_confirmed p c E rho hT.set hx s _ _
+    (ktail_slot_gst hT hlo) le_rfl hhor
+  intro j hj
+  exact kmid_tick_lt_afterTicks p c E rho hT.set.base.valid.toScheduleWellFormed hj le_rfl
+
 /-- Paper 22:1985–1989. An honest Tail slot has an actual honest proposal.
 DC: INTENTIONAL: the FG-SA proposer duty always builds a block at a positive slot. -/
 theorem ktail_window_proposal {G ΔF : Time} {pt : TailKernelPt p}
@@ -94,7 +168,8 @@ theorem ktail_window_proposal {G ΔF : Time} {pt : TailKernelPt p}
   have hh := (ktail_slot_horizon hT hhi).1
   exact kmid_honest_proposal_exists p c E rho hT.set.base.valid.toScheduleWellFormed
     hT.set.base.delta s hslot
-    (hT.set.awake _ hslot.2 _ (ktail_slot_gst hT hlo) hh) hh
+    (finality_recovery_joined p c E rho hT.set hslot.2
+      (ktail_window_join_cut hT hlo) (ktail_slot_gst hT hlo) hh) hh
 
 /-- Paper 22:1988–1990. H3 serves every honest Tail proposal.
 DC: INTENTIONAL: the healed AC service is an explicit input. -/
@@ -215,7 +290,6 @@ theorem tail_opening_and_witness (G ΔF : Time) (pt : TailKernelPt p)
   classical
   obtain ⟨_hF0, hκ2, hκR, _hR2, hs2, _hGST, _hhorT⟩ := ktail_bounds hT
   have hs := hT.set.base.valid.toScheduleWellFormed
-  have hnr := hT.set.base.noRestart
   have faultQ := hT.set.faultQ
   have laws := (fgCertificateLaws p).height
   have hwin := hT.window
@@ -250,7 +324,10 @@ theorem tail_opening_and_witness (G ΔF : Time) (pt : TailKernelPt p)
   subst heA
   have exA := ktail_window_exact hT hAp le_rfl
   have hhA := ktail_slot_horizon hT n0T
-  have sourceA := kmid_source_of_exact p c E rho exA (hhA.2.2 nA2T) pt.r rfl
+  have sourceA : ∀ x ∈ rho.honest,
+      actionSourceFG p c E rho x pt.r = some (some A₀) := fun x hx =>
+    kmid_source_of_exact p c E rho exA (hhA.2.2 nA2T) pt.r rfl x hx
+      (ktail_window_confirmed hT le_rfl (hhA.2.2 nA2T) hx)
   obtain ⟨q, hq⟩ := ktail_window_proposal hT hwQ n0Q nQT
   obtain ⟨Q, heQ, carrierQ, slotQ, ⟨rowsQ, hcarQ, hrowsQ⟩, stQ, hstQ, hlookQ, hparTFQ⟩ :=
     kmid_opening_carrier p c E rho hs hq
@@ -288,6 +365,7 @@ theorem tail_opening_and_witness (G ΔF : Time) (pt : TailKernelPt p)
       rowsBefore i x W hi hW
   -- The witness height.
   obtain ⟨iQ, hiQ, hQTF⟩ := kmid_head_held p c E rho exQ hhQ.2.1 _ hwA.2
+    (ktail_window_joined hT n0Q nQT hwA.2)
   have hQup : (heightView p Q).h ≤ (heightView p A₀).h + 1 :=
     capQ iQ _ Q ((kmid_tick_lt_afterTicks p c E rho hs hiQ
       (kmid_vote_lt_action p hc2').le).le) ⟨hwA.2, hQTF⟩
@@ -366,7 +444,8 @@ theorem tail_opening_and_witness (G ΔF : Time) (pt : TailKernelPt p)
     justifiedBelowQ := hjQ
     sourceA := sourceA
     sourceQAtOpening := fun heq =>
-      kmid_source_of_exact p c E rho exQ (hhQ.2.2 nQ2) (pt.r + 1) heq
+      fun x hx => kmid_source_of_exact p c E rho exQ (hhQ.2.2 nQ2) (pt.r + 1) heq x hx
+        (ktail_window_confirmed hT n0Q (hhQ.2.2 nQ2) hx)
     rowsThroughOpening := rowsQr
     noFreshHeight := noFreshHeight
     noEarlyFinality := noEarlyFinality
@@ -376,8 +455,10 @@ theorem tail_opening_and_witness (G ΔF : Time) (pt : TailKernelPt p)
       kmid_held_finality_afterTicks p c E rho hOrigin hT.set.base faultQ _ _
         ((Nat.zero_lt_succ _).trans_le highA) finBefore i x W hi hW
     heldQFrom := fun x hx k t ht hk =>
-      kmid_head_held_from p c E rho hs hnr exQ hhQ.2.1 x hx k t ht hk
-    chainQ := kmid_chainRows_of_head p c E rho hs hnr exQ hhQ.2.1 _ hx₀ _
+      kmid_head_held_from p c E rho hs exQ hhQ.2.1 x hx
+        (ktail_window_joined hT n0Q nQT hx) k t ht hk
+    chainQ := kmid_chainRows_of_head p c E rho hs exQ hhQ.2.1 _ hx₀
+      (ktail_window_joined hT n0Q nQT hx₀) _
       (kmid_vote_lt_action p hc2')
     coverQ := hT.cover pt.carrier Q le_rfl hq carrierQ }⟩
 

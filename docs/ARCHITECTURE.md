@@ -641,6 +641,21 @@ Engine v2 decisions (design §2), one line each:
   WholeRunAccountableClaim, WholeRunAgreementClaim, EventPrefixAgreementClaim,
   FaultCountSlashableBoundClaim, and HonestNeverSlashedClaim.
 
+- E6 restart (sleep v6): `restart v t`, `st ↦ restore (durable st) t`.
+  Restore keeps the FG state, blocks, named bodies, proposals, rows, obligations,
+  stable output, and anti-slashing record. It clears volatile vote state and
+  sets both the clock and restart marker to the exact wake time `t`. A wake
+  restarts before any tick or delivery at that time. Duties and confirmation
+  updates require the uniform previous-slot join cutoff. This supersedes the
+  earlier ruling Y account. See `docs/SLEEP-LEDGER.md` for proof status.
+- P-Fi sleep consumers: `Finality/RecoveryScope` derives local restart intervals,
+  join bounds, and confirmed readers from continuous Recovery awake time.
+  `RestoreReads` preserves finality and held rows through restore. `TickRead`
+  relates exact joined tick reads to time cuts. RowsBatch and TailBatch use
+  joined voters and exact receiver services. Export has explicit vote, action,
+  and Tail receipt suppliers. These suppliers remain proof obligations; a
+  conditional export does not establish the unconditional public service claim.
+
 
 FG-SA sleep restart, P-Cl1 Round 2 (2026-10-10): restore uses the exact wake
 time and keeps the FG store, block tree, proposals, obligations and stable
