@@ -5981,3 +5981,17 @@ OPEN. The assigned NoRestart census is 18, down from 30; all are in open targets
 Isolated evidence: eight independent checks, six complete helper-body audits,
 and one selected receipt audit. All 15 results use only propext, Classical.choice
 and Quot.sound. These checks do not compile the containing open modules.
+
+### P-H2 Round 5 — final validation (2026-10-10)
+
+Proof source: 7a5632d3. DCK P-H2 PASS: 3,696 jobs, 42 strict sources,
+3,429 permitted results, all 24 controls. Layers: 72 inherited, zero new.
+Headers: zero H2 failures; the four inherited Outage failures remain.
+All GREEN exports: 320 proof modules, 253 exports, zero unaccepted, Gen zero.
+The 15 isolated proof results pass the strict DCK parser. Complete helper
+bodies and selected receipt compile in isolation; containing modules stay OPEN.
+The map retains 93 assigned targets, 22 GREEN and 71 open, all owned by P-H2.
+The remaining NoRestart census is 18. Canonical coverage remains 205 commands
+plus the six separate opening regression audits. Public statements are unchanged.
+No H1 merge or source edit was made. The compiled slice remains PREPARED;
+full critical-path, bounded reader and object-service producers remain OPEN.
