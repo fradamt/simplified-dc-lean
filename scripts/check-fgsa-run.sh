@@ -150,7 +150,9 @@ AX_OPTS=(--expect
   Run.fgsaDelay_row Run.fgsaDelay_nonrow Run.fgsaDelay_self Run.EmissionRowsValid Run.decode Run.HonestEmissionWellFormed
   Run.HonestProposalDecodes Run.fgsa_emissionRowsValid Run.fgsa_propose_parent_lt
   Run.honest_emit_wellFormed Run.decode_honest Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duties_spec
-  Run.ReceiptCoveragePremises Run.ReceiptCoverageStatement Run.fgsa_receiptCoverage
+  Run.ReceiptCoveragePremises Run.ReceiptCoverageSleepPremises
+  Run.ReceiptCoverageSleepStatement Run.ReceiptCoverageSleepStatement_def
+  Run.fgsa_receiptCoverage_ready
   Run.duties_nodup Run.withApp_zero Run.rowsOk_withApp Run.recordOwn_attest
   Run.attest_signer_irrel Run.ofRow_injective Run.ofHead_injective Run.ofRow_auth
   Run.processedS_ofRow Run.excludesS_ofRow Run.handlesS_ofRow_iff Run.excludesS_inert

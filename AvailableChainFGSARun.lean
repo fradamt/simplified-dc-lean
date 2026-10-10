@@ -54,5 +54,6 @@ public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSARun.Proofs.SelfDelivery
 public import AvailableChainFGSARun.Proofs.Spec.Simulation
 public import AvailableChainFGSARun.Proofs.Spec.Transfer
-public import AvailableChainFGSARun.TestSupport.EmissionFreshness
-public import AvailableChainFGSARun.TestSupport.Sleep
+public import AvailableChainFGSARun.Model.TestSupport.EmissionFreshness
+public import AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
+public import AvailableChainFGSARun.Model.TestSupport.Sleep

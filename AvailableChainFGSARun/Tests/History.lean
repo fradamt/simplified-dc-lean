@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSARun.TestSupport.Sleep
-public import AvailableChainFGSARun.TestSupport.EmissionFreshness
+public import AvailableChainFGSARun.Model.TestSupport.Sleep
+public import AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
 
 public section
 

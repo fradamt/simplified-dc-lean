@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.TestSupport.EmissionFreshness
+public import AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
 public import AvailableChainFGSARun.Statements.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.Hooks
 public import AvailableChainFGSARun.Proofs.ReadFacts
