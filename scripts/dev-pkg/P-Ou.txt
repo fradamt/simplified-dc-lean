@@ -1,6 +1,17 @@
-# P-Ou round 2, base babc0460. Kernel PREPARED; public closure remains OPEN.
+# P-Ou round 7, base a6ffe4a1. Kernel PREPARED; public closure remains OPEN.
 # GREEN means compiled; conditional suppliers do not close public claims.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Outage.ScopedInduction
+AvailableChainFGSAProofs.Proofs.Shared.Release
+AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
+AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
+AvailableChainFGSAProofs.Tests.OutageServices
+AvailableChainFGSAProofs.Tests.InclusionOrigins
+AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
+AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
+AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
+AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
 AvailableChainFGSAClaims.Claims.Outage
 AvailableChainFGSAClaims.Claims.OutageContinuation
 AvailableChainFGSAProofs.Proofs.Outage.Close
@@ -39,6 +50,19 @@ AvailableChainFGSAProofs.Tests.InclusionGate
 AvailableChainFGSAProofs.Tests.OutageInduction
 
 [GREEN]
+AvailableChainFGSAProofs.Tests.OutageInduction
+AvailableChainFGSAProofs.Proofs.Outage.ScopedInduction
+AvailableChainFGSAProofs.Proofs.Outage.Induction
+AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
+AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
+AvailableChainFGSAProofs.Tests.OutageServices
+AvailableChainFGSAProofs.Tests.InclusionOrigins
+AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
+AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
+AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
+AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep
+AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -526,24 +550,23 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
+AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
+AvailableChainFGSAProofs.Proofs.Outage.InclusionGate
+AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBounds
+AvailableChainFGSAProofs.Proofs.Outage.InclusionGateService
+AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
+AvailableChainFGSAProofs.Tests.InclusionExact
+AvailableChainFGSAProofs.Tests.InclusionGate
+
+AvailableChainFGSAProofs.Proofs.Outage.Suppliers
+
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.Outage.Close P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.Export P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.InclusionGate P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBounds P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.InclusionGateService P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.Induction P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.Suppliers P-Ou
 AvailableChainFGSAProofs.Proofs.OutageContinuation.Export P-Ou
-AvailableChainFGSAProofs.Tests.InclusionExact P-Ou
-AvailableChainFGSAProofs.Tests.InclusionGate P-Ou
-AvailableChainFGSAProofs.Tests.OutageInduction P-Ou
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

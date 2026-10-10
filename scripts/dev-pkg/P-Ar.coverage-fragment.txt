@@ -1,4 +1,4 @@
-P-Ar Round 4. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
+P-Ar Round 7. Existing key: AvailableChainFGSAProofs.Tests.Axioms.
 Merge missing names into their owners; do not add a coverage key.
 Move the six lease-write helpers and arming_gateResult_tick from ArmingGate to ArmingStep.
 
@@ -91,6 +91,15 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingHistory
 AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
   AvailableChain.FGSA.Run.arming_pending_input
 AvailableChainFGSAProofs.Proofs.Outage.ArmingKernel
+  AvailableChain.FGSA.Run.arming_nonrow_delivery_of_prefix
+  AvailableChain.FGSA.Run.arming_fresh_head_service_of_prefix
+  AvailableChain.FGSA.Run.arming_proposal_service_trigger_of_prefix
+  AvailableChain.FGSA.Run.arming_proposal_anchor_service_of_prefix
+  AvailableChain.FGSA.Run.arming_target_service_of_prefix
+  AvailableChain.FGSA.Run.arming_head_not_excluded_of_prefix
+  AvailableChain.FGSA.Run.arming_batch_service_of_prefix
+  AvailableChain.FGSA.Run.arming_prefix_receipt_of_healthy_prefix
+  AvailableChain.FGSA.Run.arming_continuation_prefix_receipt
   AvailableChain.FGSA.Run.arming_batch_service
   AvailableChain.FGSA.Run.arming_cut_saved_on
   AvailableChain.FGSA.Run.arming_fast_awake
@@ -178,3 +187,84 @@ AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
   AvailableChain.FGSA.Run.fast_arming_on
   AvailableChain.FGSA.Run.pending_gate_lease_or_F_on
   AvailableChain.FGSA.Run.slow_arming_on
+
+Round 5 production additions (same canonical key).
+AvailableChainFGSAProofs.Proofs.Outage.ArmingScores
+  AvailableChain.FGSA.Run.arming_rest_bound_joined
+AvailableChainFGSAProofs.Proofs.Outage.ArmingScores
+  AvailableChain.FGSA.Run.arming_inclusion_proposer_prior_of_F_prefix_on
+AvailableChainFGSAProofs.Proofs.Outage.ArmingScores
+  AvailableChain.FGSA.Run.arming_inclusion_reader_scores_on
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.ArmingReadWindow
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_fresh_head_service_window
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_proposal_service_trigger_window
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_proposal_anchor_service_window
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_target_service_window
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_head_not_excluded_window
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_window_epoch
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_window_read_epoch
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_healthy_batch_window
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_joined_window
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_window_mono
+AvailableChainFGSAProofs.Proofs.Outage.ArmingLocal
+  AvailableChain.FGSA.Run.arming_joined_gate_before
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.ArmingJoinedProvenance
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.arming_prefix_before_cut
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.arming_joined_head_from_previous
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.ArmingSleepGateCert
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.arming_sleep_gate_cert_of_last
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.arming_sleep_gate_core_scoped
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.pending_gate_lease_or_F_scoped_on
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.arming_fast_cert_of_comparison
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.fast_arming_scoped_on
+AvailableChainFGSAProofs.Proofs.Outage.ArmingBatch
+  AvailableChain.FGSA.Run.arming_healthy_batch_heads
+AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+  AvailableChain.FGSA.Run.ArmingJoinedBatchState
+AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+  AvailableChain.FGSA.Run.arming_batch_at_on
+AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+  AvailableChain.FGSA.Run.arming_head_covers_on
+AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+  AvailableChain.FGSA.Run.arming_proposal_covers_on
+
+AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+  AvailableChain.FGSA.Run.slow_arming_scoped_on
+
+AvailableChainFGSAProofs.Proofs.Outage.ArmingDutySleep
+  AvailableChain.FGSA.Run.arming_leases_interval_sleep
+  AvailableChain.FGSA.Run.arming_prefix_sleep_on
+  AvailableChain.FGSA.Run.arming_duty_epochs
+  AvailableChain.FGSA.Run.arming_duty_batch
+  AvailableChain.FGSA.Run.arming_head_covers_sleep
+  AvailableChain.FGSA.Run.arming_proposal_covers_sleep
+  AvailableChain.FGSA.Run.arming_joined_of_tick_guard
+  AvailableChain.FGSA.Run.arming_emit_proposal_on
+  AvailableChain.FGSA.Run.arming_pending_duties_sleep
+  AvailableChain.FGSA.Run.arming_inflight_heads_sleep
+  AvailableChain.FGSA.Run.arming_S_interval_sleep
+  AvailableChain.FGSA.Run.arming_confirmed_restart_bound
+  AvailableChain.FGSA.Run.arming_confirmed_pre_pending_gate
+  AvailableChain.FGSA.Run.arming_cover_sleep
+  AvailableChain.FGSA.Run.ArmingSleepHistoryCert
+  AvailableChain.FGSA.Run.arming_sleep_history_on

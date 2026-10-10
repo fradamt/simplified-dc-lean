@@ -103,11 +103,14 @@ Compatibility and monotonicity have the same meaning. INTENTIONAL
 representation and domain divergence: both getters read S, and each
 finite read index is at most the event count at all integer times
 (S3 D43/D61). No restart, quorum, channel, or extra honesty premise is used.
-This Export restores the frozen safety Prop by definitional matching. -/
+The input is the all-node state pair produced before reader restriction. -/
 theorem cleanSafetyAt_of_trunc (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho)
-    (ht : CleanTruncAt p c E rho rho.horizon) : CleanSafetyAt p c E rho := by
+    (ht : Gen.Pure.CompatOn (· ∈ rho.honest) (S_at p c E rho)
+        (· ≤ timeIdx rho rho.horizon) ∧
+      Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho)
+        (· ≤ timeIdx rho rho.horizon)) : CleanSafetyAt p c E rho := by
   exact cleanSafety_of_trunc_body p c E rho hs ht
 
 /-- P3:3331–3335, bp02 §5.5; DC Legacy/Definitions/SafetyRegimes:61–75.
@@ -153,15 +156,22 @@ theorem cleanCutPos_export (p : Params) : CleanCutPosClaim p := by
     cleanTruncAt p c E rho hc.set hq hf' hsrc⟩
 
 /-- P3 §8.5, bp02 §6; DC Generic/Properties:27,41,48 and Interface:64.
-INTENTIONAL difference: a cut claim gives safety at every integer read,
-since each read index is at most the event count. This implication has no
-F1 channel premise or cut split. Clean run results use confirmed readers under sleep.
+INTENTIONAL difference: the Clean core gives safety at every integer read,
+since each read index is at most the event count. Assembly supplies its all-node
+state pair before reader restriction. Results use confirmed readers under sleep.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
-theorem cleanSafety_of_cut (p : Params) (hcut : CleanCutClaim p) : CleanSafetyClaim p := by
+theorem cleanSafety_of_cut (p : Params) (_hcut : CleanCutClaim p)
+    (hstate : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time),
+      CleanSet p c E rho ΔF →
+      Gen.Pure.CompatOn (· ∈ rho.honest) (S_at p c E rho)
+          (· ≤ timeIdx rho rho.horizon) ∧
+        Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho)
+          (· ≤ timeIdx rho rho.horizon)) : CleanSafetyClaim p := by
   intro V _ _ In c E rho ΔF _ h
   exact cleanSafetyAt_of_trunc p c E rho h.set.pre.base.valid.toScheduleWellFormed
-    (hcut c E rho ⟨rho.horizon⟩ ⟨h.set.sleepPre.sleepPre⟩).2
+    (hstate c E rho ΔF h.set)
 
 end AvailableChain.FGSA.Run
 end

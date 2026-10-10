@@ -1,4 +1,4 @@
-# P-As round 2: TVOTE-CUT and current service ports; full assembly OPEN.
+# P-As round 3: growth witness repaired; non-healing assembly remains OPEN.
 [TARGETS]
 
 AvailableChainFGSA.Model.Store
@@ -328,6 +328,7 @@ AvailableChainFGSAProofs.Tests.NonVacuity.HealingParams
 AvailableChainFGSAProofs.Tests.OutputGrowth
 AvailableChainFGSAProofs.Tests.Proposal
 AvailableChainFGSAProofs.Tests.SharedAxioms
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowthNonVacuity
 AvailableChainFGSARun.Model.Families
 AvailableChainFGSARun.Model.HealingFixture
 AvailableChainFGSARun.Model.Protocol
@@ -553,6 +554,7 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+
 [EXPECTED-FAIL]
 AvailableChainFGSAInhabit P-As
 AvailableChainFGSAInhabit.Tests.Axioms P-As
@@ -589,7 +591,6 @@ AvailableChainFGSAProofs.Tests.OutageContinuationInhabit P-As
 AvailableChainFGSAProofs.Tests.OutageExport P-As
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms P-As
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAxioms P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowthNonVacuity P-As
 AvailableChainFGSAProofs.Tests.WeakContinuationInterfaces P-As
 AvailableChainFGSAProofs.Tests.WeakContinuationSafety P-As
 AvailableChainFGSAProofs.Tests.Zero P-As

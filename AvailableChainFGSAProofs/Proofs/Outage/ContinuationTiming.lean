@@ -129,5 +129,16 @@ theorem outageV_regression_relay_bound (p : Params) (s : Slot) (u gst : Time)
   have := p.deltaPos
   nlinarith
 
+/-- The approved handover is exactly v(r+k+1), also the last old gate's expiry. -/
+theorem outage_handover_time (p : Params) (r : Slot) :
+    OutageEnd p r = SA.voteTime p.toParams (r + p.k + 1) ∧
+      OutageEnd p r = SA.gateTime p.toParams r + L p := by
+  change 4 * p.Δ * ((r + p.k : Nat) : Int) + 5 * p.Δ =
+      4 * p.Δ * ((r + p.k + 1 : Nat) : Int) + p.Δ ∧
+    4 * p.Δ * ((r + p.k : Nat) : Int) + 5 * p.Δ =
+      4 * p.Δ * (r : Int) + 6 * p.Δ + (4 * (p.k : Int) - 1) * p.Δ
+  push_cast
+  constructor <;> ring
+
 end AvailableChain.FGSA.Run
 end

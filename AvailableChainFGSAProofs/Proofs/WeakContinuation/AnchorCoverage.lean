@@ -426,5 +426,15 @@ theorem wc_vote_read_epoch (hS : V2.D.ScheduleWellFormed E rho)
   have hjD := (Gen.V2.Duty.index_lt_idxBefore_iff hS he D).mpr (hb.trans_lt hD)
   omega
 
+/-- The source HEAD path has original acceptances before its vote tick. -/
+theorem wc_head_source_path (hS : V2.D.ScheduleWellFormed E rho)
+    {k : Nat} {y : V} {s : Slot} {K : Block}
+    (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hK : K ∈ (storeAt p c E rho k y).base.blocks) :
+    ∀ b, Block.Preceq b K → b ≠ .genesis →
+      ∃ l < k, ∃ t o, blockOf? p o = some b ∧
+        V2.D.Run.acceptsAt E rho l y o t ∧ 0 ≤ t ∧ t < SA.voteTime p.toParams s :=
+  gate_source_path hS hk hK
+
 end AvailableChain.FGSA.Run
 end

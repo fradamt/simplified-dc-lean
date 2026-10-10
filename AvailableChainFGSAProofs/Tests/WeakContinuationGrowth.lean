@@ -14,9 +14,15 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 /-- WC J3, plan §7; DC AvailableChainGrowth.afterGST: match the reviewed growth type. -/
-theorem growthContract (ΔF : Time) (u : Slot) (Q : Block) (iStar : Nat) :
+theorem growthContract (ΔF : Time) (u : Slot)
+    (Q : Block) (iStar : Nat)
+    (hcache : WCCachedSafety p c E rho iStar Q)
+    (hcover : ∀ pt : PtSP, u + 2 ≤ pt.s →
+      HonestProposal E rho (fgsaInterface p c) pt.s pt.P →
+      SA.gateTime p.toParams pt.s ≤ rho.horizon →
+      ∃ x ∈ rho.honest, Block.Preceq pt.P (S_at p c E rho rho.events.length x)) :
     WCGrowthStatement p c E rho ΔF u Q iStar :=
-  wc_growth_of_safety_inclusion ΔF u Q iStar
+  wc_growth_of_safety_inclusion ΔF u Q iStar hcache hcover
 
 omit [DecidableEq V] in
 /-- WC J3, plan §6.12; DC cut reads: match the reviewed public-read type. -/
@@ -44,23 +50,22 @@ theorem checkpointContract [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar 
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
   (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
+  (_hnr : V2.D.RestartsAtWakes E rho)
   (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hroots : NamedReceiptRootCollisionFree p c E rho)
   (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
+  (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+  (_hmono : RMonoAll p c E rho)
   (_hactive : RActive p c E rho)
   (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
+  (_hmeta : RFrameNextEpoch p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -88,7 +93,7 @@ theorem checkpointContract [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar 
             p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+      ∀ k w C, j < k → k < i → enabledGateAt p c E rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
@@ -99,7 +104,8 @@ theorem checkpointContract [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar 
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
   (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho x j i ∧
+      enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
   (_hdeadlines : ∀ i x,
@@ -134,3 +140,11 @@ theorem checkpointContract [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar 
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationGrowth
 end
+
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationGrowth.growthContract
+
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationGrowth.readContract
+
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationGrowth.readAtCut
+
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationGrowth.checkpointContract

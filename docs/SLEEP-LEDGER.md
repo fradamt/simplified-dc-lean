@@ -4942,6 +4942,144 @@ Round 2 validation on the final proof sources:
 - Logs: .lake/sleep-pou-r2/dck-final.log, exports-final.log, coverage.log,
   layers-final.log and consumer-build.log. No push, merge, rebase or supplier edit.
 
+## P-Ou Round 3 — retained and inclusion cores
+
+Base bf0c024d, branch sleep-pou2. The public claims are unchanged.
+ExactProposalRetained and all four InclusionGate cores now build with --wfail.
+Both owned inclusion test modules build. The public package remains OPEN.
+
+T31 chooses an enabled joined gate receiver at d(q). T35 chooses a joined
+vote reader at v(s). T37 chooses an enabled joined receiver at d(s-1);
+its earlier vote uses the same restart bound. The witnesses include the
+horizon endpoint. T32/T33/T34/T36 use their exact joined or emission guards.
+T38 and T61 use confirmedReaderAtIdx at the post-gate cut.
+These tick repairs do not establish the missing regime service producers.
+
+Retained HEADs use InclusionReceiverInputs and receiver-local relay services.
+No sleep consumer obtains NoRestart from a regime. The legacy score count
+keeps explicit NoRestart for ContinuationFrame; the sleep caller uses _on.
+No earlier processing event is used to infer retained HistorySafeAt.
+The local proposal service must carry durable history at its exact anchor.
+
+InclusionHistoryBounds is the field projection required from P-Cl1.
+The old duplicate state induction in InclusionGateBounds is removed.
+The post-gate consumer has confirmed-reader scope and scoped monotonicity.
+The later-read consumer requires an actual enabled gate origin at or after s.
+That origin supplier is P-Ou work; it is not a new public claim premise.
+
+Classification for this group: 493 GREEN, 13 EXPECTED-FAIL, 36 TARGETS.
+Seven owned modules move to GREEN. GREEN denotes compilation only.
+Strict local audits cover the retained and gate kernels and the test fixtures.
+Layer check: 72 inherited findings, zero new. Full DCK follows the last group.
+
+### P-Ou Round 3 — exact proposal service anchors
+
+RestoredReceipt produces ReceiverService for proposal paths at v(s)->e(s)
+and e(s)->f(s). Base2, the actual source acceptance, and the enabled or
+joined receiver supply readiness, handlers, the receiver epoch and durable
+HistorySafeAt. The original acceptance time is retained.
+The deadline and all local service fields use the same anchor.
+Compatible finality at e(s) or f(s) discharges permanent exclusion.
+That compatibility remains an exact joint-invariant input.
+
+The two constructors build with --wfail. They do not establish the full
+regime-only restored or prefix receipts. Fresh HEAD services, target
+dependencies, finality bounds, the retained score scopes and the P-Ar
+prefix remain closure work. No public receipt premise is added.
+
+### P-Ou Round 3 — good receipts and all honest late keys
+
+outage_good_heads_at_gate derives authentic target membership and strict
+early stamps in the actual gate view from GateReceiptScope. It applies to
+every honest enabled receiver, including W. The target-prefix and finality
+floor bounds remain exact joint-invariant inputs.
+outageV_gate_of_good_service connects these receipts to the actual
+compatible-batch count with the A union W opponent bound.
+
+outage_all_honest_late_gate_keys quantifies over all honest writers at all
+late labels. It excludes conflicting targets from new write keys when
+each enabled late result is compatible. It permits old conflicting rows.
+Deriving that result invariant from E and the joint induction is still OPEN.
+The three kernels build with --wfail; no regime closure is claimed.
+
+### P-Ou Round 3 — joint restart step
+
+outage_joint_restart preserves global source and duty histories across
+a real restart event and preserves protection on the selected receiver
+scope. It supplies the restart case of both joint inductions. It builds
+with --wfail and keeps the G-only protection scope.
+
+Both full inductions and the handover at v(r+k+1) remain OPEN. Their tick
+and delivery cases need P-Ar origins/seeds and the regime-derived good
+targets, receipt service and all-honest result invariant. P-Ar files are
+unchanged; no producer is duplicated in this package.
+
+### P-Ou Round 3 — growth witness and exact Clean consumer ports
+
+clean_inclusion_gate_witness constructs one confirmed receiver at g(s)
+whose inclusive store contains the honest proposal. It first constructs
+the exact enabled gate, then proves that same-time deliveries keep the
+proposal: the Clean history bounds successor F below P. There is no global
+monotonicity or later-reader origin input.
+clean_growth_compatible_from_history combines this witness with the scoped
+public-output compatibility projection. It supplies the first growth input,
+with independent earlier and witness readers, once the Clean and local
+service inputs are produced. The production GrowthConsumer call is tested.
+
+outage_supplier_history now accepts the exact scoped P-Cl1 fields:
+confirmed gate readers for order, enabled nonempty gates, joined transfer
+readers, and current-epoch saved/fast rows with compatibility retention.
+Nonempty raw results supply their own confirmed-reader guards through the
+compiled inclusion_ordered_of_scoped adapter. Suppliers moves to GREEN.
+
+The mixed Outage/Export Clean consumers use these exact fields,
+InclusionReceiverInputs, guarded GateReceiptScope and scoped monotonicity.
+The later-read consumer keeps the exact P-Ou-owned gate-origin input.
+The actual mixed exporter build fails in P-Ar ArmingDuty/ArmingGate and
+P-As Shared/Claims. Its Clean wrapper edits are PREPARED and not counted
+as a compiled exporter. No private exporter copy is used.
+
+P-Cl1's clean_epoch_saved_row is present on the P-Ar round-3 base d60ff01d,
+in Clean/EpochSaved:15. It is absent on this bf0c024d-based work tree.
+The exact statement uses a receiver awake/epoch window from slotStartZ q
+to b0 and a strictly earlier Clean origin r < q. The lead must land that
+producer and the P-Ar closure here; this package does not copy them.
+
+Final map for this group: 36 TARGETS, 494 GREEN, 12 EXPECTED-FAIL
+(10 P-Ou, two S-Ap). Public closure remains OPEN. No public claim,
+checker, scope, exception, allowance, baseline or toolchain is changed.
+
+### P-Ou Round 3 — export-safe gate observation
+
+The final export check found private equation copies from the gate guard's
+decision instance. ExactProposalReceipts now observes the gate through the
+existing gateResult_eq_saved and fgsa_gate_saved_result/unjoined API.
+Its missing-tick branch uses direct reduction. The guard statements and
+their meanings are unchanged. No new equation allowance is added.
+The focused check passes: 129 proof modules, 252 accepted exports,
+zero unaccepted and zero Gen exports. Full final checks follow this repair.
+
+### P-Ou Round 3 — final validation
+
+Final proof source commit: 502f1893.
+DCK P-Ou PASS: 494 GREEN roots, 39 strict audit sources,
+3,086 axiom results and all 24 default negative controls.
+The complete GREEN export check passes: 285 proof modules,
+253 accepted exports, zero unaccepted exports and zero Gen exports.
+Complete local coverage passes for all 123 commands:
+108 in SleepAxioms and 15 in Tests/InclusionExact.
+Only propext, Classical.choice and Quot.sound occur.
+Layer check: 72 inherited findings, zero new.
+Diff whitespace, ownership and new-line length checks pass.
+No heartbeat increase, proof placeholder, public claim change or new
+checker/scope/baseline/allowance is added.
+
+Kernel PREPARED; public package OPEN, not CLOSED.
+Exact closure inputs and owned work are in the Round 3 section of
+scripts/dev-pkg/P-Ou.round2-handoff.md. The mixed exporter remains open
+after its actual build fails in the P-Ar and P-As imports.
+Logs: .lake/sleep-pou-r3/. Public-meaning STOPs: none.
+
 ### G-S1 PASS (2026-10-10 09:24)
 
 `bash scripts/dev-check.sh --stage s1` on sleep-int 8e12a02f: DCK PASS (stage s1), DCK controls PASS, wall 324 s.
@@ -5460,6 +5598,78 @@ Exact P-Ou types and open inputs: scripts/dev-pkg/P-Ar.round4-handoff.md.
 Evidence: .lake/sleep-par-r4/par-{dck,exports,generate,fragment-final,types}.log,
 par-coverage.txt and layers-final.log.
 
+### P-Ar Round 5 — general fast comparison construction (2026-10-10)
+
+The equal-cut fast construction uses an earlier comparison result when no
+label-l gate executes. ArmingSleepGateCert keeps an actual result at q <= l,
+the comparison maximum, its FG lift, and the actual joined HEAD bounds.
+The previous joined batch supplies the next HEAD through its receiver epoch.
+It does not assume participation at the cut or an executed label-l result.
+The actual Clean retained-history supplier supplies joined HEAD provenance.
+The earlier gate witness follows from strict-before-cut joined participation.
+
+The new fast_arming_scoped_on constructs this certificate at every cut.
+pending_gate_lease_or_F_scoped_on returns the same full gate result and keeps
+the explicit named-row compatibility boundary for P-Ou. slow_arming_scoped_on
+converts the actual slow producer and includes its joined HEAD bounds.
+The five Round 4 export names and types are unchanged.
+
+Validation for this group: strict builds of ArmingConstruction and
+Tests.OutageArming PASS; actual Clean-to-fast-to-full-gate consumer PASS.
+All added production commands are in the standalone test and canonical
+production-only fragment. No public claim or protocol declaration changed.
+The duty-history group and full package checks remain in progress.
+P-Ar remains PREPARED until those checks pass.
+
+Round 5 first-group complete local audit: 218 commands, 168 proof modules,
+252 accepted exports, zero unaccepted, Gen zero exports; coverage control PASS.
+Layers: 72 inherited findings, zero new. Added Lean lines stay within 100 columns.
+The receiver service and scoring modules are registered as owned P-Ar targets.
+
+### P-Ar Round 5 — duty history and full construction CLOSED (2026-10-10)
+
+P-Ar is CLOSED. All 22 owned targets are GREEN. The general fast construction
+includes the equal cut without hLast or a strict-cut premise. The actual fast
+and slow Clean suppliers construct ArmingSleepHistoryCert. The actual fast
+producer also feeds the full pending-gate lease-or-F consumer.
+
+The pre-pending ports use joined selected voters and local receiver epochs:
+ArmingScores counts stored honest seats in the joined denominator;
+arming_head_covers_on and arming_proposal_covers_on consume the retained local
+batch; arming_duty_batch supplies that batch from the regime and certificate.
+Actual HEAD and proposal emissions supply their joined guards. The history
+certificate supplies pending_duties and inflight_heads with their original
+actual-emission conclusions. It also supplies all-honest F compatibility.
+
+Internal receiver-scope port: pending_cover now applies to protected confirmed
+readers. Their current caught-up read bounds earlier restart markers and gives
+an actual enabled label-l gate. The actual Clean gate-output supplier and
+stable-state induction then give B below S before the pending gate. The old
+all-honest ArmingData demand is not supplied from protected facts. Public
+Claims/Statements are unchanged. The legacy NoRestart producers remain
+explicit; no new sleep consumer calls them.
+
+T25 is CLOSED for P-Ar. arming_healthy_batch_window uses joined selected
+voters, a named local awake/restart-free receiver window, and regime-derived
+HEAD/target services. arming_duty_batch supplies its actual duty consumers.
+There is no extra transport premise or global NoRestart in these suppliers.
+P-Ou retains its own downstream ports and its explicit hRows source-history
+boundary. No P-Ou, P-H1, P-H2, P-WC, P-Cl1, or Shared source file changed.
+
+Validation: DCK P-Ar PASS; 22 targets / 490 GREEN; 38 strict roots / 3,199
+axiom results; all 24 controls PASS. Complete GREEN exports: 294 proof modules,
+253 accepted exports, zero unaccepted, Gen zero exports. Complete local audit:
+236 commands, 170 proof modules, 252 accepted exports, zero unaccepted;
+coverage control PASS. Canonical production-only fragment: 207 strict results;
+207 exact matching owner rows. Every new explicit public production declaration
+has a direct command. Only propext, Classical.choice, and Quot.sound occur.
+Layers: 72 inherited findings, zero new. Diff whitespace and 100-column checks
+PASS. The two inherited EXPECTED-FAIL roots remain S-Ap-owned; no owned target
+is EXPECTED-FAIL. No claim, protocol, checker, baseline, allowance, fixed scope,
+toolchain, or dependency manifest changed. No public STOP was introduced.
+
+Exact types and suppliers: scripts/dev-pkg/P-Ar.round5-handoff.md.
+Evidence: .lake/sleep-par-r5/. Group 1 commit: 04281d84.
 Final frozen-source validation for this slice: DCK P-H2 PASS (480 GREEN roots,
 40 strict audit sources, 3,366 axiom results, 24 controls); local complete coverage
 PASS (41 commands); all-GREEN-root export check PASS (270 proof modules, 253 exports,
@@ -5589,3 +5799,660 @@ lead acceptance as assembly work. The concrete positive relay uses genesis;
 it does not close non-genesis object-service or aggregate recovery obligations.
 Evidence: .lake/sleep-ph1-round4/{dck,exports,coverage}-complete.log;
 layers-complete.log, headers-complete.log and own-headers.log.
+## P-Ou Round 4 — FIX-FIRST
+
+Base: 0c836aac. The round 3 review items 1–2 are repaired.
+InclusionReceiverInputs.early requires a ≤ rho.horizon. The retained calls
+supply the actual proposal and vote horizon bounds. The relay field requires
+the actual vote tick at ih. The retained score call supplies hih.
+Export uses the corrected internal record; the handoff has the same scope.
+No public statement or protocol declaration changed. The affected retained
+consumer and both inclusion tests build with --wfail.
+
+### P-Ou Round 4 — P-Ar consumers and later gate origin
+
+RestoredReceipt consumes arming_prefix_batch_receipt directly. The restored
+service record has no prefix field. The protected non-genesis prefix adapter
+uses arming_protected_origin_on to derive 6Δ ≤ b₀ and each in-cut label bound.
+PersistenceSleep consumes ArmingSleepCert and arming_sleep_gate_core for
+covered receivers. It keeps the current-F alternative. Its domain adapter
+supplies P-Ar's hRows from outage_named_of_source_history and the actual
+global source history. The pending source-history seed remains OPEN.
+
+The proposer count now has a receipt-backed cover core, a joined _on form,
+and the legacy awake-count form. Both forms require actual emitted and
+resolved receipts for every counted seat. The awake form covers joined seats
+through joinedAt.1. This restores the P-Ar ArmingCover consumer without
+changing a P-Ar file or asking a sleep regime for an unjoined HEAD emission.
+
+PersistenceStep imports the lower ArmingStep API and the exact AC/lease APIs.
+The source step uses gatePassedAt's enabled guard. The suppressed gate branch
+keeps protection and passes through normalization. PersistenceStep is GREEN.
+
+InclusionOrigins proves the latest gate label and the enabled latest gate
+for a caught-up reader. It uses the last restart marker, wake-restart law,
+and receiver awake state. The later-origin adapter consumes Clean gate output
+and scoped public monotonicity; it does not assume an origin at the later read.
+The new production consumers and their strict audit build with --wfail.
+Layer check: 72 inherited findings, zero new. Public claims are unchanged.
+
+### P-Ou Round 4 — regime services, source boundaries and handover
+
+RestoredBatch derives all restored services from Base₂, full-run synchrony,
+GST ≤ b₁ and the joined read guards. Targets use original acceptance and durable
+proposal history. Incompatible targets retain the public finality alternative.
+The target/proposal anchors are v→e, e→f and f→t(next); fresh HEADs use v→e
+with survival through the read. The continuation consumer still needs P-Ar's
+separate continuation-prefix adapter. The public OutageSleep₂ prefix theorem
+is consumed directly when that exact regime is available. No prefix service
+is derived from a restored receipt.
+
+Suppliers and mixed Export now use the proved later-reader origin. They ask
+Clean assembly for gate output and bounded confirmed-reader monotonicity.
+Tests/InclusionOrigins checks both fields with the real P-Cl1 producers.
+The exact Clean section of Export checks with standard axioms after repair
+of the receipt's joined-reader binder and the supplier include list.
+The full mixed exporter still fails in the legacy outage lane and Shared/Claims.
+
+GoodVotes proves the A-union-W release bound from compatible good targets.
+PersistenceSleep proves the strict pre-pending global source seed and isolates
+actual pending action compatibility. ContinuationTiming proves the exact
+v(r+k+1) handover time. Expiry removes an old row at equality.
+The full good-target/late-result producers, both joint inductions, deadline
+bound on old conflicting rows and scoped handover remain P-Ou-owned OPEN work.
+No all-honest seed or NoRestart is derived from a sleep regime.
+
+The FIX-FIRST tests prove the finite-horizon service contradiction and the
+early-tick relay-index contradiction. The new standalone tests check real
+Clean origin assembly, restored receipt assembly, opponent release and expiry.
+No test import is added to a production or canonical audit module.
+Current map: 43 TARGETS, 502 GREEN, 11 EXPECTED-FAIL (nine P-Ou, two S-Ap).
+Current exact handoff: scripts/dev-pkg/P-Ou.round4-handoff.md.
+
+### P-Ou Round 4 — final validation
+
+Proof groups: 08e6ddf2 (FIX-FIRST), 27f63349 (P-Ar consumers and latest gate),
+c8885bf3 (restored services, origin assembly, release and handover boundaries).
+DCK P-Ou PASS: 502 GREEN roots, 41 strict audit sources, 3,124 axiom results
+and all 24 controls. Complete exports: 314 proof modules, 253 exports,
+zero unaccepted, Gen zero. Complete local coverage: 161 commands; control PASS.
+Layers: 72 inherited, zero new. The exact Clean section of mixed Export checks
+with standard axioms. The full module remains EXPECTED-FAIL.
+P-Ou remains PREPARED, not CLOSED. Public claims and protocol declarations
+are unchanged. There is no public STOP. No checker, baseline, allowance,
+heartbeat increase or toolchain change was added.
+Logs: .lake/sleep-pou-r4/. Exact closure types: P-Ou.round4-handoff.md.
+
+## P-Ou Round 5 — pending source seed (2026-10-10)
+
+Public claims and protocol declarations are unchanged. This group closes the
+all-honest pending-source input at PersistenceSleep.outage_arming_sources_on.
+It does not close the full outage or continuation joint induction.
+
+- PersistenceSleep.outage_enabled_gate_read_epoch and
+  outage_enabled_gate_tick_epoch derive the actual receiver epoch from the
+  enabled gate. outage_enabled_gate_joined derives the environment join guard.
+- PersistenceSleep.outage_pending_frame_below extends the certificate's
+  strict-cut F bound to every actual enabled pending tick, including W.
+- GoodVotes.outage_pending_head_targets derives B and receiver-F prefixes
+  for honest pending HEAD targets from the actual joined emission and the
+  existing Clean transfer projection. Later labels remain joint proof work.
+- ReceiverInputs.outage_prefix_head_service, outage_prefix_proposal_service
+  and outage_prefix_batch_service use prefix transport with an explicit cut.
+  These services need no GST bound. Retained targets use their original
+  acceptance and durable proposal history.
+- ReceiverInputs.outage_pending_receipt_scope and
+  outage_pending_result_compatible cover every enabled pending receiver.
+  The early deadline is d(l), at or before b₀; the gate itself can be after b₀.
+- ReceiverInputs.outage_pending_sources_compatible discharges hPending for
+  all honest actions, including W. outage_arming_sources_from_prefix gives
+  the full all-ticks source seed from the sleep prefix, TSrc, the scoped
+  certificate and the existing joined Clean transfer projection.
+- Tests.OutageServices.pending_seed_consumer checks this exact producer call.
+
+Still owned by P-Ou: the full InclusionReceiverInputs record; later-label
+hTargets and hResults; both joint inductions; scoped continuation closure.
+No false producer or public STOP was found in this group.
+
+### P-Ou Round 5 — exact old-row deadlines and handover
+
+- PersistenceDeadlines.outage_row_deadline_origin proves an actual enabled
+  gate origin for every retained row and its exact deadline d(s)+L.
+  Its event induction includes restart and replay. Renewal either retains
+  an existing row or uses the new gate deadline; no NoRestart input is used.
+- outage_conflicting_row_deadline uses compatibility of actual later
+  results to show that a conflicting retained row has label at most r.
+  Hence its deadline is at most OutageEnd(r) = v(r+k+1).
+- outage_handover_rows_compatible and outage_handover_tick_rows combine
+  that bound with the actual clock expiry filter. Deadline equality removes
+  the row. An unjoined handover tick still runs expiry before its duty guard.
+- The later-result input is bounded by j < i at this receiver. The global
+  later-result producer remains P-Ou work; these conditional handover
+  theorems do not close the public continuation claim.
+- Tests.OutageServices.pending_seed_of_clean_history instantiates the
+  actual Clean/Closure.cleanHistoryAt_body transfer projection.
+  Tests.OutageServices.handover_rows_consumer checks the actual tick adapter.
+
+The map retains the same nine P-Ou and two S-Ap EXPECTED-FAIL modules.
+The two new production modules are registered GREEN after their own builds.
+No public statement, protocol declaration, checker or allowance changed.
+
+### P-Ou Round 5 — final validation
+
+Proof source 9ff21cea. DCK P-Ou PASS: 504 GREEN modules, 41 strict audit sources,
+3,145 axiom results and all 24 controls. Complete GREEN export check:
+316 proof modules, 253 exports, zero unaccepted and zero Gen exports.
+Complete local coverage and its control PASS for 182 commands.
+Layers retain 72 inherited findings with zero new. Whitespace, ownership,
+new prose/code line length and placeholder checks pass.
+The actual remaining consumer roots still fail in Induction,
+ContinuationReceipt and Shared/Claims. Nine P-Ou and two S-Ap modules remain
+EXPECTED-FAIL. P-Ou remains PREPARED, not CLOSED. No public STOP was established.
+Handoff: scripts/dev-pkg/P-Ou.round5-handoff.md. Report: Round 5 in the local report.
+### Lead note after the P-Ou round 4 review (2026-10-10 12:24)
+
+rev-pou4-astra: MERGE-AS-PREPARED for P-Ou rounds 3 and 4 together. Both
+round-3 FIX-FIRST items are repaired (horizon bound on the early field;
+actual reader tick on the relay field). Nine P-Ou targets stay open: the two
+joint inductions, the continuation joint/receipt/gate modules, Close, both
+Exports and Tests/OutageInduction. hTargets (GoodVotes:143/289) stays a
+conditional local count premise; its producer must keep the F ⪯ B / B ⪯ F
+split and must not become an unconditional assertion.
+### P-Ar Round 5 — general fast comparison construction (2026-10-10)
+
+The equal-cut fast construction uses an earlier comparison result when no
+label-l gate executes. ArmingSleepGateCert keeps an actual result at q <= l,
+the comparison maximum, its FG lift, and the actual joined HEAD bounds.
+The previous joined batch supplies the next HEAD through its receiver epoch.
+It does not assume participation at the cut or an executed label-l result.
+The actual Clean retained-history supplier supplies joined HEAD provenance.
+The earlier gate witness follows from strict-before-cut joined participation.
+
+The new fast_arming_scoped_on constructs this certificate at every cut.
+pending_gate_lease_or_F_scoped_on returns the same full gate result and keeps
+the explicit named-row compatibility boundary for P-Ou. slow_arming_scoped_on
+converts the actual slow producer and includes its joined HEAD bounds.
+The five Round 4 export names and types are unchanged.
+
+Validation for this group: strict builds of ArmingConstruction and
+Tests.OutageArming PASS; actual Clean-to-fast-to-full-gate consumer PASS.
+All added production commands are in the standalone test and canonical
+production-only fragment. No public claim or protocol declaration changed.
+The duty-history group and full package checks remain in progress.
+P-Ar remains PREPARED until those checks pass.
+
+Round 5 first-group complete local audit: 218 commands, 168 proof modules,
+252 accepted exports, zero unaccepted, Gen zero exports; coverage control PASS.
+Layers: 72 inherited findings, zero new. Added Lean lines stay within 100 columns.
+The receiver service and scoring modules are registered as owned P-Ar targets.
+
+### P-Ar Round 5 — duty history and full construction CLOSED (2026-10-10)
+
+P-Ar is CLOSED. All 22 owned targets are GREEN. The general fast construction
+includes the equal cut without hLast or a strict-cut premise. The actual fast
+and slow Clean suppliers construct ArmingSleepHistoryCert. The actual fast
+producer also feeds the full pending-gate lease-or-F consumer.
+
+The pre-pending ports use joined selected voters and local receiver epochs:
+ArmingScores counts stored honest seats in the joined denominator;
+arming_head_covers_on and arming_proposal_covers_on consume the retained local
+batch; arming_duty_batch supplies that batch from the regime and certificate.
+Actual HEAD and proposal emissions supply their joined guards. The history
+certificate supplies pending_duties and inflight_heads with their original
+actual-emission conclusions. It also supplies all-honest F compatibility.
+
+Internal receiver-scope port: pending_cover now applies to protected confirmed
+readers. Their current caught-up read bounds earlier restart markers and gives
+an actual enabled label-l gate. The actual Clean gate-output supplier and
+stable-state induction then give B below S before the pending gate. The old
+all-honest ArmingData demand is not supplied from protected facts. Public
+Claims/Statements are unchanged. The legacy NoRestart producers remain
+explicit; no new sleep consumer calls them.
+
+T25 is CLOSED for P-Ar. arming_healthy_batch_window uses joined selected
+voters, a named local awake/restart-free receiver window, and regime-derived
+HEAD/target services. arming_duty_batch supplies its actual duty consumers.
+There is no extra transport premise or global NoRestart in these suppliers.
+P-Ou retains its own downstream ports and its explicit hRows source-history
+boundary. No P-Ou, P-H1, P-H2, P-WC, P-Cl1, or Shared source file changed.
+
+Validation: DCK P-Ar PASS; 22 targets / 490 GREEN; 38 strict roots / 3,199
+axiom results; all 24 controls PASS. Complete GREEN exports: 294 proof modules,
+253 accepted exports, zero unaccepted, Gen zero exports. Complete local audit:
+236 commands, 170 proof modules, 252 accepted exports, zero unaccepted;
+coverage control PASS. Canonical production-only fragment: 207 strict results;
+207 exact matching owner rows. Every new explicit public production declaration
+has a direct command. Only propext, Classical.choice, and Quot.sound occur.
+Layers: 72 inherited findings, zero new. Diff whitespace and 100-column checks
+PASS. The two inherited EXPECTED-FAIL roots remain S-Ap-owned; no owned target
+is EXPECTED-FAIL. No claim, protocol, checker, baseline, allowance, fixed scope,
+toolchain, or dependency manifest changed. No public STOP was introduced.
+
+Exact types and suppliers: scripts/dev-pkg/P-Ar.round5-handoff.md.
+Evidence: .lake/sleep-par-r5/. Group 1 commit: 04281d84.
+
+### Lead note after the P-Ar round 5 review (2026-10-10 12:48)
+
+rev-par5-astra: FIX-FIRST for CLOSED, merged as PREPARED. The equal-cut fast
+construction is acyclic and every arming-record field has a producer. Open
+before CLOSED: (1) remove `import all` at Outage/ArmingLocal.lean:2 and the two
+inherited uses at Outage/ArmingKernel.lean:2-3 (check-module-headers);
+(2) a positive finite-run witness for the arming certificates (non-genesis
+stable read, protected receivers, fast equal-cut branch, slow instance).
+hRows (ArmingConstruction:270) stays an OPEN P-Ou source-history obligation,
+including actions at the pending time; do not project the old all-honest
+pending_input.
+## P-WC Round 4 — event induction, 2026-10-10
+
+Status: PREPARED. Base e4fafd7b, branch sleep-pwc3.
+The joint WC and WCG event proofs now preserve WCInv for delivery, off-gate
+ticks, enabled gates, suppressed gates, and restart. Next-event finality has
+an earlier target-action origin in the prior bounded history. This proves
+compatibility before the local output update. All three output origins are
+handled: retained output, gate result, and received finality.
+
+Retrospective transfer uses joined next-slot readers and local HEAD service.
+New family HeadRelay modules prove fresh or original accepted HEAD service,
+strict receipt stamps, receiver epochs, and carried-pool provenance. No
+global NoRestart premise is inferred. Saved and fast origins retain their
+exact epochs. The full WC safety adapter now has the sleep telescope.
+Internal adapter repair under the lead ruling of 2026-10-10; public claims
+and Statements are unchanged. Consumers: StepTransfer, Step, Induction,
+and WCG Dynamics.
+
+New GREEN original targets: StepTransfer, Step, Induction, WCG Dynamics.
+The two new HeadRelay modules are GREEN. Thirteen original targets remain
+EXPECTED-FAIL with owner P-WC. Strict local audit passes; only propext,
+Classical.choice, and Quot.sound. Complete export check: 173 proof modules,
+251 exports, zero unaccepted. Layers: 72 inherited findings, zero new.
+Serial audit and coverage fragments: claude-files/sleep-pwc-round4-*.txt.
+Evidence: .lake/sleep-pwc-r4/event-*.log and induction.log.
+
+### P-WC Round 4 — Proposal current-duty service
+
+Proposal and its first eligible-slot test now compile. The current proposer
+or HEAD reader can have no previous HEAD of its own. A joined earlier
+source supplies the comparison path through the current receiver's duty
+epoch. Count uses joined seats and exact original HEAD emissions. Receipt
+stamps are before the previous early and freeze times.
+
+The old retained path/stamp helpers now state NoRestart explicitly. They
+are legacy helpers; no repaired sleep consumer uses them. The current
+Proposal pivot uses the new current-duty path. Assembly callers are P-As
+port items. No public Claims/Statements declaration changed.
+
+Local strict audit passes. Complete export check: 189 proof modules,
+252 exports, zero unaccepted. Layers: 72 inherited, zero new. Eleven
+original targets remain EXPECTED-FAIL P-WC. Exact adoption and Empty are
+still local work. Evidence: proposal-audit2.log, proposal-exports2.log.
+
+### P-WC Round 4 — exact adoption and enabled gate suppliers
+
+ExactProposal and its contract test now compile. ExactReceipts supplies
+proposal service at a public receiver anchor, accepted-target service,
+both retained score directions, and fresh emitted proposal service.
+The retained score proof carries the source epoch, original frozen HEAD
+acceptances, and forward/backward block service. Admission keeps the exact
+named body and its strict original delivery, then retains it through the
+joined consuming read. No global NoRestart is supplied.
+
+StepGateBatch now exposes wc_gate_active_heads. InclusionGate proves the
+raw exact gate result from joined receipt evidence. This supplier is
+GREEN; the full Inclusion consumer remains EXPECTED-FAIL. The existing
+public exact-adoption and admission Statements are unchanged.
+
+Eight of the 17 original open targets are now GREEN. Nine remain
+EXPECTED-FAIL, all owner P-WC: WC Inclusion, Growth, Live, Export; WCG
+Empty and Export; the Inclusion, Growth, and GrowthEmptyAxioms tests.
+The remaining failures are local P-WC work. None is only a P-As bridge.
+Empty was not changed; no participation or half-cap premise was added.
+
+Map: 71 targets, 62 GREEN / 9 EXPECTED-FAIL. Required union targets:
+532 GREEN / 9 EXPECTED-FAIL. Strict audit: 285 local commands/results,
+plus three Proposal test commands. Only propext, Classical.choice, and
+Quot.sound. Exports: 200 proof modules, 252 exports, zero unaccepted.
+Layers: 72 inherited, zero new. Final package DCK is running.
+Evidence: .lake/sleep-pwc-r4/. Round 4 fragments are in claude-files/.
+
+P-WC Round 4 final validation: DCK PASS. 532 GREEN modules, 40 strict
+roots, 3,613 results, and 24 controls PASS. Exports: 200 proof modules,
+252 exports, zero unaccepted. All 214 prior inventory rows remain in
+the 285-row local inventory. Source scopes PASS: 1,361 active / 337
+deferred PC-SA modules. Layers: 72 inherited / zero new. Nine targets
+remain EXPECTED-FAIL P-WC. Public claims unchanged; no public meaning STOP.
+Implementation head: 16e578fb. Tracked implementation tree is clean.
+
+## P-WC Round 5 — exact inclusion and cached safety, 2026-10-10
+
+- T47: Inclusion uses enabled gates and joined selected HEAD receipts. The old
+  admission-at-vote and global NoRestart adapters are removed from this route.
+- T48: A confirmed reader uses its own original gate when its current epoch
+  covers that gate. A later wake uses the caught-up enabled gate and result order.
+  Both output getters retain the exact public reader scopes.
+- Inclusion's prior-result reader is joined at the next vote. Participation stays
+  all-time joined until the required voter and enabled gate actor are selected.
+- Internal additive evidence: WCInclusion6ResultStatement also returns the exact
+  enabled original WCResult. WCInclusion6Statement and public claims are unchanged.
+- Internal cached safety: WCCachedSafety, wc_cachedSafety, and wcg_cachedSafety
+  expose compatibility, monotonicity, and seed preservation for stored outputs.
+  The existing scoped safety statements are projections. This supplies the
+  comparisons needed when a trigger reader sleeps before a growth deadline.
+- Round-3 P3 evidence repair: both reconcile supplier entries are regenerated
+  from their full source types, including all premises and conclusions.
+- Inclusion and its two contract tests pass --wfail. The cached safety suppliers
+  pass --wfail. Strict and full package checks follow in the final Round 5 block.
+
+### P-WC Round 5 — Empty, Growth, Live, and tests
+
+- Empty's finalBelow reader is confirmedReaderIdx. Local-prefix replay keeps its
+  exact enabled source gate, awake interval, restart interval, and applied wakes.
+  The least matching source occurrence has no later prefix time. Its source
+  service call keeps the confirmed-reader guard instead of an honest-only guard.
+- Empty's cached source safety supplies event and public output order, including
+  terminal reads. Source cached coverage supplies the future proposal comparison.
+  Retained honest identities can shrink; the source comparison witness is used
+  in the source, and is not assumed honest in the continuation.
+- The empty route has no continuation participation or half-cap premise. Its new
+  internal component inputs are cached source safety and cached source proposal
+  coverage. The source induction and exact original-gate result prove them.
+- Growth's old honest-only deadline comparison did not fit scoped public readers.
+  The internal implementation takes cached output safety and an original-result
+  coverage witness. WC checkpoint proves both from its finite induction and
+  wc_inclusion6_result. WCGrowthStatement and public JointGrowthAt are unchanged.
+- Live and checkpoint consume RestartsAtWakes, receipt-root idealization,
+  all-time joined participation, durable/epoch stores, RMonoAll, RFrameNextEpoch,
+  and enabled lease/fast origins. No sleep regime supplies global NoRestart.
+- All nine original EXPECTED-FAIL targets and all three remaining tests pass
+  --wfail. The full local audit passes with only the three permitted axioms.
+  No owned expected failure remains. P-As must port its unowned callers to the
+  precise component types in the Round 5 handoff. Final package checks follow.
+
+P-WC Round 5 final validation: DCK PASS. 541 GREEN modules, 43 strict
+roots, 3,662 axiom results, and 24 controls PASS. Complete local exports and
+coverage PASS: 207 proof modules, 252 exports, zero unaccepted, 313 inventory
+rows. Layers: 72 inherited findings, zero new. Source scopes PASS. All nine
+original failures are GREEN; no owned EXPECTED-FAIL target remains. PREPARED
+for serial integration; the exact P-As caller ports remain in the handoff.
+
+## P-WC Round 6 — authorized import repair (2026-10-10)
+
+WC/ExactReceipts uses a public import of Shared.CatchUp. The private
+TargetReceiptService adapter is removed. Accepted targets use the existing
+fgsa_target_service_of_proposal. Genesis uses fgsa_target_service_genesis,
+the one Shared addition authorized by sleep-pwc-pending-fixes.md item 1.
+No public claim or existing statement changes. The module-header check passes.
+The standalone sleep audit and serial fragments include the new theorem.
+
+## P-WC Round 6 — SCOPE-NARROW audit (2026-10-10)
+
+Audited 265 exported family theorem signatures and their full interfaces.
+The report and handoff contain 79 grouped rows with producer anchors, open
+owners, and finite-sleep truth. The exact 2,065 explicit binder entries are
+in claude-files/sleep-pwc-round6-input-inventory.json. No false universal
+receipt/gate/join/time-cut shape was found in the repaired owned service
+routes. No public statement or claim changes. The recovered source snapshot
+and four conditional NoRestart legacy helpers are not arbitrary-run facts.
+The P-As source/epoch/cached-coverage caller ports remain open. PREPARED.
+Headers PASS; layers zero new; exports zero unaccepted; DCK PASS (43 strict
+roots, 3,663 results, 24 controls); strict local production audit 314 results.
+
+### Lead note after the P-WC round 5 closure review (2026-10-10 13:06)
+
+rev-pwc5-astra: MERGE-AS-PREPARED after the import fix; c914737e removes
+`import all` at WC/ExactReceipts.lean:2 exactly as rev-pwc4 item 1 asked.
+All 71 P-WC targets are GREEN. WCCachedSafety is proved by both seeded
+inductions; every service record has a local producer; no SCOPE-NARROW
+universal field. Open: P-As caller ports (Assembly/WeakContinuationGrowth
+:543/:565/:578, Growth:35-38, Empty:608/609/686), the source seed and the
+combined source-and-suffix joined count. Merge note: sleep-int already had
+an identical fgsa_target_service_genesis (99ad1f9d); that copy is kept.
+
+### Lead note after the P-As round 3 review (2026-10-10 13:24)
+
+rev-pas3b-astra: MERGE-AS-PREPARED. Limits that stay visible: (1) build break
+on sleep-int since the P-Ar r5 merge: Outage/ArmingScores re-declares
+inclusion_proposer_prior_of_F_prefix_on and inclusion_reader_scores_on from
+Outage/ExactProposalReceipts (P-Ou r3); owner P-Ar, fix queued (sleep-par
+pending fixes item 3). (2) B18's fixture proves StrongRecoverySearchPrefix₂ ∧
+CleanGrowthContinuation₂, not CleanGrowthContinuationSleep₂ (no
+joinedParticipation adapter); complete non-vacuity of the public sleep claim
+stays OPEN. Healing targets are out of P-As scope until P-H1 r4 lands.
+
+### P-Ou Round 6 — integration name collision
+
+Base 4b561a23 combines P-Ou round 5 and P-Ar round 5. ArmingScores
+redeclared two P-Ou theorem names from ExactProposalReceipts. Rename the
+owned copies to inclusion_receiver_proposer_prior_on and
+inclusion_receiver_scores_on. Update ExactProposalRetained, the local
+strict audit, and the complete coverage fragment. The two bodies and
+all public claims stay unchanged. ArmingScores now compiles.
+
+### P-Ou Round 6 — general pending seed and selected gate service
+
+- ReceiverInputs.outage_arming_sources_scoped proves the all-ticks
+  source history from ArmingSleepGateCert. Pending-time sources use
+  fast support, the strict release bound from joined participation, and
+  an actual honest joined HEAD above D. Sources in W are included.
+- outage_arming_named_scoped converts this seed with P-Fd emitted names.
+  outage_arming_protection_scoped discharges the full P-Ar row boundary
+  and returns protection and domain on coveredNodes.
+- outage_fast_seed_scoped consumes fast_arming_scoped_on. The hLast
+  request is satisfied. OutageServices supplies the actual Clean state,
+  history, transfer, provenance, and P-Fd named-source producers.
+- OutageGateReceiptScope requests only selected HEADs. The restored
+  producer uses actual enabled join, the receiver epoch, and F below B.
+  outageV_gate_of_good_service_scoped keeps the B below F / F below B
+  split. The finalized branch needs no receipt or count premise.
+- outage_restored_result_of_good_targets produces every receiver
+  service from transport and E's actual count. Its conditional good-HEAD
+  target input and current F compatibility remain P-Ou joint obligations.
+- Public claims and protocol declarations are unchanged. Both full
+  scoped joint inductions and InclusionReceiverInputs remain open.
+- ReceiverInputs and RestoredBatch now use public CatchUp imports and
+  its public target-service constructors. Two inherited header findings
+  are removed. Layers: 72 findings, zero new.
+
+### P-Ou Round 6 — A union W source transition
+
+ReceiverInputs.outage_fast_supporting_head_outside selects an actual
+joined HEAD outside any bad set that contains the faults and has count
+below the release level. The original faulty-only helper is its wrapper.
+outage_e1_release_bound proves the fixed A union W bound before recovery.
+outage_source_of_good_heads uses this bound for every actual honest
+source, including a source in W. The caller must prove compatibility of
+the selected good HEADs in the joint induction. This callback is an open
+P-Ou obligation; it is not a producer and does not close the package.
+All three declarations pass the strict local audit.
+
+### P-Ou Round 6 — export repair
+
+The complete export check found F_at.eq_1 in GoodVotes. The new proof
+used simp on the imported predicate. Replace that step with change on
+the exact confirmation type. The strict local roots compile after this
+repair. No allowance, baseline, public declaration, or protocol changed.
+
+### P-Ou Round 6 — final validation and closure status
+
+Proof source 84255dd4. DCK P-Ou PASS: 504 GREEN modules, 41 strict
+sources, 3,165 axiom results, and all 24 controls. Complete GREEN
+exports: 321 proof modules, 253 exports, zero unaccepted and zero Gen
+exports. Complete local coverage and its control PASS for 201 commands.
+Layers retain 72 inherited findings with zero new. Module headers have
+four inherited failures and no new failure; two owned failures were
+removed. New prose/code line lengths and whitespace pass.
+
+The actual consumer roots still fail in Induction and ContinuationReceipt.
+All nine P-Ou and two S-Ap EXPECTED-FAIL entries remain. P-Ou is PREPARED,
+not CLOSED. The full scoped joint inductions, later good-HEAD invariant,
+global late-result producer, InclusionReceiverInputs, and final exports
+remain P-Ou work. The fast hLast request is satisfied; the continuation
+prefix adapter remains a P-Ar request. No public STOP was established.
+Handoff: scripts/dev-pkg/P-Ou.round6-handoff.md. Its SCOPE-NARROW table
+records every input role, named producer, and open owner. Report: Round 6
+in claude-files/sleep-pou-report.md. Evidence: .lake/sleep-pou-r6/.
+
+### Lead note after the P-Ou round 6 review (2026-10-10 13:33)
+
+rev-pou6-astra: MERGE-AS-PREPARED for P-Ou rounds 5 and 6. hRows is
+discharged by named source history at afterTicksIdx (gateTime (l+1)),
+including pending-time sources in W, without the old all-honest
+pending_input. The P-Ou score-theorem copies are renamed
+(inclusion_receiver_proposer_prior_on, inclusion_receiver_scores_on), which
+removes the ArmingScores duplicate-name build break on sleep-int. Header
+residue: GoodVotes:2 (P-Ou r7) and ArmingKernel:2/3, ArmingLocal:2 (P-Ar r6).
+### P-Ar Round 6 — public imports and declaration collisions (2026-10-10)
+
+Base: dcdb4a06; branch sleep-par6. P-Ar remains PREPARED pending the
+positive finite-run witnesses and full package validation.
+ArmingKernel and ArmingLocal now use public CatchUp imports and the existing
+fgsa_target_service_genesis / fgsa_target_service_of_proposal constructors.
+The three P-Ar import-all findings are removed. No supplier module changed.
+The merged base has two conflicting inclusion_*_on declarations in
+ExactProposalReceipts and ArmingScores. The P-Ar copies now have distinct
+arming_ names; their types and proof bodies are unchanged. ArmingCover and
+the local audit consumers use those names. No public claim changed.
+Production build: ArmingConstruction dependency cone PASS with --wfail.
+Headers: no P-Ar failure; two P-Ou findings remain in GoodVotes/RestoredBatch.
+Layers: 72 inherited findings, zero new. P-Ou owns both header repairs.
+
+### P-Ar Round 6 — finite certificates and closure (2026-10-10)
+
+P-Ar CLOSED. Both Round 5 review fixes now pass in the P-Ar scope.
+All 22 owned targets are GREEN. Public claims and the principal arming
+constructor/history/gate export types are unchanged. No public STOP.
+Import repair commit: 244016e1. Final source: Tests/OutageArming.lean.
+Finite.positive_fast:1363 and Finite.positive_slow:1375 have no proof inputs.
+Both prove ExecutionValid, a non-genesis stable read, a protected receiver,
+an arming certificate, and the executed pending-gate lease conclusion.
+Fast: b0=earlyTime(3)=14, no label-2 result; the comparison result has label 1.
+It inhabits ArmingSleepGateCert. ArmingSleepCert.max_mem at label 2 cannot
+coexist with no_last; the slow witness inhabits that record instead.
+Slow: label-2 result and current-epoch saved row; both gate proofs consume
+the production exports and require an active lease, since F is genesis.
+Parameters: Delta=1, n=1, k=2, R=2, eta=0; 25 events, horizon 18.
+These are direct finite record/export witnesses, not full OutageSleep2
+inhabitation claims. The sparse fast trace's late HEAD 2 violates healthy
+prefix delivery; no healthy premise is assumed or fabricated. Existing
+regime/Clean producer consumers and the negative EarlyCut tests still pass.
+Default heartbeats are retained. The fixture has maxRecDepth=2048 for the
+finite state reduction stack. No proof or project axiom was added.
+DCK PASS: 22 targets / 490 GREEN; 38 strict roots / 3,225 results; 24 controls.
+Local strict audit: 261 results; production fragment: 207 results.
+Complete GREEN export check: 294 modules / 253 exports / zero unaccepted.
+Complete local coverage: 261 commands / 170 modules / zero unaccepted.
+Only propext, Classical.choice, Quot.sound occur. Layers: zero new.
+Headers: no P-Ar failure; GoodVotes/RestoredBatch failures remain with P-Ou.
+hRows remains the exact OPEN P-Ou source-history input at the pending cut.
+No P-Ou, P-As, P-H1, P-H2, P-WC, Shared, or Model source was edited.
+Handoff: scripts/dev-pkg/P-Ar.round6-handoff.md. Evidence: .lake/sleep-par-r6/.
+
+### Lead note after the P-Ar round 6 review (2026-10-10 13:44)
+
+rev-par6-astra: MERGE-AS-PREPARED. Headers clean in all 22 P-Ar targets;
+finite fast (equal cut) and slow certificate witnesses are hypothesis-free
+(V = Fin 1; not full OutageSleep₂). Open before CLOSED: a named producer
+OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF →
+OutagePrefixReceipt p c E rho fast T b₀ for RestoredBatch:377 (the existing
+arming_prefix_batch_receipt takes OutageSleep₂, whose η budget and E1 the
+continuation record does not supply); keep the per-label earlyTime q ≤ b₀ guard.
+
+### P-Ar Round 7 — continuation-prefix producer CLOSED (2026-10-10)
+
+Base: sleep-int 102d8f5b; branch sleep-par7. This block belongs to P-Ar.
+The last closure item in the Round 6 lead note is now checked.
+ArmingKernel:901 exports arming_continuation_prefix_receipt from
+OutageContinuationSleepPrem to OutagePrefixReceipt. It uses h.pre and the
+shared arming_prefix_receipt_of_healthy_prefix supplier at :892.
+arming_batch_service_of_prefix at :831 needs only HealthyPrefix₂ and the
+protected receiver/label premises. The seven lower service proofs are
+factored into prefix suppliers, with the existing outage names/types kept.
+All 28 existing ArmingKernel theorem signatures are unchanged.
+The per-label earlyTime q ≤ b₀ guard remains, with equality allowed (P15-CUT).
+No η budget or OutageE1 field is required. All needed premises are present.
+No public meaning changed; no public STOP or missing-field STOP.
+
+The exact application to the real outage_continuation_receipt_of_prefix
+passes in .lake/sleep-par-r7/ContinuationConsumer.lean. RestoredBatch is
+unchanged and builds with --wfail. The persistent prefix consumer and direct
+strict commands are in Tests/OutageArming.lean. The production fragment has
+216 commands and matching source-owner rows; it has production imports only.
+Shared audit/coverage files remain for serial integration with their existing key.
+
+P-Ar CLOSED. All 22 owned targets are GREEN; 490 total GREEN entries.
+The two inherited S-Ap EXPECTED-FAIL roots are unchanged.
+DCK PASS: 38 strict roots, 3,235 results, all 24 controls PASS.
+Complete GREEN exports: 294 proof modules, 253 exports, zero unaccepted.
+Complete local coverage: 271 commands; 170 modules, 252 exports, zero unaccepted.
+Production strict audit: 216 results. Actual continuation call: 1 strict result.
+Only propext, Classical.choice, and Quot.sound occur.
+Layers: 72 inherited findings, zero new. Headers: no P-Ar failure;
+GoodVotes:2 remains P-Ou's inherited import-all failure.
+Added Lean lines are <=100; no proof placeholders or unsafe evaluation.
+No non-arming Outage, Claims/Statements, supplier-owner, checker, baseline,
+allowance, dependency, or shared inventory file was edited.
+No P-Ar closure input remains. The merged P-Ou hRows producer supersedes the
+old Round 6 hRows note. Handoff: scripts/dev-pkg/P-Ar.round7-handoff.md.
+Evidence: .lake/sleep-par-r7/.
+### P-Ou Round 7 — public release count API
+
+GoodVotes uses the public fgsa_releaseCount_le_senders lemma appended to Shared/Release.
+The lemma bounds the actual release witnesses by an explicit sender set. The A union W
+proof and its conclusion are unchanged. The last P-Ou import-all is removed.
+Headers have no P-Ou failure; three inherited P-Ar findings remain.
+
+### P-Ou Round 7 — scoped pre-restoration joint induction
+
+ScopedInduction:81 proves the full event induction before restoration, at an endpoint
+at or before lease expiry. Sources and named history cover all honest nodes, including W.
+Protection and post-pending duties cover G. Restart keeps durable protection and adds no
+source or duty. Releases use the fixed A union W bound; good HEADs are covered before r.
+ScopedInduction:351 supplies the seeds from the scoped certificate, P-Ar in-flight duties,
+and the P-Fd source suppliers. Tests/OutageServices:155 uses the actual Clean and P-Fd
+producers. ScopedInduction:386 gives the inclusive F and covered lease-or-F read.
+
+Induction now imports the scoped implementation. Its former all-honest ArmingCert seed
+and NoRestart lane were removed. The true empty duty seed remains. The old downstream
+continuation and Close consumers still need a port to the scoped interface. This is an
+internal proof replacement; public claims and protocol declarations are unchanged.
+
+GoodVotes:559 and ReceiverInputs:757 prove restored result compatibility from fresh
+HEAD service and compatible good targets. A good target below receiver F needs no body
+receipt: its fresh HEAD enters the late denominator. Resolved targets are identified
+with actual emitted bodies using named roots. The existing F <= B / B <= F split remains.
+The good-HEAD history and counts outside the E window remain explicit P-Ou obligations.
+This conditional result producer is not global hResults or full continuation closure.
+
+Induction is GREEN; eight P-Ou consumer roots remain EXPECTED-FAIL. P-Ou is PREPARED.
+
+### P-Ou Round 7 — export repair
+
+337c0238 replaces fullTree and controls unfolds with explicit frame/control view
+equalities. Complete GREEN exports have 325 proof modules, 253 exports, zero unaccepted
+and zero Gen exports. No checker baseline or allowance changed. The complete local
+212-command inventory and its coverage control pass.
+
+### P-Ou Round 7 — independent induction tests
+
+Tests/OutageInduction now audits the compiled scoped kernel through its production
+import. The independent disclosure, contested-frame, lease, count, and phase tests
+remain. The raw saved-result test has the actual joined-gate guard. Restart tests
+check retained obligations and protection at the exact wake time. The old empty-lock
+restart assertion was false under the approved retained-store restart. No public
+claim changes. The test module is GREEN as a kernel test; Close and the public
+exporters remain EXPECTED-FAIL and were checked separately.
+The complete local inventory now has 225 commands.
+
+### P-Ou Round 7 — final validation
+
+Proof source 181f601e. DCK P-Ou PASS: 507 GREEN roots, 42 strict audit sources,
+3,189 axiom results and all 24 default controls. Complete GREEN exports: 325 proof
+modules, 253 exports, zero unaccepted and zero Gen exports. Complete local coverage
+and its control pass for 225 commands. Layers: 72 inherited findings, zero new.
+Headers: three inherited P-Ar failures, zero P-Ou failure. No checker, baseline,
+allowance, toolchain, protocol declaration, or public claim changed.
+
+Induction and the independent Tests/OutageInduction kernel audit are GREEN.
+Seven P-Ou and two S-Ap roots remain EXPECTED-FAIL. P-Ou remains PREPARED.
+The later good-HEAD invariant, global hResults, full InclusionReceiverInputs,
+full continuation, handover and final public consumers remain open.
+Handoff: scripts/dev-pkg/P-Ou.round7-handoff.md. Evidence: .lake/sleep-pou-r7/.
