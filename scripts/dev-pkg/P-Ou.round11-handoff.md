@@ -282,8 +282,9 @@ Headers PASS with zero failures. Layers: 72 inherited findings, zero new.
 Complete GREEN exports: 340 proof modules, 253 exports, zero unaccepted, zero Gen exports.
 Local coverage: 333 commands; home-equation control PASS; zero unaccepted.
 Serial production-only audit: 297 results; only propext, Classical.choice, Quot.sound.
-Every remaining contract above elaborates in .lake/sleep-pou-r11/OpenTypes.lean.
-This checks types; it does not prove the OPEN goals.
+Correction in Round 13: OpenTypes failed at O11-OUTAGE because Claims imports were absent.
+The successful exact-contract rerun is .lake/sleep-pou-r13/Contracts.lean and contracts.log.
+That rerun proves the solved contracts and checks the unproved W seed only as a Prop.
 
 The actual public consumer build still fails in Close, ContinuationReceipt and
 ContinuationInduction. The joined export modules cannot compile through those

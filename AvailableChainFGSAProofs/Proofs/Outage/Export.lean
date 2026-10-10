@@ -229,214 +229,79 @@ theorem outage_cleanGrowthClaim_of (p : Params)
   exact clean_growth_claim_body p hcompatible hinclusion
 
 
-section OutageClaims
-
-variable
-    (hstore : ∀ {In V : Type} [DecidableEq V] (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RStore p c E rho)
-    (hframe : ∀ {In V : Type} [DecidableEq V] (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RFrameExactNext p c E rho)
-    (hstrat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-      SourceDisciplinePrem p c E rho pt → RStrat p c E rho)
-    (hsrc : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-      SourceDisciplinePrem p c E rho pt → SrcFrameAboveStmt p c E rho)
-    (hordered : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
-      CleanCutPrem p c E rho pt ΔF →
-      ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
-        SA.gateTime p.toParams r ≤ pt.b₀ → SA.gateTime p.toParams s ≤ pt.b₀ →
-        gateResult p c E rho x r = some (some B) →
-        gateResult p c E rho y s = some (some C) →
-        (r < s → Block.Preceq B C) ∧ (r = s → Block.Compatible B C))
-    (hnonempty : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
-      CleanCutPrem p c E rho pt ΔF →
-      ∀ j x s, j < timeIdx rho pt.b₀ → x ∈ rho.honest → IsGateTick p c rho j x s →
-        ∃ B, gateResultAt p c E rho j = some (some B) ∧ (s = 0 → B = .genesis))
-    (htransfer : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
-      CleanCutPrem p c E rho pt ΔF →
-      ∀ x y s B H, x ∈ rho.honest → y ∈ rho.honest →
-        SA.gateTime p.toParams s ≤ pt.b₀ → gateResult p c E rho x s = some (some B) →
-        vHead p c E rho y s = some H → Block.Preceq B H)
-    (htsrc : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-      BasePrem p c E rho pt →
-      ∀ y r C, y ∈ rho.honest → actionSource p c E rho y r = some (some C) →
-        ∃ X G, candidatesAt p c E rho y r = some X ∧ C ∈ X ∧
-          gateResult p c E rho y (r * p.R) = some (some G) ∧
-          (∀ A ∈ X, Block.Preceq A G) ∧
-          (∀ A ∈ X, fastAt p c E rho y (r * p.R) A) ∧
-          ∃ i, IsGateTick p c rho i y (r * p.R) ∧ gatePassedAt p c E rho i)
-    (hnamed : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-      BasePrem p c E rho pt →
-      ∀ i y r a, HonestRowAt p c E rho i y r a →
-        ∃ e C G, namedEntry a.payload.height_pair = some e ∧
-          actionSourceFG p c E rho y r = some (some C) ∧
-          e = ((heightView p C).h, (heightView p C).T_h.root) ∧
-          FGBlock.Preceq (heightView p C).T_h C ∧
-          gateResult p c E rho y (r * p.R) = some (some G) ∧
-          Block.Preceq (eraseFG C) G ∧ fastAt p c E rho y (r * p.R) (eraseFG C))
-    (hbelow : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
-      CleanCutPrem p c E rho pt ΔF →
-      ∀ i y, i ≤ timeIdx rho pt.b₀ → y ∈ rho.honest →
-        let below := BelowLabel p c E rho i (labelBoundAt p c rho i)
-        below (F_at p c E rho i y) ∧ below (J_at p c E rho i y) ∧
-          below (S_at p c E rho i y))
-    (hleaseOrigin : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
-      CleanCutPrem p c E rho pt ΔF →
-      ∀ i y, i ≤ timeIdx rho pt.b₀ → y ∈ rho.honest →
-        ∀ row ∈ (storeAt p c E rho i y).base.obligations,
-          ∃ q < i, ∃ s C, IsGateTick p c rho q y s ∧ gatePassedAt p c E rho q ∧
-            gateResultAt p c E rho q = some (some C) ∧ Block.Preceq row.1 C)
-    (hsavedKeep : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
-      CleanCutPrem p c E rho pt ΔF →
-      ∀ i y, i ≤ timeIdx rho pt.b₀ → y ∈ rho.honest →
-        ∀ q s C, q < i → IsGateTick p c rho q y s →
-          gateResultAt p c E rho q = some (some C) →
-          GridCO.savedGenuine (storeAt p c E rho i y).base s = some (some C))
-    (hsOrigin : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
-      CleanCutPrem p c E rho pt ΔF →
-      ∀ i y, i ≤ timeIdx rho pt.b₀ → y ∈ rho.honest →
-        S_at p c E rho i y = .genesis ∨
-        (∃ q < i, ∃ s, IsGateTick p c rho q y s ∧
-          gateResultAt p c E rho q = some (some (S_at p c E rho i y))) ∨
-        (∃ q ≤ i, S_at p c E rho i y = F_at p c E rho q y))
-    (hmono : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
-      CleanCutPrem p c E rho pt ΔF →
-      ∀ y, y ∈ rho.honest → ∀ i k, i ≤ k → k ≤ timeIdx rho pt.b₀ →
-        Block.Preceq (S_at p c E rho i y) (S_at p c E rho k y))
-    (hcleanGate : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
-      CleanCutPrem p c E rho pt ΔF →
-      ∀ r y, SA.gateTime p.toParams r ≤ pt.b₀ → y ∈ rho.honest →
-        ∃ C, gateResult p c E rho y r = some (some C) ∧
-          (∃ i, IsGateTick p c rho i y r ∧ gatePassedAt p c E rho i) ∧
-          Block.Preceq C (S_at p c E rho
-            (afterTicksIdx rho (SA.gateTime p.toParams r)) y) ∧
-          ∀ r' < r, ∀ C', gateResult p c E rho y r' = some (some C') →
-            Block.Preceq C' C)
-
-include hstore hframe hstrat hsrc htsrc hnamed hordered hnonempty htransfer hbelow
-  hleaseOrigin hsOrigin hmono hcleanGate
-
-include hsavedKeep in
-/-- ROOT-DIGEST W2b. Blueprint 03 §9. The suppliers prove the frozen OutageCompatClaim.
-The outage premise and point come from the claim binders. -/
-theorem outage_outageCompatClaim_of : OutageCompatClaim p := by
+/-- The named foundation and finite Clean producers close the scoped outage body. -/
+theorem outage_outageCompatClaim_of
+    (hfoundation : FGFoundationClaim p) (hsrc : SrcFrameAboveClaim p)
+    (hdisc : SourceDisciplineClaim p)
+    (hClean : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      {b₀ ΔF : Time}, HealthyPrefixSleep₂ p c E rho b₀ ΔF →
+      FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+      FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+      OutageCleanCutInputs (p := p) (c := c) E rho b₀) : OutageCompatClaim p := by
   intro V _ _ In c E rho fast pt ΔF h
-  have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
-  have hc : CleanCutPrem p c E rho ⟨pt.b₀⟩ ΔF := ⟨h.set.pre⟩
-  exact outage_compat_body (hstrat := hstrat c E rho ()
-    ⟨h.set.pre.base, h.set.faultQ⟩)
-    (hstore := hstore c E rho) (hframe := hframe c E rho)
-    (hsrc := hsrc c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
-    (htsrc := htsrc c E rho () hb) (hnamed := hnamed c E rho () hb)
-    (hordered := hordered c E rho ⟨pt.b₀⟩ hc)
-    (hnonempty := hnonempty c E rho ⟨pt.b₀⟩ hc)
-    (htransfer := htransfer c E rho ⟨pt.b₀⟩ hc)
-    (hbelow := hbelow c E rho ⟨pt.b₀⟩ hc)
-    (hleaseOrigin := hleaseOrigin c E rho ⟨pt.b₀⟩ hc)
-    (hsOrigin := hsOrigin c E rho ⟨pt.b₀⟩ hc)
-    (hmono := hmono c E rho ⟨pt.b₀⟩ hc)
-    (hcleanGate := hcleanGate c E rho ⟨pt.b₀⟩ hc)
-    (hsavedKeep := fun _ => hsavedKeep c E rho ⟨pt.b₀⟩ hc) h
-
-/-- ROOT-DIGEST W2b. Blueprint 03 §9. The suppliers prove the frozen FastP1Claim.
-The outage premise and point come from the claim binders. -/
-theorem outage_fastP1Claim_of : FastP1Claim p := by
-  intro V _ _ In c E rho pt ΔF h
-  have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
-  have hc : CleanCutPrem p c E rho ⟨pt.b₀⟩ ΔF := ⟨h.set.pre⟩
-  exact fast_p1_body (hstrat := hstrat c E rho ()
-    ⟨h.set.pre.base, h.set.faultQ⟩)
-    (hstore := hstore c E rho) (hframe := hframe c E rho)
-    (hsrc := hsrc c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
-    (htsrc := htsrc c E rho () hb) (hnamed := hnamed c E rho () hb)
-    (hordered := hordered c E rho ⟨pt.b₀⟩ hc)
-    (hnonempty := hnonempty c E rho ⟨pt.b₀⟩ hc)
-    (htransfer := htransfer c E rho ⟨pt.b₀⟩ hc)
-    (hbelow := hbelow c E rho ⟨pt.b₀⟩ hc)
-    (hleaseOrigin := hleaseOrigin c E rho ⟨pt.b₀⟩ hc)
-    (hsOrigin := hsOrigin c E rho ⟨pt.b₀⟩ hc)
-    (hmono := hmono c E rho ⟨pt.b₀⟩ hc)
-    (hcleanGate := hcleanGate c E rho ⟨pt.b₀⟩ hc)
-    h
-
-include hsavedKeep in
-/-- ROOT-DIGEST W2b. Blueprint 03 §9. The suppliers prove the frozen SlowP1Claim.
-The outage premise and point come from the claim binders. -/
-theorem outage_slowP1Claim_of : SlowP1Claim p := by
-  intro V _ _ In c E rho pt ΔF h
-  have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
-  have hc : CleanCutPrem p c E rho ⟨pt.b₀⟩ ΔF := ⟨h.set.pre⟩
-  exact slow_p1_body (hstrat := hstrat c E rho ()
-    ⟨h.set.pre.base, h.set.faultQ⟩)
-    (hstore := hstore c E rho) (hframe := hframe c E rho)
-    (hsrc := hsrc c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
-    (htsrc := htsrc c E rho () hb) (hnamed := hnamed c E rho () hb)
-    (hordered := hordered c E rho ⟨pt.b₀⟩ hc)
-    (hnonempty := hnonempty c E rho ⟨pt.b₀⟩ hc)
-    (htransfer := htransfer c E rho ⟨pt.b₀⟩ hc)
-    (hbelow := hbelow c E rho ⟨pt.b₀⟩ hc)
-    (hleaseOrigin := hleaseOrigin c E rho ⟨pt.b₀⟩ hc)
-    (hsOrigin := hsOrigin c E rho ⟨pt.b₀⟩ hc)
-    (hmono := hmono c E rho ⟨pt.b₀⟩ hc)
-    (hcleanGate := hcleanGate c E rho ⟨pt.b₀⟩ hc)
-    (hsavedKeepSlow := hsavedKeep c E rho ⟨pt.b₀⟩ hc) h
-
-end OutageClaims
-
-section OutageCut
-
-variable {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
-    {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
-    {fast : Bool} {pt : PtOut} {ΔF : Time}
-
-/-- ROOT-DIGEST W2b. Blueprint 03 §9. One Clean cut result supplies all nine Clean inputs.
-Monotonicity applies only up to the inclusive cut at b₀. -/
-theorem outage_compat_body_of_cut
-    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho)
-    (htsrc : ∀ y r C, y ∈ rho.honest →
-      actionSource p c E rho y r = some (some C) →
-      ∃ X G, candidatesAt p c E rho y r = some X ∧ C ∈ X ∧
-        gateResult p c E rho y (r * p.R) = some (some G) ∧
-        (∀ A ∈ X, Block.Preceq A G) ∧
-        (∀ A ∈ X, fastAt p c E rho y (r * p.R) A) ∧
-        ∃ i, IsGateTick p c rho i y (r * p.R) ∧ gatePassedAt p c E rho i)
-    (hnamed : ∀ i y r a, HonestRowAt p c E rho i y r a →
-      ∃ e C G, namedEntry a.payload.height_pair = some e ∧
-        actionSourceFG p c E rho y r = some (some C) ∧
+  have hq := h.set.pre.faultQ_of_pos (outage_cut_pos h.set.toOutage₂)
+  have hp : SourceDisciplinePrem p c E rho () := ⟨h.set.pre.base, hq⟩
+  have hf0 := hfoundation c E rho () hp
+  have hf : FGFoundation p c E rho :=
+    ⟨hf0.store, hf0.cumul, hf0.mono, hf0.frame, hf0.geo, hf0.strat, hf0.reconcile⟩
+  have hs := hsrc c E rho () hp
+  have hd := hdisc c E rho () hp
+  have hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
         e = ((heightView p C).h, (heightView p C).T_h.root) ∧
         FGBlock.Preceq (heightView p C).T_h C ∧
-        gateResult p c E rho y (r * p.R) = some (some G) ∧
-        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho y (r * p.R) (eraseFG C))
-    (hcut : CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀)
-    (h : OutagePrem p c fast E rho pt ΔF)
-    (hstrat : RStrat p c E rho) : OutageCompatAt p c E rho pt := by
-  have hl := hcut.1.2.2.2.1
-  exact outage_compat_body (hstrat := hstrat)
-    (hstore := hstore) (hframe := hframe) (hsrc := hsrc)
-    (htsrc := htsrc) (hnamed := hnamed)
-    (hordered := hcut.1.1) (hnonempty := hcut.1.2.1) (htransfer := hcut.1.2.2.1)
-    (hbelow := fun i y hi hy => ⟨(hl i y hi hy).1,
-      (hl i y hi hy).2.1, (hl i y hi hy).2.2.1⟩)
-    (hleaseOrigin := fun i y hi hy row hrow => ((hl i y hi hy).2.2.2.1 row hrow).2)
-    (hsavedKeep := fun _ i y hi hy => (hl i y hi hy).2.2.2.2.2.1)
-    (hsOrigin := fun i y hi hy => (hl i y hi hy).2.2.2.2.2.2.2)
-    (hmono := fun y hy i k hik hk => hcut.2.2.1 i k y (hik.trans hk) hk hik hy)
-    (hcleanGate := hcut.2.2.2.2.2.2) h
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C) := by
+    intro k x r a e ha he
+    obtain ⟨e', C, G, he', hC, hn, hTC, hG, hCG, hfast⟩ := hd.1.2.2 k x r a ha
+    exact ⟨C, G, hC, (Option.some.inj (he.symm.trans he')).trans hn, hTC, hG, hCG, hfast⟩
+  exact outage_compat_body hf hs hd.1.1 hnamed
+    (hClean c E rho h.set.sleepPre hq hf hs) h
 
-end OutageCut
+/-- Fast P1 is the public scoped outage projection. -/
+theorem outage_fastP1Claim_of
+    (hfoundation : FGFoundationClaim p) (hsrc : SrcFrameAboveClaim p)
+    (hdisc : SourceDisciplineClaim p)
+    (hClean : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      {b₀ ΔF : Time}, HealthyPrefixSleep₂ p c E rho b₀ ΔF →
+      FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+      FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+      OutageCleanCutInputs (p := p) (c := c) E rho b₀) : FastP1Claim p := by
+  intro V _ _ In c E rho pt ΔF h
+  exact (outage_outageCompatClaim_of p hfoundation hsrc hdisc hClean c E rho true pt ΔF h).1
+
+/-- Slow P1 includes the unchanged covered-receiver lease guarantee. -/
+theorem outage_slowP1Claim_of
+    (hfoundation : FGFoundationClaim p) (hsrc : SrcFrameAboveClaim p)
+    (hdisc : SourceDisciplineClaim p)
+    (hClean : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      {b₀ ΔF : Time}, HealthyPrefixSleep₂ p c E rho b₀ ΔF →
+      FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+      FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+      OutageCleanCutInputs (p := p) (c := c) E rho b₀) : SlowP1Claim p := by
+  intro V _ _ In c E rho pt ΔF h
+  exact outage_outageCompatClaim_of p hfoundation hsrc hdisc hClean c E rho false pt ΔF h
+
+/-- The per-run public boundary uses the same named finite Clean input bundle. -/
+theorem outage_compat_body_of_cut {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {fast : Bool} {pt : PtOut} {ΔF : Time}
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho)
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hClean : OutageCleanCutInputs (p := p) (c := c) E rho pt.b₀)
+    (h : OutagePrem p c fast E rho pt ΔF) : OutageCompatAt p c E rho fast pt :=
+  outage_compat_body hf hsrc htsrc hnamed hClean h
 
 end AvailableChain.FGSA.Run
 end

@@ -1060,3 +1060,15 @@ P-Ou ScopedBridge now constructs the finite bridge and global restored scoped
 HEADs. Same-label readers use their own frame, and subsequent labels use the
 first marker. Both event branches reach inclusive covered public reads after the
 seed. Earlier read assembly, W stable catch-up and legacy public ports remain open.
+
+P-Ou Rounds 12-13 (sleep-pou12/13): ScopedEarly proves the early reads, HEADs, F and
+duties at finite cuts; ScopedClose gives the protected Outage result under Close's own
+OutagePrem (no NoRestart, no duties_and_outputs). The finite Clean history/output
+suppliers stay at the lane boundary. ScopedArming selects fast, slow and empty-G
+certificates; ScopedJoint joins the early reads, the covered suffix and the actual W
+gate. Assembly/OutagePublicInputs builds every finite Clean field from a named
+producer; its audit module prints their axioms. Dependency order: protected Outage
+is proved from named suppliers; W suffix preservation and lease compatibility at the
+actual post-handover W gate are proved; the continuation exporter still needs
+OutageWSeed (Outage/ScopedCatchUp, O11-W-SEED); P-As assembly and the global audit
+integration remain pending.

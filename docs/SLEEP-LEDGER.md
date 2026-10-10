@@ -7210,3 +7210,52 @@ Report: claude-files/sleep-pou-report.md, Round 12. No public STOP.
 - Lead 2026-10-10 17:59: merged sleep-pou12 de637290 (P-Ou r12) as PREPARED. rev-pou12-astra: proofs pass; open record items (round 13): finish the round 11 validation-record correction; architecture note for the new Scoped* modules and boundary. Open proofs: W-SEED, both public exporters.
 
 - Lead 2026-10-10 18:09: merged P-H1 rounds 7-8 (ebbe73cc) as PREPARED: JOINED-START statements (4ad808d4, 396d90cc; RowPermission kept at GST by b021cfa3), Jst lemmas, joined-phase permanence, H6 floors, guarded assemblies, N4 release. Reviews rev-ph1h/rev-ph1i-astra: all PASS except the architecture note, added by the lead in this merge. Open: leaf factories, P5, TPerm wrapper, object services, ExecutionValid replays (P-H1 r9). Full manifest validation waits on the expected-fail Outage exporters.
+### P-Ou Round 13 — actual W gate lease input
+
+ScopedCatchUp proves outage_caught_up_gate_rows at each actual enabled gate
+with s >= restoredLabel(b1) + k. Old incompatible rows expire by handover;
+later enabled results come from the scoped event producer. No future cut,
+all-honest join or pre-GST service is required. OutageWSeed records the exact
+unchanged O11-W-SEED goal. This goal is still OPEN, P-Ou; the row proof does
+not prove stable compatibility at j+1. Build evidence: .lake/sleep-pou-r13/w-rows-tests.log.
+
+### P-Ou Round 13 — public Outage on the scoped interface
+
+ScopedArming selects fast, slow and empty-G certificates. Close uses its own
+OutagePrem and the proved protected result. Outage.Export returns the unchanged
+OutageCompatAt and P1 types. Its named Clean input record has an actual producer
+in Assembly/OutagePublicInputs; outage_public_suppliers proves OutageCompatClaim
+without a new claim premise. Clean.Export exposes two existing producer modules.
+No noRestart or duties_and_outputs call remains in Close or the public exporters.
+Producer evidence: .lake/sleep-pou-r13/assembly-suppliers.log. W seed remains OPEN.
+
+### P-Ou Round 13 — scoped continuation exporter and consumer ports
+
+ScopedJoint selects arming for each actual initial read and joins the produced
+public read, HEAD and F consumers. OutageContinuation.Export has the unchanged
+OutageContinuationClaim result and the exact OPEN O11-W-SEED input. It is GREEN
+and conditional. This is not public continuation closure.
+The six P-Ou failed consumer entries are GREEN. ContinuationJoint, Induction
+and Receipt route to the scoped producers. Retired all-honest helpers had no
+current production caller. Their original sources are retained at de637290
+and in .lake/sleep-pou-r13/legacy/. Current typed audits check the scoped types.
+P-As still must update its three Assembly/Outage callers and the Root seed call.
+Public claims, protocol and Healing files are unchanged. The package is PREPARED.
+
+### P-Ou Round 13 — validation and remaining producer
+
+Proof groups: d65236ae and b35a3548. DCK P-Ou PASS: 48 strict sources,
+3,401 results; all 24 default controls PASS. Map: 69 targets, 536 GREEN,
+two S-Ap EXPECTED-FAIL entries. Headers PASS: 1,744 library files.
+Layers: 72 inherited findings, zero new. Complete GREEN exports: 375 proof
+modules, 253 exports, zero unaccepted. Local coverage: 367 rows, zero unaccepted.
+Production-only serial audit: 329 results; standard axioms only.
+All cited evidence is saved in .lake/sleep-pou-r13/.
+The OpenTypes claim from Round 11 is corrected. The exact Contracts rerun passes
+with Claims imports; it checks the unproved W seed only as a Prop.
+Handoff: scripts/dev-pkg/P-Ou.round13-handoff.md. Report: Round 13.
+Both exporters are GREEN. O11-W-SEED remains OPEN, P-Ou; the continuation exporter
+is conditional. P-As has three Outage caller repairs and the Root seed port.
+The full Round 13 task is incomplete. P-Ou is PREPARED; no public STOP is asserted.
+
+- Lead 2026-10-10 18:40: merged sleep-pou13 8bd2d9d7 (P-Ou r13) as PREPARED: outage supplier proved, both public exporters GREEN, continuation exporter conditional only on OutageWSeed. rev-pou13-astra: all pass except the architecture record (added by the lead in this merge). OutageWSeed truth check: wseed-derisk-astra.
