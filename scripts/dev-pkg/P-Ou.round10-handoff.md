@@ -1,6 +1,6 @@
 # P-Ou Round 10 handoff
 
-Base: aef1dd45. Branch: sleep-pou10.
+Base: aef1dd45. Branch: sleep-pou10. Proof group: dada200f.
 P-Ou is PREPARED, not CLOSED. The complete Round 10 task is incomplete.
 Public claims and protocol declarations are unchanged.
 
@@ -117,7 +117,15 @@ early-marker finite cut follows a HEAD used by the next gate, and exclude an
 asleep deterministic read from actual regression selection. These are checked
 scope regressions, not complete ExecutionValid counterexample runs.
 
-Validation results and commit hashes are in the Round 10 report.
+56 TARGETS; 517 GREEN; eight EXPECTED-FAIL (six P-Ou and two S-Ap).
+DCK P-Ou PASS: 44 strict sources, 3,265 results, all 24 default controls PASS.
+Headers PASS: zero failures. Layers: 72 inherited findings, zero new.
+Complete GREEN exports: 336 proof modules, 253 exports, zero unaccepted, zero Gen exports.
+Local coverage: 301 commands, home-equation control PASS, zero unaccepted.
+Serial production-only audit: 267 strict results, only the three standard axioms.
+All changed/new proof modules and the eight guard regressions compile at default heartbeats.
+The public consumer build was attempted and still fails at inherited legacy ports.
+Proof group: dada200f. Final validation record: the subsequent documentation commit.
 Evidence: .lake/sleep-pou-r10/. No checker, baseline, allowance, toolchain,
 heartbeat, public claim or protocol source is changed.
 

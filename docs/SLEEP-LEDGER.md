@@ -6890,3 +6890,17 @@ P-Ou and two S-Ap EXPECTED-FAIL entries remain. P-Ou is PREPARED, not CLOSED.
 The complete Round 10 task is incomplete. Public claims and protocol declarations
 are unchanged. No new cross-package supplier request or public STOP is claimed.
 Exact goals and the 124-row scope table: scripts/dev-pkg/P-Ou.round10-handoff.md.
+
+### P-Ou Round 10 — final validation
+
+Proof group: dada200f, base aef1dd45, branch sleep-pou10.
+DCK P-Ou PASS: 44 strict sources, 3,265 results, all 24 default controls PASS.
+Map: 56 TARGETS, 517 GREEN, eight EXPECTED-FAIL (six P-Ou, two S-Ap).
+Headers PASS, zero failures. Layers: 72 inherited findings, zero new.
+Complete GREEN exports: 336 proof modules, 253 exports, zero unaccepted, zero Gen exports.
+Local coverage: 301 commands, home-equation control PASS, zero unaccepted.
+Serial production-only audit: 267 strict results, standard axioms only.
+The public consumers were attempted; Close and ContinuationInduction still fail
+at removed NoRestart projections and old all-honest induction calls.
+No complete exporter or public claim is marked closed. P-Ou remains PREPARED.
+Evidence: .lake/sleep-pou-r10/. Exact remaining goals: P-Ou.round10-handoff.md.
