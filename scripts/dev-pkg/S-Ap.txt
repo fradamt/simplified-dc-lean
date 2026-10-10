@@ -1,4 +1,4 @@
-# S-Ap Round 3: public suppliers and serial Foundations exports.
+# S-Ap Round 4: public suppliers and the P15-CUT receipt repair.
 [TARGETS]
 AvailableChainFGCompose.Proofs.SafetyClient
 AvailableChainFGCompose.Proofs.SafetyMonotone
@@ -76,6 +76,8 @@ AvailableChainFGSAProofs.Proofs.Foundations.RowService
 AvailableChainFGSAProofs.Proofs.Foundations.Sources
 AvailableChainFGSAProofs.Proofs.Foundations.Store
 AvailableChainFGSAProofs.Proofs.Foundations.Timing
+AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
+AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
 AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
@@ -83,6 +85,7 @@ AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces
 AvailableChainFGSAProofs.Statements.WeakContinuation
 AvailableChainFGSAProofs.Tests.Axioms
 AvailableChainFGSAProofs.Tests.FGSafety
+AvailableChainFGSAProofs.Tests.OutageArming
 AvailableChainFGSAProofs.Tests.OutageContinuationInhabit
 AvailableChainFGSAProofs.Tests.P23Axioms
 AvailableChainFGSAProofs.Tests.RowPermission
@@ -349,6 +352,8 @@ AvailableChainFGSAProofs.Proofs.Foundations.RowService
 AvailableChainFGSAProofs.Proofs.Foundations.Sources
 AvailableChainFGSAProofs.Proofs.Foundations.Store
 AvailableChainFGSAProofs.Proofs.Foundations.Timing
+AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
+AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
 AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 AvailableChainFGSAProofs.Proofs.Shared.Channels
 AvailableChainFGSAProofs.Proofs.Shared.FGCompose
@@ -359,6 +364,7 @@ AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
 AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
 AvailableChainFGSAProofs.Proofs.Shared.Reads
 AvailableChainFGSAProofs.Proofs.Shared.Recurrence
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore
 AvailableChainFGSAProofs.Proofs.Shared.Roots
 AvailableChainFGSAProofs.Proofs.Shared.RowAuth
@@ -366,6 +372,7 @@ AvailableChainFGSAProofs.Proofs.Shared.RowReads
 AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces
 AvailableChainFGSAProofs.Statements.WeakContinuation
+AvailableChainFGSAProofs.Tests.OutageArming
 AvailableChainFGSAProofs.Tests.P23Axioms
 AvailableChainFGSAProofs.Tests.SharedAxioms
 AvailableChainFGSARun
