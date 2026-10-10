@@ -46,6 +46,40 @@ theorem healing_selected_carriers_recovery (E : Generic.Env V)
   · intro K hK he hFloor
     exact service K hK (Bool.or_eq_true_iff.mpr (Or.inr hFloor))
 
+/-- Select one source HEAD witness and serve it only under each receiver's floor. -/
+theorem healing_head_witness_receipts_recovery (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hhor : SA.voteTime p.toParams s + p.Δ ≤ rho.horizon) :
+    HeadWitnessReceiptScope E rho i x s := by
+  obtain ⟨K, hK, heK, W, hW, hKW, hlo⟩ := healing_full_witness_all p c E rho
+    hrec.base.valid.toScheduleWellFormed crossing hx hi
+  have hW0 : W ∈ (storeAt p c E rho i x).fg.TF := by
+    change W ∈ (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)).fg.TF at hW
+    rwa [clock_fg] at hW
+  refine ⟨K, hK, heK, W, hW0, hKW, ?_, ?_⟩
+  · change (controls p (clock p (storeAt p c E rho i x)
+      (SA.voteTime p.toParams s))).lo ≤ _ at hlo
+    have he : controls p (clock p (storeAt p c E rho i x)
+        (SA.voteTime p.toParams s)) = R_at p c E rho i x := by
+      change KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg = _
+      rw [clock_fg]
+      rfl
+    exact he ▸ hlo
+  · constructor
+    intro iy y t hy _ _ _ hf
+    have hpub : V2.PublicTime E (SA.voteTime p.toParams s) := by
+      refine ⟨4 * s + 1, ?_⟩
+      rw [hrec.base.delta]
+      change 4 * p.Δ * (s : Int) + p.Δ = _
+      push_cast; ring
+    exact healing_target_service_of_tick E rho hrec hx hy hi
+      (((storeBundle_stateBefore E rho i x).cstore.baseTree _).mpr ⟨W, hW0, rfl⟩)
+      hpub hSync hhor (block_compatible_of_common (block_preceq_refl _) hf)
+
 /-- The joined recurrence supplies the proposal gap on the healing start domain. -/
 theorem healing_proposal_gap (hrec : RecoverySleep₂ p c E rho G ΔF) :
     ProposalGap p c E rho G := by

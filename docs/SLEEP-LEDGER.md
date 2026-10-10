@@ -7388,3 +7388,28 @@ The aggregate H1 RecoveryProducers fails at 528/531 on this base; indexed heads 
 phase/relay factories remain explicit named obligations. The package is PREPARED,
 not CLOSED. Search and post-reset validation continues in the following group.
 Public statements, attempt sums and GST saved-window bounds are unchanged.
+
+P-H2 Round 7 search/attempt ports: the named selected phase receipt producer replaces
+the heldServices callback throughout the search and four attempt rows. The named
+self-proposal service replaces the search promotion callback. Attempt's outer
+assembler now passes the exact opening/repair scopes and the enabled last-write
+guard. The three required signature adapters compile. Evidence: core-audit-build.log,
+gate-search-probe7.log. The new audit gains two consumer commands. Post-reset work
+continues as a separate group; no new producer is claimed for all-cut induction.
+
+P-H2 Round 7 post-reset leaf ports: ordinary/reset delivery uses the named recovery
+adapters. The R-contract uses healing_rPhase_recovery and the durable provenance
+producer. H6 asks for the actual post-GST enabled gate receipt under its selected
+geometry. H2-prime uses the original accepted proposal at the early anchor, a
+freeze-to-read epoch, and the actual joined next reader. Equal-label high-source
+compatibility uses fgsa_sameLabel_serviceScope. Loss and next-transfer scopes stay
+explicit H1 primitive obligations. The selected HEAD receipt producer closes the
+standalone HeadWitnessReceiptScope request; the unused opening carrier field is removed.
+
+Validation: ports-final-build.log and receipt-final-probe.log pass with --wfail.
+The first DCK pass has 43 strict sources, 3,394 results, and all 24 controls. A final
+DCK follows the last audit/map update. No all-cut producer is claimed closed.
+Remaining all-cut opening/cone/raw/lease adapters stay OPEN/P-H2. In particular,
+PostResetOpening still calls legacy global-epoch geometry; it requires a separate
+port to selected retained services. No H1 module, public claim, constant, checker
+allowance or baseline was changed.

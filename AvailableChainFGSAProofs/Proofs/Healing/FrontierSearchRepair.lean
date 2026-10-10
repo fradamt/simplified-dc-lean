@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
 public import AvailableChainFGSAProofs.Proofs.Healing.Frame
@@ -6,6 +7,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportFrame
 
 public section
 
@@ -205,10 +208,6 @@ theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho) (monoAll : RMonoAll p
       c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
-      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
-      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
     (repair : TRepair p c E rho)
     {i m : Nat} {ev : V2.Event V (Obj p)}
     (hstart : FrontierSearchStart p c E rho i ev m .contest)
@@ -236,7 +235,8 @@ theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
     · exact Or.inr (Or.inl h)
   obtain ⟨J, hp, _⟩ := healing_settle_start_on (hroots := hrec.base.receiptIdealization)
     p c E rho crossing hrec.base.valid monoAll hrec
-    (healing_ready_read_cutoff E) heldServices i ev _ m .contest hi hgst0
+    (fun _ ht => healing_ready_read_cutoff E ht)
+    (healing_phase_witness_receipts_recovery E rho hrec) i ev _ m .contest hi hgst0
     (by change ev.time + 3 * p.Δ ≤ ev.time + (ρbar + 3 * p.Δ); linarith)
     hhor hm hfront hkind hquiet
   have hgst : recoveryStart p E ≤ ev.time + 3 * p.Δ := by linarith [p.deltaPos]
@@ -245,8 +245,11 @@ theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
   have hgateD : SA.gateTime p.toParams q ≤ ev.time + (ρbar + 3 * p.Δ) := by linarith
   obtain ⟨j, Qfg, _, _, hErase⟩ := healing_rise_one_gate_copy p c E rho hsched he
     (hgateD.trans hhor) hQ.1.2
-    (healing_recovery_gate_reader hrec hQ.1.2 (hgst.trans (frontierSearch_seed_after E
-      hseed)) (hgateD.trans hhor))
+    (healing_recovery_gate_reader hrec hQ.1.2 (by
+      have hGST : E.t_GST ≤ recoveryStart p E := by
+        have := healing_recovery_start_lower (p := p) E
+        linarith [p.deltaPos]
+      exact hGST.trans (hgst.trans (frontierSearch_seed_after E hseed))) (hgateD.trans hhor))
   obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec crossing hgst hp
     (frontierSearch_seed_after E hseed) hgateD hQ hErase he
   have hh : (heightView p Qfg).h = m := Nat.le_antisymm hhi hlo

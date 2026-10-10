@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
 public section
 
@@ -62,7 +63,7 @@ theorem postReset_selected_supporting_head [Fintype V] {G ΔF : Time}
 
 section Sources
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (cap : RCap p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (cap : RCap p c E rho)
     (source : TSrc p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
       (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
@@ -125,27 +126,52 @@ theorem postReset_tHigh_pairwise (inv : ∀ i, PostResetInv p c E rho w i) :
       (hh : high p w C) (hlt : r < r') :
       Block.Compatible (eraseFG C) (eraseFG C') := by
     obtain ⟨z, H, hz, hH, hC'H⟩ :=
-      postReset_selected_supporting_head p c E rho hrec source hy hC'
+      postReset_selected_supporting_head p c E rho hrec.toRecovery₂ source hy hC'
     have hlabel : r * p.R + 1 ≤ r' * p.R := by
       have hm := Nat.mul_le_mul_right p.R (Nat.succ_le_of_lt hlt)
       have hR := p.RLarge
       rw [Nat.succ_mul] at hm
       omega
-    have hCH := (postReset_h2A_reset p c E rho hrec cap source rowCovered h0r inv
-      x r C hx hC hh).1 z (r' * p.R) H hz hlabel hH
+    have hCut : E.t_GST ≤ slotStartZ p (((r' * p.R : Nat) : Int) - 1) := by
+      have hlabel0 := postReset_selected_label p c E rho rowCovered hrec.toRecovery₂ cap
+        h0r hx hC hh
+      have hbase := healing_ready_vote_cutoff E (healing_reset_source_ready h0r)
+      have hI : (w.sStar : Int) ≤ (r' * p.R : Nat) := by
+        have hle := Nat.mul_le_mul_right p.R (Nat.le_of_lt hlt)
+        exact_mod_cast hlabel0.trans hle
+      change E.t_GST ≤ 4 * p.Δ * ((w.sStar : Int) - 1) at hbase
+      change E.t_GST ≤ 4 * p.Δ * (((r' * p.R : Nat) : Int) - 1)
+      nlinarith [p.deltaPos]
+    have hHhor : SA.voteTime p.toParams (r' * p.R) ≤ rho.horizon := by
+      have h := hH
+      unfold headAtLabel at h
+      rw [postClock_def, preTick_def] at h
+      cases hi : V2.D.Run.tickIdx? rho z (SA.voteTime p.toParams (r' * p.R)) with
+      | none => simp only [hi, Option.map_none] at h; cases h
+      | some k => exact (hrec.base.valid.toScheduleWellFormed.in_horizon _
+          (List.mem_of_getElem? (V2.D.Run.tickIdx?_spec hi))).2
+    have hSync : E.t_GST ≤ SA.voteTime p.toParams (r' * p.R) := by
+      apply le_trans hCut
+      change 4 * p.Δ * (((r' * p.R : Nat) : Int) - 1) ≤
+        4 * p.Δ * ((r' * p.R : Nat) : Int) + p.Δ
+      linarith [p.deltaPos]
+    have hCH := (postReset_h2A_reset p c E rho hrec.toRecovery₂ cap source rowCovered h0r inv
+      x r C hx hC hh).1 z (r' * p.R) H
+      ⟨hz, healing_recovery_joined E rho hrec hz hCut hSync hHhor⟩ hlabel hH
     exact Gen.Pure.block_compatible_of_common hCH hC'H
   intro x y r r' C C' hx hy hC hC' hh hh'
   rcases lt_trichotomy r r' with hlt | heq | hgt
   · exact later hx hy hC hC' hh hlt
   · subst r'
     obtain ⟨B, hB, hCB, hj⟩ :=
-      postReset_source_gate_result p c E rho hrec cap source rowCovered h0r hx hC hh
+      postReset_source_gate_result p c E rho hrec.toRecovery₂ cap source rowCovered h0r hx hC hh
     obtain ⟨B', hB', hC'B', -⟩ :=
-      postReset_source_gate_result p c E rho hrec cap source rowCovered h0r hy hC' hh'
-    have hc := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
-        hrec.base.noRestart
-      hrec.base.delta (r * p.R) (thigh_label_sync p c E rho hrec h0r hC hj)
-      x y B B' hx hy hB hB'
+      postReset_source_gate_result p c E rho hrec.toRecovery₂ cap source rowCovered h0r hy hC' hh'
+    have hSame := fgsa_sameLabel_serviceScope E rho hrec.base.valid
+      hrec.base.restartsAtWakes hrec.base.delta (r * p.R)
+      (thigh_label_sync p c E rho hrec h0r hC hj)
+    have hc := fgsa_sameLabel_on p c E rho hrec.base.valid (r * p.R) hSame
+      hrec.base.idealization x y B B' hx hy hB hB'
     change (Block.preceq B B' || Block.preceq B' B) = true at hc
     rcases Bool.or_eq_true_iff.mp hc with hc | hc
     · exact Gen.Pure.block_compatible_of_common
@@ -163,7 +189,8 @@ end Sources
 
 section Reset
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (lossScopes : LossServiceScope p c E rho) (mono : RMonoAll p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -182,6 +209,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -191,7 +219,7 @@ variable [Fintype V] {G ΔF : Time}
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r
+include hrec lossScopes mono emittedNonempty emittedName writes xing origin h0r
 
 variable (cap : RCap p c E rho) (source : TSrc p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
@@ -221,9 +249,25 @@ theorem postReset_tHigh_reset (inv : ∀ i, PostResetInv p c E rho w i) :
   intro x y r r' C C' hx hy hC hC' hh hh'
   exact ⟨postReset_tHigh_pairwise p c E rho hrec cap source rowCovered h0r inv
       x y r r' C C' hx hy hC hC' hh hh',
-    postReset_selected_reset_compatible p c E rho hrec mono emittedNonempty emittedName
-      writes xing origin h0r cap source rowCovered hx hC hh,
-    postReset_selected_label p c E rho rowCovered hrec cap h0r hx hC hh⟩
+    postReset_selected_reset_compatible p c E rho hrec lossScopes mono emittedNonempty
+      emittedName writes xing origin h0r
+      (fgsa_sameLabel_serviceScope E rho hrec.base.valid hrec.base.restartsAtWakes
+        hrec.base.delta w.sStar (by
+          have h := h0r.synchronous
+          have hd : SA.voteTime p.toParams w.sStar + E.Δ ≤ SA.gateTime p.toParams w.sStar := by
+            rw [hrec.base.delta]
+            change 4 * p.Δ * (w.sStar : Int) + p.Δ + p.Δ ≤
+              4 * p.Δ * (w.sStar : Int) + 6 * p.Δ
+            linarith [p.deltaPos]
+          exact Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
+            hrec.sync (fgsaDelay_nonrow E.Δ _) h hd
+            (by
+              obtain ⟨j, y, a, C0, ha, _⟩ := h0r.fresh
+              have hh := (hrec.base.valid.toScheduleWellFormed.in_horizon _
+                (List.mem_of_getElem? ha.2.1)).2
+              change SA.gateTime p.toParams (w.rStar * p.R) ≤ rho.horizon at hh
+              simpa only [h0r.label] using hh))) cap source rowCovered hx hC hh,
+    postReset_selected_label p c E rho rowCovered hrec.toRecovery₂ cap h0r hx hC hh⟩
 
 end Reset
 

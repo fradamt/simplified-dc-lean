@@ -2,12 +2,19 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairCover
+public import AvailableChainFGSAProofs.Proofs.Healing.Attempt
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
+public import AvailableChainFGSAProofs.Proofs.Healing.PostReset
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
 
 public section
 
 /-! Strict audit of the round-seven selected services and bounded consumers. -/
 
 #print axioms AvailableChain.FGSA.Run.healing_selected_carriers_recovery
+#print axioms AvailableChain.FGSA.Run.healing_head_witness_receipts_recovery
 #print axioms AvailableChain.FGSA.Run.healing_self_proposal_service
 #print axioms AvailableChain.FGSA.Run.repair_lease_cover_two_at
 #print axioms AvailableChain.FGSA.Run.repair_lease_cover_one_at
@@ -22,5 +29,14 @@ public section
 #print axioms AvailableChain.FGSA.Run.healing_phase_block_receipt_recovery
 #print axioms AvailableChain.FGSA.Run.healing_evidence_spread_recovery
 #print axioms AvailableChain.FGSA.Run.healing_rPhase_recovery
+
+#print axioms AvailableChain.FGSA.Run.healing_progressAttempt
+#print axioms AvailableChain.FGSA.Run.healing_frontierSearch
+
+#print axioms AvailableChain.FGSA.Run.healing_healTContract_reset
+#print axioms AvailableChain.FGSA.Run.healing_healRContract_reset
+#print axioms AvailableChain.FGSA.Run.healing_postReset_h6GateService
+#print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset
+#print axioms AvailableChain.FGSA.Run.postReset_tHigh_reset
 
 end

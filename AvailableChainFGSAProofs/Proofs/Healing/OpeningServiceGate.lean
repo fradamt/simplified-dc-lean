@@ -29,11 +29,6 @@ structure OpeningServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   gates : ∀ i x s, x ∈ rho.honest → IsGateTick p c rho i x s → enabledGateAt p c E rho i x s →
     E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
     SA.gateTime p.toParams s ≤ rho.horizon → GateReceiptScope E rho i x s
-  carriers : ∀ j x s, x ∈ rho.honest →
-    rho.events[j]? = some (.tick x (SA.voteTime p.toParams s)) →
-    joinedNow p (clock p (storeAt p c E rho j x) (SA.voteTime p.toParams s)) = true →
-    E.t_GST ≤ SA.voteTime p.toParams s →
-    SA.voteTime p.toParams s + p.Δ ≤ rho.horizon → HeadWitnessReceiptScope E rho j x s
   transfers : ∀ u v m J contested, recoveryStart p E ≤ u →
     PhaseInterval p c E rho u v m J contested → ∀ ix iy x s B,
     u ≤ SA.voteTime p.toParams s → SA.gateTime p.toParams s ≤ v →

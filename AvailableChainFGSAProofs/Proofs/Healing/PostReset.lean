@@ -4,7 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
-public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
 
@@ -27,9 +27,14 @@ B1/B13/B17/B31. DC: SAME seven fields from their Healing producers.
 The reset adapter uses each public H0 only through toH0Reset.
 The unused _h0r input stays for signature uniformity. -/
 theorem healing_healTContract_reset [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (xing : RXing p c E rho) (cap : RCap p c E rho)
     (source : TSrc p c E rho) (origin : RQCOrigin p c E rho)
+    (repairScopes : RepairServiceScopes E rho)
+    (openingScopes : OpeningServiceScopes E rho)
+    (frontierScopes : ∀ (q : Slot) (v : Time),
+      recoveryStart p E ≤ SA.proposalTime p.toParams q →
+      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -40,6 +45,7 @@ theorem healing_healTContract_reset [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -57,12 +63,14 @@ theorem healing_healTContract_reset [Fintype V] {G ΔF : Time}
           some ((heightView p C).h, (heightView p C).T_h.root))
     {w : HealingWitness} (_h0r : H0Reset p c E rho w) : HealTContract p c E rho w := by
   exact
-    { del := healing_tDel E rho hrec source mono
-      delReset := healing_tDelReset_of_reset E rho hrec xing cap source mono w
-      perm := healing_tPerm E rho hrec mono xing writes
-      repair := healing_tRepair E rho hrec mono xing origin writes
-      common := healing_tCommon E rho hrec mono xing writes rowCoverage
-      frontier := frontier_service E rho hrec mono xing writes rowCoverage
+    { del := healing_tDel_recovery E rho hrec source mono
+      delReset := healing_tDelReset_recovery E rho hrec source mono w
+        (fun h0 _ => healing_low_finality_at_reset_reset E rho hrec.toRecovery₂
+          xing cap source w h0)
+      perm := healing_tPerm E rho hrec mono xing writes openingScopes.permanence
+      repair := healing_tRepair E rho hrec mono xing origin repairScopes writes
+      common := healing_tCommon E rho hrec mono xing openingScopes writes rowCoverage
+      frontier := frontier_service E rho hrec mono xing frontierScopes writes rowCoverage
       geom := healing_tGeom p c E rho hrec.base.valid.toScheduleWellFormed }
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -80,7 +88,7 @@ theorem healing_rKeep_of_reset (xing : RXing p c E rho) (origin : RQCOrigin p c 
 ROOT-DIGEST W2b. Blueprint 21 H.17/H.18:2946–3095; plan J9 B; B1/B13/B17/B31.
 DC: SAME both provenance clauses. The seven named inputs have J4's types.
 Consume H0 only through toH0Reset; no first-proposal field is read. -/
-theorem healing_rFProv_of_reset (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+theorem healing_rFProv_of_reset (hv : V2.D.ExecutionValid E rho)
     (origin : RQCOrigin p c E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
       ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
@@ -102,7 +110,7 @@ theorem healing_rFProv_of_reset (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoR
     (xing : RXing p c E rho) (w : HealingWitness)
     (hroots : NamedRootCollisionFree p c E rho) : RFProv p c E rho w := by
   intro h0
-  exact postReset_rFProv_reset (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead xing
+  exact postReset_rFProv_reset (hroots := hroots) p c E rho hv origin heldRows cap hhead xing
     h0.toH0Reset
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -110,10 +118,9 @@ ROOT-DIGEST W2b. Blueprint 21 H.13–H.18:2668–3095; plan J9 B; B1/B13/B17/B18
 DC: SAME six fields. Crossing and capacity are named channels;
 phase and descent use their producers, keep and provenance use the H0 adapters.
 The unused _h0r input stays for signature uniformity. -/
-theorem healing_healRContract_reset (hv : V2.D.ExecutionValid E rho)
-    (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ) {ΔF : Time}
-    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    (mono : RMono p c E rho) (xing : RXing p c E rho) (cap : RCap p c E rho)
+theorem healing_healRContract_reset [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    (xing : RXing p c E rho) (cap : RCap p c E rho)
     (origin : RQCOrigin p c E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
       ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
@@ -138,10 +145,10 @@ theorem healing_healRContract_reset (hv : V2.D.ExecutionValid E rho)
   exact
     { xing := xing
       cap := cap
-      phase := healing_rPhase (hroots := hroots) p c E rho mono xing hv hnr hdelta hsync
+      phase := healing_rPhase_recovery E rho hrec mono xing
       excl := healing_rExcl (hroots := hroots) p c E rho xing origin
       keep := healing_rKeep_of_reset (hroots := hroots) p c E rho xing origin inv
-      fprov := healing_rFProv_of_reset (hroots := hroots) p c E rho hv hnr origin heldRows
+      fprov := healing_rFProv_of_reset (hroots := hroots) p c E rho hrec.base.valid origin heldRows
         finalityCap hhead xing w }
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

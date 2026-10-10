@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
 
 public section
@@ -126,10 +127,7 @@ All repair labels and phase advances are proved from the standing inputs. -/
 theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
-      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
-      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
+    (crossing : RXing p c E rho)
         (origin : RQCOrigin p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (perm : TPerm p c E rho)
@@ -206,16 +204,16 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
         cases kind with
         | gap =>
           rw [interruptedRepairBudget_gap] at hpHor ⊢
-          exact frontier_hg3_gap E rho hrec crossing mono heldServices repair common hδ hbound perm
+          exact frontier_hg3_gap E rho hrec crossing mono repair common hδ hbound perm
             rowsReceipt progressCoverage hfold faultQ honestQuorum hstart mode hpHor
         | topJ =>
           rw [interruptedRepairBudget_topJ] at hpHor ⊢
-          exact frontier_hg3_topJ E rho hrec crossing mono heldServices origin repair common
+          exact frontier_hg3_topJ E rho hrec crossing mono origin repair common
             hδ hbound
             perm rowsReceipt progressCoverage hfold faultQ honestQuorum hstart mode hpHor
         | contest =>
           rw [interruptedRepairBudget_contest] at hpHor ⊢
-          exact frontier_hg3_contest E rho hrec crossing mono heldServices repair hstart mode hpHor
+          exact frontier_hg3_contest E rho hrec crossing mono repair hstart mode hpHor
       rcases (frontierHG3Result_iff p c E rho i m ev.time _).mp result with
           hphase | hrise | ⟨t, hwt, ht, hserved⟩
       · obtain ⟨j, nextEv, nextKind, hij, ht, hnext, hrank⟩ :=

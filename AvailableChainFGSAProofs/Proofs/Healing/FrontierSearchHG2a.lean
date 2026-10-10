@@ -110,15 +110,6 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (mono : RMonoAll p c E rho)
-    (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
-      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
-      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-      E.t_GST ≤ SA.proposalTime p.toParams s →
-      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
-      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
-        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
-      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
-        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (crossing : RXing p c E rho) (frontier : TFrontier p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
       max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
@@ -222,7 +213,7 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
     have hh := promotion_age_advance_of_source E rho hrec.toRecovery₂ src hδ hbound
       rowsReceipt progressCoverage hfold faultQ honestQuorum
     obtain ⟨y, hy, hheld⟩ := healing_promotion_first_receipt_of_frontierCap E rho hrec.toRecovery₂
-      crossing (proposalServices s) hnew hgsts hQX
+      crossing (healing_self_proposal_service hrec s) hnew hgsts hQX
       (fun k x hk hx => hcap k x
         (hk.trans (healing_phase_idxBefore_mono p c rho hterminal)) hx)
       hQm (hterminal.trans hhor)

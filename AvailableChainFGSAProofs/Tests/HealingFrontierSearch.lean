@@ -8,6 +8,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (examples)
 
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep (S5 tests)
 
 set_option linter.privateModule false
@@ -80,6 +81,9 @@ example {m r : Nat} (hr : HeightRow p c E rho r m)
 example [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
+    (scopeProducer : ∀ (q : Slot) (v : Time),
+      recoveryStart p E ≤ SA.proposalTime p.toParams q →
+      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -117,11 +121,11 @@ example [Fintype V] (E : Generic.Env V)
         frontierAtIdx p c E rho j = frontierAtIdx p c E rho (j + 1) := by
   refine ⟨?_, hsame⟩
   simpa only [hhor] using
-    healing_frontierTail_row E rho hrec mono crossing cap writes rowCoverage hserved hhor.le
+    healing_frontierTail_row E rho hrec mono crossing cap scopeProducer writes rowCoverage
+      hserved hhor.le
 
 -- Same-frontier stops advance the phase under the actual phase-order producer.
 example (crossing : RXing p c E rho) (mono : RMonoAll p c E rho)
-    (hnr : V2.D.NoRestart rho)
     (hs : V2.D.ScheduleWellFormed E rho) {i m : Nat} {kind : PhaseKind}
     {ev : V2.Event V (Obj p)} {deadline : Time}
     (hstart : FrontierSearchStart p c E rho i ev m kind)
@@ -129,11 +133,12 @@ example (crossing : RXing p c E rho) (mono : RMonoAll p c E rho)
     ∃ j nextEv nextKind, i < j ∧ nextEv.time ≤ deadline ∧
       FrontierSearchStart p c E rho j nextEv m nextKind ∧
       frontierSearch_phaseRank nextKind > frontierSearch_phaseRank kind :=
-  frontierSearch_phase_step_of_crossing p c E rho crossing mono hnr hs hstart hstop
+  frontierSearch_phase_step_of_crossing p c E rho crossing mono hs hstart hstop
 
 section PhaseApplications
 variable [Fintype V] {G ΔF ρbar : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (perm : TPerm p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
@@ -152,7 +157,7 @@ example {i : Nat} {ev : V2.Event V (Obj p)}
     (mode : FrontierRepairStart p E G (ev.time + 3 * p.Δ) ρbar)
     (hhor : ev.time + E_gF p ΔF G ρbar = rho.horizon) :
     FrontierHG3Result p c E rho i 1 ev.time rho.horizon := by
-  simpa only [hhor] using frontier_hg3_gap E rho hrec crossing repair common hδ hbound perm
+  simpa only [hhor] using frontier_hg3_gap E rho hrec crossing mono repair common hδ hbound perm
     rowsReceipt progressCoverage hfold faultQ honestQuorum hstart mode hhor.le
 
 example (origin : RQCOrigin p c E rho) {i m : Nat} {ev : V2.Event V (Obj p)}
@@ -160,7 +165,7 @@ example (origin : RQCOrigin p c E rho) {i m : Nat} {ev : V2.Event V (Obj p)}
     (mode : FrontierRepairStart p E G (ev.time + 3 * p.Δ) ρbar)
     (hhor : ev.time + E_jF p ΔF G ρbar = rho.horizon) :
     FrontierHG3Result p c E rho i m ev.time rho.horizon := by
-  simpa only [hhor] using frontier_hg3_topJ E rho hrec crossing origin repair common
+  simpa only [hhor] using frontier_hg3_topJ E rho hrec crossing mono origin repair common
     hδ hbound perm rowsReceipt progressCoverage hfold faultQ honestQuorum hstart mode hhor.le
 
 example {i m : Nat} {ev : V2.Event V (Obj p)}
@@ -168,7 +173,7 @@ example {i m : Nat} {ev : V2.Event V (Obj p)}
     (mode : FrontierRepairStart p E G (ev.time + 3 * p.Δ) ρbar)
     (hhor : ev.time + (ρbar + 3 * p.Δ) = rho.horizon) :
     FrontierHG3Result p c E rho i m ev.time rho.horizon := by
-  simpa only [hhor] using frontier_hg3_contest E rho hrec crossing repair hstart mode hhor.le
+  simpa only [hhor] using frontier_hg3_contest E rho hrec crossing mono repair hstart mode hhor.le
 
 -- The two-sided top-J bound remains intact.
 example (hF : 0 ≤ ΔF) : E_j p G ρbar ≤ E_jF p ΔF G ρbar ∧
@@ -183,7 +188,7 @@ example [Fintype V] {ΔF : Time} (_hrec : RecoverySleep₂ p c E rho (12 * p.Δ)
 
 -- GUP r2: every unaligned recovery regime supplies the internal aligned regime.
 example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) :
-    Recovery₂Aligned p c E rho (Γ p G) ΔF := recovery₂_roundUp hrec
+    Recovery₂Aligned p c E rho (Γ p G) ΔF := recovery₂_roundUp hrec.toRecovery₂
 
 example : ¬ (∀ d a horizon : Int, d ≤ a → a ≤ d + (8 - 4) →
     d + (2 * 8 + 8 - 9) ≤ horizon → a + 2 * 8 + 8 - 9 ≤ horizon) :=
@@ -287,6 +292,9 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
     (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
     (origin : RQCOrigin p c E rho) (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (perm : TPerm p c E rho) (frontier : TFrontier p c E rho)
+    (scopeProducer : ∀ (q : Slot) (v : Time),
+      recoveryStart p E ≤ SA.proposalTime p.toParams q →
+      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -325,7 +333,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 
 example {r m : Nat} {s : Slot} {U X : FGBlock (Fin p.n)}
     (src : PromotionSourceAt p c E rho ΔF r m U s X) : m + 1 ≤ (heightView p X).h :=
-  promotion_age_advance_of_source E rho hrec src hδ hbound rowsReceipt
+  promotion_age_advance_of_source E rho hrec.toRecovery₂ src hδ hbound rowsReceipt
     progressCoverage hfold faultQ honestQuorum
 
 example {m : Nat} {s : Slot} {Qfg X : FGBlock (Fin p.n)}
@@ -337,8 +345,8 @@ example {m : Nat} {s : Slot} {Qfg X : FGBlock (Fin p.n)}
     (hhor : SA.proposalTime p.toParams s + p.Δ = rho.horizon) :
     ∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
       (fun nd => X ∈ nd.st.fg.TF) rho.horizon y := by
-  simpa only [hhor] using healing_promotion_first_receipt_of_frontierCap E rho hrec
-    crossing hnew hgst hQX hcap hQm hhor.le
+  simpa only [hhor] using healing_promotion_first_receipt_of_frontierCap E rho hrec.toRecovery₂
+    crossing (healing_self_proposal_service hrec s) hnew hgst hQX hcap hQm hhor.le
 
 example {u : Time} {i m r q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {Q : Block} {Qfg U : FGBlock (Fin p.n)}
@@ -352,15 +360,16 @@ example {u : Time} {i m r q : Nat} {J : Option (FGBlock (Fin p.n))} {contested :
     (hhor : max (p.actionTime r + Γ p G - p.Δ + epsF p ΔF)
       (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G - 3 * p.Δ) = rho.horizon) :
     FrontierHG2aResult E rho G ΔF i m r U :=
-  frontier_hg2a_receipt E rho hrec hδ hbound crossing frontier rowsReceipt progressCoverage
+  frontier_hg2a_receipt E rho hrec hδ hbound mono crossing frontier rowsReceipt progressCoverage
     hfold faultQ honestQuorum hgst hQ he hQm hexact hseed hu hp hqr hU hstart hhor.le
 
 example : FrontierTailStatement p c E rho G ΔF :=
-  healing_frontierTail E rho hrec mono crossing cap writes rowCoverage rowsReceipt
+  healing_frontierTail E rho hrec mono crossing cap scopeProducer writes rowCoverage rowsReceipt
     progressCoverage hfold faultQ honestQuorum
 
 example : FrontierSearchStatement p c E rho G ΔF :=
-  healing_frontierSearch E rho hrec mono crossing cap origin repair common perm writes
+  healing_frontierSearch E rho hrec mono crossing cap origin repair common perm
+    scopeProducer writes
     rowCoverage rowsReceipt progressCoverage hfold faultQ honestQuorum
 
 example {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind}
@@ -368,7 +377,7 @@ example {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind}
     (hserved : StrongServed p c E rho m ev.time)
     (hhor : ev.time + (2 * P p + Γ p G - 9 * p.Δ) = rho.horizon) :
     FrontierRiseBy p c E rho i m rho.horizon := by
-  simpa only [hhor] using healing_frontierTail_rise E rho hrec hδ hbound crossing frontier
+  simpa only [hhor] using healing_frontierTail_rise E rho hrec hδ hbound mono crossing frontier
     rowsReceipt progressCoverage hfold faultQ honestQuorum hstart hserved hhor.le
 
 -- The strict cut excludes the rise event when its time is exactly D.

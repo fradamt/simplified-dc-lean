@@ -304,6 +304,7 @@ AvailableChainFGSAClaims.Statements.Recurrence
 AvailableChainFGSAClaims.Statements.Regimes
 AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
+AvailableChainFGSAProofs.Proofs.Healing.Attempt
 AvailableChainFGSAProofs.Proofs.Healing.AttemptRows
 AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
 AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
@@ -312,9 +313,16 @@ AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
 AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight
 AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchGap
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 AvailableChainFGSAProofs.Proofs.Healing.FrontierService
@@ -330,6 +338,10 @@ AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame
 AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
+AvailableChainFGSAProofs.Proofs.Healing.PostReset
+AvailableChainFGSAProofs.Proofs.Healing.PostResetGate
+AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime
+AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
 AvailableChainFGSAProofs.Proofs.Healing.Promotion
 AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance
 AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
@@ -402,6 +414,7 @@ AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery
 AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 AvailableChainFGSAProofs.Tests.HealingAttemptTerminal
+AvailableChainFGSAProofs.Tests.HealingFrontierSearch
 AvailableChainFGSAProofs.Tests.HealingFrontierService
 AvailableChainFGSAProofs.Tests.HealingH2JoinedStartAxioms
 AvailableChainFGSAProofs.Tests.HealingH2PortsAxioms
@@ -638,22 +651,13 @@ AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Healing.Attempt P-H2
 AvailableChainFGSAProofs.Proofs.Healing.Export P-H2
 AvailableChainFGSAProofs.Proofs.Healing.FrontierOpen P-H2
 AvailableChainFGSAProofs.Proofs.Healing.FrontierOpenAll P-H2
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose P-H2
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull P-H2
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchGap P-H2
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair P-H2
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise P-H2
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail P-H2
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks P-H2
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop P-H2
 AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport P-H2
 AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead P-H2
 AvailableChainFGSAProofs.Proofs.Healing.OpeningService P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PostReset P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetCone P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetConeAt P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetConeFrame P-H2
@@ -661,8 +665,6 @@ AvailableChainFGSAProofs.Proofs.Healing.PostResetConeHeads P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetConeInput P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetConePool P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetConeReceipts P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PostResetGate P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 P-H2
@@ -673,7 +675,6 @@ AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetService P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh P-H2
 AvailableChainFGSAProofs.Proofs.Healing.Reset P-H2
 AvailableChainFGSAProofs.Proofs.Healing.ResetCut P-H2
 AvailableChainFGSAProofs.Proofs.Healing.RiseOne P-H2
@@ -683,7 +684,6 @@ AvailableChainFGSAProofs.Proofs.Healing.RiseOneRise P-H2
 AvailableChainFGSAProofs.Tests.HealingAttempt P-H2
 AvailableChainFGSAProofs.Tests.HealingCommon P-H2
 AvailableChainFGSAProofs.Tests.HealingFrontierOpen P-H2
-AvailableChainFGSAProofs.Tests.HealingFrontierSearch P-H2
 AvailableChainFGSAProofs.Tests.HealingH2RecoveryAxioms P-H2
 AvailableChainFGSAProofs.Tests.HealingH2ResetRiseAxioms P-H2
 AvailableChainFGSAProofs.Tests.HealingH2ServiceAxioms P-H2

@@ -1111,3 +1111,14 @@ produces all five RPhase clauses from RecoverySleep₂, RMonoAll and RXing. The 
 and search consumers use the named phase receipt producer. Budget constants and
 GST saved-window transport bounds stay unchanged. H1 phase/relay factories and H2
 all-cut post-reset source closure remain separate obligations until their checks pass.
+
+P-H2 Round 7 post-reset boundary: the outer T-contract uses the ordinary/reset
+recovery delivery adapters and passes the exact opening, repair and frontier
+factories. The R-contract uses the sleep-safe phase producer and the durable
+provenance leaves. The raw gate guard now requires its actual synchronous enabled
+gate. H6 consumes the geometry-guarded local gate factory. The H2-prime first
+reader uses the original accepted body and the receiver's freeze-to-read epoch.
+Equal-label high sources use the restart-aware same-label service producer.
+The selected HEAD receipt producer also exists; OpeningServiceScopes no longer
+requests an unused carrier field. All-cut opening, cone, raw-transfer and lease
+assemblies are still OPEN/P-H2. Their legacy consumers are not sleep producers.

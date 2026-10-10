@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
 public section
 
@@ -59,7 +60,11 @@ private theorem h2Prime_lift {A B : FGBlock (Fin p.n)}
 
 section Sources
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (cap : RCap p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    (nextScopes : ∀ v iy x, HealingWindow p E 1 v → x ∈ rho.honest →
+      rho.events[iy]? = some (.tick x (SA.voteTime p.toParams (v + 1))) →
+      joinedAt p E rho x (v + 1) (SA.voteTime p.toParams (v + 1)) →
+      NextTransferScope E rho iy x v) (cap : RCap p c E rho)
     (source : TSrc p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
       (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
@@ -86,7 +91,7 @@ theorem postReset_cStar_below_proposal (inv : ∀ i, PostResetInv p c E rho w i)
   have hhC : high p w C0 := by rw [high_def, hh0]
   have hparent : Block.Preceq w.CStar Q.parent := by
     rw [← he0]
-    exact postReset_tCarrier_reset p c E rho hrec cap source rowCovered h0r inv
+    exact postReset_tCarrier_reset p c E rho hrec.toRecovery₂ cap source rowCovered h0r inv
       y w.rStar C0 v Q hrow.1 hsrc hhC hQ (by rw [← h0r.label]; exact hv)
   have hslot := repair_proposal_slot E rho hQ
   cases Q with
@@ -110,6 +115,8 @@ theorem postReset_cStar_below_proposal (inv : ∀ i, PostResetInv p c E rho w i)
     simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not]
     exact ⟨hne, Gen.Pure.block_preceq_trans hparent hp⟩
 
+include mono nextScopes
+
 /-- ROOT-DIGEST W2b. Blueprint 21 H2′:3382–3391; Centaur first-reader route;
 B1/B13/B15/B17/B18. DC: SAME coverage before the proposal's gate.
 Named producers: fgsa_rXing and sourceDiscipline_qcOrigin, in addition to
@@ -119,11 +126,12 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
     (inv : ∀ i, PostResetInv p c E rho w i)
     {v : Slot} {Q : Block} (hQ : HonestProposal E rho (fgsaInterface p c) v Q)
     (hv : w.sStar + 2 ≤ v) {x : V} {H : Block}
-    (hx : x ∈ rho.honest) (hH : headAtLabel p c E rho x (v + 1) = some H) :
+    (hReader : headReader p E rho x (v + 1) (SA.voteTime p.toParams (v + 1)))
+    (hH : headAtLabel p c E rho x (v + 1) = some H) :
     Block.Preceq Q H := by
   classical
   have hs := hrec.base.valid.toScheduleWellFormed
-  have hN := hrec.base.noRestart
+  have hx := hReader.1
   have hDelta := hrec.base.delta
   unfold headAtLabel at hH
   rw [postClock_def, preTick_def] at hH
@@ -145,6 +153,14 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
     change E.t_GST ≤ 4 * p.Δ * (v : Int) - p.Δ at h
     change E.t_GST ≤ 4 * p.Δ * (v : Int) + p.Δ
     linarith [p.deltaPos]
+  have hCut : HealingWindow p E 1 v := by
+    refine ⟨(Nat.le_add_left 1 (w.sStar + 1)).trans hv, ?_⟩
+    have hbase := healing_ready_vote_cutoff E (healing_reset_source_ready h0r)
+    have hI : (w.sStar : Int) ≤ (v : Int) := by
+      exact_mod_cast (Nat.le_add_right w.sStar 2).trans hv
+    change E.t_GST ≤ 4 * p.Δ * ((w.sStar : Int) - 1) at hbase
+    change E.t_GST ≤ 4 * p.Δ * ((v : Int) - 1)
+    nlinarith [p.deltaPos]
   let N := rho.events.length + 1
   have hc (t : Time) : timeIdx rho t ≤ N :=
     (List.length_filter_le _ _).trans (Nat.le_succ _)
@@ -167,8 +183,9 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
       simp only [Nat.cast_add, Nat.cast_one] at ht
       have : ((r * p.R : Nat) : Int) < (v : Int) := by nlinarith [p.deltaPos]
       exact_mod_cast this
-    exact (postReset_h2A_reset p c E rho hrec cap source rowCovered h0r inv
-      y r K hrow.1 hsrc hhK).1 x v Q hx hl (hbatch x hx)
+    exact (postReset_h2A_reset p c E rho hrec.toRecovery₂ cap source rowCovered h0r inv
+      y r K hrow.1 hsrc hhK).1 x v Q
+      ⟨hx, healing_recovery_joined_window E rho hrec hCut hx hhv⟩ hl (hbatch x hx)
   have hCQ := postReset_cStar_below_proposal p c E rho hrec cap source rowCovered h0r inv hQ hv
   have hCQ' : Block.Preceq w.CStar Q := by
     change (Bool.not (decide (w.CStar = Q)) && Block.preceq w.CStar Q) = true at hCQ
@@ -210,22 +227,38 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
       (FGSA.clock p (storeAt p c E rho j x) (SA.voteTime p.toParams v))
       (cstoreInv_clock p _ (cstoreInv_stateBefore E rho j x) (SA.voteTime p.toParams v)) v
     rwa [clock_base_blocks] at hm
-  have hQstamp : GridCO.stampBlock (storeAt p c E rho j x).base Q <
-      SA.earlyTime p.toParams v := by
-    have hnow := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
-      (fgsaRestoreTimeLaw p c) E rho hs hjtick x
-    rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hnow
-    refine lt_of_le_of_lt ((healing_block_stamp_le_now p c E rho hs hN hQstore).trans hnow) ?_
-    change 4 * p.Δ * (v : Int) + p.Δ < 4 * p.Δ * (v : Int) + 2 * p.Δ
-    linarith [p.deltaPos]
-  have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
-    hrec.sync (fgsaDelay_nonrow E.Δ _) hgst (by rw [hDelta]; exact hvi) hhor
-  obtain ⟨Qfg, hefg, hpath⟩ := healing_block_path_sync (hroots := hrec.base.idealization)
-    p c E rho hrec.base.valid hN hDelta
-    v hSync hx hx hiy Q hQstore hQstamp (by
-      change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho iy x) _).fg.F) Q
-      rw [clock_fg]
-      exact hFQ)
+  have hfreeze : SA.earlyTime p.toParams v + p.Δ = SA.freezeTime p.toParams v := by
+    change 4 * p.Δ * (v : Int) + 2 * p.Δ + p.Δ = 4 * p.Δ * (v : Int) + 3 * p.Δ
+    ring
+  have hfr : SA.freezeTime p.toParams v ≤ SA.voteTime p.toParams (v + 1) := by
+    change 4 * p.Δ * (v : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((v + 1 : Nat) : Int) + p.Δ
+    push_cast; linarith [p.deltaPos]
+  have hFE := healing_receipt_floor_before_tick E rho hs mono hx hiy hfr hFQ
+  have hpub : V2.PublicTime E (SA.earlyTime p.toParams v) := by
+    refine ⟨4 * v + 2, ?_⟩
+    rw [hDelta]
+    change 4 * p.Δ * (v : Int) + 2 * p.Δ = _
+    push_cast; ring
+  have htarget : TargetReceiptService E rho Q (SA.freezeTime p.toParams v) x := by
+    rw [← hfreeze]
+    apply healing_target_service_of_earlier_tick E rho hrec hx hx hjtick hQstore
+    · change 4 * p.Δ * (v : Int) + p.Δ < 4 * p.Δ * (v : Int) + 2 * p.Δ
+      linarith [p.deltaPos]
+    · exact hpub
+    · apply le_trans hgst
+      change 4 * p.Δ * (v : Int) + p.Δ ≤ 4 * p.Δ * (v : Int) + 2 * p.Δ
+      linarith [p.deltaPos]
+    · exact hfreeze ▸ hfr.trans hhor
+    · exact hfreeze ▸ block_compatible_of_common (block_preceq_refl Q) hFE
+  have hEpoch : V2.D.restartFree rho x
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams v)) iy := by
+    apply healing_recovery_epoch E rho hrec hx (fgsa_idxBefore_mono rho ?_)
+    have hd1 : (1 : Int) ≤ p.Δ := Int.add_one_le_iff.mpr p.deltaPos
+    change E.t_GST ≤ 4 * p.Δ * (v : Int) + p.Δ at hgst
+    change E.t_GST + 1 ≤ 4 * p.Δ * (v : Int) + 3 * p.Δ
+    linarith
+  obtain ⟨Qfg, hefg, hpath⟩ := healing_block_path_sync p c E rho hs hx hiy hEpoch Q
+    htarget hrec.base.receiptIdealization
   let dst := FGSA.clock p (storeAt p c E rho iy x) (SA.voteTime p.toParams (v + 1))
   change ∀ A, FGBlock.Preceq A Qfg → A ∈ dst.fg.TF ∧
     GridCO.stampBlock dst.base (eraseFG A) < SA.freezeTime p.toParams v at hpath
@@ -266,8 +299,23 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
     (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl _) (by rwa [hefg]))
     (fun K s hK hhK => Gen.Pure.block_compatible_of_common
       (Gen.Pure.block_preceq_refl _) (by rw [hefg]; exact hbelow K s hK hhK))
-  have hout := healing_unanimous_next_transfer_kept p c E rho hrec hgst hefg hbatch
-    hx hiy hYv hYc (by
+  have hready : recoveryStart p E ≤ SA.voteTime p.toParams (v + 1) := by
+    apply le_trans (healing_reset_source_ready h0r)
+    change 4 * p.Δ * (w.sStar : Int) + p.Δ ≤ 4 * p.Δ * ((v + 1 : Nat) : Int) + p.Δ
+    have hI : (w.sStar : Int) ≤ (v : Int) := by
+      exact_mod_cast (Nat.le_add_right w.sStar 2).trans hv
+    push_cast; nlinarith [p.deltaPos]
+  have hJoined := healing_ready_head_guard E rho hrec hx hiy hready hhor
+  have hRelease : joinedAtTime p (storeAt p c E rho iy x).restartTime
+      (SA.releaseTime p.toParams v) = true := by
+    unfold joinedNow at hJoined
+    rw [fgsa_clock_restartTime, (clock_vn _ _).2] at hJoined
+    have he : SA.releaseTime p.toParams v = SA.voteTime p.toParams (v + 1) := by
+      change 4 * p.Δ * (v : Int) + 5 * p.Δ = 4 * p.Δ * ((v + 1 : Nat) : Int) + p.Δ
+      push_cast; ring
+    simpa only [he] using hJoined
+  have hout := healing_unanimous_next_transfer_kept p c E rho hrec mono hgst hefg hbatch
+    hx hiy (nextScopes v iy x hCut hx hiy hReader.2) hCut hRelease hYv hYc (by
       dsimp only [Kept, D_at] at hkept ⊢
       simpa only [Y, healing_domain_filter_F] using hkept)
   rw [healing_headAtIdx_tick p c E rho hiy] at hout
@@ -281,10 +329,11 @@ theorem postReset_h2Prime_reset (xing : RXing p c E rho) (origin : RQCOrigin p c
   intro v Q hQ hv x i H hx hi hH
   rcases Nat.eq_or_lt_of_le hi with he | hl
   · subst i
-    exact postReset_h2Prime_first p c E rho hrec cap source rowCovered h0r xing origin inv
+    exact postReset_h2Prime_first p c E rho hrec mono nextScopes cap source rowCovered
+      h0r xing origin inv
       hQ hv hx hH
   · exact postReset_h2Prime_late p c E rho hrec.base.valid.toScheduleWellFormed inv
-      hQ hv hx hl hH
+      hQ hv hx.1 hl hH
 
 end Sources
 

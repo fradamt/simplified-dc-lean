@@ -335,6 +335,7 @@
     'AvailableChainFGSAProofs.Tests.HealingH2PortsAxioms': {
         'AvailableChainFGSAProofs.Proofs.Healing.RecoveryService': (
             'AvailableChain.FGSA.Run.healing_selected_carriers_recovery',
+            'AvailableChain.FGSA.Run.healing_head_witness_receipts_recovery',
             'AvailableChain.FGSA.Run.healing_self_proposal_service',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.RepairCover': (
@@ -357,6 +358,25 @@
             'AvailableChain.FGSA.Run.healing_phase_block_receipt_recovery',
             'AvailableChain.FGSA.Run.healing_evidence_spread_recovery',
             'AvailableChain.FGSA.Run.healing_rPhase_recovery',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.Attempt': (
+            'AvailableChain.FGSA.Run.healing_progressAttempt',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull': (
+            'AvailableChain.FGSA.Run.healing_frontierSearch',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PostReset': (
+            'AvailableChain.FGSA.Run.healing_healTContract_reset',
+            'AvailableChain.FGSA.Run.healing_healRContract_reset',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PostResetGate': (
+            'AvailableChain.FGSA.Run.healing_postReset_h6GateService',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime': (
+            'AvailableChain.FGSA.Run.postReset_h2Prime_reset',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh': (
+            'AvailableChain.FGSA.Run.postReset_tHigh_reset',
         ),
     },
 }

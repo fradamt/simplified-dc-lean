@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
@@ -23,15 +24,6 @@ theorem healing_frontierTail_rise_of_seed [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (mono : RMonoAll p c E rho)
-    (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
-      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
-      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-      E.t_GST ≤ SA.proposalTime p.toParams s →
-      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
-      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
-        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
-      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
-        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (crossing : RXing p c E rho) (frontier : TFrontier p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
       max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
@@ -83,7 +75,7 @@ theorem healing_frontierTail_rise_of_seed [Fintype V] (E : Generic.Env V)
     nlinarith [p.deltaPos]
   have hD := frontierSearch_hg2a_bound p G ΔF t (p.actionTime r)
     (SA.proposalTime p.toParams U.slot) hbound ha hUage
-  have hresult := frontier_hg2a_receipt E rho hrec hδ hbound mono proposalServices crossing frontier
+  have hresult := frontier_hg2a_receipt E rho hrec hδ hbound mono crossing frontier
     rowsReceipt progressCoverage hfold faultQ honestQuorum hgst hQ he hQm hexact hseed
     hu hp hqr (show U = (heightView p Qfg).T_h from rfl) hstart (hD.trans hhor)
   rcases (frontierHG2aResult_iff E rho G ΔF i m r U).mp hresult with
@@ -100,15 +92,6 @@ theorem healing_frontierTail_rise [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (mono : RMonoAll p c E rho)
-    (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
-      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
-      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-      E.t_GST ≤ SA.proposalTime p.toParams s →
-      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
-      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
-        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
-      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
-        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (crossing : RXing p c E rho) (frontier : TFrontier p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
       max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
@@ -125,7 +108,7 @@ theorem healing_frontierTail_rise [Fintype V] (E : Generic.Env V)
     (hhor : ev.time + (2 * P p + Γ p G - 9 * p.Δ) ≤ rho.horizon) :
     FrontierRiseBy p c E rho i m (ev.time + (2 * P p + Γ p G - 9 * p.Δ)) := by
   have hf := ((frontierSearchStart_iff p c E rho i ev m kind).mp hstart).2.2.2.1
-  exact healing_frontierTail_rise_of_seed E rho hrec hδ hbound mono proposalServices crossing
+  exact healing_frontierTail_rise_of_seed E rho hrec hδ hbound mono crossing
     frontier
     rowsReceipt progressCoverage hfold faultQ honestQuorum hf.le hserved hhor
 
@@ -135,15 +118,6 @@ DC: SAME combine the capped rise and run-1 exact-height row under their separate
 theorem healing_frontierTail [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
-    (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
-      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
-      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-      E.t_GST ≤ SA.proposalTime p.toParams s →
-      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
-      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
-        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
-      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
-        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (scopeProducer : ∀ (q : Slot) (v : Time),
       recoveryStart p E ≤ SA.proposalTime p.toParams q →
       SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
@@ -186,7 +160,7 @@ theorem healing_frontierTail [Fintype V] (E : Generic.Env V)
     : FrontierTailStatement p c E rho G ΔF := by
   apply (frontierTailStatement_iff p c E rho G ΔF).mpr
   intro hδ hbound i ev m kind hstart hserved
-  exact ⟨fun hhor => healing_frontierTail_rise E rho hrec hδ hbound mono proposalServices crossing
+  exact ⟨fun hhor => healing_frontierTail_rise E rho hrec hδ hbound mono crossing
       (frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage)
       rowsReceipt progressCoverage hfold faultQ honestQuorum hstart hserved hhor,
     fun hhor => healing_frontierTail_row E rho hrec mono crossing cap scopeProducer writes

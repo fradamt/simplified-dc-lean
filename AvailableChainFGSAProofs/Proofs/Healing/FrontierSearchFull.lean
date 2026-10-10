@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
 
 public section
@@ -19,21 +20,9 @@ RCap supplies a skipped row; otherwise the event at M+1 starts the row task. -/
 theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMonoAll p c E rho)
-    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
-      rho.events[i]? = some ev → recoveryStart p E ≤ ev.time → 1 ≤ m →
-      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
-      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ)) (crossing : RXing p c E rho)
+    (crossing : RXing p c E rho)
         (cap : RCap p c E rho)
     (origin : RQCOrigin p c E rho) (repair : TRepair p c E rho) (common : TCommon p c E rho)
-    (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
-      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
-      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-      E.t_GST ≤ SA.proposalTime p.toParams s →
-      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
-      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
-        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
-      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
-        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (perm : TPerm p c E rho)
     (scopeProducer : ∀ (q : Slot) (v : Time),
       recoveryStart p E ≤ SA.proposalTime p.toParams q →
@@ -100,8 +89,8 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
     have hhorEv : ev.time + frontierSearchRiseBudget p G ΔF ρbar ≤ rho.horizon := by
       rw [ht]
       exact hhor
-    have hrise := frontierSearch_rise_task E rho hrec mono heldServices crossing origin
-      proposalServices repair common
+    have hrise := frontierSearch_rise_task E rho hrec mono crossing origin
+      repair common
       hδ hbound perm frontier rowsReceipt progressCoverage hfold faultQ honestQuorum
       hstart hdelayEv hmode hhorEv
     obtain ⟨j, nextEv, hij, hj, htime, hh, hcap⟩ :=
@@ -146,7 +135,7 @@ theorem healing_frontierSearch [Fintype V] (E : Generic.Env V)
           (frontierSearchStart_iff p c E rho j ev (M + 1) kind).mpr
             ⟨hj, hgstCut.trans hlow,
               Or.inl heff, heq, by omega, hkind⟩
-        exact frontierSearch_row_task E rho hrec mono heldServices crossing origin
+        exact frontierSearch_row_task E rho hrec mono crossing origin
           scopeProducer repair common hδ hbound
           perm cap writes rowCoverage rowsReceipt progressCoverage hfold faultQ honestQuorum
           hstart (by linarith only [hdelay, hlow, healing_recovery_start_lower (p := p) E,
