@@ -25,20 +25,17 @@ variable [Fintype V] {fast : Bool} {T b₀ b₁ : Time} {ΔF : Time}
 
 include hf hsrc htsrc hnamed hClean in
 /-- Assemble the scoped continuation outputs for every actual initial read.
-O11-W-SEED remains an explicit P-Ou producer obligation at this boundary. -/
+Each continuation output uses its public repair qualification. -/
 theorem outage_continuation_scoped_body
     (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
-    (origin : RQCOrigin p c E rho)
-    (hWSeed : ∀ x B, confirmedReader p c E rho x T →
-      Block.Preceq B (S_at p c E rho (timeIdx rho T) x) → B ≠ .genesis →
-      OutageWSeed (p := p) (c := c) (E := E) (rho := rho) fast b₀ b₁ B) :
+    (origin : RQCOrigin p c E rho) :
     OutageContinuationConcl p c E rho fast T b₀ b₁ := by
   have hs := h.pre.base.valid.toScheduleWellFormed
   intro x B hReader hread
   by_cases he : B = .genesis
   · subst B
     refine ⟨?_, ?_, ?_⟩
-    · intro y t _ _ _
+    · intro y t _ _ _ _
       exact ⟨block_compatible_of_common (block_genesis_preceq _) (block_preceq_refl _),
         block_compatible_of_common (block_genesis_preceq _) (block_preceq_refl _),
         block_compatible_of_common (block_genesis_preceq _) (block_preceq_refl _),
@@ -57,7 +54,7 @@ theorem outage_continuation_scoped_body
   have hRest := outage_continuation_public_heads_and_finality h hf origin htsrc hnamed
     hsrc hClean.state hprov he hc hβ
   exact ⟨outage_continuation_public_reads h hf origin htsrc hnamed hsrc hClean.state
-    hprov he hc hβ hClean.history hClean.output (hWSeed x B hReader hread he), hRest⟩
+    hprov he hc hβ hClean.history hClean.output, hRest⟩
 
 end AvailableChain.FGSA.Run
 end

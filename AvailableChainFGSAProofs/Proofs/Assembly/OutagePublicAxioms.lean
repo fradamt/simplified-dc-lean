@@ -4,8 +4,9 @@ public import AvailableChainFGSAProofs.Proofs.OutageContinuation.Export
 
 public section
 
+#print axioms AvailableChain.FGSA.Run.OutageRepairReady
+
 #print axioms AvailableChain.FGSA.Run.outage_caught_up_gate_rows
-#print axioms AvailableChain.FGSA.Run.OutageWSeed_def
 #print axioms AvailableChain.FGSA.Run.outage_cut_pos
 #print axioms AvailableChain.FGSA.Run.outage_scoped_arming
 #print axioms AvailableChain.FGSA.Run.outage_protected_read
