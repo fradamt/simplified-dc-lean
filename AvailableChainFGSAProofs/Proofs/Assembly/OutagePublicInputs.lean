@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.Export
+public import AvailableChainFGSAProofs.Proofs.OutageContinuation.Export
 public import AvailableChainFGSAProofs.Proofs.Foundations.Export
 public import AvailableChainFGSAProofs.Proofs.Clean.Export
 
@@ -35,6 +36,12 @@ theorem outage_public_suppliers : OutageCompatClaim p :=
   outage_outageCompatClaim_of p (fgsa_fgFoundationClaim p) (fgsa_srcFrameAboveClaim p)
     (fgsa_sourceDisciplineClaim p) (outage_clean_cut_supplier p)
 
+/-- Named foundation and finite Clean producers discharge the amended companion. -/
+theorem outage_continuation_public_suppliers : OutageContinuationClaim p :=
+  outageContinuation_claim_of p (fgsa_fgFoundationClaim p) (fgsa_srcFrameAboveClaim p)
+    (fgsa_sourceDisciplineClaim p) (outage_clean_cut_supplier p)
+
+#print axioms outage_continuation_public_suppliers
 #print axioms outage_clean_cut_supplier
 #print axioms outage_public_suppliers
 

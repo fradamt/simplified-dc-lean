@@ -354,4 +354,10 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
 #print axioms AvailableChain.FGSA.Run.outage_continuation_public_heads_and_finality
 
 #print axioms AvailableChain.FGSA.Run.outage_caught_up_gate_rows
-#print axioms AvailableChain.FGSA.Run.OutageWSeed_def
+
+#print axioms AvailableChain.FGSA.Run.outage_conflicting_stable_no_lease_veto
+#print axioms AvailableChain.FGSA.Run.outage_conflicting_stable_advance_iff
+#print axioms AvailableChain.FGSA.Run.outage_gateStep_conflicting_stable_iff
+#print axioms AvailableChain.FGSA.Run.outage_caught_up_gate_seed_iff
+
+#print axioms AvailableChain.FGSA.Run.outage_repair_gate_seed

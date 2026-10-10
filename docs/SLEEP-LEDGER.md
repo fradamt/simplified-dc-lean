@@ -7263,3 +7263,65 @@ The full Round 13 task is incomplete. P-Ou is PREPARED; no public STOP is assert
 - Lead 2026-10-10 18:51: merged sleep-ph1j 9bc92b14 (P-H1 r9) as PREPARED; rev-ph1j-astra MERGE-AS-PREPARED. Open: P1/P2 HEAD relay (relay-derisk-sol checks the refused-after-equivocation case), P5, universal TPerm, four replays (P-H1 r10).
 
 - Lead 2026-10-10 19:45: merged sleep-ph1k af55329c — P-H1 production CLOSED (rev-ph1k-astra MERGE-AS-CLOSED: P1-P10, RELAY-LOCAL incl. runs A/B, universal healing_tPerm_recovery from RecoverySleep₂; no false field). Remaining P-H1 item: four full ExecutionValid replays (fixture obligations, not producers).
+## P-Ou Round 15 — OUTAGE-CONT-REPAIRED statement (2026-10-10)
+
+Lead ruling: the old continuation output guarantee and O11-W-SEED are false.
+The source certificate is codex/jobs/wseed-run/run.md; wseed-verify.md confirms it.
+Node 7 retains conflicting S=A at 106 after a genuine genesis result.
+
+The public companion now uses the exact recommended OutageRepairReady and
+OutageContinuationConcl. Only continuation output reads require repair readiness.
+HEAD and F clauses, Statements/Join.lean and FGSAClaims fields are unchanged.
+This is an INTENTIONAL FG-SA sleep adaptation: conditional safety after a
+repairing gate, not SAME as DC stableAsynchronyResilient. No repair deadline is claimed.
+
+Current shallow and deep manifests are regenerated under DECISION P23-A's policy.
+The two changed shallow entries are pinned in
+docs/api/fgsa-outage-cont-repaired-pins.json with reason
+OUTAGE-CONT-REPAIRED (lead ruling 2026-10-10). Frozen baselines are unchanged.
+Statements compile: .lake/sleep-pou-r15/statements-build.log and claims-build.log.
+Writer evidence: .lake/sleep-pou-r15/manifest-write.log.
+
+## P-Ou Round 15 — qualified proof and integration limit (2026-10-10)
+
+Proof commit dc6ce63b removes OutageWSeed. The used Round 14 no-veto and exact
+repair iff lemmas compile; unused helper branches are dropped. outage_repair_gate_seed
+uses the actual witness from OutageRepairReady. It derives result/F/live-row
+compatibility and carries the seed through outage_stable_compatible_suffix.
+ScopedJoint, the continuation exporter and Shared/Claims use the amended conclusion.
+The complete outage_continuation_public_suppliers theorem has no added assumptions.
+Both lane exporters are unconditional on their public conclusions and GREEN.
+
+The negative-run source replay passes. The amended qualification excludes node 7
+at 106 and includes it after the genuine Y repair at 110. It checks 668 qualified
+node/time outputs through 106. This is source regression evidence, not a Lean
+execution certificate. General qualified safety is kernel checked.
+
+Final DCK P-Ou PASS: 48 strict sources, 3,406 permitted axiom results, all controls.
+Map: 69 targets, 536 GREEN, two inherited S-Ap EXPECTED-FAIL entries.
+Exports/complete local coverage: 375 proof modules, 253 exports, zero unaccepted;
+372 coverage rows. Serial production audit: 335 results, standard axioms only.
+Layers: 72 inherited findings, zero new. Headers PASS: 1,747 files.
+Current shallow and deep public manifests PASS. Frozen baselines are unchanged.
+
+Status PREPARED: full manifest validation remains blocked by inherited Assembly
+and Healing build failures. The auxiliary Claims snapshot cannot be regenerated.
+Assembly/Outage has three obsolete caller telescopes (P-As). Healing failures
+include PhaseBoot, Promotion, PhaseSettle, FrontierSeed and four service modules
+(P-H1/P-H2 integration); no Healing source was edited. These are validation blockers,
+not additional proof premises. Do not report full closure until the full check passes.
+P-As has a compiled exact Root replacement with named foundation and finite Clean
+producers; no W-seed input. Handoff: scripts/dev-pkg/P-Ou.round15-handoff.md.
+Evidence: .lake/sleep-pou-r15/dck-final.log, exports-final.log, coverage-final.log,
+serial-final.log, serial-strict-final.log, root-request-final.log,
+root-request-strict.log, layers-final.log, headers-final.log, scope-check.log,
+repair-regression.log, manifest-check.log, claims-snapshot-blocked.log and
+snapshot-all-deps-build.log. Every cited log is saved.
+
+Full manifest result: shallow/deep, legacy, V2, Gen and Compose PASS. The script
+FAILS at the auxiliary Claims snapshot on missing Healing/Promotion.olean.
+Snapshot controls are not reached. Promotion:194 needs recoveryStart <= u but
+passes only GST <= u; this inherited Healing caller must be repaired by its owner.
+The saved writer and source-build failures are the validation limit for Round 15.
+
+- Lead 2026-10-10 20:02: merged P-Ou 2d1ba450 — P-Ou CLOSED (rev-pou15-astra MERGE-AS-CLOSED) on RULING OUTAGE-CONT-REPAIRED: the public companion OutageContinuationConcl qualifies continuation output reads by OutageRepairReady (INTENTIONAL FG-SA sleep adaptation; old W seed refuted by codex/jobs/wseed-run). Both exporters unconditional. Open: P-As Root wiring (request in the P-Ou round 15 handoff).

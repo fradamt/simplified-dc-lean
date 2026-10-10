@@ -505,7 +505,8 @@ theorem fgsa_availableGST (hH : HTimeClaim p) : AvailableGSTClaim p := by
 
 /-- OUTPUT-DIRECT §10. Claim-to-claim assembly stays in Shared/Claims.
 One healthy cut supplies the individual arming inputs of the proved lane body.
-The companion leaves the frozen FGSAClaims record unchanged. -/
+The companion uses the amended OutageContinuationConcl with per-read repair readiness.
+The frozen FGSAClaims record is unchanged. -/
 theorem outageContinuation_of_body (p : Params)
     (hbody : ∀ {In V : Type} [DecidableEq V] {c : AppCodec In}
       {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} [Fintype V]
