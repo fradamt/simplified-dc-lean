@@ -518,8 +518,9 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `ContinuationGate`, and `ContinuationJoint` prove the continuation body.
   `Proofs/OutageContinuation/Export` exports `outageContinuation_claim_of`.
   `Proofs/Shared/Claims` uses `outageContinuation_of_body` to bridge the body
-  to `OutageContinuationClaim`. `Proofs/Assembly/Clean` supplies the interfaces
-  and proves `fgsa_outageContinuationClaim`. The exact lane import exception
+  to the amended `OutageContinuationClaim`. `Assembly/Root` must use the named
+  foundation and finite Clean producers (P-As request in the Round 15 handoff).
+  The exact lane import exception
   in `scripts/check-layers.py` permits `OutageContinuation.Export` to import
   exactly the six `Outage/Continuation*` modules listed above. No other lane
   import allowance changes. `FGSAClaims` is unchanged; this is a companion claim.
@@ -1069,6 +1070,20 @@ certificates; ScopedJoint joins the early reads, the covered suffix and the actu
 gate. Assembly/OutagePublicInputs builds every finite Clean field from a named
 producer; its audit module prints their axioms. Dependency order: protected Outage
 is proved from named suppliers; W suffix preservation and lease compatibility at the
-actual post-handover W gate are proved; the continuation exporter still needs
-OutageWSeed (Outage/ScopedCatchUp, O11-W-SEED); P-As assembly and the global audit
-integration remain pending.
+actual post-handover W gate are proved.
+
+P-Ou Round 15 adopts OUTAGE-CONT-REPAIRED. The old OutageWSeed is false: a
+common-ancestor result can retain a conflicting S (node 7 at 106 in wseed-run).
+Statements/OutageContinuation adds OutageRepairReady only to continuation output
+reads. Covered readers use inclusion; a reader with B below F uses finality; any
+other qualified reader supplies an actual post-handover gate with an already
+compatible S or a genuine result that is not below old S. ScopedCatchUp proves
+outage_repair_gate_seed at that supplied gate and applies outage_stable_compatible_suffix
+through the inclusive read, including restarts and same-time deliveries.
+ScopedJoint and OutageContinuation/Export have no W-seed callback. The complete
+outage_continuation_public_suppliers theorem uses named foundation and finite Clean
+producers. HEAD and F safety, Join readers, protocol declarations and FGSAClaims
+fields are unchanged. This is an INTENTIONAL FG-SA sleep adaptation: conditional
+safety after a repairing gate, not SAME as DC stableAsynchronyResilient. No fixed
+repair deadline is asserted. P-As owns the Root call and global audit integration;
+the exact replacement is scripts/dev-pkg/P-Ou.round15-handoff.md.
