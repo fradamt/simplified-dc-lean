@@ -1660,3 +1660,41 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
   legacy P23 names. Safety-only statements retain NamedRootCollisionFree. Families
   own stronger fixture evidence and their caller changes. No FGSAClaims statement
   or Base2 declaration is changed by W3.
+
+## W3 — P23-A ready core, tests, and owners (2026-10-10)
+
+- New internal statement, P23-A: fgsa_receiptCoverage_ready in
+  Run/Proofs/ReceiptCoverageReady. It replaces NamedRootCollisionFree with
+  NamedReceiptRootCollisionFree and adds the approved awake receipt windows.
+  ReceiptCoveragePremises is unchanged. There is no per-required scope argument.
+  The full finality/output/HEAD/lease/path/stamp conclusion is unchanged. Proposal
+  receipt uses the exact processed-body bridge; the deadline and horizon bounds
+  follow from the unchanged record. New proofs use default heartbeats.
+- The core is in a separate module so S-Ap can retire the old wrapper and statement
+  files under option (a). The Run facade imports the new core, but its legacy import
+  remains until that retirement. The legacy files are unchanged by this job.
+- Family coverage argument swaps: Shared/Count.lean:169 (P-ShA) and
+  Outage/ContinuationReceipt.lean:128,178 (P-Ou) replace fgsa_receiptCoverage with the
+  ready core or the S-Ap sleep wrapper. Pass receipt collision freedom and the
+  approved readiness inputs; do not add per-required scope to the public form.
+  The concrete ReceiptCoveragePremises producers and their required predicates
+  stay unchanged. Their sleep migration remains with the family owners.
+- Kernel controls: Tests/EmissionFreshness.receipt_roots_false refutes the new
+  idealization on the original valid alias run. Tests/ReceiptAlias is unchanged
+  and retains the negative control for the old form. Tests/ReceiptReady supplies
+  full ExecutionValid and receipt collision freedom on a nonempty trace ending
+  before the colliding emission. Its nonempty required predicate names the accepted
+  slot-1 proposal. coverage_ready applies the new core and obtains its exact body
+  in the receiver's tree at deadline 9.
+- Registration: ReceiptCoverageReady and ReceiptReady are S1 REQUIRED and W3
+  TARGETS/GREEN. Roots and NamedScope are explicit W3 targets. W3Axioms prints every
+  new public theorem and both new definitions. The full Run audit and fixed owner
+  inventory contain the same new production declarations. Test-local audits print
+  the negative control and positive validity/root/premise/coverage results.
+- The three current S-Ap-P23-STOP map owners are replaced by S-Ap: Run,
+  Proofs/ReceiptCoverage, and Tests/Axioms remain EXPECTED-FAIL for public retirement.
+  The other S-Ap and family-owned EXPECTED-FAIL entries are unchanged. Historic STOP
+  records above describe the old boundary; P23-A closes the W3 scope/core item.
+- Restore export fix 672dbc93 is present through lead merge 2eba122b. The complete
+  export check will rerun against this fix and the new ready core, with no new
+  baseline, allow-list, or exception entry.

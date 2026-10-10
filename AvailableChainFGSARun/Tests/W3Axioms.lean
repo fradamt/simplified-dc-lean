@@ -13,6 +13,8 @@ public import AvailableChainFGSARun.Proofs.Spec.Simulation -- shake: keep (#prin
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed -- shake: keep (#print axioms)
 public import AvailableChainFGSARun.Proofs.ClientTrace -- shake: keep (#print axioms)
 
+public import AvailableChainFGSARun.Proofs.ReceiptCoverageReady -- shake: keep (#print axioms)
+
 public section
 
 #print axioms AvailableChain.FGSA.Run.fgsa_fgAction_unjoined_source_none
@@ -89,3 +91,15 @@ public section
 #print axioms AvailableChain.FGSA.Run.healthyPrefixDeliveryBy_cut
 
 end
+
+#print axioms AvailableChain.FGSA.Run.NamedProposalReceiptScope
+#print axioms AvailableChain.FGSA.Run.NamedReceiptRootCollisionFree
+#print axioms AvailableChain.FGSA.Run.namedReceiptScope_of_namedScope
+#print axioms AvailableChain.FGSA.Run.namedReceiptScope_emitted
+#print axioms AvailableChain.FGSA.Run.namedReceiptScope_ancestor
+#print axioms AvailableChain.FGSA.Run.NamedReceiptRootCollisionFree.toNamedRootCollisionFree
+#print axioms AvailableChain.FGSA.Run.proposal_trigger_in_receipt_scope
+#print axioms AvailableChain.FGSA.Run.proposal_processed_in_scope
+#print axioms AvailableChain.FGSA.Run.emitted_proposal_history_in_scope
+#print axioms AvailableChain.FGSA.Run.proposal_trigger_service_in_scope
+#print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage_ready

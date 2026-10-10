@@ -4951,7 +4951,11 @@
             'AvailableChain.FGSA.Run.fgsa_restartTime_bound',
         ),
         'AvailableChainFGSARun.Proofs.NamedDelivery': (
+            'AvailableChain.FGSA.Run.emitted_proposal_history_in_scope',
+            'AvailableChain.FGSA.Run.proposal_processed_in_scope',
+            'AvailableChain.FGSA.Run.proposal_trigger_in_receipt_scope',
             'AvailableChain.FGSA.Run.proposal_trigger_in_root_scope',
+            'AvailableChain.FGSA.Run.proposal_trigger_service_in_scope',
         ),
         'AvailableChainFGSARun.Proofs.NamedHistory': (
             'AvailableChain.FGSA.Run.namedProposalInRun_genesis_or_delivered',
@@ -4968,9 +4972,13 @@
             'AvailableChain.FGSA.Run.namedOrigin_reachable',
         ),
         'AvailableChainFGSARun.Proofs.NamedScope': (
+            'AvailableChain.FGSA.Run.NamedReceiptRootCollisionFree.toNamedRootCollisionFree',
             'AvailableChain.FGSA.Run.contentAgree_of_namedScope',
             'AvailableChain.FGSA.Run.namedAncestor_eq',
             'AvailableChain.FGSA.Run.namedProposal_eq',
+            'AvailableChain.FGSA.Run.namedReceiptScope_ancestor',
+            'AvailableChain.FGSA.Run.namedReceiptScope_emitted',
+            'AvailableChain.FGSA.Run.namedReceiptScope_of_namedScope',
             'AvailableChain.FGSA.Run.namedScope_ancestor',
             'AvailableChain.FGSA.Run.namedScope_collision',
             'AvailableChain.FGSA.Run.namedScope_compatible_iff',
@@ -5058,6 +5066,9 @@
         ),
         'AvailableChainFGSARun.Proofs.ReceiptCoverage': (
             'AvailableChain.FGSA.Run.fgsa_receiptCoverage',
+        ),
+        'AvailableChainFGSARun.Proofs.ReceiptCoverageReady': (
+            'AvailableChain.FGSA.Run.fgsa_receiptCoverage_ready',
         ),
         'AvailableChainFGSARun.Proofs.Receipts': (
             'AvailableChain.FGSA.Run.excludesS_honestRow_false',
@@ -5188,6 +5199,8 @@
             'AvailableChain.FGSA.Run.DirectNamedProposalInRun',
             'AvailableChain.FGSA.Run.DirectRootBlockInRun',
             'AvailableChain.FGSA.Run.NamedProposalInRun',
+            'AvailableChain.FGSA.Run.NamedProposalReceiptScope',
+            'AvailableChain.FGSA.Run.NamedReceiptRootCollisionFree',
             'AvailableChain.FGSA.Run.RootBlockInRun',
         ),
         'AvailableChainFGSARun.Statements.Slashing': (
