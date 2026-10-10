@@ -26,6 +26,9 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
 public import AvailableChainFGSAProofs.Proofs.Outage.Induction
 
+public import AvailableChainFGSAProofs.Proofs.Outage.LaterHeads
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
+
 #print axioms AvailableChain.FGSA.Run.outage_restored_service
 #print axioms AvailableChain.FGSA.Run.outage_restored_proposal_receipt
 #print axioms AvailableChain.FGSA.Run.outage_restored_batch_receipt_on
@@ -245,3 +248,20 @@ public import AvailableChainFGSAProofs.Proofs.Outage.Induction
 #print axioms AvailableChain.FGSA.Run.outage_post_e_joined_count
 #print axioms AvailableChain.FGSA.Run.outage_first_restored_label
 #print axioms AvailableChain.FGSA.Run.outage_continuation_results_of_head_history
+
+
+#print axioms AvailableChain.FGSA.Run.outage_received_marker_head_scoped
+#print axioms AvailableChain.FGSA.Run.outage_clocked_root_compatible_scoped
+#print axioms AvailableChain.FGSA.Run.outage_clocked_contested_head_scoped
+#print axioms AvailableChain.FGSA.Run.outage_later_marker_receipt
+#print axioms AvailableChain.FGSA.Run.outage_later_marker_head
+#print axioms AvailableChain.FGSA.Run.outage_head_target_of_protection
+#print axioms AvailableChain.FGSA.Run.outage_conditional_target_of_protection
+#print axioms AvailableChain.FGSA.Run.outageV_write_and_normalize
+#print axioms AvailableChain.FGSA.Run.outageV_gateStep_covers
+#print axioms AvailableChain.FGSA.Run.outageV_fastSet_compatible
+#print axioms AvailableChain.FGSA.Run.outageV_live_locks
+#print axioms AvailableChain.FGSA.Run.outageV_source_compatible
+#print axioms AvailableChain.FGSA.Run.outageV_result_extends
+#print axioms AvailableChain.FGSA.Run.outageV_restored_gate
+#print axioms AvailableChain.FGSA.Run.outage_continuation_result_of_head_history

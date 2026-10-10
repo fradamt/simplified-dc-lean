@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep
 public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt
+public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 
 public section
 
@@ -25,6 +25,13 @@ theorem outageV_gateStep_covers (p : Params) (st : State p.n) (hinv : CStoreInv 
     (hcurrent : ∀ C, SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F)
       (actView st) s = some C → Block.Compatible C B) :
     Block.Preceq B (gateStep p st s).base.stableRecord := by
+  by_cases hJ : joinedNow p st = true
+  swap
+  · have hN : joinedNow p st = false := Bool.eq_false_iff.mpr hJ
+    unfold gateStep
+    rw [hN]
+    simp only [Bool.not_false, ite_true]
+    split <;> rw [normalizeS_fields] <;> exact outage_normalize_covers hBS hFB
   let Q : State p.n := { onView
     (fun v => SA.Root.gateFrom p.toParams (eraseFG st.fg.F) v s) st with
     fastWrite := st.fastWrite ++ [(s, fastSet p (eraseFG st.fg.F) (actView st) s)] }
@@ -36,6 +43,9 @@ theorem outageV_gateStep_covers (p : Params) (st : State p.n) (hinv : CStoreInv 
     rcases hc with he | ⟨C, hC, he⟩
     · rw [he]; exact hBS
     · rw [he]; exact outage_advance_covers hBS (hcurrent C hC)
+  unfold gateStep
+  rw [hJ]
+  simp only [Bool.not_true, Bool.false_eq_true, ite_false]
   change Block.Preceq B
     (normalizeS (if (GridCO.savedGenuine st.base s).isSome then st else Q)).base.stableRecord
   have hn (q : State p.n) (hS : Block.Preceq B q.base.stableRecord)
@@ -103,51 +113,23 @@ theorem outageV_result_extends {n : Nat} (p : GridCO.Params) (st : GridCO.State 
       simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hne
   · contradiction
 
-/-- OUTPUT-DIRECT §7. DC: INTENTIONAL; a real restored gate is compatible
-from the emitted HEAD history and current F compatibility. The receipt
-producer derives every count input from full-run synchrony. -/
+/-- A restored gate consumes only this label's scoped emitted HEAD history.
+The regime produces the E count or the healthy joined count and all HEAD services. -/
 theorem outageV_restored_gate {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
-    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
-    (hroots : NamedRootCollisionFree p c E rho) {ΔF : Time}
-    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    {i : Nat} {x : V} {s : Slot} {B C : Block} (hi : IsGateTick p c rho i x s)
-    (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
-    (hpart : (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-    (hheads : ∀ k y, rho.events[k]? = some (.tick y (SA.voteTime p.toParams s)) →
-      Block.Compatible
-        (headVote p (clock p (storeAt p c E rho k y) (SA.voteTime p.toParams s)) s) B)
-    (hF : Block.Compatible (F_at p c E rho i x) B)
-    (hresult : SA.Root.confirmationFrom p.toParams
-      (eraseFG (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)).fg.F)
-      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s = some C) :
-    Block.Compatible C B := by
-  by_cases hBF : Block.Preceq B (F_at p c E rho i x)
-  · have hFC := outageV_result_extends p.toParams.engine _ _ C s hresult
-    rw [clockPre_fg] at hFC
-    exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_preceq_trans hBF hFC))
-  have hFB : Block.Preceq (F_at p c E rho i x) B := by
-    rcases Bool.or_eq_true_iff.mp hF with h | h
-    · exact h
-    · exact (hBF h).elim
-  have hhistory : ∀ k y, rho.events[k]? = some (.tick y (SA.voteTime p.toParams s)) →
-      ∀ j, j ≤ i → Block.Compatible
-        (headVote p (clock p (storeAt p c E rho k y) (SA.voteTime p.toParams s)) s)
-        (F_at p c E rho j x) := by
-    intro k y hk j hj
-    have hfj := Gen.Pure.block_preceq_trans (arming_F_mono (E := E) hN hj x) hFB
-    rcases Bool.or_eq_true_iff.mp (hheads k y hk) with hKB | hBK
-    · exact Gen.Pure.block_compatible_of_common hKB hfj
-    · exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_preceq_trans hfj hBK))
-  obtain ⟨H, hH, hbatch⟩ := inclusion_head_seats E rho hC s ⟨hpart⟩
-  have hrec := outageV_compatible_head_receipts hE hN hDelta hC hroots hsync
-    hi hGST hhistory B hheads
-  exact outageV_gate_of_receipts E rho hE i x s B C H (Gen.V2.Duty.faulty rho).card
-    hbatch.lt (fgsa_late_rest_bound E rho hC hE i x s H
-      (fun q hh ha => (hH q).mpr ⟨hh, ha⟩))
-    (fun q hq => hrec q ((hH q).mp hq).1 ((hH q).mp hq).2) hresult
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    {i : Nat} {x : V} {s : Slot} {B C : Block}
+    (hx : x ∈ rho.honest) (hrs : restoredLabel p b₁ < s)
+    (hG : enabledGateAt p c E rho i x s)
+    (hHeads : ∀ q K,
+      outageHeadReader p E rho fast b₀ b₁ (rho.seatOf (.base (.head s)) q)
+        (SA.voteTime p.toParams s) →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Block.Compatible K B)
+    (hresult : gateResultAt p c E rho i = some (some C)) : Block.Compatible C B :=
+  outage_continuation_result_of_head_history h hx hrs hG hresult hHeads
 
 end AvailableChain.FGSA.Run
 end

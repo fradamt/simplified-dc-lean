@@ -6283,3 +6283,28 @@ Only propext, Classical.choice and Quot.sound occur in the strict audits.
 Evidence: .lake/sleep-pou-r8/. Handoff: P-Ou.round8-handoff.md.
 The full continuation induction, handover closure, Close and both complete
 exporters remain owned work. No future invariant is declared proved.
+
+### P-Ou Round 9 — actual later HEADs and local result adapter
+
+Base afc304e6. Protocol and public claim declarations are unchanged.
+LaterHeads supplies durable marker persistence, clocked contested HEAD compatibility,
+and the protected actual target before its lease expiry. The conditional target
+adapter keeps the low receiver-F branch and derives its floor by transitivity.
+
+outage_later_marker_receipt serves one actual stored carrier at the later joined HEAD
+read. Its public anchor is that slot start; GST comes from the earlier marker label.
+The receiver floor is derived only in the F-below-B branch. It uses retained acceptance
+origins, exact local history and epoch, and the actual tick horizon. It requests no
+joined-seat count and no universal receiver join or pre-GST deadline.
+
+ReceiverInputs.outage_continuation_result_of_head_history takes only the actual gate
+label's HEAD history. The existing global adapter now calls this local theorem.
+ContinuationGate.outageV_restored_gate uses that scoped interface and the regime's
+E-window or post-E joined count; its old NoRestart/awake batch lane is removed.
+The local gate-step proof now handles the suppressed branch with normalization.
+
+These are internal proof ports. Consumers: ContinuationJoint and the new scoped
+continuation induction. A first marker and the finite restored prefix are still
+P-Ou proof work; no unconditional public continuation closure is claimed here.
+LaterHeads and ContinuationGate pass exact builds with default heartbeats.
+The package map, local coverage and production-only audit fragment are updated.
