@@ -87,10 +87,12 @@ DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-
 non-row traffic keeps Δ. -/
 def TVote : Prop :=
   (∀ v st, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) v →
+    E.t_GST ≤ slotStartZ p (((v - 1 : Slot) : Int) - 1) →
     Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o) (SA.voteTime p.toParams (v - 1))
       (SA.proposalTime p.toParams v) →
     proposalStateAt p c E rho v = some st → FullVoteService p c E rho st (v - 1)) ∧
   (∀ r x nd, x ∈ rho.honest →
+    E.t_GST ≤ slotStartZ p (((r * p.R + 1 : Slot) : Int) - 1) →
     Gen.V2.Duty.LabelSyncOn E rho
       (fun o => ¬ isRowObject o) (SA.voteTime p.toParams (r * p.R + 1)) (p.actionTime r) →
     postClock E rho x (p.actionTime r) = some nd →

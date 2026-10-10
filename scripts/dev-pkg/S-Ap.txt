@@ -1,4 +1,4 @@
-# S-Ap Round 4: public suppliers and the P15-CUT receipt repair.
+# S-Ap Round 5: public TVote GST cutoffs and coupled Finality consumers.
 [TARGETS]
 AvailableChainFGCompose.Proofs.SafetyClient
 AvailableChainFGCompose.Proofs.SafetyMonotone
@@ -127,6 +127,7 @@ AvailableChainFGSARun.Tests.ReceiptAlias
 AvailableChainFGSARun.Tests.ReceiptReady
 AvailableChainFGSARun.Tests.W3Axioms
 [GREEN]
+AvailableChainFGSAClaims.Tests.FinalityGST
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -603,7 +604,6 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
-AvailableChainFGSAClaims.Tests.FinalityGST P-Fi
 AvailableChainFGSAClaims.Tests.FinalityW P-Fi
 AvailableChainFGSAClaims.Tests.HealedBest P-H1
 AvailableChainFGSAClaims.Tests.HealingW P-Fx
