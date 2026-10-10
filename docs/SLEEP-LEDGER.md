@@ -5850,3 +5850,18 @@ restart assertion was false under the approved retained-store restart. No public
 claim changes. The test module is GREEN as a kernel test; Close and the public
 exporters remain EXPECTED-FAIL and were checked separately.
 The complete local inventory now has 225 commands.
+
+### P-Ou Round 7 — final validation
+
+Proof source 181f601e. DCK P-Ou PASS: 507 GREEN roots, 42 strict audit sources,
+3,189 axiom results and all 24 default controls. Complete GREEN exports: 325 proof
+modules, 253 exports, zero unaccepted and zero Gen exports. Complete local coverage
+and its control pass for 225 commands. Layers: 72 inherited findings, zero new.
+Headers: three inherited P-Ar failures, zero P-Ou failure. No checker, baseline,
+allowance, toolchain, protocol declaration, or public claim changed.
+
+Induction and the independent Tests/OutageInduction kernel audit are GREEN.
+Seven P-Ou and two S-Ap roots remain EXPECTED-FAIL. P-Ou remains PREPARED.
+The later good-HEAD invariant, global hResults, full InclusionReceiverInputs,
+full continuation, handover and final public consumers remain open.
+Handoff: scripts/dev-pkg/P-Ou.round7-handoff.md. Evidence: .lake/sleep-pou-r7/.
