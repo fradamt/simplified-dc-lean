@@ -128,5 +128,61 @@ theorem healing_promotion_same_rows (E : Generic.Env V)
   exact ⟨K, nd, j, rSent, a, hnd, hK, hmem, hQ, hUK, hKslot, hKheight, hKU, hr, ha, hn,
     fun hh => promotion_same_row E rho hrec hnew hslot hU hUP hh ha hn⟩
 
+/-- The promotion consumer uses the selected sources at its actual proposal read. -/
+theorem healing_promotion_same_rows_on (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+ {u : Time} {m : Nat}
+    {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    {r height : Nat} {s : Slot} {Q : Block} {X : FGBlock (Fin p.n)}
+    (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
+    (_hgst : E.t_GST ≤ u)
+    (_hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
+    (_hu : u ≤ SA.voteTime p.toParams (r * p.R))
+    (_hgate : p.actionTime r ≤ SA.proposalTime p.toParams s) (_hs : r * p.R + 2 ≤ s)
+    (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X)) (hslot : X.slot = s)
+    (hParents : ∀ x ∈ rho.honest, ∀ K,
+      actionSourceFG p c E rho x r = some (some K) →
+      Block.Preceq (eraseFG K) (eraseFG X).parent) :
+    ∃ U : FGBlock (Fin p.n), EntryAt p U height ∧ U.slot ≤ r * p.R ∧
+      FGBlock.Preceq U X.parent ∧
+      ∀ x ∈ rho.honest, ∃ K nd j rSent a,
+        postClock E rho x (p.actionTime r) = some nd ∧
+        actionSourceFG p c E rho x r = some (some K) ∧ K ∈ FGSA.fullTree p nd.st ∧
+        Block.Preceq Q (eraseFG K) ∧ FGBlock.Preceq U K ∧ K.slot ≤ r * p.R ∧
+        (heightView p K).h = height ∧ (heightView p K).T_h = U ∧
+        rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        NamesEntry p .progress a height U ∧
+        ((heightView p X.parent).h = height →
+          ValidForParent p c E rho X.slot (eraseFG X) a ∧
+          HeightMatch p c E rho X.slot (eraseFG X) a) := by
+  obtain ⟨U, hU, hUslot, hrows⟩ := healing_promotion_bounded_rows E rho hrec hentry hcovered
+  have path : ∀ x ∈ rho.honest, ∀ K,
+      actionSourceFG p c E rho x r = some (some K) →
+      FGBlock.Preceq U K → FGBlock.Preceq U X.parent := by
+    intro x hx K hK hUK
+    have hparent := hParents x hx K hK
+    rw [eraseFG_parent] at hparent
+    have hKX : FGBlock.Preceq K X.parent :=
+      eraseFG_preceq_iff.mp hparent
+    exact KitFG.preceq_trans hUK hKX
+  have hUP : FGBlock.Preceq U X.parent := by
+    obtain ⟨x, hx⟩ := (show rho.honest.Nonempty from by
+      have hn : Fintype.card V = p.n :=
+        (V2.D.CStar.seats_eq (ℓ := .base .fg) hrec.base.linked.toCStar trivial).symm
+      by_contra h
+      have he := Finset.not_nonempty_iff_eq_empty.mp h
+      have hf := hrec.fault
+      rw [Gen.V2.Duty.faulty_def, he, Finset.sdiff_empty, Finset.card_univ, hn] at hf
+      have := p.nPos
+      omega)
+    obtain ⟨K, _, _, _, _, _, hK, _, _, hUK, _⟩ := hrows x hx
+    exact path x hx K hK hUK
+  refine ⟨U, hU, hUslot, hUP, ?_⟩
+  intro x hx
+  obtain ⟨K, nd, j, rSent, a, hnd, hK, hmem, hQ, hUK, hKslot, hKheight, hKU, hr, ha, hn⟩ :=
+    hrows x hx
+  exact ⟨K, nd, j, rSent, a, hnd, hK, hmem, hQ, hUK, hKslot, hKheight, hKU, hr, ha, hn,
+    fun hh => promotion_same_row E rho hrec hnew hslot hU hUP hh ha hn⟩
+
 end AvailableChain.FGSA.Run
 end

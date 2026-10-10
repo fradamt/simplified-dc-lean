@@ -1003,6 +1003,38 @@ imports; serial audit integration remains a separate obligation. FrontierOpen
 exports only named declarations; generated proof matchers remain private.
 No public Claims statement changed.
 
+P-H1 Round 6 healing service boundary (sleep-ph1g):
+SupportRecovery defines HealingWindow and StrongHealingWindow with integer cutoffs.
+A transport bound at vote(s) does not supply a joined batch. Window 1 supplies
+that batch; Window 2 supplies a repaired proposal's preceding batch. SupportTicks
+proves the seat/node cardinality bridge through the HEAD-seat CStar bijection.
+DescentLoss derives Window 1 at a high source from oldRowHeights and recoveryStart.
+HealingCarriersAt fixes the receiver at an actual honest joined tick, with a
+post-GST anchor and a finite deadline. It serves the selected admissible K/W,
+not every durable TF member. Event/output reads retain service from an earlier
+actual joined tick. ProposalSupportScope records the actual proposal or gate time.
+SupportPermanenceServices is indexed by one actual phase. healing_tPerm_at returns
+Transfers for a source with Window 1. Its link to public TPerm remains open.
+RepairHeadServices is indexed by the actual ip/x/N. Its retained service takes the
+receiver floor; its target receipt follows from that same proposal service.
+Repair gates take enabledness and GateReceiptGeometry. Suppressed gates create
+no receipt demand. Frontier slow factories take the saved-window sync bound.
+The local repair lease covers and all ten aggregate producers remain OPEN/P-H1.
+See scripts/dev-pkg/P-H1.round6-producers.md and P-H1.round6-handoff.md.
+
+JOINED START (lead ruling, P-H1 Rounds 7-8): every healing intermediate statement
+(TDel, TPerm, ProposalGap, TRepair, TCommon, TFrontier, ResetArrival*, AttemptValid,
+RPhase, RenewedPromotionConcl) starts at Jst = recoveryStart p E, not at GST.
+Jst - GST lies in [6Δ, 10Δ-1] and depends only on GST mod 4Δ. Saved-window
+transport premises stay at GST. RowPermissionAt/Claim stay at GST (proved without
+a healing contract). Top-level Claims/Healing* deadlines and constants are unchanged.
+From Jst every honest reader and every source-label voter is joined, so there is
+one joined-phase permanence API; no early fast-only supplier and no early one-lease
+cleanup exist. Fast first transfer: relay rule plus the reader joined at release(s).
+Slow arm: lease expiry plus same-label uniqueness. A pre-GST lease that is still live
+at release(sStar) (k > 2R+3) is released by a later full post-Jst batch.
+Plan: tip-stability codex/jobs/joined-start-plan.md; ruling in sleep-join-port-notes.md.
+
 - FG-SA sleep continuation, P-Ou Round 10: `Outage/ScopedPrefix` selects
   regressions only at actual joined emitted HEADs. Its no-regression branch
   constructs the restored seed from the arming certificate, then produces
@@ -1028,3 +1060,15 @@ P-Ou ScopedBridge now constructs the finite bridge and global restored scoped
 HEADs. Same-label readers use their own frame, and subsequent labels use the
 first marker. Both event branches reach inclusive covered public reads after the
 seed. Earlier read assembly, W stable catch-up and legacy public ports remain open.
+
+P-Ou Rounds 12-13 (sleep-pou12/13): ScopedEarly proves the early reads, HEADs, F and
+duties at finite cuts; ScopedClose gives the protected Outage result under Close's own
+OutagePrem (no NoRestart, no duties_and_outputs). The finite Clean history/output
+suppliers stay at the lane boundary. ScopedArming selects fast, slow and empty-G
+certificates; ScopedJoint joins the early reads, the covered suffix and the actual W
+gate. Assembly/OutagePublicInputs builds every finite Clean field from a named
+producer; its audit module prints their axioms. Dependency order: protected Outage
+is proved from named suppliers; W suffix preservation and lease compatibility at the
+actual post-handover W gate are proved; the continuation exporter still needs
+OutageWSeed (Outage/ScopedCatchUp, O11-W-SEED); P-As assembly and the global audit
+integration remain pending.

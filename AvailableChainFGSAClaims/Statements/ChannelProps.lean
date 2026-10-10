@@ -868,12 +868,13 @@ As IF.5 (21:548; statement 21:550–557), the receipt is stated only for a prefi
 with the receiver's F. -/
 def TDel : Prop := ∀ y r K, y ∈ rho.honest →
   actionSourceFG p c E rho y r = some (some K) →
-  E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
+  recoveryStart p E ≤ SA.voteTime p.toParams (r * p.R) →
   SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
   ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho (fun nd =>
     Block.Compatible (eraseFG K) (eraseFG nd.st.fg.F) →
       (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x
+
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 T-DEL reset (21 H.12:2456–2463; H.14), P3 A.8. Consumer: H.14.
 Only this T-delivery clause takes H0. Reset-only facts suffice, but P3 retains full H0. -/
@@ -952,17 +953,18 @@ def PhaseBody (s : Slot) (B : Block) : Prop :=
 T-PERM, bp.phaseSourcePermanence.v1 (00:962–966; 21 H.4/H.4-S:628–680),
 P3 A.8. Consumers: H.6, H.9. H.4-S permits earlier window labels in other phases. -/
 def TPerm : Prop := ∀ u v m J contested s B,
-  E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
+  recoveryStart p E ≤ u → PhaseInterval p c E rho u v m J contested →
   u ≤ SA.voteTime p.toParams s → SA.gateTime p.toParams s ≤ v →
   PhaseBody p c E rho s B → Transfers p c E rho s B v
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 The gap predicate, not a regime (21 §2:274–282), P3 A.8.
 Consumer: repair bounds. Recovery₂.gap supplies it. -/
-def ProposalGap (G : Time) : Prop := ∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon →
+def ProposalGap (G : Time) : Prop := ∀ t, recoveryStart p E ≤ t → t + G ≤ rho.horizon →
   ∃ s, t < V2.D.proposalTime (fgsaInterface p c) s ∧
     V2.D.proposalTime (fgsaInterface p c) s ≤ t + G ∧
     Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s
+
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 Later-proposal service after a repair threshold (21 H.6:749–756), P3 A.8.
 Consumer: TRepair. -/
@@ -975,7 +977,7 @@ T-REPAIR, bp.phaseRepair.v1 (00:968–978; 21 H.6:749–756;
 H.6-S:821–834), P3 A.8. Consumers: H.9, H.10, HG.3.
 Each budget is used only when the phase and finite horizon include it. -/
 def TRepair : Prop := ∀ G u v m J contested,
-  ProposalGap p c E rho G → 4 * p.Δ ≤ G → E.t_GST ≤ u →
+  ProposalGap p c E rho G → 4 * p.Δ ≤ G → recoveryStart p E ≤ u →
   PhaseInterval p c E rho u v m J contested →
   (∀ β, u < SA.proposalTime p.toParams β →
     (∀ b, u < SA.proposalTime p.toParams b → β ≤ b) →
@@ -1016,7 +1018,7 @@ T-COMMON, bp.commonEntry.v1 (00:1001–1010; 21 H.9:1100–1144),
 P3 A.8. Consumers: H.9 and HG.2. The second opening has its own phase premise.
 SO-COV. DC: INTENTIONAL earlier-or-current source coverage. -/
 def TCommon : Prop := ∀ u m J contested q Q Qfg r,
-  E.t_GST ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
+  recoveryStart p E ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
   ExactService p c E rho q Q → u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
   (∀ r', q ≤ r' * p.R → r ≤ r') →
   PhaseInterval p c E rho u (p.actionTime r) m J contested →
@@ -1032,6 +1034,7 @@ def TCommon : Prop := ∀ u m J contested q Q Qfg r,
         (heightView p K).h = m) ∧
       (PhaseInterval p c E rho u (p.actionTime (r + 1)) m J contested →
         OpeningEntry p c E rho (r + 1) m)))
+
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 T-FRONTIER (21 HG.1:1333–1350), P3 A.8. Consumers: HG.1–HG.5.
 The initial proposal is served in its phase. Subsequent service stops at frontier rise.
@@ -1042,7 +1045,7 @@ q follows the H.6 threshold β + 2k − 1
 of the first label β after u, or the H.6-S threshold b + k of the first HEAD label b after u,
 with the synchronous window. These are TRepair's branch conditions. -/
 def TFrontier : Prop := ∀ u v m J contested q Q Qfg,
-  E.t_GST ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
+  recoveryStart p E ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
   (heightView p Qfg).h = m → ExactService p c E rho q Q →
   ((∃ β : Slot,
     u < SA.proposalTime p.toParams β ∧

@@ -34,7 +34,7 @@ label-r HEAD that covers the pivot and B is, at the proposer's slot-(r+1) read, 
 resolved non-equivocating proposer-support vote that supports B. The HEAD block is the
 relayed witness; F is below it by RXing, so no F ⪯ B premise is needed. -/
 theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -45,9 +45,12 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq B K)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
-    (hScope : ProposalSupportScope E rho ip x r)
+    (hScope : ProposalSupportScope E rho ip x r (SA.proposalTime p.toParams (r + 1)))
+    (hCut : HealingWindow p E 1 r)
     (hv : SA.proposalTime p.toParams (r + 1) ≤ v)
-    (k : Fin p.n) (hk : rho.seatOf (.base (.head r)) k ∈ rho.honest) :
+    (k : Fin p.n) (hk : rho.seatOf (.base (.head r)) k ∈ rho.honest)
+    (hJoin : joinedAt p E rho (rho.seatOf (.base (.head r)) k) r
+      (SA.voteTime p.toParams r)) :
     Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (r + 1))).base.blocks
       (FGSA.proposerSupport (FGSA.clock p (storeAt p c E rho ip x)
@@ -70,7 +73,7 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   have hawake := hrec.awake z hk _ hgstr hhorr
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
-    (fgsa_head_joined_of_joinedAt E rho hS hjz (hScope.joined z hk))
+    (fgsa_head_joined_of_joinedAt E rho hS hjz hJoin)
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams r)) r
   have hBK : Block.Preceq B K := hcover z hk K hhl
@@ -78,11 +81,14 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay_on
     (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hk hjz (hcoverQ z hk K hhl)
-    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) (hScope.carriers jz z hk hjz)
+    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) hx
+    (healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hx hip hvp
+      jz z hk hjz)
   have hKe' : eraseFG Kfg = K := hKe0
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF :=
     (fgsa_store_durable p c E rho
-      (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 (hrelay x hx)
+      (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 (hrelay)
   have hinv : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hKb : K ∈ st.base.blocks := by
     rw [← hKe']
@@ -189,7 +195,7 @@ retained prior support at the honest proposer read of slot r+1 under the cap: th
 proposer's own label-r HEAD block is the height-m witness, and the honest batch of label r
 gives the strict majority and the rival bound in the ACTUAL proposer pool. -/
 theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -200,7 +206,8 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq L K)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
-    (hScope : ProposalSupportScope E rho ip x r)
+    (hScope : ProposalSupportScope E rho ip x r (SA.proposalTime p.toParams (r + 1)))
+    (hCut : HealingWindow p E 1 r)
     (hv : SA.proposalTime p.toParams (r + 1) ≤ v) :
     RetainedPriorSupport p (clock p (rho.stateBefore E ip x).st
       (SA.proposalTime p.toParams (r + 1))) (r + 1) L := by
@@ -232,10 +239,13 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
     rfl
   obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hx hjx (hcoverQ x hx _ hhl)
-    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) (hScope.carriers jx x hx hjx)
+    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) hx
+    (healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hx hip hvp
+      jx x hx hjx)
   have hW : W ∈ (storeAt p c E rho ip x).fg.TF :=
     (fgsa_store_durable p c E rho
-      (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 (hrelay x hx)
+      (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 (hrelay)
   have hLW : Block.Preceq L (eraseFG W) := hWe ▸ hcover x hx _ hhl
   have hQW : Block.Preceq (eraseFG Qfg) (eraseFG W) := hWe ▸ hcoverQ x hx _ hhl
   have hipv : ip ≤ timeIdx rho v := (healing_phase_lt_timeIdx p c E rho hS hip hv).le
@@ -243,50 +253,15 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
     (hcap ip x hipv hx) hW hQW
   have hWs : W ∈ src.fg.TF := hdfg ▸ hW
   -- The honest batch of label r in the actual proposer pool.
-  let Hon : Finset (Fin p.n) := Finset.univ.filter
-    (fun k => rho.seatOf (.base (.head r)) k ∈ rho.honest)
-  have hbij : Function.Bijective (fun k : Fin p.n => rho.seatOf (.base (.head r)) k) :=
-    hrec.base.cstar (.base (.head r)) trivial
-  have hHmem (k : Fin p.n) : k ∈ Hon ↔ rho.seatOf (.base (.head r)) k ∈ rho.honest := by
-    simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
-  have hseat (k : Fin p.n) (hk : k ∈ Hon) := frontier_proposal_batch_seat E rho hrec crossing
-    hQm hvh hcap hgstr hcoverQ hcover hx hip hScope hv k ((hHmem k).mp hk)
-  have hHon : Hon.card = rho.honest.card := by
-    rw [← Finset.card_image_of_injective Hon hbij.1]
-    congr 1
-    ext z
-    simp only [Finset.mem_image]
-    constructor
-    · rintro ⟨k, hk, rfl⟩
-      exact (hHmem k).mp hk
-    · intro hz
-      obtain ⟨k, rfl⟩ := hbij.2 z
-      exact ⟨k, (hHmem k).mpr hz, rfl⟩
-  have hn : Fintype.card V = p.n := by
-    have hc := Fintype.card_congr (Equiv.ofBijective _ hbij)
-    simpa only [Fintype.card_fin] using hc.symm
-  have hf : (Gen.V2.Duty.faulty rho).card = p.n - rho.honest.card := by
-    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
-      Finset.card_univ, hn]
-  have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := by
-    have hfault := hrec.fault
-    have hHonLe : rho.honest.card ≤ p.n := hn ▸ Finset.card_le_univ rho.honest
-    have hpos := p.nPos
-    rw [hf] at hfault
-    rw [hHon, hf]
-    constructor
-    omega
+  let Hon : Finset (Fin p.n) := healingJoinedSeats E rho r
+  have hseat (k : Fin p.n) (hk : k ∈ Hon) :=
+    frontier_proposal_batch_seat E rho hrec crossing
+    hQm hvh hcap hgstr hcoverQ hcover hx hip hScope hCut hv k
+    ((healingJoinedSeats_mem E rho r k).mp hk).1
+    ((healingJoinedSeats_mem E rho r k).mp hk).2
+  have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
   have hother : ((GridCO.seats p.n (proposerVotes src (r + 1))).toFinset \ Hon).card ≤
-      (Gen.V2.Duty.faulty rho).card := by
-    apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head r)))
-    · intro k hk
-      obtain ⟨_, hn⟩ := Finset.mem_sdiff.mp hk
-      rw [Finset.mem_coe, Gen.V2.Duty.faulty_def]
-      refine Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, ?_⟩
-      intro hh
-      exact hn ((hHmem k).mpr hh)
-    · intro k _ j _ he
-      exact hbij.1 he
+      (Gen.V2.Duty.faulty rho).card := hScope.rivals
   obtain ⟨_, _, hpath, hconflict, _⟩ := Gen.AC.Root.batch_counts src.base.blocks
     (proposerVotes src (r + 1)) (proposerVotes src (r + 1)) (proposerSupport src (r + 1))
     Hon Hon.card (Gen.V2.Duty.faulty rho).card L (fun _ h => h)
@@ -316,7 +291,7 @@ DC: INTENTIONAL a target L that every honest label-r HEAD covers has, at an hone
 read of label r+1 under the cap, a strict majority in the ACTUAL HEAD pool, and every
 conflicting block has at most half of the raw voters (the non-strict target rival bound). -/
 theorem frontier_target_scores [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
     {v : Time} (hvh : v ≤ rho.horizon)
@@ -328,6 +303,7 @@ theorem frontier_target_scores [Fintype V] (E : Generic.Env V)
     {ih : Nat} {y : V} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))))
     (hScope : NextTransferScope E rho ih y r)
+    (hCut : HealingWindow p E 1 r)
     (hv : SA.voteTime p.toParams (r + 1) ≤ v) :
     RetainedTargetScores p (clock p (rho.stateBefore E ih y).st
       (SA.voteTime p.toParams (r + 1))) (r + 1) L := by
@@ -341,50 +317,14 @@ theorem frontier_target_scores [Fintype V] (E : Generic.Env V)
     push_cast
     linarith
   have hhorr : SA.voteTime p.toParams r ≤ rho.horizon := hvi.trans hvh
-  let Hon : Finset (Fin p.n) := Finset.univ.filter
-    (fun k => rho.seatOf (.base (.head r)) k ∈ rho.honest)
-  have hbij : Function.Bijective (fun k : Fin p.n => rho.seatOf (.base (.head r)) k) :=
-    hrec.base.cstar (.base (.head r)) trivial
-  have hHmem (k : Fin p.n) : k ∈ Hon ↔ rho.seatOf (.base (.head r)) k ∈ rho.honest := by
-    simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
+  let Hon : Finset (Fin p.n) := healingJoinedSeats E rho r
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := frontier_head_batch_seat E rho hrec crossing hQm
-    hvh hcap hgstr hcoverQ hcover hy hih hScope hv k ((hHmem k).mp hk)
-  have hHon : Hon.card = rho.honest.card := by
-    rw [← Finset.card_image_of_injective Hon hbij.1]
-    congr 1
-    ext z
-    simp only [Finset.mem_image]
-    constructor
-    · rintro ⟨k, hk, rfl⟩
-      exact (hHmem k).mp hk
-    · intro hz
-      obtain ⟨k, rfl⟩ := hbij.2 z
-      exact ⟨k, (hHmem k).mpr hz, rfl⟩
-  have hn : Fintype.card V = p.n := by
-    have hc := Fintype.card_congr (Equiv.ofBijective _ hbij)
-    simpa only [Fintype.card_fin] using hc.symm
-  have hf : (Gen.V2.Duty.faulty rho).card = p.n - rho.honest.card := by
-    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
-      Finset.card_univ, hn]
-  have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := by
-    have hfault := hrec.fault
-    have hHonLe : rho.honest.card ≤ p.n := hn ▸ Finset.card_le_univ rho.honest
-    have hpos := p.nPos
-    rw [hf] at hfault
-    rw [hHon, hf]
-    constructor
-    omega
+    hvh hcap hgstr hcoverQ hcover hy hih hScope hCut hv k
+    ((healingJoinedSeats_mem E rho r k).mp hk).1
+    ((healingJoinedSeats_mem E rho r k).mp hk).2
+  have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
   have hother : ((GridCO.seats p.n (FGSA.headVotes p dst (r + 1))).toFinset \ Hon).card ≤
-      (Gen.V2.Duty.faulty rho).card := by
-    apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head r)))
-    · intro k hk
-      obtain ⟨_, hn⟩ := Finset.mem_sdiff.mp hk
-      rw [Finset.mem_coe, Gen.V2.Duty.faulty_def]
-      refine Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, ?_⟩
-      intro hh
-      exact hn ((hHmem k).mpr hh)
-    · intro k _ j _ he
-      exact hbij.1 he
+      (Gen.V2.Duty.faulty rho).card := hScope.rivals
   have hsub : FGSA.headSupport p dst (r + 1) ⊆ FGSA.headVotes p dst (r + 1) :=
     fgsa_headSupport_subset_headVotes E rho hE ih y r
   obtain ⟨_, _, hpath, _, hrest⟩ := Gen.AC.Root.batch_counts dst.base.blocks

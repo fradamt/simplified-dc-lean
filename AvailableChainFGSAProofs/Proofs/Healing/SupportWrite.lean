@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 
 public section
@@ -170,7 +171,7 @@ theorem healing_last_write_support (hs : V2.D.ScheduleWellFormed E rho)
               p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m bcut : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     (hcurrent : u ≤ SA.voteTime p.toParams bcut)
     (hsyncWindow : E.t_GST ≤ SA.voteTime p.toParams (bcut + 1 - p.k)) :
     ∀ i x (row : Block × Nat × Time), i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -226,7 +227,7 @@ theorem healing_last_write_support (hs : V2.D.ScheduleWellFormed E rho)
       have hm : ((bcut + 1 - p.k : Nat) : Int) ≤ ((w + 1 - p.k : Nat) : Int) := by
         exact_mod_cast Nat.sub_le_sub_right (Nat.succ_le_succ hbw) p.k
       nlinarith
-    exact perm u v m J contested w row.1 hgst hphase hu hgv
+    exact perm u v m J contested w row.1 hready hphase hu hgv
       (healing_support_phaseBody_of_write p c E rho hs hx ht hpass hres hkey hwin)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -281,7 +282,7 @@ theorem healing_last_write_two_lease (hs : V2.D.ScheduleWellFormed E rho)
               p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m β : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     (hβ : u < SA.proposalTime p.toParams β) :
     ∀ i x (row : Block × Nat × Time), i ≤ timeIdx rho v → x ∈ rho.honest →
       row ∈ (storeAt p c E rho i x).base.obligations →
@@ -302,12 +303,14 @@ theorem healing_last_write_two_lease (hs : V2.D.ScheduleWellFormed E rho)
     nlinarith
   have hsync : E.t_GST ≤ SA.voteTime p.toParams (β + p.k - 1 + 1 - p.k) := by
     rw [hwin]
-    refine hgst.trans (hβ.le.trans ?_)
+    refine (by
+      have := healing_recovery_start_lower (p := p) E
+      linarith [p.deltaPos] : E.t_GST ≤ u).trans (hβ.le.trans ?_)
     change 4 * p.Δ * (β : Int) ≤ 4 * p.Δ * (β : Int) + p.Δ
     linarith
   intro i x row hiv hx hr
   obtain ⟨j, hji, w, C, ht, hpass, hres, hrow, _, hd', _, _, hcase⟩ :=
-    healing_last_write_support p c E rho hs perm writes hgst hphase hcur hsync i x row hiv hx hr
+    healing_last_write_support p c E rho hs perm writes hready hphase hcur hsync i x row hiv hx hr
   refine ⟨j, hji, w, C, ht, hpass, hres, hrow, ?_⟩
   rcases hcase with ⟨hwb, _⟩ | hnew
   · left
@@ -346,7 +349,7 @@ theorem healing_last_write_one_lease (hs : V2.D.ScheduleWellFormed E rho)
               p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m b : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     (hb : u ≤ SA.voteTime p.toParams b)
     (hwindow : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k)) :
     ∀ i x (row : Block × Nat × Time), i ≤ timeIdx rho v → x ∈ rho.honest →
@@ -359,7 +362,7 @@ theorem healing_last_write_one_lease (hs : V2.D.ScheduleWellFormed E rho)
           (b ≤ w ∧ Transfers p c E rho w row.1 v)) := by
   intro i x row hiv hx hr
   obtain ⟨j, hji, w, C, ht, hpass, hres, hrow, _, hd', _, _, hcase⟩ :=
-    healing_last_write_support p c E rho hs perm writes hgst hphase hb hwindow i x row hiv hx hr
+    healing_last_write_support p c E rho hs perm writes hready hphase hb hwindow i x row hiv hx hr
   refine ⟨j, hji, w, C, ht, hpass, hres, hrow, ?_⟩
   rcases hcase with ⟨hwb, _⟩ | hnew
   · left

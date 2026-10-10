@@ -41,23 +41,36 @@ theorem healing_domain_filter_F (st : State p.n) (X : Finset (FGBlock (Fin p.n))
 
 /-- Object services at actual high-source and moving-frame reads. -/
 structure LossServiceScope (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
-  same : ∀ i K K' s, SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s →
+    (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) : Prop where
+  same : ∀ i K K' s, SourceBefore p c E rho i K s →
+    SourceBefore p c E rho i K' s →
     muOf p c E rho + 1 ≤ (heightView p K).h →
-    muOf p c E rho + 1 ≤ (heightView p K').h → SameLabelServiceScope E rho s
+    muOf p c E rho + 1 ≤ (heightView p K').h →
+    SameLabelServiceScope E rho s
   first : ∀ B sB (iy : Nat) (y : V), HighSrcN p c E rho B sB → y ∈ rho.honest →
     rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (sB + 1))) →
+    joinedAt p E rho y (sB + 1) (SA.voteTime p.toParams (sB + 1)) →
     ∀ ix xs, xs ∈ rho.honest → IsGateTick p c rho ix xs sB →
+    (∃ C, gateResultAt p c E rho ix = some (some C) ∧
+      Block.Preceq (eraseFG B) C) →
     FirstTransferScope E rho ix iy xs y sB
-  next : ∀ B sB i (iy : Nat) (y : V), HighSrcN p c E rho B sB → sB + 1 ≤ i → y ∈ rho.honest →
+  next : ∀ B sB i (iy : Nat) (y : V), HighSrcN p c E rho B sB → sB + 1 ≤ i →
+    y ∈ rho.honest →
     rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))) →
+    joinedAt p E rho y (i + 1) (SA.voteTime p.toParams (i + 1)) →
     NextTransferScope E rho iy y i
-  fast : ∀ B sB l (k : Nat) (x : V), HighSrcN p c E rho B sB → sB + 2 ≤ l → x ∈ rho.honest →
+  fast : ∀ B sB l (k : Nat) (x : V), HighSrcN p c E rho B sB → sB + 2 ≤ l →
+    x ∈ rho.honest →
     rho.events[k]? = some (.tick x (SA.voteTime p.toParams l)) →
-    ∀ y ∈ rho.honest, FastSupportScope E rho sB (SA.voteTime p.toParams l) y
+    ∀ y nd, y ∈ rho.honest →
+    postClock E rho y (SA.gateTime p.toParams sB) = some nd →
+    eraseFG B ∈ (fastWriteAt nd.st sB).getD [] →
+    FastSupportScope E rho sB (SA.voteTime p.toParams l) y
   receipts : ∀ i K s u (k : Nat) (x : V), SourceBefore p c E rho i K s → s ≤ u →
     E.t_GST ≤ SA.voteTime p.toParams u → x ∈ rho.honest →
     rho.events[k]? = some (.tick x (SA.voteTime p.toParams (u + 1))) →
+    joinedAt p E rho x (u + 1) (SA.voteTime p.toParams (u + 1)) →
     FGBlock.Preceq (storeAt p c E rho k x).fg.F K →
     TargetReceiptService E rho (eraseFG K) (SA.freezeTime p.toParams u) x
 
@@ -362,11 +375,12 @@ theorem healing_source_receipt [Fintype V] {G ΔF : Time}
     {u : Slot} (hsu : s ≤ u) (hgst : E.t_GST ≤ SA.voteTime p.toParams u)
     {k : Nat} {x : V} (hx : x ∈ rho.honest)
     (hk : rho.events[k]? = some (.tick x (SA.voteTime p.toParams (u + 1))))
+    (hJoin : joinedAt p E rho x (u + 1) (SA.voteTime p.toParams (u + 1)))
     (hF : FGBlock.Preceq (storeAt p c E rho k x).fg.F K) :
     K ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams u)) x).fg.TF := by
   have hS := hrec.base.valid.toScheduleWellFormed
   have hb := fgsa_target_receipt_on E rho hS hrec.base.receiptIdealization (eraseFG K)
-    (SA.freezeTime p.toParams u) x hx (hScopes.receipts i K s u k x hK hsu hgst hx hk hF)
+    (SA.freezeTime p.toParams u) x hx (hScopes.receipts i K s u k x hK hsu hgst hx hk hJoin hF)
   obtain ⟨Y, hY, heY⟩ := ((storeBundle_stateBeforeTime E rho _ x).cstore.baseTree _).mp hb
   have he : Y = K := eraseFG_injective heY
   subst Y
@@ -471,9 +485,14 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
     have hinv := (storeBundle_stateBefore E rho (V2.D.Run.idxBefore rho D) x).cstore
     obtain ⟨A', hA', he⟩ := eraseFG_ancestor_mem hinv.fg.closed hW (eraseFG_preceq hAW)
     exact Finset.mem_filter.mpr ⟨(eraseFG_injective he) ▸ hA', hFA⟩
+  have hsrc := hB
+  rw [HighSrcN_def, SrcN_def] at hsrc
+  have hCut := healing_high_source_window p c E rho emittedNonempty emittedName hsrc.1 hsrc.2
+  have hci := hCut.mono hl
+  have hJoin := healing_recovery_joined_vote_next E rho hrec hci hx hk
   rcases Nat.eq_or_lt_of_le hl with rfl | hlt
   · exact healing_first_transfer_domain p c E rho hrec.toRecovery₂ emittedNonempty emittedName
-      hB hx hk (hScopes.first B sB k x hB hx hk) hXv hXc hDX
+      hB hx hk (hScopes.first B sB k x hB hx hk hJoin) hXv hXc hDX
   · have hB' := hB
     rw [HighSrcN_def] at hB'
     have hgst := healing_high_source_sync p c E rho emittedNonempty emittedName
@@ -491,8 +510,8 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
       writes noLoss hB hx (show sB + 2 ≤ i + 1 from Nat.succ_le_succ hlt) hk
       (hScopes.fast B sB (i + 1) k x hB (Nat.succ_le_succ hlt) hx hk)
       (eraseFG_preceq hFB)
-    exact healing_next_transfer_domain p c E rho hrec.toRecovery₂ hgsti hcover hx hk
-      (hScopes.next B sB i k x hB hlt hx hk) hXv hXc hDX hlease
+    exact healing_next_transfer_domain p c E rho hrec mono hgsti hcover hx hk
+      (hScopes.next B sB i k x hB hlt hx hk hJoin) hci hXv hXc hDX hlease
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B `cause`; blueprint 21:2677–2741, 2767–2813
@@ -550,6 +569,8 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
   rw [HighSrcN_def] at hB'
   have hsrc := (SrcN_def p c E rho B sB) ▸ hB'.1
   have hgst := healing_high_source_sync p c E rho emittedNonempty emittedName hsrc hB'.2
+  have hCut := healing_high_source_window p c E rho emittedNonempty emittedName hsrc hB'.2
+  have hJoin := healing_recovery_joined_vote_next E rho hrec (hCut.mono hsi) hx hk
   have hgsti : E.t_GST ≤ SA.voteTime p.toParams i := by
     refine hgst.trans ?_
     have hsi' : (sB : Int) ≤ (i : Int) := by exact_mod_cast hsi
@@ -564,7 +585,7 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
       (storeAt p c E rho k x).fg.TF := (fgsa_store_durable p c E rho hDk x).1
   have hBX := healing_source_receipt p c E rho hrec hScopes
     emittedNonempty emittedName hsrc hsi hgsti
-    hx hk hFB
+    hx hk hJoin hFB
   refine healing_loss_cause_of_view p c E rho hrec hScopes emittedNonempty emittedName xing origin
     noLoss hB hx hl hk hn hX hBX ?_
     (healing_loss_domain p c E rho hrec hScopes mono emittedNonempty emittedName writes noLoss hB hx
@@ -581,7 +602,7 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
       nlinarith [p.deltaPos]
     exact_mod_cast hlt
   exact healing_source_receipt p c E rho hrec hScopes
-    emittedNonempty emittedName hK hsl hgsti hx hk hFK
+    emittedNonempty emittedName hK hsl hgsti hx hk hJoin hFK
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B; blueprint 21:2677–2741 (fj.descent.v3).

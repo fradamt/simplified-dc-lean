@@ -5767,6 +5767,122 @@ receipt wiring; current-epoch continuation service; 39 open with owner contracts
 (aa4b6c3d; proofs accepted by rev-ph2b-astra). Its canonical fragment scripts/dev-pkg/P-H2.audit-fragment.txt:9/:55-65 and
 P-H2.coverage-fragment.txt:54 still import Tests.HealingOpeningSupport: DO NOT APPLY (RULING AUDIT-FRAGMENT); P-H2 round 3
 removes them (codex/jobs/sleep-ph2-pending-fixes.md item 1). The six commands stay in Tests/HealingOpeningSupport.lean:136.
+
+## P-H1 — Round 4 scope and carrier repair (2026-10-10)
+
+Base 37beb806, branch sleep-ph1e. The Round 3 CLOSED claim is withdrawn after
+FIX-FIRST in rev-ph1d/review.md. Status is PREPARED. Compilation does not prove
+that a scope can be constructed from RecoverySleep₂. Public Claims/Statements
+are unchanged. No public statement was weakened and no public STOP occurred.
+
+RawServiceScope.gates and FastSupportScope.gates now take the actual enabled
+actor guard and SupportGateScope. They no longer demand the false sufficient
+GST cutoff from a post-GST vote. SupportGateScope uses a selected joined-voter
+batch; its cut-based partial producer requires the cut as an actual caller
+input. A nonempty result supplies its source enabledness. Later gate actors
+use their own slot cutoff. Suppressed gates create no service demand.
+
+NextTransferScope and ProposalSupportScope no longer assert that every honest
+voter is joined. They carry selected joined-seat batches and actual read-pool
+rival bounds. Raw late/proposal factories take real source cutoffs; generic raw
+consumers expose those cutoffs. The reset consumer derives the cutoff from its
+shifted H0Reset cut and actual fresh row. The unused universal raw next factory
+was removed. First factories take actual source/receiver guards. Fast's
+firstReaders at the selected first read remains an explicit producer obligation.
+
+All six reviewed carrier fields now use HeadCarrierScope. It selects one HEAD
+K and carrier W per receiver, with fullTree membership, identity, ancestry,
+source floor and compatibility with receiver finality. It does not demand service
+for every durable TF block. The relay consumes this selected W; the capped
+relay obtains K's membership per receiver. The W/C exclusion run does not force
+an old conflicting W into the receiver's cache. Such W cannot supply the selected
+ancestry and receiver-floor facts.
+
+RepairHeadServices.prior is guarded by actual proposal emission. FrontierRead's
+fast/slow factories take the actual written or eligible source arm. Loss's
+first/fast factories take the actual nonempty result or fastWriteAt membership.
+Settlement services now select only a carrier at the actual frontier height
+and use its receiver-finality compatibility. The consumer proves this floor
+fact from RXing, the cap and durable source membership.
+
+Every aggregate producer below is OPEN. All ten rows are P-H1 obligations;
+none is counted as accepted H2 assembly work. H2's ports remain separate.
+Full context, fields, named partial suppliers and exact goals are in
+scripts/dev-pkg/P-H1.round4-producers.md. Healing/ below means
+AvailableChainFGSAProofs/Proofs/Healing/. Common variables are p,c,E,rho and
+RecoverySleep₂ p c E rho G DeltaF, with the actual source/reset/phase/read guards.
+
+```text
+┌─────────┬──────────────────────────┬──────────────────────────────────────────┬───────┐
+│ ID      │ Healing record site      │ Exact open goal                          │ Owner │
+├─────────┼──────────────────────────┼──────────────────────────────────────────┼───────┤
+│ H1e-P1  │ SupportTransfer:22       │ FirstTransferScope E rho ix iy x y s      │ P-H1  │
+│ H1e-P2  │ SupportHeads:22          │ NextTransferScope E rho iy y s            │ P-H1  │
+│ H1e-P3  │ SupportLease:44          │ FastSupportScope E rho s v x              │ P-H1  │
+│ H1e-P4  │ SupportSlow:18           │ SlowSupportScope E rho s v x              │ P-H1  │
+│ H1e-P5  │ SupportPerm:16           │ SupportPermanenceServices E rho           │ P-H1  │
+│ H1e-P6  │ RepairH6:20              │ RepairHeadServices E rho s                │ P-H1  │
+│ H1e-P7  │ RepairGate:17            │ RepairGateScope E rho s                   │ P-H1  │
+│ H1e-P8  │ FrontierRead:21          │ FrontierReadScope E rho q v               │ P-H1  │
+│ H1e-P9  │ DescentLossCause:43      │ LossServiceScope p c E rho                │ P-H1  │
+│ H1e-P10 │ PostResetRaw:22          │ RawServiceScope p c E rho                 │ P-H1  │
+└─────────┴──────────────────────────┴──────────────────────────────────────────┴───────┘
+```
+
+H1e-HDR, OPEN, owner P-Ar: full check-module-headers finds inherited import-all
+errors in Outage/ArmingKernel:2,3. Both lines exist at 37beb806. P-H1 does not
+edit another package's files. No checker, baseline or allowance was changed.
+
+P-H1 Round 4 positive evidence: Tests/HealingSupport.PositiveSleep has a finite
+ExecutionValid run with Delta=1, GST=9, restart at 9, and an enabled HEAD at 17.
+The base HEAD/FG seat maps are bijective. Its fullTree read is nonempty and its
+HEAD is actually emitted. A concrete HeadCarrierScope and the repaired relay
+application both pass. The selected target is genesis; this does not establish
+non-genesis network service or inhabit an aggregate RecoverySleep₂ scope.
+The negative all-asleep validity test remains. The label-2 gate at 14 is
+suppressed, saves no result and adds no lease or stable record. The label-0
+no-restart actor passes the actual join guard while 0 <= slotStart(-1) fails.
+
+P-H1 Round 4 equation export repair: the first export check found
+joinedHonest.eq_1 and slotStartZ.eq_1 in SupportGate, plus the private
+healingJoinedSeats.eq_1 in SupportTicks. Direct definition reduction and
+kernel conversions remove these three exports. No baseline or allowance
+changed. The selector is now a reducible abbreviation with the same type.
+The repaired module cone checks with zero unaccepted exports.
+
+P-H1 Round 4 final demand guards: carrier factories return HeadCarrierServices.
+relay requires an actual HeadCarrierDemand before it supplies a selected receipt
+scope. direct serves only the stored K that is the actual source HEAD, under
+its receiver floor. Phase geometry produces the relay demand; P-Fd monotonicity
+produces direct read floors; the capped relay now serves its actual receiver.
+An unrelated or excluded HEAD creates no demand. The six carrier fields no
+longer require even an existential receipt witness before admissibility is known.
+
+RawServiceScope.gates now requires actual GateReceiptGeometry and returns only
+GateReceiptScope. Its bounded moving-output consumer supplies actual joined
+batches separately. An enabled empty gate no longer forces a global voter-batch
+field. H2's new hBatches sites are PostResetRawStep:897,
+PostResetLeaseStep:1577 and Tests/HealingPostResetRawStep:263. Exact contract:
+scripts/dev-pkg/P-H1.round4-handoff.md. Aggregate producer rows H1e-P1..P10 stay
+OPEN/P-H1. The audit fragment now has 349 exact production commands/owner rows.
+
+P-H1 Round 4 final validation, source a58f6c2d: DCK PASS 202.52 s; 99 assigned
+GREEN targets; 569 total GREEN; zero EXPECTED-FAIL. Strict audits: 42 sources,
+3,685 results, only propext/Classical.choice/Quot.sound; 24 controls PASS.
+Complete GREEN exports PASS 7.27 s: 363 proof modules, 253 exports, zero
+unaccepted. Complete local coverage PASS 8.77 s: 349 exact commands/owner rows,
+225 modules, 252 exports, zero unaccepted. Layers: 72 inherited, zero new.
+Changed module headers PASS for all 27 Lean files. Full headers remain blocked
+by inherited P-Ar ArmingKernel:2,3; no other package file or allowance changed.
+Default global export scan also needs the unbuilt Inhabit.WeakContinuationW1;
+the complete GREEN/local checks use explicit --roots-only scopes. No public edit.
+Exact H2 omitted-site handoff and new guard/monotonicity inputs:
+scripts/dev-pkg/P-H1.round4-handoff.md. These are consumers, not scope producers.
+Status remains PREPARED: H1e-P1..P10 are OPEN/P-H1, pending a producer or explicit
+lead acceptance as assembly work. The concrete positive relay uses genesis;
+it does not close non-genesis object-service or aggregate recovery obligations.
+Evidence: .lake/sleep-ph1-round4/{dck,exports,coverage}-complete.log;
+layers-complete.log, headers-complete.log and own-headers.log.
 ## P-Ou Round 4 — FIX-FIRST
 
 Base: 0c836aac. The round 3 review items 1–2 are repaired.
@@ -6906,6 +7022,77 @@ No complete exporter or public claim is marked closed. P-Ou remains PREPARED.
 Evidence: .lake/sleep-pou-r10/. Exact remaining goals: P-Ou.round10-handoff.md.
 - Lead 2026-10-10 15:51: merged sleep-pas6 18d690c2 (P-As r6) as PREPARED, 45/66 GREEN; FAST CLOSED; outage fixture sleep-valid; review rev-pas6-astra MERGE-AS-PREPARED. Open: P-Ou closure/export (incl. Outage/Export → GrowthSuppliers), HTimeClaim (healing).
 
+## P-H1 Round 7 — JOINED-START statements (2026-10-10)
+
+Approval: RULING JOINED-START, lead 2026-10-10 16:45; Appendix 1 of
+joined-start-plan.md. Delivery, phase services, proposal gap, attempts,
+phase settlement, row permission and renewed promotion start at recoveryStart.
+ResetArrival and its full companion use that origin with the existing budgets.
+Saved-window GST bounds, structural reads, witness fields and top-level
+healing deadlines and constants keep their text.
+
+The changed shallow entries are pinned in docs/api/fgsa-joined-start-pins.json.
+Each reason is "JOINED-START (lead ruling 2026-10-10)". Current snapshots
+replace the old freeze gate on this base (4f134e83); no frozen baseline or
+checker allowance is changed. The shallow manifest uses the required
+V2Manifest --scope fgsa --write command. The current deep product is
+regenerated. The auxiliary write is blocked by missing compiled roots from
+the full proof/Inhabit scope; no auxiliary allowance is introduced.
+
+Claims builds with its tests. Three inherited test adapters required the
+existing RecoverySleep₂ and recoveryStart forms; HealingW now consumes
+the corrected reset interfaces directly. Proof-family callers stay with
+P-H1/P-H2/P-As according to the package map and the Round 7 handoff.
+
+### P-H1 Round 7 — bounded consumers and source service
+
+The single phase-indexed permanence API derives its source Window 1 from
+recoveryStart <= u <= vote(s). healing_tPerm consumes RecoverySleep₂ and the
+exact ready-phase SupportPermanenceServices factory. P5 remains OPEN/P-H1.
+Both last-write splits use that same TPerm. repair_lease_cover_one/two now
+construct RepairLeaseCover from those splits, with no assumed hCover.
+Repaired proposal reads derive Window 2 and their prior Window 1.
+
+General reads, actual HEAD/gate guards, the CStar seat counts, selected
+carrier reads, fresh reset source readiness and high-source readiness are
+proved. FastSupportScope.firstReaders was already absent at this base.
+No other guarded contract-B field is removed. Source delivery callbacks
+now keep K <= W (or CStar <= eraseFG W) and the receiver floor at early(s).
+RMonoAll pulls that floor back from the actual consumer read. No arbitrary
+all-TF receiver service is requested by these callbacks.
+
+The positive finite HealingRun proves ExecutionValid, P23-A receipt roots,
+per-anchor synchrony, RecoverySleep₂ and a nonempty actual ready PhaseBody.
+It does not supply the open phase-service factory. Four separate kernel
+clock regressions exclude the listed old sources and check the new split
+thresholds. Full adversarial ExecutionValid replays remain OPEN/P-H1 with
+exact obligations in P-H1.round7-fixtures.md.
+
+D3 handoff: P-H1.round7-handoff.md lists all H2 sites and their new premises.
+Promotion, AttemptStop, PhaseSettle and PhaseBoot fail directly after the
+public start change. Their 18-module closure is EXPECTED-FAIL/P-H2 in the
+P-H1 map. The strict local audit covers the compiled slice. Public closure
+is not inferred from that slice; P-H1 remains PREPARED.
+
+### P-H1 Round 7 — final validation
+
+P-H1 DCK PASS: 3,736 build jobs, 44 strict sources, 3,730 permitted results,
+all 24 controls PASS. Map: 104 assigned, 556 GREEN, 18 EXPECTED-FAIL/P-H2.
+All GREEN exports: 345 proof modules, 253 exports, zero unaccepted, Gen zero.
+Local complete coverage: 376 commands, control PASS, zero unaccepted.
+Layers: 72 inherited findings, zero new. Module headers PASS.
+Changed Lean source has no proof placeholder, project axiom, native_decide,
+import all, new heartbeat option or new line above 100 columns.
+
+check-fgsa-manifest.sh: shallow/deep FG-SA and legacy/V2/GEN/Compose products
+PASS. The full checker exits 1 at the missing Outage/ArmingDuty.olean in the
+auxiliary Claims/proof scope. No partial auxiliary snapshot was written.
+Separate deep controls: all 55 PASS. API snapshot controls pass 11 cases,
+then stop at the same missing Outage root. The remaining auxiliary write and
+full control are exact P-As integration obligations after P-Ou/P-H2 builds.
+The P-H1 package result is not a full manifest or healing closure result.
+Evidence: /private/tmp/ph1h-dck-final.log, ph1h-manifest-final.log,
+ph1h-coverage-final.log, ph1h-snapshot-controls.log and ph1h-deep-controls.log.
 ### P-Ou Round 11 — first actual regression marker
 
 ScopedScores supplies the A union W bound for carried pools with actual stored
@@ -6986,6 +7173,7 @@ checker, baseline or allowance changed. Public consumers were built and still
 fail at legacy ports. P-Ou is PREPARED; the complete Round 11 task is incomplete.
 No public claim, protocol declaration or healing file changed. No public STOP.
 
+- Lead 2026-10-10 17:24: merged sleep-pou11 1b245e9e (P-Ou rounds 9-11) as PREPARED. Reviews rev-pou9/10/11-astra: proofs pass; rev-pou10 items 1-2 fixed. CORRECTION (rev-pou11 item 1): scripts/dev-pkg/P-Ou.round11-handoff.md:285 and the round 11 report claim every remaining contract elaborates in OpenTypes.lean; the saved log shows the O11-OUTAGE check FAILED (missing Claims imports; unknown FCompatBefore, LeaseOrFFrom). The six continuation goal types did elaborate. P-Ou r12 corrects the handoff.
 ### P-Ou Round 12 — finite early cuts and scoped outage protection
 
 Base 1b245e9e; branch sleep-pou12. Proof commits: 88a2634c, 696b63f6,
@@ -7019,6 +7207,9 @@ audit: 313 standard-axiom results. Exact original solved contracts are proved in
 Handoff: scripts/dev-pkg/P-Ou.round12-handoff.md, with the current scope table.
 Report: claude-files/sleep-pou-report.md, Round 12. No public STOP.
 
+- Lead 2026-10-10 17:59: merged sleep-pou12 de637290 (P-Ou r12) as PREPARED. rev-pou12-astra: proofs pass; open record items (round 13): finish the round 11 validation-record correction; architecture note for the new Scoped* modules and boundary. Open proofs: W-SEED, both public exporters.
+
+- Lead 2026-10-10 18:09: merged P-H1 rounds 7-8 (ebbe73cc) as PREPARED: JOINED-START statements (4ad808d4, 396d90cc; RowPermission kept at GST by b021cfa3), Jst lemmas, joined-phase permanence, H6 floors, guarded assemblies, N4 release. Reviews rev-ph1h/rev-ph1i-astra: all PASS except the architecture note, added by the lead in this merge. Open: leaf factories, P5, TPerm wrapper, object services, ExecutionValid replays (P-H1 r9). Full manifest validation waits on the expected-fail Outage exporters.
 ### P-Ou Round 13 — actual W gate lease input
 
 ScopedCatchUp proves outage_caught_up_gate_rows at each actual enabled gate
@@ -7066,3 +7257,5 @@ Handoff: scripts/dev-pkg/P-Ou.round13-handoff.md. Report: Round 13.
 Both exporters are GREEN. O11-W-SEED remains OPEN, P-Ou; the continuation exporter
 is conditional. P-As has three Outage caller repairs and the Root seed port.
 The full Round 13 task is incomplete. P-Ou is PREPARED; no public STOP is asserted.
+
+- Lead 2026-10-10 18:40: merged sleep-pou13 8bd2d9d7 (P-Ou r13) as PREPARED: outage supplier proved, both public exporters GREEN, continuation exporter conditional only on OutageWSeed. rev-pou13-astra: all pass except the architecture record (added by the lead in this merge). OutageWSeed truth check: wseed-derisk-astra.

@@ -68,7 +68,10 @@ example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())
     (hServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
       rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
       E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
       ev.time + p.Δ ≤ rho.horizon →
+      Block.Compatible (eraseFG W)
+        (eraseFG (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.F) →
       TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (i : Nat) (ev : V2.Event V (Obj p)) (v : Time) (m : Nat) (kind : PhaseKind)
     (hi : rho.events[i]? = some ev) (hgst : E.t_GST ≤ ev.time)

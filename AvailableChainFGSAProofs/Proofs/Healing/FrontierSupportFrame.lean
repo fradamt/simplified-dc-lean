@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
 public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportFrame
 
 public section
 
@@ -207,15 +208,13 @@ theorem frontier_head_relay_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hQK : Block.Preceq (eraseFG Qfg) (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jz z).st (SA.voteTime p.toParams i)) i))
     (hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ timeIdx rho v)
-    (hServices : ∀ W ∈ (storeAt p c E rho jz z).fg.TF, ∀ y ∈ rho.honest,
-      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams i + p.Δ) y)
+    {y : V} (hy : y ∈ rho.honest) (hServices : HeadCarrierServices E rho jz z i y)
     (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∃ Kfg, Kfg ∈ (storeAt p c E rho jz z).fg.TF ∧
       eraseFG Kfg = headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
         (SA.voteTime p.toParams i)) i ∧ (heightView p Kfg).h = m ∧
-      ∀ y ∈ rho.honest,
-        Kfg ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ))
-          y).fg.TF := by
+      Kfg ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ))
+        y).fg.TF := by
   have hS := hE.toScheduleWellFormed
   obtain ⟨Kfg, hKfull, hKe, _⟩ := healing_full_witness_all p c E rho hS crossing hz hjz
   have hKT : Kfg ∈ (storeAt p c E rho jz z).fg.TF := by
@@ -231,10 +230,17 @@ theorem frontier_head_relay_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact h1.le.trans hcut
   have hKm := (frontier_height_eq E rho hQm (hcap jz z hjzv hz) hKT hQK').1
   refine ⟨Kfg, hKT, hKe', hKm, ?_⟩
-  intro y hy
+  have hFK := frontier_F_below_all E rho crossing hy (hcap _ y hcut hy) hz (by
+    exact ((Gen.V2.Duty.index_lt_idxBefore_iff hS hjz _).mpr
+      (lt_add_of_pos_right _ p.deltaPos)).le)
+    hKT hKm.symm.le
+  have hFloor : Block.Preceq
+      (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams i + p.Δ) y).st.fg.F)
+      (eraseFG Kfg) := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+    exact eraseFG_preceq hFK
   have held := healing_held_block_receipt_on p c E rho hE hroots Kfg
-    (SA.voteTime p.toParams i + p.Δ) y hy (hServices Kfg hKT y hy)
-  change Kfg ∈ (rho.stateBeforeTime E (SA.voteTime p.toParams i + p.Δ) y).st.fg.TF at held
+    (SA.voteTime p.toParams i + p.Δ) y hy (hServices.direct Kfg hKT hKe' hFloor)
   change Kfg ∈ (rho.stateBefore E (V2.D.Run.idxBefore rho _) y).st.fg.TF
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
   exact held

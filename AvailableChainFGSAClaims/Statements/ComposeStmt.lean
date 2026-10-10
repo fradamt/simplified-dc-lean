@@ -164,8 +164,8 @@ def ResetArrivalStatement (G ΔF : Time) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-    E.t_GST + B'_resetF p ΔF G ≤ rho.horizon →
-    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G
+    recoveryStart p E + B'_resetF p ΔF G ≤ rho.horizon →
+    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < recoveryStart p E + B'_resetF p ΔF G
 
 theorem ResetArrivalStatement_def (G ΔF : Time) :
     ResetArrivalStatement p G ΔF =
@@ -173,8 +173,9 @@ theorem ResetArrivalStatement_def (G ΔF : Time) :
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-    E.t_GST + B'_resetF p ΔF G ≤ rho.horizon →
-    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G) := by rfl
+    recoveryStart p E + B'_resetF p ΔF G ≤ rho.horizon →
+    ∃ w, H0Reset p c E rho w ∧
+      p.actionTime w.rStar < recoveryStart p E + B'_resetF p ΔF G) := by rfl
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 Full companion: H.11 reset plus H.18 (21:2868–2876;3174–3176),
@@ -185,8 +186,8 @@ def ResetArrivalFullStatement (G ΔF : Time) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-    E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
-    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G
+    recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < recoveryStart p E + B'_resetF p ΔF G
 
 theorem ResetArrivalFullStatement_def (G ΔF : Time) :
     ResetArrivalFullStatement p G ΔF =
@@ -194,8 +195,8 @@ theorem ResetArrivalFullStatement_def (G ΔF : Time) :
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-    E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
-    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G) := by rfl
+    recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < recoveryStart p E + B'_resetF p ΔF G) := by rfl
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 Kernel point (00:1119–1134; 22 §1), P3 A.10 D12.
@@ -305,7 +306,8 @@ structure TailKernelPrem_W [Fintype V] (G ΔF : Time) (E : Generic.Env V)
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 T-side healing contract (21 H.3–H.18), P3 A.10.
-Consumer: F5 composition. Only reset delivery has an H0 premise. -/
+Consumer: F5 composition. Only reset delivery has an H0 premise.
+JOINED-START: delivery and phase services start at recoveryStart. -/
 structure HealTContract (w : HealingWitness) : Prop where
   del : TDel p c E rho
   delReset : TDelReset p c E rho w
@@ -359,10 +361,10 @@ start is the event index; its resulting prefix is start+1. The inclusive-cut
 alternative requires that exact resulting prefix. No budget horizon is hidden here.
 The frontier may be 1: H.10 runs attempts at m = 1 (21:1467–1468, 2570–2571; ruling B21). -/
 def AttemptValid (k : AttemptKey) : Prop := ∃ ev,
-  rho.events[k.start]? = some ev ∧ E.t_GST ≤ ev.time ∧
+  rho.events[k.start]? = some ev ∧ recoveryStart p E ≤ ev.time ∧
   (EffectiveEvent p c E rho k.start ∨
-    ∃ rG, E.t_GST ≤ p.actionTime rG ∧
-      (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) ∧
+    ∃ rG, recoveryStart p E ≤ p.actionTime rG ∧
+      (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) ∧
       ev.time = p.actionTime (rG + 2) ∧
       timeIdx rho (p.actionTime (rG + 2)) = k.start + 1) ∧
   k.frontier = frontierAtIdx p c E rho (k.start + 1) ∧ 1 ≤ k.frontier ∧
@@ -370,6 +372,7 @@ def AttemptValid (k : AttemptKey) : Prop := ∃ ev,
   (k.served = true ↔ ServedFrontier p c E rho k.frontier ev.time) ∧
   (k.task = .firstRow → ∀ j y r a h e, j ≤ k.start → HonestRowAt p c E rho j y r a →
     namedEntry a.payload.height_pair = some (h, e) → h ≠ k.frontier)
+
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 Retained H.10 budget table (21:1270–1279), P3 A.10.
 Consumer: progress-attempt contract. This uses the unconditional two-lease bound;
@@ -462,7 +465,7 @@ def RPhase : Prop :=
     (∀ i, a ≤ i → i ≤ b →
       ContestEvidence p c E rho i m → TopEvidence p c E rho i m)) ∧
   (∀ i ev x W m, rho.events[i]? = some ev → x ∈ rho.honest →
-    E.t_GST ≤ ev.time → 1 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
+    recoveryStart p E ≤ ev.time → 1 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
     W ∉ (storeAt p c E rho i x).fg.TF →
     W ∈ (storeAt p c E rho (i + 1) x).fg.TF → (heightView p W).h = m →
     (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
@@ -475,7 +478,7 @@ def RPhase : Prop :=
       (∃ j, i < j ∧ j ≤ timeIdx rho (SA.voteTime p.toParams s) ∧
         m < frontierAtIdx p c E rho j) ∨ W ∈ FGSA.voterBlocks p nd.st s)) ∧
   (∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
-    E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
+    recoveryStart p E ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
     frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
     (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
     ∃ J,
@@ -486,7 +489,7 @@ def RPhase : Prop :=
         SA.voteTime p.toParams s ≤ v →
         postClock E rho y (SA.voteTime p.toParams s) = some nd →
         SettledPhaseFrame p nd.st m root contested)) ∧
-  (∀ u v m J contested, E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
+  (∀ u v m J contested, recoveryStart p E ≤ u → PhaseInterval p c E rho u v m J contested →
     ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
       SettledPhaseFrame p (storeAt p c E rho i x) m J contested) ∧
   (∀ i x m (X : Finset (FGBlock (Fin p.n))) B, x ∈ rho.honest →
@@ -520,7 +523,7 @@ theorem RPhase_def :
     (∀ i, a ≤ i → i ≤ b →
       ContestEvidence p c E rho i m → TopEvidence p c E rho i m)) ∧
   (∀ i ev x W m, rho.events[i]? = some ev → x ∈ rho.honest →
-    E.t_GST ≤ ev.time → 1 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
+    recoveryStart p E ≤ ev.time → 1 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
     W ∉ (storeAt p c E rho i x).fg.TF →
     W ∈ (storeAt p c E rho (i + 1) x).fg.TF → (heightView p W).h = m →
     (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
@@ -533,7 +536,7 @@ theorem RPhase_def :
       (∃ j, i < j ∧ j ≤ timeIdx rho (SA.voteTime p.toParams s) ∧
         m < frontierAtIdx p c E rho j) ∨ W ∈ FGSA.voterBlocks p nd.st s)) ∧
   (∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
-    E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
+    recoveryStart p E ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
     frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
     (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
     ∃ J,
@@ -544,7 +547,7 @@ theorem RPhase_def :
         SA.voteTime p.toParams s ≤ v →
         postClock E rho y (SA.voteTime p.toParams s) = some nd →
         SettledPhaseFrame p nd.st m root contested)) ∧
-  (∀ u v m J contested, E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
+  (∀ u v m J contested, recoveryStart p E ≤ u → PhaseInterval p c E rho u v m J contested →
     ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
       SettledPhaseFrame p (storeAt p c E rho i x) m J contested) ∧
   (∀ i x m (X : Finset (FGBlock (Fin p.n))) B, x ∈ rho.honest →

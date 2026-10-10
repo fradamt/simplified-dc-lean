@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 
@@ -21,16 +22,22 @@ theorem healing_tDel [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     (source : TSrc p c E rho) (mono : RMonoAll p c E rho)
     (hServices : ∀ y r K, y ∈ rho.honest →
       actionSourceFG p c E rho y r = some (some K) →
-      E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
+      recoveryStart p E ≤ SA.voteTime p.toParams (r * p.R) →
       SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
       ∀ x ∈ rho.honest, FGBlock.Preceq
         (rho.stateBeforeTime E (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F K →
       ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      FGBlock.Preceq K W →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams (r * p.R)) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x) :
     TDel p c E rho := by
-  intro y r K hy hK hgst hhor x hx
+  intro y r K hy hK hready hhor x hx
+  have hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R) := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   rw [Gen.V2.Duty.HoldsBefore_def]
   intro hcompat
   change (Block.preceq (eraseFG K) _ || Block.preceq _ (eraseFG K)) = true at hcompat
@@ -43,7 +50,7 @@ theorem healing_tDel [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
         4 * p.Δ * ((r * p.R : Nat) : Int) + 3 * p.Δ
       linarith [p.deltaPos]
     exact healing_source_body_relay E rho hrec source mono hy hx hK hgst heD hhor
-      (delivery_lift hFK) (hServices y r K hy hK hgst hhor x hx (delivery_lift hFK))
+      (delivery_lift hFK) (hServices y r K hy hK hready hhor x hx (delivery_lift hFK))
 
 end AvailableChain.FGSA.Run
 end

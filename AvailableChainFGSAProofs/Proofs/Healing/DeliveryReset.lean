@@ -27,6 +27,9 @@ theorem healing_tDelReset_core [Fintype V] (E : Generic.Env V)
     (hServices : ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      Block.Preceq w.CStar (eraseFG W) →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams w.sStar) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x)
  :
     ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
@@ -46,7 +49,11 @@ theorem healing_tDelReset_core [Fintype V] (E : Generic.Env V)
       4 * p.Δ * ((w.rStar * p.R : Nat) : Int) + 5 * p.Δ
     linarith [p.deltaPos]
   have hp := healing_source_body_relay E rho hrec source mono ha.1 hx hC hgst heD hhor hFC
-    (by simpa only [h0r.label] using hServices x hx)
+    (by
+      intro j z W hz hj hW hCW hFloor
+      simpa only [h0r.label] using
+        hServices x hx j z W hz (by simpa only [h0r.label] using hj) hW
+          (hCS ▸ eraseFG_preceq hCW) (by simpa only [h0r.label] using hFloor))
   rw [Gen.V2.Duty.HoldsBefore_def] at hp ⊢
   exact ⟨C, hp C (KitFG.preceq_refl C), hCS⟩
 
@@ -66,6 +73,9 @@ theorem healing_tDelReset [Fintype V] (E : Generic.Env V)
       ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      Block.Preceq w.CStar (eraseFG W) →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams w.sStar) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x) :
     TDelReset p c E rho w := by
   intro h0 hhor

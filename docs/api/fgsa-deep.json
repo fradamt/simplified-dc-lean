@@ -486,7 +486,7 @@
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.AttemptValid": {
-      "digest": "6db1cd306a2588374916764dc7055acc79dbe5bde2e5553a0c711c84eef68ea6",
+      "digest": "ae8f47e203cced1953fda94e1c5621463f6aac18ce9c1c8ad4f5f7a1e6cd5a8a",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
@@ -496,7 +496,7 @@
       "module": "AvailableChainFGSAClaims.Claims.Outage"
     },
     "AvailableChain.FGSA.Run.AvailableGSTClaim": {
-      "digest": "b6ac1c5a0eddb0d7a9ba29070ac4f5188ab906cc2fa39b2345ae5210b9ddb836",
+      "digest": "19be54aa2070d240b627d19ae8d9302924544dbf88a8d6ee5bb678e1152380d8",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Outage"
     },
@@ -506,7 +506,7 @@
       "module": "AvailableChainFGSAClaims.Claims.Outage"
     },
     "AvailableChain.FGSA.Run.AvailableGrowthGSTClaim": {
-      "digest": "4362e2b965f4b4e564731a7cef8001f204d0256a6871488c453baea6dac09ccc",
+      "digest": "d228b6e478e6610d580792d3e19c396b02e8ed13d1a94697ea392dd5615661a8",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Outage"
     },
@@ -1676,122 +1676,122 @@
       "module": "AvailableChainFGSAClaims.Statements.ComposeNext"
     },
     "AvailableChain.FGSA.Run.FGSAClaims": {
-      "digest": "9a4af2aa0bece29ee3483dad007a36d8247bb9beeb0f7ab2f1940401d257abc5",
+      "digest": "bfa3642d753eb7a40237cfec2b255c8af3c140e755dd6c02306f65697048d5f2",
       "kind": "structure",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecF4": {
-      "digest": "7fcfb8ccc23cff118c1ce97b5c417ba06f506c532993dbeaee9b1fc12e9b0cab",
+      "digest": "d82e5a3bbab6f274c71f2ac42fafab9618c9c4f2d268331f5b70c37978c6db24",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecFE": {
-      "digest": "ac10ff94e521ecc73f10379f9bf60f1b48470019e243693b4f9c985914a0dd3f",
+      "digest": "c619779300d09878000c8aa27e1b3066bbd81d63ef277d2608979d3cc5ba40a2",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.availableGST": {
-      "digest": "e2461f65fdd0b8ffbb64f426181c4fe8981c8a63f8a2f06f2efd3d13c6e9d90d",
+      "digest": "06463ab31c7002e8359e0c88b4401bfff5693918db6f88e859b14143c700099e",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST": {
-      "digest": "31f3d3befaa6190f23c84b1381d5dca37b9e9703c10b029516bf010dec520a5c",
+      "digest": "94d303baf400823c8cc50dc9e0b0f731a2b9f425da2b7239f5f188a808de8d6e",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.cleanGrowth": {
-      "digest": "6afb7ccc14b8f3024b241e70eda305d2e157019edc750f56d312941f848685c1",
+      "digest": "d2fda12d409ec16725a0e1be749ace617f9ee249bf3befd1dcacdea30b9719f0",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.cleanInclusion": {
-      "digest": "bb03ccfb25aea5d38dd053e5e909e9d4133cfe69c6d300173c9dcf45fa7321af",
+      "digest": "454a34a23ded80a9609b1bfed698a6722699d795fb365fe9541da66521f107a3",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.cleanInclusionPostGate": {
-      "digest": "e79a21491257665370a2770d6b2aca25b4f7c917339389f6448893d21c17201b",
+      "digest": "03bc5d5c2d43d35029240e7d35756969c0531956d3e67b6b562cc53d2f03722a",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.exactProposal": {
-      "digest": "b94e78b2c6d3bf1744e3e0544c7710be726e6a415c5e92b5d07a02e2aea654b2",
+      "digest": "a7d356b5575efa5883b1b9b77935a7c2d3f5d8171dd64f0fc9f755e68aec1db6",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.fastP1": {
-      "digest": "7ae8f006770b26ee946c713bc13c3d98a9fead9174dc28908394b9e1e4d47894",
+      "digest": "37d96986dcf94f45e0eeea412bc2640855f1da1d30ca0a5c36aabf05c7f872a2",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finalLock": {
-      "digest": "5785c021fc67404ba46e9a90f0b60dc6d37eee1e88b39455aa0901c3c3050485",
+      "digest": "4a7259908a1c4b900fbdd731268aece8b70c7ca03ed0ea2b50437c434f8e5552",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finality": {
-      "digest": "0857cea2a1d3b5a75d0a214a42326a245aa29cb4f3f4632bbc1c5ee60f5bea1b",
+      "digest": "082e6b91f45a11ff177b7ce4f67e6b242cd756165c4d44acd2a806f6ff9289c5",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finalityLivenessGSTRecF4": {
-      "digest": "3b1c72ebd459cde517cebbe775997006007509decee36e4ff4369691c0e6dbc3",
+      "digest": "4abda9667e6666e9fc9eaaf067a137bc7dca8c2e9c685d9cd7bceec78072f3a0",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finalityLivenessGSTRecFE": {
-      "digest": "ee9ffca4dbb59dec5cabcb5bdce9eb3e4bd70b97dfc6e583ae060421508f9485",
+      "digest": "229b423c8140c32a41bd7dc5d45d6499a800afde57e57031b68425d5cfca11f6",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.finalizedSafety": {
-      "digest": "c7d596cc5c84e510e6ce54735474ff37cc895e75d518c26161a052b11ae1698f",
+      "digest": "a7612986551b5664e6ce467d3c59468fa56d702b27161c02aa37f13fdc740d96",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecF4": {
-      "digest": "653c14e8f5c1bd1d75b45c5fe4c1df46445c27dd6a40591cba104d886198ce76",
+      "digest": "da6ce4ab15d182e649cc2f4b784163e636186778cb92cc2eaa7fabe51fdc09f2",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecFE": {
-      "digest": "eb63ef346b8fbabbd48e1f39cf278f3c15930200feaf994e2ce39dd387428fd4",
+      "digest": "4ebe28218e59b5622158c317fda79e43ee0b3f879b643b95f5bab252f40f9899",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.mk": {
-      "digest": "9a4af2aa0bece29ee3483dad007a36d8247bb9beeb0f7ab2f1940401d257abc5",
+      "digest": "bfa3642d753eb7a40237cfec2b255c8af3c140e755dd6c02306f65697048d5f2",
       "kind": "ctor",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.outageCompat": {
-      "digest": "af10ddb018ced73197f37bb65244bafd1f36b4ac1384a05516717b22bb15c9f0",
+      "digest": "9842943f19fa229c619abfbec115b65d4cf155b3b2247d9438f55156a8386b4d",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.proposalFinalGSTRecF4": {
-      "digest": "5a6b9b51392efed47232cc4903b925404c774f2388bf41a26afa2d26f8186744",
+      "digest": "7bf4c7538293d591f4e0542ff6de404f260a481dbb9632c82eec02e8fe3ab84b",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.proposalFinalGSTRecFE": {
-      "digest": "2fd1aea6af6a55d220aba78ee5836f6db1f621801fdf5e28cd86a119e9b4225a",
+      "digest": "c46dc7abdeb3f9476b0ef74e3eb857da90ad4b9d17f5d07b34046e5b6426f0f5",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.slowP1": {
-      "digest": "4adad4e782f664e70956067611d3882df0db98ac73567593216a92f5c61df5a5",
+      "digest": "235efc9c7fb6f56ce45326fc52ecba1c9bdff8992167f8970e835e7d174d482b",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.toFGSASafetyClaims": {
-      "digest": "c330f7d42c2e048a0b7f84c10174c7f634ff2b4dca2f65bb2315c415d9a4a275",
+      "digest": "c5993ac5b4d55445ed0e9b02719d489afe599cb78d6a22c40920f3045134f119",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
     "AvailableChain.FGSA.Run.FGSAClaims.weakContinuationLive": {
-      "digest": "d5655f6a66de27a0f8e0f8eac79e72d2aa8f914b111b1a06c2f8dbab1e5e4253",
+      "digest": "a86ed17fd003883e4f923ea68ba4443b878d1c8bf942a977bf956e5d7f7650e1",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.FGSAClaims"
     },
@@ -2811,42 +2811,42 @@
       "module": "AvailableChainFGSAClaims.Statements.Healed"
     },
     "AvailableChain.FGSA.Run.HealRContract": {
-      "digest": "5c75f698c70ebf1d49ee08abbec5a7f17a47742268b33330097ca4400b2f0b68",
+      "digest": "189cefb14bd9f1e46b622d99fbb7ac861ad1f64616df569be42603674d7d8eb2",
       "kind": "structure",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealRContract.cap": {
-      "digest": "8132141a92b95eadbae4917f872415af0302fe77a7f906cf0c074e30a9ec97bb",
+      "digest": "e6f0b44c0c58aa9d8741db40c7ea900070be3765b6ec843100dcab9d58cf77f7",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealRContract.excl": {
-      "digest": "af73d3c941346c1ff79a065476c536531a849c0b16b00f5289a47a0f27c40961",
+      "digest": "a02f8afd1ada9e91aeac8428527cc5b967f2eaff5cef3714d4b83b7a58f4703f",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealRContract.fprov": {
-      "digest": "ad44265082fe96c1acc9b428d42af195214c279b55d9aa2bb21a5014e0452191",
+      "digest": "0f3f740dcbaa0b1fbe14037ab13e2d49c87a05989573cf415acf27e28fb20aca",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealRContract.keep": {
-      "digest": "cbe1655936d08350c3e3455a7d2975e46252d2e4db17ab75eec7526da1a7d851",
+      "digest": "05917efeb1c9ab07fe42d7d32a30c58a9abc836a3a7d80d87fdae6d519a107fa",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealRContract.mk": {
-      "digest": "5c75f698c70ebf1d49ee08abbec5a7f17a47742268b33330097ca4400b2f0b68",
+      "digest": "189cefb14bd9f1e46b622d99fbb7ac861ad1f64616df569be42603674d7d8eb2",
       "kind": "ctor",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealRContract.phase": {
-      "digest": "92ff18b6bd40c18c7a9974adadd188a5f33b2b7f4baa41a39ed006db6c00616f",
+      "digest": "b2b5a2fcfbc520b5cb0b2e48782e2de98cee62f5732c22c1a8e2e7708d821a79",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealRContract.xing": {
-      "digest": "f6b9e517d83dc34301a87378b07659af05c27770010841b0ef679a1ec91e2408",
+      "digest": "44014f4d4473cb0075f139a9ce9b6871695afbc176a3e7c43fdb4aa308e807a9",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
@@ -2886,47 +2886,47 @@
       "module": "AvailableChainFGSAClaims.Statements.Healed"
     },
     "AvailableChain.FGSA.Run.HealTContract": {
-      "digest": "752151229124bb5cd9d6aee6edd87dfbc79b89deb7f19848a09b190b50397e0a",
+      "digest": "73d91035707d66e627b63e6e0f698c56089ed23bae11acf68a96bca5c2644f8b",
       "kind": "structure",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealTContract.common": {
-      "digest": "f573560b3cdec69765050ef9f43c4aa417591cda14842b88820308fb3c413c58",
+      "digest": "2f2574dd3725d8c65645693c9220e8465bd6b24c09fec7664f60e6626a146bec",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealTContract.del": {
-      "digest": "f53832a91cf682d36f566bbab79b34393d1b9cbc5f2b82b6d94698c44396f896",
+      "digest": "e04d1943e1603a47ebd8189479fa9403893b9f2a3f768f979478e9048383d1f4",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealTContract.delReset": {
-      "digest": "0c698ef0edffd2b9740bc7d5833e72d5d5a98f2ea76840372ef43e9b06670bd4",
+      "digest": "d3a7c327d95785b16425202a9ec5f486b8ad9368cbc6f59a8aaf330b34f553ea",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealTContract.frontier": {
-      "digest": "e88b97b8788707a342c42ce4a46d66aba5807edf22c1186235d5795962d33269",
+      "digest": "2a6b21c2cf811f7eb5be03d7fae619cb39601befe37fa583b702a54374f5a3b8",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealTContract.geom": {
-      "digest": "ab1038493291026cc170adb0962509b34fa2454e009e884981dfdcec580321c9",
+      "digest": "756c97781447b6967f5539bdbec5befbe0665cfadf8ba2694baa3bbc4e1d0d31",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealTContract.mk": {
-      "digest": "752151229124bb5cd9d6aee6edd87dfbc79b89deb7f19848a09b190b50397e0a",
+      "digest": "73d91035707d66e627b63e6e0f698c56089ed23bae11acf68a96bca5c2644f8b",
       "kind": "ctor",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealTContract.perm": {
-      "digest": "9862d9bfe1fefeb145367a2d702d8547bd786710c03f194daa87cc872088d114",
+      "digest": "5ec295d8a0c781ae1b789941538bd6862bdaac024dffb5a1bc4e78b79599501c",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.HealTContract.repair": {
-      "digest": "b4df542c4f4da66e895db1ab3c570cc4fee7fc679036dc6ccbce24ce79618230",
+      "digest": "ba66a970be0b34ba0601e016d90e2e57fe9c6ee2c4aa0e4c5db5fdbb815df861",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
@@ -2936,27 +2936,27 @@
       "module": "AvailableChainFGSAClaims.Statements.Healed"
     },
     "AvailableChain.FGSA.Run.HealingAttemptPrem": {
-      "digest": "53be8aef14c1bdcd594fa49e368b26495e9b28b44cabfb5d0d5db772bfe992ce",
+      "digest": "7240872b3e007cefce4f2046ebd074b41921cc2e8581e5dc5689ffe4c49aebc4",
       "kind": "structure",
       "module": "AvailableChainFGSAClaims.Statements.Packages.Healing"
     },
     "AvailableChain.FGSA.Run.HealingAttemptPrem.hhor": {
-      "digest": "a35ac2418dcf27a5cb9ec21e1f7838c0e4f0b3e45b8269cd5606fff3655d0b8d",
+      "digest": "bfadcbacda223a91a0966aeeb6cb3a3398a2a25af68b635474fa7a68198d9e55",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.Packages.Healing"
     },
     "AvailableChain.FGSA.Run.HealingAttemptPrem.mk": {
-      "digest": "53be8aef14c1bdcd594fa49e368b26495e9b28b44cabfb5d0d5db772bfe992ce",
+      "digest": "7240872b3e007cefce4f2046ebd074b41921cc2e8581e5dc5689ffe4c49aebc4",
       "kind": "ctor",
       "module": "AvailableChainFGSAClaims.Statements.Packages.Healing"
     },
     "AvailableChain.FGSA.Run.HealingAttemptPrem.toHealingPrem": {
-      "digest": "e4fc811aaee0cecc521c55cced1b5329fdb16863d74ae22d227495dadc401414",
+      "digest": "7e57bd24346a47c2ae299b1f32e38d0ecc5caa5412a51ff84b8c71fef8f88d07",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.Packages.Healing"
     },
     "AvailableChain.FGSA.Run.HealingAttemptPrem.valid": {
-      "digest": "687250dea74c2e6fa62599baf3df9824d05a352dbc5e2332571a67f5c355a221",
+      "digest": "cd85b4a34295d21bb2adb951c40ff32fa20b209d9215bc18bb93e372969de658",
       "kind": "field",
       "module": "AvailableChainFGSAClaims.Statements.Packages.Healing"
     },
@@ -4026,12 +4026,12 @@
       "module": "AvailableChainFGSAClaims.Statements.Fold"
     },
     "AvailableChain.FGSA.Run.ProgressAttemptStatement": {
-      "digest": "3cd497e2628fa16d99fea23946515b12c021424f6539e7bc1be7d48be40c29f5",
+      "digest": "64eb808d7b43b16adfe5109002e6e33ad5bc311761e9214ff62bbdc0717553ca",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.ProgressAttemptStatement_def": {
-      "digest": "e765eade1a948b1b2925072b1a63318c196a971a70bf4ac0dc0dcedf6fda5fad",
+      "digest": "65182b4a2a0ed79f5d3c22660df6c7f441bca72fc14eb3a9f34a7a807697fad7",
       "kind": "theorem",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
@@ -4121,7 +4121,7 @@
       "module": "AvailableChainFGSAClaims.Claims.Finality"
     },
     "AvailableChain.FGSA.Run.ProposalGap": {
-      "digest": "73e03af233982b7f6f85b19945b0b944155ef2d4caeadae859ccfd1e52f4ded5",
+      "digest": "29e198953edf7aaca7b0421d417875eab20fd0b4434059102e308d82889d22d8",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
@@ -4451,12 +4451,12 @@
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
     "AvailableChain.FGSA.Run.RPhase": {
-      "digest": "c6dedaf5034b4f3d4a9e0a88c388702dfc56d13b86c552647ee0447f4afea3ba",
+      "digest": "032488827f6456077d544c397b2cc1da10612855f3adeb6e0ffa11428540e40d",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.RPhase_def": {
-      "digest": "1f7942047f25bab69c990e45844c6061a2c922739a9493bc73e8c94bf00f4af9",
+      "digest": "8abfcb9302f4483440053fda96a30fafbfdd32c648200b9669a921db1afc88db",
       "kind": "theorem",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
@@ -4771,12 +4771,12 @@
       "module": "AvailableChainFGSAClaims.Claims.Shared"
     },
     "AvailableChain.FGSA.Run.RenewedPromotionClaim": {
-      "digest": "d6185602f7c56e1ac10c9416e663d400dca6435a8626b95cdf11b314ce47cea9",
+      "digest": "ab9016ecd910f773efb3da0f2553c42355e00666aba34538b9eaf25507652081",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
     "AvailableChain.FGSA.Run.RenewedPromotionConcl": {
-      "digest": "1c873a161ce71d2114bf4243d1b3d9ba017e53b04d07418fad5a82011b308f86",
+      "digest": "457000dd6ba2c6ef23243080787628c3ee8f81a6f09e8d92511c70851f1648c2",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
@@ -4836,12 +4836,12 @@
       "module": "AvailableChainFGSAClaims.Statements.Packages.Healing"
     },
     "AvailableChain.FGSA.Run.ResetArrivalFullStatement": {
-      "digest": "b55bf3748b6c16272ee029239bc415728e0cd5a6de7781b98b2c42a992d7cfa4",
+      "digest": "c12ff78476c664e84fb10ce5a0b4be9d7a6ea4c972ff322ae1e780e3f8d0d525",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.ResetArrivalFullStatement_def": {
-      "digest": "87de70f6868617eaa6b1b2a58ec1f0a30b1361c180e2cbd738bbce849df49319",
+      "digest": "39bcf4e59c7d7ee9d7caf54b7074cc3b7d669c90ee557669904b180fe1f7d31d",
       "kind": "theorem",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
@@ -4866,12 +4866,12 @@
       "module": "AvailableChainFGSAClaims.Statements.Packages.Healing"
     },
     "AvailableChain.FGSA.Run.ResetArrivalStatement": {
-      "digest": "36006b416d9e208e6f7dbeb818acecf6964c4d3783627ebdbc490333bad79797",
+      "digest": "9cf8624a0bb08b4c3d9c8c22be368b21edf84fd3cd1ee51bb999fafa63feed7b",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
     "AvailableChain.FGSA.Run.ResetArrivalStatement_def": {
-      "digest": "cb6d4a6faefd00c7f8b830ca3be74e101f005c8dfaf36b229af7fedf1c87bfcc",
+      "digest": "39dcfbcb0d222f02a1649fa04c50d937e769e9dd9d9ffde3f348179866b327ee",
       "kind": "theorem",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt"
     },
@@ -5281,7 +5281,7 @@
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
     "AvailableChain.FGSA.Run.TCommon": {
-      "digest": "5fe09430391d4309f46b326138dc0da9eb4d0e8e9a30bb7ea27e9dc507ae5b25",
+      "digest": "a60910eb3b2aaa9b37bcf4013e0c0becce6e1ca7ba264ea1d7214d59f691a758",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
@@ -5296,7 +5296,7 @@
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
     "AvailableChain.FGSA.Run.TDel": {
-      "digest": "fb6602281c1a32e9ef74fc8c27f791d43ae3da0d69e173e5086857aada9392aa",
+      "digest": "9f89f0039659d551c93790b8d1e3ecd25c2f15e67a8ed8d243d2ca332ef55681",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
@@ -5306,7 +5306,7 @@
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
     "AvailableChain.FGSA.Run.TFrontier": {
-      "digest": "cfbca13202a1b59905ec5bcf5f94481a86ea5551cd1667a02a725b984e0595e7",
+      "digest": "8c4b3c7ae7959b823bfbf94e7702898397b1d8333672d485bc1bdb1a59142e02",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
@@ -5326,12 +5326,12 @@
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
     "AvailableChain.FGSA.Run.TPerm": {
-      "digest": "f0d78226e04d629f8ffb916db5321a6d1324cd7f94c67086f923678ab0770d5b",
+      "digest": "154f0e2f75b7abf6ad658a0cdce54beba9a0ee47aaade6ba76a722420d45b845",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
     "AvailableChain.FGSA.Run.TRepair": {
-      "digest": "5b15a545ef5a87765f627a99a5b56c091006b74c5e53f4ece5761a0436c778da",
+      "digest": "29c591115fbd3a99651a948c1521fb1a70638b7d6824a71551f1748d614ac3f0",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
@@ -19627,14 +19627,18 @@
         "fun p {In V} c [DecidableEq V] E rho k =>",
         "  Exists fun ev =>",
         "    And (Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev))",
-        "      (And (Int.instLEInt.le E.t_GST ev.time)",
+        "      (And (Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) ev.time)",
         "        (And",
         "          (Or (AvailableChain.FGSA.Run.EffectiveEvent p c E rho k.start)",
         "            (Exists fun rG =>",
-        "              And (Int.instLEInt.le E.t_GST (p.actionTime rG))",
+        "              And",
+        "                (Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                  (p.actionTime rG))",
         "                (And",
         "                  (∀ (r : Nat),",
-        "                    Int.instLEInt.le E.t_GST (p.actionTime r) → instLENat.le rG r)",
+        "                    Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                        (p.actionTime r) →",
+        "                      instLENat.le rG r)",
         "                  (And (Eq ev.time (p.actionTime (instHAdd.hAdd rG 2)))",
         "                    (Eq",
         "                      (AvailableChain.FGSA.Run.timeIdx rho",
@@ -19688,9 +19692,9 @@
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.frontierAtIdx",
         "AvailableChain.FGSA.Run.namedEntry",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.timeIdx",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.SA.Params.n",
         "AvailableChain.Signed.payload",
         "AvailableChain.SimplexFG.Height",
@@ -19728,7 +19732,7 @@
         "instLTNat",
         "instOfNatNat"
       ],
-      "digest": "503e393d87c9e25604c7b0b6fed45dc0386bb07c7282a608c167d80312dd2199",
+      "digest": "4b99997822f908f4bfd2a4ec9c819f2bfc7d12cc79e6a9728732b0a1b54423e6",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run12:AttemptValid",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt",
@@ -19805,9 +19809,11 @@
         "            And (AvailableChain.FGSA.Run.HealingInput p c E rho w ΔF)",
         "              (And",
         "                (Int.instLTInt.lt (AvailableChain.FGSA.Run.tstar p w)",
-        "                  (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
+        "                  (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                    (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
         "                (AvailableChain.FGSA.Run.AvailableFromConcl p c E rho",
-        "                  (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G))))"
+        "                  (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                    (AvailableChain.FGSA.Run.B_HF p ΔF G))))"
       ],
       "dependencies": [
         "And",
@@ -19821,9 +19827,9 @@
         "AvailableChain.FGSA.Run.HealingTimePrem",
         "AvailableChain.FGSA.Run.HealingWitness",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.tstar",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "DecidableEq",
@@ -19843,7 +19849,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "fd562d22cf6e998c77f7770769617946f4314fa9ad46a386dd23a4e20f264f48",
+      "digest": "94f8f9af29f5bd1dde3194036a28077a6b4911f58794b747a3845b9236c94e76",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run17:AvailableGSTClaim",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Outage",
@@ -19931,7 +19937,9 @@
         "        (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))",
         "        (t : AvailableChain.Time),",
         "        AvailableChain.FGSA.Run.HealingTimePrem p c G ΔF E rho Unit.unit →",
-        "          Int.instLEInt.le (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G))",
+        "          Int.instLEInt.le",
+        "              (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                (AvailableChain.FGSA.Run.B_HF p ΔF G))",
         "              t →",
         "            Int.instLEInt.le (instHAdd.hAdd (instHAdd.hAdd t G) (instHMul.hMul 6 p.Δ))",
         "                rho.horizon →",
@@ -19939,7 +19947,8 @@
         "                And (AvailableChain.FGSA.Run.HealingInput p c E rho w ΔF)",
         "                  (And",
         "                    (Int.instLTInt.lt (AvailableChain.FGSA.Run.tstar p w)",
-        "                      (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
+        "                      (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                        (AvailableChain.FGSA.Run.B_HF p ΔF G)))",
         "                    (AvailableChain.FGSA.Run.AvailableGrowthConcl p c E rho t",
         "                      (instHAdd.hAdd (instHAdd.hAdd t G) (instHMul.hMul 6 p.Δ))))"
       ],
@@ -19956,9 +19965,9 @@
         "AvailableChain.FGSA.Run.HealingTimePrem",
         "AvailableChain.FGSA.Run.HealingWitness",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.tstar",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.SA.Params.Δ",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
@@ -19984,7 +19993,7 @@
         "instOfNat",
         "instOfNatNat"
       ],
-      "digest": "cc2162b6644096c0ddea7e713b6fe79e8f907720560c2cbacec0ba1db94422a3",
+      "digest": "57c17f1638023e7a7803f0c0ab51f12639dd92862a1c842be240299eb0a84ba8",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run23:AvailableGrowthGSTClaim",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Outage",
@@ -50726,7 +50735,7 @@
       "body": [
         "fun p {In V} c E rho G =>",
         "  ∀ (t : AvailableChain.Time),",
-        "    Int.instLEInt.le E.t_GST t →",
+        "    Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) t →",
         "      Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon →",
         "        Exists fun s =>",
         "          And",
@@ -50747,9 +50756,9 @@
         "AvailableChain.FGSA.Run.AppCodec",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.fgsaInterface",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.Gen.V2.Duty.HonestSlot",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Slot",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
@@ -50764,7 +50773,7 @@
         "LT.lt",
         "instHAdd"
       ],
-      "digest": "874ec56645386259ce7c52ced351823e3df1fbb3f5859d2f38eeb796a7c3b76f",
+      "digest": "5414499e747bc4c5cd05e0d4a305714d747646a33d54477141de96907b83dfd3",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run11:ProposalGap",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps",
@@ -55968,7 +55977,7 @@
         "        (x : V) (W : AvailableChain.SimplexFG.FGBlock (Fin p.n)) (m : Nat),",
         "        Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) →",
         "          SetLike.instMembership.mem rho.honest x →",
-        "            Int.instLEInt.le E.t_GST ev.time →",
+        "            Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) ev.time →",
         "              instLENat.le 1 m →",
         "                Eq (AvailableChain.FGSA.Run.frontierAtIdx p c E rho (instHAdd.hAdd i 1))",
         "                    m →",
@@ -56041,7 +56050,7 @@
         "          (kind : AvailableChain.FGSA.Run.PhaseKind),",
         "          Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) →",
         "            AvailableChain.FGSA.Run.EffectiveEvent p c E rho i →",
-        "              Int.instLEInt.le E.t_GST ev.time →",
+        "              Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) ev.time →",
         "                Int.instLEInt.le (instHAdd.hAdd ev.time (instHMul.hMul 3 p.Δ)) v →",
         "                  Int.instLEInt.le v rho.horizon →",
         "                    instLENat.le 1 m →",
@@ -56090,7 +56099,7 @@
         "          (∀ (u v : AvailableChain.Time) (m : Nat)",
         "            (J : Option (AvailableChain.SimplexFG.FGBlock (Fin p.n)))",
         "            (contested : Bool),",
-        "            Int.instLEInt.le E.t_GST u →",
+        "            Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) u →",
         "              AvailableChain.FGSA.Run.PhaseInterval p c E rho u v m J contested →",
         "                ∀ (i : Nat) (x : V),",
         "                  instLENat.le (AvailableChain.FGSA.Run.timeIdx rho u) i →",
@@ -56136,13 +56145,13 @@
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.frontierAtIdx",
         "AvailableChain.FGSA.Run.postClock",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.storeAt",
         "AvailableChain.FGSA.Run.timeIdx",
         "AvailableChain.FGSA.State.fg",
         "AvailableChain.FGSA.heightView",
         "AvailableChain.FGSA.voterBlocks",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.KitFG.FGHeight.h",
         "AvailableChain.SA.Params.n",
         "AvailableChain.SA.Params.Δ",
@@ -56206,7 +56215,7 @@
         "instOfNat",
         "instOfNatNat"
       ],
-      "digest": "64c08bba863e5a1174c847db35c3d71e61e3ce9840484b7209c3953415ba5347",
+      "digest": "bf2b700c76c88323285e24937b30cb160f6cf778ebb8a6e943dc6f020abb1cf7",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run6:RPhase",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt",
@@ -56341,13 +56350,13 @@
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.frontierAtIdx",
         "AvailableChain.FGSA.Run.postClock",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.storeAt",
         "AvailableChain.FGSA.Run.timeIdx",
         "AvailableChain.FGSA.State.fg",
         "AvailableChain.FGSA.heightView",
         "AvailableChain.FGSA.voterBlocks",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.KitFG.FGHeight.h",
         "AvailableChain.SA.Params.n",
         "AvailableChain.SA.Params.Δ",
@@ -56411,7 +56420,7 @@
         "instOfNat",
         "instOfNatNat"
       ],
-      "digest": "8ee4f8eab4208802bde57f25b53287eb94e2fb05cff3b1e04a057f9b490bc36c",
+      "digest": "fadee53b0ea16127167357aeae7d825da8b786182dbc56020b9df13281396763",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run10:RPhase_def",
       "kind": "theorem",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt",
@@ -56451,7 +56460,7 @@
         "          (x : V) (W : AvailableChain.SimplexFG.FGBlock (Fin p.n)) (m : Nat),",
         "          Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) →",
         "            SetLike.instMembership.mem rho.honest x →",
-        "              Int.instLEInt.le E.t_GST ev.time →",
+        "              Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) ev.time →",
         "                instLENat.le 1 m →",
         "                  Eq",
         "                      (AvailableChain.FGSA.Run.frontierAtIdx p c E rho",
@@ -56527,7 +56536,7 @@
         "            (kind : AvailableChain.FGSA.Run.PhaseKind),",
         "            Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) →",
         "              AvailableChain.FGSA.Run.EffectiveEvent p c E rho i →",
-        "                Int.instLEInt.le E.t_GST ev.time →",
+        "                Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) ev.time →",
         "                  Int.instLEInt.le (instHAdd.hAdd ev.time (instHMul.hMul 3 p.Δ)) v →",
         "                    Int.instLEInt.le v rho.horizon →",
         "                      instLENat.le 1 m →",
@@ -56580,7 +56589,7 @@
         "            (∀ (u v : AvailableChain.Time) (m : Nat)",
         "              (J : Option (AvailableChain.SimplexFG.FGBlock (Fin p.n)))",
         "              (contested : Bool),",
-        "              Int.instLEInt.le E.t_GST u →",
+        "              Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) u →",
         "                AvailableChain.FGSA.Run.PhaseInterval p c E rho u v m J contested →",
         "                  ∀ (i : Nat) (x : V),",
         "                    instLENat.le (AvailableChain.FGSA.Run.timeIdx rho u) i →",
@@ -61233,7 +61242,7 @@
         "  ∀ (u : AvailableChain.Time) (m : Nat)",
         "    (J : Option (AvailableChain.SimplexFG.FGBlock (Fin p.n))) (contested : Bool)",
         "    (l q : AvailableChain.Slot) (Q : AvailableChain.Block) (height : Nat),",
-        "    Int.instLEInt.le E.t_GST u →",
+        "    Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) u →",
         "      AvailableChain.FGSA.Run.PhaseInterval p c E rho u (p.actionTime r) m J contested →",
         "        Int.instLEInt.le u (AvailableChain.SA.proposalTime p.toParams q) →",
         "          instLENat.le q (instHMul.hMul r p.R) →",
@@ -61349,13 +61358,13 @@
         "AvailableChain.FGSA.Run.afterTicksIdx",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.fgsaInterface",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.Γ",
         "AvailableChain.FGSA.State.fg",
         "AvailableChain.FGSA.eraseFG",
         "AvailableChain.FGSA.heightView",
         "AvailableChain.Gen.V2.Duty.HoldsBefore",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.KitFG.FGHeight.h",
         "AvailableChain.SA.Params.n",
         "AvailableChain.SA.Params.Δ",
@@ -61415,7 +61424,7 @@
         "instOfNat",
         "instOfNatNat"
       ],
-      "digest": "f4a88e884ff78cc8925d77908dc5497b1b71bcee150d63b6518ca3308803b533",
+      "digest": "f393ebb0a52b1a06b657ffe269bda8ecc8d438abb1e63d94fc40877b12d489ef",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run21:RenewedPromotionConcl",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing",
@@ -61928,14 +61937,16 @@
         "          Int.instLEInt.le",
         "              (instHAdd.hAdd",
         "                (instHAdd.hAdd",
-        "                  (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B'_resetF p ΔF G))",
+        "                  (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                    (AvailableChain.FGSA.Run.B'_resetF p ΔF G))",
         "                  (AvailableChain.FGSA.Run.Γ p G))",
         "                (instHMul.hMul 4 p.Δ))",
         "              rho.horizon →",
         "            Exists fun w =>",
         "              And (AvailableChain.FGSA.Run.H0 p c E rho w)",
         "                (Int.instLTInt.lt (p.actionTime w.rStar)",
-        "                  (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B'_resetF p ΔF G)))"
+        "                  (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                    (AvailableChain.FGSA.Run.B'_resetF p ΔF G)))"
       ],
       "dependencies": [
         "And",
@@ -61952,9 +61963,9 @@
         "AvailableChain.FGSA.Run.HealingWitness.rStar",
         "AvailableChain.FGSA.Run.LivenessBoundW",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.Γ",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.SA.Params.Δ",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
@@ -61979,7 +61990,7 @@
         "instOfNat",
         "instOfNatNat"
       ],
-      "digest": "83b5242a9678d304231879ebaef0d12d56e02f4e4f170294b90570583924427f",
+      "digest": "b76fe5170d4c4df1e3a88c6317e1a65cda39df3396f996500867dc56c14f5102",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run25:ResetArrivalFullStatement",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt",
@@ -62007,9 +62018,9 @@
         "AvailableChain.FGSA.Run.LivenessBoundW",
         "AvailableChain.FGSA.Run.ResetArrivalFullStatement",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.Γ",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.SA.Params.Δ",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
@@ -62034,7 +62045,7 @@
         "instOfNat",
         "instOfNatNat"
       ],
-      "digest": "63c243f343be4ae03dfc5334a2bef6c7294fb12505532c24e7b731e17f8adbd5",
+      "digest": "e2d554ad8760d96e05dd6cae5d97330f7c132331403b9a43fe48bfdb5ca0acb6",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run29:ResetArrivalFullStatement_def",
       "kind": "theorem",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt",
@@ -62050,14 +62061,16 @@
         "            Int.instLEInt.le",
         "                (instHAdd.hAdd",
         "                  (instHAdd.hAdd",
-        "                    (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B'_resetF p ΔF G))",
+        "                    (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                      (AvailableChain.FGSA.Run.B'_resetF p ΔF G))",
         "                    (AvailableChain.FGSA.Run.Γ p G))",
         "                  (instHMul.hMul 4 p.Δ))",
         "                rho.horizon →",
         "              Exists fun w =>",
         "                And (AvailableChain.FGSA.Run.H0 p c E rho w)",
         "                  (Int.instLTInt.lt (p.actionTime w.rStar)",
-        "                    (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B'_resetF p ΔF G))))"
+        "                    (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                      (AvailableChain.FGSA.Run.B'_resetF p ΔF G))))"
       ]
     },
     "AvailableChain.FGSA.Run.ResetArrivalPrem": {
@@ -62217,12 +62230,14 @@
         "      AvailableChain.FGSA.Run.HealingSet p c E rho G ΔF →",
         "        AvailableChain.FGSA.Run.LivenessBoundW p ΔF →",
         "          Int.instLEInt.le",
-        "              (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B'_resetF p ΔF G))",
+        "              (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                (AvailableChain.FGSA.Run.B'_resetF p ΔF G))",
         "              rho.horizon →",
         "            Exists fun w =>",
         "              And (AvailableChain.FGSA.Run.H0Reset p c E rho w)",
         "                (Int.instLTInt.lt (p.actionTime w.rStar)",
-        "                  (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B'_resetF p ΔF G)))"
+        "                  (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                    (AvailableChain.FGSA.Run.B'_resetF p ΔF G)))"
       ],
       "dependencies": [
         "And",
@@ -62238,8 +62253,8 @@
         "AvailableChain.FGSA.Run.HealingWitness.rStar",
         "AvailableChain.FGSA.Run.LivenessBoundW",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "AvailableChain.V2.D.Run.horizon",
@@ -62261,7 +62276,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "95a81cb1ca2628c56c4d9623b13d26e9663b8db64e153efe5799a04d2474f4f8",
+      "digest": "4b87cc19e215718ec10ba79559fe3e68fd29c0764fa5e582143fa7e385ae0ce3",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run21:ResetArrivalStatement",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt",
@@ -62288,8 +62303,8 @@
         "AvailableChain.FGSA.Run.LivenessBoundW",
         "AvailableChain.FGSA.Run.ResetArrivalStatement",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "AvailableChain.V2.D.Run.horizon",
@@ -62311,7 +62326,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "130b2c056ee07933e822c8fca37a02e808ac94437a20fa31b65ab0c02e8eb647",
+      "digest": "c8ef36c0a55ec10858d50cddf65dc8eb9f94b684df06a0c2c48aff44b6ff97ad",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run25:ResetArrivalStatement_def",
       "kind": "theorem",
       "module": "AvailableChainFGSAClaims.Statements.ComposeStmt",
@@ -62325,12 +62340,14 @@
         "        AvailableChain.FGSA.Run.HealingSet p c E rho G ΔF →",
         "          AvailableChain.FGSA.Run.LivenessBoundW p ΔF →",
         "            Int.instLEInt.le",
-        "                (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B'_resetF p ΔF G))",
+        "                (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                  (AvailableChain.FGSA.Run.B'_resetF p ΔF G))",
         "                rho.horizon →",
         "              Exists fun w =>",
         "                And (AvailableChain.FGSA.Run.H0Reset p c E rho w)",
         "                  (Int.instLTInt.lt (p.actionTime w.rStar)",
-        "                    (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B'_resetF p ΔF G))))"
+        "                    (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                      (AvailableChain.FGSA.Run.B'_resetF p ΔF G))))"
       ]
     },
     "AvailableChain.FGSA.Run.RestartFreeTime": {
@@ -66853,7 +66870,7 @@
         "    (J : Option (AvailableChain.SimplexFG.FGBlock (Fin p.n))) (contested : Bool)",
         "    (q : AvailableChain.Slot) (Q : AvailableChain.Block)",
         "    (Qfg : AvailableChain.SimplexFG.FGBlock (Fin p.n)) (r : AvailableChain.Slot),",
-        "    Int.instLEInt.le E.t_GST u →",
+        "    Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) u →",
         "      AvailableChain.FGSA.Run.HonestProposal E rho",
         "          (AvailableChain.FGSA.Run.fgsaInterface p c) q Q →",
         "        Eq (AvailableChain.FGSA.eraseFG Qfg) Q →",
@@ -66933,10 +66950,10 @@
         "AvailableChain.FGSA.Run.actionSourceFG",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.fgsaInterface",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.eraseFG",
         "AvailableChain.FGSA.heightView",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.KitFG.FGHeight.h",
         "AvailableChain.SA.Params.n",
         "AvailableChain.SA.Params.Δ",
@@ -66980,7 +66997,7 @@
         "instOfNatNat",
         "instSubNat"
       ],
-      "digest": "fa7097c70ec376b5e23e4977e6f7c8df267f5833c987aac493319510502b5843",
+      "digest": "e59a87d201336fdd3eebfb310ca5e733300274150f1508ac19c853d9c5e1acec",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run7:TCommon",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps",
@@ -67102,7 +67119,7 @@
         "    SetLike.instMembership.mem rho.honest y →",
         "      Eq (AvailableChain.FGSA.Run.actionSourceFG p c E rho y r)",
         "          (Option.some (Option.some K)) →",
-        "        Int.instLEInt.le E.t_GST",
+        "        Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E)",
         "            (AvailableChain.SA.voteTime p.toParams (instHMul.hMul r p.R)) →",
         "          Int.instLEInt.le",
         "              (AvailableChain.SA.freezeTime p.toParams (instHMul.hMul r p.R))",
@@ -67128,11 +67145,11 @@
         "AvailableChain.FGSA.Run.Node.st",
         "AvailableChain.FGSA.Run.actionSourceFG",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.State.fg",
         "AvailableChain.FGSA.eraseFG",
         "AvailableChain.Gen.V2.Duty.HoldsBefore",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.SA.Params.n",
         "AvailableChain.SA.freezeTime",
         "AvailableChain.SA.voteTime",
@@ -67164,7 +67181,7 @@
         "instHMul",
         "instMulNat"
       ],
-      "digest": "b0b386eb5cadffd8a6e595c6027b20750ba71003fef8b4311ba997364222c864",
+      "digest": "35bef050c7fdb863684495bad2e8cf16fcbecca6220d8961dc0aa94f30f0ddfb",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run4:TDel",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps",
@@ -67249,7 +67266,7 @@
         "    (J : Option (AvailableChain.SimplexFG.FGBlock (Fin p.n))) (contested : Bool)",
         "    (q : AvailableChain.Slot) (Q : AvailableChain.Block)",
         "    (Qfg : AvailableChain.SimplexFG.FGBlock (Fin p.n)),",
-        "    Int.instLEInt.le E.t_GST u →",
+        "    Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) u →",
         "      AvailableChain.FGSA.Run.HonestProposal E rho",
         "          (AvailableChain.FGSA.Run.fgsaInterface p c) q Q →",
         "        Eq (AvailableChain.FGSA.eraseFG Qfg) Q →",
@@ -67352,6 +67369,7 @@
         "AvailableChain.FGSA.Run.actionSourceFG",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.fgsaInterface",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.storeAt",
         "AvailableChain.FGSA.Run.timeIdx",
         "AvailableChain.FGSA.State.fg",
@@ -67409,7 +67427,7 @@
         "instOfNatNat",
         "instSubNat"
       ],
-      "digest": "5d470ecf1b77a600a5c0719f4c4c32dcf156b26018e4299dc8c0d62ed69ecd48",
+      "digest": "f2dc1d2e5810f22fe8f3845bfdb94de974424111c8d4d0142aea6bfee1d8df25",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run9:TFrontier",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps",
@@ -67660,7 +67678,7 @@
         "  ∀ (u v : AvailableChain.Time) (m : Nat)",
         "    (J : Option (AvailableChain.SimplexFG.FGBlock (Fin p.n))) (contested : Bool)",
         "    (s : AvailableChain.Slot) (B : AvailableChain.Block),",
-        "    Int.instLEInt.le E.t_GST u →",
+        "    Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) u →",
         "      AvailableChain.FGSA.Run.PhaseInterval p c E rho u v m J contested →",
         "        Int.instLEInt.le u (AvailableChain.SA.voteTime p.toParams s) →",
         "          Int.instLEInt.le (AvailableChain.SA.gateTime p.toParams s) v →",
@@ -67676,8 +67694,8 @@
         "AvailableChain.FGSA.Run.PhaseInterval",
         "AvailableChain.FGSA.Run.Transfers",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.SA.Params.n",
         "AvailableChain.SA.gateTime",
         "AvailableChain.SA.voteTime",
@@ -67693,7 +67711,7 @@
         "Nat",
         "Option"
       ],
-      "digest": "15c5fc782037baae3af7b9c8a4d77e20171d998266e523a9f17f8ec626cae8f7",
+      "digest": "598f76c22ae9b061fc155d8d7589f924a4a4b2807c281ab1d4439e4099efb9be",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run5:TPerm",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps",
@@ -67713,7 +67731,7 @@
         "    (J : Option (AvailableChain.SimplexFG.FGBlock (Fin p.n))) (contested : Bool),",
         "    AvailableChain.FGSA.Run.ProposalGap p c E rho G →",
         "      Int.instLEInt.le (instHMul.hMul 4 p.Δ) G →",
-        "        Int.instLEInt.le E.t_GST u →",
+        "        Int.instLEInt.le (AvailableChain.FGSA.Run.recoveryStart p E) u →",
         "          AvailableChain.FGSA.Run.PhaseInterval p c E rho u v m J contested →",
         "            And",
         "              (∀ (β : AvailableChain.Slot),",
@@ -67788,6 +67806,7 @@
         "AvailableChain.FGSA.Run.RepairAfter",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.fgsaInterface",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.ρΓ",
         "AvailableChain.FGSA.Run.ρ₁",
         "AvailableChain.Generic.Env",
@@ -67828,7 +67847,7 @@
         "instOfNatNat",
         "instSubNat"
       ],
-      "digest": "ec99837c1c8a53a9d95e967f6d6ce3c6389da262a5cf433928e93dbb3dccf29f",
+      "digest": "0e738c63b7d49e8218d6e243459a961cf67b9a8aa798db2604b5a6d6e6b8acda",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run7:TRepair",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps",
