@@ -14,8 +14,11 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
 
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDutySleep
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
 public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
+public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
 
 public section
 
@@ -815,3 +818,194 @@ end AvailableChain.FGSA.Run.Tests.OutageArming
 
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.slow_gate_consumer
 #print axioms AvailableChain.FGSA.Run.arming_genesis_on
+
+namespace AvailableChain.FGSA.Run.Tests.OutageArming
+
+open AvailableChain.SimplexFG
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+/-- The Clean retained-history proof supplies provenance at each joined HEAD read. -/
+theorem joined_provenance_consumer {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hV : V2.D.ExecutionValid E rho) (hdelta : E.Δ = p.Δ) :
+    ArmingJoinedProvenance (c := c) E rho := by
+  intro s i y hy hi hJ
+  have hs := hV.toScheduleWellFormed
+  have hw := arming_joined_window (c := c) hy hJ
+  have ht : SA.proposalTime p.toParams s ≤ SA.voteTime p.toParams (s + 1) := by
+    rw [arming_proposal_eq, arming_vote_eq]; push_cast; linarith [p.deltaPos]
+  obtain ⟨it, hit⟩ := arming_tick_exists hs hdelta hy (4 * s) (arming_proposal_nat p s)
+    (ht.trans (hs.in_horizon _ (List.mem_of_getElem? hi)).2)
+    (hw.awake _ (by rw [arming_proposal_eq]; have := p.deltaPos; positivity) le_rfl ht)
+  exact clean_headVotes_provenance E rho hV i y s hi hJ hit
+
+/-- The actual Clean induction constructs the general fast certificate at every cut. -/
+theorem fast_general_certificate_consumer [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c true E rho T b₀ b₁ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho) {x : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
+    (hne : B ≠ .genesis) :
+    ∃ D Dh, ArmingSleepGateCert p c E rho true T b₀ B
+      (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat) D Dh := by
+  have hh := clean_invariant p c E rho h.sleepPre hq hf hsrc (timeIdx rho b₀) le_rfl
+  have hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i := by
+    intro i hi
+    exact cleanState_of_hist h.sleepPre hq hf hsrc (clean_actionStep p c E rho) hi
+      (clean_invariant p c E rho h.sleepPre hq hf hsrc i hi)
+  have htransfer := (cleanHistoryAt_body p c E rho h.sleepPre hq hf hsrc).2.2.1
+  exact fast_arming_scoped_on h hf hsrc htsrc hState hh
+    (fun y z s C H hy hz hJ hcut hRes hHead => htransfer y z s C H hy hz hcut hRes hJ hHead)
+    (joined_provenance_consumer h.pre.base.valid h.pre.base.delta) hread hne
+
+/-- The general fast producer feeds the same full gate result used by P-Ou. -/
+theorem fast_general_gate_consumer [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c true E rho T b₀ b₁ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho) {x : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
+    (hne : B ≠ .genesis)
+    (hgate : SA.gateTime p.toParams (coverLabel p b₀) ≤ rho.horizon)
+    (hRows : ∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)) (Bh : FGBlock (Fin p.n)),
+      eraseFG Bh = B → HonestRowBefore p c E rho
+        (afterTicksIdx rho (SA.gateTime p.toParams (coverLabel p b₀))) y r a →
+      namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+      RootBlockInRun p c E rho (eraseFG e) → FGBlock.Preceq e Bh ∨ FGBlock.Preceq Bh e) :
+    ∀ y ∈ coveredNodes p E rho true b₀,
+      let I := afterTicksIdx rho (SA.gateTime p.toParams (coverLabel p b₀))
+      let st := storeAt p c E rho I y
+      Block.Preceq B (S_at p c E rho I y) ∧
+      (Block.Preceq B (F_at p c E rho I y) ∨
+        (Block.Preceq (F_at p c E rho I y) B ∧ F_at p c E rho I y ≠ B ∧
+          ∃ dl, FGSA.leaseOf st B = some dl ∧ SA.gateTime p.toParams (coverLabel p b₀) < dl ∧
+            SA.gateTime p.toParams (coverLabel p b₀) + L p ≤ dl ∧
+            ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
+              Block.Preceq B (eraseFG (FGSA.controls p st).Z)))) := by
+  obtain ⟨D, Dh, hc⟩ := fast_general_certificate_consumer h hq hf hsrc htsrc hread hne
+  exact pending_gate_lease_or_F_scoped_on h.pre.base.valid h.pre.base.delta hf hne hc hgate hRows
+
+end AvailableChain.FGSA.Run.Tests.OutageArming
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.joined_provenance_consumer
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.fast_general_certificate_consumer
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.fast_general_gate_consumer
+
+#print axioms AvailableChain.FGSA.Run.arming_rest_bound_joined
+#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior_of_F_prefix_on
+#print axioms AvailableChain.FGSA.Run.inclusion_reader_scores_on
+#print axioms AvailableChain.FGSA.Run.ArmingReadWindow
+#print axioms AvailableChain.FGSA.Run.arming_fresh_head_service_window
+#print axioms AvailableChain.FGSA.Run.arming_proposal_service_trigger_window
+#print axioms AvailableChain.FGSA.Run.arming_proposal_anchor_service_window
+#print axioms AvailableChain.FGSA.Run.arming_target_service_window
+#print axioms AvailableChain.FGSA.Run.arming_head_not_excluded_window
+#print axioms AvailableChain.FGSA.Run.arming_window_epoch
+#print axioms AvailableChain.FGSA.Run.arming_window_read_epoch
+#print axioms AvailableChain.FGSA.Run.arming_healthy_batch_window
+#print axioms AvailableChain.FGSA.Run.arming_joined_window
+#print axioms AvailableChain.FGSA.Run.arming_window_mono
+#print axioms AvailableChain.FGSA.Run.arming_joined_gate_before
+#print axioms AvailableChain.FGSA.Run.ArmingJoinedProvenance
+#print axioms AvailableChain.FGSA.Run.arming_prefix_before_cut
+#print axioms AvailableChain.FGSA.Run.arming_joined_head_from_previous
+#print axioms AvailableChain.FGSA.Run.ArmingSleepGateCert
+#print axioms AvailableChain.FGSA.Run.arming_sleep_gate_cert_of_last
+#print axioms AvailableChain.FGSA.Run.arming_sleep_gate_core_scoped
+#print axioms AvailableChain.FGSA.Run.pending_gate_lease_or_F_scoped_on
+#print axioms AvailableChain.FGSA.Run.arming_fast_cert_of_comparison
+#print axioms AvailableChain.FGSA.Run.fast_arming_scoped_on
+#print axioms AvailableChain.FGSA.Run.arming_healthy_batch_heads
+#print axioms AvailableChain.FGSA.Run.ArmingJoinedBatchState
+#print axioms AvailableChain.FGSA.Run.arming_batch_at_on
+#print axioms AvailableChain.FGSA.Run.arming_head_covers_on
+#print axioms AvailableChain.FGSA.Run.arming_proposal_covers_on
+
+#print axioms AvailableChain.FGSA.Run.slow_arming_scoped_on
+
+namespace AvailableChain.FGSA.Run.Tests.OutageArming
+
+open AvailableChain.SimplexFG
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+/-- The actual fast producer supplies all sleep duty-history consumers. -/
+theorem fast_history_consumer [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c true E rho T b₀ b₁ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho) {x : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
+    (hne : B ≠ .genesis)
+    : ∃ D Dh, ArmingSleepHistoryCert p c E rho true T b₀ B
+      (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat) D Dh := by
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  have hh := clean_invariant p c E rho h.sleepPre hq hf hsrc (timeIdx rho b₀) le_rfl
+  have hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i := by
+    intro i hi
+    exact cleanState_of_hist h.sleepPre hq hf hsrc (clean_actionStep p c E rho) hi
+      (clean_invariant p c E rho h.sleepPre hq hf hsrc i hi)
+  obtain ⟨D, Dh, hc⟩ := fast_general_certificate_consumer h hq hf hsrc htsrc hread hne
+  have hOut := clean_gateOutput_body p c E rho b₀ h.sleepPre hq hf hsrc
+    (timeIdx rho b₀) le_rfl hh
+  refine ⟨D, Dh, arming_sleep_history_on h hf hsrc hState hh ?_
+    (joined_provenance_consumer h.pre.base.valid h.pre.base.delta) hc hne⟩
+  intro j y s hj hG
+  obtain ⟨C, hC, _, hS⟩ := hOut j y s hj
+    (hs.honest_only _ (List.mem_of_getElem? hG.1)) hG
+  exact ⟨C, hC, hS⟩
+
+/-- The actual slow producer supplies all sleep duty-history consumers. -/
+theorem slow_history_consumer [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c false E rho T b₀ b₁ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho) {x : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
+    (hne : B ≠ .genesis)
+    {y : V} (hyG : y ∈ coveredNodes p E rho false b₀)
+    : ∃ D Dh, ArmingSleepHistoryCert p c E rho false T b₀ B
+      (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat) D Dh := by
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  have hh := clean_invariant p c E rho h.sleepPre hq hf hsrc (timeIdx rho b₀) le_rfl
+  have hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i := by
+    intro i hi
+    exact cleanState_of_hist h.sleepPre hq hf hsrc (clean_actionStep p c E rho) hi
+      (clean_invariant p c E rho h.sleepPre hq hf hsrc i hi)
+  have htransfer := (cleanHistoryAt_body p c E rho h.sleepPre hq hf hsrc).2.2.1
+  obtain ⟨D, Dh, hc⟩ := slow_arming_scoped_on h hf hsrc htsrc hState hh
+    (fun y z s C H hy hz hJ hcut hRes hHead => htransfer y z s C H hy hz hcut hRes hJ hHead)
+    (clean_epoch_saved_row h.sleepPre hq hf hsrc) hread hne hyG
+  have hOut := clean_gateOutput_body p c E rho b₀ h.sleepPre hq hf hsrc
+    (timeIdx rho b₀) le_rfl hh
+  refine ⟨D, Dh, arming_sleep_history_on h hf hsrc hState hh ?_
+    (joined_provenance_consumer h.pre.base.valid h.pre.base.delta) hc hne⟩
+  intro j y s hj hG
+  obtain ⟨C, hC, _, hS⟩ := hOut j y s hj
+    (hs.honest_only _ (List.mem_of_getElem? hG.1)) hG
+  exact ⟨C, hC, hS⟩
+
+end AvailableChain.FGSA.Run.Tests.OutageArming
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.fast_history_consumer
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.slow_history_consumer
+
+#print axioms AvailableChain.FGSA.Run.arming_leases_interval_sleep
+#print axioms AvailableChain.FGSA.Run.arming_prefix_sleep_on
+#print axioms AvailableChain.FGSA.Run.arming_duty_epochs
+#print axioms AvailableChain.FGSA.Run.arming_duty_batch
+#print axioms AvailableChain.FGSA.Run.arming_head_covers_sleep
+#print axioms AvailableChain.FGSA.Run.arming_proposal_covers_sleep
+#print axioms AvailableChain.FGSA.Run.arming_joined_of_tick_guard
+#print axioms AvailableChain.FGSA.Run.arming_emit_proposal_on
+#print axioms AvailableChain.FGSA.Run.arming_pending_duties_sleep
+#print axioms AvailableChain.FGSA.Run.arming_inflight_heads_sleep
+#print axioms AvailableChain.FGSA.Run.arming_S_interval_sleep
+#print axioms AvailableChain.FGSA.Run.arming_confirmed_restart_bound
+#print axioms AvailableChain.FGSA.Run.arming_confirmed_pre_pending_gate
+#print axioms AvailableChain.FGSA.Run.arming_cover_sleep
+#print axioms AvailableChain.FGSA.Run.ArmingSleepHistoryCert
+#print axioms AvailableChain.FGSA.Run.arming_sleep_history_on

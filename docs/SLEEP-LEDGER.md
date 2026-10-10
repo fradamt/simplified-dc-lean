@@ -5578,3 +5578,87 @@ joint inductions, the continuation joint/receipt/gate modules, Close, both
 Exports and Tests/OutageInduction. hTargets (GoodVotes:143/289) stays a
 conditional local count premise; its producer must keep the F ⪯ B / B ⪯ F
 split and must not become an unconditional assertion.
+### P-Ar Round 5 — general fast comparison construction (2026-10-10)
+
+The equal-cut fast construction uses an earlier comparison result when no
+label-l gate executes. ArmingSleepGateCert keeps an actual result at q <= l,
+the comparison maximum, its FG lift, and the actual joined HEAD bounds.
+The previous joined batch supplies the next HEAD through its receiver epoch.
+It does not assume participation at the cut or an executed label-l result.
+The actual Clean retained-history supplier supplies joined HEAD provenance.
+The earlier gate witness follows from strict-before-cut joined participation.
+
+The new fast_arming_scoped_on constructs this certificate at every cut.
+pending_gate_lease_or_F_scoped_on returns the same full gate result and keeps
+the explicit named-row compatibility boundary for P-Ou. slow_arming_scoped_on
+converts the actual slow producer and includes its joined HEAD bounds.
+The five Round 4 export names and types are unchanged.
+
+Validation for this group: strict builds of ArmingConstruction and
+Tests.OutageArming PASS; actual Clean-to-fast-to-full-gate consumer PASS.
+All added production commands are in the standalone test and canonical
+production-only fragment. No public claim or protocol declaration changed.
+The duty-history group and full package checks remain in progress.
+P-Ar remains PREPARED until those checks pass.
+
+Round 5 first-group complete local audit: 218 commands, 168 proof modules,
+252 accepted exports, zero unaccepted, Gen zero exports; coverage control PASS.
+Layers: 72 inherited findings, zero new. Added Lean lines stay within 100 columns.
+The receiver service and scoring modules are registered as owned P-Ar targets.
+
+### P-Ar Round 5 — duty history and full construction CLOSED (2026-10-10)
+
+P-Ar is CLOSED. All 22 owned targets are GREEN. The general fast construction
+includes the equal cut without hLast or a strict-cut premise. The actual fast
+and slow Clean suppliers construct ArmingSleepHistoryCert. The actual fast
+producer also feeds the full pending-gate lease-or-F consumer.
+
+The pre-pending ports use joined selected voters and local receiver epochs:
+ArmingScores counts stored honest seats in the joined denominator;
+arming_head_covers_on and arming_proposal_covers_on consume the retained local
+batch; arming_duty_batch supplies that batch from the regime and certificate.
+Actual HEAD and proposal emissions supply their joined guards. The history
+certificate supplies pending_duties and inflight_heads with their original
+actual-emission conclusions. It also supplies all-honest F compatibility.
+
+Internal receiver-scope port: pending_cover now applies to protected confirmed
+readers. Their current caught-up read bounds earlier restart markers and gives
+an actual enabled label-l gate. The actual Clean gate-output supplier and
+stable-state induction then give B below S before the pending gate. The old
+all-honest ArmingData demand is not supplied from protected facts. Public
+Claims/Statements are unchanged. The legacy NoRestart producers remain
+explicit; no new sleep consumer calls them.
+
+T25 is CLOSED for P-Ar. arming_healthy_batch_window uses joined selected
+voters, a named local awake/restart-free receiver window, and regime-derived
+HEAD/target services. arming_duty_batch supplies its actual duty consumers.
+There is no extra transport premise or global NoRestart in these suppliers.
+P-Ou retains its own downstream ports and its explicit hRows source-history
+boundary. No P-Ou, P-H1, P-H2, P-WC, P-Cl1, or Shared source file changed.
+
+Validation: DCK P-Ar PASS; 22 targets / 490 GREEN; 38 strict roots / 3,199
+axiom results; all 24 controls PASS. Complete GREEN exports: 294 proof modules,
+253 accepted exports, zero unaccepted, Gen zero exports. Complete local audit:
+236 commands, 170 proof modules, 252 accepted exports, zero unaccepted;
+coverage control PASS. Canonical production-only fragment: 207 strict results;
+207 exact matching owner rows. Every new explicit public production declaration
+has a direct command. Only propext, Classical.choice, and Quot.sound occur.
+Layers: 72 inherited findings, zero new. Diff whitespace and 100-column checks
+PASS. The two inherited EXPECTED-FAIL roots remain S-Ap-owned; no owned target
+is EXPECTED-FAIL. No claim, protocol, checker, baseline, allowance, fixed scope,
+toolchain, or dependency manifest changed. No public STOP was introduced.
+
+Exact types and suppliers: scripts/dev-pkg/P-Ar.round5-handoff.md.
+Evidence: .lake/sleep-par-r5/. Group 1 commit: 04281d84.
+
+### Lead note after the P-Ar round 5 review (2026-10-10 12:48)
+
+rev-par5-astra: FIX-FIRST for CLOSED, merged as PREPARED. The equal-cut fast
+construction is acyclic and every arming-record field has a producer. Open
+before CLOSED: (1) remove `import all` at Outage/ArmingLocal.lean:2 and the two
+inherited uses at Outage/ArmingKernel.lean:2-3 (check-module-headers);
+(2) a positive finite-run witness for the arming certificates (non-genesis
+stable read, protected receivers, fast equal-cut branch, slow instance).
+hRows (ArmingConstruction:270) stays an OPEN P-Ou source-history obligation,
+including actions at the pending time; do not project the old all-honest
+pending_input.
