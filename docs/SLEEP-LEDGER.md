@@ -6113,3 +6113,41 @@ OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF →
 OutagePrefixReceipt p c E rho fast T b₀ for RestoredBatch:377 (the existing
 arming_prefix_batch_receipt takes OutageSleep₂, whose η budget and E1 the
 continuation record does not supply); keep the per-label earlyTime q ≤ b₀ guard.
+
+### P-Ar Round 7 — continuation-prefix producer CLOSED (2026-10-10)
+
+Base: sleep-int 102d8f5b; branch sleep-par7. This block belongs to P-Ar.
+The last closure item in the Round 6 lead note is now checked.
+ArmingKernel:901 exports arming_continuation_prefix_receipt from
+OutageContinuationSleepPrem to OutagePrefixReceipt. It uses h.pre and the
+shared arming_prefix_receipt_of_healthy_prefix supplier at :892.
+arming_batch_service_of_prefix at :831 needs only HealthyPrefix₂ and the
+protected receiver/label premises. The seven lower service proofs are
+factored into prefix suppliers, with the existing outage names/types kept.
+All 28 existing ArmingKernel theorem signatures are unchanged.
+The per-label earlyTime q ≤ b₀ guard remains, with equality allowed (P15-CUT).
+No η budget or OutageE1 field is required. All needed premises are present.
+No public meaning changed; no public STOP or missing-field STOP.
+
+The exact application to the real outage_continuation_receipt_of_prefix
+passes in .lake/sleep-par-r7/ContinuationConsumer.lean. RestoredBatch is
+unchanged and builds with --wfail. The persistent prefix consumer and direct
+strict commands are in Tests/OutageArming.lean. The production fragment has
+216 commands and matching source-owner rows; it has production imports only.
+Shared audit/coverage files remain for serial integration with their existing key.
+
+P-Ar CLOSED. All 22 owned targets are GREEN; 490 total GREEN entries.
+The two inherited S-Ap EXPECTED-FAIL roots are unchanged.
+DCK PASS: 38 strict roots, 3,235 results, all 24 controls PASS.
+Complete GREEN exports: 294 proof modules, 253 exports, zero unaccepted.
+Complete local coverage: 271 commands; 170 modules, 252 exports, zero unaccepted.
+Production strict audit: 216 results. Actual continuation call: 1 strict result.
+Only propext, Classical.choice, and Quot.sound occur.
+Layers: 72 inherited findings, zero new. Headers: no P-Ar failure;
+GoodVotes:2 remains P-Ou's inherited import-all failure.
+Added Lean lines are <=100; no proof placeholders or unsafe evaluation.
+No non-arming Outage, Claims/Statements, supplier-owner, checker, baseline,
+allowance, dependency, or shared inventory file was edited.
+No P-Ar closure input remains. The merged P-Ou hRows producer supersedes the
+old Round 6 hRows note. Handoff: scripts/dev-pkg/P-Ar.round7-handoff.md.
+Evidence: .lake/sleep-par-r7/.
