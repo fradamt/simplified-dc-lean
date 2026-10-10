@@ -8341,3 +8341,24 @@ processes. Completed results and the interrupted FG-SA log are retained. The
 remaining independent checks run with one shared gate-slot directory and the
 normal wrapper. Initial cone/shake results with stale downstream oleans are
 retained; their final checks follow the successful full rebuild.
+
+## P-Da Round 3 — final Mac validation (2026-10-11)
+
+Full manifest and all 19 DCK packages PASS, with every default control.
+Complete active build PASS (4,569 jobs); eight strict axiom audits PASS.
+Blueprint, Claims source guard, Catalog/V2/Gen, headers and export checks PASS.
+Layers: zero new. Proof coverage/equations, cone, shake, transparency and full FG
+research checks PASS. The complete gate self-test chain and extra graph/fail-fast
+controls PASS. All theorem statements and complete proof bodies are unchanged.
+PC-SA sources and both retained snapshots are unchanged; PC-SA stays UNPORTED.
+
+The complete full gate FAILS. Source GLY has 54 inherited findings (F-13 42,
+F-23 11, F-28 1); compiled GEN-FIRST adds two, for 56 full GLY findings.
+Old-read audit has 11 unlisted height-only readers; no new exemption is added.
+Compiled Claims has 15 findings (one private export, 13 generated helper uses,
+one legacy GridCO proof use). Run has seven TestSupport import-policy findings.
+These four categories require lead review; no full-pass receipt or stamp exists.
+All remaining Mac checks ran independently after the real gate precheck failure.
+Evidence: .lake/sleep-pcsa-off/round3/. Final effective results: final-mac-results.json
+and dck-results.json. Exact failure lists and all initial/rerun logs are retained.
+Report: claude-files/sleep-pcsa-off-report.md, Round 3. NUC work remains with the lead.
