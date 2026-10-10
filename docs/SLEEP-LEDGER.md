@@ -4613,3 +4613,24 @@ Its missing-tick branch uses direct reduction. The guard statements and
 their meanings are unchanged. No new equation allowance is added.
 The focused check passes: 129 proof modules, 252 accepted exports,
 zero unaccepted and zero Gen exports. Full final checks follow this repair.
+
+### P-Ou Round 3 — final validation
+
+Final proof source commit: 502f1893.
+DCK P-Ou PASS: 494 GREEN roots, 39 strict audit sources,
+3,086 axiom results and all 24 default negative controls.
+The complete GREEN export check passes: 285 proof modules,
+253 accepted exports, zero unaccepted exports and zero Gen exports.
+Complete local coverage passes for all 123 commands:
+108 in SleepAxioms and 15 in Tests/InclusionExact.
+Only propext, Classical.choice and Quot.sound occur.
+Layer check: 72 inherited findings, zero new.
+Diff whitespace, ownership and new-line length checks pass.
+No heartbeat increase, proof placeholder, public claim change or new
+checker/scope/baseline/allowance is added.
+
+Kernel PREPARED; public package OPEN, not CLOSED.
+Exact closure inputs and owned work are in the Round 3 section of
+scripts/dev-pkg/P-Ou.round2-handoff.md. The mixed exporter remains open
+after its actual build fails in the P-Ar and P-As imports.
+Logs: .lake/sleep-pou-r3/. Public-meaning STOPs: none.
