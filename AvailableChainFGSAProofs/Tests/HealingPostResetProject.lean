@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject -- shake: keep (J3 projection fixtures)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject -- shake: keep
 
 set_option linter.privateModule false
 
@@ -46,7 +46,7 @@ example {y : V} {r v : Nat} {K : FGBlock (Fin p.n)} {Q : Block}
 example {y x : V} {r s : Nat} {K : FGBlock (Fin p.n)} {H : Block}
     (hy : y ∈ rho.honest)
     (hsrc : actionSourceFG p c E rho y r = some (some K)) (hhK : high p w K)
-    (hx : x ∈ rho.honest) (hs : r * p.R + 1 ≤ s)
+    (hx : headReader p E rho x s (SA.voteTime p.toParams s)) (hs : r * p.R + 1 ≤ s)
     (hH : headAtLabel p c E rho x s = some H) : Block.Preceq (eraseFG K) H :=
   (postReset_h2A_reset p c E rho hrec cap source rowCovered h0r inv
     y r K hy hsrc hhK).1 x s H hx hs hH
@@ -55,7 +55,7 @@ example {y x : V} {r s : Nat} {K : FGBlock (Fin p.n)} {H : Block}
 example {y x : V} {r a : Nat} {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest)
     (hsrc : actionSourceFG p c E rho y r = some (some K)) (hhK : high p w K)
-    (hx : x ∈ rho.honest) (hhor : p.actionTime r + 4 * p.Δ ≤ rho.horizon)
+    (hx : confirmedReaderIdx p c E rho x a) (hhor : p.actionTime r + 4 * p.Δ ≤ rho.horizon)
     (ha : HealSuffix p c rho (p.actionTime r + 4 * p.Δ) a) :
     Block.Preceq (eraseFG K) (S_at p c E rho a x) :=
   (postReset_h2A_reset p c E rho hrec cap source rowCovered h0r inv

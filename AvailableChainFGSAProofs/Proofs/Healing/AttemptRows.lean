@@ -19,7 +19,7 @@ private theorem attempt_period_bounds (p : Params) : 8 * p.Δ ≤ P p := by
   nlinarith [p.deltaPos]
 
 private theorem attempt_honest_nonempty [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) :
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) :
     rho.honest.Nonempty := by
   have hn := card_eq_n_of_linked hrec.base.linked
   have hc : (Gen.V2.Duty.faulty rho).card + rho.honest.card = p.n := by
@@ -57,7 +57,7 @@ private theorem attempt_quiet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (attempt_time_le E rho hs hev hcut)
 
 private theorem attempt_row_of_covered [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     {k : AttemptKey} {ev : V2.Event V (Obj p)} {budget : Time} {r : Nat} {Q : Block}
     (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
     (htask : k.task = .firstRow) (hr : p.actionTime r ≤ ev.time + budget)
@@ -82,8 +82,13 @@ private theorem attempt_row_of_covered [Fintype V] (E : Generic.Env V)
 
 section Rows
 variable [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) m,
+      rho.events[i]? = some ev → E.t_GST ≤ ev.time → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → ev.time + p.Δ ≤ rho.horizon →
+      PhaseWitnessReceiptScope E rho (i + 1) m (ev.time + p.Δ))
+    (crossing : RXing p c E rho)
     (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
@@ -112,9 +117,9 @@ variable [Fintype V] (E : Generic.Env V)
           some ((heightView p C).h, (heightView p C).T_h.root))
 
 
-include hrec mono crossing qc writes rowCoverage
+include hrec mono heldServices crossing qc writes rowCoverage
 
-omit mono qc writes rowCoverage in
+omit mono heldServices qc writes rowCoverage in
 private theorem attempt_proposal_heights
     {u D : Time} {m q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -203,7 +208,7 @@ private theorem attempt_repair_opening
       change 0 ≤ 2 * ((4 * (p.k : Time) - 1) * p.Δ) + Γ p G + 8 * p.Δ
       nlinarith [p.deltaPos]
     linarith [p.deltaPos]
-  obtain ⟨J, hp, _hframe⟩ := healing_attempt_settle_start p c E rho crossing hrec
+  obtain ⟨J, hp, _hframe⟩ := healing_attempt_settle_start p c E rho mono heldServices crossing hrec
     hvalid hstart huD hhor (attempt_quiet E rho hS hstart hstop)
   let u := ev.time + 3 * p.Δ
   have hsettled : ∃ (root : Option (FGBlock (Fin p.n))) (contested : Bool),
@@ -294,7 +299,7 @@ theorem healing_attempt_firstRow_contest
   exact hstop (attempt_row_of_covered E rho hrec hvalid hstart htask
     (by rw [hbudget]; linarith) hc he)
 
-omit [Fintype V] hrec mono crossing qc writes rowCoverage in
+omit [Fintype V] hrec mono heldServices crossing qc writes rowCoverage in
 private theorem attempt_row_of_high_source
     {k : AttemptKey} {ev : V2.Event V (Obj p)} {budget : Time} {r : Nat} {Q : Block}
     (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)

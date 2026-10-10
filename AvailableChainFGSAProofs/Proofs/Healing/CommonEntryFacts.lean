@@ -87,17 +87,16 @@ theorem common_source_below_raw (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     (hK : actionSourceFG p c E rho x r = some (some K)) :
     ∃ B, gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG K) B := by
+  classical
   obtain ⟨i, ht⟩ := common_source_tick E rho hK
   obtain ⟨_, _, _, hfw⟩ := opening_source_body E rho hs ht hK
   have hgate : IsGateTick p c rho i x (r * p.R) := ht
   obtain ⟨B, hraw, _, _, _, hKB, _⟩ := opening_fastWrite_spec E rho hs hgate hfw
   refine ⟨B, ?_, hKB⟩
-  rw [gateResult_def, gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hgate]
-  change some (SA.Root.confirmationFrom p.toParams
-    (eraseFG (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams (r * p.R))).fg.F)
-    (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams (r * p.R))))
-    (r * p.R)) = some (some B)
-  rw [clockPre_fg, hraw]
+  rw [gateResult_eq_saved p c E rho hs hgate]
+  have hJoined := healing_fastWrite_joined E rho hs hgate hfw
+  have hSaved := fgsa_gate_saved_result E rho hs hgate hJoined
+  exact hSaved.trans (congrArg some hraw)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.9; plan §3F.2. DC: INTENTIONAL compatible raw results at the
@@ -105,6 +104,7 @@ synchronized opening label imply compatibility of their selected prefixes. -/
 theorem common_sources_compatible [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {q r : Nat}
+    (hScope : SameLabelServiceScope E rho (r * p.R))
     (hgst : E.t_GST ≤ u) (hu : u ≤ SA.proposalTime p.toParams q) (hqr : q ≤ r * p.R)
     (hphase : PhaseInterval p c E rho u (p.actionTime r) m J contested) :
     ∀ x y K K', x ∈ rho.honest → y ∈ rho.honest →
@@ -128,9 +128,8 @@ theorem common_sources_compatible [Fintype V] (E : Generic.Env V)
   intro x y K K' hx hy hK hK'
   obtain ⟨B, hB, hKB⟩ := common_source_below_raw E rho hS hK
   obtain ⟨C, hC, hKC⟩ := common_source_below_raw E rho hS hK'
-  have hBC := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
-      hrec.base.noRestart hrec.base.delta
-    (r * p.R) hsync x y B C hx hy hB hC
+  have hBC := fgsa_sameLabel_on p c E rho hrec.base.valid
+    (r * p.R) hScope hrec.base.idealization x y B C hx hy hB hC
   have hCB : Block.Compatible C B := by
     change Block.compatible C B = true
     rw [block_compatible_comm]

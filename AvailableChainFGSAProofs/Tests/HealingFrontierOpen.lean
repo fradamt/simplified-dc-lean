@@ -15,7 +15,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 section Signatures
 variable [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,
       actionSourceFG p c E rho x r = some (some C) →
@@ -99,7 +99,7 @@ end Signatures
 
 section HeightOne
 variable [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,
       actionSourceFG p c E rho x r = some (some C) →

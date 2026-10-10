@@ -44,17 +44,11 @@ variable
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
     (hmono : ScopedMono (confirmedReaderIdx p c E rho) (S_at p c E rho)
       (· ≤ rho.events.length))
-    (hScopes : ∀ i x, x ∈ rho.honest →
-      enabledGateAt p c E rho i x pt.s ∨
-        confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams pt.s))
-          (SA.gateTime p.toParams pt.s) →
-      IsGateTick p c rho i x pt.s → GateReceiptScope E rho i x pt.s)
     (hOrigins : ∀ t x, SA.gateTime p.toParams pt.s ≤ t → t ≤ rho.horizon →
       confirmedReader p c E rho x t →
       ∃ q i B, pt.s ≤ q ∧ SA.gateTime p.toParams q ≤ t ∧
         enabledGateAt p c E rho i x q ∧ gateResultAt p c E rho i = some (some B) ∧
         Block.Preceq B (S_at p c E rho (timeIdx rho t) x))
-
 
 -- G6 uses confirmed readers and the exact receiver service at the enabled gate.
 example :
@@ -64,7 +58,7 @@ example :
     ScopedMono (confirmedReaderIdx p c E rho) (S_at p c E rho) (· ≤ rho.events.length) :=
   clean_inclusion_post_gate_body (hstrat :=
     hstrat) E rho ΔF hset hInputs hHistory hstore hframe hsrc hordered hnonempty
-    htransfer hleases hrows pt hprop hhor hmono hScopes
+    htransfer hleases hrows pt hprop hhor hmono
 
 -- G7 keeps both getters and every read in the closed interval.
 example :
@@ -73,7 +67,7 @@ example :
         (fun t => SA.gateTime p.toParams pt.s ≤ t ∧ t ≤ rho.horizon) :=
   clean_inclusion_body (hstrat :=
     hstrat) E rho ΔF hset hInputs hHistory hstore hframe hsrc hordered hnonempty
-    htransfer hleases hrows pt hprop hhor hScopes hOrigins
+    htransfer hleases hrows pt hprop hhor hOrigins
 
 -- T61: the last gate read uses the approved post-tick confirmed-reader scope.
 example (hd : SA.gateTime p.toParams pt.s = rho.horizon) {x : V}
@@ -91,7 +85,8 @@ example (hd : SA.gateTime p.toParams pt.s = rho.horizon) {x : V}
   have hg := inclusion_gate_exact (hstrat :=
     hstrat) E rho ΔF hset hInputs hHistory hstore hframe hsrc hordered hnonempty
     htransfer hleases hrows pt hprop hd.le hx.1
-    (hScopes i x hx.1 (Or.inr hx) hi)
+    (inclusion_enabled_gate_of_after_reader E rho
+      hset.pre.base.valid.toScheduleWellFormed hi hx)
   exact ⟨i, hi, hg.2.2.1, hg.2.2.2⟩
 
 -- s = 1 uses transfer at label 0. Its older-label branch is empty.
@@ -127,7 +122,7 @@ example {x y : V} (hx : confirmedReader p c E rho x
   · simp [cutPred, V2.Event.key, V2.Event.time, V2.Event.phase, Prod.Lex.toLex_le_toLex]
   · exact clean_inclusion_body (hstrat :=
     hstrat) E rho ΔF hset hInputs hHistory hstore hframe hsrc hordered hnonempty
-      htransfer hleases hrows pt hprop hhor hScopes hOrigins (fgsaInterface p c).confirmed
+      htransfer hleases hrows pt hprop hhor hOrigins (fgsaInterface p c).confirmed
       (by simp) _ x ⟨le_rfl, hhor⟩ hx
 
 -- Both getters use the confirmed-reader scope at the last public read.
@@ -136,7 +131,7 @@ example {x : V} (hx : confirmedReader p c E rho x rho.horizon) :
       Block.Preceq pt.P (V2.D.outputAt E rho (fgsaInterface p c).confirmed x rho.horizon) := by
   have hi := clean_inclusion_body (hstrat :=
     hstrat) E rho ΔF hset hInputs hHistory hstore hframe hsrc hordered hnonempty
-    htransfer hleases hrows pt hprop hhor hScopes hOrigins
+    htransfer hleases hrows pt hprop hhor hOrigins
   exact ⟨hi _ (by simp) _ x ⟨hhor, le_rfl⟩ hx, hi _ (by simp) _ x ⟨hhor, le_rfl⟩ hx⟩
 
 -- The growth supplier uses the inclusive gate witness for an earlier reader.
@@ -149,7 +144,7 @@ example (hOutputs : ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).c
     (hg : g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed]) :
     Block.Compatible (V2.D.outputAt E rho g x u) pt.P := by
   have hWitness := clean_inclusion_gate_witness (hstrat := hstrat) E rho ΔF hset hInputs hHistory
-    hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hScopes
+    hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor
   exact clean_growth_compatible_of_outputs E rho hset hOutputs hhor hWitness hu hus hx hg
 
 -- T31/T37: the counted receiver executes its own enabled gate and earlier vote.

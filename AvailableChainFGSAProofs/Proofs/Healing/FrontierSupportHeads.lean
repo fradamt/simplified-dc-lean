@@ -90,6 +90,7 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
+    (hScope : NextTransferScope E rho iy y i)
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest) :
     Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
@@ -100,7 +101,6 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
       (SA.voteTime p.toParams (i + 1))) (i + 1)) k = false := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   let dst := FGSA.clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (i + 1))
@@ -115,26 +115,29 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
   have hawake := hrec.awake z hk _ hgsti hhori
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
+    (fgsa_head_joined_of_joinedAt E rho hS hjz (hScope.joined z hk))
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams i)) i
   have hBK : Block.Preceq B K := hcover z hk K hhl
   have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ timeIdx rho v :=
     fheads_idxBefore_le_timeIdx rho (hvi.trans hv)
   -- The HEAD block itself is the witness; it reaches y before e_i (capped relay).
-  obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay (hroots := hrec.base.idealization)
-    E rho crossing hE hN hDelta
-    hrec.sync hQm hcap hk hjz hgsti (hcoverQ z hk K hhl) ((hvi.trans hv).trans hvh) hcut
+  obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay_on
+    (hroots := hrec.base.receiptIdealization)
+    E rho crossing hE hQm hcap hk hjz (hcoverQ z hk K hhl) hcut
+    (hScope.carriers jz z hk hjz)
   have hKe' : eraseFG Kfg = K := hKe0
   have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
     linarith
   have hWf : Kfg ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams i) y).st.fg.TF := by
     have h := hrelay y hy
-    have hc := (fgsa_store_cumulative p c E rho hN
+    have hc := (fgsa_store_durable p c E rho
       (healing_phase_idxBefore_mono p c rho hfz) y).1 h
     change Kfg ∈ (V2.D.Run.stateBefore E rho _ y).st.fg.TF at hc
     rwa [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hc
-  have hpath := healing_support_prefreeze_path E rho hS hN hiy hWf Kfg (KitFG.preceq_refl _)
+  have hpath := healing_support_prefreeze_path_on E rho hS hiy (hScope.epoch.mono
+    (fgsa_idxBefore_mono rho hfz) le_rfl) hWf Kfg (KitFG.preceq_refl _)
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hKb : K ∈ dst.base.blocks := by
     rw [← hKe']
@@ -147,61 +150,46 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
     have hm := ((cstoreInv_stateBefore E rho jz z).baseTree (eraseFG Kfg)).mpr ⟨Kfg, hKz, rfl⟩
     rw [hKe'] at hm
     have hb := (fgsa_stateBefore_bounds E rho hS jz z).1 K hm
-    have hpos : 0 < SA.voteTime p.toParams i := by
-      change 0 < 4 * p.Δ * (i : Int) + p.Δ
-      positivity
-    have hn := fgsa_preTick_now_lt E rho hS hjz hpos
-    have hsl := Internal.slotOf_mono (p := p) (le_of_lt hn)
+    have hn := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hS hjz z
+    rw [fgsa_clock_now p c (rho.stateBefore E jz z)] at hn
+    have hsl := Internal.slotOf_mono (p := p) hn
     have he : p.slotOf (SA.voteTime p.toParams i) = i :=
       (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho jz z) _).2.symm.trans
         (fgsa_vote_slot (c := c) _ i)
     exact hb.trans (hsl.trans_eq he)
-  -- The vote arrives by e_i and keeps its stamp at the v_(i+1) read.
-  have hvd : SA.voteTime p.toParams i + E.Δ ≤ SA.voteTime p.toParams i + E.Δ := le_rfl
-  have hdt : SA.voteTime p.toParams i + E.Δ ≤ rho.horizon := by
-    rw [hDelta]
-    exact (hvi.trans hv).trans hvh
-  obtain ⟨dl, cut, hD, _, hlt, hdl, _, hdcut, _⟩ :=
-    Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ hrec.sync
-      (fgsaDelay_nonrow E.Δ _) hgsti hvd hdt
-  have hdle : dl (SA.voteTime p.toParams i) ≤ SA.voteTime p.toParams i + p.Δ := by
-    have h := hdl (SA.voteTime p.toParams i)
-    rwa [max_self, hDelta] at h
-  have hwindow : (V2.D.Run.stateBeforeTime E rho (dl (SA.voteTime p.toParams i)) y).st.slot p ≤
-      i + 1 := by
-    have h := healing_support_read_window E rho hS hN hiy _ (hdle.trans hvi)
-    have he : p.slotOf (SA.voteTime p.toParams (i + 1)) = i + 1 :=
-      (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho iy y) _).2.symm.trans
-        (fgsa_vote_slot (c := c) _ (i + 1))
-    exact h.trans_eq he
-  have hcutd : dl (SA.voteTime p.toParams i) ≤ cut := by
-    refine hdle.trans (le_trans ?_ hdcut)
-    rw [hDelta]
-  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K.root
-    (SA.voteTime p.toParams i) z y hD hk hem hy hcutd (hlt _) hwindow
+  -- Fresh receipt reaches the freeze and keeps its strict stamp to the actual read.
+  obtain ⟨hFresh⟩ := hScope.fresh k K.root hk hem
+  obtain ⟨jem, hjEm, hoEm⟩ := hem
+  have hem : V2.D.Run.emits E rho z (ofHead p ⟨.seat (.head i) k, K.root⟩)
+      (SA.voteTime p.toParams i) := ⟨jem, hjEm, hoEm⟩
+  obtain ⟨hom, hos⟩ := hFresh.receipt hE hy hjEm hoEm
   let o := baseVote (⟨.seat (.head i) k, K.root⟩ : HeadWire p.n)
-  have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams i)) ≤ iy :=
-    healing_support_idxBefore_le p c E rho hS hiy (hdle.trans hvi)
+  have hidx : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams i) ≤ iy := by
+    apply healing_support_idxBefore_le p c E rho hS hiy
+    change 4 * p.Δ * (i : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((i + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
-      (dl (SA.voteTime p.toParams i))) y).base.votes := by
-    change o ∈ (V2.D.Run.stateBefore E rho _ y).st.base.votes
+      (SA.freezeTime p.toParams i)) y).base.votes := by
+    change o ∈ (rho.stateBefore E _ y).st.base.votes
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
     exact hom
-  obtain ⟨hod, hods⟩ := healing_support_vote_kept E rho hN hidx y
-    (SA.voteTime p.toParams (i + 1)) o hom'
+  obtain ⟨hod, hods⟩ := healing_support_vote_kept_on E rho hidx y
+    (SA.voteTime p.toParams (i + 1)) (hScope.epoch.mono (fgsa_idxBefore_mono rho hfz) le_rfl) o hom'
   have hstampv : GridCO.stampVote dst.base o < SA.freezeTime p.toParams i := by
     change GridCO.stampVote (FGSA.clock p _ _).base o < _
     rw [hods]
-    change GridCO.stampVote (V2.D.Run.stateBefore E rho _ y).st.base o < _
+    change GridCO.stampVote (rho.stateBefore E _ y).st.base o < _
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
-    exact lt_of_lt_of_le hos (hdle.trans hfz)
+    exact hos
   -- The receiver finality is below the height-m HEAD block (RXing under the cap).
   have hiyv : iy ≤ timeIdx rho v := (healing_phase_lt_timeIdx p c E rho hS hiy hv).le
   have hjziy : jz ≤ iy := by
     have h1 : jz < V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) :=
       (Gen.V2.Duty.index_lt_idxBefore_iff hS hjz _).mpr (lt_add_of_pos_right _ p.deltaPos)
     exact h1.le.trans (healing_support_idxBefore_le p c E rho hS hiy hvi)
-  have hFK0 := frontier_F_below E rho crossing hN hy (hcap iy y hiyv hy) hk hjziy hKz
+  have hFK0 := frontier_F_below_all E rho crossing hy (hcap iy y hiyv hy) hk hjziy hKz
     (frontier_height_eq E rho hQm (hcap jz z (hjziy.trans hiyv) hk) hKz
       (hKe' ▸ hcoverQ z hk K hhl)).1.ge
   have hFK : Block.Compatible K (eraseFG dst.fg.F) := by
@@ -251,7 +239,7 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
   | true =>
     exfalso
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
-    have hprov := fgsa_headVotes_provenance E rho hE hN iy y i hiy
+    have hprov := fgsa_headVotes_provenance_on E rho hE i iy y hy hScope.reads
     have hone : ∀ w ∈ FGSA.headVotes p dst (i + 1), GridCO.headSeat? w = some k → w = o := by
       intro w hw hwk
       rcases hprov w hw k hwk with hm | heq
@@ -280,6 +268,7 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
+    (hScope : NextTransferScope E rho iy y i)
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
     (hlease : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B →
       ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
@@ -289,7 +278,6 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
   classical
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   let dst := FGSA.clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (i + 1))
@@ -302,6 +290,7 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
   have hhori : SA.voteTime p.toParams i ≤ rho.horizon := hvv.trans hvh
   -- The receiver's own label-i HEAD block is the witness (capped self-witness).
   obtain ⟨jy, hjy⟩ := healing_support_vote_tick E rho hS hDelta hy i hhori
+    (hrec.awake y hy _ hgsti hhori)
   have hhl : headAtLabel p c E rho y i = some (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jy y).st (SA.voteTime p.toParams i)) i) := by
     unfold headAtLabel
@@ -309,9 +298,9 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     rfl
   have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ timeIdx rho v :=
     fheads_idxBefore_le_timeIdx rho (hvi.trans hv)
-  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay (hroots := hrec.base.idealization)
-    E rho crossing hE hN hDelta
-    hrec.sync hQm hcap hy hjy hgsti (hcoverQ y hy _ hhl) ((hvi.trans hv).trans hvh) hcut
+  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hrec.base.receiptIdealization)
+    E rho crossing hE hQm hcap hy hjy (hcoverQ y hy _ hhl) hcut
+    (hScope.carriers jy y hy hjy)
   have hWd := hrelay y hy
   have hBW : Block.Preceq B (eraseFG W) := by
     rw [hWe]
@@ -321,7 +310,7 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     exact hcoverQ y hy _ hhl
   have hiyv : iy ≤ timeIdx rho v := (healing_phase_lt_timeIdx p c E rho hS hiy hv).le
   have hWy : W ∈ (storeAt p c E rho iy y).fg.TF :=
-    (fgsa_store_cumulative p c E rho hN
+    (fgsa_store_durable p c E rho
       (healing_support_idxBefore_le p c E rho hS hiy hvi) y).1 hWd
   obtain ⟨_, hFW, hZW, hloy⟩ := frontier_self_witness E rho crossing hQm hy
     (hcap iy y hiyv hy) hWy hQW
@@ -357,7 +346,12 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     rw [Nat.add_sub_cancel]
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
     linarith
-  have hfrozen := healing_frozen_path p c E rho hS hN hdpos hvi hdfreeze hWd hread
+  have hfrozen := healing_frozen_path_on p c E rho hS hdpos hvi hdfreeze hWd hread (by
+    intro j hj
+    have he : j = iy := Option.some.inj
+      ((fgsa_tickIdx_of_event p c E rho hS hj).symm.trans
+        (fgsa_tickIdx_of_event p c E rho hS hiy))
+    exact he.symm ▸ hScope.epoch)
   let X := voterBlocks p dst (i + 1)
   have kept := fheads_kept_anchor p dst hinv B W hWdst hBW X hfrozen
     (hRd ▸ hloy) (hRd ▸ hZW) (hlease hFB0)
@@ -371,7 +365,7 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
   have hHmem (k : Fin p.n) : k ∈ Hon ↔ rho.seatOf (.base (.head i)) k ∈ rho.honest := by
     simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := frontier_head_batch_seat E rho hrec crossing hQm
-    hvh hcap hgsti hcoverQ hcover hy hiy hv k ((hHmem k).mp hk)
+    hvh hcap hgsti hcoverQ hcover hy hiy hScope hv k ((hHmem k).mp hk)
   have hHon : Hon.card = rho.honest.card := by
     rw [← Finset.card_image_of_injective Hon hbij.1]
     congr 1
@@ -383,13 +377,20 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     · intro hz
       obtain ⟨k, rfl⟩ := hbij.2 z
       exact ⟨k, hz, rfl⟩
-  have hawk : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams i) = rho.honest := by
-    rw [Gen.V2.Duty.awakeHonest_def]
-    exact Finset.filter_eq_self.mpr (fun z hz => hrec.awake z hz _ hgsti hhori)
+  have hn : Fintype.card V = p.n := by
+    have hc := Fintype.card_congr (Equiv.ofBijective _ hbij)
+    simpa only [Fintype.card_fin] using hc.symm
+  have hf : (Gen.V2.Duty.faulty rho).card = p.n - rho.honest.card := by
+    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
+      Finset.card_univ, hn]
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := by
-    have h := (hrec.batch hgsti hhori).lt
-    rw [hawk] at h
-    exact ⟨hHon ▸ h⟩
+    have hfault := hrec.fault
+    have hHonLe : rho.honest.card ≤ p.n := hn ▸ Finset.card_le_univ rho.honest
+    have hpos := p.nPos
+    rw [hf] at hfault
+    rw [hHon, hf]
+    constructor
+    omega
   have hother : ((GridCO.seats p.n (FGSA.headVotes p dst (i + 1))).toFinset \ Hon).card ≤
       (Gen.V2.Duty.faulty rho).card := by
     apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head i)))
@@ -419,13 +420,13 @@ below it at the receiver's frame. The transfer counts are those of H.1. `hlease`
 lease premise of H.1 (release for a fast body, the window for a slow body). -/
 theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (crossing : RXing p c E rho)
-    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    {ΔF : Time} (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hE : V2.D.ExecutionValid E rho) (_hDelta : E.Δ = p.Δ)
+    {ΔF : Time} (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
     {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
-    {v : Time} (hvh : v ≤ rho.horizon)
+    {v : Time} (_hvh : v ≤ rho.horizon)
     (hcap : ∀ i x, i ≤ timeIdx rho v → x ∈ rho.honest → (storeAt p c E rho i x).fg.h_max ≤ m)
-    {s : Slot} (hgsts : E.t_GST ≤ SA.voteTime p.toParams s)
-    (hgate : SA.gateTime p.toParams s ≤ v)
+    {s : Slot} (_hgsts : E.t_GST ≤ SA.voteTime p.toParams s)
+    (_hgate : SA.gateTime p.toParams s ≤ v)
     (hcoverQ : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z s = some K →
       Block.Preceq (eraseFG Qfg) K)
     {ix : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -448,30 +449,25 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
           (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s) B)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hScope : FirstTransferScope E rho ix iy x y s)
     (hv : SA.voteTime p.toParams (s + 1) ≤ v)
     (hlease : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B →
       ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     Block.Preceq B (headVote p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1)) := by
   have hS := hE.toScheduleWellFormed
   have hd := p.deltaPos
   let src := actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))
   let dst := FGSA.clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (s + 1))
-  have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
-    rw [hDelta]
-    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
-    linarith
-  have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
-    hsync (fgsaDelay_nonrow E.Δ _) hgsts hvd (hgate.trans hvh)
   -- The honest supporter and its HEAD block, the capped witness.
   obtain ⟨K, hK, hKm, _, _, hom, hol⟩ := healing_support_clean_target E rho o ho
   have hBK : Block.Preceq B K := by
     rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hK] at hsup
     exact (Bool.and_eq_true_iff.mp hsup).2
   obtain ⟨jz, hjz, hKz⟩ := healing_support_honest_head E rho hE hom hol hko hkh
-  have hKeq := stored_eq_headVote E rho hroots ix x hKm jz
+  have hKeq := stored_eq_headVote E rho (hroots.toNamedRootCollisionFree E rho) ix x hKm jz
     (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) s
     (Option.some.inj ((resolvedHead_root _ o hK).symm.trans hKz))
   have hhlz : headAtLabel p c E rho (rho.seatOf (.base (.head s)) k) s =
@@ -490,9 +486,8 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ) ≤ timeIdx rho v :=
     fheads_idxBefore_le_timeIdx rho (hes.trans hv)
   have hQK := hcoverQ _ hkh _ hhlz
-  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay (hroots := hroots) E rho crossing hE hN
-    hDelta hsync hQm
-    hcap hkh hjz hgsts hQK ((hvs.trans hgate).trans hvh) hcut
+  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hroots) E rho crossing hE hQm
+    hcap hkh hjz hQK hcut (hScope.carriers jz _ hkh hjz)
   have hKe2 : eraseFG W = K := hWe.trans hKeq.symm
   have hBW : Block.Preceq B (eraseFG W) := by
     rw [hKe2]
@@ -503,7 +498,7 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   have hWd := hrelay y hy
   have hiyv : iy ≤ timeIdx rho v := (healing_phase_lt_timeIdx p c E rho hS hiy hv).le
   have hWy : W ∈ (storeAt p c E rho iy y).fg.TF :=
-    (fgsa_store_cumulative p c E rho hN
+    (fgsa_store_durable p c E rho
       (healing_support_idxBefore_le p c E rho hS hiy hes) y).1 hWd
   obtain ⟨_, hFWy, hZWy, hloy⟩ := frontier_self_witness E rho crossing hQm hy
     (hcap iy y hiyv hy) hWy hQW
@@ -540,7 +535,15 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     rw [Nat.add_sub_cancel]
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
     linarith
-  have hfrozen := healing_frozen_path p c E rho hS hN hdpos hes hdfreeze hWd hread
+  have hfrozen := healing_frozen_path_on p c E rho hS hdpos hes hdfreeze hWd hread (by
+    intro j hj
+    have he : j = iy := Option.some.inj
+      ((fgsa_tickIdx_of_event p c E rho hS hj).symm.trans
+        (fgsa_tickIdx_of_event p c E rho hS hiy))
+    have hed : SA.voteTime p.toParams s + p.Δ = SA.earlyTime p.toParams s := by
+      change 4 * p.Δ * (s : Int) + p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 2 * p.Δ
+      ring
+    simpa only [he, hed] using hScope.epoch)
   have kept := fheads_kept_anchor p dst hinv B W hWdst hBW
     (voterBlocks p dst (s + 1)) hfrozen (hRd ▸ hloy) (hRd ▸ hZFy.1) (hlease hFB0)
   have hpath : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C B →
@@ -561,17 +564,21 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
           (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix x) _) o' hK'
       rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
-    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hroots)
-      E rho hE hN hDelta s hSync
-      hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB hBK')
-    exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
-      seat hs' Kfg' (hKe' ▸ hK') B (hKe' ▸ hBK') hpath' hFB
+    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path_on (hroots := hroots)
+      E rho hS hy hiy (hScope.epoch.mono (fgsa_idxBefore_mono rho (by
+        change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
+        linarith)) le_rfl) K'
+      (hScope.targets K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB0 hBK'))
+    exact fgsa_cleanSupport_forward_relay_on E rho hE s hx hy hix hiy o' ho'
+      seat hs' (fun b he => hScope.forward seat b (he ▸ ho')) Kfg' (hKe' ▸ hK') B
+      (hKe' ▸ hBK') hpath' hFB
   have hc := Gen.AC.Root.transfer src.blocks dst.base.blocks
     (GridCO.cleanSupport p.toParams.engine src s) (GridCO.lateVotes p.toParams.engine src s)
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) B
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
-    (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
+    (fgsa_headVotes_backward_relay_on E rho hE s ix iy x y hx
+      (fun q b hb => hScope.backward q b (Or.inr hb)))
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at hc
   rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero s)]

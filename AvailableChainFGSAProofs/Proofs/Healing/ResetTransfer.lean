@@ -79,6 +79,26 @@ theorem healing_low_finality_after_reset (E : Generic.Env V)
   rw [← hCS]
   exact eraseFG_preceq hFC
 
+/-- Kept FG content supplies the after-action low arm through wake restarts. -/
+theorem healing_low_finality_after_reset_on (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hs : V2.D.ScheduleWellFormed E rho)
+    (xing : RXing p c E rho)
+    (w : HealingWitness) (h0r : H0Reset p c E rho w) {i : Nat} {x : V}
+    {D : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
+    (hi : afterTicksIdx rho (p.actionTime w.rStar) ≤ i)
+    (hD : D ∈ (storeAt p c E rho i x).fg.TF)
+    (hDF : (finalityView p D).F = (storeAt p c E rho i x).fg.F)
+    (hlow : (finalityView p D).h_F ≤ w.M) :
+    Block.Preceq (F_at p c E rho i x) w.CStar := by
+  obtain ⟨j, y, a, C, ha, _, hC, hCS, hCh⟩ := h0r.fresh
+  have hji : j ≤ i := (Nat.le_of_lt (reset_tick_cut E rho hs ha.2.1)).trans hi
+  have hheld := healing_action_source_held p c E rho hs ha.2.1 hC
+  have hheld' := (fgsa_store_durable p c E rho hji y).1 hheld
+  have hFC := xing i i x y D C hx le_rfl hD hDF ⟨ha.1, hheld'⟩
+    (by rw [hCh]; exact Nat.lt_succ_of_le hlow)
+  rw [← hCS]
+  exact eraseFG_preceq hFC
+
 /-- Blueprint 21:2652–2660, IF.3(c); plan J1; B1/B13/B17.
 DC: pre-action finality floor at q_(s*). Assembly supplies `fgsa_rXing`,
 `fgsa_rCap_channel`, and `sourceDiscipline_tSrc`, with exactly their channel
@@ -110,7 +130,7 @@ theorem healing_low_finality_at_reset_reset [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * ((w.rStar * p.R : Nat) : Int) + p.Δ <
       4 * p.Δ * ((w.rStar * p.R : Nat) : Int) + 5 * p.Δ
     linarith [p.deltaPos]
-  have hCi := (fgsa_store_cumulative p c E rho hrec.base.noRestart hki z).1 hCk
+  have hCi := (fgsa_store_durable p c E rho hki z).1 hCk
   obtain ⟨D, hD, hDF⟩ := (cstoreInv_stateBefore E rho i x).fg.Fcar
   have hDh := reset_height_bound E rho cap w h0r ⟨hx, hD⟩ (by
     intro l v r b hli hb
@@ -131,7 +151,12 @@ Assembly supplies `fgsa_rXing`, `fgsa_rCap_channel`,
 theorem healing_resetTransferCore [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (xing : RXing p c E rho) (cap : RCap p c E rho) (source : TSrc p c E rho)
-    (mono : RMono p c E rho) (w : HealingWitness) (h0r : H0Reset p c E rho w) :
+    (mono : RMonoAll p c E rho) (w : HealingWitness) (h0r : H0Reset p c E rho w)
+    (hServices : ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
+      W ∈ (storeAt p c E rho j z).fg.TF →
+      TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x)
+ :
     ResetTransferCore p c E rho w := by
   rw [ResetTransferCore_def]
   intro hhor j x hx hj
@@ -143,11 +168,11 @@ theorem healing_resetTransferCore [Fintype V] (E : Generic.Env V)
     have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hs hj _).mp hn
     exact (lt_irrefl _) ht
   have hdel := healing_tDelReset_core E rho hrec source mono w h0r hhor
-    (healing_low_finality_at_reset_reset E rho hrec xing cap source w h0r) x hx
+    (healing_low_finality_at_reset_reset E rho hrec xing cap source w h0r) hServices x hx
   rw [Gen.V2.Duty.HoldsBefore_def,
     ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hdel
   obtain ⟨C, hC, hCS⟩ := hdel
-  have hCj := (fgsa_store_cumulative p c E rho hrec.base.noRestart hij x).1 hC
+  have hCj := (fgsa_store_durable p c E rho hij x).1 hC
   refine ⟨⟨C, hCj, hCS⟩, ?_⟩
   intro X C hX hCX hCS _hcover _hreset _hpair
   let st := storeAt p c E rho j x
@@ -221,10 +246,17 @@ The release finality premise is discharged; H0 is used only by this adapter. -/
 theorem healing_tDelReset_of_reset [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (xing : RXing p c E rho) (cap : RCap p c E rho) (source : TSrc p c E rho)
-    (mono : RMono p c E rho) (w : HealingWitness) : TDelReset p c E rho w := by
+    (mono : RMonoAll p c E rho) (w : HealingWitness)
+    (hServices : H0Reset p c E rho w → SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
+      ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
+      W ∈ (storeAt p c E rho j z).fg.TF →
+      TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x) :
+    TDelReset p c E rho w := by
   intro h0 hhor
   exact healing_tDelReset_core E rho hrec source mono w h0.toH0Reset hhor
     (healing_low_finality_at_reset_reset E rho hrec xing cap source w h0.toH0Reset)
+    (hServices h0.toH0Reset hhor)
 
 end AvailableChain.FGSA.Run
 end

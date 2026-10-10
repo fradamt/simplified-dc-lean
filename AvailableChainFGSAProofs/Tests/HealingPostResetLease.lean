@@ -34,6 +34,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -55,7 +56,7 @@ example
     (hsafe k hk y s row.1 row.2.1 C hy ht hp hc hCB hne hB hgen hBC hg).2.1⟩
 
 section Provenance
-variable (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+variable (hv : V2.D.ExecutionValid E rho)
     (origin : RQCOrigin p c E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
       ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
@@ -76,7 +77,7 @@ variable (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
         KitFG.TargetQCAt p.E H fp.height (heightView p H).J)
     (xing : RXing p c E rho) {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hv hnr origin heldRows cap hhead xing h0r
+include hv origin heldRows cap hhead xing h0r
 
 -- conditional package, anti-vacuity: clause 2 produces an actual high
 -- source before the reader, with its clock bound and J below its body.
@@ -86,12 +87,12 @@ example {i : Nat} {x : V} (hx : x ∈ rho.honest)
     ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧
       SA.gateTime p.toParams s ≤ (storeAt p c E rho i x).base.now ∧
       Block.Preceq (J_at p c E rho i x) (eraseFG K) :=
-  (postReset_rFProv_reset (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead xing h0r
+  (postReset_rFProv_reset (hroots := hroots) p c E rho hv origin heldRows cap hhead xing h0r
       i x hx hi).2 hh
 
 -- conditional package: B supplies both prefix fields without a prior record.
 example (i : Nat) : PostResetFProv p c E rho w i :=
-  postReset_fProv_all (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead xing h0r i
+  postReset_fProv_all (hroots := hroots) p c E rho hv origin heldRows cap hhead xing h0r i
 
 end Provenance
 end AvailableChain.FGSA.Run.Tests.HealingPostResetLease

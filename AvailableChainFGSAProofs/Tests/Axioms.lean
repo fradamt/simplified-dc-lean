@@ -299,6 +299,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain
 #print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines
 #print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites_epoch
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_tSrc
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_labelBound
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_emittedName

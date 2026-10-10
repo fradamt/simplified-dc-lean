@@ -335,7 +335,7 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 -- Apply B3 with every INLINE port discharged by its existing producer.
 private theorem riseOneWithPorts [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (qc : RQCOrigin p c E rho) {u D : Time}
     (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
@@ -350,14 +350,14 @@ private theorem riseOneWithPorts [Fintype V] (E : Generic.Env V) (rho : V2.D.Run
         2 ≤ (heightView p X).h ∧ SA.proposalTime p.toParams s + p.Δ ≤ D ∧
         ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
           (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x := by
-  let mono := fgsa_rMono p c E rho
+  let mono := fgsa_rMonoAll p c E rho
   let crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
     (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
   exact healing_rise_one_rise E rho hrec hδ hbound mono crossing qc
     (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
     (rowPermission_covered E rho hrec.base hrec.fault)
-    (fgsa_tRowsReceipt p c E rho ΔF hrec.base.delta hrec.base.valid hrec.base.noRestart
-      hrec.sync hrec.deltaF)
+    (fgsa_tRowsReceipt_sleep p c E rho ΔF hrec.base.delta hrec.base.valid
+      hrec.suffixNoRestart hrec.sync hrec.deltaF hrec.awake)
     (fgsa_batchCoverage p ΔF .progress c E rho)
     (fgsa_foldTrichotomy_progress p) (fgsa_faultQ_of_count p hrec.fault)
     (kmid_honest_quorum p c rho hrec.base.linked hrec.fault)
@@ -365,7 +365,7 @@ private theorem riseOneWithPorts [Fintype V] (E : Generic.Env V) (rho : V2.D.Run
 
 -- Genesis top J gives strict receipt for every honest receiver.
 example [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho) {u : Time} {s : Slot} {X : FGBlock (Fin p.n)}
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
     (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
@@ -385,7 +385,7 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 -- A strict receipt deadline can equal the finite horizon.
 example [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho) {u : Time} {s : Slot} {X : FGBlock (Fin p.n)}
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
     (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
@@ -439,7 +439,7 @@ example : riseOneParams.actionTime 1 + 6 ≤ carrierTimeW riseOneParams 6 1 ∧
 -- Apply the full proof with DeltaF > Delta, then locate the accepted first rise.
 example {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa riseOneParams c))
-    (hrec : Recovery₂ riseOneParams c E rho 10 6) (qc : RQCOrigin riseOneParams c E rho)
+    (hrec : RecoverySleep₂ riseOneParams c E rho 10 6) (qc : RQCOrigin riseOneParams c E rho)
     {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hbudget : u + ρΓ riseOneParams 10 + (P riseOneParams - 4 * riseOneParams.Δ) +
       (2 * P riseOneParams + Γ riseOneParams 10 - 9 * riseOneParams.Δ) ≤ D)
@@ -450,7 +450,8 @@ example {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     hrise | ⟨_, _, X, _, hnew, _, _, _, hh, hd, hreceipt⟩
   · exact hrise
   · exact healing_rise_one_of_receipt riseOneParams c E rho
-      hrec.base.valid.toScheduleWellFormed hrec.base.noRestart hnew.1.2 hh
+      hrec.base.valid.toScheduleWellFormed (fgsa_rMonoAll riseOneParams c E rho)
+      hnew.1.2 hh
       (hreceipt _ hnew.1.2) hd
 
 end AvailableChain.FGSA.Run.Tests.HealingRiseOne

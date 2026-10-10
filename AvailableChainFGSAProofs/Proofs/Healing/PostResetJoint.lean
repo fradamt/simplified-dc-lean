@@ -237,7 +237,7 @@ theorem postReset_joint_all :
     have hrl := stepRL i ih
     have hlease := stepLease i ih hrl
     have hfprov := postReset_fProv_all (hroots := hrec.base.idealization) p c E rho
-      hrec.base.valid hrec.base.noRestart
+      hrec.base.valid
       origin heldRows finalityCap hhead xing h0r (i + 1)
     have hraw := stepRaw i ih hrl hlease hfprov
     have hod := stepOD i ih hrl hlease hfprov hraw

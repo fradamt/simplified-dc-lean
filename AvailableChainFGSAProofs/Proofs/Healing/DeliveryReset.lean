@@ -19,11 +19,16 @@ supplies it, and `healing_tDelReset_of_reset` closes frozen TDelReset.
 Assembly supplies `sourceDiscipline_tSrc` and `fgsa_rMono`. -/
 theorem healing_tDelReset_core [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (source : TSrc p c E rho) (mono : RMono p c E rho) (w : HealingWitness)
+    (source : TSrc p c E rho) (mono : RMonoAll p c E rho) (w : HealingWitness)
     (h0r : H0Reset p c E rho w) (hhor : SA.releaseTime p.toParams w.sStar ≤ rho.horizon)
     (hCStarAboveLow : ∀ x ∈ rho.honest, Block.Preceq
         (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.releaseTime p.toParams w.sStar) x).st.fg.F)
-        w.CStar) :
+        w.CStar)
+    (hServices : ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
+      W ∈ (storeAt p c E rho j z).fg.TF →
+      TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x)
+ :
     ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∃ C ∈ nd.st.fg.TF, eraseFG C = w.CStar)
       (SA.releaseTime p.toParams w.sStar) x := by
@@ -41,6 +46,7 @@ theorem healing_tDelReset_core [Fintype V] (E : Generic.Env V)
       4 * p.Δ * ((w.rStar * p.R : Nat) : Int) + 5 * p.Δ
     linarith [p.deltaPos]
   have hp := healing_source_body_relay E rho hrec source mono ha.1 hx hC hgst heD hhor hFC
+    (by simpa only [h0r.label] using hServices x hx)
   rw [Gen.V2.Duty.HoldsBefore_def] at hp ⊢
   exact ⟨C, hp C (KitFG.preceq_refl C), hCS⟩
 
@@ -50,15 +56,21 @@ DC: CONDITIONAL thin adapter from H0 to the reset-only core.
 The other named inputs are `sourceDiscipline_tSrc` and `fgsa_rMono`. -/
 theorem healing_tDelReset [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (source : TSrc p c E rho) (mono : RMono p c E rho) (w : HealingWitness)
+    (source : TSrc p c E rho) (mono : RMonoAll p c E rho) (w : HealingWitness)
     (hCStarAboveLow : H0Reset p c E rho w →
       SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
       ∀ x ∈ rho.honest, Block.Preceq
         (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.releaseTime p.toParams w.sStar) x).st.fg.F)
-        w.CStar) : TDelReset p c E rho w := by
+        w.CStar)
+    (hServices : H0Reset p c E rho w → SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
+      ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
+      W ∈ (storeAt p c E rho j z).fg.TF →
+      TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x) :
+    TDelReset p c E rho w := by
   intro h0 hhor
   exact healing_tDelReset_core E rho hrec source mono w h0.toH0Reset hhor
-    (hCStarAboveLow h0.toH0Reset hhor)
+    (hCStarAboveLow h0.toH0Reset hhor) (hServices h0.toH0Reset hhor)
 
 end AvailableChain.FGSA.Run
 end

@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
+public import AvailableChainFGSAClaims.Statements.Fold
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 
 public section
@@ -53,8 +54,8 @@ def FrontierSearchStart (i : Nat) (ev : V2.Event V (Obj p)) (m : Nat)
     (kind : PhaseKind) : Prop :=
   rho.events[i]? = some ev ∧ E.t_GST ≤ ev.time ∧
   (EffectiveEvent p c E rho i ∨
-    ∃ rG, E.t_GST ≤ p.actionTime rG ∧
-      (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) ∧
+    ∃ rG, recoveryStart p E ≤ p.actionTime rG ∧
+      (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) ∧
       ev.time = p.actionTime (rG + 2) ∧ timeIdx rho ev.time = i + 1) ∧
   frontierAtIdx p c E rho (i + 1) = m ∧ 1 ≤ m ∧
   AttemptPhaseAt p c E rho (i + 1) m kind
@@ -64,8 +65,8 @@ theorem frontierSearchStart_iff (i : Nat) (ev : V2.Event V (Obj p)) (m : Nat)
     (kind : PhaseKind) : FrontierSearchStart p c E rho i ev m kind ↔
   rho.events[i]? = some ev ∧ E.t_GST ≤ ev.time ∧
   (EffectiveEvent p c E rho i ∨
-    ∃ rG, E.t_GST ≤ p.actionTime rG ∧
-      (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) ∧
+    ∃ rG, recoveryStart p E ≤ p.actionTime rG ∧
+      (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) ∧
       ev.time = p.actionTime (rG + 2) ∧ timeIdx rho ev.time = i + 1) ∧
   frontierAtIdx p c E rho (i + 1) = m ∧ 1 ≤ m ∧
   AttemptPhaseAt p c E rho (i + 1) m kind := Iff.rfl
@@ -272,9 +273,9 @@ The first task also has its own independent rise horizon guard.
 No reset witness, phase package, or downstream healing service is assumed. -/
 def FrontierSearchStatement (G ΔF : Time) : Prop :=
   p.δt = 2 * p.R → LivenessBoundW p ΔF →
-  ∀ rG u₀ M, E.t_GST ≤ p.actionTime rG →
-    (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) → u₀ = p.actionTime (rG + 2) →
-    E.t_GST + 2 * P p ≤ u₀ → M = honestFrontier p c E rho u₀ →
+  ∀ rG u₀ M, recoveryStart p E ≤ p.actionTime rG →
+    (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) → u₀ = p.actionTime (rG + 2) →
+    recoveryStart p E + 2 * P p ≤ u₀ → M = honestFrontier p c E rho u₀ →
     (∀ j y r a h e t, HonestRowAt p c E rho j y r a →
       rho.events[j]? = some (.tick y t) → t ≤ u₀ →
       namedEntry a.payload.height_pair = some (h, e) → h ≤ M) →
@@ -315,9 +316,9 @@ DC: SAME expose the frozen conclusion contract for its producer. -/
 theorem frontierSearchStatement_iff (G ΔF : Time) :
     FrontierSearchStatement p c E rho G ΔF ↔
   p.δt = 2 * p.R → LivenessBoundW p ΔF →
-  ∀ rG u₀ M, E.t_GST ≤ p.actionTime rG →
-    (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) → u₀ = p.actionTime (rG + 2) →
-    E.t_GST + 2 * P p ≤ u₀ → M = honestFrontier p c E rho u₀ →
+  ∀ rG u₀ M, recoveryStart p E ≤ p.actionTime rG →
+    (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) → u₀ = p.actionTime (rG + 2) →
+    recoveryStart p E + 2 * P p ≤ u₀ → M = honestFrontier p c E rho u₀ →
     (∀ j y r a h e t, HonestRowAt p c E rho j y r a →
       rho.events[j]? = some (.tick y t) → t ≤ u₀ →
       namedEntry a.payload.height_pair = some (h, e) → h ≤ M) →

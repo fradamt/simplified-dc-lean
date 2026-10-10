@@ -958,3 +958,47 @@ The change record gives complete source statements, change commits, and review s
 Ruling Z permits the proved partial Spec construction to land. The full independent
 source interpreter, matched-cut equivalence, and claim transfer remain open.
 Ruling Y and the WP12d Spec move are pending on this source base.
+
+P-H2 sleep helper boundary: OpeningGateRead supplies enabled/joined fast-write facts and gate geometry. OpeningTicks supplies awake vote/action ticks. RecoveryScope and ResetScope supply durable content, local action/read epochs and exact recovery cutoffs. ReleaseScope supplies expiry membership. OpeningGateSupport uses joined release counts and GateReceiptScope; its reset adapter keeps per-object services explicit. RecoveryService builds proposal and target service from accepted objects, their original anchors and receiver epochs. These helpers do not replace retained HEAD replay history or original proposal emission. HealingOpeningSupport keeps its six audits in its own module, with no test-to-test import. The serial production audit fragment imports only production modules.
+
+P-H2 Round 4–5 opening, reset and search boundary (sleep-ph2d):
+FrontierSeedDefs holds the service-independent FrontierSeedQualification and its
+prior-slot cutoff proof. FrontierSearchDefs imports this definition module, so
+its search definitions do not import the open FrontierSeed service proof.
+Reset and the internal reset/search horizon, deadline and budget use recoveryStart.
+The public ResetArrivalConcl already uses this cut. Its legacy Assembly adapter
+and the post-reset step producers remain open.
+
+RecoveryScope defines WitnessReceiptScope and WitnessHeldScope at actual joined
+reads, with strict-deadline receiver floors. HeadWitnessReceiptScope selects one
+K/W pair with its full-tree, HEAD, ancestry and source-floor facts.
+PhaseWitnessReceiptScope selects only the frontier/top/contest witnesses.
+RecoveryService builds proposal and target service from original accepted objects
+and their exact anchors and receiver epochs. Selected service producers remain open.
+
+OpeningServiceScopes bounds permanence by its actual post-GST phase. Its transfer
+factory takes that phase, the selected fast write, source bounds and LabelSyncOn.
+OpeningServiceGate passes the hSync it already constructs. RepairServiceScopes
+uses the earlier slotStart(s-2) cut for repaired proposal service. Its consumers
+project the committed H1 RepairHeadServices with the actual ip/x/N and emission.
+Opening gate-cover calls use H1's SupportGateScope and its joined batch.
+FrontierServiceScopes bounds reads by the seed's GST cut, interval and horizon.
+FrontierServiceGate converts those assumed read services to enabled gate and
+joined release scopes. This conversion does not construct object services.
+
+FrontierService constructs RetainedExactHeadRunGeometryOn at joined receivers
+and uses RegimesService _on APIs. Original proposal ReceiverService and fresh
+HEAD transport keep their send time, handler window, history and receiver epoch.
+CommonEntry obtains SameLabelServiceScope from its selected fast-write source.
+FrontierSearchFull uses RMonoAll and durable membership. Its service factories,
+the indexed H1 permanence/carrier/reset/settlement requests, the bounded
+confirmed-reader supplier at suffix prefixes, and the mixed Assembly tests remain open.
+The complete H2 critical path is not closed.
+
+HealingH2RecoveryAxioms and HealingH2ResetRiseAxioms import production modules only.
+Their active command inventories have 38 and 24 entries. HealingH2ServiceAxioms
+remains open with 130 commands. The six opening mechanism audits stay in their
+own test module. The canonical H2 fragment has 205 commands and production-only
+imports; serial audit integration remains a separate obligation. FrontierOpen
+exports only named declarations; generated proof matchers remain private.
+No public Claims statement changed.

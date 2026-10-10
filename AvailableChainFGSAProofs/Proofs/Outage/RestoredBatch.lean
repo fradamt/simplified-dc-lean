@@ -384,5 +384,12 @@ theorem outage_continuation_receipt_of_prefix [Fintype V]
   exact outage_restored_receipt_with_service h.pre.base.valid h.pre.base.receiptIdealization
     hPrefix hServices.early hServices.freeze hServices.proposal
 
+/-- Both the prefix and restored receipt services come from the continuation regime. -/
+theorem outage_continuation_receipt [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF) :
+    OutageContinuationReceipt p c E rho fast T b₀ b₁ := by
+  exact outage_continuation_receipt_of_prefix h (arming_continuation_prefix_receipt h)
+
 end AvailableChain.FGSA.Run
 end

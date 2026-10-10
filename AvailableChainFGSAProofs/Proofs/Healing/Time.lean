@@ -50,7 +50,7 @@ theorem healing_time_strict_of_reset (p : Params) (G ΔF GST t : Time)
   linarith [healing_resetF_budget_eq p G ΔF]
 
 /-- The recovery start is at or after GST, including a negative GST. -/
-private theorem recoveryStart_ge (p : Params) {V : Type} (E : Generic.Env V) :
+theorem healing_recoveryStart_ge (p : Params) {V : Type} (E : Generic.Env V) :
     E.t_GST ≤ recoveryStart p E := by
   let a := max 0 E.t_GST + 4 * p.Δ - 1
   have hd : 0 < 4 * p.Δ := by linarith [p.deltaPos]
@@ -74,7 +74,7 @@ theorem healing_hTime_of (p : Params) (G ΔF : Time)
     (hReset : ResetArrivalFullStatement p G ΔF)
     (hInput : HealingInputOfH0Statement p G ΔF) : HTimeStatement p G ΔF := by
   intro hClock V _ _ In c E rho hSet hLive hHorizon
-  have hstart := recoveryStart_ge p E
+  have hstart := healing_recoveryStart_ge p E
   have hOldHorizon : E.t_GST + B_HF p ΔF G ≤ rho.horizon := by linarith
   have hFull := healing_resetFull_horizon p G ΔF E.t_GST rho.horizon hOldHorizon
   obtain ⟨w, h0, hResetTime⟩ := hReset hClock c E rho hSet hLive hFull

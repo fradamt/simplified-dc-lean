@@ -107,6 +107,16 @@ The seed binders are the frozen StrongServed fields; r is an opening after q. -/
 theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
+    (mono : RMonoAll p c E rho)
+    (proposalServices : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (crossing : RXing p c E rho) (frontier : TFrontier p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
       max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
@@ -133,7 +143,7 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
   let D := max (p.actionTime r + Γ p G - p.Δ + epsF p ΔF)
     (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G - 3 * p.Δ)
   have hs := hrec.base.valid.toScheduleWellFormed
-  rcases frontierSearch_strict_cap_or_rise p c E rho hs hrec.base.noRestart i m D hstart
+  rcases frontierSearch_strict_cap_or_rise p c E rho hs mono i m D hstart
       with hrise | hcap
   · exact Or.inl hrise
   · right
@@ -179,14 +189,16 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
       hqgate hshor (fun k x _ hkt hx => hcap k x
         (hkt.trans (frontierSearch_timeIdx_le_idxBefore p c rho htD)) hx)
     obtain ⟨hcovered, hentry, hentryEq, _⟩ := hf.2.2 r hqr hat
-    obtain ⟨U0, hU0, _, hrows⟩ := healing_promotion_bounded_rows E rho hrec hentry hcovered
+    obtain ⟨U0, hU0, _, hrows⟩ := healing_promotion_bounded_rows E rho hrec.toRecovery₂
+      hentry hcovered
     have hU0U : U0 = U := by
       obtain ⟨K, _, _, _, _, _, hK, _, _, _, _, _, hKU0, _⟩ := hrows _ hQ.1.2
       exact hKU0.symm.trans ((hentryEq _ K hQ.1.2 hK).trans hU.symm)
     subst U0
     have hqs : q + 2 ≤ s := by
       obtain ⟨_, _, _, _, _, hafter⟩ :=
-        healing_promotion_row_deadline E rho hrec hbound (rSent := r) le_rfl hstartAction hc
+        healing_promotion_row_deadline E rho hrec.toRecovery₂ hbound (rSent := r) le_rfl
+          hstartAction hc
       omega
     have hQX : FGBlock.Preceq Qfg X.parent := by
       have hb := hf.1.2.1 s (eraseFG X) hqs le_rfl hnew
@@ -202,15 +214,23 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
       · intro x hx
         obtain ⟨K, nd, j, rSent, a, _, _, _, _, _, _, _, _, hr, ha, hn⟩ := hrows x hx
         exact ⟨j, rSent, a, hr, ha, hn⟩
-    have hh := promotion_age_advance_of_source E rho hrec src hδ hbound
+    have hh := promotion_age_advance_of_source E rho hrec.toRecovery₂ src hδ hbound
       rowsReceipt progressCoverage hfold faultQ honestQuorum
-    obtain ⟨y, hy, hheld⟩ := healing_promotion_first_receipt_of_frontierCap E rho hrec
-      crossing hnew hgsts hQX
+    obtain ⟨y, hy, hheld⟩ := healing_promotion_first_receipt_of_frontierCap E rho hrec.toRecovery₂
+      crossing (proposalServices s) hnew hgsts hQX
       (fun k x hk hx => hcap k x
         (hk.trans (healing_phase_idxBefore_mono p c rho hterminal)) hx)
       hQm (hterminal.trans hhor)
-    exact ⟨s, X, hnew, hXslot, hh, y, hy,
-      healing_promotion_block_held_mono E rho hs hrec.base.noRestart hterminal hheld⟩
+    have heldMono {d d' : Time} (hdd : d ≤ d')
+        (hheld : Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ nd.st.fg.TF) d y) :
+        Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ nd.st.fg.TF) d' y := by
+      rw [Gen.V2.Duty.HoldsBefore_def,
+        ← Gen.V2.Duty.stateBefore_idxBefore E rho d hs] at hheld
+      rw [Gen.V2.Duty.HoldsBefore_def,
+        ← Gen.V2.Duty.stateBefore_idxBefore E rho d' hs]
+      exact (fgsa_store_durable p c E rho
+        (healing_phase_idxBefore_mono p c rho hdd) y).1 hheld
+    exact ⟨s, X, hnew, hXslot, hh, y, hy, heldMono hterminal hheld⟩
 
 end AvailableChain.FGSA.Run
 end

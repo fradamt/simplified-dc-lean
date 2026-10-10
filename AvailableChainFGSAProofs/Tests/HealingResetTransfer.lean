@@ -30,19 +30,33 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 -- Conditional package fixture: A supplies the actual reset-delivery premise.
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (xing : RXing p c E rho) (cap : RCap p c E rho) (source : TSrc p c E rho)
-    (mono : RMono p c E rho) (w : HealingWitness) (h0r : H0Reset p c E rho w)
+    (mono : RMonoAll p c E rho) (w : HealingWitness)
+    (hServices : H0Reset p c E rho w →
+      SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
+      ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
+      W ∈ (storeAt p c E rho j z).fg.TF →
+      TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x)
+    (h0r : H0Reset p c E rho w)
     (hhor : SA.releaseTime p.toParams w.sStar ≤ rho.horizon) :
     ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∃ C ∈ nd.st.fg.TF, eraseFG C = w.CStar)
       (SA.releaseTime p.toParams w.sStar) x :=
   healing_tDelReset_core E rho hrec source mono w h0r hhor
-    (healing_low_finality_at_reset_reset E rho hrec xing cap source w h0r)
+    (healing_low_finality_at_reset_reset E rho hrec xing cap source w h0r) (hServices h0r hhor)
 
 -- Conditional package fixture: C closes the frozen contract without a floor premise.
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (xing : RXing p c E rho) (cap : RCap p c E rho) (source : TSrc p c E rho)
-    (mono : RMono p c E rho) (w : HealingWitness) : TDelReset p c E rho w :=
-  healing_tDelReset_of_reset E rho hrec xing cap source mono w
+    (mono : RMonoAll p c E rho) (w : HealingWitness)
+    (hServices : H0Reset p c E rho w →
+      SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
+      ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
+      W ∈ (storeAt p c E rho j z).fg.TF →
+      TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x) :
+    TDelReset p c E rho w :=
+  healing_tDelReset_of_reset E rho hrec xing cap source mono w hServices
 
 end AvailableChain.FGSA.Run.Tests.HealingResetTransfer
 end
