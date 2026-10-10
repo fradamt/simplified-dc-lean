@@ -41,6 +41,9 @@ open AvailableChain.SimplexFG KitFG
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
+private theorem step_storeAt (i : Nat) (x : V) :
+    storeAt p c E rho i x = (rho.stateBefore E i x).st := rfl
+
 /-- WC plan §6.5; DC receipt replay: retain the original trigger and acceptance index. -/
 private theorem step_receiptOrigins (i : Nat) (x : V) :
     WCReceiptOrigins p c E rho i x (storeAt p c E rho i x) :=
@@ -234,7 +237,7 @@ private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
       cases he : rho.events[n]? with
       | none =>
         apply carry (by intro t; rw [he]; simp)
-        simpa [storeAt, V2.D.Run.stateBefore, List.take_add_one, he] using hm
+        simpa [step_storeAt, V2.D.Run.stateBefore, List.take_add_one, he] using hm
       | some e =>
         have hp := V2.D.Run.stateBefore_succ E rho he
         unfold storeAt at hm
@@ -246,7 +249,9 @@ private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
             subst v
             simp only [V2.D.World.step, Function.update_self] at hm
             change (s, B) ∈ step_savedPairs (acRestart p (storeAt p c E rho n x) t) at hm
-            simp only [step_savedPairs, acRestart_genuine, List.filterMap_nil] at hm
+            unfold step_savedPairs at hm
+            rw [acRestart_genuine] at hm
+            simp only [List.filterMap_nil] at hm
             exact (List.not_mem_nil hm).elim
           | deliver v o t =>
             change v = x at hx

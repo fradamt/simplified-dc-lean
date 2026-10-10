@@ -5017,3 +5017,20 @@ Tests.WeakContinuationSleepAxioms into Tests.Axioms (forbidden TEST-USE). Apply 
 - Four original targets are GREEN. The remaining 17 original targets have owner
   P-WC. All five open family tests still have local owned proof dependencies;
   none is classified as waiting only for a P-As bridge.
+
+### P-WC Round 3 — final prepared validation (2026-10-10)
+
+- Final source DCK PASS: 519 GREEN modules, 39 strict roots, 3,539 results,
+  and all 24 controls. The map has 66 targets: 49 GREEN and 17 EXPECTED-FAIL.
+- Complete local exports/coverage PASS: 165 proof modules, 251 exports,
+  zero unaccepted, and 214 audit rows. All 196 round-2 serial rows remain
+  under the existing Tests.Axioms key. No coverage key or allowance was added.
+- Layers: 72 inherited findings, zero new. Source scopes and whitespace pass.
+  All added Lean lines are at most 100 characters. Public claims are unchanged.
+- Empty's local restart step now supplies the exact wake time to restore.
+  Its joined proposer supplies the awake and restart-cutoff projections.
+  The stale source NoRestart argument was removed from the internal live adapter.
+  Empty still has local reader-scope failures. Its no-participation/no-half-cap
+  route was not strengthened. The full 21-target closure is not complete.
+- Declarations, exact types, audit/coverage/architecture fragments, and remaining
+  compiler diagnostics are listed in the P-WC Round 3 report and handoff.

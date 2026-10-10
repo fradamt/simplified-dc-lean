@@ -332,3 +332,8 @@ The architecture fragment lists the new family modules and their dependencies.
 Apply it to the architecture map in the serial integration window. Do not mark
 P-WC CLOSED until the original event, Proposal, Empty, consumer, and test targets
 compile. Public claims and P23 are unchanged.
+
+Empty's local restart replay now passes the exact wake time to restore.
+The internal wcg_empty_live_of_finalBelow adapter no longer takes NoRestart source.
+Its remaining source-reader scope repairs are local P-WC work; keep it
+EXPECTED-FAIL. No participation or half-cap input was added to the empty route.
