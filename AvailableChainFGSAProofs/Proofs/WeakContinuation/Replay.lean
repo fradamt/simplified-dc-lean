@@ -229,12 +229,51 @@ theorem wc_gateAtReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
   unfold gateResultAt
   rw [wc_eventReplay ha hi, wc_prefixReplay ha hv (Nat.le_of_lt hi)]
 
+omit [DecidableEq V] in
+/-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
+private theorem wc_isGateReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
+    {i : Nat} (hi : i < source.events.length) (x : V) (s : Slot) :
+    IsGateTick p c rho i x s ↔ IsGateTick p c source i x s := by
+  unfold IsGateTick
+  rw [wc_eventReplay ha hi]
+
+
+/-- The enabled guard replays with its tick and stored restart marker. -/
+private theorem wc_enabledReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
+    (hv : V2.D.ExecutionValid E source) {i : Nat} (hi : i < source.events.length)
+    (x : V) (s : Slot) :
+    enabledGateAt p c E' rho i x s ↔ enabledGateAt p c E source i x s := by
+  constructor
+  · intro h
+    refine ⟨(wc_isGateReplay ha hi x s).mp h.1, ?_⟩
+    have hb := h.2
+    change (match (storeAt p c E' rho i x).restartTime with
+      | none => True | some w => w ≤ slotStartZ p (s : Int)) at hb
+    rw [wc_storeReplay ha hv hi.le] at hb
+    exact hb
+  · intro h
+    refine ⟨(wc_isGateReplay ha hi x s).mpr h.1, ?_⟩
+    change (match (storeAt p c E' rho i x).restartTime with
+      | none => True | some w => w ≤ slotStartZ p (s : Int))
+    rw [wc_storeReplay ha hv hi.le]
+    exact h.2
+
+
 /-- WC J1; DC PrefixAgreement: the original guard and write input are unchanged. -/
 theorem wc_passedReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
     (hv : V2.D.ExecutionValid E source) {i : Nat} (hi : i < source.events.length) :
     gatePassedAt p c E' rho i ↔ gatePassedAt p c E source i := by
-  unfold gatePassedAt enabledGateAt IsGateTick
-  simp only [wc_eventReplay ha hi, wc_storeReplay ha hv (Nat.le_of_lt hi)]
+  constructor
+  · rintro ⟨x, s, hG, hfresh, B, hB, hguard⟩
+    refine ⟨x, s, (wc_enabledReplay ha hv hi x s).mp hG, ?_, B, ?_, ?_⟩
+    · simpa only [wc_storeReplay ha hv hi.le] using hfresh
+    · simpa only [wc_storeReplay ha hv hi.le] using hB
+    · simpa only [wc_storeReplay ha hv hi.le] using hguard
+  · rintro ⟨x, s, hG, hfresh, B, hB, hguard⟩
+    refine ⟨x, s, (wc_enabledReplay ha hv hi x s).mpr hG, ?_, B, ?_, ?_⟩
+    · simpa only [wc_storeReplay ha hv hi.le] using hfresh
+    · simpa only [wc_storeReplay ha hv hi.le] using hB
+    · simpa only [wc_storeReplay ha hv hi.le] using hguard
 
 /-- WC J1; DC PrefixAgreement: the post-clock HEAD retains all original pools. -/
 theorem wc_headAtReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
@@ -256,13 +295,6 @@ private theorem wc_restartFreeReplay (ha : AgreesThrough₂ p c E source E' rho 
   · exact h j t haj hjb ((wc_eventReplay ha (hjb.trans_le hb)).trans hj)
   · exact h j t haj hjb ((wc_eventReplay ha (hjb.trans_le hb)).symm.trans hj)
 
-/-- The enabled guard replays with its tick and stored restart marker. -/
-private theorem wc_enabledReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
-    (hv : V2.D.ExecutionValid E source) {i : Nat} (hi : i < source.events.length)
-    (x : V) (s : Slot) :
-    enabledGateAt p c E' rho i x s ↔ enabledGateAt p c E source i x s := by
-  unfold enabledGateAt IsGateTick
-  rw [wc_eventReplay ha hi, wc_storeReplay ha hv hi.le]
 
 /-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
 private theorem wc_receiptsReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
@@ -328,13 +360,6 @@ private theorem wc_scopeReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
     rw [heq]
     exact hi
 
-omit [DecidableEq V] in
-/-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
-private theorem wc_isGateReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)
-    {i : Nat} (hi : i < source.events.length) (x : V) (s : Slot) :
-    IsGateTick p c rho i x s ↔ IsGateTick p c source i x s := by
-  unfold IsGateTick
-  rw [wc_eventReplay ha hi]
 
 /-- WC J1; DC finite event provenance: private replay or source-construction helper. -/
 private theorem wc_leaseReplay (ha : AgreesThrough₂ p c E source E' rho ΔF)

@@ -154,6 +154,13 @@ theorem wc_gate_raw_enabled {j : Nat} {x : V} {s : Slot}
     gateResult_eq_saved p c E rho hS hG.1]
   exact fgsa_gate_saved_result E rho hS hG.1 (fgsa_gate_joined_of_enabled E rho hG)
 
+/-- W3-J supplies the stored pre-gate test for the gate-write law. -/
+theorem wc_gate_pre_joined {j : Nat} {x : V} {s : Slot}
+    (hG : enabledGateAt p c E rho j x s) :
+    joinedNow p (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)) = true := by
+  rw [clockPre_joined]
+  exact fgsa_gate_joined_of_enabled E rho hG
+
 /-- W3-G saves an empty executed result when the stored join test is false. -/
 theorem wc_gate_suppressed {j : Nat} {x : V} {s : Slot}
     (hS : V2.D.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j x s)

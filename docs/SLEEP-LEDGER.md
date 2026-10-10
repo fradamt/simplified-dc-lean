@@ -2615,3 +2615,41 @@ modules. Six expected failures keep their P-ShA or S-Ap owner.
   Layers: 72 baseline findings, 0 new. No public meaning STOP has occurred.
 - Shared audit/root/scope integration is supplied as a P-WC fragment. No
   shared inventory, root facade, S-Ap statement or other package file changed.
+
+### P-WC — guarded saved-result callers (2026-10-10)
+
+Prepared checkpoint: a82b7533. This group keeps the package PREPARED, not CLOSED.
+The map now has 48 targets, 478 GREEN and 38 EXPECTED-FAIL modules (32 owned).
+
+- W3-G/W3-J: each saved-result caller in WC and WCG now passes the stored
+  join guard. Existing nonempty executed results supply it through the Shared
+  raw-result bridge. The WC/WCG gate-construction interfaces now require
+  enabledGateAt explicitly. The gate-write callers pass the pre-gate guard.
+  These caller modules remain EXPECTED-FAIL; the signature ports are not
+  claimed as compiled repairs.
+- The WCG gate guard adapters use Shared imports within their own lane.
+  No cross-family proof import or architecture exception was added.
+- WC guard replay now transfers each event/store field directly. This removes
+  three unaccepted generated match-equation exports. No allow entry, baseline,
+  checker code, checker rule or public claim was changed.
+- The first prepared DCK passed with default controls. Final validation is
+  running after the WCG guard target and audit update. The local audit has
+  119 commands. Layers: 72 baseline findings, 0 new.
+- The exact receipt and joined-count supplier requests are in the local
+  P-WC handoff. Output persistence, the full restart/event induction, all
+  four sleep receipt callers and the assembly-dependent tests remain open.
+
+### P-WC — final prepared validation (2026-10-10)
+
+- Final P-WC DCK PASS, with default controls. All 478 GREEN modules build
+  with --wfail. The local audit has 119 results and uses only propext,
+  Classical.choice and Quot.sound. All strict package audits pass.
+- Complete prepared export and audit coverage PASS: 112 proof modules,
+  251 exports, 0 unaccepted. No exception or baseline entry was added.
+- Layer check: 72 baseline findings, 0 new. Source diff checks pass.
+- The guarded caller build remains EXPECTED-FAIL in Safety, Frame,
+  Growth/Frame, StepInputs, StepFacts and Shared/HeadAdmit. These failures
+  block the higher caller modules. The full family is not validated or closed.
+- PREPARED only. Thirty-two owned targets stay EXPECTED-FAIL. Closure needs
+  the remaining P-WC proofs, the receipt/count supplier interfaces, closed
+  P-Cl1 and S-Ap inputs, and the assembly/test integration window.

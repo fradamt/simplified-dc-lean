@@ -1,5 +1,6 @@
 # P-WC: PREPARED guard/epoch/replay core; caller closure remains open.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
 AvailableChainFGSAClaims.Claims.WeakContinuation
 AvailableChainFGSAClaims.Claims.WeakContinuationGrowth
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
@@ -48,6 +49,7 @@ AvailableChainFGSAProofs.Tests.WeakContinuationInclusion
 AvailableChainFGSAProofs.Tests.WeakContinuationProposal
 AvailableChainFGSAProofs.Tests.WeakContinuationSleepAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
