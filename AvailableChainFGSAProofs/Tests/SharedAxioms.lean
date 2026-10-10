@@ -501,3 +501,15 @@ end
 #print axioms AvailableChain.FGSA.Run.exactHead_of_proposal_on_run_on
 
 #print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_clean_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_recovery_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_clean_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_recovery_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_clean_of_retained_proposal_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery_of_retained_proposal_on
