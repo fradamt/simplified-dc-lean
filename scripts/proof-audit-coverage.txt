@@ -3110,6 +3110,7 @@
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites',
+            'AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites_epoch',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_lastWrite',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_origins',
             'AvailableChain.FGSA.Run.fgsa_leaseOrigins_writeLabel',

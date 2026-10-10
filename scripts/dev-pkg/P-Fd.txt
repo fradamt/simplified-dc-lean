@@ -238,6 +238,7 @@ AvailableChainFGSAProofs.Proofs.Foundations.RowService
 AvailableChainFGSAProofs.Proofs.Foundations.Sources
 AvailableChainFGSAProofs.Proofs.Foundations.Store
 AvailableChainFGSAProofs.Proofs.Foundations.Timing
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 AvailableChainFGSAProofs.Proofs.Shared.Channels
