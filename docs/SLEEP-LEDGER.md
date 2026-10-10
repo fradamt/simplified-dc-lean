@@ -5159,3 +5159,10 @@ Implementation head: 16e578fb. Tracked implementation tree is clean.
   --wfail. The full local audit passes with only the three permitted axioms.
   No owned expected failure remains. P-As must port its unowned callers to the
   precise component types in the Round 5 handoff. Final package checks follow.
+
+P-WC Round 5 final validation: DCK PASS. 541 GREEN modules, 43 strict
+roots, 3,662 axiom results, and 24 controls PASS. Complete local exports and
+coverage PASS: 207 proof modules, 252 exports, zero unaccepted, 313 inventory
+rows. Layers: 72 inherited findings, zero new. Source scopes PASS. All nine
+original failures are GREEN; no owned EXPECTED-FAIL target remains. PREPARED
+for serial integration; the exact P-As caller ports remain in the handoff.

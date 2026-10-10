@@ -453,7 +453,7 @@ No continuation participation or half-cap premise is added to the empty route.
 
 Assembly/WeakContinuationGrowth.lean:1002 must pass that cached source safety to
 wcg_empty_finalBelow. Its existing source service supplier now has this final
-reader clause (Empty.lean:683); use the completed WCGService4Statement supplier:
+reader clause (Empty.lean:686); use the completed WCGService4Statement supplier:
 
 ```lean
 ∀ k y, afterTicksIdx source (SA.gateTime p.toParams s + 4 * p.Δ) ≤ k →
@@ -465,3 +465,13 @@ The caller ports remain P-As work. All owned tests use explicit component
 contracts and compile; no owned test waits only on a P-As bridge.
 No P-As, public Claims/Statements, P23, dependency, checker, or baseline file
 was changed. No public meaning STOP occurred.
+
+Round 5 final validation: package DCK PASS. 541 GREEN modules, 43 strict roots,
+3,662 results, and 24 controls PASS. Complete local export/coverage PASS:
+207 proof modules, 252 exports, zero unaccepted. Production strict audit:
+313 commands/results; all 285 Round 4 rows retained. Growth has four local
+contract commands; Inclusion has two; Empty has 15. Proposal retains three.
+Only propext, Classical.choice, and Quot.sound occur. Layers: 72 inherited /
+zero new; source scopes PASS. git diff --check and added-line bounds PASS.
+Proof commits: 54542242 and 9d6e4742. No new module or allowance is needed.
+All owned work is GREEN. Status: PREPARED for serial integration and P-As ports.
