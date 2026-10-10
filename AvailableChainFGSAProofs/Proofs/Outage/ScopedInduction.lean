@@ -299,7 +299,11 @@ theorem outage_event_induction_scoped [Fintype V]
                 exact htb.trans_le (hend.trans hd)
               · change (∃ X ∈ fullTree p st, eraseFG X = B) ∨
                   Block.Preceq B (eraseFG (controls p st).Z) at hdom
-                simpa only [FGSA.fullTree, FGSA.controls, hfg] using hdom
+                change (∃ X ∈ KitFG.treeStoreFrameView (heightView p) Q.fg Q.fg.TF,
+                  eraseFG X = B) ∨
+                  Block.Preceq B (eraseFG (KitFG.treeStoreControlsView (heightView p) Q.fg).Z)
+                rw [hfg]
+                exact hdom
         exact ⟨hpQ, hroot⟩
       refine ⟨hsource', ⟨?_⟩, hnames' hsource', ?_⟩
       · intro k y u a hk hyG hdu ht ho
