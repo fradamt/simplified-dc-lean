@@ -36,7 +36,9 @@ structure RawServiceScope (p : Params) {In V : Type} [DecidableEq V]
     ProposalSupportScope E rho ip x r
   gates : ∀ s i x, E.t_GST ≤ SA.voteTime p.toParams s → x ∈ rho.honest →
     IsGateTick p c rho i x s →
-    enabledGateAt p c E rho i x s → SupportGateScope E rho i x s
+    enabledGateAt p c E rho i x s → ∀ B,
+    GateReceiptGeometry E rho (clockPre p (storeAt p c E rho i x)
+      (SA.gateTime p.toParams s)) s B → GateReceiptScope E rho i x s
   same : ∀ s, E.t_GST ≤ SA.voteTime p.toParams s → SameLabelServiceScope E rho s
 
 private theorem raw_reset_vote_cutoff {w : HealingWitness} (h0r : H0Reset p c E rho w) :
@@ -205,8 +207,7 @@ theorem healing_gate_result_supporter [Fintype V] {G ΔF : Time}
     healing_slow_honest_seat E rho hrec hgst hhor hx hix
       (hServices.late s ix x hJoinCut hx hix
         (healing_gate_enabled_of_result E rho hS hix hres))
-      (hServices.gates s ix x hgst hx hix
-        (healing_gate_enabled_of_result E rho hS hix hres)).enabled hmaj
+      (healing_gate_enabled_of_result E rho hS hix hres) hmaj
   obtain ⟨H, hH, hHm, _, _, hom, hol⟩ := healing_support_clean_target E rho o ho
   obtain ⟨k, hk, ht⟩ := healing_support_honest_head E rho hrec.base.valid hom hol hs hh
   refine ⟨k, _, hh, hk, ?_, ?_⟩
@@ -697,6 +698,9 @@ theorem healing_output_moving_suffix [Fintype V] {G ΔF : Time}
     (mono : RMonoAll p c E rho)
     {s : Slot} {B : Block} {cut : Nat}
     (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hBatches : ∀ l, s + 1 ≤ l → timeIdx rho (SA.voteTime p.toParams l) ≤ cut →
+      Gen.Pure.Batch (joinedHonest p E rho (SA.voteTime p.toParams l)).card
+        (Gen.V2.Duty.faulty rho).card)
     (hguard : SA.gateTime p.toParams s + 4 * p.Δ ≤ rho.horizon)
     (hheads : ∀ l, s + 1 ≤ l → timeIdx rho (SA.voteTime p.toParams l) ≤ cut →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z l = some K → Block.Preceq B K)
@@ -778,8 +782,12 @@ theorem healing_output_moving_suffix [Fintype V] {G ΔF : Time}
         4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
       linarith
     exact healing_output_gate_step E rho hrec hgst1 hguard (hheads (s + 1) le_rfl hread)
-      hy hj1 (hServices.gates (s + 1) j1 y hgst1 hy hj1
-        (healing_recovery_later_gate E rho hrec hgst le_rfl hy hj1)) hFB0
+      hy hj1 (healing_support_gate_scope_of_batch E rho
+        (hServices.gates (s + 1) j1 y hgst1 hy hj1
+          (healing_recovery_later_gate E rho hrec hgst le_rfl hy hj1) B
+          (healing_support_gate_geometry E rho hs (hheads (s + 1) le_rfl hread)
+            (by rw [clockPre_fg]; exact hFB0)))
+        (hBatches (s + 1) le_rfl hread)) hFB0
       (Or.inr (hlease j1 y hy hj1 (by omega) hFB0))
   have h0 : Block.Preceq B (S_at p c E rho a0 y) := by
     rw [S_at_def]
@@ -826,8 +834,11 @@ theorem healing_output_moving_suffix [Fintype V] {G ΔF : Time}
         linarith
       exact healing_output_gate_step E rho hrec hgw
         (hs.in_horizon _ (List.mem_of_getElem? hl)).2 (hheads l hlower hread) hy hl
-        (hServices.gates l b y hgw hy hl
-          (healing_recovery_later_gate E rho hrec hgst hlower hy hl)) hFb
+        (healing_support_gate_scope_of_batch E rho
+          (hServices.gates l b y hgw hy hl
+            (healing_recovery_later_gate E rho hrec hgst hlower hy hl) B
+            (healing_support_gate_geometry E rho hs (hheads l hlower hread)
+              (by rw [clockPre_fg]; exact hFb))) (hBatches l hlower hread)) hFb
         (Or.inl hIH)
     · obtain ⟨_, _, _, _, _, _, hout⟩ := hrc
       rw [S_at_def]
@@ -1133,9 +1144,8 @@ theorem postReset_resetLease_succ {w : HealingWitness} (h0r : H0Reset p c E rho 
                 have hh : (w.sStar : Int) ≤ s := by exact_mod_cast hlabel
                 nlinarith [p.deltaPos]
               have hres := raw_gate_result_of_raw p c E rho hs he
-                (hServices.gates s m x hGST hx he
-                  (healing_gate_enabled_of_joined E rho he (by
-                    rwa [clockPre_joined] at hJ))).enabled hc
+                (healing_gate_enabled_of_joined E rho he (by
+                  rwa [clockPre_joined] at hJ)) hc
               have hcomp := postReset_raw_reset_compatible p c E rho hrec hServices
                 emittedNonempty emittedName h0r hinv hx hlabel he hres (Nat.le_succ m)
               change Block.compatible w.CStar C = true at hcomp
@@ -1461,6 +1471,7 @@ private theorem raw_receipt_proposal (hs : V2.D.ScheduleWellFormed E rho)
 private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hServices : RawServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     {r : Slot} {B : Block} (hgst : E.t_GST ≤ SA.voteTime p.toParams r)
     (hJoinCut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq B K)
@@ -1506,8 +1517,18 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
   have hve : SA.voteTime p.toParams r + p.Δ = SA.earlyTime p.toParams r := by
     change 4 * p.Δ * (r : Int) + p.Δ + p.Δ = 4 * p.Δ * (r : Int) + 2 * p.Δ
     ring
-  have hBase := healing_head_carrier_receipt p c E rho hE hx
-    (hScope.carriers jz z hk hjz x hx) hrec.base.receiptIdealization
+  obtain ⟨Kfg, hKfg, hKe⟩ := ((cstoreInv_stateBefore E rho jz z).baseTree K).mp hKz
+  have hFloor : Block.Preceq
+      (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams r + p.Δ) x).st.fg.F) K := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+    exact Gen.Pure.block_preceq_trans
+      (eraseFG_preceq (mono _ _ x hx
+        (healing_support_idxBefore_le p c E rho hS hip hvp)).1)
+      (Gen.Pure.block_preceq_trans hFB hBK)
+  have hService := (hScope.carriers jz z hk hjz x hx).direct Kfg hKfg hKe
+    (hKe ▸ hFloor)
+  have hBase := fgsa_target_receipt_on E rho hS hrec.base.receiptIdealization K
+    (SA.voteTime p.toParams r + p.Δ) x hx (hKe ▸ hService)
   rw [hve] at hBase
   obtain ⟨Y, hY, hYe⟩ := ((storeBundle_stateBeforeTime E rho _ x).cstore.baseTree K).mp hBase
   have hEY : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams r) ≤ ip := by
@@ -1615,6 +1636,7 @@ phase or successor service is assumed. -/
 theorem healing_proposal_moving_domain [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hServices : RawServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     {r : Slot} {B : FGBlock (Fin p.n)} (hgst : E.t_GST ≤ SA.voteTime p.toParams r)
     (hJoinCut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K →
@@ -1694,7 +1716,7 @@ theorem healing_proposal_moving_domain [Fintype V] {G ΔF : Time}
     rfl
   rw [hhead_eq]
   let Hon : Finset (Fin p.n) := healingJoinedSeats E rho r
-  have hseat (k : Fin p.n) (hk : k ∈ Hon) := raw_proposal_seat p c E rho hrec hServices
+  have hseat (k : Fin p.n) (hk : k ∈ Hon) := raw_proposal_seat p c E rho hrec hServices mono
     hgst hJoinCut hcover hx hip hFB0 k ((healingJoinedSeats_mem E rho r k).mp hk).1
     ((healingJoinedSeats_mem E rho r k).mp hk).2
   have hScope := hServices.proposal r ip x hJoinCut hx hip
@@ -1772,6 +1794,7 @@ and the preceding HEAD batch. The block can be any transferred prefix. -/
 theorem healing_proposal_moving_parent [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hServices : RawServiceScope p c E rho)
+    (mono : RMonoAll p c E rho)
     {r : Slot} {B : FGBlock (Fin p.n)} {Q : Block}
     (hgst : E.t_GST ≤ SA.voteTime p.toParams r)
     (hJoinCut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
@@ -1795,7 +1818,7 @@ theorem healing_proposal_moving_parent [Fintype V] {G ΔF : Time}
   obtain ⟨ip, hip, hparent⟩ := raw_proposal_read (p := p) (c := c) E rho hp
   rw [hparent]
   obtain ⟨X, hX, hXc, hD⟩ := hdomain ip hip
-  exact healing_proposal_moving_domain p c E rho hrec hServices hgst hJoinCut hcover
+  exact healing_proposal_moving_domain p c E rho hrec hServices mono hgst hJoinCut hcover
     hp.1.2 hip hX hXc hD
     (hlease ip hip)
 

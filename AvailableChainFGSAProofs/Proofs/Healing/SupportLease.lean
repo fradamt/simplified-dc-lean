@@ -63,7 +63,7 @@ structure FastSupportScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       enabledGateAt p c E rho j y w → SupportGateScope E rho j y w
   carriers : ∀ w, s + 1 ≤ w → SA.voteTime p.toParams w + p.Δ ≤ v →
     ∀ j z, z ∈ rho.honest → rho.events[j]? = some (.tick z (SA.voteTime p.toParams w)) →
-    ∀ y ∈ rho.honest, HeadCarrierScope E rho j z w y
+    ∀ y ∈ rho.honest, HeadCarrierServices E rho j z w y
   sameLabel : SameLabelServiceScope E rho s
 
 /-- Restricting the interval keeps the same object services and exact epochs. -/

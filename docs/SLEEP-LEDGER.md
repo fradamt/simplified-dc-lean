@@ -5555,3 +5555,19 @@ healingJoinedSeats.eq_1 in SupportTicks. Direct definition reduction and
 kernel conversions remove these three exports. No baseline or allowance
 changed. The selector is now a reducible abbreviation with the same type.
 The repaired module cone checks with zero unaccepted exports.
+
+P-H1 Round 4 final demand guards: carrier factories return HeadCarrierServices.
+relay requires an actual HeadCarrierDemand before it supplies a selected receipt
+scope. direct serves only the stored K that is the actual source HEAD, under
+its receiver floor. Phase geometry produces the relay demand; P-Fd monotonicity
+produces direct read floors; the capped relay now serves its actual receiver.
+An unrelated or excluded HEAD creates no demand. The six carrier fields no
+longer require even an existential receipt witness before admissibility is known.
+
+RawServiceScope.gates now requires actual GateReceiptGeometry and returns only
+GateReceiptScope. Its bounded moving-output consumer supplies actual joined
+batches separately. An enabled empty gate no longer forces a global voter-batch
+field. H2's new hBatches sites are PostResetRawStep:897,
+PostResetLeaseStep:1577 and Tests/HealingPostResetRawStep:263. Exact contract:
+scripts/dev-pkg/P-H1.round4-handoff.md. Aggregate producer rows H1e-P1..P10 stay
+OPEN/P-H1. The audit fragment now has 349 exact production commands/owner rows.

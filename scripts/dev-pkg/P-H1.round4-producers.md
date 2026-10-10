@@ -30,8 +30,9 @@ post-GST ticks. The goal types below are the exact records, not their consumers.
 H1e-P1, OPEN: `FirstTransferScope E rho ix iy x y s`. The source must be enabled
 at ix and the receiver must be joined at its release read iy. Construct the
 forward/backward HeadRelayServiceScope fields for the actual clean/read votes,
-the local epochs, targets with the receiver floor, and HeadCarrierScope for the
-selected HEAD witness. SupportRelay:549 constructs one accepted proposal's
+the local epochs, targets with the receiver floor, and HeadCarrierServices for the selected receiver. Its relay field is guarded
+by HeadCarrierDemand; its direct field serves only the actual HEAD identity
+under the receiver floor. No unrelated HEAD creates a receipt obligation. SupportRelay:549 constructs one accepted proposal's
 ReceiverService at the earlyTime anchor. It does not construct this record.
 
 H1e-P2, OPEN: `NextTransferScope E rho iy y s`. Supply the selected joined-seat
@@ -85,7 +86,9 @@ HighSrcN alone does not name a complete object-service producer.
 
 H1e-P10, OPEN: `RawServiceScope p c E rho`. Construct late/proposal scopes only
 at the stated real source cut, first scopes at enabled sources and joined
-release readers, gate scopes only at enabled actors, and same-label scopes.
+release readers, gate receipt scopes only at enabled actors with actual GateReceiptGeometry,
+and same-label scopes. The selected batch is a separate input of the bounded
+healing_output_moving_suffix consumer, not a global RawServiceScope field.
 The unused universal next factory was removed. The reset consumer derives the
 source and receiver cuts from H0Reset's shifted cut and its actual fresh row.
 Generic raw adapters now expose the real source cutoff or actual reader join
@@ -93,7 +96,7 @@ as an input. They no longer infer either from a post-GST vote time.
 
 Additional local inputs: ProposalSupportScope (SupportProposal:18) uses selected
 joined seats and actual proposal/late rival bounds. HeadCarrierScope
-(SupportFrame:112) selects one K/W witness per receiver, with fullTree, HEAD
+(SupportFrame:179) selects one K/W witness per receiver, with fullTree, HEAD
 identity, ancestry, source floor and receiver-finality compatibility facts.
 SupportGateScope (SupportGate:17) contains a GateReceiptScope and a selected
 joined-voter batch. Their full object-service assembly also remains OPEN.
@@ -106,7 +109,7 @@ Named partial producers, separate from consumers:
 - SupportRecovery:81: healing_recovery_joined, with its exact cutoff.
 - SupportRecovery:146: healing_recovery_gate_scope, with a real actor cutoff
   and the explicit fresh HEAD/target services. This produces GateReceiptScope.
-- SupportGate:23: healing_support_gate_scope_of_cut constructs SupportGateScope
+- SupportGate:37: healing_support_gate_scope_of_cut constructs SupportGateScope
   from RecoverySleep₂, a real source cutoff, horizon and GateReceiptScope.
   The direct joined-batch route needs no sufficient GST cutoff.
 - SupportRelay:549: healing_transfer_proposal_service constructs one
@@ -126,3 +129,19 @@ source frontier. They keep its receiver-finality compatibility guard. The
 consumer proves that floor guard from RXing, the cap and durable W membership.
 It does not produce the remaining TargetReceiptService. This local supplier is
 OPEN for H2's assembly; it is not the old universal durable-TF requirement.
+
+Final admissibility refinement: HeadCarrierServices (SupportFrame:191) is the
+carrier-factory result. relay takes HeadCarrierDemand (SupportFrame:112) before
+returning HeadCarrierScope. direct takes the selected stored K, its actual HEAD
+identity and the receiver floor before returning TargetReceiptService. Thus no
+factory must invent an admissible witness for an unrelated source or receiver.
+healing_head_carrier_demand_phase (SupportFrame:123) produces geometry from the
+actual PhaseInterval, RXing and valid read. The explicit P-Fd RMonoAll input supplies later
+floor monotonicity in direct read consumers. These are named geometry suppliers,
+not aggregate object-service producers.
+
+SupportGate:23 healing_support_gate_scope_of_batch assembles a receipt scope
+from an actual joined-voter batch. SupportGate:116 healing_support_gate_geometry
+produces geometry from the actual covering HEADs and receiver floor. The raw
+moving-output consumer takes hBatches only on its bounded source/read labels.
+Enabled empty gates no longer force a global selected-batch obligation.

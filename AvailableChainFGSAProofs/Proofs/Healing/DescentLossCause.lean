@@ -494,7 +494,7 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
       writes noLoss hB hx (show sB + 2 ≤ i + 1 from Nat.succ_le_succ hlt) hk
       (hScopes.fast B sB (i + 1) k x hB (Nat.succ_le_succ hlt) hx hk)
       (eraseFG_preceq hFB)
-    exact healing_next_transfer_domain p c E rho hrec.toRecovery₂ hgsti hcover hx hk
+    exact healing_next_transfer_domain p c E rho hrec.toRecovery₂ mono hgsti hcover hx hk
       (hScopes.next B sB i k x hB hlt hx hk) hXv hXc hDX hlease
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

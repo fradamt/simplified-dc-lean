@@ -125,6 +125,7 @@ a clean resolved frozen vote that supports B. The vote arrives by e_i, and the
 HEAD block arrives with strict stamps by the per-block relay
 (`healing_block_path_sync`), not by a phase witness relay. -/
 theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     {i : Slot} {B : Block} (hgsti : E.t_GST ≤ SA.voteTime p.toParams i)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
@@ -170,8 +171,18 @@ theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
   have hve : SA.voteTime p.toParams i + p.Δ = SA.earlyTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ = 4 * p.Δ * (i : Int) + 2 * p.Δ
     ring
-  have hBase := healing_head_carrier_receipt p c E rho hE hy
-    (hScope.carriers jz z hk hjz y hy) hrec.base.receiptIdealization
+  obtain ⟨Kfg, hKfg, hKe⟩ := ((cstoreInv_stateBefore E rho jz z).baseTree K).mp hKz
+  have hFloor : Block.Preceq
+      (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams i + p.Δ) y).st.fg.F) K := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+    exact Gen.Pure.block_preceq_trans
+      (eraseFG_preceq (mono _ _ y hy
+        (healing_support_idxBefore_le p c E rho hS hiy hvi)).1)
+      (Gen.Pure.block_preceq_trans hFB hBK)
+  have hService := (hScope.carriers jz z hk hjz y hy).direct Kfg hKfg hKe
+    (hKe ▸ hFloor)
+  have hBase := fgsa_target_receipt_on E rho hS hrec.base.receiptIdealization K
+    (SA.voteTime p.toParams i + p.Δ) y hy (hKe ▸ hService)
   rw [hve] at hBase
   obtain ⟨Y, hY, hYe⟩ := ((storeBundle_stateBeforeTime E rho _ y).cstore.baseTree K).mp hBase
   have hef : SA.earlyTime p.toParams i ≤ SA.freezeTime p.toParams i := by
@@ -294,6 +305,7 @@ of y at label i + 1 covers B. The honest batch of label i gives the majority
 and rival bounds (`batch_head_covers`); the domain gives the kept path. -/
 theorem healing_next_transfer_domain [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     {i : Slot} {B : FGBlock (Fin p.n)} (hgsti : E.t_GST ≤ SA.voteTime p.toParams i)
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K →
       Block.Preceq (eraseFG B) K)
@@ -373,7 +385,7 @@ theorem healing_next_transfer_domain [Fintype V] {G ΔF : Time}
       · contradiction
   -- The honest batch of label i.
   let Hon : Finset (Fin p.n) := healingJoinedSeats E rho i
-  have hseat (k : Fin p.n) (hk : k ∈ Hon) := healing_batch_seat_sync p c E rho hrec hgsti
+  have hseat (k : Fin p.n) (hk : k ∈ Hon) := healing_batch_seat_sync p c E rho hrec mono hgsti
     hcover hy hiy hScope hFB0 k ((healingJoinedSeats_mem E rho i k).mp hk).1
     ((healingJoinedSeats_mem E rho i k).mp hk).2
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch

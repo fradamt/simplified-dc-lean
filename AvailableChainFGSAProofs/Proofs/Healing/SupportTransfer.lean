@@ -43,7 +43,7 @@ structure FirstTransferScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     TargetReceiptService E rho K (SA.freezeTime p.toParams s) y
   carriers : ∀ j z, z ∈ rho.honest →
     rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)) →
-    ∀ v ∈ rho.honest, HeadCarrierScope E rho j z s v
+    ∀ v ∈ rho.honest, HeadCarrierServices E rho j z s v
 
 private theorem transfer_freeze_epoch (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {ix iy : Nat} {x y : V} {s : Slot}
@@ -541,7 +541,9 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     linarith
   obtain ⟨Kfg, hKfull, hKe, W, hW, hKW, hloW, hrelay⟩ :=
     healing_head_witness_relay_on (hroots := hroots)
-      p c E rho crossing hE hkh hjz hy (hScope.carriers jz _ hkh hjz y hy)
+      p c E rho crossing hE hkh hjz hy ((hScope.carriers jz _ hkh hjz y hy).relay
+        (healing_head_carrier_demand_phase p c E rho crossing hE hphase
+          hkh hjz hhead (hvs.trans hgate) hy))
   have hKe2 : eraseFG Kfg = K := hKe.trans hKeq.symm
   have hBW : Block.Preceq B (eraseFG W) := by
     refine Gen.Pure.block_preceq_trans hBK ?_

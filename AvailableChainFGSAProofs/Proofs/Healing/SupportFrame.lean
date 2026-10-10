@@ -107,6 +107,72 @@ theorem healing_head_witness_relay (mono : RMono p c E rho) (crossing : RXing p 
   · exact hR ▸ KitFG.preceq_trans hZK hKW
   · exact hR ▸ hlo
 
+/-- A selected witness is admissible at this receiver before service is requested. -/
+structure HeadCarrierDemand {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (i : Nat) (x : V) (s : Slot)
+    (y : V) : Prop where
+  witness :
+    let st := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
+    ∃ K ∈ fullTree p st, eraseFG K = headVote p st s ∧
+      ∃ W ∈ st.fg.TF, FGBlock.Preceq K W ∧ (controls p st).lo ≤ (heightView p W).h ∧
+        Block.Compatible (eraseFG W)
+          (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.fg.F)
+
+/-- Phase geometry constructs an admissible witness without assuming receipt. -/
+theorem healing_head_carrier_demand_phase (crossing : RXing p c E rho)
+    (hE : V2.D.ExecutionValid E rho)
+    {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    (hphase : PhaseInterval p c E rho u v m J contested)
+    {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
+    (hu : u ≤ SA.voteTime p.toParams s) (hv : SA.voteTime p.toParams s + p.Δ ≤ v)
+    {y : V} (hy : y ∈ rho.honest) : HeadCarrierDemand E rho i x s y := by
+  have hS := hE.toScheduleWellFormed
+  let d := V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ)
+  have hid : i ≤ d := ((Gen.V2.Duty.index_lt_idxBefore_iff hS hi _).mpr
+    (lt_add_of_pos_right _ p.deltaPos)).le
+  have hdu : V2.D.Run.idxBefore rho u ≤ d := fgsa_idxBefore_mono rho
+    (hu.trans (le_add_of_nonneg_right p.deltaPos.le))
+  have hdv : d ≤ timeIdx rho v := healing_phase_idx_le_time p c rho hv
+  obtain ⟨K, hK, he, W, hW, hKW, hlo⟩ :=
+    healing_full_witness_all p c E rho hS crossing hx hi
+  have hf := healing_settled_frame_strict p c E rho crossing u v m J contested hphase
+    i x (healing_support_idxBefore_le p c E rho hS hi hu) (hid.trans hdv) hx
+  have hfY := healing_settled_frame_strict p c E rho crossing u v m J contested hphase
+    d y hdu hdv hy
+  have hW0 : W ∈ (storeAt p c E rho i x).fg.TF := by
+    have hw := hW
+    change W ∈ (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)).fg.TF at hw
+    rwa [clock_fg] at hw
+  have hR : controls p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) =
+      R_at p c E rho i x := by
+    change KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg = _
+    rw [clock_fg]; rfl
+  have hZW : FGBlock.Preceq (R_at p c E rho i x).Z W := by
+    rw [← hR]
+    exact KitFG.preceq_trans ((KitFG.mem_filteredFromView _ _ _ _).mp hK).2.2.1 hKW
+  have hFW : FGBlock.Preceq (storeAt p c E rho d y).fg.F W := by
+    cases J with
+    | some J0 =>
+      obtain ⟨_, _, hZ, _, _, _⟩ := hf.2.2.2.1
+      obtain ⟨_, _, _, _, _, hFJ⟩ := hfY.2.2.2.1
+      exact KitFG.preceq_trans hFJ (hZ ▸ hZW)
+    | none =>
+      obtain ⟨_, _, ⟨Kc, hKc, hKcF, hLow⟩, _⟩ := hfY.2.2.2.1
+      have hLo : (R_at p c E rho d y).lo ≤ (heightView p W).h := by
+        change (controls p (storeAt p c E rho d y)).lo ≤ (heightView p W).h
+        rw [hfY.2.2.1, ← hf.2.2.1]
+        change (R_at p c E rho i x).lo ≤ (heightView p W).h
+        rw [← hR]
+        exact hlo
+      exact crossing d d y x Kc W hy le_rfl hKc hKcF
+        ⟨hx, (fgsa_store_durable p c E rho hid x).1 hW0⟩ (hLow.trans_le hLo)
+  constructor
+  refine ⟨K, hK, he, W, hW, hKW, hlo, ?_⟩
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+  exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl (eraseFG W))
+    (eraseFG_preceq hFW)
+
 /-- One selected HEAD witness, with its source frame and this receiver's floor.
 Old durable blocks outside this witness create no receipt obligation. -/
 structure HeadCarrierScope {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
@@ -119,6 +185,16 @@ structure HeadCarrierScope {p : Params} {In V : Type} [DecidableEq V] {c : AppCo
         Block.Compatible (eraseFG W)
           (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.fg.F) ∧
         TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y
+
+/-- Only the selected admissible witness or actual HEAD target is served. -/
+structure HeadCarrierServices {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (i : Nat) (x : V) (s : Slot)
+    (y : V) : Prop where
+  relay : HeadCarrierDemand E rho i x s y → HeadCarrierScope E rho i x s y
+  direct : ∀ K ∈ (storeAt p c E rho i x).fg.TF,
+    eraseFG K = headVote p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) s →
+    Block.Preceq (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.fg.F)
+      (eraseFG K) → TargetReceiptService E rho (eraseFG K) (SA.voteTime p.toParams s + p.Δ) y
 
 /-- The selected ancestor, rather than every cached block, reaches the receiver. -/
 theorem healing_head_carrier_receipt (hvalid : V2.D.ExecutionValid E rho)

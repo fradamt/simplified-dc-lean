@@ -19,6 +19,19 @@ structure SupportGateScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   batch : ∀ [Fintype V], Gen.Pure.Batch (joinedHonest p E rho (SA.voteTime p.toParams s)).card
     (Gen.V2.Duty.faulty rho).card
 
+/-- Actual joined-voter counts assemble this one receipt scope. -/
+theorem healing_support_gate_scope_of_batch [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {i : Nat} {x : V} {s : Slot}
+    (hScope : GateReceiptScope E rho i x s)
+    (hBatch : Gen.Pure.Batch (joinedHonest p E rho (SA.voteTime p.toParams s)).card
+      (Gen.V2.Duty.faulty rho).card) : SupportGateScope E rho i x s := by
+  let instOld : Fintype V := inferInstance
+  refine ⟨hScope, ?_⟩
+  intro instNew
+  have he : instNew = instOld := Subsingleton.elim _ _
+  cases he
+  exact hBatch
+
 /-- The regime constructs the selected batch only when the caller has this cut. -/
 theorem healing_support_gate_scope_of_cut [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
@@ -98,6 +111,19 @@ theorem healing_support_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     (fun nd => headVote p nd.st w) = some K
   rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hj]
   exact congrArg some hK.symm
+
+/-- The actual covering HEADs and receiver floor construct the gate geometry. -/
+theorem healing_support_gate_geometry (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hS : V2.D.ScheduleWellFormed E rho) {w : Slot} {B : Block} {i : Nat} {y : V}
+    (hcov : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z w = some K → Block.Preceq B K)
+    (hFB : Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i y)
+      (SA.gateTime p.toParams w)).fg.F) B) :
+    GateReceiptGeometry E rho (clockPre p (storeAt p c E rho i y)
+      (SA.gateTime p.toParams w)) w B := by
+  have hK q hq K t he := hcov _ hq K
+    (healing_support_emitted_head E rho hS w q K t he)
+  exact ⟨fun q hq _ K he => Gen.Pure.block_preceq_trans hFB (hK q hq K _ he),
+    fun q hq _ K he => hK q hq K _ he⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:709–733 (H.2 S1–S3), 02 §5.4:541; plan H-SUPPORT §4 steps 7–8.

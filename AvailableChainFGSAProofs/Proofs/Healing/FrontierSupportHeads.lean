@@ -127,13 +127,13 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
   obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay_on
     (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hk hjz (hcoverQ z hk K hhl) hcut
-    (hScope.carriers jz z hk hjz)
+    hy (hScope.carriers jz z hk hjz y hy)
   have hKe' : eraseFG Kfg = K := hKe0
   have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
     linarith
   have hWf : Kfg ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams i) y).st.fg.TF := by
-    have h := hrelay y hy
+    have h := hrelay
     have hc := (fgsa_store_durable p c E rho
       (healing_phase_idxBefore_mono p c rho hfz) y).1 h
     change Kfg ∈ (V2.D.Run.stateBefore E rho _ y).st.fg.TF at hc
@@ -302,8 +302,8 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     fheads_idxBefore_le_timeIdx rho (hvi.trans hv)
   obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hy hjy (hcoverQ y hy _ hhl) hcut
-    (hScope.carriers jy y hy hjy)
-  have hWd := hrelay y hy
+    hy (hScope.carriers jy y hy hjy y hy)
+  have hWd := hrelay
   have hBW : Block.Preceq B (eraseFG W) := by
     rw [hWe]
     exact hcover y hy _ hhl
@@ -452,7 +452,7 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     fheads_idxBefore_le_timeIdx rho (hes.trans hv)
   have hQK := hcoverQ _ hkh _ hhlz
   obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hroots) E rho crossing hE hQm
-    hcap hkh hjz hQK hcut (hScope.carriers jz _ hkh hjz)
+    hcap hkh hjz hQK hcut hy (hScope.carriers jz _ hkh hjz y hy)
   have hKe2 : eraseFG W = K := hWe.trans hKeq.symm
   have hBW : Block.Preceq B (eraseFG W) := by
     rw [hKe2]
@@ -460,7 +460,7 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   have hQW : Block.Preceq (eraseFG Qfg) (eraseFG W) := by
     rw [hWe]
     exact hQK
-  have hWd := hrelay y hy
+  have hWd := hrelay
   have hiyv : iy ≤ timeIdx rho v := (healing_phase_lt_timeIdx p c E rho hS hiy hv).le
   have hWy : W ∈ (storeAt p c E rho iy y).fg.TF :=
     (fgsa_store_durable p c E rho

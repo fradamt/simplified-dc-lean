@@ -80,11 +80,11 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay_on
     (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hk hjz (hcoverQ z hk K hhl)
-    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) (hScope.carriers jz z hk hjz)
+    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) hx (hScope.carriers jz z hk hjz x hx)
   have hKe' : eraseFG Kfg = K := hKe0
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF :=
     (fgsa_store_durable p c E rho
-      (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 (hrelay x hx)
+      (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 (hrelay)
   have hinv : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hKb : K ∈ st.base.blocks := by
     rw [← hKe']
@@ -234,10 +234,10 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
     rfl
   obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hrec.base.receiptIdealization)
     E rho crossing hE hQm hcap hx hjx (hcoverQ x hx _ hhl)
-    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) (hScope.carriers jx x hx hjx)
+    (fprop_idxBefore_le_timeIdx rho (hvp.trans hv)) hx (hScope.carriers jx x hx hjx x hx)
   have hW : W ∈ (storeAt p c E rho ip x).fg.TF :=
     (fgsa_store_durable p c E rho
-      (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 (hrelay x hx)
+      (healing_support_idxBefore_le p c E rho hS hip hvp) x).1 (hrelay)
   have hLW : Block.Preceq L (eraseFG W) := hWe ▸ hcover x hx _ hhl
   have hQW : Block.Preceq (eraseFG Qfg) (eraseFG W) := hWe ▸ hcoverQ x hx _ hhl
   have hipv : ip ≤ timeIdx rho v := (healing_phase_lt_timeIdx p c E rho hS hip hv).le

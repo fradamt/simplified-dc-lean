@@ -34,7 +34,7 @@ structure ProposalSupportScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     Nonempty (FreshHeadService E rho r q K (SA.earlyTime p.toParams r) x)
   carriers : ∀ j z, z ∈ rho.honest →
     rho.events[j]? = some (.tick z (SA.voteTime p.toParams r)) →
-    ∀ y ∈ rho.honest, HeadCarrierScope E rho j z r y
+    ∀ y ∈ rho.honest, HeadCarrierServices E rho j z r y
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The honest proposal's parent is the proposer head at the proposer's post-clock read. -/
@@ -149,7 +149,9 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   -- The HEAD block reaches the proposer through its witness before e_r.
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, _, hrelay⟩ :=
     healing_head_witness_relay_on (hroots := hrec.base.receiptIdealization)
-      p c E rho crossing hE hk hjz hx (hScope.carriers jz z hk hjz x hx)
+      p c E rho crossing hE hk hjz hx ((hScope.carriers jz z hk hjz x hx).relay
+        (healing_head_carrier_demand_phase p c E rho crossing hE hphase
+          hk hjz hhead (hvp.trans hv) hx))
   have hKe' : eraseFG Kfg = K := hKe
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF := by
     have h := hrelay Kfg hKW

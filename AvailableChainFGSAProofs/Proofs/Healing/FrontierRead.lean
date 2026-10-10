@@ -41,7 +41,7 @@ structure FrontierReadScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     NextTransferScope E rho ih y r
   carriers : ∀ r, q + 1 ≤ r → SA.voteTime p.toParams r + p.Δ ≤ v →
     ∀ j z, z ∈ rho.honest → rho.events[j]? = some (.tick z (SA.voteTime p.toParams r)) →
-    ∀ y ∈ rho.honest, HeadCarrierScope E rho j z r y
+    ∀ y ∈ rho.honest, HeadCarrierServices E rho j z r y
 
 theorem FrontierReadScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {q : Slot} {u v : Time} (h : FrontierReadScope E rho q v) (huv : u ≤ v) :
@@ -330,7 +330,7 @@ theorem frontier_pivot_held [Fintype V] (E : Generic.Env V)
     (hrt : SA.voteTime p.toParams r + p.Δ ≤ t) (htv : t ≤ v)
     (hServices : ∀ j z, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams r)) →
-      ∀ x ∈ rho.honest, HeadCarrierScope E rho j z r x) :
+      ∀ x ∈ rho.honest, HeadCarrierServices E rho j z r x) :
     Qfg ∈ (storeAt p c E rho i y).fg.TF ∧
       FGBlock.Preceq (storeAt p c E rho i y).fg.F Qfg ∧
       FGBlock.Preceq (R_at p c E rho i y).Z Qfg ∧
@@ -354,11 +354,11 @@ theorem frontier_pivot_held [Fintype V] (E : Generic.Env V)
     exact List.countP_mono_left (fun e _ he =>
       decide_eq_true ((of_decide_eq_true he).le.trans (hrt.trans htv)))
   obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hrec.base.receiptIdealization)
-    E rho crossing hE hQm hcap hy hjy (hcoverQ y hy _ hhl) hcut
-    (hServices jy y hy hjy)
+    E rho crossing hE hQm hcap hy hjy (hcoverQ y hy _ hhl) hcut hy
+    (hServices jy y hy hjy y hy)
   have hW : W ∈ (storeAt p c E rho i y).fg.TF :=
     (fgsa_store_durable p c E rho
-      (healing_support_idxBefore_le p c E rho hS hi hrt) y).1 (hrelay y hy)
+      (healing_support_idxBefore_le p c E rho hS hi hrt) y).1 (hrelay)
   have hQW : Block.Preceq (eraseFG Qfg) (eraseFG W) := hWe ▸ hcoverQ y hy _ hhl
   have hinv := cstoreInv_stateBefore E rho i y
   obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem hinv.fg.closed hW hQW

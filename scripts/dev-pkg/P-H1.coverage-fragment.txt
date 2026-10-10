@@ -146,6 +146,7 @@
             'AvailableChain.FGSA.Run.healing_renewedPromotion_terminal',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportFrame': (
+            'AvailableChain.FGSA.Run.healing_head_carrier_demand_phase',
             'AvailableChain.FGSA.Run.healing_head_carrier_receipt',
             'AvailableChain.FGSA.Run.healing_head_witness_relay',
             'AvailableChain.FGSA.Run.healing_head_witness_relay_on',
@@ -154,6 +155,8 @@
             'AvailableChain.FGSA.Run.healing_witness_relay_settled',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportGate': (
+            'AvailableChain.FGSA.Run.healing_support_gate_scope_of_batch',
+            'AvailableChain.FGSA.Run.healing_support_gate_geometry',
             'AvailableChain.FGSA.Run.healing_support_gate_scope_of_cut',
             'AvailableChain.FGSA.Run.healing_gate_enabled_of_joined',
             'AvailableChain.FGSA.Run.healing_gate_enabled_of_result',

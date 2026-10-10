@@ -41,7 +41,7 @@ structure NextTransferScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     HeadRelayServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y
   carriers : ∀ j z, z ∈ rho.honest →
     rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)) →
-    ∀ v ∈ rho.honest, HeadCarrierScope E rho j z s v
+    ∀ v ∈ rho.honest, HeadCarrierServices E rho j z s v
 
 private theorem next_freeze_epoch (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {iy : Nat} {y : V} {s : Slot}
@@ -210,7 +210,9 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
   -- The witness of z's HEAD reaches y before e_i, so the HEAD block has strict stamps.
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, _, hrelay⟩ :=
     healing_head_witness_relay_on (hroots := hrec.base.receiptIdealization)
-      p c E rho crossing hE hk hjz hy (hScope.carriers jz z hk hjz y hy)
+      p c E rho crossing hE hk hjz hy ((hScope.carriers jz z hk hjz y hy).relay
+        (healing_head_carrier_demand_phase p c E rho crossing hE hphase
+          hk hjz hhead (hvi.trans hv) hy))
   have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
     linarith
@@ -366,7 +368,9 @@ theorem healing_support_head_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     (le_add_of_nonneg_right hd.le).trans hvi
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, hloW, hrelay⟩ :=
     healing_head_witness_relay_on (hroots := hroots)
-      p c E rho crossing hE hz hjz hy (hScope.carriers jz z hz hjz y hy)
+      p c E rho crossing hE hz hjz hy ((hScope.carriers jz z hz hjz y hy).relay
+        (healing_head_carrier_demand_phase p c E rho crossing hE hphase
+          hz hjz hhead (hvi.trans hv) hy))
   have hBW : Block.Preceq B (eraseFG W) := by
     refine Gen.Pure.block_preceq_trans hBK ?_
     have hKe' : eraseFG Kfg = headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st

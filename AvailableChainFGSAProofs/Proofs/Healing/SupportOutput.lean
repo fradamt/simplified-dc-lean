@@ -54,7 +54,7 @@ theorem healing_support_frame_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     (hev : SA.voteTime p.toParams i + p.Δ ≤ v)
     {jz : Nat} {z : V} (hz : z ∈ rho.honest)
     (hjz : rho.events[jz]? = some (.tick z (SA.voteTime p.toParams i)))
-    (hServices : ∀ y ∈ rho.honest, HeadCarrierScope E rho jz z i y)
+    (hServices : ∀ y ∈ rho.honest, HeadCarrierServices E rho jz z i y)
     {B : Block}
     (hBK : Block.Preceq B (headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
       (SA.voteTime p.toParams i)) i))
@@ -71,7 +71,8 @@ theorem healing_support_frame_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   have hvq : SA.voteTime p.toParams i ≤ v := (le_add_of_nonneg_right hd.le).trans hev
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, hloW, hrelay⟩ :=
     healing_head_witness_relay_on (hroots := hroots)
-      p c E rho crossing hE hz hjz hy (hServices y hy)
+      p c E rho crossing hE hz hjz hy ((hServices y hy).relay
+        (healing_head_carrier_demand_phase p c E rho crossing hE hphase hz hjz hhead hev hy))
   have hBW : Block.Preceq B (eraseFG W) := by
     refine Gen.Pure.block_preceq_trans hBK ?_
     have hKe' : eraseFG Kfg = headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
@@ -232,7 +233,7 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
       enabledGateAt p c E rho j y w → SupportGateScope E rho j y w)
     (hServices : ∀ w, s + 1 ≤ w → SA.voteTime p.toParams w + p.Δ ≤ v →
       ∀ j z, z ∈ rho.honest → rho.events[j]? = some (.tick z (SA.voteTime p.toParams w)) →
-      ∀ y ∈ rho.honest, HeadCarrierScope E rho j z w y)
+      ∀ y ∈ rho.honest, HeadCarrierServices E rho j z w y)
     (hlease : ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y (s + 1) →
       Block.Preceq (eraseFG (storeAt p c E rho j y).fg.F) B →
       ∀ row ∈ (storeAt p c E rho j y).base.obligations, Block.Compatible row.1 B) :

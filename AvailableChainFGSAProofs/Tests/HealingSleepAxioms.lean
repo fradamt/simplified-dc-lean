@@ -598,3 +598,6 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healingJoinedSeats_mem
 #print axioms AvailableChain.FGSA.Run.FastSupportScope.firstOn
 #print axioms AvailableChain.FGSA.Run.healing_support_gate_scope_of_cut
+#print axioms AvailableChain.FGSA.Run.healing_head_carrier_demand_phase
+#print axioms AvailableChain.FGSA.Run.healing_support_gate_scope_of_batch
+#print axioms AvailableChain.FGSA.Run.healing_support_gate_geometry
