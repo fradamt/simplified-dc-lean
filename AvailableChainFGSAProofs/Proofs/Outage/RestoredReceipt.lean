@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
 public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
+public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 
 public section
 
@@ -10,6 +11,115 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+
+/-- Gate-path proposal service uses v(s) and e(s). The joint invariant
+supplies compatibility at e(s); the enabled gate supplies the local epoch.
+Proposal history is durable across earlier receiver restarts. -/
+theorem outage_gate_path_proposal_service {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {j k : Nat} {x v : V} {s r : Slot} {o : Obj p} {N : NamedProposal p.n} {t : Time}
+    (hx : x ∈ rho.honest) (hv : v ∈ rho.honest)
+    (hG : enabledGateAt p c E rho j x s)
+    (hd : (toWire p o).decode = some (.block r N))
+    (hacc : V2.D.Run.acceptsAt E rho k v o t) (ht : t < SA.voteTime p.toParams s)
+    (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hF : Block.Compatible N.erase
+      (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x).st.fg.F)) :
+    Nonempty (ReceiverService E rho o t (SA.earlyTime p.toParams s) x) := by
+  obtain ⟨hReady, hHistory, hRF, hHandlers⟩ := fgsa_gate_path_anchor_service
+    hBase.valid hBase.delta hBase.restartsAtWakes hx hv hG hd hacc ht
+  have hdle : max (SA.voteTime p.toParams s) E.t_GST + p.Δ =
+      SA.earlyTime p.toParams s := by
+    rw [max_eq_left hGST]
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 2 * p.Δ
+    ring
+  have h0 : 0 ≤ SA.voteTime p.toParams s := by
+    change 0 ≤ 4 * p.Δ * (s : Int) + p.Δ
+    have hpos := p.deltaPos
+    positivity
+  have hve : SA.voteTime p.toParams s < SA.earlyTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 2 * p.Δ
+    linarith [p.deltaPos]
+  have heh : SA.earlyTime p.toParams s ≤ rho.horizon := by
+    apply le_trans _ (hBase.valid.in_horizon _ (List.mem_of_getElem? hG.1)).2
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  change Block.compatible N.erase
+    (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x).st.fg.F) = true at hF
+  have hNX : (fgsa p c).excludes
+      (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x) o = false := by
+    change excludesS p _ o = false
+    dsimp only [excludesS]
+    rw [hd]
+    simp only [blockExcluded, activeCompatible, hF, Bool.not_true, Bool.false_or]
+    exact fgsa_trigger_invalid_false E rho o t r N (Or.inr ⟨v, hv, k, hacc⟩) hd _
+  refine ⟨⟨fun a => max a E.t_GST + p.Δ, rho.horizon, SA.voteTime p.toParams s,
+    ?_, ?_, ht.le, h0, ?_, ?_, ?_, ?_, hHistory, hRF, ?_, ?_⟩⟩
+  · simpa only [hBase.delta] using Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy
+      E rho hSync (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ ΔF)
+  · simpa only [hdle] using hReady
+  · simpa only [hdle] using hve
+  · simpa only [hdle] using heh
+  · simpa only [hdle] using heh
+  · exact hdle.le
+  · simpa only [hdle] using hHandlers
+  · simpa only [hdle] using hNX
+
+/-- Frozen transfer service uses e(s) and f(s). Joinedness at v(s+1)
+supplies receiver readiness and survival through the freeze. -/
+theorem outage_transfer_path_proposal_service {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {k : Nat} {x v : V} {s r : Slot} {o : Obj p} {N : NamedProposal p.n} {t : Time}
+    (hx : x ∈ rho.honest) (hv : v ∈ rho.honest)
+    (hJ : joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)))
+    (hhor : SA.voteTime p.toParams (s + 1) ≤ rho.horizon)
+    (hd : (toWire p o).decode = some (.block r N))
+    (hacc : V2.D.Run.acceptsAt E rho k v o t) (ht : t < SA.earlyTime p.toParams s)
+    (hGST : E.t_GST ≤ SA.earlyTime p.toParams s)
+    (hF : Block.Compatible N.erase
+      (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) x).st.fg.F)) :
+    Nonempty (ReceiverService E rho o t (SA.freezeTime p.toParams s) x) := by
+  obtain ⟨hReady, hHistory, hRF, hHandlers⟩ := fgsa_transfer_path_anchor_service
+    hBase.valid hBase.delta hx hv hJ hhor hd hacc ht
+  have hdle : max (SA.earlyTime p.toParams s) E.t_GST + p.Δ =
+      SA.freezeTime p.toParams s := by
+    rw [max_eq_left hGST]
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 3 * p.Δ
+    ring
+  have h0 : 0 ≤ SA.earlyTime p.toParams s := by
+    change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
+    have hpos := p.deltaPos
+    positivity
+  have hef : SA.earlyTime p.toParams s < SA.freezeTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ < 4 * p.Δ * (s : Int) + 3 * p.Δ
+    linarith [p.deltaPos]
+  have hfv : SA.freezeTime p.toParams s ≤ SA.voteTime p.toParams (s + 1) := by
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]
+  change Block.compatible N.erase
+    (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) x).st.fg.F) = true at hF
+  have hNX : (fgsa p c).excludes
+      (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) x) o = false := by
+    change excludesS p _ o = false
+    dsimp only [excludesS]
+    rw [hd]
+    simp only [blockExcluded, activeCompatible, hF, Bool.not_true, Bool.false_or]
+    exact fgsa_trigger_invalid_false E rho o t r N (Or.inr ⟨v, hv, k, hacc⟩) hd _
+  refine ⟨⟨fun a => max a E.t_GST + p.Δ, rho.horizon, SA.earlyTime p.toParams s,
+    ?_, ?_, ht.le, h0, ?_, ?_, ?_, ?_, hHistory,
+    hRF.mono le_rfl (fgsa_idxBefore_mono rho hfv), ?_, ?_⟩⟩
+  · simpa only [hBase.delta] using Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy
+      E rho hSync (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ ΔF)
+  · simpa only [hdle] using hReady
+  · simpa only [hdle] using hef
+  · simpa only [hdle] using hfv.trans hhor
+  · simpa only [hdle] using hfv.trans hhor
+  · exact hdle.le
+  · simpa only [hdle] using hHandlers
+  · simpa only [hdle] using hNX
 
 /-- P15 local service. The anchor is max(send,wake). Finality compatibility
 is checked at the receiver's deadline; survival uses event indices. -/

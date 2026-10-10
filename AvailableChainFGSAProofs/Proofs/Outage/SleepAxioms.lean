@@ -111,3 +111,5 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
 #print axioms AvailableChain.FGSA.Run.inclusion_reader_scores_on
 #print axioms AvailableChain.FGSA.Run.inclusion_gate_origin_of_result
 #print axioms AvailableChain.FGSA.Run.inclusion_ordered_of_scoped
+#print axioms AvailableChain.FGSA.Run.outage_gate_path_proposal_service
+#print axioms AvailableChain.FGSA.Run.outage_transfer_path_proposal_service

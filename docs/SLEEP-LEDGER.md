@@ -4526,3 +4526,18 @@ Classification for this group: 493 GREEN, 13 EXPECTED-FAIL, 36 TARGETS.
 Seven owned modules move to GREEN. GREEN denotes compilation only.
 Strict local audits cover the retained and gate kernels and the test fixtures.
 Layer check: 72 inherited findings, zero new. Full DCK follows the last group.
+
+### P-Ou Round 3 — exact proposal service anchors
+
+RestoredReceipt produces ReceiverService for proposal paths at v(s)->e(s)
+and e(s)->f(s). Base2, the actual source acceptance, and the enabled or
+joined receiver supply readiness, handlers, the receiver epoch and durable
+HistorySafeAt. The original acceptance time is retained.
+The deadline and all local service fields use the same anchor.
+Compatible finality at e(s) or f(s) discharges permanent exclusion.
+That compatibility remains an exact joint-invariant input.
+
+The two constructors build with --wfail. They do not establish the full
+regime-only restored or prefix receipts. Fresh HEAD services, target
+dependencies, finality bounds, the retained score scopes and the P-Ar
+prefix remain closure work. No public receipt premise is added.
