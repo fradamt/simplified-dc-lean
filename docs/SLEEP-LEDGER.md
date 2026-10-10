@@ -960,3 +960,16 @@ the five added W1b sleep modules, both new tests, and all three reset sites as G
   Full Run build remains stopped by the P23 wrapper; the exact ready core cannot
   be written under the approved statement. Root freeze and package close remain
   with the lead after both STOP items are resolved.
+
+## W3 — Writer validation result (2026-10-10)
+
+- Commit 0b6f3837 contains the completed W3 implementation, tests and explicit STOP map.
+- Final DCK W3 PASS: 147.01 s, 399 GREEN modules, 30 strict audit roots,
+  2,473 axiom commands/results, and all 24 normal controls. No audit exception.
+- The map has 61 EXPECTED-FAIL entries. Three are the S-Ap P23 stopped roots;
+  the late FGSafety audit remains P-Sa. The other entries retain their family owners.
+- Final export check: 17 unaccepted exports, all in unchanged W2b Restore.lean.
+  New W3 modules and the repaired Schedule caller have no unaccepted export.
+- The P23 ready core is still STOP. No approved public text or stopped wrapper changed.
+  DCK PASS certifies the explicit GREEN partition. It does not close W3 or G-S1.
+- Full report: local, excluded claude-files/sleep-w3-report.md. Evidence: .lake/sleep-w3/.
