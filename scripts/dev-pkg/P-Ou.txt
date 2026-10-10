@@ -1,6 +1,15 @@
-# P-Ou round 8, base d8964408. Kernel PREPARED; public closure remains OPEN.
+# P-Ou round 11, base 9b372883. Kernel PREPARED; public closure remains OPEN.
 # GREEN means compiled; conditional suppliers do not close public claims.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
+AvailableChainFGSAProofs.Proofs.Outage.ScopedScores
+AvailableChainFGSAProofs.Proofs.Outage.ScopedRoots
+AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
+AvailableChainFGSAProofs.Proofs.Outage.ScopedPrefix
+AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
+AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
+AvailableChainFGSAProofs.Tests.OutageLaterHeads
+AvailableChainFGSAProofs.Proofs.Outage.LaterHeads
 AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
 AvailableChainFGSAProofs.Proofs.Outage.InclusionServices
 AvailableChainFGSAProofs.Proofs.Outage.GrowthSuppliers
@@ -54,6 +63,16 @@ AvailableChainFGSAProofs.Tests.InclusionGate
 AvailableChainFGSAProofs.Tests.OutageInduction
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
+AvailableChainFGSAProofs.Proofs.Outage.ScopedScores
+AvailableChainFGSAProofs.Proofs.Outage.ScopedRoots
+AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
+AvailableChainFGSAProofs.Proofs.Outage.ScopedPrefix
+AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
+AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
+AvailableChainFGSAProofs.Tests.OutageLaterHeads
+AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
+AvailableChainFGSAProofs.Proofs.Outage.LaterHeads
 AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
 AvailableChainFGSAProofs.Proofs.Outage.InclusionServices
 AvailableChainFGSAProofs.Proofs.Outage.GrowthSuppliers
@@ -570,7 +589,6 @@ AvailableChainFGSAProofs.Proofs.Outage.Suppliers
 
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.Outage.Close P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt P-Ou

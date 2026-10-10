@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.Suppliers
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
 public import AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
+public import AvailableChainFGSAProofs.Proofs.Outage.GrowthSuppliers
 public import AvailableChainFGSAProofs.Proofs.Outage.Close
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims
 -- shake: keep (Clean cut statement boundary)

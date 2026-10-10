@@ -1002,3 +1002,29 @@ own test module. The canonical H2 fragment has 205 commands and production-only
 imports; serial audit integration remains a separate obligation. FrontierOpen
 exports only named declarations; generated proof matchers remain private.
 No public Claims statement changed.
+
+- FG-SA sleep continuation, P-Ou Round 10: `Outage/ScopedPrefix` selects
+  regressions only at actual joined emitted HEADs. Its no-regression branch
+  constructs the restored seed from the arming certificate, then produces
+  bounded results and the event state. Its first-event selection also produces
+  the causal prefix at the actual first regression read.
+  It also proves frozen-path membership at an actual joined read, using durable
+  trees and the local stamp epoch. The first-regression retained score and
+  uncontested path producers remain P-Ou obligations.
+  `Outage/ScopedContinuation` starts the marker suffix after gate `max(m,r+k)`.
+  An early marker does not provide the intervening finite prefix.
+  Its later HEAD producer uses actual joined readers and prior event history.
+  `Outage/ScopedCatchUp` produces the W reader's actual gate, batch and epoch;
+  it proves the finalized output branch. The other W output branch and the
+  complete public exporters remain open. Public claims are unchanged.
+
+P-Ou Round 11: ScopedScores, ScopedRoots and ScopedPaths construct the first
+actual regression marker from the regime, arming certificate and causal prefix.
+Selected path service uses the current receiver floor, actual joined read and
+post-GST prior label. The crossing source uses P-Fd sourceDiscipline_qcOrigin.
+The finite bridge after that marker and the complete public exporters remain open.
+
+P-Ou ScopedBridge now constructs the finite bridge and global restored scoped
+HEADs. Same-label readers use their own frame, and subsequent labels use the
+first marker. Both event branches reach inclusive covered public reads after the
+seed. Earlier read assembly, W stable catch-up and legacy public ports remain open.
