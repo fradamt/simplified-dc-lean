@@ -4,7 +4,8 @@ public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public section
 
 namespace AvailableChain.FGSA.Run
-open V2 V2.D.Engine
+open V2 (Event)
+open V2.D.Engine
 
 variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

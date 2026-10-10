@@ -303,3 +303,11 @@ public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
 public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
+public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay
+public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService
+public import AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicAxioms
+public import AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs
+public import AvailableChainFGSAProofs.Proofs.Assembly.ResetSource
+public import AvailableChainFGSAProofs.Proofs.Healing.RegressionFixture
+public import AvailableChainFGSAProofs.Proofs.Outage.Induction
+public import AvailableChainFGSAProofs.Proofs.Outage.SleepAxioms

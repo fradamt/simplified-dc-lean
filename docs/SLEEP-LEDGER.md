@@ -8202,3 +8202,45 @@ All statuses and OPEN reasons stay unchanged: 65 PROVED, 16 PARTIAL, 22 OPEN,
 2 HISTORICAL; 36 OPEN items. Receipt coverage stays PARTIAL. The sleep producer
 and paper alignment stay OPEN. Regenerated FGSA-BLUEPRINT-OPEN.md is byte-identical.
 The compiled blueprint check passes; PC-SA safety remains source/map only.
+
+## P-Da Round 3 — exports and strict source guard (2026-10-11)
+
+Ruling B: the replay fixture uses public reducible aliases instead of an exposed
+section. All 42 definition bodies and all four caller proofs are unchanged.
+The existing B8 acceptance list gains only these five predicates:
+
+- Healing/SupportFrame.lean HealingJoinedTick: other modules unfold the joined premise.
+- Healing/SupportFrame.lean HealingCarriersAt: other modules unfold the carrier premise.
+- Healing/SupportRecovery.lean HealingWindow: recovery and post-reset callers unfold it.
+- Healing/SupportRecovery.lean StrongHealingWindow: recovery callers unfold it.
+- Outage/ScopedPrefix.lean OutageScopedRegression: ScopedPaths and LaterHeads unfold it.
+
+Paths above are under AvailableChainFGSAProofs/Proofs. Lead review is required
+for these exact acceptance rows. The claims source guard uses the same list;
+section, theorem, attribute-command, unlisted and wrong-owner exposures still fail.
+The fixture and selective TickRead open compile with unchanged theorem statements
+and proof bodies. Layers have zero new findings; headers and exports pass.
+
+The full source guard also required these migration repairs:
+
+- ORDER now includes Join after Counts, and OutageSleep after OutageContinuation.
+- F-28 stays strict on production Claims; owning Tests may contain test theorems
+  and read the owning assembled Claims contract. Layer test rules still apply.
+- DECISION P23-A / 04e0a138 supplies the exact Base₂.idealization projection.
+  A source signature hash pins this one theorem. Changed-type and owner/name twins fail.
+- 6accfefd supplies the exact Outage.ArmingKernel -> Statements.CleanInvariant edge.
+  The other Outage internal-statement negative control still fails.
+- A module with explicit public/private declarations may use a plain section,
+  as FrontierOpen does. A bare theorem in that section still fails the guard.
+- TickRead opens only V2.Event and V2.D.Engine; its statement and proof are unchanged.
+- Claims facade adds OutageSleep. Proofs facade adds eight missing production imports:
+  Assembly.ContinuationReplay, ContinuationService, OutagePublicAxioms,
+  OutagePublicInputs, ResetSource; Healing.RegressionFixture;
+  Outage.Induction and Outage.SleepAxioms. No source coverage exception is added.
+
+The unchanged strict inventory writer refreshes fgsa-claims-expected.txt:
+6,035 -> 7,819 public declarations/projections; 1,846 additions and 62 retired
+compiled names. Other four audit inventories are byte-identical. The exact name
+delta is saved in Round 3 inventory-delta.json. Source inventory covers 6,578
+explicit declarations. Source guard and its positive/negative controls pass.
+The inventory comparison, compiled audit and every existing control remain required.

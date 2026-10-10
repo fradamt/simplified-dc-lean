@@ -5,3 +5,14 @@ AvailableChainKitFG/ClientSafety.lean clientRow
 AvailableChainKitFG/Certificates.lean afterFin
 AvailableChainKitFG/Certificates.lean foldRows
 AvailableChainKitV2/RunCheck.lean allDeliveries
+# P-Da Round 3: exact predicates required by module consumers (lead ruling B).
+# HealingJoinedTick: Other healing modules unfold the joined-tick premise.
+AvailableChainFGSAProofs/Proofs/Healing/SupportFrame.lean HealingJoinedTick
+# HealingCarriersAt: Other healing modules unfold the retained carrier premise.
+AvailableChainFGSAProofs/Proofs/Healing/SupportFrame.lean HealingCarriersAt
+# HealingWindow: Recovery and post-reset modules unfold the selected window.
+AvailableChainFGSAProofs/Proofs/Healing/SupportRecovery.lean HealingWindow
+# StrongHealingWindow: Recovery modules unfold the strong selected window.
+AvailableChainFGSAProofs/Proofs/Healing/SupportRecovery.lean StrongHealingWindow
+# OutageScopedRegression: ScopedPaths and OutageLaterHeads unfold the regression premise.
+AvailableChainFGSAProofs/Proofs/Outage/ScopedPrefix.lean OutageScopedRegression

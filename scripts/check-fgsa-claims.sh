@@ -9,6 +9,7 @@ source scripts/gate-common.sh
 if [ "${SOURCE_ONLY:-0}" != 1 ]; then gate_slots_init; fi
 exec python3 - "$@" <<'PY'
 from pathlib import Path
+import hashlib
 import importlib.util
 import os
 import re
@@ -24,6 +25,10 @@ import import_policy as P
 from check_inventory import read_names
 from importlib import import_module
 current_inventory = import_module('current-inventory')
+expose = import_module('check-expose')
+EXPOSE_ALLOW = expose.read_list(expose.ALLOW, 2)
+# DECISION P23-A / 04e0a138: accept only the unchanged projection signature.
+RECEIPT_PROJECTION = '2f4b9ac05b755c51f31a226af81b243252f50c13a3164808ff0bbae2db023d1c'
 spec = importlib.util.spec_from_file_location('layers', 'scripts/check-layers.py')
 L = importlib.util.module_from_spec(spec)
 sys.modules['layers'] = L
@@ -72,7 +77,8 @@ MODEL_ROOTS = sorted({module for module, _ in MODEL_SCOPE})
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = read_names('scripts/fgsa-claims-expected.txt')
 # WC Job 4 adds no Statements module; the WC entries keep their current order.
-ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'OutageContinuation', 'Windows',
+ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Join', 'Regimes',
+         'OutageContinuation', 'OutageSleep', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
          'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'WeakContinuationGrowth', 'Packages.Finality', 'Packages.FinalityGST',
          'LiveDC', 'FrameNext', 'ComposeStmt', 'ComposeNext', 'Fold',
@@ -120,6 +126,8 @@ def module(path):
 def direct_ok(m, dep):
     if dep == 'Init':
         return True
+    if L.is_test(m) and dep == CLAIMS + '.FGSAClaims' and L.under(m, CLAIMS):
+        return True  # the owning Claims test may inspect its assembled public contract
     if m in LIBS:
         return L.under(dep, m) and dep != m and not L.is_test(dep)
     # SYN L58: one exact Assembly root may import the claim facade.
@@ -164,7 +172,10 @@ def source_findings(m, raw):
                 findings.append(f'MODULE ORDER: {m} imports {dep}')
         if dep in (prefix + 'CleanInvariant', PROOFS + '.Statements.CleanInvariant') or dep.endswith('Internal'):
             lane = 'Clean' if dep.endswith('CleanInvariant') else 'Finality'
-            if not m.startswith(PROOFS + '.Proofs.' + lane + '.'):
+            # 6accfefd: the approved arming kernel consumes CleanHist at its healthy cut.
+            arming_clean = (m, dep) == (PROOFS + '.Proofs.Outage.ArmingKernel',
+                                       PROOFS + '.Statements.CleanInvariant')
+            if not m.startswith(PROOFS + '.Proofs.' + lane + '.') and not arming_clean:
                 findings.append(f'INTERNAL STATEMENT: {m} imports {dep}')
         if L.under(m, CLAIMS) and dep.startswith(PROOFS + '.Proofs.Clean.'):
             findings.append(f'CLEAN PROOF PATH: {m} imports {dep}')
@@ -178,7 +189,7 @@ def source_findings(m, raw):
     clean = C.strip(raw)
     if re.search(r'\b(native_decide|sorry|admit|axiom)\b|\+native|native\s*:=\s*true|\bofReduce(?:Bool|Nat)\b', clean):
         findings.append(f'FORBIDDEN EVALUATION/AXIOM: {m}')
-    if L.under(m, CLAIMS):
+    if L.under(m, CLAIMS) and not L.is_test(m):
         lf = C.LeanFile(owner, str(item.path), m)
         lf._raw = raw
         decls = C.declarations(lf)
@@ -187,13 +198,33 @@ def source_findings(m, raw):
             if d.kind in ('theorem', 'lemma') and not (
                 m.startswith(CLAIMS + '.Statements.') and
                 d.short.endswith('_def') and d.full[:-4] in defs
+            ) and not (  # DECISION P23-A / 04e0a138: exact old-safety projection.
+                m == CLAIMS + '.Statements.Regimes' and
+                d.full == 'AvailableChain.FGSA.Run.Base₂.idealization' and
+                hashlib.sha256(''.join(d.signature().split()).encode()).hexdigest() ==
+                RECEIPT_PROJECTION
             ):
                 findings.append(f'F-28: {m} {d.full}')
     if L.under(m, PROOFS) and not L.is_test(m) and m != PROOFS:
-        if re.search(r'@\[[^]]*\bexpose\b', clean):
+        # Use B8's exact def/abbrev/instance acceptance; sections and proofs still fail.
+        path = m.replace('.', '/') + '.lean'
+        for attr in expose.ATTR.finditer(clean):
+            if 'expose' not in [x.strip() for x in attr.group(2).split(',')]:
+                continue
+            decl = expose.AFTER.match(clean, attr.end())
+            if attr.group(1) == '@[' and decl and decl.group(1) in (
+                    'def', 'abbrev', 'instance') and (path, decl.group(2)) in EXPOSE_ALLOW:
+                continue
             findings.append(f'PROOF EXPOSE: {m}')
-        if re.search(r'\b(theorem|lemma|def)\b', clean) and 'public section' not in clean:
-            findings.append(f'PROOF PUBLIC SECTION: {m}')
+        if 'public section' not in clean:
+            lf = C.LeanFile(owner, path, m)
+            lf._raw = raw
+            for decl in C.declarations(lf):
+                if decl.kind in ('theorem', 'lemma', 'def') and not re.match(
+                        r'\s*(?:@\[[^]]*\]\s*)*(?:public|private|protected)\b',
+                        decl.text()):
+                    findings.append(f'PROOF PUBLIC SECTION: {m}')
+                    break
     # Use T7's exact comment-aware V2-open parser, including quoted names,
     # multi-line opens, hiding, selective Auth/Signed, export and namespace.
     t7 = Path('scripts/check-fgsa-run.sh').read_text()
@@ -320,6 +351,27 @@ for label, raw, reason in (scope_controls if NEG else ()):
 controls = (
     ('statements-non-def-theorem', CLAIMS + '.Statements.Reads',
      'def fgsaControl : Nat := 0\ntheorem fgsaControl_eq : fgsaControl = 0 := rfl\n', 'F-28'),
+    ('proof-expose-section', PROOFS + '.Proofs.Healing.SupportFrame',
+     '@[expose] public section\ndef HealingJoinedTick : Prop := True\n', 'PROOF EXPOSE'),
+    ('proof-expose-unlisted', PROOFS + '.Proofs.Healing.SupportFrame',
+     'public section\n@[expose] def unlisted : Prop := True\n', 'PROOF EXPOSE'),
+    ('proof-expose-theorem', PROOFS + '.Proofs.Healing.SupportFrame',
+     'public section\n@[expose] theorem HealingJoinedTick : True := trivial\n', 'PROOF EXPOSE'),
+    ('proof-expose-other-owner', PROOFS + '.Proofs.Healing.Other',
+     'public section\n@[expose] def HealingJoinedTick : Prop := True\n', 'PROOF EXPOSE'),
+    ('proof-expose-attribute', PROOFS + '.Proofs.Healing.SupportFrame',
+     'public section\ndef HealingJoinedTick : Prop := True\n'
+     'attribute [expose] HealingJoinedTick\n', 'PROOF EXPOSE'),
+    ('receipt-projection-twin', CLAIMS + '.Statements.Regimes',
+     'theorem Base₂.idealizationTwin : True := trivial\n', 'F-28'),
+    ('receipt-projection-changed-type', CLAIMS + '.Statements.Regimes',
+     'namespace AvailableChain.FGSA.Run\n'
+     'theorem Base₂.idealization : True := trivial\nend\n', 'F-28'),
+    ('receipt-projection-wrong-owner', CLAIMS + '.Statements.Reads',
+     'namespace AvailableChain.FGSA.Run\n'
+     'theorem Base₂.idealization : True := trivial\nend\n', 'F-28'),
+    ('proof-private-section-bare', PROOFS + '.Proofs.Healing.FrontierOpen',
+     'section\ntheorem bare : True := trivial\nend\n', 'PROOF PUBLIC SECTION'),
     ('plain-v2-open', CLAIMS + '.Statements.Reads', 'open AvailableChain.V2\n', 'V2 NAME CLASH'),
     ('grid-proof-import', PROOFS + '.Proofs.Shared.Reads', 'public import AvailableChainGridCO.Proofs.Map\n', 'IMPORT NOT ALLOWED'),
     ('rightward-statement', CLAIMS + '.Statements.Reads', 'public import ' + CLAIMS + '.Statements.Counts\n', 'MODULE ORDER'),
@@ -374,6 +426,17 @@ for label, m, body, expected in (controls if NEG else ()):
     if not any(expected in f for f in hits):
         raise SystemExit(f'STOP: negative control passed: {label}: {hits}')
     print(f'{label}: rc 1, rejected as expected ({expected})', flush=True)
+
+# B8's listed predicate passes; an additional unlisted exposure still fails.
+if NEG:
+    for label, raw, want in (
+            ('proof-expose-listed', '@[expose] def HealingJoinedTick : Prop := True', False),
+            ('proof-expose-mixed', '@[expose] def HealingJoinedTick : Prop := True\n'
+             '@[expose] def unlisted : Prop := True', True)):
+        hits = source_findings(PROOFS + '.Proofs.Healing.SupportFrame',
+                               'module\npublic section\n' + raw + '\n')
+        assert any('PROOF EXPOSE' in hit for hit in hits) == want, (label, hits)
+        print(f'{label}: exact acceptance control PASS', flush=True)
 
 # SYN L58: each allowed edge must pass both direct_ok and every layer rule.
 assembly_positives = (
