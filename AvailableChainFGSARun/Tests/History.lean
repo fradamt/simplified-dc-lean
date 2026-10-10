@@ -1,7 +1,6 @@
 module
-public import AvailableChainFGSARun.Tests.Sleep
-public import AvailableChainFGSARun.Tests.EmissionFreshness
-public import AvailableChainEngineV2.Conditions.Duty.DeliveryWindow
+public import AvailableChainFGSARun.TestSupport.Sleep
+public import AvailableChainFGSARun.TestSupport.EmissionFreshness
 
 public section
 

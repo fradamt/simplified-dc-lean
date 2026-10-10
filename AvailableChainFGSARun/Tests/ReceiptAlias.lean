@@ -1,8 +1,8 @@
 module
-public import AvailableChainFGSARun.Tests.EmissionFreshness
+public import AvailableChainFGSARun.TestSupport.EmissionFreshness
 public import AvailableChainFGSARun.Statements.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.Hooks
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
+public import AvailableChainFGSARun.Proofs.ReadFacts
 
 @[expose] public section
 

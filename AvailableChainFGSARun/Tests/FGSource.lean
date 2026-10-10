@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.FGSource
-public import AvailableChainFGSARun.Tests.Sleep
+public import AvailableChainFGSARun.TestSupport.Sleep
 
 @[expose] public section
 
