@@ -573,6 +573,8 @@ AvailableChainFGSAInhabit.Tests.WeakContinuationW1
 AvailableChainFGSAInhabit.Tests.WitnessPositive
 AvailableChainFGSAInhabit.WeakContinuationW1
 AvailableChainFGSAInhabit.WitnessPositive
+AvailableChainFGSAProofs.Tests.OutageContinuationInhabit
+
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Healing P-As
@@ -593,7 +595,6 @@ AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages P-As
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset P-As
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun P-As
 AvailableChainFGSAProofs.Tests.OutageContinuationAxioms P-As
-AvailableChainFGSAProofs.Tests.OutageContinuationInhabit P-As
 AvailableChainFGSAProofs.Tests.OutageExport P-As
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms P-As
 AvailableChainFGSARun S-Ap

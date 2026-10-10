@@ -222,26 +222,22 @@ The finite-facts and discharge helpers pass the actual producer to the lane kern
         Block.Preceq X B ∧ fastAt p c E rho x s X
 ```
 
-## OU-FIXTURE — P-As
+## OU-FIXTURE — P-As, CLOSED in Round 6
 
-`AvailableChainFGSAProofs/Tests/OutageContinuationInhabit.lean:358`.
+`AvailableChainFGSAProofs/Tests/OutageContinuationInhabit.lean` now proves
+`OutageContinuationSleepPrem p unitCodec fast E rho 4 12 18 3` in both modes.
+The run has one honest node, Δ=1, k=3, η=2, and horizon 37.
+It sleeps at time 15, after the covering gate at 14; restart 16 precedes tick 16.
+The restored label is 5, with first vote 21 and join cutoff 16.
+The generator omits every asleep tick and delivery. Schedule, SleepWellFormed,
+RestartsAtWakes, execution validity and receipt collision freedom are kernel-checked.
+The joined counts hold before the outage, at each E vote, and after OutageEnd=37.
+The public (V) premise holds; the legacy budget still fails: 18-12 > min η L.
 
-LATE LOCAL PORT, hidden by B04/B20. The old trace schedules ticks while its E marks the node as
-asleep and does not implement each wake as a restart. Its current concrete Base2 input is not TRUE
-for the sleep engine. STOP this item: the inherited positive witness is not ExecutionValid under sleep.
-A separate fixture repair needs actual awake-only steps and phase-zero wake restarts. No invalid fixture record is
-supplied by P-As.
-
-```lean
-theorem outageContinuation_inhabited_sleep (fast : Bool) :
-    OutageContinuationPrem p unitCodec fast E rho 4 8 13 3 where
-  pre
-```
-
-The exact original generator is checked in OutageFixtureCounterexample.lean.
-It contains `.tick 0 8` while E.awake 0 8 = false, and no `.restart 0 13` at the wake.
-The kernel proves both facts and `¬ SleepWellFormed E rho`. The inherited test is unchanged.
-This is a fixture STOP, not a counterexample to a public claim.
+The old fixture's full sleep on [8,13) was not valid. Even after adding restart 13,
+a one-node full sleep ending at the restored vote cannot meet OutageE: its only
+node is unjoined at vote 13. The new fixture changes only private parameters and
+events. The public claim and its premise and conclusion definitions are unchanged.
 
 ## WCROOT — P-As, dependent on FAST and deferred H-time closure
 
