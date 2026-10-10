@@ -2129,3 +2129,49 @@ its proposed status change. The P-ShA map adds the required merged P23 audit inp
 
 Validation and exact source locations are in claude-files/sleep-psha-report.md,
 Round 3. Only compiled green modules are covered by the successful checks.
+
+## P-Cl1 — prepared gate and epoch suppliers (2026-10-10)
+
+Base: 1c777e97 on sleep-pcl1. This block belongs to P-Cl1.
+The package is PREPARED on the gate/epoch set. It is not CLOSED.
+The full Clean induction and the arming export are still open.
+
+- GR, internal statement, lead ruling 10-10: StateGate.clean_gate_raw now takes
+  enabledGateAt. GateEpoch.clean_gate_executed gives the exact guarded equation.
+  clean_gate_nonempty_raw extracts the enabled/raw branch from an executed result;
+  clean_gate_unjoined gives some none for a suppressed gate. Consumers:
+  StateGate, StepGate, TransferFrame, GateOutput. The last three remain open.
+- GF, internal statement, lead ruling 10-10: clean_gate_writes appends fastSet only
+  in the joined branch. Its suppressed row is empty. Lease and fast-write proofs
+  derive the guard from the nonempty executed result. No raw-result premise was added.
+- The Chain bridges include the guard required by S-Ap's cleanResults. The
+  index-result bridges take ScheduleWellFormed, which their run consumers have.
+- T08/T12 supplier: clean_enabledGate_awakeClosed proves the exact receiver's
+  closed interval from t_s through gate(s). It uses the valid tick, wake restart,
+  and the current stored marker. This includes label 0 and its early cutoff.
+  The StepGate consumers are still open; these rows are not closed as use sites.
+- T10 supplier: clean_joined_gate_witness chooses z from joinedHonest at the
+  earlier gate time. It gives z's actual enabled gate and its awake interval.
+  It does not claim that the later actor x had an enabled earlier gate.
+  The ordering/transfer use in StepGate is still open.
+- S/R7 supplier: clean_restart_fields keeps FG, blocks, leases and stableRecord,
+  and starts empty genuine/fastWrite caches. cleanHist_step_restart preserves
+  completed event history. clean_gate_fg_before_time compares only the kept FG
+  fields with the strict time read; it does not assert whole-store equality.
+  State/Closure still need their current-epoch induction port.
+- N4 receiver supplier: clean_enabledGate_service_epoch returns restartFree on
+  [actionCut a, idxBefore freeze] inside this gate's receiver interval.
+  HistorySafeAt remains a separate input. Past processing does not supply it.
+- Regression: Tests/CleanSuppressed has a well-formed schedule with wake 9 and
+  a fresh HEAD at 10. At gate label 1 (time 20), raw confirmation is some genesis;
+  the executed result is some none. This refutes the old unconditional raw equation.
+- Public FGSAClaims statements and other owners' files were not edited.
+  STOPs for approved public meaning changes: none.
+- Audit/root inventory changes are in the P-Cl1 report and its audit fragment.
+  The existing shared inventory and fixed S1 scope were not changed. These new
+  Clean modules are outside the fixed S1 domain and are explicit package targets.
+- Prepared validation: package DCK PASS with default controls (164.99 s; first
+  cold package run 458.04 s). Prepared audit-root build --wfail PASS (4.78 s).
+  The 48 core audit commands and three regression commands use only propext,
+  Classical.choice and Quot.sound. Complete export/coverage check: 0 unaccepted
+  (7.04 s). Layer check: 72 baseline findings, 0 new (0.30 s).

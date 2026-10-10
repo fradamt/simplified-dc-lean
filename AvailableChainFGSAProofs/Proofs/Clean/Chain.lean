@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Statements.CleanInvariant
+public import AvailableChainFGSAProofs.Proofs.Clean.GateEpoch
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section
@@ -54,10 +55,11 @@ theorem belowLabel_of_mem {i : Nat} {s r : Slot} {B : Block}
 
 /-- A completed gate result supplies a labelled origin. -/
 theorem belowLabel_of_gateResultAt {j i : Nat} {x : V} {s r : Slot} {B : Block}
+    (hsch : V2.D.ScheduleWellFormed E rho)
     (hji : j < i) (hx : IsGateTick p c rho j x s)
     (hB : gateResultAt p c E rho j = some (some B)) (hsr : s ≤ r) :
     BelowLabel p c E rho i r B :=
-  belowLabel_of_mem ⟨j, hji, x, hx, hB⟩ hsr
+  belowLabel_of_mem ⟨j, hji, x, hx, (clean_gate_enabled_of_result hsch hx hB).2, hB⟩ hsr
 
 /-- All four history fields restrict to an earlier index. -/
 theorem cleanHist_restrict {j i : Nat} (hji : j ≤ i) (hh : CleanHist p c E rho i) :
@@ -120,7 +122,8 @@ theorem cleanHist_zero : CleanHist p c E rho 0 := by
     exact (Nat.not_lt_zero j hj).elim
 
 /-- F2.5a can separate old results from the result at the new gate index. -/
-theorem cleanResults_mem_succ_iff {i : Nat} {s : Slot} {B : Block} :
+theorem cleanResults_mem_succ_iff {i : Nat} {s : Slot} {B : Block}
+    (hsch : V2.D.ScheduleWellFormed E rho) :
     (s, B) ∈ cleanResults p c E rho (i + 1) ↔
       (s, B) ∈ cleanResults p c E rho i ∨
         ∃ x, IsGateTick p c rho i x s ∧ gateResultAt p c E rho i = some (some B) := by
@@ -128,10 +131,10 @@ theorem cleanResults_mem_succ_iff {i : Nat} {s : Slot} {B : Block} :
   · rintro ⟨j, hj, x, hx, hB⟩
     rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hj) with hji | rfl
     · exact Or.inl ⟨j, hji, x, hx, hB⟩
-    · exact Or.inr ⟨x, hx, hB⟩
+    · exact Or.inr ⟨x, hx, hB.2⟩
   · rintro (hB | ⟨x, hx, hB⟩)
     · exact cleanResults_mono (Nat.le_succ i) hB
-    · exact ⟨i, Nat.lt_succ_self i, x, hx, hB⟩
+    · exact ⟨i, Nat.lt_succ_self i, x, hx, (clean_gate_enabled_of_result hsch hx hB).2, hB⟩
 
 end AvailableChain.FGSA.Run
 end
