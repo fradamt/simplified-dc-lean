@@ -633,12 +633,20 @@ Engine v2 decisions (design §2), one line each:
 - E5 own-signature record: `selfVisible`, `recordOwn`, atomic tick;
   `Isolation` factors the AP part through `base`, so AC facts transport to
   the AP projection.
-- E6 restart: `restart v t`, `st ↦ restore (durable st)`. Ruling Y keeps
-  the last local tick value and the anti-slashing record. Restore resets
-  the other store fields, adds no tick or duty, and ignores restart time `t`.
-  The six restart-permitting claims remain proved: ClientSafetyClaim,
-  WholeRunAccountableClaim, WholeRunAgreementClaim, EventPrefixAgreementClaim,
-  FaultCountSlashableBoundClaim, and HonestNeverSlashedClaim.
+- E6 restart (sleep v6): `restart v t`, `st ↦ restore (durable st) t`.
+  Restore keeps the FG state, blocks, named bodies, proposals, rows, obligations,
+  stable output, and anti-slashing record. It clears volatile vote state and
+  sets both the clock and restart marker to the exact wake time `t`. A wake
+  restarts before any tick or delivery at that time. Duties and confirmation
+  updates require the uniform previous-slot join cutoff. This supersedes the
+  earlier ruling Y account. See `docs/SLEEP-LEDGER.md` for proof status.
+- P-Fi sleep consumers: `Finality/RecoveryScope` derives local restart intervals,
+  join bounds, and confirmed readers from continuous Recovery awake time.
+  `RestoreReads` preserves finality and held rows through restore. `TickRead`
+  relates exact joined tick reads to time cuts. RowsBatch and TailBatch use
+  joined voters and exact receiver services. Export has explicit vote, action,
+  and Tail receipt suppliers. These suppliers remain proof obligations; a
+  conditional export does not establish the unconditional public service claim.
 
 ## 4. Constraints
 
