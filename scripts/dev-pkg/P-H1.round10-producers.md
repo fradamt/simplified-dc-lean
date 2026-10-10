@@ -48,7 +48,8 @@ RecoveryPerm applies the proved phase producer to every actual ready phase.
 The exact remaining Foundation inputs have these proved named suppliers:
 RMonoAll = fgsa_rMonoAll; RXing = fgsa_rXing; last-write origins =
 fgsa_leaseOrigins_lastWrite; TSrc = sourceDiscipline_tSrc; emitted nonempty/name
-= sourceDiscipline_emittedNonempty and sourceDiscipline_emittedName.
+= sourceDiscipline_emittedNonempty and emittedName_window. The latter is the
+proved projection of sourceDiscipline_emittedName to the exact height-view type.
 P-As supplies them through the unchanged lane boundary. fgsa_rXing takes the
 regime's collision idealization, Linked, fault count and unforgeable signatures.
 There is no implicit NoRestart or global root injectivity input.

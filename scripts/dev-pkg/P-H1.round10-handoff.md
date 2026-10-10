@@ -31,16 +31,11 @@ reader, enabled/joined guards, and finite horizon. Use
 healing_repair_head_services_recovery for P6;
 healing_frontier_read_scope_recovery for P8;
 healing_raw_service_scope_recovery for P10.
-For P9 use healing_loss_service_scope_recovery with TSrc and the named emitted
-origin suppliers. sourceDiscipline_emittedName returns extra ancestry data;
-its adapter is:
-
-```lean
-fun ha he => by
-  obtain ⟨C, G, hC, he, _, hG, hCG, hfast⟩ :=
-    sourceDiscipline_emittedName p c E rho hrec.base.valid.toScheduleWellFormed ha he
-  exact ⟨C, G, hC, congrArg Prod.fst he, hG, hCG, hfast⟩
-```
+For P9 use healing_loss_service_scope_recovery with sourceDiscipline_tSrc,
+sourceDiscipline_emittedNonempty and emittedName_window. The last theorem is
+the proved height-view projection of sourceDiscipline_emittedName. It supplies
+the exact inline input, without reading a SimplexFG.derive field in Healing.
+The generic P9 handoff is kernel-checked in /private/tmp/ph1k-source-adapter.lean.
 
 healing_ready_batch_release_compat_recovery constructs the full post-Jst
 batch's first and gate scopes. Keep its selected prefix geometry and floor.
@@ -50,3 +45,12 @@ The positive NonVacuity/HealingRun fixture proves nvPerm from the universal
 producer and actual named Foundations. Its existing ExecutionValid source and
 horizon 310 remain. HealingHeadCap is a local handler regression, not a full
 finite sleep-run replay. No public claim, model, deadline or constant changed.
+
+Validation: DCK PASS, all 24 controls PASS, 48 strict sources and 3,814 results.
+Layers 0 new; headers PASS; all-GREEN exports 0 unaccepted; local public coverage
+477 complete rows. Logs: /private/tmp/ph1k-{dck,exports,coverage-check,layers,headers}.log.
+The required manifest check fails on P-H2 Promotion.olean; direct build confirms
+Promotion.lean:194 still passes GST <= u where recoveryStart <= u is required.
+P-Ou ContinuationInduction and the legacy continuation exporter both build PASS
+on this merged base. No owner module was edited and no snapshot baseline changed.
+Full-manifest controls were not reached. Details: the Round 10 local report.

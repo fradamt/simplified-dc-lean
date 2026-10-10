@@ -1,4 +1,4 @@
-# P-H1 Round 10: P1-P10 and universal TPerm have recovery producers.
+# P-H1 Round 10 CLOSED for P1-P10 and universal TPerm production.
 # Four complete adversarial replay fixtures retain exact OPEN/P-H1 obligations.
 # H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
 # 118 TARGETS; 567 GREEN; 19 EXPECTED-FAIL.
