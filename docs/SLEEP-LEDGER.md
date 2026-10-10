@@ -8303,3 +8303,13 @@ wc_heightSeed, wc_outputStep, wc_proposal_gates, wcg_heightSeed, wcg_outputStep
 and wcg_retainedSeed (all in AvailableChain.FGSA.Run). Eleven new height-only
 readers stay unlisted for lead review. No new old-read exemption is added.
 All frozen API baselines and GLY allowance/baseline files are unchanged.
+
+## P-Da Round 3 — Claims policy fixture scope (2026-10-11)
+
+The precheck self-test's main-policy F-28 case now runs the real Claims source
+checker and guard-list merge in its temporary policy copy. Its target guard
+remains permissive; the main guard must reject the planted unscoped theorem.
+Unrelated production GLY findings remain in the real full gate. Only the test
+fixture's scope changes. Both planted rejections, every guard-list/data case,
+and the no-Lean/no-build sentinel pass. The independent precheck self-test passes.
+No production precheck, GLY rule, baseline or allowance is changed by this repair.

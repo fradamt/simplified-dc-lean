@@ -132,6 +132,17 @@ git archive "$source_base" | tar -xf - -C "$target"
 # the working allow lines that the working EXPECTED lists need (06, 2026-10-01).
 rsync -a --exclude=__pycache__ --exclude='*.pyc' "$repo/scripts/" "$target/scripts/"
 init_snapshot "$target" "$source_base"
+# This fixture checks main-policy Claims code against a permissive target guard.
+# Keep unrelated production GLY findings in the real gate, outside this fixture.
+cat >> "$policy/scripts/gate-common.sh" <<'SH'
+gate_precheck() {
+  export SOURCE_ONLY=1
+  gate_precheck_step guard-lists python3 scripts/guard-lists.py diff \
+    --main-rev "$1" --target scripts/check-fgsa-claims.sh || return $?
+  gate_precheck_step check-fgsa-claims bash scripts/check-fgsa-claims.sh || return $?
+  echo 'PRECHECK PASS; build not started'
+}
+SH
 cat "$repo/scripts/precheck-fixtures/claims-theorem.txt" >> "$target/AvailableChainFGSAClaims/Tests/Axioms.lean"
 control=$repo/scripts/precheck-fixtures/guard-lists-control.py
 python3 "$control" permissive "$target/scripts/check-fgsa-claims.sh" "$policy/scripts/check-fgsa-claims.sh"
