@@ -6904,3 +6904,4 @@ The public consumers were attempted; Close and ContinuationInduction still fail
 at removed NoRestart projections and old all-honest induction calls.
 No complete exporter or public claim is marked closed. P-Ou remains PREPARED.
 Evidence: .lake/sleep-pou-r10/. Exact remaining goals: P-Ou.round10-handoff.md.
+- Lead 2026-10-10 15:51: merged sleep-pas6 18d690c2 (P-As r6) as PREPARED, 45/66 GREEN; FAST CLOSED; outage fixture sleep-valid; review rev-pas6-astra MERGE-AS-PREPARED. Open: P-Ou closure/export (incl. Outage/Export → GrowthSuppliers), HTimeClaim (healing).

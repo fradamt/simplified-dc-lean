@@ -2,12 +2,10 @@ module
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (fixture root lemmas)
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 
-/-! OUTPUT-DIRECT non-vacuity in the kernel. A closed run satisfies every field of
-`OutageContinuationPrem`, in both modes. The fixture adapts the delayed-row run of
-`Tests/Zero.lean` (one honest node, Δ = 1, ΔF = 3, horizon 17); its private proofs
-are copied here. Here η = 2, every emission is delivered at its emission time, and
-the only honest node is asleep on [b₀,b₁) = [8,13). Then b₁ − b₀ = 5 > min η L = 2,
-so the old Outage₂ budget fails, while (V) holds at equality. -/
+/-! OUTPUT-DIRECT non-vacuity in the kernel. One honest node sleeps at time 15,
+restarts at 16, and runs only awake ticks. The covering gate is at 14; restored
+votes start at 21, after join. The outage endpoints are 12 and 18; the old budget
+fails. Every emission has a same-time delivery. The horizon is 37. -/
 
 -- Test fixtures and examples stay private.
 set_option linter.privateModule false
@@ -17,19 +15,21 @@ set_option maxRecDepth 10000
 open AvailableChain AvailableChain.SimplexFG
 namespace AvailableChain.FGSA.Run.Tests.OutageContinuationInhabit.Sleep
 private abbrev p : FGSA.Params :=
-  ⟨⟨1, 1, 2, 2, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide, fun
+  ⟨⟨1, 1, 3, 2, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide, fun
       d => ⟨d.slot + 1⟩⟩
 private abbrev E : Generic.Env (Fin 1) :=
-  ⟨1, by decide, 0, le_rfl, fun _ t => decide (t < 8 ∨ 13 ≤ t)⟩
+  ⟨1, by decide, 0, le_rfl, fun _ t => decide (t < 15 ∨ 16 ≤ t)⟩
 private abbrev mkRun (es : List (V2.Event (Fin 1) (fgsa p unitCodec).Object)) :
     V2.D.Run (Fin 1) (fgsa p unitCodec) where
   honest := Finset.univ
-  horizon := 17
+  horizon := 37
   events := es
   seatOf := fun _ _ => 0
   input := fun _ _ => ()
 private abbrev events : List (V2.Event (Fin 1) (fgsa p unitCodec).Object) :=
-  (List.range 18).foldl (fun es n =>
+  (List.range 38).foldl (fun es n =>
+    if n = 15 then es else
+    let es := if n = 16 then es ++ [.restart 0 n] else es
     let r := mkRun (es ++ [.tick 0 n])
     es ++ [.tick 0 n] ++ (V2.D.Run.emitsAt E r es.length).map (fun o => .deliver 0 o n)) []
 private abbrev rho := mkRun events
@@ -96,13 +96,60 @@ private theorem lsync_schedule : V2.D.ScheduleWellFormed E rho where
     have hn : 0 ≤ t := hall _ ht
     exact ⟨t.toNat, by simp [Int.toNat_of_nonneg hn]⟩
   tick_total := by
-    intro v _ t _ ht hh
+    intro v _ t _ ht hh hawake
     have hv : v = 0 := Subsingleton.elim _ _
     subst v
-    change t ≤ 17 at hh
-    interval_cases t <;> decide +kernel
+    change t ≤ 37 at hh
+    have ht15 : t ≠ 15 := by
+      intro he
+      subst t
+      exact Bool.noConfusion hawake
+    have cert : ∀ n ∈ List.range 38, n ≠ 15 →
+        V2.Event.tick 0 (n : Int) ∈ rho.events := by decide +kernel
+    have he : (t.toNat : Int) = t := Int.toNat_of_nonneg ht
+    rw [← he]
+    exact cert t.toNat (List.mem_range.mpr (by simp only [Time] at *; omega))
+      (by simp only [Time] at *; omega)
+
+private theorem wake_eq {v : Fin 1} {t : Time} (h : V2.D.Wakes E v t) :
+    t = 16 := by
+  change decide (t < 15 ∨ 16 ≤ t) = true ∧
+    decide (t - 1 < 15 ∨ 16 ≤ t - 1) = false at h
+  have ha : t < 15 ∨ 16 ≤ t := of_decide_eq_true h.1
+  have hb : ¬ (t - 1 < 15 ∨ 16 ≤ t - 1) := of_decide_eq_false h.2
+  simp only [Time] at *; omega
+
+private def RestartOK (e : V2.Event (Fin 1) (fgsa p unitCodec).Object) : Bool :=
+  match e with | .restart _ u => decide (u = 16) | _ => true
+
+private theorem restart_time {v : Fin 1} {t : Time}
+    (ht : V2.Event.restart v t ∈ rho.events) : t = 16 := by
+  have cert : ∀ e ∈ rho.events, RestartOK e = true := by decide +kernel
+  exact of_decide_eq_true (cert _ ht)
+
+private theorem event_awake : ∀ e ∈ rho.events, E.awake e.node e.time = true := by
+  decide +kernel
+
+private theorem sleep_valid : V2.D.SleepWellFormed E rho where
+  tick_awake := fun _ _ he => event_awake _ he
+  deliver_awake := fun _ _ _ he => event_awake _ he
+  restart_awake := fun _ _ he => event_awake _ he
+  wake_restart := by
+    intro v _ t _ _ hw
+    have hv : v = 0 := Subsingleton.elim _ _
+    subst v
+    rw [wake_eq hw]
+    decide +kernel
+
+private theorem restarts : V2.D.RestartsAtWakes E rho := by
+  intro v t ht
+  rw [restart_time ht]
+  have hv : v = 0 := Subsingleton.elim _ _
+  subst v
+  exact ⟨by decide, ⟨by decide, by decide⟩⟩
 
 private theorem lsync_execution : V2.D.ExecutionValid E rho where
+  toSleepWellFormed := sleep_valid
   toScheduleWellFormed := lsync_schedule
   wire := by
     intro i v o t hi
@@ -143,7 +190,7 @@ private theorem lsync_execution : V2.D.ExecutionValid E rho where
 
 private def Delivered (i : Nat) (e : V2.Event (Fin 1) (fgsa p unitCodec).Object) : Prop :=
   match e with
-      | .tick v t => ∀ o ∈ V2.D.Run.emitsAt E rho i, t + fgsaDelay E.Δ 3 o ≤ 17 →
+      | .tick v t => ∀ o ∈ V2.D.Run.emitsAt E rho i, t + fgsaDelay E.Δ 3 o ≤ 37 →
         ∃ j : Fin rho.events.length, t ≤ rho.events[j.val].time ∧
           rho.events[j.val].time < t + fgsaDelay E.Δ 3 o ∧
           rho.events[j.val] = .deliver v o rho.events[j.val].time
@@ -155,24 +202,56 @@ private instance (i : Nat) (e : V2.Event (Fin 1) (fgsa p unitCodec).Object) :
 private theorem lsync_delivered : ∀ i : Fin rho.events.length, Delivered i rho.events[i.val] := by
   decide +kernel
 
+private def ProcessedDelivery (j : Nat) : Prop :=
+  match rho.events[j]? with
+  | some (.deliver v o _) => (fgsa p unitCodec).processed
+      (V2.D.Run.stateBefore E rho (j + 1) v) o = true
+  | _ => True
+
+private instance (j : Nat) : Decidable (ProcessedDelivery j) := by
+  unfold ProcessedDelivery
+  split <;> infer_instance
+
+private theorem delivery_processed : ∀ j : Fin rho.events.length, ProcessedDelivery j := by
+  decide +kernel
+
 private theorem deliveryPrefix :
-    Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (fgsaDelay E.Δ 3) 17 where
+    Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (fgsaDelay E.Δ 3) 37 where
   broadcast_emitted := by
-    rintro v _ o t ⟨i, hi, hem⟩ w _ hd _
+    rintro v _ o t ⟨i, hi, hem⟩ w _ a hta ha had hcut _ _ _
     obtain ⟨hil, he⟩ := List.getElem?_eq_some_iff.mp hi
     have hc := lsync_delivered ⟨i, hil⟩
     simp only [Delivered, he] at hc
+    have hd : t + fgsaDelay E.Δ 3 o ≤ 37 := by
+      change a + fgsaDelay E.Δ 3 o ≤ 37 at hcut
+      linarith
     obtain ⟨j, ht, hd, hj⟩ := hc o hem hd
     have hvw : v = w := Subsingleton.elim _ _
     subst w
-    exact ⟨_, ht, hd, j, o, List.getElem?_eq_some_iff.mpr ⟨j.isLt, hj⟩, Or.inl rfl⟩
+    have hevent := List.getElem?_eq_some_iff.mpr ⟨j.isLt, hj⟩
+    by_cases hja : a ≤ rho.events[j.val].time
+    · exact Or.inr ⟨_, hja, by
+        change rho.events[j.val].time < a + fgsaDelay E.Δ 3 o
+        linarith,
+        j, o, hevent, Or.inl rfl⟩
+    · refine Or.inl ⟨j.val + 1, ?_, ?_⟩
+      · exact Nat.succ_le_of_lt ((V2.D.Engine.index_lt_actionCut_iff
+          lsync_schedule hevent a).mpr (Or.inl (lt_of_not_ge hja)))
+      · have hp := delivery_processed j
+        change ProcessedDelivery j.val at hp
+        simpa only [ProcessedDelivery, hevent] using hp
   relay_accepted := by
-    intro v _ i o t ha w _ hp
+    intro v _ i o t ha w _ a hta _ had _ _ _ _
     have hvw : v = w := Subsingleton.elim _ _
     subst w
-    rw [ha.2.2] at hp
-    contradiction
-
+    obtain ⟨obj, hi, hhandles⟩ := ha.1
+    by_cases hlt : t < a
+    · refine Or.inl ⟨i + 1, ?_, ha.2.2⟩
+      exact Nat.succ_le_of_lt ((V2.D.Engine.index_lt_actionCut_iff
+        lsync_schedule hi a).mpr (Or.inl hlt))
+    · have heq : t = a := le_antisymm hta (le_of_not_gt hlt)
+      subst a
+      exact Or.inr ⟨t, le_rfl, had, i, obj, hi, hhandles⟩
 
 /-- ROOT-DIGEST W3b. The existing event certificate gives actual emission origin. -/
 private theorem delay_rootEmission {x : Fin 1} {o : Obj p} {t : Time}
@@ -239,8 +318,8 @@ private theorem delay_rootDeliveredEq {x y : Fin 1} {o o' : Obj p} {t u : Time}
   rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem'
   have ha := (fgsa_emits_proposal E rho _ 0 ti s _).mp hem
   have ha' := (fgsa_emits_proposal E rho _ 0 tj s' _).mp hem'
-  obtain ⟨H, raw0, sup0, rows0, hb, _, _⟩ := rowsOk_withApp _ _ _ ha.2.2.2
-  obtain ⟨H', raw1, sup1, rows1, hc, _, _⟩ := rowsOk_withApp _ _ _ ha'.2.2.2
+  obtain ⟨H, raw0, sup0, rows0, hb, _, _⟩ := rowsOk_withApp _ _ _ ha.2.2.2.2
+  obtain ⟨H', raw1, sup1, rows1, hc, _, _⟩ := rowsOk_withApp _ _ _ ha'.2.2.2.2
   have hBs : B.slot = s := by
     have hh := congrArg (fun m : Msg p.n => match m with
       | .proposal b => b.slot | _ => 0) hb
@@ -258,7 +337,7 @@ private theorem delay_rootDeliveredEq {x y : Fin 1} {o o' : Obj p} {t u : Time}
     obtain ⟨hjl, hej⟩ := List.getElem?_eq_some_iff.mp hj
     exact (lsync_execution.nodup.getElem_inj_iff (hi := hil) (hj := hjl)).mp (hei.trans hej.symm)
   subst j
-  exact (Msg.proposal.inj (Option.some.inj (ha.2.2.2.symm.trans ha'.2.2.2)))
+  exact (Msg.proposal.inj (Option.some.inj (ha.2.2.2.2.symm.trans ha'.2.2.2.2)))
 
 /-- ROOT-DIGEST W3b. Origin closes the body scope; no fixture premise is assumed. -/
 private theorem delay_rootPremise : NamedRootCollisionFree p unitCodec E rho where
@@ -291,9 +370,32 @@ private theorem delay_rootPremise : NamedRootCollisionFree p unitCodec E rho whe
       · obtain ⟨y, o', u, hd', hp'⟩ := hdD
         exact delay_rootDeliveredEq hd hp hd' hp' he
 
+private theorem delay_receiptRoots : NamedReceiptRootCollisionFree p unitCodec E rho := by
+  have emittedScope {v : Fin 1} {o : (fgsa p unitCodec).Object} {t : Time} {N : NamedProposal p.n}
+      (hem : V2.D.Run.emits E rho v o t) (hp : o.payload = .proposal N) :
+      NamedProposalInRun p unitCodec E rho N := by
+    obtain ⟨i, hi, ho⟩ := hem
+    have cert : ∀ j : Fin rho.events.length, ∀ o ∈ V2.D.Run.emitsAt E rho j,
+        (match o.payload with
+          | .proposal _ => decide (V2.Event.deliver 0 o rho.events[j.val].time ∈ rho.events)
+          | _ => true) = true := by decide +kernel
+    have hc := cert ⟨i, (List.getElem?_eq_some_iff.mp hi).1⟩ o ho
+    have hd : V2.Event.deliver 0 o t ∈ rho.events := by
+      simp only [hp, (List.getElem?_eq_some_iff.mp hi).2,
+        decide_eq_true_eq, V2.Event.time] at hc
+      exact hc
+    exact namedScope_delivered E rho hd hp
+  have scope {A : NamedProposal p.n} (hA : NamedProposalReceiptScope p unitCodec E rho A) :
+      NamedProposalInRun p unitCodec E rho A := by
+    rcases hA with hA | ⟨v, _, o, t, N, hem, hp, hAN⟩
+    · exact hA
+    · exact namedScope_ancestor E rho (emittedScope hem hp) hAN
+  intro A B hA hB he
+  exact namedProposal_eq E rho delay_rootPremise (scope hA) (scope hB) he
+
 private theorem base : Base₂ p unitCodec E rho where
   valid := lsync_execution
-  idealization := delay_rootPremise
+  receiptIdealization := delay_receiptRoots
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩
     intro l hl
@@ -308,88 +410,187 @@ private theorem base : Base₂ p unitCodec E rho where
       exact ⟨fun _ _ _ => Subsingleton.elim _ _, fun v => ⟨0, Subsingleton.elim _ _⟩⟩
     · exact hl.elim
     · exact hl.elim
-  noRestart := by
-    intro i v t hi
-    have hm := List.mem_of_getElem? hi
-    have cert : ∀ e ∈ rho.events, (match e with | .restart _ _ => true | _ => false) = false := by
-      decide +kernel
-    exact Bool.noConfusion (cert _ hm)
+  restartsAtWakes := restarts
   delta := rfl
 
-private theorem awake_card {t : Time} (ht : t < 8 ∨ 13 ≤ t) :
+private theorem awake_card {t : Time} (ht : t < 15 ∨ 16 ≤ t) :
     (Gen.V2.Duty.awakeHonest E rho t).card = 1 := by
   rw [Gen.V2.Duty.awakeHonest_def, Finset.filter_true_of_mem (fun _ _ => decide_eq_true ht)]
   rfl
 
 private theorem faulty_card : (Gen.V2.Duty.faulty rho).card = 0 := by decide
 
-/-- Every honest node is asleep throughout the outage interval [8,13). -/
-theorem all_asleep (t : Time) (h8 : 8 ≤ t) (h13 : t < 13) :
+/-- No event occurs during full honest sleep at time 15. -/
+theorem all_asleep (t : Time) (h15 : 15 ≤ t) (h16 : t < 16) :
     Gen.V2.Duty.awakeHonest E rho t = ∅ := by
   rw [Gen.V2.Duty.awakeHonest_def]
   exact Finset.filter_false_of_mem (fun _ _ h => by
-    rcases (of_decide_eq_true h : t < 8 ∨ 13 ≤ t) with h' | h'
-    · exact (not_lt.mpr h8) h'
-    · exact (not_le.mpr h13) h')
+    rcases (of_decide_eq_true h : t < 15 ∨ 16 ≤ t) with h' | h'
+    · exact (not_lt.mpr h15) h'
+    · exact (not_le.mpr h16) h')
 
-private theorem healthy_cut {b : Time} (hb : b ≤ 17) :
+private theorem healthy_cut {b : Time} (hb : b ≤ 37) :
     Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (fgsaDelay E.Δ 3) b where
-  broadcast_emitted := fun v hv o t he w hw hd hx =>
-    deliveryPrefix.broadcast_emitted v hv o t he w hw (hd.trans hb) hx
-  relay_accepted := fun v hv i o t ha w hw hp hd hx =>
-    deliveryPrefix.relay_accepted v hv i o t ha w hw hp (hd.trans hb) hx
+  broadcast_emitted := by
+    intro v hv o t he w hw a hta ha had hcut hhor hlink hx
+    exact deliveryPrefix.broadcast_emitted v hv o t he w hw a hta ha had
+      (hcut.trans hb) hhor hlink hx
+  relay_accepted := by
+    intro v hv i o t he w hw a hta ha had hcut hhor hlink hx
+    exact deliveryPrefix.relay_accepted v hv i o t he w hw a hta ha had
+      (hcut.trans hb) hhor hlink hx
 
 private theorem sync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ 3) where
   broadcast_emitted := by
-    rintro v hv o t ⟨i, hi, hem⟩ w hw hd hx
-    have h0 : 0 ≤ t := (lsync_schedule.in_horizon _ (List.mem_of_getElem? hi)).1
-    have hm : max t E.t_GST = t := max_eq_left h0
-    rw [hm] at hd hx ⊢
-    exact deliveryPrefix.broadcast_emitted v hv o t ⟨i, hi, hem⟩ w hw hd hx
+    intro v hv o t he w hw a hta ha had hcut hhor hawake hx
+    have hm : max a E.t_GST = a := max_eq_left ha
+    dsimp only at had hcut hhor hawake hx ⊢
+    rw [hm] at had hcut hhor hawake hx ⊢
+    exact deliveryPrefix.broadcast_emitted v hv o t he w hw a hta ha had hcut hhor hawake hx
   relay_accepted := by
-    intro v _ i o t ha w _ hp
-    have hvw : v = w := Subsingleton.elim _ _
-    subst w
-    rw [ha.2.2] at hp
-    contradiction
+    intro v hv i o t he w hw a hta ha had hcut hhor hawake hx
+    have hm : max a E.t_GST = a := max_eq_left ha
+    dsimp only at had hcut hhor hawake hx ⊢
+    rw [hm] at had hcut hhor hawake hx ⊢
+    exact deliveryPrefix.relay_accepted v hv i o t he w hw a hta ha had hcut hhor hawake hx
 
-/-- Every field of the continuation premise holds, in both modes, through full
-honest sleep on [b₀,b₁) = [8,13). -/
-theorem outageContinuation_inhabited_sleep (fast : Bool) :
-    OutageContinuationPrem p unitCodec fast E rho 4 8 13 3 where
+private theorem joined (v : Fin 1) (t : Time) (ht : t < 15 ∨ 20 ≤ t) :
+    joinedAt p E rho v (slotAt p t) t := by
+  have hbound (h16 : 16 ≤ t) : 16 ≤ slotStartZ p ((slotAt p t : Int) - 1) := by
+    have h20 : 20 ≤ t := by simp only [Time] at *; omega
+    have hd : 5 ≤ t / 4 := by simp only [Time] at *; omega
+    change 16 ≤ 4 * (((t / 4).toNat : Int) - 1)
+    simp only [Time] at *; omega
+  refine ⟨?_, ?_, ?_⟩
+  · exact decide_eq_true (by simp only [Time] at *; omega)
+  · intro u _ hut hw
+    rw [wake_eq hw] at hut ⊢
+    exact hbound hut
+  · intro u _ hut he
+    rw [restart_time he] at hut ⊢
+    exact hbound hut
+
+private theorem joined_card (t : Time) (ht : t < 15 ∨ 20 ≤ t) :
+    (joinedHonest p E rho t).card = 1 := by
+  classical
+  rw [joinedHonest, Finset.filter_true_of_mem (fun v _ => joined v t ht)]
+  rfl
+
+private theorem covered (fast : Bool) (v : Fin 1) :
+    v ∈ coveredNodes p E rho fast 12 := by
+  have hslow : slowCoveredSchedule p E rho v (coverLabel p 12) := by
+    refine ⟨by decide, ?_, ?_⟩
+    · intro t _ _ hh
+      exact decide_eq_true (Or.inl (by change t ≤ 14 at hh; simp only [Time] at *; omega))
+    · intro u _ hu he
+      rw [restart_time he] at hu
+      change (16 : Int) ≤ 14 at hu
+      simp only [Time] at *; omega
+  have hfast : fastCoveredSchedule p E rho v (coverLabel p 12) := by
+    exact joined v 14 (Or.inl (by decide))
+  classical
+  cases fast
+  · exact Finset.mem_filter.mpr ⟨Finset.mem_univ _, hslow⟩
+  · exact Finset.mem_filter.mpr ⟨Finset.mem_univ _, hfast⟩
+
+private theorem bad_empty (fast : Bool) : outageW p E rho fast 12 5 = ∅ := by
+  classical
+  apply Finset.eq_empty_iff_forall_notMem.mpr
+  intro v hv
+  exact (Finset.mem_filter.mp hv).2.1 (covered fast v)
+
+private theorem sleepy_bad_card (t : Time) :
+    (sleepyBad p E rho t).card ≤ 1 := Finset.card_le_univ _
+
+/-- Every field of the continuation premise holds, in both modes, with
+a sleep and wake within [b₀,b₁) = [12,18). -/
+private theorem continuation_legacy (fast : Bool) :
+    OutageContinuationPrem p unitCodec fast E rho 4 12 18 3 where
   pre := ⟨base, ⟨by decide, by decide⟩, healthy_cut (by decide), by decide, by
     intro t _ ht
-    rw [awake_card (Or.inl ht), faulty_card]
+    rw [awake_card (t := t) (Or.inl (by simp only [Time] at *; omega)), faulty_card]
     decide⟩
   sleepy := by
     intro t _ ht
     have h1 := Finset.card_le_univ (awakeHonestIn E rho (t - p.η) t ∪ Gen.V2.Duty.faulty rho)
     rw [Fintype.card_fin] at h1
-    rw [awake_card (Or.inl ht)]
-    omega
+    rw [awake_card (t := t) (Or.inl (by simp only [Time] at *; omega))]
+    simp only [Time] at *; omega
   order := by decide
   lag := by cases fast <;> decide
-  -- (V) at equality: b₁ is the vote time of the restored label j + K = 3.
-  lengthV := (outageV_iff_vote_bound p 8 13 (by decide)).mpr (by decide)
+  -- The restored vote at 21 follows the restart at 16 and the join cutoff at 16.
+  lengthV := (outageV_iff_vote_bound p 12 18 (by decide)).mpr (by decide)
   fastPart := by
     intro _ t _ ht
-    rw [awake_card (Or.inl ht)]
+    rw [awake_card (t := t) (Or.inl (by simp only [Time] at *; omega))]
     decide
   sync := sync
   gst := by decide
   partAfter := by
     intro t ht _
-    rw [awake_card (Or.inr ht), faulty_card]
+    rw [awake_card (t := t) (Or.inr (by simp only [Time] at *; omega)), faulty_card]
     decide
+
+/-- The same public continuation claim has a valid sleep premise in both modes. -/
+theorem outageContinuation_inhabited_sleep (fast : Bool) :
+    OutageContinuationSleepPrem p unitCodec fast E rho 4 12 18 3 where
+  toOutageContinuationPrem := continuation_legacy fast
+  sleepPre := ⟨(continuation_legacy fast).pre, by
+    intro t _ ht
+    rw [joined_card t (Or.inl (by simp only [Time] at *; omega)), faulty_card]
+    decide⟩
+  joinedSleepy := by
+    intro t _ ht
+    have hc := sleepy_bad_card t
+    rw [joined_card t (Or.inl (by simp only [Time] at *; omega))]
+    simp only [Time] at *; omega
+  joinedFastPart := by
+    intro _ t _ ht
+    rw [joined_card t (Or.inl (by simp only [Time] at *; omega))]
+    decide
+  protection := by
+    refine ⟨5, ?_, ?_⟩
+    · intro s
+      change (18 : Int) ≤ 4 * (s : Int) + 1 ↔ 5 ≤ s
+      simp only [Slot] at *
+      omega
+    · intro s hs _
+      change 5 ≤ s at hs
+      have hv : 20 ≤ SA.voteTime p.toParams s := by
+        change 20 ≤ 4 * (s : Int) + 1
+        simp only [Slot] at *
+        omega
+      rw [bad_empty fast, Finset.union_empty, Finset.sdiff_empty]
+      change (Gen.V2.Duty.faulty rho).card <
+        (joinedHonest p E rho (SA.voteTime p.toParams s)).card
+      rw [faulty_card, joined_card _ (Or.inr hv)]
+      decide
+  joinedPartAfter := by
+    intro t ht _
+    have hEnd : OutageEnd p (restoredLabel p 18) = 37 := by decide
+    have ht33 : 33 ≤ t := by rw [hEnd] at ht; simp only [Time] at *; omega
+    rw [faulty_card, joined_card t (Or.inr (by simp only [Time] at *; omega))]
+    decide
+  sleepyAfter := by
+    intro t ht _
+    have hEnd : OutageEnd p (restoredLabel p 18) = 37 := by decide
+    have ht33 : 33 ≤ t := by rw [hEnd] at ht; simp only [Time] at *; omega
+    have hc := sleepy_bad_card t
+    rw [joined_card t (Or.inr (by simp only [Time] at *; omega))]
+    simp only [Time] at *; omega
 
 /-- The old Outage₂ budget fails for these endpoints, so only the continuation
 claim covers this run. -/
-theorem old_budget_fails : ¬ ((13 : Time) - 8 ≤ min p.η (L p)) := by decide
+theorem old_budget_fails : ¬ ((18 : Time) - 12 ≤ min p.η (L p)) := by decide
 
-theorem not_outage₂ (fast : Bool) : ¬ Outage₂ p unitCodec fast E rho 4 8 13 3 :=
+theorem not_outage₂ (fast : Bool) : ¬ Outage₂ p unitCodec fast E rho 4 12 18 3 :=
   fun h => old_budget_fails h.budget
 
 #print axioms outageContinuation_inhabited_sleep
+#print axioms sleep_valid
+#print axioms restarts
+#print axioms joined
+#print axioms delay_receiptRoots
 #print axioms all_asleep
 #print axioms not_outage₂
 

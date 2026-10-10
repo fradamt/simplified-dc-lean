@@ -156,10 +156,6 @@ theorem wcg_sourceJoinCut {w : HealingWitness} (h : H0 p c E rho w) :
 /-- All finite seed fields come from continuation producers at its own index. -/
 theorem wcg_finiteSeed (hb : Base₂ p c E rho)
     (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (i : Nat) :
     WCFiniteFacts p c E rho i := by
   have hsch := hb.valid.toScheduleWellFormed
@@ -174,7 +170,7 @@ theorem wcg_finiteSeed (hb : Base₂ p c E rho)
       intro k w C hjk hki hEnabled
       exact hlast k w C hjk hki hEnabled.1
         (by rw [clockPre_joined]; exact fgsa_gate_joined_of_enabled E rho hEnabled))
-    hfast
+    (fgsa_leaseOrigins_fastWrites_epoch p c E rho hsch)
     (fgsa_leaseOrigins_ancestorDeadlines p c E rho) i
 
 private def seed_headAtIdx (p : Params) {In : Type} (c : AppCodec In)
@@ -344,15 +340,11 @@ theorem wcg_heightSeed_of_finite {G ΔF : Time} {w : HealingWitness}
 /-- The source seed consumes the family's finite-facts producer. -/
 theorem wcg_heightSeed {G ΔF : Time} {w : HealingWitness}
     (hS : StrongRecoverySearchPrefix₂ p c E rho G ΔF)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (hinput : HealingInput p c E rho w ΔF) (hend : tstar p w < rho.horizon) :
     let i := afterTicksIdx rho (tstar p w)
     BoundedHealingCut₂ p c E rho w.u w.QStar i ΔF ∧ WCSeed p c E rho w i :=
   wcg_heightSeed_of_finite hS hinput hend
-    (wcg_finiteSeed hS.base (fgsa_faultQ_of_count p hS.fault) hfast)
+    (wcg_finiteSeed hS.base (fgsa_faultQ_of_count p hS.fault))
 
 /-- Keep the selected source join cutoff with the seed before any continuation. -/
 theorem wcg_sourceWitness_joined (hH : HTimeClaim p) {G ΔF : Time}
@@ -376,16 +368,13 @@ theorem wcg_sourceWitness_joined (hH : HTimeClaim p) {G ΔF : Time}
 theorem wcg_sourceWitness (hH : HTimeClaim p) {G ΔF : Time}
     (hδ : p.δt = 2 * p.R)
     (hS : StrongRecoverySearchPrefix₂ p c E rho G ΔF)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X) :
+ :
     ∃ w : HealingWitness,
       BoundedHealingCut₂ p c E rho w.u w.QStar
         (afterTicksIdx rho (SA.gateTime p.toParams w.u)) ΔF ∧
       WCSeed p c E rho w (afterTicksIdx rho (SA.gateTime p.toParams w.u)) := by
   obtain ⟨w, hcut, hseed, _⟩ := wcg_sourceWitness_joined hH hδ hS
-    (wcg_finiteSeed hS.base (fgsa_faultQ_of_count p hS.fault) hfast)
+    (wcg_finiteSeed hS.base (fgsa_faultQ_of_count p hS.fault))
   exact ⟨w, hcut, hseed⟩
 
 /-- Replay all seed fields for a continuation with a nonempty suffix. -/
@@ -446,15 +435,11 @@ theorem wcg_retainedSeed {E₀ : Generic.Env V}
     {source : V2.D.Run V (fgsa p c)} {G ΔF : Time} {w : HealingWitness} {iSource : Nat}
     (hS : StrongRecoverySearchPrefix₂ p c E₀ source G ΔF)
     (hc : CleanGrowthContinuationSleep₂ p c E₀ source E rho ΔF)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (hne : source.horizon < rho.horizon) (hs : WCSeed p c E₀ source w iSource)
     (hend : SA.gateTime p.toParams w.u ≤ source.horizon) :
     WCSeed p c E rho w (afterTicksIdx rho (SA.gateTime p.toParams w.u)) :=
   wcg_retainedSeed_of_finite hS hc hne hs hend
-    (wcg_finiteSeed hc.base (wcg_suffix_faultQ hc hne) hfast)
+    (wcg_finiteSeed hc.base (wcg_suffix_faultQ hc hne))
 
 end AvailableChain.FGSA.Run
 end

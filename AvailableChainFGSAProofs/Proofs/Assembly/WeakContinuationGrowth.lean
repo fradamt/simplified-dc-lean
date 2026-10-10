@@ -1062,10 +1062,6 @@ theorem wcg_dischargeL {ΔF : Time} {w : HealingWitness} {Result : Prop}
     (haccountable : FinalitySlashableBound p c E rho)
     (hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
       (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (consume : ∀
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
@@ -1172,7 +1168,7 @@ theorem wcg_dischargeL {ΔF : Time} {w : HealingWitness} {Result : Prop}
     intro hn hc hg
     exact hlast k w C hjk hki hEnabled.1
       (by rw [clockPre_joined]; exact fgsa_gate_joined_of_enabled E rho hEnabled) hn hc hg
-  · exact hfast
+  · exact fgsa_leaseOrigins_fastWrites_epoch p c E rho hs
   · exact fgsa_leaseOrigins_ancestorDeadlines p c E rho
   · exact held_chain_row_origin_before p c E rho hb.valid.toUnforgeableSignatures hs
   · exact wcg_scopedRowOrigins hb.valid
@@ -1190,13 +1186,9 @@ theorem wcg_liveOfSeed {ΔF : Time} {w : HealingWitness} {iStar : Nat}
     (ha : FinalitySlashableBound p c E rho)
     (hp : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
       (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (hs : WCSeed p c E rho w iStar) :
     WeakContinuationLiveAt₂ p c E rho w.u w.QStar iStar ΔF := by
-  apply wcg_dischargeL hb hsync hdeltaF hq ha hp hfast
+  apply wcg_dischargeL hb hsync hdeltaF hq ha hp
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfaultQ haccountable hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
@@ -1282,14 +1274,10 @@ theorem wcg_sourceParticipation {G ΔF : Time} {w : HealingWitness}
 theorem wcg_sourceLive {G ΔF : Time} {w : HealingWitness} {iSource : Nat}
     (hS : StrongRecoverySearchPrefix₂ p c E rho G ΔF)
     (hjoin : E.t_GST ≤ slotStartZ p (w.u : Int))
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (hseed : WCSeed p c E rho w iSource) :
     WeakContinuationLiveAt₂ p c E rho w.u w.QStar iSource ΔF :=
   wcg_liveOfSeed hS.base hS.sync hS.deltaF (fgsa_faultQ_of_count p hS.fault)
-    (source_accountable hS) (wcg_sourceParticipation hS hjoin) hfast hseed
+    (source_accountable hS) (wcg_sourceParticipation hS hjoin) hseed
 
 private theorem wcg_continuationParticipation {E₀ : Generic.Env V}
     {source : V2.D.Run V (fgsa p c)} {G ΔF : Time} {w : HealingWitness}
@@ -1354,15 +1342,11 @@ theorem wcg_nonemptyLive {E₀ : Generic.Env V}
     (hc : CleanGrowthContinuationSleep₂ p c E₀ source E rho ΔF)
     (hne : source.horizon < rho.horizon)
     (hjoin : E₀.t_GST ≤ slotStartZ p (w.u : Int))
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X)
     (hseed : WCSeed p c E rho w i) :
     WeakContinuationLiveAt₂ p c E rho w.u w.QStar i ΔF :=
   wcg_liveOfSeed hc.base hc.sync hc.deltaF (wcg_suffix_faultQ hc hne)
     hc.accountable (fun t ht hh => wcg_continuationParticipation hS hc hne hjoin t ht hh)
-    hfast hseed
+    hseed
 
 end AvailableChain.FGSA.Run
 
@@ -1377,16 +1361,12 @@ theorem wcg_emptyLive {G ΔF : Time} {w : HealingWitness} {iSource : Nat}
     (hS : StrongRecoverySearchPrefix₂ p c E source G ΔF)
     (hc : CleanGrowthContinuationSleep₂ p c E source E' rho ΔF)
     (hjoin : E.t_GST ≤ slotStartZ p (w.u : Int))
-    (hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E source i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree source x j i ∧ enabledGateAt p c E source j x s ∧
-        gatePassedAt p c E source j ∧ ∃ B, gateResultAt p c E source j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E source x s X)
     (hend : rho.horizon = source.horizon) (hseed : WCSeed p c E source w iSource)
     (hgate : SA.gateTime p.toParams w.u ≤ source.horizon) :
     WeakContinuationLiveAt₂ p c E' rho w.u w.QStar
       (afterTicksIdx rho (SA.gateTime p.toParams w.u)) ΔF := by
   apply wcg_dischargeL hS.base hS.sync hS.deltaF (fgsa_faultQ_of_count p hS.fault)
-    (source_accountable hS) (wcg_sourceParticipation hS hjoin) hfast
+    (source_accountable hS) (wcg_sourceParticipation hS hjoin)
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfaultQ haccountable hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
@@ -1411,7 +1391,7 @@ theorem wcg_emptyLive {G ΔF : Time} {w : HealingWitness} {iSource : Nat}
     exact wcg_gate_result_outputs hvalid.toScheduleWellFormed hseed
       (hinv _ ⟨hseed.within, le_rfl⟩) hr hgate (List.length_filter_le _ _) _ (by simp)
   apply wcg_empty_live_of_finalBelow hc.agrees hc.base hS.base.valid.toScheduleWellFormed
-    hend hseed hgate (wcg_sourceLive hS hjoin hfast hseed) hcache hcover
+    hend hseed hgate (wcg_sourceLive hS hjoin hseed) hcache hcover
   exact wcg_empty_finalBelow hc.agrees hvalid.toScheduleWellFormed
     hc.base.valid.toScheduleWellFormed hend hseed hinv hcache
     (wcg_finalityTargetEarlier hvalid hlinked hfaultQ

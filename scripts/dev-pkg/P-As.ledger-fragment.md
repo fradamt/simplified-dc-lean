@@ -84,3 +84,19 @@ STOP that fixture item; no invalid premise or public counterexample is supplied.
 Current counts: 44/66 targets GREEN; full map 504 GREEN and 24 EXPECTED-FAIL.
 Headers PASS; layers 72 inherited, zero new; GREEN exports zero unaccepted.
 Evidence: .lake/sleep-pas-r5/. Current requests: P-As.blocker-types.md / P-As.remaining.md.
+
+## Round 6 — FAST producer and valid outage sleep fixture
+
+Base: ef1b0e43. Full P-As remains OPEN; healing remains OUT OF SCOPE.
+FAST uses fgsa_leaseOrigins_fastWrites_epoch with each actual run's schedule.
+All WC/WCG assembly and test callers drop the explicit FAST obligation.
+Root keeps HTimeClaim explicit in its conditional callers and aggregate wrapper.
+The outage fixture now proves OutageContinuationSleepPrem in both modes: covering
+gate 14, sleep 15, phase-zero restart 16, restored vote 21, OutageEnd/horizon 37.
+The public claim is unchanged; the old outage budget still fails.
+P-Ou Round 8 supplies inclusion services, enabled gate scopes and Clean growth.
+Assembly/Outage consumes its growth producer; no hWitness/hInclusion callback remains.
+Exact Root and Clean exporter bodies pass strict audits. Their full modules stay OPEN
+through P-Ou continuation/Close and deferred healing imports. No new layer route is added.
+45/66 targets are GREEN; full map 505 GREEN and 23 EXPECTED-FAIL.
+Current obligations: P-As.blocker-types.md and P-As.remaining.md.
