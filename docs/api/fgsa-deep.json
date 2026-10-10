@@ -2711,7 +2711,7 @@
       "module": "AvailableChainFGSAClaims.Statements.Healed"
     },
     "AvailableChain.FGSA.Run.HTimeBestClaim": {
-      "digest": "77c628414ca5a375df7d31dc3ef5c5e452f90cfe0b01dae18f2a255dc6a4e2c6",
+      "digest": "f733ea1ae9af587a996d6a1a34b53539cae4c4ce6564ce75e55c1bad035af2ce",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
@@ -2726,17 +2726,17 @@
       "module": "AvailableChainFGSAClaims.Statements.HealedBest"
     },
     "AvailableChain.FGSA.Run.HTimeClaim": {
-      "digest": "bd588280641d5ae896792d4db73100c140f82b55bd6312d284679ce5ba833a5e",
+      "digest": "9e1b4f919f571b0749c375964e3045b520cee8d3bb00b0b9f9b7c58f49cd8fe4",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
     "AvailableChain.FGSA.Run.HTimeConcl": {
-      "digest": "7ded6f4800afd6bebe7cece2545282f4b0aa6ae49a24a2241502a7c4306a0ae3",
+      "digest": "b54b157b0c27372ca07bddf7ee983e09f69349b2457d8691c32f006e2444fe61",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
     "AvailableChain.FGSA.Run.HTimeSearchClaim": {
-      "digest": "de1ebab6dea2d1f18438fc1e7be7e1ed2b77f141b69859d514f0147f2da9be8c",
+      "digest": "9e194e56bd3f4f6381ba578ef7b98ca2f115ebf2e8ce685815f3a4867cbd4bf2",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
@@ -4806,12 +4806,12 @@
       "module": "AvailableChainFGSAClaims.Statements.ChannelProps"
     },
     "AvailableChain.FGSA.Run.ResetArrivalClaim": {
-      "digest": "d33ee58911833666698a63f1e82aaf6941cbbdb5098ba454b256c254a42e7161",
+      "digest": "4ddad2e108f9f13293069ea88bea30a6ae7e9dca7a168ec15b28feb48bcc3aac",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
     "AvailableChain.FGSA.Run.ResetArrivalConcl": {
-      "digest": "61a2f8aada991df38d17ff91d8746ae7f37c416d5f6c80020fc5325c9a128a6d",
+      "digest": "e2b19a0090b1ab3f18ba52f198691c160550434b1183aa2635038dcdc1e32b6b",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing"
     },
@@ -37923,10 +37923,12 @@
         "            AvailableChain.Gen.Pure.FinForm.holds",
         "                (AvailableChain.Gen.V2.Duty.HonestSlot rho",
         "                  (AvailableChain.FGSA.Run.fgsaInterface p c))",
-        "                p.R (AvailableChain.FGSA.Run.P p) p.Δ E.t_GST rho.horizon g",
+        "                p.R (AvailableChain.FGSA.Run.P p) p.Δ",
+        "                (AvailableChain.FGSA.Run.recoveryStart p E) rho.horizon g",
         "                AvailableChain.Gen.Pure.FinForm.recS →",
         "              Int.instLEInt.le",
-        "                  (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_bestF p ΔF G g))",
+        "                  (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                    (AvailableChain.FGSA.Run.B_bestF p ΔF G g))",
         "                  rho.horizon →",
         "                AvailableChain.FGSA.Run.HTimeBestConcl p c E rho G ΔF g"
       ],
@@ -37943,11 +37945,11 @@
         "AvailableChain.FGSA.Run.P",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.fgsaInterface",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.Gen.Pure.FinForm.holds",
         "AvailableChain.Gen.Pure.FinForm.recS",
         "AvailableChain.Gen.V2.Duty.HonestSlot",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.SA.Params.Δ",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
@@ -37967,7 +37969,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "657e6826dd3da43575600e8c73ddbe882c96a3c8514c37eff774ccf4560b1f35",
+      "digest": "5e87ad78d9b3a627280ca26d530ac9ffb8278b7f40c7127c35a8f021c653e78c",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run14:HTimeBestClaim",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing",
@@ -38121,7 +38123,8 @@
         "          (instHAdd.hAdd",
         "            (instHAdd.hAdd (p.actionTime w.rStar) (AvailableChain.FGSA.Run.Γ p G))",
         "            (instHMul.hMul 4 p.Δ))",
-        "          (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_HF p ΔF G))))"
+        "          (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "            (AvailableChain.FGSA.Run.B_HF p ΔF G))))"
       ],
       "dependencies": [
         "And",
@@ -38134,10 +38137,10 @@
         "AvailableChain.FGSA.Run.HealingWitness",
         "AvailableChain.FGSA.Run.HealingWitness.rStar",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.FGSA.Run.tstar",
         "AvailableChain.FGSA.Run.Γ",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.SA.Params.Δ",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
@@ -38156,7 +38159,7 @@
         "instHMul",
         "instOfNat"
       ],
-      "digest": "449c568d8e8a71e9e71ca35cdb753a0eae0db83543b4cfd4d2a989af2df4e70c",
+      "digest": "fe085a17ab851d127211fa72e8514501cb91d38f3ca126a38be84f9d41ca1d20",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run10:HTimeConcl",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing",
@@ -38184,9 +38187,11 @@
         "              AvailableChain.Gen.Pure.QualSearch",
         "                  (AvailableChain.Gen.V2.Duty.HonestSlot rho",
         "                    (AvailableChain.FGSA.Run.fgsaInterface p c))",
-        "                  p.R (AvailableChain.FGSA.Run.P p) p.Δ E.t_GST rho.horizon g →",
+        "                  p.R (AvailableChain.FGSA.Run.P p) p.Δ",
+        "                  (AvailableChain.FGSA.Run.recoveryStart p E) rho.horizon g →",
         "                Int.instLEInt.le",
-        "                    (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B_bestF p ΔF G g))",
+        "                    (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "                      (AvailableChain.FGSA.Run.B_bestF p ΔF G g))",
         "                    rho.horizon →",
         "                  AvailableChain.FGSA.Run.HTimeBestConcl p c E rho G ΔF g"
       ],
@@ -38203,10 +38208,10 @@
         "AvailableChain.FGSA.Run.P",
         "AvailableChain.FGSA.Run.fgsa",
         "AvailableChain.FGSA.Run.fgsaInterface",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.Gen.Pure.QualSearch",
         "AvailableChain.Gen.V2.Duty.HonestSlot",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.SA.Params.Δ",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
@@ -38227,7 +38232,7 @@
         "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "f7f773c20acc530a0b8284f2a393608983071b1398220008a37a4c0b1fa89d87",
+      "digest": "6248bd9274876d3784dc60bb97b725bab414ac52ee755eaf11ffcac7f9d2ebc8",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run16:HTimeSearchClaim",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing",
@@ -61694,7 +61699,8 @@
         "  Exists fun w =>",
         "    And (AvailableChain.FGSA.Run.H0Reset p c E rho w)",
         "      (Int.instLTInt.lt (p.actionTime w.rStar)",
-        "        (instHAdd.hAdd E.t_GST (AvailableChain.FGSA.Run.B'_resetF p ΔF G)))"
+        "        (instHAdd.hAdd (AvailableChain.FGSA.Run.recoveryStart p E)",
+        "          (AvailableChain.FGSA.Run.B'_resetF p ΔF G)))"
       ],
       "dependencies": [
         "And",
@@ -61706,8 +61712,8 @@
         "AvailableChain.FGSA.Run.HealingWitness",
         "AvailableChain.FGSA.Run.HealingWitness.rStar",
         "AvailableChain.FGSA.Run.fgsa",
+        "AvailableChain.FGSA.Run.recoveryStart",
         "AvailableChain.Generic.Env",
-        "AvailableChain.Generic.Env.t_GST",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "DecidableEq",
@@ -61718,7 +61724,7 @@
         "LT.lt",
         "instHAdd"
       ],
-      "digest": "471196e8829c1ddb10079b584444d7deb965070786ce7a384a7cbaade9cb0981",
+      "digest": "060f4cc2f42dc8ccf62957d19a44f6db04be5d23671d107b83b18dd3cde34322",
       "kernel_name": "str:2:67:str:2:53:str:2:38:str:2:12:anonymous:0:14:AvailableChain4:FGSA3:Run17:ResetArrivalConcl",
       "kind": "def",
       "module": "AvailableChainFGSAClaims.Claims.Healing",

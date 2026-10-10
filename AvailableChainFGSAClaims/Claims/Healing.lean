@@ -45,7 +45,7 @@ def HTimeConcl {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time) : Prop :=
   ∃ w, HealingInput p c E rho w ΔF ∧
     tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ ∧
-    p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_HF p ΔF G
+    p.actionTime w.rStar + Γ p G + 4 * p.Δ < recoveryStart p E + B_HF p ΔF G
 
 /-- HTimeClaim: chapter-21 service.
 DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
@@ -59,7 +59,7 @@ def HTimeClaim : Prop :=
 DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def ResetArrivalConcl {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time) : Prop :=
-  ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G
+  ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < recoveryStart p E + B'_resetF p ΔF G
 
 /-- ResetArrivalClaim: chapter-21 service.
 DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
@@ -114,8 +114,8 @@ def HTimeBestClaim : Prop :=
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
       Gen.Pure.FinForm.recS.holds (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
-        p.R (P p) p.Δ E.t_GST rho.horizon g →
-      E.t_GST + B_bestF p ΔF G g ≤ rho.horizon → HTimeBestConcl p c E rho G ΔF g
+        p.R (P p) p.Δ (recoveryStart p E) rho.horizon g →
+      recoveryStart p E + B_bestF p ΔF G g ≤ rho.horizon → HTimeBestConcl p c E rho G ΔF g
 
 /-- Qualified-search H-time (21:120–123, 3155–3158; 00:511, 521), P3 §4.6 D50.
 This is a companion (user ruling after the re-freeze); ΔF port of the S4.6c text.
@@ -128,8 +128,8 @@ def HTimeSearchClaim : Prop :=
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       1 ≤ g → HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
       Gen.Pure.QualSearch (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
-        p.R (P p) p.Δ E.t_GST rho.horizon g →
-      E.t_GST + B_bestF p ΔF G g ≤ rho.horizon → HTimeBestConcl p c E rho G ΔF g
+        p.R (P p) p.Δ (recoveryStart p E) rho.horizon g →
+      recoveryStart p E + B_bestF p ΔF G g ≤ rho.horizon → HTimeBestConcl p c E rho G ΔF g
 
 end AvailableChain.FGSA.Run
 end

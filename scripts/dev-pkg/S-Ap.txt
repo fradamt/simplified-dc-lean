@@ -1,7 +1,5 @@
-# S-Ap Round 2: DECISION P23-A and public fixture owner partition.
+# S-Ap Round 3: public suppliers and serial Foundations exports.
 [TARGETS]
-AvailableChainFGSAClaims.Claims.OutageContinuation
-AvailableChainFGSAProofs.Tests.P23Axioms
 AvailableChainFGCompose.Proofs.SafetyClient
 AvailableChainFGCompose.Proofs.SafetyMonotone
 AvailableChainFGCompose.Proofs.SafetyStore
@@ -12,12 +10,15 @@ AvailableChainFGCompose.Tests.Restart
 AvailableChainFGCompose.Tests.SafetyAxioms
 AvailableChainFGCompose.Tests.SafetyControls
 AvailableChainFGSAClaims.Claims.Foundations
+AvailableChainFGSAClaims.Claims.Healing
+AvailableChainFGSAClaims.Claims.OutageContinuation
 AvailableChainFGSAClaims.Claims.Shared
 AvailableChainFGSAClaims.FGSAClaims
 AvailableChainFGSAClaims.Statements.ChannelProps
 AvailableChainFGSAClaims.Statements.Channels
 AvailableChainFGSAClaims.Statements.ComposeNext
 AvailableChainFGSAClaims.Statements.ComposeStmt
+AvailableChainFGSAClaims.Statements.FinalityApi
 AvailableChainFGSAClaims.Statements.Fold
 AvailableChainFGSAClaims.Statements.FrameNext
 AvailableChainFGSAClaims.Statements.Healed
@@ -40,17 +41,41 @@ AvailableChainFGSAClaims.Statements.WeakContinuationLive
 AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
 AvailableChainFGSAClaims.Tests.Axioms
+AvailableChainFGSAClaims.Tests.FinalityGST
 AvailableChainFGSAClaims.Tests.FinalitySafety
+AvailableChainFGSAClaims.Tests.FinalityW
+AvailableChainFGSAClaims.Tests.HealedBest
 AvailableChainFGSAClaims.Tests.HealingW
 AvailableChainFGSAClaims.Tests.OutageAlignment
 AvailableChainFGSAClaims.Tests.Reads
 AvailableChainFGSAClaims.Tests.Regimes
+AvailableChainFGSAClaims.Tests.WeakContinuation
 AvailableChainFGSAInhabit.Tests.Axioms
 AvailableChainFGSAInhabit.Tests.WeakContinuationW1
 AvailableChainFGSAInhabit.Tests.WitnessPositive
 AvailableChainFGSAInhabit.WeakContinuationW1
 AvailableChainFGSAInhabit.WeakContinuationWitness
 AvailableChainFGSAInhabit.WitnessPositive
+AvailableChainFGSAProofs.Proofs.Foundations.Accountable
+AvailableChainFGSAProofs.Proofs.Foundations.Cap
+AvailableChainFGSAProofs.Proofs.Foundations.Carrier
+AvailableChainFGSAProofs.Proofs.Foundations.Certificates
+AvailableChainFGSAProofs.Proofs.Foundations.Client
+AvailableChainFGSAProofs.Proofs.Foundations.ClientOrigin
+AvailableChainFGSAProofs.Proofs.Foundations.Counts
+AvailableChainFGSAProofs.Proofs.Foundations.Crossing
+AvailableChainFGSAProofs.Proofs.Foundations.Export
+AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
+AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi
+AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety
+AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed
+AvailableChainFGSAProofs.Proofs.Foundations.Leases
+AvailableChainFGSAProofs.Proofs.Foundations.Reconcile
+AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+AvailableChainFGSAProofs.Proofs.Foundations.RowService
+AvailableChainFGSAProofs.Proofs.Foundations.Sources
+AvailableChainFGSAProofs.Proofs.Foundations.Store
+AvailableChainFGSAProofs.Proofs.Foundations.Timing
 AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
@@ -59,6 +84,7 @@ AvailableChainFGSAProofs.Statements.WeakContinuation
 AvailableChainFGSAProofs.Tests.Axioms
 AvailableChainFGSAProofs.Tests.FGSafety
 AvailableChainFGSAProofs.Tests.OutageContinuationInhabit
+AvailableChainFGSAProofs.Tests.P23Axioms
 AvailableChainFGSAProofs.Tests.RowPermission
 AvailableChainFGSAProofs.Tests.SharedAxioms
 AvailableChainFGSARun
@@ -98,11 +124,6 @@ AvailableChainFGSARun.Tests.ReceiptAlias
 AvailableChainFGSARun.Tests.ReceiptReady
 AvailableChainFGSARun.Tests.W3Axioms
 [GREEN]
-AvailableChainFGSAClaims.Claims.OutageContinuation
-AvailableChainFGSARun
-AvailableChainFGSARun.Tests.Axioms
-AvailableChainFGSAClaims.Tests.FinalitySafety
-AvailableChainFGSAProofs.Tests.P23Axioms
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -271,6 +292,8 @@ AvailableChainFGSA.Tests.WindowSelection
 AvailableChainFGSA.Tests.WindowStore
 AvailableChainFGSA.Tests.WindowViews
 AvailableChainFGSAClaims.Claims.Foundations
+AvailableChainFGSAClaims.Claims.Healing
+AvailableChainFGSAClaims.Claims.OutageContinuation
 AvailableChainFGSAClaims.Claims.Shared
 AvailableChainFGSAClaims.FGSAClaims
 AvailableChainFGSAClaims.Statements.Bounds
@@ -280,6 +303,7 @@ AvailableChainFGSAClaims.Statements.Channels
 AvailableChainFGSAClaims.Statements.ComposeNext
 AvailableChainFGSAClaims.Statements.ComposeStmt
 AvailableChainFGSAClaims.Statements.Counts
+AvailableChainFGSAClaims.Statements.FinalityApi
 AvailableChainFGSAClaims.Statements.Fold
 AvailableChainFGSAClaims.Statements.FrameNext
 AvailableChainFGSAClaims.Statements.Healed
@@ -303,20 +327,48 @@ AvailableChainFGSAClaims.Statements.WeakContinuationLive
 AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
 AvailableChainFGSAClaims.Tests.Axioms
+AvailableChainFGSAClaims.Tests.FinalitySafety
 AvailableChainFGSAClaims.Tests.Reads
+AvailableChainFGSAProofs.Proofs.Foundations.Accountable
+AvailableChainFGSAProofs.Proofs.Foundations.Cap
+AvailableChainFGSAProofs.Proofs.Foundations.Carrier
+AvailableChainFGSAProofs.Proofs.Foundations.Certificates
+AvailableChainFGSAProofs.Proofs.Foundations.Client
+AvailableChainFGSAProofs.Proofs.Foundations.ClientOrigin
+AvailableChainFGSAProofs.Proofs.Foundations.Counts
+AvailableChainFGSAProofs.Proofs.Foundations.Crossing
+AvailableChainFGSAProofs.Proofs.Foundations.Export
+AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
+AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi
+AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety
+AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed
+AvailableChainFGSAProofs.Proofs.Foundations.Leases
+AvailableChainFGSAProofs.Proofs.Foundations.Reconcile
+AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+AvailableChainFGSAProofs.Proofs.Foundations.RowService
+AvailableChainFGSAProofs.Proofs.Foundations.Sources
+AvailableChainFGSAProofs.Proofs.Foundations.Store
+AvailableChainFGSAProofs.Proofs.Foundations.Timing
 AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+AvailableChainFGSAProofs.Proofs.Shared.Channels
 AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
 AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
 AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
+AvailableChainFGSAProofs.Proofs.Shared.Reads
 AvailableChainFGSAProofs.Proofs.Shared.Recurrence
 AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore
+AvailableChainFGSAProofs.Proofs.Shared.Roots
 AvailableChainFGSAProofs.Proofs.Shared.RowAuth
+AvailableChainFGSAProofs.Proofs.Shared.RowReads
+AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces
 AvailableChainFGSAProofs.Statements.WeakContinuation
+AvailableChainFGSAProofs.Tests.P23Axioms
 AvailableChainFGSAProofs.Tests.SharedAxioms
+AvailableChainFGSARun
 AvailableChainFGSARun.Model.Families
 AvailableChainFGSARun.Model.HealingFixture
 AvailableChainFGSARun.Model.Protocol
@@ -374,6 +426,7 @@ AvailableChainFGSARun.Statements.Roots
 AvailableChainFGSARun.Statements.Slashing
 AvailableChainFGSARun.TestSupport.EmissionFreshness
 AvailableChainFGSARun.TestSupport.Sleep
+AvailableChainFGSARun.Tests.Axioms
 AvailableChainFGSARun.Tests.DigestScope
 AvailableChainFGSARun.Tests.EmissionFreshness
 AvailableChainFGSARun.Tests.FGSource
@@ -543,9 +596,13 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
+AvailableChainFGSAClaims.Tests.FinalityGST P-Fi
+AvailableChainFGSAClaims.Tests.FinalityW P-Fi
+AvailableChainFGSAClaims.Tests.HealedBest P-H1
 AvailableChainFGSAClaims.Tests.HealingW P-Fx
 AvailableChainFGSAClaims.Tests.OutageAlignment P-Ou
 AvailableChainFGSAClaims.Tests.Regimes P-Fx
+AvailableChainFGSAClaims.Tests.WeakContinuation P-WC
 AvailableChainFGSAInhabit.Tests.Axioms P-As
 AvailableChainFGSAInhabit.Tests.WeakContinuationW1 P-As
 AvailableChainFGSAInhabit.Tests.WitnessPositive P-As
@@ -553,7 +610,6 @@ AvailableChainFGSAInhabit.WeakContinuationW1 P-As
 AvailableChainFGSAInhabit.WeakContinuationWitness P-Fx
 AvailableChainFGSAInhabit.WitnessPositive P-As
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Channels P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Compose P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Count P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.ExactHead P-ShA
@@ -576,7 +632,6 @@ AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.ProposalRead P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Reads P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Relay P-ShA
@@ -590,12 +645,9 @@ AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.RetainedScores P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Roots P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RowReads P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.SameLabel P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.ScoreRun P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.StoreRun P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal P-ShA
 AvailableChainFGSAProofs.Tests.Axioms P-As
 AvailableChainFGSAProofs.Tests.FGSafety P-Sa

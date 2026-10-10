@@ -2509,3 +2509,42 @@ D013/D014 and the claim aggregate compile with --wfail (3.47 s).
 The claims inventory and auxiliary API writers stop on the inherited missing
 Claims.Tests.Axioms artifact; their source scopes are unchanged.
 FGSA shallow/deep regeneration PASS (238.12 s, 1,357 roots).
+
+## S-Ap Round 3 — remaining public wrappers
+
+P8 D034/D037/D048: HTimeConcl, ResetArrivalConcl, HTimeBestClaim, and
+HTimeSearchClaim now use the exact approved recoveryStart bounds and search
+origins. Their numerical budgets do not change. These supply P-H1's public route.
+
+Serial P-Fd fragment: fgsa_fgFoundationClaim uses the durable/epoch companions
+and RMonoAll; fgsa_rowServiceBaseClaim passes the approved awake suffix;
+fgsa_rowServiceClaim uses fgsa_tRows_recovery with toRecovery₂; the new P21(a)
+fgsa_finalizedMonotonicityRestartClaim exports its compiled Foundations body.
+All four wrappers have local strict audit commands. No family proof is replaced.
+
+The anonymous kernel adapter example in Claims.Tests.Axioms now takes an
+explicit Recovery₂-to-RecoverySleep₂ supplier. P-Fi must prove that supplier;
+the example checks only the composition with its new AC interface. No public
+claim, KernelPrem_W, or KernelJoinedPrem changes. The attempted move to
+FinalityW was discarded because CLAIM-USE forbids that import. No layer
+exception is added. The two best/search audit examples use the approved τ
+premises. Observed inherited fixture failures have family owners in S-Ap's map.
+
+P-Fi's eight approved public changes are already present. P-Ar's derived receipt
+claim type already exists. Neither report requests another S-Ap statement change.
+Their current receipt producers remain family proof obligations. P-Ou's other
+Claims.Outage replacements are prepared on sleep-pou; lead integration retains
+that package's work. D013/D014 are supplied in this branch.
+The serial Foundations wrappers compile. The final package --wfail build
+passes (3,675 jobs). Claims audit coverage regeneration keeps the existing
+814-entry key. Layer check: 72 accepted findings, zero new.
+The full claims inventory and auxiliary API writers now reach the inherited
+missing Tests.FinalityGST artifact. No failed family module is removed from
+the generators' scope, and no generated entry is edited by hand.
+Complete export check: all 471 GREEN roots, 279 proof modules, 253 exports,
+zero unaccepted; zero non-exposed Statements predicates (5.39 s). Complete
+coverage of the three changed audit sources also passes. DCK checks every
+GREEN audit with Lean. The broader source-parser coverage probe cannot resolve
+the inherited open-namespace command window_bit_add_of_row in WindowLiveness;
+that probe is not reported as a complete package coverage pass.
+Final FGSA shallow/deep regeneration PASS (243.60 s, 1,357 roots).
