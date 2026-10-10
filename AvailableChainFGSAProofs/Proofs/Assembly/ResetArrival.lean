@@ -32,9 +32,20 @@ theorem healing_reset_emittedName (p : Params) {In V : Type} [DecidableEq V]
   obtain rfl : e = e' := Option.some.inj (he.symm.trans he')
   exact ⟨C, G, hC, hh, hG, hCG, hf⟩
 
+/-- P-H1 supplies permanence for this sleep healing run. Foundations supply all run channels.
+Healing.Export must expose RecoveryPerm; that route is an exact P-H2 boundary request. -/
+theorem assembly_healing_tPerm_of_set (p : Params) {V : Type}
+    [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) : TPerm p c E rho := by
+  exact healing_tPerm_recovery E rho hset (fgsa_rMonoAll p c E rho)
+    (fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
+      (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures)
+    (fgsa_leaseOrigins_lastWrite p c E rho hset.base.valid.toScheduleWellFormed)
+
 /-- Blueprint 21 H.11:1572–1595; S5 J8 R2. Frozen ResetArrivalStatement.
 DC: INTENTIONAL row-delay bound; H0Reset and SA clocks unchanged.
-Named HG.5 input `hsearch` (all runs): producer healing_frontierSearch_of_set below;
+Named HG.5 input `hsearch` (all runs): exact P-H2 search obligation;
 reset_row and reset_first come from it. -/
 theorem healing_resetArrival (p : Params) (G ΔF : Time)
     (hsearch : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
@@ -47,42 +58,35 @@ theorem healing_resetArrival (p : Params) (G ΔF : Time)
     (healing_reset_emittedName p c E rho hset.base)
     hset hδ hbound (hsearch c E rho hset hbound) hhor
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.5, H.11:1695–1800; plan S5 HG5-BRIDGE (J8 review should-fix 2).
-DC: SAME HG.5 on every healing run. HealingSet supplies recovery; named producers
-discharge every standing port of healing_frontierSearch. -/
+/-- Blueprint 21 HG.5. P-H2 owns the bounded joined-start search producer.
+This adapter consumes its exact result, without an assumed service record. -/
 theorem healing_frontierSearch_of_set (p : Params) {V : Type} [DecidableEq V] [Fintype V]
     {In : Type} (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hset : HealingSet p c E rho G ΔF) :
-    FrontierSearchStatement p c E rho G ΔF := by
-  have faultQ := fgsa_faultQ_of_count p hset.fault
-  have mono := fgsa_rMono p c E rho
-  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
-    (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
-  have qc := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
-    (fgsa_rStore p c E rho)
-  have writes := fgsa_leaseOrigins_lastWrite p c E rho hset.base.valid.toScheduleWellFormed
-  have rowCoverage := rowPermission_covered E rho hset.base hset.fault
-  exact healing_frontierSearch E rho hset mono crossing
-    (fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ) qc
-    (healing_tRepair E rho hset mono crossing qc writes)
-    (healing_tCommon E rho hset mono crossing writes rowCoverage)
-    (healing_tPerm E rho hset mono crossing writes) writes rowCoverage
-    (fgsa_tRows_recovery p c E rho hset.toRecovery₂).receipt
-    (fgsa_batchCoverage p ΔF .progress c E rho)
-    (fgsa_foldTrichotomy_progress p) faultQ
-    (kmid_honest_quorum p c rho hset.base.linked hset.fault)
+    {G ΔF : Time} (_hset : HealingSet p c E rho G ΔF)
+    (hsearch : FrontierSearchStatement p c E rho G ΔF) :
+    FrontierSearchStatement p c E rho G ΔF := hsearch
 
+section SearchInput
+variable (search : ∀ (p : Params) (G ΔF : Time),
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+      FrontierSearchStatement p c E rho G ΔF)
+
+include search in
 /-- Blueprint 21 H.11:1572–1595; plan S5 HG5-BRIDGE. Frozen ResetArrivalStatement.
-DC: SAME R2 with the HG.5 producer; no named input remains. -/
+DC: SAME R2 with the exact P-H2 HG.5 request. -/
 theorem healing_resetArrivalStatement (p : Params) (G ΔF : Time) :
     ResetArrivalStatement p G ΔF :=
-  healing_resetArrival p G ΔF fun c E rho hset _ => healing_frontierSearch_of_set p c E rho hset
+  healing_resetArrival p G ΔF fun c E rho hset hbound =>
+    healing_frontierSearch_of_set p c E rho hset (search p G ΔF c E rho hset hbound)
 
+include search in
 /-- Blueprint 21 H.11:1572–1595; the reset-only claim from the frozen statement.
 DC: SAME reset-only conclusion; ResetArrivalPrem supplies the set, bound and horizon. -/
 theorem healing_resetArrivalClaim (p : Params) : ResetArrivalClaim p := by
   intro G ΔF hδ V _ _ In c E rho _ h
-  exact healing_resetArrivalStatement p G ΔF hδ c E rho h.set h.bound h.hhor
+  exact healing_resetArrivalStatement search p G ΔF hδ c E rho h.set h.bound h.hhor
 
 /-- ROOT-DIGEST W2b. Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2.
 DC: SAME cone step at every event cut. HealingSet supplies each run port. -/
@@ -163,7 +167,7 @@ variable (p : Params)
       HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
       PostResetRetainedCone p c E rho w)
 
-include stepRL stepLease stepRaw hcone
+include search stepRL stepLease stepRaw hcone
 
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W2.
 DC: SAME strict reset arrival. J7 changes only u and QStar for full H0.
@@ -174,7 +178,7 @@ theorem healing_resetArrivalFull_of_open (G ΔF : Time) :
   have hΓ := (fgsa_gamma_bounds p G).1
   have hG := hset.gapPos
   have hd := p.deltaPos
-  obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
+  obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement search p G ΔF hClock c E rho
     hset hbound (by linarith)
   have inv := healing_postReset_inv_of_open p c E rho hset h0r
     (stepRL c E rho hset h0r) (stepLease c E rho hset h0r)
@@ -187,7 +191,7 @@ theorem healing_resetArrivalFull_of_open (G ΔF : Time) :
   obtain ⟨u, Q, h0, _⟩ := healing_h0_of p c E rho hset carrier h0r (by linarith)
   exact ⟨{w with u := u, QStar := Q}, h0, harrival⟩
 
-omit stepRL stepLease stepRaw hcone in
+omit search stepRL stepLease stepRaw hcone in
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W3.
 DC: SAME statement under HealingTimePrem. The package supplies HealingSet,
 LivenessBoundW, and the healing horizon at the original G and ΔF. -/
@@ -203,7 +207,7 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
   apply healing_hTimeClaim_of_statement p
   intro G ΔF
   have timeBound := healing_timeBound_of_resetArrival p G ΔF
-    (healing_resetArrivalStatement p G ΔF)
+    (healing_resetArrivalStatement search p G ΔF)
   have hInput : HealingInputOfH0Statement p G ΔF := by
     apply healing_healingInputOfH0 p G ΔF
     case timeBound => exact timeBound
@@ -255,7 +259,7 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
         have hΓ := (fgsa_gamma_bounds p G).1
         have hG := hset.gapPos
         have hd := p.deltaPos
-        obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
+        obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement search p G ΔF hClock c E rho
           hset hbound (by linarith)
         have hr := healing_reset_rStar_unique p c E rho h0.toH0Reset h0r
         rw [hr] at ht
@@ -265,7 +269,7 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
         | exact h4
         | exact healing_healed p c E rho start h4 h3
   exact healing_hTime_of p G ΔF
-    (healing_resetArrivalFull_of_open p stepRL stepLease stepRaw hcone G ΔF) hInput
+    (healing_resetArrivalFull_of_open search p stepRL stepLease stepRaw hcone G ΔF) hInput
 
 end HTime
 
@@ -336,7 +340,7 @@ variable (p : Params)
       HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
       ∀ i, PostResetConeStep p c E rho w i)
 
-include stepRL stepLease stepRaw stepCone
+include search stepRL stepLease stepRaw stepCone
 
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3 W2.
 DC: SAME strict reset arrival. J7 changes only u and QStar for full H0.
@@ -347,7 +351,7 @@ theorem healing_resetArrivalFull_of_open₂ (G ΔF : Time) :
   have hΓ := (fgsa_gamma_bounds p G).1
   have hG := hset.gapPos
   have hd := p.deltaPos
-  obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
+  obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement search p G ΔF hClock c E rho
     hset hbound (by linarith)
   have inv := (healing_postReset_inv_cone_of_open₂ p c E rho hset h0r
     (stepRL c E rho hset h0r) (stepLease c E rho hset h0r)
@@ -368,7 +372,7 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
   apply healing_hTimeClaim_of_statement p
   intro G ΔF
   have timeBound := healing_timeBound_of_resetArrival p G ΔF
-    (healing_resetArrivalStatement p G ΔF)
+    (healing_resetArrivalStatement search p G ΔF)
   have hInput : HealingInputOfH0Statement p G ΔF := by
     apply healing_healingInputOfH0 p G ΔF
     case timeBound => exact timeBound
@@ -420,7 +424,7 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
         have hΓ := (fgsa_gamma_bounds p G).1
         have hG := hset.gapPos
         have hd := p.deltaPos
-        obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
+        obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement search p G ΔF hClock c E rho
           hset hbound (by linarith)
         have hr := healing_reset_rStar_unique p c E rho h0.toH0Reset h0r
         rw [hr] at ht
@@ -430,7 +434,7 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
         | exact h4
         | exact healing_healed p c E rho start h4 h3
   exact healing_hTime_of p G ΔF
-    (healing_resetArrivalFull_of_open₂ p stepRL stepLease stepRaw stepCone G ΔF) hInput
+    (healing_resetArrivalFull_of_open₂ search p stepRL stepLease stepRaw stepCone G ΔF) hInput
 
 
 omit stepCone in
@@ -438,7 +442,7 @@ omit stepCone in
 DC: SAME HTimeClaim with the cone step supplied by HealingSet.
 The three inputs keep the exact types from healing_hTimeClaim_of_open₂. -/
 theorem healing_hTimeClaim_of_steps : HTimeClaim p :=
-  healing_hTimeClaim_of_open₂ p stepRL stepLease stepRaw (healing_postReset_coneStep_of_set p)
+  healing_hTimeClaim_of_open₂ search p stepRL stepLease stepRaw (healing_postReset_coneStep_of_set p)
 
 end HTime₂
 
@@ -496,21 +500,24 @@ theorem healing_postReset_rawStep_of_set (p : Params) {V : Type}
     (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
     mono crossing origin h0r
 
+include search in
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H2.
-DC: SAME HTimeClaim. HealingSet supplies all three steps and the cone step. -/
+DC: SAME HTimeClaim. P-H2 supplies search; the all-cut family APIs remain open. -/
 theorem healing_hTimeClaim (p : Params) : HTimeClaim p :=
-  healing_hTimeClaim_of_steps p (healing_postReset_resetLeaseStep_of_set p)
+  healing_hTimeClaim_of_steps search p (healing_postReset_resetLeaseStep_of_set p)
     (healing_postReset_leaseStep_of_set p) (healing_postReset_rawStep_of_set p)
 
+include search in
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H2 all parameters.
-DC: SAME HTimeClaim for each Params value, with no other hypothesis. -/
-theorem healing_hTimeClaim_all : ∀ p, HTimeClaim p := healing_hTimeClaim
+DC: SAME HTimeClaim for each Params value, conditional on the P-H2 search factory. -/
+theorem healing_hTimeClaim_all : ∀ p, HTimeClaim p := healing_hTimeClaim search
 
+include search in
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H3.
 DC: SAME full reset arrival. HealingSet supplies each of the four steps. -/
 theorem healing_resetArrivalFull (p : Params) (G ΔF : Time) :
     ResetArrivalFullStatement p G ΔF :=
-  healing_resetArrivalFull_of_open₂ p (healing_postReset_resetLeaseStep_of_set p)
+  healing_resetArrivalFull_of_open₂ search p (healing_postReset_resetLeaseStep_of_set p)
     (healing_postReset_leaseStep_of_set p) (healing_postReset_rawStep_of_set p)
     (healing_postReset_coneStep_of_set p) G ΔF
 
@@ -558,6 +565,54 @@ theorem healing_healingInputClaim (p : Params) : HealingInputClaim p := by
     (healing_healT_of p c E rho high carrier
       (fgsa_tRows_recovery p c E rho hset.toRecovery₂))
     (healing_healAC_of p c E rho h2a h2p h3 h4 h5 h6)
+
+end SearchInput
+
+/-- Blueprint 21 H.18. P-H2 owns the full-H0 extension at this selected reset witness.
+It changes only u and QStar. The strict arrival bound therefore stays at Jst. -/
+theorem assembly_resetArrivalFull_of_extension (p : Params) (G ΔF : Time)
+    (hreset : ResetArrivalStatement p G ΔF)
+    (hextend : p.δt = 2 * p.R →
+      ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+      ∀ w, H0Reset p c E rho w →
+      p.actionTime w.rStar + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      ∃ u Q, H0 p c E rho {w with u := u, QStar := Q}) :
+    ResetArrivalFullStatement p G ΔF := by
+  intro hClock V _ _ In c E rho hset hbound hhor
+  have hΓ := (fgsa_gamma_bounds p G).1
+  have hG := hset.gapPos
+  have hd := p.deltaPos
+  obtain ⟨w, h0r, harrival⟩ := hreset hClock c E rho hset hbound (by linarith)
+  obtain ⟨u, Q, h0⟩ := hextend hClock c E rho hset hbound w h0r (by linarith)
+  exact ⟨{w with u := u, QStar := Q}, h0, harrival⟩
+
+/-- The statement adapter uses the unchanged HealingTimePrem and its Jst horizon. -/
+theorem assembly_hTimeClaim_of_statement (p : Params)
+    (hTime : ∀ G ΔF, HTimeStatement p G ΔF) : HTimeClaim p := by
+  intro G ΔF hClock V _ _ In c E rho pt h
+  exact hTime G ΔF hClock c E rho h.set h.bound h.hhor
+
+/-- Blueprint 21 H.18–H.22. P-H2 owns full reset and the selected full-H0 input.
+The generic time composition uses the same witness and the same joined start. -/
+theorem assembly_hTimeClaim_of_reset_input (p : Params)
+    (hReset : ∀ G ΔF, ResetArrivalFullStatement p G ΔF)
+    (hInput : ∀ G ΔF, HealingInputOfH0Statement p G ΔF) : HTimeClaim p :=
+  assembly_hTimeClaim_of_statement p fun G ΔF =>
+    healing_hTime_of p G ΔF (hReset G ΔF) (hInput G ΔF)
+
+/-- P-H2 supplies the selected full-H0 input at its local public horizon.
+The input needs no whole-run NoRestart or full reset budget. -/
+theorem assembly_healingInputClaim_of_input (p : Params)
+    (hInput : ∀ G ΔF, p.δt = 2 * p.R →
+      ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      HealingSet p c E rho G ΔF → LivenessBoundW p ΔF → ∀ w,
+      H0 p c E rho w → tstar p w ≤ rho.horizon → HealingInput p c E rho w ΔF) :
+    HealingInputClaim p := by
+  intro G ΔF hClock V _ _ In c E rho pt h
+  exact hInput G ΔF hClock c E rho h.set h.bound pt.w h.h0 h.hhor
 
 end AvailableChain.FGSA.Run
 end
