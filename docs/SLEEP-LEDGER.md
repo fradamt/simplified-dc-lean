@@ -4568,3 +4568,38 @@ Both full inductions and the handover at v(r+k+1) remain OPEN. Their tick
 and delivery cases need P-Ar origins/seeds and the regime-derived good
 targets, receipt service and all-honest result invariant. P-Ar files are
 unchanged; no producer is duplicated in this package.
+
+### P-Ou Round 3 — growth witness and exact Clean consumer ports
+
+clean_inclusion_gate_witness constructs one confirmed receiver at g(s)
+whose inclusive store contains the honest proposal. It first constructs
+the exact enabled gate, then proves that same-time deliveries keep the
+proposal: the Clean history bounds successor F below P. There is no global
+monotonicity or later-reader origin input.
+clean_growth_compatible_from_history combines this witness with the scoped
+public-output compatibility projection. It supplies the first growth input,
+with independent earlier and witness readers, once the Clean and local
+service inputs are produced. The production GrowthConsumer call is tested.
+
+outage_supplier_history now accepts the exact scoped P-Cl1 fields:
+confirmed gate readers for order, enabled nonempty gates, joined transfer
+readers, and current-epoch saved/fast rows with compatibility retention.
+Nonempty raw results supply their own confirmed-reader guards through the
+compiled inclusion_ordered_of_scoped adapter. Suppliers moves to GREEN.
+
+The mixed Outage/Export Clean consumers use these exact fields,
+InclusionReceiverInputs, guarded GateReceiptScope and scoped monotonicity.
+The later-read consumer keeps the exact P-Ou-owned gate-origin input.
+The actual mixed exporter build fails in P-Ar ArmingDuty/ArmingGate and
+P-As Shared/Claims. Its Clean wrapper edits are PREPARED and not counted
+as a compiled exporter. No private exporter copy is used.
+
+P-Cl1's clean_epoch_saved_row is present on the P-Ar round-3 base d60ff01d,
+in Clean/EpochSaved:15. It is absent on this bf0c024d-based work tree.
+The exact statement uses a receiver awake/epoch window from slotStartZ q
+to b0 and a strictly earlier Clean origin r < q. The lead must land that
+producer and the P-Ar closure here; this package does not copy them.
+
+Final map for this group: 36 TARGETS, 494 GREEN, 12 EXPECTED-FAIL
+(10 P-Ou, two S-Ap). Public closure remains OPEN. No public claim,
+checker, scope, exception, allowance, baseline or toolchain is changed.

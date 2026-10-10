@@ -7,6 +7,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceSleep
 public import AvailableChainFGSAProofs.Proofs.Outage.GateCount
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
+public import AvailableChainFGSAProofs.Proofs.Outage.Suppliers
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceRelease
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceHistory
@@ -117,3 +118,6 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
 #print axioms AvailableChain.FGSA.Run.outageV_gate_of_good_service
 #print axioms AvailableChain.FGSA.Run.outage_all_honest_late_gate_keys
 #print axioms AvailableChain.FGSA.Run.outage_joint_restart
+#print axioms AvailableChain.FGSA.Run.clean_inclusion_gate_witness
+#print axioms AvailableChain.FGSA.Run.clean_growth_compatible_from_history
+#print axioms AvailableChain.FGSA.Run.outage_supplier_history

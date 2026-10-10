@@ -12,7 +12,7 @@ namespace AvailableChain.FGSA.Run.Tests.InclusionExact
 
 open AvailableChain.SimplexFG
 
--- Delta = 1; two honest nodes; node 1 sleeps only at the slot-1 HEAD time.
+-- Schedule-only fixture: Delta = 1; node 1 sleeps at the slot-1 HEAD time.
 public abbrev params : Params :=
   ⟨⟨1, 2, 2, 0, by decide, by decide, by decide, by decide⟩,
     2, 0, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
@@ -124,7 +124,7 @@ public theorem asleep_silent : ∀ o, ¬ V2.D.Run.emits env run 1 o
     (SA.voteTime params.toParams 1) :=
   inclusion_sleep_silence env run 1 1 (Finset.mem_univ _) (by decide)
 
--- Sleep does not remove the scheduled tick or the deterministic reader.
+-- This schedule-only fixture includes a sleeping tick for deterministic read tests.
 example : .tick 1 (SA.voteTime params.toParams 1) ∈ run.events ∧
     env.awake 1 (SA.voteTime params.toParams 1) = false := by decide +kernel
 example : (Gen.V2.Duty.faulty run).card <

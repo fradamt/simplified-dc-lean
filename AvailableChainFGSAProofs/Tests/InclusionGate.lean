@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (examples)
+public import AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer -- shake: keep (examples)
 
 public section
 
@@ -137,6 +138,19 @@ example {x : V} (hx : confirmedReader p c E rho x rho.horizon) :
     hstrat) E rho ΔF hset hInputs hHistory hstore hframe hsrc hordered hnonempty
     htransfer hleases hrows pt hprop hhor hScopes hOrigins
   exact ⟨hi _ (by simp) _ x ⟨hhor, le_rfl⟩ hx, hi _ (by simp) _ x ⟨hhor, le_rfl⟩ hx⟩
+
+-- The growth supplier uses the inclusive gate witness for an earlier reader.
+example (hOutputs : ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
+      ScopedCompat (confirmedReader p c E rho) (fun t x => V2.D.outputAt E rho g x t)
+        (fun t => 0 ≤ t ∧ t ≤ rho.horizon))
+    {u : Time} {x : V} {g : V2.D.Output (fgsa p c)}
+    (hu : 0 ≤ u) (hus : u < V2.D.proposalTime (fgsaInterface p c) pt.s)
+    (hx : confirmedReader p c E rho x u)
+    (hg : g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed]) :
+    Block.Compatible (V2.D.outputAt E rho g x u) pt.P := by
+  have hWitness := clean_inclusion_gate_witness (hstrat := hstrat) E rho ΔF hset hInputs hHistory
+    hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hScopes
+  exact clean_growth_compatible_of_outputs E rho hset hOutputs hhor hWitness hu hus hx hg
 
 -- T31/T37: the counted receiver executes its own enabled gate and earlier vote.
 example (q : Slot) (hq : SA.gateTime p.toParams q ≤ rho.horizon) :

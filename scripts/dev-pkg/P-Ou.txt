@@ -534,6 +534,8 @@ AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
 AvailableChainFGSAProofs.Tests.InclusionExact
 AvailableChainFGSAProofs.Tests.InclusionGate
 
+AvailableChainFGSAProofs.Proofs.Outage.Suppliers
+
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.Outage.Close P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate P-Ou
@@ -543,7 +545,6 @@ AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.Export P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.Induction P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.Suppliers P-Ou
 AvailableChainFGSAProofs.Proofs.OutageContinuation.Export P-Ou
 AvailableChainFGSAProofs.Tests.OutageInduction P-Ou
 AvailableChainFGSARun S-Ap
