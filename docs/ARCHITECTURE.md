@@ -1278,3 +1278,10 @@ Only u and QStar change in the extension. The remaining arguments are named
 Foundation producers, row service and progress/finality laws. Healing.Export
 exposes these producers. Tests use producer modules and named Foundation leaves;
 there is no new test-to-Export or Healing-to-Foundations import.
+
+Round 9 validation: all original 114 P-H2 targets are GREEN; the map also includes
+one bounded support target. DCK strict audits and export checks pass. The full
+manifest passes the FG-SA, legacy, V2, generic and Compose snapshots. Its claim
+snapshot still needs the existing H1 test callers and P-As Assembly/NonVacuity
+ports. The exact files and arguments are in P-H2.round9-handoff.md. Full Root and
+full manifest acceptance are not claimed on this tree.
