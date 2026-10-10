@@ -189,15 +189,8 @@ private theorem lease_rows_clock (st : State p.n) (t : Time) (row : Block × Nat
             exact Or.inr ⟨s, B, htime, hs, hc, hg, hpre, hkey, hd⟩
   · exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
 
-private theorem lease_gate_label (s : Slot) :
-    ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat = s := by
-  have he : SA.gateTime p.toParams s - 6 * p.Δ = 4 * p.Δ * (s : Int) := by
-    change 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ = _
-    ring
-  have hDelta : (0 : Int) < p.Δ := p.deltaPos
-  rw [he, Int.mul_ediv_cancel_left _ (by omega), Int.toNat_natCast]
-
 private theorem lease_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho)
     {j : Nat} {x : V} {s : Slot} {B : Block}
     (ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
     (hGuard : enabledGateAt p c E rho j x s)
@@ -206,29 +199,11 @@ private theorem lease_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
       (actView (clockPre p (V2.D.Run.stateBefore E rho j x).st
         (SA.gateTime p.toParams s))) s = some B) :
     gateResultAt p c E rho j = some (some B) := by
-  classical
-  delta gateResultAt
-  rw [ht]
-  dsimp only
-  have htest := (isGateTime_iff p (SA.gateTime p.toParams s)).mpr ⟨s, rfl⟩
-  rw [htest, ite_eq_left rfl]
-  rw [lease_gate_label s]
-  have hpre : (clockPre p (storeAt p c E rho j x)
-      (SA.gateTime p.toParams s)).restartTime = (storeAt p c E rho j x).restartTime := by
-    unfold clockPre
-    dsimp only
-    split_ifs <;> rfl
-  have hb := hGuard.2
-  change (match (storeAt p c E rho j x).restartTime with
-    | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hb
-  split
-  · exact congrArg some hc
-  · rename_i hn
-    change ¬ (match (clockPre p (storeAt p c E rho j x)
-      (SA.gateTime p.toParams s)).restartTime with
-      | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hn
-    rw [hpre] at hn
-    exact (hn hb).elim
+  rw [gateResultAt_eq_gateResult p c E rho hs ht, gateResult_eq_saved p c E rho hs ht]
+  have hsaved := fgsa_gate_saved_result E rho hs ht
+    (fgsa_gate_joined_of_enabled E rho hGuard)
+  rw [clockPre_fg] at hc
+  exact hsaved.trans (congrArg some hc)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:689–699; plan H-SUPPORT §3.
@@ -345,25 +320,9 @@ theorem healing_fast_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   simp only [Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_true_eq] at hb
   obtain ⟨⟨_, hBh⟩, hτ⟩ := hb
   refine ⟨ix, h, hix, ?_, hBh, hτ⟩
-  rw [gateResult_def, gateIn_def, preTick_def, hix']
-  simp only [Option.map_some, Option.some.injEq]
-  rw [clockPre_fg]
-  have hpre : (clockPre p (storeAt p c E rho ix x)
-      (SA.gateTime p.toParams s)).restartTime = (storeAt p c E rho ix x).restartTime := by
-    unfold clockPre
-    dsimp only
-    split_ifs <;> rfl
-  have hb := (hGuard ix hix).2
-  change (match (storeAt p c E rho ix x).restartTime with
-    | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hb
-  split
-  · exact hconf
-  · rename_i hn
-    change ¬ (match (clockPre p (storeAt p c E rho ix x)
-      (SA.gateTime p.toParams s)).restartTime with
-      | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hn
-    rw [hpre] at hn
-    exact (hn hb).elim
+  rw [gateResult_eq_saved p c E rho hs hix]
+  exact (fgsa_gate_saved_result E rho hs hix
+    (fgsa_gate_joined_of_enabled E rho (hGuard ix hix))).trans (congrArg some hconf)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:689–715 (H.1 release, H.2 S1), IF.1, IF.6; plan H-SUPPORT §4 steps
@@ -479,7 +438,7 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
       (hcov w (by exact_mod_cast hw1) hwT) ht
       ((hScopes.gates w (by exact_mod_cast hw1) hwT).2 j y hy ht) hFw
     have hCC : C = C' := by
-      have h2 := lease_gate_result (c := c) E rho ht
+      have h2 := lease_gate_result (c := c) E rho hS ht
         ((hScopes.gates w (by exact_mod_cast hw1) hwT).2 j y hy ht).enabled hC'
       rw [hres] at h2
       exact Option.some.inj (Option.some.inj h2)

@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause -- shake: keep (D2 boundary tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (producer)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (producer)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (producer)
@@ -47,13 +47,14 @@ example (old : ∀ i K s B sB, SourceBefore p c E rho i K s →
 
 -- The corrected instance: the Foundations producers discharge every input under
 -- HealingSet. No loss occurs and all high sources are pairwise compatible.
-example [Fintype V] {G ΔF : Time} (h : HealingSet p c E rho G ΔF) :
+example [Fintype V] {G ΔF : Time} (h : HealingSet p c E rho G ΔF)
+    (hScopes : LossServiceScope p c E rho) :
     (∀ k K s, ¬ Lost p c E rho K s k) ∧
       ∀ i K K' s s', SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s' →
         muOf p c E rho + 1 ≤ (heightView p K).h → muOf p c E rho + 1 ≤ (heightView p K').h →
         Block.Compatible (eraseFG K) (eraseFG K') := by
   have hs := h.base.valid.toScheduleWellFormed
-  exact healing_high_source_compat p c E rho h (fgsa_rMono p c E rho)
+  exact healing_high_source_compat p c E rho h hScopes (fgsa_rMonoAll p c E rho)
     (fun ha => sourceDiscipline_emittedNonempty p c E rho ha)
     (emittedName_window p c E rho hs)
     (fgsa_leaseOrigins_lastWrite p c E rho hs)
@@ -62,15 +63,16 @@ example [Fintype V] {G ΔF : Time} (h : HealingSet p c E rho G ΔF) :
 
 -- Same-label high sources are compatible (IF.6 on the two genuine gate results).
 example [Fintype V] {G ΔF : Time} (h : HealingSet p c E rho G ΔF)
+    (hScopes : LossServiceScope p c E rho)
     {i : Nat} {K K' : FGBlock (Fin p.n)} {s : Slot}
     (hK : SourceBefore p c E rho i K s) (hK' : SourceBefore p c E rho i K' s)
     (hc : muOf p c E rho + 1 ≤ (heightView p K).h)
     (hc' : muOf p c E rho + 1 ≤ (heightView p K').h) :
     Block.Compatible (eraseFG K) (eraseFG K') := by
   have hs := h.base.valid.toScheduleWellFormed
-  exact healing_loss_same p c E rho h
+  exact healing_loss_same p c E rho h.toRecovery₂
     (fun ha => sourceDiscipline_emittedNonempty p c E rho ha)
-    (emittedName_window p c E rho hs) i K K' s hK hK' hc hc'
+    (emittedName_window p c E rho hs) hScopes.same i K K' s hK hK' hc hc'
 
 -- A source that votes before GST has height at most μ: it is never high.
 example (hs : V2.D.ScheduleWellFormed E rho)
@@ -92,7 +94,7 @@ example [Fintype V] {G ΔF : Time} (h : HealingSet p c E rho G ΔF)
     (hlt : sB < s) (hn : ¬ Block.Compatible (eraseFG B) (eraseFG K)) :
     ∃ k < i, Lost p c E rho B sB k := by
   have hs := h.base.valid.toScheduleWellFormed
-  exact healing_loss_support p c E rho h
+  exact healing_loss_support p c E rho h.toRecovery₂
     (fun ha => sourceDiscipline_emittedNonempty p c E rho ha)
     (emittedName_window p c E rho hs) i K s B sB hK hc hB hcB hlt hn
 

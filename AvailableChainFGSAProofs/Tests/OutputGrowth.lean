@@ -88,35 +88,23 @@ example (B : Block) :
 example [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
-    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho)
-    (hstrat : RStrat p c E rho)
-    (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
-      SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
-      gateResult p c E rho x r = some (some B) →
-      gateResult p c E rho y s = some (some C) →
-      (r < s → Block.Preceq B C) ∧ (r = s → Block.Compatible B C))
-    (hnonempty : ∀ j x s, j < timeIdx rho rho.horizon → x ∈ rho.honest →
-      IsGateTick p c rho j x s →
-      ∃ B, gateResultAt p c E rho j = some (some B) ∧ (s = 0 → B = .genesis))
-    (htransfer : ∀ x y s B H, x ∈ rho.honest → y ∈ rho.honest →
-      SA.gateTime p.toParams s ≤ rho.horizon → gateResult p c E rho x s = some (some B) →
-      vHead p c E rho y s = some H → Block.Preceq B H)
-    (hleases : ∀ i v, i ≤ timeIdx rho rho.horizon → v ∈ rho.honest →
-      ∀ row ∈ (storeAt p c E rho i v).base.obligations,
-        BelowLabel p c E rho i (labelBoundAt p c rho i) row.1)
-    (hrows : ∀ i j x r (a : RowWire p.n) e, i ≤ timeIdx rho rho.horizon → j < i →
-      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
-      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧ EntryBelow p e C ∧
-        BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
-    (hmono : Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length))
+    (hcompatible : ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
+      SA.gateTime p.toParams s ≤ rho.horizon →
+      ∀ u x g, 0 ≤ u → u < V2.D.proposalTime (fgsaInterface p c) s →
+        confirmedReader p c E rho x u →
+        g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed] →
+        Block.Compatible (V2.D.outputAt E rho g x u) B)
+    (hinclusion : ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
+      SA.gateTime p.toParams s ≤ rho.horizon →
+      ∀ u x g, SA.gateTime p.toParams s ≤ u → u ≤ rho.horizon →
+        confirmedReader p c E rho x u →
+        g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed] →
+        Block.Preceq B (V2.D.outputAt E rho g x u))
     (hrec : AwakeProposerRecurrenceFrom p c E rho 0 G)
     (hgap : 4 * p.Δ ≤ G) (t : Time) (ht : 0 ≤ t)
     (hhor : t + G + 6 * p.Δ ≤ rho.horizon) :
     AvailableGrowthConcl p c E rho t (t + G + 6 * p.Δ) := by
-  exact clean_growth_body (hstrat :=
-    hstrat) E rho G ΔF hset hstore hframe hsrc hordered hnonempty
-    htransfer hleases hrows hmono hrec hgap t ht hhor
+  exact clean_growth_body E rho G ΔF hset hcompatible hinclusion hrec hgap t ht hhor
 
 -- The conditional theorem has the exact frozen GST claim type.
 example (p : Params) (hH : HTimeClaim p) : AvailableGrowthGSTClaim p :=

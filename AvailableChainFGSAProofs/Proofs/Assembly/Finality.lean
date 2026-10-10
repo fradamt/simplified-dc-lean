@@ -110,7 +110,7 @@ private theorem finality_closed_suppliers (p : Params) : FinalitySuppliers p := 
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention, exact signed
 rows and actual receipt guards. Recovery₂ supplies every Foundations premise. -/
 theorem fgsa_finalityKernel_W (p : Params) : FinalityKernelClaim_W p := by
-  apply fgsa_finalityKernel_W_of p
+  apply fgsa_finalityKernel_W_of p (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
   · intro V _ _ In c E rho hv
     exact fgsa_tRowsSelect p c E rho hv
   · intro V _ _ In c E rho hv
@@ -152,9 +152,11 @@ theorem fgsa_finalityKernel_W (p : Params) : FinalityKernelClaim_W p := by
 
 /-- ROOT-DIGEST W2b. Paper 00:1119–1134, 22:1171–1305; plan §4: close the joined W kernel.
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention and receipt.
-Recovery₂ in the joined premise supplies every Foundations premise. -/
-theorem fgsa_finalityKernelJoined_W (p : Params) : FinalityKernelJoinedClaim_W p := by
+Recovery₂ supplies every Foundations premise and the cutoff-scoped TVote receipts. -/
+theorem fgsa_finalityKernelJoined_W (p : Params) :
+    FinalityKernelJoinedClaim_W p := by
   apply fgsa_finalityKernelJoined_W_of p
+    (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
   · intro V _ _ In c E rho hv
     exact fgsa_tRowsSelect p c E rho hv
   · intro V _ _ In c E rho hv
@@ -197,7 +199,7 @@ theorem fgsa_finalityKernelJoined_W (p : Params) : FinalityKernelJoinedClaim_W p
 /-- ROOT-DIGEST W2b. Paper 22:1985–2009 (FT-Tail-W): close every tail supplier from Recovery₂
 and HealingInput. DC: INTENTIONAL W Tail, with local receipt guards. -/
 theorem fgsa_tailKernel_W (p : Params) : TailKernelClaim_W p := by
-  apply fgsa_tailKernel_W_of p
+  apply fgsa_tailKernel_W_of p (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
   · intro V _ _ In c E rho G ΔF pt hT
     exact held_chain_row_origin_before p c E rho
       hT.set.base.valid.toUnforgeableSignatures hT.set.base.valid.toScheduleWellFormed
@@ -247,22 +249,25 @@ theorem fgsa_tailKernel_W (p : Params) : TailKernelClaim_W p := by
   · intro V _ _ In c E rho G ΔF pt hT
     exact fgsa_rMono p c E rho
   · intro V _ _ In c E rho G ΔF pt hT
-    exact fgsa_apiFinalLockClaim_body p c E rho () ⟨hT.set.base, hT.set.fault⟩
+    exact fgsa_rXing (hroots := hT.set.base.idealization) p c E rho hT.set.base.linked
+      hT.set.faultX_count_rec hT.set.base.valid.toUnforgeableSignatures
 
 /-- ROOT-DIGEST W2b. Paper 22:1371–1400; firstfin plan §5 C.
 DC-CS/W4FKChainSecondCheckpoint.lean:43:
-INTENTIONAL closed local W liveness. The same K-JOIN producers use Recovery₂
-from the local package; no additional premise is supplied. -/
+INTENTIONAL local W liveness. Recovery₂ supplies the K-JOIN producers
+and the TVote receipts at both public per-read GST cutoffs. -/
 theorem fgsa_finalityLivenessRecFE_W (p : Params) :
     FinalityLivenessRecFEClaim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  exact fgsa_finalityLivenessRecFE_W_of p sel origin batch qc crossing safety strat emitted cap
+  exact fgsa_finalityLivenessRecFE_W_of p
+    (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
+    sel origin batch qc crossing safety strat emitted cap
 
 /-- ROOT-DIGEST W2b. Paper 22:1371–1400; firstfin plan §5 C.
 DC-CS/W4FKChainSecondCheckpoint.lean:43:
-INTENTIONAL closed local W liveness. The same K-JOIN producers use Recovery₂
-from the local package; no additional premise is supplied. -/
+INTENTIONAL local W liveness. Recovery₂ supplies the K-JOIN producers
+and the TVote receipts at both public per-read GST cutoffs. -/
 theorem fgsa_finalityLivenessRecF4_W (p : Params) :
     FinalityLivenessRecF4Claim_W p := by
   intro G ΔF g w hδ V _ _ In c E rho pt h
@@ -272,21 +277,25 @@ theorem fgsa_finalityLivenessRecF4_W (p : Params) :
 
 /-- ROOT-DIGEST W2b. Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL closed specified proposal coverage with its proposal-relative deadline.
-The local package supplies the same Recovery₂ producers as local W liveness. -/
+Recovery₂ supplies the same producers and cutoff-scoped receipts as local W liveness. -/
 theorem fgsa_proposalFinalRecFE_W (p : Params) :
     ProposalFinalRecFEClaim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  exact fgsa_proposalFinalRecFE_W_of p sel origin batch qc crossing safety strat emitted cap
+  exact fgsa_proposalFinalRecFE_W_of p
+    (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
+    sel origin batch qc crossing safety strat emitted cap
 
 /-- ROOT-DIGEST W2b. Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL closed specified proposal coverage with its proposal-relative deadline.
-The local package supplies the same Recovery₂ producers as local W liveness. -/
+Recovery₂ supplies the same producers and cutoff-scoped receipts as local W liveness. -/
 theorem fgsa_proposalFinalRecF4_W (p : Params) :
     ProposalFinalRecF4Claim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  exact fgsa_proposalFinalRecF4_W_of p sel origin batch qc crossing safety strat emitted cap
+  exact fgsa_proposalFinalRecF4_W_of p
+    (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
+    sel origin batch qc crossing safety strat emitted cap
 
 end AvailableChain.FGSA.Run
 end
@@ -298,12 +307,14 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 /-- ROOT-DIGEST W2b. Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 Recovery supplies the same kernel producers; the package also supplies source discipline
-and timed held-row origin. No extra premise is required. -/
+and timed held-row origin. Recovery₂ supplies the cutoff-scoped TVote receipts. -/
 theorem fgsa_aboveFrontierRecFE_W (p : Params) :
     AboveFrontierRecFEClaim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  apply fgsa_aboveFrontierRecFE_W_of p sel origin batch qc crossing safety strat emitted cap
+  apply fgsa_aboveFrontierRecFE_W_of p
+    (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
+    sel origin batch qc crossing safety strat emitted cap
   · intro V _ _ In c E rho hb0 j x r a e ha he
     have hb := sourceDiscipline_base p c E rho (pt := ()) ⟨hb0⟩
     obtain ⟨e', C, _, hn, hsrc, hentry, _, _⟩ := hb.2.2 j x r a ha
@@ -315,12 +326,14 @@ theorem fgsa_aboveFrontierRecFE_W (p : Params) :
 /-- ROOT-DIGEST W2b. Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 Recovery supplies the same kernel producers; the package also supplies source discipline
-and timed held-row origin. No extra premise is required. -/
+and timed held-row origin. Recovery₂ supplies the cutoff-scoped TVote receipts. -/
 theorem fgsa_aboveFrontierRecF4_W (p : Params) :
     AboveFrontierRecF4Claim_W p := by
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_closed_suppliers p
-  apply fgsa_aboveFrontierRecF4_W_of p sel origin batch qc crossing safety strat emitted cap
+  apply fgsa_aboveFrontierRecF4_W_of p
+    (fun _ E rho D x => fgsa_target_service_genesis E rho D x)
+    sel origin batch qc crossing safety strat emitted cap
   · intro V _ _ In c E rho hb0 j x r a e ha he
     have hb := sourceDiscipline_base p c E rho (pt := ()) ⟨hb0⟩
     obtain ⟨e', C, _, hn, hsrc, hentry, _, _⟩ := hb.2.2 j x r a ha

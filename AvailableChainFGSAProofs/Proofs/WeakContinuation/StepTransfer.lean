@@ -90,7 +90,7 @@ theorem wc_retrospective : WCRetrospectiveStatement p c E rho ΔF w iStar := by
       rw [gateResultAt_eq_gateResult p c E rho hsch ht,
         gateResult_eq_saved p c E rho hsch ht, clockPre_fg]
       exact fgsa_gate_saved_result E rho hsch ht
-      (fgsa_gate_joined_of_enabled E rho (wc_gate_enabled_of_result hsch ht hB))
+        (fgsa_gate_joined_of_enabled E rho (wc_gate_enabled_of_result hsch ht hB))
     exact Option.some.inj (hh.symm.trans hB)
   let P := GridCO.cleanSupport p.toParams.engine src s
   let L := GridCO.lateVotes p.toParams.engine src s

@@ -30,8 +30,7 @@ theorem fgsa_renewedPromotionClaim : RenewedPromotionClaim p := by
         (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed))
     (hrowsReceipt := by
       intro V _ _ In c E rho G ΔF hrec
-      exact fgsa_tRowsReceipt p c E rho ΔF hrec.base.delta hrec.base.valid
-        hrec.base.noRestart hrec.sync hrec.deltaF)
+      exact (fgsa_tRows_recovery p c E rho hrec).receipt)
     (hprogressCoverage := fun ΔF => fgsa_batchCoverage p ΔF .progress)
     (hfold := fgsa_foldTrichotomy_progress p)
     (hfaultQ := by

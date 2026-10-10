@@ -38,15 +38,8 @@ private theorem slow_idx_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact absurd ht (ne_of_lt hlt)
   · exact absurd (fgsa_tick_time_strict E rho hs hb ha h) (not_lt.mpr hlt.le)
 
-private theorem slow_gate_label (s : Slot) :
-    ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat = s := by
-  have he : SA.gateTime p.toParams s - 6 * p.Δ = 4 * p.Δ * (s : Int) := by
-    change 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ = _
-    ring
-  have hDelta : (0 : Int) < p.Δ := p.deltaPos
-  rw [he, Int.mul_ediv_cancel_left _ (by omega), Int.toNat_natCast]
-
 private theorem slow_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho)
     {j : Nat} {x : V} {s : Slot} {B : Block}
     (ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
     (hGuard : enabledGateAt p c E rho j x s)
@@ -55,29 +48,11 @@ private theorem slow_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
       (actView (clockPre p (V2.D.Run.stateBefore E rho j x).st
         (SA.gateTime p.toParams s))) s = some B) :
     gateResultAt p c E rho j = some (some B) := by
-  classical
-  delta gateResultAt
-  rw [ht]
-  dsimp only
-  have htest := (isGateTime_iff p (SA.gateTime p.toParams s)).mpr ⟨s, rfl⟩
-  rw [htest, ite_eq_left rfl]
-  rw [slow_gate_label s]
-  have hpre : (clockPre p (storeAt p c E rho j x)
-      (SA.gateTime p.toParams s)).restartTime = (storeAt p c E rho j x).restartTime := by
-    unfold clockPre
-    dsimp only
-    split_ifs <;> rfl
-  have hb := hGuard.2
-  change (match (storeAt p c E rho j x).restartTime with
-    | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hb
-  split
-  · exact congrArg some hc
-  · rename_i hn
-    change ¬ (match (clockPre p (storeAt p c E rho j x)
-      (SA.gateTime p.toParams s)).restartTime with
-      | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hn
-    rw [hpre] at hn
-    exact (hn hb).elim
+  rw [gateResultAt_eq_gateResult p c E rho hs ht, gateResult_eq_saved p c E rho hs ht]
+  have hsaved := fgsa_gate_saved_result E rho hs ht
+    (fgsa_gate_joined_of_enabled E rho hGuard)
+  rw [clockPre_fg] at hc
+  exact hsaved.trans (congrArg some hc)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:689–699; plan H-SUPPORT §3.
@@ -487,7 +462,7 @@ theorem healing_slow_lease_at [Fintype V] (E : Generic.Env V)
       (hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT).1 (hwT.trans hTh)
       (hcov w hws hwT) ht ((hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT).2 j y hy ht) hFw
     have hDC : D = C' := by
-      have h2 := slow_gate_result (c := c) E rho ht
+      have h2 := slow_gate_result (c := c) E rho hS ht
         ((hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT).2 j y hy ht).enabled hC'
       rw [hres'] at h2
       exact Option.some.inj (Option.some.inj h2)

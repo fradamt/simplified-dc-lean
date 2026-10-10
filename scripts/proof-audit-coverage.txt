@@ -5007,6 +5007,7 @@
             'AvailableChain.FGSA.Run.fgsa_proposal_receipt_on',
             'AvailableChain.FGSA.Run.fgsa_restartTime_ge',
             'AvailableChain.FGSA.Run.fgsa_target_receipt_on',
+            'AvailableChain.FGSA.Run.fgsa_target_service_genesis',
             'AvailableChain.FGSA.Run.fgsa_target_service_of_proposal',
             'AvailableChain.FGSA.Run.fgsa_trigger_nonneg',
         ),
@@ -7118,3 +7119,11 @@
 
 # P-H1 Round 3 retained/source/moving-frame inventory: 269 local strict commands.
 # The serial fragment includes RepairHeadServices consumers and bounded FrontierReadScope.
+
+# P-H1 Round 3 reset/descent closure: 339 local strict commands.
+# The same full-key serial fragment registers all newly ported H1 consumers.
+# P-H1 Round 2: HealingSleepAxioms has 132 strict commands.
+# Complete local inventory: scripts/dev-pkg/P-H1.coverage-fragment.txt.
+# SupportRecovery is a new owned supplier under NEW-OWNED-MODULES.
+# Merge into the existing FGSAProofs.Tests.Axioms key at serial integration.
+

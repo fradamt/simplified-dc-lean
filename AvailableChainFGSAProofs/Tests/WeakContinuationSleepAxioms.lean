@@ -49,6 +49,32 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferRecei
 
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Seed
 
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrigins
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepFacts
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFacts
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepOutput
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepRestart
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepRestart
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepReconcile
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.FinalBelow
+
 public section
 
 open AvailableChain.FGSA.Run
@@ -251,3 +277,39 @@ open AvailableChain.FGSA.Run
 #print axioms AvailableChain.FGSA.Run.wcg_tickPassed
 #print axioms AvailableChain.FGSA.Run.wcg_rowSourceReplay
 #print axioms AvailableChain.FGSA.Run.wcg_actionReads
+
+#print axioms AvailableChain.FGSA.Run.wc_receiptOrigins
+
+#print axioms AvailableChain.FGSA.Run.wcg_receiptOrigins
+
+#print axioms AvailableChain.FGSA.Run.wc_finiteStep
+
+#print axioms AvailableChain.FGSA.Run.wc_reconcileBound
+
+#print axioms AvailableChain.FGSA.Run.wc_outputStep
+
+#print axioms AvailableChain.FGSA.Run.wc_finalBelow
+
+#print axioms AvailableChain.FGSA.Run.wcg_finiteStep
+
+#print axioms AvailableChain.FGSA.Run.wcg_finiteFacts
+
+#print axioms AvailableChain.FGSA.Run.wc_stepRestart
+
+#print axioms AvailableChain.FGSA.Run.wcg_stepRestart
+
+#print axioms AvailableChain.FGSA.Run.wc_historyMax
+
+#print axioms AvailableChain.FGSA.Run.wc_gateLabel_beforeVote
+
+#print axioms AvailableChain.FGSA.Run.wc_cut_le_laterTick
+
+#print axioms AvailableChain.FGSA.Run.wc_highSource_beforeVote
+
+#print axioms AvailableChain.FGSA.Run.wc_history_previousHeads
+
+#print axioms AvailableChain.FGSA.Run.wcg_outputStep
+
+#print axioms AvailableChain.FGSA.Run.wcg_reconcileBound
+
+#print axioms AvailableChain.FGSA.Run.wcg_finalBelow

@@ -90,6 +90,7 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
     (hbatch : ∀ z ∈ rho.honest, headAtLabel p c E rho z i = some B)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
+    (hScope : NextTransferScope E rho iy y i)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B)
     (row : Block × Nat × Time) (hbad : ¬ Block.Compatible row.1 B)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest) :
@@ -98,7 +99,6 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
         (SA.voteTime p.toParams (i + 1)))) i row.1 := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   let dst := FGSA.clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (i + 1))
@@ -114,6 +114,7 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
   have hawake := hrec.awake z hk _ hgsti hhori
   obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
+    (fgsa_head_joined_of_joinedAt E rho hS hjz (hScope.joined z hk))
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams i)) i
   have heQ : K = B := Option.some.inj (hhl.symm.trans (hbatch z hk))
@@ -123,86 +124,70 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
   have hKz : K ∈ (storeAt p c E rho jz z).base.blocks := by
     have hm := headVote_stored p _ hzinv i
     rwa [clock_base_blocks] at hm
-  have hKstz : GridCO.stampBlock (storeAt p c E rho jz z).base K < SA.earlyTime p.toParams i := by
-    have hnow : (V2.D.Run.stateBefore E rho jz z).st.base.now ≤ SA.voteTime p.toParams i := by
-      have h := V2.D.Engine.stateBefore_now_le_event_noRestart (fgsaClock p c) E rho hS hN hjz z
-      rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho jz z)] at h
-      exact h
-    refine lt_of_le_of_lt ((healing_block_stamp_le_now p c E rho hS hN hKz).trans hnow) ?_
-    change 4 * p.Δ * (i : Int) + p.Δ < 4 * p.Δ * (i : Int) + 2 * p.Δ
+  obtain ⟨Kfg, hKfg, hKe⟩ := ((cstoreInv_stateBefore E rho jz z).baseTree K).mp hKz
+  have hve : SA.voteTime p.toParams i + p.Δ = SA.earlyTime p.toParams i := by
+    change 4 * p.Δ * (i : Int) + p.Δ + p.Δ = 4 * p.Δ * (i : Int) + 2 * p.Δ
+    ring
+  have hService : TargetReceiptService E rho K (SA.earlyTime p.toParams i) y := by
+    rw [← hKe, ← hve]
+    exact hScope.carriers jz z hk hjz Kfg hKfg y hy
+  have hBase := fgsa_target_receipt_on E rho hS hrec.base.receiptIdealization K
+    (SA.earlyTime p.toParams i) y hy hService
+  obtain ⟨Y, hY, hYe⟩ := ((storeBundle_stateBeforeTime E rho _ y).cstore.baseTree K).mp hBase
+  have hef : SA.earlyTime p.toParams i ≤ SA.freezeTime p.toParams i := by
+    change 4 * p.Δ * (i : Int) + 2 * p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
     linarith
-  -- The HEAD block reaches y with strict stamps (per-block relay on [v_i, v_(i+1)]).
-  have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
-    hrec.sync (fgsaDelay_nonrow E.Δ _) hgsti (by rw [hDelta]; exact hvi) hvh
-  have hFK : Block.Preceq (eraseFG (((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
-      (SA.voteTime p.toParams (i + 1))).st).fg.F) K := by
-    change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho iy y) _).fg.F) K
-    rw [clock_fg]
-    exact Gen.Pure.block_preceq_trans hFB hBK
-  obtain ⟨Kfg, hKe', hpath⟩ := healing_block_path_sync (hroots := hrec.base.idealization)
-    p c E rho hE hN hDelta i hSync
-    hk hy hiy K hKz hKstz hFK
+  have hYf : Y ∈ (rho.stateBeforeTime E (SA.freezeTime p.toParams i) y).st.fg.TF := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hY ⊢
+    exact (fgsa_store_durable p c E rho (fgsa_idxBefore_mono rho hef) y).1 hY
+  have hEpoch : V2.D.restartFree rho y
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams i)) iy :=
+    hScope.epoch.mono (fgsa_idxBefore_mono rho (by rw [hve]; exact hef)) le_rfl
+  have hKe' := hYe
+  have hpath := healing_support_prefreeze_path_on E rho hS hiy hEpoch hYf
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hKb : K ∈ dst.base.blocks := by
     rw [← hKe']
-    exact (hinv.baseTree _).mpr ⟨Kfg, (hpath Kfg (KitFG.preceq_refl _)).1, rfl⟩
+    exact (hinv.baseTree _).mpr ⟨Y, (hpath Y (KitFG.preceq_refl _)).1, rfl⟩
   have hKst : GridCO.stampBlock dst.base K < SA.freezeTime p.toParams i := by
     rw [← hKe']
-    exact (hpath Kfg (KitFG.preceq_refl _)).2
+    exact (hpath Y (KitFG.preceq_refl _)).2
   -- The HEAD block has slot at most i.
   have hKslot : K.slot ≤ i := by
     have hb := (fgsa_stateBefore_bounds E rho hS jz z).1 K hKz
-    have hpos : 0 < SA.voteTime p.toParams i := by
-      change 0 < 4 * p.Δ * (i : Int) + p.Δ
-      positivity
-    have hn := fgsa_preTick_now_lt E rho hS hjz hpos
-    have hsl := Internal.slotOf_mono (p := p) (le_of_lt hn)
+    have hn := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hS hjz z
+    rw [fgsa_clock_now p c (rho.stateBefore E jz z)] at hn
+    have hsl := Internal.slotOf_mono (p := p) hn
     have he : p.slotOf (SA.voteTime p.toParams i) = i :=
       (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho jz z) _).2.symm.trans
         (fgsa_vote_slot (c := c) _ i)
     exact hb.trans (hsl.trans_eq he)
-  -- The vote arrives by e_i and keeps its stamp at the v_(i+1) read.
-  have hvd : SA.voteTime p.toParams i + E.Δ ≤ SA.voteTime p.toParams i + E.Δ := le_rfl
-  have hdt : SA.voteTime p.toParams i + E.Δ ≤ rho.horizon := by
-    rw [hDelta]
-    exact hvi.trans hvh
-  obtain ⟨dl, cut, hD, _, hlt, hdl, _, hdcut, _⟩ :=
-    Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ hrec.sync
-      (fgsaDelay_nonrow E.Δ _) hgsti hvd hdt
-  have hdle : dl (SA.voteTime p.toParams i) ≤ SA.voteTime p.toParams i + p.Δ := by
-    have h := hdl (SA.voteTime p.toParams i)
-    rwa [max_self, hDelta] at h
-  have hwindow : (V2.D.Run.stateBeforeTime E rho (dl (SA.voteTime p.toParams i)) y).st.slot p ≤
-      i + 1 := by
-    have h := healing_support_read_window E rho hS hN hiy _ (hdle.trans hvi)
-    have he : p.slotOf (SA.voteTime p.toParams (i + 1)) = i + 1 :=
-      (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho iy y) _).2.symm.trans
-        (fgsa_vote_slot (c := c) _ (i + 1))
-    exact h.trans_eq he
-  have hcut : dl (SA.voteTime p.toParams i) ≤ cut := by
-    refine hdle.trans (le_trans ?_ hdcut)
-    rw [hDelta]
-  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K.root
-    (SA.voteTime p.toParams i) z y hD hk hem hy hcut (hlt _) hwindow
+  -- Fresh receipt reaches the freeze and keeps its strict stamp to the actual read.
+  obtain ⟨hFresh⟩ := hScope.fresh k K.root hk hem
+  obtain ⟨jem, hjEm, hoEm⟩ := hem
+  have hem : V2.D.Run.emits E rho z (ofHead p ⟨.seat (.head i) k, K.root⟩)
+      (SA.voteTime p.toParams i) := ⟨jem, hjEm, hoEm⟩
+  obtain ⟨hom, hos⟩ := hFresh.receipt hE hy hjEm hoEm
   let o := baseVote (⟨.seat (.head i) k, K.root⟩ : HeadWire p.n)
-  have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams i)) ≤ iy :=
-    healing_support_idxBefore_le p c E rho hS hiy (hdle.trans hvi)
+  have hidx : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams i) ≤ iy := by
+    apply healing_support_idxBefore_le p c E rho hS hiy
+    change 4 * p.Δ * (i : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((i + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
-      (dl (SA.voteTime p.toParams i))) y).base.votes := by
-    change o ∈ (V2.D.Run.stateBefore E rho _ y).st.base.votes
+      (SA.freezeTime p.toParams i)) y).base.votes := by
+    change o ∈ (rho.stateBefore E _ y).st.base.votes
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
     exact hom
-  obtain ⟨hod, hods⟩ := healing_support_vote_kept E rho hN hidx y
-    (SA.voteTime p.toParams (i + 1)) o hom'
-  have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
-    change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
-    linarith
+  obtain ⟨hod, hods⟩ := healing_support_vote_kept_on E rho hidx y
+    (SA.voteTime p.toParams (i + 1)) hEpoch o hom'
   have hstampv : GridCO.stampVote dst.base o < SA.freezeTime p.toParams i := by
     change GridCO.stampVote (FGSA.clock p _ _).base o < _
     rw [hods]
-    change GridCO.stampVote (V2.D.Run.stateBefore E rho _ y).st.base o < _
+    change GridCO.stampVote (rho.stateBefore E _ y).st.base o < _
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
-    exact lt_of_lt_of_le hos (hdle.trans hfz)
+    exact hos
   have hFK' : Block.Compatible K (eraseFG dst.fg.F) := by
     rw [clock_fg]
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K)
@@ -275,6 +260,9 @@ theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
     (hbatch : ∀ z ∈ rho.honest, headAtLabel p c E rho z v = some Q)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (v + 1))))
+    (hScope : NextTransferScope E rho iy y v)
+    (hJoined : joinedAtTime p (storeAt p c E rho iy y).restartTime
+      (SA.releaseTime p.toParams v) = true)
     (hFQ : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) Q) :
     ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (v + 1))).base.obligations, Block.Compatible row.1 Q := by
@@ -288,15 +276,15 @@ theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
       (SA.releaseTime p.toParams v) }
   have hdst : dst = onView (fun view => SA.Root.release p.toParams view v) st1 := by
     dsimp only [dst]
-    rw [unanimous_vote_clock, unanimous_vote_release, fgsa_release_clockPre]
-  have hcount := (healing_support_release_rows st0 v row hrow).2
+    rw [unanimous_vote_clock, unanimous_vote_release, fgsa_release_clockPre st0 v hJoined]
+  have hcount := (healing_support_release_rows st0 v hJoined row hrow).2
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hlevel : row.2.1 = SA.releaseThreshold p.toParams := hinv.leaseKeys.2 _ hrow
   let Hon : Finset (Fin p.n) := Finset.univ.filter
     (fun k => rho.seatOf (.base (.head v)) k ∈ rho.honest)
   have hsub : Hon ⊆ unanimousReleaseSeats p.toParams.engine (actView dst) v row.1 := by
     intro k hk
-    exact unanimous_seat_release p c E rho hrec hgst hbatch hy hiy hFQ row hbad k
+    exact unanimous_seat_release p c E rho hrec hgst hbatch hy hiy hScope hFQ row hbad k
       (Finset.mem_filter.mp hk).2
   have hle := Finset.card_le_card hsub
   rw [← unanimous_release_card] at hle
@@ -327,18 +315,9 @@ theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
   have hhonLe : rho.honest.card ≤ p.n := by
     rw [← hn]
     exact Finset.card_le_univ _
-  have hhor : SA.voteTime p.toParams v ≤ rho.horizon := by
-    have hh := (hrec.base.valid.toScheduleWellFormed.in_horizon _ (List.mem_of_getElem? hiy)).2
-    change 4 * p.Δ * ((v + 1 : Nat) : Int) + p.Δ ≤ rho.horizon at hh
-    change 4 * p.Δ * (v : Int) + p.Δ ≤ rho.horizon
-    push_cast at hh
-    nlinarith [p.deltaPos]
-  have hawk : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams v) = rho.honest := by
-    rw [Gen.V2.Duty.awakeHonest_def]
-    exact Finset.filter_eq_self.mpr (fun z hz => hrec.awake z hz _ hgst hhor)
-  -- The release count uses only f < h from the batch bound.
-  have hb := (hrec.batch hgst hhor).lt
-  rw [hawk, hf] at hb
+  have hb := hrec.fault
+  rw [hf] at hb
+  have hp := p.nPos
   have ht : SA.releaseThreshold p.toParams = (p.n + 1) / 2 := rfl
   rw [hHon] at hle
   dsimp only [dst, st1, st0] at hle hcount
@@ -355,6 +334,9 @@ theorem healing_unanimous_next_transfer_kept [Fintype V] {G ΔF : Time}
     (hbatch : ∀ z ∈ rho.honest, headAtLabel p c E rho z v = some Q)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (v + 1))))
+    (hScope : NextTransferScope E rho iy y v)
+    (hJoined : joinedAtTime p (storeAt p c E rho iy y).restartTime
+      (SA.releaseTime p.toParams v) = true)
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (v + 1))) (v + 1))
@@ -367,7 +349,7 @@ theorem healing_unanimous_next_transfer_kept [Fintype V] {G ΔF : Time}
   · exact healing_head_covers_root p c E rho hiy (Nat.succ_ne_zero v) (Or.inl hZ)
   · have hFQ := (KitFG.mem_filteredFromView (heightView p)
         (R_at p c E rho iy y) X Qfg).mp hD
-    have hlease := healing_unanimous_release_compat p c E rho hrec hgst hbatch hy hiy
+    have hlease := healing_unanimous_release_compat p c E rho hrec hgst hbatch hy hiy hScope hJoined
       (heQ ▸ eraseFG_preceq hFQ.2.1)
     exact healing_next_transfer_domain p c E rho hrec hgst
       (fun z hz K hK => by
@@ -375,7 +357,7 @@ theorem healing_unanimous_next_transfer_kept [Fintype V] {G ΔF : Time}
         cases hK
         rw [heQ]
         exact Gen.Pure.block_preceq_refl _)
-      hy hiy hXv hXc hD (by simpa only [heQ] using hlease)
+      hy hiy hScope hXv hXc hD (by simpa only [heQ] using hlease)
   · exact healing_head_covers_root p c E rho hiy (Nat.succ_ne_zero v) (Or.inr hF)
 
 end AvailableChain.FGSA.Run

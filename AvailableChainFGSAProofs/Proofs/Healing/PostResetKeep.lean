@@ -171,7 +171,7 @@ private theorem keep_source_mono {a b : Nat} (hab : a ≤ b)
   exact ⟨j, y, r, row, lt_of_lt_of_le hj hab, hrow, hsrc, hs⟩
 
 section Delivery
-variable (hnr : V2.D.NoRestart rho) (mono : RMono p c E rho)
+variable (mono : RMonoAll p c E rho)
     (origin : RQCOrigin p c E rho) {w : HealingWitness}
     (lowFinality : ∀ {i : Nat} {x : V} {D : FGBlock (Fin p.n)}, x ∈ rho.honest →
       afterTicksIdx rho (p.actionTime w.rStar) ≤ i →
@@ -181,7 +181,7 @@ variable (hnr : V2.D.NoRestart rho) (mono : RMono p c E rho)
     (highCompat : ∀ i, PostResetHighCompatible p c E rho w i)
     (resetCompat : ∀ i, PostResetResetCompatible p c E rho w i)
 
-include hnr mono origin lowFinality highCompat resetCompat
+include mono origin lowFinality highCompat resetCompat
 
 /-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2849, 2880–2883; plan J3 A;
 B1/B13/B15/B17/B18; hint 1 and its addendum. DC: SAME receiver-F split.
@@ -226,9 +226,9 @@ theorem postReset_receiver_compatible {j l : Nat} {x : V}
         (hc KF K sF s (keep_source_mono p c E rho (le_max_left _ _) hKF)
           (keep_source_mono p c E rho (le_max_right _ _) hK) hhKF hhK)
   have hm := mono
-  rw [RMono_def] at hm
+  rw [RMonoAll_def] at hm
   exact keep_symm (Gen.Pure.block_compatible_of_preceq_compatible
-    (eraseFG_preceq (hm hnr j a x hx hj).1) hfuture)
+    (eraseFG_preceq (hm j a x hx hj).1) hfuture)
 
 /-- ROOT-DIGEST W2b. Blueprint 21 IF.5:550–567, H.12:2646–2652, H.14:2847–2861;
 plan J3 A; B1/B13/B15/B17/B18. DC: SAME conditional admission discharge.
@@ -237,6 +237,16 @@ the producers listed at postReset_receiver_compatible. hCompat is proved
 at the receiver's actual freeze read, including reads before resetCut. -/
 theorem postReset_tDel [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) (source : TSrc p c E rho)
+    (hServices : ∀ y r K, y ∈ rho.honest →
+      actionSourceFG p c E rho y r = some (some K) →
+      E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
+      SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
+      ∀ x ∈ rho.honest, FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F K →
+      ∀ j z W, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
+      W ∈ (storeAt p c E rho j z).fg.TF →
+      TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x)
     {y x : V} {r l : Nat} {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest) (hsrc : actionSourceFG p c E rho y r = some (some K))
     (hK : SourceBefore p c E rho l K (r * p.R)) (hhK : high p w K)
@@ -245,11 +255,11 @@ theorem postReset_tDel [Fintype V] {G ΔF : Time}
     Gen.V2.Duty.HoldsBefore E rho (fun nd =>
       (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x := by
-  have hCompat := postReset_receiver_compatible (hroots := hrec.base.idealization) p c E rho hnr
+  have hCompat := postReset_receiver_compatible (hroots := hrec.base.idealization) p c E rho
     mono origin
     lowFinality highCompat resetCompat (j := V2.D.Run.idxBefore rho
       (SA.freezeTime p.toParams (r * p.R))) hx hK hhK
-  have hdel := healing_tDel E rho hrec source mono y r K hy hsrc hgst hhor x hx
+  have hdel := healing_tDel E rho hrec source mono hServices y r K hy hsrc hgst hhor x hx
   rw [Gen.V2.Duty.HoldsBefore_def] at hdel ⊢
   apply hdel
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hrec.base.valid.toScheduleWellFormed]

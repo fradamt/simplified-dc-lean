@@ -73,7 +73,11 @@ example : kappaF p 6 = p.R ∧ 2 * p.Δ < (6 : Time) ∧
   decide +kernel
 
 -- Conditional package: exact frozen FE/F4 heads, including both receipt horizons.
-example (p : Params) : AboveFrontierRecFEClaim_W p := fgsa_aboveFrontierRecFE_W p
-example (p : Params) : AboveFrontierRecF4Claim_W p := fgsa_aboveFrontierRecF4_W p
+example (p : Params) :
+    AboveFrontierRecFEClaim_W p :=
+  fgsa_aboveFrontierRecFE_W p
+example (p : Params) :
+    AboveFrontierRecF4Claim_W p :=
+  fgsa_aboveFrontierRecF4_W p
 
 end AvailableChain.FGSA.Run.Tests.Above

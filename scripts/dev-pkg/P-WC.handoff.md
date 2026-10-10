@@ -1,6 +1,6 @@
-# P-WC Round 2 handoff
+# P-WC Round 3 handoff
 
-Base: 318c74a37aa62d386c42d22afbec2ff21ca82968. Branch: sleep-pwc2.
+Base: 7e4509db. Branch: sleep-pwc3.
 Status: PREPARED. These suppliers compile with --wfail.
 The complete event induction and the assembly consumers remain open.
 Public Claims/Statements and public P23 are unchanged.
@@ -283,7 +283,57 @@ WC/StepTransferReceipts, WCG/StepGateBatch, and WCG/StepTransferReceipts.
 Dynamics imports its family suppliers. The pinned Dynamics caller lines
 1531 and 2817 map to these two WCG modules.
 
-Serial integration: add the package audit import and commands from
+Serial integration: add the production imports and audit commands from
 claude-files/sleep-pwc-round2-audit-fragment.txt to the existing
 FGSAProofs audit key. The corresponding coverage fragment uses that same key.
-No new canonical coverage key is needed.
+Import these production modules directly into Tests.Axioms.
+Do not import Tests.WeakContinuationSleepAxioms there. Keep that standalone
+audit registered through the test glob. No new canonical coverage key is needed.
+
+## Round 3 supplier changes
+
+Status remains PREPARED. Four of the 21 original open targets now compile:
+WC StepFacts, StepOutput, StepReconcile, and FinalBelow. The other 17 targets
+remain EXPECTED-FAIL, with owner P-WC. Their failures include local proof work.
+None of the five open family tests currently fails only on a P-As bridge.
+
+Both wc_stepRestart and wcg_stepRestart now prove the full preservation
+statements. They no longer return False. Import StepRestart from the matching
+family. The original Step and Dynamics wrappers consume these modules.
+The delivery, tick, and retrospective paths in the joint producer remain open.
+
+ReceiptOrigins provides wc_receiptOrigins or wcg_receiptOrigins. The latest
+replay origin records its exact stamp and restartFree from j+1 to the read.
+StepFacts provides current-epoch saved origins and finite facts. WCG's facts
+were extracted from Dynamics so they compile apart from the joint producer.
+
+ProposalHistory provides wc_historyMax and wc_history_previousHeads. The
+maximum takes ScheduleWellFormed. The previous-HEAD supplier takes the all-time
+joined count and a joined original reader. It selects a separate joined actor
+at the earlier gate. Proposal's remaining path and Count consumers are open.
+
+StepOutput provides wc_outputStep or wcg_outputStep. Each returns monotonicity
+and one of three exact origins: kept output, an enabled gate result, or received
+finality. The input includes compatibility of the prior output with next-event
+finality. The joint producer must prove that input from the bounded history.
+This local event supplier does not replace WCSeededInductionStatement.
+
+StepReconcile scopes its output reader by confirmedReaderIdx at the prior
+index. FinalBelow uses the approved reader scope and receipt-root projection.
+WCG has matching StepOutput, StepReconcile, and FinalBelow modules.
+
+Serial integration: use the production imports and commands in
+claude-files/sleep-pwc-round3-audit-fragment.txt. Use the matching coverage
+fragment under AvailableChainFGSAProofs.Tests.Axioms. The corrected round-2
+fragment keeps exactly its original 196 rows. Do not import a test module into
+Tests.Axioms. The family audit stays registered through the test glob.
+
+The architecture fragment lists the new family modules and their dependencies.
+Apply it to the architecture map in the serial integration window. Do not mark
+P-WC CLOSED until the original event, Proposal, Empty, consumer, and test targets
+compile. Public claims and P23 are unchanged.
+
+Empty's local restart replay now passes the exact wake time to restore.
+The internal wcg_empty_live_of_finalBelow adapter no longer takes NoRestart source.
+Its remaining source-reader scope repairs are local P-WC work; keep it
+EXPECTED-FAIL. No participation or half-cap input was added to the empty route.
