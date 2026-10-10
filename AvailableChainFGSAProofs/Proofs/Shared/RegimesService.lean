@@ -13,7 +13,34 @@ open Gen.V2.Duty (faulty)
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V] [Fintype V]
 variable {ΔF : Time}
 
-/-- Exact service on a Clean prefix uses joined participation and local gate receipts. -/
+/-- Continuous Recovery awake time supplies join after the previous slot start.
+The vote-time GST bound alone does not supply this join window. -/
+theorem Recovery₂.joinedAt_of_slotStart_le
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G : Time} (h : Recovery₂ p c E rho G ΔF) (s : Slot)
+    (hGST : E.t_GST ≤ slotStartZ p ((s : Int) - 1))
+    (hhor : SA.voteTime p.toParams s ≤ rho.horizon) :
+    ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) := by
+  have hb : slotStartZ p ((s : Int) - 1) ≤ SA.voteTime p.toParams s := by
+    change 4 * p.Δ * ((s : Int) - 1) ≤ 4 * p.Δ * (s : Int) + p.Δ
+    linarith [p.deltaPos]
+  intro y hy
+  have hw : ∀ u, 0 < u → u ≤ SA.voteTime p.toParams s →
+      V2.D.Wakes E y u → u ≤ slotStartZ p ((s : Int) - 1) := by
+    intro u hu hut hW
+    by_contra hn
+    have ha := h.awake y hy (u - 1)
+      (by dsimp [Time] at *; omega) (by dsimp [Time] at *; omega)
+    have hFalse := hW.2
+    rw [ha] at hFalse
+    exact Bool.noConfusion hFalse
+  refine ⟨h.awake y hy _ (hGST.trans hb) hhor, hw, ?_⟩
+  intro u hu hut hr
+  have hW := h.base.restartsAtWakes y u hr
+  exact hw u hW.1 hut hW.2
+
+/-- Exact service on a Clean prefix uses joined participation and local gate receipts.
+The joined releaseThreshold count hfast is a separate input. -/
 theorem exactService_of_head_clean_on
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
@@ -48,8 +75,9 @@ theorem exactService_of_head_clean_on
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. P3 A.9 and blueprint 21 H.22 H3, conditional Recovery exact service.
 DC: Generic/Conditions.lean:110–132; UserConfirmationRecovery.lean:235.
-INTENTIONAL: post-GST waking and the one-third fault bound supply the SA
-fast count. Cardinality uses only the fresh HEAD-seat bijection.
+INTENTIONAL: hfast supplies the releaseThreshold bound on joined honest voters.
+Recovery awake time supplies join only after the previous slot start passes GST.
+Cardinality uses only the fresh HEAD-seat bijection.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem exactService_of_head_recovery_on

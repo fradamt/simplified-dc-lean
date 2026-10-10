@@ -2597,8 +2597,12 @@ projection. Green is a compile status; it does not mean every legacy route is po
   without the named receipt scope.
 - `Count.fgsa_receiptCoverage_on`: the sleep coverage branches, path receipts,
   vote-or-cap receipts, and strict stamps use receiver-local epochs. The exact
-  handler WF/dependency/timeliness input remains explicit. This is stronger than
-  the bare ReceiptCoverageSleepStatement input list; the Run sleep statement
+  handler WF/dependency/timeliness input remains explicit: for every required
+  `o,t`, every handler at `u` with `t ≤ u < dl(t)` needs all three facts. This
+  larger interval can include times before the receiver's ready anchor `a`.
+  The Round 6 `_anchor_on` companion requires those facts only on `[a, dl(a))`.
+  Both forms are stronger than the bare ReceiptCoverageSleepStatement input list;
+  the Run sleep statement
   still has no proof on this base. No old-send awake premise is used by this route.
 - `Count.fgsa_active_path_of_coverage_on`: the restarted active-path interface.
   The old `fgsa_active_path_of_coverage` type stays unchanged and remains legacy.
@@ -2613,7 +2617,8 @@ projection. Green is a compile status; it does not mean every legacy route is po
   The legacy stamp theorem is an explicit wrapper of the local form.
 - `HeadAdmit.inclusion_head_receipt_early_on`: joined HEAD service at the exact
   early read, with a local read-to-tick epoch. `fgsa_action_walk_batch` now takes
-  joined voters and a joined participation count, plus the exact services.
+  `joinedAt` for every honest node at the vote tick, and a joined participation
+  count, plus the exact services. A guard only on selected seats is insufficient.
   `fgsa_action_walk_batch_legacy` keeps the awake form with explicit NoRestart.
 - `ExactService.exactService_emitted_head_joined`, the receipt/raw/at/gate `_on`
   forms, `exactService_of_head_and_gate_on` and
@@ -2728,9 +2733,24 @@ ready service at its held-block cutoff.
 ### Family handoff: do not edit other packages
 
 Use `fgsa_active_path_of_coverage_on E rho hvalid hdelta ... hcovSleep hpath hFK
-hroots hReady`. Construct ReceiptCoverageSleepPremises with a valid post-wake
-anchor per required object. Supply WF, dependencies and fgsaTimely only for the
-named handler windows. Supply HistorySafeAt explicitly for retained routes.
+hroots hReady`. This form requires, exactly, `∀ o t, required o t → ∀ j u,
+t ≤ u → u < dl(t) → handlesAt E rho j x o u → wellFormed o = true ∧
+depsPresent (stateBefore E rho j x) o = true ∧ fgsaTimely ... o`.
+This larger interval `[t, dl(t))` starts at the original trigger, not the anchor.
+Use `fgsa_active_path_of_coverage_anchor_on` to require handler readiness only on
+`[a, dl(a))`. Its witness bundles the same `a` with ReadyTrigger, HistorySafeAt,
+restartFree, the record's index/deadline/slot bounds, and handler readiness.
+Supply HistorySafeAt explicitly for retained routes.
+
+ReceiptCoverageSleepPremises restricts the anchor: `t ≤ a`, `dl(a) ≤ dl(t)`,
+and `Monotone dl` imply `dl(a) = dl(t)`. With Clean `dl(t) = t + Δ`, this forces
+`a = t`. With WC/WCG `dl(t) = max(t, GST) + Δ`, a later anchor is allowed only
+when `a ≤ max(t, GST)`; for `t ≥ GST`, this also forces `a = t`.
+Thus a general later post-wake anchor is not available from this record.
+If a caller needs one, the exact S-Ap statement question is to allow
+`dl(t) < dl(a)` and bound the anchored receipt by `dl(a)`, with corresponding
+changes to the required-object and path deadlines and receipt conclusion.
+The lead must decide that public statement change; P-ShA does not make it.
 
 The following caller theorems must replace the legacy Count call. Their owners
 must also use Base₂.receiptIdealization for receipt-body equality.
@@ -2745,8 +2765,19 @@ must also use Base₂.receiptIdealization for receipt-body equality.
 
 P-Fi consumers `Finality/RowsBatch.rowsPrem_action_walk_batch` and
 `Finality/TailBatch.ktail_action_walk_batch` must use the ruled joined action API:
-joined selected voters, joinedHonest Batch, exact FreshHeadService/target service,
-and the read-to-action receiver epoch. The old name is retained for the corrected
+`joinedAt p E rho y s (voteTime s)` for every `y ∈ rho.honest`, where
+`s = q * R + 1`, joinedHonest Batch, exact FreshHeadService/target service, and
+the read-to-action receiver epoch. The producer's all-honest guard includes
+honest nodes that are not selected HEAD seats.
+
+For Recovery, use `Recovery₂.joinedAt_of_slotStart_le` in RegimesService with
+`GST ≤ slotStart(s-1)` and `voteTime s ≤ rho.horizon`. Recovery.awake gives
+continuous awake time on `[GST, voteTime s]`. A wake `u > slotStart(s-1)` would
+have `awake(y,u-1) = false`, but the Recovery interval gives `true`. Thus all
+wakes through the vote are at or before `slotStart(s-1)`. Base.restartsAtWakes
+makes the same bound hold for each restart, which proves all three joinedAt
+fields. `ActionTime.lean:14` gives only `GST ≤ voteTime s` and is too weak.
+The old name is retained for the corrected
 internal producer. The explicit old form is fgsa_action_walk_batch_legacy.
 
 ### Map and validation boundary
@@ -2777,8 +2808,11 @@ The old Regimes declarations remain unchanged. Additive forms are in
 `Proofs/Shared/RegimesService.lean`. `exactService_of_head_clean_on` and
 `exactService_of_head_recovery_on` use joined HEAD readers, joined Batch and
 release counts, and `GateReceiptScope` for each confirmed receiver at the same gate.
-The Clean and Recovery consumer must supply these local scopes. Their old awake
-counts do not prove a joined count. Recovery needs its join window after GST.
+The Clean and Recovery consumer must supply these local scopes and, separately,
+`hfast : releaseThreshold ≤ (joinedHonest p E rho (voteTime v)).card`.
+Clean's joined majority field is not this releaseThreshold bound. Both forms
+also require joined Batch. Their old awake counts do not prove these joined
+counts. Recovery needs its join window after GST.
 No `NoRestart` premise or restored Base field is used by these forms.
 
 ### Round 5: proposal HEAD, score and walk ports
@@ -2968,3 +3002,108 @@ P-H2 final follow-up validation: 469 GREEN --wfail PASS (1.77 s), DCK PASS,
 Complete compiled exports: 112 proof modules, 251 exports, 0 unaccepted.
 Layers: 72 baseline findings, 0 new. The package remains PREPARED.
 The 79 assigned open targets and six REQUIRED suppliers prevent CLOSED.
+
+
+## P-ShA round 6 — CLOSED (2026-10-10)
+
+RULING LEGACY-REGIMES is implemented. Each of the ten original declarations in
+Shared/Regimes takes an explicit `hNR : NoRestart rho` after `E,rho`, with the
+same conclusion. Each docstring says
+"legacy: sleep consumers use the _on form in RegimesService".
+No sleep regime supplies that premise. Regimes is GREEN. The false implication
+recorded in Round 5 remains false; the ruling removes the failed projection.
+Public FGSAClaims statements and Base fields are unchanged.
+
+### Final interfaces
+
+Sleep consumers import Shared/RegimesService and use these replacements:
+
+- `fgsa_score_eq_on_clean_of_retained_proposal` →
+  `fgsa_score_eq_on_clean_of_retained_proposal_on`.
+- `fgsa_score_eq_on_recovery_of_retained_proposal` →
+  `fgsa_score_eq_on_recovery_of_retained_proposal_on`.
+- `fgsa_ghost_transfer_sfx_on_clean` →
+  `fgsa_ghost_transfer_sfx_on_clean_on`.
+- `fgsa_ghost_transfer_sfx_on_recovery` →
+  `fgsa_ghost_transfer_sfx_on_recovery_on`.
+- `exactService_head_of_proposal_clean` →
+  `exactService_head_of_proposal_clean_on`.
+- `exactService_head_of_proposal_recovery` →
+  `exactService_head_of_proposal_recovery_on`.
+- `exactService_head_of_retained_proposal_clean` →
+  `exactService_head_of_retained_proposal_clean_on`.
+- `exactService_head_of_retained_proposal_recovery` →
+  `exactService_head_of_retained_proposal_recovery_on`.
+- `exactService_of_head_clean` →
+  `exactService_of_head_clean_on`.
+- `exactService_of_head_recovery` →
+  `exactService_of_head_recovery_on`.
+
+`fgsa_receiptCoverage_on` and `fgsa_active_path_of_coverage_on` keep their types
+and the larger handler interval `[t, dl(t))`. The two new `_anchor_on` companions
+have the same conclusions. They bundle handler readiness on `[a, dl(a))` with
+the same anchor's ReadyTrigger, HistorySafeAt, restartFree, index/deadline bounds,
+well-formedness and HEAD slot bounds. They keep the inherited `dl(a) = dl(t)`
+restriction. The exact family handoff above applies to both forms.
+
+`Recovery₂.joinedAt_of_slotStart_le` supplies HeadAdmit's all-honest join input
+from Recovery continuous awake time, restartsAtWakes, the previous-slot GST
+bound, and the vote horizon. The joined `hfast` input of both exactService
+adapters remains explicit, together with joined Batch and local gate scope.
+
+The other final service interfaces are the Round 5 ScoreServiceScope,
+SameLabelServiceScope, ReceiverService/FreshHeadService/TargetReceiptService,
+GateReceiptScope, RetainedServiceScope and RetainedExactHeadRunGeometryOn.
+The guarded H6/H6S/H17/L4R/HG1/L2 suppliers remain the `_joined` forms.
+Retained history safety stays explicit for each object and anchor.
+
+### Original-name family call inventory — owner port items
+
+The source scan covers all ten original names in all repository Lean files.
+These five executable family calls remain on this branch:
+
+- P-H2: Healing/FrontierService.lean:69, `frontier_exactService_of_heads` calls
+  `exactService_of_head_recovery`. Port to `_on`; supply joined HEAD, joined
+  releaseThreshold/Batch, and GateReceiptScope.
+- P-H1: Healing/RepairH6.lean:586, `repair_head_exact` calls
+  `exactService_head_of_retained_proposal_recovery`. Port to `_on`; supply
+  RetainedExactHeadRunGeometryOn and keep the joined reader guard.
+- P-H2: Healing/FrontierSeed.lean:274, `frontier_seed_qSucc_head` calls
+  `exactService_head_of_retained_proposal_recovery`. Port with the same retained
+  geometry and joined reader inputs.
+- P-Ou: Outage/ExactProposalRetained.lean:824, `inclusion_exact_head` calls
+  `exactService_head_of_retained_proposal_clean`. Port to `_on`; supply retained
+  geometry and use the joined reader scope for the exported HEAD clause.
+- P-H2: Healing/Repair.lean:91, `repair_exact_service` calls
+  `exactService_of_head_recovery`. Port to `_on` with joined HEAD/counts and
+  exact gate scope.
+
+The other seven original names have no executable family caller in this checkout.
+Tests/Axioms has ten `#print axioms` references; these are audit commands, not
+family calls. SharedAxioms now imports and audits the full GREEN Regimes module.
+Owners must also port other legacy cores recorded in the Round 4/5 handoffs:
+Count callers in Clean/WC/WCG, P-Fi RowsBatch/TailBatch, and retained read/score
+suppliers in Healing/WC/WCG. Compilation of Shared does not complete those ports.
+
+### Map and validation boundary
+
+All 64 owned targets and both input tests are GREEN. P-ShA has no owned
+EXPECTED-FAIL target. The full P-ShA map has 480 GREEN modules and two remaining
+S-Ap EXPECTED-FAIL modules: the Run facade and Run.Tests.Axioms. The five S-Ap
+audit names are left for S-Ap's running round 3.
+
+The stale W3 map entry for Run.Proofs.ReceiptCoverage is reclassified GREEN.
+It is an import-only compatibility path to ReceiptCoverageReady. The P-ShA map
+states this boundary explicitly: GREEN here means the import path builds; it
+does not certify ReceiptCoverageSleepStatement. Count's local companions have
+explicit handler premises beyond that public statement.
+
+DCK P-ShA, complete GREEN exports, layers, strict audits and SharedAxioms
+coverage are recorded in claude-files/sleep-psha-report.md, Round 6.
+No merge is made. Remaining family port items are assigned to their owners.
+
+Final Round 6 validation: DCK PASS (218.795 s),
+43 strict audits / 2,997 results, all 24 controls PASS. SharedAxioms coverage:
+466 entries PASS. Complete GREEN exports: 258 proof modules / 253 exports /
+zero unaccepted. Layers: 72 inherited / zero new. Expose and sleep scopes PASS.
+The two inherited W3 transparency findings and five S-Ap audit names are unchanged.
