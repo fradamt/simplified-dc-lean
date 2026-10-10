@@ -2464,3 +2464,14 @@ exact current-receipt replacement remain recorded in the preceding P-Fi block.
 - docs/ARCHITECTURE.md:629 still describes the old restart model (keep last tick, ignore restart time). One docs
   pass updates ARCHITECTURE.md and MAP.md after the P-ShA supplier surface is final (rev-psha3 finding 8,
   rev-pfi-astra finding 3): RecoveryScope, RestoreReads, TickRead, CatchUp, CoreServices, joined middle reads.
+
+## S-Ap Round 3 — Run facade audit
+
+P3 wake-clock successors: replace the retired audit names
+fgsa_restore_now_retained, fgsa_hrestore_now_retained, and restore_st_retained
+with fgsa_restore_now, fgsaRestoreTimeLaw, and restore_st. The exact wake time
+replaces the old retained clock. No production statement changes.
+The existing spec_prune_restart_mem and spec_prune_sleep checks keep their names;
+import Proofs.Spec.Simulation so the audit can resolve them.
+Run facade --wfail PASS (10.79 s). Regenerated the existing Run audit
+coverage key (8.54 s); mark the Run facade and audit GREEN in S-Ap.

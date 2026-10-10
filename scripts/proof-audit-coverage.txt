@@ -5304,13 +5304,9 @@
             'AvailableChain.FGSA.Run.fgsa_tick_rows_of_seats',
         ),
         'AvailableChainFGSARun.Proofs.ClockLaws': (
-            'AvailableChain.FGSA.Run.fgsaClock',
-            'AvailableChain.FGSA.Run.fgsa_clock_now',
             'AvailableChain.FGSA.Run.fgsa_hrestore_field_retained',
-            'AvailableChain.FGSA.Run.fgsa_hrestore_now_retained',
             'AvailableChain.FGSA.Run.fgsa_hrestore_retained',
             'AvailableChain.FGSA.Run.fgsa_monoAlong_preceq_F',
-            'AvailableChain.FGSA.Run.fgsa_restore_now_retained',
         ),
         'AvailableChainFGSARun.Proofs.Content': (
             'AvailableChain.FGSA.Run.contentAgree_run',
@@ -5497,8 +5493,6 @@
             'AvailableChain.FGSA.Run.recordOwn_attest',
             'AvailableChain.FGSA.Run.recordOwn_rec',
             'AvailableChain.FGSA.Run.recordOwn_st',
-            'AvailableChain.FGSA.Run.restore_rec',
-            'AvailableChain.FGSA.Run.restore_st_retained',
             'AvailableChain.FGSA.Run.rowWire_decode',
             'AvailableChain.FGSA.Run.rowsOk_withApp',
             'AvailableChain.FGSA.Run.singleSeat_prop',
@@ -5561,6 +5555,14 @@
             'AvailableChain.FGSA.Run.fgsa_trigger_rowsValid',
             'AvailableChain.FGSA.Run.fgsa_vote_accepted_before',
             'AvailableChain.FGSA.Run.processed_stable',
+        ),
+        'AvailableChainFGSARun.Proofs.Restore': (
+            'AvailableChain.FGSA.Run.fgsaClock',
+            'AvailableChain.FGSA.Run.fgsaRestoreTimeLaw',
+            'AvailableChain.FGSA.Run.fgsa_clock_now',
+            'AvailableChain.FGSA.Run.fgsa_restore_now',
+            'AvailableChain.FGSA.Run.restore_rec',
+            'AvailableChain.FGSA.Run.restore_st',
         ),
         'AvailableChainFGSARun.Proofs.RootLease': (
             'AvailableChain.FGSA.RootLease.root_expire_protectsUntil',

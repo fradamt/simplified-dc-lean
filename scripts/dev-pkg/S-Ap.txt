@@ -97,6 +97,8 @@ AvailableChainFGSARun.Tests.ReceiptAlias
 AvailableChainFGSARun.Tests.ReceiptReady
 AvailableChainFGSARun.Tests.W3Axioms
 [GREEN]
+AvailableChainFGSARun
+AvailableChainFGSARun.Tests.Axioms
 AvailableChainFGSAClaims.Tests.FinalitySafety
 AvailableChainFGSAProofs.Tests.P23Axioms
 AvailableChainEngineV2
@@ -597,5 +599,3 @@ AvailableChainFGSAProofs.Tests.Axioms P-As
 AvailableChainFGSAProofs.Tests.FGSafety P-Sa
 AvailableChainFGSAProofs.Tests.OutageContinuationInhabit P-Fx
 AvailableChainFGSAProofs.Tests.RowPermission P-As
-AvailableChainFGSARun W2b-audit
-AvailableChainFGSARun.Tests.Axioms W2b-audit
