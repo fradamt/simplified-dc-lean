@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
@@ -53,3 +54,22 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
 # The six regression commands stay in Tests/HealingOpeningSupport.lean.
 # Register that module through the existing test glob; do not import it here.
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_gate_reader
+#print axioms AvailableChain.FGSA.Run.healing_emitted_proposal_service
+#print axioms AvailableChain.FGSA.Run.healing_fresh_head_service
+#print axioms AvailableChain.FGSA.Run.reset_period_lower
+#print axioms AvailableChain.FGSA.Run.reset_action_exists
+#print axioms AvailableChain.FGSA.Run.reset_rG_after
+#print axioms AvailableChain.FGSA.Run.reset_rG_first
+#print axioms AvailableChain.FGSA.Run.reset_cut
+#print axioms AvailableChain.FGSA.Run.reset_first_action_upper
+#print axioms AvailableChain.FGSA.Run.reset_cut_lower
+#print axioms AvailableChain.FGSA.Run.reset_cut_upper
+#print axioms AvailableChain.FGSA.Run.reset_frontier
+#print axioms AvailableChain.FGSA.Run.reset_inclusive_frontier
+#print axioms AvailableChain.FGSA.Run.reset_inclusive_start_iff
+#print axioms AvailableChain.FGSA.Run.reset_row_cap
+#print axioms AvailableChain.FGSA.Run.reset_old_row_before_cut
+#print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
+#print axioms AvailableChain.FGSA.Run.reset_mu_le_iff

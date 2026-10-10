@@ -42,6 +42,72 @@ theorem healing_recovery_joinedNow (hrec : RecoverySleep₂ p c E rho G ΔF)
   exact fgsa_joinedNow_of_joinedEnv E rho hrec.base.valid.toScheduleWellFormed hi
     (healing_recovery_restart_cutoff hrec hx hh hb)
 
+/-- The actual enabled gate catches up every honest recovery reader.
+The post-tick cut includes the gate and its preceding same-time wake. -/
+theorem healing_recovery_gate_reader (hrec : RecoverySleep₂ p c E rho G ΔF)
+    {x : V} (hx : x ∈ rho.honest) {s : Slot}
+    (hcut : E.t_GST ≤ slotStartZ p (s : Int))
+    (hhor : SA.gateTime p.toParams s ≤ rho.horizon) :
+    confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams s))
+      (SA.gateTime p.toParams s) := by
+  have hs := hrec.base.valid.toScheduleWellFormed
+  have hsg : slotStartZ p (s : Int) ≤ SA.gateTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have awake := hrec.awake x hx _ (hcut.trans hsg) hhor
+  have htime : ((4 * s + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams s := by
+    change ((4 * s + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + 6 * p.Δ
+    push_cast
+    ring
+  obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hs hrec.base.delta x hx (4 * s + 6)
+    (htime ▸ hhor) (by simpa only [htime] using awake)
+  rw [htime] at hj
+  have hslot : p.slotOf (SA.gateTime p.toParams s) = s + 1 := by
+    exact (fgsa_postClock_slot (c := c) (rho.stateBefore E j x) _).2.symm.trans
+      (fgsa_gate_slot (c := c) _ s)
+  have hg := healing_recovery_joinedNow hrec hx hj hhor (by
+    simpa only [hslot, Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hcut)
+  have enabled : enabledGateAt p c E rho j x s := by
+    unfold enabledGateAt
+    refine ⟨hj, ?_⟩
+    unfold joinedNow at hg
+    rw [fgsa_clock_restartTime, (clock_vn _ _).2] at hg
+    change joinedAtTime p (storeAt p c E rho j x).restartTime
+      (SA.gateTime p.toParams s) = true at hg
+    unfold joinedAtTime at hg
+    cases hr : (storeAt p c E rho j x).restartTime with
+    | none => trivial
+    | some w =>
+      rw [hr, hslot] at hg
+      change w ≤ 4 * p.Δ * (s : Int)
+      simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using of_decide_eq_true hg
+  have hjcut : j < afterTicksIdx rho (SA.gateTime p.toParams s) := by
+    by_contra hn
+    have hn' := V2.D.Engine.filter_false_of_index_ge hs (cutPred (P := fgsa p c) _)
+      (by
+        intro e f hk hf
+        exact decide_eq_true (hk.trans (of_decide_eq_true hf)))
+      (Nat.le_of_not_gt hn) hj
+    have ht : cutPred (P := fgsa p c) (SA.gateTime p.toParams s)
+        (.tick x (SA.gateTime p.toParams s) : V2.Event V (Obj p)) = true :=
+      by change decide (toLex (_, 1) ≤ toLex (_, 1)) = true; exact decide_eq_true le_rfl
+    exact Bool.noConfusion (ht.symm.trans hn')
+  refine ⟨hx, awake, ?_⟩
+  cases hr : (storeAt p c E rho (afterTicksIdx rho (SA.gateTime p.toParams s)) x).restartTime
+    with
+  | none => trivial
+  | some w =>
+    refine ⟨s, j, ?_, le_rfl, hjcut, enabled, ?_, ?_⟩
+    · apply fgsa_restartTime_bound E rho _ x _ ?_ w hr
+      intro k t _ hk
+      exact (healing_scope_restart_bound hrec hx
+        (hs.in_horizon _ (List.mem_of_getElem? hk)).2 le_rfl
+        (List.mem_of_getElem? hk)).trans hcut
+    · intro t _ hlo hhi
+      exact hrec.awake x hx t (hcut.trans hlo) (hhi.trans hhor)
+    · intro t hlo hhi he
+      exact (not_lt.mpr ((healing_scope_restart_bound hrec hx hhor hhi he).trans hcut)) hlo
+
 /-- The receiver epoch starts after all restart events at the action anchor.
 Use event indices; a restart at the anchor is already inside actionCut. -/
 theorem healing_recovery_restartFree (hrec : RecoverySleep₂ p c E rho G ΔF)

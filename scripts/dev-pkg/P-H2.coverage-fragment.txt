@@ -1,5 +1,5 @@
 # P-H2 serial fragment; merge into the existing full audit key.
-# Move opening_gate_support from OpeningServiceGate to OpeningGateSupport.
+# Regression commands remain in their test module.
 {
     'AvailableChainFGSAProofs.Tests.Axioms': {
         'AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead': (
@@ -32,10 +32,13 @@
             'AvailableChain.FGSA.Run.healing_scope_durable',
             'AvailableChain.FGSA.Run.healing_scope_restart_bound',
             'AvailableChain.FGSA.Run.healing_scope_stamps',
+            'AvailableChain.FGSA.Run.healing_recovery_gate_reader',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.RecoveryService': (
             'AvailableChain.FGSA.Run.healing_accepted_proposal_service',
             'AvailableChain.FGSA.Run.healing_accepted_target_service',
+            'AvailableChain.FGSA.Run.healing_emitted_proposal_service',
+            'AvailableChain.FGSA.Run.healing_fresh_head_service',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope': (
             'AvailableChain.FGSA.Run.healing_release_rows_expiry',
@@ -50,6 +53,23 @@
             'AvailableChain.FGSA.Run.healing_reset_slot_cutoff',
             'AvailableChain.FGSA.Run.healing_reset_vote_cutoff',
             'AvailableChain.FGSA.Run.healing_vote_joined_of_recovery',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.ResetCut': (
+            'AvailableChain.FGSA.Run.reset_period_lower',
+            'AvailableChain.FGSA.Run.reset_action_exists',
+            'AvailableChain.FGSA.Run.reset_rG_after',
+            'AvailableChain.FGSA.Run.reset_rG_first',
+            'AvailableChain.FGSA.Run.reset_cut',
+            'AvailableChain.FGSA.Run.reset_first_action_upper',
+            'AvailableChain.FGSA.Run.reset_cut_lower',
+            'AvailableChain.FGSA.Run.reset_cut_upper',
+            'AvailableChain.FGSA.Run.reset_frontier',
+            'AvailableChain.FGSA.Run.reset_inclusive_frontier',
+            'AvailableChain.FGSA.Run.reset_inclusive_start_iff',
+            'AvailableChain.FGSA.Run.reset_row_cap',
+            'AvailableChain.FGSA.Run.reset_old_row_before_cut',
+            'AvailableChain.FGSA.Run.reset_old_height_sup_le',
+            'AvailableChain.FGSA.Run.reset_mu_le_iff',
         ),
     },
     'AvailableChainFGSAProofs.Tests.HealingOpeningSupport': {

@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 
@@ -27,44 +28,46 @@ theorem reset_period_lower : 8 * p.Δ ≤ P p := by
   change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
   nlinarith [p.deltaPos]
 
-/-- H.11: the action clock has a round at or after GST. -/
-theorem reset_action_exists : ∃ r, E.t_GST ≤ p.actionTime r := by
-  refine ⟨E.t_GST.toNat + 1, ?_⟩
+/-- H.11: the action clock has a round at or after recoveryStart. -/
+theorem reset_action_exists : ∃ r, recoveryStart p E ≤ p.actionTime r := by
+  refine ⟨(recoveryStart p E).toNat + 1, ?_⟩
   rw [actionTime_periodW]
   have hP : 1 ≤ P p := by
     have hd : 1 ≤ p.Δ := p.deltaPos
     have hp := reset_period_lower p
     linarith
-  have hn : 0 ≤ (E.t_GST.toNat : Time) := Int.natCast_nonneg _
-  have ht := Int.self_le_toNat E.t_GST
+  have hn : 0 ≤ ((recoveryStart p E).toNat : Time) := Int.natCast_nonneg _
+  have ht := Int.self_le_toNat (recoveryStart p E)
   push_cast
   nlinarith [p.deltaPos]
 
-/-- H.11: the first mathematical action round at or after GST. -/
+/-- H.11: the first mathematical action round at or after recoveryStart. -/
 noncomputable def resetFirstRound : Nat := Nat.find (reset_action_exists p E)
 
 /-- H.11: the time of the inclusive cut. -/
 noncomputable def resetCutTime : Time := p.actionTime (resetFirstRound p E + 2)
 
-theorem reset_rG_after : E.t_GST ≤ p.actionTime (resetFirstRound p E) :=
+theorem reset_rG_after : recoveryStart p E ≤ p.actionTime (resetFirstRound p E) :=
   Nat.find_spec (reset_action_exists p E)
 
-theorem reset_rG_first (r : Nat) (hr : E.t_GST ≤ p.actionTime r) :
+theorem reset_rG_first (r : Nat) (hr : recoveryStart p E ≤ p.actionTime r) :
     resetFirstRound p E ≤ r := Nat.find_min' (reset_action_exists p E) hr
 
 theorem reset_cut : resetCutTime p E = p.actionTime (resetFirstRound p E + 2) := by
   exact Eq.refl _
 
-/-- H.11: the first action lies in [GST, GST + P). -/
+/-- H.11: the first action lies in [recoveryStart, recoveryStart + P). -/
 theorem reset_first_action_upper :
-    p.actionTime (resetFirstRound p E) < E.t_GST + P p := by
+    p.actionTime (resetFirstRound p E) < recoveryStart p E + P p := by
   by_cases hz : resetFirstRound p E = 0
   · rw [hz, actionTime_periodW]
     have hp := reset_period_lower p
-    have hg := E.t_GST_nonneg
+    have hg : 0 ≤ recoveryStart p E := by
+      have hτ := healing_recovery_start_lower (p := p) E
+      linarith [E.t_GST_nonneg, p.deltaPos]
     simp only [Nat.cast_zero, zero_mul, zero_add]
     linarith [p.deltaPos]
-  · have hpred : p.actionTime (resetFirstRound p E - 1) < E.t_GST := by
+  · have hpred : p.actionTime (resetFirstRound p E - 1) < recoveryStart p E := by
       by_contra hn
       have hm := reset_rG_first p E (resetFirstRound p E - 1) (le_of_not_gt hn)
       omega
@@ -73,14 +76,14 @@ theorem reset_first_action_upper :
     push_cast [hn] at hpred
     linarith
 
-theorem reset_cut_lower : E.t_GST + 2 * P p ≤ resetCutTime p E := by
+theorem reset_cut_lower : recoveryStart p E + 2 * P p ≤ resetCutTime p E := by
   have ha := reset_rG_after p E
   rw [actionTime_periodW] at ha
   rw [reset_cut, actionTime_periodW]
   push_cast
   linarith
 
-theorem reset_cut_upper : resetCutTime p E < E.t_GST + 3 * P p := by
+theorem reset_cut_upper : resetCutTime p E < recoveryStart p E + 3 * P p := by
   have ha := reset_first_action_upper p E
   rw [actionTime_periodW] at ha
   rw [reset_cut, actionTime_periodW]
@@ -137,7 +140,6 @@ theorem reset_inclusive_start_iff (hs : V2.D.ScheduleWellFormed E rho) (t : Time
 /-- C2: the actual row source is stored before its action and remains in
 the cumulative store at the inclusive cut. INLINE producer: emittedName_window. -/
 theorem reset_row_cap (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
       HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
       ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
@@ -152,7 +154,7 @@ theorem reset_row_cap (hs : V2.D.ScheduleWellFormed E rho)
   have hheld := repair_source_mem E rho hs ha.2.1 hC
   have hidx : j ≤ timeIdx rho u :=
     (V2.D.Engine.index_lt_read_length_iff hs u hj).mpr htu |>.le
-  have hcut := (fgsa_store_cumulative p c E rho hnr hidx y).1 hheld
+  have hcut := (fgsa_store_durable p c E rho hidx y).1 hheld
   have hheight := healing_phase_height_le p c E rho hcut
   rw [reset_inclusive_frontier p c E rho hs u]
   exact hh.trans_le (hheight.trans
@@ -161,7 +163,7 @@ theorem reset_row_cap (hs : V2.D.ScheduleWellFormed E rho)
 omit [DecidableEq V] in
 /-- C3 timing: an old row acts 5Δ after its vote and strictly before u₀. -/
 theorem reset_old_row_before_cut {r : Nat}
-    (hold : SA.voteTime p.toParams (r * p.R) < E.t_GST) :
+    (hold : SA.voteTime p.toParams (r * p.R) < recoveryStart p E) :
     p.actionTime r < resetCutTime p E := by
   have ht : p.actionTime r = SA.voteTime p.toParams (r * p.R) + 5 * p.Δ := by
     change 4 * p.Δ * ((r * p.R : Nat) : Time) + 6 * p.Δ =
@@ -175,7 +177,6 @@ theorem reset_old_row_before_cut {r : Nat}
 /-- C3 causal part: all old-row heights are bounded by the frozen M.
 The result also holds for an empty honest set. -/
 theorem reset_old_height_sup_le (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
       HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
       ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
@@ -185,13 +186,12 @@ theorem reset_old_height_sup_le (hs : V2.D.ScheduleWellFormed E rho)
     sSup (oldRowHeights p c E rho) ≤ resetCutFrontier p c E rho := by
   apply csSup_le'
   rintro h ⟨j, y, r, a, e, ha, he, hold⟩
-  exact reset_row_cap p c E rho hs hnr emittedName ha ha.2.1
+  exact reset_row_cap p c E rho hs emittedName ha ha.2.1
     (reset_old_row_before_cut p E hold).le he
 
 /-- C3 gap: μ ≤ M holds exactly when the honest set is nonempty.
 The permitted standing inputs do not imply this condition. -/
 theorem reset_mu_le_iff (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
       HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
       ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
@@ -219,7 +219,7 @@ theorem reset_mu_le_iff (hs : V2.D.ScheduleWellFormed E rho)
         ((healing_phase_height_le p c E rho hg).trans
           (Finset.le_sup (f := fun x =>
             (storeAt p c E rho (timeIdx rho (resetCutTime p E)) x).fg.h_max) hx))
-    · exact reset_old_height_sup_le p c E rho hs hnr emittedName
+    · exact reset_old_height_sup_le p c E rho hs emittedName
 
 end AvailableChain.FGSA.Run
 end

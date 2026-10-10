@@ -1,6 +1,7 @@
-# P-H2 package map: Round 2 at 4c6289ce.
+# P-H2 package map: Round 3 at 91bf0f7a; source pin 615d203b.
 
 [TARGETS]
+AvailableChainFGSAProofs.Tests.HealingH2RecoveryAxioms
 AvailableChainFGSAProofs.Tests.HealingOpeningSupport
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
@@ -92,6 +93,8 @@ AvailableChainFGSAProofs.Tests.HealingResetCut
 AvailableChainFGSAProofs.Tests.HealingRiseOne
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Healing.ResetCut
+AvailableChainFGSAProofs.Tests.HealingH2RecoveryAxioms
 AvailableChainFGSAProofs.Tests.HealingOpeningSupport
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
@@ -626,7 +629,6 @@ AvailableChainFGSAProofs.Proofs.Healing.PostResetService P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh P-H2
 AvailableChainFGSAProofs.Proofs.Healing.Repair P-H2
 AvailableChainFGSAProofs.Proofs.Healing.Reset P-H2
-AvailableChainFGSAProofs.Proofs.Healing.ResetCut P-H2
 AvailableChainFGSAProofs.Proofs.Healing.RiseOne P-H2
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept P-H2
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair P-H2

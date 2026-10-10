@@ -5306,3 +5306,21 @@ No public Claims statement changed. Remaining reset and descent callers need the
 ### P-H2 Round 3 — audit fragment repair (sleep-ph2c, 2026-10-10)
 
 The serial production fragment imports production modules only. The six HealingOpeningSupport regression audits stay in their own module; the coverage fragment registers that owner as its audit root. All 41 declarations remain in scope. Layers: 72 inherited, zero new. No allowance or public claim change. Exact supplier contracts are in claude-files/sleep-ph2c/exact-handoff.md; source contracts do not claim closure.
+
+### P-H2 Round 3 — recovery service and shifted reset cut (2026-10-10)
+
+RecoveryScope proves the confirmed-reader guard at the actual enabled recovery gate,
+including its post-tick cut. RecoveryService constructs ReceiverService from original
+proposal emission and FreshHeadService from original HEAD emission. The exact handler
+window and receiver exclusion remain explicit inputs. Proposal HistorySafeAt uses durable
+history; fresh HEAD receipts use the exact emission history. Neither constructor derives
+retained HEAD history from prior processing.
+
+ResetCut now selects the first action at or after recoveryStart, as required by the
+approved public H0Reset type. Row caps use durable tree membership and need no NoRestart.
+HealingResetCut checks the shifted bounds (GST=10, delta=1: tau=18), simultaneous cuts,
+empty runs, and the awake time-zero fixture. Public claims are unchanged.
+
+Validation: --wfail passes for RecoveryScope, RecoveryService, ResetCut and both audit/test
+roots. HealingH2RecoveryAxioms has 31 strict commands with permitted axioms only. Layers:
+72 inherited, zero new. This group does not close the remaining H2 service producers.
