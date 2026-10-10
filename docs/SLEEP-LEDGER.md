@@ -5915,3 +5915,17 @@ The accepted/emitted proposal and fresh HEAD service helpers keep their anchor
 or send bound. Reset service uses H0Reset's recoveryStart qualification.
 Lower H1 factories still need the exact rule-5 contracts in the Round 5 handoff;
 this change does not prove those records. Public statements are unchanged.
+
+### P-H2 Round 5 — complete H1 contract types (2026-10-10)
+
+The healing_tPerm_at request now takes the explicit phase/body arguments and
+SupportPermanenceScope after hphase, as its two opening consumers require.
+Its conclusion is Transfers for that body and endpoint, not the global TPerm.
+healing_rise_one_advance_at now has Fintype V. The local H1 handoff gives full
+FirstTransferScope, NextTransferScope, ProposalSupportScope, FastSupportScope,
+SlowSupportScope, SupportGateScope, RepairGateScope and FrontierReadScope types.
+The joined-seat count and actual pool rival bounds are explicit. No undefined
+“r4 shapes” remain as a type specification. The contracts are checked as
+Prop-valued type declarations in .lake/sleep-ph2f/RequestContracts.lean.
+This checks their telescopes; it does not prove their conclusions or producers.
+The lower types and their consumers remain OPEN with the recorded owners.
