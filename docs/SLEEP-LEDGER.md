@@ -4707,3 +4707,48 @@ The regenerated isolated inventory has 186 entries. Both local audit roots pass
 modules, 251 exports, zero unaccepted, Gen zero exports. Layers: 72 inherited
 findings, zero new. No canonical audit command, key, allowance or baseline changed.
 Evidence: .lake/sleep-par-r3/pcl1-{dck,exports,exports-generate,layers}.log.
+
+
+### P-Ar Round 3 — corrected public receipt and protected receiver ports (2026-10-10)
+
+Base d60ff01d; branch sleep-par3. The P15-CUT public prefix receipt is CLOSED:
+ArmingKernel:785 proves arming_prefix_batch_receipt with the exact
+OutagePrefixReceiptDerivedClaim type and no extra service premise.
+ArmingKernel:735 derives ArmingBatchReceiptService from OutageSleep₂. Proposal
+history is durable; the vote anchor supplies timely handlers; checked delivery
+supplies dependencies; target service uses original source acceptance across
+restart; compatible finality and trigger validity supply non-exclusion. Honest
+HEAD uniqueness supplies fresh HEAD non-exclusion. The authentic finality
+alternative and strict target/ancestor stamps are retained.
+
+ArmingDuty's joined action branches and receipt root type compile. The lower
+lease-write helpers and enabled gate equation moved to ArmingStep:186–271.
+ArmingGate:66 requires the actual joinedNow guard. ArmingGate:321 supplies
+arming_gate_core_on for protected receivers with their exact equal-time epoch.
+The legacy gate consumers require awake at the exact pending gate. No raw
+result was used as an enabled gate witness.
+
+ArmingKernel:792 supplies protected origins from the Clean state/history;
+:837 supplies current slow saved rows with the finality alternative; :921
+supplies joined T25 at protected receivers from regime-derived services.
+ArmingKernel:464 consumes the exact P-Cl1 saved-row producer through an assembly
+input. Tests/OutageArming:650 applies the actual clean_epoch_saved_row to this
+consumer. Direct Clean proof imports into Outage were removed; layers stay clean.
+
+All 16 owned P-Ar targets now compile. The map also checks the unchanged GREEN
+ExactProposalReceipts supplier. Map: 17 targets, 485 GREEN, zero owned
+EXPECTED-FAIL; the two Run facade/audit failures remain S-Ap-owned.
+DCK P-Ar PASS: 38 strict roots, 3,129 results, 24 default controls. Complete GREEN
+exports and 166-entry local coverage PASS: 288 proof modules, 253 exports,
+zero unaccepted, Gen zero exports. Coverage control PASS. Layers: 72 inherited,
+zero new. No checker, scope, baseline, allowance or public Claims file changed.
+
+Full P-Ar remains PREPARED, not CLOSED. ArmingMain's fast_arming, slow_arming and
+arming_cert are compiled legacy NoRestart producers. The protected certificate
+construction must replace their all-honest gate/batch and saved-retention inputs,
+keep joined denominators, and thread the current-row finality branch into pending
+input and arming_gate_core_on. Public receipt closure is complete and independent
+of that remaining construction. No new public STOP or counterexample was found.
+Exact P-Ou handoff: scripts/dev-pkg/P-Ar.round3-handoff.md. Canonical audit and
+coverage fragments: scripts/dev-pkg/P-Ar.{audit,coverage}-fragment.txt.
+Evidence: .lake/sleep-par-r3/{arming-final-build6,par-dck-final,par-exports-final}.log.
