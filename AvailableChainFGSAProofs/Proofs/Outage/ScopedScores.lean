@@ -37,8 +37,10 @@ theorem outage_pool_opponent_bound [Fintype V]
       have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
         slotOf_offset p s p.Δ p.deltaPos.le
           (by have := p.deltaPos; dsimp [Time] at *; omega)
-      change _ ∈ joinedHonest p E rho _
-      simp only [joinedHonest, hslot, Finset.mem_filter]
+      change rho.seatOf (.base (.head s)) q ∈ rho.honest.filter
+        (fun x => joinedAt p E rho x (slotAt p (SA.voteTime p.toParams s))
+          (SA.voteTime p.toParams s))
+      simp only [hslot, Finset.mem_filter]
       exact ⟨hh, hJ⟩
     · apply Finset.mem_union_left
       rw [Gen.V2.Duty.faulty_def]

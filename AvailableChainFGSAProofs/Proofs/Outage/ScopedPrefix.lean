@@ -229,10 +229,9 @@ theorem outage_restored_vote_seed
     (preIdx_le_afterTicksIdx E rho hs _).1
 
 include h hf htsrc hnamed in
-/-- The no-regression branch has no source, stable, result or service seed input.
-The actual arming certificate produces the restored seed and the regime supplies
-the first restored good batch. All later results use earlier scoped HEADs. -/
-theorem outage_no_regression_continuation
+/-- The arming certificate produces the source and G stable seeds internally.
+This state consumer takes only the exact bounded restored result history. -/
+theorem outage_continuation_of_results
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
     (hprov : ArmingJoinedProvenance (c := c) E rho)
@@ -242,8 +241,9 @@ theorem outage_no_regression_continuation
     (hHor : SA.earlyTime p.toParams (restoredLabel p b₁) ≤ rho.horizon)
     {i : Nat} (hI : afterTicksIdx rho (SA.earlyTime p.toParams (restoredLabel p b₁)) ≤ i)
     (hi : i ≤ rho.events.length)
-    (hNo : ∀ k s, k < i → ¬ OutageScopedRegression (p := p) (c := c) (E := E)
-      (rho := rho) fast b₀ b₁ B k s) :
+    (hResults : ∀ j x s C, j < i → x ∈ rho.honest → restoredLabel p b₁ < s →
+      enabledGateAt p c E rho j x s → gateResultAt p c E rho j = some (some C) →
+      Block.Compatible C B) :
     (∀ j x s C, j < i → x ∈ rho.honest → restoredLabel p b₁ < s →
       enabledGateAt p c E rho j x s → gateResultAt p c E rho j = some (some C) →
       Block.Compatible C B) ∧
@@ -272,7 +272,6 @@ theorem outage_no_regression_continuation
     rw [hsub]
     ring_nf
     exact le_rfl
-  have hResults := outage_results_before_regression h hNo
   obtain ⟨r', hr', hCount⟩ := h.protection
   have heq : r' = r := Nat.le_antisymm
     ((hr' r).mp ((hr r).mpr le_rfl)) ((hr r').mp ((hr' r').mpr le_rfl))
@@ -293,9 +292,52 @@ theorem outage_no_regression_continuation
     hStart hSource hCover (fun j x s C _ hj => hRest j x s C hj) hI hi⟩
 
 include h hf htsrc hnamed in
+/-- Absence of actual regression produces the bounded result input internally. -/
+theorem outage_no_regression_continuation
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+    (hHor : SA.earlyTime p.toParams (restoredLabel p b₁) ≤ rho.horizon)
+    {i : Nat} (hI : afterTicksIdx rho (SA.earlyTime p.toParams (restoredLabel p b₁)) ≤ i)
+    (hi : i ≤ rho.events.length)
+    (hNo : ∀ k s, k < i → ¬ OutageScopedRegression (p := p) (c := c) (E := E)
+      (rho := rho) fast b₀ b₁ B k s) :
+    (∀ j x s C, j < i → x ∈ rho.honest → restoredLabel p b₁ < s →
+      enabledGateAt p c E rho j x s → gateResultAt p c E rho j = some (some C) →
+      Block.Compatible C B) ∧
+    OutageSourceHistory p c E rho B i ∧ OutageNamedHistory p c E rho β i ∧
+      (∀ x ∈ rho.honest, Block.Compatible (F_at p c E rho i x) B) ∧
+      ∀ x ∈ coveredNodes p E rho fast b₀, Block.Preceq B (S_at p c E rho i x) := by
+  exact outage_continuation_of_results h hf htsrc hnamed hsrc hState hprov hne hc hβ
+    hHor hI hi (outage_results_before_regression h hNo)
+
+omit [Fintype V] in
+/-- Event-first selection excludes every regression at a smaller label. -/
+theorem outage_no_lower_of_first_event {fast : Bool} {b₀ b₁ : Time} {B : Block}
+    (hs : V2.D.ScheduleWellFormed E rho) {k : Nat} {s : Slot}
+    (hReg : OutageScopedRegression (p := p) (c := c) (E := E) (rho := rho)
+      fast b₀ b₁ B k s)
+    (hFirst : ∀ j, j < k → ∀ q, ¬ OutageScopedRegression (p := p) (c := c) (E := E)
+      (rho := rho) fast b₀ b₁ B j q) :
+    ∀ j q, q < s → ¬ OutageScopedRegression (p := p) (c := c) (E := E)
+      (rho := rho) fast b₀ b₁ B j q := by
+  obtain ⟨_, _, _, hk, _, _, _⟩ := hReg
+  intro j q hqs hj
+  have hjKeep := hj
+  obtain ⟨_, _, _, hjtick, _, _, _⟩ := hj
+  have htime : SA.voteTime p.toParams q < SA.voteTime p.toParams s := by
+    rw [arming_vote_eq, arming_vote_eq]
+    have hcast := Int.ofNat_lt.mpr hqs
+    nlinarith [p.deltaPos]
+  exact hFirst j (V2.D.Engine.eventIndex_lt_of_time_lt hs hjtick hk htime) q hjKeep
+
+include h hf htsrc hnamed in
 /-- The first actual regression has a produced causal prefix at its own read.
 Same-label regressions are excluded by selecting the first event witness. -/
-theorem outage_first_regression_prefix
+theorem outage_regression_prefix_no_lower
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
     (hprov : ArmingJoinedProvenance (c := c) E rho)
@@ -305,7 +347,7 @@ theorem outage_first_regression_prefix
     {k : Nat} {s : Slot}
     (hReg : OutageScopedRegression (p := p) (c := c) (E := E) (rho := rho)
       fast b₀ b₁ B k s)
-    (hFirst : ∀ j, j < k → ∀ q, ¬ OutageScopedRegression (p := p) (c := c) (E := E)
+    (hNo : ∀ j q, q < s → ¬ OutageScopedRegression (p := p) (c := c) (E := E)
       (rho := rho) fast b₀ b₁ B j q) :
     (∀ j x q C, j < k → x ∈ rho.honest → restoredLabel p b₁ < q →
       enabledGateAt p c E rho j x q → gateResultAt p c E rho j = some (some C) →
@@ -324,18 +366,31 @@ theorem outage_first_regression_prefix
     by_contra hn
     exact (lt_irrefl _) ((Gen.V2.Duty.index_lt_idxBefore_iff hs hk _).mp
       (Nat.lt_of_not_ge hn))
-  exact outage_no_regression_continuation h hf htsrc hnamed hsrc hState hprov hne hc hβ
+  exact outage_continuation_of_results h hf htsrc hnamed hsrc hState hprov hne hc hβ
     (hEV.le.trans (hs.in_horizon _ (List.mem_of_getElem? hk)).2)
     (((preIdx_le_afterTicksIdx E rho hs _).2.trans
       (arming_timeIdx_le_idxBefore rho hEV)).trans hIdx)
     (Nat.le_of_lt (List.getElem?_eq_some_iff.mp hk).1)
-    (fun j q hj => hFirst j hj q)
+    (by
+      intro j x q C hj hx hrq hG hC
+      apply outage_continuation_result_of_head_history h hx hrq hG hC
+      intro w L hReader hL
+      have hKeep := hL
+      obtain ⟨a, _, _, ha, _, _, _⟩ := hL
+      have hqm : q < s := by
+        have htime := inclusion_time_le_of_tick hs hk j hj _ hG.1
+        change SA.gateTime p.toParams q ≤ SA.voteTime p.toParams s at htime
+        rw [arming_gate_eq, arming_vote_eq] at htime
+        have hcast : (q : Int) < (s : Int) := by nlinarith [p.deltaPos]
+        exact_mod_cast hcast
+      apply Bool.or_eq_true_iff.mpr
+      right
+      by_contra hn
+      exact hNo a q hqm ⟨hrq, w, L, ha, hReader, hKeep, hn⟩)
 
 include h hf htsrc hnamed in
-/-- The first regression has retained scores from the preceding actual good batch.
-E supplies its fixed good set; the healthy suffix supplies the full joined set.
-The receiver floor and both receipt epochs are produced at the actual read. -/
-theorem outage_first_regression_scores
+/-- The first event supplies the absence guard for every lower label. -/
+theorem outage_first_regression_prefix
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
     (hprov : ArmingJoinedProvenance (c := c) E rho)
@@ -346,6 +401,31 @@ theorem outage_first_regression_scores
     (hReg : OutageScopedRegression (p := p) (c := c) (E := E) (rho := rho)
       fast b₀ b₁ B k s)
     (hFirst : ∀ j, j < k → ∀ q, ¬ OutageScopedRegression (p := p) (c := c) (E := E)
+      (rho := rho) fast b₀ b₁ B j q) :
+    (∀ j x q C, j < k → x ∈ rho.honest → restoredLabel p b₁ < q →
+      enabledGateAt p c E rho j x q → gateResultAt p c E rho j = some (some C) →
+      Block.Compatible C B) ∧
+    OutageSourceHistory p c E rho B k ∧ OutageNamedHistory p c E rho β k ∧
+      (∀ x ∈ rho.honest, Block.Compatible (F_at p c E rho k x) B) ∧
+      ∀ x ∈ coveredNodes p E rho fast b₀, Block.Preceq B (S_at p c E rho k x) := by
+  exact outage_regression_prefix_no_lower h hf htsrc hnamed hsrc hState hprov hne hc hβ
+    hReg (outage_no_lower_of_first_event h.pre.base.valid.toScheduleWellFormed hReg hFirst)
+
+include h hf htsrc hnamed in
+/-- The first regression has retained scores from the preceding actual good batch.
+E supplies its fixed good set; the healthy suffix supplies the full joined set.
+The receiver floor and both receipt epochs are produced at the actual read. -/
+theorem outage_regression_scores_no_lower
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+    {k : Nat} {s : Slot}
+    (hReg : OutageScopedRegression (p := p) (c := c) (E := E) (rho := rho)
+      fast b₀ b₁ B k s)
+    (hNo : ∀ j q, q < s → ¬ OutageScopedRegression (p := p) (c := c) (E := E)
       (rho := rho) fast b₀ b₁ B j q) :
     ∃ q K, rho.events[k]? = some
       (.tick (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s)) ∧
@@ -372,8 +452,8 @@ theorem outage_first_regression_scores
     simpa only [hslot, x] using hReader.1.2
   have hpos : 0 < s := (Nat.zero_le _).trans_lt hrs
   have heq : s - 1 + 1 = s := Nat.sub_add_cancel hpos
-  have hF := (outage_first_regression_prefix h hf htsrc hnamed hsrc hState hprov
-    hne hc hβ hRegKeep hFirst).2.2.2.1 x hx
+  have hF := (outage_regression_prefix_no_lower h hf htsrc hnamed hsrc hState hprov
+    hne hc hβ hRegKeep hNo).2.2.2.1 x hx
   have hFB : Block.Preceq (F_at p c E rho k x) B := by
     rcases Bool.or_eq_true_iff.mp hF with hlow | hhigh
     · exact hlow
@@ -416,9 +496,8 @@ theorem outage_first_regression_scores
       Block.Preceq B L := by
     have hKeep := hL
     obtain ⟨j, _, _, hj, _, _, _⟩ := hL
-    have hjk := V2.D.Engine.eventIndex_lt_of_time_lt hs hj hk htime
     by_contra hn
-    exact hFirst j hjk (s - 1) ⟨hP, w, L, hj, hR, hKeep, hn⟩
+    exact hNo j (s - 1) (Nat.sub_lt hpos Nat.one_pos) ⟨hP, w, L, hj, hR, hKeep, hn⟩
   refine ⟨q, K, hk, hReader, hK, hBad, ?_⟩
   obtain ⟨r, hr, hCount⟩ := h.protection
   have hrCanon := outage_first_restored_label p b₁
@@ -500,6 +579,35 @@ theorem outage_first_regression_scores
       _ hBatch (fun L => inclusion_joined_rest_bound E rho h.pre.base.cstar
         h.pre.base.valid (s - 1) H (fun w hh hJ => (hH w).mpr ⟨hh, hJ⟩) L)
       B hRec hx (heq.symm ▸ hJ) B (block_preceq_refl B)
+
+include h hf htsrc hnamed in
+/-- Retained scores and a prior source at the first actual regression event. -/
+theorem outage_first_regression_scores
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+    {k : Nat} {s : Slot}
+    (hReg : OutageScopedRegression (p := p) (c := c) (E := E) (rho := rho)
+      fast b₀ b₁ B k s)
+    (hFirst : ∀ j, j < k → ∀ q, ¬ OutageScopedRegression (p := p) (c := c) (E := E)
+      (rho := rho) fast b₀ b₁ B j q) :
+    ∃ q K, rho.events[k]? = some
+      (.tick (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s)) ∧
+      outageHeadReader p E rho fast b₀ b₁ (rho.seatOf (.base (.head s)) q)
+        (SA.voteTime p.toParams s) ∧
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K ∧
+      ¬ Block.Preceq B K ∧
+      RetainedTargetScores p (clock p (storeAt p c E rho k
+        (rho.seatOf (.base (.head s)) q)) (SA.voteTime p.toParams s)) s B ∧
+      ∃ j y P, rho.events[j]? = some (.tick y (SA.voteTime p.toParams (s - 1))) ∧
+        y ∈ rho.honest ∧ P ∈ (storeAt p c E rho j y).fg.TF ∧
+        Block.Preceq B (eraseFG P) := by
+  exact outage_regression_scores_no_lower h hf htsrc hnamed hsrc hState hprov hne hc hβ
+    hReg (outage_no_lower_of_first_event h.pre.base.valid.toScheduleWellFormed hReg hFirst)
 
 end Prefix
 

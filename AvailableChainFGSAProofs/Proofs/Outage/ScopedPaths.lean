@@ -289,8 +289,93 @@ theorem outage_uncontested_frozen_path {ΔF : Time}
     simp only [hEq, decide_true, Bool.not_true, Bool.false_eq_true] at hn
   exact ⟨X, path hFX hXB hXne, heX, W, hW, preceq_trans hXB hBW, hWh⟩
 
+/-- The contested filter is compatible at the actual named frame and live root. -/
+theorem outage_contested_head_of_names
+    (hf : FGFoundation p c E rho) {B : FGBlock (Fin p.n)} {i : Nat} {x : V} {s : Slot}
+    (hx : x ∈ rho.honest) (hNames : OutageNamedHistory p c E rho B i)
+    (hRoot : Block.Compatible (liveRoot p (clock p (storeAt p c E rho i x)
+      (SA.voteTime p.toParams s))) (eraseFG B))
+    (hContest : (controls p (clock p (storeAt p c E rho i x)
+      (SA.voteTime p.toParams s))).contest = true) :
+    Block.Compatible (headVote p (clock p (storeAt p c E rho i x)
+      (SA.voteTime p.toParams s)) s) (eraseFG B) := by
+  have hCtrl : controls p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) =
+      controls p (storeAt p c E rho i x) := by
+    change KitFG.treeStoreControlsView (heightView p) (clock p _ _).fg = _
+    rw [clock_fg]
+    rfl
+  have hct := hContest
+  rw [hCtrl] at hct
+  have hc := (fgsa_cpCompat_of_scopedFrame p c E rho hf.store hf.strat
+    i x B hx hNames.history).2.2.2.2 hct
+  apply outageV_contested_head p _ (cstoreInv_clock p _ (cstoreInv_stateBefore E rho i x) _)
+    B s hRoot ?_ hContest
+  intro W hW hh
+  rw [clock_fg] at hW
+  change (heightView p W).h = (controls p (clock p (storeAt p c E rho i x)
+    (SA.voteTime p.toParams s))).H at hh
+  rw [hCtrl] at hh
+  exact outageV_contest_top p _ B hc.1 hc.2 W hW hh
+
 /-- The first actual joined regression produces its own durable nonzero marker.
 Root, scores, filtered path, receipt floors and epochs are all produced here. -/
+theorem outage_regression_marker_no_lower [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    (hf : FGFoundation p c E rho) (origin : RQCOrigin p c E rho) (htsrc : TSrc p c E rho)
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+    {k : Nat} {s : Slot}
+    (hReg : OutageScopedRegression (p := p) (c := c) (E := E) (rho := rho)
+      fast b₀ b₁ B k s)
+    (hNo : ∀ j q, q < s → ¬ OutageScopedRegression (p := p) (c := c) (E := E)
+      (rho := rho) fast b₀ b₁ B j q) :
+    ∃ x P, rho.events[k]? = some (.tick x (SA.voteTime p.toParams s)) ∧
+      x ∈ rho.honest ∧ joinedAt p E rho x s (SA.voteTime p.toParams s) ∧
+      P ∈ (storeAt p c E rho k x).fg.TF ∧
+      FGBlock.Preceq β (heightView p P).J ∧ (heightView p P).h_j ≠ 0 ∧
+      Block.Compatible (headVote p (clock p (storeAt p c E rho k x)
+        (SA.voteTime p.toParams s)) s) (eraseFG β) := by
+  subst B
+  obtain ⟨q, K, hk, hR, hK, hBad, hScores, hPrior⟩ := outage_regression_scores_no_lower
+    h hf htsrc hnamed hsrc hState hprov hne hc rfl hReg hNo
+  obtain ⟨hResults, hSource, hNames, _, hCover⟩ := outage_regression_prefix_no_lower
+    h hf htsrc hnamed hsrc hState hprov hne hc rfl hReg hNo
+  have hRoot := outage_scoped_head_root h hf hc rfl hk hR hNames (hCover _)
+    (fun j q C hj => hResults j _ q C hj hR.1.1)
+  have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
+    slotOf_offset p s p.Δ p.deltaPos.le
+      (by have := p.deltaPos; dsimp [Time] at *; omega)
+  have hJ : joinedAt p E rho (rho.seatOf (.base (.head s)) q) s
+      (SA.voteTime p.toParams s) := by simpa only [hslot] using hR.1.2
+  have hpos : 0 < s := (Nat.zero_le _).trans_lt hReg.1
+  have heq : s - 1 + 1 = s := Nat.sub_add_cancel hpos
+  have hBad' := (headTargetAtEmission_at_tick E rho h.pre.base.valid.toScheduleWellFormed
+    hK hk rfl) ▸ hBad
+  have hrs := hReg.1
+  have hGST := h.gst.trans (outage_restored_vote_cut p b₁
+    (show restoredLabel p b₁ ≤ s - 1 by dsimp only [Slot] at *; omega))
+  have hPath := outage_uncontested_frozen_path h.pre.base h.sync hf origin hne
+    (heq.symm ▸ hk) hR.1.1 (heq.symm ▸ hJ) hGST hSource hPrior
+    (heq.symm ▸ hRoot) (heq.symm ▸ hBad')
+  have hContest := outage_regression_contested_of_retained_batch (Nat.ne_of_gt hpos)
+    hBad' hRoot hScores (by simpa only [heq] using hPath)
+  obtain ⟨P, hP, hBJ, hnz⟩ := outage_contested_marker_of_names hf hR.1.1 hNames hContest
+  exact ⟨_, P, hk, hR.1.1, hJ, hP, hBJ, hnz,
+    outage_contested_head_of_names hf hR.1.1 hNames hRoot hContest⟩
+
+/-- The first actual joined regression produces its durable marker. -/
 theorem outage_first_regression_marker [Fintype V]
     {fast : Bool} {T b₀ b₁ ΔF : Time}
     (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
@@ -317,32 +402,10 @@ theorem outage_first_regression_marker [Fintype V]
       x ∈ rho.honest ∧ joinedAt p E rho x s (SA.voteTime p.toParams s) ∧
       P ∈ (storeAt p c E rho k x).fg.TF ∧
       FGBlock.Preceq β (heightView p P).J ∧ (heightView p P).h_j ≠ 0 := by
-  subst B
-  obtain ⟨q, K, hk, hR, hK, hBad, hScores, hPrior⟩ := outage_first_regression_scores
-    h hf htsrc hnamed hsrc hState hprov hne hc rfl hReg hFirst
-  obtain ⟨hResults, hSource, hNames, _, hCover⟩ := outage_first_regression_prefix
-    h hf htsrc hnamed hsrc hState hprov hne hc rfl hReg hFirst
-  have hRoot := outage_scoped_head_root h hf hc rfl hk hR hNames (hCover _)
-    (fun j q C hj => hResults j _ q C hj hR.1.1)
-  have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
-    slotOf_offset p s p.Δ p.deltaPos.le
-      (by have := p.deltaPos; dsimp [Time] at *; omega)
-  have hJ : joinedAt p E rho (rho.seatOf (.base (.head s)) q) s
-      (SA.voteTime p.toParams s) := by simpa only [hslot] using hR.1.2
-  have hpos : 0 < s := (Nat.zero_le _).trans_lt hReg.1
-  have heq : s - 1 + 1 = s := Nat.sub_add_cancel hpos
-  have hBad' := (headTargetAtEmission_at_tick E rho h.pre.base.valid.toScheduleWellFormed
-    hK hk rfl) ▸ hBad
-  have hrs := hReg.1
-  have hGST := h.gst.trans (outage_restored_vote_cut p b₁
-    (show restoredLabel p b₁ ≤ s - 1 by dsimp only [Slot] at *; omega))
-  have hPath := outage_uncontested_frozen_path h.pre.base h.sync hf origin hne
-    (heq.symm ▸ hk) hR.1.1 (heq.symm ▸ hJ) hGST hSource hPrior
-    (heq.symm ▸ hRoot) (heq.symm ▸ hBad')
-  have hContest := outage_regression_contested_of_retained_batch (Nat.ne_of_gt hpos)
-    hBad' hRoot hScores (by simpa only [heq] using hPath)
-  obtain ⟨P, hP, hBJ, hnz⟩ := outage_contested_marker_of_names hf hR.1.1 hNames hContest
-  exact ⟨_, P, hk, hR.1.1, hJ, hP, hBJ, hnz⟩
+  obtain ⟨x, P, hk, hx, hJ, hP, hBJ, hnz, _⟩ := outage_regression_marker_no_lower h hf
+    origin htsrc hnamed hsrc hState hprov hne hc hβ hReg
+    (outage_no_lower_of_first_event h.pre.base.valid.toScheduleWellFormed hReg hFirst)
+  exact ⟨x, P, hk, hx, hJ, hP, hBJ, hnz⟩
 
 end AvailableChain.FGSA.Run
 end

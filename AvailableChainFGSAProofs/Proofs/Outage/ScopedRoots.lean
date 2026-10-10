@@ -156,6 +156,56 @@ theorem outage_enabled_old_gate_covered
 /-- At an actual scoped HEAD the old live rows are compatible. G uses its
 stable invariant; other pre-End readers cannot have outage writes outside W.
 Post-End readers use only the earlier enabled result history. -/
+theorem outage_scoped_head_rows [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    {B : Block}
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh)
+    {i : Nat} {x : V} {s : Slot}
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
+    (hReader : outageHeadReader p E rho fast b₀ b₁ x (SA.voteTime p.toParams s))
+    (hCover : x ∈ coveredNodes p E rho fast b₀ → Block.Preceq B (S_at p c E rho i x))
+    (hResults : ∀ j q C, j < i → restoredLabel p b₁ < q →
+      enabledGateAt p c E rho j x q → gateResultAt p c E rho j = some (some C) →
+      Block.Compatible C B) :
+    ∀ row ∈ (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)).base.obligations,
+      (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)).base.now < row.2.2 →
+      Block.Compatible row.1 B := by
+  classical
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  have hx := hs.honest_only _ (List.mem_of_getElem? hi)
+  let dst := clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)
+  have hOff := arming_clock_offGate_fields p (storeAt p c E rho i x) _
+    (fun q => arming_gate_ne_vote p q s)
+  intro row hr hl
+  by_cases hG : x ∈ coveredNodes p E rho fast b₀
+  · have hBS : Block.Preceq B dst.base.stableRecord := by
+      rw [show dst.base.stableRecord = (storeAt p c E rho i x).base.stableRecord
+        from hOff.2.1]
+      exact hCover hG
+    exact block_compatible_of_common
+      ((storeBundle_postClock E rho i x (SA.voteTime p.toParams s)).lease row hr hl) hBS
+  · rcases hReader.2 with hG' | ⟨hNW, _⟩ | hEnd
+    · exact (hG hG').elim
+    · have hm := hOff.2.2.2.subset hr
+      obtain ⟨j, hji, q, C, hQ, hC, hRC, _⟩ := outage_row_deadline_origin hs i x row hm
+      apply block_compatible_of_preceq_compatible hRC
+      rcases lt_trichotomy q (l + 1) with hql | rfl | hlq
+      · have hql' : q ≤ l := by dsimp only [Slot] at *; omega
+        have hTime := ((arming_gate_le_iff p q l).mpr hql').trans hc.gate_le_cut
+        have hidx := (V2.D.Engine.index_lt_read_length_iff hs b₀ hQ.1).mpr hTime
+        exact block_compatible_of_common
+          (hc.max_le q C ⟨j, hidx, x, hQ.1, hQ.2, hC⟩ hql') hc.max_read
+      · exact outage_pending_gate_cert_result h.sleepPre hc hx hQ hC
+      · by_cases hqr : q ≤ restoredLabel p b₁
+        · exact (hG (outage_enabled_old_gate_covered h.pre.base h.order.2.2.1
+            hc.cut_lt_pending hlq hqr hx hQ hNW)).elim
+        · exact hResults j q C hji (Nat.lt_of_not_ge hqr) hQ hC
+    · exact outage_head_rows_after_handover hs hEnd hResults row hr
+
+
+/-- The named frame and scoped live rows give the actual HEAD live root. -/
 theorem outage_scoped_head_root [Fintype V]
     {fast : Bool} {T b₀ b₁ ΔF : Time}
     (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
@@ -196,31 +246,7 @@ theorem outage_scoped_head_root [Fintype V]
       · exact hcFrame.2.2.1
     exact Bool.or_eq_true_iff.mpr (hZF.imp eraseFG_preceq eraseFG_preceq)
   apply outageV_liveRoot_compatible p dst B hZ
-  intro row hr hl
-  by_cases hG : x ∈ coveredNodes p E rho fast b₀
-  · have hBS : Block.Preceq B dst.base.stableRecord := by
-      rw [show dst.base.stableRecord = (storeAt p c E rho i x).base.stableRecord
-        from hOff.2.1]
-      exact hCover hG
-    exact block_compatible_of_common
-      ((storeBundle_postClock E rho i x (SA.voteTime p.toParams s)).lease row hr hl) hBS
-  · rcases hReader.2 with hG' | ⟨hNW, _⟩ | hEnd
-    · exact (hG hG').elim
-    · have hm := hOff.2.2.2.subset hr
-      obtain ⟨j, hji, q, C, hQ, hC, hRC, _⟩ := outage_row_deadline_origin hs i x row hm
-      apply block_compatible_of_preceq_compatible hRC
-      rcases lt_trichotomy q (l + 1) with hql | rfl | hlq
-      · have hql' : q ≤ l := by dsimp only [Slot] at *; omega
-        have hTime := ((arming_gate_le_iff p q l).mpr hql').trans hc.gate_le_cut
-        have hidx := (V2.D.Engine.index_lt_read_length_iff hs b₀ hQ.1).mpr hTime
-        exact block_compatible_of_common
-          (hc.max_le q C ⟨j, hidx, x, hQ.1, hQ.2, hC⟩ hql') hc.max_read
-      · exact outage_pending_gate_cert_result h.sleepPre hc hx hQ hC
-      · by_cases hqr : q ≤ restoredLabel p b₁
-        · exact (hG (outage_enabled_old_gate_covered h.pre.base h.order.2.2.1
-            hc.cut_lt_pending hlq hqr hx hQ hNW)).elim
-        · exact hResults j q C hji (Nat.lt_of_not_ge hqr) hQ hC
-    · exact outage_head_rows_after_handover hs hEnd hResults row hr
+  exact outage_scoped_head_rows h hc hi hReader hCover hResults
 
 /-- Both local frame inputs at the first regression are produced by its
 causal prefix and prior good batch. Only the uncontested frozen path is separate. -/

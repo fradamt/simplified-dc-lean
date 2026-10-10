@@ -1023,3 +1023,8 @@ actual regression marker from the regime, arming certificate and causal prefix.
 Selected path service uses the current receiver floor, actual joined read and
 post-GST prior label. The crossing source uses P-Fd sourceDiscipline_qcOrigin.
 The finite bridge after that marker and the complete public exporters remain open.
+
+P-Ou ScopedBridge now constructs the finite bridge and global restored scoped
+HEADs. Same-label readers use their own frame, and subsequent labels use the
+first marker. Both event branches reach inclusive covered public reads after the
+seed. Earlier read assembly, W stable catch-up and legacy public ports remain open.

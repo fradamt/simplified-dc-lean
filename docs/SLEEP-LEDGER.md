@@ -6931,3 +6931,31 @@ O10-2 is proved. The post-marker finite bridge and public ports remain open.
 Public claims and protocol declarations are unchanged. New scope checks include
 restart-at-GST=20 and restart-at-9 with GST=20; these are guard checks, not full
 ExecutionValid counterexample fixtures. P-Ou remains PREPARED.
+
+### P-Ou Round 11 — finite bridge and global restored HEADs
+
+ScopedPrefix.outage_continuation_of_results produces source and G stable seeds
+from the arming certificate. Its only invariant input is the exact bounded result
+history. The original no-regression API remains a wrapper with the same type.
+The new no-lower-label forms handle all readers at the first regressed label.
+Event-first selection proves this absence guard without assuming a marker in all runs.
+
+ScopedRoots.outage_scoped_head_rows produces compatible live rows before or after
+handover. ScopedPaths.outage_regression_marker_no_lower also proves compatibility
+at the regressed reader itself. ScopedBridge.outage_regression_continuation uses
+these local reads at the first label and exact marker receipt at subsequent labels.
+Its event induction supplies the complete finite bridge with no future callbacks.
+outage_first_marker_finite_prefix returns the exact seed after gate max(m,r+k).
+O10-3 is proved, including early markers and same-label read order.
+
+outage_continuation_scoped_heads joins the no-marker branch, first-label reads and
+causal continuation. It produces global hHeads for actual emitted scoped joined
+readers after r. O10-5's hHeads producer is proved; its legacy consumer ports remain open.
+outage_continuation_event_state joins both first-event branches. The inclusive
+public-read adapter proves G inclusion after the early-r seed. Public read assembly
+before that seed remains open. ScopedCatchUp produces raw result compatibility at
+the actual W gate, with its batch, awake suffix and receipt epoch. Post-gate W stable
+compatibility remains open; raw result compatibility is not that stable seed.
+
+The six P-Ou EXPECTED-FAIL consumers and two S-Ap entries remain. P-Ou is PREPARED.
+Public claims, protocol declarations and healing files are unchanged.
