@@ -5929,3 +5929,19 @@ The joined-seat count and actual pool rival bounds are explicit. No undefined
 Prop-valued type declarations in .lake/sleep-ph2f/RequestContracts.lean.
 This checks their telescopes; it does not prove their conclusions or producers.
 The lower types and their consumers remain OPEN with the recorded owners.
+
+### P-H2 Round 5 — committed H1 API reconciliation (2026-10-10)
+
+The H1 interface pin is f1798112, after b1723ebf and fdf689c8. No merge or H1
+source edit was made. RepairHeadServices uses the committed slot record; all
+three consumers pass the actual proposal and emission to its projections.
+Opening gate-cover consumers construct the committed SupportGateScope from
+their real cut and GateReceiptScope. Frontier fast/slow projections now pass
+the committed actual-source arguments. All affected bodies remain open until
+the required lower interfaces land and their full proofs compile.
+
+The local H1-r4-reconcile.md lists all 23 contract decisions and exact remaining
+differences. H1's per-receiver selected carrier still lacks the actual joined
+read and floor guards. Its permanence input is still global. Its reset and
+settlement service callbacks still differ from the selected H2 contracts.
+Those requests remain OPEN; none is silently declared supplied.

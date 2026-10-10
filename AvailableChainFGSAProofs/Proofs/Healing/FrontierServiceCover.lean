@@ -102,8 +102,12 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
   have hcoverC (b : Block)
       (hcb : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z s = some K → Block.Preceq b K)
       (hFb : Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) b) : Block.Preceq b C := by
-    obtain ⟨C', hC', hbC'⟩ := healing_support_gate_cover E rho hrec hgsts hScope.cut hsh hcb ht
-      (hScope.gates i x hx ht)
+    obtain ⟨C', hC', hbC'⟩ := healing_support_gate_cover E rho hrec hgsts hsh hcb ht
+      (hScope.gates i x hx ht (healing_scope_enabled_gate hrec hx ht (by
+        change E.t_GST ≤ 4 * p.Δ * (s : Int)
+        have hb := hScope.cut
+        change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hb
+        linarith [p.deltaPos]) hsh))
       (by rw [clockPre_fg]; exact hFb)
     rw [clockPre_fg] at hC'
     have he := Option.some.inj ((hC.symm.trans hrawEq).trans hC')
@@ -267,12 +271,14 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
         obtain ⟨z, hz, hfast | hslow⟩ := hbody
         · obtain ⟨nd, hnd, hB⟩ := hfast
           exact frontier_fast_heads E rho hrec mono crossing writes hHeight hvh hcap
-            (hgst.trans huw) hwv hQw hz hnd hB (hRead.fast w (Nat.succ_le_of_lt hwq) hwv z hz)
+            (hgst.trans huw) hwv hQw hz hnd hB
+            (hRead.fast w (Nat.succ_le_of_lt hwq) hwv z nd lease.1 hz hnd hB)
             s (by exact_mod_cast hwsI) hvs
         · obtain ⟨hwindow, st, Cw, jw, hin, hgrw, _, hBCw, hslow, hjw, _⟩ := hslow
           exact frontier_slow_heads E rho hrec mono crossing writes hHeight hvh hcap
             (hgst.trans huw) hwv hQw hz hwindow hin hgrw hBCw hslow hjw
-            (hRead.slow w (Nat.succ_le_of_lt hwq) hwv z hz)
+            (hRead.slow w (Nat.succ_le_of_lt hwq) hwv z st Cw lease.1 jw hz
+              hin hgrw hBCw hslow hjw)
             s (by exact_mod_cast hwsI) hvs
       have hawake := hrec.awake x hx (SA.voteTime p.toParams s) hgsts (hvs.trans hvh)
       obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hx s
@@ -368,8 +374,12 @@ theorem frontier_opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
   have hv : { actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) with
       early := (storeAt p c E rho i x).base.early } = (fgsaAC E rho).gateView i x s :=
     fgsa_clockPre_gateView p (storeAt p c E rho i x) s
-  obtain ⟨C, hC, hQC⟩ := healing_support_gate_cover E rho hrec hgsts hScope.cut hsh hcov ht
-    (hScope.gates i x hx ht)
+  obtain ⟨C, hC, hQC⟩ := healing_support_gate_cover E rho hrec hgsts hsh hcov ht
+    (hScope.gates i x hx ht (healing_scope_enabled_gate hrec hx ht (by
+        change E.t_GST ≤ 4 * p.Δ * (s : Int)
+        have hb := hScope.cut
+        change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hb
+        linarith [p.deltaPos]) hsh))
     (by rw [clockPre_fg]; exact hFQ)
   rw [clockPre_fg] at hC
   have hraw : (fgsaAC E rho).raw i s x = some C := by
@@ -377,7 +387,11 @@ theorem frontier_opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
       (eraseFG (storeAt p c E rho i x).fg.F) st s) hv
     exact he.symm.trans hC
   have hτ := opening_gate_support E rho hrec hScope.cut hgsts hsh hcov hx ht
-    (hScope.gates i x hx ht) hFQ
+    (hScope.gates i x hx ht (healing_scope_enabled_gate hrec hx ht (by
+        change E.t_GST ≤ 4 * p.Δ * (s : Int)
+        have hb := hScope.cut
+        change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hb
+        linarith [p.deltaPos]) hsh)) hFQ
   have hsupport : SA.releaseThreshold p.toParams ≤
       SA.Root.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s Q := by
     have he := congrArg (fun st => SA.Root.prefixSupport p.toParams st s Q) hv
@@ -388,7 +402,11 @@ theorem frontier_opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     refine ⟨?_, Bool.or_eq_true_iff.mpr (Or.inr ?_)⟩
     · rwa [(clockPre_fields p _ _).2.1]
     · rwa [clockPre_fg]
-  exact fgsa_gate_of_coveringBatch E rho hS i s x Q ht (hScope.gates i x hx ht).enabled
+  exact fgsa_gate_of_coveringBatch E rho hS i s x Q ht (hScope.gates i x hx ht (healing_scope_enabled_gate hrec hx ht (by
+        change E.t_GST ≤ 4 * p.Δ * (s : Int)
+        have hb := hScope.cut
+        change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hb
+        linarith [p.deltaPos]) hsh)).enabled
     ⟨C, hraw, hQC⟩
     (frontier_gate_guard_of_cover E rho hrec mono crossing writes hRead hgst hQ hErase hHeight
       hexact hu hphase hqv hvh hcap hqs hsv hx ht hFQ) hne hmem hsupport

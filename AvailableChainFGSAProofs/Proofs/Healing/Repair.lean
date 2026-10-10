@@ -25,7 +25,7 @@ structure RepairServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) 
   heads : ∀ s ip x N, E.t_GST ≤ slotStartZ p ((s : Int) - 2) → x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-    SA.voteTime p.toParams s ≤ rho.horizon → RepairHeadServices E rho s ip x N
+    SA.voteTime p.toParams s ≤ rho.horizon → RepairHeadServices E rho s
   gates : ∀ (s : Slot), E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
     SA.gateTime p.toParams s ≤ rho.horizon → RepairGateScope E rho s
 
@@ -116,7 +116,7 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
     have he : ((r + 1 : Nat) : Int) - 2 = (r : Int) - 1 := by push_cast; omega
     simpa only [he] using hPriorCut) hx hip hem hhor
   have hPrior : ProposalSupportScope E rho ip x r := by
-    simpa only [Nat.add_sub_cancel] using hHeads.prior
+    simpa only [Nat.add_sub_cancel] using hHeads.prior ip x N hx hip hem
   have hGST : E.t_GST ≤ SA.proposalTime p.toParams (r + 1) - p.Δ := by
     refine hgst.trans (hheadVote.trans ?_)
     change 4 * p.Δ * (r : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int) - p.Δ
@@ -125,7 +125,7 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
   have hheadN := repair_head_exact E rho hrec.toRecovery₂ (r + 1) hGST hx hip hseat N hem
     (fun y hy ih hih _ => repair_h6_input E rho hrec mono crossing hgst hphase hheadVote hvq
       hlease hx hip hPrior hy hih)
-    hHeads.targets hHeads.scopes hhor
+    (hHeads.targets ip x N hx hip hem) (hHeads.scopes ip x N hx hip hem) hhor
   have hheadQ : ∀ y ∈ rho.honest,
       joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
       headAtLabel p c E rho y (r + 1) = some Q := by simpa only [heN] using hheadN

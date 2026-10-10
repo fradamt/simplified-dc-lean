@@ -225,7 +225,7 @@ theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
     (hServices : ∀ ip x N, x ∈ rho.honest →
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (q + 1))) →
       (ofWire p ⟨.proposer (q + 1), .proposal N⟩) ∈ rho.emitsAt E ip →
-      RepairHeadServices E rho (q + 1) ip x N)
+      RepairHeadServices E rho (q + 1))
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 1) B) :
     ∀ y ∈ rho.honest, joinedAt p E rho y (q + 1) (SA.voteTime p.toParams (q + 1)) →
       headAtLabel p c E rho y (q + 1) = some B := by
@@ -254,11 +254,11 @@ theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
   have hhor : SA.voteTime p.toParams (q + 1) ≤ rho.horizon := hvs.trans hphase.2.1
   have hServices := hServices ip x N hx hip hem
   have hPrior : ProposalSupportScope E rho ip x q := by
-    simpa only [Nat.add_sub_cancel] using hServices.prior
+    simpa only [Nat.add_sub_cancel] using hServices.prior ip x N hx hip hem
   exact repair_head_exact E rho hrec.toRecovery₂ (q + 1) hGST hx hip hseat N hem
     (fun y hy ih hih _ => frontier_seed_qSucc_input E rho hrec mono crossing writes
       hgst hphase hseed hx hip hPrior hy hih)
-    hServices.targets hServices.scopes hhor
+    (hServices.targets ip x N hx hip hem) (hServices.scopes ip x N hx hip hem) hhor
 
 end AvailableChain.FGSA.Run
 end

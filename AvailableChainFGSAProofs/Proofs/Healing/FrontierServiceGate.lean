@@ -30,11 +30,15 @@ theorem frontier_repair_gate_scope (E : Generic.Env V)
     apply le_trans ?_ hgate
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     linarith [p.deltaPos]
+  have hgsts : E.t_GST ≤ SA.voteTime p.toParams s := by
+    change E.t_GST ≤ 4 * p.Δ * (s : Int) + p.Δ
+    change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hcut
+    linarith [p.deltaPos]
   refine ⟨hcut, ?_, ?_, hRead.carriers s hs hvd⟩
   · intro i x hx ht hEnabled
     exact (hRead.seed x hx).gates s hs hgate i x hx ht hEnabled
   · intro i iq x hx ht hEnabled hiq hJoined
-    exact (hRead.fast s hs hgate x hx).first i iq x hx ht hEnabled hiq hJoined
+    exact hRead.first s hs hgate hgsts i iq x hx ht hEnabled hiq hJoined
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:965–970, 1551–1574.
@@ -124,7 +128,24 @@ theorem frontier_gate_guard_of_receipts [Fintype V] (E : Generic.Env V)
   have hFiq : Block.Preceq (eraseFG (storeAt p c E rho iq x).fg.F) Q :=
     block_preceq_trans (eraseFG_preceq (mono iq i x hx hqi.le).1) hFQ
   exact healing_support_release_compat (hroots := hrec.base.receiptIdealization)
-    E rho hE hDelta s hSync hx hx ht hiq (hScope.first i iq x hx ht hiq)
+    E rho hE hDelta s hSync hx hx ht hiq
+    (hScope.first i iq x hx ht (healing_scope_enabled_gate hrec hx ht (by
+      change E.t_GST ≤ 4 * p.Δ * (s : Int)
+      have hb := hScope.cut
+      change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hb
+      linarith [p.deltaPos]) hgh) hiq
+      (healing_recovery_joined E rho hrec hx (by
+        simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using
+          (show E.t_GST ≤ slotStartZ p (s : Int) from by
+            change E.t_GST ≤ 4 * p.Δ * (s : Int)
+            have hb := hScope.cut
+            change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hb
+            linarith [p.deltaPos])) (by
+              apply hgsts.trans
+              change 4 * p.Δ * (s : Int) + p.Δ ≤
+                4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+              push_cast
+              linarith [p.deltaPos]) (hqd.le.trans hgh)))
     hτ hFiq lease hkeep
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -201,7 +222,7 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
     (hvs.trans hvh) hScope.cut
   obtain ⟨Kfg, hKT, hKe, hKm, hReceipt⟩ := frontier_head_relay_on
     E rho crossing hE hHeight hcap hx hjz (hErase ▸ hcovQ x hx _ hhl) hcut
-    (hRead.carriers s (Nat.succ_le_of_lt hqs) (hvd.trans hgate) jz x hx hjz hSourceJoined)
+    (hRead.carriers s (Nat.succ_le_of_lt hqs) (hvd.trans hgate) jz x hx hjz hSourceJoined hgsts)
     hrec.base.receiptIdealization
   have hjzd : jz ≤ V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ) :=
     ((Gen.V2.Duty.index_lt_idxBefore_iff hS hjz _).mpr

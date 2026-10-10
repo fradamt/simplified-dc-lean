@@ -29,7 +29,7 @@ structure FrontierServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     E.t_GST ≤ slotStartZ p ((s : Int) - 2) →
     x ∈ rho.honest → rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
-    RepairHeadServices E rho s ip x N
+    RepairHeadServices E rho s
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1551–1574; plan §3.1 step 6.
@@ -230,10 +230,10 @@ theorem frontier_later_head [Fintype V] (E : Generic.Env V)
     E rho hE s hx hip hseat N hem Qfg q (v + 1) hafter
     (lt_of_le_of_lt hgate (lt_add_of_pos_right v (show (0 : Int) < 1 by decide)))
     (fun y hy ih hih _ _ => hinput y hy ih hih)
-    hHeads.targets
+    (hHeads.targets ip x N hx hip hem)
   have hgeom : RetainedExactHeadRunGeometryOn E rho ip x s Qfg N.erase :=
     fgsa_retainedExactHead_geometry_on_run_on E rho hE s hx hip hseat N hem Qfg hreads
-      hHeads.scopes hrec.base.receiptIdealization
+      (hHeads.scopes ip x N hx hip hem) hrec.base.receiptIdealization
   exact exactService_head_of_retained_proposal_on E rho hE hDelta s hip N hem
     Qfg hgeom (hvs.trans hvh)
 

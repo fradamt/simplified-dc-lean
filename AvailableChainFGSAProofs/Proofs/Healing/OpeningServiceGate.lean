@@ -197,7 +197,11 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
   have hcoverC (b : Block)
       (hcb : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z s = some K → Block.Preceq b K)
       (hFb : Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) b) : Block.Preceq b C := by
-    obtain ⟨C', hC', hbC'⟩ := healing_support_gate_cover E rho hrec hgsts hcut hsh hcb ht hScope
+    obtain ⟨C', hC', hbC'⟩ := healing_support_gate_cover E rho hrec hgsts hsh hcb ht
+      (healing_support_gate_scope_of_cut E rho hrec hcut hgsts (by
+        apply le_trans ?_ hsh
+        change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+        linarith [p.deltaPos]) hScope)
       (by rw [clockPre_fg]; exact hFb)
     rw [clockPre_fg] at hC'
     have he := Option.some.inj ((hC.symm.trans hrawEq).trans hC')
@@ -447,7 +451,11 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
   have hv : { actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) with
       early := (storeAt p c E rho i x).base.early } = (fgsaAC E rho).gateView i x s :=
     fgsa_clockPre_gateView p (storeAt p c E rho i x) s
-  obtain ⟨C, hC, hBC⟩ := healing_support_gate_cover E rho hrec hgsts hcut hsh hcov ht hScope
+  obtain ⟨C, hC, hBC⟩ := healing_support_gate_cover E rho hrec hgsts hsh hcov ht
+    (healing_support_gate_scope_of_cut E rho hrec hcut hgsts (by
+      apply le_trans ?_ hsh
+      change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+      linarith [p.deltaPos]) hScope)
     (by rw [clockPre_fg]; exact hFB)
   rw [clockPre_fg] at hC
   have hraw : (fgsaAC E rho).raw i s x = some C := by
