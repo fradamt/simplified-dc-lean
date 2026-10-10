@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAInhabit.WeakContinuationW1
+public import AvailableChainFGSAInhabit.SleepPositive -- shake: keep (sleep witness)
 
 @[expose] public section
 

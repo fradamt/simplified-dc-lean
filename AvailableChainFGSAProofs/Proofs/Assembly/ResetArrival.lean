@@ -67,8 +67,7 @@ theorem healing_frontierSearch_of_set (p : Params) {V : Type} [DecidableEq V] [F
     (healing_tRepair E rho hset mono crossing qc writes)
     (healing_tCommon E rho hset mono crossing writes rowCoverage)
     (healing_tPerm E rho hset mono crossing writes) writes rowCoverage
-    (fgsa_tRowsReceipt p c E rho ΔF hset.base.delta hset.base.valid
-      hset.base.noRestart hset.sync hset.deltaF)
+    (fgsa_tRows_recovery p c E rho hset.toRecovery₂).receipt
     (fgsa_batchCoverage p ΔF .progress c E rho)
     (fgsa_foldTrichotomy_progress p) faultQ
     (kmid_honest_quorum p c rho hset.base.linked hset.fault)
@@ -213,8 +212,7 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
       exact h0.source_prefix
     case rows =>
       intro _ V _ _ In c E rho hset _ _
-      exact fgsa_tRows p c E rho ΔF hset.base.delta hset.base.valid
-        hset.base.noRestart hset.sync hset.deltaF
+      exact fgsa_tRows_recovery p c E rho hset.toRecovery₂
     all_goals intro hClock V _ _ In c E rho hset hbound hhor w h0
     all_goals
       have inv := healing_postReset_inv_of_open p c E rho hset h0.toH0Reset
@@ -379,8 +377,7 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
       exact h0.source_prefix
     case rows =>
       intro _ V _ _ In c E rho hset _ _
-      exact fgsa_tRows p c E rho ΔF hset.base.delta hset.base.valid
-        hset.base.noRestart hset.sync hset.deltaF
+      exact fgsa_tRows_recovery p c E rho hset.toRecovery₂
     all_goals intro hClock V _ _ In c E rho hset hbound hhor w h0
     all_goals
       have inv := (healing_postReset_inv_cone_of_open₂ p c E rho hset h0.toH0Reset
@@ -559,8 +556,7 @@ theorem healing_healingInputClaim (p : Params) : HealingInputClaim p := by
   exact healing_healingInput_of p c E rho (healing_healed p c E rho start h4 h3)
     start h0.source_prefix
     (healing_healT_of p c E rho high carrier
-      (fgsa_tRows p c E rho ΔF hset.base.delta hset.base.valid
-        hset.base.noRestart hset.sync hset.deltaF))
+      (fgsa_tRows_recovery p c E rho hset.toRecovery₂))
     (healing_healAC_of p c E rho h2a h2p h3 h4 h5 h6)
 
 end AvailableChain.FGSA.Run

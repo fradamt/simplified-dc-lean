@@ -151,14 +151,13 @@ theorem inclusion_proposal_receipt [Fintype V]
 
 /-- A joined HEAD read excludes only a local restart at this vote time.
 Earlier restarts and other nodes' same-time restarts are allowed. -/
-theorem inclusion_preTick_eq_timeRead_joined
+theorem inclusion_preTick_eq_timeRead_on
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
-    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
-    (hJ : joinedAt p E rho x s (SA.voteTime p.toParams s)) :
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
+    (hi : rho.events[i]? = some (.tick x t))
+    (hRestart : V2.Event.restart x t ∉ rho.events) :
     V2.D.Run.stateBefore E rho i x =
-      V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams s) x := by
-  let t := SA.voteTime p.toParams s
+      V2.D.Run.stateBeforeTime E rho t x := by
   let q := fun e : V2.Event V (fgsa p c).Object => decide (e.time < t)
   have hdown : ∀ e f : V2.Event V (fgsa p c).Object, e.key ≤ f.key → q f = true → q e = true := by
     intro e f hk hf
@@ -191,10 +190,7 @@ theorem inclusion_preTick_eq_timeRead_joined
         subst u
         change w = t at ht
         subst w
-        have hbound := hJ.2.2 t (hs.in_horizon _ (List.mem_of_getElem? hget)).1
-          le_rfl (List.mem_of_getElem? hget)
-        change 4 * p.Δ * (s : Time) + p.Δ ≤ 4 * p.Δ * ((s : Time) - 1) at hbound
-        nlinarith [p.deltaPos]
+        exact (hRestart (List.mem_of_getElem? hget)).elim
     | tick u w =>
         change u = x at hnode
         change w = t at ht
@@ -207,6 +203,41 @@ theorem inclusion_preTick_eq_timeRead_joined
   have hjiEq : j = i :=
     (List.Nodup.getElem_inj_iff hs.nodup).mp (by rw [hje, hie, he])
   omega
+
+
+/-- A joined vote reader excludes its own restart at the vote cut. -/
+theorem inclusion_preTick_eq_timeRead_joined
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
+    (hJ : joinedAt p E rho x s (SA.voteTime p.toParams s)) :
+    V2.D.Run.stateBefore E rho i x =
+      V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams s) x := by
+  apply inclusion_preTick_eq_timeRead_on E rho hs hi
+  intro hR
+  have hb := hJ.2.2 _ (hs.in_horizon _ hR).1 le_rfl hR
+  change 4 * p.Δ * (s : Time) + p.Δ ≤ 4 * p.Δ * ((s : Time) - 1) at hb
+  nlinarith [p.deltaPos]
+
+/-- An enabled gate excludes its own restart at that gate cut. -/
+theorem inclusion_preTick_eq_timeRead_enabled
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
+    (hG : enabledGateAt p c E rho i x s) :
+    V2.D.Run.stateBefore E rho i x =
+      V2.D.Run.stateBeforeTime E rho (SA.gateTime p.toParams s) x := by
+  apply inclusion_preTick_eq_timeRead_on E rho hs hG.1
+  intro hR
+  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hR
+  have hji := V2.D.Engine.restart_index_lt_event hs hj hG.1 le_rfl
+    (by change (0 : Nat) < 1; decide)
+  obtain ⟨w, hw, hsw⟩ := fgsa_restartTime_ge E rho hs hj hji
+  have hb := hG.2
+  change (storeAt p c E rho i x).restartTime = some w at hw
+  rw [hw] at hb
+  have hle := hsw.trans hb
+  change 4 * p.Δ * (s : Time) + 6 * p.Δ ≤ 4 * p.Δ * (s : Time) at hle
+  nlinarith [p.deltaPos]
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X2 (read step).

@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDefs
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingStep
+public import AvailableChainFGSARun.Proofs.AncestorDeadlinesStore
+public import AvailableChainFGSARun.Proofs.AC
 
 public section
 
@@ -184,12 +186,16 @@ theorem outage_gateStep_protection (p : Params) {B : Block} {j s : Slot} (st : S
               have hgate := (arming_gate_le_iff p j s).mpr hjs
               exact add_le_add hgate le_rfl
             · exact hm
-  change OutageProtection p B j (FGSA.normalizeS (if _ then st else Q))
+  unfold FGSA.gateStep
   apply outage_normalize_protection
   · split
     · exact hp
-    · exact hQ
-  · split <;> exact hc
+    · split
+      · exact ⟨hp.1, hp.2⟩
+      · exact hQ
+  · split
+    · exact hc
+    · split <;> exact hc
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -210,7 +216,8 @@ theorem outage_tick_source_compatible (hs : V2.D.ScheduleWellFormed E rho)
   obtain ⟨X, G, _, hXm, hG, hCG, _, k, hk, hpass⟩ := htsrc x r C hx hC
   have hki : k = i := fgsa_tick_unique E rho hs hk hi
   subst k
-  obtain ⟨y, s, htick, _, C', hraw, hguard⟩ := hpass
+  obtain ⟨y, s, hEnabled, _, C', hraw, hguard⟩ := hpass
+  have htick := hEnabled.1
   have hys := V2.Event.tick.inj (Option.some.inj (htick.symm.trans hi))
   have hyx : y = x := hys.1
   subst y
@@ -218,7 +225,7 @@ theorem outage_tick_source_compatible (hs : V2.D.ScheduleWellFormed E rho)
     exact Nat.le_antisymm ((arming_gate_le_iff p s (r * p.R)).mp hys.2.le)
       ((arming_gate_le_iff p (r * p.R) s).mp hys.2.symm.le)
   subst s
-  have hGr := (arming_gateResult_tick hs hi).trans (congrArg some hraw)
+  have hGr := (arming_gateResult_tick hs hEnabled).trans (congrArg some hraw)
   have hGC : G = C' := Option.some.inj (Option.some.inj (hG.symm.trans hGr))
   have hCB := outage_passed_raw_compatible p _
     (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho i x) _)

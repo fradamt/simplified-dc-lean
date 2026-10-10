@@ -353,7 +353,7 @@ theorem wcg_proposalAdmission (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF hfaultQ haccountable
     hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert hsrc hlabel hqc hstrat
     hnoslash hemitted htargets hlease hfast hdeadlines hheldRows hscopeRows hfinalHead
-    hseed pt D hstart hprop hgate hpivot x hx
+    hseed pt D hstart hprop hgate hpivot x hx hjoined
   have hs := hvalid.toScheduleWellFormed
   obtain ⟨ip, N, hN, hip, hem, _⟩ := proposal_read_named p c E rho hs hprop
   obtain ⟨hGST, hhor⟩ := wcg_proposalWindows hseed pt.s hstart hgate
@@ -375,7 +375,7 @@ theorem wcg_proposalAdmission (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     change (4 * (pt.s : Time) + 1) * p.Δ = 4 * p.Δ * (pt.s : Time) + p.Δ
     ring
   obtain ⟨ih, hih, _⟩ := fgsa_tick_total E rho hs hdelta x hx (4 * pt.s + 1)
-    (hvt ▸ hhor)
+    (hvt ▸ hhor) (hvt ▸ hjoined.1)
   rw [hvt] at hih
   let st := clock p (storeAt p c E rho ih x) (SA.voteTime p.toParams pt.s)
   have hduty : WCDutyInput p c E rho ih x (.head pt.s) st :=

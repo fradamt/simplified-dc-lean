@@ -1,4 +1,5 @@
 # P-H2 serial fragment; merge into the existing full audit key.
+# Move opening_gate_support from OpeningServiceGate to OpeningGateSupport.
 {
     'AvailableChainFGSAProofs.Tests.Axioms': {
         'AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead': (
@@ -11,25 +12,37 @@
             'AvailableChain.FGSA.Run.opening_phaseBody_of_fast_key',
             'AvailableChain.FGSA.Run.opening_result_slot',
         ),
+        'AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport': (
+            'AvailableChain.FGSA.Run.opening_gate_support',
+            'AvailableChain.FGSA.Run.opening_gate_support_of_reset',
+        ),
         'AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks': (
             'AvailableChain.FGSA.Run.healing_vote_awake_of_recovery',
             'AvailableChain.FGSA.Run.opening_action_tick',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope': (
-            'AvailableChain.FGSA.Run.healing_recovery_durable',
+            'AvailableChain.FGSA.Run.healing_recovery_action_epoch',
+            'AvailableChain.FGSA.Run.healing_recovery_action_frame',
+            'AvailableChain.FGSA.Run.healing_recovery_action_stamps',
             'AvailableChain.FGSA.Run.healing_recovery_finality',
             'AvailableChain.FGSA.Run.healing_recovery_frame_prefixes',
             'AvailableChain.FGSA.Run.healing_recovery_joinedNow',
             'AvailableChain.FGSA.Run.healing_recovery_restartFree',
-            'AvailableChain.FGSA.Run.healing_recovery_restart_bound',
             'AvailableChain.FGSA.Run.healing_recovery_restart_cutoff',
-            'AvailableChain.FGSA.Run.healing_recovery_stamps',
+            'AvailableChain.FGSA.Run.healing_scope_durable',
+            'AvailableChain.FGSA.Run.healing_scope_restart_bound',
+            'AvailableChain.FGSA.Run.healing_scope_stamps',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.RecoveryService': (
+            'AvailableChain.FGSA.Run.healing_accepted_proposal_service',
+            'AvailableChain.FGSA.Run.healing_accepted_target_service',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope': (
             'AvailableChain.FGSA.Run.healing_release_rows_expiry',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.ResetScope': (
             'AvailableChain.FGSA.Run.healing_gate_enabled_of_recovery',
+            'AvailableChain.FGSA.Run.healing_ready_vote_cutoff',
             'AvailableChain.FGSA.Run.healing_recovery_delay_bounds',
             'AvailableChain.FGSA.Run.healing_recovery_start_lower',
             'AvailableChain.FGSA.Run.healing_reset_action_after_cut',
@@ -37,6 +50,14 @@
             'AvailableChain.FGSA.Run.healing_reset_slot_cutoff',
             'AvailableChain.FGSA.Run.healing_reset_vote_cutoff',
             'AvailableChain.FGSA.Run.healing_vote_joined_of_recovery',
+        ),
+        'AvailableChainFGSAProofs.Tests.HealingOpeningSupport': (
+            'AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.genesis_coverage',
+            'AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.no_head_emission',
+            'AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.no_joined_voter',
+            'AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.schedule',
+            'AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.valid',
+            'AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.wake_at_vote',
         ),
     },
 }

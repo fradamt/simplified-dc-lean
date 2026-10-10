@@ -412,6 +412,11 @@ def TargetReceiptService (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   K = .genesis ∨ ∃ s N send, N.erase = K ∧
     Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩) send freeze x)
 
+/-- Genesis needs no proposal receipt. -/
+theorem fgsa_target_service_genesis
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (D : Time) (x : V) :
+    TargetReceiptService E rho .genesis D x := Or.inl rfl
+
 /-- A ready named proposal is a service for its exact erased target. -/
 theorem fgsa_target_service_of_proposal
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

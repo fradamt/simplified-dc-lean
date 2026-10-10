@@ -15,7 +15,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 
 /-- Recovery bounds each honest restart through the exact horizon by GST.
 A restart at GST is permitted. -/
-theorem healing_recovery_restart_bound (hrec : RecoverySleep₂ p c E rho G ΔF)
+theorem healing_scope_restart_bound (hrec : RecoverySleep₂ p c E rho G ΔF)
     {x : V} (hx : x ∈ rho.honest) {t : Time} (hh : t ≤ rho.horizon)
     {w : Time} (hwt : w ≤ t) (he : V2.Event.restart x w ∈ rho.events) :
     w ≤ E.t_GST := by
@@ -31,7 +31,7 @@ theorem healing_recovery_restart_cutoff (hrec : RecoverySleep₂ p c E rho G ΔF
     (hb : E.t_GST ≤ b) :
     ∀ w, 0 ≤ w → w ≤ t → V2.Event.restart x w ∈ rho.events → w ≤ b := by
   intro w _ hwt he
-  exact (healing_recovery_restart_bound hrec hx hh hwt he).trans hb
+  exact (healing_scope_restart_bound hrec hx hh hwt he).trans hb
 
 /-- Convert the exact recovery cutoff to the post-clock joined duty guard. -/
 theorem healing_recovery_joinedNow (hrec : RecoverySleep₂ p c E rho G ΔF)
@@ -61,9 +61,37 @@ theorem healing_recovery_restartFree (hrec : RecoverySleep₂ p c E rho G ΔF)
   exact hrec.suffixNoRestart x hx k w he (ha.trans_lt hwa)
     ((hwd.le.trans hd).trans_lt (lt_add_of_pos_right _ (by decide)))
 
+/-- The receiver epoch includes the consuming action index.
+A restart at the anchor precedes actionCut, including when the anchor is GST. -/
+theorem healing_recovery_action_epoch (hrec : RecoverySleep₂ p c E rho G ΔF)
+    {x : V} (hx : x ∈ rho.honest) {a : Time} (ha : E.t_GST ≤ a) (j : Nat) :
+    V2.D.restartFree rho x (V2.D.Run.actionCut rho a) j := by
+  have hs := hrec.base.valid.toScheduleWellFormed
+  intro k t hka _ hk
+  have ht : t ≤ rho.horizon := (hs.in_horizon _ (List.mem_of_getElem? hk)).2
+  have hbound := healing_scope_restart_bound hrec hx ht le_rfl
+    (List.mem_of_getElem? hk)
+  have hbefore := (V2.D.Engine.index_lt_actionCut_iff hs hk a).mpr (by
+    change t < a ∨ (t = a ∧ (0 : Nat) = 0)
+    rcases lt_or_eq_of_le (hbound.trans ha) with hlt | heq
+    · exact Or.inl hlt
+    · exact Or.inr ⟨heq, rfl⟩)
+  omega
+
+/-- Local stamp preservation extends to the action that consumes the receipt. -/
+theorem healing_recovery_action_stamps (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (epoch : RStoreEpoch p c E rho) {x : V} (hx : x ∈ rho.honest)
+    {a : Time} (ha : E.t_GST ≤ a) {j : Nat}
+    (hij : V2.D.Run.actionCut rho a ≤ j) (hj : j ≤ rho.events.length) :
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).base.blockStamp <+:
+      (storeAt p c E rho j x).base.blockStamp ∧
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).base.voteStamp <+:
+      (storeAt p c E rho j x).base.voteStamp :=
+  epoch _ j x hx hij hj (healing_recovery_action_epoch hrec hx ha j)
+
 omit [Fintype V] in
 /-- Durable FG trees remain available to H2 consumers across each restart. -/
-theorem healing_recovery_durable (durable : RStoreDurable p c E rho)
+theorem healing_scope_durable (durable : RStoreDurable p c E rho)
     (i j : Nat) (x : V) (hx : x ∈ rho.honest)
     (hij : i ≤ j) (hj : j ≤ rho.events.length) :
     (storeAt p c E rho i x).fg.TF ⊆ (storeAt p c E rho j x).fg.TF :=
@@ -78,7 +106,7 @@ theorem healing_recovery_finality (mono : RMonoAll p c E rho)
   (mono i j x hx hij).1
 
 /-- Recovery preserves stamps only on the exact receiver event interval. -/
-theorem healing_recovery_stamps (hrec : RecoverySleep₂ p c E rho G ΔF)
+theorem healing_scope_stamps (hrec : RecoverySleep₂ p c E rho G ΔF)
     (epoch : RStoreEpoch p c E rho)
     {x : V} (hx : x ∈ rho.honest) {a d : Time}
     (ha : E.t_GST ≤ a) (hd : d ≤ rho.horizon)
@@ -107,6 +135,23 @@ theorem healing_recovery_frame_prefixes (hrec : RecoverySleep₂ p c E rho G ΔF
   obtain ⟨_, _, _, _, _, _, _, _, hkept⟩ := (frame _ x hx).2.2.2
   obtain ⟨hP, hR, hE⟩ := hkept _ hij hj
   exact ⟨hP, hR, hE (healing_recovery_restartFree hrec hx ha hd)⟩
+
+/-- Wires persist through restarts; local stamps persist through the consuming action. -/
+theorem healing_recovery_action_frame (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (frame : RFrameNextEpoch p c E rho) {x : V} (hx : x ∈ rho.honest)
+    {a : Time} (ha : E.t_GST ≤ a) {j : Nat}
+    (hij : V2.D.Run.actionCut rho a ≤ j) (hj : j ≤ rho.events.length) :
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).proposals <+:
+      (storeAt p c E rho j x).proposals ∧
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).rowPool <+:
+      (storeAt p c E rho j x).rowPool ∧
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).base.blockStamp <+:
+      (storeAt p c E rho j x).base.blockStamp ∧
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).base.voteStamp <+:
+      (storeAt p c E rho j x).base.voteStamp := by
+  obtain ⟨_, _, _, _, _, _, _, _, hkept⟩ := (frame _ x hx).2.2.2
+  obtain ⟨hP, hR, hE⟩ := hkept j hij hj
+  exact ⟨hP, hR, hE (healing_recovery_action_epoch hrec hx ha j)⟩
 
 end AvailableChain.FGSA.Run
 end

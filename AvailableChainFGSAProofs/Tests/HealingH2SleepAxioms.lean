@@ -4,17 +4,19 @@ public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
 set_option linter.privateModule false
 
 #print axioms AvailableChain.FGSA.Run.opening_action_tick
-#print axioms AvailableChain.FGSA.Run.healing_recovery_restart_bound
+#print axioms AvailableChain.FGSA.Run.healing_scope_restart_bound
 #print axioms AvailableChain.FGSA.Run.healing_recovery_restart_cutoff
 #print axioms AvailableChain.FGSA.Run.healing_recovery_joinedNow
 #print axioms AvailableChain.FGSA.Run.healing_recovery_restartFree
-#print axioms AvailableChain.FGSA.Run.healing_recovery_durable
+#print axioms AvailableChain.FGSA.Run.healing_scope_durable
 #print axioms AvailableChain.FGSA.Run.healing_recovery_finality
-#print axioms AvailableChain.FGSA.Run.healing_recovery_stamps
+#print axioms AvailableChain.FGSA.Run.healing_scope_stamps
 
 #print axioms AvailableChain.FGSA.Run.healing_release_rows_expiry
 
@@ -53,3 +55,19 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_gate_enabled_of_recovery
 
 #print axioms AvailableChain.FGSA.Run.healing_recovery_frame_prefixes
+
+#print axioms AvailableChain.FGSA.Run.opening_gate_support
+
+#print axioms AvailableChain.FGSA.Run.opening_gate_support_of_reset
+
+#print axioms AvailableChain.FGSA.Run.healing_ready_vote_cutoff
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_action_epoch
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_action_stamps
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_action_frame
+
+#print axioms AvailableChain.FGSA.Run.healing_accepted_proposal_service
+
+#print axioms AvailableChain.FGSA.Run.healing_accepted_target_service

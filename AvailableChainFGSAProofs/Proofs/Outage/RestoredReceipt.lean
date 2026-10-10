@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
 public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
+public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 
 public section
 
@@ -10,6 +11,115 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+
+/-- Gate-path proposal service uses v(s) and e(s). The joint invariant
+supplies compatibility at e(s); the enabled gate supplies the local epoch.
+Proposal history is durable across earlier receiver restarts. -/
+theorem outage_gate_path_proposal_service {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {j k : Nat} {x v : V} {s r : Slot} {o : Obj p} {N : NamedProposal p.n} {t : Time}
+    (hx : x ∈ rho.honest) (hv : v ∈ rho.honest)
+    (hG : enabledGateAt p c E rho j x s)
+    (hd : (toWire p o).decode = some (.block r N))
+    (hacc : V2.D.Run.acceptsAt E rho k v o t) (ht : t < SA.voteTime p.toParams s)
+    (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hF : Block.Compatible N.erase
+      (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x).st.fg.F)) :
+    Nonempty (ReceiverService E rho o t (SA.earlyTime p.toParams s) x) := by
+  obtain ⟨hReady, hHistory, hRF, hHandlers⟩ := fgsa_gate_path_anchor_service
+    hBase.valid hBase.delta hBase.restartsAtWakes hx hv hG hd hacc ht
+  have hdle : max (SA.voteTime p.toParams s) E.t_GST + p.Δ =
+      SA.earlyTime p.toParams s := by
+    rw [max_eq_left hGST]
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 2 * p.Δ
+    ring
+  have h0 : 0 ≤ SA.voteTime p.toParams s := by
+    change 0 ≤ 4 * p.Δ * (s : Int) + p.Δ
+    have hpos := p.deltaPos
+    positivity
+  have hve : SA.voteTime p.toParams s < SA.earlyTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 2 * p.Δ
+    linarith [p.deltaPos]
+  have heh : SA.earlyTime p.toParams s ≤ rho.horizon := by
+    apply le_trans _ (hBase.valid.in_horizon _ (List.mem_of_getElem? hG.1)).2
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  change Block.compatible N.erase
+    (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x).st.fg.F) = true at hF
+  have hNX : (fgsa p c).excludes
+      (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams s) x) o = false := by
+    change excludesS p _ o = false
+    dsimp only [excludesS]
+    rw [hd]
+    simp only [blockExcluded, activeCompatible, hF, Bool.not_true, Bool.false_or]
+    exact fgsa_trigger_invalid_false E rho o t r N (Or.inr ⟨v, hv, k, hacc⟩) hd _
+  refine ⟨⟨fun a => max a E.t_GST + p.Δ, rho.horizon, SA.voteTime p.toParams s,
+    ?_, ?_, ht.le, h0, ?_, ?_, ?_, ?_, hHistory, hRF, ?_, ?_⟩⟩
+  · simpa only [hBase.delta] using Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy
+      E rho hSync (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ ΔF)
+  · simpa only [hdle] using hReady
+  · simpa only [hdle] using hve
+  · simpa only [hdle] using heh
+  · simpa only [hdle] using heh
+  · exact hdle.le
+  · simpa only [hdle] using hHandlers
+  · simpa only [hdle] using hNX
+
+/-- Frozen transfer service uses e(s) and f(s). Joinedness at v(s+1)
+supplies receiver readiness and survival through the freeze. -/
+theorem outage_transfer_path_proposal_service {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {k : Nat} {x v : V} {s r : Slot} {o : Obj p} {N : NamedProposal p.n} {t : Time}
+    (hx : x ∈ rho.honest) (hv : v ∈ rho.honest)
+    (hJ : joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)))
+    (hhor : SA.voteTime p.toParams (s + 1) ≤ rho.horizon)
+    (hd : (toWire p o).decode = some (.block r N))
+    (hacc : V2.D.Run.acceptsAt E rho k v o t) (ht : t < SA.earlyTime p.toParams s)
+    (hGST : E.t_GST ≤ SA.earlyTime p.toParams s)
+    (hF : Block.Compatible N.erase
+      (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) x).st.fg.F)) :
+    Nonempty (ReceiverService E rho o t (SA.freezeTime p.toParams s) x) := by
+  obtain ⟨hReady, hHistory, hRF, hHandlers⟩ := fgsa_transfer_path_anchor_service
+    hBase.valid hBase.delta hx hv hJ hhor hd hacc ht
+  have hdle : max (SA.earlyTime p.toParams s) E.t_GST + p.Δ =
+      SA.freezeTime p.toParams s := by
+    rw [max_eq_left hGST]
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 3 * p.Δ
+    ring
+  have h0 : 0 ≤ SA.earlyTime p.toParams s := by
+    change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
+    have hpos := p.deltaPos
+    positivity
+  have hef : SA.earlyTime p.toParams s < SA.freezeTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ < 4 * p.Δ * (s : Int) + 3 * p.Δ
+    linarith [p.deltaPos]
+  have hfv : SA.freezeTime p.toParams s ≤ SA.voteTime p.toParams (s + 1) := by
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]
+  change Block.compatible N.erase
+    (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) x).st.fg.F) = true at hF
+  have hNX : (fgsa p c).excludes
+      (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) x) o = false := by
+    change excludesS p _ o = false
+    dsimp only [excludesS]
+    rw [hd]
+    simp only [blockExcluded, activeCompatible, hF, Bool.not_true, Bool.false_or]
+    exact fgsa_trigger_invalid_false E rho o t r N (Or.inr ⟨v, hv, k, hacc⟩) hd _
+  refine ⟨⟨fun a => max a E.t_GST + p.Δ, rho.horizon, SA.earlyTime p.toParams s,
+    ?_, ?_, ht.le, h0, ?_, ?_, ?_, ?_, hHistory,
+    hRF.mono le_rfl (fgsa_idxBefore_mono rho hfv), ?_, ?_⟩⟩
+  · simpa only [hBase.delta] using Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy
+      E rho hSync (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ ΔF)
+  · simpa only [hdle] using hReady
+  · simpa only [hdle] using hef
+  · simpa only [hdle] using hfv.trans hhor
+  · simpa only [hdle] using hfv.trans hhor
+  · exact hdle.le
+  · simpa only [hdle] using hHandlers
+  · simpa only [hdle] using hNX
 
 /-- P15 local service. The anchor is max(send,wake). Finality compatibility
 is checked at the receiver's deadline; survival uses event indices. -/
@@ -174,6 +284,51 @@ theorem outage_restored_receipt_with_service {fast : Bool} {T b₀ b₁ : Time}
       have hm' : (0 : Int) < (m : Int) := by exact_mod_cast hm
       positivity
     · exact hProposal m hm hr hHor hx
+
+/-- The restored services have the three approved read cuts. The prefix field
+comes from P-Ar's public theorem, not from these restored services. -/
+structure OutageRestoredServices (fast : Bool) (T b₀ b₁ : Time) : Prop where
+  early : ∀ x q, restoredLabel p b₁ ≤ q →
+    SA.earlyTime p.toParams q ≤ rho.horizon →
+    headReader p E rho x (q + 1) (SA.gateTime p.toParams q) →
+    ArmingBatchReceiptService E rho x q (SA.earlyTime p.toParams q)
+  freeze : ∀ x s, 0 < s → restoredLabel p b₁ ≤ s - 1 →
+    SA.voteTime p.toParams s ≤ rho.horizon →
+    headReader p E rho x s (SA.voteTime p.toParams s) →
+    ArmingBatchReceiptService E rho x (s - 1) (SA.freezeTime p.toParams (s - 1))
+  proposal : ∀ m, 0 < m → restoredLabel p b₁ ≤ m - 1 →
+    V2.D.proposalTime (fgsaInterface p c) m ≤ rho.horizon →
+    let x := V2.D.proposerOf rho (fgsaInterface p c) m
+    headReader p E rho x m (V2.D.proposalTime (fgsaInterface p c) m) →
+    ArmingBatchReceiptService E rho x (m - 1)
+      (V2.D.proposalTime (fgsaInterface p c) m)
+
+/-- P-Ar supplies the corrected public prefix; P-Ou supplies only restored service. -/
+theorem outage_restored_receipt_on [Fintype V] {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c fast E rho T b₀ b₁ ΔF)
+    (hServices : OutageRestoredServices (p := p) (c := c) (E := E) (rho := rho)
+      fast T b₀ b₁) : OutageContinuationReceipt p c E rho fast T b₀ b₁ := by
+  exact outage_restored_receipt_with_service h.pre.base.valid h.pre.base.receiptIdealization
+    (arming_prefix_batch_receipt p c E rho fast T b₀ b₁ ΔF h)
+    hServices.early hServices.freeze hServices.proposal
+
+/-- A protected non-genesis read supplies the actual origin and the P15-CUT bound. -/
+theorem outage_prefix_receipt_of_protected_read [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c fast E rho T b₀ b₁ ΔF)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hHist : CleanHist p c E rho (timeIdx rho b₀)) {z : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable z T))
+    (hne : B ≠ .genesis) {x : V} (hx : x ∈ coveredNodes p E rho fast b₀) {q : Slot}
+    (hq : if fast then q = coverLabel p b₀
+      else (coverLabel p b₀ : Int) - (p.k : Int) + 1 ≤ (q : Int) ∧
+        q ≤ coverLabel p b₀) (hT : T ≤ SA.gateTime p.toParams q) :
+    BatchReceiptAt p c E rho x q (SA.earlyTime p.toParams q) := by
+  obtain ⟨r, C, _, _, hr, _⟩ := arming_protected_origin_on
+    h.pre.base.valid.toScheduleWellFormed h.order.2.1 hState hHist hread hne
+  exact outage_prefix_receipt_of_origin
+    (arming_prefix_batch_receipt p c E rho fast T b₀ b₁ ΔF h)
+    ⟨r, hr.trans h.order.2.1⟩ hx hq hT
 
 end AvailableChain.FGSA.Run
 end
