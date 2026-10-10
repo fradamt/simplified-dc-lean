@@ -29,7 +29,7 @@ theorem safety_good_stateBefore (L : FGSafetyStoreLaws R S H f Good)
   | restart u t =>
     dsimp only [V2.Event.node] at hv
     subst u
-    simpa only [V2.D.World.step, Function.update_self] using L.restart_good _ hk
+    simpa only [V2.D.World.step, Function.update_self] using L.restart_good _ t hk
   | tick u t =>
     dsimp only [V2.Event.node] at hv
     subst u
@@ -60,8 +60,8 @@ private theorem safety_stateBefore_origin (C : FGCoreLaws R) (L : FGSafetyStoreL
   | restart u t =>
     dsimp only [V2.Event.node] at hv
     subst u
-    have hM : M (P.restore (P.durable (V2.D.Run.stateBefore E rho k x))) :=
-      ⟨L.restart_good _ hg, fun B hB => Or.inl (L.restart_tf _ B hg hB)⟩
+    have hM : M (P.restore (P.durable (V2.D.Run.stateBefore E rho k x)) t) :=
+      ⟨L.restart_good _ t hg, fun B hB => htf B (L.restart_tf _ t B hg hB)⟩
     simpa only [V2.D.World.step, Function.update_self] using hM
   | tick u t =>
     dsimp only [V2.Event.node] at hv

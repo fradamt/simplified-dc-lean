@@ -164,4 +164,7 @@
     'AvailableChain.FGCompose.safety_stored_delivery',
     'AvailableChain.FGCompose.safety_stored_runBlock',
     'AvailableChain.FGCompose.safety_stored_scope',
+    'AvailableChain.FGCompose.FGSafetyRestartLaws',
+    'AvailableChain.FGCompose.FGSafetyRestartLaws.restart_F',
+    'AvailableChain.FGCompose.safety_F_mono_all',
 )

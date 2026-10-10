@@ -38,7 +38,7 @@ abbrev counter : V2.ProtocolSpecD Unit where
   selfVisible := fun _ => false
   recordOwn := fun st _ => st
   durable := fun _ => ()
-  restore := fun _ => 0
+  restore := fun _ _ => 0
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -120,7 +120,7 @@ abbrev twoSeats : V2.ProtocolSpecD Unit where
   selfVisible := fun _ => true
   recordOwn := fun st _ => st
   durable := fun _ => ()
-  restore := fun _ => 0
+  restore := fun _ _ => 0
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -180,7 +180,7 @@ abbrev lossy : V2.ProtocolSpecD Unit where
   selfVisible := fun _ => true
   recordOwn := fun st _ => st
   durable := fun _ => ()
-  restore := fun _ => RecordOnce.initial
+  restore := fun _ _ => RecordOnce.initial
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
@@ -189,7 +189,7 @@ abbrev lossy : V2.ProtocolSpecD Unit where
   carries := fun _ _ => False
 
 abbrev kept : V2.ProtocolSpecD Unit :=
-  { lossy with Durable := RecordOnce, durable := id, restore := id }
+  { lossy with Durable := RecordOnce, durable := id, restore := fun st _ => st }
 
 abbrev lossyReads : FGSafetyReads lossy 1 Unit where
   proposalErase := fun _ => none
@@ -219,9 +219,9 @@ abbrev keptReads : FGSafetyReads kept 1 Unit where
 
 /-- A restore that resets Λ loses a nonempty sent record. -/
 theorem lossy_restart_record_fails :
-    ¬ ∀ nd, lossyReads.record (lossy.restore (lossy.durable nd)) = lossyReads.record nd := by
+    ¬ ∀ nd t, lossyReads.record (lossy.restore (lossy.durable nd) t) = lossyReads.record nd := by
   intro h
-  have hl := congrArg (fun r : RecordOnce => r.sent.length) (h sentOne)
+  have hl := congrArg (fun r : RecordOnce => r.sent.length) (h sentOne 0)
   exact absurd hl (by decide)
 
 /-- So the lossy client has no client-law producer. -/
@@ -231,8 +231,8 @@ theorem lossy_no_client_laws (Ef : Electorate (Fin 1)) (cfg : FGConfig) :
 
 /-- A durable Λ meets `restart_record`. -/
 theorem kept_restart_record :
-    ∀ nd, keptReads.record (kept.restore (kept.durable nd)) = keptReads.record nd :=
-  fun _ => rfl
+    ∀ nd t, keptReads.record (kept.restore (kept.durable nd) t) = keptReads.record nd :=
+  fun _ _ => rfl
 
 /-! ### 5. An emitted-only tip is not a direct named-scope seed
 
@@ -289,7 +289,7 @@ abbrev emitter : V2.ProtocolSpecD Unit where
   selfVisible := fun _ => false
   recordOwn := fun st _ => st
   durable := fun _ => ()
-  restore := fun _ => ()
+  restore := fun _ _ => ()
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false

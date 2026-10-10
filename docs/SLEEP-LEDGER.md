@@ -782,3 +782,42 @@ the five added W1b sleep modules, both new tests, and all three reset sites as G
 - `SleepContinuationTests.retained_origin`, `joined_strict`, `same_time_bound`,
   `retained_block_bound`, `wake_epoch_equiv`, `gate_empty`, `admission_public` —
   P1, P3, P24, approved. Consumers: strict audit and W2b GREEN/DCK acceptance.
+
+## W3 — Compose restart laws (2026-10-10)
+
+- P3/P24 approved field types: FGSafetyStoreLaws.restart_good takes the wake time.
+  restart_tf now maps membership to the pre-restart TF. SafetyStore induction keeps
+  the prior delivery origin. Consumers: safety_good_stateBefore and safety_stateBefore_origin.
+- P3/P24 approved field type: FGSafetyClientLaws.restart_record takes the wake time.
+  Consumer: safety_client_trace. The lossy and kept record controls take that time.
+- P24 approved new record: FGSafetyRestartLaws and its restart_F field. It adds no
+  field to FGSafetyStoreLaws. The inventory and SafetyAxioms audit include both names.
+- N2 additive theorem: safety_F_mono_all uses restart_F and permits restarts.
+  The old NoRestart theorem stays. The new theorem has a SafetyAxioms audit entry.
+- Compose and Claims read fixtures now use the time-indexed restore arity.
+
+## W3 — Internal statement repairs in progress (2026-10-10)
+
+- internal statement, W3: ancestorDeadlines_restore used the old Time × RecordOnce
+  durable type and concluded that obligations were empty. It now uses State ×
+  RecordOnce, the wake time, and AncestorDeadlines of the pre-restart store.
+  acRestart_obligations supplies the exact preserved result. Consumers:
+  FGSAProofs/Proofs/Foundations/Leases.lean and FGSARun/Tests/Axioms.lean.
+- internal statement, W3: fgsa_emits_head and fgsa_emits_proposal omitted the join
+  guard of actS. The exact emission equations now include joinedNow of the clocked
+  store. Run consumers: EmissionWellFormed, Receipts, and Roots. Family consumers:
+  Shared/ExactService, HeadAdmit, OutputGrowthProposal, RetainedPersist,
+  RetainedConsumers, Count, ScoreRun; Clean/StepGate; Finality/CoreServices;
+  Outage/ExactProposal, ArmingDuty, PersistenceRelease, ContinuationReceipt;
+  WeakContinuation/Proposal, StepGateBatch; WeakContinuationGrowth/Dynamics.
+  Family owners must supply the joined premise only when they construct emissions.
+- internal statement, W3: spec_restart_durable_retained and
+  spec_restart_clock_retained asserted the old last-tick restore clock. They now
+  use the complete durable store and the exact wake time. Consumers: run axiom audit.
+- internal statement, W3: spec_prune_execution_valid and
+  spec_revised_target_execution omitted SleepWellFormed. They now require that
+  condition and preserve it through delivery pruning. Consumers: the latter uses
+  the former; the run axiom audit uses both. No external proof consumer was found.
+- internal statement, W3: spec_restart_retained_block_trace used now = 8 after
+  the restart at 9. Its exact clock equation is now = 9. Consumer:
+  Spec/Transfer.spec_restart_matched_cut_agreement discards that clock field.

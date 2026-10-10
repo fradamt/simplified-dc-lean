@@ -32,15 +32,20 @@ structure FGSafetyStoreLaws (R : FGCoreReads P n Base Proposal Wire)
   clock_good : ∀ nd t, Good nd → Good (P.clock nd t)
   process_good : ∀ nd o, Good nd → Good (P.process nd o)
   own_good : ∀ nd o, Good nd → Good (P.recordOwn nd o)
-  restart_good : ∀ nd, Good nd → Good (P.restore (P.durable nd))
+  restart_good : ∀ nd t, Good nd → Good (P.restore (P.durable nd) t)
   invariant : ∀ nd, Good nd → FGStoreInvariant H f (R.core nd).fg
   initial_tf : ∀ B ∈ (R.core P.init).fg.TF, B = .genesis
-  restart_tf : ∀ nd B, Good nd →
-    B ∈ (R.core (P.restore (P.durable nd))).fg.TF → B = .genesis
+  restart_tf : ∀ nd t B, Good nd →
+    B ∈ (R.core (P.restore (P.durable nd) t)).fg.TF → B ∈ (R.core nd).fg.TF
   process_new : ∀ nd o B, Good nd →
     B ∈ (R.core (P.process nd o)).fg.TF → B ∉ (R.core nd).fg.TF →
     S.proposalErase o = some (R.erase B) ∧
       B.rows = (S.proposalRows o).filterMap S.decode
+
+structure FGSafetyRestartLaws {In : Type} {P : V2.ProtocolSpecD In}
+    {n : Nat} {Base Proposal Wire : Type}
+    (R : FGCoreReads P n Base Proposal Wire) : Prop where
+  restart_F : ∀ nd t, (R.core (P.restore (P.durable nd) t)).fg.F = (R.core nd).fg.F
 
 structure FGSafetyOrderLaws (R : FGCoreReads P n Base Proposal Wire)
     (S : FGSafetyReads P n Wire) : Prop where

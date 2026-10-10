@@ -34,6 +34,26 @@ theorem safety_F_mono (C : FGCoreLaws R) (O : FGSafetyOrderLaws R S)
     rw [C.own_core]
     exact h
 
+/-- The local finalized block extends when restore keeps F. -/
+theorem safety_F_mono_all (C : FGCoreLaws R) (O : FGSafetyOrderLaws R S)
+    (L : FGSafetyRestartLaws R) {i j : Nat} (hij : i ≤ j) (x : V) :
+    FGBlock.Preceq (R.core (V2.D.Run.stateBefore E rho i x)).fg.F
+      (R.core (V2.D.Run.stateBefore E rho j x)).fg.F := by
+  apply V2.D.Engine.stateBefore_stable_restore (P := P)
+    (fun nd => FGBlock.Preceq (R.core (V2.D.Run.stateBefore E rho i x)).fg.F (R.core nd).fg.F)
+    ?_ ?_ ?_ E rho hij x ?_ (KitFG.preceq_refl _)
+  · intro nd t h
+    rw [C.clock_fg]
+    exact h
+  · intro nd o h
+    exact KitFG.preceq_trans h (O.process_F nd o)
+  · intro nd o h
+    rw [C.own_core]
+    exact h
+  · intro nd t h
+    rw [L.restart_F]
+    exact h
+
 private theorem safety_filter_prefix {α : Type} {r : α → α → Prop} {q : α → Bool}
     (hd : ∀ a b, r a b → q b = true → q a = true)
     (xs : List α) (hs : xs.Pairwise r) : xs.filter q = xs.takeWhile q := by

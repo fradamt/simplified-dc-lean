@@ -25,7 +25,7 @@ abbrev toy : V2.ProtocolSpecD Unit where
   selfVisible := fun _ => true
   recordOwn := fun st _ => st + 1
   durable := fun _ => ()
-  restore := fun _ => 0
+  restore := fun _ _ => 0
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false

@@ -196,7 +196,7 @@ theorem safety_client_trace (J : FGSafetyClientLaws S Ef cfg) (e : Fin n ≃ V)
           (S.record (V2.D.Run.stateBefore E rho k x)) := by
       have h := Gen.V2.Duty.ownRecord_fold_restart S.record (safetyRecordStep S)
         J.clock_record J.process_record J.own_record E rho (Nat.le_succ k) x
-        (fun _ _ _ _ _ => J.restart_record _)
+        (fun _ t _ _ _ => J.restart_record _ t)
       rw [V2.D.Engine.ownReleased_succ E rho x (le_refl k), V2.D.Engine.ownReleased_self,
         List.nil_append] at h
       exact h

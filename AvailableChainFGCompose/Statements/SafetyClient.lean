@@ -21,8 +21,8 @@ structure FGSafetyClientLaws (S : FGSafetyReads P n Wire)
   initial_record : S.record P.init = RecordOnce.initial
   clock_record : ∀ nd t, S.record (P.clock nd t) = S.record nd
   process_record : ∀ nd o, S.record (P.process nd o) = S.record nd
-  restart_record : ∀ nd,
-    S.record (P.restore (P.durable nd)) = S.record nd
+  restart_record : ∀ nd t,
+    S.record (P.restore (P.durable nd) t) = S.record nd
   own_record : ∀ nd o, S.record (P.recordOwn nd o) =
     safetyRecordStep S (S.record nd) o
   tick_rows : ∀ {V : Type} [DecidableEq V] (E : Generic.Env V)

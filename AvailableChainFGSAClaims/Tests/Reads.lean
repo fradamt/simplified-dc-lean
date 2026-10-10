@@ -28,7 +28,7 @@ abbrev readSpec : V2.ProtocolSpecD Unit where
   selfVisible := fun ℓ => nomatch ℓ
   recordOwn := fun st _ => st
   durable := id
-  restore := id
+  restore := fun st _ => st
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false

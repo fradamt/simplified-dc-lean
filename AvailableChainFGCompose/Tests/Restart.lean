@@ -50,7 +50,7 @@ abbrev protocol : V2.ProtocolSpecD Unit where
   selfVisible := fun _ => false
   recordOwn := fun st _ => st
   durable := fun _ => ()
-  restore := fun _ => false
+  restore := fun _ _ => false
   wellFormed := fun _ => true
   depsPresent := fun _ _ => true
   processed := fun _ _ => false
