@@ -156,30 +156,6 @@ theorem opening_domain_of_band (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     ⟨hD, hFZ.1, hFZ.2, D, hD, KitFG.preceq_refl _, hloD⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 21 H.22:3109–3114 (exact service), 00:516–527 (store); plan H-GATE §3B, §3D.
-DC: SAME the exact gate service of Q at q stores Q at every honest gate tick of q, and the
-store is cumulative, so every later honest read holds Qfg. -/
-theorem opening_exact_stored (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
-    {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} (hQfg : eraseFG Qfg = Q)
-    {jq : Nat} {x : V} (hjq : IsGateTick p c rho jq x q)
-    (hQw : Q ∈ (fastWriteAt ((fgsa p c).clock (V2.D.Run.stateBefore E rho jq x)
-      (SA.gateTime p.toParams q)).st q).getD [])
-    {i : Nat} (hji : jq ≤ i) :
-    Q ∈ (storeAt p c E rho i x).base.blocks ∧ Qfg ∈ (storeAt p c E rho i x).fg.TF ∧
-      Q ≠ .genesis := by
-  obtain ⟨_, _, _, hmem, hne, _, _⟩ := opening_fastWrite_spec E rho hs hjq hQw
-  have hb0 : Q ∈ (storeAt p c E rho jq x).base.blocks := by
-    have h := ((actView_blocks _ Q).mp hmem).1
-    rwa [(clockPre_fields p _ _).2.1] at h
-  have hb : Q ∈ (storeAt p c E rho i x).base.blocks :=
-    (fgsa_store_cumulative p c E rho hN hji x).2.1.subset hb0
-  obtain ⟨B, hB, heB⟩ := ((cstoreInv_stateBefore E rho i x).baseTree Q).mp hb
-  have he : B = Qfg := eraseFG_injective (heB.trans hQfg.symm)
-  subst he
-  exact ⟨hb, hB, hne⟩
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.9:1100–1144 (the opening read), H.22:3207–3216; plan H-GATE §2.3, §3 A–D,
 gaps 1–3. DC: INTENTIONAL fresh service for Q itself and retention of Qfg at an honest
 opening tick, read on the state before the tick. At q = rR the exact fast write is the
@@ -252,7 +228,7 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
     · have he : q = r * p.R := le_antisymm hqr hge
       subst he
       exact (fgsa_tick_unique E rho hS hjq htg).le
-  obtain ⟨hQb, hQT, hne⟩ := opening_exact_stored E rho hS hN hQfg hjq hQnd hjqi
+  obtain ⟨hQb, hQT, hne⟩ := opening_exact_stored E rho hS hQfg hjq hQnd hjqi
   have hband := opening_proposal_band E rho hS crossing hphase hQ hQfg hu hpq
   obtain ⟨hdom, hFQ, hlo⟩ := opening_domain_of_band E rho crossing hphase hband hx hui hiv
     (KitFG.preceq_refl Qfg) hQT

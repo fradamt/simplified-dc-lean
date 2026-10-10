@@ -1016,7 +1016,9 @@ theorem postReset_moving_lease_compat
   · obtain ⟨-, hclock⟩ := healing_support_gate_reads p c E rho hs hix
     let nd := (fgsa p c).clock (V2.D.Run.stateBefore E rho ix x) (SA.gateTime p.toParams s)
     have hfastWrite : eraseFG B ∈ (fastWriteAt nd.st s).getD [] := by
-      rw [healing_support_fastWrite p c E rho hs hix]
+      have hgr := (gateResultAt_eq_gateResult p c E rho hs hix).symm.trans hres
+      have hjoined := (fgsa_gate_raw_of_nonempty p c E rho hs hix hgr).1
+      rw [healing_support_fastWrite p c E rho hs hix hjoined]
       unfold fastSet
       rw [hconf]
       obtain ⟨x', s', hx', hsaved, R, hR, hguard⟩ := hpass
@@ -1517,7 +1519,9 @@ theorem postReset_written_gate_lease_compat
   · obtain ⟨-, hclock⟩ := healing_support_gate_reads p c E rho hs hix
     let nd := (fgsa p c).clock (V2.D.Run.stateBefore E rho ix x) (SA.gateTime p.toParams s)
     have hfastWrite : eraseFG B ∈ (fastWriteAt nd.st s).getD [] := by
-      rw [healing_support_fastWrite p c E rho hs hix]
+      have hgr := (gateResultAt_eq_gateResult p c E rho hs hix).symm.trans hres
+      have hjoined := (fgsa_gate_raw_of_nonempty p c E rho hs hix hgr).1
+      rw [healing_support_fastWrite p c E rho hs hix hjoined]
       unfold fastSet
       rw [hconf]
       obtain ⟨x', s', hx', hsaved, R, hR, hguard⟩ := hpass

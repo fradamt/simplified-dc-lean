@@ -1,5 +1,6 @@
 # P-H2 sleep wave 3; base 60cdcf65. Supplier repairs retain their owners.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
 AvailableChainFGSAClaims.Claims.Healing
@@ -86,6 +87,7 @@ AvailableChainFGSAProofs.Tests.HealingReset
 AvailableChainFGSAProofs.Tests.HealingResetCut
 AvailableChainFGSAProofs.Tests.HealingRiseOne
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
 AvailableChainEngineV2

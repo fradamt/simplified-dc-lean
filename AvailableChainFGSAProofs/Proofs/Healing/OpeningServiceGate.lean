@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 
@@ -503,7 +504,13 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     exact Bool.or_eq_true_iff.mpr (Or.inr hFB)
   have hmemw : B ∈ ((fgsaAC E rho).gateView i x s).blocks :=
     (congrArg GridCO.State.blocks hv) ▸ hmem
-  exact fgsa_gate_of_coveringBatch E rho hS i s x B ht ⟨C, hraw, hBC⟩
+  have hcut : E.t_GST ≤ slotStartZ p (s : Int) := by
+    have hqsI : (q : Int) ≤ (s : Int) := by exact_mod_cast hqs.le
+    change E.t_GST ≤ 4 * p.Δ * (s : Int)
+    change u ≤ 4 * p.Δ * (q : Int) at hu
+    nlinarith [p.deltaPos]
+  have hEnabled := healing_gate_enabled_of_recovery hrec hx ht hsh hcut
+  exact fgsa_gate_of_coveringBatch E rho hS i s x B ht hEnabled ⟨C, hraw, hBC⟩
     (opening_gate_guard E rho hrec mono crossing writes hgst hphase hQ hexact hu hqs hsv hx ht
       hFQ) hne hmemw hsupport (opening_gate_level E rho i x s B hsupport)
 

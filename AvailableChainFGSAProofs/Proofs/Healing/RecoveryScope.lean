@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAClaims.Statements.ChannelProps
+public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Join
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 
@@ -88,6 +89,24 @@ theorem healing_recovery_stamps (hrec : RecoverySleep₂ p c E rho G ΔF)
     (storeAt p c E rho (V2.D.Run.actionCut rho a) x).base.voteStamp <+:
       (storeAt p c E rho (V2.D.Run.idxBefore rho d) x).base.voteStamp :=
   epoch _ _ x hx hij hj (healing_recovery_restartFree hrec hx ha hd)
+
+/-- The next-frame companion keeps wires through restarts and stamps in the receiver epoch. -/
+theorem healing_recovery_frame_prefixes (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (frame : RFrameNextEpoch p c E rho) {x : V} (hx : x ∈ rho.honest) {a d : Time}
+    (ha : E.t_GST ≤ a) (hd : d ≤ rho.horizon)
+    (hij : V2.D.Run.actionCut rho a ≤ V2.D.Run.idxBefore rho d)
+    (hj : V2.D.Run.idxBefore rho d ≤ rho.events.length) :
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).proposals <+:
+      (storeAt p c E rho (V2.D.Run.idxBefore rho d) x).proposals ∧
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).rowPool <+:
+      (storeAt p c E rho (V2.D.Run.idxBefore rho d) x).rowPool ∧
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).base.blockStamp <+:
+      (storeAt p c E rho (V2.D.Run.idxBefore rho d) x).base.blockStamp ∧
+    (storeAt p c E rho (V2.D.Run.actionCut rho a) x).base.voteStamp <+:
+      (storeAt p c E rho (V2.D.Run.idxBefore rho d) x).base.voteStamp := by
+  obtain ⟨_, _, _, _, _, _, _, _, hkept⟩ := (frame _ x hx).2.2.2
+  obtain ⟨hP, hR, hE⟩ := hkept _ hij hj
+  exact ⟨hP, hR, hE (healing_recovery_restartFree hrec hx ha hd)⟩
 
 end AvailableChain.FGSA.Run
 end

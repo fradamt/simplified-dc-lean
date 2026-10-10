@@ -120,7 +120,7 @@ theorem postReset_cone_reset_held {s : Slot} (hs : w.sStar + 2 ≤ s)
   have htransfer := healing_resetTransferCore E rho hrec xing cap source mono w h0r
   rw [ResetTransferCore_def] at htransfer
   obtain ⟨C, hC, he⟩ := (htransfer hhor jq x hx hjq).1
-  exact ⟨C, (fgsa_store_cumulative p c E rho hrec.base.noRestart hjqj x).1 hC, he⟩
+  exact ⟨C, (fgsa_store_durable p c E rho hjqj x).1 hC, he⟩
 
 omit mono in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -225,7 +225,7 @@ private theorem cone_source_held (source : TSrc p c E rho)
     · exact KitFG.ancestor_closed_of_parent_closed _
         (cstoreInv_stateBefore E rho _ x).fg.closed _
         (cstoreInv_stateBefore E rho _ x).fg.Fmem K hF
-  exact (fgsa_store_cumulative p c E rho hrec.base.noRestart
+  exact (fgsa_store_durable p c E rho
     (healing_support_idxBefore_le p c E rho hS ht (hu ▸ hdeadline)) x).1 hheld
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

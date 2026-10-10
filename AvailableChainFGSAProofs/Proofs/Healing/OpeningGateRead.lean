@@ -248,5 +248,29 @@ theorem opening_phaseBody_of_fast_key (E : Generic.Env V) (rho : V2.D.Run V (fgs
   simp only [Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_true_eq]
   exact ⟨⟨hne, hBC⟩, hfast⟩
 
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.22:3109–3114 (exact service), 00:516–527 (store); plan H-GATE §3B, §3D.
+DC: SAME the exact gate service of Q at q stores Q at every honest gate tick of q, and the
+store is cumulative, so every later honest read holds Qfg. -/
+theorem opening_exact_stored (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho)
+    {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)} (hQfg : eraseFG Qfg = Q)
+    {jq : Nat} {x : V} (hjq : IsGateTick p c rho jq x q)
+    (hQw : Q ∈ (fastWriteAt ((fgsa p c).clock (V2.D.Run.stateBefore E rho jq x)
+      (SA.gateTime p.toParams q)).st q).getD [])
+    {i : Nat} (hji : jq ≤ i) :
+    Q ∈ (storeAt p c E rho i x).base.blocks ∧ Qfg ∈ (storeAt p c E rho i x).fg.TF ∧
+      Q ≠ .genesis := by
+  obtain ⟨_, _, _, hmem, hne, _, _⟩ := opening_fastWrite_spec E rho hs hjq hQw
+  have hb0 : Q ∈ (storeAt p c E rho jq x).base.blocks := by
+    have h := ((actView_blocks _ Q).mp hmem).1
+    rwa [(clockPre_fields p _ _).2.1] at h
+  have hb : Q ∈ (storeAt p c E rho i x).base.blocks :=
+    (fgsa_store_durable p c E rho hji x).2.1.subset hb0
+  obtain ⟨B, hB, heB⟩ := ((cstoreInv_stateBefore E rho i x).baseTree Q).mp hb
+  have he : B = Qfg := eraseFG_injective (heB.trans hQfg.symm)
+  subst he
+  exact ⟨hb, hB, hne⟩
+
 end AvailableChain.FGSA.Run
 end

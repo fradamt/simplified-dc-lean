@@ -28,6 +28,7 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
     (mono : RMono p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
     {r : Slot} {L : Block} (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
+    (hcut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq L K)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
@@ -95,7 +96,7 @@ theorem postReset_priorSupport_at_cut [Fintype V] (E : Generic.Env V)
     simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
   have hseat (k : Fin p.n) (hk : k ∈ Hon) :=
     postReset_proposal_batch_seat_at_cut E rho hrec crossing mono
-    hvh hgstr hcover hx hip hv hFHeads k ((hHmem k).mp hk)
+    hvh hgstr hcut hcover hx hip hv hFHeads k ((hHmem k).mp hk)
   have hHon : Hon.card = rho.honest.card := by
     rw [← Finset.card_image_of_injective Hon hbij.1]
     congr 1
@@ -153,6 +154,7 @@ theorem postReset_targetScores_at_cut [Fintype V] (E : Generic.Env V)
     (mono : RMono p c E rho)
     {v : Time} (hvh : v ≤ rho.horizon)
     {r : Slot} {L : Block} (hgstr : E.t_GST ≤ SA.voteTime p.toParams r)
+    (hcut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq L K)
     {ih : Nat} {y : V} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))))
@@ -178,7 +180,7 @@ theorem postReset_targetScores_at_cut [Fintype V] (E : Generic.Env V)
     simp only [Hon, Finset.mem_filter, Finset.mem_univ, true_and]
   have hseat (k : Fin p.n) (hk : k ∈ Hon) :=
     postReset_head_batch_seat_at_cut E rho hrec crossing mono
-    hvh hgstr hcover hy hih hv (fun z hz K hK =>
+    hvh hgstr hcut hcover hy hih hv (fun z hz K hK =>
       block_preceq_trans hFL (hcover z hz K hK)) k ((hHmem k).mp hk)
   have hHon : Hon.card = rho.honest.card := by
     rw [← Finset.card_image_of_injective Hon hbij.1]

@@ -95,7 +95,7 @@ theorem frontier_open_domain [Fintype V] (E : Generic.Env V)
       nlinarith
     · subst heq
       exact (fgsa_tick_unique E rho hS hjq ht).le
-  obtain ⟨_, hQT, _⟩ := opening_exact_stored E rho hS hrec.base.noRestart hQfg hjq hwrite hji
+  obtain ⟨_, hQT, _⟩ := opening_exact_stored E rho hS hQfg hjq hwrite hji
   obtain ⟨hui, hiv⟩ := frontier_open_indices E rho hS hu hqr hav ht
   have hH : (R_at p c E rho i x).H = m :=
     le_antisymm (hcap i x hui hiv hx) (hh ▸ healing_phase_height_le p c E rho hQT)

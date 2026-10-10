@@ -2387,3 +2387,44 @@ Complete compiled exports: 111 proof modules, 251 exports, 0 unaccepted.
 Layers: 72 baseline findings, 0 new. No public statement, protocol declaration,
 checker, baseline, or allowance changed. The canonical audit fragment is in
 scripts/dev-pkg/P-H2.coverage-fragment.txt for serial integration at close.
+
+### P-H2 — reset join and durable retention follow-up
+
+ResetScope proves GST + 6Δ ≤ τ, and 6Δ ≤ τ - GST ≤ 10Δ - 1 for nonnegative
+integer GST. The first reset row is after the inclusive u₀ cut: otherwise
+H0Reset.rowCap would give M+1 ≤ M. With cut_lower, this places GST before
+slotStartZ(sStar). Later vote and gate cutoffs follow by slot order.
+No bound is taken from the synchronous vote alone.
+
+JOINED-VOTER internal replacement: the generic cone batch-seat helpers take
+GST ≤ slotStartZ(label-1). An awake voter at GST need not be joined at that
+vote. Recovery's closed awake interval supplies the exact joinedNow guard.
+PostResetConePool passes the cutoff; PostResetConeInput derives it from
+H0Reset and the shifted reset cut. Both honest_emits consumers pass joinedNow.
+The generic helper's old vote-time-only scope was insufficient under sleep.
+
+GF follow-up: the two PostResetLeaseStep fast-write consumers derive gate join
+from the executed nonempty result. OpeningServiceGate supplies enabledGateAt
+from its proposal lower bound and recovery interval. PostResetGate derives
+its exact cutoff from H6's existing τ ≤ voteTime premise; no new H0 premise
+or public meaning change is needed. The H6 signature test uses that approved
+τ premise. These high-depth files remain EXPECTED-FAIL while suppliers are open.
+
+Durable follow-up: opening_exact_stored no longer requires global NoRestart.
+OpeningGateRead proves it with fgsa_store_durable; OpeningService and FrontierOpen
+consume it. Reset/cone tree retention uses the same durable producer.
+RecoveryScope also consumes the RFrameNextEpoch wire/stamp companion with the
+exact receiver event interval. Assembly must supply the concrete P-Fd channels.
+The generic channel lemmas do not close a blocked high-depth consumer.
+
+Final validation and commit IDs are recorded in claude-files/sleep-ph2-report.md.
+The final map has 86 TARGETS, with 7 GREEN and 79 open. Six other REQUIRED
+supplier failures remain P-ShA/S-Ap-owned. The local audit has 27 commands.
+The full audit import/command fragment is scripts/dev-pkg/P-H2.audit-fragment.txt.
+No new canonical coverage key, allowance, or baseline is added.
+
+P-H2 final follow-up validation: 469 GREEN --wfail PASS (1.77 s), DCK PASS,
+37 strict roots, 2,822 permitted-axiom results, all 24 default controls PASS.
+Complete compiled exports: 112 proof modules, 251 exports, 0 unaccepted.
+Layers: 72 baseline findings, 0 new. The package remains PREPARED.
+The 79 assigned open targets and six REQUIRED suppliers prevent CLOSED.

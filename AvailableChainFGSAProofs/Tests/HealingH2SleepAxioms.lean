@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 set_option linter.privateModule false
 
@@ -32,3 +33,23 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_vote_awake_of_recovery
 
 #print axioms AvailableChain.FGSA.Run.healing_enabledGate_of_fastWrite
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_start_lower
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_delay_bounds
+
+#print axioms AvailableChain.FGSA.Run.healing_reset_action_after_cut
+
+#print axioms AvailableChain.FGSA.Run.healing_reset_slot_cutoff
+
+#print axioms AvailableChain.FGSA.Run.healing_reset_vote_cutoff
+
+#print axioms AvailableChain.FGSA.Run.healing_vote_joined_of_recovery
+
+#print axioms AvailableChain.FGSA.Run.opening_exact_stored
+
+#print axioms AvailableChain.FGSA.Run.healing_reset_gate_cutoff
+
+#print axioms AvailableChain.FGSA.Run.healing_gate_enabled_of_recovery
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_frame_prefixes
