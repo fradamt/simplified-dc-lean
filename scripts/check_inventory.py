@@ -11,7 +11,7 @@ def parse_names(text, label):
     except (ValueError, SyntaxError) as exc:
         raise ValueError(f'{label}: invalid inventory') from exc
     if not isinstance(names, tuple) or not names or not all(
-            isinstance(n, str) and re.fullmatch(r"[^\W\d][\w'.]*", n)
+            isinstance(n, str) and re.fullmatch(r"[^\W\d][\w'.?!]*", n)
             for n in names):
         raise ValueError(f'{label}: expected a nonempty tuple of declaration names')
     if len(names) != len(set(names)):

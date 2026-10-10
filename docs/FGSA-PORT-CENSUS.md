@@ -1,5 +1,13 @@
 # FG-SA port source census
 
+**Historical record — superseded 2026-10-09.** This document records its
+original source basis. Freeze rules, port totals, ownership paths, and exact
+exception rows are not current acceptance data. Future changes use generated
+current snapshots and reviewed diffs. Open proof obligations remain open.
+The old API data remains in Git at
+`6c36d4810cb070655f2f4aadb3346db6c76aa0a3`. No checker reads this record.
+
+
 Checked base: `b033d223088fa30fd2763c3ae4a00b20bf28e91b` (post-P13).
 Plan: [r2 and binding rulings](plans/fgsa-port-r2.md).
 Source report: `codex/reports/reviews/derisk2-port-census-sol.md` in the

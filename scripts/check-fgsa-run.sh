@@ -319,6 +319,12 @@ AX_OPTS=(--expect
   AvailableChain.FGSA.Spec.spec_simulation_wire_valid
   AvailableChain.FGSA.Spec.spec_stutter_event_list
 )
+# Keep the explicit sleep expectations and check all current public declarations.
+if [ "${SOURCE_ONLY:-0}" != 1 ]; then
+  gate_inventory_args scripts/fgsa-run-expected.txt
+  AX_OPTS+=("${GATE_INVENTORY[@]}")
+fi
+python3 -B scripts/current-inventory.py fgsa-run scripts/fgsa-run-expected.txt
 
 # T7.11 content agreement.
 AX_OPTS+=(Run.contentAgree_run)
@@ -516,6 +522,7 @@ echo "== axioms, build coverage, import closure, used constants"
 TEST_MODS=($(test_modules .))
 TEST_ROOTS=()
 for m in "${TEST_MODS[@]}"; do TEST_ROOTS+=(--root "$m"); done
+gate_with_slot python3 -B scripts/write-check-inventories.py --scope fgsa-run --check
 gate_with_slot lake env lean --run scripts/CheckFGSARunAxioms.lean "${TEST_ROOTS[@]}" "${AX_OPTS[@]}"
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSARunLease.lean "${TEST_MODS[@]}"

@@ -1,63 +1,14 @@
 # Generic API manifest
 
-_Baseline for A0 step 2 (I23, ruling D15), 2026-09-30._
+_Current compiled snapshot. Policy: 2026-10-09._
 
-This file lists every public declaration of
-`AvailableChainGeneric.Statements.*` (Pure, V2 and AC), by fully qualified
-name and grouped by module. Gen has no anchor rule.
+Run the writer after a source change and review the complete diff.
+The check requires all current names, modules, kinds and hashes.
+Theorem proof values are excluded. Snapshot updates do not approve claims.
 
-ROOT-DIGEST-2 option 3 permits the 64 mode-indexed generic entries and measured
-representation dependencies. See the [full exception](FGSA-API.md#root-digest-2-option-3-exception).
-Keep the frozen baselines and SHAs. Exact old/new hashes and causes follow at integration.
+Entries: 852; modules: 55.
 
-## Baseline rule
-
-Baseline at the A0 step-2 close. Before G-F0a a Gen Statements edit re-writes this file in the SAME commit (visible diff); from G-F0a it is append-only.
-
-## ROOT-DIGEST option-3 exception
-
-ROOT-DIGEST W1c, user option 3 (2026-10-04), plan r2 Addenda r2.1 and r2.2.
-The class exception covers these four entries in `AvailableChain.Gen.Pure`:
-
-- `WalkNoEligibleChildOfAnchorClosedStatement` and
-  `WalkNoEligibleChildOfAnchorClosedStatement_def`: add
-  `(∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B)` before `AnchorClosed anchor tree`.
-  Evidence: `.lake/rdw1b-walk-evidence.lean`, theorem `old_walk_claim_false`, checked against
-  production objects in `.lake/rdw1c-check-walk-evidence.log`. Equal-root eligible siblings
-  cause GHOST to stop at their parent.
-- `WalkCoversOfRetainedTransportStatement` and
-  `WalkCoversOfRetainedTransportStatement_def`: add
-  `(∀ A ∈ targetTree, ∀ B ∈ targetTree, A.root = B.root → A = B)` before source coverage.
-  Evidence: `.lake/rdw1c-retained-evidence.lean`, theorem `frozen_retained_claim_false`.
-  Its kernel check is `.lake/rdw1c-retained-evidence-final.log`. The source returns A;
-  equal-root target siblings make GHOST return genesis despite BestAncestry.
-
-The census is `.lake/rdw1c-census.md`. No other frozen walk entry needs a new premise.
-BestAncestry keeps its definition. Strict dominance and a selected source path need no new premise.
-CStoreInv supplies the local tree premise through `baseBlocks_rootInj` and `erasedList_rootInj`.
-Generic helpers forward their explicit tree premise. W2 caller edits remain outside W1 scope.
-No FGSAClaims field or Base₂ text changes beyond plan §2 are permitted by this exception.
-GHOST, its tie refusal, and the selector/window algorithm stay unchanged.
-
-The official Gen list has 705 entries. The tool output and the exact four-entry delta are in
-`.lake/rdw1c-gen-manifest.md` and `.lake/rdw1c-gen-manifest-delta.json`.
-All new objects come from the production build. No caller is removed from those modules.
-The full lower-library build remains blocked by W3 test migration.
-
-## How to check
-
-`scripts/V2Manifest.lean` generates and checks this list.
-
-- `lake env lean --run scripts/V2Manifest.lean --scope gen --list` prints
-  the module blocks from the environment, in source order, with hashes.
-- `lake env lean --run scripts/V2Manifest.lean --scope gen --check` checks
-  the names, modules, kinds, hashes and completeness. A failed check exits 1.
-- `--manifest <path>` overrides this file. `--anchor` is a usage error for Gen.
-
-Each entry hash uses the shared hash rules in `scripts/V2Manifest.lean`:
-types and definition values, generated or private helpers in the closure,
-type binder names and infos, reducibility, and instance status. Theorem
-proofs do not affect the hash.
+`lake env lean --run scripts/V2Manifest.lean --scope gen --write` updates this file; `--check` checks it.
 
 ## Entries
 
@@ -356,6 +307,23 @@ def AvailableChain.Gen.Pure.AntitoneChainSearchStatement e7383de4aeb45541
 theorem AvailableChain.Gen.Pure.AntitoneChainSearchStatement_def c894dc5c18fc6207
 def AvailableChain.Gen.Pure.TwoStepChainSearchStatement 3baf40b90947fa21
 theorem AvailableChain.Gen.Pure.TwoStepChainSearchStatement_def 66f2097822f16a55
+```
+
+### `AvailableChainGeneric.Statements.Pure.CommonAncestor`
+
+```text
+def AvailableChain.Gen.Pure.MeetPrefixStatement 5ddf06b369d5ca7a
+theorem AvailableChain.Gen.Pure.MeetPrefixStatement_def f1737a28d97fb341
+def AvailableChain.Gen.Pure.MeetMaximalStatement e8cf1001e713daae
+theorem AvailableChain.Gen.Pure.MeetMaximalStatement_def a4d156d436daea3d
+def AvailableChain.Gen.Pure.MeetCommStatement bf7905b395ea61ef
+theorem AvailableChain.Gen.Pure.MeetCommStatement_def d4e704ef2675c8bf
+def AvailableChain.Gen.Pure.MeetInclusionStatement eff92fef3cacd3ae
+theorem AvailableChain.Gen.Pure.MeetInclusionStatement_def 951f9c7de215dea6
+def AvailableChain.Gen.Pure.MeetOfPreceqStatement 41970219accf1f62
+theorem AvailableChain.Gen.Pure.MeetOfPreceqStatement_def 6360ca81d2c9b3c9
+def AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement a83aef9afbb7ec52
+theorem AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement_def 4efb9c158b0f04d6
 ```
 
 ### `AvailableChainGeneric.Statements.Pure.Dominance`
@@ -780,17 +748,17 @@ theorem AvailableChain.Gen.V2.Duty.awakeHonest_def 17993f86511829fa
 
 ```text
 structure AvailableChain.Gen.V2.Duty.PartialSynchronyBy 3e10055faa994eb0
-ctor AvailableChain.Gen.V2.Duty.PartialSynchronyBy.mk fe963cc05a6ad671
-theorem AvailableChain.Gen.V2.Duty.PartialSynchronyBy.broadcast_emitted 3d89fa48b1ae8bc5
-theorem AvailableChain.Gen.V2.Duty.PartialSynchronyBy.relay_accepted 9d7cf6082abc2b2e
+ctor AvailableChain.Gen.V2.Duty.PartialSynchronyBy.mk cbe202b1137053ba
+theorem AvailableChain.Gen.V2.Duty.PartialSynchronyBy.broadcast_emitted 2e4dd7d16fcc9b04
+theorem AvailableChain.Gen.V2.Duty.PartialSynchronyBy.relay_accepted 9d8ca597c897f3ef
 structure AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy 3eb74b7e3a434a6b
-ctor AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy.mk 0559cb1df0c7f66d
-theorem AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy.broadcast_emitted ae4548b30c805c04
-theorem AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy.relay_accepted 8cc1fa735ab0bea0
+ctor AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy.mk d4f203f5c6afd24a
+theorem AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy.broadcast_emitted 911872436ac40f6a
+theorem AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy.relay_accepted 5af9ebbba3d602f3
 structure AvailableChain.Gen.V2.Duty.DeliveryWithinOn 940414b888fc87eb
-ctor AvailableChain.Gen.V2.Duty.DeliveryWithinOn.mk 0b7f78e2db0c0c6a
-theorem AvailableChain.Gen.V2.Duty.DeliveryWithinOn.broadcast 07435b9766ea2c18
-theorem AvailableChain.Gen.V2.Duty.DeliveryWithinOn.relay aa01d287def1521b
+ctor AvailableChain.Gen.V2.Duty.DeliveryWithinOn.mk fa34bb1813000842
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithinOn.broadcast 7668da4be3f1295c
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithinOn.relay 6be212682fc64d25
 def AvailableChain.Gen.V2.Duty.LabelSyncOn 97a8290f1c9c0ca8
 theorem AvailableChain.Gen.V2.Duty.LabelSyncOn_def 60ace8d963d2bbde
 structure AvailableChain.Gen.V2.Duty.LabelFactsOn 42907319d3c02d56
@@ -823,8 +791,8 @@ def AvailableChain.Gen.V2.Duty.LabelFactsOnOfRecoveryByStatement c70fc3760a5a5e3
 theorem AvailableChain.Gen.V2.Duty.LabelFactsOnOfRecoveryByStatement_def 282a8e98d59730e7
 def AvailableChain.Gen.V2.Duty.DelayPosOfEnvLeStatement 5cfcde88c6c1fb5b
 theorem AvailableChain.Gen.V2.Duty.DelayPosOfEnvLeStatement_def 7ebd35b0cc67512b
-def AvailableChain.Gen.V2.Duty.AcceptedByDeadlineOnStatement 119483f09cd16ed0
-theorem AvailableChain.Gen.V2.Duty.AcceptedByDeadlineOnStatement_def 283553db5c9a5c9c
+def AvailableChain.Gen.V2.Duty.AcceptedByDeadlineOnStatement f0f8e3f866767933
+theorem AvailableChain.Gen.V2.Duty.AcceptedByDeadlineOnStatement_def 45c88303b8d5f81e
 ```
 
 ### `AvailableChainGeneric.Statements.V2.Duty.Interface`
@@ -939,9 +907,9 @@ theorem AvailableChain.Gen.V2.Duty.HoldsBeforeIffExistsIdxStatement_def 27ef10f4
 def AvailableChain.Gen.V2.Duty.Trigger d0db54eb307cacc8
 theorem AvailableChain.Gen.V2.Duty.Trigger_def 266f17135f2e3259
 structure AvailableChain.Gen.V2.Duty.DeliveryWithin 6e134a47971a720c
-ctor AvailableChain.Gen.V2.Duty.DeliveryWithin.mk cda581110d1e2951
-theorem AvailableChain.Gen.V2.Duty.DeliveryWithin.broadcast 50bc2935928ddd4c
-theorem AvailableChain.Gen.V2.Duty.DeliveryWithin.relay 513578083198059e
+ctor AvailableChain.Gen.V2.Duty.DeliveryWithin.mk bbcb738b91930442
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithin.broadcast 70e7fba714f3b993
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithin.relay b11ca9409b115b64
 structure AvailableChain.Gen.V2.Duty.TimelyClock 39d3a2c87e5e6dbd
 ctor AvailableChain.Gen.V2.Duty.TimelyClock.mk 7c8b523bf9d91fc1
 def AvailableChain.Gen.V2.Duty.TimelyClock.actTime d92b791b6fe56f77
@@ -955,14 +923,17 @@ theorem AvailableChain.Gen.V2.Duty.AcceptanceLaw.accepts 628e2b0c12ffb3b4
 structure AvailableChain.Gen.V2.Duty.AdmitSound 7a2f4909068fa479
 ctor AvailableChain.Gen.V2.Duty.AdmitSound.mk 49174b94800eb964
 theorem AvailableChain.Gen.V2.Duty.AdmitSound.timely 4ffe4dc89e0ee9c7
+def AvailableChain.Gen.V2.Duty.ReadyTrigger 91f2036c66b91970
+def AvailableChain.Gen.V2.Duty.HistorySafeAt 38ba00198c32dc04
+def AvailableChain.Gen.V2.Duty.ProcessedByDeadlineOfServiceStatement 561ae8284bb8a579
 def AvailableChain.Gen.V2.Duty.TimelyOfClockStatement 904acc5d4305e9e2
 theorem AvailableChain.Gen.V2.Duty.TimelyOfClockStatement_def ed1fea2dba2f419b
 def AvailableChain.Gen.V2.Duty.TimelyOfEmitStatement 1272283a23c718f3
 theorem AvailableChain.Gen.V2.Duty.TimelyOfEmitStatement_def 650ccd3a357175cf
-def AvailableChain.Gen.V2.Duty.TimelyOfRelayStatement 0822d6aaccd283a5
-theorem AvailableChain.Gen.V2.Duty.TimelyOfRelayStatement_def c71e803668caee45
-def AvailableChain.Gen.V2.Duty.AcceptedByDeadlineStatement 3f49ad27ccd8a0e6
-theorem AvailableChain.Gen.V2.Duty.AcceptedByDeadlineStatement_def 77cb15b04b12d4b4
+def AvailableChain.Gen.V2.Duty.TimelyOfRelayStatement 6a41a144b5295a5b
+theorem AvailableChain.Gen.V2.Duty.TimelyOfRelayStatement_def 444238db67a5f13c
+def AvailableChain.Gen.V2.Duty.AcceptedByDeadlineStatement 1b019c4f8536fad3
+theorem AvailableChain.Gen.V2.Duty.AcceptedByDeadlineStatement_def e536d499b0502d74
 def AvailableChain.Gen.V2.Duty.FirstAcceptOfProcessedStatement 4bd4f124a60de5a2
 theorem AvailableChain.Gen.V2.Duty.FirstAcceptOfProcessedStatement_def 3847c6cb30703883
 ```
@@ -1086,9 +1057,9 @@ theorem AvailableChain.Gen.V2.HoldsBeforeIffExistsIdxStatement_def 4604dfd6f0748
 def AvailableChain.Gen.V2.Trigger 14cd826b1af3872e
 theorem AvailableChain.Gen.V2.Trigger_def 9156d168343315c0
 structure AvailableChain.Gen.V2.DeliveryWithin 6de7c37da778b941
-ctor AvailableChain.Gen.V2.DeliveryWithin.mk ba16e0cc4c81cb76
-theorem AvailableChain.Gen.V2.DeliveryWithin.broadcast e40c4af951b16892
-theorem AvailableChain.Gen.V2.DeliveryWithin.relay 395fcc0df9317951
+ctor AvailableChain.Gen.V2.DeliveryWithin.mk 8cc530bdba869b49
+theorem AvailableChain.Gen.V2.DeliveryWithin.broadcast a63adebd464817c5
+theorem AvailableChain.Gen.V2.DeliveryWithin.relay f5c9ff1e55ee98a6
 structure AvailableChain.Gen.V2.TimelyClock dbb29ecc1878cd98
 ctor AvailableChain.Gen.V2.TimelyClock.mk 0b608c3d40296466
 def AvailableChain.Gen.V2.TimelyClock.actTime b1b409bf1f469288
@@ -1102,14 +1073,17 @@ theorem AvailableChain.Gen.V2.AcceptanceLaw.accepts aa764d29f2b3e723
 structure AvailableChain.Gen.V2.AdmitSound 00c6781191a9f6d4
 ctor AvailableChain.Gen.V2.AdmitSound.mk 0aa63f249f4f8aab
 theorem AvailableChain.Gen.V2.AdmitSound.timely 8572cd21a779bfad
+def AvailableChain.Gen.V2.ReadyTrigger f6528c5b4205ff6f
+def AvailableChain.Gen.V2.HistorySafeAt 88d562aaaa998cfb
+def AvailableChain.Gen.V2.ProcessedByDeadlineOfServiceStatement a1e5d1935a6d3e27
 def AvailableChain.Gen.V2.TimelyOfClockStatement 3255eedae708cc6c
 theorem AvailableChain.Gen.V2.TimelyOfClockStatement_def b7896d70f307da43
 def AvailableChain.Gen.V2.TimelyOfEmitStatement 1c31d6719a952b0b
 theorem AvailableChain.Gen.V2.TimelyOfEmitStatement_def eeff51d78e3c470c
-def AvailableChain.Gen.V2.TimelyOfRelayStatement 29ee3f73225c6563
-theorem AvailableChain.Gen.V2.TimelyOfRelayStatement_def 8c8260d22287923b
-def AvailableChain.Gen.V2.AcceptedByDeadlineStatement ff834a06111208ce
-theorem AvailableChain.Gen.V2.AcceptedByDeadlineStatement_def 4258f4f3996c240a
+def AvailableChain.Gen.V2.TimelyOfRelayStatement cc048c93b2fc6b75
+theorem AvailableChain.Gen.V2.TimelyOfRelayStatement_def a5f08234854c0710
+def AvailableChain.Gen.V2.AcceptedByDeadlineStatement c0b561d96fcfbf35
+theorem AvailableChain.Gen.V2.AcceptedByDeadlineStatement_def c36ae89f05f9cf06
 def AvailableChain.Gen.V2.FirstAcceptOfProcessedStatement c20dde2bb2feb628
 theorem AvailableChain.Gen.V2.FirstAcceptOfProcessedStatement_def f730d8f69e108181
 ```
@@ -1163,21 +1137,4 @@ ctor AvailableChain.Gen.V2.SlashingInterface.mk 0636988bbb255725
 def AvailableChain.Gen.V2.SlashingInterface.slashes e464437d9cc362da
 def AvailableChain.Gen.V2.HonestNeverSlashed cb7d6d1806cfe47c
 theorem AvailableChain.Gen.V2.HonestNeverSlashed_def a06df42e8668cf32
-```
-
-### `AvailableChainGeneric.Statements.Pure.CommonAncestor`
-
-```text
-def AvailableChain.Gen.Pure.MeetPrefixStatement 5ddf06b369d5ca7a
-theorem AvailableChain.Gen.Pure.MeetPrefixStatement_def f1737a28d97fb341
-def AvailableChain.Gen.Pure.MeetMaximalStatement e8cf1001e713daae
-theorem AvailableChain.Gen.Pure.MeetMaximalStatement_def a4d156d436daea3d
-def AvailableChain.Gen.Pure.MeetCommStatement bf7905b395ea61ef
-theorem AvailableChain.Gen.Pure.MeetCommStatement_def d4e704ef2675c8bf
-def AvailableChain.Gen.Pure.MeetInclusionStatement eff92fef3cacd3ae
-theorem AvailableChain.Gen.Pure.MeetInclusionStatement_def 951f9c7de215dea6
-def AvailableChain.Gen.Pure.MeetOfPreceqStatement 41970219accf1f62
-theorem AvailableChain.Gen.Pure.MeetOfPreceqStatement_def 6360ca81d2c9b3c9
-def AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement a83aef9afbb7ec52
-theorem AvailableChain.Gen.Pure.MeetCompatibilityTransferStatement_def 4efb9c158b0f04d6
 ```

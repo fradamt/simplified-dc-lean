@@ -53,6 +53,16 @@ def closureRoots : List Name :=
     `Plausible, `LeanSearchClient, `ProofWidgets, `AvailableChainModel,
     `AvailableChainSimplexFG, `AvailableChainKitFG, `AvailableChainGeneric]
 
+partial def composeSources (path : System.FilePath) : IO (Array Name) := do
+  let mut names := #[]
+  for entry in ← path.readDir do
+    if entry.fileName.startsWith "." then continue
+    if ← entry.path.isDir then
+      names := names ++ (← composeSources entry.path)
+    else if entry.path.extension == some "lean" then
+      names := names.push ((entry.path.toString.dropEnd 5).toString.replace "/" ".").toName
+  return names
+
 def pureMain (args : List String) (useAxiomData := false) : IO UInt32 := do
   let usage := "USAGE: lake env lean --run scripts/CheckFGAxioms.lean [--root M] [--expect N …]"
   let (extra, args) := match args with
@@ -65,9 +75,11 @@ def pureMain (args : List String) (useAxiomData := false) : IO UInt32 := do
   let expected := args.drop 1
   initSearchPath (← findSysroot)
   if useAxiomData then unsafe enableInitializersExecution
-  let env ← importModules
-    ((#[`AvailableChainSimplexFG, `AvailableChainKitFG] ++ extra).map ({ module := · })) {}
-    (loadExts := useAxiomData)
+  -- Match the generated inventory, including modules absent from the facades.
+  let sources := #[`AvailableChainSimplexFG, `AvailableChainKitFG] ++
+    (← composeSources "AvailableChainSimplexFG") ++ (← composeSources "AvailableChainKitFG")
+  let env ← importModules ((sources ++ extra).map ({ module := · })) {}
+    (loadExts := useAxiomData) (level := .private)
   let mut badClosure := false
   for m in env.header.moduleNames do
     if extra.contains m then continue
@@ -144,16 +156,6 @@ def composeImportAllowed (m dep : Name) : Bool :=
        (`AvailableChainFGCompose.Proofs.SafetyClient,
         `AvailableChainGeneric.Proofs.V2.Duty.Fields)].contains (m, dep)
   else false
-
-partial def composeSources (path : System.FilePath) : IO (Array Name) := do
-  let mut names := #[]
-  for entry in ← path.readDir do
-    if entry.fileName.startsWith "." then continue
-    if ← entry.path.isDir then
-      names := names ++ (← composeSources entry.path)
-    else if entry.path.extension == some "lean" then
-      names := names.push ((entry.path.toString.dropEnd 5).toString.replace "/" ".").toName
-  return names
 
 def composeMain (args : List String) : IO UInt32 := do
   let (extra, rest) := match args with

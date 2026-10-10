@@ -22,6 +22,8 @@ sys.path.insert(0, 'scripts')
 import check_common as C
 import import_policy as P
 from check_inventory import read_names
+from importlib import import_module
+current_inventory = import_module('current-inventory')
 spec = importlib.util.spec_from_file_location('layers', 'scripts/check-layers.py')
 L = importlib.util.module_from_spec(spec)
 sys.modules['layers'] = L
@@ -31,7 +33,7 @@ SOURCE_ONLY = os.environ.get('SOURCE_ONLY', '0') == '1'
 NEG = os.environ.get('NEG', '1') == '1'
 LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit')
 CLAIMS, PROOFS, INHABIT = LIBS
-ROOT_LIBS = LIBS
+ROOT_LIBS = (*LIBS, "AvailableChainPCSAProofs")
 # Keep this minimum scope independent of the data file. The _def rows are
 # required even when their declarations do not yet exist.
 REQUIRED_MODEL_SCOPE = {
@@ -207,6 +209,7 @@ findings = [f for p in files for f in source_findings(module(p), p.read_text())]
 if findings:
     print('\n'.join(findings))
     raise SystemExit(1)
+current_inventory.check_source('fgsa-claims', EXPECTED)
 if SOURCE_ONLY:
     result = subprocess.run(['python3', 'scripts/check-layers.py'])
     if result.returncode:
@@ -236,6 +239,8 @@ if not SOURCE_ONLY and os.environ.get('NEG', '1') == '1':
 
 
 def check_source_coverage(imports, roots):
+    imports = {**{m.name: m.imports for m in ctx.modules.values()
+                  if L.under(m.name, "AvailableChainPCSAProofs")}, **imports}
     roots = list(dict.fromkeys([*roots, *imports]))
     # Every production module must be in its root facade's transitive closure.
     def closure(starts):
@@ -265,6 +270,16 @@ def check_source_coverage(imports, roots):
             raise SystemExit('NOT REACHED FROM F4: ' + ', '.join(unreached))
 
 # The active FG-SA root must reach every production module.
+# Keep main's deferred PC-SA root coverage control and the sleep FG-SA control.
+if NEG:
+    pcsa_orphan = "AvailableChainPCSAProofs.Proofs.Foundations.CoverageNegative"
+    try:
+        check_source_coverage({}, [pcsa_orphan])
+    except SystemExit as exc:
+        assert str(exc) == "NOT IMPORTED BY ROOT: " + pcsa_orphan, exc
+    else:
+        raise SystemExit("PC-SA ROOT COVERAGE CONTROL FAILED")
+
 if NEG:
     fgsa_orphan = "AvailableChainFGSAProofs.Proofs.Shared.CoverageNegative"
     try:
@@ -540,8 +555,10 @@ args = ['lake', 'env', 'lean', '--run', str(audit)]
 for m in [*roots, *MODEL_ROOTS]:
     args += ['--root', m]
 if EXPECTED:
-    args += ['--expect', *EXPECTED, *[n for _, n in MODEL_SCOPE
-                                     if not n.endswith('_def')]]
+    run('inventory', ['python3', '-B', 'scripts/write-check-inventories.py',
+                      '--scope', 'fgsa-claims', '--check'])
+    args += ['--expect', 'AvailableChain.FGSA.Run.fgsaClaims', *EXPECTED,
+             *[n for _, n in MODEL_SCOPE if not n.endswith('_def')]]
 run('axioms-coverage-used-constants', args)
 run('lease', ['lake', 'env', 'lean', '--run', str(lease_file), *roots])
 

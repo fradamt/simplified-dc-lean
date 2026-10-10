@@ -1,5 +1,29 @@
 # Precheck policy inputs
 
+Current policy (2026-10-09): compiled APIs, dependencies, catalog roots, and public
+name inventories use committed current snapshots. An explicit `--write` command
+updates generated data. Review additions, removals, ORDER moves, statements, and
+changed dependency paths. There are no API freeze copies or per-root exceptions.
+The guard merger still copies literal target data into trusted checker code.
+The source check requires coverage; the compiled scan requires exact inventory
+equality. F-7/F-10 are retired; the legacy API snapshot records those changes.
+No checker reads historical port ledgers, census, or ownership records.
+
+Commands:
+
+- `python3 -B scripts/write-api-snapshots.py --write` updates API products.
+- `python3 -B scripts/write-api-snapshots.py --check` checks those products.
+- `python3 -B scripts/write-check-inventories.py --write` updates audit names.
+- `python3 -B scripts/write-check-inventories.py --check` checks audit names.
+- `lake env lean --run scripts/CatalogLock.lean --write` updates the catalog.
+- `python3 -B scripts/api-diff.py --base <commit> --target <commit>
+  --snapshots <paths> --output <report.json>` produces the review report.
+- `python3 -B scripts/fgsa-deep.py --attribute --baseline <base.json>
+  --snapshot <target.json> --roots <names.txt|roots.tsv|roots.json>` attributes
+  deep changes through named roots and shared dependencies on both graph sides.
+  Missing planned names are unresolved diagnostics, not fabricated graph nodes.
+
+
 The default `precheck.sh <worktree>` copies checker code from its own checkout.
 Target source files and approved data removals still pass the main policy checks.
 A local `.lake/gate-last-full` file is only a tier-selection hint. It is not proof

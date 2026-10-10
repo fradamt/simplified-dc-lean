@@ -65,18 +65,14 @@ rsync -a --exclude=__pycache__ --exclude='*.pyc' "$main_root/scripts/" "$tree/sc
 if [ -f "$target_root/scripts/check-fgsa-claims.sh" ]; then
   check=guard-lists
   echo '== precheck guard-lists'
-  python3 "$main_root/scripts/guard-lists.py" superset \
+  python3 "$main_root/scripts/guard-lists.py" diff \
     --main "$main_root/scripts/check-fgsa-claims.sh" \
-    --target "$target_root/scripts/check-fgsa-claims.sh" \
-    --allow "$target_root/scripts/guard-lists-allow.txt"
+    --target "$target_root/scripts/check-fgsa-claims.sh"
   python3 "$main_root/scripts/guard-lists.py" merge \
     --code "$main_root/scripts/check-fgsa-claims.sh" \
     --data "$target_root/scripts/check-fgsa-claims.sh" \
     --out "$tree/scripts/check-fgsa-claims.sh"
-  # The gate repeats the superset check against Git history in the policy copy.
-  if [ -f "$target_root/scripts/guard-lists-allow.txt" ]; then
-    cp "$target_root/scripts/guard-lists-allow.txt" "$tree/scripts/guard-lists-allow.txt"
-  fi
+
 fi
 
 # Keep the target's allow lists and baselines; report changes for review.
@@ -91,6 +87,7 @@ import sys
 main, target, tree, count_file = map(Path, sys.argv[1:])
 additions = 0
 files = sorted([*target.glob('scripts/*-allow.txt'),
+                *target.glob('scripts/*-expected.txt'),
                 *target.glob('scripts/baselines/*.txt')])
 for source in files:
     if not source.is_file():
@@ -116,7 +113,7 @@ count_file.write_text(str(additions))
 PY
 policy_additions=$(cat "$scratch/policy-additions")
 
-# GLY F-7/F-10 read Git history. Use read-only object stores with a private
+# The guard diff reads Git history. Use read-only object stores with a private
 # index and refs, instead of adding a worktree to either checkout.
 check=git-snapshot
 target_objects=$(cd "$target_root" && cd "$(git rev-parse --git-path objects)" && pwd -P)

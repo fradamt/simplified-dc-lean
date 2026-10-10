@@ -1,5 +1,12 @@
 # FG-SA architecture map
 
+**Current policy — 2026-10-09.** APIs and anchors can change. Generate the current
+snapshots, then review all additions, removals, statements, and dependency changes.
+Older freeze, append-only, no-widening, and zero-rename rules below are history.
+They do not set current acceptance rules. Kernel, proof, source, and import checks
+still apply. A snapshot update does not approve a changed claim.
+
+
 _Shared map for three sessions. Created 2026-09-29 from DC-simplify's
 draft 1. One screen per section; detail goes in the linked documents.
 Update it when a module, an interface, a constraint or the milestone order
@@ -28,7 +35,7 @@ changes, and tell the other sessions._
 - Order: FG-SA needs first, then SA (its base), then the rest. Grid CO,
   SA-PC, L* and SimplexFG work is DEFERRED, not deleted; existing code and
   registry entries stay and stay green (user clarification, 2026-09-29).
-- End state: the spec is frozen, and every main blueprint claim is a
+- End state: the current spec is reviewed, and every main blueprint claim is a
   checked Lean theorem about FG-SA runs.
 
 ## 2. Protocol architecture (paper)
@@ -76,10 +83,10 @@ changes, and tell the other sessions._
   composition theorem: it uses the healing witness, source/carrier facts,
   H2′, the HEAD clause of H2.A, H3/H4, the composition services
   T-START/T-SMONO/T-EXACT/T-VOTE/T-WALK, T-ROWS with matching-state bit
-  persistence, and FG/substrate facts. The frozen finality claim set is
+  persistence, and FG/substrate facts. The recorded finality claim set is
   the recurrence route only: FF5–FF7 from `HEALING_INPUT` through the
   FGoodE_W/Tail_W kernels. QF2/QF4 (Qual/Skip routes, Rec_sT/Rec_skipT,
-  B_Q/B_skip) are open extensions outside the freeze (user, 2026-10-01).
+  B_Q/B_skip) remain open extensions (user, 2026-10-01).
   Healing supplies one common witness tuple (r_G, u₀, M, r*, s*, C*)
   through H.22, and μ = μ(run, GST) as a function of the run, not a
   witness field; H-time supplies the GST bound.
@@ -654,14 +661,16 @@ Engine v2 decisions (design §2), one line each:
 - Lock: `scripts/CatalogLock.lean` hashes the dependency closure of every
   declaration in the locked modules (framework, statements, catalog; not
   the protocol libraries). A change needs an expected-name list,
-  `--write --allow-changes`, a clean `--check`, and a lock-log entry in
-  design §8. Companions and optional claims only add lines.
-- V2 freeze (2a gate, 1aa6885): every declaration in `docs/V2-API.md` is
-  frozen, with a per-entry hash; `scripts/V2Manifest.lean --check` checks
-  it. Engine entries are also locked through anchor defs in
-  `AvailableChainFramework.V2`. Never edit `anchor`; add a new anchor def.
-  New declarations go after the existing ones or in a new module; the
-  manifest module blocks are append-only.
+  `--write`, a clean `--check`, and a lock-log entry in
+  design §8. Any catalog difference requires a snapshot update and review.
+- Current API snapshots: `docs/{V2,GEN,FGSA,PCSA}-API.md` record each public
+  declaration, module, kind, and hash. `scripts/V2Manifest.lean --scope <scope>
+  --write` updates one manifest; `--check` requires complete current coverage.
+  V2 engine entries retain anchor coverage. Update existing anchors when needed;
+  a new engine declaration does not require a milestone-specific anchor.
+  `docs/api/fgsa-deep.json` and `docs/api/pcsa-deep.json` record full kernel
+  dependencies. `scripts/api-diff.py` reports the union of changed public roots
+  with old/new statements, changed nodes, and paths. Review the complete diff.
 - T7 import guard: the FG-SA run library imports no v1 Kit, v1
   Statements, v1 engine or `GridCO.Proofs.*` directly, and a used-constant
   check backs the rule (the import closure cannot be v1-free). FG-SA
@@ -688,9 +697,8 @@ Engine v2 decisions (design §2), one line each:
   Monotonicity requires sorted execution and `NoRestart`. Client safety and
   honest non-slashing retain durable Λ and do not gain those premises.
   All-run carriage and stored-row carriage are distinct contracts.
-  `scripts/check-fg-finality-freeze.py` checks the S0 hashes against the
-  inherited-difference record; `scripts/check-fg-finality-coverage.py` checks
-  that every public declaration of the safety modules is audited. The gate
+  `scripts/check-fg-finality-coverage.py` checks that every public declaration
+  of the safety modules is audited. The retired S0 freeze is historical. The gate
   step `FGSAGrowth-axioms` audits the growth companion
   (`Tests/WeakContinuationGrowthAssemblyAxioms`).
 - Blueprint coverage (D10). `scripts/check-fgsa-blueprint.py` checks the
@@ -701,8 +709,7 @@ Engine v2 decisions (design §2), one line each:
   keep their original scope.
 - Generic API: `docs/GEN-API.md` records Statements types and values;
   `lake env lean --run scripts/V2Manifest.lean --scope gen --check` checks it.
-  Before G-F0a, a Statements edit updates the manifest in the same commit;
-  from G-F0a it is append-only (D15).
+  A Statements edit updates the current manifest; its diff is reviewed.
 - Before a branch-to-branch merge without a gate, run `bash scripts/check-gly-rules.sh`
   and `SKIP_CONE=0 bash scripts/check-build.sh` on the merge result after a full build.
 - `bash scripts/check-build.sh` runs all checks below after a full build.
@@ -893,15 +900,14 @@ and only the instance swap is atomic.
   `Recovery/Export` keeps `pcsa_longBreakRecoveredClaim_of_inputs` with its
   original type. Both recovery claims now have complete suffix suppliers.
 
-## FG-SA port (in progress)
+## FG-SA port (historical records)
 
-Stage 0 adds the port plan and base records after the checked P13 landing.
-The [plan and binding rulings](plans/fgsa-port-r2.md) define the port packages.
-The [source census](FGSA-PORT-CENSUS.md) maps 369 declarations to 876 manifest
-entries. The [ownership register](FGSA-PORT-OWNERS.json) gives one owner for
-each exact edit path. The [PC-SA baseline](FGSA-PORT-PCSA-BASELINE.json) records
-the source and compiled statement dependencies that the port must preserve.
-`FrameNext` will become the final frame surface at SWITCH.
+The [plan](plans/fgsa-port-r2.md), [source census](FGSA-PORT-CENSUS.md),
+[ownership register](FGSA-PORT-OWNERS.json), and
+[PC-SA baseline](FGSA-PORT-PCSA-BASELINE.json) record the port at its original basis.
+Future changes use current snapshots and a base-to-target review report. Do not
+maintain the fixed port totals, path owners, or change ledger as acceptance data.
+Open proof obligations in the reports remain open until their proofs are complete.
 
 ## FG-SA port WP16 first-pass handoff
 

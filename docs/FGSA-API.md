@@ -1,41 +1,14 @@
 # FG-SA API manifest
 
-_Baseline for G-F0a (D15, lead ruling DC 2026-09-30)._
+_Current compiled snapshot. Policy: 2026-10-09._
 
-This file lists every public declaration under the Statements prefixes of
-`AvailableChainFGSA`, `AvailableChainFGSARun` and `AvailableChainFGSAClaims`,
-by fully qualified name and grouped by library and module. FGSA has no anchor rule.
+Run the writer after a source change and review the complete diff.
+The check requires all current names, modules, kinds and hashes.
+Theorem proof values are excluded. Snapshot updates do not approve claims.
 
-## Baseline rule
+Entries: 1357; modules: 59.
 
-Before G-F0a, a missing doc makes the check print SKIP and exit 0. F0 writers
-do not update this doc. At G-F0a, run `bash scripts/fgsa-freeze.sh` to write
-this doc, copy it to `docs/FGSA-API-frozen.md`, and record the frozen SHA-256
-in `scripts/fgsa-manifest-frozen.sha256`. From G-F0a the API is append-only.
-Every frozen entry must keep its kind and hash; new entries pass. A changed
-or removed entry needs an allow line in `scripts/fgsa-manifest-allow.txt`:
-`<name>\t<reason>\t<plan revision>`, with actual tabs and no empty field.
-Stale allow lines fail. Structure widening has no exception: put later fields
-in new structures.
-
-## How to check
-
-`scripts/V2Manifest.lean` generates and checks this list.
-
-- `lake env lean --run scripts/V2Manifest.lean --scope fgsa --list` prints
-the module blocks from the environment, in source order, with hashes.
-- `lake env lean --run scripts/V2Manifest.lean --scope fgsa --write` writes this doc.
-- `lake env lean --run scripts/V2Manifest.lean --scope fgsa --check` checks
-the names, modules, kinds, hashes and completeness (D15), then the frozen
-SHA-256 and append-only rule. A failed check exits 1.
-- `--manifest <path>`, `--frozen <path>`, `--allow <path>` and
-`--frozen-sha <path>` override the paths. `--anchor` requires v2.
-
-Each entry hash uses the shared hash rules in `scripts/V2Manifest.lean`:
-types and definition values, generated or private helpers in the closure,
-type binder names and infos, reducibility, and instance status. Theorem
-proofs do not affect the hash. Public `_def` theorems are entries. Each public
-structure projection is a separate `field` entry beside the structure entry.
+`lake env lean --run scripts/V2Manifest.lean --scope fgsa --write` updates this file; `--check` checks it.
 
 ## `AvailableChainFGSA`
 

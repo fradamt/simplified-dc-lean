@@ -1,5 +1,13 @@
 # FG-SA G-F0b freeze record (W model)
 
+**Historical record — superseded 2026-10-09.** This document records its
+original source basis. Freeze rules, port totals, ownership paths, and exact
+exception rows are not current acceptance data. Future changes use generated
+current snapshots and reviewed diffs. Open proof obligations remain open.
+The old API data remains in Git at
+`6c36d4810cb070655f2f4aadb3346db6c76aa0a3`. No checker reads this record.
+
+
 Candidate content: fgsa-s46e (S4.6 + S4.6b + S4.6c + TDel / review fixes + S4.7 pre-freeze round), reviewed at
 845d13e; the S4.7 fix round adds 0848d69 and this record (037ea95); B21, B25, B31 and B32 follow. The S4.8 freeze commit
 replaces docs/FGSA-API-frozen.md with docs/FGSA-API.md at that head (scripts/fgsa-freeze.sh), resets
