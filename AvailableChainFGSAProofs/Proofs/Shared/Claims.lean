@@ -409,6 +409,16 @@ private theorem claims_recovery_cut_readers {In V : Type} [DecidableEq V] [Finty
   exact claims_recovery_readers hrec hx hj hji hi hcut ht hh
     (claims_prefixTime_bounds hs hj hji hi hb) hw
 
+/-- A source healing gate supplies the exact confirmed read after its ticks.
+The source recovery epoch supplies the receiver guard and applied wakes. -/
+theorem fgsa_recovery_gate_readers {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
+    (h0 : H0 p c E rho w) (hh : tstar p w ≤ rho.horizon)
+    (x : V) (hx : x ∈ rho.honest) :
+    confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (tstar p w)) (tstar p w) :=
+  (claims_recovery_cut_readers hrec h0 (tstar p w) 1 le_rfl le_rfl hh x hx).1
+
 private theorem claims_recovery_time_readers {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}

@@ -39,3 +39,5 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetSource -- shake: kee
 #print axioms AvailableChain.FGSA.Run.ProgressAttemptRows
 #print axioms AvailableChain.FGSA.Run.healing_progressAttemptStatement
 #print axioms AvailableChain.FGSA.Run.assembly_reset_emittedName
+
+#print axioms AvailableChain.FGSA.Run.fgsa_recovery_gate_readers
