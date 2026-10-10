@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! S5 H-PHASE M5, plan A steps 2 and 4. H-REPAIR supplies the repair gate.
@@ -72,7 +74,7 @@ theorem healing_rise_one_repair [Fintype V] (E : Generic.Env V)
           (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
               p.toParams.engine p.n
             (actView pre) w C) :
-    ∀ {u D : Time}, E.t_GST ≤ u → u ≤ D → D ≤ rho.horizon →
+    ∀ {u D : Time}, recoveryStart p E ≤ u → u ≤ D → D ≤ rho.horizon →
     ¬ RiseOneBy p c E rho D →
     PhaseInterval p c E rho u D 1 (some .genesis) false ∧
     ∃ β, u < SA.proposalTime p.toParams β ∧
@@ -87,7 +89,7 @@ theorem healing_rise_one_repair [Fintype V] (E : Generic.Env V)
     mono (rise_one_honest_nonempty E rho hrec) huD hD hstop
   obtain ⟨β, hβ, hmin⟩ := healing_rise_one_grid p u
   have hrepair := (healing_tRepair E rho hrec mono crossing qc services writes) G u D 1
-    (some .genesis) false hrec.gap hrec.gapPos hgst hphase
+    (some .genesis) false (healing_proposal_gap hrec) hrec.gapPos hgst hphase
   obtain ⟨ha, hw⟩ := hrepair.1 β hβ hmin
   exact ⟨hphase, β, hβ, hmin, ha, hw⟩
 
@@ -115,7 +117,7 @@ theorem healing_rise_one_repair_synchronous [Fintype V] (E : Generic.Env V)
           (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
               p.toParams.engine p.n
             (actView pre) w C)
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hstop : ¬ RiseOneBy p c E rho D) {b : Nat}
     (hb : u ≤ SA.voteTime p.toParams b)
     (hmin : ∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i)
@@ -126,10 +128,14 @@ theorem healing_rise_one_repair_synchronous [Fintype V] (E : Generic.Env V)
         SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams q ∧
         SA.gateTime p.toParams q < u + ρ₁ p G ∧
         HonestProposal E rho (fgsaInterface p c) q Q ∧ ExactService p c E rho q Q) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hphase := healing_rise_one_phase p c E rho hrec.base.valid.toScheduleWellFormed
     mono (rise_one_honest_nonempty E rho hrec) huD hD hstop
   exact ((healing_tRepair E rho hrec mono crossing qc services writes) G u D 1
-    (some .genesis) false hrec.gap hrec.gapPos hgst hphase).2 b hb hmin hkb hwindow
+    (some .genesis) false (healing_proposal_gap hrec) hrec.gapPos hready hphase).2 b hb hmin hkb
+      hwindow
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan A step 4. DC: SAME choose the first opening and apply H-GATE.
@@ -166,7 +172,7 @@ theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
       ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hstop : ¬ RiseOneBy p c E rho D) {q : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q) (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -177,11 +183,14 @@ theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
       0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
       OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have hphase := healing_rise_one_phase p c E rho hS mono
     (rise_one_honest_nonempty E rho hrec) huD hD hstop
   rcases healing_rise_one_height p c E rho hS mono hQ hQfg hexact hgate hD
-    (fun x hx => healing_recovery_gate_reader hrec hx (hgst.trans hu) (hgate.trans hD))
+    (fun x hx => healing_recovery_gate_reader hrec hx (hGST.trans hu) (hgate.trans hD))
     with hrise | ⟨hh, hentry⟩
   · exact (hstop hrise).elim
   have hex : ∃ r, q ≤ r * p.R := by
@@ -199,7 +208,7 @@ theorem healing_rise_one_first_opening [Fintype V] (E : Generic.Env V)
   have hur : u ≤ p.actionTime r := by linarith
   have hp := opening_phase_restrict E rho hphase hur hrD
   obtain ⟨h0, h1, hc, he⟩ := opening_height_one E rho hrec mono crossing opening writes rowCoverage
-    hgst hQ hQfg hexact hu hqr hfirst hp
+    hready hQ hQfg hexact hu hqr hfirst hp
   exact ⟨hh, hentry, r, hqr, hfirst, hrD, h0, h1, hc, he⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -236,12 +245,15 @@ theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
       ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hstop : ¬ RiseOneBy p c E rho D) {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q) (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hqr : q ≤ r * p.R) (hrD : p.actionTime r ≤ D) :
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have hphase := healing_rise_one_phase p c E rho hS mono
     (rise_one_honest_nonempty E rho hrec) huD hD hstop
@@ -251,7 +263,7 @@ theorem healing_rise_one_later_opening [Fintype V] (E : Generic.Env V)
     change u ≤ 4 * p.Δ * (q : Int) at hu
     nlinarith [p.deltaPos]
   have hp := opening_phase_restrict E rho hphase hur hrD
-  exact ⟨later_opening_covered E rho hrec mono crossing opening writes rowCoverage hgst hQ hQfg
+  exact ⟨later_opening_covered E rho hrec mono crossing opening writes rowCoverage hready hQ hQfg
     hexact hu hqr hp, opening_entry_one E rho hS hp hur⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -289,7 +301,7 @@ theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
       ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hbudget : u + ρΓ p G + (P p - 4 * p.Δ) ≤ D) :
     RiseOneBy p c E rho D ∨
     ∃ β q Q Qfg r, PhaseInterval p c E rho u D 1 (some .genesis) false ∧
@@ -304,6 +316,9 @@ theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
       0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
       OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
   by_cases hstop : RiseOneBy p c E rho D
   · exact Or.inl hstop
@@ -316,7 +331,7 @@ theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
     nlinarith
   have hrepairBudget : u + ρΓ p G ≤ D := by linarith
   obtain ⟨hphase, β, hβ, hmin, hafter, hwitness⟩ :=
-    healing_rise_one_repair E rho hrec mono crossing qc services writes hgst huD hD hstop
+    healing_rise_one_repair E rho hrec mono crossing qc services writes hready huD hD hstop
   obtain ⟨q, Q, hq, hgate, hQ, hexact⟩ := hwitness hrepairBudget
   have hβl : β ≤ β + 2 * p.k - 1 := by
     have hk : 1 ≤ 2 * p.k := by have := p.kLarge; omega
@@ -330,11 +345,11 @@ theorem healing_rise_one_repair_opening [Fintype V] (E : Generic.Env V)
   have hgateD := hgate.trans hrepairBudget
   obtain ⟨j, Qfg, _hj, _hQfg, heq⟩ := healing_rise_one_gate_copy p c E rho
     hrec.base.valid.toScheduleWellFormed hexact (hgateD.trans hD) hQ.1.2
-    (healing_recovery_gate_reader hrec hQ.1.2 (hgst.trans hu) (hgateD.trans hD))
+    (healing_recovery_gate_reader hrec hQ.1.2 (hGST.trans hu) (hgateD.trans hD))
   have hopeningBudget : SA.gateTime p.toParams q + (P p - 4 * p.Δ) ≤ D := by linarith
   obtain ⟨hh, he, r, hqr, hfirst, hrD, h0, h1, hc, hentry⟩ :=
     healing_rise_one_first_opening E rho hrec mono crossing services opening writes rowCoverage
-      hgst huD hD hstop hQ heq hexact hu hgateD hopeningBudget
+      hready huD hD hstop hQ heq hexact hu hgateD hopeningBudget
   exact ⟨β, q, Q, Qfg, r, hphase, hβ, hmin, hafter, hq, hgate, hQ, hexact,
     heq, hh, he, hqr, hfirst, hrD, h0, h1, hc, hentry⟩
 

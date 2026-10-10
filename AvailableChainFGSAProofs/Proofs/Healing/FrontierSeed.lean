@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 /-! HG.1 seed (blueprint 21:1333–1350, 1570–1574; TF-SEED Q4).
@@ -24,15 +26,18 @@ DC: SAME the unchanged H.6 repair output supplies the seed qualification. -/
 theorem tfSeed_two_from_tRepair (h : TRepair p c E rho)
     {G u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgap : ProposalGap p c E rho G) (hG : 4 * p.Δ ≤ G)
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {β : Slot} (hβ : u < SA.proposalTime p.toParams β)
     (hmin : ∀ b, u < SA.proposalTime p.toParams b → β ≤ b)
     (hbudget : u + ρΓ p G ≤ v) :
     ∃ q Q, FrontierSeedQualification p E u q ∧
       SA.gateTime p.toParams q ≤ u + ρΓ p G ∧
       HonestProposal E rho (fgsaInterface p c) q Q ∧ ExactService p c E rho q Q := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   obtain ⟨q, Q, hlt, hgate, hp, hs⟩ :=
-    (h G u v m J contested hgap hG hgst hphase).1 β hβ hmin |>.2 hbudget
+    (h G u v m J contested hgap hG hready hphase).1 β hβ hmin |>.2 hbudget
   exact ⟨q, Q, Or.inl ⟨β, hβ, hmin, hlt⟩, hgate, hp, hs⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -41,7 +46,7 @@ DC: SAME the H.6-S repair output and its inputs supply the seed qualification. -
 theorem tfSeed_one_from_tRepair (h : TRepair p c E rho)
     {G u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgap : ProposalGap p c E rho G) (hG : 4 * p.Δ ≤ G)
-    (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
+    (hready : recoveryStart p E ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {b : Slot} (hb : u ≤ SA.voteTime p.toParams b)
     (hmin : ∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i)
     (hkb : p.k ≤ b + 1) (hwindow : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k))
@@ -49,8 +54,11 @@ theorem tfSeed_one_from_tRepair (h : TRepair p c E rho)
     ∃ q Q, FrontierSeedQualification p E u q ∧
       SA.gateTime p.toParams q < u + ρ₁ p G ∧
       HonestProposal E rho (fgsaInterface p c) q Q ∧ ExactService p c E rho q Q := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   obtain ⟨q, Q, hlt, hgate, hp, hs⟩ :=
-    (h G u v m J contested hgap hG hgst hphase).2 b hb hmin hkb hwindow |>.2 hbudget
+    (h G u v m J contested hgap hG hready hphase).2 b hb hmin hkb hwindow |>.2 hbudget
   exact ⟨q, Q, Or.inr ⟨b, hb, hmin, hkb, hwindow, hlt⟩, hgate, hp, hs⟩
 
 omit [DecidableEq V] in
@@ -67,8 +75,11 @@ theorem tfSeed_later {u : Time} {q s : Slot} (hseed : FrontierSeedQualification 
 omit [DecidableEq V] in
 /-- Both repaired seed branches put GST before the seed voters' previous-slot cutoff. -/
 theorem frontier_seed_vote_cutoff {u : Time} {q : Slot}
-    (hseed : FrontierSeedQualification p E u q) (hgst : E.t_GST ≤ u) :
+    (hseed : FrontierSeedQualification p E u q) (hready : recoveryStart p E ≤ u) :
     E.t_GST ≤ slotStartZ p ((q : Int) - 1) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   change E.t_GST ≤ 4 * p.Δ * ((q : Int) - 1)
   rcases hseed with ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, _, hlt⟩
   · have hslots := repair_slot_lt_of_time hlt
@@ -95,9 +106,9 @@ Blueprint 21:925–944, 1004–1025, 1570–1574; TF-SEED Q4 steps 1–2.
 DC: INTENTIONAL the frozen seed premise gives the q+1 lease cover in the initial phase.
 The q+1 gate needs a separate proof under the frontier cap. -/
 theorem tfSeed_qSucc_lease_cover [Fintype V] {G ΔF : Time}
-    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
-    (crossing : RXing p c E rho)
-    (writes : ∀ i x (row : Block × Nat × Time),
+    (_hrec : RecoverySleep₂ p c E rho G ΔF) (_mono : RMonoAll p c E rho)
+    (_crossing : RXing p c E rho)
+    (_writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
@@ -116,10 +127,19 @@ theorem tfSeed_qSucc_lease_cover [Fintype V] {G ΔF : Time}
               p.toParams.engine p.n
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {q : Slot}
-    (hgst : E.t_GST ≤ u)
-    (hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
-    (hPerm : SupportPermanenceScope E rho u (SA.gateTime p.toParams q) m J contested)
-    (hseed : FrontierSeedQualification p E u q) : RepairLeaseCover E rho (q + 1) := by
+    (_hready : recoveryStart p E ≤ u)
+    (_hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
+    (_hPerm : SupportPermanenceServices E rho u (SA.gateTime p.toParams q) m J contested)
+    (hseed : FrontierSeedQualification p E u q)
+    (twoCover : ∀ β, u < SA.proposalTime p.toParams β →
+      SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams (q + 1) →
+      SA.voteTime p.toParams (q + 1) ≤ SA.gateTime p.toParams q →
+      RepairLeaseCover E rho (q + 1))
+    (oneCover : ∀ b, u ≤ SA.voteTime p.toParams b →
+      E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k) →
+      SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams (q + 1) →
+      SA.voteTime p.toParams (q + 1) ≤ SA.gateTime p.toParams q →
+      RepairLeaseCover E rho (q + 1)) : RepairLeaseCover E rho (q + 1) := by
   have hd := p.deltaPos
   have hlater : SA.proposalTime p.toParams q < SA.proposalTime p.toParams (q + 1) := by
     change 4 * p.Δ * (q : Int) < 4 * p.Δ * ((q + 1 : Nat) : Int)
@@ -130,12 +150,8 @@ theorem tfSeed_qSucc_lease_cover [Fintype V] {G ΔF : Time}
     push_cast
     linarith
   rcases hseed with ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, hwindow, hlt⟩
-  · exact repair_lease_cover_two_at E rho hrec mono crossing writes
-      hgst hphase hPerm hβ
-      (hlt.trans hlater) hvs
-  · exact repair_lease_cover_one_at E rho hrec mono crossing writes
-      hgst hphase hPerm hb hwindow
-      (hlt.trans hlater) hvs
+  · exact twoCover β hβ (hlt.trans hlater) hvs
+  · exact oneCover b hb hwindow (hlt.trans hlater) hvs
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:925–944, 1004–1025, 1570–1574; plan §3.1 step 7.
@@ -163,18 +179,21 @@ theorem frontier_seed_qSucc_input [Fintype V] {G ΔF : Time}
               p.toParams.engine p.n
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {q : Slot}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
-    (hPerm : SupportPermanenceScope E rho u (SA.gateTime p.toParams q) m J contested)
+    (hPerm : SupportPermanenceServices E rho u (SA.gateTime p.toParams q) m J contested)
     (hseed : FrontierSeedQualification p E u q)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (q + 1))))
-    (hPrior : ProposalSupportScope E rho ip x q)
+    (hPrior : ProposalSupportScope E rho ip x q (SA.proposalTime p.toParams (q + 1)))
     {ih : Nat} {y : V} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (q + 1)))) :
     RetainedH6Input p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (q + 1)))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (q + 1))) (q + 1) := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hd := p.deltaPos
   have hlater : SA.proposalTime p.toParams q < SA.proposalTime p.toParams (q + 1) := by
     change 4 * p.Δ * (q : Int) < 4 * p.Δ * ((q + 1 : Nat) : Int)
@@ -188,9 +207,15 @@ theorem frontier_seed_qSucc_input [Fintype V] {G ΔF : Time}
     change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
     push_cast
     linarith
-  exact repair_h6_input E rho hrec mono crossing hgst hphase hhead hvs
-    (tfSeed_qSucc_lease_cover E rho hrec mono crossing writes hgst hphase hPerm hseed)
-    hx hip hPrior hy hih
+  have hCut : HealingWindow p E 1 q :=
+    healing_window_of_cut E (healing_ready_vote_cutoff E (hready.trans hhead))
+  exact repair_h6_input E rho hrec mono crossing hGST hphase hhead hvs
+    (tfSeed_qSucc_lease_cover E rho hrec mono crossing writes hready hphase hPerm hseed
+      (fun β hβ hls hvs => repair_lease_cover_two_at E rho hrec mono crossing writes
+        hready hphase hPerm hβ hls hvs)
+      (fun b hb hSync hls hvs => repair_lease_cover_one_at E rho hrec mono crossing writes
+        hready hphase hPerm hb hSync hls hvs))
+    hx hip hPrior hCut hy hih
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:956–958, 1004–1025, 1570–1574; plan §3.1 step 7.
@@ -218,17 +243,20 @@ theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
               p.toParams.engine p.n
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {q : Slot}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
-    (hPerm : SupportPermanenceScope E rho u (SA.gateTime p.toParams q) m J contested)
+    (hPerm : SupportPermanenceServices E rho u (SA.gateTime p.toParams q) m J contested)
     (hseed : FrontierSeedQualification p E u q)
     (hServices : ∀ ip x N, x ∈ rho.honest →
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (q + 1))) →
       (ofWire p ⟨.proposer (q + 1), .proposal N⟩) ∈ rho.emitsAt E ip →
-      RepairHeadServices E rho (q + 1))
+      RepairHeadServices E rho (q + 1) ip x N)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 1) B) :
     ∀ y ∈ rho.honest, joinedAt p E rho y (q + 1) (SA.voteTime p.toParams (q + 1)) →
       headAtLabel p c E rho y (q + 1) = some B := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hd := p.deltaPos
   have hlater : SA.proposalTime p.toParams q < SA.proposalTime p.toParams (q + 1) := by
     change 4 * p.Δ * (q : Int) < 4 * p.Δ * ((q + 1 : Nat) : Int)
@@ -247,18 +275,27 @@ theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
   obtain ⟨ip, x, N, heN, hx, hip, hseat, hem⟩ := repair_proposal_emission E rho hp
   subst B
   have hGST : E.t_GST ≤ SA.proposalTime p.toParams (q + 1) - p.Δ := by
-    refine hgst.trans (hhead.trans ?_)
+    refine hGST.trans (hhead.trans ?_)
     change 4 * p.Δ * (q : Int) + p.Δ ≤ 4 * p.Δ * ((q + 1 : Nat) : Int) - p.Δ
     push_cast
     linarith
   have hhor : SA.voteTime p.toParams (q + 1) ≤ rho.horizon := hvs.trans hphase.2.1
   have hServices := hServices ip x N hx hip hem
-  have hPrior : ProposalSupportScope E rho ip x q := by
-    simpa only [Nat.add_sub_cancel] using hServices.prior ip x N hx hip hem
+  have hPrior : ProposalSupportScope E rho ip x q (SA.proposalTime p.toParams (q + 1)) := by
+    simpa only [Nat.add_sub_cancel] using hServices.prior
+  have hFloors : ∀ y ∈ rho.honest, Block.Preceq
+      (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams (q + 1)) y).st.fg.F)
+      N.erase := by
+    intro y hy
+    exact healing_proposal_phase_reader_floor hrec.base.valid crossing hphase hp
+      (hhead.trans (by
+        change 4 * p.Δ * (q : Int) + p.Δ ≤ 4 * p.Δ * ((q + 1 : Nat) : Int)
+        push_cast; linarith [p.deltaPos])) hvs hy
   exact repair_head_exact E rho hrec.toRecovery₂ (q + 1) hGST hx hip hseat N hem
     (fun y hy ih hih _ => frontier_seed_qSucc_input E rho hrec mono crossing writes
-      hgst hphase hseed hx hip hPrior hy hih)
-    (hServices.targets ip x N hx hip hem) (hServices.scopes ip x N hx hip hem) hhor
+      hready hphase hPerm hseed hx hip hPrior hy hih)
+    (fun y hy ih hi hj => hServices.target hy hi hj (hFloors y hy))
+    (fun y hy ih hi hj => hServices.scopes y hy ih hi hj (hFloors y hy)) hhor
 
 end AvailableChain.FGSA.Run
 end

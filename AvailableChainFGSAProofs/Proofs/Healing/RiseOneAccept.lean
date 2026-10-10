@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionReceipt
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -74,11 +76,14 @@ theorem healing_rise_one_receipt_all [Fintype V] {G ΔF : Time}
       Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
         (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
-    (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
+    (hu : u ≤ SA.proposalTime p.toParams s) (hready : recoveryStart p E ≤ u)
     (hp : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) 1
       (some .genesis) false) :
     ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
       (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
   intro x hx
   let t := SA.proposalTime p.toParams s
@@ -99,7 +104,7 @@ theorem healing_rise_one_receipt_all [Fintype V] {G ΔF : Time}
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs]
     exact Bool.or_eq_true_iff.mpr (Or.inr (eraseFG_preceq
       (KitFG.preceq_trans hFgen (KitFG.genesis_preceq X))))
-  obtain ⟨service⟩ := services ip _ N x hnew.1.2 hx hip hem (hgst.trans hu)
+  obtain ⟨service⟩ := services ip _ N x hnew.1.2 hx hip hem (hGST.trans hu)
     hp.2.1 (by simpa only [heN] using hcompat)
   obtain ⟨Y, hY, he⟩ := service.proposal hs hx hrec.base.receiptIdealization
   have heq : Y = X := eraseFG_injective (he.trans heN)
@@ -125,11 +130,14 @@ theorem healing_rise_one_accept [Fintype V] {G ΔF : Time}
       Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
         (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
-    (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
+    (hu : u ≤ SA.proposalTime p.toParams s) (hready : recoveryStart p E ≤ u)
     (hd : SA.proposalTime p.toParams s + p.Δ ≤ D) (hD : D ≤ rho.horizon) :
     RiseOneBy p c E rho D ∨
       ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
         (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
   have hs := hrec.base.valid.toScheduleWellFormed
   have hne : rho.honest.Nonempty := ⟨_, hnew.1.2⟩
@@ -148,7 +156,7 @@ theorem healing_rise_one_accept [Fintype V] {G ΔF : Time}
     (show u ≤ SA.proposalTime p.toParams s + p.Δ by linarith [p.deltaPos]) (hd.trans hD)
     (fun i _ hi => healing_rise_one_frontier p c E rho hs mono hne
       hrise (hi.trans hcut))
-  exact Or.inr (healing_rise_one_receipt_all p c E rho hrec crossing services hnew hu hgst hp)
+  exact Or.inr (healing_rise_one_receipt_all p c E rho hrec crossing services hnew hu hready hp)
 
 end AvailableChain.FGSA.Run
 end

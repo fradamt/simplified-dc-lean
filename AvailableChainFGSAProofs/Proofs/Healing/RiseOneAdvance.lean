@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -46,17 +48,19 @@ theorem healing_rise_one_advance (E : Generic.Env V)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
     {u : Time} {r : Nat} {s : Slot} {Q : Block} {X : FGBlock (Fin p.n)}
     (hentry : OpeningEntry p c E rho r 1) (hcovered : OpeningCovered p c E rho r Q)
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) 1
       (some .genesis) false)
     (hServices : SupportPermanenceServices E rho u (SA.proposalTime p.toParams s)
       1 (some .genesis) false)
-    (hCut : HealingWindow p E 1 (r * p.R))
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s)
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X)) (hslot : X.slot = s)
     :
     2 ≤ (heightView p X).h := by
+  have hGST : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
   have hP : 8 * p.Δ ≤ P p := by
     change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
@@ -74,11 +78,11 @@ theorem healing_rise_one_advance (E : Generic.Env V)
       actionSourceFG p c E rho x r = some (some K) →
       Block.Preceq (eraseFG K) (eraseFG X).parent := by
     intro x hx K hK
-    have htr := healing_tPerm_at E rho hrec mono crossing writes hgst hphase hServices
-      hCut hu hgate (healing_promotion_source_body E rho hx hK)
+    have htr := healing_tPerm_at E rho hrec mono crossing writes hready hphase hServices
+      hu hgate (healing_promotion_source_body E rho hx hK)
     exact htr.2.1 s (eraseFG X) hafter le_rfl hnew
   exact healing_promotion_advance_on E rho hrec.toRecovery₂ hδ hbound rowsReceipt progressCoverage
-    hfold faultQ honestQuorum hentry hcovered hgst hphase hu hs hnew hslot hParents
+    hfold faultQ honestQuorum hentry hcovered hready hphase hu hs hnew hslot hParents
 
 end AvailableChain.FGSA.Run
 end
