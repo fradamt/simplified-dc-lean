@@ -14,11 +14,15 @@ public section
 namespace AvailableChain.FGSA.Run
 
 /-- Blueprint 01:126–129, plan item 18; lead ruling B30. DC: INTENTIONAL AC service contract.
-The Finality lane Export restores the frozen Claims conclusion from the composition
-services; Recovery supplies Base₂. The other inputs are not used. -/
-theorem fgsa_kernelACSide_W (p : Params) : KernelACSideClaim_W p := by
-  intro _ _ _ _ _ _ _ c E rho w hr _ _
-  exact fgsa_coreServices E rho hr.base w
+The exact vote-receipt supplier gives the approved Claims conclusion.
+Recovery supplies Base₂; proving the receipt supplier remains a separate obligation. -/
+theorem fgsa_kernelACSide_W (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityVoteReceipts E rho) :
+    KernelACSideClaim_W p := by
+  intro G ΔF _ _ _ _ _ c E rho w hr _ _
+  exact fgsa_coreServices E rho hr.base w (hR c E rho G ΔF hr.toRecovery₂)
 
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
@@ -26,6 +30,9 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention, exact signed
 rows and actual receipt guards. The suppliers retain the lane boundary. -/
 theorem fgsa_finalityKernel_W_of (p : Params)
+    (hServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityActionReceipts p c E rho)
     (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
@@ -86,7 +93,8 @@ theorem fgsa_finalityKernel_W_of (p : Params)
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     FinalityKernelClaim_W p := by
   intro G ΔF hδ V _ _ In c E rho pt hK
-  exact finality_kernel_W_of p c E rho G ΔF hδ pt hK
+  exact finality_kernel_W_of p c E rho
+    (hServices c E rho G ΔF hK.set) G ΔF hδ pt hK
     (hsel c E rho hK.set.base.valid) (horigin c E rho hK.set.base.valid)
     (hBatch ΔF) (hQC c E rho G ΔF pt hK) (hXing c E rho G ΔF pt hK)
     (hI3 c E rho G ΔF pt hK) (hStrat c E rho G ΔF pt hK)
@@ -96,6 +104,12 @@ theorem fgsa_finalityKernel_W_of (p : Params)
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention and receipt.
 The joined premise supplies every split supplier premise. -/
 theorem fgsa_finalityKernelJoined_W_of (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityVoteReceipts E rho)
+    (hServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityActionReceipts p c E rho)
     (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
@@ -156,9 +170,11 @@ theorem fgsa_finalityKernelJoined_W_of (p : Params)
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     FinalityKernelJoinedClaim_W p := by
   intro G ΔF hδ V _ _ In c E rho pt h
-  obtain ⟨w, hK⟩ := finality_kernel_prem_W_of_joined p c E rho G ΔF pt h
+  obtain ⟨w, hK⟩ := finality_kernel_prem_W_of_joined p c E rho (hR c E rho G ΔF h.set)
+    G ΔF pt h
   let kpt : KernelPt := ⟨w, pt.r⟩
-  exact finality_kernel_joined_W_of p c E rho G ΔF hδ pt h
+  exact finality_kernel_joined_W_of p c E rho
+    (hR c E rho G ΔF h.set) (hServices c E rho G ΔF h.set) G ΔF hδ pt h
     (hsel c E rho h.set.base.valid) (horigin c E rho h.set.base.valid)
     (hBatch ΔF) (hQC c E rho G ΔF kpt hK) (hXing c E rho G ΔF kpt hK)
     (hI3 c E rho G ΔF kpt hK) (hStrat c E rho G ΔF kpt hK)
@@ -167,6 +183,13 @@ theorem fgsa_finalityKernelJoined_W_of (p : Params)
 /-- Paper 22:1985–2009 (FT-Tail-W): export the full tail kernel as the frozen claim.
 DC: INTENTIONAL: Assembly supplies the existing producers at each Tail premise. -/
 theorem fgsa_tailKernel_W_of (p : Params)
+    (hServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityActionReceipts p c E rho)
+    (hReceipts : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time) (pt : TailKernelPt p), TailKernelPrem_W p c G ΔF E rho pt →
+      TailHeadReceipts (p := p) (c := c) (E := E) (rho := rho) ΔF pt)
     (hOrigin : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       (G ΔF : Time) (pt : TailKernelPt p), TailKernelPrem_W p c G ΔF E rho pt →
@@ -235,7 +258,8 @@ theorem fgsa_tailKernel_W_of (p : Params)
       RXing p c E rho) :
     TailKernelClaim_W p := by
   intro G ΔF _ V _ _ In c E rho pt hT
-  exact tail_kernel_W_full_of G ΔF pt hT
+  exact tail_kernel_W_full_of G ΔF pt
+    (hServices c E rho G ΔF hT.set) (hReceipts c E rho G ΔF pt hT) hT
     (hOrigin c E rho G ΔF pt hT)
     (hBatch c E rho G ΔF pt hT)
     (hSOCOVTarget c E rho G ΔF pt hT)
@@ -251,6 +275,12 @@ theorem fgsa_tailKernel_W_of (p : Params)
 INTENTIONAL local W liveness. Recovery₂ supplies the inherited kernel suppliers;
 the frozen claim keeps its common HealingInput and full horizon. -/
 theorem fgsa_finalityLivenessRecFE_W_of (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityVoteReceipts E rho)
+    (hServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityActionReceipts p c E rho)
     (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
@@ -307,17 +337,26 @@ theorem fgsa_finalityLivenessRecFE_W_of (p : Params)
   intro G ΔF g w hδ V _ _ In c E rho pt h
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
-      hcapBefore c E rho G ΔF h.set.core
-  exact finality_liveness_FE_W_of p c E rho G ΔF g w hδ pt h
+      hcapBefore c E rho G ΔF h.set.core.toRecovery₂
+  obtain ⟨U, hS, hheight, hacc⟩ := finality_liveness_FE_W_of p c E rho
+    (hR c E rho G ΔF h.set.core.toRecovery₂) (hServices c E rho G ΔF h.set.core.toRecovery₂)
+    G ΔF g w hδ pt h
     sel origin
     batch qc crossing
     safety strat
     emitted cap
+  exact ⟨U, fun x hx => hS x hx.1, hheight, hacc⟩
 
 /-- Paper 22:1371–1400; firstfin plan §5 C. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL local W liveness. Recovery₂ supplies the inherited kernel suppliers;
 the frozen claim keeps its common HealingInput and full horizon. -/
 theorem fgsa_finalityLivenessRecF4_W_of (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityVoteReceipts E rho)
+    (hServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityActionReceipts p c E rho)
     (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
@@ -372,7 +411,7 @@ theorem fgsa_finalityLivenessRecF4_W_of (p : Params)
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     FinalityLivenessRecF4Claim_W p := by
   intro G ΔF g w hδ V _ _ In c E rho pt h
-  apply fgsa_finalityLivenessRecFE_W_of p hsel horigin hBatch hQC hXing hI3 hStrat
+  apply fgsa_finalityLivenessRecFE_W_of p hR hServices hsel horigin hBatch hQC hXing hI3 hStrat
     hEmittedSource hcapBefore G ΔF g w hδ c E rho pt
   exact ⟨⟨h.set.core, h.set.bound, F4_W_implies_FE_W h.set.recur⟩,
     h.input, h.start, h.hhor⟩
@@ -381,6 +420,12 @@ theorem fgsa_finalityLivenessRecF4_W_of (p : Params)
 INTENTIONAL specified proposal coverage before its local W deadline.
 Recovery₂ in the frozen package supplies the inherited kernel suppliers. -/
 theorem fgsa_proposalFinalRecFE_W_of (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityVoteReceipts E rho)
+    (hServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityActionReceipts p c E rho)
     (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
@@ -437,8 +482,10 @@ theorem fgsa_proposalFinalRecFE_W_of (p : Params)
   intro G ΔF g w hδ V _ _ In c E rho pt h
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
-      hcapBefore c E rho G ΔF h.set.core
-  exact proposal_final_FE_W_of p c E rho G ΔF g w hδ pt h
+      hcapBefore c E rho G ΔF h.set.core.toRecovery₂
+  exact proposal_final_FE_W_of p c E rho
+    (hR c E rho G ΔF h.set.core.toRecovery₂) (hServices c E rho G ΔF h.set.core.toRecovery₂)
+    G ΔF g w hδ pt h
     sel origin
     batch qc crossing
     safety strat
@@ -448,6 +495,12 @@ theorem fgsa_proposalFinalRecFE_W_of (p : Params)
 INTENTIONAL specified proposal coverage before its local W deadline.
 Recovery₂ in the frozen package supplies the inherited kernel suppliers. -/
 theorem fgsa_proposalFinalRecF4_W_of (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityVoteReceipts E rho)
+    (hServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityActionReceipts p c E rho)
     (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
@@ -504,8 +557,10 @@ theorem fgsa_proposalFinalRecF4_W_of (p : Params)
   intro G ΔF g w hδ V _ _ In c E rho pt h
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
-      hcapBefore c E rho G ΔF h.set.core
-  exact proposal_final_F4_W_of p c E rho G ΔF g w hδ pt h
+      hcapBefore c E rho G ΔF h.set.core.toRecovery₂
+  exact proposal_final_F4_W_of p c E rho
+    (hR c E rho G ΔF h.set.core.toRecovery₂) (hServices c E rho G ΔF h.set.core.toRecovery₂)
+    G ΔF g w hδ pt h
     sel origin
     batch qc crossing
     safety strat
@@ -522,6 +577,12 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 The frozen claim keeps both receipt horizons. Kernel and frontier inputs stay conditional. -/
 theorem fgsa_aboveFrontierRecFE_W_of (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityVoteReceipts E rho)
+    (hServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityActionReceipts p c E rho)
     (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
@@ -593,8 +654,10 @@ theorem fgsa_aboveFrontierRecFE_W_of (p : Params)
   intro G ΔF g w hδ V _ _ In c E rho pt h
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
-      hcapBefore c E rho G ΔF h.set.core
-  exact above_frontier_FE_W_of p c E rho G ΔF g w hδ pt h
+      hcapBefore c E rho G ΔF h.set.core.toRecovery₂
+  exact above_frontier_FE_W_of p c E rho
+    (hR c E rho G ΔF h.set.core.toRecovery₂) (hServices c E rho G ΔF h.set.core.toRecovery₂)
+    G ΔF g w hδ pt h
     sel origin
     batch qc crossing
     safety strat
@@ -605,6 +668,12 @@ theorem fgsa_aboveFrontierRecFE_W_of (p : Params)
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 The frozen claim keeps both receipt horizons. Kernel and frontier inputs stay conditional. -/
 theorem fgsa_aboveFrontierRecF4_W_of (p : Params)
+    (hR : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityVoteReceipts E rho)
+    (hServices : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+      (G ΔF : Time), Recovery₂ p c E rho G ΔF → FinalityActionReceipts p c E rho)
     (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
       V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
@@ -676,8 +745,10 @@ theorem fgsa_aboveFrontierRecF4_W_of (p : Params)
   intro G ΔF g w hδ V _ _ In c E rho pt h
   obtain ⟨sel, origin, batch, qc, crossing, safety, strat, emitted, cap⟩ :=
     finality_supplier_bundle p hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource
-      hcapBefore c E rho G ΔF h.set.core
-  exact above_frontier_F4_W_of p c E rho G ΔF g w hδ pt h
+      hcapBefore c E rho G ΔF h.set.core.toRecovery₂
+  exact above_frontier_F4_W_of p c E rho
+    (hR c E rho G ΔF h.set.core.toRecovery₂) (hServices c E rho G ΔF h.set.core.toRecovery₂)
+    G ΔF g w hδ pt h
     sel origin
     batch qc crossing
     safety strat
@@ -686,3 +757,15 @@ theorem fgsa_aboveFrontierRecF4_W_of (p : Params)
 
 end AvailableChain.FGSA.Run
 end
+
+-- P-Fi round 2: strict audits of the conditional claim suppliers.
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernel_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_kernelACSide_W
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_tailKernel_W_of

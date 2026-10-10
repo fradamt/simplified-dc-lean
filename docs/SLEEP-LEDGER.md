@@ -3022,3 +3022,98 @@ Final Round 6 validation: DCK PASS (218.795 s),
 466 entries PASS. Complete GREEN exports: 258 proof modules / 253 exports /
 zero unaccepted. Layers: 72 inherited / zero new. Expose and sleep scopes PASS.
 The two inherited W3 transparency findings and five S-Ap audit names are unchanged.
+
+
+## P-Fi — Round 2 resume (2026-10-10)
+
+Base 381bd3df, branch sleep-pfi2. The sleep-pfi3 job kept the uncommitted
+sleep-pfi2 work after the token_revoked error. All 23 former owned failures
+now compile. This closes their module ports; it does not prove the remaining
+receipt suppliers or close the unconditional public service contract.
+
+### Exact consumer repairs
+
+- RecoveryScope derives all-honest joined voters from continuous Recovery
+  awake time, RestartsAtWakes, and GST before the previous slot start. It
+  converts the joinedHonest batch to the same full honest seat set.
+- RowsBatch and TailBatch supply that join proof for every honest voter.
+  They pass exact HEAD and target services for each seat's headAtLabel,
+  plus restartFree from idxBefore(actionTime q) to the actual receiver tick.
+  The source of that interval is GST < actionTime q. Earlier wakes are allowed.
+- MiddleSupport and TailOpening supply confirmed readers at exact gate reads
+  and event-prefix reads. The healing gate has run; all wake events that can
+  affect the read are in its prefix. RowsFrame, TailFrame, Forward, Local,
+  Proposal, and Above pass these guards at both ends of each comparison.
+- Forward uses the approved recoveryStart recurrence. The common healing
+  witness proves recoveryStart <= tstar. RowsPrem and TailFrame use the
+  recoveryStart bound at their exact H6 vote times. T13 and T14 keep awake
+  at each selected node's exact vote tick. No count supplies arbitrary awake.
+- Kernel and TailKernel preserve held rows at proposal reads through durable
+  restore. Above, Local, and Proposal use restore-aware acceptance.
+- TailMixed uses healing_held_block_receipt_on for the exact retained target.
+  It retains the finality guard and named receipt root scope, then uses durable
+  TF at the terminal read. Historical processing is not used as safe history.
+- Sleep consumers use Shared/RegimesService. The explicit NoRestart legacy
+  Regimes functions are not supplied from a sleep regime.
+
+### Internal exact service forms and remaining suppliers
+
+The new forms are proof-layer supplier contracts. FGSAClaims statements and
+approved public meanings are unchanged. Each contract has a strict local audit.
+
+1. FinalityVoteReceipts still quantifies every slot, honest receiver, time,
+   matching postClock read, honest emitted HEAD, and matching label under
+   LabelSyncOn. It has no GST, joined-reader, or healing-start restriction.
+   CoreServices consumers are Joined, Forward, and Export. All now pass the
+   receipt argument. Recovery's suffix bounds do not supply pre-GST receipts.
+   The unconditional KernelACSideClaim_W producer remains open. Export makes
+   its receipt supplier explicit; a conditional proof is not service closure.
+2. FinalityActionReceipts supplies FreshHeadService and TargetReceiptService
+   for each exact honest HEAD seat and action receiver, after GST and within
+   the run horizon. RowsBatch and TailBatch consume it. Its deadline, epoch,
+   handler readiness, non-exclusion, acceptance, and safe-history fields still
+   need supplier proofs. Recovery supplies the local join/epoch bounds only.
+3. TailHeadReceipts supplies the exact held action head to the honest terminal
+   proposer at actionTime(r+1) + delta, with the derived finality guard.
+   Consumers: ktail_head_delivered, ktail_mixed_final, ktail_hmixed_of_relay,
+   tail_kernel_W_of_relay, tail_kernel_W_full_of, and fgsa_tailKernel_W_of.
+   The service includes safe retained history; mere earlier processing is
+   insufficient. Its producer remains open.
+
+These replace removed global NoRestart arguments in internal consumers.
+They are not added to Recovery, HealingInput, or any approved claim predicate.
+The existing epoch fixtures refute the old Base₂/LabelSync receipt argument;
+they do not prove the full RecoverySleep₂ + HealingInput claim false. No new
+public-false STOP or public amendment is asserted in this round.
+
+### Map and serial audit integration
+
+ReceiptCoverage is GREEN: it is a compiled retirement import.
+ReceiptCoverageSleepStatement remains a separate unproved contract.
+Shared.HeadAdmit, Regimes, Export, and RegimesService are GREEN on this base.
+The map has 44 TARGETS, 510 GREEN, and 3 EXPECTED-FAIL entries. No P-Fi entry
+remains EXPECTED-FAIL. The other entries keep their owners: Run and Run.Tests.Axioms
+are S-Ap; the full FGSAProofs.Tests.Axioms assembly audit is P-As. That audit is
+a new TARGET only because this round applied the required serial fragment.
+
+The local sleep audit has 175 commands. Export has 10 strict audit commands.
+The full audit source and its existing inventory key received only P-Fi
+production entries, including the Round 1 helpers. No old key or row was removed.
+No coverage key, baseline, allowance, heartbeat, or recursion limit was added.
+ARCHITECTURE and MAP now give the exact-wake design and helper roles.
+
+Final checks and status are recorded below after validation.
+
+### P-Fi Round 2 — final validation
+
+DCK PASS (package P-Fi), 181.35 s, with all 24 default controls. Its complete
+GREEN build uses --wfail. The 41 strict audit roots produced 3,148 results;
+only propext, Classical.choice, and Quot.sound occur. The final family build
+passed in 33.99 s. Complete exports and 204 audit commands passed in 13.41 s:
+207 proof modules, 252 accepted exports, 0 unaccepted. Layers: 72 inherited
+findings, 0 new, 0.42 s. git diff --check passed. Evidence: .lake/sleep-pfi2/.
+
+Status: PREPARED, all owned module ports GREEN; not CLOSED. The exact receipt
+producer obligations above and S-Ap/P-As assembly closure remain open.
+No full gate, review, integration, push, merge, rebase, or public amendment
+is claimed. The report is claude-files/sleep-pfi-report.md, Round 2.

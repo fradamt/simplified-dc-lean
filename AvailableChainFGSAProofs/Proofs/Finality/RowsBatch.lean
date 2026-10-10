@@ -46,7 +46,9 @@ include hK in
 Paper 22:1228–1234,1251–1253,1719–1722: P3 gives the actual HEAD walk batch of the
 raw and support pools at action pt.r + 2, with D below every honest label HEAD.
 DC: INTENTIONAL: H2′ at label (pt.r+2)R+1, honest admission at the action tick, P5's F ⪯ D. -/
-theorem rowsPrem_action_walk_batch (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
+theorem rowsPrem_action_walk_batch
+    (hServices : FinalityActionReceipts p c E rho)
+    (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
     (hNames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
       namedEntry a.payload.height_pair = some e →
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
@@ -76,11 +78,34 @@ theorem rowsPrem_action_walk_batch (hQC : RQCOrigin p c E rho) (hXing : RXing p 
     (by omega) E.t_GST E.Δ rho.horizon hGST hK.set.base.delta m.actionsInRun
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hK.set.sync (fgsaDelay_nonrow E.Δ _) hvGST hvte heh
+  have hcut := kmid_window_join_cut hK (s := (pt.r + 2) * p.R + 1)
+    (by rw [Nat.add_mul]; omega)
+  have hJoin : ∀ y ∈ rho.honest, joinedAt p E rho y
+      ((pt.r + 2) * p.R + 1) (SA.voteTime p.toParams ((pt.r + 2) * p.R + 1)) :=
+    fun y hy => finality_recovery_joined p c E rho hK.set hy hcut hvGST hvthor
+  have hbatch := hK.set.batch hvGST hvthor
+  have hawake : Gen.V2.Duty.awakeHonest E rho
+      (SA.voteTime p.toParams ((pt.r + 2) * p.R + 1)) = rho.honest := by
+    rw [Gen.V2.Duty.awakeHonest_def]
+    exact Finset.filter_eq_self.mpr (fun y hy => hK.set.awake y hy _ hvGST hvthor)
+  rw [hawake] at hbatch
+  have hjh := finality_recovery_joinedHonest p c E rho hK.set hcut hvthor
+  rw [← hjh] at hbatch
+  have hact : E.t_GST < p.actionTime (pt.r + 2) := by
+    have hlt : SA.voteTime p.toParams ((pt.r + 2) * p.R + 1) <
+        p.actionTime (pt.r + 2) := by
+      rw [kmid_actionTime_eq]
+      change 4 * p.Δ * _ + p.Δ < 4 * p.Δ * _ + 6 * p.Δ
+      push_cast
+      linarith [p.deltaPos]
+    exact hvGST.trans_lt hlt
   refine fgsa_action_walk_batch E rho hK.set.base (pt.r + 2) hsync
-    (fun y hy => hK.set.awake y hy _ hvGST hvthor) (hK.set.batch hvGST hvthor)
+    hJoin hbatch
     (eraseFG m.X_D) x nd hnd ?_ (eraseFG_preceq hf.2.2.2.2.2.2.2.2.1)
+    (fun j _ => finality_recovery_readEpoch p c E rho hK.set hx hact j)
+    (hServices.service (pt.r + 2) x hx hact m.actionsInRun)
   · intro y H hy hH
-    exact hK.input.ac.h2' m.cD (eraseFG m.X_D) m.honestD (hs2.trans hrD) y _ H hy
+    exact hK.input.ac.h2' m.cD (eraseFG m.X_D) m.honestD (hs2.trans hrD) y _ H ⟨hy, hJoin y hy⟩
       (Nat.succ_le_succ m.earlySlot.2) hH
 
 end AvailableChain.FGSA.Run

@@ -37,7 +37,8 @@ theorem finality_liveness_of_forward_W {G ΔF : Time} {g : Nat} {w : HealingWitn
     hAU, hne, hU, _, hD, _, _, _, hSA, hacc⟩ :=
       (ForwardWitness_W_def p c E rho ΔF g w pt.t).mp hf
   have hs := h.set.core.base.valid.toScheduleWellFormed
-  have hnr := h.set.core.base.noRestart
+  have hstartHor : tstar p w ≤ rho.horizon := h.start.trans
+    ((le_add_of_nonneg_right (finality_window_nonneg p ΔF g)).trans h.hhor)
   have hstrict : eraseFG Afg ≠ eraseFG U := fun he => hne (kmid_eraseFG_inj p he)
   refine ⟨U, ?_, ?_, ?_⟩
   · intro x hx
@@ -56,8 +57,10 @@ theorem finality_liveness_of_forward_W {G ΔF : Time} {g : Nat} {w : HealingWitn
       (by simp) x pt.t
     change (V2.D.Run.readAt E rho pt.t x).st.base.stableRecord = _ at hout
     have hread := V2.D.Engine.readAt_eq_stateBefore hs pt.t
-    have hFS := h.input.healed.2.2.1 _ x
+    have hFS := h.input.healed.2.2.1 _ x x
       (fgsa_healSuffix_timeIdx E rho hs h.start) hx
+      (finality_input_suffix_confirmed p c E rho h.set.core.toRecovery₂ h.input hx
+        (fgsa_healSuffix_timeIdx E rho hs h.start) hstartHor)
     have hFA : Block.Preceq
         (eraseFG (V2.D.Run.readAt E rho pt.t x).st.fg.F) (eraseFG Afg) := by
       rw [heA]
@@ -70,11 +73,13 @@ theorem finality_liveness_of_forward_W {G ΔF : Time} {g : Nat} {w : HealingWitn
     rw [hU, ← hd]
     exact Nat.lt_succ_of_le (hcert.trans hheight)
   · intro x hx
-    exact acceptsFinalBefore_mono_deadline p c E rho hnr hs hD.le (hacc x hx)
+    exact finality_acceptsFinalBefore_mono_deadline p c E rho hs hD.le (hacc x hx)
 
 /-- Paper 22:1371–1400; firstfin plan §5 B. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL local W liveness; the inherited kernel inputs remain inline. -/
-theorem finality_liveness_FE_W_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
+theorem finality_liveness_FE_W_of
+    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt)
     (hsel : TRowsSelect p c E rho)
@@ -114,12 +119,14 @@ theorem finality_liveness_FE_W_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
         (finalityView p K).h_F < (heightView p U).h) ∧
       ∀ x ∈ rho.honest, AcceptsFinalBefore p c E rho x U (pt.t + W_W p ΔF g) := by
   exact finality_liveness_of_forward_W p c E rho h
-    (forward_witness_FE_of p c E rho G ΔF g w hδ pt h
+    (forward_witness_FE_of p c E rho hR hServices G ΔF g w hδ pt h
       hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore)
 
 /-- Paper 22:1371–1400; firstfin plan §5 B. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL local W liveness; the inherited kernel inputs remain inline. -/
-theorem finality_liveness_F4_W_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
+theorem finality_liveness_F4_W_of
+    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : FinalityLivenessPrem_W p c G ΔF .recF4 g w E rho pt)
     (hsel : TRowsSelect p c E rho)
@@ -164,7 +171,7 @@ theorem finality_liveness_F4_W_of (G ΔF : Time) (g : Nat) (w : HealingWitness)
       bound := h.set.bound
       recur := F4_W_implies_FE_W h.set.recur }
     input := h.input, start := h.start, hhor := h.hhor }
-  exact finality_liveness_FE_W_of p c E rho G ΔF g w hδ pt hFE
+  exact finality_liveness_FE_W_of p c E rho hR hServices G ΔF g w hδ pt hFE
     hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore
 
 end AvailableChain.FGSA.Run

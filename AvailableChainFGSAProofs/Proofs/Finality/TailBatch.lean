@@ -16,6 +16,7 @@ and the reader's finality is below Q, so the shared admission lemma gives the ba
 DC: Goldfish/Confirmation.lean:494,508; honest/rest partition at the action read. -/
 theorem ktail_action_walk_batch {G ΔF : Time} {pt : TailKernelPt p}
     (hT : TailKernelPrem_W p c G ΔF E rho pt)
+    (hServices : FinalityActionReceipts p c E rho)
     (ow : TailOpeningWitness_W p c E rho ΔF pt) :
     ∀ x ∈ rho.honest, ∀ nd,
       postClock E rho x (p.actionTime (pt.r + 1)) = some nd →
@@ -30,6 +31,25 @@ theorem ktail_action_walk_batch {G ΔF : Time} {pt : TailKernelPt p}
     (by omega) E.t_GST E.Δ rho.horizon hGST hT.set.base.delta ow.actionInRun
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hT.set.sync (fgsaDelay_nonrow E.Δ _) hvGST hvte heh
+  have hcut := ktail_window_join_cut hT (s := (pt.r + 1) * p.R + 1)
+    (by rw [Nat.succ_mul]; omega)
+  have hJoin : ∀ y ∈ rho.honest, joinedAt p E rho y
+      ((pt.r + 1) * p.R + 1) (SA.voteTime p.toParams ((pt.r + 1) * p.R + 1)) :=
+    fun y hy => finality_recovery_joined p c E rho hT.set hy hcut hvGST hvthor
+  have hbatch := hT.set.batch hvGST hvthor
+  have hawake : Gen.V2.Duty.awakeHonest E rho
+      (SA.voteTime p.toParams ((pt.r + 1) * p.R + 1)) = rho.honest := by
+    rw [Gen.V2.Duty.awakeHonest_def]
+    exact Finset.filter_eq_self.mpr (fun y hy => hT.set.awake y hy _ hvGST hvthor)
+  rw [hawake] at hbatch
+  have hjh := finality_recovery_joinedHonest p c E rho hT.set hcut hvthor
+  rw [← hjh] at hbatch
+  have hact : E.t_GST < p.actionTime (pt.r + 1) := by
+    apply hvGST.trans_lt
+    rw [kmid_actionTime_eq]
+    change 4 * p.Δ * _ + p.Δ < 4 * p.Δ * _ + 6 * p.Δ
+    push_cast
+    linarith [p.deltaPos]
   have hcover : ∀ y H, y ∈ rho.honest →
       headAtLabel p c E rho y ((pt.r + 1) * p.R + 1) = some H →
       Block.Preceq (eraseFG ow.Q) H := by
@@ -37,7 +57,8 @@ theorem ktail_action_walk_batch {G ΔF : Time} {pt : TailKernelPt p}
     have hc1 : pt.r * p.R ≤ (pt.carrier : Nat) := by
       have := hT.carrier.1
       omega
-    exact hT.input.ac.h2' pt.carrier (eraseFG ow.Q) ow.honestQ (hs2.trans hc1) y _ H hy
+    exact hT.input.ac.h2' pt.carrier (eraseFG ow.Q) ow.honestQ (hs2.trans hc1)
+      y _ H ⟨hy, hJoin y hy⟩
       (Nat.succ_le_succ hT.carrier.2.1) hH
   obtain ⟨k, hk, _, hread⟩ := ktail_action_store p c E rho x _ nd hnd
   obtain ⟨_, hsuf, hcut⟩ := ktail_action_suffix hT hk
@@ -45,14 +66,18 @@ theorem ktail_action_walk_batch {G ΔF : Time} {pt : TailKernelPt p}
     (ktail_action_S_cover hT ow hx hk)
   rw [hread] at hF
   obtain ⟨hcount, hwalk, hhead⟩ := fgsa_action_walk_batch E rho hT.set.base (pt.r + 1) hsync
-    (fun y hy => hT.set.awake y hy _ hvGST hvthor) (hT.set.batch hvGST hvthor)
+    hJoin hbatch
     (eraseFG ow.Q) x nd hnd hcover (eraseFG_preceq hF)
+    (fun j _ => finality_recovery_readEpoch p c E rho hT.set hx hact j)
+    (hServices.service (pt.r + 1) x hx hact ow.actionInRun)
   exact ⟨_, _, _, _, hhead, hcount, hwalk⟩
 
 /-- Paper 22:1985–2009 (FT-Tail-W): the full tail kernel, with the action batch
 and mixed arm proved. All remaining inputs have existing Foundations producers.
 DC: INTENTIONAL: W Tail kernel with local receipt guards. -/
 theorem tail_kernel_W_full_of (G ΔF : Time) (pt : TailKernelPt p)
+    (hServices : FinalityActionReceipts p c E rho)
+    (hReceipts : TailHeadReceipts (p := p) (c := c) (E := E) (rho := rho) ΔF pt)
     (hT : TailKernelPrem_W p c G ΔF E rho pt)
     (hOrigin : ∀ (i : Nat) (x : V) (W : FGBlock (Fin p.n)),
       HeldAt p c E rho i x W → ∀ u ∈ chainRows W,
@@ -91,8 +116,8 @@ theorem tail_kernel_W_full_of (G ΔF : Time) (pt : TailKernelPt p)
     (hmono : RMono p c E rho) (hXing : RXing p c E rho) :
     ∀ x ∈ rho.honest,
       AcceptsFinalBefore p c E rho x pt.U (kernelDeadlineW p ΔF (pt.r + 1)) :=
-  tail_kernel_W_of_relay G ΔF pt hT hOrigin hBatch hSOCOVTarget hqc hI3 hStrat hEmittedSource
-    hcapBefore (ktail_action_walk_batch hT) hmono hXing
+  tail_kernel_W_of_relay G ΔF pt hT hReceipts hOrigin hBatch hSOCOVTarget hqc hI3 hStrat
+    hEmittedSource hcapBefore (ktail_action_walk_batch hT hServices) hmono hXing
 
 end AvailableChain.FGSA.Run
 end

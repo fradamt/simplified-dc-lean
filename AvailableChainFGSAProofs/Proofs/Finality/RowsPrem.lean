@@ -18,7 +18,9 @@ include hK in
 /-- Paper 22:1228–1254: K-ROWS T1 at the actual action read. P1, P2 and P3 feed the
 full action walk; K-MID's held caps through the action bound its head fields.
 DC: INTENTIONAL: height plateau and finality lag from K-MID; no exact head body. -/
-theorem rowsPrem_pending_head (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
+theorem rowsPrem_pending_head
+    (hServices : FinalityActionReceipts p c E rho)
+    (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
     (hNames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
       namedEntry a.payload.height_pair = some e →
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
@@ -35,7 +37,7 @@ theorem rowsPrem_pending_head (hQC : RQCOrigin p c E rho) (hXing : RXing p c E r
     x _ nd hnd
   have hi : afterTicksIdx rho (p.actionTime (pt.r + 2)) ≤ rho.events.length :=
     List.length_filter_le _ _
-  have hwb := rowsPrem_action_walk_batch p c E rho hK m hQC hXing hNames x nd hx hnd
+  have hwb := rowsPrem_action_walk_batch p c E rho hK m hServices hQC hXing hNames x nd hx hnd
   exact pending_action_head_capped p c E rho _ x (pt.r + 2) (m.d + 1) m.X_D m.U nd _ _ _ _
     hx hnd hread hK.services.walk hwb.2.2 hwb.1
     (rowsPrem_full_domain p c E rho hK m hQC hXing hNames x nd hx hnd)
@@ -48,7 +50,8 @@ include hK in
 /-- Paper 22:1256–1257,1667–1700: K-ROWS source step at the actual action read.
 P4 gives the gate guard and P5 the source filter guards for the H3/H6 split.
 DC: INTENTIONAL: deepest fresh FG-SA selector; height plateau fixes the same entry. -/
-theorem rowsPrem_action_source (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
+theorem rowsPrem_action_source
+    (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
     (hNames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
       namedEntry a.payload.height_pair = some e →
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
@@ -90,6 +93,7 @@ theorem rowsPrem_action_source (hQC : RQCOrigin p c E rho) (hXing : RXing p c E 
       ring
     obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs hK.set.base.delta y hy _
       (hvt ▸ (kmid_slot_horizon hK le_rfl).2.1)
+      (hvt ▸ hK.set.awake y hy _ hGSTq (kmid_slot_horizon hK le_rfl).2.1)
     rw [hvt] at hk
     have hH : headAtLabel p c E rho y ((pt.r + 2) * p.R) =
         some (FGSA.headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y)
@@ -103,7 +107,32 @@ theorem rowsPrem_action_source (hQC : RQCOrigin p c E rho) (hXing : RXing p c E 
     List.length_filter_le _ _
   exact finality_action_source p c E rho pt.w (pt.r + 2) (m.d + 1) m.cD m.X_D x hx
     m.earlySlot.2 (hs2.trans hrD) m.honestD hK.input.ac.h2' hK.input.ac.h3 hK.input.ac.h6
-    hGSTq m.actionsInRun hne hheads (rowsPrem_F_below_D_at_gate p c E rho hK m hXing)
+    (by
+      apply finality_recoveryStart_le_vote p E ((pt.r + 2) * p.R) (by
+        have hR2 := (kmid_kernel_bounds hK).2.2.2.1
+        have hle : p.R ≤ (pt.r + 2) * p.R := by rw [Nat.add_mul]; omega
+        exact hR2.trans hle)
+      have hsync := hK.input.wit.synchronous
+      have hstart := hK.start
+      rw [kmid_period_eq] at hstart
+      have hlow : (pt.w.sStar : Int) + 2 ≤ (pt.w.u : Int) := by
+        exact_mod_cast hK.input.wit.proposal_lower
+      have hR : 2 ≤ p.R := (kmid_kernel_bounds hK).2.2.2.1
+      have hle := kmid_slot_scale_le p (show pt.r * p.R + 2 ≤ (pt.r + 2) * p.R by
+        rw [Nat.add_mul]; omega)
+      change E.t_GST ≤ 4 * p.Δ * (pt.w.sStar : Int) + p.Δ at hsync
+      change 4 * p.Δ * (pt.w.u : Int) + 6 * p.Δ ≤ _ at hstart
+      change E.t_GST ≤ 4 * p.Δ * (_ - 2)
+      push_cast at hle hstart ⊢
+      nlinarith [p.deltaPos]) m.actionsInRun hne hheads
+    (fun y hy => kmid_window_joined hK
+      (Nat.mul_le_mul_right p.R (by omega)) le_rfl hy)
+    (kmid_window_confirmed hK (by omega) (by
+      have hle := kmid_slot_scale_le p m.earlySlot.2
+      have hh := m.actionsInRun
+      rw [kmid_actionTime_eq] at hh
+      change 4 * p.Δ * (m.cD : Int) + 6 * p.Δ ≤ rho.horizon
+      linarith) hx) (rowsPrem_F_below_D_at_gate p c E rho hK m hXing)
     (fun nd hnd => by
       have hf := rowsPrem_action_frame p c E rho hK m hQC hXing hNames x nd hx hnd
       exact ⟨hf.1, hf.2.2.2.2.2.2.2.2.1, hf.2.2.2.2.2.2.2.2.2.1, hf.2.2.2.2.2.2.2.2.2.2⟩)
@@ -116,7 +145,9 @@ include hK in
 /-- Paper 22:1256–1263: K-ROWS fresh rows at the actual action. The source step, the
 pending head fields and P6's record guards give one complete fresh row per honest seat.
 DC: INTENTIONAL: durable record and both send-once checks; source ancestry fixes the entry. -/
-theorem rowsPrem_fresh_rows (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
+theorem rowsPrem_fresh_rows
+    (hServices : FinalityActionReceipts p c E rho)
+    (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
     (hNames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
       namedEntry a.payload.height_pair = some e →
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
@@ -150,7 +181,7 @@ theorem rowsPrem_fresh_rows (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho
       exact ⟨nd, C, hnd, hK.set.awake _ (hhonest i hi) _ hGSTa m.actionsInRun, hsrc, hDC,
         hCh⟩)
     (fun i hi nd hnd => by
-      obtain ⟨H, hH, _, _, hHJ, hHj, hHF, _⟩ := rowsPrem_pending_head p c E rho hK m hQC
+      obtain ⟨H, hH, _, _, hHJ, hHj, hHF, _⟩ := rowsPrem_pending_head p c E rho hK m hServices hQC
         hXing hNames _ nd (hhonest i hi) hnd
       rw [fgInputs_headFields p nd.st H hH]
       exact ⟨hHj, congrArg FGBlock.root hHJ, hHF⟩)
