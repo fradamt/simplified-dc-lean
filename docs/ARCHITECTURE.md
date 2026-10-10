@@ -960,3 +960,26 @@ source interpreter, matched-cut equivalence, and claim transfer remain open.
 Ruling Y and the WP12d Spec move are pending on this source base.
 
 P-H2 sleep helper boundary: OpeningGateRead supplies enabled/joined fast-write facts and gate geometry. OpeningTicks supplies awake vote/action ticks. RecoveryScope and ResetScope supply durable content, local action/read epochs and exact recovery cutoffs. ReleaseScope supplies expiry membership. OpeningGateSupport uses joined release counts and GateReceiptScope; its reset adapter keeps per-object services explicit. RecoveryService builds proposal and target service from accepted objects, their original anchors and receiver epochs. These helpers do not replace retained HEAD replay history or original proposal emission. HealingOpeningSupport keeps its six audits in its own module, with no test-to-test import. The serial production audit fragment imports only production modules.
+
+P-H2 Round 3 opening and search ports (sleep-ph2c):
+OpeningServiceScopes supplies per-object gate and transfer inputs. RepairServiceScopes
+bounds repaired proposal and gate inputs by their selected-voter cut and horizon.
+FrontierServiceScopes supplies bounded FrontierReadScope and repaired proposal objects.
+FrontierServiceGate constructs RepairGateScope from actual bounded read services.
+FrontierService constructs RetainedExactHeadRunGeometryOn at joined receivers and uses
+RegimesService _on APIs. Original proposal ReceiverService and fresh HEAD transport keep
+their exact send time, handler window, history and receiver epoch.
+
+OpeningServiceGate uses the original saved fast write at q to obtain support. Later
+labels use the previous-slot cutoff and exact GateReceiptScope. CommonEntry obtains
+SameLabelServiceScope from its actual selected fast-write source. FrontierSearchFull
+uses RMonoAll, durable receipt retention, carrier services, original proposal services
+and a bounded frontier scope producer. Those producers remain explicit closure inputs.
+The scalar gap and top-J proofs use narrow arithmetic facts under default heartbeats.
+
+HealingH2RecoveryAxioms and HealingH2ServiceAxioms import production modules only.
+Their command inventories have 31 and 130 entries. The six opening mechanism audits
+remain in their own test module. FrontierOpen exports only its named public declarations;
+generated proof matchers remain private. No public Claims statement changed.
+The reset Assembly boundary still needs the recoveryStart cut adapter and post-reset
+step producers. The full H2 family remains OPEN.

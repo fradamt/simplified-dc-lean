@@ -53,14 +53,14 @@ theorem frontierSearch_first_effective_split (hs : V2.D.ScheduleWellFormed E rho
 
 /-- Blueprint 21 HG.3; plan Q1.
 DC: SAME classify the finite first stop by its actual frontier. -/
-theorem frontierSearch_classify_stop (hnr : V2.D.NoRestart rho)
+theorem frontierSearch_classify_stop (mono : RMonoAll p c E rho)
     {i m : Nat} {deadline : Time}
     (hfront : frontierAtIdx p c E rho (i + 1) = m)
     (hstop : FirstEffectiveBy p c E rho i deadline) :
     FirstPhaseStopBy p c E rho i m deadline ∨
       FirstRiseStopBy p c E rho i m deadline := by
   obtain ⟨j, ev, hij, hj, ht, heff, hfirst⟩ := (firstEffectiveBy_iff p c E rho i deadline).mp hstop
-  have hmono := healing_frontier_mono p c E rho hnr
+  have hmono := healing_frontier_mono_all p c E rho mono
     (show i + 1 ≤ j + 1 by omega)
   rw [hfront] at hmono
   by_cases heq : frontierAtIdx p c E rho (j + 1) = m
@@ -144,7 +144,7 @@ def frontierSearch_phaseRank (kind : PhaseKind) : Nat :=
 DC: SAME a same-frontier effective stop strictly advances the phase.
 Thus the gap and top-J charge cannot be repeated at this frontier. -/
 theorem frontierSearch_phase_step_of_crossing (crossing : RXing p c E rho)
-    (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
+    (mono : RMonoAll p c E rho)
     (hs : V2.D.ScheduleWellFormed E rho) {i m : Nat} {kind : PhaseKind}
     {ev : V2.Event V (Obj p)} {deadline : Time}
     (hstart : FrontierSearchStart p c E rho i ev m kind)
@@ -161,9 +161,9 @@ theorem frontierSearch_phase_step_of_crossing (crossing : RXing p c E rho)
   have hfixed : ∀ k, i + 1 ≤ k → k ≤ j + 1 → frontierAtIdx p c E rho k = m := by
     intro k hik hkj
     apply Nat.le_antisymm
-    · exact (healing_frontier_mono p c E rho hnr hkj).trans_eq hf
-    · exact hf0 ▸ healing_frontier_mono p c E rho hnr hik
-  have horder := healing_phase_order_of_crossing p c E rho crossing mono hnr
+    · exact (healing_frontier_mono_all p c E rho mono hkj).trans_eq hf
+    · exact hf0 ▸ healing_frontier_mono_all p c E rho mono hik
+  have horder := healing_phase_order_of_crossing_all p c E rho crossing mono
     (i + 1) (j + 1) m
     (by omega) (by omega) hm hfixed
   have hbits := horder.1 (i + 1) j le_rfl (by omega) (by omega)
@@ -211,7 +211,7 @@ theorem frontierSearch_phase_step_of_crossing (crossing : RXing p c E rho)
 DC: SAME choose the first rise strictly before D, or cap the strict cut.
 A rise at exactly D does not enter the strict prefix. Same-frontier events do not stop it. -/
 theorem frontierSearch_strict_cap_or_rise
-    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+    (hs : V2.D.ScheduleWellFormed E rho) (mono : RMonoAll p c E rho)
     (i m : Nat) (D : Time) (hstart : frontierAtIdx p c E rho (i + 1) ≤ m) :
     FrontierRiseBy p c E rho i m D ∨
       (∀ k x, k ≤ V2.D.Run.idxBefore rho D → x ∈ rho.honest →
@@ -221,11 +221,11 @@ theorem frontierSearch_strict_cap_or_rise
   · right
     intro k x hk hx
     exact (healing_phase_local_le_frontier p c E rho hx).trans
-      ((healing_frontier_mono p c E rho hnr hk).trans hc)
+      ((healing_frontier_mono_all p c E rho mono hk).trans hc)
   · left
     have hcut : i + 1 < V2.D.Run.idxBefore rho D := by
       by_contra hn
-      exact hc ((healing_frontier_mono p c E rho hnr (by omega)).trans hstart)
+      exact hc ((healing_frontier_mono_all p c E rho mono (by omega)).trans hstart)
     have hex : ∃ j, i < j ∧ j < V2.D.Run.idxBefore rho D ∧
         m < frontierAtIdx p c E rho (j + 1) := by
       refine ⟨V2.D.Run.idxBefore rho D - 1, by omega, by omega, ?_⟩
@@ -269,16 +269,16 @@ theorem frontierSearch_rise_mono {i m : Nat} {d D : Time} (hd : d ≤ D)
 /-- Blueprint 21:1695–1720; S5 F2.
 DC: SAME strict honest high receipt forces a first rise before the receipt deadline. -/
 theorem frontierSearch_rise_of_receipt (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho) {i m : Nat} {d D : Time} {x : V}
+    (mono : RMonoAll p c E rho) {i m : Nat} {d D : Time} {x : V}
     {X : FGBlock (Fin p.n)} (hstart : frontierAtIdx p c E rho (i + 1) ≤ m)
     (hx : x ∈ rho.honest) (hh : m + 1 ≤ (heightView p X).h)
     (hheld : Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ nd.st.fg.TF) d x)
     (hd : d ≤ D) : FrontierRiseBy p c E rho i m D := by
-  rcases frontierSearch_strict_cap_or_rise p c E rho hs hnr i m D hstart with hr | hc
+  rcases frontierSearch_strict_cap_or_rise p c E rho hs mono i m D hstart with hr | hc
   · exact hr
   · change X ∈ (V2.D.Run.stateBeforeTime E rho d x).st.fg.TF at hheld
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs] at hheld
-    have hX := (fgsa_store_cumulative p c E rho hnr
+    have hX := (fgsa_store_durable p c E rho
       (healing_phase_idxBefore_mono p c rho hd) x).1 hheld
     have hhi := healing_phase_height_le p c E rho hX
     have hcap := hc _ x le_rfl hx

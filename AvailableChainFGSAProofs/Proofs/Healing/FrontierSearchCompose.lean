@@ -62,7 +62,7 @@ theorem frontierSearch_repair_start (E : Generic.Env V) (G : Time) {t ρbar : Ti
 /-- Blueprint 21:1722–1800; S5 F3.
 DC: SAME an allowed repair charge is nonnegative under Recovery₂. -/
 theorem frontierSearch_allowance_nonneg [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hmode : ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1)) : 0 ≤ ρbar := by
   have hk : (2 : Time) ≤ p.k := by exact_mod_cast p.kLarge
   rcases hmode with he | ⟨he, _⟩
@@ -78,7 +78,7 @@ theorem frontierSearch_allowance_nonneg [Fintype V] (E : Generic.Env V)
 /-- Blueprint 21:1722–1800; S5 F3.
 DC: SAME rebase a first rise through earlier same-frontier events. -/
 theorem frontierSearch_rise_rebase (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hnr : V2.D.NoRestart rho) {i j m : Nat} {D : Time} (hij : i ≤ j)
+    (mono : RMonoAll p c E rho) {i j m : Nat} {D : Time} (hij : i ≤ j)
     (hf : frontierAtIdx p c E rho (j + 1) ≤ m) (hr : FrontierRiseBy p c E rho j m D) :
     FrontierRiseBy p c E rho i m D := by
   obtain ⟨k, ev, hjk, hk, ht, hh, hcap⟩ := (frontierRiseBy_iff p c E rho j m D).mp hr
@@ -86,7 +86,7 @@ theorem frontierSearch_rise_rebase (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
   refine ⟨k, ev, by omega, hk, ht, hh, ?_⟩
   intro l hil hlk
   by_cases hlj : l ≤ j + 1
-  · exact (healing_frontier_mono p c E rho hnr hlj).trans hf
+  · exact (healing_frontier_mono_all p c E rho mono hlj).trans hf
   · exact hcap l (by omega) hlk
 
 /-- Blueprint 21:1722–1800; S5 F3.
@@ -118,8 +118,14 @@ theorem frontierSearch_remaining_eq (p : Params) (G ΔF ρbar tail : Time) (kind
 DC: SAME gap and top-J cannot repeat. A saved seed leaves the supplied tail budget.
 All repair labels and phase advances are proved from the standing inputs. -/
 theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (origin : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      ev.time + p.Δ ≤ rho.horizon →
+      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y) (crossing : RXing p c E rho)
+        (origin : RQCOrigin p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (perm : TPerm p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
@@ -195,20 +201,21 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
         cases kind with
         | gap =>
           rw [interruptedRepairBudget_gap] at hpHor ⊢
-          exact frontier_hg3_gap E rho hrec crossing repair common hδ hbound perm
+          exact frontier_hg3_gap E rho hrec crossing mono heldServices repair common hδ hbound perm
             rowsReceipt progressCoverage hfold faultQ honestQuorum hstart mode hpHor
         | topJ =>
           rw [interruptedRepairBudget_topJ] at hpHor ⊢
-          exact frontier_hg3_topJ E rho hrec crossing origin repair common hδ hbound
+          exact frontier_hg3_topJ E rho hrec crossing mono heldServices origin repair common
+            hδ hbound
             perm rowsReceipt progressCoverage hfold faultQ honestQuorum hstart mode hpHor
         | contest =>
           rw [interruptedRepairBudget_contest] at hpHor ⊢
-          exact frontier_hg3_contest E rho hrec crossing repair hstart mode hpHor
+          exact frontier_hg3_contest E rho hrec crossing mono heldServices repair hstart mode hpHor
       rcases (frontierHG3Result_iff p c E rho i m ev.time _).mp result with
           hphase | hrise | ⟨t, hwt, ht, hserved⟩
       · obtain ⟨j, nextEv, nextKind, hij, ht, hnext, hrank⟩ :=
           frontierSearch_phase_step_of_crossing p c E rho crossing mono
-            hrec.base.noRestart hs hstart hphase
+            hs hstart hphase
         have htime : ev.time ≤ nextEv.time := by
           obtain ⟨hi, _⟩ := (frontierSearchStart_iff p c E rho i ev m kind).mp hstart
           obtain ⟨hjEv, _⟩ := (frontierSearchStart_iff p c E rho j nextEv m nextKind).mp hnext
@@ -237,7 +244,7 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
         · left
           have hf := ((frontierSearchStart_iff p c E rho j nextEv m nextKind).mp hnext).2.2.2.1
           exact frontierSearch_rise_mono p c E rho hcost
-            (frontierSearch_rise_rebase E rho hrec.base.noRestart hij.le hf.le hr)
+            (frontierSearch_rise_rebase E rho mono hij.le hf.le hr)
         · exact Or.inr ⟨t, htime.trans hnt, ht.trans hcost, hserved⟩
       · left
         exact frontierSearch_rise_mono p c E rho (by linarith only [hb])

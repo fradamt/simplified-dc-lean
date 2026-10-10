@@ -21,18 +21,22 @@ Blueprint 21 HG.4 and IF.3(a); frontier plan §3.3/§4.
 DC: SAME first honest height-m row within P-4Δ of the saved seed.
 The closed horizon includes equality. No phase through this endpoint is assumed. -/
 theorem healing_frontierTail_row [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
+    (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
+      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -76,7 +80,7 @@ theorem healing_frontierTail_row [Fintype V] (E : Generic.Env V)
       have hfront : frontierAtIdx p c E rho (timeIdx rho D) ≤ m :=
         Finset.sup_le (fun y hy => le_of_not_gt (fun hh => hhigh ⟨y, hy, hh⟩))
       exact (healing_phase_local_le_frontier p c E rho hx).trans
-        ((healing_frontier_mono p c E rho hrec.base.noRestart hi).trans hfront)
+        ((healing_frontier_mono_all p c E rho mono hi).trans hfront)
     have hex : ∃ r, q ≤ r * p.R := by
       refine ⟨q, ?_⟩
       simpa only [Nat.mul_one] using
@@ -87,7 +91,7 @@ theorem healing_frontierTail_row [Fintype V] (E : Generic.Env V)
     obtain ⟨hlo, hhi⟩ := common_first_time_bound (p := p) q r hqr hfirst
     have har : p.actionTime r ≤ D := by dsimp only [D]; linarith
     have hqD : SA.gateTime p.toParams q ≤ D := by linarith
-    have hf := frontier_service E rho hrec mono crossing writes rowCoverage
+    have hf := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage
       u D m J contested q Q Qfg hgst hQ hErase hHeight hService
       ((frontierSeedQualification_iff p E u q).mp hseed) hu hphase hqD hhor
       (fun i x _ hi hx => hcap i x hi hx)

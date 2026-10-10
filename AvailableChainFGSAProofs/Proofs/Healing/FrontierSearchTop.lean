@@ -127,6 +127,12 @@ accepted top carrier's J at the start. Its earlier row fixes the entry age. -/
 private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF D : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (mono : RMonoAll p c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      ev.time + p.Δ ≤ rho.horizon →
+      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (origin : RQCOrigin p c E rho)
     {i m : Nat} {ev : V2.Event V (Obj p)} {J : FGBlock (Fin p.n)}
     (hstart : FrontierSearchStart p c E rho i ev m .topJ)
@@ -141,7 +147,7 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
   obtain ⟨hi, hgst, _, hfront, hm, ht, hnc⟩ :=
     (frontierSearchStart_iff p c E rho i ev m .topJ).mp hstart
   obtain ⟨x, C, ⟨hx, hC⟩, hh, hj, hJ⟩ := (healing_phaseWitness p c E rho hm hfront).top ht
-  have hwin := healing_phase_window p c E rho hrec.base.noRestart hfront hquiet
+  have hwin := healing_phase_window_all p c E rho mono hfront hquiet
   obtain ⟨j, N, _, hq, _, _, _, _, _⟩ :=
     healing_promotion_proposal_read p c E rho hs hQ
   let y := V2.D.proposerOf rho (fgsaInterface p c) q
@@ -162,11 +168,12 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
   have hreceiptHor : ev.time + p.Δ ≤ rho.horizon := by
     linarith [p.deltaPos, hp.1, hp.2.1]
   have hawake := hrec.awake y hy (ev.time + p.Δ) (by linarith [p.deltaPos]) hreceiptHor
-  have hCcut := healing_phase_held_receipt (hroots := hrec.base.receiptIdealization)
-    p c E rho crossing hrec.base.valid
-    hrec.base.noRestart hrec.base.delta hrec.sync hi hx hgst hC
-    hreceiptHor (by rw [(hwin _ hiCut hcutD).1, hh]) hy hawake
-  have hCj := (fgsa_store_cumulative p c E rho hrec.base.noRestart hcut y).1 hCcut
+  have hCcut := healing_held_block_receipt_on p c E rho hrec.base.valid
+    hrec.base.receiptIdealization C (ev.time + p.Δ) y hy
+    (heldServices i ev x C y hi hx hy hgst hC hreceiptHor)
+  change C ∈ (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.TF at hCcut
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hCcut
+  have hCj := (fgsa_store_durable p c E rho hcut y).1 hCcut
   obtain ⟨hHj, htopj, hJj⟩ := healing_phase_top_node p c E rho crossing hy hCj hh hj
     (hwin j (hiCut.trans hcut) hjD).1.le
   obtain ⟨_, hc, hr⟩ := hp.2.2.2 j y
@@ -239,7 +246,8 @@ private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
   have hgateD := hgate.trans hbudget0
   obtain ⟨iq, Qfg, hiq, hQmem, hErase⟩ := healing_rise_one_gate_copy p c E rho
     hrec.base.valid.toScheduleWellFormed hexact (hgateD.trans hp.2.1) hQ.1.2
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec.toRecovery₂ crossing hp huq hgateD
+    (healing_recovery_gate_reader hrec hQ.1.2 (hgst.trans huq) (hgateD.trans hp.2.1))
+  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec crossing hgst hp huq hgateD
     hQ hErase hexact
   by_cases hhigh : (heightView p Qfg).h = m
   · exact ⟨_, huq.trans hqg, hgateD,
@@ -295,7 +303,7 @@ private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
       have ha := actionTime_periodW p r
       linarith [p.deltaPos]
     have hs := hrepair _ hps s _ hls le_rfl hnew
-    have hheights := frontierSearch_proposal_heights E rho hrec.toRecovery₂ crossing hp hut
+    have hheights := frontierSearch_proposal_heights E rho hrec crossing hgst hp hut
       hsD hnew rfl hs
     have hh' : (heightView p X).h = m := Nat.le_antisymm hheights.2 hh
     have htq : SA.proposalTime p.toParams q < SA.proposalTime p.toParams s := by
@@ -373,9 +381,12 @@ private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
       change 4 * p.Δ * (s : Time) > _
       push_cast at hz
       change p.actionTime r = (r : Time) * (4 * (p.R : Time) * p.Δ) + 6 * p.Δ at ha
-      nlinarith [p.deltaPos]
+      have hm := mul_le_mul_of_nonneg_left hz
+        (show 0 ≤ 4 * p.Δ by linarith only [p.deltaPos])
+      nlinarith only [hm, ha, p.deltaPos]
     have hpts := frontierSearch_phase_cut E rho hp (hur.trans hat.le)
-      (by change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hsD; linarith [p.deltaPos])
+      (by change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hsD
+          linarith only [hsD, p.deltaPos])
     have hparent := healing_promotion_source_parent E rho perm hgst hpts huvote hat.le
       hx hK hslabel hnew
     have hpath : FGBlock.Preceq K X.parent := frontierSearch_top_lift
@@ -396,7 +407,13 @@ DC: SAME keep both E_jF branches. The actual accepted J supplies its age;
 no ExactService-to-seed reconstruction or E_jF collapse is used. -/
 theorem frontier_hg3_topJ [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time}
-    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho) (monoAll : RMonoAll p
+      c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      ev.time + p.Δ ≤ rho.horizon →
+      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (origin : RQCOrigin p c E rho)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
@@ -457,17 +474,17 @@ theorem frontier_hg3_topJ [Fintype V] (E : Generic.Env V)
       _ ≤ _ := by convert hleft using 1; ring
   rcases frontierSearch_first_effective_split p c E rho hsched i
       (ev.time + E_jF p ΔF G ρbar) with hstop | hquiet
-  · rcases frontierSearch_classify_stop p c E rho hrec.base.noRestart hfront hstop with h | h
+  · rcases frontierSearch_classify_stop p c E rho monoAll hfront hstop with h | h
     · exact Or.inl h
     · exact Or.inr (Or.inl h)
   have hsettle : ev.time + 3 * p.Δ ≤ ev.time + E_jF p ΔF G ρbar :=
     (le_add_of_nonneg_right hρ).trans hrepair
-  obtain ⟨J, hp, _⟩ := healing_settle_start (hroots := hrec.base.idealization)
-    p c E rho crossing hrec.base.valid
-    hrec.base.noRestart hrec.base.delta hrec.sync i ev _ m .topJ hi hgst0
+  obtain ⟨J, hp, _⟩ := healing_settle_start_on (hroots := hrec.base.receiptIdealization)
+    p c E rho crossing hrec.base.valid monoAll heldServices i ev _ m .topJ hi hgst0
     hsettle hhor hm hfront hkind hquiet
   have hgst : E.t_GST ≤ ev.time + 3 * p.Δ := by linarith [p.deltaPos]
-  have hage := frontierSearch_top_seed_age E rho hrec crossing origin hstart hquiet hp
+  have hage := frontierSearch_top_seed_age E rho hrec crossing monoAll heldServices origin
+    hstart hquiet hp
   obtain ⟨t, hut, htD, hs⟩ := frontierSearch_top_phase E rho hrec crossing repair common
     hδ hbound perm rowsReceipt progressCoverage hfold faultQ honestQuorum hgst hp mode
     hrepair hleft hright hage

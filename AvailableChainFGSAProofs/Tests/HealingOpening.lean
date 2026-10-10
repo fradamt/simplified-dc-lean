@@ -21,8 +21,9 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 -- O2: the exact §2.3 conclusion. GateService at rR is a conclusion, not a premise.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -33,6 +34,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -57,13 +59,15 @@ example
       D ∈ domainR p st (treeT p st) ∧
       FGBlock.Preceq Qfg D ∧
       (frameR p st).lo ≤ (heightView p D).h :=
-  later_opening_gateService_domain E rho hrec mono crossing writes hgst hQ hQfg hexact hu hqr
+  later_opening_gateService_domain E rho hrec mono crossing services writes hgst hQ hQfg
+    hexact hu hqr
     hphase hx ht
 
 -- O2 boundary q = rR: the repair gate is itself the opening; the service is for Q itself.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -74,6 +78,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -93,15 +98,16 @@ example
     (ht : rho.events[i]? = some (.tick x (p.actionTime r))) :
     Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x Q ∧
       Qfg ∈ domainR p (storeAt p c E rho i x) (treeT p (storeAt p c E rho i x)) :=
-  let h := later_opening_service E rho hrec mono crossing writes hgst hQ hQfg hexact hu
+  let h := later_opening_service E rho hrec mono crossing services writes hgst hQ hQfg hexact hu
     (le_of_eq hq) hphase hx ht
   ⟨h.1, h.2.1⟩
 
 -- O3 boundary q + 1 = rR: the opening HEAD v_(rR) = v_(q+1) is before d_q, and the
 -- transfer still covers it.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -112,6 +118,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -130,7 +137,7 @@ example
     SA.voteTime p.toParams (r * p.R) < SA.gateTime p.toParams q ∧
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z (r * p.R) = some K → Block.Preceq Q K := by
   have hd := p.deltaPos
-  refine ⟨?_, (opening_transfer E rho hrec mono crossing writes hgst hQ hQfg hexact hu
+  refine ⟨?_, (opening_transfer E rho hrec mono crossing services writes hgst hQ hQfg hexact hu
     (by omega) hphase).1⟩
   rw [← hq1]
   change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * (q : Int) + 6 * p.Δ
@@ -140,8 +147,9 @@ example
 -- O4: the next opening serves an arbitrary selected body K of opening r; K has no
 -- HonestProposal and its height is not used.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -152,6 +160,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -177,13 +186,15 @@ example
       Gen.AC.Duty.GateService (fgsaAC E rho) i ((r + 1) * p.R) x (eraseFG D) ∧
       D ∈ domainR p st (treeT p st) ∧ FGBlock.Preceq K D ∧
       (frameR p st).lo ≤ (heightView p D).h :=
-  next_opening_body_service E rho hrec mono crossing writes hgst hQ hQfg hexact hu hqr hphase
+  next_opening_body_service E rho hrec mono crossing services writes hgst hQ hQfg hexact hu
+    hqr hphase
     hy hK hx ht
 
 -- O5: m = 1 at the exact TCommon premises, with the inline SO-COV body.
 example
-    [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (services : OpeningServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -194,6 +205,7 @@ example
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -222,7 +234,7 @@ example
     0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
     p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 :=
-  opening_height_one E rho hrec mono crossing writes rowCoverage hgst hQ hQfg hexact hu hqr
+  opening_height_one E rho hrec mono crossing services writes rowCoverage hgst hQ hQfg hexact hu hqr
     hfirst hphase
 
 end Signatures

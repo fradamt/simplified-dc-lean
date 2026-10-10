@@ -17,22 +17,31 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+/-- Bounded retained objects and read epochs used by one frontier service interval. -/
+structure FrontierServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (q : Slot) (v : Time) : Prop where
+  read : FrontierReadScope E rho q v
+  permanence : SupportPermanenceServices E rho
+  heads : ∀ s, q + 1 ≤ s → SA.voteTime p.toParams s ≤ v → RepairHeadServices E rho s
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1551–1574; plan §3.1 step 6.
 DC: INTENTIONAL the exact HEAD clause and capped gate geometry give all service fields. -/
 theorem frontier_exactService_of_heads [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -41,6 +50,7 @@ theorem frontier_exactService_of_heads [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : E.t_GST ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -50,13 +60,14 @@ theorem frontier_exactService_of_heads [Fintype V] (E : Generic.Env V)
       (storeAt p c E rho i x).fg.h_max ≤ m)
     {s : Slot} {B : Block} (hqs : q < s) (hgate : SA.gateTime p.toParams s ≤ v)
     (hp : HonestProposal E rho (fgsaInterface p c) s B)
-    (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some B) :
+    (hhead : ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some B) :
     ExactService p c E rho s B := by
   have hd := p.deltaPos
   have huv : u ≤ v := (hu.trans (by
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
     linarith)).trans hqv
-  have hcap := frontier_cap_before E rho mono hrec.base.noRestart huv hCap
+  have hcap := frontier_cap_before_on E rho mono huv hCap
   have hBs := repair_proposal_slot E rho hp
   have hne : B ≠ .genesis := by
     rintro rfl
@@ -66,27 +77,38 @@ theorem frontier_exactService_of_heads [Fintype V] (E : Generic.Env V)
     have hqsI : (q : Int) < (s : Int) := by exact_mod_cast hqs
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
     nlinarith
-  exact exactService_of_head_recovery E rho G hrec s B hne hgsts (fun _ => hhead)
-    (fun _ _ hx ht => frontier_gate_geometry E rho hrec mono crossing writes hgst hErase
-      hHeight hService hu hPhase hqv hvh hcap hqs hgate hBs hhead hx ht)
+  have hScope := frontier_repair_gate_scope E rho services.read hgst hu hqs hgate
+  have hhor : SA.voteTime p.toParams s ≤ rho.horizon := by
+    apply le_trans ?_ (hgate.trans hvh)
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith
+  have hheadAll : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some B :=
+    fun y hy => hhead y hy
+      (healing_recovery_joined E rho hrec hy hScope.cut hgsts hhor)
+  exact repair_exact_service_on E rho hrec s B hne hScope.cut hgsts (fun _ => hhead)
+    (fun _ _ hx ht => frontier_gate_geometry E rho hrec mono crossing writes services.read
+      hgst hErase hHeight hService hu hPhase hqv hvh hcap hqs hgate hBs hheadAll hx ht)
+    (fun i x hReader ht => hScope.gates i x hReader.1 ht) hhor
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1570–1574; TF-SEED Q4 step 4.
 DC: INTENTIONAL an honest q+1 proposal has full service after d_q, under the cap.
 The gate proof uses no phase through d_(q+1). -/
 theorem frontier_seed_qSucc_exactService [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -95,6 +117,7 @@ theorem frontier_seed_qSucc_exactService [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : E.t_GST ≤ u)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -106,27 +129,35 @@ theorem frontier_seed_qSucc_exactService [Fintype V] (E : Generic.Env V)
     (hgate : SA.gateTime p.toParams (q + 1) ≤ v)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 1) B) :
     ExactService p c E rho (q + 1) B := by
-  exact frontier_exactService_of_heads E rho hrec mono crossing writes hgst hErase hHeight
+  exact frontier_exactService_of_heads E rho hrec mono crossing writes services hgst hErase hHeight
     hService hu hPhase hqv hvh hCap (Nat.lt_succ_self q) hgate hp
-    (frontier_seed_qSucc_head E rho hrec mono crossing writes hgst hPhase hseed hp)
+    (frontier_seed_qSucc_head E rho hrec mono crossing services.permanence writes
+      hgst hPhase hseed
+      (services.heads (q + 1) le_rfl (by
+        apply le_trans ?_ hgate
+        change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ ≤
+          4 * p.Δ * ((q + 1 : Nat) : Int) + 6 * p.Δ
+        linarith [p.deltaPos])) hp)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:1500–1574; plan §3.1 step 6.
 DC: INTENTIONAL the HG.1 retained-read chain gives exact HEADs for s ≥ q+2.
 The strict consumer uses v+1 only as an integer bound; every read and gate is within v. -/
 theorem frontier_later_head [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -135,6 +166,7 @@ theorem frontier_later_head [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -145,9 +177,9 @@ theorem frontier_later_head [Fintype V] (E : Generic.Env V)
     {s : Slot} (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
     (hgate : SA.gateTime p.toParams s ≤ v)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) s B) :
-    ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some B := by
+    ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some B := by
   have hE := hrec.base.valid
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   obtain ⟨ip, x, N, heN, hx, hip, hseat, hem⟩ := repair_proposal_emission E rho hp
@@ -162,49 +194,44 @@ theorem frontier_later_head [Fintype V] (E : Generic.Env V)
     refine le_trans ?_ hgate
     change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     linarith
-  have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.voteTime p.toParams s := by
-    rw [hDelta]
-    change 4 * p.Δ * (s : Int) - p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + p.Δ
-    linarith
-  have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
-    hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hpt (hvs.trans hvh)
+  have hqs : q + 1 ≤ s := by
+    have ht := hafter
+    change 4 * p.Δ * (q : Int) + 6 * p.Δ ≤ 4 * p.Δ * (s : Int) at ht
+    have hlt : q < s := by exact_mod_cast (show (q : Int) < (s : Int) by
+      nlinarith [p.deltaPos])
+    exact Nat.succ_le_of_lt hlt
+  have hHeads := services.heads s hqs hvs
   have hinput := retainedHG1Input_through E rho hrec mono crossing writes hgst hQ hErase
-    hHeight hService hu hPhase hqv hvh hCap hx hip hseat N hem hafter hgate
-  have hreads := fgsa_retainedReads_HG1 (hroots := hrec.base.idealization)
-    E rho hE hN hDelta s hSync hx hip hseat N hem Qfg q (v + 1) hafter
+    hHeight hService services.read hu hPhase hqv hvh hCap hx hip hseat N hem hafter hgate
+  have hreads := fgsa_retainedReads_HG1_joined (hroots := hrec.base.receiptIdealization)
+    E rho hE s hx hip hseat N hem Qfg q (v + 1) hafter
     (lt_of_le_of_lt hgate (lt_add_of_pos_right v (show (0 : Int) < 1 by decide)))
-    (fun y hy ih hih _ => hinput y hy ih hih)
-  have hptWalk : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
-    rw [hDelta]
-    exact le_of_eq (sub_add_cancel _ _)
-  have hph : SA.proposalTime p.toParams s ≤ rho.horizon := by
-    refine le_trans ?_ (hvs.trans hvh)
-    change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
-    linarith
-  have hWalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
-    hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hptWalk hph
-  have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := hrec.base.idealization)
-    E rho hE hN hDelta s hWalk hSync
-    hx hip hseat N hem Qfg hreads
-  exact exactService_head_of_retained_proposal E rho hE hDelta s hip N hem
+    (fun y hy ih hih _ _ => hinput y hy ih hih)
+    (hHeads.targets ip x N hx hip hem)
+  have hgeom : RetainedExactHeadRunGeometryOn E rho ip x s Qfg N.erase :=
+    fgsa_retainedExactHead_geometry_on_run_on E rho hE s hx hip hseat N hem Qfg hreads
+      (hHeads.scopes ip x N hx hip hem) hrec.base.receiptIdealization
+  exact exactService_head_of_retained_proposal_on E rho hE hDelta s hip N hem
     Qfg hgeom (hvs.trans hvh)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1500–1574; plan §3.1 step 6.
 DC: INTENTIONAL full service for a later honest proposal whose gate is in the capped interval. -/
 theorem frontier_later_exactService [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -213,6 +240,7 @@ theorem frontier_later_exactService [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (services : FrontierServiceScopes E rho q v)
     (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
     (hErase : eraseFG Qfg = Q) (hHeight : (heightView p Qfg).h = m)
     (hService : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -229,9 +257,9 @@ theorem frontier_later_exactService [Fintype V] (E : Generic.Env V)
     refine lt_of_lt_of_le ?_ hafter
     change 4 * p.Δ * (q : Int) < 4 * p.Δ * (q : Int) + 6 * p.Δ
     linarith [p.deltaPos]
-  exact frontier_exactService_of_heads E rho hrec mono crossing writes hgst hErase hHeight
+  exact frontier_exactService_of_heads E rho hrec mono crossing writes services hgst hErase hHeight
     hService hu hPhase hqv hvh hCap hqs hgate hp
-    (frontier_later_head E rho hrec mono crossing writes hgst hQ hErase hHeight hService
+    (frontier_later_head E rho hrec mono crossing writes services hgst hQ hErase hHeight hService
       hu hPhase hqv hvh hCap hafter hgate hp)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -240,18 +268,22 @@ DC: INTENTIONAL the first two frozen TFrontier conjuncts, under its seed hypothe
 INLINE writes: `fgsa_leaseOrigins_lastWrite` (Foundations/Leases:392), supplied at Assembly.
 The full opening conjunction is assembled by `frontier_service` below. -/
 theorem frontier_service_core [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
+      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -279,27 +311,31 @@ theorem frontier_service_core [Fintype V] (E : Generic.Env V)
   Transfers p c E rho q Q v ∧ RepairAfter p c E rho q v := by
   intro u v m J contested q Q Qfg hgst hQ hErase hHeight hService hseed hu hPhase hqv hvh hCap
   have hseed := (frontierSeedQualification_iff p E u q).mpr hseed
+  have services := scopeProducer q v (frontier_seed_vote_cutoff p E hseed hgst) hqv hvh
   have hd := p.deltaPos
   have huv : u ≤ v := (hu.trans (by
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
     linarith)).trans hqv
-  have hcap := frontier_cap_before E rho mono hrec.base.noRestart huv hCap
+  have hcap := frontier_cap_before_on E rho mono huv hCap
   refine ⟨?_, ?_⟩
   · refine ⟨?_, ?_, ?_⟩
     · intro x i H hx hi hiv hH
       exact frontier_Q_heads E rho hrec mono crossing writes hgst hErase hHeight hService
-        hu hPhase hqv hvh hcap i hi hiv x hx H hH
+        services.read.readers services.read.seed hu hPhase hqv hvh hcap i hi hiv x hx H hH
     · intro i B hi hiv hp
-      exact frontier_proposals_cover E rho hrec mono crossing writes hgst hErase hHeight
+      exact frontier_proposals_cover E rho hrec mono crossing writes services.read hgst
+        hErase hHeight
         hService hu hPhase hqv hvh hcap hi hiv hp
     · intro i x hx hguard hai hiv
-      exact frontier_output_cover E rho hrec mono crossing writes hgst hErase hHeight
+      exact frontier_output_cover E rho hrec mono crossing writes services.read
+        (fun s hs ht => frontier_repair_gate_scope E rho services.read hgst hu
+          (Nat.lt_of_succ_le hs) ht) hgst hErase hHeight
         hService hu hPhase hqv hvh hcap hguard hx hai hiv
   · intro s B htime hgate hp
     have hqs := repair_slot_lt_of_time htime
     by_cases heq : s = q + 1
     · subst s
-      exact frontier_seed_qSucc_exactService E rho hrec mono crossing writes hgst hErase
+      exact frontier_seed_qSucc_exactService E rho hrec mono crossing writes services hgst hErase
         hHeight hService hu hPhase hqv hvh hCap hseed hgate hp
     · have hqs2 : q + 2 ≤ s :=
         Nat.succ_le_of_lt (lt_of_le_of_ne (Nat.succ_le_of_lt hqs) (Ne.symm heq))
@@ -307,7 +343,7 @@ theorem frontier_service_core [Fintype V] (E : Generic.Env V)
         have hqsI : (q : Int) + 2 ≤ (s : Int) := by exact_mod_cast hqs2
         change 4 * p.Δ * (q : Int) + 6 * p.Δ ≤ 4 * p.Δ * (s : Int)
         nlinarith
-      exact frontier_later_exactService E rho hrec mono crossing writes hgst hQ hErase
+      exact frontier_later_exactService E rho hrec mono crossing writes services hgst hQ hErase
         hHeight hService hu hPhase hqv hvh hCap hafter hgate hp
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -318,18 +354,22 @@ INLINE writes: `fgsa_leaseOrigins_lastWrite`; INLINE rowCoverage:
 Later opening service follows from the covering gate, without an honest proposal
 at that label or a phase through that gate. -/
 theorem frontier_service [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (scopeProducer : ∀ (q : Slot) (v : Time), E.t_GST ≤ slotStartZ p ((q : Int) - 1) →
+      SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon → FrontierServiceScopes E rho q v)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -347,18 +387,21 @@ theorem frontier_service [Fintype V] (E : Generic.Env V)
           some ((heightView p C).h, (heightView p C).T_h.root)) :
     TFrontier p c E rho := by
   intro u v m J contested q Q Qfg hgst hQ hErase hHeight hService hseed hu hPhase hqv hvh hCap
-  have hcore := frontier_service_core E rho hrec mono crossing writes u v m J contested
+  have hseedQ := (frontierSeedQualification_iff p E u q).mpr hseed
+  have services := scopeProducer q v (frontier_seed_vote_cutoff p E hseedQ hgst) hqv hvh
+  have hcore := frontier_service_core E rho hrec mono crossing scopeProducer writes u v m J
+    contested
     q Q Qfg hgst hQ hErase hHeight hService hseed hu hPhase hqv hvh hCap
   refine ⟨hcore.1, hcore.2, frontier_openings E rho hrec crossing rowCoverage
     u v m J contested q Q Qfg hgst hQ hErase hHeight hService hu hPhase hqv hvh hCap ?_⟩
   have huv : u ≤ v := (hu.trans (by
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
     linarith [p.deltaPos])).trans hqv
-  have hcap := frontier_cap_before E rho mono hrec.base.noRestart huv hCap
+  have hcap := frontier_cap_before_on E rho mono huv hCap
   intro r hqr hav
   apply frontierOpeningServed_intro E rho
   intro i x hx ht
-  exact frontier_opening_gateService_of_cover E rho hrec mono crossing writes hgst hQ
+  exact frontier_opening_gateService_of_cover E rho hrec mono crossing writes services.read hgst hQ
     hErase hHeight hService hu hPhase hqv hvh hcap hqr hav hx ht
 
 end AvailableChain.FGSA.Run

@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
+public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 
 public section
 
@@ -15,19 +17,29 @@ open AvailableChain.SimplexFG Gen.Pure RetainedWalk
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+/-- Bounded local services for repaired proposals and their enabled gates. -/
+structure RepairServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
+  permanence : SupportPermanenceServices E rho
+  heads : ∀ (s : Slot), E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
+    SA.voteTime p.toParams s ≤ rho.horizon → RepairHeadServices E rho s
+  gates : ∀ (s : Slot), E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
+    SA.gateTime p.toParams s ≤ rho.horizon → RepairGateScope E rho s
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Plan H-REPAIR step 11 (HonestSlot → HonestProposal); Run/Emission.lean:72.
 DC: INTENTIONAL the honest proposer of a post-GST slot inside the horizon ticks at t_s
 (tick totality), is awake (Recovery₂) and emits its proposal (s ≠ 0). -/
 theorem repair_honest_proposal [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) {s : Slot}
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot}
     (hs : Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s)
     (hgst : E.t_GST ≤ SA.proposalTime p.toParams s)
+    (hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1))
     (hh : SA.proposalTime p.toParams s ≤ rho.horizon) :
     ∃ Q, HonestProposal E rho (fgsaInterface p c) s Q := by
   obtain ⟨Q, hQ, _⟩ := fgsa_honestProposal_exists_of_awake_slot E rho
     hrec.base.valid.toScheduleWellFormed hrec.base.delta hs
-    (hrec.awake _ hs.2 _ hgst hh) hh
+    (hrec.awake _ hs.2 _ hgst hh)
+    (healing_recovery_restart_cutoff hrec hs.2 hh hcut) hh
   exact ⟨Q, hQ⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -48,18 +60,21 @@ Blueprint 21 H.6:965–986; plan H-REPAIR steps 9–10. DC: INTENTIONAL exact ga
 an honest proposal of slot r + 1 inside the phase, from the lease cover of its preceding
 HEAD batch (u ≤ v_r) and the gate geometry. -/
 theorem repair_exact_service [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -68,7 +83,7 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
-    {r : Nat} (hhead : u ≤ SA.voteTime p.toParams r)
+    {r : Nat} (hhead : u ≤ slotStartZ p (r : Int))
     (hlease : RepairLeaseCover E rho (r + 1))
     (hgate : SA.gateTime p.toParams (r + 1) ≤ v) {Q : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) (r + 1) Q) :
@@ -80,35 +95,63 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
     linarith
   have hus : u ≤ SA.voteTime p.toParams (r + 1) := by
     refine hhead.trans ?_
-    change 4 * p.Δ * (r : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int) + p.Δ
+    change 4 * p.Δ * (r : Int) ≤ 4 * p.Δ * ((r + 1 : Nat) : Int) + p.Δ
     push_cast
     linarith
   have hQs := repair_proposal_slot E rho hp
-  have hheadQ := repair_head_exact E rho hrec mono crossing hgst hphase hhead hvq hlease hp
+  have hheadVote : u ≤ SA.voteTime p.toParams r := by
+    change u ≤ 4 * p.Δ * (r : Int) + p.Δ
+    change u ≤ 4 * p.Δ * (r : Int) at hhead
+    linarith
+  have hcut : E.t_GST ≤ slotStartZ p (((r + 1 : Nat) : Int) - 1) := by
+    simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hgst.trans hhead
+  have hhor : SA.voteTime p.toParams (r + 1) ≤ rho.horizon := hvq.trans hphase.2.1
+  have hHeads := services.heads (r + 1) hcut hhor
+  obtain ⟨ip, x, N, heN, hx, hip, hseat, hem⟩ := repair_proposal_emission E rho hp
+  have hPrior : ProposalSupportScope E rho ip x r := by
+    simpa only [Nat.add_sub_cancel] using hHeads.prior ip x hx hip
+  have hGST : E.t_GST ≤ SA.proposalTime p.toParams (r + 1) - p.Δ := by
+    refine hgst.trans (hheadVote.trans ?_)
+    change 4 * p.Δ * (r : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int) - p.Δ
+    push_cast
+    linarith
+  have hheadN := repair_head_exact E rho hrec.toRecovery₂ (r + 1) hGST hx hip hseat N hem
+    (fun y hy ih hih _ => repair_h6_input E rho hrec mono crossing hgst hphase hheadVote hvq
+      hlease hx hip hPrior hy hih)
+    (hHeads.targets ip x N hx hip hem) (hHeads.scopes ip x N hx hip hem) hhor
+  have hheadQ : ∀ y ∈ rho.honest,
+      joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
+      headAtLabel p c E rho y (r + 1) = some Q := by simpa only [heN] using hheadN
   have hne : Q ≠ .genesis := by
     rintro rfl
     exact Nat.succ_ne_zero r hQs.symm
-  exact exactService_of_head_recovery E rho G hrec (r + 1) Q hne (hgst.trans hus)
-    (fun _ => hheadQ) (fun _ _ hx ht => repair_gate_geometry E rho hrec mono crossing qc
-      writes hgst hphase hus hgate hQs hheadQ hx ht)
+  have hGates := services.gates (r + 1) hcut (hgate.trans hphase.2.1)
+  exact repair_exact_service_on E rho hrec (r + 1) Q hne hcut (hgst.trans hus)
+    (fun _ => hheadQ)
+    (fun _ _ hx ht => repair_gate_geometry E rho hrec mono crossing qc
+      writes hgst hphase hus hgate hQs hheadQ hx ht hGates)
+    (fun _ x hReader ht => hGates.gates _ x hReader.1 ht) hhor
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:749–756 (RepairAfter); plan H-REPAIR step 10. DC: INTENTIONAL every
 later honest proposal s with d_s ≤ v has exact service once the lease cover holds after
 the threshold l and u ≤ v_l. -/
 theorem repair_after_of_cover [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -117,7 +160,7 @@ theorem repair_after_of_cover [Fintype V] (E : Generic.Env V)
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
-    {l : Nat} (hlu : u ≤ SA.voteTime p.toParams l)
+    {l : Nat} (hlu : u ≤ slotStartZ p (l : Int))
     (hcover : ∀ s, SA.proposalTime p.toParams l < SA.proposalTime p.toParams s →
       SA.voteTime p.toParams s ≤ v → RepairLeaseCover E rho s) :
     RepairAfter p c E rho l v := by
@@ -126,15 +169,15 @@ theorem repair_after_of_cover [Fintype V] (E : Generic.Env V)
   obtain ⟨r, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero (Nat.ne_zero_of_lt hlt)
   have hd := p.deltaPos
   have hlr : (l : Int) ≤ r := by omega
-  have hhead : u ≤ SA.voteTime p.toParams r := by
+  have hhead : u ≤ slotStartZ p (r : Int) := by
     refine hlu.trans ?_
-    change 4 * p.Δ * (l : Int) + p.Δ ≤ 4 * p.Δ * (r : Int) + p.Δ
+    change 4 * p.Δ * (l : Int) ≤ 4 * p.Δ * (r : Int)
     nlinarith
   have hvs : SA.voteTime p.toParams (r + 1) ≤ v := by
     refine le_trans ?_ hgate
     change 4 * p.Δ * ((r + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int) + 6 * p.Δ
     linarith
-  exact repair_exact_service E rho hrec mono crossing qc writes hgst hphase hhead
+  exact repair_exact_service E rho hrec mono crossing qc services writes hgst hphase hhead
     (hcover _ hls hvs) hgate hp
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -143,18 +186,21 @@ DC: INTENTIONAL with β the first proposal after u: RepairAfter (β + 2k − 1) 
 u + ρΓ an honest proposal after t_(β+2k−1) with exact service. The gap window is G (not Γ);
 Γ bounds the slot found. -/
 theorem repair_two_lease [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -197,15 +243,16 @@ theorem repair_two_lease [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * ((β + 2 * p.k - 1 : Nat) : Int) ≤ u + 8 * p.k * p.Δ
     rw [hcl]
     linarith
-  have hlu : u ≤ SA.voteTime p.toParams (β + 2 * p.k - 1) := by
+  have hlu : u ≤ slotStartZ p ((β + 2 * p.k - 1 : Nat) : Int) := by
     refine hβ.le.trans ?_
-    change 4 * p.Δ * (β : Int) ≤ 4 * p.Δ * ((β + 2 * p.k - 1 : Nat) : Int) + p.Δ
+    change 4 * p.Δ * (β : Int) ≤ 4 * p.Δ * ((β + 2 * p.k - 1 : Nat) : Int)
     rw [hcl]
     have hk' : (2 : Int) ≤ p.k := by exact_mod_cast hk
     nlinarith
   have hafter : RepairAfter p c E rho (β + 2 * p.k - 1) v :=
-    repair_after_of_cover E rho hrec mono crossing qc writes hgst hphase hlu
-      (fun _ hls hvs => repair_lease_cover_two E rho hrec mono crossing writes hgst hphase hβ
+    repair_after_of_cover E rho hrec mono crossing qc services writes hgst hphase hlu
+      (fun _ hls hvs => repair_lease_cover_two E rho hrec mono crossing services.permanence
+        writes hgst hphase hβ
         hls hvs)
   refine ⟨hafter, fun hbud => ?_⟩
   have hβl : SA.proposalTime p.toParams β ≤ SA.proposalTime p.toParams (β + 2 * p.k - 1) := by
@@ -231,7 +278,14 @@ theorem repair_two_lease [Fintype V] (E : Generic.Env V)
   have hts : SA.proposalTime p.toParams s ≤ SA.gateTime p.toParams s := by
     change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     linarith
-  obtain ⟨Q, hp⟩ := repair_honest_proposal E rho hrec hslot (hGl.trans hs1.le)
+  have hJoinCut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+    have hSlots := repair_slot_lt_of_time hs1
+    have hSlotsI : ((β + 2 * p.k - 1 : Nat) : Int) + 1 ≤ (s : Int) := by
+      exact_mod_cast (show β + 2 * p.k - 1 + 1 ≤ s from hSlots)
+    change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+    change E.t_GST ≤ 4 * p.Δ * ((β + 2 * p.k - 1 : Nat) : Int) at hGl
+    nlinarith [p.deltaPos]
+  obtain ⟨Q, hp⟩ := repair_honest_proposal E rho hrec hslot (hGl.trans hs1.le) hJoinCut
     ((hts.trans (hds.trans hbud)).trans hphase.2.1)
   exact ⟨s, Q, hs1, hds, hp, hafter s Q hs1 (hds.trans hbud) hp⟩
 
@@ -241,18 +295,21 @@ DC: INTENTIONAL with b the first HEAD label at or after u and the synchronous wi
 GST ≤ v_(b+1−k): RepairAfter (b + k) v, and strictly inside u + ρ₁ an honest proposal after
 t_(b+k) with exact service. The budget keeps the strict bound for b. -/
 theorem repair_synchronous [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -289,14 +346,15 @@ theorem repair_synchronous [Fintype V] (E : Generic.Env V)
         linarith
       have := hmin (b - 1) hc'
       omega
-  have hlu : u ≤ SA.voteTime p.toParams (b + p.k) := by
+  have hlu : u ≤ slotStartZ p ((b + p.k : Nat) : Int) := by
     refine hb.trans ?_
-    change 4 * p.Δ * (b : Int) + p.Δ ≤ 4 * p.Δ * ((b + p.k : Nat) : Int) + p.Δ
+    change 4 * p.Δ * (b : Int) + p.Δ ≤ 4 * p.Δ * ((b + p.k : Nat) : Int)
     push_cast
     nlinarith
   have hafter : RepairAfter p c E rho (b + p.k) v :=
-    repair_after_of_cover E rho hrec mono crossing qc writes hgst hphase hlu
-      (fun _ hls hvs => repair_lease_cover_one E rho hrec mono crossing writes hgst hphase hb
+    repair_after_of_cover E rho hrec mono crossing qc services writes hgst hphase hlu
+      (fun _ hls hvs => repair_lease_cover_one E rho hrec mono crossing services.permanence
+        writes hgst hphase hb
         hwindow hls hvs)
   refine ⟨hafter, fun hbud => ?_⟩
   have htl : SA.proposalTime p.toParams (b + p.k) < u + 4 * p.k * p.Δ + 3 * p.Δ := by
@@ -324,7 +382,14 @@ theorem repair_synchronous [Fintype V] (E : Generic.Env V)
   have hts : SA.proposalTime p.toParams s ≤ SA.gateTime p.toParams s := by
     change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     linarith
-  obtain ⟨Q, hp⟩ := repair_honest_proposal E rho hrec hslot (hGl.trans hs1.le)
+  have hJoinCut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+    have hSlots := repair_slot_lt_of_time hs1
+    have hSlotsI : ((b + p.k : Nat) : Int) + 1 ≤ (s : Int) := by
+      exact_mod_cast (show b + p.k + 1 ≤ s from hSlots)
+    change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+    change E.t_GST ≤ 4 * p.Δ * ((b + p.k : Nat) : Int) at hGl
+    nlinarith [p.deltaPos]
+  obtain ⟨Q, hp⟩ := repair_honest_proposal E rho hrec hslot (hGl.trans hs1.le) hJoinCut
     ((hts.trans (hds.le.trans hbud)).trans hphase.2.1)
   exact ⟨s, Q, hs1, hds, hp, hafter s Q hs1 (hds.le.trans hbud) hp⟩
 
@@ -335,18 +400,21 @@ Recovery₂ (plan Gap 1: unconditional TRepair is false on arbitrary runs). The 
 hypotheses are RMono, RXing, RQCOrigin (FGFoundation fields with producers on main) and the
 inline last-write premise (ruling B27), as in healing_tPerm. -/
 theorem healing_tRepair [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (services : RepairServiceScopes E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+          p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -355,9 +423,9 @@ theorem healing_tRepair [Fintype V] (E : Generic.Env V)
             (actView pre) w C) :
     TRepair p c E rho := by
   intro Gp u v m J contested hgap _ hgst hphase
-  exact ⟨fun _ hβ hmin => repair_two_lease E rho hrec mono crossing qc writes hgap hgst
+  exact ⟨fun _ hβ hmin => repair_two_lease E rho hrec mono crossing qc services writes hgap hgst
       hphase hβ hmin,
-    fun _ hb hmin _ hwindow => repair_synchronous E rho hrec mono crossing qc writes hgap
+    fun _ hb hmin _ hwindow => repair_synchronous E rho hrec mono crossing qc services writes hgap
       hgst hphase hb hmin hwindow⟩
 
 end AvailableChain.FGSA.Run

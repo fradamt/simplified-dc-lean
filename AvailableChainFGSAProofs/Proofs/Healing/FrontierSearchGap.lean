@@ -63,7 +63,8 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
   have hgateD := hgate.trans hbudget0
   obtain ⟨iq, Qfg, hiq, hQmem, hErase⟩ := healing_rise_one_gate_copy p c E rho
     hrec.base.valid.toScheduleWellFormed hexact (hgateD.trans hp.2.1) hQ.1.2
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec.toRecovery₂ crossing hp huq hgateD
+    (healing_recovery_gate_reader hrec hQ.1.2 (hgst.trans huq) (hgateD.trans hp.2.1))
+  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights E rho hrec crossing hgst hp huq hgateD
     hQ hErase hexact
   by_cases hhigh : (heightView p Qfg).h = m
   · exact ⟨_, huq.trans hqg, hgateD,
@@ -114,7 +115,7 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
       have ha := actionTime_periodW p r
       linarith [p.deltaPos]
     have hs := hrepair _ hps s _ hls le_rfl hnew
-    have hheights := frontierSearch_proposal_heights E rho hrec.toRecovery₂ crossing hp hut
+    have hheights := frontierSearch_proposal_heights E rho hrec crossing hgst hp hut
       hsD hnew rfl hs
     have hh' : (heightView p X).h = m := Nat.le_antisymm hheights.2 hh
     have htq : SA.proposalTime p.toParams q < SA.proposalTime p.toParams s := by
@@ -202,9 +203,12 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
       change 4 * p.Δ * (s : Time) > _
       push_cast at hz
       change p.actionTime r = (r : Time) * (4 * (p.R : Time) * p.Δ) + 6 * p.Δ at ha
-      nlinarith [p.deltaPos]
+      have hm := mul_le_mul_of_nonneg_left hz
+        (show 0 ≤ 4 * p.Δ by linarith only [p.deltaPos])
+      nlinarith only [hm, ha, p.deltaPos]
     have hpts := frontierSearch_phase_cut E rho hp (hur.trans hat.le)
-      (by change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hsD; linarith [p.deltaPos])
+      (by change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hsD
+          linarith only [hsD, p.deltaPos])
     have hparent := healing_promotion_source_parent E rho perm hgst hpts huvote hat.le
       hx hK hslabel hnew
     have hpath : FGBlock.Preceq K X.parent := frontierSearch_lift
@@ -224,7 +228,13 @@ DC: SAME finite first stop or the complete seed by the frozen gap deadline.
 E_gF_eq is used only under LivenessBoundW. The horizon is closed. -/
 theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar : Time}
-    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (crossing : RXing p c E rho) (monoAll : RMonoAll p
+      c E rho)
+    (heldServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      ev.time + p.Δ ≤ rho.horizon →
+      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (repair : TRepair p c E rho) (common : TCommon p c E rho)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (perm : TPerm p c E rho)
@@ -264,7 +274,7 @@ theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
     ring
   rcases frontierSearch_first_effective_split p c E rho hsched i
       (ev.time + E_gF p ΔF G ρbar) with hstop | hquiet
-  · rcases frontierSearch_classify_stop p c E rho hrec.base.noRestart hfront hstop with h | h
+  · rcases frontierSearch_classify_stop p c E rho monoAll hfront hstop with h | h
     · exact Or.inl h
     · exact Or.inr (Or.inl h)
   have hG : 4 * p.Δ ≤ Γ p G := hrec.gapPos.trans (fgsa_gamma_bounds p G).1
@@ -273,9 +283,8 @@ theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
   have hsettle : ev.time + 3 * p.Δ ≤ ev.time + E_gF p ΔF G ρbar := by
     rw [← hbudget]
     exact (le_add_of_nonneg_right hρ).trans (le_add_of_nonneg_right htail0)
-  obtain ⟨J, hp, _⟩ := healing_settle_start (hroots := hrec.base.idealization)
-    p c E rho crossing hrec.base.valid
-    hrec.base.noRestart hrec.base.delta hrec.sync i ev _ m .gap hi hgst0
+  obtain ⟨J, hp, _⟩ := healing_settle_start_on (hroots := hrec.base.receiptIdealization)
+    p c E rho crossing hrec.base.valid monoAll heldServices i ev _ m .gap hi hgst0
     hsettle
     hhor hm hfront hkind hquiet
   have hgst : E.t_GST ≤ ev.time + 3 * p.Δ := by linarith [p.deltaPos]

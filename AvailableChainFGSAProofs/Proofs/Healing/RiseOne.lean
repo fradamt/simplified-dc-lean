@@ -103,11 +103,13 @@ theorem healing_rise_one_entry (K : FGBlock (Fin p.n))
 No supplied block identity is trusted without erasure injectivity. -/
 theorem healing_rise_one_gate_copy (hs : V2.D.ScheduleWellFormed E rho)
     {q : Nat} {Q : Block} (hexact : ExactService p c E rho q Q)
-    (hgate : SA.gateTime p.toParams q ≤ rho.horizon) {x : V} (hx : x ∈ rho.honest) :
+    (hgate : SA.gateTime p.toParams q ≤ rho.horizon) {x : V} (hx : x ∈ rho.honest)
+    (hReader : confirmedReaderAtIdx p c E rho x
+      (afterTicksIdx rho (SA.gateTime p.toParams q)) (SA.gateTime p.toParams q)) :
     ∃ j Qfg, IsGateTick p c rho j x q ∧
       Qfg ∈ (storeAt p c E rho j x).fg.TF ∧ eraseFG Qfg = Q := by
-  obtain ⟨j, hj, _⟩ := (hexact.2 hgate x hx).2.1
-  obtain ⟨nd, hnd, hw⟩ := (hexact.2 hgate x hx).2.2.1
+  obtain ⟨j, ⟨hj, _⟩, _⟩ := (hexact.2 hgate x hx hReader).2.1
+  obtain ⟨nd, hnd, hw⟩ := (hexact.2 hgate x hx hReader).2.2.1
   have hclock := opening_postClock_of_tick E rho hs hj
   have he := Option.some.inj (hnd.symm.trans hclock)
   subst nd
@@ -121,15 +123,17 @@ theorem healing_rise_one_gate_copy (hs : V2.D.ScheduleWellFormed E rho)
 /-- Plan A step 3. DC: SAME identify an explicitly supplied Qfg with the
 accepted copy, then use height positivity or the actual stopping rise. -/
 theorem healing_rise_one_height (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho) {q : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (mono : RMonoAll p c E rho) {q : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q) (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q) {D : Time}
-    (hgate : SA.gateTime p.toParams q ≤ D) (hD : D ≤ rho.horizon) :
+    (hgate : SA.gateTime p.toParams q ≤ D) (hD : D ≤ rho.horizon)
+    (hReaders : ∀ x ∈ rho.honest, confirmedReaderAtIdx p c E rho x
+      (afterTicksIdx rho (SA.gateTime p.toParams q)) (SA.gateTime p.toParams q)) :
     RiseOneBy p c E rho D ∨
       ((heightView p Qfg).h = 1 ∧ (heightView p Qfg).T_h = .genesis) := by
   obtain ⟨x, hx⟩ : rho.honest.Nonempty := ⟨_, hQ.1.2⟩
   obtain ⟨j, K, hj, hK, heK⟩ := healing_rise_one_gate_copy p c E rho hs hexact
-    (hgate.trans hD) hx
+    (hgate.trans hD) hx (hReaders x hx)
   have he : K = Qfg := eraseFG_injective (heK.trans hQfg.symm)
   subst K
   have hjD := (healing_phase_lt_timeIdx p c E rho hs hj hgate).le
@@ -138,7 +142,7 @@ theorem healing_rise_one_height (hs : V2.D.ScheduleWellFormed E rho)
     exact healing_rise_one_of_frontier p c E rho hs ⟨x, hx⟩
       (hh.trans ((healing_phase_height_le p c E rho hK).trans
         ((healing_phase_local_le_frontier p c E rho hx).trans
-          (healing_frontier_mono p c E rho hnr hjD))))
+          (healing_frontier_mono_all p c E rho mono hjD))))
   · have h1 : (heightView p Qfg).h = 1 := by
       exact Nat.le_antisymm (Nat.le_of_lt_succ (Nat.lt_of_not_le hh))
         ((fgCertificateLaws p).height.one_le_h Qfg)

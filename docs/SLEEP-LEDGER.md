@@ -5324,3 +5324,36 @@ empty runs, and the awake time-zero fixture. Public claims are unchanged.
 Validation: --wfail passes for RecoveryScope, RecoveryService, ResetCut and both audit/test
 roots. HealingH2RecoveryAxioms has 31 strict commands with permitted axioms only. Layers:
 72 inherited, zero new. This group does not close the remaining H2 service producers.
+
+### P-H2 Round 3 — opening, retained frontier and full search (2026-10-10)
+
+The critical path compiles through FrontierSearchFull on H1 pin 615d203b. Opening gate
+support at the original q gate comes from its saved fast write. Later gates retain the
+exact selected-voter cutoff, enabled actor, GateReceiptScope and local release scope.
+The opening/body/CommonEntry proofs use RMonoAll and durable store facts. CommonEntry
+gets same-label service from its actual opening fast-write source.
+
+FrontierServiceGate builds RepairGateScope from bounded FrontierReadScope object services.
+FrontierService builds RetainedExactHeadRunGeometryOn and uses joined retained-read and
+RegimesService _on APIs. Repair consumes the actual proposal tick/emission, retained H6
+input, target service and RetainedServiceScope. Source, receiver and consuming read indices
+remain explicit. No historical processing fact is used to infer retained HEAD HistorySafeAt.
+
+Search settlement uses healing_settle_start_on, receipt idealization, RMonoAll and exact
+carrier services. The gap/top-J arithmetic passes with default heartbeats after narrowing
+its local arithmetic facts. The full search proof keeps carrier, original proposal and
+bounded frontier scope producers as explicit inputs. Those inputs still need general H2
+production suppliers. Source GREEN does not close those unconditional family obligations.
+
+Validation: the 130-command service audit and three ready local boundary tests pass --wfail.
+The four isolated inclusive-cut settlement examples pass, with permitted axioms only.
+The AS1/AS2 composition bodies pass in an isolated check. Export's containing module and
+mixed Assembly tests remain OPEN. Complete local coverage has zero errors. Export checking
+has four unaccepted H1 matcher equations (SupportLease/SupportSlow); zero new H2 exports.
+No allowance or baseline change. Layers: 72 inherited, zero new. DCK P-H2 passes on the
+checked map; the final map/test extension is checked again below.
+
+Exact H1 and P-As requests are in claude-files/sleep-ph2c/H1-requests.md and P-As-requests.md.
+They include declaration names, file:line and complete current/proposed telescopes. H1
+proposals are marked uncompiled. ResetArrival's two direct HealingReset calls are included.
+Public claims unchanged. No public STOP. H2 production and final closure remain OPEN.
