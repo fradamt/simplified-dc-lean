@@ -2234,9 +2234,13 @@ allowance changed. Evidence is under .lake/sleep-ph1/.
 ### P-H1 final prepared extension — validation (2026-10-10)
 
 Status: PREPARED on sleep-ph1; not CLOSED. The map still has all 98 TARGETS.
-The final classification has 500 GREEN and 66 EXPECTED-FAIL entries: 37 assigned
-GREEN targets, 61 assigned P-H1 targets still open, and 5 REQUIRED supplier failures.
+The final classification has 500 GREEN and 66 EXPECTED-FAIL entries: 38 assigned
+GREEN targets, 60 assigned P-H1 targets still open, and 6 REQUIRED supplier failures
+(counts corrected by the lead from the map, rev-ph1-astra finding 2).
 No REQUIRED entry moved to DEFERRED or to a different repair owner.
+H2 handoff: the complete caller checklist is rev-ph1-astra findings 1 and 6
+(/Users/francesco/.claude/jobs/22f59f85/tmp/tmp/rev-ph1/review.md): held receipt, promotion
+slot proposal restart bound, 19 healing_support_vote_tick calls, and the other changed interfaces.
 
 - Final GREEN lake build --wfail: PASS, 2.49 s.
 - Final DCK PASS (package P-H1): 179.93 s; all 24 default controls passed.
