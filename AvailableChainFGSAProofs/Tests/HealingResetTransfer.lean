@@ -36,6 +36,9 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      Block.Preceq w.CStar (eraseFG W) →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams w.sStar) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x)
     (h0r : H0Reset p c E rho w)
     (hhor : SA.releaseTime p.toParams w.sStar ≤ rho.horizon) :
@@ -54,6 +57,9 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      Block.Preceq w.CStar (eraseFG W) →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams w.sStar) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x) :
     TDelReset p c E rho w :=
   healing_tDelReset_of_reset E rho hrec xing cap source mono w hServices

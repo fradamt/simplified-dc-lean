@@ -32,13 +32,16 @@ variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In
 private def DeliveryServices : Prop :=
   ∀ y r K, y ∈ rho.honest →
     actionSourceFG p c E rho y r = some (some K) →
-    E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
+    recoveryStart p E ≤ SA.voteTime p.toParams (r * p.R) →
     SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
     ∀ x ∈ rho.honest, FGBlock.Preceq
       (rho.stateBeforeTime E (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F K →
     ∀ j z W, z ∈ rho.honest →
     rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
     W ∈ (storeAt p c E rho j z).fg.TF →
+    FGBlock.Preceq K W →
+    FGBlock.Preceq
+      (rho.stateBeforeTime E (SA.earlyTime p.toParams (r * p.R)) x).st.fg.F W →
     TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x
 
 -- Conditional package fixture: the frozen antecedent, as the consumer supplies it.
@@ -48,7 +51,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {x y : V} {r : Nat} {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
     (hK : actionSourceFG p c E rho y r = some (some K))
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R))
+    (hgst : recoveryStart p E ≤ SA.voteTime p.toParams (r * p.R))
     (hhor : SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon)
     (hcompat : Block.Compatible (eraseFG K)
       (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F)) :
@@ -65,7 +68,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {x y : V} {r : Nat} {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
     (hK : actionSourceFG p c E rho y r = some (some K))
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R))
+    (hgst : recoveryStart p E ≤ SA.voteTime p.toParams (r * p.R))
     (hhor : SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon)
     (hKF : FGBlock.Preceq K
       (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F) :
@@ -83,7 +86,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {x y : V} {r : Nat} {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
     (hK : actionSourceFG p c E rho y r = some (some K))
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R))
+    (hgst : recoveryStart p E ≤ SA.voteTime p.toParams (r * p.R))
     (hhor : SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon)
     (hFK : FGBlock.Preceq
       (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F K) :

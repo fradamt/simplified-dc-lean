@@ -276,7 +276,7 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_slow_proposals
 #print axioms AvailableChain.FGSA.Run.healing_slow_output
 #print axioms AvailableChain.FGSA.Run.healing_phase_transfers
-#print axioms AvailableChain.FGSA.Run.healing_tPerm
+#print axioms AvailableChain.FGSA.Run.healing_tPerm_at
 #print axioms AvailableChain.FGSA.Run.frontier_head_relay_on
 #print axioms AvailableChain.FGSA.Run.frontier_head_batch_seat
 #print axioms AvailableChain.FGSA.Run.frontier_next_transfer_core
@@ -589,3 +589,50 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_tDelReset_of_reset
 
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_advance
+
+-- Round 4: actual joins and selected per-receiver carrier receipts.
+#print axioms AvailableChain.FGSA.Run.healing_head_carrier_receipt
+#print axioms AvailableChain.FGSA.Run.healing_gate_enabled_of_joined
+#print axioms AvailableChain.FGSA.Run.healing_gate_enabled_of_result
+#print axioms AvailableChain.FGSA.Run.healing_recovery_later_gate
+#print axioms AvailableChain.FGSA.Run.healingJoinedSeats_mem
+#print axioms AvailableChain.FGSA.Run.FastSupportScope.firstOn
+#print axioms AvailableChain.FGSA.Run.healing_support_gate_scope_of_cut
+#print axioms AvailableChain.FGSA.Run.healing_head_carrier_demand_phase
+#print axioms AvailableChain.FGSA.Run.healing_support_gate_scope_of_batch
+#print axioms AvailableChain.FGSA.Run.healing_support_gate_geometry
+
+-- Round 6: late batch windows and services at actual joined readers.
+#print axioms AvailableChain.FGSA.Run.HealingWindow
+#print axioms AvailableChain.FGSA.Run.StrongHealingWindow
+#print axioms AvailableChain.FGSA.Run.StrongHealingWindow.window
+#print axioms AvailableChain.FGSA.Run.HealingWindow.mono
+#print axioms AvailableChain.FGSA.Run.HealingWindow.sync
+#print axioms AvailableChain.FGSA.Run.HealingWindow.prior
+#print axioms AvailableChain.FGSA.Run.HealingWindow.after
+#print axioms AvailableChain.FGSA.Run.healing_window_of_cut
+#print axioms AvailableChain.FGSA.Run.healing_recovery_joined_window
+#print axioms AvailableChain.FGSA.Run.healing_recovery_joined_next
+#print axioms AvailableChain.FGSA.Run.healing_recovery_joined_vote_next
+#print axioms AvailableChain.FGSA.Run.healing_recovery_next_vote_joined_of_cut
+#print axioms AvailableChain.FGSA.Run.healing_recovery_joined_proposal_next
+#print axioms AvailableChain.FGSA.Run.healingJoinedSeats_card
+#print axioms AvailableChain.FGSA.Run.healing_recovery_seat_counts
+#print axioms AvailableChain.FGSA.Run.healing_recovery_seat_rivals
+#print axioms AvailableChain.FGSA.Run.healing_high_source_recoveryStart
+#print axioms AvailableChain.FGSA.Run.healing_window_of_recoveryStart
+#print axioms AvailableChain.FGSA.Run.healing_high_source_window
+#print axioms AvailableChain.FGSA.Run.HealingJoinedTick
+#print axioms AvailableChain.FGSA.Run.HealingCarriersAt
+#print axioms AvailableChain.FGSA.Run.healing_joined_tick_of_guard
+#print axioms AvailableChain.FGSA.Run.healing_joined_tick_of_window
+#print axioms AvailableChain.FGSA.Run.healing_carriers_window_at
+#print axioms AvailableChain.FGSA.Run.healing_carriers_cut_at
+#print axioms AvailableChain.FGSA.Run.FirstTransferScope.carriersOn
+#print axioms AvailableChain.FGSA.Run.healing_support_honest_head_joined
+#print axioms AvailableChain.FGSA.Run.healing_recovery_gate_enabled
+#print axioms AvailableChain.FGSA.Run.healing_gate_cut_of_batch_cut
+#print axioms AvailableChain.FGSA.Run.RepairHeadServices.target
+#print axioms AvailableChain.FGSA.Run.healing_promotion_same_rows_on
+#print axioms AvailableChain.FGSA.Run.healing_promotion_advance_on
+#print axioms AvailableChain.FGSA.Run.healing_recovery_same_label

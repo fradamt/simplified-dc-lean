@@ -62,6 +62,72 @@ theorem healing_ready_vote_cutoff (E : Generic.Env V) {s : Slot}
   change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
   linarith [p.deltaPos]
 
+
+omit [DecidableEq V] in
+/-- Every bounded recovery read has the previous-slot GST cutoff. -/
+theorem healing_ready_read_cutoff (E : Generic.Env V) {t : Time}
+    (hready : recoveryStart p E ≤ t) :
+    E.t_GST ≤ slotStartZ p ((slotAt p t : Int) - 1) := by
+  let d := 4 * p.Δ
+  let a := max 0 E.t_GST + d - 1
+  have hd : 0 < d := by dsimp [d]; linarith [p.deltaPos]
+  have ha : 0 ≤ a := by
+    have := p.deltaPos
+    dsimp [a, d, Time] at *
+    omega
+  have hq := Int.ediv_nonneg ha hd.le
+  have hm := Int.emod_lt_of_pos a hd
+  have he := Int.mul_ediv_add_emod a d
+  have hstart : recoveryStart p E = d * (a / d) + 6 * p.Δ := by
+    change d * ((a / d).toNat : Int) + 6 * p.Δ = _
+    rw [Int.toNat_of_nonneg hq]
+  have hle : (a / d) + 1 ≤ t / d := by
+    apply Int.le_ediv_of_mul_le hd
+    rw [hstart] at hready
+    dsimp [d] at *
+    nlinarith [p.deltaPos]
+  have ht : 0 ≤ t / d := by dsimp [Time] at *; omega
+  change E.t_GST ≤ d * ((t / d).toNat - 1)
+  rw [Int.toNat_of_nonneg ht]
+  have hceil : E.t_GST ≤ d * (a / d) := by
+    dsimp [a] at he hm
+    nlinarith [le_max_right 0 E.t_GST]
+  nlinarith
+
+omit [DecidableEq V] in
+/-- A proposal after recoveryStart also has the preceding HEAD batch cutoff. -/
+theorem healing_ready_proposal_cutoff (E : Generic.Env V) {s : Slot}
+    (hready : recoveryStart p E ≤ SA.proposalTime p.toParams s) :
+    E.t_GST ≤ slotStartZ p ((s : Int) - 2) := by
+  let d := 4 * p.Δ
+  let a := max 0 E.t_GST + d - 1
+  have hd : 0 < d := by dsimp [d]; linarith [p.deltaPos]
+  have ha : 0 ≤ a := by
+    have := p.deltaPos
+    dsimp [a, d, Time] at *
+    omega
+  have hq := Int.ediv_nonneg ha hd.le
+  have hm := Int.emod_lt_of_pos a hd
+  have he := Int.mul_ediv_add_emod a d
+  have hstart : recoveryStart p E = d * (a / d) + 6 * p.Δ := by
+    change d * ((a / d).toNat : Int) + 6 * p.Δ = _
+    rw [Int.toNat_of_nonneg hq]
+  have hlabels : a / d + 2 ≤ (s : Int) := by
+    have hr : d * (a / d) + 6 * p.Δ ≤ d * (s : Int) := by
+      change recoveryStart p E ≤ d * (s : Int) at hready
+      rw [hstart] at hready
+      exact hready
+    have hone : a / d + 1 < (s : Int) := by
+      dsimp [d] at *
+      nlinarith [p.deltaPos]
+    dsimp [Time] at *
+    omega
+  change E.t_GST ≤ d * ((s : Int) - 2)
+  have hceil : E.t_GST ≤ d * (a / d) := by
+    dsimp [a] at he hm
+    nlinarith [le_max_right 0 E.t_GST]
+  nlinarith
+
 variable {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 /-- The first reset row is after the inclusive frontier cut. -/
@@ -73,6 +139,23 @@ theorem healing_reset_action_after_cut {w : HealingWitness} (hreset : H0Reset p 
     (p.actionTime w.rStar) ha ha.2.1 (le_of_not_gt hn) hentry
   change w.M + 1 ≤ w.M at hcap
   omega
+
+/-- The fresh reset row has a source vote after the single healing start. -/
+theorem healing_reset_source_ready {w : HealingWitness}
+    (hreset : H0Reset p c E rho w) :
+    recoveryStart p E ≤ SA.voteTime p.toParams w.sStar := by
+  have hafter := healing_reset_action_after_cut hreset
+  have he : p.actionTime w.rStar = SA.voteTime p.toParams w.sStar + 5 * p.Δ := by
+    rw [hreset.label]
+    change 4 * p.Δ * ((w.rStar * p.R : Nat) : Int) + 6 * p.Δ =
+      4 * p.Δ * ((w.rStar * p.R : Nat) : Int) + p.Δ + 5 * p.Δ
+    ring
+  have hR : (2 : Int) ≤ p.R := by exact_mod_cast p.RLarge
+  have hP : 8 * p.Δ ≤ P p := by
+    change 8 * p.Δ ≤ 4 * (p.R : Int) * p.Δ
+    nlinarith [p.deltaPos]
+  rw [he] at hafter
+  nlinarith [hreset.cut_lower, p.deltaPos]
 
 /-- The shifted reset cut puts GST before the source slot start.
 The synchronous vote bound alone does not prove this cutoff. -/

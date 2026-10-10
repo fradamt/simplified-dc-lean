@@ -41,6 +41,7 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (sB + 1))))
     (hScopes : ∀ ix xs, xs ∈ rho.honest → IsGateTick p c rho ix xs sB →
+      (∃ C, gateResultAt p c E rho ix = some (some C) ∧ Block.Preceq (eraseFG B) C) →
       FirstTransferScope E rho ix iy xs y sB)
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
@@ -73,6 +74,7 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
   let dst := FGSA.clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (s + 1))
   -- The genuine result Gr ⪰ B gives the majority for B.
   have hScope := hScopes ix xs hx hix
+    ⟨Gr, (gateResultAt_eq_gateResult p c E rho hS hix).trans hG, hBG⟩
   have hconf := (fgsa_gate_raw_of_nonempty p c E rho hS hix hG).2
   have hmaj : GridCO.voterCount (GridCO.lateVotes p.toParams.engine src s) <
       2 * GridCO.goldfishScore src.blocks (GridCO.cleanSupport p.toParams.engine src s)

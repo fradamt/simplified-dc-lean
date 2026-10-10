@@ -18,37 +18,44 @@ open AvailableChain.SimplexFG Gen.Pure RetainedWalk
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- Bounded service inputs for a capped frontier cone. No retained history is inferred. -/
-structure FrontierReadScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (q : Slot) (v : Time) : Prop where
+structure FrontierReadScope (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (q : Slot) (v : Time) : Prop where
   readers : ∀ x ∈ rho.honest, confirmedReaderAtIdx p c E rho x
     (afterTicksIdx rho (SA.gateTime p.toParams q)) (SA.gateTime p.toParams q)
   seed : ∀ x ∈ rho.honest, FastSupportScope E rho q v x
   fast : ∀ w, q + 1 ≤ w → SA.gateTime p.toParams w ≤ v →
-    ∀ x ∈ rho.honest, FastSupportScope E rho w v x
+    ∀ x nd B, x ∈ rho.honest →
+    postClock E rho x (SA.gateTime p.toParams w) = some nd →
+    B ∈ (fastWriteAt nd.st w).getD [] → FastSupportScope E rho w v x
   slow : ∀ w, q + 1 ≤ w → SA.gateTime p.toParams w ≤ v →
-    ∀ x ∈ rho.honest, SlowSupportScope E rho w v x
+    E.t_GST ≤ SA.voteTime p.toParams (w + 1 - p.k) →
+    ∀ x st C B j, x ∈ rho.honest → gateIn p c E rho x w = some st →
+    gateResult p c E rho x w = some (some C) → Block.Preceq B C →
+    GridCO.slowEligible p.toParams.engine (actView st) w B = true →
+    IsGateTick p c rho j x w → SlowSupportScope E rho w v x
   prior : ∀ r, q + 1 ≤ r → SA.proposalTime p.toParams (r + 1) ≤ v →
     ∀ ip x, x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))) →
-    ProposalSupportScope E rho ip x r
+    joinedAt p E rho x (r + 1) (SA.proposalTime p.toParams (r + 1)) →
+    ProposalSupportScope E rho ip x r (SA.proposalTime p.toParams (r + 1))
   next : ∀ r, q + 1 ≤ r → SA.voteTime p.toParams (r + 1) ≤ v →
     ∀ ih y, y ∈ rho.honest →
     rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))) →
+    joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
     NextTransferScope E rho ih y r
-  carriers : ∀ r, q + 1 ≤ r → SA.voteTime p.toParams r + p.Δ ≤ v →
-    ∀ j z, z ∈ rho.honest → rho.events[j]? = some (.tick z (SA.voteTime p.toParams r)) →
-    ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ y ∈ rho.honest,
-      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams r + p.Δ) y
+  carriers : ∀ r, q + 1 ≤ r →
+    ∀ iy y t, t ≤ v → HealingCarriersAt E rho r iy y t
 
 theorem FrontierReadScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {q : Slot} {u v : Time} (h : FrontierReadScope E rho q v) (huv : u ≤ v) :
     FrontierReadScope E rho q u :=
   ⟨h.readers, fun x hx => (h.seed x hx).mono huv,
-    fun w hw ht x hx => (h.fast w hw (ht.trans huv) x hx).mono huv,
-    fun w hw ht x hx => (h.slow w hw (ht.trans huv) x hx).mono huv,
+    fun w hw ht x nd B hx hnd hB => (h.fast w hw (ht.trans huv) x nd B hx hnd hB).mono huv,
+    fun w hw ht hSync x st C B j hx hs hc hb hel hj =>
+      (h.slow w hw (ht.trans huv) hSync x st C B j hx hs hc hb hel hj).mono huv,
     fun r hr ht => h.prior r hr (ht.trans huv),
     fun r hr ht => h.next r hr (ht.trans huv),
-    fun r hr ht => h.carriers r hr (ht.trans huv)⟩
+    fun r hr iy y t ht => h.carriers r hr iy y t (ht.trans huv)⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1570–1574; plan §4 (q+1). DC: SAME grid arithmetic: a proposal at or after
@@ -284,7 +291,10 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
     · obtain ⟨nd, hnd, hB⟩ := fread_fast_write E rho hS hjt hpass hres hkey hfast
       exact frontier_fast_heads E rho hrec mono crossing lastWrite hHeight hvh hcap hgstw hgate
         hQw hz hnd hB
-        (hScopes.fast w (Nat.succ_le_of_lt hqw) hgate z0 hz) (s - 1) (Nat.le_sub_one_of_lt hws) hvs1
+        (hScopes.fast w (Nat.succ_le_of_lt hqw) hgate z0 nd row.1 hz hnd hB)
+        (healing_gate_cut_of_batch_cut E w
+          (HealingWindow.after (hGST.trans hu) (Nat.succ_le_of_lt hqw)).2)
+        (s - 1) (Nat.le_sub_one_of_lt hws) hvs1
     · obtain ⟨hin, _⟩ := healing_support_gate_reads p c E rho hS hjt
       have hgr' : gateResult p c E rho z0 w = some (some B) :=
         (gateResultAt_eq_gateResult p c E rho hS hjt).symm.trans hres
@@ -297,7 +307,10 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
           nlinarith
         exact frontier_slow_heads E rho hrec mono crossing lastWrite hHeight hvh hcap hgstw
           hgate hQw hz hgw hin hgr' hrowB hslow hjt
-          (hScopes.slow w (Nat.succ_le_of_lt hqw) hgate z0 hz)
+          (hScopes.slow w (Nat.succ_le_of_lt hqw) hgate hgw z0 _ B row.1 _
+            hz hin hgr' hrowB hslow hjt)
+          (healing_gate_cut_of_batch_cut E w
+            (HealingWindow.after (hGST.trans hu) (Nat.succ_le_of_lt hqw)).2)
           (s - 1) (Nat.le_sub_one_of_lt hws) hvs1
       · -- The slow window reaches label q: the saved q-result Q covers the target.
         obtain ⟨C, hC, hrC⟩ := healing_slow_window E rho hS hin hslow
@@ -324,8 +337,7 @@ theorem frontier_pivot_held [Fintype V] (E : Generic.Env V)
     (hrt : SA.voteTime p.toParams r + p.Δ ≤ t) (htv : t ≤ v)
     (hServices : ∀ j z, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams r)) →
-      ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ x ∈ rho.honest,
-        TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams r + p.Δ) x) :
+      HeadCarrierServices E rho j z r y) :
     Qfg ∈ (storeAt p c E rho i y).fg.TF ∧
       FGBlock.Preceq (storeAt p c E rho i y).fg.F Qfg ∧
       FGBlock.Preceq (R_at p c E rho i y).Z Qfg ∧
@@ -349,11 +361,11 @@ theorem frontier_pivot_held [Fintype V] (E : Generic.Env V)
     exact List.countP_mono_left (fun e _ he =>
       decide_eq_true ((of_decide_eq_true he).le.trans (hrt.trans htv)))
   obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay_on (hroots := hrec.base.receiptIdealization)
-    E rho crossing hE hQm hcap hy hjy (hcoverQ y hy _ hhl) hcut
+    E rho crossing hE hQm hcap hy hjy (hcoverQ y hy _ hhl) hcut hy
     (hServices jy y hy hjy)
   have hW : W ∈ (storeAt p c E rho i y).fg.TF :=
     (fgsa_store_durable p c E rho
-      (healing_support_idxBefore_le p c E rho hS hi hrt) y).1 (hrelay y hy)
+      (healing_support_idxBefore_le p c E rho hS hi hrt) y).1 (hrelay)
   have hQW : Block.Preceq (eraseFG Qfg) (eraseFG W) := hWe ▸ hcoverQ y hy _ hhl
   have hinv := cstoreInv_stateBefore E rho i y
   obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem hinv.fg.closed hW hQW
@@ -489,12 +501,16 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
     push_cast
     linarith
   -- The pivot is held at both reads.
+  have hCut : HealingWindow p E 1 r :=
+    HealingWindow.after (hGST.trans hu) (Nat.le_of_succ_le_succ hqs)
   obtain ⟨_, _, hZx, hlox⟩ := frontier_pivot_held E rho hrec crossing hHeight hHorizon hcap
     hgstr hcovQ hx hip hrp hts
-    (hScopes.carriers r (Nat.le_of_succ_le_succ hqs) (hrp.trans hts))
+    (healing_carriers_window_at p c E rho hrec hCut
+      (hScopes.carriers r (Nat.le_of_succ_le_succ hqs) ip x _ hts) hx hip hrp)
   obtain ⟨_, _, hZy, hloy⟩ := frontier_pivot_held E rho hrec crossing hHeight hHorizon hcap
     hgstr hcovQ hy hih (hrp.trans htv) hvs
-    (hScopes.carriers r (Nat.le_of_succ_le_succ hqs) (hrp.trans hts))
+    (healing_carriers_window_at p c E rho hrec hCut
+      (hScopes.carriers r (Nat.le_of_succ_le_succ hqs) ih y _ hvs) hy hih (hrp.trans htv))
   have hcs : controls p (clock p (rho.stateBefore E ip x).st
       (SA.proposalTime p.toParams (r + 1))) = R_at p c E rho ip x := repair_controls_clock _ _
   have hcd : controls p (clock p (rho.stateBefore E ih y).st
@@ -514,9 +530,10 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
     fun z hz K hK => Gen.Pure.block_preceq_trans hL (hcovQ z hz K hK)
   have hprior {L : Block}
       (hL : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K → Block.Preceq L K) :=
-    frontier_prior_support E rho hrec.toRecovery₂ crossing hHeight hHorizon hcap hgstr hcovQ
+    frontier_prior_support E rho hrec crossing hHeight hHorizon hcap hgstr hcovQ
       hL hx hip
-      (hScopes.prior r (Nat.le_of_succ_le_succ hqs) hts ip x hx hip) hts
+      (hScopes.prior r (Nat.le_of_succ_le_succ hqs) hts ip x hx hip
+        (healing_recovery_joined_proposal_next E rho hrec hCut hx hip)) hCut hts
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
   · -- proposer_prior
     rcases repair_liveRoot_cases (clock p (rho.stateBefore E ip x).st
@@ -552,8 +569,9 @@ theorem retainedHG1Input_through [Fintype V] (E : Generic.Env V)
       rcases hL with rfl | rfl
       · exact hzsrc
       · exact Gen.Pure.block_preceq_refl _
-    exact frontier_target_scores E rho hrec.toRecovery₂ crossing hHeight hHorizon hcap hgstr hcovQ
-      (hcovL hLQ) hy hih (hScopes.next r (Nat.le_of_succ_le_succ hqs) hvs ih y hy hih) hvs
+    exact frontier_target_scores E rho hrec crossing hHeight hHorizon hcap hgstr hcovQ
+      (hcovL hLQ) hy hih (hScopes.next r (Nat.le_of_succ_le_succ hqs) hvs ih y hy hih
+        (healing_recovery_joined_vote_next E rho hrec hCut hy hih)) hCut hvs
 
 set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

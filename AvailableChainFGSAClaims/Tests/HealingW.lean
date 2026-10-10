@@ -171,24 +171,16 @@ example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (h : ResetArrivalStatement smokeParams 4 6)
     (prem : ResetArrivalPrem smokeParams c 4 6 E rho ()) :
     ∃ w, H0Reset smokeParams c E rho w ∧
-      smokeParams.actionTime w.rStar < E.t_GST + B'_resetF smokeParams 6 4 :=
-  h (by decide) c E rho prem.set prem.bound (by
-    have ht := smoke_recoveryStart_ge E
-    have hh := prem.hhor
-    dsimp [Time] at ht hh ⊢
-    omega)
+      smokeParams.actionTime w.rStar < recoveryStart smokeParams E + B'_resetF smokeParams 6 4 :=
+  h (by decide) c E rho prem.set prem.bound prem.hhor
 
 example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa smokeParams c))
     (h : ResetArrivalFullStatement smokeParams 4 6)
     (prem : ResetArrivalFullPrem smokeParams c 4 6 E rho ()) :
     ∃ w, H0 smokeParams c E rho w ∧
-      smokeParams.actionTime w.rStar < E.t_GST + B'_resetF smokeParams 6 4 :=
-  h (by decide) c E rho prem.set prem.bound (by
-    have ht := smoke_recoveryStart_ge E
-    have hh := prem.hhor
-    dsimp [Time] at ht hh ⊢
-    omega)
+      smokeParams.actionTime w.rStar < recoveryStart smokeParams E + B'_resetF smokeParams 6 4 :=
+  h (by decide) c E rho prem.set prem.bound prem.hhor
 
 -- The attempt contract consumes the horizon after the actual start event.
 example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
