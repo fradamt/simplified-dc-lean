@@ -1,7 +1,8 @@
-# P-H1 Round 10 CLOSED for P1-P10 and universal TPerm production.
-# Four complete adversarial replay fixtures retain exact OPEN/P-H1 obligations.
+# P-H1 Round 11: production CLOSED; phase-local adapters and handler replays checked.
+# Four full ExecutionValid certificates retain exact OPEN/P-H1 obligations.
+# HealingReplayObligations names their goals; local handler folds are GREEN.
 # H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
-# 118 TARGETS; 567 GREEN; 19 EXPECTED-FAIL.
+# 123 TARGETS; 572 GREEN; 19 EXPECTED-FAIL.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
 AvailableChainFGSAProofs.Tests.HealingRecoveryProducersAxioms
@@ -121,6 +122,12 @@ AvailableChainFGSAProofs.Tests.HealingHeadCap
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
 AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
 AvailableChainFGSAProofs.Tests.HealingRecoveryPermAxioms
+
+AvailableChainFGSAProofs.Tests.HealingStaleLeaseReplay
+AvailableChainFGSAProofs.Tests.HealingSlowLeaseReplay
+AvailableChainFGSAProofs.Tests.HealingSplitBatchReplay
+AvailableChainFGSAProofs.Proofs.Healing.RegressionFixture
+AvailableChainFGSAProofs.Tests.HealingReplayObligations
 
 [GREEN]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
@@ -690,6 +697,12 @@ AvailableChainFGSAProofs.Tests.HealingHeadCap
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
 AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
 AvailableChainFGSAProofs.Tests.HealingRecoveryPermAxioms
+
+AvailableChainFGSAProofs.Tests.HealingStaleLeaseReplay
+AvailableChainFGSAProofs.Tests.HealingSlowLeaseReplay
+AvailableChainFGSAProofs.Tests.HealingSplitBatchReplay
+AvailableChainFGSAProofs.Proofs.Healing.RegressionFixture
+AvailableChainFGSAProofs.Tests.HealingReplayObligations
 
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs P-As

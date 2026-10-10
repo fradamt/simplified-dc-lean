@@ -1124,9 +1124,10 @@ Jst, with no phase-service callback. P-As supplies fgsa_rMonoAll, fgsa_rXing and
 fgsa_leaseOrigins_lastWrite across the existing Foundation boundary. No new
 public Claims premise, deadline, constant, or early-case producer is added.
 Healing/RepairLeaseRecovery supplies repair_lease_cover_two_at and
-repair_lease_cover_one_at with P-H2's exact phase-service signatures. They use
-the proved universal recovery producer, so the matching local P5 input is
-redundant proof data. P-H2 can import this module without a new assumed supplier.
+repair_lease_cover_one_at with P-H2's exact phase-service signatures. Round 11
+uses the matching P5 record through healing_tPerm_at. A private last-write split
+proves expiry for old rows and phase-local Transfers for later rows. Neither
+adapter needs a whole-run TPerm step. P-H2 owns its caller imports.
 The N4 adapter healing_ready_batch_release_compat_recovery constructs its first
 and gate scopes. A later full batch releases incompatible leases of every age;
 there is no bound on k and no claim that Jst expires every earlier lease.
@@ -1134,3 +1135,19 @@ Tests/HealingRecoveryPermAxioms audits the new producers. The actual finite
 NonVacuity/HealingRun fixture has nvPerm from the universal producer and named
 Foundations. The four complete adversarial replays still have exact P-H1
 obligations; local handlers and clock regressions are not execution certificates.
+
+P-H1 Round 11 regression boundary:
+Tests/HealingStaleLeaseReplay checks actual process/clock/acRestart folds for k=3
+and k=4. It checks the retained old lease and failed HEAD, parent and S reads.
+Tests/HealingSlowLeaseReplay admits parent-first height certificates through
+handlers, then checks the saved B result, incompatible joined HEAD and slow write.
+Tests/HealingSplitBatchReplay admits the contested height-3 certificate prefix.
+It checks the strict WB stamps, 2/3 joined batch, release count 3<4, live B root
+at proposal 254 and expiry before the incompatible label-254 HEAD.
+Healing/RegressionFixture holds the common data and local handler folds. It has
+no service producer or full-run certificate. The tests import this P-H1 module.
+These are local folds, not full ExecutionValid or signature-origin certificates.
+Tests/HealingReplayObligations names the exact remaining full-run existential
+goals, including same-prefix extensions to horizons 2070 and 2080. Those goals
+remain OPEN/P-H1. NonVacuity/HealingRun applies both local adapters to the actual
+positive horizon-310 RecoverySleep₂ execution with produced P5 services.
