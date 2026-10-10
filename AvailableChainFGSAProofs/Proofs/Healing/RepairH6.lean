@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
-public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
 
 public section
@@ -550,7 +550,7 @@ ROOT-DIGEST W2b. Blueprint 21:915–963 (H.6 exact HEAD); plan H-REPAIR steps 6�
 DC: INTENTIONAL the repaired-slot unanimous HEAD. Under the lease cover of the preceding
 honest batch, the retained H.6 input holds at every honest reader, so the Shared retained
 exact-head supplier gives the honest proposal as every honest label-(r + 1) HEAD. -/
-theorem repair_head_exact [Fintype V] (E : Generic.Env V)
+theorem repair_head_exact_legacy [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (mono : RMono p c E rho) (crossing : RXing p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -759,7 +759,8 @@ theorem repair_head_two [Fintype V] (E : Generic.Env V)
     ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q := by
   obtain ⟨r, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero
     (Nat.ne_zero_of_lt (repair_slot_lt_of_time hls))
-  exact repair_head_exact E rho hrec mono crossing hgst hphase (repair_head_after_two hβ hls) hvs
+  exact repair_head_exact_legacy E rho hrec mono crossing hgst hphase
+    (repair_head_after_two hβ hls) hvs
     (repair_lease_cover_two E rho hrec mono crossing writes hgst hphase hβ hls hvs) hp
 
 end AvailableChain.FGSA.Run
