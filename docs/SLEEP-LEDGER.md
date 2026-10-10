@@ -7018,3 +7018,12 @@ audit: 313 standard-axiom results. Exact original solved contracts are proved in
 .lake/sleep-pou-r12/Contracts.lean. No protocol, public claim or Healing change.
 Handoff: scripts/dev-pkg/P-Ou.round12-handoff.md, with the current scope table.
 Report: claude-files/sleep-pou-report.md, Round 12. No public STOP.
+
+### P-Ou Round 13 — actual W gate lease input
+
+ScopedCatchUp proves outage_caught_up_gate_rows at each actual enabled gate
+with s >= restoredLabel(b1) + k. Old incompatible rows expire by handover;
+later enabled results come from the scoped event producer. No future cut,
+all-honest join or pre-GST service is required. OutageWSeed records the exact
+unchanged O11-W-SEED goal. This goal is still OPEN, P-Ou; the row proof does
+not prove stable compatibility at j+1. Build evidence: .lake/sleep-pou-r13/w-rows-tests.log.
