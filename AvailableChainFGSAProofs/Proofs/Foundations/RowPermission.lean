@@ -12,6 +12,62 @@ open AvailableChain.SimplexFG
 
 variable {p : Params}
 
+/-- Recovery enables a gate and makes its post-tick read a confirmed reader. -/
+theorem rowPermission_confirmedReader_gate {V : Type} [DecidableEq V] [Fintype V]
+    {p : Params} {In : Type} {c : AppCodec In} {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {G ΔF : Time}
+    (h : RecoverySleep₂ p c E rho G ΔF) (x : V) (hx : x ∈ rho.honest) (s : Slot)
+    (hGST : E.t_GST ≤ slotStartZ p (s : Int))
+    (hhor : SA.gateTime p.toParams s ≤ rho.horizon) :
+    confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams s))
+      (SA.gateTime p.toParams s) := by
+  let t := SA.gateTime p.toParams s
+  have hbt : slotStartZ p (s : Int) ≤ t := by
+    change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    have := p.deltaPos
+    linarith
+  have ht0 : 0 ≤ t := by
+    change 0 ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    have := p.deltaPos
+    positivity
+  have hpub : V2.PublicTime E t := by
+    refine ⟨4 * s + 6, ?_⟩
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ = ((4 * s + 6 : Nat) : Int) * E.Δ
+    rw [h.base.delta]
+    push_cast
+    ring
+  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp (h.base.valid.tick_total x hx t hpub ht0 hhor
+    (h.awake x hx t (hGST.trans hbt) hhor))
+  have hbound (i : Nat) := fgsa_restartTime_bound E rho i x E.t_GST (by
+    intro k w _ he
+    by_contra hn
+    have hh := (h.base.valid.in_horizon _ (List.mem_of_getElem? he)).2
+    change w ≤ rho.horizon at hh
+    exact h.suffixNoRestart x hx k w he (lt_of_not_ge hn)
+      (hh.trans_lt (lt_add_of_pos_right _ (by decide))))
+  have hen : enabledGateAt p c E rho j x s := by
+    refine ⟨hj, ?_⟩
+    cases hr : (storeAt p c E rho j x).restartTime with
+    | none => trivial
+    | some w => exact (hbound j w hr).trans hGST
+  have hjcut : j < afterTicksIdx rho t := by
+    by_contra hn
+    have hf := V2.D.Engine.filter_false_of_index_ge h.base.valid.toScheduleWellFormed
+      (cutPred t) (fun e f hk hh => decide_eq_true (hk.trans (of_decide_eq_true hh)))
+      (Nat.le_of_not_gt hn) hj
+    exact Bool.noConfusion (hf.symm.trans (decide_eq_true le_rfl))
+  refine ⟨hx, h.awake x hx t (hGST.trans hbt) hhor, ?_⟩
+  cases hr : (storeAt p c E rho (afterTicksIdx rho t) x).restartTime with
+  | none => trivial
+  | some w =>
+    refine ⟨s, j, (hbound _ w hr).trans hGST, le_rfl, hjcut, hen, ?_, ?_⟩
+    · intro u _ hsu hut
+      exact h.awake x hx u (hGST.trans hsu) (hut.trans hhor)
+    · intro u hsu hut hm
+      obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp hm
+      exact h.suffixNoRestart x hx k u hk (hGST.trans_lt hsu)
+        ((hut.trans hhor).trans_lt (lt_add_of_pos_right _ (by decide)))
+
 private theorem rowPermission_noEvidence_mono
     {A B A' B' : Finset (Row (Fin p.n))}
     (hA : A ⊆ A') (hB : B ⊆ B')
@@ -209,7 +265,7 @@ private theorem rowPermission_released_origin (i : Nat) (x : V)
   · cases hm
 
 private theorem rowPermission_record_carrier
-    (hnr : V2.D.NoRestart rho) (i : Nat) (x : V) (h : Height) (T : BlockId)
+    (i : Nat) (x : V) (h : Height) (T : BlockId)
     (hl : (V2.D.Run.stateBefore E rho i x).record.lock h = some T) :
     ∃ K ∈ (storeAt p c E rho i x).fg.TF,
       (heightView p K).h_j = h ∧ (heightView p K).J.root = T := by
@@ -232,7 +288,7 @@ private theorem rowPermission_record_carrier
     (cstoreInv_clock p _ (cstoreInv_stateBefore E rho j x) _) Λ.toRecord ⟨h, T⟩ hfinal
   change K ∈ (FGSA.clock p _ _).fg.TF at hK
   rw [FGSA.clock_fg] at hK
-  exact ⟨K, (fgsa_store_cumulative p c E rho hnr hji.le x).1 hK, hk, ht⟩
+  exact ⟨K, (fgsa_store_durable p c E rho hji.le x).1 hK, hk, ht⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 IF.3(b), blueprint 21:1115–1137: the actual post-clock lock cannot name
@@ -283,7 +339,7 @@ theorem rowPermission_own_lock [Fintype V]
       have hcarr : ∃ K ∈ st.fg.TF, (heightView p K).h_j = (heightView p C).h ∧
           (heightView p K).J.root = T := by
         have old (hl : Λ.lock ((heightView p C).h) = some T) :=
-          rowPermission_record_carrier E rho hb.noRestart i x ((heightView p C).h) T hl
+          rowPermission_record_carrier E rho i x ((heightView p C).h) T hl
         cases hp : finality_pair Λ.toRecord (fgInputs p st).2 with
         | none =>
           obtain ⟨K, hK, hk, ht⟩ := old (by simpa only [own_lock, hp] using hl)

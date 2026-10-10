@@ -13,7 +13,7 @@ set_option linter.unusedVariables false in
 DC DecoupledConsensusInternal/Legacy/Definitions/FinalitySafety.lean:83
 (WholeRunFinalitySafety); stored non-genesis blocks are run blocks.
 The frozen hx and hy binders are unused: reachable stores at any node suffice.
-Local F only extends by fgsa_rMono under NoRestart. -/
+Local F extends through the retained FG store at a restart. -/
 theorem fgsa_finalizedSafety (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {Pt : Type} {pt : Pt} (hp : FinalizedSafetyPrem p c E rho pt)
@@ -27,7 +27,7 @@ theorem fgsa_finalizedSafety (p : Params) {In V : Type} [DecidableEq V] [Fintype
 /-- DC DecoupledConsensusStatements/Generic/Claims.lean:61 (finalizedMonotone),
 from DecoupledConsensusProofs/Protocol/Handlers/FinalityMonotoneCore.lean:277
 (stateBefore_F_mono). Sorted inclusive time reads inherit event-prefix order.
-Motivated divergence: FG-SA restore resets F to genesis, so NoRestart is required;
+The legacy interface keeps its NoRestart premise; restore now keeps F;
 DC's world events have no restart constructor. No fault or signature premise. -/
 theorem fgsa_finalizedMonotone (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -37,6 +37,15 @@ theorem fgsa_finalizedMonotone (p : Params) {In V : Type} [DecidableEq V]
       Block.Preceq (finalizedOut (V2.D.Run.readAt E rho t x))
         (finalizedOut (V2.D.Run.readAt E rho t' x)) :=
   fgsa_bridge_finalizedMonotone p c E rho hs hnr
+
+/-- Finalized output is monotone across retained-store restarts. -/
+theorem fgsa_finalizedMonotone_restart (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : rho.events.Pairwise (fun a b => a.key ≤ b.key)) :
+    ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →
+      Block.Preceq (finalizedOut (V2.D.Run.readAt E rho t x))
+        (finalizedOut (V2.D.Run.readAt E rho t' x)) :=
+  fgsa_bridge_finalizedMonotone_restart p c E rho hs
 
 end AvailableChain.FGSA.Run
 end

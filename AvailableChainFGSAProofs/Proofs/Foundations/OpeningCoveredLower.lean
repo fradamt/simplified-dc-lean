@@ -29,7 +29,9 @@ theorem openingCovered_lower_gate (G ΔF : Time) (h : HealingPrem p c G ΔF E rh
     have := p.deltaPos
     linarith
   intro x hx
-  have hs := (hservice.2 hphase.2.1 x hx).2.2.2.2 r rfl
+  have hreader := rowPermission_confirmedReader_gate h.set x hx (r * p.R)
+    (hGST.trans hu) hphase.2.1
+  have hs := (hservice.2 hphase.2.1 x hx hreader).2.2.2.2 r rfl
   change (actionSourceFG p c E rho x r).map (Option.map eraseFG) = some (some Q) at hs
   obtain ⟨src, hsrc, he⟩ := Option.map_eq_some_iff.mp hs
   obtain ⟨K, hKsrc, hKe⟩ := Option.map_eq_some_iff.mp he

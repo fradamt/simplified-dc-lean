@@ -4,6 +4,7 @@ public import AvailableChainFGSA.Proofs.LeaseOutput
 public import AvailableChainFGSARun.Proofs.AncestorDeadlines
 public import AvailableChainGeneric.Proofs.V2.Duty.BaseTransport
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 
 -- ROOT-DIGEST-2: private matcher copy; equality is checked by the kernel (BUILD B3).
 namespace AvailableChain.FGSA
@@ -36,6 +37,20 @@ namespace AvailableChain.FGSA.Run
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
+private theorem storedTargetsBelowOutput_restart (st : State p.n) (w : Time)
+    (hr : Reachable p st) (h : StoredTargetsBelowOutput p st) :
+    StoredTargetsBelowOutput p (acRestart p st w) := by
+  have hfold (rows : List (Wire p.n)) (a : State p.n) (ha : Reachable p a)
+      (hb : StoredTargetsBelowOutput p a) :
+      StoredTargetsBelowOutput p (rows.foldl (process p) a) := by
+    induction rows generalizing a with
+    | nil => exact hb
+    | cons o rows ih =>
+      exact ih (process p a o) (Reachable.deliver o ha)
+        (storedTargetsBelowOutput_process p a o (storeBundle_of_reachable p a ha).cstore hb)
+  exact hfold (restartVotes p st) (wipe p st w) (Reachable.restart w hr)
+    (storedTargetsBelowOutput_wipe p st w h)
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 All stored targets, including due rows, are below the current output.
 Gen E-10 `invariant_triple` lifts the E-11 store preservation lemmas.
@@ -53,15 +68,15 @@ theorem fgsa_storedTargetsBelowOutput (i : Nat) (x : V) :
       storedTargetsBelowOutput_process p nd.st (toWire p o)
         (storeBundle_of_reachable p nd.st h.1).cstore h.2⟩)
     (fun _ _ h => h)
-    (fun nd _ => ⟨Reachable.reset nd.st.base.now,
-      storedTargetsBelowOutput_initialAt p nd.st.base.now⟩)
+    (fun (nd : Node p) w h => ⟨fgsa_restore_reachable p c nd w h.1,
+      storedTargetsBelowOutput_restart p nd.st w h.1 h.2⟩)
     E rho i x
   exact h.2
 
 private def leaseSource (st : State p.n) (t : Time) (row : Block × Nat × Time) : Prop :=
   ∃ s B, t = SA.gateTime p.toParams s ∧
     let pre := clockPre p st t
-    GridCO.savedGenuine pre.base s = none ∧
+    joinedNow p pre = true ∧ GridCO.savedGenuine pre.base s = none ∧
     SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s = some B ∧
     (actView pre).obligations.any (fun r => !Block.compatible r.1 B) = false ∧
     Block.Preceq row.1 B ∧
@@ -132,42 +147,48 @@ private theorem leaseRows_clock (st : State p.n) (t : Time) (row : Block × Nat 
       rw [gateStep_saved p pre s (by rw [hs]; rfl), normalizeS_fields] at hm
       exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
     | none =>
-      have he : (gateStep p pre s).base.obligations =
-          (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s).obligations := by
-        unfold gateStep
-        rw [normalizeS_fields]
-        simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false]
-        rfl
-      rw [he] at hm
-      cases hc : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s with
-      | none =>
-        unfold SA.Root.gateFrom GridCO.gateFrom at hm
-        rw [show GridCO.confirmationFrom p.toParams.engine
-          (eraseFG pre.fg.F) (actView pre) s = none from hc] at hm
+      cases hj : joinedNow p pre with
+      | false =>
+        rw [(gateStep_unjoined_eq p pre s hs hj), normalizeS_fields] at hm
         exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
-      | some B =>
-        cases hg : (actView pre).obligations.any (fun r => !Block.compatible r.1 B) with
-        | true =>
+      | true =>
+        have he : (gateStep p pre s).base.obligations =
+            (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s).obligations := by
+          unfold gateStep
+          rw [normalizeS_fields]
+          simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false, hj,
+            Bool.not_true]
+          rfl
+        rw [he] at hm
+        cases hc : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s with
+        | none =>
           unfold SA.Root.gateFrom GridCO.gateFrom at hm
           rw [show GridCO.confirmationFrom p.toParams.engine
-            (eraseFG pre.fg.F) (actView pre) s = some B from hc] at hm
-          dsimp only at hm
-          rw [hg, ite_eq_left rfl] at hm
+            (eraseFG pre.fg.F) (actView pre) s = none from hc] at hm
           exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
-        | false =>
-          have he := @gateFrom_eq_writeKeys_fgsa p.toParams p.n
-            (eraseFG pre.fg.F) (actView pre) s B hc hg
-          change SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s = _ at he
-          rw [he] at hm
-          rcases writeKeys_row_cases _ _ _ row hm with hold | ⟨hk, hd⟩
-          · exact Or.inl ((clockPre_obligations_sublist p st t).subset hold)
-          · have hkey := hk
-            obtain ⟨A, hA, hmap⟩ := List.mem_flatMap.mp hk
-            obtain ⟨g, _, heq⟩ := List.mem_map.mp hmap
-            have hAB : A = row.1 := congrArg Prod.fst heq
-            have hpre := (Bool.and_eq_true_iff.mp (List.mem_filter.mp hA).2).2
-            rw [hAB] at hpre
-            exact Or.inr ⟨s, B, htime, hs, hc, hg, hpre, hkey, hd⟩
+        | some B =>
+          cases hg : (actView pre).obligations.any (fun r => !Block.compatible r.1 B) with
+          | true =>
+            unfold SA.Root.gateFrom GridCO.gateFrom at hm
+            rw [show GridCO.confirmationFrom p.toParams.engine
+              (eraseFG pre.fg.F) (actView pre) s = some B from hc] at hm
+            dsimp only at hm
+            rw [hg, ite_eq_left rfl] at hm
+            exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
+          | false =>
+            have he := @gateFrom_eq_writeKeys_fgsa p.toParams p.n
+              (eraseFG pre.fg.F) (actView pre) s B hc hg
+            change SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s = _ at he
+            rw [he] at hm
+            rcases writeKeys_row_cases _ _ _ row hm with hold | ⟨hk, hd⟩
+            · exact Or.inl ((clockPre_obligations_sublist p st t).subset hold)
+            · have hkey := hk
+              obtain ⟨A, hA, hmap⟩ := List.mem_flatMap.mp hk
+              obtain ⟨g, _, heq⟩ := List.mem_map.mp hmap
+              have hAB : A = row.1 := congrArg Prod.fst heq
+              have hpre := (Bool.and_eq_true_iff.mp (List.mem_filter.mp hA).2).2
+              rw [hAB] at hpre
+              exact Or.inr ⟨s, B, htime, hj, hs, hc, hg, hpre, hkey, hd⟩
   · exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
 
 private def fastPairs (st : State p.n) : List (Slot × Block) :=
@@ -230,7 +251,7 @@ private theorem fastPairs_process (st : State p.n) (o : Wire p.n) :
 private def fastSource (st : State p.n) (t : Time) (pair : Slot × Block) : Prop :=
   t = SA.gateTime p.toParams pair.1 ∧
     let pre := clockPre p st t
-    GridCO.savedGenuine pre.base pair.1 = none ∧
+    joinedNow p pre = true ∧ GridCO.savedGenuine pre.base pair.1 = none ∧
     ∃ B, SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) pair.1 = some B ∧
       (actView pre).obligations.any (fun r => !Block.compatible r.1 B) = false ∧
       Block.Preceq pair.2 B ∧
@@ -259,25 +280,34 @@ private theorem fastPairs_clock (st : State p.n) (t : Time) (pair : Slot × Bloc
       exact Or.inl (hpre ▸ hm)
     | none =>
       change pair ∈ (gateStep p pre s).fastWrite.flatMap _ at hm
-      rw [(gateStep_fresh p pre s hs).2.2, List.flatMap_append, List.mem_append] at hm
-      rcases hm with hold | hnew
-      · exact Or.inl (hpre ▸ hold)
-      · have hm : pair ∈ (fastSet p (eraseFG pre.fg.F) (actView pre) s).map
-            (fun B => (s, B)) := by
-          simpa only [List.flatMap_cons, List.flatMap_nil, List.append_nil] using hnew
-        obtain ⟨X, hX, rfl⟩ := List.mem_map.mp hm
-        obtain ⟨B, hc, hp, _, _⟩ := fastSet_prefix p _ _ _ hX
-        have hfast : (actView pre).obligations.any (fun r => !Block.compatible r.1 B) = false ∧
-            SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams (actView pre) s X
-                := by
-          unfold fastSet at hX
-          simp only [hc] at hX
-          split at hX
-          · exact (List.not_mem_nil hX).elim
-          · rename_i hg
-            exact ⟨Bool.eq_false_iff.mpr hg,
-              of_decide_eq_true (Bool.and_eq_true_iff.mp (List.mem_filter.mp hX).2).2⟩
-        exact Or.inr ⟨htime, hs, B, hc, hfast.1, hp, hfast.2⟩
+      cases hj : joinedNow p pre with
+      | false =>
+        rw [(gateStep_unjoined_eq p pre s hs hj), normalizeS_fields] at hm
+        have hold : pair ∈ fastPairs p pre := by
+          change pair ∈ pre.fastWrite.flatMap (fun row => row.2.map (fun B => (row.1, B)))
+          simpa only [List.flatMap_append, List.flatMap_cons, List.flatMap_nil,
+            List.map_nil, List.nil_append, List.append_nil] using hm
+        exact Or.inl (hpre ▸ hold)
+      | true =>
+        rw [(gateStep_fresh p pre s hs hj).2.2, List.flatMap_append, List.mem_append] at hm
+        rcases hm with hold | hnew
+        · exact Or.inl (hpre ▸ hold)
+        · have hm : pair ∈ (fastSet p (eraseFG pre.fg.F) (actView pre) s).map
+              (fun B => (s, B)) := by
+            simpa only [List.flatMap_cons, List.flatMap_nil, List.append_nil] using hnew
+          obtain ⟨X, hX, rfl⟩ := List.mem_map.mp hm
+          obtain ⟨B, hc, hp, _, _⟩ := fastSet_prefix p _ _ _ hX
+          have hfast : (actView pre).obligations.any (fun r => !Block.compatible r.1 B) = false ∧
+              SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams (actView pre) s X
+                  := by
+            unfold fastSet at hX
+            simp only [hc] at hX
+            split at hX
+            · exact (List.not_mem_nil hX).elim
+            · rename_i hg
+              exact ⟨Bool.eq_false_iff.mpr hg,
+                of_decide_eq_true (Bool.and_eq_true_iff.mp (List.mem_filter.mp hX).2).2⟩
+          exact Or.inr ⟨htime, hj, hs, B, hc, hfast.1, hp, hfast.2⟩
   · exact Or.inl (hpre ▸ hm)
 
 private theorem leaseGate_label (s : Slot) :
@@ -288,8 +318,28 @@ private theorem leaseGate_label (s : Slot) :
   have hDelta : (0 : Int) < p.Δ := p.deltaPos
   rw [he, Int.mul_ediv_cancel_left _ (by omega), Int.toNat_natCast]
 
+private theorem leaseGate_guard (c : AppCodec In) (st : State p.n) (s : Slot)
+    (hj : joinedNow p (clockPre p st (SA.gateTime p.toParams s)) = true) :
+    match st.restartTime with
+    | none => True
+    | some w => w ≤ 4 * p.Δ * (s : Int) := by
+  have hslot : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+    (fgsa_postClock_slot (c := c) (⟨st, SimplexFG.RecordOnce.initial⟩ : Node p) _).2.symm.trans
+      (fgsa_gate_slot (c := c) (⟨st, SimplexFG.RecordOnce.initial⟩ : Node p) s)
+  rw [clockPre_joined] at hj
+  cases hr : st.restartTime with
+  | none => trivial
+  | some w =>
+    rw [hr] at hj
+    change decide (w ≤ 4 * p.Δ *
+      ((p.slotOf (SA.gateTime p.toParams s) : Int) - 1)) = true at hj
+    simpa only [hslot, Nat.cast_add, Nat.cast_one, add_sub_cancel_right,
+      decide_eq_true_eq] using hj
+
 private theorem leaseGate_result {j : Nat} {x : V} {s : Slot} {B : Block}
     (ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hj : joinedNow p (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams s)) = true)
     (hc : SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (V2.D.Run.stateBefore E rho j x).st (SA.gateTime p.toParams s)).fg.F)
       (actView (clockPre p (V2.D.Run.stateBefore E rho j x).st
@@ -300,7 +350,18 @@ private theorem leaseGate_result {j : Nat} {x : V} {s : Slot} {B : Block}
   dsimp only
   have htest := (isGateTime_iff p (SA.gateTime p.toParams s)).mpr ⟨s, rfl⟩
   rw [htest, ite_eq_left rfl]
-  rw [leaseGate_label p s, hc]
+  rw [leaseGate_label p s]
+  have hguard := leaseGate_guard p c (storeAt p c E rho j x) s hj
+  have hmarker : (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams s)).restartTime = (storeAt p c E rho j x).restartTime := by
+    dsimp only [clockPre]
+    split_ifs <;> rfl
+  dsimp only [storeAt] at hmarker hguard
+  have hpreGuard : match (clockPre p (V2.D.Run.stateBefore E rho j x).st
+      (SA.gateTime p.toParams s)).restartTime with
+    | none => True
+    | some w => w ≤ 4 * p.Δ * (s : Int) := hmarker.symm ▸ hguard
+  exact congrArg some ((ite_eq_left hpreGuard).trans hc)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 IF.1 deadline source. The same exact row has an actual passed gate write
@@ -315,18 +376,20 @@ theorem fgsa_leaseOrigins_writeLabel
         (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) := by
-  obtain ⟨j, hj, t, ht, s, B, htime, hn, hc, hg, hp, hkey, hd⟩ :=
+  obtain ⟨j, hj, t, ht, s, B, htime, hjoin, hn, hc, hg, hp, hkey, hd⟩ :=
     V2.D.Engine.clock_field_origin_of_subset (P := fgsa p c)
       (fun nd => nd.st.base.obligations) rfl
       (fun nd o a ha => leaseRows_process p nd.st (toWire p o) ha)
       (fun _ _ _ h => h)
-        (fgsa_hrestore_field_retained p c (fun st => st.base.obligations) (fun _ => rfl))
+        (fgsa_hrestore_field_retained p c (fun st => st.base.obligations) (fun st w => by
+          rw [acRestart_obligations]))
       (fun nd t row => leaseSource p nd.st t row)
       (fun nd t row hm => leaseRows_clock p nd.st t row hm) E rho i x row hr
   subst t
   have hit : IsGateTick p c rho j x s := ht
-  have hpassed : gatePassedAt p c E rho j := ⟨x, s, hit, hn, B, hc, hg⟩
-  have hresult := leaseGate_result p c E rho ht hc
+  have hpassed : gatePassedAt p c E rho j :=
+    ⟨x, s, ⟨hit, leaseGate_guard p c _ s hjoin⟩, hn, B, hc, hg⟩
+  have hresult := leaseGate_result p c E rho ht hjoin hc
   refine ⟨j, hj, s, B, hit, hpassed, hresult, hp, hkey, hd, ?_⟩
   rw [hd]
   change 4 * p.Δ * (s : Int) + 6 * p.Δ + (4 * (p.k : Int) - 1) * p.Δ =
@@ -337,6 +400,8 @@ theorem fgsa_leaseOrigins_writeLabel
 private theorem leaseGate_written (hs : V2.D.ScheduleWellFormed E rho)
     {j : Nat} {x : V} {s : Slot} {K B : Block} {g : Nat}
     (ht : IsGateTick p c rho j x s)
+    (hj : joinedNow p (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams s)) = true)
     (hn : GridCO.savedGenuine (clockPre p (storeAt p c E rho j x)
       (SA.gateTime p.toParams s)).base s = none)
     (hc : SA.Root.confirmationFrom p.toParams
@@ -376,9 +441,10 @@ private theorem leaseGate_written (hs : V2.D.ScheduleWellFormed E rho)
     else pre).base.obligations
   rw [htime, ite_eq_left rfl, leaseGate_label p s]
   change GridCO.savedGenuine pre.base s = none at hn
+  have hjoined : joinedNow p pre = true := hj
   unfold gateStep
   rw [normalizeS_fields]
-  simp only [hn, Option.isSome_none, Bool.false_eq_true, ite_false]
+  simp only [hn, Option.isSome_none, Bool.false_eq_true, ite_false, hjoined, Bool.not_true]
   exact hm
 
 private theorem leaseRows_lowerBound (hs : V2.D.ScheduleWellFormed E rho)
@@ -405,8 +471,10 @@ private theorem leaseRows_lowerBound (hs : V2.D.ScheduleWellFormed E rho)
     change y = x at hv
     subst y
     simp only [V2.D.World.step, Function.update_self]
-    intro row hr
-    exact (List.not_mem_nil hr).elim
+    intro row hr hK
+    change row ∈ (acRestart p _ t).base.obligations at hr
+    rw [acRestart_obligations] at hr
+    exact hQ row hr hK
   | deliver y o t =>
     change y = x at hv
     subst y
@@ -419,7 +487,7 @@ private theorem leaseRows_lowerBound (hs : V2.D.ScheduleWellFormed E rho)
     simp only [V2.D.World.step, Function.update_self]
     intro row hr hK
     rw [tick_st (c := c) E rho (V2.D.Run.stateBefore E rho k x) x t] at hr
-    rcases leaseRows_clock p _ t row hr with hold | ⟨w, C, htime, _, _, _, _, _, hd⟩
+    rcases leaseRows_clock p _ t row hr with hold | ⟨w, C, htime, _, _, _, _, _, _, hd⟩
     · exact hQ row hold hK
     · have htime' := fgsa_tick_time_strict E rho hs ht he (by omega)
       rw [hlimit, hd]
@@ -440,7 +508,7 @@ theorem fgsa_leaseOrigins_lastWrite (hs : V2.D.ScheduleWellFormed E rho)
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
       ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
-        GridCO.savedGenuine pre.base w = none →
+        joinedNow p pre = true → GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
         (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
         (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
@@ -450,8 +518,8 @@ theorem fgsa_leaseOrigins_lastWrite (hs : V2.D.ScheduleWellFormed E rho)
   refine ⟨j, hj, s, B, ht, hp, hc, hB, hkey, hd, hq, ?_⟩
   intro k w C hjk hki htk
   dsimp only
-  intro hn hconf hg hkey'
-  have hw := leaseGate_written p c E rho hs htk hn hconf hg hkey'
+  intro hjoin hn hconf hg hkey'
+  have hw := leaseGate_written p c E rho hs htk hjoin hn hconf hg hkey'
   have hl := leaseRows_lowerBound p c E rho hs htk hki row.1 row.2.1 _ rfl hw row hr rfl
   have htime := fgsa_tick_time_strict E rho hs ht htk hjk
   rw [hd] at hl
@@ -487,28 +555,27 @@ theorem fgsa_leaseOrigins_fastWrites (hs : V2.D.ScheduleWellFormed E rho) (i : N
       simp only [hf, Option.map_some, Option.getD_some] at hX
       exact List.mem_flatMap.mpr ⟨row, List.mem_of_find?_eq_some hf,
         List.mem_map.mpr ⟨X, hX, by rw [he]⟩⟩
-  obtain ⟨j, hj, t, ht, htime, hn, B, hc, hg, hp, hfast⟩ :=
+  obtain ⟨j, hj, t, ht, htime, hjoin, hn, B, hc, hg, hp, hfast⟩ :=
     V2.D.Engine.clock_field_origin_of_subset (P := fgsa p c)
       (fun nd => fastPairs p nd.st) rfl
       (fun nd o pair h => fastPairs_process p nd.st (toWire p o) h)
-      (fun _ _ _ h => h) (fgsa_hrestore_field_retained p c (fastPairs p) (fun _ => rfl))
+      (fun _ _ _ h => h) (fgsa_hrestore_field_retained p c (fastPairs p) (fun st w => by
+        unfold fastPairs
+        rw [acRestart_fastWrite]
+        exact List.nil_subset _))
       (fun nd t pair => fastSource p nd.st t pair)
       (fun nd t pair h => fastPairs_clock p nd.st t pair h) E rho i x (s, X) hm
   change t = SA.gateTime p.toParams s at htime
   subst t
   have hit : IsGateTick p c rho j x s := ht
-  have hresult := leaseGate_result p c E rho ht hc
-  refine ⟨j, hj, hit, ⟨x, s, hit, hn, B, hc, hg⟩, B, hresult, hp, ?_⟩
-  have hread := (gateResultAt_eq_gateResult p c E rho hs hit).symm.trans hresult
-  rw [gateResult_def, gateIn_def, preTick_def] at hread
-  cases hidx : V2.D.Run.tickIdx? rho x (SA.gateTime p.toParams s) with
-  | none => simp only [hidx, Option.map_none] at hread; cases hread
-  | some k =>
-    have hk := fgsa_tick_unique E rho hs (V2.D.Run.tickIdx?_spec hidx) ht
-    subst k
-    refine ⟨clockPre p (V2.D.Run.stateBefore E rho j x).st (SA.gateTime p.toParams s), ?_, hfast⟩
-    rw [gateIn_def, preTick_def, hidx]
-    rfl
+  have hresult := leaseGate_result p c E rho ht hjoin hc
+  refine ⟨j, hj, hit, ⟨x, s, ⟨hit, leaseGate_guard p c _ s hjoin⟩, hn, B, hc, hg⟩,
+    B, hresult, hp, ?_⟩
+  have htick := fgsa_tickIdx_of_event p c E rho hs hit
+  refine ⟨clockPre p (V2.D.Run.stateBefore E rho j x).st (SA.gateTime p.toParams s),
+    ?_, hfast⟩
+  rw [gateIn_def, preTick_def, htick]
+  rfl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Clause (2), including due rows, from the common output bound. -/
@@ -526,32 +593,18 @@ theorem fgsa_leaseOrigins_ancestorDeadlines (i : Nat) (x : V) :
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline := by
-  have h := Gen.V2.Duty.base_invariant (P := fgsa p c) (fun nd => nd.st)
-    (fun a b => (∃ t, b = clock p a t ∧ CStoreInv p a) ∨
-      (∃ o, b = process p a o) ∨ ∃ d, b = ((fgsa p c).restore d).st)
-    AncestorDeadlines E rho (ancestorDeadlines_init p.n)
-    (by
-      intro a b ha hab
-      rcases hab with ⟨t, rfl, hc⟩ | ⟨o, rfl⟩ | ⟨d, rfl⟩
-      · exact ancestorDeadlines_clock p a t hc ha
-      · exact ancestorDeadlines_process p a o ha
-      · exact ancestorDeadlines_restore d)
-    (by
-      intro k e he
-      right
-      cases e with
-      | tick v t =>
-        left
-        refine ⟨t, ?_, cstoreInv_stateBefore E rho k v⟩
-        simp only [V2.Event.node, V2.D.World.step, Function.update_self]
-        exact tick_st E rho _ v t
-      | deliver v o t =>
-        exact Or.inr (Or.inl ⟨toWire p o, by
-          simp only [V2.Event.node, V2.D.World.step, Function.update_self]; rfl⟩)
-      | restart v t =>
-        exact Or.inr (Or.inr ⟨(fgsa p c).durable (V2.D.Run.stateBefore E rho k v), by
-          simp only [V2.Event.node, V2.D.World.step, Function.update_self]⟩)) i x
-  exact fun K g d hr B hB hBK => h.protectsUntil K g d hr B hB hBK
+  have h := Gen.V2.Duty.invariant_triple (P := fgsa p c)
+    (fun nd => Reachable p nd.st ∧ AncestorDeadlines nd.st)
+    ⟨Reachable.init, ancestorDeadlines_init p.n⟩
+    (fun nd t h => ⟨Reachable.tick t h.1,
+      ancestorDeadlines_clock p nd.st t (storeBundle_of_reachable p nd.st h.1).cstore h.2⟩)
+    (fun nd o h => ⟨Reachable.deliver (toWire p o) h.1,
+      ancestorDeadlines_process p nd.st (toWire p o) h.2⟩)
+    (fun _ _ h => h)
+    (fun (nd : Node p) t h => ⟨fgsa_restore_reachable p c nd t h.1,
+      ancestorDeadlines_restore _ t h.2⟩)
+    E rho i x
+  exact fun K g d hr B hB hBK => h.2.protectsUntil K g d hr B hB hBK
 
 end AvailableChain.FGSA.Run
 end

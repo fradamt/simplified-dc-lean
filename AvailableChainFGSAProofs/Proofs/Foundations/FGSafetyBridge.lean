@@ -286,6 +286,20 @@ theorem fgsa_bridge_finalizedMonotone (hs : rho.events.Pairwise (fun a b => a.ke
   rw [fgsaSafetyReads_def] at h
   exact h
 
+/-- Sorted inclusive time reads preserve finalized output through restarts. -/
+theorem fgsa_bridge_finalizedMonotone_restart
+    (hs : rho.events.Pairwise (fun a b => a.key ≤ b.key)) :
+    ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →
+      Block.Preceq (finalizedOut (V2.D.Run.readAt E rho t x))
+        (finalizedOut (V2.D.Run.readAt E rho t' x)) := by
+  intro x _ t t' htt
+  rw [safety_readAt_prefix E rho hs t, safety_readAt_prefix E rho hs t']
+  have h := safety_F_mono_all (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho
+    (fgsaCoreLaws p c) (fgsaSafetyOrderLaws p c) (fgsaSafetyRestartLaws p c)
+    (V2.D.Engine.read_length_mono (rho := rho) t t' htt) x
+  rw [fgsaCoreReads_def] at h
+  exact eraseFG_preceq h
+
 /-- Client safety: an honest node's emitted rows contain no slashable pair. -/
 theorem fgsa_bridge_clientSafeAll (hL : V2.D.Linked (fgsaFamilies p c).linked rho) :
     ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x :=

@@ -31,16 +31,26 @@ theorem fgsa_rStoreCumul : RStoreCumul p c E rho := by
   have h := fgsa_store_cumulative p c E rho hnr hij x
   exact ⟨h.1, h.2.1, h.2.2.1, h.2.2.2.1⟩
 
+/-- Durable trees and signed rows persist through restarts. -/
+theorem fgsa_rStoreDurable : RStoreDurable p c E rho :=
+  fun _ _ x _ hij _ => fgsa_store_durable p c E rho hij x
+
+/-- Stamp prefixes use the exact local restart-free event interval. -/
+theorem fgsa_rStoreEpoch : RStoreEpoch p c E rho := by
+  intro i j x _ hij _ hrf
+  have h := fgsa_store_cumulative_on p c E rho hij x hrf
+  exact ⟨h.2.2.1, h.2.2.2.1⟩
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-D24 FG bounds, from the FG-SA store library and the KitV2 stability core. -/
-theorem fgsa_rMono : RMono p c E rho := by
-  intro hnr i j x _ hij
+D24 FG bounds persist through the retained FG store at every restart. -/
+theorem fgsa_rMonoAll : RMonoAll p c E rho := by
+  intro i j x _ hij
   let a := storeAt p c E rho i x
-  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
+  apply V2.D.Engine.stateBefore_stable_restore (P := fgsa p c)
     (fun nd => FGBlock.Preceq a.fg.F nd.st.fg.F ∧
       lexKey (a.fg.h_j, a.fg.J) ≤ lexKey (nd.st.fg.h_j, nd.st.fg.J) ∧
       a.fg.h_max ≤ nd.st.fg.h_max)
-    ?_ ?_ (fun _ _ h => h) E rho hij x (hnr.restartFree x i j)
+    ?_ ?_ (fun _ _ h => h) E rho hij x ?_
     ⟨KitFG.preceq_refl _, le_rfl, le_rfl⟩
   · intro nd t h
     change FGBlock.Preceq a.fg.F (clock p nd.st t).fg.F ∧
@@ -52,6 +62,16 @@ theorem fgsa_rMono : RMono p c E rho := by
     exact ⟨KitFG.preceq_trans h.1 (process_F_mono p nd.st (toWire p o)),
       le_trans h.2.1 (process_pair_mono p nd.st (toWire p o)),
       le_trans h.2.2 (process_hmax_mono p nd.st (toWire p o))⟩
+  · intro nd t h
+    change FGBlock.Preceq a.fg.F (acRestart p nd.st t).fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤
+        lexKey ((acRestart p nd.st t).fg.h_j, (acRestart p nd.st t).fg.J) ∧
+      a.fg.h_max ≤ (acRestart p nd.st t).fg.h_max
+    rwa [acRestart_fg]
+
+/-- The legacy FG bounds follow from the all-restart companion. -/
+theorem fgsa_rMono : RMono p c E rho :=
+  fun _ => fgsa_rMonoAll p c E rho
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The exact frame follows from T7.5 and FG store correspondence. -/
@@ -128,6 +148,19 @@ theorem fgsa_rFrameNext : RFrameNext p c E rho := by
     · intro hnr j hij _
       have h := fgsa_store_cumulative p c E rho hnr hij x
       exact ⟨h.2.2.2.2.1, h.2.2.2.2.2, h.2.2.1, h.2.2.2.1⟩
+
+/-- The frame keeps durable prefixes across restarts and stamp prefixes in an epoch. -/
+theorem fgsa_rFrameNextEpoch : RFrameNextEpoch p c E rho := by
+  intro i x hx
+  obtain ⟨ha, hb, hc, hm, hp, hw, hr, hv, hh, hs, hrows, _⟩ :=
+    fgsa_rFrameNext p c E rho i x hx
+  refine ⟨ha, hb, hc, hm, hp, hw, hr, hv, hh, hs, hrows, ?_⟩
+  intro j hij _
+  have hd := fgsa_store_durable p c E rho hij x
+  refine ⟨hd.2.2.1, hd.2.2.2, ?_⟩
+  intro hrf
+  have he := fgsa_store_cumulative_on p c E rho hij x hrf
+  exact ⟨he.2.2.1, he.2.2.2.1⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 P3 fixed stored-value seed: the predicate retains the same cut i and the

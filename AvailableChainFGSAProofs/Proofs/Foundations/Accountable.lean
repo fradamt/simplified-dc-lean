@@ -570,7 +570,11 @@ theorem emitted_runBlock_carriage (hv : V2.D.ExecutionValid E rho)
     obtain ⟨_, _, d, hl, ht, ha⟩ :=
       (V2.D.Engine.mem_tick_seat_iff E rho _ x t l j _).mp ho'
     cases d with
-    | headAction s => cases ha
+    | headAction s =>
+      change (if joinedNow p ((fgsa p c).clock
+        (V2.D.Run.stateBefore E rho i x) t).st then some (Msg.head _) else none) =
+          some (Msg.proposal N) at ha
+      split at ha <;> cases ha
     | fgAction r =>
       change (attest p _ _ _).1.map Msg.row = some (.proposal N) at ha
       obtain ⟨body, _, he⟩ := Option.map_eq_some_iff.mp ha
@@ -581,7 +585,13 @@ theorem emitted_runBlock_carriage (hv : V2.D.ExecutionValid E rho)
       let st := FGSA.clock p (V2.D.Run.stateBefore E rho i x).st (SA.proposalTime p.toParams s)
       have hm : (propose p st s).map
           (withApp p (c.app (rho.input x (SA.proposalTime p.toParams s)))) =
-          some (.proposal N) := ha
+          some (.proposal N) := by
+        change (if joinedNow p st then (propose p st s).map
+          (withApp p (c.app (rho.input x (SA.proposalTime p.toParams s)))) else none) =
+            some (Msg.proposal N) at ha
+        split at ha
+        · exact ha
+        · cases ha
       have hs0 : s ≠ 0 := by
         intro h0
         subst h0

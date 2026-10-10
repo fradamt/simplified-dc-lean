@@ -50,3 +50,5 @@ end
 
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyRestartLaws
 #print axioms AvailableChain.FGSA.Run.fgsa_restore_finality_fields
+
+#print axioms AvailableChain.FGSA.Run.fgsa_bridge_finalizedMonotone_restart

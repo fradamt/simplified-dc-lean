@@ -10,16 +10,18 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
--- A pre-GST send is held by GST + ΔF; no awake-receiver premise occurs.
+-- A pre-GST send is held by GST + ΔF for receivers awake from GST.
 example (ΔF : Time) (hΔ : E.Δ = p.Δ) (hv : V2.D.ExecutionValid E rho)
     (hnr : V2.D.NoRestart rho)
     (hs : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    (hΔF : E.Δ ≤ ΔF) {j r : Nat} {y x : V} {a : RowWire p.n}
+    (hΔF : E.Δ ≤ ΔF)
+    (hAwake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon →
+      E.awake x t = true) {j r : Nat} {y x : V} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j y r a) (hpre : p.actionTime r < E.t_GST)
     (hhor : E.t_GST + ΔF ≤ rho.horizon) (hx : x ∈ rho.honest) :
     HeldBefore p c E rho x a (E.t_GST + ΔF) := by
   have hmax : max (p.actionTime r) E.t_GST = E.t_GST := max_eq_right (le_of_lt hpre)
-  simpa only [hmax] using fgsa_rowService_receipt p c E rho ΔF hΔ hv hnr hs hΔF ha
+  simpa only [hmax] using fgsa_rowService_receipt p c E rho ΔF hΔ hv hnr hs hΔF hAwake ha
     (hmax.symm ▸ hhor) x hx
 
 -- The strict deadline read excludes an event at exactly the deadline.

@@ -4777,6 +4777,8 @@
             'AvailableChain.FGSA.Run.fgsa_bridge_slashableBound_of_faults',
             'AvailableChain.FGSA.Run.fgsa_bridge_stores_accountable',
             'AvailableChain.FGSA.Run.fgsa_safetySlashesRead',
+            # P-Fd: P21 retained-store restart companion.
+            'AvailableChain.FGSA.Run.fgsa_bridge_finalizedMonotone_restart',
         ),
         'AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient': (
             'AvailableChain.FGSA.Run.fgsaSafetyClientLaws',
