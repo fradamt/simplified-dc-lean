@@ -23,6 +23,12 @@ with tempfile.TemporaryDirectory(prefix="gate-shell-controls-") as scratch:
             "mode = os.environ['CONTROL_MODE']\n"
             "sys.exit(20 if mode == 'legacy-fail' and __file__.endswith('api-snapshot.py') "
             "else 17 if mode == 'setup-fail' and 'controls' in __file__ else 0)\n")
+    # check-fg.sh reads its FG module list from the inventory writer.
+    (scripts / "write-check-inventories.py").write_text(
+        "import types\n"
+        "snapshot = types.SimpleNamespace(SCOPES={'fg': 'fg'},\n"
+        "    source_modules=lambda scope: ['Control.FG'])\n")
+    (scripts / "current-inventory.py").write_text("")
     bindir = root / "bin"
     bindir.mkdir()
     lake = bindir / "lake"
