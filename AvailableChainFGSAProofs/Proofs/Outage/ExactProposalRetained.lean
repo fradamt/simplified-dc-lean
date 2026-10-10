@@ -322,7 +322,7 @@ Lease origins bound both live roots by D. Honest label-(s−1) HEADs extend D
 by htransfer, so D has prior support in the proposer pools and the target
 scores in each reader pool. fgsa_retainedReads_H17 assembles the fields.
 parent_height uses the stored source parent Q. Readers have the exact joined guard. -/
-theorem inclusion_retained_reads [Fintype V]
+theorem inclusion_retained_cone [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
     (hInputs : InclusionReceiverInputs E rho)
@@ -363,9 +363,9 @@ theorem inclusion_retained_reads [Fintype V]
       ∀ y ∈ rho.honest, ∀ ih,
         rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
         joinedAt p E rho y s (SA.voteTime p.toParams s) →
-        ∃ Kc, RetainedReadPremises p
+        RetainedConeInput p
           (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-          (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
+          (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D := by
   classical
   have hE := hset.pre.base.valid
   have hDelta := hset.pre.base.delta
@@ -424,10 +424,6 @@ theorem inclusion_retained_reads [Fintype V]
         rw [hDelta]
         change 4 * p.Δ * (s : Int) - p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + p.Δ
         linarith) hhor le_rfl
-  apply fgsa_retainedReads_H17_joined E rho hE s hx hip hseat N hem D
-    (hServices := fun y hy ih hih hJ => fgsa_target_service_of_proposal E rho s N _ _ y
-      (hInputs.retained s ip x N hx hip hem ih y ⟨hy, hJ⟩ hih).proposal)
-    (hroots := hset.pre.base.receiptIdealization)
   intro y hy ih hih hJ
   let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
   have hihCut := inclusion_time_le_of_tick hs hih
@@ -559,8 +555,9 @@ theorem inclusion_retained_reads [Fintype V]
       exact (fgsa_emits_head E rho _ _ _ (q + 1) w K.root).mpr
         ⟨haw.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hkk haw,
           congrArg Block.root hK.symm⟩
-    obtain ⟨hHS, hBS⟩ := hInputs.early (q + 1) _ x (Or.inl rfl) (htv.trans hhor) ⟨hx, hJP⟩
-      w K hyw ⟨kk, q + 1, w, hkk, hemK, rfl, hK.symm⟩
+    obtain ⟨hHS, hBS⟩ := hInputs.early (q + 1) _ x (Or.inl rfl) (htv.trans hhor)
+      (inclusion_clean_vote_gst hset _) ⟨hx, hJP⟩ jx hjx
+      w K hyw ⟨kk, q + 1, w, hkk, hemK, rfl, hK.symm⟩ hFK
     obtain ⟨hem', hv, _, hKb, _, hslot⟩ :=
       inclusion_head_receipt_early_on E rho hE (q + 1) hjx w hyw haw hkk K hK
         hHS.some hBS (hEpochx.mono le_rfl hjxip.le) hset.pre.base.receiptIdealization
@@ -646,8 +643,9 @@ theorem inclusion_retained_reads [Fintype V]
       exact (fgsa_emits_head E rho _ _ _ (q + 1) w K.root).mpr
         ⟨haw.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hkk haw,
           congrArg Block.root hK.symm⟩
-    obtain ⟨hHS, hBS⟩ := hInputs.early (q + 1) _ y (Or.inr rfl) hhor ⟨hy, hJ⟩
-      w K hyw ⟨kk, q + 1, w, hkk, hemK, rfl, hK.symm⟩
+    obtain ⟨hHS, hBS⟩ := hInputs.early (q + 1) _ y (Or.inr rfl) hhor
+      (inclusion_clean_vote_gst hset _) ⟨hy, hJ⟩ jy hjy
+      w K hyw ⟨kk, q + 1, w, hkk, hemK, rfl, hK.symm⟩ hFK
     obtain ⟨hem', hv, hvs, hKb, hbs, hslot⟩ :=
       inclusion_head_receipt_early_on E rho hE (q + 1) hjy w hyw haw hkk K hK
         hHS.some hBS (hEpochy.mono le_rfl hjyih.le) hset.pre.base.receiptIdealization
@@ -704,14 +702,208 @@ theorem inclusion_retained_reads [Fintype V]
       decide (GridCO.stampVote (actView dst) o < SA.freezeTime p.toParams (q + 1)) &&
       decide (GridCO.stampBlock (actView dst) K < SA.freezeTime p.toParams (q + 1))) = true
     simp only [hslot, hvsd, hbsd, decide_true, Bool.and_self]
-  have hRS := inclusion_receiver_scores_on E rho hE hC (q + 1) hih H hH hbatch D0 hrecR hy
-    (hInputs.relay (q + 1) ih y ⟨hy, hJ⟩ hih)
+  have hRS := inclusion_receiver_scores_on E rho hE hC hDelta (q + 1) hih H hH hbatch D0 hrecR hy
+    hJ
   refine ⟨Or.inr (hRPS _ hap), Or.inr (Or.inl (hRPS _ hay)), Or.inr (hRPS _ hDD),
     hsfloor, htfloor, ?_⟩
   intro L hL _
   rcases hL with rfl | rfl
   · exact hRS _ hzsrc
   · exact hRS _ hDD
+
+section ConeFloor
+
+open RetainedWalk
+
+private theorem inclusion_cone_source_path (p : Params) (src : State p.n)
+    (hs : CStoreInv p src) (L W : FGBlock (Fin p.n)) (hW : W ∈ src.fg.TF)
+    (hLW : FGBlock.Preceq L W) (hZL : FGBlock.Preceq (controls p src).Z L)
+    (hlo : (controls p src).lo ≤ (heightView p W).h) : eraseFG L ∈ S p src := by
+  have hFL : FGBlock.Preceq src.fg.F L := by
+    have hFZ := fgsa_F_preceq_Z p src hs
+    exact KitFG.preceq_trans hFZ hZL
+  obtain ⟨Q, hQ, heQ⟩ := eraseFG_ancestor_mem hs.fg.closed hW (eraseFG_preceq hLW)
+  have hL : L ∈ src.fg.TF := (eraseFG_injective heQ) ▸ hQ
+  exact List.mem_filter.mpr ⟨(hs.baseTree _).mpr ⟨L, hL, rfl⟩,
+    decide_eq_true ⟨L, (KitFG.mem_filteredFromView (heightView p) (controls p src)
+      src.fg.TF L).mpr ⟨hL, hFL, hZL, W, hW, hLW, hlo⟩, rfl⟩⟩
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:937–942; H.6-S:1027–1029. Class (iii).
+DC: INTENTIONAL; prior support covers a lease target from the ordinary root. -/
+private theorem inclusion_cone_supported_cover (p : Params) (src : State p.n)
+    (hs : CStoreInv p src) (s : Slot) (L : Block)
+    (h : RetainedPriorSupport p src s L) :
+    Block.Preceq L (GridCO.ghost (z p src) (S p src) (ss src s) (es p src s)) := by
+  let bare : State p.n := { src with base := { src.base with obligations := [] } }
+  have ha : liveRoot p bare = z p src := by rfl
+  have hpath : ∀ C, Block.Prec (liveRoot p bare) C → Block.Preceq C L →
+      C ∈ S p src := by
+    intro C hZC hCL
+    obtain ⟨W, hW, hLW, hlo⟩ := h.witness
+    obtain ⟨B, hB, heB⟩ := eraseFG_ancestor_mem hs.fg.closed hW
+      (block_preceq_trans hCL hLW)
+    rw [← heB]
+    apply inclusion_cone_source_path p src hs B W hW
+    · exact eraseFG_preceq_iff.mp (heB ▸ block_preceq_trans hCL hLW)
+    · apply eraseFG_preceq_iff.mp
+      rw [heB]
+      exact (Bool.and_eq_true_iff.mp hZC).2
+    · exact hlo
+  have hc := fgsa_headInTree_covers_of_transfer p bare (S p src)
+    (proposerVotes src s) (proposerSupport src s) L
+    (ha ▸ h.root_compatible) hpath h.majority h.rivals
+  exact hc
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:932–944. Class (iii).
+DC: INTENTIONAL; a covered target needs no fresh support below the root. -/
+private theorem inclusion_cone_prior_cover (p : Params) (src : State p.n)
+    (hs : CStoreInv p src) (s : Slot) (L : Block)
+    (h : Block.Preceq L (z p src) ∨ RetainedPriorSupport p src s L) :
+    Block.Preceq L (GridCO.ghost (z p src) (S p src) (ss src s) (es p src s)) := by
+  rcases h with h | h
+  · apply walk_covers_of_dominated_suffix _ _ _ _ _ (Bool.or_eq_true_iff.mpr (Or.inr h))
+    rw [DominatedSuffix_def]
+    intro C hZC hCL
+    have he := block_preceq_antisymm (Bool.and_eq_true_iff.mp hZC).2
+      (block_preceq_trans hCL h)
+    have hn := (Bool.and_eq_true_iff.mp hZC).1
+    simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hn
+  · exact inclusion_cone_supported_cover p src hs s L h
+
+private theorem inclusion_cone_height_mono (p : Params) {D B : FGBlock (Fin p.n)}
+    (h : Block.Preceq (eraseFG D) (eraseFG B)) : (heightView p D).h ≤ (heightView p B).h := by
+  rw [(KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) D).1,
+    (KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) B).1]
+  exact KitFG.h_mono p.E p.cfg (eraseFG_preceq_iff.mp h)
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2968–2985; HG.1:1557–1565; L4-R:2280–2290;
+L2:2159–2162. Class (iii). DC: INTENTIONAL; derive starts and parent height from prior support. -/
+private theorem inclusion_cone_cone_starts (p : Params) (src dst : State p.n)
+    (hs : CStoreInv p src) (s : Slot) (D : FGBlock (Fin p.n)) (b : Block)
+    (hp : getHead p src (proposerVotes src s) (proposerSupport src s) = b.parent)
+    (h : RetainedConeInput p src dst s D) :
+    BestAncestry (z p src) (ap p src) (S p src) (ss src s) (es p src s) ∧
+    Block.Preceq (z p src) b.parent ∧ Block.Preceq (ay p dst) b.parent ∧
+    Block.Preceq (eraseFG D) b.parent ∧
+    ∃ A ∈ src.fg.TF, eraseFG A = b.parent ∧
+      (controls p src).lo ≤ (heightView p A).h ∧
+      (controls p dst).lo ≤ (heightView p A).h := by
+  have hc := inclusion_cone_prior_cover p src hs s (ap p src) h.proposer_prior
+  have hprefix := walk_best_ancestry_of_cover _ _ _ _ _ hc
+  have ho := (walk_reanchor_of_best_ancestry _ _ _ _ _
+    (erasedList_rootInj p src hs _)
+    (fgsa_Z_preceq_liveRoot p src) hprefix).trans hp
+  have hz := inclusion_cone_prior_cover p src hs s (z p src) (Or.inl (block_preceq_refl _))
+  have hD := inclusion_cone_prior_cover p src hs s (eraseFG D) h.pivot_prior
+  rw [ho] at hz hD
+  have hm : b.parent ∈ src.base.blocks := by
+    rw [← hp]
+    rcases fgsa_headInTree_mem_or_anchor p src (S p src)
+      (proposerVotes src s) (proposerSupport src s) with he | hm
+    · rw [show getHead p src (proposerVotes src s) (proposerSupport src s) = ap p src from he]
+      exact liveRoot_stored p src hs
+    · exact (List.mem_filter.mp hm).1
+  obtain ⟨A, hA, heA⟩ := (hs.baseTree _).mp hm
+  have hh := inclusion_cone_height_mono p (heA.symm ▸ hD)
+  have haS := h.source_floor.trans hh
+  have haT := h.target_floor.trans hh
+  refine ⟨hprefix, hz, ?_, hD, A, hA, heA, haS, haT⟩
+  rcases h.reader_prior with h | h | h
+  · exact ho ▸ inclusion_cone_prior_cover p src hs s (ay p dst) (Or.inl h)
+  · exact ho ▸ inclusion_cone_prior_cover p src hs s (ay p dst) (Or.inr h)
+  · exact heA ▸ h A hA haS
+
+/-- Prior support proves the receiver floor before the proposal receipt is requested. -/
+theorem inclusion_cone_receiver_floor
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (_hE : V2.D.ExecutionValid E rho) {s : Slot} {ip ih : Nat} {x y : V}
+    (_hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip)
+    {D : FGBlock (Fin p.n)}
+    (hCone : RetainedConeInput p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D) :
+    Block.Preceq (F_at p c E rho ih y) N.erase := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have hm := hem
+  rw [(rho.step_tick_eq E hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hstarts := inclusion_cone_cone_starts p src dst
+    (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _) s D N.erase
+    hparent.2.2.symm hCone
+  have hf := F_preceq_liveRoot p dst
+    (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _)
+  have hFN := block_preceq_trans (block_preceq_trans hf hstarts.2.2.1)
+    (fgsa_parent_preceq N.erase)
+  change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) N.erase
+  simpa only [dst, clock_fg] using hFN
+
+end ConeFloor
+
+/-- The scoped cone supplies the receiver floor before any proposal service is used. -/
+theorem inclusion_retained_reads [Fintype V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
+    (hset : CleanSet p c E rho ΔF)
+    (hInputs : InclusionReceiverInputs E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExactNext p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
+      SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
+      gateResult p c E rho x r = some (some B) →
+      gateResult p c E rho y s = some (some C) →
+      (r < s → Block.Preceq B C) ∧ (r = s → Block.Compatible B C))
+    (hnonempty : ∀ j x s, j < timeIdx rho rho.horizon → x ∈ rho.honest →
+      enabledGateAt p c E rho j x s →
+      ∃ B, gateResultAt p c E rho j = some (some B) ∧ (s = 0 → B = .genesis))
+    (htransfer : ∀ x y s B H, x ∈ rho.honest → y ∈ rho.honest →
+      SA.gateTime p.toParams s ≤ rho.horizon → gateResult p c E rho x s = some (some B) →
+      joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
+      vHead p c E rho y s = some H → Block.Preceq B H)
+    (hleases : ∀ i v, i ≤ timeIdx rho rho.horizon → v ∈ rho.honest →
+      ∀ row ∈ (storeAt p c E rho i v).base.obligations,
+        BelowLabel p c E rho i (labelBoundAt p c rho i) row.1)
+    (hrows : ∀ i j x r (a : RowWire p.n) e, i ≤ timeIdx rho rho.horizon → j < i →
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧ EntryBelow p e C ∧
+        BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
+    (s : Slot) (hhor : SA.voteTime p.toParams s ≤ rho.horizon)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (hstrat : RStrat p c E rho) :
+    ∃ D0 : Block, ∃ D : FGBlock (Fin p.n),
+      BelowLabel p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams s)) (s - 2) D0 ∧
+      (∀ X, BelowLabel p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams s))
+        (s - 2) X → Block.Preceq X D0) ∧
+      eraseFG D = D0 ∧
+      ∀ y ∈ rho.honest, ∀ ih,
+        rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+        joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        ∃ Kc, RetainedReadPremises p
+          (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+          (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
+  obtain ⟨D0, D, hBL, hmax, hD, hCone⟩ := inclusion_retained_cone
+    E rho ΔF hset hInputs hstore hframe hsrc hordered hnonempty htransfer hleases hrows
+    s hhor hx hip hseat N hem hstrat
+  refine ⟨D0, D, hBL, hmax, hD, ?_⟩
+  apply fgsa_retainedReads_H17_joined E rho hset.pre.base.valid s hx hip hseat N hem D hCone
+    (hroots := hset.pre.base.receiptIdealization)
+  intro y hy ih hih hJ
+  have hFN := inclusion_cone_receiver_floor E rho hset.pre.base.valid hx hip N hem
+    (hCone y hy ih hih hJ)
+  exact fgsa_target_service_of_proposal E rho s N _ _ y
+    (hInputs.retained s ip x N hx (inclusion_clean_vote_gst hset _)
+      hip hem ih y ⟨hy, hJ⟩ hih hFN).proposal
 
 /-! ### Exact proposal: receipt and HEAD -/
 
@@ -845,7 +1037,13 @@ theorem inclusion_exact_receipt [Fintype V]
         push_cast; ring) (by
           change 0 ≤ 4 * p.Δ * (pt.s : Int) + p.Δ
           have hd := p.deltaPos; positivity) hhor hY.2.1)
-    exact (hInputs.retained pt.s ip _ N hprop.1.2 hip hem ih y hY hih).proposal)
+    obtain ⟨_, D, _, _, _, hCone⟩ := inclusion_retained_cone E rho ΔF hset hInputs
+      _hstore _hframe _hsrc _hordered _hnonempty _htransfer _hleases _hrows pt.s hhor
+      hprop.1.2 hip rfl N hem _hstrat
+    have hFN := inclusion_cone_receiver_floor E rho hset.pre.base.valid
+      hprop.1.2 hip N hem (hCone y hY.1 ih hih hY.2)
+    exact (hInputs.retained pt.s ip _ N hprop.1.2 (inclusion_clean_vote_gst hset _)
+      hip hem ih y hY hih hFN).proposal)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X2.
@@ -894,7 +1092,18 @@ theorem inclusion_exact_head [Fintype V]
     hsrc hordered hnonempty htransfer hleases hrows pt.s hhor hx hip rfl N hem
   have hgeom := fgsa_retainedExactHead_geometry_on_run_on
     (hroots := hset.pre.base.receiptIdealization) E rho hE pt.s hx hip rfl N hem D hreads
-    (fun y hy ih hih hJ => hInputs.retained pt.s ip _ N hx hip hem ih y ⟨hy, hJ⟩ hih)
+    (by
+      intro y hy ih hih hJ
+      obtain ⟨Kc, hr⟩ := hreads y hy ih hih hJ
+      have hf := F_preceq_liveRoot p
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams pt.s))
+        (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _)
+      have hFN : Block.Preceq (F_at p c E rho ih y) N.erase := by
+        change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) N.erase
+        simpa only [clock_fg] using block_preceq_trans
+          (block_preceq_trans hf hr.target_parent) (fgsa_parent_preceq N.erase)
+      exact hInputs.retained pt.s ip _ N hx (inclusion_clean_vote_gst hset _)
+        hip hem ih y ⟨hy, hJ⟩ hih hFN)
   have hhead := exactService_head_of_retained_proposal_on E rho hE hset.pre.base.delta
     pt.s hip N hem D hgeom hhor
   intro y hy hJ

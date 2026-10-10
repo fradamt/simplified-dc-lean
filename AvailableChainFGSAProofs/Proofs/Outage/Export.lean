@@ -88,13 +88,7 @@ variable
         ∃ C, actionSourceFG p c E rho x r = some (some C) ∧ EntryBelow p e C ∧
           BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
 
--- The internal services cover in-horizon early reads and actual relay vote ticks.
-variable
-    (hInputs : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : Unit),
-      CleanPrem p c E rho pt ΔF → InclusionReceiverInputs E rho)
-
-include hstore hframe hstrat hsrc hordered hnonempty htransfer hleases hrows hInputs
+include hstore hframe hstrat hsrc hordered hnonempty htransfer hleases hrows
 
 /-- ROOT-DIGEST W2b. Blueprint 03 §4; DC available/stableIncludedFast: INTENTIONAL exact HEAD.
 The supplier projections restore the frozen claim, including sleep silence. -/
@@ -113,11 +107,12 @@ theorem outage_exactProposalClaim_of : ExactProposalClaim p := by
         BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
     fun i v hi hv row hrow => ((hl i v hi hv).2.2.2.1 row hrow).1
   exact ⟨fun x hx hJ => inclusion_exact_receipt (_hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩)
-    E rho ΔF h.set (hInputs c E rho () ⟨h.set⟩)
+    E rho ΔF h.set (outage_supplier_inclusion_inputs (pt := ()) ⟨h.set⟩)
     (hstore c E rho) (hframe c E rho)
       hs ho hn ht hbelow hr pt h.prop h.hhor x ⟨hx, hJ⟩,
     inclusion_exact_head (hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩)
-      E rho ΔF h.set (hInputs c E rho () ⟨h.set⟩) (hstore c E rho) (hframe c E rho)
+      E rho ΔF h.set (outage_supplier_inclusion_inputs (pt := ()) ⟨h.set⟩)
+    (hstore c E rho) (hframe c E rho)
       hs ho hn ht hbelow hr pt h.prop h.hhor,
     inclusion_sleep_silence E rho pt.s⟩
 
@@ -126,15 +121,8 @@ variable
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : Unit),
       CleanPrem p c E rho pt ΔF →
       ScopedMono (confirmedReaderIdx p c E rho) (S_at p c E rho) (· ≤ rho.events.length))
-    (hScopes : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : Unit),
-      CleanPrem p c E rho pt ΔF → ∀ s i x, x ∈ rho.honest →
-        enabledGateAt p c E rho i x s ∨
-          confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams s))
-            (SA.gateTime p.toParams s) →
-        IsGateTick p c rho i x s → GateReceiptScope E rho i x s)
 
-include hmono hScopes
+include hmono
 
 /-- ROOT-DIGEST W2b. Blueprint 03 §5; DC available/stableIncludedFast: INTENTIONAL post-gate event
 read.
@@ -160,9 +148,9 @@ theorem outage_cleanInclusionPostGateClaim_of : CleanInclusionPostGateClaim p :=
       fun row hr => (hb.2.2.2.1 row hr).1,
       fun r C hC => (hb.2.2.2.2.1 r C hC).1⟩⟩
   exact clean_inclusion_post_gate_body (hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩) E rho ΔF
-    h.set (hInputs c E rho () ⟨h.set⟩) hHistory (hstore c E rho) (hframe c E rho)
+    h.set (outage_supplier_inclusion_inputs (pt := ()) ⟨h.set⟩) hHistory
+    (hstore c E rho) (hframe c E rho)
     hs ho hn ht hbelow hr pt h.prop h.hhor (hmono c E rho () ⟨h.set⟩)
-    (hScopes c E rho () ⟨h.set⟩ pt.s)
 
 variable
     (hReaderGate : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
@@ -206,9 +194,9 @@ theorem outage_cleanInclusionClaim_of : CleanInclusionClaim p := by
       fun row hr => (hb.2.2.2.1 row hr).1,
       fun r C hC => (hb.2.2.2.2.1 r C hC).1⟩⟩
   exact clean_inclusion_body (hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩)
-    E rho ΔF h.set (hInputs c E rho () ⟨h.set⟩) hHistory
+    E rho ΔF h.set (outage_supplier_inclusion_inputs (pt := ()) ⟨h.set⟩) hHistory
     (hstore c E rho) (hframe c E rho)
-    hs ho hn ht hbelow hr pt h.prop h.hhor (hScopes c E rho () ⟨h.set⟩ pt.s)
+    hs ho hn ht hbelow hr pt h.prop h.hhor
     (outage_supplier_later_origins E rho h.set.pre.base
       (hReaderGate c E rho () ⟨h.set⟩) (hReaderMono c E rho () ⟨h.set⟩) pt.s)
 

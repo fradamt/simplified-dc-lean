@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
+public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (read API)
 public import AvailableChainFGSAClaims.Statements.Packages.Finality -- shake: keep (W types)
@@ -145,6 +146,12 @@ theorem outage_supplier_later_origins {p : Params} {In V : Type} [DecidableEq V]
         Block.Preceq B (S_at p c E rho (timeIdx rho t) x) := by
   intro t x hst hhor hx
   exact inclusion_later_reader_origin E rho hBase.valid hBase.delta hGate hMono hst hhor hx
+
+/-- Clean inclusion services have a regime producer, with no assumed scope callback. -/
+theorem outage_supplier_inclusion_inputs {p : Params} {In V : Type} [DecidableEq V]
+    [Fintype V] {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {ΔF : Time} {pt : Unit} (h : CleanPrem p c E rho pt ΔF) :
+    InclusionReceiverInputs E rho := inclusion_receiver_inputs_of_clean h.set
 
 end AvailableChain.FGSA.Run
 end

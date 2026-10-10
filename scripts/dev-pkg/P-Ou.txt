@@ -1,6 +1,10 @@
-# P-Ou round 7, base a6ffe4a1. Kernel PREPARED; public closure remains OPEN.
+# P-Ou round 8, base d8964408. Kernel PREPARED; public closure remains OPEN.
 # GREEN means compiled; conditional suppliers do not close public claims.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
+AvailableChainFGSAProofs.Proofs.Outage.InclusionServices
+AvailableChainFGSAProofs.Proofs.Outage.GrowthSuppliers
+AvailableChainFGSAProofs.Tests.OutageGrowthSuppliers
 AvailableChainFGSAProofs.Proofs.Outage.ScopedInduction
 AvailableChainFGSAProofs.Proofs.Shared.Release
 AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
@@ -50,6 +54,10 @@ AvailableChainFGSAProofs.Tests.InclusionGate
 AvailableChainFGSAProofs.Tests.OutageInduction
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
+AvailableChainFGSAProofs.Proofs.Outage.InclusionServices
+AvailableChainFGSAProofs.Proofs.Outage.GrowthSuppliers
+AvailableChainFGSAProofs.Tests.OutageGrowthSuppliers
 AvailableChainFGSAProofs.Tests.OutageInduction
 AvailableChainFGSAProofs.Proofs.Outage.ScopedInduction
 AvailableChainFGSAProofs.Proofs.Outage.Induction
