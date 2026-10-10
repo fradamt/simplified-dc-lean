@@ -74,7 +74,7 @@ theorem fgsaClaims_of_open
     runAgreement := fgsa_wholeRunAgreementClaim p
     eventPrefixAgreement := fgsa_eventPrefixAgreementClaim p
     faultCountSlashableBound := fgsa_faultCountSlashableBoundClaim p
-    finalizedMonotone := fgsa_finalizedMonotonicityClaim p
+    finalizedMonotone := fgsa_finalizedMonotonicityRestartClaim p
     honestNeverSlashed := fgsa_honestNeverSlashedClaim p
   }
   finalizedSafety := fgsa_finalizedSafetyClaim p
@@ -159,8 +159,8 @@ theorem assembly_weakContinuationClaims (p : Params) (hH : HTimeClaim p)
 claim under (V), with all foundation and healthy-cut suppliers discharged. -/
 theorem fgsa_outageContinuationClaim (p : Params) : OutageContinuationClaim p :=
   outageContinuation_claim_of p
-    (fgsa_storeClaim p) (fgsa_activeViewClaim p) (fgsa_frameClaim p)
-    (fgsa_srcFrameAboveClaim p) (fgsa_sourceDisciplineClaim p) (fgsa_cleanCutClaim p)
+    (fgsa_fgFoundationClaim p) (fgsa_srcFrameAboveClaim p)
+    (fgsa_sourceDisciplineClaim p) (assembly_outage_clean_cut_supplier p)
 
 
 end AvailableChain.FGSA.Run
