@@ -90,7 +90,7 @@ theorem wcg_init : WCGInitStatement p c E rho ΔF w iStar := by
     have heq : K = K' := Option.some.inj (Option.some.inj (hK.symm.trans hK'))
     exact Gen.Pure.block_preceq_trans (eraseFG_preceq hXK) (heq ▸ hbelow)
   · intro k x D X h _ _ hD hF hh hlow
-    exact (wcg_lowFinalized hroots haccountable hs D X h
+    exact (wcg_lowFinalized (hroots.toNamedRootCollisionFree E rho) haccountable hs D X h
       (wcg_finalizedOccurrence hscopeRows hnoslash D X h
         (rootScope_store hD.1 hD.2) hF hh) hlow).1
   · intro k x row hle hge hx hr ht
@@ -104,19 +104,19 @@ theorem wcg_init : WCGInitStatement p c E rho ΔF w iStar := by
   · intro k x s B hle hge hx hlabel hB
     have hk : k = iStar := Nat.le_antisymm hge hle
     subst k
-    obtain ⟨j, hj, he, _⟩ := hs.finite.saved x hx s B hB
-    exact (noGate j x s hj hlabel he).elim
+    obtain ⟨j, hj, _hrf, he, _⟩ := hs.finite.saved x hx s B hB
+    exact (noGate j x s hj hlabel he.1).elim
   · intro k x s X hle hge hx hlabel hX
     have hk : k = iStar := Nat.le_antisymm hge hle
     subst k
-    obtain ⟨j, hj, he, _⟩ := hs.finite.fastWrites x hx s X hX
-    exact (noGate j x s hj hlabel he).elim
+    obtain ⟨j, hj, _hrf, he, _⟩ := hs.finite.fastWrites x hx s X hX
+    exact (noGate j x s hj hlabel he.1).elim
   · intro k x hle hge hx
     have hk : k = iStar := Nat.le_antisymm hge hle
     exact Or.inl (hk ▸ hs.refreshed x hx)
   · intro k x hle hge hx
     have hk : k = iStar := Nat.le_antisymm hge hle
-    rw [hk, hs.refreshed x hx]
+    rw [hk, hs.refreshed x hx.1.1]
     exact Gen.Pure.block_preceq_refl _
   · intro k x hle hlt
     omega

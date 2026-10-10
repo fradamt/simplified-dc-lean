@@ -10,7 +10,7 @@ variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
 
 private def localStep (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (x : V) (st : (fgsa p c).State) : V2.Event V (fgsa p c).Object → (fgsa p c).State
-  | .restart v _ => if v = x then (fgsa p c).restore ((fgsa p c).durable st) else st
+  | .restart v t => if v = x then (fgsa p c).restore ((fgsa p c).durable st) t else st
   | .tick v t => if v = x then (V2.D.tick E rho st v t).1 else st
   | .deliver v o _ => if v = x then (fgsa p c).process st o else st
 

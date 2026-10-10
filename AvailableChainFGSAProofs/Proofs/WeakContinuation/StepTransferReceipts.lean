@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 
@@ -413,6 +414,7 @@ theorem wc_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iSt
     rw [gateResultAt_eq_gateResult p c E rho hsch ht,
       gateResult_eq_saved p c E rho hsch ht, clockPre_fg]
     exact fgsa_gate_saved_result E rho hsch ht
+      (fgsa_gate_joined_of_enabled E rho (wc_gate_enabled_of_result hsch ht hB))
   have hraw := Option.some.inj (hrawAt.symm.trans hB)
   have hc := cstoreInv_clockPre p _ (storeBundle_stateBefore E rho i x).cstore
     (SA.gateTime p.toParams s)

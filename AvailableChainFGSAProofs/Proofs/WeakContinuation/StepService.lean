@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInit -- shake: keep (WC init API)
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety
 public import AvailableChainFGSARun.Proofs.AC
@@ -21,13 +22,14 @@ private theorem gate_served {i j : Nat} {x : V} {s : Slot} {B : Block}
     (hr : WCResult p c E rho w iStar i j x s B) :
     Block.Preceq B (S_at p c E rho (j + 1) x) := by
   obtain ⟨C, hC, _, hpass⟩ := hi.nonempty j x s hr.afterCut hr.completed
-    hr.honest hr.event hr.label
+    hr.honest (hr.enabled hsch) hr.label
   have hrawAt : gateResultAt p c E rho j = some (SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)).fg.F)
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s) := by
     rw [gateResultAt_eq_gateResult p c E rho hsch hr.event,
       gateResult_eq_saved p c E rho hsch hr.event, clockPre_fg]
     exact fgsa_gate_saved_result E rho hsch hr.event
+      (fgsa_gate_joined_of_enabled E rho (hr.enabled hsch))
   have hraw := Option.some.inj (hrawAt.symm.trans hr.value)
   obtain ⟨y, r, he, _, G, hG, hguard⟩ := hpass
   have hevent := V2.Event.tick.inj (Option.some.inj (he.symm.trans hr.event))
@@ -73,7 +75,8 @@ private theorem gate_served {i j : Nat} {x : V} {s : Slot} {B : Block}
     split
     · assumption
     · exact block_preceq_refl _
-  rcases (fgsaAC_gate_write E rho j s x hr.event).effects with hskip | hrun
+  rcases (fgsaAC_gate_write E rho j s x
+    (wc_gate_pre_joined (hr.enabled hsch)) hr.event).effects with hskip | hrun
   · obtain ⟨result, hsaved⟩ := hskip.1
     have hfresh := fgsa_gate_fresh E rho hsch hr.event
     change GridCO.savedGenuine (storeAt p c E rho j x).base s = some result at hsaved
