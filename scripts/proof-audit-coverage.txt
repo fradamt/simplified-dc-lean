@@ -5006,6 +5006,7 @@
             'AvailableChain.FGSA.Run.fgsa_proposal_receipt_on',
             'AvailableChain.FGSA.Run.fgsa_restartTime_ge',
             'AvailableChain.FGSA.Run.fgsa_target_receipt_on',
+            'AvailableChain.FGSA.Run.fgsa_target_service_genesis',
             'AvailableChain.FGSA.Run.fgsa_target_service_of_proposal',
             'AvailableChain.FGSA.Run.fgsa_trigger_nonneg',
         ),
