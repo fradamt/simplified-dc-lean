@@ -117,7 +117,16 @@ theorem promotion_age_grid (r s : Nat) (U : FGBlock (Fin p.n)) (ΔF : Time)
 DC: SAME the receipt half ends at t_X+Δ and uses the terminal budget.
 The repair label and repair continuation belong only to the service tail. -/
 theorem healing_promotion_age_receipt (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (services : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (crossing : RXing p c E rho) (perm : TPerm p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
@@ -150,7 +159,8 @@ theorem healing_promotion_age_receipt (E : Generic.Env V)
           SA.proposalTime p.toParams s + p.Δ ≤
             max (p.actionTime r + Γ p G - p.Δ + epsF p ΔF)
               (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G - 3 * p.Δ) := by
-  obtain ⟨U, hU, hUslot, hrows⟩ := healing_promotion_bounded_rows E rho hrec hentry hcovered
+  obtain ⟨U, hU, hUslot, hrows⟩ := healing_promotion_bounded_rows E rho hrec.toRecovery₂ hentry
+    hcovered
   have hsource : ∃ x K, x ∈ rho.honest ∧ actionSourceFG p c E rho x r = some (some K) ∧
       (heightView p K).T_h = U := by
     have hne : rho.honest.Nonempty := by
@@ -168,7 +178,7 @@ theorem healing_promotion_age_receipt (E : Generic.Env V)
   refine ⟨U, hU, hUslot, ?_⟩
   intro v hp hwin hbudget
   obtain ⟨_, s, hlo, hhi, hslot, hterminal, hgate⟩ :=
-    healing_promotion_age_gap E rho hrec r U.slot hstart hwin
+    healing_promotion_age_gap E rho hrec.toRecovery₂ r U.slot hstart hwin
   have hreceiptv : SA.proposalTime p.toParams s + p.Δ ≤ v := hterminal.trans hbudget
   have hhor : SA.proposalTime p.toParams s ≤ rho.horizon := by
     linarith [p.deltaPos, hp.2.1]
@@ -192,13 +202,29 @@ theorem healing_promotion_age_receipt (E : Generic.Env V)
   have hpT := promotion_age_phase_cut E rho hp hut (by
     linarith [p.deltaPos])
   have hgsts : E.t_GST ≤ SA.proposalTime p.toParams s := hgst.trans hut
-  obtain ⟨X, hnew, hXslot, _⟩ := healing_promotion_slot_proposal E rho hrec hslot hgsts hhor
-  have hh := promotion_age_advance E rho hrec hδ hbound perm rowsReceipt progressCoverage hfold
+  have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+    unfold slotStartZ
+    change (r : Time) * P p + betaF p ΔF ≤ 4 * p.Δ * (s : Int) at hc
+    have hb : 8 * p.Δ ≤ betaF p ΔF := by
+      rw [betaF_def]
+      nlinarith [p.deltaPos]
+    nlinarith [p.deltaPos]
+  have hjoin : ∀ w, 0 ≤ w → w ≤ SA.proposalTime p.toParams s →
+      V2.Event.restart (V2.D.proposerOf rho (fgsaInterface p c) s) w ∈ rho.events →
+      w ≤ slotStartZ p ((s : Int) - 1) := by
+    intro w _ _ hw
+    obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp hw
+    exact (healing_recovery_restart_bound E rho hrec hslot.2 hk).trans hcut
+  obtain ⟨X, hnew, hXslot, _⟩ := healing_promotion_slot_proposal E rho hrec.toRecovery₂
+    hslot hgsts hhor hjoin
+  have hh := promotion_age_advance E rho hrec.toRecovery₂ hδ hbound perm rowsReceipt
+    progressCoverage hfold
     faultQ honestQuorum hentry hcovered hgst hpT hu hsource hc hat hage hnew hXslot
   have hpD : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ)
       m J contested := promotion_age_phase_cut E rho hp (by linarith [p.deltaPos]) (by
     linarith [p.deltaPos])
-  have hreceipt := healing_promotion_first_receipt E rho hrec crossing hnew hut hgst hpD
+  have hreceipt := healing_promotion_first_receipt E rho hrec.toRecovery₂ crossing (services s) hnew
+    hut hgst hpD
   exact ⟨s, X, hnew, hXslot, hlo, hhi, hh, hreceipt, hterminal⟩
 
 /-- Blueprint 21:1592–1638; S5 H1, service tail of persistent-phase HG.2.
@@ -247,7 +273,16 @@ DC: SAME the age trigger uses q = U.slot for the actual fixed starting entry.
 The full G window and a phase through the gate budget are explicit local
 premises. First receipt remains strict and block delay remains Δ. -/
 theorem healing_promotion_age_service (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (services : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (crossing : RXing p c E rho) (perm : TPerm p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
@@ -287,7 +322,7 @@ theorem healing_promotion_age_service (E : Generic.Env V)
             SA.gateTime p.toParams s ≤
               max (p.actionTime r + Γ p G + 4 * p.Δ + epsF p ΔF)
                 (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G + 2 * p.Δ)) := by
-  obtain ⟨U, hU, hUslot, hreceipt⟩ := healing_promotion_age_receipt E rho hrec hδ hbound
+  obtain ⟨U, hU, hUslot, hreceipt⟩ := healing_promotion_age_receipt E rho hrec services hδ hbound
     crossing perm rowsReceipt progressCoverage hfold faultQ honestQuorum
     hentry hcovered hgst hstart hu
   refine ⟨U, hU, hUslot, ?_⟩
@@ -299,7 +334,7 @@ theorem healing_promotion_age_service (E : Generic.Env V)
   obtain ⟨s, X, hnew, hslot, hlo, hhi, hh, hr, ht⟩ := hreceipt v hp hwin hb
   refine ⟨s, X, hnew, hslot, hlo, hhi, hh, hr, ht, ?_⟩
   intro hpgate
-  exact healing_promotion_age_service_tail E rho hrec hl hrepair hnew hlo hhi hpgate
+  exact healing_promotion_age_service_tail E rho hrec.toRecovery₂ hl hrepair hnew hlo hhi hpgate
 
 end AvailableChain.FGSA.Run
 end

@@ -1,0 +1,288 @@
+module
+public import AvailableChainFGSAClaims.Statements.Regimes
+public import AvailableChainFGSAClaims.Statements.FrameNext
+public import AvailableChainFGSARun.Proofs.Join
+public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
+public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
+
+public section
+
+namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG
+
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
+
+/-- Recovery permits a restart at GST and excludes later honest restarts. -/
+theorem healing_recovery_restart_bound (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {x : V} (hx : x ∈ rho.honest)
+    {k : Nat} {t : Time} (hk : rho.events[k]? = some (.restart x t)) :
+    t ≤ E.t_GST := by
+  by_contra hn
+  have ht : t ≤ rho.horizon :=
+    (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hk)).2
+  exact hrec.suffixNoRestart x hx k t hk (lt_of_not_ge hn) (Int.lt_add_one_iff.mpr ht)
+
+/-- An index after every event at GST starts a local recovery epoch. -/
+theorem healing_recovery_epoch (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {x : V} (hx : x ∈ rho.honest)
+    {i j : Nat} (hi : V2.D.Run.idxBefore rho (E.t_GST + 1) ≤ i) :
+    V2.D.restartFree rho x i j := by
+  intro k t hik _ hk
+  have ht := healing_recovery_restart_bound E rho hrec hx hk
+  have hkcut := (Gen.V2.Duty.index_lt_idxBefore_iff
+    hrec.base.valid.toScheduleWellFormed hk (E.t_GST + 1)).mpr (Int.lt_add_one_iff.mpr ht)
+  omega
+
+omit [Fintype V] in
+/-- Durable content and FG bounds use the all-restart foundation producers. -/
+theorem healing_recovery_durable (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (durable : RStoreDurable p c E rho)
+    (mono : RMonoAll p c E rho) {i j : Nat} {x : V}
+    (hx : x ∈ rho.honest) (hij : i ≤ j) (hj : j ≤ rho.events.length) :
+    (storeAt p c E rho i x).fg.TF ⊆ (storeAt p c E rho j x).fg.TF ∧
+      (storeAt p c E rho i x).base.blocks <+: (storeAt p c E rho j x).base.blocks ∧
+      FGBlock.Preceq (storeAt p c E rho i x).fg.F (storeAt p c E rho j x).fg.F := by
+  have hd := durable i j x hx hij hj
+  exact ⟨hd.1, hd.2.1, (mono i j x hx hij).1⟩
+
+/-- Stamp prefixes use the same event-index epoch as the receiver service. -/
+theorem healing_recovery_stamps (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (epoch : RStoreEpoch p c E rho)
+    {i j : Nat} {x : V}
+    (hx : x ∈ rho.honest) (hij : i ≤ j) (hj : j ≤ rho.events.length)
+    (hi : V2.D.Run.idxBefore rho (E.t_GST + 1) ≤ i) :
+    (storeAt p c E rho i x).base.blockStamp <+:
+        (storeAt p c E rho j x).base.blockStamp ∧
+      (storeAt p c E rho i x).base.voteStamp <+:
+        (storeAt p c E rho j x).base.voteStamp :=
+  epoch i j x hx hij hj (healing_recovery_epoch E rho hrec hx hi)
+
+/-- Frame metadata stays durable; frame stamps use the receiver's suffix epoch. -/
+theorem healing_recovery_frame_metadata (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (frame : RFrameNextEpoch p c E rho)
+    {i j : Nat} {x : V} (hx : x ∈ rho.honest) (hij : i ≤ j)
+    (hj : j ≤ rho.events.length) (hi : V2.D.Run.idxBefore rho (E.t_GST + 1) ≤ i) :
+    (storeAt p c E rho i x).proposals <+: (storeAt p c E rho j x).proposals ∧
+      (storeAt p c E rho i x).rowPool <+: (storeAt p c E rho j x).rowPool ∧
+      (storeAt p c E rho i x).base.blockStamp <+:
+        (storeAt p c E rho j x).base.blockStamp ∧
+      (storeAt p c E rho i x).base.voteStamp <+:
+        (storeAt p c E rho j x).base.voteStamp := by
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, hprefix⟩ := frame i x hx
+  obtain ⟨hp, hr, hs⟩ := hprefix j hij hj
+  exact ⟨hp, hr, hs (healing_recovery_epoch E rho hrec hx hi)⟩
+
+/-- Recovery readers are joined once their previous-slot cutoff includes GST. -/
+theorem healing_recovery_joined (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {x : V} (hx : x ∈ rho.honest)
+    {s : Slot} {t : Time} (hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1))
+    (hgst : E.t_GST ≤ t) (hhor : t ≤ rho.horizon) : joinedAt p E rho x s t := by
+  refine ⟨hrec.awake x hx t hgst hhor, ?_, ?_⟩
+  · intro u hu hut hw
+    by_contra hn
+    have ha := hrec.awake x hx (u - 1) (by dsimp [Time] at *; omega)
+      (by dsimp [Time] at *; omega)
+    have hf := hw.2
+    rw [ha] at hf
+    exact Bool.noConfusion hf
+  · intro u _ _ hu
+    obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp hu
+    exact (healing_recovery_restart_bound E rho hrec hx hk).trans hcut
+
+/-- The joined suffix includes every honest HEAD voter after the previous-slot cutoff. -/
+theorem healing_recovery_joinedHonest (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (s : Slot)
+    (hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1))
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hhor : SA.voteTime p.toParams s ≤ rho.horizon) :
+    joinedHonest p E rho (SA.voteTime p.toParams s) = rho.honest := by
+  classical
+  let x := rho.seatOf (.base .fg) ⟨0, p.nPos⟩
+  have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
+    (fgsa_postClock_slot (c := c) (rho.stateBefore E 0 x) _).2.symm.trans
+      (fgsa_vote_slot (c := c) (rho.stateBefore E 0 x) s)
+  change rho.honest.filter _ = rho.honest
+  apply Finset.filter_eq_self.mpr
+  intro x hx
+  rw [hslot]
+  exact healing_recovery_joined E rho hrec hx hcut hgst hhor
+
+/-- Joined recovery voters supply both exact-service count conditions. -/
+theorem healing_recovery_joined_counts (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (s : Slot)
+    (hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1))
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hhor : SA.voteTime p.toParams s ≤ rho.horizon) :
+    SA.releaseThreshold p.toParams ≤ (joinedHonest p E rho (SA.voteTime p.toParams s)).card ∧
+      Gen.Pure.Batch (joinedHonest p E rho (SA.voteTime p.toParams s)).card
+        (Gen.V2.Duty.faulty rho).card := by
+  rw [healing_recovery_joinedHonest E rho hrec s hcut hgst hhor]
+  have hn : Fintype.card V = p.n :=
+    (V2.D.CStar.seats_eq (ℓ := .base .fg) hrec.base.linked.toCStar trivial).symm
+  have hc := Finset.card_le_univ rho.honest
+  rw [hn] at hc
+  have hf : (Gen.V2.Duty.faulty rho).card = p.n - rho.honest.card := by
+    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
+      Finset.card_univ, hn]
+  have hb := hrec.fault
+  rw [hf] at hb
+  have hpos := p.nPos
+  constructor
+  · change (p.n + 1) / 2 ≤ rho.honest.card
+    omega
+  · constructor
+    rw [hf]
+    omega
+
+/-- Recovery derives the enabled gate and its index epoch; object services stay local. -/
+theorem healing_recovery_gate_scope (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {i : Nat} {x : V} {s : Slot}
+    (hx : x ∈ rho.honest) (hi : IsGateTick p c rho i x s)
+    (hcut : E.t_GST ≤ slotStartZ p (s : Int))
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hhor : SA.gateTime p.toParams s ≤ rho.horizon)
+    (hServices : ∀ q K, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Nonempty (FreshHeadService E rho s q K.root (SA.earlyTime p.toParams s) x) ∧
+      TargetReceiptService E rho K (SA.earlyTime p.toParams s) x) :
+    GateReceiptScope E rho i x s := by
+  have henabled : enabledGateAt p c E rho i x s := by
+    refine ⟨hi, ?_⟩
+    have hb := fgsa_restartTime_bound E rho i x (slotStartZ p (s : Int)) (by
+      intro k t _ hk
+      exact (healing_recovery_restart_bound E rho hrec hx hk).trans hcut)
+    change (match (rho.stateBefore E i x).st.restartTime with
+      | none => True
+      | some t => t ≤ slotStartZ p (s : Int))
+    cases hr : (rho.stateBefore E i x).st.restartTime with
+    | none => trivial
+    | some t => exact hb t hr
+  have hvg : SA.voteTime p.toParams s ≤ SA.gateTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hjoin : joinedAt p E rho x (s + 1) (SA.gateTime p.toParams s) := by
+    apply healing_recovery_joined E rho hrec hx
+    · simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hcut
+    · exact hgst.trans hvg
+    · exact hhor
+  refine ⟨henabled, hjoin, ?_, hServices⟩
+  intro k t hki _ hk
+  have ht := healing_recovery_restart_bound E rho hrec hx hk
+  have hve : SA.voteTime p.toParams s < SA.earlyTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 2 * p.Δ
+    linarith [p.deltaPos]
+  have hbefore := (Gen.V2.Duty.index_lt_idxBefore_iff
+    hrec.base.valid.toScheduleWellFormed hk (SA.earlyTime p.toParams s)).mpr
+      (ht.trans_lt (hgst.trans_lt hve))
+  omega
+
+/-- Exact ready service uses joined counts and the supplied local gate scopes. -/
+theorem repair_exact_service_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) (s : Slot) (Q : Block)
+    (hne : Q ≠ .genesis) (hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1))
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hhead : SA.voteTime p.toParams s ≤ rho.horizon →
+      ∀ x ∈ rho.honest, joinedAt p E rho x s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho x s = some Q)
+    (hgeometry : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x s →
+      ExactServiceGateGeometry E rho i x s Q)
+    (hScopes : ∀ i x,
+      confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams s))
+        (SA.gateTime p.toParams s) → IsGateTick p c rho i x s →
+      GateReceiptScope E rho i x s)
+    (hhor : SA.voteTime p.toParams s ≤ rho.horizon) : ExactService p c E rho s Q := by
+  obtain ⟨hfast, hbatch⟩ := healing_recovery_joined_counts E rho hrec s hcut hgst hhor
+  exact exactService_of_head_recovery_on E rho G hrec.toRecovery₂ s Q hne hgst
+    hhead hfast hbatch hgeometry hScopes
+
+/-- Recovery awake facts turn an emitted or accepted object into an exact ready trigger. -/
+theorem healing_recovery_readyTrigger (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : Recovery₂ p c E rho G ΔF) (o : Obj p) (send a d : Time)
+    (x : V) (hx : x ∈ rho.honest) (hgst : E.t_GST ≤ a) (hd : d ≤ rho.horizon)
+    (htrigger : Gen.V2.Duty.Trigger E rho o send) :
+    Gen.V2.Duty.ReadyTrigger E rho o send x a d := by
+  have hlink (v : V) : V2.D.LinkReadyOn E rho v x a d := by
+    intro t hat htd
+    exact hrec.awake x hx t (hgst.trans hat) (htd.le.trans hd)
+  rcases htrigger with ⟨v, hv, he⟩ | ⟨v, hv, i, hi⟩
+  · exact ⟨v, hv, Or.inl he, hlink v⟩
+  · exact ⟨v, hv, Or.inr ⟨i, hi⟩, hlink v⟩
+
+/-- Recovery supplies transport and the receiver epoch. Retained history stays per object. -/
+theorem healing_recovery_receiverService (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (o : Obj p) (send a freeze : Time)
+    (x : V) (hx : x ∈ rho.honest) (hgst : E.t_GST ≤ a) (ha : 0 ≤ a)
+    (hsa : send ≤ a) (haf : a + p.Δ ≤ freeze) (hfh : freeze ≤ rho.horizon)
+    (htrigger : Gen.V2.Duty.Trigger E rho o send)
+    (hhistory : Gen.V2.Duty.HistorySafeAt E rho x o a)
+    (hhandlers : ∀ j t, a ≤ t → t < a + p.Δ → V2.D.Run.handlesAt E rho j x o t →
+      (fgsa p c).wellFormed o = true ∧
+      (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x) o = true ∧
+      fgsaTimely p (V2.D.Run.stateBefore E rho j x) o)
+    (hexclude : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho (a + p.Δ) x) o = false) :
+    Nonempty (ReceiverService E rho o send freeze x) := by
+  have hready := healing_recovery_readyTrigger E rho hrec.toRecovery₂ o send a
+    (a + p.Δ) x hx hgst (haf.trans hfh) htrigger
+  let dl := fun t => max t E.t_GST + p.Δ
+  have hd : dl a = a + p.Δ := congrArg (· + p.Δ) (max_eq_left hgst)
+  have delay (o : Obj p) (hn : ¬ isRowObject o) : fgsaDelay E.Δ ΔF o = p.Δ := by
+    rw [fgsaDelay_nonrow E.Δ ΔF o hn, hrec.base.delta]
+  have hw := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
+    (fun o => ¬ isRowObject o) p.Δ delay
+  refine ⟨⟨dl, rho.horizon, a, hw, hd.symm ▸ hready, hsa, ha,
+    hd.symm ▸ lt_add_of_pos_right a p.deltaPos,
+    hd.symm ▸ haf.trans hfh, hd.symm ▸ haf.trans hfh, hd.symm ▸ haf,
+    hhistory, ?_, hd.symm ▸ hhandlers, hd.symm ▸ hexclude⟩⟩
+  apply Gen.V2.Duty.restartFree_actionCut_idxBefore hrec.base.valid.toScheduleWellFormed
+    ((lt_add_of_pos_right a p.deltaPos).trans_le haf)
+  intro k t hk hat htf
+  exact hrec.suffixNoRestart x hx k t hk (hgst.trans_lt hat)
+    (htf.trans_le (hfh.trans (le_add_of_nonneg_right (by decide))))
+
+/-- H6 retained service supplies exact HEADs for joined readers.
+Each object service contains ReadyTrigger, HistorySafeAt and its local index epoch. -/
+theorem repair_head_exact (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (s : Slot)
+    (hgst : E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      RetainedH6Input p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s)
+    (hservices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hscopes : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      RetainedServiceScope E rho ip ih x y s N)
+    (hhor : SA.voteTime p.toParams s ≤ rho.horizon) :
+    ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some N.erase := by
+  have hreads := fgsa_retainedReads_H6_joined (hroots := hrec.base.receiptIdealization)
+    E rho hrec.base.valid s hx hip hseat N hem hinput hservices
+  exact exactService_head_of_retained_proposal_recovery_on E rho G hrec s hgst hx hip
+    hseat N hem _ hreads hscopes hhor
+
+end AvailableChain.FGSA.Run
+end

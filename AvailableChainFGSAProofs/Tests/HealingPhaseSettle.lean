@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep (RPhase tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (bootstrap tests)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (foundation producer)
@@ -50,15 +51,71 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
 
 -- P6: the frozen contract from the foundation producers and the regime fields.
 example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ)
-    {ΔF : Time} (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) :
-    RPhase p c E rho :=
+    {ΔF : Time} (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hAwake : ∀ y ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon →
+      E.awake y t = true) : RPhase p c E rho :=
   healing_rPhase (hroots := hroots) p c E rho (fgsa_rMono p c E rho)
-    (fgsa_apiFinalLockClaim_body p c E rho () hp) hvalid hnr hdelta hsync
+    (fgsa_apiFinalLockClaim_body p c E rho () hp) hvalid hnr hdelta hsync hAwake
+
+-- Durable settlement uses the all-restart producer and actual retained object services.
+example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())
+    {G ΔF : Time} (hrec : HealingSet p c E rho G ΔF)
+    (hServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
+      rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
+      E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      ev.time + p.Δ ≤ rho.horizon →
+      TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
+    (i : Nat) (ev : V2.Event V (Obj p)) (v : Time) (m : Nat) (kind : PhaseKind)
+    (hi : rho.events[i]? = some ev) (hgst : E.t_GST ≤ ev.time)
+    (hu : ev.time + 3 * p.Δ ≤ v) (hv : v ≤ rho.horizon) (hm : 1 ≤ m)
+    (hfront : frontierAtIdx p c E rho (i + 1) = m)
+    (hkind : AttemptPhaseAt p c E rho (i + 1) m kind)
+    (hquiet : ∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) :
+    ∃ J,
+      let root := match kind with | .gap => none | .topJ => some J | .contest => none
+      let contested := match kind with | .gap => false | .topJ => false | .contest => true
+      PhaseInterval p c E rho (ev.time + 3 * p.Δ) v m root contested := by
+  cases kind <;> obtain ⟨J, hphase, _⟩ := healing_settle_start_on
+    (hroots := hrec.base.receiptIdealization) p c E rho
+    (fgsa_apiFinalLockClaim_body p c E rho () hp) hrec.base.valid
+    (fgsa_rMonoAll p c E rho) hServices i ev v m _ hi hgst hu hv hm hfront hkind hquiet
+  all_goals exact ⟨J, hphase⟩
+
+-- The suffix stamp supplier composes with the actual P-Fd epoch producer.
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    {i j : Nat} {x : V} (hx : x ∈ rho.honest) (hij : i ≤ j)
+    (hj : j ≤ rho.events.length) (hi : V2.D.Run.idxBefore rho (E.t_GST + 1) ≤ i) :
+    (storeAt p c E rho i x).base.blockStamp <+:
+        (storeAt p c E rho j x).base.blockStamp ∧
+      (storeAt p c E rho i x).base.voteStamp <+:
+        (storeAt p c E rho j x).base.voteStamp :=
+  healing_recovery_stamps E rho hrec (fgsa_rStoreEpoch p c E rho) hx hij hj hi
+
+-- Frame metadata and stamps use the same suffix indices and P-Fd frame producer.
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    {i j : Nat} {x : V} (hx : x ∈ rho.honest) (hij : i ≤ j)
+    (hj : j ≤ rho.events.length) (hi : V2.D.Run.idxBefore rho (E.t_GST + 1) ≤ i) :
+    (storeAt p c E rho i x).proposals <+: (storeAt p c E rho j x).proposals ∧
+      (storeAt p c E rho i x).rowPool <+: (storeAt p c E rho j x).rowPool ∧
+      (storeAt p c E rho i x).base.blockStamp <+:
+        (storeAt p c E rho j x).base.blockStamp ∧
+      (storeAt p c E rho i x).base.voteStamp <+:
+        (storeAt p c E rho j x).base.voteStamp :=
+  healing_recovery_frame_metadata E rho hrec (fgsa_rFrameNextEpoch p c E rho) hx hij hj hi
+
+-- Durable content composes with both all-restart foundation producers.
+example [Fintype V] {i j : Nat} {x : V} (hx : x ∈ rho.honest) (hij : i ≤ j)
+    (hj : j ≤ rho.events.length) :
+    (storeAt p c E rho i x).fg.TF ⊆ (storeAt p c E rho j x).fg.TF ∧
+      (storeAt p c E rho i x).base.blocks <+: (storeAt p c E rho j x).base.blocks ∧
+      FGBlock.Preceq (storeAt p c E rho i x).fg.F (storeAt p c E rho j x).fg.F :=
+  healing_recovery_durable E rho (fgsa_rStoreDurable p c E rho)
+    (fgsa_rMonoAll p c E rho) hx hij hj
 
 -- An event at the deadline is not before the strict relay cut, but it is inside
 -- the inclusive cut.

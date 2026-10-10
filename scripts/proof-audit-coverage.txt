@@ -6866,3 +6866,8 @@
 # SupportTicks and SupportRelease now own the moved tick/emission/release helpers.
 # P-H1 consumer extension: local strict root now has 81 commands.
 # The same P-H1.coverage-fragment.txt contains the expanded serial fragment.
+
+# P-H1 Round 2: HealingSleepAxioms has 132 strict commands.
+# Complete local inventory: scripts/dev-pkg/P-H1.coverage-fragment.txt.
+# SupportRecovery is a new owned supplier under NEW-OWNED-MODULES.
+# Merge into the existing FGSAProofs.Tests.Axioms key at serial integration.

@@ -20,6 +20,25 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportTicks
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite
 public import AvailableChainFGSAProofs.Proofs.Healing.Time
 
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
+
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
+
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
+
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
+
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
+
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionReceipt
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
+
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate
+
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
+
 set_option linter.privateModule false
 
 #print axioms AvailableChain.FGSA.Run.healing_row_delivery
@@ -103,3 +122,63 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_resetFull_horizon
 #print axioms AvailableChain.FGSA.Run.healing_time_strict_of_reset
 #print axioms AvailableChain.FGSA.Run.healing_hTime_of
+
+#print axioms AvailableChain.FGSA.Run.healing_phase_top_persist_all
+#print axioms AvailableChain.FGSA.Run.healing_phase_contest_persist_of_crossing_all
+#print axioms AvailableChain.FGSA.Run.healing_phase_order_of_crossing_all
+#print axioms AvailableChain.FGSA.Run.healing_frontier_mono_all
+#print axioms AvailableChain.FGSA.Run.healing_phase_window_all
+#print axioms AvailableChain.FGSA.Run.healing_settle_start_on
+#print axioms AvailableChain.FGSA.Run.healing_promotion_quiet_window
+#print axioms AvailableChain.FGSA.Run.healing_phase_extend_of_no_effective
+#print axioms AvailableChain.FGSA.Run.healing_recovery_restart_bound
+#print axioms AvailableChain.FGSA.Run.healing_recovery_epoch
+#print axioms AvailableChain.FGSA.Run.healing_recovery_durable
+#print axioms AvailableChain.FGSA.Run.healing_recovery_stamps
+#print axioms AvailableChain.FGSA.Run.healing_recovery_joined
+#print axioms AvailableChain.FGSA.Run.healing_recovery_receiverService
+#print axioms AvailableChain.FGSA.Run.repair_head_exact
+#print axioms AvailableChain.FGSA.Run.frontier_relay
+#print axioms AvailableChain.FGSA.Run.frontier_head_relay
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_frame_metadata
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_readyTrigger
+
+#print axioms AvailableChain.FGSA.Run.healing_settle_start
+#print axioms AvailableChain.FGSA.Run.healing_settle_event
+#print axioms AvailableChain.FGSA.Run.healing_rPhase
+#print axioms AvailableChain.FGSA.Run.healing_attempt_settle_start
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle
+
+#print axioms AvailableChain.FGSA.Run.frontier_F_below_all
+#print axioms AvailableChain.FGSA.Run.frontier_F_below
+#print axioms AvailableChain.FGSA.Run.healing_promotion_first_receipt
+#print axioms AvailableChain.FGSA.Run.healing_promotion_first_receipt_of_frontierCap
+#print axioms AvailableChain.FGSA.Run.healing_promotion_block_held_mono
+#print axioms AvailableChain.FGSA.Run.promotion_age_advance_of_source
+#print axioms AvailableChain.FGSA.Run.healing_promotion_advance
+#print axioms AvailableChain.FGSA.Run.boot_not_effective_one
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_joinedHonest
+#print axioms AvailableChain.FGSA.Run.healing_recovery_joined_counts
+#print axioms AvailableChain.FGSA.Run.repair_exact_service_on
+#print axioms AvailableChain.FGSA.Run.healing_postReset_retainedReads_at_on
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_gate_scope
+#print axioms AvailableChain.FGSA.Run.healing_head_witness_relay_on
+#print axioms AvailableChain.FGSA.Run.healing_support_prefreeze_path_on
+#print axioms AvailableChain.FGSA.Run.healing_support_gate_cover
+#print axioms AvailableChain.FGSA.Run.healing_support_emitted_head
+
+#print axioms AvailableChain.FGSA.Run.healing_phase_top_persist
+#print axioms AvailableChain.FGSA.Run.healing_phase_contest_persist_of_crossing
+#print axioms AvailableChain.FGSA.Run.healing_phase_order_of_crossing
+
+#print axioms AvailableChain.FGSA.Run.healing_promotion_age_receipt
+#print axioms AvailableChain.FGSA.Run.healing_promotion_age_service
+#print axioms AvailableChain.FGSA.Run.healing_renewedPromotion
+#print axioms AvailableChain.FGSA.Run.healing_renewedPromotion_terminal
