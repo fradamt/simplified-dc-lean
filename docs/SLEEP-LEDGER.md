@@ -4546,3 +4546,75 @@ handoff. Owner of every site below: P-H2 (sleep-wave-plan.md:982, :992, :994, :9
   Healing/FrontierSearchRepair.lean:216: use healing_settle_start_on, RMonoAll, carrier services and receipt
   idealization instead of base.noRestart.
 - P-H1-owned, still OPEN: Healing/RepairH6S.lean:154 uses the former repair interface.
+
+
+## P-Ou Round 2 — growth, prefix cut and local outage consumers (2026-10-10)
+
+Base: babc0460, including S-Ap P15-CUT ddfe84be. P-Ou remains PREPARED, not CLOSED.
+The closure handoff is scripts/dev-pkg/P-Ou.round2-handoff.md.
+
+- P20: outage_cleanGrowthClaim_of is outside CleanClaims. Its only internal
+  supplier parameters are the exact hcompatible and hinclusion from P-Cl2.
+  No old hmono/history include reaches it. AvailableGrowthConcl already has
+  the approved independent reader scopes; this round changes its comment only.
+  GrowthConsumer builds the unfolded production result with the same deadline.
+  The mixed Export still fails in its other imports and is EXPECTED-FAIL.
+- Growth compatibility: clean_growth_compatible_of_outputs uses scoped Clean
+  output compatibility and one confirmed gate-inclusion witness. The earlier
+  reader can sleep before the gate or deadline. Both full regime suppliers
+  remain OPEN: P-Cl1/P-Cl2 must close scoped Clean truncation; P-Ou must close
+  exact proposal/history and later-reader inclusion. No global monotonicity
+  or continuous awake condition for all honest receivers was added.
+- DECISION P15-CUT: the prefix consumer derives 6*delta <= b0 from an origin
+  gate, derives earlyTime q <= b0 for every selected label, and passes that
+  bound to the corrected prefix predicate. Equality is allowed. The genesis
+  branch uses its universal prefix order and needs no receipt. The restored
+  three-cut composition still builds. Public regime receipts remain OPEN.
+- DECISION ANCHOR-DL: the production active-path and exact-carrier consumers
+  now use ReceiptCoverageAnchorPremises and the anchor corollary. Compatibility
+  permits a target below F; the exact carrier still supplies the height bound.
+  Their lower module builds. The remaining receipt callers must derive service
+  at vote/early/freeze anchors and bind all N4 obligations to the same anchor.
+- JOINED-VOTER: the strict HEAD read bridge now uses joinedAt at the vote.
+  Its proof excludes only a local restart at that exact time. Earlier restarts
+  and other nodes' same-time restarts are allowed. The old NoRestart input is
+  removed from inclusion_head_read. Retained-walk callers still need the port.
+- E/denominator: the good-seat cardinality and A union W late complement are
+  proved from Base2 and E at every receiver store. Stored honest HEADs supply
+  joinedness through authenticity. Receipt membership and compatible targets
+  remain OPEN joint-invariant inputs. The full good-vote invariant is OPEN.
+- Local late writes: every newly written gate row is compatible when its
+  passed result is compatible. Old conflicting rows are permitted. Global
+  exclusion of conflicting late writes, induction and handover remain OPEN.
+- T61: the endpoint tick test now takes confirmedReaderAtIdx at the post-gate
+  cut and gets the exact awake fact from that scope. Its sleeping-tick example
+  now proves impossibility in a valid sleep run. InclusionGate* still blocks
+  the test module. T31/T35/T37 remain OPEN; T25 remains with P-Ar.
+- P-Ar: the prior unrestricted transfer defect is repaired in its landed
+  joined forms. Closure still needs clean_epoch_saved_row from P-Cl1 round 2,
+  protected origins/seeds, prefix receipt and lower write/gate helpers.
+- P-As Shared/Claims is a separate failed supplier of the mixed exporters.
+  P-ShA's landed Export, Regimes, AnchorService and RegimesService are GREEN.
+  S-Ap D013/P15-CUT are installed; no new predicate defect was found. S-Ap's
+  facade/audit targets remain EXPECTED-FAIL. Claims/Statements was not edited.
+
+Map: 36 TARGETS, 486 GREEN, 20 EXPECTED-FAIL (18 P-Ou, 2 S-Ap).
+GREEN is a build classification. It does not close a conditional supplier.
+Canonical audit moves and three new module registrations are handed to P-Da.
+All 59 local strict commands have P-Ou coverage rows. No shared baseline,
+exception, allowance, checker or scope row was changed. Public-meaning STOPs: none.
+
+Round 2 validation on the final proof sources:
+- Proof commit: 7969754d. DCK P-Ou PASS; 38 strict sources, 3,022 results;
+  all 24 default controls PASS. GREEN builds use --wfail and default heartbeats.
+- Complete exports across all 486 GREEN roots: 279 proof modules, 253 exports,
+  zero unaccepted exports and zero Gen exports. Export controls PASS.
+- Local complete coverage: all 59 SleepAxioms commands have inventory rows;
+  strict audit permits only propext, Classical.choice and Quot.sound.
+- Layers: 72 inherited findings, zero new. Diff whitespace and new Lean/prose
+  lines <=100 pass. Machine coverage rows retain the required three-token format.
+- Actual mixed consumer build was attempted. It fails in Outage/Suppliers,
+  ExactProposalRetained, P-Ar ArmingDuty/ArmingGate, and P-As Shared/Claims.
+  This result is not replaced by the GREEN GrowthConsumer build.
+- Logs: .lake/sleep-pou-r2/dck-final.log, exports-final.log, coverage.log,
+  layers-final.log and consumer-build.log. No push, merge, rebase or supplier edit.

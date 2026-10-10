@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.ReceiptCoverage
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationFrame
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty
@@ -111,80 +111,6 @@ theorem outageV_path_coverage (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = 
       have heq := Option.some.inj (hb'.symm.trans hb)
       subst b'
       exact ⟨K, D, ⟨rfl, rfl⟩, hBK⟩
-
-/-- OUTPUT-DIRECT §7. DC: INTENTIONAL; a received compatible HEAD path
-is active even when its target is a strict ancestor of the receiver's F. -/
-theorem outageV_active_path_of_coverage (hE : V2.D.ExecutionValid E rho)
-    (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (K : Block)
-    (required : Obj p → Time → Prop) (paths : Block → Time → Prop)
-    (hx : x ∈ rho.honest)
-    (hcov : ReceiptCoveragePremises E rho dl cut D first x K required paths)
-    (hpath : paths K D)
-    (hKF : Block.Compatible K (eraseFG (V2.D.Run.stateBeforeTime E rho D x).st.fg.F))
-    (hroots : NamedRootCollisionFree p c E rho) :
-    ∀ X, Block.Preceq X K → X ∈ (actView (V2.D.Run.stateBeforeTime E rho D x).st).blocks := by
-  let st := (V2.D.Run.stateBeforeTime E rho D x).st
-  have hc := (fgsa_receiptCoverage E rho dl cut D first x K required paths
-    hroots hDelta hE hN hx hcov).1
-  have hb := (storeBundle_stateBeforeTime E rho D x).cstore
-  have hK : K ∈ (actView st).blocks := by
-    rcases hc with ⟨hbelow, _⟩ | ⟨_, _, hpaths⟩
-    · exact actView_ancestor_closed p st hb ((actView_genesis_F p st hb).2) hbelow
-    · obtain ⟨Y, hY, hYK⟩ := hpaths K D hpath K (block_preceq_refl K)
-      exact (actView_blocks st K).mpr ⟨(hb.baseTree K).mpr ⟨Y, hY, hYK⟩, hKF⟩
-  intro X hX
-  exact actView_ancestor_closed p st hb hK hX
-
-/-- OUTPUT-DIRECT §6. DC: INTENTIONAL; relay keeps the exact FG carrier,
-not only its erased path. The alternative is finality above B. Monotonic F
-reduces every earlier exclusion check to compatibility at the receipt cut. -/
-theorem outageV_exact_carrier_receipt (hE : V2.D.ExecutionValid E rho)
-    (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    {ΔF : Time} (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    (hroots : NamedRootCollisionFree p c E rho)
-    {k : Nat} {x y : V} {B P : FGBlock (Fin p.n)} {u D : Time}
-    (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
-    (hP : P ∈ (storeAt p c E rho k y).fg.TF)
-    (hBP : FGBlock.Preceq B P)
-    (hBJ : FGBlock.Preceq B (heightView p P).J)
-    (hcut : ∀ l < k, ∀ e, rho.events[l]? = some e → e.time ≤ u)
-    (hdeadline : max u E.t_GST + p.Δ ≤ D) (hhor : D ≤ rho.horizon)
-    (hF : Block.Compatible (eraseFG B) (F_at p c E rho (V2.D.Run.idxBefore rho D) x)) :
-    let dst := (V2.D.Run.stateBeforeTime E rho D x).st
-    Block.Preceq (eraseFG B) (eraseFG dst.fg.F) ∨
-      P ∈ dst.fg.TF ∧ (heightView p P).h_j ≤ dst.fg.h_j := by
-  intro dst
-  have hread : F_at p c E rho (V2.D.Run.idxBefore rho D) x = eraseFG dst.fg.F := by
-    change eraseFG (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) x).st.fg.F = _
-    rw [Gen.V2.Duty.stateBefore_idxBefore E rho D hE.toScheduleWellFormed]
-  rw [hread] at hF
-  by_cases hBF : Block.Preceq (eraseFG B) (eraseFG dst.fg.F)
-  · exact Or.inl hBF
-  have hFB : Block.Preceq (eraseFG dst.fg.F) (eraseFG B) := by
-    rcases Bool.or_eq_true_iff.mp hF with h | h
-    · exact (hBF h).elim
-    · exact h
-  have hhistory : ∀ j, j ≤ V2.D.Run.idxBefore rho D →
-      Block.Compatible (eraseFG P) (F_at p c E rho j x) := by
-    intro j hj
-    have hm := arming_F_mono (E := E) hN hj x
-    rw [hread] at hm
-    exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_trans
-      hm (block_preceq_trans hFB (eraseFG_preceq hBP))))
-  have hPb := ((storeBundle_stateBefore E rho k y).cstore.baseTree _).mpr ⟨P, hP, rfl⟩
-  obtain ⟨required, paths, hcov, hpath⟩ := outageV_path_coverage hE hDelta hsync
-    hy hPb hcut hdeadline hhor hhistory
-  have hc := (fgsa_receiptCoverage E rho (fun t => max t E.t_GST + p.Δ)
-    rho.horizon D 0 x (eraseFG P) required paths hroots hDelta hE hN hx hcov).1
-  have hmem : P ∈ dst.fg.TF := by
-    rcases hc with ⟨hPF, _⟩ | ⟨_, _, hp⟩
-    · exact (hBF (block_preceq_trans (eraseFG_preceq hBP) hPF)).elim
-    · obtain ⟨Y, hY, heY⟩ := hp _ D hpath _ (block_preceq_refl _)
-      exact eraseFG_injective heY ▸ hY
-  exact Or.inr ⟨hmem, outageV_received_height p dst
-    (storeBundle_stateBeforeTime E rho D x).cstore hmem
-    (eraseFG_preceq_iff.mp (block_preceq_trans hFB (eraseFG_preceq hBJ)))⟩
 
 /-- OUTPUT-DIRECT §6. DC: INTENTIONAL; instantiate exact-carrier relay
 at an actual first-regression HEAD cut. The F fact is required only at the
