@@ -1,7 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
-public import AvailableChainFGSAProofs.Proofs.Clean.Closure
-public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 
 public section
@@ -97,13 +95,6 @@ theorem outage_early_event_state {i : Nat}
     (fun x hx => (outage_arming_protection_scoped h.sleepPre hf htsrc hne hc hnamed
       hGate x hx).1) hFlight hI hi
 
-include h hf hsrc hc in
-/-- P-Cl1 produces the Clean history at this cut from the existing healthy sleep prefix. -/
-theorem outage_early_clean_history : CleanHist p c E rho (timeIdx rho b₀) := by
-  have hb : 0 < b₀ := lt_of_lt_of_le (by
-    rw [arming_gate_eq]; have := p.deltaPos; positivity) hc.gate_le_cut
-  exact clean_invariant p c E rho h.sleepPre (h.pre.faultQ_of_pos hb) hf hsrc _ le_rfl
-
 include h hf htsrc hnamed hsrc hState hprov hne hc hβ in
 /-- O11-EARLY-F at the inclusive read, including a horizon before earlyTime(r). -/
 theorem outage_early_finalized_read {x : V} {t : Time} (hx : x ∈ rho.honest)
@@ -124,7 +115,12 @@ theorem outage_early_finalized_read {x : V} {t : Time} (hx : x ∈ rho.honest)
 
 include h hf htsrc hnamed hsrc hState hprov hne hc hβ in
 /-- O11-EARLY-READ. Before earlyTime(r), a scoped confirmed reader is covered. -/
-theorem outage_early_public_read {x : V} {t : Time} (hb : b₀ ≤ t)
+theorem outage_early_public_read
+    (hHist : CleanHist p c E rho (timeIdx rho b₀))
+    (hOutput : ∀ j y s, j < timeIdx rho b₀ → enabledGateAt p c E rho j y s →
+      ∃ C, gateResultAt p c E rho j = some (some C) ∧
+        Block.Preceq C (S_at p c E rho (j + 1) y))
+    {x : V} {t : Time} (hb : b₀ ≤ t)
     (hhor : t ≤ rho.horizon) (ht : t < SA.earlyTime p.toParams (restoredLabel p b₁))
     (hReader : outageConfirmedReader p c E rho fast b₀ b₁ x t) :
     Block.Compatible B (S_at p c E rho (timeIdx rho t) x) ∧
@@ -153,16 +149,8 @@ theorem outage_early_public_read {x : V} {t : Time} (hb : b₀ ≤ t)
         (arming_timeIdx_le_idxBefore rho (ht.trans (by
           rw [arming_early_eq, arming_freeze_eq]; linarith [p.deltaPos])))).2.2.2 x hxG |>.1
     · have hAux := outage_continuation_arming_regime h
-      have hHist := outage_early_clean_history h hf hsrc hc
-      have hbpos : 0 < b₀ := lt_of_lt_of_le (by
-        rw [arming_gate_eq]; have := p.deltaPos; positivity) hc.gate_le_cut
-      apply arming_cover_sleep hAux hState hHist ?_ hc x t hxG hReader.1
+      exact arming_cover_sleep hAux hState hHist hOutput hc x t hxG hReader.1
         (hc.gate_le_cut.trans hb) (lt_of_not_ge hdt) hhor
-      intro j y s hj hG
-      obtain ⟨C, hC, _, hCS⟩ := clean_gateOutput_body p c E rho b₀ h.sleepPre
-        (h.pre.faultQ_of_pos hbpos) hf hsrc _ le_rfl hHist j y s hj
-        (hs.honest_only _ (List.mem_of_getElem? hG.1)) hG
-      exact ⟨C, hC, hCS⟩
   have hBF := outage_early_finalized_read h hf htsrc hnamed hsrc hState hprov hne hc hβ
     hReader.1.1 hb hhor ht
   obtain ⟨hStable, hConfirmed, _⟩ := outage_continuation_inclusive_read hs hBS
