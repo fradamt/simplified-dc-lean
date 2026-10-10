@@ -5379,3 +5379,30 @@ the actual vote tick at ih. The retained score call supplies hih.
 Export uses the corrected internal record; the handoff has the same scope.
 No public statement or protocol declaration changed. The affected retained
 consumer and both inclusion tests build with --wfail.
+
+### P-Ou Round 4 — P-Ar consumers and later gate origin
+
+RestoredReceipt consumes arming_prefix_batch_receipt directly. The restored
+service record has no prefix field. The protected non-genesis prefix adapter
+uses arming_protected_origin_on to derive 6Δ ≤ b₀ and each in-cut label bound.
+PersistenceSleep consumes ArmingSleepCert and arming_sleep_gate_core for
+covered receivers. It keeps the current-F alternative. Its domain adapter
+supplies P-Ar's hRows from outage_named_of_source_history and the actual
+global source history. The pending source-history seed remains OPEN.
+
+The proposer count now has a receipt-backed cover core, a joined _on form,
+and the legacy awake-count form. Both forms require actual emitted and
+resolved receipts for every counted seat. The awake form covers joined seats
+through joinedAt.1. This restores the P-Ar ArmingCover consumer without
+changing a P-Ar file or asking a sleep regime for an unjoined HEAD emission.
+
+PersistenceStep imports the lower ArmingStep API and the exact AC/lease APIs.
+The source step uses gatePassedAt's enabled guard. The suppressed gate branch
+keeps protection and passes through normalization. PersistenceStep is GREEN.
+
+InclusionOrigins proves the latest gate label and the enabled latest gate
+for a caught-up reader. It uses the last restart marker, wake-restart law,
+and receiver awake state. The later-origin adapter consumes Clean gate output
+and scoped public monotonicity; it does not assume an origin at the later read.
+The new production consumers and their strict audit build with --wfail.
+Layer check: 72 inherited findings, zero new. Public claims are unchanged.

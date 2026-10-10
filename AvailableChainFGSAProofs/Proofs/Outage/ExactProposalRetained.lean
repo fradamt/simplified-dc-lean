@@ -579,7 +579,7 @@ theorem inclusion_retained_reads [Fintype V]
         change Block.Preceq (eraseFG (clock p (storeAt p c E rho ip x) _).fg.F) K
         rw [clock_fg]
         exact block_preceq_trans (hD ▸ eraseFG_preceq hFx) hDK
-  have hPP := inclusion_proposer_prior_of_F_prefix E rho hE hC (q + 2) ip x src (by
+  have hPP := inclusion_proposer_prior_of_F_prefix_on E rho hE hC (q + 2) ip x src (by
       change (clock p (storeAt p c E rho ip x) _).base.votes = _
       exact (clock_vn _ _).1) H hH hbatch D0 (by
         change Block.Preceq (eraseFG (clock p (storeAt p c E rho ip x) _).fg.F) D0

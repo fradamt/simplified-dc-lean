@@ -1,5 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDefs
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
+public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceRelease
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAClaims.Statements.OutageSleep
@@ -119,6 +121,61 @@ theorem outage_restart_live_lock {B : Block} {g : Nat} {dl : Time} {st : State p
       (acRestart p st w).base.now < dl := by
   rw [acRestart_obligations, acRestart_now]
   exact ⟨hRow, hLive⟩
+
+/-- P-Ar's scoped pending gate seeds protection only for covered receivers.
+The current-finality branch is retained; no all-honest seed is constructed. -/
+theorem outage_arming_local_on
+    (hvalid : V2.D.ExecutionValid E rho) (hdelta : E.Δ = p.Δ)
+    {fast : Bool} {T b₀ : Time} {B : Block} (hne : B ≠ .genesis)
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh)
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon) :
+    ∀ y ∈ coveredNodes p E rho fast b₀,
+      OutageProtection p B (l + 1)
+        (storeAt p c E rho (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) y) := by
+  intro y hy
+  obtain ⟨hS, hF | ⟨_, _, dl, hlease, _, hlong, _⟩⟩ :=
+    arming_sleep_gate_core hvalid hdelta hne hc hgate y hy
+  · exact ⟨hS, Or.inl hF⟩
+  exact ⟨hS, Or.inr ⟨dl, outage_row_of_lease p _
+    (cstoreInv_stateBefore E rho _ y) hlease, hlong⟩⟩
+
+/-- The global source history supplies P-Ar's exact named-row boundary.
+The certificate does not assume this boundary. -/
+theorem outage_arming_domain_on
+    (hvalid : V2.D.ExecutionValid E rho) (hdelta : E.Δ = p.Δ)
+    (hf : FGFoundation p c E rho) (hroots : NamedRootCollisionFree p c E rho)
+    {fast : Bool} {T b₀ : Time} {B : Block} (hne : B ≠ .genesis)
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh)
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon)
+    (hSource : OutageSourceHistory p c E rho B
+      (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))))
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C)) :
+    ∀ y ∈ coveredNodes p E rho fast b₀,
+      let I := afterTicksIdx rho (SA.gateTime p.toParams (l + 1))
+      let st := storeAt p c E rho I y
+      Block.Preceq B (F_at p c E rho I y) ∨
+        ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
+          Block.Preceq B (eraseFG (FGSA.controls p st).Z)) := by
+  have hRows : ∀ y r (a : RowWire p.n) (e Bh : FGBlock (Fin p.n)), eraseFG Bh = B →
+      HonestRowBefore p c E rho (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) y r a →
+      namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+      RootBlockInRun p c E rho (eraseFG e) → FGBlock.Preceq e Bh ∨ FGBlock.Preceq Bh e := by
+    intro y r a e Bh hBh ha he hScope
+    exact (outage_named_of_source_history hroots hBh hSource hnamed).history y r a e
+      ha he hScope
+  intro y hy I st
+  obtain ⟨_, hF | ⟨_, _, _, _, _, _, hdom⟩⟩ :=
+    pending_gate_lease_or_F_on hvalid hdelta hf hne hc hgate hRows y hy
+  · exact Or.inl hF
+  · exact Or.inr hdom
 
 end AvailableChain.FGSA.Run
 end

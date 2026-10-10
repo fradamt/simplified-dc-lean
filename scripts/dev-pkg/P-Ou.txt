@@ -1,6 +1,10 @@
-# P-Ou round 2, base babc0460. Kernel PREPARED; public closure remains OPEN.
+# P-Ou round 4, base 0c836aac. Kernel PREPARED; public closure remains OPEN.
 # GREEN means compiled; conditional suppliers do not close public claims.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
+AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
+AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
 AvailableChainFGSAClaims.Claims.Outage
 AvailableChainFGSAClaims.Claims.OutageContinuation
 AvailableChainFGSAProofs.Proofs.Outage.Close
@@ -39,6 +43,11 @@ AvailableChainFGSAProofs.Tests.InclusionGate
 AvailableChainFGSAProofs.Tests.OutageInduction
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
+AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
+AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep
+AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -544,7 +553,6 @@ AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.Export P-Ou
 AvailableChainFGSAProofs.Proofs.Outage.Induction P-Ou
-AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep P-Ou
 AvailableChainFGSAProofs.Proofs.OutageContinuation.Export P-Ou
 AvailableChainFGSAProofs.Tests.OutageInduction P-Ou
 AvailableChainFGSARun S-Ap

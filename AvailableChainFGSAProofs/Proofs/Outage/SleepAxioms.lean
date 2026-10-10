@@ -13,6 +13,10 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceRelease
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
 
+public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep
+
+public import AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
+
 #print axioms AvailableChain.FGSA.Run.outage_restored_service
 #print axioms AvailableChain.FGSA.Run.outage_restored_proposal_receipt
 #print axioms AvailableChain.FGSA.Run.outage_restored_batch_receipt_on
@@ -121,3 +125,22 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
 #print axioms AvailableChain.FGSA.Run.clean_inclusion_gate_witness
 #print axioms AvailableChain.FGSA.Run.clean_growth_compatible_from_history
 #print axioms AvailableChain.FGSA.Run.outage_supplier_history
+#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior_of_F_prefix_cover
+#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior_of_F_prefix_on
+#print axioms AvailableChain.FGSA.Run.OutageRestoredServices
+#print axioms AvailableChain.FGSA.Run.outage_restored_receipt_on
+#print axioms AvailableChain.FGSA.Run.outage_prefix_receipt_of_protected_read
+#print axioms AvailableChain.FGSA.Run.outage_arming_local_on
+#print axioms AvailableChain.FGSA.Run.outage_arming_domain_on
+#print axioms AvailableChain.FGSA.Run.outage_normalize_covers
+#print axioms AvailableChain.FGSA.Run.outage_advance_covers
+#print axioms AvailableChain.FGSA.Run.outage_passed_raw_compatible
+#print axioms AvailableChain.FGSA.Run.outage_writeKeys_keep
+#print axioms AvailableChain.FGSA.Run.outage_normalize_protection
+#print axioms AvailableChain.FGSA.Run.outage_gateStep_protection
+#print axioms AvailableChain.FGSA.Run.outage_tick_source_compatible
+#print axioms AvailableChain.FGSA.Run.outage_head_of_root
+#print axioms AvailableChain.FGSA.Run.outage_delivery_protection
+#print axioms AvailableChain.FGSA.Run.inclusion_last_gate_label
+#print axioms AvailableChain.FGSA.Run.inclusion_last_gate_reader
+#print axioms AvailableChain.FGSA.Run.inclusion_later_reader_origin

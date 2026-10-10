@@ -256,3 +256,21 @@ The early field now requires a ≤ rho.horizon. The two retained calls supply
 the proposal bound t(s) ≤ v(s) ≤ rho.horizon and the vote bound v(s) ≤ rho.horizon.
 The relay field requires the actual vote tick at ih; the retained call supplies hih.
 Export consumes this corrected internal record. Public statements are unchanged.
+
+## Round 4 — current P-Ar inputs
+
+The Round 3 P-Ar and P-Cl1 requests above are now supplied in this tree:
+ArmingKernel.arming_prefix_batch_receipt is the corrected public P15-CUT theorem.
+RestoredReceipt.outage_restored_receipt_on uses it directly; restored services
+do not produce the prefix. The protected-read adapter uses the actual P-Ar origin.
+PersistenceSleep.outage_arming_local_on uses the scoped ArmingSleepCert.
+PersistenceSleep.outage_arming_domain_on supplies hRows from the global source
+history and sourceDiscipline_emittedName through outage_named_of_source_history.
+It retains the current-F branch and the coveredNodes receiver scope.
+
+InclusionOrigins.inclusion_last_gate_reader proves the latest enabled gate
+from an actual caught-up read, including a restarted reader. The later-origin
+adapter needs the Clean gate-output bound at that gate and scoped monotonicity
+on public reads in [0,horizon]. Those are Clean/assembly projections.
+The global source seed through the pending tick is still P-Ou closure work.
+Fast certificate construction at equality remains with P-Ar.

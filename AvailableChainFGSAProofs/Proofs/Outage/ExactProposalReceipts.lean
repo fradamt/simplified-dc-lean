@@ -346,14 +346,15 @@ steps 4 and 6. Class (iii). DC: Goldfish/Confirmation:494,508,567; INTENTIONAL:
 the batch count is read in the actual proposer pools. Every awake honest
 label-(s−1) HEAD is a received, resolved vote above D0, so every prefix L of
 D0 has a strict majority and beats each conflicting block. -/
-theorem inclusion_proposer_prior_of_F_prefix [Fintype V]
+theorem inclusion_proposer_prior_of_F_prefix_cover [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (s : Slot) (i : Nat) (x : V)
     (st : State p.n) (hvotes : st.base.votes = (storeAt p c E rho i x).base.votes)
     (H : Finset (Fin p.n))
-    (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head (s - 1))) q ∈ rho.honest ∧
+    (hHon : ∀ q ∈ H, rho.seatOf (.base (.head (s - 1))) q ∈ rho.honest)
+    (hCover : ∀ q, rho.seatOf (.base (.head (s - 1))) q ∈ rho.honest →
       joinedAt p E rho (rho.seatOf (.base (.head (s - 1))) q) (s - 1)
-        (SA.voteTime p.toParams (s - 1)))
+        (SA.voteTime p.toParams (s - 1)) → q ∈ H)
     (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card) (D0 : Block)
     (hFD : Block.Preceq (eraseFG st.fg.F) D0)
     (hrec : ∀ q ∈ H, ∃ K t, V2.D.Run.emits E rho (rho.seatOf (.base (.head (s - 1))) q)
@@ -378,7 +379,7 @@ theorem inclusion_proposer_prior_of_F_prefix [Fintype V]
       (baseVote ⟨.seat (.head (s - 1)) q, K.root⟩) ?_
     intro o ho hs
     obtain ⟨hm, hl⟩ := hstored o ho
-    exact fgsa_honest_head_eq_of_stored E rho hE i x (s - 1) q K.root t ((hH q).mp hq).1 he
+    exact fgsa_honest_head_eq_of_stored E rho hE i x (s - 1) q K.root t (hHon q hq) he
       o hm hl hs
   have hsupp : ∀ q ∈ H,
       Gen.AC.Root.poolSupports st.base.blocks (proposerSupport st s) q D0 = true := by
@@ -396,7 +397,7 @@ theorem inclusion_proposer_prior_of_F_prefix [Fintype V]
       exact Bool.and_eq_true_iff.mpr ⟨block_preceq_trans hFD hDK, decide_eq_true hslot⟩
     · exact (Gen.AC.Root.vote_support_body _ _ _).mpr ⟨K, hlookup, hKb, hslot, hDK⟩
   have hother := inclusion_joined_rest_bound E rho hC hE (s - 1) H
-    (fun k hh ha => (hH k).mpr ⟨hh, ha⟩) (proposerVotes st s)
+    hCover (proposerVotes st s)
     (fun o ho k hk => ⟨i, x, o, (hstored o ho).1, (hstored o ho).2, hk⟩)
   have hc := Gen.AC.Root.batch_counts st.base.blocks (proposerVotes st s) (proposerVotes st s)
     (proposerSupport st s) H H.card (Gen.V2.Duty.faulty rho).card D0
@@ -414,6 +415,56 @@ theorem inclusion_proposer_prior_of_F_prefix [Fintype V]
       rw [hB] at hLB
       contradiction
   exact lt_of_le_of_lt (hrival B hDB) (lt_of_lt_of_le hbatch.lt (hprefix L hL).1)
+
+/-- Joined proposer counts use authentic receipts and cover all joined honest seats. -/
+theorem inclusion_proposer_prior_of_F_prefix_on [Fintype V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (s : Slot) (i : Nat) (x : V)
+    (st : State p.n) (hvotes : st.base.votes = (storeAt p c E rho i x).base.votes)
+    (H : Finset (Fin p.n))
+    (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head (s - 1))) q ∈ rho.honest ∧
+      joinedAt p E rho (rho.seatOf (.base (.head (s - 1))) q) (s - 1)
+        (SA.voteTime p.toParams (s - 1)))
+    (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card) (D0 : Block)
+    (hFD : Block.Preceq (eraseFG st.fg.F) D0)
+    (hrec : ∀ q ∈ H, ∃ K t, V2.D.Run.emits E rho (rho.seatOf (.base (.head (s - 1))) q)
+        (ofHead p ⟨.seat (.head (s - 1)) q, K.root⟩) t ∧
+      baseVote (⟨.seat (.head (s - 1)) q, K.root⟩ : HeadWire p.n) ∈ st.base.votes ∧
+      GridCO.resolvedHead? (actView st) (baseVote ⟨.seat (.head (s - 1)) q, K.root⟩) = some K ∧
+      Gen.AC.Root.resolvedTarget? st.base.blocks
+        (baseVote ⟨.seat (.head (s - 1)) q, K.root⟩) = some K ∧
+      K.slot ≤ s - 1 ∧ Block.Preceq D0 K) :
+    ∀ L, Block.Preceq L D0 →
+      GridCO.voterCount (proposerVotes st s) < 2 * RetainedWalk.ss st s L ∧
+      (∀ B, Block.compatible L B = false → RetainedWalk.ss st s B < RetainedWalk.ss st s L) := by
+  exact inclusion_proposer_prior_of_F_prefix_cover E rho hE hC s i x st hvotes H
+    (fun q hq => ((hH q).mp hq).1) (fun q hh hJ => (hH q).mpr ⟨hh, hJ⟩)
+    hbatch D0 hFD hrec
+
+/-- The legacy awake count also covers the joined seats. Its explicit receipt
+premise still requires an actual emission and resolved target for every counted seat. -/
+theorem inclusion_proposer_prior_of_F_prefix [Fintype V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (s : Slot) (i : Nat) (x : V)
+    (st : State p.n) (hvotes : st.base.votes = (storeAt p c E rho i x).base.votes)
+    (H : Finset (Fin p.n))
+    (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head (s - 1))) q ∈ rho.honest ∧
+      E.awake (rho.seatOf (.base (.head (s - 1))) q) (SA.voteTime p.toParams (s - 1)) = true)
+    (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card) (D0 : Block)
+    (hFD : Block.Preceq (eraseFG st.fg.F) D0)
+    (hrec : ∀ q ∈ H, ∃ K t, V2.D.Run.emits E rho (rho.seatOf (.base (.head (s - 1))) q)
+        (ofHead p ⟨.seat (.head (s - 1)) q, K.root⟩) t ∧
+      baseVote (⟨.seat (.head (s - 1)) q, K.root⟩ : HeadWire p.n) ∈ st.base.votes ∧
+      GridCO.resolvedHead? (actView st) (baseVote ⟨.seat (.head (s - 1)) q, K.root⟩) = some K ∧
+      Gen.AC.Root.resolvedTarget? st.base.blocks
+        (baseVote ⟨.seat (.head (s - 1)) q, K.root⟩) = some K ∧
+      K.slot ≤ s - 1 ∧ Block.Preceq D0 K) :
+    ∀ L, Block.Preceq L D0 →
+      GridCO.voterCount (proposerVotes st s) < 2 * RetainedWalk.ss st s L ∧
+      (∀ B, Block.compatible L B = false → RetainedWalk.ss st s B < RetainedWalk.ss st s L) := by
+  exact inclusion_proposer_prior_of_F_prefix_cover E rho hE hC s i x st hvotes H
+    (fun q hq => ((hH q).mp hq).1) (fun q hh hJ => (hH q).mpr ⟨hh, hJ.1⟩)
+    hbatch D0 hFD hrec
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.17:2980–3001, 03:293–331; spec 1283–1294; plan I-EXACT,

@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
 public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 
@@ -284,6 +284,51 @@ theorem outage_restored_receipt_with_service {fast : Bool} {T b₀ b₁ : Time}
       have hm' : (0 : Int) < (m : Int) := by exact_mod_cast hm
       positivity
     · exact hProposal m hm hr hHor hx
+
+/-- The restored services have the three approved read cuts. The prefix field
+comes from P-Ar's public theorem, not from these restored services. -/
+structure OutageRestoredServices (fast : Bool) (T b₀ b₁ : Time) : Prop where
+  early : ∀ x q, restoredLabel p b₁ ≤ q →
+    SA.earlyTime p.toParams q ≤ rho.horizon →
+    headReader p E rho x (q + 1) (SA.gateTime p.toParams q) →
+    ArmingBatchReceiptService E rho x q (SA.earlyTime p.toParams q)
+  freeze : ∀ x s, 0 < s → restoredLabel p b₁ ≤ s - 1 →
+    SA.voteTime p.toParams s ≤ rho.horizon →
+    headReader p E rho x s (SA.voteTime p.toParams s) →
+    ArmingBatchReceiptService E rho x (s - 1) (SA.freezeTime p.toParams (s - 1))
+  proposal : ∀ m, 0 < m → restoredLabel p b₁ ≤ m - 1 →
+    V2.D.proposalTime (fgsaInterface p c) m ≤ rho.horizon →
+    let x := V2.D.proposerOf rho (fgsaInterface p c) m
+    headReader p E rho x m (V2.D.proposalTime (fgsaInterface p c) m) →
+    ArmingBatchReceiptService E rho x (m - 1)
+      (V2.D.proposalTime (fgsaInterface p c) m)
+
+/-- P-Ar supplies the corrected public prefix; P-Ou supplies only restored service. -/
+theorem outage_restored_receipt_on [Fintype V] {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c fast E rho T b₀ b₁ ΔF)
+    (hServices : OutageRestoredServices (p := p) (c := c) (E := E) (rho := rho)
+      fast T b₀ b₁) : OutageContinuationReceipt p c E rho fast T b₀ b₁ := by
+  exact outage_restored_receipt_with_service h.pre.base.valid h.pre.base.receiptIdealization
+    (arming_prefix_batch_receipt p c E rho fast T b₀ b₁ ΔF h)
+    hServices.early hServices.freeze hServices.proposal
+
+/-- A protected non-genesis read supplies the actual origin and the P15-CUT bound. -/
+theorem outage_prefix_receipt_of_protected_read [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c fast E rho T b₀ b₁ ΔF)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hHist : CleanHist p c E rho (timeIdx rho b₀)) {z : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable z T))
+    (hne : B ≠ .genesis) {x : V} (hx : x ∈ coveredNodes p E rho fast b₀) {q : Slot}
+    (hq : if fast then q = coverLabel p b₀
+      else (coverLabel p b₀ : Int) - (p.k : Int) + 1 ≤ (q : Int) ∧
+        q ≤ coverLabel p b₀) (hT : T ≤ SA.gateTime p.toParams q) :
+    BatchReceiptAt p c E rho x q (SA.earlyTime p.toParams q) := by
+  obtain ⟨r, C, _, _, hr, _⟩ := arming_protected_origin_on
+    h.pre.base.valid.toScheduleWellFormed h.order.2.1 hState hHist hread hne
+  exact outage_prefix_receipt_of_origin
+    (arming_prefix_batch_receipt p c E rho fast T b₀ b₁ ΔF h)
+    ⟨r, hr.trans h.order.2.1⟩ hx hq hT
 
 end AvailableChain.FGSA.Run
 end
