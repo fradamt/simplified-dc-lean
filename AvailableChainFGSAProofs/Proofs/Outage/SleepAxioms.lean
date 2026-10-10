@@ -29,6 +29,8 @@ public import AvailableChainFGSAProofs.Proofs.Outage.Induction
 public import AvailableChainFGSAProofs.Proofs.Outage.LaterHeads
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
 
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
+
 #print axioms AvailableChain.FGSA.Run.outage_restored_service
 #print axioms AvailableChain.FGSA.Run.outage_restored_proposal_receipt
 #print axioms AvailableChain.FGSA.Run.outage_restored_batch_receipt_on
@@ -265,3 +267,8 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
 #print axioms AvailableChain.FGSA.Run.outageV_result_extends
 #print axioms AvailableChain.FGSA.Run.outageV_restored_gate
 #print axioms AvailableChain.FGSA.Run.outage_continuation_result_of_head_history
+
+#print axioms AvailableChain.FGSA.Run.outage_continuation_event_induction
+#print axioms AvailableChain.FGSA.Run.outage_head_rows_after_handover
+#print axioms AvailableChain.FGSA.Run.outage_marker_continuation_induction
+#print axioms AvailableChain.FGSA.Run.outage_continuation_inclusive_read

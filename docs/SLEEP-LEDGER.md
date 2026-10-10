@@ -6308,3 +6308,52 @@ continuation induction. A first marker and the finite restored prefix are still
 P-Ou proof work; no unconditional public continuation closure is claimed here.
 LaterHeads and ContinuationGate pass exact builds with default heartbeats.
 The package map, local coverage and production-only audit fragment are updated.
+
+### P-Ou Round 9 — causal marker suffix and expiry
+
+ScopedContinuation.outage_continuation_event_induction handles kept-stable restarts,
+delivery reconciliation, enabled gates, and suppressed gates. It carries global
+source names and F compatibility, with stable inclusion only at covered receivers.
+Its result input is bounded by the actual event prefix.
+
+outage_marker_continuation_induction produces the healthy suffix's HEAD and gate
+compatibility, source names, G stable inclusion and all-honest F compatibility.
+The inputs name one actual marker and the finite prefix after its gate, with m>=r+k.
+Earlier gate results give exact conflicting-row deadlines. The post-E HEAD expires
+those rows; source names give the compatible frame; the actual joined marker service
+then gives that HEAD's compatibility. The current gate consumes an earlier HEAD index.
+No future result/HEAD/service callback or all-honest stable seed is assumed here.
+
+The finite prefix and first marker are still OPEN P-Ou work. The no-marker branch and
+restored labels before that cut remain OPEN. ContinuationJoint, Close and both complete
+exporters are not closed by this conditional suffix. Their EXPECTED-FAIL status is kept.
+
+Tests/OutageLaterHeads checks wake=9, GST=20 and the E-window boundary at delta=1,
+r=2, k=2. The gate at 18 can be joined while the HEAD at 13 is suppressed. The marker
+anchor 12 is pre-GST; anchor 24 is post-GST. The actual Foundation RMonoAll composition
+also compiles. These are exact guard tests, not complete run counterexamples.
+
+Map: 54 TARGETS, 515 GREEN, eight EXPECTED-FAIL (six P-Ou, two S-Ap).
+New modules and the scoped gate port compile at default heartbeats. Headers PASS;
+layers zero new; complete GREEN export check zero unaccepted. Final DCK and strict
+results are in the Round 9 report. The 107-row SCOPE-NARROW table and exact finite
+producer goals are in scripts/dev-pkg/P-Ou.round9-handoff.md. P-Ou remains PREPARED.
+
+### P-Ou Round 9 — final validation
+
+DCK P-Ou PASS: 44 strict sources, 3,245 axiom results, all 24 default controls PASS.
+Map: 54 TARGETS, 515 GREEN, eight EXPECTED-FAIL (six P-Ou, two S-Ap).
+Complete GREEN exports: 334 proof modules, 253 exports, zero unaccepted, zero Gen exports.
+Complete local coverage: 281 commands; home-equation control PASS; zero unaccepted.
+The serial production-only fragment has 250 strict results and imports no test module.
+Only propext, Classical.choice and Quot.sound occur in the strict audits.
+Headers PASS with zero failures. Layers: 72 inherited findings, zero new.
+Whitespace, new Lean line lengths, placeholder scan and ownership checks pass.
+Public claim/protocol declarations and all checker/baseline/allowance files are unchanged.
+No heartbeat increase, throttle override, toolchain update, agent, review job, push,
+rebase, merge or ssh was used. Only my sandbox-blocked build processes were stopped.
+
+The entire requested Round 9 closure remains incomplete. P-Ou is PREPARED, not CLOSED.
+Exact remaining finite prefix and first-marker goals are in P-Ou.round9-handoff.md.
+Evidence: .lake/sleep-pou-r9/dck.log, exports.log, coverage.log, serial-strict.log,
+first-group.log, later-tests.log, headers-final.log and layers-final.log.

@@ -1,6 +1,8 @@
 # P-Ou round 9, base afc304e6. Kernel PREPARED; public closure remains OPEN.
 # GREEN means compiled; conditional suppliers do not close public claims.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
+AvailableChainFGSAProofs.Tests.OutageLaterHeads
 AvailableChainFGSAProofs.Proofs.Outage.LaterHeads
 AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
 AvailableChainFGSAProofs.Proofs.Outage.InclusionServices
@@ -55,6 +57,8 @@ AvailableChainFGSAProofs.Tests.InclusionGate
 AvailableChainFGSAProofs.Tests.OutageInduction
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
+AvailableChainFGSAProofs.Tests.OutageLaterHeads
 AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
 AvailableChainFGSAProofs.Proofs.Outage.LaterHeads
 AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
