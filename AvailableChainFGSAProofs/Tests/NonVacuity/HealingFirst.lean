@@ -25,7 +25,7 @@ def params : Params :=
 def env : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 def deltaF : Time := 3
 def gap : Time := 4
-def horizon : Time := 304
+def horizon : Time := 310
 
 theorem params_delta : params.Δ = 1 := rfl
 theorem params_n : params.n = 1 := rfl
@@ -39,7 +39,7 @@ theorem env_gst : env.t_GST = 0 := rfl
 theorem env_awake (v : Fin 1) (t : Time) : env.awake v t = true := rfl
 theorem deltaF_value : deltaF = 3 := rfl
 theorem gap_value : gap = 4 := rfl
-theorem horizon_value : horizon = 304 := rfl
+theorem horizon_value : horizon = 310 := rfl
 theorem horizon_pos : 0 < horizon := by decide
 theorem deltaF_lower : env.Δ ≤ deltaF := by decide
 theorem gap_lower : 4 * params.Δ ≤ gap := by decide
@@ -69,10 +69,12 @@ theorem healing_one_value : B_H1F params deltaF gap = 303 := by decide
 theorem healing_value : B_HF params deltaF gap = 303 := by decide
 
 theorem healing_strict_horizon : B_HF params deltaF gap < horizon := by decide
-theorem healing_horizon : env.t_GST + B_HF params deltaF gap ≤ horizon := by decide
-theorem reset_horizon : env.t_GST + B'_resetF params deltaF gap ≤ horizon := by decide
+theorem healing_horizon : recoveryStart params env + B_HF params deltaF gap ≤ horizon := by decide
+theorem reset_horizon :
+    recoveryStart params env + B'_resetF params deltaF gap ≤ horizon := by decide
 theorem reset_full_horizon :
-    env.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ horizon := by
+    recoveryStart params env + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ horizon := by
   decide
 theorem reset_full_budget : B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ = 303 := by
   decide
@@ -110,7 +112,7 @@ def batch (acc : List Event × FixtureNode) (n : Nat) : List Event × FixtureNod
 def runPrefix (n : Nat) : List Event × FixtureNode :=
   (List.range n).foldl batch ([], (fgsa params unitCodec).init)
 
-def run := mkRun (runPrefix 305).1
+def run := mkRun (runPrefix 311).1
 
 theorem runPrefix_zero : runPrefix 0 = ([], (fgsa params unitCodec).init) := rfl
 
@@ -202,7 +204,7 @@ theorem prefix_mono {n m : Nat} (h : n ≤ m) :
 theorem step_constant (nd : FixtureNode) (e : Event) :
     V2.D.World.step env (mkRun []) (fun _ => nd) e =
       fun _ => match e with
-      | .restart _ _ => (fgsa params unitCodec).restore ((fgsa params unitCodec).durable nd)
+      | .restart _ t => (fgsa params unitCodec).restore ((fgsa params unitCodec).durable nd) t
       | .tick _ t => (V2.D.tick env (mkRun []) nd 0 t).1
       | .deliver _ o _ => (fgsa params unitCodec).process nd o := by
   funext v
@@ -248,31 +250,31 @@ theorem prefix_flat (n : Nat) :
       List.flatMap_cons, List.flatMap_nil, List.append_nil, batchEvents]
     rw [← ih, List.append_assoc]
 
-theorem tick_at (n : Nat) (hn : n < 305) :
+theorem tick_at (n : Nat) (hn : n < 311) :
     run.events[(runPrefix n).1.length]? = some (.tick 0 (n : Time)) := by
-  obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 305 by omega)
-  change (runPrefix 305).1[(runPrefix n).1.length]? = _
+  obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 311 by omega)
+  change (runPrefix 311).1[(runPrefix n).1.length]? = _
   rw [← he, runPrefix_succ]
   simp [batch, List.append_assoc]
 
-theorem state_before_tick (n : Nat) (hn : n < 305) :
+theorem state_before_tick (n : Nat) (hn : n < 311) :
     V2.D.Run.stateBefore env run (runPrefix n).1.length = fun _ => (runPrefix n).2 := by
-  obtain ⟨tail, he⟩ := prefix_mono (show n ≤ 305 by omega)
+  obtain ⟨tail, he⟩ := prefix_mono (show n ≤ 311 by omega)
   unfold V2.D.Run.stateBefore
-  change ((runPrefix 305).1.take (runPrefix n).1.length).foldl
+  change ((runPrefix 311).1.take (runPrefix n).1.length).foldl
       (V2.D.World.step env run) V2.D.World.init = _
   rw [← he]
   simp only [List.take_append, List.take_length, Nat.sub_self, List.take_zero,
     List.append_nil]
   exact prefix_cached n
 
-theorem emits_at_tick (n : Nat) (hn : n < 305) :
+theorem emits_at_tick (n : Nat) (hn : n < 311) :
     V2.D.Run.emitsAt env run (runPrefix n).1.length =
       (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 := by
   rw [V2.D.Run.emitsAt, tick_at n hn, state_before_tick n hn]
   rfl
 
-theorem immediate_delivery (n : Nat) (hn : n < 305) (o : Object)
+theorem immediate_delivery (n : Nat) (hn : n < 311) (o : Object)
     (ho : o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2) :
     run.events[(runPrefix n).1.length + 1]? = some (.deliver 0 o (n : Time)) := by
   have hos : (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 = [o] := by
@@ -284,8 +286,8 @@ theorem immediate_delivery (n : Nat) (hn : n < 305) (o : Object)
       rw [he, has] at ho
       rw [has]
       exact (List.mem_singleton.mp ho) ▸ rfl
-  obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 305 by omega)
-  change (runPrefix 305).1[(runPrefix n).1.length + 1]? = _
+  obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 311 by omega)
+  change (runPrefix 311).1[(runPrefix n).1.length + 1]? = _
   rw [← he, runPrefix_succ]
   simp [batch, hos, List.append_assoc]
 
@@ -318,46 +320,46 @@ theorem prefix_strict (n : Nat) :
 
 theorem nvSchedule : V2.D.ScheduleWellFormed env run where
   horizon_nonneg := le_of_lt horizon_pos
-  sorted := (prefix_strict 305).imp (fun h => le_of_lt h)
+  sorted := (prefix_strict 311).imp (fun h => le_of_lt h)
   nodup := by
     have hne : run.events.Pairwise (fun e f => e ≠ f) :=
-      (prefix_strict 305).imp (fun h he => by rw [he] at h; exact lt_irrefl _ h)
+      (prefix_strict 311).imp (fun h he => by rw [he] at h; exact lt_irrefl _ h)
     exact hne
   in_horizon := by
     intro e he
-    obtain ⟨m, hm, ht, _⟩ := prefix_events_time 305 e he
+    obtain ⟨m, hm, ht, _⟩ := prefix_events_time 311 e he
     rw [ht]
-    change 0 ≤ (m : Time) ∧ (m : Time) ≤ 304
+    change 0 ≤ (m : Time) ∧ (m : Time) ≤ 310
     exact ⟨Int.natCast_nonneg m, by dsimp only [Time] at *; omega⟩
   honest_only := by intro e _; exact Finset.mem_univ _
   tick_public := by
     intro v t he
-    obtain ⟨m, _, ht, _⟩ := prefix_events_time 305 (.tick v t) he
+    obtain ⟨m, _, ht, _⟩ := prefix_events_time 311 (.tick v t) he
     exact ⟨m, by simpa only [V2.Event.time, env, Int.mul_one] using ht⟩
   tick_total := by
-    intro v _ t _ ht hh
+    intro v _ t _ ht hh _
     have hv : v = 0 := Subsingleton.elim _ _
     subst v
-    change t ≤ 304 at hh
+    change t ≤ 310 at hh
     have he : t = (t.toNat : Time) := (Int.toNat_of_nonneg ht).symm
     rw [he]
-    exact prefix_ticks 305 t.toNat (by dsimp only [Time] at *; omega)
+    exact prefix_ticks 311 t.toNat (by dsimp only [Time] at *; omega)
 
 theorem noRestart : V2.D.NoRestart run := by
   intro i v t hi
-  obtain ⟨_, _, _, he⟩ := prefix_events_time 305 (.restart v t) (List.mem_of_getElem? hi)
+  obtain ⟨_, _, _, he⟩ := prefix_events_time 311 (.restart v t) (List.mem_of_getElem? hi)
   rcases he with he | ⟨o, he⟩ <;> cases he
 
 set_option maxHeartbeats 2000000 in
 -- Index uniqueness uses the symbolic prefix proof through the concrete run type.
 theorem delivery_source {i : Nat} {v : Fin 1} {o : Object} {t : Time}
     (hi : run.events[i]? = some (.deliver v o t)) :
-    ∃ n : Nat, n < 305 ∧ t = (n : Time) ∧ i = (runPrefix n).1.length + 1 ∧
+    ∃ n : Nat, n < 311 ∧ t = (n : Time) ∧ i = (runPrefix n).1.length + 1 ∧
       o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 := by
   have hm := List.mem_of_getElem? hi
-  rw [show run.events = (runPrefix 305).1 from rfl, prefix_flat] at hm
+  rw [show run.events = (runPrefix 311).1 from rfl, prefix_flat] at hm
   obtain ⟨n, hn, hm⟩ := List.mem_flatMap.mp hm
-  have hn' : n < 305 := List.mem_range.mp hn
+  have hn' : n < 311 := List.mem_range.mp hn
   simp only [batchEvents, List.mem_append, List.mem_singleton, List.mem_map] at hm
   rcases hm with he | ⟨a, ha, he⟩
   · cases he
@@ -371,8 +373,8 @@ theorem delivery_source {i : Nat} {v : Fin 1} {o : Object} {t : Time}
 
 theorem tick_source {i : Nat} {v : Fin 1} {t : Time}
     (hi : run.events[i]? = some (.tick v t)) :
-    ∃ n : Nat, n < 305 ∧ t = (n : Time) ∧ i = (runPrefix n).1.length := by
-  obtain ⟨n, hn, ht, _⟩ := prefix_events_time 305 (.tick v t) (List.mem_of_getElem? hi)
+    ∃ n : Nat, n < 311 ∧ t = (n : Time) ∧ i = (runPrefix n).1.length := by
+  obtain ⟨n, hn, ht, _⟩ := prefix_events_time 311 (.tick v t) (List.mem_of_getElem? hi)
   change t = (n : Time) at ht
   have hv : v = 0 := Subsingleton.elim _ _
   subst v
@@ -439,7 +441,7 @@ theorem prefix_cut (n m : Nat) (hn : n ≤ m) :
       exact decide_eq_true (by exact_mod_cast hk)
 
 /-- The inclusive read at tick n is the cached node after tick n. -/
-theorem read_prefix (n : Nat) (hn : n < 305) :
+theorem read_prefix (n : Nat) (hn : n < 311) :
     V2.D.Run.readAt env run (n : Time) = fun _ => (runPrefix (n + 1)).2 := by
   have hp : run.events.filter (fun e => decide (e.time ≤ (n : Time))) =
       (runPrefix (n + 1)).1 := by
@@ -452,19 +454,19 @@ theorem read_prefix (n : Nat) (hn : n < 305) :
         omega
       exact decide_eq_decide.mpr hp
     rw [he]
-    exact prefix_cut (n + 1) 305 (by omega)
+    exact prefix_cut (n + 1) 311 (by omega)
   unfold V2.D.Run.readAt
   rw [hp]
   exact prefix_cached (n + 1)
 
-theorem frontier_cached (n : Nat) (hn : n < 305) :
+theorem frontier_cached (n : Nat) (hn : n < 311) :
     honestFrontier params unitCodec env run (n : Time) = (runPrefix (n + 1)).2.st.fg.h_max := by
   unfold honestFrontier
   rw [read_prefix n hn]
   change (Finset.univ : Finset (Fin 1)).sup (fun _ => (runPrefix (n + 1)).2.st.fg.h_max) = _
   simp
 
-theorem frontier_idx_cached (n : Nat) (hn : n < 305) :
+theorem frontier_idx_cached (n : Nat) (hn : n < 311) :
     frontierAtIdx params unitCodec env run (runPrefix n).1.length =
       (runPrefix n).2.st.fg.h_max := by
   unfold frontierAtIdx storeAt
@@ -482,7 +484,7 @@ theorem nvFrontier : honestFrontier params unitCodec env run 30 = 2 :=
 theorem nvFrontierAtIdx : frontierAtIdx params unitCodec env run (runPrefix 31).1.length = 2 :=
   (frontier_idx_cached 31 (by decide)).trans nvCachedFrontier
 
-theorem action_read (r : Nat) (hr : (params.actionTime r).toNat < 305) :
+theorem action_read (r : Nat) (hr : (params.actionTime r).toNat < 311) :
     postClock env run 0 (params.actionTime r) = some (actionNode r) := by
   have ht : ((params.actionTime r).toNat : Time) = params.actionTime r := by
     apply Int.toNat_of_nonneg
@@ -495,7 +497,7 @@ theorem action_read (r : Nat) (hr : (params.actionTime r).toNat < 305) :
     Option.map_some, state_before_tick (params.actionTime r).toNat hr]
   rfl
 
-theorem source_read (r : Nat) (hr : (params.actionTime r).toNat < 305) :
+theorem source_read (r : Nat) (hr : (params.actionTime r).toNat < 311) :
     actionSourceFG params unitCodec env run 0 r = some (sourceAtAction r) := by
   rw [actionSourceFG_def, action_read r hr]
   rfl
@@ -567,8 +569,8 @@ theorem nvEarlyRowCap {j : Nat} {y : Fin 1} {r h : Nat} {a : RowWire params.n} {
     (he : namedEntry a.payload.height_pair = some (h, e)) (hr : r < 3) : h ≤ 2 := by
   have hy : y = 0 := Subsingleton.elim _ _
   subst y
-  have hb : (params.actionTime r).toNat < 305 := by
-    change (4 * 1 * ((r * 3 : Nat) : Int) + 6 * 1).toNat < 305
+  have hb : (params.actionTime r).toNat < 311 := by
+    change (4 * 1 * ((r * 3 : Nat) : Int) + 6 * 1).toNat < 311
     push_cast
     omega
   obtain ⟨C, _, hC, hh, _⟩ := emittedName_window params unitCodec env run nvSchedule ha he
@@ -610,9 +612,17 @@ theorem nvRowCap : ∀ j y r a h e t,
 /-- With GST zero, no source vote is strictly before GST. -/
 theorem nvOldRowsEmpty : oldRowHeights params unitCodec env run = ∅ := by
   apply Set.eq_empty_iff_forall_notMem.mpr
-  rintro h ⟨j, y, r, a, e, _, _, ht⟩
-  change 4 * 1 * ((r * 3 : Nat) : Int) + 1 < 0 at ht
-  omega
+  rintro h ⟨j, y, r, a, e, ha, he, ht⟩
+  change 4 * 1 * ((r * 3 : Nat) : Int) + 1 < 6 at ht
+  have hr : r = 0 := by push_cast at ht; omega
+  subst r
+  have hy : y = 0 := Subsingleton.elim _ _
+  subst y
+  obtain ⟨C, _, hC, _, _⟩ := emittedName_window params unitCodec env run nvSchedule ha he
+  rw [source_read 0 (by decide)] at hC
+  have hn : sourceAtAction 0 = none := by decide +kernel
+  rw [hn] at hC
+  cases hC
 
 theorem nvMu : muOf params unitCodec env run = 1 := by
   rw [muOf_def, nvOldRowsEmpty]
@@ -645,7 +655,7 @@ set_option maxHeartbeats 2000000 in
 -- The assembly checks the concrete witness after the short-prefix source proof.
 /-- All 13 reset fields hold on the unchanged one-node run. -/
 theorem nvH0Reset : H0Reset params unitCodec env run w where
-  rG_after := by change 0 ≤ params.actionTime 0; decide
+  rG_after := by decide
   rG_first := by intro r _; exact Nat.zero_le r
   cut := by decide
   frontier := nvFrontier.symm
@@ -694,7 +704,7 @@ theorem nvFirstMember : firstProposal ∈ proposalBlocks 11 := by decide +kernel
 
 /-- A cached block emission is an honest proposal of the complete run. -/
 theorem honestProposal_of_cached {s : Slot} {B : Block} (hs : 0 < s)
-    (hn : 4 * s < 305) (hB : B ∈ proposalBlocks s) :
+    (hn : 4 * s < 311) (hB : B ∈ proposalBlocks s) :
     HonestProposal env run (fgsaInterface params unitCodec) s B := by
   obtain ⟨o, ho, hb⟩ := List.mem_filterMap.mp hB
   refine ⟨⟨hs, Finset.mem_univ _⟩, o, ?_, hb⟩
@@ -780,17 +790,19 @@ theorem nvTstarBound :
   decide
 
 theorem nvResetTimeStrict :
-    params.actionTime w'.rStar < env.t_GST + B'_resetF params deltaF gap := by
+    params.actionTime w'.rStar < recoveryStart params env + B'_resetF params deltaF gap := by
   decide
 
--- Both horizon forms hold at 303 ≤ 304 on this run.
+-- Both horizon forms hold at 303 ≤ 310 on this run.
 theorem nvFullHorizon :
-    env.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ run.horizon :=
-  healing_resetFull_horizon params gap deltaF env.t_GST run.horizon healing_horizon
+    recoveryStart params env + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ run.horizon :=
+  healing_resetFull_horizon params gap deltaF (recoveryStart params env) run.horizon healing_horizon
 
 theorem nvTimeStrict :
-    params.actionTime w'.rStar + Γ params gap + 4 * params.Δ < env.t_GST + B_HF params deltaF gap :=
-  healing_time_strict_of_reset params gap deltaF env.t_GST
+    params.actionTime w'.rStar + Γ params gap + 4 * params.Δ <
+      recoveryStart params env + B_HF params deltaF gap :=
+  healing_time_strict_of_reset params gap deltaF (recoveryStart params env)
     (params.actionTime w'.rStar) nvResetTimeStrict
 
 -- The producer and HealingSet remain hypothetical; H0 and the arithmetic are proved.
@@ -806,7 +818,7 @@ theorem nvHTimeWitness (hInput : HealingInputOfH0Statement params gap deltaF)
     HealingInput params unitCodec env run w' deltaF ∧
       tstar params w' ≤ params.actionTime w'.rStar + Γ params gap + 4 * params.Δ ∧
       params.actionTime w'.rStar + Γ params gap + 4 * params.Δ <
-        env.t_GST + B_HF params deltaF gap :=
+        recoveryStart params env + B_HF params deltaF gap :=
   ⟨(nvHealingInputOfH0 hInput hSet).1, nvTstarBound, nvTimeStrict⟩
 
 theorem nvHTimeOf (hReset : ResetArrivalFullStatement params gap deltaF)
@@ -815,7 +827,7 @@ theorem nvHTimeOf (hReset : ResetArrivalFullStatement params gap deltaF)
     ∃ witness, HealingInput params unitCodec env run witness deltaF ∧
       tstar params witness ≤ params.actionTime witness.rStar + Γ params gap + 4 * params.Δ ∧
       params.actionTime witness.rStar + Γ params gap + 4 * params.Δ <
-        env.t_GST + B_HF params deltaF gap :=
+        recoveryStart params env + B_HF params deltaF gap :=
   healing_hTime_of params gap deltaF hReset hInput nvClock unitCodec env run
     hSet livenessBound healing_horizon
 
@@ -838,84 +850,96 @@ variable (healed : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → Healed params c E rho (tstar params w))
 
 variable (sourcePrefix : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → Block.Preceq w.CStar w.QStar)
 
 variable (tHigh : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → THigh params c E rho w)
 
 variable (tCarrier : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → TCarrier params c E rho w)
 
 variable (rows : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       TRows params c E rho deltaF)
 
 variable (h2A : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → H2A params c E rho w)
 
 variable (h2Prime : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → H2Prime params c E rho w)
 
 variable (h3 : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → H3 params c E rho w)
 
 variable (h4 : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → H4 params c E rho w)
 
 variable (h5 : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → H5RawTransfer params c E rho w)
 
 variable (h6 : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w → H6GateService params c E rho w)
 
 variable (timeBound : params.δt = 2 * params.R →
     ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
       HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
-      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      recoveryStart params E + B'_resetF params deltaF gap +
+        Γ params gap + 4 * params.Δ ≤ rho.horizon →
       ∀ w, H0 params c E rho w →
         tstar params w ≤ params.actionTime w.rStar + Γ params gap + 4 * params.Δ)
 
@@ -936,7 +960,7 @@ theorem nvHTimeExport (hReset : ResetArrivalFullStatement params gap deltaF)
     ∃ witness, HealingInput params unitCodec env run witness deltaF ∧
       tstar params witness ≤ params.actionTime witness.rStar + Γ params gap + 4 * params.Δ ∧
       params.actionTime witness.rStar + Γ params gap + 4 * params.Δ <
-        env.t_GST + B_HF params deltaF gap :=
+        recoveryStart params env + B_HF params deltaF gap :=
   healing_hTime_of_inputs params gap deltaF
     healed sourcePrefix tHigh tCarrier rows h2A h2Prime h3 h4 h5 h6 timeBound
     hReset nvClock unitCodec env run hSet livenessBound healing_horizon
