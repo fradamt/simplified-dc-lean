@@ -82,7 +82,7 @@ theorem healing_promotion_same_rows (E : Generic.Env V)
     {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {r height : Nat} {s : Slot} {Q : Block} {X : FGBlock (Fin p.n)}
     (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hgate : p.actionTime r ≤ SA.proposalTime p.toParams s) (hs : r * p.R + 2 ≤ s)
@@ -104,7 +104,7 @@ theorem healing_promotion_same_rows (E : Generic.Env V)
       actionSourceFG p c E rho x r = some (some K) →
       FGBlock.Preceq U K → FGBlock.Preceq U X.parent := by
     intro x hx K hK hUK
-    have hparent := healing_promotion_source_parent E rho perm hgst hphase hu hgate hx hK hs hnew
+    have hparent := healing_promotion_source_parent E rho perm hready hphase hu hgate hx hK hs hnew
     rw [eraseFG_parent] at hparent
     have hKX : FGBlock.Preceq K X.parent :=
       eraseFG_preceq_iff.mp hparent
@@ -135,7 +135,7 @@ theorem healing_promotion_same_rows_on (E : Generic.Env V)
     {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {r height : Nat} {s : Slot} {Q : Block} {X : FGBlock (Fin p.n)}
     (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
-    (_hgst : E.t_GST ≤ u)
+    (_hready : recoveryStart p E ≤ u)
     (_hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
     (_hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (_hgate : p.actionTime r ≤ SA.proposalTime p.toParams s) (_hs : r * p.R + 2 ≤ s)

@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionReceipt
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -39,7 +41,7 @@ theorem healing_renewedPromotion (E : Generic.Env V)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
     (r : Nat) (hhor : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon) :
     ∀ u m J contested l q Q height,
-      E.t_GST ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
+      recoveryStart p E ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
       u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
       SA.proposalTime p.toParams l < SA.proposalTime p.toParams q →
       HonestProposal E rho (fgsaInterface p c) q Q → ExactService p c E rho q Q →
@@ -57,13 +59,16 @@ theorem healing_renewedPromotion (E : Generic.Env V)
         (PhaseInterval p c E rho u (SA.gateTime p.toParams s) m J contested →
           ExactService p c E rho s (eraseFG X) ∧
           SA.gateTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ)) := by
-  intro u m J contested l q Q height hgst hp hu hq hl _hQ _hservice hentry hcovered hrepair
+  intro u m J contested l q Q height hready hp hu hq hl _hQ _hservice hentry hcovered hrepair
+  have hsync : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hsched := hrec.base.valid.toScheduleWellFormed
   let D := p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ
   rcases healing_promotion_event_split p c E rho hsched (p.actionTime r) D with
     ⟨i, ev, hi, hev, heff, htime, _⟩ | hquiet
   · exact Or.inl ⟨i, ev, hi, hev, heff, htime⟩
-  have har : E.t_GST ≤ p.actionTime r := hgst.trans hp.1
+  have har : E.t_GST ≤ p.actionTime r := hsync.trans hp.1
   obtain ⟨_, s, X, hnew, hslot, hlo, hhi, hgate, _⟩ :=
     healing_promotion_gap_proposal E rho hrec r har hhor
   have ha := actionTime_periodW p r
@@ -107,10 +112,10 @@ theorem healing_renewedPromotion (E : Generic.Env V)
     linarith [p.deltaPos]
   have hh := healing_promotion_advance E rho hrec.toRecovery₂ hδ hbound perm rowsReceipt
     progressCoverage
-    hfold faultQ honestQuorum hentry hcovered hgst hpts huvote hlo hnew hslot
+    hfold faultQ honestQuorum hentry hcovered hready hpts huvote hlo hnew hslot
   have hreceipt := healing_promotion_first_receipt E rho hrec.toRecovery₂ crossing (services s) hnew
     (hp.1.trans hats)
-    hgst hpD
+    hready hpD
   refine Or.inr ⟨s, X, hnew, hslot, hlo, hhi, hh, hreceipt, ?_⟩
   intro hpgate
   refine ⟨healing_promotion_continuing_service E rho hrepair ?_ hnew hpgate, hgate⟩

@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionSource
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -28,12 +30,15 @@ theorem healing_promotion_advance (E : Generic.Env V)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {r height : Nat} {s : Slot} {Q : Block} {X : FGBlock (Fin p.n)}
     (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s)
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X)) (hslot : X.slot = s) :
     height + 1 ≤ (heightView p X).h := by
+  have hsync : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
   have ha := actionTime_periodW p r
   have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
@@ -41,7 +46,7 @@ theorem healing_promotion_advance (E : Generic.Env V)
     change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
     nlinarith [p.deltaPos]
   have hgate : p.actionTime r ≤ SA.proposalTime p.toParams s := by linarith [p.deltaPos]
-  have hstart : E.t_GST ≤ p.actionTime r := hgst.trans (by
+  have hstart : E.t_GST ≤ p.actionTime r := hsync.trans (by
     have havote : SA.voteTime p.toParams (r * p.R) ≤ p.actionTime r := by
       rw [actionTime_periodW]
       change 4 * p.Δ * ((r * p.R : Nat) : Time) + p.Δ ≤
@@ -57,7 +62,7 @@ theorem healing_promotion_advance (E : Generic.Env V)
     healing_promotion_row_deadline E rho hrec hbound (rSent := r) le_rfl hstart hc
   have hhor : SA.proposalTime p.toParams s ≤ rho.horizon := hphase.2.1
   obtain ⟨U, hU, hUslot, hUP, hrows⟩ := healing_promotion_same_rows E rho hrec perm
-    hentry hcovered hgst hphase hu hgate hafter hnew hslot
+    hentry hcovered hready hphase hu hgate hafter hnew hslot
   apply promotion_age_advance_of_source E rho hrec (r := r) (s := s) (U := U)
     ?_ hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum
   refine ⟨hU, hUP, hnew, hslot, hstart, hc, ?_, hhor, ?_⟩
@@ -88,7 +93,7 @@ theorem healing_promotion_advance_on (E : Generic.Env V)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {r height : Nat} {s : Slot} {Q : Block} {X : FGBlock (Fin p.n)}
     (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s)
@@ -97,6 +102,9 @@ theorem healing_promotion_advance_on (E : Generic.Env V)
       actionSourceFG p c E rho x r = some (some K) →
       Block.Preceq (eraseFG K) (eraseFG X).parent) :
     height + 1 ≤ (heightView p X).h := by
+  have hsync : E.t_GST ≤ u := by
+    have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   classical
   have ha := actionTime_periodW p r
   have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
@@ -104,7 +112,7 @@ theorem healing_promotion_advance_on (E : Generic.Env V)
     change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
     nlinarith [p.deltaPos]
   have hgate : p.actionTime r ≤ SA.proposalTime p.toParams s := by linarith [p.deltaPos]
-  have hstart : E.t_GST ≤ p.actionTime r := hgst.trans (by
+  have hstart : E.t_GST ≤ p.actionTime r := hsync.trans (by
     have havote : SA.voteTime p.toParams (r * p.R) ≤ p.actionTime r := by
       rw [actionTime_periodW]
       change 4 * p.Δ * ((r * p.R : Nat) : Time) + p.Δ ≤
@@ -120,7 +128,7 @@ theorem healing_promotion_advance_on (E : Generic.Env V)
     healing_promotion_row_deadline E rho hrec hbound (rSent := r) le_rfl hstart hc
   have hhor : SA.proposalTime p.toParams s ≤ rho.horizon := hphase.2.1
   obtain ⟨U, hU, hUslot, hUP, hrows⟩ := healing_promotion_same_rows_on E rho hrec
-    hentry hcovered hgst hphase hu hgate hafter hnew hslot hParents
+    hentry hcovered hready hphase hu hgate hafter hnew hslot hParents
   apply promotion_age_advance_of_source E rho hrec (r := r) (s := s) (U := U)
     ?_ hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum
   refine ⟨hU, hUP, hnew, hslot, hstart, hc, ?_, hhor, ?_⟩

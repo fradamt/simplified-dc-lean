@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal -- shake: keep (terminal application and boundary tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
+-- shake: keep (terminal application and boundary tests)
 
 set_option linter.privateModule false
 
@@ -36,7 +37,7 @@ example (E : Generic.Env V)
     (r : Nat)
     (hhor : p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ ≤ rho.horizon) :
     ∀ u m J contested q Q height,
-      E.t_GST ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
+      recoveryStart p E ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
       u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
       OpeningEntry p c E rho r height → OpeningCovered p c E rho r Q →
       (∃ i ev, afterTicksIdx rho (p.actionTime r) ≤ i ∧

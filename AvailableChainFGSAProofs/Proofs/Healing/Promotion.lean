@@ -182,7 +182,7 @@ theorem healing_promotion_source_parent (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (perm : TPerm p c E rho)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {r : Nat} {s : Slot} {x : V} {K : FGBlock (Fin p.n)} {Q : Block}
-    (hgst : E.t_GST ≤ u)
+    (hready : recoveryStart p E ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hgate : p.actionTime r ≤ SA.proposalTime p.toParams s)
@@ -191,7 +191,7 @@ theorem healing_promotion_source_parent (E : Generic.Env V)
     Block.Preceq (eraseFG K) Q.parent := by
   have hg : SA.gateTime p.toParams (r * p.R) ≤ SA.proposalTime p.toParams s := by
     rwa [← fgsa_grid_action_gate, fgsa_grid_action_time]
-  have ht := perm u _ m J contested (r * p.R) (eraseFG K) hgst hphase hu hg
+  have ht := perm u _ m J contested (r * p.R) (eraseFG K) hready hphase hu hg
     (healing_promotion_source_body E rho hx hK)
   exact ht.2.1 s Q hs le_rfl hQ
 
