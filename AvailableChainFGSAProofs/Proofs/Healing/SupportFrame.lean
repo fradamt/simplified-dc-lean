@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 
 public section
 
@@ -195,6 +196,110 @@ structure HeadCarrierServices {p : Params} {In V : Type} [DecidableEq V] {c : Ap
     eraseFG K = headVote p (clock p (storeAt p c E rho i x) (SA.voteTime p.toParams s)) s →
     Block.Preceq (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.fg.F)
       (eraseFG K) → TargetReceiptService E rho (eraseFG K) (SA.voteTime p.toParams s + p.Δ) y
+
+/-- The carrier reader is an honest actor at its actual joined tick. -/
+@[expose] def HealingJoinedTick {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (i : Nat) (x : V) (t : Time) : Prop :=
+  x ∈ rho.honest ∧ rho.events[i]? = some (.tick x t) ∧
+    joinedAt p E rho x (slotAt p t) t
+
+/-- Carrier transport serves one joined reader, with its bounded deadline. -/
+@[expose] def HealingCarriersAt {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (s : Slot) (iy : Nat) (y : V) (t : Time) : Prop :=
+  E.t_GST ≤ SA.voteTime p.toParams s → HealingJoinedTick E rho iy y t →
+  SA.voteTime p.toParams s + p.Δ ≤ t → t ≤ rho.horizon →
+  ∀ j z, z ∈ rho.honest →
+    rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)) →
+    joinedAt p E rho z s (SA.voteTime p.toParams s) →
+    HeadCarrierServices E rho j z s y
+
+/-- The stored join test at an actual tick supplies the environmental read guard. -/
+theorem healing_joined_tick_of_guard (hV : V2.D.ExecutionValid E rho)
+    {i : Nat} {x : V} {t : Time} (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x t))
+    (hguard : joinedAtTime p (storeAt p c E rho i x).restartTime t = true) :
+    HealingJoinedTick E rho i x t := by
+  have bound (w : Time) (_hw : 0 ≤ w) (hwt : w ≤ t)
+      (hr : V2.Event.restart x w ∈ rho.events) :
+      w ≤ slotStartZ p ((slotAt p t : Int) - 1) := by
+    obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hr
+    have hji := V2.D.Engine.restart_index_lt_event hV.toScheduleWellFormed hj hi hwt
+      (by change 0 < (1 : Nat); decide)
+    obtain ⟨u, hu, hwu⟩ := fgsa_restartTime_ge E rho hV.toScheduleWellFormed hj hji
+    have hg := hguard
+    change joinedAtTime p (rho.stateBefore E i x).st.restartTime t = true at hg
+    unfold joinedAtTime at hg
+    rw [hu] at hg
+    exact hwu.trans (of_decide_eq_true hg)
+  refine ⟨hx, hi, hV.tick_awake x t (List.mem_of_getElem? hi), ?_, bound⟩
+  intro w hw hwt hwake
+  exact bound w hw.le hwt (hV.wake_restart x hx w hw
+    (hwt.trans (hV.in_horizon _ (List.mem_of_getElem? hi)).2) hwake)
+
+/-- The batch window supplies a joined reader at each later actual tick. -/
+theorem healing_joined_tick_of_window [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} (hCut : HealingWindow p E 1 s)
+    {i : Nat} {x : V} {t : Time} (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x t)) (ht : SA.voteTime p.toParams s ≤ t) :
+    HealingJoinedTick E rho i x t := by
+  have hh := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hi)).2
+  have hs : slotAt p (SA.voteTime p.toParams s) = s := by
+    exact (fgsa_postClock_slot (c := c) (rho.stateBefore E i x) _).2.symm.trans
+      (fgsa_vote_slot (c := c) _ s)
+  have hst : s ≤ slotAt p t := by
+    rw [← hs]
+    exact Internal.slotOf_mono (p := p) ht
+  refine ⟨hx, hi, healing_recovery_joined E rho hrec hx ?_ (hCut.sync.trans ht) hh⟩
+  exact (hCut.mono hst).2
+
+/-- Use the guarded carrier at its fixed actual reader in a batch window. -/
+theorem healing_carriers_window_at [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} (hCut : HealingWindow p E 1 s)
+    {iy : Nat} {y : V} {t : Time} (h : HealingCarriersAt E rho s iy y t)
+    (hy : y ∈ rho.honest) (hi : rho.events[iy]? = some (.tick y t))
+    (ht : SA.voteTime p.toParams s + p.Δ ≤ t) :
+    ∀ j z, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)) →
+      HeadCarrierServices E rho j z s y := by
+  have hvt := (le_add_of_nonneg_right p.deltaPos.le).trans ht
+  have hh := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hi)).2
+  intro j z hz hj
+  exact h hCut.sync (healing_joined_tick_of_window p c E rho hrec hCut hy hi hvt)
+    ht hh j z hz hj (healing_recovery_joined_window E rho hrec hCut hz (hvt.trans hh))
+
+/-- The integer cutoff supplies joined readers without asserting a predecessor label. -/
+theorem healing_carriers_cut_at [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot}
+    (hCut : E.t_GST ≤ slotStartZ p ((s : Int) - 1))
+    {iy : Nat} {y : V} {t : Time} (h : HealingCarriersAt E rho s iy y t)
+    (hy : y ∈ rho.honest) (hi : rho.events[iy]? = some (.tick y t))
+    (ht : SA.voteTime p.toParams s + p.Δ ≤ t) :
+    ∀ j z, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)) →
+      HeadCarrierServices E rho j z s y := by
+  have hh := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hi)).2
+  have hs : slotAt p (SA.voteTime p.toParams s) = s := by
+    exact (fgsa_postClock_slot (c := c) (rho.stateBefore E iy y) _).2.symm.trans
+      (fgsa_vote_slot (c := c) _ s)
+  have hvt := (le_add_of_nonneg_right p.deltaPos.le).trans ht
+  have hst : s ≤ slotAt p t := by
+    rw [← hs]
+    exact Internal.slotOf_mono (p := p) hvt
+  have hSync : E.t_GST ≤ SA.voteTime p.toParams s := by
+    refine hCut.trans ?_
+    change 4 * p.Δ * ((s : Int) - 1) ≤ 4 * p.Δ * (s : Int) + p.Δ
+    linarith [p.deltaPos]
+  have hRead : HealingJoinedTick E rho iy y t := by
+    refine ⟨hy, hi, healing_recovery_joined E rho hrec hy ?_ (hSync.trans hvt) hh⟩
+    refine hCut.trans ?_
+    have hstI : (s : Int) ≤ (slotAt p t : Int) := by exact_mod_cast hst
+    unfold slotStartZ
+    nlinarith [p.deltaPos]
+  intro j z hz hj
+  exact h hSync hRead ht hh j z hz hj
+    (healing_recovery_joined E rho hrec hz hCut hSync (hvt.trans hh))
 
 /-- The selected ancestor, rather than every cached block, reaches the receiver. -/
 theorem healing_head_carrier_receipt (hvalid : V2.D.ExecutionValid E rho)

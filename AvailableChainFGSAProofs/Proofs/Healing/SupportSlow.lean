@@ -15,12 +15,13 @@ open Gen.AC
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- Slow source services include its saved-window labels and the bounded later interval. -/
-structure SlowSupportScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (s : Slot) (v : Time) (x : V) : Prop where
+structure SlowSupportScope (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (s : Slot) (v : Time) (x : V) : Prop where
   phase : FastSupportScope E rho s v x
   late : ∀ j, IsGateTick p c rho j x s → enabledGateAt p c E rho j x s →
-    ProposalSupportScope E rho j x s
-  window : ∀ w, s + 1 - p.k ≤ w → w ≤ s → SameLabelServiceScope E rho w
+    ProposalSupportScope E rho j x s (SA.gateTime p.toParams s)
+  window : ∀ w, s + 1 - p.k ≤ w → w ≤ s →
+    SameLabelServiceScope E rho w
 
 theorem SlowSupportScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {s : Slot} {u v : Time} {x : V} (h : SlowSupportScope E rho s v x) (huv : u ≤ v) :
@@ -174,7 +175,7 @@ theorem healing_support_honest_late [Fintype V] (E : Generic.Env V)
     (hhor : SA.gateTime p.toParams s ≤ rho.horizon)
     {j : Nat} {x : V} (hx : x ∈ rho.honest)
     (ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
-    (hScope : ProposalSupportScope E rho j x s)
+    (hScope : ProposalSupportScope E rho j x s (SA.gateTime p.toParams s))
     (hG : enabledGateAt p c E rho j x s)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head s)) k ∈ rho.honest)
     (hJoin : joinedAt p E rho (rho.seatOf (.base (.head s)) k) s
@@ -229,7 +230,7 @@ theorem healing_slow_honest_seat [Fintype V] (E : Generic.Env V)
     (hhor : SA.gateTime p.toParams s ≤ rho.horizon)
     {j : Nat} {x : V} (hx : x ∈ rho.honest)
     (ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
-    (hScope : ProposalSupportScope E rho j x s)
+    (hScope : ProposalSupportScope E rho j x s (SA.gateTime p.toParams s))
     (hG : enabledGateAt p c E rho j x s) {B : Block}
     (hmaj : let src := actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))
       GridCO.voterCount (GridCO.lateVotes p.toParams.engine src s) <
@@ -431,11 +432,13 @@ theorem healing_slow_lease_at [Fintype V] (E : Generic.Env V)
     obtain ⟨C', hC', hBC'⟩ := healing_support_gate_cover E rho hrec hgw'
       (hwT.trans hTh)
       (hcov w hws hwT) ht ((hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT) j y hy ht
-        (healing_gate_enabled_of_result E rho hS ht hres')) hFw
+        (healing_gate_enabled_of_result E rho hS ht hres') B
+        (healing_support_gate_geometry E rho hS (hcov w hws hwT) hFw)) hFw
     have hDC : D = C' := by
       have h2 := slow_gate_result (c := c) E rho hS ht
         ((hScopes.phase.gates w (Nat.succ_le_of_lt hws) hwT) j y hy ht
-        (healing_gate_enabled_of_result E rho hS ht hres')).enabled hC'
+        (healing_gate_enabled_of_result E rho hS ht hres') B
+        (healing_support_gate_geometry E rho hS (hcov w hws hwT) hFw)).enabled hC'
       rw [hres'] at h2
       exact Option.some.inj (Option.some.inj h2)
     subst hDC
@@ -565,6 +568,7 @@ theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
     (hel : GridCO.slowEligible p.toParams.engine (actView st) s B = true)
     {jx : Nat} (hjx : IsGateTick p c rho jx x s)
     (hScopes : SlowSupportScope E rho s v x)
+    (hCut : HealingWindow p E 1 s)
     {y : V} (hy : y ∈ rho.honest) (hv : SA.voteTime p.toParams (s + 1) ≤ v)
     {H : Block} (hH : headAtLabel p c E rho y (s + 1) = some H) :
     Block.Preceq B H := by
@@ -590,7 +594,11 @@ theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
     (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho jx x) _) o hK hsup
   exact healing_first_transfer_core (hroots := hrec.base.receiptIdealization)
     E rho (fun _ => mono) crossing hE hDelta hrec.sync hgst hphase
-    hhead hgate hx hjx hkh ho hko hsupD hmaj hy hiy (hScopes.phase.firstOn jx iy y hy hjx hiy) hv
+    hhead hgate hx hjx hkh ho hko hsupD hmaj hy hiy (hScopes.phase.firstOn jx iy y hy hjx hiy hv
+      (healing_recovery_joined_next E rho hrec hCut hy
+        (by change 4 * p.Δ * (s : Int) + p.Δ ≤
+              4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+            push_cast; linarith [p.deltaPos]) (hv.trans hphase.2.1))) hv
     (healing_slow_lease E rho hrec mono writes (hgst.trans hhead) hhor hx hgw hst hres hBC
       hel le_rfl (hv.trans hphase.2.1) (hScopes.mono hv)
       (fun w hw1 hw2 => absurd (hw1.trans hw2) (Nat.not_succ_le_self s)) hy hiy)
@@ -629,6 +637,7 @@ theorem healing_slow_heads [Fintype V] (E : Generic.Env V)
     (hel : GridCO.slowEligible p.toParams.engine (actView st) s B = true)
     {jx : Nat} (hjx : IsGateTick p c rho jx x s)
     (hScopes : SlowSupportScope E rho s v x)
+    (hCut : HealingWindow p E 1 s)
  :
     ∀ i, s + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K := by
@@ -650,7 +659,7 @@ theorem healing_slow_heads [Fintype V] (E : Generic.Env V)
     subst hw
     intro z hz K hK
     exact healing_slow_first_transfer E rho hrec mono crossing writes hgst hphase hhead hgate
-      hx hgw hst hres hBC hel hjx hScopes hz hv hK
+      hx hgw hst hres hBC hel hjx hScopes hCut hz hv hK
   | succ i hi ih =>
     intro hv w hw1 hw2
     have hvi : SA.voteTime p.toParams i ≤ v := (hvmono (Nat.le_succ i)).trans hv
@@ -670,9 +679,12 @@ theorem healing_slow_heads [Fintype V] (E : Generic.Env V)
     subst hKeq
     have hsi : SA.voteTime p.toParams s ≤ SA.voteTime p.toParams i :=
       hvmono ((Nat.le_succ s).trans hi)
-    exact healing_next_transfer_core E rho hrec.toRecovery₂ (fun _ => mono) crossing
+    exact healing_next_transfer_core E rho hrec (fun _ => mono) crossing
       hgst hphase (hhead.trans hsi)
-      (ih hvi i hi le_rfl) hz hiz (hScopes.phase.next i hi hv iz z hz hiz) hv
+      (ih hvi i hi le_rfl) hz hiz (hScopes.phase.next i hi hv iz z hz hiz
+        (healing_recovery_joined_next E rho hrec (hCut.mono ((Nat.le_succ s).trans hi)) hz
+          (hvmono (Nat.le_succ i)) (hv.trans hphase.2.1)))
+      (hCut.mono ((Nat.le_succ s).trans hi)) hv
       (healing_slow_lease E rho hrec mono writes (hgst.trans hhead) (hgate.trans hphase.2.1)
         hx hgw hst hres hBC hel ((Nat.le_succ s).trans hi) (hv.trans hphase.2.1)
         (hScopes.mono hv) (ih hvi) hz hiz)
@@ -711,18 +723,20 @@ theorem healing_slow_proposals [Fintype V] (E : Generic.Env V)
     (hel : GridCO.slowEligible p.toParams.engine (actView st) s B = true)
     {jx : Nat} (hjx : IsGateTick p c rho jx x s)
     (hScopes : SlowSupportScope E rho s v x)
+    (hCut : HealingWindow p E 1 s)
     (hProposal : ∀ r, s + 1 ≤ r → SA.proposalTime p.toParams (r + 1) ≤ v →
       ∀ ip y, y ∈ rho.honest →
       rho.events[ip]? = some (.tick y (SA.proposalTime p.toParams (r + 1))) →
-      ProposalSupportScope E rho ip y r) :
+      joinedAt p E rho y (r + 1) (SA.proposalTime p.toParams (r + 1)) →
+      ProposalSupportScope E rho ip y r (SA.proposalTime p.toParams (r + 1))) :
     ∀ i Q, s + 2 ≤ i → SA.proposalTime p.toParams i ≤ v →
       HonestProposal E rho (fgsaInterface p c) i Q → Block.Preceq B Q.parent := by
   have hS := hrec.base.valid.toScheduleWellFormed
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   have hheads := healing_slow_heads E rho hrec mono crossing writes hgst hphase hhead hgate
-    hx hgw hst hres hBC hel hjx hScopes
-  refine healing_proposals_cover E rho hrec mono crossing hgst hphase hhead hheads hProposal ?_
+    hx hgw hst hres hBC hel hjx hScopes hCut
+  refine healing_proposals_cover E rho hrec mono crossing hgst hphase hhead hCut hheads hProposal ?_
   intro i hi hv ip y hy hip hFB
   have hiI : (s : Int) + 2 ≤ (i : Int) := by exact_mod_cast hi
   have hq : SA.voteTime p.toParams (s + 1) < SA.proposalTime p.toParams i := by
@@ -781,6 +795,7 @@ theorem healing_slow_output [Fintype V] (E : Generic.Env V)
     (hel : GridCO.slowEligible p.toParams.engine (actView st) s B = true)
     {jx : Nat} (hjx : IsGateTick p c rho jx x s)
     (hScopes : SlowSupportScope E rho s v x)
+    (hCut : HealingWindow p E 1 s)
  :
     ∀ i y, y ∈ rho.honest → afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i →
       i ≤ timeIdx rho v → Block.Preceq B (S_at p c E rho i y) := by
@@ -788,8 +803,8 @@ theorem healing_slow_output [Fintype V] (E : Generic.Env V)
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   have hheads := healing_slow_heads E rho hrec mono crossing writes hgst hphase hhead hgate
-    hx hgw hst hres hBC hel hjx hScopes
-  refine healing_output_cover E rho hrec mono crossing hgst hphase hhead hguard hheads
+    hx hgw hst hres hBC hel hjx hScopes hCut
+  refine healing_output_cover E rho hrec mono crossing hgst hphase hhead hCut hguard hheads
     hScopes.phase.gates hScopes.phase.carriers ?_
   intro j y hy ht hFB
   have hq : SA.voteTime p.toParams (s + 1) < SA.gateTime p.toParams (s + 1) := by

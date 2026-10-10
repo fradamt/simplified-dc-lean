@@ -73,6 +73,29 @@ theorem healing_gate_enabled_of_result (E : Generic.Env V)
   exact (fgsa_gate_raw_of_nonempty p c E rho hS hi
     ((gateResultAt_eq_gateResult p c E rho hS hi).symm.trans hr)).1
 
+/-- The actual gate's integer cutoff supplies its enabled guard in recovery. -/
+theorem healing_recovery_gate_enabled [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {i : Nat} {x : V} {s : Slot}
+    (hx : x ∈ rho.honest) (hi : IsGateTick p c rho i x s)
+    (hc : E.t_GST ≤ slotStartZ p (s : Int)) : enabledGateAt p c E rho i x s := by
+  refine ⟨hi, ?_⟩
+  have hb := fgsa_restartTime_bound E rho i x (slotStartZ p (s : Int)) (by
+    intro j t _ hj
+    exact (healing_recovery_restart_bound E rho hrec hx hj).trans hc)
+  cases hr : (storeAt p c E rho i x).restartTime with
+  | none => trivial
+  | some t => exact hb t hr
+
+omit [DecidableEq V] in
+/-- A current-batch cutoff also includes the gate's own cutoff. -/
+theorem healing_gate_cut_of_batch_cut (E : Generic.Env V) (s : Slot)
+    (hc : E.t_GST ≤ slotStartZ p ((s : Int) - 1)) :
+    E.t_GST ≤ slotStartZ p (s : Int) := by
+  change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hc
+  change E.t_GST ≤ 4 * p.Δ * (s : Int)
+  linarith [p.deltaPos]
+
 /-- Later gate actors use their own cutoff, not the previous vote-label cutoff. -/
 theorem healing_recovery_later_gate [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}

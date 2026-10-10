@@ -41,47 +41,51 @@ open Gen.AC
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- Fast support services are restricted to one source label and one interval. -/
-structure FastSupportScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (s : Slot) (v : Time) (x : V) : Prop where
-  source : ∀ ix, rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) →
-    enabledGateAt p c E rho ix x s
-  firstReaders : ∀ iy y, y ∈ rho.honest →
-    rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
-    joinedAtTime p (storeAt p c E rho iy y).restartTime (SA.releaseTime p.toParams s) = true
+structure FastSupportScope (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (s : Slot) (v : Time) (x : V) : Prop where
+  source : ∀ ix, IsGateTick p c rho ix x s → enabledGateAt p c E rho ix x s
   first : ∀ ix iy y, y ∈ rho.honest →
-    rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) →
+    IsGateTick p c rho ix x s →
     rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    SA.voteTime p.toParams (s + 1) ≤ v →
     enabledGateAt p c E rho ix x s →
-    joinedAtTime p (storeAt p c E rho iy y).restartTime (SA.releaseTime p.toParams s) = true →
+    joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
     FirstTransferScope E rho ix iy x y s
   next : ∀ w, s + 1 ≤ w → SA.voteTime p.toParams (w + 1) ≤ v →
     ∀ iy y, y ∈ rho.honest →
     rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (w + 1))) →
+    joinedAt p E rho y (w + 1) (SA.voteTime p.toParams (w + 1)) →
     NextTransferScope E rho iy y w
   gates : ∀ w, s + 1 ≤ w → SA.gateTime p.toParams w ≤ v →
     ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y w →
-      enabledGateAt p c E rho j y w → SupportGateScope E rho j y w
-  carriers : ∀ w, s + 1 ≤ w → SA.voteTime p.toParams w + p.Δ ≤ v →
-    ∀ j z, z ∈ rho.honest → rho.events[j]? = some (.tick z (SA.voteTime p.toParams w)) →
-    ∀ y ∈ rho.honest, HeadCarrierServices E rho j z w y
+    enabledGateAt p c E rho j y w →
+    ∀ B, GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w)) w B →
+    SupportGateScope E rho j y w
+  carriers : ∀ w, s + 1 ≤ w →
+    ∀ iy y t, t ≤ v → HealingCarriersAt E rho w iy y t
   sameLabel : SameLabelServiceScope E rho s
 
 /-- Restricting the interval keeps the same object services and exact epochs. -/
 theorem FastSupportScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {s : Slot} {u v : Time} {x : V} (h : FastSupportScope E rho s v x) (huv : u ≤ v) :
     FastSupportScope E rho s u x :=
-  ⟨h.source, h.firstReaders, h.first, fun w hw ht => h.next w hw (ht.trans huv),
+  ⟨h.source, fun ix iy y hy hi hj ht hg hJ =>
+      h.first ix iy y hy hi hj (ht.trans huv) hg hJ,
+    fun w hw ht => h.next w hw (ht.trans huv),
     fun w hw ht => h.gates w hw (ht.trans huv),
-    fun w hw ht => h.carriers w hw (ht.trans huv), h.sameLabel⟩
+    fun w hw iy y t ht => h.carriers w hw iy y t (ht.trans huv), h.sameLabel⟩
 
-/-- A consumer at the selected first read supplies the actor and reader guards. -/
+/-- The first-transfer adapter uses the actual joined read and bounded endpoint. -/
 theorem FastSupportScope.firstOn {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {s : Slot} {v : Time} {x : V} (h : FastSupportScope E rho s v x)
     (ix iy : Nat) (y : V) (hy : y ∈ rho.honest)
-    (hi : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
-    (hj : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
+    (hi : IsGateTick p c rho ix x s)
+    (hj : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (ht : SA.voteTime p.toParams (s + 1) ≤ v)
+    (hJoin : joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1))) :
     FirstTransferScope E rho ix iy x y s :=
-  h.first ix iy y hy hi hj (h.source ix hi) (h.firstReaders iy y hy hj)
+  h.first ix iy y hy hi hj ht (h.source ix hi) hJoin
 
 private def lease_source (st : State p.n) (t : Time) (row : Block × Nat × Time) : Prop :=
   ∃ s B, t = SA.gateTime p.toParams s ∧
@@ -372,6 +376,7 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
     (hB : B ∈ (fastWriteAt nd.st s).getD [])
     {T : Time} (hTh : T ≤ rho.horizon)
     (hScopes : FastSupportScope E rho s T x)
+    (hCut : E.t_GST ≤ slotStartZ p (s : Int))
     (hcov : ∀ w, s + 1 ≤ w → SA.gateTime p.toParams w ≤ T → ∀ z ∈ rho.honest, ∀ K,
       headAtLabel p c E rho z w = some K → Block.Preceq B K)
     {a iq : Nat} {y : V} (hy : y ∈ rho.honest)
@@ -418,7 +423,8 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
     rw [hpost] at hkeep
     obtain ⟨ix, h, hix, _, _, hτ⟩ := healing_fast_source (c := c) E rho hS hnd hB hScopes.source
     exact healing_support_release_compat (hroots := hrec.base.receiptIdealization)
-      E rho hE hDelta s hSync hx hy hix hiq (hScopes.firstOn ix iq y hy hix hiq) hτ
+      E rho hE hDelta s hSync hx hy hix hiq (hScopes.firstOn ix iq y hy hix hiq (hT iq _ hqa hiq)
+        (healing_recovery_next_vote_joined_of_cut E rho hrec hCut hy hiq)) hτ
       (hFmono hqa.le hFB) row hkeep
   · -- The same label as the source gate.
     have hws' : w = s := hws
@@ -450,11 +456,14 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
       (hwT.trans hTh)
       (hcov w (by exact_mod_cast hw1) hwT) ht
       ((hScopes.gates w (by exact_mod_cast hw1) hwT) j y hy ht
-        (healing_gate_enabled_of_result E rho hS ht hres)) hFw
+        (healing_gate_enabled_of_result E rho hS ht hres) B
+        (healing_support_gate_geometry E rho hS (hcov w (by exact_mod_cast hw1) hwT) hFw)) hFw
     have hCC : C = C' := by
       have h2 := lease_gate_result (c := c) E rho hS ht
         ((hScopes.gates w (by exact_mod_cast hw1) hwT) j y hy ht
-        (healing_gate_enabled_of_result E rho hS ht hres)).enabled hC'
+        (healing_gate_enabled_of_result E rho hS ht hres) B
+        (healing_support_gate_geometry E rho hS (hcov w (by exact_mod_cast hw1) hwT)
+          hFw)).enabled hC'
       rw [hres] at h2
       exact Option.some.inj (Option.some.inj h2)
     subst hCC
@@ -490,6 +499,7 @@ theorem healing_fast_lease [Fintype V] (E : Generic.Env V)
     (hB : B ∈ (fastWriteAt nd.st s).getD [])
     {i : Slot} (hi : s + 1 ≤ i) (hvh : SA.voteTime p.toParams (i + 1) ≤ rho.horizon)
     (hScopes : FastSupportScope E rho s (SA.voteTime p.toParams (i + 1)) x)
+    (hCut : E.t_GST ≤ slotStartZ p (s : Int))
     (hcov : ∀ w, s + 1 ≤ w → w ≤ i → ∀ z ∈ rho.honest, ∀ K,
       headAtLabel p c E rho z w = some K → Block.Preceq B K)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
@@ -530,7 +540,8 @@ theorem healing_fast_lease [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * ((i + 1 : Nat) : Int) + p.Δ
     push_cast
     nlinarith)
-  refine healing_fast_lease_at E rho hrec mono writes hgst hgs hx hnd hB hvh hScopes ?_ hy hiq hqy
+  refine healing_fast_lease_at E rho hrec mono writes hgst hgs hx hnd hB hvh hScopes hCut ?_
+    hy hiq hqy
     (fun j t hj ht => (fgsa_tick_time_strict E rho hS ht hiy hj).le) hFB row hr0
   intro w hw hwT
   refine hcov w hw ?_
@@ -572,7 +583,8 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
     {x : V} (hx : x ∈ rho.honest) {nd : Node p}
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
     (hB : B ∈ (fastWriteAt nd.st s).getD [])
-    (hScopes : FastSupportScope E rho s v x) :
+    (hScopes : FastSupportScope E rho s v x)
+    (hCut : HealingWindow p E 1 s) :
     ∀ i, s + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K := by
   have hd := p.deltaPos
@@ -596,7 +608,11 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
     subst hi'
     exact healing_first_transfer_fast E rho hrec.toRecovery₂ (fun _ => mono) crossing
       hgst hphase hhead hgate hx hnd hB hz hv
-      (fun ix iy hi hj => hScopes.firstOn ix iy z hz hi hj) hK
+      (fun ix iy hi hj => hScopes.firstOn ix iy z hz hi hj hv
+        (healing_recovery_joined_next E rho hrec hCut hz
+          (by change 4 * p.Δ * (s : Int) + p.Δ ≤
+                4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+              push_cast; linarith [p.deltaPos]) (hv.trans hphase.2.1))) hK
   | succ n ih =>
     intro i hi hin hv z hz K hK
     have hiI : (s : Int) + 1 ≤ (i : Int) := by exact_mod_cast hi
@@ -622,12 +638,18 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
     have hKeq := Option.some.inj hK
     subst hKeq
     have hsi : SA.voteTime p.toParams s ≤ SA.voteTime p.toParams i' := hvmono (by omega)
-    exact healing_next_transfer_core E rho hrec.toRecovery₂ (fun _ => mono) crossing
+    exact healing_next_transfer_core E rho hrec (fun _ => mono) crossing
       hgst hphase (hhead.trans hsi)
       (hcov i' hi' le_rfl) hz hiz
-      (hScopes.next i' hi' hv iz z hz hiz) hv
+      (hScopes.next i' hi' hv iz z hz hiz
+        (healing_recovery_joined_next E rho hrec (hCut.mono ((Nat.le_succ s).trans hi')) hz
+          (by change 4 * p.Δ * (i' : Int) + p.Δ ≤
+                4 * p.Δ * ((i' + 1 : Nat) : Int) + p.Δ
+              push_cast; linarith [p.deltaPos]) (hv.trans hphase.2.1)))
+      (hCut.mono ((Nat.le_succ s).trans hi')) hv
       (healing_fast_lease E rho hrec mono writes (hgst.trans hhead) hx hnd hB hi'
-        (hv.trans hphase.2.1) (hScopes.mono hv) hcov hz hiz)
+        (hv.trans hphase.2.1) (hScopes.mono hv)
+        (healing_gate_cut_of_batch_cut E s hCut.2) hcov hz hiz)
 
 end AvailableChain.FGSA.Run
 end

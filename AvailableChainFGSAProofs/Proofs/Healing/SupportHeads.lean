@@ -19,15 +19,15 @@ open Gen.AC.Root
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- Object services at one later HEAD read. Retained read provenance stays explicit. -/
-structure NextTransferScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (iy : Nat) (y : V) (s : Slot) : Prop where
+structure NextTransferScope (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (iy : Nat) (y : V) (s : Slot) : Prop where
   release : SA.releaseThreshold p.toParams ≤ (healingJoinedSeats E rho s).card
   batch : ∀ [Fintype V], Gen.Pure.Batch (healingJoinedSeats E rho s).card
     (Gen.V2.Duty.faulty rho).card
   rivals : ∀ [Fintype V], ((GridCO.seats p.n
-    (headVotes p (clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (s + 1)))
-      (s + 1))).toFinset \ healingJoinedSeats E rho s).card ≤
-    (Gen.V2.Duty.faulty rho).card
+    (headVotes p (clock p (storeAt p c E rho iy y)
+      (SA.voteTime p.toParams (s + 1))) (s + 1))).toFinset
+        \ healingJoinedSeats E rho s).card ≤ (Gen.V2.Duty.faulty rho).card
   epoch : V2.D.restartFree rho y
     (V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ)) iy
   fresh : ∀ q K, rho.seatOf (.base (.head s)) q ∈ rho.honest →
@@ -36,12 +36,11 @@ structure NextTransferScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     Nonempty (FreshHeadService E rho s q K (SA.freezeTime p.toParams s) y)
   reads : ∀ q b,
     (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
-      headVotes p (clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (s + 1)))
-        (s + 1) →
+      headVotes p (clock p (storeAt p c E rho iy y)
+        (SA.voteTime p.toParams (s + 1))) (s + 1) →
     HeadRelayServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y
-  carriers : ∀ j z, z ∈ rho.honest →
-    rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)) →
-    ∀ v ∈ rho.honest, HeadCarrierServices E rho j z s v
+  carriers : HealingCarriersAt E rho s iy y
+    (SA.voteTime p.toParams (s + 1))
 
 private theorem next_freeze_epoch (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {iy : Nat} {y : V} {s : Slot}
@@ -166,7 +165,7 @@ DC: INTENTIONAL an honest label-i HEAD that covers B is, at the receiver's q_i r
 clean resolved frozen vote that supports B: the vote arrives by e_i, and the HEAD
 block arrives with strict stamps through the HEAD witness W (F1 + F2). -/
 theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (_mono : RMono p c E rho) (crossing : RXing p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -175,6 +174,7 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hScope : NextTransferScope E rho iy y i)
+    (hCut : HealingWindow p E 1 i)
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest)
@@ -210,7 +210,10 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
   -- The witness of z's HEAD reaches y before e_i, so the HEAD block has strict stamps.
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, _, hrelay⟩ :=
     healing_head_witness_relay_on (hroots := hrec.base.receiptIdealization)
-      p c E rho crossing hE hk hjz hy ((hScope.carriers jz z hk hjz y hy).relay
+      p c E rho crossing hE hk hjz hy
+      ((healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hy hiy hvi
+        jz z hk hjz).relay
         (healing_head_carrier_demand_phase p c E rho crossing hE hphase
           hk hjz hhead (hvi.trans hv) hy))
   have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
@@ -337,10 +340,10 @@ ROOT-DIGEST W2b. Blueprint 21:748–783 (H.3), 1148–1252 (F1 + F2); plan H-SUP
 DC: INTENTIONAL an honest label-i HEAD that covers B gives a witness W ⪰ B. W reaches
 the receiver before e_i, and at its q_i read Z and F are below W, with lo ≤ h(W). The
 F-root case uses RXing; the top-J case uses the common J. -/
-theorem healing_support_head_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+theorem healing_support_head_frame [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (_mono : RMono p c E rho) (crossing : RXing p c E rho)
-    (hE : V2.D.ExecutionValid E rho) (_hDelta : E.Δ = p.Δ)
-    {ΔF : Time} (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) (_hDelta : E.Δ = p.Δ)
+    {ΔFsync : Time} (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔFsync))
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (_hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {i : Slot} (hhead : u ≤ SA.voteTime p.toParams i)
@@ -349,6 +352,7 @@ theorem healing_support_head_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hScope : NextTransferScope E rho iy y i)
+    (hCut : HealingWindow p E 1 i)
     (hv : SA.voteTime p.toParams (i + 1) ≤ v) {B : Block}
     (hBK : Block.Preceq B (headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
       (SA.voteTime p.toParams i)) i))
@@ -358,6 +362,7 @@ theorem healing_support_head_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
       Block.Preceq B (eraseFG W) ∧ FGBlock.Preceq (R_at p c E rho iy y).Z W ∧
       FGBlock.Preceq (storeAt p c E rho iy y).fg.F W ∧
       (R_at p c E rho iy y).lo ≤ (heightView p W).h := by
+  have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
   have hd := p.deltaPos
   have hvi : SA.voteTime p.toParams i + p.Δ ≤ SA.voteTime p.toParams (i + 1) := by
@@ -368,7 +373,10 @@ theorem healing_support_head_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     (le_add_of_nonneg_right hd.le).trans hvi
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, hloW, hrelay⟩ :=
     healing_head_witness_relay_on (hroots := hroots)
-      p c E rho crossing hE hz hjz hy ((hScope.carriers jz z hz hjz y hy).relay
+      p c E rho crossing hE hz hjz hy
+      ((healing_carriers_window_at p c E rho hrec hCut
+        hScope.carriers hy hiy hvi
+        jz z hz hjz).relay
         (healing_head_carrier_demand_phase p c E rho crossing hE hphase
           hz hjz hhead (hvi.trans hv) hy))
   have hBW : Block.Preceq B (eraseFG W) := by
@@ -439,7 +447,7 @@ honest HEAD at label i+1 inside the phase covers B. The honest batch of label i 
 majority and rival bounds (`batch_head_covers`); a fresh witness W of an honest label-i
 HEAD gives the kept path and the frame; `hlease` is the lease premise at this read. -/
 theorem healing_next_transfer_core [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMono p c E rho) (crossing : RXing p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -448,6 +456,7 @@ theorem healing_next_transfer_core [Fintype V] (E : Generic.Env V)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hScope : NextTransferScope E rho iy y i)
+    (hCut : HealingWindow p E 1 i)
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
     (hlease : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B →
       ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
@@ -477,8 +486,8 @@ theorem healing_next_transfer_core [Fintype V] (E : Generic.Env V)
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjy]
     rfl
   obtain ⟨W, hWd, hBW, hZW, hFW, hloy⟩ := healing_support_head_frame (hroots :=
-    hrec.base.receiptIdealization) E rho mono crossing hE
-    hDelta hrec.sync hgst hphase hhead hy hjy hy hiy hScope hv (hcover y hy _ hhl)
+    hrec.base.receiptIdealization) E rho mono crossing hrec
+    hDelta hrec.sync hgst hphase hhead hy hjy hy hiy hScope hCut hv (hcover y hy _ hhl)
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hdfg : dst.fg = (storeAt p c E rho iy y).fg := clock_fg p _ _
   have hRd : FGSA.controls p dst = R_at p c E rho iy y := by
@@ -558,7 +567,7 @@ theorem healing_next_transfer_core [Fintype V] (E : Generic.Env V)
   -- The selected joined batch at this read.
   let Hon : Finset (Fin p.n) := healingJoinedSeats E rho i
   have hseat (k : Fin p.n) (hk : k ∈ Hon) := healing_support_honest_batch_seat E rho hrec
-    mono crossing hgst hphase hhead hcover hy hiy hScope hv hFB0 k
+    mono crossing hgst hphase hhead hcover hy hiy hScope hCut hv hFB0 k
     ((healingJoinedSeats_mem E rho i k).mp hk).1
     ((healingJoinedSeats_mem E rho i k).mp hk).2
   have hb : Gen.Pure.Batch Hon.card (Gen.V2.Duty.faulty rho).card := hScope.batch
@@ -579,16 +588,18 @@ label s+1, every honest HEAD at a label i ≥ s+1 with q_i ≤ v covers B. Each 
 the honest batch of the previous label (no gate lookahead, G8). `hlease` is the lease
 premise at each honest read after s+1. -/
 theorem healing_heads_transfer [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMono p c E rho) (crossing : RXing p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} {B : Block} (hhead : u ≤ SA.voteTime p.toParams s)
+    (hCut : HealingWindow p E 1 s)
     (hbase : SA.voteTime p.toParams (s + 1) ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z (s + 1) = some K → Block.Preceq B K)
     (hScopes : ∀ i, s + 1 ≤ i → SA.voteTime p.toParams (i + 1) ≤ v →
       ∀ iy y, y ∈ rho.honest →
       rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))) →
+      joinedAt p E rho y (i + 1) (SA.voteTime p.toParams (i + 1)) →
       NextTransferScope E rho iy y i)
     (hlease : ∀ i, s + 1 ≤ i → SA.voteTime p.toParams (i + 1) ≤ v →
       ∀ iy y, y ∈ rho.honest →
@@ -622,19 +633,24 @@ theorem healing_heads_transfer [Fintype V] (E : Generic.Env V)
     have hiz := V2.D.Run.tickIdx?_spec hiz'
     have hKeq := Option.some.inj hK
     subst hKeq
+    have hci := hCut.mono ((Nat.le_succ s).trans hi)
+    have hj := healing_recovery_joined_next E rho hrec hci hz hvi (hv.trans hphase.2.1)
     exact healing_next_transfer_core E rho hrec mono crossing hgst hphase (hhead.trans hsi)
-      (ih (hvi.trans hv)) hz hiz (hScopes i hi hv iz z hz hiz) hv (hlease i hi hv iz z hz hiz)
+      (ih (hvi.trans hv)) hz hiz (hScopes i hi hv iz z hz hiz hj) hci hv
+      (hlease i hi hv iz z hz hiz)
+
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:620–715 (H.1 + H.2 S1, fast arm); plan H-SUPPORT §4 steps 1–7.
 DC: INTENTIONAL the S1 HEAD clause for a fast PhaseBody arm, under the per-label lease
 premise `hlease` after s+1 (the s+1 lease bound is proved, G5). -/
 theorem healing_fast_heads_transfer [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (mono : RMono p c E rho) (crossing : RXing p c E rho)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} {B : Block} (hhead : u ≤ SA.voteTime p.toParams s)
+    (hCut : HealingWindow p E 1 s)
     (hgate : SA.gateTime p.toParams s ≤ v)
     {x : V} (hx : x ∈ rho.honest) {nd : Node p}
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
@@ -646,6 +662,7 @@ theorem healing_fast_heads_transfer [Fintype V] (E : Generic.Env V)
     (hScopes : ∀ i, s + 1 ≤ i → SA.voteTime p.toParams (i + 1) ≤ v →
       ∀ iy y, y ∈ rho.honest →
       rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))) →
+      joinedAt p E rho y (i + 1) (SA.voteTime p.toParams (i + 1)) →
       NextTransferScope E rho iy y i)
     (hlease : ∀ i, s + 1 ≤ i → SA.voteTime p.toParams (i + 1) ≤ v →
       ∀ iy y, y ∈ rho.honest →
@@ -655,8 +672,9 @@ theorem healing_fast_heads_transfer [Fintype V] (E : Generic.Env V)
         (SA.voteTime p.toParams (i + 1))).base.obligations, Block.Compatible row.1 B) :
     ∀ i, s + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K :=
-  healing_heads_transfer E rho hrec mono crossing hgst hphase hhead
-    (fun hv _ hz _ hK => healing_first_transfer_fast E rho hrec mono crossing hgst hphase
+  healing_heads_transfer E rho hrec mono crossing hgst hphase hhead hCut
+    (fun hv _ hz _ hK => healing_first_transfer_fast E rho hrec.toRecovery₂ mono crossing
+      hgst hphase
       hhead hgate hx hnd hB hz hv (fun ix iy hi hj => hFirst ix iy _ hz hi hj) hK) hScopes hlease
 
 end AvailableChain.FGSA.Run
