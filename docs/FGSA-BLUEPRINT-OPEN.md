@@ -29,7 +29,7 @@ any item remains.
 
 ## bp.receiptCoverage.v2 (PARTIAL)
 
-- `OPEN.bp.receiptCoverage.v2.1`: No reviewed map shows that ReceiptCoverageStatement matches all paper deadline and coverage clauses.
+- `OPEN.bp.receiptCoverage.v2.1`: Sleep receipt coverage producer and paper alignment remain open.
 
 ## bp.scoreSuffix.v2 (OPEN)
 

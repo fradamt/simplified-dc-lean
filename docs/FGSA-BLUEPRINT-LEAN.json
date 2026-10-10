@@ -441,18 +441,25 @@
    "lean_status": "PARTIAL",
    "clauses": [
     {
-     "clause": "receipt coverage (K8)",
-     "theorem": "AvailableChain.FGSA.Run.fgsa_receiptCoverage",
-     "module": "AvailableChainFGSARun.Proofs.ReceiptCoverage",
-     "type_fingerprint": "9626f7747ff63c39"
+     "clause": "sleep receipt contract equation (K8)",
+     "theorem": "AvailableChain.FGSA.Run.ReceiptCoverageSleepStatement_def",
+     "module": "AvailableChainFGSARun.Statements.ReceiptCoverage",
+     "type_fingerprint": "30ab600449f91d2c"
+    },
+    {
+     "clause": "ready no-restart producer (K8)",
+     "theorem": "AvailableChain.FGSA.Run.fgsa_receiptCoverage_ready",
+     "module": "AvailableChainFGSARun.Proofs.ReceiptCoverageReady",
+     "type_fingerprint": "0ab1586270e3aaed"
     }
    ],
    "open": [
     {
      "id": "OPEN.bp.receiptCoverage.v2.1",
-     "missing": "No reviewed map shows that ReceiptCoverageStatement matches all paper deadline and coverage clauses."
+     "missing": "Sleep receipt coverage producer and paper alignment remain open."
     }
-   ]
+   ],
+   "note": "P23-A: ReceiptCoverageSleepStatement; ready producer needs NoRestart."
   },
   {
    "id": "bp.sameLabel.v1",
