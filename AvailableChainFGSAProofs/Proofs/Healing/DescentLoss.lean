@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Shared.Compose
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
+public import AvailableChainFGSAProofs.Proofs.Healing.Time
 
 public section
 
@@ -146,7 +147,8 @@ theorem healing_high_source_sync
   obtain ⟨e, -, he, -⟩ := healing_source_decode p c E rho emittedNonempty emittedName ha hKs
   by_contra hlt
   have hold : (heightView p K).h ∈ oldRowHeights p c E rho :=
-    ⟨j, y, r, a, e, ha, he, lt_of_not_ge hlt⟩
+    ⟨j, y, r, a, e, ha, he,
+      (lt_of_not_ge hlt).trans_le (healing_recoveryStart_ge p E)⟩
   have hμ := (muOf_spec p c E rho).2.2.2.1 _ hold
   omega
 
@@ -196,12 +198,15 @@ theorem healing_loss_same [Fintype V] {G ΔF : Time}
       ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
         e.1 = (heightView p C).h ∧
         gateResult p c E rho x (r * p.R) = some (some G) ∧
-        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C)) :
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hScopes : ∀ i K K' s, SourceBefore p c E rho i K s →
+      SourceBefore p c E rho i K' s → muOf p c E rho + 1 ≤ (heightView p K).h →
+      muOf p c E rho + 1 ≤ (heightView p K').h → SameLabelServiceScope E rho s) :
     ∀ i K K' s, SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s →
       muOf p c E rho + 1 ≤ (heightView p K).h → muOf p c E rho + 1 ≤ (heightView p K').h →
       Block.Compatible (eraseFG K) (eraseFG K') := by
-  intro i K K' s hK hK' hc _
-  have hSync := healing_high_source_labelSync p c E rho hrec emittedNonempty emittedName hK hc
+  intro i K K' s hK hK' hc hc'
+  have hScope := hScopes i K K' s hK hK' hc hc'
   obtain ⟨j, y, r, a, -, ha, hKs, hs⟩ := hK
   obtain ⟨j', y', r', a', -, ha', hKs', hs'⟩ := hK'
   obtain ⟨-, G, -, hG, hKG, -⟩ :=
@@ -210,9 +215,8 @@ theorem healing_loss_same [Fintype V] {G ΔF : Time}
     healing_source_decode p c E rho emittedNonempty emittedName ha' hKs'
   rw [← hs] at hG
   rw [← hs'] at hG'
-  have hGG := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
-      hrec.base.noRestart hrec.base.delta s
-    hSync y y' G G' ha.1 ha'.1 hG hG'
+  have hGG := fgsa_sameLabel_on p c E rho hrec.base.valid s hScope hrec.base.idealization
+    y y' G G' ha.1 ha'.1 hG hG'
   change (Block.preceq G G' || Block.preceq G' G) = true at hGG
   rcases Bool.or_eq_true_iff.mp hGG with h | h
   · exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_trans hKG h) hKG'

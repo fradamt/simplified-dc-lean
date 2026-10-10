@@ -5212,3 +5212,93 @@ Final frozen-source validation for this slice: DCK P-H2 PASS (480 GREEN roots,
 PASS (41 commands); all-GREEN-root export check PASS (270 proof modules, 253 exports,
 zero unaccepted); check-layers PASS (72 accepted, zero new); diff --check PASS.
 These results validate the checked helper slice, not the 79 original open targets.
+
+
+## P-H1 — Round 3, first transfer scopes (2026-10-10)
+
+Shared/Regimes and Shared/Export build on the joined base. Their two P-ShA rows
+move to GREEN in the P-H1 map. The legacy Regimes names remain explicit NoRestart forms.
+
+Internal replacement: SupportTransfer no longer projects Base₂.noRestart.
+FirstTransferScope supplies the exact enabled source gate, joined release guard,
+receiver event-index epoch, and per-object forward, backward, target and carrier services.
+The release lower bound and the first transfer conclusions stay the same.
+Receipt proofs use NamedReceiptRootCollisionFree. Safety root equality uses its projection.
+
+The stored honest HEAD supplier handles both acceptance and restart replay origins.
+It extracts the earlier carried delivery before it applies signature provenance.
+HistorySafeAt is a ReceiverService input; earlier processing does not supply it.
+SupportRelay adds raw reverse receipt, target path and transfer proposal service helpers.
+The proposal service uses ANCHOR-DL: earlyTime is the anchor, freezeTime is the strict read.
+FramePaths adds the frozen path theorem with the receiver's exact read epoch.
+
+Strict audit: eight new commands in Tests/HealingSleepAxioms.
+The serial coverage fragment has the corresponding rows. No public statement changed.
+SupportHeads, SupportSlow and FrontierSupportHeads must thread these services.
+Full package closure is still open until every assigned consumer builds.
+
+P-H1 Round 3 HEAD consumers: SupportHeads uses NextTransferScope at the exact
+later HEAD read. The scope supplies joined honest voters, fresh HEAD service,
+retained HEAD read provenance, carrier services and the receiver's event-index epoch.
+The induction asks for these scopes only at labels inside its interval.
+Membership and FG bounds use durable storage; vote and block stamps use the local epoch.
+Batch cardinality follows from CStar and the recovery fault bound.
+HealingBase's legacy row receipt test now supplies the receiver awake service.
+Public statements and conclusions stay unchanged; these are exact internal input forms.
+
+P-H1 Round 3 fast lease, output and proposal consumers:
+SupportLease uses RecoverySleep₂ and RMonoAll. FastSupportScope names only its
+source label and bounded interval. It supplies first/later transfer services,
+same-label local service, joined gate receipt scopes and per-carrier services.
+A suppressed gate writes no lease. Restart keeps existing lock rows and deadlines.
+SupportOutput preserves the stable record in the restart induction branch.
+Gate effects require the exact joined guard; source and target frame membership is durable.
+SupportProposal uses ProposalSupportScope at each required proposal read.
+It keeps joined source votes, fresh receipt and the exact receiver epoch explicit.
+An emitted proposal supplies its duty guard through the executable guarded branch.
+The public Transfers/TPerm definitions and all public claim text stay unchanged.
+Fifteen further strict commands and their serial coverage rows cover these ports.
+
+P-H1 Round 3 slow, permanence and frontier consumers:
+SupportSaved adds wake-safe saved-result origin: restart clears the cache, so a
+surviving nonempty result has the actual gate origin. SlowSupportScope preserves
+per-label same-label service over its saved window. Its later services are bounded
+by the same interval as FastSupportScope. SupportPermanenceServices supplies the
+exact object scopes only for active PhaseBody arms and their proposal reads.
+The Transfers/TPerm conclusions remain unchanged; services are explicit internal inputs.
+
+The inline last-write input now includes joinedNow at each candidate renewal gate,
+matching P-Fd's actual last-write producer. Suppressed gates cannot renew a lock.
+Capped frontier HEAD relay uses TargetReceiptService and durable membership.
+The capped first/later transfer induction consumes FirstTransferScope/NextTransferScope.
+ExactService callers keep the confirmed-reader guard at the actual gate cut.
+
+HealingPromotion ports the renewed/age tests to RecoverySleep₂, RMonoAll,
+SupportPermanenceServices, and per-emitted-proposal ReceiverService. Row receipt uses
+P-Fd's fgsa_tRows_recovery producer. HealingSupport uses the same exact local inputs.
+Its all-asleep tick trace was an invalid positive execution fixture under the new
+ExecutionValid awake laws. It is now a negative execution test; structural frame
+facts stay as structural facts. No public claim text or protocol rule changed.
+
+P-H1 Round 3 retained repair, source and moving-frame ports:
+RepairHeadServices keeps the prior proposal scope, target receipt service and
+RetainedServiceScope explicit for each emitted repaired proposal. H6/H6S inputs
+are proved from the frame and bounded proposal services. HEAD conclusions apply
+to joined receivers. repair_head_exact_legacy keeps its existing spelling; its
+internal statement now uses the receiver-local form through SupportRecovery.
+The canonical sleep supplier remains SupportRecovery.repair_head_exact.
+
+RepairGateScope supplies the actual enabled gate, joined release and retained
+carrier services. Exact gate counts use joined voters and the recovery fault bound.
+Suppressed gates and wake restarts keep the stable record in repair_output_bound.
+FrontierReadScope bounds seed, later fast/slow, proposal, HEAD and carrier services
+by the same cap endpoint. Its seed consumes the actual confirmed-reader guard.
+Retained cone fields are proved from these scopes, not from earlier processing.
+
+SourceTiming has all-restart durable retention helpers. Source delivery uses each
+supporter carrier's TargetReceiptService; pre-GST delivery keeps ReceiverService
+explicit, including HistorySafeAt. The moving-frame first/later transfer and lease
+consumers use the same exact read epochs and object services. High-source same-label
+compatibility uses SameLabelServiceScope. The old-row height set is cut at
+recoveryStart on this base; recoveryStart ≥ GST supplies the original GST conclusion.
+No public Claims statement changed. Remaining reset and descent callers need these inputs.

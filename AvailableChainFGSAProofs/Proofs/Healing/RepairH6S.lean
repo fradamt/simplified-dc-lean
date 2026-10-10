@@ -48,8 +48,9 @@ Blueprint 21:988–1033 (H.6-S, one lease); plan H-REPAIR step 5. DC: INTENTIONA
 first HEAD label at or after u and GST ≤ v_(b+1−k), every slot s after b + k with v_s ≤ v
 has the lease cover. `writes` is the inline last-write premise (ruling B27). -/
 theorem repair_lease_cover_one [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (hPerm : SupportPermanenceServices E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -60,6 +61,7 @@ theorem repair_lease_cover_one [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -74,7 +76,7 @@ theorem repair_lease_cover_one [Fintype V] (E : Generic.Env V)
     (hvs : SA.voteTime p.toParams s ≤ v) : RepairLeaseCover E rho s := by
   have hS := hrec.base.valid.toScheduleWellFormed
   exact repair_lease_cover_of_split E rho hS
-    (healing_last_write_one_lease p c E rho hS (healing_tPerm E rho hrec mono crossing writes)
+    (healing_last_write_one_lease p c E rho hS (healing_tPerm E rho hrec mono crossing hPerm writes)
       writes hgst hphase hb hwindow) hls hvs
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -82,8 +84,9 @@ Blueprint 21:988–1033 (H.6-S); plan H-REPAIR G-H6S (R2), steps 5–8. DC: INTE
 retained H.6 input at every actual honest proposal/HEAD read pair of a slot s after b + k
 with v_s ≤ v, under the synchronous window. -/
 theorem retainedH6Input_on_synchronous_reads [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (hPerm : SupportPermanenceServices E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -94,6 +97,7 @@ theorem retainedH6Input_on_synchronous_reads [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -108,6 +112,7 @@ theorem retainedH6Input_on_synchronous_reads [Fintype V] (E : Generic.Env V)
     (hvs : SA.voteTime p.toParams s ≤ v)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hScope : ProposalSupportScope E rho ip x (s - 1))
     {ih : Nat} {y : V} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s))) :
     RetainedH6Input p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
@@ -115,16 +120,17 @@ theorem retainedH6Input_on_synchronous_reads [Fintype V] (E : Generic.Env V)
   obtain ⟨r, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero
     (Nat.ne_zero_of_lt (repair_slot_lt_of_time hls))
   exact repair_h6_input E rho hrec mono crossing hgst hphase (repair_head_after_one hb hls) hvs
-    (repair_lease_cover_one E rho hrec mono crossing writes hgst hphase hb hwindow hls hvs)
-    hx hip hy hih
+    (repair_lease_cover_one E rho hrec mono crossing hPerm writes hgst hphase hb hwindow hls hvs)
+    hx hip (by simpa only [Nat.add_sub_cancel] using hScope) hy hih
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:988–1033 (H.6-S HEAD equality); plan H-REPAIR G-H6S (R2), step 8.
 DC: INTENTIONAL every honest HEAD of a slot s after b + k with v_s ≤ v is its honest
 proposal. -/
 theorem repair_head_one [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (hPerm : SupportPermanenceServices E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -135,6 +141,7 @@ theorem repair_head_one [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -147,12 +154,16 @@ theorem repair_head_one [Fintype V] (E : Generic.Env V)
     (hwindow : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k)) {s : Slot}
     (hls : SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams s)
     (hvs : SA.voteTime p.toParams s ≤ v)
+    (hServices : RepairHeadServices E rho s)
     {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) s Q) :
-    ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q := by
+    ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some Q := by
   obtain ⟨r, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero
     (Nat.ne_zero_of_lt (repair_slot_lt_of_time hls))
-  exact repair_head_exact E rho hrec mono crossing hgst hphase (repair_head_after_one hb hls) hvs
-    (repair_lease_cover_one E rho hrec mono crossing writes hgst hphase hb hwindow hls hvs) hp
+  exact repair_head_exact_legacy E rho hrec mono crossing hgst hphase
+    (repair_head_after_one hb hls) hvs
+    (repair_lease_cover_one E rho hrec mono crossing hPerm writes
+      hgst hphase hb hwindow hls hvs) hServices hp
 
 end AvailableChain.FGSA.Run
 end

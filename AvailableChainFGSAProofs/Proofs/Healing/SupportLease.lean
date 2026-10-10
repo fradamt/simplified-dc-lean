@@ -40,6 +40,36 @@ open Gen.AC
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+/-- Fast support services are restricted to one source label and one interval. -/
+structure FastSupportScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (s : Slot) (v : Time) (x : V) : Prop where
+  source : ∀ ix, rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) →
+    enabledGateAt p c E rho ix x s
+  first : ∀ ix iy y, y ∈ rho.honest →
+    rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) →
+    rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    FirstTransferScope E rho ix iy x y s
+  next : ∀ w, s + 1 ≤ w → SA.voteTime p.toParams (w + 1) ≤ v →
+    ∀ iy y, y ∈ rho.honest →
+    rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (w + 1))) →
+    NextTransferScope E rho iy y w
+  gates : ∀ w, s + 1 ≤ w → SA.gateTime p.toParams w ≤ v →
+    E.t_GST ≤ slotStartZ p ((w : Int) - 1) ∧
+    ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y w → GateReceiptScope E rho j y w
+  carriers : ∀ w, s + 1 ≤ w → SA.voteTime p.toParams w + p.Δ ≤ v →
+    ∀ j z, z ∈ rho.honest → rho.events[j]? = some (.tick z (SA.voteTime p.toParams w)) →
+    ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ y ∈ rho.honest,
+      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams w + p.Δ) y
+  sameLabel : SameLabelServiceScope E rho s
+
+/-- Restricting the interval keeps the same object services and exact epochs. -/
+theorem FastSupportScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {s : Slot} {u v : Time} {x : V} (h : FastSupportScope E rho s v x) (huv : u ≤ v) :
+    FastSupportScope E rho s u x :=
+  ⟨h.source, h.first, fun w hw ht => h.next w hw (ht.trans huv),
+    fun w hw ht => h.gates w hw (ht.trans huv),
+    fun w hw ht => h.carriers w hw (ht.trans huv), h.sameLabel⟩
+
 private def lease_source (st : State p.n) (t : Time) (row : Block × Nat × Time) : Prop :=
   ∃ s B, t = SA.gateTime p.toParams s ∧
     let pre := clockPre p st t
@@ -114,11 +144,18 @@ private theorem lease_rows_clock (st : State p.n) (t : Time) (row : Block × Nat
       rw [gateStep_saved p pre s (by rw [hs]; rfl), normalizeS_fields] at hm
       exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
     | none =>
+      by_cases hj : joinedNow p pre = true
+      swap
+      · rw [gateStep_unjoined_eq p pre s hs (Bool.eq_false_of_ne_true hj), normalizeS_fields]
+          at hm
+        change row ∈ pre.base.obligations at hm
+        exact Or.inl ((clockPre_obligations_sublist p st t).subset hm)
       have he : (gateStep p pre s).base.obligations =
           (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s).obligations := by
         unfold gateStep
         rw [normalizeS_fields]
-        simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false]
+        simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false,
+          hj, Bool.not_true]
         rfl
       rw [he] at hm
       cases hc : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s with
@@ -163,17 +200,35 @@ private theorem lease_gate_label (s : Slot) :
 private theorem lease_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {j : Nat} {x : V} {s : Slot} {B : Block}
     (ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hGuard : enabledGateAt p c E rho j x s)
     (hc : SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (V2.D.Run.stateBefore E rho j x).st (SA.gateTime p.toParams s)).fg.F)
       (actView (clockPre p (V2.D.Run.stateBefore E rho j x).st
         (SA.gateTime p.toParams s))) s = some B) :
     gateResultAt p c E rho j = some (some B) := by
+  classical
   delta gateResultAt
   rw [ht]
   dsimp only
   have htest := (isGateTime_iff p (SA.gateTime p.toParams s)).mpr ⟨s, rfl⟩
   rw [htest, ite_eq_left rfl]
-  rw [lease_gate_label s, hc]
+  rw [lease_gate_label s]
+  have hpre : (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams s)).restartTime = (storeAt p c E rho j x).restartTime := by
+    unfold clockPre
+    dsimp only
+    split_ifs <;> rfl
+  have hb := hGuard.2
+  change (match (storeAt p c E rho j x).restartTime with
+    | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hb
+  split
+  · exact congrArg some hc
+  · rename_i hn
+    change ¬ (match (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams s)).restartTime with
+      | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hn
+    rw [hpre] at hn
+    exact (hn hb).elim
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:689–699; plan H-SUPPORT §3.
@@ -227,8 +282,9 @@ theorem healing_lease_persist (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     change y = x at hv
     subst y
     simp only [Q, V2.D.World.step, Function.update_self]
-    intro hr
-    exact (List.not_mem_nil hr).elim
+    change row ∉ (acRestart p (rho.stateBefore E k x).st t).base.obligations
+    rw [acRestart_obligations]
+    exact hQ
   | deliver y o t =>
     change y = x at hv
     subst y
@@ -257,11 +313,14 @@ B passes the fast threshold in the source gate view. -/
 theorem healing_fast_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {B : Block} {x : V} {nd : Node p}
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
-    (hB : B ∈ (fastWriteAt nd.st s).getD []) :
+    (hB : B ∈ (fastWriteAt nd.st s).getD [])
+    (hGuard : ∀ ix, rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) →
+      enabledGateAt p c E rho ix x s) :
     ∃ ix h, rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) ∧
       gateResult p c E rho x s = some (some h) ∧ Block.Preceq B h ∧
       SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
         (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s B := by
+  classical
   rw [postClock_def, preTick_def] at hnd
   cases hix' : V2.D.Run.tickIdx? rho x (SA.gateTime p.toParams s) with
   | none => rw [hix'] at hnd; cases hnd
@@ -270,7 +329,8 @@ theorem healing_fast_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hix := V2.D.Run.tickIdx?_spec hix'
   have hnd' := Option.some.inj hnd
   subst hnd'
-  rw [healing_support_fastWrite p c E rho hs hix] at hB
+  rw [healing_support_fastWrite p c E rho hs hix
+    (fgsa_gate_joined_of_enabled E rho (hGuard ix hix))] at hB
   let src := actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))
   unfold fastSet at hB
   cases hconf : SA.Root.confirmationFrom p.toParams (eraseFG (storeAt p c E rho ix x).fg.F) src
@@ -288,7 +348,22 @@ theorem healing_fast_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [gateResult_def, gateIn_def, preTick_def, hix']
   simp only [Option.map_some, Option.some.injEq]
   rw [clockPre_fg]
-  exact hconf
+  have hpre : (clockPre p (storeAt p c E rho ix x)
+      (SA.gateTime p.toParams s)).restartTime = (storeAt p c E rho ix x).restartTime := by
+    unfold clockPre
+    dsimp only
+    split_ifs <;> rfl
+  have hb := (hGuard ix hix).2
+  change (match (storeAt p c E rho ix x).restartTime with
+    | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hb
+  split
+  · exact hconf
+  · rename_i hn
+    change ¬ (match (clockPre p (storeAt p c E rho ix x)
+      (SA.gateTime p.toParams s)).restartTime with
+      | none => True | some w => w ≤ 4 * p.Δ * (s : Int)) at hn
+    rw [hpre] at hn
+    exact (hn hb).elim
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:689–715 (H.1 release, H.2 S1), IF.1, IF.6; plan H-SUPPORT §4 steps
@@ -299,8 +374,8 @@ was live at the q_(s+1) release, which removes rows that conflict with B (G5). I
 same-label compatibility with the source result applies. If w > s, the honest batch of
 label w makes the gate result cover B. `writes` is the S3 hypothesis (B27, inline). -/
 theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -311,6 +386,7 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -323,6 +399,7 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
     (hB : B ∈ (fastWriteAt nd.st s).getD [])
     {T : Time} (hTh : T ≤ rho.horizon)
+    (hScopes : FastSupportScope E rho s T x)
     (hcov : ∀ w, s + 1 ≤ w → SA.gateTime p.toParams w ≤ T → ∀ z ∈ rho.honest, ∀ K,
       headAtLabel p c E rho z w = some K → Block.Preceq B K)
     {a iq : Nat} {y : V} (hy : y ∈ rho.honest)
@@ -333,13 +410,12 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
     ∀ row ∈ (storeAt p c E rho a y).base.obligations, Block.Compatible row.1 B := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   have hFmono {a b : Nat} (hab : a ≤ b) (hFb : Block.Preceq
       (eraseFG (storeAt p c E rho b y).fg.F) B) :
       Block.Preceq (eraseFG (storeAt p c E rho a y).fg.F) B :=
-    Gen.Pure.block_preceq_trans (eraseFG_preceq (mono hN a b y hy hab).1) hFb
+    Gen.Pure.block_preceq_trans (eraseFG_preceq (mono a b y hy hab).1) hFb
   have hcompat {A C : Block} (hAC : Block.Preceq A C) (hCB : Block.Compatible C B) :
       Block.Compatible A B := by
     rcases Bool.or_eq_true_iff.mp hCB with h | h
@@ -368,17 +444,17 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
       simp only [V2.D.World.step, Function.update_self]
       exact tick_st (c := c) E rho _ y _
     rw [hpost] at hkeep
-    obtain ⟨ix, h, hix, _, _, hτ⟩ := healing_fast_source (c := c) E rho hS hnd hB
-    exact healing_support_release_compat (hroots := hrec.base.idealization)
-      E rho hE hN hDelta s hSync hx hy hix hiq hτ
+    obtain ⟨ix, h, hix, _, _, hτ⟩ := healing_fast_source (c := c) E rho hS hnd hB hScopes.source
+    exact healing_support_release_compat (hroots := hrec.base.receiptIdealization)
+      E rho hE hDelta s hSync hx hy hix hiq (hScopes.first ix iq y hy hix hiq) hτ
       (hFmono hqa.le hFB) row hkeep
   · -- The same label as the source gate.
     have hws' : w = s := hws
     subst hws'
-    obtain ⟨ix, h, _, hxh, hBh, _⟩ := healing_fast_source (c := c) E rho hS hnd hB
+    obtain ⟨ix, h, _, hxh, hBh, _⟩ := healing_fast_source (c := c) E rho hS hnd hB hScopes.source
     have hyC : gateResult p c E rho y w = some (some C) :=
       (gateResultAt_eq_gateResult p c E rho hS ht).symm.trans hres
-    have hhC := fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hE hN hDelta w hSync
+    have hhC := fgsa_sameLabel_on p c E rho hE w hScopes.sameLabel hrec.base.idealization
         x y h C hx hy hxh hyC
     refine hcompat hrowC ?_
     rcases Bool.or_eq_true_iff.mp hhC with hh | hh
@@ -398,10 +474,13 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
     have hw1 : (s : Int) + 1 ≤ (w : Int) := by
       have : (s : Int) < (w : Int) := by exact_mod_cast hws
       omega
-    obtain ⟨C', hC', hBC'⟩ := healing_support_gate_cover E rho hrec hgw (hwT.trans hTh)
-      (hcov w (by exact_mod_cast hw1) hwT) ht hFw
+    obtain ⟨C', hC', hBC'⟩ := healing_support_gate_cover E rho hrec hgw
+      (hScopes.gates w (by exact_mod_cast hw1) hwT).1 (hwT.trans hTh)
+      (hcov w (by exact_mod_cast hw1) hwT) ht
+      ((hScopes.gates w (by exact_mod_cast hw1) hwT).2 j y hy ht) hFw
     have hCC : C = C' := by
-      have h2 := lease_gate_result (c := c) E rho ht hC'
+      have h2 := lease_gate_result (c := c) E rho ht
+        ((hScopes.gates w (by exact_mod_cast hw1) hwT).2 j y hy ht).enabled hC'
       rw [hres] at h2
       exact Option.some.inj (Option.some.inj h2)
     subst hCC
@@ -412,8 +491,8 @@ Blueprint 21:689–715 (H.1 release, H.2 S1); plan H-SUPPORT §4 steps 5–7, G5
 DC: INTENTIONAL the lease premise of the H.2 step for a fast body, at the q_(i+1) read:
 `healing_fast_lease_at` with the bound q_(i+1); the clock at q_(i+1) writes no row. -/
 theorem healing_fast_lease [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -424,6 +503,7 @@ theorem healing_fast_lease [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -435,6 +515,7 @@ theorem healing_fast_lease [Fintype V] (E : Generic.Env V)
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
     (hB : B ∈ (fastWriteAt nd.st s).getD [])
     {i : Slot} (hi : s + 1 ≤ i) (hvh : SA.voteTime p.toParams (i + 1) ≤ rho.horizon)
+    (hScopes : FastSupportScope E rho s (SA.voteTime p.toParams (i + 1)) x)
     (hcov : ∀ w, s + 1 ≤ w → w ≤ i → ∀ z ∈ rho.honest, ∀ K,
       headAtLabel p c E rho z w = some K → Block.Preceq B K)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
@@ -466,11 +547,16 @@ theorem healing_fast_lease [Fintype V] (E : Generic.Env V)
     push_cast
     nlinarith
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hDelta hy (s + 1) hqh
+    (hrec.awake y hy _ (by
+      refine hgst.trans ?_
+      change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+      push_cast
+      nlinarith) hqh)
   have hqy : iq < iy := lease_idx_lt E rho hS hiq hiy (by
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * ((i + 1 : Nat) : Int) + p.Δ
     push_cast
     nlinarith)
-  refine healing_fast_lease_at E rho hrec mono writes hgst hgs hx hnd hB hvh ?_ hy hiq hqy
+  refine healing_fast_lease_at E rho hrec mono writes hgst hgs hx hnd hB hvh hScopes ?_ hy hiq hqy
     (fun j t hj ht => (fgsa_tick_time_strict E rho hS ht hiy hj).le) hFB row hr0
   intro w hw hwT
   refine hcov w hw ?_
@@ -486,8 +572,8 @@ Blueprint 21:620–715 (H.1 + H.2 S1, fast arm); plan H-SUPPORT §4 steps 1–7.
 DC: INTENTIONAL the S1 HEAD clause of Transfers for a fast PhaseBody arm. The lease
 premise of each H.2 step comes from `healing_fast_lease` and the earlier labels. -/
 theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -498,6 +584,7 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -510,7 +597,8 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
     (hgate : SA.gateTime p.toParams s ≤ v)
     {x : V} (hx : x ∈ rho.honest) {nd : Node p}
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
-    (hB : B ∈ (fastWriteAt nd.st s).getD []) :
+    (hB : B ∈ (fastWriteAt nd.st s).getD [])
+    (hScopes : FastSupportScope E rho s v x) :
     ∀ i, s + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K := by
   have hd := p.deltaPos
@@ -532,8 +620,9 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
     have hi' : i = s + 1 := by
       exact_mod_cast (show (i : Int) = (s : Int) + 1 by push_cast at hin; omega)
     subst hi'
-    exact healing_first_transfer_fast E rho hrec mono crossing hgst hphase hhead hgate hx hnd
-      hB hz hv hK
+    exact healing_first_transfer_fast E rho hrec.toRecovery₂ (fun _ => mono) crossing
+      hgst hphase hhead hgate hx hnd hB hz hv
+      (fun ix iy hi hj => hScopes.first ix iy z hz hi hj) hK
   | succ n ih =>
     intro i hi hin hv z hz K hK
     have hiI : (s : Int) + 1 ≤ (i : Int) := by exact_mod_cast hi
@@ -559,10 +648,12 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
     have hKeq := Option.some.inj hK
     subst hKeq
     have hsi : SA.voteTime p.toParams s ≤ SA.voteTime p.toParams i' := hvmono (by omega)
-    exact healing_next_transfer_core E rho hrec mono crossing hgst hphase (hhead.trans hsi)
-      (hcov i' hi' le_rfl) hz hiz hv
+    exact healing_next_transfer_core E rho hrec.toRecovery₂ (fun _ => mono) crossing
+      hgst hphase (hhead.trans hsi)
+      (hcov i' hi' le_rfl) hz hiz
+      (hScopes.next i' hi' hv iz z hz hiz) hv
       (healing_fast_lease E rho hrec mono writes (hgst.trans hhead) hx hnd hB hi'
-        (hv.trans hphase.2.1) hcov hz hiz)
+        (hv.trans hphase.2.1) (hScopes.mono hv) hcov hz hiz)
 
 end AvailableChain.FGSA.Run
 end

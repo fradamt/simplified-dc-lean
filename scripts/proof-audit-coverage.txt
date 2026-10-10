@@ -7102,3 +7102,19 @@
 # SupportRecovery is a new owned supplier under NEW-OWNED-MODULES.
 # Merge into the existing FGSAProofs.Tests.Axioms key at serial integration.
 
+
+# P-H1 Round 3: eight additional local strict commands (140 total).
+# First transfer, raw reverse receipt, anchor service and frozen receiver epoch.
+# Merge scripts/dev-pkg/P-H1.coverage-fragment.txt under the existing full audit key.
+
+# P-H1 Round 3 HEAD consumers: seven further strict commands (147 total).
+# The same serial fragment has the exact service and later HEAD induction rows.
+
+# P-H1 Round 3 fast lease/output/proposal: 15 further strict commands (162 total).
+# Bounded FastSupportScope and per-read ProposalSupportScope remain explicit inputs.
+
+# P-H1 Round 3 slow/permanence/frontier: 26 further strict commands (188 total).
+# The serial fragment records saved-window provenance and bounded capped service consumers.
+
+# P-H1 Round 3 retained/source/moving-frame inventory: 269 local strict commands.
+# The serial fragment includes RepairHeadServices consumers and bounded FrontierReadScope.

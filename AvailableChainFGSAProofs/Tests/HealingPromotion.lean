@@ -52,7 +52,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (hδ : p.δt = 2 * p
     (p := p) (hδ := hδ) (r := r) (s := s) (U := U) (hU := hslot) (hs := hs)⟩
 
 -- The original gap binders now produce the proposal and its ordered FG rows.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (r : Nat)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) (r : Nat)
     (hgst : E.t_GST ≤ p.actionTime r)
     (hhor : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon) :
     ∃ s X, HonestProposal E rho (fgsaInterface p c) s (eraseFG X) ∧ X.slot = s ∧
@@ -131,9 +131,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       HeldBefore p c E rho x a (p.actionTime r + ΔF) :=
   healing_promotion_row_receipt (p := p) (c := c) (E := E) (rho := rho)
     (G := G) (ΔF := ΔF) (hrec := hrec) (hbound := hbound)
-    (rowsReceipt := fgsa_tRowsReceipt (p := p) (c := c) (E := E) (rho := rho)
-      (ΔF := ΔF) (hΔ := hrec.base.delta) (hv := hrec.base.valid)
-      (hnr := hrec.base.noRestart) (hsync := hrec.sync) (hΔF := hrec.deltaF))
+    (rowsReceipt := (fgsa_tRows_recovery p c E rho hrec).receipt)
     (r := r) (j := j) (rSent := rSent) (y := y) (a := a)
     (hr := hr) (ha := ha) (hgst := hgst) (s := s) (hs := hs) (hhor := hhor)
 
@@ -144,7 +142,8 @@ example {x : V} {r : Nat} {K : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
   healing_promotion_source_body (p := p) (c := c) (E := E) (rho := rho)
     (x := x) (r := r) (K := K) (hx := hx) (hK := hK)
 
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (hPermanence : SupportPermanenceServices E rho)
     (crossing : RXing p c E rho) {u : Time} {m : Nat}
     {J : Option (FGBlock (Fin p.n))} {contested : Bool} {r : Nat} {s : Slot}
     {x : V} {K : FGBlock (Fin p.n)} {Q : Block} (hgst : E.t_GST ≤ u)
@@ -157,7 +156,8 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
   healing_promotion_source_parent (p := p) (c := c) (E := E) (rho := rho)
     (perm := healing_tPerm (p := p) (c := c) (E := E) (rho := rho)
       (G := G) (ΔF := ΔF) (hrec := hrec)
-      (mono := fgsa_rMono (p := p) (c := c) (E := E) (rho := rho)) (crossing := crossing)
+      (mono := fgsa_rMonoAll (p := p) (c := c) (E := E) (rho := rho))
+      (crossing := crossing) (hServices := hPermanence)
       (writes := fgsa_leaseOrigins_lastWrite (p := p) (c := c) (E := E) (rho := rho)
         (hs := hrec.base.valid.toScheduleWellFormed)))
     (u := u) (m := m) (J := J) (contested := contested) (r := r) (s := s)
@@ -193,11 +193,14 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (r : Nat) (q : Slot)
 -- q = rR uses the initial exact gate. No strict later-opening call is used.
 omit [Fintype V] in
 example (r : Nat) (Q : Block) (hservice : ExactService p c E rho (r * p.R) Q)
-    (hhor : p.actionTime r ≤ rho.horizon) (x : V) (hx : x ∈ rho.honest) :
+    (hhor : p.actionTime r ≤ rho.horizon) (x : V) (hx : x ∈ rho.honest)
+    (hReader : confirmedReaderAtIdx p c E rho x
+      (afterTicksIdx rho (SA.gateTime p.toParams (r * p.R)))
+      (SA.gateTime p.toParams (r * p.R))) :
     actionSource p c E rho x r = some (some Q) := by
   have hg : SA.gateTime p.toParams (r * p.R) ≤ rho.horizon := by
     rwa [← fgsa_grid_action_gate, fgsa_grid_action_time]
-  exact (hservice.2 hg x hx).2.2.2.2 r rfl
+  exact (hservice.2 hg x hx hReader).2.2.2.2 r rfl
 
 -- A receipt at time 10 is outside the strict cut at 10 and inside the inclusive cut.
 -- A tick at that time is before the delivery in the post-tick cut.
@@ -210,7 +213,17 @@ example (x : V) (o : Obj p) :
 
 -- The final test uses the expanded frozen Claims proposition.
 -- All standing ports have their named Assembly producers here.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (hPermanence : SupportPermanenceServices E rho)
+    (services : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (r : Nat)
     (hhor : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon) :
   ∀ u m J contested l q Q height,
@@ -232,21 +245,30 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       (PhaseInterval p c E rho u (SA.gateTime p.toParams s) m J contested →
         ExactService p c E rho s (eraseFG X) ∧
         SA.gateTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ)) := by
-  let mono := fgsa_rMono p c E rho
+  let mono := fgsa_rMonoAll p c E rho
   let crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
     (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
-  let perm := healing_tPerm E rho hrec mono crossing
+  let perm := healing_tPerm E rho hrec mono crossing hPermanence
     (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
-  exact healing_renewedPromotion E rho hrec hδ hbound mono crossing perm
-    (fgsa_tRowsReceipt p c E rho ΔF hrec.base.delta hrec.base.valid hrec.base.noRestart
-      hrec.sync hrec.deltaF)
+  exact healing_renewedPromotion E rho hrec services hδ hbound mono crossing perm
+    ((fgsa_tRows_recovery p c E rho hrec.toRecovery₂).receipt)
     (fgsa_batchCoverage p ΔF .progress c E rho)
     (fgsa_foldTrichotomy_progress p) (fgsa_faultQ_of_count p hrec.fault)
     (kmid_honest_quorum p c rho hrec.base.linked hrec.fault) r hhor
 
 -- HG.2 uses the actual fixed entry slot in both trigger arms and deadlines.
 -- Its phase and full-window premises include the finite horizon.
-example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (hPermanence : SupportPermanenceServices E rho)
+    (services : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {r height : Nat} {l : Slot} {Q : Block}
@@ -265,14 +287,14 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
           height + 1 ≤ (heightView p X).h ∧
           (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
             (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y) := by
-  let mono := fgsa_rMono p c E rho
+  let mono := fgsa_rMonoAll p c E rho
   let crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
     (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
-  let perm := healing_tPerm E rho hrec mono crossing
+  let perm := healing_tPerm E rho hrec mono crossing hPermanence
     (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
-  obtain ⟨U, hU, hslot, hgo⟩ := healing_promotion_age_service E rho hrec hδ hbound crossing
-    perm (fgsa_tRowsReceipt p c E rho ΔF hrec.base.delta hrec.base.valid hrec.base.noRestart
-      hrec.sync hrec.deltaF) (fgsa_batchCoverage p ΔF .progress c E rho)
+  obtain ⟨U, hU, hslot, hgo⟩ := healing_promotion_age_service E rho hrec services hδ hbound crossing
+    perm ((fgsa_tRows_recovery p c E rho hrec.toRecovery₂).receipt)
+    (fgsa_batchCoverage p ΔF .progress c E rho)
     (fgsa_foldTrichotomy_progress p) (fgsa_faultQ_of_count p hrec.fault)
     (kmid_honest_quorum p c rho hrec.base.linked hrec.fault)
     hentry hcovered hgst hstart hu hl hrepair
@@ -306,13 +328,22 @@ example (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {ev : V2.Event V (Obj p)}
 -- Genesis top J uses the first-receipt proof at frontier one.
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (crossing : RXing p c E rho) {u : Time} {s : Slot} {X : FGBlock (Fin p.n)}
+    (services : ∀ ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
     (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
     (hp : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) 1
       (some .genesis) false) :
     ∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
       (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y :=
-  healing_promotion_first_receipt E rho hrec crossing hnew hu hgst hp
+  healing_promotion_first_receipt E rho hrec crossing services hnew hu hgst hp
 
 end AvailableChain.FGSA.Run.Tests.HealingPromotion
 end
@@ -392,9 +423,7 @@ example (hrec : Recovery₂ promotionParams c E rho 10 6)
         (max (promotionParams.actionTime 2) E.t_GST + 6) ∧
       HeldBefore promotionParams c E rho x a (promotionParams.actionTime 2 + 6) :=
   healing_promotion_row_receipt E rho hrec ⟨by decide⟩
-    (fgsa_tRowsReceipt (p := promotionParams) (c := c) (E := E) (rho := rho)
-      (ΔF := 6) (hΔ := hrec.base.delta) (hv := hrec.base.valid)
-      (hnr := hrec.base.noRestart) (hsync := hrec.sync) (hΔF := hrec.deltaF))
+    ((fgsa_tRows_recovery promotionParams c E rho hrec).receipt)
     (r := 2) (rSent := 2) (s := 9) (by decide) ha hgst (by decide) hhor
 
 -- The age gap needs the full G window, which ends at 42 instead of the rounded gate budget 50.

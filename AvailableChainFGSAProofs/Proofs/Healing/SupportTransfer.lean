@@ -17,6 +17,63 @@ open Gen.AC.Root
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+/-- Local service inputs for the first transfer. Retained HEAD history is explicit.
+These fields describe object service and read epochs, rather than transfer conclusions. -/
+structure FirstTransferScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (ix iy : Nat) (x y : V) (s : Slot) : Prop where
+  sourceGuard : enabledGateAt p c E rho ix x s
+  receiverGuard : joinedAtTime p (storeAt p c E rho iy y).restartTime
+    (SA.releaseTime p.toParams s) = true
+  epoch : V2.D.restartFree rho y (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) iy
+  forward : ∀ q b,
+    (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
+      GridCO.cleanSupport p.toParams.engine
+        (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s →
+    HeadRelayServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y
+  backward : ∀ q b,
+    ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
+        GridCO.votesAt (storeAt p c E rho iy y).base s ∨
+      (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
+        headVotes p (clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (s + 1)))
+          (s + 1)) →
+    HeadRelayServiceScope E rho s q b (SA.gateTime p.toParams s) ix x
+  targets : ∀ K, K ∈ (storeAt p c E rho ix x).base.blocks →
+    GridCO.stampBlock (storeAt p c E rho ix x).base K < SA.earlyTime p.toParams s →
+    Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) K →
+    TargetReceiptService E rho K (SA.freezeTime p.toParams s) y
+  carriers : ∀ j z, z ∈ rho.honest →
+    rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)) →
+    ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ v ∈ rho.honest,
+      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) v
+
+private theorem transfer_freeze_epoch (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {ix iy : Nat} {x y : V} {s : Slot}
+    (hScope : FirstTransferScope E rho ix iy x y s) :
+    V2.D.restartFree rho y (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) iy := by
+  apply hScope.epoch.mono (fgsa_idxBefore_mono rho ?_) le_rfl
+  change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
+  linarith [p.deltaPos]
+
+private theorem transfer_raw_backward (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    {ix iy : Nat} {x y : V} {s : Slot} (hx : x ∈ rho.honest)
+    (hScope : FirstTransferScope E rho ix iy x y s)
+    (o : GridCO.Wire p.n .root)
+    (ho : o ∈ GridCO.votesAt (storeAt p c E rho iy y).base s)
+    (q : Fin p.n) (hq : GridCO.headSeat? o = some q) :
+    let late := GridCO.lateVotes p.toParams.engine
+      (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
+    o ∈ late ∨ GridCO.equivocates late q = true := by
+  obtain ⟨hm, hl⟩ := List.mem_filter.mp ho
+  have hl' : GridCO.headLabel? o = some s := by simpa only [beq_iff_eq] using hl
+  obtain ⟨auth, payload⟩ := o
+  cases auth <;> cases payload <;> try contradiction
+  rename_i r k b
+  have hr := Option.some.inj hl'
+  have hk := Option.some.inj hq
+  subst r; subst k
+  exact healing_support_raw_backward_on E rho hE hx q b (hScope.backward q b (Or.inl ho))
+
 private theorem transfer_vote_shape {n : Nat} (o : GridCO.Wire n .root) (s : Slot) (k : Fin n)
     (hl : GridCO.headLabel? o = some s) (hk : GridCO.headSeat? o = some k) :
     ∃ B, o = ⟨.seat s k, .head B⟩ := by
@@ -239,17 +296,27 @@ theorem healing_support_honest_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   obtain ⟨⟨w, stamp⟩, hv, hvEq⟩ := List.mem_map.mp ho
   dsimp only at hvEq
   subst w
-  obtain ⟨j, _, u, ha, _⟩ := fgsa_vote_stamp_source E rho i x s k K stamp hv
-  obtain ⟨parent, hd, hhandles⟩ := ha.1
+  have hdelivery : ∃ (j : Nat) (parent : Obj p) (u : Time),
+      rho.events[j]? = some (.deliver x parent u) ∧
+      (parent = ofHead p ⟨.seat (.head s) k, K⟩ ∨
+        (fgsa p c).carries parent (ofHead p ⟨.seat (.head s) k, K⟩)) := by
+    rcases fgsa_vote_stamp_source_or_restart E rho i x s k K stamp hv with
+      ⟨j, _, u, ha, _⟩ | ⟨j, _, wake, _, _, hr⟩
+    · obtain ⟨parent, hd, hh⟩ := ha.1
+      exact ⟨j, parent, u, hd, (fgsaHooks p c).handles_carries _ parent _ hh⟩
+    · obtain ⟨q, _, parent, u, hd, hc⟩ :=
+        fgsa_replayed_head_delivery_origin E rho j x wake s k K hr
+      exact ⟨q, parent, u, hd, Or.inr hc⟩
+  obtain ⟨j, parent, u, hd, hhandles⟩ := hdelivery
   have horigin : ∃ t, t ≤ u ∧ V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
       (ofHead p ⟨.seat (.head s) k, K⟩) t := by
-    rcases (fgsaHooks p c).handles_carries _ parent _ hhandles with hp | hc
+    rcases hhandles with hp | hc
     · subst parent
       exact hE.unforgeable x _ u ⟨j, hd⟩ _ hh rfl
     · exact hE.carried x parent u ⟨j, hd⟩ _ hc _ hh rfl
   obtain ⟨t, _, j', ht, he⟩ := horigin
   rw [(V2.D.Run.step_tick_eq E rho ht).2] at he
-  obtain ⟨_, htime, _, hK⟩ := (fgsa_emits_head E rho _ _ t s k K).mp he
+  obtain ⟨_, htime, _, _, hK⟩ := (fgsa_emits_head E rho _ _ t s k K).mp he
   subst htime
   exact ⟨j', ht, by rw [hK]; rfl⟩
 
@@ -262,18 +329,19 @@ relay. Each one opposes a target that conflicts with B, so the count reaches the
 level τ and the lease is released. `fgsa_release_bound` is the upper bound instead. -/
 theorem healing_support_release_compat (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c))
-    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho
+    (hE : V2.D.ExecutionValid E rho) (_hDelta : E.Δ = p.Δ)
+    (s : Slot) (_hSync : Gen.V2.Duty.LabelSyncOn E rho
       (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s)
       (SA.gateTime p.toParams s))
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
-    (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
+    (_hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hScope : FirstTransferScope E rho ix iy x y s)
     {B : Block}
     (hτ : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s B)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B := by
   intro row hrow
@@ -285,8 +353,9 @@ theorem healing_support_release_compat (E : Generic.Env V)
       (SA.releaseTime p.toParams s) }
   have hdst : FGSA.clock p st0 (SA.voteTime p.toParams (s + 1)) =
       onView (fun view => SA.Root.release p.toParams view s) st1 := by
-    rw [transfer_vote_clock', transfer_vote_release, fgsa_release_clockPre]
-  obtain ⟨_, hcount⟩ := healing_support_release_rows st0 s row hrow
+    rw [transfer_vote_clock', transfer_vote_release,
+      fgsa_release_clockPre st0 s hScope.receiverGuard]
+  obtain ⟨_, hcount⟩ := healing_support_release_rows st0 s hScope.receiverGuard row hrow
   have hinv : CStoreInv p (FGSA.clock p st0 (SA.voteTime p.toParams (s + 1))) :=
     cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hlevel : row.2.1 = SA.releaseThreshold p.toParams := by
@@ -309,11 +378,12 @@ theorem healing_support_release_compat (E : Generic.Env V)
       change Block.Preceq (eraseFG (FGSA.clock p st0 _).fg.F) K
       rw [clock_fg]
       exact hFK
-    obtain ⟨Kfg, hKe, hpath⟩ := healing_support_target_path (hroots := hroots)
-      E rho hE hN hDelta s hSync
-      hx hy hiy K hKm hKst hFK'
+    obtain ⟨Kfg, hKe, hpath⟩ := healing_support_target_path_on (hroots := hroots)
+      E rho hE.toScheduleWellFormed hy hiy (transfer_freeze_epoch E rho hScope) K
+      (hScope.targets K hKm hKst hFK)
     have hcl := fgsa_cleanSupport_seat_clean_late p src s o ho k hko
-    rcases fgsa_cleanSupport_vote_forward E rho hE hN hDelta s hSync hx hy hix hiy o ho k hko
+    rcases fgsa_cleanSupport_vote_forward_on E rho hE s ix iy x y hy o ho k hko
+      (fun b he => hScope.forward k b (he ▸ ho))
       with ⟨hod, hst⟩ | heq
     · have hod' : o ∈ st0.base.votes := by
         change o ∈ (FGSA.clock p st0 _).base.votes at hod
@@ -344,8 +414,7 @@ theorem healing_support_release_compat (E : Generic.Env V)
         | true =>
           exfalso
           have hL := healing_support_equiv_back (GridCO.votesAt st0.base s) _ k
-            (fun o' ho' seat hs' => healing_support_vote_backward E rho hE hN hDelta s hSync
-              hx hy hix hiy o' ho' seat hs') he
+            (fun o' ho' seat hs' => transfer_raw_backward E rho hE hx hScope o' ho' seat hs') he
           change GridCO.equivocates (GridCO.lateVotes p.toParams.engine src s) k = true at hL
           rw [hcl] at hL
           contradiction
@@ -389,7 +458,8 @@ theorem healing_support_release_compat (E : Generic.Env V)
               (Gen.Pure.block_preceq_total_of_common h hBK)
     · exfalso
       have hL := healing_support_equiv_back _ _ k
-        (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy) heq
+        (fgsa_headVotes_backward_relay_on E rho hE s ix iy x y hx
+          (fun q b hb => hScope.backward q b (Or.inr hb))) heq
       change GridCO.equivocates (GridCO.lateVotes p.toParams.engine src s) k = true at hL
       rw [hcl] at hL
       contradiction
@@ -409,8 +479,8 @@ W. If F covers B the HEAD covers B. Else F ⪯ B, each clean supporter relays (G
 the transfer counts hold. `hlease` is the lease premise of H.1: the fast arm discharges
 it by release (G5), the slow arm by its window. -/
 theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
-    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (_mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
     {ΔF : Time} (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -436,11 +506,12 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
           (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s) B)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hScope : FirstTransferScope E rho ix iy x y s)
     (hv : SA.voteTime p.toParams (s + 1) ≤ v)
     (hlease : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B →
       ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     Block.Preceq B (headVote p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1)) := by
   have hS := hE.toScheduleWellFormed
@@ -464,15 +535,14 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     (cstoreInv_clock p _ (cstoreInv_stateBefore E rho jz (rho.seatOf (.base (.head s)) k))
       (SA.voteTime p.toParams s)) s
   rw [clock_base_blocks] at hKheld
-  have hKeq := stored_block_eq_of_root_eq E rho hroots ix jz x
+  have hKeq := stored_block_eq_of_root_eq E rho (hroots.toNamedRootCollisionFree E rho) ix jz x
     (rho.seatOf (.base (.head s)) k) hKm hKheld hRoot
   have hvs : SA.voteTime p.toParams s + p.Δ ≤ SA.gateTime p.toParams s := by
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     linarith
   obtain ⟨Kfg, hKfull, hKe, W, hW, hKW, hloW, hrelay⟩ :=
-    healing_head_witness_relay (hroots := hroots)
-      p c E rho mono crossing hE hN hDelta hsync u v m J contested
-      hgst hphase hkh hjz hhead (hvs.trans hgate)
+    healing_head_witness_relay_on (hroots := hroots)
+      p c E rho crossing hE hkh hjz (hScope.carriers jz _ hkh hjz)
   have hKe2 : eraseFG Kfg = K := hKe.trans hKeq.symm
   have hBW : Block.Preceq B (eraseFG W) := by
     refine Gen.Pure.block_preceq_trans hBK ?_
@@ -511,7 +581,7 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
     exact h
   have hWy : W ∈ (storeAt p c E rho iy y).fg.TF :=
-    (fgsa_store_cumulative p c E rho hN
+    (fgsa_store_durable p c E rho
       (healing_support_idxBefore_le p c E rho hS hiy hes) y).1 hWd
   have hloy : (R_at p c E rho iy y).lo ≤ (heightView p W).h := by
     have e1 : (R_at p c E rho iy y).lo = (R_at p c E rho jz _).lo :=
@@ -570,7 +640,16 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     rw [Nat.add_sub_cancel]
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
     linarith
-  have hfrozen := healing_frozen_path p c E rho hS hN hdpos hes hdfreeze hWd hread
+  have hfrozen := healing_frozen_path_on p c E rho hS hdpos hes hdfreeze hWd hread (by
+    intro i hi
+    have he : i = iy := by
+      have h1 := fgsa_tickIdx_of_event p c E rho hS hi
+      have h2 := fgsa_tickIdx_of_event p c E rho hS hiy
+      exact Option.some.inj (h1.symm.trans h2)
+    have hed : SA.voteTime p.toParams s + p.Δ = SA.earlyTime p.toParams s := by
+      change 4 * p.Δ * (s : Int) + p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 2 * p.Δ
+      ring
+    simpa only [he, hed] using hScope.epoch)
   have hpath : ∀ C, Block.Prec (liveRoot p dst) C → Block.Preceq C B →
       C ∈ erasedList dst (filteredFrom p.E p.cfg (FGSA.controls p dst)
         (voterBlocks p dst (s + 1))) := by
@@ -623,17 +702,19 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
         o' (resolvedHead_mem _ o' hK') (resolvedHead_root _ o' hK')
       rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
-    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hroots)
-      E rho hE hN hDelta s hSync
-      hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB hBK')
-    exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
-      seat hs' Kfg' (hKe' ▸ hK') B (hKe' ▸ hBK') hpath' hFB
+    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path_on (hroots := hroots)
+      E rho hS hy hiy (transfer_freeze_epoch E rho hScope) K'
+      (hScope.targets K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB0 hBK'))
+    exact fgsa_cleanSupport_forward_relay_on E rho hE s hx hy hix hiy o' ho'
+      seat hs' (fun b he => hScope.forward seat b (he ▸ ho')) Kfg' (hKe' ▸ hK') B
+      (hKe' ▸ hBK') hpath' hFB
   have hc := Gen.AC.Root.transfer src.blocks dst.base.blocks
     (GridCO.cleanSupport p.toParams.engine src s) (GridCO.lateVotes p.toParams.engine src s)
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) B
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
-    (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
+    (fgsa_headVotes_backward_relay_on E rho hE s ix iy x y hx
+          (fun q b hb => hScope.backward q b (Or.inr hb)))
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at hc
   rw [fgsa_headVote_eq_filtered, ite_eq_right (Nat.succ_ne_zero s)]
@@ -658,11 +739,14 @@ theorem healing_first_transfer_fast [Fintype V] (E : Generic.Env V)
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
     (hB : B ∈ (fastWriteAt nd.st s).getD [])
     {y : V} (hy : y ∈ rho.honest) (hv : SA.voteTime p.toParams (s + 1) ≤ v)
+    (hScopes : ∀ ix iy,
+      rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) →
+      rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+      FirstTransferScope E rho ix iy x y s)
     {H : Block} (hH : headAtLabel p c E rho y (s + 1) = some H) :
     Block.Preceq B H := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
   -- The source gate tick.
   rw [postClock_def, preTick_def] at hnd
@@ -673,7 +757,15 @@ theorem healing_first_transfer_fast [Fintype V] (E : Generic.Env V)
   have hix := V2.D.Run.tickIdx?_spec hix'
   have hnd' := Option.some.inj hnd
   subst hnd'
-  rw [healing_support_fastWrite p c E rho hS hix] at hB
+  have hGuard := fgsa_gate_joined_of_enabled E rho (by
+    have hh := hH
+    unfold headAtLabel at hh
+    rw [postClock_def, preTick_def] at hh
+    cases hi : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams (s + 1)) with
+    | none => rw [hi] at hh; cases hh
+    | some iy =>
+      exact (hScopes ix iy hix (V2.D.Run.tickIdx?_spec hi)).sourceGuard)
+  rw [healing_support_fastWrite p c E rho hS hix hGuard] at hB
   let src := actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))
   -- The fast set: a genuine result h ⪰ B and the fast test at B.
   unfold fastSet at hB
@@ -734,11 +826,13 @@ theorem healing_first_transfer_fast [Fintype V] (E : Generic.Env V)
     linarith [p.deltaPos]
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) (hgst.trans hhead) hvd (hgate.trans hphase.2.1)
-  exact healing_first_transfer_core (hroots := hrec.base.idealization)
-    E rho mono crossing hE hN hDelta hrec.sync hgst hphase
-    hhead hgate hx hix hkh ho hko hsup hmaj hy hiy hv
-    (fun hFB => healing_support_release_compat (hroots := hrec.base.idealization)
-      E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB)
+  exact healing_first_transfer_core (hroots := hrec.base.receiptIdealization)
+    E rho mono crossing hE hDelta hrec.sync hgst hphase
+    hhead hgate hx hix hkh ho hko hsup hmaj hy hiy
+    (hScopes ix iy hix hiy) hv
+    (fun hFB => healing_support_release_compat (hroots := hrec.base.receiptIdealization)
+      E rho hE hDelta s hSync hx hy hix hiy
+      (hScopes ix iy hix hiy) hτ hFB)
 
 end AvailableChain.FGSA.Run
 end

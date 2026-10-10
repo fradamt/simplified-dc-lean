@@ -39,6 +39,42 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
 
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
+
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportLease
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
+
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
+
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal
+
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
+
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
+
+public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming
+
+public import AvailableChainFGSAProofs.Proofs.Healing.Delivery
+
+public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
+
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLoss
+
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossFirst
+
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossNext
+
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossLease
+
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
+
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
+
 set_option linter.privateModule false
 
 #print axioms AvailableChain.FGSA.Run.healing_row_delivery
@@ -182,3 +218,225 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_promotion_age_service
 #print axioms AvailableChain.FGSA.Run.healing_renewedPromotion
 #print axioms AvailableChain.FGSA.Run.healing_renewedPromotion_terminal
+
+#print axioms AvailableChain.FGSA.Run.healing_frozen_path_on
+#print axioms AvailableChain.FGSA.Run.healing_support_raw_backward_on
+#print axioms AvailableChain.FGSA.Run.healing_support_target_path_on
+#print axioms AvailableChain.FGSA.Run.healing_transfer_proposal_service
+#print axioms AvailableChain.FGSA.Run.healing_support_honest_head
+#print axioms AvailableChain.FGSA.Run.healing_support_release_compat
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_core
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_fast
+
+#print axioms AvailableChain.FGSA.Run.healing_support_read_window
+#print axioms AvailableChain.FGSA.Run.healing_support_vote_kept_on
+#print axioms AvailableChain.FGSA.Run.healing_support_honest_batch_seat
+#print axioms AvailableChain.FGSA.Run.healing_support_head_frame
+#print axioms AvailableChain.FGSA.Run.healing_next_transfer_core
+#print axioms AvailableChain.FGSA.Run.healing_heads_transfer
+#print axioms AvailableChain.FGSA.Run.healing_fast_heads_transfer
+
+#print axioms AvailableChain.FGSA.Run.FastSupportScope.mono
+#print axioms AvailableChain.FGSA.Run.healing_lease_clock_nongate
+#print axioms AvailableChain.FGSA.Run.healing_lease_persist
+#print axioms AvailableChain.FGSA.Run.healing_fast_source
+#print axioms AvailableChain.FGSA.Run.healing_fast_lease_at
+#print axioms AvailableChain.FGSA.Run.healing_fast_lease
+#print axioms AvailableChain.FGSA.Run.healing_fast_heads
+#print axioms AvailableChain.FGSA.Run.healing_support_frame_at
+#print axioms AvailableChain.FGSA.Run.healing_output_gate_step
+#print axioms AvailableChain.FGSA.Run.healing_output_cover
+#print axioms AvailableChain.FGSA.Run.healing_fast_output
+#print axioms AvailableChain.FGSA.Run.healing_proposal_batch_seat
+#print axioms AvailableChain.FGSA.Run.healing_proposal_core
+#print axioms AvailableChain.FGSA.Run.healing_proposals_cover
+#print axioms AvailableChain.FGSA.Run.healing_fast_proposals
+
+#print axioms AvailableChain.FGSA.Run.healing_saved_origin_on
+#print axioms AvailableChain.FGSA.Run.SlowSupportScope.mono
+#print axioms AvailableChain.FGSA.Run.healing_clock_nongate
+#print axioms AvailableChain.FGSA.Run.healing_slow_window
+#print axioms AvailableChain.FGSA.Run.healing_slow_majority
+#print axioms AvailableChain.FGSA.Run.healing_support_honest_late
+#print axioms AvailableChain.FGSA.Run.healing_slow_honest_seat
+#print axioms AvailableChain.FGSA.Run.healing_slow_lease_window
+#print axioms AvailableChain.FGSA.Run.healing_slow_lease_at
+#print axioms AvailableChain.FGSA.Run.healing_slow_lease
+#print axioms AvailableChain.FGSA.Run.healing_slow_first_transfer
+#print axioms AvailableChain.FGSA.Run.healing_slow_heads
+#print axioms AvailableChain.FGSA.Run.healing_slow_proposals
+#print axioms AvailableChain.FGSA.Run.healing_slow_output
+#print axioms AvailableChain.FGSA.Run.healing_phase_transfers
+#print axioms AvailableChain.FGSA.Run.healing_tPerm
+#print axioms AvailableChain.FGSA.Run.frontier_head_relay_on
+#print axioms AvailableChain.FGSA.Run.frontier_head_batch_seat
+#print axioms AvailableChain.FGSA.Run.frontier_next_transfer_core
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_core
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_fast
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_slow
+#print axioms AvailableChain.FGSA.Run.frontier_heads_transfer
+#print axioms AvailableChain.FGSA.Run.frontier_Q_heads
+#print axioms AvailableChain.FGSA.Run.frontier_fast_heads
+#print axioms AvailableChain.FGSA.Run.frontier_slow_heads
+
+#print axioms AvailableChain.FGSA.Run.frontier_proposal_batch_seat
+
+#print axioms AvailableChain.FGSA.Run.frontier_prior_support
+
+#print axioms AvailableChain.FGSA.Run.frontier_target_scores
+
+#print axioms AvailableChain.FGSA.Run.repair_liveRoot_cases
+
+#print axioms AvailableChain.FGSA.Run.repair_F_preceq_Z
+
+#print axioms AvailableChain.FGSA.Run.repair_prior_support
+
+#print axioms AvailableChain.FGSA.Run.repair_controls_clock
+
+#print axioms AvailableChain.FGSA.Run.repair_liveRoot_witness
+
+#print axioms AvailableChain.FGSA.Run.repair_fullTree_nonempty
+
+#print axioms AvailableChain.FGSA.Run.repair_idx_lt
+
+#print axioms AvailableChain.FGSA.Run.repair_h6_frame
+
+#print axioms AvailableChain.FGSA.Run.repair_read_row
+
+#print axioms AvailableChain.FGSA.Run.repair_h6_input
+
+#print axioms AvailableChain.FGSA.Run.repair_proposal_emission
+
+#print axioms AvailableChain.FGSA.Run.repair_head_exact_legacy
+
+#print axioms AvailableChain.FGSA.Run.repair_slot_lt_of_time
+
+#print axioms AvailableChain.FGSA.Run.repair_lease_cover_of_split
+
+#print axioms AvailableChain.FGSA.Run.repair_lease_cover_two
+
+#print axioms AvailableChain.FGSA.Run.repair_head_after_two
+
+#print axioms AvailableChain.FGSA.Run.retainedH6Input_on_repaired_reads
+
+#print axioms AvailableChain.FGSA.Run.repair_head_two
+
+#print axioms AvailableChain.FGSA.Run.repair_h6c_window
+
+#print axioms AvailableChain.FGSA.Run.repair_head_after_one
+
+#print axioms AvailableChain.FGSA.Run.repair_lease_cover_one
+
+#print axioms AvailableChain.FGSA.Run.retainedH6Input_on_synchronous_reads
+
+#print axioms AvailableChain.FGSA.Run.repair_head_one
+
+#print axioms AvailableChain.FGSA.Run.healing_source_label_bound
+
+#print axioms AvailableChain.FGSA.Run.healing_source_relay_deadline
+
+#print axioms AvailableChain.FGSA.Run.healing_source_row_label
+
+#print axioms AvailableChain.FGSA.Run.healing_tf_retention
+
+#print axioms AvailableChain.FGSA.Run.healing_tf_retention_on
+
+#print axioms AvailableChain.FGSA.Run.healing_source_path_retained
+
+#print axioms AvailableChain.FGSA.Run.healing_source_path_retained_on
+
+#print axioms AvailableChain.FGSA.Run.healing_source_supporter_head
+
+#print axioms AvailableChain.FGSA.Run.healing_source_body_relay
+
+#print axioms AvailableChain.FGSA.Run.healing_source_body_stamps
+
+#print axioms AvailableChain.FGSA.Run.healing_source_old_body
+
+#print axioms AvailableChain.FGSA.Run.healing_recoveryStart_ge
+
+#print axioms AvailableChain.FGSA.Run.healing_tDel
+
+#print axioms AvailableChain.FGSA.Run.healing_tDelReset_core
+
+#print axioms AvailableChain.FGSA.Run.healing_tDelReset
+
+#print axioms AvailableChain.FGSA.Run.SrcN_def
+
+#print axioms AvailableChain.FGSA.Run.HighSrcN_def
+
+#print axioms AvailableChain.FGSA.Run.Lost_def
+
+#print axioms AvailableChain.FGSA.Run.healing_srcN_of_source
+
+#print axioms AvailableChain.FGSA.Run.healing_headAtIdx_tick
+
+#print axioms AvailableChain.FGSA.Run.healing_idx_lt_of_time_lt
+
+#print axioms AvailableChain.FGSA.Run.healing_source_decode
+
+#print axioms AvailableChain.FGSA.Run.healing_high_source_sync
+
+#print axioms AvailableChain.FGSA.Run.healing_high_source_labelSync
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_same
+
+#print axioms AvailableChain.FGSA.Run.healing_source_supporter
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_of_supporter
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_support
+
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_domain
+
+#print axioms AvailableChain.FGSA.Run.healing_block_receipt_sync
+
+#print axioms AvailableChain.FGSA.Run.healing_block_path_sync
+
+#print axioms AvailableChain.FGSA.Run.healing_block_stamp_le_now
+
+#print axioms AvailableChain.FGSA.Run.healing_batch_seat_sync
+
+#print axioms AvailableChain.FGSA.Run.healing_next_transfer_domain
+
+#print axioms AvailableChain.FGSA.Run.healing_loss_lease_late
+
+#print axioms AvailableChain.FGSA.Run.repair_stored_slot_le
+
+#print axioms AvailableChain.FGSA.Run.repair_stored_slot_lt
+
+#print axioms AvailableChain.FGSA.Run.repair_source_mem
+
+#print axioms AvailableChain.FGSA.Run.repair_finality_slot
+
+#print axioms AvailableChain.FGSA.Run.repair_proposal_slot
+
+#print axioms AvailableChain.FGSA.Run.repair_gate_finality_le
+
+#print axioms AvailableChain.FGSA.Run.repair_gate_receipt
+
+#print axioms AvailableChain.FGSA.Run.repair_gate_fast_count
+
+#print axioms AvailableChain.FGSA.Run.repair_gate_guard
+
+#print axioms AvailableChain.FGSA.Run.repair_output_bound
+
+#print axioms AvailableChain.FGSA.Run.repair_gate_old_output
+
+#print axioms AvailableChain.FGSA.Run.repair_gate_opening
+
+#print axioms AvailableChain.FGSA.Run.repair_gate_geometry
+
+#print axioms AvailableChain.FGSA.Run.FrontierReadScope.mono
+
+#print axioms AvailableChain.FGSA.Run.frontier_seed_leases
+
+#print axioms AvailableChain.FGSA.Run.frontier_lease_cover
+
+#print axioms AvailableChain.FGSA.Run.frontier_pivot_held
+
+#print axioms AvailableChain.FGSA.Run.retainedHG1Input_through
+
+#print axioms AvailableChain.FGSA.Run.retainedHG1Input_before_first_rise
+
+#print axioms AvailableChain.FGSA.Run.frontier_cap_before_on
