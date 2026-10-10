@@ -1,5 +1,5 @@
 module
-import all AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingKernel
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 
@@ -53,16 +53,6 @@ private theorem arming_source_decode_local {o : Obj p} {K : Block}
     apply toWire_injective
     rw [toWire_ofWire]
     exact decode_eq_block.mp hd
-
-
-private theorem arming_target_def_local {E : Generic.Env V}
-    {rho : V2.D.Run V (fgsa p c)} (K : Block) (C : Time) (x : V) :
-    TargetReceiptService E rho K C x =
-      (K = .genesis ∨ ∃ q N send, N.erase = K ∧
-        Nonempty (ReceiverService E rho (ofWire p ⟨.proposer q, .proposal N⟩)
-          send C x)) := by
-  unfold TargetReceiptService
-  rfl
 
 
 /-- Local services use the batch receiver window and the healthy prefix. -/
@@ -238,9 +228,9 @@ theorem arming_target_service_window [Fintype V] {E : Generic.Env V}
     (hCompat : Block.Compatible K
       (eraseFG (rho.stateBeforeTime E (SA.earlyTime p.toParams s) x).st.fg.F)) :
     TargetReceiptService E rho K (SA.earlyTime p.toParams s) x := by
-  rw [arming_target_def_local]
   by_cases hgen : K = .genesis
-  · exact Or.inl hgen
+  · subst K
+    exact fgsa_target_service_genesis E rho _ x
   obtain ⟨j, hji, send, o, ho, hacc⟩ := fgsa_block_accepted_origin E rho i y K hgen hK
   obtain ⟨q, N, rfl, hNK⟩ := arming_source_decode_local ho
   have hsend : send ≤ SA.voteTime p.toParams s := by
@@ -265,8 +255,9 @@ theorem arming_target_service_window [Fintype V] {E : Generic.Env V}
       exact hCompat
     rw [hc]
     rfl
-  exact Or.inr ⟨q, N, send, hNK,
-    arming_proposal_anchor_service_window h hw hcut hy (Or.inr ⟨j, hacc⟩) hsend hNX⟩
+  rw [← hNK]
+  exact fgsa_target_service_of_proposal E rho q N send _ x
+    (arming_proposal_anchor_service_window h hw hcut hy (Or.inr ⟨j, hacc⟩) hsend hNX)
 
 
 /-- Local services use the batch receiver window and the healthy prefix. -/

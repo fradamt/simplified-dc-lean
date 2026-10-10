@@ -894,8 +894,8 @@ end AvailableChain.FGSA.Run.Tests.OutageArming
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.fast_general_gate_consumer
 
 #print axioms AvailableChain.FGSA.Run.arming_rest_bound_joined
-#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior_of_F_prefix_on
-#print axioms AvailableChain.FGSA.Run.inclusion_reader_scores_on
+#print axioms AvailableChain.FGSA.Run.arming_inclusion_proposer_prior_of_F_prefix_on
+#print axioms AvailableChain.FGSA.Run.arming_inclusion_reader_scores_on
 #print axioms AvailableChain.FGSA.Run.ArmingReadWindow
 #print axioms AvailableChain.FGSA.Run.arming_fresh_head_service_window
 #print axioms AvailableChain.FGSA.Run.arming_proposal_service_trigger_window

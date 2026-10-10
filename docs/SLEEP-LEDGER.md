@@ -5826,3 +5826,18 @@ universal field. Open: P-As caller ports (Assembly/WeakContinuationGrowth
 :543/:565/:578, Growth:35-38, Empty:608/609/686), the source seed and the
 combined source-and-suffix joined count. Merge note: sleep-int already had
 an identical fgsa_target_service_genesis (99ad1f9d); that copy is kept.
+
+### P-Ar Round 6 — public imports and declaration collisions (2026-10-10)
+
+Base: dcdb4a06; branch sleep-par6. P-Ar remains PREPARED pending the
+positive finite-run witnesses and full package validation.
+ArmingKernel and ArmingLocal now use public CatchUp imports and the existing
+fgsa_target_service_genesis / fgsa_target_service_of_proposal constructors.
+The three P-Ar import-all findings are removed. No supplier module changed.
+The merged base has two conflicting inclusion_*_on declarations in
+ExactProposalReceipts and ArmingScores. The P-Ar copies now have distinct
+arming_ names; their types and proof bodies are unchanged. ArmingCover and
+the local audit consumers use those names. No public claim changed.
+Production build: ArmingConstruction dependency cone PASS with --wfail.
+Headers: no P-Ar failure; two P-Ou findings remain in GoodVotes/RestoredBatch.
+Layers: 72 inherited findings, zero new. P-Ou owns both header repairs.
