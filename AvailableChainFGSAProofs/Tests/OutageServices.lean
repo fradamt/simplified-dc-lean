@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
 public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
+public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 
 public section
 
@@ -42,9 +43,25 @@ theorem handover_expiry_equality :
     (GridCO.expire { st with now := 25 } 25).obligations = [(.genesis, 2, 26)] := by
   rfl
 
+/-- The real prefix producers close the pending seed without a pending-source input.
+The result includes all honest actions, even actions by receivers in W. -/
+theorem pending_seed_consumer {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {fast : Bool} {T b₀ ΔF : Time} (h : HealthyPrefixSleep₂ p c E rho b₀ ΔF)
+    (htsrc : TSrc p c E rho) {B : Block} {l : Slot}
+    {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh)
+    (htransfer : ∀ y z s C H, y ∈ rho.honest → z ∈ rho.honest →
+      joinedAt p E rho z (s + 1) (SA.voteTime p.toParams (s + 1)) →
+      SA.gateTime p.toParams s ≤ b₀ → gateResult p c E rho y s = some (some C) →
+      vHead p c E rho z s = some H → Block.Preceq C H) :
+    OutageSourceHistory p c E rho B (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) :=
+  outage_arming_sources_from_prefix h htsrc hc htransfer
+
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.restored_receipt_consumer
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.good_release_consumer
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.handover_expiry_equality
+#print axioms AvailableChain.FGSA.Run.Tests.OutageServices.pending_seed_consumer
 
 end AvailableChain.FGSA.Run.Tests.OutageServices
 end

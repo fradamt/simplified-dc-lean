@@ -5453,3 +5453,34 @@ P-Ou remains PREPARED, not CLOSED. Public claims and protocol declarations
 are unchanged. There is no public STOP. No checker, baseline, allowance,
 heartbeat increase or toolchain change was added.
 Logs: .lake/sleep-pou-r4/. Exact closure types: P-Ou.round4-handoff.md.
+
+## P-Ou Round 5 — pending source seed (2026-10-10)
+
+Public claims and protocol declarations are unchanged. This group closes the
+all-honest pending-source input at PersistenceSleep.outage_arming_sources_on.
+It does not close the full outage or continuation joint induction.
+
+- PersistenceSleep.outage_enabled_gate_read_epoch and
+  outage_enabled_gate_tick_epoch derive the actual receiver epoch from the
+  enabled gate. outage_enabled_gate_joined derives the environment join guard.
+- PersistenceSleep.outage_pending_frame_below extends the certificate's
+  strict-cut F bound to every actual enabled pending tick, including W.
+- GoodVotes.outage_pending_head_targets derives B and receiver-F prefixes
+  for honest pending HEAD targets from the actual joined emission and the
+  existing Clean transfer projection. Later labels remain joint proof work.
+- ReceiverInputs.outage_prefix_head_service, outage_prefix_proposal_service
+  and outage_prefix_batch_service use prefix transport with an explicit cut.
+  These services need no GST bound. Retained targets use their original
+  acceptance and durable proposal history.
+- ReceiverInputs.outage_pending_receipt_scope and
+  outage_pending_result_compatible cover every enabled pending receiver.
+  The early deadline is d(l), at or before b₀; the gate itself can be after b₀.
+- ReceiverInputs.outage_pending_sources_compatible discharges hPending for
+  all honest actions, including W. outage_arming_sources_from_prefix gives
+  the full all-ticks source seed from the sleep prefix, TSrc, the scoped
+  certificate and the existing joined Clean transfer projection.
+- Tests.OutageServices.pending_seed_consumer checks this exact producer call.
+
+Still owned by P-Ou: the full InclusionReceiverInputs record; later-label
+hTargets and hResults; both joint inductions; scoped continuation closure.
+No false producer or public STOP was found in this group.

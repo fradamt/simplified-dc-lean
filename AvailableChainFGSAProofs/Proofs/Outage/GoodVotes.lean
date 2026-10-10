@@ -131,6 +131,39 @@ theorem outage_good_covered (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   change y ∈ rho.honest.filter _
   exact Finset.mem_filter.mpr ⟨hHonest, hn, s, hb, hsr, hJ.1⟩
 
+/-- The last Clean transfer supplies both target bounds at the pending gate.
+The actual emission gives sender joinedness. The receiver may be in W. -/
+theorem outage_pending_head_targets (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hvalid : V2.D.ExecutionValid E rho) {fast : Bool} {T b₀ : Time} {B : Block}
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepCert p c E rho fast T b₀ B l D Dh)
+    (htransfer : ∀ y z s C H, y ∈ rho.honest → z ∈ rho.honest →
+      joinedAt p E rho z (s + 1) (SA.voteTime p.toParams (s + 1)) →
+      SA.gateTime p.toParams s ≤ b₀ → gateResult p c E rho y s = some (some C) →
+      vHead p c E rho z s = some H → Block.Preceq C H)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hG : enabledGateAt p c E rho i x (l + 1)) (q : Fin p.n) (K : Block)
+    (hy : rho.seatOf (.base (.head (l + 1))) q ∈ rho.honest)
+    (hTarget : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head (l + 1))) q)
+      (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩) (SA.voteTime p.toParams (l + 1)) K) :
+    Block.Preceq B K ∧ Block.Preceq (F_at p c E rho i x) K := by
+  have hs := hvalid.toScheduleWellFormed
+  obtain ⟨k, hk, hem⟩ : V2.D.Run.emits E rho
+      (rho.seatOf (.base (.head (l + 1))) q)
+      (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩)
+      (SA.voteTime p.toParams (l + 1)) := by
+    obtain ⟨k, _, _, hk, hem, _, _⟩ := hTarget
+    exact ⟨k, hk, hem⟩
+  have hK := headTargetAtEmission_at_tick E rho hs hTarget hk rfl
+  have hDK := arming_head_ge_on hs htransfer hc.max_mem hy
+    (fgsa_joinedAt_of_emitted_head E rho hvalid hk hem) hk
+  change Block.Preceq D (headVote p (clock p (rho.stateBefore E k
+    (rho.seatOf (.base (.head (l + 1))) q)).st (SA.voteTime p.toParams (l + 1)))
+      (l + 1)) at hDK
+  rw [← hK] at hDK
+  exact ⟨block_preceq_trans hc.max_read hDK,
+    block_preceq_trans (outage_pending_frame_below hs hc hx hG) hDK⟩
+
 /-- Selected good voters supply authentic targets and strict receipt stamps
 at the actual gate. The receiver can be in W. The joint invariant must
 supply the target and finality bounds; local receipt service supplies membership. -/
