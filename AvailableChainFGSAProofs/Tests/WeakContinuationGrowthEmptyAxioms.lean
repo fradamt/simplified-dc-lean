@@ -21,3 +21,5 @@ open AvailableChain.FGSA.Run
 #print axioms wcg_empty_finalBelow
 
 end
+
+#print axioms AvailableChain.FGSA.Run.wcg_empty_readerReplay

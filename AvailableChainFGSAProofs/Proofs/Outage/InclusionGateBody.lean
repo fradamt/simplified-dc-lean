@@ -12,6 +12,36 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+/-- A caught-up read after the actual gate proves that gate was enabled. -/
+theorem inclusion_enabled_gate_of_after_reader
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
+    (hi : IsGateTick p c rho i x s)
+    (hx : confirmedReaderAtIdx p c E rho x
+      (afterTicksIdx rho (SA.gateTime p.toParams s)) (SA.gateTime p.toParams s)) :
+    enabledGateAt p c E rho i x s := by
+  have hnode := (afterTicks_node E rho hs hi).trans (rho.step_tick_eq E hi).1.symm
+  rw [afterTicks_eq_stateBefore E rho hs] at hnode
+  have hMark : (storeAt p c E rho (afterTicksIdx rho (SA.gateTime p.toParams s)) x).restartTime =
+      (storeAt p c E rho i x).restartTime := by
+    change (rho.stateBefore E _ x).st.restartTime = (rho.stateBefore E i x).st.restartTime
+    rw [hnode, (rho.step_tick_eq E hi).1]
+    have ht := tick_st (c := c) E rho (rho.stateBefore E i x) x
+      (SA.gateTime p.toParams s)
+    exact (congrArg State.restartTime ht).trans (fgsa_clock_restartTime _ _)
+  refine ⟨hi, ?_⟩
+  have hc := hx.2.2
+  rw [hMark] at hc
+  cases hm : (storeAt p c E rho i x).restartTime with
+  | none => trivial
+  | some w =>
+    rw [hm] at hc
+    obtain ⟨q, _, hwq, hqt, _⟩ := hc
+    have hqs := (arming_gate_le_iff p q s).mp hqt
+    exact hwq.trans (by
+      change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (s : Int)
+      exact mul_le_mul_of_nonneg_left (Int.ofNat_le.mpr hqs) (by linarith [p.deltaPos]))
+
 /-- ROOT-DIGEST W2b. Blueprint 03:418–458; S3a Q12:3454; plan I-GATE, G6. Class (iii).
 DC: INTENTIONAL; this is the unfolded InclusionPostGateAt body.
 The event-prefix monotonicity conjunct has the approved confirmed-reader scope. -/
@@ -45,11 +75,6 @@ theorem clean_inclusion_post_gate_body [Fintype V]
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
     (hmono : ScopedMono (confirmedReaderIdx p c E rho) (S_at p c E rho)
       (· ≤ rho.events.length))
-    (hScopes : ∀ i x, x ∈ rho.honest →
-      enabledGateAt p c E rho i x pt.s ∨
-        confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams pt.s))
-          (SA.gateTime p.toParams pt.s) →
-      IsGateTick p c rho i x pt.s → GateReceiptScope E rho i x pt.s)
     (hstrat : RStrat p c E rho) :
     ScopedServed (fun x i => confirmedReaderAtIdx p c E rho x i
       (SA.gateTime p.toParams pt.s)) (S_at p c E rho) pt.P
@@ -71,7 +96,7 @@ theorem clean_inclusion_post_gate_body [Fintype V]
     hstore hframe hsrc hordered
     hnonempty
     htransfer hleases hrows pt hprop hhor hx.1
-    (hScopes i x hx.1 (Or.inr hx) hi)).2.2.2
+    (inclusion_enabled_gate_of_after_reader E rho hs hi hx)).2.2.2
   have hnode := (afterTicks_node E rho hs hi).trans (V2.D.Run.step_tick_eq E rho hi).1.symm
   rw [afterTicks_eq_stateBefore E rho hs] at hnode
   have hS := congrArg (fun nd : Node p => nd.st.base.stableRecord) hnode
@@ -112,11 +137,6 @@ theorem clean_inclusion_body [Fintype V]
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
     (pt : PtSP) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    (hScopes : ∀ i x, x ∈ rho.honest →
-      enabledGateAt p c E rho i x pt.s ∨
-        confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams pt.s))
-          (SA.gateTime p.toParams pt.s) →
-      IsGateTick p c rho i x pt.s → GateReceiptScope E rho i x pt.s)
     (hOrigins : ∀ t x, SA.gateTime p.toParams pt.s ≤ t → t ≤ rho.horizon →
       confirmedReader p c E rho x t →
       ∃ q i B, pt.s ≤ q ∧ SA.gateTime p.toParams q ≤ t ∧
@@ -130,7 +150,7 @@ theorem clean_inclusion_body [Fintype V]
   obtain ⟨z, hz, _, _, j, hG⟩ := inclusion_joined_gate_witness E rho hset pt.s hhor
   have hExact := inclusion_gate_exact (hstrat := hstrat) E rho ΔF hset hInputs hHistory
     hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hz
-    (hScopes j z hz (Or.inl hG) hG.1)
+    hG
   intro g hg t x ht hx
   obtain ⟨q, i, B, hsq, hqt, hGX, hB, hBS⟩ := hOrigins t x ht.1 ht.2 hx
   have hBR : gateResult p c E rho x q = some (some B) :=
@@ -141,7 +161,7 @@ theorem clean_inclusion_body [Fintype V]
         hExact.1 hBR).1 hlt
     · have hX := inclusion_gate_exact (hstrat := hstrat) E rho ΔF hset hInputs hHistory
         hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hx.1
-        (hScopes i x hx.1 (Or.inl hGX) hGX.1)
+        hGX
       have he := Option.some.inj (Option.some.inj (hBR.symm.trans hX.1))
       rw [he]
       exact block_preceq_refl _
@@ -185,11 +205,6 @@ theorem clean_inclusion_gate_witness [Fintype V]
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
     (pt : PtSP) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    (hScopes : ∀ i x, x ∈ rho.honest →
-      enabledGateAt p c E rho i x pt.s ∨
-        confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams pt.s))
-          (SA.gateTime p.toParams pt.s) →
-      IsGateTick p c rho i x pt.s → GateReceiptScope E rho i x pt.s)
     (hstrat : RStrat p c E rho) :
     ∃ y, confirmedReader p c E rho y (SA.gateTime p.toParams pt.s) ∧
       Block.Preceq pt.P (S_at p c E rho (timeIdx rho (SA.gateTime p.toParams pt.s)) y) := by
@@ -201,7 +216,7 @@ theorem clean_inclusion_gate_witness [Fintype V]
   obtain ⟨z, hz, _, _, i, hG⟩ := inclusion_joined_gate_witness E rho hset pt.s hhor
   have hExact := inclusion_gate_exact (hstrat := hstrat) E rho ΔF hset hInputs hHistory
     hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hz
-    (hScopes i z hz (Or.inl hG) hG.1)
+    hG
   have hhead := inclusion_headAtLabel (hstrat := hstrat) E rho ΔF hset hInputs
     hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor
   have hprior := inclusion_prior_results_below E rho hset hordered hnonempty htransfer
@@ -223,7 +238,7 @@ theorem clean_inclusion_gate_witness [Fintype V]
       have hx := hs.honest_only _ (List.mem_of_getElem? ht)
       have hX := inclusion_gate_exact (hstrat := hstrat) E rho ΔF hset hInputs hHistory
         hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hx
-        (hScopes j x hx (Or.inl ⟨ht, hg⟩) ht)
+        ⟨ht, hg⟩
       have hr' : gateResult p c E rho x pt.s = some (some C) :=
         (gateResultAt_eq_gateResult p c E rho hs ht) ▸ hr
       have he := Option.some.inj (Option.some.inj (hr'.symm.trans hX.1))
@@ -309,11 +324,6 @@ theorem clean_growth_compatible_from_history [Fintype V]
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
     (pt : PtSP) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    (hScopes : ∀ i x, x ∈ rho.honest →
-      enabledGateAt p c E rho i x pt.s ∨
-        confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams pt.s))
-          (SA.gateTime p.toParams pt.s) →
-      IsGateTick p c rho i x pt.s → GateReceiptScope E rho i x pt.s)
     (hOutputs : ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       ScopedCompat (confirmedReader p c E rho) (fun t x => V2.D.outputAt E rho g x t)
         (fun t => 0 ≤ t ∧ t ≤ rho.horizon))
@@ -323,7 +333,7 @@ theorem clean_growth_compatible_from_history [Fintype V]
       g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed] →
       Block.Compatible (V2.D.outputAt E rho g x u) pt.P := by
   have hWitness := clean_inclusion_gate_witness (hstrat := hstrat) E rho ΔF hset hInputs hHistory
-    hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hScopes
+    hstore hframe hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor
   intro u x g hu hus hx hg
   exact clean_growth_compatible_of_outputs E rho hset hOutputs hhor hWitness hu hus hx hg
 

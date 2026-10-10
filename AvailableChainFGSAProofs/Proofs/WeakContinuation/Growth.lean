@@ -33,7 +33,13 @@ theorem wc_cut_publicRead {u : Slot} {iStar : Nat}
 /-- WC J3, plan §7; DC AvailableChainGrowth.afterGST: one actual proposal grows
 both getters at the exact deadline. Blueprint 23 §17.2 supplies the eight steps. -/
 theorem wc_growth_of_safety_inclusion (ΔF : Time) (u : Slot)
-    (Q : Block) (iStar : Nat) : WCGrowthStatement p c E rho ΔF u Q iStar := by
+    (Q : Block) (iStar : Nat)
+    (hcache : WCCachedSafety p c E rho iStar Q)
+    (hcover : ∀ pt : PtSP, u + 2 ≤ pt.s →
+      HonestProposal E rho (fgsaInterface p c) pt.s pt.P →
+      SA.gateTime p.toParams pt.s ≤ rho.horizon →
+      ∃ x ∈ rho.honest, Block.Preceq pt.P (S_at p c E rho rho.events.length x)) :
+    WCGrowthStatement p c E rho ΔF u Q iStar := by
   intro hbase hcut hsafe hincl _ G' hG' hrecurrence t ht hdeadline
   have hd := p.deltaPos
   have h6 : 0 ≤ 6 * p.Δ := mul_nonneg (by decide) hd.le
@@ -45,7 +51,7 @@ theorem wc_growth_of_safety_inclusion (ΔF : Time) (u : Slot)
   obtain ⟨s, hfuture, hupper, hh, ha⟩ := hrecurrence t ht hwindow
   have hs := hbase.valid.toScheduleWellFormed
   obtain ⟨B, hprop, hslot⟩ := fgsa_honestProposal_exists_of_awake_slot E rho hs
-    hbase.delta hh ha (hupper.trans hwindow)
+    hbase.delta hh ha.1 ha.2.2 (hupper.trans hwindow)
   have hstart : u + 2 ≤ s := by
     by_contra h
     have hsu : s ≤ u + 1 := by
@@ -68,18 +74,29 @@ theorem wc_growth_of_safety_inclusion (ΔF : Time) (u : Slot)
   have hreadT := wc_cut_publicRead hs hcut t ht
   have hreadD := wc_cut_publicRead hs hcut (t + G' + 6 * p.Δ) (ht.trans htD)
   have hserved := hincl ⟨s, B⟩ hstart hprop (hgate.trans hdeadline)
-  refine ⟨s, B, jointGrowthAt_of_inclusion
-    (fun g x a => V2.D.outputAt E rho g x a)
-    (fun g => g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed])
-    (· ∈ rho.honest) (V2.D.proposalTime (fgsaInterface p c))
-    (HonestProposal E rho (fgsaInterface p c)) s B t (t + G' + 6 * p.Δ)
-    hfuture hprop ?_ ?_ ?_⟩
-  · intro g x hg hx
-    exact (hsafe.outputs g hg).2 t _ x hreadT.1 hreadD.1 htD hx
-  · intro g x hg hx
-    exact hserved g hg _ x ⟨hgate, hdeadline⟩ hx
-  · intro g x hg _
-    exact fgsa_output_noFuture_of_slot E rho hs htzero hfuture hslot.ge g hg x
+  obtain ⟨y, hy, hBy⟩ := hcover ⟨s, B⟩ hstart hprop (hgate.trans hdeadline)
+  refine ⟨s, B, hfuture, hprop, ?_⟩
+  intro g hg
+  refine ⟨?_, fun x hx => hserved g hg _ x ⟨hgate, hdeadline⟩ hx⟩
+  intro x hx
+  have hcompat := hcache.compatible (timeIdx rho t) rho.events.length x y hreadT
+    ⟨hreadD.1.trans (List.length_filter_le _ _), le_rfl⟩ hx.1 hy
+  have hc : Block.Compatible (V2.D.outputAt E rho g x t) B := by
+    rw [fgsa_outputAt_eq_S_at E rho hs g hg x t]
+    change Block.compatible _ B = true
+    rw [Gen.Pure.block_compatible_comm]
+    exact Gen.Pure.block_compatible_of_preceq_compatible hBy
+      (by
+        simpa only [Block.Compatible,
+          Gen.Pure.block_compatible_comm (S_at p c E rho rho.events.length y)] using hcompat)
+  have hn := fgsa_output_noFuture_of_slot E rho hs htzero hfuture hslot.ge g hg x
+  have hb : Block.Preceq (V2.D.outputAt E rho g x t) B :=
+    (Bool.or_eq_true_iff.mp hc).resolve_right hn
+  have hne : V2.D.outputAt E rho g x t ≠ B := by
+    intro he; exact hn (he ▸ Gen.Pure.block_preceq_refl B)
+  change (!decide (_ = B) && Block.preceq _ B) = true
+  simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not]
+  exact ⟨hne, hb⟩
 
 /-- WC J3, plan §§6.11–7; DC persistent inclusion and joint growth at the fixed deadline.
 Only four reviewed Job 1 Statements remain as producer premises. The complete [L]
@@ -93,23 +110,22 @@ theorem wc_checkpoint [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar : Nat
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
   (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
+  (_hnr : V2.D.RestartsAtWakes E rho)
   (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hroots : NamedReceiptRootCollisionFree p c E rho)
   (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
+  (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+  (_hmono : RMonoAll p c E rho)
   (_hactive : RActive p c E rho)
   (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
+  (_hmeta : RFrameNextEpoch p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -137,7 +153,7 @@ theorem wc_checkpoint [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar : Nat
             p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+      ∀ k w C, j < k → k < i → enabledGateAt p c E rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
@@ -148,7 +164,8 @@ theorem wc_checkpoint [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar : Nat
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
   (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho x j i ∧
+      enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
   (_hdeadlines : ∀ i x,
@@ -195,11 +212,24 @@ theorem wc_checkpoint [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar : Nat
     hscopeRows hfinalHead hseed hinv
   have hsafe : SSafeFromCut₂ p c E rho iStar w.QStar ΔF :=
     ⟨hcompat, hmonoS, hserved, fun i x y hcut hi => hfinal i x y ⟨hcut, hi⟩, houtputs⟩
-  have hincl := wc_inclusion6 ΔF w iStar hframeLive
+  have hresult := wc_inclusion6_result ΔF w iStar hframeLive
     hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF hfault hfaultQ hfaultX
     hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert hsrc hlabel hqc hstrat
     hnoslash hemitted htargets hlease hfast hdeadlines hheldRows hscopeRows hfinalHead hseed hinv
-  exact ⟨hsafe, hincl, wc_growth_of_safety_inclusion ΔF w.u w.QStar iStar
+  have hincl := fun pt hstart hprop hgate => (hresult pt hstart hprop hgate).2
+  have hcache := wc_cachedSafety hvalid.toScheduleWellFormed hseed hinv
+  have hcover (pt : PtSP) (hstart : w.u + 2 ≤ pt.s)
+      (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
+      (hgate : SA.gateTime p.toParams pt.s ≤ rho.horizon) :
+      ∃ x ∈ rho.honest, Block.Preceq pt.P (S_at p c E rho rho.events.length x) := by
+    obtain ⟨j, x, hr⟩ := (hresult pt hstart hprop hgate).1
+    have hb := wc_gate_result_served hvalid.toScheduleWellFormed
+      (hinv rho.events.length ⟨hseed.within, le_rfl⟩) hr
+    exact ⟨x, hr.honest, Gen.Pure.block_preceq_trans hb
+      (hcache.monotone (j + 1) rho.events.length x
+        ⟨hr.afterCut.trans (Nat.le_succ j), Nat.succ_le_of_lt hr.completed⟩
+        ⟨hseed.within, le_rfl⟩ (Nat.succ_le_of_lt hr.completed) hr.honest)⟩
+  exact ⟨hsafe, hincl, wc_growth_of_safety_inclusion ΔF w.u w.QStar iStar hcache hcover
     ⟨hvalid, hlinked, hcstar, hnr, hdelta, hroots⟩ hseed.cut hsafe hincl hgate⟩
 
 end AvailableChain.FGSA.Run

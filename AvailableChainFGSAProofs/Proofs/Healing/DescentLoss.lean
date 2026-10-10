@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Shared.Compose
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.Healing.Time
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 
 public section
 
@@ -131,6 +132,54 @@ theorem healing_source_decode
 Plan fgsa-s5-m5-d2d4 B `same` step 2; blueprint 21:1579–1582 (H.11 μ).
 DC: INTENTIONAL μ excludes pre-GST sources. A source of height above μ votes
 at or after GST: otherwise its emitted name is an old row height, at most μ. -/
+theorem healing_high_source_recoveryStart
+    (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
+      HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
+    (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e.1 = (heightView p C).h ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    {i : Nat} {K : FGBlock (Fin p.n)} {s : Slot}
+    (hK : SourceBefore p c E rho i K s) (hc : muOf p c E rho + 1 ≤ (heightView p K).h) :
+    recoveryStart p E ≤ SA.voteTime p.toParams s := by
+  obtain ⟨j, y, r, a, -, ha, hKs, rfl⟩ := hK
+  obtain ⟨e, -, he, -⟩ := healing_source_decode p c E rho emittedNonempty emittedName ha hKs
+  by_contra hlt
+  have hold : (heightView p K).h ∈ oldRowHeights p c E rho :=
+    ⟨j, y, r, a, e, ha, he,
+      lt_of_not_ge hlt⟩
+  have hμ := (muOf_spec p c E rho).2.2.2.1 _ hold
+  omega
+
+omit [DecidableEq V] in
+/-- A vote after the recovery start has the current batch's prior-slot cutoff. -/
+theorem healing_window_of_recoveryStart {s : Slot}
+    (h : recoveryStart p E ≤ SA.voteTime p.toParams s) : HealingWindow p E 1 s := by
+  let a : Int := max 0 E.t_GST + 4 * p.Δ - 1
+  have hdelta : (1 : Int) ≤ p.Δ := by
+    have hp : (0 : Int) < p.Δ := p.deltaPos
+    omega
+  have hd : 0 < 4 * p.Δ := by linarith [p.deltaPos]
+  have ha : 0 ≤ a := by dsimp [a]; linarith [le_max_left 0 E.t_GST, p.deltaPos]
+  have hq := Int.ediv_nonneg ha hd.le
+  have hm := Int.emod_lt_of_pos a hd
+  have he := Int.mul_ediv_add_emod a (4 * p.Δ)
+  change 4 * p.Δ * ((a / (4 * p.Δ)).toNat : Int) + 6 * p.Δ ≤
+    4 * p.Δ * (s : Int) + p.Δ at h
+  rw [Int.toNat_of_nonneg hq] at h
+  have hs : a / (4 * p.Δ) + 2 ≤ (s : Int) := by
+    by_contra hn
+    have : (s : Int) ≤ a / (4 * p.Δ) + 1 := by
+      dsimp [Time] at *
+      omega
+    nlinarith [p.deltaPos]
+  refine ⟨by dsimp [Time] at *; omega, ?_⟩
+  change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+  dsimp [a] at he hm
+  nlinarith [le_max_right 0 E.t_GST]
+
 theorem healing_high_source_sync
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
@@ -142,15 +191,24 @@ theorem healing_high_source_sync
         Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
     {i : Nat} {K : FGBlock (Fin p.n)} {s : Slot}
     (hK : SourceBefore p c E rho i K s) (hc : muOf p c E rho + 1 ≤ (heightView p K).h) :
-    E.t_GST ≤ SA.voteTime p.toParams s := by
-  obtain ⟨j, y, r, a, -, ha, hKs, rfl⟩ := hK
-  obtain ⟨e, -, he, -⟩ := healing_source_decode p c E rho emittedNonempty emittedName ha hKs
-  by_contra hlt
-  have hold : (heightView p K).h ∈ oldRowHeights p c E rho :=
-    ⟨j, y, r, a, e, ha, he,
-      (lt_of_not_ge hlt).trans_le (healing_recoveryStart_ge p E)⟩
-  have hμ := (muOf_spec p c E rho).2.2.2.1 _ hold
-  omega
+    E.t_GST ≤ SA.voteTime p.toParams s :=
+  (healing_recoveryStart_ge p E).trans
+    (healing_high_source_recoveryStart p c E rho emittedNonempty emittedName hK hc)
+
+theorem healing_high_source_window
+    (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
+      HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
+    (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e.1 = (heightView p C).h ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    {i : Nat} {K : FGBlock (Fin p.n)} {s : Slot}
+    (hK : SourceBefore p c E rho i K s) (hc : muOf p c E rho + 1 ≤ (heightView p K).h) :
+    HealingWindow p E 1 s :=
+  healing_window_of_recoveryStart p E
+    (healing_high_source_recoveryStart p c E rho emittedNonempty emittedName hK hc)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Plan fgsa-s5-m5-d2d4 B `same` step 3. DC: SAME label-local synchrony.

@@ -11,6 +11,75 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
+/-- The joined batch cutoff uses integer labels and requires a real predecessor. -/
+@[expose] def HealingWindow (p : Params) {V : Type} (E : Generic.Env V)
+    (back : Nat) (s : Slot) : Prop :=
+  back ≤ s ∧ E.t_GST ≤ slotStartZ p ((s : Int) - (back : Int))
+
+/-- A stronger cutoff also puts the saved labels after the recovery start. -/
+@[expose] def StrongHealingWindow (p : Params) {V : Type} (E : Generic.Env V)
+    (back : Nat) (s : Slot) : Prop :=
+  back ≤ s ∧ max E.t_GST (recoveryStart p E) ≤
+    slotStartZ p ((s : Int) - (back : Int))
+
+/-- The stronger cutoff supplies the batch cutoff. -/
+theorem StrongHealingWindow.window {p : Params} {V : Type} {E : Generic.Env V}
+    {back : Nat} {s : Slot} (h : StrongHealingWindow p E back s) :
+    HealingWindow p E back s :=
+  ⟨h.1, (le_max_left _ _).trans h.2⟩
+
+/-- Later labels keep the same batch cutoff. -/
+theorem HealingWindow.mono {p : Params} {V : Type} {E : Generic.Env V}
+    {back : Nat} {s w : Slot} (h : HealingWindow p E back s) (hsw : s ≤ w) :
+    HealingWindow p E back w := by
+  refine ⟨h.1.trans hsw, h.2.trans ?_⟩
+  have hi : (s : Int) ≤ w := by exact_mod_cast hsw
+  unfold slotStartZ
+  nlinarith [p.deltaPos]
+
+/-- A batch window includes the source vote's transport anchor. -/
+theorem HealingWindow.sync {p : Params} {V : Type} {E : Generic.Env V}
+    {back : Nat} {s : Slot} (h : HealingWindow p E back s) :
+    E.t_GST ≤ SA.voteTime p.toParams s := by
+  refine h.2.trans ?_
+  change 4 * p.Δ * ((s : Int) - (back : Int)) ≤ 4 * p.Δ * (s : Int) + p.Δ
+  have hb : (0 : Int) ≤ back := by positivity
+  nlinarith [p.deltaPos]
+
+/-- A two-label proposal window supplies the preceding current-batch window. -/
+theorem HealingWindow.prior {p : Params} {V : Type} {E : Generic.Env V}
+    {s : Slot} (h : HealingWindow p E 2 s) : HealingWindow p E 1 (s - 1) := by
+  have hc : (2 : Nat) ≤ s := h.1
+  constructor
+  · change (1 : Nat) ≤ (s : Nat) - 1
+    omega
+  · have hs : ((s - 1 : Nat) : Int) - 1 = (s : Int) - 2 := by omega
+    have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 2) := h.2
+    change E.t_GST ≤ slotStartZ p (((s - 1 : Nat) : Int) - 1)
+    rw [hs]
+    exact hcut
+
+/-- A source-slot cutoff supplies the next and all later batch windows. -/
+theorem HealingWindow.after {p : Params} {V : Type} {E : Generic.Env V}
+    {s w : Slot} (hc : E.t_GST ≤ slotStartZ p (s : Int)) (hw : s + 1 ≤ w) :
+    HealingWindow p E 1 w := by
+  have hwN : (s : Nat) + 1 ≤ w := hw
+  have hpos : (1 : Nat) ≤ w := (Nat.succ_le_succ (Nat.zero_le s)).trans hwN
+  refine ⟨hpos, hc.trans ?_⟩
+  have hwI : (s : Int) + 1 ≤ (w : Int) := by exact_mod_cast hwN
+  change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * ((w : Int) - 1)
+  nlinarith [p.deltaPos]
+
+/-- Nonnegative GST makes an integer batch cutoff imply a real saved label. -/
+theorem healing_window_of_cut {p : Params} {V : Type} (E : Generic.Env V)
+    {back : Nat} {s : Slot}
+    (hc : E.t_GST ≤ slotStartZ p ((s : Int) - (back : Int))) :
+    HealingWindow p E back s := by
+  refine ⟨?_, hc⟩
+  have ht : 0 ≤ 4 * p.Δ * ((s : Int) - (back : Int)) := E.t_GST_nonneg.trans hc
+  have hs : (back : Int) ≤ (s : Int) := by nlinarith [p.deltaPos]
+  exact_mod_cast hs
+
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
 
 /-- Recovery permits a restart at GST and excludes later honest restarts. -/
@@ -141,6 +210,71 @@ theorem healing_recovery_joined_counts (E : Generic.Env V)
   · constructor
     rw [hf]
     omega
+
+/-- A late source window supplies every honest voter in its current batch. -/
+theorem healing_recovery_joined_window (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} {x : V}
+    (h : HealingWindow p E 1 s) (hx : x ∈ rho.honest)
+    (hh : SA.voteTime p.toParams s ≤ rho.horizon) :
+    joinedAt p E rho x s (SA.voteTime p.toParams s) :=
+  healing_recovery_joined E rho hrec hx h.2 h.sync hh
+
+/-- A late source also supplies the actual next-label reader's join. -/
+theorem healing_recovery_joined_next (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} {x : V} {t : Time}
+    (h : HealingWindow p E 1 s) (hx : x ∈ rho.honest)
+    (ht : SA.voteTime p.toParams s ≤ t) (hh : t ≤ rho.horizon) :
+    joinedAt p E rho x (s + 1) t := by
+  apply healing_recovery_joined E rho hrec hx _ (h.sync.trans ht) hh
+  have hd := p.deltaPos
+  have hc := h.2
+  change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1) at hc
+  simp only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right]
+  change E.t_GST ≤ 4 * p.Δ * (s : Int)
+  linarith
+
+/-- An actual next vote tick bounds the finite join service window. -/
+theorem healing_recovery_joined_vote_next (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} {i : Nat} {x : V}
+    (hCut : HealingWindow p E 1 s) (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams (s + 1)))) :
+    joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)) := by
+  apply healing_recovery_joined_next E rho hrec hCut hx _
+    (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hi)).2
+  change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+  push_cast
+  linarith [p.deltaPos]
+
+/-- The next vote reader uses the source-slot cutoff at its own clock label. -/
+theorem healing_recovery_next_vote_joined_of_cut (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} {i : Nat} {x : V}
+    (hc : E.t_GST ≤ slotStartZ p (s : Int)) (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams (s + 1)))) :
+    joinedAt p E rho x (s + 1) (SA.voteTime p.toParams (s + 1)) := by
+  apply healing_recovery_joined E rho hrec hx
+  · simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hc
+  · refine hc.trans ?_
+    change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]
+  · exact (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hi)).2
+
+/-- A bounded proposal tick uses its own next-label join cutoff. -/
+theorem healing_recovery_joined_proposal_next (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {r : Slot} {i : Nat} {x : V}
+    (hc : HealingWindow p E 1 r) (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x (SA.proposalTime p.toParams (r + 1)))) :
+    joinedAt p E rho x (r + 1) (SA.proposalTime p.toParams (r + 1)) := by
+  apply healing_recovery_joined_next E rho hrec hc hx _
+    (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hi)).2
+  change 4 * p.Δ * (r : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
+  push_cast
+  linarith [p.deltaPos]
 
 /-- Recovery derives the enabled gate and its index epoch; object services stay local. -/
 theorem healing_recovery_gate_scope (E : Generic.Env V)

@@ -233,5 +233,69 @@ theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     E rho hE (l + 1) hk q hq hJoined hkk K rfl hHead hBlock (hEpoch k hk) hroots
   exact ⟨_, k, hk, hem, hDK, hslot, hvm, hKm, hvs, hbs⟩
 
+/-- Batch construction needs the actual joined HEAD bounds, at any comparison label. -/
+theorem arming_healthy_batch_heads {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
+    {b₀ : Time}
+    (hcut : 0 ≤ b₀ ∧ b₀ ≤ rho.horizon)
+    {l : Slot} {D : Block} (hl : SA.gateTime p.toParams l ≤ b₀)
+    (hHeads : ∀ z, z ∈ rho.honest →
+      joinedAt p E rho z (l + 1) (SA.voteTime p.toParams (l + 1)) →
+      ∀ k, rho.events[k]? = some (.tick z (SA.voteTime p.toParams (l + 1))) →
+      Block.Preceq D (headVote p (clock p (storeAt p c E rho k z)
+        (SA.voteTime p.toParams (l + 1))) (l + 1)))
+    (y : V) (hy : y ∈ rho.honest)
+    (hReceiver : E.awake y (SA.earlyTime p.toParams (l + 1)) = true)
+    (hEpoch : ∀ k, rho.events[k]? = some (.tick y (SA.earlyTime p.toParams (l + 1))) →
+      V2.D.restartFree rho y (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams (l + 1))) k)
+    (hServices : ∀ q K,
+      rho.seatOf (.base (.head (l + 1))) q ∈ rho.honest →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head (l + 1))) q)
+        (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩)
+        (SA.voteTime p.toParams (l + 1)) K →
+      Nonempty (FreshHeadService E rho (l + 1) q K.root
+        (SA.earlyTime p.toParams (l + 1)) y) ∧
+      TargetReceiptService E rho K (SA.earlyTime p.toParams (l + 1)) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ q : Fin p.n,
+      rho.seatOf (.base (.head (l + 1))) q ∈ rho.honest →
+      joinedAt p E rho (rho.seatOf (.base (.head (l + 1))) q) (l + 1)
+        (SA.voteTime p.toParams (l + 1)) →
+      ∃ K k, rho.events[k]? = some (.tick y (SA.earlyTime p.toParams (l + 1))) ∧
+        V2.D.Run.emits E rho (rho.seatOf (.base (.head (l + 1))) q)
+          (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩) (SA.voteTime p.toParams (l + 1)) ∧
+        Block.Preceq D K ∧ K.slot ≤ l + 1 ∧
+        baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n) ∈
+          (storeAt p c E rho k y).base.votes ∧
+        K ∈ (storeAt p c E rho k y).base.blocks ∧
+        GridCO.stampVote (storeAt p c E rho k y).base
+          (baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n)) <
+          SA.earlyTime p.toParams (l + 1) ∧
+        GridCO.stampBlock (storeAt p c E rho k y).base K < SA.earlyTime p.toParams (l + 1) := by
+  intro q hq hJoined
+  have hs := hE.toScheduleWellFormed
+  have he : SA.earlyTime p.toParams (l + 1) ≤ b₀ := (arming_early_next p l).trans_le hl
+  have hv : SA.voteTime p.toParams (l + 1) < SA.earlyTime p.toParams (l + 1) :=
+    (arming_vote_lt_early p (l + 1)).1
+  obtain ⟨k, hk⟩ := arming_tick_exists hs hDelta hy (4 * (l + 1) + 2)
+    (arming_early_nat p (l + 1)) (he.trans hcut.2) hReceiver
+  obtain ⟨kk, hkk⟩ := arming_tick_exists hs hDelta hq (4 * (l + 1) + 1)
+    (arming_vote_nat p (l + 1)) ((hv.trans_le he).le.trans hcut.2) hJoined.1
+  have hDK := hHeads _ hq hJoined kk hkk
+  let K := headVote p ((fgsa p c).clock
+    (V2.D.Run.stateBefore E rho kk (rho.seatOf (.base (.head (l + 1))) q))
+      (SA.voteTime p.toParams (l + 1))).st (l + 1)
+  have hEmit : ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩ ∈ V2.D.Run.emitsAt E rho kk := by
+    rw [(V2.D.Run.step_tick_eq E rho hkk).2]
+    exact (fgsa_emits_head E rho _ _ _ (l + 1) q K.root).mpr
+      ⟨hJoined.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hkk hJoined, rfl⟩
+  have hTarget : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head (l + 1))) q)
+      (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩) (SA.voteTime p.toParams (l + 1)) K :=
+    ⟨kk, l + 1, q, hkk, hEmit, rfl, rfl⟩
+  obtain ⟨⟨hHead⟩, hBlock⟩ := hServices q K hq hTarget
+  obtain ⟨hem, hvm, hvs, hKm, hbs, hslot⟩ := inclusion_head_receipt_early_on
+    E rho hE (l + 1) hk q hq hJoined hkk K rfl hHead hBlock (hEpoch k hk) hroots
+  exact ⟨_, k, hk, hem, hDK, hslot, hvm, hKm, hvs, hbs⟩
+
 end AvailableChain.FGSA.Run
 end

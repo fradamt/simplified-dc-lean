@@ -14,7 +14,7 @@ DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
 def RowPermissionAt {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop :=
   ∀ u v m J contested r x C nd,
-    E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
+    recoveryStart p E ≤ u → PhaseInterval p c E rho u v m J contested →
     u ≤ p.actionTime r → p.actionTime r ≤ v → x ∈ rho.honest →
     postClock E rho x (p.actionTime r) = some nd →
     actionSourceFG p c E rho x r = some (some C) →
@@ -76,7 +76,7 @@ DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def RenewedPromotionConcl {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) (r : Nat) : Prop :=
   ∀ u m J contested l q Q height,
-    E.t_GST ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
+    recoveryStart p E ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
     u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
     SA.proposalTime p.toParams l < SA.proposalTime p.toParams q →
     HonestProposal E rho (fgsaInterface p c) q Q → ExactService p c E rho q Q →

@@ -577,6 +577,102 @@ theorem fgsa_leaseOrigins_fastWrites (hs : V2.D.ScheduleWellFormed E rho) (i : N
   rw [gateIn_def, preTick_def, htick]
   rfl
 
+private theorem fastPairs_origin_epoch (i : Nat) (x : V) (pair : Slot × Block)
+    (hm : pair ∈ fastPairs p (storeAt p c E rho i x)) :
+    ∃ j < i, V2.D.restartFree rho x j i ∧ ∃ t,
+      rho.events[j]? = some (.tick x t) ∧ fastSource p (storeAt p c E rho j x) t pair := by
+  induction i with
+  | zero => exact (List.not_mem_nil hm).elim
+  | succ i ih =>
+    have carry (hn : ∀ t, rho.events[i]? ≠ some (.restart x t))
+        (hold : pair ∈ fastPairs p (storeAt p c E rho i x)) :
+        ∃ j < i + 1, V2.D.restartFree rho x j (i + 1) ∧ ∃ t,
+          rho.events[j]? = some (.tick x t) ∧
+            fastSource p (storeAt p c E rho j x) t pair := by
+      obtain ⟨j, hj, hrf, hsource⟩ := ih hold
+      refine ⟨j, Nat.lt_succ_of_lt hj, ?_, hsource⟩
+      intro k t hjk hki
+      rcases (Nat.le_of_lt_succ hki).lt_or_eq with hk | rfl
+      · exact hrf k t hjk hk
+      · exact hn t
+    cases he : rho.events[i]? with
+    | none =>
+      apply carry (by intro t; rw [he]; simp)
+      dsimp only [storeAt] at hm ⊢
+      simpa [V2.D.Run.stateBefore, List.take_add_one, he] using hm
+    | some e =>
+      dsimp only [storeAt] at hm
+      rw [V2.D.Run.stateBefore_succ E rho he] at hm
+      by_cases hx : e.node = x
+      · cases e with
+        | restart v t =>
+          change v = x at hx
+          subst v
+          simp only [V2.D.World.step, Function.update_self] at hm
+          change pair ∈ fastPairs p (acRestart p (storeAt p c E rho i x) t) at hm
+          unfold fastPairs at hm
+          rw [acRestart_fastWrite] at hm
+          exact (List.not_mem_nil hm).elim
+        | deliver v o t =>
+          change v = x at hx
+          subst v
+          apply carry (by intro w; rw [he]; simp)
+          simp only [V2.D.World.step, Function.update_self] at hm
+          exact fastPairs_process p _ (toWire p o) hm
+        | tick v t =>
+          change v = x at hx
+          subst v
+          simp only [V2.D.World.step, Function.update_self] at hm
+          rw [tick_st (c := c) E rho (V2.D.Run.stateBefore E rho i x) x t] at hm
+          rcases fastPairs_clock p _ t pair hm with hold | hnew
+          · exact carry (by intro w; rw [he]; simp) hold
+          · refine ⟨i, Nat.lt_succ_self i, ?_, t, he, hnew⟩
+            intro k w hik hki
+            have hk : k = i := by omega
+            subst k
+            rw [he]
+            simp
+      · apply carry (by
+          intro t ht
+          exact hx (congrArg V2.Event.node (Option.some.inj (he.symm.trans ht))))
+        rwa [V2.D.World.step_apply_of_node_ne E rho _ hx] at hm
+
+/-- Current fast writes have an enabled, passed gate origin in the receiver's epoch.
+A restart clears the cache. Deliveries and other ticks preserve prior origins. -/
+theorem fgsa_leaseOrigins_fastWrites_epoch (hs : V2.D.ScheduleWellFormed E rho)
+    (i : Nat) (x : V) :
+    ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
+      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
+        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
+          Block.Preceq X B ∧ fastAt p c E rho x s X := by
+  intro s X hX
+  have hm : (s, X) ∈ fastPairs p (storeAt p c E rho i x) := by
+    unfold FGSA.fastWriteAt at hX
+    cases hf : (storeAt p c E rho i x).fastWrite.find? (fun row => row.1 == s) with
+    | none =>
+      simp only [hf, Option.map_none, Option.getD_none] at hX
+      exact (List.not_mem_nil hX).elim
+    | some row =>
+      have he : row.1 = s := by simpa using List.find?_some hf
+      simp only [hf, Option.map_some, Option.getD_some] at hX
+      exact List.mem_flatMap.mpr ⟨row, List.mem_of_find?_eq_some hf,
+        List.mem_map.mpr ⟨X, hX, by rw [he]⟩⟩
+  obtain ⟨j, hj, hrf, t, ht, htime, hjoin, hn, B, hc, hg, hp, hfast⟩ :=
+    fastPairs_origin_epoch p c E rho i x (s, X) hm
+  change t = SA.gateTime p.toParams s at htime
+  subst t
+  have hit : IsGateTick p c rho j x s := ht
+  have henabled : enabledGateAt p c E rho j x s :=
+    ⟨hit, leaseGate_guard p c _ s hjoin⟩
+  have hresult := leaseGate_result p c E rho ht hjoin hc
+  refine ⟨j, hj, hrf, henabled, ⟨x, s, henabled, hn, B, hc, hg⟩,
+    B, hresult, hp, ?_⟩
+  have htick := fgsa_tickIdx_of_event p c E rho hs hit
+  refine ⟨clockPre p (V2.D.Run.stateBefore E rho j x).st (SA.gateTime p.toParams s),
+    ?_, hfast⟩
+  rw [gateIn_def, preTick_def, htick]
+  rfl
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Clause (2), including due rows, from the common output bound. -/
 theorem fgsa_leaseOrigins_chain (i : Nat) (x : V) :

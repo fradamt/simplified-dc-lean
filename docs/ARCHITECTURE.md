@@ -1002,3 +1002,22 @@ own test module. The canonical H2 fragment has 205 commands and production-only
 imports; serial audit integration remains a separate obligation. FrontierOpen
 exports only named declarations; generated proof matchers remain private.
 No public Claims statement changed.
+
+P-H1 Round 6 healing service boundary (sleep-ph1g):
+SupportRecovery defines HealingWindow and StrongHealingWindow with integer cutoffs.
+A transport bound at vote(s) does not supply a joined batch. Window 1 supplies
+that batch; Window 2 supplies a repaired proposal's preceding batch. SupportTicks
+proves the seat/node cardinality bridge through the HEAD-seat CStar bijection.
+DescentLoss derives Window 1 at a high source from oldRowHeights and recoveryStart.
+HealingCarriersAt fixes the receiver at an actual honest joined tick, with a
+post-GST anchor and a finite deadline. It serves the selected admissible K/W,
+not every durable TF member. Event/output reads retain service from an earlier
+actual joined tick. ProposalSupportScope records the actual proposal or gate time.
+SupportPermanenceServices is indexed by one actual phase. healing_tPerm_at returns
+Transfers for a source with Window 1. Its link to public TPerm remains open.
+RepairHeadServices is indexed by the actual ip/x/N. Its retained service takes the
+receiver floor; its target receipt follows from that same proposal service.
+Repair gates take enabledness and GateReceiptGeometry. Suppressed gates create
+no receipt demand. Frontier slow factories take the saved-window sync bound.
+The local repair lease covers and all ten aggregate producers remain OPEN/P-H1.
+See scripts/dev-pkg/P-H1.round6-producers.md and P-H1.round6-handoff.md.

@@ -1,4 +1,4 @@
-# P-WC r3: PREPARED; finite origins and local output cases pass; joint closure remains open.
+# P-WC r6: PREPARED; all 71 targets GREEN; P-As caller ports remain.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
@@ -66,6 +66,11 @@ AvailableChainFGSAProofs.Tests.WeakContinuationGrowthEmptyAxioms
 AvailableChainFGSAProofs.Tests.WeakContinuationInclusion
 AvailableChainFGSAProofs.Tests.WeakContinuationProposal
 AvailableChainFGSAProofs.Tests.WeakContinuationSleepAxioms
+AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.HeadRelay
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
+AvailableChainFGSAProofs.Proofs.WeakContinuation.InclusionGate
 [GREEN]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
@@ -586,21 +591,26 @@ AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateBatch
 AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory
 AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferFrame
 AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferReceipts
+AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.HeadRelay
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransfer
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Step
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Dynamics
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
+AvailableChainFGSAProofs.Tests.WeakContinuationProposal
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
+AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal
+AvailableChainFGSAProofs.Tests.WeakContinuationExactProposal
+AvailableChainFGSAProofs.Proofs.WeakContinuation.InclusionGate
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion
+AvailableChainFGSAProofs.Tests.WeakContinuationInclusion
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Export
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Live
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowth
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowthEmptyAxioms
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Export P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Live P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Step P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransfer P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Dynamics P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationExactProposal P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowth P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowthEmptyAxioms P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationInclusion P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationProposal P-WC

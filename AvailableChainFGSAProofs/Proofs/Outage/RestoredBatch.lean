@@ -1,5 +1,5 @@
 module
-import all AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
 
 public section
@@ -251,7 +251,7 @@ theorem outage_joined_batch_service {ΔF : Time}
     refine ⟨outage_joined_head_service hBase hSync hx hy hJ hC hCR hhor hGST
       ⟨k, hk, hem⟩, ?_⟩
     by_cases hgen : K = .genesis
-    · exact Or.inl hgen
+    · exact hgen ▸ fgsa_target_service_genesis E rho C x
     have hK : K ∈ (storeAt p c E rho k y).base.blocks := by
       have hm := headVote_stored p _
         (storeBundle_postClock E rho k y (SA.voteTime p.toParams s)).cstore s
@@ -277,9 +277,9 @@ theorem outage_joined_batch_service {ΔF : Time}
         exact not_not.mp hbad
       rw [hc]
       rfl
-    exact Or.inr ⟨q', N, send, hNK,
-      outage_joined_proposal_service hBase hSync hx hy hJ hStart hPub hDeadline
-        hCR hhor (hGST.trans hva) (hsend.trans hva) (Or.inr ⟨j, hacc⟩) hNX⟩
+    exact hNK ▸ fgsa_target_service_of_proposal E rho q' N send C x
+      (outage_joined_proposal_service hBase hSync hx hy hJ hStart hPub hDeadline
+        hCR hhor (hGST.trans hva) (hsend.trans hva) (Or.inr ⟨j, hacc⟩) hNX)
   · intro y o m q N hy he htime hNX hd
     have ho : o = ofWire p ⟨.proposer q, .proposal N⟩ := by
       apply toWire_injective
@@ -383,6 +383,13 @@ theorem outage_continuation_receipt_of_prefix [Fintype V]
     h.pre.base h.sync h.gst
   exact outage_restored_receipt_with_service h.pre.base.valid h.pre.base.receiptIdealization
     hPrefix hServices.early hServices.freeze hServices.proposal
+
+/-- Both the prefix and restored receipt services come from the continuation regime. -/
+theorem outage_continuation_receipt [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF) :
+    OutageContinuationReceipt p c E rho fast T b₀ b₁ := by
+  exact outage_continuation_receipt_of_prefix h (arming_continuation_prefix_receipt h)
 
 end AvailableChain.FGSA.Run
 end

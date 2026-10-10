@@ -56,7 +56,8 @@ example : FGoodE_W (Gen.V2.Duty.HonestSlot run (fgsaInterface params codec))
     params.R 3 1 := good 1 (by decide)
 
 private def recurrence : FE_W params 6
-    (Gen.V2.Duty.HonestSlot run (fgsaInterface params codec)) env.t_GST run.horizon 1 := by
+    (Gen.V2.Duty.HonestSlot run (fgsaInterface params codec)) (recoveryStart params env)
+      run.horizon 1 := by
   rw [FE_W_def, RecFE_W_def]
   refine ⟨le_rfl, ?_⟩
   intro q hq _ _
@@ -66,10 +67,11 @@ private def recurrence : FE_W params 6
 example : ((1 : Time) + 1 + 1) * P params + betaF params 6 + params.Δ ≤ run.horizon := by
   decide
 example : FE_W params 6 (Gen.V2.Duty.HonestSlot run (fgsaInterface params codec))
-    env.t_GST run.horizon 1 := recurrence
+    (recoveryStart params env) run.horizon 1 := recurrence
 
 private def recurrenceF4 : F4_W params 6
-    (Gen.V2.Duty.HonestSlot run (fgsaInterface params codec)) env.t_GST run.horizon 1 := by
+    (Gen.V2.Duty.HonestSlot run (fgsaInterface params codec)) (recoveryStart params env)
+      run.horizon 1 := by
   rw [F4_W_def, RecF4_W_def]
   refine ⟨le_rfl, ?_⟩
   intro q hq _ _
@@ -82,7 +84,7 @@ private def recurrenceF4 : F4_W params 6
 -- These constructors check finite package budgets with the supplied run input.
 -- They do not construct a Recovery₂ or HealingInput execution witness.
 private def finiteSet (form : FinFormW)
-    (recovery : Recovery₂ params codec env run 4 6) :
+    (recovery : RecoverySleep₂ params codec env run 4 6) :
     FinalitySet_W params codec env run 4 6 form 1 := by
   refine ⟨recovery, ⟨by decide⟩, ?_⟩
   cases form <;> rw [FinFormW.holdsW_def]
@@ -90,21 +92,21 @@ private def finiteSet (form : FinFormW)
   · exact recurrenceF4
 
 example (form : FinFormW) (w : HealingWitness)
-    (recovery : Recovery₂ params codec env run 4 6)
+    (recovery : RecoverySleep₂ params codec env run 4 6)
     (input : HealingInput params codec env run w 6)
     (start : tstar params w ≤ 50) :
     FinalityLivenessPrem_W params codec 4 6 form 1 w env run ⟨50⟩ :=
   ⟨finiteSet form recovery, input, start, by decide⟩
 
 example (form : FinFormW) (w : HealingWitness)
-    (recovery : Recovery₂ params codec env run 4 6)
+    (recovery : RecoverySleep₂ params codec env run 4 6)
     (input : HealingInput params codec env run w 6)
     (start : tstar params w ≤ 50) :
     AboveFrontierPrem_W params codec 4 6 form 1 w env run ⟨50⟩ :=
   ⟨finiteSet form recovery, input, start, by decide, by decide⟩
 
 example (form : FinFormW) (w : HealingWitness) (X : Block)
-    (recovery : Recovery₂ params codec env run 4 6)
+    (recovery : RecoverySleep₂ params codec env run 4 6)
     (input : HealingInput params codec env run w 6)
     (start : tstar params w ≤ 50)
     (prop : HonestProposal env run (fgsaInterface params codec) 13 X) :
@@ -113,14 +115,14 @@ example (form : FinFormW) (w : HealingWitness) (X : Block)
     le_trans start (by change (50 : Time) ≤ 52; decide),
     by change (52 : Time) + 49 ≤ 512; decide⟩
 
-example (form : FinFormW) (recovery : Recovery₂ params codec env run 4 6) :
+example (form : FinFormW) (recovery : RecoverySleep₂ params codec env run 4 6) :
     FirstFinalityPrem_W params codec 4 6 form 1 env run () :=
   ⟨finiteSet form recovery, by decide⟩
 
-example (w : HealingWitness) (recovery : Recovery₂ params codec env run 4 6)
+example (w : HealingWitness) (recovery : RecoverySleep₂ params codec env run 4 6)
     (input : HealingInput params codec env run w 6) (start : tstar params w ≤ 50) :
     KernelJoinedPrem params codec 4 6 env run ⟨5⟩ :=
-  ⟨recovery, ⟨by decide⟩, good 5 (by decide),
+  ⟨recovery.toRecovery₂, ⟨by decide⟩, good 5 (by decide),
     ⟨w, input, le_trans start (by decide)⟩, by decide⟩
 
 -- Package projections enforce the common witness, the W window and both FF7 horizons.

@@ -19,7 +19,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Height
 -- shake: keep (Assembly progress-fold supplier)
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 -- shake: keep (Assembly honest-seat quorum supplier)
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (TPerm supplier)
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (scoped permanence)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (RMono supplier)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
 -- shake: keep (last-write supplier)
@@ -143,26 +143,23 @@ example {x : V} {r : Nat} {K : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (x := x) (r := r) (K := K) (hx := hx) (hK := hK)
 
 example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
-    (hPermanence : SupportPermanenceServices E rho)
     (crossing : RXing p c E rho) {u : Time} {m : Nat}
     {J : Option (FGBlock (Fin p.n))} {contested : Bool} {r : Nat} {s : Slot}
     {x : V} {K : FGBlock (Fin p.n)} {Q : Block} (hgst : E.t_GST ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
+    (hPermanence : SupportPermanenceServices E rho u (SA.proposalTime p.toParams s)
+      m J contested)
+    (hCut : HealingWindow p E 1 (r * p.R))
     (hu : u ≤ SA.voteTime p.toParams (r * p.R))
     (hgate : p.actionTime r ≤ SA.proposalTime p.toParams s)
     (hx : x ∈ rho.honest) (hK : actionSourceFG p c E rho x r = some (some K))
     (hs : r * p.R + 2 ≤ s) (hQ : HonestProposal E rho (fgsaInterface p c) s Q) :
-    Block.Preceq (eraseFG K) Q.parent :=
-  healing_promotion_source_parent (p := p) (c := c) (E := E) (rho := rho)
-    (perm := healing_tPerm (p := p) (c := c) (E := E) (rho := rho)
-      (G := G) (ΔF := ΔF) (hrec := hrec)
-      (mono := fgsa_rMonoAll (p := p) (c := c) (E := E) (rho := rho))
-      (crossing := crossing) (hServices := hPermanence)
-      (writes := fgsa_leaseOrigins_lastWrite (p := p) (c := c) (E := E) (rho := rho)
-        (hs := hrec.base.valid.toScheduleWellFormed)))
-    (u := u) (m := m) (J := J) (contested := contested) (r := r) (s := s)
-    (x := x) (K := K) (Q := Q) (hgst := hgst) (hphase := hphase) (hu := hu)
-    (hgate := hgate) (hx := hx) (hK := hK) (hs := hs) (hQ := hQ)
+    Block.Preceq (eraseFG K) Q.parent := by
+  have htr := healing_tPerm_at E rho hrec (fgsa_rMonoAll p c E rho) crossing
+    (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
+    hgst hphase hPermanence hCut hu hgate
+    (healing_promotion_source_body E rho hx hK)
+  exact htr.2.1 s Q hs le_rfl hQ
 
 omit [Fintype V] in
 example {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
@@ -212,9 +209,9 @@ example (x : V) (o : Obj p) :
   decide
 
 -- The final test uses the expanded frozen Claims proposition.
--- All standing ports have their named Assembly producers here.
+-- The pending public TPerm is an explicit conditional signature input here.
 example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
-    (hPermanence : SupportPermanenceServices E rho)
+    (perm : TPerm p c E rho)
     (services : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
       (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
@@ -248,8 +245,6 @@ example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
   let mono := fgsa_rMonoAll p c E rho
   let crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
     (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
-  let perm := healing_tPerm E rho hrec mono crossing hPermanence
-    (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
   exact healing_renewedPromotion E rho hrec services hδ hbound mono crossing perm
     ((fgsa_tRows_recovery p c E rho hrec.toRecovery₂).receipt)
     (fgsa_batchCoverage p ΔF .progress c E rho)
@@ -259,7 +254,7 @@ example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
 -- HG.2 uses the actual fixed entry slot in both trigger arms and deadlines.
 -- Its phase and full-window premises include the finite horizon.
 example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
-    (hPermanence : SupportPermanenceServices E rho)
+    (perm : TPerm p c E rho)
     (services : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
       (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
@@ -290,8 +285,6 @@ example {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
   let mono := fgsa_rMonoAll p c E rho
   let crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
     (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
-  let perm := healing_tPerm E rho hrec mono crossing hPermanence
-    (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
   obtain ⟨U, hU, hslot, hgo⟩ := healing_promotion_age_service E rho hrec services hδ hbound crossing
     perm ((fgsa_tRows_recovery p c E rho hrec.toRecovery₂).receipt)
     (fgsa_batchCoverage p ΔF .progress c E rho)

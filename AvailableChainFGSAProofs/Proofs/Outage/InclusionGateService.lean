@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBounds
+public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 
 public section
 
@@ -91,12 +92,12 @@ theorem inclusion_gate_exact [Fintype V]
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
     (pt : PtSP) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (hScope : GateReceiptScope E rho i x pt.s)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (hG : enabledGateAt p c E rho i x pt.s)
     (hstrat : RStrat p c E rho) :
     gateResult p c E rho x pt.s = some (some pt.P) ∧
       (fgsaAC E rho).raw i pt.s x = some pt.P ∧ gatePassedAt p c E rho i ∧
       S_at p c E rho (i + 1) x = pt.P := by
-  have ht := hScope.enabled.1
+  have ht := hG.1
   let st := storeAt p c E rho i x
   let pre := clockPre p st (SA.gateTime p.toParams pt.s)
   let v := actView pre
@@ -109,7 +110,7 @@ theorem inclusion_gate_exact [Fintype V]
   obtain ⟨hF, _, hS, hleasesP, _, _⟩ := inclusion_preGate_bounds (hstrat := hstrat)
     E rho ΔF hset hInputs hHistory
     hstore hframe
-    hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hx hScope.enabled
+    hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hx hG
   have hgeom : GateReceiptGeometry E rho pre pt.s pt.P := by
     constructor
     · intro q hy _ K he
@@ -118,6 +119,15 @@ theorem inclusion_gate_exact [Fintype V]
     · intro q hy _ K he
       rw [exactService_emitted_head_joined E rho hset.pre.base.valid pt.s pt.P hhead q hy K _ he]
       exact block_preceq_refl _
+  have hScope := inclusion_gate_services hset.pre.base (inclusion_clean_synchrony hset)
+    hx hG (inclusion_clean_vote_gst hset pt.s) (by
+      intro q K hy hK
+      have hTarget := hK
+      obtain ⟨k, _, _, hk, hem, _, _⟩ := hK
+      have hAw := hE.tick_awake _ _ (List.mem_of_getElem? hk)
+      change Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) K
+      simpa only [pre, clockPre_fg] using hgeom.target_floor q hy hAw K
+        hTarget)
   have hvd : SA.voteTime p.toParams pt.s + E.Δ ≤ SA.gateTime p.toParams pt.s := by
     rw [hset.pre.base.delta]
     change 4 * p.Δ * (pt.s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (pt.s : Int) + 6 * p.Δ
@@ -147,12 +157,12 @@ theorem inclusion_gate_exact [Fintype V]
   have hanchor : Block.Preceq ((fgsaAC E rho).anchor i x) pt.P := by
     change Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) pt.P
     simpa only [clockPre_fg] using hF
-  have hout := (fgsa_S_eq_of_exact E rho hs i pt.s x pt.P hx ht hScope.enabled hraw hguard
+  have hout := (fgsa_S_eq_of_exact E rho hs i pt.s x pt.P hx ht hG hraw hguard
     (fun hPS => block_preceq_antisymm hS hPS) hanchor).1
   refine ⟨?_, hraw, ?_, hout⟩
   · exact (gateResultAt_eq_gateResult p c E rho hs ht).symm.trans
-      ((inclusion_gate_raw_at_tick E rho hs hScope.enabled).trans (congrArg some hr))
-  · refine ⟨x, pt.s, hScope.enabled, ?_, pt.P, hr, ?_⟩
+      ((inclusion_gate_raw_at_tick E rho hs hG).trans (congrArg some hr))
+  · refine ⟨x, pt.s, hG, ?_, pt.P, hr, ?_⟩
     · unfold GridCO.savedGenuine
       rw [clockPre_genuine]
       exact fgsa_gate_fresh E rho hs ht

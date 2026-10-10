@@ -15,7 +15,7 @@ theorem admissionContract (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     WCProposalAdmissionStatement p c E rho ΔF w iStar :=
   wc_proposalAdmission ΔF w iStar
 
-/-- WC J3, plan §6.10; DC exact HEAD: all honest readers, including sleepers. -/
+/-- WC J3, plan §6.10; DC exact HEAD: joined honest readers. -/
 theorem exactContract (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     WCExactProposalStatement p c E rho ΔF w iStar :=
   wc_exactProposal ΔF w iStar

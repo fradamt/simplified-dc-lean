@@ -54,12 +54,11 @@ theorem healing_support_frame_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     (hev : SA.voteTime p.toParams i + p.Δ ≤ v)
     {jz : Nat} {z : V} (hz : z ∈ rho.honest)
     (hjz : rho.events[jz]? = some (.tick z (SA.voteTime p.toParams i)))
-    (hServices : ∀ W ∈ (storeAt p c E rho jz z).fg.TF, ∀ y ∈ rho.honest,
-      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams i + p.Δ) y)
+    (y : V) (hServices : HeadCarrierServices E rho jz z i y)
     {B : Block}
     (hBK : Block.Preceq B (headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
       (SA.voteTime p.toParams i)) i))
-    {a : Nat} {y : V} (hy : y ∈ rho.honest)
+    {a : Nat} (hy : y ∈ rho.honest)
     (ha1 : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ a)
     (ha0 : V2.D.Run.idxBefore rho u ≤ a) (hav : a ≤ timeIdx rho v)
     (hroots : NamedReceiptRootCollisionFree p c E rho) :
@@ -72,7 +71,8 @@ theorem healing_support_frame_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   have hvq : SA.voteTime p.toParams i ≤ v := (le_add_of_nonneg_right hd.le).trans hev
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, hloW, hrelay⟩ :=
     healing_head_witness_relay_on (hroots := hroots)
-      p c E rho crossing hE hz hjz hServices
+      p c E rho crossing hE hz hjz hy (hServices.relay
+        (healing_head_carrier_demand_phase p c E rho crossing hE hphase hz hjz hhead hev hy))
   have hBW : Block.Preceq B (eraseFG W) := by
     refine Gen.Pure.block_preceq_trans hBK ?_
     have hKe' : eraseFG Kfg = headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
@@ -96,7 +96,7 @@ theorem healing_support_frame_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     ha0 hav hy
   have hWd : W ∈ (storeAt p c E rho
       (V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ)) y).fg.TF := by
-    have h := hrelay y hy W (KitFG.preceq_refl W)
+    have h := hrelay W (KitFG.preceq_refl W)
     change W ∈ (V2.D.Run.stateBefore E rho _ y).st.fg.TF
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
     exact h
@@ -141,15 +141,14 @@ theorem healing_output_gate_step [Fintype V] (E : Generic.Env V)
     (hcov : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z w = some K → Block.Preceq B K)
     {a : Nat} {y : V} (hy : y ∈ rho.honest)
     (ht : rho.events[a]? = some (.tick y (SA.gateTime p.toParams w)))
-    (hcut : E.t_GST ≤ slotStartZ p ((w : Int) - 1))
-    (hScope : GateReceiptScope E rho a y w)
+    (hScope : SupportGateScope E rho a y w)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho a y).fg.F) B)
     (hprev : Block.Preceq B (S_at p c E rho a y) ∨
       ∀ row ∈ (storeAt p c E rho a y).base.obligations, Block.Compatible row.1 B) :
     Block.Preceq B (S_at p c E rho (a + 1) y) := by
   have hS := hrec.base.valid.toScheduleWellFormed
   have hd := p.deltaPos
-  obtain ⟨h, hh, hBh⟩ := healing_support_gate_cover E rho hrec hgw hcut hhor hcov ht hScope
+  obtain ⟨h, hh, hBh⟩ := healing_support_gate_cover E rho hrec hgw hhor hcov ht hScope
     (by rw [clockPre_fg]; exact hFB)
   let st := storeAt p c E rho a y
   let v := actView (clockPre p st (SA.gateTime p.toParams w))
@@ -226,16 +225,18 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {s : Slot} {B : Block} (hhead : u ≤ SA.voteTime p.toParams s)
+    (hCut : HealingWindow p E 1 s)
     (hguard : SA.gateTime p.toParams s + 4 * p.Δ ≤ v)
     (hheads : ∀ i, s + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
       ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z i = some K → Block.Preceq B K)
     (hGates : ∀ w, s + 1 ≤ w → SA.gateTime p.toParams w ≤ v →
-      E.t_GST ≤ slotStartZ p ((w : Int) - 1) ∧
-      ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y w → GateReceiptScope E rho j y w)
-    (hServices : ∀ w, s + 1 ≤ w → SA.voteTime p.toParams w + p.Δ ≤ v →
-      ∀ j z, z ∈ rho.honest → rho.events[j]? = some (.tick z (SA.voteTime p.toParams w)) →
-      ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ y ∈ rho.honest,
-        TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams w + p.Δ) y)
+        ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y w →
+      enabledGateAt p c E rho j y w → ∀ B,
+      GateReceiptGeometry E rho
+        (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w)) w B →
+      SupportGateScope E rho j y w)
+    (hServices : ∀ w, s + 1 ≤ w →
+      ∀ iy y t, t ≤ v → HealingCarriersAt E rho w iy y t)
     (hlease : ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y (s + 1) →
       Block.Preceq (eraseFG (storeAt p c E rho j y).fg.F) B →
       ∀ row ∈ (storeAt p c E rho j y).base.obligations, Block.Compatible row.1 B) :
@@ -315,7 +316,9 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
       (hroots := hrec.base.receiptIdealization)
       E rho (fun _ => mono) crossing hE hDelta
       hrec.sync hgst hphase hu1 hq1v hy hjz
-      (hServices (s + 1) le_rfl hq1v jz y hy hjz) hBK hy ((hidxmono hq1).trans hb1)
+      y (healing_carriers_window_at p c E rho hrec (hCut.mono (Nat.le_succ s))
+        (hServices (s + 1) le_rfl j1 y _ hguard) hy hj1 hq1 jz y hy hjz) hBK hy
+      ((hidxmono hq1).trans hb1)
       ((hidxmono (hu1.trans ((le_add_of_nonneg_right hd.le).trans hq1))).trans hb1) hbv
     rcases Gen.Pure.block_preceq_total_of_common (eraseFG_preceq hFW) hBW with h | h
     · exact Or.inr h
@@ -333,7 +336,10 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
     · exact hanchor _ hBF
     have hFB0 := hFmono (Nat.le_succ _) hFB
     exact healing_output_gate_step E rho hrec hgst1 hhor (hheads (s + 1) le_rfl hqv) hy hj1
-      (hGates (s + 1) le_rfl hguard).1 ((hGates (s + 1) le_rfl hguard).2 j1 y hy hj1)
+      (hGates (s + 1) le_rfl hguard j1 y hy hj1
+        (healing_recovery_later_gate E rho hrec (hgst.trans hhead) le_rfl hy hj1) B
+        (healing_support_gate_geometry E rho hS (hheads (s + 1) le_rfl hqv)
+          (by rw [clockPre_fg]; exact hFB0)))
       hFB0 (Or.inr (hlease j1 y hy hj1 hFB0))
   -- Induction along the events of the interval.
   let a0 := afterTicksIdx rho (SA.gateTime p.toParams (s + 1))
@@ -386,8 +392,12 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
         nlinarith
       exact healing_output_gate_step E rho hrec hgw (hwv.trans hphase.2.1)
         (hheads w (by exact_mod_cast hwI) (hvw.trans hwv)) hy hw
-        (hGates w (by exact_mod_cast hwI) hwv).1
-        ((hGates w (by exact_mod_cast hwI) hwv).2 b y hy hw) hFb (Or.inl hIH)
+        (hGates w (by exact_mod_cast hwI) hwv b y hy hw
+          (healing_recovery_later_gate E rho hrec (hgst.trans hhead)
+            (by exact_mod_cast hwI) hy hw) B
+          (healing_support_gate_geometry E rho hS
+            (hheads w (by exact_mod_cast hwI) (hvw.trans hwv))
+            (by rw [clockPre_fg]; exact hFb))) hFb (Or.inl hIH)
     · -- A reconcile keeps an output above B, since the new finality is below B.
       obtain ⟨_, _, _, _, _, _, hout⟩ := hrc
       rw [S_at_def]
@@ -437,15 +447,16 @@ theorem healing_fast_output [Fintype V] (E : Generic.Env V)
     {x : V} (hx : x ∈ rho.honest) {nd : Node p}
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
     (hB : B ∈ (fastWriteAt nd.st s).getD [])
-    (hScopes : FastSupportScope E rho s v x) :
+    (hScopes : FastSupportScope E rho s v x)
+    (hCut : HealingWindow p E 1 s) :
     ∀ i y, y ∈ rho.honest → afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i →
       i ≤ timeIdx rho v → Block.Preceq B (S_at p c E rho i y) := by
   have hS := hrec.base.valid.toScheduleWellFormed
   have hDelta := hrec.base.delta
   have hd := p.deltaPos
   have hheads := healing_fast_heads E rho hrec mono crossing writes hgst hphase hhead hgate hx
-    hnd hB hScopes
-  refine healing_output_cover E rho hrec mono crossing hgst hphase hhead hguard hheads
+    hnd hB hScopes hCut
+  refine healing_output_cover E rho hrec mono crossing hgst hphase hhead hCut hguard hheads
     hScopes.gates hScopes.carriers ?_
   intro j y hy ht hFB
   have hq : SA.voteTime p.toParams (s + 1) < SA.gateTime p.toParams (s + 1) := by
@@ -464,7 +475,8 @@ theorem healing_fast_output [Fintype V] (E : Generic.Env V)
       nlinarith) ((hq.le.trans hgv).trans hphase.2.1))
   have hqa : iq < j := output_idx_lt E rho hS hiq ht hq
   refine healing_fast_lease_at E rho hrec mono writes (hgst.trans hhead)
-    (hgate.trans hphase.2.1) hx hnd hB hphase.2.1 hScopes ?_ hy hiq hqa ?_ hFB
+    (hgate.trans hphase.2.1) hx hnd hB hphase.2.1 hScopes
+    (healing_gate_cut_of_batch_cut E s hCut.2) ?_ hy hiq hqa ?_ hFB
   · intro w hw hwT
     refine hheads w hw (le_trans ?_ hwT)
     change 4 * p.Δ * (w : Int) + p.Δ ≤ 4 * p.Δ * (w : Int) + 6 * p.Δ

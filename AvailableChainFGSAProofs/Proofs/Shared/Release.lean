@@ -182,5 +182,24 @@ theorem fgsa_release_bound (p : Params) {In V : Type} [DecidableEq V] [Fintype V
       (Gen.V2.Duty.faulty rho).card :=
   fgsa_release_bound_restart p c E rho hE hC hDelta hroots i x s B hheads
 
+/-- Bound release by an explicit set of senders of conflicting resolved HEADs.
+The caller supplies only the actual release witnesses in this view. -/
+theorem fgsa_releaseCount_le_senders {n : Nat} {V : Type}
+    (q : GridCO.Params) (v : GridCO.State n .root) (s : Slot) (B : Block)
+    (sender : Fin n → V) (hinj : Function.Injective sender) (bad : Finset V)
+    (hbad : ∀ k o, o ∈ GridCO.votesAt v s →
+      GridCO.resolvedBefore v o (GridCO.releaseTime q s) = true →
+      GridCO.headSeat? o = some k →
+      (GridCO.resolvedHead? v o).any (fun C => !Block.compatible C B) = true →
+      sender k ∈ bad) : GridCO.releaseCount q v s B ≤ bad.card := by
+  classical
+  rw [release_card]
+  apply Finset.card_le_card_of_injOn sender
+  · intro k hk
+    obtain ⟨_, o, ho, hr, hs, hc⟩ := (release_mem q v s B k).mp hk
+    exact hbad k o ho hr hs hc
+  · intro k _ j _ he
+    exact hinj he
+
 end AvailableChain.FGSA.Run
 end

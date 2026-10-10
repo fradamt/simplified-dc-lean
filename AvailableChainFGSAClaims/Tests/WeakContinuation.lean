@@ -25,11 +25,11 @@ example {E : Generic.Env V} {source : V2.D.Run V (fgsa p c)} {G ΔF : Time}
 -- Opus WCCheck2.wc_prefix_iff: no additional recovery premise is hidden.
 example {E : Generic.Env V} {source : V2.D.Run V (fgsa p c)} {G ΔF : Time} :
     StrongRecoverySearchPrefix₂ p c E source G ΔF ↔
-      Recovery₂ p c E source G ΔF ∧ LivenessBoundW p ΔF ∧
-        source.horizon = E.t_GST + B_HF p ΔF G := by
+      RecoverySleep₂ p c E source G ΔF ∧ LivenessBoundW p ΔF ∧
+        source.horizon = recoveryStart p E + B_HF p ΔF G := by
   constructor
   · intro h
-    exact ⟨h.toRecovery₂, h.liveness, h.endpoint⟩
+    exact ⟨h.toRecoverySleep₂, h.liveness, h.endpoint⟩
   · rintro ⟨r, l, e⟩
     exact ⟨r, l, e⟩
 
@@ -48,8 +48,8 @@ example (E : Generic.Env V) (source : V2.D.Run V (fgsa p c)) (ΔF : Time) :
 -- A Recovery₂ witness needs only the stated liveness bound and endpoint.
 -- This is conditional non-vacuity; it does not construct an execution.
 example {E : Generic.Env V} {source : V2.D.Run V (fgsa p c)} {G ΔF : Time}
-    (r : Recovery₂ p c E source G ΔF) (l : LivenessBoundW p ΔF)
-    (e : source.horizon = E.t_GST + B_HF p ΔF G) :
+    (r : RecoverySleep₂ p c E source G ΔF) (l : LivenessBoundW p ΔF)
+    (e : source.horizon = recoveryStart p E + B_HF p ΔF G) :
     StrongRecoverySearchPrefix₂ p c E source G ΔF :=
   ⟨r, l, e⟩
 

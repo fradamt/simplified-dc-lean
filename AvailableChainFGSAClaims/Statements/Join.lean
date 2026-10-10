@@ -123,6 +123,7 @@ def firstUpdateLabel (a : Time) : Slot :=
 def tauC (a : Time) : Time :=
   slotStartZ p (firstUpdateLabel p a : Int) + 6 * p.Δ
 
+/-- The single healing start: the first slot start at or after GST, plus 6Δ. -/
 def recoveryStart (E : Generic.Env V) : Time :=
   tauC p E.t_GST
 

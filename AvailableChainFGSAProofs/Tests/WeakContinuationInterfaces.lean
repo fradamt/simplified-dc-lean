@@ -31,26 +31,29 @@ theorem replaySeed (ha : AgreesThrough₂ p c E source E' rho ΔF)
 
 /-- WC J1; DC first batch: the weak participation rule includes u+1. -/
 theorem firstBatch (hS : StrongRecoverySearchPrefix₂ p c E source G ΔF)
-    (hc : CleanContinuation₂ p c E source E' rho ΔF) (hs : WCSeed p c E source w iStar)
+    (hc : CleanContinuationSleep₂ p c E source E' rho ΔF) (_hs : WCSeed p c E source w iStar)
+    (hjoin : E.t_GST ≤ slotStartZ p (w.u : Int))
     (hcover : SA.voteTime p.toParams (w.u + 1) ≤ rho.horizon) :
     (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E' rho (SA.voteTime p.toParams (w.u + 1))).card :=
-  wc_participation hS hc hs.firstVoteAfterGST (w.u + 1) le_rfl hcover
+      (joinedHonest p E' rho (SA.voteTime p.toParams (w.u + 1))).card :=
+  wc_participation hS hc hjoin _ le_rfl hcover
 
 /-- WC J1; DC discharge: all [L] ports match the proposed event-step interface. -/
 theorem stepPorts (hS : StrongRecoverySearchPrefix₂ p c E source G ΔF)
-    (hc : CleanContinuation₂ p c E source E' rho ΔF) (hs : WCSeed p c E source w iStar)
+    (hc : CleanContinuationSleep₂ p c E source E' rho ΔF) (_hs : WCSeed p c E source w iStar)
+    (hjoin : E.t_GST ≤ slotStartZ p (w.u : Int))
     (step : WCStepStatement p c E' rho ΔF w iStar) :
     WCSeed p c E' rho w iStar → ∀ i, iStar ≤ i → i < rho.events.length →
       WCInv p c E' rho w iStar i → ∀ e, rho.events[i]? = some e →
         WCInv p c E' rho w iStar (i + 1) :=
-  wc_dischargeContinuation hS hc hs step
+  wc_dischargeContinuation hS hc _hs hjoin step
 
 omit [Fintype V] in
 /-- WC J1; DC retrospective I2: the receipt index is strictly before the completed gate. -/
 theorem retrospective {i j : Nat} {x : V} {s : Slot} {B : Block}
     (hi : WCInv p c E' rho w iStar i) (hr : WCResult p c E' rho w iStar i j x s B) :
-    ∀ y ∈ rho.honest, ∃ k < j, WCHeadRead p c E' rho k y (s + 1) B :=
+    ∀ y ∈ rho.honest, joinedAt p E' rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
+      ∃ k < j, WCHeadRead p c E' rho k y (s + 1) B :=
   hi.retrospective j x s B hr
 
 #check WCFinalizedCrossingStatement

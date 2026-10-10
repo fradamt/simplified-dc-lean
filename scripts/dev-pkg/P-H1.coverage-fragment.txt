@@ -100,6 +100,7 @@
             'AvailableChain.FGSA.Run.postReset_synchronous_window',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance': (
+            'AvailableChain.FGSA.Run.healing_promotion_advance_on',
             'AvailableChain.FGSA.Run.healing_promotion_advance',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.PromotionAge': (
@@ -137,6 +138,7 @@
             'AvailableChain.FGSA.Run.healing_renewedPromotion',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.PromotionRows': (
+            'AvailableChain.FGSA.Run.healing_promotion_same_rows_on',
             'AvailableChain.FGSA.Run.healing_promotion_same_rows',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.PromotionSource': (
@@ -146,6 +148,14 @@
             'AvailableChain.FGSA.Run.healing_renewedPromotion_terminal',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportFrame': (
+            'AvailableChain.FGSA.Run.HealingJoinedTick',
+            'AvailableChain.FGSA.Run.HealingCarriersAt',
+            'AvailableChain.FGSA.Run.healing_joined_tick_of_guard',
+            'AvailableChain.FGSA.Run.healing_joined_tick_of_window',
+            'AvailableChain.FGSA.Run.healing_carriers_window_at',
+            'AvailableChain.FGSA.Run.healing_carriers_cut_at',
+            'AvailableChain.FGSA.Run.healing_head_carrier_demand_phase',
+            'AvailableChain.FGSA.Run.healing_head_carrier_receipt',
             'AvailableChain.FGSA.Run.healing_head_witness_relay',
             'AvailableChain.FGSA.Run.healing_head_witness_relay_on',
             'AvailableChain.FGSA.Run.healing_settled_frame_strict',
@@ -153,10 +163,31 @@
             'AvailableChain.FGSA.Run.healing_witness_relay_settled',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportGate': (
+            'AvailableChain.FGSA.Run.healing_recovery_gate_enabled',
+            'AvailableChain.FGSA.Run.healing_gate_cut_of_batch_cut',
+            'AvailableChain.FGSA.Run.healing_support_gate_scope_of_batch',
+            'AvailableChain.FGSA.Run.healing_support_gate_geometry',
+            'AvailableChain.FGSA.Run.healing_support_gate_scope_of_cut',
+            'AvailableChain.FGSA.Run.healing_gate_enabled_of_joined',
+            'AvailableChain.FGSA.Run.healing_gate_enabled_of_result',
+            'AvailableChain.FGSA.Run.healing_recovery_later_gate',
             'AvailableChain.FGSA.Run.healing_support_emitted_head',
             'AvailableChain.FGSA.Run.healing_support_gate_cover',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery': (
+            'AvailableChain.FGSA.Run.HealingWindow',
+            'AvailableChain.FGSA.Run.StrongHealingWindow',
+            'AvailableChain.FGSA.Run.StrongHealingWindow.window',
+            'AvailableChain.FGSA.Run.HealingWindow.mono',
+            'AvailableChain.FGSA.Run.HealingWindow.sync',
+            'AvailableChain.FGSA.Run.HealingWindow.prior',
+            'AvailableChain.FGSA.Run.HealingWindow.after',
+            'AvailableChain.FGSA.Run.healing_window_of_cut',
+            'AvailableChain.FGSA.Run.healing_recovery_joined_window',
+            'AvailableChain.FGSA.Run.healing_recovery_joined_next',
+            'AvailableChain.FGSA.Run.healing_recovery_joined_vote_next',
+            'AvailableChain.FGSA.Run.healing_recovery_next_vote_joined_of_cut',
+            'AvailableChain.FGSA.Run.healing_recovery_joined_proposal_next',
             'AvailableChain.FGSA.Run.healing_recovery_durable',
             'AvailableChain.FGSA.Run.healing_recovery_epoch',
             'AvailableChain.FGSA.Run.healing_recovery_frame_metadata',
@@ -190,10 +221,16 @@
             'AvailableChain.FGSA.Run.healing_saved_origin_on',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportTicks': (
+            'AvailableChain.FGSA.Run.healingJoinedSeats_card',
+            'AvailableChain.FGSA.Run.healing_recovery_seat_counts',
+            'AvailableChain.FGSA.Run.healing_recovery_seat_rivals',
+            'AvailableChain.FGSA.Run.healingJoinedSeats_mem',
             'AvailableChain.FGSA.Run.healing_support_honest_emits',
             'AvailableChain.FGSA.Run.healing_support_vote_tick',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportLease': (
+            'AvailableChain.FGSA.Run.healing_recovery_same_label',
+            'AvailableChain.FGSA.Run.FastSupportScope.firstOn',
             'AvailableChain.FGSA.Run.FastSupportScope.mono',
             'AvailableChain.FGSA.Run.healing_lease_clock_nongate',
             'AvailableChain.FGSA.Run.healing_lease_persist',
@@ -231,7 +268,7 @@
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportPerm': (
             'AvailableChain.FGSA.Run.healing_phase_transfers',
-            'AvailableChain.FGSA.Run.healing_tPerm',
+            'AvailableChain.FGSA.Run.healing_tPerm_at',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads': (
             'AvailableChain.FGSA.Run.frontier_head_batch_seat',
@@ -252,6 +289,7 @@
             'AvailableChain.FGSA.Run.frontier_target_scores',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.RepairH6': (
+            'AvailableChain.FGSA.Run.RepairHeadServices.target',
             'AvailableChain.FGSA.Run.repair_liveRoot_cases',
             'AvailableChain.FGSA.Run.repair_F_preceq_Z',
             'AvailableChain.FGSA.Run.repair_prior_support',
@@ -299,6 +337,9 @@
             'AvailableChain.FGSA.Run.healing_tDelReset',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.DescentLoss': (
+            'AvailableChain.FGSA.Run.healing_high_source_recoveryStart',
+            'AvailableChain.FGSA.Run.healing_window_of_recoveryStart',
+            'AvailableChain.FGSA.Run.healing_high_source_window',
             'AvailableChain.FGSA.Run.SrcN_def',
             'AvailableChain.FGSA.Run.HighSrcN_def',
             'AvailableChain.FGSA.Run.Lost_def',
@@ -359,6 +400,8 @@
             'AvailableChain.FGSA.Run.healing_fast_heads_transfer',
         ),
         'AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer': (
+            'AvailableChain.FGSA.Run.FirstTransferScope.carriersOn',
+            'AvailableChain.FGSA.Run.healing_support_honest_head_joined',
             'AvailableChain.FGSA.Run.healing_support_honest_head',
             'AvailableChain.FGSA.Run.healing_support_release_compat',
             'AvailableChain.FGSA.Run.healing_first_transfer_core',

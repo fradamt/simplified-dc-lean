@@ -365,6 +365,12 @@ example : Gen.V2.Duty.PartialSynchronyBy strongEnv source (fgsaDelay strongEnv.�
   w1_strongRecovery.sync
 example : Gen.V2.Duty.PartialSynchronyBy weakEnv continuation (fgsaDelay weakEnv.Δ 1) :=
   w1_cleanContinuation.sync
-example : source.horizon = 247 ∧ continuation.horizon = 263 := horizons
-example : (Gen.V2.Duty.awakeHonest weakEnv continuation 248).card <
-    (Gen.V2.Duty.awakeHonest strongEnv source 247).card := strict_drop
+example : source.horizon = 253 ∧ continuation.horizon = 269 := horizons
+example : (Gen.V2.Duty.awakeHonest weakEnv continuation 254).card <
+    (Gen.V2.Duty.awakeHonest strongEnv source 253).card := strict_drop
+
+#check w1_cleanContinuationSleep
+
+example : ((tickBatch 254 V2.D.World.init).1 (1 : Validator)).st =
+    (V2.D.World.init (P := fgsa params unitCodec) (1 : Validator)).st :=
+  w1_tickBatch_sleep_st 254 _ 1 (by decide)

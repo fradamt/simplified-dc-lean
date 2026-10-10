@@ -53,9 +53,9 @@ theorem wcg_retained_nonempty {E₀ : Generic.Env V}
     {source : V2.D.Run V (fgsa p c)} {ΔF : Time}
     (h : CleanGrowthContinuationSleep₂ p c E₀ source E rho ΔF)
     (hne : source.horizon < rho.horizon) : rho.honest.Nonempty := by
-  have hp := h.participation rho.horizon hne le_rfl
-  have hcard : (Gen.V2.Duty.awakeHonest E rho rho.horizon).card ≤ rho.honest.card := by
-    rw [Gen.V2.Duty.awakeHonest_def]
+  classical
+  have hp := h.joinedParticipation rho.horizon hne le_rfl
+  have hcard : (joinedHonest p E rho rho.horizon).card ≤ rho.honest.card := by
     exact Finset.card_filter_le _ _
   exact Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) (hp.trans_le hcard))
 
@@ -105,7 +105,8 @@ theorem wcg_participation {E₀ : Generic.Env V}
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
     nlinarith [Nat.cast_nonneg (α := Int) (w.u + 1)]
   have hslot : (w.u : Int) + 1 ≤ (slotAt p t : Int) := by
-    rw [slotAt, Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
+    change (w.u : Int) + 1 ≤ ((t / (4 * p.Δ)).toNat : Int)
+    rw [Int.toNat_of_nonneg (Int.ediv_nonneg hnonneg hden.le)]
     have he := Int.mul_ediv_add_emod t (4 * p.Δ)
     have hr := Int.emod_lt_of_pos t hden
     change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤ t at hfirst
@@ -154,15 +155,22 @@ theorem wcg_sourceJoinCut {w : HealingWitness} (h : H0 p c E rho w) :
 
 /-- All finite seed fields come from continuation producers at its own index. -/
 theorem wcg_finiteSeed (hb : Base₂ p c E rho)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card) (i : Nat) :
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (i : Nat) :
     WCFiniteFacts p c E rho i := by
   have hsch := hb.valid.toScheduleWellFormed
-  exact wcg_finiteFacts hb.valid hb.idealization
+  exact wcg_finiteFacts hb.valid hb.receiptIdealization
     (sourceDiscipline_strat p c E rho (pt := ()) ⟨hb, hq⟩ (fgsa_rStore p c E rho))
     (fun x hx => fgsa_clientSafeAll p c E rho hb.linked x hx)
     (fun _ _ _ _ _ ha he => sourceDiscipline_emittedName p c E rho hsch ha he)
-    (fgsa_leaseOrigins_lastWrite p c E rho hsch)
-    (fgsa_leaseOrigins_fastWrites p c E rho hsch)
+    (fun i x row hr => by
+      obtain ⟨j, hj, r, B, hG, hpass, hB, hp, hkeys, hd, he, hlast⟩ :=
+        fgsa_leaseOrigins_lastWrite p c E rho hsch i x row hr
+      refine ⟨j, hj, r, B, hG, hpass, hB, hp, hkeys, hd, he, ?_⟩
+      intro k w C hjk hki hEnabled
+      exact hlast k w C hjk hki hEnabled.1
+        (by rw [clockPre_joined]; exact fgsa_gate_joined_of_enabled E rho hEnabled))
+    (fgsa_leaseOrigins_fastWrites_epoch p c E rho hsch)
     (fgsa_leaseOrigins_ancestorDeadlines p c E rho) i
 
 private def seed_headAtIdx (p : Params) {In : Type} (c : AppCodec In)
@@ -359,7 +367,8 @@ theorem wcg_sourceWitness_joined (hH : HTimeClaim p) {G ΔF : Time}
 /-- Choose the bounded source seed before any continuation is considered. -/
 theorem wcg_sourceWitness (hH : HTimeClaim p) {G ΔF : Time}
     (hδ : p.δt = 2 * p.R)
-    (hS : StrongRecoverySearchPrefix₂ p c E rho G ΔF) :
+    (hS : StrongRecoverySearchPrefix₂ p c E rho G ΔF)
+ :
     ∃ w : HealingWitness,
       BoundedHealingCut₂ p c E rho w.u w.QStar
         (afterTicksIdx rho (SA.gateTime p.toParams w.u)) ΔF ∧

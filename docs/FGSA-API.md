@@ -310,14 +310,14 @@ def AvailableChain.FGSA.Run.FrameClaimNext 04b6d8313f71d555
 ### `AvailableChainFGSAClaims.Claims.Healing`
 
 ```text
-def AvailableChain.FGSA.Run.RowPermissionAt fd668652dc5be121
+def AvailableChain.FGSA.Run.RowPermissionAt 2aa3e7597c75a529
 def AvailableChain.FGSA.Run.RowPermissionClaim c1d205837df4d84f
 def AvailableChain.FGSA.Run.HealingInputClaim 299996f93e58c72f
 def AvailableChain.FGSA.Run.HTimeConcl 6ce43c7e8c548d4d
 def AvailableChain.FGSA.Run.HTimeClaim bd44a91e474d3a3d
 def AvailableChain.FGSA.Run.ResetArrivalConcl 8a3ffd710e8ff267
 def AvailableChain.FGSA.Run.ResetArrivalClaim c767e4818cbcece1
-def AvailableChain.FGSA.Run.RenewedPromotionConcl c36fa5ae4de95025
+def AvailableChain.FGSA.Run.RenewedPromotionConcl 46aa4989ce76d164
 def AvailableChain.FGSA.Run.RenewedPromotionClaim c93a79b68fff8eb3
 def AvailableChain.FGSA.Run.HTimeBestClaim 35a141dba5939378
 def AvailableChain.FGSA.Run.HTimeSearchClaim 74e265b8f4b7658c
@@ -342,8 +342,8 @@ def AvailableChain.FGSA.Run.FastP1Claim 399cdb6afa7cddcf
 def AvailableChain.FGSA.Run.SlowP1Claim b6e4677a7031d0ca
 def AvailableChain.FGSA.Run.AvailableFromConcl 248a6c22e7c99029
 def AvailableChain.FGSA.Run.AvailableGrowthConcl 087e24156b98767c
-def AvailableChain.FGSA.Run.AvailableGSTClaim 03bbb9e68bb5017d
-def AvailableChain.FGSA.Run.AvailableGrowthGSTClaim 181e72d7a50f5db5
+def AvailableChain.FGSA.Run.AvailableGSTClaim e2298320bfe69e0a
+def AvailableChain.FGSA.Run.AvailableGrowthGSTClaim d0aeb463a9d32e6e
 def AvailableChain.FGSA.Run.CleanGrowthClaim 09242e8e226c2014
 ```
 
@@ -607,21 +607,21 @@ def AvailableChain.FGSA.Run.KeepOrCause 166011ad2d7d013a
 def AvailableChain.FGSA.Run.RExcl b4655726711a6ad3
 def AvailableChain.FGSA.Run.RKeep 426f897f28cd937d
 def AvailableChain.FGSA.Run.RFProv aebe599b91be4170
-def AvailableChain.FGSA.Run.TDel c17859c92b09181e
+def AvailableChain.FGSA.Run.TDel 9f3fe05ef8297719
 def AvailableChain.FGSA.Run.TDelReset 68478584c811758e
 def AvailableChain.FGSA.Run.TGeom 1414e61a74606c75
 def AvailableChain.FGSA.Run.ExactService 99e4a2d7f17d35fb
 def AvailableChain.FGSA.Run.PhaseInterval afef75f997db3a4d
 def AvailableChain.FGSA.Run.Transfers 896fc06cd181465c
 def AvailableChain.FGSA.Run.PhaseBody f03d85d9cad33cf0
-def AvailableChain.FGSA.Run.TPerm 16c5001e0aad29de
-def AvailableChain.FGSA.Run.ProposalGap 38fdf4b462101586
+def AvailableChain.FGSA.Run.TPerm 7107e0c92bc6f203
+def AvailableChain.FGSA.Run.ProposalGap 19e914ffe8dc8c61
 def AvailableChain.FGSA.Run.RepairAfter 15111b685565f209
-def AvailableChain.FGSA.Run.TRepair ddf5ee8f030541d8
+def AvailableChain.FGSA.Run.TRepair aa05dd16fc9cf562
 def AvailableChain.FGSA.Run.OpeningCovered 76cb4c0a27f856b2
 def AvailableChain.FGSA.Run.OpeningEntry 525af493a96ad9e1
-def AvailableChain.FGSA.Run.TCommon e8084a92584fc66a
-def AvailableChain.FGSA.Run.TFrontier 03c591a02968860a
+def AvailableChain.FGSA.Run.TCommon 44717970edca5fc2
+def AvailableChain.FGSA.Run.TFrontier da4929d474147fe1
 def AvailableChain.FGSA.Run.FinalityRowCarriage ef0b0b17011f546d
 theorem AvailableChain.FGSA.Run.FinalityRowCarriage_def 108856d5d6440223
 def AvailableChain.FGSA.Run.RMonoAll 270dd641905f5a39
@@ -748,10 +748,10 @@ field AvailableChain.FGSA.Run.AttemptKey.frontier dee085abe8607002
 field AvailableChain.FGSA.Run.AttemptKey.phase 84195c8f48291dfb
 field AvailableChain.FGSA.Run.AttemptKey.task 6a4993e3f16b51cb
 field AvailableChain.FGSA.Run.AttemptKey.served 36c55bac0872d02c
-def AvailableChain.FGSA.Run.ResetArrivalStatement 5210753060a4f71d
-theorem AvailableChain.FGSA.Run.ResetArrivalStatement_def 58c52e1b3c2e7673
-def AvailableChain.FGSA.Run.ResetArrivalFullStatement 3dc4b1d721e5bd9f
-theorem AvailableChain.FGSA.Run.ResetArrivalFullStatement_def cedadd53db2d14a4
+def AvailableChain.FGSA.Run.ResetArrivalStatement 9f655ca293622db3
+theorem AvailableChain.FGSA.Run.ResetArrivalStatement_def a7549810bc7507a7
+def AvailableChain.FGSA.Run.ResetArrivalFullStatement 3ce18d85c267ac5e
+theorem AvailableChain.FGSA.Run.ResetArrivalFullStatement_def 8637df07c077175d
 structure AvailableChain.FGSA.Run.KernelPt 9235f1fbc5c48477
 ctor AvailableChain.FGSA.Run.KernelPt.mk 32c96b623cc6f691
 field AvailableChain.FGSA.Run.KernelPt.w 6cbd0d7075070f20
@@ -802,13 +802,13 @@ def AvailableChain.FGSA.Run.ContestEvidence e90af4eb42250929
 def AvailableChain.FGSA.Run.EffectiveEvent 2ade77b79f4b314e
 def AvailableChain.FGSA.Run.AttemptPhaseAt 295a1769785cb806
 def AvailableChain.FGSA.Run.ServedFrontier 90b44c6d2fdaf84a
-def AvailableChain.FGSA.Run.AttemptValid b4f61bfc54aecb84
+def AvailableChain.FGSA.Run.AttemptValid 9b0c39ffb66acfc8
 def AvailableChain.FGSA.Run.attemptBudget b92a1475dc2a8a8b
 def AvailableChain.FGSA.Run.AttemptEndsBy b5160401477a33c9
 def AvailableChain.FGSA.Run.SettledPhaseFrame 362bcbb7ba51ca7e
 theorem AvailableChain.FGSA.Run.SettledPhaseFrame_def 2350c57f4b2aabd0
-def AvailableChain.FGSA.Run.RPhase 273d92a152a578e6
-theorem AvailableChain.FGSA.Run.RPhase_def 65241fec4d6909e1
+def AvailableChain.FGSA.Run.RPhase b7a024f03a877f9f
+theorem AvailableChain.FGSA.Run.RPhase_def 66f9483da363379d
 structure AvailableChain.FGSA.Run.HealRContract e740d2046862fe23
 ctor AvailableChain.FGSA.Run.HealRContract.mk f5f36294f3aa4b4f
 field AvailableChain.FGSA.Run.HealRContract.xing c3b0802ec0b78a25

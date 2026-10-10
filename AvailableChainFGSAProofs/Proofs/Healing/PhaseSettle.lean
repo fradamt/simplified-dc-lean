@@ -378,7 +378,10 @@ theorem healing_settle_start_on (crossing : RXing p c E rho)
     (hServices : ∀ i (ev : V2.Event V (Obj p)) x W y,
       rho.events[i]? = some ev → x ∈ rho.honest → y ∈ rho.honest →
       E.t_GST ≤ ev.time → W ∈ (storeAt p c E rho (i + 1) x).fg.TF →
+      (heightView p W).h = frontierAtIdx p c E rho (i + 1) →
       ev.time + p.Δ ≤ rho.horizon →
+      Block.Compatible (eraseFG W)
+        (eraseFG (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.F) →
       TargetReceiptService E rho (eraseFG W) (ev.time + p.Δ) y)
     (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∀ i ev v m kind, rho.events[i]? = some ev →
@@ -416,8 +419,25 @@ theorem healing_settle_start_on (crossing : RXing p c E rho)
       (hh : (heightView p W).h = m) {k : Nat} {y : V}
       (hk : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ k) (hy : y ∈ rho.honest) :
       W ∈ (storeAt p c E rho k y).fg.TF := by
+    let d := V2.D.Run.idxBefore rho (ev.time + p.Δ)
+    have hMax : (storeAt p c E rho d y).fg.h_max ≤ m := by
+      have hm0 := healing_phase_local_le_frontier p c E rho (i := d) hy
+      exact hm0.trans_eq (hcap d le_rfl hj0v)
+    obtain ⟨Kc, hKc, hKcF⟩ := (storeBundle_stateBefore E rho d y).cstore.fg.Fcar
+    have hLow := (healing_phase_finality_le p c E rho hKc hKcF).trans_lt
+      (healing_phase_justified_lt p c E rho d y)
+    have hWD := (fgsa_store_durable p c E rho (show i + 1 ≤ d from by
+      dsimp [d]; omega) x).1 hW.2
+    have hFW := crossing d d y x Kc W hy le_rfl hKc hKcF ⟨hW.1, hWD⟩
+      (by simp only [Height] at *; omega)
+    have hFloor : Block.Compatible (eraseFG W)
+        (eraseFG (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.F) := by
+      rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
+      exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl (eraseFG W))
+        (eraseFG_preceq hFW)
     have h0 := healing_held_block_receipt_on p c E rho hvalid hroots W
-      (ev.time + p.Δ) y hy (hServices i ev x W y hi hW.1 hy hgst hW.2 hhor)
+      (ev.time + p.Δ) y hy (hServices i ev x W y hi hW.1 hy hgst hW.2
+        (hh.trans hfront.symm) hhor hFloor)
     change W ∈ (V2.D.Run.stateBeforeTime E rho (ev.time + p.Δ) y).st.fg.TF at h0
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at h0
     exact (fgsa_store_durable p c E rho hk y).1 h0

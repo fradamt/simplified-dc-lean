@@ -19,7 +19,7 @@ theorem assembly_tickReplay_atWake (ha : RetainedAgreesThrough₂ p c E source E
   wcg_tickEventReplay ha hs hr hx ht hj
 
 /-- A retained reader keeps the source join guard through the inclusive endpoint. -/
-theorem assembly_joinedReplay [Fintype V]
+theorem assembly_joinedReplay
     (ha : RetainedAgreesThrough₂ p c E source E' rho)
     {x : V} {s : Slot} {t : Time} (hx : x ∈ rho.honest) (ht : t ≤ source.horizon)
     (hj : joinedAt p E source x s t) : joinedAt p E' rho x s t := by

@@ -42,7 +42,7 @@ private theorem schedule0 : V2.D.ScheduleWellFormed env0 rho0 where
     cases he
     exact ⟨0, rfl⟩
   tick_total := by
-    intro v hv t _ ht hh
+    intro v hv t _ ht hh _
     have he : t = 0 := le_antisymm hh ht
     subst t
     have hv : v = 0 := Finset.mem_singleton.mp hv
@@ -53,36 +53,61 @@ private theorem noDelivery0 (i : Nat) (v : Fin 4) (o : (fgsa p4 unitCodec).Objec
     (t : Time) : rho0.events[i]? ≠ some (.deliver v o t) := by
   cases i <;> simp
 
+private theorem namedRoots0 : NamedRootCollisionFree p4 unitCodec env0 rho0 := by
+  have hnone : ∀ x o t, V2.Event.deliver x o t ∉ rho0.events := by
+    intro x o t hd
+    obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
+    exact noDelivery0 i x o t hi
+  have hg {A : NamedProposal p4.n} (hA : NamedProposalInRun p4 unitCodec env0 rho0 A) :
+      A = .genesis := by
+    rcases namedProposalInRun_genesis_or_delivered env0 rho0
+      (by intro x o t b hd; exact (hnone x o t hd).elim) hA with h | hd
+    · exact h
+    · obtain ⟨x, o, t, hd, _⟩ := hd
+      exact (hnone x o t hd).elim
+  refine ⟨?_⟩
+  intro B C hB hC A D hA hD _
+  have scopeX {X : NamedProposal p4.n} (hX : NamedProposal.Preceq X B ∨
+      NamedProposal.Preceq X C) :
+      NamedProposalInRun p4 unitCodec env0 rho0 X := by
+    rcases hX with hX | hX
+    · exact namedScope_ancestor env0 rho0 hB hX
+    · exact namedScope_ancestor env0 rho0 hC hX
+  exact (hg (scopeX hA)).trans (hg (scopeX hD)).symm
+
+private theorem receiptRoots0 : NamedReceiptRootCollisionFree p4 unitCodec env0 rho0 := by
+  have scope {A : NamedProposal p4.n}
+      (hA : NamedProposalReceiptScope p4 unitCodec env0 rho0 A) :
+      NamedProposalInRun p4 unitCodec env0 rho0 A := by
+    rcases hA with hA | ⟨v, _, o, t, N, ⟨i, hi, hem⟩, hp, _⟩
+    · exact hA
+    · cases i with
+      | zero =>
+        have he := Option.some.inj hi
+        cases he
+        have hn : ∀ o ∈ V2.D.Run.emitsAt env0 rho0 0,
+            (match o.payload with | .proposal _ => false | _ => true) = true := by
+          decide +kernel
+        simpa only [hp, Bool.false_eq_true] using hn o hem
+      | succ i => simp at hi
+  intro A B hA hB he
+  exact namedProposal_eq env0 rho0 namedRoots0 (scope hA) (scope hB) he
+
 -- Horizon zero with three faulty validators; no receipt is scheduled.
 private theorem base0 : Base₂ p4 unitCodec env0 rho0 where
   valid := {
+    toSleepWellFormed := {
+      tick_awake := by intros; rfl
+      deliver_awake := by intros; rfl
+      restart_awake := by intros; rfl
+      wake_restart := by intro v hv t ht hh hw; exact Bool.noConfusion hw.2 }
     toScheduleWellFormed := schedule0
     wire := by intro i v o t h; exact (noDelivery0 i v o t h).elim
     deps := by intro i v o t h; exact (noDelivery0 i v o t h).elim
     fresh := by intro i v o t h; exact (noDelivery0 i v o t h).elim
     unforgeable := by rintro v o t ⟨i, hi⟩; exact (noDelivery0 i v o t hi).elim
     carried := by rintro v o t ⟨i, hi⟩; exact (noDelivery0 i v o t hi).elim }
-  idealization := by
-    have hnone : ∀ x o t, V2.Event.deliver x o t ∉ rho0.events := by
-      intro x o t hd
-      obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
-      exact noDelivery0 i x o t hi
-    have hg {A : NamedProposal p4.n} (hA : NamedProposalInRun p4 unitCodec env0 rho0 A) :
-        A = .genesis := by
-      rcases namedProposalInRun_genesis_or_delivered env0 rho0
-        (by intro x o t b hd; exact (hnone x o t hd).elim) hA with h | hd
-      · exact h
-      · obtain ⟨x, o, t, hd, _⟩ := hd
-        exact (hnone x o t hd).elim
-    refine ⟨?_⟩
-    intro B C hB hC A D hA hD _
-    have scopeX {X : NamedProposal p4.n} (hX : NamedProposal.Preceq X B ∨
-        NamedProposal.Preceq X C) :
-        NamedProposalInRun p4 unitCodec env0 rho0 X := by
-      rcases hX with hX | hX
-      · exact namedScope_ancestor env0 rho0 hB hX
-      · exact namedScope_ancestor env0 rho0 hC hX
-    exact (hg (scopeX hA)).trans (hg (scopeX hD)).symm
+  receiptIdealization := receiptRoots0
   linked := by
     refine ⟨4, Equiv.refl _, ?_⟩
     intro ℓ hℓ
@@ -97,22 +122,24 @@ private theorem base0 : Base₂ p4 unitCodec env0 rho0 where
       exact Function.bijective_id
     · exact hℓ.elim
     · exact hℓ.elim
-  noRestart := by intro i v t; cases i <;> simp
+  restartsAtWakes := by intro v t he; simp at he
   delta := rfl
 
 private theorem healthy0 : V2.D.HealthyPrefixDelivery env0 rho0 0 where
   broadcast_emitted := by
-    rintro v _ o t ⟨i, hi, _⟩ w _ hd _
-    have ht : 0 ≤ t := (schedule0.in_horizon _ (List.mem_of_getElem? hi)).1
-    change t + 1 ≤ 0 at hd
-    exact (not_le_of_gt (lt_add_of_le_of_pos ht (by decide)) hd).elim
+    intro v hv o t hem w hw a hta ha had hcut
+    change a + 1 ≤ 0 at hcut
+    dsimp [Time] at ha hcut
+    omega
   relay_accepted := by
-    rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
-    exact (noDelivery0 i v o' t hi).elim
+    intro v hv i o t ha
+    obtain ⟨obj, hi, _⟩ := ha.1
+    exact (noDelivery0 i v obj t hi).elim
 
-private theorem prefix0 : HealthyPrefix₂ p4 unitCodec env0 rho0 0 :=
-  HealthyPrefix₂.of_legacy base0 ⟨le_rfl, le_rfl⟩ healthy0
-    (fun _ ht hb => (not_lt_of_ge ht hb).elim)
+private theorem prefix0 : CleanCutSet p4 unitCodec env0 rho0 0 :=
+  ⟨HealthyPrefix₂.of_legacy base0 ⟨le_rfl, le_rfl⟩ healthy0
+    (fun _ ht hb => (not_lt_of_ge ht hb).elim),
+    fun _ ht hb => (not_lt_of_ge ht hb).elim⟩
 
 -- The equal-delay regime recovers the old all-object law.
 example : V2.D.HealthyPrefixDelivery env0 rho0 0 := prefix0.legacy_delivery
@@ -129,19 +156,39 @@ example : timeIdx rho0 (-1) = 0 ∧ timeIdx rho0 (rho0.horizon + 1) = 1 := by de
 -- A complete, nonempty healthy-prefix witness with false FaultQ.
 example : CleanHistoryAt p4 unitCodec env0 rho0 0 ∧
     CleanTruncAt p4 unitCodec env0 rho0 0 :=
-  ⟨cleanHistoryAt_zero prefix0, cleanTruncAt_zero prefix0⟩
+  ⟨cleanHistoryAt_zero prefix0.toHealthyPrefix₂, cleanTruncAt_zero prefix0.toHealthyPrefix₂⟩
+
+private theorem zero_S (i : Nat) (hi : i ≤ 1) (x : Fin 4) :
+    S_at p4 unitCodec env0 rho0 i x = .genesis := by
+  interval_cases i <;> fin_cases x <;> rfl
 
 example : CleanSafetyAt p4 unitCodec env0 rho0 :=
-  cleanSafetyAt_of_trunc p4 unitCodec env0 rho0 schedule0 (cleanTruncAt_zero prefix0)
+  cleanSafetyAt_of_trunc p4 unitCodec env0 rho0 schedule0 (by
+    constructor
+    · intro i j x y hi hj hx hy
+      rw [zero_S i hi x, zero_S j hj y]
+      rfl
+    · intro i j x hi hj hij hx
+      rw [zero_S i hi x, zero_S j hj x]
+      exact Gen.Pure.block_preceq_refl .genesis)
 
 -- Both theorem applications keep exactly the requested premises.
-example (E : Generic.Env (Fin 4)) (h : HealthyPrefix₂ p4 unitCodec E rho0 0) :
+example (E : Generic.Env (Fin 4)) (h : CleanCutSet p4 unitCodec E rho0 0) :
     CleanHistoryAt p4 unitCodec E rho0 0 ∧ CleanTruncAt p4 unitCodec E rho0 0 :=
-  ⟨cleanHistoryAt_zero h, cleanTruncAt_zero h⟩
+  ⟨cleanHistoryAt_zero h.toHealthyPrefix₂, cleanTruncAt_zero h.toHealthyPrefix₂⟩
 
 example (E : Generic.Env (Fin 4)) (hs : V2.D.ScheduleWellFormed E rho0)
-    (ht : CleanTruncAt p4 unitCodec E rho0 rho0.horizon) :
+    (ht : Gen.Pure.CompatOn (· ∈ rho0.honest) (S_at p4 unitCodec E rho0)
+        (· ≤ timeIdx rho0 rho0.horizon) ∧
+      Gen.Pure.MonoOn (· ∈ rho0.honest) (S_at p4 unitCodec E rho0)
+        (· ≤ timeIdx rho0 rho0.horizon)) :
     CleanSafetyAt p4 unitCodec E rho0 := cleanSafetyAt_of_trunc p4 unitCodec E rho0 hs ht
+
+#print axioms namedRoots0
+#print axioms receiptRoots0
+#print axioms base0
+#print axioms prefix0
+#print axioms zero_S
 
 end AvailableChain.FGSA.Run.Tests.Zero
 end
@@ -233,13 +280,18 @@ private theorem lsync_schedule : V2.D.ScheduleWellFormed E rho where
     have hn : 0 ≤ t := hall _ ht
     exact ⟨t.toNat, by simp [Int.toNat_of_nonneg hn]⟩
   tick_total := by
-    intro v _ t _ ht hh
+    intro v _ t _ ht hh _
     have hv : v = 0 := Subsingleton.elim _ _
     subst v
     change t ≤ 17 at hh
     interval_cases t <;> decide +kernel
 
 private theorem lsync_execution : V2.D.ExecutionValid E rho where
+  toSleepWellFormed := {
+    tick_awake := by intros; rfl
+    deliver_awake := by intros; rfl
+    restart_awake := by intros; rfl
+    wake_restart := by intro v hv t ht hh hw; exact Bool.noConfusion hw.2 }
   toScheduleWellFormed := lsync_schedule
   wire := by
     intro i v o t hi
@@ -292,22 +344,55 @@ private instance (i : Nat) (e : V2.Event (Fin 1) (fgsa p unitCodec).Object) :
 private theorem lsync_delivered : ∀ i : Fin rho.events.length, Delivered i rho.events[i.val] := by
   decide +kernel
 
+private def ProcessedDelivery (j : Nat) : Prop :=
+  match rho.events[j]? with
+  | some (.deliver v o _) => (fgsa p unitCodec).processed
+      (V2.D.Run.stateBefore E rho (j + 1) v) o = true
+  | _ => True
+
+private instance (j : Nat) : Decidable (ProcessedDelivery j) := by
+  unfold ProcessedDelivery
+  split <;> infer_instance
+
+private theorem delivery_processed : ∀ j : Fin rho.events.length, ProcessedDelivery j := by
+  decide +kernel
+
 private theorem slowPrefix : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (fgsaDelay E.Δ 3) 17 where
   broadcast_emitted := by
-    rintro v _ o t ⟨i, hi, hem⟩ w _ hd _
+    rintro v _ o t ⟨i, hi, hem⟩ w _ a hta ha had hcut _ _ _
     obtain ⟨hil, he⟩ := List.getElem?_eq_some_iff.mp hi
     have hc := lsync_delivered ⟨i, hil⟩
     simp only [Delivered, he] at hc
+    have hd : t + fgsaDelay E.Δ 3 o ≤ 17 := by
+      change a + fgsaDelay E.Δ 3 o ≤ 17 at hcut
+      linarith
     obtain ⟨j, ht, hd, hj⟩ := hc o hem hd
     have hvw : v = w := Subsingleton.elim _ _
     subst w
-    exact ⟨_, ht, hd, j, o, List.getElem?_eq_some_iff.mpr ⟨j.isLt, hj⟩, Or.inl rfl⟩
+    have hevent := List.getElem?_eq_some_iff.mpr ⟨j.isLt, hj⟩
+    by_cases hja : a ≤ rho.events[j.val].time
+    · exact Or.inr ⟨_, hja, by
+        change rho.events[j.val].time < a + fgsaDelay E.Δ 3 o
+        linarith,
+        j, o, hevent, Or.inl rfl⟩
+    · refine Or.inl ⟨j.val + 1, ?_, ?_⟩
+      · exact Nat.succ_le_of_lt ((V2.D.Engine.index_lt_actionCut_iff
+          lsync_schedule hevent a).mpr (Or.inl (lt_of_not_ge hja)))
+      · have hp := delivery_processed j
+        change ProcessedDelivery j.val at hp
+        simpa only [ProcessedDelivery, hevent] using hp
   relay_accepted := by
-    intro v _ i o t ha w _ hp
+    intro v _ i o t ha w _ a hta _ had _ _ _ _
     have hvw : v = w := Subsingleton.elim _ _
     subst w
-    rw [ha.2.2] at hp
-    contradiction
+    obtain ⟨obj, hi, hhandles⟩ := ha.1
+    by_cases hlt : t < a
+    · refine Or.inl ⟨i + 1, ?_, ha.2.2⟩
+      exact Nat.succ_le_of_lt ((V2.D.Engine.index_lt_actionCut_iff
+        lsync_schedule hi a).mpr (Or.inl hlt))
+    · have heq : t = a := le_antisymm hta (le_of_not_gt hlt)
+      subst a
+      exact Or.inr ⟨t, le_rfl, had, i, obj, hi, hhandles⟩
 
 private abbrev row : (fgsa p unitCodec).Object := (V2.D.Run.emitsAt E rho 21)[0]'(by decide +kernel)
 private theorem row_emits : V2.D.Run.emits E rho 0 row 14 := by
@@ -328,17 +413,23 @@ private theorem old_fails : ¬ V2.D.HealthyPrefixDelivery E rho 17 := by
   intro h
   have hx : (fgsa p unitCodec).excludes (V2.D.Run.stateBeforeTime E rho 15 0) row = false := by
     decide +kernel
-  obtain ⟨t, _, htd, j, o, hj, hh⟩ :=
-    h.broadcast_emitted 0 (Finset.mem_univ _) row 14 row_emits 0 (Finset.mem_univ _) (by decide) hx
-  obtain ⟨hjl, he⟩ := List.getElem?_eq_some_iff.mp hj
-  have hc := no_early_row ⟨j, hjl⟩
-  simp only [NoEarlyRow, he] at hc
-  rcases hc with hc | hc
-  · exact (not_lt_of_ge hc) htd
-  · apply hc
-    rcases (fgsaHooks p unitCodec).handles_carries _ o row hh with rfl | hcarry
-    · exact List.mem_cons_self
-    · exact List.mem_cons_of_mem _ ((carries_children o row).mp hcarry)
+  have hs := h.broadcast_emitted 0 (Finset.mem_univ _) row 14 row_emits
+    0 (Finset.mem_univ _) 14 le_rfl (by decide) (by decide) (by decide)
+    (by decide) (by intro u hu hh; rfl) hx
+  rcases hs with ⟨k, hk, hp⟩ | ⟨t, _, htd, j, o, hj, hh⟩
+  · have cert : ∀ k : Fin (V2.D.Run.actionCut rho 14 + 1),
+        (fgsa p unitCodec).processed (V2.D.Run.stateBefore E rho k 0) row = false := by
+      decide +kernel
+    exact Bool.noConfusion ((cert ⟨k, by omega⟩).symm.trans hp)
+  · obtain ⟨hjl, he⟩ := List.getElem?_eq_some_iff.mp hj
+    have hc := no_early_row ⟨j, hjl⟩
+    simp only [NoEarlyRow, he] at hc
+    rcases hc with hc | hc
+    · exact (not_lt_of_ge hc) htd
+    · apply hc
+      rcases (fgsaHooks p unitCodec).handles_carries _ o row hh with rfl | hcarry
+      · exact List.mem_cons_self
+      · exact List.mem_cons_of_mem _ ((carries_children o row).mp hcarry)
 /-- ROOT-DIGEST W3b. The existing event certificate gives actual emission origin. -/
 private theorem delay_rootEmission {x : Fin 1} {o : Obj p} {t : Time}
     (hd : V2.Event.deliver x o t ∈ rho.events) : ∃ i u,
@@ -404,8 +495,8 @@ private theorem delay_rootDeliveredEq {x y : Fin 1} {o o' : Obj p} {t u : Time}
   rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem'
   have ha := (fgsa_emits_proposal E rho _ 0 ti s _).mp hem
   have ha' := (fgsa_emits_proposal E rho _ 0 tj s' _).mp hem'
-  obtain ⟨H, raw0, sup0, rows0, hb, _, _⟩ := rowsOk_withApp _ _ _ ha.2.2.2
-  obtain ⟨H', raw1, sup1, rows1, hc, _, _⟩ := rowsOk_withApp _ _ _ ha'.2.2.2
+  obtain ⟨H, raw0, sup0, rows0, hb, _, _⟩ := rowsOk_withApp _ _ _ ha.2.2.2.2
+  obtain ⟨H', raw1, sup1, rows1, hc, _, _⟩ := rowsOk_withApp _ _ _ ha'.2.2.2.2
   have hBs : B.slot = s := by
     have hh := congrArg (fun m : Msg p.n => match m with
       | .proposal b => b.slot | _ => 0) hb
@@ -423,7 +514,7 @@ private theorem delay_rootDeliveredEq {x y : Fin 1} {o o' : Obj p} {t u : Time}
     obtain ⟨hjl, hej⟩ := List.getElem?_eq_some_iff.mp hj
     exact (lsync_execution.nodup.getElem_inj_iff (hi := hil) (hj := hjl)).mp (hei.trans hej.symm)
   subst j
-  exact (Msg.proposal.inj (Option.some.inj (ha.2.2.2.symm.trans ha'.2.2.2)))
+  exact (Msg.proposal.inj (Option.some.inj (ha.2.2.2.2.symm.trans ha'.2.2.2.2)))
 
 /-- ROOT-DIGEST W3b. Origin closes the body scope; no fixture premise is assumed. -/
 private theorem delay_rootPremise : NamedRootCollisionFree p unitCodec E rho where
@@ -456,9 +547,32 @@ private theorem delay_rootPremise : NamedRootCollisionFree p unitCodec E rho whe
       · obtain ⟨y, o', u, hd', hp'⟩ := hdD
         exact delay_rootDeliveredEq hd hp hd' hp' he
 
+private theorem delay_receiptRoots : NamedReceiptRootCollisionFree p unitCodec E rho := by
+  have emittedScope {v : Fin 1} {o : (fgsa p unitCodec).Object} {t : Time} {N : NamedProposal p.n}
+      (hem : V2.D.Run.emits E rho v o t) (hp : o.payload = .proposal N) :
+      NamedProposalInRun p unitCodec E rho N := by
+    obtain ⟨i, hi, ho⟩ := hem
+    have cert : ∀ j : Fin rho.events.length, ∀ o ∈ V2.D.Run.emitsAt E rho j,
+        (match o.payload with
+          | .proposal _ => decide (V2.Event.deliver 0 o rho.events[j.val].time ∈ rho.events)
+          | _ => true) = true := by decide +kernel
+    have hc := cert ⟨i, (List.getElem?_eq_some_iff.mp hi).1⟩ o ho
+    have hd : V2.Event.deliver 0 o t ∈ rho.events := by
+      simp only [hp, (List.getElem?_eq_some_iff.mp hi).2,
+        decide_eq_true_eq, V2.Event.time] at hc
+      exact hc
+    exact namedScope_delivered E rho hd hp
+  have scope {A : NamedProposal p.n} (hA : NamedProposalReceiptScope p unitCodec E rho A) :
+      NamedProposalInRun p unitCodec E rho A := by
+    rcases hA with hA | ⟨v, _, o, t, N, hem, hp, hAN⟩
+    · exact hA
+    · exact namedScope_ancestor E rho (emittedScope hem hp) hAN
+  intro A B hA hB he
+  exact namedProposal_eq E rho delay_rootPremise (scope hA) (scope hB) he
+
 private theorem base : Base₂ p unitCodec E rho where
   valid := lsync_execution
-  idealization := delay_rootPremise
+  receiptIdealization := delay_receiptRoots
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩
     intro l hl
@@ -473,15 +587,14 @@ private theorem base : Base₂ p unitCodec E rho where
       exact ⟨fun _ _ _ => Subsingleton.elim _ _, fun v => ⟨0, Subsingleton.elim _ _⟩⟩
     · exact hl.elim
     · exact hl.elim
-  noRestart := by
-    intro i v t hi
-    have hm := List.mem_of_getElem? hi
-    have cert : ∀ e ∈ rho.events, (match e with | .restart _ _ => true | _ => false) = false := by
-      decide +kernel
-    exact Bool.noConfusion (cert _ hm)
+  restartsAtWakes := by
+    intro v t hi
+    have cert : ∀ e ∈ rho.events,
+        (match e with | .restart _ _ => true | _ => false) = false := by decide +kernel
+    exact Bool.noConfusion (cert _ hi)
   delta := rfl
 
-private theorem slow_clean : Clean₂ p unitCodec E rho 3 := by
+private theorem slow_clean_legacy : Clean₂ p unitCodec E rho 3 := by
   refine ⟨⟨⟨base, ⟨by decide, le_rfl⟩, slowPrefix, by decide, ?_⟩, ?_⟩, rfl⟩
   · intro t _ _
     change 0 < 1
@@ -498,10 +611,35 @@ private theorem old_clean_fails : ¬ Clean₂ p unitCodec E rho := by
 
 private theorem lsync_delay_gap : E.Δ < (3 : Time) := by decide
 
+private theorem delay_joined (t : Time) : (joinedHonest p E rho t).card = 1 := by
+  classical
+  have hj : ∀ v : Fin 1, joinedAt p E rho v (slotAt p t) t := by
+    intro v
+    refine ⟨rfl, ?_, ?_⟩
+    · intro u hu hut hw
+      exact Bool.noConfusion hw.2
+    · intro u hu hut he
+      have cert : ∀ e ∈ rho.events,
+          (match e with | .restart _ _ => true | _ => false) = false := by decide +kernel
+      exact Bool.noConfusion (cert _ he)
+  simp only [joinedHonest, Finset.filter_true_of_mem (fun v _ => hj v)]
+  decide
+
+private theorem slow_clean : CleanSet p unitCodec E rho 3 :=
+  ⟨slow_clean_legacy, ⟨slow_clean_legacy.pre,
+    ⟨slow_clean_legacy.pre.toHealthyPrefix₂, by
+      intro t ht hh
+      rw [delay_joined]
+      decide⟩, by rw [delay_joined]; decide⟩⟩
+
 -- The exported safety claim applies to this slower-row run.
 private theorem slow_safety : CleanSafetyAt p unitCodec E rho :=
   fgsa_cleanSafetyClaim p unitCodec E rho () ⟨slow_clean⟩
 
+#print axioms lsync_execution
+#print axioms delivery_processed
+#print axioms delay_receiptRoots
+#print axioms delay_joined
 #print axioms slow_clean
 #print axioms old_clean_fails
 #print axioms slow_safety

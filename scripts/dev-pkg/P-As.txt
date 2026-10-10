@@ -1,5 +1,6 @@
-# P-As round 2: TVOTE-CUT and current service ports; full assembly OPEN.
+# P-As round 5: joined WC assembly prepared; non-healing closure remains OPEN.
 [TARGETS]
+AvailableChainFGSAProofs.Tests.OutageAssemblyAxioms
 
 AvailableChainFGSA.Model.Store
 AvailableChainFGSA.Proofs.LeaseOutput
@@ -67,6 +68,9 @@ AvailableChainFGSAProofs.Tests.Zero
 AvailableChainFGSARun.Proofs.AncestorDeadlinesStore
 AvailableChainFGSARun.Statements.ReceiptCoverage
 [GREEN]
+AvailableChainFGSAProofs.Tests.Zero
+AvailableChainFGSAProofs.Proofs.Assembly.Clean
+AvailableChainFGSAProofs.Tests.OutageAssemblyAxioms
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -328,6 +332,7 @@ AvailableChainFGSAProofs.Tests.NonVacuity.HealingParams
 AvailableChainFGSAProofs.Tests.OutputGrowth
 AvailableChainFGSAProofs.Tests.Proposal
 AvailableChainFGSAProofs.Tests.SharedAxioms
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowthNonVacuity
 AvailableChainFGSARun.Model.Families
 AvailableChainFGSARun.Model.HealingFixture
 AvailableChainFGSARun.Model.Protocol
@@ -553,24 +558,29 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+
+AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay
+AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService
+AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation
+AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth
+AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed
+AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAxioms
+AvailableChainFGSAProofs.Tests.WeakContinuationInterfaces
+AvailableChainFGSAProofs.Tests.WeakContinuationSafety
+AvailableChainFGSAInhabit
+AvailableChainFGSAInhabit.Tests.Axioms
+AvailableChainFGSAInhabit.Tests.WeakContinuationW1
+AvailableChainFGSAInhabit.Tests.WitnessPositive
+AvailableChainFGSAInhabit.WeakContinuationW1
+AvailableChainFGSAInhabit.WitnessPositive
+AvailableChainFGSAProofs.Tests.OutageContinuationInhabit
+
 [EXPECTED-FAIL]
-AvailableChainFGSAInhabit P-As
-AvailableChainFGSAInhabit.Tests.Axioms P-As
-AvailableChainFGSAInhabit.Tests.WeakContinuationW1 P-As
-AvailableChainFGSAInhabit.Tests.WitnessPositive P-As
-AvailableChainFGSAInhabit.WeakContinuationW1 P-As
-AvailableChainFGSAInhabit.WitnessPositive P-As
 AvailableChainFGSAProofs P-As
-AvailableChainFGSAProofs.Proofs.Assembly.Clean P-As
-AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay P-As
-AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Healing P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Outage P-As
 AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Root P-As
-AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation P-As
-AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth P-As
-AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed P-As
 AvailableChainFGSAProofs.Tests.Axioms P-As
 AvailableChainFGSAProofs.Tests.FGCompose P-As
 AvailableChainFGSAProofs.Tests.HealingAttempt P-H2
@@ -585,13 +595,7 @@ AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages P-As
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset P-As
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun P-As
 AvailableChainFGSAProofs.Tests.OutageContinuationAxioms P-As
-AvailableChainFGSAProofs.Tests.OutageContinuationInhabit P-As
 AvailableChainFGSAProofs.Tests.OutageExport P-As
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAxioms P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationGrowthNonVacuity P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationInterfaces P-As
-AvailableChainFGSAProofs.Tests.WeakContinuationSafety P-As
-AvailableChainFGSAProofs.Tests.Zero P-As
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

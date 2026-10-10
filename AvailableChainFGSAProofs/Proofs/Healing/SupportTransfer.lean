@@ -19,32 +19,58 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- Local service inputs for the first transfer. Retained HEAD history is explicit.
 These fields describe object service and read epochs, rather than transfer conclusions. -/
-structure FirstTransferScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+structure FirstTransferScope (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c))
     (ix iy : Nat) (x y : V) (s : Slot) : Prop where
   sourceGuard : enabledGateAt p c E rho ix x s
   receiverGuard : joinedAtTime p (storeAt p c E rho iy y).restartTime
     (SA.releaseTime p.toParams s) = true
-  epoch : V2.D.restartFree rho y (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) iy
+  epoch : V2.D.restartFree rho y
+    (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) iy
   forward : ∀ q b,
     (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
       GridCO.cleanSupport p.toParams.engine
-        (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s →
+        (actView (clockPre p (storeAt p c E rho ix x)
+          (SA.gateTime p.toParams s))) s →
     HeadRelayServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y
   backward : ∀ q b,
     ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         GridCO.votesAt (storeAt p c E rho iy y).base s ∨
       (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
-        headVotes p (clock p (storeAt p c E rho iy y) (SA.voteTime p.toParams (s + 1)))
-          (s + 1)) →
+        headVotes p (clock p (storeAt p c E rho iy y)
+          (SA.voteTime p.toParams (s + 1))) (s + 1)) →
     HeadRelayServiceScope E rho s q b (SA.gateTime p.toParams s) ix x
   targets : ∀ K, K ∈ (storeAt p c E rho ix x).base.blocks →
-    GridCO.stampBlock (storeAt p c E rho ix x).base K < SA.earlyTime p.toParams s →
+    GridCO.stampBlock (storeAt p c E rho ix x).base K <
+      SA.earlyTime p.toParams s →
     Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) K →
     TargetReceiptService E rho K (SA.freezeTime p.toParams s) y
-  carriers : ∀ j z, z ∈ rho.honest →
-    rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)) →
-    ∀ W ∈ (storeAt p c E rho j z).fg.TF, ∀ v ∈ rho.honest,
-      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) v
+  carriers : HealingCarriersAt E rho s iy y
+    (SA.voteTime p.toParams (s + 1))
+
+/-- The first carrier uses the stored release guard at this same receiver tick. -/
+theorem FirstTransferScope.carriersOn {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {ix iy : Nat} {x y : V} {s : Slot}
+    (h : FirstTransferScope E rho ix iy x y s) (hE : V2.D.ExecutionValid E rho)
+    (hy : y ∈ rho.honest)
+    (hi : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams s) :
+    ∀ j z, z ∈ rho.honest →
+      rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)) →
+      joinedAt p E rho z s (SA.voteTime p.toParams s) →
+      HeadCarrierServices E rho j z s y := by
+  have hread : HealingJoinedTick E rho iy y (SA.voteTime p.toParams (s + 1)) := by
+    apply healing_joined_tick_of_guard p c E rho hE hy hi
+    convert h.receiverGuard using 1
+    congr 1
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ = 4 * p.Δ * (s : Int) + 5 * p.Δ
+    push_cast
+    ring
+  apply h.carriers hSync hread _ (hE.in_horizon _ (List.mem_of_getElem? hi)).2
+  change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤
+    4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+  push_cast
+  linarith [p.deltaPos]
 
 private theorem transfer_freeze_epoch (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {ix iy : Nat} {x y : V} {s : Slot}
@@ -280,7 +306,7 @@ theorem healing_support_clean_target (E : Generic.Env V) (rho : V2.D.Run V (fgsa
 Blueprint 21:620–631 (IF.6), 673–676; plan H-SUPPORT §4 step 2 (G3).
 DC: SAME a stored label-s vote of an honest holder is its own HEAD: the holder ticks at
 v_s and the target is the HEAD of its post-clock state. -/
-theorem healing_support_honest_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+theorem healing_support_honest_head_joined (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) {i : Nat} {x : V} {s : Slot} {k : Fin p.n}
     {o : GridCO.Wire p.n .root} (ho : o ∈ (storeAt p c E rho i x).base.votes)
     (hl : GridCO.headLabel? o = some s) (hk : GridCO.headSeat? o = some k)
@@ -289,7 +315,8 @@ theorem healing_support_honest_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
         (SA.voteTime p.toParams s)) ∧
       GridCO.headTarget? o = some (headVote p (FGSA.clock p
         (V2.D.Run.stateBefore E rho j (rho.seatOf (.base (.head s)) k)).st
-        (SA.voteTime p.toParams s)) s).root := by
+        (SA.voteTime p.toParams s)) s).root ∧
+      joinedAt p E rho (rho.seatOf (.base (.head s)) k) s (SA.voteTime p.toParams s) := by
   obtain ⟨K, rfl⟩ := transfer_vote_shape o s k hl hk
   change _ ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes at ho
   rw [← fgsa_vote_stamp_keys E rho i x] at ho
@@ -315,10 +342,24 @@ theorem healing_support_honest_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
       exact hE.unforgeable x _ u ⟨j, hd⟩ _ hh rfl
     · exact hE.carried x parent u ⟨j, hd⟩ _ hc _ hh rfl
   obtain ⟨t, _, j', ht, he⟩ := horigin
+  have he0 := he
   rw [(V2.D.Run.step_tick_eq E rho ht).2] at he
   obtain ⟨_, htime, _, _, hK⟩ := (fgsa_emits_head E rho _ _ t s k K).mp he
   subst htime
-  exact ⟨j', ht, by rw [hK]; rfl⟩
+  exact ⟨j', ht, by rw [hK]; rfl, fgsa_joinedAt_of_emitted_head E rho hE ht he0⟩
+
+theorem healing_support_honest_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) {i : Nat} {x : V} {s : Slot} {k : Fin p.n}
+    {o : GridCO.Wire p.n .root} (ho : o ∈ (storeAt p c E rho i x).base.votes)
+    (hl : GridCO.headLabel? o = some s) (hk : GridCO.headSeat? o = some k)
+    (hh : rho.seatOf (.base (.head s)) k ∈ rho.honest) :
+    ∃ j, rho.events[j]? = some (.tick (rho.seatOf (.base (.head s)) k)
+        (SA.voteTime p.toParams s)) ∧
+      GridCO.headTarget? o = some (headVote p (FGSA.clock p
+        (V2.D.Run.stateBefore E rho j (rho.seatOf (.base (.head s)) k)).st
+        (SA.voteTime p.toParams s)) s).root  := by
+  obtain ⟨j, hj, he, _⟩ := healing_support_honest_head_joined E rho hE ho hl hk hh
+  exact ⟨j, hj, he⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:689–692 (H.1 release), 620–631 (IF.6); plan H-SUPPORT §4 step 5
@@ -529,7 +570,7 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   have hBK : Block.Preceq B K := by
     rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hK] at hsup
     exact (Bool.and_eq_true_iff.mp hsup).2
-  obtain ⟨jz, hjz, hKz⟩ := healing_support_honest_head E rho hE hom hol hko hkh
+  obtain ⟨jz, hjz, hKz, hSourceJoin⟩ := healing_support_honest_head_joined E rho hE hom hol hko hkh
   have hRoot := Option.some.inj ((resolvedHead_root _ o hK).symm.trans hKz)
   have hKheld := headVote_stored p _
     (cstoreInv_clock p _ (cstoreInv_stateBefore E rho jz (rho.seatOf (.base (.head s)) k))
@@ -542,7 +583,10 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     linarith
   obtain ⟨Kfg, hKfull, hKe, W, hW, hKW, hloW, hrelay⟩ :=
     healing_head_witness_relay_on (hroots := hroots)
-      p c E rho crossing hE hkh hjz (hScope.carriers jz _ hkh hjz)
+      p c E rho crossing hE hkh hjz hy ((hScope.carriersOn hE hy hiy (hgst.trans hhead)
+        jz _ hkh hjz hSourceJoin).relay
+        (healing_head_carrier_demand_phase p c E rho crossing hE hphase
+          hkh hjz hhead (hvs.trans hgate) hy))
   have hKe2 : eraseFG Kfg = K := hKe.trans hKeq.symm
   have hBW : Block.Preceq B (eraseFG W) := by
     refine Gen.Pure.block_preceq_trans hBK ?_
@@ -576,7 +620,7 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     linarith
   have hWd : W ∈ (storeAt p c E rho
       (V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ)) y).fg.TF := by
-    have h := hrelay y hy W (KitFG.preceq_refl W)
+    have h := hrelay W (KitFG.preceq_refl W)
     change W ∈ (V2.D.Run.stateBefore E rho _ y).st.fg.TF
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
     exact h
