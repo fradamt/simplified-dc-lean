@@ -3,6 +3,8 @@ public import AvailableChainFGSAClaims.Claims.Clean
 public import AvailableChainFGSAProofs.Proofs.Clean.Zero
 public import AvailableChainFGSAProofs.Proofs.Clean.Safety
 public import AvailableChainFGSAProofs.Proofs.Clean.Closure
+public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
+public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 
 public section

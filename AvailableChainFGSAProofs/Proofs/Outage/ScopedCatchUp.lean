@@ -282,6 +282,89 @@ theorem outage_caught_up_public_read_from_seed [Fintype V]
   exact ⟨symm _ hS, hStable.symm ▸ symm _ hS, hConfirmed.symm ▸ symm _ hS,
     symm _ (current.2.2.2.1 x hReader.1.1)⟩
 
+/-- At each actual post-E enabled gate, every live row is compatible with B.
+An incompatible old write cannot survive its handover deadline. This proves the
+lease input at O11-W-SEED; it does not supply the old stable-record seed. -/
+theorem outage_caught_up_gate_rows [Fintype V]
+    {fast : Bool} {T b₀ b₁ ΔF : Time}
+    (h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF)
+    (hf : FGFoundation p c E rho) (origin : RQCOrigin p c E rho) (htsrc : TSrc p c E rho)
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hprov : ArmingJoinedProvenance (c := c) E rho)
+    {B : Block} (hne : B ≠ .genesis) {l : Slot} {D : Block}
+    {Dh β : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B)
+    {x : V} {s : Slot} {j : Nat}
+    (hLabel : restoredLabel p b₁ + p.k ≤ s) (hG : enabledGateAt p c E rho j x s) :
+    ∀ row ∈ (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams s)).base.obligations, Block.Compatible row.1 B := by
+  have hs := h.pre.base.valid.toScheduleWellFormed
+  have hx := hs.honest_only _ (List.mem_of_getElem? hG.1)
+  have hrs : restoredLabel p b₁ < s := by
+    have := p.kLarge; dsimp only [Slot] at *; omega
+  have hEarly : SA.earlyTime p.toParams (restoredLabel p b₁) <
+      SA.gateTime p.toParams s := by
+    rw [arming_early_eq, arming_gate_eq]
+    have hc := Int.ofNat_le.mpr hrs.le
+    nlinarith [p.deltaPos]
+  have hGateHor := (hs.in_horizon _ (List.mem_of_getElem? hG.1)).2
+  have hStart : afterTicksIdx rho (SA.earlyTime p.toParams (restoredLabel p b₁)) ≤ j :=
+    le_of_not_gt (fun hn => (not_lt_of_ge (arming_tick_le hs hG.1
+      (hn.trans_le (preIdx_le_afterTicksIdx E rho hs _).2))) hEarly)
+  have state := outage_continuation_event_state h hf origin htsrc hnamed hsrc hState hprov
+    hne hc hβ (hEarly.le.trans hGateHor) hStart
+    (Nat.le_of_lt (List.getElem?_eq_some_iff.mp hG.1).1)
+  have hEnd : OutageEnd p (restoredLabel p b₁) ≤ SA.gateTime p.toParams s := by
+    change 4 * p.Δ * ((restoredLabel p b₁ + p.k : Nat) : Int) + 5 * p.Δ ≤
+      4 * p.Δ * (s : Int) + 6 * p.Δ
+    have hcast := Int.ofNat_le.mpr hLabel
+    nlinarith [p.deltaPos]
+  intro row hr
+  by_contra hn
+  have hd := outage_conflicting_row_deadline hs (restoredLabel p b₁) B j x
+    (fun k q C hk hq hEnabled hC => state.1 k x q C hk hx hq hEnabled hC)
+    row ((clockPre_obligations_sublist p _ _).subset hr) hn
+  have hl : SA.gateTime p.toParams s < row.2.2 :=
+    of_decide_eq_true (List.mem_filter.mp (outage_clockPre_expired_rows _ _ hr)).2
+  exact (not_lt_of_ge (hd.trans hEnd)) hl
+
+/-- O11-W-SEED at the caller's actual enabled W gate. This definition records
+an open producer goal; it does not assert that the goal has been proved. -/
+@[expose] def OutageWSeed (fast : Bool) (b₀ b₁ : Time) (B : Block) : Prop :=
+  ∀ x t s j, outageConfirmedReader p c E rho fast b₀ b₁ x t →
+    x ∉ coveredNodes p E rho fast b₀ → t ≤ rho.horizon →
+    restoredLabel p b₁ + p.k ≤ s → j < timeIdx rho t →
+    enabledGateAt p c E rho j x s →
+    BatchReceiptAt p c E rho x s (SA.earlyTime p.toParams s) →
+    AwakeClosed E x (SA.gateTime p.toParams s) t →
+    RestartFreeTime rho x (SA.gateTime p.toParams s) t →
+    V2.D.restartFree rho x (V2.D.Run.actionCut rho (SA.voteTime p.toParams s))
+      (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) →
+    ¬ Block.Preceq B (F_at p c E rho j x) →
+    Block.Compatible B (S_at p c E rho (j + 1) x)
+
+theorem OutageWSeed_def (fast : Bool) (b₀ b₁ : Time) (B : Block) :
+    OutageWSeed (p := p) (c := c) (E := E) (rho := rho) fast b₀ b₁ B =
+      (∀ x t s j, outageConfirmedReader p c E rho fast b₀ b₁ x t →
+    x ∉ coveredNodes p E rho fast b₀ → t ≤ rho.horizon →
+    restoredLabel p b₁ + p.k ≤ s → j < timeIdx rho t →
+    enabledGateAt p c E rho j x s →
+    BatchReceiptAt p c E rho x s (SA.earlyTime p.toParams s) →
+    AwakeClosed E x (SA.gateTime p.toParams s) t →
+    RestartFreeTime rho x (SA.gateTime p.toParams s) t →
+    V2.D.restartFree rho x (V2.D.Run.actionCut rho (SA.voteTime p.toParams s))
+      (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) →
+    ¬ Block.Preceq B (F_at p c E rho j x) →
+    Block.Compatible B (S_at p c E rho (j + 1) x)) := rfl
+
 /-- Join the finite early reads, covered suffix and actual W gate.
 The W seed is the exact remaining P-Ou obligation, not a supplied public premise. -/
 theorem outage_continuation_public_reads [Fintype V]

@@ -1022,6 +1022,19 @@ no receipt demand. Frontier slow factories take the saved-window sync bound.
 The local repair lease covers and all ten aggregate producers remain OPEN/P-H1.
 See scripts/dev-pkg/P-H1.round6-producers.md and P-H1.round6-handoff.md.
 
+JOINED START (lead ruling, P-H1 Rounds 7-8): every healing intermediate statement
+(TDel, TPerm, ProposalGap, TRepair, TCommon, TFrontier, ResetArrival*, AttemptValid,
+RPhase, RenewedPromotionConcl) starts at Jst = recoveryStart p E, not at GST.
+Jst - GST lies in [6Δ, 10Δ-1] and depends only on GST mod 4Δ. Saved-window
+transport premises stay at GST. RowPermissionAt/Claim stay at GST (proved without
+a healing contract). Top-level Claims/Healing* deadlines and constants are unchanged.
+From Jst every honest reader and every source-label voter is joined, so there is
+one joined-phase permanence API; no early fast-only supplier and no early one-lease
+cleanup exist. Fast first transfer: relay rule plus the reader joined at release(s).
+Slow arm: lease expiry plus same-label uniqueness. A pre-GST lease that is still live
+at release(sStar) (k > 2R+3) is released by a later full post-Jst batch.
+Plan: tip-stability codex/jobs/joined-start-plan.md; ruling in sleep-join-port-notes.md.
+
 - FG-SA sleep continuation, P-Ou Round 10: `Outage/ScopedPrefix` selects
   regressions only at actual joined emitted HEADs. Its no-regression branch
   constructs the restored seed from the arming certificate, then produces
@@ -1066,3 +1079,15 @@ factories remain open, including their carried cap cases.
 No conditional assembly or fixture is a producer for those fields.
 The positive execution fixture now preserves its old event prefix and extends
 to horizon 310, beyond the complete joined-start H-time budget of 309.
+
+P-Ou Rounds 12-13 (sleep-pou12/13): ScopedEarly proves the early reads, HEADs, F and
+duties at finite cuts; ScopedClose gives the protected Outage result under Close's own
+OutagePrem (no NoRestart, no duties_and_outputs). The finite Clean history/output
+suppliers stay at the lane boundary. ScopedArming selects fast, slow and empty-G
+certificates; ScopedJoint joins the early reads, the covered suffix and the actual W
+gate. Assembly/OutagePublicInputs builds every finite Clean field from a named
+producer; its audit module prints their axioms. Dependency order: protected Outage
+is proved from named suppliers; W suffix preservation and lease compatibility at the
+actual post-handover W gate are proved; the continuation exporter still needs
+OutageWSeed (Outage/ScopedCatchUp, O11-W-SEED); P-As assembly and the global audit
+integration remain pending.
