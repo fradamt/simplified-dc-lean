@@ -1815,3 +1815,75 @@ HealthyPrefixSleep₂, CleanPrefixSleep₂, CleanSleep₂, RecoverySleep₂,
 OutageSleep₂, OutageContinuationSleepPrem, and both continuation companions
 remain OPEN until the owner evidence is available. A type audit is not an
 inhabitation proof. No premise was weakened to make a fixture pass.
+
+## S-Ap Round 2 — DECISION P23-A (2026-10-10)
+
+- DECISION P23-A: retired `ReceiptCoverageStatement`,
+  `ReceiptCoverageStatement_def`, and `fgsa_receiptCoverage`. Removed both
+  theorem audit commands and their inventory rows. The old proof module is
+  an import-only compatibility path to `ReceiptCoverageReady`.
+- DECISION P23-A: installed the approved `ReceiptCoverageSleepPremises`,
+  `ReceiptCoverageSleepStatement`, and its home equation. The statement and
+  equation use `NamedReceiptRootCollisionFree`; neither has a per-required
+  `NamedProposalInRun` premise. `ReceiptCoveragePremises` is unchanged.
+- DECISION P23-A: `Base₂` has one `receiptIdealization` field.
+  `Base₂.idealization` is now a theorem with the old safety result. Its local
+  ancestor proof keeps Claims independent of proof-module imports.
+- DECISION P23-A: all 17 full emission-supplier telescopes in each of WC
+  and WCG use the receipt premise, from Init through SeededFramePath.
+  This keeps the shared validity/delivery/receipt assumptions consistent
+  across the intermediate supplier stages. Standalone LowFinalized and
+  WCFinalityTargetEarlier interfaces retain the old root premise.
+  Safety-only Claims text is unchanged. Clean/ExactProposal, HealingInput/
+  HTime, GST availability and growth, and finality-liveness public premises
+  obtain the stronger field through Base₂. Family owners must update proof
+  caller arguments; those proof implementations are outside this edit.
+- DECISION P23-A: docstrings state why a global premise over all values is
+  false (root is a free field), and why the P2/DC difference is intentional.
+- DECISION P23-A: ReceiptAlias keeps the exact retired contract under the
+  test-only name `ReceiptAliasTests.legacyReceiptCoverageStatement`.
+  Its kernel counterexample remains. No production code imports that test.
+- DECISION P23-A: regenerated all 59 public manifest modules. Updated three
+  existing pins (two retirements and Base₂.mk); all 919 existing allow pins
+  match. No allow name or frozen/deep/frame/layer baseline changed.
+- DECISION P23-A: added separate Run and proof-interface P23 axiom audits.
+  The full Run audit has five inherited stale names and remains assigned to
+  W2b-audit. This does not hide those failures in the package map.
+
+### DECISION P23-A — fixture evidence and remaining owners
+
+FinalitySafety now constructs receipt collision freedom from a kernel-checked
+emission/store table. Its P2 delivery proof uses a handler before receipt and
+processed history after receipt. The concrete run has horizon 17, a non-genesis
+proposal, an enabled proposal gate before the horizon, and an audited confirmed
+reader at time 11. It constructs HealthyPrefixSleep₂, CleanPrefixSleep₂,
+CleanSleep₂, and RecoverySleep₂, with joined recurrence. It is GREEN.
+
+Regimes and HealingW now compile with the receipt field, sleep validity, P2
+anchors, and sleep regime constructors. Their horizon-zero evidence remains
+insufficient for useful-read validation, so their package classification stays
+EXPECTED-FAIL/P-Fx until the sleep generator replaces it. This classification
+records missing validation, even though the current modules compile.
+
+OutageSleep₂ and OutageContinuationSleepPrem need the P-Fx sleep generator;
+OutageContinuationInhabit is EXPECTED-FAIL/P-Fx. The two continuation companions
+need the W1 witness and remain OPEN/P-As through the FGSAInhabit modules.
+RowPermission remains EXPECTED-FAIL/P-As. No public premise was weakened.
+
+### DECISION P23-A — final validation
+
+S-Ap DCK PASS in 169.90 s: 440 GREEN modules, 39 strict audits,
+3,342 axiom results, and all 24 controls. Only propext, Classical.choice,
+and Quot.sound occur. The separate GREEN build passed in 26.91 s.
+The standard frozen manifest check passed in 24.01 s; all 919 pins match.
+Complete Claims, Run P23, WC, and WCG export checks have zero unaccepted
+exports. check-layers reports 72 accepted findings and zero new (0.32 s).
+The three changed fixtures build with --wfail (18.10 s); strict smoke audits
+also pass, without claiming useful reads from their horizon-zero runs.
+Default heartbeats, no proof placeholders, no baseline changes.
+
+The full supplier telescope changes cover these suffixes under both WC and
+WCG, each ending in Statement: Init, StepDelivery, StepNoGateTick, StepGateTick,
+StepRestart, Step, SeededInduction, Service4, SeededFrame, FinalBelow,
+ProposalPivot, ProposalAdmission, ExactProposal, Inclusion6, Retrospective,
+SeededFrameLive, and SeededFramePath.

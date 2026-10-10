@@ -22,8 +22,39 @@ structure Base₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
   cstar : V2.D.CStar (fgsaFamilies p c).fresh rho
   restartsAtWakes : V2.D.RestartsAtWakes E rho
   delta : E.Δ = p.Δ
-  /-- [ROOT-DIGEST W1; DC NamedRootCollisionFree] Run body collision freedom. -/
-  idealization : NamedRootCollisionFree p c E rho
+  /-- DECISION P23-A: delivered, held, and honest emitted bodies and their ancestors.
+  A global form over all values is false: root is a free field. -/
+  receiptIdealization : NamedReceiptRootCollisionFree p c E rho
+
+omit [Fintype V] in
+/-- DECISION P23-A: preserve the old safety projection from the single receipt field. -/
+theorem Base₂.idealization {p : Params} {c : AppCodec In} {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} (h : Base₂ p c E rho) :
+    NamedRootCollisionFree p c E rho := by
+  have trans {A B C : NamedProposal p.n}
+      (hAB : NamedProposal.Preceq A B) (hBC : NamedProposal.Preceq B C) :
+      NamedProposal.Preceq A C := by
+    induction C with
+    | genesis =>
+      have he : B = .genesis := by
+        simpa [NamedProposal.Preceq, NamedProposal.preceq] using hBC
+      simpa [he] using hAB
+    | node P s r x raw sup rows ih =>
+      simp only [NamedProposal.Preceq, NamedProposal.preceq, Bool.or_eq_true,
+        decide_eq_true_eq] at hBC ⊢
+      rcases hBC with rfl | hp
+      · simpa only [NamedProposal.Preceq, NamedProposal.preceq, Bool.or_eq_true,
+          decide_eq_true_eq] using hAB
+      · exact Or.inr (ih hp)
+  have ancestor {A B : NamedProposal p.n} (hB : NamedProposalInRun p c E rho B)
+      (hAB : NamedProposal.Preceq A B) : NamedProposalInRun p c E rho A := by
+    obtain ⟨C, hC, hBC⟩ := hB
+    exact ⟨C, hC, trans hAB hBC⟩
+  constructor
+  intro B C hB hC A D hA hD he
+  exact h.receiptIdealization A D
+    (Or.inl (hA.elim (ancestor hB) (ancestor hC)))
+    (Or.inl (hD.elim (ancestor hB) (ancestor hC))) he
 
 /-- Per-object delivery regime.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);

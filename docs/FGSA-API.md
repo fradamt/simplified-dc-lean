@@ -204,8 +204,14 @@ field AvailableChain.FGSA.Run.ReceiptCoveragePremises.within c1d114c4e9c08799
 field AvailableChain.FGSA.Run.ReceiptCoveragePremises.slotWindow 0db74c8df66ed697
 field AvailableChain.FGSA.Run.ReceiptCoveragePremises.compat 27b3785a286becfd
 field AvailableChain.FGSA.Run.ReceiptCoveragePremises.deadline b8f6f154509275a1
-def AvailableChain.FGSA.Run.ReceiptCoverageStatement 2c6107c46c36cccd
-theorem AvailableChain.FGSA.Run.ReceiptCoverageStatement_def 285aa5289fbb7218
+structure AvailableChain.FGSA.Run.ReceiptCoverageSleepPremises 5371cdfaca65d835
+ctor AvailableChain.FGSA.Run.ReceiptCoverageSleepPremises.mk 7f2297498095bc35
+field AvailableChain.FGSA.Run.ReceiptCoverageSleepPremises.within 9cf1fb279b2325ce
+field AvailableChain.FGSA.Run.ReceiptCoverageSleepPremises.slotWindow d3e43e8db0abb51d
+field AvailableChain.FGSA.Run.ReceiptCoverageSleepPremises.compat 943b60457b7319ec
+field AvailableChain.FGSA.Run.ReceiptCoverageSleepPremises.deadline 2c8e3299cb797d4f
+def AvailableChain.FGSA.Run.ReceiptCoverageSleepStatement a1c68279ba13528f
+theorem AvailableChain.FGSA.Run.ReceiptCoverageSleepStatement_def 210107c82d65bde0
 ```
 
 ### `AvailableChainFGSARun.Statements.Receipts`
@@ -222,6 +228,8 @@ def AvailableChain.FGSA.Run.NamedProposalInRun a5e87ca507d4e620
 structure AvailableChain.FGSA.Run.NamedRootCollisionFree 08a90e35f7a00542
 ctor AvailableChain.FGSA.Run.NamedRootCollisionFree.mk fe7fbd76894fc6f4
 field AvailableChain.FGSA.Run.NamedRootCollisionFree.root_injective a8d5ebd9dc66f7f0
+def AvailableChain.FGSA.Run.NamedProposalReceiptScope a8e059c3ec4ed67e
+def AvailableChain.FGSA.Run.NamedReceiptRootCollisionFree 3883f6977b16529c
 def AvailableChain.FGSA.Run.DirectRootBlockInRun fa58f9496f4efc91
 def AvailableChain.FGSA.Run.RootBlockInRun 56dac6937ef2d663
 ```
@@ -1441,13 +1449,14 @@ def AvailableChain.FGSA.Run.diagnosticGateResult 7a01a7862b4a5d59
 
 ```text
 structure AvailableChain.FGSA.Run.Base₂ 61af3fdedad7a9e0
-ctor AvailableChain.FGSA.Run.Base₂.mk b585edbbbad84c91
+ctor AvailableChain.FGSA.Run.Base₂.mk 50171d4783db1115
 field AvailableChain.FGSA.Run.Base₂.valid 2b8fef5e3a91c1f4
 field AvailableChain.FGSA.Run.Base₂.linked 4cc7e197d40ee15e
 field AvailableChain.FGSA.Run.Base₂.cstar 61bab511f621259c
 field AvailableChain.FGSA.Run.Base₂.restartsAtWakes f86eee8de202dbac
 field AvailableChain.FGSA.Run.Base₂.delta 77aaa0e6bf669320
-field AvailableChain.FGSA.Run.Base₂.idealization 4c6fd925073edbf0
+field AvailableChain.FGSA.Run.Base₂.receiptIdealization d524d57a523285f7
+theorem AvailableChain.FGSA.Run.Base₂.idealization 5158f7cba1651505
 structure AvailableChain.FGSA.Run.HealthyPrefix₂ eaefc571c2b92a42
 ctor AvailableChain.FGSA.Run.HealthyPrefix₂.mk aa17e0fc01af6d3c
 field AvailableChain.FGSA.Run.HealthyPrefix₂.base 8c97fee05ca99754

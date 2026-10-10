@@ -94,7 +94,7 @@ AvailableChain.FGSA.Run.Base₂	Approved sleep public statements and dependent s
 AvailableChain.FGSA.Run.Base₂.cstar	Approved sleep public statements and dependent structure fields	G-S0 P5-P22; S-Ap part 1	expect=61bab511f621259c
 AvailableChain.FGSA.Run.Base₂.delta	Approved sleep public statements and dependent structure fields	G-S0 P5-P22; S-Ap part 1	expect=77aaa0e6bf669320
 AvailableChain.FGSA.Run.Base₂.linked	Approved sleep public statements and dependent structure fields	G-S0 P5-P22; S-Ap part 1	expect=4cc7e197d40ee15e
-AvailableChain.FGSA.Run.Base₂.mk	Approved sleep public statements and dependent structure fields	G-S0 P5-P22; S-Ap part 1	expect=b585edbbbad84c91
+AvailableChain.FGSA.Run.Base₂.mk	DECISION P23-A: receipt scope, Base2 projection, and dependent public entries	G-S0 P23(a); DECISION P23-A	expect=50171d4783db1115
 AvailableChain.FGSA.Run.Base₂.noRestart	Approved sleep public statements and dependent structure fields	G-S0 P5-P22; S-Ap part 1	expect=removed
 AvailableChain.FGSA.Run.Base₂.valid	Approved sleep public statements and dependent structure fields	G-S0 P5-P22; S-Ap part 1	expect=2b8fef5e3a91c1f4
 AvailableChain.FGSA.Run.BatchCoverage	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q representation dependency: shared state/readers and generated constructor/projection closure (§2.3 / §4.2)	option3	expect=3cd25b19c665d389
@@ -637,8 +637,8 @@ AvailableChain.FGSA.Run.ReceiptCoveragePremises.deadline	ROOT-DIGEST §2; ROOT-D
 AvailableChain.FGSA.Run.ReceiptCoveragePremises.mk	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H: named payload and root HEAD (§4.1.6)	option3	expect=cf1115757024458a
 AvailableChain.FGSA.Run.ReceiptCoveragePremises.slotWindow	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H: named payload and root HEAD (§4.1.6)	option3	expect=0db74c8df66ed697
 AvailableChain.FGSA.Run.ReceiptCoveragePremises.within	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H: named payload and root HEAD (§4.1.6)	option3	expect=c1d114c4e9c08799
-AvailableChain.FGSA.Run.ReceiptCoverageStatement	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q: named payload and root HEAD (§4.1.6)	option3	expect=2c6107c46c36cccd
-AvailableChain.FGSA.Run.ReceiptCoverageStatement_def	ROOT-DIGEST §2; ROOT-DIGEST-2 N / H / Q: named payload and root HEAD (§4.1.6)	option3	expect=285aa5289fbb7218
+AvailableChain.FGSA.Run.ReceiptCoverageStatement	DECISION P23-A: receipt scope, Base2 projection, and dependent public entries	G-S0 P23(a); DECISION P23-A	expect=removed
+AvailableChain.FGSA.Run.ReceiptCoverageStatement_def	DECISION P23-A: receipt scope, Base2 projection, and dependent public entries	G-S0 P23(a); DECISION P23-A	expect=removed
 AvailableChain.FGSA.Run.ReconcileAt	Approved sleep public statements and dependent structure fields	G-S0 P5-P22; S-Ap part 1	expect=8f6c68e49e8bc75b
 AvailableChain.FGSA.Run.ReconcileClaim	Approved sleep public statements and dependent structure fields	G-S0 P5-P22; S-Ap part 1	expect=31722e34e1850dce
 AvailableChain.FGSA.Run.Recovery₂	Approved sleep public statements and dependent structure fields	G-S0 P5-P22; S-Ap part 1	expect=1ab6cbcf152bdddb

@@ -38,7 +38,7 @@ private def smokeSchedule : V2.D.ScheduleWellFormed smokeEnv smokeRun where
     cases he
     exact ⟨0, rfl⟩
   tick_total := by
-    intro v _ t _ ht hh
+    intro v _ t _ ht hh _
     have he : t = 0 := le_antisymm hh ht
     subst t
     have hv : v = 0 := Subsingleton.elim _ _
@@ -51,7 +51,7 @@ private def smokeNoDelivery (i : Nat) (v : Fin 1) (o : (fgsa smokeParams smokeCo
 
 /-- Horizon zero with no faulty validator and GST zero. This is only a smoke test. -/
 private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
-  idealization := by
+  receiptIdealization := by
     have scope (B : NamedProposal smokeParams.n)
         (h : NamedProposalInRun smokeParams smokeCodec smokeEnv smokeRun B) :
         B = .genesis := by
@@ -70,14 +70,26 @@ private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
           exact List.mem_singleton.mp hm
       rw [hc] at hBC
       exact of_decide_eq_true hBC
-    constructor
-    intro B C hB hC A D hA hD _
-    rw [scope B hB, scope C hC] at hA hD
-    have ha : A = .genesis := of_decide_eq_true (hA.elim id id)
-    have hd : D = .genesis := of_decide_eq_true (hD.elim id id)
-    exact ha.trans hd.symm
+    have receiptScope (B : NamedProposal smokeParams.n)
+        (h : NamedProposalReceiptScope smokeParams smokeCodec smokeEnv smokeRun B) :
+        B = .genesis := by
+      rcases h with h | ⟨v, _, o, t, N, ⟨i, hi, hem⟩, _, _⟩
+      · exact scope B h
+      · cases i with
+        | zero =>
+          have he : 0 = v ∧ 0 = t := by simpa using hi
+          rcases he with ⟨rfl, rfl⟩
+          change o ∈ [] at hem
+          exact (List.not_mem_nil hem).elim
+        | succ i => simp at hi
+    intro A B hA hB _
+    exact (receiptScope A hA).trans (receiptScope B hB).symm
   valid := {
     toScheduleWellFormed := smokeSchedule
+    tick_awake := by intros; rfl
+    deliver_awake := by intros; rfl
+    restart_awake := by intros; rfl
+    wake_restart := by intro v hv t ht hh hw; cases hw.2
     wire := by intro i v o t h; exact (smokeNoDelivery i v o t h).elim
     deps := by intro i v o t h; exact (smokeNoDelivery i v o t h).elim
     fresh := by intro i v o t h; exact (smokeNoDelivery i v o t h).elim
@@ -102,10 +114,9 @@ private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
 
 private def smokeHealthy : V2.D.HealthyPrefixDelivery smokeEnv smokeRun 0 where
   broadcast_emitted := by
-    rintro v _ o t ⟨i, hi, _⟩ w _ hd _
-    have ht : 0 ≤ t := (smokeSchedule.in_horizon _ (List.mem_of_getElem? hi)).1
-    change t + 1 ≤ 0 at hd
-    exact (not_le_of_gt (lt_add_of_le_of_pos ht (by decide)) hd).elim
+    rintro v _ o t ⟨i, hi, _⟩ w _ a _ ha _ hd _ _ _
+    change a + 1 ≤ 0 at hd
+    exact (not_le_of_gt (lt_add_of_le_of_pos ha (by decide)) hd).elim
   relay_accepted := by
     rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
     exact (smokeNoDelivery i v o' t hi).elim
@@ -115,31 +126,35 @@ private def smokeDelay : fgsaDelay (p := smokeParams) smokeEnv.Δ smokeEnv.Δ =
   funext o
   cases o with | mk a m => cases m <;> rfl
 
-private def smoke_healthyPrefix : HealthyPrefix₂ smokeParams smokeCodec smokeEnv smokeRun 0 :=
-  ⟨smoke_base, ⟨le_rfl, le_rfl⟩, (by
-    rw [smokeDelay]
-    exact ⟨smokeHealthy.broadcast_emitted, smokeHealthy.relay_accepted⟩), le_rfl,
-    fun _ ht hb => (not_lt_of_ge ht hb).elim⟩
+private def smoke_healthyPrefix : HealthyPrefixSleep₂ smokeParams smokeCodec smokeEnv smokeRun 0 :=
+  { toHealthyPrefix₂ :=
+      ⟨smoke_base, ⟨le_rfl, le_rfl⟩, (by
+        rw [smokeDelay]
+        exact ⟨smokeHealthy.broadcast_emitted, smokeHealthy.relay_accepted⟩), le_rfl,
+        fun _ ht hb => (not_lt_of_ge ht hb).elim⟩
+    joinedPartBefore := fun _ ht hb => (not_lt_of_ge ht hb).elim }
 
-private def smoke_cleanPrefix : CleanPrefix₂ smokeParams smokeCodec smokeEnv smokeRun 0 := by
-  refine ⟨smoke_healthyPrefix, ?_⟩
-  rw [Gen.V2.Duty.faulty_def, Gen.V2.Duty.awakeHonest_def]
-  decide
+private def smoke_cleanPrefix : CleanPrefixSleep₂ smokeParams smokeCodec smokeEnv smokeRun 0 := by
+  refine ⟨⟨smoke_healthyPrefix.toHealthyPrefix₂, ?_⟩, smoke_healthyPrefix, ?_⟩
+  · rw [Gen.V2.Duty.faulty_def, Gen.V2.Duty.awakeHonest_def]
+    decide
+  · classical
+    simp [Gen.V2.Duty.faulty, joinedHonest, joinedAt, V2.D.Wakes]
 
 private def smoke_cleanCut : CleanCut₂ smokeParams smokeCodec smokeEnv smokeRun 0 :=
-  smoke_healthyPrefix
+  smoke_healthyPrefix.toHealthyPrefix₂
 
-private def smoke_clean : Clean₂ smokeParams smokeCodec smokeEnv smokeRun :=
-  ⟨smoke_cleanPrefix, rfl⟩
+private def smoke_clean : CleanSleep₂ smokeParams smokeCodec smokeEnv smokeRun :=
+  ⟨⟨smoke_cleanPrefix.toCleanPrefix₂, rfl⟩, smoke_cleanPrefix⟩
 
-private def smoke_recovery : Recovery₂ smokeParams smokeCodec smokeEnv smokeRun 4 where
+private def smoke_recovery : RecoverySleep₂ smokeParams smokeCodec smokeEnv smokeRun 4 where
   deltaF := le_rfl
   sync := by
     rw [smokeDelay]
     refine { broadcast_emitted := ?_, relay_accepted := ?_ }
-    · rintro v _ o t _ w _ hd _
-      change max t 0 + 1 ≤ 0 at hd
-      exact (not_le_of_gt (lt_add_of_le_of_pos (le_max_right t (0 : Time)) (by decide)) hd).elim
+    · rintro v _ o t _ w _ a _ _ _ hd _ _ _
+      change max a 0 + 1 ≤ 0 at hd
+      exact (not_le_of_gt (lt_add_of_le_of_pos (le_max_right a (0 : Time)) (by decide)) hd).elim
     · rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
       exact (smokeNoDelivery i v o' t hi).elim
   gap := by
@@ -151,6 +166,13 @@ private def smoke_recovery : Recovery₂ smokeParams smokeCodec smokeEnv smokeRu
   fault := by rw [Gen.V2.Duty.faulty_def]; decide
   awake := by intros; rfl
   gapPos := le_rfl
+  suffixNoRestart := by intro v hv i t hi; cases i <;> simp at hi
+  joinedGap := by
+    intro t ht hh
+    change 0 + 6 ≤ t at ht
+    change t + 4 ≤ 0 at hh
+    dsimp [Time] at ht hh
+    omega
 
 #print axioms smoke_base
 #print axioms smoke_healthyPrefix

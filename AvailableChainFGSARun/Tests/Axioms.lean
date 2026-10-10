@@ -284,7 +284,6 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.honest_emit_wellFormed
 #print axioms AvailableChain.FGSA.Run.decode_honest
 
-#print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage
 
 -- Proofs/AncestorDeadlinesStore.lean and Proofs/AncestorDeadlines.lean (F1.3 clause 3)
 #print axioms AvailableChain.FGSA.AncestorDeadlines.protectsUntil
@@ -450,3 +449,7 @@ end AvailableChain.FGSA.Run
 #print axioms AvailableChain.FGSA.Run.emitted_proposal_history_in_scope
 #print axioms AvailableChain.FGSA.Run.proposal_trigger_service_in_scope
 #print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage_ready
+
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageSleepPremises
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageSleepStatement
+#print axioms AvailableChain.FGSA.Run.ReceiptCoverageSleepStatement_def

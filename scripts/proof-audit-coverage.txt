@@ -1986,6 +1986,7 @@
             'AvailableChain.FGSA.Run.AwakeProposerRecurrenceFrom',
             'AvailableChain.FGSA.Run.BaseSet',
             'AvailableChain.FGSA.Run.Base₂',
+            'AvailableChain.FGSA.Run.Base₂.idealization',
             'AvailableChain.FGSA.Run.CleanCutSet',
             'AvailableChain.FGSA.Run.CleanCut₂',
             'AvailableChain.FGSA.Run.CleanPrefixSet',
@@ -4706,9 +4707,6 @@
             'AvailableChain.FGSA.Run.rootBlockInRun_eq',
             'AvailableChain.FGSA.Run.rootInjectiveOn_run',
         ),
-        'AvailableChainFGSARun.Proofs.ReceiptCoverage': (
-            'AvailableChain.FGSA.Run.fgsa_receiptCoverage',
-        ),
         'AvailableChainFGSARun.Proofs.Receipts': (
             'AvailableChain.FGSA.Run.fgsa_proposal_receipt',
         ),
@@ -5143,9 +5141,6 @@
             'AvailableChain.FGSA.Run.fgsa_historySafeAt_noRestart',
             'AvailableChain.FGSA.Run.fgsa_processed_by_deadline_ready',
         ),
-        'AvailableChainFGSARun.Proofs.ReceiptCoverage': (
-            'AvailableChain.FGSA.Run.fgsa_receiptCoverage',
-        ),
         'AvailableChainFGSARun.Proofs.ReceiptCoverageReady': (
             'AvailableChain.FGSA.Run.fgsa_receiptCoverage_ready',
         ),
@@ -5270,6 +5265,11 @@
             'AvailableChain.FGSA.Run.finalizedOut',
             'AvailableChain.FGSA.Run.isRowObject',
             'AvailableChain.FGSA.Run.isRowObject_def',
+        ),
+        'AvailableChainFGSARun.Statements.ReceiptCoverage': (
+            'AvailableChain.FGSA.Run.ReceiptCoverageSleepPremises',
+            'AvailableChain.FGSA.Run.ReceiptCoverageSleepStatement',
+            'AvailableChain.FGSA.Run.ReceiptCoverageSleepStatement_def',
         ),
         'AvailableChainFGSARun.Statements.Receipts': (
             'AvailableChain.FGSA.Run.blockOf?',

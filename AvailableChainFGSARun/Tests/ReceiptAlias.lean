@@ -131,8 +131,39 @@ theorem missing : ¬ ∃ Y ∈ (V2.D.Run.stateBeforeTime env run 17 0).st.fg.TF,
   rcases hY with rfl | rfl
   all_goals exact False.elim ((by decide : ¬ (type_of% he)) he)
 
-/-- The legacy public conclusion fails even with the approved receiver readiness. -/
-theorem coverage_false : ¬ ReceiptCoverageStatement := by
+/-- DECISION P23-A: keep the retired contract in the negative-test namespace. -/
+def legacyReceiptCoverageStatement : Prop :=
+  ∀ {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
+    (required : Obj p → Time → Prop) (paths : Block → Time → Prop),
+    NamedRootCollisionFree p c E rho → E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart rho
+      → x ∈ rho.honest →
+    ReceiptCoveragePremises E rho dl cut D first x B required paths →
+    let st := (V2.D.Run.stateBeforeTime E rho D x).st
+    ((Block.Preceq B (eraseFG st.fg.F) ∧
+      Block.Preceq B st.base.stableRecord ∧
+      (∀ s, 0 < s → Block.Preceq B (headVote p st s)) ∧
+      (∀ raw sup, Block.Preceq B (getHead p st raw sup)) ∧
+      Block.Preceq B (fgHead p st) ∧
+      (∀ lease ∈ st.base.obligations, Block.Compatible B lease.1)) ∨
+     (Block.Preceq (eraseFG st.fg.F) B ∧
+      (∀ o t s N, required o t →
+        (toWire p o).decode = some (.block s N) →
+        ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = N.erase) ∧
+      (∀ K d, paths K d → ∀ b, Block.Preceq b K →
+        ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho d x).st.fg.TF, eraseFG Y = b))) ∧
+    (∀ o t s a K, required o t → (toWire p o).decode = some (.vote s a K) →
+      let v := baseVote (⟨.seat (.head s) a, K⟩ : HeadWire p.n)
+      (v ∈ st.base.votes ∧ GridCO.stampVote st.base v < dl t) ∨
+      ∃ v₁ ∈ st.base.votes, ∃ v₂ ∈ st.base.votes,
+        v₁ ≠ v₂ ∧ GridCO.headLabel? v₁ = some s ∧ GridCO.headLabel? v₂ = some s ∧
+        GridCO.headSeat? v₁ = some a ∧ GridCO.headSeat? v₂ = some a ∧
+        GridCO.stampVote st.base v₁ < dl t ∧ GridCO.stampVote st.base v₂ < dl t)
+
+
+/-- The legacy conclusion fails even with the approved receiver readiness. -/
+theorem coverage_false : ¬ legacyReceiptCoverageStatement := by
   intro h
   have hNR : V2.D.NoRestart run := by
     intro i v t hi
