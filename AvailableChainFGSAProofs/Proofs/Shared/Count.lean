@@ -486,9 +486,10 @@ private theorem count_stamp_kept (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
       contradiction
   | some row => rfl
 
-/-- Ready receipt coverage uses each object's receiver anchor and epoch.
-Handler readiness is required only inside the named service windows. -/
-theorem fgsa_receiptCoverage_on :
+/-- Receipt coverage needs handler readiness only on [a, dl(a)).
+The supplied window witness is the same anchor for ReadyTrigger,
+HistorySafeAt, restartFree, and handler readiness. -/
+theorem fgsa_receiptCoverage_anchor_on :
   ∀ {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
@@ -496,11 +497,22 @@ theorem fgsa_receiptCoverage_on :
     NamedReceiptRootCollisionFree p c E rho → E.Δ = p.Δ → V2.D.ExecutionValid E rho
       → x ∈ rho.honest →
     ReceiptCoverageSleepPremises E rho dl cut D first x B required paths →
-    (∀ o t, required o t → ∀ j u, t ≤ u → u < dl t →
-      V2.D.Run.handlesAt E rho j x o u →
+    (∀ o t, required o t → ∃ a, t ≤ a ∧ 0 ≤ a ∧ a < dl a ∧
+      Gen.V2.Duty.ReadyTrigger E rho o t x a (dl a) ∧
+      Gen.V2.Duty.HistorySafeAt E rho x o a ∧
+      V2.D.restartFree rho x (V2.D.Run.actionCut rho a) (V2.D.Run.idxBefore rho D) ∧
+      first ≤ V2.D.Run.actionCut rho a ∧ dl a ≤ dl t ∧
       (fgsa p c).wellFormed o = true ∧
-      (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x) o = true ∧
-      fgsaTimely p (V2.D.Run.stateBefore E rho j x) o) →
+      (∀ s signer K, (toWire p o).decode = some (.vote s signer K) →
+        (V2.D.Run.stateBeforeTime E rho (dl t) x).st.slot p ≤ s + 1 ∧
+        ∀ i t', V2.D.Run.actionCut rho a ≤ i → i < V2.D.Run.idxBefore rho (dl a) →
+          a ≤ t' → V2.D.Run.handlesAt E rho i x o t' →
+          s ≤ (V2.D.Run.stateBefore E rho i x).st.slot p ∧
+            (V2.D.Run.stateBefore E rho i x).st.slot p ≤ s + 1) ∧
+      ∀ j u, a ≤ u → u < dl a → V2.D.Run.handlesAt E rho j x o u →
+        (fgsa p c).wellFormed o = true ∧
+        (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x) o = true ∧
+        fgsaTimely p (V2.D.Run.stateBefore E rho j x) o) →
     let st := (V2.D.Run.stateBeforeTime E rho D x).st
     ((Block.Preceq B (eraseFG st.fg.F) ∧
       Block.Preceq B st.base.stableRecord ∧
@@ -567,7 +579,8 @@ theorem fgsa_receiptCoverage_on :
         obtain ⟨K, d, hk, hbK⟩ := h.deadline.2.2.2.2.2.2 o t s N hr hd
         have hBK := (h.deadline.2.2.2.2.2.1 K d hk).1
         have ht := h.deadline.2.2.2.2.1 o t hr
-        obtain ⟨a, hta, ha, had, hT, hHistory, hRF, _, hdl, _, _⟩ := h.slotWindow o t hr
+        obtain ⟨a, hta, ha, had, hT, hHistory, hRF, _, hdl, _, _, hReadyAt⟩ :=
+          hReady o t hr
         have ho : o = ofWire p ⟨.proposer s, .proposal N⟩ := by
           apply toWire_injective
           rw [toWire_ofWire]
@@ -595,7 +608,7 @@ theorem fgsa_receiptCoverage_on :
           hHistory (hRF.mono le_rfl (hidx ht.2.2.2)) (by
             intro j u hau hud hh
             rw [← ho] at hh ⊢
-            exact hReady o t hr j u (hta.trans hau) (hud.trans_le hdl) hh) hNX
+            exact hReadyAt j u hau hud hh) hNX
       refine ⟨hFB, hproposal, ?_⟩
       intro K d hk b hb
       by_cases hg : b = .genesis
@@ -609,7 +622,8 @@ theorem fgsa_receiptCoverage_on :
         exact ⟨Y, (fgsa_store_durable p c E rho (hidx htd) x).1 hY, he.trans heN⟩
   · intro o t s signer K hr hd
     have ht := h.deadline.2.2.2.2.1 o t hr
-    obtain ⟨a, hta, ha, had, hT, hHistory, hRF, _, hdl, _, hw⟩ := h.slotWindow o t hr
+    obtain ⟨a, hta, ha, had, hT, hHistory, hRF, _, hdl, _, hw, hReadyAt⟩ :=
+      hReady o t hr
     have ho : o = ofHead p ⟨.seat (.head s) signer, K⟩ := by
       apply toWire_injective
       rw [toWire_ofHead]
@@ -636,7 +650,7 @@ theorem fgsa_receiptCoverage_on :
         (hRF.mono le_rfl (hidx (hdl.trans ht.2.2.2))) (by
           intro j u hau hud hh
           rw [← ho] at hh ⊢
-          exact hReady o t hr j u (hta.trans hau) (hud.trans_le hdl) hh) hNX).1
+          exact hReadyAt j u hau hud hh) hNX).1
       have hk := keep _ hp
       exact Or.inl ⟨hk.1, hk.2.trans_lt
         ((fgsa_head_stamp_before_read E rho hS x (dl a) s signer K hp).trans_le hdl)⟩
@@ -657,6 +671,51 @@ theorem fgsa_receiptCoverage_on :
       have hk₂ := keep _ h₂
       exact Or.inr ⟨v₁, hk₁.1, v₂, hk₂.1, hn, hl₁, hl₂, ha₁, ha₂,
         hk₁.2.trans_lt (hs₁.trans_le hdl), hk₂.2.trans_lt (hs₂.trans_le hdl)⟩
+
+/-- Ready receipt coverage uses each object's receiver anchor and epoch.
+Handler readiness is required only inside the named service windows. -/
+theorem fgsa_receiptCoverage_on :
+  ∀ {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
+    (required : Obj p → Time → Prop) (paths : Block → Time → Prop),
+    NamedReceiptRootCollisionFree p c E rho → E.Δ = p.Δ → V2.D.ExecutionValid E rho
+      → x ∈ rho.honest →
+    ReceiptCoverageSleepPremises E rho dl cut D first x B required paths →
+    (∀ o t, required o t → ∀ j u, t ≤ u → u < dl t →
+      V2.D.Run.handlesAt E rho j x o u →
+      (fgsa p c).wellFormed o = true ∧
+      (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x) o = true ∧
+      fgsaTimely p (V2.D.Run.stateBefore E rho j x) o) →
+    let st := (V2.D.Run.stateBeforeTime E rho D x).st
+    ((Block.Preceq B (eraseFG st.fg.F) ∧
+      Block.Preceq B st.base.stableRecord ∧
+      (∀ s, 0 < s → Block.Preceq B (headVote p st s)) ∧
+      (∀ raw sup, Block.Preceq B (getHead p st raw sup)) ∧
+      Block.Preceq B (fgHead p st) ∧
+      (∀ lease ∈ st.base.obligations, Block.Compatible B lease.1)) ∨
+     (Block.Preceq (eraseFG st.fg.F) B ∧
+      (∀ o t s N, required o t →
+        (toWire p o).decode = some (.block s N) →
+        ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = N.erase) ∧
+      (∀ K d, paths K d → ∀ b, Block.Preceq b K →
+        ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho d x).st.fg.TF, eraseFG Y = b))) ∧
+    (∀ o t s a K, required o t → (toWire p o).decode = some (.vote s a K) →
+      let v := baseVote (⟨.seat (.head s) a, K⟩ : HeadWire p.n)
+      (v ∈ st.base.votes ∧ GridCO.stampVote st.base v < dl t) ∨
+      ∃ v₁ ∈ st.base.votes, ∃ v₂ ∈ st.base.votes,
+        v₁ ≠ v₂ ∧ GridCO.headLabel? v₁ = some s ∧ GridCO.headLabel? v₂ = some s ∧
+        GridCO.headSeat? v₁ = some a ∧ GridCO.headSeat? v₂ = some a ∧
+        GridCO.stampVote st.base v₁ < dl t ∧ GridCO.stampVote st.base v₂ < dl t) := by
+  intro p In V inst c E rho dl cut D first x B required paths hRoots hDelta hExecution
+    hx h hReady
+  apply fgsa_receiptCoverage_anchor_on E rho dl cut D first x B required paths
+    hRoots hDelta hExecution hx h
+  intro o t hr
+  obtain ⟨a, hta, ha, had, hT, hHistory, hRF, hfirst, hdl, hWF, hw⟩ := h.slotWindow o t hr
+  refine ⟨a, hta, ha, had, hT, hHistory, hRF, hfirst, hdl, hWF, hw, ?_⟩
+  intro j u hau hud hh
+  exact hReady o t hr j u (hta.trans hau) (hud.trans_le hdl) hh
 
 /-- Active paths from receiver-local sleep receipt coverage. -/
 theorem fgsa_active_path_of_coverage_on (E : Generic.Env V)
@@ -690,6 +749,52 @@ theorem fgsa_active_path_of_coverage_on (E : Generic.Env V)
       exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFK
   intro X hX
   exact actView_ancestor_closed p st hb hK hX
+
+
+/-- Active paths use handler readiness at the same supplied receiver anchor. -/
+theorem fgsa_active_path_of_coverage_anchor_on (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (hDelta : E.Δ = p.Δ)
+    (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (K : Block)
+    (required : Obj p → Time → Prop) (paths : Block → Time → Prop)
+    (hx : x ∈ rho.honest)
+    (hcov : ReceiptCoverageSleepPremises E rho dl cut D first x K required paths)
+    (hpath : paths K D)
+    (hFK : Block.Preceq (eraseFG (V2.D.Run.stateBeforeTime E rho D x).st.fg.F) K)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
+    (hReady : ∀ o t, required o t → ∃ a, t ≤ a ∧ 0 ≤ a ∧ a < dl a ∧
+      Gen.V2.Duty.ReadyTrigger E rho o t x a (dl a) ∧
+      Gen.V2.Duty.HistorySafeAt E rho x o a ∧
+      V2.D.restartFree rho x (V2.D.Run.actionCut rho a) (V2.D.Run.idxBefore rho D) ∧
+      first ≤ V2.D.Run.actionCut rho a ∧ dl a ≤ dl t ∧
+      (fgsa p c).wellFormed o = true ∧
+      (∀ s signer K, (toWire p o).decode = some (.vote s signer K) →
+        (V2.D.Run.stateBeforeTime E rho (dl t) x).st.slot p ≤ s + 1 ∧
+        ∀ i t', V2.D.Run.actionCut rho a ≤ i → i < V2.D.Run.idxBefore rho (dl a) →
+          a ≤ t' → V2.D.Run.handlesAt E rho i x o t' →
+          s ≤ (V2.D.Run.stateBefore E rho i x).st.slot p ∧
+            (V2.D.Run.stateBefore E rho i x).st.slot p ≤ s + 1) ∧
+      ∀ j u, a ≤ u → u < dl a → V2.D.Run.handlesAt E rho j x o u →
+        (fgsa p c).wellFormed o = true ∧
+        (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x) o = true ∧
+        fgsaTimely p (V2.D.Run.stateBefore E rho j x) o) :
+    ∀ X, Block.Preceq X K → X ∈ (actView (V2.D.Run.stateBeforeTime E rho D x).st).blocks := by
+  let st := (V2.D.Run.stateBeforeTime E rho D x).st
+  have hc := (fgsa_receiptCoverage_anchor_on E rho dl cut D first x K required paths
+    hroots hDelta hE hx hcov hReady).1
+  have hb := (storeBundle_stateBeforeTime E rho D x).cstore
+  have hK : K ∈ (actView st).blocks := by
+    rcases hc with ⟨hKF, _⟩ | ⟨_, _, hpaths⟩
+    · have heq : K = eraseFG st.fg.F := Gen.Pure.block_preceq_antisymm hKF hFK
+      rw [heq]
+      exact (actView_genesis_F p st hb).2
+    · obtain ⟨Y, hY, hYK⟩ := hpaths K D hpath K (Gen.Pure.block_preceq_refl K)
+      apply (actView_blocks st K).mpr
+      refine ⟨(hb.baseTree K).mpr ⟨Y, hY, hYK⟩, ?_⟩
+      exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFK
+  intro X hX
+  exact actView_ancestor_closed p st hb hK hX
+
 
 
 /-- Stored honest HEADs have joined duty origin, including replayed votes. -/

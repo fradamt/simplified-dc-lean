@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: keep (#print axioms)
@@ -573,3 +574,56 @@ end
 #print axioms AvailableChain.FGSA.Run.fgsa_walkRun_frozen_block_on
 
 #print axioms AvailableChain.FGSA.Run.healing_held_block_receipt_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage_anchor_on
+#print axioms AvailableChain.FGSA.Run.fgsa_active_path_of_coverage_anchor_on
+
+#print axioms AvailableChain.FGSA.Run.Recovery₂.joinedAt_of_slotStart_le
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
+#print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.Recovery₂Aligned.gamma_eq
+#print axioms AvailableChain.FGSA.Run.recovery₂_roundUp
+#print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore
+#print axioms AvailableChain.FGSA.Run.card_eq_n_of_linked
+#print axioms AvailableChain.FGSA.Run.CleanPrefix₂.toCleanCut
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.faultQ_of_pos
+#print axioms AvailableChain.FGSA.Run.CleanPrefix₂.faultQ
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.batch
+#print axioms AvailableChain.FGSA.Run.CleanPrefix₂.batchAt
+#print axioms AvailableChain.FGSA.Run.Recovery₂.faultX_count_rec
+#print axioms AvailableChain.FGSA.Run.Recovery₂.faultQ
+#print axioms AvailableChain.FGSA.Run.Recovery₂.batch
+#print axioms AvailableChain.FGSA.Run.fgsa_clean_delivery_iff
+#print axioms AvailableChain.FGSA.Run.fgsa_seed_reachable
+#print axioms AvailableChain.FGSA.Run.fgsa_seed_accepted
+#print axioms AvailableChain.FGSA.Run.Outage₂.pos
+#print axioms AvailableChain.FGSA.Run.Outage₂.toCleanCut
+#print axioms AvailableChain.FGSA.Run.Outage₂.faultQ
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_recovery
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_clean_legacy
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_recovery_legacy
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_clean_of_retained_proposal
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery_of_retained_proposal
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_recovery
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_clean
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_recovery
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_clean
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_recovery
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_clean
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.snoc_ownRow
+#print axioms AvailableChain.FGSA.Run.Recovery₂.snoc_ownRow
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.cutAt
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.ownRow_run
+#print axioms AvailableChain.FGSA.Run.Recovery₂.cutAt
+#print axioms AvailableChain.FGSA.Run.Recovery₂.ownRow_run
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.cutAt_le
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.ownRow_run_le
+#print axioms AvailableChain.FGSA.Run.CleanPrefix₂.ownRow_run
+#print axioms AvailableChain.FGSA.Run.CleanPrefix₂.ownRow_run_le
+#print axioms AvailableChain.FGSA.Run.Clean₂.ownRow_run
+#print axioms AvailableChain.FGSA.Run.Outage₂.ownRow_run
+#print axioms AvailableChain.FGSA.Run.Outage₂.ownRow_run_mid
