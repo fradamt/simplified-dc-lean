@@ -7502,3 +7502,28 @@ The saved writer and source-build failures are the validation limit for Round 15
   ("joined" wording from dd102b06; stale snapshot came in with merge 61769868). Only the
   pins entry/node bodies and their two digests change (cc1a3d43… → 20497544…), as
   rev-pas7-astra item 4 predicted. No allowance added.
+
+- Lead (P-H2 rounds 7-8 merge, 2026-10-10): 105/114 P-H2 targets GREEN; 9 OPEN (post-reset
+  lock/raw successor chain, joint inv, Healing.Export, 4 tests), all owned by P-H2.
+  Correction (rev-ph2i-astra item 1): the RecoveryProducers P8 constructor failure was a P-H2
+  interface integration regression from 87270af2 (removed FrontierReadScope.readers, inserted
+  `first` after `seed`), inherited by round 7. The round 7 request that P-H1 repair its own
+  producer was incorrect. db0590e8 adapts the constructor body only; the closed H1 producer
+  statements are unchanged. Reviews: rev-ph2h-astra FIX-FIRST (both items fixed in round 8),
+  rev-ph2i-astra FIX-FIRST (report attribution only; corrected here).
+
+- Lead (P-H2 round 9 merge, 2026-10-10): P-H2 114/114 assigned targets GREEN (115 with the
+  bounded support target). Returned producers for P-As: healing_postReset_inv_recovery,
+  healing_h0_extension_recovery, healing_localInput_recovery, healing_fullInput_recovery.
+  H1 healing_output_moving_suffix is byte-identical; its body wraps the bounded companion
+  healing_output_moving_suffix_at (the old unbounded callback is false at the run horizon).
+  Correction (rev-ph2j-astra item 1): Tests/HealingPhaseSettle (:89, :139) stays P-H2-owned
+  (P-H1.txt:724), not H1; P-H2 round 10 ports it with Tests/HealingFrontierRead and the four
+  P-H1 hand-offs missing from P-H2.txt. Review otherwise PASS (guarded steps, pre-GST lock
+  covered by release, bounded companion, input producers).
+
+- Lead (P-H2 round 10 merge, 2026-10-10): H1 test callers HealingPhaseSettle and
+  HealingFrontierRead ported; PromotionPhase, PromotionSource, HealingPhaseSettle and
+  HealingSleepAxioms registered in P-H2.txt. 120/120 P-H2 GREEN; DCK P-H1 and P-H2 PASS;
+  695 non-Assembly modules build. Remaining before G-S2: P-As Assembly/NonVacuity ports
+  (5 test roots, full build, full manifest). Review rev-ph2k-astra MERGE-AS-PREPARED.

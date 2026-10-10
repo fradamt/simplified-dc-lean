@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRise -- shake: keep (M5b tests)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (RXing)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (RMono)
@@ -22,8 +23,8 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 example [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -34,13 +35,14 @@ example [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C) :
-    ∀ {u D : Time}, E.t_GST ≤ u → u ≤ D → D ≤ rho.horizon →
+    ∀ {u D : Time}, recoveryStart p E ≤ u → u ≤ D → D ≤ rho.horizon →
     ¬ RiseOneBy p c E rho D →
     PhaseInterval p c E rho u D 1 (some .genesis) false ∧
     ∃ β, u < SA.proposalTime p.toParams β ∧
@@ -50,11 +52,12 @@ example [Fintype V] (E : Generic.Env V)
         SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams q ∧
         SA.gateTime p.toParams q ≤ u + ρΓ p G ∧
         HonestProposal E rho (fgsaInterface p c) q Q ∧ ExactService p c E rho q Q) :=
-  healing_rise_one_repair E rho hrec mono crossing qc writes
+  healing_rise_one_repair E rho hrec mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono) writes
 
 example [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -65,13 +68,14 @@ example [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hstop : ¬ RiseOneBy p c E rho D) {b : Nat}
     (hb : u ≤ SA.voteTime p.toParams b)
     (hmin : ∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i)
@@ -82,12 +86,13 @@ example [Fintype V] (E : Generic.Env V)
         SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams q ∧
         SA.gateTime p.toParams q < u + ρ₁ p G ∧
         HonestProposal E rho (fgsaInterface p c) q Q ∧ ExactService p c E rho q Q) :=
-  healing_rise_one_repair_synchronous E rho hrec mono crossing qc writes hgst huD hD hstop
+  healing_rise_one_repair_synchronous E rho hrec mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono) writes hready huD hD hstop
     hb hmin hkb hwindow
 
 example [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -98,6 +103,7 @@ example [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -113,7 +119,7 @@ example [Fintype V] (E : Generic.Env V)
       ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hstop : ¬ RiseOneBy p c E rho D) {q : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q) (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
@@ -124,12 +130,14 @@ example [Fintype V] (E : Generic.Env V)
       0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
       OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 :=
-  healing_rise_one_first_opening E rho hrec mono crossing writes rowCoverage hgst huD hD
+  healing_rise_one_first_opening E rho hrec mono crossing
+    (healing_repair_service_scopes_recovery E rho hrec mono)
+    (healing_opening_service_scopes_recovery E rho hrec mono) writes rowCoverage hready huD hD
     hstop hQ hQfg hexact hu hgate hbudget
 
 example [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -140,6 +148,7 @@ example [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -155,18 +164,20 @@ example [Fintype V] (E : Generic.Env V)
       ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hstop : ¬ RiseOneBy p c E rho D) {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
     (hQ : HonestProposal E rho (fgsaInterface p c) q Q) (hQfg : eraseFG Qfg = Q)
     (hexact : ExactService p c E rho q Q) (hu : u ≤ SA.proposalTime p.toParams q)
     (hqr : q ≤ r * p.R) (hrD : p.actionTime r ≤ D) :
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 :=
-  healing_rise_one_later_opening E rho hrec mono crossing writes rowCoverage hgst huD hD
+  healing_rise_one_later_opening E rho hrec mono crossing
+    (healing_repair_service_scopes_recovery E rho hrec mono)
+    (healing_opening_service_scopes_recovery E rho hrec mono) writes rowCoverage hready huD hD
     hstop hQ hQfg hexact hu hqr hrD
 
 example [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -177,6 +188,7 @@ example [Fintype V] (E : Generic.Env V)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -192,7 +204,7 @@ example [Fintype V] (E : Generic.Env V)
       ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root))
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hbudget : u + ρΓ p G + (P p - 4 * p.Δ) ≤ D) :
     RiseOneBy p c E rho D ∨
     ∃ β q Q Qfg r, PhaseInterval p c E rho u D 1 (some .genesis) false ∧
@@ -207,12 +219,15 @@ example [Fintype V] (E : Generic.Env V)
       0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
       OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r 1 :=
-  healing_rise_one_repair_opening E rho hrec mono crossing qc writes rowCoverage hgst huD hD hbudget
+  healing_rise_one_repair_opening E rho hrec mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono)
+    (healing_opening_service_scopes_recovery E rho hrec mono) writes rowCoverage
+    hready huD hD hbudget
 
 -- If no honest proposal exists in the finite run, the repair budget cannot fit.
 example [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -223,28 +238,30 @@ example [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hstop : ¬ RiseOneBy p c E rho D)
     (hno : ∀ q Q, ¬ HonestProposal E rho (fgsaInterface p c) q Q) :
     ¬ u + ρΓ p G ≤ D := by
   intro hbudget
   obtain ⟨_, β, _, _, _, hw⟩ :=
-    healing_rise_one_repair E rho hrec mono crossing qc writes hgst huD hD hstop
+    healing_rise_one_repair E rho hrec mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono) writes hready huD hD hstop
   obtain ⟨q, Q, _, _, hQ, _⟩ := hw hbudget
   exact hno q Q hQ
 
 -- The bounded split itself has no honest-proposal or repair-budget premise.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+    (hs : V2.D.ScheduleWellFormed E rho)
     (hne : rho.honest.Nonempty) {u D : Time} (huD : u ≤ D) (hD : D ≤ rho.horizon) :
     RiseOneBy p c E rho D ∨ PhaseInterval p c E rho u D 1 (some .genesis) false :=
-  healing_rise_one_split p c E rho hs hnr hne huD hD
+  healing_rise_one_split p c E rho hs (fgsa_rMonoAll p c E rho) hne huD hD
 
 -- Acceptance at the horizon is enough. No phase beyond the rise is claimed.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -324,13 +341,14 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 -- The stopped branch has the exact genesis frame, including lo=0.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+    (hs : V2.D.ScheduleWellFormed E rho)
     (hne : rho.honest.Nonempty) {D : Time} (hstop : ¬ RiseOneBy p c E rho D)
     {i : Nat} (hi : i ≤ timeIdx rho D) {x : V} (hx : x ∈ rho.honest) :
     (R_at p c E rho i x).H = 1 ∧ (R_at p c E rho i x).j = 0 ∧
       (R_at p c E rho i x).J = .genesis ∧ (R_at p c E rho i x).contest = false ∧
       (R_at p c E rho i x).rootIsJ = true ∧ (R_at p c E rho i x).lo = 0 :=
-  boot_height_one p c E rho hx (healing_rise_one_frontier p c E rho hs hnr hne hstop hi)
+  boot_height_one p c E rho hx
+    (healing_rise_one_frontier p c E rho hs (fgsa_rMonoAll p c E rho) hne hstop hi)
 
 
 -- Apply B3 with every INLINE port discharged by its existing producer.
@@ -338,7 +356,7 @@ private theorem riseOneWithPorts [Fintype V] (E : Generic.Env V) (rho : V2.D.Run
     {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (qc : RQCOrigin p c E rho) {u D : Time}
-    (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    (hready : recoveryStart p E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hbudget : u + ρΓ p G + (P p - 4 * p.Δ) + (2 * P p + Γ p G - 9 * p.Δ) ≤ D)
     (hhor : u + ρΓ p G + (P p - 4 * p.Δ) +
       (2 * P p + Γ p G - 4 * p.Δ) ≤ rho.horizon) :
@@ -354,6 +372,10 @@ private theorem riseOneWithPorts [Fintype V] (E : Generic.Env V) (rho : V2.D.Run
   let crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
     (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
   exact healing_rise_one_rise E rho hrec hδ hbound mono crossing qc
+    (healing_repair_service_scopes_recovery E rho hrec mono)
+    (healing_opening_service_scopes_recovery E rho hrec mono)
+    (fun _ _ _ _ _ hv hx hip hem hSync hhor hCompat =>
+      healing_proposal_receipt_recovery p c E rho hrec hv hx hip hem hSync hhor hCompat)
     (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
     (rowPermission_covered E rho hrec.base hrec.fault)
     (fgsa_tRowsReceipt_sleep p c E rho ΔF hrec.base.delta hrec.base.valid
@@ -361,39 +383,45 @@ private theorem riseOneWithPorts [Fintype V] (E : Generic.Env V) (rho : V2.D.Run
     (fgsa_batchCoverage p ΔF .progress c E rho)
     (fgsa_foldTrichotomy_progress p) (fgsa_faultQ_of_count p hrec.fault)
     (kmid_honest_quorum p c rho hrec.base.linked hrec.fault)
-    hgst huD hD hbudget hhor
+    hready huD hD hbudget hhor
 
 -- Genesis top J gives strict receipt for every honest receiver.
 example [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho) {u : Time} {s : Slot} {X : FGBlock (Fin p.n)}
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
-    (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
+    (hu : u ≤ SA.proposalTime p.toParams s) (hready : recoveryStart p E ≤ u)
     (hp : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) 1
       (some .genesis) false) :
     ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
       (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x :=
-  healing_rise_one_receipt_all p c E rho hrec crossing hnew hu hgst hp
+  healing_rise_one_receipt_all p c E rho hrec.toRecovery₂ crossing
+    (fun _ _ _ _ hv hx hip hem hSync hhor hCompat =>
+      healing_proposal_receipt_recovery p c E rho hrec hv hx hip hem hSync hhor hCompat)
+    hnew hu hready hp
 
 -- B2 includes an event at D_event and retains the actual first rise.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+    (hs : V2.D.ScheduleWellFormed E rho)
     (hne : rho.honest.Nonempty) {i : Nat} {ev : V2.Event V (Obj p)} {D_event : Time}
     (hi : rho.events[i]? = some ev) (ht : ev.time = D_event)
     (heff : EffectiveEvent p c E rho i) : RiseOneBy p c E rho D_event :=
-  healing_rise_one_of_effective p c E rho hs hnr hne hi ht.le heff
+  healing_rise_one_of_effective p c E rho hs (fgsa_rMonoAll p c E rho) hne hi ht.le heff
 
 -- A strict receipt deadline can equal the finite horizon.
 example [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (crossing : RXing p c E rho) {u : Time} {s : Slot} {X : FGBlock (Fin p.n)}
     (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
-    (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
+    (hu : u ≤ SA.proposalTime p.toParams s) (hready : recoveryStart p E ≤ u)
     (hhorizon : SA.proposalTime p.toParams s + p.Δ = rho.horizon) :
     RiseOneBy p c E rho rho.horizon ∨
       ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
         (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x :=
-  healing_rise_one_accept p c E rho hrec crossing hnew hu hgst hhorizon.le le_rfl
+  healing_rise_one_accept p c E rho hrec.toRecovery₂ (fgsa_rMonoAll p c E rho) crossing
+    (fun _ _ _ _ hv hx hip hem hSync hhor hCompat =>
+      healing_proposal_receipt_recovery p c E rho hrec hv hx hip hem hSync hhor hCompat)
+    hnew hu hready hhorizon.le le_rfl
 
 -- The full gap horizon is five Delta beyond the terminal deadline.
 example (G u : Time) :
@@ -440,13 +468,13 @@ example : riseOneParams.actionTime 1 + 6 ≤ carrierTimeW riseOneParams 6 1 ∧
 example {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa riseOneParams c))
     (hrec : RecoverySleep₂ riseOneParams c E rho 10 6) (qc : RQCOrigin riseOneParams c E rho)
-    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    {u D : Time} (hready : recoveryStart riseOneParams E ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
     (hbudget : u + ρΓ riseOneParams 10 + (P riseOneParams - 4 * riseOneParams.Δ) +
       (2 * P riseOneParams + Γ riseOneParams 10 - 9 * riseOneParams.Δ) ≤ D)
     (hhor : u + ρΓ riseOneParams 10 + (P riseOneParams - 4 * riseOneParams.Δ) +
       (2 * P riseOneParams + Γ riseOneParams 10 - 4 * riseOneParams.Δ) ≤ rho.horizon) :
     RiseOneBy riseOneParams c E rho D := by
-  rcases riseOneWithPorts E rho hrec rfl ⟨by decide⟩ qc hgst huD hD hbudget hhor with
+  rcases riseOneWithPorts E rho hrec rfl ⟨by decide⟩ qc hready huD hD hbudget hhor with
     hrise | ⟨_, _, X, _, hnew, _, _, _, hh, hd, hreceipt⟩
   · exact hrise
   · exact healing_rise_one_of_receipt riseOneParams c E rho

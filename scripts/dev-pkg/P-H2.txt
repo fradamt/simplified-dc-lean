@@ -1,5 +1,5 @@
-# P-H2 Round 8: produced recovery scopes, retained opening and cone successors.
-# Remaining factory and post-reset obligations retain their repair owners.
+# P-H2 Round 10: H1 caller ports and complete non-Assembly healing build coverage.
+# 120 TARGETS; 590 GREEN; 0 EXPECTED-FAIL. Strict audits include HealingSleepAxioms.
 
 [TARGETS]
 AvailableChainFGSAClaims.Claims.Healing
@@ -116,8 +116,24 @@ AvailableChainFGSAProofs.Tests.HealingRepair
 AvailableChainFGSAProofs.Tests.HealingReset
 AvailableChainFGSAProofs.Tests.HealingResetCut
 AvailableChainFGSAProofs.Tests.HealingRiseOne
+AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
+AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
+AvailableChainFGSAProofs.Proofs.Healing.PromotionSource
+AvailableChainFGSAProofs.Tests.HealingPhaseSettle
+AvailableChainFGSAProofs.Tests.HealingSleepAxioms
+AvailableChainFGSAProofs.Tests.HealingFrontierRead
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
+AvailableChainFGSAProofs.Proofs.Healing.Export
+AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove
+AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
+AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep
+AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
+AvailableChainFGSAProofs.Tests.HealingPostResetLeaseStep
+AvailableChainFGSAProofs.Tests.HealingPostResetRawStep
+AvailableChainFGSAProofs.Tests.HealingReset
+AvailableChainFGSAProofs.Tests.HealingRiseOne
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -693,14 +709,10 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
+AvailableChainFGSAProofs.Proofs.Healing.PromotionSource
+AvailableChainFGSAProofs.Tests.HealingPhaseSettle
+AvailableChainFGSAProofs.Tests.HealingSleepAxioms
+AvailableChainFGSAProofs.Tests.HealingFrontierRead
 
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Healing.Export P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep P-H2
-AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep P-H2
-AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope P-H2
-AvailableChainFGSAProofs.Tests.HealingPostResetLeaseStep P-H2
-AvailableChainFGSAProofs.Tests.HealingPostResetRawStep P-H2
-AvailableChainFGSAProofs.Tests.HealingReset P-H2
-AvailableChainFGSAProofs.Tests.HealingRiseOne P-H2

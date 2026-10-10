@@ -12,6 +12,12 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2
 
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep
+public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
+public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport
+
 public section
 
 /-! Strict audit of the selected recovery services and bounded consumers. -/
@@ -52,3 +58,55 @@ public section
 #print axioms AvailableChain.FGSA.Run.postReset_tHigh_reset
 
 end
+
+-- Round 9: bounded lease/raw successors and the returned input producers.
+#print axioms AvailableChain.FGSA.Run.healing_source_before_receipt_at_recovery
+#print axioms AvailableChain.FGSA.Run.postReset_moving_head_cut
+#print axioms AvailableChain.FGSA.Run.postReset_moving_domain
+#print axioms AvailableChain.FGSA.Run.postReset_written_ready
+#print axioms AvailableChain.FGSA.Run.postReset_written_sync
+#print axioms AvailableChain.FGSA.Run.postReset_written_window
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_written
+#print axioms AvailableChain.FGSA.Run.postReset_written_source_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_written_domain
+#print axioms AvailableChain.FGSA.Run.postReset_written_first_head
+#print axioms AvailableChain.FGSA.Run.postReset_written_first_head_label
+#print axioms AvailableChain.FGSA.Run.postReset_written_heads_at_write_cut
+#print axioms AvailableChain.FGSA.Run.postReset_written_later_result
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_results_succ
+#print axioms AvailableChain.FGSA.Run.postReset_moving_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_written_next_head
+#print axioms AvailableChain.FGSA.Run.postReset_written_moving_parent
+#print axioms AvailableChain.FGSA.Run.postReset_written_heads_succ
+#print axioms AvailableChain.FGSA.Run.postReset_written_proposals_succ
+#print axioms AvailableChain.FGSA.Run.postReset_written_finality_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_written_gate_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_written_outputs_succ
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_succ
+#print axioms AvailableChain.FGSA.Run.postReset_raw_first_head_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_first_head
+#print axioms AvailableChain.FGSA.Run.postReset_raw_first_head_label
+#print axioms AvailableChain.FGSA.Run.postReset_raw_heads_at_gate_cut
+#print axioms AvailableChain.FGSA.Run.postReset_raw_at_gate_cut
+#print axioms AvailableChain.FGSA.Run.postReset_raw_moving_domain
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ_all
+#print axioms AvailableChain.FGSA.Run.postReset_raw_heads_succ_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_proposals_succ_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_finality_compatible_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_gate_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_raw_outputs_succ_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_heads_succ
+#print axioms AvailableChain.FGSA.Run.postReset_raw_proposals_succ
+#print axioms AvailableChain.FGSA.Run.postReset_raw_outputs_succ
+#print axioms AvailableChain.FGSA.Run.postReset_rawTransfer_succ
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ'
+#print axioms AvailableChain.FGSA.Run.healing_release_rows_expiry
+#print axioms AvailableChain.FGSA.Run.healing_proposal_receipt_recovery
+#print axioms AvailableChain.FGSA.Run.healing_postReset_confirmed_reader
+#print axioms AvailableChain.FGSA.Run.healing_postReset_joint_recovery
+#print axioms AvailableChain.FGSA.Run.healing_postReset_inv_recovery
+#print axioms AvailableChain.FGSA.Run.healing_h0_extension_recovery
+#print axioms AvailableChain.FGSA.Run.healing_localInput_recovery
+#print axioms AvailableChain.FGSA.Run.healing_fullInput_recovery
+
+#print axioms AvailableChain.FGSA.Run.healing_output_moving_suffix_at
