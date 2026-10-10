@@ -4525,3 +4525,63 @@ checks, then stop at the mapped-root control because FinalityGST is missing
 Task 3 needs no edit: the lead note at the Round 3 merge already marks the
 public anchor proposal SUPERSEDED by DECISION ANCHOR-DL at base d825ed30.
 No new LEAD DECISION item is needed.
+
+## P-H2 Round 2 — opening support and receiver action epochs
+
+Base: `4c6289ce`, branch `sleep-ph2b`. P-H1 round 2 types and closed P-ShA/P-Fd
+suppliers are consumed. Public recovery statements and protocol files are unchanged.
+The validated helper slice does not close the 79 original H2 proof/test targets.
+
+- OPENING-SUPPORT: internal statement repair, as requested in the closure map §6.
+  `opening_gate_support` moves from OpeningServiceGate to OpeningGateSupport.
+  It requires RecoverySleep₂, an honest receiver, GST at or before the selected
+  voter's previous slot start, and that receiver's GateReceiptScope. Joined
+  participation supplies releaseThreshold and Batch; `fgsa_gateReceipt_on` supplies
+  the exact receipts; the denominator uses `fgsa_late_rest_bound_joined`.
+  The source body compiles independently of the open RepairGate import.
+- OPENING-RESET: `opening_gate_support_of_reset` derives the previous-slot cutoff
+  from H0Reset, and constructs the receiver's enabled gate and read epoch with
+  `healing_recovery_gate_scope`. Per-object fresh HEAD and target services stay
+  explicit. `healing_ready_vote_cutoff` derives the same voter cutoff from τ.
+  Original high-depth callers still need these object-service producers.
+- WAKE-AT-VOTE: Tests/HealingOpeningSupport proves an ExecutionValid run with
+  Δ=1, GST=5, wake/restart before the label-1 vote at 5, and gate at 10. The node
+  is awake at the vote but unjoined; no HEAD is emitted; joinedHonest is empty;
+  the gate is suppressed; genesis prefix support is zero. Genesis HEAD coverage
+  holds. This is a kernel-checked mechanism regression, not a full RecoverySleep₂
+  counterexample: its linked/base/partial-synchrony fields are not packaged.
+- RECEIVER-ACTION: `healing_recovery_action_epoch` keeps the receiver's epoch
+  through any consuming action index. A restart at GST or the anchor remains
+  before actionCut. `healing_recovery_action_stamps` consumes RStoreEpoch;
+  `healing_recovery_action_frame` consumes RFrameNextEpoch, keeping wires durable
+  and stamps local. Neither derives global NoRestart.
+- ACCEPTED-TARGET: RecoveryService constructs ReceiverService and TargetReceiptService
+  from the original proposal acceptance, its source index/time, a public awake
+  anchor, the exact horizon and non-exclusion. AnchorService derives handlers and
+  durable proposal HistorySafeAt. It does not infer retained HEAD history from
+  past processing. Retained HEAD witnesses and the frontier ports remain open.
+- H1-NAMES: RecoveryScope's three helper names that conflict with the landed H1
+  SupportRecovery API now have the `healing_scope_` prefix: restart_bound, durable,
+  and stamps. Local audits and canonical fragments name these exact declarations.
+- MAP: six copied Shared/Run failures are now GREEN; AnchorService and RegimesService
+  are added to the current REQUIRED domain. All 79 original H2 failures are retained.
+  Three new targets compile. Map: 89 TARGETS, 480 GREEN, 79 EXPECTED-FAIL;
+  target split: 10 GREEN, 79 open. No allowance or baseline changes.
+- BLOCKER: a fresh OpeningServiceGate build stops in H1 SupportTransfer, including
+  its removed Base₂.noRestart field and legacy receipt/release calls. All 79 original
+  H2 targets import this module transitively. The report lists exact H1 requests,
+  P-As ProgressAttempt/ResetArrival requests and concrete P-Fd channel types.
+  Signature edits in those high-depth files are not counted as proof completion.
+- AUDIT: local strict roots and full local coverage retain every new declaration.
+  Canonical fragments use the existing Tests.Axioms key and move the opening support
+  owner row to its new module. Full canonical integration and the default global
+  export check remain open with the Assembly/Inhabit suppliers.
+
+Round 2 evidence and final validation: `claude-files/sleep-ph2-report.md`, Round 2;
+checked full helper types: `claude-files/sleep-ph2b/export-types.log`.
+
+Final frozen-source validation for this slice: DCK P-H2 PASS (480 GREEN roots,
+40 strict audit sources, 3,366 axiom results, 24 controls); local complete coverage
+PASS (41 commands); all-GREEN-root export check PASS (270 proof modules, 253 exports,
+zero unaccepted); check-layers PASS (72 accepted, zero new); diff --check PASS.
+These results validate the checked helper slice, not the 79 original open targets.

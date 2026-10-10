@@ -52,6 +52,16 @@ theorem healing_recovery_delay_bounds (E : Generic.Env V) (hgst : 0 ≤ E.t_GST)
   dsimp [a] at he
   constructor <;> nlinarith
 
+omit [DecidableEq V] in
+/-- The approved recovery start puts GST before this voter's previous slot start. -/
+theorem healing_ready_vote_cutoff (E : Generic.Env V) {s : Slot}
+    (hready : recoveryStart p E ≤ SA.voteTime p.toParams s) :
+    E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+  have hlo := healing_recovery_start_lower (p := p) E
+  change recoveryStart p E ≤ 4 * p.Δ * (s : Int) + p.Δ at hready
+  change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+  linarith [p.deltaPos]
+
 variable {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 /-- The first reset row is after the inclusive frontier cut. -/

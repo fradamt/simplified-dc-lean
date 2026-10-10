@@ -1,8 +1,9 @@
-# P-H2 sleep wave 3; base 60cdcf65. Supplier repairs retain their owners.
+# P-H2 package map: Round 2 at 4c6289ce.
+
 [TARGETS]
-AvailableChainFGSAProofs.Proofs.Healing.ResetScope
-AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
-AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
+AvailableChainFGSAProofs.Tests.HealingOpeningSupport
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
+AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
 AvailableChainFGSAClaims.Claims.Healing
 AvailableChainFGSAProofs.Proofs.Healing.Attempt
 AvailableChainFGSAProofs.Proofs.Healing.AttemptRows
@@ -29,6 +30,7 @@ AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceCover
 AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate
 AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceSupport
 AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport
+AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 AvailableChainFGSAProofs.Proofs.Healing.OpeningService
 AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody
 AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
@@ -56,9 +58,11 @@ AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep
 AvailableChainFGSAProofs.Proofs.Healing.PostResetService
 AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
+AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
 AvailableChainFGSAProofs.Proofs.Healing.Repair
 AvailableChainFGSAProofs.Proofs.Healing.Reset
 AvailableChainFGSAProofs.Proofs.Healing.ResetCut
+AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Proofs.Healing.RiseOne
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair
@@ -86,10 +90,11 @@ AvailableChainFGSAProofs.Tests.HealingRepair
 AvailableChainFGSAProofs.Tests.HealingReset
 AvailableChainFGSAProofs.Tests.HealingResetCut
 AvailableChainFGSAProofs.Tests.HealingRiseOne
+
 [GREEN]
-AvailableChainFGSAProofs.Proofs.Healing.ResetScope
-AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
-AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
+AvailableChainFGSAProofs.Tests.HealingOpeningSupport
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
+AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -276,8 +281,12 @@ AvailableChainFGSAClaims.Statements.Recurrence
 AvailableChainFGSAClaims.Statements.Regimes
 AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
+AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
+AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
+AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 AvailableChainFGSAProofs.Proofs.Shared.Channels
@@ -285,6 +294,7 @@ AvailableChainFGSAProofs.Proofs.Shared.Compose
 AvailableChainFGSAProofs.Proofs.Shared.Count
 AvailableChainFGSAProofs.Proofs.Shared.ExactHead
 AvailableChainFGSAProofs.Proofs.Shared.ExactService
+AvailableChainFGSAProofs.Proofs.Shared.Export
 AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
@@ -292,6 +302,7 @@ AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
 AvailableChainFGSAProofs.Proofs.Shared.Gate
 AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
 AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
+AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement
 AvailableChainFGSAProofs.Proofs.Shared.HeadCover
 AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
@@ -310,6 +321,8 @@ AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 AvailableChainFGSAProofs.Proofs.Shared.Reads
 AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 AvailableChainFGSAProofs.Proofs.Shared.Recurrence
+AvailableChainFGSAProofs.Proofs.Shared.Regimes
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Proofs.Shared.Relay
 AvailableChainFGSAProofs.Proofs.Shared.Release
 AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
@@ -332,6 +345,7 @@ AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 AvailableChainFGSAProofs.Tests.HealingH2SleepAxioms
 AvailableChainFGSAProofs.Tests.SharedAxioms
+AvailableChainFGSARun
 AvailableChainFGSARun.Model.Families
 AvailableChainFGSARun.Model.HealingFixture
 AvailableChainFGSARun.Model.Protocol
@@ -361,6 +375,7 @@ AvailableChainFGSARun.Proofs.Reachable
 AvailableChainFGSARun.Proofs.ReadFacts
 AvailableChainFGSARun.Proofs.Readiness
 AvailableChainFGSARun.Proofs.ReadyAcceptance
+AvailableChainFGSARun.Proofs.ReceiptCoverage
 AvailableChainFGSARun.Proofs.ReceiptCoverageReady
 AvailableChainFGSARun.Proofs.Receipts
 AvailableChainFGSARun.Proofs.Restore
@@ -388,6 +403,7 @@ AvailableChainFGSARun.Statements.Roots
 AvailableChainFGSARun.Statements.Slashing
 AvailableChainFGSARun.TestSupport.EmissionFreshness
 AvailableChainFGSARun.TestSupport.Sleep
+AvailableChainFGSARun.Tests.Axioms
 AvailableChainFGSARun.Tests.DigestScope
 AvailableChainFGSARun.Tests.EmissionFreshness
 AvailableChainFGSARun.Tests.FGSource
@@ -556,6 +572,7 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.Healing.Attempt P-H2
 AvailableChainFGSAProofs.Proofs.Healing.AttemptRows P-H2
@@ -614,9 +631,6 @@ AvailableChainFGSAProofs.Proofs.Healing.RiseOne P-H2
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept P-H2
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair P-H2
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneRise P-H2
-AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSAProofs.Tests.HealingAttempt P-H2
 AvailableChainFGSAProofs.Tests.HealingCommon P-H2
 AvailableChainFGSAProofs.Tests.HealingFrontierOpen P-H2
@@ -639,6 +653,3 @@ AvailableChainFGSAProofs.Tests.HealingRepair P-H2
 AvailableChainFGSAProofs.Tests.HealingReset P-H2
 AvailableChainFGSAProofs.Tests.HealingResetCut P-H2
 AvailableChainFGSAProofs.Tests.HealingRiseOne P-H2
-AvailableChainFGSARun S-Ap
-AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap
-AvailableChainFGSARun.Tests.Axioms S-Ap
