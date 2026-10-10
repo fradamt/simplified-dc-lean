@@ -409,6 +409,63 @@ theorem wc_confirmedReader_early_gate (hV : V2.D.ExecutionValid E rho)
   | none => trivial
   | some w => exact hb w hw
 
+/-- A public confirmed reader supplies its original gate in the same awake epoch. -/
+theorem wc_confirmedReader_public_gate (hV : V2.D.ExecutionValid E rho)
+    (hdelta : E.Δ = p.Δ) {i : Nat} {y : V} {r : Slot} {t : Time}
+    (hy : confirmedReaderAtIdx p c E rho y i t)
+    (hWakes : WakesAppliedAtIdx E rho y i t)
+    (hhor : SA.gateTime p.toParams r ≤ rho.horizon)
+    (ht : SA.gateTime p.toParams r ≤ t)
+    (hcut : afterTicksIdx rho (SA.gateTime p.toParams r) ≤ i)
+    (hmarker : ∀ w, (storeAt p c E rho i y).restartTime = some w →
+      w ≤ slotStartZ p (r : Int)) :
+    ∃ k < i, enabledGateAt p c E rho k y r := by
+  have hS := hV.toScheduleWellFormed
+  have hbound (j : Nat) (u : Time) (hj : j < i)
+      (he : rho.events[j]? = some (.restart y u)) : u ≤ slotStartZ p (r : Int) := by
+    obtain ⟨w, hw, huw⟩ := wc_restart_marker_after hS he hj
+    exact huw.trans (hmarker w hw)
+  have hsg : slotStartZ p (r : Int) ≤ SA.gateTime p.toParams r := by
+    change 4 * p.Δ * (r : Int) ≤ 4 * p.Δ * (r : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have h0 : 0 ≤ SA.gateTime p.toParams r := by
+    change 0 ≤ 4 * p.Δ * (r : Int) + 6 * p.Δ
+    have := p.deltaPos
+    positivity
+  have hAw : E.awake y (SA.gateTime p.toParams r) = true := by
+    by_contra hn
+    have hfalse := Bool.eq_false_iff.mpr hn
+    obtain ⟨u, hgu, hut, hW⟩ := V2.D.Engine.wake_between ht hfalse hy.2.1
+    obtain ⟨j, hj, he⟩ := hWakes u (h0.trans_lt hgu) hut hW
+    exact (not_lt.mpr ((hbound j u hj he).trans hsg)) hgu
+  have hclock : ((4 * r + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams r := by
+    change ((4 * r + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (r : Int) + 6 * p.Δ
+    push_cast
+    ring
+  obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hS hdelta y hy.1 (4 * r + 6)
+    (hclock ▸ hhor) (hclock ▸ hAw)
+  rw [hclock] at hk
+  have hkc : k < afterTicksIdx rho (SA.gateTime p.toParams r) := by
+    by_contra hn
+    have hf := V2.D.Engine.filter_false_of_index_ge hS
+      (cutPred (SA.gateTime p.toParams r)) (by
+        intro e f hk hf
+        exact decide_eq_true (hk.trans (of_decide_eq_true hf)))
+      (Nat.le_of_not_gt hn) hk
+    have htrue : cutPred (SA.gateTime p.toParams r)
+        (.tick y (SA.gateTime p.toParams r) : V2.Event V (fgsa p c).Object) = true :=
+      decide_eq_true le_rfl
+    rw [htrue] at hf
+    cases hf
+  have hki := hkc.trans_le hcut
+  refine ⟨k, hki, hk, ?_⟩
+  have hb := fgsa_restartTime_bound E rho k y (slotStartZ p (r : Int)) (by
+    intro j u hj he
+    exact hbound j u (hj.trans hki) he)
+  cases hw : (storeAt p c E rho k y).restartTime with
+  | none => trivial
+  | some w => exact hb w hw
+
 /-- Receipt anchors at max(send,GST) meet the unchanged deadline exactly. -/
 theorem wc_receipt_anchor_deadline (send gst a : Time)
     (hsa : send ≤ a) (ha : a ≤ max send gst) :
