@@ -194,6 +194,7 @@ def root_list(path):
 
 
 def root_diagnostics(old, now, roots, checkpoint='baseline'):
+    # Only the collector passes None: it has no accepted reference to validate.
     diagnostics = []
     scope = now.get('checkpoint', {})
     modules = scope.get('modules') if scope.get('name') == 'g-s1' else None
@@ -201,19 +202,24 @@ def root_diagnostics(old, now, roots, checkpoint='baseline'):
         name = root['name']
         status = root.get('status', 'existing')
         present = [(side, data['nodes'][name]['module'])
-                   for side, data in [('base', old), ('target', now)] if name in data['nodes']]
+                   for side, data in [('base', old), ('target', now)]
+                   if data is not None and name in data['nodes']]
         reason, state = None, 'error'
         if status not in ('existing', 'planned'):
             reason = 'unknown root status'
+        elif (checkpoint == 'g-s1' or modules is not None) and (
+                not isinstance(root.get('module'), str) or
+                not re.fullmatch(r"[^\W\d][\w'.?!]*", root['module'])):
+            reason = 'G-S1 subjects require exact module identities'
         elif root.get('module') and any(m != root['module'] for _, m in present):
             reason = 'root module mismatch'
+        elif old is not None and status == 'existing' and name not in old['nodes']:
+            reason = 'required root absent from reference graph'
         elif modules is not None and root.get('module') not in modules:
             if checkpoint in ('g-s2', 'g-s3'):
                 reason = 'root outside final checkpoint import scope'
             else:
                 reason, state = 'outside checkpoint import scope', 'pending'
-        elif status == 'existing' and name not in old['nodes']:
-            reason = 'required root absent from reference graph'
         elif name not in now['nodes']:
             if status == 'planned' and checkpoint in ('baseline', 'g-s1'):
                 reason, state = 'planned root absent before final measurement', 'pending'

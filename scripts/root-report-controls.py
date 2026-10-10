@@ -29,10 +29,42 @@ def graph(edges):
     return data
 
 
+def scoped_report_controls(tmp):
+    scoped = graph({'A': ['B'], 'B': [], 'C': []})
+    scoped['checkpoint'] = dict(name='g-s1', modules=['Control'])
+    baseline, snapshot, manifest, roots, output = [tmp / n for n in
+        ('scoped-base.json', 'scoped-now.json', 'scoped.md', 'scoped-roots.json', 'scoped-out.json')]
+    for path in (baseline, snapshot):
+        path.write_text(deep.render(scoped))
+    manifest.write_text('### `Control`\n' + ''.join(
+        'def ' + n + ' ' + '1' * 16 + '\n' for n in scoped['entries']))
+    command = ['python3', '-B', 'scripts/fgsa-deep.py', '--baseline', str(baseline),
+               '--snapshot', str(snapshot), '--manifest', str(manifest),
+               '--roots', str(roots), '--output', str(output), '--checkpoint', 'g-s1']
+    failures = []
+    for mode in ('--attribute', '--check'):
+        for label, subject, reason in [
+            ('absent G-S1 reference name',
+             dict(name='Missing.Required', status='existing', module='Deferred'),
+             'required root absent from reference graph'),
+            ('omitted G-S1 module', dict(name='A', status='existing'),
+             'G-S1 subjects require exact module identities')]:
+            roots.write_text(json.dumps([subject]))
+            result = subprocess.run(command + [mode], capture_output=True, text=True)
+            rows = deep.strict_json(output)['unresolved']
+            passed = (result.returncode == 1 and reason in result.stderr and
+                      len(rows) == 1 and rows[0]['state'] == 'error')
+            print('CONTROL ' + mode + ' ' + label + ': ' + ('PASS' if passed else 'FAIL'))
+            if not passed:
+                failures.append((mode, label, result.returncode, rows))
+    assert not failures, failures
+
+
 def main():
     base = graph({'A': ['B'], 'B': [], 'C': []})
     with tempfile.TemporaryDirectory(prefix='root-report-controls-') as scratch:
         tmp = Path(scratch)
+        scoped_report_controls(tmp)
         baseline, snapshot, manifest, roots, report = [tmp / n for n in
             ('base.json', 'now.json', 'manifest.md', 'roots.json', 'report.json')]
         for path in (baseline, snapshot):
@@ -65,11 +97,14 @@ def main():
             assert deep.strict_json(report)['unresolved'][0]['state'] == 'pending'
         scoped = graph({'A': ['B'], 'B': [], 'C': []})
         scoped['checkpoint'] = dict(name='g-s1', modules=['Control'])
+        reference = graph({'A': ['B'], 'B': [], 'C': [], 'Deferred.Required': []})
+        for section in ('nodes', 'entries'):
+            reference[section]['Deferred.Required']['module'] = 'Deferred'
         subjects = [dict(name='Deferred.Required', status='existing', module='Deferred')]
-        report = deep.diff_report(base, scoped, subjects, checkpoint='g-s1')
+        report = deep.diff_report(reference, scoped, subjects, checkpoint='g-s1')
         deep.require_roots(report)
         assert report['unresolved'][0]['state'] == 'pending'
-        report = deep.diff_report(base, scoped, subjects, checkpoint='g-s2')
+        report = deep.diff_report(reference, scoped, subjects, checkpoint='g-s2')
         try:
             deep.require_roots(report)
         except ValueError as exc:

@@ -150,7 +150,7 @@ def main (_args : List String) : IO UInt32 := do
         if checkpoint == 'g-s1':
             data['checkpoint'] = dict(name=checkpoint, modules=modules)
         if roots is not None:
-            diagnostics = deep.root_diagnostics(data, data, deep.root_list(roots), checkpoint)
+            diagnostics = deep.root_diagnostics(None, data, deep.root_list(roots), checkpoint)
             deep.require_roots(dict(unresolved=diagnostics))
             data['pending'] = diagnostics
     return data
