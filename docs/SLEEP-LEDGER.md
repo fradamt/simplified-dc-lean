@@ -8193,3 +8193,12 @@ A' approves the migration delta. This list records provenance for lead review.
 
 None among the 64 direct public type changes. Owning-module commit sources are
 listed above; lead review must confirm each semantic adaptation.
+
+## P-Da Round 3 — blueprint map refresh (2026-10-11)
+
+Ruling C: refresh 180 stale type fingerprints and move wc_receiptOrigins to
+WeakContinuation.ReceiptOrigins. No mapped theorem is missing on this branch.
+All statuses and OPEN reasons stay unchanged: 65 PROVED, 16 PARTIAL, 22 OPEN,
+2 HISTORICAL; 36 OPEN items. Receipt coverage stays PARTIAL. The sleep producer
+and paper alignment stay OPEN. Regenerated FGSA-BLUEPRINT-OPEN.md is byte-identical.
+The compiled blueprint check passes; PC-SA safety remains source/map only.
