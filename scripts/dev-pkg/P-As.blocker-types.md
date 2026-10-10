@@ -1,9 +1,8 @@
-# P-As Round 5 — current blocker types
+# P-As Round 6 — current blocker types
 
-Base: 7a30ce82 = P-As 1b7c9cf2 plus sleep-int 3ca33648.
-Full P-As remains OPEN. Healing work remains OUT OF SCOPE.
-Public Claims/Statements are unchanged. No open record is supplied as a premise of a public claim.
-Evidence: .lake/sleep-pas-r5/. This register replaces the Round 4 requests.
+Base: ef1b0e43, branch sleep-pas6. Full P-As remains OPEN.
+Healing is OUT OF SCOPE. Public Claims/Statements are unchanged.
+Evidence: .lake/sleep-pas-r6/. This register replaces the Round 5 requests.
 
 ## Closed requests
 
@@ -25,114 +24,81 @@ Evidence: .lake/sleep-pas-r5/. This register replaces the Round 4 requests.
   `arming_continuation_prefix_receipt` with `outage_continuation_receipt_of_prefix`.
   No assumed prefix receipt or complete receipt-service callback remains in that check.
 
-## B03 — P-H1
+## New closed requests from P-Ou Round 8
 
-`AvailableChainFGSAProofs/Proofs/Healing/SupportTransfer.lean:226` — `healing_support_honest_head`.
+- OU-INPUTS: CLOSED. ReceiverInputs:1059 `inclusion_receiver_inputs_of_clean`
+  produces InclusionReceiverInputs from the actual CleanSet. Suppliers:151 exports
+  `outage_supplier_inclusion_inputs`. The three Clean exporters construct it themselves.
+- OU-SCOPES: CLOSED. InclusionGateService and InclusionGateBody produce the actual
+  enabled-gate receipt scope, with receiver floors and the required post-GST cuts.
+  No hScopes callback remains in the three Clean exporters or their assembly callers.
+- Clean growth callbacks: CLOSED producer request. GrowthSuppliers:15
+  `clean_growth_suppliers` supplies the gate witness, compatibility and later inclusion.
+  Assembly/Outage:161 `assembly_clean_growth_suppliers` supplies its full field inputs
+  from the actual CleanSet, CleanCutClaim and Foundations. Its growth wrapper no longer
+  takes hWitness or hInclusion. Exact production bodies pass an eight-command audit.
+  Full Assembly/Outage remains OPEN through the separate P-Ou imports below.
+  EXPORT ROUTE OPEN, owner P-Ou: Outage/Export does not yet import GrowthSuppliers.
+  Add `public import AvailableChainFGSAProofs.Proofs.Outage.GrowthSuppliers` there,
+  or export that exact existing producer through the lane Export. P-As uses the
+  permitted Export route and does not add a direct lane import or layer exception.
+  The body audit explicitly imports the existing producer; it does not close the route.
+- Continuation receipt: RestoredBatch:388 `outage_continuation_receipt` now consumes
+  P-Ar's concrete prefix producer. It is a receipt producer, not a continuation induction.
+- Post-E count: ReceiverInputs:1064 `outage_post_e_joined_count` proves the strict count
+  at actual votes within the horizon. No fixed A union W count is extended beyond E.
 
-OUT OF SCOPE. This is an inherited import blocker. No H1 scope record is supplied or consumed. Its
-unrestricted sleep scope is not accepted as TRUE in this round.
+## B04 / OU-CONT — exact P-Ou obligation
 
-```lean
-theorem healing_support_honest_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hE : V2.D.ExecutionValid E rho) {i : Nat} {x : V} {s : Slot} {k : Fin p.n}
-    {o : GridCO.Wire p.n .root} (ho : o ∈ (storeAt p c E rho i x).base.votes)
-    (hl : GridCO.headLabel? o = some s) (hk : GridCO.headSeat? o = some k)
-    (hh : rho.seatOf (.base (.head s)) k ∈ rho.honest) :
-    ∃ j, rho.events[j]? = some (.tick (rho.seatOf (.base (.head s)) k)
-        (SA.voteTime p.toParams s)) ∧
-      GridCO.headTarget? o = some (headVote p (FGSA.clock p
-        (V2.D.Run.stateBefore E rho j (rho.seatOf (.base (.head s)) k)).st
-        (SA.voteTime p.toParams s)) s).root
-```
+Current failing consumers:
 
-## B16 — P-As
+- Proofs/Outage/ContinuationReceipt.lean:19 `outageV_source_path`, with failing
+  source/acceptance calls at :36/:134/:201 and old duty projections at :388/:552/:746.
+- Proofs/Outage/ContinuationInduction.lean:40 `outage_event_induction_le_expiry`;
+  :284 still calls removed `outage_arming_local`.
+- Proofs/Outage/ContinuationJoint.lean:871 `outageV_body`.
+- Proofs/OutageContinuation/Export.lean:12 `outageContinuation_claim_of`.
 
-`AvailableChainFGSAProofs/Tests/NonVacuity/HealingPackages.lean:450` — `step_constant`.
-
-OUT OF SCOPE because this is a healing test. The old restore expression omits the exact wake time;
-it is not a well-typed sleep step. The repair must use the actual time, not assume NoRestart.
-
-```lean
-theorem step_constant (nd : FixtureNode) (e : Event) :
-    V2.D.World.step env (mkRun []) (fun _ => nd) e =
-      fun _ => match e with
-      | .restart _ _ => (fgsa params unitCodec).restore ((fgsa params unitCodec).durable nd)
-      | .tick _ t => (V2.D.tick env (mkRun []) nd 0 t).1
-      | .deliver _ o _ => (fgsa params unitCodec).process nd o
-```
-
-## B17 — P-As
-
-`AvailableChainFGSAProofs/Tests/NonVacuity/HealingReset.lean:199` — `step_constant`.
-
-OUT OF SCOPE because this is a healing test. The old restore expression omits the exact wake time.
-The prior stash patch is not used for this file.
+Paths start with AvailableChainFGSAProofs/. P-Ou owns the continuation induction,
+restored HEAD history, expiry handover, healthy suffix and complete exporter.
+The exact final conclusion, under the existing family foundation/source suppliers, is:
 
 ```lean
-theorem step_constant (nd : FixtureNode) (e : Event) :
-    V2.D.World.step env (mkRun []) (fun _ => nd) e =
-      fun _ => match e with
-      | .restart _ _ => (fgsa params unitCodec).restore ((fgsa params unitCodec).durable nd)
-      | .tick _ t => (V2.D.tick env (mkRun []) nd 0 t).1
-      | .deliver _ o _ => (fgsa params unitCodec).process nd o
+(h : OutageContinuationSleepPrem p c fast E rho T b₀ b₁ ΔF) :
+  OutageContinuationConcl p c E rho fast T b₀ b₁
 ```
 
-## B04 — P-Ou
+This is the existing public endpoint, not an added premise. The base has no complete
+producer for it. Root supplies StoreAt, ActiveViewAt, FrameAt, SrcFrameAboveStmt,
+SourceDisciplineAt and the exact healthy sleep cut from the named Foundations/Clean
+claims. P-As supplies no NoRestart, future hResults or all-honest seed.
 
-`AvailableChainFGSAProofs/Proofs/Outage/ContinuationReceipt.lean:19` — `outageV_source_path`.
-
-The statement is a source-path obligation, not a new regime field. Its proof still uses the old
-block-stamp/acceptance telescope. Global NoRestart is FALSE for ordinary finite runs with wakes; none is supplied.
+ReceiverInputs:1097 `outage_continuation_results_of_head_history` has one exact
+conditional invariant input. P-Ou's joint induction must produce it for the selected B:
 
 ```lean
-theorem outageV_source_path (hsch : V2.D.ScheduleWellFormed E rho)
-    {k : Nat} {y : V} {K : Block} {u : Time}
-    (hK : K ∈ (storeAt p c E rho k y).base.blocks)
-    (hcut : ∀ l < k, ∀ e, rho.events[l]? = some e → e.time ≤ u) :
-    ∀ b, Block.Preceq b K → b ≠ .genesis →
-      ∃ l < k, ∃ t o, blockOf? p o = some b ∧
-        V2.D.Run.acceptsAt E rho l y o t ∧ 0 ≤ t ∧ t ≤ u
+∀ s q K, restoredLabel p b₁ < s →
+  outageHeadReader p E rho fast b₀ b₁ (rho.seatOf (.base (.head s)) q)
+    (SA.voteTime p.toParams s) →
+  HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+    (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+  Block.Compatible K B
 ```
 
-## OU-CONT — P-Ou
+This field concerns actual emitted HEADs in the public reader scope. E supplies its
+count in the restored window; the new post-E producer supplies later joined counts.
+Services keep their actual vote-time GST cut, receiver floor and epoch. This adapter
+is conditional until P-Ou proves the history. It is not a producer of that history.
+Later conditional hTargets stay P-Ou induction work. No new assembly callback is added.
 
-`Proofs/Outage/ContinuationInduction.lean:39`, `outage_event_induction_le_expiry`.
-`Proofs/Outage/ContinuationJoint.lean:871`, `outageV_body`.
-`Proofs/OutageContinuation/Export.lean:12`, `outageContinuation_claim_of`.
+## OU-CLOSE — exact P-Ou obligation
+
+Proofs/Outage/Close.lean:84 `outage_protected_read` and :178 `outage_compat_body`;
+Proofs/Outage/Export.lean:405 `outage_compat_body_of_cut`.
 Paths start with AvailableChainFGSAProofs/.
 
-The first consumer still uses global NoRestart and the removed all-honest arming seed
-(`outage_arming_local` at :284). Those shapes are FALSE for ordinary finite sleep runs
-and are NOT requested. Port the continuation induction to the actual covered receiver,
-joined duty, enabled gate, receipt epoch, restored source and post-GST service scopes.
-P-Ar's complete prefix receipt is now produced; it is not a remaining input.
-The exact final producer target is the existing public conclusion below, under its existing
-foundation/source/healthy-cut suppliers; no extra public premise is proposed.
-
-```lean
-(h : OutageContinuationPrem p c fast E rho T b₀ b₁ ΔF)
-(hstrat : RStrat p c E rho) (hcumul : RStoreCumul p c E rho)
-(origin : RQCOrigin p c E rho) : OutageContinuationConcl p c E rho T b₀
-```
-
-P-Ou must also supply the continued good-HEAD compatibility and counts after E's label window.
-ReceiverInputs:757 supplies actual fresh HEAD receipts at enabled, post-GST gates; its
-actual emitted-target compatibility input is still conditional. It is not global hResults.
-No future result, all-honest duty history or universal target receipt is supplied by P-As.
-
-## OU-CLOSE — P-Ou
-
-`Proofs/Outage/Close.lean:84`, `outage_protected_read`, and :178 `outage_compat_body`.
-`Proofs/Outage/Export.lean:417`, `outage_compat_body_of_cut`.
-Paths start with AvailableChainFGSAProofs/.
-
-Close still projects Base₂.noRestart at :113/:121 and calls removed `duties_and_outputs`
-at :147. Assembly and Tests/OutageExport cannot build through that import.
-Port the public wrapper to P-Ar's current certificate and P-Ou's scoped induction.
-Keep enabled gates, actual joined transfer readers, saved-cache restart epochs and the
-public protected-reader scope. The legacy all-gate nonempty and saved-preservation
-inputs are not accepted as TRUE under suppression or wakes.
-The exact existing cut-consumer endpoint is:
+Close still uses removed Base₂.noRestart at :113/:121 and removed duties_and_outputs
+at :147. Those old shapes are not requested. Port this existing cut endpoint:
 
 ```lean
 (hcut : CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀)
@@ -140,166 +106,103 @@ The exact existing cut-consumer endpoint is:
 (hstrat : RStrat p c E rho) : OutageCompatAt p c E rho fast pt
 ```
 
-Export:437 currently omits `fast` in that result type; P-Ou must restore the actual
-existing public predicate argument. The foundation/source arguments of Export:417
-are produced at Assembly/Outage.
-The public claim is unchanged. A pre-restoration G proof is not its full producer.
+Assembly produces the cut and foundation/source arguments. Keep covered receivers,
+joined transfer readers, enabled gates, saved-cache epochs and the public reader scope.
+Export:424 still omits fast in its result type. P-Ou must port that internal consumer
+without changing the public predicate. The new Clean service/growth producers do not
+close this outage endpoint. Its producer is not available on this base.
 
-## OU-INPUTS — P-Ou
+## FAST — P-Fd, CLOSED in Round 6
 
-`AvailableChainFGSAProofs/Proofs/Outage/Export.lean:93`.
-
-Not established TRUE by this base. The early, relay and retained services must use actual emissions,
-the joined receiver, and its receipt epoch. P-As adds no universal service input.
-
-```lean
-hInputs : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : Unit),
-      CleanPrem p c E rho pt ΔF → InclusionReceiverInputs E rho
-```
-
-## OU-SCOPES — P-Ou
-
-`AvailableChainFGSAProofs/Proofs/Outage/Export.lean:129`.
-
-The enabled/current-epoch scope is required. Not established TRUE by this base as a complete receipt
-record. P-As supplies no unguarded scope; P-Ou must construct the services.
+`AvailableChainFGSAProofs/Proofs/Foundations/Leases.lean:642` —
+`fgsa_leaseOrigins_fastWrites_epoch` is the named producer on ef1b0e43.
+WC/WCG assembly takes its ScheduleWellFormed input from the actual source or
+continuation Base₂.valid. No explicit FAST request remains at Root or a WC caller.
+Restart clears the fast cache, so the origin is in the receiver's current epoch.
+The finite-facts and discharge helpers pass the actual producer to the lane kernels.
 
 ```lean
-hScopes : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : Unit),
-      CleanPrem p c E rho pt ΔF → ∀ s i x, x ∈ rho.honest →
-        enabledGateAt p c E rho i x s ∨
-          confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams s))
-            (SA.gateTime p.toParams s) →
-        IsGateTick p c rho i x s → GateReceiptScope E rho i x s
+(hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) :
+  ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
+    ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
+      gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
+        Block.Preceq X B ∧ fastAt p c E rho x s X
 ```
 
-## Existing conditional growth inputs — P-Ou
+## OU-FIXTURE — P-As, CLOSED in Round 6
 
-Assembly/Outage keeps hWitness and hInclusion. Their guarded Clean conclusions are expected
-under the ordinary finite Clean regime, including restart, join, suppression and exclusion.
-This base does not provide their proofs. They remain conditional and are not instantiated at Root.
-Their exact types are in the source at the following locations.
+`AvailableChainFGSAProofs/Tests/OutageContinuationInhabit.lean` now proves
+`OutageContinuationSleepPrem p unitCodec fast E rho 4 12 18 3` in both modes.
+The run has one honest node, Δ=1, k=3, η=2, and horizon 37.
+It sleeps at time 15, after the covering gate at 14; restart 16 precedes tick 16.
+The restored label is 5, with first vote 21 and join cutoff 16.
+The generator omits every asleep tick and delivery. Schedule, SleepWellFormed,
+RestartsAtWakes, execution validity and receipt collision freedom are kernel-checked.
+The joined counts hold before the outage, at each E vote, and after OutageEnd=37.
+The public (V) premise holds; the legacy budget still fails: 18-12 > min η L.
 
-`AvailableChainFGSAProofs/Proofs/Assembly/Outage.lean:160`.
+The old fixture's full sleep on [8,13) was not valid. Even after adding restart 13,
+a one-node full sleep ending at the restored vote cannot meet OutageE: its only
+node is unjoined at vote 13. The new fixture changes only private parameters and
+events. The public claim and its premise and conclusion definitions are unchanged.
+
+## WCROOT — P-As, only deferred H-time closure remains
+
+Assembly/Root:139 `assembly_weakContinuationGrowth` and :152
+`assembly_weakContinuationClaims` now take HTimeClaim explicitly and no FAST input.
+The source and continuation FAST facts come from the schedule of each actual run.
+The source witness retains its H0 join cutoff and finite seed. The nonempty suffix
+uses its own finite facts and joined count. The empty route uses the source seed and
+join cutoff, without added suffix participation. Four exact Root body commands pass.
+
+Assembly/Root:57 `fgsaClaims_of_open` now takes hH for weakContinuationLive;
+:104 `fgsaClaims_of_hTime` passes the same hH. No hidden healing producer is used
+in that conditional weak-continuation field. The unconditional :121 `fgsaClaims`
+and :125 `fgsa_weakContinuationGrowthClaim` still depend on the deferred named target:
 
 ```lean
-hWitness : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time),
-      CleanSet p c E rho ΔF → ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
-      SA.gateTime p.toParams s ≤ rho.horizon →
-      ∃ y, confirmedReader p c E rho y (SA.gateTime p.toParams s) ∧
-        Block.Preceq B (S_at p c E rho (timeIdx rho (SA.gateTime p.toParams s)) y)
+AvailableChainFGSAProofs/Proofs/Assembly/ResetArrival.lean:501
+healing_hTimeClaim (p : Params) : HTimeClaim p
 ```
 
-`AvailableChainFGSAProofs/Proofs/Assembly/Outage.lean:166`.
+Owner P-H1/P-H2 supplies HTimeClaim under the unchanged HealingTimePrem. It is OPEN,
+not supplied or marked proved by P-As. The current import build fails in healing
+scope/repair consumers, including OpeningServiceGate, FrontierServiceGate, Repair and
+FrontierSeed. Their legacy scopes are not accepted as assumptions. SCOPE-NARROW rules
+1–5 apply to the future producers. This is the whole deferred owner obligation.
 
-```lean
-hInclusion : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time),
-      CleanSet p c E rho ΔF → ∀ s B, HonestProposal E rho (fgsaInterface p c) s B →
-      SA.gateTime p.toParams s ≤ rho.horizon → ∀ u x g,
-      SA.gateTime p.toParams s ≤ u → u ≤ rho.horizon → confirmedReader p c E rho x u →
-      g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed] →
-      Block.Preceq B (V2.D.outputAt E rho g x u)
-```
+## ROOT-TESTS / deferred local fixture ports — P-As
 
-## FAST — P-Fd
+The unchanged FGSAClaims structure builds. The aggregate proof and its actual Root
+importers stay EXPECTED-FAIL through OU-CONT, OU-CLOSE and healing closure.
+FGCompose requires fgsaClaims; LiveDC reads its GST fields. No fake aggregate is supplied.
+NonVacuity/FinalityClaims also imports healing. NonVacuity/Adversarial retains the known
+Base₂ sleep/receipt and restart-step ports behind Root; its repair is P-As work after
+that closure. W1's full fixture and all current independent WC tests remain GREEN.
+No positive public claim test is weakened or removed.
 
-`AvailableChainFGSAProofs/Proofs/Foundations/Leases.lean:541`.
+B16/B17 retain the deferred HealingPackages/HealingReset fixture repairs. Their old
+restore calls omit the wake time. They are code repairs, not valid input requests.
+No NoRestart premise is supplied to repair them. No healing source or fixture is edited.
+Bare P23, G-S2, final regeneration and deferred initialAt cleanup remain OPEN.
 
-The existing origin theorem builds. The requested receiver-epoch companion is TRUE for current fast
-writes, because restart clears that cache. Its proof is not supplied by this base. The exact
-stronger field used by P-As is quoted below.
+## Explicit input audit
 
-```lean
-theorem fgsa_leaseOrigins_fastWrites (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) :
-    ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
-        ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X
-```
+- Proved: actual schedule, sleep validity, receipt roots, restart epochs and awake-only
+  positive fixture events. Joined counts include suppressed duties and wakes.
+- Named producer: FAST current-cache origins from fgsa_leaseOrigins_fastWrites_epoch.
+- Named producer: WC finite facts/seeds from wc_finiteFacts / wcg_finiteSeed and the
+  HTime-selected source; replay uses actual run agreement. Invariants/services remain
+  lane kernel outputs through discharge. Scoped row origins use wc_scopedRowOrigins
+  with ExecutionValid; they concern actual honest-holder rows, not universal receipts.
+- Named producer: Clean cut from fgsa_cleanCutClaim; state pair from clean_sCompatible
+  and sExtends; Foundations supply store, frame, source and strat facts.
+- Named producer: P-Ar prefix and P-Ou restored receipts; actual inclusion records,
+  enabled gate scopes, later origins, Clean growth callbacks and post-E joined counts.
+- Exact owner obligation: P-Ou's scoped continuation history and the two public outage
+  endpoints above; P-H1/P-H2's HTimeClaim. No unproduced record is instantiated.
 
-`AvailableChainFGSAProofs/Proofs/Assembly/ContinuationService.lean:156`.
-
-```lean
-hfast : ∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
-        gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
-          Block.Preceq X B ∧ fastAt p c E rho x s X
-```
-
-## OU-FIXTURE — P-As
-
-`AvailableChainFGSAProofs/Tests/OutageContinuationInhabit.lean:358`.
-
-LATE LOCAL PORT, hidden by B04/B20. The old trace schedules ticks while its E marks the node as
-asleep and does not implement each wake as a restart. Its current concrete Base2 input is not TRUE
-for the sleep engine. STOP this item: the inherited positive witness is not ExecutionValid under sleep.
-A separate fixture repair needs actual awake-only steps and phase-zero wake restarts. No invalid fixture record is
-supplied by P-As.
-
-```lean
-theorem outageContinuation_inhabited_sleep (fast : Bool) :
-    OutageContinuationPrem p unitCodec fast E rho 4 8 13 3 where
-  pre
-```
-
-The exact original generator is checked in OutageFixtureCounterexample.lean.
-It contains `.tick 0 8` while E.awake 0 8 = false, and no `.restart 0 13` at the wake.
-The kernel proves both facts and `¬ SleepWellFormed E rho`. The inherited test is unchanged.
-This is a fixture STOP, not a counterexample to a public claim.
-
-## WCROOT — P-As, dependent on FAST and deferred H-time closure
-
-`Proofs/Assembly/Root.lean:137`, `assembly_weakContinuationGrowth`, and :158,
-`assembly_weakContinuationClaims`, keep HTimeClaim and the exact FAST producer explicit.
-The exact source bodies pass a four-command extracted strict audit with the two unchanged
-safety aggregates. This is PREPARED caller evidence; the full Root module remains OPEN.
-The source witness uses `wcg_sourceWitness_joined` plus `wcg_finiteSeed`, retaining H0's
-join cutoff. The nonempty branch uses continuation FAST, that cutoff and the retained seed.
-The empty branch uses source FAST and the source seed, without suffix participation.
-Root:98 and :124 still need the actual FAST producer before their unconditional callers
-can be completed. No FAST premise is added to FGSAClaims or either public continuation claim.
-`healing_hTimeClaim` is still a separate, deferred P-H1/P-H2 obligation.
-
-`fgsa_outageContinuationClaim` has the same name and type at Root:171. Its former import
-blocked Clean on the unfinished continuation family. Root is the permitted assembly join.
-Tests/OutageContinuationAxioms now imports its actual owning Root and stays EXPECTED-FAIL.
-Full FGSAClaims, FGCompose, LiveDC and Root-importing non-vacuity tests remain OPEN.
-Bare P23, G-S2, final regeneration and the deferred initialAt consumers remain OPEN.
-
-## Supplied input audit
-
-- TRUE: CleanSet's exact sleep cut, quorum, foundation/source facts and all-node state pair.
-  P-Cl2 then restricts to confirmed readers. Both Zero fixture traces remain valid and positive.
-- TRUE: P-Ar's prefix receipts under HealthyPrefix₂, with each earlyTime(q) ≤ b₀ cut.
-  RestoredBatch uses actual emissions, receiver epochs and the regime's post-GST service.
-- TRUE at their stated scopes: the selected WC source join cutoff, inclusive source count,
-  strict suffix count, cached safety and original enabled-gate proposal evidence.
-- TRUE as an exact open obligation: FAST current-cache origins have a restart-free epoch,
-  since restart clears that cache. Its P-Fd proof is absent from this base.
-- HTimeClaim and P-Ou's public endpoints are open owner proof requests. No H1/H2 aggregate,
-  InclusionReceiverInputs, GateReceiptScope, future hResults, hWitness or hInclusion is supplied.
-  P-Ou must certify the actual records under their Clean/continuation guards. CleanSet has GST = 0;
-  joined + enabled alone is never used as a pre-GST cross-node service premise.
-- FALSE and rejected: global NoRestart from sleep, all-honest joined duties, suppressed-gate
-  nonempty results, saved-cache preservation across a restart, or the inherited outage fixture's
-  SleepWellFormed record. No such value is passed to an assembly theorem.
-- Healing requests are historical and OUT OF SCOPE; their universal service shapes are not certified.
-
-## ROOT-TESTS — P-As, behind the open Root import
-
-`Tests/NonVacuity/Adversarial.lean:2327/:3559/:3578` — nvExecution, base, nvRecovery.
-`Tests/NonVacuity/FinalityClaims.lean:1128/:1149/:1194` — nvExecution, base, nvRecovery.
-Paths start with AvailableChainFGSAProofs/.
-
-Their actual Base₂ targets are `Base₂ params unitCodec env run`; the old builders still
-set removed noRestart/idealization fields. They need the concrete fixture's SleepWellFormed,
-RestartsAtWakes, NamedReceiptRootCollisionFree and joined recovery fields. They are local
-fixture ports, not new assumptions of public claims. The existing all-awake no-restart proofs
-may be used only for those traces; no universal NoRestart is requested.
-Adversarial's initialAt consumers at :1889-1891 and :2981-2983 remain deferred until these
-ports and the Root import compile. Neither fixture is repaired or certified by Round 5.
-No positive witness is removed or replaced by an assumed invalid record.
+All used cross-node service inputs retain their post-GST cut, receiver floor, actual
+read tick, history and epoch. Local provenance asks for no pre-GST service. Suppressed
+gates are handled by the lane's enabled-gate split. Exclusion remains an actual
+service guard. No universal delivery, join, retained-body or future-result shape is added.
