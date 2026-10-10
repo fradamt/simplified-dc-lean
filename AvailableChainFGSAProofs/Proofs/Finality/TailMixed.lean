@@ -418,6 +418,17 @@ private theorem ktail_mixed_height (X : FGBlock (Fin p.n)) :
   rw [heightView_def, Window.projectHeight_def]
   exact ⟨rfl, rfl⟩
 
+/-- Exact retained-head service for the Tail terminal proposer.
+Safe history and acceptance remain supplier obligations at the same receiver and deadline. -/
+structure TailHeadReceipts (ΔF : Time) (pt : TailKernelPt p) : Prop where
+  service : ∀ x nd H, x ∈ rho.honest →
+    postClock E rho x (p.actionTime (pt.r + 1)) = some nd → H ∈ nd.st.fg.TF →
+    ∀ y, y = V2.D.proposerOf rho (fgsaInterface p c)
+      ((pt.r + 1) * p.R + kappaF p ΔF) → y ∈ rho.honest →
+    FGBlock.Preceq (storeAt p c E rho
+      (V2.D.Run.idxBefore rho (p.actionTime (pt.r + 1) + p.Δ)) y).fg.F H →
+    TargetReceiptService E rho (eraseFG H) (p.actionTime (pt.r + 1) + p.Δ) y
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Paper 01:106–126 (acceptance relay), 22:2007–2009. The action head H of an
 honest node
@@ -428,7 +439,9 @@ DC: INTENTIONAL: DC pins one action head; W relays the head to the terminal prop
 Assembly supplies RMono (Proofs/Foundations/Store fgsa_rMono) and RXing
 (Proofs/Foundations/Crossing fgsa_rXing). -/
 theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
-    (hT : TailKernelPrem_W p c G ΔF E rho pt) (ow : TailOpeningWitness_W p c E rho ΔF pt)
+    (hT : TailKernelPrem_W p c G ΔF E rho pt)
+    (hReceipts : TailHeadReceipts (p := p) (c := c) (E := E) (rho := rho) ΔF pt)
+    (ow : TailOpeningWitness_W p c E rho ΔF pt)
     (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
       namedEntry a.payload.height_pair = some e →
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
@@ -440,7 +453,7 @@ theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
           ∃ k o t, k < i ∧ rho.events[k]? = some (.deliver x o t) ∧
             ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
               HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t)
-    (hmono : RMono p c E rho) (hXing : RXing p c E rho)
+    (_hmono : RMono p c E rho) (hXing : RXing p c E rho)
     {x : V} (hx : x ∈ rho.honest) {nd : Node p}
     (hnd : postClock E rho x (p.actionTime (pt.r + 1)) = some nd)
     {H : FGBlock (Fin p.n)} (hH : H ∈ nd.st.fg.TF) (hHh : (heightView p H).h = ow.e + 1)
@@ -448,7 +461,6 @@ theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
     (hprop : V2.D.proposerOf rho (fgsaInterface p c) s ∈ rho.honest)
     {st : State p.n} (hst : proposalStateAt p c E rho s = some st) : H ∈ st.fg.TF := by
   have hs := hT.set.base.valid.toScheduleWellFormed
-  have hnr := hT.set.base.noRestart
   have hGSTq : E.t_GST ≤ p.actionTime (pt.r + 1) :=
     (ktail_slot_gst hT (s := pt.r * p.R) le_rfl).trans
       ((kmid_proposal_le_action p le_rfl).trans
@@ -488,11 +500,12 @@ theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
       (p.actionTime (pt.r + 1 + 1)) (Nat.succ_pos _) hrowsFin _ _ D
       (ktail_idx_le_afterTicks hnext) ⟨hprop, hD⟩
   have hHj : HeldAt p c E rho (V2.D.Run.idxBefore rho (p.actionTime (pt.r + 1) + p.Δ)) x H :=
-    ⟨hx, (fgsa_store_cumulative p c E rho hnr hkj.le x).1 hHk⟩
+    ⟨hx, (fgsa_store_durable p c E rho hkj.le x).1 hHk⟩
   have hguard := hXing _ _ _ x D H hprop le_rfl hD hDF hHj (hHh ▸ hDh)
-  have hrec := healing_held_block_receipt p c E rho (hroots := hT.set.base.idealization)
-    hmono hT.set.base.valid hnr hT.set.base.delta
-    hT.set.sync hk hx hprop hHk hGSTq hhor hguard
+  have hrec := healing_held_block_receipt_on (p := p) (c := c) E rho
+    hT.set.base.valid hT.set.base.receiptIdealization H
+    (p.actionTime (pt.r + 1) + p.Δ) _ hprop
+    (hReceipts.service x nd H hx hnd hH _ (by rw [hslot]) hprop hguard)
   change (postClock E rho (V2.D.proposerOf rho (fgsaInterface p c) s)
     (V2.D.proposalTime (fgsaInterface p c) s)).map (·.st) = some st at hst
   rw [postClock_def, preTick_def] at hst
@@ -511,7 +524,7 @@ theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
       exact (not_lt.mpr hread) ht
     change H ∈ (V2.D.Run.stateBeforeTime E rho _ _).st.fg.TF at hrec
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hrec
-    have hcum := (fgsa_store_cumulative p c E rho hnr hik _).1 hrec
+    have hcum := (fgsa_store_durable p c E rho hik _).1 hrec
     rw [← hst']
     change H ∈ (FGSA.clock p _ _).fg.TF
     rw [clock_fg]
@@ -526,7 +539,9 @@ entry, or its exact row is relayed to X's proposer with H and selected by X.
 DC: INTENTIONAL: DC pins one action head (W4FKChainSecondCheckpoint.lean:34), so it has
 no mixed arm; W replays the historical certificate. Assembly supplies RMono and RXing. -/
 theorem ktail_mixed_final {G ΔF : Time} {pt : TailKernelPt p}
-    (hT : TailKernelPrem_W p c G ΔF E rho pt) (ow : TailOpeningWitness_W p c E rho ΔF pt)
+    (hT : TailKernelPrem_W p c G ΔF E rho pt)
+    (hReceipts : TailHeadReceipts (p := p) (c := c) (E := E) (rho := rho) ΔF pt)
+    (ow : TailOpeningWitness_W p c E rho ΔF pt)
     (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
       namedEntry a.payload.height_pair = some e →
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
@@ -585,7 +600,7 @@ theorem ktail_mixed_final {G ΔF : Time} {pt : TailKernelPt p}
     rw [hslot]
     exact hX.1.2
   have hHst : H' ∈ st.fg.TF :=
-    ktail_head_delivered hT ow hnames hOrigin hmono hXing hx hnd hH hHh hslot hprop hst
+    ktail_head_delivered hT hReceipts ow hnames hOrigin hmono hXing hx hnd hH hHh hslot hprop hst
   obtain ⟨-, -, hpend, -⟩ := (ktail_witness_split p ow.Q pt.U ow.coverQ).resolve_left hnotF
   have hQpend : (Window.derive p p.K_W ow.Q).h_F < (heightView p ow.Q).h_j :=
     (ktail_mixed_F ow.Q).2 ▸ hpend
@@ -655,6 +670,7 @@ retained or covered at the terminal parent, and the mixed certificate is replaye
 DC: INTENTIONAL: DC has no mixed arm (one pinned action head). -/
 theorem ktail_hmixed_of_relay {G ΔF : Time} {pt : TailKernelPt p}
     (hT : TailKernelPrem_W p c G ΔF E rho pt)
+    (hReceipts : TailHeadReceipts (p := p) (c := c) (E := E) (rho := rho) ΔF pt)
     (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
       namedEntry a.payload.height_pair = some e →
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
@@ -694,7 +710,8 @@ theorem ktail_hmixed_of_relay {G ΔF : Time} {pt : TailKernelPt p}
     obtain ⟨Xb, heX, -, hXslot, hcarrier, st, hst, hlook, -⟩ :=
       kmid_opening_carrier p c E rho hs hX
     obtain rfl := kmid_eraseFG_inj p heX
-    exact preceq_trans hUJ (ktail_mixed_final hT ow hnames hOrigin hmono hXing (hbatch ow) hF
+    exact preceq_trans hUJ (ktail_mixed_final hT hReceipts ow hnames hOrigin hmono hXing
+      (hbatch ow) hF
       Xb hX hXslot (hXslot ▸ hcarrier) st (hXslot ▸ hst) hlook hrc hmix)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -705,6 +722,7 @@ fgsa_rMono) and RXing (Proofs/Foundations/Crossing fgsa_rXing); all other inputs
 DC: INTENTIONAL: W Tail kernel; Assembly supplies the named inputs. -/
 theorem tail_kernel_W_of_relay (G ΔF : Time) (pt : TailKernelPt p)
     (hT : TailKernelPrem_W p c G ΔF E rho pt)
+    (hReceipts : TailHeadReceipts (p := p) (c := c) (E := E) (rho := rho) ΔF pt)
     (hOrigin : ∀ (i : Nat) (x : V) (W : FGBlock (Fin p.n)),
       HeldAt p c E rho i x W → ∀ u ∈ chainRows W,
         ∃ (a : RowWire p.n) (r : Nat),
@@ -749,7 +767,7 @@ theorem tail_kernel_W_of_relay (G ΔF : Time) (pt : TailKernelPt p)
     ∀ x ∈ rho.honest,
       AcceptsFinalBefore p c E rho x pt.U (kernelDeadlineW p ΔF (pt.r + 1)) :=
   tail_kernel_W_of G ΔF pt hT hOrigin hBatch hSOCOVTarget hqc hI3 hStrat hEmittedSource
-    hcapBefore hbatch (ktail_hmixed_of_relay hT
+    hcapBefore hbatch (ktail_hmixed_of_relay hT hReceipts
       (fun j x r a e ha he => by
         obtain ⟨C, h1, h2, -⟩ := hEmittedSource j x r a e ha he
         exact ⟨C, h1, h2⟩)

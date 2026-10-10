@@ -11,7 +11,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 /-- Blueprint 21:1003–1012; r3 A2.
 DC: SAME no effective event keeps the frontier and adds no evidence. -/
-theorem healing_promotion_quiet_window (hnr : V2.D.NoRestart rho) {b m n : Nat}
+theorem healing_promotion_quiet_window (mono : RMonoAll p c E rho) {b m n : Nat}
     (hfront : frontierAtIdx p c E rho b = m)
     (hquiet : ∀ j, b ≤ j → j < n → ¬ EffectiveEvent p c E rho j) :
     ∀ k, b ≤ k → k ≤ n →
@@ -25,7 +25,7 @@ theorem healing_promotion_quiet_window (hnr : V2.D.NoRestart rho) {b m n : Nat}
     intro hkn
     obtain ⟨hf, ht, hc⟩ := ih (by omega)
     have hq := hquiet k hk (by omega)
-    have hmono := healing_frontier_mono p c E rho hnr (Nat.le_add_right k 1)
+    have hmono := healing_frontier_mono_all p c E rho mono (Nat.le_add_right k 1)
     have hf' : frontierAtIdx p c E rho (k + 1) = m := by
       by_contra hne
       exact hq (Or.inl (by omega))
@@ -47,7 +47,7 @@ theorem healing_promotion_quiet_window (hnr : V2.D.NoRestart rho) {b m n : Nat}
 DC: SAME a quiet extension retains each local height and the actual top J.
 The endpoint is inclusive. Assembly supplies RMono and RXing. -/
 theorem healing_phase_extend_of_no_effective [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (crossing : RXing p c E rho) {u a v : Time} {m : Nat}
     {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hp : PhaseInterval p c E rho u a m J contested)
@@ -56,7 +56,6 @@ theorem healing_phase_extend_of_no_effective [Fintype V] {G ΔF : Time}
       ¬ EffectiveEvent p c E rho j) :
     PhaseInterval p c E rho u v m J contested := by
   classical
-  have hnr := hrec.base.noRestart
   have hne : rho.honest.Nonempty := by
     have hn : Fintype.card V = p.n :=
       (V2.D.CStar.seats_eq (ℓ := .base .fg) hrec.base.linked.toCStar trivial).symm
@@ -76,7 +75,7 @@ theorem healing_phase_extend_of_no_effective [Fintype V] {G ΔF : Time}
     · obtain ⟨x, hx⟩ := hne
       exact (initial x hx).1 ▸ Finset.le_sup (f := fun x =>
         (storeAt p c E rho b x).fg.h_max) hx
-  have win := healing_promotion_quiet_window p c E rho hnr hfront hquiet
+  have win := healing_promotion_quiet_window p c E rho mono hfront hquiet
   refine ⟨hp.1.trans hav, hv, hp.2.2.1, ?_⟩
   intro k x huk hkv hx
   by_cases hkb : k ≤ b
@@ -86,13 +85,13 @@ theorem healing_phase_extend_of_no_effective [Fintype V] {G ΔF : Time}
   obtain ⟨hH0, hc0, hr0⟩ := initial x hx
   have hH : (R_at p c E rho k x).H = m := by
     obtain ⟨W, hW, hh⟩ := healing_phase_frontier_witness p c E rho b x
-    have hWk := (fgsa_store_cumulative p c E rho hnr hbk x).1 hW
+    have hWk := (fgsa_store_durable p c E rho hbk x).1 hW
     exact le_antisymm ((healing_phase_local_le_frontier p c E rho hx).trans_eq hcap)
       ((hh.trans hH0) ▸ healing_phase_height_le p c E rho hWk)
   have hc : (R_at p c E rho k x).contest = contested := by
     cases hcon : contested with
     | true =>
-      exact (healing_phase_contest_persist_of_crossing p c E rho crossing mono hnr hx hbk hcap hH0
+      exact (healing_phase_contest_persist_of_crossing_all p c E rho crossing mono hx hbk hcap hH0
         (hc0.trans hcon)).2
     | false =>
       cases hkcon : (R_at p c E rho k x).contest with
@@ -142,7 +141,7 @@ theorem healing_phase_extend_of_no_effective [Fintype V] {G ΔF : Time}
       simp only [Height] at *
       omega
     have hjCm : (heightView p C).h_j + 1 = m := hjC ▸ ht0
-    have hCk := (fgsa_store_cumulative p c E rho hnr hbk x).1 hC
+    have hCk := (fgsa_store_durable p c E rho hbk x).1 hC
     obtain ⟨hmax, htop, hJeq⟩ := healing_phase_top_node p c E rho crossing hx hCk hhC hjCm hcap.le
     have hfalse : contested = false := by
       have hn : (R_at p c E rho b x).contest = false := by

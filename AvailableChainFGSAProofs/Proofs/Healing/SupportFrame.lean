@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
+public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
 
 public section
 
@@ -105,6 +106,34 @@ theorem healing_head_witness_relay (mono : RMono p c E rho) (crossing : RXing p 
     u v m J contested hgst hphase hx hi hhead hreceipt W (hfg ▸ hW)
   · exact hR ▸ KitFG.preceq_trans hZK hKW
   · exact hR ▸ hlo
+
+/-- A HEAD carrier relays through per-object local services, including retained history. -/
+theorem healing_head_witness_relay_on (crossing : RXing p c E rho)
+    (hvalid : V2.D.ExecutionValid E rho)
+    {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
+    (hServices : ∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ y ∈ rho.honest,
+      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    let st := ((fgsa p c).clock (rho.stateBefore E i x) (SA.voteTime p.toParams s)).st
+    ∃ K ∈ fullTree p st, eraseFG K = headVote p st s ∧
+      ∃ W ∈ st.fg.TF, FGBlock.Preceq K W ∧ (controls p st).lo ≤ (heightView p W).h ∧
+        ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+          (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
+          (SA.voteTime p.toParams s + p.Δ) y := by
+  intro st
+  obtain ⟨K, hK, hk, W, hW, hKW, hlo⟩ :=
+    healing_full_witness_all p c E rho hvalid.toScheduleWellFormed crossing hx hi
+  have hfg : st.fg = (storeAt p c E rho i x).fg := clock_fg p _ _
+  refine ⟨K, hK, hk, W, hW, hKW, hlo, ?_⟩
+  intro y hy
+  have hheld := healing_held_block_receipt_on p c E rho hvalid hroots W
+    (SA.voteTime p.toParams s + p.Δ) y hy (hServices W (hfg ▸ hW) y hy)
+  change W ∈ (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.fg.TF at hheld
+  intro B hBW
+  exact KitFG.ancestor_closed_of_parent_closed _
+    (storeBundle_stateBeforeTime E rho (SA.voteTime p.toParams s + p.Δ) y).cstore.fg.closed
+    W hheld B hBW
 
 end AvailableChain.FGSA.Run
 end

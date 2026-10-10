@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.AnchorCoverage
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 
@@ -26,8 +27,8 @@ private theorem transfer_decode {o : Obj p} {b : Block} (h : blockOf? p o = some
 
 /-- WC plan §6.5; DC preserve named receipt provenance and the strict freeze cutoff. -/
 private theorem transfer_source_acceptances
-    (hroots : NamedRootCollisionFree p c E rho)
-    (hsch : V2.D.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
+    (hvalid : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
     {i : Nat} {x : V} {s : Slot} {K B : Block}
     (hK : K ∈ (storeAt p c E rho i x).base.blocks)
     (hstamp : GridCO.stampBlock (storeAt p c E rho i x).base K <
@@ -38,6 +39,7 @@ private theorem transfer_source_acceptances
         (toWire p o).decode = some (.block u N) ∧
         V2.D.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s := by
   intro b hb hne
+  have hsch := hvalid.toScheduleWellFormed
   have hbK := block_preceq_trans hb hBK
   have hKg : K ≠ .genesis := by
     intro he
@@ -54,7 +56,7 @@ private theorem transfer_source_acceptances
     have hd := p.deltaPos
     positivity
   obtain ⟨j, hji, t, o, ho, ha, ht⟩ :=
-    fgsa_block_accepted_before E rho hsch i x K _ hKg hpub hz hK hstamp
+    fgsa_block_accepted_before E rho hvalid i x K _ hKg hpub hz hK hstamp
   obtain ⟨u, N, heN, hdec⟩ := transfer_decode p ho
   have hpost := ha.2.2
   change processedS p (V2.D.Run.stateBefore E rho (j + 1) x).st o = true at hpost
@@ -63,18 +65,13 @@ private theorem transfer_source_acceptances
   obtain ⟨Kfg, hKfg, hroot⟩ := of_decide_eq_true hpost
   obtain ⟨envelope, hdelivery, _⟩ := ha.1
   have hx := hsch.honest_only _ (List.mem_of_getElem? hdelivery)
-  have heK : eraseFG Kfg = K := rootBlockInRun_eq E rho hroots
+  have heK : eraseFG Kfg = K := rootBlockInRun_eq E rho (hroots.toNamedRootCollisionFree E rho)
     (rootScope_store hx hKfg) (rootBlockInRun_held E rho hx i hK)
     (by simpa only [← named_erase_root, heN] using (eraseFG_root Kfg).trans hroot)
   have hc := (storeBundle_stateBefore E rho (j + 1) x).cstore
   obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem hc.fg.closed hKfg (heK ▸ hbK)
   have hbm := (hc.baseTree b).mpr ⟨A, hA, heA⟩
-  rw [← (storeBundle_stateBefore E rho (j + 1) x).«meta».stampKeys] at hbm
-  obtain ⟨⟨b', stamp⟩, hmem, he⟩ := List.mem_map.mp hbm
-  dsimp only at he
-  subst b'
-  rcases fgsa_block_stamp_source E rho (j + 1) x b stamp hmem with hg | ⟨l, hl, t', o', ho', ha', _⟩
-  · exact (hne hg.1).elim
+  obtain ⟨l, hl, t', o', ho', ha'⟩ := fgsa_block_accepted_origin E rho (j + 1) x b hne hbm
   obtain ⟨u', M, heM, hd'⟩ := transfer_decode p ho'
   obtain ⟨parent, hd, _⟩ := ha.1
   obtain ⟨parent', hd'', _⟩ := ha'.1
@@ -97,114 +94,6 @@ private theorem transfer_source_acceptances
   exact htime.trans_lt ht
 
 /-- WC plan §6.5; DC preserve named receipt provenance and the strict freeze cutoff. -/
-private theorem transfer_coverage
-    (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
-    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    {i : Nat} {x y : V} {s : Slot} {B : Block}
-    (hx : x ∈ rho.honest) (hcut : SA.freezeTime p.toParams s ≤ rho.horizon)
-    (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
-    (hpath : ∀ b, Block.Preceq b B → b ≠ .genesis →
-      ∃ l < i, ∃ t o u N, N.erase = b ∧
-        (toWire p o).decode = some (.block u N) ∧
-        V2.D.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s)
-    (hF : ∀ j, j ≤ V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) →
-      Block.Preceq (F_at p c E rho j y) B) :
-    ∃ required,
-      ReceiptCoveragePremises E rho (fun t => max t E.t_GST + p.Δ) rho.horizon
-        (SA.freezeTime p.toParams s) 0 y B required
-        (fun L d => L = B ∧ d = SA.freezeTime p.toParams s) := by
-  let required := fun o t => 0 ≤ t ∧ t < SA.earlyTime p.toParams s ∧
-    ∃ l < i, V2.D.Run.acceptsAt E rho l x o t ∧
-      ∃ b, blockOf? p o = some b ∧ Block.Preceq b B
-  refine ⟨required, ?_, ?_, ?_, ?_⟩
-  · simpa only [hDelta] using Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hsync
-          (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ _)
-  · intro o t hr
-    obtain ⟨_, _, l, _, ha, b, hb, _⟩ := hr
-    obtain ⟨parent, he, hh⟩ := ha.1
-    refine ⟨Or.inr ⟨x, hx, l, ha⟩,
-      handles_wellFormed p c _ parent o hh (hE.wire l x parent t he), ?_⟩
-    intro r a K hv
-    have hn : blockOf? p o = none := by
-      change (match (toWire p o).decode with | some (.block _ N) => some N.erase | _ => none) = _
-      rw [hv]
-    rw [hn] at hb
-    contradiction
-  · intro j _ hj
-    exact block_compatible_of_common (block_preceq_refl B) (hF j hj)
-  · refine ⟨fun _ _ hab => add_le_add (max_le_max hab le_rfl) le_rfl,
-      hcut, le_rfl, Nat.zero_le _, ?_, ?_, ?_⟩
-    · intro o t hr
-      refine ⟨Nat.zero_le _, hr.1,
-        (le_max_left _ _).trans_lt (lt_add_of_pos_right _ p.deltaPos), ?_⟩
-      have ht := hr.2.1
-      change t < 4 * p.Δ * (s : Int) + 2 * p.Δ at ht
-      have hg : E.t_GST < 4 * p.Δ * (s : Int) + 2 * p.Δ := by
-        change E.t_GST ≤ 4 * p.Δ * (s : Int) + p.Δ at hGST
-        linarith [p.deltaPos]
-      have hm := max_lt ht hg
-      change max t E.t_GST + p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
-      linarith
-    · rintro K d ⟨hKB, hdD⟩
-      subst K d
-      refine ⟨block_preceq_refl B, le_rfl, ?_⟩
-      intro b hb hne
-      obtain ⟨l, hl, t, o, u, N, heN, hd, ha, hz, ht⟩ := hpath b hb hne
-      have ho : blockOf? p o = some b := by
-        change (match (toWire p o).decode with | some (.block _ N) => some N.erase | _ => none) = _
-        rw [hd]
-        exact congrArg some heN
-      refine ⟨o, t, u, N, heN, ⟨hz, ht, l, hl, ha, b, ho, hb⟩, hd, ?_⟩
-      change t < 4 * p.Δ * (s : Int) + 2 * p.Δ at ht
-      have hg : E.t_GST < 4 * p.Δ * (s : Int) + 2 * p.Δ := by
-        change E.t_GST ≤ 4 * p.Δ * (s : Int) + p.Δ at hGST
-        linarith [p.deltaPos]
-      have hm := max_lt ht hg
-      change max t E.t_GST + p.Δ ≤ 4 * p.Δ * (s : Int) + 3 * p.Δ
-      linarith
-    · intro o t u N hr hd
-      obtain ⟨_, _, l, hl, ha, b', hb', hBK⟩ := hr
-      have hb : blockOf? p o = some N.erase := by
-        change (match (toWire p o).decode with | some (.block _ N) => some N.erase | _ => none) = _
-        rw [hd]
-      have heq := Option.some.inj (hb'.symm.trans hb)
-      subst b'
-      exact ⟨B, SA.freezeTime p.toParams s, ⟨rfl, rfl⟩, hBK⟩
-
-/-- WC plan §6.5; DC preserve named receipt provenance and the strict freeze cutoff. -/
-private theorem transfer_read_stamp (hsch : V2.D.ScheduleWellFormed E rho)
-    (y : V) (D : Time) (hD : 0 < D) (b : Block)
-    (hb : b ∈ (V2.D.Run.stateBeforeTime E rho D y).st.base.blocks) :
-    GridCO.stampBlock (V2.D.Run.stateBeforeTime E rho D y).st.base b < D := by
-  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho D hsch] at hb ⊢
-  have hkeys : b ∈
-      ((V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st.base.blockStamp.map
-        Prod.fst) := by
-    rw [(storeBundle_stateBefore E rho (V2.D.Run.idxBefore rho D) y).«meta».stampKeys]
-    exact hb
-  change (((V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st.base.blockStamp.find? _).map
-    Prod.snd).getD _ < D
-  cases he : (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st.base.blockStamp.find?
-      (fun row => row.1 == b) with
-  | none =>
-    obtain ⟨row, hr, hh⟩ := List.mem_map.mp hkeys
-    have hn := List.find?_eq_none.mp he row hr
-    rw [hh, beq_self_eq_true] at hn
-    contradiction
-  | some row =>
-    change row.2 < D
-    rcases fgsa_block_stamp_source E rho _ y row.1 row.2 (List.mem_of_find?_eq_some he) with
-      hg | ⟨l, hl, t, o, _, ha, hs⟩
-    · rw [hg.2]; exact hD
-    · obtain ⟨parent, hd, _⟩ := ha.1
-      have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hd D).mp hl
-      have hc := stateBefore_now_le_event_retained (fgsaClock p c)
-        (fgsa_hrestore_now_retained p c) E rho hsch hd y
-      rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hc
-      rw [hs]
-      exact hc.trans_lt ht
-
-/-- WC plan §6.5; DC preserve named receipt provenance and the strict freeze cutoff. -/
 private theorem transfer_stamp_kept {α : Type} [BEq α] [LawfulBEq α]
     {xs ys : List (α × Time)} (hp : xs <+: ys) (a : α)
     (hm : a ∈ xs.map Prod.fst) :
@@ -221,12 +110,14 @@ private theorem transfer_stamp_kept {α : Type} [BEq α] [LawfulBEq α]
 
 /-- WC plan §6.5; DC each support path is retained at the next HEAD with its freeze stamps. -/
 private theorem prefreeze_path
-    (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ)
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hvalid : V2.D.ExecutionValid E rho) (_hR : V2.D.RestartsAtWakes E rho) (hdelta : E.Δ = p.Δ)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    (hcumul : RStoreCumul p c E rho) (hmono : RMono p c E rho)
+    (hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+    (hmono : RMonoAll p c E rho)
     {i k : Nat} {x y : V} {s : Slot} {K : Block} (hx : x ∈ rho.honest)
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hJ : joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)))
     (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
     (hcut : SA.freezeTime p.toParams s ≤ rho.horizon)
     (hK : K ∈ (storeAt p c E rho i x).base.blocks)
@@ -250,23 +141,27 @@ private theorem prefreeze_path
     nlinarith [p.deltaPos]
   have hF : ∀ l, l ≤ j → Block.Preceq (F_at p c E rho l y) K := by
     intro l hl
-    exact block_preceq_trans (eraseFG_preceq (hmono hnr l k y hy (hl.trans hjk)).1) hFK
-  have haccept := transfer_source_acceptances p c E rho hroots hsch hdelta hK hstamp
+    exact block_preceq_trans (eraseFG_preceq (hmono l k y hy (hl.trans hjk)).1) hFK
+  have haccept := transfer_source_acceptances p c E rho hroots hvalid hdelta hK hstamp
     (block_preceq_refl K)
-  obtain ⟨required, hcov⟩ := transfer_coverage p c E rho hvalid hdelta hsync hx hcut hGST
-    haccept hF
+  obtain ⟨required, hcov⟩ := wc_transfer_path_coverage hvalid hdelta hsync hx hy hJ
+    (hvalid.in_horizon _ (List.mem_of_getElem? hk)).2 hGST hcut haccept hF
   have hpath : ∀ b, Block.Preceq b K →
       b ∈ (actView (V2.D.Run.stateBeforeTime E rho D y).st).blocks := by
-    apply fgsa_active_path_of_coverage (hroots := hroots) E rho hvalid hnr hdelta
+    apply fgsa_active_path_of_coverage_anchor (hroots := hroots) E rho hvalid hdelta
       (fun t => max t E.t_GST + p.Δ) rho.horizon D 0 y K required
-      (fun L d => L = K ∧ d = D) hy hcov ⟨rfl, rfl⟩
+      (fun L d => L = K ∧ d = D) (fun _ _ => SA.earlyTime p.toParams s) hy hcov ⟨rfl, rfl⟩
     have hh := hF j le_rfl
     change Block.Preceq (eraseFG (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D)
       y).st.fg.F) K at hh
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho D hsch] at hh
     exact hh
   have hklen : k ≤ rho.events.length := Nat.le_of_lt (List.getElem?_eq_some_iff.mp hk).1
-  have hc := hcumul hnr j k y hy hjk hklen
+  have hRF := wc_vote_read_epoch hsch hk hJ (D := D) (by
+    change 4 * p.Δ * (s : Int) < 4 * p.Δ * (s : Int) + 3 * p.Δ
+    linarith [p.deltaPos])
+  have hc := hcumul.1 j k y hy hjk hklen
+  have hstamps := hcumul.2 j k y hy hjk hklen hRF
   have hread : storeAt p c E rho j y = (V2.D.Run.stateBeforeTime E rho D y).st := by
     change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st = _
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho D hsch]
@@ -278,7 +173,7 @@ private theorem prefreeze_path
     (storeBundle_stateBeforeTime E rho D y).cstore.fg.closed Kfg hKfg A hA
   have hAb := ((storeBundle_stateBeforeTime E rho D y).cstore.baseTree (eraseFG A)).mpr
     ⟨A, hAm, rfl⟩
-  have hAstamp := transfer_read_stamp p c E rho hsch y D (by
+  have hAstamp := fgsa_block_stamp_before_read E rho hsch y D (by
     change 0 < 4 * p.Δ * (s : Int) + 3 * p.Δ
     have hd := p.deltaPos
     positivity) (eraseFG A) hAb
@@ -291,7 +186,7 @@ private theorem prefreeze_path
   · change A ∈ (FGSA.clock p (storeAt p c E rho k y) _).fg.TF
     rw [(clock_cumulative p _ _).1]
     exact hc.1 hAm
-  · have heq := transfer_stamp_kept hc.2.2.1 (eraseFG A) hkeys
+  · have heq := transfer_stamp_kept hstamps.1 (eraseFG A) hkeys
     change (((FGSA.clock p (storeAt p c E rho k y) _).base.blockStamp.find? _).map
       Prod.snd).getD _ < D
     rw [(clock_cumulative p _ _).2.2.1, heq]
@@ -311,23 +206,22 @@ theorem wc_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iSt
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
   (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
+  (_hwakes : V2.D.RestartsAtWakes E rho)
   (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hroots : NamedReceiptRootCollisionFree p c E rho)
   (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
+  (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+  (_hmono : RMonoAll p c E rho)
   (_hactive : RActive p c E rho)
   (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
+  (_hmeta : RFrameNextEpoch p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -355,7 +249,7 @@ theorem wc_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iSt
             p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+      ∀ k w C, j < k → k < i → enabledGateAt p c E rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
@@ -366,7 +260,8 @@ theorem wc_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iSt
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
   (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho x j i ∧
+      enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
   (_hdeadlines : ∀ i x,
@@ -391,6 +286,7 @@ theorem wc_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iSt
   WCSeed p c E rho w iStar → ∀ i k x y s B, iStar ≤ i → i < rho.events.length →
     WCInv p c E rho w iStar i → IsGateTick p c rho i x s → w.u < s → k < i →
     rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
     gateResultAt p c E rho i = some (some B) → Block.Preceq w.QStar B →
     (∀ j z r C, WCResult p c E rho w iStar i j z r C → r < s → Block.Preceq C B) →
     let st := FGSA.clock p (storeAt p c E rho k y) (SA.voteTime p.toParams (s + 1))
@@ -406,7 +302,7 @@ theorem wc_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iSt
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-    hscopeRows hfinalHead hs i k x y s B hi hilen inv ht hslabel hki hk hB hQB hord st src
+    hscopeRows hfinalHead hs i k x y s B hi hilen inv ht hslabel hki hk hJ hB hQB hord st src
   have hsch := hvalid.toScheduleWellFormed
   have hx := hvalid.honest_only _ (List.mem_of_getElem? ht)
   have hrawAt : gateResultAt p c E rho i = some (SA.Root.confirmationFrom p.toParams
@@ -425,7 +321,7 @@ theorem wc_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iSt
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
     hscopeRows hfinalHead
-    hs i k x y s Bfg hi hilen inv ht hslabel hki hk (he ▸ hQB)
+    hs i k x y s Bfg hi hilen inv ht hslabel hki hk hJ (he ▸ hQB)
     (fun j z r C hr hrs => he ▸ hord j z r C hr hrs)
   have hFB : Block.Preceq (F_at p c E rho k y) B := by
     have hF := block_preceq_trans hframe.frame.finalRoot hframe.frame.rootBelow
@@ -473,7 +369,7 @@ theorem wc_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iSt
       | some row => rfl
     rw [heq] at hstamp
     exact prefreeze_path p c E rho hvalid hnr hdelta hroots hsync hcumul hmono
-      hx hk hGST hcut hmem hstamp (block_preceq_trans hFB hBK)
+      hx hk hJ hGST hcut hmem hstamp (block_preceq_trans hFB hBK)
   obtain ⟨o, K, ho, hK, _, _, hBK, _⟩ := confirmation_support_body p src s _ B hraw
   obtain ⟨Kfg, hKeq, hpath⟩ := paths o ho K hK hBK
   have hBpre : FGBlock.Preceq Bfg Kfg := eraseFG_preceq_iff.mp (by rwa [he, hKeq])

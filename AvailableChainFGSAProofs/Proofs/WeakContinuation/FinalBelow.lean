@@ -30,7 +30,8 @@ theorem wc_finalBelow {ΔF : Time} {w : HealingWitness} {iStar : Nat} :
   have hhigh : w.M + 1 ≤ (finalityView p D).h_F := by simp only [Height] at *; omega
   obtain ⟨jf, z, rf, af, uf, H, jt, v, rt, aT, ut, K, B, hjf, haf, _, _, _, _,
       _, _, _, _, hjt, haT, hdecode, _, htarget, hK, hXK, hgate, hKB, hgap⟩ :=
-    (wc_finalityTargetEarlier hvalid hlinked hfaultQ hroots hheldRows hfinalHead hqc
+    (wc_finalityTargetEarlier hvalid hlinked hfaultQ
+      (hroots.toNamedRootCollisionFree E rho) hheldRows hfinalHead hqc
       hemitted i x D _ _ ⟨hx, hD⟩ hpos hF rfl).finalityRow
   have hfields : aT.payload.height_pair = ut.height_pair := by
     rcases aT with ⟨auth, body⟩

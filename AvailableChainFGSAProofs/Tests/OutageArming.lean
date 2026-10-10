@@ -5,7 +5,16 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ArmingKernel
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingBatch
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPrefix
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingOutput
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
 public import Mathlib.Tactic.IntervalCases
+
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
+
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
+
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain
+public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 
 public section
 
@@ -446,3 +455,234 @@ end AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.base
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.regime
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.prefix_receipt
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_ne_vote
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_ne_proposal
+
+#print axioms AvailableChain.FGSA.Run.arming_F_mono
+
+#print axioms AvailableChain.FGSA.Run.arming_lift_mem
+
+#print axioms AvailableChain.FGSA.Run.arming_emit_awake
+
+#print axioms AvailableChain.FGSA.Run.arming_emit_head
+
+#print axioms AvailableChain.FGSA.Run.arming_emit_proposal
+
+#print axioms AvailableChain.FGSA.Run.arming_emit_head_store
+
+#print axioms AvailableChain.FGSA.Run.arming_ancestor_stamp
+
+#print axioms AvailableChain.FGSA.Run.arming_clock_gate
+
+#print axioms AvailableChain.FGSA.Run.arming_admission
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_write
+
+#print axioms AvailableChain.FGSA.Run.arming_leaseOf
+
+#print axioms AvailableChain.FGSA.Run.arming_rows_compat
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_core
+
+#print axioms AvailableChain.FGSA.Run.pending_gate_lease_or_F
+
+#print axioms AvailableChain.FGSA.Run.arming_proposal_genuine
+
+#print axioms AvailableChain.FGSA.Run.arming_process_lease
+
+#print axioms AvailableChain.FGSA.Run.arming_event_window
+
+#print axioms AvailableChain.FGSA.Run.arming_offGate
+
+#print axioms AvailableChain.FGSA.Run.arming_write_row
+
+#print axioms AvailableChain.FGSA.Run.arming_write_keep
+
+#print axioms AvailableChain.FGSA.Run.arming_writeKeys_keep
+
+#print axioms AvailableChain.FGSA.Run.arming_writeKeys_row
+
+#print axioms AvailableChain.FGSA.Run.arming_writeKeys_stable
+
+#print axioms AvailableChain.FGSA.Run.arming_gateResult_tick
+
+#print axioms AvailableChain.FGSA.Run.ArmingCert
+
+#print axioms AvailableChain.FGSA.Run.ArmingData
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_eq
+
+#print axioms AvailableChain.FGSA.Run.arming_vote_eq
+
+#print axioms AvailableChain.FGSA.Run.arming_early_eq
+
+#print axioms AvailableChain.FGSA.Run.arming_freeze_eq
+
+#print axioms AvailableChain.FGSA.Run.arming_release_eq
+
+#print axioms AvailableChain.FGSA.Run.arming_proposal_eq
+
+#print axioms AvailableChain.FGSA.Run.arming_lifetime_eq
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_le_iff
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_lt_iff
+
+#print axioms AvailableChain.FGSA.Run.arming_early_next
+
+#print axioms AvailableChain.FGSA.Run.arming_vote_add
+
+#print axioms AvailableChain.FGSA.Run.arming_vote_lt_early
+
+#print axioms AvailableChain.FGSA.Run.arming_label
+
+#print axioms AvailableChain.FGSA.Run.arming_le_label
+
+#print axioms AvailableChain.FGSA.Run.arming_lt_pending
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_window
+
+#print axioms AvailableChain.FGSA.Run.arming_vote_window
+
+#print axioms AvailableChain.FGSA.Run.arming_proposal_window
+
+#print axioms AvailableChain.FGSA.Run.arming_inflight
+
+#print axioms AvailableChain.FGSA.Run.arming_inflight_window
+
+#print axioms AvailableChain.FGSA.Run.arming_duty_window
+
+#print axioms AvailableChain.FGSA.Run.arming_action_label
+
+#print axioms AvailableChain.FGSA.Run.arming_fast_gap
+
+#print axioms AvailableChain.FGSA.Run.arming_slow_gap
+
+#print axioms AvailableChain.FGSA.Run.arming_slow_window_label
+
+#print axioms AvailableChain.FGSA.Run.arming_end_lt_deadline
+
+#print axioms AvailableChain.FGSA.Run.arming_L_pos
+
+#print axioms AvailableChain.FGSA.Run.arming_lt_timeIdx_iff
+
+#print axioms AvailableChain.FGSA.Run.arming_timeIdx_mono
+
+#print axioms AvailableChain.FGSA.Run.arming_timeIdx_le_idxBefore
+
+#print axioms AvailableChain.FGSA.Run.arming_idxBefore_le_timeIdx
+
+#print axioms AvailableChain.FGSA.Run.arming_timeIdx_le_length
+
+#print axioms AvailableChain.FGSA.Run.arming_idxBefore_le_length
+
+#print axioms AvailableChain.FGSA.Run.arming_vote_nat
+
+#print axioms AvailableChain.FGSA.Run.arming_early_nat
+
+#print axioms AvailableChain.FGSA.Run.arming_proposal_nat
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_nat
+
+#print axioms AvailableChain.FGSA.Run.arming_prec
+
+#print axioms AvailableChain.FGSA.Run.arming_prec_ne_genesis
+
+#print axioms AvailableChain.FGSA.Run.ArmingPrefixState
+
+#print axioms AvailableChain.FGSA.Run.ArmingBatchState
+
+#print axioms AvailableChain.FGSA.Run.arming_batch_at
+
+#print axioms AvailableChain.FGSA.Run.arming_read_bounds
+
+#print axioms AvailableChain.FGSA.Run.arming_head_covers
+
+#print axioms AvailableChain.FGSA.Run.arming_proposal_covers
+
+#print axioms AvailableChain.FGSA.Run.arming_gate_core_on
+
+#print axioms AvailableChain.FGSA.Run.arming_tick_le
+
+#print axioms AvailableChain.FGSA.Run.arming_lt_of_tick
+
+#print axioms AvailableChain.FGSA.Run.arming_clean_ordered
+
+#print axioms AvailableChain.FGSA.Run.arming_comparison_prefix
+
+#print axioms AvailableChain.FGSA.Run.arming_stable_read
+
+#print axioms AvailableChain.FGSA.Run.arming_pending_input
+
+#print axioms AvailableChain.FGSA.Run.arming_proposal_service_trigger
+
+#print axioms AvailableChain.FGSA.Run.arming_cut_saved_on
+
+#print axioms AvailableChain.FGSA.Run.arming_proposal_anchor_service
+
+#print axioms AvailableChain.FGSA.Run.arming_target_service
+
+#print axioms AvailableChain.FGSA.Run.arming_head_not_excluded
+
+#print axioms AvailableChain.FGSA.Run.arming_head_handlers
+
+#print axioms AvailableChain.FGSA.Run.arming_batch_service
+
+#print axioms AvailableChain.FGSA.Run.arming_prefix_batch_receipt
+
+#print axioms AvailableChain.FGSA.Run.arming_protected_origin_on
+
+#print axioms AvailableChain.FGSA.Run.arming_slow_current_rows_on
+
+#print axioms AvailableChain.FGSA.Run.arming_receiver_read_epoch
+
+#print axioms AvailableChain.FGSA.Run.arming_healthy_batch_protected
+
+namespace AvailableChain.FGSA.Run.Tests.OutageArming
+
+open AvailableChain.SimplexFG
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+/-- The returned P-Cl1 producer fits the current-row arming consumer exactly. -/
+theorem current_row_consumer [Fintype V] {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {ΔF b₀ : Time}
+    (h : CleanCutSet p c E rho b₀ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    {x : V} {q l : Slot} {B D : Block} (hx : x ∈ rho.honest) (hql : q ≤ l)
+    (hcut : SA.gateTime p.toParams q ≤ b₀)
+    (hAw : AwakeClosed E x (slotStartZ p (q : Int)) b₀)
+    (hEpoch : RestartFreeTime rho x (slotStartZ p (q : Int)) b₀)
+    (hOrigin : B = .genesis ∨ ∃ r C, r < q ∧
+      (r, C) ∈ cleanResults p c E rho (timeIdx rho b₀) ∧ Block.Preceq B C)
+    (hmax : ∀ r C, (r, C) ∈ cleanResults p c E rho (timeIdx rho b₀) →
+      r ≤ l → Block.Preceq C D) :
+    Block.Preceq B (F_at p c E rho (timeIdx rho b₀) x) ∨
+      ∃ C, GridCO.savedGenuine (storeAt p c E rho (timeIdx rho b₀) x).base q =
+        some (some C) ∧ Block.Preceq B C ∧ Block.Preceq C D := by
+  have hh := clean_invariant p c E rho h hq hf hsrc (timeIdx rho b₀) le_rfl
+  have st := cleanState_of_hist h hq hf hsrc (clean_actionStep p c E rho) le_rfl hh
+  exact arming_cut_saved_on st (clean_epoch_saved_row h hq hf hsrc) hx hql hcut
+    hAw hEpoch hOrigin hmax
+
+end AvailableChain.FGSA.Run.Tests.OutageArming
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.current_row_consumer
+
+#print axioms AvailableChain.FGSA.Run.arming_cert
+
+#print axioms AvailableChain.FGSA.Run.fast_arming
+
+#print axioms AvailableChain.FGSA.Run.slow_arming
+
+#print axioms AvailableChain.FGSA.Run.arming_tick_store
+
+#print axioms AvailableChain.FGSA.Run.arming_head_seats
+
+#print axioms AvailableChain.FGSA.Run.arming_saved_map
+
+#print axioms AvailableChain.FGSA.Run.arming_lift
+
+#print axioms AvailableChain.FGSA.Run.ArmingBatchReceiptService

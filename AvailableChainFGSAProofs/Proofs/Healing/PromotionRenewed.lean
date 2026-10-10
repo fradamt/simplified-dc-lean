@@ -16,9 +16,18 @@ receipt, and service only if the phase lasts through the selected gate.
 Assembly supplies the three INLINE row/coverage/quorum facts and FaultQ,
 RMono, RXing, TPerm and the progress fold. -/
 theorem healing_renewedPromotion (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (services : ∀ s ip x (N : NamedProposal p.n), x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+      (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+      E.t_GST ≤ SA.proposalTime p.toParams s →
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon →
+      Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+        (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F) →
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+        (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x))
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho) (perm : TPerm p c E rho)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho) (perm : TPerm p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
       max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
       ∀ x ∈ rho.honest, HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF))
@@ -68,7 +77,7 @@ theorem healing_renewedPromotion (E : Generic.Env V)
     change SA.proposalTime p.toParams s + 6 * p.Δ ≤ _ at hgate
     linarith [p.deltaPos]
   have hpD : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) m J contested := by
-    apply healing_phase_extend_of_no_effective p c E rho hrec mono crossing hp
+    apply healing_phase_extend_of_no_effective p c E rho hrec.toRecovery₂ mono crossing hp
       (by linarith [p.deltaPos]) hdhor
     intro j hj hjd
     apply hquiet j
@@ -96,9 +105,11 @@ theorem healing_renewedPromotion (E : Generic.Env V)
       exact mul_le_mul_of_nonneg_left (by exact_mod_cast hq) (by linarith [p.deltaPos])
     change u ≤ SA.proposalTime p.toParams (r * p.R) + p.Δ
     linarith [p.deltaPos]
-  have hh := healing_promotion_advance E rho hrec hδ hbound perm rowsReceipt progressCoverage
+  have hh := healing_promotion_advance E rho hrec.toRecovery₂ hδ hbound perm rowsReceipt
+    progressCoverage
     hfold faultQ honestQuorum hentry hcovered hgst hpts huvote hlo hnew hslot
-  have hreceipt := healing_promotion_first_receipt E rho hrec crossing hnew (hp.1.trans hats)
+  have hreceipt := healing_promotion_first_receipt E rho hrec.toRecovery₂ crossing (services s) hnew
+    (hp.1.trans hats)
     hgst hpD
   refine Or.inr ⟨s, X, hnew, hslot, hlo, hhi, hh, hreceipt, ?_⟩
   intro hpgate

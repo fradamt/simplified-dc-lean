@@ -21,23 +21,22 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
   (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
+  (_hwakes : V2.D.RestartsAtWakes E rho)
   (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hroots : NamedReceiptRootCollisionFree p c E rho)
   (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
+  (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+  (_hmono : RMonoAll p c E rho)
   (_hactive : RActive p c E rho)
   (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
+  (_hmeta : RFrameNextEpoch p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -65,7 +64,7 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+      ∀ k w C, j < k → k < i → enabledGateAt p c E rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
@@ -76,7 +75,8 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
   (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho x j i ∧
+      enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
   (_hdeadlines : ∀ i x,
@@ -119,16 +119,25 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   have batch := wc_gateBatch ΔF w iStar hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-    hscopeRows hfinalHead hs i x s hi hilen inv ht hslabel
+    hscopeRows hfinalHead hs i x s hi hilen inv hEnabled hslabel
   let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)
   have hFS : Block.Preceq (eraseFG pre.fg.F) (S_at p c E rho i x) := by
     change Block.Preceq (eraseFG (clockPre p _ _).fg.F) _
     rw [clockPre_fg]
     exact nestOK_stateBefore E rho i x
-  have hFQ : Block.Compatible (eraseFG pre.fg.F) w.QStar :=
-    block_compatible_of_common hFS (inv.served i x hi le_rfl hx)
-  have hbatchQ := batch w.QStar (fun k y hk =>
-    (hhead k y (hvalid.honest_only _ (List.mem_of_getElem? hk)) hk).1)
+  have hFQ : Block.Compatible (eraseFG pre.fg.F) w.QStar := by
+    dsimp only [pre]
+    rw [clockPre_fg]
+    change Block.Compatible (F_at p c E rho i x) w.QStar
+    have ho := wc_finalHistoryAt hs inv hi le_rfl hx
+    rcases ho.origin with h | ⟨j, y, r, C, hr, hFC⟩
+    · exact block_compatible_of_common h (block_preceq_refl _)
+    · obtain ⟨D, hD, hQD, _⟩ := inv.nonempty j y r hr.afterCut hr.completed hr.honest
+        (hr.enabled hsch) hr.label
+      have he : D = C := Option.some.inj (Option.some.inj (hD.symm.trans hr.value))
+      exact block_compatible_of_common hFC (he ▸ hQD)
+  have hbatchQ := batch w.QStar (fun k y hk hJ =>
+    (hhead k y (hvalid.honest_only _ (List.mem_of_getElem? hk)) hk hJ).1)
   obtain ⟨B, hraw, hQB⟩ := fgsa_confirmationFrom_covers_majority p (actView pre)
     (eraseFG pre.fg.F) w.QStar s w.QStar.root hFQ hbatchQ.1 hbatchQ.2.1 hbatchQ.2.2
   have hrawAt : gateResultAt p c E rho i = some (SA.Root.confirmationFrom p.toParams
@@ -145,9 +154,9 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
       Block.Preceq C B := by
     intro j y r C hr hrs
     have hc := block_compatible_of_preceq_compatible hFS
-      (wc_result_output_compatible inv hr hi le_rfl hx)
-    have hb := batch C (fun k z hk =>
-      (hhead k z (hvalid.honest_only _ (List.mem_of_getElem? hk)) hk).2 j y r C hr hrs)
+      (wc_result_output_compatible hsch inv hr hi le_rfl hx)
+    have hb := batch C (fun k z hk hJ =>
+      (hhead k z (hvalid.honest_only _ (List.mem_of_getElem? hk)) hk hJ).2 j y r C hr hrs)
     obtain ⟨D, hD, hCD⟩ := fgsa_confirmationFrom_covers_majority p (actView pre)
       (eraseFG pre.fg.F) C s C.root hc hb.1 hb.2.1 hb.2.2
     exact (Option.some.inj (hD.symm.trans hraw)) ▸ hCD
@@ -177,7 +186,9 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     rcases hle.lt_or_eq with hlt | heq
     · exact block_compatible_of_common (ordered j y r C hr hlt) (block_preceq_refl B)
     · subst r
-      exact fgsa_sameLabel (hroots := hroots) p c E rho hvalid hnr hdelta s hsyncLabel
+      exact fgsa_sameLabel_on p c E rho hvalid s
+        (fgsa_sameLabel_serviceScope E rho hvalid hnr hdelta s hsyncLabel)
+        (hroots.toNamedRootCollisionFree E rho)
         y x C B hr.honest hx
         ((gateResultAt_eq_gateResult p c E rho hsch hr.event).symm.trans hr.value)
         ((gateResultAt_eq_gateResult p c E rho hsch ht).symm.trans hB)
@@ -202,10 +213,10 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
         change Block.Preceq (eraseFG (clockPre p _ _).fg.F) B at hFB
         rwa [clockPre_fg] at hFB
       exact block_compatible_of_common
-        (block_preceq_trans (eraseFG_preceq (hmono hnr l i x hx hli).1) hFi)
+        (block_preceq_trans (eraseFG_preceq (hmono l i x hx hli).1) hFi)
         (block_preceq_refl B)
   refine ⟨B, hB, ?_, hQB, ordered, compatible, hSB⟩
-  refine ⟨x, s, ht, ?_, B, hraw, ?_⟩
+  refine ⟨x, s, hEnabled, ?_, B, hraw, ?_⟩
   · change ((clockPre p (storeAt p c E rho i x) _).base.genuine.find? _).map _ = none
     rw [clockPre_genuine]
     exact fgsa_gate_fresh E rho hsch ht

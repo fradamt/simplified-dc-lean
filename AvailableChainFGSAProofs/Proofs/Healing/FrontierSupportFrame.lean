@@ -79,8 +79,8 @@ theorem frontier_self_witness (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 /-- Blueprint 21 HG.1:1520–1528, L4-R step 1:2232–2244; plan §3.1 step 2. DC: INTENTIONAL
 every honest finality at an index under the cap is below each honest-held block of height
 at least m held at that index or earlier (IF.3(c) via RXing). -/
-theorem frontier_F_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (crossing : RXing p c E rho) (hN : V2.D.NoRestart rho) {m : Nat}
+theorem frontier_F_below_all (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (crossing : RXing p c E rho) {m : Nat}
     {a : Nat} {y : V} (hy : y ∈ rho.honest) (hcap : (storeAt p c E rho a y).fg.h_max ≤ m)
     {b : Nat} {z : V} (hz : z ∈ rho.honest) (hba : b ≤ a)
     {K : FGBlock (Fin p.n)} (hK : K ∈ (storeAt p c E rho b z).fg.TF)
@@ -89,9 +89,19 @@ theorem frontier_F_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   obtain ⟨Kc, hKc, hKcF⟩ := (storeBundle_stateBefore E rho a y).cstore.fg.Fcar
   have hf := (healing_phase_finality_le p c E rho hKc hKcF).trans_lt
     (healing_phase_justified_lt p c E rho a y)
-  have hKa := (fgsa_store_cumulative p c E rho hN hba z).1 hK
+  have hKa := (fgsa_store_durable p c E rho hba z).1 hK
   exact crossing a a y z Kc K hy le_rfl hKc hKcF ⟨hz, hKa⟩
     (by simp only [Height] at *; omega)
+
+/-- Legacy interface; durable content does not need NoRestart. -/
+theorem frontier_F_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (crossing : RXing p c E rho) (_hN : V2.D.NoRestart rho) {m : Nat}
+    {a : Nat} {y : V} (hy : y ∈ rho.honest) (hcap : (storeAt p c E rho a y).fg.h_max ≤ m)
+    {b : Nat} {z : V} (hz : z ∈ rho.honest) (hba : b ≤ a)
+    {K : FGBlock (Fin p.n)} (hK : K ∈ (storeAt p c E rho b z).fg.TF)
+    (hKm : m ≤ (heightView p K).h) :
+    FGBlock.Preceq (storeAt p c E rho a y).fg.F K :=
+  frontier_F_below_all E rho crossing hy hcap hz hba hK hKm
 
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1529–1534, IF.5; plan §3.1 step 2. DC: INTENTIONAL a block
 above the
@@ -111,7 +121,8 @@ theorem frontier_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hQK : Block.Preceq (eraseFG Qfg) (eraseFG K)) (hhor : ev.time + p.Δ ≤ rho.horizon)
     (hcut : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ timeIdx rho v)
     {y : V} (hy : y ∈ rho.honest)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hAwake : E.awake y (ev.time + p.Δ) = true)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     K ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (ev.time + p.Δ)) y).fg.TF := by
   have hKm : m ≤ (heightView p K).h := hQm ▸ frontier_height_mono (p := p) hQK
   have hfront : frontierAtIdx p c E rho (V2.D.Run.idxBefore rho (ev.time + p.Δ)) ≤
@@ -120,7 +131,7 @@ theorem frontier_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact Finset.sup_le (fun x hx => (hcap _ x hcut hx).trans hKm)
   exact healing_phase_held_receipt (hroots := hroots)
     p c E rho crossing hE hN hDelta hsync hi hz hgst hK hhor
-    hfront hy
+    hfront hy hAwake
 
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1529–1534, H.2 S1 (709–715); plan §3.1 steps 2–3. DC:
 INTENTIONAL the
@@ -141,11 +152,11 @@ theorem frontier_head_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       (V2.D.Run.stateBefore E rho jz z).st (SA.voteTime p.toParams i)) i))
     (hhor : SA.voteTime p.toParams i + p.Δ ≤ rho.horizon)
     (hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ timeIdx rho v)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∃ Kfg, Kfg ∈ (storeAt p c E rho jz z).fg.TF ∧
       eraseFG Kfg = headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
         (SA.voteTime p.toParams i)) i ∧ (heightView p Kfg).h = m ∧
-      ∀ y ∈ rho.honest,
+      ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams i + p.Δ) = true →
         Kfg ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ))
           y).fg.TF := by
   have hS := hE.toScheduleWellFormed
@@ -163,9 +174,9 @@ theorem frontier_head_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact h1.le.trans hcut
   have hKm := (frontier_height_eq E rho hQm (hcap jz z hjzv hz) hKT hQK').1
   refine ⟨Kfg, hKT, hKe', hKm, ?_⟩
-  intro y hy
+  intro y hy hAwake
   exact frontier_relay (hroots := hroots) E rho crossing hE hN hDelta hsync hQm hcap hjz hz hgst
-    ((fgsa_store_cumulative p c E rho hN (Nat.le_succ jz) z).1 hKT) hQK' hhor hcut hy
+    ((fgsa_store_cumulative p c E rho hN (Nat.le_succ jz) z).1 hKT) hQK' hhor hcut hy hAwake
 
 end AvailableChain.FGSA.Run
 end

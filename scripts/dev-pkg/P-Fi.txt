@@ -1,5 +1,8 @@
-# P-Fi prepared core at base 1c777e97; late family targets remain explicit.
+# P-Fi round 4: TVOTE-CUT receipts and public kernel AC service proved.
 [TARGETS]
+AvailableChainFGSAProofs.Tests.TVoteCut
+AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
+AvailableChainFGSAClaims.Tests.FinalityGST
 AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
 AvailableChainFGSAClaims.Claims.Finality
 AvailableChainFGSAProofs.Proofs.Finality.Above
@@ -43,7 +46,18 @@ AvailableChainFGSAProofs.Tests.Joined
 AvailableChainFGSAProofs.Tests.Local
 AvailableChainFGSAProofs.Proofs.Finality.TickRead
 AvailableChainFGSAProofs.Tests.FinalityEpochs
+AvailableChainFGSAProofs.Tests.Axioms
 [GREEN]
+AvailableChainFGSAProofs.Tests.TVoteCut
+AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+AvailableChainFGSAClaims.Tests.FinalityGST
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+AvailableChainFGSAProofs.Proofs.Finality.Suppliers
+AvailableChainFGSAProofs.Proofs.Shared.Regimes
+AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
+AvailableChainFGSAProofs.Proofs.Shared.Export
+AvailableChainFGSARun.Proofs.ReceiptCoverage
 AvailableChainFGSAProofs.Proofs.Finality.TailReceipt
 AvailableChainFGSAProofs.Proofs.Finality.Receipt
 AvailableChainFGSAProofs.Proofs.Finality.Rows
@@ -526,33 +540,29 @@ AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 AvailableChainFGSAProofs.Proofs.Finality.TailRows
 AvailableChainFGSAProofs.Proofs.Finality.TailRetention
+AvailableChainFGSAProofs.Proofs.Finality.Above
+AvailableChainFGSAProofs.Proofs.Finality.Export
+AvailableChainFGSAProofs.Proofs.Finality.Forward
+AvailableChainFGSAProofs.Proofs.Finality.FrontierBound
+AvailableChainFGSAProofs.Proofs.Finality.Joined
+AvailableChainFGSAProofs.Proofs.Finality.Kernel
+AvailableChainFGSAProofs.Proofs.Finality.Local
+AvailableChainFGSAProofs.Proofs.Finality.Middle
+AvailableChainFGSAProofs.Proofs.Finality.Proposal
+AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
+AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
+AvailableChainFGSAProofs.Proofs.Finality.RowsPrem
+AvailableChainFGSAProofs.Proofs.Finality.RowsRecords
+AvailableChainFGSAProofs.Proofs.Finality.TailBatch
+AvailableChainFGSAProofs.Proofs.Finality.TailFrame
+AvailableChainFGSAProofs.Proofs.Finality.TailKernel
+AvailableChainFGSAProofs.Proofs.Finality.TailMixed
+AvailableChainFGSAProofs.Proofs.Finality.TailOpening
+AvailableChainFGSAProofs.Proofs.Finality.TailSplit
+AvailableChainFGSAProofs.Tests.FrontierBound
+AvailableChainFGSAProofs.Tests.Joined
+AvailableChainFGSAProofs.Tests.Local
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Finality.Above P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.Export P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.Forward P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.FrontierBound P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.Joined P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.Kernel P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.Local P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.Middle P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.Proposal P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.RowsBatch P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.RowsFrame P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.RowsPrem P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.RowsRecords P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.Suppliers P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.TailBatch P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.TailFrame P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.TailKernel P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.TailMixed P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.TailOpening P-Fi
-AvailableChainFGSAProofs.Proofs.Finality.TailSplit P-Fi
-AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
-AvailableChainFGSAProofs.Tests.FrontierBound P-Fi
-AvailableChainFGSAProofs.Tests.Joined P-Fi
-AvailableChainFGSAProofs.Tests.Local P-Fi
 AvailableChainFGSARun S-Ap
-AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap
+AvailableChainFGSAProofs.Tests.Axioms P-As

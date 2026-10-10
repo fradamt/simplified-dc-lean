@@ -17,7 +17,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     {w : HealingWitness} {iStar : Nat}
 
 /-- WC plan §6.6; DC a completed guard writes its result into the local output. -/
-private theorem gate_served {i j : Nat} {x : V} {s : Slot} {B : Block}
+theorem wc_gate_result_served {i j : Nat} {x : V} {s : Slot} {B : Block}
     (hsch : V2.D.ScheduleWellFormed E rho) (hi : WCInv p c E rho w iStar i)
     (hr : WCResult p c E rho w iStar i j x s B) :
     Block.Preceq B (S_at p c E rho (j + 1) x) := by
@@ -32,7 +32,7 @@ private theorem gate_served {i j : Nat} {x : V} {s : Slot} {B : Block}
       (fgsa_gate_joined_of_enabled E rho (hr.enabled hsch))
   have hraw := Option.some.inj (hrawAt.symm.trans hr.value)
   obtain ⟨y, r, he, _, G, hG, hguard⟩ := hpass
-  have hevent := V2.Event.tick.inj (Option.some.inj (he.symm.trans hr.event))
+  have hevent := V2.Event.tick.inj (Option.some.inj (he.1.symm.trans hr.event))
   have hlabel : r = s := by
     have ht := hevent.2
     change 4 * p.Δ * (r : Int) + 6 * p.Δ = 4 * p.Δ * (s : Int) + 6 * p.Δ at ht
@@ -60,7 +60,7 @@ private theorem gate_served {i j : Nat} {x : V} {s : Slot} {B : Block}
     have hg := List.any_eq_false.mp hguard lease hm
     simpa only [Gen.AC.Lease.target, Block.Compatible, Bool.not_eq_true',
       Bool.not_eq_false] using hg
-  have hc := wc_result_output_compatible hi hr hr.afterCut (Nat.le_of_lt hr.completed)
+  have hc := wc_result_output_compatible hsch hi hr hr.afterCut (Nat.le_of_lt hr.completed)
     hr.honest
   have hadv : Block.Preceq (S_at p c E rho j x) (GridCO.advance (S_at p c E rho j x) B) := by
     unfold GridCO.advance
@@ -91,6 +91,34 @@ private theorem gate_served {i j : Nat} {x : V} {s : Slot} {B : Block}
       block_preceq_trans (nestOK_stateBefore E rho j x) hadv
     rwa [hw, Gen.AC.normalizeOutput_def, ite_eq_left hn]
 
+/-- An enabled original gate result persists to both inclusive output getters. -/
+theorem wc_gate_result_outputs {n j : Nat} {x : V} {s : Slot} {B : Block} {t : Time}
+    (hS : V2.D.ScheduleWellFormed E rho) (hs : WCSeed p c E rho w iStar)
+    (inv : WCInv p c E rho w iStar n) (hr : WCResult p c E rho w iStar n j x s B)
+    (ht : SA.gateTime p.toParams s ≤ t) (hin : timeIdx rho t ≤ n)
+    (g : V2.D.Output (fgsa p c))
+    (hg : g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed]) :
+    Block.Preceq B (V2.D.outputAt E rho g x t) := by
+  have hji := (V2.D.Engine.index_lt_read_length_iff hS t hr.event).mpr ht
+  have hm := wc_output_mono_of_inv hS hs inv (j + 1) (timeIdx rho t) x
+    ⟨hr.afterCut.trans (Nat.le_succ j), (Nat.succ_le_of_lt hji).trans hin⟩
+    ⟨hr.afterCut.trans hji.le, hin⟩ (Nat.succ_le_of_lt hji) hr.honest
+  rw [fgsa_outputAt_eq_S_at E rho hS g hg x t]
+  exact block_preceq_trans (wc_gate_result_served hS inv hr) hm
+
+/-- A later-reader service inclusion carries to both output getters. -/
+theorem wc_service_result_outputs {d t : Time} {B : Block} {y : V}
+    (hS : V2.D.ScheduleWellFormed E rho)
+    (hservice : ∀ i x, afterTicksIdx rho d ≤ i → i ≤ rho.events.length →
+      confirmedReaderIdx p c E rho x i → Block.Preceq B (S_at p c E rho i x))
+    (hcut : afterTicksIdx rho d ≤ timeIdx rho t)
+    (hy : confirmedReaderIdx p c E rho y (timeIdx rho t))
+    (g : V2.D.Output (fgsa p c))
+    (hg : g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed]) :
+    Block.Preceq B (V2.D.outputAt E rho g y t) := by
+  rw [fgsa_outputAt_eq_S_at E rho hS g hg y t]
+  exact hservice _ y hcut (List.length_filter_le _ _) hy
+
 variable [Fintype V] {ΔF : Time}
 
 /-- WC plan §6.6; DC finite service needs only history through the requested read. -/
@@ -99,23 +127,22 @@ theorem wc_service4_prefix :
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
   (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
+  (_hwakes : V2.D.RestartsAtWakes E rho)
   (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hroots : NamedReceiptRootCollisionFree p c E rho)
   (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
+  (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+  (_hmono : RMonoAll p c E rho)
   (_hactive : RActive p c E rho)
   (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
+  (_hmeta : RFrameNextEpoch p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -143,7 +170,7 @@ theorem wc_service4_prefix :
             p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+      ∀ k w C, j < k → k < i → enabledGateAt p c E rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
@@ -154,7 +181,8 @@ theorem wc_service4_prefix :
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
   (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho x j i ∧
+      enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
   (_hdeadlines : ∀ i x,
@@ -180,66 +208,77 @@ theorem wc_service4_prefix :
     ∀ j x s B, WCResult p c E rho w iStar n j x s B →
     SA.gateTime p.toParams s + 4 * p.Δ ≤ rho.horizon →
     ∀ i y, afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i → i ≤ n →
-      y ∈ rho.honest → Block.Preceq B (S_at p c E rho i y) := by
-  intro hvalid _hlinked _hcstar _hnr hdelta _hroots _hsync _hdeltaF _hfault _hfaultQ
-    _hfaultX _hpart _hstore _hcumul _hmono _hactive _hframe _hmeta _hrec _hgeo _hcert
+      confirmedReaderIdx p c E rho y i → Block.Preceq B (S_at p c E rho i y) := by
+  intro hvalid _hlinked _hcstar _hwakes hdelta _hroots _hsync _hdeltaF _hfault _hfaultQ
+    _hfaultX hpart _hstore _hcumul _hmono _hactive _hframe _hmeta _hrec _hgeo _hcert
     _hsrc _hlabel _hqc _hstrat _hnoslash _hemitted _htargets _hlease _hfast _hdeadlines
-    _hheldRows _hscopeRows _hfinalHead _hs n inv j x s B hr hhor i y hcut hin hy
-  have hsch := hvalid.toScheduleWellFormed
-  have hi := inv
-  have hj := hr.afterCut
-  have ht := hr.event
-  have hlabel := hr.label
+    _hheldRows _hscopeRows _hfinalHead hs n inv j x s B hr hhor i y hcut hin hy
+  have hS := hvalid.toScheduleWellFormed
   have hnext : SA.gateTime p.toParams (s + 1) = SA.gateTime p.toParams s + 4 * p.Δ := by
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ =
       (4 * p.Δ * (s : Int) + 6 * p.Δ) + 4 * p.Δ
     push_cast
     ring
-  have hclock : ((4 * (s + 1) + 6 : Nat) : Time) * p.Δ =
+  have hcut' : afterTicksIdx rho (SA.gateTime p.toParams (s + 1)) ≤ i := hnext ▸ hcut
+  have hhor' : SA.gateTime p.toParams (s + 1) ≤ rho.horizon := hnext ▸ hhor
+  have hcTime : SA.voteTime p.toParams (w.u + 1) ≤
       SA.gateTime p.toParams (s + 1) := by
-    change ((4 * (s + 1) + 6 : Nat) : Int) * p.Δ =
+    have hh : ((w.u + 1 : Nat) : Int) ≤ (s + 1 : Nat) := Int.ofNat_le.mpr
+      (Nat.succ_le_succ hr.label.le)
+    change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤
       4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
-    push_cast
-    ring
-  obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hsch hdelta y hy (4 * (s + 1) + 6)
-    (by rw [hclock, hnext]; exact hhor)
-  rw [hclock] at hk
-  have hjk : j < k := V2.D.Engine.eventIndex_lt_of_time_lt hsch ht hk
-    (by
-      change SA.gateTime p.toParams s < SA.gateTime p.toParams (s + 1)
-      rw [hnext]
-      exact lt_add_of_pos_right _ (by linarith [p.deltaPos]))
-  have hkc : k < afterTicksIdx rho (SA.gateTime p.toParams (s + 1)) := by
+    nlinarith [p.deltaPos]
+  have hilen := hin.trans inv.interval.2
+  obtain ⟨z, q, _hz, hGq, _⟩ := wc_joined_gate_witness hvalid hdelta (s + 1)
+    (hpart _ hcTime hhor') hhor'
+  have hqc : q < afterTicksIdx rho (SA.gateTime p.toParams (s + 1)) := by
     by_contra hn
-    have hf := V2.D.Engine.filter_false_of_index_ge hsch
+    have hf := V2.D.Engine.filter_false_of_index_ge hS
       (cutPred (SA.gateTime p.toParams (s + 1))) (by
-        intro e f hle hf
-        exact decide_eq_true (hle.trans (of_decide_eq_true hf)))
-      (Nat.le_of_not_gt hn) hk
-    have hc : cutPred (SA.gateTime p.toParams (s + 1))
-        (.tick y (SA.gateTime p.toParams (s + 1)) : V2.Event V (fgsa p c).Object) = true :=
+        intro e f hk hf
+        exact decide_eq_true (hk.trans (of_decide_eq_true hf)))
+      (Nat.le_of_not_gt hn) hGq.1
+    have htrue : cutPred (SA.gateTime p.toParams (s + 1))
+        (.tick z (SA.gateTime p.toParams (s + 1)) : V2.Event V (fgsa p c).Object) = true :=
       decide_eq_true le_rfl
-    rw [hc] at hf
+    rw [htrue] at hf
     cases hf
-  have hki : k + 1 ≤ i := (Nat.succ_le_of_lt hkc).trans (hnext ▸ hcut)
-  have hklen : k < n := (Nat.lt_succ_self k).trans_le (hki.trans hin)
-  have hik : iStar ≤ k := hj.trans (Nat.le_of_lt hjk)
-  obtain ⟨C, hC, _, _⟩ :=
-    hi.nonempty k y (s + 1) hik hklen hy hk (hlabel.trans (Nat.lt_succ_self s))
-  have hrC : WCResult p c E rho w iStar n k y (s + 1) C :=
-    ⟨hy, hik, hklen, hlabel.trans (Nat.lt_succ_self s), hk, hC⟩
-  have hBC := hi.ordered j k x y s (s + 1) B C hr hrC (Nat.lt_succ_self s)
-  have hCout := gate_served hsch hi hrC
-  have mono : ∀ l, k + 1 ≤ l → l ≤ n →
-      Block.Preceq (S_at p c E rho (k + 1) y) (S_at p c E rho l y) := by
-    intro l hl
-    induction l, hl using Nat.le_induction with
-    | base => intro _; exact block_preceq_refl _
-    | succ l hkl ih =>
-      intro hln
-      exact block_preceq_trans (ih (by omega))
-        (hi.transitions l y (hik.trans (by omega)) (by omega) hy)
-  exact block_preceq_trans hBC (block_preceq_trans hCout (mono i hki hin))
+  have hTime := wc_event_before_prefixTime hS hilen (hqc.trans_le hcut') hGq.1
+  have finish (k r : Nat) (C : Block)
+      (hrC : WCResult p c E rho w iStar n k y r C) (hki : k < i)
+      (hBC : Block.Preceq B C) : Block.Preceq B (S_at p c E rho i y) := by
+    have hCout := wc_gate_result_served hS inv hrC
+    have hm := wc_output_mono_of_inv hS hs inv (k + 1) i y
+      ⟨hrC.afterCut.trans (Nat.le_succ k), (Nat.succ_le_of_lt hki).trans hin⟩
+      ⟨hrC.afterCut.trans hki.le, hin⟩ (Nat.succ_le_of_lt hki) hy.1.1
+    exact block_preceq_trans hBC (block_preceq_trans hCout hm)
+  by_cases hmarker : ∀ wake, (storeAt p c E rho i y).restartTime = some wake →
+      wake ≤ slotStartZ p ((s + 1 : Nat) : Int)
+  · obtain ⟨k, hki, hG⟩ := wc_confirmedReader_early_gate hvalid hdelta hy hhor'
+      hTime hcut' hmarker
+    have hk := (wc_gate_cut_iff hS hs hG.1).mpr (hr.label.trans (Nat.lt_succ_self s))
+    obtain ⟨C, hC, _, _⟩ := inv.nonempty k y (s + 1) hk (hki.trans_le hin) hy.1.1 hG
+      (hr.label.trans (Nat.lt_succ_self s))
+    have hrC : WCResult p c E rho w iStar n k y (s + 1) C :=
+      ⟨hy.1.1, hk, hki.trans_le hin, hr.label.trans (Nat.lt_succ_self s), hG.1, hC⟩
+    exact finish k (s + 1) C hrC hki
+      (inv.ordered j k x y s (s + 1) B C hr hrC (Nat.lt_succ_self s))
+  · push Not at hmarker
+    obtain ⟨wake, hw', hlate'⟩ := hmarker
+    have hc := hy.1.2.2
+    rw [hw'] at hc
+    obtain ⟨r, k, hwr, _hrt, hki, hG, _hA, _hR⟩ := hc
+    have hsr : s < r := by
+      have hh := hlate'.trans_le hwr
+      change 4 * p.Δ * ((s + 1 : Nat) : Int) < 4 * p.Δ * (r : Int) at hh
+      have hcast : (s : Int) + 1 < r := by push_cast at hh; nlinarith [p.deltaPos]
+      exact Nat.lt_of_succ_lt (Int.ofNat_lt.mp (by exact_mod_cast hcast))
+    have hk := (wc_gate_cut_iff hS hs hG.1).mpr (hr.label.trans hsr)
+    obtain ⟨C, hC, _, _⟩ := inv.nonempty k y r hk (hki.trans_le hin) hy.1.1 hG
+      (hr.label.trans hsr)
+    have hrC : WCResult p c E rho w iStar n k y r C :=
+      ⟨hy.1.1, hk, hki.trans_le hin, hr.label.trans hsr, hG.1, hC⟩
+    exact finish k r C hrC hki (inv.ordered j k x y s r B C hr hrC hsr)
 
 /-- WC plan §6.6; DC the next covered gate serves the result at every honest reader. -/
 theorem wc_service4 : WCService4Statement p c E rho ΔF w iStar := by

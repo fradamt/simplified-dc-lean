@@ -203,5 +203,34 @@ theorem healing_postReset_retainedReads
     ((postResetRetainedCone_iff_at p c E rho w).mp hcone s) hs hHeadHorizon hSync
     hx hip hseat N hem
 
+/-- H.17 retained reads use joined readers and exact per-object receiver services. -/
+theorem healing_postReset_retainedReads_at_on
+    (hE : V2.D.ExecutionValid E rho) (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip)
+    (hcone : ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
+  obtain ⟨D, hinput⟩ := hcone
+  exact ⟨D, fgsa_retainedReads_H17_joined (hroots := hroots)
+    E rho hE s hx hip hseat N hem D hinput hServices⟩
+
 end AvailableChain.FGSA.Run
 end

@@ -462,5 +462,11 @@ theorem healing_phase_held_receipt (crossing : RXing p c E rho)
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs, heq] at hY
   exact (fgsa_store_cumulative p c E rho hnr hj' y).1 hY
 
+/-- The global frontier is monotone through restarts under RMonoAll. -/
+theorem healing_frontier_mono_all (mono : RMonoAll p c E rho)
+    {i j : Nat} (hij : i ≤ j) :
+    frontierAtIdx p c E rho i ≤ frontierAtIdx p c E rho j :=
+  Finset.sup_mono_fun (fun x hx => (mono i j x hx hij).2.2)
+
 end AvailableChain.FGSA.Run
 end

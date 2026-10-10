@@ -19,23 +19,22 @@ theorem wc_reconcileBound (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   (_hvalid : V2.D.ExecutionValid E rho)
   (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
   (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (_hnr : V2.D.NoRestart rho)
+  (_hnr : V2.D.RestartsAtWakes E rho)
   (_hdelta : E.Δ = p.Δ)
-  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hroots : NamedReceiptRootCollisionFree p c E rho)
   (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
   (_hdeltaF : E.Δ ≤ ΔF)
   (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
   (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
   (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-    (Gen.V2.Duty.faulty rho).card <
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
   (_hstore : RStore p c E rho)
-  (_hcumul : RStoreCumul p c E rho)
-  (_hmono : RMono p c E rho)
+  (_hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
+  (_hmono : RMonoAll p c E rho)
   (_hactive : RActive p c E rho)
   (_hframe : RFrameExactNext p c E rho)
-  (_hmeta : RFrameNext p c E rho)
+  (_hmeta : RFrameNextEpoch p c E rho)
   (_hrec : RRec p c E rho)
   (_hgeo : RGeo p c E rho)
   (_hcert : RCert p c E rho)
@@ -63,7 +62,7 @@ theorem wc_reconcileBound (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+      ∀ k w C, j < k → k < i → enabledGateAt p c E rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
         SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
@@ -74,7 +73,8 @@ theorem wc_reconcileBound (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
   (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
-      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho x j i ∧
+        enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
   (_hdeadlines : ∀ i x,
@@ -98,7 +98,7 @@ theorem wc_reconcileBound (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
       TargetQCAt p.E B fp.height (heightView p B).J),
   WCSeed p c E rho w iStar → ∀ i, iStar ≤ i → i < rho.events.length →
     WCInv p c E rho w iStar i → ∀ v o t, rho.events[i]? = some (.deliver v o t) →
-    ∀ x y, x ∈ rho.honest → y ∈ rho.honest →
+    ∀ x y, x ∈ rho.honest → confirmedReaderIdx p c E rho y i →
       Block.Preceq (F_at p c E rho (i + 1) x) (S_at p c E rho i y) := by
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
@@ -106,7 +106,8 @@ theorem wc_reconcileBound (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     hscopeRows hfinalHead hs i hi _hilen inv v o t he x y hx hy
   obtain ⟨D, hD, hF⟩ := (hstore (i + 1) x hx).1.fg.Fcar
   by_cases hlo : (finalityView p D).h_F ≤ w.M
-  · have hbelow := (wc_lowFinalized hlinked hfaultX hroots hscopeRows hnoslash hs
+  · have hbelow := (wc_lowFinalized hlinked hfaultX
+      (hroots.toNamedRootCollisionFree E rho) hscopeRows hnoslash hs
       D _ _ (wc_finalizedOccurrence hscopeRows hnoslash D _ _
         (rootScope_store hx hD) hF rfl) hlo).2
     exact block_preceq_trans hbelow (inv.served i y hi le_rfl hy)
@@ -114,7 +115,8 @@ theorem wc_reconcileBound (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   have hhigh : w.M + 1 ≤ (finalityView p D).h_F := by simp only [Height] at hlo ⊢; omega
   obtain ⟨jf, z, rf, af, uf, H, jt, q, rt, aT, ut, K, B, hjf, haf, _, _, _, _,
       _, _, _, _, hjt, haT, hdecode, _, htarget, hK, hXK, _hgate, _hKB, hgap⟩ :=
-    (wc_finalityTargetEarlier hvalid hlinked hfaultQ hroots hheldRows hfinalHead hqc
+    (wc_finalityTargetEarlier hvalid hlinked hfaultQ
+      (hroots.toNamedRootCollisionFree E rho) hheldRows hfinalHead hqc
       hemitted (i + 1) x D _ _ ⟨hx, hD⟩ hpos hF rfl).finalityRow
   have hfi : jf < i := by
     rcases (Nat.le_of_lt_succ hjf).lt_or_eq with h | h

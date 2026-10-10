@@ -99,10 +99,10 @@ theorem clean_actionSources_body [Fintype V] (b₀ : Time) :
     rw [(V2.D.Run.step_tick_eq E rho ht).1]
     exact tick_st (p := p) (c := c) E rho _ _ _
   rw [← hst] at hfw
-  obtain ⟨k, hk, hkt, _, G, hG, hBG, _⟩ := hstate.fastWrite x (r * p.R) _ hfw
+  obtain ⟨k, hk, hRF, hkt, _, G, hG, hBG, _⟩ := hstate.fastWrite x (r * p.R) _ hfw
   rw [closure_gate_label p c rho (show IsGateTick p c rho j x (r * p.R) from ht)]
   exact belowLabel_of_preceq hBG
-    (belowLabel_of_gateResultAt (Nat.lt_of_lt_of_le hk hj1) hkt hG le_rfl)
+    (belowLabel_of_gateResultAt hs (Nat.lt_of_lt_of_le hk hj1) hkt.1 hG le_rfl)
 
 
 /-- P3 §8.7 F2.6 (lead Q2: before cleanHistoryAt); bp02 §5.6. The frozen
@@ -181,7 +181,7 @@ theorem clean_agRule [Fintype V] (b₀ : Time) : CleanAGStmt (ΔF := ΔF) p c E 
     exact clean_invariant p c E rho h hq hf hsrc (i + 1) (Nat.succ_le_of_lt hi)
 
 /-- P3 §8.4. DC: Legacy/Definitions/SafetyRegimes.lean:53–80.
-INTENTIONAL difference: FG-SA has restart events; Base₂.noRestart excludes them.
+INTENTIONAL difference: FG-SA restarts keep durable state and reset local caches.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_restartStep [Fintype V] (b₀ : Time) : CleanRestartStep (ΔF := ΔF) p c E rho b₀ := by
@@ -191,14 +191,15 @@ theorem clean_restartStep [Fintype V] (b₀ : Time) : CleanRestartStep (ΔF := �
 
 private theorem closure_gate_index [Fintype V] {b₀ : Time}
     (h : CleanCutSet p c E rho b₀ ΔF) {x : V} (hx : x ∈ rho.honest)
-    {s : Slot} (ht : SA.gateTime p.toParams s ≤ b₀) :
+    {s : Slot} (ht : SA.gateTime p.toParams s ≤ b₀)
+    (hAw : E.awake x (SA.gateTime p.toParams s) = true) :
     ∃ j, j < timeIdx rho b₀ ∧ IsGateTick p c rho j x s := by
   have heq : ((4 * s + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams s := by
     change ((4 * s + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + 6 * p.Δ
     push_cast
     ring
   obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho h.base.valid.toScheduleWellFormed
-    h.base.delta x hx (4 * s + 6) (heq ▸ ht.trans h.cut.2)
+    h.base.delta x hx (4 * s + 6) (heq ▸ ht.trans h.cut.2) (heq ▸ hAw)
   rw [heq] at hj
   exact ⟨j, (V2.D.Engine.index_lt_read_length_iff
     h.base.valid.toScheduleWellFormed b₀ hj).mpr ht, hj⟩
@@ -220,30 +221,38 @@ theorem cleanHistoryAt_body [Fintype V] {b₀ : Time}
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
   (∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams r ≤ b₀ → SA.gateTime p.toParams s ≤ b₀ →
+    confirmedReader p c E rho x (SA.gateTime p.toParams r) →
+    confirmedReader p c E rho y (SA.gateTime p.toParams s) →
     gateResult p c E rho x r = some (some B) →
     gateResult p c E rho y s = some (some C) →
     (r < s → Block.Preceq B C) ∧ (r = s → Block.Compatible B C)) ∧
-  (∀ j x s, j < timeIdx rho b₀ → x ∈ rho.honest → IsGateTick p c rho j x s →
+  (∀ j x s, j < timeIdx rho b₀ → x ∈ rho.honest →
+    enabledGateAt p c E rho j x s →
     ∃ B, gateResultAt p c E rho j = some (some B) ∧ (s = 0 → B = .genesis)) ∧
   (∀ x y s B H, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams s ≤ b₀ → gateResult p c E rho x s = some (some B) →
+    joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
     vHead p c E rho y s = some H → Block.Preceq B H) ∧
   (∀ i v, i ≤ timeIdx rho b₀ → v ∈ rho.honest →
     let st := storeAt p c E rho i v
     let below := BelowLabel p c E rho i (labelBoundAt p c rho i)
     below (F_at p c E rho i v) ∧ below (J_at p c E rho i v) ∧ below (S_at p c E rho i v) ∧
     (∀ row ∈ st.base.obligations, below row.1 ∧
-      ∃ j < i, ∃ s B, IsGateTick p c rho j v s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, ∃ s B, enabledGateAt p c E rho j v s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B) ∧
     (∀ s C, GridCO.savedGenuine st.base s = some (some C) → below C ∧
-      ∃ j < i, IsGateTick p c rho j v s ∧ gateResultAt p c E rho j = some (some C)) ∧
-    (∀ j s C, j < i → IsGateTick p c rho j v s →
+      ∃ j < i, V2.D.restartFree rho v j i ∧
+        enabledGateAt p c E rho j v s ∧ gateResultAt p c E rho j = some (some C)) ∧
+    (∀ j s C, j < i → enabledGateAt p c E rho j v s →
+      V2.D.restartFree rho v j i →
+      FGSA.activeCompatible st C = true →
       gateResultAt p c E rho j = some (some C) → GridCO.savedGenuine st.base s = some (some C)) ∧
     (∀ s X, X ∈ (FGSA.fastWriteAt st s).getD [] → below X ∧
-      ∃ j < i, IsGateTick p c rho j v s ∧ gatePassedAt p c E rho j ∧
+      ∃ j < i, V2.D.restartFree rho v j i ∧ enabledGateAt p c E rho j v s
+        ∧ gatePassedAt p c E rho j ∧
         ∃ C, gateResultAt p c E rho j = some (some C) ∧ Block.Preceq X C ∧ fastAt p c E rho v s X) ∧
     (S_at p c E rho i v = .genesis ∨
-      (∃ j < i, ∃ s, IsGateTick p c rho j v s ∧
+      (∃ j < i, ∃ s, enabledGateAt p c E rho j v s ∧
         gateResultAt p c E rho j = some (some (S_at p c E rho i v))) ∨
       (∃ j ≤ i, S_at p c E rho i v = F_at p c E rho j v))) ∧
   (∀ i j x r C, i ≤ timeIdx rho b₀ → j < i → x ∈ rho.honest →
@@ -264,28 +273,39 @@ theorem cleanHistoryAt_body [Fintype V] {b₀ : Time}
   have state (i : Nat) (hi : i ≤ timeIdx rho b₀) : CleanState p c E rho i :=
     cleanState_of_hist h hq hf hsrc (clean_actionStep p c E rho) hi (hist i hi)
   have gateBelow {i j : Nat} {v : V} {s : Slot} {B : Block}
-      (hji : j < i) (ht : IsGateTick p c rho j v s)
+      (hji : j < i) (ht : enabledGateAt p c E rho j v s)
       (hB : gateResultAt p c E rho j = some (some B)) :
       BelowLabel p c E rho i (labelBoundAt p c rho i) B := by
-    apply belowLabel_of_gateResultAt hji ht hB
-    rw [← closure_gate_label p c rho ht]
+    apply belowLabel_of_gateResultAt hs hji ht.1 hB
+    rw [← closure_gate_label p c rho ht.1]
     exact closure_label_mono p c E rho hs (Nat.le_of_lt hji)
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-  · intro x y r s B C hx hy hr hsTime hB hC
-    obtain ⟨j, hj, hjt⟩ := closure_gate_index p c E rho h hx hr
-    obtain ⟨k, hk, hkt⟩ := closure_gate_index p c E rho h hy hsTime
+  · intro x y r s B C hx hy hr hsTime hRx hRy hB hC
+    obtain ⟨j, hj, hjt⟩ := closure_gate_index p c E rho h hx hr hRx.2.1
+    obtain ⟨k, hk, hkt⟩ := closure_gate_index p c E rho h hy hsTime hRy.2.1
     rw [← gateResultAt_eq_gateResult p c E rho hs hjt] at hB
     rw [← gateResultAt_eq_gateResult p c E rho hs hkt] at hC
-    have hBm : (r, B) ∈ cleanResults p c E rho (timeIdx rho b₀) := ⟨j, hj, x, hjt, hB⟩
-    have hCm : (s, C) ∈ cleanResults p c E rho (timeIdx rho b₀) := ⟨k, hk, y, hkt, hC⟩
+    have hBm : (r, B) ∈ cleanResults p c E rho (timeIdx rho b₀) :=
+      ⟨j, hj, x, hjt, (clean_gate_enabled_of_result hs hjt hB).2, hB⟩
+    have hCm : (s, C) ∈ cleanResults p c E rho (timeIdx rho b₀) :=
+      ⟨k, hk, y, hkt, (clean_gate_enabled_of_result hs hkt hC).2, hC⟩
     refine ⟨(hist _ le_rfl).ordered r s B C hBm hCm, ?_⟩
     intro hrs
     subst s
     exact (hist _ le_rfl).same r B C hBm hCm
   · intro j x s hj _ ht
     exact (hist _ le_rfl).nonempty j x s hj ht
-  · intro x y s B H hx hy hcut hB hH
-    obtain ⟨j, hj, hjt⟩ := closure_gate_index p c E rho h hx hcut
+  · intro x y s B H hx hy hcut hB hJ hH
+    have hex : ∃ j : Nat, IsGateTick p c rho j x s := by
+      have hres := hB
+      rw [gateResult_def] at hres
+      obtain ⟨st, hgate, _⟩ := Option.map_eq_some_iff.mp hres
+      rw [gateIn_def, preTick_def] at hgate
+      obtain ⟨nd, hpre, _⟩ := Option.map_eq_some_iff.mp hgate
+      obtain ⟨j, htick, _⟩ := Option.map_eq_some_iff.mp hpre
+      exact ⟨j, V2.D.Run.tickIdx?_spec htick⟩
+    obtain ⟨j, hjt⟩ := hex
+    have hj := (V2.D.Engine.index_lt_read_length_iff hs b₀ hjt).mpr hcut
     have htime : SA.voteTime p.toParams (s + 1) < SA.gateTime p.toParams s := by
       change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
       push_cast
@@ -296,34 +316,39 @@ theorem cleanHistoryAt_body [Fintype V] {b₀ : Time}
       push_cast
       ring
     obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs h.base.delta y hy
-      (4 * (s + 1) + 1) (heq ▸ htime.le.trans (hcut.trans h.cut.2))
+      (4 * (s + 1) + 1) (heq ▸ htime.le.trans (hcut.trans h.cut.2)) (heq ▸ hJ.1)
     rw [heq] at hk
     have hkj := V2.D.Engine.eventIndex_lt_of_time_lt hs hk hjt htime
     rw [← gateResultAt_eq_gateResult p c E rho hs hjt] at hB
     rw [vHead_eq_headAtIdx p c E rho hs hk] at hH
     cases Option.some.inj hH
-    exact (hist _ le_rfl).continues j k x y s B hj hkj hjt hk hB
+    exact (hist _ le_rfl).continues j k x y s B hj hkj hjt hk hJ hB
   · intro i v hi _
     have st := state i hi
-    refine ⟨(st.fOrigin v).1, (st.fOrigin v).2, ?_, ?_, ?_, st.saved v, ?_, st.sOrigin v⟩
+    refine ⟨(st.fOrigin v).1, (st.fOrigin v).2, ?_, ?_, ?_, st.saved v, ?_, ?_⟩
     · rcases st.sOrigin v with hg | ⟨j, hj, s, ht, hB⟩ | ⟨j, hj, he⟩
       · exact Or.inl hg
-      · exact gateBelow hj ht hB
+      · exact gateBelow hj (clean_gate_enabled_of_result hs ht hB) hB
       · rw [he]
         exact belowLabel_mono_index hj (belowLabel_mono_label
           (closure_label_mono p c E rho hs hj) ((state j (hj.trans hi)).fOrigin v).1)
     · intro row hr
       have ho := st.leases v row hr
-      obtain ⟨j, hj, s, B, ht, _, hB, hp⟩ := ho
-      exact ⟨belowLabel_of_preceq hp (gateBelow hj ht hB), st.leases v row hr⟩
+      obtain ⟨j, hj, s, B, ht, hpass, hB, hp⟩ := ho
+      exact ⟨belowLabel_of_preceq hp (gateBelow hj (clean_gate_enabled_of_result hs ht hB) hB),
+        j, hj, s, B, clean_gate_enabled_of_result hs ht hB, hpass, hB, hp⟩
     · intro s C hC
       have ho := st.savedOnly v s C hC
-      obtain ⟨j, hj, ht, hB⟩ := ho
+      obtain ⟨j, hj, hRF, ht, hB⟩ := ho
       exact ⟨gateBelow hj ht hB, st.savedOnly v s C hC⟩
     · intro s X hX
       have ho := st.fastWrite v s X hX
-      obtain ⟨j, hj, ht, _, C, hC, hp, _⟩ := ho
+      obtain ⟨j, hj, hRF, ht, hpass, C, hC, hp, hfast⟩ := ho
       exact ⟨belowLabel_of_preceq hp (gateBelow hj ht hC), st.fastWrite v s X hX⟩
+    · rcases st.sOrigin v with hg | ⟨j, hj, s, ht, hB⟩ | hf
+      · exact Or.inl hg
+      · exact Or.inr (Or.inl ⟨j, hj, s, clean_gate_enabled_of_result hs ht hB, hB⟩)
+      · exact Or.inr (Or.inr hf)
   · intro i j x r C hi hj hx ht hC
     exact clean_actionSources_body p c E rho b₀ h hq hf hsrc i hi (hist i hi)
       j x r C hj hx ht hC
