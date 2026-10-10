@@ -62,6 +62,7 @@ timed_selftest() {
   return "$rc"
 }
 checker_selftests() {
+  python3 -B scripts/unported-selftest.py &&
   python3 -B scripts/gate-neg-selftest.py &&
   bash scripts/check-layers-selftest.sh &&
   bash scripts/shake-report-selftest.sh &&

@@ -16,7 +16,8 @@ with tempfile.TemporaryDirectory(prefix="gate-shell-controls-") as scratch:
     scripts = root / "scripts"
     scripts.mkdir()
     (root / ".lake").mkdir()
-    for name in ("check-fgsa-manifest.sh", "check-fg.sh", "gate-common.sh"):
+    for name in ("check-fgsa-manifest.sh", "check-fg.sh", "gate-common.sh",
+                 "unported.py", "unported-libraries.txt"):
         shutil.copy2(REPO / "scripts" / name, scripts / name)
     for name in ('api-snapshot.py', 'api-snapshot-controls.py', 'fgsa-deep-controls.py'):
         (scripts / name).write_text("import os,sys\n"

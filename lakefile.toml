@@ -1,6 +1,7 @@
 name = "available-chain"
 version = "0.1.0"
 keywords = ["lean", "consensus", "model"]
+# UNPORTED PC-SA is not a default target. See scripts/unported-libraries.txt.
 defaultTargets = [
   "AvailableChainModel",
   "AvailableChainStatements",

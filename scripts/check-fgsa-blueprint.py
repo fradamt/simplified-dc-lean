@@ -37,6 +37,7 @@ fields and the OPEN document; review the diff), --selftest.
 Exit codes: 0 pass; 1 a map, statement or Lean mismatch; 2 an input error.
 """
 import argparse
+import unported as U
 import contextlib
 import hashlib
 import io
@@ -277,7 +278,7 @@ def all_clauses(data, compiled=False):
             yield e['id'], c
     for proto, rows in data.get('safety_package', {}).items():
         for c in rows:
-            if compiled and proto == 'PC-SA' and c.get('field') in SAFETY_FIELDS:
+            if compiled and proto == 'PC-SA' and U.pcsa() and c.get('field') in SAFETY_FIELDS:
                 continue
             yield f'safety {proto} {c.get("field")}', c
     for c in data.get('additional_results', []):
@@ -439,7 +440,8 @@ def summary(data, oracle_errors):
         bad = [x for x in oracle_errors if f'safety {proto} ' in x]
         rows = data['safety_package'][proto]
         status = 'FAIL' if bad else 'PASS'
-        if rows and proto == 'PC-SA' and all(c.get('field') in SAFETY_FIELDS for c in rows):
+        if rows and proto == 'PC-SA' and U.pcsa() and all(
+                c.get('field') in SAFETY_FIELDS for c in rows):
             status = 'DEFERRED (source/map only)'
         print(f'safety package {proto}: {status} ({len(rows)} fields)')
     print(f'claims {claims}; facets {facets}; PROVED {count["PROVED"]}; PARTIAL {count["PARTIAL"]}; '

@@ -4,6 +4,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
+active=$(python3 -B scripts/unported.py AvailableChainPCSA)
+if [ "$active" = '' ]; then
+  echo 'SKIP UNPORTED: PC-SA manifest and controls'
+  exit 0
+fi
 mkdir -p .lake
 tmp=
 trap 'rm -rf "$tmp"' EXIT

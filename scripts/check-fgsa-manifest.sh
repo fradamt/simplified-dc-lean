@@ -37,7 +37,8 @@ gate_with_slot manifest_run deep lake env lean --run scripts/V2Manifest.lean \
   --scope fgsa --deep --check
 gate_with_slot manifest_run legacy python3 -B scripts/api-snapshot.py --scope legacy --check
 # Every committed review product is compared with compiled state at both tiers.
-# PCSA deep remains a separate, explicit checkpoint.
+# UNPORTED PC-SA is excluded by scripts/unported-libraries.txt in api-snapshot.py.
+# Its last shallow/deep snapshots stay in the tree; active scopes remain mandatory.
 gate_with_slot manifest_run v2-deep python3 -B scripts/api-snapshot.py --scope v2 \
   --output docs/api/v2-deep.json --check
 gate_with_slot manifest_run gen-deep python3 -B scripts/api-snapshot.py --scope gen \

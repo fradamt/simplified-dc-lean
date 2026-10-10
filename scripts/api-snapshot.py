@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 from check_inventory import parse_names
+import unported as U
 
 spec = importlib.util.spec_from_file_location('deep', 'scripts/fgsa-deep.py')
 deep = importlib.util.module_from_spec(spec)
@@ -53,7 +54,8 @@ def checkpoint_modules(path):
 def extract(scope, inventory=False, roots=None, blueprint=Path('docs/FGSA-BLUEPRINT-LEAN.json'),
             checkpoint='baseline', imports=None):
     libraries = SCOPES[scope]
-    extra = ('AvailableChainPCSAProofs',) if scope == 'fgsa-claims' and not inventory else ()
+    extra = ('AvailableChainPCSAProofs',) if (
+        scope == 'fgsa-claims' and not inventory and not U.pcsa()) else ()
     if checkpoint == 'g-s1':
         if scope != 'semantic' or roots is None or imports is None or inventory:
             raise ValueError('G-S1 requires semantic roots and an explicit REQUIRED module list')
@@ -90,6 +92,8 @@ def main (_args : List String) : IO UInt32 := do
 ''' + probe[last:]
     if scope == 'fgsa-claims' and not inventory:
         mapped = deep.strict_json(blueprint)
+        # Only the PC-SA section is excluded. Every FG-SA mapped root stays required.
+        mapped = {**mapped, 'safety_package': list(U.blueprint_clauses(mapped))}
         def theorem_names(value):
             if isinstance(value, dict):
                 for key, row in value.items():

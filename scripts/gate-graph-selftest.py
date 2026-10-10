@@ -86,7 +86,8 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
     scripts = root / 'scripts'
     scripts.mkdir(parents=True)
     (root / '.lake').mkdir()
-    for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt'):
+    for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt',
+                 'unported.py', 'unported-libraries.txt'):
         shutil.copy2(REPO / 'scripts' / name, scripts / name)
     # Test the driver after precheck. Real source prechecks run separately.
     with (scripts / 'gate-common.sh').open('a') as out:

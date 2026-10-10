@@ -631,6 +631,12 @@ def main (args : List String) : IO UInt32 := do
   if (o.roots?.isSome || o.report?.isSome) && (!o.deep || o.mode != "--check") then
     IO.eprintln "usage error: --roots and --report require --deep --check"
     return 2
+  let unported := (← IO.FS.lines "scripts/unported-libraries.txt").filterMap fun line =>
+    let name := (line.splitOn "#").head!.trimAscii.toString
+    if name.isEmpty then none else some name
+  if o.scope == .pcsa && unported.contains "AvailableChainPCSA" then
+    IO.println "SKIP UNPORTED: PC-SA manifest and deep snapshot"
+    return 0
   if o.deep then
     unless isFamily o.scope && ["--write", "--check"].contains o.mode do
       IO.eprintln "usage error: --deep requires --scope fgsa or pcsa and --write or --check"

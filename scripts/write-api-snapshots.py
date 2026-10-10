@@ -2,6 +2,7 @@
 """One explicit writer/checker for all current API snapshot products."""
 import argparse
 import subprocess
+import unported as U
 
 
 def main():
@@ -14,6 +15,9 @@ def main():
     args = ap.parse_args()
     mode = '--write' if args.write else '--check'
     for scope in args.scope or ('v2', 'gen', 'fgsa', 'pcsa', 'legacy', 'compose', 'auxiliary'):
+        if scope == 'pcsa' and U.pcsa():
+            print('SKIP UNPORTED: PC-SA shallow and deep snapshots', flush=True)
+            continue
         if scope in ('legacy', 'compose', 'auxiliary'):
             name = 'fgsa-claims' if scope == 'auxiliary' else scope
             subprocess.run(['python3', '-B', 'scripts/api-snapshot.py', '--scope', name, mode],

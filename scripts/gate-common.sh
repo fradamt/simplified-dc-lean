@@ -49,6 +49,7 @@ gate_precheck() (
     gate_precheck_step guard-lists python3 scripts/guard-lists.py diff \
       --main-rev "$base" --target scripts/check-fgsa-claims.sh || exit $?
   fi
+  gate_precheck_step unported python3 -B scripts/unported-selftest.py --check || exit $?
   gate_precheck_step sleep-scopes python3 -B scripts/check-sleep-scopes.py || exit $?
   gate_precheck_step legacy-inventory python3 scripts/current-inventory.py legacy \
     docs/api/legacy-api.json || exit $?
@@ -252,6 +253,13 @@ gate_options() {
 # GATE_NO_BUILD checks freshness without starting a build. The driver sets it
 # only after one build of all default, support and CheckGenFirst targets.
 gate_build() (
+  local data target targets=()
+  data=$(python3 -B scripts/unported.py "$@") || exit $?
+  while IFS= read -r target; do
+    [ -z "$target" ] || targets+=("$target")
+  done <<< "$data"
+  [ "${#targets[@]}" -gt 0 ] || exit 0
+  set -- "${targets[@]}"
   mkdir -p .lake
   if command -v flock >/dev/null 2>&1; then
     if [ "${GATE_NO_BUILD:-0}" = 1 ]; then

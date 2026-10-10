@@ -22,6 +22,7 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import check_common as C  # noqa: E402
+import unported as U
 
 ROOT = Path(C.ROOT)
 
@@ -60,7 +61,7 @@ MODULES = {
     'AvailableChainPCSAProofs.Proofs.Assembly.Finality': PCB,
 }
 
-DEFERRED_MODULES = {m: a for m, a in MODULES.items() if m.startswith('AvailableChainPCSA')}
+DEFERRED_MODULES = {m: a for m, a in MODULES.items() if U.contains(m)}
 ACTIVE_MODULES = {m: a for m, a in MODULES.items() if m not in DEFERRED_MODULES}
 
 KINDS = ('theorem', 'lemma', 'def', 'abbrev', 'structure', 'class', 'inductive', 'opaque',

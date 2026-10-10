@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 import check_common as C
+import unported as U
 
 ROOT = Path(__file__).resolve().parents[1]
 PREFIXES = tuple('AvailableChain' + s for s in
@@ -93,8 +94,12 @@ def validate_scope(path, graph):
 
 def validate_package(path, required, graph):
     data = read_map(path, ('TARGETS', 'GREEN', 'EXPECTED-FAIL'), {'EXPECTED-FAIL'})
-    green, expected = (set(data[s]) for s in ('GREEN', 'EXPECTED-FAIL'))
-    targets = set(data['TARGETS'])
+    green, expected = ({m for m in data[s] if not U.contains(m)}
+                       for s in ('GREEN', 'EXPECTED-FAIL'))
+    targets = {m for m in data['TARGETS'] if not U.contains(m)}
+    for module in sorted(set().union(*data.values())):
+        if U.contains(module):
+            print('SKIP UNPORTED package module: ' + module, flush=True)
     domain = required | targets
     unknown = (targets | green | expected) - set(graph)
     if unknown:

@@ -4,13 +4,10 @@ from pathlib import Path
 import re
 
 import check_common as C
-
-DEFERRED = ('AvailableChainPCSA', 'AvailableChainPCSARun',
-            'AvailableChainPCSAClaims', 'AvailableChainPCSAProofs')
-
+import unported as U
 
 def deferred(module):
-    return any(module == p or module.startswith(p + '.') for p in DEFERRED)
+    return U.contains(module)
 
 
 def check_active(graph, roots):
@@ -49,6 +46,7 @@ def check_deferred_facades(graph):
 
 
 def main():
+    U.read()
     graph = C.import_graph()
     active = [m for m in graph if not deferred(m)]
     check_active(graph, active)
@@ -56,7 +54,7 @@ def main():
     files = [f for f in C.library_files() if deferred(f.module)]
     for file in files:
         check_deferred(file.module, Path(file.path).read_text())
-    if not files:
+    if U.pcsa() and not files:
         raise ValueError('MISSING DEFERRED PC-SA SOURCE')
     print(f'Sleep source scopes: {len(active)} active; '
           f'{len(files)} deferred PC-SA modules: PASS')

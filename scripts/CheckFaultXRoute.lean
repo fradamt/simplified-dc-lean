@@ -51,13 +51,15 @@ def scopedModules : IO (Array Name × Array Name) := do
     throw <| IO.userError "lakefile.toml: no lean_lib tables"
   let mut libs := #[]
   let mut roots := #[]
+  let unported := (← IO.FS.lines "scripts/unported-libraries.txt").filterMap fun line =>
+    let name := (line.splitOn "#").head!.trimAscii.toString
+    if name.isEmpty then none else some name
   for library in libraries do
     let .table _ library := library | continue
     let some n := library.find? `name | continue
     let name ← tomlString n
     unless name.startsWith "AvailableChain" do continue
-    -- PC-SA source stays available; its compiled audit is deferred during sleep.
-    if name.startsWith "AvailableChainPCSA" do continue
+    if unported.contains name then continue
     let srcDir ← match library.find? `srcDir with
       | some v => System.FilePath.mk <$> tomlString v
       | none => pure "."
