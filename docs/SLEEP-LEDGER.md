@@ -6214,3 +6214,12 @@ allowance, dependency, or shared inventory file was edited.
 No P-Ar closure input remains. The merged P-Ou hRows producer supersedes the
 old Round 6 hRows note. Handoff: scripts/dev-pkg/P-Ar.round7-handoff.md.
 Evidence: .lake/sleep-par-r7/.
+
+### P-Ou Round 8 — continuation-prefix consumption
+
+RestoredBatch:388, outage_continuation_receipt, composes the actual P-Ar
+arming_continuation_prefix_receipt with outage_continuation_receipt_of_prefix.
+Tests/OutageServices consumes this regime-only producer. The P-Ar prefix
+request is discharged. Its earlyTime q <= b₀ guard is kept by the producer.
+Public claims and protocol declarations are unchanged. No new receipt input.
+Headers PASS with zero failures. Evidence: .lake/sleep-pou-r8/prefix-build.log.

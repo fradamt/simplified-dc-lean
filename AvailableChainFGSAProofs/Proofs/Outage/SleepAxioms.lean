@@ -216,3 +216,4 @@ public import AvailableChainFGSAProofs.Proofs.Outage.Induction
 #print axioms AvailableChain.FGSA.Run.outage_arming_duties
 #print axioms AvailableChain.FGSA.Run.outageV_gate_of_emitted_heads
 #print axioms AvailableChain.FGSA.Run.outage_restored_result_of_compatible_heads
+#print axioms AvailableChain.FGSA.Run.outage_continuation_receipt
