@@ -283,8 +283,10 @@ theorem wcg_output_mono_of_inv {last : Nat}
       (step k x (hii.1.trans hik) (by omega) hx)
 
 /-- WC plan §6.7; DC event safety and both public output reads follow the joint invariant. -/
-theorem wcg_seededSafety : WCSeededSafetyStatement p c E rho w iStar := by
-  intro hschedule hs hinv
+theorem wcg_cachedSafety (hschedule : V2.D.ScheduleWellFormed E rho)
+    (hs : WCSeed p c E rho w iStar)
+    (hinv : ∀ i, iStar ≤ i ∧ i ≤ rho.events.length → WCInv p c E rho w iStar i) :
+    WCCachedSafety p c E rho iStar w.QStar := by
   let last := rho.events.length
   have hi := hinv last ⟨hs.within, le_rfl⟩
   have resultSeed : ∀ j x s B, WCResult p c E rho w iStar last j x s B →
@@ -338,10 +340,10 @@ theorem wcg_seededSafety : WCSeededSafetyStatement p c E rho w iStar := by
     exact historyCompat _ _ (outputHistory i x hii.1 hii.2 hx)
       (outputHistory j y hjj.1 hjj.2 hy)
   have hmono := wcg_output_mono_of_inv hschedule hs hi
-  refine ⟨fun i j x y hii hjj hx hy => hcompat i j x y hii hjj hx.1.1 hy.1.1,
-    fun i j x hii hjj hij hx _ => hmono i j x hii hjj hij hx.1.1, ?_, ?_⟩
+  refine ⟨hcompat, hmono, ?_, ?_⟩
   · intro i x hii hx
-    exact hi.served i x hii.1 hii.2 hx
+    rw [← hs.refreshed x hx]
+    exact hmono iStar i x ⟨le_rfl, hs.within⟩ hii hii.1 hx
   · intro g hg
     constructor
     · intro t u x y ht hu hx hy
@@ -349,13 +351,24 @@ theorem wcg_seededSafety : WCSeededSafetyStatement p c E rho w iStar := by
       rw [fgsa_outputAt_eq_S_at E rho hschedule g hg x t,
         fgsa_outputAt_eq_S_at E rho hschedule g hg y u]
       exact hcompat _ _ x y ⟨ht, List.length_filter_le _ _⟩
-        ⟨hu, List.length_filter_le _ _⟩ hx.1 hy.1
-    · intro t u x ht hu htu hx _
+        ⟨hu, List.length_filter_le _ _⟩ hx hy
+    · intro t u x ht hu htu hx
       change Block.Preceq (V2.D.outputAt E rho g x t) (V2.D.outputAt E rho g x u)
       rw [fgsa_outputAt_eq_S_at E rho hschedule g hg x t,
         fgsa_outputAt_eq_S_at E rho hschedule g hg x u]
       exact hmono _ _ x ⟨ht, List.length_filter_le _ _⟩
-        ⟨hu, List.length_filter_le _ _⟩ (V2.D.Engine.read_length_mono _ _ htu) hx.1
+        ⟨hu, List.length_filter_le _ _⟩ (V2.D.Engine.read_length_mono _ _ htu) hx
+
+/-- Reader scopes are projections of the cached output safety theorem. -/
+theorem wcg_seededSafety : WCSeededSafetyStatement p c E rho w iStar := by
+  intro hschedule hs hinv
+  have hc := wcg_cachedSafety hschedule hs hinv
+  refine ⟨fun i j x y hii hjj hx hy => hc.compatible i j x y hii hjj hx.1.1 hy.1.1,
+    fun i j x hii hjj hij hx _ => hc.monotone i j x hii hjj hij hx.1.1,
+    fun i x hii hx => hc.seed i x hii hx.1.1, ?_⟩
+  intro g hg
+  exact ⟨fun t u x y ht hu hx hy => (hc.outputs g hg).1 t u x y ht hu hx.1 hy.1,
+    fun t u x ht hu htu hx _ => (hc.outputs g hg).2 t u x ht hu htu hx.1⟩
 
 end AvailableChain.FGSA.Run
 end

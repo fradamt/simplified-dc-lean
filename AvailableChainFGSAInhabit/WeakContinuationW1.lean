@@ -7,6 +7,28 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
 /-! W1: wire checks and execution validity for the window-model generator. -/
 
+/-- An emitted HEAD has passed the join test. -/
+theorem w1_head_action {p : Params} {In : Type} {c : AppCodec In}
+    {nd : Node p} {s : Slot} {x : In} {m : Msg p.n}
+    (ha : act p c nd (.headAction s) x = some m) :
+    some (.head (headVote p nd.st s).root) = some m := by
+  change (if joinedNow p nd.st then some (.head (headVote p nd.st s).root) else none) =
+    some m at ha
+  split at ha
+  · exact ha
+  · cases ha
+
+/-- An emitted proposal has passed the join test. -/
+theorem w1_proposal_action {p : Params} {In : Type} {c : AppCodec In}
+    {nd : Node p} {s : Slot} {x : In} {m : Msg p.n}
+    (ha : act p c nd (.propAction s) x = some m) :
+    (propose p nd.st s).map (withApp p (c.app x)) = some m := by
+  change (if joinedNow p nd.st then
+    (propose p nd.st s).map (withApp p (c.app x)) else none) = some m at ha
+  split at ha
+  · exact ha
+  · cases ha
+
 section Wire
 variable {p : Params}
 
@@ -89,6 +111,7 @@ end Wire
 
 /-- A list fold preserves knowledge when each delivery and its children have it. -/
 theorem w1_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es)
     (hw : ∀ v, GenKnown P (w v).st)
     (he : ∀ v o t, V2.Event.deliver v o t ∈ es →
       P o ∧ ∀ o', carriesS params o o' → P o') :
@@ -97,16 +120,11 @@ theorem w1_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
   | nil => exact hw
   | cons e es ih =>
     apply ih
+    · exact fun v t hm => hnr v t (List.mem_cons_of_mem _ hm)
     · intro u
       cases e with
       | restart v t =>
-        by_cases hu : u = v
-        · subst u
-          simp only [V2.D.World.step, Function.update_self]
-          exact ⟨by simp [fgsa, initialAt, initial],
-            by simp [GenStoredRows, fgsa, initialAt, initial],
-            by simp [fgsa, initialAt, initial, GridCO.initial]⟩
-        · simpa only [V2.D.World.step, Function.update_of_ne hu] using hw u
+        exact (hnr v t (List.mem_cons_self ..)).elim
       | tick v t =>
         by_cases hu : u = v
         · subst u
@@ -126,11 +144,13 @@ theorem w1_known_fold (P : Obj params → Prop) (w : World) (es : List Event)
 
 /-- I3 and I7 give row validity at every event prefix, without delivery validity. -/
 theorem w1_rows_at_index (h : Time) (es : List Event)
-    (ho : GenOrigin V2.D.World.init es) (hc : GenCarried es) (i : Nat) (v : Validator) :
+    (ho : GenOrigin V2.D.World.init es) (hc : GenCarried es)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es) (i : Nat) (v : Validator) :
     EmissionRowsValid (V2.D.Run.stateBefore weakEnv (runData h es) i v).st := by
   let P := fun o => ∃ t, GenPast es t o
   have hk : GenKnown P (genFold V2.D.World.init (es.take i) v).st := by
     apply w1_known_fold
+    · exact fun v t hm => hnr v t (List.mem_of_mem_take hm)
     · intro u
       exact ⟨by simp [V2.D.World.init, fgsa, initial],
         by simp [GenStoredRows, V2.D.World.init, fgsa, initial],
@@ -151,6 +171,7 @@ theorem w1_rows_at_index (h : Time) (es : List Event)
 theorem w1_emit_wire (h : Time) (es : List Event)
     (hs : V2.D.ScheduleWellFormed weakEnv (runData h es))
     (horigin : GenOrigin V2.D.World.init es) (hcarried : GenCarried es)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es)
     (v : Validator) (o : Obj params) (t : Time)
     (hem : V2.D.Run.emits weakEnv (runData h es) v o t) :
     (fgsa params unitCodec).wellFormed o = true := by
@@ -160,6 +181,9 @@ theorem w1_emit_wire (h : Time) (es : List Event)
     (V2.D.Run.stateBefore weakEnv (runData h es) i v) v t o ho
   cases l with
   | headAction s =>
+    change (if joinedNow params _ then some (Msg.head (headVote params _ s).root)
+      else none) = some m at ha
+    split at ha <;> try contradiction
     have he : .head (headVote params
         (FGSA.clock params (V2.D.Run.stateBefore weakEnv (runData h es) i v).st t) s).root = m :=
       Option.some.inj ha
@@ -176,6 +200,9 @@ theorem w1_emit_wire (h : Time) (es : List Event)
     have ht : SA.proposalTime params.toParams s = t :=
       ((fgsa params unitCodec).duties_spec (.propAction s) t).1 hl
     subst t
+    change (if joinedNow params _ then (propose params _ s).map (withApp params 0)
+      else none) = some m at ha
+    split at ha <;> try contradiction
     have hm : (propose params
         (FGSA.clock params (V2.D.Run.stateBefore weakEnv (runData h es) i v).st
           (SA.proposalTime params.toParams s)) s).map (withApp params 0) = some m := ha
@@ -185,19 +212,17 @@ theorem w1_emit_wire (h : Time) (es : List Event)
       subst s
       change none = some m at hm
       cases hm
-    have hv := w1_rows_at_index h es horigin hcarried i v
+    have hv := w1_rows_at_index h es horigin hcarried hnr i v
     have hv' : EmissionRowsValid
         (FGSA.clock params (V2.D.Run.stateBefore weakEnv (runData h es) i v).st
           (SA.proposalTime params.toParams s)) := by
       simpa only [EmissionRowsValid, i7_clock_rowPool, i7_clock_proposals] using hv
-    exact w1_proposal_wf _ s 0 hv'
+    exact fx_proposal_wf _ s 0 hv'
       (fgsa_propose_parent_lt weakEnv (runData h es) hs hi hs0) hm
 
 /-- The source schedule has the same public times in the weak environment. -/
 theorem w1_source_schedule : V2.D.ScheduleWellFormed weakEnv source :=
-  { source_schedule with
-    tick_public := source_schedule.tick_public
-    tick_total := source_schedule.tick_total }
+  fx_source_schedule
 
 /-- Proposal wire checks now hold for every source delivery. -/
 theorem w1_source_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
@@ -205,7 +230,7 @@ theorem w1_source_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (fgsa params unitCodec).wellFormed o = true := by
   obtain ⟨u, hu⟩ := prefix_origin 248 v o t (List.mem_of_getElem? hi)
   exact w1_emit_wire 247 _ w1_source_schedule (prefix_origin 248)
-    (gen_prefix_carried 248).2 u o t (genEmits_runData 247 _ u o t hu)
+    (gen_prefix_carried 248).2 (prefix_no_restart 248) u o t (genEmits_runData 247 _ u o t hu)
 
 /-- Proposal wire checks also hold for every continuation delivery. -/
 theorem w1_continuation_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
@@ -213,7 +238,9 @@ theorem w1_continuation_wire (i : Nat) (v : Validator) (o : Obj params) (t : Tim
     (fgsa params unitCodec).wellFormed o = true := by
   obtain ⟨u, hu⟩ := continuation_genOrigin v o t (List.mem_of_getElem? hi)
   exact w1_emit_wire 263 _ continuation_schedule continuation_genOrigin
-    (gen_suffix_carried 16).2 u o t (genEmits_runData 263 _ u o t hu)
+    (gen_suffix_carried 16).2
+    (fun v t hm => (List.mem_append.mp hm).elim (prefix_no_restart 248 v t)
+      (suffix_no_restart 16 v t)) u o t (genEmits_runData 263 _ u o t hu)
 
 /-- A skipped offer has exactly the store effect of the real handler. -/
 theorem w1_process_inert (st : State params.n) (o : Obj params)
@@ -359,6 +386,7 @@ theorem w1_tick_deps (st : Node params) (v : Validator) (t : Time)
   obtain ⟨l, j, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
+    have ha := w1_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
     subst m
     rfl
@@ -369,6 +397,7 @@ theorem w1_tick_deps (st : Node params) (v : Validator) (t : Time)
     subst m
     rfl
   | propAction s =>
+    have ha := w1_proposal_action (c := unitCodec) (x := ()) ha
     change (propose params (FGSA.clock params st.st t) s).map (withApp params 0) = some m at ha
     unfold propose at ha
     split at ha
@@ -559,6 +588,7 @@ theorem w1_source_deps (i : Nat) (v : Validator) (o : Obj params) (t : Time)
 /-- All execution-validity fields hold for the source. -/
 theorem w1_source_execution : V2.D.ExecutionValid strongEnv source where
   toScheduleWellFormed := source_schedule
+  toSleepWellFormed := fx_source_sleep
   wire := w1_source_wire
   deps := w1_source_deps
   fresh := source_fresh
@@ -567,6 +597,7 @@ theorem w1_source_execution : V2.D.ExecutionValid strongEnv source where
 /-- All execution-validity fields hold for the continuation. -/
 theorem w1_continuation_execution : V2.D.ExecutionValid weakEnv continuation where
   toScheduleWellFormed := continuation_schedule
+  toSleepWellFormed := fx_continuation_sleep
   wire := w1_continuation_wire
   deps := w1_continuation_deps
   fresh := continuation_fresh
@@ -787,6 +818,7 @@ theorem w1_nonproposal_accept (P : Obj params → Prop) (hu : GenSingleDutyUniqu
   have ht := ((fgsa params unitCodec).duties_spec l t).1 hl
   cases l with
   | headAction s =>
+    have ha := w1_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote params (FGSA.clock params nd.st t) s).root = m := Option.some.inj ha
     subst m
     apply w1_head_accept P hu st hk s j _ hP
@@ -801,6 +833,7 @@ theorem w1_nonproposal_accept (P : Obj params → Prop) (hu : GenSingleDutyUniqu
     subst m
     exact w1_row_accept st j body
   | propAction s =>
+    have ha := w1_proposal_action (c := unitCodec) (x := ()) ha
     change (propose params (FGSA.clock params nd.st t) s).map (withApp params 0) = some m at ha
     unfold propose at ha
     split at ha
@@ -878,6 +911,7 @@ theorem w1_proposal_singleton (t : Time) (w : World) (o : Obj params)
     obtain ⟨l, j, m, rfl, _, ha⟩ := gen_tick_seat (w v) v t o hv
     cases l with
     | headAction s =>
+      have ha := w1_head_action (c := unitCodec) (x := ()) ha
       have he : .head (headVote params (FGSA.clock params (w v).st t) s).root = m :=
         Option.some.inj ha
       subst m
@@ -916,6 +950,7 @@ private theorem w1_proposal_admit (nd : Node params) (v : Validator) (t : Time) 
   obtain ⟨l, j, m, rfl, hl, ha⟩ := gen_tick_seat nd v t o ho
   cases l with
   | headAction s =>
+    have ha := w1_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote params (FGSA.clock params nd.st t) s).root = m :=
       Option.some.inj ha
     subst m
@@ -927,6 +962,7 @@ private theorem w1_proposal_admit (nd : Node params) (v : Validator) (t : Time) 
     subst m
     cases hp
   | propAction s =>
+    have ha := w1_proposal_action (c := unitCodec) (x := ()) ha
     have ht : SA.proposalTime params.toParams s = t :=
       ((fgsa params unitCodec).duties_spec (.propAction s) t).1 hl
     change (propose params (FGSA.clock params nd.st t) s).map (withApp params 0) = some m at ha
@@ -1094,7 +1130,8 @@ theorem w1_prefix_complete (steps : Nat) (v : Validator) (o : Obj params)
     intro a ha
     obtain ⟨u, hu⟩ := w1_prefix_emits steps a ha
     exact w1_emit_wire steps _ (w1_prefix_schedule steps) (prefix_origin (steps + 1))
-      (gen_prefix_carried (steps + 1)).2 u a steps (genEmits_runData steps _ u a steps hu)
+      (gen_prefix_carried (steps + 1)).2 (prefix_no_restart (steps + 1)) u a steps
+      (genEmits_runData steps _ u a steps hu)
   exact w1_batch_complete P (w1_emits_unique _ (prefix_nodup (steps + 1))) steps _
     (w1_prefix_uniform steps) (fun u => by
       rw [(prefix_replay_fresh steps).1]
@@ -1168,7 +1205,8 @@ theorem w1_clock_processed (st : State params.n) (t : Time) (o : Obj params) :
 
 /-- Knowledge can be tracked separately for each receiver. -/
 theorem w1_known_fold_local (P : Validator → Obj params → Prop) (w : World)
-    (es : List Event) (hk : ∀ v, GenKnown (P v) (w v).st)
+    (es : List Event)
+    (hnr : ∀ v t, V2.Event.restart v t ∉ es) (hk : ∀ v, GenKnown (P v) (w v).st)
     (he : ∀ v o t, V2.Event.deliver v o t ∈ es →
       P v o ∧ ∀ a, carriesS params o a → P v a) :
     ∀ v, GenKnown (P v) (genFold w es v).st := by
@@ -1176,16 +1214,11 @@ theorem w1_known_fold_local (P : Validator → Obj params → Prop) (w : World)
   | nil => exact hk
   | cons e es ih =>
     apply ih
+    · exact fun v t hm => hnr v t (List.mem_cons_of_mem _ hm)
     · intro u
       cases e with
       | restart v t =>
-        by_cases hu : u = v
-        · subst u
-          simp only [V2.D.World.step, Function.update_self]
-          exact ⟨by simp [fgsa, initialAt, initial],
-            by simp [GenStoredRows, fgsa, initialAt, initial],
-            by simp [fgsa, initialAt, initial, GridCO.initial]⟩
-        · simpa only [V2.D.World.step, Function.update_of_ne hu] using hk u
+        exact (hnr v t (List.mem_cons_self ..)).elim
       | tick v t =>
         by_cases hu : u = v
         · subst u
@@ -1210,6 +1243,7 @@ theorem w1_batch_known_receipt (steps : Nat) (v : Validator) :
   rw [(timeBatch_replay_fresh _ _).1]
   apply w1_known_fold_local (fun u o => GenPast (buildPrefix steps).2 steps o ∨
     V2.Event.deliver u o steps ∈ (timeBatch steps (buildPrefix steps).1).2)
+  · exact timeBatch_no_restart steps (buildPrefix steps).1
   · intro u
     exact gen_known_mono _ _ _ ((gen_prefix_carried steps).1 u) (fun _ h => Or.inl h)
   · intro u o t hm
@@ -1230,6 +1264,7 @@ theorem w1_nonproposal_receipt (steps : Nat) (v : Validator) (o : Obj params)
   obtain ⟨l, j, m, rfl, _, ha⟩ := gen_tick_seat ((buildPrefix steps).1 u) u steps o hu
   cases l with
   | headAction s =>
+    have ha := w1_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote params
         (FGSA.clock params ((buildPrefix steps).1 u).st steps) s).root = m := Option.some.inj ha
     subst m
@@ -1243,6 +1278,7 @@ theorem w1_nonproposal_receipt (steps : Nat) (v : Validator) (o : Obj params)
     subst m
     exact (hk.1 _ (of_decide_eq_true hp)).resolve_left hn
   | propAction s =>
+    have ha := w1_proposal_action (c := unitCodec) (x := ()) ha
     change (propose params (FGSA.clock params ((buildPrefix steps).1 u).st steps) s).map
       (withApp params 0) = some m at ha
     unfold propose at ha
@@ -1326,6 +1362,7 @@ theorem w1_proposal_fresh_start (steps : Nat) (v : Validator) (o : Obj params)
   obtain ⟨l, j, m, rfl, hl, ha⟩ := gen_tick_seat ((buildPrefix steps).1 0) 0 steps o hu
   cases l with
   | headAction s =>
+    have ha := w1_head_action (c := unitCodec) (x := ()) ha
     have he : .head (headVote params
         (FGSA.clock params ((buildPrefix steps).1 0).st steps) s).root = m := Option.some.inj ha
     subst m
@@ -1337,6 +1374,7 @@ theorem w1_proposal_fresh_start (steps : Nat) (v : Validator) (o : Obj params)
     subst m
     cases hp
   | propAction s =>
+    have ha := w1_proposal_action (c := unitCodec) (x := ()) ha
     have ht : SA.proposalTime params.toParams s = steps :=
       ((fgsa params unitCodec).duties_spec (.propAction s) steps).1 hl
     have hs0 : 0 < s := by
@@ -1718,7 +1756,7 @@ private theorem w1_prefix_body (n : Nat) (o : Obj params)
     exact w1_reachable _ u
   obtain ⟨x, hx⟩ := w1_prefix_emits n o ho
   have hw := w1_emit_wire n _ (w1_prefix_schedule n) (prefix_origin (n + 1))
-    (gen_prefix_carried (n + 1)).2 x o n (genEmits_runData n _ x o n hx)
+    (gen_prefix_carried (n + 1)).2 (prefix_no_restart (n + 1)) x o n (genEmits_runData n _ x o n hx)
   have hb := (w1_proposal_admit _ u n o hr hu hw B hp).2
     (w1_proposal_fresh_start n u o ho B hp)
   have hs := w1_proposal_singleton n (buildPrefix n).1 o ho B hp

@@ -1,4 +1,4 @@
-# P-Ar Round 5 CLOSED, base sleep-int b1c840a5. All owned targets and consumers verified.
+# P-Ar Round 7 CLOSED, base sleep-int 102d8f5b; continuation-prefix producer checked.
 # GREEN and EXPECTED-FAIL cover S1 REQUIRED union TARGETS exactly.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Outage.ArmingDutySleep

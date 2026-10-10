@@ -1,5 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Seed
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
@@ -56,10 +58,10 @@ theorem wcg_empty_outputDomain
     (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
     (hend : rho.horizon = source.horizon)
-    {w : HealingWitness} {iSource : Nat} {ΔF : Time}
+    {w : HealingWitness} {iSource : Nat}
     (hseed : WCSeed p c E source w iSource)
     (hgate : SA.gateTime p.toParams w.u ≤ source.horizon)
-    (hsafe : SSafeFromCut₂ p c E source iSource w.QStar ΔF) :
+    (hsafe : WCCachedSafety p c E source iSource w.QStar) :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       Gen.Pure.CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E' rho g x t)
         (fun t => afterTicksIdx rho (SA.gateTime p.toParams w.u) ≤ timeIdx rho t) ∧
@@ -134,13 +136,14 @@ theorem wcg_empty_inclusion
     (wcg_proposalSourceReplay ha hs hr hprop htime) (hcovered.trans_eq hend)
   intro g hg t x ht hx
   change Block.Preceq pt.P (V2.D.outputAt E' rho g x t)
-  rw [wcg_empty_outputReplay ha hs hr hend g x hx]
-  exact hi g hg t x ⟨ht.1, ht.2.trans_eq hend⟩ (ha.honest hx)
+  rw [wcg_empty_outputReplay ha hs hr hend g x hx.1]
+  exact hi g hg t x ⟨ht.1, ht.2.trans_eq hend⟩
+    (wcg_confirmedReaderSourceReplay ha hs hr (ht.2.trans_eq hend) hx)
 
 /-- Conditional growth uses only public output order and proposal inclusion.
 It does not require event-index finalBelow or a continuation fault cap. -/
 theorem wcg_growthOfOutputs (hb : Base₂ p c E' rho) (u : Slot)
-    (hout : ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
+    (_hout : ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       Gen.Pure.CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E' rho g x t)
         (fun t => SA.gateTime p.toParams u ≤ t) ∧
       Gen.Pure.MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E' rho g x t)
@@ -148,6 +151,13 @@ theorem wcg_growthOfOutputs (hb : Base₂ p c E' rho) (u : Slot)
     (hincl : ∀ pt : PtSP, u + 2 ≤ pt.s →
       HonestProposal E' rho (fgsaInterface p c) pt.s pt.P →
       SA.gateTime p.toParams pt.s ≤ rho.horizon → ServedFromGateAt p c E' rho pt)
+    (hproposals : ∀ pt : PtSP, u + 2 ≤ pt.s →
+      HonestProposal E' rho (fgsaInterface p c) pt.s pt.P →
+      SA.gateTime p.toParams pt.s ≤ rho.horizon →
+      ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed], ∀ t x,
+      SA.gateTime p.toParams u ≤ t → t ≤ rho.horizon →
+      confirmedReader p c E' rho x t →
+      Block.Compatible (V2.D.outputAt E' rho g x t) pt.P)
     (G' : Time) (hG' : 4 * p.Δ ≤ G')
     (hrecurrence : AwakeProposerRecurrenceFrom p c E' rho (SA.gateTime p.toParams u) G')
     (t : Time) (ht : SA.gateTime p.toParams u ≤ t)
@@ -184,18 +194,20 @@ theorem wcg_growthOfOutputs (hb : Base₂ p c E' rho) (u : Slot)
     exact (add_nonneg
       (mul_nonneg (mul_nonneg (by decide) hd.le) (Nat.cast_nonneg u)) h6).trans ht
   have hserved := hincl ⟨s, B⟩ hstart hprop (hgate.trans hdeadline)
-  refine ⟨s, B, jointGrowthAt_of_inclusion
-    (fun g x a => V2.D.outputAt E' rho g x a)
-    (fun g => g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed])
-    (· ∈ rho.honest) (V2.D.proposalTime (fgsaInterface p c))
-    (HonestProposal E' rho (fgsaInterface p c)) s B t (t + G' + 6 * p.Δ)
-    hfuture hprop ?_ ?_ ?_⟩
-  · intro g x hg hx
-    exact (hout g hg).2 t _ x ht (ht.trans htD) htD hx
-  · intro g x hg hx
-    exact hserved g hg _ x ⟨hgate, hdeadline⟩ hx
-  · intro g x hg _
-    exact fgsa_output_noFuture_of_slot E' rho hs htzero hfuture hslot.ge g hg x
+  refine ⟨s, B, hfuture, hprop, ?_⟩
+  intro g hg
+  refine ⟨?_, fun x hx => hserved g hg _ x ⟨hgate, hdeadline⟩ hx⟩
+  intro x hx
+  have hc := hproposals ⟨s, B⟩ hstart hprop (hgate.trans hdeadline) g hg t x ht
+    (htD.trans hdeadline) hx
+  have hn := fgsa_output_noFuture_of_slot E' rho hs htzero hfuture hslot.ge g hg x
+  have hb : Block.Preceq (V2.D.outputAt E' rho g x t) B :=
+    (Bool.or_eq_true_iff.mp hc).resolve_right hn
+  have hne : V2.D.outputAt E' rho g x t ≠ B := by
+    intro he; exact hn (he ▸ Gen.Pure.block_preceq_refl B)
+  change (!decide (_ = B) && Block.preceq _ B) = true
+  simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not]
+  exact ⟨hne, hb⟩
 
 end AvailableChain.FGSA.Run
 
@@ -370,6 +382,8 @@ theorem wcg_empty_stateMap_timed (ha : RetainedAgreesThrough₂ p c E source E' 
     {d : Time} {i : Nat} (hi : afterTicksIdx rho d ≤ i) :
     ∃ j, afterTicksIdx source d ≤ j ∧ j ≤ source.events.length ∧
       rho.stateBefore E' i x = source.stateBefore E j x ∧
+      (rho.events.take i).filter (fun e => decide (e.node = x)) =
+        (source.events.take j).filter (fun e => decide (e.node = x)) ∧
       ∀ k e, k < j → source.events[k]? = some e → d < e.time →
         ∃ f ∈ rho.events.take i, e.time ≤ f.time := by
   classical
@@ -382,7 +396,7 @@ theorem wcg_empty_stateMap_timed (ha : RetainedAgreesThrough₂ p c E source E' 
     exact ⟨j, hj, hlen, he⟩
   let j := Nat.find hex
   have hj : P j := Nat.find_spec hex
-  refine ⟨j, hj.1, hj.2.1, wcg_localPrefixReplay ha hr hend.le x hx hj.2.2, ?_⟩
+  refine ⟨j, hj.1, hj.2.1, wcg_localPrefixReplay ha hr hend.le x hx hj.2.2, hj.2.2, ?_⟩
   intro k e hk he htime
   have hjgt : afterTicksIdx source d < j := by
     by_contra hn
@@ -434,14 +448,119 @@ theorem wcg_cut_before_prefix_event (hr : V2.D.ScheduleWellFormed E' rho)
   have hkc : k < afterTicksIdx rho D := hki.trans (Nat.lt_of_not_ge hn)
   exact (not_lt.mpr (wcg_time_before_cut hr he hkc)) ht
 
+/-- A local prefix match preserves a confirmed reader at the earlier source time. -/
+theorem wcg_empty_readerReplay
+    (ha : RetainedAgreesThrough₂ p c E source E' rho)
+    (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
+    (hend : rho.horizon = source.horizon) {i j : Nat} {x : V}
+    (_hi : i ≤ rho.events.length) (hj : j ≤ source.events.length)
+    (hx : confirmedReaderIdx p c E' rho x i)
+    (hl : (rho.events.take i).filter (fun e => decide (e.node = x)) =
+      (source.events.take j).filter (fun e => decide (e.node = x)))
+    (he : rho.stateBefore E' i x = source.stateBefore E j x)
+    (ht : prefixTime source j ≤ prefixTime rho i) :
+    confirmedReaderIdx p c E source x j := by
+  have bounds (r : V2.D.Run V (fgsa p c)) (F : Generic.Env V)
+      (h : V2.D.ScheduleWellFormed F r) (k : Nat) :
+      0 ≤ prefixTime r k ∧ prefixTime r k ≤ r.horizon := by
+    unfold prefixTime
+    cases hf : (r.events.take k).getLast? with
+    | none => simpa only [Option.map_none, Option.getD_none] using ⟨le_rfl, h.horizon_nonneg⟩
+    | some e =>
+      have hm := List.mem_of_getLast? hf
+      simpa only [Option.map_some, Option.getD_some] using
+        h.in_horizon e ((List.take_sublist _ _).subset hm)
+  have htr := (bounds rho E' hr i).2
+  have hts := bounds source E hs j
+  have local_before (e : V2.Event V (fgsa p c).Object) (hn : e.node = x)
+      (hm : e ∈ rho.events.take i) : ∃ k < j, source.events[k]? = some e := by
+    have hf : e ∈ (source.events.take j).filter (fun e => decide (e.node = x)) := by
+      rw [← hl]
+      exact List.mem_filter.mpr ⟨hm, decide_eq_true hn⟩
+    obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp (List.mem_filter.mp hf).1
+    have hkj := lt_of_lt_of_le (List.getElem?_eq_some_iff.mp hk).1
+      (List.length_take_le _ _)
+    exact ⟨k, hkj, by rwa [List.getElem?_take_of_lt hkj] at hk⟩
+  have hW : WakesAppliedAtIdx E source x j (prefixTime source j) := by
+    intro u hu0 hut hu
+    have hwr : V2.D.Wakes E' x u := by
+      exact ⟨(ha.awake x hx.1.1 u (hut.trans hts.2)).trans hu.1,
+        (ha.awake x hx.1.1 (u - 1) (by
+          have hh := hut.trans hts.2
+          simp only [Time] at hh ⊢
+          omega)).trans hu.2⟩
+    obtain ⟨k, hki, hk⟩ := hx.2 u hu0 (hut.trans ht) hwr
+    exact local_before (.restart x u) rfl
+      (List.mem_of_getElem? (by rwa [List.getElem?_take_of_lt hki]))
+  have hst : (storeAt p c E' rho i x).restartTime =
+      (storeAt p c E source j x).restartTime :=
+    congrArg (fun nd : Node p => nd.st.restartTime) he
+  have hcatch := hx.1.2.2
+  change (match (storeAt p c E' rho i x).restartTime with
+    | none => True | some w => _) at hcatch
+  rw [hst] at hcatch
+  have hreader : confirmedReaderAtIdx p c E source x j (prefixTime source j) := by
+    refine ⟨ha.honest hx.1.1, ?_⟩
+    cases hw : (storeAt p c E source j x).restartTime with
+    | none =>
+      refine ⟨?_, by rw [hw]; trivial⟩
+      by_contra hn
+      have hn' : E'.awake x (prefixTime source j) = false := by
+        rw [ha.awake x hx.1.1 _ hts.2]
+        exact Bool.eq_false_iff.mpr hn
+      obtain ⟨u, hju, hui, hu⟩ := V2.D.Engine.wake_between ht hn' hx.1.2.1
+      obtain ⟨k, hki, hk⟩ := hx.2 u (hts.1.trans_lt hju) hui hu
+      obtain ⟨l, hlj, hl⟩ := local_before (.restart x u) rfl
+        (List.mem_of_getElem? (by rwa [List.getElem?_take_of_lt hki]))
+      obtain ⟨w, hw', _⟩ := fgsa_restartTime_ge E source hs hl hlj
+      change (storeAt p c E source j x).restartTime = some w at hw'
+      rw [hw] at hw'
+      cases hw'
+    | some w =>
+      rw [hw] at hcatch
+      obtain ⟨s, k, hws, hgt, hki, hG, hA, hR⟩ := hcatch
+      obtain ⟨l, hlj, hle⟩ := local_before (.tick x (SA.gateTime p.toParams s)) rfl
+        (List.mem_of_getElem? (by
+          rw [List.getElem?_take_of_lt hki]
+          exact hG.1))
+      have hgl := wcg_event_before_prefixTime hs hj hlj hle
+      obtain ⟨q, hq, heq⟩ := wcg_tickSourceReplay ha hs hr hx.1.1
+        (hgt.trans htr |>.trans_eq hend) hG.1
+      have hql : q = l := fgsa_tick_unique E source hs hq hle
+      subst q
+      have hGs : enabledGateAt p c E source l x s := by
+        refine ⟨hle, ?_⟩
+        have hh : (storeAt p c E' rho k x).restartTime =
+            (storeAt p c E source l x).restartTime :=
+          congrArg (fun nd : Node p => nd.st.restartTime) heq
+        change (match (storeAt p c E source l x).restartTime with
+          | none => True | some w => w ≤ slotStartZ p (s : Int))
+        rw [← hh]
+        exact hG.2
+      have hAw : E.awake x (prefixTime source j) = true :=
+        (ha.awake x hx.1.1 _ hts.2).symm.trans (hA _ hts.1
+          (by exact (show slotStartZ p (s : Int) ≤ SA.gateTime p.toParams s by
+            change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+            linarith [p.deltaPos]).trans hgl) ht)
+      refine ⟨hAw, ?_⟩
+      rw [hw]
+      refine ⟨s, l, hws, hgl, hlj, hGs, ?_, ?_⟩
+      · intro u hu0 hsu huj
+        exact (ha.awake x hx.1.1 u (huj.trans hts.2)).symm.trans
+          (hA u hu0 hsu (huj.trans ht))
+      · intro u hsu huj hm
+        exact hR u hsu (huj.trans ht)
+          ((wcg_eventReplay ha (.restart x u) hx.1.1 (huj.trans hts.2)).mpr hm)
+  exact ⟨hreader, hW⟩
+
 /-- Event-index S compatibility, monotonicity, and seed preservation transfer.
 Finality service at two different local source indices is a separate fact. -/
 theorem wcg_empty_stateSafety
     (ha : RetainedAgreesThrough₂ p c E source E' rho)
     (hs : V2.D.ScheduleWellFormed E source) (hr : V2.D.ScheduleWellFormed E' rho)
     (hend : rho.horizon = source.horizon)
-    {d : Time} {Q : Block} {ΔF : Time}
-    (hsafe : SSafeFromCut₂ p c E source (afterTicksIdx source d) Q ΔF) :
+    {d : Time} {Q : Block}
+    (hsafe : WCCachedSafety p c E source (afterTicksIdx source d) Q) :
     Gen.Pure.CompatOn (· ∈ rho.honest) (S_at p c E' rho)
       (fun i => afterTicksIdx rho d ≤ i ∧ i ≤ rho.events.length) ∧
     Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E' rho)
@@ -486,13 +605,19 @@ theorem wcg_empty_live_of_finalBelow
     (hseed : WCSeed p c E source w iSource)
     (hgate : SA.gateTime p.toParams w.u ≤ source.horizon)
     (hlive : WeakContinuationLiveAt₂ p c E source w.u w.QStar iSource ΔF)
+    (hcache : WCCachedSafety p c E source iSource w.QStar)
+    (hcover : ∀ pt : PtSP, w.u + 2 ≤ pt.s →
+      HonestProposal E source (fgsaInterface p c) pt.s pt.P →
+      SA.gateTime p.toParams pt.s ≤ source.horizon →
+      ∃ x ∈ source.honest, Block.Preceq pt.P
+        (V2.D.outputAt E source (fgsaInterface p c).stable x source.horizon))
     (hfinal : ∀ i x y, afterTicksIdx rho (SA.gateTime p.toParams w.u) ≤ i →
-      i ≤ rho.events.length → x ∈ rho.honest → y ∈ rho.honest →
+      i ≤ rho.events.length → x ∈ rho.honest → confirmedReaderIdx p c E' rho y i →
       Block.Preceq (F_at p c E' rho i x) (S_at p c E' rho i y)) :
     WeakContinuationLiveAt₂ p c E' rho w.u w.QStar
       (afterTicksIdx rho (SA.gateTime p.toParams w.u)) ΔF := by
   have hr := hb.valid.toScheduleWellFormed
-  have hsafety := hlive.safety hgate
+  have hsafety := hcache
   have hout := wcg_empty_outputDomain ha hs hr hend hseed hgate hsafety
   have hincl := wcg_empty_inclusion ha hs hr hend hgate hlive
   have hsafety' := hsafety
@@ -503,15 +628,44 @@ theorem wcg_empty_live_of_finalBelow
     intro t ht
     exact (preIdx_le_afterTicksIdx E' rho hr _).2.trans
       (V2.D.Engine.read_length_mono _ _ ht)
-  refine ⟨fun _ => ⟨hc, hm, hserved, hfinal, hout⟩, fun _ => hincl, ?_⟩
+  refine ⟨fun _ => ⟨fun i j x y hii hjj hx hy => hc i j x y hii hjj hx.1.1 hy.1.1,
+    fun i j x hii hjj hij hx _ => hm i j x hii hjj hij hx.1.1,
+    fun i x hii hx => hserved i x hii hx.1.1, hfinal, fun g hg =>
+      ⟨fun t r x y ht hr hx hy => (hout g hg).1 t r x y ht hr hx.1 hy.1,
+        fun t r x ht hr htr hx _ => (hout g hg).2 t r x ht hr htr hx.1⟩⟩, fun _ => hincl, ?_⟩
   intro _ G' hG hrec t ht hdeadline
-  apply wcg_growthOfOutputs hb w.u _ hincl G' hG hrec t ht hdeadline
-  intro g hg
-  refine ⟨?_, ?_⟩
-  · intro t r x y ht hr hx hy
-    exact (hout g hg).1 t r x y (htime t ht) (htime r hr) hx hy
-  · intro t r x ht hr htr hx
-    exact (hout g hg).2 t r x (htime t ht) (htime r hr) htr hx
+  apply wcg_growthOfOutputs hb w.u _ hincl _ G' hG hrec t ht hdeadline
+  · intro g hg
+    refine ⟨?_, ?_⟩
+    · intro t r x y ht hr hx hy
+      exact (hout g hg).1 t r x y (htime t ht) (htime r hr) hx hy
+    · intro t r x ht hr htr hx
+      exact (hout g hg).2 t r x (htime t ht) (htime r hr) htr hx
+  · intro pt hslot hprop hcovered g hg t x ht hth hx
+    have htime : SA.proposalTime p.toParams pt.s ≤ source.horizon := by
+      change 4 * p.Δ * (pt.s : Int) ≤ source.horizon
+      have hh := hcovered.trans_eq hend
+      change 4 * p.Δ * (pt.s : Int) + 6 * p.Δ ≤ source.horizon at hh
+      nlinarith [p.deltaPos]
+    obtain ⟨y, hy, hP⟩ := hcover pt hslot
+      (wcg_proposalSourceReplay ha hs hr hprop htime) (hcovered.trans_eq hend)
+    have hidx (t : Time) (ht : SA.gateTime p.toParams w.u ≤ t) :
+        afterTicksIdx source (SA.gateTime p.toParams w.u) ≤ timeIdx source t :=
+      (preIdx_le_afterTicksIdx E source hs _).2.trans
+        (V2.D.Engine.read_length_mono (rho := source) _ t ht)
+    have hc := (hcache.outputs (fgsaInterface p c).stable (by simp)).1
+      t source.horizon x y (hseed.cut ▸ hidx t ht)
+      (hseed.cut ▸ hidx source.horizon hgate) (ha.honest hx.1) hy
+    change Block.Compatible (V2.D.outputAt E source (fgsaInterface p c).stable x t)
+      (V2.D.outputAt E source (fgsaInterface p c).stable y source.horizon) at hc
+    rw [fgsa_outputAt_eq_S_at E source hs (fgsaInterface p c).stable (by simp) x t] at hc
+    rw [wcg_empty_outputReplay ha hs hr hend g x hx.1 t,
+      fgsa_outputAt_eq_S_at E source hs g hg x t]
+    change Block.compatible _ pt.P = true
+    rw [Gen.Pure.block_compatible_comm]
+    exact Gen.Pure.block_compatible_of_preceq_compatible hP (by
+      simpa only [Block.Compatible, Gen.Pure.block_compatible_comm
+        (V2.D.outputAt E source (fgsaInterface p c).stable y source.horizon)] using hc)
 
 /-- Empty-suffix finality is below every retained output. The source's strict
 finality causality puts service before the matched continuation prefix. -/
@@ -521,6 +675,7 @@ theorem wcg_empty_finalBelow
     (hend : rho.horizon = source.horizon)
     {w : HealingWitness} {iSource : Nat} (hs : WCSeed p c E source w iSource)
     (hinv : ∀ i, iSource ≤ i ∧ i ≤ source.events.length → WCInv p c E source w iSource i)
+    (hcache : WCCachedSafety p c E source iSource w.QStar)
     (hcausal : ∀ i x D X h, HeldAt p c E source i x D → 0 < h →
       (finalityView p D).F = X → (finalityView p D).h_F = h →
       WCFinalityTargetEarlier p c E source i D X h)
@@ -528,20 +683,23 @@ theorem wcg_empty_finalBelow
       w.u < s → gateResultAt p c E source j = some (some B) →
       SA.gateTime p.toParams s + 4 * p.Δ ≤ source.horizon →
       ∀ k y, afterTicksIdx source (SA.gateTime p.toParams s + 4 * p.Δ) ≤ k →
-        k ≤ source.events.length → y ∈ source.honest → Block.Preceq B (S_at p c E source k y)) :
-    ∀ i x y, afterTicksIdx rho (SA.gateTime p.toParams w.u) ≤ i → i ≤ rho.events.length →
-      x ∈ rho.honest → y ∈ rho.honest →
+        k ≤ source.events.length → confirmedReaderIdx p c E source y k →
+        Block.Preceq B (S_at p c E source k y)) :
+    ∀ i x y, afterTicksIdx rho (SA.gateTime p.toParams w.u) ≤ i →
+      i ≤ rho.events.length →
+      x ∈ rho.honest → confirmedReaderIdx p c E' rho y i →
       Block.Preceq (F_at p c E' rho i x) (S_at p c E' rho i y) := by
-  intro i x y hi _ hx hy
-  obtain ⟨j, hj, hjlen, hex, htimed⟩ := wcg_empty_stateMap_timed ha hsch hr hend x hx hi
+  intro i x y hi hilen hx hy
+  obtain ⟨j, hj, hjlen, hex, _hlocal, htimed⟩ := wcg_empty_stateMap_timed ha hsch hr hend x hx hi
   have hj' : iSource ≤ j := hs.cut ▸ hj
   have inv := hinv j ⟨hj', hjlen⟩
   have hservedY : Block.Preceq w.QStar (S_at p c E' rho i y) := by
-    obtain ⟨k, hk, hklen, hey, _⟩ := wcg_empty_stateMap_timed ha hsch hr hend y hy hi
+    obtain ⟨k, hk, hklen, hey, _, _⟩ :=
+      wcg_empty_stateMap_timed ha hsch hr hend y hy.1.1 hi
     have hk' : iSource ≤ k := hs.cut ▸ hk
     change Block.Preceq w.QStar (rho.stateBefore E' i y).st.base.stableRecord
     rw [hey]
-    exact (hinv k ⟨hk', hklen⟩).served k y hk' le_rfl (ha.honest hy)
+    exact hcache.seed k y ⟨hk', hklen⟩ (ha.honest hy.1.1)
   have hmatch : F_at p c E' rho i x = F_at p c E source j x :=
     congrArg (fun st : Node p => eraseFG st.st.fg.F) hex
   rw [hmatch]
@@ -595,10 +753,43 @@ theorem wcg_empty_finalBelow
   obtain ⟨f, hf, hftime⟩ := htimed jf (.tick z (p.actionTime rf)) hjf haf.2.1
     (hdeadline.trans_lt hgap)
   have hcut := wcg_cut_before_prefix_event hr hf (hgap.trans_le hftime)
-  obtain ⟨k, hk, hklen, hey, _⟩ := wcg_empty_stateMap_timed ha hsch hr hend y hy hcut
+  obtain ⟨k, hk, hklen, hey, hlocal, htimedY⟩ :=
+    wcg_empty_stateMap_timed ha hsch hr hend y hy.1.1 hcut
   have hraw := (gateResultAt_eq_gateResult p c E source hsch ht).trans hgate
+  have hprefix : prefixTime source k ≤ prefixTime rho i := by
+    unfold prefixTime
+    cases he : (source.events.take k).getLast? with
+    | none =>
+      simp only [Option.map_none, Option.getD_none]
+      have hnonneg : 0 ≤ f.time := (hr.in_horizon _ ((List.take_sublist _ _).subset hf)).1
+      obtain ⟨l, hl⟩ := List.mem_iff_getElem?.mp hf
+      have hli := lt_of_lt_of_le (List.getElem?_eq_some_iff.mp hl).1
+        (List.length_take_le _ _)
+      have he := hl
+      rw [List.getElem?_take_of_lt hli] at he
+      exact hnonneg.trans (wcg_event_before_prefixTime hr hilen hli he)
+    | some e =>
+      simp only [Option.map_some, Option.getD_some]
+      obtain ⟨l, hl⟩ := List.mem_iff_getElem?.mp (List.mem_of_getLast? he)
+      have hlk := lt_of_lt_of_le (List.getElem?_eq_some_iff.mp hl).1
+        (List.length_take_le _ _)
+      rw [List.getElem?_take_of_lt hlk] at hl
+      by_cases hd : e.time ≤ SA.gateTime p.toParams (rt * p.R) + 4 * p.Δ
+      · obtain ⟨m, hm⟩ := List.mem_iff_getElem?.mp hf
+        have hmi := lt_of_lt_of_le (List.getElem?_eq_some_iff.mp hm).1
+          (List.length_take_le _ _)
+        rw [List.getElem?_take_of_lt hmi] at hm
+        exact hd.trans (hgap.le.trans (hftime.trans
+          (wcg_event_before_prefixTime hr hilen hmi hm)))
+      · obtain ⟨g, hg, heg⟩ := htimedY l e hlk hl (lt_of_not_ge hd)
+        obtain ⟨m, hm⟩ := List.mem_iff_getElem?.mp hg
+        have hmi := lt_of_lt_of_le (List.getElem?_eq_some_iff.mp hm).1
+          (List.length_take_le _ _)
+        rw [List.getElem?_take_of_lt hmi] at hm
+        exact heg.trans (wcg_event_before_prefixTime hr hilen hmi hm)
+  have hreader := wcg_empty_readerReplay ha hsch hr hend hilen hklen hy hlocal hey hprefix
   have hserved := hservice jt v (rt * p.R) B haT.1 hafter ht hlabel hraw hhor
-    k y hk hklen (ha.honest hy)
+    k y hk hklen hreader
   have heS : S_at p c E' rho i y = S_at p c E source k y :=
     congrArg (fun st => st.st.base.stableRecord) hey
   rw [heS]

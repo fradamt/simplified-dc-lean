@@ -22,9 +22,13 @@ theorem atGateEndpoint (pt : PtSP) (hserved : ServedFromGateAt p c E rho pt)
     (hgate : SA.gateTime p.toParams pt.s = rho.horizon)
     (g : V2.D.Output (fgsa p c))
     (hg : g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed])
-    (x : V) (hx : x ∈ rho.honest) :
+    (x : V) (hx : confirmedReader p c E rho x (SA.gateTime p.toParams pt.s)) :
     Block.Preceq pt.P (V2.D.outputAt E rho g x (SA.gateTime p.toParams pt.s)) :=
   hserved g hg _ x ⟨le_rfl, hgate.le⟩ hx
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationInclusion
 end
+
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationInclusion.inclusionContract
+
+#print axioms AvailableChain.FGSA.Run.Tests.WeakContinuationInclusion.atGateEndpoint

@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferReceipts
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSA.Proofs.Head.Transfer -- shake: keep (fgsa_headInTree_covers_of_transfer proof reference)
 
@@ -22,13 +24,13 @@ theorem wc_retrospective : WCRetrospectiveStatement p c E rho ΔF w iStar := by
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-    hscopeRows hfinalHead hs i hi hilen inv x s B hx ht hslabel hB y hy
+    hscopeRows hfinalHead hs i hi hilen inv x s B hx ht hslabel hB y hy hJ
   obtain ⟨C, hC, _, hQC, hord, _, _⟩ := wc_gateResult ΔF w iStar hvalid hlinked hcstar hnr
     hdelta hroots hsync hdeltaF
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
     hscopeRows hfinalHead
-    hs i x s hi hilen inv ht hslabel
+    hs i x s hi hilen inv (wc_gate_enabled_of_result hvalid.toScheduleWellFormed ht hB) hslabel
   have he : C = B := Option.some.inj (Option.some.inj (hC.symm.trans hB))
   subst C
   have hsch := hvalid.toScheduleWellFormed
@@ -44,6 +46,7 @@ theorem wc_retrospective : WCRetrospectiveStatement p c E rho ΔF w iStar := by
     ring
   obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hsch hdelta y hy (4 * (s + 1) + 1)
     (hclock ▸ htime.le.trans (hvalid.in_horizon _ (List.mem_of_getElem? ht)).2)
+    (hclock ▸ hJ.1)
   rw [hclock] at hk
   have hki := V2.D.Engine.eventIndex_lt_of_time_lt hsch hk ht htime
   let src := actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))
@@ -52,7 +55,7 @@ theorem wc_retrospective : WCRetrospectiveStatement p c E rho ΔF w iStar := by
     hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-    hscopeRows hfinalHead hs i k x y s B hi hilen inv ht hslabel hki hk hB hQC hord
+    hscopeRows hfinalHead hs i k x y s B hi hilen inv ht hslabel hki hk hJ hB hQC hord
   have hGST : E.t_GST ≤ SA.voteTime p.toParams s := by
     apply hs.firstVoteAfterGST.trans
     have hh : ((w.u + 1 : Nat) : Int) ≤ s := Int.ofNat_le.mpr (Nat.succ_le_of_lt hslabel)
@@ -78,8 +81,14 @@ theorem wc_retrospective : WCRetrospectiveStatement p c E rho ΔF w iStar := by
       (by rw [clockPre_headDomain]; exact base_headDomain_none p (reachable_stateBefore E rho i x))
       o hKm (resolvedTarget_root _ o hlookup)
     obtain ⟨Kfg, heK, hpath⟩ := hpaths o ho K hhead hBK
-    exact fgsa_cleanSupport_forward_relay E rho hvalid hnr hdelta s hsyncLabel
-      (ix := i) (iy := k) hx hy ht hk o ho seat hseat Kfg (heK ▸ hhead) B
+    exact fgsa_cleanSupport_forward_relay_on E rho hvalid s
+      (ix := i) (iy := k) hx hy ht hk o ho seat hseat (by
+        intro b heq
+        subst o
+        exact wc_relay_transfer_head_scope hvalid hnr hdelta hsync hx hy
+          (wc_gate_enabled_of_result hsch ht hB) hk hJ
+          (hvalid.in_horizon _ (List.mem_of_getElem? ht)).2 hGST seat b ho)
+      Kfg (heK ▸ hhead) B
       (heK ▸ hBK) hpath hFB
   have hraw : SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)).fg.F)
@@ -111,7 +120,9 @@ theorem wc_retrospective : WCRetrospectiveStatement p c E rho ΔF w iStar := by
     (headVotes p dst (s + 1)) (headSupport p dst (s + 1)) B
     (fun _ ho => fgsa_early_subset_late p src s (List.mem_filter.mp ho).1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
-    (fgsa_headVotes_backward_relay E rho hvalid hnr hdelta s hsyncLabel hx hy ht hk)
+    (wc_relay_headVotes_backward hvalid hnr hdelta hsync hx hy
+      (wc_gate_enabled_of_result hsch ht hB) hk hJ
+      (hvalid.in_horizon _ (List.mem_of_getElem? ht)).2 hGST)
     (fgsa_headSupport_subset_headVotes E rho hvalid k y s) hmajority
   rw [Gen.AC.Root.TransferBounds_def] at hcounts
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho k y) _
@@ -156,7 +167,7 @@ theorem wc_retrospective : WCRetrospectiveStatement p c E rho ΔF w iStar := by
       (hpathB Bfg (preceq_refl _)).1 (he ▸ hAB)
     exact (hinv.baseTree A).mpr ⟨Afg, hAfg, heA⟩
   · have hr : WCReceiptOrigins p c E rho k y (storeAt p c E rho k y) :=
-      ⟨fgsa_block_stamp_source E rho k y, fgsa_vote_stamp_source E rho k y⟩
+      wc_receiptOrigins E rho k y
     constructor
     · simpa only [(clock_cumulative p _ _).2.2.1] using hr.blocks
     · simpa only [(clock_cumulative p _ _).2.2.2.1] using hr.votes

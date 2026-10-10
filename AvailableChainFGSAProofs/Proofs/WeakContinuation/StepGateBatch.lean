@@ -88,7 +88,7 @@ private theorem gate_stamps (hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p 
       contradiction
     | some row => rfl
 /-- WC plan §6.5; DC an awake honest HEAD and its path arrive before the early tick. -/
-private theorem gate_active_heads
+theorem wc_gate_active_heads
     (hvalid : V2.D.ExecutionValid E rho) (hR : V2.D.RestartsAtWakes E rho) (hdelta : E.Δ = p.Δ)
     (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (hroots : NamedReceiptRootCollisionFree p c E rho)
@@ -385,7 +385,7 @@ theorem wc_gateBatch [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar : Nat)
   apply fgsa_gate_batch_premises_joined E rho hvalid hcstar i x s B H hb
     (fun k hk ha => (hH k).mpr ⟨hk, ha⟩)
   intro k hk
-  exact gate_active_heads hvalid hnr hdelta hcstar hroots hsync hcumul hG hGST hfinal B hB
+  exact wc_gate_active_heads hvalid hnr hdelta hcstar hroots hsync hcumul hG hGST hfinal B hB
     k ((hH k).mp hk).1 ((hH k).mp hk).2
 
 end AvailableChain.FGSA.Run
