@@ -1,3 +1,13 @@
+# Round 3 status supplement
+
+Base: f5c77257; branch sleep-pas3b. The current non-healing requests are in
+P-As.remaining.md and P-As.blocker-types.md. These supersede the old requests below
+for the touched scope. Full P-As remains OPEN; no healing record is supplied.
+GrowthNonVacuity is GREEN at the recoveryStart endpoint 253, with continuation 254.
+Shared/Claims already builds with the current sleep sets and confirmed-reader types.
+The W1 prefix and later-reader projections pass exact body checks; their full import
+closures remain OPEN. Headers fail on five inherited P-Ar/P-Ou import-all statements.
+
 # P-As Round 2 handoff
 
 Base: 888f6c5e. Branch: sleep-pas2. Full assembly is OPEN.
