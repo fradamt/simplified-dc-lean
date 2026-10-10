@@ -141,6 +141,31 @@ theorem arming_head_ge {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   exact htransfer u z l D _ hu hz hlb hgr hvh
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.1 step 6. Class (iii). DC: INTENTIONAL; `htransfer` at the
+label `l` of `D`: every honest joined label-`(l + 1)` HEAD extends `D`. -/
+theorem arming_head_ge_on {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho) {b₀ : Time}
+    (htransfer : ∀ y z s C H, y ∈ rho.honest → z ∈ rho.honest →
+      joinedAt p E rho z (s + 1) (SA.voteTime p.toParams (s + 1)) →
+      SA.gateTime p.toParams s ≤ b₀ →
+      gateResult p c E rho y s = some (some C) →
+      vHead p c E rho z s = some H → Block.Preceq C H)
+    {l : Slot} {D : Block} (hDmem : (l, D) ∈ cleanResults p c E rho (timeIdx rho b₀))
+    {z : V} (hz : z ∈ rho.honest)
+    (hJoined : joinedAt p E rho z (l + 1) (SA.voteTime p.toParams (l + 1))) {k : Nat}
+    (hk : rho.events[k]? = some (.tick z (SA.voteTime p.toParams (l + 1)))) :
+    Block.Preceq D (headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k z)
+      (SA.voteTime p.toParams (l + 1))).st (l + 1)) := by
+  obtain ⟨_, u, _, hu, _, hlb, _, hgr⟩ := arming_clean_mem hs le_rfl hDmem
+  have hvh := vHead_eq_headAtIdx p c E rho hs hk
+  have hread : headAtIdx p c E rho k (l + 1) = headVote p ((fgsa p c).clock
+      (V2.D.Run.stateBefore E rho k z) (SA.voteTime p.toParams (l + 1))).st (l + 1) := by
+    delta headAtIdx
+    rw [hk]
+  rw [hread] at hvh
+  exact htransfer u z l D _ hu hz hJoined hlb hgr hvh
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Plan O-ARM §4 field 6, §6.2 steps 1–2, §11 obligation 3. Class (iii).
 DC: INTENTIONAL; the last healthy batch at each awake honest receiver, from joined voters.
 The window v(l + 1) < e(l + 1) = d(l) ≤ b₀ is inside the healthy cut. -/
@@ -149,6 +174,7 @@ theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {b₀ : Time}
     (hcut : 0 ≤ b₀ ∧ b₀ ≤ rho.horizon)
     (htransfer : ∀ y z s C H, y ∈ rho.honest → z ∈ rho.honest →
+      joinedAt p E rho z (s + 1) (SA.voteTime p.toParams (s + 1)) →
       SA.gateTime p.toParams s ≤ b₀ →
       gateResult p c E rho y s = some (some C) →
       vHead p c E rho z s = some H → Block.Preceq C H)
@@ -191,7 +217,7 @@ theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (arming_early_nat p (l + 1)) (he.trans hcut.2) hReceiver
   obtain ⟨kk, hkk⟩ := arming_tick_exists hs hDelta hq (4 * (l + 1) + 1)
     (arming_vote_nat p (l + 1)) ((hv.trans_le he).le.trans hcut.2) hJoined.1
-  have hDK := arming_head_ge hs htransfer hDmem hq hkk
+  have hDK := arming_head_ge_on hs htransfer hDmem hq hJoined hkk
   let K := headVote p ((fgsa p c).clock
     (V2.D.Run.stateBefore E rho kk (rho.seatOf (.base (.head (l + 1))) q))
       (SA.voteTime p.toParams (l + 1))).st (l + 1)

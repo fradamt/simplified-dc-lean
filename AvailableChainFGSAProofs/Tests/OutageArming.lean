@@ -122,6 +122,8 @@ theorem asleep_has_no_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.asleep_has_no_tick
 #print axioms AvailableChain.FGSA.Run.arming_tick_exists
 #print axioms AvailableChain.FGSA.Run.arming_block_early
+#print axioms AvailableChain.FGSA.Run.arming_head_ge
+#print axioms AvailableChain.FGSA.Run.arming_head_ge_on
 #print axioms AvailableChain.FGSA.Run.arming_healthy_batch
 #print axioms AvailableChain.FGSA.Run.arming_enabled_of_pass
 #print axioms AvailableChain.FGSA.Run.arming_clean_mem

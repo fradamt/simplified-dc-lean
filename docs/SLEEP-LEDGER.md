@@ -2376,3 +2376,14 @@ three permitted logical axioms. Complete GREEN exports: 262 proof modules /
 253 exports / zero unaccepted. Complete local coverage: 37 entries PASS.
 Layers: 72 inherited / zero new. Kernel PREPARED; full P-Ar and the public
 prefix receipt theorem remain OPEN on the closure inputs listed above.
+
+### P-Ar Round 2 — joined transfer repair
+
+Astra FIX-FIRST item 1: the T25 handoff at this block's first paragraph was
+not prepared at 71fa5c6c. Its transfer premise still covered every honest
+computed vHead read, including an unjoined node that emits no HEAD.
+arming_head_ge_on now restricts transfer to joinedAt at vote(s + 1).
+arming_healthy_batch uses that helper and passes its selected voter's hJoined.
+arming_head_ge remains a separate legacy helper with its old type.
+The T25 receiver and service scopes remain explicit. P-Ou must use the joined
+transfer premise; no all-honest vHead premise is required by the fixed batch.
