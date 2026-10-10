@@ -5,6 +5,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
 public import AvailableChainFGSAProofs.Proofs.Clean.Closure
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 
 public section
 
@@ -87,12 +88,79 @@ theorem handover_rows_consumer {p : Params} {In V : Type} [DecidableEq V]
     ∀ row ∈ (storeAt p c E rho (i + 1) x).base.obligations, Block.Compatible row.1 B :=
   outage_handover_tick_rows hs r B hi hResults
 
+/-- Clean retained provenance supplies the general fast construction at actual joined reads. -/
+theorem joined_provenance_producer {p : Params} {In V : Type} [DecidableEq V]
+    {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hV : V2.D.ExecutionValid E rho) (hdelta : E.Δ = p.Δ) :
+    ArmingJoinedProvenance (c := c) E rho := by
+  intro s i y hy hi hJ
+  have hs := hV.toScheduleWellFormed
+  have hw := arming_joined_window (c := c) hy hJ
+  have ht : SA.proposalTime p.toParams s ≤ SA.voteTime p.toParams (s + 1) := by
+    rw [arming_proposal_eq, arming_vote_eq]; push_cast; linarith [p.deltaPos]
+  obtain ⟨it, hit⟩ := arming_tick_exists hs hdelta hy (4 * s) (arming_proposal_nat p s)
+    (ht.trans (hs.in_horizon _ (List.mem_of_getElem? hi)).2)
+    (hw.awake _ (by rw [arming_proposal_eq]; have := p.deltaPos; positivity) le_rfl ht)
+  exact clean_headVotes_provenance E rho hV i y s hi hJ hit
+
+
+/-- The real Clean and P-Fd producers discharge every pending seed input at any fast cut. -/
+theorem fast_seed_of_clean_history {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
+    {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c true E rho T b₀ b₁ ΔF)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho) {x : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
+    (hne : B ≠ .genesis) :
+    ∃ D Dh, ArmingSleepGateCert p c E rho true T b₀ B
+      (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat) D Dh ∧
+      OutageSourceHistory p c E rho B
+        (afterTicksIdx rho (SA.gateTime p.toParams (coverLabel p b₀))) := by
+  have hh := clean_invariant p c E rho h.sleepPre hq hf hsrc (timeIdx rho b₀) le_rfl
+  have hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i := by
+    intro i hi
+    exact cleanState_of_hist h.sleepPre hq hf hsrc (clean_actionStep p c E rho) hi
+      (clean_invariant p c E rho h.sleepPre hq hf hsrc i hi)
+  have htransfer := (cleanHistoryAt_body p c E rho h.sleepPre hq hf hsrc).2.2.1
+  exact outage_fast_seed_scoped h hf hsrc htsrc hState hh
+    (fun y z s C H hy hz hJ hcut hRes hHead => htransfer y z s C H hy hz hcut hRes hJ hHead)
+    (joined_provenance_producer h.pre.base.valid h.pre.base.delta) hread hne
+
+/-- The exact P-Fd named-source producer closes the general protection and domain seed. -/
+theorem pending_protection_of_source_discipline {p : Params} {In V : Type}
+    [DecidableEq V] [Fintype V] {c : AppCodec In} {E : Generic.Env V}
+    {rho : V2.D.Run V (fgsa p c)} {fast : Bool} {T b₀ ΔF : Time}
+    (h : HealthyPrefixSleep₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
+    (htsrc : TSrc p c E rho) {B : Block} (hne : B ≠ .genesis)
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh)
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon) :
+    ∀ y ∈ coveredNodes p E rho fast b₀,
+      let I := afterTicksIdx rho (SA.gateTime p.toParams (l + 1))
+      let st := storeAt p c E rho I y
+      OutageProtection p B (l + 1) st ∧
+        (Block.Preceq B (F_at p c E rho I y) ∨
+          (∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
+            Block.Preceq B (eraseFG (FGSA.controls p st).Z)) :=
+  outage_arming_protection_scoped h hf htsrc hne hc
+    (fun _ _ _ _ _ ha he => by
+      simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def, hOf]
+        using sourceDiscipline_emittedName p c E rho h.base.valid.toScheduleWellFormed ha he)
+    hgate
+
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.restored_receipt_consumer
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.good_release_consumer
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.handover_expiry_equality
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.pending_seed_consumer
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.pending_seed_of_clean_history
 #print axioms AvailableChain.FGSA.Run.Tests.OutageServices.handover_rows_consumer
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageServices.joined_provenance_producer
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageServices.fast_seed_of_clean_history
+
+#print axioms AvailableChain.FGSA.Run.Tests.OutageServices.pending_protection_of_source_discipline
 
 end AvailableChain.FGSA.Run.Tests.OutageServices
 end

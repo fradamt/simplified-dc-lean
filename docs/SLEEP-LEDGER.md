@@ -5737,3 +5737,28 @@ owned copies to inclusion_receiver_proposer_prior_on and
 inclusion_receiver_scores_on. Update ExactProposalRetained, the local
 strict audit, and the complete coverage fragment. The two bodies and
 all public claims stay unchanged. ArmingScores now compiles.
+
+### P-Ou Round 6 — general pending seed and selected gate service
+
+- ReceiverInputs.outage_arming_sources_scoped proves the all-ticks
+  source history from ArmingSleepGateCert. Pending-time sources use
+  fast support, the strict release bound from joined participation, and
+  an actual honest joined HEAD above D. Sources in W are included.
+- outage_arming_named_scoped converts this seed with P-Fd emitted names.
+  outage_arming_protection_scoped discharges the full P-Ar row boundary
+  and returns protection and domain on coveredNodes.
+- outage_fast_seed_scoped consumes fast_arming_scoped_on. The hLast
+  request is satisfied. OutageServices supplies the actual Clean state,
+  history, transfer, provenance, and P-Fd named-source producers.
+- OutageGateReceiptScope requests only selected HEADs. The restored
+  producer uses actual enabled join, the receiver epoch, and F below B.
+  outageV_gate_of_good_service_scoped keeps the B below F / F below B
+  split. The finalized branch needs no receipt or count premise.
+- outage_restored_result_of_good_targets produces every receiver
+  service from transport and E's actual count. Its conditional good-HEAD
+  target input and current F compatibility remain P-Ou joint obligations.
+- Public claims and protocol declarations are unchanged. Both full
+  scoped joint inductions and InclusionReceiverInputs remain open.
+- ReceiverInputs and RestoredBatch now use public CatchUp imports and
+  its public target-service constructors. Two inherited header findings
+  are removed. Layers: 72 findings, zero new.

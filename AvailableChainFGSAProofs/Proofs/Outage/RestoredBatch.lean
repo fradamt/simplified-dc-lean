@@ -1,5 +1,5 @@
 module
-import all AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
 
 public section
@@ -251,7 +251,7 @@ theorem outage_joined_batch_service {ΔF : Time}
     refine ⟨outage_joined_head_service hBase hSync hx hy hJ hC hCR hhor hGST
       ⟨k, hk, hem⟩, ?_⟩
     by_cases hgen : K = .genesis
-    · exact Or.inl hgen
+    · exact hgen ▸ fgsa_target_service_genesis E rho C x
     have hK : K ∈ (storeAt p c E rho k y).base.blocks := by
       have hm := headVote_stored p _
         (storeBundle_postClock E rho k y (SA.voteTime p.toParams s)).cstore s
@@ -277,9 +277,9 @@ theorem outage_joined_batch_service {ΔF : Time}
         exact not_not.mp hbad
       rw [hc]
       rfl
-    exact Or.inr ⟨q', N, send, hNK,
-      outage_joined_proposal_service hBase hSync hx hy hJ hStart hPub hDeadline
-        hCR hhor (hGST.trans hva) (hsend.trans hva) (Or.inr ⟨j, hacc⟩) hNX⟩
+    exact hNK ▸ fgsa_target_service_of_proposal E rho q' N send C x
+      (outage_joined_proposal_service hBase hSync hx hy hJ hStart hPub hDeadline
+        hCR hhor (hGST.trans hva) (hsend.trans hva) (Or.inr ⟨j, hacc⟩) hNX)
   · intro y o m q N hy he htime hNX hd
     have ho : o = ofWire p ⟨.proposer q, .proposal N⟩ := by
       apply toWire_injective

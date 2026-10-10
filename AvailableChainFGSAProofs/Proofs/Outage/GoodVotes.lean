@@ -164,13 +164,32 @@ theorem outage_pending_head_targets (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   exact ⟨block_preceq_trans hc.max_read hDK,
     block_preceq_trans (outage_pending_frame_below hs hc hx hG) hDK⟩
 
+/-- Receipt services are requested only for the selected honest HEADs at this enabled gate.
+The joint proof supplies their receiver floor; arbitrary HEADs in W are not requested. -/
+structure OutageGateReceiptScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (i : Nat) (x : V) (s : Slot) (H : Finset (Fin p.n)) : Prop where
+  enabled : enabledGateAt p c E rho i x s
+  receiverJoined : joinedAt p E rho x (s + 1) (SA.gateTime p.toParams s)
+  readEpoch : V2.D.restartFree rho x (V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s)) i
+  services : ∀ q ∈ H, ∀ K, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+    HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+      (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+    Nonempty (FreshHeadService E rho s q K.root (SA.earlyTime p.toParams s) x) ∧
+      TargetReceiptService E rho K (SA.earlyTime p.toParams s) x
+
+/-- Restrict a produced full pending batch to the selected seats. This is a scope adapter. -/
+theorem outage_gate_scope_of_shared {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {i : Nat} {x : V} {s : Slot} (h : GateReceiptScope E rho i x s)
+    (H : Finset (Fin p.n)) : OutageGateReceiptScope E rho i x s H :=
+  ⟨h.enabled, h.receiverJoined, h.readEpoch, fun q _ K hy hK => h.services q K hy hK⟩
+
 /-- Selected good voters supply authentic targets and strict receipt stamps
 at the actual gate. The receiver can be in W. The joint invariant must
 supply the target and finality bounds; local receipt service supplies membership. -/
 theorem outage_good_heads_at_gate (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hBase : Base₂ p c E rho) (i : Nat) (x : V) (s : Slot) (B : Block)
-    (hx : x ∈ rho.honest) (hScope : GateReceiptScope E rho i x s)
-    (H : Finset (Fin p.n))
+    (hx : x ∈ rho.honest) (H : Finset (Fin p.n))
+    (hScope : OutageGateReceiptScope E rho i x s H)
     (hSelected : ∀ q ∈ H, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
       joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s))
     (hTargets : ∀ q ∈ H, ∀ K, HeadTargetAtEmission p c E rho
@@ -214,7 +233,7 @@ theorem outage_good_heads_at_gate (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
       (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K :=
     ⟨k, s, q, hk, hem, rfl, rfl⟩
   obtain ⟨hBK, hFK⟩ := hTargets q hq K hTarget
-  obtain ⟨⟨hHead⟩, hBody⟩ := hScope.services q K hy hTarget
+  obtain ⟨⟨hHead⟩, hBody⟩ := hScope.services q hq K hy hTarget
   have hrec := hHead.receipt hBase.valid hx hk hem
   have hblock := fgsa_target_receipt_on E rho hs hBase.receiptIdealization K
     (SA.earlyTime p.toParams s) x hx hBody
@@ -312,8 +331,8 @@ theorem outageV_gate_of_receipts {p : Params} {In V : Type} [DecidableEq V]
 gate count. The opponent bound is supplied by outage_late_opponent_bound. -/
 theorem outageV_gate_of_good_service (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hBase : Base₂ p c E rho) (i : Nat) (x : V) (s : Slot) (B C : Block)
-    (hx : x ∈ rho.honest) (hScope : GateReceiptScope E rho i x s)
-    (H : Finset (Fin p.n)) (a : Nat) (hpart : a < H.card)
+    (hx : x ∈ rho.honest) (H : Finset (Fin p.n))
+    (hScope : OutageGateReceiptScope E rho i x s H) (a : Nat) (hpart : a < H.card)
     (hrest : ((GridCO.seats p.n (GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s)).toFinset
         \ H).card ≤ a)
@@ -328,7 +347,7 @@ theorem outageV_gate_of_good_service (E : Generic.Env V) (rho : V2.D.Run V (fgsa
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s = some C) :
     Block.Compatible C B :=
   outageV_gate_of_receipts E rho hBase.valid i x s B C H a hpart hrest
-    (outage_good_heads_at_gate E rho hBase i x s B hx hScope H hSelected hTargets) hresult
+    (outage_good_heads_at_gate E rho hBase i x s B hx H hScope hSelected hTargets) hresult
 
 /-- A write can only add one of its supplied targets. Old rows can remain
 incompatible; this lemma promises compatibility only for new rows. -/
@@ -488,6 +507,52 @@ theorem outage_good_release_bound [Fintype V] (E : Generic.Env V)
         contradiction
   · intro k _ j _ he
     exact (hC (.base (.head s)) trivial).injective he
+
+/-- Finality coverage suffices at an enabled gate, with no receipt or count input. -/
+theorem outage_finalized_gate_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot} {B C : Block}
+    (hG : enabledGateAt p c E rho i x s) (hBF : Block.Preceq B (F_at p c E rho i x))
+    (hresult : gateResultAt p c E rho i = some (some C)) : Block.Preceq B C := by
+  have hraw := inclusion_gate_raw_at_tick E rho hs hG
+  have hC := Option.some.inj (hraw.symm.trans hresult)
+  have hext := outageV_result_extends_anchor p.toParams.engine
+    (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)))
+    (F_at p c E rho i x) C s (by
+      simpa only [clockPre_fg, F_at, SA.Root.confirmationFrom] using hC)
+  exact Gen.Pure.block_preceq_trans hBF hext
+
+/-- A finalized receiver uses the walk anchor. Otherwise good targets must cover B.
+The count is used only in the F below B branch, at the actual enabled receiver. -/
+theorem outageV_gate_of_good_service_scoped (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hBase : Base₂ p c E rho)
+    (i : Nat) (x : V) (s : Slot) (B C : Block) (hx : x ∈ rho.honest)
+    (hG : enabledGateAt p c E rho i x s)
+    (hFB : Block.Compatible (F_at p c E rho i x) B)
+    (H : Finset (Fin p.n)) (a : Nat) (hpart : a < H.card)
+    (hrest : ((GridCO.seats p.n (GridCO.lateVotes p.toParams.engine
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s)).toFinset
+        \ H).card ≤ a)
+    (hSelected : ∀ q ∈ H, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s))
+    (hScope : Block.Preceq (F_at p c E rho i x) B → OutageGateReceiptScope E rho i x s H)
+    (hTargets : Block.Preceq (F_at p c E rho i x) B → ∀ q ∈ H, ∀ K,
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Block.Preceq B K)
+    (hresult : gateResultAt p c E rho i = some (some C)) : Block.Compatible C B := by
+  have hraw := inclusion_gate_raw_at_tick E rho hBase.valid.toScheduleWellFormed hG
+  have hC := Option.some.inj (hraw.symm.trans hresult)
+  by_cases hBF : Block.Preceq B (F_at p c E rho i x)
+  · exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl C)
+      (outage_finalized_gate_result E rho hBase.valid.toScheduleWellFormed hG hBF hresult)
+  have hlow : Block.Preceq (F_at p c E rho i x) B := by
+    rcases Bool.or_eq_true_iff.mp hFB with h | h
+    · exact h
+    · exact (hBF h).elim
+  exact outageV_gate_of_good_service E rho hBase i x s B C hx H (hScope hlow)
+    a hpart hrest hSelected (fun q hq K hK =>
+      ⟨hTargets hlow q hq K hK, Gen.Pure.block_preceq_trans hlow (hTargets hlow q hq K hK)⟩)
+    hC
 
 end AvailableChain.FGSA.Run
 end

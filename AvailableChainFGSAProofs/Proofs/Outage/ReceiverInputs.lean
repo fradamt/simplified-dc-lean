@@ -1,5 +1,6 @@
 module
-import all AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
 public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
@@ -204,7 +205,7 @@ theorem outage_prefix_batch_service {cut : Time}
     refine ⟨outage_prefix_head_service hBase hDelivery hx hy hJ hC hCR hhor hCut
       ⟨k, hk, hem⟩, ?_⟩
     by_cases hgen : K = .genesis
-    · exact Or.inl hgen
+    · exact hgen ▸ fgsa_target_service_genesis E rho C x
     have hK : K ∈ (storeAt p c E rho k y).base.blocks := by
       have hm := headVote_stored p _
         (storeBundle_postClock E rho k y (SA.voteTime p.toParams s)).cstore s
@@ -230,9 +231,9 @@ theorem outage_prefix_batch_service {cut : Time}
         exact not_not.mp hbad
       rw [hc]
       rfl
-    exact Or.inr ⟨q', N, send, hNK,
-      outage_prefix_proposal_service hBase hDelivery hx hy hJ hStart hPub hDeadline
-        hCR hhor hCut (hsend.trans hva) (Or.inr ⟨j, hacc⟩) hNX⟩
+    exact hNK ▸ fgsa_target_service_of_proposal E rho q' N send C x
+      (outage_prefix_proposal_service hBase hDelivery hx hy hJ hStart hPub hDeadline
+        hCR hhor hCut (hsend.trans hva) (Or.inr ⟨j, hacc⟩) hNX)
   · intro y o m q N hy he htime hNX hd
     have ho : o = ofWire p ⟨.proposer q, .proposal N⟩ := by
       apply toWire_injective
@@ -333,7 +334,7 @@ theorem outage_pending_result_compatible [Fintype V] {fast : Bool} {T b₀ ΔF :
   have hraw := inclusion_gate_raw_at_tick E rho h.base.valid.toScheduleWellFormed hG
   have hresult := Option.some.inj (hraw.symm.trans hC)
   exact outageV_gate_of_good_service E rho h.base i x (l + 1) B C hx
-    (outage_pending_receipt_scope h hc htransfer hx hG) H
+    H (outage_gate_scope_of_shared (outage_pending_receipt_scope h hc htransfer hx hG) H)
     (Gen.V2.Duty.faulty rho).card hbatch.lt hrest
     (fun q hq => (hH q).mp hq)
     (fun q hq K hK => outage_pending_head_targets E rho h.base.valid hc htransfer hx hG
@@ -373,6 +374,319 @@ theorem outage_arming_sources_from_prefix [Fintype V] {fast : Bool} {T b₀ ΔF 
     OutageSourceHistory p c E rho B (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) :=
   outage_arming_sources_on h.base.valid.toScheduleWellFormed hc
     (outage_pending_sources_compatible h htsrc hc htransfer)
+
+/-- A fast source has an honest supporting HEAD when faults are below the release level.
+The stored vote can come from an earlier epoch; its signature still has an emission. -/
+theorem outage_fast_supporting_head [Fintype V]
+    (hBase : Base₂ p c E rho)
+    (hfault : (Gen.V2.Duty.faulty rho).card < SA.releaseThreshold p.toParams)
+    {x : V} {s : Slot} {C : Block} (hfast : fastAt p c E rho x s C) :
+    ∃ q K, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩)
+        (SA.voteTime p.toParams s) K ∧ Block.Preceq C K := by
+  classical
+  obtain ⟨st, hst, hτ⟩ := hfast
+  rw [gateIn_def, preTick_def] at hst
+  cases hi : V2.D.Run.tickIdx? rho x (SA.gateTime p.toParams s) with
+  | none => rw [hi] at hst; cases hst
+  | some i =>
+    rw [hi] at hst
+    have hst := Option.some.inj hst
+    subst st
+    let v := actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))
+    let pool := GridCO.cleanSupport p.toParams.engine v s
+    let seats := (GridCO.seats p.n pool).toFinset.filter
+      (fun k => Gen.AC.Root.poolSupports (GridCO.resolutionTree v) pool k C = true)
+    have hcard : SA.Root.prefixSupport p.toParams v s C = seats.card := by
+      rw [cleanSupport_domain_score, Gen.AC.Root.vote_pool_score_card]
+      apply congrArg Finset.card
+      apply Finset.filter_congr
+      intro k _
+      rw [fgsa_cleanSupport_no_equivocation p v s k, Bool.false_or]
+    have hex : ∃ q o, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+        o ∈ pool ∧ GridCO.headSeat? o = some q ∧
+        Gen.AC.Root.voteSupports (GridCO.resolutionTree v) C o = true := by
+      by_contra hn
+      have hle : seats.card ≤ (Gen.V2.Duty.faulty rho).card := by
+        apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head s)))
+        · intro q hq
+          rw [Gen.V2.Duty.faulty_def]
+          refine Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, ?_⟩
+          intro hh
+          obtain ⟨_, hs⟩ := Finset.mem_filter.mp hq
+          obtain ⟨o, ho, hk, hv⟩ := (Gen.AC.Root.vote_pool_support_witness _ _ q C).mp hs
+          exact hn ⟨q, o, hh, ho, hk, hv⟩
+        · intro q _ k _ he
+          exact (hBase.cstar (.base (.head s)) trivial).injective he
+      exact (not_lt_of_ge (hτ.trans (hcard ▸ hle))) hfault
+    obtain ⟨q, o, hh, ho, hq, hsup⟩ := hex
+    obtain ⟨K, hresolve, hK, _, hCK⟩ := (Gen.AC.Root.vote_support_body _ _ _).mp hsup
+    have hKb : K ∈ (storeAt p c E rho i x).base.blocks := by
+      dsimp only [v] at hK
+      rw [actView_resolutionTree] at hK
+      change K ∈ (clockPre p (storeAt p c E rho i x) _).base.headDomain.getD
+        (clockPre p (storeAt p c E rho i x) _).base.blocks at hK
+      have hd : (storeAt p c E rho i x).base.headDomain = none :=
+        base_headDomain_none p (reachable_stateBefore E rho i x)
+      rw [clockPre_headDomain, hd] at hK
+      simpa only [Option.getD_none, (clockPre_fields p _ _).2.1] using hK
+    obtain ⟨hearly, _⟩ := List.mem_filter.mp ho
+    obtain ⟨hvotes, _⟩ := List.mem_filter.mp hearly
+    obtain ⟨hm, hl⟩ := List.mem_filter.mp hvotes
+    have hlabel : GridCO.headLabel? o = some s := beq_iff_eq.mp hl
+    have hstored : o ∈ (storeAt p c E rho i x).base.votes := by
+      change o ∈ (clockPre p (storeAt p c E rho i x) _).base.votes at hm
+      rwa [(Internal.clockPre_vn _ _).1] at hm
+    have hs := hBase.valid.toScheduleWellFormed
+    have hJ := fgsa_stored_honest_head_joined E rho hBase.valid i x s q o
+      hstored hlabel hq hh
+    have hvhor : SA.voteTime p.toParams s ≤ rho.horizon := by
+      have hgate := (hs.in_horizon _ (List.mem_of_getElem? (V2.D.Run.tickIdx?_spec hi))).2
+      exact (arming_vote_lt_early p s).1.le.trans
+        ((by rw [arming_early_eq, arming_gate_eq]; linarith [p.deltaPos]) :
+          SA.earlyTime p.toParams s ≤ SA.gateTime p.toParams s) |>.trans hgate
+    have hv : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
+      rw [arming_vote_nat]
+    obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hs hBase.delta _ hh
+      (4 * s + 1) (hv ▸ hvhor) (hv ▸ hJ.1)
+    rw [hv] at hj
+    let H := headVote p (clock p (rho.stateBefore E j
+      (rho.seatOf (.base (.head s)) q)).st (SA.voteTime p.toParams s)) s
+    have hem : ofHead p ⟨.seat (.head s) q, H.root⟩ ∈ rho.emitsAt E j := by
+      rw [(V2.D.Run.step_tick_eq E rho hj).2]
+      exact (fgsa_emits_head E rho _ _ _ s q H.root).mpr
+        ⟨hJ.1, rfl, rfl, fgsa_head_joined_of_joinedAt E rho hs hj hJ, rfl⟩
+    have he := fgsa_honest_head_eq_of_stored E rho hBase.valid i x s q H.root
+      (SA.voteTime p.toParams s) hh ⟨j, hj, hem⟩ o hstored hlabel hq
+    rw [he] at hresolve
+    have hroot : K.root = H.root := (Option.some.inj (resolvedTarget_root _ _ hresolve)).symm
+    have hKH := stored_eq_headVote E rho hBase.idealization i x hKb j _
+      (SA.voteTime p.toParams s) s hroot
+    refine ⟨q, K, hh, ?_, hCK⟩
+    rw [hKH]
+    exact ⟨j, s, q, hj, hem, rfl, rfl⟩
+
+/-- The pre-cut joined majority puts the faulty count below the release level. -/
+theorem outage_prefix_fault_lt_release [Fintype V] {b₀ ΔF : Time}
+    (h : HealthyPrefixSleep₂ p c E rho b₀ ΔF) {t : Time} (ht : 0 ≤ t) (hcut : t < b₀) :
+    (Gen.V2.Duty.faulty rho).card < SA.releaseThreshold p.toParams := by
+  classical
+  let seat : Fin p.n → V := rho.seatOf (.base (.head 0))
+  have hn : Fintype.card V = p.n := by
+    rw [← Fintype.card_congr (Equiv.ofBijective seat (h.base.cstar _ trivial)), Fintype.card_fin]
+  have hsub : joinedHonest p E rho t ⊆ rho.honest := fun _ hx => (Finset.mem_filter.mp hx).1
+  have hsum : (Gen.V2.Duty.faulty rho).card + rho.honest.card = p.n := by
+    rw [Gen.V2.Duty.faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _),
+      Finset.card_univ, hn]
+    have hle := Finset.card_le_univ rho.honest
+    rw [hn] at hle
+    omega
+  exact outage_fault_lt_release p (h.joinedPartBefore t ht hcut)
+    ((Finset.card_le_card hsub).trans (by omega))
+
+/-- The general comparison certificate supplies the all-ticks source seed.
+Actions at the pending time use fast support, including honest sources in W. -/
+theorem outage_arming_sources_scoped [Fintype V] {fast : Bool} {T b₀ ΔF : Time}
+    (h : HealthyPrefixSleep₂ p c E rho b₀ ΔF) (htsrc : TSrc p c E rho)
+    {B : Block} {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) :
+    OutageSourceHistory p c E rho B (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) := by
+  constructor
+  intro k y r C hk hy ht hC
+  have hs := h.base.valid.toScheduleWellFormed
+  have htime := arming_tick_le hs ht
+    (hk.trans_le (preIdx_le_afterTicksIdx E rho hs _).2)
+  rcases htime.lt_or_eq with hlt | heq
+  · exact block_compatible_of_common (hc.source_below y r C hy hlt hC) hc.max_read
+  have hrj : r * p.R = l + 1 := Nat.le_antisymm
+    ((arming_gate_le_iff p _ _).mp heq.le) ((arming_gate_le_iff p _ _).mp heq.symm.le)
+  obtain ⟨X, G, _, hCX, _, _, hfast, _⟩ := htsrc y r C hy hC
+  have hv0 : 0 ≤ SA.voteTime p.toParams (l + 1) := by
+    rw [arming_vote_eq]; have := p.deltaPos; positivity
+  have hvcut : SA.voteTime p.toParams (l + 1) < b₀ :=
+    (arming_vote_lt_early p _).1.trans_le
+      ((arming_early_next p l).trans_le hc.gate_le_cut)
+  have hτ := outage_prefix_fault_lt_release h hv0 hvcut
+  rw [hrj] at hfast
+  obtain ⟨z, K, hz, hTarget, hCK⟩ := outage_fast_supporting_head h.base hτ (hfast C hCX)
+  have hTarget' := hTarget
+  obtain ⟨j, _, _, hj, hem, _, _⟩ := hTarget
+  have hK := headTargetAtEmission_at_tick E rho hs hTarget' hj rfl
+  have hDK := hc.joined_heads (rho.seatOf (.base (.head (l + 1))) z) hz
+    (fgsa_joinedAt_of_emitted_head E rho h.base.valid hj hem) j hj
+  change Block.Preceq D (headVote p (clock p (rho.stateBefore E j
+    (rho.seatOf (.base (.head (l + 1))) z)).st (SA.voteTime p.toParams (l + 1)))
+      (l + 1)) at hDK
+  rw [← hK] at hDK
+  exact block_compatible_of_common hCK (block_preceq_trans hc.max_read hDK)
+
+/-- Named honest rows inherit compatibility from the general all-ticks source seed. -/
+theorem outage_arming_named_scoped [Fintype V] {fast : Bool} {T b₀ ΔF : Time}
+    (h : HealthyPrefixSleep₂ p c E rho b₀ ΔF) (htsrc : TSrc p c E rho)
+    {B : Block} {l : Slot} {D : Block} {Dh β : FGBlock (Fin p.n)}
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh) (hβ : eraseFG β = B) :
+    OutageNamedHistory p c E rho β (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) :=
+  outage_named_of_source_history h.base.idealization hβ
+    (outage_arming_sources_scoped h htsrc hc)
+    hnamed
+
+/-- The named seed discharges P-Ar's row boundary and gives scoped protection and domain. -/
+theorem outage_arming_protection_scoped [Fintype V] {fast : Bool} {T b₀ ΔF : Time}
+    (h : HealthyPrefixSleep₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
+    (htsrc : TSrc p c E rho) {B : Block} (hne : B ≠ .genesis)
+    {l : Slot} {D : Block} {Dh : FGBlock (Fin p.n)}
+    (hc : ArmingSleepGateCert p c E rho fast T b₀ B l D Dh)
+    (hnamed : ∀ k x r (a : RowWire p.n) e,
+      HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon) :
+    ∀ y ∈ coveredNodes p E rho fast b₀,
+      let I := afterTicksIdx rho (SA.gateTime p.toParams (l + 1))
+      let st := storeAt p c E rho I y
+      OutageProtection p B (l + 1) st ∧
+        (Block.Preceq B (F_at p c E rho I y) ∨
+          (∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
+            Block.Preceq B (eraseFG (FGSA.controls p st).Z)) := by
+  have hRows : ∀ y r (a : RowWire p.n) (e Bh : FGBlock (Fin p.n)), eraseFG Bh = B →
+      HonestRowBefore p c E rho (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) y r a →
+      namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+      RootBlockInRun p c E rho (eraseFG e) → FGBlock.Preceq e Bh ∨ FGBlock.Preceq Bh e := by
+    intro y r a e Bh hBh ha he hScope
+    exact (outage_arming_named_scoped h htsrc hnamed hc hBh).history y r a e ha he hScope
+  intro y hy I st
+  obtain ⟨hS, hF | ⟨_, _, dl, hlease, _, hlong, hdom⟩⟩ :=
+    pending_gate_lease_or_F_scoped_on h.base.valid h.base.delta hf hne hc hgate hRows y hy
+  · exact ⟨⟨hS, Or.inl hF⟩, Or.inl hF⟩
+  exact ⟨⟨hS, Or.inr ⟨dl, outage_row_of_lease p st
+    (cstoreInv_stateBefore E rho I y) hlease, hlong⟩⟩, Or.inr hdom⟩
+
+/-- Consume the equal-cut fast producer with the actual Clean induction and provenance.
+No last-label result, pending-source premise, or named-row premise is required. -/
+theorem outage_fast_seed_scoped [Fintype V] {T b₀ b₁ ΔF : Time}
+    (h : OutageSleep₂ p c true E rho T b₀ b₁ ΔF)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (htsrc : TSrc p c E rho)
+    (hState : ∀ i, i ≤ timeIdx rho b₀ → CleanState p c E rho i)
+    (hHist : CleanHist p c E rho (timeIdx rho b₀))
+    (htransfer : ∀ y z s C H, y ∈ rho.honest → z ∈ rho.honest →
+      joinedAt p E rho z (s + 1) (SA.voteTime p.toParams (s + 1)) →
+      SA.gateTime p.toParams s ≤ b₀ → gateResult p c E rho y s = some (some C) →
+      vHead p c E rho z s = some H → Block.Preceq C H)
+    (hprov : ArmingJoinedProvenance (c := c) E rho) {x : V} {B : Block}
+    (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x T))
+    (hne : B ≠ .genesis) :
+    ∃ D Dh, ArmingSleepGateCert p c E rho true T b₀ B
+      (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat) D Dh ∧
+      OutageSourceHistory p c E rho B
+        (afterTicksIdx rho (SA.gateTime p.toParams (coverLabel p b₀))) := by
+  obtain ⟨D, Dh, hc⟩ := fast_arming_scoped_on h hf hsrc htsrc hState hHist
+    htransfer hprov hread hne
+  refine ⟨D, Dh, hc, ?_⟩
+  rw [hc.cover_label]
+  exact outage_arming_sources_scoped h.sleepPre htsrc hc
+
+/-- Restored transport produces service only for the selected admissible HEADs.
+The receiver can be in W. Its actual enabled gate supplies join and the read epoch. -/
+theorem outage_restored_good_scope {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hf : FGFoundation p c E rho) {i : Nat} {x : V} {s : Slot} {B : Block}
+    (hx : x ∈ rho.honest) (hG : enabledGateAt p c E rho i x s)
+    (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hlow : Block.Preceq (F_at p c E rho i x) B) (H : Finset (Fin p.n))
+    (hTargets : ∀ q ∈ H, ∀ K, HeadTargetAtEmission p c E rho
+      (rho.seatOf (.base (.head s)) q) (ofHead p ⟨.seat (.head s) q, K.root⟩)
+        (SA.voteTime p.toParams s) K → Block.Preceq B K) :
+    OutageGateReceiptScope E rho i x s H := by
+  have hs := hBase.valid.toScheduleWellFormed
+  have hJ := outage_enabled_gate_joined hBase.valid hx hG
+  have heg : SA.earlyTime p.toParams s < SA.gateTime p.toParams s := by
+    rw [arming_early_eq, arming_gate_eq]; linarith [p.deltaPos]
+  have hhor := (hs.in_horizon _ (List.mem_of_getElem? hG.1)).2
+  have hid : rho.idxBefore (SA.earlyTime p.toParams s) ≤ i := by
+    by_contra hn
+    exact (not_lt_of_ge heg.le)
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hs hG.1 _).mp (lt_of_not_ge hn))
+  have hFloor : Block.Preceq (eraseFG (rho.stateBeforeTime E
+      (SA.earlyTime p.toParams s) x).st.fg.F) B := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
+    exact Gen.Pure.block_preceq_trans (eraseFG_preceq (hf.mono _ _ x hx hid).1) hlow
+  have hPub : V2.PublicTime E (SA.voteTime p.toParams s) := by
+    refine ⟨4 * s + 1, ?_⟩
+    rw [hBase.delta, arming_vote_nat]
+  have hBatch := outage_joined_batch_service hBase hSync hx hJ le_rfl heg.le
+    (heg.le.trans hhor) hGST le_rfl hPub (arming_vote_add p s)
+  refine ⟨hG, hJ, outage_enabled_gate_read_epoch hs hG ?_, ?_⟩
+  · change 4 * p.Δ * (s : Int) < 4 * p.Δ * (s : Int) + 2 * p.Δ
+    linarith [p.deltaPos]
+  · intro q hq K hy hTarget
+    have hTargetKeep := hTarget
+    obtain ⟨k, _, _, hk, hem, _, _⟩ := hTarget
+    obtain ⟨K', hTarget', hbad | hService⟩ := hBatch.heads _ _ q K.root hy
+      ⟨k, hk, hem⟩ (by rw [toWire_ofHead]; rfl)
+    all_goals have heq : K = K' := headTargetAtEmission_unique E rho hs hTargetKeep hTarget'
+    · exact (hbad (heq ▸ Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K)
+        (Gen.Pure.block_preceq_trans hFloor (hTargets q hq K hTargetKeep)))).elim
+    · simpa only [← heq] using hService
+
+/-- Restored results use the actual E count and selected good-target history.
+All receiver services are produced here. The remaining input is the joint HEAD invariant. -/
+theorem outage_restored_result_of_good_targets [Fintype V] {ΔF : Time}
+    (hBase : Base₂ p c E rho)
+    (hSync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hf : FGFoundation p c E rho) {fast : Bool} {b₀ b₁ : Time} {r s : Slot}
+    (hr : FirstRestored p b₁ r)
+    (hGST : E.t_GST ≤ b₁)
+    (hrs : r ≤ s)
+    (hCount : (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r).card <
+      (outageH p E rho s \ outageW p E rho fast b₀ r).card)
+    {i : Nat} {x : V} {B C : Block} (hx : x ∈ rho.honest)
+    (hG : enabledGateAt p c E rho i x s)
+    (hFB : Block.Compatible (F_at p c E rho i x) B)
+    (hTargets : Block.Preceq (F_at p c E rho i x) B →
+      ∀ q K, rho.seatOf (.base (.head s)) q ∈
+        outageH p E rho s \ outageW p E rho fast b₀ r →
+      HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K →
+      Block.Preceq B K)
+    (hresult : gateResultAt p c E rho i = some (some C)) : Block.Compatible C B := by
+  classical
+  obtain ⟨H, hH, hCard⟩ := outage_good_seats E rho hBase.cstar fast b₀ r s
+  have hSelected : ∀ q ∈ H, rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+      joinedAt p E rho (rho.seatOf (.base (.head s)) q) s (SA.voteTime p.toParams s) := by
+    intro q hq
+    have hm := (Finset.mem_sdiff.mp ((hH q).mp hq)).1
+    have hslot : slotAt p (SA.voteTime p.toParams s) = s :=
+      slotOf_offset p s p.Δ p.deltaPos.le
+        (by have := p.deltaPos; dsimp [Time] at *; omega)
+    change _ ∈ rho.honest.filter
+      (fun y => joinedAt p E rho y (slotAt p (SA.voteTime p.toParams s))
+        (SA.voteTime p.toParams s)) at hm
+    rw [hslot] at hm
+    exact Finset.mem_filter.mp hm
+  have hpart := hCard.symm ▸ hCount
+  have hrest := outage_late_opponent_bound E rho hBase.valid hBase.cstar
+    i x s fast b₀ r H hH
+  have hcut := hGST.trans ((hr s).mpr hrs)
+  apply outageV_gate_of_good_service_scoped E rho hBase i x s B C hx hG hFB H
+    (Gen.V2.Duty.faulty rho ∪ outageW p E rho fast b₀ r).card hpart hrest hSelected
+  · intro hlow
+    exact outage_restored_good_scope hBase hSync hf hx hG hcut hlow H
+      (fun q hq K hK => hTargets hlow q K ((hH q).mp hq) hK)
+  · exact fun hlow q hq K hK => hTargets hlow q K ((hH q).mp hq) hK
+  · exact hresult
 
 end AvailableChain.FGSA.Run
 end

@@ -186,3 +186,17 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
 #print axioms AvailableChain.FGSA.Run.outage_clockPre_expired_rows
 #print axioms AvailableChain.FGSA.Run.outage_handover_rows_compatible
 #print axioms AvailableChain.FGSA.Run.outage_handover_tick_rows
+
+#print axioms AvailableChain.FGSA.Run.outageV_result_extends_anchor
+#print axioms AvailableChain.FGSA.Run.OutageGateReceiptScope
+#print axioms AvailableChain.FGSA.Run.outage_gate_scope_of_shared
+#print axioms AvailableChain.FGSA.Run.outage_finalized_gate_result
+#print axioms AvailableChain.FGSA.Run.outageV_gate_of_good_service_scoped
+#print axioms AvailableChain.FGSA.Run.outage_fast_supporting_head
+#print axioms AvailableChain.FGSA.Run.outage_prefix_fault_lt_release
+#print axioms AvailableChain.FGSA.Run.outage_arming_sources_scoped
+#print axioms AvailableChain.FGSA.Run.outage_arming_named_scoped
+#print axioms AvailableChain.FGSA.Run.outage_arming_protection_scoped
+#print axioms AvailableChain.FGSA.Run.outage_fast_seed_scoped
+#print axioms AvailableChain.FGSA.Run.outage_restored_good_scope
+#print axioms AvailableChain.FGSA.Run.outage_restored_result_of_good_targets
