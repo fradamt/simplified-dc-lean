@@ -207,5 +207,20 @@ theorem healing_proposal_phase_reader_floor (hvalid : V2.D.ExecutionValid E rho)
   | genesis => exact Gen.Pure.block_preceq_refl _
   | node P s root body => exact Bool.or_eq_true_iff.mpr (Or.inr (Gen.Pure.block_preceq_refl P))
 
+omit [Fintype V] in
+/-- A selected high witness remains at its source while the receiver's F can move.
+The receiver cap and its current certificate establish the floor before receipt. -/
+theorem healing_capped_witness_reader_floor (crossing : RXing p c E rho)
+    {i j : Nat} {x y : V} {W : FGBlock (Fin p.n)}
+    (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) (hij : i ≤ j)
+    (hW : W ∈ (storeAt p c E rho i x).fg.TF)
+    (hcap : (storeAt p c E rho j y).fg.h_max ≤ (heightView p W).h) :
+    FGBlock.Preceq (storeAt p c E rho j y).fg.F W := by
+  have hW' := (fgsa_store_durable p c E rho hij x).1 hW
+  obtain ⟨K, hK, hKF⟩ := (storeBundle_stateBefore E rho j y).cstore.fg.Fcar
+  have hlt := (healing_phase_finality_le p c E rho hK hKF).trans_lt
+    ((healing_phase_justified_lt p c E rho j y).trans_le hcap)
+  exact crossing j j y x K W hy le_rfl hK hKF ⟨hx, hW'⟩ hlt
+
 end AvailableChain.FGSA.Run
 end

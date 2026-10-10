@@ -82,3 +82,5 @@ end AvailableChain.FGSA.Run.Tests.HealingH2JoinedStart
 #print axioms AvailableChain.FGSA.Run.Tests.HealingH2JoinedStart.old_source_1001
 #print axioms AvailableChain.FGSA.Run.Tests.HealingH2JoinedStart.split_source
 #print axioms AvailableChain.FGSA.Run.Tests.HealingH2JoinedStart.before_start
+
+#print axioms AvailableChain.FGSA.Run.healing_capped_witness_reader_floor
