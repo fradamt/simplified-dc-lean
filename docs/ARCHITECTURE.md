@@ -958,3 +958,5 @@ The change record gives complete source statements, change commits, and review s
 Ruling Z permits the proved partial Spec construction to land. The full independent
 source interpreter, matched-cut equivalence, and claim transfer remain open.
 Ruling Y and the WP12d Spec move are pending on this source base.
+
+P-H2 sleep helper boundary: OpeningGateRead supplies enabled/joined fast-write facts and gate geometry. OpeningTicks supplies awake vote/action ticks. RecoveryScope and ResetScope supply durable content, local action/read epochs and exact recovery cutoffs. ReleaseScope supplies expiry membership. OpeningGateSupport uses joined release counts and GateReceiptScope; its reset adapter keeps per-object services explicit. RecoveryService builds proposal and target service from accepted objects, their original anchors and receiver epochs. These helpers do not replace retained HEAD replay history or original proposal emission. HealingOpeningSupport keeps its six audits in its own module, with no test-to-test import. The serial production audit fragment imports only production modules.

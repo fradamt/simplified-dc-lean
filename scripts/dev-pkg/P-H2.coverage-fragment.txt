@@ -51,6 +51,8 @@
             'AvailableChain.FGSA.Run.healing_reset_vote_cutoff',
             'AvailableChain.FGSA.Run.healing_vote_joined_of_recovery',
         ),
+    },
+    'AvailableChainFGSAProofs.Tests.HealingOpeningSupport': {
         'AvailableChainFGSAProofs.Tests.HealingOpeningSupport': (
             'AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.genesis_coverage',
             'AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.no_head_emission',

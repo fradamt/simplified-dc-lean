@@ -5302,3 +5302,7 @@ consumers use the same exact read epochs and object services. High-source same-l
 compatibility uses SameLabelServiceScope. The old-row height set is cut at
 recoveryStart on this base; recoveryStart ≥ GST supplies the original GST conclusion.
 No public Claims statement changed. Remaining reset and descent callers need these inputs.
+
+### P-H2 Round 3 — audit fragment repair (sleep-ph2c, 2026-10-10)
+
+The serial production fragment imports production modules only. The six HealingOpeningSupport regression audits stay in their own module; the coverage fragment registers that owner as its audit root. All 41 declarations remain in scope. Layers: 72 inherited, zero new. No allowance or public claim change. Exact supplier contracts are in claude-files/sleep-ph2c/exact-handoff.md; source contracts do not claim closure.

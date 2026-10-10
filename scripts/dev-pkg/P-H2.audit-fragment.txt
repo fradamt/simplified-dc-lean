@@ -6,7 +6,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
-public import AvailableChainFGSAProofs.Tests.HealingOpeningSupport
 
 #print axioms AvailableChain.FGSA.Run.healing_enabledGate_of_fastWrite
 #print axioms AvailableChain.FGSA.Run.healing_fastWrite_joined
@@ -52,14 +51,5 @@ public import AvailableChainFGSAProofs.Tests.HealingOpeningSupport
 
 #print axioms AvailableChain.FGSA.Run.healing_ready_vote_cutoff
 
-#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.valid
-
-#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.schedule
-
-#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.wake_at_vote
-
-#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.genesis_coverage
-
-#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.no_joined_voter
-
-#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.no_head_emission
+# The six regression commands stay in Tests/HealingOpeningSupport.lean.
+# Register that module through the existing test glob; do not import it here.
