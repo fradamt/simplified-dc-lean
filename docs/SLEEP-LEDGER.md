@@ -6987,3 +6987,37 @@ fail at legacy ports. P-Ou is PREPARED; the complete Round 11 task is incomplete
 No public claim, protocol declaration or healing file changed. No public STOP.
 
 - Lead 2026-10-10 17:24: merged sleep-pou11 1b245e9e (P-Ou rounds 9-11) as PREPARED. Reviews rev-pou9/10/11-astra: proofs pass; rev-pou10 items 1-2 fixed. CORRECTION (rev-pou11 item 1): scripts/dev-pkg/P-Ou.round11-handoff.md:285 and the round 11 report claim every remaining contract elaborates in OpenTypes.lean; the saved log shows the O11-OUTAGE check FAILED (missing Claims imports; unknown FCompatBefore, LeaseOrFFrom). The six continuation goal types did elaborate. P-Ou r12 corrects the handoff.
+### P-Ou Round 12 — finite early cuts and scoped outage protection
+
+Base 1b245e9e; branch sleep-pou12. Proof commits: 88a2634c, 696b63f6,
+a0d5801e and 41483e69. P-Ou remains PREPARED; the complete task is incomplete.
+
+ScopedEarly proves O11-EARLY-READ/HEAD/F/DUTY at current finite cuts, including
+runs whose restored seed lies after the horizon. Its early read takes the actual
+CleanHist and enabled gate-output facts produced by P-Cl1. ScopedClose proves
+O11-OUTAGE's protected-B result under OutagePrem, with no continuation premise.
+It also produces joined duty provenance, the actual protected FG lift and a
+certificate when G is empty. These inputs retain sleep and actual read scopes.
+
+ScopedCatchUp proves O11-W-READ from S at j+1 through the inclusive timeIdx(t).
+Its complete HEAD/F consumers use the early proofs and ScopedBridge's global
+scoped HEAD/state producers. Its complete read consumer takes exactly the open
+O11-W-SEED goal. Raw result compatibility does not supply that stable seed.
+No new all-honest stable, NoRestart, pre-GST service or prior-label join input is added.
+
+O11-W-SEED and complete public assembly remain P-Ou. The six P-Ou modules remain
+EXPECTED-FAIL. Both complete exporters were built and fail at legacy ports in
+Close and ContinuationInduction. The handoff states O12-PUBLIC-CONT and
+O12-PUBLIC-OUTAGE with their exact unchanged types and caller contexts.
+GrowthSuppliers remains visible through Outage/Export for P-As.
+
+DCK PASS: 44 strict sources, 3,313 results, all 24 controls PASS.
+Map: 62 targets, 523 GREEN, eight EXPECTED-FAIL (six P-Ou, two S-Ap).
+Headers PASS; layers zero new. Exports: 342 proof modules, 253 exports, zero
+unaccepted. Local coverage: 349 commands, zero unaccepted. Serial production
+audit: 313 standard-axiom results. Exact original solved contracts are proved in
+.lake/sleep-pou-r12/Contracts.lean. No protocol, public claim or Healing change.
+Handoff: scripts/dev-pkg/P-Ou.round12-handoff.md, with the current scope table.
+Report: claude-files/sleep-pou-report.md, Round 12. No public STOP.
+
+- Lead 2026-10-10 17:59: merged sleep-pou12 de637290 (P-Ou r12) as PREPARED. rev-pou12-astra: proofs pass; open record items (round 13): finish the round 11 validation-record correction; architecture note for the new Scoped* modules and boundary. Open proofs: W-SEED, both public exporters.

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
 public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
 public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
