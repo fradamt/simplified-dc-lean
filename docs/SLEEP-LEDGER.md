@@ -5571,3 +5571,21 @@ field. H2's new hBatches sites are PostResetRawStep:897,
 PostResetLeaseStep:1577 and Tests/HealingPostResetRawStep:263. Exact contract:
 scripts/dev-pkg/P-H1.round4-handoff.md. Aggregate producer rows H1e-P1..P10 stay
 OPEN/P-H1. The audit fragment now has 349 exact production commands/owner rows.
+
+P-H1 Round 4 final validation, source a58f6c2d: DCK PASS 202.52 s; 99 assigned
+GREEN targets; 569 total GREEN; zero EXPECTED-FAIL. Strict audits: 42 sources,
+3,685 results, only propext/Classical.choice/Quot.sound; 24 controls PASS.
+Complete GREEN exports PASS 7.27 s: 363 proof modules, 253 exports, zero
+unaccepted. Complete local coverage PASS 8.77 s: 349 exact commands/owner rows,
+225 modules, 252 exports, zero unaccepted. Layers: 72 inherited, zero new.
+Changed module headers PASS for all 27 Lean files. Full headers remain blocked
+by inherited P-Ar ArmingKernel:2,3; no other package file or allowance changed.
+Default global export scan also needs the unbuilt Inhabit.WeakContinuationW1;
+the complete GREEN/local checks use explicit --roots-only scopes. No public edit.
+Exact H2 omitted-site handoff and new guard/monotonicity inputs:
+scripts/dev-pkg/P-H1.round4-handoff.md. These are consumers, not scope producers.
+Status remains PREPARED: H1e-P1..P10 are OPEN/P-H1, pending a producer or explicit
+lead acceptance as assembly work. The concrete positive relay uses genesis;
+it does not close non-genesis object-service or aggregate recovery obligations.
+Evidence: .lake/sleep-ph1-round4/{dck,exports,coverage}-complete.log;
+layers-complete.log, headers-complete.log and own-headers.log.
